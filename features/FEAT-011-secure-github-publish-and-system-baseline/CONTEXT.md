@@ -1,6 +1,6 @@
 # FEAT-011 secure GitHub publish and system baseline
 
-- Status: APPROVED
+- Status: DONE
 - Owner: project owner
 - Goal: finalize remaining identity ownership decisions, create one detailed current-system document, and securely publish the foundation to the owner's GitHub repository.
 - Scope: context/ADR updates, system baseline document, repository security audit, ignore/secret/signing-key hardening, validation, initial commit, remote configuration, and push to `https://github.com/CaoDat-2410/Sketch2Life.git`.

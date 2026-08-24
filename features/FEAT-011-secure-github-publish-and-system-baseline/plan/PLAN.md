@@ -1,8 +1,8 @@
 # FEAT-011 plan
 
-- Status: APPROVED
+- Status: DONE
 - Plan revision: 1
-- Implementation status: IN_PROGRESS
+- Implementation status: DONE
 
 ## Goal
 
@@ -33,7 +33,7 @@ Publish a clean, auditable foundation repository and provide a detailed single-d
 - [x] Absolute machine paths are removed from publishable context/evidence.
 - [x] Harness, architecture, TypeScript, Python, tests, lint, and security scans pass.
 - [x] Remote URL is exact and remote history is inspected before push.
-- [ ] `main` is pushed without force and commit evidence is recorded.
+- [x] `main` is pushed without force and commit evidence is recorded.
 
 ## Risks and mitigations
 

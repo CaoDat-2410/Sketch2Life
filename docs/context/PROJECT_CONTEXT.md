@@ -6,9 +6,9 @@ Sketch2Life is a capstone product concept that turns a child's drawing and narra
 
 ## Current phase
 
-`AUTH_RELEASE_AI_STRATEGY_READY`
+`FOUNDATION_PUBLISHED`
 
-The workspace harness is established. Product code must not be started until the feature plan and the relevant task approval are recorded.
+The workspace harness and approved architecture skeleton are established and securely published to the project repository. Product feature code must not be started until that feature's plan and relevant task approval are recorded.
 
 ## Confirmed from the user's request
 
