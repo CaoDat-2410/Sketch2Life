@@ -1,13 +1,13 @@
 # FEAT-003 Multimodal understanding plan
 
 - Status: AWAITING_APPROVAL
-- Plan revision: 1
+- Plan revision: 2
 - Implementation status: NOT_STARTED
 - Owner: Person 2
 
 ## Scope
 
-Image/audio quality checks, normalization working copies, Whisper adapter, Qwen3-VL adapter, fusion/alignment, uncertainty/conflict output, Lightning AI job boundary, and fixture evaluation report.
+Image/audio validation, normalization working copies, provider-neutral Whisper/VLM adapters, fusion/alignment, uncertainty/conflict output, versioned `RawUnderstandingResult`, standalone fixture runner, and Lightning/Runpod benchmark report. Integrated session/job and Gate A behavior are excluded.
 
 ## Acceptance criteria
 
@@ -16,12 +16,13 @@ Image/audio quality checks, normalization working copies, Whisper adapter, Qwen3
 - [ ] Real model outputs validate against versioned schemas.
 - [ ] Conflicting modalities remain visible with source support and uncertainty.
 - [ ] Fixture evaluation records schema pass rate, speech quality, entity/action accuracy, and latency.
-- [ ] Stale/failed GPU jobs cannot mutate a newer session version.
+- [ ] Timeout/provider-failure fixtures produce typed standalone errors and never overwrite source artifacts.
+- [ ] The runner and contract tests execute without mobile, backend API, database, or another Sprint 1 workstream.
 
-## Handoffs
+## Sprint 1 output contract
 
-- To Person 1: CanonicalUnderstandingResult fixture and learning-context fields.
-- To Person 3: Gate A review payload.
-- To Person 4: async job/output artifact contract.
+- Versioned media fixture manifest and `RawUnderstandingResult` schema.
+- Provenance, validation, uncertainty, and provider-failure fixtures.
+- Integration compatibility note for future job orchestration and Gate A.
 
 Implementation is blocked until this plan is approved.

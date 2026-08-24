@@ -11,6 +11,7 @@
     "check:skeleton": "python tools/validate_skeleton.py",
     "check:architecture": "python tools/validate_architecture.py",
     "check:security": "python tools/validate_repository_security.py",
+    "check:team": "python tools/validate_team_allocation.py",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test"
   }

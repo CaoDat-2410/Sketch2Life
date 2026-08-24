@@ -7,8 +7,8 @@
 3. Use a Python/FastAPI modular monolith with workers for orchestration and contracts.
 4. Keep PostgreSQL, S3-compatible storage, Redis/RQ, and Docker provider-agnostic for development and later AWS deployment.
 5. Run real AI models on Lightning AI, but execute development/evaluation only against fixtures/synthetic data.
-6. Split MVP ownership into four workstreams with shared integration checkpoints.
+6. Split Sprint 1 into four independently runnable fixture/contract workstreams. Plan and allocate runtime integration in a separate sprint; see ADR-0006.
 
 ## Decision pending
 
-The project owner must approve or revise the plan before implementation begins.
+The project owner revised the allocation through FEAT-012. Product implementation remains blocked until each revised workstream plan receives explicit task approval.

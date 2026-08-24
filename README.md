@@ -26,6 +26,7 @@ This repository starts with a delivery harness before product code. The harness 
 - `python tools/validate_harness.py`
 - `python tools/validate_skeleton.py`
 - `python tools/validate_architecture.py`
+- `python tools/validate_team_allocation.py`
 - `python tools/validate_repository_security.py`
 - `docker compose up -d`
 

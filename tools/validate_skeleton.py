@@ -32,6 +32,7 @@ REQUIRED = [
     "docs/setup/LOCAL_DEVELOPMENT.md",
     "docs/SYSTEM_BASELINE.md",
     "tools/validate_repository_security.py",
+    "tools/validate_team_allocation.py",
 ]
 
 

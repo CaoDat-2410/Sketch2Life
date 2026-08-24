@@ -1,26 +1,26 @@
 # FEAT-002 Montessori domain plan
 
 - Status: AWAITING_APPROVAL
-- Plan revision: 1
+- Plan revision: 2
 - Implementation status: NOT_STARTED
 - Owner: Person 1
 
 ## Scope
 
-Activity catalog, learning objectives, prerequisites, safety/material rules, deterministic filtering/ranking inputs, Gate B acceptance contract, ActivityHandoff, and fixture/evaluation pack.
+Montessori domain analysis, versioned Activity Catalog, Learning Objective taxonomy, prerequisite/safety/material rule specifications, deterministic expected-result fixture harness, and acceptance criteria. Recommendation runtime and Gate B implementation are excluded.
 
 ## Acceptance criteria
 
 - [ ] Versioned activity/objective schemas exist.
 - [ ] Positive and negative fixtures cover age, prerequisite, safety, material, and no-result cases.
-- [ ] Any model selector can only receive valid candidates.
-- [ ] Gate B approve/alternative/reject/stale-version behavior is specified and tested.
-- [ ] ActivityHandoff contains materials, setup, steps, safety, CTA, and screen-exit policy.
+- [ ] Fixture expectations identify which candidates are valid/invalid and why, without requiring a recommendation service.
+- [ ] Acceptance criteria specify the future recommendation and Gate B contract boundaries without implementing them.
+- [ ] A standalone harness validates catalog/rule fixtures without AI, mobile, database, or backend runtime dependencies.
 
-## Handoffs
+## Sprint 1 output contract
 
-- To Person 2: learning context and recommendation input contract.
-- To Person 3: Gate B presentation contract.
-- To Person 4: approved activity/objective identity and handoff contract.
+- Versioned catalog and taxonomy fixtures.
+- Versioned deterministic rule cases and expected decisions.
+- Integration compatibility note for future recommendation runtime and Gate B.
 
 Implementation is blocked until this plan is approved.

@@ -20,6 +20,8 @@ This repository is governed by the harness in `docs/governance/` and the records
 - Cross-feature behavior travels through versioned contracts, not implicit state or direct database coupling.
 - Preserve originals and provenance; derived artifacts never silently replace source artifacts.
 - Do not lock the final tech stack until the project questions in the current task are answered and recorded in an ADR.
+- Keep Sprint 1 as four independent fixture/contract workstreams defined by ADR-0006. Do not assign backend/infra/E2E to Person 4 or the complete Android app to Person 3 by default.
+- Treat the dependency-driven project roadmap and the parallel team sprint assignment as separate planning views. Integration requires a separately approved allocation.
 
 ## Repository security rules
 

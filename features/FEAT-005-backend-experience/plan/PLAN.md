@@ -1,28 +1,27 @@
-# FEAT-005 Backend and experience plan
+# FEAT-005 standalone learning media plan
 
 - Status: AWAITING_APPROVAL
-- Plan revision: 1
+- Plan revision: 2
 - Implementation status: NOT_STARTED
 - Owner: Person 4
 
 ## Scope
 
-FastAPI facade, session state machine, command/event persistence, job records, artifact lineage, experience planner, art/learning job join, reviewed-cache resolver, Wan2.2 generation boundary, media validation/fallback, feedback, deletion workflow, and E2E orchestration.
+Learning-asset cache contract, cache-first resolver, provider-neutral video-generation adapter, video validation, still+narration fallback, standalone fixture runner, artifact provenance output, and quality/latency/cost benchmark. Backend/session/storage/queue/deployment/E2E integration is excluded.
 
 ## Acceptance criteria
 
-- [ ] Lifecycle transitions and recovery/abandon paths are explicit and version-checked.
-- [ ] Async jobs carry expected session version and stale completion is discarded.
-- [ ] ExperiencePlanV2 keeps activity/objective identity stable across all phases.
 - [ ] Reviewed cache is checked before real generation.
 - [ ] Video generation/validation failure produces a valid still+narration fallback.
-- [ ] Ready package contains art animation, learning asset, validation/provenance, and ActivityHandoff.
-- [ ] Feedback and fixture-only deletion workflow are auditable.
-- [ ] E2E evidence covers the complete flow and screen/off-screen transition.
+- [ ] Request/result contracts preserve objective/activity/media identity and artifact provenance.
+- [ ] Invalid, timeout, unsafe, and corrupt-media fixtures produce typed fallback outcomes.
+- [ ] Fixture benchmarks record quality, latency, cost, cache-hit behavior, and failure rate.
+- [ ] The runner executes without FastAPI, PostgreSQL, S3, Redis/RQ, mobile, or another Sprint 1 workstream.
 
-## Handoffs
+## Sprint 1 output contract
 
-- Integrates contracts from Persons 1-3.
-- Publishes session/job/API contracts for mobile and evaluation.
+- Versioned learning-media request/result and validation schemas.
+- Cache-hit, cache-miss, provider-failure, invalid-media, and fallback fixtures.
+- Integration compatibility note for later storage/job/orchestration wiring.
 
 Implementation is blocked until this plan is approved.

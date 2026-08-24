@@ -408,16 +408,40 @@ Evidence must record command/input, environment/version, output, timestamp, inte
 
 Chat transcripts are not project context. Meaningful decisions from conversation are normalized into context, ADR, plan, approval, and evidence files.
 
-## 21. Four-person allocation
+## 21. Four-person Sprint 1 allocation
 
-| Person | Primary ownership | Main handoff |
-|---|---|---|
-| Person 1 | Montessori domain, deterministic recommendation, Gate B | Versioned activity/objective contracts and fixture policies |
-| Person 2 | Multimodal understanding, Lightning-dev/Runpod-production adapters | Gate A understanding/provenance outputs |
-| Person 3 | Android mobile, capture/playback, Gate A/B UI, Pixi renderer | Device/visual/bridge evidence |
-| Person 4 | Backend orchestration, job/session state, storage/queue, learning media | Integrated vertical slice and deployment/e2e evidence |
+Sprint 1 is organized for parallel discovery and component delivery, not end-to-end runtime integration. Each person receives versioned synthetic fixtures, publishes a versioned output contract, and provides a standalone runner or test harness. No Sprint 1 workstream may require another person's live service to make progress.
 
-Ownership means primary implementer. Each workstream requires cross-review by another member.
+| Person | Sprint 1 ownership | Required standalone deliverables | Explicitly outside Sprint 1 ownership |
+|---|---|---|---|
+| Person 1 — BA / Montessori | Montessori domain analysis, Activity Catalog, Learning Objective taxonomy, prerequisite/safety/material rules, test harness, acceptance criteria | Versioned catalog/taxonomy/rule specifications, positive/negative fixtures, deterministic expected results, acceptance pack | Recommendation runtime, Gate B UI, backend integration |
+| Person 2 — AI Understanding | Media validation, Whisper adapter, VLM adapter, fusion, `RawUnderstandingResult`, understanding benchmark | Fixture CLI/runner, versioned raw-understanding contract, provenance/error cases, Lightning/Runpod model benchmark evidence | Gate A UI, session/job orchestration, app API integration |
+| Person 3 — Art Animation | PixiJS, GSAP, Motion DSL, `DRAW_REVEAL`, preservation checks, fallback, standalone animation player | Fixture player, versioned animation input/output protocol, original-art preservation and fallback evidence | Full Android app, capture, Gate A/B UI, authentication |
+| Person 4 — Learning Media | Learning-asset cache, resolver, video-generation adapter, video validation, still+narration fallback, benchmark | Fixture runner, versioned learning-media request/result contract, cache/validation/fallback evidence | Backend orchestration, PostgreSQL, S3/Redis/RQ integration, deployment, E2E ownership |
+
+Sprint 1 independence is achieved through contract-first fixtures, not direct person-to-person runtime dependencies:
+
+```mermaid
+flowchart LR
+    P1["P1: Montessori specifications"] --> Freeze["Contract and fixture freeze"]
+    P2["P2: AI understanding component"] --> Freeze
+    P3["P3: standalone art player"] --> Freeze
+    P4["P4: learning-media component"] --> Freeze
+    Freeze --> Backlog["Reviewed Integration Sprint backlog"]
+    Backlog --> Integration["Integration Sprint with a new allocation"]
+```
+
+### Integration Sprint
+
+After the four standalone outputs and contracts pass review, a separate plan reallocates work for:
+
+- Android shell, capture/playback, and Gate A/B UI;
+- backend orchestration and session/job state;
+- Firebase Authentication and authorization;
+- PostgreSQL, S3, Redis/RQ, and worker wiring;
+- cross-component contracts, observability, deployment, and E2E.
+
+These responsibilities are shared integration backlog items. They are not implicitly owned by Person 4, and the full Android application is not implicitly owned by Person 3. The team must rebalance them using Sprint 1 evidence before approving Integration Sprint tasks.
 
 ## 22. Implemented and not implemented
 
@@ -460,6 +484,7 @@ The latest foundation checks pass:
 - mobile feature isolation;
 - mobile provider/credential boundary;
 - absence of Firebase data products;
+- four independent Sprint 1 workstreams and separate Integration Sprint allocation;
 - TypeScript typechecks;
 - Jest protocol tests;
 - ESLint;
@@ -496,7 +521,9 @@ The base architecture has no unresolved blocker. These choices remain intentiona
 5. exact model profiles and optional Vietnamese TTS;
 6. release-key backup/recovery procedure and CI signing implementation.
 
-## 26. Recommended next implementation sequence
+## 26. Project roadmap (dependency-driven)
+
+This sequence describes technical dependencies for the project as a whole. It is not the four-person task assignment and must not be converted into a P1 -> P2 -> P3 -> P4 staffing chain. Sprint assignments follow Section 21 and prioritize parallel, fixture-driven workstreams; the later Integration Sprint receives its own allocation.
 
 1. Install Android SDK and prove a blank debug APK on API 29/API 36.
 2. Create Firebase development project/config outside Git and implement auth adapter using emulator fixtures first.
@@ -508,4 +535,4 @@ The base architecture has no unresolved blocker. These choices remain intentiona
 8. Benchmark Lightning fixture models, then implement/benchmark Runpod production adapter.
 9. Add CI signing/security scans and Play internal-test AAB.
 
-Every item above requires its own feature plan, owner approval, and feature-local evidence before implementation.
+Every item above requires its own feature plan, owner approval, and feature-local evidence before implementation. Roadmap order and sprint ownership are reviewed independently.

@@ -3,6 +3,6 @@
 - Status: AWAITING_APPROVAL
 - Approver:
 - Approved scope:
-- Plan revision: 1
+- Plan revision: 2
 - Approved at:
-- Notes: The project owner answered the discovery questions. Explicit approval is still required for this proposed stack/allocation before implementation or provider/model integration.
+- Notes: FEAT-012 approves the allocation documentation only. Explicit task approval is still required before any Sprint 1 component or integration implementation.

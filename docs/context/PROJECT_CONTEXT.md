@@ -28,6 +28,8 @@ The workspace harness and approved architecture skeleton are established and sec
 - Backend hosting: provider-agnostic initially; AWS-compatible deployment is acceptable later.
 - Test data: fixtures/synthetic data only; no real child data in the MVP development loop.
 - MVP ambition: cover the full experience, divided into four owned workstreams.
+- Delivery model: Sprint 1 uses four independently runnable, fixture/contract-driven workstreams; integration runtime work is deferred to a separately planned Integration Sprint.
+- Planning distinction: the project roadmap is dependency-driven, while team sprint assignment is parallel-workstream-driven; one must not be used as the other.
 - Mobile delivery: Android-only, bare React Native, one app with role-based child/parent/guide modes.
 - Android identity and support: `com.sketch2life.mobile`; minSdk 29, targetSdk 36, compileSdk 37.
 - AI connectivity: every provider is backend-only through an authenticated adapter; the current Lightning account is not treated as private networking.
@@ -57,4 +59,4 @@ The attached handbook proposes a modular monolith plus workers, a FastAPI/Pydant
 
 ## Open decisions
 
-See `features/FEAT-001-stack-and-team-plan/` for the stack/team allocation, FEAT-008 for the generic skeleton, FEAT-009 for Android foundation, and FEAT-010 for auth/release/AI-provider strategy. Remaining integration questions are listed in `docs/setup/SYSTEM_QUESTIONS.md`.
+See `features/FEAT-001-stack-and-team-plan/TEAM_ALLOCATION.md` and ADR-0006 for the revised Sprint 1 allocation, FEAT-008 for the generic skeleton, FEAT-009 for Android foundation, and FEAT-010 for auth/release/AI-provider strategy. Remaining integration questions are listed in `docs/setup/SYSTEM_QUESTIONS.md`.
