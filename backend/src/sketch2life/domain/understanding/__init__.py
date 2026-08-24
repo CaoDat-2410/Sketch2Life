@@ -1,0 +1,1 @@
+"""Understanding artifact domain boundary."""

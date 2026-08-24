@@ -1,0 +1,48 @@
+name: sketch2life
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${SKETCH2LIFE_POSTGRES_DB:-sketch2life}
+      POSTGRES_USER: ${SKETCH2LIFE_POSTGRES_USER:-sketch2life}
+      POSTGRES_PASSWORD: ${SKETCH2LIFE_POSTGRES_PASSWORD:-change-me}
+    ports:
+      - "5432:5432"
+    volumes:
+      - sketch2life-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:8-alpine
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - sketch2life-redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${SKETCH2LIFE_S3_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${SKETCH2LIFE_S3_SECRET_KEY:-change-me}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - sketch2life-minio:/data
+
+volumes:
+  sketch2life-postgres:
+  sketch2life-redis:
+  sketch2life-minio:

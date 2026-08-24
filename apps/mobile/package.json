@@ -1,0 +1,47 @@
+{
+  "name": "@sketch2life/mobile",
+  "version": "0.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "start": "react-native start",
+    "android": "react-native run-android",
+    "android:clean": "node scripts/run-gradle.mjs clean",
+    "android:apk:debug": "node scripts/run-gradle.mjs assembleDebug",
+    "android:apk:release": "node scripts/run-gradle.mjs assembleRelease",
+    "android:aab:release": "node scripts/run-gradle.mjs bundleRelease",
+    "typecheck": "tsc --noEmit",
+    "test": "jest",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@sketch2life/art-renderer": "workspace:*",
+    "@tanstack/react-query": "^5.101.4",
+    "react": "^19.2.0",
+    "react-native": "0.87.0",
+    "react-native-webview": "^14.0.1",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@babel/preset-env": "^7.25.3",
+    "@babel/runtime": "^7.25.0",
+    "@react-native-community/cli": "20.2.0",
+    "@react-native-community/cli-platform-android": "20.2.0",
+    "@react-native/babel-preset": "0.87.0",
+    "@react-native/eslint-config": "0.87.0",
+    "@react-native/gradle-plugin": "0.87.0",
+    "@react-native/jest-preset": "0.87.0",
+    "@react-native/metro-config": "0.87.0",
+    "@react-native/typescript-config": "0.87.0",
+    "@types/jest": "^29.5.14",
+    "@types/react": "^19.2.0",
+    "babel-jest": "^29.7.0",
+    "eslint": "^8.57.1",
+    "jest": "^29.7.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.9.0"
+  }
+}

@@ -1,0 +1,4 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Metro is local HTTP during development. Release/main remains HTTPS-only. -->
+    <application android:usesCleartextTraffic="true" />
+</manifest>

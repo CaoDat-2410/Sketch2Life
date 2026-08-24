@@ -1,0 +1,50 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+dist/
+build/
+*.egg-info/
+
+# JavaScript / React Native
+node_modules/
+.pnpm-store/
+coverage/
+*.tsbuildinfo
+apps/mobile/android/.gradle/
+apps/mobile/android/build/
+apps/mobile/android/app/build/
+apps/mobile/android/local.properties
+.gradle-user-home/
+*.jks
+*.keystore
+apps/mobile/android/app/google-services.json
+*-firebase-service-account.json
+secrets/
+
+# Accounts and credential-bearing seed material are always local/generated.
+**/seed-accounts.*
+**/seed_accounts.*
+**/seed-users.*
+**/seed_users.*
+data/seeds/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Runtime outputs
+tmp/
+output/
+data/runtime/
+features/FEAT-000-harness/evidence/handbook-page-*.png

@@ -1,0 +1,17 @@
+{
+  "name": "sketch2life-workspace",
+  "private": true,
+  "version": "0.0.0",
+  "packageManager": "pnpm@11.19.0",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "check:harness": "python tools/validate_harness.py",
+    "check:skeleton": "python tools/validate_skeleton.py",
+    "check:architecture": "python tools/validate_architecture.py",
+    "check:security": "python tools/validate_repository_security.py",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test"
+  }
+}
