@@ -9,6 +9,8 @@
     "title",
     "area",
     "status",
+    "reviewer_role",
+    "reviewed_at",
     "production_eligible"
   ],
   "properties": {
@@ -36,6 +38,13 @@
         "QUALIFIED_REVIEWED",
         "RETIRED"
       ]
+    },
+    "reviewer_role": {
+      "const": "PROJECT_OWNER"
+    },
+    "reviewed_at": {
+      "type": "string",
+      "format": "date-time"
     },
     "production_eligible": {
       "type": "boolean"

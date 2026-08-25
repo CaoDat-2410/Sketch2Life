@@ -14,7 +14,7 @@ PLANNED
   -> DONE
 ```
 
-Current state: `REVIEW`.
+Current state: `DONE`.
 
 ## Phase 0 - approval and input freeze
 

@@ -10,7 +10,7 @@ All checks passed!
 COMMAND: python -m pytest -q
 EXIT: 0
 ......... [100%]
-9 passed in 0.66s
+9 passed in 0.62s
 
 COMMAND: python tools/validate_montessori_domain.py --report <feature metrics path>
 EXIT: 0
@@ -19,7 +19,7 @@ activities=100
 learning_objectives=20
 age_bands={'0-3': 25, '3-6': 25, '6-9': 25, '9-12': 25}
 fixtures=24 positive=12 negative=12
-review_status=PENDING_OWNER_REVIEW production_eligible=false
+review_status=PROVISIONAL_OWNER_REVIEWED production_eligible=false
 network_required=false
 
 COMMAND: python tools/validate_harness.py
@@ -54,7 +54,7 @@ project_roadmap=not-team-assignment
 COMMAND: python tools/validate_repository_security.py
 EXIT: 0
 REPOSITORY_SECURITY_VALID
-publishable_files_scanned=490
+publishable_files_scanned=491
 environment_files=excluded
 seed_accounts=excluded
 credentials_and_signing_keys=excluded
@@ -67,5 +67,5 @@ were rebuilt twice. SHA-256 values were unchanged.
 DETERMINISTIC_REBUILD=True
 
 INTERPRETATION
-Automated implementation gates pass. This does not constitute pedagogical or
-production approval. Owner review of individual activity records remains pending.
+Automated implementation gates and project-owner provisional review pass. This
+does not constitute qualified Montessori or production approval.

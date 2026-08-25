@@ -70,12 +70,30 @@ def test_zero_to_three_requires_caregiver_and_direct_supervision() -> None:
     ]
 
 
-def test_catalog_never_claims_owner_or_production_review() -> None:
+def test_catalog_records_provisional_owner_review_but_never_production_review() -> None:
     activities = catalog_by_id().values()
     assert all(
-        activity["review"]["status"] == "PENDING_OWNER_REVIEW"
+        activity["review"]["status"] == "PROVISIONAL_OWNER_REVIEWED"
+        for activity in activities
+    )
+    assert all(
+        activity["review"]["reviewer_role"] == "PROJECT_OWNER"
+        and activity["review"]["reviewed_at"]
         for activity in activities
     )
     assert all(
         activity["review"]["production_eligible"] is False for activity in activities
+    )
+
+    objectives = json.loads(
+        CATALOG_PATH.with_name("learning-objectives.v1.json").read_text(
+            encoding="utf-8"
+        )
+    )["objectives"]
+    assert all(
+        objective["status"] == "PROVISIONAL_OWNER_REVIEWED"
+        and objective["reviewer_role"] == "PROJECT_OWNER"
+        and objective["reviewed_at"]
+        and objective["production_eligible"] is False
+        for objective in objectives
     )

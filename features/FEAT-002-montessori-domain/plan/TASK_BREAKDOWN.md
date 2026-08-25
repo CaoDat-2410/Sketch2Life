@@ -3,7 +3,7 @@
 - Plan revision: 4
 - Total: 12 tasks, 72-112 estimated hours, 18-28 story points
 - Cross-person runtime dependency: none
-- Implementation status: P1-01 through P1-12 implemented; automated checks complete; owner catalog-content review pending
+- Implementation status: P1-01 through P1-12 complete; automated checks and owner provisional catalog-content review complete
 
 | ID | Task | Deliverable | Estimate | Acceptance/evidence summary |
 |---|---|---|---:|---|

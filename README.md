@@ -17,7 +17,7 @@ This repository starts with a delivery harness before product code. The harness 
 ## Current state
 
 - Harness: active and enforced per feature.
-- Product implementation: foundation only; FEAT-002 Montessori domain fixtures are implemented and awaiting provisional owner content review.
+- Product implementation: foundation plus completed FEAT-002 Montessori domain fixtures; catalog owner review is provisional and all records remain non-production.
 - Tech stack: Python/FastAPI backend and Android-only React Native 0.87 foundation accepted; Firebase Authentication-only identity and Lightning-dev/Runpod-production AI strategy are frozen but live integrations remain gated.
 - Frontend assets: no generated asset is approved or applied yet.
 

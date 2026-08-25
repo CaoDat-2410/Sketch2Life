@@ -15,5 +15,6 @@
 - `raw/unit-tests.txt`: focused unit-test output.
 - `raw/final-validation.txt`: final repository and feature validation transcript.
 - `notes/FINAL_VALIDATION_REVIEW.md`: interpretation, limits, and owner-review gate for the final pass.
+- `notes/OWNER_CATALOG_REVIEW.md`: owner decision, scope, status transition, and production limitation.
 
-Automated implementation evidence is complete. Human pedagogical/content review is still pending; the catalog is not production eligible.
+Automated implementation evidence and project-owner provisional review are complete. Qualified Montessori/pedagogical production review is still pending; the catalog is not production eligible.

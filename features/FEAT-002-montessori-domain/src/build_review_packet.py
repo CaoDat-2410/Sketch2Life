@@ -100,7 +100,11 @@ def build() -> None:
             "catalog-summary.csv",
         ],
         "AC-P1-04A": ["catalog-validation.json", "catalog-summary.csv"],
-        "AC-P1-04B": ["provenance.v1.json", "CATALOG_REVIEW_PACKET.md"],
+        "AC-P1-04B": [
+            "provenance.v1.json",
+            "CATALOG_REVIEW_PACKET.md",
+            "OWNER_CATALOG_REVIEW.md",
+        ],
         "AC-P1-05": ["hard-rules.v1.json", "spec/RULE_SEMANTICS.md"],
         "AC-P1-06": ["harness-run.txt", "unit-tests.txt"],
         "AC-P1-07": ["fixture-coverage.json", "manifest.v1.json"],
@@ -125,10 +129,10 @@ def build() -> None:
         "",
         "- Generated: 2026-08-25",
         "- Activities: 100",
-        "- Current review state: all `PENDING_OWNER_REVIEW`",
+        "- Current review state: all `PROVISIONAL_OWNER_REVIEWED`",
         "- Production eligible: none",
         "",
-        "Owner review may change an accepted record to `PROVISIONAL_OWNER_REVIEWED`; it must remain `production_eligible=false`. Reject or revise any activity whose age/readiness, materials, steps, wording, safety, or objective mapping is unsuitable.",
+        "The project owner accepted this catalog provisionally on 2026-08-25. Every record remains `production_eligible=false`; qualified Montessori review is still required before production use.",
         "",
         "## Summary",
         "",
@@ -161,7 +165,7 @@ def build() -> None:
     print("REVIEW_PACKET_BUILT")
     print(f"activities={len(activities)}")
     print(f"bands={dict(sorted(band_counts.items()))}")
-    print("review_status=PENDING_OWNER_REVIEW")
+    print("review_status=PROVISIONAL_OWNER_REVIEWED")
 
 
 if __name__ == "__main__":

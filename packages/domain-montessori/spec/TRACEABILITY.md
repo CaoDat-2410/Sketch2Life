@@ -7,7 +7,7 @@
 | 0-3 caregiver-led safety | `DIRECT` supervision + `CAREGIVER_PRESENT` policy | Positive and blocked caregiver fixture cases |
 | 100-200 catalog target | `activities.v1.json` | 100 baseline records; stretch not required for minimum gate |
 | `vi-VN` content and stable machine IDs | localized title/steps/safety plus ASCII IDs/enums | Validator title/pattern checks and review CSV |
-| Provisional owner review | activity `review` object and provenance ledger | All records remain `PENDING_OWNER_REVIEW`, production false |
+| Provisional owner review | activity `review` object and provenance ledger | 100 activities and 20 objectives are `PROVISIONAL_OWNER_REVIEWED`, production false |
 | Hard constraints before ranking | `hard-rules.v1.json`, `RULE_SEMANTICS.md` | 24 deterministic fixture cases; no ranking code exists |
 | No silent rule relaxation | `NO_VALID_ACTIVITY` result | No-valid and multiple-failure fixtures |
 | Materials and substitutes | required material groups with `any_of` options | Primary/substitute positive cases and material-block cases |

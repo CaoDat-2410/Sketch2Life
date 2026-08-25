@@ -1,4 +1,4 @@
-command=backend/.venv/Scripts/python.exe -m pytest tests/unit/test_montessori_domain.py -q
+command=backend/.venv/Scripts/python.exe -m pytest -q
 exit=0
 ....                                                                     [100%]
-4 passed in 0.12s
+9 passed in 0.62s

@@ -70,9 +70,9 @@
   "policy_constraints": [],
   "catalog_status": "INACTIVE",
   "review": {
-    "status": "PENDING_OWNER_REVIEW",
-    "reviewer_role": null,
-    "reviewed_at": null,
+    "status": "PROVISIONAL_OWNER_REVIEWED",
+    "reviewer_role": "PROJECT_OWNER",
+    "reviewed_at": "2026-08-25T19:50:40+07:00",
     "production_eligible": false
   },
   "source_refs": [

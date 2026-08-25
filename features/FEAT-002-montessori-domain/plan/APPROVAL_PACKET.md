@@ -2,7 +2,7 @@
 
 - Feature: FEAT-002 Montessori domain
 - Revision to approve: 4
-- Implementation status: APPROVED_AND_IMPLEMENTED; owner catalog-content review pending
+- Implementation status: COMPLETE; owner provisional catalog-content review recorded on 2026-08-25
 - Estimated workload: 72-112 hours / 18-28 story points
 - Cross-person runtime dependency: none
 

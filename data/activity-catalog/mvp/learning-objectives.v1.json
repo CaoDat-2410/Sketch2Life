@@ -8,7 +8,9 @@
         "vi-VN": "Phối hợp vận động"
       },
       "area": "movement",
-      "status": "DRAFT",
+      "status": "PROVISIONAL_OWNER_REVIEWED",
+      "reviewer_role": "PROJECT_OWNER",
+      "reviewed_at": "2026-08-25T19:50:40+07:00",
       "production_eligible": false
     },
     {
@@ -18,7 +20,9 @@
         "vi-VN": "Tính thường tồn của đồ vật"
       },
       "area": "sensorial",
-      "status": "DRAFT",
+      "status": "PROVISIONAL_OWNER_REVIEWED",
+      "reviewer_role": "PROJECT_OWNER",
+      "reviewed_at": "2026-08-25T19:50:40+07:00",
       "production_eligible": false
     },
     {
@@ -28,7 +32,9 @@
         "vi-VN": "Ngôn ngữ tiếp nhận và biểu đạt"
       },
       "area": "language",
-      "status": "DRAFT",
+      "status": "PROVISIONAL_OWNER_REVIEWED",
+      "reviewer_role": "PROJECT_OWNER",
+      "reviewed_at": "2026-08-25T19:50:40+07:00",
       "production_eligible": false
     },
     {
@@ -38,7 +44,9 @@
         "vi-VN": "Độc lập trong tự chăm sóc"
       },
       "area": "practical_life",
-      "status": "DRAFT",
+      "status": "PROVISIONAL_OWNER_REVIEWED",
+      "reviewer_role": "PROJECT_OWNER",
+      "reviewed_at": "2026-08-25T19:50:40+07:00",
       "production_eligible": false
     },
     {
@@ -48,7 +56,9 @@
         "vi-VN": "Trật tự, lịch sự và cộng đồng"
       },
       "area": "practical_life",
-      "status": "DRAFT",
+      "status": "PROVISIONAL_OWNER_REVIEWED",
+      "reviewer_role": "PROJECT_OWNER",
+      "reviewed_at": "2026-08-25T19:50:40+07:00",
       "production_eligible": false
     },
     {
@@ -58,7 +68,9 @@
         "vi-VN": "Chuỗi thao tác thực hành cuộc sống"
       },
       "area": "practical_life",
-      "status": "DRAFT",
+      "status": "PROVISIONAL_OWNER_REVIEWED",
+      "reviewer_role": "PROJECT_OWNER",
+      "reviewed_at": "2026-08-25T19:50:40+07:00",
       "production_eligible": false
     },
     {
@@ -68,7 +80,9 @@
         "vi-VN": "Phân biệt và phân loại giác quan"
       },
       "area": "sensorial",
-      "status": "DRAFT",
+      "status": "PROVISIONAL_OWNER_REVIEWED",
+      "reviewer_role": "PROJECT_OWNER",
+      "reviewed_at": "2026-08-25T19:50:40+07:00",
       "production_eligible": false
     },
     {
@@ -78,7 +92,9 @@
         "vi-VN": "Chuẩn bị và phát triển viết"
       },
       "area": "language",
-      "status": "DRAFT",
+      "status": "PROVISIONAL_OWNER_REVIEWED",
+      "reviewer_role": "PROJECT_OWNER",
+      "reviewed_at": "2026-08-25T19:50:40+07:00",
       "production_eligible": false
     },
     {
@@ -88,7 +104,9 @@
         "vi-VN": "Âm vị, ghép từ và đọc ban đầu"
       },
       "area": "language",
-      "status": "DRAFT",
+      "status": "PROVISIONAL_OWNER_REVIEWED",
+      "reviewer_role": "PROJECT_OWNER",
+      "reviewed_at": "2026-08-25T19:50:40+07:00",
       "production_eligible": false
     },
     {
@@ -98,7 +116,9 @@
         "vi-VN": "Số lượng, chữ số và giá trị hàng"
       },
       "area": "mathematics",
-      "status": "DRAFT",
+      "status": "PROVISIONAL_OWNER_REVIEWED",
+      "reviewer_role": "PROJECT_OWNER",
+      "reviewed_at": "2026-08-25T19:50:40+07:00",
       "production_eligible": false
     },
     {
@@ -108,7 +128,9 @@
         "vi-VN": "Nhận biết tính liên kết trong vũ trụ"
       },
       "area": "cosmic_education",
-      "status": "DRAFT",
+      "status": "PROVISIONAL_OWNER_REVIEWED",
+      "reviewer_role": "PROJECT_OWNER",
+      "reviewed_at": "2026-08-25T19:50:40+07:00",
       "production_eligible": false
     },
     {
@@ -118,7 +140,9 @@
         "vi-VN": "Quan sát và mô tả khoa học"
       },
       "area": "science",
-      "status": "DRAFT",
+      "status": "PROVISIONAL_OWNER_REVIEWED",
+      "reviewer_role": "PROJECT_OWNER",
+      "reviewed_at": "2026-08-25T19:50:40+07:00",
       "production_eligible": false
     },
     {
@@ -128,7 +152,9 @@
         "vi-VN": "Lập luận toán học bằng vật liệu cụ thể"
       },
       "area": "mathematics",
-      "status": "DRAFT",
+      "status": "PROVISIONAL_OWNER_REVIEWED",
+      "reviewer_role": "PROJECT_OWNER",
+      "reviewed_at": "2026-08-25T19:50:40+07:00",
       "production_eligible": false
     },
     {
@@ -138,7 +164,9 @@
         "vi-VN": "Phân tích và sử dụng ngôn ngữ"
       },
       "area": "language",
-      "status": "DRAFT",
+      "status": "PROVISIONAL_OWNER_REVIEWED",
+      "reviewer_role": "PROJECT_OWNER",
+      "reviewed_at": "2026-08-25T19:50:40+07:00",
       "production_eligible": false
     },
     {
@@ -148,7 +176,9 @@
         "vi-VN": "Trách nhiệm cá nhân và cộng đồng"
       },
       "area": "social_studies",
-      "status": "DRAFT",
+      "status": "PROVISIONAL_OWNER_REVIEWED",
+      "reviewer_role": "PROJECT_OWNER",
+      "reviewed_at": "2026-08-25T19:50:40+07:00",
       "production_eligible": false
     },
     {
@@ -158,7 +188,9 @@
         "vi-VN": "Toán học nâng cao và ứng dụng"
       },
       "area": "mathematics",
-      "status": "DRAFT",
+      "status": "PROVISIONAL_OWNER_REVIEWED",
+      "reviewer_role": "PROJECT_OWNER",
+      "reviewed_at": "2026-08-25T19:50:40+07:00",
       "production_eligible": false
     },
     {
@@ -168,7 +200,9 @@
         "vi-VN": "Đặt câu hỏi và điều tra khoa học"
       },
       "area": "science",
-      "status": "DRAFT",
+      "status": "PROVISIONAL_OWNER_REVIEWED",
+      "reviewer_role": "PROJECT_OWNER",
+      "reviewed_at": "2026-08-25T19:50:40+07:00",
       "production_eligible": false
     },
     {
@@ -178,7 +212,9 @@
         "vi-VN": "Nghiên cứu lịch sử, địa lý và xã hội"
       },
       "area": "cultural_studies",
-      "status": "DRAFT",
+      "status": "PROVISIONAL_OWNER_REVIEWED",
+      "reviewer_role": "PROJECT_OWNER",
+      "reviewed_at": "2026-08-25T19:50:40+07:00",
       "production_eligible": false
     },
     {
@@ -188,7 +224,9 @@
         "vi-VN": "Giao tiếp, bằng chứng và lập luận"
       },
       "area": "language",
-      "status": "DRAFT",
+      "status": "PROVISIONAL_OWNER_REVIEWED",
+      "reviewer_role": "PROJECT_OWNER",
+      "reviewed_at": "2026-08-25T19:50:40+07:00",
       "production_eligible": false
     },
     {
@@ -198,7 +236,9 @@
         "vi-VN": "Lập kế hoạch dự án và phục vụ cộng đồng"
       },
       "area": "social_studies",
-      "status": "DRAFT",
+      "status": "PROVISIONAL_OWNER_REVIEWED",
+      "reviewer_role": "PROJECT_OWNER",
+      "reviewed_at": "2026-08-25T19:50:40+07:00",
       "production_eligible": false
     }
   ]

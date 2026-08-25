@@ -23,7 +23,7 @@ This repository is governed by the harness in `docs/governance/` and the records
 - Keep Sprint 1 as four independent fixture/contract workstreams defined by ADR-0006. Do not assign backend/infra/E2E to Person 4 or the complete Android app to Person 3 by default.
 - Treat the dependency-driven project roadmap and the parallel team sprint assignment as separate planning views. Integration requires a separately approved allocation.
 - Apply Montessori eligibility hard rules before any future recommendation ranking; `NO_VALID_ACTIVITY` is valid and rules must never be relaxed to force a result.
-- Treat FEAT-002 catalog records as synthetic/provisional while review is pending. Never represent `PENDING_OWNER_REVIEW` or `production_eligible=false` records as production-approved content.
+- Treat FEAT-002 catalog records as synthetic/provisional. Never represent `PENDING_OWNER_REVIEW`, `PROVISIONAL_OWNER_REVIEWED`, or `production_eligible=false` records as qualified or production-approved content.
 
 ## Repository security rules
 

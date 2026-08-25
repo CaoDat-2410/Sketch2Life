@@ -1,8 +1,8 @@
 # FEAT-002 Montessori domain plan
 
-- Status: REVIEW
+- Status: DONE
 - Plan revision: 4
-- Implementation status: IMPLEMENTED_AWAITING_OWNER_CONTENT_REVIEW
+- Implementation status: COMPLETE_PROVISIONAL_NON_PRODUCTION
 - Owner: Person 1
 - Prepared at: 2026-08-25
 - Branch: `plan/person-1-montessori-sprint-1`
@@ -109,7 +109,7 @@ Every completed task records an evidence ID, acceptance criterion, exact command
 
 ## Definition of Done
 
-- All 12 implementation tasks meet their automated acceptance criteria and phase gates; final status stays `REVIEW` until owner content review is recorded.
+- All 12 implementation tasks meet their acceptance criteria and phase gates; owner provisional content review is recorded.
 - Required 100-activity catalog target, four-band coverage, taxonomy target, and fixture coverage pass; stretch work stops at 200.
 - Standalone harness is reproducible from README instructions.
 - Source/reviewer provenance is present; activities not reviewed remain `PENDING_OWNER_REVIEW` and cannot be represented as approved.

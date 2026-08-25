@@ -1,7 +1,7 @@
 # Known limitations
 
 - The 100 activities are provisional synthetic catalog content, not qualified Montessori-approved content.
-- The project owner has not yet reviewed the individual records; all remain `PENDING_OWNER_REVIEW`.
+- The project owner accepted all records provisionally; no qualified Montessori reviewer has approved them for production.
 - Uniform 25-per-band distribution is a coverage decision, not evidence that pedagogical breadth is naturally uniform.
 - The harness validates deterministic eligibility fixtures, not ranking quality or learning outcomes.
 - Readiness tags are intentionally coarse and require future domain review before integration.

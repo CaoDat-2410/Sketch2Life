@@ -8,4 +8,4 @@ The glossary covers Activity, Concept, LearningObjective, Prerequisite, SafetyRu
 
 The catalog contains 20 objective IDs and 100 activity IDs with valid cross-references. JSON Schema files document Activity, LearningObjective, fixture-case, and ActivityHandoff boundaries. The local validator checks their required declarations and enforces stricter catalog invariants without external packages.
 
-Pedagogical wording and mappings remain pending owner review; schema correctness is not pedagogical approval.
+The project owner accepted the wording and mappings provisionally on 2026-08-25. Schema correctness and owner acceptance are not qualified pedagogical approval.

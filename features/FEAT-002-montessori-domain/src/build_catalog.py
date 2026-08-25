@@ -8,6 +8,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[3]
 CATALOG_DIR = ROOT / "data" / "activity-catalog" / "mvp"
 SCHEMA_DIR = ROOT / "packages" / "domain-montessori" / "schemas"
+OWNER_REVIEWED_AT = "2026-08-25T19:50:40+07:00"
 
 
 def write_json(path: Path, value: Any) -> None:
@@ -1002,9 +1003,9 @@ def build() -> None:
             "policy_constraints": policies,
             "catalog_status": "ACTIVE_FIXTURE",
             "review": {
-                "status": "PENDING_OWNER_REVIEW",
-                "reviewer_role": None,
-                "reviewed_at": None,
+                "status": "PROVISIONAL_OWNER_REVIEWED",
+                "reviewer_role": "PROJECT_OWNER",
+                "reviewed_at": OWNER_REVIEWED_AT,
                 "production_eligible": False,
             },
             "source_refs": source_refs,
@@ -1022,7 +1023,9 @@ def build() -> None:
             "version": 1,
             "title": {"vi-VN": title_vi},
             "area": area,
-            "status": "DRAFT",
+            "status": "PROVISIONAL_OWNER_REVIEWED",
+            "reviewer_role": "PROJECT_OWNER",
+            "reviewed_at": OWNER_REVIEWED_AT,
             "production_eligible": False,
         }
         for objective_id, title_vi, area in OBJECTIVES
@@ -1032,8 +1035,11 @@ def build() -> None:
         "catalog_version": 1,
         "generated_at": "2026-08-25",
         "review_policy": {
-            "current_status": "PENDING_OWNER_REVIEW",
+            "current_status": "PROVISIONAL_OWNER_REVIEWED",
             "owner_review_result": "PROVISIONAL_OWNER_REVIEWED",
+            "owner_reviewed_at": OWNER_REVIEWED_AT,
+            "reviewed_activity_count": 100,
+            "reviewed_objective_count": 20,
             "production_gate": "QUALIFIED_MONTESSORI_REVIEW_REQUIRED",
         },
         "source_register_ids": sorted(
@@ -1105,7 +1111,16 @@ def build() -> None:
         "$id": "https://sketch2life.local/schemas/montessori/learning-objective.v1.schema.json",
         "title": "Sketch2Life Learning Objective v1",
         "type": "object",
-        "required": ["id", "version", "title", "area", "status", "production_eligible"],
+        "required": [
+            "id",
+            "version",
+            "title",
+            "area",
+            "status",
+            "reviewer_role",
+            "reviewed_at",
+            "production_eligible",
+        ],
         "properties": {
             "id": {"type": "string", "pattern": "^OBJ_[A-Z0-9_]+$"},
             "version": {"type": "integer", "minimum": 1},
@@ -1119,6 +1134,8 @@ def build() -> None:
                     "RETIRED",
                 ]
             },
+            "reviewer_role": {"const": "PROJECT_OWNER"},
+            "reviewed_at": {"type": "string", "format": "date-time"},
             "production_eligible": {"type": "boolean"},
         },
         "additionalProperties": False,

@@ -122,8 +122,13 @@ def validate_catalog() -> tuple[dict[str, dict[str, Any]], set[str], dict[str, i
             f"missing vi-VN objective title: {objective_id}",
         )
         require(
-            objective.get("status") == "DRAFT",
-            f"unreviewed objective must remain DRAFT: {objective_id}",
+            objective.get("status") == "PROVISIONAL_OWNER_REVIEWED",
+            f"objective must retain provisional owner review: {objective_id}",
+        )
+        require(
+            objective.get("reviewer_role") == "PROJECT_OWNER"
+            and bool(objective.get("reviewed_at")),
+            f"objective owner-review provenance missing: {objective_id}",
         )
         require(
             objective.get("production_eligible") is False,
@@ -133,6 +138,17 @@ def validate_catalog() -> tuple[dict[str, dict[str, Any]], set[str], dict[str, i
 
     source_ids = set(provenance.get("source_register_ids", []))
     require(source_ids, "provenance source register IDs are empty")
+    review_policy = provenance.get("review_policy", {})
+    require(
+        review_policy.get("current_status") == "PROVISIONAL_OWNER_REVIEWED",
+        "provenance must record provisional owner review",
+    )
+    require(
+        review_policy.get("reviewed_activity_count") == 100
+        and review_policy.get("reviewed_objective_count") == 20
+        and bool(review_policy.get("owner_reviewed_at")),
+        "provenance owner-review scope is incomplete",
+    )
     by_id: dict[str, dict[str, Any]] = {}
     band_counts: Counter[str] = Counter()
     slugs: set[str] = set()
@@ -182,8 +198,13 @@ def validate_catalog() -> tuple[dict[str, dict[str, Any]], set[str], dict[str, i
         )
         review = activity.get("review", {})
         require(
-            review.get("status") == "PENDING_OWNER_REVIEW",
-            f"activity cannot claim review before owner review: {activity_id}",
+            review.get("status") == "PROVISIONAL_OWNER_REVIEWED",
+            f"activity must retain provisional owner review: {activity_id}",
+        )
+        require(
+            review.get("reviewer_role") == "PROJECT_OWNER"
+            and bool(review.get("reviewed_at")),
+            f"activity owner-review provenance missing: {activity_id}",
         )
         require(
             review.get("production_eligible") is False,
@@ -407,7 +428,7 @@ def main() -> None:
         "positive_cases": positive,
         "negative_cases": negative,
         "coverage_tags": coverage,
-        "review_status": "PENDING_OWNER_REVIEW",
+        "review_status": "PROVISIONAL_OWNER_REVIEWED",
         "production_eligible": False,
         "network_required": False,
     }
@@ -422,7 +443,7 @@ def main() -> None:
     print(f"learning_objectives={report['learning_objectives']}")
     print(f"age_bands={report['age_band_counts']}")
     print(f"fixtures={fixture_count} positive={positive} negative={negative}")
-    print("review_status=PENDING_OWNER_REVIEW production_eligible=false")
+    print("review_status=PROVISIONAL_OWNER_REVIEWED production_eligible=false")
     print("network_required=false")
 
 

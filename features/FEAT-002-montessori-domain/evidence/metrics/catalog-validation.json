@@ -31,7 +31,7 @@
     "safety",
     "valid"
   ],
-  "review_status": "PENDING_OWNER_REVIEW",
+  "review_status": "PROVISIONAL_OWNER_REVIEWED",
   "production_eligible": false,
   "network_required": false
 }

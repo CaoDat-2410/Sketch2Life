@@ -5,5 +5,5 @@ activities=100
 learning_objectives=20
 age_bands={'0-3': 25, '3-6': 25, '6-9': 25, '9-12': 25}
 fixtures=24 positive=12 negative=12
-review_status=PENDING_OWNER_REVIEW production_eligible=false
+review_status=PROVISIONAL_OWNER_REVIEWED production_eligible=false
 network_required=false

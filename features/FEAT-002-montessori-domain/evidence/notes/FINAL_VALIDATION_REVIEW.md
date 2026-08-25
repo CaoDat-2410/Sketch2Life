@@ -3,9 +3,9 @@
 - Date: 2026-08-25
 - Tasks: P1-01 through P1-12
 - Evidence: `raw/final-validation.txt`
-- Reviewer: implementation agent; owner decision pending
+- Reviewer: implementation agent; project-owner provisional decision recorded
 - Automated result: PASS
-- Feature state: REVIEW
+- Feature state: DONE
 
 The focused Python lint, full repository Python tests, Montessori domain validator,
 harness validator, skeleton validator, architecture validator, team-allocation
@@ -17,6 +17,6 @@ database, mobile application, AI model, Lightning, Runpod, or Kaggle service.
 
 The automated pass verifies structure, deterministic eligibility behavior,
 references, counts, fixture expectations, repository boundaries, and provisional
-review guards. It does not verify pedagogical suitability or authorize production.
-All 100 activity records remain `PENDING_OWNER_REVIEW` and
-`production_eligible=false`.
+review guards. The owner provisionally accepted 100 activities and 20 objectives.
+It does not establish qualified pedagogical suitability or authorize production;
+all records remain `production_eligible=false`.

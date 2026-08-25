@@ -4,7 +4,7 @@ This package contains framework-independent specifications and JSON Schemas for 
 
 ## Review status
 
-The current 100-activity catalog is synthetic/provisional. Every activity is `PENDING_OWNER_REVIEW` and `production_eligible=false`. A future owner review may mark a record `PROVISIONAL_OWNER_REVIEWED`; qualified Montessori review is still required before production use.
+The current 100-activity catalog is synthetic/provisional. The project owner accepted every activity and objective as `PROVISIONAL_OWNER_REVIEWED` on 2026-08-25; all remain `production_eligible=false`. Qualified Montessori review is still required before production use.
 
 ## Contents
 

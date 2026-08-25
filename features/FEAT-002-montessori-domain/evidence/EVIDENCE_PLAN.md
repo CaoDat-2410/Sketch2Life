@@ -1,12 +1,12 @@
 # Person 1 evidence plan
 
-Task approval is recorded. EV-P1-01 through EV-P1-09 are complete; EV-P1-10 is completed by the final validation pass. Human catalog content review remains pending and does not convert provisional fixtures into production content.
+Task approval is recorded. EV-P1-01 through EV-P1-10 and project-owner provisional catalog review are complete. This review does not convert fixtures into qualified or production content.
 
 | Evidence range | Status | Remaining human gate |
 |---|---|---|
 | EV-P1-01..02 | COMPLETE | Domain wording may still receive review comments |
-| EV-P1-03 | AUTOMATION_COMPLETE | Owner reviews all 100 activity rows |
-| EV-P1-04..10 | COMPLETE | Owner accepts or requests changes to the review packet |
+| EV-P1-03 | COMPLETE | Qualified Montessori review remains a future production gate |
+| EV-P1-04..10 | COMPLETE | No remaining FEAT-002 gate |
 
 | Evidence ID | Tasks / acceptance | Type | Planned artifact | Required interpretation |
 |---|---|---|---|---|
@@ -20,5 +20,6 @@ Task approval is recorded. EV-P1-01 through EV-P1-09 are complete; EV-P1-10 is c
 | EV-P1-08 | P1-11 / AC-P1-12 | Contract review | `notes/ACTIVITY_HANDOFF_REVIEW.md` | Physical handoff fields and off-screen endpoint are complete |
 | EV-P1-09 | P1-12 / AC-P1-13 | Traceability | `metrics/traceability.json`, `notes/TRACEABILITY_REVIEW.md` | Every approved requirement maps to artifact and verification |
 | EV-P1-10 | All / AC-P1-14 | Security/architecture | `raw/final-validation.txt` | Harness, architecture, allocation, and security validators pass |
+| EV-P1-11 | P1-05 / AC-P1-04B | Owner decision | `notes/OWNER_CATALOG_REVIEW.md` | All 100 activities and 20 objectives are accepted provisionally and remain non-production |
 
 Every evidence note must record command/input, date, environment/version, output path, reviewer, result, limitations, and follow-up. Raw external references, real child data, secrets, accounts, and machine-local paths are forbidden.
