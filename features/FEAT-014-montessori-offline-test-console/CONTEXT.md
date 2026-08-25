@@ -1,6 +1,6 @@
 # FEAT-014 Montessori Offline Test Console context
 
-- Status: AWAITING_APPROVAL
+- Status: APPROVED_BLOCKED_BY_PARENT_FIX
 - Primary owner: Person 1
 - Planning branch: `plan/person-1-montessori-offline-console`
 - Plan revision: 1
@@ -25,5 +25,5 @@ FEAT-013 has strong automated fixture coverage, but a reviewer currently needs t
 
 - FEAT-013 records are `PROVISIONAL_OWNER_REVIEWED` and `production_eligible=false`.
 - Console output is contract evidence only, not a claim that an activity is suitable for a real child.
-- Implementation remains blocked until `approvals/TASK_APPROVAL.md` is explicitly changed to `APPROVED` for revision 1.
+- Revision 1 was approved by the project owner on 2026-08-25.
 - Phase 1 implementation also requires the FEAT-013 portability correction to pass; FEAT-014 must not bypass or weaken the parent validator.

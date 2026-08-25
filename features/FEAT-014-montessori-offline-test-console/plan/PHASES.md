@@ -1,6 +1,6 @@
 # FEAT-014 phase gates
 
-Current state: `PHASE_0_AWAITING_TASK_APPROVAL`.
+Current state: `PHASE_0_PARENT_INTEGRITY_FIX`.
 
 ## Phase 0 - approval and input freeze
 

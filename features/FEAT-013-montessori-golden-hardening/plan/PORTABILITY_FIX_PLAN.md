@@ -1,10 +1,10 @@
 # FEAT-013 checkout portability fix plan
 
-- Status: AWAITING_APPROVAL
+- Status: APPROVED
 - Corrective revision: 1
 - Prepared at: 2026-08-25
 - Estimate: 1.5-2.5 hours / 0.5 story point
-- Implementation: NOT_STARTED
+- Implementation: IN_PROGRESS
 
 ## Defect
 

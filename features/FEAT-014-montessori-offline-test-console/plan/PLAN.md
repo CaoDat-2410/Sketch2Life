@@ -1,8 +1,8 @@
 # FEAT-014 Montessori Offline Test Console plan
 
-- Status: AWAITING_APPROVAL
+- Status: APPROVED
 - Plan revision: 1
-- Implementation status: BLOCKED_BY_TASK_APPROVAL
+- Implementation status: BLOCKED_BY_APPROVED_PARENT_FIX
 - Owner: Person 1
 - Prepared at: 2026-08-25
 - Branch: `plan/person-1-montessori-offline-console`
