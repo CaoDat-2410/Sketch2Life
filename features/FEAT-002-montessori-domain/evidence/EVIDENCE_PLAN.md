@@ -6,7 +6,7 @@ All required evidence remains `PENDING_TASK_APPROVAL` until implementation is au
 |---|---|---|---|---|
 | EV-P1-01 | P1-01 / AC-P1-14 | Architecture review | `notes/DOMAIN_STRUCTURE_REVIEW.md` | Output locations preserve standalone domain boundaries |
 | EV-P1-02 | P1-02..04 / AC-P1-01..03 | Schema/spec review | `notes/DOMAIN_CONTRACT_REVIEW.md` | Entity semantics, IDs, versions, references, taxonomy are complete |
-| EV-P1-03 | P1-05 / AC-P1-04 | Metrics + review | `metrics/catalog-validation.json`, `notes/CATALOG_REVIEW.md` | Count/completeness/provenance/reviewer-state pass; limitations visible |
+| EV-P1-03 | P1-05 / AC-P1-04..04B | Metrics + review | `metrics/catalog-validation.json`, `notes/CATALOG_REVIEW.md` | 100-200 count, four-band coverage, completeness, provenance, and provisional reviewer-state pass; limitations visible |
 | EV-P1-04 | P1-06 / AC-P1-05..06,10 | Rule review | `notes/HARD_RULE_REVIEW.md` | Rules are deterministic, reason-coded, and never silently relaxed |
 | EV-P1-05 | P1-07..09 / AC-P1-07..10 | Test/log | `raw/harness-run.txt`, `metrics/fixture-coverage.json` | Positive/blocked/no-result cases pass reproducibly |
 | EV-P1-06 | P1-07 / AC-P1-09 | Negative test | `raw/harness-deliberate-failure.txt` | Deliberately changed expectation returns non-zero |

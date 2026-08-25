@@ -1,13 +1,13 @@
 # FEAT-002 Montessori domain plan
 
 - Status: AWAITING_APPROVAL
-- Plan revision: 3
+- Plan revision: 4
 - Implementation status: NOT_STARTED
 - Owner: Person 1
 - Prepared at: 2026-08-25
 - Branch: `plan/person-1-montessori-sprint-1`
 
-Implementation is blocked until the owner approves this exact revision and resolves the decisions in `APPROVAL_PACKET.md`.
+Implementation is blocked until the owner approves this exact revision and acknowledges the expanded estimate in `APPROVAL_PACKET.md`.
 
 ## Goal
 
@@ -17,7 +17,9 @@ Produce an independently reviewable BA/Montessori package that makes later recom
 
 - Canonical glossary and ID/version conventions.
 - Activity, Concept, LearningObjective, Prerequisite, SafetyRule, MaterialOption, and TaskVariant specifications.
-- A reviewed MVP activity catalog: 20 required activities; activities 21-30 are stretch only.
+- A provisional MVP activity catalog for ages 0-12: 100 required activities; activities 101-200 are stretch, capped at 200.
+- Age-band coverage uses 0-3, 3-6, 6-9, and 9-12; 0-3 activities are caregiver-led.
+- English machine IDs/schema keys with `vi-VN` reviewer-facing content.
 - An initial Learning Objective taxonomy: 15-20 objectives.
 - Deterministic age/readiness, prerequisite, safety, material, active-status, and policy rule matrix.
 - At least 20 fixture cases with explicit expected allowed/blocked IDs and reason codes.
@@ -66,10 +68,10 @@ These paths are proposed by this plan and do not exist merely because they are l
 |---|---|---|---:|---|---|
 | Phase 0 - Approval and fixture freeze | Resolve owner decisions; freeze source IDs and local input fixture shapes | Planning only | 0 h | Plan ready | Revision 3 approved and approval file complete |
 | Phase 1 - Domain foundation | Folder conventions, glossary, ID/version rules, Activity schema, objective taxonomy | P1-01..P1-04 | 11 h / 2.75 SP | Phase 0 approved | Schema examples and taxonomy review pass |
-| Phase 2 - Catalog and hard rules | Curate catalog and rule matrix with provenance/review state | P1-05..P1-06 | 12 h / 3.0 SP | Phase 1 contracts frozen | >=20 complete activities; hard-rule review pass |
+| Phase 2 - Catalog and hard rules | Curate 100-200 activities across four age bands and build the rule matrix | P1-05..P1-06 | 44-84 h / 11-21 SP | Phase 1 contracts frozen | >=100 complete provisional activities; age-band and hard-rule review pass |
 | Phase 3 - Standalone harness | Harness shape, positive cases, blocked/no-result cases | P1-07..P1-09 | 9 h / 2.25 SP | Phase 2 catalog/rules versioned | All fixtures deterministic; coverage and repeatability pass |
 | Phase 4 - Acceptance and handoff | Gate B criteria, ActivityHandoff template, traceability/review pack | P1-10..P1-12 | 8 h / 2.0 SP | Phase 3 results available | Traceability complete; owner/domain review ready |
-| Total | 12 tasks | P1-01..P1-12 | 40 h / 10 SP | - | Definition of Done satisfied |
+| Total | 12 tasks | P1-01..P1-12 | 72-112 h / 18-28 SP | - | Definition of Done satisfied |
 
 Detailed task-level scope is in `TASK_BREAKDOWN.md`; phase transitions and evidence gates are in `PHASES.md`.
 
@@ -78,7 +80,9 @@ Detailed task-level scope is in `TASK_BREAKDOWN.md`; phase transitions and evide
 - `AC-P1-01`: Every canonical entity has a definition, stable ID rule, version semantics, and at least one valid example.
 - `AC-P1-02`: Activity schema documents required/optional fields, types, meaning, constraints, and review status.
 - `AC-P1-03`: Objective taxonomy contains 15-20 versioned objectives mapped to Montessori areas with examples.
-- `AC-P1-04`: At least 20 activities pass schema completeness; every record includes objective mapping, age/readiness, steps, materials/substitutes, duration, safety/supervision, status, source provenance, and reviewer state.
+- `AC-P1-04`: At least 100 and no more than 200 activities pass schema completeness; every record includes age band, objective mapping, readiness, steps, materials/substitutes, duration, safety/supervision, status, source provenance, and reviewer state.
+- `AC-P1-04A`: The required catalog includes at least 25 activities in each 0-3, 3-6, 6-9, and 9-12 band; 0-3 records are explicitly caregiver-led.
+- `AC-P1-04B`: Owner-reviewed records use `PROVISIONAL_OWNER_REVIEWED` and remain non-production until qualified pedagogical review.
 - `AC-P1-05`: Every hard rule has a machine-readable reason code, inputs, pass/fail semantics, precedence, and positive/negative examples.
 - `AC-P1-06`: A candidate violating any hard rule is absent from allowed results; the harness reports all applicable block reasons.
 - `AC-P1-07`: At least 8 positive/multiple-valid and 10 negative/no-result cases exist; total fixture count is at least 20.
@@ -106,7 +110,7 @@ Every completed task records an evidence ID, acceptance criterion, exact command
 ## Definition of Done
 
 - All 12 tasks meet their acceptance criteria and phase gates.
-- Required catalog target, taxonomy target, and fixture coverage pass.
+- Required 100-activity catalog target, four-band coverage, taxonomy target, and fixture coverage pass; stretch work stops at 200.
 - Standalone harness is reproducible from README instructions.
 - Source/reviewer provenance is present; activities not reviewed remain `DRAFT` and cannot be represented as approved.
 - Architecture and repository-security validators pass.
@@ -115,9 +119,10 @@ Every completed task records an evidence ID, acceptance criterion, exact command
 
 ## Risks and mitigations
 
-- Pedagogical validity: require named Montessori reviewer and per-record review status; do not equate schema validity with pedagogical approval.
-- Scope expansion: keep 20 activities as required; treat 21-30 as stretch.
-- Ambiguous age/readiness: freeze owner-selected range/bands before catalog work.
+- Pedagogical validity: owner review is provisional only; require a qualified Montessori review gate before production and do not equate schema validity with pedagogical approval.
+- Scope expansion: batch and checkpoint the 100 required records; treat 101-200 as stretch and stop at 200.
+- Broad age/readiness scope: classify by 0-3, 3-6, 6-9, and 9-12 while keeping per-activity readiness rules authoritative.
+- Workload imbalance: the owner-requested catalog expansion raises Person 1 from 10 SP to 18-28 SP; approval must explicitly accept multi-sprint duration or later rebalancing.
 - Rule overreach: document deterministic eligibility only; defer ranking/weights/runtime recommendation.
 - Fixture bias: include boundary, multiple-failure, and no-result cases and record known gaps.
 - Translation drift: use stable machine IDs and an approved locale policy; do not encode business identity in display text.
@@ -125,4 +130,4 @@ Every completed task records an evidence ID, acceptance criterion, exact command
 
 ## Approval rule
 
-Only revision 3 may be approved. Any material change to scope, catalog target, age/readiness range, locale, reviewer gate, or acceptance criteria increments the revision and invalidates approval.
+Only revision 4 may be approved. Any material change to scope, catalog target, age/readiness range, locale, reviewer gate, or acceptance criteria increments the revision and invalidates approval.

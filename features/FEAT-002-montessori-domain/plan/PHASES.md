@@ -18,15 +18,15 @@ Current state: `AWAITING_TASK_APPROVAL`.
 
 ## Phase 0 - approval and input freeze
 
-Entry: plan revision 3 prepared.
+Entry: plan revision 4 prepared.
 
 Required exit evidence:
 
-- owner approval recorded against revision 3;
-- target age/readiness range approved;
-- catalog locale policy approved;
-- Montessori reviewer named or an explicit owner-only provisional review rule accepted;
-- 20-required/+10-stretch catalog target accepted;
+- owner approval recorded against revision 4;
+- under-13 scope recorded as 0-3, 3-6, 6-9, and 9-12;
+- English machine IDs/schema keys plus `vi-VN` reviewer-facing content recorded;
+- owner-only provisional review and non-production status recorded;
+- 100-required/+100-stretch catalog target and 72-112 hour estimate acknowledged;
 - fixed fixture/source register IDs recorded.
 
 No implementation command may run before this gate closes.
@@ -52,12 +52,13 @@ Tasks: P1-05 and P1-06.
 Exit evidence:
 
 - catalog completeness and unique ID/version report;
+- age-band coverage report with at least 25 required records per band;
 - source/reviewer/status ledger;
 - objective/reference integrity report;
 - hard-rule and reason-code review;
 - explicit no-rule-relaxation confirmation.
 
-Schema-valid but pedagogically unreviewed activities remain `DRAFT`.
+Schema-valid but unreviewed activities remain `DRAFT`. Owner-reviewed activities become `PROVISIONAL_OWNER_REVIEWED`, never production-approved.
 
 ## Phase 3 - harness and fixtures
 

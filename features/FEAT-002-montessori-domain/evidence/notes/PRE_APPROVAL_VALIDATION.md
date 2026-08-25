@@ -2,6 +2,7 @@
 
 - Validation date: 2026-08-25
 - Branch: `plan/person-1-montessori-sprint-1`
+- Plan revision: 4
 - Scope: planning/context/approval/evidence documents only
 - Result: PASS
 

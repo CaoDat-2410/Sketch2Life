@@ -1,7 +1,7 @@
 # Planning source review
 
 - Review date: 2026-08-25
-- Purpose: prepare Person 1 plan revision 3; no implementation authorization.
+- Purpose: prepare Person 1 plan revision 4; no implementation authorization.
 
 ## Authority order applied
 
@@ -12,7 +12,11 @@
 
 ## Sprint workbook observations
 
-The `Detailed Breakdown` sheet describes 12 Person 1 tasks totaling 40 hours and 10 story points, with no cross-person dependency. It covers structure, glossary/version rules, Activity schema, objective taxonomy, 20-30 activities, hard rules, harness, positive and negative cases, Gate B criteria, ActivityHandoff, and traceability. Plan revision 3 preserves this useful decomposition while making 20 activities required and 21-30 stretch to control scope.
+The `Detailed Breakdown` sheet describes 12 Person 1 tasks totaling 40 hours and 10 story points, with no cross-person dependency. It covers structure, glossary/version rules, Activity schema, objective taxonomy, 20-30 activities, hard rules, harness, positive and negative cases, Gate B criteria, ActivityHandoff, and traceability. The owner later expanded the catalog target to 100-200, so revision 4 preserves the task decomposition but recalculates workload instead of preserving an invalid estimate.
+
+## Official age-band observations
+
+AMI identifies 0-3, 3-6, and 6-12 Montessori programme levels. AMS also describes Elementary as 6-9 and 9-12, sometimes combined. Revision 4 therefore uses 0-3, 3-6, 6-9, and 9-12 as catalog review bands. These sources support classification only; they do not pedagogically approve individual activities.
 
 ## Handbook observations
 
@@ -20,6 +24,6 @@ Relevant sections identify Activity, Concept, Prerequisite, SafetyRule, Material
 
 ## Limitations
 
-- The reference documents do not resolve the target age/readiness range, catalog locale policy, or named Montessori reviewer.
+- Individual activity validity still lacks qualified Montessori review; owner review is provisional only.
 - The workbook estimates are planning inputs, not guarantees.
 - The handbook is an architecture reference, not task approval.

@@ -15,6 +15,8 @@ The files below are reference inputs. Their contents inform context and proposed
 | `firebase-id-token-verification` | `https://firebase.google.com/docs/auth/admin/verify-id-tokens` | Official Firebase documentation | Custom-backend identity verification | Authentication input; does not authorize Firebase storage/database products |
 | `runpod-serverless-endpoints` | `https://docs.runpod.io/serverless/endpoints/overview` | Official Runpod documentation | Production queue endpoint and job semantics | AI infrastructure input for future integration |
 | `runpod-api-keys` | `https://docs.runpod.io/get-started/api-keys` | Official Runpod documentation | Endpoint-scoped restricted keys | Security input; backend runtime only |
+| `ami-programme-levels` | `https://montessori-ami.org/about-montessori/montessori-programmes` | Official Association Montessori Internationale guidance | Montessori programme bands 0-3, 3-6, and 6-12 | Domain-classification input for FEAT-002; does not replace activity-level pedagogical review |
+| `ams-programme-levels` | `https://main-cd-prod.amshq.org/About-AMS/Press-kit/What-Is-Montessori` | Official American Montessori Society guidance | Infant/Toddler, Early Childhood, and Elementary 6-9/9-12 groupings | Secondary age-band cross-check for FEAT-002; AMI bands remain the primary classification baseline |
 
 ## Reading notes
 
