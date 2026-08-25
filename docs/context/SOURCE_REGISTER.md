@@ -17,6 +17,11 @@ The files below are reference inputs. Their contents inform context and proposed
 | `runpod-api-keys` | `https://docs.runpod.io/get-started/api-keys` | Official Runpod documentation | Endpoint-scoped restricted keys | Security input; backend runtime only |
 | `ami-programme-levels` | `https://montessori-ami.org/about-montessori/montessori-programmes` | Official Association Montessori Internationale guidance | Montessori programme bands 0-3, 3-6, and 6-12 | Domain-classification input for FEAT-002; does not replace activity-level pedagogical review |
 | `ams-programme-levels` | `https://main-cd-prod.amshq.org/About-AMS/Press-kit/What-Is-Montessori` | Official American Montessori Society guidance | Infant/Toddler, Early Childhood, and Elementary 6-9/9-12 groupings | Secondary age-band cross-check for FEAT-002; AMI bands remain the primary classification baseline |
+| `ami-0-3` | `https://montessori-ami.org/node/2174` | Official Association Montessori Internationale guidance | 0-3 movement, language, independence, caregiver/toddler context | FEAT-002 catalog-area input; individual activities remain pending project-owner review |
+| `ami-3-6` | `https://montessori-ami.org/about-montessori/montessori-3-6` | Official Association Montessori Internationale guidance | 3-6 practical life, sensorial, language, mathematics, cultural domains | FEAT-002 catalog-area input; not activity-level approval |
+| `ami-cosmic-education` | `https://montessori-ami.org/trainingvoices/cosmic-education` | Official Association Montessori Internationale guidance | 6-12 Cosmic Education, Great Stories, interdisciplinary exploration | FEAT-002 elementary catalog-area input; not activity-level approval |
+| `ams-early-childhood-curriculum` | `https://amshq.org/about-us/inside-the-montessori-classroom/early-childhood/` | Official American Montessori Society guidance | Practical Life, Sensorial, Math, Language, and Cultural Studies | Secondary FEAT-002 curriculum cross-check |
+| `ams-elementary-curriculum` | `https://amshq.org/about-us/inside-the-montessori-classroom/elementary/` | Official American Montessori Society guidance | Elementary practical life, math, language, cultural/science/social studies | Secondary FEAT-002 curriculum cross-check |
 
 ## Reading notes
 

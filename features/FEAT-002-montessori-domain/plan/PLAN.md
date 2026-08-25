@@ -1,13 +1,13 @@
 # FEAT-002 Montessori domain plan
 
-- Status: AWAITING_APPROVAL
+- Status: REVIEW
 - Plan revision: 4
-- Implementation status: NOT_STARTED
+- Implementation status: IMPLEMENTED_AWAITING_OWNER_CONTENT_REVIEW
 - Owner: Person 1
 - Prepared at: 2026-08-25
 - Branch: `plan/person-1-montessori-sprint-1`
 
-Implementation is blocked until the owner approves this exact revision and acknowledges the expanded estimate in `APPROVAL_PACKET.md`.
+Implementation is authorized for revision 4 by `approvals/TASK_APPROVAL.md`.
 
 ## Goal
 
@@ -60,13 +60,13 @@ features/FEAT-002-montessori-domain/evidence/
                                 feature-local reports, logs, reviews, and metrics
 ```
 
-These paths are proposed by this plan and do not exist merely because they are listed here.
+These paths now contain the implemented revision 4 artifacts.
 
 ## Phase plan
 
 | Phase | Scope | Tasks | Estimate | Entry gate | Exit gate |
 |---|---|---|---:|---|---|
-| Phase 0 - Approval and fixture freeze | Resolve owner decisions; freeze source IDs and local input fixture shapes | Planning only | 0 h | Plan ready | Revision 3 approved and approval file complete |
+| Phase 0 - Approval and fixture freeze | Resolve owner decisions; freeze source IDs and local input fixture shapes | Planning only | 0 h | Plan ready | Revision 4 approved and approval file complete |
 | Phase 1 - Domain foundation | Folder conventions, glossary, ID/version rules, Activity schema, objective taxonomy | P1-01..P1-04 | 11 h / 2.75 SP | Phase 0 approved | Schema examples and taxonomy review pass |
 | Phase 2 - Catalog and hard rules | Curate 100-200 activities across four age bands and build the rule matrix | P1-05..P1-06 | 44-84 h / 11-21 SP | Phase 1 contracts frozen | >=100 complete provisional activities; age-band and hard-rule review pass |
 | Phase 3 - Standalone harness | Harness shape, positive cases, blocked/no-result cases | P1-07..P1-09 | 9 h / 2.25 SP | Phase 2 catalog/rules versioned | All fixtures deterministic; coverage and repeatability pass |
@@ -109,10 +109,10 @@ Every completed task records an evidence ID, acceptance criterion, exact command
 
 ## Definition of Done
 
-- All 12 tasks meet their acceptance criteria and phase gates.
+- All 12 implementation tasks meet their automated acceptance criteria and phase gates; final status stays `REVIEW` until owner content review is recorded.
 - Required 100-activity catalog target, four-band coverage, taxonomy target, and fixture coverage pass; stretch work stops at 200.
 - Standalone harness is reproducible from README instructions.
-- Source/reviewer provenance is present; activities not reviewed remain `DRAFT` and cannot be represented as approved.
+- Source/reviewer provenance is present; activities not reviewed remain `PENDING_OWNER_REVIEW` and cannot be represented as approved.
 - Architecture and repository-security validators pass.
 - Evidence index contains no `PENDING` required item.
 - Owner records final review; completion does not authorize Integration Sprint runtime work.

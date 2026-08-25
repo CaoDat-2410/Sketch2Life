@@ -1,0 +1,34 @@
+{
+  "id": "CASE_VALID_PREREQ_9_12",
+  "description": "Completed prerequisite permits Pythagorean exploration",
+  "input": {
+    "age_months": 132,
+    "readiness_tags": [
+      "works_with_multi_step_plan"
+    ],
+    "completed_activity_ids": [
+      "ACT-0082"
+    ],
+    "available_material_ids": [
+      "MAT_GRID_PAPER",
+      "MAT_PYTHAGOREAN_TILES"
+    ],
+    "supervision_level": "NEARBY",
+    "policy_flags": [],
+    "candidate_activity_ids": [
+      "ACT-0083"
+    ]
+  },
+  "expected": {
+    "status": "VALID_CANDIDATES",
+    "allowed_activity_ids": [
+      "ACT-0083"
+    ],
+    "blocked": {}
+  },
+  "coverage_tags": [
+    "valid",
+    "prerequisite",
+    "9-12"
+  ]
+}

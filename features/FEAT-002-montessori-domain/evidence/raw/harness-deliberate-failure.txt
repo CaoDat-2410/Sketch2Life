@@ -1,0 +1,4 @@
+MUTATION_TEST
+mutation=expected allowed activity changed to ACT-9999
+validator_exit=1
+MONTESSORI_DOMAIN_INVALID: fixture checksum mismatch: CASE_VALID_3_6

@@ -14,7 +14,7 @@ PLANNED
   -> DONE
 ```
 
-Current state: `AWAITING_TASK_APPROVAL`.
+Current state: `REVIEW`.
 
 ## Phase 0 - approval and input freeze
 
@@ -29,7 +29,7 @@ Required exit evidence:
 - 100-required/+100-stretch catalog target and 72-112 hour estimate acknowledged;
 - fixed fixture/source register IDs recorded.
 
-No implementation command may run before this gate closes.
+This gate closed through the approval recorded in `approvals/TASK_APPROVAL.md`.
 
 ## Phase 1 - domain foundation
 
@@ -58,7 +58,7 @@ Exit evidence:
 - hard-rule and reason-code review;
 - explicit no-rule-relaxation confirmation.
 
-Schema-valid but unreviewed activities remain `DRAFT`. Owner-reviewed activities become `PROVISIONAL_OWNER_REVIEWED`, never production-approved.
+Schema-valid but unreviewed activities remain `PENDING_OWNER_REVIEW`. Owner-reviewed activities may become `PROVISIONAL_OWNER_REVIEWED`, never production-approved.
 
 ## Phase 3 - harness and fixtures
 

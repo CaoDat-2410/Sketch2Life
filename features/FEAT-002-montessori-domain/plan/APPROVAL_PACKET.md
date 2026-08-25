@@ -2,7 +2,7 @@
 
 - Feature: FEAT-002 Montessori domain
 - Revision to approve: 4
-- Implementation status: NOT_STARTED
+- Implementation status: APPROVED_AND_IMPLEMENTED; owner catalog-content review pending
 - Estimated workload: 72-112 hours / 18-28 story points
 - Cross-person runtime dependency: none
 
@@ -25,10 +25,6 @@ The original workbook estimate allocated 8 hours / 2 SP for 20 activities. At th
 
 Approval of revision 4 accepts this expanded Person 1 scope as a multi-sprint or later-rebalanced workstream. It does not silently increase the other three workstreams.
 
-## Approval response format
+## Approval record
 
-The owner can approve by replying with all four decisions and the statement:
-
-`APPROVE FEAT-002 PLAN REVISION 4`
-
-Any requested scope change produces revision 5 before implementation.
+The owner authorized implementation on 2026-08-25 with “tiến hành đi”; the canonical record is `approvals/TASK_APPROVAL.md`. Any requested material scope change produces revision 5 before further implementation.

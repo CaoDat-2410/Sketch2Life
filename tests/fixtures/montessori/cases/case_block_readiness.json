@@ -1,0 +1,32 @@
+{
+  "id": "CASE_BLOCK_READINESS",
+  "description": "Candidate blocks missing readiness",
+  "input": {
+    "age_months": 48,
+    "readiness_tags": [],
+    "completed_activity_ids": [],
+    "available_material_ids": [
+      "MAT_LARGE_DRY_COUNTERS",
+      "MAT_TRAY",
+      "MAT_TWO_PITCHERS"
+    ],
+    "supervision_level": "NEARBY",
+    "policy_flags": [],
+    "candidate_activity_ids": [
+      "ACT-0026"
+    ]
+  },
+  "expected": {
+    "status": "NO_VALID_ACTIVITY",
+    "allowed_activity_ids": [],
+    "blocked": {
+      "ACT-0026": [
+        "BLOCK_MISSING_READINESS"
+      ]
+    }
+  },
+  "coverage_tags": [
+    "blocked",
+    "readiness"
+  ]
+}

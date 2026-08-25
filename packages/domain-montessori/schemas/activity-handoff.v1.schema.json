@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sketch2life.local/schemas/montessori/activity-handoff.v1.schema.json",
+  "title": "ActivityHandoff v1",
+  "type": "object",
+  "required": ["activity_id", "activity_version", "learning_objective_id", "learning_objective_version", "task_variant_id", "locale", "cta_vi", "materials_vi", "setup_steps_vi", "activity_steps_vi", "safety_supervision_vi", "screen_exit_policy", "completion_evidence"],
+  "properties": {
+    "activity_id": {"type": "string", "pattern": "^ACT-[0-9]{4}$"},
+    "activity_version": {"type": "integer", "minimum": 1},
+    "learning_objective_id": {"type": "string", "pattern": "^OBJ_[A-Z0-9_]+$"},
+    "learning_objective_version": {"type": "integer", "minimum": 1},
+    "task_variant_id": {"type": ["string", "null"]},
+    "locale": {"const": "vi-VN"},
+    "cta_vi": {"type": "string", "minLength": 1},
+    "materials_vi": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "setup_steps_vi": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "activity_steps_vi": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "safety_supervision_vi": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "screen_exit_policy": {"const": "STOP_MEDIA_AND_HANDOFF"},
+    "completion_evidence": {"const": "ADULT_OBSERVATION_REQUIRED"}
+  },
+  "additionalProperties": false
+}

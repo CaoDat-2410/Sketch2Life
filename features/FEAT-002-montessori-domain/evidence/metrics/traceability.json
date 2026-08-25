@@ -1,0 +1,66 @@
+{
+  "AC-P1-01": [
+    "spec/GLOSSARY.md",
+    "spec/ID_VERSION_RULES.md"
+  ],
+  "AC-P1-02": [
+    "schemas/activity.v1.schema.json",
+    "activities.v1.json"
+  ],
+  "AC-P1-03": [
+    "schemas/learning-objective.v1.schema.json",
+    "learning-objectives.v1.json"
+  ],
+  "AC-P1-04": [
+    "activities.v1.json",
+    "catalog-validation.json",
+    "catalog-summary.csv"
+  ],
+  "AC-P1-04A": [
+    "catalog-validation.json",
+    "catalog-summary.csv"
+  ],
+  "AC-P1-04B": [
+    "provenance.v1.json",
+    "CATALOG_REVIEW_PACKET.md"
+  ],
+  "AC-P1-05": [
+    "hard-rules.v1.json",
+    "spec/RULE_SEMANTICS.md"
+  ],
+  "AC-P1-06": [
+    "harness-run.txt",
+    "unit-tests.txt"
+  ],
+  "AC-P1-07": [
+    "fixture-coverage.json",
+    "manifest.v1.json"
+  ],
+  "AC-P1-08": [
+    "fixture-coverage.json",
+    "tests/fixtures/montessori/cases"
+  ],
+  "AC-P1-09": [
+    "tools/validate_montessori_domain.py",
+    "harness-deliberate-failure.txt"
+  ],
+  "AC-P1-10": [
+    "spec/RULE_SEMANTICS.md",
+    "CASE_NO_VALID_* fixtures"
+  ],
+  "AC-P1-11": [
+    "spec/GATE_B_ACCEPTANCE.md"
+  ],
+  "AC-P1-12": [
+    "spec/ACTIVITY_HANDOFF.md",
+    "schemas/activity-handoff.v1.schema.json"
+  ],
+  "AC-P1-13": [
+    "spec/TRACEABILITY.md",
+    "traceability.json"
+  ],
+  "AC-P1-14": [
+    "PRE_APPROVAL_VALIDATION.md",
+    "final-validation.txt"
+  ]
+}

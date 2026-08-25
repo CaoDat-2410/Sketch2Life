@@ -1,0 +1,9 @@
+command=python tools/validate_montessori_domain.py --report features/FEAT-002-montessori-domain/evidence/metrics/catalog-validation.json
+exit=0
+MONTESSORI_DOMAIN_VALID
+activities=100
+learning_objectives=20
+age_bands={'0-3': 25, '3-6': 25, '6-9': 25, '9-12': 25}
+fixtures=24 positive=12 negative=12
+review_status=PENDING_OWNER_REVIEW production_eligible=false
+network_required=false

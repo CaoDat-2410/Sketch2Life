@@ -1,0 +1,37 @@
+{
+  "status": "MONTESSORI_DOMAIN_VALID",
+  "activities": 100,
+  "learning_objectives": 20,
+  "age_band_counts": {
+    "0-3": 25,
+    "3-6": 25,
+    "6-9": 25,
+    "9-12": 25
+  },
+  "fixture_cases": 24,
+  "positive_cases": 12,
+  "negative_cases": 12,
+  "coverage_tags": [
+    "0-3",
+    "3-6",
+    "6-9",
+    "9-12",
+    "age",
+    "age_boundary",
+    "blocked",
+    "inactive",
+    "material",
+    "material_substitute",
+    "multiple_failure",
+    "multiple_valid",
+    "no_valid",
+    "policy",
+    "prerequisite",
+    "readiness",
+    "safety",
+    "valid"
+  ],
+  "review_status": "PENDING_OWNER_REVIEW",
+  "production_eligible": false,
+  "network_required": false
+}

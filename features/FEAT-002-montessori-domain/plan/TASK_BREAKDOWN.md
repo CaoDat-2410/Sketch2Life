@@ -3,7 +3,7 @@
 - Plan revision: 4
 - Total: 12 tasks, 72-112 estimated hours, 18-28 story points
 - Cross-person runtime dependency: none
-- Status of every task: `BLOCKED_BY_TASK_APPROVAL`
+- Implementation status: P1-01 through P1-12 implemented; automated checks complete; owner catalog-content review pending
 
 | ID | Task | Deliverable | Estimate | Acceptance/evidence summary |
 |---|---|---|---:|---|

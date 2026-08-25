@@ -9,3 +9,4 @@
 - Catalog target is 100 required activities plus up to 100 stretch activities, capped at 200.
 - Machine IDs and schema field names are English; reviewer-facing content is `vi-VN`.
 - Until a qualified Montessori reviewer is available, the project owner may mark records `PROVISIONAL_OWNER_REVIEWED`; this is not production pedagogical approval.
+- Kaggle is an available future AI test host, but FEAT-002 has no AI dependency and runs entirely offline against fixtures.

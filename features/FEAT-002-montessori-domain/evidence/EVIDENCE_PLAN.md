@@ -1,6 +1,12 @@
 # Person 1 evidence plan
 
-All required evidence remains `PENDING_TASK_APPROVAL` until implementation is authorized.
+Task approval is recorded. EV-P1-01 through EV-P1-09 are complete; EV-P1-10 is completed by the final validation pass. Human catalog content review remains pending and does not convert provisional fixtures into production content.
+
+| Evidence range | Status | Remaining human gate |
+|---|---|---|
+| EV-P1-01..02 | COMPLETE | Domain wording may still receive review comments |
+| EV-P1-03 | AUTOMATION_COMPLETE | Owner reviews all 100 activity rows |
+| EV-P1-04..10 | COMPLETE | Owner accepts or requests changes to the review packet |
 
 | Evidence ID | Tasks / acceptance | Type | Planned artifact | Required interpretation |
 |---|---|---|---|---|

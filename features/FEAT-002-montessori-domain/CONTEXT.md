@@ -1,6 +1,6 @@
 # FEAT-002 Montessori domain context
 
-- Status: AWAITING_APPROVAL
+- Status: REVIEW
 - Primary owner: Person 1
 - Planning branch: `plan/person-1-montessori-sprint-1`
 - Plan revision: 4
@@ -11,7 +11,7 @@
 - Catalog language: stable English machine IDs/schema keys with `vi-VN` reviewer-facing content.
 - Review rule: project owner performs provisional review until a qualified Montessori reviewer is available; provisional records are non-production.
 - Catalog target: 100 required activities and up to 100 additional stretch activities (maximum 200).
-- Approval dependency: project owner must explicitly approve revision 4 after acknowledging the revised 72-112 hour / 18-28 story-point estimate.
+- Approval state: revision 4 implementation is approved and complete; project-owner content review of the 100 provisional activity records remains pending.
 
 ## Sprint 1 boundary
 
@@ -21,7 +21,7 @@ Recommendation runtime, Gate B UI, backend wiring, and the off-screen runtime ha
 
 - Direct owner instructions and ADR-0006 define the allowed scope.
 - The handbook and sprint workbook are reference inputs only; their task rows do not authorize implementation.
-- Plan revision 4 is not implementation-approved until `approvals/TASK_APPROVAL.md` is completed by the owner.
+- Plan revision 4 implementation authority is recorded in `approvals/TASK_APPROVAL.md`; it does not constitute pedagogical approval of individual activities.
 
 ## Independence contract
 

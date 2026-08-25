@@ -17,7 +17,7 @@ This repository starts with a delivery harness before product code. The harness 
 ## Current state
 
 - Harness: active and enforced per feature.
-- Product implementation: not started.
+- Product implementation: foundation only; FEAT-002 Montessori domain fixtures are implemented and awaiting provisional owner content review.
 - Tech stack: Python/FastAPI backend and Android-only React Native 0.87 foundation accepted; Firebase Authentication-only identity and Lightning-dev/Runpod-production AI strategy are frozen but live integrations remain gated.
 - Frontend assets: no generated asset is approved or applied yet.
 
@@ -28,6 +28,7 @@ This repository starts with a delivery harness before product code. The harness 
 - `python tools/validate_architecture.py`
 - `python tools/validate_team_allocation.py`
 - `python tools/validate_repository_security.py`
+- `python tools/validate_montessori_domain.py`
 - `docker compose up -d`
 
 See [local development setup](docs/setup/LOCAL_DEVELOPMENT.md) and the [project skeleton map](docs/setup/PROJECT_SKELETON.md).

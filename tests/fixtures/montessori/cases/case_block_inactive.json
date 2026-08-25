@@ -1,0 +1,34 @@
+{
+  "id": "CASE_BLOCK_INACTIVE",
+  "description": "Inactive supplemental catalog record blocks",
+  "input": {
+    "age_months": 48,
+    "readiness_tags": [
+      "follows_one_step_direction"
+    ],
+    "completed_activity_ids": [],
+    "available_material_ids": [
+      "MAT_LARGE_DRY_COUNTERS",
+      "MAT_TRAY",
+      "MAT_TWO_PITCHERS"
+    ],
+    "supervision_level": "NEARBY",
+    "policy_flags": [],
+    "candidate_activity_ids": [
+      "ACT-9001"
+    ]
+  },
+  "expected": {
+    "status": "NO_VALID_ACTIVITY",
+    "allowed_activity_ids": [],
+    "blocked": {
+      "ACT-9001": [
+        "BLOCK_INACTIVE_ACTIVITY"
+      ]
+    }
+  },
+  "coverage_tags": [
+    "blocked",
+    "inactive"
+  ]
+}

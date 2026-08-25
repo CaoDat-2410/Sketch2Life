@@ -1,0 +1,205 @@
+{
+  "schema_version": 1,
+  "objectives": [
+    {
+      "id": "OBJ_MOVEMENT_COORDINATION",
+      "version": 1,
+      "title": {
+        "vi-VN": "Phối hợp vận động"
+      },
+      "area": "movement",
+      "status": "DRAFT",
+      "production_eligible": false
+    },
+    {
+      "id": "OBJ_OBJECT_PERMANENCE",
+      "version": 1,
+      "title": {
+        "vi-VN": "Tính thường tồn của đồ vật"
+      },
+      "area": "sensorial",
+      "status": "DRAFT",
+      "production_eligible": false
+    },
+    {
+      "id": "OBJ_RECEPTIVE_LANGUAGE",
+      "version": 1,
+      "title": {
+        "vi-VN": "Ngôn ngữ tiếp nhận và biểu đạt"
+      },
+      "area": "language",
+      "status": "DRAFT",
+      "production_eligible": false
+    },
+    {
+      "id": "OBJ_INDEPENDENCE_SELF_CARE",
+      "version": 1,
+      "title": {
+        "vi-VN": "Độc lập trong tự chăm sóc"
+      },
+      "area": "practical_life",
+      "status": "DRAFT",
+      "production_eligible": false
+    },
+    {
+      "id": "OBJ_ORDER_GRACE_COURTESY",
+      "version": 1,
+      "title": {
+        "vi-VN": "Trật tự, lịch sự và cộng đồng"
+      },
+      "area": "practical_life",
+      "status": "DRAFT",
+      "production_eligible": false
+    },
+    {
+      "id": "OBJ_PRACTICAL_LIFE_SEQUENCE",
+      "version": 1,
+      "title": {
+        "vi-VN": "Chuỗi thao tác thực hành cuộc sống"
+      },
+      "area": "practical_life",
+      "status": "DRAFT",
+      "production_eligible": false
+    },
+    {
+      "id": "OBJ_SENSORIAL_DISCRIMINATION",
+      "version": 1,
+      "title": {
+        "vi-VN": "Phân biệt và phân loại giác quan"
+      },
+      "area": "sensorial",
+      "status": "DRAFT",
+      "production_eligible": false
+    },
+    {
+      "id": "OBJ_EARLY_WRITING",
+      "version": 1,
+      "title": {
+        "vi-VN": "Chuẩn bị và phát triển viết"
+      },
+      "area": "language",
+      "status": "DRAFT",
+      "production_eligible": false
+    },
+    {
+      "id": "OBJ_EARLY_READING",
+      "version": 1,
+      "title": {
+        "vi-VN": "Âm vị, ghép từ và đọc ban đầu"
+      },
+      "area": "language",
+      "status": "DRAFT",
+      "production_eligible": false
+    },
+    {
+      "id": "OBJ_NUMBER_QUANTITY_PLACE_VALUE",
+      "version": 1,
+      "title": {
+        "vi-VN": "Số lượng, chữ số và giá trị hàng"
+      },
+      "area": "mathematics",
+      "status": "DRAFT",
+      "production_eligible": false
+    },
+    {
+      "id": "OBJ_COSMIC_INTERCONNECTION",
+      "version": 1,
+      "title": {
+        "vi-VN": "Nhận biết tính liên kết trong vũ trụ"
+      },
+      "area": "cosmic_education",
+      "status": "DRAFT",
+      "production_eligible": false
+    },
+    {
+      "id": "OBJ_SCIENTIFIC_OBSERVATION",
+      "version": 1,
+      "title": {
+        "vi-VN": "Quan sát và mô tả khoa học"
+      },
+      "area": "science",
+      "status": "DRAFT",
+      "production_eligible": false
+    },
+    {
+      "id": "OBJ_MATHEMATICAL_REASONING",
+      "version": 1,
+      "title": {
+        "vi-VN": "Lập luận toán học bằng vật liệu cụ thể"
+      },
+      "area": "mathematics",
+      "status": "DRAFT",
+      "production_eligible": false
+    },
+    {
+      "id": "OBJ_LANGUAGE_ANALYSIS",
+      "version": 1,
+      "title": {
+        "vi-VN": "Phân tích và sử dụng ngôn ngữ"
+      },
+      "area": "language",
+      "status": "DRAFT",
+      "production_eligible": false
+    },
+    {
+      "id": "OBJ_SOCIAL_RESPONSIBILITY",
+      "version": 1,
+      "title": {
+        "vi-VN": "Trách nhiệm cá nhân và cộng đồng"
+      },
+      "area": "social_studies",
+      "status": "DRAFT",
+      "production_eligible": false
+    },
+    {
+      "id": "OBJ_ADVANCED_MATHEMATICS",
+      "version": 1,
+      "title": {
+        "vi-VN": "Toán học nâng cao và ứng dụng"
+      },
+      "area": "mathematics",
+      "status": "DRAFT",
+      "production_eligible": false
+    },
+    {
+      "id": "OBJ_SCIENTIFIC_INQUIRY",
+      "version": 1,
+      "title": {
+        "vi-VN": "Đặt câu hỏi và điều tra khoa học"
+      },
+      "area": "science",
+      "status": "DRAFT",
+      "production_eligible": false
+    },
+    {
+      "id": "OBJ_HUMANITIES_RESEARCH",
+      "version": 1,
+      "title": {
+        "vi-VN": "Nghiên cứu lịch sử, địa lý và xã hội"
+      },
+      "area": "cultural_studies",
+      "status": "DRAFT",
+      "production_eligible": false
+    },
+    {
+      "id": "OBJ_COMMUNICATION_ARGUMENTATION",
+      "version": 1,
+      "title": {
+        "vi-VN": "Giao tiếp, bằng chứng và lập luận"
+      },
+      "area": "language",
+      "status": "DRAFT",
+      "production_eligible": false
+    },
+    {
+      "id": "OBJ_PROJECT_SERVICE_LEADERSHIP",
+      "version": 1,
+      "title": {
+        "vi-VN": "Lập kế hoạch dự án và phục vụ cộng đồng"
+      },
+      "area": "social_studies",
+      "status": "DRAFT",
+      "production_eligible": false
+    }
+  ]
+}

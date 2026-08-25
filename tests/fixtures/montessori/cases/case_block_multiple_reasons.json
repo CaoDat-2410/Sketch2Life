@@ -1,0 +1,32 @@
+{
+  "id": "CASE_BLOCK_MULTIPLE_REASONS",
+  "description": "All applicable block reasons remain visible",
+  "input": {
+    "age_months": 48,
+    "readiness_tags": [],
+    "completed_activity_ids": [],
+    "available_material_ids": [],
+    "supervision_level": "NONE",
+    "policy_flags": [],
+    "candidate_activity_ids": [
+      "ACT-0001"
+    ]
+  },
+  "expected": {
+    "status": "NO_VALID_ACTIVITY",
+    "allowed_activity_ids": [],
+    "blocked": {
+      "ACT-0001": [
+        "BLOCK_AGE_ABOVE_MAXIMUM",
+        "BLOCK_MISSING_READINESS",
+        "BLOCK_INSUFFICIENT_SUPERVISION",
+        "BLOCK_POLICY_CONSTRAINT",
+        "BLOCK_MISSING_MATERIAL"
+      ]
+    }
+  },
+  "coverage_tags": [
+    "blocked",
+    "multiple_failure"
+  ]
+}

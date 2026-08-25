@@ -1,0 +1,34 @@
+{
+  "id": "CASE_VALID_PREREQ_3_6",
+  "description": "Completed prerequisite permits golden-bead activity",
+  "input": {
+    "age_months": 60,
+    "readiness_tags": [
+      "follows_one_step_direction"
+    ],
+    "completed_activity_ids": [
+      "ACT-0047"
+    ],
+    "available_material_ids": [
+      "MAT_GOLDEN_BEAD_MATERIAL",
+      "MAT_NUMBER_CARDS"
+    ],
+    "supervision_level": "NEARBY",
+    "policy_flags": [],
+    "candidate_activity_ids": [
+      "ACT-0050"
+    ]
+  },
+  "expected": {
+    "status": "VALID_CANDIDATES",
+    "allowed_activity_ids": [
+      "ACT-0050"
+    ],
+    "blocked": {}
+  },
+  "coverage_tags": [
+    "valid",
+    "prerequisite",
+    "3-6"
+  ]
+}

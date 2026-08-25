@@ -1,0 +1,86 @@
+{
+  "id": "ACT-9001",
+  "version": 1,
+  "slug": "inactive_test_sentinel",
+  "title": {
+    "vi-VN": "Bản ghi kiểm thử trạng thái không hoạt động"
+  },
+  "age_band": "3-6",
+  "age_months": {
+    "min": 36,
+    "max": 71
+  },
+  "area": "practical_life",
+  "objective_ids": [
+    "OBJ_PRACTICAL_LIFE_SEQUENCE"
+  ],
+  "readiness_tags": [
+    "follows_one_step_direction"
+  ],
+  "prerequisite_activity_ids": [],
+  "material_groups": [
+    {
+      "id": "MG-0026-01",
+      "required": true,
+      "any_of": [
+        "MAT_TWO_PITCHERS",
+        "MAT_TWO_PITCHERS_APPROVED_SUBSTITUTE"
+      ],
+      "label_vi": "two pitchers",
+      "home_substitute_vi": "vật liệu tương đương, an toàn và phù hợp kích thước"
+    },
+    {
+      "id": "MG-0026-02",
+      "required": true,
+      "any_of": [
+        "MAT_LARGE_DRY_COUNTERS",
+        "MAT_LARGE_DRY_COUNTERS_APPROVED_SUBSTITUTE"
+      ],
+      "label_vi": "large dry counters",
+      "home_substitute_vi": "vật liệu tương đương, an toàn và phù hợp kích thước"
+    },
+    {
+      "id": "MG-0026-03",
+      "required": true,
+      "any_of": [
+        "MAT_TRAY",
+        "MAT_TRAY_APPROVED_SUBSTITUTE"
+      ],
+      "label_vi": "tray",
+      "home_substitute_vi": "vật liệu tương đương, an toàn và phù hợp kích thước"
+    }
+  ],
+  "duration_minutes": 10,
+  "steps_vi": [
+    "Người lớn chuẩn bị môi trường gọn, đủ vật liệu và loại bỏ yếu tố gây xao nhãng.",
+    "Giới thiệu ngắn gọn cách rót vật liệu khô giữa hai bình và xử lý phần rơi.",
+    "Trẻ thực hiện theo nhịp riêng; người lớn quan sát và chỉ hỗ trợ khi cần.",
+    "Trẻ cùng người lớn phục hồi vật liệu và ghi nhận mức độ độc lập."
+  ],
+  "safety": {
+    "minimum_supervision": "NEARBY",
+    "hazards_vi": [
+      "kiểm tra vật liệu nguyên vẹn, không độc hại và phù hợp kích thước trước khi dùng"
+    ],
+    "stop_conditions_vi": [
+      "trẻ khó chịu hoặc mệt",
+      "vật liệu hỏng hoặc xuất hiện nguy cơ mất an toàn"
+    ]
+  },
+  "policy_constraints": [],
+  "catalog_status": "INACTIVE",
+  "review": {
+    "status": "PENDING_OWNER_REVIEW",
+    "reviewer_role": null,
+    "reviewed_at": null,
+    "production_eligible": false
+  },
+  "source_refs": [
+    "sprint-task-breakdown"
+  ],
+  "provenance": {
+    "authored_by": "FEAT-002",
+    "authored_at": "2026-08-25",
+    "source_type": "inactive_test_sentinel"
+  }
+}

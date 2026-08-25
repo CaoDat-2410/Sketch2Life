@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sketch2life.local/schemas/montessori/learning-objective.v1.schema.json",
+  "title": "Sketch2Life Learning Objective v1",
+  "type": "object",
+  "required": [
+    "id",
+    "version",
+    "title",
+    "area",
+    "status",
+    "production_eligible"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^OBJ_[A-Z0-9_]+$"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "title": {
+      "type": "object",
+      "required": [
+        "vi-VN"
+      ]
+    },
+    "area": {
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "DRAFT",
+        "PROVISIONAL_OWNER_REVIEWED",
+        "QUALIFIED_REVIEWED",
+        "RETIRED"
+      ]
+    },
+    "production_eligible": {
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": false
+}

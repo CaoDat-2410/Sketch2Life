@@ -1,0 +1,31 @@
+{
+  "id": "CASE_VALID_6_9",
+  "description": "Valid 6-9 cosmic candidate",
+  "input": {
+    "age_months": 84,
+    "readiness_tags": [
+      "reads_simple_instructions"
+    ],
+    "completed_activity_ids": [],
+    "available_material_ids": [
+      "MAT_QUESTION_JOURNAL",
+      "MAT_UNIVERSE_STORY_CARDS"
+    ],
+    "supervision_level": "NEARBY",
+    "policy_flags": [],
+    "candidate_activity_ids": [
+      "ACT-0051"
+    ]
+  },
+  "expected": {
+    "status": "VALID_CANDIDATES",
+    "allowed_activity_ids": [
+      "ACT-0051"
+    ],
+    "blocked": {}
+  },
+  "coverage_tags": [
+    "valid",
+    "6-9"
+  ]
+}

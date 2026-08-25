@@ -1,0 +1,22 @@
+{
+  "catalog_version": 1,
+  "generated_at": "2026-08-25",
+  "review_policy": {
+    "current_status": "PENDING_OWNER_REVIEW",
+    "owner_review_result": "PROVISIONAL_OWNER_REVIEWED",
+    "production_gate": "QUALIFIED_MONTESSORI_REVIEW_REQUIRED"
+  },
+  "source_register_ids": [
+    "ami-0-3",
+    "ami-3-6",
+    "ami-cosmic-education",
+    "ami-programme-levels",
+    "ams-early-childhood-curriculum",
+    "ams-elementary-curriculum"
+  ],
+  "limitations": [
+    "The catalog is synthetic/provisional and is not production-approved Montessori content.",
+    "Age bands guide review; activity-specific readiness and supervision remain authoritative.",
+    "No real child data was used."
+  ]
+}
