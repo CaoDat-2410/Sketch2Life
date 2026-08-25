@@ -1,0 +1,810 @@
+{
+  "schema_version": 1,
+  "case_count": 74,
+  "cases": [
+    {
+      "id": "GCASE_0004_PRIMARY_VALID",
+      "path": "cases/gcase_0004_primary_valid.json",
+      "sha256": "aa35ae9ff8f3aec6939034feccf984afa72b61213c101a795f34ff5904997bdb",
+      "coverage_tags": [
+        "valid",
+        "primary_material",
+        "0-3",
+        "ACT-0004"
+      ]
+    },
+    {
+      "id": "GCASE_0004_SUBSTITUTE_VALID",
+      "path": "cases/gcase_0004_substitute_valid.json",
+      "sha256": "10cb86e6a0ab5e93864cd812e4a17828c71196e628f144f7092f6e252e2310bc",
+      "coverage_tags": [
+        "valid",
+        "household_substitute",
+        "0-3",
+        "ACT-0004"
+      ]
+    },
+    {
+      "id": "GCASE_0004_READINESS_BLOCK",
+      "path": "cases/gcase_0004_readiness_block.json",
+      "sha256": "1068e24bb1b8c740e24ad153c12369adbf0ae6aedfaa312f21680b5a249daa14",
+      "coverage_tags": [
+        "blocked",
+        "readiness",
+        "0-3",
+        "ACT-0004"
+      ]
+    },
+    {
+      "id": "GCASE_0016_PRIMARY_VALID",
+      "path": "cases/gcase_0016_primary_valid.json",
+      "sha256": "6ff7db0054e64caaa2d09038f04cf35cde470e9dbe974722bc0981a1a50f1f23",
+      "coverage_tags": [
+        "valid",
+        "primary_material",
+        "0-3",
+        "ACT-0016"
+      ]
+    },
+    {
+      "id": "GCASE_0016_SUBSTITUTE_VALID",
+      "path": "cases/gcase_0016_substitute_valid.json",
+      "sha256": "f474952b12051aeaf7d62d3c5432f5a7b0b9236c0a2c5dee4eadf91d9e53f7bc",
+      "coverage_tags": [
+        "valid",
+        "household_substitute",
+        "0-3",
+        "ACT-0016"
+      ]
+    },
+    {
+      "id": "GCASE_0016_READINESS_BLOCK",
+      "path": "cases/gcase_0016_readiness_block.json",
+      "sha256": "5b4d1a79250f83f8325c0a9f6c717bddd54f9cb80396949b3200c8dd964ae886",
+      "coverage_tags": [
+        "blocked",
+        "readiness",
+        "0-3",
+        "ACT-0016"
+      ]
+    },
+    {
+      "id": "GCASE_0019_PRIMARY_VALID",
+      "path": "cases/gcase_0019_primary_valid.json",
+      "sha256": "1e53105b3639cafb001dff4ddb3f3a04c9440de58992f44cc7098da6924281c8",
+      "coverage_tags": [
+        "valid",
+        "primary_material",
+        "0-3",
+        "ACT-0019"
+      ]
+    },
+    {
+      "id": "GCASE_0019_SUBSTITUTE_VALID",
+      "path": "cases/gcase_0019_substitute_valid.json",
+      "sha256": "3142d61a748fb4dac589eb74bc21682ebe94eebf312a0e7ac1aa754e23753106",
+      "coverage_tags": [
+        "valid",
+        "household_substitute",
+        "0-3",
+        "ACT-0019"
+      ]
+    },
+    {
+      "id": "GCASE_0019_READINESS_BLOCK",
+      "path": "cases/gcase_0019_readiness_block.json",
+      "sha256": "1a673bc750b3f527bbef4728e73dcacaea56db05f3721b4ce1837e946a1d5e26",
+      "coverage_tags": [
+        "blocked",
+        "readiness",
+        "0-3",
+        "ACT-0019"
+      ]
+    },
+    {
+      "id": "GCASE_0020_PRIMARY_VALID",
+      "path": "cases/gcase_0020_primary_valid.json",
+      "sha256": "8a06aec5e58a291624fa173cf973e962ce43d06628c6cdf21d1c5a8ef2f65018",
+      "coverage_tags": [
+        "valid",
+        "primary_material",
+        "0-3",
+        "ACT-0020"
+      ]
+    },
+    {
+      "id": "GCASE_0020_SUBSTITUTE_VALID",
+      "path": "cases/gcase_0020_substitute_valid.json",
+      "sha256": "c8fce15e26fd524bb29fb70ed606c476cfd8955e4c3cffb5d04e80ee146a9be8",
+      "coverage_tags": [
+        "valid",
+        "household_substitute",
+        "0-3",
+        "ACT-0020"
+      ]
+    },
+    {
+      "id": "GCASE_0020_READINESS_BLOCK",
+      "path": "cases/gcase_0020_readiness_block.json",
+      "sha256": "58966490b4e0f205a18770d2344f90d90051f90e380ac9e597f97b0f98967942",
+      "coverage_tags": [
+        "blocked",
+        "readiness",
+        "0-3",
+        "ACT-0020"
+      ]
+    },
+    {
+      "id": "GCASE_0023_PRIMARY_VALID",
+      "path": "cases/gcase_0023_primary_valid.json",
+      "sha256": "2e8dddc5f97f3fb0fe755b7deaf986b26ce3e840c1250cc5e6cf6756ea5f7a86",
+      "coverage_tags": [
+        "valid",
+        "primary_material",
+        "0-3",
+        "ACT-0023"
+      ]
+    },
+    {
+      "id": "GCASE_0023_SUBSTITUTE_VALID",
+      "path": "cases/gcase_0023_substitute_valid.json",
+      "sha256": "43408b65fe68953f62abcead4051b3223584200be26e0d7ed8a8eff997b578ae",
+      "coverage_tags": [
+        "valid",
+        "household_substitute",
+        "0-3",
+        "ACT-0023"
+      ]
+    },
+    {
+      "id": "GCASE_0023_READINESS_BLOCK",
+      "path": "cases/gcase_0023_readiness_block.json",
+      "sha256": "881538ce33723b07347a8c8fa78c241155f3f00353b262636648bc43cc6c4b86",
+      "coverage_tags": [
+        "blocked",
+        "readiness",
+        "0-3",
+        "ACT-0023"
+      ]
+    },
+    {
+      "id": "GCASE_0026_PRIMARY_VALID",
+      "path": "cases/gcase_0026_primary_valid.json",
+      "sha256": "73c0f47aed9cad1492b4b8e77338928ccfcd81859aeef077ecdbef04e0292a77",
+      "coverage_tags": [
+        "valid",
+        "primary_material",
+        "3-6",
+        "ACT-0026"
+      ]
+    },
+    {
+      "id": "GCASE_0026_SUBSTITUTE_VALID",
+      "path": "cases/gcase_0026_substitute_valid.json",
+      "sha256": "43c93ccd1a076d420915a1dc121673b4703f0b9274ac82b50ecc16c9bad30098",
+      "coverage_tags": [
+        "valid",
+        "household_substitute",
+        "3-6",
+        "ACT-0026"
+      ]
+    },
+    {
+      "id": "GCASE_0026_READINESS_BLOCK",
+      "path": "cases/gcase_0026_readiness_block.json",
+      "sha256": "3e051831f4c5d6f9f863af77dd1d3cce5ba326d32577b7b579f66fb42abaf900",
+      "coverage_tags": [
+        "blocked",
+        "readiness",
+        "3-6",
+        "ACT-0026"
+      ]
+    },
+    {
+      "id": "GCASE_0030_PRIMARY_VALID",
+      "path": "cases/gcase_0030_primary_valid.json",
+      "sha256": "00773cb736187c7cc8c48c472a0a5c8afedd2f9294befd78e7d3a1ac336b33df",
+      "coverage_tags": [
+        "valid",
+        "primary_material",
+        "3-6",
+        "ACT-0030"
+      ]
+    },
+    {
+      "id": "GCASE_0030_SUBSTITUTE_VALID",
+      "path": "cases/gcase_0030_substitute_valid.json",
+      "sha256": "61fd98008a136ea038a4f4d55bf62db9ffcffbc0325bbebd53d6ccd210496ee8",
+      "coverage_tags": [
+        "valid",
+        "household_substitute",
+        "3-6",
+        "ACT-0030"
+      ]
+    },
+    {
+      "id": "GCASE_0030_READINESS_BLOCK",
+      "path": "cases/gcase_0030_readiness_block.json",
+      "sha256": "7dd68238f4d83a0404dee7da692a1f8ffc0a77639994223daf63f98157e42e17",
+      "coverage_tags": [
+        "blocked",
+        "readiness",
+        "3-6",
+        "ACT-0030"
+      ]
+    },
+    {
+      "id": "GCASE_0033_PRIMARY_VALID",
+      "path": "cases/gcase_0033_primary_valid.json",
+      "sha256": "82db419e7129eb7f80c21849d90ddf4b7a323774770660ee64cfdb3df128ebd4",
+      "coverage_tags": [
+        "valid",
+        "primary_material",
+        "3-6",
+        "ACT-0033"
+      ]
+    },
+    {
+      "id": "GCASE_0033_SUBSTITUTE_VALID",
+      "path": "cases/gcase_0033_substitute_valid.json",
+      "sha256": "5626b508e6eb5e1150ddb7ead1055b61d92e20e92c8b32a43e5705b344574a38",
+      "coverage_tags": [
+        "valid",
+        "household_substitute",
+        "3-6",
+        "ACT-0033"
+      ]
+    },
+    {
+      "id": "GCASE_0033_READINESS_BLOCK",
+      "path": "cases/gcase_0033_readiness_block.json",
+      "sha256": "1bb370340716cffe09acad67fa0872258c561f02fae449a9e1b4153d32777f55",
+      "coverage_tags": [
+        "blocked",
+        "readiness",
+        "3-6",
+        "ACT-0033"
+      ]
+    },
+    {
+      "id": "GCASE_0039_PRIMARY_VALID",
+      "path": "cases/gcase_0039_primary_valid.json",
+      "sha256": "ec5fa8052e76c0cecda2bc83a9b427c00a28e80477cac553df31e53810f121f5",
+      "coverage_tags": [
+        "valid",
+        "primary_material",
+        "3-6",
+        "ACT-0039"
+      ]
+    },
+    {
+      "id": "GCASE_0039_SUBSTITUTE_VALID",
+      "path": "cases/gcase_0039_substitute_valid.json",
+      "sha256": "7fd72224a5042fd529ee3f33ca7d857ada4d78a4d37b35e6f7d77d2914953f17",
+      "coverage_tags": [
+        "valid",
+        "household_substitute",
+        "3-6",
+        "ACT-0039"
+      ]
+    },
+    {
+      "id": "GCASE_0039_READINESS_BLOCK",
+      "path": "cases/gcase_0039_readiness_block.json",
+      "sha256": "6fe6fe3b5b05b577263ec15884f5bf8959d7bf54298701689f85b30a964fcb87",
+      "coverage_tags": [
+        "blocked",
+        "readiness",
+        "3-6",
+        "ACT-0039"
+      ]
+    },
+    {
+      "id": "GCASE_0046_PRIMARY_VALID",
+      "path": "cases/gcase_0046_primary_valid.json",
+      "sha256": "6e94527e48b07d69e2b0b50a64fa5d6039f3ad7417d7e8b8dfb63c099391d33e",
+      "coverage_tags": [
+        "valid",
+        "primary_material",
+        "3-6",
+        "ACT-0046"
+      ]
+    },
+    {
+      "id": "GCASE_0046_SUBSTITUTE_VALID",
+      "path": "cases/gcase_0046_substitute_valid.json",
+      "sha256": "9df9fbf8557294b10ef63be92e349458be415e6831ce49dc3b1879c5aa3ce0ba",
+      "coverage_tags": [
+        "valid",
+        "household_substitute",
+        "3-6",
+        "ACT-0046"
+      ]
+    },
+    {
+      "id": "GCASE_0046_READINESS_BLOCK",
+      "path": "cases/gcase_0046_readiness_block.json",
+      "sha256": "fa645ce5970b77be8d07dca408017b4d893bf9eced6fef39f2e555181caadc16",
+      "coverage_tags": [
+        "blocked",
+        "readiness",
+        "3-6",
+        "ACT-0046"
+      ]
+    },
+    {
+      "id": "GCASE_0055_PRIMARY_VALID",
+      "path": "cases/gcase_0055_primary_valid.json",
+      "sha256": "352cf1fff5a5cf5508ec9957b49d4641eb94ab32ce9eb605e5c0efdd371890c7",
+      "coverage_tags": [
+        "valid",
+        "primary_material",
+        "6-9",
+        "ACT-0055"
+      ]
+    },
+    {
+      "id": "GCASE_0055_SUBSTITUTE_VALID",
+      "path": "cases/gcase_0055_substitute_valid.json",
+      "sha256": "f457453439e1341dc50560ece8e35c110fb974a2bbbb66add678fcb18d69ddf2",
+      "coverage_tags": [
+        "valid",
+        "household_substitute",
+        "6-9",
+        "ACT-0055"
+      ]
+    },
+    {
+      "id": "GCASE_0055_READINESS_BLOCK",
+      "path": "cases/gcase_0055_readiness_block.json",
+      "sha256": "86229ef98ac379f815e0aaf0107a7bb311b8d6dca650e849490695098c256031",
+      "coverage_tags": [
+        "blocked",
+        "readiness",
+        "6-9",
+        "ACT-0055"
+      ]
+    },
+    {
+      "id": "GCASE_0058_PRIMARY_VALID",
+      "path": "cases/gcase_0058_primary_valid.json",
+      "sha256": "50427b88a550d4931d44669428b19a5cccded204bda4459a1f80a2d3c0bebb55",
+      "coverage_tags": [
+        "valid",
+        "primary_material",
+        "6-9",
+        "ACT-0058"
+      ]
+    },
+    {
+      "id": "GCASE_0058_SUBSTITUTE_VALID",
+      "path": "cases/gcase_0058_substitute_valid.json",
+      "sha256": "29ab2b408a78ce50643b3c0d51b9a0edbfc3fd26b0a968fdf053e0ec4be311c0",
+      "coverage_tags": [
+        "valid",
+        "household_substitute",
+        "6-9",
+        "ACT-0058"
+      ]
+    },
+    {
+      "id": "GCASE_0058_READINESS_BLOCK",
+      "path": "cases/gcase_0058_readiness_block.json",
+      "sha256": "1a65b18b23d5758059d9895cf1336c1a1814628dc6d8d7df630c509d5efdd292",
+      "coverage_tags": [
+        "blocked",
+        "readiness",
+        "6-9",
+        "ACT-0058"
+      ]
+    },
+    {
+      "id": "GCASE_0061_PRIMARY_VALID",
+      "path": "cases/gcase_0061_primary_valid.json",
+      "sha256": "47befe523cb9c70df20f8d811043057541c0b232218cd13b35b7506b945af759",
+      "coverage_tags": [
+        "valid",
+        "primary_material",
+        "6-9",
+        "ACT-0061"
+      ]
+    },
+    {
+      "id": "GCASE_0061_SUBSTITUTE_VALID",
+      "path": "cases/gcase_0061_substitute_valid.json",
+      "sha256": "ad931b0810965684126a1046a197f7a358ac9982a2a75d36d4d0fb681c308fe5",
+      "coverage_tags": [
+        "valid",
+        "household_substitute",
+        "6-9",
+        "ACT-0061"
+      ]
+    },
+    {
+      "id": "GCASE_0061_READINESS_BLOCK",
+      "path": "cases/gcase_0061_readiness_block.json",
+      "sha256": "039380e252acb7d350504fce452a88ea0585a957aa116baf8a98d2fe6454f8ed",
+      "coverage_tags": [
+        "blocked",
+        "readiness",
+        "6-9",
+        "ACT-0061"
+      ]
+    },
+    {
+      "id": "GCASE_0067_PRIMARY_VALID",
+      "path": "cases/gcase_0067_primary_valid.json",
+      "sha256": "796f97739f55ee40f36c26b498e4362dbf135f64af521b1ca26c33e92a0c1c87",
+      "coverage_tags": [
+        "valid",
+        "primary_material",
+        "6-9",
+        "ACT-0067"
+      ]
+    },
+    {
+      "id": "GCASE_0067_SUBSTITUTE_VALID",
+      "path": "cases/gcase_0067_substitute_valid.json",
+      "sha256": "9020c378ebe2095af08fd05208d3deceb831285dd0f3e225bd5983f45d8fa24f",
+      "coverage_tags": [
+        "valid",
+        "household_substitute",
+        "6-9",
+        "ACT-0067"
+      ]
+    },
+    {
+      "id": "GCASE_0067_READINESS_BLOCK",
+      "path": "cases/gcase_0067_readiness_block.json",
+      "sha256": "fdd8d51185687e9431364550b953434492c74c11e7c3ccca19df1973777d0bd1",
+      "coverage_tags": [
+        "blocked",
+        "readiness",
+        "6-9",
+        "ACT-0067"
+      ]
+    },
+    {
+      "id": "GCASE_0074_PRIMARY_VALID",
+      "path": "cases/gcase_0074_primary_valid.json",
+      "sha256": "81e8b8a4b033a525dc3bdc7645c1cb057a882ddc7c6c36468fddf2bca4774ae3",
+      "coverage_tags": [
+        "valid",
+        "primary_material",
+        "6-9",
+        "ACT-0074"
+      ]
+    },
+    {
+      "id": "GCASE_0074_SUBSTITUTE_VALID",
+      "path": "cases/gcase_0074_substitute_valid.json",
+      "sha256": "f47e48532b167e9d74a3f785ee7a96ee933fab51190562ee18ffb69c57bd1498",
+      "coverage_tags": [
+        "valid",
+        "household_substitute",
+        "6-9",
+        "ACT-0074"
+      ]
+    },
+    {
+      "id": "GCASE_0074_READINESS_BLOCK",
+      "path": "cases/gcase_0074_readiness_block.json",
+      "sha256": "8d87c1ec8e0cb60cb7074883771a81bb8ac339a4880722a7634879d5a15926bb",
+      "coverage_tags": [
+        "blocked",
+        "readiness",
+        "6-9",
+        "ACT-0074"
+      ]
+    },
+    {
+      "id": "GCASE_0085_PRIMARY_VALID",
+      "path": "cases/gcase_0085_primary_valid.json",
+      "sha256": "f2a919e06b53045139e8b21c5a0c8efd1500189c3d326c65bf76feab2c2c0669",
+      "coverage_tags": [
+        "valid",
+        "primary_material",
+        "9-12",
+        "ACT-0085"
+      ]
+    },
+    {
+      "id": "GCASE_0085_SUBSTITUTE_VALID",
+      "path": "cases/gcase_0085_substitute_valid.json",
+      "sha256": "0186a2ae7166617d64fdd92c80cb7e3f85c46c8f02d2e158335f22c1e8ec83f7",
+      "coverage_tags": [
+        "valid",
+        "household_substitute",
+        "9-12",
+        "ACT-0085"
+      ]
+    },
+    {
+      "id": "GCASE_0085_READINESS_BLOCK",
+      "path": "cases/gcase_0085_readiness_block.json",
+      "sha256": "39a2c010b34599a457a08a723c01e466f94edb7b32a1154dcc7e89f8519ed6a4",
+      "coverage_tags": [
+        "blocked",
+        "readiness",
+        "9-12",
+        "ACT-0085"
+      ]
+    },
+    {
+      "id": "GCASE_0087_PRIMARY_VALID",
+      "path": "cases/gcase_0087_primary_valid.json",
+      "sha256": "fd3251a8039c8f95b49a2a36b3896862d6cb059032c3cd2258cad8b44f79daba",
+      "coverage_tags": [
+        "valid",
+        "primary_material",
+        "9-12",
+        "ACT-0087"
+      ]
+    },
+    {
+      "id": "GCASE_0087_SUBSTITUTE_VALID",
+      "path": "cases/gcase_0087_substitute_valid.json",
+      "sha256": "5bd9113696e466a321cf184b2c25c50d1ad9977581915a1b3778408560c9c18e",
+      "coverage_tags": [
+        "valid",
+        "household_substitute",
+        "9-12",
+        "ACT-0087"
+      ]
+    },
+    {
+      "id": "GCASE_0087_READINESS_BLOCK",
+      "path": "cases/gcase_0087_readiness_block.json",
+      "sha256": "e0209e398edc6001ed704cd1e18a79235677fc8e7ebbd2ad688919b1006fbb65",
+      "coverage_tags": [
+        "blocked",
+        "readiness",
+        "9-12",
+        "ACT-0087"
+      ]
+    },
+    {
+      "id": "GCASE_0091_PRIMARY_VALID",
+      "path": "cases/gcase_0091_primary_valid.json",
+      "sha256": "7a9aec03a0bc4ca7b7d507506e0fd333db46065a907515fb65092e4a546dec8a",
+      "coverage_tags": [
+        "valid",
+        "primary_material",
+        "9-12",
+        "ACT-0091"
+      ]
+    },
+    {
+      "id": "GCASE_0091_SUBSTITUTE_VALID",
+      "path": "cases/gcase_0091_substitute_valid.json",
+      "sha256": "a28075390db098c1d609f1392b81412303914c10de9844ec811acbc2ae640880",
+      "coverage_tags": [
+        "valid",
+        "household_substitute",
+        "9-12",
+        "ACT-0091"
+      ]
+    },
+    {
+      "id": "GCASE_0091_READINESS_BLOCK",
+      "path": "cases/gcase_0091_readiness_block.json",
+      "sha256": "726c0a367e18418788241e539de8a3b8830051063818bd77a2aec16282328209",
+      "coverage_tags": [
+        "blocked",
+        "readiness",
+        "9-12",
+        "ACT-0091"
+      ]
+    },
+    {
+      "id": "GCASE_0097_PRIMARY_VALID",
+      "path": "cases/gcase_0097_primary_valid.json",
+      "sha256": "2ff647e38b48e268fc0976a35f5cf205e6af9fc31cee79defb5113f005fef945",
+      "coverage_tags": [
+        "valid",
+        "primary_material",
+        "9-12",
+        "ACT-0097"
+      ]
+    },
+    {
+      "id": "GCASE_0097_SUBSTITUTE_VALID",
+      "path": "cases/gcase_0097_substitute_valid.json",
+      "sha256": "cccd44f905250ad2a134c83732fbe9e335a409157dcb17d518719a5d412cc4fc",
+      "coverage_tags": [
+        "valid",
+        "household_substitute",
+        "9-12",
+        "ACT-0097"
+      ]
+    },
+    {
+      "id": "GCASE_0097_READINESS_BLOCK",
+      "path": "cases/gcase_0097_readiness_block.json",
+      "sha256": "501f958afbd357d6ea5d033eec987915143febae3f9a8eb510fc4d5a613fa124",
+      "coverage_tags": [
+        "blocked",
+        "readiness",
+        "9-12",
+        "ACT-0097"
+      ]
+    },
+    {
+      "id": "GCASE_0099_PRIMARY_VALID",
+      "path": "cases/gcase_0099_primary_valid.json",
+      "sha256": "919d645c2d3eacd7352394b6f7eb42ce861c0d1a76b4f58ac24992121397203b",
+      "coverage_tags": [
+        "valid",
+        "primary_material",
+        "9-12",
+        "ACT-0099"
+      ]
+    },
+    {
+      "id": "GCASE_0099_SUBSTITUTE_VALID",
+      "path": "cases/gcase_0099_substitute_valid.json",
+      "sha256": "2a6b5cda9868caaa0ce330faf2d5bfa821a8c7e463d94f3639accbcb172ed494",
+      "coverage_tags": [
+        "valid",
+        "household_substitute",
+        "9-12",
+        "ACT-0099"
+      ]
+    },
+    {
+      "id": "GCASE_0099_READINESS_BLOCK",
+      "path": "cases/gcase_0099_readiness_block.json",
+      "sha256": "fdafa99a3096c3dbc9769a5e6ede2b2d0931164bf482101602ebb28b6837d453",
+      "coverage_tags": [
+        "blocked",
+        "readiness",
+        "9-12",
+        "ACT-0099"
+      ]
+    },
+    {
+      "id": "GCASE_0004_AGE_BELOW_BLOCK",
+      "path": "cases/gcase_0004_age_below_block.json",
+      "sha256": "9c7d7244b490a08efc3a68e85b43d369f6d7eeefa1ffb7f01701a789c99ab6fd",
+      "coverage_tags": [
+        "blocked",
+        "age",
+        "age_below",
+        "0-3"
+      ]
+    },
+    {
+      "id": "GCASE_0004_MIN_BOUNDARY_VALID",
+      "path": "cases/gcase_0004_min_boundary_valid.json",
+      "sha256": "f590a6f2ebaa3fd899dc22191984cb76730c213a5ac5b020d46969d6a1f1105b",
+      "coverage_tags": [
+        "valid",
+        "age_boundary",
+        "0-3"
+      ]
+    },
+    {
+      "id": "GCASE_0004_MAX_BOUNDARY_VALID",
+      "path": "cases/gcase_0004_max_boundary_valid.json",
+      "sha256": "21fc2ca84d13fee80a978ff6f62b04e05d172e963be37cfe0a8d9d4f1c4117b4",
+      "coverage_tags": [
+        "valid",
+        "age_boundary",
+        "0-3"
+      ]
+    },
+    {
+      "id": "GCASE_0026_AGE_BELOW_BLOCK",
+      "path": "cases/gcase_0026_age_below_block.json",
+      "sha256": "fb6d7450bafbd6d3fb166c3f56eb11e8ecbb73bac61acbc3ee3f109a3708d76e",
+      "coverage_tags": [
+        "blocked",
+        "age",
+        "age_below",
+        "3-6"
+      ]
+    },
+    {
+      "id": "GCASE_0026_MIN_BOUNDARY_VALID",
+      "path": "cases/gcase_0026_min_boundary_valid.json",
+      "sha256": "56829b8baaa058ba1eba502bbd59bdee8970c65757c0b54db7ece52daf2f1ce5",
+      "coverage_tags": [
+        "valid",
+        "age_boundary",
+        "3-6"
+      ]
+    },
+    {
+      "id": "GCASE_0026_MAX_BOUNDARY_VALID",
+      "path": "cases/gcase_0026_max_boundary_valid.json",
+      "sha256": "79de88611cd435966afa59c29d3ad10cde4ebb4394e927ac67ed141af89c943c",
+      "coverage_tags": [
+        "valid",
+        "age_boundary",
+        "3-6"
+      ]
+    },
+    {
+      "id": "GCASE_0055_AGE_BELOW_BLOCK",
+      "path": "cases/gcase_0055_age_below_block.json",
+      "sha256": "34fa6c3c551ed68ee527f38f720b2479b797fe24020876e6884c4d6769accc95",
+      "coverage_tags": [
+        "blocked",
+        "age",
+        "age_below",
+        "6-9"
+      ]
+    },
+    {
+      "id": "GCASE_0055_MIN_BOUNDARY_VALID",
+      "path": "cases/gcase_0055_min_boundary_valid.json",
+      "sha256": "269e28759740df52340141623cd71ef64391625e131522d45f4424a42e022822",
+      "coverage_tags": [
+        "valid",
+        "age_boundary",
+        "6-9"
+      ]
+    },
+    {
+      "id": "GCASE_0055_MAX_BOUNDARY_VALID",
+      "path": "cases/gcase_0055_max_boundary_valid.json",
+      "sha256": "c2f77851e0a7cc6c35ee931d2692ba29241ab426cc17c88ca573924c15fed4fa",
+      "coverage_tags": [
+        "valid",
+        "age_boundary",
+        "6-9"
+      ]
+    },
+    {
+      "id": "GCASE_0085_AGE_BELOW_BLOCK",
+      "path": "cases/gcase_0085_age_below_block.json",
+      "sha256": "661d23b39971de02bfca54ac3a496d040b05f869ff95322964404903890db26c",
+      "coverage_tags": [
+        "blocked",
+        "age",
+        "age_below",
+        "9-12"
+      ]
+    },
+    {
+      "id": "GCASE_0085_MIN_BOUNDARY_VALID",
+      "path": "cases/gcase_0085_min_boundary_valid.json",
+      "sha256": "e28f3f9172d6098075c63d21351b90c83c5635bb55daac6f62c1714504419295",
+      "coverage_tags": [
+        "valid",
+        "age_boundary",
+        "9-12"
+      ]
+    },
+    {
+      "id": "GCASE_0085_MAX_BOUNDARY_VALID",
+      "path": "cases/gcase_0085_max_boundary_valid.json",
+      "sha256": "a3690ab5a7844fd5ea19f6a87930063bb9c5e1800697462b59007947f7103247",
+      "coverage_tags": [
+        "valid",
+        "age_boundary",
+        "9-12"
+      ]
+    },
+    {
+      "id": "GCASE_MULTIPLE_FAILURE_BLOCK",
+      "path": "cases/gcase_multiple_failure_block.json",
+      "sha256": "a5b267f29e7c62ed0a1e92bf1ccb659698c4c98be9a6765eb1a83ecad9ab3100",
+      "coverage_tags": [
+        "blocked",
+        "multiple_failure",
+        "no_valid"
+      ]
+    },
+    {
+      "id": "GCASE_INACTIVE_BLOCK",
+      "path": "cases/gcase_inactive_block.json",
+      "sha256": "44e4f125cc94c400f889d74e440fff461a85862490b9f7281bff8ba5aeccced0",
+      "coverage_tags": [
+        "blocked",
+        "inactive",
+        "no_valid"
+      ]
+    }
+  ]
+}

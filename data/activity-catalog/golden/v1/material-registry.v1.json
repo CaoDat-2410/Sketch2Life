@@ -1,0 +1,783 @@
+{
+  "schema_version": 1,
+  "groups": [
+    {
+      "id": "GMG-0004-01",
+      "activity_id": "ACT-0004",
+      "required": true,
+      "any_of": [
+        "GMAT-0004-PRIMARY",
+        "GMAT-0004-SUBSTITUTE"
+      ]
+    },
+    {
+      "id": "GMG-0016-01",
+      "activity_id": "ACT-0016",
+      "required": true,
+      "any_of": [
+        "GMAT-0016-PRIMARY",
+        "GMAT-0016-SUBSTITUTE"
+      ]
+    },
+    {
+      "id": "GMG-0019-01",
+      "activity_id": "ACT-0019",
+      "required": true,
+      "any_of": [
+        "GMAT-0019-PRIMARY",
+        "GMAT-0019-SUBSTITUTE"
+      ]
+    },
+    {
+      "id": "GMG-0020-01",
+      "activity_id": "ACT-0020",
+      "required": true,
+      "any_of": [
+        "GMAT-0020-PRIMARY",
+        "GMAT-0020-SUBSTITUTE"
+      ]
+    },
+    {
+      "id": "GMG-0023-01",
+      "activity_id": "ACT-0023",
+      "required": true,
+      "any_of": [
+        "GMAT-0023-PRIMARY",
+        "GMAT-0023-SUBSTITUTE"
+      ]
+    },
+    {
+      "id": "GMG-0026-01",
+      "activity_id": "ACT-0026",
+      "required": true,
+      "any_of": [
+        "GMAT-0026-PRIMARY",
+        "GMAT-0026-SUBSTITUTE"
+      ]
+    },
+    {
+      "id": "GMG-0030-01",
+      "activity_id": "ACT-0030",
+      "required": true,
+      "any_of": [
+        "GMAT-0030-PRIMARY",
+        "GMAT-0030-SUBSTITUTE"
+      ]
+    },
+    {
+      "id": "GMG-0033-01",
+      "activity_id": "ACT-0033",
+      "required": true,
+      "any_of": [
+        "GMAT-0033-PRIMARY",
+        "GMAT-0033-SUBSTITUTE"
+      ]
+    },
+    {
+      "id": "GMG-0039-01",
+      "activity_id": "ACT-0039",
+      "required": true,
+      "any_of": [
+        "GMAT-0039-PRIMARY",
+        "GMAT-0039-SUBSTITUTE"
+      ]
+    },
+    {
+      "id": "GMG-0046-01",
+      "activity_id": "ACT-0046",
+      "required": true,
+      "any_of": [
+        "GMAT-0046-PRIMARY",
+        "GMAT-0046-SUBSTITUTE"
+      ]
+    },
+    {
+      "id": "GMG-0055-01",
+      "activity_id": "ACT-0055",
+      "required": true,
+      "any_of": [
+        "GMAT-0055-PRIMARY",
+        "GMAT-0055-SUBSTITUTE"
+      ]
+    },
+    {
+      "id": "GMG-0058-01",
+      "activity_id": "ACT-0058",
+      "required": true,
+      "any_of": [
+        "GMAT-0058-PRIMARY",
+        "GMAT-0058-SUBSTITUTE"
+      ]
+    },
+    {
+      "id": "GMG-0061-01",
+      "activity_id": "ACT-0061",
+      "required": true,
+      "any_of": [
+        "GMAT-0061-PRIMARY",
+        "GMAT-0061-SUBSTITUTE"
+      ]
+    },
+    {
+      "id": "GMG-0067-01",
+      "activity_id": "ACT-0067",
+      "required": true,
+      "any_of": [
+        "GMAT-0067-PRIMARY",
+        "GMAT-0067-SUBSTITUTE"
+      ]
+    },
+    {
+      "id": "GMG-0074-01",
+      "activity_id": "ACT-0074",
+      "required": true,
+      "any_of": [
+        "GMAT-0074-PRIMARY",
+        "GMAT-0074-SUBSTITUTE"
+      ]
+    },
+    {
+      "id": "GMG-0085-01",
+      "activity_id": "ACT-0085",
+      "required": true,
+      "any_of": [
+        "GMAT-0085-PRIMARY",
+        "GMAT-0085-SUBSTITUTE"
+      ]
+    },
+    {
+      "id": "GMG-0087-01",
+      "activity_id": "ACT-0087",
+      "required": true,
+      "any_of": [
+        "GMAT-0087-PRIMARY",
+        "GMAT-0087-SUBSTITUTE"
+      ]
+    },
+    {
+      "id": "GMG-0091-01",
+      "activity_id": "ACT-0091",
+      "required": true,
+      "any_of": [
+        "GMAT-0091-PRIMARY",
+        "GMAT-0091-SUBSTITUTE"
+      ]
+    },
+    {
+      "id": "GMG-0097-01",
+      "activity_id": "ACT-0097",
+      "required": true,
+      "any_of": [
+        "GMAT-0097-PRIMARY",
+        "GMAT-0097-SUBSTITUTE"
+      ]
+    },
+    {
+      "id": "GMG-0099-01",
+      "activity_id": "ACT-0099",
+      "required": true,
+      "any_of": [
+        "GMAT-0099-PRIMARY",
+        "GMAT-0099-SUBSTITUTE"
+      ]
+    }
+  ],
+  "options": [
+    {
+      "id": "GMAT-0004-PRIMARY",
+      "activity_id": "ACT-0004",
+      "kind": "PRIMARY",
+      "label_vi": "khăn voan nhẹ 40 x 40 cm và bóng vải liền khối đường kính tối thiểu 8 cm",
+      "suitability_vi": "khăn thoáng, không dây/rìa; đồ vật sạch, không pin, không chi tiết rời",
+      "prohibited_vi": [
+        "túi nilon",
+        "khăn dài có dây",
+        "đồ vật lọt hoàn toàn qua lõi giấy vệ sinh"
+      ],
+      "review_status": "PENDING_OWNER_REVIEW",
+      "production_eligible": false
+    },
+    {
+      "id": "GMAT-0004-SUBSTITUTE",
+      "activity_id": "ACT-0004",
+      "kind": "HOUSEHOLD_SUBSTITUTE",
+      "label_vi": "khăn cotton mỏng và thú nhồi bông nguyên khối dài tối thiểu 12 cm",
+      "suitability_vi": "khăn thoáng, không dây/rìa; đồ vật sạch, không pin, không chi tiết rời",
+      "prohibited_vi": [
+        "túi nilon",
+        "khăn dài có dây",
+        "đồ vật lọt hoàn toàn qua lõi giấy vệ sinh"
+      ],
+      "review_status": "PENDING_OWNER_REVIEW",
+      "production_eligible": false
+    },
+    {
+      "id": "GMAT-0016-PRIMARY",
+      "activity_id": "ACT-0016",
+      "kind": "PRIMARY",
+      "label_vi": "hai bát silicone đường kính 12-15 cm và sáu bóng vải đường kính tối thiểu 5 cm",
+      "suitability_vi": "mọi vật phải lớn hơn kích thước gây hóc, sạch và không bung chi tiết",
+      "prohibited_vi": [
+        "hạt đậu",
+        "cúc áo",
+        "bi",
+        "bát thủy tinh"
+      ],
+      "review_status": "PENDING_OWNER_REVIEW",
+      "production_eligible": false
+    },
+    {
+      "id": "GMAT-0016-SUBSTITUTE",
+      "activity_id": "ACT-0016",
+      "kind": "HOUSEHOLD_SUBSTITUTE",
+      "label_vi": "hai hộp nhựa thấp và sáu đôi tất trẻ em cuộn chặt thành cuộn lớn",
+      "suitability_vi": "mọi vật phải lớn hơn kích thước gây hóc, sạch và không bung chi tiết",
+      "prohibited_vi": [
+        "hạt đậu",
+        "cúc áo",
+        "bi",
+        "bát thủy tinh"
+      ],
+      "review_status": "PENDING_OWNER_REVIEW",
+      "production_eligible": false
+    },
+    {
+      "id": "GMAT-0019-PRIMARY",
+      "activity_id": "ACT-0019",
+      "kind": "PRIMARY",
+      "label_vi": "chậu rửa thấp, xà phòng dịu dạng bánh và khăn cotton nhỏ",
+      "suitability_vi": "nước ấm dưới 38°C; sản phẩm phù hợp da trẻ; bục và sàn không trượt",
+      "prohibited_vi": [
+        "chất tẩy rửa gia dụng",
+        "nước nóng",
+        "ghế không chống trượt"
+      ],
+      "review_status": "PENDING_OWNER_REVIEW",
+      "production_eligible": false
+    },
+    {
+      "id": "GMAT-0019-SUBSTITUTE",
+      "activity_id": "ACT-0019",
+      "kind": "HOUSEHOLD_SUBSTITUTE",
+      "label_vi": "bồn rửa có bục chống trượt, một liều xà phòng lỏng do người lớn cấp và khăn riêng",
+      "suitability_vi": "nước ấm dưới 38°C; sản phẩm phù hợp da trẻ; bục và sàn không trượt",
+      "prohibited_vi": [
+        "chất tẩy rửa gia dụng",
+        "nước nóng",
+        "ghế không chống trượt"
+      ],
+      "review_status": "PENDING_OWNER_REVIEW",
+      "production_eligible": false
+    },
+    {
+      "id": "GMAT-0020-PRIMARY",
+      "activity_id": "ACT-0020",
+      "kind": "PRIMARY",
+      "label_vi": "khay nhựa thấp, 30 ml nước sạch, hai khăn cotton 15 x 15 cm và giỏ khăn ướt",
+      "suitability_vi": "chỉ dùng nước sạch; khăn không xơ rời; khu vực đứng phải chống trượt",
+      "prohibited_vi": [
+        "hóa chất lau sàn",
+        "nước nóng",
+        "chất lỏng cơ thể",
+        "mảnh kính vỡ"
+      ],
+      "review_status": "PENDING_OWNER_REVIEW",
+      "production_eligible": false
+    },
+    {
+      "id": "GMAT-0020-SUBSTITUTE",
+      "activity_id": "ACT-0020",
+      "kind": "HOUSEHOLD_SUBSTITUTE",
+      "label_vi": "tấm lót chống thấm, cốc đo nhỏ và hai miếng vải cotton sạch màu khác nhau",
+      "suitability_vi": "chỉ dùng nước sạch; khăn không xơ rời; khu vực đứng phải chống trượt",
+      "prohibited_vi": [
+        "hóa chất lau sàn",
+        "nước nóng",
+        "chất lỏng cơ thể",
+        "mảnh kính vỡ"
+      ],
+      "review_status": "PENDING_OWNER_REVIEW",
+      "production_eligible": false
+    },
+    {
+      "id": "GMAT-0023-PRIMARY",
+      "activity_id": "ACT-0023",
+      "kind": "PRIMARY",
+      "label_vi": "cây gia dụng được xác nhận không độc, ca 60 ml, khay chống thấm và khăn nhỏ",
+      "suitability_vi": "không dùng phân bón trong hoạt động; cây không gai, không nhựa kích ứng",
+      "prohibited_vi": [
+        "xương rồng",
+        "cây không rõ loài",
+        "thuốc trừ sâu",
+        "bình tưới nặng"
+      ],
+      "review_status": "PENDING_OWNER_REVIEW",
+      "production_eligible": false
+    },
+    {
+      "id": "GMAT-0023-SUBSTITUTE",
+      "activity_id": "ACT-0023",
+      "kind": "HOUSEHOLD_SUBSTITUTE",
+      "label_vi": "chậu rau thơm ăn được, cốc nhựa có miệng rót, đĩa lót và khăn cotton",
+      "suitability_vi": "không dùng phân bón trong hoạt động; cây không gai, không nhựa kích ứng",
+      "prohibited_vi": [
+        "xương rồng",
+        "cây không rõ loài",
+        "thuốc trừ sâu",
+        "bình tưới nặng"
+      ],
+      "review_status": "PENDING_OWNER_REVIEW",
+      "production_eligible": false
+    },
+    {
+      "id": "GMAT-0026-PRIMARY",
+      "activity_id": "ACT-0026",
+      "kind": "PRIMARY",
+      "label_vi": "hai bình inox nhẹ có quai, khay viền cao và 20 viên gỗ đường kính 25 mm",
+      "suitability_vi": "vật liệu đồng cỡ, sạch, không sắc và đủ lớn để không gây hóc",
+      "prohibited_vi": [
+        "gạo",
+        "đậu khô",
+        "hạt cườm",
+        "hạt có dị ứng",
+        "bình thủy tinh"
+      ],
+      "review_status": "PENDING_OWNER_REVIEW",
+      "production_eligible": false
+    },
+    {
+      "id": "GMAT-0026-SUBSTITUTE",
+      "activity_id": "ACT-0026",
+      "kind": "HOUSEHOLD_SUBSTITUTE",
+      "label_vi": "hai cốc nhựa có quai, khay nhựa và 20 nắp chai nhựa nguyên vẹn đường kính trên 30 mm",
+      "suitability_vi": "vật liệu đồng cỡ, sạch, không sắc và đủ lớn để không gây hóc",
+      "prohibited_vi": [
+        "gạo",
+        "đậu khô",
+        "hạt cườm",
+        "hạt có dị ứng",
+        "bình thủy tinh"
+      ],
+      "review_status": "PENDING_OWNER_REVIEW",
+      "production_eligible": false
+    },
+    {
+      "id": "GMAT-0030-PRIMARY",
+      "activity_id": "ACT-0030",
+      "kind": "PRIMARY",
+      "label_vi": "khung cài sáu nút nhựa đường kính 25-30 mm được may chắc",
+      "suitability_vi": "kiểm tra lực kéo từng nút trước hoạt động; không có kim ghim hoặc chỉ dài",
+      "prohibited_vi": [
+        "nút nhỏ",
+        "áo đang mặc trên người",
+        "khuy bị nứt",
+        "kim băng"
+      ],
+      "review_status": "PENDING_OWNER_REVIEW",
+      "production_eligible": false
+    },
+    {
+      "id": "GMAT-0030-SUBSTITUTE",
+      "activity_id": "ACT-0030",
+      "kind": "HOUSEHOLD_SUBSTITUTE",
+      "label_vi": "áo khoác trẻ em sạch có 4-6 nút lớn và được trải phẳng trên bàn",
+      "suitability_vi": "kiểm tra lực kéo từng nút trước hoạt động; không có kim ghim hoặc chỉ dài",
+      "prohibited_vi": [
+        "nút nhỏ",
+        "áo đang mặc trên người",
+        "khuy bị nứt",
+        "kim băng"
+      ],
+      "review_status": "PENDING_OWNER_REVIEW",
+      "production_eligible": false
+    },
+    {
+      "id": "GMAT-0033-PRIMARY",
+      "activity_id": "ACT-0033",
+      "kind": "PRIMARY",
+      "label_vi": "tấm lót có đường viền, đĩa melamine, cốc inox, thìa đầu tròn và khăn vải",
+      "suitability_vi": "mọi vật nhẹ, không vỡ, không cạnh sắc và sạch để dùng với thực phẩm",
+      "prohibited_vi": [
+        "dao",
+        "nĩa nhọn",
+        "đồ thủy tinh",
+        "đồ trang trí nhỏ"
+      ],
+      "review_status": "PENDING_OWNER_REVIEW",
+      "production_eligible": false
+    },
+    {
+      "id": "GMAT-0033-SUBSTITUTE",
+      "activity_id": "ACT-0033",
+      "kind": "HOUSEHOLD_SUBSTITUTE",
+      "label_vi": "tờ bìa ép plastic tự vẽ sơ đồ, đĩa/cốc nhựa thực phẩm, thìa silicone và khăn cotton",
+      "suitability_vi": "mọi vật nhẹ, không vỡ, không cạnh sắc và sạch để dùng với thực phẩm",
+      "prohibited_vi": [
+        "dao",
+        "nĩa nhọn",
+        "đồ thủy tinh",
+        "đồ trang trí nhỏ"
+      ],
+      "review_status": "PENDING_OWNER_REVIEW",
+      "production_eligible": false
+    },
+    {
+      "id": "GMAT-0039-PRIMARY",
+      "activity_id": "ACT-0039",
+      "kind": "PRIMARY",
+      "label_vi": "bảy bảng màu cùng một họ, bề mặt mờ, kích thước 5 x 8 cm và thảm xám",
+      "suitability_vi": "mọi thẻ cùng chất liệu/kích thước; khác biệt duy nhất là độ sáng màu",
+      "prohibited_vi": [
+        "mẫu có chữ ở mặt trước",
+        "thẻ khác kích thước",
+        "màu huỳnh quang",
+        "thẻ bóng phản sáng"
+      ],
+      "review_status": "PENDING_OWNER_REVIEW",
+      "production_eligible": false
+    },
+    {
+      "id": "GMAT-0039-SUBSTITUTE",
+      "activity_id": "ACT-0039",
+      "kind": "HOUSEHOLD_SUBSTITUTE",
+      "label_vi": "bảy thẻ bìa tự in từ một dải màu chuẩn, ép plastic mờ và đánh mã kín ở mặt sau",
+      "suitability_vi": "mọi thẻ cùng chất liệu/kích thước; khác biệt duy nhất là độ sáng màu",
+      "prohibited_vi": [
+        "mẫu có chữ ở mặt trước",
+        "thẻ khác kích thước",
+        "màu huỳnh quang",
+        "thẻ bóng phản sáng"
+      ],
+      "review_status": "PENDING_OWNER_REVIEW",
+      "production_eligible": false
+    },
+    {
+      "id": "GMAT-0046-PRIMARY",
+      "activity_id": "ACT-0046",
+      "kind": "PRIMARY",
+      "label_vi": "một cặp khung kim loại Montessori nguyên vẹn, giấy 14 x 14 cm và hai bút chì màu đầu tù",
+      "suitability_vi": "khuôn không trượt, không ba via; bút không độc và phù hợp tay trẻ",
+      "prohibited_vi": [
+        "dao rọc khuôn",
+        "kim loại gỉ/cong",
+        "bút chì nhọn",
+        "khuôn quá nhỏ"
+      ],
+      "review_status": "PENDING_OWNER_REVIEW",
+      "production_eligible": false
+    },
+    {
+      "id": "GMAT-0046-SUBSTITUTE",
+      "activity_id": "ACT-0046",
+      "kind": "HOUSEHOLD_SUBSTITUTE",
+      "label_vi": "khuôn hình nhựa cứng không cạnh sắc, giấy vuông và hai bút sáp tam giác",
+      "suitability_vi": "khuôn không trượt, không ba via; bút không độc và phù hợp tay trẻ",
+      "prohibited_vi": [
+        "dao rọc khuôn",
+        "kim loại gỉ/cong",
+        "bút chì nhọn",
+        "khuôn quá nhỏ"
+      ],
+      "review_status": "PENDING_OWNER_REVIEW",
+      "production_eligible": false
+    },
+    {
+      "id": "GMAT-0055-PRIMARY",
+      "activity_id": "ACT-0055",
+      "kind": "PRIMARY",
+      "label_vi": "một cây rau thơm ăn được còn nguyên rễ, kính lúp nhựa và bộ thẻ rễ-thân-lá-hoa",
+      "suitability_vi": "mẫu được người lớn xác nhận không độc, không thuốc trừ sâu và không nấm mốc",
+      "prohibited_vi": [
+        "cây dại không rõ loài",
+        "cây có gai",
+        "nấm",
+        "mẫu phun hóa chất"
+      ],
+      "review_status": "PENDING_OWNER_REVIEW",
+      "production_eligible": false
+    },
+    {
+      "id": "GMAT-0055-SUBSTITUTE",
+      "activity_id": "ACT-0055",
+      "kind": "HOUSEHOLD_SUBSTITUTE",
+      "label_vi": "mẫu hành lá có rễ trong cốc nước sạch, kính lúp cầm tay và nhãn viết trên bìa",
+      "suitability_vi": "mẫu được người lớn xác nhận không độc, không thuốc trừ sâu và không nấm mốc",
+      "prohibited_vi": [
+        "cây dại không rõ loài",
+        "cây có gai",
+        "nấm",
+        "mẫu phun hóa chất"
+      ],
+      "review_status": "PENDING_OWNER_REVIEW",
+      "production_eligible": false
+    },
+    {
+      "id": "GMAT-0058-PRIMARY",
+      "activity_id": "ACT-0058",
+      "kind": "PRIMARY",
+      "label_vi": "hộp nhựa trong chịu ấm có nắp trong, 100 ml nước dưới 45°C, túi đá kín và nhiệt kế",
+      "suitability_vi": "người lớn cấp nước và kiểm tra nhiệt; mô hình đặt xa ổ điện trên khay chống tràn",
+      "prohibited_vi": [
+        "nước sôi",
+        "lọ thủy tinh mỏng",
+        "đá đặt trực tiếp không túi",
+        "thiết bị gia nhiệt tại bàn"
+      ],
+      "review_status": "PENDING_OWNER_REVIEW",
+      "production_eligible": false
+    },
+    {
+      "id": "GMAT-0058-SUBSTITUTE",
+      "activity_id": "ACT-0058",
+      "kind": "HOUSEHOLD_SUBSTITUTE",
+      "label_vi": "bát inox trong khay, đĩa kim loại làm nắp, túi zip hai lớp chứa đá và nhiệt kế bếp",
+      "suitability_vi": "người lớn cấp nước và kiểm tra nhiệt; mô hình đặt xa ổ điện trên khay chống tràn",
+      "prohibited_vi": [
+        "nước sôi",
+        "lọ thủy tinh mỏng",
+        "đá đặt trực tiếp không túi",
+        "thiết bị gia nhiệt tại bàn"
+      ],
+      "review_status": "PENDING_OWNER_REVIEW",
+      "production_eligible": false
+    },
+    {
+      "id": "GMAT-0061-PRIMARY",
+      "activity_id": "ACT-0061",
+      "kind": "PRIMARY",
+      "label_vi": "bộ stamp game đầy đủ có khay ngăn, thẻ phép nhân tự kiểm tra và giấy ô vuông",
+      "suitability_vi": "mỗi hạng tem đủ số lượng, màu nhất quán và được kiểm đếm trước/sau",
+      "prohibited_vi": [
+        "hạt nhỏ rời",
+        "thẻ dưới 20 mm",
+        "bộ thiếu giá trị hàng",
+        "máy tính thay vật liệu"
+      ],
+      "review_status": "PENDING_OWNER_REVIEW",
+      "production_eligible": false
+    },
+    {
+      "id": "GMAT-0061-SUBSTITUTE",
+      "activity_id": "ACT-0061",
+      "kind": "HOUSEHOLD_SUBSTITUTE",
+      "label_vi": "bộ thẻ giá trị hàng tự in kích thước tối thiểu 25 mm, bốn khay màu và thẻ đáp án kín",
+      "suitability_vi": "mỗi hạng tem đủ số lượng, màu nhất quán và được kiểm đếm trước/sau",
+      "prohibited_vi": [
+        "hạt nhỏ rời",
+        "thẻ dưới 20 mm",
+        "bộ thiếu giá trị hàng",
+        "máy tính thay vật liệu"
+      ],
+      "review_status": "PENDING_OWNER_REVIEW",
+      "production_eligible": false
+    },
+    {
+      "id": "GMAT-0067-PRIMARY",
+      "activity_id": "ACT-0067",
+      "kind": "PRIMARY",
+      "label_vi": "bộ ký hiệu ngữ pháp Montessori kích thước lớn, ba thẻ câu và bảng đáp án kín",
+      "suitability_vi": "màu/hình nhất quán; câu không chứa dữ liệu cá nhân hoặc nội dung gây sợ hãi",
+      "prohibited_vi": [
+        "hình quá nhỏ",
+        "câu lấy từ hồ sơ trẻ",
+        "đáp án lộ ở mặt trước"
+      ],
+      "review_status": "PENDING_OWNER_REVIEW",
+      "production_eligible": false
+    },
+    {
+      "id": "GMAT-0067-SUBSTITUTE",
+      "activity_id": "ACT-0067",
+      "kind": "HOUSEHOLD_SUBSTITUTE",
+      "label_vi": "ký hiệu cắt từ bìa màu kích thước trên 30 mm, câu tự viết rõ chữ và phong bì đáp án",
+      "suitability_vi": "màu/hình nhất quán; câu không chứa dữ liệu cá nhân hoặc nội dung gây sợ hãi",
+      "prohibited_vi": [
+        "hình quá nhỏ",
+        "câu lấy từ hồ sơ trẻ",
+        "đáp án lộ ở mặt trước"
+      ],
+      "review_status": "PENDING_OWNER_REVIEW",
+      "production_eligible": false
+    },
+    {
+      "id": "GMAT-0074-PRIMARY",
+      "activity_id": "ACT-0074",
+      "kind": "PRIMARY",
+      "label_vi": "bảng tuần tái sử dụng, tối đa năm thẻ nhiệm vụ và đồng hồ hẹn giờ cơ học",
+      "suitability_vi": "chỉ ghi nhiệm vụ học/sinh hoạt không nhạy cảm; thời lượng có khoảng nghỉ",
+      "prohibited_vi": [
+        "lịch công khai có tên trẻ",
+        "ứng dụng bắt đăng nhập",
+        "xếp lịch kín không có nghỉ"
+      ],
+      "review_status": "PENDING_OWNER_REVIEW",
+      "production_eligible": false
+    },
+    {
+      "id": "GMAT-0074-SUBSTITUTE",
+      "activity_id": "ACT-0074",
+      "kind": "HOUSEHOLD_SUBSTITUTE",
+      "label_vi": "tờ lịch giấy không ghi tên đầy đủ, giấy ghi chú màu và đồng hồ bếp ngoại tuyến",
+      "suitability_vi": "chỉ ghi nhiệm vụ học/sinh hoạt không nhạy cảm; thời lượng có khoảng nghỉ",
+      "prohibited_vi": [
+        "lịch công khai có tên trẻ",
+        "ứng dụng bắt đăng nhập",
+        "xếp lịch kín không có nghỉ"
+      ],
+      "review_status": "PENDING_OWNER_REVIEW",
+      "production_eligible": false
+    },
+    {
+      "id": "GMAT-0085-PRIMARY",
+      "activity_id": "ACT-0085",
+      "kind": "PRIMARY",
+      "label_vi": "bộ 20 phiếu fixture ẩn danh, mẫu bảng tần số, giấy biểu đồ và máy tính cơ bản ngoại tuyến",
+      "suitability_vi": "dữ liệu hoàn toàn synthetic/ẩn danh; máy tính không đồng bộ tài khoản",
+      "prohibited_vi": [
+        "Google Form có tài khoản",
+        "danh sách tên",
+        "dữ liệu sức khỏe",
+        "định vị"
+      ],
+      "review_status": "PENDING_OWNER_REVIEW",
+      "production_eligible": false
+    },
+    {
+      "id": "GMAT-0085-SUBSTITUTE",
+      "activity_id": "ACT-0085",
+      "kind": "HOUSEHOLD_SUBSTITUTE",
+      "label_vi": "20 thẻ dữ liệu tổng hợp do người lớn chuẩn bị, giấy ô vuông và bảng phép tính viết tay",
+      "suitability_vi": "dữ liệu hoàn toàn synthetic/ẩn danh; máy tính không đồng bộ tài khoản",
+      "prohibited_vi": [
+        "Google Form có tài khoản",
+        "danh sách tên",
+        "dữ liệu sức khỏe",
+        "định vị"
+      ],
+      "review_status": "PENDING_OWNER_REVIEW",
+      "production_eligible": false
+    },
+    {
+      "id": "GMAT-0087-PRIMARY",
+      "activity_id": "ACT-0087",
+      "kind": "PRIMARY",
+      "label_vi": "12 thẻ ảnh lá/côn trùng synthetic có mã đáp án và mẫu khóa lưỡng phân",
+      "suitability_vi": "mẫu sạch, không sắc/độc; chỉ phân loại vật hoặc sinh vật trên thẻ",
+      "prohibited_vi": [
+        "mẫu nấm/cây dại thật",
+        "côn trùng sống",
+        "ảnh người",
+        "thuộc tính sức khỏe/chủng tộc"
+      ],
+      "review_status": "PENDING_OWNER_REVIEW",
+      "production_eligible": false
+    },
+    {
+      "id": "GMAT-0087-SUBSTITUTE",
+      "activity_id": "ACT-0087",
+      "kind": "HOUSEHOLD_SUBSTITUTE",
+      "label_vi": "8-12 đồ vật gia dụng an toàn khác nhau rõ ràng và giấy vẽ sơ đồ nhánh",
+      "suitability_vi": "mẫu sạch, không sắc/độc; chỉ phân loại vật hoặc sinh vật trên thẻ",
+      "prohibited_vi": [
+        "mẫu nấm/cây dại thật",
+        "côn trùng sống",
+        "ảnh người",
+        "thuộc tính sức khỏe/chủng tộc"
+      ],
+      "review_status": "PENDING_OWNER_REVIEW",
+      "production_eligible": false
+    },
+    {
+      "id": "GMAT-0091-PRIMARY",
+      "activity_id": "ACT-0091",
+      "kind": "PRIMARY",
+      "label_vi": "đèn LED ánh sáng khuếch tán, quả cầu xốp 8-10 cm trên que tù, tám mốc sàn và phiếu pha",
+      "suitability_vi": "chỉ dùng LED mát; dây cố định ngoài lối đi; phòng đủ sáng để thấy sàn",
+      "prohibited_vi": [
+        "nến",
+        "bóng sợi đốt nóng",
+        "tia laser",
+        "que nhọn",
+        "phòng tối hoàn toàn"
+      ],
+      "review_status": "PENDING_OWNER_REVIEW",
+      "production_eligible": false
+    },
+    {
+      "id": "GMAT-0091-SUBSTITUTE",
+      "activity_id": "ACT-0091",
+      "kind": "HOUSEHOLD_SUBSTITUTE",
+      "label_vi": "đèn pin LED cố định trong hộp, bóng bàn gắn trên bút đầu tù, băng giấy đánh tám vị trí và giấy ghi",
+      "suitability_vi": "chỉ dùng LED mát; dây cố định ngoài lối đi; phòng đủ sáng để thấy sàn",
+      "prohibited_vi": [
+        "nến",
+        "bóng sợi đốt nóng",
+        "tia laser",
+        "que nhọn",
+        "phòng tối hoàn toàn"
+      ],
+      "review_status": "PENDING_OWNER_REVIEW",
+      "production_eligible": false
+    },
+    {
+      "id": "GMAT-0097-PRIMARY",
+      "activity_id": "ACT-0097",
+      "kind": "PRIMARY",
+      "label_vi": "gói bốn nguồn in đã kiểm duyệt, mẫu claim-evidence-reasoning và thẻ mã nguồn",
+      "suitability_vi": "nguồn có tác giả/ngày, phù hợp độ tuổi, không yêu cầu đăng nhập hoặc dữ liệu cá nhân",
+      "prohibited_vi": [
+        "mạng xã hội không kiểm chứng",
+        "nguồn paywall cần tài khoản",
+        "chủ đề sức khỏe cá nhân",
+        "chép nguyên văn không dẫn nguồn"
+      ],
+      "review_status": "PENDING_OWNER_REVIEW",
+      "production_eligible": false
+    },
+    {
+      "id": "GMAT-0097-SUBSTITUTE",
+      "activity_id": "ACT-0097",
+      "kind": "HOUSEHOLD_SUBSTITUTE",
+      "label_vi": "ba bài đọc thư viện công cộng được người lớn in, giấy ba cột và danh mục nguồn mẫu",
+      "suitability_vi": "nguồn có tác giả/ngày, phù hợp độ tuổi, không yêu cầu đăng nhập hoặc dữ liệu cá nhân",
+      "prohibited_vi": [
+        "mạng xã hội không kiểm chứng",
+        "nguồn paywall cần tài khoản",
+        "chủ đề sức khỏe cá nhân",
+        "chép nguyên văn không dẫn nguồn"
+      ],
+      "review_status": "PENDING_OWNER_REVIEW",
+      "production_eligible": false
+    },
+    {
+      "id": "GMAT-0099-PRIMARY",
+      "activity_id": "ACT-0099",
+      "kind": "PRIMARY",
+      "label_vi": "planner ba mốc, source log, gói nguồn thư viện đã duyệt và vật liệu trình bày ngoại tuyến",
+      "suitability_vi": "dùng mã dự án thay tên đầy đủ; nguồn phù hợp độ tuổi; lưu bản quyền/trích dẫn",
+      "prohibited_vi": [
+        "tài khoản mạng xã hội",
+        "liên hệ người lạ",
+        "nguồn tải không rõ",
+        "dữ liệu định danh trẻ"
+      ],
+      "review_status": "PENDING_OWNER_REVIEW",
+      "production_eligible": false
+    },
+    {
+      "id": "GMAT-0099-SUBSTITUTE",
+      "activity_id": "ACT-0099",
+      "kind": "HOUSEHOLD_SUBSTITUTE",
+      "label_vi": "bìa hồ sơ giấy, bảng tiến độ tự vẽ, sách/tài liệu in do người lớn chọn và giấy/bút trình bày",
+      "suitability_vi": "dùng mã dự án thay tên đầy đủ; nguồn phù hợp độ tuổi; lưu bản quyền/trích dẫn",
+      "prohibited_vi": [
+        "tài khoản mạng xã hội",
+        "liên hệ người lạ",
+        "nguồn tải không rõ",
+        "dữ liệu định danh trẻ"
+      ],
+      "review_status": "PENDING_OWNER_REVIEW",
+      "production_eligible": false
+    }
+  ]
+}

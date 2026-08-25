@@ -3,7 +3,7 @@
 - Plan revision: 1
 - Total: 10 tasks, 55-73 hours, 13.75-17.75 story points
 - Cross-person runtime dependency: none
-- Implementation status: `BLOCKED_BY_TASK_APPROVAL`
+- Implementation status: `IMPLEMENTED_AWAITING_OWNER_REVIEW`
 
 | Task | Depends only on | Parallel-safe output | Required evidence |
 |---|---|---|---|
@@ -19,3 +19,9 @@
 | G1-10 | G1-01..09 | Final handoff | Architecture/security/limitations evidence |
 
 G1-04 through G1-07 are content batches that can be worked independently by Person 1 but must share the frozen schema/registries. No task calls or waits for another person's service.
+
+## Current result
+
+- G1-01 through G1-08: implemented and automated checks pass.
+- G1-09: review packet and traceability implemented; 20 owner decisions pending.
+- G1-10: automated handoff checks and limitations evidence complete; final feature closure waits for G1-09 owner decisions.

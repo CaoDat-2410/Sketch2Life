@@ -1,3 +1,3 @@
 # Raw evidence
 
-Implementation command/test logs belong here after revision 1 task approval.
+Implementation command/test logs. All runs use committed local fixtures and require no network, database, AI model, or another workstream.

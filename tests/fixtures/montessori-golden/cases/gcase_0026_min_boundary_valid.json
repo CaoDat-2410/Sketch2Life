@@ -1,0 +1,33 @@
+{
+  "id": "GCASE_0026_MIN_BOUNDARY_VALID",
+  "description": "ACT-0026 accepts inclusive min_boundary",
+  "activity_ref": {
+    "id": "ACT-0026",
+    "version": 2
+  },
+  "input": {
+    "age_months": 42,
+    "readiness_ids": [
+      "READY_CONTROLLED_TWO_HAND_POUR"
+    ],
+    "completed_activity_ids": [],
+    "available_material_option_ids": [
+      "GMAT-0026-PRIMARY"
+    ],
+    "supervision_level": "NEARBY",
+    "policy_flags": [],
+    "candidate_status": "ACTIVE_FIXTURE"
+  },
+  "expected": {
+    "status": "VALID_CANDIDATE",
+    "allowed_activity_ids": [
+      "ACT-0026"
+    ],
+    "blocked": {}
+  },
+  "coverage_tags": [
+    "valid",
+    "age_boundary",
+    "3-6"
+  ]
+}

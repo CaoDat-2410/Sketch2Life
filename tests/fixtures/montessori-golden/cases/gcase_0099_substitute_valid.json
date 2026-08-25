@@ -1,0 +1,38 @@
+{
+  "id": "GCASE_0099_SUBSTITUTE_VALID",
+  "description": "ACT-0099 accepts its concrete household substitute",
+  "activity_ref": {
+    "id": "ACT-0099",
+    "version": 2
+  },
+  "input": {
+    "age_months": 137,
+    "readiness_ids": [
+      "READY_MANAGES_RESEARCH_MILESTONE"
+    ],
+    "completed_activity_ids": [
+      "ACT-0074",
+      "ACT-0085",
+      "ACT-0097"
+    ],
+    "available_material_option_ids": [
+      "GMAT-0099-SUBSTITUTE"
+    ],
+    "supervision_level": "NEARBY",
+    "policy_flags": [],
+    "candidate_status": "ACTIVE_FIXTURE"
+  },
+  "expected": {
+    "status": "VALID_CANDIDATE",
+    "allowed_activity_ids": [
+      "ACT-0099"
+    ],
+    "blocked": {}
+  },
+  "coverage_tags": [
+    "valid",
+    "household_substitute",
+    "9-12",
+    "ACT-0099"
+  ]
+}

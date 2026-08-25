@@ -1,0 +1,25 @@
+{
+  "case_count": 74,
+  "positive_cases": 48,
+  "blocked_cases": 26,
+  "cases_per_activity_minimum": 3,
+  "coverage": [
+    "0-3",
+    "3-6",
+    "6-9",
+    "9-12",
+    "age",
+    "age_below",
+    "age_boundary",
+    "blocked",
+    "household_substitute",
+    "inactive",
+    "multiple_failure",
+    "no_valid",
+    "primary_material",
+    "readiness",
+    "valid"
+  ],
+  "deliberate_expected_mutation": "PASS_EXPECTED_NONZERO",
+  "baseline_mutation": "PASS_EXPECTED_NONZERO"
+}

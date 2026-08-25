@@ -1,0 +1,203 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sketch2life.local/schemas/montessori/golden-activity.v2.schema.json",
+  "title": "Sketch2Life Golden Montessori Activity v2",
+  "type": "object",
+  "required": [
+    "id",
+    "version",
+    "base_ref",
+    "title",
+    "age_band",
+    "age_months",
+    "area",
+    "purpose_vi",
+    "direct_aim_vi",
+    "indirect_aims_vi",
+    "objective_mapping",
+    "readiness_criteria",
+    "prerequisite_activity_ids",
+    "progression_successor_ids",
+    "prepared_environment_vi",
+    "material_group_ids",
+    "presentation_steps_vi",
+    "child_work_cycle_vi",
+    "restoration_steps_vi",
+    "isolation_of_difficulty_vi",
+    "control_of_error_vi",
+    "duration_minutes",
+    "repeatability_vi",
+    "safety",
+    "policy_constraints",
+    "catalog_status",
+    "variants",
+    "completion_observations_vi",
+    "review",
+    "source_refs",
+    "provenance"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^ACT-[0-9]{4}$"
+    },
+    "version": {
+      "const": 2
+    },
+    "base_ref": {
+      "type": "object",
+      "required": [
+        "activity_id",
+        "version",
+        "record_sha256"
+      ],
+      "additionalProperties": false
+    },
+    "title": {
+      "type": "object",
+      "required": [
+        "vi-VN"
+      ]
+    },
+    "age_band": {
+      "enum": [
+        "0-3",
+        "3-6",
+        "6-9",
+        "9-12"
+      ]
+    },
+    "age_months": {
+      "type": "object",
+      "required": [
+        "min",
+        "max",
+        "guidance_vi"
+      ]
+    },
+    "area": {
+      "type": "string",
+      "minLength": 1
+    },
+    "purpose_vi": {
+      "type": "string",
+      "minLength": 10
+    },
+    "direct_aim_vi": {
+      "type": "string",
+      "minLength": 10
+    },
+    "indirect_aims_vi": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "objective_mapping": {
+      "type": "object",
+      "required": [
+        "primary",
+        "secondary"
+      ],
+      "additionalProperties": false
+    },
+    "readiness_criteria": {
+      "type": "array",
+      "minItems": 1
+    },
+    "prerequisite_activity_ids": {
+      "type": "array",
+      "uniqueItems": true
+    },
+    "progression_successor_ids": {
+      "type": "array",
+      "uniqueItems": true
+    },
+    "prepared_environment_vi": {
+      "type": "string",
+      "minLength": 20
+    },
+    "material_group_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "presentation_steps_vi": {
+      "type": "array",
+      "minItems": 4
+    },
+    "child_work_cycle_vi": {
+      "type": "array",
+      "minItems": 3
+    },
+    "restoration_steps_vi": {
+      "type": "array",
+      "minItems": 2
+    },
+    "isolation_of_difficulty_vi": {
+      "type": "string",
+      "minLength": 15
+    },
+    "control_of_error_vi": {
+      "type": "string",
+      "minLength": 15
+    },
+    "duration_minutes": {
+      "type": "object",
+      "required": [
+        "min",
+        "max"
+      ]
+    },
+    "repeatability_vi": {
+      "type": "string",
+      "minLength": 15
+    },
+    "safety": {
+      "type": "object",
+      "required": [
+        "minimum_supervision",
+        "hazards_vi",
+        "stop_conditions_vi"
+      ]
+    },
+    "policy_constraints": {
+      "type": "array",
+      "uniqueItems": true
+    },
+    "catalog_status": {
+      "const": "ACTIVE_FIXTURE"
+    },
+    "variants": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "completion_observations_vi": {
+      "type": "array",
+      "minItems": 2
+    },
+    "review": {
+      "type": "object",
+      "required": [
+        "status",
+        "reviewer_role",
+        "reviewed_at",
+        "production_eligible"
+      ]
+    },
+    "source_refs": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "provenance": {
+      "type": "object",
+      "required": [
+        "authored_by",
+        "authored_at",
+        "source_type"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

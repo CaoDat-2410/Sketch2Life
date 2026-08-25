@@ -1,13 +1,13 @@
 # FEAT-013 Montessori Golden Catalog hardening plan
 
-- Status: AWAITING_APPROVAL
+- Status: APPROVED
 - Plan revision: 1
-- Implementation status: NOT_STARTED
+- Implementation status: IMPLEMENTED_AWAITING_OWNER_REVIEW
 - Owner: Person 1
 - Prepared at: 2026-08-25
 - Branch: `plan/person-1-montessori-golden-hardening`
 
-Implementation remains blocked until revision 1 is explicitly approved in `approvals/TASK_APPROVAL.md`.
+Implementation is authorized by `approvals/TASK_APPROVAL.md`.
 
 ## Goal
 
@@ -163,6 +163,8 @@ At a 40-hour capstone sprint allocation, this is approximately 1.5-2 Person 1 sp
 - Owner provisional review and all evidence are recorded.
 - Standalone harness, architecture, team-allocation, and security checks pass.
 - Completion does not authorize recommendation runtime, integration, or production use.
+
+Implementation and automated verification are complete. Definition of Done is not yet met because the project owner has not recorded a decision for each of the 20 candidate records.
 
 ## Approval rule
 

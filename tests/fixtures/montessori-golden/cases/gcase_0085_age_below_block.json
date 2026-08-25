@@ -1,0 +1,36 @@
+{
+  "id": "GCASE_0085_AGE_BELOW_BLOCK",
+  "description": "ACT-0085 blocks below its hardened age guidance",
+  "activity_ref": {
+    "id": "ACT-0085",
+    "version": 2
+  },
+  "input": {
+    "age_months": 113,
+    "readiness_ids": [
+      "READY_TABLE_AND_BAR_GRAPH"
+    ],
+    "completed_activity_ids": [],
+    "available_material_option_ids": [
+      "GMAT-0085-PRIMARY"
+    ],
+    "supervision_level": "NEARBY",
+    "policy_flags": [],
+    "candidate_status": "ACTIVE_FIXTURE"
+  },
+  "expected": {
+    "status": "NO_VALID_ACTIVITY",
+    "allowed_activity_ids": [],
+    "blocked": {
+      "ACT-0085": [
+        "BLOCK_AGE_BELOW_MIN"
+      ]
+    }
+  },
+  "coverage_tags": [
+    "blocked",
+    "age",
+    "age_below",
+    "9-12"
+  ]
+}

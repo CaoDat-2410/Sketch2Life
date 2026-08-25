@@ -24,6 +24,7 @@ This repository is governed by the harness in `docs/governance/` and the records
 - Treat the dependency-driven project roadmap and the parallel team sprint assignment as separate planning views. Integration requires a separately approved allocation.
 - Apply Montessori eligibility hard rules before any future recommendation ranking; `NO_VALID_ACTIVITY` is valid and rules must never be relaxed to force a result.
 - Treat FEAT-002 catalog records as synthetic/provisional. Never represent `PENDING_OWNER_REVIEW`, `PROVISIONAL_OWNER_REVIEWED`, or `production_eligible=false` records as qualified or production-approved content.
+- Preserve FEAT-002 v1 as the immutable Montessori baseline. FEAT-013 Golden Activity v2 records are a derived overlay, require explicit per-record owner review, and cannot silently replace or weaken baseline hard rules.
 
 ## Repository security rules
 

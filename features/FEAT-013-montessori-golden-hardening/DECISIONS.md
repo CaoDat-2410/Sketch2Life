@@ -10,3 +10,4 @@
 - Record one primary objective and zero to two secondary objectives; identity/version remain explicit for later Gate B.
 - `NO_VALID_ACTIVITY` remains valid and hard rules are never relaxed to surface a golden record.
 - No ranking weights, AI mapping, UI, API, persistence, or integration code belongs to this feature.
+- Keep feature state at `REVIEW` after automated implementation. The plan approval authorizes work but does not imply acceptance of the 20 authored activity records; per-record owner decisions are recorded separately.

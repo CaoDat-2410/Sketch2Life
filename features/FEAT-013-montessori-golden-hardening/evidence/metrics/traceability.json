@@ -1,0 +1,58 @@
+{
+  "AC-G1-01": [
+    "selection-manifest.v1.json",
+    "golden-summary.csv"
+  ],
+  "AC-G1-02": [
+    "selection-manifest.v1.json",
+    "baseline-hashes.json",
+    "baseline-mutation.txt"
+  ],
+  "AC-G1-03": [
+    "golden-activity.v2.schema.json",
+    "activities.v2.json",
+    "golden-validation.json"
+  ],
+  "AC-G1-04": [
+    "activities.v2.json/readiness_criteria",
+    "GCASE_*_READINESS_BLOCK"
+  ],
+  "AC-G1-05": [
+    "material-registry.v1.json",
+    "GCASE_*_PRIMARY_VALID",
+    "GCASE_*_SUBSTITUTE_VALID"
+  ],
+  "AC-G1-06": [
+    "validate_montessori_golden.py",
+    "fixture-coverage.json"
+  ],
+  "AC-G1-07": [
+    "progression-edges.v1.json",
+    "golden-validation.json"
+  ],
+  "AC-G1-08": [
+    "activities.v2.json/variants",
+    "golden-validation.json"
+  ],
+  "AC-G1-09": [
+    "manifest.v1.json",
+    "fixture-coverage.json"
+  ],
+  "AC-G1-10": [
+    "harness-run.txt",
+    "deliberate-failure.txt",
+    "baseline-mutation.txt"
+  ],
+  "AC-G1-11": [
+    "OWNER_REVIEW_PACKET.md",
+    "golden-summary.csv"
+  ],
+  "AC-G1-12": [
+    "traceability.json",
+    "batch review notes"
+  ],
+  "AC-G1-13": [
+    "final-validation.txt",
+    "KNOWN_LIMITATIONS.md"
+  ]
+}

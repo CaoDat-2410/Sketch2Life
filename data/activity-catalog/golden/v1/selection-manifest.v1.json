@@ -1,0 +1,154 @@
+{
+  "schema_version": 1,
+  "parent_feature": "FEAT-002",
+  "parent_commit": "2d61528",
+  "base_file_hashes": {
+    "activities.v1.json": "d148a979e28af72ee107577f6bbf57164839925c4f4e847cbf6e09786e89949c",
+    "learning-objectives.v1.json": "d32b2ddd61a67b3d1771272c1de21cf852ce7a8039c89556b3f05b1796a26311",
+    "hard-rules.v1.json": "9a395757fdbdcb41c80f14843ce223a9decf37d1a5bbb5565e32b29e6dba0b46",
+    "provenance.v1.json": "0e12e91dc6329c5b095f882c4fda58e6119bbe169c26b7b7d46e6cff5c4e1600"
+  },
+  "selection_count": 20,
+  "selections": [
+    {
+      "activity_id": "ACT-0004",
+      "base_version": 1,
+      "base_record_sha256": "334ec774b8b269ef839f689a3aa385b612b7ea00f033370ab89205a873c1677c",
+      "candidate_version": 2,
+      "age_band": "0-3"
+    },
+    {
+      "activity_id": "ACT-0016",
+      "base_version": 1,
+      "base_record_sha256": "73c7817f7be8cf11575da3b7215af23e50cbbe297b093beeefd1c8e14ecddecb",
+      "candidate_version": 2,
+      "age_band": "0-3"
+    },
+    {
+      "activity_id": "ACT-0019",
+      "base_version": 1,
+      "base_record_sha256": "a1feeb3fb9aaf0c699c6079913469844513a3a12f272cbad8349f2d9325e8fbf",
+      "candidate_version": 2,
+      "age_band": "0-3"
+    },
+    {
+      "activity_id": "ACT-0020",
+      "base_version": 1,
+      "base_record_sha256": "bd9499a7bb24985bddd456799af3ca78682d3f29cc731596ca59df57f298b1f6",
+      "candidate_version": 2,
+      "age_band": "0-3"
+    },
+    {
+      "activity_id": "ACT-0023",
+      "base_version": 1,
+      "base_record_sha256": "9e26b627e6dfe9b6eb20f46e2c9ee7793a3ef2d7f539e35f4922fda14e2f97b8",
+      "candidate_version": 2,
+      "age_band": "0-3"
+    },
+    {
+      "activity_id": "ACT-0026",
+      "base_version": 1,
+      "base_record_sha256": "ac8d20bf7a56e67ad1dc1f0a24504b099740de842204f1c7cc33d12c2e35547f",
+      "candidate_version": 2,
+      "age_band": "3-6"
+    },
+    {
+      "activity_id": "ACT-0030",
+      "base_version": 1,
+      "base_record_sha256": "8226cd66736490809af662a3463c29e68429d4efaffe3a8471fd83311a0829f0",
+      "candidate_version": 2,
+      "age_band": "3-6"
+    },
+    {
+      "activity_id": "ACT-0033",
+      "base_version": 1,
+      "base_record_sha256": "42ae944c55d4264b26c70d704f886649425f0bd9b737768da3054e2cff8609ed",
+      "candidate_version": 2,
+      "age_band": "3-6"
+    },
+    {
+      "activity_id": "ACT-0039",
+      "base_version": 1,
+      "base_record_sha256": "f7301cc86ade033ca7c6dba32ff47d925467c3f4ae676358f7659d1101d253d2",
+      "candidate_version": 2,
+      "age_band": "3-6"
+    },
+    {
+      "activity_id": "ACT-0046",
+      "base_version": 1,
+      "base_record_sha256": "68692fc3b060bafe66f87ed2ae96bf5376be9951ae9d5aaad235ae736c89b109",
+      "candidate_version": 2,
+      "age_band": "3-6"
+    },
+    {
+      "activity_id": "ACT-0055",
+      "base_version": 1,
+      "base_record_sha256": "2afbc591d0b1f4f8cf393d327dd2259aead2c5f4ca4baa8f3a68b8f1f5f629f8",
+      "candidate_version": 2,
+      "age_band": "6-9"
+    },
+    {
+      "activity_id": "ACT-0058",
+      "base_version": 1,
+      "base_record_sha256": "ec7663e0f3b553d68b47f03c52f3262992a2d03f37ad16a5bab450ec20c49e9d",
+      "candidate_version": 2,
+      "age_band": "6-9"
+    },
+    {
+      "activity_id": "ACT-0061",
+      "base_version": 1,
+      "base_record_sha256": "45de99b83caaf32b0d8ed186be7ba7f4d1fd879bb4ca4c6bd8043e07563e0415",
+      "candidate_version": 2,
+      "age_band": "6-9"
+    },
+    {
+      "activity_id": "ACT-0067",
+      "base_version": 1,
+      "base_record_sha256": "1215adb9efda75e9c737795d3c9716589ebe886fbcd1cebaf9126737cef573a7",
+      "candidate_version": 2,
+      "age_band": "6-9"
+    },
+    {
+      "activity_id": "ACT-0074",
+      "base_version": 1,
+      "base_record_sha256": "197af17b770831cfc7e078ce0c91b091856c92a0fa460e83b1fe43d1e394a4a3",
+      "candidate_version": 2,
+      "age_band": "6-9"
+    },
+    {
+      "activity_id": "ACT-0085",
+      "base_version": 1,
+      "base_record_sha256": "59ea7b07fadb8f13c68dac5ff193b0559e1ca297009ccfe81244b546f3463322",
+      "candidate_version": 2,
+      "age_band": "9-12"
+    },
+    {
+      "activity_id": "ACT-0087",
+      "base_version": 1,
+      "base_record_sha256": "a81592f5c0bf021fcf5654dcffb447ee592d2ad995a5fef30755f3358046696c",
+      "candidate_version": 2,
+      "age_band": "9-12"
+    },
+    {
+      "activity_id": "ACT-0091",
+      "base_version": 1,
+      "base_record_sha256": "5b99167a8fc81d6eed0f9d5cfb23caa2aefdbabc1265cd6e61fe79c18df6f096",
+      "candidate_version": 2,
+      "age_band": "9-12"
+    },
+    {
+      "activity_id": "ACT-0097",
+      "base_version": 1,
+      "base_record_sha256": "7ad18835cee06f103a157d0767858c5faecf62c860e01506d8b2ec31d35662cd",
+      "candidate_version": 2,
+      "age_band": "9-12"
+    },
+    {
+      "activity_id": "ACT-0099",
+      "base_version": 1,
+      "base_record_sha256": "bc313c835d209f079b62eeb77b69a77c846c2901d51f2080c03f64f7ff0537de",
+      "candidate_version": 2,
+      "age_band": "9-12"
+    }
+  ]
+}

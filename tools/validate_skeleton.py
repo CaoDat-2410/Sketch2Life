@@ -31,10 +31,16 @@ REQUIRED = [
     "packages/art-renderer/package.json",
     "packages/domain-montessori/schemas/activity.v1.schema.json",
     "packages/domain-montessori/schemas/learning-objective.v1.schema.json",
+    "packages/domain-montessori/schemas/golden-activity.v2.schema.json",
+    "packages/domain-montessori/schemas/golden-fixture-case.v1.schema.json",
     "data/activity-catalog/mvp/activities.v1.json",
     "data/activity-catalog/mvp/learning-objectives.v1.json",
     "tests/fixtures/montessori/manifest.v1.json",
+    "data/activity-catalog/golden/v1/activities.v2.json",
+    "data/activity-catalog/golden/v1/selection-manifest.v1.json",
+    "tests/fixtures/montessori-golden/manifest.v1.json",
     "tools/validate_montessori_domain.py",
+    "tools/validate_montessori_golden.py",
     "docs/setup/LOCAL_DEVELOPMENT.md",
     "docs/SYSTEM_BASELINE.md",
     "tools/validate_repository_security.py",
@@ -48,7 +54,11 @@ def main() -> int:
         if not (ROOT / relative).exists():
             errors.append(f"missing: {relative}")
 
-    for relative in ("package.json", "apps/mobile/package.json", "packages/art-renderer/package.json"):
+    for relative in (
+        "package.json",
+        "apps/mobile/package.json",
+        "packages/art-renderer/package.json",
+    ):
         try:
             json.loads((ROOT / relative).read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as exc:
@@ -66,7 +76,9 @@ def main() -> int:
     if "FIREBASE_STORAGE" in env_text or "FIREBASE_DATABASE" in env_text:
         errors.append("Firebase storage/database configuration is forbidden")
 
-    mobile_package = json.loads((ROOT / "apps/mobile/package.json").read_text(encoding="utf-8"))
+    mobile_package = json.loads(
+        (ROOT / "apps/mobile/package.json").read_text(encoding="utf-8")
+    )
     if "ios" in mobile_package.get("scripts", {}):
         errors.append("Android-only mobile package must not expose an iOS script")
     for script in ("android:apk:debug", "android:apk:release", "android:aab:release"):
@@ -85,8 +97,12 @@ def main() -> int:
     for dependency in sorted(forbidden_mobile_dependencies & mobile_dependencies):
         errors.append(f"forbidden mobile data/provider dependency: {dependency}")
 
-    android_root_gradle = (ROOT / "apps/mobile/android/build.gradle").read_text(encoding="utf-8")
-    android_app_gradle = (ROOT / "apps/mobile/android/app/build.gradle").read_text(encoding="utf-8")
+    android_root_gradle = (ROOT / "apps/mobile/android/build.gradle").read_text(
+        encoding="utf-8"
+    )
+    android_app_gradle = (ROOT / "apps/mobile/android/app/build.gradle").read_text(
+        encoding="utf-8"
+    )
     android_manifest = (
         ROOT / "apps/mobile/android/app/src/main/AndroidManifest.xml"
     ).read_text(encoding="utf-8")
@@ -112,7 +128,9 @@ def main() -> int:
     ):
         errors.append("Android release build must not use the debug signing key")
 
-    ios_files = [path for path in (ROOT / "apps/mobile/ios").rglob("*") if path.is_file()]
+    ios_files = [
+        path for path in (ROOT / "apps/mobile/ios").rglob("*") if path.is_file()
+    ]
     if ios_files:
         errors.append("Android-only project contains active iOS files")
 

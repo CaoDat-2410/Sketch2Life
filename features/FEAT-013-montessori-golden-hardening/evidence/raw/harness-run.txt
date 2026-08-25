@@ -1,0 +1,22 @@
+FEAT-013 reproducibility run
+Date: 2026-08-25
+Environment: local Windows workspace; repository Python virtual environment
+Data: committed synthetic fixtures only
+Network/database/AI/provider: not used
+
+Commands:
+  python features/FEAT-013-montessori-golden-hardening/src/build_golden_catalog.py
+  python features/FEAT-013-montessori-golden-hardening/src/build_golden_fixtures.py
+  python features/FEAT-013-montessori-golden-hardening/src/build_golden_review.py
+  python tools/validate_montessori_golden.py
+
+Result:
+  activities=20; bands=5/5/5/5
+  material_options=40; progression_edges=13
+  fixtures=74; positive=48; blocked=26
+  DETERMINISTIC_REBUILD=PASS
+  review_status=PENDING_OWNER_REVIEW
+  production_eligible=false
+  baseline_unchanged=true
+
+Interpretation: identical builders produced identical SHA-256 values for all selected generated catalog and fixture-manifest artifacts. This is reproducibility evidence, not pedagogical approval.

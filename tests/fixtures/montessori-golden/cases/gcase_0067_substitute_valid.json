@@ -1,0 +1,34 @@
+{
+  "id": "GCASE_0067_SUBSTITUTE_VALID",
+  "description": "ACT-0067 accepts its concrete household substitute",
+  "activity_ref": {
+    "id": "ACT-0067",
+    "version": 2
+  },
+  "input": {
+    "age_months": 92,
+    "readiness_ids": [
+      "READY_IDENTIFIES_NOUN_VERB"
+    ],
+    "completed_activity_ids": [],
+    "available_material_option_ids": [
+      "GMAT-0067-SUBSTITUTE"
+    ],
+    "supervision_level": "NEARBY",
+    "policy_flags": [],
+    "candidate_status": "ACTIVE_FIXTURE"
+  },
+  "expected": {
+    "status": "VALID_CANDIDATE",
+    "allowed_activity_ids": [
+      "ACT-0067"
+    ],
+    "blocked": {}
+  },
+  "coverage_tags": [
+    "valid",
+    "household_substitute",
+    "6-9",
+    "ACT-0067"
+  ]
+}

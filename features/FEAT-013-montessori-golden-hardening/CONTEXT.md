@@ -1,6 +1,6 @@
 # FEAT-013 Montessori Golden Catalog hardening context
 
-- Status: AWAITING_APPROVAL
+- Status: REVIEW
 - Primary owner: Person 1
 - Planning branch: `plan/person-1-montessori-golden-hardening`
 - Plan revision: 1
@@ -25,6 +25,14 @@ FEAT-013 optimizes depth rather than increasing catalog size. It creates a trace
 
 ## Authority boundary
 
-- The owner's request authorizes preparation of this optimization plan, not implementation before plan approval.
+- The owner approved revision 1 implementation on 2026-08-25; the scope remains bounded by the approval record.
 - Existing project-owner review is provisional. FEAT-013 cannot claim qualified pedagogical or production approval.
 - Internal source records and external Montessori references inform the draft; they do not justify invented safety, age, or developmental claims.
+
+## Implementation snapshot
+
+- Exactly 20 candidate v2 records exist, five per age band, linked to immutable FEAT-002 records and hashes.
+- The local material registry contains 40 concrete options; the progression graph contains 13 validated edges.
+- The offline harness replays 74 fixtures, including primary/substitute success, blocked, boundary, multiple-failure, inactive, fixture-mutation, and baseline-mutation paths.
+- Deterministic rebuild, unit tests, and repository gates pass.
+- All content remains `PENDING_OWNER_REVIEW` and `production_eligible=false`; owner decisions are the remaining feature gate.
