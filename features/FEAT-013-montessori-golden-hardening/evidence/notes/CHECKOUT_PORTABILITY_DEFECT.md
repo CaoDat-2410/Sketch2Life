@@ -26,3 +26,18 @@ provenance.v1.json=345bffb87be6953595d89d37eb2d222352ff9be83a8fc40e637571b895ede
 ```
 
 No tracked FEAT-002 file was edited. This evidence records a pre-fix failure; passing evidence must not be claimed before corrective approval and implementation.
+
+## Related repository-gate finding
+
+After the Golden baseline fix first passed, the full suite exposed the same checkout representation issue in the legacy FEAT-002 fixture manifest: its historical digests represent CRLF files while Git checks them out as LF. The approved correction preserves all fixture/catalog files and adds line-ending normalization only to the legacy validator compatibility path. Semantic fixture mutations remain detectable.
+
+## Resolution
+
+- Status: RESOLVED
+- Golden baseline algorithm: `sha256-canonical-json-v1`
+- Legacy FEAT-002 fixture compatibility: normalize text line endings to historical CRLF before checking existing manifest digests
+- LF/CRLF parity tests: PASS
+- Semantic baseline mutation: PASS_EXPECTED_NONZERO
+- Deterministic Golden rebuild: PASS
+- FEAT-002 data diff: none
+- Test result at correction closure: 18 passed

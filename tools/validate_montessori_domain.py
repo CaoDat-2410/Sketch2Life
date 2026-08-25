@@ -54,6 +54,15 @@ def require(condition: bool, message: str) -> None:
         fail(message)
 
 
+def legacy_fixture_manifest_sha256(path: Path) -> str:
+    """Match v1 manifest hashes without depending on checkout line endings."""
+    normalized_lf = (
+        path.read_text(encoding="utf-8").replace("\r\n", "\n").replace("\r", "\n")
+    )
+    legacy_crlf = normalized_lf.replace("\n", "\r\n").encode("utf-8")
+    return hashlib.sha256(legacy_crlf).hexdigest()
+
+
 def validate_contract_files() -> None:
     required = [
         DOMAIN_DIR / "spec" / "GLOSSARY.md",
@@ -371,7 +380,7 @@ def validate_fixtures(
             f"invalid case ID: {case_id}",
         )
         require(case_id in manifest_by_id, f"fixture missing from manifest: {case_id}")
-        digest = hashlib.sha256(path.read_bytes()).hexdigest()
+        digest = legacy_fixture_manifest_sha256(path)
         require(
             digest == manifest_by_id[case_id]["sha256"],
             f"fixture checksum mismatch: {case_id}",

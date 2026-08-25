@@ -17,16 +17,13 @@ REVIEW_PATH = (
     / "OWNER_CONTENT_REVIEW.v1.json"
 )
 
-BASE_FILE_HASHES = {
-    "activities.v1.json": "d148a979e28af72ee107577f6bbf57164839925c4f4e847cbf6e09786e89949c",
-    "learning-objectives.v1.json": "d32b2ddd61a67b3d1771272c1de21cf852ce7a8039c89556b3f05b1796a26311",
-    "hard-rules.v1.json": "9a395757fdbdcb41c80f14843ce223a9decf37d1a5bbb5565e32b29e6dba0b46",
-    "provenance.v1.json": "0e12e91dc6329c5b095f882c4fda58e6119bbe169c26b7b7d46e6cff5c4e1600",
+BASE_INTEGRITY_ALGORITHM = "sha256-canonical-json-v1"
+BASE_FILE_CANONICAL_SHA256 = {
+    "activities.v1.json": "17dde39fcc6e2951fab7cc158c11d230766f69930be8dd0596d377dab514989c",
+    "learning-objectives.v1.json": "69ecff8f8944628c0a9a6b3eeb28bda24d17fd3b3856603725d9e97638895a3e",
+    "hard-rules.v1.json": "b42d46dd6c893e266b2f6cab73b7b04af11628ef5f58485f553ebcdca40cee7d",
+    "provenance.v1.json": "345bffb87be6953595d89d37eb2d222352ff9be83a8fc40e637571b895edee47",
 }
-
-
-def sha256_file(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def sha256_value(value: object) -> str:
@@ -34,6 +31,10 @@ def sha256_value(value: object) -> str:
         value, ensure_ascii=False, sort_keys=True, separators=(",", ":")
     ).encode("utf-8")
     return hashlib.sha256(payload).hexdigest()
+
+
+def canonical_json_sha256_file(path: Path) -> str:
+    return sha256_value(json.loads(path.read_text(encoding="utf-8")))
 
 
 def write_json(path: Path, value: object) -> None:
@@ -1134,10 +1135,12 @@ def build_schema() -> dict[str, Any]:
 
 
 def main() -> None:
-    for filename, expected in BASE_FILE_HASHES.items():
-        actual = sha256_file(BASE_DIR / filename)
+    for filename, expected in BASE_FILE_CANONICAL_SHA256.items():
+        actual = canonical_json_sha256_file(BASE_DIR / filename)
         if actual != expected:
-            raise ValueError(f"FEAT-002 baseline hash mismatch: {filename}")
+            raise ValueError(
+                f"FEAT-002 baseline canonical JSON hash mismatch: {filename}"
+            )
 
     base_doc = json.loads((BASE_DIR / "activities.v1.json").read_text(encoding="utf-8"))
     objectives_doc = json.loads(
@@ -1325,7 +1328,10 @@ def main() -> None:
         "schema_version": 1,
         "parent_feature": "FEAT-002",
         "parent_commit": "2d61528",
-        "base_file_hashes": BASE_FILE_HASHES,
+        "base_integrity": {
+            "algorithm": BASE_INTEGRITY_ALGORITHM,
+            "canonical_sha256": BASE_FILE_CANONICAL_SHA256,
+        },
         "selection_count": len(selections),
         "selections": selections,
     }
@@ -1349,7 +1355,10 @@ def main() -> None:
         "schema_version": 1,
         "feature": "FEAT-013",
         "generated_at": "2026-08-25",
-        "baseline_file_hashes": BASE_FILE_HASHES,
+        "baseline_integrity": {
+            "algorithm": BASE_INTEGRITY_ALGORITHM,
+            "canonical_sha256": BASE_FILE_CANONICAL_SHA256,
+        },
         "review_status": review_status,
         "owner_reviewed_at": reviewed_at,
         "reviewed_activity_count": len(records),

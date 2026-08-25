@@ -63,15 +63,24 @@ def sha256_value(value: object) -> str:
     return hashlib.sha256(payload).hexdigest()
 
 
+def canonical_json_sha256_file(path: Path) -> str:
+    return sha256_value(read_json(path))
+
+
 def validate_baseline(
     base_dir: Path, selection: dict[str, Any]
 ) -> dict[str, dict[str, Any]]:
-    for filename, expected in selection["base_file_hashes"].items():
+    integrity = selection["base_integrity"]
+    require(
+        integrity["algorithm"] == "sha256-canonical-json-v1",
+        "unsupported baseline integrity algorithm",
+    )
+    for filename, expected in integrity["canonical_sha256"].items():
         path = base_dir / filename
         require(path.is_file(), f"baseline file missing: {filename}")
         require(
-            sha256_file(path) == expected,
-            f"baseline hash mismatch: {filename}",
+            canonical_json_sha256_file(path) == expected,
+            f"baseline canonical JSON hash mismatch: {filename}",
         )
     base_doc = read_json(base_dir / "activities.v1.json")
     base_by_id = {item["id"]: item for item in base_doc["activities"]}

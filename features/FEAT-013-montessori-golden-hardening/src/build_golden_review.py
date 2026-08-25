@@ -175,7 +175,7 @@ def main() -> None:
             "status": "BASELINE_FROZEN",
             "parent_feature": selection["parent_feature"],
             "parent_commit": selection["parent_commit"],
-            "files": selection["base_file_hashes"],
+            "integrity": selection["base_integrity"],
         },
     )
 

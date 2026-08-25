@@ -5,7 +5,10 @@ import subprocess
 import sys
 from pathlib import Path
 
-from tools.validate_montessori_domain import evaluate_case
+from tools.validate_montessori_domain import (
+    evaluate_case,
+    legacy_fixture_manifest_sha256,
+)
 
 ROOT = Path(__file__).resolve().parents[2]
 CATALOG_PATH = ROOT / "data" / "activity-catalog" / "mvp" / "activities.v1.json"
@@ -27,6 +30,20 @@ def test_standalone_validator_passes() -> None:
     assert result.returncode == 0, result.stdout + result.stderr
     assert "MONTESSORI_DOMAIN_VALID" in result.stdout
     assert "activities=100" in result.stdout
+
+
+def test_legacy_fixture_hash_is_checkout_line_ending_independent(
+    tmp_path: Path,
+) -> None:
+    lf_path = tmp_path / "lf.json"
+    crlf_path = tmp_path / "crlf.json"
+    payload = '{\n  "fixture": true\n}\n'
+    lf_path.write_bytes(payload.encode("utf-8"))
+    crlf_path.write_bytes(payload.replace("\n", "\r\n").encode("utf-8"))
+
+    assert legacy_fixture_manifest_sha256(lf_path) == legacy_fixture_manifest_sha256(
+        crlf_path
+    )
 
 
 def test_material_mismatch_is_blocked() -> None:

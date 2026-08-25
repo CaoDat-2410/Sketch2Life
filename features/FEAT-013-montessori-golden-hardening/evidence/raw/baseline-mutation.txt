@@ -3,7 +3,7 @@ Date: 2026-08-25
 Test: test_mutated_parent_baseline_is_rejected
 Mutation: copy FEAT-002 mvp baseline to pytest tmp_path and add a mutation probe to activities.v1.json
 Observed validator result: non-zero
-Observed reason: baseline hash mismatch: activities.v1.json
+Observed reason: baseline canonical JSON hash mismatch: activities.v1.json
 Unit result: PASS
 
 Interpretation: FEAT-013 rejects silent parent drift. The committed FEAT-002 baseline was never modified; temporary data was removed by pytest.

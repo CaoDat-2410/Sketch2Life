@@ -1,0 +1,18 @@
+FEAT-013 checkout portability corrective validation
+Date: 2026-08-25
+Approval: corrective revision 1
+
+Results:
+  canonical algorithm=sha256-canonical-json-v1
+  canonical LF/CRLF parity=PASS
+  legacy FEAT-002 fixture LF/CRLF parity=PASS
+  semantic baseline mutation=PASS_EXPECTED_NONZERO
+  deterministic canonical rebuild=PASS
+  FEAT-002 catalog/fixture data diff=empty
+  MONTESSORI_DOMAIN_VALID
+  MONTESSORI_GOLDEN_VALID
+  pytest=18 passed
+  production_eligible=false
+  network_required=false
+
+Interpretation: integrity checks now detect parsed JSON changes without treating Git-managed line endings as content changes. Montessori content, fixture outputs, and owner-review state did not change.

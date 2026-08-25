@@ -9,8 +9,8 @@ from pathlib import Path
 from tools.validate_montessori_golden import (
     DEFAULT_BASE_DIR,
     GOLDEN_DIR,
+    canonical_json_sha256_file,
     evaluate_case,
-    sha256_file,
     validate_catalog,
 )
 
@@ -35,8 +35,21 @@ def test_frozen_baseline_hashes_match() -> None:
     selection = json.loads(
         (GOLDEN_DIR / "selection-manifest.v1.json").read_text(encoding="utf-8")
     )
-    for filename, expected in selection["base_file_hashes"].items():
-        assert sha256_file(DEFAULT_BASE_DIR / filename) == expected
+    integrity = selection["base_integrity"]
+    assert integrity["algorithm"] == "sha256-canonical-json-v1"
+    for filename, expected in integrity["canonical_sha256"].items():
+        assert canonical_json_sha256_file(DEFAULT_BASE_DIR / filename) == expected
+
+
+def test_canonical_json_hash_ignores_line_endings(tmp_path: Path) -> None:
+    value = {"nested": {"enabled": True}, "items": [1, 2, 3]}
+    lf_path = tmp_path / "lf.json"
+    crlf_path = tmp_path / "crlf.json"
+    payload = json.dumps(value, ensure_ascii=False, indent=2) + "\n"
+    lf_path.write_bytes(payload.encode("utf-8"))
+    crlf_path.write_bytes(payload.replace("\n", "\r\n").encode("utf-8"))
+
+    assert canonical_json_sha256_file(lf_path) == canonical_json_sha256_file(crlf_path)
 
 
 def test_primary_and_substitute_paths_are_valid() -> None:
@@ -150,4 +163,4 @@ def test_mutated_parent_baseline_is_rejected(tmp_path: Path) -> None:
     )
 
     assert result.returncode != 0
-    assert "baseline hash mismatch: activities.v1.json" in result.stdout
+    assert "baseline canonical JSON hash mismatch: activities.v1.json" in result.stdout

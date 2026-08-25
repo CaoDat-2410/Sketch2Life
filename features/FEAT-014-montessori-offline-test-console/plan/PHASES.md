@@ -1,6 +1,6 @@
 # FEAT-014 phase gates
 
-Current state: `PHASE_0_PARENT_INTEGRITY_FIX`.
+Current state: `PHASE_1_SHARED_EVALUATOR_PARITY`.
 
 ## Phase 0 - approval and input freeze
 

@@ -1,6 +1,6 @@
 # FEAT-013 Montessori Golden Catalog hardening context
 
-- Status: NEEDS_REVISION
+- Status: DONE
 - Primary owner: Person 1
 - Planning branch: `plan/person-1-montessori-golden-hardening`
 - Plan revision: 1
@@ -43,3 +43,5 @@ FEAT-013 optimizes depth rather than increasing catalog size. It creates a trace
 On 2026-08-25, switching from the pushed FEAT-013 branch to the FEAT-014 planning branch caused Git to materialize baseline JSON using repository-enforced LF endings. Three approval-time hashes had been captured from CRLF working-tree bytes, so `validate_montessori_golden.py` reported a baseline mismatch even though `git diff` showed no baseline content change.
 
 The Golden content, fixtures, owner decisions, and FEAT-002 Git blobs are unchanged. A narrowly scoped canonical-JSON integrity correction is planned in `plan/PORTABILITY_FIX_PLAN.md` and is not implementation-approved yet.
+
+The corrective revision was approved and completed on 2026-08-25. FEAT-013 now uses `sha256-canonical-json-v1`; LF/CRLF parity, semantic-mutation rejection, deterministic rebuild, both Montessori validators, and the full suite pass without modifying FEAT-002 catalog/fixture data.

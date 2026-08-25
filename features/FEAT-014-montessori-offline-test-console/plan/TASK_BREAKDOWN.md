@@ -1,7 +1,7 @@
 # FEAT-014 task breakdown
 
 - Revision: 1
-- Status: BLOCKED_BY_APPROVED_PARENT_FIX
+- Status: IN_PROGRESS
 - Owner: Person 1
 - Total: 6 tasks, 12-16 hours, 3-4 story points
 - Cross-person runtime dependency: none
