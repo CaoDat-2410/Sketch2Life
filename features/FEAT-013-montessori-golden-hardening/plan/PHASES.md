@@ -1,6 +1,6 @@
 # FEAT-013 phase gates
 
-Current state: `PHASE_4_OWNER_REVIEW`.
+Current state: `COMPLETE`.
 
 ## Phase 0 - approval and baseline freeze
 
@@ -30,4 +30,4 @@ Tasks: G1-09 and G1-10.
 
 Exit requires owner decision for every golden record, traceability, architecture/team/security checks, known limitations, and clean feature-local evidence. Final state may become `DONE` while remaining provisional/non-production.
 
-Automated implementation, traceability, architecture/team/security checks, and handoff evidence are complete. Per-record owner decisions remain pending, so this phase has not exited.
+Automated implementation, traceability, architecture/team/security checks, handoff evidence, and all 20 per-record owner decisions are complete. Phase 4 exited with provisional owner acceptance and `production_eligible=false`.

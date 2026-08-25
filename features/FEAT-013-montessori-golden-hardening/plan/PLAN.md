@@ -2,7 +2,7 @@
 
 - Status: APPROVED
 - Plan revision: 1
-- Implementation status: IMPLEMENTED_AWAITING_OWNER_REVIEW
+- Implementation status: COMPLETED
 - Owner: Person 1
 - Prepared at: 2026-08-25
 - Branch: `plan/person-1-montessori-golden-hardening`
@@ -164,7 +164,7 @@ At a 40-hour capstone sprint allocation, this is approximately 1.5-2 Person 1 sp
 - Standalone harness, architecture, team-allocation, and security checks pass.
 - Completion does not authorize recommendation runtime, integration, or production use.
 
-Implementation and automated verification are complete. Definition of Done is not yet met because the project owner has not recorded a decision for each of the 20 candidate records.
+Implementation, automated verification, and the explicit owner decision for all 20 candidate records are complete. Definition of Done is met while qualified Montessori review and `production_eligible=true` remain explicitly outside this feature.
 
 ## Approval rule
 

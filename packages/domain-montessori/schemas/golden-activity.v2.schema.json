@@ -183,7 +183,31 @@
         "reviewer_role",
         "reviewed_at",
         "production_eligible"
-      ]
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "PENDING_OWNER_REVIEW",
+            "PROVISIONAL_OWNER_REVIEWED"
+          ]
+        },
+        "reviewer_role": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reviewed_at": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "production_eligible": {
+          "const": false
+        }
+      },
+      "additionalProperties": false
     },
     "source_refs": {
       "type": "array",

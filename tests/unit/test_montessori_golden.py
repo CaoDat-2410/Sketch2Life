@@ -83,15 +83,17 @@ def test_multiple_hard_failures_are_all_preserved() -> None:
     ]
 
 
-def test_golden_candidates_never_claim_owner_or_production_approval() -> None:
+def test_golden_records_retain_provisional_nonproduction_guard() -> None:
     records, material_doc = validate_catalog(DEFAULT_BASE_DIR)
     assert all(
-        record["review"]["status"] == "PENDING_OWNER_REVIEW"
+        record["review"]["status"] == "PROVISIONAL_OWNER_REVIEWED"
+        and record["review"]["reviewer_role"] == "PROJECT_OWNER"
+        and record["review"]["reviewed_at"]
         and record["review"]["production_eligible"] is False
         for record in records.values()
     )
     assert all(
-        option["review_status"] == "PENDING_OWNER_REVIEW"
+        option["review_status"] == "PROVISIONAL_OWNER_REVIEWED"
         and option["production_eligible"] is False
         for option in material_doc["options"]
     )

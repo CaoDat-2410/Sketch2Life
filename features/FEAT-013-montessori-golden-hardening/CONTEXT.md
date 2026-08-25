@@ -1,6 +1,6 @@
 # FEAT-013 Montessori Golden Catalog hardening context
 
-- Status: REVIEW
+- Status: DONE
 - Primary owner: Person 1
 - Planning branch: `plan/person-1-montessori-golden-hardening`
 - Plan revision: 1
@@ -35,4 +35,5 @@ FEAT-013 optimizes depth rather than increasing catalog size. It creates a trace
 - The local material registry contains 40 concrete options; the progression graph contains 13 validated edges.
 - The offline harness replays 74 fixtures, including primary/substitute success, blocked, boundary, multiple-failure, inactive, fixture-mutation, and baseline-mutation paths.
 - Deterministic rebuild, unit tests, and repository gates pass.
-- All content remains `PENDING_OWNER_REVIEW` and `production_eligible=false`; owner decisions are the remaining feature gate.
+- The project owner accepted all 20 records and their associated material options provisionally on 2026-08-25.
+- All content is `PROVISIONAL_OWNER_REVIEWED` and remains `production_eligible=false`; qualified Montessori review remains the production gate.

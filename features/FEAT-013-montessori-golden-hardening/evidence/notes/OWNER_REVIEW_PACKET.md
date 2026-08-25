@@ -4,16 +4,17 @@
 - Candidate records: 20 (version 2)
 - Age bands: five records each
 - Fixture cases: 74
-- Current state: all `PENDING_OWNER_REVIEW`
+- Current state: all `PROVISIONAL_OWNER_REVIEWED`
+- Owner reviewed at: 2026-08-25T21:32:18+07:00
 - Production eligible: none
 
-For each record choose `ACCEPT`, `REVISE`, or `REJECT`. Acceptance is provisional only and keeps `production_eligible=false`.
+All records were accepted provisionally by the project owner. This keeps `production_eligible=false`; qualified Montessori review remains required.
 
 ## Summary
 
 - Bands: `{'0-3': 5, '3-6': 5, '6-9': 5, '9-12': 5}`
 - Areas: `{'language': 4, 'mathematics': 2, 'practical_life': 8, 'science': 4, 'sensorial': 2}`
-- Review states: `{'PENDING_OWNER_REVIEW': 20}`
+- Review states: `{'PROVISIONAL_OWNER_REVIEWED': 20}`
 
 ## ACT-0004 v2 — Tìm đồ vật dưới khăn
 
@@ -29,8 +30,9 @@ For each record choose `ACCEPT`, `REVISE`, or `REJECT`. Acceptance is provisiona
 - Hazards: khăn quấn quanh cổ hoặc che mặt; đồ vật có chi tiết rời gây hóc
 - Stop conditions: khăn che đường thở; trẻ đưa chi tiết vật liệu vào miệng; trẻ khó chịu hoặc quay đi liên tục
 - Fixture cases: 3
-- Owner decision: `PENDING`
-- Owner notes:
+- Owner decision: `ACCEPT`
+- Owner reviewed at: `2026-08-25T21:32:18+07:00`
+- Owner notes: Accepted provisionally; qualified Montessori review remains required.
 
 ## ACT-0016 v2 — Chuyển đồ vật lớn giữa hai bát
 
@@ -46,8 +48,9 @@ For each record choose `ACCEPT`, `REVISE`, or `REJECT`. Acceptance is provisiona
 - Hazards: vật chuyển quá nhỏ; bát vỡ hoặc cạnh sắc
 - Stop conditions: trẻ ngậm vật; bát nứt/vỡ; trẻ ném vật về phía người khác
 - Fixture cases: 3
-- Owner decision: `PENDING`
-- Owner notes:
+- Owner decision: `ACCEPT`
+- Owner reviewed at: `2026-08-25T21:32:18+07:00`
+- Owner notes: Accepted provisionally; qualified Montessori review remains required.
 
 ## ACT-0019 v2 — Chuỗi rửa tay
 
@@ -63,8 +66,9 @@ For each record choose `ACCEPT`, `REVISE`, or `REJECT`. Acceptance is provisiona
 - Hazards: nước nóng; sàn trơn; nuốt xà phòng
 - Stop conditions: nước vượt 38°C; nước đổ thành vũng dưới chân; xà phòng vào mắt hoặc miệng
 - Fixture cases: 3
-- Owner decision: `PENDING`
-- Owner notes:
+- Owner decision: `ACCEPT`
+- Owner reviewed at: `2026-08-25T21:32:18+07:00`
+- Owner notes: Accepted provisionally; qualified Montessori review remains required.
 
 ## ACT-0020 v2 — Lau vết nước nhỏ
 
@@ -80,8 +84,9 @@ For each record choose `ACCEPT`, `REVISE`, or `REJECT`. Acceptance is provisiona
 - Hazards: trượt ngã; tiếp xúc chất lỏng không rõ nguồn
 - Stop conditions: nước lan xuống sàn; chất lỏng không phải nước sạch; trẻ vắt khăn vào miệng
 - Fixture cases: 3
-- Owner decision: `PENDING`
-- Owner notes:
+- Owner decision: `ACCEPT`
+- Owner reviewed at: `2026-08-25T21:32:18+07:00`
+- Owner notes: Accepted provisionally; qualified Montessori review remains required.
 
 ## ACT-0023 v2 — Tưới cây nhỏ
 
@@ -97,8 +102,9 @@ For each record choose `ACCEPT`, `REVISE`, or `REJECT`. Acceptance is provisiona
 - Hazards: cây độc hoặc gai; đất/phân bón vào miệng; nước gây trượt
 - Stop conditions: không xác định cây an toàn; trẻ bốc đất cho vào miệng; nước tràn khỏi khay
 - Fixture cases: 3
-- Owner decision: `PENDING`
-- Owner notes:
+- Owner decision: `ACCEPT`
+- Owner reviewed at: `2026-08-25T21:32:18+07:00`
+- Owner notes: Accepted provisionally; qualified Montessori review remains required.
 
 ## ACT-0026 v2 — Rót hạt khô
 
@@ -114,8 +120,9 @@ For each record choose `ACCEPT`, `REVISE`, or `REJECT`. Acceptance is provisiona
 - Hazards: vật liệu nhỏ gây hóc; hạt thực phẩm gây dị ứng hoặc thu hút côn trùng
 - Stop conditions: trẻ cho vật liệu vào miệng; bình nứt; vật liệu rơi ra sàn ngoài khay
 - Fixture cases: 3
-- Owner decision: `PENDING`
-- Owner notes:
+- Owner decision: `ACCEPT`
+- Owner reviewed at: `2026-08-25T21:32:18+07:00`
+- Owner notes: Accepted provisionally; qualified Montessori review remains required.
 
 ## ACT-0030 v2 — Khung cài nút
 
@@ -131,8 +138,9 @@ For each record choose `ACCEPT`, `REVISE`, or `REJECT`. Acceptance is provisiona
 - Hazards: nút lỏng có thể rời; kim ghim hoặc cạnh khung hỏng
 - Stop conditions: nút lung lay; đường may bung; trẻ kéo mạnh làm kẹt ngón
 - Fixture cases: 3
-- Owner decision: `PENDING`
-- Owner notes:
+- Owner decision: `ACCEPT`
+- Owner reviewed at: `2026-08-25T21:32:18+07:00`
+- Owner notes: Accepted provisionally; qualified Montessori review remains required.
 
 ## ACT-0033 v2 — Sắp bàn cho một người
 
@@ -148,8 +156,9 @@ For each record choose `ACCEPT`, `REVISE`, or `REJECT`. Acceptance is provisiona
 - Hazards: vật dụng dễ vỡ; dao hoặc dụng cụ sắc
 - Stop conditions: vật bị nứt/vỡ; trẻ cầm dụng cụ bằng phần nguy hiểm; khu vực di chuyển bị cản
 - Fixture cases: 3
-- Owner decision: `PENDING`
-- Owner notes:
+- Owner decision: `ACCEPT`
+- Owner reviewed at: `2026-08-25T21:32:18+07:00`
+- Owner notes: Accepted provisionally; qualified Montessori review remains required.
 
 ## ACT-0039 v2 — Phân cấp bảng màu
 
@@ -165,8 +174,9 @@ For each record choose `ACCEPT`, `REVISE`, or `REJECT`. Acceptance is provisiona
 - Hazards: thẻ bong lớp phủ hoặc cạnh sắc; ánh sáng màu làm sai quan sát
 - Stop conditions: thẻ rách tạo cạnh sắc; trẻ ném/giẫm thẻ; ánh sáng quá tối hoặc đổi màu
 - Fixture cases: 3
-- Owner decision: `PENDING`
-- Owner notes:
+- Owner decision: `ACCEPT`
+- Owner reviewed at: `2026-08-25T21:32:18+07:00`
+- Owner notes: Accepted provisionally; qualified Montessori review remains required.
 
 ## ACT-0046 v2 — Khung kim loại luyện nét
 
@@ -182,8 +192,9 @@ For each record choose `ACCEPT`, `REVISE`, or `REJECT`. Acceptance is provisiona
 - Hazards: đầu bút nhọn; miếng kim loại cong hoặc có ba via
 - Stop conditions: trẻ hướng đầu bút vào mặt; khung có cạnh sắc; trẻ báo đau hoặc mỏi tay
 - Fixture cases: 3
-- Owner decision: `PENDING`
-- Owner notes:
+- Owner decision: `ACCEPT`
+- Owner reviewed at: `2026-08-25T21:32:18+07:00`
+- Owner notes: Accepted provisionally; qualified Montessori review remains required.
 
 ## ACT-0055 v2 — Quan sát các bộ phận của cây
 
@@ -199,8 +210,9 @@ For each record choose `ACCEPT`, `REVISE`, or `REJECT`. Acceptance is provisiona
 - Hazards: cây độc/gai/nhựa kích ứng; dị ứng phấn hoa; đất hoặc mẫu bẩn
 - Stop conditions: không xác định được loài; kích ứng da/hô hấp; phát hiện thuốc trừ sâu hoặc nấm mốc
 - Fixture cases: 3
-- Owner decision: `PENDING`
-- Owner notes:
+- Owner decision: `ACCEPT`
+- Owner reviewed at: `2026-08-25T21:32:18+07:00`
+- Owner notes: Accepted provisionally; qualified Montessori review remains required.
 
 ## ACT-0058 v2 — Mô hình vòng tuần hoàn nước
 
@@ -216,8 +228,9 @@ For each record choose `ACCEPT`, `REVISE`, or `REJECT`. Acceptance is provisiona
 - Hazards: nước nóng; nước đổ gần thiết bị điện; hộp nứt
 - Stop conditions: nước trên 45°C; hộp biến dạng/nứt; nước tràn khỏi khay
 - Fixture cases: 3
-- Owner decision: `PENDING`
-- Owner notes:
+- Owner decision: `ACCEPT`
+- Owner reviewed at: `2026-08-25T21:32:18+07:00`
+- Owner notes: Accepted provisionally; qualified Montessori review remains required.
 
 ## ACT-0061 v2 — Nhân với trò chơi tem
 
@@ -233,8 +246,9 @@ For each record choose `ACCEPT`, `REVISE`, or `REJECT`. Acceptance is provisiona
 - Hazards: miếng tem nhỏ bị thất lạc hoặc cho vào miệng; quá tải bài toán gây mất kiểm soát
 - Stop conditions: trẻ cho tem vào miệng; thiếu miếng làm sai bộ; trẻ liên tục đổi hàng không theo nhóm mười
 - Fixture cases: 3
-- Owner decision: `PENDING`
-- Owner notes:
+- Owner decision: `ACCEPT`
+- Owner reviewed at: `2026-08-25T21:32:18+07:00`
+- Owner notes: Accepted provisionally; qualified Montessori review remains required.
 
 ## ACT-0067 v2 — Phân tích từ loại bằng ký hiệu
 
@@ -250,8 +264,9 @@ For each record choose `ACCEPT`, `REVISE`, or `REJECT`. Acceptance is provisiona
 - Hazards: ký hiệu nhỏ bị thất lạc; nội dung câu không phù hợp độ tuổi
 - Stop conditions: thiếu ký hiệu; câu chứa nội dung nhạy cảm; trẻ chuyển sang đoán theo màu mà không đọc
 - Fixture cases: 3
-- Owner decision: `PENDING`
-- Owner notes:
+- Owner decision: `ACCEPT`
+- Owner reviewed at: `2026-08-25T21:32:18+07:00`
+- Owner notes: Accepted provisionally; qualified Montessori review remains required.
 
 ## ACT-0074 v2 — Lập kế hoạch công việc tuần
 
@@ -267,8 +282,9 @@ For each record choose `ACCEPT`, `REVISE`, or `REJECT`. Acceptance is provisiona
 - Hazards: lịch chứa thông tin cá nhân; khối lượng việc gây áp lực; đồng hồ/ứng dụng thu thập dữ liệu
 - Stop conditions: trẻ biểu hiện quá tải; lịch ghi tên/địa chỉ/số liên hệ; người lớn biến kế hoạch thành hình phạt
 - Fixture cases: 3
-- Owner decision: `PENDING`
-- Owner notes:
+- Owner decision: `ACCEPT`
+- Owner reviewed at: `2026-08-25T21:32:18+07:00`
+- Owner notes: Accepted provisionally; qualified Montessori review remains required.
 
 ## ACT-0085 v2 — Khảo sát và mô tả dữ liệu
 
@@ -284,8 +300,9 @@ For each record choose `ACCEPT`, `REVISE`, or `REJECT`. Acceptance is provisiona
 - Hazards: thu thập dữ liệu cá nhân/nhạy cảm; kết luận vượt dữ liệu; chia sẻ phiếu có nhận dạng
 - Stop conditions: câu hỏi liên quan sức khỏe/gia đình/vị trí; phiếu có tên hoặc tài khoản; kết quả được dùng để xếp hạng cá nhân
 - Fixture cases: 3
-- Owner decision: `PENDING`
-- Owner notes:
+- Owner decision: `ACCEPT`
+- Owner reviewed at: `2026-08-25T21:32:18+07:00`
+- Owner notes: Accepted provisionally; qualified Montessori review remains required.
 
 ## ACT-0087 v2 — Xây khóa phân loại
 
@@ -301,8 +318,9 @@ For each record choose `ACCEPT`, `REVISE`, or `REJECT`. Acceptance is provisiona
 - Hazards: mẫu sinh học độc/sắc; phân loại con người bằng đặc điểm nhạy cảm; đặc điểm suy đoán thay vì quan sát
 - Stop conditions: mẫu không xác định an toàn; khóa áp dụng cho người; một thẻ có nhiều đầu cuối mà không ghi bất định
 - Fixture cases: 3
-- Owner decision: `PENDING`
-- Owner notes:
+- Owner decision: `ACCEPT`
+- Owner reviewed at: `2026-08-25T21:32:18+07:00`
+- Owner notes: Accepted provisionally; qualified Montessori review remains required.
 
 ## ACT-0091 v2 — Mô hình pha Mặt Trăng
 
@@ -318,8 +336,9 @@ For each record choose `ACCEPT`, `REVISE`, or `REJECT`. Acceptance is provisiona
 - Hazards: bóng đèn nóng; dây điện gây vấp; phòng quá tối; chiếu sáng vào mắt
 - Stop conditions: đèn nóng khi chạm; dây đi qua lối bước; người học chóng mặt; đèn không ổn định
 - Fixture cases: 3
-- Owner decision: `PENDING`
-- Owner notes:
+- Owner decision: `ACCEPT`
+- Owner reviewed at: `2026-08-25T21:32:18+07:00`
+- Owner notes: Accepted provisionally; qualified Montessori review remains required.
 
 ## ACT-0097 v2 — Viết lập luận dựa trên bằng chứng
 
@@ -335,8 +354,9 @@ For each record choose `ACCEPT`, `REVISE`, or `REJECT`. Acceptance is provisiona
 - Hazards: nguồn không phù hợp độ tuổi; sao chép không ghi nguồn; chủ đề nhạy cảm gây áp lực
 - Stop conditions: nguồn chứa nội dung gây hại; bài yêu cầu tiết lộ trải nghiệm cá nhân; không xác định được tác giả/nguồn
 - Fixture cases: 3
-- Owner decision: `PENDING`
-- Owner notes:
+- Owner decision: `ACCEPT`
+- Owner reviewed at: `2026-08-25T21:32:18+07:00`
+- Owner notes: Accepted provisionally; qualified Montessori review remains required.
 
 ## ACT-0099 v2 — Dự án nghiên cứu độc lập
 
@@ -352,5 +372,6 @@ For each record choose `ACCEPT`, `REVISE`, or `REJECT`. Acceptance is provisiona
 - Hazards: thu thập dữ liệu cá nhân; nguồn trực tuyến không phù hợp; phạm vi quá lớn gây quá tải; vi phạm bản quyền
 - Stop conditions: dự án yêu cầu liên hệ người lạ; nguồn yêu cầu tải file không tin cậy; trẻ phải tiết lộ thông tin cá nhân; không còn nguồn phù hợp độ tuổi
 - Fixture cases: 3
-- Owner decision: `PENDING`
-- Owner notes:
+- Owner decision: `ACCEPT`
+- Owner reviewed at: `2026-08-25T21:32:18+07:00`
+- Owner notes: Accepted provisionally; qualified Montessori review remains required.

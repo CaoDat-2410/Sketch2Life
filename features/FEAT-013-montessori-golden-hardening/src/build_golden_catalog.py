@@ -9,6 +9,13 @@ ROOT = Path(__file__).resolve().parents[3]
 BASE_DIR = ROOT / "data" / "activity-catalog" / "mvp"
 OUT_DIR = ROOT / "data" / "activity-catalog" / "golden" / "v1"
 SCHEMA_DIR = ROOT / "packages" / "domain-montessori" / "schemas"
+REVIEW_PATH = (
+    ROOT
+    / "features"
+    / "FEAT-013-montessori-golden-hardening"
+    / "approvals"
+    / "OWNER_CONTENT_REVIEW.v1.json"
+)
 
 BASE_FILE_HASHES = {
     "activities.v1.json": "d148a979e28af72ee107577f6bbf57164839925c4f4e847cbf6e09786e89949c",
@@ -1103,6 +1110,18 @@ def build_schema() -> dict[str, Any]:
                     "reviewed_at",
                     "production_eligible",
                 ],
+                "properties": {
+                    "status": {
+                        "enum": [
+                            "PENDING_OWNER_REVIEW",
+                            "PROVISIONAL_OWNER_REVIEWED",
+                        ]
+                    },
+                    "reviewer_role": {"type": ["string", "null"]},
+                    "reviewed_at": {"type": ["string", "null"]},
+                    "production_eligible": {"const": False},
+                },
+                "additionalProperties": False,
             },
             "source_refs": {"type": "array", "minItems": 1, "uniqueItems": True},
             "provenance": {
@@ -1128,6 +1147,22 @@ def main() -> None:
     objective_ids = {item["id"] for item in objectives_doc["objectives"]}
     if set(SPECS) - set(base_by_id):
         raise ValueError("golden selection references missing base activities")
+    review_doc = json.loads(REVIEW_PATH.read_text(encoding="utf-8"))
+    review_by_id = {item["activity_id"]: item for item in review_doc["decisions"]}
+    if set(review_by_id) != set(SPECS) or len(review_doc["decisions"]) != len(SPECS):
+        raise ValueError(
+            "owner review ledger must contain exactly the golden selection"
+        )
+    if any(
+        item["activity_version"] != 2 or item["decision"] != "ACCEPT"
+        for item in review_doc["decisions"]
+    ):
+        raise ValueError("all golden decisions must be ACCEPT for this reviewed build")
+    if review_doc["production_eligible"] is not False:
+        raise ValueError("owner review cannot authorize production eligibility")
+    review_status = "PROVISIONAL_OWNER_REVIEWED"
+    reviewer_role = review_doc["reviewer_role"]
+    reviewed_at = review_doc["reviewed_at"]
 
     records: list[dict[str, Any]] = []
     materials: list[dict[str, Any]] = []
@@ -1150,7 +1185,7 @@ def main() -> None:
                     "label_vi": primary,
                     "suitability_vi": suitability,
                     "prohibited_vi": prohibited,
-                    "review_status": "PENDING_OWNER_REVIEW",
+                    "review_status": review_status,
                     "production_eligible": False,
                 },
                 {
@@ -1160,7 +1195,7 @@ def main() -> None:
                     "label_vi": substitute,
                     "suitability_vi": suitability,
                     "prohibited_vi": prohibited,
-                    "review_status": "PENDING_OWNER_REVIEW",
+                    "review_status": review_status,
                     "production_eligible": False,
                 },
             ]
@@ -1272,9 +1307,9 @@ def main() -> None:
                 "Ghi loại hỗ trợ và điều kiện vật liệu/safety thực tế, không suy diễn nguyên nhân tâm lý.",
             ],
             "review": {
-                "status": "PENDING_OWNER_REVIEW",
-                "reviewer_role": None,
-                "reviewed_at": None,
+                "status": review_status,
+                "reviewer_role": reviewer_role,
+                "reviewed_at": reviewed_at,
                 "production_eligible": False,
             },
             "source_refs": base["source_refs"],
@@ -1315,11 +1350,14 @@ def main() -> None:
         "feature": "FEAT-013",
         "generated_at": "2026-08-25",
         "baseline_file_hashes": BASE_FILE_HASHES,
-        "review_status": "PENDING_OWNER_REVIEW",
+        "review_status": review_status,
+        "owner_reviewed_at": reviewed_at,
+        "reviewed_activity_count": len(records),
+        "review_decision_ledger": "features/FEAT-013-montessori-golden-hardening/approvals/OWNER_CONTENT_REVIEW.v1.json",
         "production_eligible": False,
         "network_required": False,
         "limitations": [
-            "Project-owner review is provisional and still pending for golden v2 records.",
+            "Project-owner review is provisional and does not replace qualified Montessori review.",
             "Qualified Montessori review is required before production.",
             "No real child data or classroom outcome evidence was used.",
         ],
@@ -1342,7 +1380,7 @@ def main() -> None:
         print(f"band_{band}={sum(item['age_band'] == band for item in records)}")
     print(f"materials={len(materials)}")
     print(f"progression_edges={len(progression)}")
-    print("review_status=PENDING_OWNER_REVIEW production_eligible=false")
+    print(f"review_status={review_status} production_eligible=false")
     print("baseline_unchanged=true network_required=false")
 
 

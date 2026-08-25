@@ -48,7 +48,7 @@
     "readiness",
     "valid"
   ],
-  "review_status": "PENDING_OWNER_REVIEW",
+  "review_status": "PROVISIONAL_OWNER_REVIEWED",
   "production_eligible": false,
   "baseline_unchanged": true,
   "network_required": false

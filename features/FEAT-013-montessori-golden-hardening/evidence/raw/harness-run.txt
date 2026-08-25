@@ -15,8 +15,8 @@ Result:
   material_options=40; progression_edges=13
   fixtures=74; positive=48; blocked=26
   DETERMINISTIC_REBUILD=PASS
-  review_status=PENDING_OWNER_REVIEW
+  review_status=PROVISIONAL_OWNER_REVIEWED
   production_eligible=false
   baseline_unchanged=true
 
-Interpretation: identical builders produced identical SHA-256 values for all selected generated catalog and fixture-manifest artifacts. This is reproducibility evidence, not pedagogical approval.
+Interpretation: identical builders produced identical SHA-256 values for all selected generated catalog and fixture-manifest artifacts. Project-owner acceptance is provisional; this is not qualified pedagogical approval.

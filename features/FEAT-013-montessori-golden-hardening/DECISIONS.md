@@ -11,3 +11,4 @@
 - `NO_VALID_ACTIVITY` remains valid and hard rules are never relaxed to surface a golden record.
 - No ranking weights, AI mapping, UI, API, persistence, or integration code belongs to this feature.
 - Keep feature state at `REVIEW` after automated implementation. The plan approval authorizes work but does not imply acceptance of the 20 authored activity records; per-record owner decisions are recorded separately.
+- After the owner's `accept all` decision, map every Golden Activity v2 record and associated material option to `PROVISIONAL_OWNER_REVIEWED`, retain `production_eligible=false`, and close FEAT-013 as `DONE` without claiming qualified review.

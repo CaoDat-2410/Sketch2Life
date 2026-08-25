@@ -194,7 +194,7 @@
         "khăn dài có dây",
         "đồ vật lọt hoàn toàn qua lõi giấy vệ sinh"
       ],
-      "review_status": "PENDING_OWNER_REVIEW",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
       "production_eligible": false
     },
     {
@@ -208,7 +208,7 @@
         "khăn dài có dây",
         "đồ vật lọt hoàn toàn qua lõi giấy vệ sinh"
       ],
-      "review_status": "PENDING_OWNER_REVIEW",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
       "production_eligible": false
     },
     {
@@ -223,7 +223,7 @@
         "bi",
         "bát thủy tinh"
       ],
-      "review_status": "PENDING_OWNER_REVIEW",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
       "production_eligible": false
     },
     {
@@ -238,7 +238,7 @@
         "bi",
         "bát thủy tinh"
       ],
-      "review_status": "PENDING_OWNER_REVIEW",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
       "production_eligible": false
     },
     {
@@ -252,7 +252,7 @@
         "nước nóng",
         "ghế không chống trượt"
       ],
-      "review_status": "PENDING_OWNER_REVIEW",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
       "production_eligible": false
     },
     {
@@ -266,7 +266,7 @@
         "nước nóng",
         "ghế không chống trượt"
       ],
-      "review_status": "PENDING_OWNER_REVIEW",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
       "production_eligible": false
     },
     {
@@ -281,7 +281,7 @@
         "chất lỏng cơ thể",
         "mảnh kính vỡ"
       ],
-      "review_status": "PENDING_OWNER_REVIEW",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
       "production_eligible": false
     },
     {
@@ -296,7 +296,7 @@
         "chất lỏng cơ thể",
         "mảnh kính vỡ"
       ],
-      "review_status": "PENDING_OWNER_REVIEW",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
       "production_eligible": false
     },
     {
@@ -311,7 +311,7 @@
         "thuốc trừ sâu",
         "bình tưới nặng"
       ],
-      "review_status": "PENDING_OWNER_REVIEW",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
       "production_eligible": false
     },
     {
@@ -326,7 +326,7 @@
         "thuốc trừ sâu",
         "bình tưới nặng"
       ],
-      "review_status": "PENDING_OWNER_REVIEW",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
       "production_eligible": false
     },
     {
@@ -342,7 +342,7 @@
         "hạt có dị ứng",
         "bình thủy tinh"
       ],
-      "review_status": "PENDING_OWNER_REVIEW",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
       "production_eligible": false
     },
     {
@@ -358,7 +358,7 @@
         "hạt có dị ứng",
         "bình thủy tinh"
       ],
-      "review_status": "PENDING_OWNER_REVIEW",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
       "production_eligible": false
     },
     {
@@ -373,7 +373,7 @@
         "khuy bị nứt",
         "kim băng"
       ],
-      "review_status": "PENDING_OWNER_REVIEW",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
       "production_eligible": false
     },
     {
@@ -388,7 +388,7 @@
         "khuy bị nứt",
         "kim băng"
       ],
-      "review_status": "PENDING_OWNER_REVIEW",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
       "production_eligible": false
     },
     {
@@ -403,7 +403,7 @@
         "đồ thủy tinh",
         "đồ trang trí nhỏ"
       ],
-      "review_status": "PENDING_OWNER_REVIEW",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
       "production_eligible": false
     },
     {
@@ -418,7 +418,7 @@
         "đồ thủy tinh",
         "đồ trang trí nhỏ"
       ],
-      "review_status": "PENDING_OWNER_REVIEW",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
       "production_eligible": false
     },
     {
@@ -433,7 +433,7 @@
         "màu huỳnh quang",
         "thẻ bóng phản sáng"
       ],
-      "review_status": "PENDING_OWNER_REVIEW",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
       "production_eligible": false
     },
     {
@@ -448,7 +448,7 @@
         "màu huỳnh quang",
         "thẻ bóng phản sáng"
       ],
-      "review_status": "PENDING_OWNER_REVIEW",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
       "production_eligible": false
     },
     {
@@ -463,7 +463,7 @@
         "bút chì nhọn",
         "khuôn quá nhỏ"
       ],
-      "review_status": "PENDING_OWNER_REVIEW",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
       "production_eligible": false
     },
     {
@@ -478,7 +478,7 @@
         "bút chì nhọn",
         "khuôn quá nhỏ"
       ],
-      "review_status": "PENDING_OWNER_REVIEW",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
       "production_eligible": false
     },
     {
@@ -493,7 +493,7 @@
         "nấm",
         "mẫu phun hóa chất"
       ],
-      "review_status": "PENDING_OWNER_REVIEW",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
       "production_eligible": false
     },
     {
@@ -508,7 +508,7 @@
         "nấm",
         "mẫu phun hóa chất"
       ],
-      "review_status": "PENDING_OWNER_REVIEW",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
       "production_eligible": false
     },
     {
@@ -523,7 +523,7 @@
         "đá đặt trực tiếp không túi",
         "thiết bị gia nhiệt tại bàn"
       ],
-      "review_status": "PENDING_OWNER_REVIEW",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
       "production_eligible": false
     },
     {
@@ -538,7 +538,7 @@
         "đá đặt trực tiếp không túi",
         "thiết bị gia nhiệt tại bàn"
       ],
-      "review_status": "PENDING_OWNER_REVIEW",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
       "production_eligible": false
     },
     {
@@ -553,7 +553,7 @@
         "bộ thiếu giá trị hàng",
         "máy tính thay vật liệu"
       ],
-      "review_status": "PENDING_OWNER_REVIEW",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
       "production_eligible": false
     },
     {
@@ -568,7 +568,7 @@
         "bộ thiếu giá trị hàng",
         "máy tính thay vật liệu"
       ],
-      "review_status": "PENDING_OWNER_REVIEW",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
       "production_eligible": false
     },
     {
@@ -582,7 +582,7 @@
         "câu lấy từ hồ sơ trẻ",
         "đáp án lộ ở mặt trước"
       ],
-      "review_status": "PENDING_OWNER_REVIEW",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
       "production_eligible": false
     },
     {
@@ -596,7 +596,7 @@
         "câu lấy từ hồ sơ trẻ",
         "đáp án lộ ở mặt trước"
       ],
-      "review_status": "PENDING_OWNER_REVIEW",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
       "production_eligible": false
     },
     {
@@ -610,7 +610,7 @@
         "ứng dụng bắt đăng nhập",
         "xếp lịch kín không có nghỉ"
       ],
-      "review_status": "PENDING_OWNER_REVIEW",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
       "production_eligible": false
     },
     {
@@ -624,7 +624,7 @@
         "ứng dụng bắt đăng nhập",
         "xếp lịch kín không có nghỉ"
       ],
-      "review_status": "PENDING_OWNER_REVIEW",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
       "production_eligible": false
     },
     {
@@ -639,7 +639,7 @@
         "dữ liệu sức khỏe",
         "định vị"
       ],
-      "review_status": "PENDING_OWNER_REVIEW",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
       "production_eligible": false
     },
     {
@@ -654,7 +654,7 @@
         "dữ liệu sức khỏe",
         "định vị"
       ],
-      "review_status": "PENDING_OWNER_REVIEW",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
       "production_eligible": false
     },
     {
@@ -669,7 +669,7 @@
         "ảnh người",
         "thuộc tính sức khỏe/chủng tộc"
       ],
-      "review_status": "PENDING_OWNER_REVIEW",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
       "production_eligible": false
     },
     {
@@ -684,7 +684,7 @@
         "ảnh người",
         "thuộc tính sức khỏe/chủng tộc"
       ],
-      "review_status": "PENDING_OWNER_REVIEW",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
       "production_eligible": false
     },
     {
@@ -700,7 +700,7 @@
         "que nhọn",
         "phòng tối hoàn toàn"
       ],
-      "review_status": "PENDING_OWNER_REVIEW",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
       "production_eligible": false
     },
     {
@@ -716,7 +716,7 @@
         "que nhọn",
         "phòng tối hoàn toàn"
       ],
-      "review_status": "PENDING_OWNER_REVIEW",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
       "production_eligible": false
     },
     {
@@ -731,7 +731,7 @@
         "chủ đề sức khỏe cá nhân",
         "chép nguyên văn không dẫn nguồn"
       ],
-      "review_status": "PENDING_OWNER_REVIEW",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
       "production_eligible": false
     },
     {
@@ -746,7 +746,7 @@
         "chủ đề sức khỏe cá nhân",
         "chép nguyên văn không dẫn nguồn"
       ],
-      "review_status": "PENDING_OWNER_REVIEW",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
       "production_eligible": false
     },
     {
@@ -761,7 +761,7 @@
         "nguồn tải không rõ",
         "dữ liệu định danh trẻ"
       ],
-      "review_status": "PENDING_OWNER_REVIEW",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
       "production_eligible": false
     },
     {
@@ -776,7 +776,7 @@
         "nguồn tải không rõ",
         "dữ liệu định danh trẻ"
       ],
-      "review_status": "PENDING_OWNER_REVIEW",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
       "production_eligible": false
     }
   ]

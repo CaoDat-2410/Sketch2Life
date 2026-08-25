@@ -12,5 +12,6 @@
 - `notes/KNOWN_LIMITATIONS.md`: explicit non-production limitations.
 - `metrics/`: baseline hashes, summary CSV, fixture coverage, validation, and traceability.
 - `raw/`: reproducibility, negative-test, and final repository-gate logs.
+- `raw/owner-review-validation.txt`: owner-ledger scope, deterministic rebuild, and non-production guard result.
 
 Implementation evidence is local, synthetic, and free of child/provider/account data. Automated passing does not replace owner or qualified Montessori review.

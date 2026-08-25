@@ -12,6 +12,7 @@ FIXTURE_DIR = ROOT / "tests" / "fixtures" / "montessori-golden"
 FEATURE = ROOT / "features" / "FEAT-013-montessori-golden-hardening"
 METRICS = FEATURE / "evidence" / "metrics"
 NOTES = FEATURE / "evidence" / "notes"
+OWNER_REVIEW_PATH = FEATURE / "approvals" / "OWNER_CONTENT_REVIEW.v1.json"
 
 
 def read_json(path: Path) -> Any:
@@ -33,6 +34,10 @@ def main() -> None:
     records = read_json(GOLDEN_DIR / "activities.v2.json")["activities"]
     material_doc = read_json(GOLDEN_DIR / "material-registry.v1.json")
     fixture_manifest = read_json(FIXTURE_DIR / "manifest.v1.json")
+    owner_review = read_json(OWNER_REVIEW_PATH)
+    owner_decisions = {
+        item["activity_id"]: item["decision"] for item in owner_review["decisions"]
+    }
     options = {item["id"]: item for item in material_doc["options"]}
     groups = {item["id"]: item for item in material_doc["groups"]}
     per_activity_cases: Counter[str] = Counter(
@@ -102,8 +107,8 @@ def main() -> None:
                     per_activity_cases[record["id"]],
                     record["review"]["status"],
                     str(record["review"]["production_eligible"]).lower(),
-                    "PENDING",
-                    "",
+                    owner_decisions[record["id"]],
+                    "Accepted provisionally by project owner; qualified Montessori review remains required.",
                 ]
             )
 
@@ -154,7 +159,11 @@ def main() -> None:
             "deliberate-failure.txt",
             "baseline-mutation.txt",
         ],
-        "AC-G1-11": ["OWNER_REVIEW_PACKET.md", "golden-summary.csv"],
+        "AC-G1-11": [
+            "OWNER_CONTENT_REVIEW.v1.json",
+            "OWNER_REVIEW_PACKET.md",
+            "golden-summary.csv",
+        ],
         "AC-G1-12": ["traceability.json", "batch review notes"],
         "AC-G1-13": ["final-validation.txt", "KNOWN_LIMITATIONS.md"],
     }
@@ -177,10 +186,11 @@ def main() -> None:
         "- Candidate records: 20 (version 2)",
         "- Age bands: five records each",
         "- Fixture cases: 74",
-        "- Current state: all `PENDING_OWNER_REVIEW`",
+        "- Current state: all `PROVISIONAL_OWNER_REVIEWED`",
+        f"- Owner reviewed at: {owner_review['reviewed_at']}",
         "- Production eligible: none",
         "",
-        "For each record choose `ACCEPT`, `REVISE`, or `REJECT`. Acceptance is provisional only and keeps `production_eligible=false`.",
+        "All records were accepted provisionally by the project owner. This keeps `production_eligible=false`; qualified Montessori review remains required.",
         "",
         "## Summary",
         "",
@@ -221,8 +231,9 @@ def main() -> None:
                 f"- Hazards: {'; '.join(record['safety']['hazards_vi'])}",
                 f"- Stop conditions: {'; '.join(record['safety']['stop_conditions_vi'])}",
                 f"- Fixture cases: {per_activity_cases[record['id']]}",
-                "- Owner decision: `PENDING`",
-                "- Owner notes:",
+                f"- Owner decision: `{owner_decisions[record['id']]}`",
+                f"- Owner reviewed at: `{owner_review['reviewed_at']}`",
+                "- Owner notes: Accepted provisionally; qualified Montessori review remains required.",
                 "",
             ]
         )
@@ -236,10 +247,10 @@ def main() -> None:
             "",
             "- Date: 2026-08-25",
             "- Automated result: PASS",
-            "- Owner result: PENDING",
+            "- Owner result: ACCEPTED_PROVISIONALLY",
             f"- Records: {', '.join(record['id'] for record in batch)}",
             "",
-            "All five records pass schema depth, narrower-age, observable-readiness, concrete-material, activity-specific presentation/safety, objective/variant identity, fixture, and non-production guards. Automated passing is not pedagogical approval.",
+            "All five records pass automated depth and safety-contract checks and were accepted provisionally by the project owner. This is not qualified pedagogical or production approval.",
         ]
         filename = f"REVIEW_{band.replace('-', '_')}.md"
         write_text(NOTES / filename, "\n".join(text))
@@ -247,7 +258,7 @@ def main() -> None:
     print("GOLDEN_REVIEW_PACKET_BUILT")
     print(f"activities={len(records)}")
     print(f"fixtures={fixture_manifest['case_count']}")
-    print("review_status=PENDING_OWNER_REVIEW production_eligible=false")
+    print("review_status=PROVISIONAL_OWNER_REVIEWED production_eligible=false")
 
 
 if __name__ == "__main__":

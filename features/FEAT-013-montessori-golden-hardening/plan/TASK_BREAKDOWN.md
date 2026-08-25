@@ -3,7 +3,7 @@
 - Plan revision: 1
 - Total: 10 tasks, 55-73 hours, 13.75-17.75 story points
 - Cross-person runtime dependency: none
-- Implementation status: `IMPLEMENTED_AWAITING_OWNER_REVIEW`
+- Implementation status: `COMPLETED`
 
 | Task | Depends only on | Parallel-safe output | Required evidence |
 |---|---|---|---|
@@ -23,5 +23,5 @@ G1-04 through G1-07 are content batches that can be worked independently by Pers
 ## Current result
 
 - G1-01 through G1-08: implemented and automated checks pass.
-- G1-09: review packet and traceability implemented; 20 owner decisions pending.
-- G1-10: automated handoff checks and limitations evidence complete; final feature closure waits for G1-09 owner decisions.
+- G1-09: review packet and traceability implemented; all 20 records accepted provisionally by the project owner.
+- G1-10: automated handoff checks, limitations evidence, and final feature closure complete.

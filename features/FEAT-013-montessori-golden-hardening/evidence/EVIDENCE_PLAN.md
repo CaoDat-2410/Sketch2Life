@@ -21,13 +21,13 @@ Every implementation evidence item records command/input, date, environment, out
 |---|---|---|
 | EV-G1-01 | PASS | `metrics/baseline-hashes.json`, `notes/SELECTION_REVIEW.md` |
 | EV-G1-02 | PASS_AUTOMATED | `notes/CONTRACT_SEMANTICS_REVIEW.md`, unit tests |
-| EV-G1-03 | PASS_AUTOMATED / OWNER_PENDING | `notes/REVIEW_0_3.md` |
-| EV-G1-04 | PASS_AUTOMATED / OWNER_PENDING | `notes/REVIEW_3_6.md` |
-| EV-G1-05 | PASS_AUTOMATED / OWNER_PENDING | `notes/REVIEW_6_9.md` |
-| EV-G1-06 | PASS_AUTOMATED / OWNER_PENDING | `notes/REVIEW_9_12.md` |
+| EV-G1-03 | PASS / OWNER_ACCEPTED_PROVISIONALLY | `notes/REVIEW_0_3.md` |
+| EV-G1-04 | PASS / OWNER_ACCEPTED_PROVISIONALLY | `notes/REVIEW_3_6.md` |
+| EV-G1-05 | PASS / OWNER_ACCEPTED_PROVISIONALLY | `notes/REVIEW_6_9.md` |
+| EV-G1-06 | PASS / OWNER_ACCEPTED_PROVISIONALLY | `notes/REVIEW_9_12.md` |
 | EV-G1-07 | PASS | `raw/harness-run.txt`, `metrics/fixture-coverage.json` |
 | EV-G1-08 | PASS_EXPECTED_NONZERO | `raw/deliberate-failure.txt`, `raw/baseline-mutation.txt` |
-| EV-G1-09 | PACKET_READY / OWNER_PENDING | `notes/OWNER_REVIEW_PACKET.md`, `metrics/traceability.json` |
-| EV-G1-10 | PASS_AUTOMATED / CLOSURE_PENDING | `raw/final-validation.txt`, `notes/KNOWN_LIMITATIONS.md` |
+| EV-G1-09 | PASS / OWNER_ACCEPTED_ALL_PROVISIONALLY | `approvals/OWNER_CONTENT_REVIEW.v1.json`, `notes/OWNER_REVIEW_PACKET.md`, `metrics/traceability.json` |
+| EV-G1-10 | PASS / FEATURE_CLOSED | `raw/final-validation.txt`, `notes/KNOWN_LIMITATIONS.md` |
 
-The sole closure blocker is the explicit per-record owner decision. No automated evidence is interpreted as pedagogical approval.
+All feature closure evidence is complete. Project-owner acceptance is provisional and is not interpreted as qualified pedagogical or production approval.

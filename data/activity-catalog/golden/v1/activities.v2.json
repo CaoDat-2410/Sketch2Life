@@ -134,9 +134,9 @@
         "Ghi loại hỗ trợ và điều kiện vật liệu/safety thực tế, không suy diễn nguyên nhân tâm lý."
       ],
       "review": {
-        "status": "PENDING_OWNER_REVIEW",
-        "reviewer_role": null,
-        "reviewed_at": null,
+        "status": "PROVISIONAL_OWNER_REVIEWED",
+        "reviewer_role": "PROJECT_OWNER",
+        "reviewed_at": "2026-08-25T21:32:18+07:00",
         "production_eligible": false
       },
       "source_refs": [
@@ -284,9 +284,9 @@
         "Ghi loại hỗ trợ và điều kiện vật liệu/safety thực tế, không suy diễn nguyên nhân tâm lý."
       ],
       "review": {
-        "status": "PENDING_OWNER_REVIEW",
-        "reviewer_role": null,
-        "reviewed_at": null,
+        "status": "PROVISIONAL_OWNER_REVIEWED",
+        "reviewer_role": "PROJECT_OWNER",
+        "reviewed_at": "2026-08-25T21:32:18+07:00",
         "production_eligible": false
       },
       "source_refs": [
@@ -433,9 +433,9 @@
         "Ghi loại hỗ trợ và điều kiện vật liệu/safety thực tế, không suy diễn nguyên nhân tâm lý."
       ],
       "review": {
-        "status": "PENDING_OWNER_REVIEW",
-        "reviewer_role": null,
-        "reviewed_at": null,
+        "status": "PROVISIONAL_OWNER_REVIEWED",
+        "reviewer_role": "PROJECT_OWNER",
+        "reviewed_at": "2026-08-25T21:32:18+07:00",
         "production_eligible": false
       },
       "source_refs": [
@@ -584,9 +584,9 @@
         "Ghi loại hỗ trợ và điều kiện vật liệu/safety thực tế, không suy diễn nguyên nhân tâm lý."
       ],
       "review": {
-        "status": "PENDING_OWNER_REVIEW",
-        "reviewer_role": null,
-        "reviewed_at": null,
+        "status": "PROVISIONAL_OWNER_REVIEWED",
+        "reviewer_role": "PROJECT_OWNER",
+        "reviewed_at": "2026-08-25T21:32:18+07:00",
         "production_eligible": false
       },
       "source_refs": [
@@ -734,9 +734,9 @@
         "Ghi loại hỗ trợ và điều kiện vật liệu/safety thực tế, không suy diễn nguyên nhân tâm lý."
       ],
       "review": {
-        "status": "PENDING_OWNER_REVIEW",
-        "reviewer_role": null,
-        "reviewed_at": null,
+        "status": "PROVISIONAL_OWNER_REVIEWED",
+        "reviewer_role": "PROJECT_OWNER",
+        "reviewed_at": "2026-08-25T21:32:18+07:00",
         "production_eligible": false
       },
       "source_refs": [
@@ -882,9 +882,9 @@
         "Ghi loại hỗ trợ và điều kiện vật liệu/safety thực tế, không suy diễn nguyên nhân tâm lý."
       ],
       "review": {
-        "status": "PENDING_OWNER_REVIEW",
-        "reviewer_role": null,
-        "reviewed_at": null,
+        "status": "PROVISIONAL_OWNER_REVIEWED",
+        "reviewer_role": "PROJECT_OWNER",
+        "reviewed_at": "2026-08-25T21:32:18+07:00",
         "production_eligible": false
       },
       "source_refs": [
@@ -1027,9 +1027,9 @@
         "Ghi loại hỗ trợ và điều kiện vật liệu/safety thực tế, không suy diễn nguyên nhân tâm lý."
       ],
       "review": {
-        "status": "PENDING_OWNER_REVIEW",
-        "reviewer_role": null,
-        "reviewed_at": null,
+        "status": "PROVISIONAL_OWNER_REVIEWED",
+        "reviewer_role": "PROJECT_OWNER",
+        "reviewed_at": "2026-08-25T21:32:18+07:00",
         "production_eligible": false
       },
       "source_refs": [
@@ -1174,9 +1174,9 @@
         "Ghi loại hỗ trợ và điều kiện vật liệu/safety thực tế, không suy diễn nguyên nhân tâm lý."
       ],
       "review": {
-        "status": "PENDING_OWNER_REVIEW",
-        "reviewer_role": null,
-        "reviewed_at": null,
+        "status": "PROVISIONAL_OWNER_REVIEWED",
+        "reviewer_role": "PROJECT_OWNER",
+        "reviewed_at": "2026-08-25T21:32:18+07:00",
         "production_eligible": false
       },
       "source_refs": [
@@ -1321,9 +1321,9 @@
         "Ghi loại hỗ trợ và điều kiện vật liệu/safety thực tế, không suy diễn nguyên nhân tâm lý."
       ],
       "review": {
-        "status": "PENDING_OWNER_REVIEW",
-        "reviewer_role": null,
-        "reviewed_at": null,
+        "status": "PROVISIONAL_OWNER_REVIEWED",
+        "reviewer_role": "PROJECT_OWNER",
+        "reviewed_at": "2026-08-25T21:32:18+07:00",
         "production_eligible": false
       },
       "source_refs": [
@@ -1467,9 +1467,9 @@
         "Ghi loại hỗ trợ và điều kiện vật liệu/safety thực tế, không suy diễn nguyên nhân tâm lý."
       ],
       "review": {
-        "status": "PENDING_OWNER_REVIEW",
-        "reviewer_role": null,
-        "reviewed_at": null,
+        "status": "PROVISIONAL_OWNER_REVIEWED",
+        "reviewer_role": "PROJECT_OWNER",
+        "reviewed_at": "2026-08-25T21:32:18+07:00",
         "production_eligible": false
       },
       "source_refs": [
@@ -1615,9 +1615,9 @@
         "Ghi loại hỗ trợ và điều kiện vật liệu/safety thực tế, không suy diễn nguyên nhân tâm lý."
       ],
       "review": {
-        "status": "PENDING_OWNER_REVIEW",
-        "reviewer_role": null,
-        "reviewed_at": null,
+        "status": "PROVISIONAL_OWNER_REVIEWED",
+        "reviewer_role": "PROJECT_OWNER",
+        "reviewed_at": "2026-08-25T21:32:18+07:00",
         "production_eligible": false
       },
       "source_refs": [
@@ -1763,9 +1763,9 @@
         "Ghi loại hỗ trợ và điều kiện vật liệu/safety thực tế, không suy diễn nguyên nhân tâm lý."
       ],
       "review": {
-        "status": "PENDING_OWNER_REVIEW",
-        "reviewer_role": null,
-        "reviewed_at": null,
+        "status": "PROVISIONAL_OWNER_REVIEWED",
+        "reviewer_role": "PROJECT_OWNER",
+        "reviewed_at": "2026-08-25T21:32:18+07:00",
         "production_eligible": false
       },
       "source_refs": [
@@ -1908,9 +1908,9 @@
         "Ghi loại hỗ trợ và điều kiện vật liệu/safety thực tế, không suy diễn nguyên nhân tâm lý."
       ],
       "review": {
-        "status": "PENDING_OWNER_REVIEW",
-        "reviewer_role": null,
-        "reviewed_at": null,
+        "status": "PROVISIONAL_OWNER_REVIEWED",
+        "reviewer_role": "PROJECT_OWNER",
+        "reviewed_at": "2026-08-25T21:32:18+07:00",
         "production_eligible": false
       },
       "source_refs": [
@@ -2054,9 +2054,9 @@
         "Ghi loại hỗ trợ và điều kiện vật liệu/safety thực tế, không suy diễn nguyên nhân tâm lý."
       ],
       "review": {
-        "status": "PENDING_OWNER_REVIEW",
-        "reviewer_role": null,
-        "reviewed_at": null,
+        "status": "PROVISIONAL_OWNER_REVIEWED",
+        "reviewer_role": "PROJECT_OWNER",
+        "reviewed_at": "2026-08-25T21:32:18+07:00",
         "production_eligible": false
       },
       "source_refs": [
@@ -2202,9 +2202,9 @@
         "Ghi loại hỗ trợ và điều kiện vật liệu/safety thực tế, không suy diễn nguyên nhân tâm lý."
       ],
       "review": {
-        "status": "PENDING_OWNER_REVIEW",
-        "reviewer_role": null,
-        "reviewed_at": null,
+        "status": "PROVISIONAL_OWNER_REVIEWED",
+        "reviewer_role": "PROJECT_OWNER",
+        "reviewed_at": "2026-08-25T21:32:18+07:00",
         "production_eligible": false
       },
       "source_refs": [
@@ -2351,9 +2351,9 @@
         "Ghi loại hỗ trợ và điều kiện vật liệu/safety thực tế, không suy diễn nguyên nhân tâm lý."
       ],
       "review": {
-        "status": "PENDING_OWNER_REVIEW",
-        "reviewer_role": null,
-        "reviewed_at": null,
+        "status": "PROVISIONAL_OWNER_REVIEWED",
+        "reviewer_role": "PROJECT_OWNER",
+        "reviewed_at": "2026-08-25T21:32:18+07:00",
         "production_eligible": false
       },
       "source_refs": [
@@ -2500,9 +2500,9 @@
         "Ghi loại hỗ trợ và điều kiện vật liệu/safety thực tế, không suy diễn nguyên nhân tâm lý."
       ],
       "review": {
-        "status": "PENDING_OWNER_REVIEW",
-        "reviewer_role": null,
-        "reviewed_at": null,
+        "status": "PROVISIONAL_OWNER_REVIEWED",
+        "reviewer_role": "PROJECT_OWNER",
+        "reviewed_at": "2026-08-25T21:32:18+07:00",
         "production_eligible": false
       },
       "source_refs": [
@@ -2652,9 +2652,9 @@
         "Ghi loại hỗ trợ và điều kiện vật liệu/safety thực tế, không suy diễn nguyên nhân tâm lý."
       ],
       "review": {
-        "status": "PENDING_OWNER_REVIEW",
-        "reviewer_role": null,
-        "reviewed_at": null,
+        "status": "PROVISIONAL_OWNER_REVIEWED",
+        "reviewer_role": "PROJECT_OWNER",
+        "reviewed_at": "2026-08-25T21:32:18+07:00",
         "production_eligible": false
       },
       "source_refs": [
@@ -2803,9 +2803,9 @@
         "Ghi loại hỗ trợ và điều kiện vật liệu/safety thực tế, không suy diễn nguyên nhân tâm lý."
       ],
       "review": {
-        "status": "PENDING_OWNER_REVIEW",
-        "reviewer_role": null,
-        "reviewed_at": null,
+        "status": "PROVISIONAL_OWNER_REVIEWED",
+        "reviewer_role": "PROJECT_OWNER",
+        "reviewed_at": "2026-08-25T21:32:18+07:00",
         "production_eligible": false
       },
       "source_refs": [
@@ -2963,9 +2963,9 @@
         "Ghi loại hỗ trợ và điều kiện vật liệu/safety thực tế, không suy diễn nguyên nhân tâm lý."
       ],
       "review": {
-        "status": "PENDING_OWNER_REVIEW",
-        "reviewer_role": null,
-        "reviewed_at": null,
+        "status": "PROVISIONAL_OWNER_REVIEWED",
+        "reviewer_role": "PROJECT_OWNER",
+        "reviewed_at": "2026-08-25T21:32:18+07:00",
         "production_eligible": false
       },
       "source_refs": [

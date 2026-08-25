@@ -44,6 +44,7 @@
     "baseline-mutation.txt"
   ],
   "AC-G1-11": [
+    "OWNER_CONTENT_REVIEW.v1.json",
     "OWNER_REVIEW_PACKET.md",
     "golden-summary.csv"
   ],

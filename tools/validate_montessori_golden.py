@@ -12,6 +12,13 @@ ROOT = Path(__file__).resolve().parents[1]
 GOLDEN_DIR = ROOT / "data" / "activity-catalog" / "golden" / "v1"
 DEFAULT_BASE_DIR = ROOT / "data" / "activity-catalog" / "mvp"
 DEFAULT_FIXTURE_DIR = ROOT / "tests" / "fixtures" / "montessori-golden"
+OWNER_REVIEW_PATH = (
+    ROOT
+    / "features"
+    / "FEAT-013-montessori-golden-hardening"
+    / "approvals"
+    / "OWNER_CONTENT_REVIEW.v1.json"
+)
 SUPERVISION_RANK = {"NONE": 0, "NEARBY": 1, "DIRECT": 2}
 AGE_BANDS = {"0-3": (0, 35), "3-6": (36, 71), "6-9": (72, 107), "9-12": (108, 155)}
 REQUIRED_TAGS = {
@@ -137,6 +144,7 @@ def validate_catalog(
         ROOT / "packages/domain-montessori/schemas/golden-fixture-case.v1.schema.json",
         ROOT / "packages/domain-montessori/spec/GOLDEN_ACTIVITY_FIELD_GUIDE.md",
         ROOT / "packages/domain-montessori/spec/GOLDEN_REVIEW_RULES.md",
+        OWNER_REVIEW_PATH,
     ]
     missing = [
         path.relative_to(ROOT).as_posix()
@@ -151,6 +159,7 @@ def validate_catalog(
     material_doc = read_json(GOLDEN_DIR / "material-registry.v1.json")
     progression_doc = read_json(GOLDEN_DIR / "progression-edges.v1.json")
     provenance = read_json(GOLDEN_DIR / "provenance.v1.json")
+    owner_review = read_json(OWNER_REVIEW_PATH)
     objective_doc = read_json(base_dir / "learning-objectives.v1.json")
     objective_ids = {item["id"] for item in objective_doc["objectives"]}
     records_list = golden_doc["activities"]
@@ -166,6 +175,27 @@ def validate_catalog(
     selection_ids = {item["activity_id"] for item in selection["selections"]}
     require(
         set(records) == selection_ids, "golden records do not match frozen selection"
+    )
+    owner_decisions = {item["activity_id"]: item for item in owner_review["decisions"]}
+    require(
+        len(owner_review["decisions"]) == 20 and set(owner_decisions) == selection_ids,
+        "owner review ledger does not match golden selection",
+    )
+    require(
+        all(
+            item["activity_version"] == 2 and item["decision"] == "ACCEPT"
+            for item in owner_review["decisions"]
+        ),
+        "owner review ledger must explicitly accept every v2 record",
+    )
+    require(
+        owner_review["reviewer_role"] == "PROJECT_OWNER"
+        and bool(owner_review["reviewed_at"]),
+        "owner review provenance is incomplete",
+    )
+    require(
+        owner_review["production_eligible"] is False,
+        "owner review cannot authorize production eligibility",
     )
 
     groups = {item["id"]: item for item in material_doc["groups"]}
@@ -333,8 +363,13 @@ def validate_catalog(
             f"golden record must be active: {activity_id}",
         )
         require(
-            record["review"]["status"] == "PENDING_OWNER_REVIEW",
-            f"golden review must remain pending: {activity_id}",
+            record["review"]["status"] == "PROVISIONAL_OWNER_REVIEWED",
+            f"golden review status invalid: {activity_id}",
+        )
+        require(
+            record["review"]["reviewer_role"] == owner_review["reviewer_role"]
+            and record["review"]["reviewed_at"] == owner_review["reviewed_at"],
+            f"golden owner-review provenance invalid: {activity_id}",
         )
         require(
             record["review"]["production_eligible"] is False,
@@ -402,7 +437,7 @@ def validate_catalog(
             )
             material_labels.add(label)
             require(
-                option["review_status"] == "PENDING_OWNER_REVIEW"
+                option["review_status"] == "PROVISIONAL_OWNER_REVIEWED"
                 and option["production_eligible"] is False,
                 f"material review guard invalid: {option_id}",
             )
@@ -413,8 +448,13 @@ def validate_catalog(
     )
     validate_progression(records, progression_doc["edges"])
     require(
-        provenance["review_status"] == "PENDING_OWNER_REVIEW",
+        provenance["review_status"] == "PROVISIONAL_OWNER_REVIEWED",
         "golden provenance review status invalid",
+    )
+    require(
+        provenance["owner_reviewed_at"] == owner_review["reviewed_at"]
+        and provenance["reviewed_activity_count"] == 20,
+        "golden provenance owner-review scope invalid",
     )
     require(
         provenance["production_eligible"] is False,
@@ -562,7 +602,7 @@ def main() -> None:
         "positive_cases": positive,
         "blocked_cases": blocked,
         "coverage_tags": coverage,
-        "review_status": "PENDING_OWNER_REVIEW",
+        "review_status": "PROVISIONAL_OWNER_REVIEWED",
         "production_eligible": False,
         "baseline_unchanged": True,
         "network_required": False,
@@ -576,7 +616,7 @@ def main() -> None:
     print(f"activities={report['activities']} age_bands={report['age_band_counts']}")
     print(f"material_options={report['material_options']}")
     print(f"fixtures={case_count} positive={positive} blocked={blocked}")
-    print("review_status=PENDING_OWNER_REVIEW production_eligible=false")
+    print("review_status=PROVISIONAL_OWNER_REVIEWED production_eligible=false")
     print("baseline_unchanged=true network_required=false")
 
 

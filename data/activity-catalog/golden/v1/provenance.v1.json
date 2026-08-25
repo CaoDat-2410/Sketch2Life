@@ -8,11 +8,14 @@
     "hard-rules.v1.json": "9a395757fdbdcb41c80f14843ce223a9decf37d1a5bbb5565e32b29e6dba0b46",
     "provenance.v1.json": "0e12e91dc6329c5b095f882c4fda58e6119bbe169c26b7b7d46e6cff5c4e1600"
   },
-  "review_status": "PENDING_OWNER_REVIEW",
+  "review_status": "PROVISIONAL_OWNER_REVIEWED",
+  "owner_reviewed_at": "2026-08-25T21:32:18+07:00",
+  "reviewed_activity_count": 20,
+  "review_decision_ledger": "features/FEAT-013-montessori-golden-hardening/approvals/OWNER_CONTENT_REVIEW.v1.json",
   "production_eligible": false,
   "network_required": false,
   "limitations": [
-    "Project-owner review is provisional and still pending for golden v2 records.",
+    "Project-owner review is provisional and does not replace qualified Montessori review.",
     "Qualified Montessori review is required before production.",
     "No real child data or classroom outcome evidence was used."
   ]
