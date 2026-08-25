@@ -1,0 +1,33 @@
+FEAT-014 final automated validation
+Date: 2026-08-25
+Environment: local Windows workspace; repository Python virtual environment
+Data/network: committed synthetic fixtures only; no network/provider/database
+
+Results:
+  ruff format/check=PASS
+  pytest=38 passed
+  MONTESSORI_CONSOLE_VALID
+  activities=20 selection_mode=EXPLICIT_ACTIVITY_ONLY
+  golden_fixture_parity=74/74
+  console scenarios=2 valid, 1 blocked, 1 malformed rejected
+  guided/scriptable parity=PASS
+  stable JSON rerun=PASS
+  evidence traversal/absolute/overwrite tests=PASS_EXPECTED_NONZERO
+  HARNESS_VALID
+  SKELETON_VALID
+  ARCHITECTURE_VALID
+  TEAM_ALLOCATION_VALID
+  REPOSITORY_SECURITY_VALID
+  MONTESSORI_DOMAIN_VALID
+  MONTESSORI_GOLDEN_VALID
+  git diff --check=PASS
+
+Guards:
+  review_status=PROVISIONAL_OWNER_REVIEWED
+  production_eligible=false
+  network_required=false
+  cross_person_dependency=false
+  real_child_data=absent
+  recommendation_or_ranking=absent
+
+Interpretation: revision 1 automated acceptance criteria pass. FEAT-014 remains REVIEW until the project owner accepts console behavior; this tool is not production runtime or qualified Montessori approval.

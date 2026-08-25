@@ -1,0 +1,15 @@
+FEAT-014 evidence write security
+Date: 2026-08-25
+Environment: pytest temporary directories plus committed feature runs
+
+Results:
+  run ID ../escape -> expected exit 1 / no write
+  absolute-like run IDs -> rejected / no write
+  uppercase/path punctuation -> rejected / no write
+  duplicate valid-primary-demo -> expected exit 1 / no overwrite
+  replay ../outside.json -> expected exit 1 / no read
+  unknown child_name field -> expected exit 1
+  valid run path -> feature evidence/runs only
+  machine-local absolute paths in payload -> absent
+
+Interpretation: evidence is opt-in, sanitized, path-confined, non-overwriting, and cannot be used to introduce free-form child data.

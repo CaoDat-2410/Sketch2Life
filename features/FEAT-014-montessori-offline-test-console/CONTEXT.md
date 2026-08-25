@@ -1,6 +1,6 @@
 # FEAT-014 Montessori Offline Test Console context
 
-- Status: IN_PROGRESS
+- Status: REVIEW
 - Primary owner: Person 1
 - Planning branch: `plan/person-1-montessori-offline-console`
 - Plan revision: 1
@@ -31,3 +31,13 @@ FEAT-013 has strong automated fixture coverage, but a reviewer currently needs t
 ## Parent gate result
 
 The approved FEAT-013 portability correction passed on 2026-08-25 with canonical LF/CRLF parity, semantic-mutation rejection, deterministic rebuild, both Montessori validators, 18 repository tests, and no FEAT-002 catalog/fixture data diff. FEAT-014 implementation is now unblocked.
+
+## Implementation snapshot
+
+- One shared pure evaluator now serves the Golden validator and console with exact 74/74 fixture parity.
+- `list`, `evaluate`, `replay`, and `interactive` modes require explicit activity selection and provide stable text/JSON plus exit codes 0/1/2.
+- Closed-schema input rejects unknown child-data fields, unknown/cross-activity IDs, wrong versions, invalid enums, and unsafe replay paths.
+- Opt-in evidence writes are sanitized, non-overwriting, and confined to this feature's `evidence/runs/` directory.
+- Three example runs cover primary, substitute, and multiple-block outcomes.
+- 38 tests and every repository/domain/security gate pass offline.
+- Implementation is awaiting project-owner behavior review; production eligibility remains false.

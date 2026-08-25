@@ -24,6 +24,9 @@ FEAT-013 adds a 20-activity Golden Activity v2 overlay for deeper integration fi
 ```powershell
 python tools/validate_montessori_domain.py
 python tools/validate_montessori_golden.py
+python tools/validate_montessori_console.py
 ```
+
+For guided activity-explicit testing, see `features/FEAT-014-montessori-offline-test-console/USER_GUIDE.md`. The console is an offline review harness, not recommendation or production runtime.
 
 The validator reads only committed local JSON files and fixtures. It does not access a network, database, AI model, or another team's service.

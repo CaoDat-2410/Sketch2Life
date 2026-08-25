@@ -8,6 +8,11 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
+if __package__:
+    from tools.montessori_golden.eligibility import SUPERVISION_RANK, evaluate_case
+else:
+    from montessori_golden.eligibility import SUPERVISION_RANK, evaluate_case
+
 ROOT = Path(__file__).resolve().parents[1]
 GOLDEN_DIR = ROOT / "data" / "activity-catalog" / "golden" / "v1"
 DEFAULT_BASE_DIR = ROOT / "data" / "activity-catalog" / "mvp"
@@ -19,7 +24,6 @@ OWNER_REVIEW_PATH = (
     / "approvals"
     / "OWNER_CONTENT_REVIEW.v1.json"
 )
-SUPERVISION_RANK = {"NONE": 0, "NEARBY": 1, "DIRECT": 2}
 AGE_BANDS = {"0-3": (0, 35), "3-6": (36, 71), "6-9": (72, 107), "9-12": (108, 155)}
 REQUIRED_TAGS = {
     "valid",
@@ -473,50 +477,6 @@ def validate_catalog(
         provenance["network_required"] is False, "golden domain must remain offline"
     )
     return records, material_doc
-
-
-def evaluate_case(
-    activity: dict[str, Any], material_doc: dict[str, Any], case_input: dict[str, Any]
-) -> dict[str, Any]:
-    reasons: list[str] = []
-    if case_input["candidate_status"] != "ACTIVE_FIXTURE":
-        reasons.append("BLOCK_INACTIVE")
-    if case_input["age_months"] < activity["age_months"]["min"]:
-        reasons.append("BLOCK_AGE_BELOW_MIN")
-    if case_input["age_months"] > activity["age_months"]["max"]:
-        reasons.append("BLOCK_AGE_ABOVE_MAX")
-    required_readiness = {item["id"] for item in activity["readiness_criteria"]}
-    if not required_readiness <= set(case_input["readiness_ids"]):
-        reasons.append("BLOCK_MISSING_READINESS")
-    if not set(activity["prerequisite_activity_ids"]) <= set(
-        case_input["completed_activity_ids"]
-    ):
-        reasons.append("BLOCK_MISSING_PREREQUISITE")
-    if (
-        SUPERVISION_RANK[case_input["supervision_level"]]
-        < SUPERVISION_RANK[activity["safety"]["minimum_supervision"]]
-    ):
-        reasons.append("BLOCK_INSUFFICIENT_SUPERVISION")
-    if not set(activity["policy_constraints"]) <= set(case_input["policy_flags"]):
-        reasons.append("BLOCK_POLICY_CONSTRAINT")
-    groups = {item["id"]: item for item in material_doc["groups"]}
-    available = set(case_input["available_material_option_ids"])
-    if any(
-        not (set(groups[group_id]["any_of"]) & available)
-        for group_id in activity["material_group_ids"]
-    ):
-        reasons.append("BLOCK_MISSING_MATERIAL")
-    if reasons:
-        return {
-            "status": "NO_VALID_ACTIVITY",
-            "allowed_activity_ids": [],
-            "blocked": {activity["id"]: reasons},
-        }
-    return {
-        "status": "VALID_CANDIDATE",
-        "allowed_activity_ids": [activity["id"]],
-        "blocked": {},
-    }
 
 
 def validate_fixtures(

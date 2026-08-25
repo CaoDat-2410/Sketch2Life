@@ -1,0 +1,36 @@
+{
+  "evidence_schema_version": 1,
+  "run_id": "blocked-multiple-demo",
+  "recorded_at": "2026-08-25T15:06:52.515334+00:00",
+  "reviewer": "LOCAL_CONSOLE_OPERATOR",
+  "environment": "OFFLINE_STANDARD_LIBRARY",
+  "console_schema_version": 1,
+  "activity_ref": {
+    "id": "ACT-0004",
+    "version": 2
+  },
+  "input": {
+    "age_months": 16,
+    "readiness_ids": [],
+    "completed_activity_ids": [],
+    "available_material_option_ids": [],
+    "supervision_level": "NONE",
+    "policy_flags": [],
+    "candidate_status": "ACTIVE_FIXTURE"
+  },
+  "result": {
+    "status": "NO_VALID_ACTIVITY",
+    "allowed_activity_ids": [],
+    "blocked": {
+      "ACT-0004": [
+        "BLOCK_MISSING_READINESS",
+        "BLOCK_INSUFFICIENT_SUPERVISION",
+        "BLOCK_POLICY_CONSTRAINT",
+        "BLOCK_MISSING_MATERIAL"
+      ]
+    }
+  },
+  "review_status": "PROVISIONAL_OWNER_REVIEWED",
+  "production_eligible": false,
+  "warning": "FIXTURE-ONLY: kết quả là kiểm tra contract, không đánh giá trẻ thật và không phải qualified Montessori/production approval."
+}

@@ -1,6 +1,6 @@
 # FEAT-014 phase gates
 
-Current state: `PHASE_1_SHARED_EVALUATOR_PARITY`.
+Current state: `PHASE_4_OWNER_BEHAVIOR_REVIEW`.
 
 ## Phase 0 - approval and input freeze
 
@@ -21,3 +21,5 @@ Exit requires feature-confined opt-in evidence, traversal/absolute/overwrite rej
 ## Phase 4 - review and handoff
 
 Exit requires examples, full tests, architecture/team/security/harness gates, traceability, limitations, and owner review of the console behavior.
+
+All automated and evidence requirements pass. The owner behavior-review decision is the sole remaining phase exit.

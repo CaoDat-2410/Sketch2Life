@@ -1,0 +1,12 @@
+{
+  "AC-C1-01": ["tools/montessori_golden_console.py:list", "test_list_is_complete_explicit_and_never_recommends"],
+  "AC-C1-02": ["tools/montessori_golden/eligibility.py:validate_case_input", "malformed-unknown-field.json", "test_cross_activity_material_fails_as_invalid_input"],
+  "AC-C1-03": ["tools/montessori_golden/eligibility.py:evaluate_case", "fixture-parity.json", "test_shared_evaluator_has_exact_parity_with_all_74_golden_fixtures"],
+  "AC-C1-04": ["valid-primary.json", "valid-substitute.json", "blocked-multiple.json", "raw/cli-tests.txt"],
+  "AC-C1-05": ["test_guided_mode_matches_scriptable_valid_result", "test_json_output_is_stable_for_identical_input"],
+  "AC-C1-06": ["tools/montessori_golden/evidence.py", "raw/evidence-security.txt", "evidence/runs/*.json"],
+  "AC-C1-07": ["raw/final-validation.txt", "test_console_modules_do_not_import_network_or_provider_clients"],
+  "AC-C1-08": ["tools/montessori_golden/presentation.py", "USER_GUIDE.md", "evidence/runs/*.json"],
+  "AC-C1-09": ["USER_GUIDE.md", "tests/fixtures/montessori-console/README.md"],
+  "AC-C1-10": ["raw/final-validation.txt", "notes/TRACEABILITY_REVIEW.md", "notes/KNOWN_LIMITATIONS.md"]
+}

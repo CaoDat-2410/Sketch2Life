@@ -1,0 +1,13 @@
+FEAT-014 guided/scriptable parity
+Date: 2026-08-25
+Test: test_guided_mode_matches_scriptable_valid_result
+
+Synthetic input:
+  activity=ACT-0004@v2
+  age_months=16
+  readiness=READY_SEARCH_PARTLY_HIDDEN
+  material=GMAT-0004-PRIMARY
+  supervision=DIRECT
+  policy=CAREGIVER_PRESENT
+
+Result: PASS; guided and replay modes both return VALID_CANDIDATE for ACT-0004. Stable JSON rerun comparison also passes.

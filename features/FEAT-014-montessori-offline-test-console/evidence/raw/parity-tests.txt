@@ -1,0 +1,14 @@
+FEAT-014 shared evaluator parity
+Date: 2026-08-25
+Command: python tools/validate_montessori_console.py
+Environment: local repository Python; offline standard library
+
+Result:
+  MONTESSORI_CONSOLE_VALID
+  activities=20 selection_mode=EXPLICIT_ACTIVITY_ONLY
+  golden_fixture_parity=74/74
+  console_scenarios=4 valid=2 blocked=1 malformed_rejected=1
+  review_status=PROVISIONAL_OWNER_REVIEWED production_eligible=false
+  network_required=false cross_person_dependency=false
+
+Interpretation: moving the evaluator out of the Golden validator introduced zero output or reason-order drift.

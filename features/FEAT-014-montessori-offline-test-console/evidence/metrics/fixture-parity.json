@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "shared_evaluator": "tools/montessori_golden/eligibility.py:evaluate_case",
+  "golden_fixture_count": 74,
+  "identical_outputs": 74,
+  "reason_order_mismatches": 0,
+  "console_scenarios": {
+    "valid_primary": "PASS_EXIT_0",
+    "valid_substitute": "PASS_EXIT_0",
+    "blocked_multiple": "PASS_EXIT_2",
+    "malformed_unknown_field": "PASS_EXPECTED_EXIT_1"
+  },
+  "selection_mode": "EXPLICIT_ACTIVITY_ONLY",
+  "network_required": false,
+  "cross_person_dependency": false
+}

@@ -1,0 +1,13 @@
+FEAT-014 console behavior
+Date: 2026-08-25
+Inputs: committed synthetic console scenarios
+
+Observed:
+  valid-primary.json -> VALID_CANDIDATE, exit 0
+  valid-substitute.json -> VALID_CANDIDATE, exit 0
+  blocked-multiple.json -> NO_VALID_ACTIVITY, exit 2
+  reasons -> BLOCK_MISSING_READINESS, BLOCK_INSUFFICIENT_SUPERVISION, BLOCK_POLICY_CONSTRAINT, BLOCK_MISSING_MATERIAL
+  malformed-unknown-field.json -> MONTESSORI_CONSOLE_ERROR, exit 1
+  replay ../outside.json -> confined-path error, exit 1
+
+All successful/blocked output includes provisional owner review, non-production state, and the fixture-only warning.

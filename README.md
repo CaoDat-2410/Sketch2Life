@@ -17,7 +17,7 @@ This repository starts with a delivery harness before product code. The harness 
 ## Current state
 
 - Harness: active and enforced per feature.
-- Product implementation: foundation plus completed FEAT-002 Montessori domain fixtures and a completed 20-record FEAT-013 Golden Activity v2 overlay with provisional owner acceptance; all Montessori records remain non-production.
+- Product implementation: foundation, completed FEAT-002 fixtures, completed 20-record FEAT-013 Golden Activity v2 overlay, and FEAT-014 offline activity-explicit test console awaiting owner behavior review; all Montessori records remain non-production.
 - Tech stack: Python/FastAPI backend and Android-only React Native 0.87 foundation accepted; Firebase Authentication-only identity and Lightning-dev/Runpod-production AI strategy are frozen but live integrations remain gated.
 - Frontend assets: no generated asset is approved or applied yet.
 
@@ -30,6 +30,7 @@ This repository starts with a delivery harness before product code. The harness 
 - `python tools/validate_repository_security.py`
 - `python tools/validate_montessori_domain.py`
 - `python tools/validate_montessori_golden.py`
+- `python tools/validate_montessori_console.py`
 - `docker compose up -d`
 
 See [local development setup](docs/setup/LOCAL_DEVELOPMENT.md) and the [project skeleton map](docs/setup/PROJECT_SKELETON.md).

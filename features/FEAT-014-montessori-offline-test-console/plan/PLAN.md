@@ -2,7 +2,7 @@
 
 - Status: APPROVED
 - Plan revision: 1
-- Implementation status: IN_PROGRESS
+- Implementation status: IMPLEMENTED_AWAITING_OWNER_REVIEW
 - Owner: Person 1
 - Prepared at: 2026-08-25
 - Branch: `plan/person-1-montessori-offline-console`

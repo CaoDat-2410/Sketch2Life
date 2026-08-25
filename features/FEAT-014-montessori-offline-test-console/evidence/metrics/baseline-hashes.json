@@ -1,0 +1,12 @@
+{
+  "status": "INPUTS_FROZEN",
+  "json_algorithm": "sha256-canonical-json-v1",
+  "json_inputs": {
+    "data/activity-catalog/golden/v1/selection-manifest.v1.json": "dede9803cbf48bea505a0fd53ed52e79d64af1be7804f7d48d14fa2a3d7c74f4",
+    "data/activity-catalog/golden/v1/activities.v2.json": "2e6b5aeb9c4784519b848b66ac24f53bbf803abf7c5c8a730660e702d8846c3c",
+    "data/activity-catalog/golden/v1/material-registry.v1.json": "e921ee4a119091905f9d815b55eb57b52033df9e9b1984b07ed9d8a68af1be8d",
+    "features/FEAT-013-montessori-golden-hardening/approvals/OWNER_CONTENT_REVIEW.v1.json": "54d3e30ac414128c275db2065d422200e26684f90d39c4789d6c0b81138d8c0f"
+  },
+  "parent_review_status": "PROVISIONAL_OWNER_REVIEWED",
+  "production_eligible": false
+}
