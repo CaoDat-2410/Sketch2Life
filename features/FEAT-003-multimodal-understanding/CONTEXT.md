@@ -1,6 +1,6 @@
 # FEAT-003 Multimodal understanding context
 
-- Status: REVIEW (P2-T1 complete; P2-T2 through P2-T5 await approval)
+- Status: REVIEW (P2-T1 hardening, P2-T2, and P2-T3)
 - Primary owner: Person 2
 - Goal: Build and benchmark a standalone fixture-driven AI understanding component that emits traceable, schema-valid raw understanding artifacts.
 - Data policy: fixture/synthetic drawings and narration only.
@@ -13,6 +13,6 @@ This workstream owns media validation, ASR/VLM adapters, fusion, `RawUnderstandi
 
 ## Current planning decision
 
-- Plan revision 3 breaks the workstream into P2-T1 through P2-T5. The intended dependency order is `T1 -> (T2, T3) -> T4 -> T5`; T2 and T3 share only approved contracts and fixtures, never a live service.
+- Plan revision 4 authorizes P2-T1 hardening plus P2-T2 and P2-T3. The intended dependency order is `T1 -> (T2, T3) -> T4 -> T5`; T2 and T3 share only approved contracts and fixtures, never a live service. T4/T5 remain unapproved.
 - Quality thresholds are deliberately fixture/configurable until a separately approved benchmark establishes device, language, and child-speech targets.
-- P2-T1 implementation is complete and awaits review. P2-T2 through P2-T5 remain out of implementation scope until separately approved.
+- No live model/provider access is authorized. The adapter implementations use injected provider protocols and deterministic fixtures so contract behavior is testable without network, credentials, or child data.

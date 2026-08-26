@@ -10,6 +10,12 @@
       "audio_ref": "fixture:narration:v1",
       "expected_decision": "PASS",
       "expected_reasons": [],
+      "image_sha256": "0a073d7cb400704b91d45a063827a8eea2aeead8cb511eb11064c1be4d8acb57",
+      "audio_sha256": "b97406d4f13c720987099e64b4ed95a9cfdf4de4e73513312d336de218a71637",
+      "declared_image_width": 160,
+      "declared_image_height": 160,
+      "declared_audio_duration_seconds": 1.0,
+      "declared_audio_sample_rate_hz": 16000,
       "synthetic_data": true
     },
     {
@@ -26,6 +32,12 @@
         "AUDIO_DURATION_OUT_OF_RANGE",
         "AUDIO_SILENT"
       ],
+      "image_sha256": "cd863a704b4bc500785cdcfa1d7e4b3a1739ec50d3f13a2011e79a9bcd99a007",
+      "audio_sha256": "946c3f59f3e671ef87ad6655ece8bfc00c451f868f751787278c2d462f4bde26",
+      "declared_image_width": 32,
+      "declared_image_height": 32,
+      "declared_audio_duration_seconds": 0.2,
+      "declared_audio_sample_rate_hz": 16000,
       "synthetic_data": true
     },
     {
@@ -34,6 +46,8 @@
       "audio_ref": "fixture:corrupt-narration:v1",
       "expected_decision": "RECAPTURE",
       "expected_reasons": ["IMAGE_UNREADABLE", "AUDIO_UNREADABLE"],
+      "image_sha256": "251d058d2872544d811f0f9ba5ca78f1de9da33a0237979e1844e73f5093d1ff",
+      "audio_sha256": "63969f8cf564dc24786de787bb57e4f9e5f8fd2f468d785a1b6f80326917d5f5",
       "synthetic_data": true
     },
     {
@@ -42,6 +56,12 @@
       "audio_ref": "fixture:constant-narration:v1",
       "expected_decision": "RECAPTURE",
       "expected_reasons": ["AUDIO_NO_SPEECH_SIGNAL"],
+      "image_sha256": "0a073d7cb400704b91d45a063827a8eea2aeead8cb511eb11064c1be4d8acb57",
+      "audio_sha256": "baacd6cc7ecf9ea69e1592c5f94597034707177c58faf6d35c84bbe76c8d2bac",
+      "declared_image_width": 160,
+      "declared_image_height": 160,
+      "declared_audio_duration_seconds": 1.0,
+      "declared_audio_sample_rate_hz": 16000,
       "synthetic_data": true
     },
     {
@@ -50,6 +70,12 @@
       "audio_ref": "fixture:clipped-narration:v1",
       "expected_decision": "RECAPTURE",
       "expected_reasons": ["AUDIO_CLIPPING"],
+      "image_sha256": "0a073d7cb400704b91d45a063827a8eea2aeead8cb511eb11064c1be4d8acb57",
+      "audio_sha256": "e08bf74ab27be23f41c9a1701c749fa5915f58905bb2513523c524413be14386",
+      "declared_image_width": 160,
+      "declared_image_height": 160,
+      "declared_audio_duration_seconds": 1.0,
+      "declared_audio_sample_rate_hz": 16000,
       "synthetic_data": true
     }
   ]

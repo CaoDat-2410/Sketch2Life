@@ -3,7 +3,7 @@
 - Evidence ID: EV-003-T1-01
 - Date: 2026-08-26
 - Reviewer: Codex; implementation requested directly by the project owner
-- Approved scope: FEAT-003 plan revision 3, P2-T1 only
+- Approved scope: FEAT-003 plan revision 4, initial P2-T1 baseline before hardening
 - Data: runtime-generated synthetic PNG/WAV fixtures only; no real child data, provider credential, model, API, queue, database, or mobile access
 
 ## Delivered behavior
@@ -28,7 +28,7 @@ git diff --check
 Result on 2026-08-26:
 
 ```text
-10 passed
+23 passed
 All checks passed!
 Success: no issues found in 30 source files
 ARCHITECTURE_VALID

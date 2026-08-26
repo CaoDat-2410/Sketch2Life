@@ -1,8 +1,8 @@
 # FEAT-003 Multimodal understanding plan
 
-- Status: REVIEW (P2-T1 only)
-- Plan revision: 3
-- Implementation status: DONE (P2-T1 only)
+- Status: REVIEW (P2-T1 hardening, P2-T2, and P2-T3)
+- Plan revision: 4
+- Implementation status: DONE (approved slice)
 - Owner: Person 2
 - Estimate: 10 points total (P2-T1 through P2-T5, 2 points each)
 
@@ -25,7 +25,9 @@ The contract review is part of this plan, not approval to integrate it into the 
 
 ## Approved implementation slice
 
-Only P2-T1 is approved for implementation. P2-T2 through P2-T5 remain planned and must receive their own explicit approval before work starts.
+This revision approves the P2-T1 hardening items identified in review, plus P2-T2 and P2-T3. P2-T4 and P2-T5 remain planned and are explicitly out of scope.
+
+The hardening slice closes the reviewed runtime and evidence gaps: signed PCM full-scale normalization, fail-safe PNG parsing with CRC/IEND/dimension checks, bounded media reads, truthful nullable source hashes/status, and evidence that matches the tests actually run.
 
 ## Task breakdown and execution order
 
@@ -106,20 +108,20 @@ For one owner, work sequentially as T1, T2, T3, T4, T5. If two contributors are 
 
 ## Acceptance criteria
 
-- [x] T1 invalid image/audio fixtures deterministically request recapture with stable reason codes.
-- [x] Source originals remain untouched and every derived reference carries source hash/provenance.
-- [ ] T2 and T3 real or fixture model results validate against their versioned schemas; free-form provider output is never the output contract.
+- [x] T1 invalid image/audio fixtures deterministically request recapture with stable reason codes, bounded reads, fail-safe parsing, and truthful unavailable-source provenance.
+- [x] Source originals remain untouched; available source references retain content hashes and unavailable sources carry an explicit status without a path-derived digest.
+- [x] T2 and T3 fixture/provider-shaped results validate against their versioned schemas; free-form provider output is never the output contract.
 - [ ] T4 preserves conflicting modality predictions with source support and uncertainty; it never produces canonical meaning or psychological inference.
 - [ ] T5 reports schema validity, recapture reasons, ASR WER/CER, entity/action accuracy, conflict metrics where labeled, and latency with measurement coverage.
-- [ ] Timeout/provider-failure fixtures produce typed standalone errors and never overwrite source artifacts.
-- [ ] The runner and all contract tests execute without mobile, backend API, database, queue, or another Sprint 1 workstream.
-- [ ] Evidence records command, environment, input/manifest reference, output, timestamp, reviewer, and interpretation.
+- [x] Timeout/provider-failure fixtures produce typed standalone errors and never overwrite source artifacts.
+- [x] The adapter and contract tests execute without mobile, backend API, database, queue, or another Sprint 1 workstream.
+- [x] Evidence records command, environment, input/manifest reference, output, timestamp, reviewer, and interpretation for this implementation slice.
 
 ## Evidence and review gates
 
 1. Contract/fixture review before implementation: schema names, versions, reason-code catalog, and synthetic-data declaration.
-2. Approval update: the approver must approve this exact revision and scope before any implementation begins.
+2. Approval update: revision 4 is approved by the project owner in the current task for the hardening slice, P2-T2, and P2-T3 only.
 3. During implementation: store test output, fixture manifest hashes, model/config hashes, and benchmark summaries in this feature's `evidence/` directory. Do not store original or real child media.
 4. Before completion: record a compatibility note for Integration Sprint containing only versioned input/output contracts, typed errors, artifact references, and provenance requirements.
 
-Implementation is blocked until this plan revision is explicitly approved.
+Implementation is authorized only for the revision 4 scope above. T4/T5 remain blocked pending a separate approval update.
