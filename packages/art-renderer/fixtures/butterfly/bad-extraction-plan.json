@@ -1,0 +1,28 @@
+{
+  "contractVersion": "1",
+  "planId": "fixture-butterfly-bad-extraction",
+  "planVersion": "1",
+  "stage": {"width": 800, "height": 600},
+  "objects": [
+    {
+      "id": "butterfly",
+      "label": "Child-drawn butterfly fallback",
+      "asset": {
+        "sourceAssetId": "drawing-butterfly-001",
+        "sourceAssetVersion": "1",
+        "uri": "./fixtures/butterfly/drawing.svg",
+        "assetKind": "WHOLE_DRAWING"
+      },
+      "extractionStatus": "FALLBACK_REQUIRED"
+    }
+  ],
+  "motions": [
+    {
+      "id": "unavailable-mask-motion",
+      "sceneId": "failed-extraction",
+      "kind": "DRAW_REVEAL",
+      "targetId": "butterfly",
+      "durationSeconds": 1
+    }
+  ]
+}
