@@ -1,0 +1,56 @@
+{
+  "contract_name": "MediaFixtureManifestV1",
+  "contract_version": "1.0",
+  "data_policy": "synthetic-only",
+  "generator": "backend/tests/unit/test_media_validation.py",
+  "fixtures": [
+    {
+      "fixture_id": "valid-drawing-and-narration",
+      "image_ref": "fixture:drawing:v1",
+      "audio_ref": "fixture:narration:v1",
+      "expected_decision": "PASS",
+      "expected_reasons": [],
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "small-dark-silent-media",
+      "image_ref": "fixture:small-dark-drawing:v1",
+      "audio_ref": "fixture:silent-narration:v1",
+      "expected_decision": "RECAPTURE",
+      "expected_reasons": [
+        "IMAGE_DIMENSIONS_TOO_SMALL",
+        "IMAGE_TOO_DARK",
+        "IMAGE_LOW_CONTRAST",
+        "IMAGE_BLURRY",
+        "IMAGE_FRAMING_RISK",
+        "AUDIO_DURATION_OUT_OF_RANGE",
+        "AUDIO_SILENT"
+      ],
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "corrupt-media",
+      "image_ref": "fixture:corrupt-drawing:v1",
+      "audio_ref": "fixture:corrupt-narration:v1",
+      "expected_decision": "RECAPTURE",
+      "expected_reasons": ["IMAGE_UNREADABLE", "AUDIO_UNREADABLE"],
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "constant-audio-no-speech-signal",
+      "image_ref": "fixture:drawing:v1",
+      "audio_ref": "fixture:constant-narration:v1",
+      "expected_decision": "RECAPTURE",
+      "expected_reasons": ["AUDIO_NO_SPEECH_SIGNAL"],
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "clipped-audio",
+      "image_ref": "fixture:drawing:v1",
+      "audio_ref": "fixture:clipped-narration:v1",
+      "expected_decision": "RECAPTURE",
+      "expected_reasons": ["AUDIO_CLIPPING"],
+      "synthetic_data": true
+    }
+  ]
+}
