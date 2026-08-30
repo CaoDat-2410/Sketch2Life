@@ -19,7 +19,7 @@ from sketch2life.contracts.schemas.asr import (
     AsrSuccessV1,
     AudioDerivationProvenanceV1,
     MediaValidationProvenanceV1,
-    phase_a_profile_catalog,
+    asr_profile_catalog,
 )
 from sketch2life.infrastructure.ai.fake_asr import (
     DeterministicFixtureAsrAdapter,
@@ -41,7 +41,9 @@ def test_manifest_is_synthetic_and_uses_only_phase_a_profiles() -> None:
         for entry in entries
     )
     assert {entry.requested_profile_id for entry in entries} <= {
-        profile.profile_id for profile in phase_a_profile_catalog().profiles
+        profile.profile_id
+        for profile in asr_profile_catalog().profiles
+        if profile.adapter_kind == "DETERMINISTIC_FAKE"
     }
 
 

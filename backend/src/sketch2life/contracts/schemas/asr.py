@@ -14,6 +14,9 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 class AsrProfileId(StrEnum):
     FAKE_DETERMINISTIC_V1 = "FAKE_DETERMINISTIC_V1"
     FAKE_IDEMPOTENT_TIMEOUT_V1 = "FAKE_IDEMPOTENT_TIMEOUT_V1"
+    WHISPER_TURBO_INT8_AUTO_V1 = "WHISPER_TURBO_INT8_AUTO_V1"
+    WHISPER_TURBO_FP16_AUTO_V1 = "WHISPER_TURBO_FP16_AUTO_V1"
+    WHISPER_LARGE_V3_INT8_AUTO_V1 = "WHISPER_LARGE_V3_INT8_AUTO_V1"
 
 
 class AsrSpeechDiagnostic(StrEnum):
@@ -33,6 +36,8 @@ class AsrErrorCode(StrEnum):
 class AsrErrorDetail(StrEnum):
     MEDIA_VALIDATION_NOT_PASSED = "MEDIA_VALIDATION_NOT_PASSED"
     MEDIA_VALIDATION_PROVENANCE_MISSING = "MEDIA_VALIDATION_PROVENANCE_MISSING"
+    SOURCE_AUDIO_UNREADABLE = "SOURCE_AUDIO_UNREADABLE"
+    SOURCE_AUDIO_HASH_MISMATCH = "SOURCE_AUDIO_HASH_MISMATCH"
     TIMEOUT_BUDGET_EXCEEDED = "TIMEOUT_BUDGET_EXCEEDED"
     MODEL_LOAD_FAILED = "MODEL_LOAD_FAILED"
     DEVICE_UNAVAILABLE = "DEVICE_UNAVAILABLE"
@@ -74,21 +79,62 @@ class LanguageHintV1(BaseModel):
     is_ground_truth: Literal[False] = False
 
 
+class AsrWeightProvenanceV1(BaseModel):
+    """Converted-weight source and license for a real ASR profile. Absent for fakes."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    source: str = Field(min_length=1)
+    license: str = Field(min_length=1)
+
+
 class AsrProfileV1(BaseModel):
-    """Phase A catalog entries are deterministic fakes, never a model runtime."""
+    """Phase A catalog entries are deterministic fakes, never a model runtime.
+
+    Phase B entries (`adapter_kind="FASTER_WHISPER"`) additionally require
+    `model_identifier`, `model_revision`, `weight_provenance`, `adapter_version`,
+    and `runtime_version`; a `DETERMINISTIC_FAKE` entry must leave all five `None`,
+    which keeps every Phase A fake profile's value/behavior byte-for-byte unchanged.
+    """
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     profile_id: AsrProfileId
-    adapter_kind: Literal["DETERMINISTIC_FAKE"] = "DETERMINISTIC_FAKE"
+    adapter_kind: Literal["DETERMINISTIC_FAKE", "FASTER_WHISPER"] = "DETERMINISTIC_FAKE"
     task: Literal["transcribe"] = "transcribe"
     language_mode: Literal["AUTO_DETECT", "HONOR_HINT"] = "AUTO_DETECT"
     beam_size: int = Field(ge=1)
     vad_enabled: bool = False
     word_timestamps_enabled: bool = False
-    compute_profile: Literal["NONE"] = "NONE"
+    compute_profile: Literal["NONE", "GPU_INT8_FLOAT16", "GPU_FLOAT16"] = "NONE"
     timeout_seconds: float = Field(gt=0)
     idempotent_timeout_retry: bool = False
+    model_identifier: str | None = Field(default=None, min_length=1)
+    model_revision: str | None = Field(default=None, min_length=1)
+    weight_provenance: AsrWeightProvenanceV1 | None = None
+    adapter_version: str | None = Field(default=None, min_length=1)
+    runtime_version: str | None = Field(default=None, min_length=1)
+
+    @model_validator(mode="after")
+    def _requires_whisper_provenance_when_real(self) -> AsrProfileV1:
+        provenance_fields = (
+            self.model_identifier,
+            self.model_revision,
+            self.weight_provenance,
+            self.adapter_version,
+            self.runtime_version,
+        )
+        if self.adapter_kind == "FASTER_WHISPER":
+            if any(value is None for value in provenance_fields):
+                raise ValueError(
+                    "FASTER_WHISPER profile requires model_identifier, model_revision, "
+                    "weight_provenance, adapter_version, and runtime_version"
+                )
+            if self.compute_profile == "NONE":
+                raise ValueError("FASTER_WHISPER profile requires a real compute_profile")
+        elif any(value is not None for value in provenance_fields):
+            raise ValueError("DETERMINISTIC_FAKE profile must not set Whisper provenance fields")
+        return self
 
 
 class AsrProfileCatalogV1(BaseModel):
@@ -112,7 +158,28 @@ class AsrProfileCatalogV1(BaseModel):
         raise ValueError(f"profile is absent from catalog: {profile_id}")
 
 
-def phase_a_profile_catalog() -> AsrProfileCatalogV1:
+_FASTER_WHISPER_ADAPTER_VERSION = "faster-whisper-asr-adapter-v1"
+_FASTER_WHISPER_RUNTIME_VERSION = "faster-whisper==1.2.1;ctranslate2==4.8.1"
+
+_WHISPER_TURBO_WEIGHT_PROVENANCE = AsrWeightProvenanceV1(
+    source="huggingface:deepdml/faster-whisper-large-v3-turbo-ct2@4df90f75321148c3a29a9e2351b7ddf8f5b115a8",
+    license="MIT",
+)
+_WHISPER_LARGE_V3_WEIGHT_PROVENANCE = AsrWeightProvenanceV1(
+    source="huggingface:Systran/faster-whisper-large-v3@edaa852ec7e145841d8ffdb056a99866b5f0a478",
+    license="MIT",
+)
+
+
+def asr_profile_catalog() -> AsrProfileCatalogV1:
+    """Single static, versioned, phase-agnostic catalog for request validation and adapters.
+
+    Round 1 (AUTO_DETECT only, per the approved Phase B scope) adds three experimental
+    `FASTER_WHISPER` candidates. None is frozen or selected as a runtime default here;
+    that is a separate R5/ADR decision. Every Phase A fake entry below is byte-for-byte
+    unchanged from before this catalog was renamed from `phase_a_profile_catalog()`.
+    """
+
     return AsrProfileCatalogV1(
         profiles=(
             AsrProfileV1(
@@ -125,6 +192,54 @@ def phase_a_profile_catalog() -> AsrProfileCatalogV1:
                 beam_size=1,
                 timeout_seconds=5.0,
                 idempotent_timeout_retry=True,
+            ),
+            AsrProfileV1(
+                profile_id=AsrProfileId.WHISPER_TURBO_INT8_AUTO_V1,
+                adapter_kind="FASTER_WHISPER",
+                language_mode="AUTO_DETECT",
+                beam_size=5,
+                vad_enabled=False,
+                word_timestamps_enabled=False,
+                compute_profile="GPU_INT8_FLOAT16",
+                timeout_seconds=120.0,
+                idempotent_timeout_retry=False,
+                model_identifier="deepdml/faster-whisper-large-v3-turbo-ct2",
+                model_revision="4df90f75321148c3a29a9e2351b7ddf8f5b115a8",
+                weight_provenance=_WHISPER_TURBO_WEIGHT_PROVENANCE,
+                adapter_version=_FASTER_WHISPER_ADAPTER_VERSION,
+                runtime_version=_FASTER_WHISPER_RUNTIME_VERSION,
+            ),
+            AsrProfileV1(
+                profile_id=AsrProfileId.WHISPER_TURBO_FP16_AUTO_V1,
+                adapter_kind="FASTER_WHISPER",
+                language_mode="AUTO_DETECT",
+                beam_size=5,
+                vad_enabled=False,
+                word_timestamps_enabled=False,
+                compute_profile="GPU_FLOAT16",
+                timeout_seconds=120.0,
+                idempotent_timeout_retry=False,
+                model_identifier="deepdml/faster-whisper-large-v3-turbo-ct2",
+                model_revision="4df90f75321148c3a29a9e2351b7ddf8f5b115a8",
+                weight_provenance=_WHISPER_TURBO_WEIGHT_PROVENANCE,
+                adapter_version=_FASTER_WHISPER_ADAPTER_VERSION,
+                runtime_version=_FASTER_WHISPER_RUNTIME_VERSION,
+            ),
+            AsrProfileV1(
+                profile_id=AsrProfileId.WHISPER_LARGE_V3_INT8_AUTO_V1,
+                adapter_kind="FASTER_WHISPER",
+                language_mode="AUTO_DETECT",
+                beam_size=5,
+                vad_enabled=False,
+                word_timestamps_enabled=False,
+                compute_profile="GPU_INT8_FLOAT16",
+                timeout_seconds=180.0,
+                idempotent_timeout_retry=False,
+                model_identifier="Systran/faster-whisper-large-v3",
+                model_revision="edaa852ec7e145841d8ffdb056a99866b5f0a478",
+                weight_provenance=_WHISPER_LARGE_V3_WEIGHT_PROVENANCE,
+                adapter_version=_FASTER_WHISPER_ADAPTER_VERSION,
+                runtime_version=_FASTER_WHISPER_RUNTIME_VERSION,
             ),
         )
     )
@@ -164,7 +279,7 @@ class AsrRequestV1(BaseModel):
                 != self.processing_audio_ref.sha256
             ):
                 raise ValueError("derivation provenance must link to the processing audio hash")
-        phase_a_profile_catalog().resolve(self.requested_profile_id)
+        asr_profile_catalog().resolve(self.requested_profile_id)
         return self
 
 

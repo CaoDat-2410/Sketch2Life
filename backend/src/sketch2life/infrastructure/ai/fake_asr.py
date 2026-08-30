@@ -17,7 +17,7 @@ from sketch2life.contracts.schemas.asr import (
     AsrSegmentV1,
     AsrSpeechDiagnostic,
     AsrSuccessV1,
-    phase_a_profile_catalog,
+    asr_profile_catalog,
     profile_config_hash,
 )
 
@@ -50,7 +50,7 @@ class DeterministicFixtureAsrAdapter(AsrPort):
 
     def __init__(self, fixtures: dict[str, FakeAsrFixture]) -> None:
         self._fixtures = dict(fixtures)
-        self._catalog = phase_a_profile_catalog()
+        self._catalog = asr_profile_catalog()
 
     def transcribe(self, request: AsrRequestV1) -> AsrResultV1:
         profile = self._catalog.resolve(request.requested_profile_id)
