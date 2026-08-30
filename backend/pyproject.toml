@@ -30,6 +30,15 @@ dev = [
   "pytest-asyncio>=1.1,<2",
   "ruff>=0.12,<1",
 ]
+# P2-T2 Phase B (approved 2026-08-30): exact-pinned, not range-pinned like the rest of this
+# file. CTranslate2's cuDNN version requirement has changed across releases (>=4.0 requires
+# CUDA 12/cuDNN 9), so a range pin risks silently breaking local GPU compatibility between
+# installs. See plan/P2_T2_ASR_RESEARCH_PLAN.md "B6. GPU preflight and dependency pinning"
+# and DECISIONS.md. Optional so Sprint 1's other standalone components never require it.
+asr-faster-whisper = [
+  "faster-whisper==1.2.1",
+  "ctranslate2==4.8.1",
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/sketch2life"]
@@ -50,3 +59,8 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 python_version = "3.12"
 strict = true
 packages = ["sketch2life"]
+
+[[tool.mypy.overrides]]
+# faster-whisper (P2-T2 Phase B) ships no type stubs/py.typed marker.
+module = "faster_whisper.*"
+ignore_missing_imports = true
