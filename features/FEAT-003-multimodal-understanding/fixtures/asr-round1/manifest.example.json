@@ -1,0 +1,10 @@
+{
+  "contract_name": "AsrRound1FixtureManifestV1",
+  "contract_version": "1.0",
+  "manifest_version": "asr-round1-v1",
+  "data_policy": "synthetic-or-licensed-only",
+  "normalizer_version": "vi-asr-normalizer-v1",
+  "status": "TEMPLATE",
+  "fixtures": [],
+  "notes": "Template only; no audio or transcript source has been selected."
+}
