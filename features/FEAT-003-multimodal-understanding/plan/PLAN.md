@@ -1,8 +1,8 @@
 # FEAT-003 Multimodal understanding plan
 
-- Status: IN PROGRESS (P2-T1 complete; P2-T2 Phase A only)
+- Status: REVIEW (P2-T1 complete; P2-T2 Phase A complete)
 - Plan revision: 4
-- Implementation status: IN PROGRESS (P2-T2 Phase A only)
+- Implementation status: DONE (P2-T2 Phase A only; Phase B separately gated)
 - Owner: Person 2
 - Estimate: 10 points total (P2-T1 through P2-T5, 2 points each)
 

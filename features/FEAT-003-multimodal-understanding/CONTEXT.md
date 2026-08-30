@@ -1,6 +1,6 @@
 # FEAT-003 Multimodal understanding context
 
-- Status: IN PROGRESS (P2-T1 complete; P2-T2 Phase A approved; P2-T2 Phase B and P2-T3 through P2-T5 await approval)
+- Status: REVIEW (P2-T1 and P2-T2 Phase A complete; P2-T2 Phase B and P2-T3 through P2-T5 await approval)
 - Primary owner: Person 2
 - Goal: Build and benchmark a standalone fixture-driven AI understanding component that emits traceable, schema-valid raw understanding artifacts.
 - Data policy: fixture/synthetic drawings and narration only.
@@ -15,7 +15,7 @@ This workstream owns media validation, ASR/VLM adapters, fusion, `RawUnderstandi
 
 - Plan revision 4 breaks the workstream into P2-T1 through P2-T5. The intended dependency order is `T1 -> (T2, T3) -> T4 -> T5`; T2 and T3 share only approved contracts and fixtures, never a live service.
 - Quality thresholds are deliberately fixture/configurable until a separately approved benchmark establishes device, language, and child-speech targets.
-- P2-T1 implementation is complete and awaits review. P2-T2 Phase A is in implementation scope; P2-T2 Phase B and P2-T3 through P2-T5 remain out of implementation scope until separately approved.
+- P2-T1 implementation is complete and awaits review. P2-T2 Phase A is complete and awaits review; P2-T2 Phase B and P2-T3 through P2-T5 remain out of implementation scope until separately approved.
 - The detailed P2-T2 research plan is recorded in `plan/P2_T2_ASR_RESEARCH_PLAN.md`. It defines a contract-first, fixture-benchmark decision process; it does not approve dependency installation, live ASR inference, or P2-T2 implementation.
 - The external-review handoff for that plan is `evidence/notes/P2_T2_CLAUDE_REVIEW_BRIEF.md`. Review findings must be recorded and resolved before a separate P2-T2 implementation approval is requested.
 - Review findings are recorded in `evidence/notes/P2_T2_CLAUDE_REVIEW_FINDINGS.md` (`EV-003-T2-PLAN-03`, verdict `CHANGES_REQUIRED`, resolved). The 5 required findings (P2-T1/P2-T2 diagnostic boundary, fixture representativeness and real-child-data limitation, VAD contract nullability, retry/error-mapping, `INPUT_NOT_VALIDATED` convention) were folded into `plan/P2_T2_ASR_RESEARCH_PLAN.md`; a second independent re-review then returned `READY_FOR_APPROVAL` for a Phase A (contract/fake-adapter) scope.

@@ -1,6 +1,6 @@
 # P2-T2 ASR research plan
 
-- Status: IN PROGRESS — Phase A approved; Phase B remains separately gated
+- Status: REVIEW — Phase A implemented; Phase B remains separately gated
 - Owner: Person 2
 - Parent plan: `PLAN.md`, revision 4; team allocation: `docs/adr/ADR-0006-parallel-sprint-allocation.md`, `features/FEAT-001-stack-and-team-plan/SPRINT_1_TASK_ALLOCATION.md`
 - Input dependency: a `PASS` result from P2-T1 for the immutable narration reference
