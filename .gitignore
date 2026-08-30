@@ -2,6 +2,16 @@
 .env
 .env.*
 !.env.example
+backend/.asr.env
+
+# Personal agent configuration and project-local instructions.
+/.claude/
+/.agents/
+/CLAUDE.md
+
+# ASR benchmark payloads remain local; only the manifest template/layout is versioned.
+features/FEAT-003-multimodal-understanding/fixtures/asr-round1/audio/**
+features/FEAT-003-multimodal-understanding/fixtures/asr-round1/transcripts/**
 
 # Python
 __pycache__/
