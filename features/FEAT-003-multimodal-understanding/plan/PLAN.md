@@ -1,8 +1,8 @@
 # FEAT-003 Multimodal understanding plan
 
-- Status: REVIEW (P2-T1 only)
-- Plan revision: 3
-- Implementation status: DONE (P2-T1 only)
+- Status: IN PROGRESS (P2-T1 complete; P2-T2 Phase A only)
+- Plan revision: 4
+- Implementation status: IN PROGRESS (P2-T2 Phase A only)
 - Owner: Person 2
 - Estimate: 10 points total (P2-T1 through P2-T5, 2 points each)
 
@@ -45,14 +45,16 @@ Only P2-T1 is approved for implementation. P2-T2 through P2-T5 remain planned an
 
 **Goal:** Provide an ASR port implementation that can use `faster-whisper`/Whisper large-v3-turbo, while its public result remains provider-neutral and source-traceable.
 
-**Implementation slices:**
+**Implementation slices (Phase A, this approval scope):**
 
-1. Define `AsrPort` plus a deterministic fixture fake first; accept only a validated audio reference from T1 and preserve `source_audio_ref`/hash in every result.
-2. Map provider output into `AsrResultV1`: raw transcript, detected language plus confidence/probabilities where available, timestamped segments, ASR quality metadata, model/version/config provenance, and typed timeout/provider/schema errors. Do not expose model SDK objects or raw JSON outside infrastructure.
-3. Implement one bounded retry only for a parseable/repairable provider response; provider failure remains a typed error and cannot overwrite the source or create a canonical meaning artifact.
-4. Add Vietnamese and non-Vietnamese synthetic fixtures, low-confidence/no-speech cases, timeout/failure cases, and schema round-trip tests. A real-model smoke/benchmark run stays optional until provider access and execution scope are approved.
+1. Define `AsrPort`, `AsrResultV1` as a discriminated union (`AsrSuccessV1`/`AsrFailureV1`), and `AsrProfileCatalogV1` (deterministic fake profile entries only), plus a deterministic fixture fake; accept only a validated audio reference from T1 and preserve `source_audio_ref`/hash in every result.
+2. Map fake-adapter output into `AsrSuccessV1`/`AsrFailureV1`: raw transcript (may be empty with `speech_diagnostic=NO_SPEECH_SUSPECTED`), detected language plus confidence/probabilities where available, timestamped segments, ASR quality metadata, model/version/config provenance, `attempt_number`/`repair_attempted`, and typed timeout/provider/schema errors. Do not expose model SDK objects or raw JSON outside infrastructure.
+3. Implement the retry/repair matrix (per-error-code retryability, one bounded inference retry only for transient provider failure, one local mapping/serialization repair only for schema-invalid output, enforced inside the adapter); provider failure remains a typed error and cannot overwrite the source or create a canonical meaning artifact.
+4. Add Vietnamese and non-Vietnamese synthetic fixtures, Vietnamese-English code-switching, silence-only/no-speech (Case A: `SUCCEEDED` with empty transcript) and unmappable-output (Case B: `FAILED`) cases, noise/recording-condition variation, timeout/failure cases per the retry matrix, and schema round-trip tests.
 
-**Done when:** valid audio produces schema-valid transcript/language/quality metadata with the original audio reference; all fake/provider outputs are mapped or rejected deterministically; no credential, endpoint, raw transcript, or raw media is written to ordinary logs.
+**Phase B (separate future approval, still P2-T2 ownership):** implement the real `faster-whisper`/Whisper adapter against approved `AsrProfileCatalogV1` candidate entries and run the ASR-only profile-selection benchmark. It does not include the CLI or the ~20-fixture end-to-end report, which is P2-T5.
+
+**Done when (Phase A):** valid audio produces schema-valid transcript/language/quality metadata with the original audio reference; every fake output is mapped to exactly one of `AsrSuccessV1`/`AsrFailureV1` deterministically; ASR no-speech/language diagnostics never override a P2-T1 `PASS`/`RECAPTURE` decision; no credential, endpoint, raw transcript, or raw media is written to ordinary logs or to `evidence/`. Full contract, discriminated-union fields, retry/repair matrix, and boundary detail: `P2_T2_ASR_RESEARCH_PLAN.md`.
 
 ### P2-T3 — Qwen3-VL structured drawing understanding adapter (2 points, Must)
 

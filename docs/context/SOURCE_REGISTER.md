@@ -16,6 +16,9 @@ The files below are reference inputs. Their contents inform context and proposed
 | `firebase-id-token-verification` | `https://firebase.google.com/docs/auth/admin/verify-id-tokens` | Official Firebase documentation | Custom-backend identity verification | Authentication input; does not authorize Firebase storage/database products |
 | `runpod-serverless-endpoints` | `https://docs.runpod.io/serverless/endpoints/overview` | Official Runpod documentation | Production queue endpoint and job semantics | AI infrastructure input for future integration |
 | `runpod-api-keys` | `https://docs.runpod.io/get-started/api-keys` | Official Runpod documentation | Endpoint-scoped restricted keys | Security input; backend runtime only |
+| `whisper-large-v3-turbo-model-card` | `https://huggingface.co/openai/whisper-large-v3-turbo` | Official model card | P2-T2 ASR model capability and model-family baseline | Research input only; the exact model revision and decode profile remain subject to fixture benchmark and approval |
+| `faster-whisper-transcription-api` | `https://github.com/SYSTRAN/faster-whisper/blob/master/faster_whisper/transcribe.py` | Upstream adapter source | P2-T2 segment, language, timestamp, VAD, and quality-field mapping | Research input only; provider API fields must be mapped into the versioned local contract |
+| `faster-whisper-runtime-guide` | `https://github.com/SYSTRAN/faster-whisper` | Upstream project documentation | P2-T2 runtime prerequisites, compute profiles, VAD behavior, and benchmark-comparison constraints | Research input only; no dependency installation or live-model execution is authorized by this entry |
 
 ## Reading notes
 
