@@ -37,4 +37,8 @@
 
 ## Remaining gate
 
-P2-T2 Phase B remains unapproved: it alone may introduce the real `faster-whisper`/Whisper adapter, dependency/model weights, GPU/provider execution, and ASR profile-selection evidence. P2-T5 remains the separately approved owner of the CLI and end-to-end benchmark report.
+This historical Phase A note predates the current approval record. P2-T2 Phase B is now
+approved under `approvals/TASK_APPROVAL.md`, including the controlled live Round-1 scope;
+the readiness package records why that run remains `NOT_MEASURED` until fixture-source
+selection and compliant local payload/reference-transcript refs and hashes. P2-T5 remains
+the owner of the CLI and end-to-end benchmark report.
