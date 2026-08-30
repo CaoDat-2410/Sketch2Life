@@ -21,4 +21,7 @@
 4. Approved runtime/device and timeout budget.
 5. Vietnamese text-normalization/tokenization specification for WER/CER.
 
-These decisions remain open until P2-T2 receives separate approval and produces the specified fixture evidence.
+At the time of this 2026-08-28 research note, these decisions were open. The Phase B scope
+is now approved under `approvals/TASK_APPROVAL.md`; the remaining `DECISION_REQUIRED` item is
+the synthetic/TTS-versus-licensed fixture source and the subsequent supply of compliant local
+fixture/reference-transcript refs and hashes.

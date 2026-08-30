@@ -51,4 +51,9 @@ Các mục còn lại (quality_metadata schema đóng, ownership chọn profile,
 
 Các cải thiện khuyến nghị (quality_metadata closed schema, correlation_id/executed_at echo, profile-selection ownership, evidence-storage note, ADR content list) cũng đã được đưa vào cùng revision.
 
-Trạng thái sau khi fold: các finding bắt buộc đã được xử lý ở mức tài liệu/plan. P2-T2 **vẫn `CHANGES_REQUIRED`/chưa `READY_FOR_APPROVAL`** cho implementation, vì đây là thay đổi plan chưa được review lại bởi approver và implementation vẫn ngoài phạm vi approval hiện tại (chỉ P2-T1 được duyệt). Approval P2-T2 là một bước xin duyệt riêng, độc lập với việc fold findings này.
+Trạng thái sau khi fold (tại thời điểm review): các finding bắt buộc đã được xử lý ở mức tài liệu/plan. P2-T2 khi đó **vẫn `CHANGES_REQUIRED`/chưa `READY_FOR_APPROVAL`** cho implementation, vì đây là thay đổi plan chưa được review lại bởi approver và implementation vẫn ngoài phạm vi approval hiện tại (chỉ P2-T1 được duyệt).
+
+Trạng thái hiện tại: Phase A và Phase B đã được project owner phê duyệt trong
+`approvals/TASK_APPROVAL.md`. Phase B approval đã bao gồm controlled live Round-1; readiness
+execution vẫn chờ duy nhất quyết định source synthetic/TTS hoặc licensed và payload/reference
+hashes compliant.

@@ -20,7 +20,7 @@ drawing.png + narration.wav
   -> Integration Sprint: Gate A xác nhận với người dùng
 ```
 
-P2-T1 đã hoàn thành trên nhánh base. P2-T2 là nhánh `plan/person-2-asr-research`, base từ P2-T1. P2-T2 hiện **chưa được duyệt implementation**. Chỉ P2-T1 được phê duyệt; do đó review không được xem là ủy quyền cho live model/provider, GPU, dependency, API integration, hay real child data.
+P2-T1 đã hoàn thành trên nhánh base. P2-T2 là nhánh `plan/person-2-asr-research`, base từ P2-T1. Tại thời điểm brief này, P2-T2 **chưa được duyệt implementation**. Chỉ P2-T1 được phê duyệt; do đó review không được xem là ủy quyền cho live model/provider, GPU, dependency, API integration, hay real child data. Trạng thái hiện tại của approval được ghi tại `approvals/TASK_APPROVAL.md`; Phase B approval đã bao gồm controlled live Round-1, còn fixture-source selection và payload/reference hashes vẫn là `DECISION_REQUIRED`.
 
 ## Mục tiêu P2-T2
 

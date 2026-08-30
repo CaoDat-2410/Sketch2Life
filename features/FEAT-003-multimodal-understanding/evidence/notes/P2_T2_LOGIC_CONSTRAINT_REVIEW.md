@@ -54,12 +54,18 @@ Một review tiếp theo của owner phát hiện 3 vấn đề còn sót lại 
 
 Đã đồng bộ trong `plan/P2_T2_ASR_RESEARCH_PLAN.md` (nhiều mục), `DECISIONS.md` (2 bullet sửa/thêm), `CONTEXT.md` (thêm 1 bullet), `evidence/README.md`, và bảng ở trên (row #2 sửa, row #5 mới — các row sau đó đánh số lại). `plan/PLAN.md` không cần sửa (đã đúng từ trước, không có wording tương tự).
 
-## Trạng thái approval
+## Trạng thái approval (historical review; current record supersedes this section)
 
-- Đây vẫn chỉ là thay đổi tài liệu/plan. `approvals/TASK_APPROVAL.md` không bị chỉnh sửa trong lần review này.
+- Tại thời điểm review, đây chỉ là thay đổi tài liệu/plan. `approvals/TASK_APPROVAL.md` không bị chỉnh sửa trong lần review này.
 - Phase A (contract discriminated union, `AsrProfileCatalogV1` schema + fake entries only — không Whisper placeholder, `AsrPort`, fixture fake adapter, R2 contract test suite) là scope đủ điều kiện để xin approval implementation, theo review này.
-- Phase B (Whisper adapter thật, R1 profile comparison, R3 live ASR-only benchmark, R4 live execution, R5 recommendation) và P2-T5 (CLI + end-to-end ~20-fixture report) vẫn ngoài phạm vi approval hiện tại và cần xin duyệt riêng.
+- Tại thời điểm review, Phase B (Whisper adapter thật, R1 profile comparison, R3 live ASR-only benchmark, R4 live execution, R5 recommendation) và P2-T5 (CLI + end-to-end ~20-fixture report) vẫn ngoài phạm vi approval hiện tại.
+
+Current status: the project owner has since approved Phase B in `approvals/TASK_APPROVAL.md`,
+including controlled live Round-1. The remaining `DECISION_REQUIRED` item is the
+synthetic/TTS-versus-licensed fixture source and compliant local payload/reference hashes.
 
 ## Kết luận
 
-`READY_FOR_APPROVAL` — cho scope Phase A như định nghĩa ở trên. Xem `plan/P2_T2_ASR_RESEARCH_PLAN.md` mục "Phase A vs. Phase B scope" cho định nghĩa chính xác.
+`READY_FOR_APPROVAL` — cho scope Phase A như định nghĩa ở trên, tại thời điểm review. Xem
+`approvals/TASK_APPROVAL.md` cho trạng thái hiện tại và `plan/P2_T2_ASR_RESEARCH_PLAN.md` cho
+định nghĩa scope chính xác.

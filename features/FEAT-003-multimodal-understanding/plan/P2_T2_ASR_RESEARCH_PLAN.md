@@ -1,6 +1,6 @@
 # P2-T2 ASR research plan
 
-- Status: REVIEW — Phase A implemented; Phase B remains separately gated
+- Status: APPROVED — Phase A implemented; Phase B benchmark-readiness package implemented; live Round-1 benchmark executed (2026-08-30) against 21 synthetic HELD_OUT fixtures, see `evidence/notes/P2_T2_PHASE_B_ROUND1_ASR_REPORT.md`; no profile freeze or runtime default selected
 - Owner: Person 2
 - Parent plan: `PLAN.md`, revision 4; team allocation: `docs/adr/ADR-0006-parallel-sprint-allocation.md`, `features/FEAT-001-stack-and-team-plan/SPRINT_1_TASK_ALLOCATION.md`
 - Input dependency: a `PASS` result from P2-T1 for the immutable narration reference
@@ -22,21 +22,94 @@ Per `SPRINT_1_TASK_ALLOCATION.md`, P2-T2 owns the ASR contract, the fixture fake
 
 ## Phase A vs. Phase B scope
 
-This plan is split into two approval scopes so a reviewer can authorize contract work without also authorizing model/dependency work:
+This plan was split into two approval scopes so contract work could be reviewed separately from model/dependency work:
 
-- **Phase A (this document requests approval for this scope only):** freeze `AsrRequestV1`/`AsrResultV1` as a discriminated union, the `AsrProfileCatalogV1` catalog (deterministic fake profile entries only), the retry/repair matrix, and the `AsrPort` interface; implement the deterministic fixture fake adapter and the R2 contract test suite. No dependency install, no model weights, no GPU/provider access, no live inference, no live benchmark.
-- **Phase B (separate future approval, still inside P2-T2's ownership per the allocation table):** implement the real `faster-whisper`/Whisper adapter against one or more candidate entries added to `AsrProfileCatalogV1`, run R1's controlled profile comparison, and produce R3's ASR-only live benchmark evidence for profile selection. Phase B does not implement the CLI or the ~20-fixture end-to-end multimodal report; that remains P2-T5, run later against whichever profile Phase B evidence supports.
+- **Phase A (approved and implemented):** freeze `AsrRequestV1`/`AsrResultV1` as a discriminated union, the `AsrProfileCatalogV1` catalog (deterministic fake profile entries only), the retry/repair matrix, and the `AsrPort` interface; implement the deterministic fixture fake adapter and the R2 contract test suite. No dependency install, no model weights, no GPU/provider access, no live inference, no live benchmark.
+- **Phase B (approved under `approvals/TASK_APPROVAL.md`):** the additive contract/catalog change, isolated runtime configuration, real `faster-whisper` adapter, and exact-pinned optional dependency are implemented. The readiness slice added the Round-1 manifest contract, scoring normalizer, fixed two-Turbo metadata plan, and report template; the controlled live profile comparison was subsequently executed twice, with evidence in `EV-003-T2-05` and `EV-003-T2-06`. Phase B does not implement the CLI or the ~20-fixture end-to-end multimodal report; that remains P2-T5.
 
-## Contract to review before implementation
+## Phase B approval request
 
-The following is a proposed contract, not an implementation authorization. Field names and schema versions must be reviewed with the P2-T3/P2-T4 shared-contract work before code begins.
+This section records the exact Phase B scope that was requested and then approved in
+`approvals/TASK_APPROVAL.md`. Detailed rationale for every convention below was produced
+across independent review passes recorded in `evidence/notes/P2_T2_LOGIC_CONSTRAINT_REVIEW.md`
+and `evidence/notes/P2_T2_PHASE_B_APPROVAL_REQUEST.md`.
+
+### B1. Additive contract change to `contracts/schemas/asr.py`
+
+Phase B implementation begins by amending the already-approved Phase A contract file, additively only — no existing Phase A fake entry's value or behavior changes:
+
+- widen the `AsrProfileId` enum with the approved Phase B candidate members; the readiness layer plans only the two Turbo Round-1 profiles below and does not add or run a large-v3 profile;
+- widen `AsrProfileV1.adapter_kind` (currently `Literal["DETERMINISTIC_FAKE"]`) to also accept a real-adapter kind (e.g. `"FASTER_WHISPER"`);
+- widen `AsrProfileV1.compute_profile` (currently `Literal["NONE"]`) to also accept real compute descriptors (e.g. `"CPU_INT8"`, `"GPU_INT8_FLOAT16"`, `"GPU_FLOAT16"`);
+- add new `AsrProfileV1` fields not present in Phase A: `model_identifier`, `model_revision`, converted-weight provenance plus license, `adapter_version`, `runtime_version`. (`beam_size`, `language_mode`, `vad_enabled`, `word_timestamps_enabled`, `timeout_seconds`, and `idempotent_timeout_retry` already exist on `AsrProfileV1` and need no change);
+- replace `phase_a_profile_catalog()` with a single static, versioned, **phase-agnostic** catalog function (e.g. `asr_profile_catalog()`) that returns both the unchanged Phase A fake entries and the Phase B candidate entries. `AsrRequestV1`'s existing validator continues to resolve `requested_profile_id` against this one function call — Phase B does **not** introduce per-request dynamic catalog injection into Pydantic validation, since that would let the same `profile_id` validate in one call site and fail in another, breaking the contract's determinism guarantee.
+
+### B2. `config_hash` formula and required input fields
+
+`config_hash` stays the existing mechanism: SHA-256 over the canonical JSON serialization of the profile (`sort_keys=True`, compact separators — unchanged from Phase A's `profile_config_hash()`). For a Phase B profile, the hashed input must include: `model_identifier`, `model_revision`, converted-weight provenance and license, `adapter_version`, `runtime_version`, `compute_profile`, `beam_size`, `language_mode`, VAD enablement/parameters, word-timestamp enablement, `timeout_seconds`, and the retry policy (`idempotent_timeout_retry`).
+
+No local absolute path may appear in source or evidence. Only the environment-variable name `SKETCH2LIFE_ASR_MODEL_CACHE_DIR` is referenced — never a default path value in code, plan text, or evidence.
+
+### B3. Runtime configuration stays outside the shared backend `Settings`
+
+A new `FasterWhisperRuntimeConfig` is defined in `infrastructure/ai`, constructor-injected into the adapter and any local test runner — the same injection pattern `DeterministicFixtureAsrAdapter.__init__` already uses for its fixtures. The shared `infrastructure/config/settings.py` `Settings` class (which gates production behavior via `enforce_deployment_provider_policy`) is never extended for Phase B, and Phase B introduces no HTTP/API/provider wiring of any kind.
+
+### B4. Round 1 benchmark definition
+
+The first Phase B benchmark round is scoped narrowly:
+
+- `AUTO_DETECT` profiles only — no `HONOR_HINT`/forced-language profile runs in this round;
+- candidates for this readiness package: turbo INT8 auto-detect and turbo FP16 auto-detect only; the `large-v3` catalog candidate is not planned or downloaded in Round 1;
+- fixed across all Round 1 profiles: VAD disabled, beam size 5, word timestamps disabled;
+- the report must record VAD alternatives, beam-size alternatives, and word-timestamp alternatives as `NOT_MEASURED` — never silently omitted, never zero;
+- no profile is proposed for freeze and no runtime default is selected from Round 1 alone; results are directional synthetic evidence only (see the ~20-fixture limitation in R3).
+
+The Phase B approval already includes the controlled live Round-1 execution. This readiness
+slice deliberately stops before execution because the fixture source and compliant local
+payload/reference-transcript refs and hashes still require a `DECISION_REQUIRED` selection.
+
+### B5. Forced-language (`HONOR_HINT`) convention for a later round
+
+Forced-language behavior is provider-specific to `faster-whisper`, confirmed against upstream source (`SYSTRAN/faster-whisper`, `faster_whisper/transcribe.py`): when `language=None`, the model calls `detect_language(...)` and returns a measured `language_probability`; when a language is explicitly supplied, detection is skipped entirely and `language_probability` is hardcoded to `1` — a sentinel indicating "forced," not a per-audio detection confidence.
+
+Convention for any later round that adds a `HONOR_HINT` profile: the adapter sets `language_hint_applied=true`; the resulting `language_probability=1.0` is recorded and reported as a **provider sentinel**, never as detection confidence; that profile's results are excluded from language-detection accuracy/calibration metrics; no report may present a forced `"vi"` as if the model had auto-detected it.
+
+This convention is deliberately **not** enforced by a new `AsrSuccessV1`-level validator. `AsrSuccessV1` is a provider-neutral shared contract; `language_hint_applied` only means "the adapter applied the hint," not "this specific provider hard-forced the language and skipped detection." A different provider's hint mechanism could be a soft bias that still returns a genuinely measured confidence. A schema-wide invariant tying `language_hint_applied` to `language_probability == 1.0` would bake one provider's implementation detail into the shared contract, which contradicts the provider-neutral boundary this contract already keeps elsewhere (provider SDK objects, raw JSON, and other provider details stay inside infrastructure). The sentinel-vs-confidence distinction is instead enforced by the `faster-whisper` adapter's own tests and evidence, the same way today's retry/`attempt_number` correlations are enforced by `DeterministicFixtureAsrAdapter`'s own tests rather than a shared-schema validator.
+
+### B6. GPU preflight and dependency pinning
+
+GPU preflight must invoke the real adapter — a real model load plus one synthetic transcription — not a bare CLI/driver check in isolation. A model/runtime load failure or device unavailability must map to `ASR_MODEL_UNAVAILABLE` using the existing `MODEL_LOAD_FAILED`/`DEVICE_UNAVAILABLE` `AsrErrorDetail` values, per the retry/repair matrix above.
+
+`faster-whisper` and `CTranslate2` must be exact-pinned in `backend/pyproject.toml` before any install — a documented exception to this repository's usual range-pin (`>=X,<Y`) convention, because CTranslate2's cuDNN version requirement has changed across releases and a range pin risks silently breaking local GPU compatibility between installs. The rationale is recorded in the ADR required by R5.
+
+### B7. Evidence and report requirements
+
+Phase B evidence/report must include: both success and typed-failure paths with their `attempt_number`/`repair_attempted` values; the privacy constraints already required by R4 (no raw audio, transcript, credentials, or endpoint details in logs or `evidence/`); weight provenance and license; the versioned Vietnamese normalizer/tokenizer used for WER/CER; an explicit synthetic-only limitation statement (no real child-speech validation); and the ~20-fixture sample size labelled directional, not statistically robust evidence.
+
+## Phase B benchmark-readiness implementation slice (2026-08-30)
+
+This slice prepares the approved Round-1 execution without running it. It adds a strict,
+provider-neutral `AsrRound1FixtureManifestV1` contract and a feature-local layout/template;
+the manifest is metadata-only until a synthetic/TTS or licensed source is selected. It adds
+the versioned `vi-asr-normalizer-v1` scoring views (WER tokens and CER characters), and a
+non-CLI planner that validates the manifest, checks the exact two-Turbo Round-1 settings,
+and emits deterministic `PLANNED` records with every measurement set to `NOT_MEASURED`.
+The planner does not inspect audio, import/call a provider SDK, load a model, use a GPU, or
+replace P2-T5's CLI/end-to-end report. No model, audio, transcript, or real-child data is
+created by this slice.
+
+## Contract baseline and implementation constraints
+
+The following is the reviewed contract baseline and its implementation constraints. The
+Phase A contract and approved Phase B additions are implemented; the readiness additions are
+described above and remain metadata-only until a fixture source is selected.
 
 ### Request boundary
 
 `AsrRequestV1` accepts only:
 
 - `source_audio_ref` and its SHA-256, copied from a passing `MediaValidationResultV1` — **always required, on every request in every phase**, including Phase A. In Phase A this is populated from a synthetic audio fixture that already carries a P2-T1 `PASS`. It always names the original, untouched audio, never a derived copy, and no adapter may normalize, mutate, or VAD-filter it;
-- optional `processing_audio_ref`: a reference to a derived working copy of the audio, populated only if a prior step created one. If set, `derivation_provenance` (transform applied, config/version, and a hash chain back to `source_audio_ref`) is mandatory and must be present in the same request. **In Phase A, `processing_audio_ref` is always `null` and `derivation_provenance` is always absent/`null`** — P2-T2 does not normalize or VAD-filter the source audio in Phase A, no working copy exists, and no adapter may silently create one. Whether Phase B or a later task needs preprocessing is an open question for that separate approval, not an assumption this plan makes now;
+- optional `processing_audio_ref`: a reference to a derived working copy of the audio, populated only if a prior step created one. If set, `derivation_provenance` (transform applied, config/version, and a hash chain back to `source_audio_ref`) is mandatory and must be present in the same request. **In Phase A, `processing_audio_ref` is always `null` and `derivation_provenance` is always absent/`null`** — P2-T2 does not normalize or VAD-filter the source audio in Phase A, no working copy exists, and no adapter may silently create one. Any preprocessing decision beyond this contract is a later, explicitly scoped decision;
 - the P2-T1 validator/config provenance reference;
 - `requested_profile_id`: a closed reference into `AsrProfileCatalogV1` (see below), never a free-form string — validated at request construction, per the convention immediately below;
 - optional `language_hint`: `{value, source, is_ground_truth: false}` — see the language-policy section below;
@@ -110,7 +183,7 @@ Both the retry and the repair paths are enforced entirely inside the adapter/por
 `attempt_number` and the retry/repair matrix have identical semantics and identical counting rules in both phases — only what happens *inside* one attempt differs:
 
 - **Phase A:** an "attempt" is the deterministic fake adapter returning a pre-configured outcome for that fixture. No model runs, no dependency loads, no provider is called. Concretely: `INPUT_NOT_VALIDATED` → `attempt_number = 0` (rejected before the fake is even invoked); an ordinary fake success or a non-retryable fake failure (`ASR_MODEL_UNAVAILABLE`, non-transient `ASR_PROVIDER_FAILURE`, default-policy `ASR_TIMEOUT`, or `ASR_SCHEMA_INVALID` after its one repair) → `attempt_number = 1`; a fake-simulated transient `ASR_PROVIDER_FAILURE` (or idempotent-policy `ASR_TIMEOUT`) that retries once → `attempt_number = 2`.
-- **Phase B:** an "attempt" is a real invocation of the provider/model (e.g. `faster-whisper`). The same counting rules apply, but this phase is not authorized by this document — it requires the separate Phase B approval described above.
+- **Phase B:** an "attempt" is a real invocation of the provider/model (e.g. `faster-whisper`). The same counting rules apply. That execution is within the current Phase B approval, but this readiness slice does not invoke it.
 
 R2's fixtures assert the Phase A numbers above; nothing in Phase A ever produces or requires a real model invocation to reach them.
 
@@ -119,7 +192,7 @@ R2's fixtures assert the Phase A numbers above; nothing in Phase A ever produces
 `requested_profile_id` is not a free string. It references `AsrProfileCatalogV1`, a closed, versioned registry where every entry declares its task/language mode, decode/beam settings, VAD policy and parameters, timestamp granularity, and compute/precision profile, and is itself hashed for the `config_hash` field.
 
 - **Phase A defines the `AsrProfileCatalogV1` schema itself, plus only deterministic fake entries** — no model, no dependency, no Whisper runtime of any kind (not even a stub that shells out to it). A single default (e.g. `FAKE_DETERMINISTIC_V1`) covers most contract fixtures; a second fake entry that declares the idempotent-timeout retry policy is permitted solely to exercise that one matrix branch in R2's tests. Every Phase A entry is a deterministic ASR-adapter-output fake — it fakes the adapter's return values, never a Whisper/`faster-whisper` runtime. Neither entry, nor any additional fake variant, may invoke a model or require a dependency.
-- **Phase A does not add any Whisper candidate entry to the catalog at all** — not even as an unusable placeholder. Candidate Whisper profiles (e.g. distinct catalog entries varying beam size, VAD on/off, word timestamps, compute precision per R1's table) are defined only once Phase B is separately approved; that approval is what introduces them into `AsrProfileCatalogV1`, initially as `NOT_APPROVED` until R1/R5 evidence supports freezing one. Until then, the catalog that ships with Phase A contains fake entries only.
+- **Phase A did not add any Whisper candidate entry to the catalog** — not even as an unusable placeholder. The current Phase B approval introduces the real-adapter candidates. The Round-1 readiness layer plans only the two Turbo profiles defined above; no large-v3 profile is added to or run by this slice. Candidate profiles remain `NOT_APPROVED` until R1/R5 evidence supports freezing one, and the exact additive contract change is recorded in B1 above.
 
 `language_hint` is optional, carries its own `source` (e.g. fixture manifest declared language, an upstream UI-provided guess), and is explicitly `is_ground_truth: false`. An adapter may use it to bias decoding only for a profile that documents doing so, and must echo it in `language_hint_echo` either way. The benchmark (R1/R3) must keep "auto-detect" and "honor-hint" as separate, clearly labelled controlled variants — language-detection accuracy reported for the "honor-hint" mode must never be blended with or substituted for the "auto-detect" mode's accuracy, since a hint can trivially inflate apparent accuracy and would hide the model's real detection quality.
 
@@ -139,7 +212,7 @@ Record the exact upstream source/model revision, adapter/library version, conver
 | Timing | segment-only; word timestamps enabled | timing usefulness, schema completeness, latency, and any alignment failures |
 | Compute | supported CPU/GPU precision profiles | p50/p95 latency, memory/runtime availability, and equal-quality comparison |
 
-Do not compare provider benchmarks with mismatched decode settings. Keep model load/start-up time separate from per-audio inference latency. This work package is Phase B scope; it does not run until that approval exists.
+Do not compare provider benchmarks with mismatched decode settings. Keep model load/start-up time separate from per-audio inference latency. This work package is within the approved Phase B scope, but its live execution follows the fixture-source decision. The first Phase B execution slice ("Round 1") is scoped narrowly to the auto-detect/compute/model-size variables only — see "B4. Round 1 benchmark definition" above; VAD, beam-size, and word-timestamp alternatives remain `NOT_MEASURED` until a later round, and any forced-language (`HONOR_HINT`) variant follows "B5. Forced-language convention" above, not this table's language-mode row directly.
 
 ### R2 — Freeze the fixture-only contract test suite
 
@@ -212,18 +285,25 @@ Before any model/runtime/provider freeze, record an ADR (or a `DECISIONS.md` ent
 - [x] The retry/repair matrix fixes cause → error code → retryable/repairable → max attempts → owner for all five error codes, with `attempt_number`/`repair_attempted` semantics defined for testing.
 - [x] `attempt_number` is defined as an adapter inference attempt, not a "model-invocation" — Phase A's fake adapter simulates attempts deterministically (`INPUT_NOT_VALIDATED`→`0`, ordinary success/non-retryable failure→`1`, one retry→`2`) with no real model ever invoked; Phase B is where an attempt becomes a real provider/model call.
 - [x] `source_audio_ref`+hash is always required and always populated, in every phase including Phase A (from a synthetic fixture already carrying a P2-T1 `PASS`) — it is never `null` in Phase A or any other phase. Separately, the optional `processing_audio_ref` + mandatory-when-set `derivation_provenance` are specified for a future working copy; only these two fields — never `source_audio_ref` — are always `null`/absent in Phase A, and Phase A creates no working copy.
-- [x] `requested_profile_id` is a closed `AsrProfileCatalogV1` reference, not a free string; Phase A ships only deterministic fake profile entries (no model, no dependency, no Whisper runtime); no Whisper candidate entry — not even a placeholder — exists in the catalog until Phase B is separately approved.
+- [x] `requested_profile_id` is a closed `AsrProfileCatalogV1` reference, not a free string; Phase A shipped only deterministic fake profile entries (no model, no dependency, no Whisper runtime); the current Phase B approval covers the additive Whisper candidates, while this readiness layer plans only the two Turbo profiles.
 - [x] An out-of-catalog `requested_profile_id` is a deterministic request/schema-boundary validation error raised before `AsrPort` is invoked — distinct from `AsrFailureV1` and specifically distinct from `INPUT_NOT_VALIDATED` (which requires a structurally valid request); `profile_id` in every result is always resolved and unambiguous.
 - [x] `language_hint` is optional, provenance-tagged, non-authoritative, and the benchmark design keeps auto-detect and honor-hint metrics separate.
 - [x] `no_speech_prob`/ASR diagnostics vs. P2-T1 `PASS`/`RECAPTURE` boundary is documented: diagnostics never override P2-T1's decision or trigger self-recapture.
 - [x] `INPUT_NOT_VALIDATED` convention is fixed as a schema-valid `AsrFailureV1`, documented as a defensive second check.
 - [x] Scope is confirmed against `SPRINT_1_TASK_ALLOCATION.md`: P2-T2 owns contract/fake/Whisper adapter; P2-T5 owns the CLI and the ~20-fixture end-to-end report; no invented task IDs are used.
-- [ ] Fixture manifest and normalization specification are versioned and declare synthetic/licensed provenance, including Vietnamese, non-Vietnamese, code-switching, silence-only, and noise/recording-condition slices.
-- [ ] Candidate profiles and controlled variables are recorded before any run.
-- [ ] Benchmark report can show WER/CER, schema validity, language behavior, VAD/timestamp behavior, and latency coverage without concealing unavailable measurements.
-- [ ] Privacy/observability checklist shows no raw audio, transcript, credentials, or endpoint details in ordinary logs or in `evidence/`.
-- [ ] A separate task approval explicitly authorizes only the selected implementation/benchmark scope (Phase A now; Phase B later) before dependencies, model weights, or live inference are used.
+- [x] The Round-1 fixture-manifest contract/layout and versioned normalizer specification declare synthetic/licensed provenance and the Vietnamese, non-Vietnamese, code-switching, silence-only, and noise/recording-condition slices; the concrete source decision was resolved as `SYNTHETIC` (TTS) and recorded in `EV-003-T2-04`.
+- [x] The two Turbo candidate profiles and fixed controlled variables are recorded and validated before any run.
+- [x] The benchmark report template/planned-run contract can show WER/CER, schema validity, language behavior, VAD/timestamp behavior, latency, VRAM, and success/failure coverage without concealing unavailable measurements.
+- [x] The readiness/privacy review shows no raw audio, transcript, credentials, endpoint details, or absolute local paths in ordinary logs, source, or feature evidence.
+- [x] The current task approval explicitly authorizes the Phase B scope, including controlled live Round-1 execution; the preparation slice did not exercise it, and the subsequently executed runs are recorded in `EV-003-T2-05` and `EV-003-T2-06`.
 
-## Recommended first action after approval
+## Next gated action after readiness (resolved 2026-08-30)
 
-Under Phase A approval: freeze `AsrRequestV1`/`AsrResultV1` (as the discriminated union above) and `AsrProfileCatalogV1` (fake entries only) with a fixture fake first. This gives P2-T4 a stable input contract and lets the real `faster-whisper` adapter be substituted and benchmarked under a later Phase B approval without coupling fusion to the model runtime.
+The fixture-source decision was recorded as `SYNTHETIC` (TTS), and the controlled live Round-1
+execution already covered by the Phase B approval was run: 21 `HELD_OUT` synthetic fixtures
+across the required scenarios, through the two fixed Turbo profiles (`WHISPER_TURBO_INT8_AUTO_V1`,
+`WHISPER_TURBO_FP16_AUTO_V1`). See `evidence/notes/P2_T2_PHASE_B_FIXTURE_PROVENANCE.md` for the
+tooling/voice provenance and `evidence/notes/P2_T2_PHASE_B_ROUND1_ASR_REPORT.md` for the measured
+WER/CER, language accuracy, latency, VRAM, and typed-failure results. Consistent with the
+approved scope, no profile is frozen and no runtime default is selected by this round; that
+remains a separate R5/Integration-Sprint/ADR decision.

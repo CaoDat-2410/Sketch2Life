@@ -1,8 +1,8 @@
 # FEAT-003 Multimodal understanding plan
 
-- Status: REVIEW (P2-T1 complete; P2-T2 Phase A complete)
+- Status: APPROVED (P2-T1 complete; P2-T2 Phase A complete; P2-T2 Phase B approved)
 - Plan revision: 4
-- Implementation status: DONE (P2-T2 Phase A only; Phase B separately gated)
+- Implementation status: IN_PROGRESS (P2-T1 and P2-T2 Phases A/B complete; the controlled Round-1 benchmark executed twice; P2-T3 through P2-T5 remain planned)
 - Owner: Person 2
 - Estimate: 10 points total (P2-T1 through P2-T5, 2 points each)
 
@@ -25,7 +25,11 @@ The contract review is part of this plan, not approval to integrate it into the 
 
 ## Approved implementation slice
 
-Only P2-T1 is approved for implementation. P2-T2 through P2-T5 remain planned and must receive their own explicit approval before work starts.
+P2-T1 and P2-T2 Phase A are implemented; the P2-T2 Phase B benchmark-readiness package and
+controlled live Round-1 execution are complete under the approved scope in
+`approvals/TASK_APPROVAL.md`. The two executed runs are recorded in `EV-003-T2-05` and
+`EV-003-T2-06`; neither selects a frozen profile or runtime default. P2-T3 through P2-T5 remain
+planned and must receive their own explicit approval before work starts.
 
 ## Task breakdown and execution order
 
@@ -52,7 +56,7 @@ Only P2-T1 is approved for implementation. P2-T2 through P2-T5 remain planned an
 3. Implement the retry/repair matrix (per-error-code retryability, one bounded inference retry only for transient provider failure, one local mapping/serialization repair only for schema-invalid output, enforced inside the adapter); provider failure remains a typed error and cannot overwrite the source or create a canonical meaning artifact.
 4. Add Vietnamese and non-Vietnamese synthetic fixtures, Vietnamese-English code-switching, silence-only/no-speech (Case A: `SUCCEEDED` with empty transcript) and unmappable-output (Case B: `FAILED`) cases, noise/recording-condition variation, timeout/failure cases per the retry matrix, and schema round-trip tests.
 
-**Phase B (separate future approval, still P2-T2 ownership):** implement the real `faster-whisper`/Whisper adapter against approved `AsrProfileCatalogV1` candidate entries and run the ASR-only profile-selection benchmark. It does not include the CLI or the ~20-fixture end-to-end report, which is P2-T5.
+**Phase B (approved under `approvals/TASK_APPROVAL.md`, still P2-T2 ownership):** implement the real `faster-whisper`/Whisper adapter against experimental `AsrProfileCatalogV1` candidate entries and run the ASR-only profile-selection benchmark. The current readiness layer plans exactly the two Turbo Round-1 profiles; the live run waits only for fixture-source selection and compliant local payload/reference hashes. It does not include the CLI or the ~20-fixture end-to-end report, which is P2-T5. The exact scope — additive contract change, `config_hash` fields, standalone runtime config, Round 1 (`AUTO_DETECT`-only) definition, deferred forced-language convention, GPU preflight/exact-pin requirements, and evidence requirements — is detailed in `P2_T2_ASR_RESEARCH_PLAN.md` and `evidence/notes/P2_T2_PHASE_B_APPROVAL_REQUEST.md`.
 
 **Done when (Phase A):** valid audio produces schema-valid transcript/language/quality metadata with the original audio reference; every fake output is mapped to exactly one of `AsrSuccessV1`/`AsrFailureV1` deterministically; ASR no-speech/language diagnostics never override a P2-T1 `PASS`/`RECAPTURE` decision; no credential, endpoint, raw transcript, or raw media is written to ordinary logs or to `evidence/`. Full contract, discriminated-union fields, retry/repair matrix, and boundary detail: `P2_T2_ASR_RESEARCH_PLAN.md`.
 
@@ -88,7 +92,7 @@ Only P2-T1 is approved for implementation. P2-T2 through P2-T5 remain planned an
 
 **Implementation slices:**
 
-1. Build `validate`, `understand --provider fixture`, and `evaluate` CLI commands. Fixture mode is the CI baseline; a separately approved adapter profile may run live-model measurements without changing schemas or fixtures.
+1. Build `validate`, `understand --provider fixture`, and `evaluate` CLI commands. Fixture mode is the CI baseline; the approved P2-T2 Phase B Round-1 profiles may run only through their controlled ASR benchmark boundary, without changing schemas or fixtures.
 2. Define a held-out, versioned fixture manifest with reference transcript, language, entities/actions/relations/themes, expected validation decision, and known conflict labels. Keep media local and synthetic; record immutable hashes, manifest version, and split membership.
 3. Calculate and report: schema pass/fail rate; image/audio recapture counts by reason; ASR WER and CER against reference transcript; entity/action precision, recall, F1 (and the matching rule); conflict-detection precision/recall where labeled; per-stage and end-to-end p50/p95 latency; provider/config and run timestamp. Report unavailable metrics as `NOT_MEASURED`, never as zero.
 4. Save command, environment, manifest/model/config hashes, outputs, and interpretation under `features/FEAT-003-multimodal-understanding/evidence/`. Include success, invalid-input, timeout/provider-failure, and fallback/recapture cases.
@@ -116,6 +120,7 @@ For one owner, work sequentially as T1, T2, T3, T4, T5. If two contributors are 
 - [ ] Timeout/provider-failure fixtures produce typed standalone errors and never overwrite source artifacts.
 - [ ] The runner and all contract tests execute without mobile, backend API, database, queue, or another Sprint 1 workstream.
 - [ ] Evidence records command, environment, input/manifest reference, output, timestamp, reviewer, and interpretation.
+- [x] P2-T2 Phase B readiness validates a versioned ASR-only manifest and fixed Round-1 metadata plan without model/GPU/CLI/API work; unavailable measurements are explicit `NOT_MEASURED`.
 
 ## Evidence and review gates
 
@@ -124,4 +129,7 @@ For one owner, work sequentially as T1, T2, T3, T4, T5. If two contributors are 
 3. During implementation: store test output, fixture manifest hashes, model/config hashes, and benchmark summaries in this feature's `evidence/` directory. Do not store original or real child media.
 4. Before completion: record a compatibility note for Integration Sprint containing only versioned input/output contracts, typed errors, artifact references, and provenance requirements.
 
-Implementation is blocked until this plan revision is explicitly approved.
+Implementation is blocked for every not-yet-approved slice (P2-T3 through P2-T5) until this
+plan revision's corresponding scope is explicitly approved. P2-T1 and P2-T2 Phase A already
+cleared this gate and are implemented; P2-T2 Phase B readiness is implemented within its
+recorded scope, with live benchmark execution still intentionally deferred.
