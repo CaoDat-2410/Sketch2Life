@@ -1,8 +1,8 @@
 # FEAT-003 Multimodal understanding plan
 
-- Status: APPROVED (P2-T1 complete; P2-T2 Phase A complete; P2-T2 Phase B approved)
+- Status: APPROVED (P2-T1 complete; P2-T2 Phases A/B complete; P2-T3 Phase A approved)
 - Plan revision: 4
-- Implementation status: IN_PROGRESS (P2-T1 and P2-T2 Phases A/B complete; the controlled Round-1 benchmark executed twice; P2-T3 through P2-T5 remain planned)
+- Implementation status: IN_PROGRESS (P2-T1 and P2-T2 Phases A/B complete; P2-T3 Phase A approved for implementation; P2-T3 Phase B through P2-T5 remain planned)
 - Owner: Person 2
 - Estimate: 10 points total (P2-T1 through P2-T5, 2 points each)
 
@@ -28,8 +28,9 @@ The contract review is part of this plan, not approval to integrate it into the 
 P2-T1 and P2-T2 Phase A are implemented; the P2-T2 Phase B benchmark-readiness package and
 controlled live Round-1 execution are complete under the approved scope in
 `approvals/TASK_APPROVAL.md`. The two executed runs are recorded in `EV-003-T2-05` and
-`EV-003-T2-06`; neither selects a frozen profile or runtime default. P2-T3 through P2-T5 remain
-planned and must receive their own explicit approval before work starts.
+`EV-003-T2-06`; neither selects a frozen profile or runtime default. P2-T3 Phase A is separately
+approved; P2-T3 Phase B and P2-T4 through P2-T5 remain planned and must receive their own explicit
+approval before work starts.
 
 ## Task breakdown and execution order
 
@@ -72,6 +73,8 @@ planned and must receive their own explicit approval before work starts.
 4. Test valid structured outputs, malformed/free-text output, missing source reference, prohibited field, ambiguity, timeout, and source-hash preservation. Use fixture model responses for all contract tests.
 
 **Done when:** `drawing.png` yields only schema-valid structured observations; malformed free text cannot enter fusion; every observation remains traceable to the original image and model/config.
+
+**Phase A approval reference:** the detailed Phase A contract, typed error/retry/repair matrix, safety boundary, fixture matrix, and accepted owner decisions are in `P2_T3_VISION_RESEARCH_PLAN.md`; the authoritative approval is `approvals/TASK_APPROVAL.md` (2026-08-31). The corresponding review record is `evidence/notes/P2_T3_VISION_CONSTRAINT_REVIEW.md`. This authorizes only the deterministic contract/fake-adapter scope. P2-T3 Phase B (real Qwen runtime/profile/GPU/benchmark) remains separately gated. Where the plan resolves ambiguity, prohibited claims are rejected as typed failures rather than silently masked, and the single bounded local repair is a lossless Markdown-fence unwrap only — never JSON completion or value inference.
 
 ### P2-T4 — Multimodal fusion and conflict detection (2 points, Must)
 
@@ -129,7 +132,6 @@ For one owner, work sequentially as T1, T2, T3, T4, T5. If two contributors are 
 3. During implementation: store test output, fixture manifest hashes, model/config hashes, and benchmark summaries in this feature's `evidence/` directory. Do not store original or real child media.
 4. Before completion: record a compatibility note for Integration Sprint containing only versioned input/output contracts, typed errors, artifact references, and provenance requirements.
 
-Implementation is blocked for every not-yet-approved slice (P2-T3 through P2-T5) until this
-plan revision's corresponding scope is explicitly approved. P2-T1 and P2-T2 Phase A already
-cleared this gate and are implemented; P2-T2 Phase B readiness is implemented within its
-recorded scope, with live benchmark execution still intentionally deferred.
+Implementation is blocked for every not-yet-approved slice (P2-T3 Phase B through P2-T5) until its
+corresponding scope is explicitly approved. P2-T1 and P2-T2 cleared this gate and are implemented;
+P2-T3 Phase A is now approved only within its recorded deterministic contract/fake-adapter scope.

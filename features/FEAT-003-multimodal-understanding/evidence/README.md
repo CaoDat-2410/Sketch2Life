@@ -16,5 +16,8 @@
 
 | EV-003-T2-06 | P2-T2 Phase B | Round-1 ASR benchmark — repeat run 2 (NEWEST) | `notes/P2_T2_PHASE_B_ROUND1_REPORT_RUN2.json` + the "Repeat run 2" section of `notes/P2_T2_PHASE_B_ROUND1_ASR_REPORT.md`: an independent re-execution of the same 21 `HELD_OUT` fixtures × 2 fixed Turbo profiles (42 aggregate / 21 per-profile runs) against the same manifest hash, report ID `asr-round1-report-a7f1b4be…`. Every quality metric (WER 0.49%, CER 0.27%, language accuracy 100%, speech-presence match 89.5%) reproduced **exactly**, with an identical typed-failure set (2× `INPUT_NOT_VALIDATED` on `silence`) and identical `MISMATCH` set (both `noise` fixtures); only latency/VRAM varied within single-machine jitter. Run 1 (`…f9095af9…`) is preserved unmodified. No profile freeze or runtime-default selection. |
 
+| EV-003-T3-PLAN-01 | P2-T3 | Plan constraint-resolution review | `notes/P2_T3_VISION_CONSTRAINT_REVIEW.md`: document-only red-team resolution record behind `plan/P2_T3_VISION_RESEARCH_PLAN.md`, including its final contract-completeness, provenance, strict-schema, typed-error, fake-catalog, and fixture-matrix reviews. Its historical `DRAFT / AWAITING_APPROVAL` conclusions are superseded for Phase A only by the owner's 2026-08-31 approval; Phase B remains unapproved. |
+| EV-003-T3-PLAN-02 | P2-T3 Phase A | Approval record | `notes/P2_T3_PHASE_A_APPROVAL.md`: the owner's explicit Phase A approval, accepted lexicon/text/geometry decisions, scope, non-goals, and implementation acceptance boundary. The authoritative approval status is `approvals/TASK_APPROVAL.md`. |
+
 P2-T5 remains the owner of the public CLI and end-to-end multimodal fixture report; the Round-1
 evidence above is an ASR-only profile-selection artifact within the approved Phase B scope.

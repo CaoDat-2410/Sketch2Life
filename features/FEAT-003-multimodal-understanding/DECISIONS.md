@@ -1,5 +1,12 @@
 # FEAT-003 decisions
 
+## P2-T3 Phase A approval decisions (2026-08-31)
+
+- The owner approved the P2-T3 Phase A contract/fake-adapter scope only. The real Qwen runtime, dependency/model/weight acquisition, GPU or cloud execution, profile selection, benchmark, and all user-facing/integration promotion remain a separately approved Phase B concern.
+- The Phase A `ProhibitedLexiconV1` is a synthetic-only, deterministic, versioned lexical regression set over the six closed prohibited-claim category identifiers. It is reviewed by the project owner; changing its category set, governance, or policy/match-view contract requires a new plan-and-approval review. A synthetic-entry update must bump `lexicon_version` and enter feature-local evidence. It is not a semantic-safety guarantee and contains no real child data.
+- Phase A structured `label`, `predicate`, and `note` values use open normalized `ObservedTextV1` with a non-ground-truth `TextLanguageDeclarationV1`; this does not permit translation, inference, or undocumented semantic cross-modal matching.
+- `AmbiguousRegionCandidateV1` deliberately has no geometry and is not an evidence-reference target in Phase A. Geometry needs a separately approved additive contract change.
+
 ## P2-T2 Phase B benchmark-readiness decisions (2026-08-30)
 
 - Round 1 in this readiness package is exactly two candidates: Turbo INT8 and Turbo FP16, both `AUTO_DETECT`, beam size `5`, VAD disabled, and word timestamps disabled. `HONOR_HINT` and the large-v3 candidate are not planned by this layer. No candidate is frozen and no runtime default is selected.
