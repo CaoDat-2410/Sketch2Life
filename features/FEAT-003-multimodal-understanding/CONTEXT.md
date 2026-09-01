@@ -1,5 +1,11 @@
 # FEAT-003 Multimodal understanding context
 
+## P2-T3 Phase B B2 environment setup status (2026-09-01)
+
+- An internal no-model-load readiness checker is implemented in `qwen_vision_environment_readiness.py` and recorded as `EV-003-T3-03`. It reads only the explicitly selected ignored `.vision.env`, the explicit V2 profile, and injected/lazy dependency/hardware/revision probes; its sanitized output cannot contain a local path or raw provider data.
+- `READY` proves only exact dependency pins, CUDA/device index, BF16, normalized Lightning L4 device class, local snapshot presence, and immutable-revision metadata. It does not prove model load, inference, timeout cleanup, latency, VRAM, or output mapping; those remain the real B2 preflight gate.
+- No dependency/model was installed or downloaded by this repository change, and no local/cloud GPU or provider call was made. B3–B5 remain unexecuted.
+
 ## P2-T3 Phase B B1 implementation status (2026-09-01)
 
 - B1 is implemented and recorded in `evidence/notes/P2_T3_PHASE_B_B1_IMPLEMENTATION.md` (`EV-003-T3-02`). The additive V2 contract, single static Qwen candidate catalog, separate V2 hashes, isolated runtime configuration, lazy/typed Qwen adapter skeleton, exact-pinned optional extra, placeholder-only env example, ADR-0007, and no-GPU tests are in place.

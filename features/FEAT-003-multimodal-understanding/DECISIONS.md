@@ -1,5 +1,11 @@
 # FEAT-003 decisions
 
+## P2-T3 Phase B B2 environment setup decisions (2026-09-01)
+
+- Environment readiness is distinct from the typed B2 GPU preflight. `READY` means only that the approved exact pins, explicit ignored config, local immutable snapshot metadata, CUDA/device index, BF16, and normalized `NVIDIA_L4` device class are present; it never means a model was loaded or an inference succeeded.
+- The checker receives an explicit V2 profile and `.vision.env`; it chooses no runtime default and never falls back to a remote model identifier. Setup requires a local model directory, downloads disabled, and revision metadata matching the profile's immutable revision.
+- Readiness output is sanitized and path-free. It exposes closed issue tokens, safe versions, hashes, booleans, and normalized device class only. Raw device strings, local paths, endpoints, prompts, model output, and credentials are forbidden.
+
 ## P2-T3 Phase B B1 decisions (2026-09-01)
 
 - The V1 vision contract is frozen. Real-model support is additive and disjoint: `VisionProfileIdV2`, `VisionProfileV2`, `VisionProfileCatalogV2`, `VisionUnderstandingRequestV2`, and `VisionUnderstandingResultV2` do not widen or reuse V1 identity-bearing types. V2 has its own `vision_profile_config_hash_v2()` and `vision_profile_catalog_hash_v2()` functions; the canonical V2 catalog contains exactly one candidate and is static.

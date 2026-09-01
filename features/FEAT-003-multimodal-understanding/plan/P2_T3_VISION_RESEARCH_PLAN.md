@@ -961,9 +961,9 @@ fixture manifest and the contract test matrix; write one feature-local evidence 
 weight, GPU, provider call, runtime configuration, CLI, API, UI, mobile, database, queue, storage,
 or real child data.
 
-The project owner approved this exact Phase A scope on 2026-08-31. Implementation must still meet
-the fixture/contract acceptance matrix and record feature-local evidence. P2-T3 Phase B remains
-explicitly unapproved in `approvals/TASK_APPROVAL.md`.
+The project owner approved this exact Phase A scope on 2026-08-31. Implementation met the
+fixture/contract acceptance matrix and recorded feature-local evidence. Phase B was subsequently
+approved for its bounded B1–B5 scope on 2026-09-01; that later approval does not broaden Phase A.
 
 This scope was implemented on 2026-09-01 and met the fixture/contract acceptance matrix above;
 see `evidence/notes/P2_T3_PHASE_A_IMPLEMENTATION.md` (`EV-003-T3-01`).
@@ -984,3 +984,17 @@ installed/downloaded, and no profile freeze or runtime default was selected.
 A B1 contract-consistency correction subsequently aligned the Qwen adapter's repair flag with the
 fake adapter for complete fenced non-object JSON roots; its focused regression and final validation
 are recorded in `EV-003-T3-02`.
+
+## Phase B B2 environment setup status (2026-09-01)
+
+The internal environment-readiness slice is implemented and recorded in
+`evidence/notes/P2_T3_PHASE_B_B2_ENVIRONMENT_SETUP.md` (`EV-003-T3-03`). It verifies the explicit
+ignored runtime configuration, exact profile-derived pins, CUDA/device index, BF16 capability,
+normalized Lightning L4 class, local model presence, and immutable local snapshot metadata without
+importing Transformers, loading weights, or running inference. Its sanitized result contains no
+local path or raw provider data and structurally records `model_load_performed=false` and
+`inference_performed=false`.
+
+This setup result is not the V2 GPU preflight acceptance evidence. B2 still requires one real model
+load and one synthetic inference through the adapter plus latency, VRAM, and worker/device cleanup
+evidence. B3–B5 remain unexecuted by this setup slice.
