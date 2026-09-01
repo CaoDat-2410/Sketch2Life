@@ -1,6 +1,8 @@
 # P2-T3 Qwen3-VL structured drawing understanding research plan
 
-- Status: APPROVED FOR PHASE A IMPLEMENTATION — Phase B and all promotion remain separately gated
+- Status: APPROVED — Phase A implemented (contracts, deterministic fake adapter, lexical policy,
+  synthetic fixtures, contract tests); see `evidence/notes/P2_T3_PHASE_A_IMPLEMENTATION.md`.
+  Phase B and all promotion remain separately gated.
 - Owner: Person 2
 - Parent plan: `PLAN.md`, revision 4, task P2-T3; allocation: `docs/adr/ADR-0006-parallel-sprint-allocation.md`, `features/FEAT-001-stack-and-team-plan/SPRINT_1_TASK_ALLOCATION.md`
 - Input dependency: a `PASS` `MediaValidationResultV1` from P2-T1 for the immutable drawing reference
@@ -14,6 +16,10 @@ The project owner explicitly approved P2-T3 Phase A on 2026-08-31. The authorita
 owner decisions and boundaries. This approval authorizes only the Phase A contract/fake-adapter
 scope stated at the end of this plan. It does not approve Phase B, a real Qwen runtime, provider
 credentials, GPU/cloud execution, or promotion to user-facing, Integration Sprint, or Gate A use.
+
+The approved Phase A scope was implemented on 2026-09-01; see
+`evidence/notes/P2_T3_PHASE_A_IMPLEMENTATION.md` (`EV-003-T3-01`) for the delivered artifacts,
+required-behavior-to-test mapping, and validation command results.
 
 ## Research question and decision to make
 
@@ -943,3 +949,6 @@ or real child data.
 The project owner approved this exact Phase A scope on 2026-08-31. Implementation must still meet
 the fixture/contract acceptance matrix and record feature-local evidence. P2-T3 Phase B remains
 explicitly unapproved in `approvals/TASK_APPROVAL.md`.
+
+This scope was implemented on 2026-09-01 and met the fixture/contract acceptance matrix above;
+see `evidence/notes/P2_T3_PHASE_A_IMPLEMENTATION.md` (`EV-003-T3-01`).
