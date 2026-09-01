@@ -1,5 +1,20 @@
 # FEAT-003 decisions
 
+## P2-T3 Phase B B2 real GPU preflight result (2026-09-01)
+
+- The first real B2 typed GPU preflight (`EV-003-T3-06`) — a real `Qwen/Qwen3-VL-8B-Instruct`
+  model load and one synthetic inference through `QwenVisionAdapter` on Lightning L4 — returned a
+  typed `FAILED` / `VISION_SCHEMA_INVALID` / `OUTPUT_MAPPING_FAILED` result (`attempt_number=1`,
+  `repair_attempted=false`; peak VRAM `17080.0` MB, post-call sample on the selected GPU `0.0`
+  MB, supporting the cleanup observation without proving on its own that no other allocation or
+  process existed). The runtime/model-load/invocation/typed-classification/cleanup pathway
+  worked; the adapter could not map the model output to the strict V2 structured-output
+  contract on this single contract-anticipated data point — it does **not** by itself establish a model or
+  adapter defect (B3 investigates mapping-failure causes, not patched or rerun from this one
+  result), is **not** a schema-validity-rate finding (B3's job, at a proper sample size), does
+  **not** freeze `QWEN3_VL_8B_INSTRUCT_BF16_V1` or any candidate, and does **not** select a
+  runtime default; B3–B5 remain unexecuted.
+
 ## P2-T3 Phase B B2 environment setup decisions (2026-09-01)
 
 - Environment readiness is distinct from the typed B2 GPU preflight. `READY` means only that the approved exact pins, explicit ignored config, local immutable snapshot metadata, CUDA/device index, BF16, and normalized `NVIDIA_L4` device class are present; it never means a model was loaded or an inference succeeded.

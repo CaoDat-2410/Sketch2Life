@@ -51,14 +51,23 @@ These observations do **not** establish that the snapshot contains every pinned 
 or that every local Hugging Face metadata record names the approved immutable revision. The current
 checker is the required source of truth for those two questions.
 
-## Work not yet evidenced
+## Work now evidenced vs. still not evidenced
 
-- No committed evidence records a real Qwen model load or a real Qwen inference.
-- No B2 typed preflight result, latency measurement, VRAM baseline/peak/post-call measurement, or
-  subprocess/device-cleanup observation exists.
-- B3 structured-output mapping study, B4 held-out benchmark and repeat, and B5 recommendation are
-  unexecuted.
-- No profile is frozen and no runtime default is selected.
+- **Now evidenced (`EV-003-T3-06`, `P2_T3_PHASE_B_B2_GPU_PREFLIGHT_EXECUTION.md`):** a real Qwen
+  model load and one real synthetic inference through `QwenVisionAdapter` on Lightning L4, with a
+  typed result (`FAILED` / `VISION_SCHEMA_INVALID` / `OUTPUT_MAPPING_FAILED`, `attempt_number=1`,
+  `repair_attempted=false`, `policy_execution_state=NOT_EXECUTED`), measured
+  `wall_latency_ms=25729.17`, VRAM baseline/peak/post-call `0.0`/`17080.0`/`0.0` MB (the post-call
+  sample on the selected GPU supports the cleanup observation without proving on its own that no
+  other allocation or process existed), and a reported-absent scratch directory afterward. The
+  runtime/model-load/invocation/typed-classification/cleanup pathway worked; the adapter could
+  not map the model output to the strict V2 structured-output contract on this one
+  contract-anticipated data point — this does not by itself establish a model or adapter defect;
+  B3 investigates mapping-failure causes, and nothing here is patched or rerun on the strength
+  of this one result.
+- **Still not evidenced:** a schema-validity-rate measurement (one run is one data point, not a
+  rate — that is B3's job); B3 structured-output mapping study, B4 held-out benchmark and repeat,
+  and B5 recommendation, all unexecuted; any profile freeze or runtime-default selection.
 
 The B2-preflight runner and its tests are committed in `f3e5830`; it was reviewed and hardened
 across three same-day passes (a safe `fixtures_dir` cleanup target via
@@ -66,8 +75,8 @@ across three same-day passes (a safe `fixtures_dir` cleanup target via
 VRAM sampler's background thread stopped/joined even when the adapter raises; and
 `UnsafeFixturePathError` requiring each builder-returned path to be a relative, existing regular
 file strictly inside `fixtures_dir`). Seventeen focused tests against an injected fake pass; see
-`EV-003-T3-05`, `P2_T3_PHASE_B_B2_PREFLIGHT_RUNNER_IMPLEMENTATION.md`. This remains code/test
-evidence only, not Lightning runtime evidence.
+`EV-003-T3-05`, `P2_T3_PHASE_B_B2_PREFLIGHT_RUNNER_IMPLEMENTATION.md`. That evidence remains
+code/test evidence only; `EV-003-T3-06` above is the separate real-Lightning execution record.
 
 ## Required debug and execution order
 
@@ -88,7 +97,15 @@ evidence only, not Lightning runtime evidence.
 5. Only after `READY`, and only after the B2 runner has passed review and been committed, perform
    exactly one real model load and one synthetic inference. Record the typed result plus latency,
    VRAM baseline/peak/post-call, and worker/device cleanup. A typed failure is valid evidence and
-   must not be retried or rewritten into success.
+   must not be retried or rewritten into success. (This has now happened once; see `EV-003-T3-06`.
+   A typed `VISION_SCHEMA_INVALID` result there is not a reason to rerun this step — it is B3's
+   job to study mapping failures at a proper sample size.)
+   - Invoke the runner from a saved `.py` script file with a `if __name__ == "__main__":` guard,
+     not by piping a script through stdin. The default generation runner spawns a subprocess via
+     `multiprocessing`'s `spawn` start method, which re-imports the `__main__` module by file
+     path in the child process; a stdin-executed script has no such file to re-import and the
+     child fails to start. This is a launcher/invocation detail only — it is not evidence of an
+     adapter, contract, or GPU defect.
 6. Count every real B2–B4 GPU action against the shared one-hour Lightning L4 soft cap. Stop and
    obtain explicit reauthorization before any further GPU work when the cap is reached.
 

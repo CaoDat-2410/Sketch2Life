@@ -488,8 +488,9 @@ coercing enums, scanning for the first `{…}` block, or extracting JSON from su
 all prohibited, in Phase B as in Phase A.
 
 Real vision-language output frequently arrives wrapped in prose or reasoning text. Under this rule
-such output is `VISION_SCHEMA_INVALID`. **That is a measurement, not a defect to patch.** A low
-schema-valid rate is a reportable B3 finding and a legitimate reason to recommend
+such output is `VISION_SCHEMA_INVALID`. **This is a measurement and does not by itself establish
+a model or adapter defect; B3 determines whether any mapping change is warranted after
+analysis.** A low schema-valid rate is a reportable B3 finding and a legitimate reason to recommend
 `NOT_ENOUGH_EVIDENCE`; it is never a justification to widen repair. Changing the repair rule
 requires a new plan and a new approval.
 

@@ -1,9 +1,31 @@
 # FEAT-003 Multimodal understanding context
 
+## P2-T3 Phase B B2 real GPU preflight status (2026-09-01)
+
+- The real B2 typed GPU preflight has now executed once on Lightning L4 (operator-reported; not
+  run by this documentation session), recorded in `evidence/notes/P2_T3_PHASE_B_B2_GPU_PREFLIGHT_EXECUTION.md`
+  (`EV-003-T3-06`). A real `Qwen/Qwen3-VL-8B-Instruct` model load and one synthetic inference
+  through `QwenVisionAdapter` returned a typed `FAILED` / `VISION_SCHEMA_INVALID` /
+  `OUTPUT_MAPPING_FAILED` result at `attempt_number=1`, measured `wall_latency_ms≈25729`, VRAM
+  baseline/peak/post-call `0.0`/`17080.0`/`0.0` MB — the post-call sample supports the cleanup
+  observation without proving on its own that no other allocation or process existed — and a
+  reported-absent scratch directory afterward. The runtime/model-load/invocation/
+  typed-classification/cleanup pathway worked: the adapter could not map the model output to
+  the strict V2 structured-output contract on this one contract-anticipated data point, which
+  does not by itself establish a model or adapter defect — B3 is the study that investigates
+  mapping-failure causes. B3–B5 remain unexecuted and no profile is frozen or made a runtime
+  default.
+- The current Lightning Studio session already has the exact B1 dependency pins installed and
+  the approved model snapshot present, so it does **not** need to reinstall or re-download
+  anything before another run in this same session. `.vision.env` and the local model snapshot
+  remain local-only and gitignored — they are **not** part of this repository's committed
+  state, so a new Studio or a Studio reset starts from scratch and must re-establish both
+  before any further B2–B5 work.
+
 ## P2-T3 Phase B B2 preflight runner status (2026-09-01)
 
 - The internal (non-CLI) B2 preflight runner (`backend/src/sketch2life/benchmark/vision_b2_preflight.py`, `EV-003-T3-05`) was reviewed, hardened, and re-tested today across three same-day passes — code/test work only, no GPU. It now refuses a caller-supplied `fixtures_dir` that is absolute, equal to the current working directory, or escapes it via `..`, before writing any scratch fixture (`UnsafeFixturesDirectoryError`); runs `build_fixtures` inside the cleanup-covering `try`/`finally` so a mid-write builder failure still cleans the scratch directory; guarantees the VRAM sampler's background thread is stopped/joined even when the adapter raises; and requires each builder-returned fixture path to be a relative, existing regular file strictly inside `fixtures_dir` (`UnsafeFixturePathError` otherwise — never a directory, a non-existent path, `fixtures_dir` itself, or a path outside scratch). 17 focused tests against an injected fake `VisionUnderstandingPortV2` cover all of the above; the full backend suite (427 passed, 5 skipped), Ruff, and strict mypy all pass.
-- This runner is committed in `f3e5830` and is not GPU evidence. No dependency was installed, no model was downloaded, `.vision.env` was not touched, and no Lightning/GPU/provider call occurred — the real B2 typed GPU preflight (one real model load, one synthetic inference, measured latency/VRAM, cleanup evidence) remains tomorrow's gated work, after a real `READY` readiness result.
+- This runner is committed in `f3e5830`. Its own review/hardening work involved no GPU, dependency install, model download, or `.vision.env` change — the real B2 typed GPU preflight this runner enabled has since executed once; see the "P2-T3 Phase B B2 real GPU preflight status" section above and `EV-003-T3-06`.
 
 ## P2-T3 Phase B Lightning handoff status (2026-09-01)
 
