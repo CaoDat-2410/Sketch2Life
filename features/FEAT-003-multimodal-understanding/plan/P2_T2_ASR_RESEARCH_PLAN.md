@@ -1,6 +1,6 @@
 # P2-T2 ASR research plan
 
-- Status: APPROVED — Phase A implemented; Phase B benchmark-readiness package implemented; live Round-1 benchmark executed (2026-08-30) against 21 synthetic HELD_OUT fixtures, see `evidence/notes/P2_T2_PHASE_B_ROUND1_ASR_REPORT.md`; no profile freeze or runtime default selected
+- Status: APPROVED — Phase A implemented; Phase B benchmark-readiness package implemented; local live Round-1 benchmark executed (2026-08-30) and supplementary Colab validation reviewed (2026-09-01) against 21 synthetic HELD_OUT fixtures, see `evidence/notes/P2_T2_PHASE_B_ROUND1_ASR_REPORT.md`; no profile freeze or runtime default selected
 - Owner: Person 2
 - Parent plan: `PLAN.md`, revision 4; team allocation: `docs/adr/ADR-0006-parallel-sprint-allocation.md`, `features/FEAT-001-stack-and-team-plan/SPRINT_1_TASK_ALLOCATION.md`
 - Input dependency: a `PASS` result from P2-T1 for the immutable narration reference
@@ -25,7 +25,7 @@ Per `SPRINT_1_TASK_ALLOCATION.md`, P2-T2 owns the ASR contract, the fixture fake
 This plan was split into two approval scopes so contract work could be reviewed separately from model/dependency work:
 
 - **Phase A (approved and implemented):** freeze `AsrRequestV1`/`AsrResultV1` as a discriminated union, the `AsrProfileCatalogV1` catalog (deterministic fake profile entries only), the retry/repair matrix, and the `AsrPort` interface; implement the deterministic fixture fake adapter and the R2 contract test suite. No dependency install, no model weights, no GPU/provider access, no live inference, no live benchmark.
-- **Phase B (approved under `approvals/TASK_APPROVAL.md`):** the additive contract/catalog change, isolated runtime configuration, real `faster-whisper` adapter, and exact-pinned optional dependency are implemented. The readiness slice added the Round-1 manifest contract, scoring normalizer, fixed two-Turbo metadata plan, and report template; the controlled live profile comparison was subsequently executed twice, with evidence in `EV-003-T2-05` and `EV-003-T2-06`. Phase B does not implement the CLI or the ~20-fixture end-to-end multimodal report; that remains P2-T5.
+- **Phase B (approved under `approvals/TASK_APPROVAL.md`):** the additive contract/catalog change, isolated runtime configuration, real `faster-whisper` adapter, and exact-pinned optional dependency are implemented. The readiness slice added the Round-1 manifest contract, scoring normalizer, fixed two-Turbo metadata plan, and report template; the controlled live profile comparison was subsequently executed twice locally, with supplementary Colab validation, with evidence in `EV-003-T2-05`, `EV-003-T2-06`, and `EV-003-T2-07`. Phase B does not implement the CLI or the ~20-fixture end-to-end multimodal report; that remains P2-T5.
 
 ## Phase B approval request
 
@@ -295,7 +295,7 @@ Before any model/runtime/provider freeze, record an ADR (or a `DECISIONS.md` ent
 - [x] The two Turbo candidate profiles and fixed controlled variables are recorded and validated before any run.
 - [x] The benchmark report template/planned-run contract can show WER/CER, schema validity, language behavior, VAD/timestamp behavior, latency, VRAM, and success/failure coverage without concealing unavailable measurements.
 - [x] The readiness/privacy review shows no raw audio, transcript, credentials, endpoint details, or absolute local paths in ordinary logs, source, or feature evidence.
-- [x] The current task approval explicitly authorizes the Phase B scope, including controlled live Round-1 execution; the preparation slice did not exercise it, and the subsequently executed runs are recorded in `EV-003-T2-05` and `EV-003-T2-06`.
+- [x] The current task approval explicitly authorizes the Phase B scope, including controlled live Round-1 execution; the preparation slice did not exercise it, and the subsequently executed local runs plus supplementary Colab validation are recorded in `EV-003-T2-05`, `EV-003-T2-06`, and `EV-003-T2-07`.
 
 ## Next gated action after readiness (resolved 2026-08-30)
 
@@ -307,3 +307,7 @@ tooling/voice provenance and `evidence/notes/P2_T2_PHASE_B_ROUND1_ASR_REPORT.md`
 WER/CER, language accuracy, latency, VRAM, and typed-failure results. Consistent with the
 approved scope, no profile is frozen and no runtime default is selected by this round; that
 remains a separate R5/Integration-Sprint/ADR decision.
+
+A supplementary Colab execution was reviewed on 2026-09-01 and recorded as `EV-003-T2-07`.
+It confirms the same quality, typed-failure, and pure-noise mismatch findings on the same
+manifest, while Tesla T4 latency/VRAM remain separate environment-specific measurements.

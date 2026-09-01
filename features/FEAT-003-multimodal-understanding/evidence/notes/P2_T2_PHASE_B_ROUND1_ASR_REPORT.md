@@ -1,7 +1,11 @@
 # P2-T2 Phase B ASR-only Round-1 report (executed)
 
-- Evidence ID: EV-003-T2-05 (superseded numbers corrected 2026-08-30; see "Correction" below)
+- Evidence IDs: EV-003-T2-05 (superseded numbers corrected 2026-08-30; see "Correction" below),
+  EV-003-T2-06 (repeat run 2), and supplementary EV-003-T2-07 (Colab validation)
 - Date: 2026-08-30 (initial run), corrected re-run 2026-08-30
+- Supplementary external execution: `p2-t2-colab-evidence.zip`, reviewed 2026-09-01;
+  the archive is retained outside this repository and only its report/runtime metadata is
+  copied into this feature's evidence directory.
 - Scope: the controlled live Round-1 execution already covered by the Phase B approval
   (`approvals/TASK_APPROVAL.md`). This is an ASR profile-selection report only — it is not
   P2-T5's public CLI or end-to-end multimodal report, and it does not freeze a profile or
@@ -243,6 +247,64 @@ Typed failures (both profiles, unchanged from run 1): `silence-01`, `silence-02`
 Speech-presence `MISMATCH` (both profiles, unchanged from run 1): `noise-white-noise-v1`,
 `noise-room-tone-v1` → `speech_diagnostic=DETECTED` on `expected_speech_present=false`, i.e. the
 hallucination-on-noise behavior reproduced deterministically across both runs and both profiles.
+
+## Supplementary Colab validation — EV-003-T2-07 (2026-09-01)
+
+The owner-provided `p2-t2-colab-evidence.zip` was reviewed as a supplementary execution of the
+same approved P2-T2 Round-1 benchmark. It used the same source revision, manifest, P2-T1 input
+boundary, adapter, and two fixed Turbo profiles as the local runs. The archive SHA-256 is
+`2adc414950358fd15402df72e3dc425f8fafcc0a93cf69d37d1755ccbc803091`.
+
+Runtime and provenance recorded by the bundle:
+
+- Report ID: `asr-round1-report-29d64b22a4930d40f61bea82df16d38a4acb7c40b350e58486ac7685062d9344`
+- Source ref: `plan/person-2-qwen3-vl-structured-understanding`
+- Source commit: `836d71ef5d2f3d84fd39fd19b2dcb8ebe437ad05`
+- Runtime: Linux (`glibc 2.35`), Python `3.13.15`, `faster-whisper==1.2.1`,
+  CTranslate2 `4.8.1`
+- GPU: Tesla T4, 15,360 MB total memory, 14,913 MB free at preflight,
+  driver `580.82.07`
+- Fixture set: 21 synthetic `HELD_OUT` fixtures, manifest `asr-round1-v1`, manifest SHA-256
+  `93f1a745f041f833d0ef24ddfab19c0edf2a361ca2481d2a7795a76796f16b89`
+- P2-T1 boundary: real `DeterministicMediaValidator` gate executed by `run_round1_benchmark`
+  before model inference
+- Decode settings: `AUTO_DETECT`, beam size `5`, VAD off, word timestamps off; alternatives
+  remained `NOT_MEASURED`
+
+Colab outcome (21 fixtures × 2 profiles = 42 aggregate runs; 19 successes and 2 typed failures
+per profile):
+
+| Metric | Turbo INT8 AUTO | Turbo FP16 AUTO |
+|---|---:|---:|
+| Schema-valid rate | 1.0 | 1.0 |
+| WER | 0.49% (17 eligible) | 0.49% (17 eligible) |
+| CER | 0.27% (17 eligible) | 0.27% (17 eligible) |
+| Language accuracy | 100% (10 eligible) | 100% (10 eligible) |
+| Speech-presence match rate | 89.47% (17/19) | 89.47% (17/19) |
+| Cold start | 31,422 ms | 1,755 ms |
+| Inference p50 | 723 ms | 749 ms |
+| Inference p95 | 794 ms | 852 ms |
+| Peak VRAM | 1,143 MB | 2,815 MB |
+
+The four typed failures were the expected P2-T1 boundary results for `silence-01` and
+`silence-02` under both profiles: `INPUT_NOT_VALIDATED` /
+`MEDIA_VALIDATION_NOT_PASSED`, `attempt_number=0`, `repair_attempted=false`, with no model
+inference counted. The two pure-noise fixtures (`noise-white-noise-v1` and
+`noise-room-tone-v1`) reproduced the same `speech_presence_outcome=MISMATCH` seen locally.
+
+The Colab execution reproduced the local quality and typed-outcome findings exactly for this
+same 21-fixture manifest. It is supplementary cross-environment validation, not an increase in
+the effective fixture sample size, and its latency/VRAM measurements describe only the Tesla T4
+Colab runtime; they must not be pooled with or substituted for the local RTX 4060 measurements.
+The profile remains unfrozen and no runtime default is selected.
+
+The source catalog at the recorded commit resolves the model identity used by the adapter to
+`deepdml/faster-whisper-large-v3-turbo-ct2`, revision
+`4df90f75321148c3a29a9e2351b7ddf8f5b115a8`, converted-weight license `MIT`. The Colab ZIP did
+not duplicate these model fields, so this report records them from the pinned source catalog
+rather than treating their absence from the bundle as new runtime evidence. The bundle confirms
+synthetic-or-licensed fixtures only and contains no raw audio, raw transcript, credentials, or
+model weights.
 
 ## Synthetic-only limitation and reviewer decision
 

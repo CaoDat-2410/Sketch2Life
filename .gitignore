@@ -12,6 +12,7 @@ backend/.asr.env
 # ASR benchmark payloads remain local; only the manifest template/layout is versioned.
 features/FEAT-003-multimodal-understanding/fixtures/asr-round1/audio/**
 features/FEAT-003-multimodal-understanding/fixtures/asr-round1/transcripts/**
+features/FEAT-003-multimodal-understanding/fixtures/benchmark-zips/
 
 # Python
 __pycache__/

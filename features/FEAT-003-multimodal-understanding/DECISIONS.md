@@ -16,6 +16,7 @@
 - The readiness planner is metadata-only and provider-free. It validates the manifest and fixed catalog settings, hashes canonical metadata, plans one record per fixture/profile, and marks every unavailable measurement `NOT_MEASURED`. It owns no CLI, HTTP/API, queue, GPU, model-loading, or P2-T5 work.
 - Config hygiene was audited without exposing values: the ignored local `backend/.asr.env` contains only the three ASR runtime keys, while the shared `backend/.env` contains the four generic application keys. No move was required and no local secret/path value is recorded in source or evidence.
 - The Phase B approval covered a controlled live Round-1 execution. The fixture-source decision was resolved as `SYNTHETIC` (TTS), compliant local fixture payload/reference-transcript refs and hashes were supplied, and the benchmark was executed twice; see `EV-003-T2-05` and repeat-run evidence `EV-003-T2-06`. No profile is frozen and no runtime default is selected.
+- A supplementary owner-provided Colab execution (`EV-003-T2-07`, reviewed 2026-09-01) used the same manifest, source commit, P2-T1 gate, adapter, dependency pin, and two profiles, and reproduced the local quality metrics, typed silence failures, and pure-noise mismatches. The Colab Tesla T4 latency/VRAM values remain environment-specific; this run is not pooled with local evidence and does not increase the effective fixture sample size. No profile freeze or runtime default is selected.
 
 ## P2-T2 Phase B Round-1 runner correction decisions (2026-08-30)
 
