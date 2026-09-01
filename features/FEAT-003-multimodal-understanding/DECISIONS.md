@@ -1,5 +1,14 @@
 # FEAT-003 decisions
 
+## P2-T3 Phase B B1 decisions (2026-09-01)
+
+- The V1 vision contract is frozen. Real-model support is additive and disjoint: `VisionProfileIdV2`, `VisionProfileV2`, `VisionProfileCatalogV2`, `VisionUnderstandingRequestV2`, and `VisionUnderstandingResultV2` do not widen or reuse V1 identity-bearing types. V2 has its own `vision_profile_config_hash_v2()` and `vision_profile_catalog_hash_v2()` functions; the canonical V2 catalog contains exactly one candidate and is static.
+- The single B1 candidate is `QWEN3_VL_8B_INSTRUCT_BF16_V1`, `Qwen/Qwen3-VL-8B-Instruct`, immutable revision `0c351dd01ed87e9c1b53cbc748cba10e6187ff3b`, `GPU_BF16`, and `apache-2.0`. The official source did not publish a single repository-level SHA-256 digest verified for this record, so provenance carries `SOURCE_DOES_NOT_PUBLISH_A_DIGEST` rather than a fabricated hash. Full provenance and official source links are in ADR-0007 and the B1 evidence note.
+- The optional `vision-qwen` dependency extra is exact-pinned to `accelerate==1.10.1`, `qwen-vl-utils==0.0.14`, `torch==2.8.0`, and `transformers==4.57.6`. It was not installed; no model, weight, cache, or provider runtime was downloaded.
+- `QwenVisionRuntimeConfig` is isolated under `infrastructure/ai`, constructor-injected, and has no default model/cache path. The default runner enforces the 120-second profile deadline with a spawned killable subprocess, joins/terminates the worker on expiry, and never retries a timeout or leaves a third attempt. No provider deadline/cancellation parameter is invented; exact runtime mapping and cleanup remain B2 verification items.
+- B1 is limited to local code/configuration and no-GPU tests. It does not freeze the profile, choose a runtime default, execute GPU/cloud/provider work, add B2-B5 benchmark/deployment/API/UI/mobile/database/queue behavior, or promote outputs beyond the standalone contract boundary. See `evidence/notes/P2_T3_PHASE_B_B1_IMPLEMENTATION.md` (`EV-003-T3-02`) and ADR-0007.
+- B1 parser-consistency correction: Qwen’s lossless fence repair is true only for a complete fenced JSON object. A complete fenced array, scalar, or `null` is not repaired and maps to `VISION_SCHEMA_INVALID` / `OUTPUT_MAPPING_FAILED`, matching the frozen fake-adapter convention.
+
 ## P2-T3 Phase A approval decisions (2026-08-31)
 
 - The owner approved the P2-T3 Phase A contract/fake-adapter scope only. The real Qwen runtime, dependency/model/weight acquisition, GPU or cloud execution, profile selection, benchmark, and all user-facing/integration promotion remain a separately approved Phase B concern.

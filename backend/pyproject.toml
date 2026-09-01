@@ -39,6 +39,14 @@ asr-faster-whisper = [
   "faster-whisper==1.2.1",
   "ctranslate2==4.8.1",
 ]
+# P2-T3 Phase B B1: exact pins recorded for the one approved Qwen candidate. This extra is
+# intentionally not installed in B1; no model weights or provider runtime are fetched here.
+vision-qwen = [
+  "accelerate==1.10.1",
+  "qwen-vl-utils==0.0.14",
+  "torch==2.8.0",
+  "transformers==4.57.6",
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/sketch2life"]

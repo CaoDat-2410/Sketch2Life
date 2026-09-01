@@ -967,3 +967,20 @@ explicitly unapproved in `approvals/TASK_APPROVAL.md`.
 
 This scope was implemented on 2026-09-01 and met the fixture/contract acceptance matrix above;
 see `evidence/notes/P2_T3_PHASE_A_IMPLEMENTATION.md` (`EV-003-T3-01`).
+
+## Phase B B1 implementation status (2026-09-01)
+
+The owner-approved Phase B B1 slice — local code/configuration and no-GPU tests only — is
+implemented and recorded in `evidence/notes/P2_T3_PHASE_B_B1_IMPLEMENTATION.md`
+(`EV-003-T3-02`) and ADR-0007. It adds disjoint V2 contracts and hashes, one static Qwen3-VL
+candidate profile with immutable provenance, isolated runtime configuration, a lazy typed
+adapter skeleton with a killable subprocess timeout boundary, an exact-pinned optional extra,
+and the placeholder-only environment example. The frozen V1 module and fake path are unchanged.
+
+B2 model/runtime verification, B3 synthetic fixture/ground-truth preparation, B4 execution and
+benchmarking, and B5 reporting are not executed by this B1 change. No dependency or model was
+installed/downloaded, and no profile freeze or runtime default was selected.
+
+A B1 contract-consistency correction subsequently aligned the Qwen adapter's repair flag with the
+fake adapter for complete fenced non-object JSON roots; its focused regression and final validation
+are recorded in `EV-003-T3-02`.
