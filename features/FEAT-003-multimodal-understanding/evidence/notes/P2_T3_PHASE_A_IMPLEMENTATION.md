@@ -40,7 +40,8 @@
   `backend/tests/unit/test_vision_content_policy.py`,
   `backend/tests/unit/test_vision_phase_a_adapter.py`,
   `backend/tests/unit/test_vision_fixture_manifest.py`: the Phase A contract/policy/adapter/fixture
-  test suite (170 focused tests after the 2026-09-01 correction below; 114 at initial delivery).
+  test suite (**172 focused tests** as verified on 2026-09-01; 114 at initial delivery, 170 after
+  the first correction round, 172 after the rooted-path completion described below).
 
 ## Correction — 2026-09-01
 
@@ -50,7 +51,7 @@ behavior, fixture data, or approved scope changed.
 
 | # | Defect | Structural rule now enforced | Proving tests |
 |---|---|---|---|
-| 1 | `VisionImageReferenceV1.artifact_ref` accepted an absolute machine path (POSIX, Windows drive, or UNC), which could leak a local filesystem layout into a shared artifact reference. | A new `field_validator` rejects `artifact_ref` values matching a host-OS-independent absolute-path check (`_is_absolute_machine_path`): a POSIX leading `/`, a Windows drive-absolute prefix (`^[A-Za-z]:[\\/]`), or a UNC prefix (`\\\\` or `//`). Non-empty relative/artifact references (e.g. `fixture:vision:v1`, `fixtures/drawings/sample.png`) remain accepted. | `test_absolute_machine_paths_are_rejected` (parametrized over POSIX/Windows-drive/UNC forms), `test_relative_artifact_reference_is_accepted` |
+| 1 | `VisionImageReferenceV1.artifact_ref` accepted an absolute machine path (POSIX, Windows drive, or UNC), which could leak a local filesystem layout into a shared artifact reference. A follow-up pass found the first fix still accepted a **Windows rooted** path (a single leading backslash, e.g. `\temp\drawing.png`), which is rooted on the current drive and is equally absolute. | A `field_validator` rejects `artifact_ref` values matching a host-OS-independent absolute-path check (`_is_absolute_machine_path`): a POSIX leading `/` (which also covers the `//server/share` UNC form), **any** leading backslash (covering both the rooted single-backslash and the `\\server\share` UNC forms), or a Windows drive-absolute prefix (`^[A-Za-z]:[\\/]`). Non-empty relative/artifact references (e.g. `fixture:vision:v1`, `fixtures/drawings/sample.png`) remain accepted. | `test_absolute_machine_paths_are_rejected` (9 forms: POSIX, Windows drive-absolute with both separators, UNC in both slash styles, and two Windows rooted forms), `test_relative_artifact_reference_is_accepted` |
 | 2 | `VisionUnderstandingFailureV1` only checked the prohibited-claim-vs-non-policy detail split and the coarse `policy_execution_state`; it did not enforce `retryable`, `attempt_number`, or `repair_attempted` against the approved per-row matrix, and did not reject a detail token paired with the wrong `error_code` family (e.g. `INPUT_NOT_VALIDATED` with `MODEL_LOAD_FAILED`). | A closed per-`VisionNonPolicyErrorDetail` rule table (`_NON_POLICY_DETAIL_RULES`) now fixes, for every one of the twelve non-policy detail tokens, its required `error_code`, `retryable`, and `attempt_number`, plus the allowed `repair_attempted` set (`{False}` for every row except the three `VISION_SCHEMA_INVALID` details, which allow `{True, False}` — `repair_attempted=true` is legitimate there only for the already-approved lossless fenced-unwrap case). The `PROHIBITED_CLAIM_DETECTED` branch additionally now fixes `retryable=false`, `attempt_number=1`, and `repair_attempted=false`. Every field in the shared envelope is checked in one `model_validator`, so no invalid combination is constructible. | `test_each_matrix_row_valid_combination_constructs`, `test_schema_invalid_permits_repair_attempted_true_for_any_of_its_three_details`, `test_invalid_failure_matrix_combinations_are_rejected` (24 cross-code/retry/attempt/repair perturbations), `test_prohibited_claim_detected_valid_combination_constructs`, `test_prohibited_claim_detected_rejects_invalid_attempt_repair_retry_combinations` |
 | 3 | `ProhibitedLexiconEntryV1.term_normalized` was documented as "already in `vision-policy-match-view-v2` form" but nothing enforced it; an entry with mismatched case, punctuation, or whitespace could be stored and would silently under-match at evaluation time. | A `model_validator` now rejects construction unless `vision_policy_match_view(term_normalized) == term_normalized` and the term tokenizes to at least one token. The value is never silently normalized — a non-canonical entry is a construction error, not a coercion. | `test_canonical_lexicon_entry_is_accepted`, `test_non_canonical_lexicon_entry_forms_are_rejected` (case/hyphen/comma/underscore/leading-trailing-space/double-space/tab variants), `test_lexicon_entry_that_tokenizes_to_nothing_is_rejected`, `test_lexicon_entry_term_is_never_silently_normalized`, `test_canonical_entry_matching_behavior_is_preserved` |
 
@@ -125,8 +126,8 @@ fixture case.
 
 | Command | Result |
 |---|---|
-| `backend/.venv/Scripts/python.exe -m pytest tests/unit/test_vision_phase_a_contracts.py tests/unit/test_vision_content_policy.py tests/unit/test_vision_phase_a_adapter.py tests/unit/test_vision_fixture_manifest.py` | 170 passed |
-| `backend/.venv/Scripts/python.exe -m pytest` | 308 passed |
+| `backend/.venv/Scripts/python.exe -m pytest tests/unit/test_vision_phase_a_contracts.py tests/unit/test_vision_content_policy.py tests/unit/test_vision_phase_a_adapter.py tests/unit/test_vision_fixture_manifest.py` | 172 passed (99 + 36 + 36 + 1) |
+| `backend/.venv/Scripts/python.exe -m pytest` | 310 passed |
 | `backend/.venv/Scripts/python.exe -m ruff check --no-cache src tests` | passed |
 | `backend/.venv/Scripts/python.exe -m mypy src` | passed, 45 source files |
 | `python tools/validate_harness.py` | `HARNESS_VALID` |

@@ -1,8 +1,7 @@
 # P2-T3 Qwen3-VL structured drawing understanding research plan
 
-- Status: APPROVED — Phase A implemented (contracts, deterministic fake adapter, lexical policy,
-  synthetic fixtures, contract tests); see `evidence/notes/P2_T3_PHASE_A_IMPLEMENTATION.md`.
-  Phase B and all promotion remain separately gated.
+- Status: APPROVED — Phase A is implemented; Phase B is approved for the bounded B1–B5 scope in
+  `evidence/notes/P2_T3_PHASE_B_APPROVAL_REQUEST.md`. All promotion remains separately gated.
 - Owner: Person 2
 - Parent plan: `PLAN.md`, revision 4, task P2-T3; allocation: `docs/adr/ADR-0006-parallel-sprint-allocation.md`, `features/FEAT-001-stack-and-team-plan/SPRINT_1_TASK_ALLOCATION.md`
 - Input dependency: a `PASS` `MediaValidationResultV1` from P2-T1 for the immutable drawing reference
@@ -11,11 +10,13 @@
 
 ## Approval status
 
-The project owner explicitly approved P2-T3 Phase A on 2026-08-31. The authoritative record is
-`approvals/TASK_APPROVAL.md`; `evidence/notes/P2_T3_PHASE_A_APPROVAL.md` records the accepted
-owner decisions and boundaries. This approval authorizes only the Phase A contract/fake-adapter
-scope stated at the end of this plan. It does not approve Phase B, a real Qwen runtime, provider
-credentials, GPU/cloud execution, or promotion to user-facing, Integration Sprint, or Gate A use.
+The project owner explicitly approved P2-T3 Phase A on 2026-08-31 and the bounded Phase B B1–B5
+scope on 2026-09-01. The authoritative record is `approvals/TASK_APPROVAL.md`;
+`evidence/notes/P2_T3_PHASE_A_APPROVAL.md` records the Phase A decisions, and
+`evidence/notes/P2_T3_PHASE_B_APPROVAL_REQUEST.md` records the Phase B decisions and constraints.
+Phase B approval authorizes the real Qwen development study only within that dossier's explicit
+scope. It does not authorize provider credentials, production/deployment, user-facing,
+Integration Sprint, or Gate A use.
 
 The approved Phase A scope was implemented on 2026-09-01; see
 `evidence/notes/P2_T3_PHASE_A_IMPLEMENTATION.md` (`EV-003-T3-01`) for the delivered artifacts,
@@ -35,17 +36,18 @@ and not approval; no evidence record exists for it in this feature, and none is 
 
 ## Scope, explicit non-goals, and the Phase A / Phase B boundary
 
-**Phase A (proposed scope of this plan, not yet approved):** freeze `VisionUnderstandingRequestV1`
+**Phase A (approved and implemented):** freeze `VisionUnderstandingRequestV1`
 and the discriminated `VisionUnderstandingResultV1`; define `VisionProfileCatalogV1` with
 deterministic fake entries only; define `VisionUnderstandingPort` and the `ObservableContentPolicyV1`
 boundary; implement a deterministic fixture fake adapter, the synthetic fixture manifest, and the
 contract test suite; write feature-local evidence. No dependency install, no model weights, no
 GPU/provider access, no live inference, no benchmark.
 
-**Phase B (future, unapproved):** the real Qwen3-VL adapter, isolated runtime configuration,
-weight/model provenance, exact-pinned dependencies, GPU preflight, structured-output mapping
-measurement, and the controlled ASR-independent vision benchmark. Phase B requires its own
-explicit approval and is additionally gated by the semantic-safety decision recorded below.
+**Phase B (approved, bounded B1–B5 scope):** the real Qwen3-VL adapter, isolated runtime
+configuration, weight/model provenance, exact-pinned dependencies, GPU preflight,
+structured-output mapping measurement, and the controlled vision-only synthetic benchmark. Its
+exact boundaries, V2 contract, safety limitation, and Lightning L4 compute cap are in
+`evidence/notes/P2_T3_PHASE_B_APPROVAL_REQUEST.md`; Phase B does not authorize any promotion.
 
 **Explicit non-goals in both phases of this task:** capture UI, Gate A UI or confirmation,
 session/job state, FastAPI routes, queues, databases, object storage wiring, mobile integration,
@@ -828,7 +830,14 @@ GPU, network, mobile app, backend API, database, or queue.
 | Provenance | `source_image_ref` and hash unchanged on every success and every failure row; schema round-trip for both branches; identical output across repeated runs of the same fixture |
 | Scope shape | `VisionUnderstandingSuccessV1` carries no field expressing canonical meaning, Gate A approval, or user-facing interpretation |
 
-## Phase B research work packages (design only; no implementation approval implied)
+## Phase B research work packages (approved B1–B5 scope; no promotion implied)
+
+The B0 dossier is `evidence/notes/P2_T3_PHASE_B_APPROVAL_REQUEST.md` (`EV-003-T3-PLAN-04`),
+approved on 2026-09-01 for exactly B1–B5. It refines V1 below in one respect the owner should note:
+real-model provenance is proposed as a **new versioned V2 result contract** rather than as added
+fields on the Phase A V1 contract, because adding even a `null`-valued field to `VisionProfileV1`
+would change `vision_profile_config_hash` for an unchanged fake profile. The authoritative scope
+and constraints are in `approvals/TASK_APPROVAL.md`.
 
 **V1 — Reproducible candidate profiles.** Record model identifier and revision, weight provenance
 and license, adapter and runtime versions, device class, precision, structured-output parameters,
@@ -918,16 +927,22 @@ The three former Phase A blockers are resolved by the owner decisions in Exit cr
 approval record. They constrain Phase A only; they do not broaden P2-T3 into a semantic-safety,
 real-model, or integration capability.
 
-### Phase B approval and promotion blockers
+### Phase B promotion blockers
 
 1. **Semantic-safety mechanism for unknown paraphrases**, per the gate above.
 2. **Phase B runtime and profile evidence decisions**: model identifier and revision, weight
    provenance and license, compute/precision profile, structured-output parameters, timeout budget,
    exact dependency pins, and the accompanying ADR.
 
-These Phase B items block Phase B approval and any promotion of output to user-facing, Integration
-Sprint, or Gate A use. They do not block the fake-only Phase A contract work, which never touches
-real model output.
+The synthetic-only owner-review control and the bounded runtime/profile decisions now permit the
+approved B1–B5 study. They still block promotion of output to user-facing, Integration Sprint, or
+Gate A use until a separately approved semantic-safety mechanism and sufficient runtime/profile
+evidence exist.
+
+Both are carried into `evidence/notes/P2_T3_PHASE_B_APPROVAL_REQUEST.md` as explicit owner
+decisions and constraints (D-1/D-2 for semantic safety and lexicon policy, D-3/D-4 for execution
+location and model identity). The third former blocker — Phase A completion — is closed by
+`evidence/notes/P2_T3_PHASE_A_IMPLEMENTATION.md` (`EV-003-T3-01`).
 
 ## Approved Phase A implementation scope
 

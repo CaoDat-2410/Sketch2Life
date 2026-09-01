@@ -13,7 +13,8 @@ The project owner subsequently approved **P2-T3 Phase A** by direct instruction.
 record is now `../../approvals/TASK_APPROVAL.md`; the accepted scope and three owner decisions are
 recorded in `P2_T3_PHASE_A_APPROVAL.md`. This historical review remains evidence of the planning
 and red-team work that preceded approval. Its original status statements do not apply to Phase A
-after that approval. P2-T3 Phase B remains unapproved.
+after that approval. P2-T3 Phase B was subsequently approved for its bounded B1–B5 scope on
+2026-09-01; `approvals/TASK_APPROVAL.md` is authoritative.
 
 ## Mục tiêu
 

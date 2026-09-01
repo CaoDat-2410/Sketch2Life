@@ -1,10 +1,13 @@
 # P2-T3 Phase B preparation context
 
-- Status: DRAFT / PLANNING ONLY — **not** an approval request and not implementation authority.
-- Date: 2026-08-31
+- Status: PLANNING CONTEXT — **not** an approval request and not implementation authority. Its B0
+  step has since been executed as documentation; the resulting approval request is
+  `P2_T3_PHASE_B_APPROVAL_REQUEST.md` (`EV-003-T3-PLAN-04`), which supersedes the B0 section below.
+- Date: 2026-08-31; Phase A completion gate closed 2026-09-01.
 - Owner: Person 2
 - Governing plan: `../../plan/P2_T3_VISION_RESEARCH_PLAN.md`, Phase B work packages V1–V5.
-- Current approval: P2-T3 Phase A only; see `../../approvals/TASK_APPROVAL.md`.
+- Current approval: P2-T3 Phase A only; see `../../approvals/TASK_APPROVAL.md`. P2-T3 Phase B
+  remains unapproved.
 
 ## Purpose
 
@@ -18,8 +21,10 @@ CLI/end-to-end benchmark and is never a user-facing, Integration Sprint, or Gate
 - The handbook baseline named in the approved research plan is `Qwen3-VL-8B-Instruct`. A prior L4
   synthetic-shapes smoke test was infrastructure reconnaissance only: it is not benchmark evidence,
   model selection, or a permission to reuse/download the model.
-- Phase A must first be implemented and pass its contract/fixture matrix without changing the
-  approved provider-neutral boundary. Phase B preserves the fake profiles and their behavior.
+- Phase A had to be implemented and pass its contract/fixture matrix without changing the approved
+  provider-neutral boundary before a real adapter could be introduced. That is now done
+  (`P2_T3_PHASE_A_IMPLEMENTATION.md`, `EV-003-T3-01`); see the closed gate 3 below. Phase B
+  preserves the fake profiles, their field values, and their digests unchanged.
 - Real candidate provenance must be exact and reproducible: model identifier and immutable
   revision, weight source/hash and license, adapter/runtime/dependency versions, device class,
   precision, structured-output settings, timeout budget, and canonical configuration hash.
@@ -41,17 +46,28 @@ CLI/end-to-end benchmark and is never a user-facing, Integration Sprint, or Gate
 2. **Runtime/profile decision package.** Select candidate profiles and exact parameters only after
    recording model revision/license, exact dependency pins, structured-output parameters, timeout,
    and the ADR rationale. No profile may be frozen or become a runtime default in this package.
-3. **Phase A completion.** Its fake adapter, policy, manifest, and contract tests must be completed
-   and validated before a real adapter is introduced.
+3. ~~**Phase A completion.**~~ **CLOSED on 2026-09-01.** The fake adapter, policy, manifest, and
+   contract tests are implemented and validated; the record is
+   `P2_T3_PHASE_A_IMPLEMENTATION.md` (`EV-003-T3-01`), including its "Correction — 2026-09-01"
+   section. Verified immediately before the B0 dossier was written: 172 focused P2-T3 tests and
+   310 total backend tests passing. Gates 1 and 2 above remain open and are carried into
+   `P2_T3_PHASE_B_APPROVAL_REQUEST.md` as owner decisions D-1/D-2 and D-3/D-4.
 
 ## Proposed approval-package sequence
 
-### B0 — dossier and contract-impact review
+### B0 — dossier and contract-impact review — **EXECUTED as documentation on 2026-09-01**
 
-Write the candidate-profile table and a precise additive contract amendment for real model
-provenance. It must define the provenance value object, result-contract versioning/backward
-compatibility, catalog expansion, and regression proof that Phase A fake outputs are unchanged.
-Do not reserve nullable model-provenance placeholders in the Phase A contract.
+Superseded by `P2_T3_PHASE_B_APPROVAL_REQUEST.md` (`EV-003-T3-PLAN-04`), which is the authoritative
+B0 output. The original intent is preserved here for history: write the candidate-profile table and
+a precise additive contract amendment for real model provenance, defining the provenance value
+object, result-contract versioning/backward compatibility, catalog expansion, and regression proof
+that Phase A fake outputs are unchanged, without reserving nullable model-provenance placeholders
+in the Phase A contract.
+
+Two refinements the dossier makes to that wording, after the Round-1 review: the amendment is a
+**new versioned V2 contract** rather than added fields on V1 (adding even nullable fields would
+change `vision_profile_config_hash` for an unchanged fake profile), and B0 **specifies** the
+regression set while B1 **executes** it, so B0 stays documentation-only.
 
 ### B1 — isolated real runtime
 
