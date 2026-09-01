@@ -1,0 +1,183 @@
+{
+  "contract_name": "VisionFixtureManifestV1",
+  "contract_version": "1.0",
+  "data_policy": "synthetic-only",
+  "generator": "backend/tests/unit/test_vision_phase_a_adapter.py",
+  "fixtures": [
+    {
+      "fixture_id": "success-with-observations",
+      "scenario": "RAW_OUTPUT",
+      "expected_status": "SUCCEEDED",
+      "expected_error_code": null,
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "success-all-empty",
+      "scenario": "RAW_OUTPUT",
+      "expected_status": "SUCCEEDED",
+      "expected_error_code": null,
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "missing-p2t1-provenance",
+      "scenario": "RAW_OUTPUT",
+      "expected_status": "FAILED",
+      "expected_error_code": "INPUT_NOT_VALIDATED",
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "p2t1-not-passed",
+      "scenario": "RAW_OUTPUT",
+      "expected_status": "FAILED",
+      "expected_error_code": "INPUT_NOT_VALIDATED",
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "source-image-unreadable",
+      "scenario": "RAW_OUTPUT",
+      "expected_status": "FAILED",
+      "expected_error_code": "INPUT_NOT_VALIDATED",
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "source-image-hash-mismatch",
+      "scenario": "RAW_OUTPUT",
+      "expected_status": "FAILED",
+      "expected_error_code": "INPUT_NOT_VALIDATED",
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "model-load-failed",
+      "scenario": "MODEL_UNAVAILABLE",
+      "expected_status": "FAILED",
+      "expected_error_code": "VISION_MODEL_UNAVAILABLE",
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "device-unavailable",
+      "scenario": "DEVICE_UNAVAILABLE",
+      "expected_status": "FAILED",
+      "expected_error_code": "VISION_MODEL_UNAVAILABLE",
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "timeout-budget-exceeded",
+      "scenario": "TIMEOUT",
+      "expected_status": "FAILED",
+      "expected_error_code": "VISION_TIMEOUT",
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "transient-then-success",
+      "scenario": "PROVIDER_TRANSIENT_SUCCESS",
+      "expected_status": "SUCCEEDED",
+      "expected_error_code": null,
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "transient-then-failure",
+      "scenario": "PROVIDER_TRANSIENT_FAILURE",
+      "expected_status": "FAILED",
+      "expected_error_code": "VISION_PROVIDER_FAILURE",
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "permanent-provider-failure",
+      "scenario": "PROVIDER_PERMANENT_FAILURE",
+      "expected_status": "FAILED",
+      "expected_error_code": "VISION_PROVIDER_FAILURE",
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "fenced-complete-json",
+      "scenario": "RAW_OUTPUT",
+      "expected_status": "SUCCEEDED",
+      "expected_error_code": null,
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "fenced-truncated-json",
+      "scenario": "RAW_OUTPUT",
+      "expected_status": "FAILED",
+      "expected_error_code": "VISION_SCHEMA_INVALID",
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "plain-truncated-json",
+      "scenario": "RAW_OUTPUT",
+      "expected_status": "FAILED",
+      "expected_error_code": "VISION_SCHEMA_INVALID",
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "unknown-top-level-field",
+      "scenario": "RAW_OUTPUT",
+      "expected_status": "FAILED",
+      "expected_error_code": "VISION_SCHEMA_INVALID",
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "missing-entities-collection",
+      "scenario": "RAW_OUTPUT",
+      "expected_status": "FAILED",
+      "expected_error_code": "VISION_SCHEMA_INVALID",
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "duplicate-observation-id",
+      "scenario": "RAW_OUTPUT",
+      "expected_status": "FAILED",
+      "expected_error_code": "VISION_SCHEMA_INVALID",
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "dangling-reference",
+      "scenario": "RAW_OUTPUT",
+      "expected_status": "FAILED",
+      "expected_error_code": "VISION_SCHEMA_INVALID",
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "policy-blocked-psychological-inference-claim",
+      "scenario": "RAW_OUTPUT",
+      "expected_status": "FAILED",
+      "expected_error_code": "PROHIBITED_CLAIM_DETECTED",
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "policy-blocked-personality-claim",
+      "scenario": "RAW_OUTPUT",
+      "expected_status": "FAILED",
+      "expected_error_code": "PROHIBITED_CLAIM_DETECTED",
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "policy-blocked-diagnostic-claim",
+      "scenario": "RAW_OUTPUT",
+      "expected_status": "FAILED",
+      "expected_error_code": "PROHIBITED_CLAIM_DETECTED",
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "policy-blocked-mental-state-claim",
+      "scenario": "RAW_OUTPUT",
+      "expected_status": "FAILED",
+      "expected_error_code": "PROHIBITED_CLAIM_DETECTED",
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "policy-blocked-trauma-claim",
+      "scenario": "RAW_OUTPUT",
+      "expected_status": "FAILED",
+      "expected_error_code": "PROHIBITED_CLAIM_DETECTED",
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "policy-blocked-developmental-claim",
+      "scenario": "RAW_OUTPUT",
+      "expected_status": "FAILED",
+      "expected_error_code": "PROHIBITED_CLAIM_DETECTED",
+      "synthetic_data": true
+    }
+  ]
+}
