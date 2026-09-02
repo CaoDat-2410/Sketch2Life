@@ -2,7 +2,7 @@
 
 ## Responsibility
 
-`GenerationBrief` is the bounded input contract for a video provider. `GenerationProvider` is the provider-neutral interface. `MockGenerator` exercises that interface without downloading a model or requiring a GPU.
+`GenerationBriefCompiler` turns one learning objective into the bounded `GenerationBrief` input contract for a video provider. `GenerationProvider` is the provider-neutral interface. `MockGenerator` exercises that interface without downloading a model or requiring a GPU.
 
 ## Flow
 

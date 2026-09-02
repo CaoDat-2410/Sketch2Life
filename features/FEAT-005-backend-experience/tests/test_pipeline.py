@@ -47,6 +47,25 @@ class FakeSampler:
         )
 
 
+class CountingGenerator(MockGenerator):
+    def __init__(self) -> None:
+        self.calls = 0
+
+    def generate(self, brief: GenerationBrief):
+        self.calls += 1
+        return super().generate(brief)
+
+
+class SequenceContentModel:
+    def __init__(self) -> None:
+        self.calls = 0
+
+    def inspect(self, frames: list[Path], brief: GenerationBrief) -> VisualInspection:
+        del frames, brief
+        self.calls += 1
+        return VisualInspection(objective_present=self.calls > 1)
+
+
 def make_pipeline(library: AssetLibrary, inspection: VisualInspection) -> LearningVideoPipeline:
     return LearningVideoPipeline(
         resolver=CacheFirstResolver(library),
@@ -86,6 +105,27 @@ class PipelineTest(unittest.TestCase):
         self.assertEqual(result.status, "BLOCK")
         self.assertIsNone(result.asset)
         self.assertEqual(result.reason_codes, ["PROHIBITED_CONTENT"])
+
+    def test_retry_then_pass_generates_after_one_retry(self) -> None:
+        generator = CountingGenerator()
+        model = SequenceContentModel()
+        pipeline = LearningVideoPipeline(
+            resolver=CacheFirstResolver(AssetLibrary([])),
+            generator=generator,
+            sampler=FakeSampler(),
+            validator=Qwen3VLContentValidator(model),
+            fallback=StillNarrationFallback(
+                AssetLibrary.from_directory(ROOT / "fixtures/fallback_assets")
+            ),
+            retry_policy=RetryPolicy(max_retries=1),
+        )
+
+        result = pipeline.run(OBJECTIVE, BRIEF, ROOT / "outputs/test-frames")
+
+        self.assertEqual(result.status, "GENERATED")
+        self.assertEqual(result.retry_count, 1)
+        self.assertEqual(generator.calls, 2)
+        self.assertEqual(model.calls, 2)
 
 
 if __name__ == "__main__":
