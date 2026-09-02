@@ -103,6 +103,16 @@ class GenerationBrief(ContractModel):
         return values
 
 
+class GeneratedVideo(ContractModel):
+    artifact_id: str = Field(min_length=1, max_length=200)
+    objective_id: str = Field(min_length=1, max_length=200)
+    objective_version: str = Field(min_length=1, pattern=r"^v[0-9]+$")
+    output_path: str = Field(min_length=1)
+    duration_sec: float = Field(gt=0, le=10)
+    provider: str = Field(min_length=1, max_length=100)
+    provenance: ProvenanceMetadata
+
+
 class ResolverResult(ContractModel):
     status: ResolverStatus
     objective_id: str = Field(min_length=1, max_length=200)
