@@ -113,6 +113,16 @@ class GeneratedVideo(ContractModel):
     provenance: ProvenanceMetadata
 
 
+class FrameSamplingResult(ContractModel):
+    status: ValidationStatus
+    video_path: str = Field(min_length=1)
+    duration_sec: float | None = Field(default=None, ge=0)
+    sampled_frame_paths: list[str] = Field(default_factory=list, max_length=5)
+    sample_percentages: list[int] = Field(default_factory=list, max_length=5)
+    reason_codes: list[str] = Field(default_factory=list, max_length=20)
+    validator: Literal["ffmpeg"] = "ffmpeg"
+
+
 class ResolverResult(ContractModel):
     status: ResolverStatus
     objective_id: str = Field(min_length=1, max_length=200)

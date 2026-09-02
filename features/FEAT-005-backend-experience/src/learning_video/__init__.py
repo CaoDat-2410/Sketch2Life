@@ -2,6 +2,7 @@
 
 from .schemas import (
     AssetType,
+    FrameSamplingResult,
     GeneratedVideo,
     GenerationBrief,
     LearningExplanationAsset,
@@ -17,7 +18,7 @@ from .library import AssetLibrary
 from .resolver import CacheFirstResolver
 
 __all__ = [
-    "AssetLibrary", "AssetType", "CacheFirstResolver", "GeneratedVideo", "GenerationBrief", "GenerationProvider", "LearningExplanationAsset", "LearningObjective", "MockGenerator",
+    "AssetLibrary", "AssetType", "CacheFirstResolver", "FrameSamplingResult", "GeneratedVideo", "GenerationBrief", "GenerationProvider", "LearningExplanationAsset", "LearningObjective", "MockGenerator",
     "MicroVideoAsset", "ReviewedAsset", "ReviewedStillNarrationAsset", "ResolverResult",
     "ValidationResult",
 ]
