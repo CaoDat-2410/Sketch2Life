@@ -11,9 +11,11 @@ from .schemas import (
     ResolverResult,
     ValidationResult,
 )
+from .library import AssetLibrary
+from .resolver import CacheFirstResolver
 
 __all__ = [
-    "AssetType", "GenerationBrief", "LearningExplanationAsset", "LearningObjective",
+    "AssetLibrary", "AssetType", "CacheFirstResolver", "GenerationBrief", "LearningExplanationAsset", "LearningObjective",
     "MicroVideoAsset", "ReviewedAsset", "ReviewedStillNarrationAsset", "ResolverResult",
     "ValidationResult",
 ]
