@@ -16,9 +16,11 @@ from .schemas import (
 from .generator_client import GenerationProvider, MockGenerator
 from .library import AssetLibrary
 from .resolver import CacheFirstResolver
+from .content_validator import MockQwen3VLValidator, Qwen3VLContentValidator, VisualContentModel
 
 __all__ = [
     "AssetLibrary", "AssetType", "CacheFirstResolver", "FrameSamplingResult", "GeneratedVideo", "GenerationBrief", "GenerationProvider", "LearningExplanationAsset", "LearningObjective", "MockGenerator",
     "MicroVideoAsset", "ReviewedAsset", "ReviewedStillNarrationAsset", "ResolverResult",
     "ValidationResult",
+    "MockQwen3VLValidator", "Qwen3VLContentValidator", "VisualContentModel",
 ]

@@ -123,6 +123,14 @@ class FrameSamplingResult(ContractModel):
     validator: Literal["ffmpeg"] = "ffmpeg"
 
 
+class VisualInspection(ContractModel):
+    objective_present: bool
+    prohibited_content_found: bool = False
+    age_appropriate: bool = True
+    visual_corruption_detected: bool = False
+    notes: list[str] = Field(default_factory=list, max_length=20)
+
+
 class ResolverResult(ContractModel):
     status: ResolverStatus
     objective_id: str = Field(min_length=1, max_length=200)
