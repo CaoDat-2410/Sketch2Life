@@ -23,10 +23,12 @@ from .content_validator import MockQwen3VLValidator, Qwen3VLContentValidator, Vi
 from .fallback import RetryPolicy, StillNarrationFallback
 from .pipeline import LearningVideoPipeline
 from .prompt_compiler import GenerationBriefCompiler
+from .wan_generator import Wan2Generator, Wan2GeneratorConfig, WanGenerationError
 
 __all__ = [
     "AssetLibrary", "AssetType", "CacheFirstResolver", "FallbackResult", "FrameSamplingResult", "GeneratedVideo", "GenerationBrief", "GenerationProvider", "LearningExplanationAsset", "LearningObjective", "MockGenerator",
     "MicroVideoAsset", "ReviewedAsset", "ReviewedStillNarrationAsset", "ResolverResult",
     "RetryPolicy", "StillNarrationFallback", "ValidationResult", "VisualInspection", "PipelineResult", "LearningVideoPipeline", "GenerationBriefCompiler",
     "MockQwen3VLValidator", "Qwen3VLContentValidator", "VisualContentModel",
+    "Wan2Generator", "Wan2GeneratorConfig", "WanGenerationError",
 ]
