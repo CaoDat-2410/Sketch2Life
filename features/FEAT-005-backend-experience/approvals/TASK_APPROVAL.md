@@ -1,8 +1,8 @@
 # Task approval
 
 - Status: AWAITING_APPROVAL
-- Approver:
-- Approved scope:
+- Approver: Phạm Hiếu 
+- Approved scope:FEAT-005 Person 4 standalone learning media POC
 - Plan revision: 2
-- Approved at:
-- Notes: FEAT-012 approves this allocation boundary, not implementation. Person 4 does not own backend, infrastructure, deployment, or E2E in Sprint 1.
+- Approved at:2026-09-02
+- Notes: Person 4 owns learning asset library, cache-first resolver, generation adapter, FFmpeg frame sampling, Qwen3-VL validation, fallback, tests, and benchmark. Backend, infrastructure, deployment, mobile, and E2E integration are excluded.
