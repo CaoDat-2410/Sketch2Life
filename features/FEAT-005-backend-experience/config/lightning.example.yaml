@@ -1,0 +1,14 @@
+wan:
+  model_name: Wan2.2-TI2V-5B
+  checkpoint_dir: /teamspace/models/Wan2.2-TI2V-5B
+  offload_model: true
+
+video:
+  min_duration_sec: 5
+  max_duration_sec: 10
+  width: 1280
+  height: 704
+  fps: 24
+
+runtime:
+  max_retries: 1

@@ -1,0 +1,14 @@
+wan:
+  model_name: mock
+  checkpoint_dir: /tmp/mock-model
+  offload_model: true
+
+video:
+  min_duration_sec: 5
+  max_duration_sec: 10
+  width: 320
+  height: 176
+  fps: 8
+
+runtime:
+  max_retries: 1
