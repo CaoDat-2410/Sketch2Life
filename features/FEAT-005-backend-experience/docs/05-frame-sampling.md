@@ -23,4 +23,4 @@ The content validator may later convert a readable sampling result into `PASS`, 
 
 ## Verification
 
-The unit test uses `unittest.mock` to emulate `ffprobe` and `ffmpeg`, so it does not require a real video or system binaries. Real MP4 verification will run on the media fixture and Lightning AI environment in the integration phase.
+The unit test uses `unittest.mock` to emulate `ffprobe` and `ffmpeg`, so it does not require a real video or system binaries. The integration test and `generate_video_fixtures.py` use real FFmpeg when it is available, such as on the Lightning AI environment.
