@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from .schemas import LearningExplanationAsset, LearningObjective, ReviewedAsset
+from .schemas import AssetType, LearningExplanationAsset, LearningObjective, ReviewedAsset
 
 
 class AssetLibrary:
@@ -31,13 +31,18 @@ class AssetLibrary:
     def assets(self) -> tuple[LearningExplanationAsset, ...]:
         return self._assets
 
-    def find_reviewed(self, objective: LearningObjective) -> LearningExplanationAsset | None:
+    def find_reviewed(
+        self,
+        objective: LearningObjective,
+        asset_type: AssetType | None = None,
+    ) -> LearningExplanationAsset | None:
         for asset in self._assets:
             if (
                 asset.objective_id == objective.objective_id
                 and asset.objective_version == objective.version
                 and asset.locale == objective.locale
                 and asset.age_band == objective.age_band
+                and (asset_type is None or asset.asset_type is asset_type)
             ):
                 return asset
         return None

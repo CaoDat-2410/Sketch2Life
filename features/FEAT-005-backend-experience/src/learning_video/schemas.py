@@ -148,3 +148,11 @@ class ValidationResult(ContractModel):
     sampled_frame_paths: list[str] = Field(default_factory=list, max_length=5)
     reason_codes: list[str] = Field(default_factory=list, max_length=20)
     validator: Literal["ffmpeg", "qwen3-vl", "combined"]
+
+
+class FallbackResult(ContractModel):
+    status: Literal[ValidationStatus.FALLBACK, ValidationStatus.BLOCK]
+    objective_id: str = Field(min_length=1, max_length=200)
+    objective_version: str = Field(min_length=1, pattern=r"^v[0-9]+$")
+    asset: ReviewedStillNarrationAsset | None = None
+    reason_code: str = Field(min_length=1, max_length=100)
