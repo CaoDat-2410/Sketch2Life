@@ -1,0 +1,11 @@
+{
+  "objective_id": "butterfly_proboscis",
+  "objective_version": "v1",
+  "locale": "vi-VN",
+  "age_band": "3-6",
+  "duration_sec": 8,
+  "prompt": "Simple educational illustration showing a butterfly using its proboscis to drink nectar from a flower.",
+  "show": ["butterfly", "flower", "proboscis", "nectar"],
+  "avoid": ["fantasy anatomy", "extra animals", "text overlays", "scary imagery"],
+  "profile": {"width": 1280, "height": 704, "fps": 24, "offload_model": true}
+}

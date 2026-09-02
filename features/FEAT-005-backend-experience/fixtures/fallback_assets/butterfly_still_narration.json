@@ -1,0 +1,15 @@
+{
+  "asset": {
+    "asset_id": "STILL-BUTTERFLY-PROBOSCIS-v1",
+    "objective_id": "butterfly_proboscis",
+    "objective_version": "v1",
+    "locale": "vi-VN",
+    "age_band": "3-6",
+    "asset_type": "still_narration",
+    "review_status": "REVIEWED",
+    "duration_sec": 8,
+    "still_path": "fixtures/fallback_assets/butterfly_parts.png",
+    "narration_path": "fixtures/fallback_assets/butterfly_explanation.wav",
+    "provenance": {"source": "curated_library", "created_at": "2026-09-02T00:00:00Z"}
+  }
+}
