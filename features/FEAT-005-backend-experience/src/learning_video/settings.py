@@ -12,9 +12,15 @@ class SettingsModel(BaseModel):
 
 
 class WanSettings(SettingsModel):
+    provider: str = Field(pattern=r"^(mock|wan2\.2)$")
     model_name: str = Field(min_length=1)
+    python_binary: str = Field(min_length=1)
+    inference_script: Path
     checkpoint_dir: Path
+    output_dir: Path
     offload_model: bool = True
+    convert_model_dtype: bool = True
+    t5_cpu: bool = True
 
 
 class VideoSettings(SettingsModel):

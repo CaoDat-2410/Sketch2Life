@@ -1,7 +1,13 @@
 wan:
+  provider: wan2.2
   model_name: Wan2.2-TI2V-5B
+  python_binary: python
+  inference_script: /opt/Wan2.2/generate.py
   checkpoint_dir: /models/Wan2.2-TI2V-5B
+  output_dir: outputs/generated
   offload_model: true
+  convert_model_dtype: true
+  t5_cpu: true
 
 video:
   min_duration_sec: 5

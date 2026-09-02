@@ -1,7 +1,13 @@
 wan:
+  provider: mock
   model_name: mock
+  python_binary: python
+  inference_script: /tmp/mock-generate.py
   checkpoint_dir: /tmp/mock-model
+  output_dir: /tmp/mock-output
   offload_model: true
+  convert_model_dtype: true
+  t5_cpu: true
 
 video:
   min_duration_sec: 5
