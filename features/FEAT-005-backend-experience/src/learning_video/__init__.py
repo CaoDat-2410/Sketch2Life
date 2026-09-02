@@ -9,6 +9,7 @@ from .schemas import (
     LearningExplanationAsset,
     LearningObjective,
     MicroVideoAsset,
+    PipelineResult,
     ReviewedAsset,
     ReviewedStillNarrationAsset,
     ResolverResult,
@@ -20,10 +21,11 @@ from .library import AssetLibrary
 from .resolver import CacheFirstResolver
 from .content_validator import MockQwen3VLValidator, Qwen3VLContentValidator, VisualContentModel
 from .fallback import RetryPolicy, StillNarrationFallback
+from .pipeline import LearningVideoPipeline
 
 __all__ = [
     "AssetLibrary", "AssetType", "CacheFirstResolver", "FallbackResult", "FrameSamplingResult", "GeneratedVideo", "GenerationBrief", "GenerationProvider", "LearningExplanationAsset", "LearningObjective", "MockGenerator",
     "MicroVideoAsset", "ReviewedAsset", "ReviewedStillNarrationAsset", "ResolverResult",
-    "RetryPolicy", "StillNarrationFallback", "ValidationResult", "VisualInspection",
+    "RetryPolicy", "StillNarrationFallback", "ValidationResult", "VisualInspection", "PipelineResult", "LearningVideoPipeline",
     "MockQwen3VLValidator", "Qwen3VLContentValidator", "VisualContentModel",
 ]

@@ -156,3 +156,15 @@ class FallbackResult(ContractModel):
     objective_version: str = Field(min_length=1, pattern=r"^v[0-9]+$")
     asset: ReviewedStillNarrationAsset | None = None
     reason_code: str = Field(min_length=1, max_length=100)
+
+
+class PipelineResult(ContractModel):
+    status: Literal["CACHE_HIT", "GENERATED", "FALLBACK", "BLOCK"]
+    objective_id: str = Field(min_length=1, max_length=200)
+    objective_version: str = Field(min_length=1, pattern=r"^v[0-9]+$")
+    asset: LearningExplanationAsset | None = None
+    generated_video: GeneratedVideo | None = None
+    validation: ValidationResult | None = None
+    fallback: FallbackResult | None = None
+    retry_count: int = Field(ge=0)
+    reason_codes: list[str] = Field(default_factory=list, max_length=20)
