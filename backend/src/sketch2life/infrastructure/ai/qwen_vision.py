@@ -102,6 +102,7 @@ class QwenModelBundle:
 ModelFactory = Callable[[VisionProfileV2, QwenVisionRuntimeConfig], QwenModelBundle]
 PromptBuilder = Callable[[VisionUnderstandingRequestV2], str]
 TransientClassifier = Callable[[BaseException], bool]
+RawOutputHook = Callable[[str], None]
 
 
 class QwenGenerationRunner(Protocol):
@@ -396,7 +397,16 @@ def _default_prompt_builder(_request: VisionUnderstandingRequestV2) -> str:
 
 
 class QwenVisionAdapter(VisionUnderstandingPortV2):
-    """Real Qwen V2 adapter with typed failures and no raw-output leakage."""
+    """Real Qwen V2 adapter with typed failures and no raw-output leakage.
+
+    ``on_raw_output``, when supplied, is an internal diagnostic seam only (used by the
+    P2-T3 Phase B B3 mapping study): it is invoked with the raw provider string once a
+    generation call succeeds, before any parsing/classification happens here. It never
+    changes this adapter's return value, is never wired into any default/production
+    construction, and adds no field to any public V1/V2 contract. A hook exception is
+    swallowed so a diagnostic failure can never turn a real understanding call into an
+    uncaught exception.
+    """
 
     def __init__(
         self,
@@ -409,6 +419,7 @@ class QwenVisionAdapter(VisionUnderstandingPortV2):
         model_factory: ModelFactory | None = None,
         classify_transient: TransientClassifier = _never_transient,
         clock: Callable[[], datetime] = _utc_now,
+        on_raw_output: RawOutputHook | None = None,
     ) -> None:
         if prompt is not None and prompt_builder is not None:
             raise ValueError("provide prompt or prompt_builder, not both")
@@ -428,6 +439,7 @@ class QwenVisionAdapter(VisionUnderstandingPortV2):
             self._generation_runner = KillableSubprocessQwenGenerationRunner()
         self._classify_transient = classify_transient
         self._clock = clock
+        self._on_raw_output = on_raw_output
 
     def understand(self, request: VisionUnderstandingRequestV2) -> VisionUnderstandingResultV2:
         catalog_hash = vision_profile_catalog_hash_v2(self._catalog)
@@ -595,6 +607,10 @@ class QwenVisionAdapter(VisionUnderstandingPortV2):
                     attempt_number=attempt_number,
                     retryable=transient,
                 )
+
+            if self._on_raw_output is not None:
+                with suppress(Exception):
+                    self._on_raw_output(raw_output)
 
             return self._map_raw_output(
                 request, profile, catalog_hash, raw_output, attempt_number
@@ -861,5 +877,6 @@ __all__ = [
     "QwenVisionAdapter",
     "QwenVisionUnderstandingAdapter",
     "QwenModelLike",
+    "RawOutputHook",
     "TransformersQwenGenerationRunner",
 ]

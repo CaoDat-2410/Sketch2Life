@@ -137,6 +137,7 @@ def _adapter(
     *,
     model_factory: Any = None,
     prompt: str = "",
+    on_raw_output: Any = None,
 ) -> QwenVisionAdapter:
     return QwenVisionAdapter(
         QwenVisionRuntimeConfig(model_dir=Path("local-model")),
@@ -144,6 +145,7 @@ def _adapter(
         prompt=prompt,
         generation_runner=runner,
         model_factory=model_factory,
+        on_raw_output=on_raw_output,
     )
 
 
@@ -611,3 +613,93 @@ def test_default_factory_lazily_imports_optional_runtime_and_sanitizes_missing_i
             profile, QwenVisionRuntimeConfig(model_cache_dir=Path("qwen-vl-cache"))
         )
     assert "PRIVATE_OPTIONAL_DEPENDENCY" not in str(error.value)
+
+
+def test_on_raw_output_hook_receives_raw_text_on_success(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The B3 diagnostic hook is additive: it never changes the returned result."""
+
+    monkeypatch.chdir(tmp_path)
+    artifact_ref, digest = _write_source(tmp_path)
+    raw_output = _raw(_empty_payload())
+    observed: list[str] = []
+
+    result = _adapter(_SequenceRunner(raw_output), on_raw_output=observed.append).understand(
+        _request(artifact_ref, digest)
+    )
+
+    assert isinstance(result, VisionUnderstandingSuccessV2)
+    assert observed == [raw_output]
+
+
+def test_on_raw_output_hook_receives_raw_text_on_schema_invalid_failure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    artifact_ref, digest = _write_source(tmp_path)
+    raw_output = '{"entities": []'
+    observed: list[str] = []
+
+    result = _adapter(_SequenceRunner(raw_output), on_raw_output=observed.append).understand(
+        _request(artifact_ref, digest)
+    )
+
+    assert isinstance(result, VisionUnderstandingFailureV2)
+    assert result.error_detail is VisionNonPolicyErrorDetailV2.OUTPUT_MAPPING_FAILED
+    assert observed == [raw_output]
+
+
+def test_on_raw_output_hook_is_not_invoked_before_generation_returns(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """INPUT_NOT_VALIDATED never reaches generation, so raw output never exists to observe."""
+
+    monkeypatch.chdir(tmp_path)
+    artifact_ref, digest = _write_source(tmp_path)
+    runner = _SequenceRunner(_raw(_empty_payload()))
+    observed: list[str] = []
+
+    result = _adapter(runner, on_raw_output=observed.append).understand(
+        _request(artifact_ref, digest, media_validation=None)
+    )
+
+    assert isinstance(result, VisionUnderstandingFailureV2)
+    assert result.error_code is VisionErrorCode.INPUT_NOT_VALIDATED
+    assert runner.calls == 0
+    assert observed == []
+
+
+def test_on_raw_output_hook_exception_is_swallowed_and_result_still_returned(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A diagnostic hook failure must never turn a real call into an uncaught exception."""
+
+    monkeypatch.chdir(tmp_path)
+    artifact_ref, digest = _write_source(tmp_path)
+
+    def _raising_hook(_raw_output: str) -> None:
+        raise RuntimeError("diagnostic classifier boom")
+
+    result = _adapter(
+        _SequenceRunner(_raw(_empty_payload())), on_raw_output=_raising_hook
+    ).understand(_request(artifact_ref, digest))
+
+    assert isinstance(result, VisionUnderstandingSuccessV2)
+
+
+def test_default_adapter_never_widens_the_public_result_contract(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """No hook field or diagnostic artifact ever appears on the serialized V2 result."""
+
+    monkeypatch.chdir(tmp_path)
+    artifact_ref, digest = _write_source(tmp_path)
+
+    result = _adapter(_SequenceRunner(_raw(_empty_payload()))).understand(
+        _request(artifact_ref, digest)
+    )
+
+    assert isinstance(result, VisionUnderstandingSuccessV2)
+    assert "on_raw_output" not in result.model_dump_json()
+    assert "raw_output" not in result.model_dump_json()
