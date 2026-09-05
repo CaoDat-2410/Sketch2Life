@@ -7,6 +7,7 @@ from typing import Any, cast
 
 import pytest
 
+from sketch2life.benchmark.vision_c1_prompt_mapping_study import c1_prompt_text
 from sketch2life.contracts.schemas.vision import (
     ImageDerivationProvenanceV1,
     VisionErrorCode,
@@ -49,6 +50,7 @@ class _SequenceRunner:
     def __init__(self, *outcomes: object) -> None:
         self.outcomes = list(outcomes)
         self.calls = 0
+        self.received_prompts: list[str] = []
 
     def generate(
         self,
@@ -57,8 +59,9 @@ class _SequenceRunner:
         image_path: Path,
         prompt: str,
     ) -> str:
-        del profile, runtime_config, image_path, prompt
+        del profile, runtime_config, image_path
         self.calls += 1
+        self.received_prompts.append(prompt)
         if not self.outcomes:
             raise AssertionError("test runner was called more times than expected")
         outcome = self.outcomes.pop(0)
@@ -153,6 +156,27 @@ def _write_source(tmp_path: Path) -> tuple[str, str]:
     path = tmp_path / "drawing.bin"
     path.write_bytes(_IMAGE_BYTES)
     return path.name, sha256(_IMAGE_BYTES).hexdigest()
+
+
+def test_default_prompt_builder_returns_empty_string() -> None:
+    """B3-C0's frozen default: C1 must inject its prompt explicitly, never via this default."""
+
+    request = _request("dummy.png", "a" * 64)
+
+    assert qwen_vision._default_prompt_builder(request) == ""
+
+
+def test_c1_prompt_is_injected_explicitly_and_reaches_generation_unchanged(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    artifact_ref, digest = _write_source(tmp_path)
+    runner = _SequenceRunner(_raw(_empty_payload()))
+
+    result = _adapter(runner, prompt=c1_prompt_text()).understand(_request(artifact_ref, digest))
+
+    assert isinstance(result, VisionUnderstandingSuccessV2)
+    assert runner.received_prompts == [c1_prompt_text()]
 
 
 def test_adapter_success_validates_source_before_generation_and_emits_v2_provenance(
