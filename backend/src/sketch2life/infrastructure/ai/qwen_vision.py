@@ -126,7 +126,247 @@ class QwenOutputMappingDiagnostic(StrEnum):
     SCHEMA_VALID = "SCHEMA_VALID"
 
 
-MappingDiagnosticHook = Callable[[tuple[QwenOutputMappingDiagnostic, ...]], None]
+class QwenSchemaPathDiagnostic(StrEnum):
+    """Closed, finite, hand-authored schema-path refinement (P2-T3 Phase B B3 "C3").
+
+    Refines exactly two of :class:`QwenOutputMappingDiagnostic`'s categories --
+    ``SCHEMA_MISSING_REQUIRED_FIELD`` and ``SCHEMA_TYPE_OR_CONSTRAINT_INVALID`` -- with a closed
+    normalized schema path, per the owner-approved
+    ``evidence/notes/P2_T3_PHASE_B_B3_C3_SCHEMA_PATH_DECISION_RECORD.md``. Every member is a fixed
+    string; none is ever constructed at runtime from a Pydantic ``loc`` value. This is an internal
+    benchmark diagnostic refinement only, never a V1/V2 result token, and is emitted in-memory
+    through the existing ``on_mapping_diagnostic`` hook only -- it must never become a field on any
+    report, evidence artifact, or public contract.
+    """
+
+    SCHEMA_PATH_ENTITIES_OBSERVATION_ID = "SCHEMA_PATH_ENTITIES_OBSERVATION_ID"
+    SCHEMA_PATH_ENTITIES_LABEL = "SCHEMA_PATH_ENTITIES_LABEL"
+    SCHEMA_PATH_ENTITIES_LABEL_VALUE = "SCHEMA_PATH_ENTITIES_LABEL_VALUE"
+    SCHEMA_PATH_ENTITIES_LABEL_LANGUAGE = "SCHEMA_PATH_ENTITIES_LABEL_LANGUAGE"
+    SCHEMA_PATH_ENTITIES_LABEL_LANGUAGE_STATUS = "SCHEMA_PATH_ENTITIES_LABEL_LANGUAGE_STATUS"
+    SCHEMA_PATH_ENTITIES_LABEL_LANGUAGE_TAGS = "SCHEMA_PATH_ENTITIES_LABEL_LANGUAGE_TAGS"
+    SCHEMA_PATH_ENTITIES_LABEL_LANGUAGE_IS_GROUND_TRUTH = (
+        "SCHEMA_PATH_ENTITIES_LABEL_LANGUAGE_IS_GROUND_TRUTH"
+    )
+    SCHEMA_PATH_ENTITIES_CONFIDENCE = "SCHEMA_PATH_ENTITIES_CONFIDENCE"
+
+    SCHEMA_PATH_ACTIONS_OBSERVATION_ID = "SCHEMA_PATH_ACTIONS_OBSERVATION_ID"
+    SCHEMA_PATH_ACTIONS_LABEL = "SCHEMA_PATH_ACTIONS_LABEL"
+    SCHEMA_PATH_ACTIONS_LABEL_VALUE = "SCHEMA_PATH_ACTIONS_LABEL_VALUE"
+    SCHEMA_PATH_ACTIONS_LABEL_LANGUAGE = "SCHEMA_PATH_ACTIONS_LABEL_LANGUAGE"
+    SCHEMA_PATH_ACTIONS_LABEL_LANGUAGE_STATUS = "SCHEMA_PATH_ACTIONS_LABEL_LANGUAGE_STATUS"
+    SCHEMA_PATH_ACTIONS_LABEL_LANGUAGE_TAGS = "SCHEMA_PATH_ACTIONS_LABEL_LANGUAGE_TAGS"
+    SCHEMA_PATH_ACTIONS_LABEL_LANGUAGE_IS_GROUND_TRUTH = (
+        "SCHEMA_PATH_ACTIONS_LABEL_LANGUAGE_IS_GROUND_TRUTH"
+    )
+    SCHEMA_PATH_ACTIONS_ACTOR_REF = "SCHEMA_PATH_ACTIONS_ACTOR_REF"
+    SCHEMA_PATH_ACTIONS_OBJECT_REF = "SCHEMA_PATH_ACTIONS_OBJECT_REF"
+    SCHEMA_PATH_ACTIONS_CONFIDENCE = "SCHEMA_PATH_ACTIONS_CONFIDENCE"
+
+    SCHEMA_PATH_RELATIONS_OBSERVATION_ID = "SCHEMA_PATH_RELATIONS_OBSERVATION_ID"
+    SCHEMA_PATH_RELATIONS_PREDICATE = "SCHEMA_PATH_RELATIONS_PREDICATE"
+    SCHEMA_PATH_RELATIONS_PREDICATE_VALUE = "SCHEMA_PATH_RELATIONS_PREDICATE_VALUE"
+    SCHEMA_PATH_RELATIONS_PREDICATE_LANGUAGE = "SCHEMA_PATH_RELATIONS_PREDICATE_LANGUAGE"
+    SCHEMA_PATH_RELATIONS_PREDICATE_LANGUAGE_STATUS = (
+        "SCHEMA_PATH_RELATIONS_PREDICATE_LANGUAGE_STATUS"
+    )
+    SCHEMA_PATH_RELATIONS_PREDICATE_LANGUAGE_TAGS = (
+        "SCHEMA_PATH_RELATIONS_PREDICATE_LANGUAGE_TAGS"
+    )
+    SCHEMA_PATH_RELATIONS_PREDICATE_LANGUAGE_IS_GROUND_TRUTH = (
+        "SCHEMA_PATH_RELATIONS_PREDICATE_LANGUAGE_IS_GROUND_TRUTH"
+    )
+    SCHEMA_PATH_RELATIONS_SUBJECT_REF = "SCHEMA_PATH_RELATIONS_SUBJECT_REF"
+    SCHEMA_PATH_RELATIONS_OBJECT_REF = "SCHEMA_PATH_RELATIONS_OBJECT_REF"
+    SCHEMA_PATH_RELATIONS_CONFIDENCE = "SCHEMA_PATH_RELATIONS_CONFIDENCE"
+
+    SCHEMA_PATH_THEMES_OBSERVATION_ID = "SCHEMA_PATH_THEMES_OBSERVATION_ID"
+    SCHEMA_PATH_THEMES_LABEL = "SCHEMA_PATH_THEMES_LABEL"
+    SCHEMA_PATH_THEMES_LABEL_VALUE = "SCHEMA_PATH_THEMES_LABEL_VALUE"
+    SCHEMA_PATH_THEMES_LABEL_LANGUAGE = "SCHEMA_PATH_THEMES_LABEL_LANGUAGE"
+    SCHEMA_PATH_THEMES_LABEL_LANGUAGE_STATUS = "SCHEMA_PATH_THEMES_LABEL_LANGUAGE_STATUS"
+    SCHEMA_PATH_THEMES_LABEL_LANGUAGE_TAGS = "SCHEMA_PATH_THEMES_LABEL_LANGUAGE_TAGS"
+    SCHEMA_PATH_THEMES_LABEL_LANGUAGE_IS_GROUND_TRUTH = (
+        "SCHEMA_PATH_THEMES_LABEL_LANGUAGE_IS_GROUND_TRUTH"
+    )
+    SCHEMA_PATH_THEMES_EVIDENCE_REFS = "SCHEMA_PATH_THEMES_EVIDENCE_REFS"
+    SCHEMA_PATH_THEMES_EVIDENCE_REFS_ITEM = "SCHEMA_PATH_THEMES_EVIDENCE_REFS_ITEM"
+    SCHEMA_PATH_THEMES_CONFIDENCE = "SCHEMA_PATH_THEMES_CONFIDENCE"
+
+    SCHEMA_PATH_AMBIGUOUS_REGIONS_OBSERVATION_ID = (
+        "SCHEMA_PATH_AMBIGUOUS_REGIONS_OBSERVATION_ID"
+    )
+    SCHEMA_PATH_AMBIGUOUS_REGIONS_NOTE = "SCHEMA_PATH_AMBIGUOUS_REGIONS_NOTE"
+    SCHEMA_PATH_AMBIGUOUS_REGIONS_NOTE_VALUE = "SCHEMA_PATH_AMBIGUOUS_REGIONS_NOTE_VALUE"
+    SCHEMA_PATH_AMBIGUOUS_REGIONS_NOTE_LANGUAGE = "SCHEMA_PATH_AMBIGUOUS_REGIONS_NOTE_LANGUAGE"
+    SCHEMA_PATH_AMBIGUOUS_REGIONS_NOTE_LANGUAGE_STATUS = (
+        "SCHEMA_PATH_AMBIGUOUS_REGIONS_NOTE_LANGUAGE_STATUS"
+    )
+    SCHEMA_PATH_AMBIGUOUS_REGIONS_NOTE_LANGUAGE_TAGS = (
+        "SCHEMA_PATH_AMBIGUOUS_REGIONS_NOTE_LANGUAGE_TAGS"
+    )
+    SCHEMA_PATH_AMBIGUOUS_REGIONS_NOTE_LANGUAGE_IS_GROUND_TRUTH = (
+        "SCHEMA_PATH_AMBIGUOUS_REGIONS_NOTE_LANGUAGE_IS_GROUND_TRUTH"
+    )
+
+    SCHEMA_PATH_UNRECOGNIZED = "SCHEMA_PATH_UNRECOGNIZED"
+
+
+_SCHEMA_PATH_TABLE: dict[tuple[str, ...], QwenSchemaPathDiagnostic] = {
+    # entities (rows 1-8 of the owner-approved table)
+    ("entities", "*", "observation_id"): (
+        QwenSchemaPathDiagnostic.SCHEMA_PATH_ENTITIES_OBSERVATION_ID
+    ),
+    ("entities", "*", "label"): QwenSchemaPathDiagnostic.SCHEMA_PATH_ENTITIES_LABEL,
+    ("entities", "*", "label", "value"): QwenSchemaPathDiagnostic.SCHEMA_PATH_ENTITIES_LABEL_VALUE,
+    ("entities", "*", "label", "language"): (
+        QwenSchemaPathDiagnostic.SCHEMA_PATH_ENTITIES_LABEL_LANGUAGE
+    ),
+    ("entities", "*", "label", "language", "status"): (
+        QwenSchemaPathDiagnostic.SCHEMA_PATH_ENTITIES_LABEL_LANGUAGE_STATUS
+    ),
+    ("entities", "*", "label", "language", "tags"): (
+        QwenSchemaPathDiagnostic.SCHEMA_PATH_ENTITIES_LABEL_LANGUAGE_TAGS
+    ),
+    ("entities", "*", "label", "language", "is_ground_truth"): (
+        QwenSchemaPathDiagnostic.SCHEMA_PATH_ENTITIES_LABEL_LANGUAGE_IS_GROUND_TRUTH
+    ),
+    ("entities", "*", "confidence"): QwenSchemaPathDiagnostic.SCHEMA_PATH_ENTITIES_CONFIDENCE,
+    # actions (rows 9-18)
+    ("actions", "*", "observation_id"): QwenSchemaPathDiagnostic.SCHEMA_PATH_ACTIONS_OBSERVATION_ID,
+    ("actions", "*", "label"): QwenSchemaPathDiagnostic.SCHEMA_PATH_ACTIONS_LABEL,
+    ("actions", "*", "label", "value"): QwenSchemaPathDiagnostic.SCHEMA_PATH_ACTIONS_LABEL_VALUE,
+    ("actions", "*", "label", "language"): (
+        QwenSchemaPathDiagnostic.SCHEMA_PATH_ACTIONS_LABEL_LANGUAGE
+    ),
+    ("actions", "*", "label", "language", "status"): (
+        QwenSchemaPathDiagnostic.SCHEMA_PATH_ACTIONS_LABEL_LANGUAGE_STATUS
+    ),
+    ("actions", "*", "label", "language", "tags"): (
+        QwenSchemaPathDiagnostic.SCHEMA_PATH_ACTIONS_LABEL_LANGUAGE_TAGS
+    ),
+    ("actions", "*", "label", "language", "is_ground_truth"): (
+        QwenSchemaPathDiagnostic.SCHEMA_PATH_ACTIONS_LABEL_LANGUAGE_IS_GROUND_TRUTH
+    ),
+    ("actions", "*", "actor_ref"): QwenSchemaPathDiagnostic.SCHEMA_PATH_ACTIONS_ACTOR_REF,
+    ("actions", "*", "object_ref"): QwenSchemaPathDiagnostic.SCHEMA_PATH_ACTIONS_OBJECT_REF,
+    ("actions", "*", "confidence"): QwenSchemaPathDiagnostic.SCHEMA_PATH_ACTIONS_CONFIDENCE,
+    # relations (rows 19-28)
+    ("relations", "*", "observation_id"): (
+        QwenSchemaPathDiagnostic.SCHEMA_PATH_RELATIONS_OBSERVATION_ID
+    ),
+    ("relations", "*", "predicate"): QwenSchemaPathDiagnostic.SCHEMA_PATH_RELATIONS_PREDICATE,
+    ("relations", "*", "predicate", "value"): (
+        QwenSchemaPathDiagnostic.SCHEMA_PATH_RELATIONS_PREDICATE_VALUE
+    ),
+    ("relations", "*", "predicate", "language"): (
+        QwenSchemaPathDiagnostic.SCHEMA_PATH_RELATIONS_PREDICATE_LANGUAGE
+    ),
+    ("relations", "*", "predicate", "language", "status"): (
+        QwenSchemaPathDiagnostic.SCHEMA_PATH_RELATIONS_PREDICATE_LANGUAGE_STATUS
+    ),
+    ("relations", "*", "predicate", "language", "tags"): (
+        QwenSchemaPathDiagnostic.SCHEMA_PATH_RELATIONS_PREDICATE_LANGUAGE_TAGS
+    ),
+    ("relations", "*", "predicate", "language", "is_ground_truth"): (
+        QwenSchemaPathDiagnostic.SCHEMA_PATH_RELATIONS_PREDICATE_LANGUAGE_IS_GROUND_TRUTH
+    ),
+    ("relations", "*", "subject_ref"): QwenSchemaPathDiagnostic.SCHEMA_PATH_RELATIONS_SUBJECT_REF,
+    ("relations", "*", "object_ref"): QwenSchemaPathDiagnostic.SCHEMA_PATH_RELATIONS_OBJECT_REF,
+    ("relations", "*", "confidence"): QwenSchemaPathDiagnostic.SCHEMA_PATH_RELATIONS_CONFIDENCE,
+    # themes (rows 29-38)
+    ("themes", "*", "observation_id"): QwenSchemaPathDiagnostic.SCHEMA_PATH_THEMES_OBSERVATION_ID,
+    ("themes", "*", "label"): QwenSchemaPathDiagnostic.SCHEMA_PATH_THEMES_LABEL,
+    ("themes", "*", "label", "value"): QwenSchemaPathDiagnostic.SCHEMA_PATH_THEMES_LABEL_VALUE,
+    ("themes", "*", "label", "language"): (
+        QwenSchemaPathDiagnostic.SCHEMA_PATH_THEMES_LABEL_LANGUAGE
+    ),
+    ("themes", "*", "label", "language", "status"): (
+        QwenSchemaPathDiagnostic.SCHEMA_PATH_THEMES_LABEL_LANGUAGE_STATUS
+    ),
+    ("themes", "*", "label", "language", "tags"): (
+        QwenSchemaPathDiagnostic.SCHEMA_PATH_THEMES_LABEL_LANGUAGE_TAGS
+    ),
+    ("themes", "*", "label", "language", "is_ground_truth"): (
+        QwenSchemaPathDiagnostic.SCHEMA_PATH_THEMES_LABEL_LANGUAGE_IS_GROUND_TRUTH
+    ),
+    ("themes", "*", "evidence_refs"): QwenSchemaPathDiagnostic.SCHEMA_PATH_THEMES_EVIDENCE_REFS,
+    ("themes", "*", "evidence_refs", "*"): (
+        QwenSchemaPathDiagnostic.SCHEMA_PATH_THEMES_EVIDENCE_REFS_ITEM
+    ),
+    ("themes", "*", "confidence"): QwenSchemaPathDiagnostic.SCHEMA_PATH_THEMES_CONFIDENCE,
+    # ambiguous_regions (rows 39-45; no confidence field exists on this collection)
+    ("ambiguous_regions", "*", "observation_id"): (
+        QwenSchemaPathDiagnostic.SCHEMA_PATH_AMBIGUOUS_REGIONS_OBSERVATION_ID
+    ),
+    ("ambiguous_regions", "*", "note"): QwenSchemaPathDiagnostic.SCHEMA_PATH_AMBIGUOUS_REGIONS_NOTE,
+    ("ambiguous_regions", "*", "note", "value"): (
+        QwenSchemaPathDiagnostic.SCHEMA_PATH_AMBIGUOUS_REGIONS_NOTE_VALUE
+    ),
+    ("ambiguous_regions", "*", "note", "language"): (
+        QwenSchemaPathDiagnostic.SCHEMA_PATH_AMBIGUOUS_REGIONS_NOTE_LANGUAGE
+    ),
+    ("ambiguous_regions", "*", "note", "language", "status"): (
+        QwenSchemaPathDiagnostic.SCHEMA_PATH_AMBIGUOUS_REGIONS_NOTE_LANGUAGE_STATUS
+    ),
+    ("ambiguous_regions", "*", "note", "language", "tags"): (
+        QwenSchemaPathDiagnostic.SCHEMA_PATH_AMBIGUOUS_REGIONS_NOTE_LANGUAGE_TAGS
+    ),
+    ("ambiguous_regions", "*", "note", "language", "is_ground_truth"): (
+        QwenSchemaPathDiagnostic.SCHEMA_PATH_AMBIGUOUS_REGIONS_NOTE_LANGUAGE_IS_GROUND_TRUTH
+    ),
+}
+assert len(_SCHEMA_PATH_TABLE) == 45  # the exact owner-approved row count; see decision record
+
+
+def _normalize_schema_error_loc(loc: tuple[object, ...]) -> tuple[str, ...]:
+    """Replace every integer list index with the fixed placeholder ``"*"`` for table lookup.
+
+    This is the only transformation ever applied to a raw ``loc`` value before it is used, and it
+    is applied only to items already known not to be ``extra_forbidden`` (see
+    :func:`_schema_path_diagnostics_for_schema_error`). The result is looked up in
+    :data:`_SCHEMA_PATH_TABLE`; it is never itself returned, logged, or exposed.
+    """
+
+    return tuple("*" if isinstance(segment, int) else str(segment) for segment in loc)
+
+
+def _schema_path_diagnostics_for_schema_error(
+    error: ValidationError,
+) -> tuple[QwenSchemaPathDiagnostic, ...]:
+    """Refine ``SCHEMA_MISSING_REQUIRED_FIELD``/``SCHEMA_TYPE_OR_CONSTRAINT_INVALID`` with a path.
+
+    Reads only ``type`` and a normalized, table-matched ``loc`` shape from each error item --
+    never ``input``, ``ctx``, ``url``, or any message text beyond the two fixed substring checks
+    :func:`_mapping_diagnostics_for_schema_error` already performs (mirrored here only to skip,
+    never to add, a category). For ``extra_forbidden`` items, ``loc`` is never read at all: its
+    terminal segment may be an arbitrary string copied verbatim from raw model output, since every
+    candidate object and ``ObservedTextV1``/``TextLanguageDeclarationV1`` forbid extra keys. Any
+    shape absent from the finite :data:`_SCHEMA_PATH_TABLE` -- an unrecognized collection/field, an
+    unexpected nesting depth, or a future Pydantic version's differently-shaped ``loc`` -- maps
+    only to ``SCHEMA_PATH_UNRECOGNIZED``, never a dynamically constructed token. A path token is
+    therefore only ever produced for an item that also contributes
+    ``SCHEMA_MISSING_REQUIRED_FIELD`` or ``SCHEMA_TYPE_OR_CONSTRAINT_INVALID`` in
+    :func:`_mapping_diagnostics_for_schema_error`'s own classification of the same error.
+    """
+
+    found: set[QwenSchemaPathDiagnostic] = set()
+    for item in error.errors(include_url=False, include_context=False, include_input=False):
+        message = str(item.get("msg", ""))
+        error_type = str(item.get("type", ""))
+        if "DUPLICATE_OBSERVATION_ID" in message or "REFERENCE_INTEGRITY_VIOLATION" in message:
+            continue
+        if error_type == "extra_forbidden":
+            continue
+        normalized_loc = _normalize_schema_error_loc(tuple(item.get("loc", ())))
+        fallback = QwenSchemaPathDiagnostic.SCHEMA_PATH_UNRECOGNIZED
+        found.add(_SCHEMA_PATH_TABLE.get(normalized_loc, fallback))
+    return tuple(diagnostic for diagnostic in QwenSchemaPathDiagnostic if diagnostic in found)
+
+
+MappingDiagnosticHook = Callable[
+    [tuple[QwenOutputMappingDiagnostic | QwenSchemaPathDiagnostic, ...]], None
+]
 
 
 class QwenGenerationRunner(Protocol):
@@ -697,7 +937,10 @@ class QwenVisionAdapter(VisionUnderstandingPortV2):
         try:
             success = VisionUnderstandingSuccessV2.model_validate(merged)
         except ValidationError as error:
-            self._emit_mapping_diagnostic(_mapping_diagnostics_for_schema_error(error))
+            self._emit_mapping_diagnostic(
+                _mapping_diagnostics_for_schema_error(error)
+                + _schema_path_diagnostics_for_schema_error(error)
+            )
             return self._schema_failure(
                 request,
                 profile,
@@ -741,7 +984,7 @@ class QwenVisionAdapter(VisionUnderstandingPortV2):
         return success
 
     def _emit_mapping_diagnostic(
-        self, diagnostics: tuple[QwenOutputMappingDiagnostic, ...]
+        self, diagnostics: tuple[QwenOutputMappingDiagnostic | QwenSchemaPathDiagnostic, ...]
     ) -> None:
         if self._on_mapping_diagnostic is not None:
             with suppress(Exception):
@@ -911,7 +1154,7 @@ def _reject_non_finite_number(value: str) -> object:
 
 
 def _classify_schema_error(error: ValidationError) -> VisionNonPolicyErrorDetailV2:
-    for item in error.errors():
+    for item in error.errors(include_url=False, include_context=False, include_input=False):
         message = str(item.get("msg", ""))
         if "DUPLICATE_OBSERVATION_ID" in message:
             return VisionNonPolicyErrorDetailV2.DUPLICATE_OBSERVATION_ID
@@ -926,7 +1169,7 @@ def _mapping_diagnostics_for_schema_error(
     """Reduce Pydantic errors to closed categories without retaining error text or values."""
 
     found: set[QwenOutputMappingDiagnostic] = set()
-    for item in error.errors():
+    for item in error.errors(include_url=False, include_context=False, include_input=False):
         message = str(item.get("msg", ""))
         error_type = str(item.get("type", ""))
         if "DUPLICATE_OBSERVATION_ID" in message:

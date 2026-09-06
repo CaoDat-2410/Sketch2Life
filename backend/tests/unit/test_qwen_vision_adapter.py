@@ -31,6 +31,7 @@ from sketch2life.infrastructure.ai.qwen_vision import (
     QwenModelBundle,
     QwenOutputMappingDiagnostic,
     QwenPermanentRuntimeError,
+    QwenSchemaPathDiagnostic,
     QwenTimeoutError,
     QwenTransientRuntimeError,
     QwenVisionAdapter,
@@ -307,7 +308,10 @@ def test_missing_or_nested_extra_fields_map_to_typed_schema_failure(
         ),
         (
             _raw({"entities": [], "actions": [], "relations": [], "themes": []}),
-            (QwenOutputMappingDiagnostic.SCHEMA_MISSING_REQUIRED_FIELD,),
+            (
+                QwenOutputMappingDiagnostic.SCHEMA_MISSING_REQUIRED_FIELD,
+                QwenSchemaPathDiagnostic.SCHEMA_PATH_UNRECOGNIZED,
+            ),
         ),
         (
             _raw(
@@ -338,19 +342,22 @@ def test_missing_or_nested_extra_fields_map_to_typed_schema_failure(
                     ],
                 }
             ),
-            (QwenOutputMappingDiagnostic.SCHEMA_TYPE_OR_CONSTRAINT_INVALID,),
+            (
+                QwenOutputMappingDiagnostic.SCHEMA_TYPE_OR_CONSTRAINT_INVALID,
+                QwenSchemaPathDiagnostic.SCHEMA_PATH_ENTITIES_CONFIDENCE,
+            ),
         ),
     ),
 )
 def test_mapping_diagnostic_hook_reports_only_safe_schema_stage(
     raw_output: str,
-    expected_diagnostics: tuple[QwenOutputMappingDiagnostic, ...],
+    expected_diagnostics: tuple[QwenOutputMappingDiagnostic | QwenSchemaPathDiagnostic, ...],
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.chdir(tmp_path)
     artifact_ref, digest = _write_source(tmp_path)
-    received: list[tuple[QwenOutputMappingDiagnostic, ...]] = []
+    received: list[tuple[QwenOutputMappingDiagnostic | QwenSchemaPathDiagnostic, ...]] = []
 
     result = _adapter(
         _SequenceRunner(raw_output), on_mapping_diagnostic=received.append
