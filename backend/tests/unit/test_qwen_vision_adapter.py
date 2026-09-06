@@ -29,6 +29,7 @@ from sketch2life.infrastructure.ai import qwen_vision
 from sketch2life.infrastructure.ai.qwen_vision import (
     QwenDeviceUnavailableError,
     QwenModelBundle,
+    QwenOutputMappingDiagnostic,
     QwenPermanentRuntimeError,
     QwenTimeoutError,
     QwenTransientRuntimeError,
@@ -141,6 +142,7 @@ def _adapter(
     model_factory: Any = None,
     prompt: str = "",
     on_raw_output: Any = None,
+    on_mapping_diagnostic: Any = None,
 ) -> QwenVisionAdapter:
     return QwenVisionAdapter(
         QwenVisionRuntimeConfig(model_dir=Path("local-model")),
@@ -149,6 +151,7 @@ def _adapter(
         generation_runner=runner,
         model_factory=model_factory,
         on_raw_output=on_raw_output,
+        on_mapping_diagnostic=on_mapping_diagnostic,
     )
 
 
@@ -290,11 +293,115 @@ def test_missing_or_nested_extra_fields_map_to_typed_schema_failure(
     assert result.repair_attempted is False
 
 
+@pytest.mark.parametrize(
+    ("raw_output", "expected_diagnostics"),
+    (
+        (
+            "synthetic prose is not JSON",
+            (QwenOutputMappingDiagnostic.STRICT_JSON_PARSE_FAILED,),
+        ),
+        ("[]", (QwenOutputMappingDiagnostic.JSON_ROOT_NOT_OBJECT,)),
+        (
+            _raw({**_empty_payload(), "unexpected": "rejected"}),
+            (QwenOutputMappingDiagnostic.TOP_LEVEL_KEY_REJECTED,),
+        ),
+        (
+            _raw({"entities": [], "actions": [], "relations": [], "themes": []}),
+            (QwenOutputMappingDiagnostic.SCHEMA_MISSING_REQUIRED_FIELD,),
+        ),
+        (
+            _raw(
+                {
+                    **_empty_payload(),
+                    "entities": [
+                        {
+                            "observation_id": "entity-a",
+                            "label": _text("fox"),
+                            "confidence": None,
+                            "unexpected_candidate_field": True,
+                        }
+                    ],
+                }
+            ),
+            (QwenOutputMappingDiagnostic.SCHEMA_EXTRA_FIELD,),
+        ),
+        (
+            _raw(
+                {
+                    **_empty_payload(),
+                    "entities": [
+                        {
+                            "observation_id": "entity-a",
+                            "label": _text("fox"),
+                            "confidence": "not-a-number",
+                        }
+                    ],
+                }
+            ),
+            (QwenOutputMappingDiagnostic.SCHEMA_TYPE_OR_CONSTRAINT_INVALID,),
+        ),
+    ),
+)
+def test_mapping_diagnostic_hook_reports_only_safe_schema_stage(
+    raw_output: str,
+    expected_diagnostics: tuple[QwenOutputMappingDiagnostic, ...],
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    artifact_ref, digest = _write_source(tmp_path)
+    received: list[tuple[QwenOutputMappingDiagnostic, ...]] = []
+
+    result = _adapter(
+        _SequenceRunner(raw_output), on_mapping_diagnostic=received.append
+    ).understand(_request(artifact_ref, digest))
+
+    assert isinstance(result, VisionUnderstandingFailureV2)
+    assert result.error_detail is VisionNonPolicyErrorDetailV2.OUTPUT_MAPPING_FAILED
+    assert received == [expected_diagnostics]
+    assert raw_output not in result.model_dump_json()
+    assert raw_output not in str(received)
+
+
+def test_mapping_diagnostic_hook_reports_schema_valid_without_raw_output(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    artifact_ref, digest = _write_source(tmp_path)
+    received: list[tuple[QwenOutputMappingDiagnostic, ...]] = []
+
+    result = _adapter(
+        _SequenceRunner(_raw(_empty_payload())), on_mapping_diagnostic=received.append
+    ).understand(_request(artifact_ref, digest))
+
+    assert isinstance(result, VisionUnderstandingSuccessV2)
+    assert received == [(QwenOutputMappingDiagnostic.SCHEMA_VALID,)]
+
+
+def test_mapping_diagnostic_hook_exception_cannot_change_typed_failure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    artifact_ref, digest = _write_source(tmp_path)
+
+    def _raise(_diagnostics: tuple[QwenOutputMappingDiagnostic, ...]) -> None:
+        raise RuntimeError("diagnostic failure")
+
+    result = _adapter(
+        _SequenceRunner("not JSON"), on_mapping_diagnostic=_raise
+    ).understand(_request(artifact_ref, digest))
+
+    assert isinstance(result, VisionUnderstandingFailureV2)
+    assert result.error_code is VisionErrorCode.VISION_SCHEMA_INVALID
+    assert result.error_detail is VisionNonPolicyErrorDetailV2.OUTPUT_MAPPING_FAILED
+
+
 def test_duplicate_and_reference_errors_have_distinct_typed_details(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.chdir(tmp_path)
     artifact_ref, digest = _write_source(tmp_path)
+    diagnostics: list[tuple[QwenOutputMappingDiagnostic, ...]] = []
     duplicate = {
         **_empty_payload(),
         "entities": [
@@ -322,10 +429,14 @@ def test_duplicate_and_reference_errors_have_distinct_typed_details(
         ],
     }
 
-    duplicate_result = _adapter(_SequenceRunner(_raw(duplicate))).understand(
+    duplicate_result = _adapter(
+        _SequenceRunner(_raw(duplicate)), on_mapping_diagnostic=diagnostics.append
+    ).understand(
         _request(artifact_ref, digest)
     )
-    reference_result = _adapter(_SequenceRunner(_raw(reference))).understand(
+    reference_result = _adapter(
+        _SequenceRunner(_raw(reference)), on_mapping_diagnostic=diagnostics.append
+    ).understand(
         _request(artifact_ref, digest)
     )
 
@@ -336,6 +447,10 @@ def test_duplicate_and_reference_errors_have_distinct_typed_details(
         reference_result.error_detail
         is VisionNonPolicyErrorDetailV2.REFERENCE_INTEGRITY_VIOLATION
     )
+    assert diagnostics == [
+        (QwenOutputMappingDiagnostic.SCHEMA_DUPLICATE_OBSERVATION_ID,),
+        (QwenOutputMappingDiagnostic.SCHEMA_REFERENCE_INTEGRITY_VIOLATION,),
+    ]
 
 
 def test_policy_block_is_structural_and_does_not_leak_raw_observed_text(

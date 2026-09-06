@@ -17,6 +17,7 @@ from collections.abc import Callable, Mapping
 from contextlib import suppress
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from enum import StrEnum
 from hashlib import sha256
 from multiprocessing.connection import Connection
 from multiprocessing.process import BaseProcess
@@ -103,6 +104,29 @@ ModelFactory = Callable[[VisionProfileV2, QwenVisionRuntimeConfig], QwenModelBun
 PromptBuilder = Callable[[VisionUnderstandingRequestV2], str]
 TransientClassifier = Callable[[BaseException], bool]
 RawOutputHook = Callable[[str], None]
+
+
+class QwenOutputMappingDiagnostic(StrEnum):
+    """Closed, non-content stages for an explicitly wired mapping diagnostic.
+
+    These are internal benchmark diagnostics, not V1/V2 result tokens. They identify only a
+    parser or validator stage: no raw text, field value, path, prompt, or Pydantic error message
+    can cross this seam.
+    """
+
+    RAW_NOT_STRING = "RAW_NOT_STRING"
+    STRICT_JSON_PARSE_FAILED = "STRICT_JSON_PARSE_FAILED"
+    JSON_ROOT_NOT_OBJECT = "JSON_ROOT_NOT_OBJECT"
+    TOP_LEVEL_KEY_REJECTED = "TOP_LEVEL_KEY_REJECTED"
+    SCHEMA_MISSING_REQUIRED_FIELD = "SCHEMA_MISSING_REQUIRED_FIELD"
+    SCHEMA_EXTRA_FIELD = "SCHEMA_EXTRA_FIELD"
+    SCHEMA_DUPLICATE_OBSERVATION_ID = "SCHEMA_DUPLICATE_OBSERVATION_ID"
+    SCHEMA_REFERENCE_INTEGRITY_VIOLATION = "SCHEMA_REFERENCE_INTEGRITY_VIOLATION"
+    SCHEMA_TYPE_OR_CONSTRAINT_INVALID = "SCHEMA_TYPE_OR_CONSTRAINT_INVALID"
+    SCHEMA_VALID = "SCHEMA_VALID"
+
+
+MappingDiagnosticHook = Callable[[tuple[QwenOutputMappingDiagnostic, ...]], None]
 
 
 class QwenGenerationRunner(Protocol):
@@ -399,13 +423,12 @@ def _default_prompt_builder(_request: VisionUnderstandingRequestV2) -> str:
 class QwenVisionAdapter(VisionUnderstandingPortV2):
     """Real Qwen V2 adapter with typed failures and no raw-output leakage.
 
-    ``on_raw_output``, when supplied, is an internal diagnostic seam only (used by the
-    P2-T3 Phase B B3 mapping study): it is invoked with the raw provider string once a
-    generation call succeeds, before any parsing/classification happens here. It never
-    changes this adapter's return value, is never wired into any default/production
-    construction, and adds no field to any public V1/V2 contract. A hook exception is
-    swallowed so a diagnostic failure can never turn a real understanding call into an
-    uncaught exception.
+    ``on_raw_output`` and ``on_mapping_diagnostic``, when supplied, are internal diagnostic
+    seams only (used by the P2-T3 Phase B mapping study). The former receives raw provider text
+    before parsing; the latter receives closed, non-content parser/validator stage tokens after
+    mapping. Neither changes this adapter's return value, is wired into a default/production
+    construction, or adds a field to a public V1/V2 contract. Hook exceptions are swallowed so
+    diagnostic failure cannot turn an understanding call into an uncaught exception.
     """
 
     def __init__(
@@ -420,6 +443,7 @@ class QwenVisionAdapter(VisionUnderstandingPortV2):
         classify_transient: TransientClassifier = _never_transient,
         clock: Callable[[], datetime] = _utc_now,
         on_raw_output: RawOutputHook | None = None,
+        on_mapping_diagnostic: MappingDiagnosticHook | None = None,
     ) -> None:
         if prompt is not None and prompt_builder is not None:
             raise ValueError("provide prompt or prompt_builder, not both")
@@ -440,6 +464,7 @@ class QwenVisionAdapter(VisionUnderstandingPortV2):
         self._classify_transient = classify_transient
         self._clock = clock
         self._on_raw_output = on_raw_output
+        self._on_mapping_diagnostic = on_mapping_diagnostic
 
     def understand(self, request: VisionUnderstandingRequestV2) -> VisionUnderstandingResultV2:
         catalog_hash = vision_profile_catalog_hash_v2(self._catalog)
@@ -626,9 +651,23 @@ class QwenVisionAdapter(VisionUnderstandingPortV2):
     ) -> VisionUnderstandingResultV2:
         if not isinstance(raw_output, str):
             payload, repair_attempted = None, False
+            parse_diagnostics = (QwenOutputMappingDiagnostic.RAW_NOT_STRING,)
         else:
-            payload, repair_attempted = _parse_raw_output(raw_output)
-        if payload is None or not set(payload).issubset(_ALLOWED_PROVIDER_KEYS):
+            payload, repair_attempted, parse_diagnostics = _parse_raw_output_with_diagnostic(
+                raw_output
+            )
+        if payload is None:
+            self._emit_mapping_diagnostic(parse_diagnostics)
+            return self._schema_failure(
+                request,
+                profile,
+                catalog_hash,
+                VisionNonPolicyErrorDetailV2.OUTPUT_MAPPING_FAILED,
+                attempt_number=attempt_number,
+                repair_attempted=repair_attempted,
+            )
+        if not set(payload).issubset(_ALLOWED_PROVIDER_KEYS):
+            self._emit_mapping_diagnostic((QwenOutputMappingDiagnostic.TOP_LEVEL_KEY_REJECTED,))
             return self._schema_failure(
                 request,
                 profile,
@@ -658,6 +697,7 @@ class QwenVisionAdapter(VisionUnderstandingPortV2):
         try:
             success = VisionUnderstandingSuccessV2.model_validate(merged)
         except ValidationError as error:
+            self._emit_mapping_diagnostic(_mapping_diagnostics_for_schema_error(error))
             return self._schema_failure(
                 request,
                 profile,
@@ -666,6 +706,8 @@ class QwenVisionAdapter(VisionUnderstandingPortV2):
                 attempt_number=attempt_number,
                 repair_attempted=repair_attempted,
             )
+
+        self._emit_mapping_diagnostic((QwenOutputMappingDiagnostic.SCHEMA_VALID,))
 
         try:
             category = self._policy.evaluate(collect_observed_texts_v2(success))
@@ -697,6 +739,13 @@ class QwenVisionAdapter(VisionUnderstandingPortV2):
                 model_provenance=profile.model_provenance,
             )
         return success
+
+    def _emit_mapping_diagnostic(
+        self, diagnostics: tuple[QwenOutputMappingDiagnostic, ...]
+    ) -> None:
+        if self._on_mapping_diagnostic is not None:
+            with suppress(Exception):
+                self._on_mapping_diagnostic(diagnostics)
 
     def _resolve_verified_input_image(self, request: VisionUnderstandingRequestV2) -> Path:
         _verify_image_reference(
@@ -812,19 +861,32 @@ def _verify_image_reference(artifact_ref: str, expected_sha256: str) -> None:
 def _parse_raw_output(raw_output: str) -> tuple[dict[str, Any] | None, bool]:
     """Unwrap one complete Markdown fence; never complete or extract JSON."""
 
+    payload, repair_attempted, _diagnostics = _parse_raw_output_with_diagnostic(raw_output)
+    return payload, repair_attempted
+
+
+def _parse_raw_output_with_diagnostic(
+    raw_output: str,
+) -> tuple[dict[str, Any] | None, bool, tuple[QwenOutputMappingDiagnostic, ...]]:
+    """Parse one raw value while retaining only a closed non-content failure stage."""
+
     fence_match = _FENCE_PATTERN.match(raw_output.strip())
     if fence_match is not None:
         try:
             parsed = _loads_strict_json(fence_match.group(1))
         except ValueError:
-            return None, False
-        return (parsed, True) if isinstance(parsed, dict) else (None, False)
+            return None, False, (QwenOutputMappingDiagnostic.STRICT_JSON_PARSE_FAILED,)
+        if not isinstance(parsed, dict):
+            return None, False, (QwenOutputMappingDiagnostic.JSON_ROOT_NOT_OBJECT,)
+        return parsed, True, ()
 
     try:
         parsed = _loads_strict_json(raw_output)
     except ValueError:
-        return None, False
-    return (parsed, False) if isinstance(parsed, dict) else (None, False)
+        return None, False, (QwenOutputMappingDiagnostic.STRICT_JSON_PARSE_FAILED,)
+    if not isinstance(parsed, dict):
+        return None, False, (QwenOutputMappingDiagnostic.JSON_ROOT_NOT_OBJECT,)
+    return parsed, False, ()
 
 
 def _loads_strict_json(value: str) -> object:
@@ -858,6 +920,28 @@ def _classify_schema_error(error: ValidationError) -> VisionNonPolicyErrorDetail
     return VisionNonPolicyErrorDetailV2.OUTPUT_MAPPING_FAILED
 
 
+def _mapping_diagnostics_for_schema_error(
+    error: ValidationError,
+) -> tuple[QwenOutputMappingDiagnostic, ...]:
+    """Reduce Pydantic errors to closed categories without retaining error text or values."""
+
+    found: set[QwenOutputMappingDiagnostic] = set()
+    for item in error.errors():
+        message = str(item.get("msg", ""))
+        error_type = str(item.get("type", ""))
+        if "DUPLICATE_OBSERVATION_ID" in message:
+            found.add(QwenOutputMappingDiagnostic.SCHEMA_DUPLICATE_OBSERVATION_ID)
+        elif "REFERENCE_INTEGRITY_VIOLATION" in message:
+            found.add(QwenOutputMappingDiagnostic.SCHEMA_REFERENCE_INTEGRITY_VIOLATION)
+        elif error_type == "missing":
+            found.add(QwenOutputMappingDiagnostic.SCHEMA_MISSING_REQUIRED_FIELD)
+        elif error_type == "extra_forbidden":
+            found.add(QwenOutputMappingDiagnostic.SCHEMA_EXTRA_FIELD)
+        else:
+            found.add(QwenOutputMappingDiagnostic.SCHEMA_TYPE_OR_CONSTRAINT_INVALID)
+    return tuple(diagnostic for diagnostic in QwenOutputMappingDiagnostic if diagnostic in found)
+
+
 # Descriptive aliases for callers that use the model-family spelling.
 Qwen3VLVisionAdapter = QwenVisionAdapter
 QwenVisionUnderstandingAdapter = QwenVisionAdapter
@@ -865,11 +949,13 @@ QwenVisionUnderstandingAdapter = QwenVisionAdapter
 
 __all__ = [
     "KillableSubprocessQwenGenerationRunner",
+    "MappingDiagnosticHook",
     "Qwen3VLVisionAdapter",
     "QwenDeviceUnavailableError",
     "QwenGenerationRunner",
     "QwenModelBundle",
     "QwenModelLoadError",
+    "QwenOutputMappingDiagnostic",
     "QwenPermanentRuntimeError",
     "QwenProcessorLike",
     "QwenTimeoutError",
