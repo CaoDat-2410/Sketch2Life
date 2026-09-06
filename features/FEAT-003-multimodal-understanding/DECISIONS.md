@@ -1,5 +1,25 @@
 # FEAT-003 decisions
 
+## P2-T3 Phase B B3 implementation decisions (2026-09-03)
+
+- B3 uses exactly eight deterministic geometric synthetic image recipes/IDs, generated only in
+  ignored scratch and deleted after each run. They carry no ground truth or quality score and are
+  disjoint from B4's future held-out set. This synthetic diagnostic study needs no per-image
+  review; B4 retains its separate D-10 authorship/review boundary.
+- The B3 raw-output hook defaults to in-memory `CLASSIFY_ONLY`, which discards raw text without a
+  file, log, result field, or evidence. The owner or Person 2 may select `EPHEMERAL_CAPTURE` for
+  a specific B3 diagnostic run under the already-approved B0 access rule; it uses ignored scratch
+  and deletes the capture in `finally`. Both modes persist only safe counts and closed typed
+  identifiers, never raw text.
+- B3 may persist only independent `fenced`, `truncated`, `extra_key`, and `invalid_enum`
+  raw-derived flags/counts, each with attempted runs as denominator; flags may overlap.
+  Duplicate-ID/reference integrity remains typed-result evidence. Missing-required-field may be
+  classifier-local but is never included in B3 report/evidence.
+- B3 runs the single approved Qwen profile with frozen greedy decoding, exactly one adapter call
+  per fixture and no mapping-failure retry, after a `READY` check and within the combined B2–B4
+  one-hour soft cap. Its observations must not widen repair: only lossless complete-fence unwrap
+  remains permitted.
+
 ## P2-T3 Phase B B2 real GPU preflight result (2026-09-01)
 
 - The first real B2 typed GPU preflight (`EV-003-T3-06`) — a real `Qwen/Qwen3-VL-8B-Instruct`
