@@ -18,18 +18,28 @@ was for B3-C0.
 Prompt-binding integrity is structural, not a documentation promise: :func:`run_c1_pass` never
 accepts an already-built adapter. It accepts a :data:`C1AdapterFactory` -- a
 ``(prompt, on_raw_output) -> VisionUnderstandingPortV2`` callable -- and is the *only* caller of
-that factory, always with ``c1_prompt_text()`` and ``collector.hook`` as the arguments. There is
-no parameter through which a caller can hand ``run_c1_pass`` a pre-built adapter (whatever prompt
-it happens to carry) and have it labeled with C1's prompt identity; the identity on
+that factory, always with the selected :class:`C1PromptProtocol`'s prompt text (``C1_PROMPT_V1``
+by default, or another explicitly passed protocol) and ``collector.hook`` as the arguments. There
+is no parameter through which a caller can hand ``run_c1_pass`` a pre-built adapter (whatever
+prompt it happens to carry) and have it labeled with C1's prompt identity; the identity on
 :class:`C1PassReport` is always the identity of the exact text the factory was actually called
-with. :func:`qwen_c1_adapter_factory` is the real production factory, constructing
-``QwenVisionAdapter`` with the dispatched prompt injected explicitly -- ``_default_prompt_builder``
-is never reached on this path.
+with, because :func:`run_c1_pass` resolves and verifies that text against the protocol's declared
+``(protocol_id, prompt_sha256)`` -- against the closed canonical allowlist of approved identities,
+and against the text's own recomputed SHA-256 -- before the factory (or any fixture/provider
+action) ever runs, raising :class:`C1PromptBindingError` closed on any mismatch. This is what
+prevents a caller from constructing a :class:`C1PromptProtocol` that merely *claims* a canonical
+``protocol_id``/``prompt_sha256`` pair while actually supplying different (or empty) text.
+:func:`qwen_c1_adapter_factory` is the real production factory, constructing ``QwenVisionAdapter``
+with the dispatched prompt injected explicitly -- ``_default_prompt_builder`` is never reached on
+this path.
 
-Only :func:`c1_prompt_protocol_id`, :func:`c1_prompt_schema_target`, and
-:func:`c1_prompt_sha256` are safe to place in a report, log, or evidence artifact. The prompt
-body itself is returned only by :func:`c1_prompt_text`, which exists to be passed to an adapter
-constructor -- never serialized, logged, or embedded in any dataclass defined below.
+Only the safe identity helpers -- :func:`c1_prompt_protocol_id`/:func:`c1_prompt_sha256` for v1,
+:func:`c1_prompt_protocol_id_v2`/:func:`c1_prompt_sha256_v2` for v2, and the shared
+:func:`c1_prompt_schema_target` -- are safe to place in a report, log, or evidence artifact; this
+applies equally to whichever protocol is actually selected for a given run. The prompt body
+itself is returned only by :func:`c1_prompt_text` (v1) or :func:`c1_prompt_text_v2` (v2), each of
+which exists to be passed to an adapter constructor -- never serialized, logged, or embedded in
+any dataclass defined below.
 
 C1 reuses :func:`sketch2life.benchmark.vision_b3_mapping_study.run_b3_mapping_study` unchanged,
 including its own default eight-fixture builder (the same eight deterministic geometric
@@ -100,11 +110,13 @@ C1RunLabel = Literal["C1_PASS_1", "C1_REPEAT_1"]
 C1AdapterFactory = Callable[[str, RawOutputHook], VisionUnderstandingPortV2]
 """Builds the adapter for one C1 pass from an explicit prompt and raw-output hook.
 
-``run_c1_pass`` is the only caller of a ``C1AdapterFactory`` and always supplies
-``c1_prompt_text()`` and ``collector.hook`` as its two arguments -- there is no other way to
-produce a :class:`C1PassReport`. A test fake matching this signature can observe and assert the
-exact prompt/hook it was dispatched, which is what ties a report's prompt identity to what the
-adapter actually received rather than to an unverified caller claim.
+``run_c1_pass`` is the only caller of a ``C1AdapterFactory`` and always supplies the selected
+:class:`C1PromptProtocol`'s prompt text (``C1_PROMPT_V1``'s ``c1_prompt_text()`` by default, or
+another protocol's text when one is explicitly passed) and ``collector.hook`` as its two
+arguments -- there is no other way to produce a :class:`C1PassReport`. A test fake matching this
+signature can observe and assert the exact prompt/hook it was dispatched, which is what ties a
+report's prompt identity to what the adapter actually received rather than to an unverified
+caller claim.
 """
 
 _C1_PROMPT_PROTOCOL_ID = "vision-v2-structured-output-prompt-v1"
@@ -180,14 +192,180 @@ def c1_prompt_sha256() -> str:
 
 
 def c1_prompt_text() -> str:
-    """The reviewed static C1 prompt body, for adapter-construction injection only.
+    """The reviewed static C1-v1 prompt body, for adapter-construction injection only.
 
-    This is the one function in this module that returns the prompt body. Callers must pass it
-    straight into ``QwenVisionAdapter(..., prompt=c1_prompt_text())`` (or an equivalent fake for
-    tests) and must never place its return value into a dataclass, report, or log defined here.
+    This is the one function in this module that returns the v1 prompt body. Callers must pass
+    it straight into ``QwenVisionAdapter(..., prompt=c1_prompt_text())`` (or an equivalent fake
+    for tests) and must never place its return value into a dataclass, report, or log defined
+    here.
     """
 
     return _C1_PROMPT_TEXT
+
+
+# --- C1-v2: distinct protocol identity, per the owner-approved local proposal
+# (`evidence/notes/P2_T3_PHASE_B_B3_C1_V2_PROMPT_PROPOSAL.md`, Section 2). Implements exactly
+# that section's two rule changes (entity `label`/`confidence` shape); nothing else. v1's own
+# constants/functions above are untouched -- v2 is purely additive.
+
+_C1_PROMPT_PROTOCOL_ID_V2 = "vision-v2-structured-output-prompt-v2"
+
+_C1_PROMPT_LINES_V2: tuple[str, ...] = (
+    "Return exactly one compact JSON object and nothing else. Describe only directly "
+    "observable visual content; do not infer personality, emotion, intent, "
+    "symbolic/story/canonical meaning.",
+    "Root keys must be exactly entities, actions, relations, themes, ambiguous_regions; "
+    "all are arrays and no other keys exist.",
+    "Use [] when empty. Maximum: 3 entities, 1 action, 1 relation, 1 theme, 1 ambiguous "
+    "region. Prefer fewer. Text values are 1-3 lower-case English words. Every confidence "
+    "is null.",
+    "IDs are globally unique and match ^[a-z0-9-]+$.",
+    'Every label/predicate/note is {"value":"...","language":{"status":"DECLARED",'
+    '"tags":["en"]}}.',
+    "Entity keys: observation_id,label,confidence. label is always the nested object from "
+    "rule 5 -- never a plain string. confidence is always the JSON literal null -- never a "
+    "number, never a string, never omitted. Structural shape only (not scene content): "
+    '{"observation_id":"e1","label":{"value":"word","language":{"status":"DECLARED",'
+    '"tags":["en"]}},"confidence":null}.',
+    "Action keys: observation_id,label,actor_ref,object_ref,confidence; refs are entity "
+    "IDs or null.",
+    "Relation keys: observation_id,predicate,subject_ref,object_ref,confidence; refs are "
+    "distinct entity/action IDs.",
+    "Theme keys: observation_id,label,evidence_refs,confidence; evidence_refs contains "
+    ">=1 entity/action/relation ID.",
+    "Ambiguous-region keys: observation_id,note only; it is never referenced and has no "
+    "confidence/geometry.",
+    "Prefer unfenced compact JSON. No prose, comments, duplicate keys, metadata, "
+    "type/kind/description/bbox/geometry fields, trailing commas, or non-JSON values. Never "
+    "substitute a bare word or number for an object field defined in rule 5, and never "
+    "substitute a number or string for a field rule 3 defines as null.",
+)
+
+_C1_PROMPT_TEXT_V2 = "\n".join(_C1_PROMPT_LINES_V2)
+
+
+def c1_prompt_protocol_id_v2() -> str:
+    """Safe identifier for the v2 protocol: fine for any report, log, or evidence artifact."""
+
+    return _C1_PROMPT_PROTOCOL_ID_V2
+
+
+def c1_prompt_sha256_v2() -> str:
+    """SHA-256 of the canonical v2 prompt text. Safe to persist; the text itself is not."""
+
+    return sha256(_C1_PROMPT_TEXT_V2.encode("utf-8")).hexdigest()
+
+
+def c1_prompt_text_v2() -> str:
+    """The reviewed static C1-v2 prompt body, for adapter-construction injection only.
+
+    This is the one function in this module that returns the v2 prompt body. Same discipline as
+    :func:`c1_prompt_text`: callers must pass it straight into adapter construction and must
+    never place its return value into a dataclass, report, or log defined here. The schema
+    target is unchanged from v1 (:func:`c1_prompt_schema_target`); only two rules differ from v1
+    (entity ``label``/``confidence`` shape) -- see the module-level comment above
+    :data:`_C1_PROMPT_PROTOCOL_ID_V2` for the source proposal.
+    """
+
+    return _C1_PROMPT_TEXT_V2
+
+
+@dataclass(frozen=True, slots=True)
+class C1PromptProtocol:
+    """Identifies one reviewed C1 prompt protocol, safe fields plus a text-injection callable.
+
+    ``protocol_id``/``prompt_sha256`` are exactly what :func:`c1_prompt_protocol_id`/
+    :func:`c1_prompt_sha256` (or their ``_v2`` counterparts) return -- safe to persist in any
+    report, log, or evidence artifact. ``prompt_text_provider`` is a **callable**, never a stored
+    string: it exists to be invoked exactly once per :func:`run_c1_pass` call, for
+    adapter-construction injection only, and must never be read into a report, log, or evidence
+    artifact. This makes the selected protocol an explicit, typed argument to
+    :func:`run_c1_pass`/:func:`evaluate_c1_readiness` instead of a hardcoded module-level choice.
+    """
+
+    protocol_id: str
+    prompt_sha256: str
+    prompt_text_provider: Callable[[], str]
+
+
+C1_PROMPT_V1 = C1PromptProtocol(
+    protocol_id=_C1_PROMPT_PROTOCOL_ID,
+    prompt_sha256=c1_prompt_sha256(),
+    prompt_text_provider=c1_prompt_text,
+)
+"""The original, frozen C1 protocol. Default for every ``run_c1_pass``/``evaluate_c1_readiness``
+call that does not explicitly select a different protocol -- preserves all v1 callable behavior,
+reports, and tests exactly as before v2 existed."""
+
+C1_PROMPT_V2 = C1PromptProtocol(
+    protocol_id=_C1_PROMPT_PROTOCOL_ID_V2,
+    prompt_sha256=c1_prompt_sha256_v2(),
+    prompt_text_provider=c1_prompt_text_v2,
+)
+"""The v2 protocol from the owner-approved local proposal. Must be passed explicitly (never
+becomes a default) to ``run_c1_pass``/``evaluate_c1_readiness`` to be used."""
+
+
+class C1PromptBindingError(Exception):
+    """Raised when a :class:`C1PromptProtocol`'s declared identity cannot be trusted.
+
+    A module-local reason, never a new public V1/V2 error token -- exactly like
+    :class:`C1BlockingReason`, this stays private to this benchmark module rather than joining
+    the shared ``VisionErrorCode``/``VisionNonPolicyErrorDetailV2`` contracts. :func:`run_c1_pass`
+    raises this, closed, before ``adapter_factory``, fixture generation, or any provider action,
+    when a :class:`C1PromptProtocol`'s ``(protocol_id, prompt_sha256)`` pair is not one of the two
+    canonical approved identities (:data:`C1_PROMPT_V1`, :data:`C1_PROMPT_V2`), or when the
+    SHA-256 of the text ``prompt_text_provider()`` actually returns does not match the protocol's
+    declared ``prompt_sha256``. The message never includes the prompt text itself -- only
+    ``protocol_id`` and hash values, both already documented as safe to persist by
+    :func:`c1_prompt_sha256`/:func:`c1_prompt_sha256_v2`.
+
+    Deliberately absent from this module's ``__all__``: it is an internal binding-integrity
+    signal, not part of the module's public surface. It remains directly importable by name
+    (``from ... import C1PromptBindingError``) for tests and any caller that needs to catch it
+    specifically -- omission from ``__all__`` only affects ``from ... import *``.
+    """
+
+
+_CANONICAL_C1_PROMPT_IDENTITIES: frozenset[tuple[str, str]] = frozenset(
+    {
+        (C1_PROMPT_V1.protocol_id, C1_PROMPT_V1.prompt_sha256),
+        (C1_PROMPT_V2.protocol_id, C1_PROMPT_V2.prompt_sha256),
+    }
+)
+"""The closed allowlist of approved ``(protocol_id, prompt_sha256)`` pairs. Nothing outside this
+module may extend it; adding a new approved protocol requires its own reviewed constant here,
+mirroring how :data:`C1_PROMPT_V1`/:data:`C1_PROMPT_V2` were each added deliberately."""
+
+
+def _resolve_verified_c1_prompt_text(prompt: C1PromptProtocol) -> str:
+    """Resolve ``prompt``'s text exactly once, verified against its declared identity.
+
+    Fails closed with :class:`C1PromptBindingError` -- before any adapter, fixture, or provider
+    action -- when ``(protocol_id, prompt_sha256)`` is not one of the two canonical approved
+    identities, or when the SHA-256 of the text ``prompt_text_provider()`` actually returns does
+    not match the declared ``prompt_sha256``. This is what ties a :class:`C1PassReport`'s stamped
+    identity to the exact text an adapter factory receives, rather than to an unverified caller
+    claim on :class:`C1PromptProtocol`.
+    """
+
+    identity = (prompt.protocol_id, prompt.prompt_sha256)
+    if identity not in _CANONICAL_C1_PROMPT_IDENTITIES:
+        raise C1PromptBindingError(
+            "Unknown C1 prompt identity: "
+            f"protocol_id={prompt.protocol_id!r} is not paired with a canonical approved "
+            "prompt_sha256 in the closed C1 prompt allowlist."
+        )
+
+    text = prompt.prompt_text_provider()
+    computed_sha256 = sha256(text.encode("utf-8")).hexdigest()
+    if computed_sha256 != prompt.prompt_sha256:
+        raise C1PromptBindingError(
+            "C1 prompt text/hash mismatch: the resolved prompt text's SHA-256 does not match "
+            f"the declared prompt_sha256 for protocol_id={prompt.protocol_id!r}."
+        )
+
+    return text
 
 
 def qwen_c1_adapter_factory(
@@ -198,9 +376,11 @@ def qwen_c1_adapter_factory(
 ) -> C1AdapterFactory:
     """The real production :data:`C1AdapterFactory` for a Lightning C1 run.
 
-    Returns a closure matching ``C1AdapterFactory``: called by ``run_c1_pass`` with the exact
-    ``c1_prompt_text()`` and ``collector.hook``, it constructs a fresh ``QwenVisionAdapter`` with
-    ``prompt``/``on_raw_output`` set to exactly those two values. ``QwenVisionAdapter``'s own
+    Returns a closure matching ``C1AdapterFactory``: called by ``run_c1_pass`` with the selected,
+    verified :class:`C1PromptProtocol`'s prompt text (``c1_prompt_text()`` for ``C1_PROMPT_V1``
+    by default, or another explicitly passed protocol's text) and ``collector.hook``, it
+    constructs a fresh ``QwenVisionAdapter`` with ``prompt``/``on_raw_output`` set to exactly
+    those two values. ``QwenVisionAdapter``'s own
     default (empty) ``_default_prompt_builder`` is never reached through this factory --
     ``prompt=`` is always supplied explicitly, once per call. ``generation_runner`` exists only so
     tests can inject a fake generation seam without a GPU; a real Lightning run omits it and gets
@@ -239,28 +419,41 @@ def run_c1_pass(
     collector: B3RawOutputCollector,
     *,
     run_label: C1RunLabel,
+    prompt: C1PromptProtocol = C1_PROMPT_V1,
     profile_id: VisionProfileIdV2 = VisionProfileIdV2.QWEN3_VL_8B_INSTRUCT_BF16_V1,
     sample_vram: bool = True,
     fixtures_dir: Path | None = None,
 ) -> C1PassReport:
     """Execute one C1 pass: the existing eight B3 fixtures, one adapter call each, no retry.
 
-    ``adapter_factory`` is called exactly once, here, with ``c1_prompt_text()`` and
-    ``collector.hook`` -- never with anything else -- to build the adapter that
-    ``run_b3_mapping_study`` then drives. There is no way to obtain a :class:`C1PassReport` from
-    an already-built adapter: the factory is the only construction seam, so the prompt identity
-    stamped on the returned report always matches what the factory actually received, not an
-    unverified caller claim. This function never touches ``qwen_vision.py``'s default (empty)
-    prompt builder itself -- see :func:`qwen_c1_adapter_factory` for the real production factory.
+    ``prompt``'s declared identity is resolved and verified exactly once, here, by
+    :func:`_resolve_verified_c1_prompt_text` -- against the closed canonical allowlist of
+    approved ``(protocol_id, prompt_sha256)`` pairs and against the SHA-256 of the text
+    ``prompt.prompt_text_provider()`` actually returns -- before ``adapter_factory`` is called,
+    raising :class:`C1PromptBindingError` closed on any mismatch. Only once that check passes is
+    ``adapter_factory`` called, exactly once, with the verified text and ``collector.hook`` --
+    never with anything else -- to build the adapter that ``run_b3_mapping_study`` then drives.
+    ``prompt`` defaults to :data:`C1_PROMPT_V1`, so every existing call site that does not pass
+    ``prompt`` explicitly keeps running the original v1 protocol with unchanged behavior; passing
+    :data:`C1_PROMPT_V2` (or another :class:`C1PromptProtocol`) makes the selected protocol an
+    explicit argument rather than a silent default swap. There is no way to obtain a
+    :class:`C1PassReport` from an already-built adapter: the factory is the only construction
+    seam, so the prompt identity stamped on the returned report always matches what the factory
+    actually received and what the verification step confirmed, not an unverified caller claim on
+    ``prompt.protocol_id``/``prompt.prompt_sha256``. This function never touches
+    ``qwen_vision.py``'s default (empty) prompt builder itself -- see
+    :func:`qwen_c1_adapter_factory` for the real production factory, which is itself
+    protocol-agnostic: it constructs whatever prompt string it is called with.
 
     Delegates entirely to ``run_b3_mapping_study`` -- including that function's own default
     eight-fixture builder, real P2-T1 gate, one-call-per-fixture-no-retry loop, and scratch
-    cleanup -- and adds only the C1 prompt-dispatch/identity wrapper and a distinct default
-    scratch directory per ``run_label`` so ``C1_PASS_1`` and ``C1_REPEAT_1`` never collide when
-    run in the same working directory.
+    cleanup -- and adds only the C1 prompt-verification/dispatch/identity wrapper and a distinct
+    default scratch directory per ``run_label`` so ``C1_PASS_1`` and ``C1_REPEAT_1`` never
+    collide when run in the same working directory.
     """
 
-    adapter = adapter_factory(c1_prompt_text(), collector.hook)
+    prompt_text = _resolve_verified_c1_prompt_text(prompt)
+    adapter = adapter_factory(prompt_text, collector.hook)
     resolved_fixtures_dir = fixtures_dir or _DEFAULT_C1_FIXTURES_DIR[run_label]
     mapping = run_b3_mapping_study(
         adapter,
@@ -272,8 +465,8 @@ def run_c1_pass(
     )
     return C1PassReport(
         run_label=run_label,
-        prompt_protocol_id=c1_prompt_protocol_id(),
-        prompt_sha256=c1_prompt_sha256(),
+        prompt_protocol_id=prompt.protocol_id,
+        prompt_sha256=prompt.prompt_sha256,
         mapping=mapping,
     )
 
@@ -372,8 +565,33 @@ def _evaluate_pass(pass_report: C1PassReport) -> C1PassEvaluation:
     )
 
 
-def evaluate_c1_readiness(pass_1: C1PassReport, repeat_1: C1PassReport) -> C1ReadinessVerdict:
+def evaluate_c1_readiness(
+    pass_1: C1PassReport,
+    repeat_1: C1PassReport,
+    *,
+    expected_prompt: C1PromptProtocol = C1_PROMPT_V1,
+) -> C1ReadinessVerdict:
     """Apply the pre-registered C1 mapping-readiness gate to two independent passes.
+
+    ``expected_prompt`` defaults to :data:`C1_PROMPT_V1`, so every existing call site keeps
+    checking passes against the original v1 identity unchanged. Passing :data:`C1_PROMPT_V2`
+    checks both passes against the v2 identity instead; a pass carrying the *other* protocol's
+    ``prompt_protocol_id``/``prompt_sha256`` (a v1 report evaluated against
+    ``expected_prompt=C1_PROMPT_V2``, or vice versa) fails the identity comparison below exactly
+    like any other config drift -- there is no separate v1/v2-mismatch code path, because the
+    existing drift check already covers it once the expected identity is a parameter.
+
+    Before anything else, ``expected_prompt`` itself is resolved and verified through the same
+    :func:`_resolve_verified_c1_prompt_text` binding check :func:`run_c1_pass` uses -- against the
+    closed canonical allowlist and against the SHA-256 of the text its
+    ``prompt_text_provider()`` actually returns, calling that provider at most once. This closes
+    the readiness-bypass a directly constructed, unverified ``expected_prompt`` would otherwise
+    open: without it, two directly constructed :class:`C1PassReport` values could carry any
+    arbitrary claimed identity and evaluate as ``MAPPING_READY`` against an ``expected_prompt``
+    that merely echoes that same unverified claim. The resolved text itself is discarded
+    immediately -- it is never stored, compared further, or placed on :class:`C1ReadinessVerdict`
+    -- so this call exists purely to raise :class:`C1PromptBindingError` closed on any mismatch,
+    before any readiness logic below runs.
 
     See the module docstring for the full gate rule. This function does not detect whether raw
     output was ever persisted -- that guarantee is structural, enforced by
@@ -384,10 +602,12 @@ def evaluate_c1_readiness(pass_1: C1PassReport, repeat_1: C1PassReport) -> C1Rea
     if pass_1.run_label == repeat_1.run_label:
         raise ValueError("pass_1 and repeat_1 must carry distinct run labels")
 
+    _resolve_verified_c1_prompt_text(expected_prompt)
+
     expected_catalog_hash = vision_profile_catalog_hash_v2(vision_profile_catalog_v2())
     expected_profile_id = VisionProfileIdV2.QWEN3_VL_8B_INSTRUCT_BF16_V1.value
-    expected_prompt_sha256 = c1_prompt_sha256()
-    expected_protocol_id = c1_prompt_protocol_id()
+    expected_prompt_sha256 = expected_prompt.prompt_sha256
+    expected_protocol_id = expected_prompt.protocol_id
 
     config_drift = (
         pass_1.mapping.profile_id != expected_profile_id
@@ -450,12 +670,18 @@ __all__ = [
     "C1BlockingReason",
     "C1PassEvaluation",
     "C1PassReport",
+    "C1PromptProtocol",
     "C1ReadinessVerdict",
     "C1RunLabel",
+    "C1_PROMPT_V1",
+    "C1_PROMPT_V2",
     "c1_prompt_protocol_id",
+    "c1_prompt_protocol_id_v2",
     "c1_prompt_schema_target",
     "c1_prompt_sha256",
+    "c1_prompt_sha256_v2",
     "c1_prompt_text",
+    "c1_prompt_text_v2",
     "evaluate_c1_readiness",
     "qwen_c1_adapter_factory",
     "run_c1_pass",

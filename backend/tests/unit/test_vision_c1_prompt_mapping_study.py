@@ -16,13 +16,20 @@ from sketch2life.benchmark.vision_b3_mapping_study import (
     B3RawOutputMode,
 )
 from sketch2life.benchmark.vision_c1_prompt_mapping_study import (
+    C1_PROMPT_V1,
+    C1_PROMPT_V2,
     C1BlockingReason,
     C1PassReport,
+    C1PromptBindingError,
+    C1PromptProtocol,
     C1RunLabel,
     c1_prompt_protocol_id,
+    c1_prompt_protocol_id_v2,
     c1_prompt_schema_target,
     c1_prompt_sha256,
+    c1_prompt_sha256_v2,
     c1_prompt_text,
+    c1_prompt_text_v2,
     evaluate_c1_readiness,
     qwen_c1_adapter_factory,
     run_c1_pass,
@@ -183,6 +190,69 @@ def test_c1_prompt_protocol_identity_is_stable_and_the_text_is_non_empty() -> No
     assert c1_prompt_protocol_id() == "vision-v2-structured-output-prompt-v1"
     assert c1_prompt_schema_target() == "VisionUnderstandingResultV2"
     assert c1_prompt_text()
+
+
+# ---------------------------------------------------------------------------
+# C1-v2 prompt protocol identity (per the owner-approved local proposal)
+# ---------------------------------------------------------------------------
+
+# Golden constant: the exact SHA-256 of the approved v2 text, computed independently of the
+# module under test. A future accidental edit to `_C1_PROMPT_LINES_V2` breaks this test loudly.
+_C1_PROMPT_SHA256_V2_GOLDEN = (
+    "1e880e946dc1f1dcf11731c299702b33ab58e3c098cdda3d6607c080dc8f9fd6"
+)
+
+
+def test_c1_prompt_v2_protocol_identity_is_distinct_from_v1() -> None:
+    assert c1_prompt_protocol_id_v2() == "vision-v2-structured-output-prompt-v2"
+    assert c1_prompt_protocol_id_v2() != c1_prompt_protocol_id()
+    assert c1_prompt_schema_target() == "VisionUnderstandingResultV2"  # unchanged, shared
+    assert c1_prompt_text_v2()
+    assert c1_prompt_text_v2() != c1_prompt_text()
+
+
+def test_c1_prompt_v2_sha256_is_deterministic_and_matches_the_text() -> None:
+    assert c1_prompt_sha256_v2() == c1_prompt_sha256_v2()
+    assert c1_prompt_sha256_v2() == sha256(c1_prompt_text_v2().encode("utf-8")).hexdigest()
+    assert c1_prompt_sha256_v2() != c1_prompt_sha256()
+
+
+def test_c1_prompt_v2_sha256_changes_when_the_text_changes() -> None:
+    mutated = c1_prompt_text_v2() + " "
+
+    assert sha256(mutated.encode("utf-8")).hexdigest() != c1_prompt_sha256_v2()
+
+
+def test_c1_prompt_v2_matches_the_approved_v1_and_repeat_rules_unchanged() -> None:
+    """Only rules 6 and 11 (entity label/confidence shape) may differ from v1; the other nine
+    lines must be byte-identical, per the owner decision to change exactly Section 2's two rules
+    and nothing else.
+    """
+
+    v1_lines = c1_prompt_text().split("\n")
+    v2_lines = c1_prompt_text_v2().split("\n")
+    assert len(v1_lines) == len(v2_lines) == 11
+    changed_indices = {5, 10}  # rules 6 and 11, zero-indexed
+    for index, (v1_line, v2_line) in enumerate(zip(v1_lines, v2_lines, strict=True)):
+        if index in changed_indices:
+            assert v1_line != v2_line
+        else:
+            assert v1_line == v2_line
+
+
+def test_c1_prompt_v2_sha256_matches_the_golden_constant() -> None:
+    """Pins the exact approved v2 text against an independently computed constant."""
+
+    assert c1_prompt_sha256_v2() == _C1_PROMPT_SHA256_V2_GOLDEN
+
+
+def test_c1_prompt_v1_and_v2_dataclasses_carry_their_own_matching_identity() -> None:
+    assert C1_PROMPT_V1.protocol_id == c1_prompt_protocol_id()
+    assert C1_PROMPT_V1.prompt_sha256 == c1_prompt_sha256()
+    assert C1_PROMPT_V1.prompt_text_provider() == c1_prompt_text()
+    assert C1_PROMPT_V2.protocol_id == c1_prompt_protocol_id_v2()
+    assert C1_PROMPT_V2.prompt_sha256 == c1_prompt_sha256_v2()
+    assert C1_PROMPT_V2.prompt_text_provider() == c1_prompt_text_v2()
 
 
 # ---------------------------------------------------------------------------
@@ -360,6 +430,253 @@ def test_default_empty_prompt_is_never_used_by_the_real_c1_factory_path(
     assert not (tmp_path / "scratch").exists()
 
 
+def test_v2_prompt_dispatches_exactly_v2_text_through_the_real_adapter_path(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Same integration proof as v1's, through the real ``qwen_c1_adapter_factory`` +
+    ``QwenVisionAdapter`` (fake generation runner, no GPU), but selecting ``C1_PROMPT_V2``
+    explicitly. Proves v2 never silently replaces v1's default and the adapter's own empty
+    default prompt is still never reached.
+    """
+
+    monkeypatch.chdir(tmp_path)
+    runner = _RecordingGenerationRunner([json.dumps(_EMPTY_OBSERVATIONS) for _ in range(8)])
+    factory = qwen_c1_adapter_factory(
+        QwenVisionRuntimeConfig(model_dir=Path("local-model")),
+        LexicalRegressionContentPolicy(synthetic_prohibited_lexicon()),
+        generation_runner=runner,
+    )
+    collector = B3RawOutputCollector(mode=B3RawOutputMode.CLASSIFY_ONLY)
+
+    report = run_c1_pass(
+        factory,
+        collector,
+        run_label="C1_PASS_1",
+        prompt=C1_PROMPT_V2,
+        fixtures_dir=Path("scratch"),
+        sample_vram=False,
+    )
+
+    assert runner.calls == 8
+    assert runner.received_prompts == [c1_prompt_text_v2()] * 8
+    assert c1_prompt_text() not in runner.received_prompts
+    assert "" not in runner.received_prompts
+    assert report.prompt_protocol_id == c1_prompt_protocol_id_v2()
+    assert report.prompt_sha256 == c1_prompt_sha256_v2()
+    assert report.mapping.schema_valid_count == 8
+    assert not (tmp_path / "scratch").exists()
+
+
+def test_v2_pass_report_carries_v2_identity_not_v1s(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    factory, collector = _all_success_scripted()
+
+    report = run_c1_pass(
+        factory,
+        collector,
+        run_label="C1_PASS_1",
+        prompt=C1_PROMPT_V2,
+        fixtures_dir=Path("scratch"),
+        sample_vram=False,
+    )
+
+    assert factory.received_prompt == c1_prompt_text_v2()
+    assert report.prompt_protocol_id == c1_prompt_protocol_id_v2()
+    assert report.prompt_protocol_id != c1_prompt_protocol_id()
+    assert report.prompt_sha256 == c1_prompt_sha256_v2()
+    assert report.prompt_sha256 != c1_prompt_sha256()
+
+
+def test_v2_pass_report_never_carries_the_prompt_body_or_raw_text(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    marker = "UNMISTAKABLE_C1_V2_RAW_MARKER"
+    collector = B3RawOutputCollector(mode=B3RawOutputMode.CLASSIFY_ONLY)
+    outcomes = [_success() for _ in range(8)]
+    raw_outputs: list[str | None] = [json.dumps({"note_marker": marker}) for _ in range(8)]
+    factory = _RecordingAdapterFactory(outcomes, raw_outputs)
+
+    report = run_c1_pass(
+        factory,
+        collector,
+        run_label="C1_PASS_1",
+        prompt=C1_PROMPT_V2,
+        fixtures_dir=Path("scratch"),
+        sample_vram=False,
+    )
+
+    serialized = json.dumps(
+        {
+            "run_label": report.run_label,
+            "prompt_protocol_id": report.prompt_protocol_id,
+            "prompt_sha256": report.prompt_sha256,
+            "mapping": dataclasses.asdict(report.mapping),
+        },
+        default=str,
+    )
+    assert marker not in serialized
+    assert c1_prompt_text_v2() not in serialized
+    assert c1_prompt_text() not in serialized
+
+
+# ---------------------------------------------------------------------------
+# Prompt-binding integrity (fix): run_c1_pass verifies a C1PromptProtocol's declared
+# identity against its actually-dispatched text before adapter_factory ever runs.
+# A caller cannot claim a canonical protocol_id/prompt_sha256 while supplying
+# different (or empty) text and have that claim trusted.
+# ---------------------------------------------------------------------------
+
+
+def test_v2_identity_with_empty_text_provider_fails_before_adapter_factory(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    factory, collector = _all_success_scripted()
+    forged = C1PromptProtocol(
+        protocol_id=c1_prompt_protocol_id_v2(),
+        prompt_sha256=c1_prompt_sha256_v2(),
+        prompt_text_provider=lambda: "",
+    )
+
+    with pytest.raises(C1PromptBindingError):
+        run_c1_pass(
+            factory,
+            collector,
+            run_label="C1_PASS_1",
+            prompt=forged,
+            fixtures_dir=Path("scratch"),
+            sample_vram=False,
+        )
+
+    assert factory.calls == 0
+
+
+def test_v2_identity_with_v1_text_provider_fails_before_adapter_factory(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    factory, collector = _all_success_scripted()
+    forged = C1PromptProtocol(
+        protocol_id=c1_prompt_protocol_id_v2(),
+        prompt_sha256=c1_prompt_sha256_v2(),
+        prompt_text_provider=c1_prompt_text,
+    )
+
+    with pytest.raises(C1PromptBindingError):
+        run_c1_pass(
+            factory,
+            collector,
+            run_label="C1_PASS_1",
+            prompt=forged,
+            fixtures_dir=Path("scratch"),
+            sample_vram=False,
+        )
+
+    assert factory.calls == 0
+
+
+def test_unknown_protocol_id_with_self_consistent_hash_fails_closed(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    factory, collector = _all_success_scripted()
+    text = "an unapproved, self-consistent prompt body"
+    forged = C1PromptProtocol(
+        protocol_id="unknown-c1-prompt-protocol",
+        prompt_sha256=sha256(text.encode("utf-8")).hexdigest(),
+        prompt_text_provider=lambda: text,
+    )
+
+    with pytest.raises(C1PromptBindingError):
+        run_c1_pass(
+            factory,
+            collector,
+            run_label="C1_PASS_1",
+            prompt=forged,
+            fixtures_dir=Path("scratch"),
+            sample_vram=False,
+        )
+
+    assert factory.calls == 0
+
+
+def test_prompt_binding_error_never_leaks_prompt_body_or_raw_text(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    factory, collector = _all_success_scripted()
+    secret = "UNMISTAKABLE_SECRET_PROMPT_BODY_MARKER"
+    forged = C1PromptProtocol(
+        protocol_id=c1_prompt_protocol_id_v2(),
+        prompt_sha256=c1_prompt_sha256_v2(),
+        prompt_text_provider=lambda: secret,
+    )
+
+    with pytest.raises(C1PromptBindingError) as excinfo:
+        run_c1_pass(
+            factory,
+            collector,
+            run_label="C1_PASS_1",
+            prompt=forged,
+            fixtures_dir=Path("scratch"),
+            sample_vram=False,
+        )
+
+    message = str(excinfo.value)
+    assert secret not in message
+    assert c1_prompt_text() not in message
+    assert c1_prompt_text_v2() not in message
+    assert factory.calls == 0
+
+
+def test_c1_prompt_binding_error_is_not_exported_but_remains_importable() -> None:
+    """Finding 2: an internal binding-integrity signal, not a public module export -- but a
+    caller (like these tests) can still import and catch it by name."""
+
+    import sketch2life.benchmark.vision_c1_prompt_mapping_study as c1_module
+
+    assert "C1PromptBindingError" not in c1_module.__all__
+    assert c1_module.C1PromptBindingError is C1PromptBindingError
+
+
+def test_canonical_v1_and_v2_identities_pass_binding_verification(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Canonical protocols never raise ``C1PromptBindingError``; both still dispatch and
+    produce a report carrying their own correct identity."""
+
+    monkeypatch.chdir(tmp_path)
+    v1_factory, v1_collector = _all_success_scripted()
+    v2_factory, v2_collector = _all_success_scripted()
+
+    v1_report = run_c1_pass(
+        v1_factory,
+        v1_collector,
+        run_label="C1_PASS_1",
+        prompt=C1_PROMPT_V1,
+        fixtures_dir=Path("scratch-v1"),
+        sample_vram=False,
+    )
+    v2_report = run_c1_pass(
+        v2_factory,
+        v2_collector,
+        run_label="C1_PASS_1",
+        prompt=C1_PROMPT_V2,
+        fixtures_dir=Path("scratch-v2"),
+        sample_vram=False,
+    )
+
+    assert v1_factory.calls == 1
+    assert v1_report.prompt_protocol_id == c1_prompt_protocol_id()
+    assert v1_report.prompt_sha256 == c1_prompt_sha256()
+    assert v2_factory.calls == 1
+    assert v2_report.prompt_protocol_id == c1_prompt_protocol_id_v2()
+    assert v2_report.prompt_sha256 == c1_prompt_sha256_v2()
+
+
 # ---------------------------------------------------------------------------
 # evaluate_c1_readiness: the pre-registered mapping-readiness gate
 # ---------------------------------------------------------------------------
@@ -449,6 +766,143 @@ def _pass_report(
     )
 
 
+# ---------------------------------------------------------------------------
+# evaluate_c1_readiness: expected_prompt binding integrity (fix -- readiness bypass)
+# ---------------------------------------------------------------------------
+
+
+def test_unknown_self_consistent_expected_prompt_cannot_produce_mapping_ready() -> None:
+    """A directly constructed pair of reports cannot launder an arbitrary, self-consistent
+    identity into MAPPING_READY by also passing it as expected_prompt: the expectation itself
+    must be a canonical, verified identity, not merely internally consistent."""
+
+    text = "an unapproved, self-consistent expected prompt"
+    forged = C1PromptProtocol(
+        protocol_id="unknown-c1-expected-prompt",
+        prompt_sha256=sha256(text.encode("utf-8")).hexdigest(),
+        prompt_text_provider=lambda: text,
+    )
+    pass_1 = _pass_report(
+        "C1_PASS_1",
+        _succeeded_and_failed_runs(8),
+        prompt_protocol_id=forged.protocol_id,
+        prompt_sha256=forged.prompt_sha256,
+    )
+    repeat_1 = _pass_report(
+        "C1_REPEAT_1",
+        _succeeded_and_failed_runs(8),
+        prompt_protocol_id=forged.protocol_id,
+        prompt_sha256=forged.prompt_sha256,
+    )
+
+    with pytest.raises(C1PromptBindingError):
+        evaluate_c1_readiness(pass_1, repeat_1, expected_prompt=forged)
+
+
+def test_canonical_v2_expected_prompt_with_empty_provider_fails_closed() -> None:
+    forged = C1PromptProtocol(
+        protocol_id=c1_prompt_protocol_id_v2(),
+        prompt_sha256=c1_prompt_sha256_v2(),
+        prompt_text_provider=lambda: "",
+    )
+    pass_1 = _pass_report("C1_PASS_1", _succeeded_and_failed_runs(8))
+    repeat_1 = _pass_report("C1_REPEAT_1", _succeeded_and_failed_runs(8))
+
+    with pytest.raises(C1PromptBindingError):
+        evaluate_c1_readiness(pass_1, repeat_1, expected_prompt=forged)
+
+
+def test_canonical_v2_expected_prompt_with_v1_provider_fails_closed() -> None:
+    forged = C1PromptProtocol(
+        protocol_id=c1_prompt_protocol_id_v2(),
+        prompt_sha256=c1_prompt_sha256_v2(),
+        prompt_text_provider=c1_prompt_text,
+    )
+    pass_1 = _pass_report("C1_PASS_1", _succeeded_and_failed_runs(8))
+    repeat_1 = _pass_report("C1_REPEAT_1", _succeeded_and_failed_runs(8))
+
+    with pytest.raises(C1PromptBindingError):
+        evaluate_c1_readiness(pass_1, repeat_1, expected_prompt=forged)
+
+
+def test_canonical_v1_and_v2_expected_prompts_still_evaluate_normally() -> None:
+    v1_pass_1 = _pass_report("C1_PASS_1", _succeeded_and_failed_runs(7))
+    v1_repeat_1 = _pass_report("C1_REPEAT_1", _succeeded_and_failed_runs(7))
+
+    v1_verdict = evaluate_c1_readiness(v1_pass_1, v1_repeat_1, expected_prompt=C1_PROMPT_V1)
+
+    assert v1_verdict.overall == "MAPPING_READY"
+    assert v1_verdict.blocking_reasons == ()
+
+    v2_pass_1 = _pass_report(
+        "C1_PASS_1",
+        _succeeded_and_failed_runs(7),
+        prompt_protocol_id=c1_prompt_protocol_id_v2(),
+        prompt_sha256=c1_prompt_sha256_v2(),
+    )
+    v2_repeat_1 = _pass_report(
+        "C1_REPEAT_1",
+        _succeeded_and_failed_runs(7),
+        prompt_protocol_id=c1_prompt_protocol_id_v2(),
+        prompt_sha256=c1_prompt_sha256_v2(),
+    )
+
+    v2_verdict = evaluate_c1_readiness(v2_pass_1, v2_repeat_1, expected_prompt=C1_PROMPT_V2)
+
+    assert v2_verdict.overall == "MAPPING_READY"
+    assert v2_verdict.blocking_reasons == ()
+
+
+def test_expected_prompt_provider_is_called_at_most_once_per_verification() -> None:
+    calls = 0
+
+    def counting_provider() -> str:
+        nonlocal calls
+        calls += 1
+        return c1_prompt_text_v2()
+
+    tracked = C1PromptProtocol(
+        protocol_id=c1_prompt_protocol_id_v2(),
+        prompt_sha256=c1_prompt_sha256_v2(),
+        prompt_text_provider=counting_provider,
+    )
+    pass_1 = _pass_report(
+        "C1_PASS_1",
+        _succeeded_and_failed_runs(7),
+        prompt_protocol_id=c1_prompt_protocol_id_v2(),
+        prompt_sha256=c1_prompt_sha256_v2(),
+    )
+    repeat_1 = _pass_report(
+        "C1_REPEAT_1",
+        _succeeded_and_failed_runs(7),
+        prompt_protocol_id=c1_prompt_protocol_id_v2(),
+        prompt_sha256=c1_prompt_sha256_v2(),
+    )
+
+    evaluate_c1_readiness(pass_1, repeat_1, expected_prompt=tracked)
+
+    assert calls == 1
+
+
+def test_expected_prompt_binding_error_never_leaks_prompt_body_or_raw_text() -> None:
+    secret = "UNMISTAKABLE_EXPECTED_PROMPT_SECRET_MARKER"
+    forged = C1PromptProtocol(
+        protocol_id=c1_prompt_protocol_id_v2(),
+        prompt_sha256=c1_prompt_sha256_v2(),
+        prompt_text_provider=lambda: secret,
+    )
+    pass_1 = _pass_report("C1_PASS_1", _succeeded_and_failed_runs(8))
+    repeat_1 = _pass_report("C1_REPEAT_1", _succeeded_and_failed_runs(8))
+
+    with pytest.raises(C1PromptBindingError) as excinfo:
+        evaluate_c1_readiness(pass_1, repeat_1, expected_prompt=forged)
+
+    message = str(excinfo.value)
+    assert secret not in message
+    assert c1_prompt_text() not in message
+    assert c1_prompt_text_v2() not in message
+
+
 def test_seven_of_eight_mapping_valid_in_both_passes_is_ready() -> None:
     pass_1 = _pass_report("C1_PASS_1", _succeeded_and_failed_runs(7))
     repeat_1 = _pass_report("C1_REPEAT_1", _succeeded_and_failed_runs(7))
@@ -531,6 +985,59 @@ def test_one_of_eight_truncation_is_not_systemic() -> None:
     verdict = evaluate_c1_readiness(pass_1, repeat_1)
 
     assert verdict.overall == "MAPPING_READY"
+
+
+def test_v1_report_evaluated_against_v2_expected_prompt_is_config_drift() -> None:
+    """A pass carrying v1's identity, checked against the v2 expectation, must drift -- and vice
+    versa -- with no separate v1/v2-specific code path: the existing identity comparison already
+    covers it once the expected protocol is a parameter.
+    """
+
+    pass_1 = _pass_report("C1_PASS_1", _succeeded_and_failed_runs(8))  # v1 identity (default)
+    repeat_1 = _pass_report("C1_REPEAT_1", _succeeded_and_failed_runs(8))  # v1 identity too
+
+    verdict = evaluate_c1_readiness(pass_1, repeat_1, expected_prompt=C1_PROMPT_V2)
+
+    assert verdict.overall == "MAPPING_NOT_READY"
+    assert C1BlockingReason.CONFIG_DRIFT in verdict.blocking_reasons
+    assert verdict.prompt_protocol_id == c1_prompt_protocol_id_v2()
+
+
+def test_v1_and_v2_reports_mixed_across_passes_is_config_drift() -> None:
+    pass_1 = _pass_report(
+        "C1_PASS_1",
+        _succeeded_and_failed_runs(8),
+        prompt_protocol_id=c1_prompt_protocol_id_v2(),
+        prompt_sha256=c1_prompt_sha256_v2(),
+    )
+    repeat_1 = _pass_report("C1_REPEAT_1", _succeeded_and_failed_runs(8))  # still v1
+
+    verdict = evaluate_c1_readiness(pass_1, repeat_1, expected_prompt=C1_PROMPT_V2)
+
+    assert verdict.overall == "MAPPING_NOT_READY"
+    assert C1BlockingReason.CONFIG_DRIFT in verdict.blocking_reasons
+
+
+def test_two_v2_reports_evaluated_against_v2_expected_prompt_is_ready() -> None:
+    """Confirms v2 has a genuine ready path too, not just a drift path."""
+
+    pass_1 = _pass_report(
+        "C1_PASS_1",
+        _succeeded_and_failed_runs(7),
+        prompt_protocol_id=c1_prompt_protocol_id_v2(),
+        prompt_sha256=c1_prompt_sha256_v2(),
+    )
+    repeat_1 = _pass_report(
+        "C1_REPEAT_1",
+        _succeeded_and_failed_runs(7),
+        prompt_protocol_id=c1_prompt_protocol_id_v2(),
+        prompt_sha256=c1_prompt_sha256_v2(),
+    )
+
+    verdict = evaluate_c1_readiness(pass_1, repeat_1, expected_prompt=C1_PROMPT_V2)
+
+    assert verdict.overall == "MAPPING_READY"
+    assert verdict.blocking_reasons == ()
 
 
 def test_mismatched_prompt_hash_between_passes_is_config_drift() -> None:
