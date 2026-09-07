@@ -45,6 +45,40 @@
   No profile is frozen, no runtime default is selected, and this is not a Gate A or Integration
   Sprint decision.
 
+## P2-T3 Phase B B4 runner implementation status (2026-09-07)
+
+- The internal (non-CLI) B4 one-pass runner (`backend/src/sketch2life/benchmark/vision_b4_quality_benchmark.py`)
+  and its unit tests were implemented after the owner's explicit local-only authorization,
+  recorded in `evidence/notes/P2_T3_PHASE_B_B4_RUNNER_IMPLEMENTATION.md` (`EV-003-T3-12`). It
+  verifies the full owner-approved package and every fixture's real P2-T1 provenance before
+  constructing an adapter, injects the exact C1-v2 prompt, makes exactly one call per fixture
+  with no retry, and scores schema-valid results under the frozen matching rule (deterministic
+  maximum bipartite matching, endpoint/evidence-reference integrity, fixed text normalizer,
+  `NOT_MEASURED` ambiguous-region accuracy) — raw text, prompt text, local paths, candidates, and
+  ground-truth text are structurally absent from every report. At the time this note was written,
+  19 focused B4 tests and the full 622-test backend suite passed, alongside Ruff, strict mypy,
+  and all four repository validators; no Qwen, model, GPU, Lightning, dependency, or
+  `.vision.env` action occurred. The runner was implemented, reviewed, and independently
+  red-team-hardened (polynomial maximum-matching with a deterministic tie-break, replacing
+  exhaustive enumeration) before any GPU/Lightning execution was authorized. This runner is the
+  same one later fixed twice and actually executed on Lightning L4; see "P2-T3 Phase B B4 real
+  Lightning execution status (2026-09-07)" above for that later, separate milestone.
+
+## P2-T3 Phase B B4 held-out fixture authoring status (2026-09-07)
+
+- Person 2 authored exactly eight synthetic geometric held-out PNG fixtures and the associated
+  manifest, ground truth, and `vision-b4-matching-rule-v1` before any B4 model output was seen,
+  recorded in `evidence/notes/P2_T3_PHASE_B_B4_FIXTURE_AUTHORING.md` (`EV-003-T3-11`). Each
+  fixture earned a real local P2-T1 `PASS`; regenerating B3's eight scratch-image recipes and
+  comparing SHA-256 sets confirmed zero overlap with the B4 images, preserving B3/B4
+  disjointness. Following an independent red-team review, the owner approved the manifest, the
+  ground truth (SHA-256 `c194c0c2ce1c22c5531e55393cf8554d3a3e31be88e3c99bfdd8302032ec4333`), the
+  matching rule (SHA-256 `4e405275257f1428f8f73b5339dac1941ce6f008ff00d39cc19c391c035b96bb`), the
+  eight-category taxonomy, and the C1-v2 prompt identity, and acknowledged that fixtures 06 and
+  07 intentionally carry no scored relation (the caveat referenced in the B4 execution status
+  above). No Qwen adapter, model, provider, GPU, Lightning session, or prompt body was involved
+  in authoring.
+
 ## P2-T3 Phase B B3 preparation and owner-decision status (2026-09-03)
 
 - `evidence/notes/P2_T3_PHASE_B_B3_PREPARATION.md` (`EV-003-T3-07`) is a planning-only note

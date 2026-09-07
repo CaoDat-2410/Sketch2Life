@@ -23,6 +23,8 @@ remain outside this index.
 | EV-003-T3-07 | P2-T3 Phase B B3 | [B3 preparation and owner decision](notes/P2_T3_PHASE_B_B3_PREPARATION.md) |
 | EV-003-T3-08 | P2-T3 Phase B B3 | [B3 implementation and no-GPU validation](notes/P2_T3_PHASE_B_B3_IMPLEMENTATION.md) |
 | EV-003-T3-09 / 10 | P2-T3 Phase B B4 | [Held-out quality benchmark execution](notes/P2_T3_PHASE_B_B4_QUALITY_BENCHMARK_EXECUTION.md) and [raw report JSON](notes/P2_T3_PHASE_B_B4_QUALITY_BENCHMARK_REPORT.json) |
+| EV-003-T3-11 | P2-T3 Phase B B4 | [Held-out fixture authoring and owner approval](notes/P2_T3_PHASE_B_B4_FIXTURE_AUTHORING.md) |
+| EV-003-T3-12 | P2-T3 Phase B B4 | [Runner implementation and no-GPU validation](notes/P2_T3_PHASE_B_B4_RUNNER_IMPLEMENTATION.md) |
 
 `approvals/TASK_APPROVAL.md` remains the authoritative approval record. P2-T5 remains the owner
 of the public CLI and end-to-end multimodal fixture report.
