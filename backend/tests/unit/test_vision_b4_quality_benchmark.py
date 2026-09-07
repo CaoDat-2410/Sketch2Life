@@ -482,6 +482,40 @@ def test_default_media_validation_blocks_factory_and_cleans_scratch_on_a_real_p2
     assert not (tmp_path / "scratch").exists()
 
 
+def test_request_image_artifact_ref_is_a_real_relative_file_the_adapter_can_open(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Regression: the real adapter opens ``source_image_ref.artifact_ref`` as a file path.
+
+    Prior code sent a bare descriptive label (``vision-b4-<id>-synthetic-image``) instead of
+    the fixture's real image path, so ``QwenVisionAdapter._verify_image_reference`` failed
+    instantly with ``SOURCE_IMAGE_UNREADABLE`` for every fixture, before any inference. This
+    fails with that prior code because no such file exists relative to the working directory.
+    """
+
+    monkeypatch.chdir(tmp_path)
+    root = _write_package(tmp_path)
+    factory = _Factory(_outcomes(), ["{}"] * 8)
+
+    run_b4_quality_pass(
+        factory,
+        B3RawOutputCollector(),
+        run_label="B4_PASS_1",
+        fixture_root=root,
+        runtime_dir=Path("scratch"),
+        sample_vram=False,
+        validate_media=_validation,
+    )
+
+    assert factory.adapter is not None and len(factory.adapter.requests) == 8
+    for request in factory.adapter.requests:
+        artifact_ref = request.source_image_ref.artifact_ref
+        assert not Path(artifact_ref).is_absolute()
+        resolved = Path.cwd() / artifact_ref
+        assert resolved.is_file()
+        assert sha256(resolved.read_bytes()).hexdigest() == request.source_image_ref.sha256
+
+
 def test_run_scores_all_eight_owner_approved_fixtures_once_without_raw_output_persistence(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

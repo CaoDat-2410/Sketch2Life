@@ -12,6 +12,7 @@ separate owner gate after GPU-ledger reconciliation and a fresh readiness check.
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import subprocess
 import time
@@ -401,6 +402,20 @@ def _write_companion_audio(path: Path) -> None:
         output.writeframes(b"".join(pack("<h", sample) for sample in samples))
 
 
+def _relative_artifact_ref(image_path: Path) -> str:
+    """A CWD-relative reference the real adapter can open, never the absolute fixture path.
+
+    ``fixture.image_path`` is resolved absolute (validated strictly inside the package by
+    ``_require_relative_file``), but ``VisionImageReferenceV1.artifact_ref`` rejects absolute
+    machine paths and the real adapter opens it directly as ``Path(artifact_ref)`` relative to
+    its own working directory -- mirroring ``vision_b3_mapping_study``'s own
+    ``image_path.as_posix()`` usage, which works there only because B3's fixture paths are
+    never resolved to absolute in the first place.
+    """
+
+    return Path(os.path.relpath(image_path, Path.cwd())).as_posix()
+
+
 def _real_p2t1_pass(
     fixture_id: str, image_path: Path, audio_path: Path
 ) -> VisionMediaValidationProvenanceV1:
@@ -785,7 +800,7 @@ def run_b4_quality_pass(
             request = VisionUnderstandingRequestV2(
                 correlation_id=f"vision-{run_label.lower().replace('_', '-')}-{fixture.fixture_id}",
                 source_image_ref=VisionImageReferenceV1(
-                    artifact_ref=f"vision-b4-{fixture.fixture_id}-synthetic-image",
+                    artifact_ref=_relative_artifact_ref(fixture.image_path),
                     sha256=fixture.image_sha256,
                 ),
                 media_validation=provenances[fixture.fixture_id],
