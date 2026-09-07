@@ -1,0 +1,114 @@
+{
+  "contract_name": "VisionB4GroundTruthV1",
+  "contract_version": "1.0",
+  "ground_truth_version": "vision-b4-ground-truth-v1",
+  "data_policy": "synthetic-only",
+  "author": "Person 2",
+  "authoring_boundary": "Authored before any B4 model output; do not revise from model output.",
+  "fixtures": [
+    {
+      "fixture_id": "b4-fixture-01",
+      "entities": [{"ground_truth_id": "gt-e1", "label": "circle"}],
+      "actions": [],
+      "relations": [],
+      "themes": [],
+      "ambiguous_regions": []
+    },
+    {
+      "fixture_id": "b4-fixture-02",
+      "entities": [
+        {"ground_truth_id": "gt-e1", "label": "circle"},
+        {"ground_truth_id": "gt-e2", "label": "square"}
+      ],
+      "actions": [],
+      "relations": [
+        {"ground_truth_id": "gt-r1", "predicate": "left of", "subject_ref": "gt-e1", "object_ref": "gt-e2"}
+      ],
+      "themes": [],
+      "ambiguous_regions": []
+    },
+    {
+      "fixture_id": "b4-fixture-03",
+      "entities": [
+        {"ground_truth_id": "gt-e1", "label": "circle"},
+        {"ground_truth_id": "gt-e2", "label": "square"}
+      ],
+      "actions": [
+        {"ground_truth_id": "gt-a1", "label": "points", "actor_ref": "gt-e1", "object_ref": "gt-e2"}
+      ],
+      "relations": [
+        {"ground_truth_id": "gt-r1", "predicate": "left of", "subject_ref": "gt-e1", "object_ref": "gt-e2"}
+      ],
+      "themes": [],
+      "ambiguous_regions": []
+    },
+    {
+      "fixture_id": "b4-fixture-04",
+      "entities": [{"ground_truth_id": "gt-e1", "label": "circle"}],
+      "actions": [
+        {"ground_truth_id": "gt-a1", "label": "moves", "actor_ref": "gt-e1", "object_ref": null}
+      ],
+      "relations": [],
+      "themes": [],
+      "ambiguous_regions": []
+    },
+    {
+      "fixture_id": "b4-fixture-05",
+      "entities": [
+        {"ground_truth_id": "gt-e1", "label": "circle"},
+        {"ground_truth_id": "gt-e2", "label": "square"}
+      ],
+      "actions": [],
+      "relations": [
+        {"ground_truth_id": "gt-r1", "predicate": "left of", "subject_ref": "gt-e1", "object_ref": "gt-e2"}
+      ],
+      "themes": [],
+      "ambiguous_regions": []
+    },
+    {
+      "fixture_id": "b4-fixture-06",
+      "entities": [
+        {"ground_truth_id": "gt-e1", "label": "circle"},
+        {"ground_truth_id": "gt-e2", "label": "square"},
+        {"ground_truth_id": "gt-e3", "label": "triangle"}
+      ],
+      "actions": [],
+      "relations": [],
+      "relation_scoring_note": "No canonical scored relation: this theme fixture has multiple equally direct spatial pairings, while the frozen C1-v2 output allows at most one relation; relations are not a target in this fixture.",
+      "themes": [
+        {"ground_truth_id": "gt-t1", "label": "shapes", "evidence_refs": ["gt-e1", "gt-e2", "gt-e3"]}
+      ],
+      "ambiguous_regions": []
+    },
+    {
+      "fixture_id": "b4-fixture-07",
+      "entities": [
+        {"ground_truth_id": "gt-e1", "label": "circle"},
+        {"ground_truth_id": "gt-e2", "label": "square"}
+      ],
+      "actions": [],
+      "relations": [],
+      "relation_scoring_note": "No canonical scored relation: overlap is deliberately the ambiguous-region target; a directional spatial relation is not uniquely determined for scoring in this fixture.",
+      "themes": [],
+      "ambiguous_regions": [{"ground_truth_id": "gt-u1", "note": "overlap"}]
+    },
+    {
+      "fixture_id": "b4-fixture-08",
+      "entities": [
+        {"ground_truth_id": "gt-e1", "label": "circle"},
+        {"ground_truth_id": "gt-e2", "label": "square"},
+        {"ground_truth_id": "gt-e3", "label": "triangle"}
+      ],
+      "actions": [
+        {"ground_truth_id": "gt-a1", "label": "points", "actor_ref": "gt-e1", "object_ref": "gt-e2"}
+      ],
+      "relations": [
+        {"ground_truth_id": "gt-r1", "predicate": "left of", "subject_ref": "gt-e1", "object_ref": "gt-e2"}
+      ],
+      "themes": [
+        {"ground_truth_id": "gt-t1", "label": "shapes", "evidence_refs": ["gt-e1", "gt-e2", "gt-e3", "gt-a1", "gt-r1"]}
+      ],
+      "ambiguous_regions": []
+    }
+  ]
+}
