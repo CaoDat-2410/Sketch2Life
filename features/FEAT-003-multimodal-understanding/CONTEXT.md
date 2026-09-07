@@ -7,6 +7,44 @@
   canonical evidence. Working drafts, review handoffs, templates, and local diagnostic records
   remain intentionally local-only and are not linked from this context.
 
+## P2-T3 Phase B B4 real Lightning execution status (2026-09-07)
+
+- The real B4 held-out quality benchmark has now executed once, both `B4_PASS_1` and its
+  mandatory `B4_REPEAT_1`, on Lightning L4 (operator-reported, relayed directly into this
+  session; not run by this documentation session), recorded in
+  `evidence/notes/P2_T3_PHASE_B_B4_QUALITY_BENCHMARK_EXECUTION.md` (`EV-003-T3-09`) with the
+  full raw safe-aggregate JSON at
+  `evidence/notes/P2_T3_PHASE_B_B4_QUALITY_BENCHMARK_REPORT.json` (`EV-003-T3-10`). This is the
+  first B4 execution to complete end-to-end: real model load and inference across all 8
+  held-out fixtures per pass (16 adapter calls total), `schema_valid_count: 8/8` both passes,
+  `typed_failure_counts: {}`, zero raw-output fence/truncation/extra-key/invalid-enum flags, and
+  confirmed scratch cleanup.
+- Two runner-only defects were fixed in this same session immediately before this run, both
+  covered by no-GPU regression tests and confirmed working under this real execution: (1) the
+  synthetic companion-audio waveform earned a real P2-T1 `PASS` instead of failing
+  `AUDIO_NO_SPEECH_SIGNAL` (commit `eec214f`); (2) the request sent to the real adapter now
+  carries a real, hash-verified, CWD-relative image path instead of a bare label, so
+  `SOURCE_IMAGE_UNREADABLE` no longer occurs (commit `88c90f8`). Neither fix touched the fixture
+  package, manifest, ground truth, matching rule, C1-v2 prompt identity, scoring, or cleanup
+  semantics.
+- Quality result: aggregate `matched_count` is `0` across every one of the five collections
+  (`entities`, `actions`, `relations`, `themes`, `ambiguous_regions`) in both passes, despite
+  `entities`/`actions` `predicted_count` closely tracking `ground_truth_count` (17 vs. 16
+  entities aggregate) — the model enumerates roughly the right number of items but no predicted
+  label matches the frozen exact-normalized-string matching rule
+  (`vision-b4-matching-rule-v1`), and it did not predict any `relations`/`themes`/
+  `ambiguous_regions` item anywhere they have nonzero ground truth. `B4_PASS_1` and
+  `B4_REPEAT_1` produced byte-identical `aggregate_collection_scores`, satisfying D-9's
+  same-profile reproducibility requirement. This is recorded as a quality finding for Person
+  2/owner interpretation, not established here as a runner, matching-rule, or model defect — see
+  `EV-003-T3-09` for the full reasoning distinguishing it from the two fixed runner bugs above.
+- Not established by this record: whether the required GPU-usage reconciliation and explicit B4
+  reauthorization (`P2_T3_PHASE_B_B4_DECISION_RECORD_DRAFT.md`, "Non-negotiable ordering" steps
+  5–6) occurred before this run, or this run's contribution to the cumulative one-hour Lightning
+  L4 soft cap across B2–B4 (D-9) — both remain the operator's/owner's responsibility to confirm.
+  No profile is frozen, no runtime default is selected, and this is not a Gate A or Integration
+  Sprint decision.
+
 ## P2-T3 Phase B B3 preparation and owner-decision status (2026-09-03)
 
 - `evidence/notes/P2_T3_PHASE_B_B3_PREPARATION.md` (`EV-003-T3-07`) is a planning-only note
