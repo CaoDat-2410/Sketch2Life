@@ -16,6 +16,7 @@ class AdapterFailureV1(BaseModel):
         "VALIDATION_REJECTED",
         "TIMEOUT",
         "PROVIDER_ERROR",
+        "RATE_LIMITED",
         "MALFORMED_OUTPUT",
         "PROHIBITED_FIELD",
         "SOURCE_MISMATCH",

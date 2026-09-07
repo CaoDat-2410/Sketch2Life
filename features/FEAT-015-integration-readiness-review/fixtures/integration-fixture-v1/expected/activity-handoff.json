@@ -1,0 +1,10 @@
+{
+  "contract_name": "ActivityHandoffV1",
+  "status": "READY_FOR_OFFSCREEN_ACTIVITY",
+  "activity_id": "ACT-0004",
+  "activity_version": 2,
+  "objective_id": "OBJ_MOVEMENT_COORDINATION",
+  "objective_version": 1,
+  "source_session_version": 3,
+  "contract_version": "1.0"
+}

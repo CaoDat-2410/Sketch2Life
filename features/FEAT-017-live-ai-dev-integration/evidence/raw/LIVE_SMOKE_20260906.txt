@@ -1,0 +1,16 @@
+FEAT-017 live Lightning smoke evidence
+Timestamp: 2026-09-06
+Scope: synthetic fixture integration-fixture-v1 only
+Provider health: 200
+ASR model: large-v3-turbo via faster-whisper
+VLM model: Qwen/Qwen3-VL-8B-Instruct
+Result: PROPOSAL
+Gate A required: true
+ASR contract: AsrResultV1 / SUCCEEDED
+Vision contract: VisionUnderstandingResultV1 / SUCCEEDED
+Proposal label: yellow circle
+Provider: lightning
+Model profile: live-p2-understanding-v1
+Latency ms: 5988.8
+Request ID: eb414895-868a-4210-bcf4-1a4233890e6c
+Raw media, prompts, authorization headers, and token material intentionally omitted.

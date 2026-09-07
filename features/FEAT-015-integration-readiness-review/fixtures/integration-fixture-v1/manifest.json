@@ -1,0 +1,51 @@
+{
+  "fixture_id": "integration-fixture-v1",
+  "fixture_version": "1.0",
+  "synthetic_data": true,
+  "created_at": "2026-09-05T00:00:00Z",
+  "review_status": "PROVISIONAL_FIXTURE",
+  "source_media": [
+    {
+      "artifact_id": "child-drawing-001",
+      "artifact_version": "1",
+      "path": "media/drawing.svg",
+      "sha256": "e8832914ecf124fa6942c37ee279ceab876a7dd946de61e1676f2b55825faaac"
+    },
+    {
+      "artifact_id": "child-narration-001",
+      "artifact_version": "1",
+      "path": "media/narration.wav",
+      "sha256": "2976da01e205a110c9fa41d47659e238a5c6d3c3f3137582f2949853faa201dd"
+    }
+  ],
+  "contracts": {
+    "media_validation": "MediaValidationResultV1",
+    "asr": "AsrResultV1",
+    "vision": "VisionUnderstandingResultV2",
+    "raw_understanding": "RawUnderstandingResultV1",
+    "gates": "IntegrationGateDecisionV1",
+    "art_asset": "PixiArtAssetManifestV1",
+    "learning_media": "LearningMediaResultV1",
+    "handoff": "ActivityHandoffV1",
+    "art_animation_plan": "ArtAnimationPlanV1",
+    "p1_context": "P1ContextV1",
+    "p1_filter": "P1FilterResultV1",
+    "feedback": "FeedbackV1"
+  },
+  "canonical_refs": {
+    "activity_id": "ACT-0004",
+    "activity_version": 2,
+    "objective_id": "OBJ_MOVEMENT_COORDINATION",
+    "objective_version": 1
+  },
+  "scenarios": [
+    "happy_cache_hit",
+    "modality_conflict_requires_gate_a",
+    "no_eligible_activity_add_context",
+    "cache_miss_fallback",
+    "asset_integrity_failure",
+    "stale_gate_or_completion",
+    "invalid_media_recap",
+    "blocked_learning_media"
+  ]
+}

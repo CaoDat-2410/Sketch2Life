@@ -1,0 +1,24 @@
+{
+  "contract_name": "VisionUnderstandingResultV2",
+  "contract_version": "2.0",
+  "status": "SUCCEEDED",
+  "entities": [
+    {
+      "observation_id": "entity-1",
+      "label": "Con buom bay den bong hoa",
+      "confidence": 0.94
+    }
+  ],
+  "actions": [
+    {
+      "observation_id": "action-1",
+      "label": "fly",
+      "confidence": 0.88
+    }
+  ],
+  "source_image_artifact_id": "child-drawing-001",
+  "provenance": {
+    "source": "fixture",
+    "model_version": "fixture-v2"
+  }
+}

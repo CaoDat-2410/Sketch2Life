@@ -1,0 +1,5 @@
+Initial pytest attempt summary (sanitized; full transient traceback not retained):
+295 passed, 5 skipped, 180 setup errors.
+All observed setup errors: PermissionError / WinError 5 on the default pytest TEMP directory.
+Resolved by an unused workspace basetemp, with no source changes.
+See P2_TEST_20260905_RUN2.txt: 475 passed, 5 skipped, exit 0.

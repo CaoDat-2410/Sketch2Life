@@ -1,0 +1,11 @@
+{
+  "contract_name": "LearningMediaResultV1",
+  "status": "CACHE_HIT",
+  "activity_id": "ACT-0004",
+  "activity_version": 2,
+  "objective_id": "OBJ_MOVEMENT_COORDINATION",
+  "objective_version": 1,
+  "asset_id": "reviewed-movement-v1",
+  "generation_called": false,
+  "contract_version": "1.0"
+}

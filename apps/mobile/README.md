@@ -49,3 +49,7 @@ Build artifacts:
 - `pnpm --dir apps/mobile android:aab:release` for Google Play.
 
 Visual assets follow `generated -> review -> approved -> applied`. Runtime code may reference only approved/applied assets.
+
+## Current fixture harness
+
+`src/app/AppRoot.tsx` currently mounts the approved fixture-only flow in `src/features/fixture/FixtureFlowScreen.tsx`. It is a reviewable UI harness, not a production provider client: the AI proposal is deterministic, the original drawing preview is synthetic, and all progression is guarded by the versioned session state machine. Live AI will be added only through a separately approved backend adapter feature.

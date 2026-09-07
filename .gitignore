@@ -48,3 +48,6 @@ tmp/
 output/
 data/runtime/
 features/FEAT-000-harness/evidence/handbook-page-*.png
+
+# Android native build intermediates
+apps/mobile/android/app/.cxx/
