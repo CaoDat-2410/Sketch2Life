@@ -903,6 +903,242 @@ def test_endpoint_and_evidence_eligibility_outrank_lower_prediction_identifiers(
     assert scores["themes"].accuracy == pytest.approx(0.5)
 
 
+def test_entity_label_matches_after_case_and_whitespace_normalization() -> None:
+    """Matching-rule rule 2: casefold + trim + whitespace collapse before comparison."""
+
+    ground_truth: dict[str, object] = {
+        "entities": [{"ground_truth_id": "gt-e1", "label": "circle"}],
+        "actions": [],
+        "relations": [],
+        "themes": [],
+        "ambiguous_regions": [],
+    }
+    result = _success(entities=(_entity("e1", "  CIRCLE  "),))
+
+    scores = _score_success(result, ground_truth)
+
+    assert scores["entities"].matched_count == 1
+
+
+def test_relation_predicate_matches_after_hyphen_normalization() -> None:
+    """Matching-rule rule 2: hyphens become spaces before comparison, alongside casefold."""
+
+    ground_truth: dict[str, object] = {
+        "entities": [
+            {"ground_truth_id": "gt-e1", "label": "circle"},
+            {"ground_truth_id": "gt-e2", "label": "square"},
+        ],
+        "actions": [],
+        "relations": [
+            {
+                "ground_truth_id": "gt-r1",
+                "predicate": "left of",
+                "subject_ref": "gt-e1",
+                "object_ref": "gt-e2",
+            }
+        ],
+        "themes": [],
+        "ambiguous_regions": [],
+    }
+    result = _success(
+        entities=(_entity("e1", "circle"), _entity("e2", "square")),
+        relations=(_relation("r1", "Left-Of", "e1", "e2"),),
+    )
+
+    scores = _score_success(result, ground_truth)
+
+    assert scores["relations"].matched_count == 1
+
+
+def test_wrong_entity_label_receives_no_match_credit() -> None:
+    ground_truth: dict[str, object] = {
+        "entities": [{"ground_truth_id": "gt-e1", "label": "circle"}],
+        "actions": [],
+        "relations": [],
+        "themes": [],
+        "ambiguous_regions": [],
+    }
+    result = _success(entities=(_entity("e1", "square"),))
+
+    scores = _score_success(result, ground_truth)
+
+    assert scores["entities"].matched_count == 0
+    assert scores["entities"].accuracy == 0.0
+
+
+def test_action_endpoint_referencing_an_unmatched_entity_receives_no_match_credit() -> None:
+    """A "wrong" (not merely reversed) endpoint: it targets an entity the GT never named."""
+
+    ground_truth: dict[str, object] = {
+        "entities": [
+            {"ground_truth_id": "gt-e1", "label": "circle"},
+            {"ground_truth_id": "gt-e2", "label": "square"},
+        ],
+        "actions": [
+            {
+                "ground_truth_id": "gt-a1",
+                "label": "points",
+                "actor_ref": "gt-e1",
+                "object_ref": "gt-e2",
+            }
+        ],
+        "relations": [],
+        "themes": [],
+        "ambiguous_regions": [],
+    }
+    result = _success(
+        entities=(_entity("e1", "circle"), _entity("e2", "square"), _entity("e3", "triangle")),
+        actions=(_action("a1", "points", "e1", "e3"),),
+    )
+
+    scores = _score_success(result, ground_truth)
+
+    assert scores["entities"].matched_count == 2
+    assert scores["actions"].matched_count == 0
+
+
+def test_action_null_endpoint_ground_truth_rejects_a_non_null_predicted_endpoint() -> None:
+    ground_truth: dict[str, object] = {
+        "entities": [{"ground_truth_id": "gt-e1", "label": "circle"}],
+        "actions": [
+            {
+                "ground_truth_id": "gt-a1",
+                "label": "moves",
+                "actor_ref": "gt-e1",
+                "object_ref": None,
+            }
+        ],
+        "relations": [],
+        "themes": [],
+        "ambiguous_regions": [],
+    }
+    result = _success(
+        entities=(_entity("e1", "circle"), _entity("e2", "square")),
+        actions=(_action("a1", "moves", "e1", "e2"),),
+    )
+
+    scores = _score_success(result, ground_truth)
+
+    assert scores["actions"].matched_count == 0
+
+
+def test_action_non_null_ground_truth_endpoint_rejects_a_null_predicted_endpoint() -> None:
+    ground_truth: dict[str, object] = {
+        "entities": [
+            {"ground_truth_id": "gt-e1", "label": "circle"},
+            {"ground_truth_id": "gt-e2", "label": "square"},
+        ],
+        "actions": [
+            {
+                "ground_truth_id": "gt-a1",
+                "label": "points",
+                "actor_ref": "gt-e1",
+                "object_ref": "gt-e2",
+            }
+        ],
+        "relations": [],
+        "themes": [],
+        "ambiguous_regions": [],
+    }
+    result = _success(
+        entities=(_entity("e1", "circle"), _entity("e2", "square")),
+        actions=(_action("a1", "points", "e1", None),),
+    )
+
+    scores = _score_success(result, ground_truth)
+
+    assert scores["actions"].matched_count == 0
+
+
+def test_relation_reversed_endpoints_receive_no_match_credit() -> None:
+    ground_truth: dict[str, object] = {
+        "entities": [
+            {"ground_truth_id": "gt-e1", "label": "circle"},
+            {"ground_truth_id": "gt-e2", "label": "square"},
+        ],
+        "actions": [],
+        "relations": [
+            {
+                "ground_truth_id": "gt-r1",
+                "predicate": "left of",
+                "subject_ref": "gt-e1",
+                "object_ref": "gt-e2",
+            }
+        ],
+        "themes": [],
+        "ambiguous_regions": [],
+    }
+    result = _success(
+        entities=(_entity("e1", "circle"), _entity("e2", "square")),
+        relations=(_relation("r1", "left of", "e2", "e1"),),
+    )
+
+    scores = _score_success(result, ground_truth)
+
+    assert scores["relations"].matched_count == 0
+
+
+def test_relation_wrong_predicate_receives_no_match_credit() -> None:
+    ground_truth: dict[str, object] = {
+        "entities": [
+            {"ground_truth_id": "gt-e1", "label": "circle"},
+            {"ground_truth_id": "gt-e2", "label": "square"},
+        ],
+        "actions": [],
+        "relations": [
+            {
+                "ground_truth_id": "gt-r1",
+                "predicate": "left of",
+                "subject_ref": "gt-e1",
+                "object_ref": "gt-e2",
+            }
+        ],
+        "themes": [],
+        "ambiguous_regions": [],
+    }
+    result = _success(
+        entities=(_entity("e1", "circle"), _entity("e2", "square")),
+        relations=(_relation("r1", "right of", "e1", "e2"),),
+    )
+
+    scores = _score_success(result, ground_truth)
+
+    assert scores["relations"].matched_count == 0
+
+
+def test_theme_incorrect_evidence_refs_receive_no_match_credit() -> None:
+    ground_truth: dict[str, object] = {
+        "entities": [
+            {"ground_truth_id": "gt-e1", "label": "circle"},
+            {"ground_truth_id": "gt-e2", "label": "square"},
+            {"ground_truth_id": "gt-e3", "label": "triangle"},
+        ],
+        "actions": [],
+        "relations": [],
+        "themes": [
+            {
+                "ground_truth_id": "gt-t1",
+                "label": "shapes",
+                "evidence_refs": ["gt-e1", "gt-e2", "gt-e3"],
+            }
+        ],
+        "ambiguous_regions": [],
+    }
+    result = _success(
+        entities=(
+            _entity("e1", "circle"),
+            _entity("e2", "square"),
+            _entity("e3", "triangle"),
+        ),
+        themes=(_theme("t1", "shapes", ["e1", "e2"]),),
+    )
+
+    scores = _score_success(result, ground_truth)
+
+    assert scores["themes"].matched_count == 0
+    assert scores["themes"].accuracy == 0.0
+
+
 def test_pass_and_repeat_are_separate_calls_with_no_collector_state_leak(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
