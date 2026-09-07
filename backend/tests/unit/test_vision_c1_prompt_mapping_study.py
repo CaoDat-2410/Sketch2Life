@@ -18,23 +18,33 @@ from sketch2life.benchmark.vision_b3_mapping_study import (
 from sketch2life.benchmark.vision_c1_prompt_mapping_study import (
     C1_PROMPT_V1,
     C1_PROMPT_V2,
+    C1_PROMPT_V3,
     C1BlockingReason,
     C1PassReport,
     C1PromptBindingError,
+    C1PromptOutOfExperimentScopeError,
     C1PromptProtocol,
     C1RunLabel,
+    _resolve_verified_c1_prompt_text,
     c1_prompt_protocol_id,
     c1_prompt_protocol_id_v2,
+    c1_prompt_protocol_id_v3,
     c1_prompt_schema_target,
     c1_prompt_sha256,
     c1_prompt_sha256_v2,
+    c1_prompt_sha256_v3,
     c1_prompt_text,
     c1_prompt_text_v2,
+    c1_prompt_text_v3,
     evaluate_c1_readiness,
     qwen_c1_adapter_factory,
     run_c1_pass,
 )
-from sketch2life.contracts.schemas.vision import VisionErrorCode, VisionImageReferenceV1
+from sketch2life.contracts.schemas.vision import (
+    VisionErrorCode,
+    VisionImageReferenceV1,
+    VisionMediaValidationProvenanceV1,
+)
 from sketch2life.contracts.schemas.vision_v2 import (
     VisionProfileIdV2,
     VisionProfileV2,
@@ -1150,3 +1160,410 @@ def test_valid_eight_run_seven_of_eight_still_passes_after_the_integrity_fix() -
     assert verdict.pass_1.is_complete is True
     assert verdict.pass_1.run_record_count == 8
     assert verdict.pass_1.attempted_runs == 8
+
+
+# ---------------------------------------------------------------------------
+# C1-v3 prompt protocol identity (owner-approved Direction A proposal, Section 2)
+#
+# v3 is purely additive: v1 and v2 keep their exact text, hashes, defaults, and behavior. The
+# only v2 -> v3 difference is one leading generic collection-search sentence on each of rules
+# 6-10. No schema, decode, token-budget, timeout, retry, parser, or repair setting is involved.
+# ---------------------------------------------------------------------------
+
+# Golden constants: the exact SHA-256 of each approved text, computed independently of the module
+# under test. An accidental edit to any approved line tuple breaks these loudly.
+_C1_PROMPT_SHA256_V1_GOLDEN = (
+    "152ff6c49c657e91b296f60500ef0609b851ad1901fa5291d20e3e30ef65b57e"
+)
+_C1_PROMPT_SHA256_V3_GOLDEN = (
+    "bf8b9cab5df6b2551e627cf0bb92fe977e0dc182fdaae5f3c5face5bc34615f3"
+)
+
+# The five approved generic collection-search sentences, transcribed from Section 2 of
+# `P2_T3_PHASE_B_B4_DIRECTION_A_PROMPT_V3_PROPOSAL.md`. Keyed by zero-indexed rule position.
+_V3_APPROVED_SEARCH_SENTENCES: dict[int, str] = {
+    5: (
+        "Actively look for every directly observable entity, up to the maximum in rule 3, "
+        "before deciding the array is empty."
+    ),
+    6: "Actively look for a directly observable action before deciding the array is empty.",
+    7: (
+        "Actively look for a directly observable relation between two entities or actions "
+        "before deciding the array is empty."
+    ),
+    8: (
+        "Actively look for a theme suggested by the observed entities, actions, or relations "
+        "before deciding the array is empty."
+    ),
+    9: (
+        "Actively look for a visually ambiguous or overlapping region before deciding the "
+        "array is empty."
+    ),
+}
+
+
+def test_c1_prompt_v3_sha256_matches_the_golden_constant() -> None:
+    """Pins the exact approved v3 text against an independently computed constant."""
+
+    assert c1_prompt_sha256_v3() == _C1_PROMPT_SHA256_V3_GOLDEN
+
+
+def test_c1_prompt_v1_and_v2_text_and_hashes_are_unchanged_by_v3() -> None:
+    """v3 is additive only: v1/v2 identities must still match their own golden constants."""
+
+    assert c1_prompt_sha256() == _C1_PROMPT_SHA256_V1_GOLDEN
+    assert c1_prompt_sha256_v2() == _C1_PROMPT_SHA256_V2_GOLDEN
+    assert c1_prompt_sha256() == sha256(c1_prompt_text().encode("utf-8")).hexdigest()
+    assert c1_prompt_sha256_v2() == sha256(c1_prompt_text_v2().encode("utf-8")).hexdigest()
+    assert c1_prompt_protocol_id() == "vision-v2-structured-output-prompt-v1"
+    assert c1_prompt_protocol_id_v2() == "vision-v2-structured-output-prompt-v2"
+
+
+def test_c1_prompt_v3_protocol_identity_is_distinct_and_deterministic() -> None:
+    assert c1_prompt_protocol_id_v3() == "vision-v2-structured-output-prompt-v3"
+    assert c1_prompt_protocol_id_v3() not in {c1_prompt_protocol_id(), c1_prompt_protocol_id_v2()}
+    assert c1_prompt_schema_target() == "VisionUnderstandingResultV2"  # unchanged, shared
+    assert c1_prompt_text_v3()
+    assert c1_prompt_text_v3() not in {c1_prompt_text(), c1_prompt_text_v2()}
+    assert c1_prompt_sha256_v3() == c1_prompt_sha256_v3()
+    assert c1_prompt_sha256_v3() == sha256(c1_prompt_text_v3().encode("utf-8")).hexdigest()
+    assert c1_prompt_sha256_v3() not in {c1_prompt_sha256(), c1_prompt_sha256_v2()}
+
+
+def test_c1_prompt_v3_sha256_changes_when_the_text_changes() -> None:
+    mutated = c1_prompt_text_v3() + " "
+
+    assert sha256(mutated.encode("utf-8")).hexdigest() != c1_prompt_sha256_v3()
+
+
+def test_exactly_rules_six_to_ten_differ_from_v2_by_the_approved_search_sentences() -> None:
+    """The whole bounded v2 -> v3 change, asserted line by line.
+
+    Rules 1-5 and 11 must be byte-identical to v2; rules 6-10 must each be exactly the approved
+    generic search sentence, one space, then that rule's unchanged v2 text. Nothing else may
+    differ -- no key list, ID pattern, output cap, confidence rule, or JSON-formatting clause.
+    """
+
+    v2_lines = c1_prompt_text_v2().split("\n")
+    v3_lines = c1_prompt_text_v3().split("\n")
+    assert len(v2_lines) == len(v3_lines) == 11
+
+    for index, (v2_line, v3_line) in enumerate(zip(v2_lines, v3_lines, strict=True)):
+        if index in _V3_APPROVED_SEARCH_SENTENCES:
+            assert v3_line == f"{_V3_APPROVED_SEARCH_SENTENCES[index]} {v2_line}"
+        else:
+            assert v3_line == v2_line
+
+    assert set(_V3_APPROVED_SEARCH_SENTENCES) == {5, 6, 7, 8, 9}  # rules 6-10, zero-indexed
+
+
+def test_c1_prompt_v3_dataclass_carries_its_own_matching_identity() -> None:
+    assert C1_PROMPT_V3.protocol_id == c1_prompt_protocol_id_v3()
+    assert C1_PROMPT_V3.prompt_sha256 == c1_prompt_sha256_v3()
+    assert C1_PROMPT_V3.prompt_text_provider() == c1_prompt_text_v3()
+    # v1/v2 dataclasses are untouched by v3's addition.
+    assert C1_PROMPT_V1.prompt_text_provider() == c1_prompt_text()
+    assert C1_PROMPT_V2.prompt_text_provider() == c1_prompt_text_v2()
+
+
+def test_v3_text_reaches_the_real_qwen_adapter_without_any_c1_pass(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """No-GPU proof that the real prompt-injection seam carries the exact v3 text.
+
+    Deliberately does **not** go through ``run_c1_pass``: v3 is out of scope for the C1
+    experiment, so this exercises the smallest real seam instead -- the production
+    ``qwen_c1_adapter_factory`` building a real ``QwenVisionAdapter`` with a fake generation
+    runner -- and produces no ``C1PassReport``, no run label, and no readiness verdict.
+    """
+
+    monkeypatch.chdir(tmp_path)
+    image_path = tmp_path / "drawing.bin"
+    image_bytes = b"synthetic-c1-v3-seam-image"
+    image_path.write_bytes(image_bytes)
+    runner = _RecordingGenerationRunner([json.dumps(_EMPTY_OBSERVATIONS)])
+    factory = qwen_c1_adapter_factory(
+        QwenVisionRuntimeConfig(model_dir=Path("local-model")),
+        LexicalRegressionContentPolicy(synthetic_prohibited_lexicon()),
+        generation_runner=runner,
+    )
+
+    adapter = factory(c1_prompt_text_v3(), lambda _raw: None)
+    result = adapter.understand(
+        VisionUnderstandingRequestV2(
+            correlation_id="c1-v3-seam-check",
+            source_image_ref=VisionImageReferenceV1(
+                artifact_ref=image_path.name, sha256=sha256(image_bytes).hexdigest()
+            ),
+            media_validation=VisionMediaValidationProvenanceV1(
+                validation_artifact_ref="fixture:vision:c1:validation-pass",
+                validation_artifact_sha256="c" * 64,
+                decision="PASS",
+                validator_policy_version="media-quality-policy-v1",
+            ),
+            requested_profile_id=VisionProfileIdV2.QWEN3_VL_8B_INSTRUCT_BF16_V1,
+        )
+    )
+
+    assert isinstance(result, VisionUnderstandingSuccessV2)
+    assert runner.calls == 1
+    assert runner.received_prompts == [c1_prompt_text_v3()]
+    assert c1_prompt_text() not in runner.received_prompts
+    assert c1_prompt_text_v2() not in runner.received_prompts
+    assert "" not in runner.received_prompts
+
+
+def test_run_c1_pass_rejects_v3_before_any_factory_fixture_or_scratch_side_effect(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Regression: v3 must never execute as a C1 pass.
+
+    ``run_c1_pass`` only knows ``C1_PASS_1``/``C1_REPEAT_1`` over B3's generated fixtures, while
+    v3's approved plan needs its own runner, ``V3_PASS_1``/``V3_REPEAT_1`` labels, and newly
+    authored disjoint fixtures. Allowing it here would mint correctly hashed but wrongly scoped
+    evidence.
+    """
+
+    monkeypatch.chdir(tmp_path)
+    factory, collector = _all_success_scripted()
+
+    with pytest.raises(C1PromptOutOfExperimentScopeError):
+        run_c1_pass(
+            factory,
+            collector,
+            run_label="C1_PASS_1",
+            prompt=C1_PROMPT_V3,
+            fixtures_dir=Path("scratch"),
+            sample_vram=False,
+        )
+
+    assert factory.calls == 0
+    assert factory.built_adapter is None
+    assert not (tmp_path / "scratch").exists()
+    assert not (tmp_path / "data").exists()
+
+
+def test_evaluate_c1_readiness_rejects_v3_and_can_never_return_mapping_ready() -> None:
+    """Regression: v3 must never reach a C1 ``MAPPING_READY`` verdict, even with perfect runs."""
+
+    pass_1 = _pass_report(
+        "C1_PASS_1",
+        _succeeded_and_failed_runs(8),
+        prompt_protocol_id=c1_prompt_protocol_id_v3(),
+        prompt_sha256=c1_prompt_sha256_v3(),
+    )
+    repeat_1 = _pass_report(
+        "C1_REPEAT_1",
+        _succeeded_and_failed_runs(8),
+        prompt_protocol_id=c1_prompt_protocol_id_v3(),
+        prompt_sha256=c1_prompt_sha256_v3(),
+    )
+
+    with pytest.raises(C1PromptOutOfExperimentScopeError):
+        evaluate_c1_readiness(pass_1, repeat_1, expected_prompt=C1_PROMPT_V3)
+
+
+def test_v3_scope_rejection_happens_before_the_prompt_provider_is_ever_called(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The scope gate reads the declared identity only -- it never invokes caller text."""
+
+    monkeypatch.chdir(tmp_path)
+    factory, collector = _all_success_scripted()
+    calls = 0
+
+    def counting_provider() -> str:
+        nonlocal calls
+        calls += 1
+        return c1_prompt_text_v3()
+
+    declared_v3 = C1PromptProtocol(
+        protocol_id=c1_prompt_protocol_id_v3(),
+        prompt_sha256=c1_prompt_sha256_v3(),
+        prompt_text_provider=counting_provider,
+    )
+
+    with pytest.raises(C1PromptOutOfExperimentScopeError):
+        run_c1_pass(
+            factory,
+            collector,
+            run_label="C1_PASS_1",
+            prompt=declared_v3,
+            fixtures_dir=Path("scratch"),
+            sample_vram=False,
+        )
+
+    assert calls == 0
+    assert factory.calls == 0
+
+
+def test_v3_scope_error_never_leaks_a_prompt_body_and_carries_only_safe_identity(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    factory, collector = _all_success_scripted()
+    secret = "UNMISTAKABLE_V3_SECRET_PROMPT_BODY_MARKER"
+    declared_v3 = C1PromptProtocol(
+        protocol_id=c1_prompt_protocol_id_v3(),
+        prompt_sha256=c1_prompt_sha256_v3(),
+        prompt_text_provider=lambda: secret,
+    )
+
+    with pytest.raises(C1PromptOutOfExperimentScopeError) as excinfo:
+        run_c1_pass(
+            factory,
+            collector,
+            run_label="C1_PASS_1",
+            prompt=declared_v3,
+            fixtures_dir=Path("scratch"),
+            sample_vram=False,
+        )
+
+    message = str(excinfo.value)
+    assert secret not in message
+    assert c1_prompt_text_v3() not in message
+    assert c1_prompt_text_v2() not in message
+    assert c1_prompt_text() not in message
+    # Only the two values already documented as safe to persist may appear.
+    assert c1_prompt_protocol_id_v3() in message
+    assert c1_prompt_sha256_v3() in message
+    assert factory.calls == 0
+
+
+def test_v3_scope_error_is_not_exported_but_remains_importable() -> None:
+    """A module-local benchmark signal, like ``C1PromptBindingError`` -- not public surface."""
+
+    import sketch2life.benchmark.vision_c1_prompt_mapping_study as c1_module
+
+    assert "C1PromptOutOfExperimentScopeError" not in c1_module.__all__
+    assert "C1_PROMPT_V3" in c1_module.__all__  # the reviewed identity itself stays exported
+    assert c1_module.C1PromptOutOfExperimentScopeError is C1PromptOutOfExperimentScopeError
+
+
+def test_v3_protocol_id_with_a_non_canonical_hash_still_fails_binding_not_scope(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The scope gate is narrow: it never masks a forgery.
+
+    A self-consistent but unapproved text/hash pair merely *claiming* the v3 protocol ID is not
+    on the canonical allowlist at all, so it stays a binding-integrity failure exactly as it was
+    before the scope gate existed -- the more serious signal is not downgraded.
+    """
+
+    monkeypatch.chdir(tmp_path)
+    factory, collector = _all_success_scripted()
+    text = "an unapproved, self-consistent prompt body claiming the v3 protocol id"
+    forged = C1PromptProtocol(
+        protocol_id=c1_prompt_protocol_id_v3(),
+        prompt_sha256=sha256(text.encode("utf-8")).hexdigest(),
+        prompt_text_provider=lambda: text,
+    )
+
+    with pytest.raises(C1PromptBindingError):
+        run_c1_pass(
+            factory,
+            collector,
+            run_label="C1_PASS_1",
+            prompt=forged,
+            fixtures_dir=Path("scratch"),
+            sample_vram=False,
+        )
+
+    assert factory.calls == 0
+
+
+def test_canonical_v3_identity_still_passes_binding_verification() -> None:
+    """v3 stays a fully reviewed, canonically bound identity -- it is only out of C1's scope.
+
+    Exercises the module-local binding verifier directly, so this proves the binding guarantee
+    without executing (or implying) a C1 pass.
+    """
+
+    assert _resolve_verified_c1_prompt_text(C1_PROMPT_V3) == c1_prompt_text_v3()
+    assert _resolve_verified_c1_prompt_text(C1_PROMPT_V1) == c1_prompt_text()
+    assert _resolve_verified_c1_prompt_text(C1_PROMPT_V2) == c1_prompt_text_v2()
+
+    forged_v3 = C1PromptProtocol(
+        protocol_id=c1_prompt_protocol_id_v3(),
+        prompt_sha256=c1_prompt_sha256_v3(),
+        prompt_text_provider=c1_prompt_text_v2,
+    )
+    with pytest.raises(C1PromptBindingError):
+        _resolve_verified_c1_prompt_text(forged_v3)
+
+
+def test_v3_default_is_never_silently_substituted_for_v1(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Adding v3 must not change the default: a call that omits ``prompt`` still runs v1."""
+
+    monkeypatch.chdir(tmp_path)
+    factory, collector = _all_success_scripted()
+
+    report = run_c1_pass(
+        factory,
+        collector,
+        run_label="C1_PASS_1",
+        fixtures_dir=Path("scratch"),
+        sample_vram=False,
+    )
+
+    assert factory.received_prompt == c1_prompt_text()
+    assert report.prompt_protocol_id == c1_prompt_protocol_id()
+    assert report.prompt_sha256 == c1_prompt_sha256()
+
+
+def test_v2_reports_evaluated_against_a_v3_expectation_are_rejected_not_merely_drifted() -> None:
+    """A v3 expectation is refused outright, before any drift/threshold logic can run."""
+
+    pass_1 = _pass_report(
+        "C1_PASS_1",
+        _succeeded_and_failed_runs(8),
+        prompt_protocol_id=c1_prompt_protocol_id_v2(),
+        prompt_sha256=c1_prompt_sha256_v2(),
+    )
+    repeat_1 = _pass_report(
+        "C1_REPEAT_1",
+        _succeeded_and_failed_runs(8),
+        prompt_protocol_id=c1_prompt_protocol_id_v2(),
+        prompt_sha256=c1_prompt_sha256_v2(),
+    )
+
+    with pytest.raises(C1PromptOutOfExperimentScopeError):
+        evaluate_c1_readiness(pass_1, repeat_1, expected_prompt=C1_PROMPT_V3)
+
+
+def test_v3_reports_evaluated_against_the_default_v1_expectation_is_config_drift() -> None:
+    pass_1 = _pass_report(
+        "C1_PASS_1",
+        _succeeded_and_failed_runs(8),
+        prompt_protocol_id=c1_prompt_protocol_id_v3(),
+        prompt_sha256=c1_prompt_sha256_v3(),
+    )
+    repeat_1 = _pass_report(
+        "C1_REPEAT_1",
+        _succeeded_and_failed_runs(8),
+        prompt_protocol_id=c1_prompt_protocol_id_v3(),
+        prompt_sha256=c1_prompt_sha256_v3(),
+    )
+
+    verdict = evaluate_c1_readiness(pass_1, repeat_1)  # default expectation is still v1
+
+    assert verdict.overall == "MAPPING_NOT_READY"
+    assert C1BlockingReason.CONFIG_DRIFT in verdict.blocking_reasons
+    assert verdict.prompt_protocol_id == c1_prompt_protocol_id()
+
+
+def test_forged_v3_expected_prompt_is_also_refused_by_readiness() -> None:
+    """Whether the v3-declared expectation is canonical or forged, readiness refuses it closed."""
+
+    forged = C1PromptProtocol(
+        protocol_id=c1_prompt_protocol_id_v3(),
+        prompt_sha256=c1_prompt_sha256_v3(),
+        prompt_text_provider=c1_prompt_text_v2,
+    )
+    pass_1 = _pass_report("C1_PASS_1", _succeeded_and_failed_runs(8))
+    repeat_1 = _pass_report("C1_REPEAT_1", _succeeded_and_failed_runs(8))
+
+    with pytest.raises(C1PromptOutOfExperimentScopeError):
+        evaluate_c1_readiness(pass_1, repeat_1, expected_prompt=forged)

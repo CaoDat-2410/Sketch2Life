@@ -34,22 +34,32 @@ with the dispatched prompt injected explicitly -- ``_default_prompt_builder`` is
 this path.
 
 Only the safe identity helpers -- :func:`c1_prompt_protocol_id`/:func:`c1_prompt_sha256` for v1,
-:func:`c1_prompt_protocol_id_v2`/:func:`c1_prompt_sha256_v2` for v2, and the shared
+:func:`c1_prompt_protocol_id_v2`/:func:`c1_prompt_sha256_v2` for v2,
+:func:`c1_prompt_protocol_id_v3`/:func:`c1_prompt_sha256_v3` for v3, and the shared
 :func:`c1_prompt_schema_target` -- are safe to place in a report, log, or evidence artifact; this
 applies equally to whichever protocol is actually selected for a given run. The prompt body
-itself is returned only by :func:`c1_prompt_text` (v1) or :func:`c1_prompt_text_v2` (v2), each of
-which exists to be passed to an adapter constructor -- never serialized, logged, or embedded in
-any dataclass defined below.
+itself is returned only by :func:`c1_prompt_text` (v1), :func:`c1_prompt_text_v2` (v2), or
+:func:`c1_prompt_text_v3` (v3), each of which exists to be passed to an adapter constructor --
+never serialized, logged, or embedded in any dataclass defined below.
 
 C1 reuses :func:`sketch2life.benchmark.vision_b3_mapping_study.run_b3_mapping_study` unchanged,
 including its own default eight-fixture builder (the same eight deterministic geometric
-synthetic B3 fixtures -- never B4's separate, still-unpopulated held-out set), its real
-per-fixture P2-T1 gate, its one-call-per-fixture-no-retry loop, its ``CLASSIFY_ONLY``-default
-raw-output collector, and its scratch cleanup. This module only adds the C1 prompt-identity
-wrapper (:func:`run_c1_pass`) and the pre-registered, owner-confirmed mapping-readiness gate
-(:func:`evaluate_c1_readiness`) applied to two independent passes (``C1_PASS_1``,
-``C1_REPEAT_1``) -- never pooled into a combined denominator, matching this project's standing
-no-pooling rule for distinct benchmark runs (B3-C0 vs. C1; ASR Round-1 vs. its repeat run).
+synthetic B3 fixtures -- never B4's separate, owner-approved held-out set, which this module
+neither reads nor writes), its real per-fixture P2-T1 gate, its one-call-per-fixture-no-retry
+loop, its ``CLASSIFY_ONLY``-default raw-output collector, and its scratch cleanup. This module
+only adds the C1 prompt-identity wrapper (:func:`run_c1_pass`) and the pre-registered,
+owner-confirmed mapping-readiness gate (:func:`evaluate_c1_readiness`) applied to two independent
+passes (``C1_PASS_1``, ``C1_REPEAT_1``) -- never pooled into a combined denominator, matching this
+project's standing no-pooling rule for distinct benchmark runs (B3-C0 vs. C1; ASR Round-1 vs. its
+repeat run).
+
+Registering a reviewed prompt identity here is not the same as authorizing it to run here.
+:data:`C1_PROMPT_V3` is registered for **reviewed identity and binding verification only**: it
+carries its approved protocol ID, text, and SHA-256, and is on the canonical binding allowlist,
+but it is deliberately excluded from :data:`_C1_EXECUTION_ELIGIBLE_PROMPT_IDENTITIES`, so
+:func:`run_c1_pass` and :func:`evaluate_c1_readiness` both fail closed on it with
+:class:`C1PromptOutOfExperimentScopeError`. Its live execution awaits its own separately approved
+runner, run labels, and newly authored fixture package -- none of which exists in this module.
 
 Gate rule (owner-confirmed before any GPU execution, not derived from output after the fact):
 
@@ -270,6 +280,84 @@ def c1_prompt_text_v2() -> str:
     return _C1_PROMPT_TEXT_V2
 
 
+# --- C1-v3: distinct protocol identity, per the owner-approved Direction A proposal
+# (`evidence/notes/P2_T3_PHASE_B_B4_DIRECTION_A_PROMPT_V3_PROPOSAL.md`, Section 2, approved
+# verbatim by the owner). Implements exactly that section's five rule changes and nothing else:
+# rules 6-10 each gain one leading generic collection-search sentence and are otherwise
+# byte-identical to v2; rules 1-5 and 11 are byte-identical to v2. v1's and v2's own constants,
+# functions, hashes, defaults, and behavior above are untouched -- v3 is purely additive, exactly
+# as v2 was added alongside v1. This module still never runs a GPU/model/provider call, and v3,
+# like v1/v2, is only ever injected explicitly (never a ``QwenVisionAdapter`` default).
+
+_C1_PROMPT_PROTOCOL_ID_V3 = "vision-v2-structured-output-prompt-v3"
+
+_C1_PROMPT_LINES_V3: tuple[str, ...] = (
+    "Return exactly one compact JSON object and nothing else. Describe only directly "
+    "observable visual content; do not infer personality, emotion, intent, "
+    "symbolic/story/canonical meaning.",
+    "Root keys must be exactly entities, actions, relations, themes, ambiguous_regions; "
+    "all are arrays and no other keys exist.",
+    "Use [] when empty. Maximum: 3 entities, 1 action, 1 relation, 1 theme, 1 ambiguous "
+    "region. Prefer fewer. Text values are 1-3 lower-case English words. Every confidence "
+    "is null.",
+    "IDs are globally unique and match ^[a-z0-9-]+$.",
+    'Every label/predicate/note is {"value":"...","language":{"status":"DECLARED",'
+    '"tags":["en"]}}.',
+    "Actively look for every directly observable entity, up to the maximum in rule 3, "
+    "before deciding the array is empty. Entity keys: observation_id,label,confidence. "
+    "label is always the nested object from rule 5 -- never a plain string. confidence is "
+    "always the JSON literal null -- never a number, never a string, never omitted. "
+    "Structural shape only (not scene content): "
+    '{"observation_id":"e1","label":{"value":"word","language":{"status":"DECLARED",'
+    '"tags":["en"]}},"confidence":null}.',
+    "Actively look for a directly observable action before deciding the array is empty. "
+    "Action keys: observation_id,label,actor_ref,object_ref,confidence; refs are entity "
+    "IDs or null.",
+    "Actively look for a directly observable relation between two entities or actions "
+    "before deciding the array is empty. Relation keys: observation_id,predicate,"
+    "subject_ref,object_ref,confidence; refs are distinct entity/action IDs.",
+    "Actively look for a theme suggested by the observed entities, actions, or relations "
+    "before deciding the array is empty. Theme keys: observation_id,label,evidence_refs,"
+    "confidence; evidence_refs contains >=1 entity/action/relation ID.",
+    "Actively look for a visually ambiguous or overlapping region before deciding the "
+    "array is empty. Ambiguous-region keys: observation_id,note only; it is never "
+    "referenced and has no confidence/geometry.",
+    "Prefer unfenced compact JSON. No prose, comments, duplicate keys, metadata, "
+    "type/kind/description/bbox/geometry fields, trailing commas, or non-JSON values. Never "
+    "substitute a bare word or number for an object field defined in rule 5, and never "
+    "substitute a number or string for a field rule 3 defines as null.",
+)
+
+_C1_PROMPT_TEXT_V3 = "\n".join(_C1_PROMPT_LINES_V3)
+
+
+def c1_prompt_protocol_id_v3() -> str:
+    """Safe identifier for the v3 protocol: fine for any report, log, or evidence artifact."""
+
+    return _C1_PROMPT_PROTOCOL_ID_V3
+
+
+def c1_prompt_sha256_v3() -> str:
+    """SHA-256 of the canonical v3 prompt text. Safe to persist; the text itself is not."""
+
+    return sha256(_C1_PROMPT_TEXT_V3.encode("utf-8")).hexdigest()
+
+
+def c1_prompt_text_v3() -> str:
+    """The reviewed static C1-v3 prompt body, for adapter-construction injection only.
+
+    This is the one function in this module that returns the v3 prompt body. Same discipline as
+    :func:`c1_prompt_text`/:func:`c1_prompt_text_v2`: callers must pass it straight into adapter
+    construction and must never place its return value into a dataclass, report, or log defined
+    here. The schema target is unchanged from v1/v2 (:func:`c1_prompt_schema_target`); only five
+    rules differ from v2 (rules 6-10 each gain one leading generic collection-search sentence)
+    -- see the module-level comment above :data:`_C1_PROMPT_PROTOCOL_ID_V3` for the source
+    proposal.
+    """
+
+    return _C1_PROMPT_TEXT_V3
+
+
 @dataclass(frozen=True, slots=True)
 class C1PromptProtocol:
     """Identifies one reviewed C1 prompt protocol, safe fields plus a text-injection callable.
@@ -305,6 +393,21 @@ C1_PROMPT_V2 = C1PromptProtocol(
 """The v2 protocol from the owner-approved local proposal. Must be passed explicitly (never
 becomes a default) to ``run_c1_pass``/``evaluate_c1_readiness`` to be used."""
 
+C1_PROMPT_V3 = C1PromptProtocol(
+    protocol_id=_C1_PROMPT_PROTOCOL_ID_V3,
+    prompt_sha256=c1_prompt_sha256_v3(),
+    prompt_text_provider=c1_prompt_text_v3,
+)
+"""The v3 protocol from the owner-approved Direction A proposal, registered for **reviewed
+identity and binding verification only**.
+
+Adding it changes no existing call site: ``prompt``/``expected_prompt`` still default to
+:data:`C1_PROMPT_V1`. It is *not* runnable through this module -- ``run_c1_pass`` and
+``evaluate_c1_readiness`` both reject it with :class:`C1PromptOutOfExperimentScopeError`, because
+v3's approved plan is a separate experiment with its own runner, ``V3_PASS_1``/``V3_REPEAT_1``
+labels, and newly authored fixture package. See
+:data:`_C1_EXECUTION_ELIGIBLE_PROMPT_IDENTITIES`."""
+
 
 class C1PromptBindingError(Exception):
     """Raised when a :class:`C1PromptProtocol`'s declared identity cannot be trusted.
@@ -313,8 +416,9 @@ class C1PromptBindingError(Exception):
     :class:`C1BlockingReason`, this stays private to this benchmark module rather than joining
     the shared ``VisionErrorCode``/``VisionNonPolicyErrorDetailV2`` contracts. :func:`run_c1_pass`
     raises this, closed, before ``adapter_factory``, fixture generation, or any provider action,
-    when a :class:`C1PromptProtocol`'s ``(protocol_id, prompt_sha256)`` pair is not one of the two
-    canonical approved identities (:data:`C1_PROMPT_V1`, :data:`C1_PROMPT_V2`), or when the
+    when a :class:`C1PromptProtocol`'s ``(protocol_id, prompt_sha256)`` pair is not one of the
+    three canonical approved identities (:data:`C1_PROMPT_V1`, :data:`C1_PROMPT_V2`,
+    :data:`C1_PROMPT_V3`), or when the
     SHA-256 of the text ``prompt_text_provider()`` actually returns does not match the protocol's
     declared ``prompt_sha256``. The message never includes the prompt text itself -- only
     ``protocol_id`` and hash values, both already documented as safe to persist by
@@ -331,18 +435,89 @@ _CANONICAL_C1_PROMPT_IDENTITIES: frozenset[tuple[str, str]] = frozenset(
     {
         (C1_PROMPT_V1.protocol_id, C1_PROMPT_V1.prompt_sha256),
         (C1_PROMPT_V2.protocol_id, C1_PROMPT_V2.prompt_sha256),
+        (C1_PROMPT_V3.protocol_id, C1_PROMPT_V3.prompt_sha256),
     }
 )
 """The closed allowlist of approved ``(protocol_id, prompt_sha256)`` pairs. Nothing outside this
 module may extend it; adding a new approved protocol requires its own reviewed constant here,
-mirroring how :data:`C1_PROMPT_V1`/:data:`C1_PROMPT_V2` were each added deliberately."""
+mirroring how :data:`C1_PROMPT_V1`/:data:`C1_PROMPT_V2`/:data:`C1_PROMPT_V3` were each added
+deliberately.
+
+Membership here means only "this is a reviewed identity whose declared hash matches its text" --
+it is deliberately *not* the same question as "may this protocol be executed by this module's C1
+functions", which :data:`_C1_EXECUTION_ELIGIBLE_PROMPT_IDENTITIES` answers separately."""
+
+
+_C1_EXECUTION_ELIGIBLE_PROMPT_IDENTITIES: frozenset[tuple[str, str]] = frozenset(
+    {
+        (C1_PROMPT_V1.protocol_id, C1_PROMPT_V1.prompt_sha256),
+        (C1_PROMPT_V2.protocol_id, C1_PROMPT_V2.prompt_sha256),
+    }
+)
+""":data:`C1_PROMPT_V3` is deliberately absent: it is registered for reviewed identity/binding
+only, not for execution by this module.
+
+``run_c1_pass``/``evaluate_c1_readiness`` are the C1 experiment: two fixed run labels
+(``C1_PASS_1``/``C1_REPEAT_1``) over ``run_b3_mapping_study``'s own eight generated B3 fixtures.
+The owner-approved v3 plan requires a *different* experiment -- its own future runner, its own
+``V3_PASS_1``/``V3_REPEAT_1`` labels, and exactly eight newly authored synthetic fixtures disjoint
+from B4 -- so letting v3 run here would produce correctly hashed but wrongly scoped evidence: a
+C1-labelled ``MAPPING_READY`` verdict over B3 fixtures, cited later as if it were v3's approved
+mapping validation. That runner and fixture package are not implemented, so v3 fails closed at
+both C1 entry points until they exist and are separately approved."""
+
+
+class C1PromptOutOfExperimentScopeError(Exception):
+    """A reviewed prompt identity was supplied to a C1 function it is not in scope for.
+
+    A module-local reason, never a new public V1/V2 error token -- exactly like
+    :class:`C1PromptBindingError` and :class:`C1BlockingReason`, and deliberately absent from
+    ``__all__``. Raised closed by :func:`run_c1_pass` (before ``adapter_factory``, fixture
+    generation, scratch creation, or any provider action) and by :func:`evaluate_c1_readiness`
+    (before any readiness logic, so such a prompt can never reach a ``MAPPING_READY`` verdict)
+    when the supplied protocol is not in :data:`_C1_EXECUTION_ELIGIBLE_PROMPT_IDENTITIES`.
+
+    Today that means :data:`C1_PROMPT_V3`: it is a fully reviewed, canonically bound identity, but
+    its approved plan runs a separate experiment (its own runner, its own ``V3_PASS_1``/
+    ``V3_REPEAT_1`` labels, and its own newly authored fixture package), none of which exists yet.
+    The message carries only ``protocol_id`` and ``prompt_sha256`` -- both already documented safe
+    to persist -- and never the prompt text or any raw output.
+    """
+
+
+def _require_c1_execution_scope(prompt: C1PromptProtocol) -> None:
+    """Fail closed when ``prompt`` is a *canonical* identity that C1 may not execute.
+
+    Deliberately narrow: it fires only for an identity on the canonical allowlist that is absent
+    from :data:`_C1_EXECUTION_ELIGIBLE_PROMPT_IDENTITIES` (today, exactly
+    :data:`C1_PROMPT_V3`). An unknown or forged identity is *not* handled here -- it stays a
+    binding-integrity failure and still raises :class:`C1PromptBindingError` from
+    :func:`_resolve_verified_c1_prompt_text`, exactly as before this gate existed.
+
+    Checked on the caller's *declared* identity, before the prompt provider is invoked and before
+    any adapter/fixture/scratch/provider action, so a v3-identified protocol can never reach the
+    C1 execution or readiness paths at all.
+    """
+
+    identity = (prompt.protocol_id, prompt.prompt_sha256)
+    if (
+        identity in _CANONICAL_C1_PROMPT_IDENTITIES
+        and identity not in _C1_EXECUTION_ELIGIBLE_PROMPT_IDENTITIES
+    ):
+        raise C1PromptOutOfExperimentScopeError(
+            "Out-of-scope C1 prompt identity: "
+            f"protocol_id={prompt.protocol_id!r} (prompt_sha256={prompt.prompt_sha256}) is not "
+            "eligible for a C1 pass or readiness evaluation. C1 runs only C1_PASS_1/C1_REPEAT_1 "
+            "over the B3 fixture set; a protocol approved for a different experiment needs that "
+            "experiment's own runner, run labels, and fixture package."
+        )
 
 
 def _resolve_verified_c1_prompt_text(prompt: C1PromptProtocol) -> str:
     """Resolve ``prompt``'s text exactly once, verified against its declared identity.
 
     Fails closed with :class:`C1PromptBindingError` -- before any adapter, fixture, or provider
-    action -- when ``(protocol_id, prompt_sha256)`` is not one of the two canonical approved
+    action -- when ``(protocol_id, prompt_sha256)`` is not one of the three canonical approved
     identities, or when the SHA-256 of the text ``prompt_text_provider()`` actually returns does
     not match the declared ``prompt_sha256``. This is what ties a :class:`C1PassReport`'s stamped
     identity to the exact text an adapter factory receives, rather than to an unverified caller
@@ -452,6 +627,7 @@ def run_c1_pass(
     collide when run in the same working directory.
     """
 
+    _require_c1_execution_scope(prompt)
     prompt_text = _resolve_verified_c1_prompt_text(prompt)
     adapter = adapter_factory(prompt_text, collector.hook)
     resolved_fixtures_dir = fixtures_dir or _DEFAULT_C1_FIXTURES_DIR[run_label]
@@ -602,6 +778,7 @@ def evaluate_c1_readiness(
     if pass_1.run_label == repeat_1.run_label:
         raise ValueError("pass_1 and repeat_1 must carry distinct run labels")
 
+    _require_c1_execution_scope(expected_prompt)
     _resolve_verified_c1_prompt_text(expected_prompt)
 
     expected_catalog_hash = vision_profile_catalog_hash_v2(vision_profile_catalog_v2())
@@ -675,13 +852,17 @@ __all__ = [
     "C1RunLabel",
     "C1_PROMPT_V1",
     "C1_PROMPT_V2",
+    "C1_PROMPT_V3",
     "c1_prompt_protocol_id",
     "c1_prompt_protocol_id_v2",
+    "c1_prompt_protocol_id_v3",
     "c1_prompt_schema_target",
     "c1_prompt_sha256",
     "c1_prompt_sha256_v2",
+    "c1_prompt_sha256_v3",
     "c1_prompt_text",
     "c1_prompt_text_v2",
+    "c1_prompt_text_v3",
     "evaluate_c1_readiness",
     "qwen_c1_adapter_factory",
     "run_c1_pass",
