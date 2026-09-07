@@ -100,7 +100,7 @@ class FrameSampler:
         *,
         use_last_frame_seek: bool = False,
     ) -> None:
-        seek_args = ["-sseof", "-0.1"] if use_last_frame_seek else ["-ss", f"{timestamp:.3f}"]
+        seek_args = ["-sseof", "-1"] if use_last_frame_seek else ["-ss", f"{timestamp:.3f}"]
         subprocess.run(
             [
                 self._ffmpeg,
