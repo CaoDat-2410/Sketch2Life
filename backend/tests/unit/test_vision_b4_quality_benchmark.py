@@ -5,10 +5,16 @@ import json
 from datetime import UTC, datetime
 from hashlib import sha256
 from pathlib import Path
+from struct import pack
 from typing import Any
+from zlib import compress
 
 import pytest
 
+from sketch2life.application.services.media_validation import (
+    DeterministicMediaValidator,
+    MediaValidationRequest,
+)
 from sketch2life.benchmark.vision_b3_mapping_study import (
     B3RawOutputCollector,
     B3RawOutputMode,
@@ -20,6 +26,7 @@ from sketch2life.benchmark.vision_b4_quality_benchmark import (
     B4RawOutputHookNotWiredError,
     _maximum_matching,
     _score_success,
+    _write_companion_audio,
     run_b4_quality_pass,
 )
 from sketch2life.benchmark.vision_c1_prompt_mapping_study import C1_PROMPT_V2
@@ -40,6 +47,8 @@ from sketch2life.contracts.schemas.vision_v2 import (
     vision_profile_catalog_v2,
     vision_profile_config_hash_v2,
 )
+from sketch2life.domain.understanding.media_quality import MediaDecision
+from sketch2life.infrastructure.media_validation.file_inspector import FileMediaSignalInspector
 
 _EXECUTED_AT = datetime(2026, 9, 7, 12, 0, tzinfo=UTC)
 _SOURCE_REF = VisionImageReferenceV1(artifact_ref="test-b4-image", sha256="a" * 64)
@@ -323,6 +332,32 @@ def _write_package(tmp_path: Path) -> Path:
     return root
 
 
+def _write_valid_png(path: Path) -> None:
+    """A real, decodable PNG earning a P2-T1 image PASS (unlike this file's fake fixture bytes)."""
+
+    width = height = 160
+    raw = b"".join(
+        b"\x00"
+        + b"".join(
+            bytes((20, 20, 20) if 30 < x < 130 and y % 7 < 3 else (255, 255, 255))
+            for x in range(width)
+        )
+        for y in range(height)
+    )
+    header = pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0)
+
+    def chunk(tag: bytes, data: bytes) -> bytes:
+        return pack(">I", len(data)) + tag + data + pack(">I", 0)
+
+    payload = (
+        b"\x89PNG\r\n\x1a\n"
+        + chunk(b"IHDR", header)
+        + chunk(b"IDAT", compress(raw))
+        + chunk(b"IEND", b"")
+    )
+    path.write_bytes(payload)
+
+
 def _validation(_fixture_id: str, _image: Path, _audio: Path) -> VisionMediaValidationProvenanceV1:
     return VisionMediaValidationProvenanceV1(
         validation_artifact_ref="test-p2t1",
@@ -389,6 +424,62 @@ def _outcomes() -> list[VisionUnderstandingSuccessV2]:
             themes=(_theme("t1", "shapes", ["e1", "e2", "e3", "a1", "r1"]),),
         ),
     ]
+
+
+def test_generated_companion_audio_earns_a_real_p2t1_pass(tmp_path: Path) -> None:
+    """Regression for B4's zero-padded companion WAV: it must earn a real P2-T1 PASS.
+
+    Exercises the actual DeterministicMediaValidator/FileMediaSignalInspector pair with the
+    module's own ``_write_companion_audio`` output and a real, decodable image -- the same
+    path the Lightning run took before it raised ``B4FixtureIntegrityError``. This fails with
+    the prior zero-padded waveform, which earns zero adjacent-sign-change zero crossings and
+    is rejected as ``AUDIO_NO_SPEECH_SIGNAL``.
+    """
+
+    image_path = tmp_path / "b4-fixture-01.png"
+    audio_path = tmp_path / "b4-companion.wav"
+    _write_valid_png(image_path)
+    _write_companion_audio(audio_path)
+
+    result = DeterministicMediaValidator(FileMediaSignalInspector()).validate(
+        MediaValidationRequest(
+            image_path=image_path,
+            audio_path=audio_path,
+            image_artifact_ref="vision-b4-b4-fixture-01-synthetic-image",
+            audio_artifact_ref="vision-b4-synthetic-audio",
+        )
+    )
+
+    assert result.decision is MediaDecision.PASS
+    assert result.recapture_reasons == ()
+
+
+def test_default_media_validation_blocks_factory_and_cleans_scratch_on_a_real_p2t1_failure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The runner's default ``validate_media`` still fails closed on a real P2-T1 failure.
+
+    Uses this file's fake fixture image bytes (not a real PNG), so the real inspector reports
+    ``IMAGE_UNREADABLE`` regardless of the now-fixed companion audio -- proving the fixed audio
+    path did not weaken the runner's fail-closed preflight or its scratch cleanup.
+    """
+
+    monkeypatch.chdir(tmp_path)
+    root = _write_package(tmp_path)
+    factory = _Factory(_outcomes(), ["{}"] * 8)
+
+    with pytest.raises(B4FixtureIntegrityError, match="did not earn a real P2-T1 PASS"):
+        run_b4_quality_pass(
+            factory,
+            B3RawOutputCollector(),
+            run_label="B4_PASS_1",
+            fixture_root=root,
+            runtime_dir=Path("scratch"),
+            sample_vram=False,
+        )
+
+    assert factory.calls == 0
+    assert not (tmp_path / "scratch").exists()
 
 
 def test_run_scores_all_eight_owner_approved_fixtures_once_without_raw_output_persistence(

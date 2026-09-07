@@ -19,7 +19,9 @@ import unicodedata
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from hashlib import sha256
+from math import sin
 from pathlib import Path
+from struct import pack
 from threading import Event, Thread
 from typing import Any, Literal
 from wave import open as wave_open
@@ -374,16 +376,29 @@ def _validate_ground_truth_references(ground_truth: Mapping[str, Any]) -> None:
 
 
 def _write_companion_audio(path: Path) -> None:
-    """Write a minimal synthetic WAV solely for the existing P2-T1 validation contract."""
+    """Write a deterministic synthetic mono WAV that earns a real P2-T1 PASS.
+
+    A local equivalent of the continuous 220 Hz tone already proven against P2-T1 in
+    ``vision_b3_mapping_study._write_b3_companion_audio``: a waveform with zero-valued
+    samples between peaks produces no adjacent sign changes, so the validator's
+    zero-crossing signal reads as zero and the fixture is rejected as having no speech
+    signal.
+    """
 
     path.parent.mkdir(parents=True, exist_ok=True)
-    sample_rate = 8_000
-    frames = (b"\x00\x00\x80\x1f\x00\x00\x80\xe0") * (sample_rate // 8)
+    sample_rate = 16_000
+    seconds = 1.0
+    amplitude = 0.3
+    frequency_hz = 220
+    samples = (
+        int(amplitude * 32767 * sin(2 * 3.14159265 * frequency_hz * index / sample_rate))
+        for index in range(int(sample_rate * seconds))
+    )
     with wave_open(str(path), "wb") as output:
         output.setnchannels(1)
         output.setsampwidth(2)
         output.setframerate(sample_rate)
-        output.writeframes(frames)
+        output.writeframes(b"".join(pack("<h", sample) for sample in samples))
 
 
 def _real_p2t1_pass(
