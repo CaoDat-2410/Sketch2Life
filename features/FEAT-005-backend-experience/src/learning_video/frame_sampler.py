@@ -45,7 +45,12 @@ class FrameSampler:
             timestamp = min(duration - 0.001, duration * percentage / 100)
             frame_path = output_dir / f"frame_{percentage:03d}.jpg"
             try:
-                self._extract_frame(video_path, frame_path, timestamp)
+                self._extract_frame(
+                    video_path,
+                    frame_path,
+                    timestamp,
+                    use_last_frame_seek=percentage == 100,
+                )
             except (OSError, subprocess.SubprocessError):
                 return FrameSamplingResult(
                     status=ValidationStatus.BLOCK,
@@ -87,7 +92,15 @@ class FrameSampler:
             raise ValueError("video duration must be positive")
         return duration
 
-    def _extract_frame(self, video_path: Path, frame_path: Path, timestamp: float) -> None:
+    def _extract_frame(
+        self,
+        video_path: Path,
+        frame_path: Path,
+        timestamp: float,
+        *,
+        use_last_frame_seek: bool = False,
+    ) -> None:
+        seek_args = ["-sseof", "-0.1"] if use_last_frame_seek else ["-ss", f"{timestamp:.3f}"]
         subprocess.run(
             [
                 self._ffmpeg,
@@ -95,8 +108,7 @@ class FrameSampler:
                 "-loglevel",
                 "error",
                 "-y",
-                "-ss",
-                f"{timestamp:.3f}",
+                *seek_args,
                 "-i",
                 str(video_path),
                 "-frames:v",
