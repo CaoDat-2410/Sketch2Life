@@ -7,6 +7,8 @@ Evidence belongs under this feature only.
 - `screenshots/`: device screenshots with no personal data.
 - `notes/`: allocation, contract-freeze, review and reconciliation notes.
 
+Current pre-approval review: [completeness findings and required reconciliation](notes/PRE_APPROVAL_COMPLETENESS_REVIEW_20260908.md).
+
 Never store raw images, prompts, model output, tokens, signed URLs, personal metadata, or provider headers here. Store source SHA-256 and bounded metadata only.
 
 Required evidence groups:

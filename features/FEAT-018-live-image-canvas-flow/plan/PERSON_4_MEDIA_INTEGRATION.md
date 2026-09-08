@@ -1,5 +1,7 @@
 # FEAT-018 Person 4 — Cache, fallback, device flow, and evidence
 
+Plan status: DRAFT ADDENDUM / AWAITING FEAT-018 APPROVAL / NOT AN IMPLEMENTATION AUTHORIZATION
+
 ## Mission
 
 Make the real-image flow reliable after understanding: resolve reviewed media/cache first, preserve activity identity, fall back safely, and provide a repeatable device pilot/evidence matrix without silently owning backend or the entire Android application.
@@ -55,6 +57,80 @@ No test may use real child/personal data or a production endpoint.
 - Record status, activity/objective IDs and versions, cache result, renderer event summary, latency, fallback reason, and screenshot path.
 - Never record raw image bytes, prompts, provider output, tokens, signed URLs, or personal metadata.
 - Run security/harness validation before review.
+
+## Detailed 20-card breakdown
+
+The five work packages above are expanded below into 20 traceable cards. These IDs are deliberately
+feature-qualified to avoid collision with any prior Person 4 task numbering. All cards remain
+blocked until the FEAT-018 contract-freeze gate and the required reconciliations in
+`evidence/notes/PRE_APPROVAL_COMPLETENESS_REVIEW_20260908.md` are resolved and the owner records
+an explicit approval.
+
+Person 4 may build independently testable cache/media fixtures and a standalone resolver. Backend
+orchestration, session/job state, mobile wiring, deployment, and full E2E ownership remain shared
+integration work under ADR-0006.
+
+### Phase A — contract and fixture freeze
+
+| ID | Task | Done only when |
+|---|---|---|
+| FEAT018-P4-01 | Reconcile the selected contract registry | The owner-approved registry names the exact `LearningMediaRequest`/`LearningMediaResult` contract, version, producer, consumer, and source-of-truth schema. |
+| FEAT018-P4-02 | Define cache-result and fallback reason vocabulary | Hit, miss, stale, corrupt, unsafe, renderer-failure, and unavailable-media cases have closed typed tokens and negative fixtures. |
+| FEAT018-P4-03 | Define the exact cache key | The key binds activity/objective/renderer IDs and versions, source/session version where required, and never includes raw image or provider data. |
+| FEAT018-P4-04 | Define reviewed-asset provenance | A synthetic fixture record requires source/asset hashes, review status, contract version, and provenance without credentials, signed URLs, or personal data. |
+
+### Phase B — standalone cache resolver
+
+| ID | Task | Done only when |
+|---|---|---|
+| FEAT018-P4-05 | Author the synthetic cache fixture package | Fixture inputs cover one reviewed hit, one typed miss, and one rejected asset; every payload/hash is deterministic and feature-local. |
+| FEAT018-P4-06 | Implement the resolver port and fake store | The component can resolve fixtures without another person's runtime, database, storage bucket, or live provider. |
+| FEAT018-P4-07 | Implement exact reviewed-cache hit behavior | A hit returns only an asset/plan compatible with the exact cache key and preserves activity/objective/renderer identity. |
+| FEAT018-P4-08 | Implement typed cache miss behavior | A miss returns a typed result and cannot silently substitute another activity, objective, version, or asset. |
+| FEAT018-P4-09 | Implement integrity and review rejection | Hash mismatch, stale version, unreviewed asset, corrupt metadata, and unsafe media fail closed before a result is handed to a renderer. |
+
+### Phase C — safe fallback component
+
+| ID | Task | Done only when |
+|---|---|---|
+| FEAT018-P4-10 | Freeze fallback precedence | The approved order is encoded as data/tests: reviewed cache, approved still plus guidance, whole-image reveal, then supervised handoff with unchanged identity. |
+| FEAT018-P4-11 | Implement approved still-plus-guidance fallback | A typed fallback can reference only reviewed synthetic fixture assets and records why the primary asset was unavailable. |
+| FEAT018-P4-12 | Implement whole-image reveal fallback request | The resolver emits a renderer-facing fallback request without owning Pixi playback or changing source/plan identity. |
+| FEAT018-P4-13 | Preserve identity through every fallback | Contract tests prove the activity, objective, versions, Gate-B identity, and source linkage are identical before and after each fallback. |
+| FEAT018-P4-14 | Prove no hidden generation/provider call | Unit tests prove cache miss, fallback, and corrupt-media paths neither call AI/generation nor require credentials/endpoints. |
+
+### Phase D — replay, evidence, and review
+
+| ID | Task | Done only when |
+|---|---|---|
+| FEAT018-P4-15 | Build a standalone deterministic replay runner | One local command replays each sanitized fixture scenario; it is not backend/session orchestration and requires no live service. |
+| FEAT018-P4-16 | Build the component scenario matrix | The matrix covers hit, miss, stale, corrupt, unsafe, provider/media unavailable, renderer failure, and each permitted fallback outcome. |
+| FEAT018-P4-17 | Build redacted evidence output | Reports contain only IDs/versions, typed statuses, safe hashes, latency when measured, fallback reasons, and approved screenshot references; scans prove prohibited content absent. |
+| FEAT018-P4-18 | Prepare the named smoke-subset pack | The owner-approved 3-5 activity smoke subset receives component-level cache/fallback fixtures; this is distinct from and does not claim the 20-row device pilot. |
+| FEAT018-P4-19 | Prepare 20-row expansion evidence templates | Each golden row has a checklist for cache hit, miss, fallback, identity preservation, handoff input, and feedback input; unrun measurements remain `NOT_MEASURED`. |
+| FEAT018-P4-20 | Publish a bounded integration handoff review | Person 4 publishes schemas, fixtures, replay results, evidence index, known blockers, and an explicit statement that shared integration owns backend/mobile wiring and full E2E. |
+
+## Dependencies and stop gates
+
+1. `FEAT018-P4-01` through `-04` require the owner to resolve the canonical P2 contract, task-ID
+   namespace, catalog provenance, ACT-0004 migration plan, and staged pilot definition.
+2. `FEAT018-P4-05` through `-14` may begin only after the selected P4 contract and synthetic
+   fixture boundary are approved; no live provider, real image, database, cloud storage, or mobile
+   credential is needed or allowed.
+3. `FEAT018-P4-15` through `-20` require the standalone resolver/tests first. Component evidence
+   may be handed to a separately allocated integration owner, but Person 4 does not own the full
+   device/E2E run.
+4. Stop immediately on contract/version drift, stale identity, missing review provenance, hash
+   mismatch, unredacted evidence, or any fallback that bypasses Gate A/Gate B.
+
+## Card-level evidence minimum
+
+- Every implemented card links a feature-local test or deterministic fixture result.
+- Every aggregate report separates `MEASURED`, `NOT_MEASURED`, and typed failure outcomes.
+- Any screenshot is a reviewed, non-sensitive artifact under `evidence/screenshots/`; raw images,
+  raw model output, prompts, secrets, endpoints, and signed URLs are never stored.
+- No card authorizes a commit, provider/GPU execution, Lightning call, or production promotion by
+  itself.
 
 ## Required evidence
 
