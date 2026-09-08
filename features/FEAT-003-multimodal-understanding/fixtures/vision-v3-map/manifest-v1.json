@@ -1,0 +1,98 @@
+{
+  "author": "Person 2",
+  "authoring_boundary": "All fixture IDs, image hashes, and recipe identity were authored before any v3 model output.",
+  "contract_name": "VisionV3MapFixtureManifestV1",
+  "contract_version": "1.0",
+  "data_policy": "synthetic-only",
+  "disjointness": {
+    "b3_regenerated_hash_comparison_status": "VERIFIED_NO_OVERLAP",
+    "b4_manifest_hash_comparison_status": "VERIFIED_NO_OVERLAP"
+  },
+  "fixtures": [
+    {
+      "dimensions": { "height": 192, "width": 192 },
+      "fixture_id": "v3-map-fixture-01",
+      "image_ref": "images/v3-map-fixture-01.png",
+      "image_sha256": "ad286707d81e105317a443ec16f4e3f86b434993c06a282e5bae6abaa3ddec46",
+      "p2t1_pass": true,
+      "taxonomy_token": "single_entity_baseline"
+    },
+    {
+      "dimensions": { "height": 192, "width": 192 },
+      "fixture_id": "v3-map-fixture-02",
+      "image_ref": "images/v3-map-fixture-02.png",
+      "image_sha256": "7a4d712bf3ac6bc735cfd7d78ea2231ea4377261fae3e08a5037a2d3d8be6332",
+      "p2t1_pass": true,
+      "taxonomy_token": "unconnected_multi_entity"
+    },
+    {
+      "dimensions": { "height": 192, "width": 192 },
+      "fixture_id": "v3-map-fixture-03",
+      "image_ref": "images/v3-map-fixture-03.png",
+      "image_sha256": "3c97031303fa850c659da57ef5535130d201b881dabc71bd87a7b9b6d9a977e6",
+      "p2t1_pass": true,
+      "taxonomy_token": "directed_arrow_action_opportunity"
+    },
+    {
+      "dimensions": { "height": 192, "width": 192 },
+      "fixture_id": "v3-map-fixture-04",
+      "image_ref": "images/v3-map-fixture-04.png",
+      "image_sha256": "b52ac9fd44465f51f4667263b3d4192035429a1cbb6343e32a769d6d7c18421e",
+      "p2t1_pass": true,
+      "taxonomy_token": "three_entity_triangular_cap"
+    },
+    {
+      "dimensions": { "height": 192, "width": 192 },
+      "fixture_id": "v3-map-fixture-05",
+      "image_ref": "images/v3-map-fixture-05.png",
+      "image_sha256": "a95a3e9163bfaa878b51aeb5c4b986365aca164af2ffa07119de6f6640b0fbb6",
+      "p2t1_pass": true,
+      "taxonomy_token": "connector_with_repeated_motif"
+    },
+    {
+      "dimensions": { "height": 192, "width": 192 },
+      "fixture_id": "v3-map-fixture-06",
+      "image_ref": "images/v3-map-fixture-06.png",
+      "image_sha256": "be045ee95b21949d2b77b44bb800628afbe85149536e4298ae923594348db18d",
+      "p2t1_pass": true,
+      "taxonomy_token": "crescent_occluding_octagon"
+    },
+    {
+      "dimensions": { "height": 192, "width": 192 },
+      "fixture_id": "v3-map-fixture-07",
+      "image_ref": "images/v3-map-fixture-07.png",
+      "image_sha256": "86dcb18dd38d7838ab74652d7c21c38a85850a62c6c6a85e2f43dda2143bac58",
+      "p2t1_pass": true,
+      "taxonomy_token": "straight_nondirectional_relation"
+    },
+    {
+      "dimensions": { "height": 192, "width": 192 },
+      "fixture_id": "v3-map-fixture-08",
+      "image_ref": "images/v3-map-fixture-08.png",
+      "image_sha256": "a335892eda2019db1c0a035e775c415b0207f796871355740793823daaa705ea",
+      "p2t1_pass": true,
+      "taxonomy_token": "dashed_outline_octagon"
+    }
+  ],
+  "has_ground_truth": false,
+  "image_generation": {
+    "deterministic": true,
+    "dimensions": { "height": 192, "width": 192 },
+    "palette_id": "vision-v3-map-palette-v1",
+    "recipe_module_ref": "backend/src/sketch2life/benchmark/vision_v3_mapping_fixtures.py",
+    "recipe_module_sha256": "0e68f27ee4ec50ad6a683baea6c187a6c76422c7d53f60b1b4b69a845a5bade2"
+  },
+  "local_authoring_validation": {
+    "model_or_gpu_called": false,
+    "p2t1_result": "PASS_FOR_ALL_8_FIXTURES",
+    "scratch_cleanup": "CONFIRMED"
+  },
+  "manifest_version": "vision-v3-map-manifest-v1",
+  "prompt_protocol": {
+    "protocol_id": "vision-v2-structured-output-prompt-v3",
+    "schema_target": "VisionUnderstandingResultV2",
+    "sha256": "bf8b9cab5df6b2551e627cf0bb92fe977e0dc182fdaae5f3c5face5bc34615f3"
+  },
+  "purpose": "MAPPING_VALIDATION_ONLY",
+  "status": "OWNER_IMAGE_REVIEW_APPROVED"
+}

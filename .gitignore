@@ -15,6 +15,7 @@ features/FEAT-003-multimodal-understanding/fixtures/asr-round1/audio/**
 features/FEAT-003-multimodal-understanding/fixtures/asr-round1/transcripts/**
 features/FEAT-003-multimodal-understanding/fixtures/benchmark-zips/
 features/FEAT-003-multimodal-understanding/fixtures/vision-b4/images/**
+features/FEAT-003-multimodal-understanding/fixtures/vision-v3-map/images/**
 
 # Feature evidence notes are operator-local and must never be published.
 features/FEAT-003-multimodal-understanding/evidence/notes/
@@ -63,6 +64,7 @@ Thumbs.db
 tmp/
 output/
 data/runtime/
+backend/data/runtime/
 **/qwen-vl-cache/
 models/
 features/FEAT-000-harness/evidence/handbook-page-*.png
