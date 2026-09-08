@@ -1,5 +1,17 @@
 # FEAT-003 decisions
 
+## FEAT-018 compatibility-review decisions (2026-09-05)
+
+- Record independent test success separately from integration readiness. P2 vision schema
+  mapping is not a Montessori mapping adapter, and a provider-shaped integration fixture does not
+  replace the canonical P2-T3 research contracts or benchmark evidence.
+- Cross-person runtime wiring requires versioned fixture/contract agreement, P2 fusion/evaluation,
+  and a separately approved integration allocation under ADR-0006. The historical review itself
+  authorized no live provider call and changed no existing P2 implementation approval.
+- Provider SDK objects and raw provider payloads remain inside infrastructure boundaries. Original
+  source references are immutable; unreadable sources never receive a path-derived content hash.
+- Historical evidence: `evidence/notes/P2_P1_REVIEW_20260905.md`.
+
 ## P2-T3 Phase B B3 implementation decisions (2026-09-03)
 
 - B3 uses exactly eight deterministic geometric synthetic image recipes/IDs, generated only in

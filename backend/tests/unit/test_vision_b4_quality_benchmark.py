@@ -7,7 +7,7 @@ from hashlib import sha256
 from pathlib import Path
 from struct import pack
 from typing import Any
-from zlib import compress
+from zlib import compress, crc32
 
 import pytest
 
@@ -347,7 +347,8 @@ def _write_valid_png(path: Path) -> None:
     header = pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0)
 
     def chunk(tag: bytes, data: bytes) -> bytes:
-        return pack(">I", len(data)) + tag + data + pack(">I", 0)
+        checksum = crc32(tag + data) & 0xFFFFFFFF
+        return pack(">I", len(data)) + tag + data + pack(">I", checksum)
 
     payload = (
         b"\x89PNG\r\n\x1a\n"

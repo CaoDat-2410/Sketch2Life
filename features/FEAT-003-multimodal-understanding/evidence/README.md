@@ -8,6 +8,7 @@ remain outside this index.
 |---|---|---|
 | EV-003-T3-SUMMARY-01 | P2-T3 | [Living implementation, configuration, mapping-error, and benchmark summary](P2_T3_LIVING_SUMMARY.md) |
 | EV-003-T1-01 | P2-T1 | [Deterministic media validation](notes/P2_T1_MEDIA_VALIDATION.md) |
+| EV-003-T1-HARDENING-01 | P2-T1 hardening | [Bounded media parsing, PCM normalization, and truthful source provenance](notes/P2_T1_HARDENING.md) |
 | EV-003-T2-01 | P2-T2 Phase A | [Phase A implementation and validation](notes/P2_T2_PHASE_A_IMPLEMENTATION.md) |
 | EV-003-T2-PLAN-05 | P2-T2 Phase B | [Approved Phase B request](notes/P2_T2_PHASE_B_APPROVAL_REQUEST.md) |
 | EV-003-T2-02 | P2-T2 Phase B | [Phase B implementation and validation](notes/P2_T2_PHASE_B_IMPLEMENTATION.md) |
@@ -26,6 +27,7 @@ remain outside this index.
 | EV-003-T3-09 / 10 | P2-T3 Phase B B4 | [Held-out quality benchmark execution](notes/P2_T3_PHASE_B_B4_QUALITY_BENCHMARK_EXECUTION.md) and [raw report JSON](notes/P2_T3_PHASE_B_B4_QUALITY_BENCHMARK_REPORT.json) |
 | EV-003-T3-11 | P2-T3 Phase B B4 | [Held-out fixture authoring and owner approval](notes/P2_T3_PHASE_B_B4_FIXTURE_AUTHORING.md) |
 | EV-003-T3-12 | P2-T3 Phase B B4 | [Runner implementation and no-GPU validation](notes/P2_T3_PHASE_B_B4_RUNNER_IMPLEMENTATION.md) |
+| EV-003-T2-T3-01 | P2-T2/P2-T3 compatibility | [Provider-shaped fixture adapter evidence](notes/P2_T2_T3_ADAPTERS.md) |
 
 `approvals/TASK_APPROVAL.md` remains the authoritative approval record. P2-T5 remains the owner
 of the public CLI and end-to-end multimodal fixture report.

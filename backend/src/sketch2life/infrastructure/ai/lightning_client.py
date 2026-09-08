@@ -46,6 +46,14 @@ class JsonTransport(Protocol):
     def post_json(self, path: str, payload: Mapping[str, object]) -> Mapping[str, object]: ...
 
 
+def _provider_items(value: object) -> tuple[object, ...]:
+    """Narrow an untrusted provider collection before iterating over it."""
+
+    if not isinstance(value, (list, tuple)):
+        raise TypeError("provider collection must be an array")
+    return tuple(value)
+
+
 @dataclass(frozen=True, slots=True)
 class UrllibJsonTransport:
     base_url: str
@@ -180,19 +188,24 @@ class LightningAsrAdapter:
                 },
                 self.max_retries,
             )
-            segments = tuple(AsrSegmentV1.model_validate(item) for item in raw.get("segments", ()))
+            segments = tuple(
+                AsrSegmentV1.model_validate(item)
+                for item in _provider_items(raw.get("segments", ()))
+            )
             quality = AsrQualityV1.model_validate(
                 raw.get("quality", {"segment_count": len(segments)})
             )
-            return AsrResultV1(
-                status="SUCCEEDED",
-                source_audio=request.source_audio,
-                transcript=raw.get("transcript"),
-                language=raw.get("language"),
-                language_confidence=raw.get("language_confidence"),
-                segments=segments,
-                quality=quality,
-                provenance=self.provenance,
+            return AsrResultV1.model_validate(
+                {
+                    "status": "SUCCEEDED",
+                    "source_audio": request.source_audio,
+                    "transcript": raw.get("transcript"),
+                    "language": raw.get("language"),
+                    "language_confidence": raw.get("language_confidence"),
+                    "segments": segments,
+                    "quality": quality,
+                    "provenance": self.provenance,
+                }
             )
         except TimeoutError:
             return _asr_failure(request, self.provenance, "TIMEOUT", "ASR provider timed out", True)
@@ -234,28 +247,37 @@ class LightningVisionAdapter:
                 self.max_retries,
             )
             entities = tuple(
-                VisionCandidateV1.model_validate(item) for item in raw.get("entities", ())
+                VisionCandidateV1.model_validate(item)
+                for item in _provider_items(raw.get("entities", ()))
             )
             actions = tuple(
-                VisionCandidateV1.model_validate(item) for item in raw.get("actions", ())
+                VisionCandidateV1.model_validate(item)
+                for item in _provider_items(raw.get("actions", ()))
             )
             relations = tuple(
-                VisionRelationV1.model_validate(item) for item in raw.get("relations", ())
+                VisionRelationV1.model_validate(item)
+                for item in _provider_items(raw.get("relations", ()))
             )
-            themes = tuple(VisionCandidateV1.model_validate(item) for item in raw.get("themes", ()))
+            themes = tuple(
+                VisionCandidateV1.model_validate(item)
+                for item in _provider_items(raw.get("themes", ()))
+            )
             regions = tuple(
-                VisionRegionV1.model_validate(item) for item in raw.get("ambiguous_regions", ())
+                VisionRegionV1.model_validate(item)
+                for item in _provider_items(raw.get("ambiguous_regions", ()))
             )
-            return VisionUnderstandingResultV1(
-                status="SUCCEEDED",
-                source_image=request.source_image,
-                entities=entities,
-                actions=actions,
-                relations=relations,
-                themes=themes,
-                ambiguous_regions=regions,
-                uncertainty=raw.get("uncertainty", 1),
-                provenance=self.provenance,
+            return VisionUnderstandingResultV1.model_validate(
+                {
+                    "status": "SUCCEEDED",
+                    "source_image": request.source_image,
+                    "entities": entities,
+                    "actions": actions,
+                    "relations": relations,
+                    "themes": themes,
+                    "ambiguous_regions": regions,
+                    "uncertainty": raw.get("uncertainty", 1),
+                    "provenance": self.provenance,
+                }
             )
         except TimeoutError:
             return _vision_failure(

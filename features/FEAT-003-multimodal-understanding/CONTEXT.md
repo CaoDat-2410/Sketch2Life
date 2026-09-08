@@ -7,6 +7,18 @@
   canonical evidence. Working drafts, review handoffs, templates, and local diagnostic records
   remain intentionally local-only and are not linked from this context.
 
+## FEAT-018 compatibility history (2026-09-05)
+
+- A historical offline compatibility review tested the then-current Person 2 and Person 1
+  branches independently and found no P2-to-P1 runtime connection or fusion implementation at
+  that point. It recommended a versioned fixture/contract agreement and a separately approved
+  integration allocation under ADR-0006; it did not promote P2-T4/P2-T5 or alter any P2-T3
+  approval, benchmark, profile, or runtime-default decision.
+- The later FEAT-018 integration branch carries its own contracts, fixture flow, and feature-local
+  approvals. Merging that branch preserves this file's newer P2-T3 evidence history and does not
+  reinterpret FEAT-018's provider-shaped integration artifacts as the canonical P2-T3 V1/V2
+  research contracts or as evidence that the P2-T3 quality `NO_GO` has been resolved.
+
 ## P2-T3 Phase B B4 real Lightning execution status (2026-09-07)
 
 - The real B4 held-out quality benchmark has now executed once, both `B4_PASS_1` and its

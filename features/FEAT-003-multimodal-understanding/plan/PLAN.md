@@ -1,8 +1,9 @@
 # FEAT-003 Multimodal understanding plan
 
-- Status: APPROVED (P2-T1 complete; P2-T2 Phases A/B complete; P2-T3 Phase A approved)
+- Status: APPROVED (P2-T1 and P2-T2 Phases A/B complete; P2-T3 Phase B in progress)
 - Plan revision: 4
-- Implementation status: IN_PROGRESS (P2-T1 and P2-T2 Phases A/B complete; P2-T3 Phase A approved for implementation; P2-T3 Phase B through P2-T5 remain planned)
+- Implementation status: IN_PROGRESS (P2-T3 B1-B3 and the original B4 benchmark complete;
+  prompt-v3 follow-up phases 1-3 complete; P2-T4/P2-T5 remain gated)
 - Owner: Person 2
 - Estimate: 10 points total (P2-T1 through P2-T5, 2 points each)
 
@@ -25,12 +26,13 @@ The contract review is part of this plan, not approval to integrate it into the 
 
 ## Approved implementation slice
 
-P2-T1 and P2-T2 Phase A are implemented; the P2-T2 Phase B benchmark-readiness package and
-controlled live Round-1 execution are complete under the approved scope in
-`approvals/TASK_APPROVAL.md`. The two executed runs are recorded in `EV-003-T2-05` and
-`EV-003-T2-06`; neither selects a frozen profile or runtime default. P2-T3 Phase A is separately
-approved; P2-T3 Phase B and P2-T4 through P2-T5 remain planned and must receive their own explicit
-approval before work starts.
+P2-T1 and P2-T2 Phases A/B are implemented; the P2-T2 controlled Round-1 execution and repeat are
+recorded in `EV-003-T2-05` and `EV-003-T2-06`, without selecting a frozen profile or runtime
+default. P2-T3 Phase A and the bounded Phase B B1-B5 study are approved. B1-B3 and the original B4
+benchmark are complete; B4 produced schema-valid output but a quality `NO_GO`. The separately
+bounded prompt-v3 follow-up has completed local phases 1-3, while its cross-environment package
+verification and all later GPU work remain gated. The current safe status is maintained in
+`evidence/P2_T3_LIVING_SUMMARY.md`. P2-T4 and P2-T5 remain unapproved.
 
 ## Task breakdown and execution order
 
@@ -132,6 +134,6 @@ For one owner, work sequentially as T1, T2, T3, T4, T5. If two contributors are 
 3. During implementation: store test output, fixture manifest hashes, model/config hashes, and benchmark summaries in this feature's `evidence/` directory. Do not store original or real child media.
 4. Before completion: record a compatibility note for Integration Sprint containing only versioned input/output contracts, typed errors, artifact references, and provenance requirements.
 
-Implementation is blocked for every not-yet-approved slice (P2-T3 Phase B through P2-T5) until its
-corresponding scope is explicitly approved. P2-T1 and P2-T2 cleared this gate and are implemented;
-P2-T3 Phase A is now approved only within its recorded deterministic contract/fake-adapter scope.
+Implementation is blocked for P2-T3 work outside its approved Phase B B1-B5 boundary and for all
+P2-T4/P2-T5 work until the corresponding scope is explicitly approved. P2-T3 follow-up phases do
+not authorize later phases, GPU work, production selection, or integration by default.

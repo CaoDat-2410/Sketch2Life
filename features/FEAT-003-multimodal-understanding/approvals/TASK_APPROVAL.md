@@ -46,6 +46,15 @@
 
 - Any P2-T3 work outside the approved Phase B B1–B5 scope, P2-T4 through P2-T5, mobile/API/session/job orchestration, Gate A UI, database/storage/queue integration, real child data, and any provider credentials.
 
+## Historical compatibility-review authorization — 2026-09-05
+
+- Scope: fetch the then-current Person 2 and Person 1 branches, run isolated offline tests, review
+  compatibility, and record evidence and next-step recommendations.
+- Boundary: review only; no P2-to-P1 runtime wiring, fusion implementation, live provider call, or
+  implementation-status promotion. All Phase A/Phase B approvals above remain authoritative and
+  unchanged.
+- Plan: `plan/P2_P1_REVIEW_20260905.md`, revision `review-20260905-1`.
+
 ## Notes
 
 FEAT-012 and ADR-0006 still govern the standalone Sprint 1 boundary. Person 2 does not own Gate A UI or backend job orchestration in Sprint 1.
