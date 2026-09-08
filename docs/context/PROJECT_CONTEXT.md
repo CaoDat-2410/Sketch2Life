@@ -60,3 +60,7 @@ The attached handbook proposes a modular monolith plus workers, a FastAPI/Pydant
 ## Open decisions
 
 See `features/FEAT-001-stack-and-team-plan/TEAM_ALLOCATION.md` and ADR-0006 for the revised Sprint 1 allocation, FEAT-008 for the generic skeleton, FEAT-009 for Android foundation, and FEAT-010 for auth/release/AI-provider strategy. Remaining integration questions are listed in `docs/setup/SYSTEM_QUESTIONS.md`.
+
+## Cross-workstream review snapshot — 2026-09-05
+
+Remote workstreams P1 b3f397c, P2 f3014e5, P3 68aceeb and P4 f0dd622 have independent implementations. They are not an integrated runtime and are not merged into the foundation main baseline. FEAT-015 records pinned branch readiness, reproduced test evidence and proposed integration/test gates. ADR-0006 remains unchanged; integration allocation/implementation still requires separate approval. P4 branch context/plan status is stale relative to its approval/code and is explicitly flagged in the review rather than silently corrected here.

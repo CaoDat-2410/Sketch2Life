@@ -1,0 +1,22 @@
+PAIR P1/P2
+6931cc4ec60c0f2f2ae1b7f5fb846d83bf3c1e78
+docs/context/SOURCE_REGISTER.md
+
+Auto-merging docs/context/SOURCE_REGISTER.md
+CONFLICT (content): Merge conflict in docs/context/SOURCE_REGISTER.md
+exit=1
+PAIR P1/P3
+46b1387f86098ff6ac060253ef3b16b33868d6ca
+exit=0
+PAIR P1/P4
+75196ef677ed73946ce68fd197a59cf333220bb3
+exit=0
+PAIR P2/P3
+b946912935ce4f23656bd21a827ce84aebb3a757
+exit=0
+PAIR P2/P4
+c91b62a3af651c772e2160c3b5aac979d05e061f
+exit=0
+PAIR P3/P4
+6fd84ccdef057547cfb59d7b57446683abb74707
+exit=0

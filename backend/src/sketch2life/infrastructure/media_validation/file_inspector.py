@@ -8,15 +8,19 @@ from __future__ import annotations
 from collections.abc import Iterator
 from math import sqrt
 from pathlib import Path
-from statistics import fmean, pstdev
+from statistics import StatisticsError, fmean, pstdev
 from struct import unpack
 from wave import Error as WaveError
 from wave import open as wave_open
-from zlib import decompress
+from zlib import crc32, decompressobj
+from zlib import error as ZlibError
 
 from sketch2life.domain.understanding.media_quality import AudioQualitySignals, ImageQualitySignals
 
 _PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
+_MAX_MEDIA_BYTES = 25 * 1024 * 1024
+_MAX_AUDIO_DURATION_SECONDS = 180
+_MAX_IMAGE_PIXELS = 25_000_000
 
 
 class FileMediaSignalInspector:
@@ -31,11 +35,11 @@ class FileMediaSignalInspector:
 
 def inspect_image(path: Path) -> ImageQualitySignals:
     try:
-        width, height, luminance = _png_luminance(path.read_bytes())
-    except (OSError, ValueError):
+        width, height, luminance = _png_luminance(_read_bounded(path))
+        contrast = pstdev(luminance)
+    except (OSError, StatisticsError, ValueError, ZlibError, OverflowError):
         return ImageQualitySignals(None, None, None, None, None, None)
 
-    contrast = pstdev(luminance)
     edge_strength = _edge_strength(luminance, width, height)
     return ImageQualitySignals(
         width=width,
@@ -49,18 +53,21 @@ def inspect_image(path: Path) -> ImageQualitySignals:
 
 def inspect_audio(path: Path) -> AudioQualitySignals:
     try:
+        _check_bounded(path)
         with wave_open(str(path), "rb") as audio:
             channels = audio.getnchannels()
             sample_width = audio.getsampwidth()
             sample_rate = audio.getframerate()
             frame_count = audio.getnframes()
+            if frame_count > sample_rate * _MAX_AUDIO_DURATION_SECONDS:
+                raise ValueError("WAV exceeds maximum inspectable duration")
             frames = audio.readframes(frame_count)
         if channels < 1 or sample_rate < 1:
             raise ValueError("invalid WAV stream metadata")
         samples = tuple(_pcm_mono_samples(frames, channels, sample_width))
         if not samples:
             raise ValueError("WAV contains no samples")
-    except (EOFError, OSError, ValueError, WaveError):
+    except (EOFError, OSError, ValueError, WaveError, StatisticsError, ZeroDivisionError):
         return AudioQualitySignals(None, None, None, None, None, None, None)
 
     duration = len(samples) / sample_rate
@@ -92,6 +99,7 @@ def _png_luminance(payload: bytes) -> tuple[int, int, tuple[float, ...]]:
     color_type: int | None = None
     interlace: int | None = None
     compressed = bytearray()
+    seen_iend = False
     while offset < len(payload):
         if offset + 12 > len(payload):
             raise ValueError("truncated PNG chunk")
@@ -102,6 +110,10 @@ def _png_luminance(payload: bytes) -> tuple[int, int, tuple[float, ...]]:
         if data_end + 4 > len(payload):
             raise ValueError("truncated PNG data")
         data = payload[data_start:data_end]
+        expected_crc = unpack(">I", payload[data_end : data_end + 4])[0]
+        actual_crc = crc32(chunk_type + data) & 0xFFFFFFFF
+        if expected_crc != actual_crc:
+            raise ValueError("invalid PNG CRC")
         offset = data_end + 4
         if chunk_type == b"IHDR":
             if length != 13:
@@ -109,11 +121,16 @@ def _png_luminance(payload: bytes) -> tuple[int, int, tuple[float, ...]]:
             width, height, bit_depth, color_type, compression, filter_method, interlace = unpack(
                 ">IIBBBBB", data
             )
+            if width < 1 or height < 1 or width * height > _MAX_IMAGE_PIXELS:
+                raise ValueError("invalid PNG dimensions")
             if compression != 0 or filter_method != 0:
                 raise ValueError("unsupported PNG encoding")
         elif chunk_type == b"IDAT":
             compressed.extend(data)
         elif chunk_type == b"IEND":
+            if length != 0:
+                raise ValueError("invalid PNG end marker")
+            seen_iend = True
             break
 
     if (
@@ -123,11 +140,28 @@ def _png_luminance(payload: bytes) -> tuple[int, int, tuple[float, ...]]:
         or color_type not in {0, 2, 4, 6}
         or interlace != 0
         or not compressed
+        or not seen_iend
     ):
         raise ValueError("unsupported PNG format")
     channels = {0: 1, 2: 3, 4: 2, 6: 4}[color_type]
-    rows = _unfilter_png_rows(decompress(bytes(compressed)), width, height, channels)
+    expected_length = height * (width * channels + 1)
+    decompressor = decompressobj()
+    decoded = decompressor.decompress(bytes(compressed), expected_length + 1)
+    if len(decoded) > expected_length or not decompressor.eof or decompressor.unused_data:
+        raise ValueError("invalid PNG compressed data")
+    decoded += decompressor.flush()
+    rows = _unfilter_png_rows(decoded, width, height, channels)
     return width, height, tuple(value for row in rows for value in _row_luminance(row, color_type))
+
+
+def _read_bounded(path: Path) -> bytes:
+    _check_bounded(path)
+    return path.read_bytes()
+
+
+def _check_bounded(path: Path) -> None:
+    if path.stat().st_size > _MAX_MEDIA_BYTES:
+        raise ValueError("media exceeds maximum inspectable size")
 
 
 def _unfilter_png_rows(
@@ -222,16 +256,19 @@ def _pcm_mono_samples(payload: bytes, channels: int, sample_width: int) -> Itera
     frame_width = channels * sample_width
     if len(payload) % frame_width:
         raise ValueError("truncated PCM frame")
-    maximum = float((1 << (8 * sample_width - 1)) - 1)
+    positive_maximum = float((1 << (8 * sample_width - 1)) - 1)
+    negative_maximum = float(1 << (8 * sample_width - 1))
     for offset in range(0, len(payload), frame_width):
         channel_values = []
         for channel in range(channels):
             start = offset + channel * sample_width
             encoded = payload[start : start + sample_width]
             if sample_width == 1:
-                value = (encoded[0] - 128) / 127
+                value = (encoded[0] - 128) / 128
             else:
-                value = int.from_bytes(encoded, byteorder="little", signed=True) / maximum
+                raw_value = int.from_bytes(encoded, byteorder="little", signed=True)
+                denominator = negative_maximum if raw_value < 0 else positive_maximum
+                value = raw_value / denominator
             channel_values.append(value)
         yield fmean(channel_values)
 

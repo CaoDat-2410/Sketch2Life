@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from hashlib import sha256
 from pathlib import Path
-from typing import Protocol
+from typing import Literal, Protocol
 
 from sketch2life.contracts.schemas.media_validation import (
     MediaValidationResultV1,
@@ -44,14 +44,8 @@ class DeterministicMediaValidator:
         self._policy = policy or MediaQualityPolicy()
 
     def validate(self, request: MediaValidationRequest) -> MediaValidationResultV1:
-        image = SourceMediaReferenceV1(
-            artifact_ref=request.image_artifact_ref,
-            sha256=_sha256_or_missing(request.image_path),
-        )
-        audio = SourceMediaReferenceV1(
-            artifact_ref=request.audio_artifact_ref,
-            sha256=_sha256_or_missing(request.audio_path),
-        )
+        image = _source_reference(request.image_path, request.image_artifact_ref)
+        audio = _source_reference(request.audio_path, request.audio_artifact_ref)
         assessment = assess_media(
             self._inspector.inspect_image(request.image_path),
             self._inspector.inspect_audio(request.audio_path),
@@ -60,8 +54,20 @@ class DeterministicMediaValidator:
         return media_validation_contract(assessment, image, audio)
 
 
-def _sha256_or_missing(path: Path) -> str:
+def _source_reference(path: Path, artifact_ref: str) -> SourceMediaReferenceV1:
     try:
-        return sha256(path.read_bytes()).hexdigest()
+        digest = sha256(path.read_bytes()).hexdigest()
     except OSError:
-        return sha256(f"missing:{path}".encode()).hexdigest()
+        status: Literal["MISSING", "UNREADABLE"] = (
+            "MISSING" if not path.exists() else "UNREADABLE"
+        )
+        return SourceMediaReferenceV1(
+            artifact_ref=artifact_ref,
+            sha256=None,
+            source_status=status,
+        )
+    return SourceMediaReferenceV1(
+        artifact_ref=artifact_ref,
+        sha256=digest,
+        source_status="AVAILABLE",
+    )

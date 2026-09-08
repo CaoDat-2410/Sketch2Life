@@ -1,4 +1,6 @@
-"""Typed runtime settings; secrets come from environment variables."""
+"""Settings for the backend-only live Lightning development adapter."""
+
+from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
@@ -21,11 +23,14 @@ class Settings(BaseSettings):
     firebase_credentials_file: Path | None = None
     firebase_check_revoked_tokens: bool = True
 
-    # Backend-only AI connectivity. Lightning is fixture/dev; Runpod is production.
-    # The mobile application never receives provider endpoints or credentials.
+    # Backend-only AI connectivity. Lightning is development; Runpod is production.
     ai_provider: Literal["disabled", "lightning_dev", "runpod"] = "disabled"
     lightning_ai_base_url: str = ""
     lightning_ai_token_file: Path | None = None
+    lightning_model_profile: str = "live-p2-understanding-v1"
+    lightning_asr_path: str = "/v1/asr"
+    lightning_vision_path: str = "/v1/vision"
+    live_fixture_root: Path | None = None
     runpod_endpoint_id: str = ""
     runpod_api_key_file: Path | None = None
     ai_connect_timeout_seconds: float = 5.0

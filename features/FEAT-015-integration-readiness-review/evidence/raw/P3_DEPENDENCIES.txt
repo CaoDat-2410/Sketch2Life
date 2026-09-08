@@ -1,0 +1,22 @@
+✓ Lockfile passes supply-chain policies (verified 23s ago)
+Lockfile is up to date, resolution step is skipped
+Progress: resolved 1, reused 0, downloaded 0, added 0
+.                                        |  +81 ++++++++
+Packages are hard linked from the content-addressable store to the virtual store.
+  Content-addressable store is at: D:\.pnpm-store\v11
+  Virtual store is at:             node_modules/.pnpm
+
+   ╭──────────────────────────────────────────╮
+   │                                          │
+   │   Update available! 11.19.0 → 11.25.0.   │
+   │   Changelog: https://pnpm.io/v/11.25.0   │
+   │     To update, run: pnpm add -g pnpm     │
+   │                                          │
+   ╰──────────────────────────────────────────╯
+
+Progress: resolved 81, reused 52, downloaded 29, added 48
+Progress: resolved 81, reused 52, downloaded 29, added 79
+Progress: resolved 81, reused 52, downloaded 29, added 80
+Progress: resolved 81, reused 52, downloaded 29, added 81
+Progress: resolved 81, reused 52, downloaded 29, added 81, done
+Done in 6.4s using pnpm v11.19.0

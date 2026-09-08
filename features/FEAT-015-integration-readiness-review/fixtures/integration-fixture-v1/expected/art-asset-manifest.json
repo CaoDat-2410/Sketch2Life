@@ -1,0 +1,12 @@
+{
+  "contract_name": "PixiArtAssetManifestV1",
+  "asset_id": "child-drawing-001-whole",
+  "asset_version": "1",
+  "asset_kind": "WHOLE_DRAWING",
+  "source_artifact_id": "child-drawing-001",
+  "source_artifact_version": "1",
+  "source_path": "media/drawing.svg",
+  "source_sha256": "e8832914ecf124fa6942c37ee279ceab876a7dd946de61e1676f2b55825faaac",
+  "extraction_status": "READY",
+  "contract_version": "1.0"
+}
