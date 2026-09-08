@@ -3,8 +3,8 @@
 - Evidence ID: `EV-003-T3-SUMMARY-01`
 - Last updated: 2026-09-08
 - Status: `IN_PROGRESS` — Phase A and Phase B B1–B3 are complete; the original B4 benchmark is
-  complete with a quality `NO_GO`; the prompt-v3 follow-up has completed phases 1–3 and has not
-  started Phase 4.
+  complete with a quality `NO_GO`; the prompt-v3 follow-up has completed package-only phases 1–4.
+  Phase 5 has not started.
 - Data boundary: synthetic fixtures only; no real child data.
 
 ## Maintenance rule
@@ -170,7 +170,14 @@ Current status:
    `0e68f27ee4ec50ad6a683baea6c187a6c76422c7d53f60b1b4b69a845a5bade2`; local authoring reported
    P2-T1 pass for all eight and no hash overlap with B3 or B4. The set has no ground truth because
    it measures mapping readiness, not quality.
-4. Cross-environment Phase 4 package verification — not executed.
+4. Target-Lightning Phase 4 package verification — complete. The operator regenerated all eight
+   ignored PNGs at exact commit `f46a6a1`; their ordered IDs, dimensions, hashes, recipe hash,
+   and prompt-v3 identity exactly matched the approved manifest. Real P2-T1 passed for all eight;
+   B3/B4 overlap stayed zero; authoring scratch was clean; and no model or inference path ran.
+   Focused v3 tests, Ruff, strict mypy, and all four repository validators passed. The full Linux
+   backend suite passed after deselecting one unrelated Windows-only ASR unit test that depends on
+   `os.add_dll_directory`, unavailable on Linux. This is package-only evidence, not mapping or
+   quality evidence.
 5. GPU-ledger reconciliation, fresh readiness, and explicit Lightning authorization — not done.
 6. `V3_PASS_1` plus `V3_REPEAT_1` — not implemented or executed.
 7. Mapping-readiness evaluation — pending.
@@ -182,10 +189,9 @@ input-integrity failure, or runtime/device failure as blockers. The repeat must 
 Lightning session no later than 15 minutes after the first pass; reset, drift, or a longer gap
 makes the pair `NON_COMPARABLE`. The passes are never pooled.
 
-Phase 4, when separately approved, is local/package-only: pull exact commit `f46a6a1`, regenerate
-the ignored PNGs deterministically, verify all manifest and recipe hashes, run real P2-T1 validation,
-recheck B3/B4 disjointness and Git-ignore coverage, record safe results, and stop before any model
-or GPU action.
+Phase 4 completed as package-only verification on the target Lightning checkout: it regenerated
+the ignored PNGs deterministically, verified manifest/recipe hashes, ran real P2-T1 validation,
+rechecked B3/B4 disjointness and Git-ignore coverage, then stopped before model action.
 
 ## Current conclusion
 
@@ -194,7 +200,8 @@ or GPU action.
 - B2: real readiness/preflight complete; first mapping call failed safely.
 - B3: mapping failure diagnosed; prompt-v2 achieved repeatable `16/16` mapping readiness.
 - Original B4: complete; structural mapping passed, held-out quality is `NO_GO`.
-- Direction A prompt-v3: phases 1–3 complete; Phase 4 and all GPU phases remain gated.
+- Direction A prompt-v3: phases 1–4 complete, including target-Lightning package verification.
+  Phase 5 and all later GPU phases remain gated.
 - Direction B, the canonical-vocabulary mismatch hypothesis, remains open.
 - B5 and any production/runtime recommendation remain unresolved.
 - Overall P2-T3 status: `IN_PROGRESS`.
