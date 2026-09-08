@@ -1,0 +1,84 @@
+{
+  "contract_name": "VisionB4FixtureManifestV1",
+  "contract_version": "1.0",
+  "manifest_version": "vision-b4-manifest-v1",
+  "status": "OWNER_REVIEW_APPROVED",
+  "split": "HELD_OUT",
+  "data_policy": "synthetic-only",
+  "author": "Person 2",
+  "authoring_boundary": "All fixture IDs, image hashes, ground truth, and matching-rule identity were authored before any B4 model output.",
+  "b3_disjointness": {
+    "required": true,
+    "basis": "Distinct B4 fixture IDs and independently authored 256x256 geometric recipes; B3 scratch payloads are never reused.",
+    "hash_comparison_status": "VERIFIED_NO_OVERLAP_DURING_LOCAL_AUTHORING"
+  },
+  "local_authoring_validation": {
+    "p2t1_result": "PASS_FOR_ALL_8_FIXTURES",
+    "scratch_cleanup": "CONFIRMED",
+    "model_or_gpu_called": false
+  },
+  "prompt_protocol": {
+    "protocol_id": "vision-v2-structured-output-prompt-v2",
+    "sha256": "1e880e946dc1f1dcf11731c299702b33ab58e3c098cdda3d6607c080dc8f9fd6",
+    "schema_target": "VisionUnderstandingResultV2"
+  },
+  "ground_truth": {
+    "ref": "ground-truth-v1.json",
+    "sha256": "c194c0c2ce1c22c5531e55393cf8554d3a3e31be88e3c99bfdd8302032ec4333"
+  },
+  "matching_rule": {
+    "rule_id": "vision-b4-matching-rule-v1",
+    "ref": "matching-rule-v1.md",
+    "sha256": "4e405275257f1428f8f73b5339dac1941ce6f008ff00d39cc19c391c035b96bb"
+  },
+  "fixtures": [
+    {
+      "fixture_id": "b4-fixture-01",
+      "image_ref": "images/b4-fixture-01.png",
+      "image_sha256": "6821d3420792f57aff81ff94b0f96f372de26f544d12e60a2779a5c12a342efd",
+      "taxonomy": "simple_entity"
+    },
+    {
+      "fixture_id": "b4-fixture-02",
+      "image_ref": "images/b4-fixture-02.png",
+      "image_sha256": "3fb4ecf832b83ec4f2da7229dde551c9b3dabb9f5fa56a73360c4cc868a2ff90",
+      "taxonomy": "multi_entity"
+    },
+    {
+      "fixture_id": "b4-fixture-03",
+      "image_ref": "images/b4-fixture-03.png",
+      "image_sha256": "f3b03d5b59604b721791130ed68df778c8cce9c781dec70856299724a8f5e106",
+      "taxonomy": "action_complete_endpoints"
+    },
+    {
+      "fixture_id": "b4-fixture-04",
+      "image_ref": "images/b4-fixture-04.png",
+      "image_sha256": "a49c5c4e85bea6376c453bb80513709f5cf13c1c2b326ab3fd6505e65e33c7c6",
+      "taxonomy": "action_null_endpoint"
+    },
+    {
+      "fixture_id": "b4-fixture-05",
+      "image_ref": "images/b4-fixture-05.png",
+      "image_sha256": "9158b0fab07f4931c2211863daede5d548b8dbf18e3edf755c6b1f370f59e255",
+      "taxonomy": "entity_relation"
+    },
+    {
+      "fixture_id": "b4-fixture-06",
+      "image_ref": "images/b4-fixture-06.png",
+      "image_sha256": "3638860990149ee0a6050785b3e51ada04adf35381a0e578c54cbdac21624e5f",
+      "taxonomy": "theme_evidence_refs"
+    },
+    {
+      "fixture_id": "b4-fixture-07",
+      "image_ref": "images/b4-fixture-07.png",
+      "image_sha256": "5abe84172d131dc0b4ca6374c78ebb07c6d1cd782353538e2dace403fb52fa46",
+      "taxonomy": "ambiguous_region"
+    },
+    {
+      "fixture_id": "b4-fixture-08",
+      "image_ref": "images/b4-fixture-08.png",
+      "image_sha256": "21551688c0541a70fbe1d03730de475866c2134fa1388de3df3c7f67199f0f48",
+      "taxonomy": "mixed_multi_collection"
+    }
+  ]
+}

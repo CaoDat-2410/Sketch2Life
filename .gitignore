@@ -2,6 +2,23 @@
 .env
 .env.*
 !.env.example
+backend/.asr.env
+backend/.vision.env
+
+# Personal agent configuration and project-local instructions.
+/.claude/
+/.agents/
+/CLAUDE.md
+
+# ASR benchmark payloads remain local; only the manifest template/layout is versioned.
+features/FEAT-003-multimodal-understanding/fixtures/asr-round1/audio/**
+features/FEAT-003-multimodal-understanding/fixtures/asr-round1/transcripts/**
+features/FEAT-003-multimodal-understanding/fixtures/benchmark-zips/
+features/FEAT-003-multimodal-understanding/fixtures/vision-b4/images/**
+features/FEAT-003-multimodal-understanding/fixtures/vision-v3-map/images/**
+
+# Feature evidence notes are operator-local and must never be published.
+features/FEAT-003-multimodal-understanding/evidence/notes/
 
 # Python
 __pycache__/
@@ -47,6 +64,9 @@ Thumbs.db
 tmp/
 output/
 data/runtime/
+backend/data/runtime/
+**/qwen-vl-cache/
+models/
 features/FEAT-000-harness/evidence/handbook-page-*.png
 
 # Android native build intermediates

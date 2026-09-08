@@ -1,0 +1,347 @@
+{
+  "pass_1": {
+    "aggregate_collection_scores": {
+      "actions": {
+        "accuracy": 0.0,
+        "coverage": 0.0,
+        "ground_truth_count": 3,
+        "matched_count": 0,
+        "predicted_count": 3
+      },
+      "ambiguous_regions": {
+        "accuracy": null,
+        "coverage": 0.0,
+        "ground_truth_count": 1,
+        "matched_count": 0,
+        "predicted_count": 0
+      },
+      "entities": {
+        "accuracy": 0.0,
+        "coverage": 0.0,
+        "ground_truth_count": 16,
+        "matched_count": 0,
+        "predicted_count": 17
+      },
+      "relations": {
+        "accuracy": null,
+        "coverage": 0.0,
+        "ground_truth_count": 4,
+        "matched_count": 0,
+        "predicted_count": 0
+      },
+      "themes": {
+        "accuracy": null,
+        "coverage": 0.0,
+        "ground_truth_count": 2,
+        "matched_count": 0,
+        "predicted_count": 0
+      }
+    },
+    "attempted_runs": 8,
+    "extra_key_count": 0,
+    "fenced_raw_output_count": 0,
+    "ground_truth_sha256": "c194c0c2ce1c22c5531e55393cf8554d3a3e31be88e3c99bfdd8302032ec4333",
+    "invalid_enum_count": 0,
+    "known_policy_trigger_rate": "NOT_APPLICABLE",
+    "lossless_unwrap_recovered_count": 0,
+    "manifest_version": "vision-b4-manifest-v1",
+    "matching_rule_id": "vision-b4-matching-rule-v1",
+    "matching_rule_sha256": "4e405275257f1428f8f73b5339dac1941ce6f008ff00d39cc19c391c035b96bb",
+    "profile_catalog_hash": "72651b96d2c2259344efcb6fb3349807d42b56079a5422530db09c1590f00947",
+    "profile_id": "QWEN3_VL_8B_INSTRUCT_BF16_V1",
+    "prompt_protocol_id": "vision-v2-structured-output-prompt-v2",
+    "prompt_sha256": "1e880e946dc1f1dcf11731c299702b33ab58e3c098cdda3d6607c080dc8f9fd6",
+    "raw_output_mode": "CLASSIFY_ONLY",
+    "run_label": "B4_PASS_1",
+    "runs": [
+      {
+        "attempt_number": 1,
+        "collection_scores": {
+          "actions": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0},
+          "ambiguous_regions": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0},
+          "entities": {"accuracy": 0.0, "coverage": 0.0, "ground_truth_count": 1, "matched_count": 0, "predicted_count": 1},
+          "relations": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0},
+          "themes": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0}
+        },
+        "error_code": null, "error_detail": null, "extra_key": false, "fenced": false,
+        "fixture_id": "b4-fixture-01", "invalid_enum": false, "peak_vram_mb": 17190.0,
+        "repair_attempted": false, "status": "SUCCEEDED", "truncated": false,
+        "vram_not_measured_reason": null, "wall_latency_ms": 27016.494345999945
+      },
+      {
+        "attempt_number": 1,
+        "collection_scores": {
+          "actions": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0},
+          "ambiguous_regions": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0},
+          "entities": {"accuracy": 0.0, "coverage": 0.0, "ground_truth_count": 2, "matched_count": 0, "predicted_count": 2},
+          "relations": {"accuracy": null, "coverage": 0.0, "ground_truth_count": 1, "matched_count": 0, "predicted_count": 0},
+          "themes": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0}
+        },
+        "error_code": null, "error_detail": null, "extra_key": false, "fenced": false,
+        "fixture_id": "b4-fixture-02", "invalid_enum": false, "peak_vram_mb": 17190.0,
+        "repair_attempted": false, "status": "SUCCEEDED", "truncated": false,
+        "vram_not_measured_reason": null, "wall_latency_ms": 23454.051593000033
+      },
+      {
+        "attempt_number": 1,
+        "collection_scores": {
+          "actions": {"accuracy": 0.0, "coverage": 0.0, "ground_truth_count": 1, "matched_count": 0, "predicted_count": 1},
+          "ambiguous_regions": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0},
+          "entities": {"accuracy": 0.0, "coverage": 0.0, "ground_truth_count": 2, "matched_count": 0, "predicted_count": 2},
+          "relations": {"accuracy": null, "coverage": 0.0, "ground_truth_count": 1, "matched_count": 0, "predicted_count": 0},
+          "themes": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0}
+        },
+        "error_code": null, "error_detail": null, "extra_key": false, "fenced": false,
+        "fixture_id": "b4-fixture-03", "invalid_enum": false, "peak_vram_mb": 17190.0,
+        "repair_attempted": false, "status": "SUCCEEDED", "truncated": false,
+        "vram_not_measured_reason": null, "wall_latency_ms": 25961.42483200015
+      },
+      {
+        "attempt_number": 1,
+        "collection_scores": {
+          "actions": {"accuracy": 0.0, "coverage": 0.0, "ground_truth_count": 1, "matched_count": 0, "predicted_count": 1},
+          "ambiguous_regions": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0},
+          "entities": {"accuracy": 0.0, "coverage": 0.0, "ground_truth_count": 1, "matched_count": 0, "predicted_count": 2},
+          "relations": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0},
+          "themes": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0}
+        },
+        "error_code": null, "error_detail": null, "extra_key": false, "fenced": false,
+        "fixture_id": "b4-fixture-04", "invalid_enum": false, "peak_vram_mb": 17190.0,
+        "repair_attempted": false, "status": "SUCCEEDED", "truncated": false,
+        "vram_not_measured_reason": null, "wall_latency_ms": 29247.516842000095
+      },
+      {
+        "attempt_number": 1,
+        "collection_scores": {
+          "actions": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0},
+          "ambiguous_regions": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0},
+          "entities": {"accuracy": 0.0, "coverage": 0.0, "ground_truth_count": 2, "matched_count": 0, "predicted_count": 2},
+          "relations": {"accuracy": null, "coverage": 0.0, "ground_truth_count": 1, "matched_count": 0, "predicted_count": 0},
+          "themes": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0}
+        },
+        "error_code": null, "error_detail": null, "extra_key": false, "fenced": false,
+        "fixture_id": "b4-fixture-05", "invalid_enum": false, "peak_vram_mb": 17190.0,
+        "repair_attempted": false, "status": "SUCCEEDED", "truncated": false,
+        "vram_not_measured_reason": null, "wall_latency_ms": 21374.36160199991
+      },
+      {
+        "attempt_number": 1,
+        "collection_scores": {
+          "actions": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0},
+          "ambiguous_regions": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0},
+          "entities": {"accuracy": 0.0, "coverage": 0.0, "ground_truth_count": 3, "matched_count": 0, "predicted_count": 3},
+          "relations": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0},
+          "themes": {"accuracy": null, "coverage": 0.0, "ground_truth_count": 1, "matched_count": 0, "predicted_count": 0}
+        },
+        "error_code": null, "error_detail": null, "extra_key": false, "fenced": false,
+        "fixture_id": "b4-fixture-06", "invalid_enum": false, "peak_vram_mb": 17190.0,
+        "repair_attempted": false, "status": "SUCCEEDED", "truncated": false,
+        "vram_not_measured_reason": null, "wall_latency_ms": 24231.77351299978
+      },
+      {
+        "attempt_number": 1,
+        "collection_scores": {
+          "actions": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0},
+          "ambiguous_regions": {"accuracy": null, "coverage": 0.0, "ground_truth_count": 1, "matched_count": 0, "predicted_count": 0},
+          "entities": {"accuracy": 0.0, "coverage": 0.0, "ground_truth_count": 2, "matched_count": 0, "predicted_count": 2},
+          "relations": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0},
+          "themes": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0}
+        },
+        "error_code": null, "error_detail": null, "extra_key": false, "fenced": false,
+        "fixture_id": "b4-fixture-07", "invalid_enum": false, "peak_vram_mb": 17190.0,
+        "repair_attempted": false, "status": "SUCCEEDED", "truncated": false,
+        "vram_not_measured_reason": null, "wall_latency_ms": 21492.92690199991
+      },
+      {
+        "attempt_number": 1,
+        "collection_scores": {
+          "actions": {"accuracy": 0.0, "coverage": 0.0, "ground_truth_count": 1, "matched_count": 0, "predicted_count": 1},
+          "ambiguous_regions": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0},
+          "entities": {"accuracy": 0.0, "coverage": 0.0, "ground_truth_count": 3, "matched_count": 0, "predicted_count": 3},
+          "relations": {"accuracy": null, "coverage": 0.0, "ground_truth_count": 1, "matched_count": 0, "predicted_count": 0},
+          "themes": {"accuracy": null, "coverage": 0.0, "ground_truth_count": 1, "matched_count": 0, "predicted_count": 0}
+        },
+        "error_code": null, "error_detail": null, "extra_key": false, "fenced": false,
+        "fixture_id": "b4-fixture-08", "invalid_enum": false, "peak_vram_mb": 17210.0,
+        "repair_attempted": false, "status": "SUCCEEDED", "truncated": false,
+        "vram_not_measured_reason": null, "wall_latency_ms": 33027.68167500017
+      }
+    ],
+    "schema_valid_count": 8,
+    "truncated_count": 0,
+    "typed_failure_counts": {}
+  },
+  "repeat_1": {
+    "aggregate_collection_scores": {
+      "actions": {
+        "accuracy": 0.0,
+        "coverage": 0.0,
+        "ground_truth_count": 3,
+        "matched_count": 0,
+        "predicted_count": 3
+      },
+      "ambiguous_regions": {
+        "accuracy": null,
+        "coverage": 0.0,
+        "ground_truth_count": 1,
+        "matched_count": 0,
+        "predicted_count": 0
+      },
+      "entities": {
+        "accuracy": 0.0,
+        "coverage": 0.0,
+        "ground_truth_count": 16,
+        "matched_count": 0,
+        "predicted_count": 17
+      },
+      "relations": {
+        "accuracy": null,
+        "coverage": 0.0,
+        "ground_truth_count": 4,
+        "matched_count": 0,
+        "predicted_count": 0
+      },
+      "themes": {
+        "accuracy": null,
+        "coverage": 0.0,
+        "ground_truth_count": 2,
+        "matched_count": 0,
+        "predicted_count": 0
+      }
+    },
+    "attempted_runs": 8,
+    "extra_key_count": 0,
+    "fenced_raw_output_count": 0,
+    "ground_truth_sha256": "c194c0c2ce1c22c5531e55393cf8554d3a3e31be88e3c99bfdd8302032ec4333",
+    "invalid_enum_count": 0,
+    "known_policy_trigger_rate": "NOT_APPLICABLE",
+    "lossless_unwrap_recovered_count": 0,
+    "manifest_version": "vision-b4-manifest-v1",
+    "matching_rule_id": "vision-b4-matching-rule-v1",
+    "matching_rule_sha256": "4e405275257f1428f8f73b5339dac1941ce6f008ff00d39cc19c391c035b96bb",
+    "profile_catalog_hash": "72651b96d2c2259344efcb6fb3349807d42b56079a5422530db09c1590f00947",
+    "profile_id": "QWEN3_VL_8B_INSTRUCT_BF16_V1",
+    "prompt_protocol_id": "vision-v2-structured-output-prompt-v2",
+    "prompt_sha256": "1e880e946dc1f1dcf11731c299702b33ab58e3c098cdda3d6607c080dc8f9fd6",
+    "raw_output_mode": "CLASSIFY_ONLY",
+    "run_label": "B4_REPEAT_1",
+    "runs": [
+      {
+        "attempt_number": 1,
+        "collection_scores": {
+          "actions": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0},
+          "ambiguous_regions": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0},
+          "entities": {"accuracy": 0.0, "coverage": 0.0, "ground_truth_count": 1, "matched_count": 0, "predicted_count": 1},
+          "relations": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0},
+          "themes": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0}
+        },
+        "error_code": null, "error_detail": null, "extra_key": false, "fenced": false,
+        "fixture_id": "b4-fixture-01", "invalid_enum": false, "peak_vram_mb": 17190.0,
+        "repair_attempted": false, "status": "SUCCEEDED", "truncated": false,
+        "vram_not_measured_reason": null, "wall_latency_ms": 18768.671197999993
+      },
+      {
+        "attempt_number": 1,
+        "collection_scores": {
+          "actions": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0},
+          "ambiguous_regions": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0},
+          "entities": {"accuracy": 0.0, "coverage": 0.0, "ground_truth_count": 2, "matched_count": 0, "predicted_count": 2},
+          "relations": {"accuracy": null, "coverage": 0.0, "ground_truth_count": 1, "matched_count": 0, "predicted_count": 0},
+          "themes": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0}
+        },
+        "error_code": null, "error_detail": null, "extra_key": false, "fenced": false,
+        "fixture_id": "b4-fixture-02", "invalid_enum": false, "peak_vram_mb": 17190.0,
+        "repair_attempted": false, "status": "SUCCEEDED", "truncated": false,
+        "vram_not_measured_reason": null, "wall_latency_ms": 21356.523296000203
+      },
+      {
+        "attempt_number": 1,
+        "collection_scores": {
+          "actions": {"accuracy": 0.0, "coverage": 0.0, "ground_truth_count": 1, "matched_count": 0, "predicted_count": 1},
+          "ambiguous_regions": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0},
+          "entities": {"accuracy": 0.0, "coverage": 0.0, "ground_truth_count": 2, "matched_count": 0, "predicted_count": 2},
+          "relations": {"accuracy": null, "coverage": 0.0, "ground_truth_count": 1, "matched_count": 0, "predicted_count": 0},
+          "themes": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0}
+        },
+        "error_code": null, "error_detail": null, "extra_key": false, "fenced": false,
+        "fixture_id": "b4-fixture-03", "invalid_enum": false, "peak_vram_mb": 17190.0,
+        "repair_attempted": false, "status": "SUCCEEDED", "truncated": false,
+        "vram_not_measured_reason": null, "wall_latency_ms": 25104.133984999862
+      },
+      {
+        "attempt_number": 1,
+        "collection_scores": {
+          "actions": {"accuracy": 0.0, "coverage": 0.0, "ground_truth_count": 1, "matched_count": 0, "predicted_count": 1},
+          "ambiguous_regions": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0},
+          "entities": {"accuracy": 0.0, "coverage": 0.0, "ground_truth_count": 1, "matched_count": 0, "predicted_count": 2},
+          "relations": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0},
+          "themes": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0}
+        },
+        "error_code": null, "error_detail": null, "extra_key": false, "fenced": false,
+        "fixture_id": "b4-fixture-04", "invalid_enum": false, "peak_vram_mb": 17190.0,
+        "repair_attempted": false, "status": "SUCCEEDED", "truncated": false,
+        "vram_not_measured_reason": null, "wall_latency_ms": 29257.089652000104
+      },
+      {
+        "attempt_number": 1,
+        "collection_scores": {
+          "actions": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0},
+          "ambiguous_regions": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0},
+          "entities": {"accuracy": 0.0, "coverage": 0.0, "ground_truth_count": 2, "matched_count": 0, "predicted_count": 2},
+          "relations": {"accuracy": null, "coverage": 0.0, "ground_truth_count": 1, "matched_count": 0, "predicted_count": 0},
+          "themes": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0}
+        },
+        "error_code": null, "error_detail": null, "extra_key": false, "fenced": false,
+        "fixture_id": "b4-fixture-05", "invalid_enum": false, "peak_vram_mb": 17190.0,
+        "repair_attempted": false, "status": "SUCCEEDED", "truncated": false,
+        "vram_not_measured_reason": null, "wall_latency_ms": 21473.067232999936
+      },
+      {
+        "attempt_number": 1,
+        "collection_scores": {
+          "actions": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0},
+          "ambiguous_regions": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0},
+          "entities": {"accuracy": 0.0, "coverage": 0.0, "ground_truth_count": 3, "matched_count": 0, "predicted_count": 3},
+          "relations": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0},
+          "themes": {"accuracy": null, "coverage": 0.0, "ground_truth_count": 1, "matched_count": 0, "predicted_count": 0}
+        },
+        "error_code": null, "error_detail": null, "extra_key": false, "fenced": false,
+        "fixture_id": "b4-fixture-06", "invalid_enum": false, "peak_vram_mb": 17190.0,
+        "repair_attempted": false, "status": "SUCCEEDED", "truncated": false,
+        "vram_not_measured_reason": null, "wall_latency_ms": 24239.47996400011
+      },
+      {
+        "attempt_number": 1,
+        "collection_scores": {
+          "actions": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0},
+          "ambiguous_regions": {"accuracy": null, "coverage": 0.0, "ground_truth_count": 1, "matched_count": 0, "predicted_count": 0},
+          "entities": {"accuracy": 0.0, "coverage": 0.0, "ground_truth_count": 2, "matched_count": 0, "predicted_count": 2},
+          "relations": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0},
+          "themes": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0}
+        },
+        "error_code": null, "error_detail": null, "extra_key": false, "fenced": false,
+        "fixture_id": "b4-fixture-07", "invalid_enum": false, "peak_vram_mb": 17190.0,
+        "repair_attempted": false, "status": "SUCCEEDED", "truncated": false,
+        "vram_not_measured_reason": null, "wall_latency_ms": 21223.094808999806
+      },
+      {
+        "attempt_number": 1,
+        "collection_scores": {
+          "actions": {"accuracy": 0.0, "coverage": 0.0, "ground_truth_count": 1, "matched_count": 0, "predicted_count": 1},
+          "ambiguous_regions": {"accuracy": null, "coverage": null, "ground_truth_count": 0, "matched_count": 0, "predicted_count": 0},
+          "entities": {"accuracy": 0.0, "coverage": 0.0, "ground_truth_count": 3, "matched_count": 0, "predicted_count": 3},
+          "relations": {"accuracy": null, "coverage": 0.0, "ground_truth_count": 1, "matched_count": 0, "predicted_count": 0},
+          "themes": {"accuracy": null, "coverage": 0.0, "ground_truth_count": 1, "matched_count": 0, "predicted_count": 0}
+        },
+        "error_code": null, "error_detail": null, "extra_key": false, "fenced": false,
+        "fixture_id": "b4-fixture-08", "invalid_enum": false, "peak_vram_mb": 17210.0,
+        "repair_attempted": false, "status": "SUCCEEDED", "truncated": false,
+        "vram_not_measured_reason": null, "wall_latency_ms": 33247.33281099998
+      }
+    ],
+    "schema_valid_count": 8,
+    "truncated_count": 0,
+    "typed_failure_counts": {}
+  },
+  "study_wall_elapsed_ms": 403150.5886330001
+}

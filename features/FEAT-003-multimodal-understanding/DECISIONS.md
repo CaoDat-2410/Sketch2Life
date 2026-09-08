@@ -1,14 +1,110 @@
 # FEAT-003 decisions
 
+## FEAT-018 compatibility-review decisions (2026-09-05)
+
+- Record independent test success separately from integration readiness. P2 vision schema
+  mapping is not a Montessori mapping adapter, and a provider-shaped integration fixture does not
+  replace the canonical P2-T3 research contracts or benchmark evidence.
+- Cross-person runtime wiring requires versioned fixture/contract agreement, P2 fusion/evaluation,
+  and a separately approved integration allocation under ADR-0006. The historical review itself
+  authorized no live provider call and changed no existing P2 implementation approval.
+- Provider SDK objects and raw provider payloads remain inside infrastructure boundaries. Original
+  source references are immutable; unreadable sources never receive a path-derived content hash.
+- Historical evidence: `evidence/notes/P2_P1_REVIEW_20260905.md`.
+
+## P2-T3 Phase B B3 implementation decisions (2026-09-03)
+
+- B3 uses exactly eight deterministic geometric synthetic image recipes/IDs, generated only in
+  ignored scratch and deleted after each run. They carry no ground truth or quality score and are
+  disjoint from B4's future held-out set. This synthetic diagnostic study needs no per-image
+  review; B4 retains its separate D-10 authorship/review boundary.
+- The B3 raw-output hook defaults to in-memory `CLASSIFY_ONLY`, which discards raw text without a
+  file, log, result field, or evidence. The owner or Person 2 may select `EPHEMERAL_CAPTURE` for
+  a specific B3 diagnostic run under the already-approved B0 access rule; it uses ignored scratch
+  and deletes the capture in `finally`. Both modes persist only safe counts and closed typed
+  identifiers, never raw text.
+- B3 may persist only independent `fenced`, `truncated`, `extra_key`, and `invalid_enum`
+  raw-derived flags/counts, each with attempted runs as denominator; flags may overlap.
+  Duplicate-ID/reference integrity remains typed-result evidence. Missing-required-field may be
+  classifier-local but is never included in B3 report/evidence.
+- B3 runs the single approved Qwen profile with frozen greedy decoding, exactly one adapter call
+  per fixture and no mapping-failure retry, after a `READY` check and within the combined B2–B4
+  one-hour soft cap. Its observations must not widen repair: only lossless complete-fence unwrap
+  remains permitted.
+
+## P2-T3 Phase B B2 real GPU preflight result (2026-09-01)
+
+- The first real B2 typed GPU preflight (`EV-003-T3-06`) — a real `Qwen/Qwen3-VL-8B-Instruct`
+  model load and one synthetic inference through `QwenVisionAdapter` on Lightning L4 — returned a
+  typed `FAILED` / `VISION_SCHEMA_INVALID` / `OUTPUT_MAPPING_FAILED` result (`attempt_number=1`,
+  `repair_attempted=false`; peak VRAM `17080.0` MB, post-call sample on the selected GPU `0.0`
+  MB, supporting the cleanup observation without proving on its own that no other allocation or
+  process existed). The runtime/model-load/invocation/typed-classification/cleanup pathway
+  worked; the adapter could not map the model output to the strict V2 structured-output
+  contract on this single contract-anticipated data point — it does **not** by itself establish a model or
+  adapter defect (B3 investigates mapping-failure causes, not patched or rerun from this one
+  result), is **not** a schema-validity-rate finding (B3's job, at a proper sample size), does
+  **not** freeze `QWEN3_VL_8B_INSTRUCT_BF16_V1` or any candidate, and does **not** select a
+  runtime default; B3–B5 remain unexecuted.
+
+## P2-T3 Phase B B2 environment setup decisions (2026-09-01)
+
+- Environment readiness is distinct from the typed B2 GPU preflight. `READY` means only that the approved exact pins, explicit ignored config, local immutable snapshot metadata, CUDA/device index, BF16, and normalized `NVIDIA_L4` device class are present; it never means a model was loaded or an inference succeeded.
+- The checker receives an explicit V2 profile and `.vision.env`; it chooses no runtime default and never falls back to a remote model identifier. Setup requires a local model directory, downloads disabled, and revision metadata matching the profile's immutable revision.
+- Readiness output is sanitized and path-free. It exposes closed issue tokens, safe versions, hashes, booleans, and normalized device class only. Raw device strings, local paths, endpoints, prompts, model output, and credentials are forbidden.
+
+## P2-T3 Phase B B1 decisions (2026-09-01)
+
+- The V1 vision contract is frozen. Real-model support is additive and disjoint: `VisionProfileIdV2`, `VisionProfileV2`, `VisionProfileCatalogV2`, `VisionUnderstandingRequestV2`, and `VisionUnderstandingResultV2` do not widen or reuse V1 identity-bearing types. V2 has its own `vision_profile_config_hash_v2()` and `vision_profile_catalog_hash_v2()` functions; the canonical V2 catalog contains exactly one candidate and is static.
+- The single B1 candidate is `QWEN3_VL_8B_INSTRUCT_BF16_V1`, `Qwen/Qwen3-VL-8B-Instruct`, immutable revision `0c351dd01ed87e9c1b53cbc748cba10e6187ff3b`, `GPU_BF16`, and `apache-2.0`. The official source did not publish a single repository-level SHA-256 digest verified for this record, so provenance carries `SOURCE_DOES_NOT_PUBLISH_A_DIGEST` rather than a fabricated hash. Full provenance and official source links are in ADR-0007 and the B1 evidence note.
+- The optional `vision-qwen` dependency extra is exact-pinned to `accelerate==1.10.1`, `qwen-vl-utils==0.0.14`, `torch==2.8.0`, and `transformers==4.57.6`. It was not installed; no model, weight, cache, or provider runtime was downloaded.
+- `QwenVisionRuntimeConfig` is isolated under `infrastructure/ai`, constructor-injected, and has no default model/cache path. The default runner enforces the 120-second profile deadline with a spawned killable subprocess, joins/terminates the worker on expiry, and never retries a timeout or leaves a third attempt. No provider deadline/cancellation parameter is invented; exact runtime mapping and cleanup remain B2 verification items.
+- B1 is limited to local code/configuration and no-GPU tests. It does not freeze the profile, choose a runtime default, execute GPU/cloud/provider work, add B2-B5 benchmark/deployment/API/UI/mobile/database/queue behavior, or promote outputs beyond the standalone contract boundary. See `evidence/notes/P2_T3_PHASE_B_B1_IMPLEMENTATION.md` (`EV-003-T3-02`) and ADR-0007.
+- B1 parser-consistency correction: Qwen’s lossless fence repair is true only for a complete fenced JSON object. A complete fenced array, scalar, or `null` is not repaired and maps to `VISION_SCHEMA_INVALID` / `OUTPUT_MAPPING_FAILED`, matching the frozen fake-adapter convention.
+
+## P2-T3 Phase A approval decisions (2026-08-31)
+
+- The owner approved the P2-T3 Phase A contract/fake-adapter scope only. The real Qwen runtime, dependency/model/weight acquisition, GPU or cloud execution, profile selection, benchmark, and all user-facing/integration promotion remain a separately approved Phase B concern.
+- The Phase A `ProhibitedLexiconV1` is a synthetic-only, deterministic, versioned lexical regression set over the six closed prohibited-claim category identifiers. It is reviewed by the project owner; changing its category set, governance, or policy/match-view contract requires a new plan-and-approval review. A synthetic-entry update must bump `lexicon_version` and enter feature-local evidence. It is not a semantic-safety guarantee and contains no real child data.
+- Phase A structured `label`, `predicate`, and `note` values use open normalized `ObservedTextV1` with a non-ground-truth `TextLanguageDeclarationV1`; this does not permit translation, inference, or undocumented semantic cross-modal matching.
+- `AmbiguousRegionCandidateV1` deliberately has no geometry and is not an evidence-reference target in Phase A. Geometry needs a separately approved additive contract change.
+
+## P2-T2 Phase B benchmark-readiness decisions (2026-08-30)
+
+- Round 1 in this readiness package is exactly two candidates: Turbo INT8 and Turbo FP16, both `AUTO_DETECT`, beam size `5`, VAD disabled, and word timestamps disabled. `HONOR_HINT` and the large-v3 candidate are not planned by this layer. No candidate is frozen and no runtime default is selected.
+- `AsrRound1FixtureManifestV1` is a strict provider-neutral metadata contract. Entry IDs are stable and unique; references are non-absolute; audio and transcript references are paired with lowercase SHA-256 values; provenance is `SYNTHETIC` or `LICENSED`; and silence/noise entries cannot declare a language, transcript, or WER/CER eligibility. The concrete source fixture set is intentionally not created here.
+- A `READY` manifest must contain `vi_clear`, explicit non-Vietnamese clear speech whose primary language subtag is not `vi`, `vi_en_code_switch`, silence/no-speech, and matched noise/noisy-speech coverage. Every speech entry declares its expected language and transcript ref/hash; code-switch declares exactly `vi` and `en` and is excluded from single-language language-accuracy/calibration eligibility.
+- Vietnamese scoring uses `vi-asr-normalizer-v1`: NFC, casefold, punctuation-to-space, Unicode whitespace collapse, preserved diacritics and `đ`; WER receives tokens and CER receives a whitespace-free character sequence. These are benchmark-only derived views; raw ASR transcripts remain untouched and no translation, spelling correction, or word inference occurs.
+- The readiness planner is metadata-only and provider-free. It validates the manifest and fixed catalog settings, hashes canonical metadata, plans one record per fixture/profile, and marks every unavailable measurement `NOT_MEASURED`. It owns no CLI, HTTP/API, queue, GPU, model-loading, or P2-T5 work.
+- Config hygiene was audited without exposing values: the ignored local `backend/.asr.env` contains only the three ASR runtime keys, while the shared `backend/.env` contains the four generic application keys. No move was required and no local secret/path value is recorded in source or evidence.
+- The Phase B approval covered a controlled live Round-1 execution. The fixture-source decision was resolved as `SYNTHETIC` (TTS), compliant local fixture payload/reference-transcript refs and hashes were supplied, and the benchmark was executed twice; see `EV-003-T2-05` and repeat-run evidence `EV-003-T2-06`. No profile is frozen and no runtime default is selected.
+- A supplementary owner-provided Colab execution (`EV-003-T2-07`, reviewed 2026-09-01) used the same manifest, source commit, P2-T1 gate, adapter, dependency pin, and two profiles, and reproduced the local quality metrics, typed silence failures, and pure-noise mismatches. The Colab Tesla T4 latency/VRAM values remain environment-specific; this run is not pooled with local evidence and does not increase the effective fixture sample size. No profile freeze or runtime default is selected.
+
+## P2-T2 Phase B Round-1 runner correction decisions (2026-08-30)
+
+- A warmup/preflight call must never use fabricated P2-T1 provenance. The runner deterministically selects the first (by `fixture_id`) manifest fixture that actually receives a real P2-T1 `PASS` and warms up with its real audio and real, earned `MediaValidationProvenanceV1`; if no fixture in the manifest passes P2-T1, the runner raises before any model load rather than proceeding with a fabricated pass. The warmup run is excluded from `runs`, WER/CER, language accuracy, speech-presence outcomes, and p50/p95 latency — only cold-start timing uses it.
+- A Round-1 report's per-profile `total_runs`/`schema_validity_rate`/`success_count + failure_count` must be derived from, and structurally validated against, that profile's own runs only — never the combined run count across both Round-1 profiles. `AsrRound1BenchmarkReportV1` enforces this as a Pydantic validator, not prose.
+- `duration_band` is a verified, not merely declared, property: the runner decodes each fixture's actual audio duration and fails deterministically (`FixtureIntegrityError`) before any adapter call if the manifest's declared band disagrees with the decoded audio. `expected_speech_present` similarly becomes structured execution evidence via a per-run `speech_presence_outcome` (`MATCH`/`MISMATCH`/`NOT_MEASURED`, absent entirely on a P2-T1-rejected `FAILED` run) and a per-profile `speech_presence_match_rate` aggregate, rather than only manifest metadata and evidence prose.
+- A repeat Round-1 execution is recorded as an additional, distinctly-labelled evidence artifact (`P2_T2_PHASE_B_ROUND1_REPORT_RUN2.json`, `EV-003-T2-06`) rather than overwriting the prior run's JSON. Each run carries its own deterministic `report_id`, and the report note names which artifact is newest, so repeat-run evidence is auditable and no earlier measured result is silently replaced.
+- A warmup call's result is captured and inspected, not discarded outright: if it returns a typed `AsrFailureV1`, the runner raises `WarmupTranscriptionFailedError` (carrying only the closed `AsrErrorCode`/`AsrErrorDetail` identifiers, never raw provider text) before recording any `cold_start_ms` value and before executing any normal fixture run for that profile — a failed warmup must never be represented as a successful timing measurement. This did not affect any executed evidence (every real run's warmup succeeded); it closes a latent gap for future runs.
+
 - Original input references are immutable; preprocessing creates working copies.
 - Raw model output is never canonical meaning until Gate A.
 - Conflicts and uncertainty are preserved, not silently overwritten.
 - Prohibited psychological/personality inference fields are excluded from the contract.
-- P2-T2 and P2-T3 use injected provider protocols plus deterministic fixture adapters; provider SDKs, endpoints, credentials, and network calls remain outside this sprint slice.
-- ASR/VLM adapters return versioned typed success/failure contracts. Provider SDK objects and raw provider payloads never cross the infrastructure boundary.
-- Source hashes are nullable when a source cannot be read; a path-derived digest is never presented as media-content provenance.
-
-## Compatibility review decision — 2026-09-05
-- Record independent test success separately from integration readiness. P2 vision schema mapping is not a Montessori mapping adapter.
-- Recommend versioned fixture/contract agreement, P2 fusion/evaluation, and a separately approved integration allocation under ADR-0006; do not merge or implement wiring during this review.
-- Evidence: evidence/notes/P2_P1_REVIEW_20260905.md.
+- P2-T2 must keep the ASR result provider-neutral. The model revision, decode profile, VAD policy, compute precision, and operational thresholds remain unfrozen until the approved fixture benchmark supplies measured evidence.
+- P2-T2's `INPUT_NOT_VALIDATED` is a schema-valid `AsrResultV1` typed failure, not a separate exception type; it is a defensive second check, and orchestration must still gate every ASR call on a P2-T1 `PASS` first.
+- P2-T2 ASR diagnostics (e.g. `no_speech_prob`, language-detection probability) never override P2-T1's `PASS`/`RECAPTURE` decision and never trigger a self-initiated recapture; disagreement between P2-T1's signal and P2-T2's diagnostics is preserved as conflict/uncertainty evidence for P2-T4, not resolved by either component alone.
+- P2-T2's `AsrResultV1` is a discriminated union, `AsrSuccessV1 | AsrFailureV1`, not a flat schema with ambiguous optional fields. A quiet-but-successfully-processed audio (`SUCCEEDED`, `transcript_raw=""`, `speech_diagnostic=NO_SPEECH_SUSPECTED`/`INDETERMINATE`) and a provider/model error (`FAILED`, typed `error_code`) are never conflated in either direction.
+- P2-T2's retry/repair matrix distinguishes inference retry (re-invoking the adapter's inference boundary, `attempt_number`) from local mapping/serialization repair (`repair_attempted`, no new inference attempt). `INPUT_NOT_VALIDATED` and `ASR_MODEL_UNAVAILABLE` never retry; `ASR_TIMEOUT` does not retry by default; `ASR_PROVIDER_FAILURE` retries at most once, only when classified transient; `ASR_SCHEMA_INVALID` never re-invokes the inference boundary, only one local repair. All enforced inside the adapter, never by a caller. `attempt_number` is phase-agnostic terminology: in Phase A it counts the deterministic fake adapter's simulated attempts (no real model runs), and only in Phase B does an attempt become a real provider/model invocation.
+- P2-T2's `requested_profile_id` is validated against `AsrProfileCatalogV1` at `AsrRequestV1` construction, before `AsrPort` is ever invoked. A profile ID absent from the catalog is a request/schema-boundary validation error, not an `AsrFailureV1` and specifically not `INPUT_NOT_VALIDATED` (which requires an otherwise-valid request). Every returned result's `profile_id` is therefore always a resolved, valid catalog entry.
+- P2-T2's `requested_profile_id` is a closed, versioned `AsrProfileCatalogV1` reference, never a free-form string. Phase A shipped only deterministic fake profile entries (no model, no dependency, no Whisper runtime); Phase A did not add any Whisper candidate entry to the catalog, not even as a placeholder. The current Phase B approval introduces the Whisper candidates. `source_audio_ref`+hash is always required and always populated, in every phase including Phase A (from a synthetic P2-T1-`PASS`ed fixture), and always names the original immutable audio; the optional `processing_audio_ref` (with mandatory `derivation_provenance` when set) is reserved for a future derived working copy — Phase A always leaves it `null`.
+- Per `SPRINT_1_TASK_ALLOCATION.md`, P2-T2 owns the ASR contract and both the fixture fake and the real Whisper adapter; the CLI and the ~20-fixture end-to-end multimodal benchmark report remain P2-T5's deliverable, not P2-T2's.
+- P2-T2 Phase B is authorized under the current task approval as an additive amendment to the already-approved Phase A contract (`contracts/schemas/asr.py`): `AsrProfileId`/`adapter_kind`/`compute_profile` widened (existing Phase A fake values unchanged), `AsrProfileV1` gains model/weight-provenance/adapter/runtime-version fields, and `phase_a_profile_catalog()` is replaced by a single static, versioned, phase-agnostic catalog function (e.g. `asr_profile_catalog()`) covering both Phase A fake entries and Phase B candidates — not a per-request dynamic catalog injected into Pydantic validation, which would let the same `profile_id` validate inconsistently across call sites.
+- P2-T2 Phase B's first benchmark round is `AUTO_DETECT`-only and compares exactly Turbo INT8 auto and Turbo FP16 auto; large-v3 is not part of Round 1. VAD is disabled, beam size is 5, and word timestamps are disabled. VAD/beam-size/word-timestamp alternatives are explicitly `NOT_MEASURED` in this round, never silently omitted; no profile is proposed for freeze or made a runtime default from this round alone.
+- Forced-language (`HONOR_HINT`) behavior is provider-specific to `faster-whisper` — confirmed against upstream source (`SYSTRAN/faster-whisper`, `faster_whisper/transcribe.py`): `language=None` triggers real detection with a measured `language_probability`; a supplied language skips detection and hardcodes `language_probability=1` as a sentinel, not a confidence. This is deferred to a later Phase B round. `AsrSuccessV1` gets **no** new schema-level validator for it — the shared contract stays provider-neutral, since a different provider's hint mechanism could be a soft bias with a genuinely measured confidence. The convention (`language_hint_applied=true`, `language_probability=1.0` reported as a sentinel, excluded from language-detection accuracy/calibration metrics, never presented as auto-detected) is enforced via the `faster-whisper` adapter's own tests/evidence, the same way today's retry/`attempt_number` correlations are enforced by `DeterministicFixtureAsrAdapter`'s tests rather than a shared-schema validator.
+- P2-T2 Phase B's `FasterWhisperRuntimeConfig` lives in `infrastructure/ai`, constructor-injected into the adapter/test runner; the shared `infrastructure/config/settings.py` `Settings` class is never extended for it, and no HTTP/API/provider wiring is introduced. Only the environment-variable name `SKETCH2LIFE_ASR_MODEL_CACHE_DIR` (no default path) is recorded in source or evidence.
+- `faster-whisper`/`CTranslate2` versions must be exact-pinned in `backend/pyproject.toml` before any Phase B install, as a documented exception to this repository's usual range-pin convention, with rationale (CTranslate2's cuDNN version-compatibility history) recorded in the ADR required before any model/runtime freeze.
+- P2-T2's real adapter verifies every actual inference input before invoking a model: the immutable source reference is always verified and, when a derived working copy is supplied, that copy is verified and used for inference. Missing/unreadable files and hash mismatches are typed `INPUT_NOT_VALIDATED` results at attempt `0`, never uncaught filesystem or hash exceptions.
+- CUDA/cuDNN/cuBLAS/device failures raised during either model load or inference map to `ASR_MODEL_UNAVAILABLE`/`DEVICE_UNAVAILABLE`, not `ASR_PROVIDER_FAILURE`. A timeout must return at the configured deadline; because the synchronous upstream model call cannot be cancelled, Round 1 profiles must not enable timeout retry while a timed-out worker could still be running.
+- Local Windows Phase B runtime is configured only through ignored local environment values: `SKETCH2LIFE_ASR_MODEL_DIR` names the downloaded Turbo snapshot and `SKETCH2LIFE_ASR_NATIVE_LIBRARY_DIR` names the extracted CUDA 12 cuBLAS/cuDNN 9 directory. Those values live in `backend/.asr.env`, not the shared backend `.env`, so Phase B does not alter or become parsed by application `Settings`. `FasterWhisperRuntimeConfig.from_env_file()` reads that explicitly selected file without mutating process environment from the file; actual process environment overrides it. Before importing/loading CTranslate2, the runtime helper exposes the DLL directory through `os.add_dll_directory()` and the Python process PATH only — never the global Windows PATH. Cloud runtimes remain free to omit the native-library variable and use their image-provided CUDA libraries.

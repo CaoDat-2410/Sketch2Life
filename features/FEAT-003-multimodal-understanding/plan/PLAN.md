@@ -1,8 +1,9 @@
 # FEAT-003 Multimodal understanding plan
 
-- Status: REVIEW (P2-T1 hardening, P2-T2, and P2-T3)
+- Status: APPROVED (P2-T1 and P2-T2 Phases A/B complete; P2-T3 Phase B in progress)
 - Plan revision: 4
-- Implementation status: DONE (approved slice)
+- Implementation status: IN_PROGRESS (P2-T3 B1-B3 and the original B4 benchmark complete;
+  prompt-v3 follow-up phases 1-3 complete; P2-T4/P2-T5 remain gated)
 - Owner: Person 2
 - Estimate: 10 points total (P2-T1 through P2-T5, 2 points each)
 
@@ -25,9 +26,13 @@ The contract review is part of this plan, not approval to integrate it into the 
 
 ## Approved implementation slice
 
-This revision approves the P2-T1 hardening items identified in review, plus P2-T2 and P2-T3. P2-T4 and P2-T5 remain planned and are explicitly out of scope.
-
-The hardening slice closes the reviewed runtime and evidence gaps: signed PCM full-scale normalization, fail-safe PNG parsing with CRC/IEND/dimension checks, bounded media reads, truthful nullable source hashes/status, and evidence that matches the tests actually run.
+P2-T1 and P2-T2 Phases A/B are implemented; the P2-T2 controlled Round-1 execution and repeat are
+recorded in `EV-003-T2-05` and `EV-003-T2-06`, without selecting a frozen profile or runtime
+default. P2-T3 Phase A and the bounded Phase B B1-B5 study are approved. B1-B3 and the original B4
+benchmark are complete; B4 produced schema-valid output but a quality `NO_GO`. The separately
+bounded prompt-v3 follow-up has completed local phases 1-3, while its cross-environment package
+verification and all later GPU work remain gated. The current safe status is maintained in
+`evidence/P2_T3_LIVING_SUMMARY.md`. P2-T4 and P2-T5 remain unapproved.
 
 ## Task breakdown and execution order
 
@@ -47,14 +52,16 @@ The hardening slice closes the reviewed runtime and evidence gaps: signed PCM fu
 
 **Goal:** Provide an ASR port implementation that can use `faster-whisper`/Whisper large-v3-turbo, while its public result remains provider-neutral and source-traceable.
 
-**Implementation slices:**
+**Implementation slices (Phase A, this approval scope):**
 
-1. Define `AsrPort` plus a deterministic fixture fake first; accept only a validated audio reference from T1 and preserve `source_audio_ref`/hash in every result.
-2. Map provider output into `AsrResultV1`: raw transcript, detected language plus confidence/probabilities where available, timestamped segments, ASR quality metadata, model/version/config provenance, and typed timeout/provider/schema errors. Do not expose model SDK objects or raw JSON outside infrastructure.
-3. Implement one bounded retry only for a parseable/repairable provider response; provider failure remains a typed error and cannot overwrite the source or create a canonical meaning artifact.
-4. Add Vietnamese and non-Vietnamese synthetic fixtures, low-confidence/no-speech cases, timeout/failure cases, and schema round-trip tests. A real-model smoke/benchmark run stays optional until provider access and execution scope are approved.
+1. Define `AsrPort`, `AsrResultV1` as a discriminated union (`AsrSuccessV1`/`AsrFailureV1`), and `AsrProfileCatalogV1` (deterministic fake profile entries only), plus a deterministic fixture fake; accept only a validated audio reference from T1 and preserve `source_audio_ref`/hash in every result.
+2. Map fake-adapter output into `AsrSuccessV1`/`AsrFailureV1`: raw transcript (may be empty with `speech_diagnostic=NO_SPEECH_SUSPECTED`), detected language plus confidence/probabilities where available, timestamped segments, ASR quality metadata, model/version/config provenance, `attempt_number`/`repair_attempted`, and typed timeout/provider/schema errors. Do not expose model SDK objects or raw JSON outside infrastructure.
+3. Implement the retry/repair matrix (per-error-code retryability, one bounded inference retry only for transient provider failure, one local mapping/serialization repair only for schema-invalid output, enforced inside the adapter); provider failure remains a typed error and cannot overwrite the source or create a canonical meaning artifact.
+4. Add Vietnamese and non-Vietnamese synthetic fixtures, Vietnamese-English code-switching, silence-only/no-speech (Case A: `SUCCEEDED` with empty transcript) and unmappable-output (Case B: `FAILED`) cases, noise/recording-condition variation, timeout/failure cases per the retry matrix, and schema round-trip tests.
 
-**Done when:** valid audio produces schema-valid transcript/language/quality metadata with the original audio reference; all fake/provider outputs are mapped or rejected deterministically; no credential, endpoint, raw transcript, or raw media is written to ordinary logs.
+**Phase B (approved under `approvals/TASK_APPROVAL.md`, still P2-T2 ownership):** implement the real `faster-whisper`/Whisper adapter against experimental `AsrProfileCatalogV1` candidate entries and run the ASR-only profile-selection benchmark. The current readiness layer plans exactly the two Turbo Round-1 profiles; the live run waits only for fixture-source selection and compliant local payload/reference hashes. It does not include the CLI or the ~20-fixture end-to-end report, which is P2-T5. The exact scope — additive contract change, `config_hash` fields, standalone runtime config, Round 1 (`AUTO_DETECT`-only) definition, deferred forced-language convention, GPU preflight/exact-pin requirements, and evidence requirements — is detailed in `P2_T2_ASR_RESEARCH_PLAN.md` and `evidence/notes/P2_T2_PHASE_B_APPROVAL_REQUEST.md`.
+
+**Done when (Phase A):** valid audio produces schema-valid transcript/language/quality metadata with the original audio reference; every fake output is mapped to exactly one of `AsrSuccessV1`/`AsrFailureV1` deterministically; ASR no-speech/language diagnostics never override a P2-T1 `PASS`/`RECAPTURE` decision; no credential, endpoint, raw transcript, or raw media is written to ordinary logs or to `evidence/`. Full contract, discriminated-union fields, retry/repair matrix, and boundary detail: `P2_T2_ASR_RESEARCH_PLAN.md`.
 
 ### P2-T3 — Qwen3-VL structured drawing understanding adapter (2 points, Must)
 
@@ -68,6 +75,8 @@ The hardening slice closes the reviewed runtime and evidence gaps: signed PCM fu
 4. Test valid structured outputs, malformed/free-text output, missing source reference, prohibited field, ambiguity, timeout, and source-hash preservation. Use fixture model responses for all contract tests.
 
 **Done when:** `drawing.png` yields only schema-valid structured observations; malformed free text cannot enter fusion; every observation remains traceable to the original image and model/config.
+
+**Phase A approval reference:** the detailed Phase A contract, typed error/retry/repair matrix, safety boundary, fixture matrix, and accepted owner decisions are in `P2_T3_VISION_RESEARCH_PLAN.md`; the authoritative approval is `approvals/TASK_APPROVAL.md` (2026-08-31). The corresponding review record is `evidence/notes/P2_T3_VISION_CONSTRAINT_REVIEW.md`. This authorizes only the deterministic contract/fake-adapter scope. P2-T3 Phase B (real Qwen runtime/profile/GPU/benchmark) remains separately gated. Where the plan resolves ambiguity, prohibited claims are rejected as typed failures rather than silently masked, and the single bounded local repair is a lossless Markdown-fence unwrap only — never JSON completion or value inference.
 
 ### P2-T4 — Multimodal fusion and conflict detection (2 points, Must)
 
@@ -88,7 +97,7 @@ The hardening slice closes the reviewed runtime and evidence gaps: signed PCM fu
 
 **Implementation slices:**
 
-1. Build `validate`, `understand --provider fixture`, and `evaluate` CLI commands. Fixture mode is the CI baseline; a separately approved adapter profile may run live-model measurements without changing schemas or fixtures.
+1. Build `validate`, `understand --provider fixture`, and `evaluate` CLI commands. Fixture mode is the CI baseline; the approved P2-T2 Phase B Round-1 profiles may run only through their controlled ASR benchmark boundary, without changing schemas or fixtures.
 2. Define a held-out, versioned fixture manifest with reference transcript, language, entities/actions/relations/themes, expected validation decision, and known conflict labels. Keep media local and synthetic; record immutable hashes, manifest version, and split membership.
 3. Calculate and report: schema pass/fail rate; image/audio recapture counts by reason; ASR WER and CER against reference transcript; entity/action precision, recall, F1 (and the matching rule); conflict-detection precision/recall where labeled; per-stage and end-to-end p50/p95 latency; provider/config and run timestamp. Report unavailable metrics as `NOT_MEASURED`, never as zero.
 4. Save command, environment, manifest/model/config hashes, outputs, and interpretation under `features/FEAT-003-multimodal-understanding/evidence/`. Include success, invalid-input, timeout/provider-failure, and fallback/recapture cases.
@@ -108,20 +117,23 @@ For one owner, work sequentially as T1, T2, T3, T4, T5. If two contributors are 
 
 ## Acceptance criteria
 
-- [x] T1 invalid image/audio fixtures deterministically request recapture with stable reason codes, bounded reads, fail-safe parsing, and truthful unavailable-source provenance.
-- [x] Source originals remain untouched; available source references retain content hashes and unavailable sources carry an explicit status without a path-derived digest.
-- [x] T2 and T3 fixture/provider-shaped results validate against their versioned schemas; free-form provider output is never the output contract.
+- [x] T1 invalid image/audio fixtures deterministically request recapture with stable reason codes.
+- [x] Source originals remain untouched and every derived reference carries source hash/provenance.
+- [ ] T2 and T3 real or fixture model results validate against their versioned schemas; free-form provider output is never the output contract.
 - [ ] T4 preserves conflicting modality predictions with source support and uncertainty; it never produces canonical meaning or psychological inference.
 - [ ] T5 reports schema validity, recapture reasons, ASR WER/CER, entity/action accuracy, conflict metrics where labeled, and latency with measurement coverage.
-- [x] Timeout/provider-failure fixtures produce typed standalone errors and never overwrite source artifacts.
-- [x] The adapter and contract tests execute without mobile, backend API, database, queue, or another Sprint 1 workstream.
-- [x] Evidence records command, environment, input/manifest reference, output, timestamp, reviewer, and interpretation for this implementation slice.
+- [ ] Timeout/provider-failure fixtures produce typed standalone errors and never overwrite source artifacts.
+- [ ] The runner and all contract tests execute without mobile, backend API, database, queue, or another Sprint 1 workstream.
+- [ ] Evidence records command, environment, input/manifest reference, output, timestamp, reviewer, and interpretation.
+- [x] P2-T2 Phase B readiness validates a versioned ASR-only manifest and fixed Round-1 metadata plan without model/GPU/CLI/API work; unavailable measurements are explicit `NOT_MEASURED`.
 
 ## Evidence and review gates
 
 1. Contract/fixture review before implementation: schema names, versions, reason-code catalog, and synthetic-data declaration.
-2. Approval update: revision 4 is approved by the project owner in the current task for the hardening slice, P2-T2, and P2-T3 only.
+2. Approval update: the approver must approve this exact revision and scope before any implementation begins.
 3. During implementation: store test output, fixture manifest hashes, model/config hashes, and benchmark summaries in this feature's `evidence/` directory. Do not store original or real child media.
 4. Before completion: record a compatibility note for Integration Sprint containing only versioned input/output contracts, typed errors, artifact references, and provenance requirements.
 
-Implementation is authorized only for the revision 4 scope above. T4/T5 remain blocked pending a separate approval update.
+Implementation is blocked for P2-T3 work outside its approved Phase B B1-B5 boundary and for all
+P2-T4/P2-T5 work until the corresponding scope is explicitly approved. P2-T3 follow-up phases do
+not authorize later phases, GPU work, production selection, or integration by default.

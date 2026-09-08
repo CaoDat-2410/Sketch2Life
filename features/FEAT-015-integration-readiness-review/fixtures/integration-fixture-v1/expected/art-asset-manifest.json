@@ -6,7 +6,7 @@
   "source_artifact_id": "child-drawing-001",
   "source_artifact_version": "1",
   "source_path": "media/drawing.svg",
-  "source_sha256": "e8832914ecf124fa6942c37ee279ceab876a7dd946de61e1676f2b55825faaac",
+  "source_sha256": "1e0f0e8f9e1cb396e6b4bca837e29284514ff322d698320023b30b39890edace",
   "extraction_status": "READY",
   "contract_version": "1.0"
 }

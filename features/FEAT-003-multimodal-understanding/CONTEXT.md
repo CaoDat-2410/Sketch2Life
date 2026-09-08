@@ -1,10 +1,166 @@
 # FEAT-003 Multimodal understanding context
 
-- Status: REVIEW (P2-T1 hardening, P2-T2, and P2-T3)
+## Canonical published evidence
+
+- The public, closed P2-T1 through P2-T3 evidence set is listed in
+  [`evidence/README.md`](evidence/README.md). Only records linked by that index are published
+  canonical evidence. Working drafts, review handoffs, templates, and local diagnostic records
+  remain intentionally local-only and are not linked from this context.
+
+## FEAT-018 compatibility history (2026-09-05)
+
+- A historical offline compatibility review tested the then-current Person 2 and Person 1
+  branches independently and found no P2-to-P1 runtime connection or fusion implementation at
+  that point. It recommended a versioned fixture/contract agreement and a separately approved
+  integration allocation under ADR-0006; it did not promote P2-T4/P2-T5 or alter any P2-T3
+  approval, benchmark, profile, or runtime-default decision.
+- The later FEAT-018 integration branch carries its own contracts, fixture flow, and feature-local
+  approvals. Merging that branch preserves this file's newer P2-T3 evidence history and does not
+  reinterpret FEAT-018's provider-shaped integration artifacts as the canonical P2-T3 V1/V2
+  research contracts or as evidence that the P2-T3 quality `NO_GO` has been resolved.
+
+## P2-T3 Phase B B4 real Lightning execution status (2026-09-07)
+
+- The real B4 held-out quality benchmark has now executed once, both `B4_PASS_1` and its
+  mandatory `B4_REPEAT_1`, on Lightning L4 (operator-reported, relayed directly into this
+  session; not run by this documentation session), recorded in
+  `evidence/notes/P2_T3_PHASE_B_B4_QUALITY_BENCHMARK_EXECUTION.md` (`EV-003-T3-09`) with the
+  full raw safe-aggregate JSON at
+  `evidence/notes/P2_T3_PHASE_B_B4_QUALITY_BENCHMARK_REPORT.json` (`EV-003-T3-10`). This is the
+  first B4 execution to complete end-to-end: real model load and inference across all 8
+  held-out fixtures per pass (16 adapter calls total), `schema_valid_count: 8/8` both passes,
+  `typed_failure_counts: {}`, zero raw-output fence/truncation/extra-key/invalid-enum flags, and
+  confirmed scratch cleanup.
+- Two runner-only defects were fixed in this same session immediately before this run, both
+  covered by no-GPU regression tests and confirmed working under this real execution: (1) the
+  synthetic companion-audio waveform earned a real P2-T1 `PASS` instead of failing
+  `AUDIO_NO_SPEECH_SIGNAL` (commit `eec214f`); (2) the request sent to the real adapter now
+  carries a real, hash-verified, CWD-relative image path instead of a bare label, so
+  `SOURCE_IMAGE_UNREADABLE` no longer occurs (commit `88c90f8`). Neither fix touched the fixture
+  package, manifest, ground truth, matching rule, C1-v2 prompt identity, scoring, or cleanup
+  semantics.
+- Quality result: aggregate `matched_count` is `0` across every one of the five collections
+  (`entities`, `actions`, `relations`, `themes`, `ambiguous_regions`) in both passes, despite
+  `entities`/`actions` `predicted_count` closely tracking `ground_truth_count` (17 vs. 16
+  entities aggregate) — the model enumerates roughly the right number of items but no predicted
+  label matches the frozen exact-normalized-string matching rule
+  (`vision-b4-matching-rule-v1`), and it did not predict any `relations`/`themes`/
+  `ambiguous_regions` item anywhere they have nonzero ground truth. `B4_PASS_1` and
+  `B4_REPEAT_1` produced byte-identical `aggregate_collection_scores`, satisfying D-9's
+  same-profile reproducibility requirement. This is recorded as a quality finding for Person
+  2/owner interpretation, not established here as a runner, matching-rule, or model defect — see
+  `EV-003-T3-09` for the full reasoning distinguishing it from the two fixed runner bugs above.
+- Not established by this record: whether the required GPU-usage reconciliation and explicit B4
+  reauthorization (`P2_T3_PHASE_B_B4_DECISION_RECORD_DRAFT.md`, "Non-negotiable ordering" steps
+  5–6) occurred before this run, or this run's contribution to the cumulative one-hour Lightning
+  L4 soft cap across B2–B4 (D-9) — both remain the operator's/owner's responsibility to confirm.
+  No profile is frozen, no runtime default is selected, and this is not a Gate A or Integration
+  Sprint decision.
+
+## P2-T3 Phase B B4 runner implementation status (2026-09-07)
+
+- The internal (non-CLI) B4 one-pass runner (`backend/src/sketch2life/benchmark/vision_b4_quality_benchmark.py`)
+  and its unit tests were implemented after the owner's explicit local-only authorization,
+  recorded in `evidence/notes/P2_T3_PHASE_B_B4_RUNNER_IMPLEMENTATION.md` (`EV-003-T3-12`). It
+  verifies the full owner-approved package and every fixture's real P2-T1 provenance before
+  constructing an adapter, injects the exact C1-v2 prompt, makes exactly one call per fixture
+  with no retry, and scores schema-valid results under the frozen matching rule (deterministic
+  maximum bipartite matching, endpoint/evidence-reference integrity, fixed text normalizer,
+  `NOT_MEASURED` ambiguous-region accuracy) — raw text, prompt text, local paths, candidates, and
+  ground-truth text are structurally absent from every report. At the time this note was written,
+  19 focused B4 tests and the full 622-test backend suite passed, alongside Ruff, strict mypy,
+  and all four repository validators; no Qwen, model, GPU, Lightning, dependency, or
+  `.vision.env` action occurred. The runner was implemented, reviewed, and independently
+  red-team-hardened (polynomial maximum-matching with a deterministic tie-break, replacing
+  exhaustive enumeration) before any GPU/Lightning execution was authorized. This runner is the
+  same one later fixed twice and actually executed on Lightning L4; see "P2-T3 Phase B B4 real
+  Lightning execution status (2026-09-07)" above for that later, separate milestone.
+
+## P2-T3 Phase B B4 held-out fixture authoring status (2026-09-07)
+
+- Person 2 authored exactly eight synthetic geometric held-out PNG fixtures and the associated
+  manifest, ground truth, and `vision-b4-matching-rule-v1` before any B4 model output was seen,
+  recorded in `evidence/notes/P2_T3_PHASE_B_B4_FIXTURE_AUTHORING.md` (`EV-003-T3-11`). Each
+  fixture earned a real local P2-T1 `PASS`; regenerating B3's eight scratch-image recipes and
+  comparing SHA-256 sets confirmed zero overlap with the B4 images, preserving B3/B4
+  disjointness. Following an independent red-team review, the owner approved the manifest, the
+  ground truth (SHA-256 `c194c0c2ce1c22c5531e55393cf8554d3a3e31be88e3c99bfdd8302032ec4333`), the
+  matching rule (SHA-256 `4e405275257f1428f8f73b5339dac1941ce6f008ff00d39cc19c391c035b96bb`), the
+  eight-category taxonomy, and the C1-v2 prompt identity, and acknowledged that fixtures 06 and
+  07 intentionally carry no scored relation (the caveat referenced in the B4 execution status
+  above). No Qwen adapter, model, provider, GPU, Lightning session, or prompt body was involved
+  in authoring.
+
+## P2-T3 Phase B B3 preparation and owner-decision status (2026-09-03)
+
+- `evidence/notes/P2_T3_PHASE_B_B3_PREPARATION.md` (`EV-003-T3-07`) is a planning-only note
+  written after re-verifying the full plan/dossier against the committed code (all tests,
+  Ruff, strict mypy, and all four repository validators re-run clean; `git diff --check`
+  clean; HEAD `fa8e089`). It identifies that the public `VISION_SCHEMA_INVALID` /
+  `OUTPUT_MAPPING_FAILED` token collapses fenced/truncated/extra-key/invalid-enum causes, so
+  the fenced/truncated/extra-key rates the approved B3 scope asks for need an additive,
+  optional raw-output diagnostic hook (never a public-contract change) rather than being
+  readable off the existing typed result alone. On 2026-09-03 the owner confirmed its B3
+  Decision Record: exactly eight deterministic geometric synthetic scratch fixtures, no ground
+  truth/per-image review, and disjointness from B4; default in-memory `CLASSIFY_ONLY` raw
+  handling, with owner/Person-2-selected per-run `EPHEMERAL_CAPTURE` only in ignored scratch and
+  `finally` cleanup; persisted raw-derived metrics limited to fenced/truncated/extra-key/
+  invalid-enum counts; and no widening beyond lossless complete-fence unwrap. No code, GPU,
+  dependency, or `.vision.env` action occurred, and no new approval was needed or sought — B3 is
+  already inside the approved bounded B1–B5 scope.
+
+## P2-T3 Phase B B2 real GPU preflight status (2026-09-01)
+
+- The real B2 typed GPU preflight has now executed once on Lightning L4 (operator-reported; not
+  run by this documentation session), recorded in `evidence/notes/P2_T3_PHASE_B_B2_GPU_PREFLIGHT_EXECUTION.md`
+  (`EV-003-T3-06`). A real `Qwen/Qwen3-VL-8B-Instruct` model load and one synthetic inference
+  through `QwenVisionAdapter` returned a typed `FAILED` / `VISION_SCHEMA_INVALID` /
+  `OUTPUT_MAPPING_FAILED` result at `attempt_number=1`, measured `wall_latency_ms≈25729`, VRAM
+  baseline/peak/post-call `0.0`/`17080.0`/`0.0` MB — the post-call sample supports the cleanup
+  observation without proving on its own that no other allocation or process existed — and a
+  reported-absent scratch directory afterward. The runtime/model-load/invocation/
+  typed-classification/cleanup pathway worked: the adapter could not map the model output to
+  the strict V2 structured-output contract on this one contract-anticipated data point, which
+  does not by itself establish a model or adapter defect — B3 is the study that investigates
+  mapping-failure causes. The later B3 mapping study is separately recorded as implementation
+  evidence; B4–B5 remain unexecuted and no profile is frozen or made a runtime default.
+- The current Lightning Studio session already has the exact B1 dependency pins installed and
+  the approved model snapshot present, so it does **not** need to reinstall or re-download
+  anything before another run in this same session. `.vision.env` and the local model snapshot
+  remain local-only and gitignored — they are **not** part of this repository's committed
+  state, so a new Studio or a Studio reset starts from scratch and must re-establish both
+  before any further B2–B5 work.
+
+## P2-T3 Phase B B2 preflight runner status (2026-09-01)
+
+- The internal (non-CLI) B2 preflight runner (`backend/src/sketch2life/benchmark/vision_b2_preflight.py`, `EV-003-T3-05`) was reviewed, hardened, and re-tested today across three same-day passes — code/test work only, no GPU. It now refuses a caller-supplied `fixtures_dir` that is absolute, equal to the current working directory, or escapes it via `..`, before writing any scratch fixture (`UnsafeFixturesDirectoryError`); runs `build_fixtures` inside the cleanup-covering `try`/`finally` so a mid-write builder failure still cleans the scratch directory; guarantees the VRAM sampler's background thread is stopped/joined even when the adapter raises; and requires each builder-returned fixture path to be a relative, existing regular file strictly inside `fixtures_dir` (`UnsafeFixturePathError` otherwise — never a directory, a non-existent path, `fixtures_dir` itself, or a path outside scratch). 17 focused tests against an injected fake `VisionUnderstandingPortV2` cover all of the above; the full backend suite (427 passed, 5 skipped), Ruff, and strict mypy all pass.
+- This runner is committed in `f3e5830`. Its own review/hardening work involved no GPU, dependency install, model download, or `.vision.env` change — the real B2 typed GPU preflight this runner enabled has since executed once; see the "P2-T3 Phase B B2 real GPU preflight status" section above and `EV-003-T3-06`.
+
+## P2-T3 Phase B Lightning handoff status (2026-09-01)
+
+- The operational handoff for the approved development-only Lightning L4 study remains local-only.
+  It separates repository facts from operator-reported setup observations and preserves the
+  `READY` → one-run B2 preflight order without publishing a local path, secret, raw output, or
+  claimed GPU result.
+
+## P2-T3 Phase B B2 environment setup status (2026-09-01)
+
+- An internal no-model-load readiness checker is implemented in `qwen_vision_environment_readiness.py` and recorded as `EV-003-T3-03`. It reads only the explicitly selected ignored `.vision.env`, the explicit V2 profile, and injected/lazy dependency/hardware/revision probes; its sanitized output cannot contain a local path or raw provider data.
+- `READY` proves only exact dependency pins, CUDA/device index, BF16, normalized Lightning L4 device class, local snapshot presence, and immutable-revision metadata. It does not prove model load, inference, timeout cleanup, latency, VRAM, or output mapping; those remain the real B2 preflight gate.
+- No dependency/model was installed or downloaded by this repository change, and no local/cloud GPU or provider call was made. B4–B5 remain unexecuted.
+
+## P2-T3 Phase B B1 implementation status (2026-09-01)
+
+- B1 is implemented and recorded in `evidence/notes/P2_T3_PHASE_B_B1_IMPLEMENTATION.md` (`EV-003-T3-02`). The additive V2 contract, single static Qwen candidate catalog, separate V2 hashes, isolated runtime configuration, lazy/typed Qwen adapter skeleton, exact-pinned optional extra, placeholder-only env example, ADR-0007, and no-GPU tests are in place.
+- `backend/src/sketch2life/contracts/schemas/vision.py` and the Phase A fake path remain untouched. The committed B1 contract test pins the existing V1 profile and catalog digests.
+- B1 did not install dependencies, download weights, invoke a model/provider/GPU/cloud runtime, create B4/B5 benchmark artifacts, select a profile for production, or set a runtime default. Exact Qwen runtime mapping, hardware feasibility, worker/device cleanup evidence, and any provider cancellation capability remain B2 items.
+- A B1 contract-consistency correction aligned Qwen’s fenced non-object JSON handling with the unchanged fake adapter: only a fenced JSON object can set `repair_attempted=true`; fenced arrays, scalars, and `null` remain typed schema failures. The correction and validation are recorded in `EV-003-T3-02`.
+
+- Status: REVIEW (P2-T1 and P2-T2 Phases A/B complete, including the executed Round-1 benchmark against 21 synthetic HELD_OUT fixtures; no profile is frozen and no runtime default is selected; P2-T3 Phase A is implemented; P2-T3 Phase B is approved for its bounded B1–B5 Qwen study in `approvals/TASK_APPROVAL.md`; P2-T3 work outside that scope and P2-T4 through P2-T5 remain unapproved)
 - Primary owner: Person 2
 - Goal: Build and benchmark a standalone fixture-driven AI understanding component that emits traceable, schema-valid raw understanding artifacts.
 - Data policy: fixture/synthetic drawings and narration only.
-- Dependencies: versioned fixture manifest plus Lightning/Runpod test access when benchmark tasks are separately approved; no Gate UI or backend runtime dependency.
+- Dependencies: versioned fixture manifest plus the approved local Phase B runtime boundary; no Gate UI or backend runtime dependency.
 - Planning source reviewed: user-provided `Sketch2Life_Complete_Technical_Handbook_v5_Revised (1).pdf` (26 August 2026). It informs the ASR/VLM/fusion baseline but does not supersede direct user instructions, approved repository ADRs, or the approval gate.
 
 ## Sprint 1 boundary
@@ -13,11 +169,38 @@ This workstream owns media validation, ASR/VLM adapters, fusion, `RawUnderstandi
 
 ## Current planning decision
 
-- Plan revision 4 authorizes P2-T1 hardening plus P2-T2 and P2-T3. The intended dependency order is `T1 -> (T2, T3) -> T4 -> T5`; T2 and T3 share only approved contracts and fixtures, never a live service. T4/T5 remain unapproved.
-- Quality thresholds are deliberately fixture/configurable until a separately approved benchmark establishes device, language, and child-speech targets.
-- No live model/provider access is authorized. The adapter implementations use injected provider protocols and deterministic fixtures so contract behavior is testable without network, credentials, or child data.
+- Plan revision 4 breaks the workstream into P2-T1 through P2-T5. The intended dependency order is `T1 -> (T2, T3) -> T4 -> T5`; T2 and T3 share only approved contracts and fixtures, never a live service.
+- Quality thresholds are deliberately fixture/configurable until the approved Phase B benchmark establishes device, language, and synthetic/licensed-voice targets.
+- P2-T1 implementation is complete. P2-T2 Phase A is complete; P2-T2 Phase B is approved under `approvals/TASK_APPROVAL.md`'s recorded B1-B7 scope, its benchmark-readiness preparation is complete, and the controlled live Round-1 execution it already authorized has been run against 21 synthetic `HELD_OUT` fixtures. At the time of this historical note P2-T3 through P2-T5 remained out of implementation scope; P2-T3 Phase A was subsequently approved on 2026-08-31, as recorded below and in `approvals/TASK_APPROVAL.md`.
+- The detailed P2-T2 research plan is recorded in `plan/P2_T2_ASR_RESEARCH_PLAN.md`. It defines the contract-first, fixture-benchmark decision process and records the benchmark-readiness implementation slice, the two executed local Round-1 runs (`EV-003-T2-05`, `EV-003-T2-06`), and the supplementary Colab validation (`EV-003-T2-07`).
+- The external review and logic/constraint passes for that plan remain local historical working
+  material. Their resolved findings were folded into `plan/P2_T2_ASR_RESEARCH_PLAN.md` before the
+  Phase B approval recorded in `approvals/TASK_APPROVAL.md`: the P2-T1/P2-T2 diagnostic boundary,
+  fixture representativeness and real-child-data limitation, VAD contract nullability,
+  retry/error mapping, `INPUT_NOT_VALIDATED`, and a discriminated `AsrResultV1` with deterministic
+  quiet-success versus provider/model-failure handling.
+- A wording-consistency addendum to that same note (same date) fixed two residual ambiguities before the Phase A approval could be requested: `source_audio_ref`+hash is now stated as always required and always populated (in Phase A, from a synthetic P2-T1-`PASS`ed fixture) — never implied to be unpopulated — while `processing_audio_ref`/`derivation_provenance` stay `null`/absent in Phase A; and the catalog section now states Phase A adds zero Whisper entries to `AsrProfileCatalogV1` (not even as `NOT_APPROVED` placeholders) — only deterministic fake entries exist until the later Phase B approval introduces Whisper candidates.
+- A second wording-consistency addendum (same note, 2026-08-30) fixed three further issues: the exit-criteria bullet on `source_audio_ref` was rewritten so no clause can be misread as "Phase A leaves `source_audio_ref` null" (only `processing_audio_ref`/`derivation_provenance` do); `attempt_number` was redefined as a phase-agnostic "adapter inference attempt" rather than a "model-invocation attempt," with an explicit Phase A vs. Phase B meaning section giving concrete counts (`INPUT_NOT_VALIDATED`→`0`, ordinary fake outcome→`1`, one fake retry→`2`) so Phase A's fake adapter is never described as invoking a real model; and an out-of-catalog `requested_profile_id` is now a named convention — a request/schema-boundary validation error raised before `AsrPort` is invoked, distinct from both `AsrFailureV1` and `INPUT_NOT_VALIDATED`, with matching R2 test/acceptance-rule coverage added. The project owner approved this exact Phase A scope on 2026-08-30; Phase B is also approved and its controlled live benchmark has since executed twice (`EV-003-T2-05`, `EV-003-T2-06`), while P2-T5 (CLI/end-to-end report) remains separately gated.
+- A Phase B approval-request package was drafted on 2026-08-30 after three further review passes against the implemented Phase A code (`backend/src/sketch2life/contracts/schemas/asr.py`, `infrastructure/config/settings.py`): a Phase B implementation-plan critique, a final consistency check against the real code and upstream `faster-whisper` source, and an accepted rebuttal narrowing one of that check's recommendations. The consolidated scope is recorded in `plan/P2_T2_ASR_RESEARCH_PLAN.md` and `evidence/notes/P2_T2_PHASE_B_APPROVAL_REQUEST.md` (`EV-003-T2-PLAN-05`); the project owner's Phase B approval is now authoritative in `approvals/TASK_APPROVAL.md`.
+- The initial P2-T3 research plan and its document-only red-team working material remain local
+  historical records. Their closed conventions are reflected in the public Phase A approval and
+  implementation records and the approved B0 dossier, all indexed in `evidence/README.md`.
+- The project owner approved P2-T2 Phase B on 2026-08-30 (`approvals/TASK_APPROVAL.md`, "Current approved scope — P2-T2 Phase B"), and the additive contract/catalog change, isolated runtime configuration, real adapter, and exact-pinned optional dependency are recorded in `evidence/notes/P2_T2_PHASE_B_IMPLEMENTATION.md` (`EV-003-T2-02`). The benchmark-readiness package added the strict Round-1 manifest contract and local layout template, the versioned Vietnamese scoring normalizer, the fixed Turbo INT8/FP16 metadata-only planner, and the report template (`EV-003-T2-03`). The fixture-source decision (`SYNTHETIC`/TTS) is recorded in `evidence/notes/P2_T2_PHASE_B_FIXTURE_PROVENANCE.md` (`EV-003-T2-04`), and the two controlled local Round-1 executions plus supplementary Colab validation — 21 `HELD_OUT` fixtures × the two fixed Turbo profiles — are recorded in `evidence/notes/P2_T2_PHASE_B_ROUND1_ASR_REPORT.md` (`EV-003-T2-05`, `EV-003-T2-06`, `EV-003-T2-07`). No profile was frozen and no runtime default was selected.
+- The project owner approved P2-T3 Phase A on 2026-08-31. The scope is limited to the contract, deterministic fake catalog/adapter, synthetic fixture manifest, lexical regression policy, contract tests, and feature-local evidence described in `plan/P2_T3_VISION_RESEARCH_PLAN.md`; the authoritative record is `approvals/TASK_APPROVAL.md` and the decision record is `evidence/notes/P2_T3_PHASE_A_APPROVAL.md`. The owner accepted synthetic-only versioned lexicon governance, open normalized structured-text fields with non-ground-truth language declarations, and deliberately geometry-less/non-referenceable ambiguous regions. This does not authorize Phase B/Qwen runtime or any integration, user-facing, cloud, semantic-safety, or real-child-data work.
+- P2-T3 Phase A was implemented on 2026-09-01, closing its Phase A completion gate. The frozen contracts (`backend/src/sketch2life/contracts/schemas/vision.py`), the interface-only `VisionUnderstandingPort` and replaceable `ObservableContentPolicyV1` port, the deterministic `DeterministicFixtureVisionAdapter` (`backend/src/sketch2life/infrastructure/ai/fake_vision.py`), and the synthetic-only `LexicalRegressionContentPolicy`/`vision-policy-match-view-v2` (`backend/src/sketch2life/infrastructure/ai/vision_lexical_policy.py`) match the approved plan's sketches exactly: a nested `VisionImageReferenceV1` everywhere a hash is carried, both `vision_profile_config_hash`/`vision_profile_catalog_hash` computed from (never stored inside) the profile/catalog, `policy_execution_state` as a structural invariant tied to outcome, lossless-fence-unwrap-only repair, a timeout that never retries, at most one transient-provider retry, and the two disjoint `VisionProhibitedClaimCategory`/`VisionNonPolicyErrorDetail` enums. The adapter — not the port — performs the real source-image read and SHA-256 comparison at ingress, before any simulated inference, matching the implemented `FasterWhisperAsrAdapter` precedent. The synthetic fixture lexicon (`synthetic_prohibited_lexicon()`) carries exactly one deterministic, clearly-fictitious entry per closed prohibited-claim category and contains no real child data; changing its category set, governance, or the policy/match-view contract still needs a new plan-and-approval review per the accepted owner decision. 114 focused Phase A tests were added (252 total backend tests passing); ruff, mypy (strict), and all four repository-owned validators passed. Record: `evidence/notes/P2_T3_PHASE_A_IMPLEMENTATION.md` (`EV-003-T3-01`). No Qwen/model/GPU/dependency/provider/runtime work, and no P2-T4/P2-T5/API/UI/mobile/database/queue/storage work, occurred during Phase A implementation; at that time `approvals/TASK_APPROVAL.md` had not yet approved Phase B.
+- A same-day correction (2026-09-01) fixed three contract defects found in the initial Phase A delivery, all inside `backend/src/sketch2life/contracts/schemas/vision.py`: `VisionImageReferenceV1.artifact_ref` now rejects absolute machine paths (POSIX, Windows drive-absolute, and UNC, checked host-OS-independently) rather than accepting any non-empty string; `VisionUnderstandingFailureV1` now enforces the complete approved typed-failure matrix structurally — every one of the twelve non-policy `error_detail` tokens is pinned to its required `error_code`, `retryable`, and `attempt_number`, with `repair_attempted` fixed `false` everywhere except the three `VISION_SCHEMA_INVALID` details (where `true` remains legitimate only for the already-approved lossless fenced-unwrap case), and `PROHIBITED_CLAIM_DETECTED` is pinned to `retryable=false`/`attempt_number=1`/`repair_attempted=false`; and `ProhibitedLexiconEntryV1.term_normalized` must now already equal its own `vision-policy-match-view-v2` canonical form and tokenize to at least one token, rejected rather than silently normalized otherwise. All three are additive validators with no field added/removed/renamed; the six existing synthetic lexicon entries were already canonical, so no adapter or lexicon behavior changed for any previously-passing case. A closing pass then completed the first of those three: `_is_absolute_machine_path` also rejects Windows **rooted** paths (a single leading backslash such as `\temp\drawing.png`, which is rooted on the current drive), so POSIX, drive-absolute, rooted, and UNC forms are all rejected host-OS-independently. Current verified totals as of 2026-09-01: **172 focused Phase A tests (99 contract + 36 policy + 36 adapter + 1 manifest) and 310 total backend tests passing**; ruff, mypy (strict), and all four repository-owned validators pass. Earlier notes recording 170/308 predated the rooted-path completion and are corrected. Record: the "Correction — 2026-09-01" section of `evidence/notes/P2_T3_PHASE_A_IMPLEMENTATION.md`. No Phase B, dependency, GPU, or approval-record change occurred; `approvals/TASK_APPROVAL.md` was not edited.
+- A Phase B **B0 approval-request dossier** was written on 2026-09-01 as documentation-only work: `evidence/notes/P2_T3_PHASE_B_APPROVAL_REQUEST.md` (`EV-003-T3-PLAN-04`). It closes the Phase A completion gate against `EV-003-T3-01` and resolves the accepted findings of a Round-1 red-team review of the Phase B package. Its principal conventions: real-model provenance arrives as a **new versioned V2 result contract** (`VisionUnderstandingResultV2`, `VisionModelProvenanceV1`, `VisionProfileV2`, `VisionProfileCatalogV2`) rather than nullable fields on V1, because adding even a `null`-valued field to `VisionProfileV1` would change `vision_profile_config_hash` for an unchanged fake profile — so every Phase A V1 model, digest, behavior, and evidence artifact stays frozen and a B1 regression test pins the V1 digests; there is one canonical static catalog **per contract version, and per version only**, used by both request validation and adapter resolution, with a divergent per-request catalog forbidden and a resolve miss mapped to a new typed `PROFILE_NOT_RESOLVABLE` token at attempt `0` instead of an untyped exception; results are never merged across `profile_catalog_hash`, `config_hash`, `content_policy_version`, or `policy_match_view_version`; the lossless fence unwrap is frozen as the only repair and a low schema-valid rate is a reportable result rather than permission to add JSON salvage; `known_policy_trigger_rate` against the synthetic fixture lexicon is reported as `NOT_APPLICABLE` (never `0`), the lexical-policy tests are wiring evidence only, and any real-term lexicon needs a separate plan/approval/`lexicon_version` bump; raw model output stays ephemeral, gitignored, and owner-review-only with only safe counts and typed identifiers persisted; and Lightning L4 is proposed as a **development preflight location only** — synthetic inputs only, no credentials/endpoints/raw output in Git or evidence, not a production or runtime-default decision — while local 8 GB feasibility for the baseline remains explicitly unknown. The dossier also fixes benchmark denominators, requires all five observation collections to be measured or marked `NOT_MEASURED` with a reason, requires pre-authored SHA-256-hashed ground truth and a versioned matching rule, lists the exact future `.gitignore` entries and the exact-pinned optional dependency extra, requires a timeout enforcement/cancellation design, and reserves **ADR-0007**. It grants no authority: 11 owner decisions (D-1…D-11) were initially listed as open, and `approvals/TASK_APPROVAL.md` still lists P2-T3 Phase B as explicitly not approved.
+- A **Round-2 correction** to that same dossier, also on 2026-09-01, fixed five further logic defects a second review found before any owner decision (documentation only, same file): `VisionProfileId` gains **zero** members under any Phase B amendment — the new `VisionProfileIdV2` enum and `VisionUnderstandingRequestV2` type are fully disjoint from V1, and `VisionProfileCatalogV2` can never contain a `VisionProfileV1` instance, closing a V1/V2 type-leakage defect the "widen `VisionProfileId`" wording had left open; the partial retry amendment is replaced by a complete **V2 terminal-outcome matrix** defining `attempt_number` as "adapter inference attempt" and proving every permitted terminal row constructible, including the three required post-retry traces (transient→timeout, transient→permanent-failure, transient→schema-invalid-or-policy-blocked), with an explicit "deliberately not broadened" list for `INPUT_NOT_VALIDATED` (stays attempt `0` only) and `VISION_MODEL_UNAVAILABLE` (stays attempt `1` only, because model/device load is a one-time precondition per call, not a per-attempt operation); the V1-digest claim is corrected from an ambiguous "record and assert unchanged" to a requirement for a **committed golden-constant** test, with this dossier stating explicitly that it records no digest value itself; and the V2 profile sketch removes the `compute_profile` ellipsis, explicitly marks `VisionProfileIdV2` membership and `compute_profile`'s closed enum as **decision-gated and blocking approval** (not merely blocking B1) rather than calling them an "exact widening list," adds a structural `weight_sha256_absence_reason` field paired with `weight_sha256` in place of an unenforceable "stated reason" comment, and replaces an ambiguous `runtime_version` string with structured, canonically-ordered `dependency_pins`. The self-review was re-run with five targeted checks (V1/V2 leakage, every post-retry trace, provenance applicability, digest proof, mislabeled-settled decisions), which found and fixed one further issue: owner decision D-7 had read as an open choice between two catalog designs when the corrected design makes one of them structurally impossible, so D-7 is now marked resolved-by-construction rather than left as a false open choice.
+- A **Round-3 correction**, also 2026-09-01, fixed three remaining consistency defects (documentation only, same file): the "Timeout enforcement" section had said a timed-out call returns "at attempt `1`," contradicting the V2 terminal-outcome matrix's own `{1,2}` row directly above it and the required transient@1 → timeout@2 trace — it now states precisely that a timeout may terminate attempt `1` or attempt `2`, that the timeout classification itself is never retried, that no third attempt is possible either way, and that no residual generation may retain device memory; the owner-decision count is corrected from "11 owner decisions (D-1…D-11) remain open" to **ten** (D-1 through D-6, D-8 through D-11), with D-7 kept only as a labeled historical resolved entry, fixed consistently in the dossier, this file, and `evidence/README.md`; and the dossier's status line changed from an undifferentiated "DRAFT / AWAITING OWNER DECISION" to **`READY_FOR_OWNER_DECISIONS`**, with an explicit statement that this is not yet equivalent to "APPROVE P2-T3 PHASE B," because D-4 (model identity) and D-9 (candidate count/precision budget) require a written amendment fixing `VisionProfileIdV2` membership and `VisionProfileV2.compute_profile`'s closed enum before approval is a coherent action.
+- The project owner then answered all ten open decisions the same day (2026-09-01), recorded in "Round-4 — owner decisions recorded" in the dossier: D-1 synthetic-fixtures-only with owner review; D-2 keep the synthetic fixture lexicon; D-3 Lightning L4 development preflight/benchmark only; D-4 `Qwen/Qwen3-VL-8B-Instruct` only, no variant, immutable revision recorded at B1 before download; D-5 the new V2 contract with V1 frozen; D-6 the full V2 terminal-outcome matrix accepted as written; D-8 the provenance-applicability table accepted as written; D-9 exactly one candidate profile — `VisionProfileIdV2 = QWEN3_VL_8B_INSTRUCT_BF16_V1` at `compute_profile = Literal["GPU_BF16"]`, following this repository's existing `<MODEL>_<VARIANT>_<PRECISION>_V<N>`/`GPU_<PRECISION>` naming conventions — with one hour of Lightning L4 time authorized as a **soft cap** across B2–B4 combined, requiring the runner to stop and the owner to explicitly re-authorize rather than silently continue or fabricate a completed run if the cap is reached first; D-10 Person 2 authors and hashes the synthetic ground truth/matching rule before any model output is seen, with owner review of the metadata/hashes before B4 runs; D-11 confirmed no profile freeze and no runtime default. With D-4/D-9 resolved, `VisionProfileIdV2` and `VisionProfileV2.compute_profile` in the dossier's V2 sketch and "Profile contract separation" table changed from decision-gated placeholders to fixed, single-value closed types. Recording these answers closes every content gap the dossier previously listed as blocking, but is explicitly stated not to itself constitute the governance act of approval: `approvals/TASK_APPROVAL.md` was not edited and still lists P2-T3 Phase B as explicitly not approved, pending the owner's separate explicit instruction to change it.
+- A final, read-only red-team review of the complete P2-T3 package (`evidence/notes/P2_T3_PHASE_B_APPROVAL_REQUEST.md`, `plan/P2_T3_VISION_RESEARCH_PLAN.md`, `evidence/notes/P2_T3_PHASE_A_IMPLEMENTATION.md`, `CONTEXT.md`, `evidence/README.md`, and the five Phase A source files) found no blocking defects but two documentation-only gaps, fixed the same day (2026-09-01) in a **Round-5 correction** to the dossier: the "Round-1 review resolution" table's row 13 had said V2 failures carry `model_provenance` "only for `VISION_MODEL_UNAVAILABLE` and `VISION_PROVIDER_FAILURE`," which no longer matched the dossier's own later-drafted "Provenance applicability" table requiring it on all six model-reached outcomes (also `SUCCEEDED`, `PROHIBITED_CLAIM_DETECTED`, `VISION_SCHEMA_INVALID`, `VISION_TIMEOUT`) — corrected to state all six, forbidden only on `INPUT_NOT_VALIDATED`; and the dossier had given V2 its own disjoint types for profile ID, request, profile, catalog, and result, including a distinctly named `vision_profile_catalog_v2()`, but never named V2 counterparts for the two hash functions, leaving prose that implied reusing V1's `vision_profile_config_hash` (typed only to `VisionProfileV1`) for V2 values — a new "V2 hash functions" subsection now explicitly names `vision_profile_config_hash_v2(profile: VisionProfileV2) -> str` and `vision_profile_catalog_hash_v2(catalog: VisionProfileCatalogV2) -> str`, each SHA-256 over canonical JSON of its own V2 object, states plainly that no V1 hash function is ever widened or reused for a V2 value, and clarifies that the `config_hash`/`profile_catalog_hash` envelope **field names** stay unchanged across versions while the **function** that populates them differs. This review preceded the owner's later formal Phase B approval recorded in `approvals/TASK_APPROVAL.md`; no code or runtime work occurred during the review.
 
-## Remote branch compatibility review — 2026-09-05
-- Review status: DONE; no feature implementation status is promoted.
-- Fetched and tested P2 f3014e5: 475 passed, 5 skipped; Ruff/security pass. P1 b3f397c domain/golden/console validators pass.
-- No P2-to-P1 runtime connection or fusion implementation found. See evidence/notes/P2_P1_REVIEW_20260905.md for precise commits, limits and proposed next steps.
+## Current Phase B benchmark-readiness truth (2026-08-30)
+
+- `features/FEAT-003-multimodal-understanding/fixtures/asr-round1/manifest.example.json` remains a metadata-only, empty `TEMPLATE`. `fixtures/asr-round1/manifest.json` is the real, `READY`, 21-fixture manifest (references/hashes/metadata only — no audio or transcript payload; both remain gitignored under `audio/**`/`transcripts/**`).
+- The readiness planner (unrun-plan path) still validates the manifest, verifies only the fixed Round-1 candidate/settings contract, and produces deterministic planned runs without reading payloads, importing/calling `faster-whisper`, loading a model, or touching a GPU. It has no CLI.
+- The internal (non-CLI) `asr_round1_runner` (`backend/src/sketch2life/benchmark/asr_round1_runner.py`) executes the real comparison: it independently re-verifies fixture SHA-256 and decoded audio duration against the manifest's `duration_band` before any adapter call, requires a real per-fixture P2-T1 `PASS` before ever calling the ASR adapter, runs the two fixed Turbo profiles through the real `FasterWhisperAsrAdapter`, and reports `MEASURED` WER/CER/language-accuracy/speech-presence/latency/VRAM or an explicit `NOT_MEASURED` reason — never a fabricated value. VAD/beam/word-timestamp alternatives remain `NOT_MEASURED` by Round-1 design.
+- A 2026-08-30 correction fixed three defects found in the first executed pass: (1) the warmup call previously used a fabricated `MediaValidationProvenanceV1(decision="PASS")` on synthetic silence, which would never earn a real P2-T1 `PASS` — the runner now deterministically warms up with the first manifest fixture that actually passes P2-T1 (real audio, real provenance), and raises `NoWarmupFixtureAvailableError` before any model load if none pass; (2) the report's per-profile `schema_validity_rate`/counts previously read as the combined two-profile total (42) rather than each profile's own 21 runs — `AsrRound1BenchmarkReportV1` now has a Pydantic validator that rejects any report where a profile's `total_runs`/`success_count + failure_count` disagrees with that profile's own runs; (3) `duration_band` and `expected_speech_present` were manifest-only assertions — the runner now verifies actual decoded duration pre-inference and computes a structured `speech_presence_outcome` (`MATCH`/`MISMATCH`/`NOT_MEASURED`) plus a `speech_presence_match_rate` aggregate, so the two `noise`-fixture hallucinations show up as `MISMATCH` in the JSON report itself. See `evidence/notes/P2_T2_PHASE_B_ROUND1_ASR_REPORT.md` ("Correction" section) for the corrected numbers.
+- A further 2026-08-30 robustness fix closed a latent gap in the same runner: the warmup call's result is now captured and checked, so a typed `AsrFailureV1` warmup raises `WarmupTranscriptionFailedError` (closed error-code/detail identifiers only, never raw provider text) before any `cold_start_ms` is recorded and before any normal fixture run executes for that profile, instead of silently timing a failed load as if it were a successful one. Every executed real-GPU run's warmup has always succeeded, so no existing evidence number was affected; covered by focused no-GPU tests in `backend/tests/unit/test_asr_round1_runner_warmup_failure.py` using an injected fake `AsrPort` (`Round1RunnerConfig.adapter_factory`), not a live rerun.
+- A second full Round-1 execution (repeat run 2, `EV-003-T2-06`, report `asr-round1-report-a7f1b4be…`) was run against the identical manifest hash after all corrections landed. Every quality metric reproduced exactly — WER 0.49%, CER 0.27%, language accuracy 100%, speech-presence match 89.5% — with the same typed-failure set (2× `INPUT_NOT_VALIDATED` on the `silence` fixtures) and the same `MISMATCH` set (both `noise` fixtures), so the Round-1 numbers are reproducible on this machine rather than incidental. Only latency/VRAM moved, within single-machine jitter. Run 1's evidence (`P2_T2_PHASE_B_ROUND1_REPORT.json`) is preserved unmodified alongside the new `P2_T2_PHASE_B_ROUND1_REPORT_RUN2.json`; still no profile freeze and no runtime-default selection.
+- A supplementary Colab execution reviewed on 2026-09-01 (`EV-003-T2-07`) used the same source commit, 21-fixture `HELD_OUT` manifest, real P2-T1 gate, dependency versions, and two fixed Turbo profiles on Linux/Python 3.13.15 with a Tesla T4. It reproduced the quality metrics exactly (WER 0.49%, CER 0.27%, language accuracy 100%, speech-presence match 89.47%), the two typed silence failures, and both pure-noise `MISMATCH` outcomes. Its latency/VRAM are recorded separately as Colab-only measurements and are not pooled with local RTX 4060 evidence or treated as additional effective fixtures. The ZIP remains outside the repository; only safe report/runtime metadata is retained in feature evidence. No profile freeze and no runtime-default selection.
