@@ -1,0 +1,137 @@
+{
+  "contract_name": "VisionV3QualityFixtureManifestV1",
+  "contract_version": "1.0",
+  "manifest_version": "vision-v3-quality-manifest-v1",
+  "status": "AWAITING_OWNER_REVIEW",
+  "split": "HELD_OUT",
+  "purpose": "QUALITY_BENCHMARK",
+  "has_ground_truth": true,
+  "scope": "S3_FULL_SCORING_WITH_DIAGNOSTIC_SPLIT",
+  "data_policy": "synthetic-only",
+  "author": "Person 2",
+  "authoring_boundary": "All fixture IDs, image hashes, ground truth, and matching-rule identity were authored before any Phase 8 v3 model output.",
+  "prompt_protocol": {
+    "protocol_id": "vision-v2-structured-output-prompt-v3",
+    "sha256": "bf8b9cab5df6b2551e627cf0bb92fe977e0dc182fdaae5f3c5face5bc34615f3",
+    "schema_target": "VisionUnderstandingResultV2"
+  },
+  "image_generation": {
+    "recipe_module_ref": "backend/src/sketch2life/benchmark/vision_v3_quality_fixtures.py",
+    "recipe_module_sha256": "de86865ad55b602712e1eee95293025c5a464f68761409b0652b3642fc13e3b1",
+    "deterministic": true,
+    "dimensions": {
+      "width": 256,
+      "height": 256
+    },
+    "palette_id": "vision-v3-quality-palette-v1"
+  },
+  "ground_truth": {
+    "ref": "ground-truth-v1.json",
+    "sha256": "e836593ec58a63757cee58d64b17800367a814c0f0956e8210458fe2cc6cb099"
+  },
+  "matching_rule": {
+    "rule_id": "vision-v3-quality-matching-rule-v1",
+    "ref": "matching-rule-v1.md",
+    "sha256": "af4326fb94585a7ed58f6387a8a8bea26f17a6e9ceca6556d6def573f6fea109"
+  },
+  "disjointness": {
+    "b3_regenerated_hash_comparison_status": "VERIFIED_NO_OVERLAP",
+    "b4_manifest_hash_comparison_status": "VERIFIED_NO_OVERLAP",
+    "v3_map_manifest_hash_comparison_status": "VERIFIED_NO_OVERLAP"
+  },
+  "local_authoring_validation": {
+    "p2t1_result": "PASS_FOR_ALL_8_FIXTURES",
+    "scratch_cleanup": "CONFIRMED",
+    "model_or_gpu_called": false
+  },
+  "fixtures": [
+    {
+      "fixture_id": "v3q-fixture-01",
+      "image_ref": "images/v3q-fixture-01.png",
+      "image_sha256": "ebe43a37d54c539dc4b18589551907deba8cadfb4a0aba747e5b0e005aaf2c55",
+      "dimensions": {
+        "width": 256,
+        "height": 256
+      },
+      "taxonomy_token": "two_entity_relation_above",
+      "p2t1_pass": true
+    },
+    {
+      "fixture_id": "v3q-fixture-02",
+      "image_ref": "images/v3q-fixture-02.png",
+      "image_sha256": "740e38345eefff51abcaf7768a696e09a9a8afbaa20e3ae14c9b689fb2d41e91",
+      "dimensions": {
+        "width": 256,
+        "height": 256
+      },
+      "taxonomy_token": "entity_relation_action_combo",
+      "p2t1_pass": true
+    },
+    {
+      "fixture_id": "v3q-fixture-03",
+      "image_ref": "images/v3q-fixture-03.png",
+      "image_sha256": "60486cce948b4532b50bd53bd314db33fc22634821e444910f118511dc37e0a5",
+      "dimensions": {
+        "width": 256,
+        "height": 256
+      },
+      "taxonomy_token": "three_entity_chain_theme",
+      "p2t1_pass": true
+    },
+    {
+      "fixture_id": "v3q-fixture-04",
+      "image_ref": "images/v3q-fixture-04.png",
+      "image_sha256": "6d43e4e516cc67ce6f9b382fe79df850710da0e869bca3de7c151df5b41c6cb4",
+      "dimensions": {
+        "width": 256,
+        "height": 256
+      },
+      "taxonomy_token": "mirrored_pair_symmetry_theme",
+      "p2t1_pass": true
+    },
+    {
+      "fixture_id": "v3q-fixture-05",
+      "image_ref": "images/v3q-fixture-05.png",
+      "image_sha256": "fe1d80f5098596482fe57f830ac15dc4c5360add727fa3dbf4e34f60dca9fc01",
+      "dimensions": {
+        "width": 256,
+        "height": 256
+      },
+      "taxonomy_token": "action_null_endpoint_theme",
+      "p2t1_pass": true
+    },
+    {
+      "fixture_id": "v3q-fixture-06",
+      "image_ref": "images/v3q-fixture-06.png",
+      "image_sha256": "ca9fcb2ff25094524a329af642c892267774643345e3fdf5752766b8ced831ee",
+      "dimensions": {
+        "width": 256,
+        "height": 256
+      },
+      "taxonomy_token": "no_canonical_relation_exception",
+      "p2t1_pass": true
+    },
+    {
+      "fixture_id": "v3q-fixture-07",
+      "image_ref": "images/v3q-fixture-07.png",
+      "image_sha256": "272394a18633c8bbd20b7ce27dfd46255421691c3e9e5bfb89815840cfcbae8a",
+      "dimensions": {
+        "width": 256,
+        "height": 256
+      },
+      "taxonomy_token": "overlap_ambiguous_region",
+      "p2t1_pass": true
+    },
+    {
+      "fixture_id": "v3q-fixture-08",
+      "image_ref": "images/v3q-fixture-08.png",
+      "image_sha256": "0763f8c7fb2afe07fec0e3c629a5eb8d456001d236ebb6053b59f4562d6a999c",
+      "dimensions": {
+        "width": 256,
+        "height": 256
+      },
+      "taxonomy_token": "dense_multi_collection",
+      "p2t1_pass": true
+    }
+  ]
+}
