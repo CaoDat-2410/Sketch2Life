@@ -176,7 +176,7 @@ exceedance.
 | Verification scope | JSON parse/semantic equality, both SHA-256 values, per-pass counts, fixture-07 failure identity, repeat-gap arithmetic, verdict recomputation, prompt/profile/catalog identity recomputed from source, secret/path scan, and the four repository validators |
 | Verification verdict at that time | `APPROVE_WITH_NOTES` — no Critical/High/Medium finding; the missing official Lightning Activity duration was recorded as the principal residual risk |
 | Status of that residual risk | Closed by this record, as `CAP_EXCEEDED` |
-| Project owner sign-off | `NOT_RECORDED` |
+| Project owner sign-off | `APPROVED` — 2026-09-09, accepting this record's `MAPPING_READY` technical verdict and its `CAP_EXCEEDED` compute-governance result exactly as recorded above, with no added condition |
 
 ## Interpretation
 
