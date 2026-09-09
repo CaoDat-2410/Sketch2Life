@@ -1,0 +1,230 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-25",
+  "case_count": 24,
+  "cases": [
+    {
+      "id": "CASE_BLOCK_AGE_ABOVE",
+      "path": "tests/fixtures/montessori/cases/case_block_age_above.json",
+      "sha256": "b39bbf6e2f18eb83f94633df7a27f8b3ebfb2378e4218ad86b68cff8423d0bce",
+      "coverage_tags": [
+        "blocked",
+        "age"
+      ]
+    },
+    {
+      "id": "CASE_BLOCK_AGE_BELOW",
+      "path": "tests/fixtures/montessori/cases/case_block_age_below.json",
+      "sha256": "c4b1719074e690e4ba103d2460e91844d1ba8e48d155a1ec9e7f6c076664d736",
+      "coverage_tags": [
+        "blocked",
+        "age"
+      ]
+    },
+    {
+      "id": "CASE_BLOCK_INACTIVE",
+      "path": "tests/fixtures/montessori/cases/case_block_inactive.json",
+      "sha256": "951286f3cd2b0a37b473bdd2367c90dd4dbfdf6cce11fce2119139394c3b5377",
+      "coverage_tags": [
+        "blocked",
+        "inactive"
+      ]
+    },
+    {
+      "id": "CASE_BLOCK_MATERIAL",
+      "path": "tests/fixtures/montessori/cases/case_block_material.json",
+      "sha256": "b1f484ad0cae3c632b8312bee57ca05802a97eb2cedf1bfafe75eaac9263280a",
+      "coverage_tags": [
+        "blocked",
+        "material"
+      ]
+    },
+    {
+      "id": "CASE_BLOCK_MULTIPLE_REASONS",
+      "path": "tests/fixtures/montessori/cases/case_block_multiple_reasons.json",
+      "sha256": "0c52af55ea96e3bc313a60a9f15b42f60d95efaf85176c933db8216c817a1061",
+      "coverage_tags": [
+        "blocked",
+        "multiple_failure"
+      ]
+    },
+    {
+      "id": "CASE_BLOCK_POLICY",
+      "path": "tests/fixtures/montessori/cases/case_block_policy.json",
+      "sha256": "453075962b8ada2bfd9387d43f6510c07ee3f2a115f82f8625e4975b7a7bd47e",
+      "coverage_tags": [
+        "blocked",
+        "policy"
+      ]
+    },
+    {
+      "id": "CASE_BLOCK_PREREQUISITE",
+      "path": "tests/fixtures/montessori/cases/case_block_prerequisite.json",
+      "sha256": "8851c4257cc1a907fecf1b3ccb5166fab0c40f608b45384a26845fdbc25277fb",
+      "coverage_tags": [
+        "blocked",
+        "prerequisite"
+      ]
+    },
+    {
+      "id": "CASE_BLOCK_READINESS",
+      "path": "tests/fixtures/montessori/cases/case_block_readiness.json",
+      "sha256": "ba13fe1b0ef2d8567343672c854ba95bbf692ae67ac7428c2efbe8465e53288e",
+      "coverage_tags": [
+        "blocked",
+        "readiness"
+      ]
+    },
+    {
+      "id": "CASE_BLOCK_SUPERVISION",
+      "path": "tests/fixtures/montessori/cases/case_block_supervision.json",
+      "sha256": "1349d1fb85f999a829871b7146af8163572a497b524b9f74161af7cdc5dac626",
+      "coverage_tags": [
+        "blocked",
+        "safety"
+      ]
+    },
+    {
+      "id": "CASE_MULTIPLE_VALID",
+      "path": "tests/fixtures/montessori/cases/case_multiple_valid.json",
+      "sha256": "8fce606098b1c3cbe4b798c89cc2e22b0f1080a261e9838f632c51f6f8aada73",
+      "coverage_tags": [
+        "valid",
+        "multiple_valid"
+      ]
+    },
+    {
+      "id": "CASE_NO_VALID_CAREGIVER_GATES",
+      "path": "tests/fixtures/montessori/cases/case_no_valid_caregiver_gates.json",
+      "sha256": "0890bce491cbdce3ff1cc5ff493c2d8dfce74a7e983f13e73a8833271c5d92e1",
+      "coverage_tags": [
+        "blocked",
+        "safety",
+        "policy",
+        "no_valid"
+      ]
+    },
+    {
+      "id": "CASE_NO_VALID_MATERIALS",
+      "path": "tests/fixtures/montessori/cases/case_no_valid_materials.json",
+      "sha256": "24d53481f8ba50189865bf1047ac7c816c3324509468ac34d41149d80aba57b7",
+      "coverage_tags": [
+        "blocked",
+        "material",
+        "no_valid"
+      ]
+    },
+    {
+      "id": "CASE_NO_VALID_MIXED_AGE",
+      "path": "tests/fixtures/montessori/cases/case_no_valid_mixed_age.json",
+      "sha256": "8c1dfed319b76c0bfddac2feae5a0eb745d57817be2326d97375579f0144a89d",
+      "coverage_tags": [
+        "blocked",
+        "no_valid"
+      ]
+    },
+    {
+      "id": "CASE_VALID_0_3",
+      "path": "tests/fixtures/montessori/cases/case_valid_0_3.json",
+      "sha256": "287f5f13c8b385dd9c8d64763c055ca79d7685a284d9343edceb74bdbc4ac8c6",
+      "coverage_tags": [
+        "valid",
+        "0-3"
+      ]
+    },
+    {
+      "id": "CASE_VALID_3_6",
+      "path": "tests/fixtures/montessori/cases/case_valid_3_6.json",
+      "sha256": "23e0fe79913471e9cc0f146012a6ce53a84c8c753c9261d67c11e6c594975fef",
+      "coverage_tags": [
+        "valid",
+        "3-6"
+      ]
+    },
+    {
+      "id": "CASE_VALID_6_9",
+      "path": "tests/fixtures/montessori/cases/case_valid_6_9.json",
+      "sha256": "6f46d99260cdac36f0cc4b51987b50fe202a931dc72e8ae66799fc015807354e",
+      "coverage_tags": [
+        "valid",
+        "6-9"
+      ]
+    },
+    {
+      "id": "CASE_VALID_9_12",
+      "path": "tests/fixtures/montessori/cases/case_valid_9_12.json",
+      "sha256": "39608c9ecac777f5e10ce3b3c75501a7cea6722a4e55b65276e5aa32b13455be",
+      "coverage_tags": [
+        "valid",
+        "9-12"
+      ]
+    },
+    {
+      "id": "CASE_VALID_MAX_BOUNDARY",
+      "path": "tests/fixtures/montessori/cases/case_valid_max_boundary.json",
+      "sha256": "785a408d9e7d7654f5ac3f28bfdadf22372aea1e657cbe3e7d226fc024cf5ccb",
+      "coverage_tags": [
+        "valid",
+        "age_boundary"
+      ]
+    },
+    {
+      "id": "CASE_VALID_MIN_BOUNDARY",
+      "path": "tests/fixtures/montessori/cases/case_valid_min_boundary.json",
+      "sha256": "de2b4b2b6a7e98fabdf2cd2692e5c1ffd5b0050ccc806e15e075b65a297fc3ab",
+      "coverage_tags": [
+        "valid",
+        "age_boundary"
+      ]
+    },
+    {
+      "id": "CASE_VALID_PREREQ_0_3",
+      "path": "tests/fixtures/montessori/cases/case_valid_prereq_0_3.json",
+      "sha256": "4f09bc143a372ac7e0c3bff8e9900a097fccb2b6a174915f80ff06cd41f40260",
+      "coverage_tags": [
+        "valid",
+        "prerequisite",
+        "0-3"
+      ]
+    },
+    {
+      "id": "CASE_VALID_PREREQ_3_6",
+      "path": "tests/fixtures/montessori/cases/case_valid_prereq_3_6.json",
+      "sha256": "9f800763d02cffc322b0b9729dde66b4cc3e9f6adc4f8aeaa456ecd143bf4348",
+      "coverage_tags": [
+        "valid",
+        "prerequisite",
+        "3-6"
+      ]
+    },
+    {
+      "id": "CASE_VALID_PREREQ_6_9",
+      "path": "tests/fixtures/montessori/cases/case_valid_prereq_6_9.json",
+      "sha256": "d8bb8ae5701623c7a7e1fe3e82a8dbb2a1b9f12e309ef228a171cefcfb06bc3f",
+      "coverage_tags": [
+        "valid",
+        "prerequisite",
+        "6-9"
+      ]
+    },
+    {
+      "id": "CASE_VALID_PREREQ_9_12",
+      "path": "tests/fixtures/montessori/cases/case_valid_prereq_9_12.json",
+      "sha256": "acebb6a4a5d15f7d4d57a8eaa491d6d29e24b99d8bd9b783246ec1807010fb5e",
+      "coverage_tags": [
+        "valid",
+        "prerequisite",
+        "9-12"
+      ]
+    },
+    {
+      "id": "CASE_VALID_SUBSTITUTES",
+      "path": "tests/fixtures/montessori/cases/case_valid_substitutes.json",
+      "sha256": "bcdd4c5edc6980385fa6a15c5e747750e0c3df95e7f7b5efb96e0182995e75e3",
+      "coverage_tags": [
+        "valid",
+        "material_substitute"
+      ]
+    }
+  ]
+}

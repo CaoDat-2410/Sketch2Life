@@ -127,3 +127,7 @@ P3 must publish renderer JSON Schema/message fixtures before the mobile experien
 6. Stop on source hash mismatch, invalid bounds, renderer event drift, or any generated replacement of the original.
 
 Evidence naming: `P3_<scene-or-bridge>_<YYYYMMDD>.json` plus screenshot/performance artifacts under this feature's evidence directory.
+
+## Revision-2 engine additions — pending approval
+
+P3 additionally owns `FEAT018-P3-E1` through `FEAT018-P3-E3` in `ENGINE_REFINEMENT_PLAN.md`: consume the approved `ExperienceSpecV1`, map confirmed anchors to renderer profiles, preserve original artwork, and reject stale/missing spec identity or source-hash mismatch. P3 does not choose pedagogy or off-screen activity.

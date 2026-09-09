@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sketch2life.local/schemas/montessori/golden-fixture-case.v1.schema.json",
+  "title": "Golden Montessori deterministic fixture case v1",
+  "type": "object",
+  "required": [
+    "id",
+    "description",
+    "activity_ref",
+    "input",
+    "expected",
+    "coverage_tags"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^GCASE_[A-Z0-9_]+$"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "activity_ref": {
+      "type": "object",
+      "required": [
+        "id",
+        "version"
+      ],
+      "additionalProperties": false
+    },
+    "input": {
+      "type": "object",
+      "required": [
+        "age_months",
+        "readiness_ids",
+        "completed_activity_ids",
+        "available_material_option_ids",
+        "supervision_level",
+        "policy_flags",
+        "candidate_status"
+      ],
+      "additionalProperties": false
+    },
+    "expected": {
+      "type": "object",
+      "required": [
+        "status",
+        "allowed_activity_ids",
+        "blocked"
+      ],
+      "additionalProperties": false
+    },
+    "coverage_tags": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true
+    }
+  },
+  "additionalProperties": false
+}

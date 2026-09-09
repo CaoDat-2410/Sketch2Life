@@ -1,0 +1,36 @@
+{
+  "id": "CASE_VALID_PREREQ_0_3",
+  "description": "Completed prerequisite permits 0-3 candidate",
+  "input": {
+    "age_months": 24,
+    "readiness_tags": [
+      "caregiver_present"
+    ],
+    "completed_activity_ids": [
+      "ACT-0004"
+    ],
+    "available_material_ids": [
+      "MAT_LARGE_BALL",
+      "MAT_OBJECT_PERMANENCE_BOX"
+    ],
+    "supervision_level": "DIRECT",
+    "policy_flags": [
+      "CAREGIVER_PRESENT"
+    ],
+    "candidate_activity_ids": [
+      "ACT-0005"
+    ]
+  },
+  "expected": {
+    "status": "VALID_CANDIDATES",
+    "allowed_activity_ids": [
+      "ACT-0005"
+    ],
+    "blocked": {}
+  },
+  "coverage_tags": [
+    "valid",
+    "prerequisite",
+    "0-3"
+  ]
+}
