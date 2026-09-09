@@ -42,6 +42,17 @@
 - Approval basis: `plan/P2_T3_VISION_RESEARCH_PLAN.md` and `evidence/notes/P2_T3_PHASE_B_APPROVAL_REQUEST.md` (Round-5 corrected).
 - Approved at: 2026-09-01
 
+## Phase 8 D-7 decision addendum — 2026-09-09
+
+- Scope: Prompt-v3 Phase 8 held-out quality local/no-GPU preparation and any separately approved
+  future Phase 8 execution under the same raw-output boundary.
+- D-7 is fixed as `CLASSIFY_ONLY`. Persist only safe aggregate classification flags/counts and
+  closed typed identifiers. Never persist raw provider output, prompt text, predicted text, or
+  ground-truth text.
+- This narrow addendum does not approve D-5, D-6, D-8, manifest/fixture review, model execution,
+  Lightning/GPU use, or Phase 8 completion. The separate B3 `EPHEMERAL_CAPTURE` behavior remains
+  unchanged and is not enabled for the Phase 8 runner.
+
 ## Explicitly not approved
 
 - Any P2-T3 work outside the approved Phase B B1–B5 scope, P2-T4 through P2-T5, mobile/API/session/job orchestration, Gate A UI, database/storage/queue integration, real child data, and any provider credentials.
