@@ -2,6 +2,15 @@
 
 Evidence belongs under this feature only.
 
+P2 publication policy: working research, review briefs and handoff drafts remain
+local and are not canonical public evidence. Publish only selected completed P2
+records after owner review, then add them to this index. Completing a research
+round alone does not promote its working note to a public record.
+
+Selected completed P2 design record:
+[isolated image admission and decoding](P2_IMAGE_DECODE_DESIGN_20260910.md)
+(`EV-018-P2-DECODE-DESIGN-01`, owner-accepted design; implementation not started).
+
 - `raw/`: sanitized command output and contract-run summaries.
 - `metrics/`: validation, latency, FPS, memory, cache/fallback and pilot reports.
 - `screenshots/`: device screenshots with no personal data.
