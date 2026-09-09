@@ -41,6 +41,16 @@ records `00:44:41` against the authorized `00:20:00` — so further GPU work nee
 owner decision. B5 remains unexecuted. The current safe status is maintained in
 `evidence/P2_T3_LIVING_SUMMARY.md`. P2-T4 and P2-T5 remain unapproved.
 
+### Prompt-v3 Phase 8 local/no-GPU status (2026-09-09)
+
+- Local preparation is complete; Phase 8 quality benchmarking remains gated pending owner review
+  of the package/manifest, D-5, D-6, and a separate D-8 compute authorization.
+- D-7 is resolved as `CLASSIFY_ONLY`. The local runner rejects `EPHEMERAL_CAPTURE` from both the
+  execution decision and the B3 collector before package loading, scratch creation, factory
+  invocation, or raw-output writing. This does not change B3's separate raw-output behavior.
+- This status does not authorize D-5, D-6, D-8, manifest approval, model execution, Lightning/GPU
+  use, or Phase 8 completion.
+
 ## Task breakdown and execution order
 
 ### P2-T1 — Image/audio input quality validation (2 points, Must)
