@@ -1,8 +1,8 @@
 # FEAT-018 live image + canvas full-flow plan
 
-- Status: AWAITING_APPROVAL
+- Status: APPROVED for the P1 implementation slice; P2/P3/P4/shared integration remain pending
 - Plan revision: 2
-- Implementation status: PLANNED — revision-2 engine refinement is not implemented
+- Implementation status: P1 implementation authorized; downstream implementation remains gated
 
 ## Goal
 

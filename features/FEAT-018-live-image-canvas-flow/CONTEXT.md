@@ -1,7 +1,7 @@
 # FEAT-018 live image and canvas context
 
-- Status: AWAITING_APPROVAL
-- Plan revision: 2 (ExperienceSpec engine refinement proposed; awaiting approval)
+- Status: APPROVED for P1 slice; downstream ExperienceSpec consumers remain pending approval
+- Plan revision: 2 (P1 slice approved; downstream consumers pending approval)
 - Owner: shared integration allocation pending contract freeze approval
 - Goal: run a non-sensitive real JPG/PNG through validation, backend-only Qwen3-VL understanding, Gate A, one-anchor/one-objective ExperienceSpec compilation, P1/Gate B, PixiJS canvas, P4 cache/fallback, off-screen handoff, gallery journey and feedback.
 - Data policy: non-sensitive test image only; no child/personal data, production data, or provider credential in Git/mobile/evidence.

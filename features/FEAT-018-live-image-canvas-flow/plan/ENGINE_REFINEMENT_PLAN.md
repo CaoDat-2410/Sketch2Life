@@ -1,6 +1,6 @@
 # FEAT-018 revision 2 — ExperienceSpec engine and coherent off-screen journey
 
-- Status: `AWAITING_APPROVAL`
+- Status: `APPROVED` for the P1 implementation slice only; P2/P3/P4/shared tasks remain pending approval
 - Implementation status: `NOT_STARTED`
 - Scope boundary: fixture-first contracts and offline integration planning. No live provider, production API, Android release, cloud deployment, or real child data is authorized by this document.
 
@@ -147,7 +147,7 @@ Shared work requires a separately approved integration allocation; it is not sil
 
 ## Execution order and stop gates
 
-1. Review and approve this plan revision and proposed contracts.
+1. Review and approve this plan revision and proposed contracts. **Completed for the P1 slice on 2026-09-09.**
 2. Freeze JSON Schemas and migration fixtures.
 3. P1 publishes catalog/template/provenance fixtures.
 4. P2 publishes anchor candidate fixtures and adapter compatibility.
@@ -156,15 +156,15 @@ Shared work requires a separately approved integration allocation; it is not sil
 7. Shared integration adds state, Gate B, gallery and fixture-only E2E.
 8. Stop on identity mismatch, missing provenance, missing adult context, fit score below threshold, stale spec, unsafe media or source-hash mismatch.
 
-No implementation begins while FEAT-018 approval remains `AWAITING_APPROVAL`.
+P1 implementation may begin within the approved slice. P2/P3/P4/shared implementation remains blocked until its own scope and downstream contract handoffs are approved.
 
 ## Approval checklist
 
-- [ ] Contract names and versions accepted.
-- [ ] One-anchor/one-objective/one-template session rule accepted.
-- [ ] Activity Template Library ownership assigned to P1.
-- [ ] Fit weights and threshold approved.
-- [ ] Gate B lock scope includes template/spec version.
+- [x] Contract names and versions accepted for the P1 slice.
+- [x] One-anchor/one-objective/one-template session rule accepted for P1 spec compilation.
+- [x] Activity Template Library ownership assigned to P1.
+- [x] Fit weights and threshold approved for P1 fixture validation.
+- [x] Gate B lock scope includes template/spec version for the P1 slice.
 - [ ] Gallery read-model scope approved.
 - [ ] Shared integration allocation approved separately.
 - [ ] Existing exclusions remain unchanged.
