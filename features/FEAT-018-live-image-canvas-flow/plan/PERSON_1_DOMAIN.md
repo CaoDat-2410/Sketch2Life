@@ -128,3 +128,7 @@ P1 must publish JSON Schema/fixtures before P2, P3, or P4 integrate against the 
 6. Stop immediately on identity mismatch, stale version, missing adult context, or untraceable source.
 
 Evidence naming: `P1_<contract-or-scenario>_<YYYYMMDD>.json` plus a redacted `.txt` summary in this feature's evidence directory.
+
+## Revision-2 engine additions — pending approval
+
+P1 additionally owns `FEAT018-P1-E1` through `FEAT018-P1-E5` in `ENGINE_REFINEMENT_PLAN.md`: curated Activity Template Library, one-anchor/one-objective selection, `ExperienceSpecV1` compilation, deterministic fit evaluation and Gate B locking of objective/activity/template/spec versions. The template library is domain-owned; runtime AI cannot invent or mutate pedagogy.

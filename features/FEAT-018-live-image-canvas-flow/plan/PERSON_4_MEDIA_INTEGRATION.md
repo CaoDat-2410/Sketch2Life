@@ -194,3 +194,7 @@ P4 must publish cache/fallback fixtures before the shared integration owner wire
 6. Stop on stale identity, unsafe/corrupt media, unredacted evidence, or fallback that bypasses a gate.
 
 Evidence naming: `P4_<cache-or-fallback>_<YYYYMMDD>.json` plus a redacted device-run summary; store screenshots only under the feature evidence directory.
+
+## Revision-2 engine additions — pending approval
+
+P4 additionally owns `FEAT018-P4-E1` through `FEAT018-P4-E4` in `ENGINE_REFINEMENT_PLAN.md`: consume the approved `ExperienceSpecV1`, include objective/template/spec identity in cache and result provenance, validate video continuity, and preserve the same concept through still+narration fallback. P4 does not own the Activity Template Library or objective selection.

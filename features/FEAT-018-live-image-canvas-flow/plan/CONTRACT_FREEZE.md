@@ -108,3 +108,27 @@ sequenceDiagram
 - Producer/consumer table for all four people.
 - Positive, malformed, stale, missing-context, fallback, and redaction fixtures.
 - One review record for every contract version change.
+
+## Revision-2 proposed engine contracts — not yet frozen
+
+The ExperienceSpec engine adds a shared semantic handoff so video, original-art animation and the off-screen activity cannot choose independent concepts. These names and fields are proposals until the owner approves FEAT-018 plan revision 2; no implementation may treat them as active contracts before that approval.
+
+| Proposed contract | Owner | Purpose |
+|---|---|---|
+| `SemanticAnchorSetV1` | P2 -> P1 | Confirmed subject/action/feature/story observations with source claims and adult correction. |
+| `LearningFocusV1` | P1 | One selected anchor and one learning objective for the session. |
+| `ActivityTemplateV1` | P1 | Curated activity family, objective compatibility, materials, safety and personalization slots. |
+| `ExperienceSpecV1` | P1/shared | Immutable source of truth for video, animation, activity plan and bridge sentence. |
+| `ActivityFitEvaluationV1` | P1/shared | Deterministic relevance, objective, continuity and Montessori/safety score. |
+| `BridgeSentenceV1` | shared | Child-facing transition from explanation to the same off-screen activity. |
+
+Revision-2 invariants:
+
+- one primary anchor, one objective and one template per approved session;
+- P2 supplies observations but never selects pedagogy;
+- P3 and P4 consume the approved spec and cannot change its concept;
+- Gate B locks objective, activity, template and spec versions;
+- cache, renderer and fallback results preserve the same identity;
+- gallery is a session-journey read model, not an independent asset gallery.
+
+The existing V1/V2 vision reconciliation remains unresolved until the owner selects one canonical integration path. A breaking contract change requires a new version and migration fixture.

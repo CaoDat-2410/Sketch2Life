@@ -120,3 +120,7 @@ P2 must publish schema fixtures before the mobile request or P1 mapper is change
 6. Stop on any prohibited field, unbounded output, source mismatch, or fabricated narration.
 
 Evidence naming: `P2_<media-or-contract>_<YYYYMMDD>.json` plus sanitized latency/status `.txt`; raw provider payloads are forbidden.
+
+## Revision-2 engine additions — pending approval
+
+P2 additionally owns `FEAT018-P2-E1` through `FEAT018-P2-E4` in `ENGINE_REFINEMENT_PLAN.md`: enrich provider-neutral observations, publish anchor candidates with provenance, cover unknown/ambiguous/conflicting/adult-corrected cases, and provide the adapter into `SemanticAnchorSetV1`. P2 does not select objectives, templates or activities.
