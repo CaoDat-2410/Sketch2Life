@@ -43,8 +43,9 @@ owner decision. B5 remains unexecuted. The current safe status is maintained in
 
 ### Prompt-v3 Phase 8 execution-ready status (2026-09-09)
 
-- Local/no-GPU preparation is complete. The owner approved the current package/manifest and the
-  bounded D-8 execution; the real benchmark remains unexecuted until the operator runs it.
+- Local/no-GPU preparation and the bounded D-8 execution are complete. Both passes achieved 8/8
+  schema-valid runs and passed the repeat/comparability conditions, but neither met D-5; the
+  immutable verdict is `QUALITY_NOT_READY / QUALITY_BELOW_THRESHOLD`.
 - D-5 is fixed at `0.80` minimum coverage and accuracy for entities/actions/relations/themes;
   ambiguous-region count-rate must be exactly `1.00` and its accuracy is `NOT_MEASURED`. D-6
   requires 8/8 attempted, recorded, and schema-valid fixtures per pass; both passes independently
@@ -53,10 +54,11 @@ owner decision. B5 remains unexecuted. The current safe status is maintained in
 - D-7 is resolved as `CLASSIFY_ONLY`. The local runner rejects `EPHEMERAL_CAPTURE` from both the
   execution decision and the B3 collector before package loading, scratch creation, factory
   invocation, or raw-output writing. This does not change B3's separate raw-output behavior.
-- D-8 is limited to one `1 x NVIDIA L4` Studio session, a 30-minute hard cap measured immediately
-  before start/wake, one readiness check, one pass, one immediate repeat, safe report write, and
-  shutdown. No tuning, download, exploratory inference, extra diagnostics, or automatic rerun is
-  in scope. Authorization is not evidence of execution and does not complete Phase 8.
+- D-8 executed within the runner's 30-minute cap: the application-side interval was
+  `00:08:13.428533`, but official Lightning duration/cost remain pending because the current
+  Activity export has not finalized the matching session. No tuning, download, exploratory
+  inference, extra diagnostics, or automatic rerun is in scope. Phase 8 technical execution is
+  complete; evidence closure awaits only ledger reconciliation.
 
 ## Task breakdown and execution order
 

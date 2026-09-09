@@ -126,3 +126,8 @@
   shutdown. No download, tuning, exploration, additional diagnostics, or automatic rerun is
   allowed. Failure/readiness/package/cap conditions fail closed and require immediate shutdown.
   This decision does not select a production profile/default.
+- The authorized Phase 8 execution is now immutable evidence: both independent passes were 8/8
+  schema-valid and comparable, but both failed D-5 with identical aggregate scores. The verdict is
+  `QUALITY_NOT_READY / QUALITY_BELOW_THRESHOLD`. It must not be rerun, pooled, tuned against, or
+  rescored under a changed rule; official Lightning duration/cost may be appended later without
+  changing the technical result.

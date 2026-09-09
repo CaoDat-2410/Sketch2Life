@@ -215,7 +215,20 @@ Current status:
    predicted text, ground truth, credential, endpoint, or local path. The full execution record,
    including the official ledger reconciliation, is
    `P2_T3_PHASE_B_B4_DIRECTION_A_V3_PHASE6_EXECUTION_RECORD.md` (`EV-003-T3-14`).
-8. Any new held-out quality benchmark — separately gated and not authorized.
+8. Held-out prompt-v3 quality benchmark — executed under the later owner-approved D-5 through
+   D-8 boundary. The owner approved `vision-v3-quality-manifest-v1` and its ordered eight-fixture
+   synthetic package. One `V3_QUALITY_PASS_1` and one immediate `V3_QUALITY_REPEAT_1` completed
+   with 8/8 schema-valid successes each, no typed failure or raw-output classification defect, and
+   a `1.326089s` repeat gap. Both passes produced identical quality scores and failed D-5:
+   entities coverage/accuracy `0.111111`, actions `0.0/0.0`, relations and themes `0.0` coverage
+   with no predictions, and ambiguous-region count-rate `0.0`. The quality verdict is therefore
+   `QUALITY_NOT_READY` with only `QUALITY_BELOW_THRESHOLD`. The safe report is
+   `metrics/P2_T3_PHASE_B_B4_DIRECTION_A_V3_PHASE8_REPORT.json` (`EV-003-T3-15`), SHA-256
+   `9bd636fedd470dc519929b6be550a6e72d0ceb03db73a72470e31118212ef916`; the execution record is
+   `P2_T3_PHASE_B_B4_DIRECTION_A_V3_PHASE8_EXECUTION_RECORD.md` (`EV-003-T3-16`). The latest
+   Activity export does not yet contain a session at least as long as the runner's
+   `00:08:13.428533` interval, so official duration/cost reconciliation remains `PENDING` and no
+   shorter row is guessed as this run.
 
 ### Compute governance for the Phase 6 session — `CAP_EXCEEDED`
 
@@ -261,14 +274,17 @@ rechecked B3/B4 disjointness and Git-ignore coverage, then stopped before model 
 - B2: real readiness/preflight complete; first mapping call failed safely.
 - B3: mapping failure diagnosed; prompt-v2 achieved repeatable `16/16` mapping readiness.
 - Original B4: complete; structural mapping passed, held-out quality is `NO_GO`.
-- Direction A prompt-v3: phases 1–6 and mapping-readiness evaluation are complete. The bounded
-  L4 execution returned repeatable `7/8` per-pass mapping validity and `MAPPING_READY`; this is
-  mapping-only evidence and does not override the original B4 quality `NO_GO` or authorize a new
-  held-out quality benchmark.
+- Direction A prompt-v3: mapping validation and the separately approved Phase 8 held-out quality
+  execution are complete. Phase 6 returned repeatable `7/8` mapping validity and `MAPPING_READY`;
+  Phase 8 then returned 8/8 schema-valid results in both passes but repeatably failed every D-5
+  collection gate, producing `QUALITY_NOT_READY`. Mapping readiness does not override quality.
 - Compute governance for that same session is `CAP_EXCEEDED`: the official ledger records
   `00:44:41` against the authorized `00:20:00`, an exceedance of `00:24:41`. The technical
   `MAPPING_READY` result stands; the budget overrun is recorded separately and is not offset by it.
-- Direction B, the canonical-vocabulary mismatch hypothesis, remains open.
+- Phase 8 official Lightning duration/cost reconciliation remains pending; this does not require
+  or authorize another GPU run.
+- Direction B, the canonical-vocabulary mismatch hypothesis, remains open and now has repeatable
+  safe evidence, but any remediation requires a new plan and approval.
 - B5 and any production/runtime recommendation remain unresolved.
 - Overall P2-T3 status: `IN_PROGRESS`.
 

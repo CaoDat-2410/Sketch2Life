@@ -208,8 +208,14 @@ This workstream owns media validation, ASR/VLM adapters, fusion, `RawUnderstandi
   synthetic fixtures, then authorized D-8 as one `1 x NVIDIA L4` session with a 30-minute hard cap
   from immediately before Studio start/wake: one readiness check, one pass, one immediate repeat,
   safe report serialization, and shutdown. No download, tuning, exploration, extra diagnostics,
-  or automatic rerun is permitted. The benchmark has not executed yet, so Phase 8 and P2-T3 are
-  not complete and no profile/runtime default is selected.
+  or automatic rerun is permitted.
+- The authorized benchmark subsequently completed both 8-fixture passes with 8/8 schema-valid
+  successes, no typed/runtime/mapping failure, and a valid `1.326089s` repeat gap. Both passes
+  nevertheless failed every D-5 collection gate identically, so the immutable technical verdict
+  is `QUALITY_NOT_READY / QUALITY_BELOW_THRESHOLD`. The runner interval was
+  `00:08:13.428533`; official Lightning duration/cost remain pending Activity finalization. No
+  rerun is needed for that reconciliation, Phase 8 execution is complete, P2-T3 remains in
+  progress, and no profile/runtime default is selected.
 
 ## Current Phase B benchmark-readiness truth (2026-08-30)
 
