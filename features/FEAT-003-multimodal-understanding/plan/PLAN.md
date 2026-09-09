@@ -3,7 +3,9 @@
 - Status: APPROVED (P2-T1 and P2-T2 Phases A/B complete; P2-T3 Phase B in progress)
 - Plan revision: 4
 - Implementation status: IN_PROGRESS (P2-T3 B1-B3 and the original B4 benchmark complete;
-  prompt-v3 follow-up phases 1-3 complete; P2-T4/P2-T5 remain gated)
+  prompt-v3 follow-up phases 1-6 and its mapping-readiness evaluation complete with a
+  `MAPPING_READY` verdict and a `CAP_EXCEEDED` compute-governance result; B5, prompt-v3 phase 8,
+  and P2-T4/P2-T5 remain gated)
 - Owner: Person 2
 - Estimate: 10 points total (P2-T1 through P2-T5, 2 points each)
 
@@ -30,8 +32,13 @@ P2-T1 and P2-T2 Phases A/B are implemented; the P2-T2 controlled Round-1 executi
 recorded in `EV-003-T2-05` and `EV-003-T2-06`, without selecting a frozen profile or runtime
 default. P2-T3 Phase A and the bounded Phase B B1-B5 study are approved. B1-B3 and the original B4
 benchmark are complete; B4 produced schema-valid output but a quality `NO_GO`. The separately
-bounded prompt-v3 follow-up has completed local phases 1-3, while its cross-environment package
-verification and all later GPU work remain gated. The current safe status is maintained in
+bounded prompt-v3 follow-up has completed phases 1-6 and its mapping-readiness evaluation: both
+`V3_PASS_1` and `V3_REPEAT_1` reached `7/8` mapping-valid independently for a `MAPPING_READY`
+verdict (`EV-003-T3-13`, `EV-003-T3-14`). That is mapping-only evidence; it does not change the
+B4 quality `NO_GO` and does not authorize the separately gated prompt-v3 phase 8 held-out quality
+benchmark. Compute governance for that session is `CAP_EXCEEDED` — the official Lightning ledger
+records `00:44:41` against the authorized `00:20:00` — so further GPU work needs a new explicit
+owner decision. B5 remains unexecuted. The current safe status is maintained in
 `evidence/P2_T3_LIVING_SUMMARY.md`. P2-T4 and P2-T5 remain unapproved.
 
 ## Task breakdown and execution order
