@@ -204,11 +204,10 @@ class _ModelLikeFactory:
 def _copy_fixture_package(tmp_path: Path, *, owner_approved: bool) -> Path:
     root = tmp_path / "vision-v3-quality"
     shutil.copytree(_FIXTURE_SOURCE, root)
-    if owner_approved:
-        manifest_path = root / "manifest-v1.json"
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["status"] = "OWNER_REVIEW_APPROVED"
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    manifest_path = root / "manifest-v1.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["status"] = "OWNER_REVIEW_APPROVED" if owner_approved else "AWAITING_OWNER_REVIEW"
+    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     return root
 
 

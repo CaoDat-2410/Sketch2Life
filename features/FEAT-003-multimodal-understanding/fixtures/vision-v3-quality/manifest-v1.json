@@ -2,7 +2,7 @@
   "contract_name": "VisionV3QualityFixtureManifestV1",
   "contract_version": "1.0",
   "manifest_version": "vision-v3-quality-manifest-v1",
-  "status": "AWAITING_OWNER_REVIEW",
+  "status": "OWNER_REVIEW_APPROVED",
   "split": "HELD_OUT",
   "purpose": "QUALITY_BENCHMARK",
   "has_ground_truth": true,

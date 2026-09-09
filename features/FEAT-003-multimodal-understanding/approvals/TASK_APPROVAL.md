@@ -53,6 +53,36 @@
   Lightning/GPU use, or Phase 8 completion. The separate B3 `EPHEMERAL_CAPTURE` behavior remains
   unchanged and is not enabled for the Phase 8 runner.
 
+## Phase 8 D-5/D-6 decision addendum — 2026-09-09
+
+- Scope: the pre-registered acceptance and repeat gates for the separately held-out prompt-v3
+  Phase 8 quality benchmark.
+- D-5 is fixed as follows: entities, actions, relations, and themes each require aggregate
+  coverage and accuracy of at least `0.80`. Ambiguous regions require count-rate lower and upper
+  bounds of `1.00`; their accuracy remains `NOT_MEASURED` and their note text is never compared.
+- D-6 is fixed as follows: each pass requires exactly eight attempted fixtures, eight run records,
+  and eight schema-valid runs. Both passes must independently meet D-5, use the same Lightning
+  session, and start Repeat no later than 15 minutes after Pass 1 completes. Configuration drift;
+  input, runtime, or device failure; and two or more truncated outputs in either pass are blocking.
+- This addendum does not by itself approve the manifest/fixture review, D-8 compute budget, model
+  execution, Lightning/GPU use, a profile freeze/default, or Phase 8 completion.
+
+## Phase 8 manifest and D-8 execution approval — 2026-09-09
+
+- The owner approves manifest `vision-v3-quality-manifest-v1` in state
+  `OWNER_REVIEW_APPROVED` and its current ordered set of eight synthetic held-out fixtures,
+  including the image SHA-256 values recorded in that manifest. Ground truth and matching-rule
+  identity remain bound by their recorded hashes; this approval does not permit fixture mutation.
+- D-8 authorizes one Lightning Studio session on `1 x NVIDIA L4` for exactly one readiness check,
+  one `V3_QUALITY_PASS_1`, one immediate `V3_QUALITY_REPEAT_1`, safe report serialization, and
+  shutdown. The hard wall-clock cap is 30 minutes, measured from immediately before the Studio is
+  started or awakened. `CLASSIFY_ONLY` remains mandatory; downloads, tuning, exploratory calls,
+  extra diagnostics, and automatic reruns are not authorized.
+- If readiness is not `READY`, package identity fails, the run becomes incomplete/non-comparable,
+  or the cap is reached, the operator records `ABORTED`/`NON_COMPARABLE` as applicable and stops
+  the Studio immediately. Operator start/stop plus official Lightning Activity duration/cost are
+  recorded afterward. This approval does not freeze a profile or select a runtime default.
+
 ## Explicitly not approved
 
 - Any P2-T3 work outside the approved Phase B B1–B5 scope, P2-T4 through P2-T5, mobile/API/session/job orchestration, Gate A UI, database/storage/queue integration, real child data, and any provider credentials.
