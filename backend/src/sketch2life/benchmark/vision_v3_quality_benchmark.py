@@ -5,10 +5,10 @@ benchmark, and the prompt-v3 mapping-validation runner.  It has its own fixture 
 labels, scoring types, and quality verdict vocabulary.  It never reads a prior benchmark report
 and it cannot produce a mapping-readiness verdict.
 
-The tracked Phase 8 package is intentionally still review-gated.  The package loader therefore
-requires the owner-approved manifest state before an adapter factory can be constructed.  D-5
-and D-6 remain explicit caller-supplied decisions; unresolved values fail closed instead of
-receiving defaults.  D-7 is fixed to ``CLASSIFY_ONLY`` at this boundary: neither a decision value
+The tracked Phase 8 package is owner-approved.  The package loader requires that approved state
+before an adapter factory can be constructed.  D-5 and D-6 remain explicit caller-supplied
+decisions at the reusable scoring boundary; unresolved values fail closed instead of receiving
+defaults.  D-7 is fixed to ``CLASSIFY_ONLY`` at this boundary: neither a decision value
 nor a B3 collector configured for ``EPHEMERAL_CAPTURE`` can override it.  The adapter is injected
 at the boundary, so importing or testing this module does not import a model provider, load
 weights, use CUDA, or contact a provider.  The execution entry point accepts only the concrete
@@ -111,6 +111,9 @@ _WINDOWS_DRIVE_ABSOLUTE_PATTERN = re.compile(r"^[A-Za-z]:[\\/]")
 
 type V3QualityRunLabel = Literal["V3_QUALITY_PASS_1", "V3_QUALITY_REPEAT_1"]
 type MediaValidationFactory = Callable[[str, Path, Path], VisionMediaValidationProvenanceV1]
+type V3QualityAdapterFactory = Callable[
+    [str, Callable[[str], None]], VisionUnderstandingPortV2
+]
 
 
 class V3QualityFixtureIntegrityError(ValueError):
@@ -1260,9 +1263,9 @@ def run_v3_quality_pass(
 ) -> V3QualityPassReport:
     """Run one local-only pass through the concrete static typed-result fake boundary.
 
-    This entry point cannot accept a model/provider factory.  A future real-model run, if approved
-    separately, must use a different module and authorization path after D-8; no caller argument
-    here can turn this local preparation runner into a model runner.
+    This entry point cannot accept a model/provider factory.  The owner-authorized real-model run
+    uses the separate ``vision_v3_quality_execution`` module; no caller argument here can turn
+    this local preparation runner into a model runner.
     """
 
     if run_label not in _DEFAULT_RUNTIME_DIRS:
@@ -1279,6 +1282,48 @@ def run_v3_quality_pass(
     if type(adapter_factory) is not V3QualityLocalFakeAdapterFactory:
         raise V3QualityLocalOnlyBoundaryError(
             "Phase 8 local preparation accepts only V3QualityLocalFakeAdapterFactory"
+        )
+
+    return _run_verified_v3_quality_pass(
+        adapter_factory,
+        collector,
+        run_label=run_label,
+        decisions=decisions,
+        fixture_root=fixture_root,
+        runtime_dir=runtime_dir,
+        validate_media=validate_media,
+        clock=clock,
+        before_adapter_call=lambda: None,
+        vram_not_measured_reason="VRAM sampling unavailable in local-only preparation",
+    )
+
+
+def _run_verified_v3_quality_pass(
+    adapter_factory: V3QualityAdapterFactory,
+    collector: B3RawOutputCollector,
+    *,
+    run_label: V3QualityRunLabel,
+    decisions: V3QualityExecutionDecisions,
+    fixture_root: Path = _DEFAULT_FIXTURE_ROOT,
+    runtime_dir: Path | None = None,
+    validate_media: MediaValidationFactory = _real_p2t1_pass,
+    clock: Callable[[], datetime] = lambda: datetime.now(UTC),
+    before_adapter_call: Callable[[], None],
+    vram_not_measured_reason: str,
+) -> V3QualityPassReport:
+    """Run one verified pass for a caller that already enforced its execution boundary.
+
+    This internal seam is shared with the separately authorized D-8 GPU module.  It deliberately
+    does not decide whether a factory is local or model-backed; each public entry point must make
+    that decision before calling here.
+    """
+
+    if run_label not in _DEFAULT_RUNTIME_DIRS:
+        raise V3QualityInvalidRunLabelError("Phase 8 run label is not registered")
+    decisions.require_phase8_classify_only()
+    if collector.mode is not B3RawOutputMode.CLASSIFY_ONLY:
+        raise V3QualityDecisionRequiredError(
+            "Phase 8 D-7 requires the B3 collector mode CLASSIFY_ONLY"
         )
 
     prompt_text = _verified_v3_prompt_text()
@@ -1323,6 +1368,7 @@ def run_v3_quality_pass(
                 requested_profile_id=VisionProfileIdV2.QWEN3_VL_8B_INSTRUCT_BF16_V1,
             )
             collector.take_latest()
+            before_adapter_call()
             call_started = time.perf_counter()
             result = adapter.understand(request)
             latency_ms = (time.perf_counter() - call_started) * 1000.0
@@ -1366,9 +1412,7 @@ def run_v3_quality_pass(
                     repair_attempted=result.repair_attempted,
                     wall_latency_ms=latency_ms,
                     peak_vram_mb=peak_vram_mb,
-                    vram_not_measured_reason=(
-                        "VRAM sampling unavailable in local-only preparation"
-                    ),
+                    vram_not_measured_reason=vram_not_measured_reason,
                     fenced=classification.fenced if classification is not None else None,
                     truncated=classification.truncated if classification is not None else None,
                     extra_key=classification.extra_key if classification is not None else None,
@@ -1707,6 +1751,7 @@ def quality_pass_report_to_dict(report: V3QualityPassReport) -> dict[str, object
 
 __all__ = [
     "V3QualityAcceptanceThresholds",
+    "V3QualityAdapterFactory",
     "V3QualityBlockingReason",
     "V3QualityCollectionScore",
     "V3QualityCollectionThreshold",
