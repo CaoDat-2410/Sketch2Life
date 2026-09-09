@@ -21,3 +21,8 @@ Approved P1 acceptance boundary:
 - 100-MVP offline validation, 20-golden pilot fixtures and redacted feature-local evidence.
 
 This approval does not authorize P2 model changes, P3 renderer implementation, P4 provider/media implementation, shared mobile/backend/gallery integration, live provider execution, production API/cloud work, Android release, or real child/personal data. The proposed revision-2 contracts remain subject to the shared contract-freeze rules; P1 may implement only its approved domain slice and its fixture-local contract adapters.
+
+## Implementation record — 2026-09-09
+- P1 fixture-only implementation completed on `codex/p1-feat018-task-plan`.
+- Evidence: `evidence/metrics/P1_ENGINE_VALIDATION_20260909.json` and `evidence/notes/P1_ENGINE_IMPLEMENTATION_20260909.md`.
+- Downstream P2/P3/P4/shared/live/production scope remains unimplemented and separately gated.

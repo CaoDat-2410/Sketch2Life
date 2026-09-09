@@ -1,0 +1,32 @@
+{
+  "id": "CASE_VALID_MAX_BOUNDARY",
+  "description": "Maximum age is inclusive",
+  "input": {
+    "age_months": 71,
+    "readiness_tags": [
+      "follows_one_step_direction"
+    ],
+    "completed_activity_ids": [],
+    "available_material_ids": [
+      "MAT_LARGE_DRY_COUNTERS",
+      "MAT_TRAY",
+      "MAT_TWO_PITCHERS"
+    ],
+    "supervision_level": "NEARBY",
+    "policy_flags": [],
+    "candidate_activity_ids": [
+      "ACT-0026"
+    ]
+  },
+  "expected": {
+    "status": "VALID_CANDIDATES",
+    "allowed_activity_ids": [
+      "ACT-0026"
+    ],
+    "blocked": {}
+  },
+  "coverage_tags": [
+    "valid",
+    "age_boundary"
+  ]
+}

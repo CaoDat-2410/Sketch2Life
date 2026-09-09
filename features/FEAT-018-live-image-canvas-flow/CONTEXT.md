@@ -11,4 +11,4 @@
 
 ## Current state
 
-The repository has a fixture UI and backend-only live P2 route. PixiJS/GSAP dependencies exist in `packages/art-renderer`, but the renderer runtime/bridge, approved asset pack, ExperienceSpec engine and gallery journey are not implemented. The reviewed P1 catalog is not yet promoted into the main runtime. Implementation is blocked until plan revision 2, allocation, contract freeze and visual/data boundaries are approved.
+The repository has a fixture UI and backend-only live P2 route. The approved P1 slice is now implemented offline: the reviewed catalog is loaded through a typed template adapter, adult context and hard eligibility rules run before fit scoring, and the fixture-only ExperienceSpec compiler locks anchor/objective/template/spec identity at Gate B. PixiJS/GSAP runtime/bridge, approved asset pack, live media consumers and gallery journey remain downstream work and are still pending their own approval.

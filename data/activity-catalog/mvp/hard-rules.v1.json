@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "evaluation_policy": "ALL_HARD_RULES_BEFORE_ANY_FUTURE_RANKING",
+  "no_result_status": "NO_VALID_ACTIVITY",
+  "supervision_order": ["NONE", "NEARBY", "DIRECT"],
+  "rules": [
+    {
+      "id": "RULE_ACTIVE_STATUS",
+      "priority": 10,
+      "reason_code": "BLOCK_INACTIVE_ACTIVITY",
+      "condition": "catalog_status == ACTIVE_FIXTURE"
+    },
+    {
+      "id": "RULE_AGE_MIN",
+      "priority": 20,
+      "reason_code": "BLOCK_AGE_BELOW_MINIMUM",
+      "condition": "age_months >= activity.age_months.min"
+    },
+    {
+      "id": "RULE_AGE_MAX",
+      "priority": 21,
+      "reason_code": "BLOCK_AGE_ABOVE_MAXIMUM",
+      "condition": "age_months <= activity.age_months.max"
+    },
+    {
+      "id": "RULE_READINESS",
+      "priority": 30,
+      "reason_code": "BLOCK_MISSING_READINESS",
+      "condition": "all activity.readiness_tags are present"
+    },
+    {
+      "id": "RULE_PREREQUISITE",
+      "priority": 40,
+      "reason_code": "BLOCK_MISSING_PREREQUISITE",
+      "condition": "all activity.prerequisite_activity_ids are completed"
+    },
+    {
+      "id": "RULE_SUPERVISION",
+      "priority": 50,
+      "reason_code": "BLOCK_INSUFFICIENT_SUPERVISION",
+      "condition": "available supervision >= minimum supervision"
+    },
+    {
+      "id": "RULE_POLICY",
+      "priority": 60,
+      "reason_code": "BLOCK_POLICY_CONSTRAINT",
+      "condition": "all activity.policy_constraints are present"
+    },
+    {
+      "id": "RULE_MATERIAL",
+      "priority": 70,
+      "reason_code": "BLOCK_MISSING_MATERIAL",
+      "condition": "every required material group has at least one available option"
+    }
+  ]
+}

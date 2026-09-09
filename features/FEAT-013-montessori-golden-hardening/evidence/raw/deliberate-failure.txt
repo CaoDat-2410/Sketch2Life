@@ -1,0 +1,9 @@
+FEAT-013 deliberate fixture-mutation test
+Date: 2026-08-25
+Test: test_mutated_fixture_is_rejected_by_checksum
+Mutation: copy fixtures to pytest tmp_path, change GCASE_0004_PRIMARY_VALID expected allowed IDs, retain original manifest checksum
+Observed validator result: non-zero
+Observed reason: golden fixture checksum mismatch: GCASE_0004_PRIMARY_VALID
+Unit result: PASS
+
+Interpretation: modified expected output cannot silently pass fixture replay. Temporary data was isolated and removed by pytest.

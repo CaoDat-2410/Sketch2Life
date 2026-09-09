@@ -1,0 +1,19 @@
+{
+  "fixture_id": "p1-missing-context-v1",
+  "scenario": "confirmed_anchor_without_adult_eligibility_context",
+  "raw_media_included": false,
+  "confirmed_anchor": "anchor-butterfly",
+  "missing_context_fields": [
+    "age_months",
+    "readiness_ids",
+    "completed_activity_ids",
+    "available_material_option_ids",
+    "supervision_level",
+    "policy_flags",
+    "candidate_status"
+  ],
+  "expected": {
+    "filter_status": "MISSING_CONTEXT",
+    "gate_b": "BLOCKED"
+  }
+}

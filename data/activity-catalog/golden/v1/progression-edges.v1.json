@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "edges": [
+    {
+      "from_activity_id": "ACT-0004",
+      "to_activity_id": "ACT-0016",
+      "relationship": "PREPARES_FOR"
+    },
+    {
+      "from_activity_id": "ACT-0016",
+      "to_activity_id": "ACT-0020",
+      "relationship": "PREPARES_FOR"
+    },
+    {
+      "from_activity_id": "ACT-0016",
+      "to_activity_id": "ACT-0026",
+      "relationship": "PREPARES_FOR"
+    },
+    {
+      "from_activity_id": "ACT-0019",
+      "to_activity_id": "ACT-0020",
+      "relationship": "PREPARES_FOR"
+    },
+    {
+      "from_activity_id": "ACT-0020",
+      "to_activity_id": "ACT-0023",
+      "relationship": "PREPARES_FOR"
+    },
+    {
+      "from_activity_id": "ACT-0026",
+      "to_activity_id": "ACT-0033",
+      "relationship": "PREPARES_FOR"
+    },
+    {
+      "from_activity_id": "ACT-0039",
+      "to_activity_id": "ACT-0046",
+      "relationship": "PREPARES_FOR"
+    },
+    {
+      "from_activity_id": "ACT-0055",
+      "to_activity_id": "ACT-0087",
+      "relationship": "PREPARES_FOR"
+    },
+    {
+      "from_activity_id": "ACT-0058",
+      "to_activity_id": "ACT-0091",
+      "relationship": "PREPARES_FOR"
+    },
+    {
+      "from_activity_id": "ACT-0067",
+      "to_activity_id": "ACT-0097",
+      "relationship": "PREPARES_FOR"
+    },
+    {
+      "from_activity_id": "ACT-0074",
+      "to_activity_id": "ACT-0099",
+      "relationship": "PREPARES_FOR"
+    },
+    {
+      "from_activity_id": "ACT-0085",
+      "to_activity_id": "ACT-0099",
+      "relationship": "PREPARES_FOR"
+    },
+    {
+      "from_activity_id": "ACT-0097",
+      "to_activity_id": "ACT-0099",
+      "relationship": "PREPARES_FOR"
+    }
+  ]
+}

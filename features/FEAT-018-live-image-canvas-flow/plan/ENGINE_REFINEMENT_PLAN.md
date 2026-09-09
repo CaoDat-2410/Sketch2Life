@@ -1,7 +1,7 @@
 # FEAT-018 revision 2 — ExperienceSpec engine and coherent off-screen journey
 
 - Status: `APPROVED` for the P1 implementation slice only; P2/P3/P4/shared tasks remain pending approval
-- Implementation status: `NOT_STARTED`
+- Implementation status: `P1 COMPLETE (fixture-only); P2/P3/P4/shared pending`
 - Scope boundary: fixture-first contracts and offline integration planning. No live provider, production API, Android release, cloud deployment, or real child data is authorized by this document.
 
 ## Problem and goal

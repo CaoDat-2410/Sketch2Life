@@ -1,0 +1,32 @@
+{
+  "id": "CASE_VALID_3_6",
+  "description": "Valid 3-6 practical-life candidate",
+  "input": {
+    "age_months": 48,
+    "readiness_tags": [
+      "follows_one_step_direction"
+    ],
+    "completed_activity_ids": [],
+    "available_material_ids": [
+      "MAT_LARGE_DRY_COUNTERS",
+      "MAT_TRAY",
+      "MAT_TWO_PITCHERS"
+    ],
+    "supervision_level": "NEARBY",
+    "policy_flags": [],
+    "candidate_activity_ids": [
+      "ACT-0026"
+    ]
+  },
+  "expected": {
+    "status": "VALID_CANDIDATES",
+    "allowed_activity_ids": [
+      "ACT-0026"
+    ],
+    "blocked": {}
+  },
+  "coverage_tags": [
+    "valid",
+    "3-6"
+  ]
+}

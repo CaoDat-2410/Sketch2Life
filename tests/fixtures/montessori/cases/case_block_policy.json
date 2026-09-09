@@ -1,0 +1,32 @@
+{
+  "id": "CASE_BLOCK_POLICY",
+  "description": "0-3 candidate blocks without caregiver policy",
+  "input": {
+    "age_months": 12,
+    "readiness_tags": [
+      "caregiver_present"
+    ],
+    "completed_activity_ids": [],
+    "available_material_ids": [
+      "MAT_HIGH_CONTRAST_MOBILE"
+    ],
+    "supervision_level": "DIRECT",
+    "policy_flags": [],
+    "candidate_activity_ids": [
+      "ACT-0001"
+    ]
+  },
+  "expected": {
+    "status": "NO_VALID_ACTIVITY",
+    "allowed_activity_ids": [],
+    "blocked": {
+      "ACT-0001": [
+        "BLOCK_POLICY_CONSTRAINT"
+      ]
+    }
+  },
+  "coverage_tags": [
+    "blocked",
+    "policy"
+  ]
+}

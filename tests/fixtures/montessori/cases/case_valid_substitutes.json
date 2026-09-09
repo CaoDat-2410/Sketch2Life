@@ -1,0 +1,32 @@
+{
+  "id": "CASE_VALID_SUBSTITUTES",
+  "description": "Approved substitute IDs satisfy material groups",
+  "input": {
+    "age_months": 48,
+    "readiness_tags": [
+      "follows_one_step_direction"
+    ],
+    "completed_activity_ids": [],
+    "available_material_ids": [
+      "MAT_TWO_PITCHERS_APPROVED_SUBSTITUTE",
+      "MAT_LARGE_DRY_COUNTERS_APPROVED_SUBSTITUTE",
+      "MAT_TRAY_APPROVED_SUBSTITUTE"
+    ],
+    "supervision_level": "NEARBY",
+    "policy_flags": [],
+    "candidate_activity_ids": [
+      "ACT-0026"
+    ]
+  },
+  "expected": {
+    "status": "VALID_CANDIDATES",
+    "allowed_activity_ids": [
+      "ACT-0026"
+    ],
+    "blocked": {}
+  },
+  "coverage_tags": [
+    "valid",
+    "material_substitute"
+  ]
+}
