@@ -1,11 +1,13 @@
 # P2-T3 living summary — structured vision research
 
 - Evidence ID: `EV-003-T3-SUMMARY-01`
-- Last updated: 2026-09-08
+- Last updated: 2026-09-09
 - Status: `IN_PROGRESS` — Phase A and Phase B B1–B3 are complete; the original B4 benchmark is
-  complete with a quality `NO_GO`; the prompt-v3 follow-up has completed package-only phases 1–4.
-  Its historical L4 ledger exceeded the original one-hour soft cap; the owner has separately
-  reauthorized a bounded 20-minute L4 budget for future readiness and v3 pass/repeat execution.
+  complete with a quality `NO_GO`; the prompt-v3 follow-up has completed phases 1–6 and its
+  mapping-readiness evaluation returned `MAPPING_READY`. The separate bounded 20-minute L4
+  reauthorization covered one readiness check and one v3 pass/repeat pair, but the official
+  Lightning Activity ledger records `00:44:41` for that session against a `00:20:00` budget:
+  compute governance is `CAP_EXCEEDED` by `00:24:41`.
 - Data boundary: synthetic fixtures only; no real child data.
 
 ## Maintenance rule
@@ -184,17 +186,63 @@ Current status:
    one-hour soft cap. The owner therefore separately reauthorized at most 20 minutes of new L4
    time, covering one readiness check and one v3 pass/repeat pair only. The original cap is not
    reinterpreted as remaining capacity.
-6. `V3_PASS_1` plus `V3_REPEAT_1` runner — implemented, corrected, and locally tested (no
-   Lightning/GPU execution yet). The dedicated runner never reuses the C1 runner and never labels
+6. `V3_PASS_1` plus `V3_REPEAT_1` — complete on Lightning L4. The dedicated runner never reuses
+   the C1 runner and never labels
    a result as C1; every per-fixture result is re-bound to its approved `v3-map-fixture-01..08`
    identity (never the reused primitive's internal label); a real P2-T1 pass over all eight
    fixtures is required before any adapter action; readiness fails closed on a fixture-manifest-
    version mismatch; and the 15-minute repeat-comparability rule is evaluated as exactly
    `V3_REPEAT_1.started_at - V3_PASS_1.completed_at <= 15 minutes`, now stated identically across
    the reauthorization note, the mapping-validation plan, and the implementation. Local focused/
-   full-suite tests, Ruff, and strict mypy passed.
-7. Mapping-readiness evaluation — pending an actual Lightning execution.
+   full-suite tests, Ruff, and strict mypy passed. The fresh environment check returned `READY`
+   without loading the model. Each pass then completed exactly eight attempts and eight records;
+   each reached `7/8` mapping-valid with no truncation, extra-key, invalid-enum, integrity,
+   runtime/device, or comparability blocker. `v3-map-fixture-07` consistently returned the typed
+   `VISION_SCHEMA_INVALID / OUTPUT_MAPPING_FAILED` outcome in both passes. The repeat began
+   `0.736037` seconds after pass completion, in the same declared Studio session. The verdict was
+   `MAPPING_READY`. The operator recorded a prospective Studio-session start of
+   `2026-09-09T07:03:09Z`; from there to runner completion at `2026-09-09T07:14:35.240860Z` was
+   `00:11:26.240860`. That start is not independently verified as the official Lightning billed
+   start clock, and that interval is an application-side observation only, never the billed session
+   duration; see the compute-governance entry below for the authoritative ledger value.
+7. Mapping-readiness evaluation — complete. The safe report is
+   `metrics/P2_T3_PHASE_B_B4_DIRECTION_A_V3_PHASE6_REPORT.json` with SHA-256
+   `ea891f1cd540909337c1e9e194981d1c159800c8911cea641696a6b50b5bca20`. It is semantically
+   identical to the imported runtime report (whose SHA-256 is
+   `236288e3814e0bd06de4f8c32d3a5634f869587b1a76828ec7c6e3fd5848b52b`; the evidence copy adds
+   only the repository-standard final newline). It contains only safe typed outcomes, hashes,
+   timings, aggregate counts, and the readiness verdict; no raw model output, prompt body,
+   predicted text, ground truth, credential, endpoint, or local path. The full execution record,
+   including the official ledger reconciliation, is
+   `P2_T3_PHASE_B_B4_DIRECTION_A_V3_PHASE6_EXECUTION_RECORD.md` (`EV-003-T3-14`).
 8. Any new held-out quality benchmark — separately gated and not authorized.
+
+### Compute governance for the Phase 6 session — `CAP_EXCEEDED`
+
+The operator supplied the official Lightning Activity export
+`Lightning-AI-activity-2026-08-09-to-2026-09-09.csv`. It contains exactly one 2026-09-09
+`Qwen 3 VL` Studio row on `1 × L4`:
+
+| Field | Value |
+|---|---|
+| Official billed session duration | `00:44:41` |
+| Official session cost | `0.35` credits |
+| Authorized budget | `00:20:00` |
+| Exceedance | `00:24:41` |
+| Status | `CAP_EXCEEDED` |
+| Official Lightning start clock | `NOT_AVAILABLE_FROM_EXPORT` (the export carries a start *date* only) |
+| Official Lightning stop clock | `NOT_AVAILABLE_FROM_EXPORT` (not derivable, and deliberately not derived) |
+| Operator-recorded prospective session start | `2026-09-09T07:03:09Z` (not independently verified as the official billed start clock) |
+| Operator-recorded prospective session stop | `NOT_RECORDED` |
+
+Aggregate L4 use through 2026-09-09 is `12` sessions, `07:43:24`, and `3.93` credits, plus `0.14`
+credits of storage, for `4.07` credits total in the export. The delta from the previous
+reconciliation is exactly this one session (`+00:44:41`, `+0.35` credits).
+
+The `00:11:26.240860` recorded-start-to-runner-finish interval must never be presented as the billed
+duration or as evidence of staying within budget. How much of the `00:44:41` was post-repeat idle Studio time is
+`NOT_AVAILABLE_FROM_EXPORT`, and that limitation does not reduce the recorded exceedance. Any
+further Lightning or GPU use requires a new explicit owner decision.
 
 The future mapping gate requires exactly eight attempts and eight records per pass, at least `7/8`
 mapping-valid independently in both passes, and treats truncation `>=2/8`, configuration drift,
@@ -213,10 +261,13 @@ rechecked B3/B4 disjointness and Git-ignore coverage, then stopped before model 
 - B2: real readiness/preflight complete; first mapping call failed safely.
 - B3: mapping failure diagnosed; prompt-v2 achieved repeatable `16/16` mapping readiness.
 - Original B4: complete; structural mapping passed, held-out quality is `NO_GO`.
-- Direction A prompt-v3: phases 1–4 and Phase 5 ledger reconciliation are complete. A bounded
-  20-minute L4 reauthorization is recorded. The dedicated `V3_PASS_1`/`V3_REPEAT_1` runner is now
-  implemented and locally tested; readiness and model execution still await an actual Lightning
-  run.
+- Direction A prompt-v3: phases 1–6 and mapping-readiness evaluation are complete. The bounded
+  L4 execution returned repeatable `7/8` per-pass mapping validity and `MAPPING_READY`; this is
+  mapping-only evidence and does not override the original B4 quality `NO_GO` or authorize a new
+  held-out quality benchmark.
+- Compute governance for that same session is `CAP_EXCEEDED`: the official ledger records
+  `00:44:41` against the authorized `00:20:00`, an exceedance of `00:24:41`. The technical
+  `MAPPING_READY` result stands; the budget overrun is recorded separately and is not offset by it.
 - Direction B, the canonical-vocabulary mismatch hypothesis, remains open.
 - B5 and any production/runtime recommendation remain unresolved.
 - Overall P2-T3 status: `IN_PROGRESS`.
