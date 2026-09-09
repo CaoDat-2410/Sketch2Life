@@ -27,6 +27,8 @@ remain outside this index.
 | EV-003-T3-09 / 10 | P2-T3 Phase B B4 | [Held-out quality benchmark execution](notes/P2_T3_PHASE_B_B4_QUALITY_BENCHMARK_EXECUTION.md) and [raw report JSON](notes/P2_T3_PHASE_B_B4_QUALITY_BENCHMARK_REPORT.json) |
 | EV-003-T3-11 | P2-T3 Phase B B4 | [Held-out fixture authoring and owner approval](notes/P2_T3_PHASE_B_B4_FIXTURE_AUTHORING.md) |
 | EV-003-T3-12 | P2-T3 Phase B B4 | [Runner implementation and no-GPU validation](notes/P2_T3_PHASE_B_B4_RUNNER_IMPLEMENTATION.md) |
+| EV-003-T3-13 | P2-T3 Phase B B4 Direction A | [Prompt-v3 Phase 6 safe mapping-readiness report](metrics/P2_T3_PHASE_B_B4_DIRECTION_A_V3_PHASE6_REPORT.json) |
+| EV-003-T3-14 | P2-T3 Phase B B4 Direction A | [Prompt-v3 Phase 6 execution record: `MAPPING_READY` with `CAP_EXCEEDED` ledger reconciliation](P2_T3_PHASE_B_B4_DIRECTION_A_V3_PHASE6_EXECUTION_RECORD.md) |
 | EV-003-T2-T3-01 | P2-T2/P2-T3 compatibility | [Provider-shaped fixture adapter evidence](notes/P2_T2_T3_ADAPTERS.md) |
 
 `approvals/TASK_APPROVAL.md` remains the authoritative approval record. P2-T5 remains the owner
