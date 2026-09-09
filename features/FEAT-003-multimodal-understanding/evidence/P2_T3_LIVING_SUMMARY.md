@@ -4,7 +4,8 @@
 - Last updated: 2026-09-08
 - Status: `IN_PROGRESS` — Phase A and Phase B B1–B3 are complete; the original B4 benchmark is
   complete with a quality `NO_GO`; the prompt-v3 follow-up has completed package-only phases 1–4.
-  Phase 5 has not started.
+  Its historical L4 ledger exceeded the original one-hour soft cap; the owner has separately
+  reauthorized a bounded 20-minute L4 budget for future readiness and v3 pass/repeat execution.
 - Data boundary: synthetic fixtures only; no real child data.
 
 ## Maintenance rule
@@ -178,9 +179,21 @@ Current status:
    backend suite passed after deselecting one unrelated Windows-only ASR unit test that depends on
    `os.add_dll_directory`, unavailable on Linux. This is package-only evidence, not mapping or
    quality evidence.
-5. GPU-ledger reconciliation, fresh readiness, and explicit Lightning authorization — not done.
-6. `V3_PASS_1` plus `V3_REPEAT_1` — not implemented or executed.
-7. Mapping-readiness evaluation — pending.
+5. Studio-session ledger reconciliation — complete. The operator-provided activity export records
+   11 Qwen L4 sessions totaling `06:58:43`; even conservative exclusions exceed the approved
+   one-hour soft cap. The owner therefore separately reauthorized at most 20 minutes of new L4
+   time, covering one readiness check and one v3 pass/repeat pair only. The original cap is not
+   reinterpreted as remaining capacity.
+6. `V3_PASS_1` plus `V3_REPEAT_1` runner — implemented, corrected, and locally tested (no
+   Lightning/GPU execution yet). The dedicated runner never reuses the C1 runner and never labels
+   a result as C1; every per-fixture result is re-bound to its approved `v3-map-fixture-01..08`
+   identity (never the reused primitive's internal label); a real P2-T1 pass over all eight
+   fixtures is required before any adapter action; readiness fails closed on a fixture-manifest-
+   version mismatch; and the 15-minute repeat-comparability rule is evaluated as exactly
+   `V3_REPEAT_1.started_at - V3_PASS_1.completed_at <= 15 minutes`, now stated identically across
+   the reauthorization note, the mapping-validation plan, and the implementation. Local focused/
+   full-suite tests, Ruff, and strict mypy passed.
+7. Mapping-readiness evaluation — pending an actual Lightning execution.
 8. Any new held-out quality benchmark — separately gated and not authorized.
 
 The future mapping gate requires exactly eight attempts and eight records per pass, at least `7/8`
@@ -200,8 +213,10 @@ rechecked B3/B4 disjointness and Git-ignore coverage, then stopped before model 
 - B2: real readiness/preflight complete; first mapping call failed safely.
 - B3: mapping failure diagnosed; prompt-v2 achieved repeatable `16/16` mapping readiness.
 - Original B4: complete; structural mapping passed, held-out quality is `NO_GO`.
-- Direction A prompt-v3: phases 1–4 complete, including target-Lightning package verification.
-  Phase 5 and all later GPU phases remain gated.
+- Direction A prompt-v3: phases 1–4 and Phase 5 ledger reconciliation are complete. A bounded
+  20-minute L4 reauthorization is recorded. The dedicated `V3_PASS_1`/`V3_REPEAT_1` runner is now
+  implemented and locally tested; readiness and model execution still await an actual Lightning
+  run.
 - Direction B, the canonical-vocabulary mismatch hypothesis, remains open.
 - B5 and any production/runtime recommendation remain unresolved.
 - Overall P2-T3 status: `IN_PROGRESS`.
