@@ -129,5 +129,7 @@
 - The authorized Phase 8 execution is now immutable evidence: both independent passes were 8/8
   schema-valid and comparable, but both failed D-5 with identical aggregate scores. The verdict is
   `QUALITY_NOT_READY / QUALITY_BELOW_THRESHOLD`. It must not be rerun, pooled, tuned against, or
-  rescored under a changed rule; official Lightning duration/cost may be appended later without
-  changing the technical result.
+  rescored under a changed rule. The finalized Lightning Activity ledger records `00:37:22` and
+  `0.24` credits against the D-8 `00:30:00` hard cap, a `00:07:22` exceedance; compute governance
+  is therefore `CAP_EXCEEDED`. That ledger result is recorded separately and does not change the
+  technical result or authorize another run.

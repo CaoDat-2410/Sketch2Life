@@ -6,8 +6,8 @@
   (`EV-003-T3-15`)
 - Execution date: 2026-09-09
 - Data boundary: eight owner-approved synthetic held-out fixtures; no real child data.
-- Current status: technical execution complete / `QUALITY_NOT_READY` / official Lightning
-  duration and cost pending.
+- Current status: technical execution complete / `QUALITY_NOT_READY` / compute governance
+  `CAP_EXCEEDED`.
 
 ## Result
 
@@ -29,7 +29,7 @@ mapping validity and held-out semantic quality are separate gates.
 | `data/runtime/v3-phase8-safe-report.json` | Git-ignored runtime source imported without byte changes. |
 | `../fixtures/vision-v3-quality/manifest-v1.json` | Owner-approved manifest; authoritative for ordered fixture IDs and image hashes. |
 | `../approvals/TASK_APPROVAL.md` | Authoritative D-5/D-6/D-7 and bounded D-8 approval. |
-| Lightning Activity export | Authoritative for billed duration/cost once the completed session appears; currently `PENDING`. |
+| Lightning Activity export `Lightning-AI-activity-2026-08-10-to-2026-09-10.csv` | Authoritative for the finalized billed duration/cost. |
 
 No raw model output, prompt body, predicted text, ground-truth text, credential, endpoint, model
 path, or absolute runtime path is present in the safe report or this record.
@@ -102,23 +102,29 @@ strict rule; it omitted every expected relation, theme, and ambiguous region. Be
 predicted text are intentionally unavailable, this record does not infer the unseen vocabulary or
 silently weaken the matching rule.
 
-## Compute ledger — pending
+## Compute ledger — `CAP_EXCEEDED`
 
-The latest Activity CSV available at record time added one 2026-09-09 L4 session of `00:06:32`
-and `0.07` credits. That row cannot be assigned to this Phase 8 execution because it is shorter
-than the runner's own `00:08:13.428533` interval. It is therefore excluded rather than guessed.
+The finalized Activity export contains two 2026-09-09 `Qwen 3 VL` Studio rows on `1 × L4`.
+The already-reconciled `00:44:41` / `0.35`-credit row is the Phase 6 session. The new
+`00:37:22` / `0.24`-credit row is the Phase 8 session and supersedes the earlier partial
+`00:06:32` / `0.07` snapshot; it is not an additional session. The CSV supplies only a start
+date, not an official start or stop clock, so no clock or post-run idle allocation is inferred.
 
 | Field | Value |
 |---|---|
 | D-8 hard cap | `00:30:00` |
 | Operator-recorded runner interval | `00:08:13.428533` |
-| Official billed duration | `PENDING_ACTIVITY_FINALIZATION` |
-| Official session cost | `PENDING_ACTIVITY_FINALIZATION` |
-| Compute-governance result | `PENDING` |
+| Official billed duration | `00:37:22` |
+| Official session cost | `0.24` credits |
+| Cap exceedance | `00:07:22` |
+| Compute-governance result | `CAP_EXCEEDED` |
+| Official Lightning start clock | `NOT_AVAILABLE_FROM_EXPORT` (start date only) |
+| Official Lightning stop clock | `NOT_AVAILABLE_FROM_EXPORT` |
 
-No additional GPU run is required or authorized to resolve this ledger. Once the matching Activity
-row appears, this section can be reconciled using the official duration/cost without changing the
-technical report or quality verdict.
+The billed duration exceeds the D-8 hard cap even though the application-side benchmark interval
+is shorter. The export does not identify how much billed time occurred before or after the runner,
+so the excess is recorded without attribution. This governance result does not change the
+technical report or quality verdict. No additional GPU run is required or authorized.
 
 ## Conclusion and next gate
 
@@ -126,7 +132,7 @@ technical report or quality verdict.
 - Structural/schema/repeat gate: passed.
 - Held-out semantic quality gate: failed repeatably.
 - Technical verdict: `QUALITY_NOT_READY`.
-- Evidence closure: pending only the official Activity duration/cost reconciliation.
+- Evidence closure: complete, including the official Activity duration/cost reconciliation.
 - P2-T3 remains `IN_PROGRESS`; B5 and any production profile/default recommendation remain open.
 
 Any prompt, scoring, taxonomy, matching-rule, or model remediation is a new planned and approved

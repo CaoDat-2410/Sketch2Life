@@ -224,9 +224,13 @@ This workstream owns media validation, ASR/VLM adapters, fusion, `RawUnderstandi
   successes, no typed/runtime/mapping failure, and a valid `1.326089s` repeat gap. Both passes
   nevertheless failed every D-5 collection gate identically, so the immutable technical verdict
   is `QUALITY_NOT_READY / QUALITY_BELOW_THRESHOLD`. The runner interval was
-  `00:08:13.428533`; official Lightning duration/cost remain pending Activity finalization. No
-  rerun is needed for that reconciliation, Phase 8 execution is complete, P2-T3 remains in
-  progress, and no profile/runtime default is selected.
+  `00:08:13.428533`; the finalized Lightning Activity ledger records `00:37:22` and `0.24`
+  credits against the D-8 `00:30:00` hard cap, so compute governance is `CAP_EXCEEDED` by
+  `00:07:22`. The export provides only a start date, not official start/stop clocks, and the
+  earlier `00:06:32` / `0.07` row was a partial snapshot superseded by the finalized row. This
+  reconciliation does not change the technical verdict, does not authorize a rerun, and does not
+  select a profile/runtime default. Phase 8 evidence closure is complete; P2-T3 remains in
+  progress.
 
 ## Current Phase B benchmark-readiness truth (2026-08-30)
 

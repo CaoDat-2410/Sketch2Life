@@ -31,7 +31,7 @@ remain outside this index.
 | EV-003-T3-13 | P2-T3 Phase B B4 Direction A | [Prompt-v3 Phase 6 safe mapping-readiness report](metrics/P2_T3_PHASE_B_B4_DIRECTION_A_V3_PHASE6_REPORT.json) |
 | EV-003-T3-14 | P2-T3 Phase B B4 Direction A | [Prompt-v3 Phase 6 execution record: `MAPPING_READY` with `CAP_EXCEEDED` ledger reconciliation](P2_T3_PHASE_B_B4_DIRECTION_A_V3_PHASE6_EXECUTION_RECORD.md) |
 | EV-003-T3-15 | P2-T3 Phase B B4 Direction A | [Prompt-v3 Phase 8 safe held-out quality report: `QUALITY_NOT_READY`](metrics/P2_T3_PHASE_B_B4_DIRECTION_A_V3_PHASE8_REPORT.json) |
-| EV-003-T3-16 | P2-T3 Phase B B4 Direction A | [Prompt-v3 Phase 8 execution record: technical execution complete with Activity ledger pending](P2_T3_PHASE_B_B4_DIRECTION_A_V3_PHASE8_EXECUTION_RECORD.md) |
+| EV-003-T3-16 | P2-T3 Phase B B4 Direction A | [Prompt-v3 Phase 8 execution record: `QUALITY_NOT_READY` with `CAP_EXCEEDED` ledger reconciliation](P2_T3_PHASE_B_B4_DIRECTION_A_V3_PHASE8_EXECUTION_RECORD.md) |
 | EV-003-T2-T3-01 | P2-T2/P2-T3 compatibility | [Provider-shaped fixture adapter evidence](notes/P2_T2_T3_ADAPTERS.md) |
 
 `approvals/TASK_APPROVAL.md` remains the authoritative approval record. P2-T5 remains the owner

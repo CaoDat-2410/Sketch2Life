@@ -225,10 +225,10 @@ Current status:
    `QUALITY_NOT_READY` with only `QUALITY_BELOW_THRESHOLD`. The safe report is
    `metrics/P2_T3_PHASE_B_B4_DIRECTION_A_V3_PHASE8_REPORT.json` (`EV-003-T3-15`), SHA-256
    `9bd636fedd470dc519929b6be550a6e72d0ceb03db73a72470e31118212ef916`; the execution record is
-   `P2_T3_PHASE_B_B4_DIRECTION_A_V3_PHASE8_EXECUTION_RECORD.md` (`EV-003-T3-16`). The latest
-   Activity export does not yet contain a session at least as long as the runner's
-   `00:08:13.428533` interval, so official duration/cost reconciliation remains `PENDING` and no
-   shorter row is guessed as this run.
+   `P2_T3_PHASE_B_B4_DIRECTION_A_V3_PHASE8_EXECUTION_RECORD.md` (`EV-003-T3-16`). The finalized
+   Activity export records the Phase 8 session as `00:37:22` and `0.24` credits against the
+   authorized `00:30:00` hard cap, so compute governance is `CAP_EXCEEDED` by `00:07:22`. This is
+   separate from, and does not alter, the immutable technical verdict.
 
 ### Compute governance for the Phase 6 session — `CAP_EXCEEDED`
 
@@ -257,6 +257,28 @@ duration or as evidence of staying within budget. How much of the `00:44:41` was
 `NOT_AVAILABLE_FROM_EXPORT`, and that limitation does not reduce the recorded exceedance. Any
 further Lightning or GPU use requires a new explicit owner decision.
 
+### Compute governance for the Phase 8 session — `CAP_EXCEEDED`
+
+The finalized Lightning Activity export `Lightning-AI-activity-2026-08-10-to-2026-09-10.csv`
+contains a separate 2026-09-09 `Qwen 3 VL` Studio row on `1 × L4` for Phase 8:
+
+| Field | Value |
+|---|---|
+| Official billed session duration | `00:37:22` |
+| Official session cost | `0.24` credits |
+| Authorized hard cap | `00:30:00` |
+| Exceedance | `00:07:22` |
+| Status | `CAP_EXCEEDED` |
+| Official Lightning start clock | `NOT_AVAILABLE_FROM_EXPORT` (the export carries a start *date* only) |
+| Official Lightning stop clock | `NOT_AVAILABLE_FROM_EXPORT` |
+| Operator-recorded runner interval | `00:08:13.428533` (not the billed duration) |
+
+The row supersedes the earlier partial `00:06:32` / `0.07` snapshot and is not an additional
+session. Aggregate L4 use in the finalized export is `13` sessions, `08:20:46`, and `4.17`
+credits, plus `0.16` credits of storage, for `4.33` credits total. The export cannot separate
+environment setup or idle time from benchmark execution, so no cause is assigned to the
+`00:07:22` overrun. No rerun is required or authorized.
+
 The future mapping gate requires exactly eight attempts and eight records per pass, at least `7/8`
 mapping-valid independently in both passes, and treats truncation `>=2/8`, configuration drift,
 input-integrity failure, or runtime/device failure as blockers. The repeat must start in the same
@@ -281,8 +303,9 @@ rechecked B3/B4 disjointness and Git-ignore coverage, then stopped before model 
 - Compute governance for that same session is `CAP_EXCEEDED`: the official ledger records
   `00:44:41` against the authorized `00:20:00`, an exceedance of `00:24:41`. The technical
   `MAPPING_READY` result stands; the budget overrun is recorded separately and is not offset by it.
-- Phase 8 official Lightning duration/cost reconciliation remains pending; this does not require
-  or authorize another GPU run.
+- Compute governance for Phase 8 is also `CAP_EXCEEDED`: the finalized ledger records `00:37:22`
+  against the authorized `00:30:00`, an exceedance of `00:07:22`; evidence reconciliation is
+  complete and no additional GPU run is authorized.
 - Direction B, the canonical-vocabulary mismatch hypothesis, remains open and now has repeatable
   safe evidence, but any remediation requires a new plan and approval.
 - B5 and any production/runtime recommendation remain unresolved.

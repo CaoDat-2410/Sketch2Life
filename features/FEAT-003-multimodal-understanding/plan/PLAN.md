@@ -4,8 +4,9 @@
 - Plan revision: 4
 - Implementation status: IN_PROGRESS (P2-T3 B1-B3 and the original B4 benchmark complete;
   prompt-v3 follow-up phases 1-6 and its mapping-readiness evaluation complete with a
-  `MAPPING_READY` verdict and a `CAP_EXCEEDED` compute-governance result; B5, prompt-v3 phase 8,
-  and P2-T4/P2-T5 remain gated)
+  `MAPPING_READY` verdict and a `CAP_EXCEEDED` compute-governance result; prompt-v3 phase 8
+  execution/evidence reconciliation complete with `QUALITY_NOT_READY` and a separate
+  `CAP_EXCEEDED` result; B5 and P2-T4/P2-T5 remain gated)
 - Owner: Person 2
 - Estimate: 10 points total (P2-T1 through P2-T5, 2 points each)
 
@@ -54,11 +55,12 @@ owner decision. B5 remains unexecuted. The current safe status is maintained in
 - D-7 is resolved as `CLASSIFY_ONLY`. The local runner rejects `EPHEMERAL_CAPTURE` from both the
   execution decision and the B3 collector before package loading, scratch creation, factory
   invocation, or raw-output writing. This does not change B3's separate raw-output behavior.
-- D-8 executed within the runner's 30-minute cap: the application-side interval was
-  `00:08:13.428533`, but official Lightning duration/cost remain pending because the current
-  Activity export has not finalized the matching session. No tuning, download, exploratory
-  inference, extra diagnostics, or automatic rerun is in scope. Phase 8 technical execution is
-  complete; evidence closure awaits only ledger reconciliation.
+- The application-side D-8 interval was `00:08:13.428533`, but the finalized Lightning Activity
+  ledger records `00:37:22` and `0.24` credits against the `00:30:00` hard cap. Compute governance
+  is therefore `CAP_EXCEEDED` by `00:07:22`; that result is separate from the immutable
+  `QUALITY_NOT_READY` technical verdict. No tuning, download, exploratory inference, extra
+  diagnostics, or automatic rerun is in scope. Phase 8 execution and evidence reconciliation are
+  complete; P2-T3 remains in progress because B5 and any production recommendation remain open.
 
 ## Task breakdown and execution order
 
