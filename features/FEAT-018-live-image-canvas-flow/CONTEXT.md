@@ -1,6 +1,6 @@
 # FEAT-018 live image and canvas context
 
-- Status: AWAITING_APPROVAL
+- Status: APPROVED FOR SCOPED IMPLEMENTATION
 - Plan revision: 1
 - Owner: shared integration allocation pending contract freeze approval
 - Goal: run a non-sensitive real JPG/PNG through validation, backend-only Qwen3-VL understanding, Gate A, P1/Gate B, PixiJS canvas, P4 cache/fallback, handoff, and feedback.
@@ -11,4 +11,4 @@
 
 ## Current state
 
-The repository has a fixture UI and backend-only live P2 route. PixiJS/GSAP dependencies exist in `packages/art-renderer`, but the renderer runtime/bridge and approved asset pack are not implemented. The reviewed P1 catalog is not yet promoted into the main runtime. Implementation is blocked until the plan, allocation, contract freeze, and visual/data boundaries are approved.
+The repository has a fixture UI and backend-only live P2 route. PixiJS/GSAP dependencies exist in `packages/art-renderer`, but the renderer runtime/bridge and approved asset pack are not implemented. The reviewed P1 catalog is not yet promoted into the main runtime. Scoped Person 4 implementation is approved for cache/media/fallback/evidence work; shared backend/mobile wiring, full E2E, and production work remain outside this approval.
