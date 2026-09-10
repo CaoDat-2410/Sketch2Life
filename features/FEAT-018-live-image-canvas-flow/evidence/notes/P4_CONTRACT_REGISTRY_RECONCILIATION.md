@@ -26,8 +26,8 @@ review.
 | `MediaValidationResultV1` | 1.0 | P2 | backend/mobile | `backend/src/sketch2life/contracts/schemas/media_validation.py` | Consume unchanged; `RECAPTURE` stops inference |
 | `PixiArtAssetManifestV1` | 1.0 | P3 | renderer/mobile/P4 boundary | FEAT-018 contract freeze; P3 runtime/schema work is separate | Reference only; P4 does not redefine renderer fields |
 | `ArtAnimationPlanV1` | 1.0 | P3 | renderer/mobile/P4 boundary | FEAT-018 contract freeze; P3 runtime/schema work is separate | Reference only; preserve plan/source identity |
-| `LearningMediaRequestV1` | 1.0 | shared/P1-Gate B boundary | P4 | Named by FEAT-018 freeze; no canonical backend schema currently present | Do not implement until canonical schema fields are frozen |
-| `LearningMediaResultV1` | 1.0 | P4 | P3/mobile | Named by FEAT-018 freeze; no canonical backend schema currently present | Do not implement until canonical schema fields are frozen |
+| `LearningMediaRequestV1` | 1.0 | shared/P1-Gate B boundary | P4 | `backend/src/sketch2life/contracts/schemas/learning_media.py` | Consume exact identity and transport fields; reject unknown fields |
+| `LearningMediaResultV1` | 1.0 | P4 | P3/mobile | `backend/src/sketch2life/contracts/schemas/learning_media.py` | Preserve identity, cache status, generation flag, provenance, and typed reason |
 | `ActivityHandoffV1` | 1.0 | P1/shared | mobile/offscreen activity | FEAT-018 contract freeze; shared integration ownership | P4 preserves identity; does not own handoff orchestration |
 | `FeedbackV1` | 1.0 | shared | mobile/evidence | FEAT-018 contract freeze; shared integration ownership | P4 emits only compatible evidence references |
 
@@ -56,12 +56,10 @@ reason. It must not silently substitute another activity or objective.
 
 ## Finding and next action
 
-The existing backend contains `MediaValidationResultV1`, but it does not yet
-contain canonical `LearningMediaRequestV1` or `LearningMediaResultV1` schemas.
-Therefore this card records the registry and boundary without inventing a
-parallel P4 contract. The next approval/reconciliation action is to add the
-canonical P4 schemas under the backend contract authority, or record an
-explicit versioned decision identifying where they will live.
+The canonical P4 schemas are now located under the backend contract authority
+at `backend/src/sketch2life/contracts/schemas/learning_media.py`. Their tests
+cover transport fields, exact identity, reviewed-cache provenance, typed
+fallback reasons, and fail-closed cache-hit/asset invariants.
 
 No provider, GPU, database, cloud storage, mobile credential, or real child
 data is required for this reconciliation.
