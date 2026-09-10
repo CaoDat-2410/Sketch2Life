@@ -11,6 +11,11 @@ Selected completed P2 design record:
 [isolated image admission and decoding](P2_IMAGE_DECODE_DESIGN_20260910.md)
 (`EV-018-P2-DECODE-DESIGN-01`, owner-accepted design; implementation not started).
 
+Selected completed P2 D1 specification, built on that design:
+[image admission and decoding specification](P2_IMAGE_ADMISSION_SPEC_20260910.md)
+(`EV-018-P2-D1-SPEC-01`, revision 2; implementation-ready specification, implementation not
+started; not an implementation approval; isolated from FEAT-003 behavior and contracts).
+
 - `raw/`: sanitized command output and contract-run summaries.
 - `metrics/`: validation, latency, FPS, memory, cache/fallback and pilot reports.
 - `screenshots/`: device screenshots with no personal data.

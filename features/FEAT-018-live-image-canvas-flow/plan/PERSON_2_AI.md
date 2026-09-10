@@ -2,6 +2,13 @@
 
 ## Mission
 
+Research update (2026-09-09): [P2 offline-first proposal](P2_OFFLINE_FIRST_PLAN.md)
+defines proposed execution slices and decisions requiring owner review. Supporting
+research and handoff notes remain local-only. These documents do not
+authorize implementation or replace this full-scope mission. In new records, the
+bare task IDs below are qualified as `FEAT018-P2-T1` through `FEAT018-P2-T5` to
+distinguish them from FEAT-003 tasks.
+
 Accept one non-sensitive JPG/PNG, validate it before inference, run the exact tech-stack model through the backend-only Lightning adapter, preserve truthful provenance, and produce a versioned observation contract that P1 can map without bypassing Gate A.
 
 ## Ownership boundary
