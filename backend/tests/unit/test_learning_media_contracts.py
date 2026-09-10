@@ -74,6 +74,7 @@ def test_fallback_requires_typed_reason_and_preserves_identity() -> None:
         status="FALLBACK",
         cache_status="MISS",
         asset_ref="asset/tree-still-narration-v1",
+        fallback_type="STILL_NARRATION",
         generation_called=False,
         provenance=LearningMediaProvenanceV1(
             source="synthetic_fixture",
