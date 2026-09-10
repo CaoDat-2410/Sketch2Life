@@ -1,0 +1,44 @@
+{
+  "evidence_id": "P1_RUNTIME_SMOKE_20260910",
+  "feature": "FEAT-018-live-image-canvas-flow",
+  "scope": "P1 runtime verification; fixture/local provider only",
+  "executed_at": "2026-09-10",
+  "http_runtime": {
+    "fastapi_health": 200,
+    "live_understanding_status": 200,
+    "live_understanding_contract_status": "PROPOSAL",
+    "gate_a_required": true,
+    "asr_contract": "AsrResultV1",
+    "vision_contract": "VisionUnderstandingResultV1",
+    "proposal_label": "butterfly",
+    "stale_session_status": 409,
+    "smoke_exit_code": 0
+  },
+  "catalog_runtime": {
+    "activity_id": "ACT-0004",
+    "activity_version": 2,
+    "objective_id": "OBJ_OBJECT_PERMANENCE",
+    "objective_version": 1,
+    "gate_b": "APPROVED",
+    "spec_hash_present": true
+  },
+  "workspace_checks": {
+    "pnpm_typecheck": "PASS",
+    "pnpm_test": "PASS (7 mobile tests; renderer typecheck test)",
+    "offline_integration_fixture": "PASS (23 tests)",
+    "backend_suite": "PASS (5 provider/GPU readiness skips)",
+    "p1_unit_tests": "PASS (6 tests)",
+    "harness": "PASS",
+    "architecture": "PASS",
+    "team_allocation": "PASS",
+    "repository_security": "PASS"
+  },
+  "boundary": {
+    "external_live_provider_called": false,
+    "production_api_called": false,
+    "android_device_flow_called": false,
+    "raw_media_persisted": false,
+    "credentials_committed": false,
+    "provider_mode": "local_http_stub_using_lightning_adapter_contract"
+  }
+}
