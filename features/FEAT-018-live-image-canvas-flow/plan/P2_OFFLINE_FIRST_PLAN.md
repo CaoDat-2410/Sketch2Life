@@ -1,7 +1,8 @@
 # FEAT-018 P2 — Proposed offline-first implementation plan
 
 - Revision: P2-R1, 2026-09-09
-- Status: AWAITING_APPROVAL; research complete, implementation not started.
+- Status: PARTIALLY APPROVED; the isolated P2-T1 image-admission D2 sub-slice is reviewed and
+  accepted. D3, the remainder of O1, O2–O5 and all integration remain unapproved.
 - Parent: FEAT-018 revision 2. This proposal does not replace the approved P1 slice or freeze shared contracts.
 - Research: round-1 working report retained locally; not a canonical public record.
 - Owner: Person 2. Any FEAT-003 edit or connection requires user review first.
@@ -46,6 +47,11 @@ Candidate sketch: candidate ID, proposed kind, source label, optional canonical 
 Confirmation input sketch: proposal ID/version, source hash, confirmed claim IDs, selected primary candidate, actor reference/role, meaning version, optional correction with its own provenance. Offline fixtures supply these explicitly; live values come from shared Gate A. A new adult claim must have a distinct correction record, never be falsely attributed to Vision.
 
 ## O1 — Source validation and missing narration
+
+Progress (2026-09-10): the isolated bounded image-admission D2 subset is reviewed and accepted.
+It covers snapshot acquisition, decode admission, provenance and deterministic fixtures only.
+Image-quality scoring, missing-narration composition and D3 performance/native-memory evaluation
+remain outstanding, so O1 and P2-T1 are not complete.
 
 - Maps to FEAT018-P2-T1 and the missing-audio part of T3.
 - Input: local synthetic source refs, optional audio ref, approved limits/policy, injected inspector.

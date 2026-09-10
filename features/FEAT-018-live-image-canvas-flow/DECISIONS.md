@@ -30,3 +30,12 @@
   not amend `approvals/TASK_APPROVAL.md`. Dependency decision U1 (`av==18.1.0` in a new
   optional `image-admission` extra) remains an explicit open owner decision. The source
   revision-2 working note stays local; only this canonical record is published.
+
+- 2026-09-10 completed-output decision: accept the isolated P2-T1 D2 image-admission
+  implementation after review and publish `evidence/notes/P2_D2_IMPLEMENTATION_20260910.md`
+  (`EV-018-P2-D2-IMPL-01`) through the feature evidence index. The accepted slice includes
+  bounded single-snapshot acquisition, internal typed admission policy, the injected PyAV
+  decoder, the exact optional dependency, deterministic fixtures and regression coverage.
+  This decision authorizes recording and committing the reviewed D2 output only. It does not
+  approve D3 measurement, mark P2-T1 complete, connect FEAT-003 producers, or authorize
+  Qwen/ASR, mobile, Gate A, shared integration, public-schema migration, push or PR creation.

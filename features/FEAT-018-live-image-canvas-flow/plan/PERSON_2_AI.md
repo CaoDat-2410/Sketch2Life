@@ -1,5 +1,13 @@
 # FEAT-018 Person 2 — Real image understanding and mapping
 
+## Current progress — 2026-09-10
+
+- P2-T1 D1 image-admission specification: complete and published.
+- P2-T1 D2 isolated implementation: reviewed and accepted; deterministic tests and repository
+  validators pass, with no FEAT-003 or provider integration.
+- P2-T1 D3 performance/native-memory evaluation: not started and not approved.
+- P2-T1 remains incomplete; P2-T2 through P2-T5 and shared integration remain separately gated.
+
 ## Mission
 
 Research update (2026-09-09): [P2 offline-first proposal](P2_OFFLINE_FIRST_PLAN.md)

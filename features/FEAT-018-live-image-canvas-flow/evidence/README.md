@@ -13,8 +13,12 @@ Selected completed P2 design record:
 
 Selected completed P2 D1 specification, built on that design:
 [image admission and decoding specification](P2_IMAGE_ADMISSION_SPEC_20260910.md)
-(`EV-018-P2-D1-SPEC-01`, revision 2; implementation-ready specification, implementation not
-started; not an implementation approval; isolated from FEAT-003 behavior and contracts).
+(`EV-018-P2-D1-SPEC-01`, revision 2; implementation-ready specification; isolated from FEAT-003
+behavior and contracts; followed by the separately reviewed D2 record below).
+
+Selected completed P2-T1 D2 implementation record:
+[bounded image admission implementation and validation](notes/P2_D2_IMPLEMENTATION_20260910.md)
+(`EV-018-P2-D2-IMPL-01`; reviewed and accepted; D3 not started and P2-T1 not complete).
 
 - `raw/`: sanitized command output and contract-run summaries.
 - `metrics/`: validation, latency, FPS, memory, cache/fallback and pilot reports.

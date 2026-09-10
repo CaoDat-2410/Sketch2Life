@@ -1,7 +1,7 @@
 # FEAT-018 live image and canvas context
 
-- Status: APPROVED for P1 slice; downstream ExperienceSpec consumers remain pending approval
-- Plan revision: 2 (P1 slice approved; downstream consumers pending approval)
+- Status: P1 complete; isolated P2-T1 D2 reviewed and accepted; D3 and downstream scopes pending
+- Plan revision: 2 with the approved P2-T1 D2 image-admission addendum
 - Owner: shared integration allocation pending contract freeze approval
 - Goal: run a non-sensitive real JPG/PNG through validation, backend-only Qwen3-VL understanding, Gate A, one-anchor/one-objective ExperienceSpec compilation, P1/Gate B, PixiJS canvas, P4 cache/fallback, off-screen handoff, gallery journey and feedback.
 - Data policy: non-sensitive test image only; no child/personal data, production data, or provider credential in Git/mobile/evidence.
@@ -31,10 +31,16 @@ preserving the existing FEAT-003 image-research path. The follow-on D1 specifica
 complete and published as revision 2 (`evidence/P2_IMAGE_ADMISSION_SPEC_20260910.md`,
 `EV-018-P2-D1-SPEC-01`): exact admission outcomes, bounded snapshot flow, a measured PyAV
 decoder profile, a FEAT-018-local fixture manifest design, and an implementation acceptance
-checklist. **Implementation (D2) is NOT_STARTED.** This is a specification, not an
-implementation approval, and does not amend `approvals/TASK_APPROVAL.md`. One decision (U1:
-declaring `av==18.1.0` in a new optional `image-admission` extra in `backend/pyproject.toml`)
-still requires explicit owner approval before D2 work, followed by a recorded D2 task approval.
-The specification is additive to FEAT-018 and changes no FEAT-003 default, validator,
-inspector, contract, policy, prompt, model profile, fixture, scoring rule, benchmark runner or
-historical evidence.
+checklist. The specification is additive to FEAT-018 and changes no FEAT-003 default,
+validator, inspector, contract, policy, prompt, model profile, fixture, scoring rule,
+benchmark runner or historical evidence.
+
+The owner subsequently approved U1 (`av==18.1.0` in a new optional `image-admission` extra
+in `backend/pyproject.toml`) and the isolated D2 scope, recorded in `approvals/TASK_APPROVAL.md`
+"Approved P2-T1 D2 scope addendum — 2026-09-10". **D2 implementation and its deterministic
+tests are reviewed and accepted** (`evidence/notes/P2_D2_IMPLEMENTATION_20260910.md`,
+`EV-018-P2-D2-IMPL-01`): 58 focused tests passed; the full 900-test backend collection reported
+895 passed and 5 skipped, together with clean lint, type and repository validators. **D3
+performance/memory evaluation is
+`NOT_STARTED`. P2-T1 is not complete.** D2 remains additive to FEAT-018 only; FEAT-003 and
+all provider/mobile/public-contract integration remain unchanged and separately gated.
