@@ -61,11 +61,12 @@ let a malformed-stream failure escape as an unhandled exception.
 
 ## 1. Architecture
 
-Additive and isolated from FEAT-003. **Six new files plus one existing file modified.**
+Additive and isolated from FEAT-003. **Seven new files plus one existing file modified.**
 
 Revision 1 described this as "four new files, nothing modified". That was wrong: declaring a
 dependency extra edits `backend/pyproject.toml`, and the fixture manifest needs a home. The honest
-count is below.
+count is below — six new source/test files plus one new fixture-data file, plus the one modified
+file.
 
 | Kind | Path | Responsibility |
 |---|---|---|
@@ -507,7 +508,7 @@ later worker scope.
 
 | # | Revision 1 said | Revision 2 |
 |---|---|---|
-| 1 | "Four new files, nothing modified" | **Corrected.** Six new files plus `backend/pyproject.toml` modified. Declaring an extra edits an existing file |
+| 1 | "Four new files, nothing modified" | **Corrected.** Seven new files plus `backend/pyproject.toml` modified. Declaring an extra edits an existing file |
 | 2 | Recommended `av` "exact-pinned in a new optional extra", unnamed | **Named `image-admission`, pinned `av==18.1.0`**, with a static compatibility check against `faster-whisper`'s `av>=11`, `Requires-Python >=3.11` and the project's `>=3.12,<3.14` |
 | 3 | Called `max_longest_edge` "near-redundant… an aspect-ratio guard" and suggested lowering it | **Corrected.** It is an independent dimension guard. Kept at 4096, with a test (4200 x 900) proving it binds while pixels are inside budget |
 | 4 | Validated codec and pixel format | **Extended**: container/signature added; decoded frame cross-checked against admitted metadata; `format is None` handled; `FFmpegError` base class specified after finding `ExternalError` |

@@ -1,6 +1,6 @@
 # Task approval
 
-- Status: APPROVED (P1 implementation slice only; P2/P3/P4/shared integration remain pending)
+- Status: APPROVED (P1 implementation slice; isolated FEAT-018 P2-T1 D2 image-admission scope also approved — see the D2 addendum below. D3 performance/memory evaluation, P2-T2 through P2-T5, P3, P4 and shared integration all remain pending)
 - Approver: Project owner direct instruction in the current conversation
 - Plan revision: 2
 - Requested scope: FEAT-018 revision 2 P1 implementation slice only: catalog promotion/provenance, Activity Template Library, adult context and deterministic eligibility, semantic-anchor to objective/template selection, ExperienceSpec compilation and fit validation, Gate B identity/version locking, catalog/pilot harness and feature-local evidence.
@@ -26,3 +26,40 @@ This approval does not authorize P2 model changes, P3 renderer implementation, P
 - P1 fixture-only implementation completed on `codex/p1-feat018-task-plan`.
 - Evidence: `evidence/metrics/P1_ENGINE_VALIDATION_20260909.json` and `evidence/notes/P1_ENGINE_IMPLEMENTATION_20260909.md`.
 - Downstream P2/P3/P4/shared/live/production scope remains unimplemented and separately gated.
+
+## Approved P2-T1 D2 scope addendum — 2026-09-10
+
+The project owner approves FEAT-018 P2-T1 D2: the isolated image-admission implementation
+specified in `evidence/P2_IMAGE_ADMISSION_SPEC_20260910.md` (`EV-018-P2-D1-SPEC-01`, revision 2),
+which is the sole canonical authority for this scope. `evidence/notes/P2_RESEARCH_ROUND2_D2_IMPLEMENTATION_GOAL_20260910.md`
+is a local, Git-ignored execution guide only; it carries no approval authority, this approval
+does not depend on it, and it must never be cited as an approval basis.
+
+U1 dependency decision — approved: add
+
+```toml
+image-admission = ["av==18.1.0"]
+```
+
+under `[project.optional-dependencies]` in `backend/pyproject.toml`. PyAV must never be relied
+upon transitively through the `asr-faster-whisper` extra.
+
+Approved D2 acceptance boundary:
+
+- seven new files: `domain/understanding/image_admission.py`,
+  `application/ports/image_decoder.py`, `application/services/image_admission.py`,
+  `infrastructure/media_validation/av_image_decoder.py`, `tests/unit/test_image_admission.py`,
+  `tests/unit/feat018_admission_manifest.py`, and one FEAT-018-local fixture manifest;
+- one modified file: `backend/pyproject.toml`, limited to the U1 extra above;
+- U2–U7 as locked in D1: closed pixel-format allowlist (measured profiles only, including JPEG
+  `yuvj420p`); container validation before packet probing so `mjpeg` resolves deterministically
+  to `UNSUPPORTED_CONTAINER`; `max_file_bytes=5_000_000`, `max_pixels=4_000_000`,
+  `max_longest_edge=4096`, `max_frames=1`; EXIF as read-only reporting only, no derivative
+  written; admission results remain internal, no public schema/serialization migration; the
+  FEAT-018-local fixture directory and test-only manifest schema.
+
+This approval does not authorize D3 performance/memory evaluation, Qwen/ASR integration, mobile
+transport, any public-contract migration, or any FEAT-003 connection. FEAT-003 contracts,
+validation, adapters, inspector, prompts, profiles, fixtures, benchmarks, scoring, and historical
+evidence remain fully excluded and unchanged. P2-T1 is not complete after D2 alone; D3 evaluation
+and its separately reviewed evidence remain outstanding.
