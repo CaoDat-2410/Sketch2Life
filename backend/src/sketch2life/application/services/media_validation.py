@@ -19,6 +19,8 @@ from sketch2life.domain.understanding.media_quality import (
     assess_media,
 )
 
+_HASH_CHUNK_BYTES = 1024 * 1024
+
 
 @dataclass(frozen=True, slots=True)
 class MediaValidationRequest:
@@ -56,7 +58,7 @@ class DeterministicMediaValidator:
 
 def _source_reference(path: Path, artifact_ref: str) -> SourceMediaReferenceV1:
     try:
-        digest = sha256(path.read_bytes()).hexdigest()
+        digest = _file_digest(path)
     except OSError:
         status: Literal["MISSING", "UNREADABLE"] = (
             "MISSING" if not path.exists() else "UNREADABLE"
@@ -71,3 +73,13 @@ def _source_reference(path: Path, artifact_ref: str) -> SourceMediaReferenceV1:
         sha256=digest,
         source_status="AVAILABLE",
     )
+
+
+def _file_digest(path: Path) -> str:
+    """Hash the complete source without holding it in memory."""
+
+    digest = sha256()
+    with path.open("rb") as source:
+        while chunk := source.read(_HASH_CHUNK_BYTES):
+            digest.update(chunk)
+    return digest.hexdigest()
