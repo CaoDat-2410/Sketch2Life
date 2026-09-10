@@ -7,6 +7,17 @@
   canonical evidence. Working drafts, review handoffs, templates, and local diagnostic records
   remain intentionally local-only and are not linked from this context.
 
+## P2-T1 maintenance (2026-09-10)
+
+- Source hashing in the P2-T1 validation service now reads files in fixed-size chunks of at most
+  1 MiB instead of loading them whole. Digests, source statuses and the serialized
+  `MediaValidationResultV1` were verified byte-identical against a baseline captured before the
+  change, so the validation-provenance hashes recorded by the ASR and vision benchmark helpers are
+  unchanged. Evidence: `EV-003-T1-T0-01`.
+- The change bounds hashing memory only. Byte/pixel limits, decoding cost, optional-audio
+  behavior, the reason catalog and every benchmark outcome are unchanged, and no model-readiness
+  or promotion claim follows from it.
+
 ## FEAT-018 compatibility history (2026-09-05)
 
 - A historical offline compatibility review tested the then-current Person 2 and Person 1

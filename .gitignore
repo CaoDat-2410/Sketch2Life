@@ -18,8 +18,10 @@ features/FEAT-003-multimodal-understanding/fixtures/vision-b4/images/**
 features/FEAT-003-multimodal-understanding/fixtures/vision-v3-map/images/**
 features/FEAT-003-multimodal-understanding/fixtures/vision-v3-quality/images/**
 
-# Feature evidence notes are operator-local and must never be published.
-features/FEAT-003-multimodal-understanding/evidence/notes/
+# Feature evidence notes are operator-local by default; publish a note only by
+# adding an explicit negation for that one file below.
+features/FEAT-003-multimodal-understanding/evidence/notes/*
+!features/FEAT-003-multimodal-understanding/evidence/notes/P2_T1_T0_INCREMENTAL_HASHING.md
 
 # Python
 __pycache__/

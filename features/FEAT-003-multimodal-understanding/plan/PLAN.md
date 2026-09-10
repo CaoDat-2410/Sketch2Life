@@ -74,6 +74,13 @@ owner decision. B5 remains unexecuted. The current safe status is maintained in
 
 **Done when:** `drawing.png + narration.wav` returns `MediaValidationResultV1`; unusable media yields a stable `RECAPTURE` decision and human-readable recapture message; valid media passes; source hashes remain unchanged; unit/contract tests cover every reason code.
 
+**Maintenance — T0 incremental source hashing (approved 2026-09-10, complete):** source hashing
+reads the file in fixed-size chunks of at most 1 MiB instead of loading it whole. Digests,
+statuses and the serialized `MediaValidationResultV1` are byte-identical for unchanged inputs, so
+the validation-provenance hashes recorded by the ASR and vision benchmark helpers are unaffected.
+This bounds hashing memory only; byte/pixel limits, decoding cost, optional-audio behavior and the
+reason catalog are unchanged and out of that scope.
+
 ### P2-T2 — Whisper large-v3-turbo adapter (2 points, Must)
 
 **Goal:** Provide an ASR port implementation that can use `faster-whisper`/Whisper large-v3-turbo, while its public result remains provider-neutral and source-traceable.

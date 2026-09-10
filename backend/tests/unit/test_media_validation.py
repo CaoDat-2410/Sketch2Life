@@ -2,18 +2,27 @@ from __future__ import annotations
 
 import json
 from hashlib import sha256
+from io import BufferedReader
 from math import sin
 from pathlib import Path
 from struct import pack
+from typing import Literal
 from wave import open as wave_open
 from zlib import compress, crc32
+
+import pytest
 
 from sketch2life.application.services.media_validation import (
     DeterministicMediaValidator,
     MediaValidationRequest,
 )
 from sketch2life.contracts.schemas.media_validation import MediaFixtureManifestV1
-from sketch2life.domain.understanding.media_quality import MediaDecision, MediaRecaptureReason
+from sketch2life.domain.understanding.media_quality import (
+    AudioQualitySignals,
+    ImageQualitySignals,
+    MediaDecision,
+    MediaRecaptureReason,
+)
 from sketch2life.infrastructure.media_validation.file_inspector import (
     _MAX_MEDIA_BYTES,
     FileMediaSignalInspector,
@@ -188,6 +197,120 @@ def test_oversized_media_is_rejected_before_decode(tmp_path: Path) -> None:
 
     assert signals.width is None
     assert signals.height is None
+
+
+def test_source_hashing_reads_the_file_in_bounded_chunks(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    image = tmp_path / "multi-chunk.bin"
+    image.write_bytes(bytes(range(256)) * 10240)
+    audio = tmp_path / "narration.wav"
+    _write_wav(audio, seconds=1.0, amplitude=0.3)
+    expected_digest = sha256(image.read_bytes()).hexdigest()
+    requested_sizes: list[int] = []
+
+    def _reject_whole_file_read(self: Path) -> bytes:
+        raise AssertionError("source hashing must not read the whole file into memory")
+
+    real_open = Path.open
+
+    def _recording_open(self: Path, mode: Literal["rb"] = "rb") -> _ReadSpy:
+        return _ReadSpy(real_open(self, mode), requested_sizes)
+
+    monkeypatch.setattr(Path, "read_bytes", _reject_whole_file_read)
+    monkeypatch.setattr(Path, "open", _recording_open)
+    result = DeterministicMediaValidator(_StubInspector()).validate(
+        MediaValidationRequest(
+            image_path=image,
+            audio_path=audio,
+            image_artifact_ref="fixture:drawing:v1",
+            audio_artifact_ref="fixture:narration:v1",
+        )
+    )
+
+    assert result.image.sha256 == expected_digest
+    assert requested_sizes
+    assert all(0 < size <= 1024 * 1024 for size in requested_sizes)
+    assert len([size for size in requested_sizes if size]) >= 3
+
+
+def test_source_digests_match_independent_hashes_across_chunk_boundaries(
+    tmp_path: Path,
+) -> None:
+    audio = tmp_path / "narration.wav"
+    _write_wav(audio, seconds=1.0, amplitude=0.3)
+    payloads = {
+        "empty.bin": b"",
+        "sub-chunk.bin": b"\x01\x02\x03" * 1024,
+        "exact-chunk.bin": b"\x04" * (1024 * 1024),
+        "multi-chunk.bin": bytes(range(256)) * 10240,
+    }
+
+    for name, payload in payloads.items():
+        image = tmp_path / name
+        image.write_bytes(payload)
+
+        result = _validate(image, audio)
+
+        assert result.image.sha256 == sha256(payload).hexdigest(), name
+        assert result.image.source_status == "AVAILABLE", name
+
+
+def test_unreadable_source_keeps_its_status_without_a_hash(tmp_path: Path) -> None:
+    audio = tmp_path / "narration.wav"
+    _write_wav(audio, seconds=1.0, amplitude=0.3)
+
+    result = _validate(tmp_path, audio)
+
+    assert result.image.sha256 is None
+    assert result.image.source_status == "UNREADABLE"
+
+
+def test_serialized_result_and_provenance_hash_stay_byte_identical(tmp_path: Path) -> None:
+    """Guards the digest recorded in benchmark validation provenance.
+
+    The expected value is an independent baseline captured from the previous whole-file
+    hashing implementation, not a re-run of the current one.
+    """
+
+    image = tmp_path / "drawing.png"
+    audio = tmp_path / "narration.wav"
+    _write_valid_image(image)
+    _write_wav(audio, seconds=1.0, amplitude=0.3)
+
+    serialized = _validate(image, audio).model_dump_json()
+
+    assert sha256(serialized.encode("utf-8")).hexdigest() == (
+        "cded7b49413310fe54232ca793693db7d31db999b381908fff4c6521f9dbf5e5"
+    )
+
+
+class _ReadSpy:
+    """Records every size requested from the wrapped binary file object."""
+
+    def __init__(self, source: BufferedReader, requested_sizes: list[int]) -> None:
+        self._source = source
+        self._requested_sizes = requested_sizes
+
+    def read(self, size: int = -1) -> bytes:
+        self._requested_sizes.append(size)
+        return self._source.read(size)
+
+    def __enter__(self) -> _ReadSpy:
+        return self
+
+    def __exit__(self, *exception: object) -> None:
+        self._source.close()
+
+
+class _StubInspector:
+    """Keeps the read spy scoped to hashing; the real inspector reads files itself."""
+
+    def inspect_image(self, path: Path) -> ImageQualitySignals:
+        return ImageQualitySignals(160, 160, 200.0, 60.0, 8.0, 0.1)
+
+    def inspect_audio(self, path: Path) -> AudioQualitySignals:
+        return AudioQualitySignals(1.0, 16000, 1, 0.2, 0.0, 0.9, 0.1)
 
 
 def _validate(image: Path, audio: Path):

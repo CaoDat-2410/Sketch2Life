@@ -96,6 +96,27 @@
   unchanged.
 - Plan: `plan/P2_P1_REVIEW_20260905.md`, revision `review-20260905-1`.
 
+## P2-T1 maintenance approval — T0 incremental source hashing — 2026-09-10
+
+- Scope: replace whole-file source hashing with incremental SHA-256 over fixed-size reads of at
+  most 1 MiB in `_source_reference` in
+  `backend/src/sketch2life/application/services/media_validation.py`, plus its focused tests.
+- Origin: requested by FEAT-018 Person 2 research; implementation and evidence belong to
+  FEAT-003 P2-T1 because every current caller is FEAT-003 (its unit tests and the ASR/vision
+  benchmark validation helpers). This does not transfer P2-T1 ownership to FEAT-018.
+- Acceptance: SHA-256 is computed over the complete file; digests, source statuses, decisions,
+  reasons, messages, policy version, contract version, field ordering and the serialized
+  `MediaValidationResultV1` are byte-identical for unchanged inputs; the `OSError`-to-
+  `MISSING`/`UNREADABLE` mapping is preserved; a focused test fails on the previous whole-file
+  implementation and asserts every hashing read requests a positive size of at most 1 MiB.
+- Explicitly not approved: changes to byte/pixel limits, decoding, optional-audio behavior,
+  reason enums, policy thresholds, EXIF handling, derivatives, inspector defaults, model
+  adapters, prompts, profiles, dependencies, benchmark scoring, frozen fixtures, or historical
+  evidence; and any FEAT-018 integration, provider execution or readiness promotion.
+- Bounded effect: this bounds hashing memory only. It does not bound total bytes read, elapsed
+  time or decoding memory, and it does not close the validation-to-inference mutation window.
+- Approved at: 2026-09-10, project owner direct instruction in the current conversation.
+
 ## Notes
 
 FEAT-012 and ADR-0006 still govern the standalone Sprint 1 boundary. Person 2 does not own Gate A UI or backend job orchestration in Sprint 1.
