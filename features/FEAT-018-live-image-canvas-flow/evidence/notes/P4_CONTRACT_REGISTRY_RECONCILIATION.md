@@ -59,7 +59,10 @@ reason. It must not silently substitute another activity or objective.
 The canonical P4 schemas are now located under the backend contract authority
 at `backend/src/sketch2life/contracts/schemas/learning_media.py`. Their tests
 cover transport fields, exact identity, reviewed-cache provenance, typed
-fallback reasons, and fail-closed cache-hit/asset invariants.
+fallback reasons, and fail-closed cache-hit/asset invariants. The standalone
+resolver is at
+`backend/src/sketch2life/application/services/learning_media_resolver.py` and
+uses an in-memory store for deterministic fixture tests.
 
 No provider, GPU, database, cloud storage, mobile credential, or real child
 data is required for this reconciliation.

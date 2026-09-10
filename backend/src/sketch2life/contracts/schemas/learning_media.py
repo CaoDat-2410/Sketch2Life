@@ -46,6 +46,22 @@ class LearningMediaRequestV1(BaseModel):
     cache_key: str = Field(min_length=1, max_length=512)
 
 
+class ReviewedLearningMediaAssetV1(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    asset_ref: str = Field(min_length=1, max_length=300)
+    asset_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
+    activity_id: str = Field(min_length=1, max_length=120)
+    activity_version: str = Field(pattern=r"^v[0-9]+$")
+    objective_id: str = Field(min_length=1, max_length=120)
+    objective_version: str = Field(pattern=r"^v[0-9]+$")
+    renderer_plan_id: str = Field(min_length=1, max_length=120)
+    renderer_plan_version: str = Field(pattern=r"^v[0-9]+$")
+    cache_key: str = Field(min_length=1, max_length=512)
+    review_status: Literal["REVIEWED"] = "REVIEWED"
+    media_status: Literal["AVAILABLE", "STALE", "CORRUPT", "UNSAFE"] = "AVAILABLE"
+
+
 class LearningMediaResultV1(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
