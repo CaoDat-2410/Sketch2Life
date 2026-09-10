@@ -9,6 +9,8 @@ Evidence belongs under this feature only.
 
 Current pre-approval review: [completeness findings and required reconciliation](notes/PRE_APPROVAL_COMPLETENESS_REVIEW_20260908.md).
 
+Person 4 registry reconciliation: [P4 contract registry reconciliation](notes/P4_CONTRACT_REGISTRY_RECONCILIATION.md).
+
 Never store raw images, prompts, model output, tokens, signed URLs, personal metadata, or provider headers here. Store source SHA-256 and bounded metadata only.
 
 Required evidence groups:
