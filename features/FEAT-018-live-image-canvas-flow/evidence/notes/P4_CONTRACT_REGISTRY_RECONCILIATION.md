@@ -64,5 +64,9 @@ resolver is at
 `backend/src/sketch2life/application/services/learning_media_resolver.py` and
 uses an in-memory store for deterministic fixture tests.
 
+The fallback component is at
+`backend/src/sketch2life/application/services/learning_media_fallback.py`.
+It preserves the request identity and never invokes a provider.
+
 No provider, GPU, database, cloud storage, mobile credential, or real child
 data is required for this reconciliation.

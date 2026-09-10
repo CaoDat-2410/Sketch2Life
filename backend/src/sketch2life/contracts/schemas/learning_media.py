@@ -76,6 +76,7 @@ class LearningMediaResultV1(BaseModel):
     renderer_plan_id: str = Field(min_length=1, max_length=120)
     renderer_plan_version: str = Field(pattern=r"^v[0-9]+$")
     asset_ref: str | None = Field(default=None, min_length=1)
+    fallback_type: Literal["STILL_NARRATION", "WHOLE_IMAGE_REVEAL", "SUPERVISED_HANDOFF"] | None = None
     generation_called: bool
     provenance: LearningMediaProvenanceV1
     reason_code: Literal[
@@ -94,6 +95,8 @@ class LearningMediaResultV1(BaseModel):
             raise ValueError("ready learning media requires an asset reference")
         if self.status != "READY" and self.reason_code is None:
             raise ValueError("fallback or blocked learning media requires a typed reason")
+        if self.status == "FALLBACK" and self.fallback_type is None:
+            raise ValueError("fallback learning media requires a fallback type")
         if self.cache_status == "HIT" and self.status != "READY":
             raise ValueError("a cache hit must return ready media")
         return self
