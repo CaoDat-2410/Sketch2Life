@@ -48,3 +48,7 @@ Selected P1 strict continuity implementation record:
 Selected P1 catalog and Gate integrity implementation record:
 [P1 catalog and Gate integrity polish](notes/P1_CATALOG_GATE_INTEGRITY_IMPLEMENTATION_20260911.md)
 (`EV-018-P1-CATALOG-GATE-INTEGRITY-20260911`; catalog hygiene, optional context locks, Gate B fail-closed checks and offline validation).
+
+Selected P1 online-model compatibility implementation record:
+[P1 online-model compatibility tests](notes/P1_ONLINE_MODEL_COMPATIBILITY_IMPLEMENTATION_20260911.md)
+(`EV-018-P1-ONLINE-MODEL-COMPATIBILITY-20260911`; provider-shaped adapter fixtures, P1 handoff coverage and offline validation).

@@ -49,3 +49,5 @@
 
 
 - 2026-09-11: Implement the approved P1 catalog and Gate integrity polish without changing contracts or downstream code. Exclude `OBJ_*` and broad area taxonomy labels from anchor metadata; treat optional selected activity/objective refs as exact constraints when present; use one Gate B approval path; and fail closed on duplicate template IDs, missing objective titles, spec ID drift and spec hash drift.
+
+- 2026-09-11: Add an offline provider-shaped compatibility suite at the P1 boundary. Keep Qwen3-VL-8B-Instruct and Whisper large-v3-turbo identifiers in provenance only; validate provider outputs through the existing strict adapters, require adult confirmation before P1, and preserve source/hash/contract identity. Live provider execution remains separately gated.

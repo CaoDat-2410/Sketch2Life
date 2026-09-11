@@ -1,0 +1,55 @@
+{
+  "evidence_id": "EV-018-P1-ONLINE-MODEL-COMPATIBILITY-20260911",
+  "feature": "FEAT-018-live-image-canvas-flow",
+  "scope": "P1 compatibility tests and feature-local evidence only",
+  "status": "PASS",
+  "plan": "P1_ONLINE_MODEL_COMPATIBILITY_TEST_PLAN.md",
+  "live_provider_called": false,
+  "model_weights_downloaded": false,
+  "provider_credentials_included": false,
+  "profiles_under_test": {
+    "vlm": "Qwen/Qwen3-VL-8B-Instruct",
+    "asr": "large-v3-turbo"
+  },
+  "contract_versions_unchanged": {
+    "VisionUnderstandingResultV1": "1.0",
+    "AsrResultV1": "1.0",
+    "SemanticAnchorSetV1": "1.0",
+    "ExperienceSpecV1": "1.0"
+  },
+  "compatibility_cases": {
+    "qwen_structured_success_round_trip": "PASS",
+    "whisper_structured_success_round_trip": "PASS",
+    "source_hash_and_provenance_preserved": "PASS",
+    "adult_confirmation_required": "BLOCKED without confirmation",
+    "unrelated_entity": "REJECT",
+    "empty_entity_set": "BLOCKED before P1",
+    "malformed_or_prohibited_payload": "TYPED_FAILURE",
+    "timeout": "TYPED_FAILURE",
+    "transient_retry": "PASS bounded retry",
+    "permanent_failure": "TYPED_FAILURE"
+  },
+  "fixture_and_test_coverage": {
+    "online_compatibility_suite": "22 passed",
+    "combined_p1_suite": "81 passed",
+    "raw_media_included": false,
+    "real_child_data_included": false
+  },
+  "validation": {
+    "backend_offline": "989 collected; 984 passed; 5 skipped; no failures",
+    "root_offline": "33 passed",
+    "feat018_replay": "1 passed",
+    "harness": "blocked by unrelated untracked FEAT-019 scaffold missing evidence subdirectories",
+    "ruff_new_suite": "passed",
+    "typescript_downstream": "passed; no TypeScript source changed",
+    "repository_security": "REPOSITORY_SECURITY_VALID; 927 publishable files scanned; no absolute paths"
+  },
+  "downstream_scope": {
+    "p1_source_changed": false,
+    "p2_source_changed": false,
+    "p3_source_changed": false,
+    "p4_source_changed": false,
+    "shared_or_mobile_source_changed": false,
+    "live_provider_run": false
+  }
+}
