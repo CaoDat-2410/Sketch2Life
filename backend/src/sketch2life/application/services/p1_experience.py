@@ -65,7 +65,7 @@ class P1ExperienceCompiler:
         templates: Iterable[ActivityTemplateV1],
         objective_titles_vi: Mapping[str, str],
         *,
-        policy_version: str = "P1_EXPERIENCE_POLICY_V1",
+        policy_version: str = "P1_STRICT_CONTINUITY_V1",
     ) -> None:
         self._templates = tuple(templates)
         self._by_id = {template.template_id: template for template in self._templates}
@@ -209,10 +209,14 @@ class P1ExperienceCompiler:
             reason = tuple(f"MISSING_CONTEXT:{field}" for field in context.missing_fields())
         elif spec.fit_evaluation.status != "PASS":
             reason = ("FIT_BELOW_THRESHOLD",)
-        elif spec.activity_template.activity_ref != template.activity_ref:
-            reason = ("ACTIVITY_VERSION_MISMATCH",)
+        elif self._anchor_template_continuity_failures(spec.anchor_set, template):
+            reason = self._anchor_template_continuity_failures(spec.anchor_set, template)
+        elif self._spec_identity_failures(spec, template):
+            reason = self._spec_identity_failures(spec, template)
         elif spec.learning_focus.objective_ref not in template.objective_refs:
             reason = ("OBJECTIVE_ACTIVITY_MISMATCH",)
+        elif not self._spec_hash_matches(spec):
+            reason = ("SPEC_HASH_MISMATCH",)
         else:
             reason = ()
         status: Literal["APPROVED", "BLOCKED"] = "APPROVED" if not reason else "BLOCKED"
@@ -273,7 +277,7 @@ class P1ExperienceCompiler:
         bridge = BridgeSentenceV1(
             sentence_vi=(
                 f"Cùng khám phá {anchor.normalized_label}, "
-                f"rồi thử hoạt động {template.activity_ref.id}."
+                f"rồi {goal.lower()} qua hoạt động này."
             ),
             anchor_id=anchor.anchor_id,
             objective_ref=objective,
@@ -300,7 +304,11 @@ class P1ExperienceCompiler:
             "activity_plan": activity_plan.model_dump(mode="json"),
             "bridge_sentence": bridge.model_dump(mode="json"),
             "fit_evaluation": fit.model_dump(mode="json"),
-            "policy_versions": ("P1_ELIGIBILITY_RULES_V1", "P1_FIT_WEIGHTS_V1"),
+            "policy_versions": (
+                "P1_ELIGIBILITY_RULES_V1",
+                "P1_FIT_WEIGHTS_V1",
+                "P1_STRICT_CONTINUITY_V1",
+            ),
         }
         digest = _canonical_hash(unsigned)
         spec_id = f"SPEC-{digest[:16]}"
@@ -358,25 +366,133 @@ class P1ExperienceCompiler:
         return tuple(failures)
 
     @staticmethod
+    def _anchor_template_continuity_failures(
+        anchor_set: SemanticAnchorSetV1,
+        template: ActivityTemplateV1,
+    ) -> tuple[str, ...]:
+        """Return hard failures for the confirmed primary anchor/template pair.
+
+        Selection may use a ranked score to find candidates, but a PASS requires
+        exact normalized-label/tag compatibility and a compatible semantic kind.
+        Token overlap alone can never promote an unrelated activity.
+        """
+        anchor = anchor_set.primary_anchor
+        supported_labels = {item.casefold().strip() for item in template.supported_anchor_labels}
+        anchor_labels = {
+            anchor.original_label.casefold().strip(),
+            anchor.normalized_label.casefold().strip(),
+            *(tag.casefold().strip() for tag in anchor.semantic_tags),
+        }
+        failures: list[str] = []
+        if anchor.kind not in template.supported_anchor_kinds:
+            failures.append("ANCHOR_KIND_TEMPLATE_MISMATCH")
+        if not anchor_labels & supported_labels:
+            failures.append("ANCHOR_TEMPLATE_MISMATCH")
+        return tuple(failures)
+
+    @staticmethod
+    def _bridge_identity_failures(
+        bridge: BridgeSentenceV1,
+        *,
+        anchor_id: str,
+        objective: VersionedRefV1,
+        template_ref: VersionedRefV1,
+    ) -> tuple[str, ...]:
+        if (
+            bridge.anchor_id != anchor_id
+            or bridge.objective_ref != objective
+            or bridge.template_ref != template_ref
+        ):
+            return ("BRIDGE_IDENTITY_MISMATCH",)
+        return ()
+
+    @classmethod
+    def _spec_identity_failures(
+        cls,
+        spec: ExperienceSpecV1,
+        template: ActivityTemplateV1,
+    ) -> tuple[str, ...]:
+        """Re-check downstream identity before approving Gate B.
+
+        ExperienceSpecV1 validates these links at construction time. Gate B also
+        re-checks them so a copied/tampered fixture cannot bypass the final lock.
+        """
+        anchor_id = spec.anchor_set.primary_anchor.anchor_id
+        template_ref = VersionedRefV1(id=template.template_id, version=template.template_version)
+        objective = spec.learning_focus.objective_ref
+        activity = template.activity_ref
+        failures: list[str] = []
+        if spec.learning_focus.selected_anchor_id != anchor_id:
+            failures.append("ACTIVITY_IDENTITY_MISMATCH")
+        if (
+            spec.activity_template.activity_ref != activity
+            or spec.activity_template.template_id != template.template_id
+            or spec.activity_template.template_version != template.template_version
+        ):
+            failures.append("ACTIVITY_IDENTITY_MISMATCH")
+        for plan in (spec.video_plan, spec.animation_plan):
+            if (
+                plan.source_artifact_id != spec.source_artifact_id
+                or plan.anchor_id != anchor_id
+                or plan.objective_ref != objective
+                or plan.template_ref != template_ref
+            ):
+                failures.append("ACTIVITY_IDENTITY_MISMATCH")
+                break
+        if (
+            spec.activity_plan.activity_ref != activity
+            or spec.activity_plan.template_ref != template_ref
+            or spec.activity_plan.objective_ref != objective
+        ):
+            failures.append("ACTIVITY_IDENTITY_MISMATCH")
+        if cls._bridge_identity_failures(
+            spec.bridge_sentence,
+            anchor_id=anchor_id,
+            objective=objective,
+            template_ref=template_ref,
+        ):
+            failures.append("BRIDGE_IDENTITY_MISMATCH")
+        if (
+            spec.fit_evaluation.evaluated_template_ref != template_ref
+            or spec.fit_evaluation.evaluated_catalog_ref != activity
+        ):
+            failures.append("ACTIVITY_IDENTITY_MISMATCH")
+        return tuple(dict.fromkeys(failures))
+
+    @staticmethod
+    def _spec_hash_matches(spec: ExperienceSpecV1) -> bool:
+        payload = spec.model_dump(mode="json")
+        recorded = payload.pop("spec_sha256", None)
+        return isinstance(recorded, str) and _canonical_hash(payload) == recorded
+
+    @classmethod
     def _fit_evaluation(
+        cls,
         anchor_set: SemanticAnchorSetV1,
         template: ActivityTemplateV1,
         objective: VersionedRefV1,
         match_score: int,
     ) -> ActivityFitEvaluationV1:
-        drawing = min(100, match_score * 20)
+        anchor_failures = cls._anchor_template_continuity_failures(anchor_set, template)
+        anchor_matches = not anchor_failures
         objective_alignment = 100 if objective in template.objective_refs else 0
-        continuity = 100 if drawing > 0 else 0
+        objective_matches = objective_alignment == 100
+
+        # Hard mismatches zero the affected dimensions before weighted scoring.
+        # This keeps REJECT scores below the schema threshold even when another
+        # dimension is perfect, so a high score cannot override a hard gate.
+        drawing = min(100, match_score * 20) if anchor_matches else 0
+        continuity = 100 if anchor_matches and objective_matches else 0
         safety = 100
         total = round(
             drawing * 0.30 + objective_alignment * 0.35 + continuity * 0.20 + safety * 0.15
         )
-        reasons: list[str] = []
-        if drawing == 0:
-            reasons.append("ANCHOR_TEMPLATE_MISMATCH")
-        if objective_alignment == 0:
+        reasons: list[str] = list(anchor_failures)
+        if not objective_matches:
             reasons.append("OBJECTIVE_TEMPLATE_MISMATCH")
-        status: Literal["PASS", "REJECT"] = "PASS" if total >= 80 else "REJECT"
+        status: Literal["PASS", "REJECT"] = (
+            "PASS" if anchor_matches and objective_matches and total >= 80 else "REJECT"
+        )
         if status == "REJECT":
             reasons.append("FIT_BELOW_THRESHOLD")
         return ActivityFitEvaluationV1(
@@ -386,7 +502,7 @@ class P1ExperienceCompiler:
             video_continuity=continuity,
             montessori_safety=safety,
             total_score=total,
-            reason_codes=tuple(reasons),
+            reason_codes=tuple(dict.fromkeys(reasons)),
             evaluated_template_ref=VersionedRefV1(
                 id=template.template_id, version=template.template_version
             ),

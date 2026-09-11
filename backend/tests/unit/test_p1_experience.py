@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
@@ -92,6 +93,22 @@ def _butterfly_template() -> ActivityTemplateV1:
     )
 
 
+def test_strict_continuity_fixture_manifest_is_sanitized_and_contract_pinned() -> None:
+    manifest_path = ROOT / "tests/fixtures/p1-experience/strict-continuity-manifest.v1.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+
+    assert manifest["manifest_version"] == "p1-strict-continuity-manifest-v1"
+    assert len(manifest["fixture_ids"]) == 5
+    assert manifest["raw_media_included"] is False
+    assert manifest["real_child_data_included"] is False
+    assert manifest["provider_credentials_included"] is False
+    assert manifest["contract_versions"] == {
+        "ActivityFitEvaluationV1": "1.0",
+        "BridgeSentenceV1": "1.0",
+        "ExperienceSpecV1": "1.0",
+    }
+
+
 def test_catalog_loader_promotes_twenty_golden_templates_and_act0004_mapping() -> None:
     library = load_p1_template_library(ROOT)
     assert len(library.templates) == 20
@@ -124,11 +141,158 @@ def test_butterfly_fold_print_compiles_one_spec_and_gate_b_locks_identity() -> N
     assert result.spec.video_plan.objective_ref == result.spec.activity_plan.objective_ref
     assert result.spec.video_plan.template_ref == result.spec.activity_plan.template_ref
     assert result.spec.video_plan.anchor_id == result.spec.anchor_set.primary_anchor.anchor_id
+    assert result.spec.activity_plan.activity_ref == fixture.activity_ref
+    assert result.spec.activity_plan.template_ref.id == fixture.template_id
+    assert "P1_STRICT_CONTINUITY_V1" in result.spec.policy_versions
+    assert result.spec.learning_focus.selection_policy_version == "P1_STRICT_CONTINUITY_V1"
+    assert (
+        result.spec.anchor_set.primary_anchor.normalized_label
+        in result.spec.bridge_sentence.sentence_vi
+    )
+    assert "phân biệt đặc điểm đối xứng" in result.spec.bridge_sentence.sentence_vi.casefold()
+    assert result.handoff is not None
+    assert result.handoff.spec_ref.id == result.spec.spec_id
+    assert result.handoff.activity_ref == result.spec.activity_plan.activity_ref
+    assert result.handoff.objective_ref == result.spec.learning_focus.objective_ref
+    assert result.handoff.template_ref == result.spec.activity_plan.template_ref
     assert result.spec.spec_sha256 == result.spec.spec_sha256
     rechecked = compiler.approve_gate_b(result.spec, context)
     assert rechecked.status == "APPROVED"
     assert rechecked.spec_ref is not None
     assert rechecked.spec_ref.id == result.spec.spec_id
+
+
+def test_unsupported_anchor_kind_is_rejected_before_spec_compilation() -> None:
+    fixture = _butterfly_template().model_copy(
+        update={"supported_anchor_kinds": ("visual_feature",)}
+    )
+    compiler = P1ExperienceCompiler(
+        (fixture,),
+        {"OBJ_SENSORIAL_DISCRIMINATION": "Phân biệt đặc điểm đối xứng"},
+    )
+
+    result = compiler.compile(
+        _anchor(), _context(fixture), preferred_template_id=fixture.template_id
+    )
+
+    assert result.spec is None
+    assert result.fit_evaluation is not None
+    assert result.fit_evaluation.status == "REJECT"
+    assert "ANCHOR_KIND_TEMPLATE_MISMATCH" in result.fit_evaluation.reason_codes
+    assert "FIT_BELOW_THRESHOLD" in result.fit_evaluation.reason_codes
+    assert result.gate_b.status == "BLOCKED"
+
+
+def test_matching_anchor_with_unrelated_objective_is_rejected_by_strict_fit() -> None:
+    fixture = _butterfly_template()
+    unrelated_objective = VersionedRefV1(id="OBJ_UNRELATED_SORTING", version=1)
+
+    fit = P1ExperienceCompiler._fit_evaluation(
+        _anchor(), fixture, unrelated_objective, match_score=5
+    )
+
+    assert fit.status == "REJECT"
+    assert fit.objective_alignment == 0
+    assert fit.video_continuity == 0
+    assert fit.total_score < fit.threshold
+    assert "OBJECTIVE_TEMPLATE_MISMATCH" in fit.reason_codes
+    assert "FIT_BELOW_THRESHOLD" in fit.reason_codes
+
+
+def test_ambiguous_anchor_blocks_without_preferred_template() -> None:
+    first = _butterfly_template()
+    second = first.model_copy(update={"template_id": "TPL-FIXTURE-BUTTERFLY-FOLD-PRINT-V2"})
+    compiler = P1ExperienceCompiler(
+        (first, second),
+        {"OBJ_SENSORIAL_DISCRIMINATION": "Phân biệt đặc điểm đối xứng"},
+    )
+
+    result = compiler.compile(_anchor(), _context(first))
+
+    assert result.filter_result.status == "AMBIGUOUS_ANCHOR"
+    assert result.filter_result.reason_codes == ("MULTIPLE_EQUAL_ANCHOR_MATCHES",)
+    assert result.spec is None
+    assert result.gate_b.status == "BLOCKED"
+
+
+def test_gate_b_blocks_bridge_identity_drift() -> None:
+    fixture = _butterfly_template()
+    compiler = P1ExperienceCompiler(
+        (fixture,),
+        {"OBJ_SENSORIAL_DISCRIMINATION": "Phân biệt đặc điểm đối xứng"},
+    )
+    context = _context(fixture)
+    result = compiler.compile(_anchor(), context, preferred_template_id=fixture.template_id)
+    assert result.spec is not None
+
+    wrong_bridge = result.spec.bridge_sentence.model_copy(
+        update={"template_ref": VersionedRefV1(id="TPL-WRONG", version=1)}
+    )
+    tampered = result.spec.model_copy(update={"bridge_sentence": wrong_bridge})
+
+    decision = compiler.approve_gate_b(tampered, context)
+
+    assert decision.status == "BLOCKED"
+    assert decision.reason_codes == ("BRIDGE_IDENTITY_MISMATCH",)
+
+
+def test_gate_b_blocks_bridge_objective_drift() -> None:
+    fixture = _butterfly_template()
+    compiler = P1ExperienceCompiler(
+        (fixture,),
+        {"OBJ_SENSORIAL_DISCRIMINATION": "Phân biệt đặc điểm đối xứng"},
+    )
+    context = _context(fixture)
+    result = compiler.compile(_anchor(), context, preferred_template_id=fixture.template_id)
+    assert result.spec is not None
+
+    wrong_bridge = result.spec.bridge_sentence.model_copy(
+        update={"objective_ref": VersionedRefV1(id="OBJ_WRONG", version=1)}
+    )
+    tampered = result.spec.model_copy(update={"bridge_sentence": wrong_bridge})
+
+    decision = compiler.approve_gate_b(tampered, context)
+
+    assert decision.status == "BLOCKED"
+    assert decision.reason_codes == ("BRIDGE_IDENTITY_MISMATCH",)
+
+
+def test_gate_b_blocks_media_identity_drift() -> None:
+    fixture = _butterfly_template()
+    compiler = P1ExperienceCompiler(
+        (fixture,),
+        {"OBJ_SENSORIAL_DISCRIMINATION": "Phân biệt đặc điểm đối xứng"},
+    )
+    context = _context(fixture)
+    result = compiler.compile(_anchor(), context, preferred_template_id=fixture.template_id)
+    assert result.spec is not None
+
+    wrong_video = result.spec.video_plan.model_copy(
+        update={"objective_ref": VersionedRefV1(id="OBJ_WRONG", version=1)}
+    )
+    tampered = result.spec.model_copy(update={"video_plan": wrong_video})
+
+    decision = compiler.approve_gate_b(tampered, context)
+
+    assert decision.status == "BLOCKED"
+    assert decision.reason_codes == ("ACTIVITY_IDENTITY_MISMATCH",)
+
+
+def test_gate_b_blocks_spec_hash_drift() -> None:
+    fixture = _butterfly_template()
+    compiler = P1ExperienceCompiler(
+        (fixture,),
+        {"OBJ_SENSORIAL_DISCRIMINATION": "Phân biệt đặc điểm đối xứng"},
+    )
+    context = _context(fixture)
+    result = compiler.compile(_anchor(), context, preferred_template_id=fixture.template_id)
+    assert result.spec is not None
+
+    tampered = result.spec.model_copy(update={"spec_sha256": "c" * 64})
+    decision = compiler.approve_gate_b(tampered, context)
+
+    assert decision.status == "BLOCKED"
+    assert decision.reason_codes == ("SPEC_HASH_MISMATCH",)
 
 
 def test_unrelated_sorting_template_is_rejected_below_fit_threshold() -> None:

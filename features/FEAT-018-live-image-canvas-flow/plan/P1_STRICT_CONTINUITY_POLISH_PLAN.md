@@ -1,6 +1,6 @@
 # FEAT-018 P1 Strict Continuity Polish Plan
 
-- Status: DRAFT — implementation requires owner approval
+- Status: IMPLEMENTED — approved and validated 2026-09-11
 - Scope: P1 catalog/domain/compiler only
 - Out of scope: P2 model/output changes, P3 renderer changes, P4 media/cache changes, mobile UI changes, live provider execution, production API/cloud, Android release, production assets and real child data
 

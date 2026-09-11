@@ -1,0 +1,62 @@
+{
+  "evidence_id": "EV-018-P1-STRICT-CONTINUITY-20260911",
+  "feature": "FEAT-018-live-image-canvas-flow",
+  "scope": "P1 application/compiler only",
+  "status": "PASS",
+  "policy_version": "P1_STRICT_CONTINUITY_V1",
+  "contract_versions_unchanged": {
+    "ActivityFitEvaluationV1": "1.0",
+    "BridgeSentenceV1": "1.0",
+    "ExperienceSpecV1": "1.0"
+  },
+  "catalog_audit": {
+    "golden_templates": 20,
+    "nonempty_anchor_label_templates": 20,
+    "templates_with_supported_kinds": 20,
+    "objective_references_known": true,
+    "production_eligible_templates": 0
+  },
+  "fixture_coverage": {
+    "manifest": "tests/fixtures/p1-experience/strict-continuity-manifest.v1.json",
+    "fixture_count": 5,
+    "raw_media_included": false,
+    "real_child_data_included": false,
+    "provider_credentials_included": false,
+    "cases": [
+      "butterfly fold-and-print PASS",
+      "unrelated sorting REJECT",
+      "unsupported anchor kind REJECT",
+      "unrelated objective REJECT",
+      "bridge identity drift BLOCKED"
+    ]
+  },
+  "validation": {
+    "p1_unit": "14 passed",
+    "backend_offline": "922 collected; 917 passed; 5 skipped; no failures",
+    "root_offline": "33 passed",
+    "feat018_replay": "1 passed",
+    "typescript_typecheck": "passed",
+    "typescript_tests": {
+      "art_renderer": "6 passed",
+      "mobile": "7 passed"
+    },
+    "ruff": "passed",
+    "mypy_p1_compiler": "passed",
+    "validate_montessori_domain": "passed",
+    "validate_montessori_golden": "passed",
+    "validate_skeleton": "passed",
+    "validate_harness": "passed",
+    "validate_architecture": "passed",
+    "validate_team_allocation": "passed",
+    "validate_repository_security": "REPOSITORY_SECURITY_VALID (914 files scanned)"
+  },
+  "excluded": [
+    "P2/P3/P4 code changes",
+    "shared/mobile integration",
+    "contract version changes",
+    "live providers and production API/cloud",
+    "Android release",
+    "real child/personal data",
+    "provider credentials"
+  ]
+}

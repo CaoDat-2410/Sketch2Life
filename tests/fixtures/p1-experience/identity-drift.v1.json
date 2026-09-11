@@ -1,0 +1,21 @@
+{
+  "fixture_id": "p1-identity-drift-v1",
+  "scenario": "bridge-reference-drift-at-gate-b",
+  "source_artifact": {
+    "artifact_id": "fixture-art-butterfly-001",
+    "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "raw_media_included": false
+  },
+  "mutation": {
+    "bridge_sentence": {
+      "template_ref": {
+        "id": "TPL-WRONG",
+        "version": 1
+      }
+    }
+  },
+  "expected": {
+    "gate_b": "BLOCKED",
+    "reason_codes": ["BRIDGE_IDENTITY_MISMATCH"]
+  }
+}

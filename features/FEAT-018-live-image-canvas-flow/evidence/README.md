@@ -40,3 +40,7 @@ Required evidence groups:
 5. Pixi asset/bridge/source-preservation;
 6. cache/fallback and 20-row device pilot;
 7. harness/security validation.
+
+Selected P1 strict continuity implementation record:
+[P1 strict continuity polish](notes/P1_STRICT_CONTINUITY_IMPLEMENTATION_20260911.md)
+(`EV-018-P1-STRICT-CONTINUITY-20260911`; approved compiler policy, fixture regression coverage and offline validation).
