@@ -1,6 +1,6 @@
 # FEAT-018 P1 Catalog and Gate Integrity Polish Plan
 
-- Status: APPROVED — implementation authorized 2026-09-11
+- Status: IMPLEMENTED — approved and validated 2026-09-11
 - Parent scope: `P1_STRICT_CONTINUITY_POLISH_PLAN.md` (implemented 2026-09-11)
 - Scope: P1 catalog adapter, P1 compiler, P1 tests and feature-local evidence
 - Out of scope: P2 observation/model output, P3 renderer, P4 media/cache, shared/mobile/API changes, contract version changes, live providers, production/cloud, Android release and real child data

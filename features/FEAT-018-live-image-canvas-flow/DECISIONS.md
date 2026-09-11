@@ -46,3 +46,6 @@
 
 
 - 2026-09-11: Implement the approved P1 strict continuity polish as an application/compiler-only policy revision. `P1_STRICT_CONTINUITY_V1` requires exact anchor label/tag and semantic-kind compatibility, objective membership, consistent bridge/media/activity identities and a matching `ExperienceSpecV1.spec_sha256` before Gate B approval. Existing contract versions and P2/P3/P4 consumers remain unchanged; unrelated, ambiguous or tampered fixture flows block closed.
+
+
+- 2026-09-11: Implement the approved P1 catalog and Gate integrity polish without changing contracts or downstream code. Exclude `OBJ_*` and broad area taxonomy labels from anchor metadata; treat optional selected activity/objective refs as exact constraints when present; use one Gate B approval path; and fail closed on duplicate template IDs, missing objective titles, spec ID drift and spec hash drift.

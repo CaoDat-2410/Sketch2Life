@@ -24,6 +24,15 @@ class CatalogLoadError(ValueError):
     """Raised when the committed P1 catalog cannot be used safely."""
 
 
+_CATALOG_AREA_TERMS = frozenset({
+    "language",
+    "mathematics",
+    "practical_life",
+    "science",
+    "sensorial",
+})
+
+
 @dataclass(frozen=True, slots=True)
 class P1TemplateLibrary:
     templates: tuple[ActivityTemplateV1, ...]
@@ -101,11 +110,19 @@ def _template_from_record(
         for group_id in record["material_group_ids"]
         for option_id in groups_by_id[group_id]["any_of"]
     )
+    objective_labels = {ref["id"].casefold() for ref in objective_refs}
     labels = set(_slug_tokens(record["title"]["vi-VN"]))
     labels.update(_slug_tokens(record["purpose_vi"]))
     labels.update(_slug_tokens(record["direct_aim_vi"]))
-    labels.add(record["area"].casefold())
-    labels.update(ref["id"].casefold() for ref in objective_refs)
+    labels = {
+        label.strip().casefold()
+        for label in labels
+        if label.strip()
+        and label.strip().casefold() not in _CATALOG_AREA_TERMS
+        and label.strip().casefold() not in objective_labels
+    }
+    if not labels:
+        raise CatalogLoadError(f"activity {activity_id} has no meaningful anchor labels")
     return ActivityTemplateV1(
         template_id=f"TPL-{activity_id}-V{record['version']}",
         template_version=1,
@@ -172,6 +189,12 @@ def load_p1_template_library(root: Path) -> P1TemplateLibrary:
         ref.id not in known_objectives for template in templates for ref in template.objective_refs
     ):
         raise CatalogLoadError("golden template contains an unknown objective reference")
+    if any(
+        not objectives.get(ref.id, "").strip()
+        for template in templates
+        for ref in template.objective_refs
+    ):
+        raise CatalogLoadError("golden template contains an objective without a title")
     return P1TemplateLibrary(
         templates=templates,
         objective_titles_vi=objectives,

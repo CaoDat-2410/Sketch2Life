@@ -44,3 +44,7 @@ Required evidence groups:
 Selected P1 strict continuity implementation record:
 [P1 strict continuity polish](notes/P1_STRICT_CONTINUITY_IMPLEMENTATION_20260911.md)
 (`EV-018-P1-STRICT-CONTINUITY-20260911`; approved compiler policy, fixture regression coverage and offline validation).
+
+Selected P1 catalog and Gate integrity implementation record:
+[P1 catalog and Gate integrity polish](notes/P1_CATALOG_GATE_INTEGRITY_IMPLEMENTATION_20260911.md)
+(`EV-018-P1-CATALOG-GATE-INTEGRITY-20260911`; catalog hygiene, optional context locks, Gate B fail-closed checks and offline validation).

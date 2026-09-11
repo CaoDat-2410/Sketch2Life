@@ -68,9 +68,58 @@ class P1ExperienceCompiler:
         policy_version: str = "P1_STRICT_CONTINUITY_V1",
     ) -> None:
         self._templates = tuple(templates)
-        self._by_id = {template.template_id: template for template in self._templates}
         self._objective_titles = dict(objective_titles_vi)
+        seen_template_ids: set[str] = set()
+        duplicate_template_ids: set[str] = set()
+        for template in self._templates:
+            if template.template_id in seen_template_ids:
+                duplicate_template_ids.add(template.template_id)
+            seen_template_ids.add(template.template_id)
+        if duplicate_template_ids:
+            duplicates = ",".join(sorted(duplicate_template_ids))
+            raise ValueError(f"DUPLICATE_TEMPLATE_ID:{duplicates}")
+        missing_objective_titles = sorted(
+            {
+                ref.id
+                for template in self._templates
+                for ref in template.objective_refs
+                if not self._objective_titles.get(ref.id, "").strip()
+            }
+        )
+        if missing_objective_titles:
+            raise ValueError(
+                "OBJECTIVE_TITLE_MISSING:" + ",".join(missing_objective_titles)
+            )
+        self._by_id = {template.template_id: template for template in self._templates}
         self._policy_version = policy_version
+
+    @staticmethod
+    def _context_identity_failures(
+        context: P1ContextV1,
+        template: ActivityTemplateV1,
+        objective: VersionedRefV1,
+    ) -> tuple[str, ...]:
+        failures: list[str] = []
+        activity_id_present = context.selected_activity_id is not None
+        activity_version_present = context.selected_activity_version is not None
+        if activity_id_present != activity_version_present:
+            failures.append("CONTEXT_ACTIVITY_REF_INCOMPLETE")
+        elif activity_id_present and activity_version_present:
+            if context.selected_activity_id != template.activity_ref.id:
+                failures.append("CONTEXT_ACTIVITY_ID_MISMATCH")
+            if context.selected_activity_version != template.activity_ref.version:
+                failures.append("CONTEXT_ACTIVITY_VERSION_MISMATCH")
+
+        objective_id_present = context.selected_objective_id is not None
+        objective_version_present = context.selected_objective_version is not None
+        if objective_id_present != objective_version_present:
+            failures.append("CONTEXT_OBJECTIVE_REF_INCOMPLETE")
+        elif objective_id_present and objective_version_present:
+            if context.selected_objective_id != objective.id:
+                failures.append("CONTEXT_OBJECTIVE_ID_MISMATCH")
+            if context.selected_objective_version != objective.version:
+                failures.append("CONTEXT_OBJECTIVE_VERSION_MISMATCH")
+        return tuple(failures)
 
     def select(
         self,
@@ -104,6 +153,14 @@ class P1ExperienceCompiler:
         allowed: list[tuple[int, ActivityTemplateV1]] = []
         blocked_reasons: list[str] = []
         for template in templates:
+            context_reasons = self._context_identity_failures(
+                context, template, template.objective_refs[0]
+            )
+            if context_reasons:
+                blocked_reasons.extend(
+                    f"{template.activity_ref.id}:{reason}" for reason in context_reasons
+                )
+                continue
             reasons = self._hard_rule_failures(template, context)
             if reasons:
                 blocked_reasons.extend(f"{template.activity_ref.id}:{reason}" for reason in reasons)
@@ -166,24 +223,23 @@ class P1ExperienceCompiler:
             return ExperienceCompilation(rejected, fit, None, gate, None)
 
         spec = self._build_spec(anchor_set, context, template, objective, fit)
-        spec_ref = VersionedRefV1(id=spec.spec_id, version=spec.spec_version)
-        gate = IntegrationGateDecisionV1(
-            status="APPROVED",
-            session_id=context.session_id,
-            expected_session_version=context.expected_session_version,
-            activity_ref=template.activity_ref,
-            objective_ref=objective,
-            template_ref=selected.template_ref,
-            spec_ref=spec_ref,
-            reason_codes=("GATE_B_EXACT_IDENTITY_LOCKED",),
-        )
+        gate = self.approve_gate_b(spec, context)
+        if gate.status != "APPROVED":
+            rejected = selected.model_copy(
+                update={"status": "NO_ELIGIBLE_ACTIVITY", "reason_codes": gate.reason_codes}
+            )
+            return ExperienceCompilation(rejected, fit, None, gate, None)
+        assert gate.spec_ref is not None
+        assert gate.activity_ref is not None
+        assert gate.objective_ref is not None
+        assert gate.template_ref is not None
         handoff = ActivityHandoffV1(
             status="READY",
             session_id=context.session_id,
-            spec_ref=spec_ref,
-            activity_ref=template.activity_ref,
-            objective_ref=objective,
-            template_ref=selected.template_ref,
+            spec_ref=gate.spec_ref,
+            activity_ref=gate.activity_ref,
+            objective_ref=gate.objective_ref,
+            template_ref=gate.template_ref,
         )
         return ExperienceCompilation(selected, fit, spec, gate, handoff)
 
@@ -201,20 +257,29 @@ class P1ExperienceCompiler:
                 expected_session_version=context.expected_session_version,
                 reason_codes=("STALE_TEMPLATE",),
             )
+        context_identity_failures = self._context_identity_failures(
+            context, template, spec.learning_focus.objective_ref
+        )
+        anchor_failures = self._anchor_template_continuity_failures(spec.anchor_set, template)
+        spec_identity_failures = self._spec_identity_failures(spec, template)
         if spec.session_id != context.session_id:
             reason: tuple[str, ...] = ("SESSION_ID_MISMATCH",)
         elif not context.gate_a_confirmed:
             reason = ("BLOCK_GATE_A_UNCONFIRMED",)
         elif context.missing_fields():
             reason = tuple(f"MISSING_CONTEXT:{field}" for field in context.missing_fields())
+        elif context_identity_failures:
+            reason = context_identity_failures
         elif spec.fit_evaluation.status != "PASS":
             reason = ("FIT_BELOW_THRESHOLD",)
-        elif self._anchor_template_continuity_failures(spec.anchor_set, template):
-            reason = self._anchor_template_continuity_failures(spec.anchor_set, template)
-        elif self._spec_identity_failures(spec, template):
-            reason = self._spec_identity_failures(spec, template)
+        elif anchor_failures:
+            reason = anchor_failures
+        elif spec_identity_failures:
+            reason = spec_identity_failures
         elif spec.learning_focus.objective_ref not in template.objective_refs:
             reason = ("OBJECTIVE_ACTIVITY_MISMATCH",)
+        elif not self._spec_id_matches(spec):
+            reason = ("SPEC_ID_MISMATCH",)
         elif not self._spec_hash_matches(spec):
             reason = ("SPEC_HASH_MISMATCH",)
         else:
@@ -464,6 +529,14 @@ class P1ExperienceCompiler:
         ):
             failures.append("ACTIVITY_IDENTITY_MISMATCH")
         return tuple(dict.fromkeys(failures))
+
+    @staticmethod
+    def _spec_id_matches(spec: ExperienceSpecV1) -> bool:
+        payload = spec.model_dump(mode="json")
+        recorded = payload.get("spec_id")
+        payload.pop("spec_sha256", None)
+        payload["spec_id"] = "PENDING"
+        return isinstance(recorded, str) and recorded == f"SPEC-{_canonical_hash(payload)[:16]}"
 
     @staticmethod
     def _spec_hash_matches(spec: ExperienceSpecV1) -> bool:

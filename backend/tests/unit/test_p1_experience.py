@@ -780,3 +780,167 @@ def test_custom_selection_policy_version_is_recorded_in_spec() -> None:
     assert result.spec is not None
     assert result.spec.learning_focus.selection_policy_version == "P1_STRICT_CONTINUITY_TEST_V2"
     assert "P1_STRICT_CONTINUITY_V1" in result.spec.policy_versions
+
+
+
+def test_catalog_anchor_labels_exclude_objectives_and_area_taxonomy() -> None:
+    library = load_p1_template_library(ROOT)
+    area_tokens = {"language", "mathematics", "practical_life", "science", "sensorial"}
+
+    assert all(
+        not label.upper().startswith("OBJ_")
+        and label not in area_tokens
+        and label == label.strip().casefold()
+        for template in library.templates
+        for label in template.supported_anchor_labels
+    )
+    assert all(template.supported_anchor_labels for template in library.templates)
+
+
+def test_catalog_objective_refs_all_have_nonempty_titles() -> None:
+    library = load_p1_template_library(ROOT)
+
+    assert all(
+        library.objective_titles_vi[ref.id].strip()
+        for template in library.templates
+        for ref in template.objective_refs
+    )
+
+
+def test_duplicate_template_id_fails_fast() -> None:
+    fixture = _butterfly_template()
+
+    with pytest.raises(ValueError, match="DUPLICATE_TEMPLATE_ID"):
+        P1ExperienceCompiler(
+            (fixture, fixture),
+            {"OBJ_SENSORIAL_DISCRIMINATION": "Phân biệt đặc điểm đối xứng"},
+        )
+
+
+def test_missing_objective_title_fails_fast_for_injected_templates() -> None:
+    fixture = _butterfly_template()
+
+    with pytest.raises(ValueError, match="OBJECTIVE_TITLE_MISSING"):
+        P1ExperienceCompiler((fixture,), {})
+
+
+@pytest.mark.parametrize(
+    ("context_update", "expected_reason"),
+    [
+        (
+            {"selected_activity_id": "ACT-WRONG", "selected_activity_version": 1},
+            "CONTEXT_ACTIVITY_ID_MISMATCH",
+        ),
+        (
+            {
+                "selected_activity_id": "ACT-FIXTURE-BUTTERFLY-FOLD-PRINT",
+                "selected_activity_version": 2,
+            },
+            "CONTEXT_ACTIVITY_VERSION_MISMATCH",
+        ),
+        (
+            {"selected_objective_id": "OBJ-WRONG", "selected_objective_version": 1},
+            "CONTEXT_OBJECTIVE_ID_MISMATCH",
+        ),
+        (
+            {
+                "selected_objective_id": "OBJ_SENSORIAL_DISCRIMINATION",
+                "selected_objective_version": 2,
+            },
+            "CONTEXT_OBJECTIVE_VERSION_MISMATCH",
+        ),
+        (
+            {"selected_activity_id": "ACT-FIXTURE-BUTTERFLY-FOLD-PRINT"},
+            "CONTEXT_ACTIVITY_REF_INCOMPLETE",
+        ),
+        (
+            {"selected_objective_version": 1},
+            "CONTEXT_OBJECTIVE_REF_INCOMPLETE",
+        ),
+    ],
+)
+def test_optional_selected_context_refs_block_before_fit(
+    context_update: dict[str, object], expected_reason: str
+) -> None:
+    fixture = _butterfly_template()
+    context = _context(fixture).model_copy(update=context_update)
+
+    result = _fixture_compiler(fixture).compile(
+        _anchor(), context, preferred_template_id=fixture.template_id
+    )
+
+    assert result.filter_result.status == "NO_ELIGIBLE_ACTIVITY"
+    assert f"{fixture.activity_ref.id}:{expected_reason}" in result.filter_result.reason_codes
+    assert result.fit_evaluation is None
+    assert result.spec is None
+    assert result.gate_b.status == "BLOCKED"
+
+
+def test_matching_optional_selected_context_refs_pass() -> None:
+    fixture = _butterfly_template()
+    context = _context(fixture).model_copy(
+        update={
+            "selected_activity_id": fixture.activity_ref.id,
+            "selected_activity_version": fixture.activity_ref.version,
+            "selected_objective_id": fixture.objective_refs[0].id,
+            "selected_objective_version": fixture.objective_refs[0].version,
+        }
+    )
+
+    result = _fixture_compiler(fixture).compile(
+        _anchor(), context, preferred_template_id=fixture.template_id
+    )
+
+    assert result.fit_evaluation is not None
+    assert result.fit_evaluation.status == "PASS"
+    assert result.gate_b.status == "APPROVED"
+
+
+def test_gate_b_rechecks_context_selected_ref_drift() -> None:
+    fixture = _butterfly_template()
+    compiler = _fixture_compiler(fixture)
+    context = _context(fixture)
+    result = compiler.compile(_anchor(), context, preferred_template_id=fixture.template_id)
+    assert result.spec is not None
+
+    drifted_context = context.model_copy(
+        update={
+            "selected_activity_id": "ACT-WRONG",
+            "selected_activity_version": 1,
+        }
+    )
+    decision = compiler.approve_gate_b(result.spec, drifted_context)
+
+    assert decision.status == "BLOCKED"
+    assert decision.reason_codes == ("CONTEXT_ACTIVITY_ID_MISMATCH",)
+
+
+def test_compile_and_explicit_gate_b_share_one_approval_decision() -> None:
+    fixture = _butterfly_template()
+    compiler = _fixture_compiler(fixture)
+    context = _context(fixture)
+    result = compiler.compile(_anchor(), context, preferred_template_id=fixture.template_id)
+    assert result.spec is not None
+
+    rechecked = compiler.approve_gate_b(result.spec, context)
+
+    assert result.gate_b == rechecked
+    assert result.handoff is not None
+    assert result.handoff.spec_ref == rechecked.spec_ref
+    assert result.handoff.activity_ref == rechecked.activity_ref
+    assert result.handoff.objective_ref == rechecked.objective_ref
+    assert result.handoff.template_ref == rechecked.template_ref
+
+
+def test_gate_b_blocks_spec_id_drift_before_hash_check() -> None:
+    fixture = _butterfly_template()
+    compiler = _fixture_compiler(fixture)
+    context = _context(fixture)
+    result = compiler.compile(_anchor(), context, preferred_template_id=fixture.template_id)
+    assert result.spec is not None
+
+    tampered = result.spec.model_copy(update={"spec_id": "SPEC-TAMPERED"})
+    decision = compiler.approve_gate_b(tampered, context)
+
+    assert decision.status == "BLOCKED"
+    assert decision.reason_codes == ("SPEC_ID_MISMATCH",)
