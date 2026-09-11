@@ -1,23 +1,37 @@
 # FEAT-004 standalone art animation plan
 
-- Status: AWAITING_APPROVAL
-- Plan revision: 2
-- Implementation status: NOT_STARTED
+- Status: REVIEW
+- Plan revision: 3
+- Implementation status: REVIEW
 - Owner: Person 3
 
 ## Scope
 
-PixiJS/GSAP runtime, asset/provenance loader, scene graph, Motion DSL, `DRAW_REVEAL`, preservation checks, fallback renderer, standalone fixture player, playback instrumentation, and frontend asset approval flow. Android capture and Gate UI are excluded.
+Implement the approved Person 3 Sprint 1 work package from the task workbook: a local standalone PixiJS/GSAP player, a closed and bounded Motion DSL, child-art asset/provenance loading, a three-scene butterfly `DRAW_REVEAL` demonstration, and an original-art-preserving fallback plus runtime benchmark. Android capture, the full Android app, Gate UI, backend integration, model inference, and production product visuals are excluded.
+
+## Workbook task mapping
+
+1. `P3-T1` — set up the PixiJS + GSAP standalone browser player from drawing and plan fixtures.
+2. `P3-T2` — implement and validate the closed `MOVE`, `MOVE_TO`, `SCALE`, `ROTATE`, `FADE`, `FLY`, `JUMP`, and `DRAW_REVEAL` Motion DSL.
+3. `P3-T3` — load whole drawing/crop/mask assets while preserving source asset, crop, and mask provenance.
+4. `P3-T4` — supply the three-scene butterfly fixture: reveal, flutter/scale, then fly.
+5. `P3-T5` — provide whole-drawing/transform-only fallback and reproducible startup/FPS/memory benchmark output.
 
 ## Acceptance criteria
 
-- [ ] Fixture drawings and motion plans load in a standalone player without the Android app or backend.
-- [ ] Renderer benchmark records startup/FPS/memory against an approved local fixture matrix.
-- [ ] Original asset IDs, crop/mask versions, and transform history remain traceable.
-- [ ] Invalid motion/target/bounds are rejected before playback.
-- [ ] Segmentation failure falls back to whole-drawing reveal or transform-only motion.
-- [ ] No generated visual is applied without an approval record.
-- [ ] Versioned input/output protocol fixtures and an Integration Sprint compatibility note are published.
+- [x] Fixture drawings and motion plans load in a standalone player without the Android app or backend.
+- [x] Renderer benchmark instrumentation records startup/FPS/browser-heap data against the butterfly fixture; unsupported heap APIs return `null` explicitly.
+- [x] Original asset IDs, crop/mask versions, and transform history remain traceable in render instructions.
+- [x] Invalid motion/target/bounds are rejected before playback.
+- [x] Extraction/mask failure falls back to whole-drawing reveal and transform-only motion.
+- [x] No generated visual is applied; the synthetic SVG is fixture-only and documented outside frontend assets.
+- [x] Versioned input/output protocol fixtures and an Integration Sprint compatibility note are published in the renderer README.
+
+## Verification plan
+
+- Run package TypeScript checks and fixture-based unit tests.
+- Build the standalone browser demo and inspect the fixture flow locally.
+- Capture benchmark output from the same fixture and record its platform limitation.
 
 ## Sprint 1 output contract
 

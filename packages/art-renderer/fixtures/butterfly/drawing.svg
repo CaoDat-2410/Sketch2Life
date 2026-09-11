@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600" role="img" aria-label="Synthetic child-art butterfly and flower fixture">
+  <rect width="800" height="600" fill="#fffdf6"/>
+  <path d="M90 500 C220 470 540 475 720 500" fill="none" stroke="#6f9c4b" stroke-width="18" stroke-linecap="round"/>
+  <path d="M625 495 C630 410 632 345 635 280" fill="none" stroke="#4f9f50" stroke-width="14" stroke-linecap="round"/>
+  <g stroke="#27333d" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M635 320 C555 285 560 220 620 238 C624 185 695 192 671 245 C735 214 770 278 687 313 C717 363 652 392 636 334 Z" fill="#f8bc37"/>
+    <path d="M625 315 C640 303 656 302 668 316" fill="none"/>
+  </g>
+  <g stroke="#27333d" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M270 275 C150 175 83 310 190 380 C94 455 244 500 292 393 C352 500 487 454 386 378 C502 300 403 175 292 276 Z" fill="#8fc4ef"/>
+    <path d="M285 275 C282 225 295 197 324 172" fill="none"/>
+    <path d="M309 282 C355 222 393 225 418 252" fill="none"/>
+    <ellipse cx="293" cy="338" rx="28" ry="82" fill="#ee8f5b"/>
+  </g>
+  <text x="35" y="70" fill="#e2788d" font-family="Comic Sans MS, cursive" font-size="42">Con bướm của con</text>
+</svg>
