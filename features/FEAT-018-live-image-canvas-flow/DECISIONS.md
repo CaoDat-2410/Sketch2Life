@@ -41,3 +41,5 @@
   Qwen/ASR, mobile, Gate A, shared integration, public-schema migration, push or PR creation.
 
 - 2026-09-11: Use `origin/feature/feat018-p2-image-validation` as the canonical P2 branch for FEAT-018 offline integration. Merge commit `627260c` connects the reviewed P2-T1 D2 image-admission slice to `codex/feat-018-contract-plan`; the other P2 branches remain research-only references. This does not authorize D3 measurement, FEAT-003 producer migration, live provider execution, mobile/public-schema integration, P3/P4 implementation, or production deployment.
+
+- 2026-09-11: Integrate the approved P3 renderer and latest approved P4 media branches into the FEAT-018 integration branch. Keep P3 source-art preservation and renderer fallback, and keep P4 objective/activity/template identity propagation through cache and fallback. Root replay entrypoint `scripts/replay_learning_media.py` is part of the P4 integration so the feature replay test runs from a clean checkout. No live provider, Android/mobile, production asset or production deployment scope is opened.
