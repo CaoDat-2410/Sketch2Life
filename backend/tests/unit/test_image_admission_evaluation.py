@@ -8,6 +8,7 @@ import io
 import json
 import subprocess
 import sys
+import threading
 import zlib
 from pathlib import Path
 from typing import Any
@@ -307,6 +308,17 @@ def test_manifest_rejects_protocol_or_profile_set_drift(
         load_evaluation_manifest(path)
 
 
+def test_manifest_rejects_duplicate_fixture_id(tmp_path: Path) -> None:
+    document = json.loads(_MANIFEST.read_text(encoding="utf-8"))
+    profiles = document["profiles"]
+    profiles.append(dict(profiles[0]))
+    path = tmp_path / "duplicate-manifest.json"
+    path.write_text(json.dumps(document), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="duplicate fixture"):
+        load_evaluation_manifest(path)
+
+
 def test_materialized_sources_are_hash_stable_and_match_d2(
     tmp_path: Path,
 ) -> None:
@@ -360,6 +372,19 @@ def test_parent_timeout_terminates_child_and_returns_typed_failure() -> None:
 
     assert result.failure is ChildFailure.HARNESS_TIMEOUT
     assert result.exit_code is not None
+
+
+def test_timeout_leaves_no_reader_or_writer_threads() -> None:
+    before = {thread.ident for thread in threading.enumerate() if thread.ident is not None}
+    result = run_bounded_process(
+        [sys.executable, "-c", "import time; time.sleep(10)"],
+        b"x" * module.MAX_PROTOCOL_BYTES,
+        timeout_seconds=0.05,
+    )
+    after = {thread.ident for thread in threading.enumerate() if thread.ident is not None}
+
+    assert result.failure is ChildFailure.HARNESS_TIMEOUT
+    assert after <= before
 
 
 def test_parent_timeout_is_reached_when_child_does_not_read_stdin() -> None:
