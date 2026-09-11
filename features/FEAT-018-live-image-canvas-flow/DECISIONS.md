@@ -39,3 +39,5 @@
   This decision authorizes recording and committing the reviewed D2 output only. It does not
   approve D3 measurement, mark P2-T1 complete, connect FEAT-003 producers, or authorize
   Qwen/ASR, mobile, Gate A, shared integration, public-schema migration, push or PR creation.
+
+- 2026-09-11: Use `origin/feature/feat018-p2-image-validation` as the canonical P2 branch for FEAT-018 offline integration. Merge commit `627260c` connects the reviewed P2-T1 D2 image-admission slice to `codex/feat-018-contract-plan`; the other P2 branches remain research-only references. This does not authorize D3 measurement, FEAT-003 producer migration, live provider execution, mobile/public-schema integration, P3/P4 implementation, or production deployment.

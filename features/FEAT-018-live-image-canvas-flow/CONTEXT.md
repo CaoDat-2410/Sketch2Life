@@ -44,3 +44,7 @@ tests are reviewed and accepted** (`evidence/notes/P2_D2_IMPLEMENTATION_20260910
 performance/memory evaluation is
 `NOT_STARTED`. P2-T1 is not complete.** D2 remains additive to FEAT-018 only; FEAT-003 and
 all provider/mobile/public-contract integration remain unchanged and separately gated.
+
+## Canonical P2 integration — 2026-09-11
+
+The approved canonical P2 branch `origin/feature/feat018-p2-image-validation` was merged into `codex/feat-018-contract-plan` as merge commit `627260c`, after carrying the P2 integration approval addendum. The merge includes the reviewed D2 image-admission implementation, deterministic media validation, P2 offline fixtures and related evidence. The other P2 branches remain research references. D3 measurement, FEAT-003 producer connection, live provider execution, mobile/public-schema integration, P3/P4 implementation and production work remain pending.
