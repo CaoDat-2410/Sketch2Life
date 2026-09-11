@@ -1,0 +1,33 @@
+{
+  "schema": "Feat018ImageAdmissionEvaluationReportV1",
+  "cohort": "B",
+  "status": "BLOCKED",
+  "execution_occurred": false,
+  "commit_identity": "c77230ca1593d5cd31098b5e58f3ff2a13d18a63",
+  "manifest_present": false,
+  "manifest_sha256": null,
+  "approved_image_count": 0,
+  "expected_image_count": 8,
+  "expected_repeats_per_image": 3,
+  "sample_count": 0,
+  "samples": [],
+  "aggregates": {},
+  "environmental_failures": [],
+  "blocker": {
+    "reason_code": "COHORT_B_SOURCE_NOT_APPROVED",
+    "description": "No Cohort B execution was attempted. The repository's own approval record and every FEAT-018 planning document state that Cohort B is not yet source-approved and remains gated pending owner visual review of the eight actual candidate images against the plan's exclusion list. No D3 Cohort B manifest exists, and no approved 8-image D3 Cohort B set exists with the required 4 JPEG + 4 PNG composition. A separate local 16-image synthetic fixture pack (N01-N08 / S01-S08, all PNG, documented in evidence/notes/CHILD_SAFETY_FIXTURE_PACK_20260910.md) exists for a distinct, Person-1-owned child-safety classification track; it is not a D3 Cohort B candidate set and was not read, hashed, or used by this attempt.",
+    "governing_documents": [
+      "features/FEAT-018-live-image-canvas-flow/approvals/TASK_APPROVAL.md",
+      "features/FEAT-018-live-image-canvas-flow/CONTEXT.md",
+      "features/FEAT-018-live-image-canvas-flow/plan/PLAN.md",
+      "features/FEAT-018-live-image-canvas-flow/plan/PERSON_2_AI.md",
+      "features/FEAT-018-live-image-canvas-flow/plan/P2_D3_IMAGE_ADMISSION_EVALUATION_PLAN.md",
+      "features/FEAT-018-live-image-canvas-flow/evidence/notes/CHILD_SAFETY_FIXTURE_PACK_20260910.md"
+    ],
+    "unblock_requirements": [
+      "Owner visually reviews the actual 4 JPEG and 4 PNG candidates against the plan's exclusion list (no people, children, documents, screens, location clues, personal metadata).",
+      "Owner review is recorded as owner_reviewed=true in a local, git-ignored Cohort B manifest.",
+      "TASK_APPROVAL.md receives an explicit Cohort B approval addendum."
+    ]
+  }
+}
