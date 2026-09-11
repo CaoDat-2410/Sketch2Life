@@ -23,3 +23,11 @@ Merged the approved offline P3 renderer branch and latest P4 media integration i
 ## Boundary
 
 The merge is offline and fixture/replay based. It does not connect live Qwen/ASR producers, Android/mobile UI, production media providers, production assets, or cloud deployment.
+
+## Post-merge full verification
+
+- `pnpm -r typecheck`: passed for `packages/art-renderer` and `apps/mobile`.
+- `pnpm -r test`: passed; art-renderer 6 tests and mobile 7 tests.
+- Full Python collection over `backend/tests`, `tests` and `features/FEAT-018-live-image-canvas-flow/tests`: passed with 5 expected readiness/provider skips.
+- `python tools/validate_repository_security.py`: `REPOSITORY_SECURITY_VALID`.
+- Final working tree: clean; no push performed.
