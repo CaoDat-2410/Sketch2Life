@@ -133,3 +133,25 @@
   `0.24` credits against the D-8 `00:30:00` hard cap, a `00:07:22` exceedance; compute governance
   is therefore `CAP_EXCEEDED`. That ledger result is recorded separately and does not change the
   technical result or authorize another run.
+
+## P2-T3 Phase B B5 recommendation-gate decision (2026-09-11)
+
+- B5's comparison table and recommendation are recorded in
+  `evidence/notes/P2_T3_PHASE_B_B5_RECOMMENDATION.md` (`EV-003-T3-17`). The recommendation is
+  `NOT_ENOUGH_EVIDENCE` to freeze `QWEN3_VL_8B_INSTRUCT_BF16_V1`, or any Qwen3-VL candidate, for
+  production or runtime-default use, per D-11's binary choice (a further controlled experiment or
+  `NOT_ENOUGH_EVIDENCE`).
+- Neither the original B4 benchmark nor the Direction A prompt-v3 Phase 8 benchmark ever persisted
+  predicted or ground-truth text (`raw_output_mode: CLASSIFY_ONLY` on every run); no artifact
+  exists in this repository that a re-score could operate on. Re-scoring the existing B4/Phase-8
+  fixtures under a changed matching rule is independently prohibited by this file's own Phase 8
+  entry above ("must not be rerun, pooled, tuned against, or rescored under a changed rule") and by
+  `evidence/notes/P2_T3_PHASE_B_B4_STEP3_REMEDY_DECISION_DRAFT.md`'s explicit non-options.
+- The untested "Direction B" canonical-vocabulary-mismatch hypothesis remains open in principle,
+  per that same draft's "Direction B remains explicitly open" note, but pursuing it is not
+  authorized by B5: it requires its own new plan, its own new owner approval, a separately approved
+  new capture/scoring boundary (reopening `CLASSIFY_ONLY` is itself a new decision, not a
+  formality), and entirely new fixtures/ground truth — never the existing immutable B4/Phase-8
+  records.
+- This decision does not freeze a profile, select a runtime default, or authorize any GPU/Lightning
+  work, P2-T4, or P2-T5.

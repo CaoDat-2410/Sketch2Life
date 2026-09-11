@@ -2,11 +2,13 @@
 
 - Status: APPROVED (P2-T1 and P2-T2 Phases A/B complete; P2-T3 Phase B in progress)
 - Plan revision: 4
-- Implementation status: IN_PROGRESS (P2-T3 B1-B3 and the original B4 benchmark complete;
-  prompt-v3 follow-up phases 1-6 and its mapping-readiness evaluation complete with a
-  `MAPPING_READY` verdict and a `CAP_EXCEEDED` compute-governance result; prompt-v3 phase 8
-  execution/evidence reconciliation complete with `QUALITY_NOT_READY` and a separate
-  `CAP_EXCEEDED` result; B5 and P2-T4/P2-T5 remain gated)
+- Implementation status: IN_PROGRESS (P2-T3 B1-B4, including the Direction A prompt-v3
+  follow-up, are complete; prompt-v3 follow-up phases 1-6 and its mapping-readiness evaluation
+  complete with a `MAPPING_READY` verdict and a `CAP_EXCEEDED` compute-governance result; prompt-v3
+  phase 8 execution/evidence reconciliation complete with `QUALITY_NOT_READY` and a separate
+  `CAP_EXCEEDED` result; B5 evidence-only recommendation gate complete, recommending
+  `NOT_ENOUGH_EVIDENCE` to freeze any Qwen3-VL profile, with no profile frozen and no runtime
+  default selected; P2-T4/P2-T5 remain gated)
 - Owner: Person 2
 - Estimate: 10 points total (P2-T1 through P2-T5, 2 points each)
 
@@ -39,8 +41,21 @@ verdict (`EV-003-T3-13`, `EV-003-T3-14`). That is mapping-only evidence; it does
 B4 quality `NO_GO` and does not authorize the separately gated prompt-v3 phase 8 held-out quality
 benchmark. Compute governance for that session is `CAP_EXCEEDED` — the official Lightning ledger
 records `00:44:41` against the authorized `00:20:00` — so further GPU work needs a new explicit
-owner decision. B5 remains unexecuted. The current safe status is maintained in
-`evidence/P2_T3_LIVING_SUMMARY.md`. P2-T4 and P2-T5 remain unapproved.
+owner decision. The separately approved prompt-v3 phase 8 held-out quality benchmark then executed
+and returned `QUALITY_NOT_READY` / `QUALITY_BELOW_THRESHOLD`, with its own `CAP_EXCEEDED` compute
+result (`00:37:22` billed against `00:30:00` authorized). B5, the evidence-only recommendation
+gate, is now complete: the comparison table and recommendation are in
+`evidence/notes/P2_T3_PHASE_B_B5_RECOMMENDATION.md` (`EV-003-T3-17`) and
+`docs/adr/ADR-0007-vision-runtime-dependency-pinning-and-qwen3-vl-candidate-profile.md`. The
+recommendation is `NOT_ENOUGH_EVIDENCE` to freeze `QWEN3_VL_8B_INSTRUCT_BF16_V1`, or any
+Qwen3-VL profile, for production or runtime-default use: neither B4 nor Phase 8 ever persisted
+predicted/ground-truth text (`raw_output_mode: CLASSIFY_ONLY`), and `DECISIONS.md` independently
+prohibits rescoring the existing fixtures under a changed rule in any case. No profile is frozen
+and no runtime default is selected. A future Direction B experiment (the untested
+canonical-vocabulary-mismatch hypothesis) remains conceivable in principle but is not authorized by
+B5 and would need its own new plan, approval, and capture/scoring boundary with entirely new
+fixtures. The current safe status is maintained in `evidence/P2_T3_LIVING_SUMMARY.md`. P2-T4 and
+P2-T5 remain unapproved.
 
 ### Prompt-v3 Phase 8 execution-ready status (2026-09-09)
 

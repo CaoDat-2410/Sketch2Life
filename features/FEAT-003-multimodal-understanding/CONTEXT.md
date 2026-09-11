@@ -7,6 +7,21 @@
   canonical evidence. Working drafts, review handoffs, templates, and local diagnostic records
   remain intentionally local-only and are not linked from this context.
 
+## P2-T3 Phase B B5 recommendation gate (2026-09-11)
+
+- The approved B1–B5 study is now fully complete. B5's comparison table and recommendation are in
+  `evidence/notes/P2_T3_PHASE_B_B5_RECOMMENDATION.md` (`EV-003-T3-17`), also reflected in
+  `docs/adr/ADR-0007-vision-runtime-dependency-pinning-and-qwen3-vl-candidate-profile.md` and
+  `DECISIONS.md`. The recommendation is `NOT_ENOUGH_EVIDENCE` to freeze
+  `QWEN3_VL_8B_INSTRUCT_BF16_V1`, or any Qwen3-VL candidate, for production or runtime-default use.
+- Neither the original B4 benchmark nor the Direction A prompt-v3 Phase 8 benchmark ever persisted
+  predicted or ground-truth text (`CLASSIFY_ONLY`), so the untested Direction B
+  canonical-vocabulary-mismatch hypothesis cannot be checked by re-scoring existing output; doing so
+  is also independently prohibited by `DECISIONS.md`. No profile is frozen, no runtime default is
+  selected, and this decision does not authorize P2-T4, P2-T5, or any further GPU/Lightning work. A
+  future Direction B experiment remains conceivable but would need its own new plan, approval, and
+  capture/scoring boundary with entirely new fixtures.
+
 ## P2-T1 maintenance (2026-09-10)
 
 - Source hashing in the P2-T1 validation service now reads files in fixed-size chunks of at most
