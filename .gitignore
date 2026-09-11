@@ -28,6 +28,8 @@ features/FEAT-003-multimodal-understanding/evidence/notes/*
 /features/FEAT-018-live-image-canvas-flow/evidence/notes/P2_RESEARCH_ROUND1_20260909.md
 /features/FEAT-018-live-image-canvas-flow/evidence/notes/P2_RESEARCH_ROUND2*.md
 /features/FEAT-018-live-image-canvas-flow/evidence/notes/P2_IMAGE_DECODE_PROPOSAL_20260910.md
+/features/FEAT-018-live-image-canvas-flow/evidence/notes/P2_D3_PREFLIGHT_20260910.md
+/features/FEAT-018-live-image-canvas-flow/evidence/metrics/P2_D3_COHORT_A_*.json
 
 # Python
 __pycache__/

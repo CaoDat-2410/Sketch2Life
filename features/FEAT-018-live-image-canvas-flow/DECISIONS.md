@@ -39,3 +39,27 @@
   This decision authorizes recording and committing the reviewed D2 output only. It does not
   approve D3 measurement, mark P2-T1 complete, connect FEAT-003 producers, or authorize
   Qwen/ASR, mobile, Gate A, shared integration, public-schema migration, push or PR creation.
+
+- 2026-09-10 D3-R2 approval decision: approve the isolated P2-T1 offline performance/native-memory
+  evaluation plan and D3-U1 through D3-U6. The 5-second target binds only to the committed D2
+  `admit()` interval. The 256-MiB target binds only to the conservative `[L,U]` working-set bracket;
+  a crossing bracket is `INCONCLUSIVE`, never a pass. Cohort A implementation/execution may begin.
+  Cohort B execution remains gated on owner visual review of the actual eight non-sensitive images,
+  and completed sanitized evidence requires owner review before indexing or closing D3/P2-T1. No
+  D2, FEAT-003, provider, mobile, Gate A, public-contract or production-isolation scope is approved.
+
+- 2026-09-10 D3 implementation-state record: the approved D3-R2 harness and deterministic Cohort A
+  manifest are implemented and preflight-verified. The 320-sample run is explicitly non-reporting
+  because it used an uncommitted working tree; it cannot be indexed, treated as canonical target
+  evidence, or used to close D3/P2-T1. Formal execution must identify the exact reviewed commit.
+  Cohort B and completed-output publication gates are unchanged.
+
+- 2026-09-11 D3 double-review record: two explicit review passes were completed against the
+  implementation and tests. The first pass covered protocol/contract correctness and scope
+  isolation; the second covered adversarial inputs, stdin/output limits, cleanup, privacy,
+  Win32-memory validation and aggregation/statistics. Verified fixes are limited to the D3 harness:
+  asynchronous bounded stdin writing, rejection of untracked worktrees for formal runs, timing
+  status recomputation during aggregation, strict environment-envelope validation, and a narrow
+  exception for missing digests only on byte-budget rejection. Regression tests cover each fix.
+  D2 behavior, FEAT-003 and all downstream scopes remain unchanged; formal exact-commit execution,
+  owner review and evidence indexing remain pending.
