@@ -1,7 +1,8 @@
 # ADR-0007: Vision runtime dependency pins and Qwen3-VL candidate profile
 
-- Status: Recorded for P2-T3 Phase B B1; no profile freeze and no runtime default
-- Date: 2026-09-01
+- Status: RECORDED — B1 provenance below, plus the B2–B5 outcome and B5
+  recommendation appended 2026-09-11; no profile freeze and no runtime default
+- Date: 2026-09-01 (B1); updated 2026-09-11 (B2–B5 outcome)
 - Scope: Local contract/configuration/adapter skeleton and no-GPU validation only
 - Approval: `features/FEAT-003-multimodal-understanding/approvals/TASK_APPROVAL.md`, P2-T3 Phase B
 
@@ -122,3 +123,54 @@ queue integration, result promotion, or profile/runtime default.
 - If the official weight source later publishes a usable repository-level SHA-256, replace the
   explicit absence statement only through a reviewed provenance update; otherwise retain the
   absence reason.
+
+## B2–B4 outcome (recorded 2026-09-11)
+
+The B2 real preflight reached the operator-reported `READY` state, verified the pinned revision
+and all four dependency pins, and completed one synthetic inference — establishing that the
+load/invoke/cleanup pathway works on the pinned stack, not that output mapping or quality
+succeeded. B3 diagnosed the initial `OUTPUT_MAPPING_FAILED` failures down to two schema paths and
+then achieved repeatable `MAPPING_READY` (`16/16`) under prompt-v2. The original, immutable B4
+held-out quality benchmark then returned `NO_GO`: `entities` and `actions` coverage/accuracy were
+`0.0`, and `relations`/`themes`/`ambiguous_regions` were unmeasured or zero-predicted. Full figures
+are in `features/FEAT-003-multimodal-understanding/evidence/P2_T3_LIVING_SUMMARY.md`.
+
+The separately bounded Direction A prompt-v3 follow-up (an active-search instruction per
+collection, no schema/model/decoding change) achieved `MAPPING_READY` again at phase 6
+(`7/8` + `7/8`), then ran the separately approved held-out phase 8 quality benchmark: both passes
+were `8/8` schema-valid but returned `QUALITY_NOT_READY` / `QUALITY_BELOW_THRESHOLD` — entities
+coverage/accuracy `0.111111`, actions `0.0`, relations/themes coverage `0.0`, ambiguous-region
+count-rate `0.0`. Both the phase 6 and phase 8 Lightning L4 sessions exceeded their authorized
+caps (`CAP_EXCEEDED` by `00:24:41` and `00:07:22` respectively, per the finalized Lightning
+Activity export); this compute-governance result is separate from, and does not alter, the
+technical verdicts above.
+
+No candidate other than `QWEN3_VL_8B_INSTRUCT_BF16_V1` was authorized or evaluated (D-9 capped
+Phase B to exactly one candidate). Mapping readiness at either prompt version never overrides or
+substitutes for the quality verdict.
+
+## B5 recommendation (recorded 2026-09-11; corrected same day)
+
+Per D-11, B5 may recommend only a further controlled experiment or `NOT_ENOUGH_EVIDENCE`; it may
+not freeze a profile or select a runtime default. The full comparison table and reasoning are in
+`features/FEAT-003-multimodal-understanding/evidence/notes/P2_T3_PHASE_B_B5_RECOMMENDATION.md`
+(`EV-003-T3-17`).
+
+An initial same-day draft of that note proposed re-scoring the existing frozen B4/Phase-8 outputs
+under a relaxed matching rule. That proposal was withdrawn as both infeasible — every B4 and
+Phase-8 run used `raw_output_mode: CLASSIFY_ONLY` (Phase 8 D-7), so no predicted or ground-truth
+text was ever persisted to re-score — and independently prohibited: `DECISIONS.md` already states
+the Phase 8 result "must not be rerun, pooled, tuned against, or rescored under a changed rule,"
+and `evidence/notes/P2_T3_PHASE_B_B4_STEP3_REMEDY_DECISION_DRAFT.md` independently lists rescoring
+the existing B4 fixtures as an explicit non-option under any direction.
+
+The corrected recommendation is **`NOT_ENOUGH_EVIDENCE`** to freeze `QWEN3_VL_8B_INSTRUCT_BF16_V1`,
+or any Qwen3-VL profile, as a production or runtime-default vision-understanding candidate. The
+owner-selected remedy (Direction A, a new active-search prompt) was implemented and benchmarked at
+held-out Phase 8 and did not clear the quality gate (entities improved to `0.111111`
+coverage/accuracy; actions/relations/themes/ambiguous-regions remained `0.0`). The untested
+"Direction B" canonical-vocabulary-mismatch hypothesis remains open in principle, but pursuing it
+is not authorized by B5: it would need its own new plan, its own new owner approval, and a
+separately approved new capture/scoring boundary plus entirely new fixtures — never a rescore of
+the existing, immutable B4/Phase-8 records. `QWEN3_VL_8B_INSTRUCT_BF16_V1` remains `NOT_APPROVED`
+for production or default use.
