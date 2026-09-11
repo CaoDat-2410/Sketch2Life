@@ -34,3 +34,11 @@ This approval does not authorize P2 model changes, P3 renderer implementation, P
 - Validation scope: offline contract compatibility, deterministic fixtures, repository validators, and relevant P2/integration tests.
 - Explicit exclusions remain: live provider execution, production API/cloud, Android release, real child/personal data, mobile provider credentials, and P3/P4 implementation.
 - Merge acceptance: no unresolved conflicts; P2 producers remain compatible with `VisionUnderstandingResultV1`, contract freeze, Gate A handoff, and existing P1 fixture adapters; evidence is stored under this feature.
+
+## P3/P4 integration addendum — 2026-09-11
+
+- Approver: Project owner direct instruction in the current conversation.
+- Approved scope: merge the approved offline P3 renderer implementation from `origin/plan/person-3-art-animation-poc` and the latest approved offline P4 media integration from `origin/feat-018-person-4-media-integration` into `codex/feat-018-contract-plan`.
+- Validation scope: package typechecks/tests, deterministic renderer/media fixtures, cache/fallback replay, contract compatibility and repository validators.
+- Explicit exclusions remain: live provider execution, production API/cloud, Android release, real child/personal data, mobile provider credentials, and production asset publication.
+- Other P4/P3 research or POC branches remain references only unless separately approved.
