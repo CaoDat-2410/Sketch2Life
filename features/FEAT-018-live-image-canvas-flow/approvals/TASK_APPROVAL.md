@@ -1,8 +1,8 @@
 # Task approval
 
 - Status: APPROVED (P1 implementation slice; isolated FEAT-018 P2-T1 D2 image admission; and
-  isolated P2-T1 D3-R2 evaluation scope. P2-T2 through P2-T5, P3, P4 and shared integration remain
-  pending)
+  isolated P2-T1 D3-R2 evaluation scope. D3/P2-T1 is closed for owner-approved synthetic Cohort A
+  evidence only; Cohort B, P2-T2 through P2-T5, P3, P4 and shared integration remain pending)
 - Approver: Project owner direct instruction in the current conversation
 - Plan revision: 2
 - Requested scope: FEAT-018 revision 2 P1 implementation slice only: catalog promotion/provenance, Activity Template Library, adult context and deterministic eligibility, semantic-anchor to objective/template selection, ExperienceSpec compilation and fit validation, Gate B identity/version locking, catalog/pilot harness and feature-local evidence.
@@ -98,3 +98,11 @@ This approval does not authorize a production timeout/worker, dependency change,
 policy change, Qwen/ASR work, mobile transport, Gate A/shared integration, public-contract
 migration, or any FEAT-003 edit/connection. It does not mark D3 or P2-T1 complete and does not
 authorize push or PR creation.
+
+## Owner approval and Cohort A closure - 2026-09-11
+
+The project owner approved Formal Cohort A at commit
+`c77230ca1593d5cd31098b5e58f3ff2a13d18a63`, authorized publication/indexing of the sanitized
+metrics JSON and both verification reports, and closed D3/P2-T1 for the synthetic Cohort A scope
+only. Cohort B remains unapproved. The approved artifacts are indexed in `evidence/README.md`; no
+provider, mobile, FEAT-003 or shared-integration work is authorized by this closure.

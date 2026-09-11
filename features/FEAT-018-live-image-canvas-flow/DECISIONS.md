@@ -63,3 +63,10 @@
   exception for missing digests only on byte-budget rejection. Regression tests cover each fix.
   D2 behavior, FEAT-003 and all downstream scopes remain unchanged; formal exact-commit execution,
   owner review and evidence indexing remain pending.
+
+- 2026-09-11 owner approval and closure decision: approve the Formal Cohort A execution at commit
+  `c77230ca1593d5cd31098b5e58f3ff2a13d18a63`, including the sanitized metrics artifact and the
+  independent verification report. Index both reports and the JSON metrics under FEAT-018 evidence
+  and close D3/P2-T1 for the synthetic Cohort A scope only. Cohort B remains unapproved and must
+  retain its visual-source gate. No D2, FEAT-003, provider, mobile, public-contract or shared
+  integration scope is thereby authorized.

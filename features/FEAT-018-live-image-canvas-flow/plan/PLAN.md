@@ -1,10 +1,10 @@
 # FEAT-018 live image + canvas full-flow plan
 
-- Status: APPROVED for P1, isolated P2-T1 D2 and isolated P2-T1 D3-R2;
+- Status: APPROVED for P1, isolated P2-T1 D2 and isolated P2-T1 D3-R2 Cohort A;
   P2-T2–T5/P3/P4/shared integration pending
 - Plan revision: 2
-- Implementation status: P1 complete; P2-T1 D2 reviewed and accepted; D3-R2 harness implemented
-  and preflight-verified; formal exact-commit D3 execution/output review remains open
+- Implementation status: P1 complete; P2-T1 D2 reviewed and accepted; D3-R2 Cohort A formally
+  executed, independently verified and owner-approved; Cohort B remains gated
 
 ## Goal
 

@@ -1,8 +1,8 @@
 # FEAT-018 live image and canvas context
 
-- Status: P1 complete; isolated P2-T1 D2 reviewed and accepted; D3-R2 harness implemented,
-  adversarially reviewed, and preflight-verified; formal D3 execution/review and downstream
-  scopes pending
+- Status: P1 complete; isolated P2-T1 D2 reviewed and accepted; D3-R2 Cohort A formally executed,
+  independently verified and owner-approved; D3/P2-T1 closed for Cohort A only; Cohort B and
+  downstream scopes remain pending
 - Plan revision: 2 with approved P2-T1 D2 and D3-R2 addenda
 - Owner: shared integration allocation pending contract freeze approval
 - Goal: run a non-sensitive real JPG/PNG through validation, backend-only Qwen3-VL understanding, Gate A, one-anchor/one-objective ExperienceSpec compilation, P1/Gate B, PixiJS canvas, P4 cache/fallback, off-screen handoff, gallery journey and feedback.
@@ -31,6 +31,12 @@ validation now rejects untracked files; aggregation recomputes timing status ins
 spoofed field; child output locks the environment envelope; and missing source digests are allowed
 only for the bounded byte-budget rejection. These changes do not alter D2 admission behavior.
 
+Formal Cohort A execution completed at commit `c77230ca1593d5cd31098b5e58f3ff2a13d18a63` with
+320 forward and 320 reverse samples. The sanitized metrics artifact and independent verification
+report were owner-approved on 2026-09-11 and are indexed under `evidence/README.md`. This closes
+D3/P2-T1 for the synthetic Cohort A scope only. Cohort B remains unrun and gated on visual review
+of eight actual non-sensitive images.
+
 ## P2 image admission (D1) — 2026-09-10
 
 An isolated image admission and decoding design was accepted and published
@@ -54,7 +60,7 @@ successful non-reporting Cohort A preflight.** The fresh-process protocol, bound
 Win32 native reads, conservative `[L,U]` classification, deterministic 16-profile manifest and
 aggregation are covered by 32 tests. A 320-sample preflight completed without process or memory
 failures and required no reversed-order pass, but it used an uncommitted working tree and is not
-canonical D3 evidence. Formal exact-commit execution and owner review remain outstanding. Cohort B
-remains gated on visual review of the actual eight non-sensitive candidates. **P2-T1 is not
-complete.** D2/D3 remain additive to FEAT-018 only; FEAT-003 and
+canonical D3 evidence. Formal exact-commit execution and owner review are complete for Cohort A.
+Cohort B remains gated on visual review of the actual eight non-sensitive candidates. **P2-T1 is
+complete for Cohort A only.** D2/D3 remain additive to FEAT-018 only; FEAT-003 and
 all provider/mobile/public-contract integration remain unchanged and separately gated.
