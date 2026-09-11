@@ -17,6 +17,7 @@ The policy identifier is `P1_STRICT_CONTINUITY_V1`. Existing `ActivityFitEvaluat
 - `P1ExperienceCompiler._anchor_template_continuity_failures` is the hard anchor gate. A ranked match score remains useful for candidate ordering, but token/score overlap cannot promote a mismatched kind or label.
 - `_fit_evaluation` zeros the affected relevance/continuity dimensions on a hard mismatch and returns `REJECT` below the schema threshold. A high weighted score cannot override anchor or objective mismatch.
 - `approve_gate_b` re-checks anchor compatibility, media/activity/fit references, bridge references and `spec_sha256`. Tampered fixture copies therefore close as `BLOCKED`.
+- The expanded regression matrix covers all hard eligibility failure reasons, inclusive age boundaries, deterministic ranking and explicit preference, semantic-tag matching, unknown/preferred-template failures, Gate A/session/context/stale checks, every downstream identity surface, rejected-fit recheck, policy propagation, deterministic hashing and frozen-spec immutability.
 - Bridge wording is derived from the selected anchor and objective title, while `BridgeSentenceV1` keeps the exact template/objective/anchor references used by the spec.
 - The feature-local fixture set adds unsupported-kind, unrelated-objective, bridge-drift and manifest coverage without raw media, child data or credentials.
 
@@ -34,8 +35,8 @@ The policy identifier is `P1_STRICT_CONTINUITY_V1`. Existing `ActivityFitEvaluat
 
 ## Validation
 
-- Targeted P1 suite: 14 passed.
-- Full backend offline suite: 922 collected, 917 passed, 5 expected readiness/provider skips, no failures.
+- Targeted P1 suite: 45 passed.
+- Full backend offline suite: 953 collected, 948 passed, 5 expected readiness/provider skips, no failures.
 - Root offline suite: 33 passed. FEAT-018 replay: 1 passed.
 - `pnpm -r typecheck`: passed. `pnpm -r test`: art-renderer 6 passed; mobile 7 passed.
 - Ruff and strict mypy for the P1 compiler: passed.

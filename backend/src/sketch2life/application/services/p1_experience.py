@@ -395,20 +395,24 @@ class P1ExperienceCompiler:
         bridge: BridgeSentenceV1,
         *,
         anchor_id: str,
+        anchor_label: str,
         objective: VersionedRefV1,
+        objective_title: str,
         template_ref: VersionedRefV1,
     ) -> tuple[str, ...]:
+        sentence = bridge.sentence_vi.casefold()
         if (
             bridge.anchor_id != anchor_id
             or bridge.objective_ref != objective
             or bridge.template_ref != template_ref
+            or anchor_label.casefold() not in sentence
+            or objective_title.casefold() not in sentence
         ):
             return ("BRIDGE_IDENTITY_MISMATCH",)
         return ()
 
-    @classmethod
     def _spec_identity_failures(
-        cls,
+        self,
         spec: ExperienceSpecV1,
         template: ActivityTemplateV1,
     ) -> tuple[str, ...]:
@@ -445,10 +449,12 @@ class P1ExperienceCompiler:
             or spec.activity_plan.objective_ref != objective
         ):
             failures.append("ACTIVITY_IDENTITY_MISMATCH")
-        if cls._bridge_identity_failures(
+        if self._bridge_identity_failures(
             spec.bridge_sentence,
             anchor_id=anchor_id,
+            anchor_label=spec.anchor_set.primary_anchor.normalized_label,
             objective=objective,
+            objective_title=self._objective_titles.get(objective.id, objective.id),
             template_ref=template_ref,
         ):
             failures.append("BRIDGE_IDENTITY_MISMATCH")
