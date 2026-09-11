@@ -1,0 +1,21 @@
+{
+  "activity_ref": {
+    "id": "ACT-0004",
+    "version": 2
+  },
+  "input": {
+    "age_months": 16,
+    "readiness_ids": [
+      "READY_SEARCH_PARTLY_HIDDEN"
+    ],
+    "completed_activity_ids": [],
+    "available_material_option_ids": [
+      "GMAT-0004-PRIMARY"
+    ],
+    "supervision_level": "DIRECT",
+    "policy_flags": [
+      "CAREGIVER_PRESENT"
+    ],
+    "candidate_status": "ACTIVE_FIXTURE"
+  }
+}

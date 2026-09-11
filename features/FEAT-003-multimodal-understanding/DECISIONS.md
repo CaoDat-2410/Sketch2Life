@@ -108,3 +108,28 @@
 - P2-T2's real adapter verifies every actual inference input before invoking a model: the immutable source reference is always verified and, when a derived working copy is supplied, that copy is verified and used for inference. Missing/unreadable files and hash mismatches are typed `INPUT_NOT_VALIDATED` results at attempt `0`, never uncaught filesystem or hash exceptions.
 - CUDA/cuDNN/cuBLAS/device failures raised during either model load or inference map to `ASR_MODEL_UNAVAILABLE`/`DEVICE_UNAVAILABLE`, not `ASR_PROVIDER_FAILURE`. A timeout must return at the configured deadline; because the synchronous upstream model call cannot be cancelled, Round 1 profiles must not enable timeout retry while a timed-out worker could still be running.
 - Local Windows Phase B runtime is configured only through ignored local environment values: `SKETCH2LIFE_ASR_MODEL_DIR` names the downloaded Turbo snapshot and `SKETCH2LIFE_ASR_NATIVE_LIBRARY_DIR` names the extracted CUDA 12 cuBLAS/cuDNN 9 directory. Those values live in `backend/.asr.env`, not the shared backend `.env`, so Phase B does not alter or become parsed by application `Settings`. `FasterWhisperRuntimeConfig.from_env_file()` reads that explicitly selected file without mutating process environment from the file; actual process environment overrides it. Before importing/loading CTranslate2, the runtime helper exposes the DLL directory through `os.add_dll_directory()` and the Python process PATH only — never the global Windows PATH. Cloud runtimes remain free to omit the native-library variable and use their image-provided CUDA libraries.
+
+## Prompt-v3 Phase 8 acceptance/repeat decisions (2026-09-09)
+
+- D-5 is fixed before execution: entities, actions, relations, and themes require aggregate
+  coverage and accuracy of at least `0.80`; ambiguous regions require count-rate exactly `1.00`
+  and remain `NOT_MEASURED` for accuracy because note text is not compared.
+- D-6 is fixed before execution: each pass must have exactly 8 attempted fixtures, 8 run records,
+  and 8 schema-valid results; both passes independently meet D-5, and Repeat must begin no later
+  than 15 minutes after Pass 1 completes in the same Studio session. Configuration drift,
+  input/runtime/device failure, or `>=2/8` truncated outputs blocks the verdict. A schema-invalid
+  fixture is not discarded from the decision.
+- D-7 remains `CLASSIFY_ONLY`.
+- The owner approves `vision-v3-quality-manifest-v1` and its current ordered eight-fixture package.
+  D-8 authorizes one `1 x NVIDIA L4` Studio session with a 30-minute hard cap from immediately
+  before start/wake: one readiness check, one pass, one immediate repeat, safe report write, then
+  shutdown. No download, tuning, exploration, additional diagnostics, or automatic rerun is
+  allowed. Failure/readiness/package/cap conditions fail closed and require immediate shutdown.
+  This decision does not select a production profile/default.
+- The authorized Phase 8 execution is now immutable evidence: both independent passes were 8/8
+  schema-valid and comparable, but both failed D-5 with identical aggregate scores. The verdict is
+  `QUALITY_NOT_READY / QUALITY_BELOW_THRESHOLD`. It must not be rerun, pooled, tuned against, or
+  rescored under a changed rule. The finalized Lightning Activity ledger records `00:37:22` and
+  `0.24` credits against the D-8 `00:30:00` hard cap, a `00:07:22` exceedance; compute governance
+  is therefore `CAP_EXCEEDED`. That ledger result is recorded separately and does not change the
+  technical result or authorize another run.

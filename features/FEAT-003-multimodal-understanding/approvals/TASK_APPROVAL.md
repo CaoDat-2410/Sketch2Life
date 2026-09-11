@@ -42,6 +42,47 @@
 - Approval basis: `plan/P2_T3_VISION_RESEARCH_PLAN.md` and `evidence/notes/P2_T3_PHASE_B_APPROVAL_REQUEST.md` (Round-5 corrected).
 - Approved at: 2026-09-01
 
+## Phase 8 D-7 decision addendum — 2026-09-09
+
+- Scope: Prompt-v3 Phase 8 held-out quality local/no-GPU preparation and any separately approved
+  future Phase 8 execution under the same raw-output boundary.
+- D-7 is fixed as `CLASSIFY_ONLY`. Persist only safe aggregate classification flags/counts and
+  closed typed identifiers. Never persist raw provider output, prompt text, predicted text, or
+  ground-truth text.
+- This narrow addendum does not approve D-5, D-6, D-8, manifest/fixture review, model execution,
+  Lightning/GPU use, or Phase 8 completion. The separate B3 `EPHEMERAL_CAPTURE` behavior remains
+  unchanged and is not enabled for the Phase 8 runner.
+
+## Phase 8 D-5/D-6 decision addendum — 2026-09-09
+
+- Scope: the pre-registered acceptance and repeat gates for the separately held-out prompt-v3
+  Phase 8 quality benchmark.
+- D-5 is fixed as follows: entities, actions, relations, and themes each require aggregate
+  coverage and accuracy of at least `0.80`. Ambiguous regions require count-rate lower and upper
+  bounds of `1.00`; their accuracy remains `NOT_MEASURED` and their note text is never compared.
+- D-6 is fixed as follows: each pass requires exactly eight attempted fixtures, eight run records,
+  and eight schema-valid runs. Both passes must independently meet D-5, use the same Lightning
+  session, and start Repeat no later than 15 minutes after Pass 1 completes. Configuration drift;
+  input, runtime, or device failure; and two or more truncated outputs in either pass are blocking.
+- This addendum does not by itself approve the manifest/fixture review, D-8 compute budget, model
+  execution, Lightning/GPU use, a profile freeze/default, or Phase 8 completion.
+
+## Phase 8 manifest and D-8 execution approval — 2026-09-09
+
+- The owner approves manifest `vision-v3-quality-manifest-v1` in state
+  `OWNER_REVIEW_APPROVED` and its current ordered set of eight synthetic held-out fixtures,
+  including the image SHA-256 values recorded in that manifest. Ground truth and matching-rule
+  identity remain bound by their recorded hashes; this approval does not permit fixture mutation.
+- D-8 authorizes one Lightning Studio session on `1 x NVIDIA L4` for exactly one readiness check,
+  one `V3_QUALITY_PASS_1`, one immediate `V3_QUALITY_REPEAT_1`, safe report serialization, and
+  shutdown. The hard wall-clock cap is 30 minutes, measured from immediately before the Studio is
+  started or awakened. `CLASSIFY_ONLY` remains mandatory; downloads, tuning, exploratory calls,
+  extra diagnostics, and automatic reruns are not authorized.
+- If readiness is not `READY`, package identity fails, the run becomes incomplete/non-comparable,
+  or the cap is reached, the operator records `ABORTED`/`NON_COMPARABLE` as applicable and stops
+  the Studio immediately. Operator start/stop plus official Lightning Activity duration/cost are
+  recorded afterward. This approval does not freeze a profile or select a runtime default.
+
 ## Explicitly not approved
 
 - Any P2-T3 work outside the approved Phase B B1–B5 scope, P2-T4 through P2-T5, mobile/API/session/job orchestration, Gate A UI, database/storage/queue integration, real child data, and any provider credentials.
@@ -54,6 +95,27 @@
   implementation-status promotion. All Phase A/Phase B approvals above remain authoritative and
   unchanged.
 - Plan: `plan/P2_P1_REVIEW_20260905.md`, revision `review-20260905-1`.
+
+## P2-T1 maintenance approval — T0 incremental source hashing — 2026-09-10
+
+- Scope: replace whole-file source hashing with incremental SHA-256 over fixed-size reads of at
+  most 1 MiB in `_source_reference` in
+  `backend/src/sketch2life/application/services/media_validation.py`, plus its focused tests.
+- Origin: requested by FEAT-018 Person 2 research; implementation and evidence belong to
+  FEAT-003 P2-T1 because every current caller is FEAT-003 (its unit tests and the ASR/vision
+  benchmark validation helpers). This does not transfer P2-T1 ownership to FEAT-018.
+- Acceptance: SHA-256 is computed over the complete file; digests, source statuses, decisions,
+  reasons, messages, policy version, contract version, field ordering and the serialized
+  `MediaValidationResultV1` are byte-identical for unchanged inputs; the `OSError`-to-
+  `MISSING`/`UNREADABLE` mapping is preserved; a focused test fails on the previous whole-file
+  implementation and asserts every hashing read requests a positive size of at most 1 MiB.
+- Explicitly not approved: changes to byte/pixel limits, decoding, optional-audio behavior,
+  reason enums, policy thresholds, EXIF handling, derivatives, inspector defaults, model
+  adapters, prompts, profiles, dependencies, benchmark scoring, frozen fixtures, or historical
+  evidence; and any FEAT-018 integration, provider execution or readiness promotion.
+- Bounded effect: this bounds hashing memory only. It does not bound total bytes read, elapsed
+  time or decoding memory, and it does not close the validation-to-inference mutation window.
+- Approved at: 2026-09-10, project owner direct instruction in the current conversation.
 
 ## Notes
 

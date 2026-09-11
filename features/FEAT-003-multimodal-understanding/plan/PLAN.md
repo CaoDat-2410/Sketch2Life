@@ -3,7 +3,10 @@
 - Status: APPROVED (P2-T1 and P2-T2 Phases A/B complete; P2-T3 Phase B in progress)
 - Plan revision: 4
 - Implementation status: IN_PROGRESS (P2-T3 B1-B3 and the original B4 benchmark complete;
-  prompt-v3 follow-up phases 1-3 complete; P2-T4/P2-T5 remain gated)
+  prompt-v3 follow-up phases 1-6 and its mapping-readiness evaluation complete with a
+  `MAPPING_READY` verdict and a `CAP_EXCEEDED` compute-governance result; prompt-v3 phase 8
+  execution/evidence reconciliation complete with `QUALITY_NOT_READY` and a separate
+  `CAP_EXCEEDED` result; B5 and P2-T4/P2-T5 remain gated)
 - Owner: Person 2
 - Estimate: 10 points total (P2-T1 through P2-T5, 2 points each)
 
@@ -30,9 +33,34 @@ P2-T1 and P2-T2 Phases A/B are implemented; the P2-T2 controlled Round-1 executi
 recorded in `EV-003-T2-05` and `EV-003-T2-06`, without selecting a frozen profile or runtime
 default. P2-T3 Phase A and the bounded Phase B B1-B5 study are approved. B1-B3 and the original B4
 benchmark are complete; B4 produced schema-valid output but a quality `NO_GO`. The separately
-bounded prompt-v3 follow-up has completed local phases 1-3, while its cross-environment package
-verification and all later GPU work remain gated. The current safe status is maintained in
+bounded prompt-v3 follow-up has completed phases 1-6 and its mapping-readiness evaluation: both
+`V3_PASS_1` and `V3_REPEAT_1` reached `7/8` mapping-valid independently for a `MAPPING_READY`
+verdict (`EV-003-T3-13`, `EV-003-T3-14`). That is mapping-only evidence; it does not change the
+B4 quality `NO_GO` and does not authorize the separately gated prompt-v3 phase 8 held-out quality
+benchmark. Compute governance for that session is `CAP_EXCEEDED` — the official Lightning ledger
+records `00:44:41` against the authorized `00:20:00` — so further GPU work needs a new explicit
+owner decision. B5 remains unexecuted. The current safe status is maintained in
 `evidence/P2_T3_LIVING_SUMMARY.md`. P2-T4 and P2-T5 remain unapproved.
+
+### Prompt-v3 Phase 8 execution-ready status (2026-09-09)
+
+- Local/no-GPU preparation and the bounded D-8 execution are complete. Both passes achieved 8/8
+  schema-valid runs and passed the repeat/comparability conditions, but neither met D-5; the
+  immutable verdict is `QUALITY_NOT_READY / QUALITY_BELOW_THRESHOLD`.
+- D-5 is fixed at `0.80` minimum coverage and accuracy for entities/actions/relations/themes;
+  ambiguous-region count-rate must be exactly `1.00` and its accuracy is `NOT_MEASURED`. D-6
+  requires 8/8 attempted, recorded, and schema-valid fixtures per pass; both passes independently
+  meet D-5, and Repeat starts no later than 15 minutes after Pass 1 completes in the same Studio
+  session, with the recorded blocking conditions.
+- D-7 is resolved as `CLASSIFY_ONLY`. The local runner rejects `EPHEMERAL_CAPTURE` from both the
+  execution decision and the B3 collector before package loading, scratch creation, factory
+  invocation, or raw-output writing. This does not change B3's separate raw-output behavior.
+- The application-side D-8 interval was `00:08:13.428533`, but the finalized Lightning Activity
+  ledger records `00:37:22` and `0.24` credits against the `00:30:00` hard cap. Compute governance
+  is therefore `CAP_EXCEEDED` by `00:07:22`; that result is separate from the immutable
+  `QUALITY_NOT_READY` technical verdict. No tuning, download, exploratory inference, extra
+  diagnostics, or automatic rerun is in scope. Phase 8 execution and evidence reconciliation are
+  complete; P2-T3 remains in progress because B5 and any production recommendation remain open.
 
 ## Task breakdown and execution order
 
@@ -47,6 +75,13 @@ verification and all later GPU work remain gated. The current safe status is mai
 3. Add PASS, every individual RECAPTURE reason, multi-reason ordering, corrupt-file, and boundary-value fixtures. Do not infer meaning or silently continue with one modality when required input is unusable.
 
 **Done when:** `drawing.png + narration.wav` returns `MediaValidationResultV1`; unusable media yields a stable `RECAPTURE` decision and human-readable recapture message; valid media passes; source hashes remain unchanged; unit/contract tests cover every reason code.
+
+**Maintenance — T0 incremental source hashing (approved 2026-09-10, complete):** source hashing
+reads the file in fixed-size chunks of at most 1 MiB instead of loading it whole. Digests,
+statuses and the serialized `MediaValidationResultV1` are byte-identical for unchanged inputs, so
+the validation-provenance hashes recorded by the ASR and vision benchmark helpers are unaffected.
+This bounds hashing memory only; byte/pixel limits, decoding cost, optional-audio behavior and the
+reason catalog are unchanged and out of that scope.
 
 ### P2-T2 — Whisper large-v3-turbo adapter (2 points, Must)
 

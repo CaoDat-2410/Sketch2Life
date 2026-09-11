@@ -7,6 +7,17 @@
   canonical evidence. Working drafts, review handoffs, templates, and local diagnostic records
   remain intentionally local-only and are not linked from this context.
 
+## P2-T1 maintenance (2026-09-10)
+
+- Source hashing in the P2-T1 validation service now reads files in fixed-size chunks of at most
+  1 MiB instead of loading them whole. Digests, source statuses and the serialized
+  `MediaValidationResultV1` were verified byte-identical against a baseline captured before the
+  change, so the validation-provenance hashes recorded by the ASR and vision benchmark helpers are
+  unchanged. Evidence: `EV-003-T1-T0-01`.
+- The change bounds hashing memory only. Byte/pixel limits, decoding cost, optional-audio
+  behavior, the reason catalog and every benchmark outcome are unchanged, and no model-readiness
+  or promotion claim follows from it.
+
 ## FEAT-018 compatibility history (2026-09-05)
 
 - A historical offline compatibility review tested the then-current Person 2 and Person 1
@@ -194,6 +205,32 @@ This workstream owns media validation, ASR/VLM adapters, fusion, `RawUnderstandi
 - A **Round-3 correction**, also 2026-09-01, fixed three remaining consistency defects (documentation only, same file): the "Timeout enforcement" section had said a timed-out call returns "at attempt `1`," contradicting the V2 terminal-outcome matrix's own `{1,2}` row directly above it and the required transient@1 → timeout@2 trace — it now states precisely that a timeout may terminate attempt `1` or attempt `2`, that the timeout classification itself is never retried, that no third attempt is possible either way, and that no residual generation may retain device memory; the owner-decision count is corrected from "11 owner decisions (D-1…D-11) remain open" to **ten** (D-1 through D-6, D-8 through D-11), with D-7 kept only as a labeled historical resolved entry, fixed consistently in the dossier, this file, and `evidence/README.md`; and the dossier's status line changed from an undifferentiated "DRAFT / AWAITING OWNER DECISION" to **`READY_FOR_OWNER_DECISIONS`**, with an explicit statement that this is not yet equivalent to "APPROVE P2-T3 PHASE B," because D-4 (model identity) and D-9 (candidate count/precision budget) require a written amendment fixing `VisionProfileIdV2` membership and `VisionProfileV2.compute_profile`'s closed enum before approval is a coherent action.
 - The project owner then answered all ten open decisions the same day (2026-09-01), recorded in "Round-4 — owner decisions recorded" in the dossier: D-1 synthetic-fixtures-only with owner review; D-2 keep the synthetic fixture lexicon; D-3 Lightning L4 development preflight/benchmark only; D-4 `Qwen/Qwen3-VL-8B-Instruct` only, no variant, immutable revision recorded at B1 before download; D-5 the new V2 contract with V1 frozen; D-6 the full V2 terminal-outcome matrix accepted as written; D-8 the provenance-applicability table accepted as written; D-9 exactly one candidate profile — `VisionProfileIdV2 = QWEN3_VL_8B_INSTRUCT_BF16_V1` at `compute_profile = Literal["GPU_BF16"]`, following this repository's existing `<MODEL>_<VARIANT>_<PRECISION>_V<N>`/`GPU_<PRECISION>` naming conventions — with one hour of Lightning L4 time authorized as a **soft cap** across B2–B4 combined, requiring the runner to stop and the owner to explicitly re-authorize rather than silently continue or fabricate a completed run if the cap is reached first; D-10 Person 2 authors and hashes the synthetic ground truth/matching rule before any model output is seen, with owner review of the metadata/hashes before B4 runs; D-11 confirmed no profile freeze and no runtime default. With D-4/D-9 resolved, `VisionProfileIdV2` and `VisionProfileV2.compute_profile` in the dossier's V2 sketch and "Profile contract separation" table changed from decision-gated placeholders to fixed, single-value closed types. Recording these answers closes every content gap the dossier previously listed as blocking, but is explicitly stated not to itself constitute the governance act of approval: `approvals/TASK_APPROVAL.md` was not edited and still lists P2-T3 Phase B as explicitly not approved, pending the owner's separate explicit instruction to change it.
 - A final, read-only red-team review of the complete P2-T3 package (`evidence/notes/P2_T3_PHASE_B_APPROVAL_REQUEST.md`, `plan/P2_T3_VISION_RESEARCH_PLAN.md`, `evidence/notes/P2_T3_PHASE_A_IMPLEMENTATION.md`, `CONTEXT.md`, `evidence/README.md`, and the five Phase A source files) found no blocking defects but two documentation-only gaps, fixed the same day (2026-09-01) in a **Round-5 correction** to the dossier: the "Round-1 review resolution" table's row 13 had said V2 failures carry `model_provenance` "only for `VISION_MODEL_UNAVAILABLE` and `VISION_PROVIDER_FAILURE`," which no longer matched the dossier's own later-drafted "Provenance applicability" table requiring it on all six model-reached outcomes (also `SUCCEEDED`, `PROHIBITED_CLAIM_DETECTED`, `VISION_SCHEMA_INVALID`, `VISION_TIMEOUT`) — corrected to state all six, forbidden only on `INPUT_NOT_VALIDATED`; and the dossier had given V2 its own disjoint types for profile ID, request, profile, catalog, and result, including a distinctly named `vision_profile_catalog_v2()`, but never named V2 counterparts for the two hash functions, leaving prose that implied reusing V1's `vision_profile_config_hash` (typed only to `VisionProfileV1`) for V2 values — a new "V2 hash functions" subsection now explicitly names `vision_profile_config_hash_v2(profile: VisionProfileV2) -> str` and `vision_profile_catalog_hash_v2(catalog: VisionProfileCatalogV2) -> str`, each SHA-256 over canonical JSON of its own V2 object, states plainly that no V1 hash function is ever widened or reused for a V2 value, and clarifies that the `config_hash`/`profile_catalog_hash` envelope **field names** stay unchanged across versions while the **function** that populates them differs. This review preceded the owner's later formal Phase B approval recorded in `approvals/TASK_APPROVAL.md`; no code or runtime work occurred during the review.
+
+## Prompt-v3 Phase 8 decision update (2026-09-09)
+
+- The owner fixed the held-out quality benchmark's D-5 and D-6 gates. Entities, actions,
+  relations, and themes require `>=0.80` aggregate coverage and accuracy; ambiguous regions need
+  exact count-rate parity (`1.00`) with accuracy `NOT_MEASURED`. Each pass must have 8 attempted,
+  recorded, and schema-valid fixtures, and both passes must independently meet D-5; Repeat must
+  start no later than 15 minutes after Pass 1 completes in the same Studio session. Configuration
+  drift, input/runtime/device failure, or `>=2/8` truncation blocks the verdict. D-7 remains
+  `CLASSIFY_ONLY`.
+- The owner subsequently approved `vision-v3-quality-manifest-v1` and its current ordered eight
+  synthetic fixtures, then authorized D-8 as one `1 x NVIDIA L4` session with a 30-minute hard cap
+  from immediately before Studio start/wake: one readiness check, one pass, one immediate repeat,
+  safe report serialization, and shutdown. No download, tuning, exploration, extra diagnostics,
+  or automatic rerun is permitted.
+- The authorized benchmark subsequently completed both 8-fixture passes with 8/8 schema-valid
+  successes, no typed/runtime/mapping failure, and a valid `1.326089s` repeat gap. Both passes
+  nevertheless failed every D-5 collection gate identically, so the immutable technical verdict
+  is `QUALITY_NOT_READY / QUALITY_BELOW_THRESHOLD`. The runner interval was
+  `00:08:13.428533`; the finalized Lightning Activity ledger records `00:37:22` and `0.24`
+  credits against the D-8 `00:30:00` hard cap, so compute governance is `CAP_EXCEEDED` by
+  `00:07:22`. The export provides only a start date, not official start/stop clocks, and the
+  earlier `00:06:32` / `0.07` row was a partial snapshot superseded by the finalized row. This
+  reconciliation does not change the technical verdict, does not authorize a rerun, and does not
+  select a profile/runtime default. Phase 8 evidence closure is complete; P2-T3 remains in
+  progress.
 
 ## Current Phase B benchmark-readiness truth (2026-08-30)
 

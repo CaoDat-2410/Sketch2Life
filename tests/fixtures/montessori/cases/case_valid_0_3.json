@@ -1,0 +1,32 @@
+{
+  "id": "CASE_VALID_0_3",
+  "description": "Valid caregiver-led 0-3 candidate",
+  "input": {
+    "age_months": 12,
+    "readiness_tags": [
+      "caregiver_present"
+    ],
+    "completed_activity_ids": [],
+    "available_material_ids": [
+      "MAT_HIGH_CONTRAST_MOBILE"
+    ],
+    "supervision_level": "DIRECT",
+    "policy_flags": [
+      "CAREGIVER_PRESENT"
+    ],
+    "candidate_activity_ids": [
+      "ACT-0001"
+    ]
+  },
+  "expected": {
+    "status": "VALID_CANDIDATES",
+    "allowed_activity_ids": [
+      "ACT-0001"
+    ],
+    "blocked": {}
+  },
+  "coverage_tags": [
+    "valid",
+    "0-3"
+  ]
+}

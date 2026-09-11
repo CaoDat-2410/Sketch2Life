@@ -47,6 +47,13 @@ vision-qwen = [
   "torch==2.8.0",
   "transformers==4.57.6",
 ]
+# FEAT-018 P2-T1 D2 image admission (owner-approved 2026-09-10, U1): exact-pinned, optional.
+# PyAV is the only decoder whose JPEG/PNG profile behaviour is measured for this boundary
+# (evidence/P2_IMAGE_ADMISSION_SPEC_20260910.md). Declared explicitly so image admission
+# never depends on `av` arriving transitively through `asr-faster-whisper`.
+image-admission = [
+  "av==18.1.0",
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/sketch2life"]

@@ -1,6 +1,21 @@
 # FEAT-018 Person 2 — Real image understanding and mapping
 
+## Current progress — 2026-09-10
+
+- P2-T1 D1 image-admission specification: complete and published.
+- P2-T1 D2 isolated implementation: reviewed and accepted; deterministic tests and repository
+  validators pass, with no FEAT-003 or provider integration.
+- P2-T1 D3 performance/native-memory evaluation: not started and not approved.
+- P2-T1 remains incomplete; P2-T2 through P2-T5 and shared integration remain separately gated.
+
 ## Mission
+
+Research update (2026-09-09): [P2 offline-first proposal](P2_OFFLINE_FIRST_PLAN.md)
+defines proposed execution slices and decisions requiring owner review. Supporting
+research and handoff notes remain local-only. These documents do not
+authorize implementation or replace this full-scope mission. In new records, the
+bare task IDs below are qualified as `FEAT018-P2-T1` through `FEAT018-P2-T5` to
+distinguish them from FEAT-003 tasks.
 
 Accept one non-sensitive JPG/PNG, validate it before inference, run the exact tech-stack model through the backend-only Lightning adapter, preserve truthful provenance, and produce a versioned observation contract that P1 can map without bypassing Gate A.
 
@@ -120,3 +135,7 @@ P2 must publish schema fixtures before the mobile request or P1 mapper is change
 6. Stop on any prohibited field, unbounded output, source mismatch, or fabricated narration.
 
 Evidence naming: `P2_<media-or-contract>_<YYYYMMDD>.json` plus sanitized latency/status `.txt`; raw provider payloads are forbidden.
+
+## Revision-2 engine additions — pending approval
+
+P2 additionally owns `FEAT018-P2-E1` through `FEAT018-P2-E4` in `ENGINE_REFINEMENT_PLAN.md`: enrich provider-neutral observations, publish anchor candidates with provenance, cover unknown/ambiguous/conflicting/adult-corrected cases, and provide the adapter into `SemanticAnchorSetV1`. P2 does not select objectives, templates or activities.

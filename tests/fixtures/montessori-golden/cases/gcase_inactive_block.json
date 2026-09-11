@@ -1,0 +1,35 @@
+{
+  "id": "GCASE_INACTIVE_BLOCK",
+  "description": "An inactive golden candidate remains blocked",
+  "activity_ref": {
+    "id": "ACT-0026",
+    "version": 2
+  },
+  "input": {
+    "age_months": 56,
+    "readiness_ids": [
+      "READY_CONTROLLED_TWO_HAND_POUR"
+    ],
+    "completed_activity_ids": [],
+    "available_material_option_ids": [
+      "GMAT-0026-PRIMARY"
+    ],
+    "supervision_level": "NEARBY",
+    "policy_flags": [],
+    "candidate_status": "INACTIVE"
+  },
+  "expected": {
+    "status": "NO_VALID_ACTIVITY",
+    "allowed_activity_ids": [],
+    "blocked": {
+      "ACT-0026": [
+        "BLOCK_INACTIVE"
+      ]
+    }
+  },
+  "coverage_tags": [
+    "blocked",
+    "inactive",
+    "no_valid"
+  ]
+}

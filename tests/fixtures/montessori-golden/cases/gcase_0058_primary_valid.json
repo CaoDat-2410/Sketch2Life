@@ -1,0 +1,34 @@
+{
+  "id": "GCASE_0058_PRIMARY_VALID",
+  "description": "ACT-0058 accepts its concrete primary material",
+  "activity_ref": {
+    "id": "ACT-0058",
+    "version": 2
+  },
+  "input": {
+    "age_months": 92,
+    "readiness_ids": [
+      "READY_RECORDS_CHANGES_OVER_TIME"
+    ],
+    "completed_activity_ids": [],
+    "available_material_option_ids": [
+      "GMAT-0058-PRIMARY"
+    ],
+    "supervision_level": "DIRECT",
+    "policy_flags": [],
+    "candidate_status": "ACTIVE_FIXTURE"
+  },
+  "expected": {
+    "status": "VALID_CANDIDATE",
+    "allowed_activity_ids": [
+      "ACT-0058"
+    ],
+    "blocked": {}
+  },
+  "coverage_tags": [
+    "valid",
+    "primary_material",
+    "6-9",
+    "ACT-0058"
+  ]
+}

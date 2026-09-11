@@ -1,0 +1,33 @@
+{
+  "id": "GCASE_0055_MAX_BOUNDARY_VALID",
+  "description": "ACT-0055 accepts inclusive max_boundary",
+  "activity_ref": {
+    "id": "ACT-0055",
+    "version": 2
+  },
+  "input": {
+    "age_months": 95,
+    "readiness_ids": [
+      "READY_HANDLES_PLANT_SAMPLE"
+    ],
+    "completed_activity_ids": [],
+    "available_material_option_ids": [
+      "GMAT-0055-PRIMARY"
+    ],
+    "supervision_level": "NEARBY",
+    "policy_flags": [],
+    "candidate_status": "ACTIVE_FIXTURE"
+  },
+  "expected": {
+    "status": "VALID_CANDIDATE",
+    "allowed_activity_ids": [
+      "ACT-0055"
+    ],
+    "blocked": {}
+  },
+  "coverage_tags": [
+    "valid",
+    "age_boundary",
+    "6-9"
+  ]
+}

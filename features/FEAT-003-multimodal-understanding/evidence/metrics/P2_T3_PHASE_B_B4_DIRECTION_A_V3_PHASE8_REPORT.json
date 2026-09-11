@@ -1,0 +1,1171 @@
+{
+  "contract_name": "VisionV3QualityGpuExecutionReportV1",
+  "contract_version": "1.0",
+  "studio_started_at": "2026-09-09T16:24:08+00:00",
+  "hard_cap_seconds": 1800,
+  "runner_finished_at": "2026-09-09T16:32:21.428533+00:00",
+  "pass_1": {
+    "run_label": "V3_QUALITY_PASS_1",
+    "manifest_version": "vision-v3-quality-manifest-v1",
+    "ground_truth_sha256": "e836593ec58a63757cee58d64b17800367a814c0f0956e8210458fe2cc6cb099",
+    "matching_rule_id": "vision-v3-quality-matching-rule-v1",
+    "matching_rule_sha256": "af4326fb94585a7ed58f6387a8a8bea26f17a6e9ceca6556d6def573f6fea109",
+    "prompt_protocol_id": "vision-v2-structured-output-prompt-v3",
+    "prompt_sha256": "bf8b9cab5df6b2551e627cf0bb92fe977e0dc182fdaae5f3c5face5bc34615f3",
+    "profile_id": "QWEN3_VL_8B_INSTRUCT_BF16_V1",
+    "profile_catalog_hash": "72651b96d2c2259344efcb6fb3349807d42b56079a5422530db09c1590f00947",
+    "raw_output_mode": "CLASSIFY_ONLY",
+    "attempted_runs": 8,
+    "schema_valid_count": 8,
+    "typed_failure_counts": {},
+    "lossless_unwrap_recovered_count": 0,
+    "fenced_raw_output_count": 0,
+    "truncated_count": 0,
+    "extra_key_count": 0,
+    "invalid_enum_count": 0,
+    "known_policy_trigger_rate": "NOT_APPLICABLE",
+    "aggregate_collection_scores": {
+      "entities": {
+        "ground_truth_count": 18,
+        "predicted_count": 18,
+        "matched_count": 2,
+        "coverage": 0.1111111111111111,
+        "accuracy": 0.1111111111111111,
+        "count_rate": null
+      },
+      "actions": {
+        "ground_truth_count": 3,
+        "predicted_count": 1,
+        "matched_count": 0,
+        "coverage": 0.0,
+        "accuracy": 0.0,
+        "count_rate": null
+      },
+      "relations": {
+        "ground_truth_count": 6,
+        "predicted_count": 0,
+        "matched_count": 0,
+        "coverage": 0.0,
+        "accuracy": null,
+        "count_rate": null
+      },
+      "themes": {
+        "ground_truth_count": 5,
+        "predicted_count": 0,
+        "matched_count": 0,
+        "coverage": 0.0,
+        "accuracy": null,
+        "count_rate": null
+      },
+      "ambiguous_regions": {
+        "ground_truth_count": 1,
+        "predicted_count": 0,
+        "matched_count": 0,
+        "coverage": 0.0,
+        "accuracy": null,
+        "count_rate": 0.0
+      }
+    },
+    "aggregate_diagnostic_category_counts": {
+      "ENTITY_NO_EXACT_CANONICAL_LABEL_MATCH": 16,
+      "EXPECTED_COLLECTION_PREDICTED_EMPTY": 13,
+      "ACTION_NO_FULL_LABEL_OR_ENDPOINT_MATCH": 1
+    },
+    "runs": [
+      {
+        "fixture_id": "v3q-fixture-01",
+        "fixture_sha256": "ebe43a37d54c539dc4b18589551907deba8cadfb4a0aba747e5b0e005aaf2c55",
+        "status": "SUCCEEDED",
+        "error_code": null,
+        "error_detail": null,
+        "attempt_number": 1,
+        "repair_attempted": false,
+        "wall_latency_ms": 72276.36224000003,
+        "peak_vram_mb": null,
+        "vram_not_measured_reason": "VRAM is not an acceptance metric for Phase 8",
+        "fenced": false,
+        "truncated": false,
+        "extra_key": false,
+        "invalid_enum": false,
+        "collection_scores": {
+          "entities": {
+            "ground_truth_count": 2,
+            "predicted_count": 2,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": 0.0,
+            "count_rate": null
+          },
+          "actions": {
+            "ground_truth_count": 0,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": null,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "relations": {
+            "ground_truth_count": 1,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "themes": {
+            "ground_truth_count": 0,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": null,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "ambiguous_regions": {
+            "ground_truth_count": 0,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": null,
+            "accuracy": null,
+            "count_rate": null
+          }
+        },
+        "diagnostic_category_counts": {
+          "ENTITY_NO_EXACT_CANONICAL_LABEL_MATCH": 2,
+          "EXPECTED_COLLECTION_PREDICTED_EMPTY": 1
+        }
+      },
+      {
+        "fixture_id": "v3q-fixture-02",
+        "fixture_sha256": "740e38345eefff51abcaf7768a696e09a9a8afbaa20e3ae14c9b689fb2d41e91",
+        "status": "SUCCEEDED",
+        "error_code": null,
+        "error_detail": null,
+        "attempt_number": 1,
+        "repair_attempted": false,
+        "wall_latency_ms": 32244.84388899998,
+        "peak_vram_mb": null,
+        "vram_not_measured_reason": "VRAM is not an acceptance metric for Phase 8",
+        "fenced": false,
+        "truncated": false,
+        "extra_key": false,
+        "invalid_enum": false,
+        "collection_scores": {
+          "entities": {
+            "ground_truth_count": 2,
+            "predicted_count": 2,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": 0.0,
+            "count_rate": null
+          },
+          "actions": {
+            "ground_truth_count": 1,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "relations": {
+            "ground_truth_count": 1,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "themes": {
+            "ground_truth_count": 0,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": null,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "ambiguous_regions": {
+            "ground_truth_count": 0,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": null,
+            "accuracy": null,
+            "count_rate": null
+          }
+        },
+        "diagnostic_category_counts": {
+          "ENTITY_NO_EXACT_CANONICAL_LABEL_MATCH": 2,
+          "EXPECTED_COLLECTION_PREDICTED_EMPTY": 2
+        }
+      },
+      {
+        "fixture_id": "v3q-fixture-03",
+        "fixture_sha256": "60486cce948b4532b50bd53bd314db33fc22634821e444910f118511dc37e0a5",
+        "status": "SUCCEEDED",
+        "error_code": null,
+        "error_detail": null,
+        "attempt_number": 1,
+        "repair_attempted": false,
+        "wall_latency_ms": 29790.06757399998,
+        "peak_vram_mb": null,
+        "vram_not_measured_reason": "VRAM is not an acceptance metric for Phase 8",
+        "fenced": false,
+        "truncated": false,
+        "extra_key": false,
+        "invalid_enum": false,
+        "collection_scores": {
+          "entities": {
+            "ground_truth_count": 3,
+            "predicted_count": 3,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": 0.0,
+            "count_rate": null
+          },
+          "actions": {
+            "ground_truth_count": 0,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": null,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "relations": {
+            "ground_truth_count": 2,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "themes": {
+            "ground_truth_count": 1,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "ambiguous_regions": {
+            "ground_truth_count": 0,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": null,
+            "accuracy": null,
+            "count_rate": null
+          }
+        },
+        "diagnostic_category_counts": {
+          "ENTITY_NO_EXACT_CANONICAL_LABEL_MATCH": 3,
+          "EXPECTED_COLLECTION_PREDICTED_EMPTY": 3
+        }
+      },
+      {
+        "fixture_id": "v3q-fixture-04",
+        "fixture_sha256": "6d43e4e516cc67ce6f9b382fe79df850710da0e869bca3de7c151df5b41c6cb4",
+        "status": "SUCCEEDED",
+        "error_code": null,
+        "error_detail": null,
+        "attempt_number": 1,
+        "repair_attempted": false,
+        "wall_latency_ms": 21447.544042999994,
+        "peak_vram_mb": null,
+        "vram_not_measured_reason": "VRAM is not an acceptance metric for Phase 8",
+        "fenced": false,
+        "truncated": false,
+        "extra_key": false,
+        "invalid_enum": false,
+        "collection_scores": {
+          "entities": {
+            "ground_truth_count": 2,
+            "predicted_count": 2,
+            "matched_count": 2,
+            "coverage": 1.0,
+            "accuracy": 1.0,
+            "count_rate": null
+          },
+          "actions": {
+            "ground_truth_count": 0,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": null,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "relations": {
+            "ground_truth_count": 1,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "themes": {
+            "ground_truth_count": 1,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "ambiguous_regions": {
+            "ground_truth_count": 0,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": null,
+            "accuracy": null,
+            "count_rate": null
+          }
+        },
+        "diagnostic_category_counts": {
+          "EXPECTED_COLLECTION_PREDICTED_EMPTY": 2
+        }
+      },
+      {
+        "fixture_id": "v3q-fixture-05",
+        "fixture_sha256": "fe1d80f5098596482fe57f830ac15dc4c5360add727fa3dbf4e34f60dca9fc01",
+        "status": "SUCCEEDED",
+        "error_code": null,
+        "error_detail": null,
+        "attempt_number": 1,
+        "repair_attempted": false,
+        "wall_latency_ms": 24471.317053000006,
+        "peak_vram_mb": null,
+        "vram_not_measured_reason": "VRAM is not an acceptance metric for Phase 8",
+        "fenced": false,
+        "truncated": false,
+        "extra_key": false,
+        "invalid_enum": false,
+        "collection_scores": {
+          "entities": {
+            "ground_truth_count": 1,
+            "predicted_count": 2,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": 0.0,
+            "count_rate": null
+          },
+          "actions": {
+            "ground_truth_count": 1,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "relations": {
+            "ground_truth_count": 0,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": null,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "themes": {
+            "ground_truth_count": 1,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "ambiguous_regions": {
+            "ground_truth_count": 0,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": null,
+            "accuracy": null,
+            "count_rate": null
+          }
+        },
+        "diagnostic_category_counts": {
+          "ENTITY_NO_EXACT_CANONICAL_LABEL_MATCH": 1,
+          "EXPECTED_COLLECTION_PREDICTED_EMPTY": 2
+        }
+      },
+      {
+        "fixture_id": "v3q-fixture-06",
+        "fixture_sha256": "ca9fcb2ff25094524a329af642c892267774643345e3fdf5752766b8ced831ee",
+        "status": "SUCCEEDED",
+        "error_code": null,
+        "error_detail": null,
+        "attempt_number": 1,
+        "repair_attempted": false,
+        "wall_latency_ms": 27980.291710000074,
+        "peak_vram_mb": null,
+        "vram_not_measured_reason": "VRAM is not an acceptance metric for Phase 8",
+        "fenced": false,
+        "truncated": false,
+        "extra_key": false,
+        "invalid_enum": false,
+        "collection_scores": {
+          "entities": {
+            "ground_truth_count": 3,
+            "predicted_count": 3,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": 0.0,
+            "count_rate": null
+          },
+          "actions": {
+            "ground_truth_count": 0,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": null,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "relations": {
+            "ground_truth_count": 0,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": null,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "themes": {
+            "ground_truth_count": 1,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "ambiguous_regions": {
+            "ground_truth_count": 0,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": null,
+            "accuracy": null,
+            "count_rate": null
+          }
+        },
+        "diagnostic_category_counts": {
+          "ENTITY_NO_EXACT_CANONICAL_LABEL_MATCH": 3,
+          "EXPECTED_COLLECTION_PREDICTED_EMPTY": 1
+        }
+      },
+      {
+        "fixture_id": "v3q-fixture-07",
+        "fixture_sha256": "272394a18633c8bbd20b7ce27dfd46255421691c3e9e5bfb89815840cfcbae8a",
+        "status": "SUCCEEDED",
+        "error_code": null,
+        "error_detail": null,
+        "attempt_number": 1,
+        "repair_attempted": false,
+        "wall_latency_ms": 20429.91982600006,
+        "peak_vram_mb": null,
+        "vram_not_measured_reason": "VRAM is not an acceptance metric for Phase 8",
+        "fenced": false,
+        "truncated": false,
+        "extra_key": false,
+        "invalid_enum": false,
+        "collection_scores": {
+          "entities": {
+            "ground_truth_count": 2,
+            "predicted_count": 1,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": 0.0,
+            "count_rate": null
+          },
+          "actions": {
+            "ground_truth_count": 0,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": null,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "relations": {
+            "ground_truth_count": 0,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": null,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "themes": {
+            "ground_truth_count": 0,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": null,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "ambiguous_regions": {
+            "ground_truth_count": 1,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "count_rate": 0.0
+          }
+        },
+        "diagnostic_category_counts": {
+          "ENTITY_NO_EXACT_CANONICAL_LABEL_MATCH": 2
+        }
+      },
+      {
+        "fixture_id": "v3q-fixture-08",
+        "fixture_sha256": "0763f8c7fb2afe07fec0e3c629a5eb8d456001d236ebb6053b59f4562d6a999c",
+        "status": "SUCCEEDED",
+        "error_code": null,
+        "error_detail": null,
+        "attempt_number": 1,
+        "repair_attempted": false,
+        "wall_latency_ms": 33044.123137000046,
+        "peak_vram_mb": null,
+        "vram_not_measured_reason": "VRAM is not an acceptance metric for Phase 8",
+        "fenced": false,
+        "truncated": false,
+        "extra_key": false,
+        "invalid_enum": false,
+        "collection_scores": {
+          "entities": {
+            "ground_truth_count": 3,
+            "predicted_count": 3,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": 0.0,
+            "count_rate": null
+          },
+          "actions": {
+            "ground_truth_count": 1,
+            "predicted_count": 1,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": 0.0,
+            "count_rate": null
+          },
+          "relations": {
+            "ground_truth_count": 1,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "themes": {
+            "ground_truth_count": 1,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "ambiguous_regions": {
+            "ground_truth_count": 0,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": null,
+            "accuracy": null,
+            "count_rate": null
+          }
+        },
+        "diagnostic_category_counts": {
+          "ENTITY_NO_EXACT_CANONICAL_LABEL_MATCH": 3,
+          "ACTION_NO_FULL_LABEL_OR_ENDPOINT_MATCH": 1,
+          "EXPECTED_COLLECTION_PREDICTED_EMPTY": 2
+        }
+      }
+    ],
+    "started_at": "2026-09-09T16:24:33.523572+00:00",
+    "completed_at": "2026-09-09T16:28:55.210908+00:00"
+  },
+  "repeat_1": {
+    "run_label": "V3_QUALITY_REPEAT_1",
+    "manifest_version": "vision-v3-quality-manifest-v1",
+    "ground_truth_sha256": "e836593ec58a63757cee58d64b17800367a814c0f0956e8210458fe2cc6cb099",
+    "matching_rule_id": "vision-v3-quality-matching-rule-v1",
+    "matching_rule_sha256": "af4326fb94585a7ed58f6387a8a8bea26f17a6e9ceca6556d6def573f6fea109",
+    "prompt_protocol_id": "vision-v2-structured-output-prompt-v3",
+    "prompt_sha256": "bf8b9cab5df6b2551e627cf0bb92fe977e0dc182fdaae5f3c5face5bc34615f3",
+    "profile_id": "QWEN3_VL_8B_INSTRUCT_BF16_V1",
+    "profile_catalog_hash": "72651b96d2c2259344efcb6fb3349807d42b56079a5422530db09c1590f00947",
+    "raw_output_mode": "CLASSIFY_ONLY",
+    "attempted_runs": 8,
+    "schema_valid_count": 8,
+    "typed_failure_counts": {},
+    "lossless_unwrap_recovered_count": 0,
+    "fenced_raw_output_count": 0,
+    "truncated_count": 0,
+    "extra_key_count": 0,
+    "invalid_enum_count": 0,
+    "known_policy_trigger_rate": "NOT_APPLICABLE",
+    "aggregate_collection_scores": {
+      "entities": {
+        "ground_truth_count": 18,
+        "predicted_count": 18,
+        "matched_count": 2,
+        "coverage": 0.1111111111111111,
+        "accuracy": 0.1111111111111111,
+        "count_rate": null
+      },
+      "actions": {
+        "ground_truth_count": 3,
+        "predicted_count": 1,
+        "matched_count": 0,
+        "coverage": 0.0,
+        "accuracy": 0.0,
+        "count_rate": null
+      },
+      "relations": {
+        "ground_truth_count": 6,
+        "predicted_count": 0,
+        "matched_count": 0,
+        "coverage": 0.0,
+        "accuracy": null,
+        "count_rate": null
+      },
+      "themes": {
+        "ground_truth_count": 5,
+        "predicted_count": 0,
+        "matched_count": 0,
+        "coverage": 0.0,
+        "accuracy": null,
+        "count_rate": null
+      },
+      "ambiguous_regions": {
+        "ground_truth_count": 1,
+        "predicted_count": 0,
+        "matched_count": 0,
+        "coverage": 0.0,
+        "accuracy": null,
+        "count_rate": 0.0
+      }
+    },
+    "aggregate_diagnostic_category_counts": {
+      "ENTITY_NO_EXACT_CANONICAL_LABEL_MATCH": 16,
+      "EXPECTED_COLLECTION_PREDICTED_EMPTY": 13,
+      "ACTION_NO_FULL_LABEL_OR_ENDPOINT_MATCH": 1
+    },
+    "runs": [
+      {
+        "fixture_id": "v3q-fixture-01",
+        "fixture_sha256": "ebe43a37d54c539dc4b18589551907deba8cadfb4a0aba747e5b0e005aaf2c55",
+        "status": "SUCCEEDED",
+        "error_code": null,
+        "error_detail": null,
+        "attempt_number": 1,
+        "repair_attempted": false,
+        "wall_latency_ms": 24301.454165999985,
+        "peak_vram_mb": null,
+        "vram_not_measured_reason": "VRAM is not an acceptance metric for Phase 8",
+        "fenced": false,
+        "truncated": false,
+        "extra_key": false,
+        "invalid_enum": false,
+        "collection_scores": {
+          "entities": {
+            "ground_truth_count": 2,
+            "predicted_count": 2,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": 0.0,
+            "count_rate": null
+          },
+          "actions": {
+            "ground_truth_count": 0,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": null,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "relations": {
+            "ground_truth_count": 1,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "themes": {
+            "ground_truth_count": 0,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": null,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "ambiguous_regions": {
+            "ground_truth_count": 0,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": null,
+            "accuracy": null,
+            "count_rate": null
+          }
+        },
+        "diagnostic_category_counts": {
+          "ENTITY_NO_EXACT_CANONICAL_LABEL_MATCH": 2,
+          "EXPECTED_COLLECTION_PREDICTED_EMPTY": 1
+        }
+      },
+      {
+        "fixture_id": "v3q-fixture-02",
+        "fixture_sha256": "740e38345eefff51abcaf7768a696e09a9a8afbaa20e3ae14c9b689fb2d41e91",
+        "status": "SUCCEEDED",
+        "error_code": null,
+        "error_detail": null,
+        "attempt_number": 1,
+        "repair_attempted": false,
+        "wall_latency_ms": 24699.149937000017,
+        "peak_vram_mb": null,
+        "vram_not_measured_reason": "VRAM is not an acceptance metric for Phase 8",
+        "fenced": false,
+        "truncated": false,
+        "extra_key": false,
+        "invalid_enum": false,
+        "collection_scores": {
+          "entities": {
+            "ground_truth_count": 2,
+            "predicted_count": 2,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": 0.0,
+            "count_rate": null
+          },
+          "actions": {
+            "ground_truth_count": 1,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "relations": {
+            "ground_truth_count": 1,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "themes": {
+            "ground_truth_count": 0,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": null,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "ambiguous_regions": {
+            "ground_truth_count": 0,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": null,
+            "accuracy": null,
+            "count_rate": null
+          }
+        },
+        "diagnostic_category_counts": {
+          "ENTITY_NO_EXACT_CANONICAL_LABEL_MATCH": 2,
+          "EXPECTED_COLLECTION_PREDICTED_EMPTY": 2
+        }
+      },
+      {
+        "fixture_id": "v3q-fixture-03",
+        "fixture_sha256": "60486cce948b4532b50bd53bd314db33fc22634821e444910f118511dc37e0a5",
+        "status": "SUCCEEDED",
+        "error_code": null,
+        "error_detail": null,
+        "attempt_number": 1,
+        "repair_attempted": false,
+        "wall_latency_ms": 28577.410993000056,
+        "peak_vram_mb": null,
+        "vram_not_measured_reason": "VRAM is not an acceptance metric for Phase 8",
+        "fenced": false,
+        "truncated": false,
+        "extra_key": false,
+        "invalid_enum": false,
+        "collection_scores": {
+          "entities": {
+            "ground_truth_count": 3,
+            "predicted_count": 3,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": 0.0,
+            "count_rate": null
+          },
+          "actions": {
+            "ground_truth_count": 0,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": null,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "relations": {
+            "ground_truth_count": 2,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "themes": {
+            "ground_truth_count": 1,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "ambiguous_regions": {
+            "ground_truth_count": 0,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": null,
+            "accuracy": null,
+            "count_rate": null
+          }
+        },
+        "diagnostic_category_counts": {
+          "ENTITY_NO_EXACT_CANONICAL_LABEL_MATCH": 3,
+          "EXPECTED_COLLECTION_PREDICTED_EMPTY": 3
+        }
+      },
+      {
+        "fixture_id": "v3q-fixture-04",
+        "fixture_sha256": "6d43e4e516cc67ce6f9b382fe79df850710da0e869bca3de7c151df5b41c6cb4",
+        "status": "SUCCEEDED",
+        "error_code": null,
+        "error_detail": null,
+        "attempt_number": 1,
+        "repair_attempted": false,
+        "wall_latency_ms": 21661.171689999945,
+        "peak_vram_mb": null,
+        "vram_not_measured_reason": "VRAM is not an acceptance metric for Phase 8",
+        "fenced": false,
+        "truncated": false,
+        "extra_key": false,
+        "invalid_enum": false,
+        "collection_scores": {
+          "entities": {
+            "ground_truth_count": 2,
+            "predicted_count": 2,
+            "matched_count": 2,
+            "coverage": 1.0,
+            "accuracy": 1.0,
+            "count_rate": null
+          },
+          "actions": {
+            "ground_truth_count": 0,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": null,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "relations": {
+            "ground_truth_count": 1,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "themes": {
+            "ground_truth_count": 1,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "ambiguous_regions": {
+            "ground_truth_count": 0,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": null,
+            "accuracy": null,
+            "count_rate": null
+          }
+        },
+        "diagnostic_category_counts": {
+          "EXPECTED_COLLECTION_PREDICTED_EMPTY": 2
+        }
+      },
+      {
+        "fixture_id": "v3q-fixture-05",
+        "fixture_sha256": "fe1d80f5098596482fe57f830ac15dc4c5360add727fa3dbf4e34f60dca9fc01",
+        "status": "SUCCEEDED",
+        "error_code": null,
+        "error_detail": null,
+        "attempt_number": 1,
+        "repair_attempted": false,
+        "wall_latency_ms": 24206.02619199997,
+        "peak_vram_mb": null,
+        "vram_not_measured_reason": "VRAM is not an acceptance metric for Phase 8",
+        "fenced": false,
+        "truncated": false,
+        "extra_key": false,
+        "invalid_enum": false,
+        "collection_scores": {
+          "entities": {
+            "ground_truth_count": 1,
+            "predicted_count": 2,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": 0.0,
+            "count_rate": null
+          },
+          "actions": {
+            "ground_truth_count": 1,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "relations": {
+            "ground_truth_count": 0,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": null,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "themes": {
+            "ground_truth_count": 1,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "ambiguous_regions": {
+            "ground_truth_count": 0,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": null,
+            "accuracy": null,
+            "count_rate": null
+          }
+        },
+        "diagnostic_category_counts": {
+          "ENTITY_NO_EXACT_CANONICAL_LABEL_MATCH": 1,
+          "EXPECTED_COLLECTION_PREDICTED_EMPTY": 2
+        }
+      },
+      {
+        "fixture_id": "v3q-fixture-06",
+        "fixture_sha256": "ca9fcb2ff25094524a329af642c892267774643345e3fdf5752766b8ced831ee",
+        "status": "SUCCEEDED",
+        "error_code": null,
+        "error_detail": null,
+        "attempt_number": 1,
+        "repair_attempted": false,
+        "wall_latency_ms": 28148.83505399996,
+        "peak_vram_mb": null,
+        "vram_not_measured_reason": "VRAM is not an acceptance metric for Phase 8",
+        "fenced": false,
+        "truncated": false,
+        "extra_key": false,
+        "invalid_enum": false,
+        "collection_scores": {
+          "entities": {
+            "ground_truth_count": 3,
+            "predicted_count": 3,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": 0.0,
+            "count_rate": null
+          },
+          "actions": {
+            "ground_truth_count": 0,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": null,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "relations": {
+            "ground_truth_count": 0,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": null,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "themes": {
+            "ground_truth_count": 1,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "ambiguous_regions": {
+            "ground_truth_count": 0,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": null,
+            "accuracy": null,
+            "count_rate": null
+          }
+        },
+        "diagnostic_category_counts": {
+          "ENTITY_NO_EXACT_CANONICAL_LABEL_MATCH": 3,
+          "EXPECTED_COLLECTION_PREDICTED_EMPTY": 1
+        }
+      },
+      {
+        "fixture_id": "v3q-fixture-07",
+        "fixture_sha256": "272394a18633c8bbd20b7ce27dfd46255421691c3e9e5bfb89815840cfcbae8a",
+        "status": "SUCCEEDED",
+        "error_code": null,
+        "error_detail": null,
+        "attempt_number": 1,
+        "repair_attempted": false,
+        "wall_latency_ms": 20442.620523999947,
+        "peak_vram_mb": null,
+        "vram_not_measured_reason": "VRAM is not an acceptance metric for Phase 8",
+        "fenced": false,
+        "truncated": false,
+        "extra_key": false,
+        "invalid_enum": false,
+        "collection_scores": {
+          "entities": {
+            "ground_truth_count": 2,
+            "predicted_count": 1,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": 0.0,
+            "count_rate": null
+          },
+          "actions": {
+            "ground_truth_count": 0,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": null,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "relations": {
+            "ground_truth_count": 0,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": null,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "themes": {
+            "ground_truth_count": 0,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": null,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "ambiguous_regions": {
+            "ground_truth_count": 1,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "count_rate": 0.0
+          }
+        },
+        "diagnostic_category_counts": {
+          "ENTITY_NO_EXACT_CANONICAL_LABEL_MATCH": 2
+        }
+      },
+      {
+        "fixture_id": "v3q-fixture-08",
+        "fixture_sha256": "0763f8c7fb2afe07fec0e3c629a5eb8d456001d236ebb6053b59f4562d6a999c",
+        "status": "SUCCEEDED",
+        "error_code": null,
+        "error_detail": null,
+        "attempt_number": 1,
+        "repair_attempted": false,
+        "wall_latency_ms": 32850.702001000056,
+        "peak_vram_mb": null,
+        "vram_not_measured_reason": "VRAM is not an acceptance metric for Phase 8",
+        "fenced": false,
+        "truncated": false,
+        "extra_key": false,
+        "invalid_enum": false,
+        "collection_scores": {
+          "entities": {
+            "ground_truth_count": 3,
+            "predicted_count": 3,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": 0.0,
+            "count_rate": null
+          },
+          "actions": {
+            "ground_truth_count": 1,
+            "predicted_count": 1,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": 0.0,
+            "count_rate": null
+          },
+          "relations": {
+            "ground_truth_count": 1,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "themes": {
+            "ground_truth_count": 1,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": 0.0,
+            "accuracy": null,
+            "count_rate": null
+          },
+          "ambiguous_regions": {
+            "ground_truth_count": 0,
+            "predicted_count": 0,
+            "matched_count": 0,
+            "coverage": null,
+            "accuracy": null,
+            "count_rate": null
+          }
+        },
+        "diagnostic_category_counts": {
+          "ENTITY_NO_EXACT_CANONICAL_LABEL_MATCH": 3,
+          "ACTION_NO_FULL_LABEL_OR_ENDPOINT_MATCH": 1,
+          "EXPECTED_COLLECTION_PREDICTED_EMPTY": 2
+        }
+      }
+    ],
+    "started_at": "2026-09-09T16:28:56.536997+00:00",
+    "completed_at": "2026-09-09T16:32:21.426954+00:00"
+  },
+  "verdict": {
+    "prompt_protocol_id": "vision-v2-structured-output-prompt-v3",
+    "prompt_sha256": "bf8b9cab5df6b2551e627cf0bb92fe977e0dc182fdaae5f3c5face5bc34615f3",
+    "pass_1": {
+      "run_label": "V3_QUALITY_PASS_1",
+      "attempted_runs": 8,
+      "run_record_count": 8,
+      "is_complete": true,
+      "schema_valid_count": 8,
+      "schema_valid_requirement_met": true,
+      "thresholds_met": false,
+      "truncated_count": 0
+    },
+    "repeat_1": {
+      "run_label": "V3_QUALITY_REPEAT_1",
+      "attempted_runs": 8,
+      "run_record_count": 8,
+      "is_complete": true,
+      "schema_valid_count": 8,
+      "schema_valid_requirement_met": true,
+      "thresholds_met": false,
+      "truncated_count": 0
+    },
+    "repeat_gap_seconds": 1.326089,
+    "same_lightning_session": true,
+    "overall": "QUALITY_NOT_READY",
+    "blocking_reasons": [
+      "QUALITY_BELOW_THRESHOLD"
+    ]
+  }
+}

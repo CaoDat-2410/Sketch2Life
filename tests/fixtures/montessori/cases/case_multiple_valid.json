@@ -1,0 +1,36 @@
+{
+  "id": "CASE_MULTIPLE_VALID",
+  "description": "Multiple same-band candidates remain valid",
+  "input": {
+    "age_months": 48,
+    "readiness_tags": [
+      "follows_one_step_direction"
+    ],
+    "completed_activity_ids": [],
+    "available_material_ids": [
+      "MAT_FLOOR_MAT",
+      "MAT_LARGE_DRY_COUNTERS",
+      "MAT_PINK_TOWER",
+      "MAT_TRAY",
+      "MAT_TWO_PITCHERS"
+    ],
+    "supervision_level": "NEARBY",
+    "policy_flags": [],
+    "candidate_activity_ids": [
+      "ACT-0026",
+      "ACT-0036"
+    ]
+  },
+  "expected": {
+    "status": "VALID_CANDIDATES",
+    "allowed_activity_ids": [
+      "ACT-0026",
+      "ACT-0036"
+    ],
+    "blocked": {}
+  },
+  "coverage_tags": [
+    "valid",
+    "multiple_valid"
+  ]
+}
