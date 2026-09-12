@@ -1,7 +1,7 @@
 # Task approval
 
 - Status: APPROVED (P1 implementation slice; FEAT-018 P2-T1 D2/D3-R2 with offline Cohorts A+B
-  closed; and bounded P2-T2 offline implementation. P2-T2 live Lightning execution, P2-T3 through
+  closed; and completed bounded P2-T2 offline implementation. P2-T2 live Lightning execution, P2-T3 through
   P2-T5, P3, P4 and shared integration remain pending)
 - Approver: Project owner direct instruction in the current conversation
 - Plan revision: 2
@@ -164,3 +164,14 @@ download, and any provider/network call remain separately gated and require a la
 execution approval with fixture, budget, redaction, and evidence requirements.
 
 Approved at: 2026-09-12, project owner direct instruction in the current conversation.
+
+## Owner approval and P2-T2 offline closure — 2026-09-12
+
+The project owner approves the completed FEAT-018 P2-T2 offline implementation at commit
+`11468d3a5a327697a491f09251a3210987337da0` (`fix(feat018): validate ASR correlation before mapping`).
+Independent verification reported no blocker: the mapper now rejects supplied ASR results with a
+mismatched correlation ID before Raw construction, while absent, matching-success and matching-
+failure cases remain valid. Focused tests (17), related tests (801 passed, 5 skipped), ruff, mypy,
+all repository validators and `git diff --check` passed. No model/GPU/Lightning/provider/network
+execution occurred. This approval closes P2-T2 offline only; live execution and P2-T3 through P2-T5,
+mobile, Gate A, P1 eligibility, P3/P4 and shared integration remain separately gated.

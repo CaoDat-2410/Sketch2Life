@@ -87,3 +87,10 @@
   required source hash, typed failures, preserved ambiguity/conflicts and mandatory Gate A. The
   exact bounded file list is approved for offline implementation only. Live Lightning/GPU/model
   execution, provider/network calls and downstream integration require separate approval.
+
+- 2026-09-12 P2-T2 offline closure decision: approve the implementation and ASR correlation fix at
+  commit `11468d3a5a327697a491f09251a3210987337da0`. The mapper rejects a supplied ASR result whose
+  correlation ID differs from the vision result before constructing Raw output; matching, absent and
+  typed-failure ASR cases remain supported. Focused and related tests, lint/type checks, repository
+  validators and diff checks passed. This closes only the offline P2-T2 contract/mapping slice;
+  live Lightning/GPU/model execution and all downstream/provider/mobile/shared scopes remain gated.

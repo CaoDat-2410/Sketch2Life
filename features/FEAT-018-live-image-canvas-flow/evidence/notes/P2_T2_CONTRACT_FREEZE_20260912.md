@@ -23,6 +23,8 @@ slice.
   `uncertainty_status=NOT_PROVIDED` rather than inventing a derived confidence formula.
 - Narration state is explicit: `NOT_SUPPLIED`, `ASR_SUCCEEDED`, or `ASR_FAILED`; ASR failure keeps
   a typed failure instead of collapsing into an empty claim list.
+- When ASR is supplied, its correlation ID must match the vision result; mismatches are rejected
+  before construction of the Raw result.
 - Upstream profile/catalog/config/model provenance is retained on successful model results.
 - Typed failure code, retryability and bounded upstream detail; no raw provider payload.
 - `gate_a_required=true` is mandatory. The contract has no eligibility, personality, readiness,
@@ -35,8 +37,8 @@ The offline implementation consists of the approved FEAT-018 schema, mapper and 
 port, with unit and contract tests. Mapping is deterministic and performs mandatory source-hash and
 correlation checks before constructing the Raw result. Only injected typed objects/fakes are used.
 
-Focused FEAT-018 tests: 14 passed.
-Related FEAT-003 vision/Qwen contract tests: 188 passed.
+Focused FEAT-018 tests: 17 passed.
+Related vision/Qwen/ASR tests: 801 passed, 5 skipped.
 Ruff: passed. Mypy: passed for all changed Python source files.
 
 Repository validators and `git diff --check` are run as the final handoff checks. This note contains

@@ -1,7 +1,7 @@
 # FEAT-018 live image and canvas context
 
 - Status: P1 complete; D3/P2-T1 closed for owner-approved offline Cohorts A+B; P2-T2 contract
-  boundary and bounded offline implementation approved; live Lightning execution and downstream
+  boundary and bounded offline implementation complete; live Lightning execution and downstream
   scopes remain separately gated
 - Plan revision: 2 with approved P2-T1 D2/D3-R2 and P2-T2 offline addenda
 - Owner: shared integration allocation pending contract freeze approval
@@ -88,3 +88,15 @@ bounded to `0..1`, required source SHA-256, typed failures, preserved ambiguity/
 schema, port, mapper, unit/contract tests and one sanitized feature-local evidence note listed in
 `approvals/TASK_APPROVAL.md`. Live Lightning/GPU execution, model-weight download, provider/network
 calls, mobile, Gate A UI, P1 eligibility, P3/P4 and shared integration remain separately gated.
+
+## P2-T2 offline implementation closure - 2026-09-12
+
+The owner approved the completed offline P2-T2 implementation at commit
+`11468d3a5a327697a491f09251a3210987337da0`. The change adds the mandatory ASR correlation guard
+before `RawUnderstandingResultV1` construction and regression coverage for matching and mismatched
+ASR results. Focused tests (17) and the related vision/Qwen/ASR sweep (801 passed, 5 skipped) passed;
+ruff, mypy, repository validators and `git diff --check` were clean. The independent verification
+report found no blocker and confirms the published contract/data scope is unchanged.
+
+P2-T2 offline is complete. Live Lightning/GPU/model execution, provider/network calls, P2-T3 through
+P2-T5, mobile, Gate A UI, P1 eligibility, P3/P4 and shared integration remain separately gated.

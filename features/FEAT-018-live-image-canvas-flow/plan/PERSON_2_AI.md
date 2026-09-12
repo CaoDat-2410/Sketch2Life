@@ -1,6 +1,6 @@
 # FEAT-018 Person 2 — Real image understanding and mapping
 
-## Current progress — 2026-09-10
+## Current progress — 2026-09-12
 
 - P2-T1 D1 image-admission specification: complete and published.
 - P2-T1 D2 isolated implementation: reviewed and accepted; deterministic tests and repository
@@ -8,8 +8,18 @@
 - P2-T1 D3-R2 Cohorts A and B: formally executed, independently verified, owner-approved and
   published/indexed.
 - P2-T1 is closed for owner-approved offline Cohorts A+B. P2-T2's typed contract boundary and
-  bounded offline implementation are approved; live Lightning execution, P2-T3 through P2-T5 and
-  shared integration remain separately gated.
+  bounded offline implementation are complete at commit `11468d3a5a327697a491f09251a3210987337da0`;
+  live Lightning execution, P2-T3 through P2-T5 and shared integration remain separately gated.
+
+### P2-T2 offline closure — 2026-09-12
+
+The approved offline schema, port, mapper and tests are complete. The final fix validates that any
+supplied ASR result has the same correlation ID as the vision result before mapping; no ASR result,
+matching success, and matching typed failure remain valid paths. The fix was independently verified
+with 17 focused tests, 801 related tests passed (5 skipped), clean ruff/mypy, all repository
+validators and `git diff --check`. No model, GPU, Lightning, provider or network execution occurred.
+The next step requires a separate live-execution approval with an explicit fixture, budget, redaction
+and evidence plan.
 
 ## Mission
 
