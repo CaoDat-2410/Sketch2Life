@@ -5,8 +5,10 @@
 - P2-T1 D1 image-admission specification: complete and published.
 - P2-T1 D2 isolated implementation: reviewed and accepted; deterministic tests and repository
   validators pass, with no FEAT-003 or provider integration.
-- P2-T1 D3 performance/native-memory evaluation: not started and not approved.
-- P2-T1 remains incomplete; P2-T2 through P2-T5 and shared integration remain separately gated.
+- P2-T1 D3-R2 Cohort A: formally executed and independently verified; owner-approved evidence is
+  published/indexed. Cohort B remains gated on owner review of the actual candidate images.
+- P2-T1 is complete for synthetic Cohort A only; P2-T2 through P2-T5, Cohort B and shared
+  integration remain separately gated.
 
 ## Mission
 

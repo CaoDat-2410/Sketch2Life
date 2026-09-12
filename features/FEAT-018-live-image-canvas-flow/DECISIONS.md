@@ -51,3 +51,42 @@
 - 2026-09-11: Implement the approved P1 catalog and Gate integrity polish without changing contracts or downstream code. Exclude `OBJ_*` and broad area taxonomy labels from anchor metadata; treat optional selected activity/objective refs as exact constraints when present; use one Gate B approval path; and fail closed on duplicate template IDs, missing objective titles, spec ID drift and spec hash drift.
 
 - 2026-09-11: Add an offline provider-shaped compatibility suite at the P1 boundary. Keep Qwen3-VL-8B-Instruct and Whisper large-v3-turbo identifiers in provenance only; validate provider outputs through the existing strict adapters, require adult confirmation before P1, and preserve source/hash/contract identity. Live provider execution remains separately gated.
+
+- 2026-09-10 D3-R2 approval decision: approve the isolated P2-T1 offline performance/native-memory
+  evaluation plan and D3-U1 through D3-U6. The 5-second target binds only to the committed D2
+  `admit()` interval. The 256-MiB target binds only to the conservative `[L,U]` working-set bracket;
+  a crossing bracket is `INCONCLUSIVE`, never a pass. Cohort A implementation/execution may begin.
+  Cohort B execution remains gated on owner visual review of the actual eight non-sensitive images,
+  and completed sanitized evidence requires owner review before indexing or closing D3/P2-T1. No
+  D2, FEAT-003, provider, mobile, Gate A, public-contract or production-isolation scope is approved.
+
+- 2026-09-10 D3 implementation-state record: the approved D3-R2 harness and deterministic Cohort A
+  manifest are implemented and preflight-verified. The 320-sample run is explicitly non-reporting
+  because it used an uncommitted working tree; it cannot be indexed, treated as canonical target
+  evidence, or used to close D3/P2-T1. Formal execution must identify the exact reviewed commit.
+  Cohort B and completed-output publication gates are unchanged.
+
+- 2026-09-11 D3 double-review record: two explicit review passes were completed against the
+  implementation and tests. The first pass covered protocol/contract correctness and scope
+  isolation; the second covered adversarial inputs, stdin/output limits, cleanup, privacy,
+  Win32-memory validation and aggregation/statistics. Verified fixes are limited to the D3 harness:
+  asynchronous bounded stdin writing, rejection of untracked worktrees for formal runs, timing
+  status recomputation during aggregation, strict environment-envelope validation, and a narrow
+  exception for missing digests only on byte-budget rejection. Regression tests cover each fix.
+  D2 behavior, FEAT-003 and all downstream scopes remain unchanged; formal exact-commit execution,
+  owner review and evidence indexing remain pending.
+
+- 2026-09-11 owner approval and closure decision: approve the Formal Cohort A execution at commit
+  `c77230ca1593d5cd31098b5e58f3ff2a13d18a63`, including the sanitized metrics artifact and the
+  independent verification report. Index both reports and the JSON metrics under FEAT-018 evidence
+  and close D3/P2-T1 for the synthetic Cohort A scope only. Cohort B remains unapproved and must
+  retain its visual-source gate. No D2, FEAT-003, provider, mobile, public-contract or shared
+  integration scope is thereby authorized.
+
+- 2026-09-12 owner approval and closure decision: approve the Formal Cohort B execution and its
+  independent verification with verdict `PASS WITH FINDINGS`. The 24-sample result (eight images,
+  three fresh-process repeats each) is accepted with zero data discrepancies. Index the sanitized
+  Cohort B report, metrics and independent verification, update the feature context and plan, and
+  close D3/P2-T1 for the offline Cohort A+B scope. Carry the three verification findings as
+  follow-up work; no Cohort B rerun is required. Provider, mobile, Gate A, public-contract and
+  shared-integration scopes remain separately gated.

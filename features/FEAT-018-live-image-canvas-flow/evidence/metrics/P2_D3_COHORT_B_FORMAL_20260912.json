@@ -1,0 +1,2130 @@
+{
+  "aggregate": {
+    "maximum": 108.2184,
+    "median": 47.98295,
+    "memory_failure_count": 0,
+    "memory_inconclusive_count": 0,
+    "memory_invalid_count": 0,
+    "memory_lower_bound_max_bytes": 1798144.0,
+    "memory_not_measured_count": 0,
+    "memory_status": "WITHIN_TARGET",
+    "memory_upper_bound_max_bytes": 14204928.0,
+    "minimum": 7.6721,
+    "parent_wall_max_ms": 449.1953,
+    "parent_wall_median_ms": 388.16375,
+    "process_failure_count": 0,
+    "sample_count": 24,
+    "timing_status": "WITHIN_TARGET"
+  },
+  "cohort": "B",
+  "commit_identity": "9191565a8961aab1bd10b2a0aa3efff7aefdf998",
+  "complete": true,
+  "composition": {
+    "jpeg_count": 4,
+    "png_count": 4
+  },
+  "date": "2026-09-12",
+  "execution_occurred": true,
+  "expected_image_count": 8,
+  "limitations": [
+    "Eight images is a diagnostic cohort, not a production-representative or statistically representative sample (D3-R2 section 6, D3-U2).",
+    "The 5000 ms admission-time and 256 MiB native-memory targets are observational per D1/D3-R2; this report makes no runtime-enforcement claim.",
+    "Native-inclusive memory uses the conservative [L, U] bracket: WITHIN_TARGET requires U <= target, EXCEEDS_TARGET requires L > target, otherwise INCONCLUSIVE; no peak-to-peak delta or polling observation is used.",
+    "Cohort B reports minimum/median/maximum only; p95 is intentionally never computed from 3 repeats (D3-U2)."
+  ],
+  "manifest_correction": {
+    "after_hex_length": 64,
+    "before_hex_length": 63,
+    "description": "The local candidate manifest recorded B08 SHA-256 as a 63-character value, one hex character short of a valid digest, identical to a matching truncation independently present in the local source-review note. The other seven entries matched their files exactly. B08 byte count (1721040) and dimensions (1254x1254) already matched the record. Recomputed directly from the on-disk file, the true 64-character digest is the recorded value plus a trailing \"8\". Both local files were corrected to the true digest before any D3 execution, with the owner explicitly confirming the correction; no image content changed.",
+    "field": "sha256",
+    "fixture_id": "B08"
+  },
+  "manifest_sha256": "18d760e37211048996e073d61cf03a2155c26e022ef7dd2c48720a5bcf6cd0ea",
+  "per_image": {
+    "B01": {
+      "aggregate": {
+        "maximum": 8.7248,
+        "median": 8.6636,
+        "memory_failure_count": 0,
+        "memory_inconclusive_count": 0,
+        "memory_invalid_count": 0,
+        "memory_lower_bound_max_bytes": 1794048.0,
+        "memory_not_measured_count": 0,
+        "memory_status": "WITHIN_TARGET",
+        "memory_upper_bound_max_bytes": 5242880.0,
+        "minimum": 8.3074,
+        "parent_wall_max_ms": 351.909,
+        "parent_wall_median_ms": 340.6787,
+        "process_failure_count": 0,
+        "sample_count": 3,
+        "timing_status": "WITHIN_TARGET"
+      },
+      "byte_count": 337481,
+      "declared_height": 1254,
+      "declared_width": 1254,
+      "format": "JPEG",
+      "mime": "image/jpeg",
+      "outcomes_observed": [
+        "ADMITTED"
+      ],
+      "reasons_observed": [],
+      "sha256": "c60faed33034b5911e611a512dde03cc94fb21146f85dfba4ef7236268ab9cc3"
+    },
+    "B02": {
+      "aggregate": {
+        "maximum": 9.7009,
+        "median": 9.0484,
+        "memory_failure_count": 0,
+        "memory_inconclusive_count": 0,
+        "memory_invalid_count": 0,
+        "memory_lower_bound_max_bytes": 1789952.0,
+        "memory_not_measured_count": 0,
+        "memory_status": "WITHIN_TARGET",
+        "memory_upper_bound_max_bytes": 5394432.0,
+        "minimum": 9.0432,
+        "parent_wall_max_ms": 374.435,
+        "parent_wall_median_ms": 330.8268,
+        "process_failure_count": 0,
+        "sample_count": 3,
+        "timing_status": "WITHIN_TARGET"
+      },
+      "byte_count": 389288,
+      "declared_height": 1254,
+      "declared_width": 1254,
+      "format": "JPEG",
+      "mime": "image/jpeg",
+      "outcomes_observed": [
+        "ADMITTED"
+      ],
+      "reasons_observed": [],
+      "sha256": "65852906e2997e313979aa9b8c9b0db65b2d983743e743f93e29cdeed478278a"
+    },
+    "B03": {
+      "aggregate": {
+        "maximum": 8.5336,
+        "median": 8.4732,
+        "memory_failure_count": 0,
+        "memory_inconclusive_count": 0,
+        "memory_invalid_count": 0,
+        "memory_lower_bound_max_bytes": 1785856.0,
+        "memory_not_measured_count": 0,
+        "memory_status": "WITHIN_TARGET",
+        "memory_upper_bound_max_bytes": 5214208.0,
+        "minimum": 8.0992,
+        "parent_wall_max_ms": 355.1875,
+        "parent_wall_median_ms": 345.854,
+        "process_failure_count": 0,
+        "sample_count": 3,
+        "timing_status": "WITHIN_TARGET"
+      },
+      "byte_count": 328336,
+      "declared_height": 1254,
+      "declared_width": 1254,
+      "format": "JPEG",
+      "mime": "image/jpeg",
+      "outcomes_observed": [
+        "ADMITTED"
+      ],
+      "reasons_observed": [],
+      "sha256": "77fcd37dd02d6453d0dccde5b4e6c23b3592e083ce5dc0747651d37d95930522"
+    },
+    "B04": {
+      "aggregate": {
+        "maximum": 8.1496,
+        "median": 8.1253,
+        "memory_failure_count": 0,
+        "memory_inconclusive_count": 0,
+        "memory_invalid_count": 0,
+        "memory_lower_bound_max_bytes": 1798144.0,
+        "memory_not_measured_count": 0,
+        "memory_status": "WITHIN_TARGET",
+        "memory_upper_bound_max_bytes": 5144576.0,
+        "minimum": 7.6721,
+        "parent_wall_max_ms": 345.0165,
+        "parent_wall_median_ms": 331.3263,
+        "process_failure_count": 0,
+        "sample_count": 3,
+        "timing_status": "WITHIN_TARGET"
+      },
+      "byte_count": 303048,
+      "declared_height": 1254,
+      "declared_width": 1254,
+      "format": "JPEG",
+      "mime": "image/jpeg",
+      "outcomes_observed": [
+        "ADMITTED"
+      ],
+      "reasons_observed": [],
+      "sha256": "60ba1d6f49e67c3c21b50f1f15cbfe3a2a7d7f9d0bbe0f27762a81d31452404f"
+    },
+    "B05": {
+      "aggregate": {
+        "maximum": 108.2184,
+        "median": 107.752,
+        "memory_failure_count": 0,
+        "memory_inconclusive_count": 0,
+        "memory_invalid_count": 0,
+        "memory_lower_bound_max_bytes": 1757184.0,
+        "memory_not_measured_count": 0,
+        "memory_status": "WITHIN_TARGET",
+        "memory_upper_bound_max_bytes": 14204928.0,
+        "minimum": 107.6164,
+        "parent_wall_max_ms": 437.2521,
+        "parent_wall_median_ms": 432.445,
+        "process_failure_count": 0,
+        "sample_count": 3,
+        "timing_status": "WITHIN_TARGET"
+      },
+      "byte_count": 2562614,
+      "declared_height": 1254,
+      "declared_width": 1254,
+      "format": "PNG",
+      "mime": "image/png",
+      "outcomes_observed": [
+        "ADMITTED"
+      ],
+      "reasons_observed": [],
+      "sha256": "54341d960732a1a5b18597374136eda2aa779d8fcbe32da095afe0603bb3dec7"
+    },
+    "B06": {
+      "aggregate": {
+        "maximum": 101.3834,
+        "median": 100.6828,
+        "memory_failure_count": 0,
+        "memory_inconclusive_count": 0,
+        "memory_invalid_count": 0,
+        "memory_lower_bound_max_bytes": 1736704.0,
+        "memory_not_measured_count": 0,
+        "memory_status": "WITHIN_TARGET",
+        "memory_upper_bound_max_bytes": 12496896.0,
+        "minimum": 98.0326,
+        "parent_wall_max_ms": 434.1637,
+        "parent_wall_median_ms": 431.2534,
+        "process_failure_count": 0,
+        "sample_count": 3,
+        "timing_status": "WITHIN_TARGET"
+      },
+      "byte_count": 2006855,
+      "declared_height": 1254,
+      "declared_width": 1254,
+      "format": "PNG",
+      "mime": "image/png",
+      "outcomes_observed": [
+        "ADMITTED"
+      ],
+      "reasons_observed": [],
+      "sha256": "2acc86ac23172be3f7806f22ef6479bf4d6d696bb2187ceaa312bb2fb8f8f7d8"
+    },
+    "B07": {
+      "aggregate": {
+        "maximum": 93.0883,
+        "median": 92.9876,
+        "memory_failure_count": 0,
+        "memory_inconclusive_count": 0,
+        "memory_invalid_count": 0,
+        "memory_lower_bound_max_bytes": 1744896.0,
+        "memory_not_measured_count": 0,
+        "memory_status": "WITHIN_TARGET",
+        "memory_upper_bound_max_bytes": 11673600.0,
+        "minimum": 92.3419,
+        "parent_wall_max_ms": 449.1953,
+        "parent_wall_median_ms": 415.4811,
+        "process_failure_count": 0,
+        "sample_count": 3,
+        "timing_status": "WITHIN_TARGET"
+      },
+      "byte_count": 1726857,
+      "declared_height": 1254,
+      "declared_width": 1254,
+      "format": "PNG",
+      "mime": "image/png",
+      "outcomes_observed": [
+        "ADMITTED"
+      ],
+      "reasons_observed": [],
+      "sha256": "a5d074a66076c0051b10313df4ba9c270feba72b0f14f303ca647a6c6b337aca"
+    },
+    "B08": {
+      "aggregate": {
+        "maximum": 87.8845,
+        "median": 86.893,
+        "memory_failure_count": 0,
+        "memory_inconclusive_count": 0,
+        "memory_invalid_count": 0,
+        "memory_lower_bound_max_bytes": 1736704.0,
+        "memory_not_measured_count": 0,
+        "memory_status": "WITHIN_TARGET",
+        "memory_upper_bound_max_bytes": 11653120.0,
+        "minimum": 86.265,
+        "parent_wall_max_ms": 431.7,
+        "parent_wall_median_ms": 419.7282,
+        "process_failure_count": 0,
+        "sample_count": 3,
+        "timing_status": "WITHIN_TARGET"
+      },
+      "byte_count": 1721040,
+      "declared_height": 1254,
+      "declared_width": 1254,
+      "format": "PNG",
+      "mime": "image/png",
+      "outcomes_observed": [
+        "ADMITTED"
+      ],
+      "reasons_observed": [],
+      "sha256": "6f1986d771013357fd5d5bdc595131cbe4c96e3cef577ba4e762cdd0066dabc8"
+    }
+  },
+  "raw_inputs": {
+    "description": "The 8 raw Cohort B image files and the local candidate-manifest.json remain under tmp/feat018-cohort-b-input-20260912/, which is Git-ignored. Only this sanitized report and its Markdown counterpart are tracked.",
+    "tracked_in_git": false
+  },
+  "repeats_per_image": 3,
+  "sample_count": 24,
+  "samples": [
+    {
+      "admission_elapsed_ms": 8.3074,
+      "artifact_ref_verified": true,
+      "cohort": "B",
+      "environment": {
+        "architecture": "AMD64",
+        "commit_identity": "9191565a8961aab1bd10b2a0aa3efff7aefdf998",
+        "ffmpeg_libraries": {
+          "libavcodec": "62.28.102",
+          "libavdevice": "62.3.102",
+          "libavfilter": "11.14.102",
+          "libavformat": "62.12.102",
+          "libavutil": "60.26.102",
+          "libswresample": "6.3.102",
+          "libswscale": "9.5.102"
+        },
+        "os": "Windows",
+        "os_release": "11",
+        "pyav": "18.1.0",
+        "python": "3.12.10"
+      },
+      "exit_code": 0,
+      "fixture_id": "B01",
+      "limits": {
+        "allowed_codecs": [
+          "mjpeg",
+          "png"
+        ],
+        "allowed_containers": [
+          "jpeg_pipe",
+          "png_pipe"
+        ],
+        "allowed_pixel_formats": [
+          "gray",
+          "monob",
+          "pal8",
+          "rgb24",
+          "rgba",
+          "yuvj420p"
+        ],
+        "max_file_bytes": 5000000,
+        "max_frames": 1,
+        "max_longest_edge": 4096,
+        "max_pixels": 4000000
+      },
+      "measurement_error_code": null,
+      "measurement_failure": null,
+      "memory_lower_bound_bytes": 1794048,
+      "memory_status": "WITHIN_TARGET",
+      "memory_upper_bound_bytes": 5242880,
+      "metadata": {
+        "codec": "mjpeg",
+        "container": "jpeg_pipe",
+        "height": 1254,
+        "pixel_format": "yuvj420p",
+        "width": 1254
+      },
+      "outcome": "ADMITTED",
+      "parent_wall_ms": 340.6787,
+      "peak_after_bytes": 47808512,
+      "peak_before_bytes": 42565632,
+      "peak_saturated": false,
+      "private_usage_after_bytes": 34877440,
+      "private_usage_before_bytes": 34000896,
+      "protocol_name": "Feat018ImageAdmissionEvaluationV1",
+      "protocol_version": "1.0",
+      "reason": null,
+      "repeat_index": 0,
+      "sample_id": "cohort-b:B01:0",
+      "source_bytes": 337481,
+      "source_digest_verified": true,
+      "source_sha256": "c60faed33034b5911e611a512dde03cc94fb21146f85dfba4ef7236268ab9cc3",
+      "timing_status": "WITHIN_TARGET",
+      "working_set_after_bytes": 44359680,
+      "working_set_before_bytes": 42565632
+    },
+    {
+      "admission_elapsed_ms": 8.7248,
+      "artifact_ref_verified": true,
+      "cohort": "B",
+      "environment": {
+        "architecture": "AMD64",
+        "commit_identity": "9191565a8961aab1bd10b2a0aa3efff7aefdf998",
+        "ffmpeg_libraries": {
+          "libavcodec": "62.28.102",
+          "libavdevice": "62.3.102",
+          "libavfilter": "11.14.102",
+          "libavformat": "62.12.102",
+          "libavutil": "60.26.102",
+          "libswresample": "6.3.102",
+          "libswscale": "9.5.102"
+        },
+        "os": "Windows",
+        "os_release": "11",
+        "pyav": "18.1.0",
+        "python": "3.12.10"
+      },
+      "exit_code": 0,
+      "fixture_id": "B01",
+      "limits": {
+        "allowed_codecs": [
+          "mjpeg",
+          "png"
+        ],
+        "allowed_containers": [
+          "jpeg_pipe",
+          "png_pipe"
+        ],
+        "allowed_pixel_formats": [
+          "gray",
+          "monob",
+          "pal8",
+          "rgb24",
+          "rgba",
+          "yuvj420p"
+        ],
+        "max_file_bytes": 5000000,
+        "max_frames": 1,
+        "max_longest_edge": 4096,
+        "max_pixels": 4000000
+      },
+      "measurement_error_code": null,
+      "measurement_failure": null,
+      "memory_lower_bound_bytes": 1773568,
+      "memory_status": "WITHIN_TARGET",
+      "memory_upper_bound_bytes": 5222400,
+      "metadata": {
+        "codec": "mjpeg",
+        "container": "jpeg_pipe",
+        "height": 1254,
+        "pixel_format": "yuvj420p",
+        "width": 1254
+      },
+      "outcome": "ADMITTED",
+      "parent_wall_ms": 351.909,
+      "peak_after_bytes": 47771648,
+      "peak_before_bytes": 42549248,
+      "peak_saturated": false,
+      "private_usage_after_bytes": 34869248,
+      "private_usage_before_bytes": 33992704,
+      "protocol_name": "Feat018ImageAdmissionEvaluationV1",
+      "protocol_version": "1.0",
+      "reason": null,
+      "repeat_index": 1,
+      "sample_id": "cohort-b:B01:1",
+      "source_bytes": 337481,
+      "source_digest_verified": true,
+      "source_sha256": "c60faed33034b5911e611a512dde03cc94fb21146f85dfba4ef7236268ab9cc3",
+      "timing_status": "WITHIN_TARGET",
+      "working_set_after_bytes": 44322816,
+      "working_set_before_bytes": 42549248
+    },
+    {
+      "admission_elapsed_ms": 8.6636,
+      "artifact_ref_verified": true,
+      "cohort": "B",
+      "environment": {
+        "architecture": "AMD64",
+        "commit_identity": "9191565a8961aab1bd10b2a0aa3efff7aefdf998",
+        "ffmpeg_libraries": {
+          "libavcodec": "62.28.102",
+          "libavdevice": "62.3.102",
+          "libavfilter": "11.14.102",
+          "libavformat": "62.12.102",
+          "libavutil": "60.26.102",
+          "libswresample": "6.3.102",
+          "libswscale": "9.5.102"
+        },
+        "os": "Windows",
+        "os_release": "11",
+        "pyav": "18.1.0",
+        "python": "3.12.10"
+      },
+      "exit_code": 0,
+      "fixture_id": "B01",
+      "limits": {
+        "allowed_codecs": [
+          "mjpeg",
+          "png"
+        ],
+        "allowed_containers": [
+          "jpeg_pipe",
+          "png_pipe"
+        ],
+        "allowed_pixel_formats": [
+          "gray",
+          "monob",
+          "pal8",
+          "rgb24",
+          "rgba",
+          "yuvj420p"
+        ],
+        "max_file_bytes": 5000000,
+        "max_frames": 1,
+        "max_longest_edge": 4096,
+        "max_pixels": 4000000
+      },
+      "measurement_error_code": null,
+      "measurement_failure": null,
+      "memory_lower_bound_bytes": 1761280,
+      "memory_status": "WITHIN_TARGET",
+      "memory_upper_bound_bytes": 5210112,
+      "metadata": {
+        "codec": "mjpeg",
+        "container": "jpeg_pipe",
+        "height": 1254,
+        "pixel_format": "yuvj420p",
+        "width": 1254
+      },
+      "outcome": "ADMITTED",
+      "parent_wall_ms": 320.0434,
+      "peak_after_bytes": 47788032,
+      "peak_before_bytes": 42577920,
+      "peak_saturated": false,
+      "private_usage_after_bytes": 34889728,
+      "private_usage_before_bytes": 34050048,
+      "protocol_name": "Feat018ImageAdmissionEvaluationV1",
+      "protocol_version": "1.0",
+      "reason": null,
+      "repeat_index": 2,
+      "sample_id": "cohort-b:B01:2",
+      "source_bytes": 337481,
+      "source_digest_verified": true,
+      "source_sha256": "c60faed33034b5911e611a512dde03cc94fb21146f85dfba4ef7236268ab9cc3",
+      "timing_status": "WITHIN_TARGET",
+      "working_set_after_bytes": 44339200,
+      "working_set_before_bytes": 42577920
+    },
+    {
+      "admission_elapsed_ms": 9.7009,
+      "artifact_ref_verified": true,
+      "cohort": "B",
+      "environment": {
+        "architecture": "AMD64",
+        "commit_identity": "9191565a8961aab1bd10b2a0aa3efff7aefdf998",
+        "ffmpeg_libraries": {
+          "libavcodec": "62.28.102",
+          "libavdevice": "62.3.102",
+          "libavfilter": "11.14.102",
+          "libavformat": "62.12.102",
+          "libavutil": "60.26.102",
+          "libswresample": "6.3.102",
+          "libswscale": "9.5.102"
+        },
+        "os": "Windows",
+        "os_release": "11",
+        "pyav": "18.1.0",
+        "python": "3.12.10"
+      },
+      "exit_code": 0,
+      "fixture_id": "B02",
+      "limits": {
+        "allowed_codecs": [
+          "mjpeg",
+          "png"
+        ],
+        "allowed_containers": [
+          "jpeg_pipe",
+          "png_pipe"
+        ],
+        "allowed_pixel_formats": [
+          "gray",
+          "monob",
+          "pal8",
+          "rgb24",
+          "rgba",
+          "yuvj420p"
+        ],
+        "max_file_bytes": 5000000,
+        "max_frames": 1,
+        "max_longest_edge": 4096,
+        "max_pixels": 4000000
+      },
+      "measurement_error_code": null,
+      "measurement_failure": null,
+      "memory_lower_bound_bytes": 1785856,
+      "memory_status": "WITHIN_TARGET",
+      "memory_upper_bound_bytes": 5390336,
+      "metadata": {
+        "codec": "mjpeg",
+        "container": "jpeg_pipe",
+        "height": 1254,
+        "pixel_format": "yuvj420p",
+        "width": 1254
+      },
+      "outcome": "ADMITTED",
+      "parent_wall_ms": 330.8268,
+      "peak_after_bytes": 47759360,
+      "peak_before_bytes": 42369024,
+      "peak_saturated": false,
+      "private_usage_after_bytes": 33955840,
+      "private_usage_before_bytes": 33808384,
+      "protocol_name": "Feat018ImageAdmissionEvaluationV1",
+      "protocol_version": "1.0",
+      "reason": null,
+      "repeat_index": 0,
+      "sample_id": "cohort-b:B02:0",
+      "source_bytes": 389288,
+      "source_digest_verified": true,
+      "source_sha256": "65852906e2997e313979aa9b8c9b0db65b2d983743e743f93e29cdeed478278a",
+      "timing_status": "WITHIN_TARGET",
+      "working_set_after_bytes": 44154880,
+      "working_set_before_bytes": 42369024
+    },
+    {
+      "admission_elapsed_ms": 9.0484,
+      "artifact_ref_verified": true,
+      "cohort": "B",
+      "environment": {
+        "architecture": "AMD64",
+        "commit_identity": "9191565a8961aab1bd10b2a0aa3efff7aefdf998",
+        "ffmpeg_libraries": {
+          "libavcodec": "62.28.102",
+          "libavdevice": "62.3.102",
+          "libavfilter": "11.14.102",
+          "libavformat": "62.12.102",
+          "libavutil": "60.26.102",
+          "libswresample": "6.3.102",
+          "libswscale": "9.5.102"
+        },
+        "os": "Windows",
+        "os_release": "11",
+        "pyav": "18.1.0",
+        "python": "3.12.10"
+      },
+      "exit_code": 0,
+      "fixture_id": "B02",
+      "limits": {
+        "allowed_codecs": [
+          "mjpeg",
+          "png"
+        ],
+        "allowed_containers": [
+          "jpeg_pipe",
+          "png_pipe"
+        ],
+        "allowed_pixel_formats": [
+          "gray",
+          "monob",
+          "pal8",
+          "rgb24",
+          "rgba",
+          "yuvj420p"
+        ],
+        "max_file_bytes": 5000000,
+        "max_frames": 1,
+        "max_longest_edge": 4096,
+        "max_pixels": 4000000
+      },
+      "measurement_error_code": null,
+      "measurement_failure": null,
+      "memory_lower_bound_bytes": 1789952,
+      "memory_status": "WITHIN_TARGET",
+      "memory_upper_bound_bytes": 5394432,
+      "metadata": {
+        "codec": "mjpeg",
+        "container": "jpeg_pipe",
+        "height": 1254,
+        "pixel_format": "yuvj420p",
+        "width": 1254
+      },
+      "outcome": "ADMITTED",
+      "parent_wall_ms": 374.435,
+      "peak_after_bytes": 48103424,
+      "peak_before_bytes": 42708992,
+      "peak_saturated": false,
+      "private_usage_after_bytes": 34349056,
+      "private_usage_before_bytes": 34201600,
+      "protocol_name": "Feat018ImageAdmissionEvaluationV1",
+      "protocol_version": "1.0",
+      "reason": null,
+      "repeat_index": 1,
+      "sample_id": "cohort-b:B02:1",
+      "source_bytes": 389288,
+      "source_digest_verified": true,
+      "source_sha256": "65852906e2997e313979aa9b8c9b0db65b2d983743e743f93e29cdeed478278a",
+      "timing_status": "WITHIN_TARGET",
+      "working_set_after_bytes": 44498944,
+      "working_set_before_bytes": 42708992
+    },
+    {
+      "admission_elapsed_ms": 9.0432,
+      "artifact_ref_verified": true,
+      "cohort": "B",
+      "environment": {
+        "architecture": "AMD64",
+        "commit_identity": "9191565a8961aab1bd10b2a0aa3efff7aefdf998",
+        "ffmpeg_libraries": {
+          "libavcodec": "62.28.102",
+          "libavdevice": "62.3.102",
+          "libavfilter": "11.14.102",
+          "libavformat": "62.12.102",
+          "libavutil": "60.26.102",
+          "libswresample": "6.3.102",
+          "libswscale": "9.5.102"
+        },
+        "os": "Windows",
+        "os_release": "11",
+        "pyav": "18.1.0",
+        "python": "3.12.10"
+      },
+      "exit_code": 0,
+      "fixture_id": "B02",
+      "limits": {
+        "allowed_codecs": [
+          "mjpeg",
+          "png"
+        ],
+        "allowed_containers": [
+          "jpeg_pipe",
+          "png_pipe"
+        ],
+        "allowed_pixel_formats": [
+          "gray",
+          "monob",
+          "pal8",
+          "rgb24",
+          "rgba",
+          "yuvj420p"
+        ],
+        "max_file_bytes": 5000000,
+        "max_frames": 1,
+        "max_longest_edge": 4096,
+        "max_pixels": 4000000
+      },
+      "measurement_error_code": null,
+      "measurement_failure": null,
+      "memory_lower_bound_bytes": 1773568,
+      "memory_status": "WITHIN_TARGET",
+      "memory_upper_bound_bytes": 5378048,
+      "metadata": {
+        "codec": "mjpeg",
+        "container": "jpeg_pipe",
+        "height": 1254,
+        "pixel_format": "yuvj420p",
+        "width": 1254
+      },
+      "outcome": "ADMITTED",
+      "parent_wall_ms": 327.1774,
+      "peak_after_bytes": 47968256,
+      "peak_before_bytes": 42590208,
+      "peak_saturated": false,
+      "private_usage_after_bytes": 34181120,
+      "private_usage_before_bytes": 34029568,
+      "protocol_name": "Feat018ImageAdmissionEvaluationV1",
+      "protocol_version": "1.0",
+      "reason": null,
+      "repeat_index": 2,
+      "sample_id": "cohort-b:B02:2",
+      "source_bytes": 389288,
+      "source_digest_verified": true,
+      "source_sha256": "65852906e2997e313979aa9b8c9b0db65b2d983743e743f93e29cdeed478278a",
+      "timing_status": "WITHIN_TARGET",
+      "working_set_after_bytes": 44363776,
+      "working_set_before_bytes": 42590208
+    },
+    {
+      "admission_elapsed_ms": 8.5336,
+      "artifact_ref_verified": true,
+      "cohort": "B",
+      "environment": {
+        "architecture": "AMD64",
+        "commit_identity": "9191565a8961aab1bd10b2a0aa3efff7aefdf998",
+        "ffmpeg_libraries": {
+          "libavcodec": "62.28.102",
+          "libavdevice": "62.3.102",
+          "libavfilter": "11.14.102",
+          "libavformat": "62.12.102",
+          "libavutil": "60.26.102",
+          "libswresample": "6.3.102",
+          "libswscale": "9.5.102"
+        },
+        "os": "Windows",
+        "os_release": "11",
+        "pyav": "18.1.0",
+        "python": "3.12.10"
+      },
+      "exit_code": 0,
+      "fixture_id": "B03",
+      "limits": {
+        "allowed_codecs": [
+          "mjpeg",
+          "png"
+        ],
+        "allowed_containers": [
+          "jpeg_pipe",
+          "png_pipe"
+        ],
+        "allowed_pixel_formats": [
+          "gray",
+          "monob",
+          "pal8",
+          "rgb24",
+          "rgba",
+          "yuvj420p"
+        ],
+        "max_file_bytes": 5000000,
+        "max_frames": 1,
+        "max_longest_edge": 4096,
+        "max_pixels": 4000000
+      },
+      "measurement_error_code": null,
+      "measurement_failure": null,
+      "memory_lower_bound_bytes": 1753088,
+      "memory_status": "WITHIN_TARGET",
+      "memory_upper_bound_bytes": 5181440,
+      "metadata": {
+        "codec": "mjpeg",
+        "container": "jpeg_pipe",
+        "height": 1254,
+        "pixel_format": "yuvj420p",
+        "width": 1254
+      },
+      "outcome": "ADMITTED",
+      "parent_wall_ms": 355.1875,
+      "peak_after_bytes": 47767552,
+      "peak_before_bytes": 42586112,
+      "peak_saturated": false,
+      "private_usage_after_bytes": 34897920,
+      "private_usage_before_bytes": 34086912,
+      "protocol_name": "Feat018ImageAdmissionEvaluationV1",
+      "protocol_version": "1.0",
+      "reason": null,
+      "repeat_index": 0,
+      "sample_id": "cohort-b:B03:0",
+      "source_bytes": 328336,
+      "source_digest_verified": true,
+      "source_sha256": "77fcd37dd02d6453d0dccde5b4e6c23b3592e083ce5dc0747651d37d95930522",
+      "timing_status": "WITHIN_TARGET",
+      "working_set_after_bytes": 44339200,
+      "working_set_before_bytes": 42586112
+    },
+    {
+      "admission_elapsed_ms": 8.4732,
+      "artifact_ref_verified": true,
+      "cohort": "B",
+      "environment": {
+        "architecture": "AMD64",
+        "commit_identity": "9191565a8961aab1bd10b2a0aa3efff7aefdf998",
+        "ffmpeg_libraries": {
+          "libavcodec": "62.28.102",
+          "libavdevice": "62.3.102",
+          "libavfilter": "11.14.102",
+          "libavformat": "62.12.102",
+          "libavutil": "60.26.102",
+          "libswresample": "6.3.102",
+          "libswscale": "9.5.102"
+        },
+        "os": "Windows",
+        "os_release": "11",
+        "pyav": "18.1.0",
+        "python": "3.12.10"
+      },
+      "exit_code": 0,
+      "fixture_id": "B03",
+      "limits": {
+        "allowed_codecs": [
+          "mjpeg",
+          "png"
+        ],
+        "allowed_containers": [
+          "jpeg_pipe",
+          "png_pipe"
+        ],
+        "allowed_pixel_formats": [
+          "gray",
+          "monob",
+          "pal8",
+          "rgb24",
+          "rgba",
+          "yuvj420p"
+        ],
+        "max_file_bytes": 5000000,
+        "max_frames": 1,
+        "max_longest_edge": 4096,
+        "max_pixels": 4000000
+      },
+      "measurement_error_code": null,
+      "measurement_failure": null,
+      "memory_lower_bound_bytes": 1785856,
+      "memory_status": "WITHIN_TARGET",
+      "memory_upper_bound_bytes": 5214208,
+      "metadata": {
+        "codec": "mjpeg",
+        "container": "jpeg_pipe",
+        "height": 1254,
+        "pixel_format": "yuvj420p",
+        "width": 1254
+      },
+      "outcome": "ADMITTED",
+      "parent_wall_ms": 345.854,
+      "peak_after_bytes": 47763456,
+      "peak_before_bytes": 42549248,
+      "peak_saturated": false,
+      "private_usage_after_bytes": 34906112,
+      "private_usage_before_bytes": 34058240,
+      "protocol_name": "Feat018ImageAdmissionEvaluationV1",
+      "protocol_version": "1.0",
+      "reason": null,
+      "repeat_index": 1,
+      "sample_id": "cohort-b:B03:1",
+      "source_bytes": 328336,
+      "source_digest_verified": true,
+      "source_sha256": "77fcd37dd02d6453d0dccde5b4e6c23b3592e083ce5dc0747651d37d95930522",
+      "timing_status": "WITHIN_TARGET",
+      "working_set_after_bytes": 44335104,
+      "working_set_before_bytes": 42549248
+    },
+    {
+      "admission_elapsed_ms": 8.0992,
+      "artifact_ref_verified": true,
+      "cohort": "B",
+      "environment": {
+        "architecture": "AMD64",
+        "commit_identity": "9191565a8961aab1bd10b2a0aa3efff7aefdf998",
+        "ffmpeg_libraries": {
+          "libavcodec": "62.28.102",
+          "libavdevice": "62.3.102",
+          "libavfilter": "11.14.102",
+          "libavformat": "62.12.102",
+          "libavutil": "60.26.102",
+          "libswresample": "6.3.102",
+          "libswscale": "9.5.102"
+        },
+        "os": "Windows",
+        "os_release": "11",
+        "pyav": "18.1.0",
+        "python": "3.12.10"
+      },
+      "exit_code": 0,
+      "fixture_id": "B03",
+      "limits": {
+        "allowed_codecs": [
+          "mjpeg",
+          "png"
+        ],
+        "allowed_containers": [
+          "jpeg_pipe",
+          "png_pipe"
+        ],
+        "allowed_pixel_formats": [
+          "gray",
+          "monob",
+          "pal8",
+          "rgb24",
+          "rgba",
+          "yuvj420p"
+        ],
+        "max_file_bytes": 5000000,
+        "max_frames": 1,
+        "max_longest_edge": 4096,
+        "max_pixels": 4000000
+      },
+      "measurement_error_code": null,
+      "measurement_failure": null,
+      "memory_lower_bound_bytes": 1781760,
+      "memory_status": "WITHIN_TARGET",
+      "memory_upper_bound_bytes": 5210112,
+      "metadata": {
+        "codec": "mjpeg",
+        "container": "jpeg_pipe",
+        "height": 1254,
+        "pixel_format": "yuvj420p",
+        "width": 1254
+      },
+      "outcome": "ADMITTED",
+      "parent_wall_ms": 316.6868,
+      "peak_after_bytes": 47747072,
+      "peak_before_bytes": 42536960,
+      "peak_saturated": false,
+      "private_usage_after_bytes": 34856960,
+      "private_usage_before_bytes": 34009088,
+      "protocol_name": "Feat018ImageAdmissionEvaluationV1",
+      "protocol_version": "1.0",
+      "reason": null,
+      "repeat_index": 2,
+      "sample_id": "cohort-b:B03:2",
+      "source_bytes": 328336,
+      "source_digest_verified": true,
+      "source_sha256": "77fcd37dd02d6453d0dccde5b4e6c23b3592e083ce5dc0747651d37d95930522",
+      "timing_status": "WITHIN_TARGET",
+      "working_set_after_bytes": 44318720,
+      "working_set_before_bytes": 42536960
+    },
+    {
+      "admission_elapsed_ms": 8.1496,
+      "artifact_ref_verified": true,
+      "cohort": "B",
+      "environment": {
+        "architecture": "AMD64",
+        "commit_identity": "9191565a8961aab1bd10b2a0aa3efff7aefdf998",
+        "ffmpeg_libraries": {
+          "libavcodec": "62.28.102",
+          "libavdevice": "62.3.102",
+          "libavfilter": "11.14.102",
+          "libavformat": "62.12.102",
+          "libavutil": "60.26.102",
+          "libswresample": "6.3.102",
+          "libswscale": "9.5.102"
+        },
+        "os": "Windows",
+        "os_release": "11",
+        "pyav": "18.1.0",
+        "python": "3.12.10"
+      },
+      "exit_code": 0,
+      "fixture_id": "B04",
+      "limits": {
+        "allowed_codecs": [
+          "mjpeg",
+          "png"
+        ],
+        "allowed_containers": [
+          "jpeg_pipe",
+          "png_pipe"
+        ],
+        "allowed_pixel_formats": [
+          "gray",
+          "monob",
+          "pal8",
+          "rgb24",
+          "rgba",
+          "yuvj420p"
+        ],
+        "max_file_bytes": 5000000,
+        "max_frames": 1,
+        "max_longest_edge": 4096,
+        "max_pixels": 4000000
+      },
+      "measurement_error_code": null,
+      "measurement_failure": null,
+      "memory_lower_bound_bytes": 1761280,
+      "memory_status": "WITHIN_TARGET",
+      "memory_upper_bound_bytes": 5107712,
+      "metadata": {
+        "codec": "mjpeg",
+        "container": "jpeg_pipe",
+        "height": 1254,
+        "pixel_format": "yuvj420p",
+        "width": 1254
+      },
+      "outcome": "ADMITTED",
+      "parent_wall_ms": 331.3263,
+      "peak_after_bytes": 47599616,
+      "peak_before_bytes": 42491904,
+      "peak_saturated": false,
+      "private_usage_after_bytes": 34738176,
+      "private_usage_before_bytes": 33972224,
+      "protocol_name": "Feat018ImageAdmissionEvaluationV1",
+      "protocol_version": "1.0",
+      "reason": null,
+      "repeat_index": 0,
+      "sample_id": "cohort-b:B04:0",
+      "source_bytes": 303048,
+      "source_digest_verified": true,
+      "source_sha256": "60ba1d6f49e67c3c21b50f1f15cbfe3a2a7d7f9d0bbe0f27762a81d31452404f",
+      "timing_status": "WITHIN_TARGET",
+      "working_set_after_bytes": 44253184,
+      "working_set_before_bytes": 42491904
+    },
+    {
+      "admission_elapsed_ms": 7.6721,
+      "artifact_ref_verified": true,
+      "cohort": "B",
+      "environment": {
+        "architecture": "AMD64",
+        "commit_identity": "9191565a8961aab1bd10b2a0aa3efff7aefdf998",
+        "ffmpeg_libraries": {
+          "libavcodec": "62.28.102",
+          "libavdevice": "62.3.102",
+          "libavfilter": "11.14.102",
+          "libavformat": "62.12.102",
+          "libavutil": "60.26.102",
+          "libswresample": "6.3.102",
+          "libswscale": "9.5.102"
+        },
+        "os": "Windows",
+        "os_release": "11",
+        "pyav": "18.1.0",
+        "python": "3.12.10"
+      },
+      "exit_code": 0,
+      "fixture_id": "B04",
+      "limits": {
+        "allowed_codecs": [
+          "mjpeg",
+          "png"
+        ],
+        "allowed_containers": [
+          "jpeg_pipe",
+          "png_pipe"
+        ],
+        "allowed_pixel_formats": [
+          "gray",
+          "monob",
+          "pal8",
+          "rgb24",
+          "rgba",
+          "yuvj420p"
+        ],
+        "max_file_bytes": 5000000,
+        "max_frames": 1,
+        "max_longest_edge": 4096,
+        "max_pixels": 4000000
+      },
+      "measurement_error_code": null,
+      "measurement_failure": null,
+      "memory_lower_bound_bytes": 1777664,
+      "memory_status": "WITHIN_TARGET",
+      "memory_upper_bound_bytes": 5115904,
+      "metadata": {
+        "codec": "mjpeg",
+        "container": "jpeg_pipe",
+        "height": 1254,
+        "pixel_format": "yuvj420p",
+        "width": 1254
+      },
+      "outcome": "ADMITTED",
+      "parent_wall_ms": 345.0165,
+      "peak_after_bytes": 47579136,
+      "peak_before_bytes": 42463232,
+      "peak_saturated": false,
+      "private_usage_after_bytes": 34697216,
+      "private_usage_before_bytes": 33894400,
+      "protocol_name": "Feat018ImageAdmissionEvaluationV1",
+      "protocol_version": "1.0",
+      "reason": null,
+      "repeat_index": 1,
+      "sample_id": "cohort-b:B04:1",
+      "source_bytes": 303048,
+      "source_digest_verified": true,
+      "source_sha256": "60ba1d6f49e67c3c21b50f1f15cbfe3a2a7d7f9d0bbe0f27762a81d31452404f",
+      "timing_status": "WITHIN_TARGET",
+      "working_set_after_bytes": 44240896,
+      "working_set_before_bytes": 42463232
+    },
+    {
+      "admission_elapsed_ms": 8.1253,
+      "artifact_ref_verified": true,
+      "cohort": "B",
+      "environment": {
+        "architecture": "AMD64",
+        "commit_identity": "9191565a8961aab1bd10b2a0aa3efff7aefdf998",
+        "ffmpeg_libraries": {
+          "libavcodec": "62.28.102",
+          "libavdevice": "62.3.102",
+          "libavfilter": "11.14.102",
+          "libavformat": "62.12.102",
+          "libavutil": "60.26.102",
+          "libswresample": "6.3.102",
+          "libswscale": "9.5.102"
+        },
+        "os": "Windows",
+        "os_release": "11",
+        "pyav": "18.1.0",
+        "python": "3.12.10"
+      },
+      "exit_code": 0,
+      "fixture_id": "B04",
+      "limits": {
+        "allowed_codecs": [
+          "mjpeg",
+          "png"
+        ],
+        "allowed_containers": [
+          "jpeg_pipe",
+          "png_pipe"
+        ],
+        "allowed_pixel_formats": [
+          "gray",
+          "monob",
+          "pal8",
+          "rgb24",
+          "rgba",
+          "yuvj420p"
+        ],
+        "max_file_bytes": 5000000,
+        "max_frames": 1,
+        "max_longest_edge": 4096,
+        "max_pixels": 4000000
+      },
+      "measurement_error_code": null,
+      "measurement_failure": null,
+      "memory_lower_bound_bytes": 1798144,
+      "memory_status": "WITHIN_TARGET",
+      "memory_upper_bound_bytes": 5144576,
+      "metadata": {
+        "codec": "mjpeg",
+        "container": "jpeg_pipe",
+        "height": 1254,
+        "pixel_format": "yuvj420p",
+        "width": 1254
+      },
+      "outcome": "ADMITTED",
+      "parent_wall_ms": 318.158,
+      "peak_after_bytes": 47726592,
+      "peak_before_bytes": 42582016,
+      "peak_saturated": false,
+      "private_usage_after_bytes": 34832384,
+      "private_usage_before_bytes": 34029568,
+      "protocol_name": "Feat018ImageAdmissionEvaluationV1",
+      "protocol_version": "1.0",
+      "reason": null,
+      "repeat_index": 2,
+      "sample_id": "cohort-b:B04:2",
+      "source_bytes": 303048,
+      "source_digest_verified": true,
+      "source_sha256": "60ba1d6f49e67c3c21b50f1f15cbfe3a2a7d7f9d0bbe0f27762a81d31452404f",
+      "timing_status": "WITHIN_TARGET",
+      "working_set_after_bytes": 44380160,
+      "working_set_before_bytes": 42582016
+    },
+    {
+      "admission_elapsed_ms": 107.752,
+      "artifact_ref_verified": true,
+      "cohort": "B",
+      "environment": {
+        "architecture": "AMD64",
+        "commit_identity": "9191565a8961aab1bd10b2a0aa3efff7aefdf998",
+        "ffmpeg_libraries": {
+          "libavcodec": "62.28.102",
+          "libavdevice": "62.3.102",
+          "libavfilter": "11.14.102",
+          "libavformat": "62.12.102",
+          "libavutil": "60.26.102",
+          "libswresample": "6.3.102",
+          "libswscale": "9.5.102"
+        },
+        "os": "Windows",
+        "os_release": "11",
+        "pyav": "18.1.0",
+        "python": "3.12.10"
+      },
+      "exit_code": 0,
+      "fixture_id": "B05",
+      "limits": {
+        "allowed_codecs": [
+          "mjpeg",
+          "png"
+        ],
+        "allowed_containers": [
+          "jpeg_pipe",
+          "png_pipe"
+        ],
+        "allowed_pixel_formats": [
+          "gray",
+          "monob",
+          "pal8",
+          "rgb24",
+          "rgba",
+          "yuvj420p"
+        ],
+        "max_file_bytes": 5000000,
+        "max_frames": 1,
+        "max_longest_edge": 4096,
+        "max_pixels": 4000000
+      },
+      "measurement_error_code": null,
+      "measurement_failure": null,
+      "memory_lower_bound_bytes": 1720320,
+      "memory_status": "WITHIN_TARGET",
+      "memory_upper_bound_bytes": 14151680,
+      "metadata": {
+        "codec": "png",
+        "container": "png_pipe",
+        "height": 1254,
+        "pixel_format": "rgb24",
+        "width": 1254
+      },
+      "outcome": "ADMITTED",
+      "parent_wall_ms": 432.445,
+      "peak_after_bytes": 56623104,
+      "peak_before_bytes": 42471424,
+      "peak_saturated": false,
+      "private_usage_after_bytes": 34017280,
+      "private_usage_before_bytes": 33927168,
+      "protocol_name": "Feat018ImageAdmissionEvaluationV1",
+      "protocol_version": "1.0",
+      "reason": null,
+      "repeat_index": 0,
+      "sample_id": "cohort-b:B05:0",
+      "source_bytes": 2562614,
+      "source_digest_verified": true,
+      "source_sha256": "54341d960732a1a5b18597374136eda2aa779d8fcbe32da095afe0603bb3dec7",
+      "timing_status": "WITHIN_TARGET",
+      "working_set_after_bytes": 44191744,
+      "working_set_before_bytes": 42471424
+    },
+    {
+      "admission_elapsed_ms": 107.6164,
+      "artifact_ref_verified": true,
+      "cohort": "B",
+      "environment": {
+        "architecture": "AMD64",
+        "commit_identity": "9191565a8961aab1bd10b2a0aa3efff7aefdf998",
+        "ffmpeg_libraries": {
+          "libavcodec": "62.28.102",
+          "libavdevice": "62.3.102",
+          "libavfilter": "11.14.102",
+          "libavformat": "62.12.102",
+          "libavutil": "60.26.102",
+          "libswresample": "6.3.102",
+          "libswscale": "9.5.102"
+        },
+        "os": "Windows",
+        "os_release": "11",
+        "pyav": "18.1.0",
+        "python": "3.12.10"
+      },
+      "exit_code": 0,
+      "fixture_id": "B05",
+      "limits": {
+        "allowed_codecs": [
+          "mjpeg",
+          "png"
+        ],
+        "allowed_containers": [
+          "jpeg_pipe",
+          "png_pipe"
+        ],
+        "allowed_pixel_formats": [
+          "gray",
+          "monob",
+          "pal8",
+          "rgb24",
+          "rgba",
+          "yuvj420p"
+        ],
+        "max_file_bytes": 5000000,
+        "max_frames": 1,
+        "max_longest_edge": 4096,
+        "max_pixels": 4000000
+      },
+      "measurement_error_code": null,
+      "measurement_failure": null,
+      "memory_lower_bound_bytes": 1757184,
+      "memory_status": "WITHIN_TARGET",
+      "memory_upper_bound_bytes": 14188544,
+      "metadata": {
+        "codec": "png",
+        "container": "png_pipe",
+        "height": 1254,
+        "pixel_format": "rgb24",
+        "width": 1254
+      },
+      "outcome": "ADMITTED",
+      "parent_wall_ms": 437.2521,
+      "peak_after_bytes": 56664064,
+      "peak_before_bytes": 42475520,
+      "peak_saturated": false,
+      "private_usage_after_bytes": 34082816,
+      "private_usage_before_bytes": 33935360,
+      "protocol_name": "Feat018ImageAdmissionEvaluationV1",
+      "protocol_version": "1.0",
+      "reason": null,
+      "repeat_index": 1,
+      "sample_id": "cohort-b:B05:1",
+      "source_bytes": 2562614,
+      "source_digest_verified": true,
+      "source_sha256": "54341d960732a1a5b18597374136eda2aa779d8fcbe32da095afe0603bb3dec7",
+      "timing_status": "WITHIN_TARGET",
+      "working_set_after_bytes": 44232704,
+      "working_set_before_bytes": 42475520
+    },
+    {
+      "admission_elapsed_ms": 108.2184,
+      "artifact_ref_verified": true,
+      "cohort": "B",
+      "environment": {
+        "architecture": "AMD64",
+        "commit_identity": "9191565a8961aab1bd10b2a0aa3efff7aefdf998",
+        "ffmpeg_libraries": {
+          "libavcodec": "62.28.102",
+          "libavdevice": "62.3.102",
+          "libavfilter": "11.14.102",
+          "libavformat": "62.12.102",
+          "libavutil": "60.26.102",
+          "libswresample": "6.3.102",
+          "libswscale": "9.5.102"
+        },
+        "os": "Windows",
+        "os_release": "11",
+        "pyav": "18.1.0",
+        "python": "3.12.10"
+      },
+      "exit_code": 0,
+      "fixture_id": "B05",
+      "limits": {
+        "allowed_codecs": [
+          "mjpeg",
+          "png"
+        ],
+        "allowed_containers": [
+          "jpeg_pipe",
+          "png_pipe"
+        ],
+        "allowed_pixel_formats": [
+          "gray",
+          "monob",
+          "pal8",
+          "rgb24",
+          "rgba",
+          "yuvj420p"
+        ],
+        "max_file_bytes": 5000000,
+        "max_frames": 1,
+        "max_longest_edge": 4096,
+        "max_pixels": 4000000
+      },
+      "measurement_error_code": null,
+      "measurement_failure": null,
+      "memory_lower_bound_bytes": 1740800,
+      "memory_status": "WITHIN_TARGET",
+      "memory_upper_bound_bytes": 14204928,
+      "metadata": {
+        "codec": "png",
+        "container": "png_pipe",
+        "height": 1254,
+        "pixel_format": "rgb24",
+        "width": 1254
+      },
+      "outcome": "ADMITTED",
+      "parent_wall_ms": 420.8066,
+      "peak_after_bytes": 56733696,
+      "peak_before_bytes": 42528768,
+      "peak_saturated": false,
+      "private_usage_after_bytes": 34144256,
+      "private_usage_before_bytes": 34017280,
+      "protocol_name": "Feat018ImageAdmissionEvaluationV1",
+      "protocol_version": "1.0",
+      "reason": null,
+      "repeat_index": 2,
+      "sample_id": "cohort-b:B05:2",
+      "source_bytes": 2562614,
+      "source_digest_verified": true,
+      "source_sha256": "54341d960732a1a5b18597374136eda2aa779d8fcbe32da095afe0603bb3dec7",
+      "timing_status": "WITHIN_TARGET",
+      "working_set_after_bytes": 44269568,
+      "working_set_before_bytes": 42528768
+    },
+    {
+      "admission_elapsed_ms": 101.3834,
+      "artifact_ref_verified": true,
+      "cohort": "B",
+      "environment": {
+        "architecture": "AMD64",
+        "commit_identity": "9191565a8961aab1bd10b2a0aa3efff7aefdf998",
+        "ffmpeg_libraries": {
+          "libavcodec": "62.28.102",
+          "libavdevice": "62.3.102",
+          "libavfilter": "11.14.102",
+          "libavformat": "62.12.102",
+          "libavutil": "60.26.102",
+          "libswresample": "6.3.102",
+          "libswscale": "9.5.102"
+        },
+        "os": "Windows",
+        "os_release": "11",
+        "pyav": "18.1.0",
+        "python": "3.12.10"
+      },
+      "exit_code": 0,
+      "fixture_id": "B06",
+      "limits": {
+        "allowed_codecs": [
+          "mjpeg",
+          "png"
+        ],
+        "allowed_containers": [
+          "jpeg_pipe",
+          "png_pipe"
+        ],
+        "allowed_pixel_formats": [
+          "gray",
+          "monob",
+          "pal8",
+          "rgb24",
+          "rgba",
+          "yuvj420p"
+        ],
+        "max_file_bytes": 5000000,
+        "max_frames": 1,
+        "max_longest_edge": 4096,
+        "max_pixels": 4000000
+      },
+      "measurement_error_code": null,
+      "measurement_failure": null,
+      "memory_lower_bound_bytes": 1736704,
+      "memory_status": "WITHIN_TARGET",
+      "memory_upper_bound_bytes": 12496896,
+      "metadata": {
+        "codec": "png",
+        "container": "png_pipe",
+        "height": 1254,
+        "pixel_format": "rgb24",
+        "width": 1254
+      },
+      "outcome": "ADMITTED",
+      "parent_wall_ms": 431.2534,
+      "peak_after_bytes": 54956032,
+      "peak_before_bytes": 42459136,
+      "peak_saturated": false,
+      "private_usage_after_bytes": 34066432,
+      "private_usage_before_bytes": 33943552,
+      "protocol_name": "Feat018ImageAdmissionEvaluationV1",
+      "protocol_version": "1.0",
+      "reason": null,
+      "repeat_index": 0,
+      "sample_id": "cohort-b:B06:0",
+      "source_bytes": 2006855,
+      "source_digest_verified": true,
+      "source_sha256": "2acc86ac23172be3f7806f22ef6479bf4d6d696bb2187ceaa312bb2fb8f8f7d8",
+      "timing_status": "WITHIN_TARGET",
+      "working_set_after_bytes": 44195840,
+      "working_set_before_bytes": 42459136
+    },
+    {
+      "admission_elapsed_ms": 100.6828,
+      "artifact_ref_verified": true,
+      "cohort": "B",
+      "environment": {
+        "architecture": "AMD64",
+        "commit_identity": "9191565a8961aab1bd10b2a0aa3efff7aefdf998",
+        "ffmpeg_libraries": {
+          "libavcodec": "62.28.102",
+          "libavdevice": "62.3.102",
+          "libavfilter": "11.14.102",
+          "libavformat": "62.12.102",
+          "libavutil": "60.26.102",
+          "libswresample": "6.3.102",
+          "libswscale": "9.5.102"
+        },
+        "os": "Windows",
+        "os_release": "11",
+        "pyav": "18.1.0",
+        "python": "3.12.10"
+      },
+      "exit_code": 0,
+      "fixture_id": "B06",
+      "limits": {
+        "allowed_codecs": [
+          "mjpeg",
+          "png"
+        ],
+        "allowed_containers": [
+          "jpeg_pipe",
+          "png_pipe"
+        ],
+        "allowed_pixel_formats": [
+          "gray",
+          "monob",
+          "pal8",
+          "rgb24",
+          "rgba",
+          "yuvj420p"
+        ],
+        "max_file_bytes": 5000000,
+        "max_frames": 1,
+        "max_longest_edge": 4096,
+        "max_pixels": 4000000
+      },
+      "measurement_error_code": null,
+      "measurement_failure": null,
+      "memory_lower_bound_bytes": 1699840,
+      "memory_status": "WITHIN_TARGET",
+      "memory_upper_bound_bytes": 12492800,
+      "metadata": {
+        "codec": "png",
+        "container": "png_pipe",
+        "height": 1254,
+        "pixel_format": "rgb24",
+        "width": 1254
+      },
+      "outcome": "ADMITTED",
+      "parent_wall_ms": 434.1637,
+      "peak_after_bytes": 55046144,
+      "peak_before_bytes": 42553344,
+      "peak_saturated": false,
+      "private_usage_after_bytes": 34095104,
+      "private_usage_before_bytes": 34004992,
+      "protocol_name": "Feat018ImageAdmissionEvaluationV1",
+      "protocol_version": "1.0",
+      "reason": null,
+      "repeat_index": 1,
+      "sample_id": "cohort-b:B06:1",
+      "source_bytes": 2006855,
+      "source_digest_verified": true,
+      "source_sha256": "2acc86ac23172be3f7806f22ef6479bf4d6d696bb2187ceaa312bb2fb8f8f7d8",
+      "timing_status": "WITHIN_TARGET",
+      "working_set_after_bytes": 44253184,
+      "working_set_before_bytes": 42553344
+    },
+    {
+      "admission_elapsed_ms": 98.0326,
+      "artifact_ref_verified": true,
+      "cohort": "B",
+      "environment": {
+        "architecture": "AMD64",
+        "commit_identity": "9191565a8961aab1bd10b2a0aa3efff7aefdf998",
+        "ffmpeg_libraries": {
+          "libavcodec": "62.28.102",
+          "libavdevice": "62.3.102",
+          "libavfilter": "11.14.102",
+          "libavformat": "62.12.102",
+          "libavutil": "60.26.102",
+          "libswresample": "6.3.102",
+          "libswscale": "9.5.102"
+        },
+        "os": "Windows",
+        "os_release": "11",
+        "pyav": "18.1.0",
+        "python": "3.12.10"
+      },
+      "exit_code": 0,
+      "fixture_id": "B06",
+      "limits": {
+        "allowed_codecs": [
+          "mjpeg",
+          "png"
+        ],
+        "allowed_containers": [
+          "jpeg_pipe",
+          "png_pipe"
+        ],
+        "allowed_pixel_formats": [
+          "gray",
+          "monob",
+          "pal8",
+          "rgb24",
+          "rgba",
+          "yuvj420p"
+        ],
+        "max_file_bytes": 5000000,
+        "max_frames": 1,
+        "max_longest_edge": 4096,
+        "max_pixels": 4000000
+      },
+      "measurement_error_code": null,
+      "measurement_failure": null,
+      "memory_lower_bound_bytes": 1699840,
+      "memory_status": "WITHIN_TARGET",
+      "memory_upper_bound_bytes": 12488704,
+      "metadata": {
+        "codec": "png",
+        "container": "png_pipe",
+        "height": 1254,
+        "pixel_format": "rgb24",
+        "width": 1254
+      },
+      "outcome": "ADMITTED",
+      "parent_wall_ms": 409.1387,
+      "peak_after_bytes": 54968320,
+      "peak_before_bytes": 42479616,
+      "peak_saturated": false,
+      "private_usage_after_bytes": 34033664,
+      "private_usage_before_bytes": 33943552,
+      "protocol_name": "Feat018ImageAdmissionEvaluationV1",
+      "protocol_version": "1.0",
+      "reason": null,
+      "repeat_index": 2,
+      "sample_id": "cohort-b:B06:2",
+      "source_bytes": 2006855,
+      "source_digest_verified": true,
+      "source_sha256": "2acc86ac23172be3f7806f22ef6479bf4d6d696bb2187ceaa312bb2fb8f8f7d8",
+      "timing_status": "WITHIN_TARGET",
+      "working_set_after_bytes": 44179456,
+      "working_set_before_bytes": 42479616
+    },
+    {
+      "admission_elapsed_ms": 92.3419,
+      "artifact_ref_verified": true,
+      "cohort": "B",
+      "environment": {
+        "architecture": "AMD64",
+        "commit_identity": "9191565a8961aab1bd10b2a0aa3efff7aefdf998",
+        "ffmpeg_libraries": {
+          "libavcodec": "62.28.102",
+          "libavdevice": "62.3.102",
+          "libavfilter": "11.14.102",
+          "libavformat": "62.12.102",
+          "libavutil": "60.26.102",
+          "libswresample": "6.3.102",
+          "libswscale": "9.5.102"
+        },
+        "os": "Windows",
+        "os_release": "11",
+        "pyav": "18.1.0",
+        "python": "3.12.10"
+      },
+      "exit_code": 0,
+      "fixture_id": "B07",
+      "limits": {
+        "allowed_codecs": [
+          "mjpeg",
+          "png"
+        ],
+        "allowed_containers": [
+          "jpeg_pipe",
+          "png_pipe"
+        ],
+        "allowed_pixel_formats": [
+          "gray",
+          "monob",
+          "pal8",
+          "rgb24",
+          "rgba",
+          "yuvj420p"
+        ],
+        "max_file_bytes": 5000000,
+        "max_frames": 1,
+        "max_longest_edge": 4096,
+        "max_pixels": 4000000
+      },
+      "measurement_error_code": null,
+      "measurement_failure": null,
+      "memory_lower_bound_bytes": 1740800,
+      "memory_status": "WITHIN_TARGET",
+      "memory_upper_bound_bytes": 11673600,
+      "metadata": {
+        "codec": "png",
+        "container": "png_pipe",
+        "height": 1254,
+        "pixel_format": "rgb24",
+        "width": 1254
+      },
+      "outcome": "ADMITTED",
+      "parent_wall_ms": 449.1953,
+      "peak_after_bytes": 54247424,
+      "peak_before_bytes": 42573824,
+      "peak_saturated": false,
+      "private_usage_after_bytes": 34148352,
+      "private_usage_before_bytes": 34025472,
+      "protocol_name": "Feat018ImageAdmissionEvaluationV1",
+      "protocol_version": "1.0",
+      "reason": null,
+      "repeat_index": 0,
+      "sample_id": "cohort-b:B07:0",
+      "source_bytes": 1726857,
+      "source_digest_verified": true,
+      "source_sha256": "a5d074a66076c0051b10313df4ba9c270feba72b0f14f303ca647a6c6b337aca",
+      "timing_status": "WITHIN_TARGET",
+      "working_set_after_bytes": 44314624,
+      "working_set_before_bytes": 42573824
+    },
+    {
+      "admission_elapsed_ms": 92.9876,
+      "artifact_ref_verified": true,
+      "cohort": "B",
+      "environment": {
+        "architecture": "AMD64",
+        "commit_identity": "9191565a8961aab1bd10b2a0aa3efff7aefdf998",
+        "ffmpeg_libraries": {
+          "libavcodec": "62.28.102",
+          "libavdevice": "62.3.102",
+          "libavfilter": "11.14.102",
+          "libavformat": "62.12.102",
+          "libavutil": "60.26.102",
+          "libswresample": "6.3.102",
+          "libswscale": "9.5.102"
+        },
+        "os": "Windows",
+        "os_release": "11",
+        "pyav": "18.1.0",
+        "python": "3.12.10"
+      },
+      "exit_code": 0,
+      "fixture_id": "B07",
+      "limits": {
+        "allowed_codecs": [
+          "mjpeg",
+          "png"
+        ],
+        "allowed_containers": [
+          "jpeg_pipe",
+          "png_pipe"
+        ],
+        "allowed_pixel_formats": [
+          "gray",
+          "monob",
+          "pal8",
+          "rgb24",
+          "rgba",
+          "yuvj420p"
+        ],
+        "max_file_bytes": 5000000,
+        "max_frames": 1,
+        "max_longest_edge": 4096,
+        "max_pixels": 4000000
+      },
+      "measurement_error_code": null,
+      "measurement_failure": null,
+      "memory_lower_bound_bytes": 1699840,
+      "memory_status": "WITHIN_TARGET",
+      "memory_upper_bound_bytes": 11616256,
+      "metadata": {
+        "codec": "png",
+        "container": "png_pipe",
+        "height": 1254,
+        "pixel_format": "rgb24",
+        "width": 1254
+      },
+      "outcome": "ADMITTED",
+      "parent_wall_ms": 415.4811,
+      "peak_after_bytes": 54161408,
+      "peak_before_bytes": 42545152,
+      "peak_saturated": false,
+      "private_usage_after_bytes": 34066432,
+      "private_usage_before_bytes": 33972224,
+      "protocol_name": "Feat018ImageAdmissionEvaluationV1",
+      "protocol_version": "1.0",
+      "reason": null,
+      "repeat_index": 1,
+      "sample_id": "cohort-b:B07:1",
+      "source_bytes": 1726857,
+      "source_digest_verified": true,
+      "source_sha256": "a5d074a66076c0051b10313df4ba9c270feba72b0f14f303ca647a6c6b337aca",
+      "timing_status": "WITHIN_TARGET",
+      "working_set_after_bytes": 44244992,
+      "working_set_before_bytes": 42545152
+    },
+    {
+      "admission_elapsed_ms": 93.0883,
+      "artifact_ref_verified": true,
+      "cohort": "B",
+      "environment": {
+        "architecture": "AMD64",
+        "commit_identity": "9191565a8961aab1bd10b2a0aa3efff7aefdf998",
+        "ffmpeg_libraries": {
+          "libavcodec": "62.28.102",
+          "libavdevice": "62.3.102",
+          "libavfilter": "11.14.102",
+          "libavformat": "62.12.102",
+          "libavutil": "60.26.102",
+          "libswresample": "6.3.102",
+          "libswscale": "9.5.102"
+        },
+        "os": "Windows",
+        "os_release": "11",
+        "pyav": "18.1.0",
+        "python": "3.12.10"
+      },
+      "exit_code": 0,
+      "fixture_id": "B07",
+      "limits": {
+        "allowed_codecs": [
+          "mjpeg",
+          "png"
+        ],
+        "allowed_containers": [
+          "jpeg_pipe",
+          "png_pipe"
+        ],
+        "allowed_pixel_formats": [
+          "gray",
+          "monob",
+          "pal8",
+          "rgb24",
+          "rgba",
+          "yuvj420p"
+        ],
+        "max_file_bytes": 5000000,
+        "max_frames": 1,
+        "max_longest_edge": 4096,
+        "max_pixels": 4000000
+      },
+      "measurement_error_code": null,
+      "measurement_failure": null,
+      "memory_lower_bound_bytes": 1744896,
+      "memory_status": "WITHIN_TARGET",
+      "memory_upper_bound_bytes": 11669504,
+      "metadata": {
+        "codec": "png",
+        "container": "png_pipe",
+        "height": 1254,
+        "pixel_format": "rgb24",
+        "width": 1254
+      },
+      "outcome": "ADMITTED",
+      "parent_wall_ms": 401.8925,
+      "peak_after_bytes": 54145024,
+      "peak_before_bytes": 42475520,
+      "peak_saturated": false,
+      "private_usage_after_bytes": 34111488,
+      "private_usage_before_bytes": 34025472,
+      "protocol_name": "Feat018ImageAdmissionEvaluationV1",
+      "protocol_version": "1.0",
+      "reason": null,
+      "repeat_index": 2,
+      "sample_id": "cohort-b:B07:2",
+      "source_bytes": 1726857,
+      "source_digest_verified": true,
+      "source_sha256": "a5d074a66076c0051b10313df4ba9c270feba72b0f14f303ca647a6c6b337aca",
+      "timing_status": "WITHIN_TARGET",
+      "working_set_after_bytes": 44220416,
+      "working_set_before_bytes": 42475520
+    },
+    {
+      "admission_elapsed_ms": 86.265,
+      "artifact_ref_verified": true,
+      "cohort": "B",
+      "environment": {
+        "architecture": "AMD64",
+        "commit_identity": "9191565a8961aab1bd10b2a0aa3efff7aefdf998",
+        "ffmpeg_libraries": {
+          "libavcodec": "62.28.102",
+          "libavdevice": "62.3.102",
+          "libavfilter": "11.14.102",
+          "libavformat": "62.12.102",
+          "libavutil": "60.26.102",
+          "libswresample": "6.3.102",
+          "libswscale": "9.5.102"
+        },
+        "os": "Windows",
+        "os_release": "11",
+        "pyav": "18.1.0",
+        "python": "3.12.10"
+      },
+      "exit_code": 0,
+      "fixture_id": "B08",
+      "limits": {
+        "allowed_codecs": [
+          "mjpeg",
+          "png"
+        ],
+        "allowed_containers": [
+          "jpeg_pipe",
+          "png_pipe"
+        ],
+        "allowed_pixel_formats": [
+          "gray",
+          "monob",
+          "pal8",
+          "rgb24",
+          "rgba",
+          "yuvj420p"
+        ],
+        "max_file_bytes": 5000000,
+        "max_frames": 1,
+        "max_longest_edge": 4096,
+        "max_pixels": 4000000
+      },
+      "measurement_error_code": null,
+      "measurement_failure": null,
+      "memory_lower_bound_bytes": 1720320,
+      "memory_status": "WITHIN_TARGET",
+      "memory_upper_bound_bytes": 11624448,
+      "metadata": {
+        "codec": "png",
+        "container": "png_pipe",
+        "height": 1254,
+        "pixel_format": "rgb24",
+        "width": 1254
+      },
+      "outcome": "ADMITTED",
+      "parent_wall_ms": 419.7282,
+      "peak_after_bytes": 54120448,
+      "peak_before_bytes": 42496000,
+      "peak_saturated": false,
+      "private_usage_after_bytes": 34074624,
+      "private_usage_before_bytes": 33947648,
+      "protocol_name": "Feat018ImageAdmissionEvaluationV1",
+      "protocol_version": "1.0",
+      "reason": null,
+      "repeat_index": 0,
+      "sample_id": "cohort-b:B08:0",
+      "source_bytes": 1721040,
+      "source_digest_verified": true,
+      "source_sha256": "6f1986d771013357fd5d5bdc595131cbe4c96e3cef577ba4e762cdd0066dabc8",
+      "timing_status": "WITHIN_TARGET",
+      "working_set_after_bytes": 44216320,
+      "working_set_before_bytes": 42496000
+    },
+    {
+      "admission_elapsed_ms": 86.893,
+      "artifact_ref_verified": true,
+      "cohort": "B",
+      "environment": {
+        "architecture": "AMD64",
+        "commit_identity": "9191565a8961aab1bd10b2a0aa3efff7aefdf998",
+        "ffmpeg_libraries": {
+          "libavcodec": "62.28.102",
+          "libavdevice": "62.3.102",
+          "libavfilter": "11.14.102",
+          "libavformat": "62.12.102",
+          "libavutil": "60.26.102",
+          "libswresample": "6.3.102",
+          "libswscale": "9.5.102"
+        },
+        "os": "Windows",
+        "os_release": "11",
+        "pyav": "18.1.0",
+        "python": "3.12.10"
+      },
+      "exit_code": 0,
+      "fixture_id": "B08",
+      "limits": {
+        "allowed_codecs": [
+          "mjpeg",
+          "png"
+        ],
+        "allowed_containers": [
+          "jpeg_pipe",
+          "png_pipe"
+        ],
+        "allowed_pixel_formats": [
+          "gray",
+          "monob",
+          "pal8",
+          "rgb24",
+          "rgba",
+          "yuvj420p"
+        ],
+        "max_file_bytes": 5000000,
+        "max_frames": 1,
+        "max_longest_edge": 4096,
+        "max_pixels": 4000000
+      },
+      "measurement_error_code": null,
+      "measurement_failure": null,
+      "memory_lower_bound_bytes": 1699840,
+      "memory_status": "WITHIN_TARGET",
+      "memory_upper_bound_bytes": 11603968,
+      "metadata": {
+        "codec": "png",
+        "container": "png_pipe",
+        "height": 1254,
+        "pixel_format": "rgb24",
+        "width": 1254
+      },
+      "outcome": "ADMITTED",
+      "parent_wall_ms": 431.7,
+      "peak_after_bytes": 54173696,
+      "peak_before_bytes": 42569728,
+      "peak_saturated": false,
+      "private_usage_after_bytes": 34107392,
+      "private_usage_before_bytes": 34021376,
+      "protocol_name": "Feat018ImageAdmissionEvaluationV1",
+      "protocol_version": "1.0",
+      "reason": null,
+      "repeat_index": 1,
+      "sample_id": "cohort-b:B08:1",
+      "source_bytes": 1721040,
+      "source_digest_verified": true,
+      "source_sha256": "6f1986d771013357fd5d5bdc595131cbe4c96e3cef577ba4e762cdd0066dabc8",
+      "timing_status": "WITHIN_TARGET",
+      "working_set_after_bytes": 44269568,
+      "working_set_before_bytes": 42569728
+    },
+    {
+      "admission_elapsed_ms": 87.8845,
+      "artifact_ref_verified": true,
+      "cohort": "B",
+      "environment": {
+        "architecture": "AMD64",
+        "commit_identity": "9191565a8961aab1bd10b2a0aa3efff7aefdf998",
+        "ffmpeg_libraries": {
+          "libavcodec": "62.28.102",
+          "libavdevice": "62.3.102",
+          "libavfilter": "11.14.102",
+          "libavformat": "62.12.102",
+          "libavutil": "60.26.102",
+          "libswresample": "6.3.102",
+          "libswscale": "9.5.102"
+        },
+        "os": "Windows",
+        "os_release": "11",
+        "pyav": "18.1.0",
+        "python": "3.12.10"
+      },
+      "exit_code": 0,
+      "fixture_id": "B08",
+      "limits": {
+        "allowed_codecs": [
+          "mjpeg",
+          "png"
+        ],
+        "allowed_containers": [
+          "jpeg_pipe",
+          "png_pipe"
+        ],
+        "allowed_pixel_formats": [
+          "gray",
+          "monob",
+          "pal8",
+          "rgb24",
+          "rgba",
+          "yuvj420p"
+        ],
+        "max_file_bytes": 5000000,
+        "max_frames": 1,
+        "max_longest_edge": 4096,
+        "max_pixels": 4000000
+      },
+      "measurement_error_code": null,
+      "measurement_failure": null,
+      "memory_lower_bound_bytes": 1736704,
+      "memory_status": "WITHIN_TARGET",
+      "memory_upper_bound_bytes": 11653120,
+      "metadata": {
+        "codec": "png",
+        "container": "png_pipe",
+        "height": 1254,
+        "pixel_format": "rgb24",
+        "width": 1254
+      },
+      "outcome": "ADMITTED",
+      "parent_wall_ms": 408.831,
+      "peak_after_bytes": 54222848,
+      "peak_before_bytes": 42569728,
+      "peak_saturated": false,
+      "private_usage_after_bytes": 34213888,
+      "private_usage_before_bytes": 34091008,
+      "protocol_name": "Feat018ImageAdmissionEvaluationV1",
+      "protocol_version": "1.0",
+      "reason": null,
+      "repeat_index": 2,
+      "sample_id": "cohort-b:B08:2",
+      "source_bytes": 1721040,
+      "source_digest_verified": true,
+      "source_sha256": "6f1986d771013357fd5d5bdc595131cbe4c96e3cef577ba4e762cdd0066dabc8",
+      "timing_status": "WITHIN_TARGET",
+      "working_set_after_bytes": 44306432,
+      "working_set_before_bytes": 42569728
+    }
+  ],
+  "schema": "Feat018ImageAdmissionEvaluationReportV1",
+  "scope": "FEAT-018 P2-T1 D3-R2 offline image-admission evaluation, Cohort B: 8 owner-approved local non-sensitive photographs (4 JPEG + 4 PNG), 3 fresh-process repeats each, 24 total samples, measured against the committed D2 image-admission implementation. No Qwen, Whisper, provider, network, mobile, FEAT-003, or shared-integration work.",
+  "source_gate": {
+    "approval_reference": "features/FEAT-018-live-image-canvas-flow/approvals/TASK_APPROVAL.md (\"Owner approval and Cohort B source admission - 2026-09-12\")",
+    "execution_authorized": true,
+    "owner_reviewed": true,
+    "status": "APPROVED"
+  },
+  "validation": {
+    "focused_tests": {
+      "command": "pytest tests/unit/test_image_admission_evaluation.py tests/unit/test_image_admission.py",
+      "result": "148 passed"
+    },
+    "git_diff_check": "clean (no output)",
+    "mypy": "no issues found in 2 source files (harness + test file)",
+    "ruff": "all checks passed (harness + test file)",
+    "validate_architecture": "ARCHITECTURE_VALID",
+    "validate_harness": "HARNESS_VALID",
+    "validate_repository_security": "REPOSITORY_SECURITY_VALID",
+    "validate_skeleton": "SKELETON_VALID"
+  }
+}

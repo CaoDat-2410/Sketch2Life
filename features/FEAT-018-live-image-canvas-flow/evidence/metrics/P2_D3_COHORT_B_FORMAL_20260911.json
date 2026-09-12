@@ -1,0 +1,43 @@
+{
+  "schema": "Feat018ImageAdmissionEvaluationReportV1",
+  "cohort": "B",
+  "status": "INCONCLUSIVE",
+  "execution_occurred": false,
+  "commit_identity": "c77230ca1593d5cd31098b5e58f3ff2a13d18a63",
+  "manifest_present": false,
+  "manifest_sha256": null,
+  "owner_reviewed": false,
+  "source_gate": {
+    "status": "BLOCKED",
+    "expected_jpeg_count": 4,
+    "expected_png_count": 4,
+    "located_qualifying_jpeg_count": 0,
+    "located_qualifying_png_count": 0,
+    "candidate_set_complete": false,
+    "source_hashes_computed": false
+  },
+  "approved_image_count": 0,
+  "expected_image_count": 8,
+  "expected_repeats_per_image": 3,
+  "sample_count": 0,
+  "samples": [],
+  "aggregates": {},
+  "environmental_failures": [],
+  "blocker": {
+    "reason_code": "COHORT_B_JPEG_SOURCES_NOT_FOUND",
+    "description": "No approved D3 Cohort B manifest exists, and no complete owner-approved 4-JPEG + 4-PNG source set exists. The known child-safety N01-N08 set is a separate synthetic PNG dataset and does not satisfy the photographic Cohort B contract (all-PNG, not owner-reviewed as Cohort B candidates). It, the v3q synthetic shape fixtures, D2 test fixtures, and unrelated local downloads were excluded; no image was executed, converted, cropped, regenerated, renamed, or substituted.",
+    "governing_documents": [
+      "features/FEAT-018-live-image-canvas-flow/approvals/TASK_APPROVAL.md",
+      "features/FEAT-018-live-image-canvas-flow/CONTEXT.md",
+      "features/FEAT-018-live-image-canvas-flow/plan/PLAN.md",
+      "features/FEAT-018-live-image-canvas-flow/plan/PERSON_2_AI.md",
+      "features/FEAT-018-live-image-canvas-flow/plan/P2_D3_IMAGE_ADMISSION_EVALUATION_PLAN.md"
+    ],
+    "unblock_requirements": [
+      "Provide exactly 4 files with .jpg or .jpeg extension and matching JPEG MIME, plus exactly 4 files with .png extension and matching PNG MIME.",
+      "Owner visually reviews all 8 actual images against the D3 exclusion list before hashing or execution.",
+      "Create a local git-ignored manifest with owner_reviewed=true, exact IDs, hashes, formats, dimensions, and byte counts.",
+      "Record an explicit Cohort B approval addendum in TASK_APPROVAL.md before execution."
+    ]
+  }
+}

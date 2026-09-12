@@ -1,13 +1,21 @@
 # P2-T3 living summary — structured vision research
 
 - Evidence ID: `EV-003-T3-SUMMARY-01`
-- Last updated: 2026-09-09
-- Status: `IN_PROGRESS` — Phase A and Phase B B1–B3 are complete; the original B4 benchmark is
-  complete with a quality `NO_GO`; the prompt-v3 follow-up has completed phases 1–6 and its
-  mapping-readiness evaluation returned `MAPPING_READY`. The separate bounded 20-minute L4
-  reauthorization covered one readiness check and one v3 pass/repeat pair, but the official
-  Lightning Activity ledger records `00:44:41` for that session against a `00:20:00` budget:
-  compute governance is `CAP_EXCEEDED` by `00:24:41`.
+- Last updated: 2026-09-11
+- Status: `IN_PROGRESS` — Phase A and Phase B B1–B4 (including the Direction A prompt-v3
+  follow-up) and B5 (the evidence-only recommendation gate) are all complete; no profile is frozen
+  and no runtime default is selected. The original B4 benchmark returned quality `NO_GO`; the
+  prompt-v3 follow-up reached `MAPPING_READY` at phase 6 but `QUALITY_NOT_READY` at its held-out
+  phase 8 quality benchmark. Both GPU sessions exceeded their authorized caps
+  (`CAP_EXCEEDED` by `00:24:41` and `00:07:22` respectively). B5's recommendation is
+  `NOT_ENOUGH_EVIDENCE` to freeze this or any Qwen3-VL profile: no predicted/ground-truth text was
+  ever persisted for either benchmark (`raw_output_mode: CLASSIFY_ONLY`), and re-scoring the
+  existing fixtures under a changed rule is independently prohibited by `DECISIONS.md`. See
+  `evidence/notes/P2_T3_PHASE_B_B5_RECOMMENDATION.md` (`EV-003-T3-17`) and
+  `docs/adr/ADR-0007-vision-runtime-dependency-pinning-and-qwen3-vl-candidate-profile.md`. A future
+  Direction B experiment remains conceivable but is not authorized by B5 — it would need its own
+  new plan, approval, and capture/scoring boundary with entirely new fixtures. Overall P2-T3
+  remains `IN_PROGRESS` pending an owner decision on that recommendation.
 - Data boundary: synthetic fixtures only; no real child data.
 
 ## Maintenance rule
@@ -308,8 +316,19 @@ rechecked B3/B4 disjointness and Git-ignore coverage, then stopped before model 
   complete and no additional GPU run is authorized.
 - Direction B, the canonical-vocabulary mismatch hypothesis, remains open and now has repeatable
   safe evidence, but any remediation requires a new plan and approval.
-- B5 and any production/runtime recommendation remain unresolved.
-- Overall P2-T3 status: `IN_PROGRESS`.
+- B5 (evidence-only recommendation gate): complete. The comparison table and recommendation are in
+  `evidence/notes/P2_T3_PHASE_B_B5_RECOMMENDATION.md` (`EV-003-T3-17`), also reflected in
+  `docs/adr/ADR-0007-vision-runtime-dependency-pinning-and-qwen3-vl-candidate-profile.md`. The
+  recommendation is `NOT_ENOUGH_EVIDENCE` to freeze `QWEN3_VL_8B_INSTRUCT_BF16_V1` (or any
+  Qwen3-VL profile) for production or runtime-default use: neither B4 nor Phase 8 ever persisted
+  predicted/ground-truth text (`CLASSIFY_ONLY`), so the untested Direction B
+  canonical-vocabulary-mismatch hypothesis cannot be checked by re-scoring existing output — and
+  `DECISIONS.md` independently prohibits rescoring the existing fixtures under a changed rule in
+  any case. No profile is frozen and no runtime default is selected. A future Direction B
+  experiment remains conceivable in principle but is not authorized by B5; it would need its own
+  new plan, approval, and capture/scoring boundary with entirely new fixtures.
+- Overall P2-T3 status: `IN_PROGRESS` — the approved B1–B5 study is complete; what remains open is
+  an owner decision on the B5 recommendation, not further work inside the approved B1–B5 scope.
 
 ## Canonical public evidence
 
