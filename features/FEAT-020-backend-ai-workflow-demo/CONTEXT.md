@@ -1,6 +1,6 @@
 # FEAT-020 — Backend AI Workflow Demo
 
-**Status:** `AWAITING_APPROVAL`
+**Status:** `IN_PROGRESS`
 **Date:** 2026-09-12
 **Scope:** backend-only, one-command, real-AI vertical workflow for Lightning Studio; no UI implementation.
 
