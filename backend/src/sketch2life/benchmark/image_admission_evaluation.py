@@ -101,6 +101,30 @@ class EvaluationProfile:
 
 
 @dataclass(frozen=True, slots=True)
+class CohortBCandidate:
+    """One entry of the local, git-ignored Cohort B candidate manifest (D3-R2 section 6)."""
+
+    fixture_id: str
+    filename: str
+    declared_format: str
+    declared_sha256: str
+
+
+@dataclass(frozen=True, slots=True)
+class CohortBValidatedSource:
+    """Facts re-derived from the actual local file, never trusted from the manifest alone."""
+
+    fixture_id: str
+    filename: str
+    format: str
+    mime: str
+    sha256: str
+    byte_count: int
+    width: int
+    height: int
+
+
+@dataclass(frozen=True, slots=True)
 class ChildRequest:
     sample_id: str
     fixture_id: str
@@ -282,6 +306,19 @@ def summarize_cohort_a(values: Sequence[float]) -> Mapping[str, float | int]:
     }
 
 
+def summarize_cohort_b(values: Sequence[float]) -> Mapping[str, float | int]:
+    """Cohort B reporting rule (D3-U2): minimum/median/maximum only, never p95 from 3 repeats."""
+
+    if not values:
+        raise ValueError("Cohort B summary requires at least one valid observation")
+    return {
+        "sample_count": len(values),
+        "minimum": min(values),
+        "median": float(statistics.median(values)),
+        "maximum": max(values),
+    }
+
+
 def has_order_effect(values: Sequence[float]) -> bool:
     if len(values) < 10:
         raise ValueError("order-effect detection requires at least 10 valid observations")
@@ -385,6 +422,102 @@ def aggregate_profile(samples: Sequence[Mapping[str, object]]) -> Mapping[str, o
             else None
         ),
         "parent_wall_p50_ms": statistics.median(parent_wall) if parent_wall else None,
+        "parent_wall_max_ms": max(parent_wall) if parent_wall else None,
+    }
+
+
+def aggregate_cohort_b_group(
+    samples: Sequence[Mapping[str, object]], *, required_count: int
+) -> Mapping[str, object]:
+    """Aggregate one Cohort B group: one image's 3 repeats, or the whole 24-sample cohort.
+
+    Mirrors `aggregate_profile`'s never-trust-a-spoofed-field recomputation, but reports
+    only minimum/median/maximum (D3-U2) and requires an exact sample count rather than
+    Cohort A's ``>= 20`` floor.
+    """
+
+    if required_count <= 0:
+        raise ValueError("required_count must be positive")
+    if len(samples) != required_count:
+        raise ValueError(f"Cohort B group requires exactly {required_count} samples")
+
+    def finite_number(value: object) -> TypeGuard[int | float]:
+        return (
+            isinstance(value, (int, float))
+            and not isinstance(value, bool)
+            and math.isfinite(float(value))
+        )
+
+    elapsed = [
+        float(value)
+        for sample in samples
+        if finite_number(value := sample.get("admission_elapsed_ms"))
+        and sample.get("timing_status") == classify_timing(float(value)).value
+    ]
+    timing_statuses = [sample.get("timing_status") for sample in samples]
+    memory_statuses = [sample.get("memory_status") for sample in samples]
+    lower_bounds = [
+        float(value)
+        for sample in samples
+        if finite_number(value := sample.get("memory_lower_bound_bytes"))
+    ]
+    upper_bounds = [
+        float(value)
+        for sample in samples
+        if finite_number(value := sample.get("memory_upper_bound_bytes"))
+    ]
+    parent_wall = [
+        float(value)
+        for sample in samples
+        if finite_number(value := sample.get("parent_wall_ms"))
+    ]
+    process_failure_count = sum(
+        1
+        for sample in samples
+        if sample.get("failure") is not None or sample.get("exit_code") != 0
+    )
+    memory_failure_count = sum(
+        1 for sample in samples if sample.get("measurement_failure") is not None
+    )
+    if process_failure_count or len(elapsed) != len(samples):
+        timing_status = TargetStatus.MEASUREMENT_INVALID
+    elif TargetStatus.EXCEEDS_TARGET.value in timing_statuses:
+        timing_status = TargetStatus.EXCEEDS_TARGET
+    elif all(status == TargetStatus.WITHIN_TARGET.value for status in timing_statuses):
+        timing_status = TargetStatus.WITHIN_TARGET
+    else:
+        timing_status = TargetStatus.MEASUREMENT_INVALID
+
+    if (
+        process_failure_count
+        or memory_failure_count
+        or TargetStatus.MEASUREMENT_INVALID.value in memory_statuses
+    ):
+        memory_status = TargetStatus.MEASUREMENT_INVALID
+    elif TargetStatus.EXCEEDS_TARGET.value in memory_statuses:
+        memory_status = TargetStatus.EXCEEDS_TARGET
+    elif TargetStatus.INCONCLUSIVE.value in memory_statuses:
+        memory_status = TargetStatus.INCONCLUSIVE
+    elif TargetStatus.NOT_MEASURED.value in memory_statuses:
+        memory_status = TargetStatus.NOT_MEASURED
+    elif all(status == TargetStatus.WITHIN_TARGET.value for status in memory_statuses):
+        memory_status = TargetStatus.WITHIN_TARGET
+    else:
+        memory_status = TargetStatus.MEASUREMENT_INVALID
+
+    statistics_fields = summarize_cohort_b(elapsed) if elapsed else {"sample_count": 0}
+    return {
+        **statistics_fields,
+        "timing_status": timing_status.value,
+        "memory_status": memory_status.value,
+        "process_failure_count": process_failure_count,
+        "memory_failure_count": memory_failure_count,
+        "memory_inconclusive_count": memory_statuses.count(TargetStatus.INCONCLUSIVE.value),
+        "memory_not_measured_count": memory_statuses.count(TargetStatus.NOT_MEASURED.value),
+        "memory_invalid_count": memory_statuses.count(TargetStatus.MEASUREMENT_INVALID.value),
+        "memory_lower_bound_max_bytes": max(lower_bounds) if lower_bounds else None,
+        "memory_upper_bound_max_bytes": max(upper_bounds) if upper_bounds else None,
+        "parent_wall_median_ms": statistics.median(parent_wall) if parent_wall else None,
         "parent_wall_max_ms": max(parent_wall) if parent_wall else None,
     }
 
@@ -1186,6 +1319,149 @@ def _verify_frozen_source(path: Path, expected_sha256: str, expected_bytes: int)
         raise RuntimeError("fixture changed after Cohort A materialization")
 
 
+_PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
+_JPEG_SIGNATURE = b"\xff\xd8\xff"
+_COHORT_B_MIME_BY_FORMAT: Mapping[str, str] = {"JPEG": "image/jpeg", "PNG": "image/png"}
+_COHORT_B_EXTENSIONS_BY_FORMAT: Mapping[str, tuple[str, ...]] = {
+    "JPEG": (".jpg", ".jpeg"),
+    "PNG": (".png",),
+}
+_COHORT_B_EXPECTED_FIXTURE_IDS: tuple[str, ...] = tuple(f"B0{index}" for index in range(1, 9))
+
+
+def _sniff_image_format(prefix: bytes) -> str | None:
+    if prefix.startswith(_PNG_SIGNATURE):
+        return "PNG"
+    if prefix.startswith(_JPEG_SIGNATURE):
+        return "JPEG"
+    return None
+
+
+def load_cohort_b_manifest(path: Path) -> tuple[CohortBCandidate, ...]:
+    """Load and structurally validate the local, git-ignored Cohort B candidate manifest.
+
+    This manifest and the raw images beside it never enter Git (D3-R2 section 6); only the
+    derived, redacted facts computed by `validate_cohort_b_source` may reach tracked evidence.
+    """
+
+    document = json.loads(path.read_text(encoding="utf-8"))
+    if (
+        not isinstance(document, dict)
+        or set(document)
+        != {
+            "feature",
+            "cohort",
+            "owner_reviewed",
+            "owner_review_date",
+            "execution_authorized",
+            "files",
+        }
+        or document.get("feature") != "FEAT-018"
+        or document.get("cohort") != "B"
+        or document.get("owner_reviewed") is not True
+        or document.get("execution_authorized") is not True
+        or not isinstance(document.get("owner_review_date"), str)
+        or not document.get("owner_review_date")
+    ):
+        raise ValueError("Cohort B manifest is missing required owner-approval fields")
+    files = document.get("files")
+    if not isinstance(files, list) or len(files) != 8:
+        raise ValueError("Cohort B manifest must declare exactly 8 files")
+    candidates: list[CohortBCandidate] = []
+    seen_ids: set[str] = set()
+    seen_paths: set[str] = set()
+    seen_hashes: set[str] = set()
+    for item in files:
+        if not isinstance(item, dict) or set(item) != {"id", "path", "format", "sha256"}:
+            raise ValueError("Cohort B manifest entry has unexpected fields")
+        fixture_id, filename = item["id"], item["path"]
+        declared_format, digest = item["format"], item["sha256"]
+        if fixture_id not in _COHORT_B_EXPECTED_FIXTURE_IDS or fixture_id in seen_ids:
+            raise ValueError("Cohort B manifest entry has a duplicate or unapproved id")
+        if (
+            not isinstance(filename, str)
+            or not filename
+            or "/" in filename
+            or "\\" in filename
+            or filename in seen_paths
+        ):
+            raise ValueError("Cohort B manifest entry has an invalid or duplicate filename")
+        if declared_format not in _COHORT_B_MIME_BY_FORMAT:
+            raise ValueError("Cohort B manifest entry has an unsupported declared format")
+        if (
+            not isinstance(digest, str)
+            or len(digest) != 64
+            or any(character not in "0123456789abcdef" for character in digest)
+            or digest in seen_hashes
+        ):
+            raise ValueError("Cohort B manifest entry has an invalid or duplicate SHA-256")
+        seen_ids.add(fixture_id)
+        seen_paths.add(filename)
+        seen_hashes.add(digest)
+        candidates.append(CohortBCandidate(fixture_id, filename, declared_format, digest))
+    if seen_ids != set(_COHORT_B_EXPECTED_FIXTURE_IDS):
+        raise ValueError("Cohort B manifest must cover exactly the approved B01-B08 identities")
+    if (
+        sum(candidate.declared_format == "JPEG" for candidate in candidates) != 4
+        or sum(candidate.declared_format == "PNG" for candidate in candidates) != 4
+    ):
+        raise ValueError("Cohort B manifest must declare exactly 4 JPEG and 4 PNG files")
+    return tuple(sorted(candidates, key=lambda candidate: candidate.fixture_id))
+
+
+def _probe_declared_dimensions(path: Path) -> tuple[int, int]:
+    """Header-only dimension probe, mirroring D1 section 3 step 5: no full decode, no policy."""
+
+    import av
+
+    with av.open(str(path)) as container:
+        streams = container.streams.video
+        if not streams:
+            raise ValueError("source has no video stream")
+        width, height = int(streams[0].width), int(streams[0].height)
+    if width < 1 or height < 1:
+        raise ValueError("source declares invalid dimensions")
+    return width, height
+
+
+def validate_cohort_b_source(
+    directory: Path, candidate: CohortBCandidate
+) -> CohortBValidatedSource:
+    """Fail closed on any mismatch between the manifest and the actual local file.
+
+    Independently re-derives format, MIME, byte count, dimensions and SHA-256 from the file
+    itself and never trusts a manifest-declared value without checking it against the bytes
+    on disk (D3-2 "hash drift" / "version drift" stop condition).
+    """
+
+    path = directory / candidate.filename
+    if not path.is_file():
+        raise FileNotFoundError(f"Cohort B source file is missing: {candidate.fixture_id}")
+    extensions = _COHORT_B_EXTENSIONS_BY_FORMAT[candidate.declared_format]
+    if not candidate.filename.lower().endswith(extensions):
+        raise ValueError(f"{candidate.fixture_id} filename does not match its declared format")
+    with path.open("rb") as source:
+        prefix = source.read(16)
+    sniffed_format = _sniff_image_format(prefix)
+    if sniffed_format != candidate.declared_format:
+        raise ValueError(f"{candidate.fixture_id} signature does not match its declared format")
+    actual_sha256 = _sha256_of(path)
+    if actual_sha256 != candidate.declared_sha256:
+        raise ValueError(f"{candidate.fixture_id} SHA-256 does not match the approved manifest")
+    byte_count = path.stat().st_size
+    width, height = _probe_declared_dimensions(path)
+    return CohortBValidatedSource(
+        fixture_id=candidate.fixture_id,
+        filename=candidate.filename,
+        format=sniffed_format,
+        mime=_COHORT_B_MIME_BY_FORMAT[sniffed_format],
+        sha256=actual_sha256,
+        byte_count=byte_count,
+        width=width,
+        height=height,
+    )
+
+
 def _sample_matches_profile(
     sample: Mapping[str, object], profile: EvaluationProfile
 ) -> bool:
@@ -1249,6 +1525,86 @@ def _resolve_clean_git_head(manifest_path: Path) -> str:
     )
     if status.stdout.strip():
         raise RuntimeError("formal Cohort A execution requires a clean worktree")
+    return head
+
+
+def _find_repository_root(start: Path) -> Path:
+    root = next(
+        (
+            candidate
+            for candidate in start.resolve().parents
+            if (candidate / ".git").exists()
+        ),
+        None,
+    )
+    if root is None:
+        raise RuntimeError("path is not inside a Git worktree")
+    return root
+
+
+_D2_IMPLEMENTATION_PATHS: tuple[str, ...] = (
+    "backend/pyproject.toml",
+    "backend/src/sketch2life/domain/understanding/image_admission.py",
+    "backend/src/sketch2life/application/ports/image_decoder.py",
+    "backend/src/sketch2life/application/services/image_admission.py",
+    "backend/src/sketch2life/infrastructure/media_validation/av_image_decoder.py",
+    "backend/tests/unit/test_image_admission.py",
+    "backend/tests/unit/feat018_admission_manifest.py",
+    "features/FEAT-018-live-image-canvas-flow/fixtures/image-admission/manifest-v1.json",
+)
+
+
+def _resolve_backend_clean_head(
+    manifest_path: Path, *, code_paths: Sequence[str] = _D2_IMPLEMENTATION_PATHS
+) -> str:
+    """Resolve HEAD and require the reviewed D2 implementation to match it exactly.
+
+    Cohort B's own local candidate manifest, this D3 benchmark harness and its tests, and
+    the surrounding approval/evidence documentation are legitimately edited in the same
+    working session that implements and runs this evaluation -- unlike Cohort A's later,
+    fully committed formal run, which is why this does not reuse `_resolve_clean_git_head`.
+    Only the reviewed D2 admission implementation actually being timed (never this harness)
+    must be uncommitted-change-free, so the measurement stays attributable to a known,
+    owner-accepted commit.
+    """
+
+    repository_root = _find_repository_root(manifest_path)
+    head = subprocess.run(
+        ["git", "-C", str(repository_root), "rev-parse", "HEAD"],
+        check=True,
+        capture_output=True,
+        text=True,
+        timeout=5,
+    ).stdout.strip()
+    clean = subprocess.run(
+        ["git", "-C", str(repository_root), "diff", "--quiet", "HEAD", "--", *code_paths],
+        check=False,
+        timeout=5,
+    )
+    if clean.returncode != 0:
+        raise RuntimeError(
+            "formal Cohort B execution requires the reviewed D2 implementation to be clean"
+        )
+    status = subprocess.run(
+        [
+            "git",
+            "-C",
+            str(repository_root),
+            "status",
+            "--porcelain",
+            "--untracked-files=all",
+            "--",
+            *code_paths,
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+        timeout=5,
+    )
+    if status.stdout.strip():
+        raise RuntimeError(
+            "formal Cohort B execution requires the reviewed D2 implementation to be clean"
+        )
     return head
 
 
@@ -1420,6 +1776,124 @@ def run_cohort_a(
         }
 
 
+def _sample_is_valid_cohort_b(sample: Mapping[str, object]) -> bool:
+    return (
+        sample.get("exit_code") == 0
+        and sample.get("failure") is None
+        and sample.get("artifact_ref_verified") is True
+        and sample.get("source_digest_verified") is True
+        and sample.get("measurement_failure") is None
+    )
+
+
+def run_cohort_b(
+    manifest_path: Path,
+    *,
+    repeats: int = 3,
+    commit_identity: str,
+    timeout_seconds: float = DEFAULT_CHILD_TIMEOUT_SECONDS,
+    head_resolver: Callable[[], str] | None = None,
+) -> dict[str, object]:
+    """Formal Cohort B execution (D3-R2 section 6, D3-U1/D3-U2).
+
+    Eight owner-approved local photographs (4 JPEG + 4 PNG), 3 fresh-process repeats each,
+    minimum/median/maximum reporting only, never p95. Unlike Cohort A, the manifest and
+    source images are local and git-ignored (`manifest_path.parent`); only sanitized results
+    (opaque IDs, formats, bounded metadata, hashes, timings, memory classifications) may
+    enter the returned report, which is the only thing a caller may write to tracked
+    evidence.
+    """
+
+    if repeats != 3:
+        raise ValueError("formal Cohort B execution requires exactly 3 repeats per image")
+    if len(commit_identity) != 40 or any(
+        character not in "0123456789abcdef" for character in commit_identity
+    ):
+        raise ValueError("formal Cohort B execution requires an exact lowercase commit SHA")
+    actual_head = (
+        head_resolver() if head_resolver is not None else _resolve_backend_clean_head(manifest_path)
+    )
+    if actual_head != commit_identity:
+        raise ValueError(
+            "declared commit identity does not match the reviewed D2 implementation's HEAD"
+        )
+
+    candidates = load_cohort_b_manifest(manifest_path)
+    manifest_sha256 = _sha256_of(manifest_path)
+    source_directory = manifest_path.parent
+    validated = {
+        candidate.fixture_id: validate_cohort_b_source(source_directory, candidate)
+        for candidate in candidates
+    }
+
+    samples: list[dict[str, object]] = []
+    per_image: dict[str, dict[str, object]] = {}
+    for candidate in candidates:
+        source = validated[candidate.fixture_id]
+        path = source_directory / source.filename
+        image_samples: list[dict[str, object]] = []
+        for repeat in range(repeats):
+            _verify_frozen_source(path, source.sha256, source.byte_count)
+            sample_id = f"cohort-b:{candidate.fixture_id}:{repeat}"
+            sample = run_child_sample(
+                ChildRequest(
+                    sample_id,
+                    candidate.fixture_id,
+                    "B",
+                    repeat,
+                    str(path),
+                    source.sha256,
+                    source.byte_count,
+                    commit_identity,
+                ),
+                timeout_seconds=timeout_seconds,
+            )
+            image_samples.append(sample)
+        samples.extend(image_samples)
+        per_image[candidate.fixture_id] = {
+            "format": source.format,
+            "mime": source.mime,
+            "sha256": source.sha256,
+            "byte_count": source.byte_count,
+            "declared_width": source.width,
+            "declared_height": source.height,
+            "outcomes_observed": sorted(
+                {str(sample.get("outcome")) for sample in image_samples}
+            ),
+            "reasons_observed": sorted(
+                {
+                    str(sample.get("reason"))
+                    for sample in image_samples
+                    if sample.get("reason") is not None
+                }
+            ),
+            "aggregate": aggregate_cohort_b_group(image_samples, required_count=repeats),
+        }
+
+    expected_total = len(candidates) * repeats
+    complete = len(samples) == expected_total and all(
+        _sample_is_valid_cohort_b(sample) for sample in samples
+    )
+    jpeg_count = sum(1 for source in validated.values() if source.format == "JPEG")
+    png_count = sum(1 for source in validated.values() if source.format == "PNG")
+
+    return {
+        "schema": "Feat018ImageAdmissionEvaluationReportV1",
+        "cohort": "B",
+        "commit_identity": commit_identity,
+        "manifest_sha256": manifest_sha256,
+        "execution_occurred": True,
+        "complete": complete,
+        "repeats_per_image": repeats,
+        "expected_image_count": len(candidates),
+        "sample_count": len(samples),
+        "composition": {"jpeg_count": jpeg_count, "png_count": png_count},
+        "per_image": per_image,
+        "aggregate": aggregate_cohort_b_group(samples, required_count=expected_total),
+        "samples": samples,
+    }
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--child", action="store_true")
@@ -1437,6 +1911,8 @@ if __name__ == "__main__":
 __all__ = [
     "ChildFailure",
     "ChildRequest",
+    "CohortBCandidate",
+    "CohortBValidatedSource",
     "DecodeStage",
     "EvaluationProfile",
     "GENERATORS",
@@ -1446,17 +1922,22 @@ __all__ = [
     "ProcessMemorySnapshot",
     "TargetStatus",
     "WindowsProcessMemoryReader",
+    "aggregate_cohort_b_group",
     "aggregate_profile",
     "calibrate_memory_reader",
     "classify_memory",
     "classify_timing",
     "has_order_effect",
+    "load_cohort_b_manifest",
     "load_evaluation_manifest",
     "materialize_cohort_a",
     "nearest_rank_percentile",
     "run_bounded_process",
     "run_child_sample",
     "run_cohort_a",
+    "run_cohort_b",
     "summarize_cohort_a",
+    "summarize_cohort_b",
     "validate_child_output",
+    "validate_cohort_b_source",
 ]

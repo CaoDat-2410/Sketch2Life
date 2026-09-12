@@ -23,22 +23,28 @@ from sketch2life.benchmark import image_admission_evaluation as module
 from sketch2life.benchmark.image_admission_evaluation import (
     ChildFailure,
     ChildRequest,
+    CohortBCandidate,
     DecodeStage,
     ProcessMemorySnapshot,
     TargetStatus,
     WindowsProcessMemoryReader,
+    aggregate_cohort_b_group,
     aggregate_profile,
     calibrate_memory_reader,
     classify_memory,
     classify_timing,
     has_order_effect,
+    load_cohort_b_manifest,
     load_evaluation_manifest,
     materialize_cohort_a,
     nearest_rank_percentile,
     run_bounded_process,
     run_child_sample,
+    run_cohort_b,
     summarize_cohort_a,
+    summarize_cohort_b,
     validate_child_output,
+    validate_cohort_b_source,
 )
 from sketch2life.infrastructure.media_validation.av_image_decoder import AvImageDecoder
 
@@ -744,3 +750,445 @@ def test_clean_head_rejects_untracked_worktree(monkeypatch: pytest.MonkeyPatch) 
 
     with pytest.raises(RuntimeError, match="clean worktree"):
         module._resolve_clean_git_head(_MANIFEST)
+
+
+# --- Cohort B (D3-R2 section 6, D3-U1/D3-U2) ---------------------------------------------
+
+
+def _cohort_b_workspace(tmp_path: Path) -> Path:
+    """A local Cohort B manifest + 4 JPEG + 4 PNG files, mirroring the real on-disk layout."""
+
+    workspace = tmp_path / "cohort-b"
+    workspace.mkdir()
+    jpeg_payloads = [module._jpeg(width=64 + index, height=64) for index in range(4)]
+    png_payloads = [
+        module.GENERATORS["rgb8-png"](),
+        module.GENERATORS["rgba8-png"](),
+        module.GENERATORS["gray8-png"](),
+        module.GENERATORS["mono1-png"](),
+    ]
+    files: list[dict[str, object]] = []
+    for index, payload in enumerate(jpeg_payloads, start=1):
+        filename = f"B0{index}.jpg"
+        (workspace / filename).write_bytes(payload)
+        files.append(
+            {
+                "id": f"B0{index}",
+                "path": filename,
+                "format": "JPEG",
+                "sha256": hashlib.sha256(payload).hexdigest(),
+            }
+        )
+    for index, payload in enumerate(png_payloads, start=5):
+        filename = f"B0{index}.png"
+        (workspace / filename).write_bytes(payload)
+        files.append(
+            {
+                "id": f"B0{index}",
+                "path": filename,
+                "format": "PNG",
+                "sha256": hashlib.sha256(payload).hexdigest(),
+            }
+        )
+    manifest_path = workspace / "candidate-manifest.json"
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "feature": "FEAT-018",
+                "cohort": "B",
+                "owner_reviewed": True,
+                "owner_review_date": "2026-09-12",
+                "execution_authorized": True,
+                "files": files,
+            }
+        ),
+        encoding="utf-8",
+    )
+    return manifest_path
+
+
+def test_cohort_b_manifest_loads_and_sources_validate_against_real_files(
+    tmp_path: Path,
+) -> None:
+    manifest_path = _cohort_b_workspace(tmp_path)
+
+    candidates = load_cohort_b_manifest(manifest_path)
+
+    assert [candidate.fixture_id for candidate in candidates] == [
+        f"B0{index}" for index in range(1, 9)
+    ]
+    assert sum(candidate.declared_format == "JPEG" for candidate in candidates) == 4
+    assert sum(candidate.declared_format == "PNG" for candidate in candidates) == 4
+    for candidate in candidates:
+        validated = validate_cohort_b_source(manifest_path.parent, candidate)
+        assert validated.sha256 == candidate.declared_sha256
+        assert validated.format == candidate.declared_format
+        assert validated.mime in {"image/jpeg", "image/png"}
+        assert validated.width >= 1 and validated.height >= 1
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        "not-owner-reviewed",
+        "not-execution-authorized",
+        "missing-review-date",
+        "extra-top-level-key",
+        "too-few-files",
+    ],
+)
+def test_cohort_b_manifest_rejects_missing_approval_fields(
+    tmp_path: Path, mutation: str
+) -> None:
+    manifest_path = _cohort_b_workspace(tmp_path)
+    document = json.loads(manifest_path.read_text(encoding="utf-8"))
+    if mutation == "not-owner-reviewed":
+        document["owner_reviewed"] = False
+    elif mutation == "not-execution-authorized":
+        document["execution_authorized"] = False
+    elif mutation == "missing-review-date":
+        document["owner_review_date"] = ""
+    elif mutation == "extra-top-level-key":
+        document["unexpected"] = True
+    else:
+        document["files"] = document["files"][:-1]
+    manifest_path.write_text(json.dumps(document), encoding="utf-8")
+
+    with pytest.raises(ValueError):
+        load_cohort_b_manifest(manifest_path)
+
+
+def test_cohort_b_manifest_rejects_wrong_format_composition(tmp_path: Path) -> None:
+    manifest_path = _cohort_b_workspace(tmp_path)
+    document = json.loads(manifest_path.read_text(encoding="utf-8"))
+    document["files"][0]["format"] = "PNG"
+    manifest_path.write_text(json.dumps(document), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="4 JPEG and 4 PNG"):
+        load_cohort_b_manifest(manifest_path)
+
+
+def test_cohort_b_manifest_rejects_duplicate_id(tmp_path: Path) -> None:
+    manifest_path = _cohort_b_workspace(tmp_path)
+    document = json.loads(manifest_path.read_text(encoding="utf-8"))
+    document["files"][1]["id"] = document["files"][0]["id"]
+    manifest_path.write_text(json.dumps(document), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="duplicate or unapproved id"):
+        load_cohort_b_manifest(manifest_path)
+
+
+def test_cohort_b_manifest_rejects_unapproved_id(tmp_path: Path) -> None:
+    manifest_path = _cohort_b_workspace(tmp_path)
+    document = json.loads(manifest_path.read_text(encoding="utf-8"))
+    document["files"][0]["id"] = "B09"
+    manifest_path.write_text(json.dumps(document), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="duplicate or unapproved id"):
+        load_cohort_b_manifest(manifest_path)
+
+
+def test_cohort_b_source_validation_rejects_hash_drift(tmp_path: Path) -> None:
+    manifest_path = _cohort_b_workspace(tmp_path)
+    candidates = load_cohort_b_manifest(manifest_path)
+    drifted = CohortBCandidate(
+        candidates[0].fixture_id, candidates[0].filename, candidates[0].declared_format, "a" * 64
+    )
+
+    with pytest.raises(ValueError, match="does not match the approved manifest"):
+        validate_cohort_b_source(manifest_path.parent, drifted)
+
+
+def test_cohort_b_source_validation_rejects_missing_file(tmp_path: Path) -> None:
+    manifest_path = _cohort_b_workspace(tmp_path)
+    missing = CohortBCandidate("B01", "does-not-exist.jpg", "JPEG", "a" * 64)
+
+    with pytest.raises(FileNotFoundError):
+        validate_cohort_b_source(manifest_path.parent, missing)
+
+
+def test_cohort_b_source_validation_rejects_signature_format_mismatch(tmp_path: Path) -> None:
+    manifest_path = _cohort_b_workspace(tmp_path)
+    candidates = load_cohort_b_manifest(manifest_path)
+    jpeg_candidate = next(c for c in candidates if c.declared_format == "JPEG")
+    png_bytes = module.GENERATORS["rgb8-png"]()
+    (manifest_path.parent / jpeg_candidate.filename).write_bytes(png_bytes)
+    relabelled = CohortBCandidate(
+        jpeg_candidate.fixture_id,
+        jpeg_candidate.filename,
+        jpeg_candidate.declared_format,
+        hashlib.sha256(png_bytes).hexdigest(),
+    )
+
+    with pytest.raises(ValueError, match="signature does not match"):
+        validate_cohort_b_source(manifest_path.parent, relabelled)
+
+
+def test_summarize_cohort_b_reports_min_median_max_only() -> None:
+    result = summarize_cohort_b([3.0, 1.0, 2.0])
+
+    assert result == {"sample_count": 3, "minimum": 1.0, "median": 2.0, "maximum": 3.0}
+    assert "p50" not in result and "p95" not in result
+
+
+def test_summarize_cohort_b_refuses_empty() -> None:
+    with pytest.raises(ValueError, match="at least one"):
+        summarize_cohort_b([])
+
+
+def _cohort_b_sample(
+    *,
+    timing: TargetStatus = TargetStatus.WITHIN_TARGET,
+    memory: TargetStatus = TargetStatus.WITHIN_TARGET,
+    failure: str | None = None,
+    elapsed: float = 10.0,
+) -> dict[str, object]:
+    return {
+        "admission_elapsed_ms": elapsed,
+        "timing_status": timing.value,
+        "memory_status": memory.value,
+        "measurement_failure": failure,
+        "failure": None,
+        "exit_code": 0,
+    }
+
+
+def test_cohort_b_aggregate_never_turns_inconclusive_into_pass() -> None:
+    samples = [
+        _cohort_b_sample(),
+        _cohort_b_sample(),
+        _cohort_b_sample(memory=TargetStatus.INCONCLUSIVE),
+    ]
+
+    aggregate = aggregate_cohort_b_group(samples, required_count=3)
+
+    assert aggregate["timing_status"] == "WITHIN_TARGET"
+    assert aggregate["memory_status"] == "INCONCLUSIVE"
+    assert aggregate["memory_inconclusive_count"] == 1
+    assert "p95" not in aggregate and "p50" not in aggregate
+    assert aggregate["minimum"] == 10.0 and aggregate["maximum"] == 10.0
+
+
+def test_cohort_b_aggregate_keeps_typed_failure_separate() -> None:
+    samples = [
+        _cohort_b_sample(),
+        _cohort_b_sample(),
+        _cohort_b_sample(failure="MEMORY_API_FAILURE"),
+    ]
+
+    aggregate = aggregate_cohort_b_group(samples, required_count=3)
+
+    assert aggregate["memory_status"] == "MEASUREMENT_INVALID"
+    assert aggregate["timing_status"] == "WITHIN_TARGET"
+    assert aggregate["memory_failure_count"] == 1
+
+
+@pytest.mark.parametrize("bad_elapsed", [True, float("nan"), float("inf")])
+def test_cohort_b_aggregate_rejects_non_numeric_or_non_finite_timing(bad_elapsed: object) -> None:
+    samples = [_cohort_b_sample(), _cohort_b_sample(), _cohort_b_sample()]
+    samples[-1]["admission_elapsed_ms"] = bad_elapsed
+
+    aggregate = aggregate_cohort_b_group(samples, required_count=3)
+
+    assert aggregate["timing_status"] == "MEASUREMENT_INVALID"
+    assert aggregate["sample_count"] == 2
+
+
+def test_cohort_b_aggregate_rejects_spoofed_timing_status() -> None:
+    samples = [_cohort_b_sample(), _cohort_b_sample(), _cohort_b_sample()]
+    samples[-1]["admission_elapsed_ms"] = 6_000.0
+    samples[-1]["timing_status"] = TargetStatus.WITHIN_TARGET.value
+
+    aggregate = aggregate_cohort_b_group(samples, required_count=3)
+
+    assert aggregate["timing_status"] == TargetStatus.MEASUREMENT_INVALID.value
+
+
+def test_cohort_b_aggregate_requires_exact_sample_count() -> None:
+    with pytest.raises(ValueError, match="exactly 3"):
+        aggregate_cohort_b_group([_cohort_b_sample(), _cohort_b_sample()], required_count=3)
+
+
+def test_run_cohort_b_rejects_non_three_repeats(tmp_path: Path) -> None:
+    manifest_path = _cohort_b_workspace(tmp_path)
+
+    with pytest.raises(ValueError, match="exactly 3 repeats"):
+        run_cohort_b(
+            manifest_path, repeats=1, commit_identity="a" * 40, head_resolver=lambda: "a" * 40
+        )
+
+
+def test_run_cohort_b_rejects_non_commit_identity(tmp_path: Path) -> None:
+    manifest_path = _cohort_b_workspace(tmp_path)
+
+    with pytest.raises(ValueError, match="exact lowercase commit SHA"):
+        run_cohort_b(
+            manifest_path,
+            commit_identity="working-tree",
+            head_resolver=lambda: "working-tree",
+        )
+
+
+def test_run_cohort_b_rejects_declared_commit_mismatch(tmp_path: Path) -> None:
+    manifest_path = _cohort_b_workspace(tmp_path)
+
+    with pytest.raises(ValueError, match="does not match"):
+        run_cohort_b(
+            manifest_path, commit_identity="a" * 40, head_resolver=lambda: "b" * 40
+        )
+
+
+def test_run_cohort_b_executes_24_samples_with_min_median_max_only(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    manifest_path = _cohort_b_workspace(tmp_path)
+
+    def fake_run(request: ChildRequest, *, timeout_seconds: float) -> dict[str, object]:
+        del timeout_seconds
+        elapsed = 10.0 + request.repeat_index
+        return {
+            "sample_id": request.sample_id,
+            "fixture_id": request.fixture_id,
+            "cohort": request.cohort,
+            "repeat_index": request.repeat_index,
+            "outcome": "ADMITTED",
+            "reason": None,
+            "source_sha256": request.expected_sha256,
+            "source_digest_verified": True,
+            "artifact_ref_verified": True,
+            "admission_elapsed_ms": elapsed,
+            "timing_status": "WITHIN_TARGET",
+            "memory_status": "WITHIN_TARGET",
+            "memory_lower_bound_bytes": 0,
+            "memory_upper_bound_bytes": 1,
+            "measurement_failure": None,
+            "failure": None,
+            "parent_wall_ms": elapsed + 1,
+            "exit_code": 0,
+        }
+
+    monkeypatch.setattr(module, "run_child_sample", fake_run)
+
+    report = run_cohort_b(manifest_path, commit_identity="a" * 40, head_resolver=lambda: "a" * 40)
+
+    assert report["schema"] == "Feat018ImageAdmissionEvaluationReportV1"
+    assert report["cohort"] == "B"
+    assert report["execution_occurred"] is True
+    assert report["complete"] is True
+    assert report["sample_count"] == 24
+    assert report["composition"] == {"jpeg_count": 4, "png_count": 4}
+    per_image = report["per_image"]
+    assert isinstance(per_image, dict)
+    assert set(per_image) == {f"B0{index}" for index in range(1, 9)}
+    for entry in per_image.values():
+        aggregate = entry["aggregate"]
+        assert aggregate["sample_count"] == 3
+        assert {"minimum", "median", "maximum"} <= aggregate.keys()
+        assert "p50" not in aggregate and "p95" not in aggregate
+        assert entry["outcomes_observed"] == ["ADMITTED"]
+    overall = report["aggregate"]
+    assert isinstance(overall, dict)
+    assert overall["sample_count"] == 24
+    assert "p50" not in overall and "p95" not in overall
+    samples = report["samples"]
+    assert isinstance(samples, list)
+    assert len(samples) == 24
+
+
+def test_run_cohort_b_marks_incomplete_on_any_process_failure(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    manifest_path = _cohort_b_workspace(tmp_path)
+    calls = {"count": 0}
+
+    def fake_run(request: ChildRequest, *, timeout_seconds: float) -> dict[str, object]:
+        del timeout_seconds
+        calls["count"] += 1
+        if calls["count"] == 1:
+            return {"failure": "ABNORMAL_EXIT", "exit_code": 1, "parent_wall_ms": 5.0}
+        return {
+            "sample_id": request.sample_id,
+            "fixture_id": request.fixture_id,
+            "outcome": "ADMITTED",
+            "reason": None,
+            "source_digest_verified": True,
+            "artifact_ref_verified": True,
+            "admission_elapsed_ms": 10.0,
+            "timing_status": "WITHIN_TARGET",
+            "memory_status": "WITHIN_TARGET",
+            "memory_lower_bound_bytes": 0,
+            "memory_upper_bound_bytes": 1,
+            "measurement_failure": None,
+            "failure": None,
+            "parent_wall_ms": 11.0,
+            "exit_code": 0,
+        }
+
+    monkeypatch.setattr(module, "run_child_sample", fake_run)
+
+    report = run_cohort_b(manifest_path, commit_identity="a" * 40, head_resolver=lambda: "a" * 40)
+
+    assert report["complete"] is False
+    assert report["sample_count"] == 24
+
+
+def test_backend_clean_head_returns_head_when_backend_is_clean(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class Result:
+        def __init__(self, *, stdout: str = "", returncode: int = 0) -> None:
+            self.stdout = stdout
+            self.returncode = returncode
+
+    calls = iter([Result(stdout="a" * 40 + "\n"), Result(), Result(stdout="")])
+
+    def fake_run(*_args: object, **_kwargs: object) -> Result:
+        return next(calls)
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    assert module._resolve_backend_clean_head(_MANIFEST) == "a" * 40
+
+
+def test_backend_clean_head_rejects_dirty_backend_subtree(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class Result:
+        def __init__(self, *, stdout: str = "", returncode: int = 0) -> None:
+            self.stdout = stdout
+            self.returncode = returncode
+
+    calls = iter([Result(stdout="a" * 40 + "\n"), Result(returncode=1)])
+
+    def fake_run(*_args: object, **_kwargs: object) -> Result:
+        return next(calls)
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    with pytest.raises(RuntimeError, match="D2 implementation to be clean"):
+        module._resolve_backend_clean_head(_MANIFEST)
+
+
+def test_backend_clean_head_rejects_untracked_backend_file(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class Result:
+        def __init__(self, *, stdout: str = "", returncode: int = 0) -> None:
+            self.stdout = stdout
+            self.returncode = returncode
+
+    calls = iter(
+        [
+            Result(stdout="a" * 40 + "\n"),
+            Result(),
+            Result(stdout="?? backend/untracked.py\n"),
+        ]
+    )
+
+    def fake_run(*_args: object, **_kwargs: object) -> Result:
+        return next(calls)
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    with pytest.raises(RuntimeError, match="D2 implementation to be clean"):
+        module._resolve_backend_clean_head(_MANIFEST)
