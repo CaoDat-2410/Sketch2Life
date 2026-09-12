@@ -55,6 +55,10 @@ _MANIFEST = (
     "evaluation-manifest-v1.json"
 )
 _MIB = 1024 * 1024
+_D2_IMPORT_CLOSURE_PATHS = (
+    "backend/src/sketch2life/contracts/schemas/media_validation.py",
+    "backend/src/sketch2life/domain/understanding/media_quality.py",
+)
 
 
 def _memory(current: int, peak: int, private: int = 1) -> ProcessMemorySnapshot:
@@ -729,6 +733,95 @@ def test_formal_cohort_rejects_declared_commit_mismatch() -> None:
         )
 
 
+def test_d2_implementation_paths_include_admission_import_closure() -> None:
+    assert set(_D2_IMPORT_CLOSURE_PATHS) <= set(module._D2_IMPLEMENTATION_PATHS)
+
+
+def test_backend_clean_head_accepts_unchanged_d2_implementation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class Result:
+        def __init__(self, *, stdout: str = "", returncode: int = 0) -> None:
+            self.stdout = stdout
+            self.returncode = returncode
+
+    calls: list[list[str]] = []
+
+    def fake_run(*args: object, **_kwargs: object) -> Result:
+        command = args[0]
+        assert isinstance(command, list)
+        normalized = [str(value) for value in command]
+        calls.append(normalized)
+        if "rev-parse" in normalized:
+            return Result(stdout="a" * 40 + "\n")
+        return Result()
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    assert module._resolve_backend_clean_head(_MANIFEST) == "a" * 40
+    scoped_commands = [command for command in calls if "--" in command]
+    assert len(scoped_commands) == 2
+    for command in scoped_commands:
+        assert all(path in command for path in module._D2_IMPLEMENTATION_PATHS)
+
+
+@pytest.mark.parametrize("modified_path", _D2_IMPORT_CLOSURE_PATHS)
+def test_backend_clean_head_rejects_modified_d2_import_closure_path(
+    monkeypatch: pytest.MonkeyPatch, modified_path: str
+) -> None:
+    class Result:
+        def __init__(self, *, stdout: str = "", returncode: int = 0) -> None:
+            self.stdout = stdout
+            self.returncode = returncode
+
+    calls: list[list[str]] = []
+
+    def fake_run(*args: object, **_kwargs: object) -> Result:
+        command = args[0]
+        assert isinstance(command, list)
+        normalized = [str(value) for value in command]
+        calls.append(normalized)
+        if "rev-parse" in normalized:
+            return Result(stdout="a" * 40 + "\n")
+        if "diff" in normalized:
+            return Result(returncode=1 if modified_path in normalized else 0)
+        return Result()
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    with pytest.raises(RuntimeError, match="reviewed D2 implementation to be clean"):
+        module._resolve_backend_clean_head(_MANIFEST)
+    assert modified_path in calls[1]
+
+
+def test_backend_clean_head_scope_excludes_unrelated_file(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class Result:
+        def __init__(self, *, stdout: str = "", returncode: int = 0) -> None:
+            self.stdout = stdout
+            self.returncode = returncode
+
+    unrelated_path = "backend/src/sketch2life/benchmark/image_admission_evaluation.py"
+    calls: list[list[str]] = []
+
+    def fake_run(*args: object, **_kwargs: object) -> Result:
+        command = args[0]
+        assert isinstance(command, list)
+        normalized = [str(value) for value in command]
+        calls.append(normalized)
+        if "rev-parse" in normalized:
+            return Result(stdout="a" * 40 + "\n")
+        return Result()
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    assert module._resolve_backend_clean_head(_MANIFEST) == "a" * 40
+    scoped_commands = [command for command in calls if "--" in command]
+    assert scoped_commands
+    assert all(unrelated_path not in command for command in scoped_commands)
+
+
 def test_clean_head_rejects_untracked_worktree(monkeypatch: pytest.MonkeyPatch) -> None:
     class Result:
         def __init__(self, *, stdout: str = "", returncode: int = 0) -> None:
@@ -820,11 +913,32 @@ def test_cohort_b_manifest_loads_and_sources_validate_against_real_files(
     assert sum(candidate.declared_format == "JPEG" for candidate in candidates) == 4
     assert sum(candidate.declared_format == "PNG" for candidate in candidates) == 4
     for candidate in candidates:
+        assert len(candidate.declared_sha256) == 64
         validated = validate_cohort_b_source(manifest_path.parent, candidate)
         assert validated.sha256 == candidate.declared_sha256
         assert validated.format == candidate.declared_format
         assert validated.mime in {"image/jpeg", "image/png"}
         assert validated.width >= 1 and validated.height >= 1
+
+
+def test_cohort_b_manifest_rejects_truncated_sha256_before_subprocess(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    manifest_path = _cohort_b_workspace(tmp_path)
+    document = json.loads(manifest_path.read_text(encoding="utf-8"))
+    document["files"][0]["sha256"] = document["files"][0]["sha256"][:-1]
+    manifest_path.write_text(json.dumps(document), encoding="utf-8")
+
+    def fail_subprocess(*_args: object, **_kwargs: object) -> None:
+        raise AssertionError("manifest loading must not invoke a subprocess")
+
+    monkeypatch.setattr(subprocess, "run", fail_subprocess)
+
+    with pytest.raises(
+        ValueError,
+        match=r"invalid SHA-256 digest length.*expected 64.*got 63",
+    ):
+        load_cohort_b_manifest(manifest_path)
 
 
 @pytest.mark.parametrize(
@@ -1192,3 +1306,23 @@ def test_backend_clean_head_rejects_untracked_backend_file(
 
     with pytest.raises(RuntimeError, match="D2 implementation to be clean"):
         module._resolve_backend_clean_head(_MANIFEST)
+
+
+def test_run_cohort_b_rejects_unclean_d2_before_formal_execution(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    manifest_path = _cohort_b_workspace(tmp_path)
+
+    def reject_unclean(_manifest_path: Path) -> str:
+        raise RuntimeError(
+            "formal Cohort B execution requires the reviewed D2 implementation to be clean"
+        )
+
+    def fail_if_executed(*_args: object, **_kwargs: object) -> dict[str, object]:
+        pytest.fail("formal execution must not begin after a failed preflight")
+
+    monkeypatch.setattr(module, "_resolve_backend_clean_head", reject_unclean)
+    monkeypatch.setattr(module, "run_child_sample", fail_if_executed)
+
+    with pytest.raises(RuntimeError, match="reviewed D2 implementation to be clean"):
+        run_cohort_b(manifest_path, commit_identity="a" * 40)

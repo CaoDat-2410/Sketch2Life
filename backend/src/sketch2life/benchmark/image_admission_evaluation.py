@@ -1388,13 +1388,20 @@ def load_cohort_b_manifest(path: Path) -> tuple[CohortBCandidate, ...]:
             raise ValueError("Cohort B manifest entry has an invalid or duplicate filename")
         if declared_format not in _COHORT_B_MIME_BY_FORMAT:
             raise ValueError("Cohort B manifest entry has an unsupported declared format")
-        if (
-            not isinstance(digest, str)
-            or len(digest) != 64
-            or any(character not in "0123456789abcdef" for character in digest)
-            or digest in seen_hashes
-        ):
-            raise ValueError("Cohort B manifest entry has an invalid or duplicate SHA-256")
+        if not isinstance(digest, str):
+            raise ValueError("Cohort B manifest entry has an invalid SHA-256 digest value")
+        if len(digest) != 64:
+            raise ValueError(
+                "Cohort B manifest entry has an invalid SHA-256 digest length "
+                f"(expected 64 hexadecimal characters, got {len(digest)})"
+            )
+        if any(character not in "0123456789abcdef" for character in digest):
+            raise ValueError(
+                "Cohort B manifest entry has an invalid SHA-256 digest value "
+                "(expected lowercase hexadecimal)"
+            )
+        if digest in seen_hashes:
+            raise ValueError("Cohort B manifest entry has a duplicate SHA-256 digest")
         seen_ids.add(fixture_id)
         seen_paths.add(filename)
         seen_hashes.add(digest)
@@ -1544,7 +1551,9 @@ def _find_repository_root(start: Path) -> Path:
 
 _D2_IMPLEMENTATION_PATHS: tuple[str, ...] = (
     "backend/pyproject.toml",
+    "backend/src/sketch2life/contracts/schemas/media_validation.py",
     "backend/src/sketch2life/domain/understanding/image_admission.py",
+    "backend/src/sketch2life/domain/understanding/media_quality.py",
     "backend/src/sketch2life/application/ports/image_decoder.py",
     "backend/src/sketch2life/application/services/image_admission.py",
     "backend/src/sketch2life/infrastructure/media_validation/av_image_decoder.py",
@@ -1565,7 +1574,10 @@ def _resolve_backend_clean_head(
     fully committed formal run, which is why this does not reuse `_resolve_clean_git_head`.
     Only the reviewed D2 admission implementation actually being timed (never this harness)
     must be uncommitted-change-free, so the measurement stays attributable to a known,
-    owner-accepted commit.
+    owner-accepted commit. `run_cohort_b` treats this as the single exact-commit preflight
+    decision for the entire formal run, before source validation and the sample loop. It is
+    intentionally not a concurrent-change detector; rechecking per sample would alter the
+    benchmark's timing semantics.
     """
 
     repository_root = _find_repository_root(manifest_path)
@@ -1810,6 +1822,9 @@ def run_cohort_b(
         character not in "0123456789abcdef" for character in commit_identity
     ):
         raise ValueError("formal Cohort B execution requires an exact lowercase commit SHA")
+    # This is the single-run exact-commit preflight guard. It deliberately remains outside
+    # the formal sample loop, so the benchmark does not claim protection against edits made
+    # concurrently after this check returns or change the measured admit() interval.
     actual_head = (
         head_resolver() if head_resolver is not None else _resolve_backend_clean_head(manifest_path)
     )
