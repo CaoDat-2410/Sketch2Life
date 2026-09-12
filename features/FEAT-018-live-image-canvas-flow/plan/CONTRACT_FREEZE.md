@@ -21,8 +21,9 @@ This document is the single contract source for the four person plans. A person 
 | `MediaValidationResultV1` | 1.0 | P2 | backend/mobile | `PASS` or `RECAPTURE`, ordered stable reasons, image/audio signals, validator policy version |
 | `ModelProvenanceV1` | 1.0 | P2 | all AI evidence | provider, exact model, adapter version, config version; no token/URL |
 | `AsrRequestV1` / `AsrResultV1` | 1.0 | P2 | fusion/backend | source audio ref, transcript/segments/quality on success; typed failure on failure |
-| `VisionRequestV1` / `VisionUnderstandingResultV1` | 1.0 | P2 | fusion/P1/backend | entities, actions, relations, themes, ambiguous regions, uncertainty, source image, provenance |
-| `RawUnderstandingResultV1` | 1.0 | P2 | Gate A/P1 | claims, source modality, confidence, conflicts, gate-a-required; observations never equal eligibility |
+| `VisionRequestV1` / `VisionUnderstandingResultV1` | 1.0 | P2 | legacy consumers | retained for compatibility; not the FEAT-018 P2-T2 integration contract |
+| `VisionUnderstandingRequestV2` / `VisionUnderstandingResultV2` | 2.0 | FEAT-003 | FEAT-018 P2-T2 consume-only adapter | FEAT-003-owned typed V2 union; FEAT-018 may consume through the approved adapter boundary and must not modify the V2 schema/runtime |
+| `RawUnderstandingResultV1` | 1.0 | P2 | Gate A/P1 | typed observation groups, confidence `0..1`, required source SHA-256, typed failure, uncertainty/conflicts and `gate_a_required=true`; observations never equal eligibility |
 | `IntegrationGateDecisionV1` | 1.0 | shared | mobile/session | gate A/B, status, actor, expected session version; Gate B includes exact activity/objective IDs and versions |
 | `P1ContextV1` | 1.0 | P1 | P1 filter/backend | explicit age, readiness, completed activities, materials, supervision, policy flags, candidate status |
 | `P1FilterResultV1` | 1.0 | P1 | Gate B | status, exact activity/objective IDs and versions, ordered reason codes |
@@ -97,7 +98,7 @@ sequenceDiagram
 
 ## Known reconciliation items before implementation
 
-1. The integration fixture currently names `VisionUnderstandingResultV2`, while the active backend schema is `VisionUnderstandingResultV1`. FEAT-018 freezes V1 unless a separately approved V2 migration is added.
+1. Resolved 2026-09-12: FEAT-018 P2-T2 consumes FEAT-003's approved `VisionUnderstandingResultV2` through the cross-feature adapter boundary. FEAT-018 owns a separate `RawUnderstandingResultV1` semantic handoff and must not alias FEAT-017's flat V1 or modify FEAT-003 V2. The FEAT-003 cross-feature addendum and FEAT-018 P2-T2 task addendum are recorded in the canonical approval files.
 2. The fixture currently pairs `ACT-0004` with `OBJ_MOVEMENT_COORDINATION`; the reviewed golden catalog pairs `ACT-0004` with `OBJ_OBJECT_PERMANENCE` primary and `OBJ_RECEPTIVE_LANGUAGE` secondary. P1 must correct this before wiring the pilot.
 3. `packages/art-renderer` currently exposes only protocol types. P3 must add the runtime without changing the protocol version silently.
 
@@ -131,4 +132,6 @@ Revision-2 invariants:
 - cache, renderer and fallback results preserve the same identity;
 - gallery is a session-journey read model, not an independent asset gallery.
 
-The existing V1/V2 vision reconciliation remains unresolved until the owner selects one canonical integration path. A breaking contract change requires a new version and migration fixture.
+The V1/V2 vision reconciliation was resolved by owner decision on 2026-09-12: P2-T2 consumes
+FEAT-003 V2 and maps it into FEAT-018-owned `RawUnderstandingResultV1`. A breaking contract change
+still requires a new version and migration fixture.
