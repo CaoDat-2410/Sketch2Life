@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "1.0.0",
+  "policy": "presentation-only; Montessori eligibility remains backend-authoritative",
+  "runtimeGeneration": "forbidden",
+  "ageBands": {
+    "0-3": {"maxDecorativeObjects":2,"motionKinds":["DRAW_REVEAL","FADE","SCALE"],"assetIds":["pixi.scene.butterfly","pixi.scene.flower","pixi.motion.sparkle","pixi.activity.adult-guide","pixi.activity.safety-shield"]},
+    "3-6": {"maxDecorativeObjects":3,"motionKinds":["DRAW_REVEAL","FADE","SCALE","FLY"],"assetIds":["pixi.scene.butterfly","pixi.scene.flower","pixi.scene.sun","pixi.motion.path-dots","pixi.activity.learning-goal","pixi.activity.timer"]},
+    "6-9": {"maxDecorativeObjects":4,"motionKinds":["DRAW_REVEAL","FADE","SCALE","FLY","JUMP"],"assetIds":["pixi.scene.butterfly","pixi.scene.flower","pixi.scene.sun","pixi.scene.grass","pixi.motion.path-dots","pixi.motion.sparkle","pixi.activity.material-basket","pixi.activity.learning-goal"]},
+    "9-12": {"maxDecorativeObjects":5,"motionKinds":["DRAW_REVEAL","FADE","SCALE","FLY","ROTATE","MOVE_TO"],"assetIds":["pixi.scene.butterfly","pixi.scene.flower","pixi.scene.sun","pixi.scene.grass","pixi.motion.path-dots","pixi.motion.sparkle","pixi.activity.material-basket","pixi.activity.learning-goal","pixi.activity.adult-guide","pixi.activity.feedback"]}
+  }
+}
