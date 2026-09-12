@@ -75,6 +75,8 @@ def map_vision_result_to_raw(
         raise RawUnderstandingMappingError("source image hash mismatch")
     if result.correlation_id != expected_correlation_id:
         raise RawUnderstandingMappingError("stale correlation id")
+    if asr_result is not None and asr_result.correlation_id != result.correlation_id:
+        raise RawUnderstandingMappingError("stale correlation id")
     if isinstance(result, VisionUnderstandingSuccessV2):
         return _map_success(result, session_id=session_id, asr_result=asr_result)
     if isinstance(result, VisionUnderstandingFailureV2):

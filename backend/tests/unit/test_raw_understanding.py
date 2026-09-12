@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from typing import Any
+from unittest.mock import patch
 
 import pytest
 from pydantic import ValidationError
@@ -16,6 +17,10 @@ from sketch2life.contracts.schemas.asr import (
     AsrErrorDetail,
     AsrFailureV1,
     AsrProfileId,
+    AsrQualityMetadataV1,
+    AsrSegmentV1,
+    AsrSpeechDiagnostic,
+    AsrSuccessV1,
 )
 from sketch2life.contracts.schemas.raw_understanding import (
     RawFailureCode,
@@ -111,6 +116,57 @@ def _failure(**overrides: Any) -> VisionUnderstandingFailureV2:
     return VisionUnderstandingFailureV2(**values)
 
 
+def _asr_success(*, correlation_id: str = "raw-map-test") -> AsrSuccessV1:
+    return AsrSuccessV1(
+        correlation_id=correlation_id,
+        executed_at=_EXECUTED_AT,
+        source_audio_ref=AsrAudioReferenceV1(
+            artifact_ref="fixture:raw:one.wav", sha256="b" * 64
+        ),
+        profile_id=AsrProfileId.FAKE_DETERMINISTIC_V1,
+        attempt_number=1,
+        repair_attempted=False,
+        transcript_raw="ball",
+        speech_diagnostic=AsrSpeechDiagnostic.DETECTED,
+        detected_language="en",
+        segments=(
+            AsrSegmentV1(
+                index=0,
+                start_seconds=0.0,
+                end_seconds=1.0,
+                text="ball",
+            ),
+        ),
+        input_duration_seconds=1.0,
+        vad_enabled=False,
+        model_identifier="fake-asr",
+        model_revision="fake-asr-revision",
+        adapter_version="fake-asr-adapter-v1",
+        runtime_version="fake-asr-runtime-v1",
+        config_hash="c" * 64,
+        quality_metadata=AsrQualityMetadataV1(
+            media_validation_artifact_ref="fixture:raw:validation",
+            media_validation_artifact_sha256="d" * 64,
+        ),
+    )
+
+
+def _asr_failure(*, correlation_id: str = "raw-map-test") -> AsrFailureV1:
+    return AsrFailureV1(
+        correlation_id=correlation_id,
+        executed_at=_EXECUTED_AT,
+        source_audio_ref=AsrAudioReferenceV1(
+            artifact_ref="fixture:raw:one.wav", sha256="b" * 64
+        ),
+        profile_id=AsrProfileId.FAKE_DETERMINISTIC_V1,
+        attempt_number=1,
+        repair_attempted=False,
+        error_code=AsrErrorCode.ASR_TIMEOUT,
+        retryable=False,
+        error_detail=AsrErrorDetail.TIMEOUT_BUDGET_EXCEEDED,
+    )
+
+
 def test_maps_typed_v2_groups_and_gate_a_boundary() -> None:
     mapped = map_vision_result_to_raw(
         _success(),
@@ -161,6 +217,31 @@ def test_rejects_stale_correlation_before_mapping() -> None:
             session_id="session-1",
             expected_source_sha256=_SOURCE_HASH,
             expected_correlation_id="current-request",
+        )
+
+
+def test_rejects_mismatched_asr_success_before_raw_result_construction() -> None:
+    with patch(
+        "sketch2life.application.services.raw_understanding_mapper._map_success",
+        side_effect=AssertionError("Raw result construction should not be reached"),
+    ), pytest.raises(RawUnderstandingMappingError, match="stale correlation id"):
+        map_vision_result_to_raw(
+            _success(),
+            session_id="session-1",
+            expected_source_sha256=_SOURCE_HASH,
+            expected_correlation_id="raw-map-test",
+            asr_result=_asr_success(correlation_id="stale-asr-correlation"),
+        )
+
+
+def test_rejects_mismatched_asr_failure_before_mapping() -> None:
+    with pytest.raises(RawUnderstandingMappingError, match="stale correlation id"):
+        map_vision_result_to_raw(
+            _success(),
+            session_id="session-1",
+            expected_source_sha256=_SOURCE_HASH,
+            expected_correlation_id="raw-map-test",
+            asr_result=_asr_failure(correlation_id="stale-asr-correlation"),
         )
 
 
@@ -275,30 +356,32 @@ def test_raw_schema_rejects_oversized_observation_collection() -> None:
 
 
 def test_asr_failure_is_not_collapsed_into_missing_narration() -> None:
-    asr_failure = AsrFailureV1(
-        correlation_id="raw-map-test",
-        executed_at=_EXECUTED_AT,
-        source_audio_ref=AsrAudioReferenceV1(
-            artifact_ref="fixture:raw:one.wav", sha256="b" * 64
-        ),
-        profile_id=AsrProfileId.FAKE_DETERMINISTIC_V1,
-        attempt_number=1,
-        repair_attempted=False,
-        error_code=AsrErrorCode.ASR_TIMEOUT,
-        retryable=False,
-        error_detail=AsrErrorDetail.TIMEOUT_BUDGET_EXCEEDED,
-    )
     mapped = map_vision_result_to_raw(
         _success(),
         session_id="session-1",
         expected_source_sha256=_SOURCE_HASH,
         expected_correlation_id="raw-map-test",
-        asr_result=asr_failure,
+        asr_result=_asr_failure(),
     )
     assert isinstance(mapped, RawUnderstandingSuccessV1)
     assert mapped.narration_status is RawNarrationStatus.ASR_FAILED
     assert mapped.asr_failure is not None
     assert mapped.asr_failure.detail == "TIMEOUT_BUDGET_EXCEEDED"
+
+
+def test_matching_asr_success_remains_succeeded() -> None:
+    mapped = map_vision_result_to_raw(
+        _success(),
+        session_id="session-1",
+        expected_source_sha256=_SOURCE_HASH,
+        expected_correlation_id="raw-map-test",
+        asr_result=_asr_success(),
+    )
+
+    assert isinstance(mapped, RawUnderstandingSuccessV1)
+    assert mapped.narration_status is RawNarrationStatus.ASR_SUCCEEDED
+    assert mapped.asr_failure is None
+    assert mapped.asr_claims[0].text == "ball"
 
 
 def test_prohibited_v2_failure_maps_to_typed_prohibited_field() -> None:
