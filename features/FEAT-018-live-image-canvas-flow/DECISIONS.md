@@ -70,3 +70,11 @@
   and close D3/P2-T1 for the synthetic Cohort A scope only. Cohort B remains unapproved and must
   retain its visual-source gate. No D2, FEAT-003, provider, mobile, public-contract or shared
   integration scope is thereby authorized.
+
+- 2026-09-12 owner approval and closure decision: approve the Formal Cohort B execution and its
+  independent verification with verdict `PASS WITH FINDINGS`. The 24-sample result (eight images,
+  three fresh-process repeats each) is accepted with zero data discrepancies. Index the sanitized
+  Cohort B report, metrics and independent verification, update the feature context and plan, and
+  close D3/P2-T1 for the offline Cohort A+B scope. Carry the three verification findings as
+  follow-up work; no Cohort B rerun is required. Provider, mobile, Gate A, public-contract and
+  shared-integration scopes remain separately gated.

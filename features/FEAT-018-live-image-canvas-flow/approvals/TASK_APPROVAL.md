@@ -115,3 +115,13 @@ four JPEG files and four PNG files, as recorded in the local git-ignored candida
 per-file SHA-256 values. This addendum authorizes only the offline Cohort B evaluation described by
 D3-R2; raw images remain local and no provider, Qwen, Whisper, mobile, FEAT-003, or shared-
 integration work is authorized.
+
+## Owner approval and offline D3/P2-T1 closure - 2026-09-12
+
+The project owner approved the Formal Cohort B execution and its independent verification with
+verdict `PASS WITH FINDINGS`. The owner confirmed 24/24 samples, eight images with three fresh-
+process repeats each, all `ADMITTED` and `WITHIN_TARGET`, zero data discrepancies, and the corrected
+B08 manifest digest. The sanitized Cohort B execution report, metrics and independent verification
+report may be indexed. D3/P2-T1 is closed for the offline Cohort A+B evaluation scope. The three
+verification findings remain follow-up work and do not require a Cohort B rerun. This closure does
+not authorize provider, mobile, Gate A, public-contract or shared-integration work.

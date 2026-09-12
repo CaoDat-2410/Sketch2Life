@@ -395,3 +395,13 @@ D3-U1 through D3-U6 and the exact file scope are approved and recorded. D3 imple
 begin within this boundary. Cohort B may not execute until the owner visually reviews the actual
 eight candidate images, and sanitized evidence may not be indexed or used to close D3/P2-T1 until
 the completed output receives owner review.
+
+## 13. Closure status - 2026-09-12
+
+Formal Cohort A and Formal Cohort B execution are complete, independently verified and owner-
+approved. Cohort B produced 24 valid samples from eight approved images, with three fresh-process
+repeats per image and no data discrepancies in independent verification. D3/P2-T1 is closed for
+the offline Cohort A+B evaluation scope. The three independent-verification findings are recorded
+as follow-up work before a future formal run relies on the same cleanliness safeguard; they do not
+require a Cohort B rerun. Provider, mobile, Gate A, public-contract and shared-integration work
+remain outside this closure.

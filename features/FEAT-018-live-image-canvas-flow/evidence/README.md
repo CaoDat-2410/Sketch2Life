@@ -29,8 +29,18 @@ Selected completed P2-T1 D3-R2 Cohort A evidence, owner-approved 2026-09-11:
 [Sanitized Cohort A metrics](metrics/P2_D3_COHORT_A_FORMAL_20260911.json)
 (`EV-018-P2-D3-COHORT-A-METRICS-01`; 1,818,208 bytes;
 SHA-256 `32e5e2373376eec0b7e30a488b0a7416a8cec4fe5c2b16957794373664606f40`).
-The metrics artifact and both reports contain sanitized metadata only. Cohort B remains gated and
-was not run.
+The metrics artifact and all reports contain sanitized metadata only. Cohort B was subsequently
+executed, independently verified and owner-approved as recorded below.
+
+Selected completed P2-T1 D3-R2 Cohort B evidence, owner-approved 2026-09-12:
+[Formal Cohort B execution report](notes/P2_D3_COHORT_B_FORMAL_20260912.md)
+(`EV-018-P2-D3-COHORT-B-EXEC-01`; 24 samples from eight owner-approved images, three fresh-process
+repeats per image; all samples admitted and within the approved timing and memory targets).
+[Independent Cohort B verification report](notes/P2_D3_COHORT_B_INDEPENDENT_VERIFICATION_20260912.md)
+(`EV-018-P2-D3-COHORT-B-VERIFY-01`; PASS WITH FINDINGS and zero data discrepancies).
+[Sanitized Cohort B metrics](metrics/P2_D3_COHORT_B_FORMAL_20260912.json)
+(`EV-018-P2-D3-COHORT-B-METRICS-01`; 24 samples; manifest correction disclosed and independently
+verified). The raw images and local manifest remain ignored and are not published.
 
 - `raw/`: sanitized command output and contract-run summaries.
 - `metrics/`: validation, latency, FPS, memory, cache/fallback and pilot reports.
