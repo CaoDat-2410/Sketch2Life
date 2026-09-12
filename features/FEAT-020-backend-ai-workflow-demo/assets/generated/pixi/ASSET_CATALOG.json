@@ -1,0 +1,22 @@
+{
+  "catalogVersion": "1.0.0",
+  "status": "GENERATED_PENDING_REVIEW",
+  "renderer": "PixiJS",
+  "runtimePolicy": "STATIC_LOCAL_NO_RUNTIME_GENERATION",
+  "sourcePolicy": "AUTHOR_AUTHORED_VECTOR",
+  "preserveOriginalChildArt": true,
+  "assets": [
+    {"assetId":"pixi.scene.butterfly","version":"1.0.0","path":"scene/butterfly.svg","group":"scene","roles":["ART_CONTEXT","LEARNING_CONTEXT"]},
+    {"assetId":"pixi.scene.flower","version":"1.0.0","path":"scene/flower.svg","group":"scene","roles":["ART_CONTEXT","ACTIVITY_CONTEXT"]},
+    {"assetId":"pixi.scene.sun","version":"1.0.0","path":"scene/sun.svg","group":"scene","roles":["SCENE_BACKGROUND"]},
+    {"assetId":"pixi.scene.grass","version":"1.0.0","path":"scene/grass.svg","group":"scene","roles":["SCENE_BACKGROUND"]},
+    {"assetId":"pixi.motion.sparkle","version":"1.0.0","path":"motion/sparkle.svg","group":"motion","roles":["REVEAL","SUCCESS_EMPHASIS"]},
+    {"assetId":"pixi.motion.path-dots","version":"1.0.0","path":"motion/path-dots.svg","group":"motion","roles":["FLIGHT_PATH","DIRECTION_CUE"]},
+    {"assetId":"pixi.activity.material-basket","version":"1.0.0","path":"activity/material-basket.svg","group":"activity","roles":["MATERIALS"]},
+    {"assetId":"pixi.activity.learning-goal","version":"1.0.0","path":"activity/learning-goal.svg","group":"activity","roles":["LEARNING_OBJECTIVE"]},
+    {"assetId":"pixi.activity.adult-guide","version":"1.0.0","path":"activity/adult-guide.svg","group":"activity","roles":["SUPERVISION"]},
+    {"assetId":"pixi.activity.safety-shield","version":"1.0.0","path":"activity/safety-shield.svg","group":"activity","roles":["SAFETY"]},
+    {"assetId":"pixi.activity.feedback","version":"1.0.0","path":"activity/feedback.svg","group":"activity","roles":["FEEDBACK"]},
+    {"assetId":"pixi.activity.timer","version":"1.0.0","path":"activity/timer.svg","group":"activity","roles":["SHORT_DURATION"]}
+  ]
+}
