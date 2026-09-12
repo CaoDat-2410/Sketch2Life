@@ -106,3 +106,12 @@ The project owner approved Formal Cohort A at commit
 metrics JSON and both verification reports, and closed D3/P2-T1 for the synthetic Cohort A scope
 only. Cohort B remains unapproved. The approved artifacts are indexed in `evidence/README.md`; no
 provider, mobile, FEAT-003 or shared-integration work is authorized by this closure.
+
+## Owner approval and Cohort B source admission - 2026-09-12
+
+The project owner approved the exact local B01-B08 candidate set for FEAT-018 D3-R2 Cohort B:
+four JPEG files and four PNG files, as recorded in the local git-ignored candidate manifest under
+`tmp/feat018-cohort-b-input-20260912/`. The manifest sets `owner_reviewed=true` and preserves the
+per-file SHA-256 values. This addendum authorizes only the offline Cohort B evaluation described by
+D3-R2; raw images remain local and no provider, Qwen, Whisper, mobile, FEAT-003, or shared-
+integration work is authorized.
