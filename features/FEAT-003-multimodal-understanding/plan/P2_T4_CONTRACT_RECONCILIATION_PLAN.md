@@ -10,7 +10,8 @@
 This is a bounded documentation and contract-reconciliation workstream. It is
 not a contract implementation plan, a migration execution, or an approval to
 change a producer or consumer. The workstream may begin only after its separate
-approval is granted; P2-T4 fusion implementation requires a further approval.
+approval is granted, and its permitted outputs and edits are limited to the
+scope in Section 4.1; P2-T4 fusion implementation requires a further approval.
 
 ## 1. Problem statement and conflicting contract identities
 
@@ -94,7 +95,10 @@ family the other.
 ## 4. Producer and consumer matrix
 
 The following matrix is the inventory to reconcile. It intentionally records
-current paths without changing them.
+current paths without changing them. FEAT-015/FEAT-018 code, existing fixture
+baselines, loaders, flows, routes, adapters, ports, schemas, runtime wiring, and
+downstream consumers named below are inspection-only under this approval. They
+may be inspected and listed in the impact matrix, but they may not be edited.
 
 | Producer/boundary | Current contract family | Consumer or handoff | Compatibility question |
 |---|---|---|---|
@@ -103,24 +107,64 @@ current paths without changing them.
 | `backend/src/sketch2life/infrastructure/ai/faster_whisper_asr.py` and `backend/src/sketch2life/benchmark/asr_round1_runner.py` | P2-T2 real-adapter/benchmark family | P2-T2 evidence; future T4 input boundary | Keep provider-neutral result semantics and typed failure/attempt fields. |
 | `backend/src/sketch2life/application/ports/vision_understanding.py` | P2-T3 V1 request -> P2 V1 vision result | P2-T4 fusion design and P2-T3 fixtures | Preserve nested image refs, observation references, policy state, and typed errors. |
 | `backend/src/sketch2life/infrastructure/ai/fake_vision.py` and `vision_lexical_policy.py` | P2-T3 V1 fake/policy family | P2-T3 contract/evidence tests; future T4 fixtures | Do not import or emit the FEAT-018 flat family. |
-| `backend/src/sketch2life/application/ports/vision_understanding_v2.py`, `qwen_vision.py`, and V2 benchmark modules | P2-T3 V2 study family | P2-T3 Phase B evidence only | Decide how V2 is identified at any integration boundary; do not silently map it as V1. |
-| `backend/src/sketch2life/application/ports/understanding.py` | FEAT-018 live `AsrResultV1`/`VisionUnderstandingResultV1` | FEAT-018 live adapters and route | Decide whether this port remains isolated, is renamed/versioned, or receives an explicit adapter. |
-| `backend/src/sketch2life/infrastructure/understanding/fixture_adapters.py` | FEAT-018 flat fixture family | FEAT-018 live route/tests | Preserve its existing fixture behavior until a reviewed migration is adopted. |
-| `backend/src/sketch2life/infrastructure/understanding/whisper_adapter.py` and `qwen3_vl_adapter.py` | FEAT-018 provider-shaped adapters | `application/ports/understanding.py`; live route/tests | Map or isolate without accepting a P2 result under the same name by accident. |
-| `backend/src/sketch2life/infrastructure/ai/lightning_client.py` | FEAT-018 live transport adapters | `interfaces/http/routers/live_understanding.py` | Keep provider credentials/endpoints in infrastructure; define the selected contract at the route boundary. |
-| `backend/src/sketch2life/interfaces/http/routers/live_understanding.py` | FEAT-018 live request/result envelope | FEAT-017 live backend path and mobile proposal flow | Route must emit the selected versioned identity or an explicit mapping; no silent field translation. |
-| FEAT-015 `fixtures/integration-fixture-v1/manifest.json` | Registry names `AsrResultV1`, `VisionUnderstandingResultV2`, and `RawUnderstandingResultV1` | FEAT-015 loader, flow, tests, and integration review | Reconcile the manifest registry and expected payloads with the selected identity/mapping. |
-| FEAT-015 `fixtures/integration-fixture-v1/expected/asr-result.json` | Simplified live/provider-shaped ASR fixture | FEAT-015 loader/flow and live integration assumptions | Decide whether it remains an isolated fixture or receives a versioned migration fixture. |
-| FEAT-015 `fixtures/integration-fixture-v1/expected/vision-result.json` | V2-shaped provider fixture | FEAT-015 loader/flow and P1/Gate A test path | Keep V2 explicit and prevent it from validating as P2 V1. |
-| FEAT-015 `fixtures/integration-fixture-v1/expected/raw-understanding.json` | FEAT-018 claims-shaped raw proposal | FEAT-015 Gate A/P1 scenario harness | Preserve claims and `gate_a_required` or map them explicitly to the selected handoff. |
-| FEAT-015 `src/integration_fixture/loader.py`, `flow.py`, and tests | Offline integration adapters and scenario oracle | FEAT-015 readiness review | Update only through an approved mapping/fixture change; this plan does not edit them. |
-| FEAT-018 `plan/CONTRACT_FREEZE.md` | Shared registry and handoff table | Gate A/P1, mobile/session, all four person plans | The registry must name one identity/version or an explicit mapping and migration status. |
-| FEAT-018 `plan/PERSON_2_AI.md` | P2 AI handoff expectations | P1 and mobile consumers | Replace ambiguous same-name references only after shared review. |
-| FEAT-018 `plan/PERSON_1_DOMAIN.md`, `ENGINE_REFINEMENT_PLAN.md`, and `backend/src/sketch2life/contracts/schemas/p1_experience.py` | Gate A/P1 consumption of raw claims/anchors | P1 mapping and Gate B identity | Preserve Gate A, source claim provenance, and P1 ownership; P1 must not infer a new contract. |
-| FEAT-017 `plan/PLAN.md`, `LIVE_AI_GUIDE.md`, and live evidence | Live provider-shaped route/proposal path | Mobile live mode, Gate A | Keep live provider path separate or explicitly mapped; no direct P2-T4 implementation is implied. |
+| `backend/src/sketch2life/application/ports/vision_understanding_v2.py`, `qwen_vision.py`, and V2 benchmark modules | P2-T3 V2 study family | P2-T3 Phase B evidence only | Record how V2 must be identified at any integration boundary; do not silently map it as V1 or change the V2 study artifacts. |
+| `backend/src/sketch2life/application/ports/understanding.py` | FEAT-018 live `AsrResultV1`/`VisionUnderstandingResultV1` | FEAT-018 live adapters and route | Analyze whether this port remains isolated, is renamed/versioned, or receives an explicit adapter; record any change as follow-up. |
+| `backend/src/sketch2life/infrastructure/understanding/fixture_adapters.py` | FEAT-018 flat fixture family | FEAT-018 live route/tests | Record the existing fixture behavior and any later, separately approved migration requirement; do not edit this adapter or baseline under this scope. |
+| `backend/src/sketch2life/infrastructure/understanding/whisper_adapter.py` and `qwen3_vl_adapter.py` | FEAT-018 provider-shaped adapters | `application/ports/understanding.py`; live route/tests | Analyze the mapping/isolation boundary without changing the adapters or accepting a P2 result under the same name by accident. |
+| `backend/src/sketch2life/infrastructure/ai/lightning_client.py` | FEAT-018 live transport adapters | `interfaces/http/routers/live_understanding.py` | Analyze the transport boundary needed to keep provider credentials/endpoints in infrastructure; record any route-contract change as follow-up. |
+| `backend/src/sketch2life/interfaces/http/routers/live_understanding.py` | FEAT-018 live request/result envelope | FEAT-017 live backend path and mobile proposal flow | Analyze the required versioned identity or explicit mapping at the route boundary; do not change the route or silently translate fields. |
+| FEAT-015 `fixtures/integration-fixture-v1/manifest.json` | Registry names `AsrResultV1`, `VisionUnderstandingResultV2`, and `RawUnderstandingResultV1` | FEAT-015 loader, flow, tests, and integration review | Analyze the manifest registry and expected-payload relationship to the selected identity/mapping; do not edit the manifest under this scope. |
+| FEAT-015 `fixtures/integration-fixture-v1/expected/asr-result.json` | Simplified live/provider-shaped ASR fixture | FEAT-015 loader/flow and live integration assumptions | Record whether it remains isolated or needs a separately approved migration; do not modify this existing fixture baseline. |
+| FEAT-015 `fixtures/integration-fixture-v1/expected/vision-result.json` | V2-shaped provider fixture | FEAT-015 loader/flow and P1/Gate A test path | Verify in the impact analysis that V2 remains explicit and cannot validate as P2 V1; do not edit the fixture or test path. |
+| FEAT-015 `fixtures/integration-fixture-v1/expected/raw-understanding.json` | FEAT-018 claims-shaped raw proposal | FEAT-015 Gate A/P1 scenario harness | Record compatibility and follow-up ownership for claims and `gate_a_required`; do not edit the existing fixture. |
+| FEAT-015 `src/integration_fixture/loader.py`, `flow.py`, and tests | Offline integration adapters and scenario oracle | FEAT-015 readiness review | Inspect and list required mapping/fixture changes as follow-up; do not edit the loader, flow, or tests under this scope. |
+| FEAT-018 `plan/CONTRACT_FREEZE.md` | Shared registry and handoff table | Gate A/P1, mobile/session, all four person plans | Analyze the registry and handoff requirement; only a narrow identity/mapping documentation record may be proposed, not a registry cutover. |
+| FEAT-018 `plan/PERSON_2_AI.md` | P2 AI handoff expectations | P1 and mobile consumers | Record ambiguous same-name references and follow-up ownership; do not change the handoff or consumers under this scope. |
+| FEAT-018 `plan/PERSON_1_DOMAIN.md`, `ENGINE_REFINEMENT_PLAN.md`, and `backend/src/sketch2life/contracts/schemas/p1_experience.py` | Gate A/P1 consumption of raw claims/anchors | P1 mapping and Gate B identity | Record downstream acceptance checks while preserving Gate A, source claim provenance, and P1 ownership; do not change behavior or code. |
+| FEAT-017 `plan/PLAN.md`, `LIVE_AI_GUIDE.md`, and live evidence | Live provider-shaped route/proposal path | Mobile live mode, Gate A | Record the live-path isolation/mapping follow-up; do not change the route, consumer, or live behavior under this scope. |
 
 The matrix is a review artifact. It does not authorize changing a producer,
 consumer, registry, fixture, route, or downstream document.
+
+### 4.1 In-scope repository surfaces after separate approval
+
+After separate approval, the Blocker-0 reconciliation workstream may produce or
+edit only the following:
+
+- documentation and contract-registry analysis;
+- the field-by-field compatibility matrix and compatibility report;
+- a clearly named, synthetic-only migration/compatibility fixture created as a
+  new artifact, plus its feature-local evidence; this artifact is additive and
+  may not replace or modify an existing fixture baseline;
+- explicit follow-up ownership and acceptance checks for any required
+  downstream change; and
+- narrowly scoped documentation updates required to record the selected
+  canonical identity or explicit mapping, including a registry or handoff note
+  only where that record is necessary. Such documentation updates do not
+  change behavior or authorize a registry cutover.
+
+FEAT-015/FEAT-018 code and existing fixture baselines, including manifests,
+expected payloads, loaders, flows, routes, adapters, ports, schemas, runtime
+wiring, and downstream consumers, may be inspected and listed in the impact
+matrix and follow-up record only. They are not editable under this scope.
+P2-T2/P2-T3 contracts, adapters, fixtures, evidence, and approvals, and P1/Gate
+A behavior, are likewise inspection/reference material only. The workstream may
+record a required follow-up and its acceptance checks; it does not perform that
+follow-up.
+
+The following are not allowed under this approval:
+
+- modifying any existing FEAT-015 or FEAT-018 fixture baseline;
+- changing loaders, flows, routes, adapters, ports, schemas, runtime wiring, or
+  downstream consumers;
+- executing a migration or cutover;
+- changing P2-T2/P2-T3 contracts, adapters, fixtures, evidence, or approvals;
+- changing P1/Gate A behavior; or
+- implementing the P2-T4 fusion contract or fusion logic.
+
+Any required code change, existing-fixture migration, route/adapter/consumer
+update, registry cutover, or runtime behavior change must be listed as a
+follow-up scope and receive separate explicit approval before execution.
 
 ## 5. Reconciliation deliverable
 
@@ -135,9 +179,10 @@ The approved workstream must produce one of the following explicit outcomes:
    specify when the mapping is applied and how it is versioned.
 
 The deliverable must include a field-by-field comparison of both families, a
-contract registry update proposal, an adoption decision, and a compatibility
-report. It must not silently declare the current P2-T4 sketch canonical merely
-because B0 selected reconciliation.
+contract-registry analysis and, if needed, a narrowly scoped documentation
+update proposal for the selected identity/mapping, an adoption decision, and a
+compatibility report. It must not silently declare the current P2-T4 sketch
+canonical merely because B0 selected reconciliation.
 
 ## 6. Compatibility and migration-fixture requirements
 
@@ -149,9 +194,11 @@ because B0 selected reconciliation.
   shape.
 - It must prove that a payload from the non-selected family cannot validate as
   the selected family without the explicitly named mapping.
-- A breaking serialized change must use a new major/versioned identity, update
-  every listed producer and consumer, and add a migration fixture, following
-  FEAT-018 `CONTRACT_FREEZE.md`.
+- A breaking serialized change identified for later adoption must use a new
+  major/versioned identity, identify every producer and consumer that a
+  separately approved follow-up would update, and add a migration fixture,
+  following FEAT-018 `CONTRACT_FREEZE.md`; those producer/consumer updates are
+  not performed under this scope.
 - A compatible optional change may use a reviewed minor contract version only
   when the selected authority and all consumers accept it; no optional field is
   chosen by this plan.
@@ -160,8 +207,10 @@ because B0 selected reconciliation.
   mapping or conversion deterministically. It must not contain raw child media,
   provider payloads, secrets, or absolute local paths.
 - The fixture must include a rejected/rollback case and an unchanged-source
-  assertion. Existing FEAT-015 and FEAT-018 fixtures remain preserved until an
-  approved migration replaces or supersedes them.
+  assertion. The new fixture is additive. Existing FEAT-015 and FEAT-018
+  fixtures remain preserved and unmodified throughout this workstream; any
+  migration that replaces or supersedes them is follow-up scope requiring
+  separate explicit approval.
 
 ## 7. Source, provenance, and prohibited-field constraints
 
@@ -216,9 +265,12 @@ selected contract/mapping review; this plan does not invent them.
    report and synthetic migration fixture.
 5. Run the positive/negative, round-trip, provenance, redaction, and stale-version
    checks against the selected outcome.
-6. Obtain separate approval for the reconciliation deliverable. Only then may
-   the approved implementation owner update contracts, adapters, routes,
-   fixtures, registries, or downstream consumers.
+6. Obtain separate approval for the reconciliation deliverable. After that
+   approval, this Blocker-0 workstream may complete only the allowed analysis,
+   matrix/report, new synthetic fixture, follow-up ownership/checks, and narrow
+   identity/mapping documentation listed in Section 4.1. It may not update any
+   existing code, fixture, loader, flow, route, adapter, port, schema, runtime
+   wiring, downstream consumer, or execute a registry cutover; these actions are not allowed under this workstream. Any such required change is follow-up scope and requires separate explicit approval.
 7. Obtain the separate P2-T4 implementation approval before writing fusion code,
    T4 fixtures, or T4 runtime wiring.
 
@@ -226,9 +278,10 @@ If the owner rejects the canonical shape/mapping, or if compatibility evidence
 fails, do not adopt a partial result. Leave the current FEAT-018 live family and
 P2 research family unchanged, mark the reconciliation non-adopted, preserve the
 fixture and evidence baselines, and return to review with a new bounded proposal.
-Rollback means disabling the new mapping/cutover and restoring the previously
-approved family at its existing boundary; it never means rewriting source
-media, deleting evidence, or force-updating a consumer.
+This workstream only documents rollback/non-adoption criteria. For a later,
+separately approved adoption, rollback means disabling the new mapping/cutover
+and restoring the previously approved family at its existing boundary; this
+workstream does not execute that action, rewrite source media, delete evidence, or force-update a consumer.
 
 ## 10. Explicit non-goals
 
@@ -238,8 +291,11 @@ media, deleting evidence, or force-updating a consumer.
   migration code, or runtime wiring in this workstream.
 - No FEAT-018 implementation, mobile/session/UI/database/queue/API integration,
   or production deployment.
-- No change to P2-T2/P2-T3 source schemas, adapters, fixtures, evidence, or
-  approvals while preparing the reconciliation plan.
+- No modification to FEAT-015/FEAT-018 existing fixture baselines, loaders,
+  flows, routes, adapters, ports, schemas, runtime wiring, or downstream
+  consumers; those surfaces are inspection-only.
+- No change to P2-T2/P2-T3 contracts, adapters, fixtures, evidence, or
+  approvals under this workstream.
 - No P1 catalog/objective selection, Gate A/B implementation, renderer/media
   integration, or downstream behavioral change.
 - No real child data, raw media, credentials, provider payloads, or absolute
@@ -250,6 +306,15 @@ media, deleting evidence, or force-updating a consumer.
 
 ## 11. Acceptance criteria for the reconciliation workstream
 
+- [ ] The permitted output classes are limited to documentation and
+      contract-registry analysis, the compatibility matrix/report, a new
+      synthetic-only compatibility/migration fixture, explicit follow-up
+      ownership and acceptance checks, and narrowly scoped identity/mapping
+      documentation; no implementation or runtime change is performed.
+- [ ] FEAT-015/FEAT-018 code and existing fixtures, including loaders, flows,
+      routes, adapters, ports, schemas, runtime wiring, and downstream
+      consumers, are inspection-only and are listed in the impact/follow-up
+      record without being edited.
 - [ ] The identity collision and both contract families are documented with
       exact source paths, versions, shapes, owners, and consumers.
 - [ ] The producer/consumer matrix covers P2 ports/adapters, live routes,
@@ -263,8 +328,11 @@ media, deleting evidence, or force-updating a consumer.
 - [ ] A synthetic migration fixture covers successful adoption, wrong-family or
       incompatible input rejection, rollback/non-adoption, and deterministic
       output without raw media or secrets.
-- [ ] Every affected producer/consumer and registry entry has a reviewed update
-      list, with no unapproved implementation performed.
+- [ ] Every inspected producer/consumer and registry entry has a reviewed
+      impact/follow-up list; only a narrowly scoped documentation record of the
+      selected identity/mapping may be updated here, and any code,
+      existing-fixture, runtime/consumer, or registry-cutover update has
+      separate explicit approval.
 - [ ] Downstream Gate A/P1 acceptance checks preserve adult confirmation,
       source claim provenance, and P1 canonical identity/version rules.
 - [ ] Repository validators, relevant contract tests, link/path checks, security
@@ -293,9 +361,11 @@ validation immediately before each commit and again immediately before push.
 ## 13. Approval gate
 
 This plan requests approval for the bounded Blocker-0 contract-reconciliation
-workstream only. It does not grant approval. No reconciliation implementation,
-contract edit, migration, route/adapter change, fixture migration, or downstream
-consumer change begins until the owner separately approves this exact scope.
+workstream only. It does not grant approval. No code/schema/runtime change,
+existing-fixture migration, registry cutover, route/adapter/port/loader/flow
+change, or downstream consumer change begins until the owner separately approves
+the applicable follow-up scope. The allowed Blocker-0 outputs remain limited to
+Section 4.1.
 
 Even after reconciliation approval, full P2-T4 fusion implementation remains
 outside this request and requires its own plan/approval boundary. The FEAT-003

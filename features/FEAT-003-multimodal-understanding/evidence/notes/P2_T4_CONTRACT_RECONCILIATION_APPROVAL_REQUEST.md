@@ -18,8 +18,12 @@ reconciliation must be completed and approved separately before P2-T4 can
 freeze an implementation contract.
 
 This request is for the reconciliation workstream only. It does not approve
-P2-T4 fusion implementation, schema implementation, migrations, fixture
-production, runtime wiring, provider execution, or any FEAT-018 implementation.
+P2-T4 fusion implementation, schema implementation, migration execution or
+cutover, runtime wiring, provider execution, any FEAT-018 implementation, or
+modification/migration of existing fixtures. If separately approved, the only
+permitted outputs are a new synthetic-only compatibility/migration fixture and
+the documentation/evidence outputs listed below; no existing fixture is
+editable under this scope.
 
 ## Direction already selected
 
@@ -51,9 +55,9 @@ If approved, the workstream will produce an auditable decision package that:
    identity collisions;
 6. records the downstream checks required by the FEAT-018 contract freeze,
    Gate A, P1, and FEAT-015 integration fixtures; and
-7. records rollback and non-adoption criteria so no producer or consumer is
-   changed until the selected mapping or canonical contract is separately
-   approved.
+7. records rollback and non-adoption criteria, explicit follow-up ownership,
+   and acceptance checks; no existing producer or consumer is changed under
+   this workstream.
 
 The package must not silently settle the P2-T4 fused result shape by treating
 the research plan's candidate sketch as frozen. Any final shape decision must
@@ -62,22 +66,42 @@ the repository governance rules.
 
 ## In-scope repository surfaces after approval
 
-The reconciliation may update only the documentation, registry, and
-compatibility evidence needed to complete Blocker 0. Depending on the selected
-outcome, the affected surfaces may include:
+After separate approval, the Blocker-0 reconciliation workstream may produce or
+edit only:
 
-- `features/FEAT-003-multimodal-understanding/plan/` and its source/contract
-  register references;
-- the FEAT-015 fixture manifest, expected payload, loader, or flow only when a
-  deterministic compatibility fixture is required;
-- FEAT-018 `plan/CONTRACT_FREEZE.md`, contract registry records, and related
-  provider/consumer documentation;
-- P1/Gate A consumer documentation and checks; and
-- a clearly named, synthetic-only compatibility fixture and its evidence.
+- documentation and contract-registry analysis;
+- the field-by-field compatibility matrix and compatibility report;
+- a clearly named, synthetic-only migration/compatibility fixture created as a
+  new artifact, plus its feature-local evidence; this artifact is additive and
+  may not replace or modify an existing fixture baseline;
+- explicit follow-up ownership and acceptance checks for required downstream
+  changes; and
+- narrowly scoped documentation updates required to record the selected
+  canonical identity or explicit mapping, including a registry or handoff note
+  only where that record is necessary. These updates do not change behavior or
+  authorize a registry cutover.
 
-This approval request itself does not edit those implementation or fixture
-surfaces. Any implementation change discovered to be necessary must be
-listed as a follow-up scope and separately approved before execution.
+FEAT-015/FEAT-018 code and existing fixture baselines, including manifests,
+expected payloads, loaders, flows, routes, adapters, ports, schemas, runtime
+wiring, and downstream consumers, may be inspected and listed in the impact
+matrix and follow-up record only. They are not editable under this scope.
+P2-T2/P2-T3 contracts, adapters, fixtures, evidence, and approvals, and P1/Gate
+A behavior, may likewise be inspected or referenced only. No existing artifact
+listed here may be edited as part of this approval.
+
+The following are not allowed under this approval:
+
+- modifying any existing FEAT-015 or FEAT-018 fixture baseline;
+- changing loaders, flows, routes, adapters, ports, schemas, runtime wiring, or
+  downstream consumers;
+- executing a migration or cutover;
+- changing P2-T2/P2-T3 contracts, adapters, fixtures, evidence, or approvals;
+- changing P1/Gate A behavior; or
+- implementing the P2-T4 fusion contract or fusion logic.
+
+Any required code change, existing-fixture migration, route/adapter/consumer
+update, registry cutover, or runtime behavior change must be listed as a
+follow-up scope and receive separate explicit approval before execution.
 
 ## Non-goals and prohibitions
 
@@ -91,7 +115,12 @@ The approved reconciliation workstream will not:
   services;
 - install dependencies or download models, weights, or external payloads;
 - create real child data, credentials, tokens, secrets, or provider endpoints;
-- modify P2-T2 or P2-T3 source contracts or their immutable baselines;
+- modify P2-T2 or P2-T3 contracts, adapters, fixtures, evidence, approvals, or
+  their immutable baselines;
+- modify FEAT-015/FEAT-018 existing fixture baselines, loaders, flows, routes,
+  adapters, ports, schemas, runtime wiring, or downstream consumers;
+- execute a migration or registry cutover;
+- change P1/Gate A behavior;
 - authorize the complete P2-T4 fusion implementation; or
 - modify the authoritative `TASK_APPROVAL.md` as part of drafting or
   requesting approval.
@@ -101,6 +130,13 @@ The approved reconciliation workstream will not:
 The reconciliation workstream is complete only when all of the following are
 true and separately reviewed:
 
+- the permitted output classes are limited to documentation and
+  contract-registry analysis, the compatibility matrix/report, a new
+  synthetic-only compatibility/migration fixture, explicit follow-up ownership
+  and acceptance checks, and narrowly scoped identity/mapping documentation;
+- FEAT-015/FEAT-018 code and existing fixtures, including loaders, flows,
+  routes, adapters, ports, schemas, runtime wiring, and downstream consumers,
+  are inspection-only and remain unmodified under this scope;
 - the conflicting contract identities and all relevant producers/consumers are
   enumerated with source paths;
 - a canonical versioned contract or explicit versioned mapping is selected,
@@ -140,8 +176,10 @@ payloads, secrets, credentials, or model-generated free text.
 Approval requested: **Blocker-0 contract reconciliation only**.
 
 Approval not requested or granted: P2-T4 fusion implementation, any schema or
-runtime change, migration execution, FEAT-018 implementation, or any provider
-execution. `TASK_APPROVAL.md` remains unchanged. A later implementation plan
-and approval request are required after reconciliation completes.
+runtime change, migration execution or cutover, any existing-fixture migration,
+FEAT-018 implementation, any route/adapter/port/loader/flow/consumer update,
+registry cutover, or any provider execution. `TASK_APPROVAL.md` remains
+unchanged. A later implementation plan and approval request are required after
+reconciliation completes.
 
 **This document records a request, not an approval.**
