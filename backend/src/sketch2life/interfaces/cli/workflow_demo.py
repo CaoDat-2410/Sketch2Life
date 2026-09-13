@@ -18,6 +18,8 @@ from sketch2life.application.services.backend_ai_workflow import (
 from sketch2life.contracts.schemas.asr import AsrProfileId
 from sketch2life.contracts.schemas.vision_v2 import VisionProfileIdV2
 from sketch2life.contracts.schemas.workflow_demo import (
+    AgeBand,
+    AgeMatrixSummaryV1,
     BackendWorkflowResultV1,
     WorkflowBandResultV1,
     WorkflowStageV1,
@@ -87,7 +89,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     repo_root = Path(args.repo_root).resolve() if args.repo_root else Path.cwd().resolve()
     output = Path(args.output)
-    age_bands = ("0-3", "3-6", "6-9", "9-12") if args.age_band is None else (args.age_band,)
+    age_bands: tuple[AgeBand, ...] = (
+        ("0-3", "3-6", "6-9", "9-12")
+        if args.age_band is None
+        else (args.age_band,)
+    )
     if not args.demo_autopilot:
         result = _error_manifest(
             repo_root, args.image, args.narration_audio, age_bands, "GATE_A_REQUIRED"
@@ -112,6 +118,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 age_bands=age_bands,
                 seed=args.seed,
                 demo_autopilot=True,
+                report_partial_test_only=args.report_partial_test_only,
                 asr_profile_id=AsrProfileId(args.asr_profile),
             )
         )
@@ -143,6 +150,11 @@ def _build_parser() -> argparse.ArgumentParser:
     group.add_argument("--age-band", choices=("0-3", "3-6", "6-9", "9-12"))
     parser.add_argument("--seed", type=int, default=None)
     parser.add_argument("--demo-autopilot", action="store_true")
+    parser.add_argument(
+        "--report-partial-test-only",
+        action="store_true",
+        help="allow all-age test runs to return PARTIAL_SUCCESS; production remains fail-closed",
+    )
     parser.add_argument("--asr-profile", default=AsrProfileId.WHISPER_TURBO_INT8_AUTO_V1.value)
     parser.add_argument("--output", default="runtime-output/workflow-result.json")
     parser.add_argument("--repo-root", default=None)
@@ -168,7 +180,7 @@ def _error_manifest(
     repo_root: Path,
     image: str,
     audio: str,
-    age_bands: tuple[str, ...],
+    age_bands: tuple[AgeBand, ...],
     terminal_status: str,
     issues: tuple[str, ...] = (),
 ) -> BackendWorkflowResultV1:
@@ -204,6 +216,16 @@ def _error_manifest(
             "audio_artifact_ref": _safe_reference(audio, repo_root),
             "audio_sha256": _digest_or_empty(Path(audio)),
             "run_seed": seed,
+            "age_matrix_summary": AgeMatrixSummaryV1(
+                matrix_policy=(
+                    "REPORT_PARTIAL_TEST_ONLY"
+                    if terminal_status == "BACKEND_CONTEXT_PARTIAL"
+                    else "STRICT"
+                ),
+                requested_age_bands=age_bands,
+                ready_age_bands=(),
+                unavailable_age_bands=age_bands,
+            ),
             "age_bands": [band.model_dump(mode="json") for band in bands],
             "stages": [
                 WorkflowStageV1(
@@ -236,6 +258,8 @@ def _digest_or_empty(path: Path) -> str:
 
 
 def _exit_code(result: BackendWorkflowResultV1) -> int:
+    if result.status == "PARTIAL_SUCCESS":
+        return 0
     if result.terminal_status == "BACKEND_CONTEXT_READY":
         return 0
     if result.terminal_status == "RUNTIME_NOT_READY":

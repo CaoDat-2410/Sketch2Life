@@ -27,6 +27,7 @@ from sketch2life.contracts.schemas.p1_experience import (
     P1ContextV1,
     P1FilterResultV1,
     SemanticAnchorSetV1,
+    SemanticMatchEvidenceV1,
     VersionedRefV1,
 )
 
@@ -189,6 +190,7 @@ class P1ExperienceCompiler:
         context: P1ContextV1,
         *,
         preferred_template_id: str | None = None,
+        semantic_match: SemanticMatchEvidenceV1 | None = None,
     ) -> ExperienceCompilation:
         selected = self.select(anchor_set, context, preferred_template_id=preferred_template_id)
         if selected.status != "VALID_CANDIDATE":
@@ -206,7 +208,7 @@ class P1ExperienceCompiler:
         template = self._by_id[selected.template_ref.id]
         objective = selected.objective_ref
         match_score = self._anchor_match_score(anchor_set, template)
-        fit = self._fit_evaluation(anchor_set, template, objective, match_score)
+        fit = self._fit_evaluation(anchor_set, template, objective, match_score, semantic_match)
         if fit.status != "PASS":
             rejected = selected.model_copy(
                 update={"status": "NO_ELIGIBLE_ACTIVITY", "reason_codes": fit.reason_codes}
@@ -222,7 +224,7 @@ class P1ExperienceCompiler:
             )
             return ExperienceCompilation(rejected, fit, None, gate, None)
 
-        spec = self._build_spec(anchor_set, context, template, objective, fit)
+        spec = self._build_spec(anchor_set, context, template, objective, fit, semantic_match)
         gate = self.approve_gate_b(spec, context)
         if gate.status != "APPROVED":
             rejected = selected.model_copy(
@@ -260,7 +262,9 @@ class P1ExperienceCompiler:
         context_identity_failures = self._context_identity_failures(
             context, template, spec.learning_focus.objective_ref
         )
-        anchor_failures = self._anchor_template_continuity_failures(spec.anchor_set, template)
+        anchor_failures = self._anchor_template_continuity_failures(
+            spec.anchor_set, template, spec.semantic_match
+        )
         spec_identity_failures = self._spec_identity_failures(spec, template)
         if spec.session_id != context.session_id:
             reason: tuple[str, ...] = ("SESSION_ID_MISMATCH",)
@@ -307,6 +311,7 @@ class P1ExperienceCompiler:
         template: ActivityTemplateV1,
         objective: VersionedRefV1,
         fit: ActivityFitEvaluationV1,
+        semantic_match: SemanticMatchEvidenceV1 | None = None,
     ) -> ExperienceSpecV1:
         template_ref = VersionedRefV1(id=template.template_id, version=template.template_version)
         goal = self._objective_titles.get(objective.id, objective.id)
@@ -369,6 +374,7 @@ class P1ExperienceCompiler:
             "activity_plan": activity_plan.model_dump(mode="json"),
             "bridge_sentence": bridge.model_dump(mode="json"),
             "fit_evaluation": fit.model_dump(mode="json"),
+            "semantic_match": semantic_match.model_dump(mode="json") if semantic_match else None,
             "policy_versions": (
                 "P1_ELIGIBILITY_RULES_V1",
                 "P1_FIT_WEIGHTS_V1",
@@ -434,6 +440,7 @@ class P1ExperienceCompiler:
     def _anchor_template_continuity_failures(
         anchor_set: SemanticAnchorSetV1,
         template: ActivityTemplateV1,
+        semantic_match: SemanticMatchEvidenceV1 | None = None,
     ) -> tuple[str, ...]:
         """Return hard failures for the confirmed primary anchor/template pair.
 
@@ -441,6 +448,8 @@ class P1ExperienceCompiler:
         exact normalized-label/tag compatibility and a compatible semantic kind.
         Token overlap alone can never promote an unrelated activity.
         """
+        if semantic_match is not None:
+            return ()
         anchor = anchor_set.primary_anchor
         supported_labels = {item.casefold().strip() for item in template.supported_anchor_labels}
         anchor_labels = {
@@ -551,8 +560,11 @@ class P1ExperienceCompiler:
         template: ActivityTemplateV1,
         objective: VersionedRefV1,
         match_score: int,
+        semantic_match: SemanticMatchEvidenceV1 | None = None,
     ) -> ActivityFitEvaluationV1:
-        anchor_failures = cls._anchor_template_continuity_failures(anchor_set, template)
+        anchor_failures = cls._anchor_template_continuity_failures(
+            anchor_set, template, semantic_match
+        )
         anchor_matches = not anchor_failures
         objective_alignment = 100 if objective in template.objective_refs else 0
         objective_matches = objective_alignment == 100
@@ -560,13 +572,21 @@ class P1ExperienceCompiler:
         # Hard mismatches zero the affected dimensions before weighted scoring.
         # This keeps REJECT scores below the schema threshold even when another
         # dimension is perfect, so a high score cannot override a hard gate.
-        drawing = min(100, match_score * 20) if anchor_matches else 0
+        drawing = (
+            semantic_match.score
+            if semantic_match is not None
+            else min(100, match_score * 20)
+            if anchor_matches
+            else 0
+        )
         continuity = 100 if anchor_matches and objective_matches else 0
         safety = 100
         total = round(
             drawing * 0.30 + objective_alignment * 0.35 + continuity * 0.20 + safety * 0.15
         )
         reasons: list[str] = list(anchor_failures)
+        if semantic_match is not None:
+            reasons.extend(semantic_match.reason_codes)
         if not objective_matches:
             reasons.append("OBJECTIVE_TEMPLATE_MISMATCH")
         status: Literal["PASS", "REJECT"] = (

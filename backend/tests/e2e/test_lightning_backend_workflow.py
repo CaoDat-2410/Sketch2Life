@@ -33,8 +33,27 @@ def test_lightning_backend_workflow_real_ai_four_band_matrix() -> None:
     assert result.status == "SUCCEEDED"
     assert result.terminal_status == "BACKEND_CONTEXT_READY"
     assert result.input_mode == "MULTIMODAL"
+    assert result.age_matrix_summary is not None
+    assert result.age_matrix_summary.matrix_policy == "STRICT"
+    assert result.age_matrix_summary.ready_age_bands == (
+        "0-3",
+        "3-6",
+        "6-9",
+        "9-12",
+    )
     assert tuple(band.age_band for band in result.age_bands) == ("0-3", "3-6", "6-9", "9-12")
     assert all(band.status == "SUCCEEDED" for band in result.age_bands)
+    assert all(
+        band.experience_spec is not None
+        and band.experience_spec["semantic_match"]["match_mode"]
+        in {"EXACT", "ALIAS", "SAFE_FALLBACK"}
+        for band in result.age_bands
+    )
+    assert all(
+        band.activity_handoff is not None
+        and isinstance(band.activity_handoff["duration_minutes"], dict)
+        for band in result.age_bands
+    )
     selection_vectors = tuple(band.selection_vector for band in result.age_bands)
     assert len(set(selection_vectors)) == len(selection_vectors)
 

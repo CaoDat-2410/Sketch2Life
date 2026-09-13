@@ -29,3 +29,11 @@ The installed Qwen3-VL processor ignores `enable_thinking`, so the runner follow
 ## DEC-020-08 — Explicit relation/theme identifier examples
 
 Lightning diagnostics showed the schema-first prompt corrected nested labels and action fields, while the model still emitted invalid identifiers only for relation and theme candidates. The prompt now gives valid concrete identifier shapes (`relation-1`, `theme-1`) and explicitly rejects underscores, whitespace, and numeric-only IDs. The output mapper remains strict and does not normalize invalid model data.
+## DEC-020-09..12 implementation record (2026-09-13)
+
+The approved remediation decisions are implemented as follows:
+
+- DEC-020-09: reviewed semantic profiles and deterministic matching sit between fused AI observations and P1 compilation; AI output cannot invent activity IDs or bypass hard rules.
+- DEC-020-10: each age band has a SAFE_FALLBACK profile, with explicit evidence and fallback reason; negative phrase matches can suppress exact/alias selection while still allowing only the age baseline fallback.
+- DEC-020-11: the runtime loader validates the full 100-activity catalog and the semantic catalog validates one profile per activity plus fallback coverage.
+- DEC-020-12: AgeMatrixSummaryV1 records ready/unavailable bands; partial reporting is opt-in for test/demo only, while strict mode remains the default.

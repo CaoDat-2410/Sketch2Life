@@ -14,9 +14,11 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-WorkflowStatus = Literal["SUCCEEDED", "FAILED"]
+AgeBand = Literal["0-3", "3-6", "6-9", "9-12"]
+WorkflowStatus = Literal["SUCCEEDED", "PARTIAL_SUCCESS", "FAILED"]
 WorkflowTerminalStatus = Literal[
     "BACKEND_CONTEXT_READY",
+    "BACKEND_CONTEXT_PARTIAL",
     "RUNTIME_NOT_READY",
     "MEDIA_RECAPTURE",
     "ASR_FAILED",
@@ -59,6 +61,28 @@ class WorkflowStageV1(BaseModel):
 
         walk(value)
         return value
+
+
+class AgeMatrixSummaryV1(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    contract_name: Literal["AgeMatrixSummaryV1"] = "AgeMatrixSummaryV1"
+    contract_version: Literal["1.0"] = "1.0"
+    matrix_policy: Literal["STRICT", "REPORT_PARTIAL_TEST_ONLY"]
+    requested_age_bands: tuple[AgeBand, ...] = Field(min_length=1)
+    ready_age_bands: tuple[AgeBand, ...] = ()
+    unavailable_age_bands: tuple[AgeBand, ...] = ()
+
+    @model_validator(mode="after")
+    def validate_partition(self) -> AgeMatrixSummaryV1:
+        requested = set(self.requested_age_bands)
+        ready = set(self.ready_age_bands)
+        unavailable = set(self.unavailable_age_bands)
+        if ready & unavailable:
+            raise ValueError("age matrix ready and unavailable bands must not overlap")
+        if requested != ready | unavailable:
+            raise ValueError("age matrix summary must partition requested bands")
+        return self
 
 
 class DemoDecisionV1(BaseModel):
@@ -113,7 +137,7 @@ class FeedbackHistoryV1(BaseModel):
 class WorkflowBandResultV1(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    age_band: Literal["0-3", "3-6", "6-9", "9-12"]
+    age_band: AgeBand
     age_months: int = Field(ge=0, le=155)
     run_seed: int
     seed_fingerprint: str = Field(pattern=r"^[a-f0-9]{16}$")
@@ -149,6 +173,7 @@ class BackendWorkflowResultV1(BaseModel):
     audio_artifact_ref: str = Field(min_length=1, max_length=500)
     audio_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
     run_seed: int
+    age_matrix_summary: AgeMatrixSummaryV1 | None = None
     age_bands: tuple[WorkflowBandResultV1, ...] = Field(min_length=1)
     stages: tuple[WorkflowStageV1, ...] = Field(min_length=1)
     warnings: tuple[str, ...] = ()
@@ -219,6 +244,8 @@ def finalize_workflow_result(payload: dict[str, Any]) -> BackendWorkflowResultV1
 
 
 __all__ = [
+    "AgeBand",
+    "AgeMatrixSummaryV1",
     "BackendWorkflowResultV1",
     "DemoDecisionV1",
     "DeferredVideoV1",

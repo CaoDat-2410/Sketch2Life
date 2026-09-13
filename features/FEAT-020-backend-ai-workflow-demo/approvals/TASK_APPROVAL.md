@@ -3,7 +3,7 @@
 **Task:** Implement a backend-only, real-AI, one-command Sketch2Life workflow demo in Lightning Studio, using a repository pulled from GitHub, with no UI and no fixture-backed acceptance path.
 
 **Feature:** `FEAT-020-backend-ai-workflow-demo`
-**Plan:** `features/FEAT-020-backend-ai-workflow-demo/plan/FINAL_IMPLEMENTATION_PLAN.md` plus the approved PixiJS asset-plan revision in `features/FEAT-020-backend-ai-workflow-demo/plan/PIXI_ASSET_LIBRARY_PLAN.md` and `PIXI_ASSET_COVERAGE_TARGET.json`
+**Plan:** `features/FEAT-020-backend-ai-workflow-demo/plan/FINAL_IMPLEMENTATION_PLAN.md` plus the approved PixiJS asset-plan revision and the owner-approved `SEMANTIC_ACTIVITY_SCALING_REMEDIATION_PLAN.md`
 **Current status:** `APPROVED`
 **Approver:** project owner (explicit approval in current task)
 **Approval date:** 2026-09-13
@@ -38,3 +38,13 @@ Decision: APPROVED
 Plan revision: d9e6724 (docs(FEAT-020): plan full PixiJS asset coverage)
 Notes: Full-catalog PixiJS asset coverage is planned for 100 activities, 236 material-group instances and 380 unique material option IDs. Assets remain hand-authored SVG/vector, shared by semantic/material family, with layer/crop/mask/transparent requirements where animation needs them. UI/system-state assets and PixiJS runtime remain out of scope.
 ```
+
+
+## Remediation plan approval
+
+Status: APPROVED
+Approver: project owner (explicit approval in current task)
+Date: 2026-09-13
+Decision: APPROVED
+Plan: features/FEAT-020-backend-ai-workflow-demo/plan/SEMANTIC_ACTIVITY_SCALING_REMEDIATION_PLAN.md
+Scope: hybrid curated semantic eligibility, bounded AI suggestions, safe fallback tiers, full 100-activity catalog remediation, and test-only partial age-matrix reporting.

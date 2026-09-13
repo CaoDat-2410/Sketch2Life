@@ -41,6 +41,7 @@ from sketch2life.contracts.schemas.p1_experience import (
     P1ContextV1,
     SemanticAnchorSetV1,
     SemanticAnchorV1,
+    SemanticMatchEvidenceV1,
 )
 from sketch2life.contracts.schemas.vision import (
     VisionImageReferenceV1,
@@ -54,6 +55,8 @@ from sketch2life.contracts.schemas.vision_v2 import (
     VisionUnderstandingSuccessV2,
 )
 from sketch2life.contracts.schemas.workflow_demo import (
+    AgeBand,
+    AgeMatrixSummaryV1,
     BackendWorkflowResultV1,
     DeferredVideoV1,
     DemoDecisionV1,
@@ -61,6 +64,11 @@ from sketch2life.contracts.schemas.workflow_demo import (
     WorkflowBandResultV1,
     WorkflowStageV1,
     finalize_workflow_result,
+)
+from sketch2life.infrastructure.catalog.activity_semantics import (
+    ActivitySemanticCatalog,
+    SemanticCatalogError,
+    load_activity_semantic_catalog,
 )
 from sketch2life.infrastructure.catalog.p1_catalog import (
     CatalogLoadError,
@@ -88,9 +96,10 @@ class BackendWorkflowRequest:
     image_path: Path
     narration_audio_path: Path
     repo_root: Path
-    age_bands: tuple[str, ...] = ("0-3", "3-6", "6-9", "9-12")
+    age_bands: tuple[AgeBand, ...] = ("0-3", "3-6", "6-9", "9-12")
     seed: int | None = None
     demo_autopilot: bool = False
+    report_partial_test_only: bool = False
     asr_profile_id: AsrProfileId = AsrProfileId.WHISPER_TURBO_INT8_AUTO_V1
 
 
@@ -186,12 +195,19 @@ class BackendAiWorkflow:
             )
 
         try:
-            library = load_p1_template_library(self._repo_root)
+            library = load_p1_template_library(self._repo_root, include_mvp=True)
+            semantic_catalog = load_activity_semantic_catalog(self._repo_root)
             asset_catalog = PixiAssetCatalog(
                 self._repo_root / "features" / "FEAT-020-backend-ai-workflow-demo"
             )
             asset_catalog.validate_all_age_bands()
-        except (CatalogLoadError, AssetCatalogError, OSError, ValueError) as exc:
+        except (
+            CatalogLoadError,
+            SemanticCatalogError,
+            AssetCatalogError,
+            OSError,
+            ValueError,
+        ) as exc:
             return self._failure_result(
                 workflow_run_id,
                 run_seed,
@@ -229,6 +245,7 @@ class BackendAiWorkflow:
                 asr=asr_result,
                 vision=vision_result,
                 library=library,
+                semantic_catalog=semantic_catalog,
                 asset_catalog=asset_catalog,
                 anchor_candidates=anchor_candidates,
                 previous_activity_ids=previous_activity_ids,
@@ -239,11 +256,39 @@ class BackendAiWorkflow:
                 if activity_id:
                     previous_activity_ids.add(activity_id)
 
-        succeeded = all(band.status == "SUCCEEDED" for band in bands)
-        terminal_status = "BACKEND_CONTEXT_READY" if succeeded else _first_failure_status(bands)
+        ready_age_bands = tuple(band.age_band for band in bands if band.status == "SUCCEEDED")
+        unavailable_age_bands = tuple(band.age_band for band in bands if band.status != "SUCCEEDED")
+        strict_success = len(unavailable_age_bands) == 0
+        partial_success = (
+            request.report_partial_test_only
+            and bool(ready_age_bands)
+            and bool(unavailable_age_bands)
+        )
+        result_status = (
+            "SUCCEEDED"
+            if strict_success
+            else "PARTIAL_SUCCESS"
+            if partial_success
+            else "FAILED"
+        )
+        terminal_status = (
+            "BACKEND_CONTEXT_READY"
+            if strict_success
+            else "BACKEND_CONTEXT_PARTIAL"
+            if partial_success
+            else _first_failure_status(bands)
+        )
+        matrix_summary = AgeMatrixSummaryV1(
+            matrix_policy="REPORT_PARTIAL_TEST_ONLY"
+            if request.report_partial_test_only
+            else "STRICT",
+            requested_age_bands=tuple(request.age_bands),
+            ready_age_bands=ready_age_bands,
+            unavailable_age_bands=unavailable_age_bands,
+        )
         result_payload: dict[str, Any] = {
             "workflow_run_id": workflow_run_id,
-            "status": "SUCCEEDED" if succeeded else "FAILED",
+            "status": result_status,
             "terminal_status": terminal_status,
             "input_mode": "MULTIMODAL",
             "image_artifact_ref": image_ref,
@@ -251,6 +296,7 @@ class BackendAiWorkflow:
             "audio_artifact_ref": audio_ref,
             "audio_sha256": audio_sha,
             "run_seed": run_seed,
+            "age_matrix_summary": matrix_summary,
             "age_bands": [band.model_dump(mode="json") for band in bands],
             "stages": [
                 WorkflowStageV1(
@@ -270,18 +316,31 @@ class BackendAiWorkflow:
                 ),
                 WorkflowStageV1(
                     stage="AGE_MATRIX",
-                    status="SUCCEEDED" if succeeded else "FAILED",
-                    reason_code=None if succeeded else terminal_status,
-                    details={"requested_age_bands": list(request.age_bands)},
+                    status="SUCCEEDED" if strict_success or partial_success else "FAILED",
+                    reason_code=None if strict_success or partial_success else terminal_status,
+                    details={
+                        "requested_age_bands": list(request.age_bands),
+                        "ready_age_bands": list(ready_age_bands),
+                        "unavailable_age_bands": list(unavailable_age_bands),
+                        "matrix_policy": matrix_summary.matrix_policy,
+                    },
                 ),
                 WorkflowStageV1(
                     stage="RESULT",
-                    status="SUCCEEDED" if succeeded else "FAILED",
-                    reason_code=None if succeeded else terminal_status,
-                    details={"band_count": len(bands)},
+                    status="SUCCEEDED" if strict_success or partial_success else "FAILED",
+                    reason_code=None if strict_success or partial_success else terminal_status,
+                    details={"band_count": len(bands), "result_status": result_status},
                 ),
             ],
-            "warnings": ("VIDEO_DEFERRED", "DEMO_AUTOPILOT_DECISIONS") if succeeded else (),
+            "warnings": (
+                "VIDEO_DEFERRED",
+                "DEMO_AUTOPILOT_DECISIONS",
+                "AGE_MATRIX_PARTIAL_TEST_ONLY",
+            )
+            if partial_success
+            else ("VIDEO_DEFERRED", "DEMO_AUTOPILOT_DECISIONS")
+            if strict_success
+            else (),
             "created_at": created_at,
         }
         return finalize_workflow_result(result_payload)
@@ -336,13 +395,14 @@ class BackendAiWorkflow:
         self,
         *,
         request: BackendWorkflowRequest,
-        age_band: str,
+        age_band: AgeBand,
         run_seed: int,
         workflow_run_id: str,
         media: MediaValidationResultV1,
         asr: AsrSuccessV1,
         vision: VisionUnderstandingSuccessV2,
         library: P1TemplateLibrary,
+        semantic_catalog: ActivitySemanticCatalog,
         asset_catalog: PixiAssetCatalog,
         anchor_candidates: tuple[_AnchorCandidate, ...],
         previous_activity_ids: set[str],
@@ -352,7 +412,9 @@ class BackendAiWorkflow:
         band_seed = _derive_band_seed(run_seed, age_band)
         compiler = P1ExperienceCompiler(library.templates, library.objective_titles_vi)
         context = _demo_context(library, age_band, workflow_run_id)
-        compiled: list[tuple[_AnchorCandidate, Any, SemanticAnchorSetV1]] = []
+        compiled: list[
+            tuple[_AnchorCandidate, Any, SemanticAnchorSetV1, SemanticMatchEvidenceV1]
+        ] = []
         for candidate in anchor_candidates:
             anchor_set = _anchor_set_for_candidate(
                 candidate,
@@ -363,13 +425,18 @@ class BackendAiWorkflow:
             for template in library.templates:
                 if not template.age_months_min <= _AGE_MONTHS[age_band] <= template.age_months_max:
                     continue
+                profile = semantic_catalog.profile_for(template.activity_ref.id)
+                semantic_match = semantic_catalog.match(anchor_set, profile)
+                if semantic_match is None:
+                    continue
                 compilation = compiler.compile(
                     anchor_set,
                     context,
                     preferred_template_id=template.template_id,
+                    semantic_match=semantic_match,
                 )
                 if compilation.spec is not None and compilation.handoff is not None:
-                    compiled.append((candidate, compilation, anchor_set))
+                    compiled.append((candidate, compilation, anchor_set, semantic_match))
         if not compiled:
             return _failed_band(
                 age_band,
@@ -379,14 +446,18 @@ class BackendAiWorkflow:
             )
 
         rng = random.Random(band_seed)
-        rng.shuffle(compiled)
+        strongest_priority = max(_match_priority(item[3].match_mode) for item in compiled)
+        strongest = [
+            item for item in compiled if _match_priority(item[3].match_mode) == strongest_priority
+        ]
+        rng.shuffle(strongest)
         non_repeating = [
             item
-            for item in compiled
+            for item in strongest
             if item[1].spec.activity_template.activity_ref.id not in previous_activity_ids
         ]
-        chosen = (non_repeating or compiled)[0]
-        candidate, compilation, anchor_set = chosen
+        chosen = (non_repeating or strongest)[0]
+        candidate, compilation, anchor_set, semantic_match = chosen
         assert compilation.spec is not None
         assert compilation.handoff is not None
         spec = compilation.spec
@@ -429,6 +500,7 @@ class BackendAiWorkflow:
             vision,
             primary_materials,
             assets.asset_ids,
+            semantic_match,
         )
         handoff = {
             **compilation.handoff.model_dump(mode="json"),
@@ -441,6 +513,9 @@ class BackendAiWorkflow:
         stage_details = {
             "selection_vector": [activity_id, objective_id, template_id],
             "candidate_count": len(compiled),
+            "semantic_candidate_count": len(compiled),
+            "selected_match_mode": semantic_match.match_mode,
+            "selected_semantic_score": semantic_match.score,
             "variation_unavailable_reason": (
                 "ONLY_ONE_ELIGIBLE_CANDIDATE" if len(compiled) == 1 else None
             ),
@@ -484,7 +559,9 @@ class BackendAiWorkflow:
                 stage="HANDOFF_READY", status="SUCCEEDED", details={"activity_id": activity_id}
             ),
             WorkflowStageV1(
-                stage="FEEDBACK_RECORDED", status="SUCCEEDED", details={"source": "DEMO_AUTOPILOT"}
+                stage="DEMO_FEEDBACK_PLACEHOLDER_READY",
+                status="SUCCEEDED",
+                details={"source": "DEMO_AUTOPILOT", "feedback_status": "NOT_ATTEMPTED"},
             ),
         )
         return WorkflowBandResultV1(
@@ -541,6 +618,16 @@ class BackendAiWorkflow:
                 "audio_artifact_ref": audio_ref,
                 "audio_sha256": audio_sha,
                 "run_seed": run_seed,
+                "age_matrix_summary": AgeMatrixSummaryV1(
+                    matrix_policy=(
+                        "REPORT_PARTIAL_TEST_ONLY"
+                        if request.report_partial_test_only
+                        else "STRICT"
+                    ),
+                    requested_age_bands=tuple(request.age_bands),
+                    ready_age_bands=(),
+                    unavailable_age_bands=tuple(request.age_bands),
+                ),
                 "age_bands": [band.model_dump(mode="json") for band in bands],
                 "stages": [
                     WorkflowStageV1(
@@ -560,6 +647,10 @@ class BackendAiWorkflow:
                 "created_at": created_at,
             }
         )
+
+
+def _match_priority(mode: str) -> int:
+    return {"EXACT": 3, "ALIAS": 2, "SAFE_FALLBACK": 1}.get(mode, 0)
 
 
 def _relative_artifact_ref(path: Path, cwd: Path) -> str:
@@ -764,32 +855,68 @@ def _demo_context(library: P1TemplateLibrary, age_band: str, session_id: str) ->
 
 
 def _primary_material_ids(repo_root: Path, activity_id: str) -> tuple[str, ...]:
-    path = repo_root / "data" / "activity-catalog" / "golden" / "v1" / "material-registry.v1.json"
+    golden_path = (
+        repo_root
+        / "data"
+        / "activity-catalog"
+        / "golden"
+        / "v1"
+        / "material-registry.v1.json"
+    )
     try:
-        document = json.loads(path.read_text(encoding="utf-8"))
+        document = json.loads(golden_path.read_text(encoding="utf-8"))
         option_kinds = {item["id"]: item.get("kind") for item in document.get("options", [])}
         groups = [
             item for item in document.get("groups", []) if item.get("activity_id") == activity_id
         ]
-        return tuple(
+        primary_ids = tuple(
             option_id
             for group in groups
             for option_id in group.get("any_of", [])
             if option_kinds.get(option_id) == "PRIMARY"
         )
+        if primary_ids:
+            return primary_ids
     except (OSError, json.JSONDecodeError, TypeError, KeyError):
+        pass
+
+    mvp_path = repo_root / "data" / "activity-catalog" / "mvp" / "activities.v1.json"
+    try:
+        document = json.loads(mvp_path.read_text(encoding="utf-8"))
+        record = next(item for item in document["activities"] if item["id"] == activity_id)
+        return tuple(
+            group["any_of"][0]
+            for group in record.get("material_groups", [])
+            if group.get("any_of")
+        )
+    except (OSError, json.JSONDecodeError, StopIteration, KeyError, TypeError, IndexError):
         return ()
 
 
-def _duration_minutes(repo_root: Path, activity_id: str) -> int | None:
-    path = repo_root / "data" / "activity-catalog" / "golden" / "v1" / "activities.v2.json"
+def _duration_minutes(repo_root: Path, activity_id: str) -> dict[str, int] | None:
+    records: list[dict[str, Any]] = []
+    for path in (
+        repo_root / "data" / "activity-catalog" / "golden" / "v1" / "activities.v2.json",
+        repo_root / "data" / "activity-catalog" / "mvp" / "activities.v1.json",
+    ):
+        try:
+            document = json.loads(path.read_text(encoding="utf-8"))
+            records.extend(document.get("activities", []))
+        except (OSError, json.JSONDecodeError, TypeError):
+            continue
     try:
-        document = json.loads(path.read_text(encoding="utf-8"))
-        record = next(item for item in document["activities"] if item["id"] == activity_id)
+        record = next(item for item in records if item.get("id") == activity_id)
         value = record.get("duration_minutes")
-        return int(value) if isinstance(value, int) else None
-    except (OSError, json.JSONDecodeError, StopIteration, KeyError, TypeError, ValueError):
-        return None
+        if isinstance(value, int):
+            return {"min_minutes": value, "max_minutes": value}
+        if isinstance(value, dict):
+            minimum = int(value["min"])
+            maximum = int(value["max"])
+            if minimum <= maximum:
+                return {"min_minutes": minimum, "max_minutes": maximum}
+    except (StopIteration, KeyError, TypeError, ValueError):
+        pass
+    return None
 
 
 def _story_scene_context(
@@ -799,6 +926,7 @@ def _story_scene_context(
     vision: VisionUnderstandingSuccessV2,
     primary_materials: tuple[str, ...],
     asset_ids: tuple[str, ...],
+    semantic_match: SemanticMatchEvidenceV1,
 ) -> dict[str, Any]:
     story_hash = _hash_json(
         {
@@ -817,14 +945,21 @@ def _story_scene_context(
         "source_artifact_sha256": spec.source_artifact_sha256,
         "anchor_id": anchor_set.primary_anchor.anchor_id,
         "anchor_label_vi": anchor_set.primary_anchor.normalized_label,
+        "semantic_match_mode": semantic_match.match_mode,
+        "semantic_profile_id": semantic_match.profile_id,
+        "semantic_match_score": semantic_match.score,
         "narration_transcript_vi": asr.transcript_raw,
         "visual_entity_labels_vi": [item.label.value for item in vision.entities],
         "learning_objective": spec.learning_focus.objective_ref.model_dump(mode="json"),
         "primary_material_option_ids": list(primary_materials),
         "asset_ids": list(asset_ids),
         "narration_vi": (
-            f"Cùng khám phá {anchor_set.primary_anchor.normalized_label}, "
-            "rồi thực hành hoạt động ngoài màn hình với người lớn."
+            (
+                f"Cùng khám phá {anchor_set.primary_anchor.normalized_label}, "
+                "rồi thực hành hoạt động ngoài màn hình với người lớn."
+            )
+            if semantic_match.match_mode in {"EXACT", "ALIAS"}
+            else "Từ bức tranh, cùng người lớn thực hành hoạt động nền tảng phù hợp lứa tuổi."
         ),
     }
 
@@ -916,7 +1051,7 @@ def _fusion_details(asr: AsrSuccessV1, vision: VisionUnderstandingSuccessV2) -> 
 
 
 def _failed_band(
-    age_band: str, seed: int, terminal_status: str, reason: str
+    age_band: AgeBand, seed: int, terminal_status: str, reason: str
 ) -> WorkflowBandResultV1:
     safe_status = (
         terminal_status
