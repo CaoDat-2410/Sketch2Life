@@ -28,6 +28,7 @@ from sketch2life.application.services.media_validation import (
 from sketch2life.application.services.p1_experience import P1ExperienceCompiler
 from sketch2life.contracts.schemas.asr import (
     AsrAudioReferenceV1,
+    AsrFailureV1,
     AsrProfileId,
     AsrRequestV1,
     AsrSuccessV1,
@@ -48,6 +49,7 @@ from sketch2life.contracts.schemas.vision import (
 )
 from sketch2life.contracts.schemas.vision_v2 import (
     VisionProfileIdV2,
+    VisionUnderstandingFailureV2,
     VisionUnderstandingRequestV2,
     VisionUnderstandingSuccessV2,
 )
@@ -551,7 +553,7 @@ class BackendAiWorkflow:
                         stage="WORKFLOW",
                         status="FAILED",
                         reason_code=terminal_status,
-                        details={"reason": reason},
+                        details=_workflow_failure_details(reason, asr_result, vision_result),
                     ),
                 ],
                 "warnings": (),
@@ -855,6 +857,34 @@ def _vision_summary(result: VisionUnderstandingSuccessV2) -> dict[str, Any]:
         "adapter_version": result.adapter_version,
         "config_hash": result.config_hash,
     }
+
+
+def _workflow_failure_details(
+    reason: str, asr_result: object | None, vision_result: object | None
+) -> dict[str, Any]:
+    """Expose typed provider outcomes without leaking prompts, output, or runtime paths."""
+
+    details: dict[str, Any] = {"reason": reason}
+    if isinstance(asr_result, AsrFailureV1):
+        details["asr"] = {
+            "status": asr_result.status,
+            "error_code": asr_result.error_code.value,
+            "error_detail": asr_result.error_detail.value,
+            "retryable": asr_result.retryable,
+            "attempt_number": asr_result.attempt_number,
+            "repair_attempted": asr_result.repair_attempted,
+        }
+    if isinstance(vision_result, VisionUnderstandingFailureV2):
+        details["vision"] = {
+            "status": vision_result.status,
+            "error_code": vision_result.error_code.value,
+            "error_detail": vision_result.error_detail.value,
+            "retryable": vision_result.retryable,
+            "attempt_number": vision_result.attempt_number,
+            "repair_attempted": vision_result.repair_attempted,
+            "policy_execution_state": vision_result.policy_execution_state,
+        }
+    return details
 
 
 def _understanding_details(
