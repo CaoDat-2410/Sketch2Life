@@ -1,6 +1,6 @@
 # FEAT-020 Evidence Index
 
-Status: `IN_PROGRESS`
+Status: `VALIDATED`
 
 All evidence for this feature must remain in this directory and must be sanitized.
 
@@ -15,3 +15,5 @@ Planned evidence files:
 - `implementation/AI_FAILURE_PATCH.md` — sanitized Lightning failure diagnosis and patch validation.
 
 Do not place raw image/audio files, raw prompts, full model outputs, credentials, tokens, or real child data here. Runtime media and large model artifacts must stay in ignored local/Lightning storage.
+
+- implementation/SEMANTIC_PERSONALIZATION_V2_VALIDATION.md — V2 semantic workflow implementation and validation record.

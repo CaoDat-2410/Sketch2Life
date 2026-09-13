@@ -16,7 +16,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from secrets import randbits
-from typing import Any, Protocol
+from typing import Any, Literal, Protocol
 from uuid import uuid4
 
 from sketch2life.application.ports.asr import AsrPort
@@ -26,6 +26,10 @@ from sketch2life.application.services.media_validation import (
     MediaValidationRequest,
 )
 from sketch2life.application.services.p1_experience import P1ExperienceCompiler
+from sketch2life.application.services.scene_understanding import (
+    SceneCandidateV2Input,
+    build_confirmed_scene_understanding,
+)
 from sketch2life.contracts.schemas.asr import (
     AsrAudioReferenceV1,
     AsrFailureV1,
@@ -42,6 +46,11 @@ from sketch2life.contracts.schemas.p1_experience import (
     SemanticAnchorSetV1,
     SemanticAnchorV1,
     SemanticMatchEvidenceV1,
+)
+from sketch2life.contracts.schemas.semantic_personalization_v2 import (
+    BackendWorkflowResultV2,
+    ConfirmedSceneUnderstandingV2,
+    SemanticActivityMatchV2,
 )
 from sketch2life.contracts.schemas.vision import (
     VisionImageReferenceV1,
@@ -69,6 +78,11 @@ from sketch2life.infrastructure.catalog.activity_semantics import (
     ActivitySemanticCatalog,
     SemanticCatalogError,
     load_activity_semantic_catalog,
+)
+from sketch2life.infrastructure.catalog.activity_semantics_v2 import (
+    ActivitySemanticCatalogV2,
+    SemanticCatalogV2Error,
+    load_activity_semantic_catalog_v2,
 )
 from sketch2life.infrastructure.catalog.p1_catalog import (
     CatalogLoadError,
@@ -110,6 +124,7 @@ class _AnchorCandidate:
     confidence: float
     tags: tuple[str, ...]
     claim_ids: tuple[str, ...]
+    source_kind: Literal["ASR", "VLM"]
 
 
 _AGE_MONTHS = {"0-3": 24, "3-6": 54, "6-9": 84, "9-12": 132}
@@ -135,6 +150,19 @@ class BackendAiWorkflow:
         self._media_validator = DeterministicMediaValidator(FileMediaSignalInspector())
 
     def run(self, request: BackendWorkflowRequest) -> BackendWorkflowResultV1:
+        return self._run_legacy(request, v2=False)
+
+    def run_v2(self, request: BackendWorkflowRequest) -> BackendWorkflowResultV2:
+        legacy_result = self._run_legacy(request, v2=True)
+        from sketch2life.application.services.semantic_personalization_v2 import (
+            to_backend_workflow_result_v2,
+        )
+
+        return to_backend_workflow_result_v2(legacy_result)
+
+    def _run_legacy(
+        self, request: BackendWorkflowRequest, *, v2: bool
+    ) -> BackendWorkflowResultV1:
         run_seed = request.seed if request.seed is not None else randbits(63)
         created_at = self._clock()
         if created_at.tzinfo is None or created_at.utcoffset() is None:
@@ -194,9 +222,13 @@ class BackendAiWorkflow:
                 vision_result=vision_result,
             )
 
+        semantic_catalog_v2: ActivitySemanticCatalogV2 | None = None
+        scene_understanding: ConfirmedSceneUnderstandingV2 | None = None
         try:
             library = load_p1_template_library(self._repo_root, include_mvp=True)
             semantic_catalog = load_activity_semantic_catalog(self._repo_root)
+            if v2:
+                semantic_catalog_v2 = load_activity_semantic_catalog_v2(self._repo_root)
             asset_catalog = PixiAssetCatalog(
                 self._repo_root / "features" / "FEAT-020-backend-ai-workflow-demo"
             )
@@ -204,6 +236,7 @@ class BackendAiWorkflow:
         except (
             CatalogLoadError,
             SemanticCatalogError,
+            SemanticCatalogV2Error,
             AssetCatalogError,
             OSError,
             ValueError,
@@ -233,23 +266,52 @@ class BackendAiWorkflow:
                 vision_result=vision_result,
             )
 
+        if v2:
+            scene_understanding = build_confirmed_scene_understanding(
+                scene_understanding_id="",
+                image_artifact_ref=image_ref,
+                image_sha256=image_sha,
+                audio_artifact_ref=audio_ref,
+                audio_sha256=audio_sha,
+                candidates=tuple(
+                    _scene_candidate_input(candidate) for candidate in anchor_candidates
+                ),
+                asr_transcript_vi=asr_result.transcript_raw,
+            )
         bands: list[WorkflowBandResultV1] = []
         previous_activity_ids: set[str] = set()
         for age_band in request.age_bands:
-            band = self._run_age_band(
-                request=request,
-                age_band=age_band,
-                run_seed=run_seed,
-                workflow_run_id=workflow_run_id,
-                media=media,
-                asr=asr_result,
-                vision=vision_result,
-                library=library,
-                semantic_catalog=semantic_catalog,
-                asset_catalog=asset_catalog,
-                anchor_candidates=anchor_candidates,
-                previous_activity_ids=previous_activity_ids,
-            )
+            if v2 and scene_understanding is not None and semantic_catalog_v2 is not None:
+                band = self._run_age_band_v2(
+                    request=request,
+                    age_band=age_band,
+                    run_seed=run_seed,
+                    workflow_run_id=workflow_run_id,
+                    media=media,
+                    asr=asr_result,
+                    vision=vision_result,
+                    library=library,
+                    semantic_catalog=semantic_catalog_v2,
+                    asset_catalog=asset_catalog,
+                    anchor_candidates=anchor_candidates,
+                    previous_activity_ids=previous_activity_ids,
+                    scene_understanding=scene_understanding,
+                )
+            else:
+                band = self._run_age_band(
+                    request=request,
+                    age_band=age_band,
+                    run_seed=run_seed,
+                    workflow_run_id=workflow_run_id,
+                    media=media,
+                    asr=asr_result,
+                    vision=vision_result,
+                    library=library,
+                    semantic_catalog=semantic_catalog,
+                    asset_catalog=asset_catalog,
+                    anchor_candidates=anchor_candidates,
+                    previous_activity_ids=previous_activity_ids,
+                )
             bands.append(band)
             if band.activity_handoff is not None:
                 activity_id = str(band.activity_handoff.get("activity_ref", {}).get("id", ""))
@@ -390,6 +452,267 @@ class BackendAiWorkflow:
             requested_profile_id=VisionProfileIdV2.QWEN3_VL_8B_INSTRUCT_BF16_V1,
         )
         return self._vision.understand(vision_request)
+
+    def _run_age_band_v2(
+        self,
+        *,
+        request: BackendWorkflowRequest,
+        age_band: AgeBand,
+        run_seed: int,
+        workflow_run_id: str,
+        media: MediaValidationResultV1,
+        asr: AsrSuccessV1,
+        vision: VisionUnderstandingSuccessV2,
+        library: P1TemplateLibrary,
+        semantic_catalog: ActivitySemanticCatalogV2,
+        asset_catalog: PixiAssetCatalog,
+        anchor_candidates: tuple[_AnchorCandidate, ...],
+        previous_activity_ids: set[str],
+        scene_understanding: ConfirmedSceneUnderstandingV2,
+    ) -> WorkflowBandResultV1:
+        if age_band not in _SUPPORTED_AGE_BANDS:
+            return _failed_band(age_band, run_seed, "NO_ELIGIBLE_ACTIVITY", "unsupported age band")
+        band_seed = _derive_band_seed(run_seed, age_band)
+        compiler = P1ExperienceCompiler(library.templates, library.objective_titles_vi)
+        context = _demo_context(library, age_band, workflow_run_id)
+        canonical_candidate = _canonical_scene_candidate(scene_understanding, anchor_candidates)
+        canonical_anchor_set = _anchor_set_for_candidate(
+            canonical_candidate,
+            anchor_candidates,
+            media.image.artifact_ref,
+            _require_hash(media.image.sha256),
+        )
+        compiled: list[
+            tuple[
+                _AnchorCandidate,
+                Any,
+                SemanticAnchorSetV1,
+                SemanticMatchEvidenceV1,
+                SemanticActivityMatchV2,
+            ]
+        ] = []
+        for template in library.templates:
+            if not template.age_months_min <= _AGE_MONTHS[age_band] <= template.age_months_max:
+                continue
+            profile = semantic_catalog.profile_for(template.activity_ref.id)
+            semantic_match_v2 = semantic_catalog.match_scene(scene_understanding, profile)
+            if semantic_match_v2 is None:
+                continue
+            candidate = _candidate_for_semantic_match(
+                semantic_match_v2,
+                canonical_candidate,
+                anchor_candidates,
+            )
+            anchor_set = (
+                canonical_anchor_set
+                if semantic_match_v2.match_mode == "AGE_BASELINE_FALLBACK"
+                else _anchor_set_for_candidate(
+                    candidate,
+                    anchor_candidates,
+                    media.image.artifact_ref,
+                    _require_hash(media.image.sha256),
+                )
+            )
+            semantic_match = semantic_catalog.to_legacy_evidence(semantic_match_v2)
+            compilation = compiler.compile(
+                anchor_set,
+                context,
+                preferred_template_id=template.template_id,
+                semantic_match=semantic_match,
+            )
+            if compilation.spec is not None and compilation.handoff is not None:
+                compiled.append(
+                    (candidate, compilation, anchor_set, semantic_match, semantic_match_v2)
+                )
+        if not compiled:
+            return _failed_band(
+                age_band,
+                band_seed,
+                "NO_ELIGIBLE_ACTIVITY",
+                "no baseline or personalized activity satisfied age and hard-rule checks",
+            )
+
+        rng = random.Random(band_seed)
+        strongest_priority = max(_match_priority_v2(item[4].match_mode) for item in compiled)
+        strongest = [
+            item
+            for item in compiled
+            if _match_priority_v2(item[4].match_mode) == strongest_priority
+        ]
+        rng.shuffle(strongest)
+        non_repeating = [
+            item
+            for item in strongest
+            if item[1].spec.activity_template.activity_ref.id not in previous_activity_ids
+        ]
+        chosen = (non_repeating or strongest)[0]
+        _candidate, compilation, anchor_set, semantic_match, semantic_match_v2 = chosen
+        assert compilation.spec is not None
+        assert compilation.handoff is not None
+        spec = compilation.spec
+        activity_id = spec.activity_template.activity_ref.id
+        objective_id = spec.learning_focus.objective_ref.id
+        template_id = spec.activity_template.template_id
+        assets = asset_catalog.resolve(age_band)
+        experience_mode = (
+            "AGE_BASELINE_FALLBACK"
+            if semantic_match_v2.match_mode == "AGE_BASELINE_FALLBACK"
+            else "PERSONALIZED"
+        )
+        age_adaptation = _age_adaptation_payload(self._repo_root, age_band, spec, experience_mode)
+        now = self._clock()
+        decisions = (
+            DemoDecisionV1(
+                gate="A",
+                actor="DEMO_OPERATOR",
+                mode="DEMO_AUTOPILOT",
+                decision="CONFIRMED",
+                reason=(
+                    "workflow demo uses one shared multimodal scene understanding "
+                    "for every age band"
+                ),
+                decided_at=now,
+            ),
+            DemoDecisionV1(
+                gate="B",
+                actor="DEMO_OPERATOR",
+                mode="DEMO_AUTOPILOT",
+                decision=(
+                    "BASELINE_APPROVED"
+                    if experience_mode == "AGE_BASELINE_FALLBACK"
+                    else "APPROVED"
+                ),
+                reason=(
+                    "personalized semantic route passed compiler and identity checks"
+                    if experience_mode == "PERSONALIZED"
+                    else "no safe personalized route passed; explicit age baseline selected"
+                ),
+                decided_at=now,
+            ),
+            DemoDecisionV1(
+                gate="FEEDBACK",
+                actor="DEMO_OPERATOR",
+                mode="DEMO_AUTOPILOT",
+                decision="PLACEHOLDER_CREATED",
+                reason="no real caregiver observation is claimed by the backend demo",
+                decided_at=now,
+            ),
+        )
+        primary_materials = _primary_material_ids(self._repo_root, activity_id)
+        story_scene = _story_scene_context(
+            anchor_set,
+            spec,
+            asr,
+            vision,
+            primary_materials,
+            assets.asset_ids,
+            semantic_match,
+            scene_understanding=scene_understanding,
+            semantic_match_v2=semantic_match_v2,
+            experience_mode=experience_mode,
+            age_adaptation=age_adaptation,
+        )
+        handoff = {
+            **compilation.handoff.model_dump(mode="json"),
+            "selected_material_option_ids": list(primary_materials),
+            "duration_minutes": _duration_minutes(self._repo_root, activity_id),
+            "supervision": spec.activity_template.minimum_supervision,
+            "safety_rule_ids": list(spec.activity_template.safety_rule_ids),
+            "accessibility": ["spoken_vi", "text_vi", "no_color_only_meaning", "reduced_motion"],
+            "experience_mode": experience_mode,
+            "semantic_relevance": semantic_match_v2.semantic_relevance,
+            "semantic_match_v2": semantic_match_v2.model_dump(mode="json"),
+            "age_adaptation_v2": age_adaptation,
+        }
+        stage_details = {
+            "selection_vector": [activity_id, objective_id, template_id],
+            "candidate_count": len(compiled),
+            "semantic_candidate_count": len(compiled),
+            "selected_match_mode": semantic_match.match_mode,
+            "selected_semantic_score": semantic_match.score,
+            "experience_mode": experience_mode,
+            "semantic_match_v2": semantic_match_v2.model_dump(mode="json"),
+            "scene_understanding_id": scene_understanding.scene_understanding_id,
+            "variation_unavailable_reason": (
+                "ONLY_ONE_ELIGIBLE_CANDIDATE" if len(compiled) == 1 else None
+            ),
+        }
+        stages = (
+            WorkflowStageV1(
+                stage="UNDERSTANDING_PROPOSED",
+                status="SUCCEEDED",
+                details=_understanding_details(asr, vision),
+            ),
+            WorkflowStageV1(
+                stage="FUSION_READY", status="SUCCEEDED", details=_fusion_details(asr, vision)
+            ),
+            WorkflowStageV1(
+                stage="GATE_A_CONFIRMED",
+                status="SUCCEEDED",
+                details={
+                    "actor": "DEMO_OPERATOR",
+                    "scene_understanding_id": scene_understanding.scene_understanding_id,
+                    "primary_concept": scene_understanding.primary_concept.concept_id,
+                },
+            ),
+            WorkflowStageV1(stage="CONTEXT_READY", status="SUCCEEDED", details=stage_details),
+            WorkflowStageV1(
+                stage="GATE_B_CONFIRMED",
+                status="SUCCEEDED",
+                details={"actor": "DEMO_OPERATOR", "experience_mode": experience_mode},
+            ),
+            WorkflowStageV1(
+                stage="EXPERIENCE_READY", status="SUCCEEDED", details={"spec_id": spec.spec_id}
+            ),
+            WorkflowStageV1(
+                stage="STORY_SCENE_READY",
+                status="SUCCEEDED",
+                details={
+                    "story_id": story_scene["story_id"],
+                    "story_mode": story_scene["story_mode"],
+                },
+            ),
+            WorkflowStageV1(
+                stage="ART_PLAN_READY",
+                status="SUCCEEDED",
+                details={"asset_count": len(assets.asset_ids)},
+            ),
+            WorkflowStageV1(
+                stage="VIDEO_DEFERRED",
+                status="DEFERRED",
+                reason_code="VIDEO_GENERATION_DEFERRED_FOR_FIRST_BACKEND_DEMO",
+                details={"target_duration_seconds": [5, 10]},
+            ),
+            WorkflowStageV1(
+                stage="HANDOFF_READY", status="SUCCEEDED", details={"activity_id": activity_id}
+            ),
+            WorkflowStageV1(
+                stage="DEMO_FEEDBACK_PLACEHOLDER_READY",
+                status="SUCCEEDED",
+                details={"source": "DEMO_AUTOPILOT", "feedback_status": "NOT_ATTEMPTED"},
+            ),
+        )
+        return WorkflowBandResultV1(
+            age_band=age_band,
+            age_months=_AGE_MONTHS[age_band],
+            run_seed=band_seed,
+            seed_fingerprint=_seed_fingerprint(band_seed),
+            status="SUCCEEDED",
+            terminal_status="BACKEND_CONTEXT_READY",
+            selection_vector=(activity_id, objective_id, template_id),
+            stages=stages,
+            decisions=decisions,
+            asr_summary=_asr_summary(asr),
+            vision_summary=_vision_summary(vision),
+            fusion_summary=_fusion_details(asr, vision),
+            anchor_set=anchor_set.model_dump(mode="json"),
+            experience_spec=spec.model_dump(mode="json"),
+            activity_handoff=handoff,
+            story_scene=story_scene,
+            art_render_intent=assets,
+            video=DeferredVideoV1(),
+            feedback_history=FeedbackHistoryV1(feedback_status="NOT_ATTEMPTED"),
+        )
 
     def _run_age_band(
         self,
@@ -565,7 +888,7 @@ class BackendAiWorkflow:
             ),
         )
         return WorkflowBandResultV1(
-            age_band=age_band,  # type: ignore[arg-type]
+            age_band=age_band,
             age_months=_AGE_MONTHS[age_band],
             run_seed=band_seed,
             seed_fingerprint=_seed_fingerprint(band_seed),
@@ -649,6 +972,117 @@ class BackendAiWorkflow:
         )
 
 
+def _scene_candidate_input(candidate: _AnchorCandidate) -> SceneCandidateV2Input:
+    kind: Literal["subject", "action", "visual_feature", "story"] = (
+        "subject"
+        if candidate.kind == "subject"
+        else "action"
+        if candidate.kind == "action"
+        else "story"
+    )
+    return SceneCandidateV2Input(
+        label_vi=candidate.label,
+        kind=kind,
+        confidence=candidate.confidence,
+        claim_ids=candidate.claim_ids,
+        source_kind=candidate.source_kind,
+    )
+
+
+def _canonical_scene_candidate(
+    scene: ConfirmedSceneUnderstandingV2,
+    candidates: tuple[_AnchorCandidate, ...],
+) -> _AnchorCandidate:
+    primary = vision_label_normalize(scene.primary_anchor_label_vi).casefold()
+    matching = tuple(
+        candidate
+        for candidate in candidates
+        if primary in vision_label_normalize(candidate.label).casefold()
+        or vision_label_normalize(candidate.label).casefold() in primary
+    )
+    if matching:
+        return sorted(matching, key=lambda item: (-item.confidence, item.label.casefold()))[0]
+    return sorted(
+        candidates,
+        key=lambda item: (-item.confidence, -len(item.label.split()), item.label.casefold()),
+    )[0]
+
+
+def _candidate_for_semantic_match(
+    match: SemanticActivityMatchV2,
+    canonical: _AnchorCandidate,
+    candidates: tuple[_AnchorCandidate, ...],
+) -> _AnchorCandidate:
+    labels = tuple(
+        vision_label_normalize(label).casefold() for label in match.matched_anchor_labels_vi
+    )
+    phrases = tuple(phrase.casefold() for phrase in match.matched_phrases_vi)
+    matching = tuple(
+        candidate
+        for candidate in candidates
+        if any(
+            label in vision_label_normalize(candidate.label).casefold()
+            or vision_label_normalize(candidate.label).casefold() in label
+            for label in labels
+        )
+        or any(phrase in candidate.label.casefold() for phrase in phrases)
+    )
+    return (
+        sorted(matching, key=lambda item: (-item.confidence, item.label.casefold()))[0]
+        if matching
+        else canonical
+    )
+
+
+def _age_adaptation_payload(repo_root: Path,
+    age_band: AgeBand,
+    spec: Any,
+    experience_mode: str,
+) -> dict[str, Any]:
+    abstraction = {
+        "0-3": "FOUNDATION",
+        "3-6": "FOUNDATION",
+        "6-9": "CONCRETE",
+        "9-12": "ABSTRACT",
+    }[age_band]
+    complexity = {
+        "0-3": "FOUNDATION",
+        "3-6": "FOUNDATION",
+        "6-9": "STANDARD",
+        "9-12": "EXTENSION",
+    }[age_band]
+    objective_id = spec.learning_focus.objective_ref.id
+    mode_label = (
+        "hoạt động nền tảng theo lứa tuổi"
+        if experience_mode == "AGE_BASELINE_FALLBACK"
+        else "mở rộng từ quan sát trong tranh"
+    )
+    return {
+        "age_band": age_band,
+        "age_months": _AGE_MONTHS[age_band],
+        "abstraction_level": abstraction,
+        "objective_adaptation_vi": (
+            f"Mục tiêu {objective_id}: {mode_label}; "
+            "người lớn điều chỉnh mức khó theo khả năng của trẻ."
+        ),
+        "complexity_level": complexity,
+        "supervision_level": spec.activity_template.minimum_supervision,
+        "duration_minutes": _duration_minutes(
+            repo_root,
+            spec.activity_template.activity_ref.id,
+        ),
+    }
+
+
+def _match_priority_v2(mode: str) -> int:
+    return {
+        "PERSONALIZED_EXACT": 4,
+        "PERSONALIZED_ALIAS": 3,
+        "PERSONALIZED_CONCEPT": 2,
+        "AGE_BASELINE_FALLBACK": 1,
+    }.get(mode, 0)
+
+
 def _match_priority(mode: str) -> int:
     return {"EXACT": 3, "ALIAS": 2, "SAFE_FALLBACK": 1}.get(mode, 0)
 
@@ -703,6 +1137,7 @@ def _fused_anchor_candidates(
                 confidence=entity.confidence or 0.5,
                 tags=_tokens(entity.label.value),
                 claim_ids=(f"vision:{entity.observation_id}",),
+                source_kind="VLM",
             )
         )
     for action in vision.actions:
@@ -713,6 +1148,7 @@ def _fused_anchor_candidates(
                 confidence=action.confidence or 0.5,
                 tags=_tokens(action.label.value),
                 claim_ids=(f"vision:{action.observation_id}",),
+                source_kind="VLM",
             )
         )
     for theme in vision.themes:
@@ -724,6 +1160,7 @@ def _fused_anchor_candidates(
                 tags=_tokens(theme.label.value),
                 claim_ids=tuple(f"vision:{ref}" for ref in theme.evidence_refs)
                 or (f"vision:{theme.observation_id}",),
+                source_kind="VLM",
             )
         )
     if asr.transcript_raw.strip():
@@ -735,6 +1172,7 @@ def _fused_anchor_candidates(
                 confidence=asr.language_probability or 0.5,
                 tags=transcript_words,
                 claim_ids=("asr:transcript",),
+                source_kind="ASR",
             )
         )
         candidates.extend(
@@ -744,6 +1182,7 @@ def _fused_anchor_candidates(
                 confidence=asr.language_probability or 0.5,
                 tags=(word,),
                 claim_ids=("asr:transcript",),
+                source_kind="ASR",
             )
             for word in transcript_words
         )
@@ -927,6 +1366,10 @@ def _story_scene_context(
     primary_materials: tuple[str, ...],
     asset_ids: tuple[str, ...],
     semantic_match: SemanticMatchEvidenceV1,
+    scene_understanding: ConfirmedSceneUnderstandingV2 | None = None,
+    semantic_match_v2: SemanticActivityMatchV2 | None = None,
+    experience_mode: str | None = None,
+    age_adaptation: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     story_hash = _hash_json(
         {
@@ -935,6 +1378,17 @@ def _story_scene_context(
             "objective": spec.learning_focus.objective_ref.model_dump(mode="json"),
             "template": spec.activity_template.template_id,
         }
+    )
+    story_mode = "AGE_BASELINE" if experience_mode == "AGE_BASELINE_FALLBACK" else "SCENE_GROUNDED"
+    scene_anchor = (
+        semantic_match_v2.matched_anchor_labels_vi[0]
+        if semantic_match_v2 is not None and semantic_match_v2.matched_anchor_labels_vi
+        else anchor_set.primary_anchor.normalized_label
+    )
+    narration = (
+        f"Cùng khám phá {scene_anchor}, rồi thực hành hoạt động ngoài màn hình với người lớn."
+        if story_mode == "SCENE_GROUNDED"
+        else "Từ bức tranh, cùng người lớn thực hành hoạt động nền tảng phù hợp lứa tuổi."
     )
     return {
         "story_id": f"STORY-{story_hash[:16]}",
@@ -948,19 +1402,28 @@ def _story_scene_context(
         "semantic_match_mode": semantic_match.match_mode,
         "semantic_profile_id": semantic_match.profile_id,
         "semantic_match_score": semantic_match.score,
+        "experience_mode": experience_mode or (
+            "PERSONALIZED"
+            if semantic_match.match_mode in {"EXACT", "ALIAS"}
+            else "AGE_BASELINE_FALLBACK"
+        ),
+        "story_mode": story_mode,
+        "scene_understanding_id": (
+            scene_understanding.scene_understanding_id if scene_understanding is not None else None
+        ),
+        "scene_understanding_v2": (
+            scene_understanding.model_dump(mode="json") if scene_understanding is not None else None
+        ),
+        "semantic_match_v2": (
+            semantic_match_v2.model_dump(mode="json") if semantic_match_v2 is not None else None
+        ),
+        "age_adaptation_v2": age_adaptation,
         "narration_transcript_vi": asr.transcript_raw,
         "visual_entity_labels_vi": [item.label.value for item in vision.entities],
         "learning_objective": spec.learning_focus.objective_ref.model_dump(mode="json"),
         "primary_material_option_ids": list(primary_materials),
         "asset_ids": list(asset_ids),
-        "narration_vi": (
-            (
-                f"Cùng khám phá {anchor_set.primary_anchor.normalized_label}, "
-                "rồi thực hành hoạt động ngoài màn hình với người lớn."
-            )
-            if semantic_match.match_mode in {"EXACT", "ALIAS"}
-            else "Từ bức tranh, cùng người lớn thực hành hoạt động nền tảng phù hợp lứa tuổi."
-        ),
+        "narration_vi": narration,
     }
 
 
@@ -1067,7 +1530,7 @@ def _failed_band(
         else "AI_FAILED"
     )
     return WorkflowBandResultV1(
-        age_band=age_band,  # type: ignore[arg-type]
+        age_band=age_band,
         age_months=_AGE_MONTHS.get(age_band, 0),
         run_seed=seed,
         seed_fingerprint=_seed_fingerprint(seed),

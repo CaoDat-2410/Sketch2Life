@@ -91,7 +91,13 @@ class DemoDecisionV1(BaseModel):
     gate: Literal["A", "B", "FEEDBACK"]
     actor: Literal["DEMO_OPERATOR"]
     mode: Literal["DEMO_AUTOPILOT"]
-    decision: Literal["CONFIRMED", "APPROVED", "RECORDED"]
+    decision: Literal[
+        "CONFIRMED",
+        "APPROVED",
+        "BASELINE_APPROVED",
+        "RECORDED",
+        "PLACEHOLDER_CREATED",
+    ]
     reason: str = Field(min_length=1, max_length=240)
     decided_at: datetime
 

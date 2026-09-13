@@ -48,3 +48,13 @@ Date: 2026-09-13
 Decision: APPROVED
 Plan: features/FEAT-020-backend-ai-workflow-demo/plan/SEMANTIC_ACTIVITY_SCALING_REMEDIATION_PLAN.md
 Scope: hybrid curated semantic eligibility, bounded AI suggestions, safe fallback tiers, full 100-activity catalog remediation, and test-only partial age-matrix reporting.
+## Proposed V2 semantic personalization remediation
+
+Status: APPROVED
+Approver: project owner (explicit approval in current task)
+Implementation approval: granted
+Date: 2026-09-13
+Plan: features/FEAT-020-backend-ai-workflow-demo/plan/SEMANTIC_PERSONALIZATION_V2_REMEDIATION_PLAN.md
+Decision record: features/FEAT-020-backend-ai-workflow-demo/DECISIONS_SEMANTIC_PERSONALIZATION_V2.md
+Scope: shared age-invariant scene understanding, reviewed concept ontology, semantic recall improvement, new V2 contracts, first-class fallback mode, mode-aware Gate B/story/bridge/telemetry, and real-AI regression coverage.
+Explicitly deferred: UI, PixiJS runtime, video generation, real caregiver feedback, persistence and production catalog approval.

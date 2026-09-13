@@ -15,7 +15,11 @@ from sketch2life.application.services.backend_ai_workflow import (
     BackendWorkflowRequest,
     WorkflowRuntimeError,
 )
+from sketch2life.application.services.semantic_personalization_v2 import (
+    to_backend_workflow_result_v2,
+)
 from sketch2life.contracts.schemas.asr import AsrProfileId
+from sketch2life.contracts.schemas.semantic_personalization_v2 import BackendWorkflowResultV2
 from sketch2life.contracts.schemas.vision_v2 import VisionProfileIdV2
 from sketch2life.contracts.schemas.workflow_demo import (
     AgeBand,
@@ -89,47 +93,59 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     repo_root = Path(args.repo_root).resolve() if args.repo_root else Path.cwd().resolve()
     output = Path(args.output)
+    use_v2 = args.contract_version == "v2"
     age_bands: tuple[AgeBand, ...] = (
         ("0-3", "3-6", "6-9", "9-12")
         if args.age_band is None
         else (args.age_band,)
     )
+
+    def finalize(
+        legacy: BackendWorkflowResultV1,
+    ) -> BackendWorkflowResultV1 | BackendWorkflowResultV2:
+        return to_backend_workflow_result_v2(legacy) if use_v2 else legacy
+
     if not args.demo_autopilot:
-        result = _error_manifest(
-            repo_root, args.image, args.narration_audio, age_bands, "GATE_A_REQUIRED"
+        result = finalize(
+            _error_manifest(
+                repo_root, args.image, args.narration_audio, age_bands, "GATE_A_REQUIRED"
+            )
         )
         _write_result(output, result)
         return 5
     ready, issues = inspect_real_runtime()
     if not ready:
-        result = _error_manifest(
-            repo_root, args.image, args.narration_audio, age_bands, "RUNTIME_NOT_READY", issues
+        result = finalize(
+            _error_manifest(
+                repo_root, args.image, args.narration_audio, age_bands, "RUNTIME_NOT_READY", issues
+            )
         )
         _write_result(output, result)
         print(json.dumps({"status": result.terminal_status, "issues": issues}, ensure_ascii=False))
         return 2
     try:
         workflow = build_real_workflow(repo_root)
-        result = workflow.run(
-            BackendWorkflowRequest(
-                image_path=Path(args.image),
-                narration_audio_path=Path(args.narration_audio),
-                repo_root=repo_root,
-                age_bands=age_bands,
-                seed=args.seed,
-                demo_autopilot=True,
-                report_partial_test_only=args.report_partial_test_only,
-                asr_profile_id=AsrProfileId(args.asr_profile),
-            )
+        request = BackendWorkflowRequest(
+            image_path=Path(args.image),
+            narration_audio_path=Path(args.narration_audio),
+            repo_root=repo_root,
+            age_bands=age_bands,
+            seed=args.seed,
+            demo_autopilot=True,
+            report_partial_test_only=args.report_partial_test_only,
+            asr_profile_id=AsrProfileId(args.asr_profile),
         )
+        result = workflow.run_v2(request) if use_v2 else workflow.run(request)
     except (WorkflowRuntimeError, RuntimeError, ValueError) as exc:
-        result = _error_manifest(
-            repo_root,
-            args.image,
-            args.narration_audio,
-            age_bands,
-            "RUNTIME_NOT_READY",
-            (type(exc).__name__,),
+        result = finalize(
+            _error_manifest(
+                repo_root,
+                args.image,
+                args.narration_audio,
+                age_bands,
+                "RUNTIME_NOT_READY",
+                (type(exc).__name__,),
+            )
         )
     _write_result(output, result)
     print(
@@ -140,7 +156,6 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     return _exit_code(result)
 
-
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Run the backend-only Sketch2Life workflow demo")
     parser.add_argument("--image", required=True, help="replaceable image path")
@@ -149,6 +164,7 @@ def _build_parser() -> argparse.ArgumentParser:
     group.add_argument("--age-mode", choices=("all",), default="all")
     group.add_argument("--age-band", choices=("0-3", "3-6", "6-9", "9-12"))
     parser.add_argument("--seed", type=int, default=None)
+    parser.add_argument("--contract-version", choices=("v1", "v2"), default="v2")
     parser.add_argument("--demo-autopilot", action="store_true")
     parser.add_argument(
         "--report-partial-test-only",
@@ -168,7 +184,7 @@ def _installed_version(package: str) -> str | None:
         return None
 
 
-def _write_result(path: Path, result: BackendWorkflowResultV1) -> None:
+def _write_result(path: Path, result: BackendWorkflowResultV1 | BackendWorkflowResultV2) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
         json.dumps(result.model_dump(mode="json"), ensure_ascii=False, indent=2) + "\n",
@@ -187,7 +203,7 @@ def _error_manifest(
     seed = 0
     bands = tuple(
         WorkflowBandResultV1(
-            age_band=band,  # type: ignore[arg-type]
+            age_band=band,
             age_months={"0-3": 24, "3-6": 54, "6-9": 84, "9-12": 132}[band],
             run_seed=seed,
             seed_fingerprint="5feceb66ffc86f38",
@@ -257,7 +273,7 @@ def _digest_or_empty(path: Path) -> str:
         return hashlib.sha256(b"").hexdigest()
 
 
-def _exit_code(result: BackendWorkflowResultV1) -> int:
+def _exit_code(result: BackendWorkflowResultV1 | BackendWorkflowResultV2) -> int:
     if result.status == "PARTIAL_SUCCESS":
         return 0
     if result.terminal_status == "BACKEND_CONTEXT_READY":
