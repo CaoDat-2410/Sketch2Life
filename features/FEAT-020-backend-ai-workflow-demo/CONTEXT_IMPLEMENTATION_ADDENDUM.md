@@ -24,3 +24,4 @@ The Lightning Studio run must provide the real Qwen3-VL and faster-whisper runti
 ## Latest Lightning diagnosis (2026-09-13)
 
 The real model now loads on the L4 and reaches output mapping. The first runtime blocker was an incompatible `huggingface-hub` version; after correction, the remaining typed outcome was `VISION_SCHEMA_INVALID / OUTPUT_MAPPING_FAILED`. Safe mapper diagnostics showed type/constraint failures on entity/action/relation/theme labels and identifiers. The implementation therefore removes the unsupported `enable_thinking` processor argument and strengthens the schema-first Vietnamese prompt. The next Lightning run is required to verify the real output path after this change.
+The latest safe mapping diagnostic narrowed schema invalidity to only `relations.observation_id` and `themes.observation_id`; nested labels and action fields now pass their prior checks. Prompt v3 adds concrete valid relation/theme ID examples without coercing provider output.

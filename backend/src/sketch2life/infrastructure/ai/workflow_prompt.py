@@ -19,6 +19,8 @@ _PROMPT = "\n".join(
         "BẮT BUỘC: không dùng key id; mọi phần tử phải dùng observation_id. "
         "label, predicate và note không phải chuỗi; chúng luôn là object text field "
         '{"value":"...","language":{"status":"DECLARED","tags":["vi"]}}.',
+        "ID của relation phải có dạng relation-1 và ID của theme phải có dạng theme-1; "
+        "không dùng dấu gạch dưới, khoảng trắng hoặc số thuần trong observation_id.",
         "Entity có các key observation_id,label,confidence; confidence là số từ 0 đến 1 "
         "hoặc null. Action có observation_id,label,actor_ref,object_ref,confidence; "
         "actor_ref và object_ref là entity ID hoặc null.",
@@ -41,7 +43,7 @@ def workflow_prompt_text() -> str:
 
 
 def workflow_prompt_protocol_id() -> str:
-    return "fe020-vietnamese-observation-v2"
+    return "fe020-vietnamese-observation-v3"
 
 
 def workflow_prompt_sha256() -> str:

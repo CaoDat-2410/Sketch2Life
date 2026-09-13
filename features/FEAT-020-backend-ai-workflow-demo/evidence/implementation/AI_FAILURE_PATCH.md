@@ -19,3 +19,4 @@ The real runtime preflight passed on an NVIDIA L4 after Qwen3-VL 8B and faster-w
 - Mypy on patched modules: passed.
 - Qwen adapter/environment/runtime-config tests plus the Lightning E2E selector: passed; the real-AI E2E remains skipped when the local machine has no model runtime.
 - The command must be rerun on the configured Lightning L4 to verify the real provider path and capture the now-specific failure code or complete workflow result.
+The next Lightning diagnostic narrowed the remaining schema failure to relation/theme `observation_id` constraints. Prompt v3 adds concrete valid examples (`relation-1`, `theme-1`) and explicitly forbids underscores, whitespace, and numeric-only IDs.

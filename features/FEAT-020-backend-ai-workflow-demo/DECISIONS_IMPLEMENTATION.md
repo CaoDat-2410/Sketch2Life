@@ -26,3 +26,6 @@ Video generation is not implemented in this slice. Each successful band emits a 
 ## DEC-020-07 — Qwen3-VL processor compatibility and schema-first prompting
 
 The installed Qwen3-VL processor ignores `enable_thinking`, so the runner follows the official processor call shape and does not pass that unsupported keyword. The reviewed Vietnamese prompt explicitly requires `observation_id` rather than `id`, and requires `label`, `predicate`, and `note` to be nested text objects. The mapper remains strict: invalid AI output is reported as a typed schema failure instead of being silently coerced.
+## DEC-020-08 — Explicit relation/theme identifier examples
+
+Lightning diagnostics showed the schema-first prompt corrected nested labels and action fields, while the model still emitted invalid identifiers only for relation and theme candidates. The prompt now gives valid concrete identifier shapes (`relation-1`, `theme-1`) and explicitly rejects underscores, whitespace, and numeric-only IDs. The output mapper remains strict and does not normalize invalid model data.
