@@ -1,5 +1,39 @@
 # FEAT-003 decisions
 
+## P2-T4 owner decisions - 2026-09-13
+
+1. **B0 - Option 3 selected.** P2-T4 will use a separately approved reconciliation between
+   the live FEAT-018 contract family and the P2-T2/P2-T3/P2-T4 family. This selects a direction;
+   it does not complete reconciliation, select the final canonical shape, authorize migration,
+   or authorize implementation.
+2. **B5 - remove from v1.** Remove `NOT_FUSIBLE` from the proposed v1 contract. A future status
+   may be proposed only when a concrete reachable precondition, payload, fixtures, and approval
+   exist. The v1 result statuses become `FUSED | UPSTREAM_FAILURE`.
+3. **B1 - support-only narration.** Narration may support or refute vision candidates. It does
+   not independently create entities, actions, relations, or themes in v1.
+4. **B4 - vision-only themes.** Themes pass through from vision. Narration does not create or
+   re-score themes in v1.
+5. **B6 - bounded deterministic negation.** The closed v1 cue list is exactly `not`, `no`,
+   `never`, `isn't`, `doesn't`, `didn't`. The window is exactly the three match-view tokens
+   immediately preceding an already-matched claim span. A cue outside the window, associated
+   with another span, or lacking a vision counterpart produces no conflict. Do not broaden this
+   into sarcasm, semantic contradiction, synonym/antonym, coreference, or general NLU.
+6. **B2 - primary-only weighting.** Narration support may affect only `primary_interpretation`
+   among non-conflicting candidates. It never removes, rewrites, lowers, or suppresses source
+   evidence or conflicts. Any tie behavior must be deterministic and explicitly testable; do not
+   invent a new ranking signal.
+7. **B3a - increment 0.10.** Apply the corroboration increment at most once per supported,
+   non-conflicting candidate, cap the result at `1.0`, and never stack the increment because the
+   same candidate matched multiple transcript segments.
+8. **B3b - retain `AGREEMENT_WEIGHTED_V1`.** This remains the closed v1 formula identity.
+9. **B3c - retain `NOT_MEASURED`.** If source vision confidence is null, certainty remains null
+   and `certainty_status=NOT_MEASURED`, even when narration support exists. Preserve the support
+   boolean/reference; do not fabricate a numeric base value.
+
+These nine entries record design choices only. B0's direction is selected, but its reconciliation
+deliverable remains pending; this entry does not approve P2-T4 implementation or change
+`approvals/TASK_APPROVAL.md`.
+
 ## FEAT-018 compatibility-review decisions (2026-09-05)
 
 - Record independent test success separately from integration readiness. P2 vision schema

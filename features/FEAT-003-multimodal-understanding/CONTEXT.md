@@ -7,6 +7,28 @@
   canonical evidence. Working drafts, review handoffs, templates, and local diagnostic records
   remain intentionally local-only and are not linked from this context.
 
+## P2-T4 owner decisions and reconciliation status (2026-09-13)
+
+- The nine P2-T4 owner decisions (B0, B5, B1, B4, B6, B2, B3a, B3b, and B3c) are recorded in
+  [`DECISIONS.md`](DECISIONS.md) and the detailed research plan. They are design choices, not an
+  implementation approval.
+- B0 selects Option 3: a separately approved reconciliation between the live FEAT-018 contract
+  family and the P2-T2/P2-T3/P2-T4 family. The reconciliation deliverable is not complete; it
+  must choose one canonical versioned shape or an explicit versioned mapping and provide
+  compatibility/migration fixtures before contract freeze or implementation.
+- The active P2-T4 v1 result statuses are only `FUSED | UPSTREAM_FAILURE`. `upstream_failure` is
+  non-null exactly for `UPSTREAM_FAILURE` and null for `FUSED`. The exact six negation cues, exact
+  three-token match-view window, one-time `0.10` capped increment, and `NOT_MEASURED` null-
+  confidence rule are recorded in the plan.
+- The separately scoped reconciliation plan is
+  [`plan/P2_T4_CONTRACT_RECONCILIATION_PLAN.md`](plan/P2_T4_CONTRACT_RECONCILIATION_PLAN.md),
+  with a feature-local approval request at
+  `evidence/notes/P2_T4_CONTRACT_RECONCILIATION_APPROVAL_REQUEST.md`. The request is not an
+  approval grant.
+- `approvals/TASK_APPROVAL.md` is unchanged. P2-T4/P2-T5 implementation, schema changes,
+  migrations, fixtures, runtime wiring, provider/GPU/model work, and FEAT-018 changes remain
+  outside the approved boundary.
+
 ## P2-T1 maintenance (2026-09-10)
 
 - Source hashing in the P2-T1 validation service now reads files in fixed-size chunks of at most
