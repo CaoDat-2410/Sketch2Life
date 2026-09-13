@@ -23,3 +23,6 @@ Decision records use the explicit `DEMO_OPERATOR` actor required by the demo pla
 ## DEC-020-06 — Video is a typed deferred boundary
 
 Video generation is not implemented in this slice. Each successful band emits a `VIDEO_DEFERRED` record with the learning objective, scene context, and provider boundary needed by the next feature. The workflow still reaches the activity bridge and feedback/history stages.
+## DEC-020-07 — Qwen3-VL processor compatibility and schema-first prompting
+
+The installed Qwen3-VL processor ignores `enable_thinking`, so the runner follows the official processor call shape and does not pass that unsupported keyword. The reviewed Vietnamese prompt explicitly requires `observation_id` rather than `id`, and requires `label`, `predicate`, and `note` to be nested text objects. The mapper remains strict: invalid AI output is reported as a typed schema failure instead of being silently coerced.

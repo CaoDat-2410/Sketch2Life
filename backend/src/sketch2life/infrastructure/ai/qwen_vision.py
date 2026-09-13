@@ -485,7 +485,6 @@ def _generate_from_bundle(
             messages,
             tokenize=True,
             add_generation_prompt=True,
-            enable_thinking=False,
             return_dict=True,
             return_tensors="pt",
         )

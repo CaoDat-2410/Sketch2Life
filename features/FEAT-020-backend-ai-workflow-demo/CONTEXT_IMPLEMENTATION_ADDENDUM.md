@@ -21,3 +21,6 @@ The Lightning Studio run must provide the real Qwen3-VL and faster-whisper runti
 - Implementation decisions: `DECISIONS_IMPLEMENTATION.md`
 - Local validation record: `evidence/implementation/LOCAL_VALIDATION.md`
 - Test contract: `../../backend/tests/e2e/test_lightning_backend_workflow.py`
+## Latest Lightning diagnosis (2026-09-13)
+
+The real model now loads on the L4 and reaches output mapping. The first runtime blocker was an incompatible `huggingface-hub` version; after correction, the remaining typed outcome was `VISION_SCHEMA_INVALID / OUTPUT_MAPPING_FAILED`. Safe mapper diagnostics showed type/constraint failures on entity/action/relation/theme labels and identifiers. The implementation therefore removes the unsupported `enable_thinking` processor argument and strengthens the schema-first Vietnamese prompt. The next Lightning run is required to verify the real output path after this change.

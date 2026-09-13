@@ -8,7 +8,7 @@ The real runtime preflight passed on an NVIDIA L4 after Qwen3-VL 8B and faster-w
 
 ## Patch scope
 
-- Qwen3-VL chat-template generation now explicitly sets `enable_thinking=False`. This matches the approved greedy decoding profile and prevents the model's reasoning mode from being combined with deterministic decoding.
+- Qwen3-VL chat-template generation follows the official processor call shape and does not pass the unsupported `enable_thinking` keyword. The reviewed Vietnamese prompt now explicitly distinguishes `observation_id` from `id` and requires `label`, `predicate`, and `note` to be nested text objects.
 - The workflow failure stage now exposes sanitized typed provider diagnostics: provider status, enum error code/detail, retryability, attempt number, repair flag, and vision policy state. Prompts, raw model output, credentials, and runtime paths are never copied into the manifest.
 - The existing Transformers runner unit test asserts the non-thinking flag so the integration fix is protected from regression.
 

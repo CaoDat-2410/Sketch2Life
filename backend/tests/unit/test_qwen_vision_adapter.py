@@ -738,7 +738,7 @@ def test_transformers_runner_can_be_tested_without_importing_optional_packages(
     assert processor.messages[0]["content"][0]["image"].endswith("drawing.bin")
     assert processor.messages[0]["content"][1]["text"] == ""
     assert processor.template_kwargs["add_generation_prompt"] is True
-    assert processor.template_kwargs["enable_thinking"] is False
+    assert "enable_thinking" not in processor.template_kwargs
     assert processor.decoded_ids == [[3]]
     assert model.generate_kwargs["do_sample"] is False
     assert model.generate_kwargs["num_beams"] == 1

@@ -16,6 +16,9 @@ _PROMPT = "\n".join(
         'Mỗi text field có dạng {"value":"...","language":{"status":"DECLARED",'
         '"tags":["vi"]}}. Mỗi observation_id là duy nhất, chữ thường, không dấu cách, '
         "chỉ gồm a-z, 0-9 và dấu gạch ngang.",
+        "BẮT BUỘC: không dùng key id; mọi phần tử phải dùng observation_id. "
+        "label, predicate và note không phải chuỗi; chúng luôn là object text field "
+        '{"value":"...","language":{"status":"DECLARED","tags":["vi"]}}.',
         "Entity có các key observation_id,label,confidence; confidence là số từ 0 đến 1 "
         "hoặc null. Action có observation_id,label,actor_ref,object_ref,confidence; "
         "actor_ref và object_ref là entity ID hoặc null.",
@@ -25,6 +28,8 @@ _PROMPT = "\n".join(
         "Ambiguous region có observation_id,note với note là text field như trên.",
         "Không thêm key ngoài schema, không dùng markdown fence, không dùng comment, không dùng "
         "bbox/geometry/metadata. Nếu không chắc, bỏ qua quan sát thay vì bịa.",
+        'Nếu không có quan sát chắc chắn, trả đúng object rỗng: {"entities":[],"actions":[], '
+        '"relations":[],"themes":[],"ambiguous_regions":[]}.',
         "Với vật thể có thể đếm được, dùng nhãn tiếng Việt tự nhiên như “một bông hoa” "
         "chỉ khi số lượng thực sự nhìn thấy.",
     )
@@ -36,7 +41,7 @@ def workflow_prompt_text() -> str:
 
 
 def workflow_prompt_protocol_id() -> str:
-    return "fe020-vietnamese-observation-v1"
+    return "fe020-vietnamese-observation-v2"
 
 
 def workflow_prompt_sha256() -> str:
