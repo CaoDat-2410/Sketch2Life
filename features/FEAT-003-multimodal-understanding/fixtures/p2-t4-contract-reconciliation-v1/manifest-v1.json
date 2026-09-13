@@ -1,0 +1,373 @@
+{
+  "fixture_id": "p2-t4-contract-reconciliation-v1",
+  "fixture_version": "1.0",
+  "contract_name": "P2T4ContractReconciliationFixtureV1",
+  "contract_version": "1.0",
+  "synthetic_data": true,
+  "created_at": "2026-09-13T00:00:00Z",
+  "author": "Person 2",
+  "review_status": "RECONCILIATION_REVIEW_DRAFT",
+  "adoption_status": "NOT_ADOPTED_PENDING_OWNER_CONFIRMATION",
+  "reference_root": "repository-relative",
+  "fixture_purpose": "Metadata-only compatibility proof for the approved Blocker-0 reconciliation workstream.",
+  "content_policy": {
+    "raw_media_present": false,
+    "raw_transcript_present": false,
+    "raw_provider_payload_present": false,
+    "prompt_present": false,
+    "secret_or_credential_present": false,
+    "provider_endpoint_present": false,
+    "absolute_machine_path_present": false,
+    "personal_metadata_present": false
+  },
+  "source_snapshots": [
+    {
+      "role": "approval_authority",
+      "path": "features/FEAT-003-multimodal-understanding/approvals/TASK_APPROVAL.md",
+      "sha256": "460134d3a7ad06feb91797382f7c521f1d23541559ed085acc174084aa8a69c1"
+    },
+    {
+      "role": "p2_asr_contract",
+      "path": "backend/src/sketch2life/contracts/schemas/asr.py",
+      "sha256": "1dcf8db144ebfd080266f05b8e75ae404ec230edc7983937a0e598e48c0b9b22"
+    },
+    {
+      "role": "p2_vision_v1_contract",
+      "path": "backend/src/sketch2life/contracts/schemas/vision.py",
+      "sha256": "c3f2719c593d443404b90e22013dcaec4cd8befed9dc6a985c0214766c3a90f4"
+    },
+    {
+      "role": "p2_vision_v2_contract",
+      "path": "backend/src/sketch2life/contracts/schemas/vision_v2.py",
+      "sha256": "ee7d35c7dbdc2d8661aa6da1b4b43ae82f21d4092519b36614193d55e905470e"
+    },
+    {
+      "role": "feat018_live_provider_shaped_contract",
+      "path": "backend/src/sketch2life/contracts/schemas/understanding.py",
+      "sha256": "c386e313b7cfd313d7f064c9ec66707b287d4a803d4092d7255a4cb0493bd2bd"
+    },
+    {
+      "role": "feat018_contract_registry",
+      "path": "features/FEAT-018-live-image-canvas-flow/plan/CONTRACT_FREEZE.md",
+      "sha256": "156061b5132342e9742839685e187fdc7eb247d85778c4d64e0824c03fa7c063"
+    },
+    {
+      "role": "existing_fixture_manifest",
+      "path": "features/FEAT-015-integration-readiness-review/fixtures/integration-fixture-v1/manifest.json",
+      "sha256": "1dd3318713a35c93e29cb66adb552444e28e3447a4be7cd4bb1f0d75331aa8be"
+    },
+    {
+      "role": "existing_asr_fixture_baseline",
+      "path": "features/FEAT-015-integration-readiness-review/fixtures/integration-fixture-v1/expected/asr-result.json",
+      "sha256": "fdd6b0a4d42b1159c39f9dad16a9024c3ba8bea0b33d7fd928cbd58b387e0af5"
+    },
+    {
+      "role": "existing_vision_fixture_baseline",
+      "path": "features/FEAT-015-integration-readiness-review/fixtures/integration-fixture-v1/expected/vision-result.json",
+      "sha256": "c517cf97df0483845af755d7e16dc450ea1ad2637da6daee6f4ee23ef8289443"
+    },
+    {
+      "role": "existing_raw_fixture_baseline",
+      "path": "features/FEAT-015-integration-readiness-review/fixtures/integration-fixture-v1/expected/raw-understanding.json",
+      "sha256": "e3c469d44c9b48fc838d33c731c09831eaa9fa1d96981685dc9407d3802998be"
+    },
+    {
+      "role": "existing_fixture_provenance",
+      "path": "features/FEAT-015-integration-readiness-review/fixtures/integration-fixture-v1/provenance/source-register.json",
+      "sha256": "51fdad19ac8cb5bf938eb8b44651e7905a6c9dac3bacd46764f98e106ec725fb"
+    }
+  ],
+  "identity_markers": {
+    "same_serialized_name_requires_namespace": true,
+    "p2_asr_identity": "P2.AsrResultV1@1.0",
+    "p2_vision_v1_identity": "P2.VisionUnderstandingResultV1@1.0",
+    "p2_vision_v2_identity": "P2.VisionUnderstandingResultV2@2.0",
+    "feat018_live_asr_identity": "FEAT018.LiveAsrResultV1@1.0",
+    "feat018_live_vision_identity": "FEAT018.LiveVisionUnderstandingResultV1@1.0",
+    "feat018_raw_handoff_identity": "FEAT018.RawUnderstandingResultV1@1.0",
+    "p2_t4_design_identity": "P2T4.ProposedFusedRawUnderstandingResultV1@1.0",
+    "p2_t4_design_statuses": [
+      "FUSED",
+      "UPSTREAM_FAILURE"
+    ],
+    "feat018_fixture_proposal_status": "PROPOSAL",
+    "p2_t3_v2_is_not_a_p2_v1_input": true
+  },
+  "mapping": {
+    "mapping_id": "P2T4_FEAT018_CONTRACT_FAMILY_MAPPING_V1",
+    "mapping_version": "1.0",
+    "selection": "OPTION_B_EXPLICIT_VERSIONED_MAPPING",
+    "mapping_status": "PROPOSED_NOT_ADOPTED",
+    "direction": "EXPLICIT_FAMILY_BOUNDARY_EDGES",
+    "source_family": "P2 provider-neutral contracts and P2-T4 fused-result design baseline",
+    "target_family": "FEAT-018 live/provider-shaped contracts and Gate A handoff",
+    "owner_confirmation_required": true,
+    "registry_cutover_applied": false,
+    "runtime_mapping_applied": false,
+    "policy": {
+      "match_identity_and_version_before_fields": true,
+      "rename_only_when_semantics_are_identical": true,
+      "defaults_allowed": false,
+      "implicit_coercion_allowed": false,
+      "unknown_identity_or_version": "REJECT",
+      "unmappable_required_field": "REJECT",
+      "privacy_invalid_field": "REJECT",
+      "source_artifacts_are_immutable": true
+    },
+    "edges": [
+      {
+        "edge_id": "feat018-live-asr-to-p2-asr",
+        "direction": "FEAT018_TO_P2",
+        "source": {
+          "identity": "FEAT018.LiveAsrResultV1@1.0",
+          "serialized_name": "AsrResultV1",
+          "contract_version": "1.0",
+          "source_path": "backend/src/sketch2life/contracts/schemas/understanding.py"
+        },
+        "target": {
+          "identity": "P2.AsrResultV1@1.0",
+          "serialized_name": "AsrResultV1",
+          "contract_version": "1.0",
+          "source_path": "backend/src/sketch2life/contracts/schemas/asr.py"
+        },
+        "default_compatibility": "REJECT_UNLESS_COMPLETE_MAPPING_METADATA_IS_PRESENT",
+        "required_preservation": [
+          "source_audio_ref.artifact_ref",
+          "source_audio_ref.sha256",
+          "correlation_id",
+          "executed_at",
+          "profile_id",
+          "attempt_number",
+          "repair_attempted",
+          "status_branch",
+          "typed_failure_or_success_fields",
+          "provenance"
+        ],
+        "loss_or_rejection": [
+          "source_audio is not accepted by name alone as source_audio_ref",
+          "missing attempt or repair fields are not defaulted",
+          "live free-text failure message is not coerced into P2 error_detail",
+          "P2 segment diagnostics are not silently dropped"
+        ],
+        "owner": "Person 2 for P2 semantics; FEAT-018/shared integration for adapter boundary"
+      },
+      {
+        "edge_id": "feat018-live-vision-v1-to-p2-vision-v1",
+        "direction": "FEAT018_TO_P2",
+        "source": {
+          "identity": "FEAT018.LiveVisionUnderstandingResultV1@1.0",
+          "serialized_name": "VisionUnderstandingResultV1",
+          "contract_version": "1.0",
+          "source_path": "backend/src/sketch2life/contracts/schemas/understanding.py"
+        },
+        "target": {
+          "identity": "P2.VisionUnderstandingResultV1@1.0",
+          "serialized_name": "VisionUnderstandingResultV1",
+          "contract_version": "1.0",
+          "source_path": "backend/src/sketch2life/contracts/schemas/vision.py"
+        },
+        "default_compatibility": "REJECT_UNLESS_COMPLETE_MAPPING_METADATA_IS_PRESENT",
+        "required_preservation": [
+          "source_image_ref.artifact_ref",
+          "source_image_ref.sha256",
+          "correlation_id",
+          "executed_at",
+          "profile_id",
+          "profile_catalog_hash",
+          "attempt_number",
+          "repair_attempted",
+          "policy_execution_state",
+          "observation_ids_and_reference_integrity",
+          "provenance"
+        ],
+        "loss_or_rejection": [
+          "source_image is not accepted by name alone as source_image_ref",
+          "plain label/confidence candidates cannot replace observed-text and reference semantics",
+          "result-level uncertainty is not fabricated when the P2 result has no equivalent field",
+          "ambiguous-region confidence/description is not invented from a P2 note",
+          "P2 policy and typed failure fields are not silently dropped"
+        ],
+        "owner": "Person 2 for P2 semantics; FEAT-018/shared integration for adapter boundary"
+      },
+      {
+        "edge_id": "p2t4-fused-design-to-feat018-raw",
+        "direction": "P2T4_TO_FEAT018",
+        "source": {
+          "identity": "P2T4.ProposedFusedRawUnderstandingResultV1@1.0",
+          "serialized_name": "RawUnderstandingResultV1",
+          "contract_version": "1.0",
+          "source_path": "features/FEAT-003-multimodal-understanding/plan/P2_T4_FUSION_RESEARCH_PLAN.md",
+          "lifecycle": "DESIGN_BASELINE_ONLY"
+        },
+        "target": {
+          "identity": "FEAT018.RawUnderstandingResultV1@1.0",
+          "serialized_name": "RawUnderstandingResultV1",
+          "contract_version": "1.0",
+          "source_path": "features/FEAT-018-live-image-canvas-flow/plan/CONTRACT_FREEZE.md"
+        },
+        "default_compatibility": "REJECT_UNLESS_SOURCE_PRESERVATION_AND_TARGET_PROJECTION_ARE_EXPLICIT",
+        "required_preservation": [
+          "source_asr_result_ref",
+          "source_vision_result_ref",
+          "fusion_policy_config_hash",
+          "source_observation_refs",
+          "conflicts",
+          "uncertainty_state",
+          "typed_upstream_failure_reference",
+          "gate_a_required"
+        ],
+        "target_projection_fields": [
+          "claims",
+          "conflicts",
+          "gate_a_required"
+        ],
+        "loss_or_rejection": [
+          "P2-T4 entities/actions/relations/themes are not silently flattened into claims",
+          "FUSED and UPSTREAM_FAILURE are not coerced to PROPOSAL or FAILED by string matching",
+          "source references and uncertainty are retained by the mapping record or the case is rejected",
+          "typed upstream failures are not replaced by a free-form target message",
+          "no target projection is adopted until the target can satisfy source-preservation review"
+        ],
+        "owner": "Person 2 for T4 source semantics; FEAT-018/shared integration and P1/Gate A for target acceptance"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "case_id": "successfully_mappable_complete_metadata",
+      "case_type": "SUCCESSFUL_MAPPING_CASE",
+      "input_identity": "P2T4.ProposedFusedRawUnderstandingResultV1@1.0",
+      "target_identity": "FEAT018.RawUnderstandingResultV1@1.0",
+      "mapping_success": true,
+      "adoption_simulation": "SUCCESSFUL_BUT_NOT_COMMITTED",
+      "adoption_applied": false,
+      "expected_outcome": "MAPPING_ADMISSIBLE_FOR_OWNER_REVIEW",
+      "preconditions": [
+        "exact source and target identities are present",
+        "source and target versions are present",
+        "ASR and vision result references are present",
+        "source artifact hashes and provenance pointers are present",
+        "status branch and typed failure behavior are explicit",
+        "every lossy target projection is listed",
+        "no required source field is unmappable",
+        "gate_a_required remains true"
+      ],
+      "preserved_source_markers": [
+        "source_asr_result_ref",
+        "source_vision_result_ref",
+        "fusion_policy_config_hash",
+        "source_observation_refs",
+        "conflict_refs",
+        "uncertainty_status",
+        "upstream_failure_ref"
+      ],
+      "source_unchanged": true,
+      "registry_cutover": false
+    },
+    {
+      "case_id": "wrong_family_v2_rejection",
+      "case_type": "WRONG_FAMILY_REJECTION",
+      "input_identity": "P2.VisionUnderstandingResultV2@2.0",
+      "expected_edge": "p2t4-fused-design-to-feat018-raw",
+      "mapping_success": false,
+      "expected_outcome": "REJECTED_WRONG_FAMILY",
+      "reason": "V2 identity is not the P2-T4 V1 input and cannot be accepted by serialized-name matching",
+      "default_or_coercion_used": false,
+      "source_unchanged": true
+    },
+    {
+      "case_id": "incompatible_live_asr_rejection",
+      "case_type": "INCOMPATIBLE_INPUT_REJECTION",
+      "input_identity": "FEAT018.LiveAsrResultV1@1.0",
+      "expected_edge": "feat018-live-asr-to-p2-asr",
+      "mapping_success": false,
+      "expected_outcome": "REJECTED_REQUIRED_PROVENANCE_OR_SOURCE_METADATA",
+      "missing_required_markers": [
+        "source_audio_ref.sha256",
+        "correlation_id",
+        "executed_at",
+        "attempt_number",
+        "repair_attempted",
+        "resolved_profile_id"
+      ],
+      "default_or_coercion_used": false,
+      "source_unchanged": true
+    },
+    {
+      "case_id": "incompatible_fixture_v2_rejection",
+      "case_type": "INCOMPATIBLE_INPUT_REJECTION",
+      "input_identity": "P2.VisionUnderstandingResultV2@2.0",
+      "input_reference": "features/FEAT-015-integration-readiness-review/fixtures/integration-fixture-v1/expected/vision-result.json",
+      "expected_edge": "p2t4-fused-design-to-feat018-raw",
+      "mapping_success": false,
+      "expected_outcome": "REJECTED_WRONG_TARGET_AND_INCOMPLETE_SCHEMA",
+      "reason": "The existing fixture's V2 label does not make it a T4 fused result and its compact fields do not satisfy the P2 V2 envelope.",
+      "default_or_coercion_used": false,
+      "source_unchanged": true
+    },
+    {
+      "case_id": "unknown_version_rejection",
+      "case_type": "UNSUPPORTED_VERSION_REJECTION",
+      "input_identity": "FEAT018.LiveVisionUnderstandingResultV1@2.0",
+      "mapping_success": false,
+      "expected_outcome": "REJECTED_UNSUPPORTED_VERSION",
+      "reason": "No mapping entry exists for this identity/version; version guessing is forbidden.",
+      "default_or_coercion_used": false,
+      "source_unchanged": true
+    },
+    {
+      "case_id": "privacy_invalid_rejection",
+      "case_type": "PRIVACY_REJECTION",
+      "input_identity": "P2T4.ProposedFusedRawUnderstandingResultV1@1.0",
+      "synthetic_marker": "prohibited_provider_payload_field_present",
+      "mapping_success": false,
+      "expected_outcome": "REJECTED_PRIVACY_INVALID",
+      "reason": "Provider payloads, prompts, raw media, secrets, credentials, endpoints, and personal metadata never cross the mapping boundary.",
+      "default_or_coercion_used": false,
+      "source_unchanged": true
+    },
+    {
+      "case_id": "rollback_non_adoption",
+      "case_type": "ROLLBACK_NON_ADOPTION",
+      "trigger": "owner_rejects_mapping_or_compatibility_evidence_fails",
+      "mapping_success": false,
+      "expected_outcome": "NO_CUTOVER_CURRENT_FAMILIES_RETAINED",
+      "documented_actions": [
+        "leave FEAT-018 live/provider-shaped contracts unchanged",
+        "leave P2-T2/P2-T3 contracts and the P2-T4 design baseline unchanged",
+        "preserve all existing FEAT-015 fixture files and recorded hashes",
+        "disable no runtime because no runtime mapping was enabled",
+        "return to review with a new bounded proposal"
+      ],
+      "registry_cutover": false,
+      "source_unchanged": true,
+      "rollback_executed": false
+    },
+    {
+      "case_id": "unchanged_source_proof",
+      "case_type": "UNCHANGED_SOURCE_PROOF",
+      "expected_outcome": "ALL_SOURCE_SNAPSHOT_HASHES_REMAIN_STABLE",
+      "references": [
+        "features/FEAT-015-integration-readiness-review/fixtures/integration-fixture-v1/manifest.json",
+        "features/FEAT-015-integration-readiness-review/fixtures/integration-fixture-v1/expected/asr-result.json",
+        "features/FEAT-015-integration-readiness-review/fixtures/integration-fixture-v1/expected/vision-result.json",
+        "features/FEAT-015-integration-readiness-review/fixtures/integration-fixture-v1/expected/raw-understanding.json",
+        "backend/src/sketch2life/contracts/schemas/asr.py",
+        "backend/src/sketch2life/contracts/schemas/vision.py",
+        "backend/src/sketch2life/contracts/schemas/vision_v2.py"
+      ],
+      "source_unchanged": true,
+      "registry_cutover": false,
+      "implementation_performed": false
+    }
+  ],
+  "deterministic_assertions": [
+    "same serialized name with a different namespace is never accepted without an explicit edge",
+    "unsupported identity or version is rejected",
+    "missing source hash, provenance, discriminator, or required mapping metadata is rejected",
+    "no default, identity coercion, field suppression, or partial publication is used",
+    "positive mapping metadata is admissible for review but does not apply adoption",
+    "rollback and non-adoption preserve the pre-existing families and source hashes",
+    "the fixture contains metadata only and no raw media, transcript, provider payload, prompt, secret, credential, endpoint, or absolute path"
+  ]
+}

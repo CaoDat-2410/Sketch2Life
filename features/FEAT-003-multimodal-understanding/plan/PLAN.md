@@ -1,15 +1,17 @@
 # FEAT-003 Multimodal understanding plan
 
 - Status: APPROVED (P2-T1 and P2-T2 Phases A/B complete; P2-T3 Phase B in progress;
-  P2-T4 owner design decisions recorded 2026-09-13, with B0 reconciliation pending and
-  P2-T4 implementation not approved)
+  P2-T4 owner design decisions recorded 2026-09-13, with the B0 reconciliation package
+  complete as documentation-only evidence; owner confirmation/adoption and P2-T4
+  implementation remain gated)
 - Plan revision: 4
 - Implementation status: IN_PROGRESS (P2-T3 B1-B3 and the original B4 benchmark complete;
   prompt-v3 follow-up phases 1-6 and its mapping-readiness evaluation complete with a
   `MAPPING_READY` verdict and a `CAP_EXCEEDED` compute-governance result; prompt-v3 phase 8
   execution/evidence reconciliation complete with `QUALITY_NOT_READY` and a separate
-  `CAP_EXCEEDED` result; B5 and P2-T4/P2-T5 remain gated; P2-T4 owner decisions are recorded,
-  but reconciliation and separate implementation approval remain pending)
+  `CAP_EXCEEDED` result; B5 and P2-T4/P2-T5 remain gated; P2-T4 owner decisions and the
+  documentation-only B0 reconciliation review package are complete, but owner confirmation,
+  adoption, and separate implementation approval remain pending)
 - Owner: Person 2
 - Estimate: 10 points total (P2-T1 through P2-T5, 2 points each)
 
@@ -124,9 +126,11 @@ reason catalog are unchanged and out of that scope.
 
 **Goal:** Combine static `transcript.json` and `vision.json` into `RawUnderstandingResultV1` without erasing disagreement.
 
-**Current status (2026-09-13):** the nine owner decisions are recorded as design choices. B0
-selects Option 3, but the separately approved reconciliation between FEAT-018 and the P2
-contract family is incomplete. The active v1 result statuses are exactly `FUSED | UPSTREAM_FAILURE`;
+**Current status (2026-09-13):** the nine owner decisions are recorded as design choices. The
+separately approved documentation-only reconciliation between FEAT-018 and the P2 contract
+family is complete and has passed independent technical and governance review with owner actions.
+Its recommended outcome is an explicit versioned mapping, not adoption. The active v1 result
+statuses are exactly `FUSED | UPSTREAM_FAILURE`;
 `NOT_FUSIBLE` is not part of the active v1 design. Contract freeze and implementation remain
 not approved, and `approvals/TASK_APPROVAL.md` is unchanged.
 
@@ -141,8 +145,8 @@ increment is `0.10` once per supported, non-conflicting candidate and capped at 
 
 **Implementation slices after the gates:**
 
-1. Complete and approve the B0 reconciliation, including one canonical versioned contract or an
-   explicit versioned mapping, compatibility review, and migration fixture.
+1. Obtain owner confirmation for the completed B0 reconciliation outcome, including its explicit
+   versioned mapping, compatibility review, and synthetic migration/compatibility fixture.
 2. Freeze the reconciled T4 contract and policy identities, then obtain separate P2-T4
    implementation approval.
 3. Implement pure deterministic fusion, bounded conflict detection, primary-only weighting, and
@@ -189,7 +193,8 @@ For one owner, work sequentially as T1, T2, T3, T4, T5. If two contributors are 
 - [ ] The runner and all contract tests execute without mobile, backend API, database, queue, or another Sprint 1 workstream.
 - [ ] Evidence records command, environment, input/manifest reference, output, timestamp, reviewer, and interpretation.
 - [x] P2-T2 Phase B readiness validates a versioned ASR-only manifest and fixed Round-1 metadata plan without model/GPU/CLI/API work; unavailable measurements are explicit `NOT_MEASURED`.
-- [ ] B0 reconciliation is separately approved and complete before P2-T4 contract freeze or implementation.
+- [x] B0 reconciliation is separately approved and its documentation-only package is complete
+      before P2-T4 contract freeze or implementation; owner confirmation/adoption remains open.
 
 ## Evidence and review gates
 

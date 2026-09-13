@@ -1,6 +1,6 @@
 # P2-T4 Blocker-0 contract reconciliation plan
 
-- Status: **AWAITING APPROVAL - NOT APPROVED**
+- Status: **APPROVED FOR RECONCILIATION ONLY — PACKAGE COMPLETE; OWNER CONFIRMATION/ADOPTION PENDING**
 - Date: 2026-09-13
 - Lead: Person 2, with FEAT-018/shared-integration and P1/Gate A review
 - Feature: FEAT-003 multimodal understanding
@@ -9,9 +9,19 @@
 
 This is a bounded documentation and contract-reconciliation workstream. It is
 not a contract implementation plan, a migration execution, or an approval to
-change a producer or consumer. The workstream may begin only after its separate
-approval is granted, and its permitted outputs and edits are limited to the
-scope in Section 4.1; P2-T4 fusion implementation requires a further approval.
+change a producer or consumer. Its separate scope approval is recorded in
+approvals/TASK_APPROVAL.md. The permitted outputs and edits remain limited to
+the scope in Section 4.1; P2-T4 fusion implementation and adoption require
+further approval.
+
+## Current reconciliation status (2026-09-13)
+
+The approved documentation-only package is complete. The report, synthetic
+compatibility fixture, follow-up impact record, and independent technical and
+governance reviews recommend one explicit versioned mapping family and record
+the mapping as PROPOSED_NOT_ADOPTED. Owner confirmation of source preservation
+and separate approval for registry cutover, migration, runtime mapping,
+consumer updates, or P2-T4 implementation remain open.
 
 ## 1. Problem statement and conflicting contract identities
 

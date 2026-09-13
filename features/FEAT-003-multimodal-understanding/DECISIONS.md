@@ -31,13 +31,29 @@
    boolean/reference; do not fabricate a numeric base value.
 
 These nine entries record design choices only. B0's direction is selected, but its reconciliation
-deliverable remains pending; this entry does not approve P2-T4 implementation or change
-`approvals/TASK_APPROVAL.md`.
+package is now complete as a documentation-only, independently reviewed proposal. The explicit
+mapping outcome remains unconfirmed and unadopted; this entry does not approve P2-T4
+implementation or change `approvals/TASK_APPROVAL.md`.
+
+## P2-T4 Blocker-0 reconciliation review outcome (2026-09-13)
+
+- The reconciliation evidence package records Option B, one explicit versioned mapping family,
+  with three directional edges: FEAT-018 live ASR to P2 ASR, FEAT-018 live Vision V1 to P2
+  Vision V1, and the P2-T4 fused design baseline to the FEAT-018 raw handoff.
+- The field matrix and synthetic fixture are fail-closed: same-name or wrong-version inputs,
+  missing provenance/source metadata, privacy-invalid content, and unmappable required fields
+  are rejected; source artifacts remain unchanged; no defaults or identity coercion are allowed.
+- The technical and governance reviews both passed with owner actions. The mapping is
+  PROPOSED_NOT_ADOPTED, the fixture records no registry/runtime cutover, and owner confirmation
+  plus separate adoption/implementation approval remain required.
+- Evidence: `evidence/notes/P2_T4_BLOCKER_0_CONTRACT_RECONCILIATION_REPORT_20260913.md`,
+  `evidence/notes/P2_T4_CONTRACT_RECONCILIATION_FOLLOW_UP_IMPACT_20260913.md`, and
+  `fixtures/p2-t4-contract-reconciliation-v1/manifest-v1.json`.
 
 ## FEAT-018 compatibility-review decisions (2026-09-05)
 
 - Record independent test success separately from integration readiness. P2 vision schema
-  mapping is not a Montessori mapping adapter, and a provider-shaped integration fixture does not
+  mapping is not a runtime mapping adapter, and a provider-shaped integration fixture does not
   replace the canonical P2-T3 research contracts or benchmark evidence.
 - Cross-person runtime wiring requires versioned fixture/contract agreement, P2 fusion/evaluation,
   and a separately approved integration allocation under ADR-0006. The historical review itself

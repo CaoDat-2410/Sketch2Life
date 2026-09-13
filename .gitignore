@@ -23,6 +23,10 @@ features/FEAT-003-multimodal-understanding/fixtures/vision-v3-quality/images/**
 features/FEAT-003-multimodal-understanding/evidence/notes/*
 !features/FEAT-003-multimodal-understanding/evidence/notes/P2_T1_T0_INCREMENTAL_HASHING.md
 !features/FEAT-003-multimodal-understanding/evidence/notes/P2_T4_CONTRACT_RECONCILIATION_APPROVAL_REQUEST.md
+!features/FEAT-003-multimodal-understanding/evidence/notes/P2_T4_BLOCKER_0_CONTRACT_RECONCILIATION_REPORT_20260913.md
+!features/FEAT-003-multimodal-understanding/evidence/notes/P2_T4_CONTRACT_RECONCILIATION_FOLLOW_UP_IMPACT_20260913.md
+!features/FEAT-003-multimodal-understanding/evidence/notes/P2_T4_CONTRACT_RECONCILIATION_TECHNICAL_REVIEW_20260913.md
+!features/FEAT-003-multimodal-understanding/evidence/notes/P2_T4_CONTRACT_RECONCILIATION_GOVERNANCE_REVIEW_20260913.md
 
 # FEAT-018 P2 working reviews remain local; publish selected completed records only.
 /features/FEAT-018-live-image-canvas-flow/evidence/notes/P2_ENGINE_HANDOFF_REVIEW_20260909.md

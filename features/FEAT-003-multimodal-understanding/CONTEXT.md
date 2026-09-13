@@ -13,9 +13,11 @@
   [`DECISIONS.md`](DECISIONS.md) and the detailed research plan. They are design choices, not an
   implementation approval.
 - B0 selects Option 3: a separately approved reconciliation between the live FEAT-018 contract
-  family and the P2-T2/P2-T3/P2-T4 family. The reconciliation deliverable is not complete; it
-  must choose one canonical versioned shape or an explicit versioned mapping and provide
-  compatibility/migration fixtures before contract freeze or implementation.
+  family and the P2-T2/P2-T3/P2-T4 family. The documentation-only reconciliation package is now
+  complete and independently reviewed in `evidence/notes/P2_T4_BLOCKER_0_CONTRACT_RECONCILIATION_REPORT_20260913.md`,
+  with a synthetic compatibility fixture and follow-up impact record. Its outcome recommends
+  one explicit versioned mapping family; it does not select a final canonical runtime shape or
+  authorize migration/adoption.
 - The active P2-T4 v1 result statuses are only `FUSED | UPSTREAM_FAILURE`. `upstream_failure` is
   non-null exactly for `UPSTREAM_FAILURE` and null for `FUSED`. The exact six negation cues, exact
   three-token match-view window, one-time `0.10` capped increment, and `NOT_MEASURED` null-
@@ -25,9 +27,14 @@
   with a feature-local approval request at
   `evidence/notes/P2_T4_CONTRACT_RECONCILIATION_APPROVAL_REQUEST.md`. The request is not an
   approval grant.
+- The reconciliation review passed technical and governance review with owner actions pending;
+  the synthetic fixture records eight deterministic cases and keeps mapping/adoption/cutover
+  false. Owner confirmation of source preservation and separate approval for any adoption,
+  migration, registry cutover, consumer update, or P2-T4 implementation remain open.
 - `approvals/TASK_APPROVAL.md` is unchanged. P2-T4/P2-T5 implementation, schema changes,
-  migrations, fixtures, runtime wiring, provider/GPU/model work, and FEAT-018 changes remain
-  outside the approved boundary.
+  migrations, runtime wiring, provider/GPU/model work, FEAT-018 changes, and changes to existing
+  fixtures remain outside the approved boundary. The new metadata-only reconciliation fixture is
+  the sole allowed synthetic fixture output and does not exercise runtime behavior.
 
 ## P2-T1 maintenance (2026-09-10)
 

@@ -1,6 +1,6 @@
 # P2-T4 multimodal fusion and conflict detection research plan
 
-- Status: **DRAFT - OWNER DECISIONS RECORDED - RECONCILIATION PENDING - NOT APPROVED**
+- Status: **DRAFT - OWNER DECISIONS RECORDED - B0 RECONCILIATION PACKAGE COMPLETE - OWNER CONFIRMATION/ADOPTION PENDING - T4 IMPLEMENTATION NOT APPROVED**
 - Decision date: 2026-09-13
 - Owner: Person 2
 - Parent plan: `PLAN.md`, revision 4, task P2-T4
@@ -18,17 +18,22 @@ B3b, B3c, B4, B5, and B6. Recording those choices does not freeze a contract or
 authorize implementation.
 
 B0 selects **Option 3**, a separately approved reconciliation between the live
-FEAT-018 contract family and the P2-T2/P2-T3/P2-T4 family. The reconciliation
-deliverable is still incomplete: it must choose one canonical versioned shape or an
-explicit versioned mapping, provide compatibility and migration fixtures, and obtain
-its own approval. Until that work is complete, contract freeze and P2-T4
-implementation remain blocked. The separate reconciliation approval request is
-prepared but approval has not been granted.
+FEAT-018 contract family and the P2-T2/P2-T3/P2-T4 family. The approved
+documentation-only reconciliation package is complete: its report, synthetic
+compatibility fixture, follow-up impact record, and independent technical and
+governance reviews are recorded in the feature-local package. It records one
+explicit versioned mapping as a proposal only; the mapping is not adopted as a
+runtime contract. Owner confirmation of source preservation and any adoption or
+follow-up implementation approval remain pending. Contract freeze, migration,
+schema replacement, registry cutover, runtime wiring, FEAT-018 changes, and P2-T4
+fusion implementation remain separately gated.
 
-`approvals/TASK_APPROVAL.md` remains unchanged. It still authorizes P2-T1, P2-T2,
-and P2-T3 scopes only and explicitly excludes P2-T4/P2-T5. No P2-T4 schema,
-fusion code, migration, fixture, runtime wiring, provider call, GPU/model work,
-or FEAT-018 change exists or is authorized from this plan.
+`approvals/TASK_APPROVAL.md` remains unchanged. It authorizes the bounded P2-T4
+Blocker-0 documentation/reconciliation scope but still excludes P2-T4 fusion
+implementation and P2-T5. No P2-T4 schema, fusion code, migration execution,
+registry cutover, runtime wiring, provider call, GPU/model work, or FEAT-018 change
+exists or is authorized from this plan; the additive metadata-only reconciliation
+fixture is the sole B0 fixture output.
 
 The active v1 design choices are:
 
@@ -105,18 +110,19 @@ names:
    `VisionUnderstandingResultV1`, plus this plan's proposed fusion result, which
    use different fields, discriminators, provenance, and failure semantics.
 
-The owner selected **B0 Option 3**: perform a separately approved reconciliation
-that produces one canonical versioned shape or an explicit versioned mapping with
-compatibility and migration fixtures. The selected direction is not the result of
-that reconciliation. This plan therefore treats every T4 result sketch below as
-a reconciliation input, not a frozen public contract.
+The owner selected **B0 Option 3**. The approved documentation-only reconciliation
+package records the proposed explicit mapping and its compatibility/migration
+fixture, while owner confirmation/adoption remains pending. This plan therefore
+treats every T4 result sketch below as a reconciliation input, not a frozen public
+contract or an adopted runtime shape.
 
 The full bounded workstream is in
 `plan/P2_T4_CONTRACT_RECONCILIATION_PLAN.md`. It inventories both families,
 their producers and consumers, the Gate A/P1 and integration registry impacts,
-the migration/rollback requirements, and the validation gates. No T4 contract
-freeze or implementation starts before that plan is separately approved and
-completed.
+the migration/rollback requirements, and the validation gates. Its approved
+documentation-only package is complete; owner confirmation/adoption and separate
+T4 implementation approval are still required before any contract freeze or
+implementation starts.
 
 ## Resolved owner decisions
 
@@ -124,12 +130,13 @@ The following register is the active design record. It is consistent with the
 canonical dated entry in `DECISIONS.md`; none of these rows is an unresolved
 owner-choice placeholder.
 
-### B0 - Option 3 selected, reconciliation still pending
+### B0 - Option 3 selected, reconciliation package complete; adoption pending
 
-P2-T4 will use a separately approved reconciliation between the live FEAT-018
-contract family and the P2-T2/P2-T3/P2-T4 family. This selects a direction; it
-does not complete reconciliation, select the final canonical shape, authorize
-migration, or authorize implementation.
+P2-T4 uses the approved documentation-only reconciliation package between the
+live FEAT-018 contract family and the P2-T2/P2-T3/P2-T4 family. The package
+records a proposed explicit versioned mapping; owner confirmation/adoption remains
+pending, and it does not select a final runtime canonical shape or authorize
+migration or implementation.
 
 ### B5 - remove the former status from v1
 
@@ -511,10 +518,11 @@ mapping/validation fixture, not by adding another P2-T4 v1 status here.
 
 ## Implementation slices after approval
 
-1. Complete the separately approved B0 reconciliation. Choose one canonical
-   versioned contract or an explicit versioned mapping, document ownership and
-   consumer behavior, and add the required migration fixture. This plan's
-   candidate fields are inputs to that review, not a preselected shape.
+1. Obtain owner confirmation/adoption for the completed B0 reconciliation. Confirm
+   the proposed explicit versioned mapping, preservation mechanism, ownership, and
+   consumer behavior; the existing synthetic compatibility fixture remains
+   additive and unchanged. This plan's candidate fields are inputs to that review,
+   not a preselected shape.
 2. Freeze the reconciled T4 contract/config identities and acceptance rules in a
    versioned record. Confirm that the exact cue list, exact three-token window,
    policy provenance, and hash representation are compatible with the selected
@@ -530,8 +538,9 @@ mapping/validation fixture, not by adding another P2-T4 v1 status here.
    reconciled contract and fixtures have passed review. P2-T5 remains a separate
    downstream task.
 
-No item in this section is currently authorized. The current approval boundary
-ends at documentation and approval preparation.
+No implementation item in this section is currently authorized. The completed B0
+package is documentation-only; contract adoption, migration, registry cutover,
+runtime wiring, and fusion implementation remain separately gated.
 
 ## Dependency graph and gates
 
@@ -554,17 +563,18 @@ P2-T2 validated ASR + P2-T3 validated vision
   P2-T5 CLI/evaluation (separate approval)
 ```
 
-The B0 direction is selected, but the reconciliation result is not complete.
-Every downstream arrow remains gated until the required artifact and approval
-exist. P2-T2 and P2-T3 remain independently owned and independently validated;
-T4 does not create a live dependency on either provider.
+The B0 documentation-only reconciliation package is complete, but its proposed
+mapping is not adopted. Every downstream arrow after B0 remains gated until owner
+confirmation/adoption and the required separate approval exist. P2-T2 and P2-T3
+remain independently owned and independently validated; T4 does not create a
+live dependency on either provider.
 
 ## Exit criteria
 
 - [x] All nine owner decisions are recorded as design choices in `DECISIONS.md`
       and this plan.
-- [x] B0 direction is Option 3; the separate reconciliation plan and approval
-      request identify the incomplete deliverable and do not claim it complete.
+- [x] B0 direction is Option 3; the approved documentation-only reconciliation
+      package is complete and records a proposed mapping without adoption.
 - [x] Active v1 raw-result statuses are exactly `FUSED | UPSTREAM_FAILURE`.
 - [x] The active v1 plan contains no third status, no dead structural-failure
       payload, and no fixture or implementation slice for one.
@@ -578,7 +588,8 @@ T4 does not create a live dependency on either provider.
       when narration support exists; support provenance remains present.
 - [x] `AGREEMENT_WEIGHTED_V1`, support-only narration, vision-only themes, and
       primary-only weighting are recorded with their boundaries.
-- [ ] B0 canonical identity/shape or explicit mapping is completed and approved.
+- [ ] The proposed B0 mapping is confirmed and approved for adoption, or a
+      canonical identity/shape is separately selected and approved.
 - [ ] Compatibility, migration, rollback/non-adoption, and downstream acceptance
       fixtures are reviewed and pass.
 - [ ] The reconciled T4 contract and implementation scope receive separate
@@ -589,16 +600,18 @@ T4 does not create a live dependency on either provider.
 
 ## Current blocking status - 2026-09-13
 
-The owner decisions are complete as design choices, but the B0 reconciliation
-deliverable is not complete. The reconciliation approval request is prepared and
-is not an approval grant. `approvals/TASK_APPROVAL.md` remains unchanged and
-continues to exclude P2-T4/P2-T5. Contract freeze, P2-T4 implementation, and
-integration remain **NOT APPROVED**.
+The owner decisions are complete as design choices, and the approved B0
+documentation-only reconciliation package is complete. Its mapping remains
+PROPOSED_NOT_ADOPTED; owner confirmation of source preservation and any adoption
+or follow-up implementation approval remain pending. `approvals/TASK_APPROVAL.md`
+remains unchanged: it approves only the bounded B0 documentation/reconciliation
+scope, while contract freeze, migration, registry cutover, runtime wiring,
+P2-T4 fusion implementation, and integration remain **NOT APPROVED**.
 
-The exact current next action is review and approval of
-`P2_T4_CONTRACT_RECONCILIATION_PLAN.md` as a separately scoped workstream. That
-workstream must resolve the live-vs-P2 identity collision before any T4 contract
-or code is treated as canonical.
+The exact current next action is owner confirmation/adoption of the proposed
+mapping and preservation mechanism, followed by separate approval for any T4
+contract freeze or implementation. No T4 contract or code is treated as
+canonical by this package.
 
 ## Historical audit record - not active v1 semantics
 
