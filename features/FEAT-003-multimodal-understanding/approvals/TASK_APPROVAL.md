@@ -117,6 +117,27 @@
   time or decoding memory, and it does not close the validation-to-inference mutation window.
 - Approved at: 2026-09-10, project owner direct instruction in the current conversation.
 
+## Current approved scope — P2-T4 Blocker-0 contract reconciliation — 2026-09-13
+
+- Scope: the separately bounded contract-reconciliation workstream described in
+  `plan/P2_T4_CONTRACT_RECONCILIATION_PLAN.md` and
+  `evidence/notes/P2_T4_CONTRACT_RECONCILIATION_APPROVAL_REQUEST.md`. The owner selected B0
+  Option 3: reconcile the live FEAT-018 contract family with the P2-T2/P2-T3/P2-T4 family
+  through an explicit canonical versioned contract or versioned mapping, with compatibility
+  analysis and a synthetic migration/compatibility fixture.
+- Permitted outputs: documentation and contract-registry analysis, field-by-field compatibility
+  matrix/report, a new synthetic-only compatibility fixture, follow-up ownership/acceptance
+  checks, and narrowly scoped identity/mapping documentation. Existing code and fixture baselines
+  are inspection-only.
+- Explicit boundary: this approval does not authorize P2-T4 fusion implementation, schema
+  implementation, migration execution or cutover, runtime wiring, FEAT-018 implementation,
+  changes to routes/adapters/ports/loaders/flows/consumers, changes to existing FEAT-015 or
+  FEAT-018 fixtures, changes to P2-T2/P2-T3 contracts or evidence, provider/GPU/Lightning work,
+  or any P1/Gate A behavior change.
+- Approval status: approved only for this Blocker-0 reconciliation scope. A separate approval is
+  required for any implementation or adoption follow-up and for the complete P2-T4 fusion scope.
+- Approved at: 2026-09-13, project owner direct instruction in the current conversation.
+
 ## Notes
 
 FEAT-012 and ADR-0006 still govern the standalone Sprint 1 boundary. Person 2 does not own Gate A UI or backend job orchestration in Sprint 1.
