@@ -1,0 +1,96 @@
+{
+  "schema_version": 2,
+  "catalog_revision": "catalog-2026-09-expansion-1",
+  "families": [
+    {
+      "family_id": "FAM-ANIMAL-OBSERVE",
+      "concept_ids": ["ANIMAL_GENERIC", "NATURE_OBSERVATION"],
+      "objective_ids": ["OBJ_SCIENTIFIC_OBSERVATION"],
+      "area": "science",
+      "phrases_vi": ["con vật", "động vật"],
+      "aliases_vi": ["con thú", "loài vật"],
+      "material_option_ids": ["MAT_NATURE_OBJECTS", "MAT_PICTURE_CARDS"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["chỉ dùng vật liệu lớn, nguyên vẹn; không cho trẻ chạm động vật lạ khi chưa kiểm tra"],
+      "policy_constraints": ["CAREGIVER_PRESENT"],
+      "variants": [
+        {"activity_id": "ACT-0101", "age_band": "0-3", "title_vi": "Nhìn và gọi tên con vật", "action_vi": "Trẻ nhìn hình hoặc mô hình con vật lớn và nghe người lớn gọi tên.", "challenge_vi": "Người lớn di chuyển chậm để trẻ dõi mắt và chỉ vào con vật.", "duration_minutes": 6},
+        {"activity_id": "ACT-0102", "age_band": "3-6", "title_vi": "Ghép con vật với nơi sống", "action_vi": "Trẻ đặt thẻ con vật cạnh thẻ nơi sống phù hợp và gọi tên cặp ghép.", "challenge_vi": "Trẻ giải thích bằng một câu vì sao con vật cần nơi sống đó.", "duration_minutes": 12},
+        {"activity_id": "ACT-0103", "age_band": "6-9", "title_vi": "Quan sát đặc điểm con vật", "action_vi": "Trẻ ghi hai đặc điểm nhìn thấy và phân loại con vật theo một đặc điểm.", "challenge_vi": "Trẻ so sánh hai con vật và nêu một điểm giống, một điểm khác.", "duration_minutes": 18},
+        {"activity_id": "ACT-0104", "age_band": "9-12", "title_vi": "Lập phiếu quan sát con vật", "action_vi": "Trẻ lập bảng gồm đặc điểm, môi trường và hành vi có bằng chứng.", "challenge_vi": "Trẻ nêu điều chưa thể kết luận từ tranh hoặc quan sát ngắn.", "duration_minutes": 25}
+      ]
+    },
+    {
+      "family_id": "FAM-ANIMAL-CLASSIFY",
+      "concept_ids": ["ANIMAL_GENERIC", "SCIENCE_NATURE"],
+      "objective_ids": ["OBJ_SCIENTIFIC_INQUIRY"],
+      "area": "science",
+      "phrases_vi": ["con vật", "phân loại động vật"],
+      "aliases_vi": ["động vật", "nhóm con vật"],
+      "material_option_ids": ["MAT_PICTURE_CARDS", "MAT_SORTING_TRAY"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["kiểm tra thẻ và vật mẫu không có cạnh sắc; không dùng mẫu động vật chưa an toàn"],
+      "policy_constraints": ["SAFE_MATERIALS_ONLY"],
+      "variants": [
+        {"activity_id": "ACT-0105", "age_band": "0-3", "title_vi": "Chọn thẻ con vật quen thuộc", "action_vi": "Trẻ chọn một trong hai thẻ con vật lớn khi người lớn gọi tên.", "challenge_vi": "Người lớn đổi vị trí hai thẻ và chờ trẻ chọn lại.", "duration_minutes": 5},
+        {"activity_id": "ACT-0106", "age_band": "3-6", "title_vi": "Xếp nhóm con vật", "action_vi": "Trẻ xếp thẻ con vật thành hai nhóm theo một đặc điểm dễ nhìn.", "challenge_vi": "Trẻ đặt tên cho hai nhóm và tìm thêm một thẻ phù hợp.", "duration_minutes": 12},
+        {"activity_id": "ACT-0107", "age_band": "6-9", "title_vi": "Tạo khóa phân loại đơn giản", "action_vi": "Trẻ dùng hai câu hỏi có hoặc không để chia nhóm thẻ con vật.", "challenge_vi": "Trẻ kiểm tra khóa bằng một thẻ mới và sửa câu hỏi nếu cần.", "duration_minutes": 20},
+        {"activity_id": "ACT-0108", "age_band": "9-12", "title_vi": "Bảo vệ tiêu chí phân loại", "action_vi": "Trẻ xây tiêu chí phân loại và viết lý do dựa trên đặc điểm quan sát.", "challenge_vi": "Trẻ thử tiêu chí khác và đánh giá tiêu chí ít mơ hồ hơn.", "duration_minutes": 28}
+      ]
+    },
+    {
+      "family_id": "FAM-ANIMAL-MOVEMENT",
+      "concept_ids": ["ANIMAL_MOVEMENT", "ANIMAL_GENERIC"],
+      "objective_ids": ["OBJ_MOVEMENT_COORDINATION"],
+      "area": "movement",
+      "phrases_vi": ["con vật", "con vật đang chạy", "con vật đang bay"],
+      "aliases_vi": ["vận động như con vật", "bắt chước con vật"],
+      "material_option_ids": ["MAT_MOVEMENT_MARKERS", "MAT_PICTURE_CARDS"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["dọn lối đi, tránh nhảy trên bề mặt trơn và điều chỉnh vận động theo khả năng"],
+      "policy_constraints": ["CLEAR_MOVEMENT_AREA"],
+      "variants": [
+        {"activity_id": "ACT-0109", "age_band": "0-3", "title_vi": "Bắt chước chuyển động chậm", "action_vi": "Trẻ vẫy tay hoặc lắc người theo chuyển động chậm của con vật trong tranh.", "challenge_vi": "Người lớn dừng lại để trẻ chờ rồi tiếp tục theo nhịp riêng.", "duration_minutes": 5},
+        {"activity_id": "ACT-0110", "age_band": "3-6", "title_vi": "Đi theo dấu chân con vật", "action_vi": "Trẻ đi theo đường dấu chân lớn và bắt chước một chuyển động an toàn.", "challenge_vi": "Trẻ đổi nhịp khi gặp dấu chân khác nhưng vẫn giữ khoảng cách.", "duration_minutes": 10},
+        {"activity_id": "ACT-0111", "age_band": "6-9", "title_vi": "Mô tả cách con vật di chuyển", "action_vi": "Trẻ chọn động tác phù hợp và mô tả hướng hoặc tốc độ.", "challenge_vi": "Trẻ thay đổi một yếu tố rồi dự đoán chuyển động khác thế nào.", "duration_minutes": 15},
+        {"activity_id": "ACT-0112", "age_band": "9-12", "title_vi": "Thiết kế chuỗi vận động theo con vật", "action_vi": "Trẻ thiết kế chuỗi ba động tác dựa trên cấu tạo và môi trường.", "challenge_vi": "Trẻ giải thích liên hệ giữa từng động tác và đặc điểm con vật.", "duration_minutes": 22}
+      ]
+    },
+    {
+      "family_id": "FAM-ANIMAL-HABITAT",
+      "concept_ids": ["ANIMAL_GENERIC", "NATURE_OBSERVATION"],
+      "objective_ids": ["OBJ_COSMIC_INTERCONNECTION"],
+      "area": "science",
+      "phrases_vi": ["con vật", "nơi sống", "môi trường sống"],
+      "aliases_vi": ["nhà của con vật", "sống ở đâu"],
+      "material_option_ids": ["MAT_PICTURE_CARDS", "MAT_NATURE_OBJECTS"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["chỉ dùng tranh hoặc vật mẫu sạch; không thu gom mẫu tự nhiên có thể gây dị ứng"],
+      "policy_constraints": ["SAFE_MATERIALS_ONLY"],
+      "variants": [
+        {"activity_id": "ACT-0113", "age_band": "0-3", "title_vi": "Tìm con vật trong nơi sống", "action_vi": "Trẻ tìm hình con vật lớn trong tranh môi trường đơn giản.", "challenge_vi": "Trẻ chỉ vào con vật khi người lớn gọi tên và chờ lượt.", "duration_minutes": 6},
+        {"activity_id": "ACT-0114", "age_band": "3-6", "title_vi": "Ghép con vật với môi trường", "action_vi": "Trẻ ghép thẻ con vật với đất, nước hoặc cây theo tranh.", "challenge_vi": "Trẻ kể một điều con vật có thể tìm thấy ở nơi sống.", "duration_minutes": 12},
+        {"activity_id": "ACT-0115", "age_band": "6-9", "title_vi": "Vẽ bản đồ nơi sống", "action_vi": "Trẻ vẽ các yếu tố cần thiết trong nơi sống của một con vật.", "challenge_vi": "Trẻ đánh dấu thức ăn, chỗ trú hoặc nguồn nước.", "duration_minutes": 20},
+        {"activity_id": "ACT-0116", "age_band": "9-12", "title_vi": "Phân tích thay đổi môi trường sống", "action_vi": "Trẻ lập sơ đồ mối quan hệ giữa con vật và điều kiện sống.", "challenge_vi": "Trẻ đưa ra dự đoán có điều kiện nếu một yếu tố thay đổi.", "duration_minutes": 30}
+      ]
+    },
+    {
+      "family_id": "FAM-ANIMAL-CARE",
+      "concept_ids": ["ANIMAL_GENERIC", "PRACTICAL_LIFE"],
+      "objective_ids": ["OBJ_INDEPENDENCE_SELF_CARE", "OBJ_PRACTICAL_LIFE_SEQUENCE"],
+      "area": "practical_life",
+      "phrases_vi": ["chăm sóc con vật", "con vật", "cho ăn"],
+      "aliases_vi": ["nuôi con vật", "chăm thú"],
+      "material_option_ids": ["MAT_CARE_TRAY", "MAT_PICTURE_CARDS"],
+      "minimum_supervision": "DIRECT",
+      "safety_vi": ["chỉ thực hành bằng mô hình hoặc vật liệu được kiểm tra; không tự ý chạm hoặc cho động vật thật ăn"],
+      "policy_constraints": ["CAREGIVER_PRESENT", "NO_UNSUPERVISED_ANIMAL_CONTACT"],
+      "variants": [
+        {"activity_id": "ACT-0117", "age_band": "0-3", "title_vi": "Đặt bát cho mô hình con vật", "action_vi": "Trẻ đặt bát lớn cạnh mô hình theo hướng dẫn của người lớn.", "challenge_vi": "Trẻ mang bát bằng hai tay đến vị trí đánh dấu.", "duration_minutes": 6},
+        {"activity_id": "ACT-0118", "age_band": "3-6", "title_vi": "Sắp chuỗi chăm sóc", "action_vi": "Trẻ xếp tranh các bước chuẩn bị, chăm sóc và cất vật liệu.", "challenge_vi": "Trẻ kể bước cần người lớn kiểm tra an toàn.", "duration_minutes": 12},
+        {"activity_id": "ACT-0119", "age_band": "6-9", "title_vi": "Lập lịch chăm sóc mô hình", "action_vi": "Trẻ lập lịch cho nước, thức ăn và vệ sinh của mô hình.", "challenge_vi": "Trẻ kiểm tra lịch có phù hợp với nhu cầu khác nhau không.", "duration_minutes": 18},
+        {"activity_id": "ACT-0120", "age_band": "9-12", "title_vi": "Thiết kế kế hoạch chăm sóc có trách nhiệm", "action_vi": "Trẻ thiết kế kế hoạch gồm nhiệm vụ, tần suất, giới hạn và người giám sát.", "challenge_vi": "Trẻ giải thích vì sao không nên tự suy đoán nhu cầu động vật thật.", "duration_minutes": 25}
+      ]
+    }
+  ]
+}

@@ -25,6 +25,14 @@ class SceneConceptV2(BaseModel):
     label_vi: str = Field(min_length=1, max_length=160)
     parent_concept_ids: tuple[str, ...] = ()
     confidence: float = Field(ge=0, le=1)
+    concept_role: Literal[
+        "PRIMARY_CHILD_INTEREST",
+        "PRIMARY_VISUAL",
+        "SECONDARY_CHILD_INTEREST",
+        "SECONDARY_VISUAL",
+        "UNCLASSIFIED",
+    ] = "SECONDARY_VISUAL"
+    child_interest_alignment: float = Field(default=0.0, ge=0, le=1)
     evidence_claim_ids: tuple[str, ...] = Field(min_length=1)
     source_kinds: tuple[Literal["ASR", "VLM", "FUSION"], ...] = Field(min_length=1)
 
@@ -48,6 +56,14 @@ class ConfirmedSceneUnderstandingV2(BaseModel):
     primary_anchor_label_vi: str = Field(min_length=1, max_length=240)
     primary_concept: SceneConceptV2
     secondary_concepts: tuple[SceneConceptV2, ...] = ()
+    child_interest_concept_id: str | None = Field(default=None, max_length=120)
+    asr_vlm_resolution: Literal[
+        "ASR_AND_VLM_AGREE",
+        "ASR_PRIMARY_VLM_SUPPORTS",
+        "ASR_VLM_CONFLICT",
+        "VLM_ONLY",
+        "ASR_UNAVAILABLE",
+    ] = "ASR_UNAVAILABLE"
     observed_anchor_labels_vi: tuple[str, ...] = Field(min_length=1)
     observed_entity_labels_vi: tuple[str, ...] = ()
     observed_action_labels_vi: tuple[str, ...] = ()
@@ -78,7 +94,10 @@ class SemanticActivityProfileV2(BaseModel):
     provenance_source: str = Field(min_length=1, max_length=240)
     provenance_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
     review_status: Literal["PROVISIONAL_OWNER_REVIEWED", "SEMANTIC_REVIEWED", "DEMO_ELIGIBLE"]
-    production_eligible: Literal[False] = False
+    production_eligible: bool = False
+    activity_family_id: str = ""
+    variant_id: str = ""
+    catalog_revision: str = "catalog-2026-09"
 
 class SemanticActivityMatchV2(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
@@ -95,7 +114,24 @@ class SemanticActivityMatchV2(BaseModel):
     profile_version: int = Field(ge=1)
     activity_id: str = Field(pattern=r"^ACT-[0-9]{4}$")
     activity_version: int = Field(ge=1)
+    activity_family_id: str = ""
+    variant_id: str = ""
+    catalog_revision: str = "catalog-2026-09"
     semantic_relevance: int = Field(ge=0, le=100)
+    selected_concept_id: str | None = Field(default=None, max_length=120)
+    selected_concept_role: Literal[
+        "PRIMARY_CHILD_INTEREST",
+        "PRIMARY_VISUAL",
+        "SECONDARY_CHILD_INTEREST",
+        "SECONDARY_VISUAL",
+        "UNCLASSIFIED",
+    ] | None = None
+    concept_match_confidence: float = Field(default=0.0, ge=0, le=1)
+    child_interest_alignment: float = Field(default=0.0, ge=0, le=1)
+    age_fit_score: float = Field(default=1.0, ge=0, le=1)
+    activity_safety_score: float = Field(default=1.0, ge=0, le=1)
+    catalog_quality_score: float = Field(default=0.0, ge=0, le=1)
+    overall_personalization_score: float = Field(default=0.0, ge=0, le=1)
     matched_concept_ids: tuple[str, ...] = ()
     matched_phrases_vi: tuple[str, ...] = ()
     matched_anchor_labels_vi: tuple[str, ...] = ()
@@ -146,6 +182,22 @@ class ExperienceSpecV2(BaseModel):
 
     @model_validator(mode="after")
     def validate_gate_mode(self) -> ExperienceSpecV2:
+        activity_id = self.activity_ref.get("id")
+        activity_version = self.activity_ref.get("version")
+        if activity_id != self.semantic_match.activity_id:
+            raise ValueError("activity_ref and semantic_match activity IDs must match")
+        if activity_version != self.semantic_match.activity_version:
+            raise ValueError("activity_ref and semantic_match activity versions must match")
+        legacy_activity = (
+            self.legacy_spec.get("activity_template", {}).get("activity_ref", {})
+            if isinstance(self.legacy_spec.get("activity_template"), dict)
+            else {}
+        )
+        if legacy_activity:
+            if legacy_activity.get("id") != activity_id:
+                raise ValueError("legacy projection activity ID diverges from V2")
+            if legacy_activity.get("version") != activity_version:
+                raise ValueError("legacy projection activity version diverges from V2")
         if self.experience_mode == "PERSONALIZED" and self.gate_b_status != "PERSONALIZED_APPROVED":
             raise ValueError("personalized experience requires PERSONALIZED_APPROVED")
         if (
@@ -170,9 +222,12 @@ class WorkflowBandResultV2(BaseModel):
     age_months: int = Field(ge=0, le=155)
     status: WorkflowStatus
     terminal_status: WorkflowTerminalStatus
-    experience_mode: Literal["PERSONALIZED", "AGE_BASELINE_FALLBACK"] | None = None
+    experience_mode: Literal["PERSONALIZED", "AGE_BASELINE_FALLBACK", "UNAVAILABLE"] | None = None
     scene_understanding_id: str = Field(min_length=1, max_length=120)
     semantic_relevance: int | None = Field(default=None, ge=0, le=100)
+    selected_concept_id: str | None = Field(default=None, max_length=120)
+    child_interest_alignment: float | None = Field(default=None, ge=0, le=1)
+    unavailable_reason_code: str | None = Field(default=None, max_length=120)
     experience_spec: ExperienceSpecV2 | None = None
     legacy_band: dict[str, Any]
     warnings: tuple[str, ...] = ()
@@ -199,9 +254,11 @@ class BackendWorkflowResultV2(BaseModel):
 
     @model_validator(mode="after")
     def validate_band_counts(self) -> BackendWorkflowResultV2:
-        if self.personalized_band_count + self.fallback_band_count != len(
-            [band for band in self.age_bands if band.experience_mode is not None]
-        ):
+        selected_count = sum(
+            band.experience_mode in {"PERSONALIZED", "AGE_BASELINE_FALLBACK"}
+            for band in self.age_bands
+        )
+        if self.personalized_band_count + self.fallback_band_count != selected_count:
             raise ValueError("V2 band mode counts do not match band results")
         return self
 

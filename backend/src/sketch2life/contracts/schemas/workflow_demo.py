@@ -15,7 +15,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 AgeBand = Literal["0-3", "3-6", "6-9", "9-12"]
-WorkflowStatus = Literal["SUCCEEDED", "PARTIAL_SUCCESS", "FAILED"]
+WorkflowStatus = Literal["SUCCEEDED", "PARTIAL_SUCCESS", "FAILED", "UNAVAILABLE"]
 WorkflowTerminalStatus = Literal[
     "BACKEND_CONTEXT_READY",
     "BACKEND_CONTEXT_PARTIAL",
@@ -27,6 +27,7 @@ WorkflowTerminalStatus = Literal[
     "GATE_A_REQUIRED",
     "GATE_B_REQUIRED",
     "NO_ELIGIBLE_ACTIVITY",
+    "UNAVAILABLE_AGE_BAND",
     "ASSET_CATALOG_MISS",
     "STORY_PLAN_FAILED",
     "SCENE_PLAN_FAILED",

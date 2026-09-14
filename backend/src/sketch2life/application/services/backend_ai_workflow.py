@@ -84,6 +84,7 @@ from sketch2life.infrastructure.catalog.activity_semantics_v2 import (
     SemanticCatalogV2Error,
     load_activity_semantic_catalog_v2,
 )
+from sketch2life.infrastructure.catalog.curated_catalog import load_curated_catalog_v2
 from sketch2life.infrastructure.catalog.p1_catalog import (
     CatalogLoadError,
     P1TemplateLibrary,
@@ -225,10 +226,17 @@ class BackendAiWorkflow:
         semantic_catalog_v2: ActivitySemanticCatalogV2 | None = None
         scene_understanding: ConfirmedSceneUnderstandingV2 | None = None
         try:
-            library = load_p1_template_library(self._repo_root, include_mvp=True)
+            library = load_p1_template_library(
+                self._repo_root,
+                include_mvp=True,
+                include_expansion=v2,
+            )
             semantic_catalog = load_activity_semantic_catalog(self._repo_root)
             if v2:
-                semantic_catalog_v2 = load_activity_semantic_catalog_v2(self._repo_root)
+                semantic_catalog_v2 = load_activity_semantic_catalog_v2(
+                    self._repo_root,
+                    include_expansion=True,
+                )
             asset_catalog = PixiAssetCatalog(
                 self._repo_root / "features" / "FEAT-020-backend-ai-workflow-demo"
             )
@@ -280,6 +288,7 @@ class BackendAiWorkflow:
             )
         bands: list[WorkflowBandResultV1] = []
         previous_activity_ids: set[str] = set()
+        previous_activity_family_ids: set[str] = set()
         for age_band in request.age_bands:
             if v2 and scene_understanding is not None and semantic_catalog_v2 is not None:
                 band = self._run_age_band_v2(
@@ -295,6 +304,7 @@ class BackendAiWorkflow:
                     asset_catalog=asset_catalog,
                     anchor_candidates=anchor_candidates,
                     previous_activity_ids=previous_activity_ids,
+                    previous_activity_family_ids=previous_activity_family_ids,
                     scene_understanding=scene_understanding,
                 )
             else:
@@ -317,6 +327,14 @@ class BackendAiWorkflow:
                 activity_id = str(band.activity_handoff.get("activity_ref", {}).get("id", ""))
                 if activity_id:
                     previous_activity_ids.add(activity_id)
+                activity_identity = band.activity_handoff.get("activity_identity", {})
+                activity_family_id = str(
+                    activity_identity.get("activity_family_id", "")
+                    if isinstance(activity_identity, dict)
+                    else ""
+                )
+                if activity_family_id:
+                    previous_activity_family_ids.add(activity_family_id)
 
         ready_age_bands = tuple(band.age_band for band in bands if band.status == "SUCCEEDED")
         unavailable_age_bands = tuple(band.age_band for band in bands if band.status != "SUCCEEDED")
@@ -468,6 +486,7 @@ class BackendAiWorkflow:
         asset_catalog: PixiAssetCatalog,
         anchor_candidates: tuple[_AnchorCandidate, ...],
         previous_activity_ids: set[str],
+        previous_activity_family_ids: set[str],
         scene_understanding: ConfirmedSceneUnderstandingV2,
     ) -> WorkflowBandResultV1:
         if age_band not in _SUPPORTED_AGE_BANDS:
@@ -476,12 +495,6 @@ class BackendAiWorkflow:
         compiler = P1ExperienceCompiler(library.templates, library.objective_titles_vi)
         context = _demo_context(library, age_band, workflow_run_id)
         canonical_candidate = _canonical_scene_candidate(scene_understanding, anchor_candidates)
-        canonical_anchor_set = _anchor_set_for_candidate(
-            canonical_candidate,
-            anchor_candidates,
-            media.image.artifact_ref,
-            _require_hash(media.image.sha256),
-        )
         compiled: list[
             tuple[
                 _AnchorCandidate,
@@ -498,20 +511,21 @@ class BackendAiWorkflow:
             semantic_match_v2 = semantic_catalog.match_scene(scene_understanding, profile)
             if semantic_match_v2 is None:
                 continue
+            if semantic_match_v2.match_mode == "AGE_BASELINE_FALLBACK":
+                # FEAT-021 is fail-closed for semantic personalization. A baseline
+                # candidate is not a personalized recommendation and must be
+                # reported as unavailable instead of being silently selected.
+                continue
             candidate = _candidate_for_semantic_match(
                 semantic_match_v2,
                 canonical_candidate,
                 anchor_candidates,
             )
-            anchor_set = (
-                canonical_anchor_set
-                if semantic_match_v2.match_mode == "AGE_BASELINE_FALLBACK"
-                else _anchor_set_for_candidate(
-                    candidate,
-                    anchor_candidates,
-                    media.image.artifact_ref,
-                    _require_hash(media.image.sha256),
-                )
+            anchor_set = _anchor_set_for_candidate(
+                candidate,
+                anchor_candidates,
+                media.image.artifact_ref,
+                _require_hash(media.image.sha256),
             )
             semantic_match = semantic_catalog.to_legacy_evidence(semantic_match_v2)
             compilation = compiler.compile(
@@ -521,29 +535,39 @@ class BackendAiWorkflow:
                 semantic_match=semantic_match,
             )
             if compilation.spec is not None and compilation.handoff is not None:
+                if (
+                    compilation.spec.activity_template.activity_ref.id
+                    != semantic_match_v2.activity_id
+                    or compilation.spec.activity_template.activity_ref.version
+                    != semantic_match_v2.activity_version
+                ):
+                    continue
                 compiled.append(
                     (candidate, compilation, anchor_set, semantic_match, semantic_match_v2)
                 )
         if not compiled:
-            return _failed_band(
+            return _unavailable_band(
                 age_band,
                 band_seed,
-                "NO_ELIGIBLE_ACTIVITY",
-                "no baseline or personalized activity satisfied age and hard-rule checks",
+                "NO_SAFE_ACTIVITY_FOR_AGE_BAND",
+                "no catalog activity satisfied child-interest, age, identity and hard-rule checks",
             )
 
         rng = random.Random(band_seed)
-        strongest_priority = max(_match_priority_v2(item[4].match_mode) for item in compiled)
+        strongest_priority = max(_selection_rank_v2(item[4]) for item in compiled)
         strongest = [
             item
             for item in compiled
-            if _match_priority_v2(item[4].match_mode) == strongest_priority
+            if _selection_rank_v2(item[4]) == strongest_priority
         ]
         rng.shuffle(strongest)
         non_repeating = [
             item
             for item in strongest
-            if item[1].spec.activity_template.activity_ref.id not in previous_activity_ids
+            if (
+                item[1].spec.activity_template.activity_ref.id not in previous_activity_ids
+                and item[4].activity_family_id not in previous_activity_family_ids
+            )
         ]
         chosen = (non_repeating or strongest)[0]
         _candidate, compilation, anchor_set, semantic_match, semantic_match_v2 = chosen
@@ -621,6 +645,24 @@ class BackendAiWorkflow:
             "accessibility": ["spoken_vi", "text_vi", "no_color_only_meaning", "reduced_motion"],
             "experience_mode": experience_mode,
             "semantic_relevance": semantic_match_v2.semantic_relevance,
+            "selected_concept_id": semantic_match_v2.selected_concept_id,
+            "selected_concept_role": semantic_match_v2.selected_concept_role,
+            "child_interest_alignment": semantic_match_v2.child_interest_alignment,
+            "personalization_scores": {
+                "concept_match_confidence": semantic_match_v2.concept_match_confidence,
+                "child_interest_alignment": semantic_match_v2.child_interest_alignment,
+                "age_fit_score": semantic_match_v2.age_fit_score,
+                "activity_safety_score": semantic_match_v2.activity_safety_score,
+                "catalog_quality_score": semantic_match_v2.catalog_quality_score,
+                "overall_personalization_score": semantic_match_v2.overall_personalization_score,
+            },
+            "activity_identity": {
+                "activity_family_id": semantic_match_v2.activity_family_id,
+                "activity_id": semantic_match_v2.activity_id,
+                "activity_version": semantic_match_v2.activity_version,
+                "variant_id": semantic_match_v2.variant_id,
+                "catalog_revision": semantic_match_v2.catalog_revision,
+            },
             "semantic_match_v2": semantic_match_v2.model_dump(mode="json"),
             "age_adaptation_v2": age_adaptation,
         }
@@ -630,6 +672,16 @@ class BackendAiWorkflow:
             "semantic_candidate_count": len(compiled),
             "selected_match_mode": semantic_match.match_mode,
             "selected_semantic_score": semantic_match.score,
+            "selected_concept_id": semantic_match_v2.selected_concept_id,
+            "selected_concept_role": semantic_match_v2.selected_concept_role,
+            "child_interest_alignment": semantic_match_v2.child_interest_alignment,
+            "overall_personalization_score": semantic_match_v2.overall_personalization_score,
+            "activity_identity": {
+                "activity_id": semantic_match_v2.activity_id,
+                "activity_version": semantic_match_v2.activity_version,
+                "variant_id": semantic_match_v2.variant_id,
+                "catalog_revision": semantic_match_v2.catalog_revision,
+            },
             "experience_mode": experience_mode,
             "semantic_match_v2": semantic_match_v2.model_dump(mode="json"),
             "scene_understanding_id": scene_understanding.scene_understanding_id,
@@ -1052,19 +1104,29 @@ def _age_adaptation_payload(repo_root: Path,
         "9-12": "EXTENSION",
     }[age_band]
     objective_id = spec.learning_focus.objective_ref.id
-    mode_label = (
-        "hoạt động nền tảng theo lứa tuổi"
-        if experience_mode == "AGE_BASELINE_FALLBACK"
-        else "mở rộng từ quan sát trong tranh"
-    )
+    anchor_label = spec.anchor_set.primary_anchor.normalized_label
+    objective_text = {
+        "0-3": (
+            f"Trẻ phối hợp tay-mắt khi quan sát {anchor_label} và thực hiện một thao tác ngắn"
+        ),
+        "3-6": (
+            f"Trẻ thực hiện theo trình tự và thu dọn sau khi khám phá {anchor_label}"
+        ),
+        "6-9": (
+            f"Trẻ quan sát, phân loại hoặc so sánh đặc điểm của {anchor_label}"
+        ),
+        "9-12": (
+            f"Trẻ giải thích mối quan hệ, ghi nhận quan sát và nêu giới hạn "
+            f"của mô hình {anchor_label}"
+        ),
+    }[age_band]
+    if experience_mode == "AGE_BASELINE_FALLBACK":
+        objective_text = f"Trẻ thực hiện hoạt động nền tảng phù hợp lứa tuổi với {anchor_label}"
     return {
         "age_band": age_band,
         "age_months": _AGE_MONTHS[age_band],
         "abstraction_level": abstraction,
-        "objective_adaptation_vi": (
-            f"Mục tiêu {objective_id}: {mode_label}; "
-            "người lớn điều chỉnh mức khó theo khả năng của trẻ."
-        ),
+        "objective_adaptation_vi": f"{objective_text}; mục tiêu {objective_id}.",
         "complexity_level": complexity,
         "supervision_level": spec.activity_template.minimum_supervision,
         "duration_minutes": _duration_minutes(
@@ -1081,6 +1143,17 @@ def _match_priority_v2(mode: str) -> int:
         "PERSONALIZED_CONCEPT": 2,
         "AGE_BASELINE_FALLBACK": 1,
     }.get(mode, 0)
+
+
+def _selection_rank_v2(match: SemanticActivityMatchV2) -> tuple[float, float, int, int]:
+    """Rank by child interest before match mode so VLM-only background wins less often."""
+
+    return (
+        match.child_interest_alignment,
+        match.overall_personalization_score,
+        _match_priority_v2(match.match_mode),
+        match.semantic_relevance,
+    )
 
 
 def _match_priority(mode: str) -> int:
@@ -1329,7 +1402,15 @@ def _primary_material_ids(repo_root: Path, activity_id: str) -> tuple[str, ...]:
             if group.get("any_of")
         )
     except (OSError, json.JSONDecodeError, StopIteration, KeyError, TypeError, IndexError):
-        return ()
+        pass
+    try:
+        curated = load_curated_catalog_v2(repo_root)
+        variant = curated.by_activity_id().get(activity_id)
+        if variant is not None:
+            return variant.material_option_ids
+    except (OSError, ValueError, KeyError, TypeError):
+        pass
+    return ()
 
 
 def _duration_minutes(repo_root: Path, activity_id: str) -> dict[str, int] | None:
@@ -1354,6 +1435,16 @@ def _duration_minutes(repo_root: Path, activity_id: str) -> dict[str, int] | Non
             if minimum <= maximum:
                 return {"min_minutes": minimum, "max_minutes": maximum}
     except (StopIteration, KeyError, TypeError, ValueError):
+        pass
+    try:
+        curated = load_curated_catalog_v2(repo_root)
+        variant = curated.by_activity_id().get(activity_id)
+        if variant is not None:
+            return {
+                "min_minutes": variant.duration_minutes,
+                "max_minutes": variant.duration_minutes,
+            }
+    except (OSError, ValueError, KeyError, TypeError):
         pass
     return None
 
@@ -1548,9 +1639,34 @@ def _failed_band(
     )
 
 
+def _unavailable_band(
+    age_band: AgeBand,
+    seed: int,
+    reason_code: str,
+    reason: str,
+) -> WorkflowBandResultV1:
+    return WorkflowBandResultV1(
+        age_band=age_band,
+        age_months=_AGE_MONTHS.get(age_band, 0),
+        run_seed=seed,
+        seed_fingerprint=_seed_fingerprint(seed),
+        status="UNAVAILABLE",
+        terminal_status="UNAVAILABLE_AGE_BAND",
+        stages=(
+            WorkflowStageV1(
+                stage="AGE_BAND",
+                status="BLOCKED",
+                reason_code=reason_code,
+                details={"reason": reason},
+            ),
+        ),
+        warnings=(reason_code, reason),
+    )
+
+
 def _first_failure_status(bands: list[WorkflowBandResultV1]) -> str:
     return next(
-        (band.terminal_status for band in bands if band.status == "FAILED"),
+        (band.terminal_status for band in bands if band.status != "SUCCEEDED"),
         "AI_FAILED",
     )
 

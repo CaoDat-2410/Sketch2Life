@@ -1,0 +1,168 @@
+{
+  "schema_version": 2,
+  "catalog_revision": "catalog-2026-09-expansion-1",
+  "families": [
+    {
+      "family_id": "FAM-SKY-SUN-OBSERVE",
+      "concept_ids": ["SUN_LIGHT", "MOON_PHASE", "SCIENCE_NATURE"],
+      "objective_ids": ["OBJ_SCIENTIFIC_OBSERVATION"],
+      "area": "science",
+      "phrases_vi": ["mặt trời", "mặt trăng", "ánh sáng", "bầu trời"],
+      "aliases_vi": ["trời sáng", "trời đêm"],
+      "material_option_ids": ["MAT_SKY_CARDS", "MAT_PAPER_CRAYON"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["không nhìn trực tiếp Mặt Trời; chỉ quan sát qua tranh, bóng hoặc ánh sáng phản xạ an toàn"],
+      "policy_constraints": ["SUNLIGHT_SAFETY"],
+      "variants": [
+        {"activity_id": "ACT-0265", "age_band": "0-3", "title_vi": "Nhìn ánh sáng và bóng", "action_vi": "Trẻ quan sát bóng của vật trong ánh sáng gián tiếp an toàn.", "challenge_vi": "Người lớn di chuyển vật chậm để trẻ theo dõi bóng.", "duration_minutes": 5},
+        {"activity_id": "ACT-0266", "age_band": "3-6", "title_vi": "Ghép ngày và đêm", "action_vi": "Trẻ ghép thẻ bầu trời sáng hoặc tối với hoạt động phù hợp.", "challenge_vi": "Trẻ kể điều mình nhìn thấy trong tranh ngày hoặc đêm.", "duration_minutes": 10},
+        {"activity_id": "ACT-0267", "age_band": "6-9", "title_vi": "Theo dõi bóng trong ngày", "action_vi": "Trẻ đánh dấu hướng hoặc độ dài bóng ở các thời điểm an toàn.", "challenge_vi": "Trẻ so sánh bản ghi và nêu điều cần đo nhất quán.", "duration_minutes": 18},
+        {"activity_id": "ACT-0268", "age_band": "9-12", "title_vi": "Mô hình hóa ánh sáng và bóng", "action_vi": "Trẻ xây mô hình nguồn sáng, vật chắn và vùng bóng bằng vật liệu an toàn.", "challenge_vi": "Trẻ giải thích giới hạn của mô hình so với bầu trời thật.", "duration_minutes": 25}
+      ]
+    },
+    {
+      "family_id": "FAM-SKY-PHASES",
+      "concept_ids": ["SUN_LIGHT", "MOON_PHASE", "SCIENCE_NATURE"],
+      "objective_ids": ["OBJ_COSMIC_INTERCONNECTION"],
+      "area": "cosmic_education",
+      "phrases_vi": ["mặt trăng", "pha", "mặt trời", "bầu trời"],
+      "aliases_vi": ["trăng tròn", "trăng khuyết"],
+      "material_option_ids": ["MAT_SKY_CARDS", "MAT_MODEL_SPHERES"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["chỉ dùng mô hình nhẹ, không nhìn trực tiếp Mặt Trời và không dùng đèn công suất cao"],
+      "policy_constraints": ["SUNLIGHT_SAFETY"],
+      "variants": [
+        {"activity_id": "ACT-0269", "age_band": "0-3", "title_vi": "Nhìn trăng tròn và trăng khuyết", "action_vi": "Trẻ chọn hình tròn hoặc hình cong lớn khi người lớn gọi tên.", "challenge_vi": "Người lớn đổi hai thẻ và chờ trẻ nhìn hoặc chỉ.", "duration_minutes": 5},
+        {"activity_id": "ACT-0270", "age_band": "3-6", "title_vi": "Xếp chuỗi hình Mặt Trăng", "action_vi": "Trẻ xếp các hình Mặt Trăng từ tròn đến khuyết theo mẫu đơn giản.", "challenge_vi": "Trẻ tìm hình giống mẫu được người lớn chỉ.", "duration_minutes": 10},
+        {"activity_id": "ACT-0271", "age_band": "6-9", "title_vi": "Ghi lịch quan sát Mặt Trăng", "action_vi": "Trẻ ghi hình dạng nhìn thấy theo ngày bằng thẻ hoặc nét vẽ.", "challenge_vi": "Trẻ tìm phần chuỗi lặp lại trong bản ghi.", "duration_minutes": 18},
+        {"activity_id": "ACT-0272", "age_band": "9-12", "title_vi": "Giải thích mô hình pha", "action_vi": "Trẻ dùng mô hình quả cầu và nguồn sáng để giải thích vùng được chiếu sáng.", "challenge_vi": "Trẻ phân biệt mô hình, quan sát và kết luận về vật thể thật.", "duration_minutes": 28}
+      ]
+    },
+    {
+      "family_id": "FAM-SKY-SCALE",
+      "concept_ids": ["SUN_LIGHT", "MOON_PHASE", "SCIENCE_NATURE"],
+      "objective_ids": ["OBJ_COSMIC_INTERCONNECTION"],
+      "area": "cosmic_education",
+      "phrases_vi": ["mặt trời", "mặt trăng", "Trái Đất", "vũ trụ"],
+      "aliases_vi": ["hệ mặt trời", "khoảng cách trong không gian"],
+      "material_option_ids": ["MAT_MODEL_SPHERES", "MAT_MEASURE_TOOLS"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["dùng quả cầu và dây nhẹ; không treo vật trên cao hoặc tạo vật cản lối đi"],
+      "policy_constraints": ["SAFE_MODEL_SETUP"],
+      "variants": [
+        {"activity_id": "ACT-0273", "age_band": "0-3", "title_vi": "So quả cầu lớn và nhỏ", "action_vi": "Trẻ chạm hoặc nhìn hai quả cầu có kích thước khác nhau.", "challenge_vi": "Người lớn đặt quả cầu gần nhau để trẻ so sánh.", "duration_minutes": 5},
+        {"activity_id": "ACT-0274", "age_band": "3-6", "title_vi": "Xếp vật thể theo kích thước", "action_vi": "Trẻ xếp các quả cầu hoặc thẻ từ lớn đến nhỏ.", "challenge_vi": "Trẻ gọi tên vật thể theo tranh minh họa.", "duration_minutes": 10},
+        {"activity_id": "ACT-0275", "age_band": "6-9", "title_vi": "Đo mô hình khoảng cách", "action_vi": "Trẻ đo khoảng cách giữa các mô hình theo tỉ lệ đơn giản.", "challenge_vi": "Trẻ so sánh điều thay đổi khi đổi tỉ lệ.", "duration_minutes": 20},
+        {"activity_id": "ACT-0276", "age_band": "9-12", "title_vi": "Đánh giá mô hình tỉ lệ", "action_vi": "Trẻ chọn tỉ lệ, ghi giả định và tính cách đặt mô hình trong không gian an toàn.", "challenge_vi": "Trẻ nêu điều mô hình không thể thể hiện đúng cùng lúc.", "duration_minutes": 30}
+      ]
+    },
+    {
+      "family_id": "FAM-WATER-TRANSFER",
+      "concept_ids": ["WATER_NATURE", "PRACTICAL_LIFE"],
+      "objective_ids": ["OBJ_INDEPENDENCE_SELF_CARE"],
+      "area": "practical_life",
+      "phrases_vi": ["nước", "rót nước", "chuyển nước"],
+      "aliases_vi": ["nước trong cốc", "rót"],
+      "material_option_ids": ["MAT_WATER_BASIN", "MAT_PITCHER_SMALL"],
+      "minimum_supervision": "DIRECT",
+      "safety_vi": ["chỉ dùng lượng nước nhỏ, bình nhẹ và khay chống trượt; lau nước đổ ngay"],
+      "policy_constraints": ["WATER_SUPERVISION"],
+      "variants": [
+        {"activity_id": "ACT-0277", "age_band": "0-3", "title_vi": "Chạm nước trong khay", "action_vi": "Trẻ chạm nước nông trong khay khi người lớn giữ và quan sát trực tiếp.", "challenge_vi": "Người lớn dừng ngay khi trẻ khó chịu hoặc đưa nước lên miệng.", "duration_minutes": 5},
+        {"activity_id": "ACT-0278", "age_band": "3-6", "title_vi": "Rót nước giữa hai cốc", "action_vi": "Trẻ rót lượng nước nhỏ giữa hai cốc trên khay.", "challenge_vi": "Trẻ dùng khăn lau giọt nước rơi và cất bình.", "duration_minutes": 10},
+        {"activity_id": "ACT-0279", "age_band": "6-9", "title_vi": "Đo lượng nước chuyển", "action_vi": "Trẻ đo lượng nước trước và sau khi chuyển bằng cốc có vạch.", "challenge_vi": "Trẻ ghi phần nước bị giữ lại hoặc đổ ra.", "duration_minutes": 18},
+        {"activity_id": "ACT-0280", "age_band": "9-12", "title_vi": "Phân tích bảo toàn lượng nước", "action_vi": "Trẻ thiết kế phép chuyển nước giữa các hình dạng bình và ghi kết quả.", "challenge_vi": "Trẻ giải thích vai trò của vạch đo và sai số quan sát.", "duration_minutes": 25}
+      ]
+    },
+    {
+      "family_id": "FAM-WATER-FLOAT",
+      "concept_ids": ["WATER_NATURE", "SCIENCE_NATURE"],
+      "objective_ids": ["OBJ_SCIENTIFIC_INQUIRY"],
+      "area": "science",
+      "phrases_vi": ["nước", "nổi", "chìm"],
+      "aliases_vi": ["vật nổi", "vật chìm"],
+      "material_option_ids": ["MAT_WATER_BASIN", "MAT_FLOAT_OBJECTS"],
+      "minimum_supervision": "DIRECT",
+      "safety_vi": ["khay nước nông, vật mẫu lớn và không sắc; người lớn ở cạnh suốt hoạt động"],
+      "policy_constraints": ["WATER_SUPERVISION"],
+      "variants": [
+        {"activity_id": "ACT-0281", "age_band": "0-3", "title_vi": "Nhìn vật nổi trên nước", "action_vi": "Trẻ nhìn vật lớn nổi trong khay nông do người lớn đặt vào.", "challenge_vi": "Người lớn lấy vật ra ngay khi trẻ với hoặc đưa tay lên miệng.", "duration_minutes": 5},
+        {"activity_id": "ACT-0282", "age_band": "3-6", "title_vi": "Dự đoán nổi hay chìm", "action_vi": "Trẻ chọn thẻ nổi hoặc chìm trước khi đặt vật vào khay.", "challenge_vi": "Trẻ kiểm tra dự đoán và nói kết quả.", "duration_minutes": 10},
+        {"activity_id": "ACT-0283", "age_band": "6-9", "title_vi": "So sánh vật nổi chìm", "action_vi": "Trẻ ghi vật liệu, hình dạng và kết quả nổi hoặc chìm trong bảng.", "challenge_vi": "Trẻ thay đổi một yếu tố và so sánh lại.", "duration_minutes": 18},
+        {"activity_id": "ACT-0284", "age_band": "9-12", "title_vi": "Điều tra lực nổi an toàn", "action_vi": "Trẻ thiết kế thử nghiệm có giả thuyết và giới hạn mẫu rõ ràng.", "challenge_vi": "Trẻ phân biệt khối lượng, thể tích và vật liệu trong giải thích.", "duration_minutes": 28}
+      ]
+    },
+    {
+      "family_id": "FAM-WATER-CYCLE",
+      "concept_ids": ["WATER_NATURE", "SCIENCE_NATURE"],
+      "objective_ids": ["OBJ_SCIENTIFIC_OBSERVATION"],
+      "area": "science",
+      "phrases_vi": ["nước", "bốc hơi", "giọt nước", "vòng tuần hoàn"],
+      "aliases_vi": ["nước bay hơi", "ngưng tụ"],
+      "material_option_ids": ["MAT_WATER_BASIN", "MAT_CLEAR_CONTAINER"],
+      "minimum_supervision": "DIRECT",
+      "safety_vi": ["không dùng nước nóng; chỉ dùng hộp trong suốt kín và lau nước đổ ngay"],
+      "policy_constraints": ["WATER_SUPERVISION"],
+      "variants": [
+        {"activity_id": "ACT-0285", "age_band": "0-3", "title_vi": "Nhìn giọt nước", "action_vi": "Trẻ nhìn các giọt nước lớn trong hộp kín an toàn.", "challenge_vi": "Người lớn gọi tên nước và chỉ vị trí giọt nước.", "duration_minutes": 5},
+        {"activity_id": "ACT-0286", "age_band": "3-6", "title_vi": "Xếp chuỗi giọt nước", "action_vi": "Trẻ xếp tranh nước, giọt nước và mưa theo chuỗi đơn giản.", "challenge_vi": "Trẻ kể nước thay đổi hình dạng thế nào.", "duration_minutes": 10},
+        {"activity_id": "ACT-0287", "age_band": "6-9", "title_vi": "Theo dõi nước trong hộp kín", "action_vi": "Trẻ vẽ vị trí giọt nước trong hộp ở các thời điểm khác nhau.", "challenge_vi": "Trẻ so sánh vị trí gần nguồn sáng và nơi mát một cách an toàn.", "duration_minutes": 18},
+        {"activity_id": "ACT-0288", "age_band": "9-12", "title_vi": "Xây mô hình vòng tuần hoàn nước", "action_vi": "Trẻ lập sơ đồ bốc hơi, ngưng tụ và rơi xuống dựa trên quan sát.", "challenge_vi": "Trẻ nêu phần mô hình chưa thể hiện đúng quy mô tự nhiên.", "duration_minutes": 28}
+      ]
+    },
+    {
+      "family_id": "FAM-SOUND-DISCOVER",
+      "concept_ids": ["SOUND_MUSIC", "SENSORIAL_DISCRIMINATION"],
+      "objective_ids": ["OBJ_SENSORIAL_DISCRIMINATION"],
+      "area": "sensorial",
+      "phrases_vi": ["âm thanh", "tiếng", "nhạc"],
+      "aliases_vi": ["nghe âm thanh", "tiếng động"],
+      "material_option_ids": ["MAT_SOUND_OBJECTS", "MAT_SOUND_CONTAINERS"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["âm lượng nhỏ, hộp kín và vật liệu không vỡ; dừng khi trẻ khó chịu vì âm thanh"],
+      "policy_constraints": ["SOUND_COMFORT"],
+      "variants": [
+        {"activity_id": "ACT-0289", "age_band": "0-3", "title_vi": "Nghe tiếng nhẹ", "action_vi": "Trẻ nghe một tiếng lắc nhẹ từ hộp kín lớn và nhìn về nguồn âm.", "challenge_vi": "Người lớn dừng giữa hai tiếng để trẻ nhận biết khoảng lặng.", "duration_minutes": 5},
+        {"activity_id": "ACT-0290", "age_band": "3-6", "title_vi": "Ghép âm thanh với vật", "action_vi": "Trẻ ghép hộp âm thanh với vật tạo tiếng tương ứng.", "challenge_vi": "Trẻ tự lắc nhẹ và đặt hộp lại đúng vị trí.", "duration_minutes": 10},
+        {"activity_id": "ACT-0291", "age_band": "6-9", "title_vi": "Phân loại cao và thấp", "action_vi": "Trẻ phân loại âm thanh theo cao thấp hoặc dài ngắn bằng thẻ ký hiệu.", "challenge_vi": "Trẻ tạo chuỗi hai âm để người khác phân biệt.", "duration_minutes": 18},
+        {"activity_id": "ACT-0292", "age_band": "9-12", "title_vi": "Phân tích nguồn âm", "action_vi": "Trẻ thiết kế cách so sánh nguồn âm bằng điều kiện âm lượng an toàn.", "challenge_vi": "Trẻ giải thích yếu tố làm kết quả nghe khác nhau.", "duration_minutes": 25}
+      ]
+    },
+    {
+      "family_id": "FAM-SOUND-RHYTHM",
+      "concept_ids": ["SOUND_MUSIC", "MOVEMENT_COORDINATION"],
+      "objective_ids": ["OBJ_MOVEMENT_COORDINATION"],
+      "area": "movement",
+      "phrases_vi": ["âm thanh", "nhịp", "tiếng gõ"],
+      "aliases_vi": ["tiết tấu", "gõ theo nhịp"],
+      "material_option_ids": ["MAT_SOUND_OBJECTS", "MAT_RHYTHM_CARDS"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["giữ âm lượng vừa phải, chỉ dùng dụng cụ nhẹ và cho trẻ nghỉ khi mệt"],
+      "policy_constraints": ["SOUND_COMFORT"],
+      "variants": [
+        {"activity_id": "ACT-0293", "age_band": "0-3", "title_vi": "Lắc theo một tiếng", "action_vi": "Trẻ lắc vật âm thanh lớn một lần cùng người lớn nếu muốn.", "challenge_vi": "Người lớn giữ nhịp chậm và dừng để trẻ chờ.", "duration_minutes": 5},
+        {"activity_id": "ACT-0294", "age_band": "3-6", "title_vi": "Lặp lại nhịp gõ", "action_vi": "Trẻ lặp lại chuỗi hai hoặc ba tiếng gõ nhẹ.", "challenge_vi": "Trẻ tự tạo một chuỗi ngắn cho người khác làm theo.", "duration_minutes": 10},
+        {"activity_id": "ACT-0295", "age_band": "6-9", "title_vi": "Viết mẫu tiết tấu", "action_vi": "Trẻ dùng ký hiệu để ghi mẫu tiết tấu và biểu diễn lại.", "challenge_vi": "Trẻ thay đổi khoảng lặng nhưng giữ số tiếng.", "duration_minutes": 18},
+        {"activity_id": "ACT-0296", "age_band": "9-12", "title_vi": "Mô hình hóa nhịp", "action_vi": "Trẻ biểu diễn nhịp bằng phân số thời gian hoặc sơ đồ vị trí.", "challenge_vi": "Trẻ phân tích cách tốc độ thay đổi mà không đổi quy tắc.", "duration_minutes": 25}
+      ]
+    },
+    {
+      "family_id": "FAM-SOUND-LANGUAGE",
+      "concept_ids": ["SOUND_MUSIC", "LANGUAGE_PRINT"],
+      "objective_ids": ["OBJ_RECEPTIVE_LANGUAGE"],
+      "area": "language",
+      "phrases_vi": ["âm thanh", "tiếng nói", "âm đầu", "chữ"],
+      "aliases_vi": ["nghe âm đầu", "tiếng trong từ"],
+      "material_option_ids": ["MAT_SOUND_OBJECTS", "MAT_LANGUAGE_CARDS"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["không phát âm lượng lớn gần tai; tôn trọng trẻ chưa muốn nói và dùng thẻ hình thay thế"],
+      "policy_constraints": ["SOUND_COMFORT", "EMOTIONAL_SAFETY"],
+      "variants": [
+        {"activity_id": "ACT-0297", "age_band": "0-3", "title_vi": "Nghe và quay về tiếng gọi", "action_vi": "Trẻ nghe giọng người quen gọi tên và quay hoặc nhìn theo nếu muốn.", "challenge_vi": "Người lớn gọi từ khoảng cách gần, rõ và nhỏ.", "duration_minutes": 5},
+        {"activity_id": "ACT-0298", "age_band": "3-6", "title_vi": "Ghép âm đầu với hình", "action_vi": "Trẻ nghe âm đầu đơn giản và ghép với thẻ hình quen thuộc.", "challenge_vi": "Trẻ tìm thêm một hình có âm đầu tương tự.", "duration_minutes": 10},
+        {"activity_id": "ACT-0299", "age_band": "6-9", "title_vi": "Phân tích âm trong từ", "action_vi": "Trẻ tách từ ngắn thành các âm nghe được bằng thẻ hoặc dấu.", "challenge_vi": "Trẻ so sánh hai từ có âm đầu giống nhau.", "duration_minutes": 18},
+        {"activity_id": "ACT-0300", "age_band": "9-12", "title_vi": "Khảo sát âm và cách viết", "action_vi": "Trẻ lập bảng so sánh âm nghe được với cách biểu diễn bằng chữ.", "challenge_vi": "Trẻ nêu trường hợp cần thêm ngữ cảnh hoặc từ điển để kiểm tra.", "duration_minutes": 25}
+      ]
+    }
+  ]
+}

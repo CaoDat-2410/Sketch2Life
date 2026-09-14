@@ -40,15 +40,24 @@ def to_backend_workflow_result_v2(
             mode,
         )
         relevance: int | None = None
+        selected_concept_id: str | None = None
+        child_interest_alignment: float | None = None
         if spec is not None:
             mode = spec.experience_mode
             relevance = spec.semantic_match.semantic_relevance
+            selected_concept_id = spec.semantic_match.selected_concept_id
+            child_interest_alignment = spec.semantic_match.child_interest_alignment
         else:
             relevance = (
                 int(semantic_match_payload.get("semantic_relevance", 0))
                 if isinstance(semantic_match_payload, dict)
                 else None
             )
+            if isinstance(semantic_match_payload, dict):
+                selected_concept_id = semantic_match_payload.get("selected_concept_id")
+                child_interest_alignment = semantic_match_payload.get("child_interest_alignment")
+        if legacy_band.status != "SUCCEEDED":
+            mode = "UNAVAILABLE"
         v2_bands.append(
             WorkflowBandResultV2(
                 age_band=legacy_band.age_band,
@@ -58,6 +67,13 @@ def to_backend_workflow_result_v2(
                 experience_mode=mode,
                 scene_understanding_id=scene.scene_understanding_id,
                 semantic_relevance=relevance,
+                selected_concept_id=selected_concept_id,
+                child_interest_alignment=child_interest_alignment,
+                unavailable_reason_code=(
+                    legacy_band.stages[-1].reason_code
+                    if legacy_band.status != "SUCCEEDED"
+                    else None
+                ),
                 experience_spec=spec,
                 legacy_band=legacy_band.model_dump(mode="json"),
                 warnings=legacy_band.warnings,
@@ -225,9 +241,15 @@ def _match_from_legacy(
     scene: ConfirmedSceneUnderstandingV2,
     payload: object,
 ) -> SemanticActivityMatchV2:
+    activity = _nested_dict(legacy_spec, "activity_template", "activity_ref")
     if isinstance(payload, dict):
         try:
-            return SemanticActivityMatchV2.model_validate(payload)
+            candidate = SemanticActivityMatchV2.model_validate(payload)
+            if (
+                candidate.activity_id == activity.get("id")
+                and candidate.activity_version == activity.get("version")
+            ):
+                return candidate
         except ValueError:
             pass
     legacy_match = legacy_spec.get("semantic_match", {})
@@ -242,7 +264,6 @@ def _match_from_legacy(
         "ALIAS": "PERSONALIZED_ALIAS",
         "SAFE_FALLBACK": "AGE_BASELINE_FALLBACK",
     }.get(legacy_mode, "AGE_BASELINE_FALLBACK"))
-    activity = _nested_dict(legacy_spec, "activity_template", "activity_ref")
     phrases = tuple(legacy_match.get("matched_phrases_vi", ()))
     score = int(legacy_match.get("score", 55))
     return SemanticActivityMatchV2(
@@ -251,6 +272,9 @@ def _match_from_legacy(
         profile_version=int(legacy_match.get("profile_version", 1)),
         activity_id=str(activity.get("id", "ACT-0001")),
         activity_version=int(activity.get("version", 1)),
+        activity_family_id=f"FAMILY-{activity.get('id', 'ACT-0001')}",
+        variant_id=f"{activity.get('id', 'ACT-0001')}-legacy",
+        catalog_revision="legacy-bridge",
         semantic_relevance=score,
         matched_concept_ids=tuple(legacy_match.get("matched_concept_ids", ())),
         matched_phrases_vi=phrases,

@@ -1,0 +1,186 @@
+{
+  "schema_version": 2,
+  "catalog_revision": "catalog-2026-09-expansion-1",
+  "families": [
+    {
+      "family_id": "FAM-PLANT-CARE",
+      "concept_ids": ["PLANT_FLOWER", "PLANT_STRUCTURE"],
+      "objective_ids": ["OBJ_INDEPENDENCE_SELF_CARE"],
+      "area": "practical_life",
+      "phrases_vi": ["cây", "hoa", "tưới cây"],
+      "aliases_vi": ["chăm cây", "chăm hoa"],
+      "material_option_ids": ["MAT_PLANT_TRAY", "MAT_WATER_BASIN"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["dùng lượng nước nhỏ, tránh đất bẩn hoặc cây có gai; lau nước đổ ngay"],
+      "policy_constraints": ["SAFE_PLANT_ONLY"],
+      "variants": [
+        {"activity_id": "ACT-0121", "age_band": "0-3", "title_vi": "Chạm lá và nhìn cây", "action_vi": "Trẻ chạm nhẹ một chiếc lá an toàn và nhìn người lớn tưới lượng nước nhỏ.", "challenge_vi": "Trẻ đặt cốc rỗng về khay sau khi quan sát.", "duration_minutes": 6},
+        {"activity_id": "ACT-0122", "age_band": "3-6", "title_vi": "Tưới cây theo vạch", "action_vi": "Trẻ rót nước đến vạch thấp và tưới vào gốc cây với người lớn bên cạnh.", "challenge_vi": "Trẻ kiểm tra khay có khô và lau giọt nước rơi.", "duration_minutes": 10},
+        {"activity_id": "ACT-0123", "age_band": "6-9", "title_vi": "Theo dõi nhu cầu của cây", "action_vi": "Trẻ lập bảng quan sát ánh sáng, độ ẩm và thay đổi của cây trong vài ngày.", "challenge_vi": "Trẻ so sánh hai vị trí đặt cây và nêu dữ liệu quan sát.", "duration_minutes": 20},
+        {"activity_id": "ACT-0124", "age_band": "9-12", "title_vi": "Thiết kế thử nghiệm chăm cây", "action_vi": "Trẻ đặt câu hỏi, chọn biến cần theo dõi và thiết kế nhật ký quan sát.", "challenge_vi": "Trẻ nêu biến cần giữ ổn định để kết luận đáng tin hơn.", "duration_minutes": 30}
+      ]
+    },
+    {
+      "family_id": "FAM-PLANT-PARTS",
+      "concept_ids": ["PLANT_STRUCTURE", "PLANT_FLOWER"],
+      "objective_ids": ["OBJ_SCIENTIFIC_OBSERVATION"],
+      "area": "science",
+      "phrases_vi": ["bộ phận của cây", "lá", "rễ", "thân", "hoa"],
+      "aliases_vi": ["cấu tạo cây", "phần của cây"],
+      "material_option_ids": ["MAT_PLANT_TRAY", "MAT_PICTURE_CARDS"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["chỉ quan sát cây không độc, không gai; rửa tay sau khi chạm vật liệu tự nhiên"],
+      "policy_constraints": ["SAFE_PLANT_ONLY"],
+      "variants": [
+        {"activity_id": "ACT-0125", "age_band": "0-3", "title_vi": "Gọi tên lá và hoa", "action_vi": "Trẻ nhìn và chạm nhẹ lá hoặc hoa lớn an toàn khi nghe người lớn gọi tên.", "challenge_vi": "Trẻ chọn lá hoặc hoa đúng trong hai lựa chọn.", "duration_minutes": 5},
+        {"activity_id": "ACT-0126", "age_band": "3-6", "title_vi": "Ghép bộ phận của cây", "action_vi": "Trẻ ghép thẻ rễ, thân, lá và hoa vào hình cây đơn giản.", "challenge_vi": "Trẻ nói một điều quan sát được ở mỗi bộ phận.", "duration_minutes": 12},
+        {"activity_id": "ACT-0127", "age_band": "6-9", "title_vi": "Vẽ và gắn nhãn cây", "action_vi": "Trẻ vẽ cây thật hoặc mô hình rồi gắn nhãn các bộ phận quan sát được.", "challenge_vi": "Trẻ so sánh vai trò dự đoán của rễ và lá bằng bằng chứng.", "duration_minutes": 22},
+        {"activity_id": "ACT-0128", "age_band": "9-12", "title_vi": "Giải thích chức năng bộ phận cây", "action_vi": "Trẻ xây sơ đồ liên hệ giữa cấu tạo, chức năng và môi trường của cây.", "challenge_vi": "Trẻ chỉ ra phần giải thích cần thêm quan sát hoặc nguồn kiểm chứng.", "duration_minutes": 30}
+      ]
+    },
+    {
+      "family_id": "FAM-PLANT-COMPARE",
+      "concept_ids": ["PLANT_FLOWER", "NATURE_OBSERVATION"],
+      "objective_ids": ["OBJ_SCIENTIFIC_INQUIRY"],
+      "area": "science",
+      "phrases_vi": ["hoa", "cây", "so sánh cây"],
+      "aliases_vi": ["giống và khác", "so sánh hoa"],
+      "material_option_ids": ["MAT_PLANT_TRAY", "MAT_MEASURE_TOOLS"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["không bứt cây hoặc dùng mẫu chưa được kiểm tra; chỉ quan sát bằng mắt và dụng cụ an toàn"],
+      "policy_constraints": ["SAFE_PLANT_ONLY"],
+      "variants": [
+        {"activity_id": "ACT-0129", "age_band": "0-3", "title_vi": "Chọn hoa giống nhau", "action_vi": "Trẻ chọn hai bông hoặc thẻ hoa có màu giống nhau.", "challenge_vi": "Người lớn đổi vị trí để trẻ tìm lại cặp giống nhau.", "duration_minutes": 5},
+        {"activity_id": "ACT-0130", "age_band": "3-6", "title_vi": "So sánh hai chiếc lá", "action_vi": "Trẻ đặt hai lá cạnh nhau và nói một điểm giống hoặc khác.", "challenge_vi": "Trẻ phân loại lá theo kích thước hoặc màu.", "duration_minutes": 10},
+        {"activity_id": "ACT-0131", "age_band": "6-9", "title_vi": "Đo và so sánh cây", "action_vi": "Trẻ đo một đặc điểm đơn giản của hai cây và ghi kết quả.", "challenge_vi": "Trẻ nêu giới hạn của cách đo và điều cần đo lại.", "duration_minutes": 20},
+        {"activity_id": "ACT-0132", "age_band": "9-12", "title_vi": "Phân tích biến thiên của cây", "action_vi": "Trẻ lập bảng so sánh nhiều mẫu cây theo đặc điểm đã chọn.", "challenge_vi": "Trẻ phân biệt mô tả quan sát với nguyên nhân chưa được kiểm chứng.", "duration_minutes": 30}
+      ]
+    },
+    {
+      "family_id": "FAM-PLANT-SEQUENCE",
+      "concept_ids": ["PLANT_FLOWER", "SEQUENCE"],
+      "objective_ids": ["OBJ_PRACTICAL_LIFE_SEQUENCE"],
+      "area": "practical_life",
+      "phrases_vi": ["trồng cây", "hạt giống", "cây lớn lên"],
+      "aliases_vi": ["chu trình của cây", "các bước trồng cây"],
+      "material_option_ids": ["MAT_PLANT_TRAY", "MAT_SEQUENCE_CARDS"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["người lớn xử lý đất và hạt nhỏ; trẻ không cho hạt hoặc đất vào miệng"],
+      "policy_constraints": ["CAREGIVER_PRESENT"],
+      "variants": [
+        {"activity_id": "ACT-0133", "age_band": "0-3", "title_vi": "Nhìn hạt và cây", "action_vi": "Trẻ quan sát hạt lớn và cây non trong khay cùng người lớn.", "challenge_vi": "Trẻ đặt thẻ cây non cạnh thẻ cây lớn.", "duration_minutes": 5},
+        {"activity_id": "ACT-0134", "age_band": "3-6", "title_vi": "Xếp bước gieo hạt", "action_vi": "Trẻ xếp tranh các bước chuẩn bị đất, gieo hạt, tưới và chờ.", "challenge_vi": "Trẻ kể bước cần làm nhẹ tay và vì sao.", "duration_minutes": 12},
+        {"activity_id": "ACT-0135", "age_band": "6-9", "title_vi": "Lập nhật ký nảy mầm", "action_vi": "Trẻ vẽ hoặc ghi thay đổi của hạt theo ngày trong bảng đơn giản.", "challenge_vi": "Trẻ đánh dấu ngày chưa quan sát được thay đổi.", "duration_minutes": 20},
+        {"activity_id": "ACT-0136", "age_band": "9-12", "title_vi": "Mô hình hóa vòng đời cây", "action_vi": "Trẻ xây sơ đồ vòng đời từ hạt đến cây tạo hạt mới.", "challenge_vi": "Trẻ nêu yếu tố có thể làm vòng đời chậm hoặc thay đổi.", "duration_minutes": 28}
+      ]
+    },
+    {
+      "family_id": "FAM-PLANT-OBSERVE",
+      "concept_ids": ["PLANT_STRUCTURE", "PLANT_FLOWER", "NATURE_OBSERVATION"],
+      "objective_ids": ["OBJ_SCIENTIFIC_OBSERVATION"],
+      "area": "science",
+      "phrases_vi": ["cây", "quan sát cây", "lá"],
+      "aliases_vi": ["nhìn cây", "nhật ký cây"],
+      "material_option_ids": ["MAT_PLANT_TRAY", "MAT_PAPER_CRAYON"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["chọn góc quan sát an toàn, không trèo hoặc bẻ cành; rửa tay sau hoạt động"],
+      "policy_constraints": ["SAFE_PLANT_ONLY"],
+      "variants": [
+        {"activity_id": "ACT-0137", "age_band": "0-3", "title_vi": "Tìm chiếc lá", "action_vi": "Trẻ tìm một chiếc lá lớn trong khay quan sát an toàn.", "challenge_vi": "Trẻ chỉ vào lá khi người lớn hỏi và đặt lại nhẹ nhàng.", "duration_minutes": 5},
+        {"activity_id": "ACT-0138", "age_band": "3-6", "title_vi": "Vẽ đường nét của lá", "action_vi": "Trẻ quan sát và vẽ đường viền của một chiếc lá lớn.", "challenge_vi": "Trẻ tìm một đường gân chính và chỉ cho người lớn.", "duration_minutes": 12},
+        {"activity_id": "ACT-0139", "age_band": "6-9", "title_vi": "Bản ghi quan sát lá", "action_vi": "Trẻ ghi màu, hình dạng, kích thước và số gân nhìn thấy trên lá.", "challenge_vi": "Trẻ so sánh bản ghi của hai ngày hoặc hai mẫu.", "duration_minutes": 18},
+        {"activity_id": "ACT-0140", "age_band": "9-12", "title_vi": "Đặt câu hỏi từ quan sát cây", "action_vi": "Trẻ chuyển một điều bất ngờ trong quan sát thành câu hỏi có thể kiểm tra.", "challenge_vi": "Trẻ chọn dữ liệu cần thu thập để trả lời câu hỏi.", "duration_minutes": 25}
+      ]
+    },
+    {
+      "family_id": "FAM-PEOPLE-FAMILY-ROLES",
+      "concept_ids": ["PEOPLE_FAMILY", "SOCIAL_RESPONSIBILITY"],
+      "objective_ids": ["OBJ_SOCIAL_RESPONSIBILITY", "OBJ_ORDER_GRACE_COURTESY", "OBJ_COMMUNICATION_ARGUMENTATION"],
+      "area": "social_studies",
+      "phrases_vi": ["gia đình", "người", "vai trò"],
+      "aliases_vi": ["người thân", "việc của mỗi người"],
+      "material_option_ids": ["MAT_PICTURE_CARDS", "MAT_HOME_OBJECTS"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["không yêu cầu trẻ chia sẻ thông tin riêng tư; dùng nhân vật hư cấu hoặc thẻ chung"],
+      "policy_constraints": ["PRIVACY_SAFE"],
+      "variants": [
+        {"activity_id": "ACT-0141", "age_band": "0-3", "title_vi": "Gọi tên người thân", "action_vi": "Trẻ nhìn ảnh được người lớn chọn và gọi hoặc chỉ người quen.", "challenge_vi": "Người lớn tôn trọng câu trả lời hoặc cử chỉ, không ép nói.", "duration_minutes": 6},
+        {"activity_id": "ACT-0142", "age_band": "3-6", "title_vi": "Ghép người với công việc", "action_vi": "Trẻ ghép tranh nhân vật với một việc chăm sóc hoặc giúp đỡ.", "challenge_vi": "Trẻ nói một cách mình có thể giúp trong hoạt động chung.", "duration_minutes": 12},
+        {"activity_id": "ACT-0143", "age_band": "6-9", "title_vi": "Sơ đồ trách nhiệm trong nhà", "action_vi": "Trẻ lập sơ đồ nhiệm vụ chung, người thực hiện và thời điểm phù hợp.", "challenge_vi": "Trẻ đề xuất cách chia việc công bằng hơn.", "duration_minutes": 20},
+        {"activity_id": "ACT-0144", "age_band": "9-12", "title_vi": "Phân tích vai trò và định kiến", "action_vi": "Trẻ so sánh cách phân công vai trò trong tình huống hư cấu.", "challenge_vi": "Trẻ giải thích vì sao năng lực và thỏa thuận quan trọng hơn định kiến.", "duration_minutes": 28}
+      ]
+    },
+    {
+      "family_id": "FAM-PEOPLE-BODY",
+      "concept_ids": ["PEOPLE_FAMILY", "MOVEMENT_COORDINATION"],
+      "objective_ids": ["OBJ_RECEPTIVE_LANGUAGE"],
+      "area": "language",
+      "phrases_vi": ["người", "cơ thể", "bàn tay", "khuôn mặt"],
+      "aliases_vi": ["bộ phận cơ thể", "cơ thể người"],
+      "material_option_ids": ["MAT_PICTURE_CARDS", "MAT_MIRROR_SAFE"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["tôn trọng ranh giới cơ thể; chỉ dùng gương an toàn và không yêu cầu trẻ chạm người khác"],
+      "policy_constraints": ["BODY_BOUNDARY_RESPECT"],
+      "variants": [
+        {"activity_id": "ACT-0145", "age_band": "0-3", "title_vi": "Chỉ bộ phận cơ thể", "action_vi": "Trẻ chỉ tay vào tay, chân hoặc mũi của mình khi người lớn gọi tên.", "challenge_vi": "Trẻ chọn đúng bộ phận trên thẻ lớn.", "duration_minutes": 5},
+        {"activity_id": "ACT-0146", "age_band": "3-6", "title_vi": "Ghép bộ phận với chức năng", "action_vi": "Trẻ ghép bộ phận cơ thể với hành động như nhìn hoặc cầm.", "challenge_vi": "Trẻ diễn tả hành động mà không cần chạm vào người khác.", "duration_minutes": 10},
+        {"activity_id": "ACT-0147", "age_band": "6-9", "title_vi": "Bản đồ chuyển động cơ thể", "action_vi": "Trẻ vẽ hoặc đánh dấu bộ phận tham gia vào một chuyển động.", "challenge_vi": "Trẻ so sánh hai cách thực hiện và mô tả điểm khác.", "duration_minutes": 18},
+        {"activity_id": "ACT-0148", "age_band": "9-12", "title_vi": "Mô hình hóa phối hợp cơ thể", "action_vi": "Trẻ phân tích chuỗi tín hiệu và chuyển động trong hoạt động an toàn.", "challenge_vi": "Trẻ ghi giả định và giới hạn của mô hình đơn giản.", "duration_minutes": 25}
+      ]
+    },
+    {
+      "family_id": "FAM-PEOPLE-COMMUNITY",
+      "concept_ids": ["PEOPLE_FAMILY", "SOCIAL_RESPONSIBILITY"],
+      "objective_ids": ["OBJ_COMMUNICATION_ARGUMENTATION", "OBJ_SOCIAL_RESPONSIBILITY"],
+      "area": "social_studies",
+      "phrases_vi": ["người", "cộng đồng", "người giúp đỡ"],
+      "aliases_vi": ["nghề nghiệp", "người trong cộng đồng"],
+      "material_option_ids": ["MAT_PICTURE_CARDS", "MAT_ROLEPLAY_OBJECTS"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["chỉ đóng vai tình huống chung, không thu thập tên hoặc thông tin riêng tư của người thật"],
+      "policy_constraints": ["PRIVACY_SAFE"],
+      "variants": [
+        {"activity_id": "ACT-0149", "age_band": "0-3", "title_vi": "Nhận biết người giúp đỡ", "action_vi": "Trẻ nhìn tranh người giúp đỡ quen thuộc và nghe gọi tên vai trò.", "challenge_vi": "Trẻ chỉ vào tranh khi nghe một từ khóa.", "duration_minutes": 5},
+        {"activity_id": "ACT-0150", "age_band": "3-6", "title_vi": "Đóng vai giúp đỡ", "action_vi": "Trẻ dùng vật liệu an toàn để đóng vai một người giúp đỡ.", "challenge_vi": "Trẻ nói lời cảm ơn hoặc yêu cầu trợ giúp phù hợp.", "duration_minutes": 12},
+        {"activity_id": "ACT-0151", "age_band": "6-9", "title_vi": "Sơ đồ dịch vụ cộng đồng", "action_vi": "Trẻ lập sơ đồ nhu cầu và nơi có thể hỗ trợ trong tình huống hư cấu.", "challenge_vi": "Trẻ kiểm tra sơ đồ bằng một tình huống mới.", "duration_minutes": 20},
+        {"activity_id": "ACT-0152", "age_band": "9-12", "title_vi": "Đánh giá một vấn đề cộng đồng", "action_vi": "Trẻ mô tả vấn đề, các bên liên quan và bằng chứng cần thu thập.", "challenge_vi": "Trẻ trình bày một giải pháp và phản hồi tôn trọng ý kiến khác.", "duration_minutes": 30}
+      ]
+    },
+    {
+      "family_id": "FAM-PEOPLE-EMOTION",
+      "concept_ids": ["PEOPLE_FAMILY", "LANGUAGE_PRINT"],
+      "objective_ids": ["OBJ_RECEPTIVE_LANGUAGE"],
+      "area": "language",
+      "phrases_vi": ["người", "cảm xúc", "vui", "buồn"],
+      "aliases_vi": ["nét mặt", "cảm nhận"],
+      "material_option_ids": ["MAT_EMOTION_CARDS", "MAT_MIRROR_SAFE"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["không gán nhãn cảm xúc của trẻ; cho phép từ chối chia sẻ và dùng nhân vật hư cấu"],
+      "policy_constraints": ["EMOTIONAL_SAFETY"],
+      "variants": [
+        {"activity_id": "ACT-0153", "age_band": "0-3", "title_vi": "Bắt chước nét mặt", "action_vi": "Trẻ nhìn nét mặt vui hoặc ngạc nhiên trên thẻ và bắt chước nếu muốn.", "challenge_vi": "Người lớn gọi tên cảm xúc bằng giọng nhẹ nhàng.", "duration_minutes": 5},
+        {"activity_id": "ACT-0154", "age_band": "3-6", "title_vi": "Ghép tình huống với cảm xúc", "action_vi": "Trẻ ghép tranh tình huống hư cấu với thẻ cảm xúc và nói lý do.", "challenge_vi": "Trẻ đưa ra một cách xin giúp đỡ khi cảm xúc mạnh.", "duration_minutes": 12},
+        {"activity_id": "ACT-0155", "age_band": "6-9", "title_vi": "Theo dõi thay đổi cảm xúc nhân vật", "action_vi": "Trẻ sắp xếp câu chuyện ngắn và đánh dấu cảm xúc thay đổi.", "challenge_vi": "Trẻ phân biệt điều nhân vật biết với điều trẻ suy đoán.", "duration_minutes": 18},
+        {"activity_id": "ACT-0156", "age_band": "9-12", "title_vi": "Phân tích góc nhìn nhân vật", "action_vi": "Trẻ viết hai góc nhìn về cùng sự kiện và chỉ ra bằng chứng.", "challenge_vi": "Trẻ đề xuất câu hỏi giúp kiểm tra suy đoán thay vì phán xét.", "duration_minutes": 25}
+      ]
+    },
+    {
+      "family_id": "FAM-PEOPLE-COOPERATION",
+      "concept_ids": ["PEOPLE_FAMILY", "SOCIAL_RESPONSIBILITY"],
+      "objective_ids": ["OBJ_ORDER_GRACE_COURTESY", "OBJ_SOCIAL_RESPONSIBILITY"],
+      "area": "social_studies",
+      "phrases_vi": ["gia đình", "cùng nhau", "hợp tác"],
+      "aliases_vi": ["làm việc nhóm", "chờ lượt"],
+      "material_option_ids": ["MAT_COOPERATION_OBJECTS", "MAT_TIMER"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["dùng vật nhẹ, không thi đua gây áp lực; quan sát lượt tham gia và khoảng cách an toàn"],
+      "policy_constraints": ["RESPECTFUL_INTERACTION"],
+      "variants": [
+        {"activity_id": "ACT-0157", "age_band": "0-3", "title_vi": "Chuyền đồ vật cùng người lớn", "action_vi": "Trẻ chuyền một vật lớn, nhẹ cho người lớn khi đến lượt.", "challenge_vi": "Trẻ chờ tín hiệu đơn giản trước khi chuyền.", "duration_minutes": 5},
+        {"activity_id": "ACT-0158", "age_band": "3-6", "title_vi": "Cùng dựng đường đi", "action_vi": "Trẻ luân phiên đặt khối lớn để dựng một đường đi.", "challenge_vi": "Trẻ dùng lời mời và cảm ơn khi đổi lượt.", "duration_minutes": 12},
+        {"activity_id": "ACT-0159", "age_band": "6-9", "title_vi": "Thiết kế nhiệm vụ nhóm", "action_vi": "Trẻ chia nhiệm vụ thành vai trò, thứ tự và tín hiệu phối hợp.", "challenge_vi": "Trẻ điều chỉnh phân công khi một vai trò không phù hợp.", "duration_minutes": 20},
+        {"activity_id": "ACT-0160", "age_band": "9-12", "title_vi": "Đánh giá quyết định nhóm", "action_vi": "Trẻ ghi cách nhóm thống nhất, bất đồng và thay đổi kế hoạch.", "challenge_vi": "Trẻ đưa tiêu chí đánh giá vừa hiệu quả vừa tôn trọng người tham gia.", "duration_minutes": 28}
+      ]
+    }
+  ]
+}

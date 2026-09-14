@@ -174,8 +174,12 @@ class ActivityTemplateV1(P1ContractBase):
     personalization_slots: tuple[str, ...] = ()
     provenance_source: str = Field(min_length=1, max_length=240)
     provenance_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
-    review_status: Literal["PROVISIONAL_OWNER_REVIEWED"]
-    production_eligible: Literal[False] = False
+    review_status: Literal[
+        "PROVISIONAL_OWNER_REVIEWED",
+        "SEMANTIC_REVIEWED",
+        "DEMO_ELIGIBLE",
+    ]
+    production_eligible: bool = False
 
     @model_validator(mode="after")
     def validate_age_range(self) -> ActivityTemplateV1:

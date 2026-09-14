@@ -1,0 +1,96 @@
+{
+  "schema_version": 2,
+  "catalog_revision": "catalog-2026-09-expansion-1",
+  "families": [
+    {
+      "family_id": "FAM-MOVEMENT-BALANCE",
+      "concept_ids": ["MOVEMENT_COORDINATION", "SENSORIAL_DISCRIMINATION"],
+      "objective_ids": ["OBJ_MOVEMENT_COORDINATION"],
+      "area": "movement",
+      "phrases_vi": ["chuyển động", "giữ thăng bằng", "đứng"],
+      "aliases_vi": ["thăng bằng", "đi chậm"],
+      "material_option_ids": ["MAT_MOVEMENT_MARKERS", "MAT_FLOOR_TAPE"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["sàn khô, đường đi thông thoáng, không yêu cầu trẻ đứng trên vật cao hoặc trơn"],
+      "policy_constraints": ["CLEAR_MOVEMENT_AREA"],
+      "variants": [
+        {"activity_id": "ACT-0201", "age_band": "0-3", "title_vi": "Đứng và chuyển trọng lượng", "action_vi": "Trẻ đứng có điểm tựa an toàn và chuyển trọng lượng theo người lớn.", "challenge_vi": "Người lớn dừng lại khi trẻ cần nghỉ hoặc mất ổn định.", "duration_minutes": 5},
+        {"activity_id": "ACT-0202", "age_band": "3-6", "title_vi": "Đi trên đường thẳng rộng", "action_vi": "Trẻ đi chậm theo đường kẻ rộng trên sàn khô.", "challenge_vi": "Trẻ dừng tại dấu hiệu và giữ khoảng cách với người khác.", "duration_minutes": 8},
+        {"activity_id": "ACT-0203", "age_band": "6-9", "title_vi": "So sánh cách giữ thăng bằng", "action_vi": "Trẻ thử hai tư thế an toàn và ghi điều giúp cơ thể ổn định.", "challenge_vi": "Trẻ thay đổi một yếu tố và mô tả kết quả quan sát.", "duration_minutes": 15},
+        {"activity_id": "ACT-0204", "age_band": "9-12", "title_vi": "Phân tích thăng bằng và lực", "action_vi": "Trẻ mô tả vị trí trọng tâm và điểm tựa trong chuyển động an toàn.", "challenge_vi": "Trẻ thiết kế cách đo đơn giản mà không tạo nguy hiểm cho cơ thể.", "duration_minutes": 22}
+      ]
+    },
+    {
+      "family_id": "FAM-MOVEMENT-PATH",
+      "concept_ids": ["MOVEMENT_COORDINATION", "SHAPE_GEOMETRY"],
+      "objective_ids": ["OBJ_MOVEMENT_COORDINATION"],
+      "area": "movement",
+      "phrases_vi": ["đường đi", "di chuyển", "chuyển động"],
+      "aliases_vi": ["đi theo đường", "lộ trình"],
+      "material_option_ids": ["MAT_FLOOR_TAPE", "MAT_MOVEMENT_MARKERS"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["lối đi rộng, không dùng vật cản cao; dừng khi trẻ mệt hoặc va chạm"],
+      "policy_constraints": ["CLEAR_MOVEMENT_AREA"],
+      "variants": [
+        {"activity_id": "ACT-0205", "age_band": "0-3", "title_vi": "Theo đường màu", "action_vi": "Trẻ bò hoặc đi theo đường màu rộng với người lớn ở gần.", "challenge_vi": "Trẻ dừng tại điểm cuối và chờ người lớn đón.", "duration_minutes": 5},
+        {"activity_id": "ACT-0206", "age_band": "3-6", "title_vi": "Đi qua ba điểm", "action_vi": "Trẻ đi lần lượt qua ba dấu mốc và gọi tên điểm đến.", "challenge_vi": "Trẻ nhớ thứ tự hai hoặc ba điểm.", "duration_minutes": 10},
+        {"activity_id": "ACT-0207", "age_band": "6-9", "title_vi": "Lập lộ trình ngắn nhất", "action_vi": "Trẻ vẽ và thử hai lộ trình giữa các điểm trên sàn.", "challenge_vi": "Trẻ đo hoặc đếm bước để so sánh lộ trình.", "duration_minutes": 18},
+        {"activity_id": "ACT-0208", "age_band": "9-12", "title_vi": "Tối ưu lộ trình có giới hạn", "action_vi": "Trẻ thiết kế lộ trình thỏa điều kiện về khoảng cách và điểm dừng.", "challenge_vi": "Trẻ giải thích đánh đổi giữa nhanh, an toàn và dễ theo dõi.", "duration_minutes": 25}
+      ]
+    },
+    {
+      "family_id": "FAM-MOVEMENT-RHYTHM",
+      "concept_ids": ["MOVEMENT_COORDINATION", "SOUND_MUSIC"],
+      "objective_ids": ["OBJ_MOVEMENT_COORDINATION"],
+      "area": "movement",
+      "phrases_vi": ["nhịp", "vỗ tay", "âm thanh", "chuyển động"],
+      "aliases_vi": ["tiết tấu", "nhịp điệu"],
+      "material_option_ids": ["MAT_SOUND_OBJECTS", "MAT_RHYTHM_CARDS"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["âm lượng vừa phải, vật gõ nhẹ; cho trẻ nghỉ nếu khó chịu vì âm thanh"],
+      "policy_constraints": ["SOUND_COMFORT"],
+      "variants": [
+        {"activity_id": "ACT-0209", "age_band": "0-3", "title_vi": "Vỗ tay theo nhịp chậm", "action_vi": "Trẻ vỗ tay hoặc lắc người theo hai nhịp chậm của người lớn.", "challenge_vi": "Người lớn dừng để trẻ nhận biết khoảng lặng.", "duration_minutes": 5},
+        {"activity_id": "ACT-0210", "age_band": "3-6", "title_vi": "Lặp lại chuỗi nhịp", "action_vi": "Trẻ lặp lại chuỗi hai hoặc ba tiếng gõ nhẹ bằng tay.", "challenge_vi": "Trẻ tự tạo chuỗi để người khác lặp lại.", "duration_minutes": 10},
+        {"activity_id": "ACT-0211", "age_band": "6-9", "title_vi": "Ghi ký hiệu nhịp", "action_vi": "Trẻ chuyển chuỗi nhịp thành ký hiệu và biểu diễn lại.", "challenge_vi": "Trẻ so sánh hai chuỗi cùng số tiếng nhưng khác khoảng cách.", "duration_minutes": 18},
+        {"activity_id": "ACT-0212", "age_band": "9-12", "title_vi": "Phân tích nhịp và chuyển động", "action_vi": "Trẻ thiết kế mẫu nhịp, ghi quy tắc và liên hệ với chuyển động.", "challenge_vi": "Trẻ nhận diện phần biểu diễn thay đổi khi tốc độ tăng.", "duration_minutes": 25}
+      ]
+    },
+    {
+      "family_id": "FAM-MOVEMENT-COORDINATION",
+      "concept_ids": ["MOVEMENT_COORDINATION", "PRACTICAL_LIFE"],
+      "objective_ids": ["OBJ_MOVEMENT_COORDINATION"],
+      "area": "movement",
+      "phrases_vi": ["phối hợp tay mắt", "chuyển động", "ném", "bắt"],
+      "aliases_vi": ["tay mắt", "điều khiển chuyển động"],
+      "material_option_ids": ["MAT_SOFT_BALLS", "MAT_TARGET_BASKET"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["chỉ dùng bóng mềm, khoảng cách ngắn và mục tiêu lớn; không ném vào người"],
+      "policy_constraints": ["CLEAR_MOVEMENT_AREA"],
+      "variants": [
+        {"activity_id": "ACT-0213", "age_band": "0-3", "title_vi": "Đẩy bóng mềm", "action_vi": "Trẻ đẩy bóng mềm lớn về phía rổ rộng ở khoảng cách gần.", "challenge_vi": "Người lớn giữ rổ ổn định và chờ trẻ chủ động.", "duration_minutes": 5},
+        {"activity_id": "ACT-0214", "age_band": "3-6", "title_vi": "Chuyền bóng qua rổ", "action_vi": "Trẻ chuyền hoặc lăn bóng mềm vào rổ theo lượt.", "challenge_vi": "Trẻ điều chỉnh lực để bóng dừng trong rổ.", "duration_minutes": 10},
+        {"activity_id": "ACT-0215", "age_band": "6-9", "title_vi": "Đo độ chính xác chuyển động", "action_vi": "Trẻ thử các khoảng cách và ghi số lần bóng vào mục tiêu lớn.", "challenge_vi": "Trẻ thay đổi một yếu tố và so sánh kết quả.", "duration_minutes": 18},
+        {"activity_id": "ACT-0216", "age_band": "9-12", "title_vi": "Thiết kế thử nghiệm điều khiển lực", "action_vi": "Trẻ kiểm tra ảnh hưởng của khoảng cách hoặc lực đến độ chính xác.", "challenge_vi": "Trẻ nêu cách giảm sai lệch do người ném và môi trường.", "duration_minutes": 25}
+      ]
+    },
+    {
+      "family_id": "FAM-MOVEMENT-IMITATION",
+      "concept_ids": ["MOVEMENT_COORDINATION", "ANIMAL_MOVEMENT"],
+      "objective_ids": ["OBJ_MOVEMENT_COORDINATION"],
+      "area": "movement",
+      "phrases_vi": ["bắt chước", "chuyển động", "động tác"],
+      "aliases_vi": ["làm theo", "động tác nối tiếp"],
+      "material_option_ids": ["MAT_MOVEMENT_MARKERS", "MAT_PICTURE_CARDS"],
+      "minimum_supervision": "NEARBY",
+      "safety_vi": ["chỉ dùng động tác đơn giản trên sàn an toàn; không bắt chước hành động nguy hiểm"],
+      "policy_constraints": ["CLEAR_MOVEMENT_AREA"],
+      "variants": [
+        {"activity_id": "ACT-0217", "age_band": "0-3", "title_vi": "Làm theo một động tác", "action_vi": "Trẻ vẫy tay hoặc chạm đầu gối theo người lớn nếu muốn.", "challenge_vi": "Người lớn đổi chậm giữa hai động tác và chờ phản hồi.", "duration_minutes": 5},
+        {"activity_id": "ACT-0218", "age_band": "3-6", "title_vi": "Nhớ chuỗi hai động tác", "action_vi": "Trẻ quan sát và lặp lại chuỗi hai động tác an toàn.", "challenge_vi": "Trẻ tự chọn thứ tự cho người lớn làm theo.", "duration_minutes": 10},
+        {"activity_id": "ACT-0219", "age_band": "6-9", "title_vi": "Mô tả động tác bằng chỉ dẫn", "action_vi": "Trẻ nói hoặc viết chỉ dẫn để người khác thực hiện chuỗi động tác.", "challenge_vi": "Trẻ kiểm tra chỉ dẫn có đủ rõ và an toàn không.", "duration_minutes": 18},
+        {"activity_id": "ACT-0220", "age_band": "9-12", "title_vi": "Mã hóa chuỗi chuyển động", "action_vi": "Trẻ dùng ký hiệu để mô tả và giải mã một chuỗi chuyển động.", "challenge_vi": "Trẻ đánh giá giới hạn của ký hiệu khi tốc độ hoặc không gian đổi.", "duration_minutes": 25}
+      ]
+    }
+  ]
+}

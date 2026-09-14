@@ -3,6 +3,8 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from pathlib import Path
 
+import pytest
+
 from sketch2life.application.services.backend_ai_workflow import (
     BackendAiWorkflow,
     BackendWorkflowRequest,
@@ -28,6 +30,9 @@ from sketch2life.contracts.schemas.vision_v2 import (
     vision_profile_catalog_hash_v2,
     vision_profile_catalog_v2,
     vision_profile_config_hash_v2,
+)
+from sketch2life.infrastructure.catalog.activity_coverage import (
+    build_activity_coverage_report,
 )
 from sketch2life.infrastructure.catalog.activity_semantics_v2 import (
     load_activity_semantic_catalog_v2,
@@ -64,6 +69,24 @@ def test_v2_catalog_preserves_100_unique_curated_activity_profiles() -> None:
     assert all(profile.production_eligible is False for profile in catalog.profiles)
 
 
+def test_catalog_uses_canonical_template_activity_version() -> None:
+    catalog = load_activity_semantic_catalog_v2(Path.cwd())
+
+    assert catalog.profile_for("ACT-0023").activity_version == 2
+    assert catalog.profile_for("ACT-0091").activity_version == 2
+
+
+def test_activity_coverage_report_exposes_catalog_gaps_without_creating_records() -> None:
+    catalog = load_activity_semantic_catalog_v2(Path.cwd())
+
+    report = build_activity_coverage_report(catalog, minimum_candidates_per_concept_age=3)
+
+    assert report.profile_count == 100
+    assert report.gaps
+    assert 0.0 <= report.coverage_ratio <= 1.0
+    assert report.model_dump()["profile_count"] == 100
+
+
 def test_scene_understanding_is_stable_and_age_invariant() -> None:
     first = _scene("con bướm", "bông hoa", transcript="Đây là con bướm")
     second = _scene("con bướm", "bông hoa", transcript="Đây là con bướm")
@@ -71,6 +94,20 @@ def test_scene_understanding_is_stable_and_age_invariant() -> None:
     assert first.scene_understanding_id == second.scene_understanding_id
     assert first.primary_concept.concept_id == "ANIMAL_BUTTERFLY"
     assert tuple(concept.concept_id for concept in first.secondary_concepts) == ("PLANT_FLOWER",)
+
+
+def test_asr_child_interest_beats_visual_route_order() -> None:
+    scene = _scene(
+        "con bướm",
+        "mặt trời",
+        transcript="Con đang kể về mặt trời",
+    )
+
+    assert scene.primary_concept.concept_id == "SUN_LIGHT"
+    assert scene.primary_concept.concept_role == "PRIMARY_CHILD_INTEREST"
+    assert scene.child_interest_concept_id == "SUN_LIGHT"
+    assert scene.asr_vlm_resolution == "ASR_AND_VLM_AGREE"
+    assert all(concept.concept_id != "SUN_LIGHT" for concept in scene.secondary_concepts)
 
 
 def test_concept_matching_restores_nature_and_sun_routes() -> None:
@@ -197,17 +234,28 @@ def test_run_v2_shares_scene_and_reports_personalized_or_fallback_modes() -> Non
             age_bands=("0-3", "3-6", "6-9", "9-12"),
             seed=123,
             demo_autopilot=True,
+            report_partial_test_only=True,
         )
     )
 
     assert result.status == "SUCCEEDED"
+    assert result.terminal_status == "BACKEND_CONTEXT_READY"
     assert result.scene_understanding.primary_concept.concept_id == "SUN_LIGHT"
     assert {
         band.scene_understanding_id for band in result.age_bands
     } == {result.scene_understanding.scene_understanding_id}
-    assert result.personalized_band_count == 2
-    assert result.fallback_band_count == 2
+    assert result.personalized_band_count == 4
+    assert result.fallback_band_count == 0
+    assert result.unavailable_age_bands == ()
     assert all(
-        band.experience_spec is not None
+        band.status == "SUCCEEDED"
+        and band.experience_spec is not None
         for band in result.age_bands
     )
+    for band in result.age_bands:
+        if band.experience_spec is None:
+            continue
+        payload = band.experience_spec.model_dump(mode="json")
+        payload["semantic_match"]["activity_version"] += 1
+        with pytest.raises(ValueError, match="activity versions must match"):
+            type(band.experience_spec).model_validate(payload)

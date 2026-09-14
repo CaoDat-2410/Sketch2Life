@@ -1,0 +1,42 @@
+{
+  "feature": "FEAT-022-catalog-coverage-expansion",
+  "catalog_revision": "catalog-2026-09-expansion-1",
+  "baseline_profile_count": 100,
+  "curated_variant_count": 200,
+  "selectable_variant_count": 300,
+  "curated_family_count": 50,
+  "merged_activity_family_count": 150,
+  "quality_gate": {
+    "passed": true,
+    "issues": []
+  },
+  "coverage": {
+    "scoped_concept_age_pairs": 68,
+    "gaps": 0,
+    "covered_pair_ratio": 1.0,
+    "tier_a_minimum": 5,
+    "tier_b_minimum": 3,
+    "tier_c_minimum": 2,
+    "note": "Counts are from the semantic catalog before provider-run sampling; runtime hard filters remain authoritative."
+  },
+  "objective_coverage": {
+    "objective_count": 13,
+    "objective_age_pair_count": 52,
+    "minimum_candidates_per_pair": 2,
+    "gaps": 0,
+    "covered_pair_ratio": 1.0
+  },
+  "diversity_smoke": {
+    "recommendation_count": 40,
+    "distinct_activity_count": 40,
+    "distinct_family_count": 10,
+    "top_activity_share": 0.025,
+    "top_family_share": 0.1,
+    "immediate_repeat_rate": 0.0
+  },
+  "rollback": {
+    "baseline_revision": "catalog-2026-09",
+    "baseline_loader": "load_p1_template_library(include_mvp=true)",
+    "expanded_loader": "load_p1_template_library(include_mvp=true, include_expansion=true)"
+  }
+}

@@ -73,6 +73,105 @@ _CONCEPT_ROUTES = (
         92,
     ),
     _ConceptRoute(
+        "ANIMAL_GENERIC",
+        "con vật",
+        ("động vật", "con vật", "con chim", "con cá", "con chó", "con mèo"),
+        ("ANIMAL",),
+        88,
+    ),
+    _ConceptRoute(
+        "MOVEMENT_COORDINATION",
+        "chuyển động và phối hợp cơ thể",
+        (
+            "chuyển động",
+            "vận động",
+            "di chuyển",
+            "thăng bằng",
+            "đi theo",
+            "bắt chước",
+            "động tác",
+        ),
+        ("MOVEMENT",),
+        87,
+    ),
+    _ConceptRoute(
+        "PEOPLE_FAMILY",
+        "gia đình và con người",
+        ("gia đình", "người", "cơ thể"),
+        ("PEOPLE",),
+        86,
+    ),
+    _ConceptRoute(
+        "VEHICLE_TRANSPORT",
+        "phương tiện",
+        ("phương tiện", "xe đạp", "xe ô tô", "xe"),
+        ("TRANSPORT",),
+        84,
+    ),
+    _ConceptRoute(
+        "WEATHER_NATURE",
+        "thời tiết",
+        ("thời tiết", "mưa", "mây", "gió"),
+        ("NATURE",),
+        82,
+    ),
+    _ConceptRoute(
+        "WATER_NATURE",
+        "nước trong tự nhiên",
+        ("nước", "sông", "hồ", "biển"),
+        ("NATURE",),
+        80,
+    ),
+    _ConceptRoute(
+        "SHAPE_GEOMETRY",
+        "hình dạng và khối hình",
+        ("khối hình", "hình học", "hình dạng", "hình tròn", "hình vuông"),
+        ("GEOMETRY",),
+        78,
+    ),
+    _ConceptRoute(
+        "COLOR_BASIC",
+        "màu sắc",
+        ("màu sắc", "màu", "đỏ", "xanh", "vàng"),
+        ("COLOR",),
+        77,
+    ),
+    _ConceptRoute(
+        "SOUND_MUSIC",
+        "âm thanh",
+        ("âm thanh", "tiếng", "nhạc"),
+        ("SOUND",),
+        76,
+    ),
+    _ConceptRoute(
+        "COUNTING_NUMBER",
+        "số lượng và đếm",
+        ("đếm", "số lượng", "phép nhân", "thập phân", "que tính"),
+        ("NUMBER",),
+        74,
+    ),
+    _ConceptRoute(
+        "LANGUAGE_PRINT",
+        "ngôn ngữ và chữ viết",
+        ("chữ cái", "đọc", "âm vị", "nét"),
+        ("LANGUAGE",),
+        70,
+    ),
+    _ConceptRoute(
+        "PRACTICAL_LIFE",
+        "đời sống thực hành",
+        ("rửa tay", "lau", "mang khay", "cắt", "cài", "chào hỏi", "sắp bàn", "quét"),
+        ("PRACTICAL_LIFE",),
+        68,
+    ),
+    _ConceptRoute(
+        "SCIENCE_NATURE",
+        "khoa học tự nhiên",
+        ("vũ trụ", "trái đất", "địa hình", "vật chất", "máy cơ", "chuỗi thức ăn"),
+        ("SCIENCE",),
+        66,
+    ),
+    _ConceptRoute(
         "PLANT_STRUCTURE",
         "cấu trúc cây",
         ("cây", "lá", "cỏ"),
@@ -112,7 +211,27 @@ def build_confirmed_scene_understanding(
         if _route_matches(route, candidates, asr_transcript_vi)
     )
     if concepts:
-        primary_concept = concepts[0]
+        primary_concept = sorted(
+            concepts,
+            key=lambda concept: (
+                0 if "ASR" in concept.source_kinds else 1,
+                -_route_priority(concept.concept_id),
+                -concept.confidence,
+                concept.concept_id,
+            ),
+        )[0]
+        primary_concept = primary_concept.model_copy(
+            update={
+                "concept_role": (
+                    "PRIMARY_CHILD_INTEREST"
+                    if "ASR" in primary_concept.source_kinds
+                    else "PRIMARY_VISUAL"
+                ),
+                "child_interest_alignment": (
+                    1.0 if "ASR" in primary_concept.source_kinds else 0.45
+                ),
+            }
+        )
     else:
         fallback_label = _stable_fallback_label(candidates)
         fallback_claims = _claims_for_label(fallback_label, candidates)
@@ -120,10 +239,59 @@ def build_confirmed_scene_understanding(
             concept_id="UNCLASSIFIED_OBSERVATION",
             label_vi=fallback_label,
             confidence=0.5,
+            concept_role="UNCLASSIFIED",
+            child_interest_alignment=0.0,
             evidence_claim_ids=fallback_claims or ("fusion:unclassified",),
             source_kinds=("FUSION",),
         )
-    secondary_concepts = tuple(concept for concept in concepts if concept != primary_concept)
+    secondary_concepts = tuple(
+        concept.model_copy(
+            update={
+                "concept_role": (
+                    "SECONDARY_CHILD_INTEREST"
+                    if "ASR" in concept.source_kinds
+                    else "SECONDARY_VISUAL"
+                ),
+                "child_interest_alignment": (
+                    0.75 if "ASR" in concept.source_kinds else 0.25
+                ),
+            }
+        )
+        for concept in concepts
+        if concept.concept_id != primary_concept.concept_id
+    )
+    asr_concept_ids = {
+        concept.concept_id
+        for concept in concepts
+        if "ASR" in concept.source_kinds
+    }
+    vlm_concept_ids = {
+        concept.concept_id
+        for concept in concepts
+        if "VLM" in concept.source_kinds
+    }
+    if asr_concept_ids and vlm_concept_ids:
+        resolution = (
+            "ASR_AND_VLM_AGREE"
+            if primary_concept.concept_id in vlm_concept_ids
+            else "ASR_VLM_CONFLICT"
+        )
+    elif asr_concept_ids:
+        resolution = "ASR_PRIMARY_VLM_SUPPORTS"
+    elif vlm_concept_ids:
+        resolution = "VLM_ONLY"
+    else:
+        resolution = "ASR_UNAVAILABLE"
+    resolution = cast(
+        Literal[
+            "ASR_AND_VLM_AGREE",
+            "ASR_PRIMARY_VLM_SUPPORTS",
+            "ASR_VLM_CONFLICT",
+            "VLM_ONLY",
+            "ASR_UNAVAILABLE",
+        ],
+        resolution,
+    )
     primary_label = primary_concept.label_vi
     payload = {
         "image_sha256": image_sha256,
@@ -144,6 +312,10 @@ def build_confirmed_scene_understanding(
         primary_anchor_label_vi=primary_label,
         primary_concept=primary_concept,
         secondary_concepts=secondary_concepts,
+        child_interest_concept_id=(
+            primary_concept.concept_id if "ASR" in primary_concept.source_kinds else None
+        ),
+        asr_vlm_resolution=resolution,
         observed_anchor_labels_vi=observed_labels or (primary_label,),
         observed_entity_labels_vi=_unique(
             candidate.label_vi for candidate in candidates if candidate.kind == "subject"
@@ -174,6 +346,13 @@ def route_phrases(concept_id: str) -> tuple[str, ...]:
     return next(
         (route.phrases_vi for route in _CONCEPT_ROUTES if route.concept_id == concept_id),
         (),
+    )
+
+
+def _route_priority(concept_id: str) -> int:
+    return next(
+        (route.priority for route in _CONCEPT_ROUTES if route.concept_id == concept_id),
+        0,
     )
 
 

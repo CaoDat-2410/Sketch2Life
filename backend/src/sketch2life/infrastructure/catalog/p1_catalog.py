@@ -18,6 +18,10 @@ from sketch2life.contracts.schemas.p1_experience import (
     ActivityTemplateV1,
     VersionedRefV1,
 )
+from sketch2life.infrastructure.catalog.curated_catalog import (
+    CuratedCatalogError,
+    load_curated_catalog_v2,
+)
 
 
 class CatalogLoadError(ValueError):
@@ -225,7 +229,14 @@ def _template_from_mvp_record(record: dict[str, Any]) -> ActivityTemplateV1:
         production_eligible=False,
     )
 
-def load_p1_template_library(root: Path, *, include_mvp: bool = False) -> P1TemplateLibrary:
+def load_p1_template_library(
+    root: Path,
+    *,
+    include_mvp: bool = False,
+    include_expansion: bool = False,
+) -> P1TemplateLibrary:
+    if include_expansion and not include_mvp:
+        raise CatalogLoadError("curated expansion requires the MVP baseline catalog")
     golden = root / "data" / "activity-catalog" / "golden" / "v1"
     activity_doc = _read_json(golden / "activities.v2.json")
     material_doc = _read_json(golden / "material-registry.v1.json")
@@ -268,7 +279,25 @@ def load_p1_template_library(root: Path, *, include_mvp: bool = False) -> P1Temp
             {template.activity_ref.id for template in templates}
         ) != 100:
             raise CatalogLoadError("expanded activity catalog must contain 100 unique activities")
-    else:
+    if include_expansion:
+        try:
+            curated_catalog = load_curated_catalog_v2(root)
+            curated_templates = tuple(
+                variant.to_template() for variant in curated_catalog.variants
+            )
+        except CuratedCatalogError as exc:
+            raise CatalogLoadError(str(exc)) from exc
+        existing_ids = {template.activity_ref.id for template in templates}
+        if existing_ids.intersection(
+            template.activity_ref.id for template in curated_templates
+        ):
+            raise CatalogLoadError("curated expansion activity ID collides with baseline")
+        templates = templates + curated_templates
+        if len(templates) != 300 or len(
+            {template.activity_ref.id for template in templates}
+        ) != 300:
+            raise CatalogLoadError("curated catalog revision must contain 300 unique activities")
+    if not include_mvp and not include_expansion:
         templates = golden_templates
     objectives = {
         item["id"]: item["title"]["vi-VN"]
@@ -292,7 +321,9 @@ def load_p1_template_library(root: Path, *, include_mvp: bool = False) -> P1Temp
         templates=templates,
         objective_titles_vi=objectives,
         catalog_source=(
-            "golden/v1+MVP:v1 activity catalog"
+            "golden/v1+MVP:v1+curated/v2 activity catalog"
+            if include_expansion
+            else "golden/v1+MVP:v1 activity catalog"
             if include_mvp
             else "golden/v1:activities.v2.json+material-registry.v1.json"
         ),
