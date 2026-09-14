@@ -118,3 +118,14 @@
   unmodified. This decision authorizes only the offline implementation stage; `P2T2-LIVE-D1`
   through `P2T2-LIVE-D12` remain open, and a separate independent review of the completed
   implementation is required before any future live-execution approval is considered.
+
+- 2026-09-14 P2-T2 bounded-runner independent-review closure: complete the offline follow-up for
+  all three MINOR findings. The focused suite now has 154 passing tests and the related
+  Qwen/vision/FEAT-018 sweep has 839 passing tests with 5 skipped. Offline evidence constructs a
+  real stdlib `spawn` context's production-configured non-daemon outer Process without starting
+  it, verifies the default inner launcher is constructed only after `CONTAINMENT_READY`, and
+  asserts bounded cleanup continuation and child-endpoint rollback. Actual OS nested spawning,
+  real containment, model, GPU, provider, network and Lightning execution remain deferred to a
+  separately approved live-smoke assertion. The architecture validator's unchanged
+  `backend_ai_workflow.py` violation remains `PRE_EXISTING_UPSTREAM`; all twelve
+  `P2T2-LIVE-D1` through `P2T2-LIVE-D12` decisions remain open.

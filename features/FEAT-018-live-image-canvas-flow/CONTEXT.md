@@ -125,3 +125,35 @@ report found no blocker and confirms the published contract/data scope is unchan
 
 P2-T2 offline is complete. Live Lightning/GPU/model execution, provider/network calls, P2-T3 through
 P2-T5, mobile, Gate A UI, P1 eligibility, P3/P4 and shared integration remain separately gated.
+
+## P2-T2 bounded-runner offline implementation - 2026-09-14
+
+The owner approved the FEAT-018 P2-T2 bounded-runner offline implementation on revision 5 of the
+approval package (`evidence/notes/P2_T2_BOUNDED_RUNNER_IMPLEMENTATION_APPROVAL_PACKAGE_DRAFT_20260914.md`,
+SHA-256 `f36216432620e21eba2fc2f3f0c735ace529d15f827ad957dcf9b5e74ab8c9e5`) after independent audit
+verdict `PASS_WITH_FINDINGS`. The implementation adds exactly the two approved files:
+`backend/src/sketch2life/benchmark/feat018_live_lightning_execution.py` and
+`backend/tests/unit/test_feat018_live_lightning_execution.py`. It implements
+`Feat018AdapterCallSupervisor` (supervisor-authoritative deadline, `CONTAINMENT_READY` gate
+protocol on POSIX/Windows with a real process handle for Windows Job Object assignment and a
+bounded retry for POSIX group confirmation, a closed progress state machine with a formal
+`FROZEN` state), `Feat018BoundedKillableQwenGenerationRunner` (bounded per-attempt subprocess
+generation implementing the existing `QwenGenerationRunner` seam), and
+`Feat018EvidenceCommitWriter`/`read_committed_pair` (the three-state evidence commit protocol
+with a one-way hash DAG and a single JSON-rename commit point). The three MINOR findings from the
+independent audit (Windows handle usage, POSIX bounded retry, a stale cross-reference in the
+approval package) were addressed. The completed independent review and follow-up test hardening
+record 154 focused offline tests and 839 related Qwen/vision/FEAT-018 tests passed, with 5 skipped.
+The tests use injected fakes for live behavior and one real stdlib `spawn` context only to
+construct (never start) the production-configured non-daemon outer Process; no real subprocess,
+model, GPU, network, or Lightning execution occurred. Ruff and strict mypy are clean on the
+bounded-runner source/test scope. `validate_harness.py`, `validate_repository_security.py`,
+`validate_skeleton.py`, and `git diff --check` pass; the architecture validator retains the
+unchanged `PRE_EXISTING_UPSTREAM` `backend_ai_workflow.py` violation. `qwen_vision.py` and all
+other FEAT-003/FEAT-017 source are unmodified.
+
+This closes only the offline bounded-runner implementation and independent-review stage. The
+default inner launcher is verified to be constructed only after `CONTAINMENT_READY`; actual OS
+nested spawning and real containment behavior remain deferred to a separately approved live-smoke
+assertion. All twelve `P2T2-LIVE-D1` through `P2T2-LIVE-D12` decisions remain open, and no live
+Lightning/GPU/model/provider/network execution is authorized by this entry.
