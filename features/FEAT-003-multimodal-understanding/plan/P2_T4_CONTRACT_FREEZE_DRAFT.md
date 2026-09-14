@@ -1,11 +1,11 @@
 # P2-T4 contract-freeze draft
 
-- Status: **DRAFT - READY FOR OWNER FREEZE DECISION**
-- Revision: 8
+- Status: **HOLD - NOT APPROVED**
+- Revision: 11
 - Draft date: 2026-09-14
 - Owner: Person 2
 - Feature: FEAT-003 Multimodal understanding
-- Final task status: **DRAFT - READY FOR OWNER FREEZE DECISION**
+- Final task status: **HOLD - NOT APPROVED**
 
 This is a documentation-only, reviewable proposal. It is not a contract freeze, an
 implementation approval, a runtime authorization, a migration decision, a registry
@@ -61,9 +61,9 @@ upgraded here. Their mapping remains `PROPOSED_NOT_ADOPTED`, and a separately ap
 integration reconciliation is required before adoption, registry change, consumer update, or
 edge-3 handoff.
 
-Two independent post-sync final audits passed, so the status is exactly
-`DRAFT - READY FOR OWNER FREEZE DECISION`. This restores owner review only; it is not a
-contract freeze or implementation approval. The future T4 freeze/implementation source commit is
+Two independent post-sync final audits passed, so the status remains exactly
+`HOLD - NOT APPROVED` pending diff-only owner review. This is not a contract freeze or
+implementation approval. The future T4 freeze/implementation source commit is
 `UNKNOWN_UNTIL_REVIEW_APPROVED_COMMITTED`; it is distinct from `review_base_commit` and the
 existing FEAT-018 closure commit, and no future or self-referential digest is asserted.
 
@@ -529,10 +529,19 @@ when one exists and null otherwise. No conflict carries text, labels, or excerpt
 | `certainty_status` | closed enum | required, non-null | `MEASURED`, `NOT_MEASURED`, or `NOT_APPLICABLE_CONFLICTING` |
 | `certainty` | finite float in `[0,1]` or null | required, nullable | non-null only for `MEASURED` |
 
-`MEASURED` means finite numeric source confidence, with or without an eligible
-positive match. `NOT_MEASURED` means source confidence is null and certainty is null,
-even when support exists. `NOT_APPLICABLE_CONFLICTING` means any conflict participant
-and certainty is null. An upstream-failure result has an empty `per_observation` tuple.
+Certainty assignment is exhaustive and mutually exclusive, with the following precedence:
+
+1. Conflict status has the highest certainty-status precedence.
+2. Any conflicting candidate, regardless of whether source confidence is finite or null,
+   has `certainty_status=NOT_APPLICABLE_CONFLICTING` and `certainty=null`.
+3. Otherwise, a non-conflicting candidate with null source confidence has
+   `certainty_status=NOT_MEASURED` and `certainty=null`.
+4. Otherwise, a finite-confidence, non-conflicting candidate has
+   `certainty_status=MEASURED` and `certainty=base` by default, or the already-frozen
+   primary-only adjusted value when all eligibility conditions above hold.
+
+A null-confidence candidate with a contradiction is governed by rule 2, not rule 3.
+An upstream-failure result has an empty `per_observation` tuple.
 
 ### 6.5 Result invariants
 
@@ -648,29 +657,48 @@ contradiction reference are distinct fields and cannot contain raw text.
 
 ### 8.1 Confidence and low-confidence ordering
 
-Every numeric source confidence and configured floor is finite and in `[0,1]`.
-`NaN`, positive infinity, and negative infinity are strict-validation rejections. The
-low-confidence test uses the original source confidence before support adjustment and
-is strictly `base < configured_floor`; null is never below the floor.
+All positive/refuting evidence and conflict rows are derived from the original validated
+ASR segment text, Vision source observations, and original source confidence values.
+Support adjustment is not an input to evidence derivation.
 
-For a finite base with positive support and no conflict, compute exactly:
+Determine `primary_interpretation` before any support adjustment. For each candidate
+group, rank candidate records exactly by conflict eligibility, positive-support rank,
+original source confidence, and `observation_id`: non-conflicting candidates rank before
+conflicting candidates; positive support `true` ranks before `false`; finite original
+source confidence ranks descending with null after every finite value; and
+`observation_id` ascending is the final tie-break. Only a validated, non-conflicting
+entity, action, or relation can be primary; themes never enter primary selection.
+
+Every finite-confidence, non-conflicting candidate defaults to `certainty = base`.
+A supported non-primary candidate retains `certainty = base`. Only a candidate
+satisfying all three conditions receives the one-time adjustment: (1)
+`primary_interpretation == true`; (2) eligible positive narration support exists; and
+(3) no conflict exists. Its certainty is exactly:
 
 ```text
-adjusted = min(Decimal("1.0"), Decimal(str(base)) + Decimal("0.10"))
+float(min(Decimal("1.0"), Decimal(str(base)) + Decimal("0.10")))
 ```
 
-Do not quantize or round. Convert the final Decimal to a Python/JSON float exactly
-once and reject it if non-finite. The candidate receives at most one adjustment. A
-null source confidence remains `NOT_MEASURED`/null even with support. A conflict
-participant receives no adjustment and `NOT_APPLICABLE_CONFLICTING`/null.
+There is no quantization and no intermediate float conversion. Support adjustment occurs
+after primary selection and MUST NOT change grouping, ranking, primary eligibility,
+conflict detection, or low-confidence classification.
 
-`LOW_CONFIDENCE_EVIDENCE` is emitted for each measured candidate whose original base
-is strictly below the floor. Here, a measured candidate means an entity, action,
-relation, or theme with a finite numeric Vision confidence. A low-confidence theme
-may therefore emit this evidence conflict with a null narration reference; it remains
-Vision-only, has no uncertainty row, and never enters primary ranking. This is a typed
-evidence conflict, not an upstream failure. Any candidate with only this conflict
-remains in the fused collection but is not primary.
+Certainty assignment is exhaustive:
+
+| Candidate/source state | `certainty_status` | `certainty` |
+|---|---|---|
+| rule 2: any conflicting candidate, finite or null confidence | `NOT_APPLICABLE_CONFLICTING` | `null` |
+| rule 3: otherwise, non-conflicting candidate with null confidence | `NOT_MEASURED` | `null` |
+| rule 4: otherwise, finite-confidence, non-conflicting candidate | `MEASURED` | `base`, except the one-time adjustment above when all three conditions hold |
+
+Every numeric source confidence and configured floor is finite and in `[0,1]`.
+`NaN`, positive infinity, and negative infinity are strict-validation rejections.
+`LOW_CONFIDENCE_EVIDENCE` compares the original source confidence using strict
+`base < configured_floor` before adjustment; null is never below the floor. A low-
+confidence theme may therefore emit this evidence conflict with a null narration
+reference; it remains Vision-only, has no uncertainty row, and never enters primary
+ranking. This is a typed evidence conflict, not an upstream failure. B2 remains
+`Primary-only weighting`, and no other closed owner decision is reopened.
 
 ### 8.2 Primary grouping and complete ranking
 
@@ -685,14 +713,17 @@ internal grouping key. Same-label candidates with distinct source observation ID
 remain distinct fused records; grouping never merges source IDs.
 
 An eligible candidate is validated, non-conflicting, and of kind entity, action, or
-relation. Themes never enter primary selection. Within each group, rank in this exact
-order:
+relation. Themes never enter primary selection. Primary selection occurs before certainty
+adjustment. Within each group, rank candidate records in this exact order:
 
-1. positive narration support: `true` before `false`;
-2. original finite source confidence, descending; null confidence is after every finite
+1. conflict eligibility: non-conflicting before conflicting;
+2. positive narration support: `true` before `false`;
+3. original finite source confidence, descending; null confidence is after every finite
    numeric value;
-3. stable source observation ID, ascending lexicographic order, as the final tie-break
+4. stable source observation ID, ascending lexicographic order, as the final tie-break
    for every remaining tie, including equal support and null confidence.
+
+Adjusted certainty never participates in this ranking.
 
 Source input order is never a tie-break. If no candidate in a group is eligible, every
 candidate in that group has `primary_interpretation=false` and the group has zero
@@ -814,8 +845,8 @@ binding record with these exact fields:
 |---|---|---|
 | `review_base_commit` | full 40-character lowercase Git commit for the post-sync reviewed source tree | `d706d88a70c6a9136e397bea10d29f96bafd190b` |
 | `future_source_commit` | explicit non-hash marker until the future freeze/implementation source is reviewed, approved, and committed | `UNKNOWN_UNTIL_REVIEW_APPROVED_COMMITTED` |
-| `freeze_draft_sha256` | lowercase SHA-256 of normalized UTF-8 document bytes after removing this binding table and the revision-history section | `a2bc165f270ad003a38874975e5499e4b021a1d193060ac3fd6f75022085535e` |
-| `implementation_package_sha256` | lowercase SHA-256 of normalized UTF-8 package bytes after removing its binding table and revision-history section | `af2442cb46f373d28439c4722491dea54e0aaf94ad416e1327a44865e50c6a5f` |
+| `freeze_draft_sha256` | lowercase SHA-256 of normalized UTF-8 document bytes after removing this binding table and the revision-history section | `be96b32aa675b7b6e46eea30effb2dbb91c718dc68ba7ce36d4d627ad6058ee2` |
+| `implementation_package_sha256` | lowercase SHA-256 of normalized UTF-8 package bytes after removing its binding table and revision-history section | `6821755722daf3bce622fe98eaf39124adb835c6854661143d79f48a943030d7` |
 | `dependency_lock_sha256` | lowercase SHA-256 for every declared dependency/lock input | `pnpm-lock.yaml=b406b4c36c1e5304cf0c43b175c426d50aa3b43dc9a2bb81be357ea2b80b1665`; `backend/pyproject.toml=9ca3a54905d11fdb7f30a84356d23741f256b2115b254bcc9fba4efacdf17df6` |
 | `manifest_sha256` | SHA-256 of `features/FEAT-003-multimodal-understanding/fixtures/p2-t4-fusion-v1/manifest-v1.json` bytes | required when the future artifact exists |
 | `cases_sha256` | SHA-256 of `features/FEAT-003-multimodal-understanding/fixtures/p2-t4-fusion-v1/cases-v1.json` bytes | required when the future artifact exists |
@@ -917,8 +948,8 @@ handoff is absent or merely proposed.
 
 ### Pass 2 - governance and security
 
-- [x] Status is documentation-only and exactly **READY FOR OWNER FREEZE DECISION** after the
-      two post-remediation final audits; the contract is still not frozen.
+- [x] Status is documentation-only and exactly **HOLD - NOT APPROVED** after the two
+      post-remediation final audits; the contract is still not frozen.
 - [x] The seven-file implementation list is exact and no implementation path was created or edited.
 - [x] `P2T4_FEAT018_CONTRACT_FAMILY_MAPPING_V1@1.0` remains `PROPOSED_NOT_ADOPTED`.
 - [x] FEAT-018 adoption, mapping, preservation envelope, session/request/idempotency, registry, edge 3, Gate A, migration, runtime/provider/GPU/network work remain deferred.
@@ -939,7 +970,7 @@ The two post-remediation audits also verify that the B0 artifacts remain byte-un
 
 ### Final task status
 
-**DRAFT - READY FOR OWNER FREEZE DECISION**
+**HOLD - NOT APPROVED**
 
 ## 13. Revision history
 
@@ -954,3 +985,5 @@ The two post-remediation audits also verify that the B0 artifacts remain byte-un
 | 7 | 2026-09-14 | Reopened as `CONTRACT FREEZE BLOCKED` for exact future fixture paths, ASR duplicate-index admissibility, precedence, and canonical reference-order remediation; no implementation added. |
 | 8 | 2026-09-14 | Resolved the exact fixture-path, ASR admissibility/precedence, Vision upstream-uniqueness attribution, and canonical-reference ordering blockers; no implementation added. |
 | 9 | 2026-09-14 | Recorded the post-remediation technical/contract and governance/security/scope audits, verified digest bindings, and restored owner-freeze-ready status; no contract or implementation approval was granted. |
+| 10 | 2026-09-14 | Applied CF-B1 original-source certainty/primary-selection semantics and CF-B2 revision/digest reconciliation; status remains `HOLD - NOT APPROVED`, with no freeze or implementation approval. |
+| 11 | 2026-09-14 | Clarified mutually exclusive certainty precedence for conflicting and null-confidence candidates and refreshed normalized digest bindings; no freeze or implementation approval. |
