@@ -106,3 +106,15 @@
   typed-failure ASR cases remain supported. Focused and related tests, lint/type checks, repository
   validators and diff checks passed. This closes only the offline P2-T2 contract/mapping slice;
   live Lightning/GPU/model execution and all downstream/provider/mobile/shared scopes remain gated.
+
+- 2026-09-14 P2-T2 bounded-runner offline implementation decision: approve implementation of the
+  exact two-file scope named in revision 5 of the bounded-runner approval package, after
+  independent audit verdict `PASS_WITH_FINDINGS`. Address the three MINOR audit findings during
+  implementation (a real Windows process handle for job-object assignment rather than a bare PID;
+  a bounded retry with an explicit timeout for POSIX containment confirmation; and the stale
+  revision-3 section-name cross-reference in the approval package). Offline-only gate: fakes for
+  every clock/process/containment/filesystem dependency in tests; no model, provider, network,
+  GPU, or Lightning execution. `qwen_vision.py` and all other FEAT-003/FEAT-017 source remain
+  unmodified. This decision authorizes only the offline implementation stage; `P2T2-LIVE-D1`
+  through `P2T2-LIVE-D12` remain open, and a separate independent review of the completed
+  implementation is required before any future live-execution approval is considered.

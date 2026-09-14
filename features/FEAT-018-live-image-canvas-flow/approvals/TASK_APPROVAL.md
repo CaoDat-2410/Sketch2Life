@@ -184,3 +184,40 @@ failure cases remain valid. Focused tests (17), related tests (801 passed, 5 ski
 all repository validators and `git diff --check` passed. No model/GPU/Lightning/provider/network
 execution occurred. This approval closes P2-T2 offline only; live execution and P2-T3 through P2-T5,
 mobile, Gate A, P1 eligibility, P3/P4 and shared integration remain separately gated.
+
+## Approved P2-T2 bounded-runner offline implementation addendum — 2026-09-14
+
+The project owner approves the FEAT-018 P2-T2 bounded-runner offline implementation described in
+`features/FEAT-018-live-image-canvas-flow/evidence/notes/P2_T2_BOUNDED_RUNNER_IMPLEMENTATION_APPROVAL_PACKAGE_DRAFT_20260914.md`
+revision 5 (SHA-256 `f36216432620e21eba2fc2f3f0c735ace529d15f827ad957dcf9b5e74ab8c9e5`), following the
+independent audit recorded at `tmp/feat018-p2-t2-revision5-independent-audit-20260914/REVIEW.md`
+(verdict `PASS_WITH_FINDINGS`).
+
+Approved exact file scope:
+
+- `backend/src/sketch2life/benchmark/feat018_live_lightning_execution.py`
+- `backend/tests/unit/test_feat018_live_lightning_execution.py`
+
+No other file may be created or modified as part of this implementation stage.
+
+Required corrections during implementation (the three MINOR findings from the independent audit):
+
+1. Windows Job Object assignment must use a valid native process handle (for example via
+   `ctypes`/`OpenProcess` with the required access rights), never a bare PID treated as a handle.
+2. POSIX containment confirmation must use a bounded retry loop with an explicit timeout and must
+   fail closed if group/session membership cannot be confirmed in time.
+3. The stale internal cross-reference to the revision-3 section title ("Total adapter cap
+   coordinator and bounded cleanup") must be corrected to the current section title ("Outer
+   adapter-call supervisor and total adapter cap") in the approval package.
+
+Offline-only gate: approved work uses injected fakes (fake clocks, fake process/containment
+doubles, fake bounded transports) for every test. No model, provider, network, GPU, or Lightning
+session may be used, loaded, or opened. `qwen_vision.py` and all other FEAT-003 source, FEAT-017,
+contracts, registry, ports, routes, mobile code, Gate A UI, and P1/P3/P4/shared-integration scope
+remain excluded and unchanged.
+
+All twelve `P2T2-LIVE-D1` through `P2T2-LIVE-D12` decisions remain open; this approval is not a
+live-execution approval. A separate, independent review of the completed implementation is
+required before any future live-execution approval is considered.
+
+Approved at: 2026-09-14, project owner direct instruction in the current conversation.
