@@ -1,7 +1,8 @@
 # FEAT-018 live image and canvas context
 
 - Status: P1 complete; D3/P2-T1 closed for owner-approved offline Cohorts A+B; P2-T2 contract
-  boundary and bounded offline implementation complete; live Lightning execution and downstream
+  boundary and bounded offline implementation complete; P2-T3 optional narration planning is in
+  progress as a DRAFT and is not implementation-approved; live Lightning execution and downstream
   scopes remain separately gated
 - Plan revision: 2 with approved P2-T1 D2/D3-R2 and P2-T2 offline addenda
 - Owner: shared integration allocation pending contract freeze approval
@@ -157,3 +158,11 @@ default inner launcher is verified to be constructed only after `CONTAINMENT_REA
 nested spawning and real containment behavior remain deferred to a separately approved live-smoke
 assertion. All twelve `P2T2-LIVE-D1` through `P2T2-LIVE-D12` decisions remain open, and no live
 Lightning/GPU/model/provider/network execution is authorized by this entry.
+
+## P2-T3 optional narration planning - 2026-09-14
+
+The optional narration plan is currently a DRAFT and planning work is in progress. It preserves
+the completed P2-T2 typed ASR boundary and truthful `NOT_SUPPLIED`/success/failure provenance.
+This draft does not authorize P2-T3 implementation, model or provider execution, GPU/Lightning
+work, approval-record changes, or a commit. A separate owner approval is required before any
+P2-T3 implementation begins.

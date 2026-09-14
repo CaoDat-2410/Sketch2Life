@@ -1,10 +1,10 @@
 # Task approval
 
 - Status: APPROVED (P1 implementation slice; FEAT-018 P2-T1 D2/D3-R2 with offline Cohorts A+B
-  closed; completed P2-T2 offline contract/mapping implementation; and approved offline P3/P4
-  slices integrated. P2-T3 optional narration planning remains a DRAFT and is not
-  implementation-approved. P2-T2 live Lightning execution, P2-T4 through P2-T5, provider,
-  mobile/shared integration and production scope remain separately gated)
+  closed; completed P2-T2 offline contract/mapping and approved bounded-runner offline
+  implementation; and approved offline P3/P4 slices integrated. P2-T3 optional narration planning
+  remains a DRAFT and is not implementation-approved. P2-T2 live Lightning execution, P2-T4
+  through P2-T5, provider, mobile/shared integration and production scope remain separately gated)
 - Approver: Project owner direct instruction in the current conversation
 - Plan revision: 2
 - Requested scope: FEAT-018 revision 2 P1 implementation slice only: catalog promotion/provenance, Activity Template Library, adult context and deterministic eligibility, semantic-anchor to objective/template selection, ExperienceSpec compilation and fit validation, Gate B identity/version locking, catalog/pilot harness and feature-local evidence.
