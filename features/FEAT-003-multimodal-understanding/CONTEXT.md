@@ -7,6 +7,21 @@
   canonical evidence. Working drafts, review handoffs, templates, and local diagnostic records
   remain intentionally local-only and are not linked from this context.
 
+## P2-T3 Phase B B5 recommendation gate (2026-09-11)
+
+- The approved B1–B5 study is now fully complete. B5's comparison table and recommendation are in
+  `evidence/notes/P2_T3_PHASE_B_B5_RECOMMENDATION.md` (`EV-003-T3-17`), also reflected in
+  `docs/adr/ADR-0007-vision-runtime-dependency-pinning-and-qwen3-vl-candidate-profile.md` and
+  `DECISIONS.md`. The recommendation is `NOT_ENOUGH_EVIDENCE` to freeze
+  `QWEN3_VL_8B_INSTRUCT_BF16_V1`, or any Qwen3-VL candidate, for production or runtime-default use.
+- Neither the original B4 benchmark nor the Direction A prompt-v3 Phase 8 benchmark ever persisted
+  predicted or ground-truth text (`CLASSIFY_ONLY`), so the untested Direction B
+  canonical-vocabulary-mismatch hypothesis cannot be checked by re-scoring existing output; doing so
+  is also independently prohibited by `DECISIONS.md`. No profile is frozen, no runtime default is
+  selected, and this decision does not authorize P2-T4, P2-T5, or any further GPU/Lightning work. A
+  future Direction B experiment remains conceivable but would need its own new plan, approval, and
+  capture/scoring boundary with entirely new fixtures.
+
 ## P2-T4 owner decisions and reconciliation status (2026-09-13)
 
 - The nine P2-T4 owner decisions (B0, B5, B1, B4, B6, B2, B3a, B3b, and B3c) are recorded in
@@ -31,10 +46,11 @@
   the synthetic fixture records eight deterministic cases and keeps mapping/adoption/cutover
   false. Owner confirmation of source preservation and separate approval for any adoption,
   migration, registry cutover, consumer update, or P2-T4 implementation remain open.
-- `approvals/TASK_APPROVAL.md` is unchanged. P2-T4/P2-T5 implementation, schema changes,
-  migrations, runtime wiring, provider/GPU/model work, FEAT-018 changes, and changes to existing
-  fixtures remain outside the approved boundary. The new metadata-only reconciliation fixture is
-  the sole allowed synthetic fixture output and does not exercise runtime behavior.
+- `approvals/TASK_APPROVAL.md` records approval only for the P2-T4 Blocker-0 reconciliation
+  scope. P2-T4/P2-T5 implementation, schema changes, migrations, runtime wiring,
+  provider/GPU/model work, FEAT-018 changes, and changes to existing fixtures remain outside the
+  approved boundary. The new metadata-only reconciliation fixture is the sole allowed synthetic
+  fixture output and does not exercise runtime behavior.
 - The feature-local implementation-approval package draft is recorded at
   evidence/notes/P2_T4_IMPLEMENTATION_APPROVAL_PACKAGE_DRAFT_20260913.md. It expands the
   owner-review field, failure, compatibility, fixture, and gate checklist only; it creates no

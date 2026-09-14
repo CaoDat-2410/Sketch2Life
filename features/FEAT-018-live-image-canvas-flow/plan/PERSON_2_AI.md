@@ -1,12 +1,25 @@
 # FEAT-018 Person 2 — Real image understanding and mapping
 
-## Current progress — 2026-09-10
+## Current progress — 2026-09-12
 
 - P2-T1 D1 image-admission specification: complete and published.
 - P2-T1 D2 isolated implementation: reviewed and accepted; deterministic tests and repository
   validators pass, with no FEAT-003 or provider integration.
-- P2-T1 D3 performance/native-memory evaluation: not started and not approved.
-- P2-T1 remains incomplete; P2-T2 through P2-T5 and shared integration remain separately gated.
+- P2-T1 D3-R2 Cohorts A and B: formally executed, independently verified, owner-approved and
+  published/indexed.
+- P2-T1 is closed for owner-approved offline Cohorts A+B. P2-T2's typed contract boundary and
+  bounded offline implementation are complete at commit `11468d3a5a327697a491f09251a3210987337da0`;
+  live Lightning execution, P2-T3 through P2-T5 and shared integration remain separately gated.
+
+### P2-T2 offline closure — 2026-09-12
+
+The approved offline schema, port, mapper and tests are complete. The final fix validates that any
+supplied ASR result has the same correlation ID as the vision result before mapping; no ASR result,
+matching success, and matching typed failure remain valid paths. The fix was independently verified
+with 17 focused tests, 801 related tests passed (5 skipped), clean ruff/mypy, all repository
+validators and `git diff --check`. No model, GPU, Lightning, provider or network execution occurred.
+The next step requires a separate live-execution approval with an explicit fixture, budget, redaction
+and evidence plan.
 
 ## Mission
 
@@ -40,7 +53,7 @@ Return `PASS` or `RECAPTURE` with stable reason codes. A failed input must not c
 ### P2-T2 — Exact VLM adapter
 
 - Use `Qwen/Qwen3-VL-8B-Instruct` loaded from the local Lightning Studio path.
-- Return only `VisionUnderstandingResultV1`/versioned successor: entities, actions, relations, themes, ambiguous regions, confidence/uncertainty, source reference, provider/model/config provenance.
+- Consume only FEAT-003 `VisionUnderstandingResultV2` through the approved typed boundary: entities, actions, relations, themes, ambiguous regions, confidence/uncertainty, source reference, provider/model/config provenance.
 - Reject free text, prohibited psychological/personality fields, missing provenance, schema drift, oversized output, and stale source/session versions.
 
 ### P2-T3 — Optional narration path
@@ -90,7 +103,7 @@ The output is a proposal/candidate envelope, never an eligibility decision.
 
 ## Handoff contract
 
-P2 publishes `VisionUnderstandingResultV1`, optional `AsrResultV1`, and `RawUnderstandingResultV1` with versioned provenance. P1 consumes observations for candidate mapping; P3 consumes only approved scene inputs; mobile consumes the backend proposal envelope.
+P2 consumes FEAT-003 `VisionUnderstandingResultV2` and publishes FEAT-018-owned `RawUnderstandingResultV1` with versioned provenance; optional `AsrResultV1` remains a separately gated input. P1 consumes observations for candidate mapping; P3 consumes only approved scene inputs; mobile consumes the backend proposal envelope.
 
 ## Definition of done
 
@@ -102,16 +115,18 @@ Before implementation, read [CONTRACT_FREEZE.md](CONTRACT_FREEZE.md). P2 is the 
 
 ### Exact inputs
 
-- `VisionRequestV1` with `SourceMediaReferenceV1` and `media_validation=PASS`.
+- FEAT-003 `VisionUnderstandingRequestV2` with immutable source image reference and
+  `media_validation=PASS` provenance.
 - Optional `AsrRequestV1`; absence is represented by a missing source, never an invented transcript.
 - Transport envelope: `session_id`, `expected_session_version`, `request_id`, idempotency key.
 
 ### Exact outputs
 
-- `VisionUnderstandingResultV1` with entities/actions/relations/themes/ambiguous regions/uncertainty/provenance.
+- FEAT-003 `VisionUnderstandingResultV2` with entities/actions/relations/themes/ambiguous regions/uncertainty/provenance, consumed without modifying its schema or runtime.
 - `AsrResultV1` when audio exists.
 - `RawUnderstandingResultV1` preserving modality, claims, conflicts, and `gate_a_required=true`.
-- `AdapterFailureV1` on failure; never HTTP-only free text.
+- A typed `RawUnderstandingResultV1` failure branch mapped from the upstream V2 failure; never
+  HTTP-only free text.
 
 ### Contract tests owned by P2
 

@@ -1,0 +1,36 @@
+{
+  "contractVersion": "1.0.0",
+  "runtimePolicy": "SELECT_ONLY_NO_GENERATION",
+  "selection": {
+    "ART_PLAN_READY": {
+      "required": ["original-child-art"],
+      "optional": ["pixi.scene.butterfly", "pixi.scene.flower", "pixi.motion.path-dots", "pixi.motion.sparkle"],
+      "rule": "original-child-art remains the identity source; optional SVGs are decorative context only"
+    },
+    "CONTEXT_READY": {
+      "required": ["pixi.activity.learning-goal"],
+      "optional": ["pixi.scene.sun", "pixi.scene.grass"],
+      "rule": "learning objective context may be shown without changing the source drawing"
+    },
+    "VIDEO_DEFERRED": {
+      "required": [],
+      "optional": ["pixi.motion.sparkle"],
+      "rule": "do not claim a video asset; retain deferred status"
+    },
+    "HANDOFF_READY": {
+      "required": ["pixi.activity.material-basket", "pixi.activity.adult-guide", "pixi.activity.safety-shield"],
+      "optional": ["pixi.activity.timer", "pixi.activity.learning-goal", "pixi.scene.flower"],
+      "rule": "activity assets support instructions and supervision; they do not replace real-world materials"
+    },
+    "FEEDBACK_RECORDED": {
+      "required": ["pixi.activity.feedback"],
+      "optional": [],
+      "rule": "feedback symbol is informational only"
+    },
+    "WHOLE_DRAWING_FALLBACK": {
+      "required": ["original-child-art"],
+      "optional": [],
+      "rule": "use the preserved original artifact and no generated substitute"
+    }
+  }
+}

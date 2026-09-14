@@ -77,6 +77,28 @@ class SemanticAnchorSetV1(P1ContractBase):
         return self
 
 
+class SemanticMatchEvidenceV1(P1ContractBase):
+    contract_name: Literal["SemanticMatchEvidenceV1"] = "SemanticMatchEvidenceV1"
+    contract_version: Literal["1.0"] = "1.0"
+    match_mode: Literal["EXACT", "ALIAS", "SAFE_FALLBACK"]
+    profile_id: str = Field(min_length=1, max_length=120)
+    profile_version: int = Field(ge=1)
+    score: int = Field(ge=0, le=100)
+    matched_phrases_vi: tuple[str, ...] = ()
+    matched_concept_ids: tuple[str, ...] = ()
+    evidence_claim_ids: tuple[str, ...] = Field(min_length=1)
+    reason_codes: tuple[str, ...] = ()
+    fallback_reason: str | None = Field(default=None, max_length=160)
+
+    @model_validator(mode="after")
+    def validate_fallback_reason(self) -> SemanticMatchEvidenceV1:
+        if self.match_mode == "SAFE_FALLBACK" and not self.fallback_reason:
+            raise ValueError("safe fallback evidence requires fallback_reason")
+        if self.match_mode != "SAFE_FALLBACK" and self.fallback_reason is not None:
+            raise ValueError("exact/alias evidence cannot carry fallback_reason")
+        return self
+
+
 class P1ContextV1(P1ContractBase):
     """Adult-supplied eligibility context; never inferred from media."""
 
@@ -236,6 +258,7 @@ class ExperienceSpecV1(P1ContractBase):
     activity_plan: ActivityPlanV1
     bridge_sentence: BridgeSentenceV1
     fit_evaluation: ActivityFitEvaluationV1
+    semantic_match: SemanticMatchEvidenceV1 | None = None
     policy_versions: tuple[str, ...] = Field(min_length=1)
     spec_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
 

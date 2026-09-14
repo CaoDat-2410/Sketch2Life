@@ -117,6 +117,29 @@
   time or decoding memory, and it does not close the validation-to-inference mutation window.
 - Approved at: 2026-09-10, project owner direct instruction in the current conversation.
 
+## FEAT-018 cross-feature consumption addendum — 2026-09-12
+
+The project owner approves FEAT-018 P2-T2 consumption of the already-approved FEAT-003 Phase B
+typed boundary, limited to the following canonical contracts and adapter boundary:
+
+- `backend/src/sketch2life/contracts/schemas/vision_v2.py`: `VisionUnderstandingRequestV2`,
+  `VisionUnderstandingResultV2`, its success/failure variants, `VisionProfileV2`, and
+  `VisionModelProvenanceV1`.
+- `backend/src/sketch2life/infrastructure/ai/qwen_vision.py`: the typed local Qwen adapter/port
+  boundary, including its in-process test seam and subprocess-isolated runtime design.
+
+Ownership remains FEAT-003. This is a read/consume permission only. FEAT-018 must not modify
+FEAT-003 schemas, Qwen runtime, profiles, dependency pins, benchmarks, fixtures, approval evidence,
+or Phase B results. FEAT-018 must not use FEAT-017's flat `understanding.py` contract or remote
+HTTPS `LightningVisionAdapter` for P2-T2. The FEAT-003 contract identity and source revision must
+be recorded in FEAT-018 implementation evidence; drift requires renewed review.
+
+This addendum does not authorize FEAT-018 implementation by itself, model-weight download, GPU or
+Lightning execution, provider/network calls, credentials, mobile/API/session/job/database/queue
+wiring, Gate A UI, P1 eligibility, P3/P4, shared integration, or any FEAT-003 modification.
+
+Approved at: 2026-09-12, project owner direct instruction in the current conversation.
+
 ## Current approved scope — P2-T4 Blocker-0 contract reconciliation — 2026-09-13
 
 - Scope: the separately bounded contract-reconciliation workstream described in

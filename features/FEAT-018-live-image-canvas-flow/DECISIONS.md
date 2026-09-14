@@ -39,3 +39,70 @@
   This decision authorizes recording and committing the reviewed D2 output only. It does not
   approve D3 measurement, mark P2-T1 complete, connect FEAT-003 producers, or authorize
   Qwen/ASR, mobile, Gate A, shared integration, public-schema migration, push or PR creation.
+
+- 2026-09-11: Use `origin/feature/feat018-p2-image-validation` as the canonical P2 branch for FEAT-018 offline integration. Merge commit `627260c` connects the reviewed P2-T1 D2 image-admission slice to `codex/feat-018-contract-plan`; the other P2 branches remain research-only references. This does not authorize D3 measurement, FEAT-003 producer migration, live provider execution, mobile/public-schema integration, P3/P4 implementation, or production deployment.
+
+- 2026-09-11: Integrate the approved P3 renderer and latest approved P4 media branches into the FEAT-018 integration branch. Keep P3 source-art preservation and renderer fallback, and keep P4 objective/activity/template identity propagation through cache and fallback. Root replay entrypoint `scripts/replay_learning_media.py` is part of the P4 integration so the feature replay test runs from a clean checkout. No live provider, Android/mobile, production asset or production deployment scope is opened.
+
+
+- 2026-09-11: Implement the approved P1 strict continuity polish as an application/compiler-only policy revision. `P1_STRICT_CONTINUITY_V1` requires exact anchor label/tag and semantic-kind compatibility, objective membership, consistent bridge/media/activity identities and a matching `ExperienceSpecV1.spec_sha256` before Gate B approval. Existing contract versions and P2/P3/P4 consumers remain unchanged; unrelated, ambiguous or tampered fixture flows block closed.
+
+
+- 2026-09-11: Implement the approved P1 catalog and Gate integrity polish without changing contracts or downstream code. Exclude `OBJ_*` and broad area taxonomy labels from anchor metadata; treat optional selected activity/objective refs as exact constraints when present; use one Gate B approval path; and fail closed on duplicate template IDs, missing objective titles, spec ID drift and spec hash drift.
+
+- 2026-09-11: Add an offline provider-shaped compatibility suite at the P1 boundary. Keep Qwen3-VL-8B-Instruct and Whisper large-v3-turbo identifiers in provenance only; validate provider outputs through the existing strict adapters, require adult confirmation before P1, and preserve source/hash/contract identity. Live provider execution remains separately gated.
+
+- 2026-09-10 D3-R2 approval decision: approve the isolated P2-T1 offline performance/native-memory
+  evaluation plan and D3-U1 through D3-U6. The 5-second target binds only to the committed D2
+  `admit()` interval. The 256-MiB target binds only to the conservative `[L,U]` working-set bracket;
+  a crossing bracket is `INCONCLUSIVE`, never a pass. Cohort A implementation/execution may begin.
+  Cohort B execution remains gated on owner visual review of the actual eight non-sensitive images,
+  and completed sanitized evidence requires owner review before indexing or closing D3/P2-T1. No
+  D2, FEAT-003, provider, mobile, Gate A, public-contract or production-isolation scope is approved.
+
+- 2026-09-10 D3 implementation-state record: the approved D3-R2 harness and deterministic Cohort A
+  manifest are implemented and preflight-verified. The 320-sample run is explicitly non-reporting
+  because it used an uncommitted working tree; it cannot be indexed, treated as canonical target
+  evidence, or used to close D3/P2-T1. Formal execution must identify the exact reviewed commit.
+  Cohort B and completed-output publication gates are unchanged.
+
+- 2026-09-11 D3 double-review record: two explicit review passes were completed against the
+  implementation and tests. The first pass covered protocol/contract correctness and scope
+  isolation; the second covered adversarial inputs, stdin/output limits, cleanup, privacy,
+  Win32-memory validation and aggregation/statistics. Verified fixes are limited to the D3 harness:
+  asynchronous bounded stdin writing, rejection of untracked worktrees for formal runs, timing
+  status recomputation during aggregation, strict environment-envelope validation, and a narrow
+  exception for missing digests only on byte-budget rejection. Regression tests cover each fix.
+  D2 behavior, FEAT-003 and all downstream scopes remain unchanged; formal exact-commit execution,
+  owner review and evidence indexing remain pending.
+
+- 2026-09-11 owner approval and closure decision: approve the Formal Cohort A execution at commit
+  `c77230ca1593d5cd31098b5e58f3ff2a13d18a63`, including the sanitized metrics artifact and the
+  independent verification report. Index both reports and the JSON metrics under FEAT-018 evidence
+  and close D3/P2-T1 for the synthetic Cohort A scope only. Cohort B remains unapproved and must
+  retain its visual-source gate. No D2, FEAT-003, provider, mobile, public-contract or shared
+  integration scope is thereby authorized.
+
+- 2026-09-12 owner approval and closure decision: approve the Formal Cohort B execution and its
+  independent verification with verdict `PASS WITH FINDINGS`. The 24-sample result (eight images,
+  three fresh-process repeats each) is accepted with zero data discrepancies. Index the sanitized
+  Cohort B report, metrics and independent verification, update the feature context and plan, and
+  close D3/P2-T1 for the offline Cohort A+B scope. Carry the three verification findings as
+  follow-up work; no Cohort B rerun is required. Provider, mobile, Gate A, public-contract and
+  shared-integration scopes remain separately gated.
+
+- 2026-09-12 P2-T2 contract decision: supersede the 2026-09-07 FEAT-018 V1 freeze for this task.
+  FEAT-018 P2-T2 consumes FEAT-003's typed `VisionUnderstandingResultV2` through the approved
+  `vision_v2.py`/`qwen_vision.py` boundary; ownership remains FEAT-003 and no FEAT-003 change is
+  authorized. FEAT-017's flat V1 and remote HTTPS `LightningVisionAdapter` are not used. FEAT-018
+  owns a separate `RawUnderstandingResultV1` with typed observation groups, `0..1` confidence,
+  required source hash, typed failures, preserved ambiguity/conflicts and mandatory Gate A. The
+  exact bounded file list is approved for offline implementation only. Live Lightning/GPU/model
+  execution, provider/network calls and downstream integration require separate approval.
+
+- 2026-09-12 P2-T2 offline closure decision: approve the implementation and ASR correlation fix at
+  commit `11468d3a5a327697a491f09251a3210987337da0`. The mapper rejects a supplied ASR result whose
+  correlation ID differs from the vision result before constructing Raw output; matching, absent and
+  typed-failure ASR cases remain supported. Focused and related tests, lint/type checks, repository
+  validators and diff checks passed. This closes only the offline P2-T2 contract/mapping slice;
+  live Lightning/GPU/model execution and all downstream/provider/mobile/shared scopes remain gated.

@@ -2,7 +2,8 @@
 
 - Revision: P2-R1, 2026-09-09
 - Status: PARTIALLY APPROVED; the isolated P2-T1 image-admission D2 sub-slice is reviewed and
-  accepted. D3, the remainder of O1, O2–O5 and all integration remain unapproved.
+  accepted, and the D3-R2 harness is implemented/preflight-verified with formal execution/review
+  still pending. The remainder of O1, O2–O5 and all integration remain unapproved.
 - Parent: FEAT-018 revision 2. This proposal does not replace the approved P1 slice or freeze shared contracts.
 - Research: round-1 working report retained locally; not a canonical public record.
 - Owner: Person 2. Any FEAT-003 edit or connection requires user review first.
@@ -50,7 +51,8 @@ Confirmation input sketch: proposal ID/version, source hash, confirmed claim IDs
 
 Progress (2026-09-10): the isolated bounded image-admission D2 subset is reviewed and accepted.
 It covers snapshot acquisition, decode admission, provenance and deterministic fixtures only.
-Image-quality scoring, missing-narration composition and D3 performance/native-memory evaluation
+Image-quality scoring and missing-narration composition remain unapproved. D3-R2's harness is
+implemented and preflight-verified, but formal exact-commit execution and owner-reviewed evidence
 remain outstanding, so O1 and P2-T1 are not complete.
 
 - Maps to FEAT018-P2-T1 and the missing-audio part of T3.
