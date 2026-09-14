@@ -1,443 +1,1055 @@
-"""Offline-safe orchestration boundary for the FEAT-018 live Lightning smoke path.
+"""FEAT-018 P2-T2 bounded live-Lightning smoke coordinator (offline-implementation stage).
 
-This module owns only the execution control plane.  The existing Qwen adapter remains the
-authority for prompt-to-model mapping, schema validation, policy evaluation, and its one
-explicit transient retry.  The runner below supplies the missing killable/bounded process
-seam; it never exposes provider output, provider exceptions, or runtime paths to the caller.
+Approved scope: see the owner-approved package at
+``features/FEAT-018-live-image-canvas-flow/evidence/notes/P2_T2_BOUNDED_RUNNER_IMPLEMENTATION_APPROVAL_PACKAGE_DRAFT_20260914.md``
+(revision 5) and the "Approved P2-T2 bounded-runner offline implementation addendum" in
+``features/FEAT-018-live-image-canvas-flow/approvals/TASK_APPROVAL.md``. This module and its test
+file are the exact and only approved implementation surface. It never modifies
+``sketch2life.infrastructure.ai.qwen_vision`` or any other FEAT-003/FEAT-017 source; it consumes
+``QwenVisionAdapter`` only through its existing ``generation_runner`` injection seam.
 
-Importing this module does not load an optional model package, inspect CUDA, contact Lightning,
-or start a process.  A real process is created only when the runner's ``generate`` method is
-called without an injected process seam.
+Nothing in this module opens a Lightning session, loads a model, uses a GPU, or calls a network
+or provider endpoint. Real subprocess/containment code exists here because it is the eventual
+live-run mechanism, but it is never exercised by this module's own offline test suite, which
+drives every class through injected fakes (fake clocks, fake process launchers, fake containment
+backends, fake filesystems). A live run requires a separate, later execution approval that
+resolves ``P2T2-LIVE-D1`` through ``P2T2-LIVE-D12``.
 """
 
 from __future__ import annotations
 
-import gc
-import io
+import contextlib
+import ctypes
 import json
 import math
 import multiprocessing
 import os
-import signal
-import subprocess
 import sys
 import time
-from collections.abc import Callable, Iterator, Mapping
-from contextlib import contextmanager, redirect_stderr, redirect_stdout, suppress
-from dataclasses import dataclass
-from datetime import UTC, datetime
+import uuid
+from collections.abc import Callable, Mapping
+from dataclasses import dataclass, field
 from enum import StrEnum
 from hashlib import sha256
 from pathlib import Path
-from typing import Any, Literal, Protocol, TypeGuard, cast
+from typing import Any, Protocol, cast
 
 from sketch2life.application.ports.vision_content_policy import ObservableContentPolicyV1
-from sketch2life.application.ports.vision_understanding_v2 import VisionUnderstandingPortV2
-from sketch2life.contracts.schemas.vision import VisionErrorCode
 from sketch2life.contracts.schemas.vision_v2 import (
-    VisionNonPolicyErrorDetailV2,
     VisionProfileV2,
-    VisionUnderstandingFailureV2,
     VisionUnderstandingRequestV2,
-    VisionUnderstandingResultV2,
     VisionUnderstandingSuccessV2,
-    vision_profile_catalog_hash_v2,
-    vision_profile_catalog_v2,
 )
 from sketch2life.infrastructure.ai.qwen_vision import (
     QwenDeviceUnavailableError,
-    QwenGenerationRunner,
     QwenModelLoadError,
     QwenPermanentRuntimeError,
     QwenTimeoutError,
-    QwenTransientRuntimeError,
     QwenVisionAdapter,
-    _default_model_factory,
-    _generate_from_bundle,
 )
 from sketch2life.infrastructure.ai.qwen_vision_runtime_config import QwenVisionRuntimeConfig
 
-PER_ATTEMPT_TIMEOUT_SECONDS = 120.0
-"""The approved V2 profile deadline; it is deliberately not configurable for live use."""
-
-_PROCESS_JOIN_GRACE_SECONDS = 1.0
-_MAX_IDENTIFIER_LENGTH = 160
-_SAFE_IDENTIFIER_PATTERN = frozenset(
-    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._:-"
-)
-_HASH_LENGTH = 64
+# --------------------------------------------------------------------------------------
+# Exceptions
+# --------------------------------------------------------------------------------------
 
 
-class LiveLightningExecutionFailureCode(StrEnum):
-    """Closed coordinator failures safe to place in a report."""
-
-    PRE_ADAPTER_REJECTED = "PRE_ADAPTER_REJECTED"
-    PROMPT_HASH_MISMATCH = "PROMPT_HASH_MISMATCH"
-    TOTAL_ADAPTER_CAP_EXCEEDED = "TOTAL_ADAPTER_CAP_EXCEEDED"
-    PER_ATTEMPT_TIMEOUT = "PER_ATTEMPT_TIMEOUT"
-    MALFORMED_CHILD_RESPONSE = "MALFORMED_CHILD_RESPONSE"
-    RAW_OUTPUT_TOO_LARGE = "RAW_OUTPUT_TOO_LARGE"
-    IPC_ENVELOPE_TOO_LARGE = "IPC_ENVELOPE_TOO_LARGE"
-    STDOUT_TOO_LARGE = "STDOUT_TOO_LARGE"
-    STDERR_TOO_LARGE = "STDERR_TOO_LARGE"
-    PROCESS_START_FAILED = "PROCESS_START_FAILED"
-    PROCESS_TERMINATION_FAILED = "PROCESS_TERMINATION_FAILED"
-    ADAPTER_RESULT_MALFORMED = "ADAPTER_RESULT_MALFORMED"
-    INVALID_CARDINALITY = "INVALID_CARDINALITY"
-    ADAPTER_EXCEPTION = "ADAPTER_EXCEPTION"
-    MAPPER_FAILED = "MAPPER_FAILED"
-    CLEANUP_FAILED = "CLEANUP_FAILED"
-    EVIDENCE_FAILED = "EVIDENCE_FAILED"
+class Feat018ProtocolViolationError(Exception):
+    """A supervisor IPC frame violated the bounded framing or state-machine contract."""
 
 
-class GenerationAttemptOutcome(StrEnum):
-    """Safe per-call trace tokens; no provider detail is retained."""
+class Feat018ContainmentError(Exception):
+    """Containment could not be created, established, verified, or torn down."""
 
-    SUCCESS = "SUCCESS"
-    MODEL_LOAD_FAILED = "MODEL_LOAD_FAILED"
-    DEVICE_UNAVAILABLE = "DEVICE_UNAVAILABLE"
-    TIMEOUT = "TIMEOUT"
-    TRANSIENT_RUNTIME_FAILURE = "TRANSIENT_RUNTIME_FAILURE"
-    PERMANENT_RUNTIME_FAILURE = "PERMANENT_RUNTIME_FAILURE"
+
+class Feat018CleanupFailedError(Exception):
+    """Cleanup could not confirm the containment (and everything in it) is terminated."""
+
+
+class Feat018LauncherError(Exception):
+    """A bounded generation or adapter process could not be launched."""
+
+
+class Feat018EvidenceCommitError(Exception):
+    """The evidence pair could not reach the authoritative committed state."""
+
+
+class Feat018FrameTooLargeError(Feat018ProtocolViolationError):
+    """A payload exceeded its configured byte ceiling before it was allowed to cross IPC."""
+
+
+def _positive_finite_float(value: object) -> float | None:
+    """Return a duration only when it is a real, finite, strictly positive number."""
+
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    try:
+        converted = float(value)
+    except (OverflowError, ValueError):
+        return None
+    if not math.isfinite(converted) or converted <= 0:
+        return None
+    return converted
+
+
+# --------------------------------------------------------------------------------------
+# Configuration
+# --------------------------------------------------------------------------------------
 
 
 @dataclass(frozen=True, slots=True)
-class LiveLightningExecutionCaps:
-    """Explicit execution ceilings for one adapter call.
+class Feat018BoundedRunnerConfig:
+    """Every numeric bound this package's design requires to be explicit and positive.
 
-    The plan fixes the per-attempt deadline at 120 seconds.  The live plan leaves the total,
-    raw-output, IPC, stdout, and stderr values to the owner approval, so those values are
-    required constructor inputs rather than invented defaults.
+    Nothing here is authorized by this file alone: every value must be named by a future,
+    separate live-execution approval resolving ``P2T2-LIVE-D2`` (TTL/budget) and
+    ``P2T2-LIVE-D9`` (byte ceilings). This dataclass only proves the bounds are enforceable.
     """
 
     total_adapter_cap_seconds: float
     raw_output_max_bytes: int
     ipc_envelope_max_bytes: int
-    stdout_max_bytes: int
-    stderr_max_bytes: int
-    per_attempt_timeout_seconds: float = PER_ATTEMPT_TIMEOUT_SECONDS
+    stdout_max_bytes: int = 0
+    stderr_max_bytes: int = 0
+    cleanup_deadline_seconds: float = 5.0
+    containment_setup_timeout_seconds: float = 5.0
+    posix_confirmation_timeout_seconds: float = 2.0
+    posix_confirmation_retry_interval_seconds: float = 0.02
+    per_attempt_timeout_seconds: float = 120.0
+    poll_interval_seconds: float = 0.05
 
     def __post_init__(self) -> None:
-        if (
-            not math.isfinite(self.total_adapter_cap_seconds)
-            or self.total_adapter_cap_seconds <= 0
-        ):
-            raise ValueError("total_adapter_cap_seconds must be finite and positive")
-        if self.per_attempt_timeout_seconds != PER_ATTEMPT_TIMEOUT_SECONDS:
-            raise ValueError("per_attempt_timeout_seconds must be the approved 120-second value")
-        _require_positive_integer(self.raw_output_max_bytes, "raw_output_max_bytes")
-        _require_positive_integer(self.ipc_envelope_max_bytes, "ipc_envelope_max_bytes")
-        _require_non_negative_integer(self.stdout_max_bytes, "stdout_max_bytes")
-        _require_non_negative_integer(self.stderr_max_bytes, "stderr_max_bytes")
+        if self.total_adapter_cap_seconds <= 0:
+            raise ValueError("total_adapter_cap_seconds must be positive")
+        if self.raw_output_max_bytes <= 0:
+            raise ValueError("raw_output_max_bytes must be a positive integer (D9)")
+        if self.ipc_envelope_max_bytes <= 0:
+            raise ValueError("ipc_envelope_max_bytes must be a positive integer (D9)")
+        if self.stdout_max_bytes < 0:
+            raise ValueError("stdout_max_bytes must be a non-negative integer (D9)")
+        if self.stderr_max_bytes < 0:
+            raise ValueError("stderr_max_bytes must be a non-negative integer (D9)")
+        if self.cleanup_deadline_seconds <= 0:
+            raise ValueError("cleanup_deadline_seconds must be positive")
+        if self.containment_setup_timeout_seconds <= 0:
+            raise ValueError("containment_setup_timeout_seconds must be positive")
+        if self.posix_confirmation_timeout_seconds <= 0:
+            raise ValueError("posix_confirmation_timeout_seconds must be positive")
+        if self.posix_confirmation_retry_interval_seconds <= 0:
+            raise ValueError("posix_confirmation_retry_interval_seconds must be positive")
+        if self.per_attempt_timeout_seconds <= 0 or self.per_attempt_timeout_seconds > 120.0:
+            raise ValueError("per_attempt_timeout_seconds must be in (0, 120.0]")
+        if self.poll_interval_seconds <= 0:
+            raise ValueError("poll_interval_seconds must be positive")
 
 
-def _require_positive_integer(value: int, label: str) -> None:
-    if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
-        raise ValueError(f"{label} must be a positive integer")
+# --------------------------------------------------------------------------------------
+# Bounded frame envelope (byte-boundary and receive-side limits)
+# --------------------------------------------------------------------------------------
 
 
-def _require_non_negative_integer(value: int, label: str) -> None:
-    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
-        raise ValueError(f"{label} must be a non-negative integer")
+def encode_envelope(payload: Mapping[str, object], *, max_bytes: int) -> bytes:
+    """Canonical, size-proven JSON bytes. Raises before any oversized value can be sent.
+
+    This is "proving the envelope fits its exact byte ceiling before sending": the caller
+    must call this before ``Connection.send_bytes`` and never send an unbounded value.
+    """
+
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    if len(encoded) > max_bytes:
+        raise Feat018FrameTooLargeError(
+            f"envelope of {len(encoded)} bytes exceeds the {max_bytes}-byte ceiling"
+        )
+    return encoded
 
 
-class _ConnectionLike(Protocol):
-    def poll(self, timeout: float) -> bool: ...
+def decode_envelope(raw: bytes) -> dict[str, object]:
+    """Decode a frame already proven to be within its byte ceiling by the transport."""
 
-    def recv_bytes(self, maxlength: int = -1) -> bytes: ...
+    try:
+        parsed = json.loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, ValueError) as exc:
+        raise Feat018ProtocolViolationError("malformed envelope: not valid UTF-8 JSON") from exc
+    if not isinstance(parsed, dict):
+        raise Feat018ProtocolViolationError("malformed envelope: root is not a JSON object")
+    return parsed
 
-    def send_bytes(self, buffer: bytes) -> None: ...
+
+class BoundedConnection(Protocol):
+    """The bounded supervisor<->worker transport seam, real or fake.
+
+    A real implementation wraps :class:`multiprocessing.connection.Connection`, whose own
+    ``recv_bytes(maxlength=...)`` already reads and checks a declared frame length before
+    reading or returning any payload byte -- exactly the "validate the declared frame length
+    before accepting or decoding the payload" requirement -- so no hand-rolled length header
+    is reinvented here.
+    """
+
+    def send_frame(self, payload: Mapping[str, object]) -> None: ...
+
+    def recv_frame(self, timeout: float) -> dict[str, object] | None:
+        """Return the next frame, or ``None`` if none arrives within ``timeout`` seconds."""
 
     def close(self) -> None: ...
 
 
-class _ProcessLike(Protocol):
-    pid: int | None
+class _RawConnection(Protocol):
+    """The subset of ``multiprocessing.connection.Connection`` this module depends on.
 
-    def start(self) -> None: ...
+    A structural protocol (rather than the concrete ``Connection`` class) so both the POSIX
+    ``Connection`` and the Windows ``PipeConnection`` returned by ``multiprocessing.Pipe``
+    satisfy it without a cross-platform generic mismatch.
+    """
+
+    def send_bytes(self, buf: bytes) -> None: ...
+
+    def recv_bytes(self, maxlength: int | None = None) -> bytes: ...
+
+    def poll(self, timeout: float | None = None) -> bool: ...
+
+    def close(self) -> None: ...
+
+
+@dataclass(slots=True)
+class MultiprocessingBoundedConnection:
+    """Real transport: one :class:`multiprocessing.connection.Connection` end, bounded."""
+
+    connection: _RawConnection
+    max_envelope_bytes: int
+
+    def send_frame(self, payload: Mapping[str, object]) -> None:
+        self.connection.send_bytes(encode_envelope(payload, max_bytes=self.max_envelope_bytes))
+
+    def recv_frame(self, timeout: float) -> dict[str, object] | None:
+        if timeout <= 0 or not self.connection.poll(max(timeout, 0.0)):
+            return None
+        try:
+            raw = self.connection.recv_bytes(maxlength=self.max_envelope_bytes)
+        except OSError as exc:
+            raise Feat018ProtocolViolationError(
+                "declared frame length exceeds the IPC envelope ceiling"
+            ) from exc
+        except EOFError:
+            return None
+        return decode_envelope(raw)
+
+    def close(self) -> None:
+        with contextlib.suppress(OSError):
+            self.connection.close()
+
+
+# --------------------------------------------------------------------------------------
+# Supervisor progress state machine and deadline freeze
+# --------------------------------------------------------------------------------------
+
+
+class ProgressState(StrEnum):
+    NOT_STARTED = "NOT_STARTED"
+    ADAPTER_STARTED = "ADAPTER_STARTED"
+    GENERATION_ATTEMPT_1 = "GENERATION_ATTEMPT_STARTED_1"
+    GENERATION_ATTEMPT_2 = "GENERATION_ATTEMPT_STARTED_2"
+    TERMINAL = "TERMINAL"
+    FROZEN = "FROZEN"
+
+
+class ProgressEventKind(StrEnum):
+    ADAPTER_STARTED = "ADAPTER_STARTED"
+    GENERATION_ATTEMPT_STARTED = "GENERATION_ATTEMPT_STARTED"
+    TERMINAL = "TERMINAL"
+
+
+class AcceptanceResult(StrEnum):
+    """Every disposition :meth:`Feat018ProgressStateMachine.accept` can return."""
+
+    ACCEPTED = "ACCEPTED"
+    REJECTED_DUPLICATE = "REJECTED_DUPLICATE"
+    REJECTED_GAP = "REJECTED_GAP"
+    REJECTED_INVALID_TRANSITION = "REJECTED_INVALID_TRANSITION"
+    REJECTED_DEADLINE = "REJECTED_DEADLINE"
+    REJECTED_CLOSED = "REJECTED_CLOSED"
+
+
+@dataclass(frozen=True, slots=True)
+class ProgressEvent:
+    """One worker-authored, sequenced event. Never carries raw output or prompt text."""
+
+    seq: int
+    kind: ProgressEventKind
+    attempt_number: int | None = None
+    outcome: str | None = None
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.seq, int) or isinstance(self.seq, bool) or self.seq < 1:
+            raise ValueError("seq must start at 1")
+        if not isinstance(self.kind, ProgressEventKind):
+            raise ValueError("kind must be a ProgressEventKind")
+        if isinstance(self.attempt_number, bool):
+            raise ValueError("attempt_number must be an integer")
+        if self.kind is ProgressEventKind.GENERATION_ATTEMPT_STARTED:
+            if self.attempt_number not in (1, 2):
+                raise ValueError("GENERATION_ATTEMPT_STARTED requires attempt_number in {1, 2}")
+        elif self.attempt_number is not None:
+            raise ValueError(f"{self.kind} must not carry attempt_number")
+        if self.kind is ProgressEventKind.TERMINAL and self.outcome not in ("SUCCEEDED", "FAILED"):
+            raise ValueError("TERMINAL requires a bounded outcome")
+        if self.kind is not ProgressEventKind.TERMINAL and self.outcome is not None:
+            raise ValueError(f"{self.kind} must not carry an outcome")
+
+
+_VALID_TRANSITIONS: dict[ProgressState, frozenset[ProgressEventKind]] = {
+    ProgressState.NOT_STARTED: frozenset({ProgressEventKind.ADAPTER_STARTED}),
+    ProgressState.ADAPTER_STARTED: frozenset(
+        {ProgressEventKind.GENERATION_ATTEMPT_STARTED, ProgressEventKind.TERMINAL}
+    ),
+    ProgressState.GENERATION_ATTEMPT_1: frozenset(
+        {ProgressEventKind.GENERATION_ATTEMPT_STARTED, ProgressEventKind.TERMINAL}
+    ),
+    ProgressState.GENERATION_ATTEMPT_2: frozenset({ProgressEventKind.TERMINAL}),
+    ProgressState.TERMINAL: frozenset(),
+    ProgressState.FROZEN: frozenset(),
+}
+
+
+class Feat018ProgressStateMachine:
+    """The exact, closed acceptance rule from "Supervisor progress state machine..." .
+
+    ``cap_deadline_monotonic`` here is always the *supervisor's own* authoritative deadline
+    (see :class:`Feat018AdapterCallSupervisor`), never a worker-advised value.
+    """
+
+    def __init__(self, *, cap_deadline_monotonic: float) -> None:
+        self._cap_deadline_monotonic = cap_deadline_monotonic
+        self._state = ProgressState.NOT_STARTED
+        self._last_accepted_seq = 0
+        self._attempt_count: int | None = None
+        self._terminal_outcome: str | None = None
+
+    @property
+    def state(self) -> ProgressState:
+        return self._state
+
+    @property
+    def attempt_count(self) -> int | None:
+        return self._attempt_count
+
+    @property
+    def terminal_outcome(self) -> str | None:
+        return self._terminal_outcome
+
+    def force_freeze(self) -> None:
+        """Called by the supervisor when its own bounded wait times out with no event at all."""
+
+        if self._state not in (ProgressState.TERMINAL, ProgressState.FROZEN):
+            self._state = ProgressState.FROZEN
+
+    def accept(self, event: ProgressEvent, *, acceptance_time: float) -> AcceptanceResult:
+        """Apply one event. ``acceptance_time`` must be the supervisor's own clock reading
+        captured when the complete, framing-validated frame first became available --
+        never when it started arriving, and never recomputed afterward by the caller.
+        """
+
+        if self._state in (ProgressState.TERMINAL, ProgressState.FROZEN):
+            return AcceptanceResult.REJECTED_CLOSED
+        if _positive_finite_float(self._cap_deadline_monotonic - acceptance_time) is None:
+            self._state = ProgressState.FROZEN
+            return AcceptanceResult.REJECTED_DEADLINE
+        if event.seq <= self._last_accepted_seq:
+            return AcceptanceResult.REJECTED_DUPLICATE
+        if event.seq > self._last_accepted_seq + 1:
+            return AcceptanceResult.REJECTED_GAP
+        if event.kind not in _VALID_TRANSITIONS[self._state]:
+            return AcceptanceResult.REJECTED_INVALID_TRANSITION
+        if (
+            event.kind is ProgressEventKind.GENERATION_ATTEMPT_STARTED
+            and event.attempt_number == 1
+            and self._state is not ProgressState.ADAPTER_STARTED
+        ):
+            return AcceptanceResult.REJECTED_INVALID_TRANSITION
+        if (
+            event.kind is ProgressEventKind.GENERATION_ATTEMPT_STARTED
+            and event.attempt_number == 2
+            and self._state is not ProgressState.GENERATION_ATTEMPT_1
+        ):
+            return AcceptanceResult.REJECTED_INVALID_TRANSITION
+
+        self._last_accepted_seq = event.seq
+        if event.kind is ProgressEventKind.ADAPTER_STARTED:
+            self._state = ProgressState.ADAPTER_STARTED
+        elif event.kind is ProgressEventKind.GENERATION_ATTEMPT_STARTED:
+            self._attempt_count = event.attempt_number
+            self._state = (
+                ProgressState.GENERATION_ATTEMPT_1
+                if event.attempt_number == 1
+                else ProgressState.GENERATION_ATTEMPT_2
+            )
+        else:
+            self._terminal_outcome = event.outcome
+            self._state = ProgressState.TERMINAL
+        return AcceptanceResult.ACCEPTED
+
+
+# --------------------------------------------------------------------------------------
+# Containment: race-free CONTAINMENT_READY gate protocol
+# --------------------------------------------------------------------------------------
+
+
+class ProcessHandle(Protocol):
+    """The minimal process-control seam the supervisor and containment backends need."""
+
+    @property
+    def pid(self) -> int | None: ...
 
     def is_alive(self) -> bool: ...
 
-    def join(self, timeout: float | None = None) -> None: ...
-
     def terminate(self) -> None: ...
 
+    def kill(self) -> None: ...
 
-ProcessFactory = Callable[..., _ProcessLike]
-PipeFactory = Callable[[], tuple[_ConnectionLike, _ConnectionLike]]
-ProcessTreeTerminator = Callable[[_ProcessLike], None]
-ResourceCleanup = Callable[[], None]
-RawMapper = Callable[..., object]
+    def join(self, timeout: float | None = None) -> None: ...
 
 
-class _RunnerFailure(Exception):
-    """Internal fixed-code runner failure; its message never crosses the adapter boundary."""
+class _LaunchProcess(ProcessHandle, Protocol):
+    """A process handle before launch, which additionally supports ``start()``."""
 
-    def __init__(self, code: LiveLightningExecutionFailureCode) -> None:
-        self.code = code
-
-
-class _StreamLimitExceeded(Exception):
-    def __init__(self, stream_name: Literal["stdout", "stderr"]) -> None:
-        self.stream_name = stream_name
+    def start(self) -> None: ...
 
 
-class _BoundedTextSink(io.TextIOBase):
-    """Count a child stream without retaining any stream contents."""
+class _MultiprocessingContext(Protocol):
+    """The injectable subset of a spawn multiprocessing context used by the launcher."""
 
-    def __init__(self, stream_name: Literal["stdout", "stderr"], max_bytes: int) -> None:
-        super().__init__()
-        self._stream_name = stream_name
-        self._max_bytes = max_bytes
-        self._written_bytes = 0
+    def Pipe(self, duplex: bool = True) -> tuple[_RawConnection, _RawConnection]: ...
 
-    @property
-    def encoding(self) -> str:  # type: ignore[override]
-        return "utf-8"
+    def Process(
+        self,
+        *,
+        target: Callable[..., None],
+        args: tuple[object, ...],
+        daemon: bool,
+    ) -> _LaunchProcess: ...
 
-    def write(self, text: str) -> int:
-        if not isinstance(text, str):
-            raise TypeError("bounded stream accepts text only")
-        try:
-            encoded_length = len(text.encode("utf-8"))
-        except UnicodeError as exc:
-            raise _StreamLimitExceeded(self._stream_name) from exc
-        if self._written_bytes + encoded_length > self._max_bytes:
-            raise _StreamLimitExceeded(self._stream_name)
-        self._written_bytes += encoded_length
-        return len(text)
 
-    def flush(self) -> None:
+def _default_spawn_context() -> _MultiprocessingContext:
+    return cast(_MultiprocessingContext, multiprocessing.get_context("spawn"))
+
+
+def _default_bounded_connection_factory(
+    connection: _RawConnection, max_envelope_bytes: int
+) -> BoundedConnection:
+    return MultiprocessingBoundedConnection(
+        connection=connection, max_envelope_bytes=max_envelope_bytes
+    )
+
+
+class ContainmentBackend(Protocol):
+    """One OS-level containment primitive (POSIX process group, or Windows job object).
+
+    Callers must call :meth:`create` before spawning the worker, then
+    :meth:`confirm_worker_contained` before ever releasing it (see
+    :class:`Feat018AdapterCallSupervisor`). Cleanup uses :meth:`terminate_all`/:meth:`is_empty`,
+    never a PID reported later by the worker.
+    """
+
+    def create(self) -> None:
+        """Create the containment primitive. Raise :class:`Feat018ContainmentError` on failure."""
+
+    def confirm_worker_contained(
+        self, worker: ProcessHandle, *, timeout: float, retry_interval: float
+    ) -> bool:
+        """Bounded retry/poll confirming ``worker`` is inside this containment.
+
+        Must return within ``timeout`` seconds. A ``False`` return (not an exception) is the
+        normal "could not confirm in time" outcome; the caller fails closed on it.
+        """
+
+    def terminate_all(self) -> None:
+        """Terminate every process in this containment in one action."""
+
+    def is_empty(self) -> bool:
+        """Return whether the containment currently has zero live members."""
+
+    def close(self) -> None:
+        """Release the containment primitive itself (not its members)."""
+
+
+def posix_worker_self_contain() -> None:
+    """The worker's own first instruction on POSIX: enter a brand-new process group.
+
+    Must be called before any other code in the worker's entry function. Never called on
+    Windows, where containment is external (job-object assignment) rather than self-applied.
+    """
+
+    setpgrp = getattr(os, "setpgrp", None)
+    if setpgrp is not None:
+        setpgrp()
+
+
+def _posix_getpgid(pid: int) -> int:
+    """``os.getpgid`` is POSIX-only; this indirection keeps the module importable on Windows."""
+
+    getpgid = getattr(os, "getpgid", None)
+    if getpgid is None:
+        raise OSError("os.getpgid is unavailable on this platform")
+    return int(getpgid(pid))
+
+
+def _posix_killpg(pgid: int, sig: int) -> None:
+    """``os.killpg`` is POSIX-only; this indirection keeps the module importable on Windows."""
+
+    killpg = getattr(os, "killpg", None)
+    if killpg is None:
+        raise OSError("os.killpg is unavailable on this platform")
+    killpg(pgid, sig)
+
+
+@dataclass(slots=True)
+class PosixProcessGroupContainment:
+    """POSIX containment: the worker's own new process group, confirmed from outside.
+
+    Correctness depends on :func:`posix_worker_self_contain` running as the worker's first
+    instruction; this class only confirms and later terminates that group. Confirmation is a
+    bounded retry loop, never a single racy check (independent-audit finding A2-2).
+    """
+
+    _group_pid: int | None = field(default=None, init=False)
+    _probe: Callable[[int], int] = field(default=_posix_getpgid, repr=False)
+    _clock: Callable[[], float] = field(default=time.monotonic, repr=False)
+    _sleep: Callable[[float], None] = field(default=time.sleep, repr=False)
+
+    def create(self) -> None:
         return None
 
-    def writable(self) -> bool:
+    def confirm_worker_contained(
+        self, worker: ProcessHandle, *, timeout: float, retry_interval: float
+    ) -> bool:
+        if worker.pid is None:
+            return False
+        deadline = self._clock() + timeout
+        while True:
+            try:
+                observed_pgid = self._probe(worker.pid)
+            except OSError:
+                observed_pgid = None
+            if observed_pgid == worker.pid:
+                self._group_pid = worker.pid
+                return True
+            if self._clock() >= deadline:
+                return False
+            self._sleep(retry_interval)
+
+    def terminate_all(self) -> None:
+        if self._group_pid is None:
+            return
+        with contextlib.suppress(OSError):
+            _posix_killpg(self._group_pid, 15)  # SIGTERM
+
+    def is_empty(self) -> bool:
+        if self._group_pid is None:
+            return True
+        try:
+            _posix_killpg(self._group_pid, 0)
+        except ProcessLookupError:
+            return True
+        except OSError:
+            return False
+        return False
+
+    def close(self) -> None:
+        return None
+
+
+_WIN32_HANDLE = ctypes.c_void_p
+_WIN32_DWORD = ctypes.c_uint32
+_WIN32_BOOL = ctypes.c_int32
+_WIN32_LPCWSTR = ctypes.c_wchar_p
+
+
+class _JobObjectBasicLimitInformation(ctypes.Structure):
+    _fields_ = (
+        ("PerProcessUserTimeLimit", ctypes.c_int64),
+        ("PerJobUserTimeLimit", ctypes.c_int64),
+        ("LimitFlags", _WIN32_DWORD),
+        ("MinimumWorkingSetSize", ctypes.c_size_t),
+        ("MaximumWorkingSetSize", ctypes.c_size_t),
+        ("ActiveProcessLimit", _WIN32_DWORD),
+        ("Affinity", ctypes.c_void_p),
+        ("PriorityClass", _WIN32_DWORD),
+        ("SchedulingClass", _WIN32_DWORD),
+    )
+
+
+class _JobObjectIoCounters(ctypes.Structure):
+    _fields_ = (
+        ("ReadOperationCount", ctypes.c_uint64),
+        ("WriteOperationCount", ctypes.c_uint64),
+        ("OtherOperationCount", ctypes.c_uint64),
+        ("ReadTransferCount", ctypes.c_uint64),
+        ("WriteTransferCount", ctypes.c_uint64),
+        ("OtherTransferCount", ctypes.c_uint64),
+    )
+
+
+class _JobObjectExtendedLimitInformation(ctypes.Structure):
+    _fields_ = (
+        ("BasicLimitInformation", _JobObjectBasicLimitInformation),
+        ("IoInfo", _JobObjectIoCounters),
+        ("ProcessMemoryLimit", ctypes.c_size_t),
+        ("JobMemoryLimit", ctypes.c_size_t),
+        ("PeakProcessMemoryUsed", ctypes.c_size_t),
+        ("PeakJobMemoryUsed", ctypes.c_size_t),
+    )
+
+
+class _JobObjectBasicAccountingInformation(ctypes.Structure):
+    _fields_ = (
+        ("TotalUserTime", ctypes.c_int64),
+        ("TotalKernelTime", ctypes.c_int64),
+        ("ThisPeriodTotalUserTime", ctypes.c_int64),
+        ("ThisPeriodTotalKernelTime", ctypes.c_int64),
+        ("TotalPageFaultCount", _WIN32_DWORD),
+        ("TotalProcesses", _WIN32_DWORD),
+        ("ActiveProcesses", _WIN32_DWORD),
+        ("TotalTerminatedProcesses", _WIN32_DWORD),
+    )
+
+
+class _Win32JobHandles:
+    """Explicitly-bound ctypes surface for job-object containment (F4).
+
+    Every used Kernel32 function is given explicit ``argtypes``/``restype`` using
+    pointer-width-safe ``c_void_p``-based HANDLE types -- never a bare PID standing in for a
+    handle (independent-review finding A2-1). ``kernel32`` is injectable so tests can exercise
+    this exact binding surface, including 64-bit handle values and access-mask bits, against a
+    fake Win32 API double instead of the real DLL.
+    """
+
+    PROCESS_TERMINATE = 0x0001
+    PROCESS_SET_QUOTA = 0x0100
+    # Required by IsProcessInJob in addition to the AssignProcessToJobObject rights above.
+    PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
+
+    PROCESS_ACCESS_RIGHTS = (
+        PROCESS_TERMINATE | PROCESS_SET_QUOTA | PROCESS_QUERY_LIMITED_INFORMATION
+    )
+
+    JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE = 0x2000
+    JOB_OBJECT_EXTENDED_LIMIT_INFORMATION_CLASS = 9
+    JOB_OBJECT_BASIC_ACCOUNTING_INFORMATION_CLASS = 1
+
+    def __init__(self, kernel32: Any = None) -> None:
+        self._kernel32: Any = kernel32 if kernel32 is not None else ctypes.windll.kernel32
+        self._bind_signatures()
+
+    def _bind_signatures(self) -> None:
+        k: Any = self._kernel32
+        k.CreateJobObjectW.argtypes = [ctypes.c_void_p, _WIN32_LPCWSTR]
+        k.CreateJobObjectW.restype = _WIN32_HANDLE
+        k.SetInformationJobObject.argtypes = [
+            _WIN32_HANDLE,
+            _WIN32_DWORD,
+            ctypes.c_void_p,
+            _WIN32_DWORD,
+        ]
+        k.SetInformationJobObject.restype = _WIN32_BOOL
+        k.QueryInformationJobObject.argtypes = [
+            _WIN32_HANDLE,
+            _WIN32_DWORD,
+            ctypes.c_void_p,
+            _WIN32_DWORD,
+            ctypes.POINTER(_WIN32_DWORD),
+        ]
+        k.QueryInformationJobObject.restype = _WIN32_BOOL
+        k.OpenProcess.argtypes = [_WIN32_DWORD, _WIN32_BOOL, _WIN32_DWORD]
+        k.OpenProcess.restype = _WIN32_HANDLE
+        k.AssignProcessToJobObject.argtypes = [_WIN32_HANDLE, _WIN32_HANDLE]
+        k.AssignProcessToJobObject.restype = _WIN32_BOOL
+        k.IsProcessInJob.argtypes = [_WIN32_HANDLE, _WIN32_HANDLE, ctypes.POINTER(_WIN32_BOOL)]
+        k.IsProcessInJob.restype = _WIN32_BOOL
+        k.TerminateJobObject.argtypes = [_WIN32_HANDLE, ctypes.c_uint32]
+        k.TerminateJobObject.restype = _WIN32_BOOL
+        k.CloseHandle.argtypes = [_WIN32_HANDLE]
+        k.CloseHandle.restype = _WIN32_BOOL
+
+    def create_job_object(self) -> int:
+        handle = self._kernel32.CreateJobObjectW(None, None)
+        if not handle:
+            raise Feat018ContainmentError("CreateJobObjectW failed")
+        return int(handle)
+
+    def set_kill_on_close(self, job_handle: int) -> None:
+        info = _JobObjectExtendedLimitInformation()
+        info.BasicLimitInformation.LimitFlags = self.JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+        ok = self._kernel32.SetInformationJobObject(
+            job_handle,
+            self.JOB_OBJECT_EXTENDED_LIMIT_INFORMATION_CLASS,
+            ctypes.pointer(info),
+            ctypes.sizeof(info),
+        )
+        if not ok:
+            raise Feat018ContainmentError("SetInformationJobObject failed")
+
+    def query_active_process_count(self, job_handle: int) -> int:
+        """F1: the truthful basis for ``is_empty()`` -- never assumed, always queried."""
+
+        info = _JobObjectBasicAccountingInformation()
+        returned = _WIN32_DWORD(0)
+        ok = self._kernel32.QueryInformationJobObject(
+            job_handle,
+            self.JOB_OBJECT_BASIC_ACCOUNTING_INFORMATION_CLASS,
+            ctypes.pointer(info),
+            ctypes.sizeof(info),
+            ctypes.pointer(returned),
+        )
+        if not ok:
+            raise Feat018ContainmentError("QueryInformationJobObject failed")
+        return int(info.ActiveProcesses)
+
+    def open_process(self, pid: int) -> int:
+        handle = self._kernel32.OpenProcess(self.PROCESS_ACCESS_RIGHTS, False, pid)
+        if not handle:
+            raise Feat018ContainmentError("OpenProcess failed")
+        return int(handle)
+
+    def assign_process_to_job_object(self, job_handle: int, process_handle: int) -> bool:
+        return bool(self._kernel32.AssignProcessToJobObject(job_handle, process_handle))
+
+    def is_process_in_job(self, process_handle: int, job_handle: int) -> bool:
+        result = _WIN32_BOOL(0)
+        ok = self._kernel32.IsProcessInJob(process_handle, job_handle, ctypes.pointer(result))
+        return bool(ok) and bool(result.value)
+
+    def terminate_job_object(self, job_handle: int) -> None:
+        if not self._kernel32.TerminateJobObject(job_handle, 1):
+            raise Feat018ContainmentError("TerminateJobObject failed")
+
+    def close_handle(self, handle: int) -> None:
+        if not self._kernel32.CloseHandle(handle):
+            raise Feat018ContainmentError("CloseHandle failed")
+
+
+@dataclass(slots=True)
+class WindowsJobObjectContainment:
+    """Windows containment: one job object, a verified process *handle* (not a bare PID)."""
+
+    _job_handle: int | None = field(default=None, init=False)
+    _process_handle: int | None = field(default=None, init=False)
+    _cleanup_failed: bool = field(default=False, init=False, repr=False)
+    _win32: _Win32JobHandles = field(default_factory=lambda: _Win32JobHandles())
+
+    def create(self) -> None:
+        self._cleanup_failed = False
+        job_handle = self._win32.create_job_object()
+        self._job_handle = job_handle
+        try:
+            self._win32.set_kill_on_close(job_handle)
+        except Exception:  # noqa: BLE001 - rollback must not leak the partial job object
+            rollback_failed = False
+            try:
+                self._win32.terminate_job_object(job_handle)
+            except Exception:  # noqa: BLE001 - still attempt CloseHandle
+                rollback_failed = True
+            try:
+                self.close()
+            except Exception:  # noqa: BLE001 - report the partial cleanup failure below
+                rollback_failed = True
+            if rollback_failed:
+                self._cleanup_failed = True
+                raise Feat018ContainmentError(
+                    "containment configuration failed and rollback cleanup failed"
+                ) from None
+            raise Feat018ContainmentError("containment configuration failed") from None
+
+    def confirm_worker_contained(
+        self, worker: ProcessHandle, *, timeout: float, retry_interval: float
+    ) -> bool:
+        if self._job_handle is None or worker.pid is None:
+            return False
+        try:
+            process_handle = self._win32.open_process(worker.pid)
+        except Feat018ContainmentError:
+            return False
+        try:
+            assigned = self._win32.assign_process_to_job_object(self._job_handle, process_handle)
+            verified = assigned and self._win32.is_process_in_job(
+                process_handle, self._job_handle
+            )
+        except Exception:  # noqa: BLE001 - close the unregistered process handle
+            try:
+                self._win32.close_handle(process_handle)
+            except Exception:  # noqa: BLE001 - assignment already failed; fail closed
+                self._cleanup_failed = True
+            raise
+        if not verified:
+            try:
+                self._win32.close_handle(process_handle)
+            except Exception:  # noqa: BLE001 - verification failed; fail closed
+                self._cleanup_failed = True
+            return False
+        self._process_handle = process_handle
         return True
 
+    def terminate_all(self) -> None:
+        if self._job_handle is not None:
+            self._win32.terminate_job_object(self._job_handle)
 
-def _clear_cuda_cache() -> None:
-    """Drop child-owned Python/GPU references without importing optional packages eagerly."""
+    def is_empty(self) -> bool:
+        """F1: truthful, queried emptiness. A query failure fails closed (never ``True``)."""
 
-    gc.collect()
-    torch_module = sys.modules.get("torch")
-    if torch_module is None:
-        return
+        if self._job_handle is None:
+            return not self._cleanup_failed
+        try:
+            active_count = self._win32.query_active_process_count(self._job_handle)
+        except Feat018ContainmentError:
+            self._cleanup_failed = True
+            return False
+        return active_count == 0
+
+    def close(self) -> None:
+        process_handle = self._process_handle
+        job_handle = self._job_handle
+        self._process_handle = None
+        self._job_handle = None
+        close_failed = False
+        if process_handle is not None:
+            try:
+                self._win32.close_handle(process_handle)
+            except Exception:  # noqa: BLE001 - always continue to the job handle
+                close_failed = True
+        if job_handle is not None:
+            try:
+                self._win32.close_handle(job_handle)
+            except Exception:  # noqa: BLE001 - report after both handles were attempted
+                close_failed = True
+        if close_failed:
+            self._cleanup_failed = True
+            raise Feat018ContainmentError("containment handle cleanup failed")
+
+
+def create_platform_containment() -> ContainmentBackend:
+    """Select the real containment backend for the current OS. Never used by offline tests."""
+
+    if sys.platform == "win32":
+        return WindowsJobObjectContainment()
+    return PosixProcessGroupContainment()
+
+
+# --------------------------------------------------------------------------------------
+# Process launcher seam (real vs. fake)
+# --------------------------------------------------------------------------------------
+
+
+class ProcessLauncher(Protocol):
+    """Creates one child process plus its bounded duplex connection."""
+
+    def launch(
+        self, entry: Callable[..., None], args: tuple[object, ...]
+    ) -> tuple[ProcessHandle, BoundedConnection]: ...
+
+
+@dataclass(slots=True)
+class MultiprocessingProcessLauncher:
+    """Create one non-daemon bounded process with exception-safe ownership cleanup.
+
+    The default context is the real ``spawn`` context, while ``context_factory`` and
+    ``connection_factory`` are injectable so every launch failure can be tested without
+    creating a real process.
+    """
+
+    max_envelope_bytes: int
+    context_factory: Callable[[], _MultiprocessingContext] = field(
+        default=_default_spawn_context, repr=False
+    )
+    connection_factory: Callable[[_RawConnection, int], BoundedConnection] = field(
+        default=_default_bounded_connection_factory, repr=False
+    )
+
+    def launch(
+        self, entry: Callable[..., None], args: tuple[object, ...]
+    ) -> tuple[ProcessHandle, BoundedConnection]:
+        parent_conn: _RawConnection | None = None
+        child_conn: _RawConnection | None = None
+        child_close_attempted = False
+        parent_close_attempted = False
+        process: _LaunchProcess | None = None
+        process_start_attempted = False
+        cleanup_failed = False
+
+        try:
+            context = self.context_factory()
+            parent_conn, child_conn = context.Pipe(duplex=True)
+            bounded_child_conn = self.connection_factory(
+                child_conn, self.max_envelope_bytes
+            )
+            process = context.Process(
+                target=entry,
+                args=(bounded_child_conn, *args),
+                daemon=False,
+            )
+            process_start_attempted = True
+            process.start()
+
+            child_close_attempted = True
+            if not _close_owned_ipc_endpoint(child_conn):
+                cleanup_failed = True
+                raise Feat018CleanupFailedError from None
+
+            bounded_parent_conn = self.connection_factory(
+                parent_conn, self.max_envelope_bytes
+            )
+            return process, bounded_parent_conn
+        except Exception:  # noqa: BLE001 - all failures become sanitized typed errors
+            if (
+                process is not None
+                and process_start_attempted
+                and not _bounded_terminate_kill_join(
+                    process, grace_seconds=1.0, kill_join_seconds=1.0
+                )
+            ):
+                cleanup_failed = True
+            if child_conn is not None and not child_close_attempted:
+                child_close_attempted = True
+                if not _close_owned_ipc_endpoint(child_conn):
+                    cleanup_failed = True
+            if parent_conn is not None and not parent_close_attempted:
+                parent_close_attempted = True
+                if not _close_owned_ipc_endpoint(parent_conn):
+                    cleanup_failed = True
+            if cleanup_failed:
+                raise Feat018CleanupFailedError("bounded process launch cleanup failed") from None
+            raise Feat018LauncherError("bounded process launch failed") from None
+
+
+def _close_owned_ipc_endpoint(connection: _RawConnection) -> bool:
+    """Close one locally owned raw endpoint without leaking the original exception."""
+
     try:
-        cuda = getattr(torch_module, "cuda", None)
-        empty_cache = getattr(cuda, "empty_cache", None)
-        if callable(empty_cache):
-            empty_cache()
-    except Exception:
-        # Cleanup must not leak a provider/runtime exception.  The parent process still owns the
-        # kill/join confirmation and can report a typed cleanup failure through an injected hook.
-        return
+        connection.close()
+    except Exception:  # noqa: BLE001 - the caller reports a typed cleanup failure
+        return False
+    return True
 
 
-def _serialize_envelope(envelope: Mapping[str, object]) -> bytes:
+def _bounded_terminate_kill_join(
+    process: ProcessHandle, *, grace_seconds: float, kill_join_seconds: float
+) -> bool:
+    """Attempt bounded process cleanup and verify it is no longer alive."""
+
+    cleanup_succeeded = True
     try:
-        return json.dumps(
-            dict(envelope), ensure_ascii=True, sort_keys=True, separators=(",", ":")
-        ).encode("utf-8")
-    except (TypeError, ValueError, UnicodeError) as exc:
-        raise _RunnerFailure(LiveLightningExecutionFailureCode.MALFORMED_CHILD_RESPONSE) from exc
+        initially_alive: bool | None = bool(process.is_alive())
+    except Exception:  # noqa: BLE001 - unknown liveness must fail closed
+        initially_alive = None
+        cleanup_succeeded = False
 
+    if initially_alive is not False:
+        try:
+            process.terminate()
+        except Exception:  # noqa: BLE001 - continue to the bounded join and kill attempt
+            cleanup_succeeded = False
+        try:
+            process.join(timeout=grace_seconds)
+        except Exception:  # noqa: BLE001 - continue to the bounded kill attempt
+            cleanup_succeeded = False
 
-def _send_bounded_envelope(
-    connection: _ConnectionLike,
-    envelope: Mapping[str, object],
-    max_bytes: int,
-) -> None:
+        try:
+            alive_after_grace: bool | None = bool(process.is_alive())
+        except Exception:  # noqa: BLE001 - unknown liveness requires the kill attempt
+            alive_after_grace = None
+            cleanup_succeeded = False
+        if alive_after_grace is not False:
+            try:
+                process.kill()
+            except Exception:  # noqa: BLE001 - report failure without escaping cleanup
+                cleanup_succeeded = False
+            try:
+                process.join(timeout=kill_join_seconds)
+            except Exception:  # noqa: BLE001 - report failure without escaping cleanup
+                cleanup_succeeded = False
+
     try:
-        payload = _serialize_envelope(envelope)
-    except _RunnerFailure:
-        return
-    if len(payload) > max_bytes:
-        payload = _serialize_envelope({"kind": "ipc_envelope_too_large"})
-    if len(payload) > max_bytes:
-        # A cap too small even for the fixed failure token is fail-closed: the parent sees EOF.
-        return
-    with suppress(BrokenPipeError, EOFError, OSError):
-        connection.send_bytes(payload)
+        alive_after_cleanup = bool(process.is_alive())
+    except Exception:  # noqa: BLE001 - final liveness cannot be verified
+        alive_after_cleanup = True
+        cleanup_succeeded = False
+    if alive_after_cleanup:
+        cleanup_succeeded = False
+    return cleanup_succeeded
 
 
-def _worker_failure_kind(exc: BaseException) -> str:
-    if isinstance(exc, QwenModelLoadError):
-        return "model_load_failed"
-    if isinstance(exc, QwenDeviceUnavailableError):
-        return "device_unavailable"
-    if isinstance(exc, (QwenTimeoutError, TimeoutError)):
-        return "timeout"
-    if isinstance(exc, QwenTransientRuntimeError):
-        return "transient_runtime_failure"
-    return "permanent_runtime_failure"
+# --------------------------------------------------------------------------------------
+# Per-attempt bounded generation runner
+# --------------------------------------------------------------------------------------
 
 
-def _worker_success_envelope(
-    raw_output: object, caps: LiveLightningExecutionCaps
-) -> dict[str, object]:
-    if not isinstance(raw_output, str):
-        return {"kind": "malformed_child_response"}
-    try:
-        if len(raw_output.encode("utf-8")) > caps.raw_output_max_bytes:
-            return {"kind": "raw_output_too_large"}
-    except UnicodeError:
-        return {"kind": "malformed_child_response"}
-    envelope: dict[str, object] = {"kind": "success", "raw_output": raw_output}
-    try:
-        encoded_envelope = _serialize_envelope(envelope)
-    except _RunnerFailure:
-        return {"kind": "malformed_child_response"}
-    if len(encoded_envelope) > caps.ipc_envelope_max_bytes:
-        return {"kind": "ipc_envelope_too_large"}
-    return envelope
-
-
-def _bounded_qwen_worker_entry(
-    connection: _ConnectionLike,
+def _generation_child_entry(
+    connection: _RawConnection,
     profile: VisionProfileV2,
     runtime_config: QwenVisionRuntimeConfig,
     image_path: str,
     prompt: str,
-    caps: LiveLightningExecutionCaps,
+    raw_output_max_bytes: int,
+    ipc_envelope_max_bytes: int,
 ) -> None:
-    """Run one load/generate/decode attempt and send only a bounded fixed envelope."""
+    """Real child target: load, generate, and send one bounded envelope. Not offline-tested."""
 
-    if os.name != "nt":
-        create_session = getattr(os, "setsid", None)
-        if callable(create_session):
-            with suppress(OSError):
-                create_session()
-    stdout_sink = _BoundedTextSink("stdout", caps.stdout_max_bytes)
-    stderr_sink = _BoundedTextSink("stderr", caps.stderr_max_bytes)
-    bundle: object | None = None
-    envelope: dict[str, object]
+    from sketch2life.infrastructure.ai.qwen_vision import (  # noqa: PLC0415
+        _default_model_factory,
+        _generate_from_bundle,
+    )
+
+    bounded = MultiprocessingBoundedConnection(
+        connection=connection, max_envelope_bytes=ipc_envelope_max_bytes
+    )
     try:
-        with redirect_stdout(stdout_sink), redirect_stderr(stderr_sink):
-            try:
-                bundle = _default_model_factory(profile, runtime_config)
-                raw_output = _generate_from_bundle(
-                    cast(Any, bundle), profile, Path(image_path), prompt
-                )
-                envelope = _worker_success_envelope(raw_output, caps)
-            except _StreamLimitExceeded as exc:
-                envelope = {"kind": f"{exc.stream_name}_too_large"}
-            except Exception as exc:  # noqa: BLE001 - only a fixed kind crosses IPC
-                envelope = {"kind": _worker_failure_kind(exc)}
-    except _StreamLimitExceeded as exc:
-        envelope = {"kind": f"{exc.stream_name}_too_large"}
-    except Exception:
-        envelope = {"kind": "permanent_runtime_failure"}
-    finally:
-        bundle = None
-        _clear_cuda_cache()
-    _send_bounded_envelope(connection, envelope, caps.ipc_envelope_max_bytes)
+        bundle = _default_model_factory(profile, runtime_config)
+    except QwenDeviceUnavailableError:
+        _try_send(bounded, {"kind": "device_unavailable"})
+        return
+    except QwenModelLoadError:
+        _try_send(bounded, {"kind": "model_load_failed"})
+        return
+    except Exception:  # noqa: BLE001 - sanitized below
+        _try_send(bounded, {"kind": "model_load_failed"})
+        return
+
+    try:
+        raw_output = _generate_from_bundle(bundle, profile, Path(image_path), prompt)
+    except QwenTimeoutError:
+        _try_send(bounded, {"kind": "timeout"})
+        return
+    except Exception:  # noqa: BLE001 - sanitized below
+        _try_send(bounded, {"kind": "provider_failure"})
+        return
+
+    encoded_length = len(raw_output.encode("utf-8"))
+    if encoded_length > raw_output_max_bytes:
+        _try_send(bounded, {"kind": "raw_output_overflow"})
+        return
+    try:
+        bounded.send_frame({"kind": "success", "raw_output": raw_output})
+    except Feat018FrameTooLargeError:
+        _try_send(bounded, {"kind": "ipc_envelope_overflow"})
 
 
-def _terminate_process_tree(process: _ProcessLike) -> None:
-    """Terminate a process and its descendants without allowing command output to escape."""
-
-    pid = process.pid
-    if pid is not None and pid > 0:
-        if os.name == "nt":
-            with suppress(OSError, subprocess.SubprocessError):
-                subprocess.run(
-                    ["taskkill", "/PID", str(pid), "/T", "/F"],
-                    check=False,
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL,
-                )
-        else:
-            get_process_group = getattr(os, "getpgid", None)
-            terminate_process_group = getattr(os, "killpg", None)
-            if callable(get_process_group) and callable(terminate_process_group):
-                with suppress(OSError):
-                    terminate_process_group(get_process_group(pid), signal.SIGTERM)
-    with suppress(OSError):
-        process.terminate()
+def _try_send(bounded: MultiprocessingBoundedConnection, payload: Mapping[str, object]) -> None:
+    with contextlib.suppress(OSError):
+        bounded.send_frame(payload)
 
 
-def _close_connection(connection: _ConnectionLike | None) -> None:
-    if connection is not None:
-        with suppress(Exception):
-            connection.close()
-
-
-def _safe_relative_path(path: Path) -> None:
-    if path.is_absolute() or str(path).startswith(("/", "\\")):
-        raise _RunnerFailure(LiveLightningExecutionFailureCode.MALFORMED_CHILD_RESPONSE)
-
-
+@dataclass(slots=True)
 class Feat018BoundedKillableQwenGenerationRunner:
-    """Qwen generation runner with bounded IPC, killable attempts, and reusable total cap."""
+    """Implements ``QwenGenerationRunner`` for exactly one attempt per call.
 
-    def __init__(
-        self,
-        caps: LiveLightningExecutionCaps,
-        *,
-        process_factory: ProcessFactory | None = None,
-        pipe_factory: PipeFactory | None = None,
-        worker: Callable[..., None] = _bounded_qwen_worker_entry,
-        process_tree_terminator: ProcessTreeTerminator = _terminate_process_tree,
-        resource_cleanup: ResourceCleanup = _clear_cuda_cache,
-        clock: Callable[[], float] = time.monotonic,
-    ) -> None:
-        self.caps = caps
-        self._context = multiprocessing.get_context("spawn")
-        self._process_factory: ProcessFactory = process_factory or cast(
-            ProcessFactory, self._context.Process
-        )
-        self._pipe_factory: PipeFactory = pipe_factory or self._make_pipe
-        self._worker = worker
-        self._process_tree_terminator = process_tree_terminator
-        self._resource_cleanup = resource_cleanup
-        self._clock = clock
-        self._adapter_deadline: float | None = None
-        self._attempt_trace: list[GenerationAttemptOutcome] = []
-        self._last_attempt_trace: tuple[GenerationAttemptOutcome, ...] = ()
-        self._last_failure_code: LiveLightningExecutionFailureCode | None = None
-        self._attempt_started = False
+    Constructed fresh per adapter invocation, inside the adapter worker, immediately after
+    ``worker_cap_deadline_monotonic`` is known. Never loops or retries internally: the real,
+    unmodified ``QwenVisionAdapter.understand()`` owns the retry decision (see the adapter/retry
+    compatibility contract in the approval package).
+    """
 
-    def _make_pipe(self) -> tuple[_ConnectionLike, _ConnectionLike]:
-        receiver, sender = self._context.Pipe(duplex=False)
-        return cast(_ConnectionLike, receiver), cast(_ConnectionLike, sender)
-
-    @property
-    def last_attempt_trace(self) -> tuple[GenerationAttemptOutcome, ...]:
-        return self._last_attempt_trace
-
-    @property
-    def last_failure_code(self) -> LiveLightningExecutionFailureCode | None:
-        return self._last_failure_code
-
-    @contextmanager
-    def adapter_call_scope(self) -> Iterator[None]:
-        """Anchor one total cap across all adapter-owned generation attempts."""
-
-        if self._adapter_deadline is not None:
-            raise ValueError("adapter call scopes cannot be nested")
-        self._adapter_deadline = self._clock() + self.caps.total_adapter_cap_seconds
-        self._attempt_trace = []
-        self._last_failure_code = None
-        try:
-            yield
-        finally:
-            self._last_attempt_trace = tuple(self._attempt_trace)
-            self._adapter_deadline = None
-
-    def run_adapter_call(
-        self,
-        adapter: VisionUnderstandingPortV2,
-        request: VisionUnderstandingRequestV2,
-    ) -> VisionUnderstandingResultV2:
-        """Invoke the supplied adapter once under the total cap; never retry at this layer."""
-
-        with self.adapter_call_scope():
-            result = adapter.understand(request)
-            if self._adapter_deadline is not None and self._clock() >= self._adapter_deadline:
-                self._last_failure_code = (
-                    LiveLightningExecutionFailureCode.TOTAL_ADAPTER_CAP_EXCEEDED
-                )
-                raise QwenTimeoutError from None
-            return result
+    config: Feat018BoundedRunnerConfig
+    worker_cap_deadline_monotonic: float
+    launcher: ProcessLauncher
+    clock: Callable[[], float] = time.monotonic
+    on_attempt_start: Callable[[], None] | None = None
 
     def generate(
         self,
@@ -446,1015 +1058,833 @@ class Feat018BoundedKillableQwenGenerationRunner:
         image_path: Path,
         prompt: str,
     ) -> str:
-        """Run exactly one generation attempt; the adapter decides whether to retry it."""
+        remaining = self.worker_cap_deadline_monotonic - self.clock()
+        positive_remaining = _positive_finite_float(remaining)
+        if positive_remaining is None:
+            raise QwenPermanentRuntimeError("total adapter cap already exhausted")
+        attempt_deadline_seconds = min(self.config.per_attempt_timeout_seconds, positive_remaining)
 
-        implicit_scope = self._adapter_deadline is None
-        if implicit_scope:
-            self._adapter_deadline = self._clock() + self.caps.total_adapter_cap_seconds
-            self._attempt_trace = []
-            self._last_failure_code = None
-        self._attempt_started = False
-        failure: BaseException | None = None
-        result: str | None = None
+        if self.on_attempt_start is not None:
+            self.on_attempt_start()
+
+        process, connection = self.launcher.launch(
+            _generation_child_entry,
+            (
+                profile,
+                runtime_config,
+                str(image_path),
+                prompt,
+                self.config.raw_output_max_bytes,
+                self.config.ipc_envelope_max_bytes,
+            ),
+        )
+        frame: dict[str, object] | None = None
+        cleanup_succeeded = True
         try:
-            if profile.timeout_seconds != self.caps.per_attempt_timeout_seconds:
-                self._last_failure_code = LiveLightningExecutionFailureCode.PER_ATTEMPT_TIMEOUT
+            try:
+                frame = connection.recv_frame(attempt_deadline_seconds)
+                remaining_after_wait = self.worker_cap_deadline_monotonic - self.clock()
+                if frame is not None and _positive_finite_float(remaining_after_wait) is None:
+                    frame = None
+            except (Feat018ProtocolViolationError, EOFError, OSError):
                 raise QwenPermanentRuntimeError from None
-            result = self._run_child(profile, runtime_config, image_path, prompt)
-            self._record_attempt(GenerationAttemptOutcome.SUCCESS)
-        except QwenModelLoadError:
-            self._record_attempt(GenerationAttemptOutcome.MODEL_LOAD_FAILED)
-            failure = QwenModelLoadError()
-        except QwenDeviceUnavailableError:
-            self._record_attempt(GenerationAttemptOutcome.DEVICE_UNAVAILABLE)
-            failure = QwenDeviceUnavailableError()
-        except (QwenTimeoutError, TimeoutError):
-            self._record_attempt(GenerationAttemptOutcome.TIMEOUT)
-            failure = QwenTimeoutError()
-        except QwenTransientRuntimeError:
-            self._record_attempt(GenerationAttemptOutcome.TRANSIENT_RUNTIME_FAILURE)
-            failure = QwenTransientRuntimeError()
-        except _RunnerFailure as exc:
-            self._last_failure_code = exc.code
-            self._record_attempt(GenerationAttemptOutcome.PERMANENT_RUNTIME_FAILURE)
-            failure = QwenPermanentRuntimeError()
-        except QwenPermanentRuntimeError:
-            self._record_attempt(GenerationAttemptOutcome.PERMANENT_RUNTIME_FAILURE)
-            failure = QwenPermanentRuntimeError()
-        except Exception:
-            self._last_failure_code = LiveLightningExecutionFailureCode.PROCESS_START_FAILED
-            self._record_attempt(GenerationAttemptOutcome.PERMANENT_RUNTIME_FAILURE)
-            failure = QwenPermanentRuntimeError()
         finally:
-            cleanup_failed = False
             try:
-                self._resource_cleanup()
-            except Exception:
-                cleanup_failed = True
-            if cleanup_failed:
-                self._last_failure_code = LiveLightningExecutionFailureCode.CLEANUP_FAILED
-                failure = QwenPermanentRuntimeError()
-            if implicit_scope:
-                self._last_attempt_trace = tuple(self._attempt_trace)
-                self._adapter_deadline = None
-        if failure is not None:
-            raise failure from None
-        assert result is not None
-        if implicit_scope:
-            self._last_attempt_trace = tuple(self._attempt_trace)
-        return result
-
-    def _record_attempt(self, outcome: GenerationAttemptOutcome) -> None:
-        if self._attempt_started:
-            self._attempt_trace.append(outcome)
-
-    def _remaining_seconds(self, profile: VisionProfileV2) -> float:
-        if self._adapter_deadline is None:
-            raise _RunnerFailure(LiveLightningExecutionFailureCode.TOTAL_ADAPTER_CAP_EXCEEDED)
-        remaining = self._adapter_deadline - self._clock()
-        if remaining <= 0:
-            self._last_failure_code = LiveLightningExecutionFailureCode.TOTAL_ADAPTER_CAP_EXCEEDED
-            raise QwenTimeoutError from None
-        return min(profile.timeout_seconds, remaining)
-
-    def _run_child(
-        self,
-        profile: VisionProfileV2,
-        runtime_config: QwenVisionRuntimeConfig,
-        image_path: Path,
-        prompt: str,
-    ) -> str:
-        _safe_relative_path(image_path)
-        self._remaining_seconds(profile)
-        receiver: _ConnectionLike | None = None
-        sender: _ConnectionLike | None = None
-        process: _ProcessLike | None = None
-        started = False
-        primary_failure: BaseException | None = None
-        result: str | None = None
-        try:
-            receiver, sender = self._pipe_factory()
-            process = self._process_factory(
-                target=self._worker,
-                args=(sender, profile, runtime_config, str(image_path), prompt, self.caps),
-                daemon=True,
-            )
-            self._attempt_started = True
-            try:
-                process.start()
-                started = True
-            except Exception:
-                self._last_failure_code = LiveLightningExecutionFailureCode.PROCESS_START_FAILED
-                raise QwenModelLoadError from None
-            _close_connection(sender)
-            sender = None
-
-            poll_timeout = self._remaining_seconds(profile)
-            if not receiver.poll(poll_timeout):
-                if poll_timeout < profile.timeout_seconds:
-                    self._last_failure_code = (
-                        LiveLightningExecutionFailureCode.TOTAL_ADAPTER_CAP_EXCEEDED
-                    )
-                else:
-                    self._last_failure_code = LiveLightningExecutionFailureCode.PER_ATTEMPT_TIMEOUT
-                self._terminate_and_join(process, force=True)
-                raise QwenTimeoutError from None
-
-            try:
-                payload = receiver.recv_bytes(maxlength=self.caps.ipc_envelope_max_bytes)
-            except OSError:
-                # ``Connection.recv_bytes(maxlength=...)`` uses OSError for an envelope that is
-                # larger than the requested bound.  EOF and malformed UTF-8 have separate paths.
-                self._last_failure_code = LiveLightningExecutionFailureCode.IPC_ENVELOPE_TOO_LARGE
-                raise QwenPermanentRuntimeError from None
-            except (EOFError, ValueError, TypeError):
-                self._last_failure_code = LiveLightningExecutionFailureCode.MALFORMED_CHILD_RESPONSE
-                raise QwenPermanentRuntimeError from None
-            if len(payload) > self.caps.ipc_envelope_max_bytes:
-                self._last_failure_code = LiveLightningExecutionFailureCode.IPC_ENVELOPE_TOO_LARGE
-                raise QwenPermanentRuntimeError from None
-            result = self._decode_child_payload(payload)
-            process.join(timeout=_PROCESS_JOIN_GRACE_SECONDS)
-            if process.is_alive():
-                self._terminate_and_join(process, force=True)
-            if self._adapter_deadline is not None and self._clock() >= self._adapter_deadline:
-                self._last_failure_code = (
-                    LiveLightningExecutionFailureCode.TOTAL_ADAPTER_CAP_EXCEEDED
-                )
-                raise QwenTimeoutError from None
-            return result
-        except (QwenModelLoadError, QwenDeviceUnavailableError, QwenTimeoutError):
-            raise
-        except QwenTransientRuntimeError:
-            raise
-        except QwenPermanentRuntimeError:
-            raise
-        except _RunnerFailure:
-            raise
-        except Exception:
-            self._last_failure_code = LiveLightningExecutionFailureCode.MALFORMED_CHILD_RESPONSE
-            primary_failure = QwenPermanentRuntimeError()
-        finally:
-            if process is not None and started:
-                try:
-                    if process.is_alive():
-                        self._terminate_and_join(process, force=True)
-                except Exception:
-                    self._last_failure_code = (
-                        LiveLightningExecutionFailureCode.PROCESS_TERMINATION_FAILED
-                    )
-                    primary_failure = QwenPermanentRuntimeError()
-            _close_connection(sender)
-            _close_connection(receiver)
-        if primary_failure is not None:
-            raise primary_failure from None
-        assert result is not None
-        return result
-
-    def _terminate_and_join(self, process: _ProcessLike, *, force: bool) -> None:
-        if force or process.is_alive():
-            try:
-                self._process_tree_terminator(process)
-            except Exception:
-                self._last_failure_code = (
-                    LiveLightningExecutionFailureCode.PROCESS_TERMINATION_FAILED
-                )
-                raise _RunnerFailure(
-                    LiveLightningExecutionFailureCode.PROCESS_TERMINATION_FAILED
-                ) from None
-        try:
-            process.join(timeout=_PROCESS_JOIN_GRACE_SECONDS)
-        except Exception:
-            self._last_failure_code = (
-                LiveLightningExecutionFailureCode.PROCESS_TERMINATION_FAILED
-            )
-            raise _RunnerFailure(
-                LiveLightningExecutionFailureCode.PROCESS_TERMINATION_FAILED
-            ) from None
-        if process.is_alive():
-            kill_method = getattr(process, "kill", None)
-            if not callable(kill_method):
-                self._last_failure_code = (
-                    LiveLightningExecutionFailureCode.PROCESS_TERMINATION_FAILED
-                )
-                raise _RunnerFailure(
-                    LiveLightningExecutionFailureCode.PROCESS_TERMINATION_FAILED
-                ) from None
-            try:
-                kill_method()
-                process.join(timeout=_PROCESS_JOIN_GRACE_SECONDS)
-            except Exception:
-                self._last_failure_code = (
-                    LiveLightningExecutionFailureCode.PROCESS_TERMINATION_FAILED
-                )
-                raise _RunnerFailure(
-                    LiveLightningExecutionFailureCode.PROCESS_TERMINATION_FAILED
-                ) from None
-        if process.is_alive():
-            self._last_failure_code = (
-                LiveLightningExecutionFailureCode.PROCESS_TERMINATION_FAILED
-            )
-            raise _RunnerFailure(LiveLightningExecutionFailureCode.PROCESS_TERMINATION_FAILED)
-
-    def _decode_child_payload(self, payload: bytes) -> str:
-        try:
-            envelope = json.loads(payload.decode("utf-8"))
-        except (UnicodeError, ValueError, TypeError):
-            self._last_failure_code = LiveLightningExecutionFailureCode.MALFORMED_CHILD_RESPONSE
-            raise QwenPermanentRuntimeError from None
-        if not isinstance(envelope, dict) or not isinstance(envelope.get("kind"), str):
-            self._last_failure_code = LiveLightningExecutionFailureCode.MALFORMED_CHILD_RESPONSE
-            raise QwenPermanentRuntimeError from None
-        kind = envelope["kind"]
-        if kind == "success":
-            if set(envelope) != {"kind", "raw_output"} or not isinstance(
-                envelope.get("raw_output"), str
+                connection.close()
+            except Exception:  # noqa: BLE001 - cleanup must not hide the bounded result
+                cleanup_succeeded = False
+            if not _bounded_terminate_kill_join(
+                process, grace_seconds=1.0, kill_join_seconds=1.0
             ):
-                self._last_failure_code = LiveLightningExecutionFailureCode.MALFORMED_CHILD_RESPONSE
-                raise QwenPermanentRuntimeError from None
-            raw_output = cast(str, envelope["raw_output"])
-            try:
-                if len(raw_output.encode("utf-8")) > self.caps.raw_output_max_bytes:
-                    self._last_failure_code = LiveLightningExecutionFailureCode.RAW_OUTPUT_TOO_LARGE
-                    raise QwenPermanentRuntimeError from None
-            except UnicodeError:
-                self._last_failure_code = LiveLightningExecutionFailureCode.MALFORMED_CHILD_RESPONSE
-                raise QwenPermanentRuntimeError from None
-            return raw_output
-        if set(envelope) != {"kind"}:
-            self._last_failure_code = LiveLightningExecutionFailureCode.MALFORMED_CHILD_RESPONSE
-            raise QwenPermanentRuntimeError from None
-        fixed_failures: dict[
-            str, tuple[type[BaseException], LiveLightningExecutionFailureCode]
-        ] = {
-            "model_load_failed": (
-                QwenModelLoadError,
-                LiveLightningExecutionFailureCode.PROCESS_START_FAILED,
-            ),
-            "device_unavailable": (
-                QwenDeviceUnavailableError,
-                LiveLightningExecutionFailureCode.ADAPTER_EXCEPTION,
-            ),
-            "timeout": (QwenTimeoutError, LiveLightningExecutionFailureCode.PER_ATTEMPT_TIMEOUT),
-            "transient_runtime_failure": (
-                QwenTransientRuntimeError,
-                LiveLightningExecutionFailureCode.ADAPTER_EXCEPTION,
-            ),
-            "permanent_runtime_failure": (
-                QwenPermanentRuntimeError,
-                LiveLightningExecutionFailureCode.ADAPTER_EXCEPTION,
-            ),
-            "raw_output_too_large": (
-                QwenPermanentRuntimeError,
-                LiveLightningExecutionFailureCode.RAW_OUTPUT_TOO_LARGE,
-            ),
-            "ipc_envelope_too_large": (
-                QwenPermanentRuntimeError,
-                LiveLightningExecutionFailureCode.IPC_ENVELOPE_TOO_LARGE,
-            ),
-            "stdout_too_large": (
-                QwenPermanentRuntimeError,
-                LiveLightningExecutionFailureCode.STDOUT_TOO_LARGE,
-            ),
-            "stderr_too_large": (
-                QwenPermanentRuntimeError,
-                LiveLightningExecutionFailureCode.STDERR_TOO_LARGE,
-            ),
-            "malformed_child_response": (
-                QwenPermanentRuntimeError,
-                LiveLightningExecutionFailureCode.MALFORMED_CHILD_RESPONSE,
-            ),
-        }
-        failure = fixed_failures.get(kind)
-        if failure is None:
-            self._last_failure_code = LiveLightningExecutionFailureCode.MALFORMED_CHILD_RESPONSE
-            raise QwenPermanentRuntimeError from None
-        exception_type, failure_code = failure
-        self._last_failure_code = failure_code
-        raise exception_type from None
+                cleanup_succeeded = False
+
+        if not cleanup_succeeded:
+            raise QwenPermanentRuntimeError("generation cleanup failed")
+        if frame is None:
+            raise QwenTimeoutError
+
+        return _interpret_generation_child_frame(frame)
 
 
-class PreAdapterRejection(Exception):
-    """Fixed-code stop before the adapter is invoked."""
+def _interpret_generation_child_frame(frame: Mapping[str, object]) -> str:
+    kind = frame.get("kind")
+    if kind == "success":
+        raw_output = frame.get("raw_output")
+        if not isinstance(raw_output, str):
+            raise QwenPermanentRuntimeError("malformed success frame")
+        return raw_output
+    if kind == "model_load_failed":
+        raise QwenModelLoadError
+    if kind == "device_unavailable":
+        raise QwenDeviceUnavailableError
+    if kind == "timeout":
+        raise QwenTimeoutError
+    if kind in ("raw_output_overflow", "ipc_envelope_overflow"):
+        raise QwenPermanentRuntimeError("bounded-output violation")
+    raise QwenPermanentRuntimeError("malformed generation-child frame")
 
-    def __init__(
-        self,
-        code: LiveLightningExecutionFailureCode = (
-            LiveLightningExecutionFailureCode.PRE_ADAPTER_REJECTED
-        ),
-    ) -> None:
-        self.code = code
+
+# --------------------------------------------------------------------------------------
+# Outer adapter-call supervisor
+# --------------------------------------------------------------------------------------
+
+
+class CleanupStatus(StrEnum):
+    SUCCEEDED = "SUCCEEDED"
+    CLEANUP_FAILED = "CLEANUP_FAILED"
+
+
+class EffectiveOutcome(StrEnum):
+    """The only outcome a downstream caller may use as the run's verdict."""
+
+    SUCCEEDED = "SUCCEEDED"
+    FAILED = "FAILED"
+    CLEANUP_FAILED = "CLEANUP_FAILED"
 
 
 @dataclass(frozen=True, slots=True)
-class LiveLightningExecutionResult:
-    """Safe orchestration result; it never serializes a V2 object wholesale."""
+class SupervisorRunResult:
+    """A run result with an authoritative outcome and optional worker diagnostics.
 
-    status: Literal["SUCCEEDED", "FAILED"]
-    adapter_call_count: int
+    ``terminal_outcome`` is retained only as the worker's last accepted diagnostic event. It is
+    never the run verdict; callers must use ``effective_outcome``.
+    """
+
+    final_state: ProgressState
     attempt_count: int | None
-    vision_result: VisionUnderstandingResultV2 | None = None
-    mapped_result: object | None = None
-    run_failure_code: LiveLightningExecutionFailureCode | None = None
-    cleanup_status: Literal["SUCCEEDED", "FAILED"] = "SUCCEEDED"
-    adapter_wall_clock_ms: float | None = None
+    terminal_outcome: str | None
+    cleanup_status: CleanupStatus
+    effective_outcome: EffectiveOutcome = EffectiveOutcome.FAILED
+    stopped_before_containment: bool = False
+    primary_failure_reason: str | None = None
 
-    def sanitized_evidence(
+    @property
+    def worker_terminal_outcome(self) -> str | None:
+        """Explicit name for the non-authoritative worker event history."""
+
+        return self.terminal_outcome
+
+    @property
+    def verdict(self) -> EffectiveOutcome:
+        """Alias for callers that use verdict terminology."""
+
+        return self.effective_outcome
+
+    @property
+    def is_success(self) -> bool:
+        return self.effective_outcome is EffectiveOutcome.SUCCEEDED
+
+
+@dataclass(slots=True)
+class Feat018AdapterCallSupervisor:
+    """Independently supervises the complete adapter-worker invocation.
+
+    Its own ``cap_deadline_monotonic`` is the sole hard authority (see the approval package's
+    "One absolute deadline, and it is the sole hard authority"): this class never trusts a
+    worker-reported clock or a worker's cooperation for correctness, only for an early-exit
+    optimization the worker may or may not perform.
+
+    F2 (independent-review correction): every exit path -- normal completion, a gate failure,
+    or an unexpected exception raised anywhere from launch through the progress loop -- runs
+    through exactly one cleanup coordinator in a ``finally`` block, so descendant termination
+    and bounded cleanup verification are never bypassed. ``CLEANUP_FAILED`` always overrides a
+    prior success; a primary lifecycle failure is preserved in ``primary_failure_reason`` rather
+    than silently discarded.
+    """
+
+    config: Feat018BoundedRunnerConfig
+    launcher: ProcessLauncher
+    containment_factory: Callable[[], ContainmentBackend]
+    clock: Callable[[], float] = time.monotonic
+    sleep: Callable[[float], None] = time.sleep
+
+    def run(
+        self, entry: Callable[..., None], worker_args: tuple[object, ...]
+    ) -> SupervisorRunResult:
+        cap_deadline_monotonic = self.clock() + self.config.total_adapter_cap_seconds
+
+        containment: ContainmentBackend | None = None
+        try:
+            containment = self.containment_factory()
+            containment.create()
+        except Exception:  # noqa: BLE001 - containment creation is fail-closed, never raised
+            cleanup_status = self._cleanup_partial_containment(containment)
+            return SupervisorRunResult(
+                final_state=ProgressState.NOT_STARTED,
+                attempt_count=None,
+                terminal_outcome=None,
+                cleanup_status=cleanup_status,
+                effective_outcome=(
+                    EffectiveOutcome.CLEANUP_FAILED
+                    if cleanup_status is CleanupStatus.CLEANUP_FAILED
+                    else EffectiveOutcome.FAILED
+                ),
+                stopped_before_containment=True,
+                primary_failure_reason="containment creation failed",
+            )
+        assert containment is not None
+
+        process: ProcessHandle | None = None
+        connection: BoundedConnection | None = None
+        stopped_before_containment = False
+        primary_failure_reason: str | None = None
+        state_machine = Feat018ProgressStateMachine(cap_deadline_monotonic=cap_deadline_monotonic)
+
+        try:
+            try:
+                process, connection = self.launcher.launch(entry, worker_args)
+            except Exception:  # noqa: BLE001 - preserved below, cleanup still runs
+                stopped_before_containment = True
+                primary_failure_reason = "adapter worker launch failed"
+            else:
+                gated = self._establish_containment_gate(
+                    process, connection, containment, cap_deadline_monotonic
+                )
+                if not gated.contained:
+                    stopped_before_containment = True
+                    primary_failure_reason = gated.failure_reason
+                else:
+                    progress_failure_reason = self._run_progress_loop(
+                        process, connection, state_machine, cap_deadline_monotonic
+                    )
+                    primary_failure_reason = primary_failure_reason or progress_failure_reason
+        except Exception:  # noqa: BLE001 - any unforeseen lifecycle failure still cleans up
+            primary_failure_reason = primary_failure_reason or "adapter worker lifecycle failure"
+            state_machine.force_freeze()
+        finally:
+            cleanup_failed = False
+            if process is not None and not _bounded_terminate_kill_join(
+                process, grace_seconds=1.0, kill_join_seconds=1.0
+            ):
+                cleanup_failed = True
+            try:
+                containment.terminate_all()
+            except Exception:  # noqa: BLE001 - cleanup must continue and report failure
+                cleanup_failed = True
+            cleanup_status = self._verify_cleanup(containment)
+            if cleanup_status is CleanupStatus.CLEANUP_FAILED:
+                cleanup_failed = True
+            if connection is not None:
+                try:
+                    connection.close()
+                except Exception:  # noqa: BLE001 - containment close must still run
+                    cleanup_failed = True
+            try:
+                containment.close()
+            except Exception:  # noqa: BLE001 - cleanup failure is a result, not an escape
+                cleanup_failed = True
+            if bool(getattr(containment, "_cleanup_failed", False)):
+                cleanup_failed = True
+            if cleanup_failed:
+                cleanup_status = CleanupStatus.CLEANUP_FAILED
+
+        if cleanup_status is CleanupStatus.CLEANUP_FAILED and primary_failure_reason is None:
+            primary_failure_reason = "cleanup verification failed"
+        effective_outcome = EffectiveOutcome.FAILED
+        if cleanup_status is CleanupStatus.CLEANUP_FAILED:
+            effective_outcome = EffectiveOutcome.CLEANUP_FAILED
+        elif (
+            state_machine.state is ProgressState.TERMINAL
+            and state_machine.terminal_outcome == "SUCCEEDED"
+            and primary_failure_reason is None
+        ):
+            effective_outcome = EffectiveOutcome.SUCCEEDED
+
+        return SupervisorRunResult(
+            final_state=state_machine.state,
+            attempt_count=state_machine.attempt_count,
+            terminal_outcome=state_machine.terminal_outcome,
+            cleanup_status=cleanup_status,
+            effective_outcome=effective_outcome,
+            stopped_before_containment=stopped_before_containment,
+            primary_failure_reason=primary_failure_reason,
+        )
+
+    def _establish_containment_gate(
         self,
-        *,
-        run_id: str,
-        correlation_id: str,
-        session_id: str,
-        caps: LiveLightningExecutionCaps,
-        prompt_protocol_id: str | None = None,
-        prompt_sha256: str | None = None,
-        fixture_id: str | None = None,
-        source_sha256: str | None = None,
-    ) -> dict[str, object]:
-        """Return only fixed identifiers, counters, caps, and typed result tokens."""
-
-        for identifier in (run_id, correlation_id, session_id):
-            _require_safe_identifier(identifier)
-        optional_ids = {
-            "prompt_protocol_id": prompt_protocol_id,
-            "fixture_id": fixture_id,
-        }
-        for _label, optional_value in optional_ids.items():
-            if optional_value is not None:
-                _require_safe_identifier(optional_value)
-        if prompt_sha256 is not None:
-            _require_sha256(prompt_sha256, "prompt_sha256")
-        if source_sha256 is not None:
-            _require_sha256(source_sha256, "source_sha256")
-
-        evidence: dict[str, object] = {
-            "contract_name": "Feat018LiveLightningExecutionResultV1",
-            "contract_version": "1.0",
-            "run_id": run_id,
-            "correlation_id": correlation_id,
-            "session_id": session_id,
-            "status": self.status,
-            "adapter_call_count": self.adapter_call_count,
-            "attempt_count": self.attempt_count,
-            "per_attempt_timeout_seconds": caps.per_attempt_timeout_seconds,
-            "total_adapter_cap_seconds": caps.total_adapter_cap_seconds,
-            "raw_output_max_bytes": caps.raw_output_max_bytes,
-            "ipc_envelope_max_bytes": caps.ipc_envelope_max_bytes,
-            "stdout_max_bytes": caps.stdout_max_bytes,
-            "stderr_max_bytes": caps.stderr_max_bytes,
-            "cleanup_status": self.cleanup_status,
-            "asr_execution": False,
-            "narration_status": "NOT_SUPPLIED",
-        }
-        if self.run_failure_code is not None:
-            evidence["run_failure_code"] = self.run_failure_code.value
-        if self.vision_result is not None:
-            evidence["vision_status"] = self.vision_result.status
-            evidence["vision_attempt_number"] = self.vision_result.attempt_number
-            evidence["vision_repair_attempted"] = self.vision_result.repair_attempted
-            if isinstance(self.vision_result, VisionUnderstandingFailureV2):
-                evidence["vision_error_code"] = self.vision_result.error_code.value
-                evidence["vision_error_detail"] = self.vision_result.error_detail.value
-        if self.adapter_wall_clock_ms is not None:
-            evidence["adapter_wall_clock_ms"] = self.adapter_wall_clock_ms
-        if prompt_protocol_id is not None:
-            evidence["prompt_protocol_id"] = prompt_protocol_id
-        if prompt_sha256 is not None:
-            evidence["prompt_sha256"] = prompt_sha256
-        if fixture_id is not None:
-            evidence["fixture_id"] = fixture_id
-        if source_sha256 is not None:
-            evidence["source_sha256"] = source_sha256
-        return _validate_safe_evidence(evidence)
-
-
-def _require_safe_identifier(value: str) -> None:
-    if (
-        not isinstance(value, str)
-        or not value
-        or len(value) > _MAX_IDENTIFIER_LENGTH
-        or ".." in value
-        or any(character not in _SAFE_IDENTIFIER_PATTERN for character in value)
-    ):
-        raise ValueError("identifier is not safe for evidence")
-
-
-def _require_sha256(value: str, label: str) -> None:
-    if (
-        not isinstance(value, str)
-        or len(value) != _HASH_LENGTH
-        or any(character not in "0123456789abcdef" for character in value)
-    ):
-        raise ValueError(f"{label} must be a lowercase SHA-256")
-
-
-_SAFE_EVIDENCE_KEYS = frozenset(
-    {
-        "contract_name",
-        "contract_version",
-        "run_id",
-        "correlation_id",
-        "session_id",
-        "status",
-        "adapter_call_count",
-        "attempt_count",
-        "per_attempt_timeout_seconds",
-        "total_adapter_cap_seconds",
-        "raw_output_max_bytes",
-        "ipc_envelope_max_bytes",
-        "stdout_max_bytes",
-        "stderr_max_bytes",
-        "cleanup_status",
-        "asr_execution",
-        "narration_status",
-        "run_failure_code",
-        "vision_status",
-        "vision_attempt_number",
-        "vision_repair_attempted",
-        "vision_error_code",
-        "vision_error_detail",
-        "adapter_wall_clock_ms",
-        "prompt_protocol_id",
-        "prompt_sha256",
-        "fixture_id",
-        "source_sha256",
-    }
-)
-
-_REQUIRED_EVIDENCE_KEYS = frozenset(
-    {
-        "contract_name",
-        "contract_version",
-        "run_id",
-        "correlation_id",
-        "session_id",
-        "status",
-        "adapter_call_count",
-        "attempt_count",
-        "per_attempt_timeout_seconds",
-        "total_adapter_cap_seconds",
-        "raw_output_max_bytes",
-        "ipc_envelope_max_bytes",
-        "stdout_max_bytes",
-        "stderr_max_bytes",
-        "cleanup_status",
-        "asr_execution",
-        "narration_status",
-    }
-)
-
-
-def _is_integer(value: object) -> TypeGuard[int]:
-    return isinstance(value, int) and not isinstance(value, bool)
-
-
-def _require_closed_token(value: object, allowed: frozenset[str], label: str) -> None:
-    if not isinstance(value, str) or value not in allowed:
-        raise ValueError(f"{label} is not an allowlisted token")
-
-
-def _validate_safe_evidence(evidence: Mapping[str, object]) -> dict[str, object]:
-    if set(evidence) - _SAFE_EVIDENCE_KEYS:
-        raise ValueError("evidence contains a non-allowlisted field")
-    copied = dict(evidence)
-    if _REQUIRED_EVIDENCE_KEYS - set(copied):
-        raise ValueError("evidence is missing a required field")
-    try:
-        encoded = json.dumps(copied, ensure_ascii=True, sort_keys=True, separators=(",", ":"))
-    except (TypeError, ValueError, UnicodeError) as exc:
-        raise ValueError("evidence is not JSON-safe") from exc
-    if len(encoded.encode("utf-8")) > 64 * 1024:
-        raise ValueError("evidence exceeds its fixed bounded envelope")
-    if copied["contract_name"] != "Feat018LiveLightningExecutionResultV1":
-        raise ValueError("evidence contract name is not allowlisted")
-    if copied["contract_version"] != "1.0":
-        raise ValueError("evidence contract version is not allowlisted")
-    for key in ("run_id", "correlation_id", "session_id", "prompt_protocol_id", "fixture_id"):
-        value = copied.get(key)
-        if value is not None:
-            _require_safe_identifier(cast(str, value))
-    for key in ("prompt_sha256", "source_sha256"):
-        value = copied.get(key)
-        if value is not None:
-            _require_sha256(cast(str, value), key)
-    _require_closed_token(copied["status"], frozenset({"SUCCEEDED", "FAILED"}), "status")
-    _require_closed_token(
-        copied["cleanup_status"], frozenset({"SUCCEEDED", "FAILED"}), "cleanup_status"
-    )
-    if not _is_integer(copied["adapter_call_count"]) or copied["adapter_call_count"] not in {
-        0,
-        1,
-    }:
-        raise ValueError("adapter_call_count is outside its fixed range")
-    attempt_count = copied["attempt_count"]
-    if attempt_count is not None and (
-        not _is_integer(attempt_count) or attempt_count not in {0, 1, 2}
-    ):
-        raise ValueError("attempt_count is outside its fixed range")
-    per_attempt_timeout = copied["per_attempt_timeout_seconds"]
-    if (
-        not isinstance(per_attempt_timeout, (int, float))
-        or isinstance(per_attempt_timeout, bool)
-        or not math.isfinite(float(per_attempt_timeout))
-        or per_attempt_timeout != PER_ATTEMPT_TIMEOUT_SECONDS
-    ):
-        raise ValueError("per_attempt_timeout_seconds is not the approved value")
-    total_adapter_cap = copied["total_adapter_cap_seconds"]
-    if not isinstance(total_adapter_cap, (int, float)) or isinstance(total_adapter_cap, bool):
-        raise ValueError("total_adapter_cap_seconds is invalid")
-    if not math.isfinite(float(total_adapter_cap)) or total_adapter_cap <= 0:
-        raise ValueError("total_adapter_cap_seconds is invalid")
-    raw_output_max = copied["raw_output_max_bytes"]
-    if not _is_integer(raw_output_max) or raw_output_max <= 0:
-        raise ValueError("raw_output_max_bytes is invalid")
-    ipc_envelope_max = copied["ipc_envelope_max_bytes"]
-    if not _is_integer(ipc_envelope_max) or ipc_envelope_max <= 0:
-        raise ValueError("ipc_envelope_max_bytes is invalid")
-    for key in ("stdout_max_bytes", "stderr_max_bytes"):
-        stream_max = copied[key]
-        if not _is_integer(stream_max) or stream_max < 0:
-            raise ValueError(f"{key} is invalid")
-    if copied["asr_execution"] is not False or copied["narration_status"] != "NOT_SUPPLIED":
-        raise ValueError("unsupported multimodal evidence state")
-    if "run_failure_code" in copied:
-        run_failure_token = copied["run_failure_code"]
-        if not isinstance(run_failure_token, str):
-            raise ValueError("run_failure_code is not allowlisted")
-        try:
-            LiveLightningExecutionFailureCode(run_failure_token)
-        except (TypeError, ValueError):
-            raise ValueError("run_failure_code is not allowlisted") from None
-    vision_status = copied.get("vision_status")
-    if vision_status is not None:
-        _require_closed_token(vision_status, frozenset({"SUCCEEDED", "FAILED"}), "vision_status")
-        for key in ("vision_attempt_number", "vision_repair_attempted"):
-            if key not in copied:
-                raise ValueError("vision evidence is incomplete")
-        if not _is_integer(copied["vision_attempt_number"]) or copied[
-            "vision_attempt_number"
-        ] not in {0, 1, 2}:
-            raise ValueError("vision_attempt_number is outside its fixed range")
-        if not isinstance(copied["vision_repair_attempted"], bool):
-            raise ValueError("vision_repair_attempted is invalid")
-    elif any(
-        key in copied
-        for key in (
-            "vision_attempt_number",
-            "vision_repair_attempted",
-            "vision_error_code",
-            "vision_error_detail",
+        process: ProcessHandle,
+        connection: BoundedConnection,
+        containment: ContainmentBackend,
+        cap_deadline_monotonic: float,
+    ) -> _ContainmentGateResult:
+        remaining_for_gate = cap_deadline_monotonic - self.clock()
+        if _positive_finite_float(remaining_for_gate) is None:
+            return _ContainmentGateResult(
+                contained=False, failure_reason="containment gate deadline expired"
+            )
+        gate_timeout = max(
+            0.0, min(self.config.containment_setup_timeout_seconds, remaining_for_gate)
         )
-    ):
-        raise ValueError("vision evidence is incomplete")
-    if "vision_error_code" in copied or "vision_error_detail" in copied:
-        if vision_status != "FAILED" or not {
-            "vision_error_code",
-            "vision_error_detail",
-        }.issubset(copied):
-            raise ValueError("vision failure evidence is incomplete")
-        vision_error_code = copied["vision_error_code"]
-        vision_error_detail = copied["vision_error_detail"]
-        if not isinstance(vision_error_code, str) or not isinstance(vision_error_detail, str):
-            raise ValueError("vision failure token is not allowlisted")
         try:
-            VisionErrorCode(vision_error_code)
-            VisionNonPolicyErrorDetailV2(vision_error_detail)
-        except (TypeError, ValueError):
-            raise ValueError("vision failure token is not allowlisted") from None
-    if "adapter_wall_clock_ms" in copied:
-        wall_clock_ms = copied["adapter_wall_clock_ms"]
-        if not isinstance(wall_clock_ms, (int, float)) or isinstance(wall_clock_ms, bool):
-            raise ValueError("adapter_wall_clock_ms is invalid")
-        if not math.isfinite(float(wall_clock_ms)) or wall_clock_ms < 0:
-            raise ValueError("adapter_wall_clock_ms is invalid")
-    return copied
+            contained = containment.confirm_worker_contained(
+                process,
+                timeout=gate_timeout,
+                retry_interval=self.config.posix_confirmation_retry_interval_seconds,
+            )
+        except Exception:  # noqa: BLE001 - confirmation failure fails closed
+            return _ContainmentGateResult(
+                contained=False, failure_reason="containment confirmation failed"
+            )
+        if not contained:
+            return _ContainmentGateResult(
+                contained=False, failure_reason="containment not confirmed"
+            )
+
+        remaining_for_duration = cap_deadline_monotonic - self.clock()
+        if _positive_finite_float(remaining_for_duration) is None:
+            return _ContainmentGateResult(
+                contained=False, failure_reason="containment gate deadline expired"
+            )
+        try:
+            connection.send_frame(
+                {
+                    "kind": "CONTAINMENT_READY",
+                    "remaining_seconds_at_spawn": remaining_for_duration,
+                }
+            )
+        except Exception:  # noqa: BLE001 - failing to release the worker is a gate failure
+            return _ContainmentGateResult(
+                contained=False, failure_reason="CONTAINMENT_READY send failed"
+            )
+        return _ContainmentGateResult(contained=True, failure_reason=None)
+
+    def _run_progress_loop(
+        self,
+        process: ProcessHandle,
+        connection: BoundedConnection,
+        state_machine: Feat018ProgressStateMachine,
+        cap_deadline_monotonic: float,
+    ) -> str | None:
+        while state_machine.state not in (ProgressState.TERMINAL, ProgressState.FROZEN):
+            remaining = cap_deadline_monotonic - self.clock()
+            if _positive_finite_float(remaining) is None:
+                state_machine.force_freeze()
+                return "adapter supervisor deadline exceeded"
+            wait = min(remaining, self.config.poll_interval_seconds)
+            try:
+                raw_frame = connection.recv_frame(wait)
+            except Feat018FrameTooLargeError:
+                state_machine.force_freeze()
+                return "progress frame exceeded the IPC envelope limit"
+            except Feat018ProtocolViolationError:
+                state_machine.force_freeze()
+                return "progress frame failed bounded protocol validation"
+            except (EOFError, OSError):
+                state_machine.force_freeze()
+                return "progress channel closed before terminal event"
+            except Exception:  # noqa: BLE001 - never expose transport details
+                state_machine.force_freeze()
+                return "progress frame receive failed"
+            acceptance_time = self.clock()
+            if raw_frame is None:
+                try:
+                    worker_alive = process.is_alive()
+                except Exception:  # noqa: BLE001 - liveness failure is fail-closed
+                    state_machine.force_freeze()
+                    return "adapter worker liveness check failed"
+                if not worker_alive:
+                    state_machine.force_freeze()
+                    return "adapter worker exited before terminal event"
+                continue
+            if _positive_finite_float(cap_deadline_monotonic - acceptance_time) is None:
+                state_machine.force_freeze()
+                return "progress event arrived at or after the supervisor deadline"
+            event = _progress_event_from_frame(raw_frame)
+            if event is None:
+                state_machine.force_freeze()
+                return "malformed progress frame"
+            result = state_machine.accept(event, acceptance_time=acceptance_time)
+            if result in (
+                AcceptanceResult.REJECTED_DUPLICATE,
+                AcceptanceResult.REJECTED_GAP,
+                AcceptanceResult.REJECTED_INVALID_TRANSITION,
+                AcceptanceResult.REJECTED_DEADLINE,
+                AcceptanceResult.REJECTED_CLOSED,
+            ):
+                state_machine.force_freeze()
+                return {
+                    AcceptanceResult.REJECTED_DUPLICATE: "duplicate progress sequence",
+                    AcceptanceResult.REJECTED_GAP: "gapped progress sequence",
+                    AcceptanceResult.REJECTED_INVALID_TRANSITION: "invalid progress transition",
+                    AcceptanceResult.REJECTED_DEADLINE: (
+                        "progress event missed the supervisor deadline"
+                    ),
+                    AcceptanceResult.REJECTED_CLOSED: "progress stream was already closed",
+                }[result]
+        return None
+
+    def _cleanup_partial_containment(
+        self, containment: ContainmentBackend | None
+    ) -> CleanupStatus:
+        """Release a containment object even when its own creation did not finish."""
+
+        if containment is None:
+            return CleanupStatus.SUCCEEDED
+        cleanup_failed = bool(getattr(containment, "_cleanup_failed", False))
+        try:
+            containment.terminate_all()
+        except Exception:  # noqa: BLE001 - close is still mandatory
+            cleanup_failed = True
+        if not cleanup_failed and self._verify_cleanup(containment) is CleanupStatus.CLEANUP_FAILED:
+            cleanup_failed = True
+        try:
+            containment.close()
+        except Exception:  # noqa: BLE001 - report the cleanup failure
+            cleanup_failed = True
+        if bool(getattr(containment, "_cleanup_failed", False)):
+            cleanup_failed = True
+        return (
+            CleanupStatus.CLEANUP_FAILED if cleanup_failed else CleanupStatus.SUCCEEDED
+        )
+
+    def _verify_cleanup(self, containment: ContainmentBackend) -> CleanupStatus:
+        deadline = self.clock() + self.config.cleanup_deadline_seconds
+        interval = min(self.config.poll_interval_seconds, 0.01)
+        while True:
+            try:
+                empty = containment.is_empty()
+            except Exception:  # noqa: BLE001 - a failing query never reports empty
+                return CleanupStatus.CLEANUP_FAILED
+            if bool(getattr(containment, "_cleanup_failed", False)):
+                return CleanupStatus.CLEANUP_FAILED
+            if empty:
+                return CleanupStatus.SUCCEEDED
+            remaining = deadline - self.clock()
+            if _positive_finite_float(remaining) is None:
+                return CleanupStatus.CLEANUP_FAILED
+            try:
+                self.sleep(min(interval, remaining))
+            except Exception:  # noqa: BLE001 - a broken wait cannot be considered cleanup
+                return CleanupStatus.CLEANUP_FAILED
 
 
-def _utc_now() -> datetime:
-    return datetime.now(UTC)
+@dataclass(frozen=True, slots=True)
+class _ContainmentGateResult:
+    contained: bool
+    failure_reason: str | None
 
 
-def _profile_for_request(request: VisionUnderstandingRequestV2) -> VisionProfileV2:
-    return vision_profile_catalog_v2().resolve(request.requested_profile_id)
+# --------------------------------------------------------------------------------------
+# Concrete gated adapter-worker entry (F3)
+# --------------------------------------------------------------------------------------
 
 
-def _typed_failure_for_exception(
+def adapter_worker_entry(
+    connection: BoundedConnection,
     request: VisionUnderstandingRequestV2,
-    exception: BaseException,
-    *,
-    attempt_number: int,
-    content_policy: ObservableContentPolicyV1,
-    result_clock: Callable[[], datetime],
-) -> VisionUnderstandingFailureV2 | None:
-    if attempt_number not in {1, 2}:
-        return None
-    if isinstance(exception, (QwenTimeoutError, TimeoutError)):
-        code = VisionErrorCode.VISION_TIMEOUT
-        detail = VisionNonPolicyErrorDetailV2.TIMEOUT_BUDGET_EXCEEDED
-        retryable = False
-    elif isinstance(exception, (QwenModelLoadError, QwenDeviceUnavailableError)):
-        code = VisionErrorCode.VISION_MODEL_UNAVAILABLE
-        detail = (
-            VisionNonPolicyErrorDetailV2.DEVICE_UNAVAILABLE
-            if isinstance(exception, QwenDeviceUnavailableError)
-            else VisionNonPolicyErrorDetailV2.MODEL_LOAD_FAILED
-        )
-        retryable = False
-    elif isinstance(exception, QwenTransientRuntimeError):
-        code = VisionErrorCode.VISION_PROVIDER_FAILURE
-        detail = VisionNonPolicyErrorDetailV2.TRANSIENT_RUNTIME_FAILURE
-        retryable = True
-        if attempt_number != 2:
-            return None
-    elif isinstance(exception, QwenPermanentRuntimeError):
-        code = VisionErrorCode.VISION_PROVIDER_FAILURE
-        detail = VisionNonPolicyErrorDetailV2.PERMANENT_RUNTIME_FAILURE
-        retryable = False
-    else:
-        return None
-    profile = _profile_for_request(request)
-    return VisionUnderstandingFailureV2(
-        correlation_id=request.correlation_id,
-        executed_at=result_clock(),
-        source_image_ref=request.source_image_ref,
-        profile_id=profile.profile_id,
-        profile_catalog_hash=vision_profile_catalog_hash_v2(vision_profile_catalog_v2()),
-        attempt_number=attempt_number,
-        repair_attempted=False,
-        content_policy_version=content_policy.content_policy_version,
-        policy_match_view_version=content_policy.policy_match_view_version,
-        policy_execution_state="NOT_EXECUTED",
-        error_code=code,
-        error_detail=detail,
-        retryable=retryable,
-        model_provenance=profile.model_provenance,
-    )
-
-
-def _validate_result_cardinality(
-    result: VisionUnderstandingResultV2,
-    *,
-    runner: Feat018BoundedKillableQwenGenerationRunner | None,
-    adapter: VisionUnderstandingPortV2,
-) -> None:
-    if isinstance(result, VisionUnderstandingFailureV2) and result.error_code is (
-        VisionErrorCode.INPUT_NOT_VALIDATED
-    ):
-        if result.attempt_number != 0 or result.retryable:
-            raise _RunnerFailure(LiveLightningExecutionFailureCode.INVALID_CARDINALITY)
-        if runner is not None and runner.last_attempt_trace:
-            raise _RunnerFailure(LiveLightningExecutionFailureCode.INVALID_CARDINALITY)
-        return
-    if result.attempt_number not in {1, 2}:
-        raise _RunnerFailure(LiveLightningExecutionFailureCode.INVALID_CARDINALITY)
-    if runner is not None:
-        trace: tuple[GenerationAttemptOutcome, ...] | None = runner.last_attempt_trace
-    else:
-        candidate_trace = getattr(adapter, "attempt_trace", None)
-        trace = candidate_trace if isinstance(candidate_trace, tuple) else None
-    if runner is not None and (trace is None or len(trace) != result.attempt_number):
-        raise _RunnerFailure(LiveLightningExecutionFailureCode.INVALID_CARDINALITY)
-    if result.attempt_number == 2 and (
-        trace is None
-        or len(trace) != 2
-        or trace[0] is not GenerationAttemptOutcome.TRANSIENT_RUNTIME_FAILURE
-    ):
-        raise _RunnerFailure(LiveLightningExecutionFailureCode.INVALID_CARDINALITY)
-
-
-def _prompt_guard(
-    prompt_text: str | None,
-    expected_prompt_sha256: str | None,
-    *,
-    require_explicit: bool = False,
-) -> None:
-    if prompt_text is None and expected_prompt_sha256 is None:
-        if require_explicit:
-            raise PreAdapterRejection(LiveLightningExecutionFailureCode.PROMPT_HASH_MISMATCH)
-        return
-    if not isinstance(prompt_text, str) or not prompt_text:
-        raise PreAdapterRejection(LiveLightningExecutionFailureCode.PROMPT_HASH_MISMATCH)
-    if expected_prompt_sha256 is None:
-        raise PreAdapterRejection(LiveLightningExecutionFailureCode.PROMPT_HASH_MISMATCH)
-    try:
-        _require_sha256(expected_prompt_sha256, "prompt_sha256")
-    except ValueError:
-        raise PreAdapterRejection(LiveLightningExecutionFailureCode.PROMPT_HASH_MISMATCH) from None
-    try:
-        prompt_digest = sha256(prompt_text.encode("utf-8")).hexdigest()
-    except UnicodeError:
-        raise PreAdapterRejection(LiveLightningExecutionFailureCode.PROMPT_HASH_MISMATCH) from None
-    if prompt_digest != expected_prompt_sha256:
-        raise PreAdapterRejection(LiveLightningExecutionFailureCode.PROMPT_HASH_MISMATCH)
-
-
-def create_qwen_vision_adapter(
     runtime_config: QwenVisionRuntimeConfig,
-    *,
     content_policy: ObservableContentPolicyV1,
     prompt: str,
-    generation_runner: QwenGenerationRunner,
-) -> QwenVisionAdapter:
-    """Construct the existing adapter only with explicit policy, prompt, and runner inputs."""
+    config: Feat018BoundedRunnerConfig,
+    *,
+    generation_launcher: ProcessLauncher | None = None,
+    self_contain: Callable[[], None] = posix_worker_self_contain,
+    clock: Callable[[], float] = time.monotonic,
+) -> None:
+    """The real, gated adapter-worker process entry point (F3).
 
-    if not isinstance(prompt, str) or not prompt:
-        raise ValueError("the live glue boundary requires a non-empty explicit prompt")
-    return QwenVisionAdapter(
+    ``self_contain`` (real: :func:`posix_worker_self_contain`; on Windows containment is
+    external, so the real function is a no-op there) is the very first action, before anything
+    else -- including before waiting for release. Nothing that could construct the adapter, the
+    generation runner, or a generation child happens before a valid ``CONTAINMENT_READY`` frame
+    is accepted: a missing, late, malformed, or oversized release frame leaves this function
+    returning before that point, every time.
+    """
+
+    self_contain()
+    gate_deadline = clock() + config.containment_setup_timeout_seconds
+
+    try:
+        release = connection.recv_frame(config.containment_setup_timeout_seconds)
+    except Feat018ProtocolViolationError:
+        return  # an oversized/malformed frame is rejected before it is ever accepted
+    except Exception:  # noqa: BLE001 - a broken gate never reaches adapter construction
+        return
+    if not isinstance(release, Mapping):
+        return
+    if (
+        set(release) != {"kind", "remaining_seconds_at_spawn"}
+        or release.get("kind") != "CONTAINMENT_READY"
+    ):
+        return  # missing or late: the bounded wait above already enforces the timeout
+    if _positive_finite_float(gate_deadline - clock()) is None:
+        return  # the release completed at or after the worker's bounded gate deadline
+    remaining_raw = release.get("remaining_seconds_at_spawn")
+    remaining_seconds = _positive_finite_float(remaining_raw)
+    if remaining_seconds is None:
+        return
+
+    # Advisory only (see "Cross-process deadline propagation is advisory only" in the approval
+    # package): the supervisor's own deadline is the sole hard authority regardless of this
+    # value's accuracy or whether this worker uses it at all.
+    worker_local_monotonic_origin = clock()
+    worker_cap_deadline_monotonic = worker_local_monotonic_origin + remaining_seconds
+    if not math.isfinite(worker_cap_deadline_monotonic):
+        return
+
+    seq_state = {"value": 0}
+
+    def _next_seq() -> int:
+        seq_state["value"] += 1
+        return seq_state["value"]
+
+    def _send(kind: str, **extra: object) -> None:
+        try:
+            connection.send_frame({"seq": _next_seq(), "kind": kind, **extra})
+        except Exception:  # noqa: BLE001 - event delivery is a required protocol step
+            raise Feat018ProtocolViolationError("worker progress event send failed") from None
+
+    _send("ADAPTER_STARTED")
+
+    attempt_state = {"count": 0}
+    attempt_event_send_failed = {"value": False}
+
+    def _on_attempt_start() -> None:
+        attempt_state["count"] += 1
+        try:
+            _send("GENERATION_ATTEMPT_STARTED", attempt_number=attempt_state["count"])
+        except Feat018ProtocolViolationError:
+            attempt_event_send_failed["value"] = True
+            raise
+
+    runner = Feat018BoundedKillableQwenGenerationRunner(
+        config=config,
+        worker_cap_deadline_monotonic=worker_cap_deadline_monotonic,
+        launcher=generation_launcher
+        or MultiprocessingProcessLauncher(max_envelope_bytes=config.ipc_envelope_max_bytes),
+        clock=clock,
+        on_attempt_start=_on_attempt_start,
+    )
+    adapter = QwenVisionAdapter(
         runtime_config,
         content_policy=content_policy,
         prompt=prompt,
-        generation_runner=generation_runner,
+        generation_runner=runner,
     )
-
-
-def run_feat018_live_lightning_execution(
-    request: VisionUnderstandingRequestV2,
-    *,
-    adapter: VisionUnderstandingPortV2,
-    caps: LiveLightningExecutionCaps,
-    runner: Feat018BoundedKillableQwenGenerationRunner | None = None,
-    pre_adapter_check: Callable[[], object] | None = None,
-    prompt_text: str | None = None,
-    expected_prompt_sha256: str | None = None,
-    mapper: RawMapper | None = None,
-    session_id: str = "feat018-live-smoke",
-    content_policy: ObservableContentPolicyV1 | None = None,
-    clock: Callable[[], float] = time.monotonic,
-    result_clock: Callable[[], datetime] = _utc_now,
-    cleanup: ResourceCleanup | None = None,
-) -> LiveLightningExecutionResult:
-    """Run one adapter call with no outer retry and a finally-enforced cleanup hook."""
-
-    adapter_call_count = 0
-    attempt_count: int | None = None
-    vision_result: VisionUnderstandingResultV2 | None = None
-    mapped_result: object | None = None
-    run_failure_code: LiveLightningExecutionFailureCode | None = None
-    cleanup_status: Literal["SUCCEEDED", "FAILED"] = "SUCCEEDED"
-    adapter_wall_clock_ms: float | None = None
-    adapter_start: float | None = None
-    total_deadline = clock() + caps.total_adapter_cap_seconds
 
     try:
-        try:
-            _require_safe_identifier(request.correlation_id)
-            _require_safe_identifier(session_id)
-        except ValueError:
-            raise PreAdapterRejection() from None
-        if pre_adapter_check is not None:
-            try:
-                if pre_adapter_check() is False:
-                    raise PreAdapterRejection()
-            except PreAdapterRejection:
-                raise
-            except Exception:
-                raise PreAdapterRejection() from None
-        _prompt_guard(
-            prompt_text,
-            expected_prompt_sha256,
-            require_explicit=runner is not None,
-        )
-        adapter_call_count = 1
-        adapter_start = clock()
-        try:
-            if runner is not None:
-                vision_result = runner.run_adapter_call(adapter, request)
-            else:
-                vision_result = adapter.understand(request)
-        except (
-            QwenModelLoadError,
-            QwenDeviceUnavailableError,
-            QwenTimeoutError,
-            QwenTransientRuntimeError,
-            QwenPermanentRuntimeError,
-        ) as exc:
-            trace_attempts = len(runner.last_attempt_trace) if runner is not None else 0
-            typed_failure = _typed_failure_for_exception(
-                request,
-                exc,
-                attempt_number=trace_attempts,
-                content_policy=content_policy,
-                result_clock=result_clock,
-            ) if content_policy is not None else None
-            if typed_failure is not None:
-                vision_result = typed_failure
-                attempt_count = typed_failure.attempt_number
-            else:
-                run_failure_code = (
-                    runner.last_failure_code
-                    if runner is not None and runner.last_failure_code is not None
-                    else LiveLightningExecutionFailureCode.ADAPTER_EXCEPTION
-                )
-        except Exception:
-            run_failure_code = LiveLightningExecutionFailureCode.ADAPTER_EXCEPTION
-        finally:
-            if adapter_start is not None:
-                adapter_wall_clock_ms = max(0.0, (clock() - adapter_start) * 1000.0)
+        result = adapter.understand(request)
+        if attempt_event_send_failed["value"]:
+            raise Feat018ProtocolViolationError("worker attempt event send failed")
+        outcome = "SUCCEEDED" if isinstance(result, VisionUnderstandingSuccessV2) else "FAILED"
+    except Exception:  # noqa: BLE001 - never let an adapter-side exception cross the boundary
+        if attempt_event_send_failed["value"]:
+            raise Feat018ProtocolViolationError("worker attempt event send failed") from None
+        outcome = "FAILED"
 
-        if (
-            run_failure_code is None
-            and runner is not None
-            and runner.last_failure_code
-            in {
-                LiveLightningExecutionFailureCode.TOTAL_ADAPTER_CAP_EXCEEDED,
-                LiveLightningExecutionFailureCode.PER_ATTEMPT_TIMEOUT,
-                LiveLightningExecutionFailureCode.MALFORMED_CHILD_RESPONSE,
-                LiveLightningExecutionFailureCode.RAW_OUTPUT_TOO_LARGE,
-                LiveLightningExecutionFailureCode.IPC_ENVELOPE_TOO_LARGE,
-                LiveLightningExecutionFailureCode.STDOUT_TOO_LARGE,
-                LiveLightningExecutionFailureCode.STDERR_TOO_LARGE,
-                LiveLightningExecutionFailureCode.PROCESS_START_FAILED,
-                LiveLightningExecutionFailureCode.PROCESS_TERMINATION_FAILED,
-                LiveLightningExecutionFailureCode.CLEANUP_FAILED,
-            }
-        ):
-            run_failure_code = runner.last_failure_code
+    _send("TERMINAL", outcome=outcome)
 
-        if vision_result is not None:
-            try:
-                if not isinstance(
-                    vision_result, (VisionUnderstandingSuccessV2, VisionUnderstandingFailureV2)
-                ):
-                    raise _RunnerFailure(LiveLightningExecutionFailureCode.ADAPTER_RESULT_MALFORMED)
-                _validate_result_cardinality(vision_result, runner=runner, adapter=adapter)
-                attempt_count = vision_result.attempt_number
-            except _RunnerFailure as exc:
-                if run_failure_code is None:
-                    run_failure_code = exc.code
 
-        if run_failure_code is None and adapter_start is not None and clock() >= total_deadline:
-            run_failure_code = LiveLightningExecutionFailureCode.TOTAL_ADAPTER_CAP_EXCEEDED
+def run_bounded_adapter_call(
+    request: VisionUnderstandingRequestV2,
+    runtime_config: QwenVisionRuntimeConfig,
+    content_policy: ObservableContentPolicyV1,
+    prompt: str,
+    config: Feat018BoundedRunnerConfig,
+) -> SupervisorRunResult:
+    """The one real, production entry point for a live bounded adapter call (F3).
 
-        if run_failure_code is None and vision_result is not None and mapper is not None:
-            try:
-                mapped_result = mapper(
-                    vision_result,
-                    session_id=session_id,
-                    expected_source_sha256=request.source_image_ref.sha256,
-                    expected_correlation_id=request.correlation_id,
-                    asr_result=None,
-                )
-            except Exception:
-                run_failure_code = LiveLightningExecutionFailureCode.MAPPER_FAILED
-    except PreAdapterRejection as exc:
-        run_failure_code = exc.code
-        adapter_call_count = 0
-        attempt_count = None
-        vision_result = None
-        mapped_result = None
-    except Exception:
-        run_failure_code = LiveLightningExecutionFailureCode.ADAPTER_EXCEPTION
-    finally:
-        if cleanup is not None:
-            try:
-                cleanup()
-            except Exception:
-                cleanup_status = "FAILED"
-                run_failure_code = LiveLightningExecutionFailureCode.CLEANUP_FAILED
+    Always uses :func:`adapter_worker_entry` through :class:`Feat018AdapterCallSupervisor`, so
+    a caller cannot bypass the containment gate by substituting an ungated entry through this
+    function. This function itself is never invoked by the offline test suite (doing so would
+    require a real subprocess); its constituent pieces -- the supervisor, the entry's gate logic,
+    and the generation runner -- are each independently tested through injected fakes.
+    """
 
-    status: Literal["SUCCEEDED", "FAILED"] = (
-        "SUCCEEDED"
-        if run_failure_code is None
-        and isinstance(vision_result, VisionUnderstandingSuccessV2)
-        else "FAILED"
+    launcher = MultiprocessingProcessLauncher(max_envelope_bytes=config.ipc_envelope_max_bytes)
+    supervisor = Feat018AdapterCallSupervisor(
+        config=config,
+        launcher=launcher,
+        containment_factory=create_platform_containment,
     )
-    return LiveLightningExecutionResult(
-        status=status,
-        adapter_call_count=adapter_call_count,
-        attempt_count=attempt_count,
-        vision_result=vision_result,
-        mapped_result=mapped_result,
-        run_failure_code=run_failure_code,
-        cleanup_status=cleanup_status,
-        adapter_wall_clock_ms=adapter_wall_clock_ms,
+    return supervisor.run(
+        adapter_worker_entry,
+        (request, runtime_config, content_policy, prompt, config),
     )
+
+
+def _progress_event_from_frame(frame: Mapping[str, object]) -> ProgressEvent | None:
+    if not isinstance(frame, Mapping):
+        return None
+    allowed_keys = {"seq", "kind", "attempt_number", "outcome"}
+    if any(not isinstance(key, str) for key in frame) or set(frame) - allowed_keys:
+        return None
+    seq = frame.get("seq")
+    kind_raw = frame.get("kind")
+    attempt_number = frame.get("attempt_number")
+    outcome = frame.get("outcome")
+    if (
+        not isinstance(seq, int)
+        or isinstance(seq, bool)
+        or not isinstance(kind_raw, str)
+        or isinstance(attempt_number, bool)
+    ):
+        return None
+    if attempt_number is not None and not isinstance(attempt_number, int):
+        return None
+    if outcome is not None and not isinstance(outcome, str):
+        return None
+    try:
+        kind = ProgressEventKind(kind_raw)
+        return ProgressEvent(seq=seq, kind=kind, attempt_number=attempt_number, outcome=outcome)
+    except ValueError:
+        return None
+
+
+# --------------------------------------------------------------------------------------
+# Evidence commit protocol
+# --------------------------------------------------------------------------------------
+
+
+class FilesystemOps(Protocol):
+    """Injectable filesystem seam so crash-injection tests never touch the real disk."""
+
+    def write_new(self, path: Path, content: bytes) -> None: ...
+
+    def rename(self, source: Path, destination: Path) -> None: ...
+
+    def read_bytes(self, path: Path) -> bytes: ...
+
+    def exists(self, path: Path) -> bool: ...
+
+    def remove(self, path: Path) -> None: ...
+
+
+@dataclass(slots=True)
+class RealFilesystemOps:
+    def write_new(self, path: Path, content: bytes) -> None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("xb") as handle:
+            handle.write(content)
+
+    def rename(self, source: Path, destination: Path) -> None:
+        source.rename(destination)
+
+    def read_bytes(self, path: Path) -> bytes:
+        return path.read_bytes()
+
+    def exists(self, path: Path) -> bool:
+        return path.exists()
+
+    def remove(self, path: Path) -> None:
+        path.unlink(missing_ok=True)
 
 
 @dataclass(frozen=True, slots=True)
-class Feat018LiveLightningExecutionCoordinator:
-    """Reusable coordinator facade with caps and optional bounded runner fixed at construction."""
+class EvidenceCommitResult:
+    committed: bool
+    run_id: str
+    evidence_id: str
+    residual_paths: tuple[Path, ...] = ()
+    failure_reason: str | None = None
 
-    caps: LiveLightningExecutionCaps
-    runner: Feat018BoundedKillableQwenGenerationRunner | None = None
 
-    def run(
+def new_run_id() -> str:
+    return uuid.uuid4().hex
+
+
+def new_evidence_id() -> str:
+    return uuid.uuid4().hex
+
+
+@dataclass(slots=True)
+class Feat018EvidenceCommitWriter:
+    """The three-state commit protocol: provisional result -> provisional artifacts ->
+    authoritative committed pair. The JSON file is the sole designated commit record; its
+    rename is the sole commit point. The Markdown never carries a hash of the JSON.
+    """
+
+    json_path: Path
+    markdown_path: Path
+    fs: FilesystemOps = field(default_factory=RealFilesystemOps)
+
+    def commit(
         self,
-        request: VisionUnderstandingRequestV2,
         *,
-        adapter: VisionUnderstandingPortV2,
-        pre_adapter_check: Callable[[], object] | None = None,
-        prompt_text: str | None = None,
-        expected_prompt_sha256: str | None = None,
-        mapper: RawMapper | None = None,
-        session_id: str = "feat018-live-smoke",
-        content_policy: ObservableContentPolicyV1 | None = None,
-        clock: Callable[[], float] = time.monotonic,
-        result_clock: Callable[[], datetime] = _utc_now,
-        cleanup: ResourceCleanup | None = None,
-    ) -> LiveLightningExecutionResult:
-        return run_feat018_live_lightning_execution(
-            request,
-            adapter=adapter,
-            caps=self.caps,
-            runner=self.runner,
-            pre_adapter_check=pre_adapter_check,
-            prompt_text=prompt_text,
-            expected_prompt_sha256=expected_prompt_sha256,
-            mapper=mapper,
-            session_id=session_id,
-            content_policy=content_policy,
-            clock=clock,
-            result_clock=result_clock,
-            cleanup=cleanup,
-        )
+        run_id: str,
+        evidence_id: str,
+        json_fields: Mapping[str, object],
+        markdown_body: str,
+    ) -> EvidenceCommitResult:
+        markdown_content = _render_markdown(run_id, evidence_id, markdown_body).encode("utf-8")
+        markdown_sha256 = sha256(markdown_content).hexdigest()
+
+        json_payload: dict[str, object] = {
+            **json_fields,
+            "run_id": run_id,
+            "evidence_id": evidence_id,
+            "companion_markdown_sha256": markdown_sha256,
+            "commit_state": "FINAL",
+        }
+        json_content = json.dumps(json_payload, sort_keys=True, indent=2).encode("utf-8") + b"\n"
+
+        markdown_temp = self.markdown_path.with_name(self.markdown_path.name + f".tmp-{run_id}")
+        json_temp = self.json_path.with_name(self.json_path.name + f".tmp-{run_id}")
+
+        try:
+            self.fs.write_new(markdown_temp, markdown_content)
+        except OSError as exc:
+            return EvidenceCommitResult(
+                committed=False, run_id=run_id, evidence_id=evidence_id, failure_reason=str(exc)
+            )
+
+        try:
+            self.fs.write_new(json_temp, json_content)
+        except OSError as exc:
+            self._safe_remove(markdown_temp)
+            return EvidenceCommitResult(
+                committed=False, run_id=run_id, evidence_id=evidence_id, failure_reason=str(exc)
+            )
+
+        try:
+            self.fs.rename(markdown_temp, self.markdown_path)
+        except OSError as exc:
+            self._safe_remove(markdown_temp)
+            self._safe_remove(json_temp)
+            return EvidenceCommitResult(
+                committed=False, run_id=run_id, evidence_id=evidence_id, failure_reason=str(exc)
+            )
+
+        try:
+            self.fs.rename(json_temp, self.json_path)
+        except OSError as exc:
+            residual = self._rollback_after_json_rename_failure(json_temp)
+            return EvidenceCommitResult(
+                committed=False,
+                run_id=run_id,
+                evidence_id=evidence_id,
+                residual_paths=residual,
+                failure_reason=str(exc),
+            )
+
+        return EvidenceCommitResult(committed=True, run_id=run_id, evidence_id=evidence_id)
+
+    def _rollback_after_json_rename_failure(self, json_temp: Path) -> tuple[Path, ...]:
+        residual: list[Path] = []
+        try:
+            self.fs.remove(self.markdown_path)
+        except OSError:
+            residual.append(self.markdown_path)
+        try:
+            self.fs.remove(json_temp)
+        except OSError:
+            residual.append(json_temp)
+        return tuple(residual)
+
+    def _safe_remove(self, path: Path) -> None:
+        with contextlib.suppress(OSError):
+            self.fs.remove(path)
 
 
-def _write_new_file(path: Path, content: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("x", encoding="utf-8", newline="\n") as output:
-        output.write(content)
+def _render_markdown(run_id: str, evidence_id: str, body: str) -> str:
+    return f"# P2 live smoke evidence\nrun_id: {run_id}\nevidence_id: {evidence_id}\n\n{body}\n"
 
 
-def write_sanitized_evidence_pair(
-    evidence: Mapping[str, object],
-    json_path: Path,
-    markdown_path: Path,
-) -> None:
-    """Write exactly two bounded, allowlisted artifacts without overwriting either target."""
+class PairVerdict(StrEnum):
+    NOT_EVIDENCE = "NOT_EVIDENCE"
+    NON_AUTHORITATIVE = "NON_AUTHORITATIVE"
+    AUTHORITATIVE = "AUTHORITATIVE"
 
-    safe_evidence = _validate_safe_evidence(evidence)
-    for path in (json_path, markdown_path):
-        if path.is_absolute():
-            raise ValueError("evidence paths must be relative")
-        if path == Path.cwd() or Path.cwd() not in path.resolve().parents:
-            raise ValueError("evidence path escaped the working directory")
-        if path.exists():
-            raise FileExistsError("evidence artifact already exists")
-    json_text = json.dumps(safe_evidence, ensure_ascii=True, sort_keys=True, indent=2) + "\n"
-    markdown_lines = ["# FEAT-018 live Lightning execution", ""]
-    for key, value in safe_evidence.items():
-        markdown_lines.append(
-            f"- `{key}`: `{json.dumps(value, ensure_ascii=True, sort_keys=True)}`"
-        )
-    markdown_text = "\n".join(markdown_lines) + "\n"
-    json_created = False
+
+@dataclass(frozen=True, slots=True)
+class PairReadResult:
+    verdict: PairVerdict
+    reason: str | None = None
+
+
+_MARKDOWN_RUN_ID_PREFIX = "run_id: "
+_MARKDOWN_EVIDENCE_ID_PREFIX = "evidence_id: "
+
+
+def read_committed_pair(
+    json_path: Path, markdown_path: Path, *, fs: FilesystemOps | None = None
+) -> PairReadResult:
+    """Implements the Revision 5 crash-transition audit table's validity rule as code."""
+
+    ops = fs or RealFilesystemOps()
+    if not ops.exists(json_path) or not ops.exists(markdown_path):
+        return PairReadResult(PairVerdict.NON_AUTHORITATIVE, "one or both files are absent")
+
     try:
-        _write_new_file(json_path, json_text)
-        json_created = True
-        _write_new_file(markdown_path, markdown_text)
-    except Exception:
-        if json_created:
-            with suppress(OSError):
-                json_path.unlink()
-        raise
+        json_payload = json.loads(ops.read_bytes(json_path).decode("utf-8"))
+    except (OSError, ValueError):
+        return PairReadResult(PairVerdict.NON_AUTHORITATIVE, "JSON is unreadable or invalid")
+    if not isinstance(json_payload, dict):
+        return PairReadResult(PairVerdict.NON_AUTHORITATIVE, "JSON root is not an object")
+
+    if json_payload.get("commit_state") != "FINAL":
+        return PairReadResult(PairVerdict.NON_AUTHORITATIVE, "commit_state is not FINAL")
+
+    try:
+        markdown_bytes = ops.read_bytes(markdown_path)
+    except OSError:
+        return PairReadResult(PairVerdict.NON_AUTHORITATIVE, "Markdown is unreadable")
+
+    markdown_run_id, markdown_evidence_id = _extract_markdown_identity(markdown_bytes)
+    json_run_id = json_payload.get("run_id")
+    json_evidence_id = json_payload.get("evidence_id")
+    if markdown_run_id is None or markdown_run_id != json_run_id:
+        return PairReadResult(PairVerdict.NON_AUTHORITATIVE, "run_id mismatch")
+    if markdown_evidence_id is None or markdown_evidence_id != json_evidence_id:
+        return PairReadResult(PairVerdict.NON_AUTHORITATIVE, "evidence_id mismatch")
+
+    expected_hash = sha256(markdown_bytes).hexdigest()
+    if json_payload.get("companion_markdown_sha256") != expected_hash:
+        return PairReadResult(PairVerdict.NON_AUTHORITATIVE, "companion_markdown_sha256 mismatch")
+
+    return PairReadResult(PairVerdict.AUTHORITATIVE)
 
 
-def write_ignored_incident(
-    run_id: str,
-    failure_code: LiveLightningExecutionFailureCode,
-    *,
-    root: Path = Path("tmp"),
-) -> Path:
-    """Write the sole permitted safe fallback when the evidence pair cannot be completed."""
-
-    _require_safe_identifier(run_id)
-    if not isinstance(failure_code, LiveLightningExecutionFailureCode):
-        raise ValueError("incident failure code is not allowlisted")
-    if root.is_absolute() or root == Path.cwd() or Path.cwd() not in root.resolve().parents:
-        raise ValueError("incident root must be a relative child of the working directory")
-    incident_dir = root / f"feat018-live-lightning-incident-{run_id}"
-    incident_path = incident_dir / "INCIDENT.md"
-    if incident_dir.exists() or incident_path.exists():
-        raise FileExistsError("incident artifact already exists")
-    _write_new_file(
-        incident_path,
-        "# FEAT-018 live Lightning incident\n\n"
-        f"- incident_status: EVIDENCE_NOT_COMPLETED\n"
-        f"- failure_code: {failure_code.value}\n"
-        "- raw_output: NOT_RECORDED\n"
-        "- prompt: NOT_RECORDED\n"
-        "- credentials: NOT_RECORDED\n",
-    )
-    return incident_path
-
-
-# Compatibility aliases keep the feature-local boundary easy to discover without introducing a
-# second implementation or a parallel contract family.
-run_live_lightning_smoke = run_feat018_live_lightning_execution
+def _extract_markdown_identity(markdown_bytes: bytes) -> tuple[str | None, str | None]:
+    run_id: str | None = None
+    evidence_id: str | None = None
+    for line in markdown_bytes.decode("utf-8", errors="replace").splitlines():
+        if line.startswith(_MARKDOWN_RUN_ID_PREFIX):
+            run_id = line[len(_MARKDOWN_RUN_ID_PREFIX) :].strip()
+        elif line.startswith(_MARKDOWN_EVIDENCE_ID_PREFIX):
+            evidence_id = line[len(_MARKDOWN_EVIDENCE_ID_PREFIX) :].strip()
+    return run_id, evidence_id
 
 
 __all__ = [
+    "AcceptanceResult",
+    "BoundedConnection",
+    "CleanupStatus",
+    "ContainmentBackend",
+    "EffectiveOutcome",
+    "EvidenceCommitResult",
+    "Feat018AdapterCallSupervisor",
     "Feat018BoundedKillableQwenGenerationRunner",
-    "Feat018LiveLightningExecutionCoordinator",
-    "GenerationAttemptOutcome",
-    "LiveLightningExecutionCaps",
-    "LiveLightningExecutionFailureCode",
-    "LiveLightningExecutionResult",
-    "PER_ATTEMPT_TIMEOUT_SECONDS",
-    "PreAdapterRejection",
-    "create_qwen_vision_adapter",
-    "run_feat018_live_lightning_execution",
-    "run_live_lightning_smoke",
-    "write_ignored_incident",
-    "write_sanitized_evidence_pair",
+    "Feat018BoundedRunnerConfig",
+    "Feat018CleanupFailedError",
+    "Feat018ContainmentError",
+    "Feat018EvidenceCommitError",
+    "Feat018EvidenceCommitWriter",
+    "Feat018FrameTooLargeError",
+    "Feat018LauncherError",
+    "Feat018ProgressStateMachine",
+    "Feat018ProtocolViolationError",
+    "FilesystemOps",
+    "MultiprocessingBoundedConnection",
+    "MultiprocessingProcessLauncher",
+    "PairReadResult",
+    "PairVerdict",
+    "PosixProcessGroupContainment",
+    "ProcessHandle",
+    "ProcessLauncher",
+    "ProgressEvent",
+    "ProgressEventKind",
+    "ProgressState",
+    "RealFilesystemOps",
+    "SupervisorRunResult",
+    "WindowsJobObjectContainment",
+    "adapter_worker_entry",
+    "create_platform_containment",
+    "decode_envelope",
+    "encode_envelope",
+    "new_evidence_id",
+    "new_run_id",
+    "posix_worker_self_contain",
+    "read_committed_pair",
+    "run_bounded_adapter_call",
 ]
