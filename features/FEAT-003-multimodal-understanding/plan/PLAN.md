@@ -1,14 +1,19 @@
 # FEAT-003 Multimodal understanding plan
 
-- Status: APPROVED (P2-T1 and P2-T2 Phases A/B complete; P2-T3 Phase B in progress)
+- Status: APPROVED (P2-T1 and P2-T2 Phases A/B complete; P2-T3 B1-B5 study complete with
+  no profile frozen or runtime default selected; P2-T4 owner design decisions recorded
+  2026-09-13, with the B0 reconciliation package complete as documentation-only evidence;
+  owner confirmation/adoption and P2-T4 implementation remain gated)
 - Plan revision: 4
 - Implementation status: IN_PROGRESS (P2-T3 B1-B4, including the Direction A prompt-v3
   follow-up, are complete; prompt-v3 follow-up phases 1-6 and its mapping-readiness evaluation
   complete with a `MAPPING_READY` verdict and a `CAP_EXCEEDED` compute-governance result; prompt-v3
   phase 8 execution/evidence reconciliation complete with `QUALITY_NOT_READY` and a separate
-  `CAP_EXCEEDED` result; B5 evidence-only recommendation gate complete, recommending
+  `CAP_EXCEEDED` result; B5 evidence-only recommendation gate is complete, recommending
   `NOT_ENOUGH_EVIDENCE` to freeze any Qwen3-VL profile, with no profile frozen and no runtime
-  default selected; P2-T4/P2-T5 remain gated)
+  default selected; P2-T4 owner decisions and the documentation-only B0 reconciliation review
+  package are complete, but owner confirmation, adoption, and separate implementation approval
+  remain pending; P2-T5 remains gated)
 - Owner: Person 2
 - Estimate: 10 points total (P2-T1 through P2-T5, 2 points each)
 
@@ -26,6 +31,10 @@ Before code for T1, review and freeze a small versioned contract set with sample
 - `MediaValidationResultV1`: `PASS | RECAPTURE`, deterministic reason codes, measured signals, source/working-copy references, and validator/config provenance.
 - `AsrResultV1` and `VisionUnderstandingResultV1`: typed result or typed failure, source reference, model/config provenance, quality metadata, and no free-form provider response as a public contract.
 - `RawUnderstandingResultV1`: source modality predictions, entities, actions, relations, themes, support map, conflicts, uncertainty, and provenance. It explicitly excludes personality, diagnosis, mental-state, and psychological-inference fields.
+
+The P2-T4 `RawUnderstandingResultV1` identity and shape require the separately scoped B0
+reconciliation because FEAT-018 already has a different live contract with the same name. The
+P2-T4 design decisions do not freeze either family or authorize a migration.
 
 The contract review is part of this plan, not approval to integrate it into the application. Any change after approval requires a plan/approval update.
 
@@ -132,12 +141,34 @@ reason catalog are unchanged and out of that scope.
 
 **Goal:** Combine static `transcript.json` and `vision.json` into `RawUnderstandingResultV1` without erasing disagreement.
 
-**Implementation slices:**
+**Current status (2026-09-13):** the nine owner decisions are recorded as design choices. The
+separately approved documentation-only reconciliation between FEAT-018 and the P2 contract
+family is complete and has passed independent technical and governance review with owner actions.
+Its recommended outcome is an explicit versioned mapping, not adoption. The active v1 result
+statuses are exactly `FUSED | UPSTREAM_FAILURE`;
+`NOT_FUSIBLE` is not part of the active v1 design. Contract freeze and implementation remain
+not approved, and `approvals/TASK_APPROVAL.md` is unchanged.
 
-1. Implement a pure deterministic fusion policy over validated ASR and VLM contracts: normalize labels, retain source observations, match support for entities/actions/relations, and calculate configured uncertainty signals.
-2. Emit explicit conflict objects with both modality claims, source pointers, reason codes, and recommended reviewer attention. Narration may be higher-weighted for semantic interpretation, but visual evidence is never removed or rewritten.
-3. Add fixtures for agreement, audio-only/image-only assertion, contradictory entity/action/relation, low-confidence evidence, duplicate normalization, and upstream typed failures. These tests must execute without a model or network.
-4. Add JSON Schema/Pydantic round-trip, deterministic-output, provenance, and prohibited-field tests.
+**Resolved design boundaries:** narration is support/refute-only and cannot create independent
+entities, actions, relations, or themes; themes pass through from vision only; narration support
+can affect only `primary_interpretation` among non-conflicting candidates; the exact negation cue
+list is `not`, `no`, `never`, `isn't`, `doesn't`, `didn't`; the window is exactly the three
+match-view tokens immediately preceding an already-matched claim span; the corroboration
+increment is `0.10` once per supported, non-conflicting candidate and capped at `1.0`;
+`AGREEMENT_WEIGHTED_V1` is retained; and null source vision confidence remains
+`NOT_MEASURED` with null certainty even when support exists.
+
+**Implementation slices after the gates:**
+
+1. Obtain owner confirmation for the completed B0 reconciliation outcome, including its explicit
+   versioned mapping, compatibility review, and synthetic migration/compatibility fixture.
+2. Freeze the reconciled T4 contract and policy identities, then obtain separate P2-T4
+   implementation approval.
+3. Implement pure deterministic fusion, bounded conflict detection, primary-only weighting, and
+   uncertainty calculation.
+4. Add agreement, single-modality, exact-negation, low-confidence, duplicate-normalization,
+   null-confidence, and upstream-typed-failure fixtures, followed by round-trip, determinism,
+   provenance, reference-integrity, and prohibited-field tests.
 
 **Done when:** fusion generates strict JSON with source support, uncertainty, and conflict provenance; conflicts retain both predictions; the artifact is explicitly an AI proposal for future Gate A, never a `CanonicalUnderstandingResult`.
 
@@ -160,7 +191,8 @@ reason catalog are unchanged and out of that scope.
 Contract & fixture review
         -> P2-T1
         -> P2-T2 (ASR) -----\
-        -> P2-T3 (VLM) ------> P2-T4 (fusion) -> P2-T5 (CLI/evaluation)
+        -> P2-T3 (VLM) ------> B0 contract reconciliation
+                                  -> P2-T4 (fusion) -> P2-T5 (CLI/evaluation)
 ```
 
 For one owner, work sequentially as T1, T2, T3, T4, T5. If two contributors are available inside the P2 workstream, T2 and T3 may proceed in parallel only after the shared schemas and fixture manifest are reviewed; they may not depend on each other's live process.
@@ -176,6 +208,8 @@ For one owner, work sequentially as T1, T2, T3, T4, T5. If two contributors are 
 - [ ] The runner and all contract tests execute without mobile, backend API, database, queue, or another Sprint 1 workstream.
 - [ ] Evidence records command, environment, input/manifest reference, output, timestamp, reviewer, and interpretation.
 - [x] P2-T2 Phase B readiness validates a versioned ASR-only manifest and fixed Round-1 metadata plan without model/GPU/CLI/API work; unavailable measurements are explicit `NOT_MEASURED`.
+- [x] B0 reconciliation is separately approved and its documentation-only package is complete
+      before P2-T4 contract freeze or implementation; owner confirmation/adoption remains open.
 
 ## Evidence and review gates
 

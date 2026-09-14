@@ -22,6 +22,41 @@
   future Direction B experiment remains conceivable but would need its own new plan, approval, and
   capture/scoring boundary with entirely new fixtures.
 
+## P2-T4 owner decisions and reconciliation status (2026-09-13)
+
+- The nine P2-T4 owner decisions (B0, B5, B1, B4, B6, B2, B3a, B3b, and B3c) are recorded in
+  [`DECISIONS.md`](DECISIONS.md) and the detailed research plan. They are design choices, not an
+  implementation approval.
+- B0 selects Option 3: a separately approved reconciliation between the live FEAT-018 contract
+  family and the P2-T2/P2-T3/P2-T4 family. The documentation-only reconciliation package is now
+  complete and independently reviewed in `evidence/notes/P2_T4_BLOCKER_0_CONTRACT_RECONCILIATION_REPORT_20260913.md`,
+  with a synthetic compatibility fixture and follow-up impact record. Its outcome recommends
+  one explicit versioned mapping family; it does not select a final canonical runtime shape or
+  authorize migration/adoption.
+- The active P2-T4 v1 result statuses are only `FUSED | UPSTREAM_FAILURE`. `upstream_failure` is
+  non-null exactly for `UPSTREAM_FAILURE` and null for `FUSED`. The exact six negation cues, exact
+  three-token match-view window, one-time `0.10` capped increment, and `NOT_MEASURED` null-
+  confidence rule are recorded in the plan.
+- The separately scoped reconciliation plan is
+  [`plan/P2_T4_CONTRACT_RECONCILIATION_PLAN.md`](plan/P2_T4_CONTRACT_RECONCILIATION_PLAN.md),
+  with a feature-local approval request at
+  `evidence/notes/P2_T4_CONTRACT_RECONCILIATION_APPROVAL_REQUEST.md`. The request is not an
+  approval grant.
+- The reconciliation review passed technical and governance review with owner actions pending;
+  the synthetic fixture records eight deterministic cases and keeps mapping/adoption/cutover
+  false. Owner confirmation of source preservation and separate approval for any adoption,
+  migration, registry cutover, consumer update, or P2-T4 implementation remain open.
+- `approvals/TASK_APPROVAL.md` records approval only for the P2-T4 Blocker-0 reconciliation
+  scope. P2-T4/P2-T5 implementation, schema changes, migrations, runtime wiring,
+  provider/GPU/model work, FEAT-018 changes, and changes to existing fixtures remain outside the
+  approved boundary. The new metadata-only reconciliation fixture is the sole allowed synthetic
+  fixture output and does not exercise runtime behavior.
+- The feature-local implementation-approval package draft is recorded at
+  evidence/notes/P2_T4_IMPLEMENTATION_APPROVAL_PACKAGE_DRAFT_20260913.md. It expands the
+  owner-review field, failure, compatibility, fixture, and gate checklist only; it creates no
+  new decision or approval. Its status is DRAFT, NOT AN IMPLEMENTATION APPROVAL, and NOT A
+  RUNTIME AUTHORIZATION.
+
 ## P2-T1 maintenance (2026-09-10)
 
 - Source hashing in the P2-T1 validation service now reads files in fixed-size chunks of at most
