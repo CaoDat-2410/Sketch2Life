@@ -35,6 +35,11 @@
   migrations, runtime wiring, provider/GPU/model work, FEAT-018 changes, and changes to existing
   fixtures remain outside the approved boundary. The new metadata-only reconciliation fixture is
   the sole allowed synthetic fixture output and does not exercise runtime behavior.
+- The feature-local implementation-approval package draft is recorded at
+  evidence/notes/P2_T4_IMPLEMENTATION_APPROVAL_PACKAGE_DRAFT_20260913.md. It expands the
+  owner-review field, failure, compatibility, fixture, and gate checklist only; it creates no
+  new decision or approval. Its status is DRAFT, NOT AN IMPLEMENTATION APPROVAL, and NOT A
+  RUNTIME AUTHORIZATION.
 
 ## P2-T1 maintenance (2026-09-10)
 

@@ -613,6 +613,12 @@ mapping and preservation mechanism, followed by separate approval for any T4
 contract freeze or implementation. No T4 contract or code is treated as
 canonical by this package.
 
+- The feature-local implementation-approval package draft is
+  evidence/notes/P2_T4_IMPLEMENTATION_APPROVAL_PACKAGE_DRAFT_20260913.md. It is
+  DRAFT, NOT AN IMPLEMENTATION APPROVAL, and NOT A RUNTIME AUTHORIZATION; it
+  records a proposed additive offline scope and owner gates without changing the
+  mapping status, contract freeze, registry, runtime, or approval boundary.
+
 ## Historical audit record - not active v1 semantics
 
 This appendix preserves the material history of the earlier draft without making
