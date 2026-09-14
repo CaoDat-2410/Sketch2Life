@@ -1,0 +1,17 @@
+{
+  "fixture_id": "p1-butterfly-objective-mismatch-v1",
+  "scenario": "matching-butterfly-anchor-with-unrelated-objective",
+  "source_artifact": {
+    "artifact_id": "fixture-art-butterfly-001",
+    "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "raw_media_included": false
+  },
+  "requested_objective_ref": {
+    "id": "OBJ_UNRELATED_SORTING",
+    "version": 1
+  },
+  "expected": {
+    "fit_status": "REJECT",
+    "reason_codes": ["OBJECTIVE_TEMPLATE_MISMATCH", "FIT_BELOW_THRESHOLD"]
+  }
+}

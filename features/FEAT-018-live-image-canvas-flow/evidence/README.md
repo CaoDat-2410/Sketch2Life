@@ -56,6 +56,8 @@ only the sanitized feature-local contract record.
 
 Current pre-approval review: [completeness findings and required reconciliation](notes/PRE_APPROVAL_COMPLETENESS_REVIEW_20260908.md).
 
+Person 4 registry reconciliation: [P4 contract registry reconciliation](notes/P4_CONTRACT_REGISTRY_RECONCILIATION.md).
+
 Never store raw images, prompts, model output, tokens, signed URLs, personal metadata, or provider headers here. Store source SHA-256 and bounded metadata only.
 
 Required evidence groups:
@@ -67,3 +69,15 @@ Required evidence groups:
 5. Pixi asset/bridge/source-preservation;
 6. cache/fallback and 20-row device pilot;
 7. harness/security validation.
+
+Selected P1 strict continuity implementation record:
+[P1 strict continuity polish](notes/P1_STRICT_CONTINUITY_IMPLEMENTATION_20260911.md)
+(`EV-018-P1-STRICT-CONTINUITY-20260911`; approved compiler policy, fixture regression coverage and offline validation).
+
+Selected P1 catalog and Gate integrity implementation record:
+[P1 catalog and Gate integrity polish](notes/P1_CATALOG_GATE_INTEGRITY_IMPLEMENTATION_20260911.md)
+(`EV-018-P1-CATALOG-GATE-INTEGRITY-20260911`; catalog hygiene, optional context locks, Gate B fail-closed checks and offline validation).
+
+Selected P1 online-model compatibility implementation record:
+[P1 online-model compatibility tests](notes/P1_ONLINE_MODEL_COMPATIBILITY_IMPLEMENTATION_20260911.md)
+(`EV-018-P1-ONLINE-MODEL-COMPATIBILITY-20260911`; provider-shaped adapter fixtures, P1 handoff coverage and offline validation).

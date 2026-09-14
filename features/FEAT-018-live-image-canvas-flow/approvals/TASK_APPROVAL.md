@@ -1,8 +1,10 @@
 # Task approval
 
 - Status: APPROVED (P1 implementation slice; FEAT-018 P2-T1 D2/D3-R2 with offline Cohorts A+B
-  closed; and completed bounded P2-T2 offline implementation. P2-T2 live Lightning execution, P2-T3 through
-  P2-T5, P3, P4 and shared integration remain pending)
+  closed; completed P2-T2 offline contract/mapping implementation; and approved offline P3/P4
+  slices integrated. P2-T3 optional narration planning remains a DRAFT and is not
+  implementation-approved. P2-T2 live Lightning execution, P2-T4 through P2-T5, provider,
+  mobile/shared integration and production scope remain separately gated)
 - Approver: Project owner direct instruction in the current conversation
 - Plan revision: 2
 - Requested scope: FEAT-018 revision 2 P1 implementation slice only: catalog promotion/provenance, Activity Template Library, adult context and deterministic eligibility, semantic-anchor to objective/template selection, ExperienceSpec compilation and fit validation, Gate B identity/version locking, catalog/pilot harness and feature-local evidence.
@@ -29,36 +31,43 @@ This approval does not authorize P2 model changes, P3 renderer implementation, P
 - Evidence: `evidence/metrics/P1_ENGINE_VALIDATION_20260909.json` and `evidence/notes/P1_ENGINE_IMPLEMENTATION_20260909.md`.
 - Downstream P2/P3/P4/shared/live/production scope remains unimplemented and separately gated.
 
-## Approved P2-T1 D2 scope addendum — 2026-09-10
+## P2 integration addendum — 2026-09-11
 
-The project owner approves FEAT-018 P2-T1 D2: the isolated image-admission implementation
-specified in `evidence/P2_IMAGE_ADMISSION_SPEC_20260910.md` (`EV-018-P2-D1-SPEC-01`, revision 2),
-which is the sole canonical authority for this scope. `evidence/notes/P2_RESEARCH_ROUND2_D2_IMPLEMENTATION_GOAL_20260910.md`
-is a local, Git-ignored execution guide only; it carries no approval authority, this approval
-does not depend on it, and it must never be cited as an approval basis.
+- Approver: Project owner direct instruction in the current conversation.
+- Approved scope: merge `origin/feature/feat018-p2-image-validation` as the canonical FEAT-018 P2 integration branch and connect its frozen P2 contracts to the approved integration branch. Treat the other P2 branches as research references only.
+- Validation scope: offline contract compatibility, deterministic fixtures, repository validators, and relevant P2/integration tests.
+- Explicit exclusions remain: live provider execution, production API/cloud, Android release, real child/personal data, mobile provider credentials, and P3/P4 implementation.
+- Merge acceptance: no unresolved conflicts; P2 producers remain compatible with `VisionUnderstandingResultV1`, contract freeze, Gate A handoff, and existing P1 fixture adapters; evidence is stored under this feature.
 
-U1 dependency decision — approved: add
+## P3/P4 integration addendum — 2026-09-11
 
-```toml
-image-admission = ["av==18.1.0"]
-```
+- Approver: Project owner direct instruction in the current conversation.
+- Approved scope: merge the approved offline P3 renderer implementation from `origin/plan/person-3-art-animation-poc` and the latest approved offline P4 media integration from `origin/feat-018-person-4-media-integration` into `codex/feat-018-contract-plan`.
+- Validation scope: package typechecks/tests, deterministic renderer/media fixtures, cache/fallback replay, contract compatibility and repository validators.
+- Explicit exclusions remain: live provider execution, production API/cloud, Android release, real child/personal data, mobile provider credentials, and production asset publication.
+- Other P4/P3 research or POC branches remain references only unless separately approved.
 
-under `[project.optional-dependencies]` in `backend/pyproject.toml`. PyAV must never be relied
-upon transitively through the `asr-faster-whisper` extra.
+## P1 strict continuity polish addendum — 2026-09-11
 
-Approved D2 acceptance boundary:
+- Approver: Project owner direct instruction in the current conversation ("ok, chốt plan, implement").
+- Approved scope: implement `plan/P1_STRICT_CONTINUITY_POLISH_PLAN.md` in the P1 domain/compiler slice only: exact anchor label/kind compatibility, hard fit rejection before score threshold, bridge/media/activity identity defense-in-depth, policy metadata, fixture tests, and feature-local evidence.
+- Validation scope: targeted P1 unit and fixture tests, the full offline Python/TypeScript test suites, repository security and contract/harness validators.
+- Explicit exclusions: P2/P3/P4 code changes, shared/mobile integration, contract version changes, live provider execution, production API/cloud work, Android release, provider credentials, and real child/personal data.
 
-- seven new files: `domain/understanding/image_admission.py`,
-  `application/ports/image_decoder.py`, `application/services/image_admission.py`,
-  `infrastructure/media_validation/av_image_decoder.py`, `tests/unit/test_image_admission.py`,
-  `tests/unit/feat018_admission_manifest.py`, and one FEAT-018-local fixture manifest;
-- one modified file: `backend/pyproject.toml`, limited to the U1 extra above;
-- U2–U7 as locked in D1: closed pixel-format allowlist (measured profiles only, including JPEG
-  `yuvj420p`); container validation before packet probing so `mjpeg` resolves deterministically
-  to `UNSUPPORTED_CONTAINER`; `max_file_bytes=5_000_000`, `max_pixels=4_000_000`,
-  `max_longest_edge=4096`, `max_frames=1`; EXIF as read-only reporting only, no derivative
-  written; admission results remain internal, no public schema/serialization migration; the
-  FEAT-018-local fixture directory and test-only manifest schema.
+
+## P1 catalog and Gate integrity polish approval — 2026-09-11
+
+- Approver: Project owner direct instruction in the current conversation ("approve").
+- Approved scope: implement `plan/P1_CATALOG_GATE_INTEGRITY_POLISH_PLAN.md`: catalog anchor-label hygiene, optional P1 context identity locks, one Gate B approval path, template/spec integrity fail-fast checks, fixture regression tests and feature-local evidence.
+- Validation scope: targeted P1 tests, full offline Python/TypeScript suites, catalog/harness/architecture/security validators.
+- Explicit exclusions: P2/P3/P4 code changes, shared/mobile/API changes, contract version changes, live providers, production/cloud, Android release, provider credentials and real child/personal data.
+
+## P1 online-model compatibility test addendum — 2026-09-11
+
+- Approver: Project owner direct instruction in the current conversation ("thêm nhiều test vào, đảm bảo là nếu có lên trên onl model là vẫn sài đc").
+- Approved scope: implement `plan/P1_ONLINE_MODEL_COMPATIBILITY_TEST_PLAN.md` with provider-shaped ASR/VLM adapter fixtures and model-output-to-P1 handoff tests.
+- Validation scope: offline injected clients/transports, contract round-trips, P1 Gate A/Gate B continuity, full offline suites and repository validators.
+- Explicit exclusions: live provider/model execution, model downloads, provider credentials, production API/cloud, Android release, mobile/shared changes, contract version changes and real child/personal data.
 
 This approval does not authorize D3 performance/memory evaluation, Qwen/ASR integration, mobile
 transport, any public-contract migration, or any FEAT-003 connection. FEAT-003 contracts,

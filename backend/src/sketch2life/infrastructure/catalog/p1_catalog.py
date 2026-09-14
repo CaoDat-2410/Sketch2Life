@@ -24,6 +24,15 @@ class CatalogLoadError(ValueError):
     """Raised when the committed P1 catalog cannot be used safely."""
 
 
+_CATALOG_AREA_TERMS = frozenset({
+    "language",
+    "mathematics",
+    "practical_life",
+    "science",
+    "sensorial",
+})
+
+
 @dataclass(frozen=True, slots=True)
 class P1TemplateLibrary:
     templates: tuple[ActivityTemplateV1, ...]
@@ -101,11 +110,19 @@ def _template_from_record(
         for group_id in record["material_group_ids"]
         for option_id in groups_by_id[group_id]["any_of"]
     )
+    objective_labels = {ref["id"].casefold() for ref in objective_refs}
     labels = set(_slug_tokens(record["title"]["vi-VN"]))
     labels.update(_slug_tokens(record["purpose_vi"]))
     labels.update(_slug_tokens(record["direct_aim_vi"]))
-    labels.add(record["area"].casefold())
-    labels.update(ref["id"].casefold() for ref in objective_refs)
+    labels = {
+        label.strip().casefold()
+        for label in labels
+        if label.strip()
+        and label.strip().casefold() not in _CATALOG_AREA_TERMS
+        and label.strip().casefold() not in objective_labels
+    }
+    if not labels:
+        raise CatalogLoadError(f"activity {activity_id} has no meaningful anchor labels")
     return ActivityTemplateV1(
         template_id=f"TPL-{activity_id}-V{record['version']}",
         template_version=1,
@@ -140,7 +157,75 @@ def _template_from_record(
     )
 
 
-def load_p1_template_library(root: Path) -> P1TemplateLibrary:
+def _interaction_mode_from_mvp(record: dict[str, Any]) -> str:
+    area = record.get("area")
+    if area == "movement":
+        return "TRANSFER"
+    if area == "sensorial":
+        return "SORTING"
+    if area == "practical_life":
+        return "SEQUENCE"
+    if area in {"language", "mathematics"}:
+        return "RESEARCH"
+    if area in {"science", "cosmic_education"}:
+        return "OBSERVATION"
+    if area in {"cultural_studies", "social_studies"}:
+        return "RESEARCH"
+    return "TRANSFER"
+
+
+def _template_from_mvp_record(record: dict[str, Any]) -> ActivityTemplateV1:
+    activity_id = str(record["id"])
+    objective_refs = tuple(
+        VersionedRefV1(id=str(objective_id), version=1)
+        for objective_id in record["objective_ids"]
+    )
+    labels = set(_slug_tokens(record["title"]["vi-VN"]))
+    labels = {
+        label.strip().casefold()
+        for label in labels
+        if label.strip().casefold() not in _CATALOG_AREA_TERMS
+    }
+    material_ids = tuple(
+        str(option_id)
+        for group in record["material_groups"]
+        for option_id in group["any_of"]
+    )
+    safety = record["safety"]
+    safety_rule_ids = tuple(
+        f"{activity_id}:HAZARD:{index + 1}"
+        for index, _ in enumerate(safety["hazards_vi"])
+    ) + tuple(
+        f"{activity_id}:STOP:{index + 1}"
+        for index, _ in enumerate(safety["stop_conditions_vi"])
+    )
+    encoded = json.dumps(record, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
+    digest = hashlib.sha256(encoded).hexdigest()
+    return ActivityTemplateV1(
+        template_id=f"TPL-{activity_id}-V{record['version']}",
+        template_version=1,
+        activity_ref=VersionedRefV1(id=activity_id, version=int(record["version"])),
+        objective_refs=objective_refs,
+        supported_anchor_labels=tuple(sorted(labels or {activity_id.casefold()})),
+        supported_anchor_kinds=("subject", "action", "visual_feature", "story"),
+        interaction_mode=_interaction_mode_from_mvp(record),  # type: ignore[arg-type]
+        age_months_min=int(record["age_months"]["min"]),
+        age_months_max=int(record["age_months"]["max"]),
+        readiness_ids=tuple(str(item) for item in record["readiness_tags"]),
+        prerequisite_activity_ids=tuple(str(item) for item in record["prerequisite_activity_ids"]),
+        material_option_ids=material_ids,
+        minimum_supervision=safety["minimum_supervision"],
+        policy_constraints=tuple(str(item) for item in record["policy_constraints"]),
+        safety_rule_ids=safety_rule_ids,
+        steps_vi=tuple(str(item) for item in record["steps_vi"]),
+        personalization_slots=("material_substitute", "support_variant"),
+        provenance_source=f"data/activity-catalog/mvp/activities.v1.json#{activity_id}",
+        provenance_sha256=digest,
+        review_status=record["review"]["status"],
+        production_eligible=False,
+    )
+
+def load_p1_template_library(root: Path, *, include_mvp: bool = False) -> P1TemplateLibrary:
     golden = root / "data" / "activity-catalog" / "golden" / "v1"
     activity_doc = _read_json(golden / "activities.v2.json")
     material_doc = _read_json(golden / "material-registry.v1.json")
@@ -154,12 +239,37 @@ def load_p1_template_library(root: Path) -> P1TemplateLibrary:
         or len(records) != 20
     ):
         raise CatalogLoadError("golden catalog must contain exactly 20 schema-v2 activities")
+    mvp_records: list[dict[str, Any]] = []
+    if include_mvp:
+        mvp_doc = _read_json(root / "data" / "activity-catalog" / "mvp" / "activities.v1.json")
+        raw_mvp_records = mvp_doc.get("activities")
+        if (
+            mvp_doc.get("schema_version") != 1
+            or not isinstance(raw_mvp_records, list)
+            or len(raw_mvp_records) != 100
+        ):
+            raise CatalogLoadError("MVP catalog must contain exactly 100 schema-v1 activities")
+        mvp_records = [item for item in raw_mvp_records if isinstance(item, dict)]
     groups = {item["id"]: item for item in material_doc.get("groups", [])}
     if len(groups) != 20:
         raise CatalogLoadError("golden material registry must contain 20 groups")
-    templates = tuple(_template_from_record(record, groups) for record in records)
-    if len({template.template_id for template in templates}) != 20:
+    golden_templates = tuple(_template_from_record(record, groups) for record in records)
+    if len({template.template_id for template in golden_templates}) != 20:
         raise CatalogLoadError("golden template IDs must be unique")
+    if include_mvp:
+        golden_ids = {template.activity_ref.id for template in golden_templates}
+        mvp_templates = tuple(
+            _template_from_mvp_record(record)
+            for record in mvp_records
+            if str(record.get("id")) not in golden_ids
+        )
+        templates = golden_templates + mvp_templates
+        if len(templates) != 100 or len(
+            {template.activity_ref.id for template in templates}
+        ) != 100:
+            raise CatalogLoadError("expanded activity catalog must contain 100 unique activities")
+    else:
+        templates = golden_templates
     objectives = {
         item["id"]: item["title"]["vi-VN"]
         for item in objective_doc.get("objectives", [])
@@ -172,8 +282,18 @@ def load_p1_template_library(root: Path) -> P1TemplateLibrary:
         ref.id not in known_objectives for template in templates for ref in template.objective_refs
     ):
         raise CatalogLoadError("golden template contains an unknown objective reference")
+    if any(
+        not objectives.get(ref.id, "").strip()
+        for template in templates
+        for ref in template.objective_refs
+    ):
+        raise CatalogLoadError("golden template contains an objective without a title")
     return P1TemplateLibrary(
         templates=templates,
         objective_titles_vi=objectives,
-        catalog_source="golden/v1:activities.v2.json+material-registry.v1.json",
+        catalog_source=(
+            "golden/v1+MVP:v1 activity catalog"
+            if include_mvp
+            else "golden/v1:activities.v2.json+material-registry.v1.json"
+        ),
     )

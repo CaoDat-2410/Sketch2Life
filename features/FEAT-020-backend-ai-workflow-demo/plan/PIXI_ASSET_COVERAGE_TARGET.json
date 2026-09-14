@@ -1,0 +1,49 @@
+{
+  "schema_version": "pixi-asset-coverage-target.v1",
+  "feature_id": "FEAT-020",
+  "captured_at": "2026-09-13",
+  "status": "PLANNED",
+  "source_of_truth": {
+    "mvp_activities": "data/activity-catalog/mvp/activities.v1.json",
+    "golden_activities": "data/activity-catalog/golden/v1/activities.v2.json",
+    "golden_material_registry": "data/activity-catalog/golden/v1/material-registry.v1.json",
+    "learning_objectives": "data/activity-catalog/mvp/learning-objectives.v1.json"
+  },
+  "counts": {
+    "mvp_activities": 100,
+    "mvp_material_group_instances": 236,
+    "mvp_unique_material_option_ids": 380,
+    "golden_activities": 20,
+    "golden_material_groups": 20,
+    "golden_material_options": 40,
+    "learning_objectives": 20,
+    "current_starter_svg_assets": 12
+  },
+  "area_counts": {
+    "movement": 5,
+    "sensorial": 13,
+    "language": 15,
+    "practical_life": 21,
+    "mathematics": 20,
+    "cosmic_education": 4,
+    "science": 13,
+    "cultural_studies": 4,
+    "social_studies": 5
+  },
+  "coverage_rules": {
+    "activity_policy": "Every MVP activity requires one coverage row.",
+    "material_group_policy": "Every material-group instance must resolve all any_of tokens.",
+    "shared_family_policy": "Multiple catalog tokens may reuse one semantic asset family only with explicit mapping.",
+    "missing_policy": "Unmapped visual tokens are MISSING and fail the coverage gate; only explicit NON_VISUAL is allowed.",
+    "runtime_generation": false,
+    "ui_assets_in_scope": false,
+    "pixijs_runtime_in_scope": false,
+    "original_child_art_replacement": false
+  },
+  "required_manifest_outputs_after_approval": [
+    "PIXI_ASSET_LIBRARY_MANIFEST.v1.json",
+    "PIXI_ASSET_COVERAGE.v1.json",
+    "PIXI_MATERIAL_ASSET_MAP.v1.json",
+    "PIXI_LAYER_MANIFEST.v1.json"
+  ]
+}

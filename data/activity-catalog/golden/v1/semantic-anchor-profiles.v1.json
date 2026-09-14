@@ -1,0 +1,4420 @@
+{
+  "schema_version": 1,
+  "catalog_status": "PROVISIONAL_OWNER_REVIEWED",
+  "source": "data/activity-catalog/mvp/activities.v1.json",
+  "profile_count": 100,
+  "profiles": [
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0001-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0001",
+      "activity_version": 1,
+      "age_band": "0-3",
+      "age_months_min": 0,
+      "age_months_max": 35,
+      "exact_phrases_vi": [
+        "Theo dõi vật chuyển động chậm"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Theo",
+        "dõi",
+        "vật",
+        "chuyển",
+        "động",
+        "chậm"
+      ],
+      "negative_phrases_vi": [
+        "Theo"
+      ],
+      "positive_examples_vi": [
+        "Theo dõi vật chuyển động chậm"
+      ],
+      "negative_examples_vi": [
+        "Theo"
+      ],
+      "fallback_tier": "AGE_BASELINE",
+      "fallback_any_confirmed_anchor": true,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0001",
+      "provenance_sha256": "57d537e1bc8aad7b7be55e6029b12822247fd99ad2027bbd306b29c3084219e0",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0002-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0002",
+      "activity_version": 1,
+      "age_band": "0-3",
+      "age_months_min": 0,
+      "age_months_max": 35,
+      "exact_phrases_vi": [
+        "Cầm và chuyển vòng lớn"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Cầm",
+        "chuyển",
+        "vòng",
+        "lớn"
+      ],
+      "negative_phrases_vi": [
+        "Cầm"
+      ],
+      "positive_examples_vi": [
+        "Cầm và chuyển vòng lớn"
+      ],
+      "negative_examples_vi": [
+        "Cầm"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0002",
+      "provenance_sha256": "5fe610988d3e86954b1f6a95297f91d586d8b7a0d5b83411dea9371ca13dcbdc",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0003-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0003",
+      "activity_version": 1,
+      "age_band": "0-3",
+      "age_months_min": 0,
+      "age_months_max": 35,
+      "exact_phrases_vi": [
+        "Đá bóng mềm có dây neo"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "bóng",
+        "mềm",
+        "dây",
+        "neo"
+      ],
+      "negative_phrases_vi": [
+        "bóng"
+      ],
+      "positive_examples_vi": [
+        "Đá bóng mềm có dây neo"
+      ],
+      "negative_examples_vi": [
+        "bóng"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0003",
+      "provenance_sha256": "34a2769acf4cabad44d13259e72a97710e42221411f2d6b5d1ba332978d8789d",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0004-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0004",
+      "activity_version": 1,
+      "age_band": "0-3",
+      "age_months_min": 0,
+      "age_months_max": 35,
+      "exact_phrases_vi": [
+        "tìm đồ vật dưới khăn",
+        "đồ vật bị che"
+      ],
+      "aliases_vi": [
+        "tìm vật dưới khăn",
+        "che một phần rồi tìm"
+      ],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "đồ vật",
+        "khăn",
+        "tìm"
+      ],
+      "negative_phrases_vi": [
+        "bướm bay",
+        "bình minh"
+      ],
+      "positive_examples_vi": [
+        "tìm đồ vật dưới khăn",
+        "đồ vật bị che"
+      ],
+      "negative_examples_vi": [
+        "bướm bay",
+        "bình minh"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0004",
+      "provenance_sha256": "32bb178c47140a4f4711543aae4da45fe0fd1738ff958ee535ba4c8c1e0c03f2",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0005-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0005",
+      "activity_version": 1,
+      "age_band": "0-3",
+      "age_months_min": 0,
+      "age_months_max": 35,
+      "exact_phrases_vi": [
+        "Hộp thả bóng có khay"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Hộp",
+        "thả",
+        "bóng",
+        "khay"
+      ],
+      "negative_phrases_vi": [
+        "Hộp"
+      ],
+      "positive_examples_vi": [
+        "Hộp thả bóng có khay"
+      ],
+      "negative_examples_vi": [
+        "Hộp"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0005",
+      "provenance_sha256": "7804911751696ed4276ae13c9b1b16f0654b72b07ed0f025f5d9fd30c2954a17",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0006-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0006",
+      "activity_version": 1,
+      "age_band": "0-3",
+      "age_months_min": 0,
+      "age_months_max": 35,
+      "exact_phrases_vi": [
+        "Khám phá giỏ đồ vật an toàn"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Khám",
+        "phá",
+        "giỏ",
+        "vật",
+        "toàn"
+      ],
+      "negative_phrases_vi": [
+        "Khám"
+      ],
+      "positive_examples_vi": [
+        "Khám phá giỏ đồ vật an toàn"
+      ],
+      "negative_examples_vi": [
+        "Khám"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0006",
+      "provenance_sha256": "0756ab7022700fb36694ca6456962f34b824dd4e1475cc6dc0807a1759beb26d",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0007-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0007",
+      "activity_version": 1,
+      "age_band": "0-3",
+      "age_months_min": 0,
+      "age_months_max": 35,
+      "exact_phrases_vi": [
+        "Ghép cặp chất liệu"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Ghép",
+        "cặp",
+        "chất",
+        "liệu"
+      ],
+      "negative_phrases_vi": [
+        "Ghép"
+      ],
+      "positive_examples_vi": [
+        "Ghép cặp chất liệu"
+      ],
+      "negative_examples_vi": [
+        "Ghép"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0007",
+      "provenance_sha256": "bb6505998ef5991a0edbe063c93a51b8cd6a23b029dbfed2cce15a5a5c0a9369",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0008-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0008",
+      "activity_version": 1,
+      "age_band": "0-3",
+      "age_months_min": 0,
+      "age_months_max": 35,
+      "exact_phrases_vi": [
+        "Ghép cặp hộp âm thanh kín"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Ghép",
+        "cặp",
+        "hộp",
+        "thanh",
+        "kín"
+      ],
+      "negative_phrases_vi": [
+        "Ghép"
+      ],
+      "positive_examples_vi": [
+        "Ghép cặp hộp âm thanh kín"
+      ],
+      "negative_examples_vi": [
+        "Ghép"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0008",
+      "provenance_sha256": "61c6a1720d072e451ad508abbf85abb4383d1fcc11474ab818b40f2df4b3d070",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0009-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0009",
+      "activity_version": 1,
+      "age_band": "0-3",
+      "age_months_min": 0,
+      "age_months_max": 35,
+      "exact_phrases_vi": [
+        "Gọi tên người trong ảnh gia đình"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Gọi",
+        "tên",
+        "người",
+        "trong",
+        "ảnh",
+        "gia",
+        "đình"
+      ],
+      "negative_phrases_vi": [
+        "Gọi"
+      ],
+      "positive_examples_vi": [
+        "Gọi tên người trong ảnh gia đình"
+      ],
+      "negative_examples_vi": [
+        "Gọi"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0009",
+      "provenance_sha256": "d6725b1e196bb091d2beb253d53ce20ac8b2e098a8aa0b55f33e3dd3897c8a62",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0010-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0010",
+      "activity_version": 1,
+      "age_band": "0-3",
+      "age_months_min": 0,
+      "age_months_max": 35,
+      "exact_phrases_vi": [
+        "Gọi tên bộ phận cơ thể"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Gọi",
+        "tên",
+        "phận",
+        "thể"
+      ],
+      "negative_phrases_vi": [
+        "Gọi"
+      ],
+      "positive_examples_vi": [
+        "Gọi tên bộ phận cơ thể"
+      ],
+      "negative_examples_vi": [
+        "Gọi"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0010",
+      "provenance_sha256": "528fad95d740eed47420f37ee29d81b63594c43ab7b055041d0620df9e801f0f",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0011-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0011",
+      "activity_version": 1,
+      "age_band": "0-3",
+      "age_months_min": 0,
+      "age_months_max": 35,
+      "exact_phrases_vi": [
+        "Gọi tên mô hình động vật lớn"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Gọi",
+        "tên",
+        "hình",
+        "động",
+        "vật",
+        "lớn"
+      ],
+      "negative_phrases_vi": [
+        "Gọi"
+      ],
+      "positive_examples_vi": [
+        "Gọi tên mô hình động vật lớn"
+      ],
+      "negative_examples_vi": [
+        "Gọi"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0011",
+      "provenance_sha256": "b08c63bd7fc6da95b42e10bd7b91096f24d2b3804b0a73ce973ce77f2f24329b",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0012-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0012",
+      "activity_version": 1,
+      "age_band": "0-3",
+      "age_months_min": 0,
+      "age_months_max": 35,
+      "exact_phrases_vi": [
+        "Ghép đồ vật với hình ảnh"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Ghép",
+        "vật",
+        "với",
+        "hình",
+        "ảnh"
+      ],
+      "negative_phrases_vi": [
+        "Ghép"
+      ],
+      "positive_examples_vi": [
+        "Ghép đồ vật với hình ảnh"
+      ],
+      "negative_examples_vi": [
+        "Ghép"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0012",
+      "provenance_sha256": "1af1a6eceb082c23c3bf85deb230b5a05d9a8d4cc825451f65458b857f699f14",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0013-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0013",
+      "activity_version": 1,
+      "age_band": "0-3",
+      "age_months_min": 0,
+      "age_months_max": 35,
+      "exact_phrases_vi": [
+        "Thả đĩa lớn qua khe"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Thả",
+        "đĩa",
+        "lớn",
+        "qua",
+        "khe"
+      ],
+      "negative_phrases_vi": [
+        "Thả"
+      ],
+      "positive_examples_vi": [
+        "Thả đĩa lớn qua khe"
+      ],
+      "negative_examples_vi": [
+        "Thả"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0013",
+      "provenance_sha256": "0e327843291d760c29660c0b2236fbaa1665fb4b3935a4c123447f8b8f3dbd56",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0014-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0014",
+      "activity_version": 1,
+      "age_band": "0-3",
+      "age_months_min": 0,
+      "age_months_max": 35,
+      "exact_phrases_vi": [
+        "Xếp cốc lồng nhau"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Xếp",
+        "cốc",
+        "lồng",
+        "nhau"
+      ],
+      "negative_phrases_vi": [
+        "Xếp"
+      ],
+      "positive_examples_vi": [
+        "Xếp cốc lồng nhau"
+      ],
+      "negative_examples_vi": [
+        "Xếp"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0014",
+      "provenance_sha256": "6fa302e4338d16252f8ae3adfdbef34e205f4f91fc1edfdbfc97fa312a876093",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0015-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0015",
+      "activity_version": 1,
+      "age_band": "0-3",
+      "age_months_min": 0,
+      "age_months_max": 35,
+      "exact_phrases_vi": [
+        "Xếp vòng lớn"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Xếp",
+        "vòng",
+        "lớn"
+      ],
+      "negative_phrases_vi": [
+        "Xếp"
+      ],
+      "positive_examples_vi": [
+        "Xếp vòng lớn"
+      ],
+      "negative_examples_vi": [
+        "Xếp"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0015",
+      "provenance_sha256": "8b55ab6229c843ebb549f7620eef0357884ef40d69b1e91112984d6824373309",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0016-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0016",
+      "activity_version": 1,
+      "age_band": "0-3",
+      "age_months_min": 0,
+      "age_months_max": 35,
+      "exact_phrases_vi": [
+        "chuyển đồ vật lớn giữa hai bát"
+      ],
+      "aliases_vi": [
+        "chuyển vật giữa bát",
+        "đưa vật sang bát"
+      ],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "vật",
+        "bát",
+        "chuyển"
+      ],
+      "negative_phrases_vi": [
+        "bình minh",
+        "bay hơi"
+      ],
+      "positive_examples_vi": [
+        "chuyển đồ vật lớn giữa hai bát"
+      ],
+      "negative_examples_vi": [
+        "bình minh",
+        "bay hơi"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0016",
+      "provenance_sha256": "343e46f28c43d97db4eca9f17a6861b220bdea24921a847f406469403ece7ad6",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0017-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0017",
+      "activity_version": 1,
+      "age_band": "0-3",
+      "age_months_min": 0,
+      "age_months_max": 35,
+      "exact_phrases_vi": [
+        "Dùng thìa chuyển vật lớn"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Dùng",
+        "thìa",
+        "chuyển",
+        "vật",
+        "lớn"
+      ],
+      "negative_phrases_vi": [
+        "Dùng"
+      ],
+      "positive_examples_vi": [
+        "Dùng thìa chuyển vật lớn"
+      ],
+      "negative_examples_vi": [
+        "Dùng"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0017",
+      "provenance_sha256": "b96aee1a465e007223969c3be2b6ca7ba2a3c5629c509fcb34532c464bd22264",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0018-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0018",
+      "activity_version": 1,
+      "age_band": "0-3",
+      "age_months_min": 0,
+      "age_months_max": 35,
+      "exact_phrases_vi": [
+        "Rót lượng nước nhỏ"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Rót",
+        "lượng",
+        "nước",
+        "nhỏ"
+      ],
+      "negative_phrases_vi": [
+        "Rót"
+      ],
+      "positive_examples_vi": [
+        "Rót lượng nước nhỏ"
+      ],
+      "negative_examples_vi": [
+        "Rót"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0018",
+      "provenance_sha256": "803e5f7f1e4a4d1538997f765e321a9a2d162b3c438aa9c591f7e2e8783d8c6e",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0019-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0019",
+      "activity_version": 1,
+      "age_band": "0-3",
+      "age_months_min": 0,
+      "age_months_max": 35,
+      "exact_phrases_vi": [
+        "chuỗi rửa tay"
+      ],
+      "aliases_vi": [
+        "rửa tay theo chuỗi",
+        "xà phòng và nước"
+      ],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "tay",
+        "rửa",
+        "nước"
+      ],
+      "negative_phrases_vi": [
+        "bướm bay",
+        "mặt trời"
+      ],
+      "positive_examples_vi": [
+        "chuỗi rửa tay"
+      ],
+      "negative_examples_vi": [
+        "bướm bay",
+        "mặt trời"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0019",
+      "provenance_sha256": "fc0e1f4725b9b7ecb94770ddd399d972a3368b5d9f64d935d612e8361478c4e1",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0020-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0020",
+      "activity_version": 1,
+      "age_band": "0-3",
+      "age_months_min": 0,
+      "age_months_max": 35,
+      "exact_phrases_vi": [
+        "lau vết nước nhỏ"
+      ],
+      "aliases_vi": [
+        "lau vết đổ",
+        "vết nước trên bàn"
+      ],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "nước",
+        "lau",
+        "vết"
+      ],
+      "negative_phrases_vi": [
+        "bình minh",
+        "bướm bay"
+      ],
+      "positive_examples_vi": [
+        "lau vết nước nhỏ"
+      ],
+      "negative_examples_vi": [
+        "bình minh",
+        "bướm bay"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0020",
+      "provenance_sha256": "02525dd8812a8ae289f9b5a91d53e35d9c2ab0e043a5e0bf23aae5758ff25442",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0021-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0021",
+      "activity_version": 1,
+      "age_band": "0-3",
+      "age_months_min": 0,
+      "age_months_max": 35,
+      "exact_phrases_vi": [
+        "Tập mang tất"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Tập",
+        "mang",
+        "tất"
+      ],
+      "negative_phrases_vi": [
+        "Tập"
+      ],
+      "positive_examples_vi": [
+        "Tập mang tất"
+      ],
+      "negative_examples_vi": [
+        "Tập"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0021",
+      "provenance_sha256": "abe0995644ed59717cdd8b0fb4d740ea22d6672e800c5a4919595c73492bb6b4",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0022-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0022",
+      "activity_version": 1,
+      "age_band": "0-3",
+      "age_months_min": 0,
+      "age_months_max": 35,
+      "exact_phrases_vi": [
+        "Cắt chuối bằng dụng cụ an toàn"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Cắt",
+        "chuối",
+        "bằng",
+        "dụng",
+        "toàn"
+      ],
+      "negative_phrases_vi": [
+        "Cắt"
+      ],
+      "positive_examples_vi": [
+        "Cắt chuối bằng dụng cụ an toàn"
+      ],
+      "negative_examples_vi": [
+        "Cắt"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0022",
+      "provenance_sha256": "b6affc892fdcaef819979c6c7778f1f4ff70c016b304abcf21a626f146d55e19",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0023-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0023",
+      "activity_version": 1,
+      "age_band": "0-3",
+      "age_months_min": 0,
+      "age_months_max": 35,
+      "exact_phrases_vi": [
+        "tưới cây nhỏ"
+      ],
+      "aliases_vi": [
+        "tưới cây",
+        "chăm cây bằng nước"
+      ],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "cây",
+        "nước",
+        "tưới"
+      ],
+      "negative_phrases_vi": [
+        "bình minh",
+        "bướm bay"
+      ],
+      "positive_examples_vi": [
+        "tưới cây nhỏ"
+      ],
+      "negative_examples_vi": [
+        "bình minh",
+        "bướm bay"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0023",
+      "provenance_sha256": "71c69ef5268321d8209fbb6bbe08b2c765a286b8660d2f2da9b0ce50b52cf638",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0024-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0024",
+      "activity_version": 1,
+      "age_band": "0-3",
+      "age_months_min": 0,
+      "age_months_max": 35,
+      "exact_phrases_vi": [
+        "Mang khay thấp bằng hai tay"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Mang",
+        "khay",
+        "thấp",
+        "bằng",
+        "hai",
+        "tay"
+      ],
+      "negative_phrases_vi": [
+        "Mang"
+      ],
+      "positive_examples_vi": [
+        "Mang khay thấp bằng hai tay"
+      ],
+      "negative_examples_vi": [
+        "Mang"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0024",
+      "provenance_sha256": "dae4c57c0f6f6c57b368d0e2fc4af49ae1dba047f6cef31f7017f50bf7beac7c",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0025-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0025",
+      "activity_version": 1,
+      "age_band": "0-3",
+      "age_months_min": 0,
+      "age_months_max": 35,
+      "exact_phrases_vi": [
+        "Chào hỏi và chờ lượt"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Chào",
+        "hỏi",
+        "chờ",
+        "lượt"
+      ],
+      "negative_phrases_vi": [
+        "Chào"
+      ],
+      "positive_examples_vi": [
+        "Chào hỏi và chờ lượt"
+      ],
+      "negative_examples_vi": [
+        "Chào"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0025",
+      "provenance_sha256": "c61b37c1332068a36bb8cccad9022f458d88d31e90cc5ea873c52bb725332d7a",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0026-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0026",
+      "activity_version": 1,
+      "age_band": "3-6",
+      "age_months_min": 36,
+      "age_months_max": 71,
+      "exact_phrases_vi": [
+        "rót hạt khô",
+        "chuyển hạt giữa hai bình"
+      ],
+      "aliases_vi": [
+        "rót hạt",
+        "hạt khô",
+        "đổ hạt"
+      ],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "bình",
+        "rót",
+        "hạt"
+      ],
+      "negative_phrases_vi": [
+        "bình minh",
+        "bướm bay"
+      ],
+      "positive_examples_vi": [
+        "rót hạt khô",
+        "chuyển hạt giữa hai bình"
+      ],
+      "negative_examples_vi": [
+        "bình minh",
+        "bướm bay"
+      ],
+      "fallback_tier": "AGE_BASELINE",
+      "fallback_any_confirmed_anchor": true,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0026",
+      "provenance_sha256": "f14c20c26b992d95bf3ebea3c0b80667736f7312e63a638b26fe28cb2a44ab07",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0027-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0027",
+      "activity_version": 1,
+      "age_band": "3-6",
+      "age_months_min": 36,
+      "age_months_max": 71,
+      "exact_phrases_vi": [
+        "Rót nước có vạch giới hạn"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Rót",
+        "nước",
+        "vạch",
+        "giới",
+        "hạn"
+      ],
+      "negative_phrases_vi": [
+        "Rót"
+      ],
+      "positive_examples_vi": [
+        "Rót nước có vạch giới hạn"
+      ],
+      "negative_examples_vi": [
+        "Rót"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0027",
+      "provenance_sha256": "763882e5eb3ddcc04bd332ea6cb9f7dfc73d62739ce4ee6b6ae56cd9796e83e2",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0028-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0028",
+      "activity_version": 1,
+      "age_band": "3-6",
+      "age_months_min": 36,
+      "age_months_max": 71,
+      "exact_phrases_vi": [
+        "Chuyển hạt bằng thìa"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Chuyển",
+        "hạt",
+        "bằng",
+        "thìa"
+      ],
+      "negative_phrases_vi": [
+        "Chuyển"
+      ],
+      "positive_examples_vi": [
+        "Chuyển hạt bằng thìa"
+      ],
+      "negative_examples_vi": [
+        "Chuyển"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0028",
+      "provenance_sha256": "ba524e676efc6bf51583fd1c502eed4ccc8c9f2afbc58fae58e2a78f8c7d85b8",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0029-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0029",
+      "activity_version": 1,
+      "age_band": "3-6",
+      "age_months_min": 36,
+      "age_months_max": 71,
+      "exact_phrases_vi": [
+        "Chuyển vật bằng kẹp"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Chuyển",
+        "vật",
+        "bằng",
+        "kẹp"
+      ],
+      "negative_phrases_vi": [
+        "Chuyển"
+      ],
+      "positive_examples_vi": [
+        "Chuyển vật bằng kẹp"
+      ],
+      "negative_examples_vi": [
+        "Chuyển"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0029",
+      "provenance_sha256": "c56617d8e879f51324ee5e05073babb21e2c93fd1d68d9b19b3ecebdb78fd231",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0030-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0030",
+      "activity_version": 1,
+      "age_band": "3-6",
+      "age_months_min": 36,
+      "age_months_max": 71,
+      "exact_phrases_vi": [
+        "khung cài nút"
+      ],
+      "aliases_vi": [
+        "cài nút",
+        "khung nút áo"
+      ],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "khung",
+        "nút",
+        "cài"
+      ],
+      "negative_phrases_vi": [
+        "bình minh",
+        "mặt trời"
+      ],
+      "positive_examples_vi": [
+        "khung cài nút"
+      ],
+      "negative_examples_vi": [
+        "bình minh",
+        "mặt trời"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0030",
+      "provenance_sha256": "fb4de6a20e6393f11aed7b09661e2c9c777b812e132ab2c7f35adf10be90f5b4",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0031-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0031",
+      "activity_version": 1,
+      "age_band": "3-6",
+      "age_months_min": 36,
+      "age_months_max": 71,
+      "exact_phrases_vi": [
+        "Khung kéo khóa"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Khung",
+        "kéo",
+        "khóa"
+      ],
+      "negative_phrases_vi": [
+        "Khung"
+      ],
+      "positive_examples_vi": [
+        "Khung kéo khóa"
+      ],
+      "negative_examples_vi": [
+        "Khung"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0031",
+      "provenance_sha256": "f082a14f4ab0f84ef77c894cad032de6b16a8353a14933ebcdbf51b9bc3f5898",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0032-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0032",
+      "activity_version": 1,
+      "age_band": "3-6",
+      "age_months_min": 36,
+      "age_months_max": 71,
+      "exact_phrases_vi": [
+        "Rửa tay theo chuỗi đầy đủ"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Rửa",
+        "tay",
+        "theo",
+        "chuỗi",
+        "đầy"
+      ],
+      "negative_phrases_vi": [
+        "Rửa"
+      ],
+      "positive_examples_vi": [
+        "Rửa tay theo chuỗi đầy đủ"
+      ],
+      "negative_examples_vi": [
+        "Rửa"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0032",
+      "provenance_sha256": "fe2168b2986f5a48d3d14c6e1a5ba48ec7b0b183305941f4bb129430f045fe7a",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0033-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0033",
+      "activity_version": 1,
+      "age_band": "3-6",
+      "age_months_min": 36,
+      "age_months_max": 71,
+      "exact_phrases_vi": [
+        "sắp bàn cho một người"
+      ],
+      "aliases_vi": [
+        "bày bàn",
+        "đặt thìa đĩa"
+      ],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "bàn",
+        "đặt",
+        "người"
+      ],
+      "negative_phrases_vi": [
+        "bình minh",
+        "bướm bay"
+      ],
+      "positive_examples_vi": [
+        "sắp bàn cho một người"
+      ],
+      "negative_examples_vi": [
+        "bình minh",
+        "bướm bay"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0033",
+      "provenance_sha256": "e2bff98eab6be48f0a5da86f08cb4989d2b804f06077ec4769fd8c8e1c4ec779",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0034-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0034",
+      "activity_version": 1,
+      "age_band": "3-6",
+      "age_months_min": 36,
+      "age_months_max": 71,
+      "exact_phrases_vi": [
+        "Cắm hoa đơn giản"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Cắm",
+        "hoa",
+        "đơn",
+        "giản"
+      ],
+      "negative_phrases_vi": [
+        "Cắm"
+      ],
+      "positive_examples_vi": [
+        "Cắm hoa đơn giản"
+      ],
+      "negative_examples_vi": [
+        "Cắm"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0034",
+      "provenance_sha256": "71b117d32e773fa3865785e8eec3e71d9b6751813a5ffa8b315a6b55661ef6b7",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0035-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0035",
+      "activity_version": 1,
+      "age_band": "3-6",
+      "age_months_min": 36,
+      "age_months_max": 71,
+      "exact_phrases_vi": [
+        "Quét khu vực có đánh dấu"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Quét",
+        "khu",
+        "vực",
+        "đánh",
+        "dấu"
+      ],
+      "negative_phrases_vi": [
+        "Quét"
+      ],
+      "positive_examples_vi": [
+        "Quét khu vực có đánh dấu"
+      ],
+      "negative_examples_vi": [
+        "Quét"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0035",
+      "provenance_sha256": "d32a6fc613358e590096e07b83fdef9f4d483d215228944cb47c47f745f3f59a",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0036-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0036",
+      "activity_version": 1,
+      "age_band": "3-6",
+      "age_months_min": 36,
+      "age_months_max": 71,
+      "exact_phrases_vi": [
+        "Tháp hồng"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Tháp",
+        "hồng"
+      ],
+      "negative_phrases_vi": [
+        "Tháp"
+      ],
+      "positive_examples_vi": [
+        "Tháp hồng"
+      ],
+      "negative_examples_vi": [
+        "Tháp"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0036",
+      "provenance_sha256": "e452150d3a615e380a1652d8b8e28adff82d11b8af08c957c944523e343665fb",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0037-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0037",
+      "activity_version": 1,
+      "age_band": "3-6",
+      "age_months_min": 36,
+      "age_months_max": 71,
+      "exact_phrases_vi": [
+        "Cầu thang nâu"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Cầu",
+        "thang",
+        "nâu"
+      ],
+      "negative_phrases_vi": [
+        "Cầu"
+      ],
+      "positive_examples_vi": [
+        "Cầu thang nâu"
+      ],
+      "negative_examples_vi": [
+        "Cầu"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0037",
+      "provenance_sha256": "0e9a93a519f0972f454f21bba15b2ea5f5bb98b931197a9085181c21785c2418",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0038-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0038",
+      "activity_version": 1,
+      "age_band": "3-6",
+      "age_months_min": 36,
+      "age_months_max": 71,
+      "exact_phrases_vi": [
+        "Gậy đỏ"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Gậy"
+      ],
+      "negative_phrases_vi": [
+        "Gậy"
+      ],
+      "positive_examples_vi": [
+        "Gậy đỏ"
+      ],
+      "negative_examples_vi": [
+        "Gậy"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0038",
+      "provenance_sha256": "3ac2706cb9c2fef581aa35f218ab960fc44e39cb91a748a69b4344c64824f6d3",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0039-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0039",
+      "activity_version": 1,
+      "age_band": "3-6",
+      "age_months_min": 36,
+      "age_months_max": 71,
+      "exact_phrases_vi": [
+        "phân cấp bảng màu"
+      ],
+      "aliases_vi": [
+        "xếp màu đậm nhạt",
+        "phân loại màu"
+      ],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "màu",
+        "bảng",
+        "xếp"
+      ],
+      "negative_phrases_vi": [
+        "bình minh",
+        "bướm bay"
+      ],
+      "positive_examples_vi": [
+        "phân cấp bảng màu"
+      ],
+      "negative_examples_vi": [
+        "bình minh",
+        "bướm bay"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0039",
+      "provenance_sha256": "4739546de259275ce64181fc1b8a2273edb781af0f33839a1e862250125bb070",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0040-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0040",
+      "activity_version": 1,
+      "age_band": "3-6",
+      "age_months_min": 36,
+      "age_months_max": 71,
+      "exact_phrases_vi": [
+        "Ghép ống âm thanh"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Ghép",
+        "ống",
+        "thanh"
+      ],
+      "negative_phrases_vi": [
+        "Ghép"
+      ],
+      "positive_examples_vi": [
+        "Ghép ống âm thanh"
+      ],
+      "negative_examples_vi": [
+        "Ghép"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0040",
+      "provenance_sha256": "2ca04f464c0e5acc8d968375ce42e0cb7f7dc101f33d7fe8c14eeae1a5076baf",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0041-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0041",
+      "activity_version": 1,
+      "age_band": "3-6",
+      "age_months_min": 36,
+      "age_months_max": 71,
+      "exact_phrases_vi": [
+        "Bảng nhám và mịn"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Bảng",
+        "nhám",
+        "mịn"
+      ],
+      "negative_phrases_vi": [
+        "Bảng"
+      ],
+      "positive_examples_vi": [
+        "Bảng nhám và mịn"
+      ],
+      "negative_examples_vi": [
+        "Bảng"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0041",
+      "provenance_sha256": "1f68807a94133635319ec62993b895874e8b1f672ea8a0518f05f50ae8a53ae6",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0042-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0042",
+      "activity_version": 1,
+      "age_band": "3-6",
+      "age_months_min": 36,
+      "age_months_max": 71,
+      "exact_phrases_vi": [
+        "Khối hình học"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Khối",
+        "hình",
+        "học"
+      ],
+      "negative_phrases_vi": [
+        "Khối"
+      ],
+      "positive_examples_vi": [
+        "Khối hình học"
+      ],
+      "negative_examples_vi": [
+        "Khối"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0042",
+      "provenance_sha256": "e569acf1beb63b8165533325abce7184ccb80a555c1ba942e1ef711c7eaf1346",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0043-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0043",
+      "activity_version": 1,
+      "age_band": "3-6",
+      "age_months_min": 36,
+      "age_months_max": 71,
+      "exact_phrases_vi": [
+        "Chữ cái nhám"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Chữ",
+        "cái",
+        "nhám"
+      ],
+      "negative_phrases_vi": [
+        "Chữ"
+      ],
+      "positive_examples_vi": [
+        "Chữ cái nhám"
+      ],
+      "negative_examples_vi": [
+        "Chữ"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0043",
+      "provenance_sha256": "0f2936c1933da284823fe4ff35aed1b09e63898202b20e10837d26ce8741ad6b",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0044-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0044",
+      "activity_version": 1,
+      "age_band": "3-6",
+      "age_months_min": 36,
+      "age_months_max": 71,
+      "exact_phrases_vi": [
+        "Bảng chữ cái rời"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Bảng",
+        "chữ",
+        "cái",
+        "rời"
+      ],
+      "negative_phrases_vi": [
+        "Bảng"
+      ],
+      "positive_examples_vi": [
+        "Bảng chữ cái rời"
+      ],
+      "negative_examples_vi": [
+        "Bảng"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0044",
+      "provenance_sha256": "32e808d024b0bbcd214d091cae8a5ebb2b5f0131a12dbdebedbcb4c04451eb15",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0045-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0045",
+      "activity_version": 1,
+      "age_band": "3-6",
+      "age_months_min": 36,
+      "age_months_max": 71,
+      "exact_phrases_vi": [
+        "Hộp đồ vật đọc âm vị"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Hộp",
+        "vật",
+        "đọc"
+      ],
+      "negative_phrases_vi": [
+        "Hộp"
+      ],
+      "positive_examples_vi": [
+        "Hộp đồ vật đọc âm vị"
+      ],
+      "negative_examples_vi": [
+        "Hộp"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0045",
+      "provenance_sha256": "1f1496bcc5d13a8bc8896ec49c6b5382d1a6450991e352b506b06a54d50c0c97",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0046-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0046",
+      "activity_version": 1,
+      "age_band": "3-6",
+      "age_months_min": 36,
+      "age_months_max": 71,
+      "exact_phrases_vi": [
+        "khung kim loại luyện nét"
+      ],
+      "aliases_vi": [
+        "luyện nét trong khung",
+        "đường nét kim loại"
+      ],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "khung",
+        "nét",
+        "kim"
+      ],
+      "negative_phrases_vi": [
+        "bình minh",
+        "bướm bay"
+      ],
+      "positive_examples_vi": [
+        "khung kim loại luyện nét"
+      ],
+      "negative_examples_vi": [
+        "bình minh",
+        "bướm bay"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0046",
+      "provenance_sha256": "34aff9408c3b1188612c58220f3de08d5dafb05ef987117e58f2c4ac65e6a864",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0047-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0047",
+      "activity_version": 1,
+      "age_band": "3-6",
+      "age_months_min": 36,
+      "age_months_max": 71,
+      "exact_phrases_vi": [
+        "Gậy số"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Gậy"
+      ],
+      "negative_phrases_vi": [
+        "Gậy"
+      ],
+      "positive_examples_vi": [
+        "Gậy số"
+      ],
+      "negative_examples_vi": [
+        "Gậy"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0047",
+      "provenance_sha256": "3714cf7ad1c4ba4e05c789f56288e76ff17ff7d1c01f8656cd35fad9b86251a7",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0048-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0048",
+      "activity_version": 1,
+      "age_band": "3-6",
+      "age_months_min": 36,
+      "age_months_max": 71,
+      "exact_phrases_vi": [
+        "Chữ số nhám"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Chữ",
+        "nhám"
+      ],
+      "negative_phrases_vi": [
+        "Chữ"
+      ],
+      "positive_examples_vi": [
+        "Chữ số nhám"
+      ],
+      "negative_examples_vi": [
+        "Chữ"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0048",
+      "provenance_sha256": "4d72a7c60b2a98ddadd21da72fd1b99d3425a646ca0ca33232c73bc84db67f93",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0049-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0049",
+      "activity_version": 1,
+      "age_band": "3-6",
+      "age_months_min": 36,
+      "age_months_max": 71,
+      "exact_phrases_vi": [
+        "Hộp que tính"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Hộp",
+        "que",
+        "tính"
+      ],
+      "negative_phrases_vi": [
+        "Hộp"
+      ],
+      "positive_examples_vi": [
+        "Hộp que tính"
+      ],
+      "negative_examples_vi": [
+        "Hộp"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0049",
+      "provenance_sha256": "d05d6aeb7905602a3b36deb4b3d062478279bd77c37e67e062d67881f9af33ed",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0050-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0050",
+      "activity_version": 1,
+      "age_band": "3-6",
+      "age_months_min": 36,
+      "age_months_max": 71,
+      "exact_phrases_vi": [
+        "Hệ thập phân hạt vàng"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "thập",
+        "phân",
+        "hạt",
+        "vàng"
+      ],
+      "negative_phrases_vi": [
+        "thập"
+      ],
+      "positive_examples_vi": [
+        "Hệ thập phân hạt vàng"
+      ],
+      "negative_examples_vi": [
+        "thập"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0050",
+      "provenance_sha256": "5846ea3f8550c20bf9d41400f000a2533fe087427d68b2e02527df7b02cf18b8",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0051-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0051",
+      "activity_version": 1,
+      "age_band": "6-9",
+      "age_months_min": 72,
+      "age_months_max": 107,
+      "exact_phrases_vi": [
+        "Câu chuyện về vũ trụ"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Câu",
+        "chuyện",
+        "trụ"
+      ],
+      "negative_phrases_vi": [
+        "Câu"
+      ],
+      "positive_examples_vi": [
+        "Câu chuyện về vũ trụ"
+      ],
+      "negative_examples_vi": [
+        "Câu"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0051",
+      "provenance_sha256": "74eb46c0ce33c98e30c019508e79227f57d35e45f3244c7f997661a4b272992c",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0052-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0052",
+      "activity_version": 1,
+      "age_band": "6-9",
+      "age_months_min": 72,
+      "age_months_max": 107,
+      "exact_phrases_vi": [
+        "Mô hình tỉ lệ Hệ Mặt Trời"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "hình",
+        "Mặt",
+        "Trời"
+      ],
+      "negative_phrases_vi": [
+        "hình"
+      ],
+      "positive_examples_vi": [
+        "Mô hình tỉ lệ Hệ Mặt Trời"
+      ],
+      "negative_examples_vi": [
+        "hình"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0052",
+      "provenance_sha256": "3a18022bbc0d6b3c792a1f33bd18cef4b3a0c256294e87fbb5f4b297c1203a1c",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0053-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0053",
+      "activity_version": 1,
+      "age_band": "6-9",
+      "age_months_min": 72,
+      "age_months_max": 107,
+      "exact_phrases_vi": [
+        "Mô hình các lớp Trái Đất"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "hình",
+        "các",
+        "lớp",
+        "Trái",
+        "Đất"
+      ],
+      "negative_phrases_vi": [
+        "hình"
+      ],
+      "positive_examples_vi": [
+        "Mô hình các lớp Trái Đất"
+      ],
+      "negative_examples_vi": [
+        "hình"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0053",
+      "provenance_sha256": "6461a45f29edbf81d25cc1ef4c119ba6e30293405f6da7c7094ab1a6a1b492d8",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0054-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0054",
+      "activity_version": 1,
+      "age_band": "6-9",
+      "age_months_min": 72,
+      "age_months_max": 107,
+      "exact_phrases_vi": [
+        "Địa hình đất và nước"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Địa",
+        "hình",
+        "đất",
+        "nước"
+      ],
+      "negative_phrases_vi": [
+        "Địa"
+      ],
+      "positive_examples_vi": [
+        "Địa hình đất và nước"
+      ],
+      "negative_examples_vi": [
+        "Địa"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0054",
+      "provenance_sha256": "7a4ed75c34ded89cf682b1f9b2cc193c5fb0ee03e1f6a209850d41dc52c78859",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0055-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0055",
+      "activity_version": 1,
+      "age_band": "6-9",
+      "age_months_min": 72,
+      "age_months_max": 107,
+      "exact_phrases_vi": [
+        "quan sát các bộ phận của cây"
+      ],
+      "aliases_vi": [
+        "quan sát cây",
+        "bộ phận của cây",
+        "hoa và thân cây"
+      ],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "cây",
+        "hoa",
+        "quan sát"
+      ],
+      "negative_phrases_vi": [
+        "bướm bay",
+        "bình minh"
+      ],
+      "positive_examples_vi": [
+        "quan sát các bộ phận của cây"
+      ],
+      "negative_examples_vi": [
+        "bướm bay",
+        "bình minh"
+      ],
+      "fallback_tier": "AGE_BASELINE",
+      "fallback_any_confirmed_anchor": true,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0055",
+      "provenance_sha256": "21625908e87231688fa25c0d90c4fb941c34ac2dcdd8c4fedee292bcee5415fd",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0056-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0056",
+      "activity_version": 1,
+      "age_band": "6-9",
+      "age_months_min": 72,
+      "age_months_max": 107,
+      "exact_phrases_vi": [
+        "Phân loại động vật"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Phân",
+        "loại",
+        "động",
+        "vật"
+      ],
+      "negative_phrases_vi": [
+        "Phân"
+      ],
+      "positive_examples_vi": [
+        "Phân loại động vật"
+      ],
+      "negative_examples_vi": [
+        "Phân"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0056",
+      "provenance_sha256": "1dbf16204774b0b397d86df1c49b34408a8cba20504dc1c83cca73ddbe63da3e",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0057-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0057",
+      "activity_version": 1,
+      "age_band": "6-9",
+      "age_months_min": 72,
+      "age_months_max": 107,
+      "exact_phrases_vi": [
+        "Xây lưới thức ăn"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Xây",
+        "lưới",
+        "thức"
+      ],
+      "negative_phrases_vi": [
+        "Xây"
+      ],
+      "positive_examples_vi": [
+        "Xây lưới thức ăn"
+      ],
+      "negative_examples_vi": [
+        "Xây"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0057",
+      "provenance_sha256": "546fa1771ebe0960c16dc214d7290943c6b9f4880ab7983c62c2b5c62da144fc",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0058-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0058",
+      "activity_version": 1,
+      "age_band": "6-9",
+      "age_months_min": 72,
+      "age_months_max": 107,
+      "exact_phrases_vi": [
+        "mô hình vòng tuần hoàn nước"
+      ],
+      "aliases_vi": [
+        "vòng tuần hoàn nước",
+        "bay hơi và ngưng tụ",
+        "giọt nước theo thời gian"
+      ],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "bay",
+        "nước",
+        "hơi"
+      ],
+      "negative_phrases_vi": [
+        "bướm bay",
+        "bình minh"
+      ],
+      "positive_examples_vi": [
+        "mô hình vòng tuần hoàn nước"
+      ],
+      "negative_examples_vi": [
+        "bướm bay",
+        "bình minh"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0058",
+      "provenance_sha256": "8381388ed8c9f9664d986ed89bbcacba4d22ba72eddafa5c7b95fe63ee808659",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0059-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0059",
+      "activity_version": 1,
+      "age_band": "6-9",
+      "age_months_min": 72,
+      "age_months_max": 107,
+      "exact_phrases_vi": [
+        "So sánh ba trạng thái vật chất"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "sánh",
+        "trạng",
+        "thái",
+        "vật",
+        "chất"
+      ],
+      "negative_phrases_vi": [
+        "sánh"
+      ],
+      "positive_examples_vi": [
+        "So sánh ba trạng thái vật chất"
+      ],
+      "negative_examples_vi": [
+        "sánh"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0059",
+      "provenance_sha256": "1403a1985cad9d60b120215e895668bca60343a2d9d60d04306bf1fd3bb33990",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0060-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0060",
+      "activity_version": 1,
+      "age_band": "6-9",
+      "age_months_min": 72,
+      "age_months_max": 107,
+      "exact_phrases_vi": [
+        "Khám phá máy cơ đơn giản"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Khám",
+        "phá",
+        "máy",
+        "đơn",
+        "giản"
+      ],
+      "negative_phrases_vi": [
+        "Khám"
+      ],
+      "positive_examples_vi": [
+        "Khám phá máy cơ đơn giản"
+      ],
+      "negative_examples_vi": [
+        "Khám"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0060",
+      "provenance_sha256": "e6335ed8e6a887a48e4298cc61d424ccbbeeb244411e835330e2186664307872",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0061-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0061",
+      "activity_version": 1,
+      "age_band": "6-9",
+      "age_months_min": 72,
+      "age_months_max": 107,
+      "exact_phrases_vi": [
+        "nhân với trò chơi tem"
+      ],
+      "aliases_vi": [
+        "phép nhân bằng tem",
+        "trò chơi nhân"
+      ],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "nhân",
+        "tem",
+        "chơi"
+      ],
+      "negative_phrases_vi": [
+        "bướm bay",
+        "bình minh"
+      ],
+      "positive_examples_vi": [
+        "nhân với trò chơi tem"
+      ],
+      "negative_examples_vi": [
+        "bướm bay",
+        "bình minh"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0061",
+      "provenance_sha256": "3301d063e151a877beb4052fbe26407f5702f31542bbdb80439f08d25e6f4cbf",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0062-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0062",
+      "activity_version": 1,
+      "age_band": "6-9",
+      "age_months_min": 72,
+      "age_months_max": 107,
+      "exact_phrases_vi": [
+        "Chia dài bằng vật liệu"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Chia",
+        "dài",
+        "bằng",
+        "vật",
+        "liệu"
+      ],
+      "negative_phrases_vi": [
+        "Chia"
+      ],
+      "positive_examples_vi": [
+        "Chia dài bằng vật liệu"
+      ],
+      "negative_examples_vi": [
+        "Chia"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0062",
+      "provenance_sha256": "d81a579f90085041ad8ff10b0a5869d87c6b40cfb9a9c3803e1e97b4be489460",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0063-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0063",
+      "activity_version": 1,
+      "age_band": "6-9",
+      "age_months_min": 72,
+      "age_months_max": 107,
+      "exact_phrases_vi": [
+        "Phân số tương đương"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Phân",
+        "tương",
+        "đương"
+      ],
+      "negative_phrases_vi": [
+        "Phân"
+      ],
+      "positive_examples_vi": [
+        "Phân số tương đương"
+      ],
+      "negative_examples_vi": [
+        "Phân"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0063",
+      "provenance_sha256": "cc8f24ee436bc4a46aa31fac2d113e9c2a3417a828d073a197780cea823ac21e",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0064-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0064",
+      "activity_version": 1,
+      "age_band": "6-9",
+      "age_months_min": 72,
+      "age_months_max": 107,
+      "exact_phrases_vi": [
+        "Bảng số thập phân"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Bảng",
+        "thập",
+        "phân"
+      ],
+      "negative_phrases_vi": [
+        "Bảng"
+      ],
+      "positive_examples_vi": [
+        "Bảng số thập phân"
+      ],
+      "negative_examples_vi": [
+        "Bảng"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0064",
+      "provenance_sha256": "2a14fa877b76e11848645e8365e430223681fd7353eb7de913aee59249bb0909",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0065-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0065",
+      "activity_version": 1,
+      "age_band": "6-9",
+      "age_months_min": 72,
+      "age_months_max": 107,
+      "exact_phrases_vi": [
+        "Đo và phân loại góc"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "phân",
+        "loại",
+        "góc"
+      ],
+      "negative_phrases_vi": [
+        "phân"
+      ],
+      "positive_examples_vi": [
+        "Đo và phân loại góc"
+      ],
+      "negative_examples_vi": [
+        "phân"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0065",
+      "provenance_sha256": "ce42f90f1655339aff8f1c5d698ddbe360d23ae9855c434acc716312ca8b52db",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0066-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0066",
+      "activity_version": 1,
+      "age_band": "6-9",
+      "age_months_min": 72,
+      "age_months_max": 107,
+      "exact_phrases_vi": [
+        "Khám phá diện tích tương đương"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Khám",
+        "phá",
+        "diện",
+        "tích",
+        "tương",
+        "đương"
+      ],
+      "negative_phrases_vi": [
+        "Khám"
+      ],
+      "positive_examples_vi": [
+        "Khám phá diện tích tương đương"
+      ],
+      "negative_examples_vi": [
+        "Khám"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0066",
+      "provenance_sha256": "d9a0e7f415ffc593449aca17afb7f464f1d5528efe6d7ac2b1f2d85f492eb972",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0067-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0067",
+      "activity_version": 1,
+      "age_band": "6-9",
+      "age_months_min": 72,
+      "age_months_max": 107,
+      "exact_phrases_vi": [
+        "phân tích từ loại bằng ký hiệu"
+      ],
+      "aliases_vi": [
+        "phân tích từ loại",
+        "danh từ và động từ"
+      ],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "từ",
+        "loại",
+        "phân"
+      ],
+      "negative_phrases_vi": [
+        "bướm bay",
+        "bình minh"
+      ],
+      "positive_examples_vi": [
+        "phân tích từ loại bằng ký hiệu"
+      ],
+      "negative_examples_vi": [
+        "bướm bay",
+        "bình minh"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0067",
+      "provenance_sha256": "d594e89f53b4e47e2b37fdb8d0f9b71a6dacbf41da02c7bdc11837664c22a4b5",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0068-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0068",
+      "activity_version": 1,
+      "age_band": "6-9",
+      "age_months_min": 72,
+      "age_months_max": 107,
+      "exact_phrases_vi": [
+        "Phân tích thành phần câu"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Phân",
+        "tích",
+        "thành",
+        "phần",
+        "câu"
+      ],
+      "negative_phrases_vi": [
+        "Phân"
+      ],
+      "positive_examples_vi": [
+        "Phân tích thành phần câu"
+      ],
+      "negative_examples_vi": [
+        "Phân"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0068",
+      "provenance_sha256": "7d76f664b0628baf1e5026f5c041461ca2328084e3438532e5d4d76412ca96c9",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0069-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0069",
+      "activity_version": 1,
+      "age_band": "6-9",
+      "age_months_min": 72,
+      "age_months_max": 107,
+      "exact_phrases_vi": [
+        "Khảo sát tiền tố và hậu tố"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Khảo",
+        "sát",
+        "tiền",
+        "hậu"
+      ],
+      "negative_phrases_vi": [
+        "Khảo"
+      ],
+      "positive_examples_vi": [
+        "Khảo sát tiền tố và hậu tố"
+      ],
+      "negative_examples_vi": [
+        "Khảo"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0069",
+      "provenance_sha256": "6a76a08c09dfea56c1b93f1713692b9cee04e3bd8ccc4428e78682c2e9b1fba1",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0070-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0070",
+      "activity_version": 1,
+      "age_band": "6-9",
+      "age_months_min": 72,
+      "age_months_max": 107,
+      "exact_phrases_vi": [
+        "Báo cáo nghiên cứu ngắn"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Báo",
+        "cáo",
+        "nghiên",
+        "cứu",
+        "ngắn"
+      ],
+      "negative_phrases_vi": [
+        "Báo"
+      ],
+      "positive_examples_vi": [
+        "Báo cáo nghiên cứu ngắn"
+      ],
+      "negative_examples_vi": [
+        "Báo"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0070",
+      "provenance_sha256": "9dde232a638f9637037c37fe119bb6115b8814401617bd048a6edc7cc3911521",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0071-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0071",
+      "activity_version": 1,
+      "age_band": "6-9",
+      "age_months_min": 72,
+      "age_months_max": 107,
+      "exact_phrases_vi": [
+        "Dòng thời gian sự sống"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Dòng",
+        "thời",
+        "gian",
+        "sống"
+      ],
+      "negative_phrases_vi": [
+        "Dòng"
+      ],
+      "positive_examples_vi": [
+        "Dòng thời gian sự sống"
+      ],
+      "negative_examples_vi": [
+        "Dòng"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0071",
+      "provenance_sha256": "d892bc13522f36d165684688832297167a8ba8ac55f8a80a52ad8ccb580b8e7d",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0072-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0072",
+      "activity_version": 1,
+      "age_band": "6-9",
+      "age_months_min": 72,
+      "age_months_max": 107,
+      "exact_phrases_vi": [
+        "Bản đồ châu lục và quốc gia"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Bản",
+        "châu",
+        "lục",
+        "quốc",
+        "gia"
+      ],
+      "negative_phrases_vi": [
+        "Bản"
+      ],
+      "positive_examples_vi": [
+        "Bản đồ châu lục và quốc gia"
+      ],
+      "negative_examples_vi": [
+        "Bản"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0072",
+      "provenance_sha256": "29dec5a8ece238747c26597f8c3f33eb1343ee61045fa686468dc78de98b37ce",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0073-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0073",
+      "activity_version": 1,
+      "age_band": "6-9",
+      "age_months_min": 72,
+      "age_months_max": 107,
+      "exact_phrases_vi": [
+        "Chuẩn bị phỏng vấn người làm việc cộng đồng"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Chuẩn",
+        "phỏng",
+        "vấn",
+        "người",
+        "làm",
+        "việc",
+        "cộng",
+        "đồng"
+      ],
+      "negative_phrases_vi": [
+        "Chuẩn"
+      ],
+      "positive_examples_vi": [
+        "Chuẩn bị phỏng vấn người làm việc cộng đồng"
+      ],
+      "negative_examples_vi": [
+        "Chuẩn"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0073",
+      "provenance_sha256": "8b490a76fd89d9c427611e59a93a392e30e3c06f8510f86d9257557f124a892a",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0074-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0074",
+      "activity_version": 1,
+      "age_band": "6-9",
+      "age_months_min": 72,
+      "age_months_max": 107,
+      "exact_phrases_vi": [
+        "lập kế hoạch công việc tuần"
+      ],
+      "aliases_vi": [
+        "kế hoạch tuần",
+        "lập lịch công việc"
+      ],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "tuần",
+        "kế hoạch",
+        "việc"
+      ],
+      "negative_phrases_vi": [
+        "bướm bay",
+        "bình minh"
+      ],
+      "positive_examples_vi": [
+        "lập kế hoạch công việc tuần"
+      ],
+      "negative_examples_vi": [
+        "bướm bay",
+        "bình minh"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0074",
+      "provenance_sha256": "3e420c6d038bf4178b5f59ebe34a598da025e1f05c21b0dab81e2ee6c9e368c4",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0075-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0075",
+      "activity_version": 1,
+      "age_band": "6-9",
+      "age_months_min": 72,
+      "age_months_max": 107,
+      "exact_phrases_vi": [
+        "Vòng tròn hòa bình giải quyết xung đột"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Vòng",
+        "tròn",
+        "hòa",
+        "bình",
+        "giải",
+        "quyết",
+        "xung",
+        "đột"
+      ],
+      "negative_phrases_vi": [
+        "Vòng"
+      ],
+      "positive_examples_vi": [
+        "Vòng tròn hòa bình giải quyết xung đột"
+      ],
+      "negative_examples_vi": [
+        "Vòng"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0075",
+      "provenance_sha256": "dcf00cbdf1ee9b12a0528148c8675ae3246f0ae9e0d2c23cf9625ff955f478f1",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0076-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0076",
+      "activity_version": 1,
+      "age_band": "9-12",
+      "age_months_min": 108,
+      "age_months_max": 155,
+      "exact_phrases_vi": [
+        "Lũy thừa và mẫu hình"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Lũy",
+        "thừa",
+        "mẫu",
+        "hình"
+      ],
+      "negative_phrases_vi": [
+        "Lũy"
+      ],
+      "positive_examples_vi": [
+        "Lũy thừa và mẫu hình"
+      ],
+      "negative_examples_vi": [
+        "Lũy"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0076",
+      "provenance_sha256": "021ac6985cc654901bf9d6b41a9a3117efebd6c51c0955f7519ca7be5d092689",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0077-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0077",
+      "activity_version": 1,
+      "age_band": "9-12",
+      "age_months_min": 108,
+      "age_months_max": 155,
+      "exact_phrases_vi": [
+        "Căn bậc hai và căn bậc ba"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Căn",
+        "bậc",
+        "hai",
+        "căn",
+        "bậc"
+      ],
+      "negative_phrases_vi": [
+        "Căn"
+      ],
+      "positive_examples_vi": [
+        "Căn bậc hai và căn bậc ba"
+      ],
+      "negative_examples_vi": [
+        "Căn"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0077",
+      "provenance_sha256": "3d2b3f33d045ce999055a3411a0c2f1e093fef29aafa14220828cdcc5643f19d",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0078-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0078",
+      "activity_version": 1,
+      "age_band": "9-12",
+      "age_months_min": 108,
+      "age_months_max": 155,
+      "exact_phrases_vi": [
+        "Cân bằng phương trình"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Cân",
+        "bằng",
+        "phương",
+        "trình"
+      ],
+      "negative_phrases_vi": [
+        "Cân"
+      ],
+      "positive_examples_vi": [
+        "Cân bằng phương trình"
+      ],
+      "negative_examples_vi": [
+        "Cân"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0078",
+      "provenance_sha256": "dda07c5302edff36b0f6ab79d82dc6222eaf84783d2a947ad6b17e3aa074a052",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0079-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0079",
+      "activity_version": 1,
+      "age_band": "9-12",
+      "age_months_min": 108,
+      "age_months_max": 155,
+      "exact_phrases_vi": [
+        "Tỉ lệ qua công thức"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "qua",
+        "công",
+        "thức"
+      ],
+      "negative_phrases_vi": [
+        "qua"
+      ],
+      "positive_examples_vi": [
+        "Tỉ lệ qua công thức"
+      ],
+      "negative_examples_vi": [
+        "qua"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0079",
+      "provenance_sha256": "8dec9e9d77d6dc6cfd1635454ffa197ce951320b679fa5e44375a95ecc0f3c03",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0080-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0080",
+      "activity_version": 1,
+      "age_band": "9-12",
+      "age_months_min": 108,
+      "age_months_max": 155,
+      "exact_phrases_vi": [
+        "Phần trăm trong ngân sách"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Phần",
+        "trăm",
+        "trong",
+        "ngân",
+        "sách"
+      ],
+      "negative_phrases_vi": [
+        "Phần"
+      ],
+      "positive_examples_vi": [
+        "Phần trăm trong ngân sách"
+      ],
+      "negative_examples_vi": [
+        "Phần"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0080",
+      "provenance_sha256": "83e6dbc33eddf1c641c604b6b6af2d4e0314fe83357c907fb8b87918714e3dbe",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0081-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0081",
+      "activity_version": 1,
+      "age_band": "9-12",
+      "age_months_min": 108,
+      "age_months_max": 155,
+      "exact_phrases_vi": [
+        "Chuyển đổi phân số, thập phân, phần trăm"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Chuyển",
+        "đổi",
+        "phân",
+        "số,",
+        "thập",
+        "phân,",
+        "phần",
+        "trăm"
+      ],
+      "negative_phrases_vi": [
+        "Chuyển"
+      ],
+      "positive_examples_vi": [
+        "Chuyển đổi phân số, thập phân, phần trăm"
+      ],
+      "negative_examples_vi": [
+        "Chuyển"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0081",
+      "provenance_sha256": "33bde4683a6b2f6ae2969aa0560b823f91c452aa677324c669e0e842c6b2c019",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0082-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0082",
+      "activity_version": 1,
+      "age_band": "9-12",
+      "age_months_min": 108,
+      "age_months_max": 155,
+      "exact_phrases_vi": [
+        "Dựng hình bằng compa và thước"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Dựng",
+        "hình",
+        "bằng",
+        "compa",
+        "thước"
+      ],
+      "negative_phrases_vi": [
+        "Dựng"
+      ],
+      "positive_examples_vi": [
+        "Dựng hình bằng compa và thước"
+      ],
+      "negative_examples_vi": [
+        "Dựng"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0082",
+      "provenance_sha256": "ddc69f5efefdcddf06909d57a82ca67cce1e7e6edc0156e55c39ddcb03b0de9d",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0083-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0083",
+      "activity_version": 1,
+      "age_band": "9-12",
+      "age_months_min": 108,
+      "age_months_max": 155,
+      "exact_phrases_vi": [
+        "Khám phá định lý Pythagore"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Khám",
+        "phá",
+        "định",
+        "Pythagore"
+      ],
+      "negative_phrases_vi": [
+        "Khám"
+      ],
+      "positive_examples_vi": [
+        "Khám phá định lý Pythagore"
+      ],
+      "negative_examples_vi": [
+        "Khám"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0083",
+      "provenance_sha256": "85b442d4bb486abd93a1b692c2ef2034084a80e113127cc2b84b977363a3f4a9",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0084-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0084",
+      "activity_version": 1,
+      "age_band": "9-12",
+      "age_months_min": 108,
+      "age_months_max": 155,
+      "exact_phrases_vi": [
+        "Đo và tính thể tích"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "tính",
+        "thể",
+        "tích"
+      ],
+      "negative_phrases_vi": [
+        "tính"
+      ],
+      "positive_examples_vi": [
+        "Đo và tính thể tích"
+      ],
+      "negative_examples_vi": [
+        "tính"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0084",
+      "provenance_sha256": "a6123104e3c09212637680ba276373c022858d4cadd81f2230bd580b83cd44b3",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0085-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0085",
+      "activity_version": 1,
+      "age_band": "9-12",
+      "age_months_min": 108,
+      "age_months_max": 155,
+      "exact_phrases_vi": [
+        "khảo sát và mô tả dữ liệu"
+      ],
+      "aliases_vi": [
+        "khảo sát dữ liệu",
+        "bảng và biểu đồ"
+      ],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "dữ liệu",
+        "bảng",
+        "khảo sát"
+      ],
+      "negative_phrases_vi": [
+        "bướm bay",
+        "bình minh"
+      ],
+      "positive_examples_vi": [
+        "khảo sát và mô tả dữ liệu"
+      ],
+      "negative_examples_vi": [
+        "bướm bay",
+        "bình minh"
+      ],
+      "fallback_tier": "AGE_BASELINE",
+      "fallback_any_confirmed_anchor": true,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0085",
+      "provenance_sha256": "4a0fbc14109056d79bf236828e665986df4a02bd705ee4ea1c881b09521c4fa3",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0086-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0086",
+      "activity_version": 1,
+      "age_band": "9-12",
+      "age_months_min": 108,
+      "age_months_max": 155,
+      "exact_phrases_vi": [
+        "Quan sát tế bào bằng kính hiển vi"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Quan",
+        "sát",
+        "bào",
+        "bằng",
+        "kính",
+        "hiển"
+      ],
+      "negative_phrases_vi": [
+        "Quan"
+      ],
+      "positive_examples_vi": [
+        "Quan sát tế bào bằng kính hiển vi"
+      ],
+      "negative_examples_vi": [
+        "Quan"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0086",
+      "provenance_sha256": "acdb44dbfd266c6a66c23d2ae02a7b14b950195b6ed6c2d6e7a2bfb5f179dd92",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0087-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0087",
+      "activity_version": 1,
+      "age_band": "9-12",
+      "age_months_min": 108,
+      "age_months_max": 155,
+      "exact_phrases_vi": [
+        "xây khóa phân loại"
+      ],
+      "aliases_vi": [
+        "khóa phân loại",
+        "phân loại theo đặc điểm"
+      ],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "khóa",
+        "phân loại",
+        "đặc"
+      ],
+      "negative_phrases_vi": [
+        "bướm bay",
+        "bình minh"
+      ],
+      "positive_examples_vi": [
+        "xây khóa phân loại"
+      ],
+      "negative_examples_vi": [
+        "bướm bay",
+        "bình minh"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0087",
+      "provenance_sha256": "c9bb10c27be0f970afe42a3f27b96a01ffb27a5f7c9c2b393e23d21c39f819e6",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0088-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0088",
+      "activity_version": 1,
+      "age_band": "9-12",
+      "age_months_min": 108,
+      "age_months_max": 155,
+      "exact_phrases_vi": [
+        "Khảo sát hệ sinh thái tại chỗ"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Khảo",
+        "sát",
+        "sinh",
+        "thái",
+        "tại",
+        "chỗ"
+      ],
+      "negative_phrases_vi": [
+        "Khảo"
+      ],
+      "positive_examples_vi": [
+        "Khảo sát hệ sinh thái tại chỗ"
+      ],
+      "negative_examples_vi": [
+        "Khảo"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0088",
+      "provenance_sha256": "fcc215f0d8c0b320b51182d69850607e89b95590c547401de9738489aa55b413",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0089-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0089",
+      "activity_version": 1,
+      "age_band": "9-12",
+      "age_months_min": 108,
+      "age_months_max": 155,
+      "exact_phrases_vi": [
+        "Tách hỗn hợp an toàn"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Tách",
+        "hỗn",
+        "hợp",
+        "toàn"
+      ],
+      "negative_phrases_vi": [
+        "Tách"
+      ],
+      "positive_examples_vi": [
+        "Tách hỗn hợp an toàn"
+      ],
+      "negative_examples_vi": [
+        "Tách"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0089",
+      "provenance_sha256": "ca225bb27ea335c0a77df91dccd84f06131b25d47fcdfe7e9514cc764f8d2773",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0090-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0090",
+      "activity_version": 1,
+      "age_band": "9-12",
+      "age_months_min": 108,
+      "age_months_max": 155,
+      "exact_phrases_vi": [
+        "Theo dõi truyền năng lượng"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Theo",
+        "dõi",
+        "truyền",
+        "năng",
+        "lượng"
+      ],
+      "negative_phrases_vi": [
+        "Theo"
+      ],
+      "positive_examples_vi": [
+        "Theo dõi truyền năng lượng"
+      ],
+      "negative_examples_vi": [
+        "Theo"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0090",
+      "provenance_sha256": "50f6214fe8ede75022b903e22bab4049c34844a2c924f95743e40e4f09cbeca5",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0091-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0091",
+      "activity_version": 1,
+      "age_band": "9-12",
+      "age_months_min": 108,
+      "age_months_max": 155,
+      "exact_phrases_vi": [
+        "mô hình pha mặt trăng"
+      ],
+      "aliases_vi": [
+        "pha mặt trăng",
+        "mặt trăng",
+        "ánh sáng mặt trời và mặt trăng"
+      ],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "mặt",
+        "trăng",
+        "sáng"
+      ],
+      "negative_phrases_vi": [
+        "bướm bay",
+        "bình minh"
+      ],
+      "positive_examples_vi": [
+        "mô hình pha mặt trăng"
+      ],
+      "negative_examples_vi": [
+        "bướm bay",
+        "bình minh"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0091",
+      "provenance_sha256": "a5771af0072c779956b490047747f9e6ffaf36ae0e61cd37225b9c8771ae55d6",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0092-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0092",
+      "activity_version": 1,
+      "age_band": "9-12",
+      "age_months_min": 108,
+      "age_months_max": 155,
+      "exact_phrases_vi": [
+        "Dòng thời gian địa chất"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Dòng",
+        "thời",
+        "gian",
+        "địa",
+        "chất"
+      ],
+      "negative_phrases_vi": [
+        "Dòng"
+      ],
+      "positive_examples_vi": [
+        "Dòng thời gian địa chất"
+      ],
+      "negative_examples_vi": [
+        "Dòng"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0092",
+      "provenance_sha256": "44fb8a65d8587e93bab4790f8b7005119a73fd52d8ebc7a74ed68fbfe7f6a65b",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0093-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0093",
+      "activity_version": 1,
+      "age_band": "9-12",
+      "age_months_min": 108,
+      "age_months_max": 155,
+      "exact_phrases_vi": [
+        "Nghiên cứu nền văn minh cổ"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Nghiên",
+        "cứu",
+        "nền",
+        "văn",
+        "minh"
+      ],
+      "negative_phrases_vi": [
+        "Nghiên"
+      ],
+      "positive_examples_vi": [
+        "Nghiên cứu nền văn minh cổ"
+      ],
+      "negative_examples_vi": [
+        "Nghiên"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0093",
+      "provenance_sha256": "1e7a38761f573948b5b6648593a52656d6b8d896df178f07627994e939482407",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0094-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0094",
+      "activity_version": 1,
+      "age_band": "9-12",
+      "age_months_min": 108,
+      "age_months_max": 155,
+      "exact_phrases_vi": [
+        "Lập bản đồ di cư và thương mại"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Lập",
+        "bản",
+        "thương",
+        "mại"
+      ],
+      "negative_phrases_vi": [
+        "Lập"
+      ],
+      "positive_examples_vi": [
+        "Lập bản đồ di cư và thương mại"
+      ],
+      "negative_examples_vi": [
+        "Lập"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0094",
+      "provenance_sha256": "b9f1fbfc1fb94479847d7a516b5c81436f50dba56c8ffe6686bd6213797942e2",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0095-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0095",
+      "activity_version": 1,
+      "age_band": "9-12",
+      "age_months_min": 108,
+      "age_months_max": 155,
+      "exact_phrases_vi": [
+        "Mô phỏng quyết định cộng đồng"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "phỏng",
+        "quyết",
+        "định",
+        "cộng",
+        "đồng"
+      ],
+      "negative_phrases_vi": [
+        "phỏng"
+      ],
+      "positive_examples_vi": [
+        "Mô phỏng quyết định cộng đồng"
+      ],
+      "negative_examples_vi": [
+        "phỏng"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0095",
+      "provenance_sha256": "a3a01e66efc4efefd17c76b9a18db1b1d10f0da9d1afa92fa463ce53f4cdcdce",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0096-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0096",
+      "activity_version": 1,
+      "age_band": "9-12",
+      "age_months_min": 108,
+      "age_months_max": 155,
+      "exact_phrases_vi": [
+        "Mô phỏng doanh nghiệp lớp học"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "phỏng",
+        "doanh",
+        "nghiệp",
+        "lớp",
+        "học"
+      ],
+      "negative_phrases_vi": [
+        "phỏng"
+      ],
+      "positive_examples_vi": [
+        "Mô phỏng doanh nghiệp lớp học"
+      ],
+      "negative_examples_vi": [
+        "phỏng"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0096",
+      "provenance_sha256": "abc50ba90312ba12fc0515618a78c0f44101311af16b2bb0ababde2f74635ca0",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0097-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0097",
+      "activity_version": 1,
+      "age_band": "9-12",
+      "age_months_min": 108,
+      "age_months_max": 155,
+      "exact_phrases_vi": [
+        "viết lập luận dựa trên bằng chứng"
+      ],
+      "aliases_vi": [
+        "lập luận bằng chứng",
+        "viết từ nguồn"
+      ],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "bằng",
+        "chứng",
+        "viết"
+      ],
+      "negative_phrases_vi": [
+        "bướm bay",
+        "bình minh"
+      ],
+      "positive_examples_vi": [
+        "viết lập luận dựa trên bằng chứng"
+      ],
+      "negative_examples_vi": [
+        "bướm bay",
+        "bình minh"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0097",
+      "provenance_sha256": "7b47f0057b5c99424a2f0218b8583077d1a8b60010d24cbb07f0c52e72e2d3df",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0098-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0098",
+      "activity_version": 1,
+      "age_band": "9-12",
+      "age_months_min": 108,
+      "age_months_max": 155,
+      "exact_phrases_vi": [
+        "So sánh hai tác phẩm"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "sánh",
+        "hai",
+        "tác",
+        "phẩm"
+      ],
+      "negative_phrases_vi": [
+        "sánh"
+      ],
+      "positive_examples_vi": [
+        "So sánh hai tác phẩm"
+      ],
+      "negative_examples_vi": [
+        "sánh"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0098",
+      "provenance_sha256": "0674bdb731cd9fb323cd5c1319cfb4a828e2916ab9a2ec6ae3b7ef8f01b09ff9",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0099-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0099",
+      "activity_version": 1,
+      "age_band": "9-12",
+      "age_months_min": 108,
+      "age_months_max": 155,
+      "exact_phrases_vi": [
+        "dự án nghiên cứu độc lập"
+      ],
+      "aliases_vi": [
+        "nghiên cứu độc lập",
+        "dự án nghiên cứu"
+      ],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "nghiên cứu",
+        "dự án",
+        "độc"
+      ],
+      "negative_phrases_vi": [
+        "bướm bay",
+        "bình minh"
+      ],
+      "positive_examples_vi": [
+        "dự án nghiên cứu độc lập"
+      ],
+      "negative_examples_vi": [
+        "bướm bay",
+        "bình minh"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0099",
+      "provenance_sha256": "6108454aaac27d2ad65a694727f346d4fb457cb9d4190dd245ee45f7559ab2ec",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    },
+    {
+      "contract_name": "SemanticActivityProfileV1",
+      "contract_version": "1.0",
+      "profile_id": "SAP-ACT-0100-V1",
+      "profile_version": 1,
+      "activity_id": "ACT-0100",
+      "activity_version": 1,
+      "age_band": "9-12",
+      "age_months_min": 108,
+      "age_months_max": 155,
+      "exact_phrases_vi": [
+        "Lập kế hoạch dự án phục vụ cộng đồng"
+      ],
+      "aliases_vi": [],
+      "accepted_anchor_kinds": [
+        "subject",
+        "action",
+        "visual_feature",
+        "story"
+      ],
+      "required_concept_groups": [],
+      "ambiguous_tokens_vi": [
+        "Lập",
+        "hoạch",
+        "phục",
+        "cộng",
+        "đồng"
+      ],
+      "negative_phrases_vi": [
+        "Lập"
+      ],
+      "positive_examples_vi": [
+        "Lập kế hoạch dự án phục vụ cộng đồng"
+      ],
+      "negative_examples_vi": [
+        "Lập"
+      ],
+      "fallback_tier": "NONE",
+      "fallback_any_confirmed_anchor": false,
+      "provenance_source": "data/activity-catalog/mvp/activities.v1.json#ACT-0100",
+      "provenance_sha256": "f98acd5cf73fe1dfe4dce43c6f962af46187745f74b23c04394f869f0d0bfbe6",
+      "review_status": "PROVISIONAL_OWNER_REVIEWED",
+      "production_eligible": false
+    }
+  ]
+}

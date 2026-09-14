@@ -55,16 +55,41 @@ in `backend/pyproject.toml`) and the isolated D2 scope, recorded in `approvals/T
 tests are reviewed and accepted** (`evidence/notes/P2_D2_IMPLEMENTATION_20260910.md`,
 `EV-018-P2-D2-IMPL-01`): 58 focused tests passed; the full 900-test backend collection reported
 895 passed and 5 skipped, together with clean lint, type and repository validators. **D3
-performance/memory evaluation revision D3-R2 now has an implemented, verified harness and a
-successful non-reporting Cohort A preflight.** The fresh-process protocol, bounded I/O/cleanup,
-Win32 native reads, conservative `[L,U]` classification, deterministic 16-profile manifest and
-aggregation are covered by 32 tests. A 320-sample preflight completed without process or memory
-failures and required no reversed-order pass, but it used an uncommitted working tree and is not
-canonical D3 evidence. Formal exact-commit execution and owner review are complete for Cohort A.
-Formal Cohort B was subsequently executed, independently verified and owner-approved. D2/D3 remain
-additive to FEAT-018 only; FEAT-003 and all provider/mobile/public-contract integration remain
-unchanged and separately gated.
+**D3-R2 performance/memory evaluation is implemented, formally executed and independently
+verified for offline Cohort A+B.** The fresh-process protocol, bounded I/O/cleanup, Win32 native
+reads, conservative [L,U] classification, deterministic 16-profile manifest and aggregation are
+covered by the D3 test suite. D3/P2-T1 is closed for the owner-approved offline Cohort A+B scope;
+D2/D3 remain additive to FEAT-018 only. FEAT-003 and all provider/mobile/public-contract
+integration remain unchanged and separately gated.
+## Canonical P2 integration — 2026-09-11
 
+The approved canonical P2 branch `origin/feature/feat018-p2-image-validation` was merged into `codex/feat-018-contract-plan` as merge commit `627260c`, after carrying the P2 integration approval addendum. The merge includes the reviewed D2 image-admission implementation, deterministic media validation, P2 offline fixtures and related evidence. The other P2 branches remain research references. D3 measurement, FEAT-003 producer connection, live provider execution, mobile/public-schema integration, P3/P4 implementation and production work remain pending.
+
+## P3/P4 offline integration — 2026-09-11
+
+The approved P3 renderer branch `origin/plan/person-3-art-animation-poc` was merged as `2851bb6`. It contributes the closed Motion DSL, PixiJS/GSAP browser player, source-art provenance loader, butterfly fixture/demo, validation, fallback and benchmark support. The approved latest P4 branch `origin/feat-018-person-4-media-integration` was merged as `77745c4`, followed by its replay entrypoint update `ccd1ea5` in merge commit `da1a369`. It contributes versioned learning-media contracts, cache-first resolver, safe fallback, replay fixtures and sanitized evidence. These are offline/scoped integrations; live provider execution, Android/mobile wiring, production assets and production deployment remain pending.
+
+
+## P1 strict continuity polish — 2026-09-11
+
+The approved P1-only polish is implemented in the application compiler. `P1_STRICT_CONTINUITY_V1` now hard-gates exact primary-anchor label/tag and semantic-kind compatibility, objective membership, downstream identity continuity and the immutable spec hash before Gate B approval. Bridge wording is child-facing and derived from the selected anchor and objective title while its versioned references remain locked to the same template.
+
+The feature-local fixture set covers the butterfly fold-and-print pass, unrelated sorting rejection, unsupported anchor kind, unrelated objective, ambiguous selection, bridge drift, media-plan drift and spec-hash drift. The catalog audit confirms 20 non-production golden templates with non-empty anchor labels, supported kinds and known objective references. No P2/P3/P4 code, contract version, provider, mobile or production scope changed.
+
+Validation evidence: `evidence/metrics/P1_STRICT_CONTINUITY_20260911.json` and `evidence/notes/P1_STRICT_CONTINUITY_IMPLEMENTATION_20260911.md`.
+
+
+## P1 catalog and Gate integrity polish — 2026-09-11
+
+The approved follow-on P1 integrity plan is implemented. The golden catalog adapter now removes objective IDs and broad area taxonomy values from `supported_anchor_labels`, normalizes and de-duplicates labels, and fails closed when meaningful labels or objective titles are missing. The compiler rejects duplicate template IDs, validates injected objective titles, enforces optional selected activity/objective refs when supplied, routes compilation through the same Gate B approval path, and independently verifies deterministic `spec_id` and `spec_sha256`.
+
+The contract versions remain unchanged and no P2/P3/P4/shared/mobile source changed. The expanded P1 suite covers catalog hygiene, all optional context ref mismatch/partial cases, Gate B re-checks, duplicate registration, spec ID drift and downstream consumer compatibility. Evidence: `evidence/metrics/P1_CATALOG_GATE_INTEGRITY_20260911.json` and `evidence/notes/P1_CATALOG_GATE_INTEGRITY_IMPLEMENTATION_20260911.md`.
+
+## P1 online-model compatibility tests — 2026-09-11
+
+The approved compatibility addendum is implemented as an offline boundary suite. Provider-shaped Qwen3-VL-8B-Instruct and Whisper large-v3-turbo payloads pass through the existing structured adapters, preserve source hashes and provenance, and feed the existing adult-confirmed `SemanticAnchorSetV1` into the butterfly P1 compiler and Gate B. Malformed, prohibited, unknown, timeout, retry, empty-entity, low-confidence and unrelated-model cases fail closed. No live provider, model download, token, raw media or downstream source change was used.
+
+Evidence: `evidence/metrics/P1_ONLINE_MODEL_COMPATIBILITY_20260911.json` and `evidence/notes/P1_ONLINE_MODEL_COMPATIBILITY_IMPLEMENTATION_20260911.md`.
 ## D3/P2-T1 closure - 2026-09-12
 
 Formal Cohort B completed with 24 samples from eight owner-approved images, three fresh-process

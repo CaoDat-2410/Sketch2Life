@@ -40,6 +40,18 @@
   approve D3 measurement, mark P2-T1 complete, connect FEAT-003 producers, or authorize
   Qwen/ASR, mobile, Gate A, shared integration, public-schema migration, push or PR creation.
 
+- 2026-09-11: Use `origin/feature/feat018-p2-image-validation` as the canonical P2 branch for FEAT-018 offline integration. Merge commit `627260c` connects the reviewed P2-T1 D2 image-admission slice to `codex/feat-018-contract-plan`; the other P2 branches remain research-only references. This does not authorize D3 measurement, FEAT-003 producer migration, live provider execution, mobile/public-schema integration, P3/P4 implementation, or production deployment.
+
+- 2026-09-11: Integrate the approved P3 renderer and latest approved P4 media branches into the FEAT-018 integration branch. Keep P3 source-art preservation and renderer fallback, and keep P4 objective/activity/template identity propagation through cache and fallback. Root replay entrypoint `scripts/replay_learning_media.py` is part of the P4 integration so the feature replay test runs from a clean checkout. No live provider, Android/mobile, production asset or production deployment scope is opened.
+
+
+- 2026-09-11: Implement the approved P1 strict continuity polish as an application/compiler-only policy revision. `P1_STRICT_CONTINUITY_V1` requires exact anchor label/tag and semantic-kind compatibility, objective membership, consistent bridge/media/activity identities and a matching `ExperienceSpecV1.spec_sha256` before Gate B approval. Existing contract versions and P2/P3/P4 consumers remain unchanged; unrelated, ambiguous or tampered fixture flows block closed.
+
+
+- 2026-09-11: Implement the approved P1 catalog and Gate integrity polish without changing contracts or downstream code. Exclude `OBJ_*` and broad area taxonomy labels from anchor metadata; treat optional selected activity/objective refs as exact constraints when present; use one Gate B approval path; and fail closed on duplicate template IDs, missing objective titles, spec ID drift and spec hash drift.
+
+- 2026-09-11: Add an offline provider-shaped compatibility suite at the P1 boundary. Keep Qwen3-VL-8B-Instruct and Whisper large-v3-turbo identifiers in provenance only; validate provider outputs through the existing strict adapters, require adult confirmation before P1, and preserve source/hash/contract identity. Live provider execution remains separately gated.
+
 - 2026-09-10 D3-R2 approval decision: approve the isolated P2-T1 offline performance/native-memory
   evaluation plan and D3-U1 through D3-U6. The 5-second target binds only to the committed D2
   `admit()` interval. The 256-MiB target binds only to the conservative `[L,U]` working-set bracket;
