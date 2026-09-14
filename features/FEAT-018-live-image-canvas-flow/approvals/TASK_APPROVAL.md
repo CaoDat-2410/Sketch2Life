@@ -1,9 +1,10 @@
 # Task approval
 
-- Status: APPROVED (P1 implementation slice; isolated FEAT-018 P2-T1 D2 image admission; D3-R2
-  offline evaluation closed for owner-approved Cohort A+B evidence; approved offline P3/P4 slices
-  integrated. Live provider, mobile/shared integration, production and remaining P2 scopes remain
-  separately gated)
+- Status: APPROVED (P1 implementation slice; FEAT-018 P2-T1 D2/D3-R2 with offline Cohorts A+B
+  closed; completed P2-T2 offline contract/mapping implementation; and approved offline P3/P4
+  slices integrated. P2-T3 optional narration planning remains a DRAFT and is not
+  implementation-approved. P2-T2 live Lightning execution, P2-T4 through P2-T5, provider,
+  mobile/shared integration and production scope remain separately gated)
 - Approver: Project owner direct instruction in the current conversation
 - Plan revision: 2
 - Requested scope: FEAT-018 revision 2 P1 implementation slice only: catalog promotion/provenance, Activity Template Library, adult context and deterministic eligibility, semantic-anchor to objective/template selection, ExperienceSpec compilation and fit validation, Gate B identity/version locking, catalog/pilot harness and feature-local evidence.
@@ -133,3 +134,53 @@ B08 manifest digest. The sanitized Cohort B execution report, metrics and indepe
 report may be indexed. D3/P2-T1 is closed for the offline Cohort A+B evaluation scope. The three
 verification findings remain follow-up work and do not require a Cohort B rerun. This closure does
 not authorize provider, mobile, Gate A, public-contract or shared-integration work.
+
+## Approved P2-T2 contract and offline implementation addendum — 2026-09-12
+
+The project owner approves FEAT-018 P2-T2 offline implementation after the FEAT-003 cross-feature
+consumption addendum recorded in the corresponding FEAT-003 approval file.
+
+Approved architecture and contract boundary:
+
+- FEAT-018 consumes FEAT-003 `VisionUnderstandingResultV2` through the approved typed boundary in
+  `vision_v2.py` and `qwen_vision.py`.
+- FEAT-018 owns and freezes a separate `RawUnderstandingResultV1`; it is not an alias of FEAT-017's
+  flat `understanding.py` V1, FEAT-003 Phase A V1, or FEAT-003 V2.
+- `RawUnderstandingResultV1` uses typed observation groups, confidence values bounded to `0..1`,
+  a required source-image SHA-256, typed failures, preserved uncertainty/conflicts, and
+  `gate_a_required=true`. It cannot make eligibility, personality, readiness, activity, objective,
+  Gate B, or safety decisions from media.
+- Mapping preserves provenance and ambiguity and rejects source/session mismatch, malformed or
+  prohibited output, extra fields, stale versions, and oversized output.
+
+Approved FEAT-018 file scope:
+
+- `backend/src/sketch2life/contracts/schemas/raw_understanding.py`
+- `backend/src/sketch2life/application/ports/raw_understanding.py`
+- `backend/src/sketch2life/application/services/raw_understanding_mapper.py`
+- `backend/tests/unit/test_raw_understanding.py`
+- `backend/tests/contract/test_raw_understanding_contract.py`
+- one feature-local sanitized contract/evidence note under
+  `features/FEAT-018-live-image-canvas-flow/evidence/notes/`
+
+No unlisted file may be changed without renewed approval. In particular, FEAT-003, FEAT-017,
+`vision_v2.py`, `qwen_vision.py`, mobile, Gate A UI, P1 eligibility, P3/P4, shared integration,
+published D3 evidence, and canonical contract history are excluded from the implementation slice.
+
+Offline-only gate: approved work may use typed fake fixtures and injected runners without network,
+model weights, provider calls, GPU, or Lightning execution. Live Lightning execution, model-weight
+download, and any provider/network call remain separately gated and require a later explicit
+execution approval with fixture, budget, redaction, and evidence requirements.
+
+Approved at: 2026-09-12, project owner direct instruction in the current conversation.
+
+## Owner approval and P2-T2 offline closure — 2026-09-12
+
+The project owner approves the completed FEAT-018 P2-T2 offline implementation at commit
+`11468d3a5a327697a491f09251a3210987337da0` (`fix(feat018): validate ASR correlation before mapping`).
+Independent verification reported no blocker: the mapper now rejects supplied ASR results with a
+mismatched correlation ID before Raw construction, while absent, matching-success and matching-
+failure cases remain valid. Focused tests (17), related tests (801 passed, 5 skipped), ruff, mypy,
+all repository validators and `git diff --check` passed. No model/GPU/Lightning/provider/network
+execution occurred. This approval closes P2-T2 offline only; live execution and P2-T3 through P2-T5,
+mobile, Gate A, P1 eligibility, P3/P4 and shared integration remain separately gated.

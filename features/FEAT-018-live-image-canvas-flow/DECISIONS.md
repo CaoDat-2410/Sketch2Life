@@ -90,3 +90,19 @@
   close D3/P2-T1 for the offline Cohort A+B scope. Carry the three verification findings as
   follow-up work; no Cohort B rerun is required. Provider, mobile, Gate A, public-contract and
   shared-integration scopes remain separately gated.
+
+- 2026-09-12 P2-T2 contract decision: supersede the 2026-09-07 FEAT-018 V1 freeze for this task.
+  FEAT-018 P2-T2 consumes FEAT-003's typed `VisionUnderstandingResultV2` through the approved
+  `vision_v2.py`/`qwen_vision.py` boundary; ownership remains FEAT-003 and no FEAT-003 change is
+  authorized. FEAT-017's flat V1 and remote HTTPS `LightningVisionAdapter` are not used. FEAT-018
+  owns a separate `RawUnderstandingResultV1` with typed observation groups, `0..1` confidence,
+  required source hash, typed failures, preserved ambiguity/conflicts and mandatory Gate A. The
+  exact bounded file list is approved for offline implementation only. Live Lightning/GPU/model
+  execution, provider/network calls and downstream integration require separate approval.
+
+- 2026-09-12 P2-T2 offline closure decision: approve the implementation and ASR correlation fix at
+  commit `11468d3a5a327697a491f09251a3210987337da0`. The mapper rejects a supplied ASR result whose
+  correlation ID differs from the vision result before constructing Raw output; matching, absent and
+  typed-failure ASR cases remain supported. Focused and related tests, lint/type checks, repository
+  validators and diff checks passed. This closes only the offline P2-T2 contract/mapping slice;
+  live Lightning/GPU/model execution and all downstream/provider/mobile/shared scopes remain gated.

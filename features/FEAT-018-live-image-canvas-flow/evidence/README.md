@@ -42,6 +42,13 @@ repeats per image; all samples admitted and within the approved timing and memor
 (`EV-018-P2-D3-COHORT-B-METRICS-01`; 24 samples; manifest correction disclosed and independently
 verified). The raw images and local manifest remain ignored and are not published.
 
+Selected completed P2-T2 offline contract/mapping record, owner-approved 2026-09-12:
+[RawUnderstandingResultV1 contract freeze and offline implementation](notes/P2_T2_CONTRACT_FREEZE_20260912.md)
+(`EV-018-P2-T2-CONTRACT-01`; implementation verified at commit
+`11468d3a5a327697a491f09251a3210987337da0`; no model, provider, network or GPU execution).
+The local independent verification report remains an ignored working artifact; this index contains
+only the sanitized feature-local contract record.
+
 - `raw/`: sanitized command output and contract-run summaries.
 - `metrics/`: validation, latency, FPS, memory, cache/fallback and pilot reports.
 - `screenshots/`: device screenshots with no personal data.

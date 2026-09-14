@@ -1,13 +1,13 @@
 # FEAT-018 live image and canvas context
 
-- Status: P1 complete; isolated P2-T1 D2 reviewed and accepted; D3-R2 Cohorts A and B formally
-  executed, independently verified and owner-approved; D3/P2-T1 closed for offline Cohort A+B;
-  downstream scopes remain pending
-- Plan revision: 2 with approved P2-T1 D2 and D3-R2 addenda
+- Status: P1 complete; D3/P2-T1 closed for owner-approved offline Cohorts A+B; P2-T2 contract
+  boundary and bounded offline implementation complete; live Lightning execution and downstream
+  scopes remain separately gated
+- Plan revision: 2 with approved P2-T1 D2/D3-R2 and P2-T2 offline addenda
 - Owner: shared integration allocation pending contract freeze approval
 - Goal: run a non-sensitive real JPG/PNG through validation, backend-only Qwen3-VL understanding, Gate A, one-anchor/one-objective ExperienceSpec compilation, P1/Gate B, PixiJS canvas, P4 cache/fallback, off-screen handoff, gallery journey and feedback.
 - Data policy: non-sensitive test image only; no child/personal data, production data, or provider credential in Git/mobile/evidence.
-- Dependencies: FEAT-003 understanding contracts, FEAT-015 fixture contracts, FEAT-016 runtime/session contracts, FEAT-017 live Lightning development path, FEAT-004 PixiJS/GSAP renderer plan, ADR-0006 allocation rules.
+- Dependencies: FEAT-003 `VisionUnderstandingResultV2` and local Qwen adapter boundary, FEAT-015 fixture contracts, FEAT-016 runtime/session contracts, FEAT-004 PixiJS/GSAP renderer plan, ADR-0006 allocation rules. FEAT-017's remote HTTPS path is not used by P2-T2.
 - Contract authority: `plan/CONTRACT_FREEZE.md`.
 - Pilot: 20 golden activities for full device/integration flow; 100 MVP activities for offline catalog/reference validation.
 
@@ -99,3 +99,29 @@ verification reproduced every published data value with zero discrepancies and a
 verification findings remain follow-up work before a future formal run relies on the same cleanliness
 safeguard. Provider, mobile, Gate A, public-contract and shared-integration scopes remain separately
 gated.
+
+## P2-T2 contract and offline implementation approval - 2026-09-12
+
+The owner approved FEAT-018 consumption of FEAT-003's typed `VisionUnderstandingResultV2` and
+local `qwen_vision.py` adapter boundary. FEAT-003 ownership is unchanged and its schemas, runtime,
+profiles, dependencies, benchmarks, fixtures and evidence may not be modified. FEAT-017's flat V1
+contract and remote HTTPS `LightningVisionAdapter` are excluded from P2-T2.
+
+FEAT-018 owns a separate `RawUnderstandingResultV1` with typed observation groups, confidence
+bounded to `0..1`, required source SHA-256, typed failures, preserved ambiguity/conflicts and
+`gate_a_required=true`. The approved implementation slice is offline-only and limited to the exact
+schema, port, mapper, unit/contract tests and one sanitized feature-local evidence note listed in
+`approvals/TASK_APPROVAL.md`. Live Lightning/GPU execution, model-weight download, provider/network
+calls, mobile, Gate A UI, P1 eligibility, P3/P4 and shared integration remain separately gated.
+
+## P2-T2 offline implementation closure - 2026-09-12
+
+The owner approved the completed offline P2-T2 implementation at commit
+`11468d3a5a327697a491f09251a3210987337da0`. The change adds the mandatory ASR correlation guard
+before `RawUnderstandingResultV1` construction and regression coverage for matching and mismatched
+ASR results. Focused tests (17) and the related vision/Qwen/ASR sweep (801 passed, 5 skipped) passed;
+ruff, mypy, repository validators and `git diff --check` were clean. The independent verification
+report found no blocker and confirms the published contract/data scope is unchanged.
+
+P2-T2 offline is complete. Live Lightning/GPU/model execution, provider/network calls, P2-T3 through
+P2-T5, mobile, Gate A UI, P1 eligibility, P3/P4 and shared integration remain separately gated.
