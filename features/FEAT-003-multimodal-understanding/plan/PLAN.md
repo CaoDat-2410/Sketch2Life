@@ -3,8 +3,9 @@
 - Status: APPROVED (P2-T1 and P2-T2 Phases A/B complete; P2-T3 B1-B5 study complete with
   no profile frozen or runtime default selected; P2-T4 owner design decisions recorded
   2026-09-13, with the B0 reconciliation package complete as documentation-only evidence;
-  owner confirmation/adoption and P2-T4 implementation remain gated)
-- Plan revision: 4
+  the 2026-09-14 docs-only remediation/reissue has passed two post-sync audits and is ready for
+  the owner freeze decision; mapping/adoption, contract freeze, and P2-T4 implementation remain gated)
+- Plan revision: 5
 - Implementation status: IN_PROGRESS (P2-T3 B1-B4, including the Direction A prompt-v3
   follow-up, are complete; prompt-v3 follow-up phases 1-6 and its mapping-readiness evaluation
   complete with a `MAPPING_READY` verdict and a `CAP_EXCEEDED` compute-governance result; prompt-v3
@@ -12,14 +13,14 @@
   `CAP_EXCEEDED` result; B5 evidence-only recommendation gate is complete, recommending
   `NOT_ENOUGH_EVIDENCE` to freeze any Qwen3-VL profile, with no profile frozen and no runtime
   default selected; P2-T4 owner decisions and the documentation-only B0 reconciliation review
-  package are complete, but owner confirmation, adoption, and separate implementation approval
-  remain pending; P2-T5 remains gated)
+  package and docs-only freeze draft are owner-freeze-ready after two post-sync audits, but
+  owner freeze, mapping/adoption, and separate implementation approval remain pending; P2-T5 remains gated)
 - Owner: Person 2
 - Estimate: 10 points total (P2-T1 through P2-T5, 2 points each)
 
 ## Scope and boundary
 
-Build a standalone, fixture-driven Python understanding package: deterministic media validation; provider-neutral Whisper and Qwen3-VL adapters; deterministic fusion and conflict preservation; a versioned `RawUnderstandingResult`; and a CLI evaluation harness. Inputs are synthetic drawings and narration only. Originals are immutable; any normalization produces a separately referenced working copy with provenance.
+Build a standalone, fixture-driven Python understanding package: deterministic media validation; provider-neutral Whisper and Qwen3-VL adapters; deterministic fusion and conflict preservation; a versioned proposed `P2T4FusedResultV1`; and a CLI evaluation harness. Inputs are synthetic drawings and narration only. Originals are immutable; any normalization produces a separately referenced working copy with provenance. The former `RawUnderstandingResultV1` wording is historical baseline terminology only.
 
 Excluded from this feature: capture UI, Gate A UI/confirmation, session/job state, FastAPI routes, queues, databases, object storage wiring, mobile integration, provider credentials, and any real child data. The standalone runner must never require another Sprint 1 service.
 
@@ -30,11 +31,26 @@ Before code for T1, review and freeze a small versioned contract set with sample
 - `MediaFixtureManifestV1`: immutable source references, hashes, declared media metadata, expected validation decision, and synthetic-data declaration.
 - `MediaValidationResultV1`: `PASS | RECAPTURE`, deterministic reason codes, measured signals, source/working-copy references, and validator/config provenance.
 - `AsrResultV1` and `VisionUnderstandingResultV1`: typed result or typed failure, source reference, model/config provenance, quality metadata, and no free-form provider response as a public contract.
-- `RawUnderstandingResultV1`: source modality predictions, entities, actions, relations, themes, support map, conflicts, uncertainty, and provenance. It explicitly excludes personality, diagnosis, mental-state, and psychological-inference fields.
+- `P2T4FusedResultV1`: source modality predictions, entities, actions, relations, themes, support map, conflicts, uncertainty, and provenance. It explicitly excludes personality, diagnosis, mental-state, and psychological-inference fields. The proposed identity is `P2T4.P2T4FusedResultV1@1.0`, serialized as `P2T4FusedResultV1 / 1.0`.
 
-The P2-T4 `RawUnderstandingResultV1` identity and shape require the separately scoped B0
-reconciliation because FEAT-018 already has a different live contract with the same name. The
-P2-T4 design decisions do not freeze either family or authorize a migration.
+The former P2-T4 `RawUnderstandingResultV1` identity and shape are retained only as the historical
+baseline that motivated the separately scoped B0 reconciliation. The post-sync FEAT-018 tree now
+contains its frozen/implemented live-development `RawUnderstandingResultV1 / 1.0` handoff, owned
+by FEAT-018 and closed offline at `11468d3a5a327697a491f09251a3210987337da0`; this is current
+implementation state, not a historical proposal. The active P2-T4 proposal is
+`P2T4FusedResultV1`, and it is neither an alias of nor a replacement for the FEAT-018 Raw handoff.
+The FEAT-018 mapper consumes `VisionUnderstandingResultV2` plus optional P2 ASR, while P2-T4
+consumes P2 `VisionUnderstandingResultV1`; the output identities/status unions, required
+session/image/Gate-A/V2 provenance, ambiguity/fused-claim/conflict/confidence/uncertainty/failure
+shapes are incompatible and cannot be silently projected.
+
+The immutable B0 reconciliation report, manifest, and reviews predate the implemented FEAT-018
+Raw module. They remain an old reconciliation snapshot with mapping
+`P2T4_FEAT018_CONTRACT_FAMILY_MAPPING_V1@1.0` / `PROPOSED_NOT_ADOPTED`; separately approved
+integration reconciliation is required before adoption, registry change, consumer update, or
+edge-3 handoff. The current post-sync review base is
+`d706d88a70c6a9136e397bea10d29f96bafd190b`; the future T4 freeze/implementation source commit is
+`UNKNOWN_UNTIL_REVIEW_APPROVED_COMMITTED`.
 
 The contract review is part of this plan, not approval to integrate it into the application. Any change after approval requires a plan/approval update.
 
@@ -139,15 +155,19 @@ reason catalog are unchanged and out of that scope.
 
 ### P2-T4 — Multimodal fusion and conflict detection (2 points, Must)
 
-**Goal:** Combine static `transcript.json` and `vision.json` into `RawUnderstandingResultV1` without erasing disagreement.
+**Goal:** Combine validated P2 ASR and Vision results into the proposed
+`P2T4.P2T4FusedResultV1@1.0` without erasing disagreement.
 
-**Current status (2026-09-13):** the nine owner decisions are recorded as design choices. The
-separately approved documentation-only reconciliation between FEAT-018 and the P2 contract
-family is complete and has passed independent technical and governance review with owner actions.
-Its recommended outcome is an explicit versioned mapping, not adoption. The active v1 result
-statuses are exactly `FUSED | UPSTREAM_FAILURE`;
-`NOT_FUSIBLE` is not part of the active v1 design. Contract freeze and implementation remain
-not approved, and `approvals/TASK_APPROVAL.md` is unchanged.
+**Current status (2026-09-14):** the nine inherited owner decisions and the remediation selections
+are synchronized across the documentation package, which is currently
+`DRAFT - READY FOR OWNER FREEZE DECISION` after two independent post-sync final audits. The separately approved documentation-only
+B0 reconciliation is complete, but its mapping remains `PROPOSED_NOT_ADOPTED`. The active
+proposed output is exactly `P2T4.P2T4FusedResultV1@1.0` (`P2T4FusedResultV1 / 1.0`); the former
+`RawUnderstandingResultV1` wording is historical only. The exact seven-file offline core and
+reviewable freeze draft are future/proposed artifacts only. Result statuses are exactly
+`FUSED | UPSTREAM_FAILURE`; `NOT_FUSIBLE` is not part of the active v1 design. Contract freeze
+and implementation remain unapproved. The rejected live families are exactly
+`FEAT018.LiveAsrResultV1@1.0` and `FEAT018.LiveVisionUnderstandingResultV1@1.0`.
 
 **Resolved design boundaries:** narration is support/refute-only and cannot create independent
 entities, actions, relations, or themes; themes pass through from vision only; narration support
@@ -156,19 +176,59 @@ list is `not`, `no`, `never`, `isn't`, `doesn't`, `didn't`; the window is exactl
 match-view tokens immediately preceding an already-matched claim span; the corroboration
 increment is `0.10` once per supported, non-conflicting candidate and capped at `1.0`;
 `AGREEMENT_WEIGHTED_V1` is retained; and null source vision confidence remains
-`NOT_MEASURED` with null certainty even when support exists.
+`NOT_MEASURED` with null certainty even when support exists. Matching is independently against
+each validated `AsrSegmentV1.text`; normalized token coordinates are
+`(segment_index, claim_start, claim_end)` and both coordinates and the three-token negation
+window reset per segment. `transcript_raw` is non-authoritative. The policy/hash representation
+of `corroboration_increment` is the exact string `"0.10"`, converted to `Decimal` only for
+arithmetic. Ambiguous Vision regions are omitted as fused observations and retain only
+canonical source-result provenance. Mixed positive/refuting spans retain support and canonical
+positive/refuting refs while suppressing adjustment and primary eligibility. Finite numeric
+Vision confidence below the floor may emit `LOW_CONFIDENCE_EVIDENCE` for an entity, action,
+relation, or theme; themes remain Vision-only, have no uncertainty row, and never enter primary
+ranking.
 
-**Implementation slices after the gates:**
+**Confirmed contract boundary remediation:** the current upstream `AsrSuccessV1` contract permits
+duplicate `AsrSegmentV1.index` values, so the P2-T4 admissibility invariant is exactly: `For
+AsrSuccessV1, all AsrSegmentV1.index values MUST be unique.` The terminal pipeline is exactly
+`identity/version -> strict upstream-contract validation -> P2-T4 admissibility invariants ->
+correlation equality -> typed upstream status -> fusion`; the first failing stage is terminal and
+ASR is checked before Vision where slot ordering applies. A duplicate index is rejected with
+`status=REJECTED`, `phase=ADMISSIBILITY`, `code=INVALID_STRUCTURE`, `input_slot=ASR`, and
+`field_code=DUPLICATE_SEGMENT_INDEX`; no duplicated index, transcript, input object, exception,
+or validation path is exposed. The phase/field-code tables are closed and reuse
+`INVALID_STRUCTURE`. Vision V1 already enforces global `observation_id` uniqueness across
+entities, actions, relations, themes, and ambiguous regions through
+`_validate_observation_references`; T4 adds no redundant Vision uniqueness rule or new owner
+decision. Canonical narration references are ordered exactly by
+`(segment_index ASC, claim_start ASC, claim_end ASC)`; identical coordinate tuples are
+deduplicated before independently selecting the canonical earliest positive and earliest
+refuting reference, independently of source tuple traversal order.
 
-1. Obtain owner confirmation for the completed B0 reconciliation outcome, including its explicit
-   versioned mapping, compatibility review, and synthetic migration/compatibility fixture.
-2. Freeze the reconciled T4 contract and policy identities, then obtain separate P2-T4
-   implementation approval.
+The exact future fixture artifacts, referenced consistently by every authorized handoff,
+allowlist, acceptance, and evidence-binding record, are:
+
+```text
+features/FEAT-003-multimodal-understanding/fixtures/p2-t4-fusion-v1/manifest-v1.json
+features/FEAT-003-multimodal-understanding/fixtures/p2-t4-fusion-v1/cases-v1.json
+features/FEAT-003-multimodal-understanding/fixtures/p2-t4-fusion-v1/expected-v1.json
+```
+
+**Future slices after the gates:**
+
+1. Independently review the versioned freeze draft and resolve any review findings; the B0
+   mapping remains a separate `PROPOSED_NOT_ADOPTED` record and is not part of the T4 core.
+2. Record a separate owner contract-freeze decision, then a separate approval for the exact
+   seven-file offline core.
 3. Implement pure deterministic fusion, bounded conflict detection, primary-only weighting, and
-   uncertainty calculation.
-4. Add agreement, single-modality, exact-negation, low-confidence, duplicate-normalization,
-   null-confidence, and upstream-typed-failure fixtures, followed by round-trip, determinism,
-   provenance, reference-integrity, and prohibited-field tests.
+   uncertainty calculation only within those seven paths.
+4. Add the approved fusion, pre-validation, privacy-sentinel, round-trip, determinism,
+   provenance, reference-integrity, independent schema-parity, and prohibited-field fixtures in
+   those seven paths. Bind source commit, freeze/package digest, dependency/lock hash, and
+   manifest/cases/expected/final-evidence SHA-256 values. Include duplicate-index
+   admissibility, ASR-before-Vision precedence, and coordinate-deduplication/source-order
+   independence cases. No mapping cases or
+   preservation-envelope implementation belong in this slice.
 
 **Done when:** fusion generates strict JSON with source support, uncertainty, and conflict provenance; conflicts retain both predictions; the artifact is explicitly an AI proposal for future Gate A, never a `CanonicalUnderstandingResult`.
 
@@ -209,7 +269,23 @@ For one owner, work sequentially as T1, T2, T3, T4, T5. If two contributors are 
 - [ ] Evidence records command, environment, input/manifest reference, output, timestamp, reviewer, and interpretation.
 - [x] P2-T2 Phase B readiness validates a versioned ASR-only manifest and fixed Round-1 metadata plan without model/GPU/CLI/API work; unavailable measurements are explicit `NOT_MEASURED`.
 - [x] B0 reconciliation is separately approved and its documentation-only package is complete
-      before P2-T4 contract freeze or implementation; owner confirmation/adoption remains open.
+      before P2-T4 contract freeze or implementation; its mapping remains unadopted.
+- [x] The 2026-09-14 docs-only remediation/reissue records the exact seven-file future offline
+      core and creates a freeze draft without creating or editing any implementation path.
+- [x] The post-remediation freeze draft passes two independent final audits recorded in the reissued
+      implementation-approval package; this does not grant the owner freeze decision.
+- [x] The future fixture acceptance artifacts are exactly:
+      `features/FEAT-003-multimodal-understanding/fixtures/p2-t4-fusion-v1/manifest-v1.json`,
+      `features/FEAT-003-multimodal-understanding/fixtures/p2-t4-fusion-v1/cases-v1.json`, and
+      `features/FEAT-003-multimodal-understanding/fixtures/p2-t4-fusion-v1/expected-v1.json`;
+      none exists in this docs-only task.
+- [x] The confirmed ASR admissibility invariant, exact rejection fields, closed phase/code
+      additions, terminal pipeline, and ASR-before-Vision ordering are synchronized.
+- [x] The upstream Vision global `observation_id` uniqueness fact and no-redundant-T4-rule
+      boundary are synchronized.
+- [x] Exact repo-root-qualified future fixture paths and canonical narration-reference
+      ordering/deduplication/source-order independence are synchronized.
+- [ ] The owner records the separate contract-freeze decision.
 
 ## Evidence and review gates
 

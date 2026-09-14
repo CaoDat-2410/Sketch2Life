@@ -24,6 +24,9 @@
 
 ## P2-T4 owner decisions and reconciliation status (2026-09-13)
 
+This section is a 2026-09-13 historical snapshot. The 2026-09-14 docs-only remediation
+and reissue section below supersedes its approval-state wording.
+
 - The nine P2-T4 owner decisions (B0, B5, B1, B4, B6, B2, B3a, B3b, and B3c) are recorded in
   [`DECISIONS.md`](DECISIONS.md) and the detailed research plan. They are design choices, not an
   implementation approval.
@@ -56,6 +59,125 @@
   owner-review field, failure, compatibility, fixture, and gate checklist only; it creates no
   new decision or approval. Its status is DRAFT, NOT AN IMPLEMENTATION APPROVAL, and NOT A
   RUNTIME AUTHORIZATION.
+
+## P2-T4 docs-only remediation, post-sync reconciliation, and owner-freeze-ready status (2026-09-14)
+
+- The owner approved a documentation-only remediation/reissue task and explicitly selected the
+  synchronization values recorded below. Recording those values does not freeze a contract or
+  approve implementation.
+- The implementation-approval package draft is reissued against the exact seven-file offline
+  core direction. The seven paths are a future implementation allowlist only; no one of them
+  is created, edited, stubbed, or pre-populated by this task.
+- The reissue removes the proposed `p2_t4_mapping.py` module and tests, the preservation-envelope
+  implementation, and mapping cases from the future Sprint-1 T4 implementation scope. The B0
+  mapping family `P2T4_FEAT018_CONTRACT_FAMILY_MAPPING_V1@1.0` remains
+  `PROPOSED_NOT_ADOPTED`; the existing B0 compatibility artifacts remain immutable.
+- `plan/P2_T4_CONTRACT_FREEZE_DRAFT.md` is a reviewable proposal with current remediation status
+  `DRAFT - READY FOR OWNER FREEZE DECISION`. Its active proposed output identity is exactly
+  `P2T4.P2T4FusedResultV1@1.0`, serialized as `P2T4FusedResultV1 / 1.0`. The former
+  P2-T4 `RawUnderstandingResultV1` wording is historical baseline only and is not the active
+  P2-T4 output or a FEAT-018 adoption.
+- The post-sync review base is `d706d88a70c6a9136e397bea10d29f96bafd190b`. That merge contains
+  the current FEAT-018 P2-T2 implementation: the frozen/implemented FEAT-018 live-development
+  handoff is `RawUnderstandingResultV1 / 1.0`, implemented by the FEAT-018-owned schema, port,
+  mapper, and contract/unit tests, with offline closure approved at
+  `11468d3a5a327697a491f09251a3210987337da0`. This is current implementation state, not a
+  historical proposal.
+- This reconciliation preserves the auto-merged FEAT-003 records: completed P2-T3 B1-B5 evidence
+  and its `NOT_ENOUGH_EVIDENCE` recommendation remain authoritative, and the newer FEAT-018
+  P2-T2 consumption approval/closure remains recorded in the existing approval and feature-local
+  records. Neither is downgraded or reinterpreted by the P2-T4 proposal.
+- FEAT-018's mapper consumes FEAT-003 `VisionUnderstandingResultV2` and an optional P2
+  `AsrResultV1`, then maps to FEAT-018 `RawUnderstandingResultV1`; the FEAT-020 backend workflow
+  (`backend/src/sketch2life/application/services/backend_ai_workflow.py`) also requests P2
+  `VisionUnderstandingRequestV2` and consumes `VisionUnderstandingResultV2`.
+  This does not change P2-T4's proposed boundary: P2-T4 consumes P2 `VisionUnderstandingResultV1`
+  and proposes `P2T4FusedResultV1`. The P2-T4 proposal is neither an alias of nor a replacement for
+  the implemented FEAT-018 `RawUnderstandingResultV1` handoff.
+- The incompatibilities are substantive: P2-T4 and the FEAT-018 mapper use Vision V1 versus
+  Vision V2 inputs; P2-T4 proposes `P2T4FusedResultV1` with `FUSED | UPSTREAM_FAILURE`, while
+  FEAT-018 owns `RawUnderstandingResultV1` with `SUCCEEDED | FAILED` branches; FEAT-018 requires
+  `session_id`, `source_image_ref`, `gate_a_required=true`, and V2 profile/catalog/model provenance;
+  and the families differ in ambiguity preservation, `fused_claims`, conflict identifiers/reason
+  codes, confidence/uncertainty requiredness, and typed failure/status shape. Direct aliasing or
+  silent field projection is therefore rejected.
+- The immutable B0 report, manifest, and review package were captured before this FEAT-018 Raw
+  implementation was present. Their old snapshot remains unchanged and their mapping remains
+  `PROPOSED_NOT_ADOPTED`; separately approved integration reconciliation is required before any
+  adoption, registry change, consumer update, or edge-3 handoff.
+- Two independent final audits of the post-sync records passed: technical/contract completeness
+  and governance/security/scope. The package status is now exactly
+  `DRAFT - READY FOR OWNER FREEZE DECISION`; this restores only owner review and does not freeze
+  the contract or authorize implementation. The future T4 freeze/implementation source commit is
+  `UNKNOWN_UNTIL_REVIEW_APPROVED_COMMITTED`; no future or self-referential commit digest is
+  asserted.
+- The remediation uses exact rejection identities `FEAT018.LiveAsrResultV1@1.0` and
+   `FEAT018.LiveVisionUnderstandingResultV1@1.0`; matching is independently against each
+   validated `AsrSegmentV1.text`, with token coordinates and the three-token negation window
+   reset per segment. `transcript_raw` is not authoritative or copied into T4.
+- The upstream `AsrSuccessV1` contract permits duplicate `AsrSegmentV1.index` values, so the
+  T4 admissibility invariant is exactly: `For AsrSuccessV1, all AsrSegmentV1.index values MUST
+  be unique.` The terminal pipeline is exactly `identity/version -> strict upstream-contract
+  validation -> P2-T4 admissibility invariants -> correlation equality -> typed upstream status
+  -> fusion`; the first failing stage is terminal and ASR is checked before Vision where slot
+  ordering applies. A duplicate index is rejected with `status=REJECTED`,
+  `phase=ADMISSIBILITY`, `code=INVALID_STRUCTURE`, `input_slot=ASR`, and
+  `field_code=DUPLICATE_SEGMENT_INDEX`; no duplicated index, transcript, input object, exception,
+  or validation path is exposed.
+- Vision V1 already enforces global `observation_id` uniqueness across entities, actions,
+  relations, themes, and ambiguous regions through `_validate_observation_references`; T4 adds
+  no redundant Vision uniqueness rule or new owner decision. Canonical narration reference
+  ordering is exactly `(segment_index ASC, claim_start ASC, claim_end ASC)`. Identical coordinate
+  tuples are deduplicated before independently selecting the canonical earliest positive and
+  earliest refuting reference, independently of source tuple traversal order.
+- The exact future fixture artifacts used by every authorized handoff, allowlist, acceptance,
+  and evidence-binding record are:
+
+  ```text
+  features/FEAT-003-multimodal-understanding/fixtures/p2-t4-fusion-v1/manifest-v1.json
+  features/FEAT-003-multimodal-understanding/fixtures/p2-t4-fusion-v1/cases-v1.json
+  features/FEAT-003-multimodal-understanding/fixtures/p2-t4-fusion-v1/expected-v1.json
+  ```
+- Canonical claim coordinates are `(segment_index, claim_start, claim_end)` over normalized
+  segment tokens. `corroboration_increment` is the canonical contract/hash string `"0.10"`
+  and is converted to `Decimal` only for approved arithmetic. Ambiguous Vision regions are not
+  fused observations; source provenance is retained only through the canonical source-result
+  reference/digest. Mixed positive/refuting spans retain support and both canonical references
+  while suppressing adjustment and primary eligibility.
+- The freeze draft defines complete fields, null ordering and source-observation-ID tie-breaks,
+  canonical bytes and conflict IDs, source/dependency/freeze/package/evidence bindings, and a
+  hand-authored schema-parity oracle requirement. It is not an approved freeze or runtime
+  contract.
+- The freeze draft resolves low-confidence scope: finite numeric Vision confidence below the
+  floor may emit `LOW_CONFIDENCE_EVIDENCE` for entities, actions, relations, or themes; themes
+  remain Vision-only, have no uncertainty row, and never enter primary ranking.
+- The earlier full-document technical and governance/security reviews remain historical review
+  evidence. The two post-sync final audits cover the implemented FEAT-018 Raw handoff and the
+  unchanged B0 baseline; both passed, so the package is restored to owner-freeze-ready status.
+  The separate owner freeze decision and implementation approval remain pending.
+- During remediation, the package was held at the exact status
+  `DRAFT - UPSTREAM RECONCILIATION REVIEW REQUIRED`; only after both final audits passed was it
+  restored to `DRAFT - READY FOR OWNER FREEZE DECISION`.
+- The post-remediation technical/contract audit passed: it verified the three exact future
+  fixture paths in all seven records, the upstream ASR duplicate-index fact and T4 admissibility
+  invariant, the exact terminal pipeline and closed rejection fields, the canonical reference
+  sort/dedup/source-order rule, and the upstream Vision uniqueness attribution with no redundant
+  T4 rule or new owner decision.
+- The post-remediation governance/security/scope audit passed: it verified that only the seven
+  authorized documents changed, the seven future implementation paths remain absent, B0 and
+  FEAT-018/FEAT-020 implementation artifacts remain untouched, approvals and deferred gates are
+  preserved, and the documentation remains non-implementation/non-freeze scope.
+- The final repository validation run on review base `d706d88a70c6a9136e397bea10d29f96bafd190b`
+  passed `git diff --check`, the harness, repository-security, and skeleton validators. The
+  architecture validator retains one pre-existing finding in the unchanged FEAT-020 workflow:
+  its application service imports infrastructure catalogs/file inspection. This is outside the
+  documentation-only T4 scope, does not change the T4 owner-freeze-ready status, and requires a
+  separately scoped architecture remediation before claiming repository-wide architecture
+  validity.
+- FEAT-018 mapping/adoption, session/request/idempotency, registry, edge 3, Gate A, migration,
+  runtime/provider/GPU/network work, and changes to FEAT-017, FEAT-018, P2-T2, P2-T3, or
+  existing fixtures remain deferred. No code, schema, test, fixture, or runtime work occurred in
+  this remediation; the post-sync FEAT-018 implementation is inspection-only here.
 
 ## P2-T1 maintenance (2026-09-10)
 
@@ -219,18 +341,18 @@
 
 - Status: REVIEW (P2-T1 and P2-T2 Phases A/B complete, including the executed Round-1 benchmark against 21 synthetic HELD_OUT fixtures; no profile is frozen and no runtime default is selected; P2-T3 Phase A is implemented; P2-T3 Phase B is approved for its bounded B1–B5 Qwen study in `approvals/TASK_APPROVAL.md`; P2-T3 work outside that scope and P2-T4 through P2-T5 remain unapproved)
 - Primary owner: Person 2
-- Goal: Build and benchmark a standalone fixture-driven AI understanding component that emits traceable, schema-valid raw understanding artifacts.
+- Goal: Build and benchmark a standalone fixture-driven AI understanding component that emits traceable, schema-valid proposed `P2T4FusedResultV1` artifacts.
 - Data policy: fixture/synthetic drawings and narration only.
 - Dependencies: versioned fixture manifest plus the approved local Phase B runtime boundary; no Gate UI or backend runtime dependency.
 - Planning source reviewed: user-provided `Sketch2Life_Complete_Technical_Handbook_v5_Revised (1).pdf` (26 August 2026). It informs the ASR/VLM/fusion baseline but does not supersede direct user instructions, approved repository ADRs, or the approval gate.
 
 ## Sprint 1 boundary
 
-This workstream owns media validation, ASR/VLM adapters, fusion, `RawUnderstandingResult`, and model evidence. Gate A UI, session/job orchestration, and integrated app APIs are deferred to the Integration Sprint.
+This workstream owns media validation, ASR/VLM adapters, fusion, the proposed `P2T4FusedResultV1`, and model evidence. The former `RawUnderstandingResult` wording is historical baseline terminology only. Gate A UI, session/job orchestration, and integrated app APIs are deferred to the Integration Sprint.
 
 ## Current planning decision
 
-- Plan revision 4 breaks the workstream into P2-T1 through P2-T5. The intended dependency order is `T1 -> (T2, T3) -> T4 -> T5`; T2 and T3 share only approved contracts and fixtures, never a live service.
+- Plan revision 5 breaks the workstream into P2-T1 through P2-T5. The intended dependency order is `T1 -> (T2, T3) -> T4 -> T5`; T2 and T3 share only approved contracts and fixtures, never a live service.
 - Quality thresholds are deliberately fixture/configurable until the approved Phase B benchmark establishes device, language, and synthetic/licensed-voice targets.
 - P2-T1 implementation is complete. P2-T2 Phase A is complete; P2-T2 Phase B is approved under `approvals/TASK_APPROVAL.md`'s recorded B1-B7 scope, its benchmark-readiness preparation is complete, and the controlled live Round-1 execution it already authorized has been run against 21 synthetic `HELD_OUT` fixtures. At the time of this historical note P2-T3 through P2-T5 remained out of implementation scope; P2-T3 Phase A was subsequently approved on 2026-08-31, as recorded below and in `approvals/TASK_APPROVAL.md`.
 - The detailed P2-T2 research plan is recorded in `plan/P2_T2_ASR_RESEARCH_PLAN.md`. It defines the contract-first, fixture-benchmark decision process and records the benchmark-readiness implementation slice, the two executed local Round-1 runs (`EV-003-T2-05`, `EV-003-T2-06`), and the supplementary Colab validation (`EV-003-T2-07`).
