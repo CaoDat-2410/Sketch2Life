@@ -1,0 +1,424 @@
+{
+  "contract_name": "P2T4FusionCasesV1",
+  "contract_version": "1.0",
+  "target_contract": "P2T4.P2T4FusedResultV1@1.0",
+  "synthetic_data": true,
+  "data_policy": "synthetic-only; no raw media, no real child data, no provider payloads, no prompts, no credentials, no endpoints, no absolute paths",
+  "input_boundary": "Every case enters through the outer object-classification boundary. P2_SUCCESS and P2_FAILURE specs are expanded by the unit test into complete serialized P2 V1 result mappings using the shared envelope below; `overrides` are shallow-merged after expansion and `remove` deletes top-level keys. RAW specs are passed verbatim. Typed-model specs are constructed by the unit test from the named contract module.",
+  "executed_at": "2026-09-15T12:00:00Z",
+  "policy": {
+    "contract_name": "P2T4FusionPolicyConfigV1",
+    "contract_version": "1.0",
+    "config_version": "p2-t4-fusion-policy-fixture-v1",
+    "entity_match_mode": "WHOLE_TOKEN_SEQUENCE",
+    "narration_weight_mode": "SUPPORT_ONLY",
+    "confidence_floor": 0.5,
+    "uncertainty_formula_id": "AGREEMENT_WEIGHTED_V1",
+    "match_view_version": "vision_policy_match_view-v2",
+    "negation_cues": [["not"], ["no"], ["never"], ["isn", "t"], ["doesn", "t"], ["didn", "t"]],
+    "negation_window_tokens": 3,
+    "corroboration_increment": "0.10"
+  },
+  "envelope": {
+    "correlation_id": "corr-p2t4-0001",
+    "asr": {
+      "contract_name": "AsrResultV1",
+      "contract_version": "1.0",
+      "executed_at": "2026-09-15T00:00:01Z",
+      "source_audio_ref": {
+        "artifact_ref": "fixture:p2-t4:audio-01.wav",
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "profile_id": "FAKE_DETERMINISTIC_V1",
+      "attempt_number": 0,
+      "repair_attempted": false,
+      "transcript_raw": "RAW-TRANSCRIPT-SENTINEL house dog cat",
+      "detected_language": "en",
+      "language_probability": null,
+      "language_hint_echo": null,
+      "language_hint_applied": false,
+      "input_duration_seconds": 60.0,
+      "vad_enabled": false,
+      "duration_after_vad_seconds": null,
+      "model_identifier": "fixture-asr-model",
+      "model_revision": "fixture-asr-revision",
+      "adapter_version": "fixture-asr-adapter-v1",
+      "runtime_version": "fixture-asr-runtime-v1",
+      "config_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "quality_metadata": {
+        "contract_version": "1.0",
+        "media_validation_artifact_ref": "fixture:p2-t4:media-validation-01.json",
+        "media_validation_artifact_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "mean_segment_log_probability": null,
+        "mean_no_speech_probability": null
+      },
+      "segment_timing": {
+        "start_seconds_per_index": 2.0,
+        "duration_seconds": 1.0
+      }
+    },
+    "vision": {
+      "contract_name": "VisionUnderstandingResultV1",
+      "contract_version": "1.0",
+      "executed_at": "2026-09-15T00:00:02Z",
+      "source_image_ref": {
+        "artifact_ref": "fixture:p2-t4:image-01.png",
+        "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      },
+      "profile_id": "FAKE_DETERMINISTIC_V1",
+      "profile_catalog_hash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "attempt_number": 0,
+      "repair_attempted": false,
+      "content_policy_version": "fixture-content-policy-v1",
+      "policy_match_view_version": "vision-policy-match-view-v2",
+      "adapter_version": "fixture-vision-adapter-v1",
+      "config_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+    }
+  },
+  "cases": [
+    {
+      "case_id": "agreement-all-kinds",
+      "coverage": ["agreement", "all-candidate-kinds", "language-copied-unchanged", "ambiguous-region-omission", "vision-only-themes", "uncertainty-kind-order"],
+      "asr": {"kind": "P2_SUCCESS", "segments": [{"index": 0, "text": "The child draws a red house"}]},
+      "vision": {
+        "kind": "P2_SUCCESS",
+        "entities": [
+          {"observation_id": "e-child", "label": "child", "confidence": 0.7, "language": ["en"]},
+          {"observation_id": "e-house", "label": "house", "confidence": 0.8}
+        ],
+        "actions": [{"observation_id": "a-draws", "label": "draws", "actor_ref": "e-child", "object_ref": "e-house", "confidence": 0.6}],
+        "relations": [{"observation_id": "r-child-house", "predicate": "draws a red", "subject_ref": "e-child", "object_ref": "e-house", "confidence": 0.5}],
+        "themes": [{"observation_id": "t-home", "label": "home life", "evidence_refs": ["e-house", "a-draws"], "confidence": 0.9}],
+        "ambiguous_regions": [{"observation_id": "ar-scribble", "note": "unclear scribble"}]
+      }
+    },
+    {
+      "case_id": "asr-only-narration",
+      "coverage": ["asr-only-narration", "support-only-narration-never-creates-candidates"],
+      "asr": {"kind": "P2_SUCCESS", "segments": [{"index": 0, "text": "a purple dragon flies"}]},
+      "vision": {"kind": "P2_SUCCESS", "entities": [{"observation_id": "e-house", "label": "house", "confidence": 0.8}]}
+    },
+    {
+      "case_id": "vision-only-empty-transcript",
+      "coverage": ["vision-only-observations", "empty-transcript-is-fusable"],
+      "asr": {"kind": "P2_SUCCESS", "segments": []},
+      "vision": {"kind": "P2_SUCCESS", "entities": [{"observation_id": "e-house", "label": "house", "confidence": 0.8}]}
+    },
+    {
+      "case_id": "entity-negation-contradiction",
+      "coverage": ["entity-exact-negation", "conflict-certainty-precedence"],
+      "asr": {"kind": "P2_SUCCESS", "segments": [{"index": 0, "text": "there is not a house here"}]},
+      "vision": {"kind": "P2_SUCCESS", "entities": [{"observation_id": "e-house", "label": "house", "confidence": 0.8}]}
+    },
+    {
+      "case_id": "action-negation-contradiction",
+      "coverage": ["action-exact-negation"],
+      "asr": {"kind": "P2_SUCCESS", "segments": [{"index": 0, "text": "the child never draws"}]},
+      "vision": {
+        "kind": "P2_SUCCESS",
+        "entities": [{"observation_id": "e-child", "label": "child", "confidence": 0.7}],
+        "actions": [{"observation_id": "a-draws", "label": "draws", "actor_ref": "e-child", "confidence": 0.6}]
+      }
+    },
+    {
+      "case_id": "relation-negation-ascii-apostrophe",
+      "coverage": ["relation-exact-negation", "ascii-apostrophe-cue"],
+      "asr": {"kind": "P2_SUCCESS", "segments": [{"index": 0, "text": "the cat isn't on the mat"}]},
+      "vision": {
+        "kind": "P2_SUCCESS",
+        "entities": [
+          {"observation_id": "e-cat", "label": "cat", "confidence": 0.7},
+          {"observation_id": "e-mat", "label": "mat", "confidence": 0.6}
+        ],
+        "relations": [{"observation_id": "r-on", "predicate": "on", "subject_ref": "e-cat", "object_ref": "e-mat", "confidence": 0.9}]
+      }
+    },
+    {
+      "case_id": "curly-apostrophe-and-casefold",
+      "coverage": ["curly-apostrophe-cue", "punctuation-normalization", "label-copied-unchanged"],
+      "asr": {"kind": "P2_SUCCESS", "segments": [{"index": 0, "text": "the dog doesn’t run"}]},
+      "vision": {
+        "kind": "P2_SUCCESS",
+        "entities": [{"observation_id": "e-dog", "label": "Dog", "confidence": 0.7}],
+        "actions": [{"observation_id": "a-run", "label": "run", "actor_ref": "e-dog", "confidence": 0.6}]
+      }
+    },
+    {
+      "case_id": "cue-outside-window",
+      "coverage": ["cue-outside-three-token-window"],
+      "asr": {"kind": "P2_SUCCESS", "segments": [{"index": 0, "text": "not the big fluffy dog"}]},
+      "vision": {"kind": "P2_SUCCESS", "entities": [{"observation_id": "e-dog", "label": "dog", "confidence": 0.7}]}
+    },
+    {
+      "case_id": "short-segment-prefix",
+      "coverage": ["short-segment-prefix"],
+      "asr": {"kind": "P2_SUCCESS", "segments": [{"index": 0, "text": "no dog"}]},
+      "vision": {"kind": "P2_SUCCESS", "entities": [{"observation_id": "e-dog", "label": "dog", "confidence": 0.7}]}
+    },
+    {
+      "case_id": "partial-cue-sequence",
+      "coverage": ["partial-cue-sequence-is-not-a-cue"],
+      "asr": {"kind": "P2_SUCCESS", "segments": [{"index": 0, "text": "isn dog"}]},
+      "vision": {"kind": "P2_SUCCESS", "entities": [{"observation_id": "e-dog", "label": "dog", "confidence": 0.7}]}
+    },
+    {
+      "case_id": "mixed-positive-and-refuting",
+      "coverage": ["mixed-positive-refuting-spans"],
+      "asr": {"kind": "P2_SUCCESS", "segments": [{"index": 0, "text": "a dog and not a dog"}]},
+      "vision": {"kind": "P2_SUCCESS", "entities": [{"observation_id": "e-dog", "label": "dog", "confidence": 0.7}]}
+    },
+    {
+      "case_id": "no-vision-counterpart",
+      "coverage": ["no-vision-counterpart"],
+      "asr": {"kind": "P2_SUCCESS", "segments": [{"index": 0, "text": "not a house"}]},
+      "vision": {"kind": "P2_SUCCESS", "entities": [{"observation_id": "e-dog", "label": "dog", "confidence": 0.8}]}
+    },
+    {
+      "case_id": "duplicate-overlapping-multi-segment-spans",
+      "coverage": ["duplicate-spans", "overlapping-spans", "multiple-segments-match-once", "one-time-adjustment"],
+      "asr": {"kind": "P2_SUCCESS", "segments": [{"index": 0, "text": "dog dog dog"}, {"index": 1, "text": "the dog"}]},
+      "vision": {
+        "kind": "P2_SUCCESS",
+        "entities": [
+          {"observation_id": "e-dog", "label": "dog", "confidence": 0.7},
+          {"observation_id": "e-dogdog", "label": "dog dog", "confidence": 0.6}
+        ]
+      }
+    },
+    {
+      "case_id": "cross-segment-coordinate-reset",
+      "coverage": ["cross-segment-non-matching", "coordinate-reset"],
+      "asr": {"kind": "P2_SUCCESS", "segments": [{"index": 0, "text": "red"}, {"index": 1, "text": "house"}]},
+      "vision": {
+        "kind": "P2_SUCCESS",
+        "entities": [
+          {"observation_id": "e-redhouse", "label": "red house", "confidence": 0.8},
+          {"observation_id": "e-house", "label": "house", "confidence": 0.7}
+        ]
+      }
+    },
+    {
+      "case_id": "segment-source-order-independence",
+      "coverage": ["coordinate-tuple-ordering-independence"],
+      "asr": {"kind": "P2_SUCCESS", "segments": [{"index": 1, "text": "the dog"}, {"index": 0, "text": "a dog"}]},
+      "vision": {"kind": "P2_SUCCESS", "entities": [{"observation_id": "e-dog", "label": "dog", "confidence": 0.7}]}
+    },
+    {
+      "case_id": "duplicate-segment-index-rejection",
+      "coverage": ["duplicate-segment-index-admissibility-rejection"],
+      "asr": {"kind": "P2_SUCCESS", "segments": [{"index": 0, "text": "a dog"}, {"index": 0, "text": "a cat"}]},
+      "vision": {"kind": "P2_SUCCESS", "entities": [{"observation_id": "e-dog", "label": "dog", "confidence": 0.7}]}
+    },
+    {
+      "case_id": "admissibility-before-correlation-and-status",
+      "coverage": ["rejection-precedence", "admissibility-precedes-correlation", "admissibility-precedes-typed-status"],
+      "asr": {"kind": "P2_SUCCESS", "correlation_id": "corr-p2t4-0009", "segments": [{"index": 3, "text": "a dog"}, {"index": 3, "text": "a cat"}]},
+      "vision": {"kind": "P2_FAILURE", "error_code": "VISION_TIMEOUT", "error_detail": "TIMEOUT_BUDGET_EXCEEDED", "retryable": false, "attempt_number": 1, "repair_attempted": false, "policy_execution_state": "NOT_EXECUTED"}
+    },
+    {
+      "case_id": "strict-asr-before-strict-vision",
+      "coverage": ["rejection-precedence", "strict-validation-asr-before-vision"],
+      "asr": {"kind": "P2_SUCCESS", "segments": [{"index": 0, "text": "a dog"}], "overrides": {"correlation_id": ""}},
+      "vision": {"kind": "P2_SUCCESS", "entities": [], "remove": ["source_image_ref"]}
+    },
+    {
+      "case_id": "identity-vision-before-strict-asr",
+      "coverage": ["rejection-precedence", "identity-stage-precedes-strict-stage", "p2-vision-v2-family-rejected"],
+      "asr": {"kind": "P2_SUCCESS", "segments": [{"index": 0, "text": "a dog"}], "overrides": {"correlation_id": ""}},
+      "vision": {"kind": "RAW", "value": {"contract_name": "VisionUnderstandingResultV2", "contract_version": "2.0", "status": "SUCCEEDED"}}
+    },
+    {
+      "case_id": "feat018-live-asr-model-wrong-family",
+      "coverage": ["feat018-live-asr-rejected", "identity-rejection-precedes-failed-vision"],
+      "asr": {"kind": "FEAT018_LIVE_ASR_MODEL", "status": "SUCCEEDED"},
+      "vision": {"kind": "P2_FAILURE", "error_code": "VISION_TIMEOUT", "error_detail": "TIMEOUT_BUDGET_EXCEEDED", "retryable": false, "attempt_number": 1, "repair_attempted": false, "policy_execution_state": "NOT_EXECUTED"}
+    },
+    {
+      "case_id": "feat018-live-vision-model-wrong-family",
+      "coverage": ["feat018-live-vision-rejected"],
+      "asr": {"kind": "P2_SUCCESS", "segments": [{"index": 0, "text": "a dog"}]},
+      "vision": {"kind": "FEAT018_LIVE_VISION_MODEL", "status": "FAILED"}
+    },
+    {
+      "case_id": "vision-v2-model-wrong-family",
+      "coverage": ["p2-vision-v2-family-rejected"],
+      "asr": {"kind": "P2_SUCCESS", "segments": [{"index": 0, "text": "a dog"}]},
+      "vision": {"kind": "P2_VISION_V2_MODEL", "status": "FAILED"}
+    },
+    {
+      "case_id": "p2-vision-model-in-asr-slot",
+      "coverage": ["wrong-slot-typed-model-rejected"],
+      "asr": {"kind": "P2_VISION_V1_MODEL_IN_ASR_SLOT"},
+      "vision": {"kind": "P2_SUCCESS", "entities": []}
+    },
+    {
+      "case_id": "unknown-object-asr",
+      "coverage": ["unknown-input-rejected"],
+      "asr": {"kind": "UNKNOWN_OBJECT"},
+      "vision": {"kind": "P2_SUCCESS", "entities": []}
+    },
+    {
+      "case_id": "unknown-contract-name-vision",
+      "coverage": ["unknown-input-rejected", "arbitrary-identity-not-echoed"],
+      "asr": {"kind": "P2_SUCCESS", "segments": [{"index": 0, "text": "a dog"}]},
+      "vision": {"kind": "RAW", "value": {"contract_name": "SomethingElseV9", "contract_version": "1.0", "status": "SUCCEEDED"}}
+    },
+    {
+      "case_id": "unsupported-version-asr",
+      "coverage": ["unsupported-version-rejected"],
+      "asr": {"kind": "RAW", "value": {"contract_name": "AsrResultV1", "contract_version": "2.0", "status": "SUCCEEDED"}},
+      "vision": {"kind": "P2_SUCCESS", "entities": []}
+    },
+    {
+      "case_id": "invalid-discriminator-vision",
+      "coverage": ["invalid-discriminator-rejected", "arbitrary-status-not-echoed"],
+      "asr": {"kind": "P2_SUCCESS", "segments": [{"index": 0, "text": "a dog"}]},
+      "vision": {"kind": "P2_SUCCESS", "entities": [], "overrides": {"status": "PENDING"}}
+    },
+    {
+      "case_id": "missing-status-asr",
+      "coverage": ["invalid-discriminator-rejected", "null-observed-status"],
+      "asr": {"kind": "P2_SUCCESS", "segments": [{"index": 0, "text": "a dog"}], "remove": ["status"]},
+      "vision": {"kind": "P2_SUCCESS", "entities": []}
+    },
+    {
+      "case_id": "failure-branch-structure-vision",
+      "coverage": ["strict-validation-rejected", "closed-field-code"],
+      "asr": {"kind": "P2_SUCCESS", "segments": [{"index": 0, "text": "a dog"}]},
+      "vision": {"kind": "P2_FAILURE", "error_code": "VISION_TIMEOUT", "error_detail": "TIMEOUT_BUDGET_EXCEEDED", "retryable": false, "attempt_number": 1, "repair_attempted": false, "policy_execution_state": "NOT_EXECUTED", "overrides": {"error_code": "NOT_A_CODE"}}
+    },
+    {
+      "case_id": "source-reference-structure-asr",
+      "coverage": ["strict-validation-rejected", "closed-field-code"],
+      "asr": {"kind": "P2_SUCCESS", "segments": [{"index": 0, "text": "a dog"}], "overrides": {"source_audio_ref": {"artifact_ref": "fixture:p2-t4:audio-01.wav", "sha256": "not-a-hex-digest"}}},
+      "vision": {"kind": "P2_SUCCESS", "entities": []}
+    },
+    {
+      "case_id": "correlation-mismatch-before-status",
+      "coverage": ["correlation-mismatch", "correlation-precedes-typed-status"],
+      "asr": {"kind": "P2_SUCCESS", "segments": [{"index": 0, "text": "a dog"}]},
+      "vision": {"kind": "P2_FAILURE", "correlation_id": "corr-p2t4-0002", "error_code": "VISION_TIMEOUT", "error_detail": "TIMEOUT_BUDGET_EXCEEDED", "retryable": false, "attempt_number": 1, "repair_attempted": false, "policy_execution_state": "NOT_EXECUTED"}
+    },
+    {
+      "case_id": "asr-failure",
+      "coverage": ["asr-failure"],
+      "asr": {"kind": "P2_FAILURE", "error_code": "ASR_TIMEOUT", "error_detail": "TIMEOUT_BUDGET_EXCEEDED", "retryable": true, "attempt_number": 1, "repair_attempted": false},
+      "vision": {"kind": "P2_SUCCESS", "entities": [{"observation_id": "e-house", "label": "house", "confidence": 0.8}]}
+    },
+    {
+      "case_id": "vision-failure-prohibited-claim",
+      "coverage": ["vision-failure", "blocked-policy-state"],
+      "asr": {"kind": "P2_SUCCESS", "segments": [{"index": 0, "text": "a house"}]},
+      "vision": {"kind": "P2_FAILURE", "error_code": "PROHIBITED_CLAIM_DETECTED", "error_detail": "MENTAL_STATE_CLAIM", "retryable": false, "attempt_number": 1, "repair_attempted": false, "policy_execution_state": "BLOCKED"}
+    },
+    {
+      "case_id": "both-failures",
+      "coverage": ["both-failures", "repair-attempted-provenance"],
+      "asr": {"kind": "P2_FAILURE", "error_code": "ASR_SCHEMA_INVALID", "error_detail": "OUTPUT_MAPPING_FAILED", "retryable": false, "attempt_number": 2, "repair_attempted": true},
+      "vision": {"kind": "P2_FAILURE", "error_code": "VISION_SCHEMA_INVALID", "error_detail": "OUTPUT_MAPPING_FAILED", "retryable": false, "attempt_number": 1, "repair_attempted": true, "policy_execution_state": "NOT_EXECUTED"}
+    },
+    {
+      "case_id": "empty-success",
+      "coverage": ["empty-success"],
+      "asr": {"kind": "P2_SUCCESS", "segments": []},
+      "vision": {"kind": "P2_SUCCESS", "entities": [], "actions": [], "relations": [], "themes": [], "ambiguous_regions": []}
+    },
+    {
+      "case_id": "ambiguous-regions-omitted",
+      "coverage": ["ambiguous-region-omission"],
+      "asr": {"kind": "P2_SUCCESS", "segments": [{"index": 0, "text": "unclear scribble"}]},
+      "vision": {"kind": "P2_SUCCESS", "ambiguous_regions": [{"observation_id": "ar-1", "note": "unclear scribble"}, {"observation_id": "ar-2", "note": "faint mark"}]}
+    },
+    {
+      "case_id": "confidence-floor-boundaries",
+      "coverage": ["below-floor", "at-floor", "above-floor", "low-confidence-uses-original-base", "low-confidence-theme-null-reference", "conflict-sort-order"],
+      "asr": {"kind": "P2_SUCCESS", "segments": [{"index": 0, "text": "a cat and a fish"}]},
+      "vision": {
+        "kind": "P2_SUCCESS",
+        "entities": [
+          {"observation_id": "e-cat", "label": "cat", "confidence": 0.4},
+          {"observation_id": "e-dog", "label": "dog", "confidence": 0.5},
+          {"observation_id": "e-bird", "label": "bird", "confidence": 0.9},
+          {"observation_id": "e-fish", "label": "fish", "confidence": 0.45}
+        ],
+        "themes": [
+          {"observation_id": "t-cats", "label": "cats", "evidence_refs": ["e-cat"], "confidence": 0.3},
+          {"observation_id": "t-birds", "label": "birds", "evidence_refs": ["e-bird"], "confidence": 0.8}
+        ]
+      }
+    },
+    {
+      "case_id": "null-confidence-support",
+      "coverage": ["null-confidence-with-support", "null-confidence-without-support"],
+      "asr": {"kind": "P2_SUCCESS", "segments": [{"index": 0, "text": "an apple"}]},
+      "vision": {
+        "kind": "P2_SUCCESS",
+        "entities": [
+          {"observation_id": "e-apple", "label": "apple", "confidence": null},
+          {"observation_id": "e-banana", "label": "banana", "confidence": null}
+        ]
+      }
+    },
+    {
+      "case_id": "group-ranking-and-cap",
+      "coverage": ["stable-null-confidence-ranking", "same-label-distinct-ids-not-merged", "confidence-descending-rank", "adjustment-cap", "supported-non-primary-retains-base"],
+      "asr": {"kind": "P2_SUCCESS", "segments": [{"index": 0, "text": "a rock"}]},
+      "vision": {
+        "kind": "P2_SUCCESS",
+        "entities": [
+          {"observation_id": "e-tree-z", "label": "tree", "confidence": null},
+          {"observation_id": "e-tree-a", "label": "tree", "confidence": null},
+          {"observation_id": "e-rock-1", "label": "rock", "confidence": 0.6},
+          {"observation_id": "e-rock-2", "label": "rock", "confidence": 0.9},
+          {"observation_id": "e-rock-3", "label": "rock", "confidence": null}
+        ]
+      }
+    },
+    {
+      "case_id": "conflict-eligibility-outranks-confidence",
+      "coverage": ["non-conflicting-before-conflicting", "zero-primary-never-forced"],
+      "asr": {"kind": "P2_SUCCESS", "segments": []},
+      "vision": {
+        "kind": "P2_SUCCESS",
+        "entities": [
+          {"observation_id": "e-t1", "label": "tree", "confidence": 0.4},
+          {"observation_id": "e-t2", "label": "tree", "confidence": null}
+        ]
+      }
+    },
+    {
+      "case_id": "action-and-relation-grouping-by-references",
+      "coverage": ["action-grouping-by-references", "relation-grouping-by-references", "same-label-distinct-ids-not-merged"],
+      "asr": {"kind": "P2_SUCCESS", "segments": [{"index": 0, "text": "ann draws and ben draws"}]},
+      "vision": {
+        "kind": "P2_SUCCESS",
+        "entities": [
+          {"observation_id": "e-ann", "label": "ann", "confidence": 0.8},
+          {"observation_id": "e-ben", "label": "ben", "confidence": 0.8}
+        ],
+        "actions": [
+          {"observation_id": "a-1", "label": "draws", "actor_ref": "e-ann", "confidence": 0.5},
+          {"observation_id": "a-2", "label": "draws", "actor_ref": "e-ben", "confidence": 0.6},
+          {"observation_id": "a-3", "label": "draws", "actor_ref": "e-ann", "confidence": 0.9}
+        ],
+        "relations": [
+          {"observation_id": "r-1", "predicate": "near", "subject_ref": "e-ann", "object_ref": "e-ben", "confidence": 0.5},
+          {"observation_id": "r-2", "predicate": "near", "subject_ref": "e-ben", "object_ref": "e-ann", "confidence": 0.6}
+        ]
+      }
+    },
+    {
+      "case_id": "theme-evidence-refs-preserved",
+      "coverage": ["theme-evidence-cardinality-and-order"],
+      "asr": {"kind": "P2_SUCCESS", "segments": []},
+      "vision": {
+        "kind": "P2_SUCCESS",
+        "entities": [
+          {"observation_id": "e-alpha", "label": "alpha", "confidence": 0.9},
+          {"observation_id": "e-beta", "label": "beta", "confidence": 0.9}
+        ],
+        "themes": [{"observation_id": "t-mix", "label": "mixed", "evidence_refs": ["e-beta", "e-alpha", "e-beta"], "confidence": 0.9}]
+      }
+    }
+  ]
+}
