@@ -133,6 +133,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             seed=args.seed,
             demo_autopilot=True,
             report_partial_test_only=args.report_partial_test_only,
+            emit_debug_evidence=args.emit_debug_evidence,
             asr_profile_id=AsrProfileId(args.asr_profile),
         )
         result = workflow.run_v2(request) if use_v2 else workflow.run(request)
@@ -166,6 +167,11 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--seed", type=int, default=None)
     parser.add_argument("--contract-version", choices=("v1", "v2"), default="v2")
     parser.add_argument("--demo-autopilot", action="store_true")
+    parser.add_argument(
+        "--emit-debug-evidence",
+        action="store_true",
+        help="include sanitized backend-only Top-5 ranking evidence in the result",
+    )
     parser.add_argument(
         "--report-partial-test-only",
         action="store_true",

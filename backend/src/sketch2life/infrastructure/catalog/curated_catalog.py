@@ -15,6 +15,7 @@ from typing import Any, Literal
 
 from sketch2life.contracts.schemas.p1_experience import (
     ActivityTemplateV1,
+    PedagogicalAlignmentV1,
     VersionedRefV1,
 )
 from sketch2life.contracts.schemas.workflow_demo import AgeBand
@@ -51,7 +52,10 @@ class CuratedActivityVariant:
     catalog_revision: str
     age_band: AgeBand
     concept_ids: tuple[str, ...]
-    objective_ids: tuple[str, ...]
+    allowed_objective_ids: tuple[str, ...]
+    primary_objective_id: str
+    secondary_objective_ids: tuple[str, ...]
+    pedagogical_alignment: PedagogicalAlignmentV1
     area: str
     title_vi: str
     phrases_vi: tuple[str, ...]
@@ -63,8 +67,19 @@ class CuratedActivityVariant:
     safety_vi: tuple[str, ...]
     policy_constraints: tuple[str, ...]
     duration_minutes: int
+    duration_type: Literal["SINGLE_SESSION", "MULTI_DAY"]
+    initial_session_minutes: int | None
+    daily_observation_minutes: int | None
+    min_days: int | None
+    max_days: int | None
     provenance_source: str
     provenance_sha256: str
+
+    @property
+    def objective_ids(self) -> tuple[str, ...]:
+        """Compatibility view; new code should use primary/secondary fields."""
+
+        return (self.primary_objective_id, *self.secondary_objective_ids)
 
     @property
     def age_months(self) -> tuple[int, int]:
@@ -113,7 +128,7 @@ class CuratedActivityVariant:
             provenance_source=self.provenance_source,
             provenance_sha256=self.provenance_sha256,
             review_status="DEMO_ELIGIBLE",
-            production_eligible=True,
+            production_eligible=False,
         )
 
 
@@ -132,14 +147,18 @@ class CuratedCatalogV2:
         return {key: tuple(value) for key, value in grouped.items()}
 
 
-def load_curated_catalog_v2(root: Path) -> CuratedCatalogV2:
+def load_curated_catalog_v2(
+    root: Path,
+    *,
+    revision: str | None = None,
+) -> CuratedCatalogV2:
     directory = root / "data" / "activity-catalog" / "curated" / "v2"
     paths = tuple(sorted(directory.glob("activity-families.v2.part*.json")))
     if not paths:
         raise CuratedCatalogError("curated V2 catalog parts are missing")
 
     raw_families: list[dict[str, Any]] = []
-    revision: str | None = None
+    base_revision: str | None = None
     for path in paths:
         try:
             document = json.loads(path.read_text(encoding="utf-8"))
@@ -150,16 +169,29 @@ def load_curated_catalog_v2(root: Path) -> CuratedCatalogV2:
         part_revision = document.get("catalog_revision")
         if not isinstance(part_revision, str) or not part_revision:
             raise CuratedCatalogError(f"missing catalog revision: {path}")
-        if revision is None:
-            revision = part_revision
-        elif revision != part_revision:
+        if base_revision is None:
+            base_revision = part_revision
+        elif base_revision != part_revision:
             raise CuratedCatalogError("curated catalog parts use different revisions")
         families = document.get("families")
         if not isinstance(families, list):
             raise CuratedCatalogError(f"curated catalog families must be a list: {path}")
         raw_families.extend(item for item in families if isinstance(item, dict))
 
-    assert revision is not None
+    assert base_revision is not None
+    requested_revision = revision
+    if requested_revision not in {None, base_revision}:
+        raise CuratedCatalogError(
+            f"requested catalog revision is unavailable: {requested_revision}"
+        )
+    if requested_revision == "catalog-2026-09-expansion-1":
+        raw_families = _restore_expansion_one_families(raw_families)
+        overrides: dict[str, dict[str, Any]] = {}
+        effective_revision = requested_revision
+    else:
+        overrides, effective_revision = _load_variant_contract_overrides(
+            directory, base_revision
+        )
     variants: list[CuratedActivityVariant] = []
     family_ids: set[str] = set()
     activity_ids: set[str] = set()
@@ -169,7 +201,12 @@ def load_curated_catalog_v2(root: Path) -> CuratedCatalogV2:
             raise CuratedCatalogError(f"duplicate activity family: {family_id}")
         family_ids.add(family_id)
         concept_ids = _required_tuple(family, "concept_ids")
-        objective_ids = _required_tuple(family, "objective_ids")
+        objective_key = (
+            "allowed_objective_ids"
+            if "allowed_objective_ids" in family
+            else "objective_ids"
+        )
+        objective_ids = _required_tuple(family, objective_key)
         area = _required_str(family, "area")
         phrases = _required_tuple(family, "phrases_vi")
         aliases = tuple(str(item) for item in family.get("aliases_vi", []))
@@ -198,15 +235,91 @@ def load_curated_catalog_v2(root: Path) -> CuratedCatalogV2:
             duration = raw_variant.get("duration_minutes")
             if not isinstance(duration, int) or not 1 <= duration <= 60:
                 raise CuratedCatalogError(f"{activity_id} has invalid duration")
+            if effective_revision != base_revision and activity_id not in overrides:
+                raise CuratedCatalogError(
+                    f"{activity_id} is missing from the active variant contract manifest"
+                )
+            override = overrides.get(activity_id, {})
+            primary_objective_id = str(
+                override.get("primary_objective_id", objective_ids[0])
+            ).strip()
+            secondary_objective_ids = tuple(
+                str(item).strip()
+                for item in override.get("secondary_objective_ids", objective_ids[1:])
+            )
+            variant_objectives = (primary_objective_id, *secondary_objective_ids)
+            if any(
+                not objective_id or objective_id not in objective_ids
+                for objective_id in variant_objectives
+            ):
+                raise CuratedCatalogError(
+                    f"{activity_id} objective override is outside family allowed_objective_ids"
+                )
+            if len(set(variant_objectives)) != len(variant_objectives):
+                raise CuratedCatalogError(f"{activity_id} has duplicate objective IDs")
+            pedagogical_payload = override.get("pedagogical_alignment")
+            if not isinstance(pedagogical_payload, dict):
+                pedagogical_payload = {
+                    "primary_objective_id": primary_objective_id,
+                    "expected_observable_behavior_vi": (
+                        f"{action}; kiểm tra kết quả theo gợi ý: {challenge}"
+                    ),
+                    "reviewer_status": "DEMO_REVIEWED",
+                }
+            try:
+                pedagogical_alignment = PedagogicalAlignmentV1.model_validate(
+                    pedagogical_payload
+                )
+            except ValueError as exc:
+                raise CuratedCatalogError(
+                    f"{activity_id} has invalid pedagogical alignment"
+                ) from exc
+            if pedagogical_alignment.primary_objective_id != primary_objective_id:
+                raise CuratedCatalogError(
+                    f"{activity_id} pedagogical alignment objective does not match variant"
+                )
+            duration_type = override.get("duration_type", "SINGLE_SESSION")
+            if duration_type == "SINGLE_SESSION":
+                initial_session_minutes = None
+                daily_observation_minutes = None
+                min_days = None
+                max_days = None
+            elif duration_type == "MULTI_DAY":
+                initial_session_minutes = override.get(
+                    "initial_session_minutes", duration
+                )
+                daily_observation_minutes = override.get(
+                    "daily_observation_minutes", duration
+                )
+                min_days = override.get("min_days")
+                max_days = override.get("max_days")
+                if not all(
+                    isinstance(value, int) and value >= 1
+                    for value in (
+                        initial_session_minutes,
+                        daily_observation_minutes,
+                        min_days,
+                        max_days,
+                    )
+                ):
+                    raise CuratedCatalogError(f"{activity_id} has invalid multi-day duration")
+                assert isinstance(min_days, int) and isinstance(max_days, int)
+                if max_days < min_days:
+                    raise CuratedCatalogError(f"{activity_id} has invalid multi-day duration")
+            else:
+                raise CuratedCatalogError(f"{activity_id} has invalid duration_type")
             payload = {
                 "activity_id": activity_id,
                 "activity_version": 1,
                 "activity_family_id": family_id,
                 "variant_id": f"{family_id}-{age_band}",
-                "catalog_revision": revision,
+                "catalog_revision": effective_revision,
                 "age_band": age_band,
                 "concept_ids": concept_ids,
-                "objective_ids": objective_ids,
+                "allowed_objective_ids": objective_ids,
+                "primary_objective_id": primary_objective_id,
+                "secondary_objective_ids": secondary_objective_ids,
+                "pedagogical_alignment": pedagogical_alignment.model_dump(mode="json"),
                 "area": area,
                 "title_vi": title,
                 "phrases_vi": phrases,
@@ -218,10 +331,16 @@ def load_curated_catalog_v2(root: Path) -> CuratedCatalogV2:
                 "safety_vi": safety,
                 "policy_constraints": policies,
                 "duration_minutes": duration,
+                "duration_type": duration_type,
+                "initial_session_minutes": initial_session_minutes,
+                "daily_observation_minutes": daily_observation_minutes,
+                "min_days": min_days,
+                "max_days": max_days,
             }
             digest = hashlib.sha256(
                 json.dumps(payload, ensure_ascii=False, sort_keys=True).encode()
             ).hexdigest()
+            payload["pedagogical_alignment"] = pedagogical_alignment
             variants.append(
                 CuratedActivityVariant(
                     **payload,
@@ -232,6 +351,12 @@ def load_curated_catalog_v2(root: Path) -> CuratedCatalogV2:
         if seen_bands != set(_AGE_BANDS):
             raise CuratedCatalogError(f"{family_id} does not cover all age bands")
 
+    unknown_overrides = set(overrides) - activity_ids
+    if unknown_overrides:
+        raise CuratedCatalogError(
+            "variant contract manifest contains unknown activities: "
+            + ",".join(sorted(unknown_overrides))
+        )
     if len(family_ids) != 50:
         raise CuratedCatalogError(
             f"curated V2 catalog must contain 50 activity families, found {len(family_ids)}"
@@ -240,7 +365,129 @@ def load_curated_catalog_v2(root: Path) -> CuratedCatalogV2:
         raise CuratedCatalogError(
             f"curated V2 catalog must contain 200 variants, found {len(variants)}"
         )
-    return CuratedCatalogV2(revision, tuple(variants))
+    return CuratedCatalogV2(effective_revision, tuple(variants))
+
+
+def _restore_expansion_one_families(
+    families: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    restored: list[dict[str, Any]] = []
+    for family in families:
+        family_id = family.get("family_id")
+        if family_id == "FAM-ANIMAL-BUTTERFLY":
+            restored.append(
+                {
+                    "family_id": "FAM-ANIMAL-HABITAT",
+                    "concept_ids": ["ANIMAL_GENERIC", "NATURE_OBSERVATION"],
+                    "objective_ids": ["OBJ_COSMIC_INTERCONNECTION"],
+                    "area": "science",
+                    "phrases_vi": ["con vật", "nơi sống", "môi trường sống"],
+                    "aliases_vi": ["nhà của con vật", "sống ở đâu"],
+                    "material_option_ids": ["MAT_PICTURE_CARDS", "MAT_NATURE_OBJECTS"],
+                    "minimum_supervision": "NEARBY",
+                    "safety_vi": [
+                        (
+                            "chỉ dùng tranh hoặc vật mẫu sạch; không thu gom mẫu tự nhiên "
+                            "có thể gây dị ứng"
+                        )
+                    ],
+                    "policy_constraints": ["SAFE_MATERIALS_ONLY"],
+                    "variants": [
+                        {
+                            "activity_id": "ACT-0113",
+                            "age_band": "0-3",
+                            "title_vi": "Tìm con vật trong nơi sống",
+                            "action_vi": (
+                                "Trẻ tìm hình con vật lớn trong tranh môi trường đơn giản."
+                            ),
+                            "challenge_vi": (
+                                "Trẻ chỉ vào con vật khi người lớn gọi tên và chờ lượt."
+                            ),
+                            "duration_minutes": 6,
+                        },
+                        {
+                            "activity_id": "ACT-0114",
+                            "age_band": "3-6",
+                            "title_vi": "Ghép con vật với môi trường",
+                            "action_vi": "Trẻ ghép thẻ con vật với đất, nước hoặc cây theo tranh.",
+                            "challenge_vi": "Trẻ kể một điều con vật có thể tìm thấy ở nơi sống.",
+                            "duration_minutes": 12,
+                        },
+                        {
+                            "activity_id": "ACT-0115",
+                            "age_band": "6-9",
+                            "title_vi": "Vẽ bản đồ nơi sống",
+                            "action_vi": (
+                                "Trẻ vẽ các yếu tố cần thiết trong nơi sống của một con vật."
+                            ),
+                            "challenge_vi": "Trẻ đánh dấu thức ăn, chỗ trú hoặc nguồn nước.",
+                            "duration_minutes": 20,
+                        },
+                        {
+                            "activity_id": "ACT-0116",
+                            "age_band": "9-12",
+                            "title_vi": "Phân tích thay đổi môi trường sống",
+                            "action_vi": (
+                                "Trẻ lập sơ đồ mối quan hệ giữa con vật và điều kiện sống."
+                            ),
+                            "challenge_vi": (
+                                "Trẻ đưa ra dự đoán có điều kiện nếu một yếu tố thay đổi."
+                            ),
+                            "duration_minutes": 30,
+                        },
+                    ],
+                }
+            )
+            continue
+        clone = dict(family)
+        if family_id in {
+            "FAM-ANIMAL-OBSERVE",
+            "FAM-ANIMAL-CLASSIFY",
+            "FAM-ANIMAL-MOVEMENT",
+        }:
+            clone["concept_ids"] = [
+                concept
+                for concept in family.get("concept_ids", [])
+                if concept != "ANIMAL_BUTTERFLY"
+            ]
+        if family_id == "FAM-PLANT-CARE":
+            clone.pop("allowed_objective_ids", None)
+            clone["objective_ids"] = ["OBJ_INDEPENDENCE_SELF_CARE"]
+        if family_id == "FAM-PLANT-COMPARE":
+            clone.pop("allowed_objective_ids", None)
+            clone["objective_ids"] = ["OBJ_SCIENTIFIC_INQUIRY"]
+        restored.append(clone)
+    return restored
+
+
+def _load_variant_contract_overrides(
+    directory: Path,
+    base_revision: str,
+) -> tuple[dict[str, dict[str, Any]], str]:
+    path = directory / "variant-contract-overrides.v1.json"
+    if not path.exists():
+        return {}, base_revision
+    try:
+        document = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise CuratedCatalogError(f"cannot read variant contract overrides: {path}") from exc
+    if document.get("schema_version") != 1:
+        raise CuratedCatalogError("invalid variant contract overrides schema")
+    revision = document.get("catalog_revision")
+    if not isinstance(revision, str) or not revision:
+        raise CuratedCatalogError("variant contract overrides revision is missing")
+    raw_variants = document.get("variants")
+    if not isinstance(raw_variants, list):
+        raise CuratedCatalogError("variant contract overrides must be a list")
+    overrides: dict[str, dict[str, Any]] = {}
+    for item in raw_variants:
+        if not isinstance(item, dict) or not isinstance(item.get("activity_id"), str):
+            raise CuratedCatalogError("variant contract override must identify activity_id")
+        activity_id = item["activity_id"].strip()
+        if activity_id in overrides:
+            raise CuratedCatalogError(f"duplicate variant contract override: {activity_id}")
+        overrides[activity_id] = dict(item)
+    return overrides, revision
 
 
 def _required_str(value: dict[str, Any], key: str) -> str:

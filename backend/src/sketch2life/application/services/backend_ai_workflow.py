@@ -48,8 +48,12 @@ from sketch2life.contracts.schemas.p1_experience import (
     SemanticMatchEvidenceV1,
 )
 from sketch2life.contracts.schemas.semantic_personalization_v2 import (
+    ActivityDurationV2,
     BackendWorkflowResultV2,
     ConfirmedSceneUnderstandingV2,
+    RankingDebugEvidenceV2,
+    RankingTraceEntryV2,
+    RejectedCandidateEvidenceV2,
     SemanticActivityMatchV2,
 )
 from sketch2life.contracts.schemas.vision import (
@@ -115,6 +119,7 @@ class BackendWorkflowRequest:
     seed: int | None = None
     demo_autopilot: bool = False
     report_partial_test_only: bool = False
+    emit_debug_evidence: bool = False
     asr_profile_id: AsrProfileId = AsrProfileId.WHISPER_TURBO_INT8_AUTO_V1
 
 
@@ -504,17 +509,42 @@ class BackendAiWorkflow:
                 SemanticActivityMatchV2,
             ]
         ] = []
+        rejected_candidates: list[RejectedCandidateEvidenceV2] = []
         for template in library.templates:
             if not template.age_months_min <= _AGE_MONTHS[age_band] <= template.age_months_max:
+                if request.emit_debug_evidence:
+                    rejected_candidates.append(
+                        _debug_rejection(
+                            template.activity_ref.id,
+                            template.template_id,
+                            "AGE_OUT_OF_RANGE",
+                        )
+                    )
                 continue
             profile = semantic_catalog.profile_for(template.activity_ref.id)
             semantic_match_v2 = semantic_catalog.match_scene(scene_understanding, profile)
             if semantic_match_v2 is None:
+                if request.emit_debug_evidence:
+                    rejected_candidates.append(
+                        _debug_rejection(
+                            template.activity_ref.id,
+                            template.template_id,
+                            "NO_SEMANTIC_MATCH",
+                        )
+                    )
                 continue
             if semantic_match_v2.match_mode == "AGE_BASELINE_FALLBACK":
                 # FEAT-021 is fail-closed for semantic personalization. A baseline
                 # candidate is not a personalized recommendation and must be
                 # reported as unavailable instead of being silently selected.
+                if request.emit_debug_evidence:
+                    rejected_candidates.append(
+                        _debug_rejection(
+                            template.activity_ref.id,
+                            template.template_id,
+                            "BASELINE_FALLBACK_NOT_PERSONALIZED",
+                        )
+                    )
                 continue
             candidate = _candidate_for_semantic_match(
                 semantic_match_v2,
@@ -541,9 +571,28 @@ class BackendAiWorkflow:
                     or compilation.spec.activity_template.activity_ref.version
                     != semantic_match_v2.activity_version
                 ):
+                    if request.emit_debug_evidence:
+                        rejected_candidates.append(
+                            _debug_rejection(
+                                template.activity_ref.id,
+                                template.template_id,
+                                "ACTIVITY_IDENTITY_MISMATCH",
+                            )
+                        )
                     continue
                 compiled.append(
                     (candidate, compilation, anchor_set, semantic_match, semantic_match_v2)
+                )
+            elif request.emit_debug_evidence:
+                reason_codes = list(compilation.filter_result.reason_codes)
+                if compilation.fit_evaluation is not None:
+                    reason_codes.extend(compilation.fit_evaluation.reason_codes)
+                rejected_candidates.append(
+                    _debug_rejection(
+                        template.activity_ref.id,
+                        template.template_id,
+                        *(reason_codes or ("COMPILER_HARD_RULE_REJECTED",)),
+                    )
                 )
         if not compiled:
             return _unavailable_band(
@@ -640,6 +689,7 @@ class BackendAiWorkflow:
             **compilation.handoff.model_dump(mode="json"),
             "selected_material_option_ids": list(primary_materials),
             "duration_minutes": _duration_minutes(self._repo_root, activity_id),
+            "duration_spec": _duration_spec(self._repo_root, activity_id),
             "supervision": spec.activity_template.minimum_supervision,
             "safety_rule_ids": list(spec.activity_template.safety_rule_ids),
             "accessibility": ["spoken_vi", "text_vi", "no_color_only_meaning", "reduced_motion"],
@@ -654,6 +704,7 @@ class BackendAiWorkflow:
                 "age_fit_score": semantic_match_v2.age_fit_score,
                 "activity_safety_score": semantic_match_v2.activity_safety_score,
                 "catalog_quality_score": semantic_match_v2.catalog_quality_score,
+                "objective_activity_alignment": semantic_match_v2.objective_activity_alignment,
                 "overall_personalization_score": semantic_match_v2.overall_personalization_score,
             },
             "activity_identity": {
@@ -675,6 +726,7 @@ class BackendAiWorkflow:
             "selected_concept_id": semantic_match_v2.selected_concept_id,
             "selected_concept_role": semantic_match_v2.selected_concept_role,
             "child_interest_alignment": semantic_match_v2.child_interest_alignment,
+            "objective_activity_alignment": semantic_match_v2.objective_activity_alignment,
             "overall_personalization_score": semantic_match_v2.overall_personalization_score,
             "activity_identity": {
                 "activity_id": semantic_match_v2.activity_id,
@@ -689,6 +741,15 @@ class BackendAiWorkflow:
                 "ONLY_ONE_ELIGIBLE_CANDIDATE" if len(compiled) == 1 else None
             ),
         }
+        if request.emit_debug_evidence:
+            debug_evidence = _ranking_debug_evidence(
+                compiled,
+                chosen,
+                rejected_candidates,
+            )
+            debug_payload = debug_evidence.model_dump(mode="json")
+            handoff["debug_evidence"] = debug_payload
+            stage_details["debug_evidence"] = debug_payload
         stages = (
             WorkflowStageV1(
                 stage="UNDERSTANDING_PROPOSED",
@@ -1133,6 +1194,10 @@ def _age_adaptation_payload(repo_root: Path,
             repo_root,
             spec.activity_template.activity_ref.id,
         ),
+        "duration_spec": _duration_spec(
+            repo_root,
+            spec.activity_template.activity_ref.id,
+        ),
     }
 
 
@@ -1153,6 +1218,89 @@ def _selection_rank_v2(match: SemanticActivityMatchV2) -> tuple[float, float, in
         match.overall_personalization_score,
         _match_priority_v2(match.match_mode),
         match.semantic_relevance,
+    )
+
+
+def _debug_rejection(
+    activity_id: str,
+    template_id: str,
+    *reason_codes: str,
+) -> RejectedCandidateEvidenceV2:
+    return RejectedCandidateEvidenceV2(
+        activity_id=activity_id,
+        template_id=template_id,
+        reason_codes=tuple(dict.fromkeys(code for code in reason_codes if code))
+        or ("UNSPECIFIED_SAFE_REJECTION",),
+    )
+
+
+def _ranking_debug_evidence(
+    compiled: list[tuple[Any, Any, Any, Any, SemanticActivityMatchV2]],
+    chosen: tuple[Any, Any, Any, Any, SemanticActivityMatchV2],
+    rejected_candidates: list[RejectedCandidateEvidenceV2],
+) -> RankingDebugEvidenceV2:
+    selected_match = chosen[4]
+    selected_rank = _selection_rank_v2(selected_match)
+    ranked = sorted(
+        compiled,
+        key=lambda item: (
+            _selection_rank_v2(item[4]),
+            item[4].activity_family_id,
+            item[4].activity_id,
+        ),
+        reverse=True,
+    )
+    top_k: list[RankingTraceEntryV2] = []
+    for rank, item in enumerate(ranked[:5], start=1):
+        match = item[4]
+        is_selected = match.activity_id == selected_match.activity_id
+        lost_to_selected: Literal[
+            "LOWER_SELECTION_RANK",
+            "SAME_SELECTION_RANK_RANDOMIZED_OR_NON_REPEAT_POLICY",
+        ] | None = None
+        if not is_selected:
+            lost_to_selected = (
+                "LOWER_SELECTION_RANK"
+                if _selection_rank_v2(match) < selected_rank
+                else "SAME_SELECTION_RANK_RANDOMIZED_OR_NON_REPEAT_POLICY"
+            )
+        top_k.append(
+            RankingTraceEntryV2(
+                rank=rank,
+                activity_id=match.activity_id,
+                activity_version=match.activity_version,
+                activity_family_id=match.activity_family_id,
+                variant_id=match.variant_id,
+                catalog_revision=match.catalog_revision,
+                selected_concept_id=match.selected_concept_id,
+                semantic_score=match.semantic_relevance,
+                child_interest_alignment=match.child_interest_alignment,
+                objective_activity_alignment=match.objective_activity_alignment,
+                age_fit_score=match.age_fit_score,
+                activity_safety_score=match.activity_safety_score,
+                catalog_quality_score=match.catalog_quality_score,
+                diversity_recency_penalty=0.0,
+                final_score=match.overall_personalization_score,
+                score_breakdown={
+                    "concept_match_confidence": match.concept_match_confidence,
+                    "child_interest_alignment": match.child_interest_alignment,
+                    "objective_activity_alignment": match.objective_activity_alignment,
+                    "age_fit_score": match.age_fit_score,
+                    "activity_safety_score": match.activity_safety_score,
+                    "catalog_quality_score": match.catalog_quality_score,
+                    "diversity_recency_penalty": 0.0,
+                    "final_score": match.overall_personalization_score,
+                },
+                reason_codes=match.reason_codes,
+                selected=is_selected,
+                lost_to_selected_because=lost_to_selected,
+            )
+        )
+    return RankingDebugEvidenceV2(
+        selected_activity_id=selected_match.activity_id,
+        selected_activity_family_id=selected_match.activity_family_id,
+        ranking_trace=tuple(top_k),
+        rejected_candidates=tuple(rejected_candidates[:20]),
     )
 
 
@@ -1414,6 +1562,20 @@ def _primary_material_ids(repo_root: Path, activity_id: str) -> tuple[str, ...]:
 
 
 def _duration_minutes(repo_root: Path, activity_id: str) -> dict[str, int] | None:
+    duration = _duration_spec(repo_root, activity_id)
+    if duration is None:
+        return None
+    if duration["duration_type"] == "MULTI_DAY":
+        initial = duration["initial_session_minutes"]
+        assert isinstance(initial, int)
+        return {"min_minutes": initial, "max_minutes": initial}
+    minimum = duration["min_minutes"]
+    maximum = duration["max_minutes"]
+    assert isinstance(minimum, int) and isinstance(maximum, int)
+    return {"min_minutes": minimum, "max_minutes": maximum}
+
+
+def _duration_spec(repo_root: Path, activity_id: str) -> dict[str, Any] | None:
     records: list[dict[str, Any]] = []
     for path in (
         repo_root / "data" / "activity-catalog" / "golden" / "v1" / "activities.v2.json",
@@ -1428,22 +1590,39 @@ def _duration_minutes(repo_root: Path, activity_id: str) -> dict[str, int] | Non
         record = next(item for item in records if item.get("id") == activity_id)
         value = record.get("duration_minutes")
         if isinstance(value, int):
-            return {"min_minutes": value, "max_minutes": value}
+            return ActivityDurationV2(
+                duration_type="SINGLE_SESSION",
+                min_minutes=value,
+                max_minutes=value,
+            ).model_dump(mode="json")
         if isinstance(value, dict):
             minimum = int(value["min"])
             maximum = int(value["max"])
             if minimum <= maximum:
-                return {"min_minutes": minimum, "max_minutes": maximum}
+                return ActivityDurationV2(
+                    duration_type="SINGLE_SESSION",
+                    min_minutes=minimum,
+                    max_minutes=maximum,
+                ).model_dump(mode="json")
     except (StopIteration, KeyError, TypeError, ValueError):
         pass
     try:
         curated = load_curated_catalog_v2(repo_root)
         variant = curated.by_activity_id().get(activity_id)
         if variant is not None:
-            return {
-                "min_minutes": variant.duration_minutes,
-                "max_minutes": variant.duration_minutes,
-            }
+            if variant.duration_type == "MULTI_DAY":
+                return ActivityDurationV2(
+                    duration_type="MULTI_DAY",
+                    initial_session_minutes=variant.initial_session_minutes,
+                    daily_observation_minutes=variant.daily_observation_minutes,
+                    min_days=variant.min_days,
+                    max_days=variant.max_days,
+                ).model_dump(mode="json")
+            return ActivityDurationV2(
+                duration_type="SINGLE_SESSION",
+                min_minutes=variant.duration_minutes,
+                max_minutes=variant.duration_minutes,
+            ).model_dump(mode="json")
     except (OSError, ValueError, KeyError, TypeError):
         pass
     return None

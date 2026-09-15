@@ -105,3 +105,38 @@ def test_catalog_diff_identifies_the_authored_revision() -> None:
     assert report.removed_activity_ids == ()
     assert len(report.added_family_ids) >= 50
     assert report.to_revision == "mixed"
+
+
+def test_revision_two_exposes_variant_objectives_butterfly_and_typed_duration() -> None:
+    curated = load_curated_catalog_v2(ROOT)
+    by_id = curated.by_activity_id()
+
+    assert curated.catalog_revision == "catalog-2026-09-expansion-2"
+    assert {
+        item.activity_id
+        for item in curated.variants
+        if item.activity_family_id == "FAM-ANIMAL-BUTTERFLY"
+    } == {"ACT-0113", "ACT-0114", "ACT-0115", "ACT-0116"}
+    assert by_id["ACT-0123"].primary_objective_id == "OBJ_SCIENTIFIC_OBSERVATION"
+    assert by_id["ACT-0123"].secondary_objective_ids == ("OBJ_INDEPENDENCE_SELF_CARE",)
+    assert by_id["ACT-0123"].duration_type == "MULTI_DAY"
+    assert by_id["ACT-0123"].initial_session_minutes == 20
+    assert by_id["ACT-0123"].daily_observation_minutes == 5
+    assert (by_id["ACT-0123"].min_days, by_id["ACT-0123"].max_days) == (3, 5)
+    assert by_id["ACT-0123"].to_template().production_eligible is False
+
+
+def test_expansion_one_rollback_revision_remains_loadable() -> None:
+    rollback = load_curated_catalog_v2(
+        ROOT,
+        revision="catalog-2026-09-expansion-1",
+    )
+
+    assert rollback.catalog_revision == "catalog-2026-09-expansion-1"
+    assert len(rollback.by_family_id()) == 50
+    assert len(rollback.variants) == 200
+    assert rollback.by_activity_id()["ACT-0113"].activity_family_id == "FAM-ANIMAL-HABITAT"
+    assert rollback.by_activity_id()["ACT-0123"].objective_ids == (
+        "OBJ_INDEPENDENCE_SELF_CARE",
+    )
+    assert all("ANIMAL_BUTTERFLY" not in variant.concept_ids for variant in rollback.variants)

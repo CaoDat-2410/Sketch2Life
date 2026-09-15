@@ -326,7 +326,8 @@ def _default_age_adaptation(
         ),
         complexity_level=complexity,
         supervision_level=supervision_value,
-        duration_minutes=None,
+        duration_minutes=(handoff or {}).get("duration_minutes"),
+        duration_spec=(handoff or {}).get("duration_spec"),
     )
 
 

@@ -93,11 +93,41 @@ class SemanticActivityProfileV2(BaseModel):
     fallback_tier: Literal["NONE", "AGE_BASELINE"] = "NONE"
     provenance_source: str = Field(min_length=1, max_length=240)
     provenance_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
-    review_status: Literal["PROVISIONAL_OWNER_REVIEWED", "SEMANTIC_REVIEWED", "DEMO_ELIGIBLE"]
+    review_status: Literal[
+        "PROVISIONAL_OWNER_REVIEWED",
+        "SEMANTIC_REVIEWED",
+        "DEMO_ELIGIBLE",
+        "OWNER_REVIEWED",
+        "PRODUCTION_APPROVED",
+        "DEPRECATED",
+        "BLOCKED",
+    ]
     production_eligible: bool = False
     activity_family_id: str = ""
     variant_id: str = ""
     catalog_revision: str = "catalog-2026-09"
+    primary_objective_id: str = Field(min_length=1, max_length=120)
+    secondary_objective_ids: tuple[str, ...] = ()
+    pedagogical_alignment_status: Literal[
+        "DEMO_REVIEWED",
+        "OWNER_REVIEWED",
+        "PRODUCTION_APPROVED",
+    ] = "DEMO_REVIEWED"
+    pedagogical_observable_behavior_vi: str = Field(
+        default="Hoạt động có hành vi quan sát được phù hợp mục tiêu.",
+        min_length=1,
+        max_length=500,
+    )
+
+    @model_validator(mode="after")
+    def validate_production_state(self) -> SemanticActivityProfileV2:
+        if self.production_eligible != (self.review_status == "PRODUCTION_APPROVED"):
+            raise ValueError(
+                "production_eligible must be true only for PRODUCTION_APPROVED profiles"
+            )
+        if self.primary_objective_id in self.secondary_objective_ids:
+            raise ValueError("primary objective cannot also be secondary")
+        return self
 
 class SemanticActivityMatchV2(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
@@ -132,6 +162,9 @@ class SemanticActivityMatchV2(BaseModel):
     activity_safety_score: float = Field(default=1.0, ge=0, le=1)
     catalog_quality_score: float = Field(default=0.0, ge=0, le=1)
     overall_personalization_score: float = Field(default=0.0, ge=0, le=1)
+    selected_objective_id: str | None = Field(default=None, max_length=120)
+    objective_activity_alignment: float = Field(default=0.0, ge=0, le=1)
+    matched_objective_ids: tuple[str, ...] = ()
     matched_concept_ids: tuple[str, ...] = ()
     matched_phrases_vi: tuple[str, ...] = ()
     matched_anchor_labels_vi: tuple[str, ...] = ()
@@ -149,6 +182,56 @@ class SemanticActivityMatchV2(BaseModel):
         return self
 
 
+class RankingTraceEntryV2(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    rank: int = Field(ge=1, le=5)
+    activity_id: str = Field(pattern=r"^ACT-[0-9]{4}$")
+    activity_version: int = Field(ge=1)
+    activity_family_id: str = Field(min_length=1, max_length=120)
+    variant_id: str = Field(min_length=1, max_length=160)
+    catalog_revision: str = Field(min_length=1, max_length=120)
+    selected_concept_id: str | None = Field(default=None, max_length=120)
+    semantic_score: int = Field(ge=0, le=100)
+    child_interest_alignment: float = Field(ge=0, le=1)
+    objective_activity_alignment: float = Field(ge=0, le=1)
+    age_fit_score: float = Field(ge=0, le=1)
+    activity_safety_score: float = Field(ge=0, le=1)
+    catalog_quality_score: float = Field(ge=0, le=1)
+    diversity_recency_penalty: float = Field(ge=0, le=1)
+    final_score: float = Field(ge=0, le=1)
+    score_breakdown: dict[str, float] = {}
+    filter_status: Literal["PASS"] = "PASS"
+    reason_codes: tuple[str, ...] = ()
+    selected: bool = False
+    lost_to_selected_because: Literal[
+        "LOWER_SELECTION_RANK",
+        "SAME_SELECTION_RANK_RANDOMIZED_OR_NON_REPEAT_POLICY",
+    ] | None = None
+
+
+class RejectedCandidateEvidenceV2(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    activity_id: str = Field(pattern=r"^ACT-[0-9]{4}$")
+    template_id: str = Field(min_length=1, max_length=160)
+    filter_status: Literal["REJECT"] = "REJECT"
+    reason_codes: tuple[str, ...] = Field(min_length=1)
+
+
+class RankingDebugEvidenceV2(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    contract_name: Literal["RankingDebugEvidenceV2"] = "RankingDebugEvidenceV2"
+    contract_version: Literal["2.0"] = "2.0"
+    visibility: Literal["BACKEND_DEBUG_ONLY"] = "BACKEND_DEBUG_ONLY"
+    top_k: Literal[5] = 5
+    selected_activity_id: str = Field(pattern=r"^ACT-[0-9]{4}$")
+    selected_activity_family_id: str = Field(min_length=1, max_length=120)
+    ranking_trace: tuple[RankingTraceEntryV2, ...] = Field(min_length=1, max_length=5)
+    rejected_candidates: tuple[RejectedCandidateEvidenceV2, ...] = ()
+
+
 class AgeAdaptationV2(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
@@ -159,6 +242,54 @@ class AgeAdaptationV2(BaseModel):
     complexity_level: Literal["FOUNDATION", "STANDARD", "EXTENSION"]
     supervision_level: Literal["NONE", "NEARBY", "DIRECT"]
     duration_minutes: dict[str, int] | None = None
+    duration_spec: ActivityDurationV2 | None = None
+
+
+class ActivityDurationV2(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    duration_type: Literal["SINGLE_SESSION", "MULTI_DAY"]
+    min_minutes: int | None = Field(default=None, ge=1, le=1440)
+    max_minutes: int | None = Field(default=None, ge=1, le=1440)
+    initial_session_minutes: int | None = Field(default=None, ge=1, le=1440)
+    daily_observation_minutes: int | None = Field(default=None, ge=1, le=1440)
+    min_days: int | None = Field(default=None, ge=1, le=365)
+    max_days: int | None = Field(default=None, ge=1, le=365)
+
+    @model_validator(mode="after")
+    def validate_shape(self) -> ActivityDurationV2:
+        if self.duration_type == "SINGLE_SESSION":
+            if self.min_minutes is None or self.max_minutes is None:
+                raise ValueError("single-session duration requires min/max minutes")
+            if self.max_minutes < self.min_minutes:
+                raise ValueError("single-session max must be >= min")
+            if any(
+                value is not None
+                for value in (
+                    self.initial_session_minutes,
+                    self.daily_observation_minutes,
+                    self.min_days,
+                    self.max_days,
+                )
+            ):
+                raise ValueError("single-session duration cannot contain multi-day fields")
+        else:
+            if any(
+                value is None
+                for value in (
+                    self.initial_session_minutes,
+                    self.daily_observation_minutes,
+                    self.min_days,
+                    self.max_days,
+                )
+            ):
+                raise ValueError("multi-day duration requires session, daily and day bounds")
+            assert self.min_days is not None and self.max_days is not None
+            if self.max_days < self.min_days:
+                raise ValueError("multi-day max_days must be >= min_days")
+            if self.min_minutes is not None or self.max_minutes is not None:
+                raise ValueError("multi-day duration cannot use single-session min/max fields")
+        return self
 
 
 class ExperienceSpecV2(BaseModel):
@@ -291,6 +422,7 @@ def finalize_backend_workflow_result_v2(payload: dict[str, Any]) -> BackendWorkf
 
 
 __all__ = [
+    "ActivityDurationV2",
     "AgeAdaptationV2",
     "BackendWorkflowResultV2",
     "ConfirmedSceneUnderstandingV2",
@@ -298,6 +430,9 @@ __all__ = [
     "SceneConceptV2",
     "SemanticActivityMatchV2",
     "SemanticActivityProfileV2",
+    "RankingDebugEvidenceV2",
+    "RankingTraceEntryV2",
+    "RejectedCandidateEvidenceV2",
     "WorkflowBandResultV2",
     "finalize_backend_workflow_result_v2",
 ]

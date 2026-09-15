@@ -178,7 +178,12 @@ class ActivitySemanticCatalogV2:
             "PROVISIONAL_OWNER_REVIEWED": 0.60,
             "SEMANTIC_REVIEWED": 0.85,
             "DEMO_ELIGIBLE": 1.0,
+            "OWNER_REVIEWED": 0.95,
+            "PRODUCTION_APPROVED": 1.0,
+            "DEPRECATED": 0.0,
+            "BLOCKED": 0.0,
         }.get(profile.review_status, 0.0)
+        objective_activity_alignment = _pedagogical_alignment_score(profile)
         overall = min(
             1.0,
             0.30 * concept_confidence
@@ -213,6 +218,12 @@ class ActivitySemanticCatalogV2:
             activity_safety_score=1.0,
             catalog_quality_score=catalog_quality_score,
             overall_personalization_score=overall,
+            selected_objective_id=profile.primary_objective_id,
+            objective_activity_alignment=objective_activity_alignment,
+            matched_objective_ids=(
+                profile.primary_objective_id,
+                *profile.secondary_objective_ids,
+            ),
             matched_concept_ids=matched_concepts,
             matched_phrases_vi=matched_phrases,
             matched_anchor_labels_vi=matched_labels,
@@ -239,6 +250,7 @@ class ActivitySemanticCatalogV2:
             score=match.semantic_relevance,
             matched_phrases_vi=match.matched_phrases_vi,
             matched_concept_ids=match.matched_concept_ids,
+            matched_objective_ids=match.matched_objective_ids,
             evidence_claim_ids=match.evidence_claim_ids,
             reason_codes=match.reason_codes,
             fallback_reason=match.fallback_reason,
@@ -266,6 +278,10 @@ def load_activity_semantic_catalog_v2(
             "activity_version": effective_activity_version,
             "concept_ids": concepts,
             "phrases": legacy_profile.exact_phrases_vi,
+            "primary_objective_id": template.objective_refs[0].id,
+            "secondary_objective_ids": [
+                ref.id for ref in template.objective_refs[1:]
+            ],
         }
         profile_hash = hashlib.sha256(
             json.dumps(profile_payload, ensure_ascii=False, sort_keys=True).encode()
@@ -299,6 +315,14 @@ def load_activity_semantic_catalog_v2(
                     f"-V{legacy_profile.activity_version}"
                 ),
                 catalog_revision="catalog-2026-09",
+                primary_objective_id=template.objective_refs[0].id,
+                secondary_objective_ids=tuple(
+                    ref.id for ref in template.objective_refs[1:]
+                ),
+                pedagogical_alignment_status="DEMO_REVIEWED",
+                pedagogical_observable_behavior_vi=(
+                    f"Kiểm tra hành vi quan sát được cho mục tiêu {template.objective_refs[0].id}."
+                ),
             )
         )
     if curated_catalog is not None:
@@ -333,6 +357,22 @@ def _profile_from_curated_variant(
         activity_family_id=variant.activity_family_id,
         variant_id=variant.variant_id,
         catalog_revision=variant.catalog_revision,
+        primary_objective_id=variant.primary_objective_id,
+        secondary_objective_ids=variant.secondary_objective_ids,
+        pedagogical_alignment_status=variant.pedagogical_alignment.reviewer_status,
+        pedagogical_observable_behavior_vi=(
+            variant.pedagogical_alignment.expected_observable_behavior_vi
+        ),
+    )
+
+
+def _pedagogical_alignment_score(profile: SemanticActivityProfileV2) -> float:
+    reviewed_states = {"DEMO_REVIEWED", "OWNER_REVIEWED", "PRODUCTION_APPROVED"}
+    return (
+        1.0
+        if profile.pedagogical_alignment_status in reviewed_states
+        and profile.primary_objective_id
+        else 0.0
     )
 
 

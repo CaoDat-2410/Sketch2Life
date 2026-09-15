@@ -5,7 +5,7 @@
     {
       "family_id": "FAM-PLANT-CARE",
       "concept_ids": ["PLANT_FLOWER", "PLANT_STRUCTURE"],
-      "objective_ids": ["OBJ_INDEPENDENCE_SELF_CARE"],
+      "allowed_objective_ids": ["OBJ_INDEPENDENCE_SELF_CARE", "OBJ_SCIENTIFIC_OBSERVATION", "OBJ_SCIENTIFIC_INQUIRY"],
       "area": "practical_life",
       "phrases_vi": ["cây", "hoa", "tưới cây"],
       "aliases_vi": ["chăm cây", "chăm hoa"],
@@ -41,7 +41,7 @@
     {
       "family_id": "FAM-PLANT-COMPARE",
       "concept_ids": ["PLANT_FLOWER", "NATURE_OBSERVATION"],
-      "objective_ids": ["OBJ_SCIENTIFIC_INQUIRY"],
+      "allowed_objective_ids": ["OBJ_SCIENTIFIC_INQUIRY", "OBJ_SENSORIAL_DISCRIMINATION"],
       "area": "science",
       "phrases_vi": ["hoa", "cây", "so sánh cây"],
       "aliases_vi": ["giống và khác", "so sánh hoa"],

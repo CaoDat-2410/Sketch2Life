@@ -124,6 +124,25 @@ def test_concept_matching_restores_nature_and_sun_routes() -> None:
     assert sun_match.semantic_relevance >= 90
 
 
+def test_variant_objective_identity_is_carried_into_semantic_match() -> None:
+    catalog = load_activity_semantic_catalog_v2(Path.cwd(), include_expansion=True)
+    profile = catalog.profile_for("ACT-0123")
+    match = catalog.match_scene(
+        _scene("bông hoa", transcript="Con đang quan sát bông hoa"),
+        profile,
+    )
+
+    assert profile.primary_objective_id == "OBJ_SCIENTIFIC_OBSERVATION"
+    assert profile.secondary_objective_ids == ("OBJ_INDEPENDENCE_SELF_CARE",)
+    assert match is not None
+    assert match.selected_objective_id == "OBJ_SCIENTIFIC_OBSERVATION"
+    assert match.matched_objective_ids == (
+        "OBJ_SCIENTIFIC_OBSERVATION",
+        "OBJ_INDEPENDENCE_SELF_CARE",
+    )
+    assert match.objective_activity_alignment == 1.0
+
+
 def test_unrelated_activity_uses_explicit_age_baseline_fallback() -> None:
     catalog = load_activity_semantic_catalog_v2(Path.cwd())
     scene = _scene("con bướm", transcript="Con bướm đang bay")
@@ -235,6 +254,7 @@ def test_run_v2_shares_scene_and_reports_personalized_or_fallback_modes() -> Non
             seed=123,
             demo_autopilot=True,
             report_partial_test_only=True,
+            emit_debug_evidence=True,
         )
     )
 
@@ -252,6 +272,14 @@ def test_run_v2_shares_scene_and_reports_personalized_or_fallback_modes() -> Non
         and band.experience_spec is not None
         for band in result.age_bands
     )
+    for band in result.legacy_result.age_bands:
+        context_stage = next(stage for stage in band.stages if stage.stage == "CONTEXT_READY")
+        debug = context_stage.details["debug_evidence"]
+        assert debug["visibility"] == "BACKEND_DEBUG_ONLY"
+        assert debug["top_k"] == 5
+        assert 1 <= len(debug["ranking_trace"]) <= 5
+        assert all("score_breakdown" in item for item in debug["ranking_trace"])
+        assert all("reason_codes" in item for item in debug["rejected_candidates"])
     for band in result.age_bands:
         if band.experience_spec is None:
             continue

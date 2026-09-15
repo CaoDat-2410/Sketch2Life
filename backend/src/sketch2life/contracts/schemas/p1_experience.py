@@ -23,6 +23,18 @@ class VersionedRefV1(P1ContractBase):
     version: int = Field(ge=1, le=999)
 
 
+class PedagogicalAlignmentV1(P1ContractBase):
+    contract_name: Literal["PedagogicalAlignmentV1"] = "PedagogicalAlignmentV1"
+    contract_version: Literal["1.0"] = "1.0"
+    primary_objective_id: str = Field(min_length=1, max_length=120)
+    expected_observable_behavior_vi: str = Field(min_length=1, max_length=500)
+    reviewer_status: Literal[
+        "DEMO_REVIEWED",
+        "OWNER_REVIEWED",
+        "PRODUCTION_APPROVED",
+    ]
+
+
 class AnchorProvenanceV1(P1ContractBase):
     source_artifact_id: str = Field(min_length=1, max_length=200)
     source_artifact_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
@@ -86,6 +98,7 @@ class SemanticMatchEvidenceV1(P1ContractBase):
     score: int = Field(ge=0, le=100)
     matched_phrases_vi: tuple[str, ...] = ()
     matched_concept_ids: tuple[str, ...] = ()
+    matched_objective_ids: tuple[str, ...] = ()
     evidence_claim_ids: tuple[str, ...] = Field(min_length=1)
     reason_codes: tuple[str, ...] = ()
     fallback_reason: str | None = Field(default=None, max_length=160)
@@ -178,6 +191,10 @@ class ActivityTemplateV1(P1ContractBase):
         "PROVISIONAL_OWNER_REVIEWED",
         "SEMANTIC_REVIEWED",
         "DEMO_ELIGIBLE",
+        "OWNER_REVIEWED",
+        "PRODUCTION_APPROVED",
+        "DEPRECATED",
+        "BLOCKED",
     ]
     production_eligible: bool = False
 
@@ -185,6 +202,10 @@ class ActivityTemplateV1(P1ContractBase):
     def validate_age_range(self) -> ActivityTemplateV1:
         if self.age_months_max < self.age_months_min:
             raise ValueError("template age max must be >= min")
+        if self.production_eligible != (self.review_status == "PRODUCTION_APPROVED"):
+            raise ValueError(
+                "production_eligible must be true only for PRODUCTION_APPROVED templates"
+            )
         return self
 
 

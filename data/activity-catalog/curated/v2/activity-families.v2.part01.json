@@ -4,7 +4,7 @@
   "families": [
     {
       "family_id": "FAM-ANIMAL-OBSERVE",
-      "concept_ids": ["ANIMAL_GENERIC", "NATURE_OBSERVATION"],
+      "concept_ids": ["ANIMAL_GENERIC", "ANIMAL_BUTTERFLY", "NATURE_OBSERVATION"],
       "objective_ids": ["OBJ_SCIENTIFIC_OBSERVATION"],
       "area": "science",
       "phrases_vi": ["con vật", "động vật"],
@@ -22,7 +22,7 @@
     },
     {
       "family_id": "FAM-ANIMAL-CLASSIFY",
-      "concept_ids": ["ANIMAL_GENERIC", "SCIENCE_NATURE"],
+      "concept_ids": ["ANIMAL_GENERIC", "ANIMAL_BUTTERFLY", "SCIENCE_NATURE"],
       "objective_ids": ["OBJ_SCIENTIFIC_INQUIRY"],
       "area": "science",
       "phrases_vi": ["con vật", "phân loại động vật"],
@@ -40,7 +40,7 @@
     },
     {
       "family_id": "FAM-ANIMAL-MOVEMENT",
-      "concept_ids": ["ANIMAL_MOVEMENT", "ANIMAL_GENERIC"],
+      "concept_ids": ["ANIMAL_MOVEMENT", "ANIMAL_GENERIC", "ANIMAL_BUTTERFLY"],
       "objective_ids": ["OBJ_MOVEMENT_COORDINATION"],
       "area": "movement",
       "phrases_vi": ["con vật", "con vật đang chạy", "con vật đang bay"],
@@ -57,21 +57,21 @@
       ]
     },
     {
-      "family_id": "FAM-ANIMAL-HABITAT",
-      "concept_ids": ["ANIMAL_GENERIC", "NATURE_OBSERVATION"],
-      "objective_ids": ["OBJ_COSMIC_INTERCONNECTION"],
+      "family_id": "FAM-ANIMAL-BUTTERFLY",
+      "concept_ids": ["ANIMAL_BUTTERFLY", "ANIMAL_GENERIC", "ANIMAL_MOVEMENT", "NATURE_OBSERVATION"],
+      "allowed_objective_ids": ["OBJ_SENSORIAL_DISCRIMINATION", "OBJ_SCIENTIFIC_OBSERVATION", "OBJ_SCIENTIFIC_INQUIRY"],
       "area": "science",
-      "phrases_vi": ["con vật", "nơi sống", "môi trường sống"],
-      "aliases_vi": ["nhà của con vật", "sống ở đâu"],
+      "phrases_vi": ["con bướm", "cánh bướm", "vòng đời bướm"],
+      "aliases_vi": ["bướm bay", "quan sát bướm"],
       "material_option_ids": ["MAT_PICTURE_CARDS", "MAT_NATURE_OBJECTS"],
       "minimum_supervision": "NEARBY",
-      "safety_vi": ["chỉ dùng tranh hoặc vật mẫu sạch; không thu gom mẫu tự nhiên có thể gây dị ứng"],
-      "policy_constraints": ["SAFE_MATERIALS_ONLY"],
+      "safety_vi": ["chỉ dùng tranh hoặc mẫu vật sạch; không bắt, chạm hoặc làm tổn thương côn trùng"],
+      "policy_constraints": ["SAFE_MATERIALS_ONLY", "NO_LIVE_INSECT_CONTACT"],
       "variants": [
-        {"activity_id": "ACT-0113", "age_band": "0-3", "title_vi": "Tìm con vật trong nơi sống", "action_vi": "Trẻ tìm hình con vật lớn trong tranh môi trường đơn giản.", "challenge_vi": "Trẻ chỉ vào con vật khi người lớn gọi tên và chờ lượt.", "duration_minutes": 6},
-        {"activity_id": "ACT-0114", "age_band": "3-6", "title_vi": "Ghép con vật với môi trường", "action_vi": "Trẻ ghép thẻ con vật với đất, nước hoặc cây theo tranh.", "challenge_vi": "Trẻ kể một điều con vật có thể tìm thấy ở nơi sống.", "duration_minutes": 12},
-        {"activity_id": "ACT-0115", "age_band": "6-9", "title_vi": "Vẽ bản đồ nơi sống", "action_vi": "Trẻ vẽ các yếu tố cần thiết trong nơi sống của một con vật.", "challenge_vi": "Trẻ đánh dấu thức ăn, chỗ trú hoặc nguồn nước.", "duration_minutes": 20},
-        {"activity_id": "ACT-0116", "age_band": "9-12", "title_vi": "Phân tích thay đổi môi trường sống", "action_vi": "Trẻ lập sơ đồ mối quan hệ giữa con vật và điều kiện sống.", "challenge_vi": "Trẻ đưa ra dự đoán có điều kiện nếu một yếu tố thay đổi.", "duration_minutes": 30}
+        {"activity_id": "ACT-0113", "age_band": "0-3", "title_vi": "Dõi theo cánh bướm", "action_vi": "Trẻ nhìn thẻ bướm lớn và dõi mắt theo đường bay chậm của bướm.", "challenge_vi": "Người lớn dừng thẻ để trẻ chỉ vào cánh và chờ lượt.", "duration_minutes": 6},
+        {"activity_id": "ACT-0114", "age_band": "3-6", "title_vi": "Ghép bướm với hoa", "action_vi": "Trẻ ghép thẻ bướm với hoa và nơi bướm có thể tìm thức ăn.", "challenge_vi": "Trẻ kể một đặc điểm nhìn thấy ở cánh hoặc màu của bướm.", "duration_minutes": 12},
+        {"activity_id": "ACT-0115", "age_band": "6-9", "title_vi": "Quan sát đối xứng cánh bướm", "action_vi": "Trẻ dùng hình bướm để so sánh hai bên cánh và ghi lại điểm giống, khác.", "challenge_vi": "Trẻ dự đoán hình còn thiếu khi chỉ nhìn một nửa cánh.", "duration_minutes": 20},
+        {"activity_id": "ACT-0116", "age_band": "9-12", "title_vi": "Lập nhật ký vòng đời bướm", "action_vi": "Trẻ sắp xếp các giai đoạn vòng đời bướm và thiết kế nhật ký quan sát bằng tranh hoặc bảng.", "challenge_vi": "Trẻ nêu câu hỏi kiểm chứng được về một thay đổi trong vòng đời.", "duration_minutes": 30}
       ]
     },
     {

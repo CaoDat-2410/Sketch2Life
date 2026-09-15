@@ -1,0 +1,814 @@
+{
+  "contract_name": "CatalogOfflineSceneCorpusV1",
+  "contract_version": "1.0",
+  "purpose": "Deterministic semantic/catalog validation only; no provider call and no recommendation fixture injection.",
+  "scene_count": 100,
+  "age_bands": [
+    "0-3",
+    "3-6",
+    "6-9",
+    "9-12"
+  ],
+  "scenes": [
+    {
+      "scene_id": "OFF-001",
+      "age_band": "0-3",
+      "seed": 700001,
+      "label_vi": "con bướm",
+      "transcript_vi": "Con đang kể về con bướm",
+      "expected_concept_id": "ANIMAL_BUTTERFLY"
+    },
+    {
+      "scene_id": "OFF-002",
+      "age_band": "3-6",
+      "seed": 700002,
+      "label_vi": "con bướm",
+      "transcript_vi": "Con đang kể về con bướm",
+      "expected_concept_id": "ANIMAL_BUTTERFLY"
+    },
+    {
+      "scene_id": "OFF-003",
+      "age_band": "6-9",
+      "seed": 700003,
+      "label_vi": "con bướm",
+      "transcript_vi": "Con đang kể về con bướm",
+      "expected_concept_id": "ANIMAL_BUTTERFLY"
+    },
+    {
+      "scene_id": "OFF-004",
+      "age_band": "9-12",
+      "seed": 700004,
+      "label_vi": "con bướm",
+      "transcript_vi": "Con đang kể về con bướm",
+      "expected_concept_id": "ANIMAL_BUTTERFLY"
+    },
+    {
+      "scene_id": "OFF-005",
+      "age_band": "0-3",
+      "seed": 700005,
+      "label_vi": "bông hoa",
+      "transcript_vi": "Con đang quan sát bông hoa",
+      "expected_concept_id": "PLANT_FLOWER"
+    },
+    {
+      "scene_id": "OFF-006",
+      "age_band": "3-6",
+      "seed": 700006,
+      "label_vi": "bông hoa",
+      "transcript_vi": "Con đang quan sát bông hoa",
+      "expected_concept_id": "PLANT_FLOWER"
+    },
+    {
+      "scene_id": "OFF-007",
+      "age_band": "6-9",
+      "seed": 700007,
+      "label_vi": "bông hoa",
+      "transcript_vi": "Con đang quan sát bông hoa",
+      "expected_concept_id": "PLANT_FLOWER"
+    },
+    {
+      "scene_id": "OFF-008",
+      "age_band": "9-12",
+      "seed": 700008,
+      "label_vi": "bông hoa",
+      "transcript_vi": "Con đang quan sát bông hoa",
+      "expected_concept_id": "PLANT_FLOWER"
+    },
+    {
+      "scene_id": "OFF-009",
+      "age_band": "0-3",
+      "seed": 700009,
+      "label_vi": "cái cây",
+      "transcript_vi": "Con đang kể về cái cây",
+      "expected_concept_id": "PLANT_STRUCTURE"
+    },
+    {
+      "scene_id": "OFF-010",
+      "age_band": "3-6",
+      "seed": 700010,
+      "label_vi": "cái cây",
+      "transcript_vi": "Con đang kể về cái cây",
+      "expected_concept_id": "PLANT_STRUCTURE"
+    },
+    {
+      "scene_id": "OFF-011",
+      "age_band": "6-9",
+      "seed": 700011,
+      "label_vi": "cái cây",
+      "transcript_vi": "Con đang kể về cái cây",
+      "expected_concept_id": "PLANT_STRUCTURE"
+    },
+    {
+      "scene_id": "OFF-012",
+      "age_band": "9-12",
+      "seed": 700012,
+      "label_vi": "cái cây",
+      "transcript_vi": "Con đang kể về cái cây",
+      "expected_concept_id": "PLANT_STRUCTURE"
+    },
+    {
+      "scene_id": "OFF-013",
+      "age_band": "0-3",
+      "seed": 700013,
+      "label_vi": "con vật",
+      "transcript_vi": "Con đang quan sát con vật",
+      "expected_concept_id": "ANIMAL_GENERIC"
+    },
+    {
+      "scene_id": "OFF-014",
+      "age_band": "3-6",
+      "seed": 700014,
+      "label_vi": "con vật",
+      "transcript_vi": "Con đang quan sát con vật",
+      "expected_concept_id": "ANIMAL_GENERIC"
+    },
+    {
+      "scene_id": "OFF-015",
+      "age_band": "6-9",
+      "seed": 700015,
+      "label_vi": "con vật",
+      "transcript_vi": "Con đang quan sát con vật",
+      "expected_concept_id": "ANIMAL_GENERIC"
+    },
+    {
+      "scene_id": "OFF-016",
+      "age_band": "9-12",
+      "seed": 700016,
+      "label_vi": "con vật",
+      "transcript_vi": "Con đang quan sát con vật",
+      "expected_concept_id": "ANIMAL_GENERIC"
+    },
+    {
+      "scene_id": "OFF-017",
+      "age_band": "0-3",
+      "seed": 700017,
+      "label_vi": "mặt trời",
+      "transcript_vi": "Con đang kể về mặt trời",
+      "expected_concept_id": "SUN_LIGHT"
+    },
+    {
+      "scene_id": "OFF-018",
+      "age_band": "3-6",
+      "seed": 700018,
+      "label_vi": "mặt trời",
+      "transcript_vi": "Con đang kể về mặt trời",
+      "expected_concept_id": "SUN_LIGHT"
+    },
+    {
+      "scene_id": "OFF-019",
+      "age_band": "6-9",
+      "seed": 700019,
+      "label_vi": "mặt trời",
+      "transcript_vi": "Con đang kể về mặt trời",
+      "expected_concept_id": "SUN_LIGHT"
+    },
+    {
+      "scene_id": "OFF-020",
+      "age_band": "9-12",
+      "seed": 700020,
+      "label_vi": "mặt trời",
+      "transcript_vi": "Con đang kể về mặt trời",
+      "expected_concept_id": "SUN_LIGHT"
+    },
+    {
+      "scene_id": "OFF-021",
+      "age_band": "0-3",
+      "seed": 700021,
+      "label_vi": "mặt trăng",
+      "transcript_vi": "Con đang quan sát mặt trăng",
+      "expected_concept_id": "MOON_PHASE"
+    },
+    {
+      "scene_id": "OFF-022",
+      "age_band": "3-6",
+      "seed": 700022,
+      "label_vi": "mặt trăng",
+      "transcript_vi": "Con đang quan sát mặt trăng",
+      "expected_concept_id": "MOON_PHASE"
+    },
+    {
+      "scene_id": "OFF-023",
+      "age_band": "6-9",
+      "seed": 700023,
+      "label_vi": "mặt trăng",
+      "transcript_vi": "Con đang quan sát mặt trăng",
+      "expected_concept_id": "MOON_PHASE"
+    },
+    {
+      "scene_id": "OFF-024",
+      "age_band": "9-12",
+      "seed": 700024,
+      "label_vi": "mặt trăng",
+      "transcript_vi": "Con đang quan sát mặt trăng",
+      "expected_concept_id": "MOON_PHASE"
+    },
+    {
+      "scene_id": "OFF-025",
+      "age_band": "0-3",
+      "seed": 700025,
+      "label_vi": "chuyển động",
+      "transcript_vi": "Con đang làm động tác",
+      "expected_concept_id": "MOVEMENT_COORDINATION"
+    },
+    {
+      "scene_id": "OFF-026",
+      "age_band": "3-6",
+      "seed": 700026,
+      "label_vi": "chuyển động",
+      "transcript_vi": "Con đang làm động tác",
+      "expected_concept_id": "MOVEMENT_COORDINATION"
+    },
+    {
+      "scene_id": "OFF-027",
+      "age_band": "6-9",
+      "seed": 700027,
+      "label_vi": "chuyển động",
+      "transcript_vi": "Con đang làm động tác",
+      "expected_concept_id": "MOVEMENT_COORDINATION"
+    },
+    {
+      "scene_id": "OFF-028",
+      "age_band": "9-12",
+      "seed": 700028,
+      "label_vi": "chuyển động",
+      "transcript_vi": "Con đang làm động tác",
+      "expected_concept_id": "MOVEMENT_COORDINATION"
+    },
+    {
+      "scene_id": "OFF-029",
+      "age_band": "0-3",
+      "seed": 700029,
+      "label_vi": "gia đình",
+      "transcript_vi": "Con đang kể về gia đình",
+      "expected_concept_id": "PEOPLE_FAMILY"
+    },
+    {
+      "scene_id": "OFF-030",
+      "age_band": "3-6",
+      "seed": 700030,
+      "label_vi": "gia đình",
+      "transcript_vi": "Con đang kể về gia đình",
+      "expected_concept_id": "PEOPLE_FAMILY"
+    },
+    {
+      "scene_id": "OFF-031",
+      "age_band": "6-9",
+      "seed": 700031,
+      "label_vi": "gia đình",
+      "transcript_vi": "Con đang kể về gia đình",
+      "expected_concept_id": "PEOPLE_FAMILY"
+    },
+    {
+      "scene_id": "OFF-032",
+      "age_band": "9-12",
+      "seed": 700032,
+      "label_vi": "gia đình",
+      "transcript_vi": "Con đang kể về gia đình",
+      "expected_concept_id": "PEOPLE_FAMILY"
+    },
+    {
+      "scene_id": "OFF-033",
+      "age_band": "0-3",
+      "seed": 700033,
+      "label_vi": "xe đạp",
+      "transcript_vi": "Con đang kể về xe đạp",
+      "expected_concept_id": "VEHICLE_TRANSPORT"
+    },
+    {
+      "scene_id": "OFF-034",
+      "age_band": "3-6",
+      "seed": 700034,
+      "label_vi": "xe đạp",
+      "transcript_vi": "Con đang kể về xe đạp",
+      "expected_concept_id": "VEHICLE_TRANSPORT"
+    },
+    {
+      "scene_id": "OFF-035",
+      "age_band": "6-9",
+      "seed": 700035,
+      "label_vi": "xe đạp",
+      "transcript_vi": "Con đang kể về xe đạp",
+      "expected_concept_id": "VEHICLE_TRANSPORT"
+    },
+    {
+      "scene_id": "OFF-036",
+      "age_band": "9-12",
+      "seed": 700036,
+      "label_vi": "xe đạp",
+      "transcript_vi": "Con đang kể về xe đạp",
+      "expected_concept_id": "VEHICLE_TRANSPORT"
+    },
+    {
+      "scene_id": "OFF-037",
+      "age_band": "0-3",
+      "seed": 700037,
+      "label_vi": "mưa",
+      "transcript_vi": "Con đang kể về mưa",
+      "expected_concept_id": "WEATHER_NATURE"
+    },
+    {
+      "scene_id": "OFF-038",
+      "age_band": "3-6",
+      "seed": 700038,
+      "label_vi": "mưa",
+      "transcript_vi": "Con đang kể về mưa",
+      "expected_concept_id": "WEATHER_NATURE"
+    },
+    {
+      "scene_id": "OFF-039",
+      "age_band": "6-9",
+      "seed": 700039,
+      "label_vi": "mưa",
+      "transcript_vi": "Con đang kể về mưa",
+      "expected_concept_id": "WEATHER_NATURE"
+    },
+    {
+      "scene_id": "OFF-040",
+      "age_band": "9-12",
+      "seed": 700040,
+      "label_vi": "mưa",
+      "transcript_vi": "Con đang kể về mưa",
+      "expected_concept_id": "WEATHER_NATURE"
+    },
+    {
+      "scene_id": "OFF-041",
+      "age_band": "0-3",
+      "seed": 700041,
+      "label_vi": "nước",
+      "transcript_vi": "Con đang quan sát nước",
+      "expected_concept_id": "WATER_NATURE"
+    },
+    {
+      "scene_id": "OFF-042",
+      "age_band": "3-6",
+      "seed": 700042,
+      "label_vi": "nước",
+      "transcript_vi": "Con đang quan sát nước",
+      "expected_concept_id": "WATER_NATURE"
+    },
+    {
+      "scene_id": "OFF-043",
+      "age_band": "6-9",
+      "seed": 700043,
+      "label_vi": "nước",
+      "transcript_vi": "Con đang quan sát nước",
+      "expected_concept_id": "WATER_NATURE"
+    },
+    {
+      "scene_id": "OFF-044",
+      "age_band": "9-12",
+      "seed": 700044,
+      "label_vi": "nước",
+      "transcript_vi": "Con đang quan sát nước",
+      "expected_concept_id": "WATER_NATURE"
+    },
+    {
+      "scene_id": "OFF-045",
+      "age_band": "0-3",
+      "seed": 700045,
+      "label_vi": "hình tròn",
+      "transcript_vi": "Con đang kể về hình tròn",
+      "expected_concept_id": "SHAPE_GEOMETRY"
+    },
+    {
+      "scene_id": "OFF-046",
+      "age_band": "3-6",
+      "seed": 700046,
+      "label_vi": "hình tròn",
+      "transcript_vi": "Con đang kể về hình tròn",
+      "expected_concept_id": "SHAPE_GEOMETRY"
+    },
+    {
+      "scene_id": "OFF-047",
+      "age_band": "6-9",
+      "seed": 700047,
+      "label_vi": "hình tròn",
+      "transcript_vi": "Con đang kể về hình tròn",
+      "expected_concept_id": "SHAPE_GEOMETRY"
+    },
+    {
+      "scene_id": "OFF-048",
+      "age_band": "9-12",
+      "seed": 700048,
+      "label_vi": "hình tròn",
+      "transcript_vi": "Con đang kể về hình tròn",
+      "expected_concept_id": "SHAPE_GEOMETRY"
+    },
+    {
+      "scene_id": "OFF-049",
+      "age_band": "0-3",
+      "seed": 700049,
+      "label_vi": "màu đỏ",
+      "transcript_vi": "Con đang kể về màu đỏ",
+      "expected_concept_id": "COLOR_BASIC"
+    },
+    {
+      "scene_id": "OFF-050",
+      "age_band": "3-6",
+      "seed": 700050,
+      "label_vi": "màu đỏ",
+      "transcript_vi": "Con đang kể về màu đỏ",
+      "expected_concept_id": "COLOR_BASIC"
+    },
+    {
+      "scene_id": "OFF-051",
+      "age_band": "6-9",
+      "seed": 700051,
+      "label_vi": "màu đỏ",
+      "transcript_vi": "Con đang kể về màu đỏ",
+      "expected_concept_id": "COLOR_BASIC"
+    },
+    {
+      "scene_id": "OFF-052",
+      "age_band": "9-12",
+      "seed": 700052,
+      "label_vi": "màu đỏ",
+      "transcript_vi": "Con đang kể về màu đỏ",
+      "expected_concept_id": "COLOR_BASIC"
+    },
+    {
+      "scene_id": "OFF-053",
+      "age_band": "0-3",
+      "seed": 700053,
+      "label_vi": "âm thanh",
+      "transcript_vi": "Con đang kể về âm thanh",
+      "expected_concept_id": "SOUND_MUSIC"
+    },
+    {
+      "scene_id": "OFF-054",
+      "age_band": "3-6",
+      "seed": 700054,
+      "label_vi": "âm thanh",
+      "transcript_vi": "Con đang kể về âm thanh",
+      "expected_concept_id": "SOUND_MUSIC"
+    },
+    {
+      "scene_id": "OFF-055",
+      "age_band": "6-9",
+      "seed": 700055,
+      "label_vi": "âm thanh",
+      "transcript_vi": "Con đang kể về âm thanh",
+      "expected_concept_id": "SOUND_MUSIC"
+    },
+    {
+      "scene_id": "OFF-056",
+      "age_band": "9-12",
+      "seed": 700056,
+      "label_vi": "âm thanh",
+      "transcript_vi": "Con đang kể về âm thanh",
+      "expected_concept_id": "SOUND_MUSIC"
+    },
+    {
+      "scene_id": "OFF-057",
+      "age_band": "0-3",
+      "seed": 700057,
+      "label_vi": "đếm",
+      "transcript_vi": "Con đang kể về đếm số",
+      "expected_concept_id": "COUNTING_NUMBER"
+    },
+    {
+      "scene_id": "OFF-058",
+      "age_band": "3-6",
+      "seed": 700058,
+      "label_vi": "đếm",
+      "transcript_vi": "Con đang kể về đếm số",
+      "expected_concept_id": "COUNTING_NUMBER"
+    },
+    {
+      "scene_id": "OFF-059",
+      "age_band": "6-9",
+      "seed": 700059,
+      "label_vi": "đếm",
+      "transcript_vi": "Con đang kể về đếm số",
+      "expected_concept_id": "COUNTING_NUMBER"
+    },
+    {
+      "scene_id": "OFF-060",
+      "age_band": "9-12",
+      "seed": 700060,
+      "label_vi": "đếm",
+      "transcript_vi": "Con đang kể về đếm số",
+      "expected_concept_id": "COUNTING_NUMBER"
+    },
+    {
+      "scene_id": "OFF-061",
+      "age_band": "0-3",
+      "seed": 700061,
+      "label_vi": "chữ cái",
+      "transcript_vi": "Con đang kể về chữ cái",
+      "expected_concept_id": "LANGUAGE_PRINT"
+    },
+    {
+      "scene_id": "OFF-062",
+      "age_band": "3-6",
+      "seed": 700062,
+      "label_vi": "chữ cái",
+      "transcript_vi": "Con đang kể về chữ cái",
+      "expected_concept_id": "LANGUAGE_PRINT"
+    },
+    {
+      "scene_id": "OFF-063",
+      "age_band": "6-9",
+      "seed": 700063,
+      "label_vi": "chữ cái",
+      "transcript_vi": "Con đang kể về chữ cái",
+      "expected_concept_id": "LANGUAGE_PRINT"
+    },
+    {
+      "scene_id": "OFF-064",
+      "age_band": "9-12",
+      "seed": 700064,
+      "label_vi": "chữ cái",
+      "transcript_vi": "Con đang kể về chữ cái",
+      "expected_concept_id": "LANGUAGE_PRINT"
+    },
+    {
+      "scene_id": "OFF-065",
+      "age_band": "0-3",
+      "seed": 700065,
+      "label_vi": "rửa tay",
+      "transcript_vi": "Con đang kể về rửa tay",
+      "expected_concept_id": "PRACTICAL_LIFE"
+    },
+    {
+      "scene_id": "OFF-066",
+      "age_band": "3-6",
+      "seed": 700066,
+      "label_vi": "rửa tay",
+      "transcript_vi": "Con đang kể về rửa tay",
+      "expected_concept_id": "PRACTICAL_LIFE"
+    },
+    {
+      "scene_id": "OFF-067",
+      "age_band": "6-9",
+      "seed": 700067,
+      "label_vi": "rửa tay",
+      "transcript_vi": "Con đang kể về rửa tay",
+      "expected_concept_id": "PRACTICAL_LIFE"
+    },
+    {
+      "scene_id": "OFF-068",
+      "age_band": "9-12",
+      "seed": 700068,
+      "label_vi": "rửa tay",
+      "transcript_vi": "Con đang kể về rửa tay",
+      "expected_concept_id": "PRACTICAL_LIFE"
+    },
+    {
+      "scene_id": "OFF-069",
+      "age_band": "0-3",
+      "seed": 700069,
+      "label_vi": "trái đất",
+      "transcript_vi": "Con đang kể về trái đất",
+      "expected_concept_id": "SCIENCE_NATURE"
+    },
+    {
+      "scene_id": "OFF-070",
+      "age_band": "3-6",
+      "seed": 700070,
+      "label_vi": "trái đất",
+      "transcript_vi": "Con đang kể về trái đất",
+      "expected_concept_id": "SCIENCE_NATURE"
+    },
+    {
+      "scene_id": "OFF-071",
+      "age_band": "6-9",
+      "seed": 700071,
+      "label_vi": "trái đất",
+      "transcript_vi": "Con đang kể về trái đất",
+      "expected_concept_id": "SCIENCE_NATURE"
+    },
+    {
+      "scene_id": "OFF-072",
+      "age_band": "9-12",
+      "seed": 700072,
+      "label_vi": "trái đất",
+      "transcript_vi": "Con đang kể về trái đất",
+      "expected_concept_id": "SCIENCE_NATURE"
+    },
+    {
+      "scene_id": "OFF-073",
+      "age_band": "0-3",
+      "seed": 700073,
+      "label_vi": "bướm bay",
+      "transcript_vi": "Con đang kể về bướm bay",
+      "expected_concept_id": "ANIMAL_MOVEMENT"
+    },
+    {
+      "scene_id": "OFF-074",
+      "age_band": "3-6",
+      "seed": 700074,
+      "label_vi": "bướm bay",
+      "transcript_vi": "Con đang kể về bướm bay",
+      "expected_concept_id": "ANIMAL_MOVEMENT"
+    },
+    {
+      "scene_id": "OFF-075",
+      "age_band": "6-9",
+      "seed": 700075,
+      "label_vi": "bướm bay",
+      "transcript_vi": "Con đang kể về bướm bay",
+      "expected_concept_id": "ANIMAL_MOVEMENT"
+    },
+    {
+      "scene_id": "OFF-076",
+      "age_band": "9-12",
+      "seed": 700076,
+      "label_vi": "bướm bay",
+      "transcript_vi": "Con đang kể về bướm bay",
+      "expected_concept_id": "ANIMAL_MOVEMENT"
+    },
+    {
+      "scene_id": "OFF-077",
+      "age_band": "0-3",
+      "seed": 700077,
+      "label_vi": "lá cây",
+      "transcript_vi": "Con đang quan sát lá cây",
+      "expected_concept_id": "PLANT_STRUCTURE"
+    },
+    {
+      "scene_id": "OFF-078",
+      "age_band": "3-6",
+      "seed": 700078,
+      "label_vi": "lá cây",
+      "transcript_vi": "Con đang quan sát lá cây",
+      "expected_concept_id": "PLANT_STRUCTURE"
+    },
+    {
+      "scene_id": "OFF-079",
+      "age_band": "6-9",
+      "seed": 700079,
+      "label_vi": "lá cây",
+      "transcript_vi": "Con đang quan sát lá cây",
+      "expected_concept_id": "PLANT_STRUCTURE"
+    },
+    {
+      "scene_id": "OFF-080",
+      "age_band": "9-12",
+      "seed": 700080,
+      "label_vi": "lá cây",
+      "transcript_vi": "Con đang quan sát lá cây",
+      "expected_concept_id": "PLANT_STRUCTURE"
+    },
+    {
+      "scene_id": "OFF-081",
+      "age_band": "0-3",
+      "seed": 700081,
+      "label_vi": "ánh nắng",
+      "transcript_vi": "Con đang kể về ánh nắng",
+      "expected_concept_id": "SUN_LIGHT"
+    },
+    {
+      "scene_id": "OFF-082",
+      "age_band": "3-6",
+      "seed": 700082,
+      "label_vi": "ánh nắng",
+      "transcript_vi": "Con đang kể về ánh nắng",
+      "expected_concept_id": "SUN_LIGHT"
+    },
+    {
+      "scene_id": "OFF-083",
+      "age_band": "6-9",
+      "seed": 700083,
+      "label_vi": "ánh nắng",
+      "transcript_vi": "Con đang kể về ánh nắng",
+      "expected_concept_id": "SUN_LIGHT"
+    },
+    {
+      "scene_id": "OFF-084",
+      "age_band": "9-12",
+      "seed": 700084,
+      "label_vi": "ánh nắng",
+      "transcript_vi": "Con đang kể về ánh nắng",
+      "expected_concept_id": "SUN_LIGHT"
+    },
+    {
+      "scene_id": "OFF-085",
+      "age_band": "0-3",
+      "seed": 700085,
+      "label_vi": "màu vàng",
+      "transcript_vi": "Con đang kể về màu vàng",
+      "expected_concept_id": "COLOR_BASIC"
+    },
+    {
+      "scene_id": "OFF-086",
+      "age_band": "3-6",
+      "seed": 700086,
+      "label_vi": "màu vàng",
+      "transcript_vi": "Con đang kể về màu vàng",
+      "expected_concept_id": "COLOR_BASIC"
+    },
+    {
+      "scene_id": "OFF-087",
+      "age_band": "6-9",
+      "seed": 700087,
+      "label_vi": "màu vàng",
+      "transcript_vi": "Con đang kể về màu vàng",
+      "expected_concept_id": "COLOR_BASIC"
+    },
+    {
+      "scene_id": "OFF-088",
+      "age_band": "9-12",
+      "seed": 700088,
+      "label_vi": "màu vàng",
+      "transcript_vi": "Con đang kể về màu vàng",
+      "expected_concept_id": "COLOR_BASIC"
+    },
+    {
+      "scene_id": "OFF-089",
+      "age_band": "0-3",
+      "seed": 700089,
+      "label_vi": "cơ thể",
+      "transcript_vi": "Con đang kể về cơ thể",
+      "expected_concept_id": "PEOPLE_FAMILY"
+    },
+    {
+      "scene_id": "OFF-090",
+      "age_band": "3-6",
+      "seed": 700090,
+      "label_vi": "cơ thể",
+      "transcript_vi": "Con đang kể về cơ thể",
+      "expected_concept_id": "PEOPLE_FAMILY"
+    },
+    {
+      "scene_id": "OFF-091",
+      "age_band": "6-9",
+      "seed": 700091,
+      "label_vi": "cơ thể",
+      "transcript_vi": "Con đang kể về cơ thể",
+      "expected_concept_id": "PEOPLE_FAMILY"
+    },
+    {
+      "scene_id": "OFF-092",
+      "age_band": "9-12",
+      "seed": 700092,
+      "label_vi": "cơ thể",
+      "transcript_vi": "Con đang kể về cơ thể",
+      "expected_concept_id": "PEOPLE_FAMILY"
+    },
+    {
+      "scene_id": "OFF-093",
+      "age_band": "0-3",
+      "seed": 700093,
+      "label_vi": "xe ô tô",
+      "transcript_vi": "Con đang kể về xe ô tô",
+      "expected_concept_id": "VEHICLE_TRANSPORT"
+    },
+    {
+      "scene_id": "OFF-094",
+      "age_band": "3-6",
+      "seed": 700094,
+      "label_vi": "xe ô tô",
+      "transcript_vi": "Con đang kể về xe ô tô",
+      "expected_concept_id": "VEHICLE_TRANSPORT"
+    },
+    {
+      "scene_id": "OFF-095",
+      "age_band": "6-9",
+      "seed": 700095,
+      "label_vi": "xe ô tô",
+      "transcript_vi": "Con đang kể về xe ô tô",
+      "expected_concept_id": "VEHICLE_TRANSPORT"
+    },
+    {
+      "scene_id": "OFF-096",
+      "age_band": "9-12",
+      "seed": 700096,
+      "label_vi": "xe ô tô",
+      "transcript_vi": "Con đang kể về xe ô tô",
+      "expected_concept_id": "VEHICLE_TRANSPORT"
+    },
+    {
+      "scene_id": "OFF-097",
+      "age_band": "0-3",
+      "seed": 700097,
+      "label_vi": "vật chất",
+      "transcript_vi": "Con đang kể về vật chất",
+      "expected_concept_id": "SCIENCE_NATURE"
+    },
+    {
+      "scene_id": "OFF-098",
+      "age_band": "3-6",
+      "seed": 700098,
+      "label_vi": "vật chất",
+      "transcript_vi": "Con đang kể về vật chất",
+      "expected_concept_id": "SCIENCE_NATURE"
+    },
+    {
+      "scene_id": "OFF-099",
+      "age_band": "6-9",
+      "seed": 700099,
+      "label_vi": "vật chất",
+      "transcript_vi": "Con đang kể về vật chất",
+      "expected_concept_id": "SCIENCE_NATURE"
+    },
+    {
+      "scene_id": "OFF-100",
+      "age_band": "9-12",
+      "seed": 700100,
+      "label_vi": "vật chất",
+      "transcript_vi": "Con đang kể về vật chất",
+      "expected_concept_id": "SCIENCE_NATURE"
+    }
+  ]
+}

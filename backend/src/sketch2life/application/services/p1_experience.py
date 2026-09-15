@@ -566,7 +566,12 @@ class P1ExperienceCompiler:
             anchor_set, template, semantic_match
         )
         anchor_matches = not anchor_failures
-        objective_alignment = 100 if objective in template.objective_refs else 0
+        semantic_objectives = (
+            set(semantic_match.matched_objective_ids)
+            if semantic_match is not None and semantic_match.matched_objective_ids
+            else {ref.id for ref in template.objective_refs}
+        )
+        objective_alignment = 100 if objective.id in semantic_objectives else 0
         objective_matches = objective_alignment == 100
 
         # Hard mismatches zero the affected dimensions before weighted scoring.
