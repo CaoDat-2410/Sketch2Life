@@ -85,7 +85,7 @@
 
 ## Explicitly not approved
 
-- Any P2-T3 work outside the approved Phase B B1–B5 scope, P2-T4 through P2-T5, mobile/API/session/job orchestration, Gate A UI, database/storage/queue integration, real child data, and any provider credentials.
+- Any P2-T3 work outside the approved Phase B B1–B5 scope, P2-T4 implementation through P2-T5, mobile/API/session/job orchestration, Gate A UI, database/storage/queue integration, real child data, and any provider credentials.
 
 ## Historical compatibility-review authorization — 2026-09-05
 
@@ -247,3 +247,30 @@ FEAT-012 and ADR-0006 still govern the standalone Sprint 1 boundary. Person 2 do
   tables, deterministic canonical bytes/conflict IDs, evidence hash bindings, and a separate
   hand-authored schema-parity oracle.
 - Approved at: 2026-09-14, project owner direct instruction in the current conversation.
+
+## P2-T4 G1 contract-freeze approval and architecture policy — 2026-09-15
+
+- The project owner approved **Architecture Policy B / BASELINE** for P2-T4. The accepted
+  baseline fingerprint is: validator identity `tools/validate_architecture.py` (SHA-256
+  `fa236c8d389b608251153d601fc370efe3f3e2479446ca4a56a3d395f892e0b5`), rule/category
+  `application imports an outer layer`, exact file
+  `backend/src/sketch2life/application/services/backend_ai_workflow.py`, expected violation
+  count `1`. The validator must continue to report `ARCHITECTURE_INVALID` with only this exact
+  baseline finding; any new or changed finding blocks P2-T4 completion.
+- The project owner approved the immutable P2-T4 contract freeze at commit
+  `18d0c33d35431ca96a76692a68c6b992098699e7` with contract identity
+  `P2T4.P2T4FusedResultV1@1.0` and these normalized artifact bindings:
+  `P2_T4_CONTRACT_FREEZE_DRAFT.md` SHA-256
+  `be96b32aa675b7b6e46eea30effb2dbb91c718dc68ba7ce36d4d627ad6058ee2` and
+  `P2_T4_IMPLEMENTATION_APPROVAL_PACKAGE_DRAFT_20260913.md` SHA-256
+  `6821755722daf3bce622fe98eaf39124adb835c6854661143d79f48a943030d7`.
+- This G1 approval freezes the contract/package bytes and authorizes only governance records
+  that reference the exact commit, identity, and digests, plus preparation of a separate G2
+  implementation-approval request at
+  `plan/P2_T4_IMPLEMENTATION_APPROVAL_REQUEST_20260915.md`. The freeze/package must not be
+  edited in place.
+- G2 implementation approval is **NOT GRANTED**. The exact seven-file offline allowlist remains
+  a future scope only; no implementation, schema/runtime wiring, fixture generation, mapping
+  adoption, migration, integration, provider/model/GPU/Lightning/network execution, or P2-T5
+  work is authorized. Runtime/integration/live status remains **NOT APPROVED**.
+- Approved at: 2026-09-15, project owner direct instruction in the current conversation.

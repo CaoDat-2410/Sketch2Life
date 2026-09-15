@@ -404,6 +404,26 @@ This workstream owns media validation, ASR/VLM adapters, fusion, the proposed `P
   select a profile/runtime default. Phase 8 evidence closure is complete; P2-T3 remains in
   progress.
 
+## P2-T4 G1 freeze and architecture-policy status (2026-09-15)
+
+- The owner approved Architecture Policy B / BASELINE. The accepted validator fingerprint is
+  `tools/validate_architecture.py` SHA-256
+  `fa236c8d389b608251153d601fc370efe3f3e2479446ca4a56a3d395f892e0b5`, with exactly one finding:
+  `application imports an outer layer` at
+  `backend/src/sketch2life/application/services/backend_ai_workflow.py`. P2-T4 must add no
+  findings. `ARCHITECTURE_INVALID` remains the truthful result until that unrelated baseline is
+  separately remediated.
+- G1 contract freeze is approved at immutable commit
+  `18d0c33d35431ca96a76692a68c6b992098699e7` for `P2T4.P2T4FusedResultV1@1.0`, bound to freeze
+  digest `be96b32aa675b7b6e46eea30effb2dbb91c718dc68ba7ce36d4d627ad6058ee2` and package digest
+  `6821755722daf3bce622fe98eaf39124adb835c6854661143d79f48a943030d7`. The freeze and package
+  bytes are immutable and must not be edited in place.
+- Governance may now reference this exact approval and prepare a separate G2 request at
+  `plan/P2_T4_IMPLEMENTATION_APPROVAL_REQUEST_20260915.md`. G2 is not
+  approved: implementation, fixture generation, mapping/adoption, FEAT-018 integration, runtime,
+  provider/model/GPU/Lightning/network work, migration, and P2-T5 remain deferred. The seven-file
+  list remains a future allowlist, not authorization.
+
 ## Current Phase B benchmark-readiness truth (2026-08-30)
 
 - `features/FEAT-003-multimodal-understanding/fixtures/asr-round1/manifest.example.json` remains a metadata-only, empty `TEMPLATE`. `fixtures/asr-round1/manifest.json` is the real, `READY`, 21-fixture manifest (references/hashes/metadata only — no audio or transcript payload; both remain gitignored under `audio/**`/`transcripts/**`).

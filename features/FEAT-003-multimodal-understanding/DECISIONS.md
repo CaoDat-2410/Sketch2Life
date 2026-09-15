@@ -306,3 +306,23 @@ implementation or change `approvals/TASK_APPROVAL.md`.
   records.
 - This decision does not freeze a profile, select a runtime default, or authorize any GPU/Lightning
   work, P2-T4, or P2-T5.
+
+## P2-T4 G1 contract-freeze and architecture-policy decision (2026-09-15)
+
+- The owner selected **Architecture Policy B / BASELINE**. The pre-existing baseline is exactly
+  one `application imports an outer layer` finding for
+  `backend/src/sketch2life/application/services/backend_ai_workflow.py`, emitted by
+  `tools/validate_architecture.py` whose current SHA-256 is
+  `fa236c8d389b608251153d601fc370efe3f3e2479446ca4a56a3d395f892e0b5`. P2-T4 must introduce
+  zero additional findings; validation remains truthfully `ARCHITECTURE_INVALID` while this exact
+  fingerprint remains.
+- The owner approved the immutable contract freeze at commit
+  `18d0c33d35431ca96a76692a68c6b992098699e7` for `P2T4.P2T4FusedResultV1@1.0`. The approved
+  normalized bindings are freeze SHA-256
+  `be96b32aa675b7b6e46eea30effb2dbb91c718dc68ba7ce36d4d627ad6058ee2` and implementation-package
+  SHA-256 `6821755722daf3bce622fe98eaf39124adb835c6854661143d79f48a943030d7`.
+- G1 authorizes only immutable-reference governance updates and preparation of a separate G2
+  request. It does not authorize implementation, schema changes, fixture generation, mapping
+  adoption, runtime/integration, provider/model/GPU/Lightning/network work, migration, or P2-T5.
+- G2 implementation approval remains **NOT GRANTED** and implementation remains **NOT STARTED / NOT
+  AUTHORIZED**. The seven-file allowlist is not an approval.

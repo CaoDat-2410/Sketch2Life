@@ -4,9 +4,10 @@
   no profile frozen or runtime default selected; P2-T4 owner design decisions recorded
   2026-09-13, with the B0 reconciliation package complete as documentation-only evidence;
   the 2026-09-14 docs-only remediation/reissue passed two post-sync audits; the 2026-09-15
-  planning remediation holds P2-T4 at `HOLD / NOT APPROVED - plan remediation required`;
-  mapping/adoption, contract freeze, and P2-T4 implementation remain gated)
-- Plan revision: 6
+  planning remediation completed; P2-T4 contract freeze is `APPROVED` at the immutable G1
+  commit while implementation remains `NOT APPROVED`; Architecture Policy B is approved;
+  mapping/adoption, G2 implementation approval, and P2-T4 implementation remain gated)
+- Plan revision: 7
 - Implementation status: IN_PROGRESS (P2-T3 B1-B4, including the Direction A prompt-v3
   follow-up, are complete; prompt-v3 follow-up phases 1-6 and its mapping-readiness evaluation
   complete with a `MAPPING_READY` verdict and a `CAP_EXCEEDED` compute-governance result; prompt-v3
@@ -14,11 +15,9 @@
   `CAP_EXCEEDED` result; B5 evidence-only recommendation gate is complete, recommending
   `NOT_ENOUGH_EVIDENCE` to freeze any Qwen3-VL profile, with no profile frozen and no runtime
   default selected; the P2-T4 freeze draft (revision 11) and implementation-approval package
-  (revision 15) are `HOLD - NOT APPROVED` as committed at
-  `18d0c33d35431ca96a76692a68c6b992098699e7`, and the P2-T4 planning status is
-  `HOLD / NOT APPROVED - plan remediation required`; owner freeze, the architecture-validator
-  policy choice, mapping/adoption, and separate implementation approval remain pending; P2-T5
-  remains gated)
+  (revision 15) were approved immutably at
+  `18d0c33d35431ca96a76692a68c6b992098699e7`; mapping/adoption, G2 implementation approval,
+  and P2-T4 implementation remain gated; P2-T5 remains gated)
 - Owner: Person 2
 - Estimate: 10 points total (P2-T1 through P2-T5, 2 points each)
 
@@ -162,23 +161,25 @@ reason catalog are unchanged and out of that scope.
 **Goal:** Combine validated P2 ASR and Vision results into the proposed
 `P2T4.P2T4FusedResultV1@1.0` without erasing disagreement.
 
-**Current status (2026-09-15):** `HOLD / NOT APPROVED - plan remediation required`. The nine
+**Current status (2026-09-15):** `G1 CONTRACT FREEZE APPROVED / G2 IMPLEMENTATION NOT
+APPROVED`. The nine
 inherited owner decisions and the remediation selections are synchronized across the
 documentation package. The freeze draft (`plan/P2_T4_CONTRACT_FREEZE_DRAFT.md`, revision 11)
 and the implementation-approval package
 (`evidence/notes/P2_T4_IMPLEMENTATION_APPROVAL_PACKAGE_DRAFT_20260913.md`, revision 15) are
-both `HOLD - NOT APPROVED` at commit `18d0c33d35431ca96a76692a68c6b992098699e7`; that commit is
-the immutable freeze/package candidate and is not edited by this planning remediation. The two
+were approved immutably at commit `18d0c33d35431ca96a76692a68c6b992098699e7`; that commit is
+the immutable freeze/package source and is not edited by governance updates. The two
 independent post-sync final audits passed; the 2026-09-15 planning remediation corrects only
 `PLAN.md` and `P2_T4_FUSION_RESEARCH_PLAN.md` so that they match the freeze draft's CF-B1
 semantics, exact paths, service boundaries, and governance sequencing. The separately approved
 documentation-only B0 reconciliation is complete, but its mapping remains
 `PROPOSED_NOT_ADOPTED`. The active
 proposed output is exactly `P2T4.P2T4FusedResultV1@1.0` (`P2T4FusedResultV1 / 1.0`); the former
-`RawUnderstandingResultV1` wording is historical only. The exact seven-file offline core and
-reviewable freeze draft are future/proposed artifacts only. Result statuses are exactly
-`FUSED | UPSTREAM_FAILURE`; `NOT_FUSIBLE` is not part of the active v1 design. Contract freeze
-and implementation remain unapproved. The rejected live families are exactly
+`RawUnderstandingResultV1` wording is historical only. The freeze draft is the immutable
+G1-approved contract artifact; the exact seven-file offline core is a future allowlist only. Result
+statuses are exactly
+`FUSED | UPSTREAM_FAILURE`; `NOT_FUSIBLE` is not part of the active v1 design. Contract freeze is
+approved at G1; implementation remains unapproved. The rejected live families are exactly
 `FEAT018.LiveAsrResultV1@1.0` and `FEAT018.LiveVisionUnderstandingResultV1@1.0`.
 
 **Resolved design boundaries:** narration is support/refute-only and cannot create independent
@@ -288,8 +289,11 @@ owner approves the exact freeze commit + full normalized digest + identity
   -> a separate seven-file implementation approval is requested
 ```
 
-The current candidate is freeze draft revision 11 and package revision 15 at commit
-`18d0c33d35431ca96a76692a68c6b992098699e7`. No planning, approval, or governance record may
+The approved freeze is revision 11 and the approved package is revision 15 at commit
+`18d0c33d35431ca96a76692a68c6b992098699e7`, bound to freeze digest
+`be96b32aa675b7b6e46eea30effb2dbb91c718dc68ba7ce36d4d627ad6058ee2` and package digest
+`6821755722daf3bce622fe98eaf39124adb835c6854661143d79f48a943030d7`. No planning, approval,
+or governance record may
 edit the approved freeze draft or package in place to change its status. If a status change
 to the freeze/package is ever required, it needs a new revision, a new normalized digest,
 independent review, and renewed owner approval; the previously approved revision remains
@@ -321,28 +325,31 @@ run on CPython 3.13.x. G6/G7 evidence must record `sys.version`, the implementat
 (`3.13`). Determinism results from any other interpreter or version are not accepted as v1
 evidence.
 
-**Architecture-validator policy gate (owner decision required before G3):**
+**Architecture-validator policy gate (owner decision recorded before G3):**
 `python tools/validate_architecture.py` currently reports one pre-existing violation in
 `backend/src/sketch2life/application/services/backend_ai_workflow.py` (application layer
 imports an outer layer). That file is outside P2-T4 scope and is not modified by P2-T4. The
-owner must record exactly one policy before implementation starts; this plan does not select
-one:
+owner recorded exactly one policy before implementation starts:
 
 - Policy A (strict): the architecture validator must be fully green before G5, which
   requires a separately scoped remediation of the pre-existing violation first.
-- Policy B (baseline): the exact pre-existing fingerprint (`application imports an outer
-  layer: backend/src/sketch2life/application/services/backend_ai_workflow.py`) is accepted as
-  known baseline; P2-T4 introduces zero new violations; and the validator failure is still
-  reported truthfully in G6/G7 evidence, never suppressed or described as passing.
+- **Policy B (baseline) — APPROVED:** the exact pre-existing fingerprint (`application imports an
+  outer layer: backend/src/sketch2life/application/services/backend_ai_workflow.py`) is accepted
+  as known baseline; P2-T4 introduces zero new violations; and the validator failure is still
+  reported truthfully in G6/G7 evidence, never suppressed or described as passing. The validator
+  identity is `tools/validate_architecture.py` SHA-256
+  `fa236c8d389b608251153d601fc370efe3f3e2479446ca4a56a3d395f892e0b5`, with expected baseline
+  count `1`.
 
 **Future slices after the gates:**
 
-1. G1: the owner records the contract-freeze approval against the exact freeze commit,
-   digest, and identity; the B0 mapping remains a separate `PROPOSED_NOT_ADOPTED` record and
-   is not part of the T4 core. The owner also records the architecture-validator policy
-   (A or B).
+1. G1: **complete.** The owner recorded the contract-freeze approval against the exact freeze
+   commit, digests, and identity, and approved Architecture Policy B. The B0 mapping remains a
+   separate `PROPOSED_NOT_ADOPTED` record and is not part of the T4 core.
 2. G2: a separate approval names exactly the seven offline paths above, plus any evidence
-   path that G7 will create.
+   path that G7 will create. The prepared request is
+   `plan/P2_T4_IMPLEMENTATION_APPROVAL_REQUEST_20260915.md` and remains
+   `REQUESTED — NOT GRANTED`.
 3. G3-G5: implement pure deterministic fusion, bounded conflict detection, primary-only
    weighting with CF-B1 certainty, and uncertainty calculation only within those seven paths;
    review the candidate tree; commit the exact implementation checkpoint.
@@ -428,9 +435,12 @@ For one owner, work sequentially as T1, T2, T3, T4, T5. If two contributors are 
       fixtures, the CPython 3.13.x pin, freeze immutability, and the G1-G9 sequence in
       `PLAN.md` and `P2_T4_FUSION_RESEARCH_PLAN.md` without touching the freeze draft or
       package.
-- [ ] The owner records the architecture-validator policy (A strict or B baseline).
-- [ ] The owner records the separate contract-freeze decision (G1) against the exact
-      commit, digest, and identity.
+- [x] The owner records Architecture Policy B / BASELINE, including the exact validator
+      fingerprint and expected single baseline violation.
+- [x] The owner records the separate contract-freeze decision (G1) against commit
+      `18d0c33d35431ca96a76692a68c6b992098699e7`, identity `P2T4.P2T4FusedResultV1@1.0`,
+      freeze digest `be96b32aa675b7b6e46eea30effb2dbb91c718dc68ba7ce36d4d627ad6058ee2`, and
+      package digest `6821755722daf3bce622fe98eaf39124adb835c6854661143d79f48a943030d7`.
 - [ ] The owner records the separate seven-file implementation approval (G2).
 
 ## Evidence and review gates
