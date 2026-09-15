@@ -1,4 +1,4 @@
-"""FEAT-018 P2-T2 bounded live-Lightning smoke coordinator (offline-implementation stage).
+"""FEAT-018 P2-T2 bounded execution and evidence primitives (offline stage).
 
 Approved scope: see the owner-approved package at
 ``features/FEAT-018-live-image-canvas-flow/evidence/notes/P2_T2_BOUNDED_RUNNER_IMPLEMENTATION_APPROVAL_PACKAGE_DRAFT_20260914.md``
@@ -24,6 +24,7 @@ import json
 import math
 import multiprocessing
 import os
+import stat
 import sys
 import time
 import uuid
@@ -35,6 +36,7 @@ from pathlib import Path
 from typing import Any, Protocol, cast
 
 from sketch2life.application.ports.vision_content_policy import ObservableContentPolicyV1
+from sketch2life.application.services.raw_understanding_mapper import map_vision_result_to_raw
 from sketch2life.contracts.schemas.vision_v2 import (
     VisionProfileV2,
     VisionUnderstandingRequestV2,
@@ -90,6 +92,22 @@ def _positive_finite_float(value: object) -> float | None:
     if not math.isfinite(converted) or converted <= 0:
         return None
     return converted
+
+
+_BOUNDED_OPAQUE_ID_CHARACTERS = frozenset(
+    "abcdefghijklmnopqrstuvwxyz0123456789_-"
+)
+_BOUNDED_OPAQUE_ID_MAX_LENGTH = 64
+
+
+def _is_bounded_opaque_identifier(value: object) -> bool:
+    """Accept only safe logical identifiers, never paths, URLs, or secret-bearing text."""
+
+    return (
+        isinstance(value, str)
+        and 1 <= len(value) <= _BOUNDED_OPAQUE_ID_MAX_LENGTH
+        and all(character in _BOUNDED_OPAQUE_ID_CHARACTERS for character in value)
+    )
 
 
 # --------------------------------------------------------------------------------------
@@ -277,6 +295,7 @@ class ProgressEvent:
     kind: ProgressEventKind
     attempt_number: int | None = None
     outcome: str | None = None
+    raw_status: str | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.seq, int) or isinstance(self.seq, bool) or self.seq < 1:
@@ -294,6 +313,12 @@ class ProgressEvent:
             raise ValueError("TERMINAL requires a bounded outcome")
         if self.kind is not ProgressEventKind.TERMINAL and self.outcome is not None:
             raise ValueError(f"{self.kind} must not carry an outcome")
+        if self.raw_status is not None and (
+            self.kind is not ProgressEventKind.TERMINAL
+            or self.raw_status not in ("SUCCEEDED", "FAILED")
+            or self.raw_status != self.outcome
+        ):
+            raise ValueError("raw_status requires a matching terminal outcome")
 
 
 _VALID_TRANSITIONS: dict[ProgressState, frozenset[ProgressEventKind]] = {
@@ -323,6 +348,7 @@ class Feat018ProgressStateMachine:
         self._last_accepted_seq = 0
         self._attempt_count: int | None = None
         self._terminal_outcome: str | None = None
+        self._raw_status: str | None = None
 
     @property
     def state(self) -> ProgressState:
@@ -335,6 +361,10 @@ class Feat018ProgressStateMachine:
     @property
     def terminal_outcome(self) -> str | None:
         return self._terminal_outcome
+
+    @property
+    def raw_status(self) -> str | None:
+        return self._raw_status
 
     def force_freeze(self) -> None:
         """Called by the supervisor when its own bounded wait times out with no event at all."""
@@ -384,6 +414,7 @@ class Feat018ProgressStateMachine:
             )
         else:
             self._terminal_outcome = event.outcome
+            self._raw_status = event.raw_status
             self._state = ProgressState.TERMINAL
         return AcceptanceResult.ACCEPTED
 
@@ -1157,6 +1188,7 @@ class SupervisorRunResult:
     effective_outcome: EffectiveOutcome = EffectiveOutcome.FAILED
     stopped_before_containment: bool = False
     primary_failure_reason: str | None = None
+    raw_status: str | None = None
 
     @property
     def worker_terminal_outcome(self) -> str | None:
@@ -1298,6 +1330,7 @@ class Feat018AdapterCallSupervisor:
             effective_outcome=effective_outcome,
             stopped_before_containment=stopped_before_containment,
             primary_failure_reason=primary_failure_reason,
+            raw_status=state_machine.raw_status,
         )
 
     def _establish_containment_gate(
@@ -1476,6 +1509,7 @@ def adapter_worker_entry(
     content_policy: ObservableContentPolicyV1,
     prompt: str,
     config: Feat018BoundedRunnerConfig,
+    session_id: str | None = None,
     *,
     generation_launcher: ProcessLauncher | None = None,
     self_contain: Callable[[], None] = posix_worker_self_contain,
@@ -1562,17 +1596,31 @@ def adapter_worker_entry(
         generation_runner=runner,
     )
 
+    raw_status: str | None = None
     try:
         result = adapter.understand(request)
         if attempt_event_send_failed["value"]:
             raise Feat018ProtocolViolationError("worker attempt event send failed")
         outcome = "SUCCEEDED" if isinstance(result, VisionUnderstandingSuccessV2) else "FAILED"
+        if session_id is not None:
+            if not _is_bounded_opaque_identifier(session_id):
+                raise ValueError("session_id must be a bounded opaque identifier")
+            mapped = map_vision_result_to_raw(
+                result,
+                session_id=session_id,
+                expected_source_sha256=request.source_image_ref.sha256,
+                expected_correlation_id=request.correlation_id,
+            )
+            raw_status = mapped.status
     except Exception:  # noqa: BLE001 - never let an adapter-side exception cross the boundary
         if attempt_event_send_failed["value"]:
             raise Feat018ProtocolViolationError("worker attempt event send failed") from None
         outcome = "FAILED"
 
-    _send("TERMINAL", outcome=outcome)
+    if raw_status is None:
+        _send("TERMINAL", outcome=outcome)
+    else:
+        _send("TERMINAL", outcome=outcome, raw_status=raw_status)
 
 
 def run_bounded_adapter_call(
@@ -1581,6 +1629,8 @@ def run_bounded_adapter_call(
     content_policy: ObservableContentPolicyV1,
     prompt: str,
     config: Feat018BoundedRunnerConfig,
+    *,
+    session_id: str | None = None,
 ) -> SupervisorRunResult:
     """The one real, production entry point for a live bounded adapter call (F3).
 
@@ -1589,8 +1639,13 @@ def run_bounded_adapter_call(
     function. This function itself is never invoked by the offline test suite (doing so would
     require a real subprocess); its constituent pieces -- the supervisor, the entry's gate logic,
     and the generation runner -- are each independently tested through injected fakes.
+    ``session_id`` is a bounded opaque bootstrap argument. Spawn multiprocessing may serialize
+    it across the worker boundary, but it is never placed in progress/event frames or evidence
+    payload bodies.
     """
 
+    if session_id is not None and not _is_bounded_opaque_identifier(session_id):
+        raise ValueError("session_id must be a bounded opaque identifier")
     launcher = MultiprocessingProcessLauncher(max_envelope_bytes=config.ipc_envelope_max_bytes)
     supervisor = Feat018AdapterCallSupervisor(
         config=config,
@@ -1599,20 +1654,21 @@ def run_bounded_adapter_call(
     )
     return supervisor.run(
         adapter_worker_entry,
-        (request, runtime_config, content_policy, prompt, config),
+        (request, runtime_config, content_policy, prompt, config, session_id),
     )
 
 
 def _progress_event_from_frame(frame: Mapping[str, object]) -> ProgressEvent | None:
     if not isinstance(frame, Mapping):
         return None
-    allowed_keys = {"seq", "kind", "attempt_number", "outcome"}
+    allowed_keys = {"seq", "kind", "attempt_number", "outcome", "raw_status"}
     if any(not isinstance(key, str) for key in frame) or set(frame) - allowed_keys:
         return None
     seq = frame.get("seq")
     kind_raw = frame.get("kind")
     attempt_number = frame.get("attempt_number")
     outcome = frame.get("outcome")
+    raw_status = frame.get("raw_status")
     if (
         not isinstance(seq, int)
         or isinstance(seq, bool)
@@ -1624,9 +1680,14 @@ def _progress_event_from_frame(frame: Mapping[str, object]) -> ProgressEvent | N
         return None
     if outcome is not None and not isinstance(outcome, str):
         return None
+    if raw_status is not None and not isinstance(raw_status, str):
+        return None
     try:
         kind = ProgressEventKind(kind_raw)
-        return ProgressEvent(seq=seq, kind=kind, attempt_number=attempt_number, outcome=outcome)
+        return ProgressEvent(
+            seq=seq, kind=kind, attempt_number=attempt_number,
+            outcome=outcome, raw_status=raw_status,
+        )
     except ValueError:
         return None
 
@@ -1691,7 +1752,9 @@ def new_evidence_id() -> str:
 class Feat018EvidenceCommitWriter:
     """The three-state commit protocol: provisional result -> provisional artifacts ->
     authoritative committed pair. The JSON file is the sole designated commit record; its
-    rename is the sole commit point. The Markdown never carries a hash of the JSON.
+    rename is the sole commit point. When supplied, ``precommit`` runs for the provisional pair
+    and again for the Markdown-final/JSON-temporary pair immediately before that commit point.
+    The Markdown never carries a hash of the JSON.
     """
 
     json_path: Path
@@ -1705,6 +1768,7 @@ class Feat018EvidenceCommitWriter:
         evidence_id: str,
         json_fields: Mapping[str, object],
         markdown_body: str,
+        precommit: Callable[[Path, Path], bool] | None = None,
     ) -> EvidenceCommitResult:
         markdown_content = _render_markdown(run_id, evidence_id, markdown_body).encode("utf-8")
         markdown_sha256 = sha256(markdown_content).hexdigest()
@@ -1737,12 +1801,60 @@ class Feat018EvidenceCommitWriter:
             )
 
         try:
+            if not self._verify_precommit(
+                json_candidate=json_temp,
+                markdown_candidate=markdown_temp,
+                json_content=json_content,
+                markdown_content=markdown_content,
+                precommit=precommit,
+                markdown_is_final=False,
+            ):
+                raise Feat018EvidenceCommitError("precommit verification failed")
+        except Exception:  # noqa: BLE001 - an incomplete gate never reaches the commit point
+            residual = self._remove_provisional_pair(json_temp, markdown_temp)
+            return EvidenceCommitResult(
+                committed=False,
+                run_id=run_id,
+                evidence_id=evidence_id,
+                residual_paths=residual,
+                failure_reason="precommit verification failed",
+            )
+
+        try:
             self.fs.rename(markdown_temp, self.markdown_path)
         except OSError as exc:
             self._safe_remove(markdown_temp)
             self._safe_remove(json_temp)
             return EvidenceCommitResult(
                 committed=False, run_id=run_id, evidence_id=evidence_id, failure_reason=str(exc)
+            )
+
+        # The first inventory scan is deliberately not the commit boundary. Recheck after the
+        # Markdown rename, immediately before the authoritative JSON rename. This closes the
+        # ordinary mutation window under the approved quiescent single-writer invariant: the
+        # completed cleanup has removed every supervised process/descendant and no runtime writer
+        # remains; this finalizer is then the sole authorized writer. It is not filesystem-wide
+        # atomicity and does not defend against an unrelated hostile external writer.
+        try:
+            if not self._verify_precommit(
+                json_candidate=json_temp,
+                markdown_candidate=self.markdown_path,
+                json_content=json_content,
+                markdown_content=markdown_content,
+                precommit=precommit,
+                markdown_is_final=True,
+            ):
+                raise Feat018EvidenceCommitError("commit-adjacent verification failed")
+        except Exception:  # noqa: BLE001 - an incomplete gate never reaches the commit point
+            residual = self._remove_provisional_pair(
+                json_temp, markdown_temp, self.markdown_path
+            )
+            return EvidenceCommitResult(
+                committed=False,
+                run_id=run_id,
+                evidence_id=evidence_id,
+                residual_paths=residual,
+                failure_reason="commit-adjacent verification failed",
             )
 
         try:
@@ -1759,6 +1871,48 @@ class Feat018EvidenceCommitWriter:
 
         return EvidenceCommitResult(committed=True, run_id=run_id, evidence_id=evidence_id)
 
+    def _verify_precommit(
+        self,
+        *,
+        json_candidate: Path,
+        markdown_candidate: Path,
+        json_content: bytes,
+        markdown_content: bytes,
+        precommit: Callable[[Path, Path], bool] | None,
+        markdown_is_final: bool,
+    ) -> bool:
+        """Run one bounded audit and exact-byte check for a commit transition."""
+
+        if self.fs.exists(self.json_path):
+            return False
+        if markdown_is_final:
+            if not self.fs.exists(self.markdown_path):
+                return False
+        elif self.fs.exists(self.markdown_path):
+            return False
+
+        # Read before and after the callback: a callback may be an injected audit fake, and a
+        # changed provisional pair must never be renamed even if that callback returns true.
+        if self.fs.read_bytes(json_candidate) != json_content:
+            return False
+        if self.fs.read_bytes(markdown_candidate) != markdown_content:
+            return False
+        if precommit is not None and precommit(json_candidate, markdown_candidate) is not True:
+            return False
+        return (
+            self.fs.read_bytes(json_candidate) == json_content
+            and self.fs.read_bytes(markdown_candidate) == markdown_content
+        )
+
+    def _remove_provisional_pair(self, *paths: Path) -> tuple[Path, ...]:
+        residual: list[Path] = []
+        for path in paths:
+            try:
+                self.fs.remove(path)
+            except Exception:  # noqa: BLE001 - retain every unverified residual
+                residual.append(path)
+        return tuple(residual)
+
     def _rollback_after_json_rename_failure(self, json_temp: Path) -> tuple[Path, ...]:
         residual: list[Path] = []
         try:
@@ -1774,6 +1928,331 @@ class Feat018EvidenceCommitWriter:
     def _safe_remove(self, path: Path) -> None:
         with contextlib.suppress(OSError):
             self.fs.remove(path)
+
+
+@dataclass(slots=True)
+class Feat018EvidenceFinalizer:
+    """Finalize an outcome after cleanup and an explicit provisional-artifact audit.
+
+    The caller supplies the complete session/artifact audit; this class enforces ordering
+    and publication failure semantics, not the inventory's completeness. It does not run
+    a model or constitute the still-pending complete live smoke coordinator.
+    """
+
+    writer: Feat018EvidenceCommitWriter
+
+    def finalize(
+        self,
+        *,
+        run_id: str,
+        evidence_id: str,
+        runtime_outcome: EffectiveOutcome,
+        cleanup: Callable[[], CleanupStatus],
+        postflight: Callable[[Path, Path], bool],
+    ) -> EvidenceCommitResult:
+        try:
+            cleanup_status = cleanup()
+        except Exception:  # noqa: BLE001 - no exception payload is publishable
+            cleanup_status = CleanupStatus.CLEANUP_FAILED
+
+        if not all(_is_bounded_opaque_identifier(value) for value in (run_id, evidence_id)):
+            raise ValueError("evidence identities must be bounded opaque lowercase identifiers")
+        if not isinstance(runtime_outcome, EffectiveOutcome):
+            raise ValueError("runtime_outcome must be an EffectiveOutcome")
+        if not callable(postflight):
+            raise ValueError("postflight is mandatory")
+
+        # A successful cleanup is the owner-approved quiescent-session invariant: every
+        # supervised process and descendant is absent, no runtime writer remains, and this
+        # finalizer is the sole authorized evidence writer. Any failed or unverifiable cleanup
+        # prevents publication, including FAILED evidence. The future coordinator handles this
+        # safe failure through its incident path.
+        if cleanup_status is not CleanupStatus.SUCCEEDED:
+            return EvidenceCommitResult(
+                committed=False,
+                run_id=run_id,
+                evidence_id=evidence_id,
+                failure_reason="cleanup verification failed",
+            )
+
+        candidates = (
+            self.writer.json_path,
+            self.writer.markdown_path,
+            self.writer.json_path.with_name(self.writer.json_path.name + f".tmp-{run_id}"),
+            self.writer.markdown_path.with_name(self.writer.markdown_path.name + f".tmp-{run_id}"),
+        )
+        try:
+            if any(self.writer.fs.exists(path) for path in candidates):
+                raise Feat018EvidenceCommitError("evidence destination already exists")
+            result = self.writer.commit(
+                run_id=run_id,
+                evidence_id=evidence_id,
+                json_fields={
+                    "status": runtime_outcome.value,
+                    "cleanup_status": cleanup_status.value,
+                    "postflight_status": "SUCCEEDED",
+                },
+                markdown_body=(
+                    f"status: {runtime_outcome.value}\n"
+                    f"cleanup_status: {cleanup_status.value}\npostflight_status: SUCCEEDED"
+                ),
+                precommit=postflight,
+            )
+        except Exception:  # noqa: BLE001 - fail closed and expose no filesystem/exception text
+            return EvidenceCommitResult(
+                committed=False,
+                run_id=run_id,
+                evidence_id=evidence_id,
+                residual_paths=candidates,
+                failure_reason="evidence publication failed; residual inventory requires review",
+            )
+        if result.committed:
+            return result
+        residual = list(result.residual_paths)
+        for path in candidates:
+            try:
+                remains = self.writer.fs.exists(path)
+            except Exception:  # noqa: BLE001 - unverified paths require incident review
+                remains = True
+            if remains and path not in residual:
+                residual.append(path)
+        return EvidenceCommitResult(
+            committed=False,
+            run_id=run_id,
+            evidence_id=evidence_id,
+            residual_paths=tuple(residual),
+            failure_reason="evidence publication failed",
+        )
+
+
+@dataclass(slots=True)
+class Feat018ArtifactInventory:
+    """Bounded metadata inventory of explicit roots, including ignored files.
+
+    Root selection is approval input. Metadata equality is not a substitute for
+    separately verified source/fixture content hashes or session/process teardown. The evidence
+    writer invokes :meth:`verify_provisional` once before the Markdown rename and again after
+    that rename, immediately before the JSON commit point. This is sufficient only under the
+    approved quiescent single-writer invariant; it is not filesystem-wide atomicity or
+    protection from an unrelated hostile writer, and it does not defeat timestamp restoration.
+    """
+
+    roots: tuple[Path, ...]
+    max_entries: int
+    _baseline: dict[Path, tuple[int, ...]] | None = field(default=None, init=False, repr=False)
+
+    def __post_init__(self) -> None:
+        if not self.roots or type(self.max_entries) is not int or self.max_entries < 1:
+            raise ValueError("explicit roots and a positive entry budget are required")
+        self.roots = tuple(path.absolute() for path in self.roots)
+        for index, root in enumerate(self.roots):
+            if ".worktrees" in {part.casefold() for part in root.parts}:
+                raise ValueError("other worktree inventory is forbidden")
+            for other in self.roots[:index]:
+                if root.is_relative_to(other) or other.is_relative_to(root):
+                    raise ValueError("inventory roots must not overlap")
+
+    @staticmethod
+    def _fingerprint(path: Path) -> tuple[int, ...]:
+        metadata = path.lstat()
+        if stat.S_ISLNK(metadata.st_mode) or getattr(metadata, "st_file_attributes", 0) & 0x400:
+            raise Feat018EvidenceCommitError("inventory link/reparse point is forbidden")
+        identity = (metadata.st_mode, metadata.st_dev, metadata.st_ino)
+        if stat.S_ISDIR(metadata.st_mode):
+            return identity
+        if not stat.S_ISREG(metadata.st_mode):
+            raise Feat018EvidenceCommitError("inventory special file is forbidden")
+        return (*identity, metadata.st_size, metadata.st_mtime_ns, metadata.st_ctime_ns)
+
+    def _scan(self) -> dict[Path, tuple[int, ...]]:
+        observed: dict[Path, tuple[int, ...]] = {}
+        pending = list(self.roots)
+        for root in self.roots:
+            for parent in root.parents:
+                self._fingerprint(parent)
+            if not stat.S_ISDIR(self._fingerprint(root)[0]):
+                raise Feat018EvidenceCommitError("inventory root must be a directory")
+        while pending:
+            path = pending.pop()
+            if ".worktrees" in {part.casefold() for part in path.parts}:
+                raise Feat018EvidenceCommitError("other worktree inventory is forbidden")
+            fingerprint = self._fingerprint(path)
+            observed[path] = fingerprint
+            if len(observed) > self.max_entries:
+                raise Feat018EvidenceCommitError("inventory entry budget exceeded")
+            if stat.S_ISDIR(fingerprint[0]):
+                with os.scandir(path) as entries:
+                    for entry in entries:
+                        if len(observed) + len(pending) >= self.max_entries:
+                            raise Feat018EvidenceCommitError("inventory entry budget exceeded")
+                        pending.append(path / entry.name)
+        return observed
+
+    def capture(self) -> None:
+        self._baseline = None
+        self._baseline = self._scan()
+
+    def verify_provisional(self, json_temp: Path, markdown_temp: Path) -> bool:
+        if self._baseline is None:
+            return False
+        allowed = (json_temp.absolute(), markdown_temp.absolute())
+        if allowed[0] == allowed[1] or any(path in self._baseline for path in allowed):
+            return False
+        try:
+            current = self._scan()
+            for path in allowed:
+                fingerprint = current.pop(path, None)
+                if fingerprint is None or not stat.S_ISREG(fingerprint[0]):
+                    return False
+            return current == self._baseline
+        except Exception:  # noqa: BLE001 - no traversal error is a passing audit
+            return False
+
+
+@dataclass(slots=True)
+class Feat018IncidentWriter:
+    """Write only the approved ignored incident path with no exception/path interpolation.
+
+    The future coordinator must pass a path relative to the repository root and an explicit
+    ``git_ignored=True`` result from its preflight. The writer does not infer Git state.
+    """
+
+    path: Path
+    repository_root: Path | None = None
+    git_ignored: bool = False
+    fs: FilesystemOps = field(default_factory=RealFilesystemOps)
+    _path_was_absolute: bool = field(default=False, init=False, repr=False)
+    _path_has_dot_component: bool = field(default=False, init=False, repr=False)
+
+    def __post_init__(self) -> None:
+        self._path_was_absolute = self.path.is_absolute()
+        self._path_has_dot_component = any(part in {".", ".."} for part in self.path.parts)
+        root = (self.repository_root or Path.cwd()).absolute()
+        self.repository_root = root
+        if not self._path_was_absolute:
+            self.path = (root / self.path).absolute()
+
+    def _destination_is_approved(self, run_id: str) -> bool:
+        if not _is_bounded_opaque_identifier(run_id) or self.git_ignored is not True:
+            return False
+        if self._path_was_absolute or self.repository_root is None:
+            return False
+        if self._path_has_dot_component:
+            return False
+        expected_relative = (
+            Path("tmp") / f"feat018-live-lightning-incident-{run_id}" / "INCIDENT.md"
+        )
+        expected = (self.repository_root / expected_relative).absolute()
+        if os.path.normcase(str(self.path)) != os.path.normcase(str(expected)):
+            return False
+        try:
+            if not self.path.is_relative_to(self.repository_root / "tmp"):
+                return False
+        except ValueError:
+            return False
+        return self._path_components_are_safe(self.path, self.repository_root)
+
+    @staticmethod
+    def _path_components_are_safe(path: Path, root: Path) -> bool:
+        current = path
+        root_key = os.path.normcase(str(root))
+        while True:
+            try:
+                metadata = current.lstat()
+            except FileNotFoundError:
+                metadata = None
+            except OSError:
+                return False
+            if metadata is not None and (
+                stat.S_ISLNK(metadata.st_mode)
+                or bool(getattr(metadata, "st_file_attributes", 0) & 0x400)
+            ):
+                return False
+            if os.path.normcase(str(current)) == root_key:
+                return metadata is not None and stat.S_ISDIR(metadata.st_mode)
+            parent = current.parent
+            if parent == current:
+                return False
+            current = parent
+
+    def write(self, result: EvidenceCommitResult) -> bool:
+        if result.committed:
+            return False
+        if not self._destination_is_approved(result.run_id):
+            return False
+        if not _is_bounded_opaque_identifier(result.evidence_id):
+            return False
+        content = (
+            "# FEAT-018 incident\nstatus: FAILED\nevidence_committed: false\n"
+            f"run_id: {result.run_id}\nevidence_id: {result.evidence_id}\n"
+            f"residual_count: {len(result.residual_paths)}\n"
+            "residual_disposition: REQUIRES_LOCAL_REVIEW\n"
+        ).encode("ascii")
+        try:
+            self.fs.write_new(self.path, content)
+        except Exception:  # noqa: BLE001 - incident failure is observable without raw details
+            return False
+        return True
+
+
+@dataclass(frozen=True, slots=True)
+class SmokeFinalizationResult:
+    evidence: EvidenceCommitResult
+    incident_written: bool
+
+
+def finalize_smoke_run(
+    result: SupervisorRunResult,
+    *,
+    run_id: str,
+    evidence_id: str,
+    inventory: Feat018ArtifactInventory,
+    cleanup: Callable[[], CleanupStatus],
+    writer: Feat018EvidenceCommitWriter,
+    incident: Feat018IncidentWriter,
+) -> SmokeFinalizationResult:
+    """Publish only a mapped, cleaned result with a passing real inventory comparison.
+
+    The inventory baseline must be captured by preflight. The cleanup callback is the
+    quiescent-session barrier: it must confirm that every supervised process/descendant is
+    absent and that no runtime writer remains before evidence finalization becomes the sole
+    authorized writer. This function never recaptures the baseline after runtime changes, never
+    claims filesystem-wide atomicity against an unrelated external writer, and never promotes
+    worker diagnostics.
+    """
+
+    outcome = EffectiveOutcome.FAILED
+    if result.cleanup_status is CleanupStatus.CLEANUP_FAILED:
+        outcome = EffectiveOutcome.CLEANUP_FAILED
+    elif (
+        result.effective_outcome is EffectiveOutcome.SUCCEEDED
+        and result.raw_status == "SUCCEEDED"
+        and result.final_state is ProgressState.TERMINAL
+        and result.terminal_outcome == "SUCCEEDED"
+        and result.primary_failure_reason is None
+    ):
+        outcome = EffectiveOutcome.SUCCEEDED
+
+    def cleanup_all() -> CleanupStatus:
+        session_status = cleanup()
+        if (
+            result.cleanup_status is not CleanupStatus.SUCCEEDED
+            or session_status is not CleanupStatus.SUCCEEDED
+        ):
+            return CleanupStatus.CLEANUP_FAILED
+        return CleanupStatus.SUCCEEDED
+
+    evidence = Feat018EvidenceFinalizer(writer).finalize(
+        run_id=run_id,
+        evidence_id=evidence_id,
+        runtime_outcome=outcome,
+        cleanup=cleanup_all,
+        postflight=inventory.verify_provisional,
+    )
+    return SmokeFinalizationResult(
+        evidence=evidence,
+        incident_written=incident.write(evidence) if not evidence.committed else False,
+    )
 
 
 def _render_markdown(run_id: str, evidence_id: str, body: str) -> str:
@@ -1847,6 +2326,11 @@ def _extract_markdown_identity(markdown_bytes: bytes) -> tuple[str | None, str |
 
 
 __all__ = [
+    "SmokeFinalizationResult",
+    "finalize_smoke_run",
+    "Feat018ArtifactInventory",
+    "Feat018IncidentWriter",
+    "Feat018EvidenceFinalizer",
     "AcceptanceResult",
     "BoundedConnection",
     "CleanupStatus",

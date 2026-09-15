@@ -10,7 +10,9 @@ approved package's real-adapter compatibility contract.
 
 from __future__ import annotations
 
+import json
 import multiprocessing
+import stat
 from collections import deque
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
@@ -24,13 +26,17 @@ from sketch2life.benchmark.feat018_live_lightning_execution import (
     BoundedConnection,
     CleanupStatus,
     EffectiveOutcome,
+    EvidenceCommitResult,
     Feat018AdapterCallSupervisor,
+    Feat018ArtifactInventory,
     Feat018BoundedKillableQwenGenerationRunner,
     Feat018BoundedRunnerConfig,
     Feat018CleanupFailedError,
     Feat018ContainmentError,
     Feat018EvidenceCommitWriter,
+    Feat018EvidenceFinalizer,
     Feat018FrameTooLargeError,
+    Feat018IncidentWriter,
     Feat018LauncherError,
     Feat018ProgressStateMachine,
     Feat018ProtocolViolationError,
@@ -42,11 +48,13 @@ from sketch2life.benchmark.feat018_live_lightning_execution import (
     ProgressEvent,
     ProgressEventKind,
     ProgressState,
+    SupervisorRunResult,
     WindowsJobObjectContainment,
     _Win32JobHandles,  # noqa: PLC2701 - white-box test of the ctypes binding surface (F4)
     adapter_worker_entry,
     decode_envelope,
     encode_envelope,
+    finalize_smoke_run,
     new_evidence_id,
     new_run_id,
     read_committed_pair,
@@ -1920,6 +1928,52 @@ class TestAdapterWorkerEntryGate:
         assert connection.sent[-1]["outcome"] == "SUCCEEDED"
         assert generation_launcher.launch_calls  # the generation child was actually launched
 
+    @pytest.mark.parametrize(
+        ("session_id", "frame", "outcome", "raw_status"),
+        [
+            ("synthetic-session", {"kind": "success", "raw_output": _success_payload()},
+             "SUCCEEDED", "SUCCEEDED"),
+            ("synthetic-session", {"kind": "device_unavailable"}, "FAILED", "FAILED"),
+            ("", {"kind": "success", "raw_output": _success_payload()}, "FAILED", None),
+            (None, {"kind": "success", "raw_output": _success_payload()}, "SUCCEEDED", None),
+        ],
+    )
+    def test_real_worker_maps_before_terminal_without_transferring_content(
+        self, image: tuple[str, str], session_id: str | None,
+        frame: dict[str, object], outcome: str, raw_status: str | None,
+    ) -> None:
+        connection = FakeBoundedConnection()
+        connection.push({"kind": "CONTAINMENT_READY", "remaining_seconds_at_spawn": 100.0})
+        launcher = _launcher()
+        launcher.connection.push(frame)
+        adapter_worker_entry(
+            connection, *self._args(*image), session_id,
+            generation_launcher=launcher, self_contain=lambda: None, clock=FakeClock(),
+        )
+        terminal = connection.sent[-1]
+        assert terminal["outcome"] == outcome
+        assert terminal.get("raw_status") == raw_status
+        assert set(terminal) == (
+            {"seq", "kind", "outcome", "raw_status"} if raw_status is not None
+            else {"seq", "kind", "outcome"}
+        )
+        assert "synthetic-session" not in json.dumps(connection.sent)
+
+    @pytest.mark.parametrize("acceptance_time", [2.0, 10.0, 11.0])
+    def test_mapper_claim_only_survives_accepted_terminal(self, acceptance_time: float) -> None:
+        state = Feat018ProgressStateMachine(cap_deadline_monotonic=10.0)
+        state.accept(ProgressEvent(1, ProgressEventKind.ADAPTER_STARTED), acceptance_time=0.0)
+        event = ProgressEvent(2, ProgressEventKind.TERMINAL,
+                              outcome="SUCCEEDED", raw_status="SUCCEEDED")
+        state.accept(event, acceptance_time=acceptance_time)
+        assert state.raw_status == ("SUCCEEDED" if acceptance_time < 10.0 else None)
+
+    @pytest.mark.parametrize("raw_status", ["SECRET", "FAILED"])
+    def test_invalid_mapper_claim_is_rejected(self, raw_status: str) -> None:
+        with pytest.raises(ValueError, match="raw_status"):
+            ProgressEvent(1, ProgressEventKind.TERMINAL,
+                          outcome="SUCCEEDED", raw_status=raw_status)
+
     def test_default_inner_launcher_is_constructed_after_containment_release(
         self, image: tuple[str, str], monkeypatch: pytest.MonkeyPatch
     ) -> None:
@@ -2918,6 +2972,416 @@ class TestEvidenceCommitProtocol:
         assert not result.committed
         assert markdown_path in result.residual_paths
         assert markdown_path.exists()  # truthfully still present, not silently deleted
+
+
+class TestEvidenceFinalizer:
+    @pytest.mark.parametrize("runtime_outcome", list(EffectiveOutcome))
+    def test_commit_point_follows_cleanup_and_provisional_audit(
+        self, tmp_path: Path, runtime_outcome: EffectiveOutcome
+    ) -> None:
+        events: list[str] = []
+
+        class RecordingFs(_FaultyFilesystemOps):
+            def write_new(self, path: Path, content: bytes) -> None:
+                events.append("write:" + path.suffix)
+                super().write_new(path, content)
+
+            def rename(self, source: Path, destination: Path) -> None:
+                events.append("rename:" + destination.suffix)
+                assert "audit" in events
+                super().rename(source, destination)
+
+        writer = Feat018EvidenceCommitWriter(
+            tmp_path / "result.json", tmp_path / "result.md", RecordingFs()
+        )
+        audit_paths: list[tuple[Path, Path]] = []
+
+        def cleanup() -> CleanupStatus:
+            events.append("cleanup")
+            return CleanupStatus.SUCCEEDED
+
+        def audit(provisional_json: Path, provisional_md: Path) -> bool:
+            audit_paths.append((provisional_json, provisional_md))
+            assert not writer.json_path.exists()
+            if provisional_md == writer.markdown_path:
+                assert writer.markdown_path.exists()
+            else:
+                assert not writer.markdown_path.exists()
+            assert read_committed_pair(provisional_json, provisional_md).verdict is (
+                PairVerdict.AUTHORITATIVE
+            )
+            assert json.loads(provisional_json.read_bytes())["status"] == runtime_outcome.value
+            events.append("audit")
+            return True
+
+        result = Feat018EvidenceFinalizer(writer).finalize(
+            run_id="run", evidence_id="ev", runtime_outcome=runtime_outcome,
+            cleanup=cleanup, postflight=audit,
+        )
+        assert result.committed
+        assert events == ["cleanup", "write:.tmp-run", "write:.tmp-run", "audit",
+                          "rename:.md", "audit", "rename:.json"]
+        assert len(audit_paths) == 2
+        assert audit_paths[0][1].name.endswith(".tmp-run")
+        assert audit_paths[1][1] == writer.markdown_path
+
+        if runtime_outcome is EffectiveOutcome.SUCCEEDED:
+            late_json = tmp_path / "late-result.json"
+            late_markdown = tmp_path / "late-result.md"
+            late_writer = Feat018EvidenceCommitWriter(
+                late_json, late_markdown, _FaultyFilesystemOps()
+            )
+            late_inventory = Feat018ArtifactInventory((tmp_path,), max_entries=50)
+            late_inventory.capture()
+            late_audit_calls = [0]
+
+            def late_audit(json_candidate: Path, markdown_candidate: Path) -> bool:
+                late_audit_calls[0] += 1
+                if late_audit_calls[0] == 2:
+                    (tmp_path / "mutation-immediately-before-json-commit").write_bytes(b"late")
+                return late_inventory.verify_provisional(json_candidate, markdown_candidate)
+
+            late_result = Feat018EvidenceFinalizer(late_writer).finalize(
+                run_id="late-run", evidence_id="late-ev",
+                runtime_outcome=EffectiveOutcome.SUCCEEDED,
+                cleanup=lambda: CleanupStatus.SUCCEEDED,
+                postflight=late_audit,
+            )
+            assert not late_result.committed
+            assert late_audit_calls[0] == 2
+            assert not late_json.exists() and not late_markdown.exists()
+        assert json.loads(writer.json_path.read_bytes())["status"] == runtime_outcome.value
+        assert f"status: {runtime_outcome.value}" in writer.markdown_path.read_text()
+        before = (writer.json_path.read_bytes(), writer.markdown_path.read_bytes())
+        assert read_committed_pair(writer.json_path, writer.markdown_path).verdict is (
+            PairVerdict.AUTHORITATIVE
+        )
+        assert before == (writer.json_path.read_bytes(), writer.markdown_path.read_bytes())
+
+    @pytest.mark.parametrize("raises", [False, True])
+    def test_cleanup_failure_cannot_publish_success(self, tmp_path: Path, raises: bool) -> None:
+        writer, _, jp, mp = TestEvidenceCommitProtocol()._writer(tmp_path)
+
+        def cleanup() -> CleanupStatus:
+            if raises:
+                raise RuntimeError("SECRET-CLEANUP-DETAIL")
+            return CleanupStatus.CLEANUP_FAILED
+
+        def audit(_jp: Path, _mp: Path) -> bool:
+            pytest.fail("audit must not run after unverifiable cleanup")
+
+        result = Feat018EvidenceFinalizer(writer).finalize(
+            run_id="run", evidence_id="ev", runtime_outcome=EffectiveOutcome.SUCCEEDED,
+            cleanup=cleanup, postflight=audit,
+        )
+        assert not result.committed
+        assert "SECRET" not in str(result)
+        assert not jp.exists() and not mp.exists()
+
+    @pytest.mark.parametrize("mode", ["false", "exception", "json-mutation", "md-mutation"])
+    def test_precommit_gate_cannot_leave_false_pass(self, tmp_path: Path, mode: str) -> None:
+        writer, _, jp, mp = TestEvidenceCommitProtocol()._writer(tmp_path)
+        inventory: Feat018ArtifactInventory | None = None
+        audit_calls = 0
+        if mode == "md-mutation":
+            writer.json_path.parent.mkdir(parents=True, exist_ok=True)
+            writer.markdown_path.parent.mkdir(parents=True, exist_ok=True)
+            inventory = Feat018ArtifactInventory((tmp_path,), max_entries=20)
+            inventory.capture()
+
+        def audit(provisional_json: Path, provisional_md: Path) -> bool:
+            nonlocal audit_calls
+            audit_calls += 1
+            if mode == "md-mutation":
+                assert inventory is not None
+                approved = inventory.verify_provisional(provisional_json, provisional_md)
+                if audit_calls == 1:
+                    (tmp_path / "mutation-after-initial-scan").write_bytes(b"changed")
+                    return approved
+                # This is the commit-adjacent recheck, immediately before the JSON rename.
+                return approved
+            if mode == "exception":
+                raise RuntimeError("SECRET-AUDIT-DETAIL")
+            if mode == "false":
+                return False
+            target = provisional_json if mode == "json-mutation" else provisional_md
+            target.write_bytes(b"SECRET-MUTATED-ARTIFACT")
+            return True
+
+        result = Feat018EvidenceFinalizer(writer).finalize(
+            run_id="run", evidence_id="ev", runtime_outcome=EffectiveOutcome.SUCCEEDED,
+            cleanup=lambda: CleanupStatus.SUCCEEDED, postflight=audit,
+        )
+        assert not result.committed
+        assert "SECRET" not in str(result)
+        assert read_committed_pair(jp, mp).verdict is PairVerdict.NON_AUTHORITATIVE
+        assert not list(tmp_path.rglob("*.tmp-*"))
+        if mode == "md-mutation":
+            assert audit_calls == 2
+
+    def test_missing_postflight_cannot_bypass_gate(self, tmp_path: Path) -> None:
+        writer, _, jp, mp = TestEvidenceCommitProtocol()._writer(tmp_path)
+        with pytest.raises(ValueError, match="postflight is mandatory"):
+            Feat018EvidenceFinalizer(writer).finalize(
+                run_id="run", evidence_id="ev", runtime_outcome=EffectiveOutcome.SUCCEEDED,
+                cleanup=lambda: CleanupStatus.SUCCEEDED,
+                postflight=None,  # type: ignore[arg-type]
+            )
+        assert not jp.exists() and not mp.exists()
+
+    def test_existing_pair_is_preserved(self, tmp_path: Path) -> None:
+        writer, _, jp, mp = TestEvidenceCommitProtocol()._writer(tmp_path)
+        writer.commit(run_id="old", evidence_id="old", json_fields={"status": "FAILED"},
+                      markdown_body="old")
+        before = jp.read_bytes(), mp.read_bytes()
+        result = Feat018EvidenceFinalizer(writer).finalize(
+            run_id="new", evidence_id="new", runtime_outcome=EffectiveOutcome.SUCCEEDED,
+            cleanup=lambda: CleanupStatus.SUCCEEDED, postflight=lambda _j, _m: True,
+        )
+        assert not result.committed
+        assert before == (jp.read_bytes(), mp.read_bytes())
+
+    def test_json_rename_failure_is_not_reported_as_success(self, tmp_path: Path) -> None:
+        writer, _, jp, mp = TestEvidenceCommitProtocol()._writer(
+            tmp_path, fail_on="rename:P2_LIVE_SMOKE_20260914.json"
+        )
+        result = Feat018EvidenceFinalizer(writer).finalize(
+            run_id="run", evidence_id="ev", runtime_outcome=EffectiveOutcome.SUCCEEDED,
+            cleanup=lambda: CleanupStatus.SUCCEEDED, postflight=lambda _j, _m: True,
+        )
+        assert not result.committed
+        assert read_committed_pair(jp, mp).verdict is PairVerdict.NON_AUTHORITATIVE
+
+    @pytest.mark.parametrize("identity", ["../outside", "x\nstatus: SUCCEEDED", "x" * 65])
+    def test_identity_injection_is_rejected_after_cleanup(
+        self, tmp_path: Path, identity: str
+    ) -> None:
+        writer, _, jp, mp = TestEvidenceCommitProtocol()._writer(tmp_path)
+        calls: list[str] = []
+
+        def cleanup() -> CleanupStatus:
+            calls.append("cleanup")
+            return CleanupStatus.SUCCEEDED
+
+        with pytest.raises(ValueError, match="bounded opaque"):
+            Feat018EvidenceFinalizer(writer).finalize(
+                run_id=identity, evidence_id="ev", runtime_outcome=EffectiveOutcome.SUCCEEDED,
+                cleanup=cleanup, postflight=lambda _j, _m: True,
+            )
+        assert calls == ["cleanup"]
+        assert not jp.exists() and not mp.exists()
+
+    def test_rollback_failure_reports_residuals(self, tmp_path: Path) -> None:
+        class FailedRemovalFs(_FaultyFilesystemOps):
+            def remove(self, path: Path) -> None:
+                raise OSError("SECRET-REMOVE-DETAIL")
+
+        writer = Feat018EvidenceCommitWriter(
+            tmp_path / "result.json", tmp_path / "result.md", FailedRemovalFs()
+        )
+        result = Feat018EvidenceFinalizer(writer).finalize(
+            run_id="run", evidence_id="ev", runtime_outcome=EffectiveOutcome.SUCCEEDED,
+            cleanup=lambda: CleanupStatus.SUCCEEDED, postflight=lambda _j, _m: False,
+        )
+        assert not result.committed
+        assert len(result.residual_paths) == 2
+        assert all(path.exists() for path in result.residual_paths)
+        assert "SECRET" not in str(result)
+        assert not writer.json_path.exists()
+
+
+class TestArtifactInventory:
+    @pytest.mark.parametrize("change", ["none", "added", "deleted", "modified"])
+    def test_exact_baseline_plus_provisional_pair(self, tmp_path: Path, change: str) -> None:
+        baseline = tmp_path / "ignored-runtime.cfg"
+        baseline.write_bytes(b"original")
+        inventory = Feat018ArtifactInventory((tmp_path,), max_entries=20)
+        inventory.capture()
+        jp, mp = tmp_path / "a.json.tmp-run", tmp_path / "a.md.tmp-run"
+        jp.write_bytes(b"json")
+        mp.write_bytes(b"markdown")
+        if change == "added":
+            (tmp_path / "unexpected.log").write_bytes(b"SECRET")
+        elif change == "deleted":
+            baseline.unlink()
+        elif change == "modified":
+            baseline.write_bytes(b"changed-config")
+        assert inventory.verify_provisional(jp, mp) is (change == "none")
+
+    def test_budget_exhaustion_cannot_be_a_partial_pass(self, tmp_path: Path) -> None:
+        (tmp_path / "extra").write_bytes(b"x")
+        inventory = Feat018ArtifactInventory((tmp_path,), max_entries=1)
+        with pytest.raises(Exception, match="budget"):
+            inventory.capture()
+        assert not inventory.verify_provisional(tmp_path / "a", tmp_path / "b")
+
+    def test_absent_root_cannot_be_an_empty_baseline(self, tmp_path: Path) -> None:
+        inventory = Feat018ArtifactInventory((tmp_path / "missing",), max_entries=10)
+        with pytest.raises(OSError):
+            inventory.capture()
+        assert not inventory.verify_provisional(tmp_path / "a", tmp_path / "b")
+
+    def test_other_worktree_root_is_rejected_lexically(self, tmp_path: Path) -> None:
+        with pytest.raises(ValueError, match="worktree"):
+            Feat018ArtifactInventory((tmp_path / ".worktrees" / "p2-t4",), max_entries=10)
+
+    def test_reparse_metadata_is_rejected_without_following(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        from types import SimpleNamespace
+
+        monkeypatch.setattr(Path, "lstat", lambda _path: SimpleNamespace(
+            st_mode=0o100644, st_file_attributes=0x400,
+        ))
+        with pytest.raises(Exception, match="reparse"):
+            Feat018ArtifactInventory._fingerprint(tmp_path / "link")
+
+    def test_provisional_files_must_be_inside_inventory(self, tmp_path: Path) -> None:
+        root = tmp_path / "root"
+        root.mkdir()
+        inventory = Feat018ArtifactInventory((root,), max_entries=10)
+        inventory.capture()
+        jp, mp = tmp_path / "a", tmp_path / "b"
+        jp.write_bytes(b"x")
+        mp.write_bytes(b"x")
+        assert not inventory.verify_provisional(jp, mp)
+
+    def test_existing_baseline_file_cannot_be_excluded_as_provisional(self, tmp_path: Path) -> None:
+        jp, mp = tmp_path / "a", tmp_path / "b"
+        jp.write_bytes(b"x")
+        mp.write_bytes(b"x")
+        inventory = Feat018ArtifactInventory((tmp_path,), max_entries=10)
+        inventory.capture()
+        assert not inventory.verify_provisional(jp, mp)
+
+
+class TestIncidentWriter:
+    def test_incident_never_interpolates_raw_reason_or_residual_paths(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        result = EvidenceCommitResult(
+            False, "run", "ev", residual_paths=(Path("SECRET-PATH"),),
+            failure_reason="SECRET-EXCEPTION",
+        )
+        writer = Feat018IncidentWriter(
+            Path("tmp/feat018-live-lightning-incident-run/INCIDENT.md"),
+            repository_root=tmp_path,
+            git_ignored=True,
+        )
+        assert writer.write(result)
+        content = writer.path.read_bytes()
+        assert b"SECRET" not in content
+        assert b"residual_count: 1" in content
+        assert b"evidence_committed: false" in content
+        assert not writer.write(result)  # preserves the prior incident
+        assert writer.path.read_bytes() == content
+
+        rejected_destinations = (
+            (Path("tmp/feat018-live-lightning-incident-other/INCIDENT.md"), True),
+            (Path("tmp/feat018-live-lightning-incident-run/../INCIDENT.md"), True),
+            (Path("features/FEAT-018-live-image-canvas-flow/INCIDENT.md"), True),
+            (tmp_path / "tmp/feat018-live-lightning-incident-run/INCIDENT.md", True),
+            (Path("tmp/feat018-live-lightning-incident-run/INCIDENT.md"), False),
+        )
+        for path, git_ignored in rejected_destinations:
+            rejected = Feat018IncidentWriter(
+                path, repository_root=tmp_path, git_ignored=git_ignored
+            )
+            assert not rejected.write(result)
+
+        from types import SimpleNamespace
+
+        link_writer = Feat018IncidentWriter(
+            Path("tmp/feat018-live-lightning-incident-link-run/INCIDENT.md"),
+            repository_root=tmp_path,
+            git_ignored=True,
+        )
+        original_lstat = Path.lstat
+
+        def fake_link_lstat(path: Path) -> object:
+            if path == link_writer.path.parent:
+                return SimpleNamespace(st_mode=stat.S_IFLNK, st_file_attributes=0)
+            return original_lstat(path)
+
+        monkeypatch.setattr(Path, "lstat", fake_link_lstat)
+        assert not link_writer.write(result)
+
+        def fake_reparse_lstat(path: Path) -> object:
+            if path == link_writer.path.parent:
+                return SimpleNamespace(st_mode=stat.S_IFDIR, st_file_attributes=0x400)
+            return original_lstat(path)
+
+        monkeypatch.setattr(Path, "lstat", fake_reparse_lstat)
+        assert not link_writer.write(result)
+
+    def test_success_is_not_an_incident(self, tmp_path: Path) -> None:
+        writer = Feat018IncidentWriter(
+            Path("tmp/feat018-live-lightning-incident-run/INCIDENT.md"),
+            repository_root=tmp_path,
+            git_ignored=True,
+        )
+        assert not writer.write(EvidenceCommitResult(True, "run", "ev"))
+        assert not writer.path.exists()
+
+
+class TestSmokeFinalizationIntegration:
+    @pytest.mark.parametrize("mode", ["success", "unmapped", "extra-file", "cleanup-failure"])
+    def test_real_inventory_controls_publication(self, tmp_path: Path, mode: str) -> None:
+        writer = Feat018EvidenceCommitWriter(tmp_path / "evidence.json", tmp_path / "evidence.md")
+        incident = Feat018IncidentWriter(
+            Path("tmp/feat018-live-lightning-incident-run/INCIDENT.md"),
+            repository_root=tmp_path,
+            git_ignored=True,
+        )
+        inventory = Feat018ArtifactInventory((tmp_path,), max_entries=20)
+        inventory.capture()
+        if mode == "extra-file":
+            (tmp_path / "unexpected-raw-output").write_bytes(b"SECRET")
+        supervisor = SupervisorRunResult(
+            final_state=ProgressState.TERMINAL,
+            attempt_count=1,
+            terminal_outcome="SUCCEEDED",
+            cleanup_status=CleanupStatus.SUCCEEDED,
+            effective_outcome=EffectiveOutcome.SUCCEEDED,
+            raw_status=None if mode == "unmapped" else "SUCCEEDED",
+        )
+        result = finalize_smoke_run(
+            supervisor, run_id="run", evidence_id="ev", inventory=inventory,
+            cleanup=lambda: (
+                CleanupStatus.CLEANUP_FAILED if mode == "cleanup-failure"
+                else CleanupStatus.SUCCEEDED
+            ),
+            writer=writer, incident=incident,
+        )
+        if mode in {"success", "unmapped"}:
+            assert result.evidence.committed
+            assert not result.incident_written
+            assert json.loads(writer.json_path.read_bytes())["status"] == (
+                "SUCCEEDED" if mode == "success" else "FAILED"
+            )
+        else:
+            assert not result.evidence.committed
+            assert result.incident_written
+            assert not writer.json_path.exists()
+            assert "SECRET" not in incident.path.read_text()
+
+    def test_uncaptured_inventory_never_succeeds(self, tmp_path: Path) -> None:
+        writer = Feat018EvidenceCommitWriter(tmp_path / "evidence.json", tmp_path / "evidence.md")
+        result = finalize_smoke_run(
+            SupervisorRunResult(ProgressState.TERMINAL, 1, "SUCCEEDED", CleanupStatus.SUCCEEDED,
+                                effective_outcome=EffectiveOutcome.SUCCEEDED,
+                                raw_status="SUCCEEDED"),
+            run_id="run", evidence_id="ev",
+            inventory=Feat018ArtifactInventory((tmp_path,), max_entries=20),
+            cleanup=lambda: CleanupStatus.SUCCEEDED, writer=writer,
+            incident=Feat018IncidentWriter(
+                Path("tmp/feat018-live-lightning-incident-run/INCIDENT.md"),
+                repository_root=tmp_path,
+                git_ignored=True,
+            ),
+        )
+        assert not result.evidence.committed
+        assert result.incident_written
 
 
 class TestReadCommittedPairVerdicts:
