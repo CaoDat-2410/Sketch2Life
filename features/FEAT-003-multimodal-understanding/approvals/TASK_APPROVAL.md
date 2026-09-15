@@ -274,3 +274,54 @@ FEAT-012 and ADR-0006 still govern the standalone Sprint 1 boundary. Person 2 do
   adoption, migration, integration, provider/model/GPU/Lightning/network execution, or P2-T5
   work is authorized. Runtime/integration/live status remains **NOT APPROVED**.
 - Approved at: 2026-09-15, project owner direct instruction in the current conversation.
+
+## P2-T4 G2 exact-seven-file offline implementation approval — 2026-09-15
+
+- The project owner approves P2-T4 G2 for **exactly** the seven-file offline implementation
+  scope below. This approval is separate from the immutable G1 contract freeze.
+- G1 binding remains: contract identity `P2T4.P2T4FusedResultV1@1.0`; immutable freeze commit
+  `18d0c33d35431ca96a76692a68c6b992098699e7`; freeze SHA-256
+  `be96b32aa675b7b6e46eea30effb2dbb91c718dc68ba7ce36d4d627ad6058ee2`; implementation-package
+  SHA-256 `6821755722daf3bce622fe98eaf39124adb835c6854661143d79f48a943030d7`.
+- The exact authorized implementation paths are:
+  `backend/src/sketch2life/contracts/schemas/p2_t4_fusion.py`,
+  `backend/src/sketch2life/application/services/p2_t4_fusion.py`,
+  `backend/tests/contract/test_p2_t4_contract.py`,
+  `backend/tests/unit/test_p2_t4_fusion.py`,
+  `features/FEAT-003-multimodal-understanding/fixtures/p2-t4-fusion-v1/manifest-v1.json`,
+  `features/FEAT-003-multimodal-understanding/fixtures/p2-t4-fusion-v1/cases-v1.json`, and
+  `features/FEAT-003-multimodal-understanding/fixtures/p2-t4-fusion-v1/expected-v1.json`.
+- No other implementation, test, fixture, helper, adapter, mapping, runtime, registry,
+  migration, API, queue, database, storage, UI, or integration path is authorized by G2.
+- Implementation must conform exactly to G1: P2 ASR/Vision V1 identities; separate outer
+  validation/rejection and pure typed `fuse()` boundaries; terminal rejection precedence;
+  duplicate-ASR-segment-index admissibility; deterministic narration-reference ordering;
+  support/refutation and conflict semantics; primary selection from original confidence before
+  adjustment; primary-only `Decimal("0.10")` adjustment; null/conflict certainty precedence;
+  original-base low-confidence evaluation; canonical serialization/conflict IDs; provenance and
+  privacy rules; and only `FUSED | UPSTREAM_FAILURE` result statuses.
+- The implementation must remain deterministic, offline, model-free, provider-free,
+  network-free, GPU-free, and Lightning-free. B0 mapping adoption, FEAT-018 replacement or
+  runtime integration, FEAT-020 changes, registry/session/idempotency work, preservation
+  envelope, Gate A, migration/cutover, P2-T5, production use, and live execution remain
+  **NOT APPROVED**.
+- Architecture validation uses Policy B. The only accepted baseline is one finding with rule
+  `application imports an outer layer` at
+  `backend/src/sketch2life/application/services/backend_ai_workflow.py`; expected count is `1`,
+  validator SHA-256 is
+  `fa236c8d389b608251153d601fc370efe3f3e2479446ca4a56a3d395f892e0b5`, and
+  `validate_architecture.py` must be reported truthfully as `ARCHITECTURE_INVALID`. Any new,
+  removed, relocated, or changed finding blocks the implementation checkpoint unless separately
+  reviewed and approved.
+- Canonicalization and deterministic-output evidence must run under CPython 3.13.x.
+- Before accepting the implementation checkpoint, run focused P2-T4 tests, the full backend test
+  suite, Ruff, mypy, harness, repository security, skeleton, architecture validation under
+  Policy B, `git diff --check`, and the required deterministic/canonicalization checks. An
+  independent diff, contract, privacy, and governance review is required before the checkpoint
+  commit.
+- Evidence artifacts are not authorized by this approval. They may be produced only after the
+  exact implementation source commit exists and must bind that commit to the immutable G1
+  digests. The sole non-implementation mutation additionally authorized now is this governance-
+  only record in `approvals/TASK_APPROVAL.md`; it does not expand the seven-file scope.
+- Disposition: **APPROVED_FOR_EXACT_SEVEN_FILE_OFFLINE_IMPLEMENTATION_ONLY**.
+- Approved at: 2026-09-15, project owner direct instruction in the current conversation.
