@@ -159,6 +159,48 @@ nested spawning and real containment behavior remain deferred to a separately ap
 assertion. All twelve `P2T2-LIVE-D1` through `P2T2-LIVE-D12` decisions remain open, and no live
 Lightning/GPU/model/provider/network execution is authorized by this entry.
 
+## P2-T2 live-plan four-finding correction - 2026-09-15
+
+Independent plan review identified an overstated coordinator completion claim.
+The historic runner is a bounded adapter/status and evidence-storage primitive;
+full admission/staging, runtime inventory, typed mapper handoff and incident
+orchestration remain incomplete. The live plan now states the concrete remaining
+two-file coordinator boundary and keeps D1/D11 BLOCKED alongside D4.
+
+The intermediate 2026-09-14 checkpoint recorded 170 focused tests; that number
+is historical and is not the current total. The owner-requested offline
+correction adds `Feat018EvidenceFinalizer` and a precommit hook in the existing
+writer. Cleanup and the caller's complete postflight audit precede final
+publication; failed/exceptional checks or modified provisional bytes cannot
+publish success. Successful cleanup is the approved quiescent-session boundary:
+all supervised processes and descendants are absent, no runtime writer remains,
+and evidence finalization is the sole authorized writer. The inventory is
+rechecked after Markdown rename immediately before JSON commit. This is not a
+filesystem-wide atomicity claim or protection from an unrelated hostile writer.
+The finalizer supplies ordering and safe failure handling, not the still-missing
+live coordinator. D10 approval inputs are separated from observed GPU facts, and
+the exact live non-authorization marker is present. A subsequent checkpoint adds
+worker-local mapping through the unchanged Raw mapper and a closed raw_status
+terminal claim.
+The supervisor retains that claim only from an accepted terminal event;
+late/malformed claims are rejected. The correction also adds bounded explicit-root
+artifact inventory, a sanitized incident writer, and `finalize_smoke_run`, which
+connects supervisor status, session cleanup, exact provisional inventory and the
+JSON commit point. Incident fallback is accepted only at
+`tmp/feat018-live-lightning-incident-<run_id>/INCIDENT.md`, after the future
+coordinator/preflight explicitly confirms that destination is Git-ignored; tracked,
+publishable, traversal, mismatched-run, symlink/reparse and arbitrary absolute
+destinations are rejected. A synthetic session ID may be serialized in adapter
+worker bootstrap arguments under spawn, but is bounded/opaque and is excluded
+from progress/event IPC and evidence payload bodies. The current focused suite is
+ 196 passed; the related sweep was 885 passed, 5 skipped and 422 deselected;
+ 170 is only the historical checkpoint above. Final validation and
+the F1-F4 dispositions are recorded in the ignored local report
+`tmp/feat018-p2t2-four-findings-finalization-20260915/REPORT.md`.
+
+No live execution, model acquisition, Stage 4 approval or P2-T2 live closure
+is granted by this correction.
+
 ## P2-T3 optional narration planning - 2026-09-14
 
 The optional narration plan is currently a DRAFT and planning work is in progress. It preserves

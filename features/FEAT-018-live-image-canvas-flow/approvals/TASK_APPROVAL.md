@@ -221,3 +221,74 @@ live-execution approval. A separate, independent review of the completed impleme
 required before any future live-execution approval is considered.
 
 Approved at: 2026-09-14, project owner direct instruction in the current conversation.
+
+## Approved four-finding offline correction - 2026-09-14
+
+Authority: the project owner's direct request to write a goal and execute fixes
+for B1/B2/M1/N1 from the independent live-plan review. This addendum records
+that request; it does not authorize a live run or resolve any live decision.
+
+Acceptance is defined in the live execution plan, Section 2.5, "Four-finding
+correction scope and acceptance". Correct the plan's claims about existing
+primitives, define the remaining coordinator scope, separate D10 approval
+inputs from runtime facts, and add the explicit live non-authorization marker.
+Implement the evidence finalizer and precommit regression coverage only in:
+
+- `backend/src/sketch2life/benchmark/feat018_live_lightning_execution.py`
+- `backend/tests/unit/test_feat018_live_lightning_execution.py`
+
+Documentation updates are limited to this approval record, the existing live
+plan, FEAT-018 CONTEXT.md and DECISIONS.md, plus the ignored correction report.
+No other code scope is allocated. Tests use offline injected dependencies;
+no real subprocess, model, GPU, provider, network or Lightning execution.
+The complete live coordinator remains explicitly incomplete and requires its
+implementation and independent review before Stage 4. The historical reviewed
+commit does not certify the changed code; a new independent review is required.
+No commit, push, P2-T2 live closure, or D4 model acquisition is authorized.
+
+Continuation of the same repair request includes the bounded worker mapper
+handoff specified in live-plan Section 2.5, within those same source/test paths.
+Reuse the unchanged FEAT-018 mapper inside the supervised worker and extend
+terminal IPC only with a closed raw_status; retain the existing no-text and
+deadline rules. Offline tests must exercise the real mapper and adapter with
+fake generation. This records implementation authority for that correction,
+not a new live approval or a claim that the entire coordinator is finished.
+
+The continuing B1/B2 repair also implements the bounded metadata inventory and
+sanitized incident primitive specified by Section 2.5 in the same two files,
+with synthetic local filesystem tests. No actual model/cache/source inventory
+is executed by this task; no other worktree is inspected. Future runtime roots
+and incident destination remain subject to the separate live approval.
+
+The same correction includes `finalize_smoke_run` orchestration of those
+primitives and its offline integration tests as specified in Section 2.5.
+No additional files or live execution are allocated.
+
+## Approved four-finding finalization - 2026-09-15
+
+The owner-approved safety invariant for evidence publication is single-writer
+and quiescent-session: after cleanup succeeds, every supervised process and
+descendant is absent, no runtime writer remains, and evidence finalization is
+the sole authorized writer. The implementation rechecks the explicit inventory
+after the Markdown rename and immediately before the authoritative JSON rename.
+This closes the ordinary mutation window under that invariant; it does not claim
+filesystem-wide atomicity or protection from an unrelated hostile external writer.
+
+Incident fallback is constrained to the exact relative destination
+`tmp/feat018-live-lightning-incident-<run_id>/INCIDENT.md`. The writer validates
+the bounded opaque run ID, exact filename and run-directory match, repository
+containment, traversal absence, and symlink/reparse safety. The future
+coordinator/preflight must explicitly supply `git_ignored=True`; the primitive
+does not infer Git state and rejects tracked, publishable, arbitrary absolute,
+traversal and mismatched-run destinations. Payload bytes remain fixed and
+sanitized, with no paths, exceptions, secrets or provider data.
+
+The synthetic session ID is supplied in adapter-worker bootstrap arguments and
+may be serialized by spawn multiprocessing. It is bounded, opaque and
+non-secret, and is excluded from progress/event IPC and evidence payload bodies;
+the approval does not claim that it never crosses a process boundary. The
+current focused total is 196 passed. The earlier 170-test figure is an
+intermediate historical checkpoint only. D1, D4 and D11 remain BLOCKED, Stage 4
+has not started, and the exact `NOT A LIVE EXECUTION AUTHORIZATION` marker is
+preserved. No live subprocess, model, GPU, provider, network, Lightning session,
+model acquisition or Stage 4 action is authorized.

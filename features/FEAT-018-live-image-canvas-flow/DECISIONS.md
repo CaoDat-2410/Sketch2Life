@@ -1,5 +1,50 @@
 # FEAT-018 decisions
 
+- 2026-09-14 continuation: keep typed V2-to-Raw mapping inside the supervised
+  adapter worker. Supply the synthetic session ID explicitly; existing calls
+  without it make no mapper claim. The synthetic ID is bounded, opaque and
+  non-secret; it may be serialized in adapter-worker bootstrap arguments under
+  spawn, but it is excluded from progress/event IPC and evidence payload bodies.
+  Only a closed raw_status crosses terminal progress IPC, and the supervisor
+  retains it only when the event is accepted before its deadline. Coordinator/
+  inventory/incident integration remains pending; this checkpoint does not close
+  B1/B2 or authorize live execution.
+
+- 2026-09-15 four-finding finalization: resolve F1 under the owner-approved
+  single-writer/quiescent-session invariant. A successful cleanup confirms that
+  all supervised processes and descendants are absent, no runtime writer remains,
+  and evidence finalization is the sole authorized writer. The inventory audit is
+  repeated after Markdown rename immediately before JSON commit; this is not a
+  filesystem-wide atomicity guarantee or protection from an unrelated hostile
+  writer. Resolve F2 by enforcing only
+  `tmp/feat018-live-lightning-incident-<run_id>/INCIDENT.md`, with bounded run
+  identity, containment and link/reparse checks, and an explicit future-preflight
+  Git-ignored confirmation. Resolve F3 with the bootstrap/progress IPC distinction
+  above. Resolve F4 with 196 as the sole current focused total; 170 is historical.
+  D1, D4 and D11 remain BLOCKED, Stage 4 is not started, and the exact live
+  non-authorization marker remains in force.
+
+- 2026-09-15 four-finding implementation completion: close B1 as a truthful
+  plan correction with the remaining full coordinator explicitly defined and
+  D1/D11 retained as BLOCKED. Close B2 by wiring the concrete supervisor result,
+  session cleanup, bounded explicit-root artifact inventory, evidence finalizer
+  and sanitized incident writer through `finalize_smoke_run`. Success requires
+  an accepted matching Raw status; all failure-producing checks precede JSON
+  commit. Postcommit checks are read-only. This is an offline correction
+  checkpoint; it is not Stage 4 approval and D4 remains BLOCKED.
+
+- 2026-09-14 four-finding correction: record the owner's direct repair request
+  against the live-plan audit. Preserve historical bounded-runner review as
+  primitive evidence only; full smoke orchestration remains incomplete under
+  the two-file boundary specified by plan Section 2.5. D1/D11 and D4 stay
+  BLOCKED. Implement offline evidence finalization ordering within the existing
+  runner/test files: cleanup, provisional pair, mandatory audit and exact-byte
+  integrity, then JSON commit. Gate failure aborts publication and returns a
+  safe non-committed disposition; complete inventory and incident dependencies
+  remain future coordinator work. Separate D10 approval inputs from runtime
+  observations. New source bytes require a new independent review and commit
+  identity before live approval; historical hashes do not certify this change.
+
 - 2026-09-09 research record: user requested one P2 research round and proposals;
   any FEAT-003 change or connection requires user review first. Proposed offline
   slices and contract decisions are recorded in `plan/P2_OFFLINE_FIRST_PLAN.md`

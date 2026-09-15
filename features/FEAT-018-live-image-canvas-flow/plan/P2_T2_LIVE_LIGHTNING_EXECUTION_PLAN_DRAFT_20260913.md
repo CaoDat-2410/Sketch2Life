@@ -3,26 +3,53 @@
 STATUS: DRAFT
 NOT AN APPROVAL
 NOT AN IMPLEMENTATION AUTHORIZATION
+NOT A LIVE EXECUTION AUTHORIZATION
 
-Date: 2026-09-13
+Date: 2026-09-14
 
 This document is a plan correction only. Reading or revising it performs no
 Lightning, GPU, model, provider, network, subprocess, or benchmark execution.
 It does not change code, contracts, prompts, profiles, approvals, evidence,
 fixtures, or runtime configuration. A future live run requires a separate
-owner-approved addendum that names the exact runtime source commit, fixture,
-prompt, runner, hardware, budget, redaction rules, and evidence paths.
+owner-approved addendum that names the reviewed runtime-code commit, the
+externally supplied approval-record checkout commit, fixture, prompt, runner,
+hardware, budget, redaction rules, and evidence paths.
 
 The live decision identifiers in this document are owned by this plan and are
 exactly P2T2-LIVE-D1 through P2T2-LIVE-D12. They are not P2-T1 decisions and
-must not be recorded or described as P2-T1 decisions. All twelve decisions
-remain open until a later owner approval resolves them explicitly.
+must not be recorded or described as P2-T1 decisions. The status table in
+Section 9 records planning disposition only; no live decision is finally
+approved by this draft.
 
-Planning reference only: the repository HEAD observed while this draft was
-corrected was 86f953e436d5e4adebe6a7a5c9f0eba71166c003. That hash is not an
-execution authorization. A future approval must pin a separate exact runtime
-source commit and the Lightning session must verify that same commit before
-any model invocation.
+The reviewed offline implementation/test commit is
+`c2bd7b5ece3f308abb65ab3632add265b3cd586c`. Its role is
+the historical `reviewed_runtime_code_commit`: it contains the reviewed two-file bounded
+runner implementation and test paths, not a live-execution approval.
+The verification/closure documentation commit is
+`8522e2cd830a8fce49759a385dca99c2906ba120`; it records the completed
+independent-review finding closure and offline validation. The independent
+review is a separately identified local artifact, not a commit:
+`tmp/feat018-p2-t2-launcher-independent-review-20260914/REVIEW.md`, SHA-256
+`5b863dbb2fafb33ccec7ecfee82424b80de40d304cf45396f72470f908328d2e`.
+The finalization report is likewise a local artifact:
+`tmp/feat018-p2-t2-launcher-finalization-20260914/REPORT.md`, SHA-256
+`662589c8af7222d9922dfe48d83908952bd5e0dc0381f780dfa81534ce9e266a`.
+Neither local artifact hash is a commit identifier.
+
+The four-finding correction changes the two implementation paths after that
+historical review. The validated offline correction source/test commit is
+`7f5cbe57fc9756c3e7fa5c248cd655c1dce0ec7b`; it is not live authorization and
+does not resolve the future coordinator or Stage 4 approval. Any future
+`reviewed_runtime_code_commit` must bind the exact reviewed checkout after the
+remaining coordinator review. References to the historical commit below describe
+primitive provenance only and cannot authorize these modified bytes.
+
+Planning baseline only: repository HEAD observed for this reconciliation was
+`6dd3c66dd0f47c4a8af73cfb585189a5addfb234`. That hash is not an execution
+authorization. A future owner approval must receive an externally supplied
+`approval_record_commit` after the approval record is committed. The approval
+file must never contain its own future commit hash; the execution checkout
+must verify that externally supplied commit before any model invocation.
 
 ## 1. Objective and exact scope
 
@@ -120,11 +147,23 @@ Out of scope and preserved exclusions:
 
 ## 2. Topology, ownership, and explicit construction boundary
 
-The only proposed data path is:
+The target data path, which still requires the coordinator described in
+Section 2.5 and future live approval, is:
 
-local preflight -> one Lightning session -> staged relative image reference
--> one QwenVisionAdapter.understand() call -> typed V2 result
--> existing FEAT-018 mapper -> sanitized evidence pair.
+local preflight -> one Lightning session ->
+`Feat018AdapterCallSupervisor` -> outer non-daemon adapter worker running the
+real `QwenVisionAdapter.understand()` flow -> one
+`Feat018BoundedKillableQwenGenerationRunner` child per generation attempt ->
+bounded child result and worker-authored progress events -> supervisor-accepted
+committed progress state -> typed V2 result -> existing FEAT-018 mapper ->
+sanitized evidence pair.
+
+The outer worker is released only after containment is confirmed. The inner
+generation child is created only after the worker accepts `CONTAINMENT_READY`.
+The runner never retries internally; the unchanged Qwen adapter owns its
+explicit transient-only second-attempt decision. `attempt_count` is derived
+only from progress events accepted by the supervisor state machine, never from
+an uncommitted worker counter or from a planned call.
 
 FEAT-003 remains the owner of the V2 schemas, profile catalog, model runtime,
 prompts, and qwen_vision.py implementation. FEAT-018 consumes those inputs
@@ -186,11 +225,22 @@ pair. The scope limitation and owner decision are P2T2-LIVE-D12.
 
 ### 2.3 Prompt construction
 
+The reviewed live boundary has an explicit string path, not an implicit
+adapter default: `run_bounded_adapter_call` accepts `prompt`,
+`adapter_worker_entry` constructs `QwenVisionAdapter(..., prompt=prompt,
+generation_runner=runner)`, and `QwenVisionAdapter` installs that explicit
+prompt rather than `_default_prompt_builder`. The reviewed implementation
+therefore makes the empty default unreachable on this path, but it does not
+itself bind the string to a protocol identity. The future approved caller must
+resolve the proposed committed C1-v2 protocol below, verify the exact UTF-8
+hash, reject an empty string, and pass that string through this explicit
+`prompt=` path.
+
 The future approval must name the exact owner-approved prompt protocol/source,
-its prompt identity, and its SHA-256. The approved harness must inject that
-prompt through prompt_builder or the equivalent explicit prompt argument.
-The adapter's empty default prompt builder is not acceptable. Prompt text is
-kept in memory only and is never logged or written to either evidence file.
+its prompt identity, and its SHA-256. Prompt text is kept in memory only and
+is never logged or written to either evidence file. The approved harness must
+inject it through the explicit `prompt=` argument; a prompt-builder default is
+not acceptable.
 The harness must hash the exact UTF-8 text selected for injection immediately
 before the adapter invocation:
 
@@ -204,58 +254,161 @@ separate approval. The decision is P2T2-LIVE-D7.
 
 ### 2.4 Runner construction and timeout boundary
 
-Neither existing runner currently satisfies the live boundary. The current
-`KillableSubprocessQwenGenerationRunner` has a 120-second child deadline, but
-its worker sends `(kind, raw_output)` through an unbounded `Connection.send`.
-The current `TransformersQwenGenerationRunner` is in-process and has no hard,
-killable deadline. Neither class is selectable for a live approval as-is, and
-the current `qwen_vision.py` source remains read-only.
+The reviewed implementation replaces the previously unsuitable choices for
+this plan. `Feat018AdapterCallSupervisor` launches the outer adapter worker;
+after the containment gate, that worker constructs the real
+`QwenVisionAdapter` with `Feat018BoundedKillableQwenGenerationRunner`. Each
+runner `generate()` call launches one inner generation child using the real
+spawn context by default, with `daemon=False`, and bounds model/processor
+loading, generation, decoding, and the result envelope. The runner performs no
+retry; the unchanged adapter owns the one permitted transient retry.
 
-The next authorization may therefore select only
-`NEW_GLUE_EXPLICITLY_APPROVED`. That is a staged approval of the new boundary
-described in Section 2.5, not permission to execute Lightning, load a model,
-or make a live adapter call. The eventual bounded runner is passed to
-`QwenVisionAdapter` as `generation_runner`; a test `model_factory` is not a
-live runner, and persistent `on_raw_output` or `on_mapping_diagnostic` sinks
-are forbidden.
+The reviewed implementation/test pair is bound to
+`reviewed_runtime_code_commit` `c2bd7b5ece3f308abb65ab3632add265b3cd586c`.
+The independent review and finalization are complete, but the offline tests
+use injected process/containment/IPC doubles and do not prove an actual nested
+OS spawn. A later live approval must select this boundary and prove the real
+nested spawn, descendant containment, and two-level cleanup assertions listed
+in Section 5. A model factory, the old in-process runner, the old unbounded
+subprocess IPC, and persistent raw-output diagnostic sinks are not live
+alternatives.
 
-For the proposed boundary, model/processor loading and generation occur inside
-the killable child for each generation attempt. The child deadline is exactly
-120 seconds per attempt and covers loading, generation, and decoding. A
-separate positive `total_adapter_cap_seconds` covers the entire single adapter
-call, including a possible second attempt, without resetting on retry. A
-readiness inspection may inspect versions, hardware, and a local snapshot
-without loading weights; it must not preload weights. Any separate model-load
-or download phase requires the staged file-scope approval below.
+The per-attempt child deadline is exactly 120 seconds and covers loading,
+generation, and decoding. A separate positive `total_adapter_cap_seconds`
+covers the entire single adapter call, including a possible second attempt,
+without resetting on retry. Readiness may inspect versions, hardware, and a
+local snapshot without loading weights; it must not preload weights. Any model
+download/load choice remains inside the future D4 approval and the child
+deadline.
 
-### 2.5 Proposed new glue boundary (not created by this draft)
+### 2.5 Reviewed primitives and remaining orchestration boundary
 
 Repository conventions use feature-local, directly imported executors under
 `backend/src/sketch2life/benchmark/` with focused unit tests under
 `backend/tests/unit/`. The smallest proposed source/test scope is exactly:
 
 - `backend/src/sketch2life/benchmark/feat018_live_lightning_execution.py`:
-  the feature-local smoke coordinator and the proposed
-  `Feat018BoundedKillableQwenGenerationRunner`. It owns the explicit runtime
-  config, synthetic lexical policy, prompt injection/hash check, admission
-  and session-relative staging, single-device/post-load placement assertion,
-  one-call cardinality, per-attempt/total caps, bounded child IPC, raw-byte
-  ceiling before IPC send, bounded non-persistent stdout/stderr, typed result
-  and mapper handoff, `finally` cleanup, sanitized evidence pair, and ignored
-  incident fallback. It uses the existing FEAT-003 adapter boundary without
-  modifying `qwen_vision.py` or any FEAT-003 file.
+  the reviewed bounded supervisor, adapter worker, generation runner, progress
+  protocol, containment cleanup, and evidence-pair writer/reader primitives.
+  `run_bounded_adapter_call` accepts an already constructed request, runtime
+  config, policy and prompt. It returns supervisor status. The current repair
+  adds optional worker-local Raw mapping when a synthetic session ID is
+  supplied, with a bounded raw_status terminal claim; V2/Raw observations
+  never cross the progress channel. This is not yet a
+  complete smoke coordinator. FEAT-003 source remains unchanged.
 - `backend/tests/unit/test_feat018_live_lightning_execution.py`: offline tests
   with injected fakes only. It covers raw and IPC overflow, stdout/stderr
   ceilings, per-attempt timeout and total-cap termination, child/IPC cleanup
   on success and failure, pre-adapter `0/null`, adapter input rejection
   `1/0`, model-reaching `1/1`, explicitly transient retry `1/2`, no third or
-  outer retry, prompt-hash equality, post-load device placement, evidence
-  redaction, and the ignored incident path.
+  outer retry, and evidence-pair hash/rename integrity. Prompt-hash selection,
+  device placement, full evidence redaction and incident handling are remaining
+  coordinator acceptance criteria, not proven by the historic tests. The review/finalization
+  evidence is bound to the two commits and the separate review artifact
+  identified at the top of this plan.
 
-No other new source, wrapper, CLI, fixture, adapter edit, or test file is in
-the proposed boundary. These paths are a scope proposal only; no file is
-created or authorized until the staged governance sequence in Section 9 is
-completed.
+No other source, wrapper, CLI, fixture, adapter edit, or test file is in the
+reviewed boundary. This plan does not authorize adding a live caller or
+changing either reviewed path. Any new orchestration file requires a new
+exact-file-scope approval.
+
+#### Four-finding correction scope and acceptance (2026-09-15)
+
+The direct owner request to fix B1/B2/M1/N1 authorizes the correction recorded
+in TASK_APPROVAL.md. Code changes remain within the two paths above. The
+offline correction implements `Feat018EvidenceFinalizer`: mandatory cleanup,
+provisional pair creation, mandatory precommit postflight/integrity validation,
+then the JSON rename. A failed or exceptional gate cannot publish success.
+If finalization cannot safely commit, report a typed non-committed result with
+truthful residual artifacts; the future coordinator remains responsible for
+supplying the approved ignored destination/preflight and invoking the sanitized
+incident writer. The low-level writer remains a storage primitive, not a live
+entry point or an authorization bypass.
+
+Offline acceptance: success ordering is observed at filesystem operations;
+cleanup false/exception and postflight false/exception cannot leave a valid
+success pair; mutation of provisional bytes is rejected; the artifact inventory
+is reverified after Markdown rename immediately before JSON rename; JSON-rename
+and rollback failures remain non-authoritative and disclose residuals; failed
+runtime outcome cannot be promoted; both files share the finalized outcome; no
+raw exception text crosses this finalizer boundary. Postcommit reader checks are
+read-only and do not change the recorded runtime outcome.
+
+The owner-approved cleanup invariant is a quiescent single-writer boundary:
+after cleanup succeeds, every supervised process and descendant is absent, no
+runtime writer remains, and evidence finalization is the sole authorized writer.
+The two inventory scans close the ordinary mutation window under that invariant.
+They do not claim filesystem-wide atomicity or protection from an unrelated
+hostile external writer, and metadata checks do not defeat timestamp restoration.
+
+The smallest future complete coordinator is `run_live_smoke` in this same
+source file, with tests in the same test file. It remains NOT_IMPLEMENTED and
+must have its detailed offline acceptance reviewed before implementation:
+
+1. verify approval/checkout and complete ignored-artifact baseline;
+2. construct explicit runtime config and the existing lexical policy; verify
+   D4 snapshot, readiness, D6 admission/staged digest and D7 prompt hash;
+3. enforce session TTL/budget and hardware placement with real observable
+   dependencies, with no success-valued placeholder probes;
+4. invoke the bounded adapter exactly once with the synthetic session ID;
+   require accepted worker-local Raw mapping before considering success,
+   using only the terminal raw_status claim and never V2 observations;
+5. terminate/verify session and descendants, inspect runtime artifacts, call
+   the evidence finalizer, and handle non-commit through a sanitized incident.
+
+No manual notebook, new CLI or unreviewed caller may fill these gaps. B1 is
+corrected as a planning discrepancy; complete live orchestration remains an
+explicit implementation/review gate. D1/D11 stay BLOCKED until that gate closes.
+
+The continuing owner-requested repair implements the worker mapper handoff
+in the same two files. An optional synthetic session ID activates mapping
+inside the gated adapter worker and inside the supervisor deadline. The
+unchanged mapper checks source hash and correlation; only a closed
+`raw_status` value (SUCCEEDED/FAILED) can accompany the terminal event.
+The session ID is supplied in adapter-worker bootstrap arguments and may be
+serialized by spawn multiprocessing, but it is bounded, opaque and non-secret;
+it is excluded from progress/event IPC and evidence payload bodies. No V2/Raw
+observation or free text crosses progress IPC. Legacy primitive calls without a
+session ID emit no mapper claim. The future coordinator must require an accepted
+raw_status matching its terminal outcome. Tests cover the real adapter/fake
+generation path through the real mapper, mapper rejection, absent mapping,
+malformed summary, and late-event rejection.
+
+The same correction adds `Feat018ArtifactInventory` and
+`Feat018IncidentWriter` inside the same source/test boundary. Inventory takes
+explicit non-overlapping roots, uses an entry budget and metadata-only
+fingerprints, rejects symlinks/reparse points/special files, and never traverses
+`.worktrees`. All roots must be supplied from the future approved inventory;
+an omitted root cannot be claimed audited. The writer permits only the exact
+relative incident destination
+`tmp/feat018-live-lightning-incident-<run_id>/INCIDENT.md`; it validates the
+bounded run ID, expected filename, repository containment, traversal absence,
+and link/reparse safety, and requires the future coordinator/preflight to pass
+an explicit Git-ignored confirmation. Tracked, publishable, arbitrary absolute,
+traversal and mismatched-run destinations are rejected. The precommit comparison
+allows only the exact two provisional evidence files beyond the captured
+baseline, then repeats the inventory comparison after Markdown rename. Metadata
+checks detect ordinary change, not adversarial timestamp restoration;
+source/fixture/prompt exact-hash checks remain distinct requirements. Incident
+writing accepts only a non-committed finalization result and emits fixed status,
+opaque run/evidence identities and a residual count, never raw exceptions or
+paths. Failure to write the incident remains explicitly reported. Offline tests
+cover additions/deletions/changes, mutation after the initial scan, the
+commit-adjacent mutation check, failed quiescence, absent roots, traversal
+budget, symbolic-link/reparse rejection, exact provisional-file exclusions,
+incident destination rejection, and secret-bearing failure details that must not
+appear in incident bytes.
+
+`finalize_smoke_run` connects the accepted supervisor result, captured
+inventory, mandatory session cleanup, finalizer and incident writer. Success
+requires a matching accepted Raw success and successful process cleanup;
+worker terminal diagnostics alone cannot supply it. The inventory's exact
+precommit verification is wired directly, not replaced by a constant callback,
+and is repeated at the JSON commit boundary. Rejected publication triggers the
+sanitized incident writer; its success or failure is a separate typed result.
+Integration tests inject filesystem changes after the initial scan and at the
+commit-adjacent audit, exercise failed quiescence, and prove no false committed
+PASS.
 
 ### 2.6 Mapper and synthetic session identity
 
@@ -263,10 +416,12 @@ RawResultEnvelopeV1 requires a non-empty session_id. The isolated smoke run
 does not invoke shared session or idempotency orchestration, so the approved
 harness must create a synthetic, opaque smoke-session identifier and pass it
 to map_vision_result_to_raw. The identifier is not sourced from V2, mobile,
-or a production session. It must be non-empty, at most 160 characters, contain
-no path, URL, credential, or token, and be recorded as safe metadata only.
-The exact source, format, and value-handling rule are resolved in
-P2T2-LIVE-D11.
+or a production session. It must be non-empty, at most 64 characters, use only
+lowercase letters, digits, `_` or `-`, contain no path, URL, credential, or
+token, and be recorded as safe metadata only. It is supplied in the
+adapter-worker bootstrap arguments and may be serialized under spawn; it is
+excluded from progress/event IPC and evidence payload bodies. The exact source,
+format, and value-handling rule are resolved in P2T2-LIVE-D11.
 
 The mapper call must be equivalent to:
 
@@ -289,32 +444,53 @@ condition is "reasonable", "available", or "unchanged" is not sufficient.
 1. Approval gate. A future addendum to
    features/FEAT-018-live-image-canvas-flow/approvals/TASK_APPROVAL.md says
    APPROVED for this exact live smoke scope, names all resolved
-   P2T2-LIVE-D1 through P2T2-LIVE-D12 decisions, pins the exact runtime
-   source commit, and enumerates the exact two evidence paths. The existing
-   offline P2-T2 approval is not live-execution approval.
+   P2T2-LIVE-D1 through P2T2-LIVE-D12 decisions, records
+   `reviewed_runtime_code_commit`, and enumerates the exact two evidence paths.
+   The existing offline P2-T2 approval is not live-execution approval. The
+   post-approval `approval_record_commit` is supplied to the operator
+   externally after the approval record is committed; the approval record
+   does not contain its own future commit hash.
 
-2. Exact runtime source commit. The approval records one exact 40-hex
-   runtime_source_commit. The Lightning checkout verifies, before any model
-   invocation, that git rev-parse HEAD equals that value and that the source
-   checkout is the intended checkout. A floating branch, tag, latest
-   revision, or host-only assertion is invalid. The verified commit is
-   recorded in both evidence files or in the single shared evidence metadata
-   object.
+2. Exact reviewed code and approval checkout. The approved value for
+   `reviewed_runtime_code_commit` must be the newly reviewed exact 40-hex commit
+   containing the completed coordinator and correction. The offline correction
+   source/test commit is `7f5cbe57fc9756c3e7fa5c248cd655c1dce0ec7b`, but the
+   completed coordinator's live `reviewed_runtime_code_commit` remains
+   UNKNOWN_UNTIL_COMMITTED_AND_REVIEWED; the historical primitive commit
+   `c2bd7b5ece3f308abb65ab3632add265b3cd586c` is insufficient. After the live approval is
+   committed, an external execution record supplies one exact 40-hex
+   `approval_record_commit`; the execution checkout must verify
+   `git rev-parse HEAD == approval_record_commit` before any model invocation.
+   It must also prove zero diff for both reviewed implementation paths between
+   `reviewed_runtime_code_commit` and that checkout, or prove the exact blob
+   identities for both paths. A floating branch, tag, latest revision, or
+   host-only assertion is invalid. The evidence records both commit identities
+   without treating the approval record as self-referential.
+   The two paths are exactly
+   `backend/src/sketch2life/benchmark/feat018_live_lightning_execution.py` and
+   `backend/tests/unit/test_feat018_live_lightning_execution.py`.
 
 3. Clean source checkout. Before session startup, git status --porcelain is
    completely empty with no path filter, and git status --ignored --short
    matches the recorded approved ignored baseline. Any modified tracked file,
    untracked file, staged change, generated file, or unexpected/changed ignored
    runtime artifact stops the run. The Lightning checkout repeats the
-   source-commit and clean-checkout verification before the adapter call. The
-   current planning worktree is not an execution candidate because this draft
-   and the preserved P2-T3 draft are untracked.
+   approval-record commit, reviewed-path zero-diff/blob, and clean-checkout
+   verification before the adapter call. The planning checkout is never used
+   as the execution checkout merely because it has the right branch name.
 
 4. Exact fixture identity. P2T2-LIVE-D6 names exactly one owner-reviewed,
    non-sensitive JPG or PNG fixture_id, source identity, format, dimensions,
    and source_sha256. The owner review reference and whether the image is
-   reused or newly reviewed are recorded. No child, personal, production, or
-   unreviewed image is permitted.
+   reused or newly reviewed are recorded. The proposed value is Cohort B
+   `B01.jpg`, relative identity only, with `image/jpeg`, `1254x1254`,
+   `337481` bytes, and source SHA-256
+   `c60faed33034b5911e611a512dde03cc94fb21146f85dfba4ef7236268ab9cc3`.
+   These facts match the local owner-review reference
+   `tmp/feat018-cohort-b-input-20260912/SOURCE_REVIEW.md` dated 2026-09-12
+   and `candidate-manifest.json`; the live approval must recheck the bytes
+   and magic before use. No child, personal, production, or unreviewed image
+   is permitted.
 
 5. Admission and staging integrity. The exact fixture passes the existing
    P2-T1 D2 image-admission policy before a vision call. It satisfies the bounded limits of
@@ -342,8 +518,14 @@ condition is "reasonable", "available", or "unchanged" is not sufficient.
    with reason SOURCE_DOES_NOT_PUBLISH_A_DIGEST; the run must not invent one.
 
 8. Prompt and policy. P2T2-LIVE-D7 records the prompt protocol/source,
-   prompt_sha256, and explicit builder injection. Immediately before the
-   adapter call, the harness hashes the exact injected text as
+   prompt_sha256, and explicit builder injection. The proposed source is the
+   committed FEAT-003 C1-v2 protocol in
+   `backend/src/sketch2life/benchmark/vision_c1_prompt_mapping_study.py`,
+   resolved by `C1_PROMPT_V2`/`c1_prompt_text_v2()` and injected as the
+   explicit `prompt=` argument through `adapter_worker_entry`; its protocol
+   identity and hash are recorded in Section 9 without copying prompt text.
+   Immediately before the adapter call, the harness hashes the exact injected
+   text as
    `sha256(prompt_text.encode("utf-8")).hexdigest()` and requires equality
    with the approved hash without logging or persisting the text. P2T2-LIVE-D12
    records the exact import/factory identity (`LexicalRegressionContentPolicy`
@@ -379,11 +561,17 @@ condition is "reasonable", "available", or "unchanged" is not sufficient.
      failure, timeout, total-cap expiry, malformed output, policy rejection,
      mapper failure, cleanup failure, permanent runtime failure, and every
      second-attempt failure are terminal. There is no outer retry.
+     The live assertion must observe the real nested spawn: the outer
+     `MultiprocessingProcessLauncher` is non-daemon, the inner generation
+     launcher is reached only after `CONTAINMENT_READY`, and the accepted
+     progress stream contains at most one attempt-1 and one attempt-2 start.
 
-11. Bounded output and IPC. P2T2-LIVE-D9 records exact numeric raw-output,
-    IPC-envelope, stdout, and stderr ceilings and their enforcement
+11. Bounded output and IPC. P2T2-LIVE-D9 records the exact proposed integer
+    values `raw_output_max_bytes=65536`, `ipc_envelope_max_bytes=98304`,
+    `stdout_max_bytes=0`, and `stderr_max_bytes=0`, plus their enforcement
     component. The ceiling is enforced before an unbounded raw value can cross
-    the child-parent boundary. stdout and stderr are either disabled or
+    the child-parent boundary. A zero stream ceiling means the stream is
+    disabled and any byte is a failure. stdout and stderr are either disabled or
     captured by a bounded, non-persistent sink; they may not contain prompts,
     raw model output, credentials, URLs, paths, or provider payloads. If the
     selected runner or harness cannot prove these bounds, the run stops before
@@ -454,9 +642,12 @@ manifest object and its hash. It must not contain model/cache/runtime-config
 paths, environment values, URLs, credentials, tokens, prompts, raw provider
 output, hostnames, process command lines, or arbitrary package inventory.
 
-The runtime_source_commit, model identifier/revision, profile/config hashes,
-fixture hash, and prompt hash are recorded as separate sanitized metadata; they
-are not a reason to widen the runtime-manifest allowlist.
+The `reviewed_runtime_code_commit`, externally supplied
+`approval_record_commit`, model identifier/revision, profile/config hashes,
+fixture hash, and prompt hash are recorded as separate sanitized metadata;
+they are not a reason to widen the runtime-manifest allowlist. The approval
+record never hashes or names its own future commit as if it were already
+known.
 
 ## 4. Execution phases
 
@@ -467,8 +658,9 @@ provider, network call, benchmark, or live subprocess.
 
 - Verify the future approval is APPROVED for this exact scope, resolves
   P2T2-LIVE-D1 through P2T2-LIVE-D12, and lists the exact evidence pair.
-- Verify the exact runtime_source_commit and an empty unfiltered
-  git status --porcelain in the execution checkout.
+- Verify the externally supplied `approval_record_commit`, the reviewed-path
+  zero-diff/blob relationship to `reviewed_runtime_code_commit`, and an empty
+  unfiltered `git status --porcelain` in the execution checkout.
 - Verify the fixture_id, owner-review reference, source_sha256, and P2-T1 D2
   image-admission result=PASS. A RECAPTURE or source-digest mismatch stops before
   Lightning starts.
@@ -497,8 +689,16 @@ None of these intervals is part of adapter_wall_clock_ms.
 
 Inside the session, before any model invocation:
 
-- verify git rev-parse HEAD equals runtime_source_commit and the checkout is
-  clean; a branch name alone is not evidence;
+- verify git rev-parse HEAD equals the externally supplied
+  `approval_record_commit`, verify the two reviewed paths against
+  `reviewed_runtime_code_commit`, and verify the checkout is clean; a branch
+  name alone is not evidence;
+- construct the supervisor containment boundary before releasing the outer
+  adapter worker, verify the outer worker was created through the real spawn
+  context with `daemon=False`, and require containment to cover descendants;
+- require the worker to accept `CONTAINMENT_READY` before it constructs the
+  Qwen adapter or the inner generation launcher; the live run must observe a
+  real nested spawn rather than infer it from a fake seam;
 - load the explicitly selected runtime config without copying its values to
   evidence;
 - verify installed dependency versions, CUDA, driver, GPU SKU, device count,
@@ -558,7 +758,11 @@ retry or relabel it as a model-reaching smoke run. If the runner is entered,
 record `adapter_call_count=1` and `attempt_count=1` or `2`, cross-checking the
 value against the adapter's `attempt_number`; attempt 2 requires an explicit
 transient runtime classification from attempt 1. No other call/attempt
-combination is accepted, and no missing value is invented.
+combination is accepted, and no missing value is invented. The worker's
+`ADAPTER_STARTED`, `GENERATION_ATTEMPT_STARTED`, and `TERMINAL` frames are
+committed only when the supervisor accepts their sequence/deadline transition;
+duplicate, gapped, invalid, late, or post-terminal events are rejected and
+cannot alter `attempt_count`.
 
 ### Phase 3 - typed result and mapper
 
@@ -606,39 +810,73 @@ harness must not use early returns that bypass it. The required shape is:
         terminate_lightning_session()
         confirm_no_residual_gpu_or_runner_process()
 
-The actual implementation may use the proposed boundary, but the approval
-must identify it. Cleanup closes IPC, terminates and joins any child, discards
-raw model output and tensors, and terminates the single Lightning session.
-Cleanup is required for success, timeout, malformed output, policy rejection,
-mapper failure, model-load failure, device failure, and every subprocess
-failure. If cleanup itself fails, the run status is FAILED with
+The live approval must identify the reviewed boundary. Cleanup closes the
+inner generation-child IPC, terminates and joins the inner child, then
+terminates and joins the outer adapter worker, terminates the containment
+group/job, and verifies that both process levels and all descendants are
+absent. It discards raw model output and tensors and terminates the single
+Lightning session. Cleanup is required for success, timeout, malformed output,
+policy rejection, mapper failure, model-load failure, device failure, and
+every subprocess failure. If cleanup itself fails, the run status is FAILED with
 `run_failure_code=CLEANUP_FAILED`, regardless of the V2 or Raw result, and no
 retry or second session is permitted.
 
 ### Phase 5 - sanitized evidence and postflight
 
-After cleanup, build the sanitized evidence pair in memory, validate its
-allowlist, and write only the exact JSON and Markdown paths in Section 7. This
-writer is required for every authorized run attempt, including a pre-adapter
-terminal. If the pair cannot be created or atomically completed, write only
-the safe ignored incident record at
-`tmp/feat018-live-lightning-incident-<run_id>/INCIDENT.md`; do not index an
-incomplete pair or the incident.
-The evidence writer must not serialize the V2 or Raw object wholesale because
-their provenance may contain fields, URLs, or details that are not allowed in
-sanitized evidence. It selects only the allowlisted metadata described below.
+The evidence lifecycle is ordered and has one authoritative commit point:
 
-Run the postflight inventory after the pair is written. If an unexpected
-tracked, untracked, ignored, temporary, cache, runtime-config, or generated
-artifact is found, the run fails and the artifact is not published or
-indexed. Do not delete or overwrite an unexpected user artifact under this
-plan; stop and report its logical category and safe identity.
-If pair creation was impossible, run the same safe postflight against the
-ignored incident path and leave both the pair and the incident unindexed.
+1. record the runtime outcome;
+2. complete cleanup and verify both process levels/descendants are gone;
+3. build and write a provisional JSON/Markdown pair in temporary names,
+   validating the allowlist and bounded identities;
+4. run final postflight and integrity checks against the provisional pair and
+   the complete artifact inventory, then repeat the inventory comparison after
+   Markdown rename immediately before the authoritative JSON rename;
+5. derive the final outcome, including any postflight or cleanup failure;
+6. rename the authoritative JSON into its final path as the sole commit point.
+
+`Feat018EvidenceFinalizer` owns cleanup and the mandatory precommit gate;
+`Feat018EvidenceCommitWriter` supplies storage operations only. The finalizer
+requires the future coordinator's complete postflight inventory check and the
+writer verifies the provisional pair's exact bytes before either final rename.
+The writer performs a second inventory/audit check after Markdown rename and
+immediately before JSON commit. This is a commit-adjacent check under the
+quiescent single-writer invariant, not filesystem-wide atomicity or protection
+from an unrelated hostile writer. A failed gate aborts publication and returns
+non-committed evidence, never a false success. Failure reporting or incident
+fallback must retain that result.
+The one-way hash protocol is:
+the JSON may contain `companion_markdown_sha256`, the JSON omits its own hash,
+and the Markdown never contains a JSON hash. A final JSON/Markdown pair is
+authoritative only when the final JSON has `commit_state=FINAL`, matching
+identities, and the Markdown hash. Hashes of both final files are collected
+later in independent-review evidence, not put into either file during its own
+commit protocol.
+
+This writer is required for every authorized run attempt, including a
+pre-adapter terminal. If the pair cannot be created or atomically completed,
+write only the safe ignored incident record at the exact relative destination
+`tmp/feat018-live-lightning-incident-<run_id>/INCIDENT.md`; do not index an
+incomplete pair or the incident. The future coordinator/preflight must confirm
+that exact destination is Git-ignored, and the writer rejects tracked,
+publishable, arbitrary absolute, traversal, mismatched-run and link/reparse
+destinations. The writer must not serialize the V2 or Raw object wholesale
+because their provenance may contain fields, URLs, or details that are not
+allowed in sanitized evidence. It selects only the allowlisted metadata
+described below. If an unexpected tracked, untracked, ignored, temporary,
+cache, runtime-config, or generated artifact is found, the run fails and the
+artifact is not published or indexed. Do not delete or overwrite an unexpected
+user artifact under this plan; stop and report its logical category and safe
+identity.
 
 ## 5. Assertions and terminal outcome rules
 
 All assertions below are required for a functional PASS:
+
+The live checklist is explicit: real nested spawn succeeds; the outer worker
+is non-daemon; containment covers all descendants; no orphan remains after a
+kill; cleanup confirms both levels are absent; late events are rejected; and
+`attempt_count` comes only from committed progress.
 
 - a model-reaching run has exactly one adapter call:
   `adapter_call_count=1`;
@@ -647,17 +885,27 @@ All assertions below are required for a functional PASS:
   recorded as `adapter_call_count=1` and `attempt_count=0`;
 - a model-reaching run records `attempt_count=1` or `2`, and attempt 2 occurs
   only after an explicitly classified transient runtime failure on attempt 1;
-- no call or attempt value is inferred, backfilled, or fabricated;
+- no call or attempt value is inferred, backfilled, or fabricated; the only
+  source of `attempt_count` is a supervisor-accepted committed progress event;
 - the source fixture was admitted before any vision call;
 - the original and staged source SHA-256 values match, and the adapter's
   independent image-reference verification passed;
-- the exact runtime_source_commit was verified inside Lightning before the
-  adapter call;
+- the externally supplied `approval_record_commit` was verified inside
+  Lightning before the adapter call, and both reviewed implementation paths
+  have the approved zero-diff/blob relationship to
+  `reviewed_runtime_code_commit`;
 - the sanitized runtime manifest is allowlist-valid and its hash matches;
 - the exact profile, model identifier/revision, config/catalog hashes,
   dependencies, prompt identity/hash, policy identity, and hardware facts
   match the approval;
 - the configured raw-output, IPC, stdout, and stderr ceilings were enforced;
+- the live nested-spawn assertion succeeded: the outer worker was really
+  non-daemon, its inner generation child was really spawned only after the
+  containment release gate, and the containment mechanism covered all
+  descendants;
+- a kill/timeout leaves no orphan at either process level, cleanup confirms
+  both levels and the containment group/job are absent, and any late progress
+  event is rejected rather than changing the terminal result;
 - each generation attempt was bounded at 120 seconds and the separate
   `total_adapter_cap_seconds` covered the complete adapter call, including any
   permitted retry, without resetting;
@@ -722,8 +970,8 @@ The following stop the run immediately. They are terminal, are recorded
 without raw content, and still pass through the cleanup finally block:
 
 - any missing or unresolved approval decision;
-- runtime commit mismatch, dirty checkout, untracked file, or unexpected
-  source artifact;
+- `approval_record_commit` mismatch, reviewed-path zero-diff/blob mismatch,
+  dirty checkout, untracked file, or unexpected source artifact;
 - fixture admission RECAPTURE, fixture identity/hash mismatch, or staged
   digest mismatch;
 - unverified model revision, profile/config/catalog drift, or dependency
@@ -766,6 +1014,13 @@ The future approval must name the exact date-qualified paths, and the paths
 must be absent before execution. Do not write a third run artifact, use tmp as
 evidence, index before the required review, or overwrite an existing pair.
 
+The JSON/Markdown pair follows the evidence lifecycle in Phase 5. The JSON is
+the authoritative commit record and is the last rename. JSON may reference
+the exact SHA-256 of its Markdown companion, but JSON cannot hash itself and
+Markdown must not reference the JSON hash. The hashes of both final files are
+captured only by the later independent-review evidence; they are not inserted
+into the pair while either file is being authored.
+
 Every authorized run attempt, including a terminal before adapter invocation,
 must produce exactly this JSON/Markdown pair. A pre-adapter terminal records
 `adapter_call_count=0` and `attempt_count=null` and omits V2/Raw result claims;
@@ -780,7 +1035,8 @@ credential, URL, path, or raw media.
 The sanitized JSON and Markdown companion contain the same bounded run
 metadata, with the Markdown providing human-readable interpretation:
 
-- exact runtime_source_commit and verified=true;
+- exact `reviewed_runtime_code_commit`, externally supplied
+  `approval_record_commit`, and verified=true;
 - run_id, correlation_id, and synthetic session_id only when they are opaque
   safe identifiers with no path, URL, token, or credential;
 - exact fixture_id, source_sha256, staged reference class, MIME, width, height,
@@ -816,11 +1072,12 @@ metadata, with the Markdown providing human-readable interpretation:
 - cleanup_status, postflight_status, and a safe artifact-inventory summary.
 
 Safe hashes may be recorded for the fixture, staged fixture, prompt identity,
-runtime manifest, exact source commit, profile/config/catalog metadata, and
-the two evidence files. Never hash-and-publish secrets, credentials, raw
-output, prompts as a replacement for the required prompt identity rule, raw
-media, or arbitrary cache contents. Do not serialize V2 or Raw objects
-wholesale.
+runtime manifest, reviewed and approval commit metadata, and
+profile/config/catalog metadata. The SHA-256 values of both final evidence
+files belong to later independent-review evidence, not to the pair's own
+contents. Never hash-and-publish secrets, credentials, raw output, prompts as
+a replacement for the required prompt identity rule, raw media, or arbitrary
+cache contents. Do not serialize V2 or Raw objects wholesale.
 
 Never store in either evidence file, normal logs, or tracked Git history:
 
@@ -835,17 +1092,25 @@ Never store in either evidence file, normal logs, or tracked Git history:
 
 ## 8. Postflight inspection and audit
 
-Postflight is required after cleanup and again after the evidence pair is
-written. It must inspect all of the following, not only tracked diffs:
+Failure-producing postflight is required after cleanup, with the provisional
+pair present and before either final rename. It inspects the following
+inventory. After JSON commit, only read-only pair/publication verification is
+permitted; this is not a second runtime-outcome gate. A failed later integrity
+check prevents indexing and labels the pair non-authoritative without rewriting
+the recorded outcome. Independent verification records that disposition.
 
 1. Tracked files: unfiltered git status --porcelain, git diff --name-status,
-   and the exact runtime-source commit relationship.
+   the exact `approval_record_commit`, and the reviewed-path zero-diff/blob
+   relationship to `reviewed_runtime_code_commit`.
 2. Untracked files: all newly untracked paths in the source checkout and any
    execution workspace.
 3. Ignored files: git status --ignored --short, with before/after comparison
    for approved ignored runtime config, caches, and local fixture locations.
 4. Temporary artifacts: child-worker files, IPC/pipe remnants, temporary
-   directories, scratch logs, and session teardown artifacts.
+   directories, scratch logs, and session teardown artifacts. Confirm the
+   outer adapter worker, every inner generation child, and the containment
+   group/job are absent after cleanup; a surviving or unverifiable descendant
+   is a failed postflight.
 5. Cache artifacts: model cache, framework cache, compiler cache, and
    generated weight/index files; verify that no new raw output or credentials
    are present.
@@ -855,17 +1120,21 @@ written. It must inspect all of the following, not only tracked diffs:
 7. Generated artifacts: model output, decoded tensors, prompt dumps,
    provider responses, reports, notebooks, and other generated files; none
    may remain as an unapproved run artifact.
-8. Evidence artifacts: only the exact JSON/Markdown pair is expected after
-   the approved writer runs. Hash both files and record those hashes in the
-   local review record or approved evidence metadata as allowed. If pair
+8. Evidence artifacts: precommit inventory permits only the exact provisional
+   pair; final paths must be absent. The finalizer verifies its bytes. After
+   commit, read-only publication verification validates `commit_state=FINAL`, identity
+   agreement, and the JSON-to-Markdown companion hash. The later independent
+   review, not the live pair, records the SHA-256 of both final files. If pair
    creation is impossible, the only permitted exception is the safe ignored
    incident path from Section 7, which is recorded as an unindexed failure
    artifact rather than evidence.
 
 The postflight result must record safe identities/hashes where applicable:
-runtime_source_commit, fixture/source and staged digests, prompt_sha256,
+reviewed_runtime_code_commit, approval_record_commit, fixture/source and staged
+digests, prompt_sha256,
 runtime_manifest_sha256, profile/config/catalog hashes, and evidence-file
-hashes. It must record category and disposition for every inspected ignored
+hashes only in the later independent-review artifact. It must record category
+and disposition for every inspected ignored
 or temporary artifact without exposing its path or contents in the published
 evidence. A new or changed artifact outside the exact approved pair fails the
 run and prevents indexing, except for the explicitly permitted ignored
@@ -881,44 +1150,72 @@ the decision.
 These labels are live P2-T2 plan identifiers only; they do not alter, rename,
 or close any P2-T1 decision.
 
+### Current decision status
+
+Each status is one of the permitted planning dispositions. `RESOLVED_WITH_PROPOSED_VALUE`
+means that the reviewed source or local owner-reviewed input supports a
+concrete value, not that the future live approval has been granted.
+
+| Decision | Status | Current basis or blocker |
+|---|---|---|
+| P2T2-LIVE-D1 | `BLOCKED` | Bounded primitives and the four-finding offline correction are validated; the complete coordinator and Stage 4 review remain required by Section 2.5. |
+| P2T2-LIVE-D2 | `READY_TO_RESOLVE` | Positive TTL, total adapter cap, and numeric GPU-minute/currency cap still require owner selection. |
+| P2T2-LIVE-D3 | `RESOLVED_WITH_PROPOSED_VALUE` | `ASR_EXCLUDED`, `asr_execution=false`, and `narration_status=NOT_SUPPLIED` are the proposed image-only value. |
+| P2T2-LIVE-D4 | `BLOCKED` | No locally proven pre-staged snapshot identity/completeness/revision record; see the exact unblock requirement in D4. |
+| P2T2-LIVE-D5 | `READY_TO_RESOLVE` | Owner must choose independent-review indexing or P2 batch hold. |
+| P2T2-LIVE-D6 | `RESOLVED_WITH_PROPOSED_VALUE` | Owner-reviewed Cohort B `B01.jpg` metadata and digest match the manifest and source review. |
+| P2T2-LIVE-D7 | `RESOLVED_WITH_PROPOSED_VALUE` | Committed C1-v2 source, builder, explicit `prompt=` path, and exact UTF-8 hash are traced; Stage 4 must bind them. |
+| P2T2-LIVE-D8 | `READY_TO_RESOLVE` | Mount/copy/upload session-relative staging method remains an owner choice. |
+| P2T2-LIVE-D9 | `RESOLVED_WITH_PROPOSED_VALUE` | Proposed integers are 65536, 98304, 0, and 0 with the reviewed bounded enforcement path. |
+| P2T2-LIVE-D10 | `READY_TO_RESOLVE` | Approval values and observed GPU evidence must be supplied separately; no live hardware was observed here. |
+| P2T2-LIVE-D11 | `BLOCKED` | Exact two-file future coordinator scope is defined; full orchestration is not implemented or independently reviewed. |
+| P2T2-LIVE-D12 | `RESOLVED_WITH_PROPOSED_VALUE` | Synthetic lexical regression policy identity and scope are committed and proposed. |
+
+D4 is explicitly blocked, and D6/D7 are not marked resolved without their
+local metadata/source proof. No table row authorizes live execution.
+
 ### Required staged governance sequence
 
-The next authorization is for the proposed bounded boundary, not for live
-execution. The stages are mandatory and sequential:
+The authorization sequence is mandatory and sequential. Its current
+disposition is explicit:
 
-1. Approve the exact two-file glue/test scope in Section 2.5, including each
-   file's responsibility and the prohibition on changing the excluded FEAT-003
-   adapter.
-2. Implement and test that boundary offline with injected fakes only; no
-   model, GPU, Lightning, provider, network, subprocess, or benchmark
-   execution is permitted in this stage.
-3. Obtain an independent code review of the bounded IPC, output sinks,
-   killable timeout, total cap, cleanup, cardinality, and evidence behavior.
-4. Obtain a separate live-execution approval that resolves P2T2-LIVE-D1
-   through P2T2-LIVE-D12 against the reviewed implementation and names the
-   exact runtime commit, fixture, budget, redaction rules, and evidence pair.
-5. Only after stages 1-4 pass may the operator open Lightning or run the
-   approved smoke session.
+| Stage | Required gate | Status | Bound evidence or next action |
+|---|---|---|---|
+| 1 | Exact two-file scope approval, with the FEAT-003 exclusion | COMPLETE | `6c1d607eb379a3b5b5b8f5cf120a904460da9ff1` and the feature-local approval package |
+| 2 | Offline implementation and tests with injected fakes only | COMPLETE FOR OFFLINE CORRECTION; COORDINATOR INCOMPLETE | `7f5cbe57fc9756c3e7fa5c248cd655c1dce0ec7b`; current 196 focused / 885 related passed / 5 skips; no coordinator is claimed |
+| 3 | Independent review and finalization of the bounded runner | COMPLETE FOR OFFLINE CORRECTION; COORDINATOR REVIEW PENDING | F1-F4 finalization report and source commit above; Stage 4 still requires a separate coordinator review |
+| 4 | Separate owner live-execution approval resolving D1-D12 and supplying the post-approval checkout commit | PENDING | owner approval must name exact fixture, prompt, hardware, budget, redaction, evidence pair, and external `approval_record_commit` |
+| 5 | Open Lightning and run the approved smoke | BLOCKED UNTIL STAGE 4 | no live process, model, GPU, provider, network, or Lightning execution is authorized by this draft |
+
+Historic primitive approval/review does not resolve the live D1-D12 approval. The
+reviewed offline tests intentionally do not start a real process, so Stage 4
+must carry the real nested-spawn, descendant-containment, no-orphan, and
+two-level-cleanup assertions.
+
+The current focused offline suite for this finalization is `196 passed`. The
+earlier `170 passed` checkpoint and the historic `154 focused`/`839 related`
+figures in the table are historical checkpoints, not current totals.
 
 ### P2T2-LIVE-D1 - Runner and deadline enforcement
 
-The next authorization must select `NEW_GLUE_EXPLICITLY_APPROVED`, referring
-to the exact source/test paths and responsibilities in Section 2.5. This
-first-stage decision authorizes creation and offline testing of that boundary
-only; it is not a live-execution approval. The current
-`KillableSubprocessQwenGenerationRunner` is not selectable because its IPC is
-unbounded, and the current `TransformersQwenGenerationRunner` is not selectable
-because it has no hard killable deadline.
+Planning disposition: `BLOCKED` pending the coordinator and correction review.
 
-The later live-execution approval must record the implemented runner class and
-source commit, the deadline enforcer, and proof that model/processor loading,
-generation, and decoding are inside a killable 120-second deadline for each
-generation attempt. It must also record the separate
-`total_adapter_cap_seconds` covering the one adapter call and possible retry,
-and verify the conditional call/attempt cardinality. No live runner is
-approved by this draft.
+Select `NEW_GLUE_EXPLICITLY_APPROVED` with the exact reviewed implementation
+at `reviewed_runtime_code_commit`
+`c2bd7b5ece3f308abb65ab3632add265b3cd586c`: the supervisor launches the
+non-daemon adapter worker, the worker constructs the real adapter after
+containment release, and `Feat018BoundedKillableQwenGenerationRunner` launches
+one bounded generation child per adapter attempt. The runner's 120-second
+deadline covers model/processor loading, generation, and decoding; its bounded
+IPC and cleanup are covered by Stage 3 review. The later live approval must
+still record the external `approval_record_commit`, prove the real nested
+spawn and descendant containment, set `total_adapter_cap_seconds`, and verify
+the conditional call/attempt cardinality. This proposed value is not live
+authorization.
 
 ### P2T2-LIVE-D2 - TTL and budget cap
+
+Planning disposition: `READY_TO_RESOLVE`.
 
 Record positive `session_ttl_seconds` and
 `total_adapter_cap_seconds`, plus at least one exact numeric `gpu_minute_cap`
@@ -934,6 +1231,8 @@ not approve an unbounded session or a cap described only as "small" or
 
 ### P2T2-LIVE-D3 - ASR/Whisper exclusion
 
+Planning disposition: `RESOLVED_WITH_PROPOSED_VALUE`.
+
 Select ASR_EXCLUDED for this image-only smoke run and record
 asr_execution=false, asr_result=null, and narration_status=NOT_SUPPLIED. If
 the owner does not select ASR_EXCLUDED, this plan is blocked and a separate
@@ -942,6 +1241,26 @@ budget, redaction, retries, cleanup, and evidence. This plan never combines
 the modalities.
 
 ### P2T2-LIVE-D4 - Model-weight staging
+
+Planning disposition: `BLOCKED`.
+
+The repository profile and readiness checker define the required pinned model
+revision and completeness rule, but discovery found no local, owner-reviewed
+snapshot manifest proving a session-local Qwen snapshot identity, complete
+required files/shards, and matching revision metadata. No cache path, arbitrary
+weight hash, or host-local model location is published here. D4 therefore has
+no proven selected value yet.
+
+Exact unblock requirement: the owner must provide a safe logical/session-local
+snapshot identity, the pinned revision
+`0c351dd01ed87e9c1b53cbc748cba10e6187ff3b`, the readiness completeness proof
+(all loader-required files plus every shard named by the safetensors index and
+per-file revision metadata), and `allow_model_download=false`, or must
+separately approve `APPROVED_ONE_TIME_DOWNLOAD` with its source identity,
+`allow_model_download=true`, no repository weight digest, and acceptance that
+download/load stays inside the generation child deadline. Until one of those
+two owner records exists and is verifiable inside Lightning, the live run is
+blocked.
 
 Select exactly one:
 
@@ -960,6 +1279,8 @@ readiness boundary, the run stops.
 
 ### P2T2-LIVE-D5 - Evidence indexing timing
 
+Planning disposition: `READY_TO_RESOLVE`.
+
 Select exactly one:
 
 - INDEX_AFTER_INDEPENDENT_REVIEW: record the reviewer, review timestamp,
@@ -972,6 +1293,19 @@ This decision authorizes no edit to evidence/README.md in this draft.
 
 ### P2T2-LIVE-D6 - Exact fixture identity
 
+Planning disposition: `RESOLVED_WITH_PROPOSED_VALUE`.
+
+The proposed fixture is the owner-reviewed reused Cohort B candidate
+`B01.jpg`, recorded only as the opaque relative identity `Cohort B/B01.jpg`.
+The local manifest and source review agree on JPEG / `image/jpeg`, dimensions
+`1254x1254`, byte count `337481`, and SHA-256
+`c60faed33034b5911e611a512dde03cc94fb21146f85dfba4ef7236268ab9cc3`.
+Independent read-only recomputation of B01 found JPEG SOI magic `ffd8ff` and
+the same byte count, dimensions, and digest. The owner-review reference is
+the local `SOURCE_REVIEW.md`, dated 2026-09-12, with visual disposition PASS.
+The final approval must repeat these checks on the immutable original before
+staging; the review artifact must not contain image bytes or an absolute path.
+
 Record exactly one owner-approved fixture_id, source/derivation identity,
 owner visual-review reference and date, MIME/extension, width, height,
 source_sha256, and whether it is a reused Cohort B image or a newly reviewed
@@ -979,6 +1313,31 @@ image. The original is immutable and never committed. A new image cannot be
 used merely because it passes the P2-T1 D2 image-admission policy.
 
 ### P2T2-LIVE-D7 - Prompt identity and explicit builder
+
+Planning disposition: `RESOLVED_WITH_PROPOSED_VALUE`.
+
+The committed authoritative candidate is C1-v2:
+
+- `prompt_protocol_id=vision-v2-structured-output-prompt-v2`;
+- source identity/version:
+  `backend/src/sketch2life/benchmark/vision_c1_prompt_mapping_study.py`,
+  `C1_PROMPT_V2` / `c1_prompt_text_v2()`;
+- exact UTF-8 prompt SHA-256:
+  `1e880e946dc1f1dcf11731c299702b33ab58e3c098cdda3d6607c080dc8f9fd6`;
+- injection: resolve `c1_prompt_text_v2()` once, verify its UTF-8 digest, then
+  pass the resulting string as `prompt=` to `run_bounded_adapter_call`,
+  through `adapter_worker_entry` to
+  `QwenVisionAdapter(..., prompt=prompt, generation_runner=runner)`.
+
+This traces the actual reviewed Qwen adapter seam without copying prompt text.
+The explicit `prompt=` argument means `QwenVisionAdapter` does not reach its
+empty `_default_prompt_builder`; the live caller must additionally reject an
+empty string and a hash mismatch before incrementing `adapter_call_count`.
+The reviewed bounded runner accepts a prompt string but does not choose its
+protocol, so the proposed binding remains subject to Stage 4 owner approval.
+If the owner selects any other prompt, the approval must name its committed
+source/version and recomputed exact UTF-8 hash; an uncommitted or unverifiable
+prompt leaves D7 `BLOCKED`.
 
 Record the exact prompt_protocol_id, prompt source identity/version,
 prompt_sha256, and the explicit PromptBuilder or prompt injection used by
@@ -993,6 +1352,8 @@ requires another approval and is not authorized by this plan.
 
 ### P2T2-LIVE-D8 - Fixture staging and mount method
 
+Planning disposition: `READY_TO_RESOLVE`.
+
 Select exactly one owner-approved mechanism:
 
 - MOUNT_SESSION_RELATIVE;
@@ -1006,6 +1367,15 @@ transport is not a valid staging reference.
 
 ### P2T2-LIVE-D9 - Raw output, IPC, stdout, and stderr ceilings
 
+Planning disposition: `RESOLVED_WITH_PROPOSED_VALUE`.
+
+The proposed exact integers are
+`raw_output_max_bytes=65536`, `ipc_envelope_max_bytes=98304`,
+`stdout_max_bytes=0`, and `stderr_max_bytes=0`. The zero stream values mean
+the streams are disabled; any observed byte fails the run. These values are
+approval values, not implicit source defaults, and must be passed explicitly
+to `Feat018BoundedRunnerConfig`.
+
 Record exact positive integer values for raw_output_max_bytes and
 ipc_envelope_max_bytes, exact non-negative integer values for
 stdout_max_bytes and stderr_max_bytes, the enforcement component and phase,
@@ -1015,16 +1385,35 @@ in force but does not replace these ceilings. The proposed
 `NEW_GLUE_EXPLICITLY_APPROVED` boundary must enforce the raw-output ceiling
 before any raw value crosses IPC, send only an envelope already proven to fit
 the IPC ceiling, and make stdout/stderr bounded and non-persistent. The
-current subprocess `Connection.send` is not proof of that boundary, and the
-current in-process runner is not a substitute. These are first-stage
+reviewed bounded implementation, not the old subprocess `Connection.send` or
+the old in-process runner, is the selected boundary. These are required
 implementation/test acceptance conditions for the exact scope in Section 2.5;
-if the implemented boundary cannot prove them, the owner must leave the live
-run unapproved.
+if the selected approval values cannot be proven at runtime, the owner must
+leave the live run unapproved.
 
 ### P2T2-LIVE-D10 - Exact GPU/SKU/VRAM/BF16 decision
 
-Record accelerator provider/tier, exact GPU SKU, device_count, device_index,
-minimum_vram_mib, observed vram_mib, required cuda=true, required
+Planning disposition: `READY_TO_RESOLVE`.
+
+Approval requirements and observed runtime evidence are separate records.
+The approval must state the permitted accelerator provider/tier, exact GPU
+SKU, `device_count`, `device_index`, numeric `minimum_vram_mib`, required
+`cuda=true`, required `bf16_supported=true`, driver-fact allowlist, and the
+mismatch action `TERMINATE_SESSION_AND_MARK_FAILED`. The proposed readiness
+class is the existing `NVIDIA_L4` boundary, but no live GPU was observed in
+this plan-only reconciliation and no observed VRAM/SKU/BF16 result is being
+claimed.
+
+At runtime, the allowlisted manifest must separately record the actual SKU,
+device index/count, `vram_mib`, CUDA runtime fact, driver fact, and BF16 result;
+the run must also record either single-device visibility or a post-load
+assertion that the model and inference inputs occupy the approved device index.
+Those observed facts can satisfy the approval only when they match it; they
+cannot silently supply missing approval values, and an inventory-only check
+does not satisfy D10.
+
+Record approved accelerator provider/tier, exact GPU SKU, device_count, device_index,
+minimum_vram_mib, required cuda=true, required
 bf16_supported=true, and the readiness mismatch action
 TERMINATE_SESSION_AND_MARK_FAILED. The current readiness contract's expected
 device class is NVIDIA_L4; selecting another SKU requires an already-approved
@@ -1035,26 +1424,37 @@ inventory facts alone do not satisfy D10.
 
 ### P2T2-LIVE-D11 - Approved harness, glue boundary, and session ID
 
-The next authorization must select `NEW_GLUE_EXPLICITLY_APPROVED`; no existing
-runner or existing harness satisfies the combined deadline and bounded-IPC
-requirements. The separate first-stage approval must list exactly these paths
-from Section 2.5 and no others:
+Planning disposition: `BLOCKED` pending the complete coordinator in Section 2.5.
+
+The historic bounded primitives have `NEW_GLUE_EXPLICITLY_APPROVED` scope at
+`reviewed_runtime_code_commit`
+`c2bd7b5ece3f308abb65ab3632add265b3cd586c`; no old runner or existing
+harness satisfies the combined deadline and bounded-IPC requirements. The
+reviewed scope is exactly these paths and no others:
 
 - `backend/src/sketch2life/benchmark/feat018_live_lightning_execution.py` for
-  the bounded killable runner, coordinator, explicit runtime/policy/prompt
-  construction, staging, device-placement assertion, cardinality, caps,
-  cleanup, sanitized writer, and ignored incident fallback;
+  the bounded killable runner, supervisor, progress and containment primitives,
+  and pair writer/reader; the future coordinator responsibilities in Section
+  2.5 are not completed by those primitives;
 - `backend/tests/unit/test_feat018_live_lightning_execution.py` for all
-  offline overflow, timeout, cleanup, cardinality, placement, prompt-hash,
-  redaction, and incident-path tests.
+  existing offline overflow, timeout, cleanup, cardinality and pair tests,
+  plus the correction tests; complete coordinator acceptance remains pending.
 
-That approval occurs before creation and authorizes offline implementation and
-tests only. A later live-execution approval must identify the reviewed source
-commit and exact evidence-writer paths before any model invocation. Record the
-safe synthetic `session_id` handling rule and confirm it is not a production
-session, credential, URL, or path.
+The historic primitive approval, implementation and review are complete, and
+the four-finding offline correction is validated at
+`7f5cbe57fc9756c3e7fa5c248cd655c1dce0ec7b`. The complete coordinator review
+must precede Stage 4. Its new live reviewed runtime-code commit remains
+UNKNOWN_UNTIL_COMMITTED_AND_REVIEWED; the old commit cannot bind changed source
+bytes. The separate Stage 4 approval must
+identify `approval_record_commit`, prove zero diff/blob identity for both
+paths, identify the exact evidence-writer paths, and authorize the real nested
+spawn only after D1-D12 are resolved. Record the safe synthetic `session_id`
+handling rule and confirm it is not a production session, credential, URL, or
+path.
 
 ### P2T2-LIVE-D12 - Functional synthetic content-policy boundary
+
+Planning disposition: `RESOLVED_WITH_PROPOSED_VALUE`.
 
 Select USE_LEXICAL_REGRESSION_FUNCTIONAL_ONLY and record:
 
@@ -1074,10 +1474,12 @@ approval; no alternate policy is silently substituted here.
 ## 10. Final acceptance boundary
 
 The future live smoke is accepted only after the staged governance sequence
-passes and the separate live approval covers the exact runtime commit, fixture,
-prompt, runner, hardware, budgets, redaction rules, and evidence paths. The
-run must then pass exact fixture/staged-digest, profile/dependency, prompt and
-policy, hardware/placement, TTL/budget, per-attempt 120-second,
+passes and the separate live approval covers the exact
+`reviewed_runtime_code_commit`, externally supplied `approval_record_commit`,
+fixture, prompt, runner, hardware, budgets, redaction rules, and evidence
+paths. The run must then pass exact fixture/staged-digest,
+profile/dependency, prompt and policy, hardware/placement, TTL/budget,
+per-attempt 120-second,
 `total_adapter_cap_seconds`, bounded IPC/logging, timing, typed V2-to-Raw
 mapping, finally cleanup, sanitized-manifest, postflight, and evidence-pair
 checks. Its cardinality must be truthful: pre-adapter `0/null`, adapter input
@@ -1094,8 +1496,11 @@ PASS. Cleanup failure is always overall FAILED. A smoke result does not
 authorize indexing until P2T2-LIVE-D5 is resolved and the required
 independent review occurs.
 
-This draft leaves every P2T2-LIVE-D1 through P2T2-LIVE-D12 decision open and
-does not authorize live execution, provider benchmark work, or closure of
-P2-T2. It also does not authorize any FEAT-017 remote HTTPS adapter,
+This draft records planning dispositions for P2T2-LIVE-D1 through D12 but
+does not grant their separate live approval. D1/D4/D11 remain BLOCKED, D2/D5/D8/D10
+remain READY_TO_RESOLVE, and the proposed values in the other rows still
+require the Stage 4 owner approval. The draft does not authorize live
+execution, provider benchmark work, or closure of P2-T2. It also does not
+authorize any FEAT-017 remote HTTPS adapter,
 FEAT-003 modification, mobile, Gate A UI, P1 eligibility, P3/P4, shared
 integration, P2-T3 narration, P2-T4/P2-T5 evaluation, commit, or push.
