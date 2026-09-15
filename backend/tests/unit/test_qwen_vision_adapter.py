@@ -144,6 +144,7 @@ def _adapter(
     prompt: str = "",
     on_raw_output: Any = None,
     on_mapping_diagnostic: Any = None,
+    enable_bounded_repair: bool = False,
 ) -> QwenVisionAdapter:
     return QwenVisionAdapter(
         QwenVisionRuntimeConfig(model_dir=Path("local-model")),
@@ -153,6 +154,7 @@ def _adapter(
         model_factory=model_factory,
         on_raw_output=on_raw_output,
         on_mapping_diagnostic=on_mapping_diagnostic,
+        enable_bounded_repair=enable_bounded_repair,
     )
 
 
@@ -210,6 +212,62 @@ def test_complete_json_fence_is_the_only_repair_and_preserves_valid_content(
 
     assert isinstance(result, VisionUnderstandingSuccessV2)
     assert result.repair_attempted is True
+
+
+def test_bounded_repair_wraps_scalar_vietnamese_text_without_inventing_observations(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    artifact_ref, digest = _write_source(tmp_path)
+    payload = {
+        **_empty_payload(),
+        "entities": [
+            {"observation_id": "entity-1", "label": "con bướm", "confidence": 0.9}
+        ],
+    }
+
+    result = _adapter(
+        _SequenceRunner(_raw(payload)), enable_bounded_repair=True
+    ).understand(_request(artifact_ref, digest))
+
+    assert isinstance(result, VisionUnderstandingSuccessV2)
+    assert result.repair_attempted is True
+    assert len(result.entities) == 1
+    assert result.entities[0].label.value == "con bướm"
+
+
+def test_real_cli_repair_assigns_only_local_ids_and_optional_confidence(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    artifact_ref, digest = _write_source(tmp_path)
+    payload = {
+        **_empty_payload(),
+        "entities": [{"label": _text("con bướm")}],
+    }
+
+    result = _adapter(
+        _SequenceRunner(_raw(payload)), enable_bounded_repair=True
+    ).understand(_request(artifact_ref, digest))
+
+    assert isinstance(result, VisionUnderstandingSuccessV2)
+    assert result.repair_attempted is True
+    assert result.entities[0].observation_id == "entity-1"
+    assert result.entities[0].confidence is None
+
+
+def test_schema_failure_exposes_only_closed_mapping_diagnostics(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    artifact_ref, digest = _write_source(tmp_path)
+    payload = {**_empty_payload(), "unexpected": "rejected"}
+
+    result = _adapter(_SequenceRunner(_raw(payload))).understand(_request(artifact_ref, digest))
+
+    assert isinstance(result, VisionUnderstandingFailureV2)
+    assert result.mapping_diagnostics == (QwenOutputMappingDiagnostic.TOP_LEVEL_KEY_REJECTED.value,)
+    assert "unexpected" not in result.model_dump_json()
 
 
 @pytest.mark.parametrize(

@@ -37,7 +37,10 @@ from sketch2life.infrastructure.catalog.activity_coverage import (
 from sketch2life.infrastructure.catalog.activity_semantics_v2 import (
     load_activity_semantic_catalog_v2,
 )
-from sketch2life.interfaces.cli.workflow_demo import _error_manifest
+from sketch2life.interfaces.cli.workflow_demo import (
+    _error_manifest,
+    build_real_workflow_dependencies,
+)
 
 
 def _scene(*labels: str, transcript: str = ""):
@@ -143,6 +146,28 @@ def test_variant_objective_identity_is_carried_into_semantic_match() -> None:
     assert match.objective_activity_alignment == 1.0
 
 
+def test_butterfly_variants_encode_age_objective_and_continuity_policy() -> None:
+    catalog = load_activity_semantic_catalog_v2(Path.cwd(), include_expansion=True)
+    scene = _scene("con bướm", transcript="Con bướm đang bay")
+
+    infant = catalog.profile_for("ACT-0113")
+    extension = catalog.profile_for("ACT-0116")
+    infant_match = catalog.match_scene(scene, infant)
+    extension_match = catalog.match_scene(scene, extension)
+
+    assert infant.primary_objective_id == "OBJ_MOVEMENT_COORDINATION"
+    assert infant.secondary_objective_ids == ("OBJ_SENSORIAL_DISCRIMINATION",)
+    assert infant_match is not None
+    assert infant_match.continuity_mode == "DIRECT_CONTINUATION"
+    assert infant_match.planned_video_continuity_score > 0.8
+    assert extension_match is not None
+    assert extension_match.continuity_mode == "RELATED_EXPANSION"
+    assert extension_match.expansion_bridge_required is True
+    assert extension_match.semantic_relevance < infant_match.semantic_relevance
+    assert "RELATED_EXPANSION" in extension_match.reason_codes
+    assert "TOPIC_NOT_DIRECTLY_OBSERVED" in extension_match.reason_codes
+
+
 def test_unrelated_activity_uses_explicit_age_baseline_fallback() -> None:
     catalog = load_activity_semantic_catalog_v2(Path.cwd())
     scene = _scene("con bướm", transcript="Con bướm đang bay")
@@ -243,7 +268,7 @@ def test_run_v2_shares_scene_and_reports_personalized_or_fallback_modes() -> Non
     result = BackendAiWorkflow(
         asr=FakeAsr(),
         vision=FakeVision(),
-        repo_root=root,
+        dependencies=build_real_workflow_dependencies(root, include_expansion=True),
         clock=lambda: now,
     ).run_v2(
         BackendWorkflowRequest(
@@ -272,6 +297,13 @@ def test_run_v2_shares_scene_and_reports_personalized_or_fallback_modes() -> Non
         and band.experience_spec is not None
         for band in result.age_bands
     )
+    for band in result.age_bands:
+        assert band.experience_spec is not None
+        assert band.experience_spec.continuity is not None
+        assert band.experience_spec.continuity.actual_video_status == "NOT_RENDERED"
+        assert band.experience_spec.continuity.actual_video_continuity_score is None
+        assert band.experience_spec.activity_bridge is not None
+        assert band.experience_spec.activity_bridge.age_band == band.age_band
     for band in result.legacy_result.age_bands:
         context_stage = next(stage for stage in band.stages if stage.stage == "CONTEXT_READY")
         debug = context_stage.details["debug_evidence"]

@@ -384,6 +384,20 @@ class VisionNonPolicyErrorDetailV2(StrEnum):
     REFERENCE_INTEGRITY_VIOLATION = "REFERENCE_INTEGRITY_VIOLATION"
 
 
+class VisionMappingDiagnosticV2(StrEnum):
+    """Closed diagnostics safe to expose in a typed workflow failure."""
+
+    RAW_NOT_STRING = "RAW_NOT_STRING"
+    STRICT_JSON_PARSE_FAILED = "STRICT_JSON_PARSE_FAILED"
+    JSON_ROOT_NOT_OBJECT = "JSON_ROOT_NOT_OBJECT"
+    TOP_LEVEL_KEY_REJECTED = "TOP_LEVEL_KEY_REJECTED"
+    SCHEMA_MISSING_REQUIRED_FIELD = "SCHEMA_MISSING_REQUIRED_FIELD"
+    SCHEMA_EXTRA_FIELD = "SCHEMA_EXTRA_FIELD"
+    SCHEMA_DUPLICATE_OBSERVATION_ID = "SCHEMA_DUPLICATE_OBSERVATION_ID"
+    SCHEMA_REFERENCE_INTEGRITY_VIOLATION = "SCHEMA_REFERENCE_INTEGRITY_VIOLATION"
+    SCHEMA_TYPE_OR_CONSTRAINT_INVALID = "SCHEMA_TYPE_OR_CONSTRAINT_INVALID"
+
+
 VisionFailureDetailV2 = VisionNonPolicyErrorDetailV2 | VisionProhibitedClaimCategory
 VisionErrorCodeV2 = VisionErrorCode
 
@@ -417,6 +431,9 @@ class VisionUnderstandingFailureV2(VisionResultEnvelopeV2):
     error_code: VisionErrorCode
     error_detail: VisionFailureDetailV2
     retryable: bool
+    # Closed, non-content diagnostics make a real-AI failure actionable without
+    # persisting provider output, prompts, or validation messages.
+    mapping_diagnostics: tuple[VisionMappingDiagnosticV2, ...] = ()
     # ``exclude_if`` keeps the forbidden input-failure field absent from serialized output.
     model_provenance: VisionModelProvenanceV1 | None = Field(
         default=None, exclude_if=lambda value: value is None
@@ -526,6 +543,7 @@ __all__ = [
     "VisionErrorCodeV2",
     "VisionFailureDetailV2",
     "VisionModelProvenanceV1",
+    "VisionMappingDiagnosticV2",
     "VisionNonPolicyErrorDetailV2",
     "VisionProfileCatalogV2",
     "VisionProfileIdV2",

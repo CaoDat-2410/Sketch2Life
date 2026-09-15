@@ -30,6 +30,7 @@ from sketch2life.application.ports.vision_content_policy import ObservableConten
 from sketch2life.application.ports.vision_understanding_v2 import VisionUnderstandingPortV2
 from sketch2life.contracts.schemas.vision import VisionErrorCode
 from sketch2life.contracts.schemas.vision_v2 import (
+    VisionMappingDiagnosticV2,
     VisionNonPolicyErrorDetailV2,
     VisionProfileV2,
     VisionUnderstandingFailureV2,
@@ -684,6 +685,7 @@ class QwenVisionAdapter(VisionUnderstandingPortV2):
         clock: Callable[[], datetime] = _utc_now,
         on_raw_output: RawOutputHook | None = None,
         on_mapping_diagnostic: MappingDiagnosticHook | None = None,
+        enable_bounded_repair: bool = False,
     ) -> None:
         if prompt is not None and prompt_builder is not None:
             raise ValueError("provide prompt or prompt_builder, not both")
@@ -705,6 +707,7 @@ class QwenVisionAdapter(VisionUnderstandingPortV2):
         self._clock = clock
         self._on_raw_output = on_raw_output
         self._on_mapping_diagnostic = on_mapping_diagnostic
+        self._enable_bounded_repair = enable_bounded_repair
 
     def understand(self, request: VisionUnderstandingRequestV2) -> VisionUnderstandingResultV2:
         catalog_hash = vision_profile_catalog_hash_v2(self._catalog)
@@ -905,6 +908,9 @@ class QwenVisionAdapter(VisionUnderstandingPortV2):
                 VisionNonPolicyErrorDetailV2.OUTPUT_MAPPING_FAILED,
                 attempt_number=attempt_number,
                 repair_attempted=repair_attempted,
+                mapping_diagnostics=tuple(
+                    VisionMappingDiagnosticV2(item.value) for item in parse_diagnostics
+                ),
             )
         if not set(payload).issubset(_ALLOWED_PROVIDER_KEYS):
             self._emit_mapping_diagnostic((QwenOutputMappingDiagnostic.TOP_LEVEL_KEY_REJECTED,))
@@ -915,10 +921,16 @@ class QwenVisionAdapter(VisionUnderstandingPortV2):
                 VisionNonPolicyErrorDetailV2.OUTPUT_MAPPING_FAILED,
                 attempt_number=attempt_number,
                 repair_attempted=repair_attempted,
+                mapping_diagnostics=(VisionMappingDiagnosticV2.TOP_LEVEL_KEY_REJECTED,),
             )
 
+        normalized_payload, bounded_repair = _normalize_provider_payload(
+            payload, enable_structural_repair=self._enable_bounded_repair
+        )
+        repair_attempted = repair_attempted or bounded_repair
+
         merged: dict[str, Any] = {
-            **payload,
+            **normalized_payload,
             "correlation_id": request.correlation_id,
             "executed_at": self._clock(),
             "source_image_ref": request.source_image_ref,
@@ -937,9 +949,9 @@ class QwenVisionAdapter(VisionUnderstandingPortV2):
         try:
             success = VisionUnderstandingSuccessV2.model_validate(merged)
         except ValidationError as error:
+            diagnostics = _mapping_diagnostics_for_schema_error(error)
             self._emit_mapping_diagnostic(
-                _mapping_diagnostics_for_schema_error(error)
-                + _schema_path_diagnostics_for_schema_error(error)
+                diagnostics + _schema_path_diagnostics_for_schema_error(error)
             )
             return self._schema_failure(
                 request,
@@ -948,6 +960,9 @@ class QwenVisionAdapter(VisionUnderstandingPortV2):
                 _classify_schema_error(error),
                 attempt_number=attempt_number,
                 repair_attempted=repair_attempted,
+                mapping_diagnostics=tuple(
+                    VisionMappingDiagnosticV2(item.value) for item in diagnostics
+                ),
             )
 
         self._emit_mapping_diagnostic((QwenOutputMappingDiagnostic.SCHEMA_VALID,))
@@ -1061,6 +1076,7 @@ class QwenVisionAdapter(VisionUnderstandingPortV2):
         *,
         attempt_number: int,
         repair_attempted: bool,
+        mapping_diagnostics: tuple[VisionMappingDiagnosticV2, ...] = (),
     ) -> VisionUnderstandingFailureV2:
         return VisionUnderstandingFailureV2(
             correlation_id=request.correlation_id,
@@ -1076,6 +1092,7 @@ class QwenVisionAdapter(VisionUnderstandingPortV2):
             error_code=VisionErrorCode.VISION_SCHEMA_INVALID,
             error_detail=detail,
             retryable=False,
+            mapping_diagnostics=mapping_diagnostics,
             model_provenance=profile.model_provenance,
         )
 
@@ -1130,6 +1147,86 @@ def _parse_raw_output_with_diagnostic(
     if not isinstance(parsed, dict):
         return None, False, (QwenOutputMappingDiagnostic.JSON_ROOT_NOT_OBJECT,)
     return parsed, False, ()
+
+
+def _normalize_provider_payload(
+    payload: dict[str, Any], *, enable_structural_repair: bool = False
+) -> tuple[dict[str, Any], bool]:
+    """Apply only semantics-preserving repairs for common Qwen text-shape drift.
+
+    The default adapter remains fail-closed for missing IDs, invalid references,
+    extra keys, and missing required fields. The real CLI may opt into the
+    structural subset below for model drift. A model occasionally emits
+    ``label: "bướm"`` or ``language: "vi"`` despite the prompt; wrapping those
+    scalar text values, filling an absent collection with ``[]``, or assigning a
+    local ID does not invent a scene claim or relationship target.
+    """
+
+    normalized = dict(payload)
+    repaired = False
+    text_fields = {
+        "entities": "label",
+        "actions": "label",
+        "relations": "predicate",
+        "themes": "label",
+        "ambiguous_regions": "note",
+    }
+    for collection, field in text_fields.items():
+        if collection not in payload and enable_structural_repair:
+            normalized[collection] = []
+            repaired = True
+            continue
+        records = payload.get(collection)
+        if not isinstance(records, list):
+            continue
+        normalized_records: list[Any] = []
+        known_ids: set[str] = set()
+        for index, record in enumerate(records):
+            if not isinstance(record, dict):
+                normalized_records.append(record)
+                continue
+            candidate = dict(record)
+            if enable_structural_repair and not candidate.get("observation_id"):
+                prefix = {
+                    "entities": "entity",
+                    "actions": "action",
+                    "relations": "relation",
+                    "themes": "theme",
+                    "ambiguous_regions": "region",
+                }[collection]
+                generated_id = f"{prefix}-{index + 1}"
+                while generated_id in known_ids:
+                    generated_id += "-repair"
+                candidate["observation_id"] = generated_id
+                repaired = True
+            observation_id = candidate.get("observation_id")
+            if isinstance(observation_id, str):
+                known_ids.add(observation_id)
+            if enable_structural_repair and collection in {
+                "entities", "actions", "relations", "themes"
+            } and "confidence" not in candidate:
+                candidate["confidence"] = None
+                repaired = True
+            text_value = candidate.get(field)
+            if isinstance(text_value, str):
+                candidate[field] = {
+                    "value": text_value,
+                    "language": {"status": "DECLARED", "tags": ["vi"]},
+                }
+                repaired = True
+            elif isinstance(text_value, dict) and isinstance(text_value.get("language"), str):
+                language = text_value["language"].strip().lower()
+                if language in {"vi", "vi-vn"}:
+                    repaired_text = dict(text_value)
+                    repaired_text["language"] = {
+                        "status": "DECLARED",
+                        "tags": ["vi"],
+                    }
+                    candidate[field] = repaired_text
+                    repaired = True
+            normalized_records.append(candidate)
+        normalized[collection] = normalized_records
+    return normalized, repaired
 
 
 def _loads_strict_json(value: str) -> object:

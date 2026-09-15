@@ -184,14 +184,35 @@ class ActivitySemanticCatalogV2:
             "BLOCKED": 0.0,
         }.get(profile.review_status, 0.0)
         objective_activity_alignment = _pedagogical_alignment_score(profile)
-        overall = min(
-            1.0,
+        base_overall = (
             0.30 * concept_confidence
             + 0.35 * child_interest_alignment
             + 0.15
             + 0.10
-            + 0.10 * catalog_quality_score,
+            + 0.10 * catalog_quality_score
         )
+        continuity_penalty = {
+            "DIRECT_CONTINUATION": 0.02,
+            "RELATED_EXPANSION": 0.25,
+        }[profile.continuity_mode]
+        if mode == "AGE_BASELINE_FALLBACK":
+            continuity_penalty = 0.35
+        overall = max(0.0, min(0.99, base_overall - continuity_penalty))
+        planned_video_continuity_score = {
+            "DIRECT_CONTINUATION": 0.90,
+            "RELATED_EXPANSION": 0.62,
+        }[profile.continuity_mode]
+        if mode == "AGE_BASELINE_FALLBACK":
+            planned_video_continuity_score = 0.45
+        effective_reason_codes = list(reason_codes)
+        if profile.continuity_mode == "RELATED_EXPANSION":
+            effective_reason_codes.extend(
+                (
+                    "RELATED_EXPANSION",
+                    "TOPIC_NOT_DIRECTLY_OBSERVED",
+                    "EXPLICIT_BRIDGE_REQUIRED",
+                )
+            )
         evidence_claim_ids = tuple(
             dict.fromkeys(
                 claim_id
@@ -228,8 +249,16 @@ class ActivitySemanticCatalogV2:
             matched_phrases_vi=matched_phrases,
             matched_anchor_labels_vi=matched_labels,
             evidence_claim_ids=evidence_claim_ids or ("fusion:scene",),
-            reason_codes=reason_codes,
+            reason_codes=tuple(dict.fromkeys(effective_reason_codes)),
             fallback_reason=fallback_reason,
+            continuity_mode=profile.continuity_mode,
+            planned_video_continuity_score=planned_video_continuity_score,
+            expansion_bridge_required=profile.expansion_bridge_required,
+            age_specific_goal_vi=profile.age_specific_goal_vi,
+            video_setup_vi=profile.video_setup_vi,
+            video_focus_cues_vi=profile.video_focus_cues_vi,
+            video_handoff_prompt_vi=profile.video_handoff_prompt_vi,
+            offscreen_instruction_vi=profile.offscreen_instruction_vi,
         )
 
     def to_legacy_evidence(
@@ -363,6 +392,14 @@ def _profile_from_curated_variant(
         pedagogical_observable_behavior_vi=(
             variant.pedagogical_alignment.expected_observable_behavior_vi
         ),
+        continuity_mode=variant.continuity_mode,
+        expansion_bridge_required=variant.expansion_bridge_required,
+        direct_observation_concept_ids=variant.direct_observation_concept_ids,
+        age_specific_goal_vi=variant.age_specific_goal_vi,
+        video_setup_vi=variant.video_setup_vi,
+        video_focus_cues_vi=variant.video_focus_cues_vi,
+        video_handoff_prompt_vi=variant.video_handoff_prompt_vi,
+        offscreen_instruction_vi=variant.offscreen_instruction_vi,
     )
 
 

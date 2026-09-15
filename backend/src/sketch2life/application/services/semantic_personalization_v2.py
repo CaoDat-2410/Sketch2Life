@@ -10,7 +10,9 @@ from sketch2life.contracts.schemas.semantic_personalization_v2 import (
     AgeAdaptationV2,
     BackendWorkflowResultV2,
     ConfirmedSceneUnderstandingV2,
+    ActivityBridgeV2,
     ExperienceSpecV2,
+    ExperienceContinuityV2,
     SceneConceptV2,
     SemanticActivityMatchV2,
     WorkflowBandResultV2,
@@ -185,11 +187,52 @@ def _experience_spec_from_legacy(
         if isinstance(adaptation_payload, dict)
         else _default_age_adaptation(band.age_band, objective, band.activity_handoff)
     )
+    adaptation = adaptation.model_copy(
+        update={"objective_adaptation_vi": match.age_specific_goal_vi}
+    )
     story = band.story_scene or {}
     story_mode: Literal["SCENE_GROUNDED", "AGE_BASELINE"] = (
         "AGE_BASELINE"
         if resolved_mode == "AGE_BASELINE_FALLBACK"
         else "SCENE_GROUNDED"
+    )
+    continuity = ExperienceContinuityV2(
+        continuity_mode=match.continuity_mode,
+        drawing_video_planned_score=match.semantic_relevance,
+        drawing_activity_planned_score=round(
+            match.semantic_relevance
+            * (0.72 if match.continuity_mode == "RELATED_EXPANSION" else 0.94)
+        ),
+        video_activity_planned_score=round(match.planned_video_continuity_score * 100),
+        age_fit_score=round(match.age_fit_score * 100),
+        objective_fit_score=round(match.objective_activity_alignment * 100),
+        safety_score=round(match.activity_safety_score * 100),
+        planned_overall_score=round(
+            0.25 * match.semantic_relevance
+            + 0.20 * match.planned_video_continuity_score * 100
+            + 0.20 * match.age_fit_score * 100
+            + 0.20 * match.objective_activity_alignment * 100
+            + 0.15 * match.activity_safety_score * 100
+        ),
+        planned_video_continuity_score=match.planned_video_continuity_score,
+        actual_video_continuity_score=None,
+        actual_video_status="NOT_RENDERED",
+        actual_video_artifact_ref=None,
+        bridge_required=match.expansion_bridge_required,
+        reason_codes=match.reason_codes,
+    )
+    activity_bridge = ActivityBridgeV2(
+        age_band=band.age_band,
+        continuity_mode=match.continuity_mode,
+        setup_instruction_vi=match.video_setup_vi,
+        focus_cues_vi=match.video_focus_cues_vi,
+        handoff_prompt_vi=match.video_handoff_prompt_vi,
+        offscreen_instruction_vi=match.offscreen_instruction_vi,
+        bridge_status=(
+            "REQUIRES_HUMAN_SETUP"
+            if match.expansion_bridge_required
+            else "READY"
+        ),
     )
     unsigned = {
         "contract_name": "ExperienceSpecV2",
@@ -208,9 +251,11 @@ def _experience_spec_from_legacy(
             else "PERSONALIZED_APPROVED"
         ),
         "bridge_sentence_vi": str(
-            story.get("narration_vi")
+            story.get("narration_vi") or match.video_handoff_prompt_vi
             or "Từ bức tranh, cùng người lớn thực hành hoạt động phù hợp lứa tuổi."
         ),
+        "continuity": continuity.model_dump(mode="json"),
+        "activity_bridge": activity_bridge.model_dump(mode="json"),
         "story_mode": story_mode,
         "legacy_spec": legacy_spec,
     }
@@ -230,6 +275,8 @@ def _experience_spec_from_legacy(
             unsigned["gate_b_status"],
         ),
         bridge_sentence_vi=str(unsigned["bridge_sentence_vi"]),
+        continuity=continuity,
+        activity_bridge=activity_bridge,
         story_mode=story_mode,
         legacy_spec=legacy_spec,
         spec_sha256=_hash(unsigned),

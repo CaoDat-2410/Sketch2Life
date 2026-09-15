@@ -10,11 +10,13 @@ from datetime import UTC, datetime
 from importlib import metadata
 from pathlib import Path
 
+from sketch2life.application.ports.workflow_dependencies import WorkflowDependencies
 from sketch2life.application.services.backend_ai_workflow import (
     BackendAiWorkflow,
     BackendWorkflowRequest,
     WorkflowRuntimeError,
 )
+from sketch2life.application.services.media_validation import DeterministicMediaValidator
 from sketch2life.application.services.semantic_personalization_v2 import (
     to_backend_workflow_result_v2,
 )
@@ -44,9 +46,25 @@ from sketch2life.infrastructure.ai.vision_lexical_policy import (
     synthetic_prohibited_lexicon,
 )
 from sketch2life.infrastructure.ai.workflow_prompt import workflow_prompt_text
+from sketch2life.infrastructure.catalog.activity_semantics import (
+    load_activity_semantic_catalog,
+)
+from sketch2life.infrastructure.catalog.activity_semantics_v2 import (
+    load_activity_semantic_catalog_v2,
+)
+from sketch2life.infrastructure.catalog.p1_catalog import load_p1_template_library
+from sketch2life.infrastructure.catalog.pixi_assets import PixiAssetCatalog
+from sketch2life.infrastructure.catalog.workflow_metadata import (
+    FileWorkflowCatalogMetadata,
+)
+from sketch2life.infrastructure.media_validation.file_inspector import FileMediaSignalInspector
 
 
-def build_real_workflow(repo_root: Path) -> BackendAiWorkflow:
+def build_real_workflow(
+    repo_root: Path,
+    *,
+    include_expansion: bool = False,
+) -> BackendAiWorkflow:
     """Compose only real local model adapters; no fixture adapter is reachable here."""
 
     vision_config = QwenVisionRuntimeConfig.from_env(os.environ)
@@ -55,9 +73,53 @@ def build_real_workflow(repo_root: Path) -> BackendAiWorkflow:
         vision_config,
         content_policy=LexicalRegressionContentPolicy(synthetic_prohibited_lexicon()),
         prompt=workflow_prompt_text(),
+        enable_bounded_repair=True,
     )
     asr = FasterWhisperAsrAdapter(asr_config)
-    return BackendAiWorkflow(asr=asr, vision=vision, repo_root=repo_root)
+    try:
+        dependencies = build_real_workflow_dependencies(
+            repo_root,
+            include_expansion=include_expansion,
+        )
+    except (OSError, ValueError) as exc:
+        raise WorkflowRuntimeError(
+            "ASSET_CATALOG_MISS",
+            f"workflow dependency composition failed: {type(exc).__name__}",
+        ) from exc
+    return BackendAiWorkflow(asr=asr, vision=vision, dependencies=dependencies)
+
+
+def build_real_workflow_dependencies(
+    repo_root: Path,
+    *,
+    include_expansion: bool = False,
+) -> WorkflowDependencies:
+    """Build every file-backed workflow dependency in one auditable composition root."""
+
+    root = repo_root.resolve()
+    library = load_p1_template_library(
+        root,
+        include_mvp=True,
+        include_expansion=include_expansion,
+    )
+    semantic_catalog = load_activity_semantic_catalog(root)
+    semantic_catalog_v2 = (
+        load_activity_semantic_catalog_v2(root, include_expansion=True)
+        if include_expansion
+        else None
+    )
+    asset_catalog = PixiAssetCatalog(
+        root / "features" / "FEAT-020-backend-ai-workflow-demo"
+    )
+    asset_catalog.validate_all_age_bands()
+    return WorkflowDependencies(
+        media_validator=DeterministicMediaValidator(FileMediaSignalInspector()),
+        template_library=library,
+        semantic_catalog=semantic_catalog,
+        semantic_catalog_v2=semantic_catalog_v2,
+        asset_catalog=asset_catalog,
+        catalog_metadata=FileWorkflowCatalogMetadata(root),
+    )
 
 
 def inspect_real_runtime() -> tuple[bool, tuple[str, ...]]:
@@ -124,7 +186,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(json.dumps({"status": result.terminal_status, "issues": issues}, ensure_ascii=False))
         return 2
     try:
-        workflow = build_real_workflow(repo_root)
+        workflow = build_real_workflow(repo_root, include_expansion=use_v2)
         request = BackendWorkflowRequest(
             image_path=Path(args.image),
             narration_audio_path=Path(args.narration_audio),
@@ -137,7 +199,18 @@ def main(argv: Sequence[str] | None = None) -> int:
             asr_profile_id=AsrProfileId(args.asr_profile),
         )
         result = workflow.run_v2(request) if use_v2 else workflow.run(request)
-    except (WorkflowRuntimeError, RuntimeError, ValueError) as exc:
+    except WorkflowRuntimeError as exc:
+        result = finalize(
+            _error_manifest(
+                repo_root,
+                args.image,
+                args.narration_audio,
+                age_bands,
+                exc.terminal_status,
+                (type(exc).__name__,),
+            )
+        )
+    except (RuntimeError, ValueError) as exc:
         result = finalize(
             _error_manifest(
                 repo_root,
@@ -299,4 +372,9 @@ if __name__ == "__main__":  # pragma: no cover - exercised by Lightning operator
     raise SystemExit(main())
 
 
-__all__ = ["build_real_workflow", "inspect_real_runtime", "main"]
+__all__ = [
+    "build_real_workflow",
+    "build_real_workflow_dependencies",
+    "inspect_real_runtime",
+    "main",
+]

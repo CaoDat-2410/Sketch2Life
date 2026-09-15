@@ -118,6 +118,34 @@ class SemanticActivityProfileV2(BaseModel):
         min_length=1,
         max_length=500,
     )
+    continuity_mode: Literal["DIRECT_CONTINUATION", "RELATED_EXPANSION"] = (
+        "DIRECT_CONTINUATION"
+    )
+    expansion_bridge_required: bool = False
+    direct_observation_concept_ids: tuple[str, ...] = ()
+    age_specific_goal_vi: str = Field(
+        default="Trẻ thực hiện một hành vi quan sát được phù hợp lứa tuổi.",
+        min_length=1,
+        max_length=500,
+    )
+    video_setup_vi: str = Field(
+        default="Chuẩn bị một không gian yên tĩnh và vật liệu an toàn.",
+        min_length=1,
+        max_length=500,
+    )
+    video_focus_cues_vi: tuple[str, ...] = Field(
+        default=("Theo dõi chi tiết chính trong tranh.",), min_length=1, max_length=5
+    )
+    video_handoff_prompt_vi: str = Field(
+        default="Bây giờ cùng người lớn thử hoạt động này.",
+        min_length=1,
+        max_length=500,
+    )
+    offscreen_instruction_vi: str = Field(
+        default="Thực hiện hoạt động ngoài màn hình cùng người lớn.",
+        min_length=1,
+        max_length=800,
+    )
 
     @model_validator(mode="after")
     def validate_production_state(self) -> SemanticActivityProfileV2:
@@ -127,6 +155,8 @@ class SemanticActivityProfileV2(BaseModel):
             )
         if self.primary_objective_id in self.secondary_objective_ids:
             raise ValueError("primary objective cannot also be secondary")
+        if self.continuity_mode == "RELATED_EXPANSION" and not self.expansion_bridge_required:
+            raise ValueError("related expansion profiles require expansion_bridge_required=true")
         return self
 
 class SemanticActivityMatchV2(BaseModel):
@@ -171,6 +201,34 @@ class SemanticActivityMatchV2(BaseModel):
     evidence_claim_ids: tuple[str, ...] = Field(min_length=1)
     reason_codes: tuple[str, ...] = Field(min_length=1)
     fallback_reason: str | None = Field(default=None, max_length=200)
+    continuity_mode: Literal["DIRECT_CONTINUATION", "RELATED_EXPANSION"] = (
+        "DIRECT_CONTINUATION"
+    )
+    planned_video_continuity_score: float = Field(default=0.0, ge=0, le=1)
+    expansion_bridge_required: bool = False
+    age_specific_goal_vi: str = Field(
+        default="Trẻ thực hiện một hành vi quan sát được phù hợp lứa tuổi.",
+        min_length=1,
+        max_length=500,
+    )
+    video_setup_vi: str = Field(
+        default="Chuẩn bị một không gian yên tĩnh và vật liệu an toàn.",
+        min_length=1,
+        max_length=500,
+    )
+    video_focus_cues_vi: tuple[str, ...] = Field(
+        default=("Theo dõi chi tiết chính trong tranh.",), min_length=1, max_length=5
+    )
+    video_handoff_prompt_vi: str = Field(
+        default="Bây giờ cùng người lớn thử hoạt động này.",
+        min_length=1,
+        max_length=500,
+    )
+    offscreen_instruction_vi: str = Field(
+        default="Thực hiện hoạt động ngoài màn hình cùng người lớn.",
+        min_length=1,
+        max_length=800,
+    )
 
     @model_validator(mode="after")
     def validate_mode(self) -> SemanticActivityMatchV2:
@@ -245,6 +303,54 @@ class AgeAdaptationV2(BaseModel):
     duration_spec: ActivityDurationV2 | None = None
 
 
+class ExperienceContinuityV2(BaseModel):
+    """Separates a planned video setup from a post-render assessment."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    continuity_mode: Literal["DIRECT_CONTINUATION", "RELATED_EXPANSION"]
+    drawing_video_planned_score: int = Field(ge=0, le=100)
+    drawing_activity_planned_score: int = Field(ge=0, le=100)
+    video_activity_planned_score: int = Field(ge=0, le=100)
+    age_fit_score: int = Field(ge=0, le=100)
+    objective_fit_score: int = Field(ge=0, le=100)
+    safety_score: int = Field(ge=0, le=100)
+    planned_overall_score: int = Field(ge=0, le=100)
+    planned_video_continuity_score: float = Field(ge=0, le=1)
+    actual_video_continuity_score: float | None = Field(default=None, ge=0, le=1)
+    actual_video_status: Literal["NOT_RENDERED", "ASSESSED", "FAILED"] = "NOT_RENDERED"
+    actual_video_artifact_ref: str | None = Field(default=None, min_length=1, max_length=500)
+    bridge_required: bool = False
+    reason_codes: tuple[str, ...] = ()
+
+    @model_validator(mode="after")
+    def validate_actual_assessment(self) -> ExperienceContinuityV2:
+        if self.actual_video_status == "NOT_RENDERED":
+            if self.actual_video_continuity_score is not None:
+                raise ValueError("not-rendered video cannot have an actual continuity score")
+            if self.actual_video_artifact_ref is not None:
+                raise ValueError("not-rendered video cannot have an artifact reference")
+        elif self.actual_video_continuity_score is None:
+            raise ValueError("assessed or failed video must carry an actual continuity score")
+        if self.continuity_mode == "RELATED_EXPANSION" and not self.bridge_required:
+            raise ValueError("related expansion requires an explicit bridge")
+        return self
+
+
+class ActivityBridgeV2(BaseModel):
+    """Age-specific handoff from planned video context to the real activity."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    age_band: AgeBand
+    continuity_mode: Literal["DIRECT_CONTINUATION", "RELATED_EXPANSION"]
+    setup_instruction_vi: str = Field(min_length=1, max_length=500)
+    focus_cues_vi: tuple[str, ...] = Field(min_length=1, max_length=5)
+    handoff_prompt_vi: str = Field(min_length=1, max_length=500)
+    offscreen_instruction_vi: str = Field(min_length=1, max_length=800)
+    bridge_status: Literal["READY", "REQUIRES_HUMAN_SETUP", "UNAVAILABLE"]
+
+
 class ActivityDurationV2(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
@@ -307,6 +413,8 @@ class ExperienceSpecV2(BaseModel):
     age_adaptation: AgeAdaptationV2
     gate_b_status: Literal["PERSONALIZED_APPROVED", "BASELINE_APPROVED", "BLOCKED"]
     bridge_sentence_vi: str = Field(min_length=1, max_length=300)
+    continuity: ExperienceContinuityV2 | None = None
+    activity_bridge: ActivityBridgeV2 | None = None
     story_mode: Literal["SCENE_GROUNDED", "AGE_BASELINE"]
     legacy_spec: dict[str, Any]
     spec_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
@@ -422,11 +530,13 @@ def finalize_backend_workflow_result_v2(payload: dict[str, Any]) -> BackendWorkf
 
 
 __all__ = [
+    "ActivityBridgeV2",
     "ActivityDurationV2",
     "AgeAdaptationV2",
     "BackendWorkflowResultV2",
     "ConfirmedSceneUnderstandingV2",
     "ExperienceSpecV2",
+    "ExperienceContinuityV2",
     "SceneConceptV2",
     "SemanticActivityMatchV2",
     "SemanticActivityProfileV2",

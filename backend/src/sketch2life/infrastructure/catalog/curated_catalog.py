@@ -72,6 +72,14 @@ class CuratedActivityVariant:
     daily_observation_minutes: int | None
     min_days: int | None
     max_days: int | None
+    continuity_mode: Literal["DIRECT_CONTINUATION", "RELATED_EXPANSION"]
+    expansion_bridge_required: bool
+    direct_observation_concept_ids: tuple[str, ...]
+    age_specific_goal_vi: str
+    video_setup_vi: str
+    video_focus_cues_vi: tuple[str, ...]
+    video_handoff_prompt_vi: str
+    offscreen_instruction_vi: str
     provenance_source: str
     provenance_sha256: str
 
@@ -308,6 +316,67 @@ def load_curated_catalog_v2(
                     raise CuratedCatalogError(f"{activity_id} has invalid multi-day duration")
             else:
                 raise CuratedCatalogError(f"{activity_id} has invalid duration_type")
+            continuity_mode = override.get(
+                "continuity_mode",
+                "RELATED_EXPANSION" if activity_id == "ACT-0116" else "DIRECT_CONTINUATION",
+            )
+            if continuity_mode not in {"DIRECT_CONTINUATION", "RELATED_EXPANSION"}:
+                raise CuratedCatalogError(f"{activity_id} has invalid continuity_mode")
+            expansion_bridge_required = bool(
+                override.get("expansion_bridge_required", continuity_mode == "RELATED_EXPANSION")
+            )
+            if continuity_mode == "RELATED_EXPANSION" and not expansion_bridge_required:
+                raise CuratedCatalogError(
+                    f"{activity_id} related expansion must require an explicit bridge"
+                )
+            direct_observation_concept_ids = tuple(
+                str(item).strip()
+                for item in override.get("direct_observation_concept_ids", concept_ids)
+            )
+            if not direct_observation_concept_ids:
+                raise CuratedCatalogError(f"{activity_id} must declare direct observation concepts")
+            age_specific_goal_vi = str(
+                override.get(
+                    "age_specific_goal_vi",
+                    f"Trẻ {action.lower()} theo cách phù hợp với lứa tuổi.",
+                )
+            ).strip()
+            video_setup_vi = str(
+                override.get(
+                    "video_setup_vi",
+                    f"Người lớn chuẩn bị vật liệu an toàn cho hoạt động {title.lower()}.",
+                )
+            ).strip()
+            video_focus_cues_vi = tuple(
+                str(item).strip()
+                for item in override.get(
+                    "video_focus_cues_vi",
+                    (f"Chú ý đến {title.lower()}.",),
+                )
+                if str(item).strip()
+            )
+            video_handoff_prompt_vi = str(
+                override.get(
+                    "video_handoff_prompt_vi",
+                    f"Bây giờ cùng người lớn thử {title.lower()}.",
+                )
+            ).strip()
+            offscreen_instruction_vi = str(
+                override.get(
+                    "offscreen_instruction_vi",
+                    f"{action} {challenge}.",
+                )
+            ).strip()
+            if not all(
+                (
+                    age_specific_goal_vi,
+                    video_setup_vi,
+                    video_focus_cues_vi,
+                    video_handoff_prompt_vi,
+                    offscreen_instruction_vi,
+                )
+            ):
+                raise CuratedCatalogError(f"{activity_id} has incomplete bridge metadata")
             payload = {
                 "activity_id": activity_id,
                 "activity_version": 1,
@@ -336,6 +405,14 @@ def load_curated_catalog_v2(
                 "daily_observation_minutes": daily_observation_minutes,
                 "min_days": min_days,
                 "max_days": max_days,
+                "continuity_mode": continuity_mode,
+                "expansion_bridge_required": expansion_bridge_required,
+                "direct_observation_concept_ids": direct_observation_concept_ids,
+                "age_specific_goal_vi": age_specific_goal_vi,
+                "video_setup_vi": video_setup_vi,
+                "video_focus_cues_vi": video_focus_cues_vi,
+                "video_handoff_prompt_vi": video_handoff_prompt_vi,
+                "offscreen_instruction_vi": offscreen_instruction_vi,
             }
             digest = hashlib.sha256(
                 json.dumps(payload, ensure_ascii=False, sort_keys=True).encode()

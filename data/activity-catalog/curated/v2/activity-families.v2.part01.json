@@ -59,7 +59,7 @@
     {
       "family_id": "FAM-ANIMAL-BUTTERFLY",
       "concept_ids": ["ANIMAL_BUTTERFLY", "ANIMAL_GENERIC", "ANIMAL_MOVEMENT", "NATURE_OBSERVATION"],
-      "allowed_objective_ids": ["OBJ_SENSORIAL_DISCRIMINATION", "OBJ_SCIENTIFIC_OBSERVATION", "OBJ_SCIENTIFIC_INQUIRY"],
+      "allowed_objective_ids": ["OBJ_MOVEMENT_COORDINATION", "OBJ_SENSORIAL_DISCRIMINATION", "OBJ_SCIENTIFIC_OBSERVATION", "OBJ_SCIENTIFIC_INQUIRY"],
       "area": "science",
       "phrases_vi": ["con bướm", "cánh bướm", "vòng đời bướm"],
       "aliases_vi": ["bướm bay", "quan sát bướm"],

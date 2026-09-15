@@ -21,10 +21,15 @@ from uuid import uuid4
 
 from sketch2life.application.ports.asr import AsrPort
 from sketch2life.application.ports.vision_understanding_v2 import VisionUnderstandingPortV2
-from sketch2life.application.services.media_validation import (
-    DeterministicMediaValidator,
-    MediaValidationRequest,
+from sketch2life.application.ports.workflow_dependencies import (
+    ActivityCatalogMetadataPort,
+    AssetCatalogPort,
+    SemanticCatalogPort,
+    SemanticCatalogV2Port,
+    TemplateLibraryPort,
+    WorkflowDependencies,
 )
+from sketch2life.application.services.media_validation import MediaValidationRequest
 from sketch2life.application.services.p1_experience import P1ExperienceCompiler
 from sketch2life.application.services.scene_understanding import (
     SceneCandidateV2Input,
@@ -48,7 +53,6 @@ from sketch2life.contracts.schemas.p1_experience import (
     SemanticMatchEvidenceV1,
 )
 from sketch2life.contracts.schemas.semantic_personalization_v2 import (
-    ActivityDurationV2,
     BackendWorkflowResultV2,
     ConfirmedSceneUnderstandingV2,
     RankingDebugEvidenceV2,
@@ -78,24 +82,6 @@ from sketch2life.contracts.schemas.workflow_demo import (
     WorkflowStageV1,
     finalize_workflow_result,
 )
-from sketch2life.infrastructure.catalog.activity_semantics import (
-    ActivitySemanticCatalog,
-    SemanticCatalogError,
-    load_activity_semantic_catalog,
-)
-from sketch2life.infrastructure.catalog.activity_semantics_v2 import (
-    ActivitySemanticCatalogV2,
-    SemanticCatalogV2Error,
-    load_activity_semantic_catalog_v2,
-)
-from sketch2life.infrastructure.catalog.curated_catalog import load_curated_catalog_v2
-from sketch2life.infrastructure.catalog.p1_catalog import (
-    CatalogLoadError,
-    P1TemplateLibrary,
-    load_p1_template_library,
-)
-from sketch2life.infrastructure.catalog.pixi_assets import AssetCatalogError, PixiAssetCatalog
-from sketch2life.infrastructure.media_validation.file_inspector import FileMediaSignalInspector
 
 
 class WorkflowRuntimeError(RuntimeError):
@@ -146,14 +132,14 @@ class BackendAiWorkflow:
         *,
         asr: AsrPort,
         vision: VisionUnderstandingPortV2,
-        repo_root: Path,
+        dependencies: WorkflowDependencies,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
     ) -> None:
         self._asr = asr
         self._vision = vision
-        self._repo_root = repo_root.resolve()
+        self._dependencies = dependencies
         self._clock = clock
-        self._media_validator = DeterministicMediaValidator(FileMediaSignalInspector())
+        self._media_validator = dependencies.media_validator
 
     def run(self, request: BackendWorkflowRequest) -> BackendWorkflowResultV1:
         return self._run_legacy(request, v2=False)
@@ -212,48 +198,30 @@ class BackendAiWorkflow:
             validation_hash,
             workflow_run_id,
         )
-        if not isinstance(asr_result, AsrSuccessV1) or not isinstance(
-            vision_result, VisionUnderstandingSuccessV2
-        ):
-            terminal = "ASR_FAILED" if not isinstance(asr_result, AsrSuccessV1) else "AI_FAILED"
+        if not isinstance(vision_result, VisionUnderstandingSuccessV2):
             return self._failure_result(
                 workflow_run_id,
                 run_seed,
                 created_at,
                 media,
                 request,
-                terminal,
+                "AI_FAILED",
                 "real ASR/VLM returned a typed failure",
                 asr_result=asr_result,
                 vision_result=vision_result,
             )
 
-        semantic_catalog_v2: ActivitySemanticCatalogV2 | None = None
+        semantic_catalog_v2: SemanticCatalogV2Port | None = None
         scene_understanding: ConfirmedSceneUnderstandingV2 | None = None
         try:
-            library = load_p1_template_library(
-                self._repo_root,
-                include_mvp=True,
-                include_expansion=v2,
-            )
-            semantic_catalog = load_activity_semantic_catalog(self._repo_root)
-            if v2:
-                semantic_catalog_v2 = load_activity_semantic_catalog_v2(
-                    self._repo_root,
-                    include_expansion=True,
-                )
-            asset_catalog = PixiAssetCatalog(
-                self._repo_root / "features" / "FEAT-020-backend-ai-workflow-demo"
-            )
+            library = self._dependencies.template_library
+            semantic_catalog = self._dependencies.semantic_catalog
+            semantic_catalog_v2 = self._dependencies.semantic_catalog_v2
+            asset_catalog = self._dependencies.asset_catalog
+            if v2 and semantic_catalog_v2 is None:
+                raise ValueError("V2 semantic catalog dependency is not configured")
             asset_catalog.validate_all_age_bands()
-        except (
-            CatalogLoadError,
-            SemanticCatalogError,
-            SemanticCatalogV2Error,
-            AssetCatalogError,
-            OSError,
-            ValueError,
-        ) as exc:
+        except (OSError, ValueError) as exc:
             return self._failure_result(
                 workflow_run_id,
                 run_seed,
@@ -289,7 +257,11 @@ class BackendAiWorkflow:
                 candidates=tuple(
                     _scene_candidate_input(candidate) for candidate in anchor_candidates
                 ),
-                asr_transcript_vi=asr_result.transcript_raw,
+                asr_transcript_vi=(
+                    asr_result.transcript_raw
+                    if isinstance(asr_result, AsrSuccessV1)
+                    else ""
+                ),
             )
         bands: list[WorkflowBandResultV1] = []
         previous_activity_ids: set[str] = set()
@@ -371,6 +343,11 @@ class BackendAiWorkflow:
             ready_age_bands=ready_age_bands,
             unavailable_age_bands=unavailable_age_bands,
         )
+        workflow_warnings = ["VIDEO_DEFERRED", "DEMO_AUTOPILOT_DECISIONS"]
+        if not isinstance(asr_result, AsrSuccessV1):
+            workflow_warnings.append("ASR_UNAVAILABLE_VLM_ONLY")
+        if partial_success:
+            workflow_warnings.append("AGE_MATRIX_PARTIAL_TEST_ONLY")
         result_payload: dict[str, Any] = {
             "workflow_run_id": workflow_run_id,
             "status": result_status,
@@ -391,8 +368,20 @@ class BackendAiWorkflow:
                 ),
                 WorkflowStageV1(
                     stage="REAL_ASR",
-                    status="SUCCEEDED",
-                    details={"language": asr_result.detected_language},
+                    status=("SUCCEEDED" if isinstance(asr_result, AsrSuccessV1) else "DEFERRED"),
+                    details=(
+                        {"language": asr_result.detected_language}
+                        if isinstance(asr_result, AsrSuccessV1)
+                        else {
+                            "status": asr_result.status,
+                            "error_code": asr_result.error_code.value,
+                            "error_detail": asr_result.error_detail.value,
+                            "path": "VLM_ONLY",
+                        }
+                    ),
+                    reason_code=(
+                        None if isinstance(asr_result, AsrSuccessV1) else "ASR_UNAVAILABLE"
+                    ),
                 ),
                 WorkflowStageV1(
                     stage="REAL_VLM",
@@ -417,15 +406,7 @@ class BackendAiWorkflow:
                     details={"band_count": len(bands), "result_status": result_status},
                 ),
             ],
-            "warnings": (
-                "VIDEO_DEFERRED",
-                "DEMO_AUTOPILOT_DECISIONS",
-                "AGE_MATRIX_PARTIAL_TEST_ONLY",
-            )
-            if partial_success
-            else ("VIDEO_DEFERRED", "DEMO_AUTOPILOT_DECISIONS")
-            if strict_success
-            else (),
+            "warnings": tuple(workflow_warnings) if strict_success or partial_success else (),
             "created_at": created_at,
         }
         return finalize_workflow_result(result_payload)
@@ -437,7 +418,7 @@ class BackendAiWorkflow:
         audio_sha: str,
         validation_hash: str,
         run_id: str,
-    ) -> object:
+    ) -> AsrSuccessV1 | AsrFailureV1:
         asr_request = AsrRequestV1(
             correlation_id=f"{run_id}:asr",
             source_audio_ref=AsrAudioReferenceV1(artifact_ref=audio_ref, sha256=audio_sha),
@@ -459,7 +440,7 @@ class BackendAiWorkflow:
         image_sha: str,
         validation_hash: str,
         run_id: str,
-    ) -> object:
+    ) -> VisionUnderstandingSuccessV2 | VisionUnderstandingFailureV2:
         vision_request = VisionUnderstandingRequestV2(
             correlation_id=f"{run_id}:vision",
             source_image_ref=VisionImageReferenceV1(
@@ -484,11 +465,11 @@ class BackendAiWorkflow:
         run_seed: int,
         workflow_run_id: str,
         media: MediaValidationResultV1,
-        asr: AsrSuccessV1,
+        asr: AsrSuccessV1 | AsrFailureV1,
         vision: VisionUnderstandingSuccessV2,
-        library: P1TemplateLibrary,
-        semantic_catalog: ActivitySemanticCatalogV2,
-        asset_catalog: PixiAssetCatalog,
+        library: TemplateLibraryPort,
+        semantic_catalog: SemanticCatalogV2Port,
+        asset_catalog: AssetCatalogPort,
         anchor_candidates: tuple[_AnchorCandidate, ...],
         previous_activity_ids: set[str],
         previous_activity_family_ids: set[str],
@@ -632,7 +613,12 @@ class BackendAiWorkflow:
             if semantic_match_v2.match_mode == "AGE_BASELINE_FALLBACK"
             else "PERSONALIZED"
         )
-        age_adaptation = _age_adaptation_payload(self._repo_root, age_band, spec, experience_mode)
+        age_adaptation = _age_adaptation_payload(
+            self._dependencies.catalog_metadata,
+            age_band,
+            spec,
+            experience_mode,
+        )
         now = self._clock()
         decisions = (
             DemoDecisionV1(
@@ -671,7 +657,8 @@ class BackendAiWorkflow:
                 decided_at=now,
             ),
         )
-        primary_materials = _primary_material_ids(self._repo_root, activity_id)
+        primary_materials = self._dependencies.catalog_metadata.primary_material_ids(activity_id)
+        duration_spec = self._dependencies.catalog_metadata.duration_spec(activity_id)
         story_scene = _story_scene_context(
             anchor_set,
             spec,
@@ -688,8 +675,8 @@ class BackendAiWorkflow:
         handoff = {
             **compilation.handoff.model_dump(mode="json"),
             "selected_material_option_ids": list(primary_materials),
-            "duration_minutes": _duration_minutes(self._repo_root, activity_id),
-            "duration_spec": _duration_spec(self._repo_root, activity_id),
+            "duration_minutes": _duration_minutes(duration_spec),
+            "duration_spec": duration_spec,
             "supervision": spec.activity_template.minimum_supervision,
             "safety_rule_ids": list(spec.activity_template.safety_rule_ids),
             "accessibility": ["spoken_vi", "text_vi", "no_color_only_meaning", "reduced_motion"],
@@ -706,6 +693,8 @@ class BackendAiWorkflow:
                 "catalog_quality_score": semantic_match_v2.catalog_quality_score,
                 "objective_activity_alignment": semantic_match_v2.objective_activity_alignment,
                 "overall_personalization_score": semantic_match_v2.overall_personalization_score,
+                "continuity_mode": semantic_match_v2.continuity_mode,
+                "planned_video_continuity_score": semantic_match_v2.planned_video_continuity_score,
             },
             "activity_identity": {
                 "activity_family_id": semantic_match_v2.activity_family_id,
@@ -728,6 +717,8 @@ class BackendAiWorkflow:
             "child_interest_alignment": semantic_match_v2.child_interest_alignment,
             "objective_activity_alignment": semantic_match_v2.objective_activity_alignment,
             "overall_personalization_score": semantic_match_v2.overall_personalization_score,
+            "continuity_mode": semantic_match_v2.continuity_mode,
+            "planned_video_continuity_score": semantic_match_v2.planned_video_continuity_score,
             "activity_identity": {
                 "activity_id": semantic_match_v2.activity_id,
                 "activity_version": semantic_match_v2.activity_version,
@@ -835,11 +826,11 @@ class BackendAiWorkflow:
         run_seed: int,
         workflow_run_id: str,
         media: MediaValidationResultV1,
-        asr: AsrSuccessV1,
+        asr: AsrSuccessV1 | AsrFailureV1,
         vision: VisionUnderstandingSuccessV2,
-        library: P1TemplateLibrary,
-        semantic_catalog: ActivitySemanticCatalog,
-        asset_catalog: PixiAssetCatalog,
+        library: TemplateLibraryPort,
+        semantic_catalog: SemanticCatalogPort,
+        asset_catalog: AssetCatalogPort,
         anchor_candidates: tuple[_AnchorCandidate, ...],
         previous_activity_ids: set[str],
     ) -> WorkflowBandResultV1:
@@ -928,7 +919,8 @@ class BackendAiWorkflow:
                 decided_at=now,
             ),
         )
-        primary_materials = _primary_material_ids(self._repo_root, activity_id)
+        primary_materials = self._dependencies.catalog_metadata.primary_material_ids(activity_id)
+        duration_spec = self._dependencies.catalog_metadata.duration_spec(activity_id)
         story_scene = _story_scene_context(
             anchor_set,
             spec,
@@ -941,7 +933,8 @@ class BackendAiWorkflow:
         handoff = {
             **compilation.handoff.model_dump(mode="json"),
             "selected_material_option_ids": list(primary_materials),
-            "duration_minutes": _duration_minutes(self._repo_root, activity_id),
+            "duration_minutes": _duration_minutes(duration_spec),
+            "duration_spec": duration_spec,
             "supervision": spec.activity_template.minimum_supervision,
             "safety_rule_ids": list(spec.activity_template.safety_rule_ids),
             "accessibility": ["spoken_vi", "text_vi", "no_color_only_meaning", "reduced_motion"],
@@ -1147,7 +1140,8 @@ def _candidate_for_semantic_match(
     )
 
 
-def _age_adaptation_payload(repo_root: Path,
+def _age_adaptation_payload(
+    catalog_metadata: ActivityCatalogMetadataPort,
     age_band: AgeBand,
     spec: Any,
     experience_mode: str,
@@ -1183,6 +1177,7 @@ def _age_adaptation_payload(repo_root: Path,
     }[age_band]
     if experience_mode == "AGE_BASELINE_FALLBACK":
         objective_text = f"Trẻ thực hiện hoạt động nền tảng phù hợp lứa tuổi với {anchor_label}"
+    duration_spec = catalog_metadata.duration_spec(spec.activity_template.activity_ref.id)
     return {
         "age_band": age_band,
         "age_months": _AGE_MONTHS[age_band],
@@ -1190,14 +1185,8 @@ def _age_adaptation_payload(repo_root: Path,
         "objective_adaptation_vi": f"{objective_text}; mục tiêu {objective_id}.",
         "complexity_level": complexity,
         "supervision_level": spec.activity_template.minimum_supervision,
-        "duration_minutes": _duration_minutes(
-            repo_root,
-            spec.activity_template.activity_ref.id,
-        ),
-        "duration_spec": _duration_spec(
-            repo_root,
-            spec.activity_template.activity_ref.id,
-        ),
+        "duration_minutes": _duration_minutes(duration_spec),
+        "duration_spec": duration_spec,
     }
 
 
@@ -1347,7 +1336,7 @@ def _seed_fingerprint(seed: int) -> str:
 
 
 def _fused_anchor_candidates(
-    asr: AsrSuccessV1, vision: VisionUnderstandingSuccessV2
+    asr: AsrSuccessV1 | AsrFailureV1, vision: VisionUnderstandingSuccessV2
 ) -> tuple[_AnchorCandidate, ...]:
     candidates: list[_AnchorCandidate] = []
     for entity in vision.entities:
@@ -1384,7 +1373,7 @@ def _fused_anchor_candidates(
                 source_kind="VLM",
             )
         )
-    if asr.transcript_raw.strip():
+    if isinstance(asr, AsrSuccessV1) and asr.transcript_raw.strip():
         transcript_words = _tokens(asr.transcript_raw)
         candidates.append(
             _AnchorCandidate(
@@ -1484,7 +1473,7 @@ def _anchor_from_candidate(
     )
 
 
-def _demo_context(library: P1TemplateLibrary, age_band: str, session_id: str) -> P1ContextV1:
+def _demo_context(library: TemplateLibraryPort, age_band: str, session_id: str) -> P1ContextV1:
     age = _AGE_MONTHS[age_band]
     age_templates = tuple(
         item for item in library.templates if item.age_months_min <= age <= item.age_months_max
@@ -1514,55 +1503,7 @@ def _demo_context(library: P1TemplateLibrary, age_band: str, session_id: str) ->
     )
 
 
-def _primary_material_ids(repo_root: Path, activity_id: str) -> tuple[str, ...]:
-    golden_path = (
-        repo_root
-        / "data"
-        / "activity-catalog"
-        / "golden"
-        / "v1"
-        / "material-registry.v1.json"
-    )
-    try:
-        document = json.loads(golden_path.read_text(encoding="utf-8"))
-        option_kinds = {item["id"]: item.get("kind") for item in document.get("options", [])}
-        groups = [
-            item for item in document.get("groups", []) if item.get("activity_id") == activity_id
-        ]
-        primary_ids = tuple(
-            option_id
-            for group in groups
-            for option_id in group.get("any_of", [])
-            if option_kinds.get(option_id) == "PRIMARY"
-        )
-        if primary_ids:
-            return primary_ids
-    except (OSError, json.JSONDecodeError, TypeError, KeyError):
-        pass
-
-    mvp_path = repo_root / "data" / "activity-catalog" / "mvp" / "activities.v1.json"
-    try:
-        document = json.loads(mvp_path.read_text(encoding="utf-8"))
-        record = next(item for item in document["activities"] if item["id"] == activity_id)
-        return tuple(
-            group["any_of"][0]
-            for group in record.get("material_groups", [])
-            if group.get("any_of")
-        )
-    except (OSError, json.JSONDecodeError, StopIteration, KeyError, TypeError, IndexError):
-        pass
-    try:
-        curated = load_curated_catalog_v2(repo_root)
-        variant = curated.by_activity_id().get(activity_id)
-        if variant is not None:
-            return variant.material_option_ids
-    except (OSError, ValueError, KeyError, TypeError):
-        pass
-    return ()
-
-
-def _duration_minutes(repo_root: Path, activity_id: str) -> dict[str, int] | None:
-    duration = _duration_spec(repo_root, activity_id)
+def _duration_minutes(duration: dict[str, Any] | None) -> dict[str, int] | None:
     if duration is None:
         return None
     if duration["duration_type"] == "MULTI_DAY":
@@ -1575,63 +1516,10 @@ def _duration_minutes(repo_root: Path, activity_id: str) -> dict[str, int] | Non
     return {"min_minutes": minimum, "max_minutes": maximum}
 
 
-def _duration_spec(repo_root: Path, activity_id: str) -> dict[str, Any] | None:
-    records: list[dict[str, Any]] = []
-    for path in (
-        repo_root / "data" / "activity-catalog" / "golden" / "v1" / "activities.v2.json",
-        repo_root / "data" / "activity-catalog" / "mvp" / "activities.v1.json",
-    ):
-        try:
-            document = json.loads(path.read_text(encoding="utf-8"))
-            records.extend(document.get("activities", []))
-        except (OSError, json.JSONDecodeError, TypeError):
-            continue
-    try:
-        record = next(item for item in records if item.get("id") == activity_id)
-        value = record.get("duration_minutes")
-        if isinstance(value, int):
-            return ActivityDurationV2(
-                duration_type="SINGLE_SESSION",
-                min_minutes=value,
-                max_minutes=value,
-            ).model_dump(mode="json")
-        if isinstance(value, dict):
-            minimum = int(value["min"])
-            maximum = int(value["max"])
-            if minimum <= maximum:
-                return ActivityDurationV2(
-                    duration_type="SINGLE_SESSION",
-                    min_minutes=minimum,
-                    max_minutes=maximum,
-                ).model_dump(mode="json")
-    except (StopIteration, KeyError, TypeError, ValueError):
-        pass
-    try:
-        curated = load_curated_catalog_v2(repo_root)
-        variant = curated.by_activity_id().get(activity_id)
-        if variant is not None:
-            if variant.duration_type == "MULTI_DAY":
-                return ActivityDurationV2(
-                    duration_type="MULTI_DAY",
-                    initial_session_minutes=variant.initial_session_minutes,
-                    daily_observation_minutes=variant.daily_observation_minutes,
-                    min_days=variant.min_days,
-                    max_days=variant.max_days,
-                ).model_dump(mode="json")
-            return ActivityDurationV2(
-                duration_type="SINGLE_SESSION",
-                min_minutes=variant.duration_minutes,
-                max_minutes=variant.duration_minutes,
-            ).model_dump(mode="json")
-    except (OSError, ValueError, KeyError, TypeError):
-        pass
-    return None
-
-
 def _story_scene_context(
     anchor_set: SemanticAnchorSetV1,
     spec: Any,
-    asr: AsrSuccessV1,
+    asr: AsrSuccessV1 | AsrFailureV1,
     vision: VisionUnderstandingSuccessV2,
     primary_materials: tuple[str, ...],
     asset_ids: tuple[str, ...],
@@ -1656,15 +1544,36 @@ def _story_scene_context(
         else anchor_set.primary_anchor.normalized_label
     )
     narration = (
-        f"Cùng khám phá {scene_anchor}, rồi thực hành hoạt động ngoài màn hình với người lớn."
+        semantic_match_v2.video_handoff_prompt_vi
+        if semantic_match_v2 is not None
+        else f"Cùng khám phá {scene_anchor}, rồi thực hành hoạt động ngoài màn hình với người lớn."
         if story_mode == "SCENE_GROUNDED"
         else "Từ bức tranh, cùng người lớn thực hành hoạt động nền tảng phù hợp lứa tuổi."
     )
+    activity_bridge = None
+    if semantic_match_v2 is not None and age_adaptation is not None:
+        activity_bridge = {
+            "age_band": age_adaptation.get("age_band"),
+            "continuity_mode": semantic_match_v2.continuity_mode,
+            "setup_instruction_vi": semantic_match_v2.video_setup_vi,
+            "focus_cues_vi": list(semantic_match_v2.video_focus_cues_vi),
+            "handoff_prompt_vi": semantic_match_v2.video_handoff_prompt_vi,
+            "offscreen_instruction_vi": semantic_match_v2.offscreen_instruction_vi,
+            "bridge_status": (
+                "REQUIRES_HUMAN_SETUP"
+                if semantic_match_v2.expansion_bridge_required
+                else "READY"
+            ),
+        }
     return {
         "story_id": f"STORY-{story_hash[:16]}",
         "scene_id": f"SCENE-{story_hash[16:32]}",
         "language": "vi-VN",
-        "grounding": "REAL_ASR_VLM_OBSERVATIONS",
+        "grounding": (
+            "REAL_ASR_VLM_OBSERVATIONS"
+            if isinstance(asr, AsrSuccessV1)
+            else "REAL_VLM_OBSERVATIONS"
+        ),
         "source_artifact_id": spec.source_artifact_id,
         "source_artifact_sha256": spec.source_artifact_sha256,
         "anchor_id": anchor_set.primary_anchor.anchor_id,
@@ -1688,7 +1597,22 @@ def _story_scene_context(
             semantic_match_v2.model_dump(mode="json") if semantic_match_v2 is not None else None
         ),
         "age_adaptation_v2": age_adaptation,
-        "narration_transcript_vi": asr.transcript_raw,
+        "activity_bridge_v2": activity_bridge,
+        "continuity_v2": (
+            {
+                "continuity_mode": semantic_match_v2.continuity_mode,
+                "planned_video_continuity_score": semantic_match_v2.planned_video_continuity_score,
+                "actual_video_continuity_score": None,
+                "actual_video_status": "NOT_RENDERED",
+                "actual_video_artifact_ref": None,
+                "bridge_required": semantic_match_v2.expansion_bridge_required,
+            }
+            if semantic_match_v2 is not None
+            else None
+        ),
+        "narration_transcript_vi": (
+            asr.transcript_raw if isinstance(asr, AsrSuccessV1) else ""
+        ),
         "visual_entity_labels_vi": [item.label.value for item in vision.entities],
         "learning_objective": spec.learning_focus.objective_ref.model_dump(mode="json"),
         "primary_material_option_ids": list(primary_materials),
@@ -1697,7 +1621,17 @@ def _story_scene_context(
     }
 
 
-def _asr_summary(result: AsrSuccessV1) -> dict[str, Any]:
+def _asr_summary(result: AsrSuccessV1 | AsrFailureV1) -> dict[str, Any]:
+    if isinstance(result, AsrFailureV1):
+        return {
+            "status": result.status,
+            "error_code": result.error_code.value,
+            "error_detail": result.error_detail.value,
+            "retryable": result.retryable,
+            "attempt_number": result.attempt_number,
+            "repair_attempted": result.repair_attempted,
+            "transcript_vi": "",
+        }
     return {
         "status": result.status,
         "transcript_vi": result.transcript_raw,
@@ -1751,23 +1685,29 @@ def _workflow_failure_details(
             "attempt_number": vision_result.attempt_number,
             "repair_attempted": vision_result.repair_attempted,
             "policy_execution_state": vision_result.policy_execution_state,
+            "mapping_diagnostics": list(vision_result.mapping_diagnostics),
         }
     return details
 
 
 def _understanding_details(
-    asr: AsrSuccessV1, vision: VisionUnderstandingSuccessV2
+    asr: AsrSuccessV1 | AsrFailureV1, vision: VisionUnderstandingSuccessV2
 ) -> dict[str, Any]:
     return {
         "asr_status": asr.status,
         "vision_status": vision.status,
-        "transcript_language": asr.detected_language,
+        "transcript_language": (
+            asr.detected_language if isinstance(asr, AsrSuccessV1) else None
+        ),
+        "resolution": "ASR_AND_VLM" if isinstance(asr, AsrSuccessV1) else "VLM_ONLY",
         "visual_entity_count": len(vision.entities),
     }
 
 
-def _fusion_details(asr: AsrSuccessV1, vision: VisionUnderstandingSuccessV2) -> dict[str, Any]:
-    transcript_terms = set(_tokens(asr.transcript_raw))
+def _fusion_details(
+    asr: AsrSuccessV1 | AsrFailureV1, vision: VisionUnderstandingSuccessV2
+) -> dict[str, Any]:
+    transcript_terms = set(_tokens(asr.transcript_raw)) if isinstance(asr, AsrSuccessV1) else set()
     visual_terms = set(
         _tokens(
             *(item.label.value for item in vision.entities),
@@ -1775,7 +1715,8 @@ def _fusion_details(asr: AsrSuccessV1, vision: VisionUnderstandingSuccessV2) -> 
         )
     )
     return {
-        "modality_count": 2,
+        "modality_count": 2 if isinstance(asr, AsrSuccessV1) else 1,
+        "asr_status": asr.status,
         "transcript_terms": sorted(transcript_terms),
         "visual_terms": sorted(visual_terms),
         "unmatched_transcript_terms": sorted(transcript_terms - visual_terms),
