@@ -324,5 +324,84 @@ implementation or change `approvals/TASK_APPROVAL.md`.
 - G1 authorizes only immutable-reference governance updates and preparation of a separate G2
   request. It does not authorize implementation, schema changes, fixture generation, mapping
   adoption, runtime/integration, provider/model/GPU/Lightning/network work, migration, or P2-T5.
-- G2 implementation approval remains **NOT GRANTED** and implementation remains **NOT STARTED / NOT
-  AUTHORIZED**. The seven-file allowlist is not an approval.
+- At the time of this G1 decision, G2 implementation approval was **NOT GRANTED** and
+  implementation was **NOT STARTED / NOT AUTHORIZED**; the seven-file allowlist was not an approval.
+  G2 was subsequently approved (see the next entry and `approvals/TASK_APPROVAL.md`).
+
+## P2-T4 G2 checkpoint and Vision match-view audit record (2026-09-15)
+
+- This entry supersedes the implementation-state wording ("future", "unapproved",
+  `UNKNOWN_UNTIL_REVIEW_APPROVED_COMMITTED`) in the 2026-09-14 and G1 entries above. Those
+  entries remain dated history.
+- G2 was approved for exactly the seven-file offline implementation scope. The authoritative record
+  is the 2026-09-15 G2 entry in `approvals/TASK_APPROVAL.md` (commit `d9a13d2`). The G3-G5
+  checkpoint is `064ba62f32f1ffb964bc2208577eb0650b98e26a`, which changes exactly those seven paths.
+- Audit finding, recorded here as a finding and **not a decision**: G1 freeze section 5.2 says
+  that successful fusion requires the declared v2 match view. The upstream Vision V1 contract
+  accepts any non-empty `policy_match_view_version`, and the checkpoint performs no check, so a
+  schema-valid non-canonical Vision success reaches `FUSED`. The verdict is **VERIFIED_DEFECT**,
+  and its root cause is G1's missing pipeline placement, rejection encoding, fixture obligation,
+  and token identity.
+- The owner recorded five decisions on 2026-09-15, authoritatively in
+  `approvals/TASK_APPROVAL.md` (P2-T4 match-view successor-decisions entry): **MV-1 = B** (add
+  closed field code `POLICY_MATCH_VIEW_VERSION` at `ADMISSIBILITY`); **MV-2 = S2** (enforce only
+  for `VisionUnderstandingSuccessV1`); **MV-3 = T1** (compare exactly against the upstream
+  constant `VISION_POLICY_MATCH_VIEW_VERSION`; the T4 policy literal/hash are unchanged);
+  **MV-4 = V2** (keep `P2T4.P2T4FusedResultV1@1.0`; replace the outer rejection contract with
+  `P2T4.P2T4FusionInputRejectionV2@2.0`, superseding V1 for every outer-boundary rejection —
+  note this differs from the plan's own V1-retention recommendation; the owner is entitled to
+  select differently from a recommendation); **MV-5** (standalone successor artifacts; revision
+  11/15 are never edited in place).
+- Recording these decisions authorized, and only authorized, creating two standalone successor
+  documents: `plan/P2_T4_CONTRACT_FREEZE_REVISION_12.md` (freeze successor, normalized SHA-256
+  `d592b135d2d8a90024d48d1b8335321660e8d7f089873e48687707c760e3d3e9`) and
+  `evidence/notes/P2_T4_IMPLEMENTATION_APPROVAL_PACKAGE_REVISION_16.md` (package successor,
+  normalized SHA-256 `ad886d261d2807bcc95264d05d6a385dc79cd2f0cad44e2b4f004531b8097d4f`), plus
+  the governance-record updates and `.gitignore` exception this entry and its sibling records
+  reflect. The full analysis, including the option comparison and the exact successor semantics,
+  remains in `plan/P2_T4_MATCH_VIEW_REMEDIATION_PLAN.md` and
+  `plan/P2_T4_MATCH_VIEW_REMEDIATION_APPROVAL_REQUEST_20260915.md` (relocated from its prior
+  ignored `evidence/notes/` path).
+- Recording these decisions and issuing the two successor documents does not itself freeze a
+  contract or approve implementation. G1 freeze revision 11 and package revision 15 remain
+  immutable, byte-identical, and are not edited. G6-G9 are paused until an independent
+  successor-freeze review is performed, the owner separately grants a successor-freeze approval,
+  the owner separately approves the narrow remediation, and that remediation is implemented,
+  reviewed, and committed. Runtime, integration, and live execution remain **not approved**.
+
+## P2-T4 successor contract-freeze approval ("G1 successor") — 2026-09-15
+
+- The project owner approved the P2-T4 successor contract freeze (revision 12) and successor
+  package (revision 16) in these exact words, recorded verbatim in `approvals/TASK_APPROVAL.md`:
+
+  > I approve the P2-T4 successor contract freeze revision 12 and successor package revision 16
+  > using the four verified SHA-256 identities stated above. This approval authorizes governance
+  > recording only; remediation implementation and integration/runtime/live remain not approved.
+
+- The approval is bound to four normalized SHA-256 identities, each independently reproduced
+  twice immediately before this record was written: successor freeze
+  `d592b135d2d8a90024d48d1b8335321660e8d7f089873e48687707c760e3d3e9`, successor package
+  `ad886d261d2807bcc95264d05d6a385dc79cd2f0cad44e2b4f004531b8097d4f`, immutable predecessor
+  freeze (revision 11) `be96b32aa675b7b6e46eea30effb2dbb91c718dc68ba7ce36d4d627ad6058ee2`, and
+  immutable predecessor package (revision 15)
+  `6821755722daf3bce622fe98eaf39124adb835c6854661143d79f48a943030d7`.
+- Frozen successor semantics: the five MV-1 through MV-5 decisions recorded above; the outer
+  safe-rejection identity `P2T4.P2T4FusionInputRejectionV2@2.0`, superseding
+  `P2T4.P2T4FusionInputRejectionV1@1.0` for every outer-boundary rejection; and the Vision
+  match-view admissibility invariant, applicable only to `VisionUnderstandingSuccessV1`, checked
+  after the ASR duplicate-index invariant and before correlation/typed status. The fused-result
+  identity `P2T4.P2T4FusedResultV1@1.0` is **unchanged**.
+- This is a **governance/freeze checkpoint decision, not an implementation approval**. The
+  exact-seven-file remediation implementation remains **PENDING / NOT APPROVED**, and integration,
+  runtime, provider, model, GPU, Lightning, migration, production, and live execution all remain
+  **NOT APPROVED**. G6-G9 remain paused pending the separate remediation-implementation approval,
+  implementation, review, and commit.
+- Predecessor freeze revision 11 and package revision 15 remain immutable historical artifacts,
+  and successor freeze revision 12 and package revision 16 were not edited to record this
+  approval; all four were verified byte-identical to the digests above immediately before this
+  approval was recorded. This approval binds them by digest, not by amending their text — the
+  same convention already used for the original G1 approval.
+- The known `application imports an outer layer` finding in `backend_ai_workflow.py` remains the
+  owner-approved Architecture Policy B baseline (validator SHA-256
+  `fa236c8d389b608251153d601fc370efe3f3e2479446ca4a56a3d395f892e0b5`, exactly one finding) and is
+  unrelated to, and unchanged by, this checkpoint.

@@ -62,6 +62,9 @@ and reissue section below supersedes its approval-state wording.
 
 ## P2-T4 docs-only remediation, post-sync reconciliation, and owner-freeze-ready status (2026-09-14)
 
+This section is a 2026-09-14 historical snapshot. The 2026-09-15 G1 and G2/checkpoint sections
+below supersede its freeze, approval, and implementation-state wording.
+
 - The owner approved a documentation-only remediation/reissue task and explicitly selected the
   synchronization values recorded below. Recording those values does not freeze a contract or
   approve implementation.
@@ -418,11 +421,90 @@ This workstream owns media validation, ASR/VLM adapters, fusion, the proposed `P
   digest `be96b32aa675b7b6e46eea30effb2dbb91c718dc68ba7ce36d4d627ad6058ee2` and package digest
   `6821755722daf3bce622fe98eaf39124adb835c6854661143d79f48a943030d7`. The freeze and package
   bytes are immutable and must not be edited in place.
-- Governance may now reference this exact approval and prepare a separate G2 request at
-  `plan/P2_T4_IMPLEMENTATION_APPROVAL_REQUEST_20260915.md`. G2 is not
-  approved: implementation, fixture generation, mapping/adoption, FEAT-018 integration, runtime,
-  provider/model/GPU/Lightning/network work, migration, and P2-T5 remain deferred. The seven-file
-  list remains a future allowlist, not authorization.
+- At G1 approval time, governance could reference this exact approval and prepare a separate G2
+  request at `plan/P2_T4_IMPLEMENTATION_APPROVAL_REQUEST_20260915.md`; G2 was then not approved.
+  G2 was subsequently approved and implemented, as recorded in the next section. Mapping/adoption,
+  FEAT-018 integration, runtime, provider/model/GPU/Lightning/network work, migration, and P2-T5
+  remain deferred.
+
+## P2-T4 G2 checkpoint and Vision match-view contract-gap hold (2026-09-15)
+
+- G2 is approved for exactly the seven-file offline implementation scope
+  (`approvals/TASK_APPROVAL.md`, 2026-09-15 G2 record, committed at
+  `d9a13d2c51a16702c705795a3c7b497b61d945c0`). The G3-G5 implementation checkpoint is
+  `064ba62f32f1ffb964bc2208577eb0650b98e26a` (parent `d9a13d2`), which changes exactly those seven
+  paths. No evidence artifact was authorized or produced.
+- A post-checkpoint contract audit found a **VERIFIED_DEFECT**. G1 freeze section 5.2 says that
+  successful fusion requires the declared v2 match view, but upstream Vision V1 accepts any
+  non-empty `policy_match_view_version`, and P2-T4 performs no check. A schema-valid Vision success
+  carrying another token therefore reaches `FUSED`. G1 defines no pipeline placement, rejection
+  field code, or fixture for this rule. Its policy literal `vision_policy_match_view-v2` also
+  differs from the upstream token `vision-policy-match-view-v2`.
+- The analysis, option comparison, and proposed successor-freeze strategy are in
+  `plan/P2_T4_MATCH_VIEW_REMEDIATION_PLAN.md`. The request, now relocated to the publishable
+  `plan/P2_T4_MATCH_VIEW_REMEDIATION_APPROVAL_REQUEST_20260915.md` (its prior
+  `evidence/notes/` copy, which was excluded by the `evidence/notes/*` ignore rule, was removed
+  after the transfer was verified), records the five owner decisions below.
+
+## P2-T4 Vision match-view successor decisions and package issuance (2026-09-15)
+
+- The project owner recorded five decisions, authoritatively in `approvals/TASK_APPROVAL.md`
+  (2026-09-15 P2-T4 match-view successor-decisions entry): **MV-1 = B** (new closed field code
+  `POLICY_MATCH_VIEW_VERSION` at `ADMISSIBILITY`); **MV-2 = S2** (enforce only for
+  `VisionUnderstandingSuccessV1`); **MV-3 = T1** (compare exactly against the upstream constant
+  `VISION_POLICY_MATCH_VIEW_VERSION`; the T4 policy literal/hash are unchanged); **MV-4 = V2**
+  (keep `P2T4.P2T4FusedResultV1@1.0`; replace the outer rejection contract with
+  `P2T4.P2T4FusionInputRejectionV2@2.0`, superseding V1 for every outer-boundary rejection);
+  **MV-5** (standalone successor artifacts; revision 11/15 are never edited in place).
+- Two standalone successor documents were issued under that authorization:
+  `plan/P2_T4_CONTRACT_FREEZE_REVISION_12.md` (freeze successor, normalized SHA-256
+  `d592b135d2d8a90024d48d1b8335321660e8d7f089873e48687707c760e3d3e9`) and
+  `evidence/notes/P2_T4_IMPLEMENTATION_APPROVAL_PACKAGE_REVISION_16.md` (package successor,
+  normalized SHA-256 `ad886d261d2807bcc95264d05d6a385dc79cd2f0cad44e2b4f004531b8097d4f`). Both
+  are complete, standalone documents, status `HOLD - NOT APPROVED`, and have not yet been
+  independently reviewed. Recording the decisions and issuing these documents does not itself
+  grant a successor-freeze approval or a remediation-implementation approval; both remain
+  separate, future owner actions.
+- G1 freeze revision 11 and package revision 15 at `18d0c33` remain immutable history and
+  byte-identical at their existing paths; their normalized digests were recomputed after this
+  task and still match. G6-G9 remain **paused** until: (1) an independent successor-freeze
+  review is performed, (2) the owner grants a successor-freeze approval, (3) the owner
+  separately approves the narrow remediation, (4) the remediation is implemented, reviewed, and
+  committed. G6 then restarts on that remediation commit. Runtime, integration, live execution,
+  mapping adoption, migration, P2-T5, and production remain **not approved**.
+- Architecture Policy B is unchanged: `validate_architecture.py` still reports only the approved
+  `backend_ai_workflow.py` baseline finding (`ARCHITECTURE_INVALID`).
+
+## P2-T4 successor contract-freeze approval ("G1 successor") — 2026-09-15
+
+- The project owner approved the P2-T4 successor contract freeze (revision 12) and successor
+  package (revision 16), bound to four independently reproduced normalized SHA-256 identities:
+  successor freeze `d592b135d2d8a90024d48d1b8335321660e8d7f089873e48687707c760e3d3e9`, successor
+  package `ad886d261d2807bcc95264d05d6a385dc79cd2f0cad44e2b4f004531b8097d4f`, immutable
+  predecessor freeze (revision 11) `be96b32aa675b7b6e46eea30effb2dbb91c718dc68ba7ce36d4d627ad6058ee2`,
+  and immutable predecessor package (revision 15)
+  `6821755722daf3bce622fe98eaf39124adb835c6854661143d79f48a943030d7`. The full approval statement
+  and binding record are in `approvals/TASK_APPROVAL.md` ("P2-T4 successor contract-freeze
+  approval").
+- Frozen successor semantics: the five MV-1 through MV-5 decisions (section above); the outer
+  safe-rejection identity `P2T4.P2T4FusionInputRejectionV2@2.0`, superseding
+  `P2T4.P2T4FusionInputRejectionV1@1.0` for every outer-boundary rejection; and the Vision
+  match-view admissibility invariant for `VisionUnderstandingSuccessV1` only. The fused-result
+  identity `P2T4.P2T4FusedResultV1@1.0` is **unchanged**.
+- This is a **governance/freeze checkpoint, not an implementation checkpoint**. The exact-seven-file
+  remediation implementation remains **PENDING / NOT APPROVED**. Integration, runtime, provider,
+  model, GPU, Lightning, migration, production, and live execution all remain **NOT APPROVED**.
+  G6-G9 remain paused pending the separate remediation-implementation approval, implementation,
+  review, and commit.
+- Predecessor freeze revision 11 and package revision 15 remain immutable historical artifacts
+  and were not edited to record this approval. Successor freeze revision 12 and package revision
+  16 were likewise not edited; both were verified byte-identical to the digests above immediately
+  before this approval was recorded, and the approval binds them by digest rather than by
+  amending their text — the same convention used for the original G1 approval.
+- The known `application imports an outer layer` finding in `backend_ai_workflow.py` remains the
+  owner-approved Architecture Policy B baseline (validator SHA-256
+  `fa236c8d389b608251153d601fc370efe3f3e2479446ca4a56a3d395f892e0b5`, exactly one finding),
+  unchanged and unrelated to this checkpoint.
 
 ## Current Phase B benchmark-readiness truth (2026-08-30)
 
