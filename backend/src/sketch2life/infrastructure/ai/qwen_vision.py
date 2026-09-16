@@ -45,6 +45,9 @@ from sketch2life.contracts.schemas.vision_v2 import (
 from sketch2life.infrastructure.ai.qwen_vision_runtime_config import (
     QwenVisionRuntimeConfig,
 )
+from sketch2life.infrastructure.ai.vision_payload_normalizer import (
+    normalize_provider_payload,
+)
 
 _FENCE_PATTERN = re.compile(r"^```(?:json)?\s*\n(.*)\n```$", re.DOTALL)
 _ALLOWED_PROVIDER_KEYS = frozenset(
@@ -912,7 +915,10 @@ class QwenVisionAdapter(VisionUnderstandingPortV2):
                     VisionMappingDiagnosticV2(item.value) for item in parse_diagnostics
                 ),
             )
-        if not set(payload).issubset(_ALLOWED_PROVIDER_KEYS):
+        if (
+            not self._enable_bounded_repair
+            and not set(payload).issubset(_ALLOWED_PROVIDER_KEYS)
+        ):
             self._emit_mapping_diagnostic((QwenOutputMappingDiagnostic.TOP_LEVEL_KEY_REJECTED,))
             return self._schema_failure(
                 request,
@@ -1152,81 +1158,12 @@ def _parse_raw_output_with_diagnostic(
 def _normalize_provider_payload(
     payload: dict[str, Any], *, enable_structural_repair: bool = False
 ) -> tuple[dict[str, Any], bool]:
-    """Apply only semantics-preserving repairs for common Qwen text-shape drift.
+    """Delegate to the pure bounded normalizer used by the real CLI."""
 
-    The default adapter remains fail-closed for missing IDs, invalid references,
-    extra keys, and missing required fields. The real CLI may opt into the
-    structural subset below for model drift. A model occasionally emits
-    ``label: "bướm"`` or ``language: "vi"`` despite the prompt; wrapping those
-    scalar text values, filling an absent collection with ``[]``, or assigning a
-    local ID does not invent a scene claim or relationship target.
-    """
-
-    normalized = dict(payload)
-    repaired = False
-    text_fields = {
-        "entities": "label",
-        "actions": "label",
-        "relations": "predicate",
-        "themes": "label",
-        "ambiguous_regions": "note",
-    }
-    for collection, field in text_fields.items():
-        if collection not in payload and enable_structural_repair:
-            normalized[collection] = []
-            repaired = True
-            continue
-        records = payload.get(collection)
-        if not isinstance(records, list):
-            continue
-        normalized_records: list[Any] = []
-        known_ids: set[str] = set()
-        for index, record in enumerate(records):
-            if not isinstance(record, dict):
-                normalized_records.append(record)
-                continue
-            candidate = dict(record)
-            if enable_structural_repair and not candidate.get("observation_id"):
-                prefix = {
-                    "entities": "entity",
-                    "actions": "action",
-                    "relations": "relation",
-                    "themes": "theme",
-                    "ambiguous_regions": "region",
-                }[collection]
-                generated_id = f"{prefix}-{index + 1}"
-                while generated_id in known_ids:
-                    generated_id += "-repair"
-                candidate["observation_id"] = generated_id
-                repaired = True
-            observation_id = candidate.get("observation_id")
-            if isinstance(observation_id, str):
-                known_ids.add(observation_id)
-            if enable_structural_repair and collection in {
-                "entities", "actions", "relations", "themes"
-            } and "confidence" not in candidate:
-                candidate["confidence"] = None
-                repaired = True
-            text_value = candidate.get(field)
-            if isinstance(text_value, str):
-                candidate[field] = {
-                    "value": text_value,
-                    "language": {"status": "DECLARED", "tags": ["vi"]},
-                }
-                repaired = True
-            elif isinstance(text_value, dict) and isinstance(text_value.get("language"), str):
-                language = text_value["language"].strip().lower()
-                if language in {"vi", "vi-vn"}:
-                    repaired_text = dict(text_value)
-                    repaired_text["language"] = {
-                        "status": "DECLARED",
-                        "tags": ["vi"],
-                    }
-                    candidate[field] = repaired_text
-                    repaired = True
-            normalized_records.append(candidate)
-        normalized[collection] = normalized_records
-    return normalized, repaired
+    return normalize_provider_payload(
+        payload,
+        enable_structural_repair=enable_structural_repair,
+    )
 
 
 def _loads_strict_json(value: str) -> object:

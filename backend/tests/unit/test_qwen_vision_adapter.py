@@ -256,6 +256,121 @@ def test_real_cli_repair_assigns_only_local_ids_and_optional_confidence(
     assert result.entities[0].confidence is None
 
 
+def test_bounded_repair_normalizes_model_shape_drift_and_drops_unsafe_links(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    artifact_ref, digest = _write_source(tmp_path)
+    payload = {
+        "objects": [
+            {"id": "Entity 1", "name": "con bướm", "confidence": "0.91"}
+        ],
+        "actions": {
+            "items": [
+                {"id": "action_1", "text": "bay", "actor": "Entity 1"}
+            ]
+        },
+        "relations": [
+            {
+                "id": "relation 1",
+                "predicate": "gần",
+                "subject": "Entity 1",
+                "object": "Entity 1",
+                "confidence": "not-a-number",
+            }
+        ],
+        "themes": [
+            {"id": "theme_1", "label": "thiên nhiên", "evidence": "Entity 1"}
+        ],
+        "ambiguous": [{"id": "region 1", "description": "nét chưa rõ"}],
+        "provider_metadata": {"trace": "discarded"},
+    }
+
+    result = _adapter(
+        _SequenceRunner(_raw(payload)), enable_bounded_repair=True
+    ).understand(_request(artifact_ref, digest))
+
+    assert isinstance(result, VisionUnderstandingSuccessV2)
+    assert result.repair_attempted is True
+    assert result.entities[0].observation_id == "entity-1"
+    assert result.entities[0].confidence == 0.91
+    assert result.actions[0].observation_id == "action-1"
+    assert result.actions[0].actor_ref == "entity-1"
+    assert result.relations == ()
+    assert result.themes[0].evidence_refs == ("entity-1",)
+    assert result.ambiguous_regions[0].observation_id == "region-1"
+
+
+def test_bounded_repair_converts_invalid_confidence_to_null_without_failing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    artifact_ref, digest = _write_source(tmp_path)
+    payload = {
+        **_empty_payload(),
+        "entities": [
+            {
+                "id": "entity_1",
+                "label": {"text": "con vật", "language": "vi"},
+                "confidence": "unknown",
+            }
+        ],
+    }
+
+    result = _adapter(
+        _SequenceRunner(_raw(payload)), enable_bounded_repair=True
+    ).understand(_request(artifact_ref, digest))
+
+    assert isinstance(result, VisionUnderstandingSuccessV2)
+    assert result.entities[0].observation_id == "entity-1"
+    assert result.entities[0].confidence is None
+    assert result.entities[0].label.language.status == "DECLARED"
+
+
+def test_bounded_repair_unwraps_result_and_object_references(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    artifact_ref, digest = _write_source(tmp_path)
+    payload = {
+        "result": {
+            "objects": [{"id": "Entity 1", "name": "quả bóng"}],
+            "activities": [
+                {
+                    "id": "action_1",
+                    "verb": "lăn",
+                    "actor": {"id": "Entity 1"},
+                }
+            ],
+        },
+        "provider_metadata": {"request_id": "discarded"},
+    }
+
+    result = _adapter(
+        _SequenceRunner(_raw(payload)), enable_bounded_repair=True
+    ).understand(_request(artifact_ref, digest))
+
+    assert isinstance(result, VisionUnderstandingSuccessV2)
+    assert result.entities[0].observation_id == "entity-1"
+    assert result.actions[0].actor_ref == "entity-1"
+
+
+def test_bounded_repair_does_not_turn_unknown_only_output_into_empty_success(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    artifact_ref, digest = _write_source(tmp_path)
+    payload = {"provider_metadata": {"trace": "discarded"}}
+
+    result = _adapter(
+        _SequenceRunner(_raw(payload)), enable_bounded_repair=True
+    ).understand(_request(artifact_ref, digest))
+
+    assert isinstance(result, VisionUnderstandingFailureV2)
+    assert result.error_detail == "OUTPUT_MAPPING_FAILED"
+    assert "provider_metadata" not in result.model_dump_json()
+
+
 def test_schema_failure_exposes_only_closed_mapping_diagnostics(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
