@@ -535,3 +535,50 @@ FEAT-012 and ADR-0006 still govern the standalone Sprint 1 boundary. Person 2 do
   records and the immutable erratum preserve the historical issuance state.
 - Recorded at: 2026-09-16, project owner direct instruction in the current conversation after the
   independent erratum review PASS.
+
+## P2-T4 four-file renewed-binding status synchronization approval - 2026-09-16
+
+- **Feature/task:** FEAT-003 Multimodal understanding / P2-T4.
+- **Plan revision:** 7.
+- **Disposition:** `APPROVED_FOR_EXACT_FOUR_FILE_DOCUMENTATION_STATUS_SYNCHRONIZATION_ONLY`.
+- **Base commit:** `23992c54c8b19c0eb0a707ec0934599bddb97560` (required base; the direct parent of
+  the resulting local documentation commit).
+- **Exact editable scope, and no other path:**
+  1. `features/FEAT-003-multimodal-understanding/approvals/TASK_APPROVAL.md`;
+  2. `features/FEAT-003-multimodal-understanding/plan/PLAN.md`;
+  3. `features/FEAT-003-multimodal-understanding/plan/P2_T4_MATCH_VIEW_REMEDIATION_PLAN.md`;
+  4. `features/FEAT-003-multimodal-understanding/plan/P2_T4_MATCH_VIEW_REMEDIATION_APPROVAL_REQUEST_20260915.md`.
+- **Acceptance criteria:** current/active records must state independent erratum review
+  **COMPLETE/PASS**; renewed corrected artifact bindings **APPROVED**; successor semantics
+  **PREVIOUSLY APPROVED / UNCHANGED**; digest decision **BINDING CORRECTION ONLY**; the
+  seven-file remediation **NOT APPROVED / NOT STARTED**; G6-G9 **PAUSED**; and
+  integration/runtime/provider/model/GPU/Lightning/network/migration/production/live
+  **NOT APPROVED**. They must show the ordered gates: erratum issued **COMPLETE**, independent
+  review **COMPLETE/PASS**, renewed corrected binding approval **COMPLETE/APPROVED**, this
+  four-file synchronization **APPROVED / COMPLETE**, remediation approval **NOT GRANTED**,
+  remediation **NOT STARTED**, and G6-G9 **PAUSED**. Stale pending/review-not-started wording
+  may remain only as explicitly historical or immutable issuance-status text and must not remain
+  active/current.
+- **Verification acceptance:** the two complete reviews must confirm the exact base and gate order;
+  only the four paths above may change; the immutable erratum and all four freeze/package artifacts
+  must remain byte-unchanged; all seven remediation paths must remain byte-identical to checkpoint
+  `064ba62f32f1ffb964bc2208577eb0650b98e26a`; no implementation or evidence path may be created;
+  and architecture validation may report only the unchanged Policy-B baseline in
+  `backend/src/sketch2life/application/services/backend_ai_workflow.py`, using validator SHA-256
+  `fa236c8d389b608251153d601fc370efe3f3e2479446ca4a56a3d395f892e0b5`. The required checks are
+  `git diff --check`, the harness, repository-security, skeleton, and architecture validators.
+- **Approver:** Project Owner / Person 2.
+- **Owner approval (verbatim):**
+
+  > I approve the P2-T4 four-file renewed-binding status synchronization exactly as written above.
+
+- **Approval boundaries and exclusions:** documentation status synchronization only; no edits to
+  `CONTEXT.md`, `DECISIONS.md`, the immutable erratum, either freeze artifact, either package
+  artifact, source code, tests, fixtures, or evidence; no seven-file remediation implementation;
+  no G6-G9 verification/evidence/review/completion; no FEAT-018/FEAT-020 work; and no integration,
+  runtime, provider/model, GPU, Lightning, network, migration, production, or live execution.
+  This approval does not reapprove successor semantics, does not grant remediation-implementation
+  approval, and does not authorize any new path or evidence artifact.
+- **No implementation authority** is granted by this approval.
+- **Recorded:** 2026-09-16 by Project Owner / Person 2 direct instruction in the current
+  conversation.
