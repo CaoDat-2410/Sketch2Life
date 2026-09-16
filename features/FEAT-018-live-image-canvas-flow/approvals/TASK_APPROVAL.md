@@ -292,3 +292,33 @@ intermediate historical checkpoint only. D1, D4 and D11 remain BLOCKED, Stage 4
 has not started, and the exact `NOT A LIVE EXECUTION AUTHORIZATION` marker is
 preserved. No live subprocess, model, GPU, provider, network, Lightning session,
 model acquisition or Stage 4 action is authorized.
+
+## Approved FEAT-018 POSIX CI workflow — 2026-09-16
+
+The project owner authorizes adding exactly one CI workflow:
+
+- `.github/workflows/feat018-posix.yml`
+
+The workflow may run only on Ubuntu/Linux and only execute the synthetic FEAT-018 POSIX process-group cleanup test.
+
+Ordinary GitHub Actions control-plane operations, including checkout and dependency installation required to provision the existing backend project environment, are permitted only for CI setup. The FEAT-018 test and application code must perform no external network, provider, model, download, or live-service activity.
+
+No application code, tests, contracts, plans, evidence, or other worktrees may be changed by this task. The workflow must remain bounded and fail if the POSIX test is skipped.
+
+The workflow is limited to:
+
+- push events for `feature/feat018-p2t2-live-lightning`;
+- manual `workflow_dispatch`;
+- an Ubuntu/Linux runner;
+- existing backend project configuration;
+- the approved POSIX process-group cleanup test only;
+- bounded logs and explicit failure when the test is skipped.
+
+This approval does not authorize:
+
+- Lightning, GPU, model, provider, network, or live benchmark execution;
+- Stage 4, D1-D12, or D4;
+- production use, deployment, merge, or cutover;
+- any application commit or push.
+
+No commit or push is authorized by this addendum.
