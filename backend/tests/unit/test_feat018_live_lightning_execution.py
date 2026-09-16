@@ -1933,6 +1933,14 @@ class TestPosixContainmentRealProcessGroupEscalation:
             assert not _synthetic_pid_is_alive(child_pid), (
                 "the SIGTERM-resistant descendant survived real SIGKILL escalation"
             )
+
+            # SIGKILL is delivered to the whole group, including the leader (this worker
+            # process) itself. A killed multiprocessing child is a zombie -- still a live PID
+            # to killpg's own existence probe -- until this parent reaps it. Production's
+            # _bounded_terminate_kill_join() always reaps the worker before polling
+            # is_empty() (see _cleanup_resources); mirror that ordering here, or the leader's
+            # own unreaped zombie makes is_empty() falsely report a non-empty group forever.
+            worker.join(timeout=5.0)
             assert containment.is_empty() is True
             assert containment._cleanup_failed is False
         finally:
