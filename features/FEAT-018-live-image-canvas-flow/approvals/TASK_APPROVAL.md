@@ -291,7 +291,29 @@ current focused total is 196 passed. The earlier 170-test figure is an
 intermediate historical checkpoint only. D1, D4 and D11 remain BLOCKED, Stage 4
 has not started, and the exact `NOT A LIVE EXECUTION AUTHORIZATION` marker is
 preserved. No live subprocess, model, GPU, provider, network, Lightning session,
-model acquisition or Stage 4 action is authorized.
+ model acquisition or Stage 4 action is authorized.
+
+## Approved exact two-file offline coordinator implementation - 2026-09-15
+
+Authorization marker:
+`APPROVED_FOR_EXACT_TWO_FILE_OFFLINE_COORDINATOR_IMPLEMENTATION_ONLY`
+
+The project owner authorizes offline implementation and regression testing only
+in these exact files:
+
+- `backend/src/sketch2life/benchmark/feat018_live_lightning_execution.py`
+- `backend/tests/unit/test_feat018_live_lightning_execution.py`
+
+This approval permits FEAT-018 P2-T2 coordinator remediation, including the B3
+host-enforceable timeout correction, using injected offline fakes and killable
+test workers only. It does not authorize Lightning, GPU, model, provider,
+network, production, Stage 4, D4 snapshot acquisition, or live execution.
+FEAT-003, FEAT-017, contracts, routes, registries, mobile, Gate A, P1/P3/P4,
+shared integration, published evidence, and all other files remain out of scope.
+
+D1-D12 remain unresolved for live approval. An independent review is required
+after implementation and offline validation. No commit or push is implied by
+this approval.
 
 ## Approved FEAT-018 POSIX CI workflow — 2026-09-16
 

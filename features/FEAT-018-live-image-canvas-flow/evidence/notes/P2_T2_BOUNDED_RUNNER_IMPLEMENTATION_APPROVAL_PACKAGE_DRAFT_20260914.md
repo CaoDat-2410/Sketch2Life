@@ -171,6 +171,110 @@ fail closed:
   Inventory alone is insufficient. A wrong or unverifiable GPU/SKU, device count/index,
   VRAM, CUDA, BF16, driver, or placement fact is terminal.
 
+### Normative Lightning provisioning and readiness contract
+
+The complete coordinator is host-side and uses mandatory injected preflight and
+finalization seams plus one injected `LightningSessionController` for the
+provider-owned session lifecycle. There is no default adapter callable: a run
+without an explicit bounded adapter seam is rejected before provisioning. The
+finalizer must return typed evidence-pair and incident-handling proof before a
+successful result is exposed.
+
+The controller is an independently cancellable seam. `provision()`,
+`wait_ready()`, and `terminate()` return operation handles promptly; each handle
+has separately bounded `wait(timeout_seconds=...)` and `cancel(timeout_seconds=...)`
+methods. The host coordinator owns sequencing and its own monotonic watchdog
+checks; it never accepts an unbounded provider operation or a bare boolean as
+termination proof.
+
+The coordinator configuration contains the explicit positive finite integer
+`session_provision_timeout_seconds`. It also contains positive
+`session_ttl_seconds`, `gpu_minute_cap`, and the separate explicit positive
+`session_termination_deadline_seconds`; the existing
+`Feat018BoundedRunnerConfig` remains unchanged and continues to own the frozen
+bounded adapter-runner protocol.
+
+The controller contract returns provider-owned typed facts, not coordinator
+placeholders:
+
+```text
+provision() -> LightningOperationHandle[LightningProvisionFacts]
+wait_ready() -> LightningOperationHandle[LightningReadyFacts]
+terminate() -> LightningOperationHandle[LightningTerminationFacts]
+
+LightningOperationHandle[T]:
+  wait(*, timeout_seconds: float) -> T
+  cancel(*, timeout_seconds: float) -> LightningCancellationFacts
+
+LightningProvisionFacts:
+  allocation_confirmed: bool
+  session_identity: bounded opaque provider identity
+  placement: LightningPlacementFacts
+  gpu_minute_budget_start_monotonic: finite non-negative host-monotonic timestamp
+
+LightningPlacementFacts:
+  gpu_sku, device_index, device_count, vram_mib
+  cuda_available, bf16_supported, single_device_visible
+  model_device_index, input_device_index
+
+LightningReadyFacts:
+  readiness: NOT_READY | SESSION_READY
+  lifecycle: LightningSessionLifecycleFacts | null
+
+LightningSessionLifecycleFacts:
+  session_identity: bounded opaque provider identity
+  session_ready_at_monotonic: finite non-negative timestamp
+  session_ttl_start_monotonic: same timestamp as session_ready_at_monotonic
+  session_ttl_deadline_monotonic: finite timestamp after TTL start
+
+LightningTerminationFacts:
+  termination_verified: bool
+  cleanup_status: SUCCEEDED | CLEANUP_FAILED
+  session_identity: bounded opaque provider identity
+  session_cleanup_verified: bool
+```
+
+`provision_start` is the host monotonic reading captured immediately before
+the non-blocking `LightningSessionController.provision()` operation and
+`ready_deadline = provision_start + session_provision_timeout_seconds`.
+The wait budget is passed to the returned operation handle, and a timeout
+attempts typed cancellation before forced session termination.
+`SESSION_READY` must be returned and observed strictly before `ready_deadline`;
+an exact-deadline or late readiness is a timeout. The session TTL starts only
+at provider-confirmed readiness represented by its lifecycle facts. The
+controller-owned TTL start/deadline must agree with the configured TTL; the
+coordinator never derives it from a host placeholder. A controller
+allocation/billing fact supplies the GPU-minute budget start, and the typed
+placement facts must match the explicit approval. Missing, malformed,
+contradictory, identity-mismatched, or unverified controller facts fail closed.
+
+Before provisioning, the typed preflight facts must match the synthetic session
+ID and verify approval identity, checkout identity, D4 readiness, fixture
+digest, prompt hash, hardware placement, policy identity, and runtime
+inventory. After cleanup, the typed finalizer must verify evidence-pair
+finalization and sanitized incident handling. Either gate failing produces a
+non-success result; neither gate is inferred from an adapter or controller
+return value.
+
+After readiness, the coordinator performs one final host-clock TTL/GPU-cap check
+immediately before capturing `adapter_start` and making the single injected
+`run_bounded_adapter_call()`-shaped invocation. That call receives the unchanged
+`Feat018BoundedRunnerConfig` and synthetic session ID exactly once; its own
+total adapter cap starts at that invocation boundary and is not reset by any
+retry owned by the unchanged adapter/runner protocol.
+
+Every path after provisioning begins attempts controller termination exactly
+once. The separate `session_termination_deadline_seconds` starts when final
+cleanup begins and includes the controller/session termination operation and
+its verification. A termination timeout, exception, false typed verification,
+identity mismatch, or missing termination proof produces `CLEANUP_FAILED`,
+overriding any prior adapter success. If provisioning raises, times out,
+cancellation fails, or
+`SESSION_READY` is not accepted before its deadline, the final outcome is
+`FAILED` unless termination cannot be verified, in which case it is
+`CLEANUP_FAILED`; `adapter_call_count=0`, `attempt_count=null`, no mapper or
+model invocation occurs, and no success-valued session fact is emitted.
+
 ### Bounded execution and cardinality
 
 - Put model/processor loading, generation, and decoding for each generation attempt inside a
