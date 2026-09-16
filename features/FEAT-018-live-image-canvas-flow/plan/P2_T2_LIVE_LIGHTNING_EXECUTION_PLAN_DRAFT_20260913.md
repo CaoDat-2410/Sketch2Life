@@ -5,7 +5,7 @@ NOT AN APPROVAL
 NOT AN IMPLEMENTATION AUTHORIZATION
 NOT A LIVE EXECUTION AUTHORIZATION
 
-Date: 2026-09-14
+Date: 2026-09-16
 
 This document is a plan correction only. Reading or revising it performs no
 Lightning, GPU, model, provider, network, subprocess, or benchmark execution.
@@ -21,14 +21,31 @@ must not be recorded or described as P2-T1 decisions. The status table in
 Section 9 records planning disposition only; no live decision is finally
 approved by this draft.
 
-The reviewed offline implementation/test commit is
-`c2bd7b5ece3f308abb65ab3632add265b3cd586c`. Its role is
-the historical `reviewed_runtime_code_commit`: it contains the reviewed two-file bounded
-runner implementation and test paths, not a live-execution approval.
+The provenance labels below preserve historical/offline roles. The separate
+owner binding below identifies the exact reviewed source/test blobs; it is not
+a live-execution approval:
+
+- `c2bd7b5` = `HISTORICAL_PRIMITIVE_PROVENANCE_ONLY` (full commit
+  `c2bd7b5ece3f308abb65ab3632add265b3cd586c`); it identifies the original
+  bounded-runner primitives and their tests.
+- `7f5cbe5` = `VALIDATED_OFFLINE_CORRECTION_PROVENANCE_ONLY` (full commit
+  `7f5cbe57fc9756c3e7fa5c248cd655c1dce0ec7b`); it identifies the validated
+  offline coordinator/evidence correction.
+- `9549a34` = `POSIX TEST CORRECTION PROVENANCE ONLY` (full commit
+  `9549a341194f40b1a9be419d6fce0d70f1ca0384`); it identifies the POSIX test
+  correction only.
+
+`reviewed_runtime_code_commit` =
+`9549a341194f40b1a9be419d6fce0d70f1ca0384`, owner-bound as the exact reviewed
+FEAT-018 P2-T2 runner/coordinator source and test blob identity only. This
+binding does not resolve D4, all D1-D12, Stage 4, or live execution. The
+approval checkout must still verify this exact commit or the exact reviewed
+blobs before any future model invocation.
+
 The verification/closure documentation commit is
 `8522e2cd830a8fce49759a385dca99c2906ba120`; it records the completed
-independent-review finding closure and offline validation. The independent
-review is a separately identified local artifact, not a commit:
+offline primitive review/finding closure and validation. The independent review
+is a separately identified local artifact, not a commit:
 `tmp/feat018-p2-t2-launcher-independent-review-20260914/REVIEW.md`, SHA-256
 `5b863dbb2fafb33ccec7ecfee82424b80de40d304cf45396f72470f908328d2e`.
 The finalization report is likewise a local artifact:
@@ -36,20 +53,41 @@ The finalization report is likewise a local artifact:
 `662589c8af7222d9922dfe48d83908952bd5e0dc0381f780dfa81534ce9e266a`.
 Neither local artifact hash is a commit identifier.
 
-The four-finding correction changes the two implementation paths after that
-historical review. The validated offline correction source/test commit is
-`7f5cbe57fc9756c3e7fa5c248cd655c1dce0ec7b`; it is not live authorization and
-does not resolve the future coordinator or Stage 4 approval. Any future
-`reviewed_runtime_code_commit` must bind the exact reviewed checkout after the
-remaining coordinator review. References to the historical commit below describe
-primitive provenance only and cannot authorize these modified bytes.
+The POSIX test correction and the offline coordinator implementation are
+verified offline. The owner-bound reviewed runtime commit identifies the exact
+source/test blobs only; it is not a live authorization and does not resolve D4,
+all D1-D12, or Stage 4. References to the provenance commits below describe
+offline history only and cannot authorize any other source bytes.
 
 Planning baseline only: repository HEAD observed for this reconciliation was
-`6dd3c66dd0f47c4a8af73cfb585189a5addfb234`. That hash is not an execution
-authorization. A future owner approval must receive an externally supplied
+`2832455e7cb314cea0fa64a397fbbb84ac914df1` (a documentation commit). That hash
+is not an execution authorization or a live runtime identity. A future owner
+approval must receive an externally supplied
 `approval_record_commit` after the approval record is committed. The approval
 file must never contain its own future commit hash; the execution checkout
 must verify that externally supplied commit before any model invocation.
+
+## Canonical reconciliation state (2026-09-16)
+
+- Offline coordinator implementation: COMPLETE
+- Offline independent/POSIX verification: COMPLETE WITH FINDINGS CLOSED
+- Live coordinator source/test binding: OWNER-BOUND; runtime suitability pending
+- P2T2-LIVE-D1: BLOCKED
+- P2T2-LIVE-D4: BLOCKED
+- P2T2-LIVE-D11: BLOCKED
+- Stage 4 live-execution approval: NOT READY
+- Lightning execution: NOT AUTHORIZED
+- Live model/GPU/provider/network execution: NONE
+
+The coordinator is implemented and verified offline, and the owner has bound
+the reviewed source/test identity. Live-runtime suitability,
+session/controller binding, and D1/D4/D11 remain pending. The current HEAD is
+a planning/documentation identity only and is not the reviewed runtime source
+commit. This state does not open Stage 4 or authorize Lightning.
+
+Next sequence:
+
+`revised plan -> independent binding review -> owner-bound reviewed runtime commit -> D4 snapshot verification -> owner resolution of D1-D12 -> separate Stage 4 approval -> only then Lightning execution`
 
 ## 1. Objective and exact scope
 
@@ -147,16 +185,17 @@ Out of scope and preserved exclusions:
 
 ## 2. Topology, ownership, and explicit construction boundary
 
-The target data path, which still requires the coordinator described in
-Section 2.5 and future live approval, is:
+The target topology, which remains subject to live suitability checks and future
+live approval, is:
 
-local preflight -> one Lightning session ->
-`Feat018AdapterCallSupervisor` -> outer non-daemon adapter worker running the
-real `QwenVisionAdapter.understand()` flow -> one
-`Feat018BoundedKillableQwenGenerationRunner` child per generation attempt ->
-bounded child result and worker-authored progress events -> supervisor-accepted
-committed progress state -> typed V2 result -> existing FEAT-018 mapper ->
-sanitized evidence pair.
+```text
+Host-side run_live_smoke()
+  -> approved LightningSessionController
+      -> Lightning session
+          -> Feat018AdapterCallSupervisor
+              -> adapter worker
+                  -> generation child
+```
 
 The outer worker is released only after containment is confirmed. The inner
 generation child is created only after the worker accepts `CONTAINMENT_READY`.
@@ -263,13 +302,15 @@ spawn context by default, with `daemon=False`, and bounds model/processor
 loading, generation, decoding, and the result envelope. The runner performs no
 retry; the unchanged adapter owns the one permitted transient retry.
 
-The reviewed implementation/test pair is bound to
-`reviewed_runtime_code_commit` `c2bd7b5ece3f308abb65ab3632add265b3cd586c`.
-The independent review and finalization are complete, but the offline tests
-use injected process/containment/IPC doubles and do not prove an actual nested
-OS spawn. A later live approval must select this boundary and prove the real
-nested spawn, descendant containment, and two-level cleanup assertions listed
-in Section 5. A model factory, the old in-process runner, the old unbounded
+The offline implementation uses the historical primitive provenance
+`c2bd7b5` only. The validated offline correction provenance is `7f5cbe5`, and
+the POSIX test correction provenance is `9549a34`. The owner-bound
+`reviewed_runtime_code_commit` is `9549a341194f40b1a9be419d6fce0d70f1ca0384`
+for source/test identity only. The coordinator is implemented and verified
+offline, but live-runtime suitability and session/controller binding still
+require the remaining owner gates. A later live approval must verify the exact
+reviewed source commit and prove the real nested spawn, descendant containment,
+and two-level cleanup assertions listed in Section 5. A model factory, the old in-process runner, the old unbounded
 subprocess IPC, and persistent raw-output diagnostic sinks are not live
 alternatives.
 
@@ -294,18 +335,23 @@ Repository conventions use feature-local, directly imported executors under
   config, policy and prompt. It returns supervisor status. The current repair
   adds optional worker-local Raw mapping when a synthetic session ID is
   supplied, with a bounded raw_status terminal claim; V2/Raw observations
-  never cross the progress channel. This is not yet a
-  complete smoke coordinator. FEAT-003 source remains unchanged.
+  never cross the progress channel. The coordinator is implemented and
+  verified offline in this source/test boundary; live-runtime suitability and
+  session/controller binding remain pending. FEAT-003
+  source remains unchanged.
 - `backend/tests/unit/test_feat018_live_lightning_execution.py`: offline tests
-  with injected fakes only. It covers raw and IPC overflow, stdout/stderr
+  with injected seams plus synthetic local process-boundary tests only; no
+  Lightning/provider/model execution occurs. It covers raw and IPC overflow, stdout/stderr
   ceilings, per-attempt timeout and total-cap termination, child/IPC cleanup
   on success and failure, pre-adapter `0/null`, adapter input rejection
   `1/0`, model-reaching `1/1`, explicitly transient retry `1/2`, no third or
   outer retry, and evidence-pair hash/rename integrity. Prompt-hash selection,
-  device placement, full evidence redaction and incident handling are remaining
-  coordinator acceptance criteria, not proven by the historic tests. The review/finalization
-  evidence is bound to the two commits and the separate review artifact
-  identified at the top of this plan.
+  device placement, full evidence redaction and incident handling are covered
+  by offline injected coordinator seams; live-runtime suitability and
+  session/controller binding remain pending. The verification evidence is
+  provenance-bound to
+  the offline correction records and the separate review artifacts identified
+  at the top of this plan.
 
 No other source, wrapper, CLI, fixture, adapter edit, or test file is in the
 reviewed boundary. This plan does not authorize adding a live caller or
@@ -341,9 +387,11 @@ The two inventory scans close the ordinary mutation window under that invariant.
 They do not claim filesystem-wide atomicity or protection from an unrelated
 hostile external writer, and metadata checks do not defeat timestamp restoration.
 
-The smallest future complete coordinator is `run_live_smoke` in this same
-source file, with tests in the same test file. It remains NOT_IMPLEMENTED and
-must have its detailed offline acceptance reviewed before implementation:
+The complete coordinator is `run_live_smoke` in this same source file, with
+tests in the same test file. Its offline implementation and verification are
+  complete. The following responsibilities are implemented behind injected
+  offline seams; live-runtime suitability, session/controller binding, and the
+  D1/D4/D11 gates remain pending:
 
 1. verify approval/checkout and complete ignored-artifact baseline;
 2. construct explicit runtime config and the existing lexical policy; verify
@@ -357,8 +405,9 @@ must have its detailed offline acceptance reviewed before implementation:
    the evidence finalizer, and handle non-commit through a sanitized incident.
 
 No manual notebook, new CLI or unreviewed caller may fill these gaps. B1 is
-corrected as a planning discrepancy; complete live orchestration remains an
-explicit implementation/review gate. D1/D11 stay BLOCKED until that gate closes.
+corrected as a planning discrepancy; live-runtime suitability and binding
+remain an explicit independent-review gate. D1/D11 stay BLOCKED until that
+gate closes.
 
 The continuing owner-requested repair implements the worker mapper handoff
 in the same two files. An optional synthetic session ID activates mapping
@@ -451,13 +500,15 @@ condition is "reasonable", "available", or "unchanged" is not sufficient.
    externally after the approval record is committed; the approval record
    does not contain its own future commit hash.
 
-2. Exact reviewed code and approval checkout. The approved value for
-   `reviewed_runtime_code_commit` must be the newly reviewed exact 40-hex commit
-   containing the completed coordinator and correction. The offline correction
-   source/test commit is `7f5cbe57fc9756c3e7fa5c248cd655c1dce0ec7b`, but the
-   completed coordinator's live `reviewed_runtime_code_commit` remains
-   UNKNOWN_UNTIL_COMMITTED_AND_REVIEWED; the historical primitive commit
-   `c2bd7b5ece3f308abb65ab3632add265b3cd586c` is insufficient. After the live approval is
+2. Exact reviewed code and approval checkout. The owner-bound value for
+   `reviewed_runtime_code_commit` is
+   `9549a341194f40b1a9be419d6fce0d70f1ca0384`, identifying only the reviewed
+   source/test blobs. The offline correction coordinator/correction provenance
+   is `7f5cbe57fc9756c3e7fa5c248cd655c1dce0ec7b`, and the POSIX test correction
+   provenance is the same owner-bound commit; the binding is not live
+   authorization. The historical primitive commit
+   `c2bd7b5ece3f308abb65ab3632add265b3cd586c` is provenance only.
+   After the live approval is
    committed, an external execution record supplies one exact 40-hex
    `approval_record_commit`; the execution checkout must verify
    `git rev-parse HEAD == approval_record_commit` before any model invocation.
@@ -1158,7 +1209,7 @@ concrete value, not that the future live approval has been granted.
 
 | Decision | Status | Current basis or blocker |
 |---|---|---|
-| P2T2-LIVE-D1 | `BLOCKED` | Bounded primitives and the four-finding offline correction are validated; the complete coordinator and Stage 4 review remain required by Section 2.5. |
+| P2T2-LIVE-D1 | `BLOCKED` | Offline coordinator implementation and source/test binding are complete; remaining D1 owner resolution and Stage 4 approval are pending. |
 | P2T2-LIVE-D2 | `READY_TO_RESOLVE` | Positive TTL, total adapter cap, and numeric GPU-minute/currency cap still require owner selection. |
 | P2T2-LIVE-D3 | `RESOLVED_WITH_PROPOSED_VALUE` | `ASR_EXCLUDED`, `asr_execution=false`, and `narration_status=NOT_SUPPLIED` are the proposed image-only value. |
 | P2T2-LIVE-D4 | `BLOCKED` | No locally proven pre-staged snapshot identity/completeness/revision record; see the exact unblock requirement in D4. |
@@ -1168,7 +1219,7 @@ concrete value, not that the future live approval has been granted.
 | P2T2-LIVE-D8 | `READY_TO_RESOLVE` | Mount/copy/upload session-relative staging method remains an owner choice. |
 | P2T2-LIVE-D9 | `RESOLVED_WITH_PROPOSED_VALUE` | Proposed integers are 65536, 98304, 0, and 0 with the reviewed bounded enforcement path. |
 | P2T2-LIVE-D10 | `READY_TO_RESOLVE` | Approval values and observed GPU evidence must be supplied separately; no live hardware was observed here. |
-| P2T2-LIVE-D11 | `BLOCKED` | Exact two-file future coordinator scope is defined; full orchestration is not implemented or independently reviewed. |
+| P2T2-LIVE-D11 | `BLOCKED` | Exact two-file scope and source/test binding are complete; live-runtime/session-controller suitability and Stage 4 approval remain pending. |
 | P2T2-LIVE-D12 | `RESOLVED_WITH_PROPOSED_VALUE` | Synthetic lexical regression policy identity and scope are committed and proposed. |
 
 D4 is explicitly blocked, and D6/D7 are not marked resolved without their
@@ -1182,27 +1233,36 @@ disposition is explicit:
 | Stage | Required gate | Status | Bound evidence or next action |
 |---|---|---|---|
 | 1 | Exact two-file scope approval, with the FEAT-003 exclusion | COMPLETE | `6c1d607eb379a3b5b5b8f5cf120a904460da9ff1` and the feature-local approval package |
-| 2 | Offline implementation and tests with injected fakes only | COMPLETE FOR OFFLINE CORRECTION; COORDINATOR INCOMPLETE | `7f5cbe57fc9756c3e7fa5c248cd655c1dce0ec7b`; current 196 focused / 885 related passed / 5 skips; no coordinator is claimed |
-| 3 | Independent review and finalization of the bounded runner | COMPLETE FOR OFFLINE CORRECTION; COORDINATOR REVIEW PENDING | F1-F4 finalization report and source commit above; Stage 4 still requires a separate coordinator review |
+| 2 | Offline coordinator implementation and verification with injected seams and synthetic local process tests only | COMPLETE FOR OFFLINE IMPLEMENTATION/VERIFICATION | `7f5cbe57fc9756c3e7fa5c248cd655c1dce0ec7b` and `9549a341194f40b1a9be419d6fce0d70f1ca0384`; offline coordinator/POSIX findings are closed; no live execution is claimed |
+| 3 | Offline independent review/finalization and source/plan binding review | COMPLETE FOR OFFLINE IMPLEMENTATION/VERIFICATION; SOURCE/TEST BINDING RECORDED | Offline review/finalization records close the offline findings; owner binding records `9549a341194f40b1a9be419d6fce0d70f1ca0384` for source/test identity only; live session/controller suitability remains pending |
 | 4 | Separate owner live-execution approval resolving D1-D12 and supplying the post-approval checkout commit | PENDING | owner approval must name exact fixture, prompt, hardware, budget, redaction, evidence pair, and external `approval_record_commit` |
 | 5 | Open Lightning and run the approved smoke | BLOCKED UNTIL STAGE 4 | no live process, model, GPU, provider, network, or Lightning execution is authorized by this draft |
 
 Historic primitive approval/review does not resolve the live D1-D12 approval. The
-reviewed offline tests intentionally do not start a real process, so Stage 4
-must carry the real nested-spawn, descendant-containment, no-orphan, and
-two-level-cleanup assertions.
+Reviewed offline validation includes synthetic local process-boundary tests for
+host preemption and POSIX containment, but it does not start a real
+Lightning/provider/model session. Stage 4 must still carry the real
+nested-spawn, descendant-containment, no-orphan, and two-level-cleanup
+assertions against the approved live environment.
 
-The current focused offline suite for this finalization is `196 passed`. The
-earlier `170 passed` checkpoint and the historic `154 focused`/`839 related`
-figures in the table are historical checkpoints, not current totals.
+The current focused offline suite for this verification lineage is `268
+passed, 1 skipped`; the related sweep is `955 passed, 6 skipped, 420
+deselected`. The earlier `196 passed`, `170 passed`, and historic
+`154 focused`/`839 related` figures are historical checkpoints, not current
+totals.
 
 ### P2T2-LIVE-D1 - Runner and deadline enforcement
 
-Planning disposition: `BLOCKED` pending the coordinator and correction review.
+Planning disposition: `BLOCKED` pending remaining D1 owner resolution and
+Stage 4 approval; source/test identity is already owner-bound.
 
-Select `NEW_GLUE_EXPLICITLY_APPROVED` with the exact reviewed implementation
-at `reviewed_runtime_code_commit`
-`c2bd7b5ece3f308abb65ab3632add265b3cd586c`: the supervisor launches the
+The proposed future value remains `NEW_GLUE_EXPLICITLY_APPROVED`. The offline
+coordinator uses the bounded primitives identified by historical provenance
+`c2bd7b5ece3f308abb65ab3632add265b3cd586c` only; the validated offline
+coordinator/correction provenance is
+`7f5cbe57fc9756c3e7fa5c248cd655c1dce0ec7b`, and the POSIX test correction
+   provenance is `9549a341194f40b1a9be419d6fce0d70f1ca0384`. The owner-bound
+   reviewed runtime commit identifies these exact source/test blobs only. The offline coordinator's supervisor launches the
 non-daemon adapter worker, the worker constructs the real adapter after
 containment release, and `Feat018BoundedKillableQwenGenerationRunner` launches
 one bounded generation child per adapter attempt. The runner's 120-second
@@ -1211,7 +1271,9 @@ IPC and cleanup are covered by Stage 3 review. The later live approval must
 still record the external `approval_record_commit`, prove the real nested
 spawn and descendant containment, set `total_adapter_cap_seconds`, and verify
 the conditional call/attempt cardinality. This proposed value is not live
-authorization.
+   authorization. D1 remains blocked pending the remaining owner resolution
+   and Stage 4 approval; the current documentation HEAD is not the runtime
+   source identity.
 
 ### P2T2-LIVE-D2 - TTL and budget cap
 
@@ -1424,28 +1486,35 @@ inventory facts alone do not satisfy D10.
 
 ### P2T2-LIVE-D11 - Approved harness, glue boundary, and session ID
 
-Planning disposition: `BLOCKED` pending the complete coordinator in Section 2.5.
+Planning disposition: `BLOCKED` pending remaining live suitability,
+session/controller binding, and Stage 4 approval in Section 2.5.
 
-The historic bounded primitives have `NEW_GLUE_EXPLICITLY_APPROVED` scope at
-`reviewed_runtime_code_commit`
-`c2bd7b5ece3f308abb65ab3632add265b3cd586c`; no old runner or existing
-harness satisfies the combined deadline and bounded-IPC requirements. The
-reviewed scope is exactly these paths and no others:
+The historic bounded primitives have `NEW_GLUE_EXPLICITLY_APPROVED` scope under
+historical provenance `c2bd7b5ece3f308abb65ab3632add265b3cd586c`; the
+validated offline coordinator/correction provenance is
+`7f5cbe57fc9756c3e7fa5c248cd655c1dce0ec7b`, and the POSIX test correction
+provenance is `9549a341194f40b1a9be419d6fce0d70f1ca0384`. The owner-bound
+`reviewed_runtime_code_commit` identifies the exact reviewed source/test blobs
+only; no old runner or existing harness satisfies
+the combined deadline and bounded-IPC requirements. The exact two-file scope
+is:
 
 - `backend/src/sketch2life/benchmark/feat018_live_lightning_execution.py` for
   the bounded killable runner, supervisor, progress and containment primitives,
-  and pair writer/reader; the future coordinator responsibilities in Section
-  2.5 are not completed by those primitives;
+  and pair writer/reader; the current coordinator responsibilities in Section
+  2.5 are implemented in the offline source boundary but still require live
+  suitability and session/controller binding;
 - `backend/tests/unit/test_feat018_live_lightning_execution.py` for all
   existing offline overflow, timeout, cleanup, cardinality and pair tests,
-  plus the correction tests; complete coordinator acceptance remains pending.
+  plus the correction tests; live coordinator acceptance remains pending.
 
-The historic primitive approval, implementation and review are complete, and
-the four-finding offline correction is validated at
-`7f5cbe57fc9756c3e7fa5c248cd655c1dce0ec7b`. The complete coordinator review
-must precede Stage 4. Its new live reviewed runtime-code commit remains
-UNKNOWN_UNTIL_COMMITTED_AND_REVIEWED; the old commit cannot bind changed source
-bytes. The separate Stage 4 approval must
+The offline coordinator implementation and independent/POSIX verification are
+complete with findings closed. The owner-bound
+`reviewed_runtime_code_commit` identifies the exact reviewed source/test blobs,
+but does not resolve the remaining live suitability, controller/session, D4,
+or Stage 4 gates. The provenance commits and current documentation HEAD cannot
+substitute for that exact source identity. The
+separate Stage 4 approval must
 identify `approval_record_commit`, prove zero diff/blob identity for both
 paths, identify the exact evidence-writer paths, and authorize the real nested
 spawn only after D1-D12 are resolved. Record the safe synthetic `session_id`
@@ -1499,7 +1568,9 @@ independent review occurs.
 This draft records planning dispositions for P2T2-LIVE-D1 through D12 but
 does not grant their separate live approval. D1/D4/D11 remain BLOCKED, D2/D5/D8/D10
 remain READY_TO_RESOLVE, and the proposed values in the other rows still
-require the Stage 4 owner approval. The draft does not authorize live
+require the Stage 4 owner approval. Offline coordinator implementation and
+independent/POSIX verification are complete with findings closed; live runtime
+suitability and session/controller binding remain pending. The draft does not authorize live
 execution, provider benchmark work, or closure of P2-T2. It also does not
 authorize any FEAT-017 remote HTTPS adapter,
 FEAT-003 modification, mobile, Gate A UI, P1 eligibility, P3/P4, shared

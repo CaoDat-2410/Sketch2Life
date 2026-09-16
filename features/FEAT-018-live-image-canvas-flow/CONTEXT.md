@@ -208,3 +208,13 @@ the completed P2-T2 typed ASR boundary and truthful `NOT_SUPPLIED`/success/failu
 This draft does not authorize P2-T3 implementation, model or provider execution, GPU/Lightning
 work, approval-record changes, or a commit. A separate owner approval is required before any
 P2-T3 implementation begins.
+
+## P2-T2 reviewed-runtime source binding - 2026-09-16
+
+The owner bound `reviewed_runtime_code_commit` to
+`9549a341194f40b1a9be419d6fce0d70f1ca0384` for the exact reviewed FEAT-018
+runner/coordinator source and test blobs. This is a source-identity binding
+only: D4, the remaining D1-D12 decisions, Stage 4, and all Lightning/GPU/model/
+provider/network execution remain blocked or unauthorized. The binding is
+recorded in the task approval and does not authorize a live run, commit, or
+push by itself.

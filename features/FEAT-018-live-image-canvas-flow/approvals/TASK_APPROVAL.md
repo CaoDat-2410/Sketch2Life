@@ -344,3 +344,16 @@ This approval does not authorize:
 - any application commit or push.
 
 No commit or push is authorized by this addendum.
+
+## Owner binding of reviewed FEAT-018 P2-T2 runtime source — 2026-09-16
+
+The project owner binds `reviewed_runtime_code_commit` to:
+
+`9549a341194f40b1a9be419d6fce0d70f1ca0384`
+
+This binding identifies the exact reviewed FEAT-018 P2-T2 runner/coordinator
+source and test blobs only. It does not resolve D4, does not resolve all
+D1-D12, and does not authorize Lightning, GPU, model, provider, network, or
+Stage 4 execution. The binding does not alter the existing exact-file scope,
+does not approve any FEAT-003/FEAT-017 change, and does not authorize a commit
+or push by itself.

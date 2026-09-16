@@ -174,3 +174,11 @@
   separately approved live-smoke assertion. The architecture validator's unchanged
   `backend_ai_workflow.py` violation remains `PRE_EXISTING_UPSTREAM`; all twelve
   `P2T2-LIVE-D1` through `P2T2-LIVE-D12` decisions remain open.
+
+- 2026-09-16 P2-T2 reviewed-runtime binding decision: bind
+  `reviewed_runtime_code_commit` to
+  `9549a341194f40b1a9be419d6fce0d70f1ca0384` for the exact reviewed FEAT-018
+  runner/coordinator source and test blobs only. This source identity binding
+  does not resolve D4, the remaining D1-D12 decisions, Stage 4, or any
+  Lightning/GPU/model/provider/network execution. The owner binding is recorded
+  separately in `approvals/TASK_APPROVAL.md`; no live run is authorized.
