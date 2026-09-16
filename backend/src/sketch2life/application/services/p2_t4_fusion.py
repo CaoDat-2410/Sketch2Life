@@ -1,11 +1,15 @@
 """P2-T4 offline fusion core: deterministic, model-free, provider-free, network-free.
 
 Two boundaries exist. `validate_and_fuse` accepts `object` values only to classify them into
-the safe typed `P2T4FusionInputRejectionV1` or, once both slots are exact validated P2 V1
+the safe typed `P2T4FusionInputRejectionV2` or, once both slots are exact validated P2 V1
 results, to call the pure typed `fuse` boundary. Terminal precedence is exactly
 `identity/version -> strict upstream-contract validation -> P2-T4 admissibility ->
 correlation equality -> typed upstream status -> fusion`; within each stage ASR is inspected
-before Vision and the first rejection is terminal.
+before Vision and the first rejection is terminal. The admissibility stage (freeze revision 12
+section 3) checks the ASR duplicate-segment-index invariant first, then requires a
+`VisionUnderstandingSuccessV1` to carry exactly the upstream `VISION_POLICY_MATCH_VIEW_VERSION`
+match view; a Vision failure is not subject to that check. The observed match-view value is
+never echoed.
 """
 
 from __future__ import annotations
@@ -34,7 +38,7 @@ from sketch2life.contracts.schemas.p2_t4_fusion import (
     P2T4FusedResultStatus,
     P2T4FusedResultV1,
     P2T4FusedThemeV1,
-    P2T4FusionInputRejectionV1,
+    P2T4FusionInputRejectionV2,
     P2T4FusionPolicyConfigV1,
     P2T4InputSlot,
     P2T4NarrationClaimRefV1,
@@ -54,6 +58,7 @@ from sketch2life.contracts.schemas.p2_t4_fusion import (
     fusion_policy_config_hash,
 )
 from sketch2life.contracts.schemas.vision import (
+    VISION_POLICY_MATCH_VIEW_VERSION,
     VisionUnderstandingFailureV1,
     VisionUnderstandingResultV1,
     VisionUnderstandingSuccessV1,
@@ -67,7 +72,7 @@ from sketch2life.contracts.schemas.vision_v2 import (
 
 AsrInput = AsrSuccessV1 | AsrFailureV1
 VisionInput = VisionUnderstandingSuccessV1 | VisionUnderstandingFailureV1
-FusionOutcome = P2T4FusedResultV1 | P2T4FusionInputRejectionV1
+FusionOutcome = P2T4FusedResultV1 | P2T4FusionInputRejectionV2
 
 _ASR_ADAPTER: Final = TypeAdapter[AsrInput](AsrResultV1)
 _VISION_ADAPTER: Final = TypeAdapter[VisionInput](VisionUnderstandingResultV1)
@@ -124,7 +129,7 @@ class P2T4FusionInputError(ValueError):
     The message is the closed rejection code only; the safe typed rejection is attached.
     """
 
-    def __init__(self, rejection: P2T4FusionInputRejectionV1) -> None:
+    def __init__(self, rejection: P2T4FusionInputRejectionV2) -> None:
         super().__init__(rejection.code.value)
         self.rejection = rejection
 
@@ -174,8 +179,8 @@ def _reject(
     field_code: P2T4RejectionFieldCode,
     observed_identity: P2T4ObservedIdentity,
     observed_status: P2T4ObservedStatus | None,
-) -> P2T4FusionInputRejectionV1:
-    return P2T4FusionInputRejectionV1(
+) -> P2T4FusionInputRejectionV2:
+    return P2T4FusionInputRejectionV2(
         input_slot=slot.slot,
         phase=phase,
         code=code,
@@ -186,7 +191,7 @@ def _reject(
     )
 
 
-def _identity_stage(value: object, slot: _Slot) -> P2T4FusionInputRejectionV1 | None:
+def _identity_stage(value: object, slot: _Slot) -> P2T4FusionInputRejectionV2 | None:
     phase = P2T4RejectionPhase.IDENTITY_VERSION
     if isinstance(value, slot.own_types):
         return None
@@ -269,7 +274,7 @@ def _field_code_from_validation_error(error: ValidationError) -> P2T4RejectionFi
 
 def _strict_stage(
     value: object, slot: _Slot, adapter: TypeAdapter[AsrInput] | TypeAdapter[VisionInput]
-) -> tuple[AsrInput | VisionInput | None, P2T4FusionInputRejectionV1 | None]:
+) -> tuple[AsrInput | VisionInput | None, P2T4FusionInputRejectionV2 | None]:
     phase = P2T4RejectionPhase.STRICT_VALIDATION
     if isinstance(value, slot.own_types):
         return value, None  # type: ignore[return-value]
@@ -303,7 +308,9 @@ def _strict_stage(
     )
 
 
-def _admissibility_stage(asr: AsrInput) -> P2T4FusionInputRejectionV1 | None:
+def _asr_admissibility(asr: AsrInput) -> P2T4FusionInputRejectionV2 | None:
+    """`For AsrSuccessV1, all AsrSegmentV1.index values MUST be unique.`"""
+
     if not isinstance(asr, AsrSuccessV1):
         return None
     indexes = [segment.index for segment in asr.segments]
@@ -319,10 +326,38 @@ def _admissibility_stage(asr: AsrInput) -> P2T4FusionInputRejectionV1 | None:
     return None
 
 
-def _correlation_stage(asr: AsrInput, vision: VisionInput) -> P2T4FusionInputRejectionV1 | None:
+def _vision_admissibility(vision: VisionInput) -> P2T4FusionInputRejectionV2 | None:
+    """`For VisionUnderstandingSuccessV1, policy_match_view_version MUST equal` the upstream
+    `VISION_POLICY_MATCH_VIEW_VERSION` exactly (byte equality, no normalization).
+
+    Success-only (MV-2 = S2): a `VisionUnderstandingFailureV1` is never subject to this check.
+    The observed value is compared and discarded; only the closed field code is reported.
+    """
+
+    if not isinstance(vision, VisionUnderstandingSuccessV1):
+        return None
+    if vision.policy_match_view_version != VISION_POLICY_MATCH_VIEW_VERSION:
+        return _reject(
+            _VISION_SLOT,
+            P2T4RejectionPhase.ADMISSIBILITY,
+            P2T4RejectionCode.INVALID_STRUCTURE,
+            P2T4RejectionFieldCode.POLICY_MATCH_VIEW_VERSION,
+            P2T4ObservedIdentity.P2_VISION_UNDERSTANDING_RESULT_V1,
+            P2T4ObservedStatus.SUCCEEDED,
+        )
+    return None
+
+
+def _admissibility_stage(asr: AsrInput, vision: VisionInput) -> P2T4FusionInputRejectionV2 | None:
+    """Every T4-only invariant after strict validation: ASR before Vision, first failure wins."""
+
+    return _asr_admissibility(asr) or _vision_admissibility(vision)
+
+
+def _correlation_stage(asr: AsrInput, vision: VisionInput) -> P2T4FusionInputRejectionV2 | None:
     if asr.correlation_id == vision.correlation_id:
         return None
-    return P2T4FusionInputRejectionV1(
+    return P2T4FusionInputRejectionV2(
         input_slot=P2T4InputSlot.BOTH,
         phase=P2T4RejectionPhase.CORRELATION,
         code=P2T4RejectionCode.CORRELATION_MISMATCH,
@@ -333,8 +368,8 @@ def _correlation_stage(asr: AsrInput, vision: VisionInput) -> P2T4FusionInputRej
     )
 
 
-def _admit(asr: AsrInput, vision: VisionInput) -> P2T4FusionInputRejectionV1 | None:
-    return _admissibility_stage(asr) or _correlation_stage(asr, vision)
+def _admit(asr: AsrInput, vision: VisionInput) -> P2T4FusionInputRejectionV2 | None:
+    return _admissibility_stage(asr, vision) or _correlation_stage(asr, vision)
 
 
 def validate_and_fuse(

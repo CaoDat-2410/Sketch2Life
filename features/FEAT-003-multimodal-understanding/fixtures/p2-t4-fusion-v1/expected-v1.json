@@ -4,7 +4,7 @@
   "target_contract": "P2T4.P2T4FusedResultV1@1.0",
   "canonicalization_identity": "P2T4-CANONICAL-JSON-V1",
   "synthetic_data": true,
-  "authoring": "Hand-authored from the frozen G1 contract (freeze commit 18d0c33d35431ca96a76692a68c6b992098699e7). Each `result` is the exact P2T4-CANONICAL-JSON-V1 projection of the expected P2T4FusedResultV1 or P2T4FusionInputRejectionV1; `canonical_sha256` is SHA-256 of its canonical UTF-8 bytes. Source-result digests, the policy hash, and conflict identifiers were bound with the frozen byte algorithms over the hand-authored case inputs, never by running the implementation under test.",
+  "authoring": "Hand-authored from the frozen successor contract (freeze revision 12, source commit 5b6501b2d8b809f9dd4caf77b5c5d51d2e1e9cf2, superseding the G1 freeze at 18d0c33d35431ca96a76692a68c6b992098699e7). Each `result` is the exact P2T4-CANONICAL-JSON-V1 projection of the expected P2T4FusedResultV1 or P2T4FusionInputRejectionV2; `canonical_sha256` is SHA-256 of its canonical UTF-8 bytes. Source-result digests, the policy hash, and conflict identifiers were bound with the frozen byte algorithms over the hand-authored case inputs, never by running the implementation under test. Under the 2026-09-16 remediation every REJECTED result carries the P2T4FusionInputRejectionV2/2.0 identity with a recomputed canonical digest; the FUSED and UPSTREAM_FAILURE results are byte-identical to the G2 checkpoint. No observed non-canonical policy_match_view_version value is stored here; the vision-failure-noncanonical-match-view source digest binds it only through SHA-256.",
   "cases": {
     "agreement-all-kinds": {
       "outcome": "FUSED",
@@ -1189,8 +1189,8 @@
     "duplicate-segment-index-rejection": {
       "outcome": "REJECTED",
       "result": {
-        "contract_name": "P2T4FusionInputRejectionV1",
-        "contract_version": "1.0",
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
         "status": "REJECTED",
         "input_slot": "ASR",
         "phase": "ADMISSIBILITY",
@@ -1200,13 +1200,13 @@
         "observed_status": "SUCCEEDED",
         "field_code": "DUPLICATE_SEGMENT_INDEX"
       },
-      "canonical_sha256": "bfe3afe111d78847afffcc6bfad428f87eff51077685ed5531f408d5c4ec8704"
+      "canonical_sha256": "a75f1cc12b63857b6d79d6726e6b1cec45e285452c2118018626e0c1d21fffd8"
     },
     "admissibility-before-correlation-and-status": {
       "outcome": "REJECTED",
       "result": {
-        "contract_name": "P2T4FusionInputRejectionV1",
-        "contract_version": "1.0",
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
         "status": "REJECTED",
         "input_slot": "ASR",
         "phase": "ADMISSIBILITY",
@@ -1216,13 +1216,13 @@
         "observed_status": "SUCCEEDED",
         "field_code": "DUPLICATE_SEGMENT_INDEX"
       },
-      "canonical_sha256": "bfe3afe111d78847afffcc6bfad428f87eff51077685ed5531f408d5c4ec8704"
+      "canonical_sha256": "a75f1cc12b63857b6d79d6726e6b1cec45e285452c2118018626e0c1d21fffd8"
     },
     "strict-asr-before-strict-vision": {
       "outcome": "REJECTED",
       "result": {
-        "contract_name": "P2T4FusionInputRejectionV1",
-        "contract_version": "1.0",
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
         "status": "REJECTED",
         "input_slot": "ASR",
         "phase": "STRICT_VALIDATION",
@@ -1232,13 +1232,13 @@
         "observed_status": "SUCCEEDED",
         "field_code": "CORRELATION_ID"
       },
-      "canonical_sha256": "3e72f0b3d6bd0c0d7905a9df399b49b21ca3b3036ba659128b0c595f9d628f42"
+      "canonical_sha256": "93170e0f787d3d95e6a6947f8850d920917967f25789365fbea27eb1d0076907"
     },
     "identity-vision-before-strict-asr": {
       "outcome": "REJECTED",
       "result": {
-        "contract_name": "P2T4FusionInputRejectionV1",
-        "contract_version": "1.0",
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
         "status": "REJECTED",
         "input_slot": "VISION",
         "phase": "IDENTITY_VERSION",
@@ -1248,13 +1248,13 @@
         "observed_status": "SUCCEEDED",
         "field_code": "CONTRACT_NAME"
       },
-      "canonical_sha256": "14c4541899a2d4c962e67b1c83e1a795e5c5ea42b2e81978d772b6fd35af9e49"
+      "canonical_sha256": "8216c2a45f15742ca8556c310e29e0648756cf4cf5b235c6b35a50226b090c08"
     },
     "feat018-live-asr-model-wrong-family": {
       "outcome": "REJECTED",
       "result": {
-        "contract_name": "P2T4FusionInputRejectionV1",
-        "contract_version": "1.0",
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
         "status": "REJECTED",
         "input_slot": "ASR",
         "phase": "IDENTITY_VERSION",
@@ -1264,13 +1264,13 @@
         "observed_status": "SUCCEEDED",
         "field_code": "UPSTREAM_TYPE"
       },
-      "canonical_sha256": "146a68b22a3a7b0e593d82c81ddfc29630a0f5c9971cb8844885f1a0b4c0d209"
+      "canonical_sha256": "21a5f3111971b7dbecb1f562e76f9b29185c47f61105b6d31baa57ecf35405f6"
     },
     "feat018-live-vision-model-wrong-family": {
       "outcome": "REJECTED",
       "result": {
-        "contract_name": "P2T4FusionInputRejectionV1",
-        "contract_version": "1.0",
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
         "status": "REJECTED",
         "input_slot": "VISION",
         "phase": "IDENTITY_VERSION",
@@ -1280,13 +1280,13 @@
         "observed_status": "FAILED",
         "field_code": "UPSTREAM_TYPE"
       },
-      "canonical_sha256": "9a3a361f604d65e13da4787e1522cd2695d3e2828a1c67b6cf1d5e9ba29b3bac"
+      "canonical_sha256": "e45620e56682db3cee35f87573e437300433422e374a3abaee08b1f44698dd4b"
     },
     "vision-v2-model-wrong-family": {
       "outcome": "REJECTED",
       "result": {
-        "contract_name": "P2T4FusionInputRejectionV1",
-        "contract_version": "1.0",
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
         "status": "REJECTED",
         "input_slot": "VISION",
         "phase": "IDENTITY_VERSION",
@@ -1296,13 +1296,13 @@
         "observed_status": "FAILED",
         "field_code": "UPSTREAM_TYPE"
       },
-      "canonical_sha256": "61bd378a45bd7651a779c8ef6abf09558114158d2ba672f7df6d2d26965ab879"
+      "canonical_sha256": "6bbe613241b27af264390a4f4835bc1e47575afea8dc1aa066461d23fa11c38f"
     },
     "p2-vision-model-in-asr-slot": {
       "outcome": "REJECTED",
       "result": {
-        "contract_name": "P2T4FusionInputRejectionV1",
-        "contract_version": "1.0",
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
         "status": "REJECTED",
         "input_slot": "ASR",
         "phase": "IDENTITY_VERSION",
@@ -1312,13 +1312,13 @@
         "observed_status": "SUCCEEDED",
         "field_code": "UPSTREAM_TYPE"
       },
-      "canonical_sha256": "7305adc85b20f4f34e8c67f80992ba7e8ccf4a3a37bf1accabe9828cffe8997f"
+      "canonical_sha256": "46820ea8e7bcbe862ef68fb524637ef2b83464e5d06cb63f52ee747ef9031d47"
     },
     "unknown-object-asr": {
       "outcome": "REJECTED",
       "result": {
-        "contract_name": "P2T4FusionInputRejectionV1",
-        "contract_version": "1.0",
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
         "status": "REJECTED",
         "input_slot": "ASR",
         "phase": "IDENTITY_VERSION",
@@ -1328,13 +1328,13 @@
         "observed_status": null,
         "field_code": "UPSTREAM_TYPE"
       },
-      "canonical_sha256": "55932e8b5522657ac07d8be73650776bdddb040d79572b5d02cabc45809af0e5"
+      "canonical_sha256": "dd4a4682ca70687812b434e05abb33db6d6901073b8cfd16d50287e83aa30cd4"
     },
     "unknown-contract-name-vision": {
       "outcome": "REJECTED",
       "result": {
-        "contract_name": "P2T4FusionInputRejectionV1",
-        "contract_version": "1.0",
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
         "status": "REJECTED",
         "input_slot": "VISION",
         "phase": "IDENTITY_VERSION",
@@ -1344,13 +1344,13 @@
         "observed_status": "SUCCEEDED",
         "field_code": "CONTRACT_NAME"
       },
-      "canonical_sha256": "4e810bd3103d3e308acefa6bbdb1fb5f354fb1cc92055701a8e5777822dd7889"
+      "canonical_sha256": "be4a3c733534e92a4b3b2c58008a49e80d51bc5bcb0b1dfe944e5f8630ab03e5"
     },
     "unsupported-version-asr": {
       "outcome": "REJECTED",
       "result": {
-        "contract_name": "P2T4FusionInputRejectionV1",
-        "contract_version": "1.0",
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
         "status": "REJECTED",
         "input_slot": "ASR",
         "phase": "IDENTITY_VERSION",
@@ -1360,13 +1360,13 @@
         "observed_status": "SUCCEEDED",
         "field_code": "CONTRACT_VERSION"
       },
-      "canonical_sha256": "9315b0c2f094c318996c3dbdfe933b36366fbd7c0a55158ec6e505005bad4b90"
+      "canonical_sha256": "dcb3f8260582e4be13ebf0f7de35a19d0101ba14a764979c3e99bff7299e5850"
     },
     "invalid-discriminator-vision": {
       "outcome": "REJECTED",
       "result": {
-        "contract_name": "P2T4FusionInputRejectionV1",
-        "contract_version": "1.0",
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
         "status": "REJECTED",
         "input_slot": "VISION",
         "phase": "STRICT_VALIDATION",
@@ -1376,13 +1376,13 @@
         "observed_status": "UNKNOWN",
         "field_code": "STATUS"
       },
-      "canonical_sha256": "ca655757c46502f95fb833dee0353faa1df13751c1eb6b5461d3415ff28192a6"
+      "canonical_sha256": "0a84761b0b8ed6b21210d35fcff61e638ba10a7adbdf0e3f26c420489c70b746"
     },
     "missing-status-asr": {
       "outcome": "REJECTED",
       "result": {
-        "contract_name": "P2T4FusionInputRejectionV1",
-        "contract_version": "1.0",
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
         "status": "REJECTED",
         "input_slot": "ASR",
         "phase": "STRICT_VALIDATION",
@@ -1392,13 +1392,13 @@
         "observed_status": null,
         "field_code": "STATUS"
       },
-      "canonical_sha256": "ae96a73ed001e80851f32c4f95d1b8597b2f3851919bda207e47cc08b6b1b976"
+      "canonical_sha256": "56230e2571a46b646078279f635d566f5c89be6cedb90cd4c4ff18254df0164b"
     },
     "failure-branch-structure-vision": {
       "outcome": "REJECTED",
       "result": {
-        "contract_name": "P2T4FusionInputRejectionV1",
-        "contract_version": "1.0",
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
         "status": "REJECTED",
         "input_slot": "VISION",
         "phase": "STRICT_VALIDATION",
@@ -1408,13 +1408,13 @@
         "observed_status": "FAILED",
         "field_code": "FAILURE_BRANCH"
       },
-      "canonical_sha256": "97948bee56ea71cdc2bc5ec60419502a544f369f74cf0cf0dcb42e20788061b5"
+      "canonical_sha256": "cf62a2da32a0373fcde92e0e290120e5a852a8c3459e6772b72750f315485010"
     },
     "source-reference-structure-asr": {
       "outcome": "REJECTED",
       "result": {
-        "contract_name": "P2T4FusionInputRejectionV1",
-        "contract_version": "1.0",
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
         "status": "REJECTED",
         "input_slot": "ASR",
         "phase": "STRICT_VALIDATION",
@@ -1424,13 +1424,13 @@
         "observed_status": "SUCCEEDED",
         "field_code": "SOURCE_REFERENCE"
       },
-      "canonical_sha256": "0fb8e7c38159056f1bbc7627f6136cf76f8b358bef5eebdfd95304c40c656c60"
+      "canonical_sha256": "b4598e86827e1a9e8b7ab2a37001305ffb4e733867856bf2b836ab6cb9faf3de"
     },
     "correlation-mismatch-before-status": {
       "outcome": "REJECTED",
       "result": {
-        "contract_name": "P2T4FusionInputRejectionV1",
-        "contract_version": "1.0",
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
         "status": "REJECTED",
         "input_slot": "BOTH",
         "phase": "CORRELATION",
@@ -1440,7 +1440,7 @@
         "observed_status": null,
         "field_code": "CORRELATION_ID"
       },
-      "canonical_sha256": "4bcac45465a78acdaba6f94c5d3cd0d8b0e6e68acb8d1385bc7faf6eea6138fd"
+      "canonical_sha256": "e6085cfc01a1196fbb413d1d80d59db181601780b7a67bf716564a074ac2b4fa"
     },
     "asr-failure": {
       "outcome": "UPSTREAM_FAILURE",
@@ -2474,6 +2474,120 @@
         "upstream_failure": null
       },
       "canonical_sha256": "facc2626205e0b6a809d46ee3ad2adf8db56531eb324e46ad74c58a5df26005c"
+    },
+    "vision-noncanonical-match-view-rejection": {
+      "outcome": "REJECTED",
+      "result": {
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
+        "status": "REJECTED",
+        "input_slot": "VISION",
+        "phase": "ADMISSIBILITY",
+        "code": "INVALID_STRUCTURE",
+        "expected_identity": "P2.VisionUnderstandingResultV1@1.0",
+        "observed_identity": "P2.VisionUnderstandingResultV1@1.0",
+        "observed_status": "SUCCEEDED",
+        "field_code": "POLICY_MATCH_VIEW_VERSION"
+      },
+      "canonical_sha256": "d5ad9ed2bd2b1c88380b20214d21ebd0df5e7cdbd77b0ce0bed141848840ecc8"
+    },
+    "vision-policy-literal-match-view-rejection": {
+      "outcome": "REJECTED",
+      "result": {
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
+        "status": "REJECTED",
+        "input_slot": "VISION",
+        "phase": "ADMISSIBILITY",
+        "code": "INVALID_STRUCTURE",
+        "expected_identity": "P2.VisionUnderstandingResultV1@1.0",
+        "observed_identity": "P2.VisionUnderstandingResultV1@1.0",
+        "observed_status": "SUCCEEDED",
+        "field_code": "POLICY_MATCH_VIEW_VERSION"
+      },
+      "canonical_sha256": "d5ad9ed2bd2b1c88380b20214d21ebd0df5e7cdbd77b0ce0bed141848840ecc8"
+    },
+    "asr-duplicate-index-before-vision-match-view": {
+      "outcome": "REJECTED",
+      "result": {
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
+        "status": "REJECTED",
+        "input_slot": "ASR",
+        "phase": "ADMISSIBILITY",
+        "code": "INVALID_STRUCTURE",
+        "expected_identity": "P2.AsrResultV1@1.0",
+        "observed_identity": "P2.AsrResultV1@1.0",
+        "observed_status": "SUCCEEDED",
+        "field_code": "DUPLICATE_SEGMENT_INDEX"
+      },
+      "canonical_sha256": "a75f1cc12b63857b6d79d6726e6b1cec45e285452c2118018626e0c1d21fffd8"
+    },
+    "vision-match-view-before-correlation": {
+      "outcome": "REJECTED",
+      "result": {
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
+        "status": "REJECTED",
+        "input_slot": "VISION",
+        "phase": "ADMISSIBILITY",
+        "code": "INVALID_STRUCTURE",
+        "expected_identity": "P2.VisionUnderstandingResultV1@1.0",
+        "observed_identity": "P2.VisionUnderstandingResultV1@1.0",
+        "observed_status": "SUCCEEDED",
+        "field_code": "POLICY_MATCH_VIEW_VERSION"
+      },
+      "canonical_sha256": "d5ad9ed2bd2b1c88380b20214d21ebd0df5e7cdbd77b0ce0bed141848840ecc8"
+    },
+    "vision-failure-noncanonical-match-view": {
+      "outcome": "UPSTREAM_FAILURE",
+      "result": {
+        "contract_name": "P2T4FusedResultV1",
+        "contract_version": "1.0",
+        "status": "UPSTREAM_FAILURE",
+        "correlation_id": "corr-p2t4-0001",
+        "executed_at": "2026-09-15T12:00:00.000000Z",
+        "source_asr_result_ref": {
+          "identity": "P2.AsrResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "3efe9d580aa1914c3b17ef80f05e92f8cc9b3b71d9501d481c8fecb0e4aea7b3"
+        },
+        "source_vision_result_ref": {
+          "identity": "P2.VisionUnderstandingResultV1@1.0",
+          "status": "FAILED",
+          "result_sha256": "4fe907ea8ace1909576782c1b4201e19ca135a2bc78b80461ef4b1a9ab9b29c5"
+        },
+        "fusion_policy_config_hash": "4b378f69a33b86aeefc7443a23ac819e46b986132525cdd8a55d112dfb96415c",
+        "entities": [],
+        "actions": [],
+        "relations": [],
+        "themes": [],
+        "conflicts": [],
+        "uncertainty": {
+          "formula_id": "AGREEMENT_WEIGHTED_V1",
+          "per_observation": []
+        },
+        "upstream_failure": {
+          "contract_name": "P2T4UpstreamFailureRefV1",
+          "contract_version": "1.0",
+          "failed_modality": "VISION",
+          "asr_failure_ref": null,
+          "vision_failure_ref": {
+            "source_vision_result_ref": {
+              "identity": "P2.VisionUnderstandingResultV1@1.0",
+              "status": "FAILED",
+              "result_sha256": "4fe907ea8ace1909576782c1b4201e19ca135a2bc78b80461ef4b1a9ab9b29c5"
+            },
+            "error_code": "PROHIBITED_CLAIM_DETECTED",
+            "error_detail": "MENTAL_STATE_CLAIM",
+            "attempt_number": 1,
+            "retryable": false,
+            "repair_attempted": false,
+            "policy_execution_state": "BLOCKED"
+          }
+        }
+      },
+      "canonical_sha256": "67a46235bf58845c12f42916dd43738eef722c9f09bd591bd6da1a7e5713dfad"
     }
   }
 }
