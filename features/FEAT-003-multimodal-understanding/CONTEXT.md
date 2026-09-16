@@ -506,6 +506,27 @@ This workstream owns media validation, ASR/VLM adapters, fusion, the proposed `P
   `fa236c8d389b608251153d601fc370efe3f3e2479446ca4a56a3d395f892e0b5`, exactly one finding),
   unchanged and unrelated to this checkpoint.
 
+## P2-T4 digest-binding integrity defect and Option A erratum (2026-09-16)
+
+- A read-only integrity audit (2026-09-15) found a **VERIFIED_INTEGRITY_DEFECT**. The four
+  normalized SHA-256 values recorded for freeze revisions 11/12 and package revisions 15/16, which
+  are cited in the sections above, were computed with a first-substring search for the
+  revision-history heading. That search matched an inline mention of the heading in each
+  document's own algorithm prose, so each value binds only a prefix of the intended scope. No
+  artifact bytes changed.
+- The project owner accepted the finding and selected Option A (`approvals/TASK_APPROVAL.md`,
+  "P2-T4 digest-binding integrity defect acceptance and Option A erratum authorization"). The
+  erratum `plan/P2_T4_DIGEST_BINDING_ERRATUM_20260915.md` preserves the four artifacts
+  byte-for-byte, records the legacy digests as historical only, and establishes corrected
+  normalized, raw-file, and Git identities. Its status is
+  `READY FOR INDEPENDENT ERRATUM REVIEW — NOT OWNER REAPPROVED`.
+- No renewed binding approval has been granted. The legacy values cited above are historical and
+  must not be the sole identity for any future approval or evidence. Successor semantics are
+  unchanged.
+- No implementation authority is granted. The seven-file remediation implementation remains
+  **NOT APPROVED**; G6–G9 remain **PAUSED**; and integration, runtime, provider/model, GPU,
+  Lightning, network, migration, production, and live execution remain **NOT APPROVED**.
+
 ## Current Phase B benchmark-readiness truth (2026-08-30)
 
 - `features/FEAT-003-multimodal-understanding/fixtures/asr-round1/manifest.example.json` remains a metadata-only, empty `TEMPLATE`. `fixtures/asr-round1/manifest.json` is the real, `READY`, 21-fixture manifest (references/hashes/metadata only — no audio or transcript payload; both remain gitignored under `audio/**`/`transcripts/**`).
@@ -515,3 +536,18 @@ This workstream owns media validation, ASR/VLM adapters, fusion, the proposed `P
 - A further 2026-08-30 robustness fix closed a latent gap in the same runner: the warmup call's result is now captured and checked, so a typed `AsrFailureV1` warmup raises `WarmupTranscriptionFailedError` (closed error-code/detail identifiers only, never raw provider text) before any `cold_start_ms` is recorded and before any normal fixture run executes for that profile, instead of silently timing a failed load as if it were a successful one. Every executed real-GPU run's warmup has always succeeded, so no existing evidence number was affected; covered by focused no-GPU tests in `backend/tests/unit/test_asr_round1_runner_warmup_failure.py` using an injected fake `AsrPort` (`Round1RunnerConfig.adapter_factory`), not a live rerun.
 - A second full Round-1 execution (repeat run 2, `EV-003-T2-06`, report `asr-round1-report-a7f1b4be…`) was run against the identical manifest hash after all corrections landed. Every quality metric reproduced exactly — WER 0.49%, CER 0.27%, language accuracy 100%, speech-presence match 89.5% — with the same typed-failure set (2× `INPUT_NOT_VALIDATED` on the `silence` fixtures) and the same `MISMATCH` set (both `noise` fixtures), so the Round-1 numbers are reproducible on this machine rather than incidental. Only latency/VRAM moved, within single-machine jitter. Run 1's evidence (`P2_T2_PHASE_B_ROUND1_REPORT.json`) is preserved unmodified alongside the new `P2_T2_PHASE_B_ROUND1_REPORT_RUN2.json`; still no profile freeze and no runtime-default selection.
 - A supplementary Colab execution reviewed on 2026-09-01 (`EV-003-T2-07`) used the same source commit, 21-fixture `HELD_OUT` manifest, real P2-T1 gate, dependency versions, and two fixed Turbo profiles on Linux/Python 3.13.15 with a Tesla T4. It reproduced the quality metrics exactly (WER 0.49%, CER 0.27%, language accuracy 100%, speech-presence match 89.47%), the two typed silence failures, and both pure-noise `MISMATCH` outcomes. Its latency/VRAM are recorded separately as Colab-only measurements and are not pooled with local RTX 4060 evidence or treated as additional effective fixtures. The ZIP remains outside the repository; only safe report/runtime metadata is retained in feature evidence. No profile freeze and no runtime-default selection.
+
+## P2-T4 renewed digest-binding approval after independent erratum review - 2026-09-16
+
+- The independent erratum review is **PASS**. The four corrected normalized and raw-file SHA-256 hashes were reproduced independently; their source paths, source commits, Git blob IDs, byte/line counts, and binding-table/heading ranges were verified against erratum sections 4.1-4.4 and 5. The immutable erratum's raw-file SHA-256 `8975d94b0d9be8e78935b66e1e851493c1cff5b2f1b83cdf49acfe7f9929276e` and Git blob ID `4b7ed999fed45e176d57c395e63fe62e8f12accc` were also verified.
+- The owner renewed approval exactly as follows:
+
+  > I approve the P2-T4 renewed digest-binding decision exactly as written above.
+
+- The previously approved successor semantics include P2T4.P2T4FusedResultV1@1.0 and P2T4.P2T4FusionInputRejectionV2@2.0; they remain unchanged, with no semantic reapproval.
+- No implementation authority is granted by this binding approval.
+- This decision corrects bindings only; it does not reapprove the successor semantics or authorize implementation.
+- Renewed corrected artifact bindings are **APPROVED** against erratum sections 4.1-4.4. The renewed approval binds the corrected normalized, raw-file, Git blob, source-commit, and repository-path identities recorded in erratum section 4. The legacy first-substring digests are historical, non-canonical, and incomplete; they are not the renewed binding. The original freeze/package artifacts remain byte-immutable, and the issued erratum also remains byte-immutable and was not edited.
+- This is a binding correction only. The successor semantics previously approved remain unchanged; this record does not reapprove those semantics or authorize implementation. The exact governance checkpoint allowlist is the six existing governance documents plus the immutable erratum. Separately, the exact seven-path remediation allowlist from checkpoint `064ba62f32f1ffb964bc2208577eb0650b98e26a` remains unchanged, and none of those seven remediation files was modified in this checkpoint.
+- The seven-file remediation is **NOT APPROVED / NOT STARTED**. G6-G9 remain **PAUSED**. Integration, runtime, provider/model, GPU, Lightning, network, migration, production, and live execution remain **NOT APPROVED**.
+- No future checkpoint commit SHA is written into tracked files. The executor will report the resulting local governance commit SHA in the final handoff without modifying tracked files. This additive record supersedes the pre-renewal pending wording as the current governance state; earlier records and the immutable erratum preserve the historical issuance state.

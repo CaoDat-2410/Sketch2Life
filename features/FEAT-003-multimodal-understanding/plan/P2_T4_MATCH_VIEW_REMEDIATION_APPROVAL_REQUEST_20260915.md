@@ -1,7 +1,8 @@
 # P2-T4 Vision match-view remediation approval request
 
 - Status: **DECISIONS RECORDED 2026-09-15 — SUCCESSOR CONTRACT FREEZE APPROVED 2026-09-15 —
-  REMEDIATION-IMPLEMENTATION APPROVAL STILL NOT GRANTED**
+  DIGEST-BINDING DEFECT ACCEPTED 2026-09-16 (OPTION A ERRATUM AWAITING INDEPENDENT REVIEW; NO
+  RENEWED BINDING APPROVAL) — REMEDIATION-IMPLEMENTATION APPROVAL STILL NOT GRANTED**
 - Request date: 2026-09-15
 - Decisions-recorded date: 2026-09-15
 - Owner: Person 2
@@ -30,6 +31,15 @@
   integration/runtime/provider/model/GPU/Lightning/network/migration/production/live all remain
   **NOT APPROVED**. `P2T4.P2T4FusedResultV1@1.0` is unchanged, and predecessor revisions 11/15
   remain immutable history.
+- **Digest-binding integrity defect (accepted 2026-09-16):** the normalized SHA-256 values that
+  this document cites for freeze revisions 11/12 and package revisions 15/16 are legacy
+  first-substring digests that bind only a prefix of each document. The owner accepted the finding
+  and selected Option A (`approvals/TASK_APPROVAL.md`, 2026-09-16). The erratum
+  `plan/P2_T4_DIGEST_BINDING_ERRATUM_20260915.md` records corrected normalized, raw-file, and Git
+  identities and awaits independent review, with status
+  `READY FOR INDEPENDENT ERRATUM REVIEW — NOT OWNER REAPPROVED`. The legacy values in this document
+  are historical and non-canonical. No renewed binding approval and no implementation authority
+  have been granted.
 - Relocation note: this file was originally written at the gitignored path
   `evidence/notes/P2_T4_MATCH_VIEW_REMEDIATION_APPROVAL_REQUEST_20260915.md` (excluded by the
   repository's `evidence/notes/*` ignore rule). It has been relocated verbatim in substance to
@@ -191,6 +201,12 @@ of a later step.
    normalized freeze and package digests, and contract identity. **Complete — OWNER APPROVED
    2026-09-15**, recorded in `approvals/TASK_APPROVAL.md` ("P2-T4 successor contract-freeze
    approval").
+   - **Digest-binding integrity defect (added 2026-09-16):** the normalized digests cited for this
+     approval are legacy first-substring values that bind only a prefix of each document. The
+     owner accepted the defect and selected Option A. The erratum
+     `plan/P2_T4_DIGEST_BINDING_ERRATUM_20260915.md` must be independently reviewed before any
+     renewed owner binding approval on its corrected identities. **Review not started; renewed
+     binding approval not granted.**
 6. **Separate remediation-implementation approval** naming exactly the seven paths in section 4.
    It must state that it is separate from the successor freeze and does not authorize evidence,
    runtime, integration, or live execution. **Not yet granted.**
@@ -212,6 +228,9 @@ of a later step.
 | Successor-freeze decisions (MV-1..MV-5) | **Recorded** in `approvals/TASK_APPROVAL.md`, 2026-09-15. |
 | Successor documents (freeze revision 12 / package revision 16) | **Issued.** Own internal status text (as authored): `HOLD - NOT APPROVED` — a historical artifact, not the current gate state (not edited in place). |
 | Successor-freeze approval ("G1 successor") | **APPROVED** — `approvals/TASK_APPROVAL.md`, "P2-T4 successor contract-freeze approval", 2026-09-15, bound to all four normalized SHA-256 identities. Governance/freeze checkpoint only. |
+| Digest-binding integrity defect | **Accepted** 2026-09-16 (`approvals/TASK_APPROVAL.md`); Option A selected. The four normalized identities cited in the row above are legacy first-substring digests and are historical and non-canonical. |
+| Digest-binding erratum (`plan/P2_T4_DIGEST_BINDING_ERRATUM_20260915.md`) | **Issued. READY FOR INDEPENDENT ERRATUM REVIEW — NOT OWNER REAPPROVED.** |
+| Renewed binding approval against the corrected identities | **NOT GRANTED.** Independent erratum review must come first. |
 | Remediation-implementation approval | **Not yet granted. PENDING / NOT APPROVED.** |
 | G6-G9 | **Paused** pending the separate remediation-implementation approval, implementation, review, and checkpoint commit. |
 | Runtime, integration, provider, model, GPU, Lightning, network, migration, production, live | **NOT APPROVED.** |
@@ -239,3 +258,41 @@ The five decisions requested by the original version of this document are now re
 remaining owner action is the separate remediation-implementation approval (step 6 in section 5
 above), naming exactly the seven paths in section 4; it must state that it is separate from the
 successor freeze and does not authorize evidence, runtime, integration, or live execution.
+
+Since then (2026-09-16), the owner accepted a digest-binding integrity defect in the four recorded
+normalized identities and selected Option A. The erratum
+`plan/P2_T4_DIGEST_BINDING_ERRATUM_20260915.md` must be independently reviewed before any renewed
+owner binding approval on its corrected identities; neither the review nor a renewed binding
+approval has occurred. The remediation-implementation approval remains not granted, and it must
+not use the legacy digests as the sole artifact identity.
+
+## P2-T4 renewed digest-binding approval after independent erratum review - 2026-09-16
+
+- The independent erratum review is **PASS**. The four corrected normalized and raw-file SHA-256
+  hashes were reproduced independently; their source paths, source commits, Git blob IDs, byte/line
+  counts, and binding-table/heading ranges were verified against erratum sections 4.1-4.4 and 5.
+  The immutable erratum raw-file SHA-256 `8975d94b0d9be8e78935b66e1e851493c1cff5b2f1b83cdf49acfe7f9929276e`
+  and Git blob ID `4b7ed999fed45e176d57c395e63fe62e8f12accc` were verified.
+- The owner renewed approval exactly as follows:
+
+  > I approve the P2-T4 renewed digest-binding decision exactly as written above.
+
+- The previously approved successor semantics include P2T4.P2T4FusedResultV1@1.0 and P2T4.P2T4FusionInputRejectionV2@2.0; they remain unchanged, with no semantic reapproval.
+- No implementation authority is granted by this binding approval.
+- Renewed corrected artifact bindings are **APPROVED** against erratum sections 4.1-4.4. The renewed
+  approval binds the corrected normalized/raw/blob/source/path identity tuples recorded in erratum
+  section 4. The legacy first-substring digests are historical, non-canonical, and incomplete. The
+  original freeze/package artifacts and the issued erratum remain byte-immutable; the erratum was
+  not edited.
+- This decision corrects bindings only. The successor semantics previously approved remain
+  unchanged, with no semantic reapproval. The exact governance checkpoint allowlist is the six
+  existing governance documents plus the immutable erratum. Separately, the exact seven-path
+  remediation allowlist from `064ba62f32f1ffb964bc2208577eb0650b98e26a` remains unchanged, and none
+  of those seven remediation files was modified in this checkpoint.
+- The seven-file remediation is **NOT APPROVED / NOT STARTED**. G6-G9 remain **PAUSED**.
+  Integration, runtime, provider/model, GPU, Lightning, network, migration, production, and live
+  execution remain **NOT APPROVED**.
+- No future checkpoint commit SHA is written into tracked files. The executor will report the
+  resulting local governance commit SHA in the final handoff without modifying tracked files. This
+  additive record supersedes the pre-renewal pending wording as the current approval-request state;
+  earlier records and the immutable erratum preserve the historical issuance state.

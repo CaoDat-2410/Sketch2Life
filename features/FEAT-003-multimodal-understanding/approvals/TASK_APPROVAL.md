@@ -440,3 +440,98 @@ FEAT-012 and ADR-0006 still govern the standalone Sprint 1 boundary. Person 2 do
   `fa236c8d389b608251153d601fc370efe3f3e2479446ca4a56a3d395f892e0b5`, exactly one finding). It is
   unrelated to and unchanged by this governance checkpoint, and is not a P2-T4 regression.
 - Approved at: 2026-09-15, project owner direct instruction in the current conversation.
+
+## P2-T4 digest-binding integrity defect acceptance and Option A erratum authorization — 2026-09-16
+
+- A read-only integrity audit (2026-09-15) found a **VERIFIED_INTEGRITY_DEFECT** in the four
+  normalized SHA-256 identities recorded for freeze revisions 11/12 and package revisions 15/16,
+  including those cited in the G1, G2, and successor contract-freeze entries above. Each value was
+  computed with a first-substring search for the revision-history heading, which matches an inline
+  mention of that heading in the document's own algorithm prose before the real heading, so each
+  value binds only a prefix of its document's intended scope. No artifact bytes changed.
+- The project owner accepted the finding and selected Option A, in these exact words:
+
+  > I accept the VERIFIED_INTEGRITY_DEFECT finding and select Option A: an immutable digest-binding
+  > erratum. The erratum must preserve revisions 11/12/15/16 byte-for-byte, record legacy digests as
+  > historical only, establish corrected normalized SHA-256, raw-file SHA-256, Git blob IDs and
+  > source commits for all four artifacts, and require independent review before renewed owner
+  > approval. This authorization is documentation-only and does not authorize seven-file
+  > remediation implementation, G6–G9, integration, runtime, GPU, Lightning, provider/model,
+  > migration, production or live execution.
+
+- Under this authorization the erratum `plan/P2_T4_DIGEST_BINDING_ERRATUM_20260915.md` was issued
+  with status `READY FOR INDEPENDENT ERRATUM REVIEW — NOT OWNER REAPPROVED`, and the decision was
+  recorded in this file, `CONTEXT.md`, `DECISIONS.md`, `plan/PLAN.md`,
+  `plan/P2_T4_MATCH_VIEW_REMEDIATION_PLAN.md`, and
+  `plan/P2_T4_MATCH_VIEW_REMEDIATION_APPROVAL_REQUEST_20260915.md`. Freeze revisions 11/12 and
+  package revisions 15/16 are preserved byte-for-byte and are not edited.
+- The legacy digests cited in the entries above are historical and non-canonical; those entries
+  are not rewritten. The corrected identities are recorded in the erratum for independent review.
+- **No renewed binding approval is granted.** The erratum awaits independent review, and only after
+  that review may the owner decide a renewed binding approval against the corrected identities. The
+  successor contract semantics recorded above are unchanged.
+- **No implementation authority is granted.** The seven-file remediation implementation remains
+  **NOT APPROVED**, and G6–G9 remain **PAUSED**. Evidence, integration, runtime, provider/model,
+  GPU, Lightning, network, migration, production, and live execution remain **NOT APPROVED**.
+- Recorded at: 2026-09-16, project owner direct instruction in the current conversation.
+
+## P2-T4 renewed digest-binding approval after independent erratum review - 2026-09-16
+
+- The independent erratum review is **PASS**. The four corrected normalized and raw-file SHA-256
+  hashes were reproduced independently. Their source paths, source commits, Git blob IDs, byte/line
+  counts, and binding-table/heading ranges were verified against erratum sections 4.1-4.4 and 5.
+  The immutable erratum raw-file SHA-256
+  `8975d94b0d9be8e78935b66e1e851493c1cff5b2f1b83cdf49acfe7f9929276e` and Git blob ID
+  `4b7ed999fed45e176d57c395e63fe62e8f12accc` were verified as well.
+- The owner renewed approval exactly as follows:
+
+  > I approve the P2-T4 renewed digest-binding decision exactly as written above.
+
+- The previously approved successor semantics include P2T4.P2T4FusedResultV1@1.0 and P2T4.P2T4FusionInputRejectionV2@2.0; their contract semantics remain unchanged, with no semantic reapproval.
+- No implementation authority is granted by this binding approval.
+- Renewed corrected artifact bindings are **APPROVED** against erratum sections 4.1-4.4. The renewed
+  approval binds the following full corrected identity tuples from erratum section 4; each tuple
+  includes repository path, source commit, Git blob ID, raw-file SHA-256, corrected normalized
+  SHA-256, and the historical legacy value for audit traceability:
+
+| Artifact | Repository path | Source commit | Git blob ID | Raw-file SHA-256 | Corrected normalized SHA-256 | Legacy first-substring SHA-256 (historical, non-canonical, incomplete) | Size / lines |
+|---|---|---|---|---|---|---|---|
+| Freeze rev 11 | `features/FEAT-003-multimodal-understanding/plan/P2_T4_CONTRACT_FREEZE_DRAFT.md` | `18d0c33d35431ca96a76692a68c6b992098699e7` | `87227e5be0a58db88ac9f91ee7ddbdfa9bf4b05f` | `9521cb1482a10cefd235ea9596882d210912897289c182205aa93ee5a6685197` | `2b920e34f779ccbeabfec91e44858957b4f032dd6583879403b0fb748e367050` | `be96b32aa675b7b6e46eea30effb2dbb91c718dc68ba7ce36d4d627ad6058ee2` | 62,792 / 989 |
+| Freeze rev 12 | `features/FEAT-003-multimodal-understanding/plan/P2_T4_CONTRACT_FREEZE_REVISION_12.md` | `5b6501b2d8b809f9dd4caf77b5c5d51d2e1e9cf2` | `1e7e487362efec02b3b5f3bbf9dd4c64eabaa0d9` | `b9606292e00b1b956ec38e141eb27f868bad2835f8ea5e8d20693a18acd2fa20` | `103695e5e1c49d9f9b1cc85fd5286f42980580f338578db799febdeedb310ee5` | `d592b135d2d8a90024d48d1b8335321660e8d7f089873e48687707c760e3d3e9` | 80,834 / 1,193 |
+| Package rev 15 | `features/FEAT-003-multimodal-understanding/evidence/notes/P2_T4_IMPLEMENTATION_APPROVAL_PACKAGE_DRAFT_20260913.md` | `18d0c33d35431ca96a76692a68c6b992098699e7` | `a4ade521f288c0d07c8c9cfdb1f6bbe6b41fa839` | `255034c587e89f8b72122c7377566684dd7a718257555c7fa92175a444255681` | `7c76208d2ab3c98f9681fce67641049a93b21d2f0c2e9c843de1cac9e4d70b96` | `6821755722daf3bce622fe98eaf39124adb835c6854661143d79f48a943030d7` | 34,337 / 451 |
+| Package rev 16 | `features/FEAT-003-multimodal-understanding/evidence/notes/P2_T4_IMPLEMENTATION_APPROVAL_PACKAGE_REVISION_16.md` | `5b6501b2d8b809f9dd4caf77b5c5d51d2e1e9cf2` | `8784e84a537260668e81c6c889aadc8688086857` | `8ce46b5f762b27b556030d85666ccb6827a1fdbaeb56312dc8490d6e214a75ce` | `75cd5d69e6896d7fae10d3771a90019003e0644fff1138161b7ac330e840b270` | `ad886d261d2807bcc95264d05d6a385dc79cd2f0cad44e2b4f004531b8097d4f` | 43,682 / 530 |
+
+- The legacy first-substring digests are historical, non-canonical, and incomplete; they are not
+  the renewed binding. The four original freeze/package artifacts remain byte-immutable, and the
+  issued erratum remains byte-immutable and was not edited.
+- This approval corrects bindings only. The successor contract semantics previously approved are
+  unchanged; this record does not reapprove those semantics or grant implementation authority.
+- The exact governance checkpoint allowlist for this docs-only commit is exactly these seven paths:
+  `features/FEAT-003-multimodal-understanding/CONTEXT.md`,
+  `features/FEAT-003-multimodal-understanding/DECISIONS.md`,
+  `features/FEAT-003-multimodal-understanding/approvals/TASK_APPROVAL.md`,
+  `features/FEAT-003-multimodal-understanding/plan/PLAN.md`,
+  `features/FEAT-003-multimodal-understanding/plan/P2_T4_MATCH_VIEW_REMEDIATION_PLAN.md`,
+  `features/FEAT-003-multimodal-understanding/plan/P2_T4_MATCH_VIEW_REMEDIATION_APPROVAL_REQUEST_20260915.md`,
+  and `features/FEAT-003-multimodal-understanding/plan/P2_T4_DIGEST_BINDING_ERRATUM_20260915.md`.
+- The exact seven-path remediation allowlist is separate from the governance allowlist and remains
+  unchanged; its paths are listed in the following bullet.
+- Separately, the seven-path remediation allowlist from checkpoint
+  `064ba62f32f1ffb964bc2208577eb0650b98e26a` remains unchanged:
+  `backend/src/sketch2life/contracts/schemas/p2_t4_fusion.py`,
+  `backend/src/sketch2life/application/services/p2_t4_fusion.py`,
+  `backend/tests/contract/test_p2_t4_contract.py`,
+  `backend/tests/unit/test_p2_t4_fusion.py`,
+  `features/FEAT-003-multimodal-understanding/fixtures/p2-t4-fusion-v1/manifest-v1.json`,
+  `features/FEAT-003-multimodal-understanding/fixtures/p2-t4-fusion-v1/cases-v1.json`, and
+  `features/FEAT-003-multimodal-understanding/fixtures/p2-t4-fusion-v1/expected-v1.json`.
+  None of those seven remediation files was modified in this checkpoint.
+- The seven-file remediation is **NOT APPROVED / NOT STARTED**. G6-G9 remain **PAUSED**.
+  Integration, runtime, provider/model, GPU, Lightning, network, migration, production, and live
+  execution remain **NOT APPROVED**.
+- No future checkpoint commit SHA is written into tracked files. The executor will report the
+  resulting local governance commit SHA in the final handoff without modifying tracked files. This
+  additive record supersedes the pre-renewal pending wording as the current approval state; earlier
+  records and the immutable erratum preserve the historical issuance state.
+- Recorded at: 2026-09-16, project owner direct instruction in the current conversation after the
+  independent erratum review PASS.

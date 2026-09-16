@@ -405,3 +405,51 @@ implementation or change `approvals/TASK_APPROVAL.md`.
   owner-approved Architecture Policy B baseline (validator SHA-256
   `fa236c8d389b608251153d601fc370efe3f3e2479446ca4a56a3d395f892e0b5`, exactly one finding) and is
   unrelated to, and unchanged by, this checkpoint.
+
+## P2-T4 digest-binding integrity defect — Option A decision (2026-09-16)
+
+- The owner accepted the **VERIFIED_INTEGRITY_DEFECT** finding. The four normalized digests
+  recorded for freeze revisions 11/12 and package revisions 15/16, which are cited in the G1, G2,
+  and successor contract-freeze entries above, bind only a prefix of their documents because they
+  were computed with a first-substring search for the revision-history heading.
+- The owner selected Option A: the immutable digest-binding erratum
+  `plan/P2_T4_DIGEST_BINDING_ERRATUM_20260915.md`. It preserves revisions 11/12/15/16
+  byte-for-byte, records the legacy digests as historical only, and establishes corrected
+  normalized SHA-256, raw-file SHA-256, Git blob IDs, and source commits for all four artifacts.
+  The verbatim authorization is in `approvals/TASK_APPROVAL.md`.
+- The erratum awaits independent review, with status
+  `READY FOR INDEPENDENT ERRATUM REVIEW — NOT OWNER REAPPROVED`. No renewed binding approval has
+  been granted, and the entries above are not rewritten.
+- This decision grants no implementation authority. The seven-file remediation implementation
+  remains **NOT APPROVED**, and G6-G9 remain **PAUSED**.
+
+## P2-T4 renewed digest-binding approval after independent erratum review - 2026-09-16
+
+- The independent erratum review is **PASS**. The four corrected normalized and raw-file SHA-256
+  hashes were reproduced independently; their source paths, source commits, Git blob IDs, byte/line
+  counts, and binding-table/heading ranges were verified against erratum sections 4.1-4.4 and 5.
+  The immutable erratum's raw-file SHA-256 `8975d94b0d9be8e78935b66e1e851493c1cff5b2f1b83cdf49acfe7f9929276e`
+  and Git blob ID `4b7ed999fed45e176d57c395e63fe62e8f12accc` were also verified.
+- The owner renewed approval exactly as follows:
+
+  > I approve the P2-T4 renewed digest-binding decision exactly as written above.
+
+- The previously approved successor semantics include P2T4.P2T4FusedResultV1@1.0 and P2T4.P2T4FusionInputRejectionV2@2.0; they remain unchanged, with no semantic reapproval.
+- No implementation authority is granted by this binding approval.
+- Renewed corrected artifact bindings are **APPROVED** against erratum sections 4.1-4.4. The renewed
+  approval binds the corrected normalized, raw-file, Git blob, source-commit, and repository-path
+  identities recorded in erratum section 4. The legacy first-substring digests are historical,
+  non-canonical, and incomplete; they are not the renewed binding. The original freeze/package
+  artifacts remain byte-immutable, and the issued erratum remains byte-immutable and was not edited.
+- This decision corrects bindings only. The successor semantics previously approved remain
+  unchanged, with no semantic reapproval. The exact governance checkpoint allowlist is the six
+  existing governance documents plus the immutable erratum. Separately, the exact seven-path
+  remediation allowlist from checkpoint `064ba62f32f1ffb964bc2208577eb0650b98e26a` remains
+  unchanged, and none of those seven remediation files was modified in this checkpoint.
+- The seven-file remediation is **NOT APPROVED / NOT STARTED**. G6-G9 remain **PAUSED**.
+  Integration, runtime, provider/model, GPU, Lightning, network, migration, production, and live
+  execution remain **NOT APPROVED**.
+- No future checkpoint commit SHA is written into tracked files. The executor will report the
+  resulting local governance commit SHA in the final handoff without modifying tracked files. This
+  additive record supersedes the pre-renewal pending wording as the current governance decision;
+  earlier records and the immutable erratum preserve the historical issuance state.
