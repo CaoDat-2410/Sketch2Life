@@ -582,3 +582,200 @@ FEAT-012 and ADR-0006 still govern the standalone Sprint 1 boundary. Person 2 do
 - **No implementation authority** is granted by this approval.
 - **Recorded:** 2026-09-16 by Project Owner / Person 2 direct instruction in the current
   conversation.
+
+## P2-T4 exact-seven-file match-view remediation implementation approval - 2026-09-16
+
+- **Feature/task:** `FEAT-003` Multimodal understanding / `P2-T4`.
+- **Plan revision:** `7`.
+- **Approver:** Project Owner / Person 2.
+- **Disposition:** `APPROVED_FOR_EXACT_SEVEN_FILE_MATCH_VIEW_REMEDIATION_ONLY`.
+- **Approval timestamp:** `2026-09-16`.
+- **Owner decision:** Project Owner / Person 2 approved the exact disposition above on
+  2026-09-16. This record is the durable approval record; no timestamp was prefilled before
+  that owner sign-off.
+- **Approval-review/governance base:**
+  `c84a92990adac62477c076e6f660da3bef319175`.
+- **Status:** `REMEDIATION IMPLEMENTATION APPROVED - NOT STARTED`.
+
+### Corrected artifact identity bindings
+
+The approval binds all four corrected identity tuples from digest-binding erratum sections
+4.1-4.4. Each tuple includes the repository path, source commit, Git blob ID, raw-file
+SHA-256, and corrected normalized SHA-256. The four source artifacts remain immutable and
+are not edited by this approval or its governance checkpoint.
+
+| Artifact | Repository path | Source commit | Git blob ID | Raw-file SHA-256 | Corrected normalized SHA-256 |
+|---|---|---|---|---|---|
+| Freeze rev 11 | `features/FEAT-003-multimodal-understanding/plan/P2_T4_CONTRACT_FREEZE_DRAFT.md` | `18d0c33d35431ca96a76692a68c6b992098699e7` | `87227e5be0a58db88ac9f91ee7ddbdfa9bf4b05f` | `9521cb1482a10cefd235ea9596882d210912897289c182205aa93ee5a6685197` | `2b920e34f779ccbeabfec91e44858957b4f032dd6583879403b0fb748e367050` |
+| Freeze rev 12 | `features/FEAT-003-multimodal-understanding/plan/P2_T4_CONTRACT_FREEZE_REVISION_12.md` | `5b6501b2d8b809f9dd4caf77b5c5d51d2e1e9cf2` | `1e7e487362efec02b3b5f3bbf9dd4c64eabaa0d9` | `b9606292e00b1b956ec38e141eb27f868bad2835f8ea5e8d20693a18acd2fa20` | `103695e5e1c49d9f9b1cc85fd5286f42980580f338578db799febdeedb310ee5` |
+| Package rev 15 | `features/FEAT-003-multimodal-understanding/evidence/notes/P2_T4_IMPLEMENTATION_APPROVAL_PACKAGE_DRAFT_20260913.md` | `18d0c33d35431ca96a76692a68c6b992098699e7` | `a4ade521f288c0d07c8c9cfdb1f6bbe6b41fa839` | `255034c587e89f8b72122c7377566684dd7a718257555c7fa92175a444255681` | `7c76208d2ab3c98f9681fce67641049a93b21d2f0c2e9c843de1cac9e4d70b96` |
+| Package rev 16 | `features/FEAT-003-multimodal-understanding/evidence/notes/P2_T4_IMPLEMENTATION_APPROVAL_PACKAGE_REVISION_16.md` | `5b6501b2d8b809f9dd4caf77b5c5d51d2e1e9cf2` | `8784e84a537260668e81c6c889aadc8688086857` | `8ce46b5f762b27b556030d85666ccb6827a1fdbaeb56312dc8490d6e214a75ce` | `75cd5d69e6896d7fae10d3771a90019003e0644fff1138161b7ac330e840b270` |
+
+### Contract identities and architecture binding
+
+- The fused result identity remains unchanged: `P2T4.P2T4FusedResultV1@1.0`.
+- The outer input-rejection identity is `P2T4.P2T4FusionInputRejectionV2@2.0`.
+- The Architecture Policy-B validator fingerprint is
+  `fa236c8d389b608251153d601fc370efe3f3e2479446ca4a56a3d395f892e0b5`.
+- The existing Policy-B baseline may remain the only architecture finding. No infrastructure
+  import or new architecture violation is approved.
+
+### Exact seven-file implementation allowlist
+
+The future remediation may change exactly these seven paths and no other path:
+
+1. `backend/src/sketch2life/contracts/schemas/p2_t4_fusion.py`
+2. `backend/src/sketch2life/application/services/p2_t4_fusion.py`
+3. `backend/tests/contract/test_p2_t4_contract.py`
+4. `backend/tests/unit/test_p2_t4_fusion.py`
+5. `features/FEAT-003-multimodal-understanding/fixtures/p2-t4-fusion-v1/manifest-v1.json`
+6. `features/FEAT-003-multimodal-understanding/fixtures/p2-t4-fusion-v1/cases-v1.json`
+7. `features/FEAT-003-multimodal-understanding/fixtures/p2-t4-fusion-v1/expected-v1.json`
+
+There is no wildcard scope and no authority to add helpers, generated files, evidence,
+documentation, or unrelated paths.
+
+### Required contract, precedence, and fixture outcomes
+
+- Replace V1 rejection consistently with V2 at every outer rejection boundary.
+- Do not expose a mixed V1/V2 rejection union.
+- Keep `P2T4.P2T4FusedResultV1@1.0` unchanged.
+- Keep `POLICY_MATCH_VIEW_VERSION` as a closed field code.
+- For `VisionUnderstandingSuccessV1`, require exact equality between
+  `policy_match_view_version` and `VISION_POLICY_MATCH_VIEW_VERSION`, whose canonical value is
+  `"vision-policy-match-view-v2"`.
+- Check ASR duplicate-index admissibility before Vision match-view admissibility.
+- Check Vision admissibility before correlation and typed status.
+- A noncanonical Vision failure remains `UPSTREAM_FAILURE`; the success-only match-view check
+  must not reject it.
+- The observed noncanonical token must never enter output.
+- Migrate all 16 existing `REJECTED` expected entries from V1/`1.0` to V2/`2.0` and recompute
+  their canonical hashes.
+- Keep all 26 non-rejected `FUSED`/`UPSTREAM_FAILURE` entries byte-identical.
+- Rebind `manifest-v1.json` to the corrected artifact identities and the future recorded
+  approval.
+- Preserve deterministic, hand-authored fixtures.
+- The contract test must use an independent hand-authored schema-parity oracle covering every
+  field, requiredness, nullability, enum, literal, cross-field invariant, and rejection
+  precedence rule. It must not introspect implementation fields, load a schema snapshot, or
+  generate expected schemas from `p2_t4_fusion.py`.
+
+### Fixture privacy rule
+
+Fixture JSON may identify each synthetic match-view scenario, its mutation category, coverage,
+and expected closed rejection semantics, but must not store or echo the observed noncanonical
+`policy_match_view_version` value.
+
+A fixed synthetic noncanonical sentinel may be constructed only inside the approved Python
+unit/contract test source to exercise the input path.
+
+The sentinel must not appear in:
+
+- `manifest-v1.json`;
+- `cases-v1.json`;
+- `expected-v1.json`;
+- rejection or fused output;
+- canonical expected bytes or hashes;
+- test failure snapshots;
+- logs, evidence, or final reports.
+
+Tests must assert non-disclosure without printing or serializing the sentinel. Fixture data must
+remain deterministic and hand-authored, and expected schemas/results must not be generated from
+the implementation under test.
+
+### Required match-view fixture coverage
+
+The remediation must add or verify all six scenarios below. The manifest coverage list,
+`cases-v1.json`, `expected-v1.json`, contract tests, and unit tests must remain mutually
+consistent for all six scenarios:
+
+1. **AC-MV-1:** A `VisionUnderstandingSuccessV1` with a synthetic noncanonical match-view
+   value is rejected at `ADMISSIBILITY`.
+2. **AC-MV-2:** The T4 policy literal `vision_policy_match_view-v2`, when used as the upstream
+   observed value, is rejected, proving comparison against `VISION_POLICY_MATCH_VIEW_VERSION`
+   rather than the T4 policy literal.
+3. **AC-MV-3:** Duplicate ASR segment-index admissibility wins when both the ASR duplicate-index
+   invariant and Vision match-view invariant would fail.
+4. **AC-MV-4:** Vision match-view admissibility wins over correlation mismatch.
+5. **AC-MV-5:** A `VisionUnderstandingFailureV1` carrying a noncanonical match-view value remains
+   `UPSTREAM_FAILURE`, proving the check is success-only.
+6. **AC-MV-6:** Strict-validation versus admissibility precedence is exercised with ASR checked
+   before Vision where slot ordering applies.
+
+The approved Python tests may construct the fixed synthetic sentinel in memory as defined by the
+fixture privacy rule. JSON fixtures identify the scenario and mutation category only; they do
+not persist the offending sentinel.
+
+### Acceptance criteria
+
+- AC-MV-1 through AC-MV-6 are each implemented and independently asserted.
+- Each of AC-MV-1 through AC-MV-6 is represented consistently in the manifest coverage list,
+  cases, expected results, contract tests, and unit tests.
+- The sentinel is absent from all fixture JSON, rejection/fused output, canonical bytes/hashes,
+  failure snapshots, logs, evidence, and reports.
+- Every outer rejection uses V2 only, with no V1/V2 rejection union.
+- ASR-before-Vision and Vision-before-correlation precedence is observable and tested.
+- The success-only Vision match-view rule and noncanonical-failure `UPSTREAM_FAILURE` behavior
+  are observable and tested.
+- All 16 `REJECTED` entries have V2 identities and recomputed hashes; all 26 non-rejected
+  entries remain byte-identical.
+- The manifest uses the corrected identity tuples and the future recorded approval binding.
+- No infrastructure import or new Policy-B architecture finding is introduced.
+
+### Required validation and independent review
+
+Validation must run under CPython `3.13.x` and include:
+
+- focused P2-T4 pytest;
+- full pytest;
+- Ruff;
+- strict mypy;
+- canonicalization and canonical-hash checks;
+- privacy validation;
+- harness, repository-security, skeleton, and architecture validators.
+
+An independent candidate review must complete before the separate local implementation
+checkpoint commit.
+
+### Approval-record and implementation topology
+
+This approval is recorded in one governance-only commit whose direct parent must be
+`c84a92990adac62477c076e6f660da3bef319175`.
+
+That governance commit may change only the repository-required approval record. It may not change
+any implementation, test, fixture, evidence, freeze, package, erratum, `CONTEXT`, `DECISIONS`,
+remediation-plan, or unrelated file.
+
+The resulting full governance-commit SHA is the sole authorized implementation base and must be
+reported in the execution handoff before any implementation edit begins. `c84a9299` itself must
+not be treated as the implementation base.
+
+The later implementation checkpoint must:
+
+- use the governance approval commit as its direct parent;
+- change exactly the seven approved implementation/test/fixture paths;
+- contain no governance, approval, evidence, or unrelated path;
+- be exactly one implementation commit unless separately reauthorized.
+
+Abort and request renewed approval if this topology cannot be preserved.
+
+### Explicit exclusions and current state
+
+This approval does not authorize:
+
+- G6-G9 or evidence creation;
+- FEAT-018, FEAT-020, or any non-allowlisted path;
+- mapping, adoption, integration, or runtime wiring;
+- model, provider, GPU, Lightning, or network work;
+- migration, production, or live execution;
+- implementation push or PR creation.
+
+Implementation has not started. No implementation, test, fixture, evidence, freeze/package,
+erratum, context, or decisions file was changed by this approval record.
+
+- **Final state:** `REMEDIATION IMPLEMENTATION APPROVED - NOT STARTED`.
+- **G6-G9:** `PAUSED`.
+- **Integration/runtime/live:** `NOT APPROVED`.
+- **Runtime/live/GPU/provider/Lightning:** `NOT APPROVED`.
+- **Recorded:** 2026-09-16 by Project Owner / Person 2 direct instruction in the current
+  conversation.
