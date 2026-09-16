@@ -1,10 +1,10 @@
 # Task approval
 
 - Status: APPROVED (P1 implementation slice; FEAT-018 P2-T1 D2/D3-R2 with offline Cohorts A+B
-  closed; completed P2-T2 offline contract/mapping implementation; and approved offline P3/P4
-  slices integrated. P2-T3 optional narration planning remains a DRAFT and is not
-  implementation-approved. P2-T2 live Lightning execution, P2-T4 through P2-T5, provider,
-  mobile/shared integration and production scope remain separately gated)
+  closed; completed P2-T2 offline contract/mapping and approved bounded-runner offline
+  implementation; and approved offline P3/P4 slices integrated. P2-T3 optional narration planning
+  remains a DRAFT and is not implementation-approved. P2-T2 live Lightning execution, P2-T4
+  through P2-T5, provider, mobile/shared integration and production scope remain separately gated)
 - Approver: Project owner direct instruction in the current conversation
 - Plan revision: 2
 - Requested scope: FEAT-018 revision 2 P1 implementation slice only: catalog promotion/provenance, Activity Template Library, adult context and deterministic eligibility, semantic-anchor to objective/template selection, ExperienceSpec compilation and fit validation, Gate B identity/version locking, catalog/pilot harness and feature-local evidence.
@@ -184,3 +184,163 @@ failure cases remain valid. Focused tests (17), related tests (801 passed, 5 ski
 all repository validators and `git diff --check` passed. No model/GPU/Lightning/provider/network
 execution occurred. This approval closes P2-T2 offline only; live execution and P2-T3 through P2-T5,
 mobile, Gate A, P1 eligibility, P3/P4 and shared integration remain separately gated.
+
+## Approved P2-T2 bounded-runner offline implementation addendum — 2026-09-14
+
+The project owner approves the FEAT-018 P2-T2 bounded-runner offline implementation described in
+`features/FEAT-018-live-image-canvas-flow/evidence/notes/P2_T2_BOUNDED_RUNNER_IMPLEMENTATION_APPROVAL_PACKAGE_DRAFT_20260914.md`
+revision 5 (SHA-256 `f36216432620e21eba2fc2f3f0c735ace529d15f827ad957dcf9b5e74ab8c9e5`), following the
+independent audit recorded at `tmp/feat018-p2-t2-revision5-independent-audit-20260914/REVIEW.md`
+(verdict `PASS_WITH_FINDINGS`).
+
+Approved exact file scope:
+
+- `backend/src/sketch2life/benchmark/feat018_live_lightning_execution.py`
+- `backend/tests/unit/test_feat018_live_lightning_execution.py`
+
+No other file may be created or modified as part of this implementation stage.
+
+Required corrections during implementation (the three MINOR findings from the independent audit):
+
+1. Windows Job Object assignment must use a valid native process handle (for example via
+   `ctypes`/`OpenProcess` with the required access rights), never a bare PID treated as a handle.
+2. POSIX containment confirmation must use a bounded retry loop with an explicit timeout and must
+   fail closed if group/session membership cannot be confirmed in time.
+3. The stale internal cross-reference to the revision-3 section title ("Total adapter cap
+   coordinator and bounded cleanup") must be corrected to the current section title ("Outer
+   adapter-call supervisor and total adapter cap") in the approval package.
+
+Offline-only gate: approved work uses injected fakes (fake clocks, fake process/containment
+doubles, fake bounded transports) for every test. No model, provider, network, GPU, or Lightning
+session may be used, loaded, or opened. `qwen_vision.py` and all other FEAT-003 source, FEAT-017,
+contracts, registry, ports, routes, mobile code, Gate A UI, and P1/P3/P4/shared-integration scope
+remain excluded and unchanged.
+
+All twelve `P2T2-LIVE-D1` through `P2T2-LIVE-D12` decisions remain open; this approval is not a
+live-execution approval. A separate, independent review of the completed implementation is
+required before any future live-execution approval is considered.
+
+Approved at: 2026-09-14, project owner direct instruction in the current conversation.
+
+## Approved four-finding offline correction - 2026-09-14
+
+Authority: the project owner's direct request to write a goal and execute fixes
+for B1/B2/M1/N1 from the independent live-plan review. This addendum records
+that request; it does not authorize a live run or resolve any live decision.
+
+Acceptance is defined in the live execution plan, Section 2.5, "Four-finding
+correction scope and acceptance". Correct the plan's claims about existing
+primitives, define the remaining coordinator scope, separate D10 approval
+inputs from runtime facts, and add the explicit live non-authorization marker.
+Implement the evidence finalizer and precommit regression coverage only in:
+
+- `backend/src/sketch2life/benchmark/feat018_live_lightning_execution.py`
+- `backend/tests/unit/test_feat018_live_lightning_execution.py`
+
+Documentation updates are limited to this approval record, the existing live
+plan, FEAT-018 CONTEXT.md and DECISIONS.md, plus the ignored correction report.
+No other code scope is allocated. Tests use offline injected dependencies;
+no real subprocess, model, GPU, provider, network or Lightning execution.
+The complete live coordinator remains explicitly incomplete and requires its
+implementation and independent review before Stage 4. The historical reviewed
+commit does not certify the changed code; a new independent review is required.
+No commit, push, P2-T2 live closure, or D4 model acquisition is authorized.
+
+Continuation of the same repair request includes the bounded worker mapper
+handoff specified in live-plan Section 2.5, within those same source/test paths.
+Reuse the unchanged FEAT-018 mapper inside the supervised worker and extend
+terminal IPC only with a closed raw_status; retain the existing no-text and
+deadline rules. Offline tests must exercise the real mapper and adapter with
+fake generation. This records implementation authority for that correction,
+not a new live approval or a claim that the entire coordinator is finished.
+
+The continuing B1/B2 repair also implements the bounded metadata inventory and
+sanitized incident primitive specified by Section 2.5 in the same two files,
+with synthetic local filesystem tests. No actual model/cache/source inventory
+is executed by this task; no other worktree is inspected. Future runtime roots
+and incident destination remain subject to the separate live approval.
+
+The same correction includes `finalize_smoke_run` orchestration of those
+primitives and its offline integration tests as specified in Section 2.5.
+No additional files or live execution are allocated.
+
+## Approved four-finding finalization - 2026-09-15
+
+The owner-approved safety invariant for evidence publication is single-writer
+and quiescent-session: after cleanup succeeds, every supervised process and
+descendant is absent, no runtime writer remains, and evidence finalization is
+the sole authorized writer. The implementation rechecks the explicit inventory
+after the Markdown rename and immediately before the authoritative JSON rename.
+This closes the ordinary mutation window under that invariant; it does not claim
+filesystem-wide atomicity or protection from an unrelated hostile external writer.
+
+Incident fallback is constrained to the exact relative destination
+`tmp/feat018-live-lightning-incident-<run_id>/INCIDENT.md`. The writer validates
+the bounded opaque run ID, exact filename and run-directory match, repository
+containment, traversal absence, and symlink/reparse safety. The future
+coordinator/preflight must explicitly supply `git_ignored=True`; the primitive
+does not infer Git state and rejects tracked, publishable, arbitrary absolute,
+traversal and mismatched-run destinations. Payload bytes remain fixed and
+sanitized, with no paths, exceptions, secrets or provider data.
+
+The synthetic session ID is supplied in adapter-worker bootstrap arguments and
+may be serialized by spawn multiprocessing. It is bounded, opaque and
+non-secret, and is excluded from progress/event IPC and evidence payload bodies;
+the approval does not claim that it never crosses a process boundary. The
+current focused total is 196 passed. The earlier 170-test figure is an
+intermediate historical checkpoint only. D1, D4 and D11 remain BLOCKED, Stage 4
+has not started, and the exact `NOT A LIVE EXECUTION AUTHORIZATION` marker is
+preserved. No live subprocess, model, GPU, provider, network, Lightning session,
+ model acquisition or Stage 4 action is authorized.
+
+## Approved exact two-file offline coordinator implementation - 2026-09-15
+
+Authorization marker:
+`APPROVED_FOR_EXACT_TWO_FILE_OFFLINE_COORDINATOR_IMPLEMENTATION_ONLY`
+
+The project owner authorizes offline implementation and regression testing only
+in these exact files:
+
+- `backend/src/sketch2life/benchmark/feat018_live_lightning_execution.py`
+- `backend/tests/unit/test_feat018_live_lightning_execution.py`
+
+This approval permits FEAT-018 P2-T2 coordinator remediation, including the B3
+host-enforceable timeout correction, using injected offline fakes and killable
+test workers only. It does not authorize Lightning, GPU, model, provider,
+network, production, Stage 4, D4 snapshot acquisition, or live execution.
+FEAT-003, FEAT-017, contracts, routes, registries, mobile, Gate A, P1/P3/P4,
+shared integration, published evidence, and all other files remain out of scope.
+
+D1-D12 remain unresolved for live approval. An independent review is required
+after implementation and offline validation. No commit or push is implied by
+this approval.
+
+## Approved FEAT-018 POSIX CI workflow — 2026-09-16
+
+The project owner authorizes adding exactly one CI workflow:
+
+- `.github/workflows/feat018-posix.yml`
+
+The workflow may run only on Ubuntu/Linux and only execute the synthetic FEAT-018 POSIX process-group cleanup test.
+
+Ordinary GitHub Actions control-plane operations, including checkout and dependency installation required to provision the existing backend project environment, are permitted only for CI setup. The FEAT-018 test and application code must perform no external network, provider, model, download, or live-service activity.
+
+No application code, tests, contracts, plans, evidence, or other worktrees may be changed by this task. The workflow must remain bounded and fail if the POSIX test is skipped.
+
+The workflow is limited to:
+
+- push events for `feature/feat018-p2t2-live-lightning`;
+- manual `workflow_dispatch`;
+- an Ubuntu/Linux runner;
+- existing backend project configuration;
+- the approved POSIX process-group cleanup test only;
+- bounded logs and explicit failure when the test is skipped.
+
+This approval does not authorize:
+
+- Lightning, GPU, model, provider, network, or live benchmark execution;
+- Stage 4, D1-D12, or D4;
+- production use, deployment, merge, or cutover;
+- any application commit or push.
+
+No commit or push is authorized by this addendum.

@@ -1,7 +1,8 @@
 # FEAT-018 live image and canvas context
 
 - Status: P1 complete; D3/P2-T1 closed for owner-approved offline Cohorts A+B; P2-T2 contract
-  boundary and bounded offline implementation complete; live Lightning execution and downstream
+  boundary and bounded offline implementation complete; P2-T3 optional narration planning is in
+  progress as a DRAFT and is not implementation-approved; live Lightning execution and downstream
   scopes remain separately gated
 - Plan revision: 2 with approved P2-T1 D2/D3-R2 and P2-T2 offline addenda
 - Owner: shared integration allocation pending contract freeze approval
@@ -125,3 +126,85 @@ report found no blocker and confirms the published contract/data scope is unchan
 
 P2-T2 offline is complete. Live Lightning/GPU/model execution, provider/network calls, P2-T3 through
 P2-T5, mobile, Gate A UI, P1 eligibility, P3/P4 and shared integration remain separately gated.
+
+## P2-T2 bounded-runner offline implementation - 2026-09-14
+
+The owner approved the FEAT-018 P2-T2 bounded-runner offline implementation on revision 5 of the
+approval package (`evidence/notes/P2_T2_BOUNDED_RUNNER_IMPLEMENTATION_APPROVAL_PACKAGE_DRAFT_20260914.md`,
+SHA-256 `f36216432620e21eba2fc2f3f0c735ace529d15f827ad957dcf9b5e74ab8c9e5`) after independent audit
+verdict `PASS_WITH_FINDINGS`. The implementation adds exactly the two approved files:
+`backend/src/sketch2life/benchmark/feat018_live_lightning_execution.py` and
+`backend/tests/unit/test_feat018_live_lightning_execution.py`. It implements
+`Feat018AdapterCallSupervisor` (supervisor-authoritative deadline, `CONTAINMENT_READY` gate
+protocol on POSIX/Windows with a real process handle for Windows Job Object assignment and a
+bounded retry for POSIX group confirmation, a closed progress state machine with a formal
+`FROZEN` state), `Feat018BoundedKillableQwenGenerationRunner` (bounded per-attempt subprocess
+generation implementing the existing `QwenGenerationRunner` seam), and
+`Feat018EvidenceCommitWriter`/`read_committed_pair` (the three-state evidence commit protocol
+with a one-way hash DAG and a single JSON-rename commit point). The three MINOR findings from the
+independent audit (Windows handle usage, POSIX bounded retry, a stale cross-reference in the
+approval package) were addressed. The completed independent review and follow-up test hardening
+record 154 focused offline tests and 839 related Qwen/vision/FEAT-018 tests passed, with 5 skipped.
+The tests use injected fakes for live behavior and one real stdlib `spawn` context only to
+construct (never start) the production-configured non-daemon outer Process; no real subprocess,
+model, GPU, network, or Lightning execution occurred. Ruff and strict mypy are clean on the
+bounded-runner source/test scope. `validate_harness.py`, `validate_repository_security.py`,
+`validate_skeleton.py`, and `git diff --check` pass; the architecture validator retains the
+unchanged `PRE_EXISTING_UPSTREAM` `backend_ai_workflow.py` violation. `qwen_vision.py` and all
+other FEAT-003/FEAT-017 source are unmodified.
+
+This closes only the offline bounded-runner implementation and independent-review stage. The
+default inner launcher is verified to be constructed only after `CONTAINMENT_READY`; actual OS
+nested spawning and real containment behavior remain deferred to a separately approved live-smoke
+assertion. All twelve `P2T2-LIVE-D1` through `P2T2-LIVE-D12` decisions remain open, and no live
+Lightning/GPU/model/provider/network execution is authorized by this entry.
+
+## P2-T2 live-plan four-finding correction - 2026-09-15
+
+Independent plan review identified an overstated coordinator completion claim.
+The historic runner is a bounded adapter/status and evidence-storage primitive;
+full admission/staging, runtime inventory, typed mapper handoff and incident
+orchestration remain incomplete. The live plan now states the concrete remaining
+two-file coordinator boundary and keeps D1/D11 BLOCKED alongside D4.
+
+The intermediate 2026-09-14 checkpoint recorded 170 focused tests; that number
+is historical and is not the current total. The owner-requested offline
+correction adds `Feat018EvidenceFinalizer` and a precommit hook in the existing
+writer. Cleanup and the caller's complete postflight audit precede final
+publication; failed/exceptional checks or modified provisional bytes cannot
+publish success. Successful cleanup is the approved quiescent-session boundary:
+all supervised processes and descendants are absent, no runtime writer remains,
+and evidence finalization is the sole authorized writer. The inventory is
+rechecked after Markdown rename immediately before JSON commit. This is not a
+filesystem-wide atomicity claim or protection from an unrelated hostile writer.
+The finalizer supplies ordering and safe failure handling, not the still-missing
+live coordinator. D10 approval inputs are separated from observed GPU facts, and
+the exact live non-authorization marker is present. A subsequent checkpoint adds
+worker-local mapping through the unchanged Raw mapper and a closed raw_status
+terminal claim.
+The supervisor retains that claim only from an accepted terminal event;
+late/malformed claims are rejected. The correction also adds bounded explicit-root
+artifact inventory, a sanitized incident writer, and `finalize_smoke_run`, which
+connects supervisor status, session cleanup, exact provisional inventory and the
+JSON commit point. Incident fallback is accepted only at
+`tmp/feat018-live-lightning-incident-<run_id>/INCIDENT.md`, after the future
+coordinator/preflight explicitly confirms that destination is Git-ignored; tracked,
+publishable, traversal, mismatched-run, symlink/reparse and arbitrary absolute
+destinations are rejected. A synthetic session ID may be serialized in adapter
+worker bootstrap arguments under spawn, but is bounded/opaque and is excluded
+from progress/event IPC and evidence payload bodies. The current focused suite is
+ 196 passed; the related sweep was 885 passed, 5 skipped and 422 deselected;
+ 170 is only the historical checkpoint above. Final validation and
+the F1-F4 dispositions are recorded in the ignored local report
+`tmp/feat018-p2t2-four-findings-finalization-20260915/REPORT.md`.
+
+No live execution, model acquisition, Stage 4 approval or P2-T2 live closure
+is granted by this correction.
+
+## P2-T3 optional narration planning - 2026-09-14
+
+The optional narration plan is currently a DRAFT and planning work is in progress. It preserves
+the completed P2-T2 typed ASR boundary and truthful `NOT_SUPPLIED`/success/failure provenance.
+This draft does not authorize P2-T3 implementation, model or provider execution, GPU/Lightning
+work, approval-record changes, or a commit. A separate owner approval is required before any
+P2-T3 implementation begins.
