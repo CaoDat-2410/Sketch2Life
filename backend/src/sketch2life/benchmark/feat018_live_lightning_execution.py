@@ -10,10 +10,9 @@ file are the exact and only approved implementation surface. It never modifies
 
 Nothing in this module opens a Lightning session, loads a model, uses a GPU, or calls a network
 or provider endpoint. Real subprocess/containment code exists here because it is the eventual
-live-run mechanism, but it is never exercised by this module's own offline test suite, which
-drives every class through injected fakes (fake clocks, fake process launchers, fake containment
-backends, fake filesystems). A live run requires a separate, later execution approval that
-resolves ``P2T2-LIVE-D1`` through ``P2T2-LIVE-D12``.
+live-run mechanism. The offline test suite drives the adapter runner through injected fakes and
+uses only synthetic child processes for the lifecycle preemption proof. A live run requires a
+separate, later execution approval that resolves ``P2T2-LIVE-D1`` through ``P2T2-LIVE-D12``.
 """
 
 from __future__ import annotations
@@ -29,11 +28,11 @@ import sys
 import time
 import uuid
 from collections.abc import Callable, Mapping
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from enum import StrEnum
 from hashlib import sha256
 from pathlib import Path
-from typing import Any, Protocol, cast
+from typing import Any, Literal, Protocol, TypeVar, cast
 
 from sketch2life.application.ports.vision_content_policy import ObservableContentPolicyV1
 from sketch2life.application.services.raw_understanding_mapper import map_vision_result_to_raw
@@ -545,6 +544,17 @@ class PosixProcessGroupContainment:
     _probe: Callable[[int], int] = field(default=_posix_getpgid, repr=False)
     _clock: Callable[[], float] = field(default=time.monotonic, repr=False)
     _sleep: Callable[[float], None] = field(default=time.sleep, repr=False)
+    sigkill_grace_seconds: float = 1.0
+    sigkill_poll_interval_seconds: float = 0.02
+    _cleanup_failed: bool = field(default=False, init=False, repr=False)
+
+    def __post_init__(self) -> None:
+        for value, label in (
+            (self.sigkill_grace_seconds, "sigkill_grace_seconds"),
+            (self.sigkill_poll_interval_seconds, "sigkill_poll_interval_seconds"),
+        ):
+            if _positive_finite_float(value) is None:
+                raise ValueError(f"{label} must be positive and finite")
 
     def create(self) -> None:
         return None
@@ -567,13 +577,7 @@ class PosixProcessGroupContainment:
                 return False
             self._sleep(retry_interval)
 
-    def terminate_all(self) -> None:
-        if self._group_pid is None:
-            return
-        with contextlib.suppress(OSError):
-            _posix_killpg(self._group_pid, 15)  # SIGTERM
-
-    def is_empty(self) -> bool:
+    def _group_is_empty(self) -> bool:
         if self._group_pid is None:
             return True
         try:
@@ -583,6 +587,49 @@ class PosixProcessGroupContainment:
         except OSError:
             return False
         return False
+
+    def terminate_all(self) -> None:
+        """Bounded SIGTERM-then-SIGKILL escalation against the whole process group.
+
+        One SIGTERM is not proof of termination: any member of the group may install a handler
+        that traps or ignores it (independent-review finding B3-1). This sends SIGTERM, then polls
+        for emptiness for only ``sigkill_grace_seconds``, then escalates to SIGKILL -- which cannot
+        be caught, blocked, or ignored on POSIX -- if any member is still alive. This method never
+        blocks longer than ``sigkill_grace_seconds`` plus one bounded poll interval; final proof of
+        an empty group is still the caller's own bounded ``is_empty()`` polling loop, never this
+        method's return alone.
+        """
+
+        if self._group_pid is None:
+            return
+        with contextlib.suppress(OSError):
+            _posix_killpg(self._group_pid, 15)  # SIGTERM
+        if self._group_is_empty():
+            return
+        deadline = self._clock() + self.sigkill_grace_seconds
+        while self._clock() < deadline:
+            if self._group_is_empty():
+                return
+            remaining = max(0.0, deadline - self._clock())
+            try:
+                self._sleep(min(self.sigkill_poll_interval_seconds, remaining))
+            except Exception:  # noqa: BLE001 - a broken wait still proceeds to SIGKILL
+                break
+        if self._group_is_empty():
+            return
+        try:
+            _posix_killpg(self._group_pid, 9)  # SIGKILL: cannot be caught, blocked, or ignored
+        except ProcessLookupError:
+            return
+        except OSError:
+            # The escalation attempt itself failed; never claim success while unproven. The
+            # caller's is_empty() polling loop still owns the final fail-closed verdict.
+            self._cleanup_failed = True
+
+    def is_empty(self) -> bool:
+        """F1-equivalent for POSIX: truthful, queried emptiness. Never assumed true."""
+
+        return self._group_is_empty()
 
     def close(self) -> None:
         return None
@@ -1658,6 +1705,1983 @@ def run_bounded_adapter_call(
     )
 
 
+# --------------------------------------------------------------------------------------
+# Host-side Lightning session provisioning coordinator
+# --------------------------------------------------------------------------------------
+
+
+class Feat018LiveSmokeFailureCode(StrEnum):
+    """Closed failure tokens for the host-side session/adapter coordinator."""
+
+    NOT_AUTHORIZED = "NOT_AUTHORIZED"
+    PREFLIGHT_MISSING = "PREFLIGHT_MISSING"
+    PREFLIGHT_FAILED = "PREFLIGHT_FAILED"
+    PREFLIGHT_NOT_AUTHORIZED = "PREFLIGHT_NOT_AUTHORIZED"
+    FINALIZATION_MISSING = "FINALIZATION_MISSING"
+    FINALIZATION_FAILED = "FINALIZATION_FAILED"
+    CONTROLLER_MISSING = "CONTROLLER_MISSING"
+    ADAPTER_CALL_MISSING = "ADAPTER_CALL_MISSING"
+    PROVISION_TIMEOUT = "PROVISION_TIMEOUT"
+    PROVISION_FAILED = "PROVISION_FAILED"
+    PROVISION_FACTS_MISSING = "PROVISION_FACTS_MISSING"
+    PLACEMENT_FACTS_MISSING = "PLACEMENT_FACTS_MISSING"
+    PLACEMENT_MISMATCH = "PLACEMENT_MISMATCH"
+    LIFECYCLE_FACTS_MISSING = "LIFECYCLE_FACTS_MISSING"
+    LIFECYCLE_FACTS_INVALID = "LIFECYCLE_FACTS_INVALID"
+    SESSION_IDENTITY_MISMATCH = "SESSION_IDENTITY_MISMATCH"
+    READY_TIMEOUT = "READY_TIMEOUT"
+    READY_FAILED = "READY_FAILED"
+    READY_FACTS_MISSING = "READY_FACTS_MISSING"
+    SESSION_NOT_READY = "SESSION_NOT_READY"
+    GPU_MINUTE_BUDGET_EXCEEDED = "GPU_MINUTE_BUDGET_EXCEEDED"
+    SESSION_TTL_EXCEEDED = "SESSION_TTL_EXCEEDED"
+    ADAPTER_CAP_EXCEEDED = "ADAPTER_CAP_EXCEEDED"
+    ADAPTER_CALL_FAILED = "ADAPTER_CALL_FAILED"
+    ADAPTER_RESULT_INVALID = "ADAPTER_RESULT_INVALID"
+    ADAPTER_FAILED = "ADAPTER_FAILED"
+    ADAPTER_CLEANUP_FAILED = "ADAPTER_CLEANUP_FAILED"
+    OPERATION_CANCELLATION_FAILED = "OPERATION_CANCELLATION_FAILED"
+    SESSION_TERMINATION_TIMEOUT = "SESSION_TERMINATION_TIMEOUT"
+    SESSION_TERMINATION_FAILED = "SESSION_TERMINATION_FAILED"
+    SESSION_TERMINATION_CANCELLATION_FAILED = "SESSION_TERMINATION_CANCELLATION_FAILED"
+    LIFECYCLE_WORKER_LAUNCH_FAILED = "LIFECYCLE_WORKER_LAUNCH_FAILED"
+    LIFECYCLE_WORKER_DIED = "LIFECYCLE_WORKER_DIED"
+    LIFECYCLE_PROTOCOL_FAILED = "LIFECYCLE_PROTOCOL_FAILED"
+    LIFECYCLE_RESULT_INVALID = "LIFECYCLE_RESULT_INVALID"
+    LIFECYCLE_CONTAINMENT_FAILED = "LIFECYCLE_CONTAINMENT_FAILED"
+    LIFECYCLE_CLEANUP_FAILED = "LIFECYCLE_CLEANUP_FAILED"
+
+
+class LightningSessionReadiness(StrEnum):
+    """The only readiness value that can start the session TTL."""
+
+    NOT_READY = "NOT_READY"
+    SESSION_READY = "SESSION_READY"
+
+
+_BOUNDED_FACT_ID_CHARACTERS = frozenset(
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.-"
+)
+
+
+def _is_bounded_fact_token(value: object) -> bool:
+    return (
+        isinstance(value, str)
+        and 1 <= len(value) <= _BOUNDED_OPAQUE_ID_MAX_LENGTH
+        and all(character in _BOUNDED_FACT_ID_CHARACTERS for character in value)
+    )
+
+
+def _is_finite_number(value: object) -> bool:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return False
+    try:
+        return math.isfinite(float(value))
+    except (OverflowError, ValueError):
+        return False
+
+
+def _validate_non_negative_timestamp(value: object, label: str) -> None:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise ValueError(f"{label} must be a finite non-negative timestamp")
+    try:
+        converted = float(value)
+    except (OverflowError, ValueError):
+        raise ValueError(f"{label} must be a finite non-negative timestamp") from None
+    if not math.isfinite(converted) or converted < 0:
+        raise ValueError(f"{label} must be a finite non-negative timestamp")
+
+
+def _timestamps_match(left: float, right: float) -> bool:
+    return math.isclose(float(left), float(right), rel_tol=0.0, abs_tol=1e-6)
+
+
+def _add_finite_deadline(start: float, duration: float) -> float | None:
+    try:
+        deadline = float(start) + float(duration)
+    except (OverflowError, ValueError):
+        return None
+    return deadline if math.isfinite(deadline) else None
+
+
+@dataclass(frozen=True, slots=True)
+class LightningPlacementFacts:
+    """Provider-owned GPU and model/input placement facts."""
+
+    gpu_sku: str
+    device_index: int
+    device_count: int
+    vram_mib: int
+    cuda_available: bool
+    bf16_supported: bool
+    single_device_visible: bool
+    model_device_index: int
+    input_device_index: int
+
+    def __post_init__(self) -> None:
+        if not _is_bounded_fact_token(self.gpu_sku):
+            raise ValueError("gpu_sku must be a bounded fact token")
+        for value, label in (
+            (self.device_index, "device_index"),
+            (self.device_count, "device_count"),
+            (self.vram_mib, "vram_mib"),
+            (self.model_device_index, "model_device_index"),
+            (self.input_device_index, "input_device_index"),
+        ):
+            if type(value) is not int:
+                raise ValueError(f"{label} must be an integer")
+        if self.device_count <= 0 or self.vram_mib <= 0:
+            raise ValueError("device_count and vram_mib must be positive")
+        if not 0 <= self.device_index < self.device_count:
+            raise ValueError("device_index must be within device_count")
+        for value, label in (
+            (self.model_device_index, "model_device_index"),
+            (self.input_device_index, "input_device_index"),
+        ):
+            if not 0 <= value < self.device_count:
+                raise ValueError(f"{label} must be within device_count")
+        for value, label in (
+            (self.cuda_available, "cuda_available"),
+            (self.bf16_supported, "bf16_supported"),
+            (self.single_device_visible, "single_device_visible"),
+        ):
+            if not isinstance(value, bool):
+                raise ValueError(f"{label} must be boolean")
+
+
+@dataclass(frozen=True, slots=True)
+class LightningSessionLifecycleFacts:
+    """Controller-owned session identity, readiness, and TTL anchors."""
+
+    session_identity: str
+    session_ready_at_monotonic: float
+    session_ttl_start_monotonic: float
+    session_ttl_deadline_monotonic: float
+
+    def __post_init__(self) -> None:
+        if not _is_bounded_fact_token(self.session_identity):
+            raise ValueError("session_identity must be a bounded fact token")
+        _validate_non_negative_timestamp(
+            self.session_ready_at_monotonic, "session_ready_at_monotonic"
+        )
+        _validate_non_negative_timestamp(
+            self.session_ttl_start_monotonic, "session_ttl_start_monotonic"
+        )
+        _validate_non_negative_timestamp(
+            self.session_ttl_deadline_monotonic, "session_ttl_deadline_monotonic"
+        )
+        if not _timestamps_match(
+            self.session_ready_at_monotonic, self.session_ttl_start_monotonic
+        ):
+            raise ValueError("session TTL must start at session readiness")
+        if self.session_ttl_deadline_monotonic <= self.session_ttl_start_monotonic:
+            raise ValueError("session_ttl_deadline_monotonic must be after TTL start")
+
+
+@dataclass(frozen=True, slots=True)
+class LightningProvisionFacts:
+    """Provider-owned facts returned after a bounded allocation attempt.
+
+    ``gpu_minute_budget_start_monotonic`` is captured by the injected controller at its
+    provider-confirmed allocation/billing point. The coordinator never substitutes the
+    host's request-start time for this fact.
+    """
+
+    allocation_confirmed: bool
+    gpu_minute_budget_start_monotonic: float | None
+    session_identity: str
+    placement: LightningPlacementFacts
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.allocation_confirmed, bool):
+            raise ValueError("allocation_confirmed must be boolean")
+        if not _is_bounded_fact_token(self.session_identity):
+            raise ValueError("session_identity must be a bounded fact token")
+        if not isinstance(self.placement, LightningPlacementFacts):
+            raise ValueError("placement facts are required")
+        if self.gpu_minute_budget_start_monotonic is not None:
+            value = self.gpu_minute_budget_start_monotonic
+            if (
+                isinstance(value, bool)
+                or not isinstance(value, (int, float))
+                or not _is_finite_number(value)
+                or value < 0
+            ):
+                raise ValueError(
+                    "gpu_minute_budget_start_monotonic must be finite and non-negative"
+                )
+
+
+@dataclass(frozen=True, slots=True)
+class LightningReadyFacts:
+    """Provider-owned readiness state returned by a bounded readiness wait."""
+
+    readiness: LightningSessionReadiness
+    lifecycle: LightningSessionLifecycleFacts | None
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.readiness, LightningSessionReadiness):
+            raise ValueError("readiness must be a LightningSessionReadiness")
+        if self.readiness is LightningSessionReadiness.SESSION_READY and not isinstance(
+            self.lifecycle, LightningSessionLifecycleFacts
+        ):
+            raise ValueError("SESSION_READY requires lifecycle facts")
+        if self.readiness is LightningSessionReadiness.NOT_READY and self.lifecycle is not None:
+            raise ValueError("NOT_READY cannot carry lifecycle facts")
+
+
+@dataclass(frozen=True, slots=True)
+class LightningTerminationFacts:
+    """Provider/controller proof that session termination was verified."""
+
+    termination_verified: bool
+    cleanup_status: CleanupStatus
+    session_identity: str
+    session_cleanup_verified: bool
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.termination_verified, bool):
+            raise ValueError("termination_verified must be boolean")
+        if not isinstance(self.cleanup_status, CleanupStatus):
+            raise ValueError("cleanup_status must be a CleanupStatus")
+        if not _is_bounded_fact_token(self.session_identity):
+            raise ValueError("session_identity must be a bounded fact token")
+        if not isinstance(self.session_cleanup_verified, bool):
+            raise ValueError("session_cleanup_verified must be boolean")
+
+
+@dataclass(frozen=True, slots=True)
+class LightningCancellationFacts:
+    """Typed proof that a controller operation stopped its provider operation."""
+
+    cancellation_verified: bool
+    termination_facts: LightningTerminationFacts | None = None
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.cancellation_verified, bool):
+            raise ValueError("cancellation_verified must be boolean")
+        if self.termination_facts is not None and not isinstance(
+            self.termination_facts, LightningTerminationFacts
+        ):
+            raise ValueError("termination_facts must be typed when supplied")
+
+
+@dataclass(frozen=True, slots=True)
+class LightningPlacementApproval:
+    """Explicit D10 approval values used to validate provider placement facts."""
+
+    gpu_sku: str
+    device_index: int
+    device_count: int
+    minimum_vram_mib: int
+    cuda_required: bool
+    bf16_required: bool
+    single_device_required: bool
+
+    def __post_init__(self) -> None:
+        if not _is_bounded_fact_token(self.gpu_sku):
+            raise ValueError("gpu_sku must be a bounded fact token")
+        for value, label in (
+            (self.device_index, "device_index"),
+            (self.device_count, "device_count"),
+            (self.minimum_vram_mib, "minimum_vram_mib"),
+        ):
+            if type(value) is not int:
+                raise ValueError(f"{label} must be an integer")
+        if self.device_count <= 0 or self.minimum_vram_mib <= 0:
+            raise ValueError("device_count and minimum_vram_mib must be positive")
+        if not 0 <= self.device_index < self.device_count:
+            raise ValueError("device_index must be within device_count")
+        for value, label in (
+            (self.cuda_required, "cuda_required"),
+            (self.bf16_required, "bf16_required"),
+            (self.single_device_required, "single_device_required"),
+        ):
+            if not isinstance(value, bool):
+                raise ValueError(f"{label} must be boolean")
+
+
+@dataclass(frozen=True, slots=True)
+class LightningPreflightFacts:
+    """Validated proof that every pre-adapter approval gate has passed."""
+
+    synthetic_session_id: str
+    approval_identity_verified: bool
+    checkout_identity_verified: bool
+    d4_readiness_verified: bool
+    fixture_digest_verified: bool
+    prompt_hash_verified: bool
+    hardware_placement_verified: bool
+    policy_identity_verified: bool
+    runtime_inventory_verified: bool
+
+    def __post_init__(self) -> None:
+        if not _is_bounded_opaque_identifier(self.synthetic_session_id):
+            raise ValueError("synthetic_session_id must be a bounded opaque identifier")
+        for value, label in (
+            (self.approval_identity_verified, "approval_identity_verified"),
+            (self.checkout_identity_verified, "checkout_identity_verified"),
+            (self.d4_readiness_verified, "d4_readiness_verified"),
+            (self.fixture_digest_verified, "fixture_digest_verified"),
+            (self.prompt_hash_verified, "prompt_hash_verified"),
+            (self.hardware_placement_verified, "hardware_placement_verified"),
+            (self.policy_identity_verified, "policy_identity_verified"),
+            (self.runtime_inventory_verified, "runtime_inventory_verified"),
+        ):
+            if not isinstance(value, bool):
+                raise ValueError(f"{label} must be boolean")
+
+
+@dataclass(frozen=True, slots=True)
+class LightningFinalizationFacts:
+    """Typed proof that evidence finalization and sanitized incident handling ran."""
+
+    finalization_verified: bool
+    evidence_pair_verified: bool
+    incident_handling_verified: bool
+
+    def __post_init__(self) -> None:
+        for value, label in (
+            (self.finalization_verified, "finalization_verified"),
+            (self.evidence_pair_verified, "evidence_pair_verified"),
+            (self.incident_handling_verified, "incident_handling_verified"),
+        ):
+            if not isinstance(value, bool):
+                raise ValueError(f"{label} must be boolean")
+
+
+T_co = TypeVar("T_co", covariant=True)
+
+
+class LightningOperationHandle(Protocol[T_co]):
+    """Non-blocking controller operation with independently bounded wait/cancel."""
+
+    def wait(self, *, timeout_seconds: float) -> T_co: ...
+
+    def cancel(self, *, timeout_seconds: float) -> LightningCancellationFacts: ...
+
+
+class LightningPreflight(Protocol):
+    """Host-side approval/checkout/inventory gate owned by the future live harness."""
+
+    def verify(self, *, synthetic_session_id: str) -> LightningPreflightFacts: ...
+
+
+class LightningSmokeFinalizer(Protocol):
+    """Finalization seam that must delegate to ``finalize_smoke_run`` and incident handling."""
+
+    def finalize(self, *, result: Feat018LiveSmokeResult) -> LightningFinalizationFacts: ...
+
+
+class LightningSessionController(Protocol):
+    """Non-blocking controller seam owned by the actual Lightning integration.
+
+    Each method must return an operation handle promptly; the handle's ``wait`` and ``cancel``
+    methods independently bound and stop the provider operation. The coordinator only trusts
+    typed facts returned by the handle and its host monotonic clock. The controller owns provider
+    session identity, lifecycle/TTL facts, placement, allocation/billing facts, and forced
+    termination/cleanup. No provider implementation is imported by this module.
+    """
+
+    def provision(self) -> LightningOperationHandle[LightningProvisionFacts]: ...
+
+    def wait_ready(self) -> LightningOperationHandle[LightningReadyFacts]: ...
+
+    def terminate(self) -> LightningOperationHandle[LightningTerminationFacts]: ...
+
+
+class BoundedAdapterCall(Protocol):
+    """The unchanged ``run_bounded_adapter_call`` callable shape."""
+
+    def __call__(
+        self,
+        request: VisionUnderstandingRequestV2,
+        runtime_config: QwenVisionRuntimeConfig,
+        content_policy: ObservableContentPolicyV1,
+        prompt: str,
+        config: Feat018BoundedRunnerConfig,
+        *,
+        session_id: str | None = None,
+    ) -> SupervisorRunResult: ...
+
+
+def _positive_finite_integer(value: object, label: str) -> int:
+    if type(value) is not int or value <= 0:
+        raise ValueError(f"{label} must be a positive finite integer")
+    return value
+
+
+@dataclass(frozen=True, slots=True)
+class Feat018LiveSmokeConfig:
+    """Explicit host-side session budgets around one unchanged bounded adapter call."""
+
+    bounded_runner_config: Feat018BoundedRunnerConfig
+    session_provision_timeout_seconds: int
+    session_ttl_seconds: int
+    gpu_minute_cap: int
+    session_termination_deadline_seconds: int
+    placement_approval: LightningPlacementApproval
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.bounded_runner_config, Feat018BoundedRunnerConfig):
+            raise ValueError("bounded_runner_config is required")
+        _positive_finite_integer(
+            self.session_provision_timeout_seconds, "session_provision_timeout_seconds"
+        )
+        _positive_finite_integer(self.session_ttl_seconds, "session_ttl_seconds")
+        _positive_finite_integer(self.gpu_minute_cap, "gpu_minute_cap")
+        _positive_finite_integer(
+            self.session_termination_deadline_seconds,
+            "session_termination_deadline_seconds",
+        )
+        if not isinstance(self.placement_approval, LightningPlacementApproval):
+            raise ValueError("placement_approval is required")
+
+
+@dataclass(frozen=True, slots=True)
+class Feat018LiveSmokeResult:
+    """Truthful host-side result with no fabricated pre-ready session facts."""
+
+    effective_outcome: EffectiveOutcome
+    adapter_call_count: int
+    attempt_count: int | None
+    cleanup_status: CleanupStatus
+    failure_code: Feat018LiveSmokeFailureCode | None = None
+    session_ready: bool = False
+    provision_start_monotonic: float | None = None
+    ready_deadline_monotonic: float | None = None
+    gpu_minute_budget_start_monotonic: float | None = None
+    ready_at_monotonic: float | None = None
+    session_ttl_start_monotonic: float | None = None
+    session_ttl_deadline_monotonic: float | None = None
+    adapter_start_monotonic: float | None = None
+    total_adapter_cap_deadline_monotonic: float | None = None
+    session_termination_deadline_monotonic: float | None = None
+    adapter_result: SupervisorRunResult | None = None
+    session_identity: str | None = None
+    session_ready_at_monotonic: float | None = None
+    placement: LightningPlacementFacts | None = None
+    preflight_verified: bool = False
+    finalization_verified: bool = False
+
+    @property
+    def is_success(self) -> bool:
+        return (
+            self.effective_outcome is EffectiveOutcome.SUCCEEDED
+            and self.preflight_verified
+            and self.finalization_verified
+        )
+
+
+def _termination_was_verified(value: object) -> bool:
+    return (
+        isinstance(value, LightningTerminationFacts)
+        and value.termination_verified is True
+        and value.cleanup_status is CleanupStatus.SUCCEEDED
+        and value.session_cleanup_verified is True
+    )
+
+
+def _termination_matches_session(value: object, session_identity: str | None) -> bool:
+    return _termination_was_verified(value) and (
+        session_identity is None
+        or (
+            isinstance(value, LightningTerminationFacts)
+            and value.session_identity == session_identity
+        )
+    )
+
+
+def _termination_cancellation_was_verified(
+    value: object, session_identity: str | None
+) -> bool:
+    return (
+        isinstance(value, LightningCancellationFacts)
+        and value.cancellation_verified is True
+        and _termination_matches_session(value.termination_facts, session_identity)
+    )
+
+
+def _preflight_was_verified(value: object, synthetic_session_id: str) -> bool:
+    if not isinstance(value, LightningPreflightFacts):
+        return False
+    if value.synthetic_session_id != synthetic_session_id:
+        return False
+    return all(
+        value_field is True
+        for value_field in (
+            value.approval_identity_verified,
+            value.checkout_identity_verified,
+            value.d4_readiness_verified,
+            value.fixture_digest_verified,
+            value.prompt_hash_verified,
+            value.hardware_placement_verified,
+            value.policy_identity_verified,
+            value.runtime_inventory_verified,
+        )
+    )
+
+
+def _placement_matches_approval(
+    value: object, approval: LightningPlacementApproval
+) -> bool:
+    if not isinstance(value, LightningPlacementFacts):
+        return False
+    return (
+        value.gpu_sku == approval.gpu_sku
+        and value.device_index == approval.device_index
+        and value.device_count == approval.device_count
+        and value.vram_mib >= approval.minimum_vram_mib
+        and (not approval.cuda_required or value.cuda_available)
+        and (not approval.bf16_required or value.bf16_supported)
+        and (not approval.single_device_required or value.single_device_visible)
+        and value.model_device_index == approval.device_index
+        and value.input_device_index == approval.device_index
+    )
+
+
+def _lifecycle_failure_code(
+    value: object,
+    *,
+    provision_facts: LightningProvisionFacts,
+    provision_start: float,
+    ready_finished: float,
+    ready_deadline: float,
+    session_ttl_seconds: int,
+) -> Feat018LiveSmokeFailureCode | None:
+    if not isinstance(value, LightningSessionLifecycleFacts):
+        return Feat018LiveSmokeFailureCode.LIFECYCLE_FACTS_MISSING
+    if value.session_identity != provision_facts.session_identity:
+        return Feat018LiveSmokeFailureCode.SESSION_IDENTITY_MISMATCH
+    if not (
+        provision_start <= value.session_ready_at_monotonic <= ready_finished
+        and value.session_ready_at_monotonic < ready_deadline
+    ):
+        return Feat018LiveSmokeFailureCode.LIFECYCLE_FACTS_INVALID
+    expected_ttl_deadline = _add_finite_deadline(
+        value.session_ttl_start_monotonic, float(session_ttl_seconds)
+    )
+    if expected_ttl_deadline is None or not _timestamps_match(
+        expected_ttl_deadline, value.session_ttl_deadline_monotonic
+    ):
+        return Feat018LiveSmokeFailureCode.LIFECYCLE_FACTS_INVALID
+    return None
+
+
+def _active_cap_failure_code(
+    now: float, *, ttl_deadline: float, gpu_budget_deadline: float
+) -> Feat018LiveSmokeFailureCode | None:
+    if now >= ttl_deadline:
+        return Feat018LiveSmokeFailureCode.SESSION_TTL_EXCEEDED
+    if now >= gpu_budget_deadline:
+        return Feat018LiveSmokeFailureCode.GPU_MINUTE_BUDGET_EXCEEDED
+    return None
+
+
+LightningLifecycleOperationName = Literal["provision", "wait_ready", "terminate"]
+
+
+class Feat018LifecycleOperationError(Exception):
+    """A sanitized, typed result from the host-side lifecycle process boundary."""
+
+    def __init__(
+        self,
+        failure_code: Feat018LiveSmokeFailureCode,
+        *,
+        cleanup_status: CleanupStatus = CleanupStatus.SUCCEEDED,
+    ) -> None:
+        super().__init__(failure_code.value)
+        self.failure_code = failure_code
+        self.cleanup_status = cleanup_status
+
+
+class LightningLifecycleBoundary(Protocol):
+    """Host-enforceable boundary for one controller lifecycle operation."""
+
+    def invoke(
+        self,
+        operation: LightningLifecycleOperationName,
+        *,
+        deadline: float,
+        cancellation_deadline: float,
+        session_identity: str | None = None,
+    ) -> object: ...
+
+
+def _lifecycle_timeout_code(
+    operation: LightningLifecycleOperationName,
+) -> Feat018LiveSmokeFailureCode:
+    return {
+        "provision": Feat018LiveSmokeFailureCode.PROVISION_TIMEOUT,
+        "wait_ready": Feat018LiveSmokeFailureCode.READY_TIMEOUT,
+        "terminate": Feat018LiveSmokeFailureCode.SESSION_TERMINATION_TIMEOUT,
+    }[operation]
+
+
+def _lifecycle_failed_code(
+    operation: LightningLifecycleOperationName,
+) -> Feat018LiveSmokeFailureCode:
+    return {
+        "provision": Feat018LiveSmokeFailureCode.PROVISION_FAILED,
+        "wait_ready": Feat018LiveSmokeFailureCode.READY_FAILED,
+        "terminate": Feat018LiveSmokeFailureCode.SESSION_TERMINATION_FAILED,
+    }[operation]
+
+
+def _lifecycle_cancellation_failed_code(
+    operation: LightningLifecycleOperationName,
+) -> Feat018LiveSmokeFailureCode:
+    if operation == "terminate":
+        return Feat018LiveSmokeFailureCode.SESSION_TERMINATION_CANCELLATION_FAILED
+    return Feat018LiveSmokeFailureCode.OPERATION_CANCELLATION_FAILED
+
+
+def _lifecycle_worker_dead_code(
+    operation: LightningLifecycleOperationName,
+) -> Feat018LiveSmokeFailureCode:
+    if operation == "terminate":
+        return Feat018LiveSmokeFailureCode.SESSION_TERMINATION_FAILED
+    return Feat018LiveSmokeFailureCode.LIFECYCLE_WORKER_DIED
+
+
+def _payload_mapping(value: object) -> Mapping[str, object] | None:
+    if not isinstance(value, Mapping) or any(not isinstance(key, str) for key in value):
+        return None
+    return cast(Mapping[str, object], value)
+
+
+def _payload_has_exact_keys(value: Mapping[str, object], keys: set[str]) -> bool:
+    return set(value) == keys
+
+
+def _placement_to_payload(value: LightningPlacementFacts) -> dict[str, object]:
+    return {
+        "fact_type": "placement",
+        "gpu_sku": value.gpu_sku,
+        "device_index": value.device_index,
+        "device_count": value.device_count,
+        "vram_mib": value.vram_mib,
+        "cuda_available": value.cuda_available,
+        "bf16_supported": value.bf16_supported,
+        "single_device_visible": value.single_device_visible,
+        "model_device_index": value.model_device_index,
+        "input_device_index": value.input_device_index,
+    }
+
+
+def _termination_to_payload(value: LightningTerminationFacts) -> dict[str, object]:
+    return {
+        "fact_type": "termination",
+        "termination_verified": value.termination_verified,
+        "cleanup_status": value.cleanup_status.value,
+        "session_identity": value.session_identity,
+        "session_cleanup_verified": value.session_cleanup_verified,
+    }
+
+
+def _lightning_fact_to_payload(value: object) -> dict[str, object] | None:
+    """Serialize only the closed typed lifecycle fact set across bounded JSON IPC."""
+
+    if isinstance(value, LightningPlacementFacts):
+        return _placement_to_payload(value)
+    if isinstance(value, LightningProvisionFacts):
+        return {
+            "fact_type": "provision",
+            "allocation_confirmed": value.allocation_confirmed,
+            "gpu_minute_budget_start_monotonic": value.gpu_minute_budget_start_monotonic,
+            "session_identity": value.session_identity,
+            "placement": _placement_to_payload(value.placement),
+        }
+    if isinstance(value, LightningSessionLifecycleFacts):
+        return {
+            "fact_type": "lifecycle",
+            "session_identity": value.session_identity,
+            "session_ready_at_monotonic": value.session_ready_at_monotonic,
+            "session_ttl_start_monotonic": value.session_ttl_start_monotonic,
+            "session_ttl_deadline_monotonic": value.session_ttl_deadline_monotonic,
+        }
+    if isinstance(value, LightningReadyFacts):
+        return {
+            "fact_type": "ready",
+            "readiness": value.readiness.value,
+            "lifecycle": (
+                None
+                if value.lifecycle is None
+                else _lightning_fact_to_payload(value.lifecycle)
+            ),
+        }
+    if isinstance(value, LightningTerminationFacts):
+        return _termination_to_payload(value)
+    if isinstance(value, LightningCancellationFacts):
+        return {
+            "fact_type": "cancellation",
+            "cancellation_verified": value.cancellation_verified,
+            "termination_facts": (
+                None
+                if value.termination_facts is None
+                else _termination_to_payload(value.termination_facts)
+            ),
+        }
+    return None
+
+
+def _lightning_fact_from_payload(value: object) -> object | None:
+    """Deserialize and revalidate every typed fact received from a lifecycle worker."""
+
+    payload = _payload_mapping(value)
+    if payload is None:
+        return None
+    fact_type = payload.get("fact_type")
+    try:
+        if fact_type == "placement":
+            if not _payload_has_exact_keys(
+                payload,
+                {
+                    "fact_type",
+                    "gpu_sku",
+                    "device_index",
+                    "device_count",
+                    "vram_mib",
+                    "cuda_available",
+                    "bf16_supported",
+                    "single_device_visible",
+                    "model_device_index",
+                    "input_device_index",
+                },
+            ):
+                return None
+            return LightningPlacementFacts(
+                gpu_sku=payload["gpu_sku"],  # type: ignore[arg-type]
+                device_index=payload["device_index"],  # type: ignore[arg-type]
+                device_count=payload["device_count"],  # type: ignore[arg-type]
+                vram_mib=payload["vram_mib"],  # type: ignore[arg-type]
+                cuda_available=payload["cuda_available"],  # type: ignore[arg-type]
+                bf16_supported=payload["bf16_supported"],  # type: ignore[arg-type]
+                single_device_visible=payload["single_device_visible"],  # type: ignore[arg-type]
+                model_device_index=payload["model_device_index"],  # type: ignore[arg-type]
+                input_device_index=payload["input_device_index"],  # type: ignore[arg-type]
+            )
+        if fact_type == "provision":
+            if not _payload_has_exact_keys(
+                payload,
+                {
+                    "fact_type",
+                    "allocation_confirmed",
+                    "gpu_minute_budget_start_monotonic",
+                    "session_identity",
+                    "placement",
+                },
+            ):
+                return None
+            placement = _lightning_fact_from_payload(payload["placement"])
+            if not isinstance(placement, LightningPlacementFacts):
+                return None
+            return LightningProvisionFacts(
+                allocation_confirmed=payload["allocation_confirmed"],  # type: ignore[arg-type]
+                gpu_minute_budget_start_monotonic=payload[
+                    "gpu_minute_budget_start_monotonic"
+                ],  # type: ignore[arg-type]
+                session_identity=payload["session_identity"],  # type: ignore[arg-type]
+                placement=placement,
+            )
+        if fact_type == "lifecycle":
+            if not _payload_has_exact_keys(
+                payload,
+                {
+                    "fact_type",
+                    "session_identity",
+                    "session_ready_at_monotonic",
+                    "session_ttl_start_monotonic",
+                    "session_ttl_deadline_monotonic",
+                },
+            ):
+                return None
+            return LightningSessionLifecycleFacts(
+                session_identity=payload["session_identity"],  # type: ignore[arg-type]
+                session_ready_at_monotonic=payload["session_ready_at_monotonic"],  # type: ignore[arg-type]
+                session_ttl_start_monotonic=payload["session_ttl_start_monotonic"],  # type: ignore[arg-type]
+                session_ttl_deadline_monotonic=payload["session_ttl_deadline_monotonic"],  # type: ignore[arg-type]
+            )
+        if fact_type == "ready":
+            if not _payload_has_exact_keys(payload, {"fact_type", "readiness", "lifecycle"}):
+                return None
+            lifecycle_payload = payload["lifecycle"]
+            lifecycle = (
+                None
+                if lifecycle_payload is None
+                else _lightning_fact_from_payload(lifecycle_payload)
+            )
+            if lifecycle is not None and not isinstance(
+                lifecycle, LightningSessionLifecycleFacts
+            ):
+                return None
+            return LightningReadyFacts(
+                readiness=LightningSessionReadiness(payload["readiness"]),  # type: ignore[arg-type]
+                lifecycle=lifecycle,
+            )
+        if fact_type == "termination":
+            if not _payload_has_exact_keys(
+                payload,
+                {
+                    "fact_type",
+                    "termination_verified",
+                    "cleanup_status",
+                    "session_identity",
+                    "session_cleanup_verified",
+                },
+            ):
+                return None
+            return LightningTerminationFacts(
+                termination_verified=payload["termination_verified"],  # type: ignore[arg-type]
+                cleanup_status=CleanupStatus(payload["cleanup_status"]),  # type: ignore[arg-type]
+                session_identity=payload["session_identity"],  # type: ignore[arg-type]
+                session_cleanup_verified=payload["session_cleanup_verified"],  # type: ignore[arg-type]
+            )
+        if fact_type == "cancellation":
+            if not _payload_has_exact_keys(
+                payload, {"fact_type", "cancellation_verified", "termination_facts"}
+            ):
+                return None
+            termination_payload = payload["termination_facts"]
+            termination = (
+                None
+                if termination_payload is None
+                else _lightning_fact_from_payload(termination_payload)
+            )
+            if termination is not None and not isinstance(
+                termination, LightningTerminationFacts
+            ):
+                return None
+            return LightningCancellationFacts(
+                cancellation_verified=payload["cancellation_verified"],  # type: ignore[arg-type]
+                termination_facts=termination,
+            )
+    except (TypeError, ValueError):
+        return None
+    return None
+
+
+def _send_lifecycle_frame(
+    connection: BoundedConnection, payload: Mapping[str, object]
+) -> bool:
+    try:
+        connection.send_frame(payload)
+    except Exception:  # noqa: BLE001 - worker failure is reported by bounded process death
+        return False
+    return True
+
+
+def _lightning_lifecycle_worker_entry(
+    connection: BoundedConnection,
+    controller: LightningSessionController,
+    operation: LightningLifecycleOperationName,
+    wait_timeout_seconds: float,
+    cancel_timeout_seconds: float,
+    gate_timeout_seconds: float,
+) -> None:
+    """Invoke one controller operation behind the externally killable process boundary."""
+
+    posix_worker_self_contain()
+    try:
+        release = connection.recv_frame(gate_timeout_seconds)
+    except Exception:  # noqa: BLE001 - a failed gate never invokes the controller
+        return
+    if not isinstance(release, Mapping) or not _payload_has_exact_keys(
+        cast(Mapping[str, object], release), {"kind", "remaining_seconds_at_spawn"}
+    ):
+        return
+    if release.get("kind") != "CONTAINMENT_READY" or _positive_finite_float(
+        release.get("remaining_seconds_at_spawn")
+    ) is None:
+        return
+
+    if operation not in ("provision", "wait_ready", "terminate"):
+        _send_lifecycle_frame(
+            connection,
+            {
+                "kind": "LIFECYCLE_OPERATION_FAILED",
+                "failure_kind": "call_failed",
+                "cancellation": None,
+            },
+        )
+        return
+    if not _send_lifecycle_frame(connection, {"kind": "LIFECYCLE_CALL_STARTED"}):
+        return
+
+    operation_handle: object | None = None
+    try:
+        method = getattr(controller, operation)
+        operation_handle = method()
+        wait_method = cast(LightningOperationHandle[object], operation_handle).wait
+    except Exception:  # noqa: BLE001 - controller/provider details stay out of IPC
+        _send_lifecycle_frame(
+            connection,
+            {
+                "kind": "LIFECYCLE_OPERATION_FAILED",
+                "failure_kind": "call_failed",
+                "cancellation": None,
+            },
+        )
+        return
+
+    if not _send_lifecycle_frame(connection, {"kind": "LIFECYCLE_WAIT_STARTED"}):
+        return
+    failure_kind = "failed"
+    try:
+        result = wait_method(timeout_seconds=wait_timeout_seconds)
+    except TimeoutError:
+        failure_kind = "timeout"
+    except Exception:  # noqa: BLE001 - controller/provider details stay out of IPC
+        failure_kind = "failed"
+    else:
+        payload = _lightning_fact_to_payload(result)
+        _send_lifecycle_frame(
+            connection,
+            {
+                "kind": "LIFECYCLE_OPERATION_RESULT",
+                "fact": payload or {"fact_type": "unknown"},
+            },
+        )
+        return
+
+    try:
+        cancel_method = cast(LightningOperationHandle[object], operation_handle).cancel
+    except Exception:  # noqa: BLE001 - cancellation proof must be explicit
+        cancel_method = None
+    if not _send_lifecycle_frame(connection, {"kind": "LIFECYCLE_CANCEL_STARTED"}):
+        return
+    cancellation_payload: dict[str, object] | None = None
+    if cancel_method is not None and _positive_finite_float(cancel_timeout_seconds) is not None:
+        try:
+            cancellation = cancel_method(timeout_seconds=cancel_timeout_seconds)
+        except Exception:  # noqa: BLE001 - cancellation details stay out of IPC
+            cancellation = None
+        cancellation_payload = _lightning_fact_to_payload(cancellation)
+    _send_lifecycle_frame(
+        connection,
+        {
+            "kind": "LIFECYCLE_OPERATION_FAILED",
+            "failure_kind": failure_kind
+            if cancellation_payload is not None
+            else "cancel_failed",
+            "cancellation": cancellation_payload,
+        },
+    )
+
+
+@dataclass(slots=True)
+class Feat018LightningLifecycleProcessBoundary:
+    """Run each controller lifecycle call in a killable, contained worker process.
+
+    The controller and its operation handle never execute in the coordinator process. The
+    coordinator's host clock bounds the receive loop; if ``controller.*``, ``operation.wait()``,
+    or ``operation.cancel()`` ignores its timeout and never returns, the parent terminates and
+    kills this worker and asks the same OS containment primitive to remove all descendants.
+    """
+
+    controller: LightningSessionController
+    max_envelope_bytes: int
+    containment_factory: Callable[[], ContainmentBackend]
+    cleanup_deadline_seconds: float = 5.0
+    containment_setup_timeout_seconds: float = 5.0
+    confirmation_retry_interval_seconds: float = 0.02
+    launcher: ProcessLauncher | None = field(default=None, repr=False)
+    clock: Callable[[], float] = field(default=time.monotonic, repr=False)
+    sleep: Callable[[float], None] = field(default=time.sleep, repr=False)
+
+    def __post_init__(self) -> None:
+        if type(self.max_envelope_bytes) is not int or self.max_envelope_bytes <= 0:
+            raise ValueError("max_envelope_bytes must be a positive integer")
+        for value, label in (
+            (self.cleanup_deadline_seconds, "cleanup_deadline_seconds"),
+            (self.containment_setup_timeout_seconds, "containment_setup_timeout_seconds"),
+            (self.confirmation_retry_interval_seconds, "confirmation_retry_interval_seconds"),
+        ):
+            if _positive_finite_float(value) is None:
+                raise ValueError(f"{label} must be positive and finite")
+
+    def invoke(
+        self,
+        operation: LightningLifecycleOperationName,
+        *,
+        deadline: float,
+        cancellation_deadline: float,
+        session_identity: str | None = None,
+    ) -> object:
+        if operation not in ("provision", "wait_ready", "terminate"):
+            raise Feat018LifecycleOperationError(
+                Feat018LiveSmokeFailureCode.LIFECYCLE_PROTOCOL_FAILED
+            )
+        if session_identity is not None and not _is_bounded_fact_token(session_identity):
+            raise Feat018LifecycleOperationError(
+                Feat018LiveSmokeFailureCode.LIFECYCLE_PROTOCOL_FAILED
+            )
+
+        failure: Feat018LifecycleOperationError | None = None
+        result: object | None = None
+        result_received = False
+        containment: ContainmentBackend | None = None
+        process: ProcessHandle | None = None
+        connection: BoundedConnection | None = None
+        phase = "call"
+        active_deadline = deadline
+
+        try:
+            started = self.clock()
+            if _positive_finite_float(deadline - started) is None:
+                failure = Feat018LifecycleOperationError(_lifecycle_timeout_code(operation))
+            elif _positive_finite_float(cancellation_deadline - started) is None:
+                failure = Feat018LifecycleOperationError(
+                    _lifecycle_cancellation_failed_code(operation)
+                )
+            else:
+                try:
+                    containment = self.containment_factory()
+                    containment.create()
+                except Exception:  # noqa: BLE001 - containment is a typed fail-closed gate
+                    failure = Feat018LifecycleOperationError(
+                        Feat018LiveSmokeFailureCode.LIFECYCLE_CONTAINMENT_FAILED,
+                        cleanup_status=CleanupStatus.CLEANUP_FAILED,
+                    )
+                else:
+                    remaining = _positive_finite_float(deadline - self.clock())
+                    if remaining is None:
+                        failure = Feat018LifecycleOperationError(
+                            _lifecycle_timeout_code(operation)
+                        )
+                    else:
+                        launcher = self.launcher or MultiprocessingProcessLauncher(
+                            max_envelope_bytes=self.max_envelope_bytes
+                        )
+                        process, connection = launcher.launch(
+                            _lightning_lifecycle_worker_entry,
+                            (
+                                self.controller,
+                                operation,
+                                remaining,
+                                max(0.0, cancellation_deadline - self.clock()),
+                                min(self.containment_setup_timeout_seconds, remaining),
+                            ),
+                        )
+                        gate_remaining = _positive_finite_float(deadline - self.clock())
+                        if gate_remaining is None:
+                            failure = Feat018LifecycleOperationError(
+                                _lifecycle_timeout_code(operation)
+                            )
+                        else:
+                            try:
+                                contained = containment.confirm_worker_contained(
+                                    process,
+                                    timeout=min(
+                                        self.containment_setup_timeout_seconds, gate_remaining
+                                    ),
+                                    retry_interval=self.confirmation_retry_interval_seconds,
+                                )
+                            except Exception:  # noqa: BLE001 - fail closed
+                                contained = False
+                            if not contained:
+                                failure = Feat018LifecycleOperationError(
+                                    Feat018LiveSmokeFailureCode.LIFECYCLE_CONTAINMENT_FAILED,
+                                    cleanup_status=CleanupStatus.CLEANUP_FAILED,
+                                )
+                            else:
+                                release_remaining = _positive_finite_float(
+                                    deadline - self.clock()
+                                )
+                                if release_remaining is None:
+                                    failure = Feat018LifecycleOperationError(
+                                        _lifecycle_timeout_code(operation)
+                                    )
+                                else:
+                                    try:
+                                        connection.send_frame(
+                                            {
+                                                "kind": "CONTAINMENT_READY",
+                                                "remaining_seconds_at_spawn": release_remaining,
+                                            }
+                                        )
+                                    except Exception:  # noqa: BLE001 - bounded IPC failure
+                                        failure = Feat018LifecycleOperationError(
+                                            Feat018LiveSmokeFailureCode.LIFECYCLE_PROTOCOL_FAILED
+                                        )
+                                    else:
+                                        while failure is None and not result_received:
+                                            remaining = _positive_finite_float(
+                                                active_deadline - self.clock()
+                                            )
+                                            if remaining is None:
+                                                failure = Feat018LifecycleOperationError(
+                                                    _lifecycle_cancellation_failed_code(operation)
+                                                    if phase == "cancel"
+                                                    else _lifecycle_timeout_code(operation)
+                                                )
+                                                break
+                                            try:
+                                                frame = connection.recv_frame(remaining)
+                                            except (
+                                                Feat018FrameTooLargeError,
+                                                Feat018ProtocolViolationError,
+                                            ):
+                                                failure = Feat018LifecycleOperationError(
+                                                    Feat018LiveSmokeFailureCode.LIFECYCLE_PROTOCOL_FAILED
+                                                )
+                                                break
+                                            except EOFError:
+                                                failure = Feat018LifecycleOperationError(
+                                                    _lifecycle_worker_dead_code(operation),
+                                                    cleanup_status=(
+                                                        CleanupStatus.CLEANUP_FAILED
+                                                        if operation == "terminate"
+                                                        else CleanupStatus.SUCCEEDED
+                                                    ),
+                                                )
+                                                break
+                                            except OSError:
+                                                with contextlib.suppress(Exception):
+                                                    process.join(timeout=0.05)
+                                                try:
+                                                    worker_alive = process.is_alive()
+                                                except Exception:  # noqa: BLE001 - fail closed
+                                                    worker_alive = True
+                                                failure = Feat018LifecycleOperationError(
+                                                    _lifecycle_worker_dead_code(operation)
+                                                    if not worker_alive
+                                                    else (
+                                                        Feat018LiveSmokeFailureCode.LIFECYCLE_PROTOCOL_FAILED
+                                                    ),
+                                                    cleanup_status=(
+                                                        CleanupStatus.CLEANUP_FAILED
+                                                        if not worker_alive
+                                                        and operation == "terminate"
+                                                        else CleanupStatus.SUCCEEDED
+                                                    ),
+                                                )
+                                                break
+                                            except Exception:  # noqa: BLE001 - transport is typed
+                                                failure = Feat018LifecycleOperationError(
+                                                    Feat018LiveSmokeFailureCode.LIFECYCLE_PROTOCOL_FAILED
+                                                )
+                                                break
+
+                                            observed = self.clock()
+                                            if frame is None:
+                                                try:
+                                                    worker_alive = process.is_alive()
+                                                except Exception:  # noqa: BLE001 - fail closed
+                                                    worker_alive = False
+                                                if not worker_alive:
+                                                    failure = Feat018LifecycleOperationError(
+                                                        _lifecycle_worker_dead_code(operation),
+                                                        cleanup_status=(
+                                                            CleanupStatus.CLEANUP_FAILED
+                                                            if operation == "terminate"
+                                                            else CleanupStatus.SUCCEEDED
+                                                        ),
+                                                    )
+                                                    break
+                                                if observed >= active_deadline:
+                                                    failure = Feat018LifecycleOperationError(
+                                                        _lifecycle_cancellation_failed_code(operation)
+                                                        if phase == "cancel"
+                                                        else _lifecycle_timeout_code(operation)
+                                                    )
+                                                continue
+                                            if observed >= active_deadline:
+                                                failure = Feat018LifecycleOperationError(
+                                                    _lifecycle_cancellation_failed_code(operation)
+                                                    if phase == "cancel"
+                                                    else _lifecycle_timeout_code(operation)
+                                                )
+                                                break
+                                            frame_mapping = _payload_mapping(frame)
+                                            if frame_mapping is None:
+                                                failure = Feat018LifecycleOperationError(
+                                                    Feat018LiveSmokeFailureCode.LIFECYCLE_PROTOCOL_FAILED
+                                                )
+                                                break
+                                            kind = frame_mapping.get("kind")
+                                            if kind in (
+                                                "LIFECYCLE_CALL_STARTED",
+                                                "LIFECYCLE_WAIT_STARTED",
+                                                "LIFECYCLE_CANCEL_STARTED",
+                                            ):
+                                                if not _payload_has_exact_keys(
+                                                    frame_mapping, {"kind"}
+                                                ):
+                                                    failure = Feat018LifecycleOperationError(
+                                                        Feat018LiveSmokeFailureCode.LIFECYCLE_PROTOCOL_FAILED
+                                                    )
+                                                    break
+                                                if kind == "LIFECYCLE_CANCEL_STARTED":
+                                                    phase = "cancel"
+                                                    active_deadline = cancellation_deadline
+                                                elif kind == "LIFECYCLE_WAIT_STARTED":
+                                                    phase = "wait"
+                                                continue
+                                            if kind == "LIFECYCLE_OPERATION_RESULT":
+                                                if not _payload_has_exact_keys(
+                                                    frame_mapping, {"kind", "fact"}
+                                                ):
+                                                    failure = Feat018LifecycleOperationError(
+                                                        Feat018LiveSmokeFailureCode.LIFECYCLE_PROTOCOL_FAILED
+                                                    )
+                                                    break
+                                                result = _lightning_fact_from_payload(
+                                                    frame_mapping["fact"]
+                                                )
+                                                if result is None:
+                                                    failure = Feat018LifecycleOperationError(
+                                                        Feat018LiveSmokeFailureCode.LIFECYCLE_RESULT_INVALID
+                                                    )
+                                                else:
+                                                    result_received = True
+                                                break
+                                            if kind == "LIFECYCLE_OPERATION_FAILED":
+                                                if not _payload_has_exact_keys(
+                                                    frame_mapping,
+                                                    {"kind", "failure_kind", "cancellation"},
+                                                ):
+                                                    failure = Feat018LifecycleOperationError(
+                                                        Feat018LiveSmokeFailureCode.LIFECYCLE_PROTOCOL_FAILED
+                                                    )
+                                                    break
+                                                failure_kind = frame_mapping["failure_kind"]
+                                                if failure_kind == "call_failed":
+                                                    if frame_mapping["cancellation"] is not None:
+                                                        failure = Feat018LifecycleOperationError(
+                                                            Feat018LiveSmokeFailureCode.LIFECYCLE_PROTOCOL_FAILED
+                                                        )
+                                                    else:
+                                                        failure = Feat018LifecycleOperationError(
+                                                            _lifecycle_failed_code(operation)
+                                                        )
+                                                    break
+                                                cancellation = _lightning_fact_from_payload(
+                                                    frame_mapping["cancellation"]
+                                                )
+                                                cancellation_verified = (
+                                                    isinstance(
+                                                        cancellation, LightningCancellationFacts
+                                                    )
+                                                    and cancellation.cancellation_verified is True
+                                                )
+                                                if operation == "terminate":
+                                                    cancellation_verified = (
+                                                        _termination_cancellation_was_verified(
+                                                            cancellation, session_identity
+                                                        )
+                                                    )
+                                                if not cancellation_verified or failure_kind == (
+                                                    "cancel_failed"
+                                                ):
+                                                    failure = Feat018LifecycleOperationError(
+                                                        _lifecycle_cancellation_failed_code(operation)
+                                                    )
+                                                elif failure_kind == "timeout":
+                                                    failure = Feat018LifecycleOperationError(
+                                                        _lifecycle_timeout_code(operation)
+                                                    )
+                                                elif failure_kind == "failed":
+                                                    failure = Feat018LifecycleOperationError(
+                                                        _lifecycle_failed_code(operation)
+                                                    )
+                                                else:
+                                                    failure = Feat018LifecycleOperationError(
+                                                        Feat018LiveSmokeFailureCode.LIFECYCLE_PROTOCOL_FAILED
+                                                    )
+                                                break
+                                            failure = Feat018LifecycleOperationError(
+                                                Feat018LiveSmokeFailureCode.LIFECYCLE_PROTOCOL_FAILED
+                                            )
+        except Feat018LifecycleOperationError as exc:
+            failure = exc
+        except Feat018LauncherError:
+            failure = Feat018LifecycleOperationError(
+                Feat018LiveSmokeFailureCode.LIFECYCLE_WORKER_LAUNCH_FAILED
+            )
+        except Exception:  # noqa: BLE001 - no controller or provider detail escapes
+            failure = Feat018LifecycleOperationError(
+                Feat018LiveSmokeFailureCode.LIFECYCLE_PROTOCOL_FAILED
+            )
+        finally:
+            cleanup_failed = self._cleanup_resources(process, connection, containment)
+
+        if cleanup_failed:
+            raise Feat018LifecycleOperationError(
+                Feat018LiveSmokeFailureCode.LIFECYCLE_CLEANUP_FAILED,
+                cleanup_status=CleanupStatus.CLEANUP_FAILED,
+            )
+        if failure is not None:
+            raise failure
+        if not result_received:
+            raise Feat018LifecycleOperationError(
+                Feat018LiveSmokeFailureCode.LIFECYCLE_RESULT_INVALID
+            )
+        assert result is not None
+        return result
+
+    def _cleanup_resources(
+        self,
+        process: ProcessHandle | None,
+        connection: BoundedConnection | None,
+        containment: ContainmentBackend | None,
+    ) -> bool:
+        cleanup_failed = False
+        cleanup_budget = _positive_finite_float(self.cleanup_deadline_seconds) or 0.001
+        cleanup_start = self.clock()
+        cleanup_deadline = cleanup_start + cleanup_budget
+        join_budget = max(0.001, min(1.0, cleanup_budget / 3.0))
+
+        if containment is not None:
+            try:
+                containment.terminate_all()
+            except Exception:  # noqa: BLE001 - process cleanup still proceeds
+                cleanup_failed = True
+        if process is not None and not _bounded_terminate_kill_join(
+            process, grace_seconds=join_budget, kill_join_seconds=join_budget
+        ):
+            cleanup_failed = True
+
+        if containment is not None:
+            interval = min(self.confirmation_retry_interval_seconds, 0.01)
+            while True:
+                try:
+                    empty = containment.is_empty()
+                except Exception:  # noqa: BLE001 - unknown descendants fail closed
+                    cleanup_failed = True
+                    break
+                if bool(getattr(containment, "_cleanup_failed", False)):
+                    cleanup_failed = True
+                if empty:
+                    break
+                remaining = cleanup_deadline - self.clock()
+                if _positive_finite_float(remaining) is None:
+                    cleanup_failed = True
+                    break
+                try:
+                    self.sleep(min(interval, remaining))
+                except Exception:  # noqa: BLE001 - a broken wait is cleanup failure
+                    cleanup_failed = True
+                    break
+            try:
+                containment.close()
+            except Exception:  # noqa: BLE001 - close failure is surfaced by the result
+                cleanup_failed = True
+            if bool(getattr(containment, "_cleanup_failed", False)):
+                cleanup_failed = True
+
+        if connection is not None:
+            try:
+                connection.close()
+            except Exception:  # noqa: BLE001 - close failure is surfaced by the result
+                cleanup_failed = True
+        return cleanup_failed
+
+
+# --------------------------------------------------------------------------------------
+# NON-LIVE, TEST-SEAM-ONLY cooperative-wait helpers (independent-review finding B3-3)
+#
+# The three functions below call ``operation.wait()``/``operation.cancel()`` directly in the
+# caller's own process, trusting the operation handle to honor its ``timeout_seconds`` argument.
+# That cooperative-timeout pattern is exactly what the real host-preemption boundary
+# (:class:`Feat018LightningLifecycleProcessBoundary`, above) exists to replace: a controller or
+# provider operation that ignores its timeout and never returns cannot be regained here, because
+# nothing calls these helpers from inside a killable child process.
+#
+# ``run_live_smoke`` never calls these helpers and never passes anything but the default,
+# process-isolated boundary unless a caller explicitly injects ``lifecycle_boundary=``; see
+# ``test_run_live_smoke_default_boundary_is_the_real_process_boundary_not_the_cooperative_helpers``
+# for a static proof that this stays true. The only caller of these helpers today is the
+# deterministic, fake-clock-only ``FakeInlineLightningLifecycleBoundary`` test double, which keeps
+# the pre-existing coordinator-logic regression suite (deadline budgeting, TTL/GPU-minute caps,
+# placement/session-identity checks) fast and free of real subprocess overhead. They must never be
+# wired into a live coordinator, a default parameter, or any code path that can run against a real
+# Lightning/provider session; doing so would silently reintroduce the exact non-preemptive hang
+# this module's B3 remediation closed.
+# --------------------------------------------------------------------------------------
+
+
+def _wait_for_lightning_operation[TLightOperation](
+    operation: LightningOperationHandle[TLightOperation],
+    *,
+    deadline: float,
+    clock: Callable[[], float],
+) -> TLightOperation:
+    """TEST-SEAM ONLY -- cooperative, in-process wait. Never call this from a live coordinator."""
+
+    remaining = _positive_finite_float(deadline - clock())
+    if remaining is None:
+        raise TimeoutError
+    result = operation.wait(timeout_seconds=remaining)
+    if clock() >= deadline:
+        raise TimeoutError
+    return result
+
+
+def _cancel_lightning_operation(
+    operation: LightningOperationHandle[object],
+    *,
+    deadline: float,
+    clock: Callable[[], float],
+) -> bool:
+    """TEST-SEAM ONLY -- cooperative, in-process cancel. Never call this from a live coordinator."""
+
+    remaining = _positive_finite_float(deadline - clock())
+    if remaining is None:
+        return False
+    try:
+        result = operation.cancel(timeout_seconds=remaining)
+    except Exception:  # noqa: BLE001 - cancellation proof must be explicit
+        return False
+    return clock() < deadline and isinstance(result, LightningCancellationFacts) and (
+        result.cancellation_verified is True
+    )
+
+
+def _cancel_termination_operation(
+    operation: LightningOperationHandle[LightningTerminationFacts],
+    *,
+    deadline: float,
+    clock: Callable[[], float],
+    session_identity: str | None,
+) -> bool:
+    """TEST-SEAM ONLY -- cooperative, in-process cancel. Never call this from a live coordinator."""
+
+    remaining = _positive_finite_float(deadline - clock())
+    if remaining is None:
+        return False
+    cancellation: object = None
+    try:
+        cancellation = operation.cancel(timeout_seconds=remaining)
+    except Exception:  # noqa: BLE001 - cancellation proof must be explicit
+        return False
+    return _termination_cancellation_was_verified(cancellation, session_identity) and (
+        clock() < deadline
+    )
+
+
+def _supervisor_result_is_valid(value: object) -> bool:
+    if not isinstance(value, SupervisorRunResult):
+        return False
+    if value.attempt_count is not None and (
+        type(value.attempt_count) is not int or not 0 <= value.attempt_count <= 2
+    ):
+        return False
+    if value.raw_status is not None and value.raw_status not in ("SUCCEEDED", "FAILED"):
+        return False
+    if value.raw_status is not None and value.raw_status != value.terminal_outcome:
+        return False
+    if (
+        value.final_state is ProgressState.TERMINAL
+        and value.terminal_outcome not in ("SUCCEEDED", "FAILED")
+    ):
+        return False
+    if (
+        value.final_state is not ProgressState.TERMINAL
+        and (value.terminal_outcome is not None or value.raw_status is not None)
+    ):
+        return False
+    if value.cleanup_status is CleanupStatus.CLEANUP_FAILED and (
+        value.effective_outcome is EffectiveOutcome.SUCCEEDED
+    ):
+        return False
+    success_contract = (
+        value.final_state is ProgressState.TERMINAL
+        and value.terminal_outcome == "SUCCEEDED"
+        and value.raw_status == "SUCCEEDED"
+        and value.attempt_count in (1, 2)
+        and value.cleanup_status is CleanupStatus.SUCCEEDED
+        and value.effective_outcome is EffectiveOutcome.SUCCEEDED
+        and value.primary_failure_reason is None
+    )
+    if value.terminal_outcome == "SUCCEEDED" and not success_contract:
+        return False
+    return value.effective_outcome is not EffectiveOutcome.SUCCEEDED or success_contract
+
+
+def _finalization_was_verified(value: object) -> bool:
+    return (
+        isinstance(value, LightningFinalizationFacts)
+        and value.finalization_verified is True
+        and value.evidence_pair_verified is True
+        and value.incident_handling_verified is True
+    )
+
+
+def _adapter_result_is_accepted_success(value: SupervisorRunResult) -> bool:
+    return (
+        value.final_state is ProgressState.TERMINAL
+        and value.terminal_outcome == "SUCCEEDED"
+        and value.raw_status == "SUCCEEDED"
+        and value.cleanup_status is CleanupStatus.SUCCEEDED
+        and value.effective_outcome is EffectiveOutcome.SUCCEEDED
+        and value.attempt_count in (1, 2)
+        and value.primary_failure_reason is None
+    )
+
+
+def run_live_smoke(
+    request: VisionUnderstandingRequestV2,
+    runtime_config: QwenVisionRuntimeConfig,
+    content_policy: ObservableContentPolicyV1,
+    prompt: str,
+    *,
+    controller: LightningSessionController | None = None,
+    config: Feat018LiveSmokeConfig | None = None,
+    session_id: str | None = None,
+    preflight: LightningPreflight | None = None,
+    finalizer: LightningSmokeFinalizer | None = None,
+    adapter_call: BoundedAdapterCall | None = None,
+    lifecycle_boundary: LightningLifecycleBoundary | None = None,
+    clock: Callable[[], float] = time.monotonic,
+) -> Feat018LiveSmokeResult:
+    """Coordinate one preflighted bounded session and one injected adapter call.
+
+    Every live-capable dependency is injected. Missing preflight, finalization, controller, or
+    adapter seams return a typed ``NOT_AUTHORIZED`` result before provisioning, and the adapter
+    has no real default. Controller methods execute through the default host-killable lifecycle
+    process boundary; ``clock`` is the host-side monotonic watchdog clock and is never supplied
+    by the provider. A test may inject a deterministic boundary explicitly.
+    """
+
+    if not _is_bounded_opaque_identifier(session_id):
+        return Feat018LiveSmokeResult(
+            effective_outcome=EffectiveOutcome.FAILED,
+            adapter_call_count=0,
+            attempt_count=None,
+            cleanup_status=CleanupStatus.SUCCEEDED,
+            failure_code=Feat018LiveSmokeFailureCode.NOT_AUTHORIZED,
+        )
+    assert isinstance(session_id, str)
+    if not isinstance(config, Feat018LiveSmokeConfig):
+        return Feat018LiveSmokeResult(
+            effective_outcome=EffectiveOutcome.FAILED,
+            adapter_call_count=0,
+            attempt_count=None,
+            cleanup_status=CleanupStatus.SUCCEEDED,
+            failure_code=Feat018LiveSmokeFailureCode.NOT_AUTHORIZED,
+        )
+    if controller is None:
+        return Feat018LiveSmokeResult(
+            effective_outcome=EffectiveOutcome.FAILED,
+            adapter_call_count=0,
+            attempt_count=None,
+            cleanup_status=CleanupStatus.SUCCEEDED,
+            failure_code=Feat018LiveSmokeFailureCode.CONTROLLER_MISSING,
+        )
+    if preflight is None:
+        return Feat018LiveSmokeResult(
+            effective_outcome=EffectiveOutcome.FAILED,
+            adapter_call_count=0,
+            attempt_count=None,
+            cleanup_status=CleanupStatus.SUCCEEDED,
+            failure_code=Feat018LiveSmokeFailureCode.PREFLIGHT_MISSING,
+        )
+    if finalizer is None:
+        return Feat018LiveSmokeResult(
+            effective_outcome=EffectiveOutcome.FAILED,
+            adapter_call_count=0,
+            attempt_count=None,
+            cleanup_status=CleanupStatus.SUCCEEDED,
+            failure_code=Feat018LiveSmokeFailureCode.FINALIZATION_MISSING,
+        )
+    if adapter_call is None:
+        return Feat018LiveSmokeResult(
+            effective_outcome=EffectiveOutcome.FAILED,
+            adapter_call_count=0,
+            attempt_count=None,
+            cleanup_status=CleanupStatus.SUCCEEDED,
+            failure_code=Feat018LiveSmokeFailureCode.ADAPTER_CALL_MISSING,
+        )
+
+    try:
+        preflight_facts = preflight.verify(synthetic_session_id=session_id)
+    except Exception:  # noqa: BLE001 - preflight detail never crosses this boundary
+        return Feat018LiveSmokeResult(
+            effective_outcome=EffectiveOutcome.FAILED,
+            adapter_call_count=0,
+            attempt_count=None,
+            cleanup_status=CleanupStatus.SUCCEEDED,
+            failure_code=Feat018LiveSmokeFailureCode.PREFLIGHT_FAILED,
+        )
+    if not _preflight_was_verified(preflight_facts, session_id):
+        return Feat018LiveSmokeResult(
+            effective_outcome=EffectiveOutcome.FAILED,
+            adapter_call_count=0,
+            attempt_count=None,
+            cleanup_status=CleanupStatus.SUCCEEDED,
+            failure_code=Feat018LiveSmokeFailureCode.PREFLIGHT_NOT_AUTHORIZED,
+        )
+
+    boundary = lifecycle_boundary or Feat018LightningLifecycleProcessBoundary(
+        controller=controller,
+        max_envelope_bytes=config.bounded_runner_config.ipc_envelope_max_bytes,
+        containment_factory=create_platform_containment,
+        cleanup_deadline_seconds=config.bounded_runner_config.cleanup_deadline_seconds,
+        containment_setup_timeout_seconds=(
+            config.bounded_runner_config.containment_setup_timeout_seconds
+        ),
+        confirmation_retry_interval_seconds=(
+            config.bounded_runner_config.posix_confirmation_retry_interval_seconds
+        ),
+        clock=clock,
+    )
+
+    adapter_call_count = 0
+    attempt_count: int | None = None
+    cleanup_status = CleanupStatus.SUCCEEDED
+    effective_outcome = EffectiveOutcome.FAILED
+    failure_code: Feat018LiveSmokeFailureCode | None = None
+    adapter_result: SupervisorRunResult | None = None
+    provision_started = False
+    session_ready = False
+    provision_start: float | None = None
+    ready_deadline: float | None = None
+    gpu_budget_start: float | None = None
+    ready_at: float | None = None
+    ttl_start: float | None = None
+    ttl_deadline: float | None = None
+    adapter_start: float | None = None
+    adapter_deadline: float | None = None
+    termination_deadline: float | None = None
+    session_identity: str | None = None
+    session_ready_at: float | None = None
+    placement: LightningPlacementFacts | None = None
+
+    def record_lifecycle_error(error: Feat018LifecycleOperationError) -> None:
+        nonlocal cleanup_status, effective_outcome, failure_code
+        failure_code = error.failure_code
+        if error.cleanup_status is CleanupStatus.CLEANUP_FAILED or error.failure_code in {
+            Feat018LiveSmokeFailureCode.OPERATION_CANCELLATION_FAILED,
+        }:
+            cleanup_status = CleanupStatus.CLEANUP_FAILED
+            effective_outcome = EffectiveOutcome.CLEANUP_FAILED
+
+    try:
+        # This assignment is immediately followed by the host-bounded provision invocation.
+        provision_started = True
+        provision_start = clock()
+        provision_candidate: object | None = None
+        ready_deadline = _add_finite_deadline(
+            provision_start, float(config.session_provision_timeout_seconds)
+        )
+        if ready_deadline is None:
+            failure_code = Feat018LiveSmokeFailureCode.PROVISION_TIMEOUT
+        else:
+            cancellation_deadline = _add_finite_deadline(
+                clock(), float(config.session_termination_deadline_seconds)
+            )
+            if cancellation_deadline is None:
+                failure_code = Feat018LiveSmokeFailureCode.OPERATION_CANCELLATION_FAILED
+            else:
+                try:
+                    provision_candidate = boundary.invoke(
+                        "provision",
+                        deadline=ready_deadline,
+                        cancellation_deadline=cancellation_deadline,
+                    )
+                except Feat018LifecycleOperationError as error:
+                    record_lifecycle_error(error)
+                except Exception:  # noqa: BLE001 - provider details never cross this boundary
+                    failure_code = Feat018LiveSmokeFailureCode.PROVISION_FAILED
+        if failure_code is None:
+            assert ready_deadline is not None
+            provision_finished = clock()
+            if provision_finished >= ready_deadline:
+                failure_code = Feat018LiveSmokeFailureCode.PROVISION_TIMEOUT
+            elif not isinstance(provision_candidate, LightningProvisionFacts) or not (
+                provision_candidate.allocation_confirmed
+            ):
+                failure_code = Feat018LiveSmokeFailureCode.PROVISION_FACTS_MISSING
+            elif not _placement_matches_approval(
+                provision_candidate.placement, config.placement_approval
+            ):
+                failure_code = Feat018LiveSmokeFailureCode.PLACEMENT_MISMATCH
+            else:
+                candidate_budget_start = provision_candidate.gpu_minute_budget_start_monotonic
+                if candidate_budget_start is None or (
+                    candidate_budget_start < provision_start
+                    or candidate_budget_start > provision_finished
+                    or not _is_finite_number(candidate_budget_start)
+                ):
+                    failure_code = Feat018LiveSmokeFailureCode.PROVISION_FACTS_MISSING
+                else:
+                    session_identity = provision_candidate.session_identity
+                    placement = provision_candidate.placement
+                    gpu_budget_start = candidate_budget_start
+                    gpu_budget_deadline = _add_finite_deadline(
+                        gpu_budget_start, float(config.gpu_minute_cap) * 60.0
+                    )
+                    if gpu_budget_deadline is None:
+                        failure_code = Feat018LiveSmokeFailureCode.PROVISION_FACTS_MISSING
+                    elif provision_finished >= gpu_budget_deadline:
+                        failure_code = Feat018LiveSmokeFailureCode.GPU_MINUTE_BUDGET_EXCEEDED
+                    else:
+                        remaining_ready_seconds = ready_deadline - clock()
+                        if _positive_finite_float(remaining_ready_seconds) is None:
+                            failure_code = Feat018LiveSmokeFailureCode.READY_TIMEOUT
+                        else:
+                            ready_candidate: object | None = None
+                            ready_cancellation_deadline = _add_finite_deadline(
+                                clock(),
+                                float(config.session_termination_deadline_seconds),
+                            )
+                            if ready_cancellation_deadline is None:
+                                failure_code = (
+                                    Feat018LiveSmokeFailureCode.OPERATION_CANCELLATION_FAILED
+                                )
+                            else:
+                                try:
+                                    ready_candidate = boundary.invoke(
+                                        "wait_ready",
+                                        deadline=ready_deadline,
+                                        cancellation_deadline=ready_cancellation_deadline,
+                                    )
+                                except Feat018LifecycleOperationError as error:
+                                    record_lifecycle_error(error)
+                                except Exception:  # noqa: BLE001 - provider details stay local
+                                    failure_code = Feat018LiveSmokeFailureCode.READY_FAILED
+                            if failure_code is None:
+                                ready_finished = clock()
+                                if ready_finished >= ready_deadline:
+                                    failure_code = Feat018LiveSmokeFailureCode.READY_TIMEOUT
+                                elif not isinstance(ready_candidate, LightningReadyFacts):
+                                    failure_code = Feat018LiveSmokeFailureCode.READY_FACTS_MISSING
+                                elif (
+                                    ready_candidate.readiness
+                                    is not LightningSessionReadiness.SESSION_READY
+                                ):
+                                    failure_code = Feat018LiveSmokeFailureCode.SESSION_NOT_READY
+                                else:
+                                    lifecycle_failure = _lifecycle_failure_code(
+                                        ready_candidate.lifecycle,
+                                        provision_facts=provision_candidate,
+                                        provision_start=provision_start,
+                                        ready_finished=ready_finished,
+                                        ready_deadline=ready_deadline,
+                                        session_ttl_seconds=config.session_ttl_seconds,
+                                    )
+                                    if lifecycle_failure is not None:
+                                        failure_code = lifecycle_failure
+                                    else:
+                                        assert ready_candidate.lifecycle is not None
+                                        # The TTL is taken from controller-owned lifecycle facts,
+                                        # never inferred from a readiness enum or host placeholder.
+                                        session_ready = True
+                                        ready_at = ready_finished
+                                        session_ready_at = (
+                                            ready_candidate.lifecycle.session_ready_at_monotonic
+                                        )
+                                        ttl_start = (
+                                            ready_candidate.lifecycle.session_ttl_start_monotonic
+                                        )
+                                        ttl_deadline = (
+                                            ready_candidate.lifecycle.session_ttl_deadline_monotonic
+                                        )
+                                        if ready_finished >= gpu_budget_deadline:
+                                            failure_code = (
+                                                Feat018LiveSmokeFailureCode.GPU_MINUTE_BUDGET_EXCEEDED
+                                            )
+                                        elif ready_finished >= ttl_deadline:
+                                            failure_code = (
+                                                Feat018LiveSmokeFailureCode.SESSION_TTL_EXCEEDED
+                                            )
+                                        else:
+                                            # This timestamp is the final host check before the
+                                            # call count increment and sole adapter invocation.
+                                            adapter_boundary_now = clock()
+                                            failure_code = _active_cap_failure_code(
+                                                adapter_boundary_now,
+                                                ttl_deadline=ttl_deadline,
+                                                gpu_budget_deadline=gpu_budget_deadline,
+                                            )
+                                            if failure_code is None:
+                                                adapter_start = adapter_boundary_now
+                                                adapter_deadline = _add_finite_deadline(
+                                                    adapter_start,
+                                                    config.bounded_runner_config.total_adapter_cap_seconds,
+                                                )
+                                                if adapter_deadline is None:
+                                                    failure_code = (
+                                                        Feat018LiveSmokeFailureCode.ADAPTER_CAP_EXCEEDED
+                                                    )
+                                                else:
+                                                    adapter_call_count = 1
+                                                    try:
+                                                        adapter_candidate = adapter_call(
+                                                            request,
+                                                            runtime_config,
+                                                            content_policy,
+                                                            prompt,
+                                                            config.bounded_runner_config,
+                                                            session_id=session_id,
+                                                        )
+                                                    except Exception:  # noqa: BLE001 - no adapter detail escapes
+                                                            failure_code = (
+                                                                _active_cap_failure_code(
+                                                                    clock(),
+                                                                    ttl_deadline=ttl_deadline,
+                                                                    gpu_budget_deadline=gpu_budget_deadline,
+                                                                )
+                                                                or (
+                                                                    Feat018LiveSmokeFailureCode.ADAPTER_CALL_FAILED
+                                                                )
+                                                            )
+                                                    else:
+                                                        if not _supervisor_result_is_valid(
+                                                            adapter_candidate
+                                                        ):
+                                                            failure_code = (
+                                                                Feat018LiveSmokeFailureCode.ADAPTER_RESULT_INVALID
+                                                            )
+                                                        else:
+                                                            adapter_result = adapter_candidate
+                                                            attempt_count = (
+                                                                adapter_candidate.attempt_count
+                                                            )
+                                                            adapter_cleanup_failed = (
+                                                                adapter_candidate.cleanup_status
+                                                                is CleanupStatus.CLEANUP_FAILED
+                                                            ) or (
+                                                                adapter_candidate.effective_outcome
+                                                                is EffectiveOutcome.CLEANUP_FAILED
+                                                            )
+                                                            if adapter_cleanup_failed:
+                                                                cleanup_status = (
+                                                                    CleanupStatus.CLEANUP_FAILED
+                                                                )
+                                                                failure_code = (
+                                                                    Feat018LiveSmokeFailureCode.ADAPTER_CLEANUP_FAILED
+                                                                )
+                                                            else:
+                                                                adapter_finished = clock()
+                                                                adapter_result_success = (
+                                                                    _adapter_result_is_accepted_success(
+                                                                        adapter_candidate
+                                                                    )
+                                                                )
+                                                                if (
+                                                                    adapter_finished
+                                                                    >= adapter_deadline
+                                                                ):
+                                                                    failure_code = (
+                                                                        Feat018LiveSmokeFailureCode.ADAPTER_CAP_EXCEEDED
+                                                                    )
+                                                                elif (
+                                                                    adapter_finished
+                                                                    >= ttl_deadline
+                                                                ):
+                                                                    failure_code = (
+                                                                        Feat018LiveSmokeFailureCode.SESSION_TTL_EXCEEDED
+                                                                    )
+                                                                elif (
+                                                                    adapter_finished
+                                                                    >= gpu_budget_deadline
+                                                                ):
+                                                                    failure_code = (
+                                                                        Feat018LiveSmokeFailureCode.GPU_MINUTE_BUDGET_EXCEEDED
+                                                                    )
+                                                                elif adapter_result_success:
+                                                                    effective_outcome = (
+                                                                        EffectiveOutcome.SUCCEEDED
+                                                                    )
+                                                                else:
+                                                                    failure_code = (
+                                                                        Feat018LiveSmokeFailureCode.ADAPTER_FAILED
+                                                                    )
+    except Exception:  # noqa: BLE001 - lifecycle failures remain fixed-code and cleanup continues
+        if failure_code is None:
+            failure_code = Feat018LiveSmokeFailureCode.PROVISION_FAILED
+    finally:
+        if provision_started:
+            cleanup_failed = False
+            cleanup_failure_code: Feat018LiveSmokeFailureCode | None = None
+            try:
+                cleanup_start = clock()
+                termination_deadline = _add_finite_deadline(
+                    cleanup_start, float(config.session_termination_deadline_seconds)
+                )
+                if termination_deadline is None:
+                    cleanup_failed = True
+                    cleanup_failure_code = Feat018LiveSmokeFailureCode.SESSION_TERMINATION_TIMEOUT
+                else:
+                    try:
+                        termination_candidate = boundary.invoke(
+                            "terminate",
+                            deadline=termination_deadline,
+                            cancellation_deadline=termination_deadline,
+                            session_identity=session_identity,
+                        )
+                    except Feat018LifecycleOperationError as error:
+                        cleanup_failed = True
+                        cleanup_failure_code = error.failure_code
+                    else:
+                        if not _termination_matches_session(
+                            termination_candidate, session_identity
+                        ):
+                            cleanup_failed = True
+                            cleanup_failure_code = (
+                                Feat018LiveSmokeFailureCode.SESSION_TERMINATION_FAILED
+                            )
+            except Exception:  # noqa: BLE001 - cleanup failure must still produce a typed result
+                cleanup_failed = True
+                cleanup_failure_code = Feat018LiveSmokeFailureCode.SESSION_TERMINATION_FAILED
+
+            if cleanup_failed:
+                cleanup_status = CleanupStatus.CLEANUP_FAILED
+                effective_outcome = EffectiveOutcome.CLEANUP_FAILED
+                failure_code = cleanup_failure_code or (
+                    Feat018LiveSmokeFailureCode.SESSION_TERMINATION_FAILED
+                )
+
+    if cleanup_status is CleanupStatus.CLEANUP_FAILED:
+        effective_outcome = EffectiveOutcome.CLEANUP_FAILED
+    elif effective_outcome is EffectiveOutcome.SUCCEEDED and failure_code is not None:
+        effective_outcome = EffectiveOutcome.FAILED
+    elif effective_outcome is not EffectiveOutcome.SUCCEEDED and failure_code is None:
+        failure_code = Feat018LiveSmokeFailureCode.ADAPTER_FAILED
+
+    result = Feat018LiveSmokeResult(
+        effective_outcome=effective_outcome,
+        adapter_call_count=adapter_call_count,
+        attempt_count=attempt_count,
+        cleanup_status=cleanup_status,
+        failure_code=failure_code,
+        session_ready=session_ready,
+        provision_start_monotonic=provision_start,
+        ready_deadline_monotonic=ready_deadline,
+        gpu_minute_budget_start_monotonic=gpu_budget_start,
+        ready_at_monotonic=ready_at,
+        session_ttl_start_monotonic=ttl_start,
+        session_ttl_deadline_monotonic=ttl_deadline,
+        adapter_start_monotonic=adapter_start,
+        total_adapter_cap_deadline_monotonic=adapter_deadline,
+        session_termination_deadline_monotonic=termination_deadline,
+        adapter_result=adapter_result,
+        session_identity=session_identity,
+        session_ready_at_monotonic=session_ready_at,
+        placement=placement,
+        preflight_verified=True,
+    )
+
+    try:
+        finalization_candidate = finalizer.finalize(result=result)
+    except Exception:  # noqa: BLE001 - finalization details never cross this boundary
+        finalization_candidate = None
+    if not _finalization_was_verified(finalization_candidate):
+        return replace(
+            result,
+            effective_outcome=(
+                EffectiveOutcome.CLEANUP_FAILED
+                if result.cleanup_status is CleanupStatus.CLEANUP_FAILED
+                else EffectiveOutcome.FAILED
+            ),
+            failure_code=Feat018LiveSmokeFailureCode.FINALIZATION_FAILED,
+            finalization_verified=False,
+        )
+    return replace(result, finalization_verified=True)
+
+
 def _progress_event_from_frame(frame: Mapping[str, object]) -> ProgressEvent | None:
     if not isinstance(frame, Mapping):
         return None
@@ -2330,6 +4354,9 @@ __all__ = [
     "finalize_smoke_run",
     "Feat018ArtifactInventory",
     "Feat018IncidentWriter",
+    "Feat018LiveSmokeConfig",
+    "Feat018LiveSmokeFailureCode",
+    "Feat018LiveSmokeResult",
     "Feat018EvidenceFinalizer",
     "AcceptanceResult",
     "BoundedConnection",
@@ -2346,9 +4373,28 @@ __all__ = [
     "Feat018EvidenceCommitWriter",
     "Feat018FrameTooLargeError",
     "Feat018LauncherError",
+    "Feat018LifecycleOperationError",
+    "Feat018LightningLifecycleProcessBoundary",
     "Feat018ProgressStateMachine",
     "Feat018ProtocolViolationError",
     "FilesystemOps",
+    "BoundedAdapterCall",
+    "LightningCancellationFacts",
+    "LightningFinalizationFacts",
+    "LightningLifecycleBoundary",
+    "LightningLifecycleOperationName",
+    "LightningOperationHandle",
+    "LightningPlacementApproval",
+    "LightningPlacementFacts",
+    "LightningPreflight",
+    "LightningPreflightFacts",
+    "LightningProvisionFacts",
+    "LightningReadyFacts",
+    "LightningSessionLifecycleFacts",
+    "LightningSessionController",
+    "LightningSessionReadiness",
+    "LightningSmokeFinalizer",
+    "LightningTerminationFacts",
     "MultiprocessingBoundedConnection",
     "MultiprocessingProcessLauncher",
     "PairReadResult",
@@ -2371,4 +4417,5 @@ __all__ = [
     "posix_worker_self_contain",
     "read_committed_pair",
     "run_bounded_adapter_call",
+    "run_live_smoke",
 ]

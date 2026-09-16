@@ -1,8 +1,10 @@
 """Offline tests for the FEAT-018 P2-T2 bounded-runner package (revision 5, approved scope).
 
-Every test here uses injected fakes only: fake clocks, fake process launchers, fake containment
-backends, and a fake filesystem. No test in this file loads a provider or model, touches a GPU,
-opens Lightning, uses a network, or launches a real subprocess. Retry and terminal-classification
+Most tests here use injected fakes: fake clocks, fake process launchers, fake containment backends,
+and a fake filesystem. The lifecycle-boundary tests additionally launch synthetic ``spawn`` child
+workers whose controller methods deliberately hang or exit; no real provider workload is used.
+No test in this file loads a provider or model, touches a GPU, opens Lightning, or uses a network.
+Retry and terminal-classification
 assertions exercise the real, unmodified ``QwenVisionAdapter.understand()`` with a fake
 ``QwenGenerationRunner``; fake adapters are used only for the outer-supervisor edge cases, per the
 approved package's real-adapter compatibility contract.
@@ -10,9 +12,14 @@ approved package's real-adapter compatibility contract.
 
 from __future__ import annotations
 
+import contextlib
+import inspect
 import json
 import multiprocessing
+import os
+import signal
 import stat
+import time
 from collections import deque
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
@@ -38,8 +45,25 @@ from sketch2life.benchmark.feat018_live_lightning_execution import (
     Feat018FrameTooLargeError,
     Feat018IncidentWriter,
     Feat018LauncherError,
+    Feat018LifecycleOperationError,
+    Feat018LightningLifecycleProcessBoundary,
+    Feat018LiveSmokeConfig,
+    Feat018LiveSmokeFailureCode,
+    Feat018LiveSmokeResult,
     Feat018ProgressStateMachine,
     Feat018ProtocolViolationError,
+    LightningCancellationFacts,
+    LightningFinalizationFacts,
+    LightningLifecycleOperationName,
+    LightningOperationHandle,
+    LightningPlacementApproval,
+    LightningPlacementFacts,
+    LightningPreflightFacts,
+    LightningProvisionFacts,
+    LightningReadyFacts,
+    LightningSessionLifecycleFacts,
+    LightningSessionReadiness,
+    LightningTerminationFacts,
     MultiprocessingBoundedConnection,
     MultiprocessingProcessLauncher,
     PairVerdict,
@@ -50,6 +74,9 @@ from sketch2life.benchmark.feat018_live_lightning_execution import (
     ProgressState,
     SupervisorRunResult,
     WindowsJobObjectContainment,
+    _cancel_lightning_operation,  # noqa: PLC2701 - deterministic inline-boundary test seam
+    _cancel_termination_operation,  # noqa: PLC2701 - deterministic inline-boundary test seam
+    _wait_for_lightning_operation,  # noqa: PLC2701 - deterministic inline-boundary test seam
     _Win32JobHandles,  # noqa: PLC2701 - white-box test of the ctypes binding surface (F4)
     adapter_worker_entry,
     decode_envelope,
@@ -57,7 +84,9 @@ from sketch2life.benchmark.feat018_live_lightning_execution import (
     finalize_smoke_run,
     new_evidence_id,
     new_run_id,
+    posix_worker_self_contain,
     read_committed_pair,
+    run_live_smoke,
 )
 from sketch2life.contracts.schemas.vision import (
     VisionImageReferenceV1,
@@ -102,6 +131,34 @@ class FakeClock:
 
     def set(self, value: float) -> None:
         self._now = value
+
+
+class BoundaryClock(FakeClock):
+    """Clock that jumps exactly on the coordinator's final pre-call read."""
+
+    def __init__(self, start: float = 0.0) -> None:
+        super().__init__(start)
+        self._reads_until_jump: int | None = None
+        self._jump_value = start
+
+    @property
+    def raw_now(self) -> float:
+        return self._now
+
+    def arm_jump_after_next_read(self, value: float) -> None:
+        # The operation wait helper reads the clock once, then the coordinator records
+        # ready_finished, and the third read is its final adapter boundary check.
+        self._reads_until_jump = 2
+        self._jump_value = value
+
+    def __call__(self) -> float:
+        if self._reads_until_jump is not None:
+            if self._reads_until_jump > 0:
+                self._reads_until_jump -= 1
+                return self._now
+            self._reads_until_jump = None
+            self._now = self._jump_value
+        return self._now
 
 
 @dataclass(slots=True)
@@ -253,6 +310,496 @@ class FakeContainmentBackend:
 
     def close(self) -> None:
         self.close_calls += 1
+
+
+@dataclass(slots=True)
+class FakeLightningOperation:
+    """A non-blocking operation double with bounded wait and cancellation evidence."""
+
+    clock: FakeClock
+    result: object
+    wait_advance_seconds: float = 0.0
+    cancel_result: object = field(
+        default_factory=lambda: LightningCancellationFacts(cancellation_verified=True)
+    )
+    cancel_advance_seconds: float = 0.0
+    wait_calls: list[float] = field(default_factory=list, init=False)
+    cancel_calls: list[float] = field(default_factory=list, init=False)
+
+    @staticmethod
+    def _resolve(value: object) -> object:
+        return value() if callable(value) else value
+
+    def wait(self, *, timeout_seconds: float) -> object:
+        self.wait_calls.append(timeout_seconds)
+        self.clock.advance(self.wait_advance_seconds)
+        value = self._resolve(self.result)
+        if isinstance(value, BaseException):
+            raise value
+        return value
+
+    def cancel(self, *, timeout_seconds: float) -> LightningCancellationFacts:
+        self.cancel_calls.append(timeout_seconds)
+        self.clock.advance(self.cancel_advance_seconds)
+        value = self._resolve(self.cancel_result)
+        if isinstance(value, BaseException):
+            raise value
+        return cast(LightningCancellationFacts, value)
+
+
+_UNSET_LIGHTNING_RESULT = object()
+
+
+@dataclass(slots=True)
+class FakeLightningSessionController:
+    """An independently cancellable controller double for the host coordinator."""
+
+    clock: FakeClock
+    provision_result: object = _UNSET_LIGHTNING_RESULT
+    ready_result: object = _UNSET_LIGHTNING_RESULT
+    termination_result: object = _UNSET_LIGHTNING_RESULT
+    provision_advance_seconds: float = 0.0
+    ready_advance_seconds: float = 0.0
+    termination_advance_seconds: float = 0.0
+    provision_cancel_result: object = field(
+        default_factory=lambda: LightningCancellationFacts(cancellation_verified=True)
+    )
+    ready_cancel_result: object = field(
+        default_factory=lambda: LightningCancellationFacts(cancellation_verified=True)
+    )
+    termination_cancel_result: object = _UNSET_LIGHTNING_RESULT
+    provision_calls: int = field(default=0, init=False)
+    ready_calls: int = field(default=0, init=False)
+    termination_calls: int = field(default=0, init=False)
+    provision_operations: list[FakeLightningOperation] = field(default_factory=list, init=False)
+    ready_operations: list[FakeLightningOperation] = field(default_factory=list, init=False)
+    termination_operations: list[FakeLightningOperation] = field(
+        default_factory=list, init=False
+    )
+    session_identity: str = "provider-session"
+    ttl_seconds: int = 30
+    placement: LightningPlacementFacts = field(
+        default_factory=lambda: LightningPlacementFacts(
+            gpu_sku="NVIDIA_L4",
+            device_index=0,
+            device_count=1,
+            vram_mib=24576,
+            cuda_available=True,
+            bf16_supported=True,
+            single_device_visible=True,
+            model_device_index=0,
+            input_device_index=0,
+        )
+    )
+
+    def _default_provision_result(self) -> LightningProvisionFacts:
+        return LightningProvisionFacts(
+            allocation_confirmed=True,
+            gpu_minute_budget_start_monotonic=self.clock(),
+            session_identity=self.session_identity,
+            placement=self.placement,
+        )
+
+    def _default_ready_result(self) -> LightningReadyFacts:
+        ready_at = self.clock()
+        return LightningReadyFacts(
+            readiness=LightningSessionReadiness.SESSION_READY,
+            lifecycle=LightningSessionLifecycleFacts(
+                session_identity=self.session_identity,
+                session_ready_at_monotonic=ready_at,
+                session_ttl_start_monotonic=ready_at,
+                session_ttl_deadline_monotonic=ready_at + self.ttl_seconds,
+            ),
+        )
+
+    def _default_termination_result(self) -> LightningTerminationFacts:
+        return LightningTerminationFacts(
+            termination_verified=True,
+            cleanup_status=CleanupStatus.SUCCEEDED,
+            session_identity=self.session_identity,
+            session_cleanup_verified=True,
+        )
+
+    def _default_termination_cancel_result(self) -> LightningCancellationFacts:
+        return LightningCancellationFacts(
+            cancellation_verified=True,
+            termination_facts=self._default_termination_result(),
+        )
+
+    def provision(self) -> LightningOperationHandle[LightningProvisionFacts]:
+        self.provision_calls += 1
+        result = (
+            self._default_provision_result()
+            if self.provision_result is _UNSET_LIGHTNING_RESULT
+            else self.provision_result
+        )
+        operation = FakeLightningOperation(
+            self.clock,
+            result,
+            wait_advance_seconds=self.provision_advance_seconds,
+            cancel_result=self.provision_cancel_result,
+        )
+        self.provision_operations.append(operation)
+        return cast(LightningOperationHandle[LightningProvisionFacts], operation)
+
+    def wait_ready(self) -> LightningOperationHandle[LightningReadyFacts]:
+        self.ready_calls += 1
+        result = (
+            self._default_ready_result
+            if self.ready_result is _UNSET_LIGHTNING_RESULT
+            else self.ready_result
+        )
+        operation = FakeLightningOperation(
+            self.clock,
+            result,
+            wait_advance_seconds=self.ready_advance_seconds,
+            cancel_result=self.ready_cancel_result,
+        )
+        self.ready_operations.append(operation)
+        return cast(LightningOperationHandle[LightningReadyFacts], operation)
+
+    def terminate(self) -> LightningOperationHandle[LightningTerminationFacts]:
+        self.termination_calls += 1
+        result = (
+            self._default_termination_result()
+            if self.termination_result is _UNSET_LIGHTNING_RESULT
+            else self.termination_result
+        )
+        cancel_result = (
+            self._default_termination_cancel_result()
+            if self.termination_cancel_result is _UNSET_LIGHTNING_RESULT
+            else self.termination_cancel_result
+        )
+        operation = FakeLightningOperation(
+            self.clock,
+            result,
+            wait_advance_seconds=self.termination_advance_seconds,
+            cancel_result=cancel_result,
+        )
+        self.termination_operations.append(operation)
+        return cast(LightningOperationHandle[LightningTerminationFacts], operation)
+
+
+def _synthetic_child_hang(marker: Any) -> None:
+    marker.set()
+    _synthetic_block_forever()
+
+
+def _synthetic_block_forever() -> None:
+    while True:
+        time.sleep(1.0)
+
+
+@dataclass(slots=True)
+class _ProcessLifecycleEvents:
+    provision_called: Any
+    ready_called: Any
+    terminate_called: Any
+    wait_started: Any
+    cancel_started: Any
+    descendant_started: Any
+    termination_finished: Any
+    descendant_pid: Any
+    termination_count: Any
+
+
+@dataclass(slots=True)
+class _ProcessLifecycleOperation:
+    result: object
+    wait_mode: str
+    cancel_mode: str
+    wait_started: Any
+    cancel_started: Any
+    cancel_result: object
+    wait_delay_seconds: float = 0.0
+
+    def wait(self, *, timeout_seconds: float) -> object:
+        del timeout_seconds
+        self.wait_started.set()
+        if self.wait_mode == "hang":
+            _synthetic_child_hang(self.wait_started)
+        if self.wait_mode == "die":
+            os._exit(91)
+        if self.wait_mode == "timeout":
+            raise TimeoutError
+        if self.wait_delay_seconds > 0:
+            time.sleep(self.wait_delay_seconds)
+        return self.result
+
+    def cancel(self, *, timeout_seconds: float) -> object:
+        del timeout_seconds
+        self.cancel_started.set()
+        if self.cancel_mode == "hang":
+            _synthetic_child_hang(self.cancel_started)
+        if self.cancel_mode == "die":
+            os._exit(92)
+        return self.cancel_result
+
+
+@dataclass(slots=True)
+class _ProcessLightningSessionController:
+    """Spawn-picklable synthetic controller used only to prove host preemption."""
+
+    events: _ProcessLifecycleEvents
+    provision_mode: str = "success"
+    ready_mode: str = "success"
+    termination_mode: str = "success"
+    provision_wait_mode: str = "success"
+    ready_wait_mode: str = "success"
+    termination_wait_mode: str = "success"
+    provision_cancel_mode: str = "success"
+    ready_cancel_mode: str = "success"
+    termination_cancel_mode: str = "success"
+    provision_wait_delay_seconds: float = 0.0
+    ready_wait_delay_seconds: float = 0.0
+    termination_wait_delay_seconds: float = 0.0
+    session_identity: str = "provider-session"
+    ttl_seconds: int = 30
+    placement: LightningPlacementFacts = field(
+        default_factory=lambda: LightningPlacementFacts(
+            gpu_sku="NVIDIA_L4",
+            device_index=0,
+            device_count=1,
+            vram_mib=24576,
+            cuda_available=True,
+            bf16_supported=True,
+            single_device_visible=True,
+            model_device_index=0,
+            input_device_index=0,
+        )
+    )
+
+    def _provision_result(self) -> LightningProvisionFacts:
+        return LightningProvisionFacts(
+            allocation_confirmed=True,
+            gpu_minute_budget_start_monotonic=time.monotonic(),
+            session_identity=self.session_identity,
+            placement=self.placement,
+        )
+
+    def _ready_result(self) -> LightningReadyFacts:
+        ready_at = time.monotonic()
+        return LightningReadyFacts(
+            readiness=LightningSessionReadiness.SESSION_READY,
+            lifecycle=LightningSessionLifecycleFacts(
+                session_identity=self.session_identity,
+                session_ready_at_monotonic=ready_at,
+                session_ttl_start_monotonic=ready_at,
+                session_ttl_deadline_monotonic=ready_at + self.ttl_seconds,
+            ),
+        )
+
+    def _termination_result(self) -> LightningTerminationFacts:
+        return LightningTerminationFacts(
+            termination_verified=True,
+            cleanup_status=CleanupStatus.SUCCEEDED,
+            session_identity=self.session_identity,
+            session_cleanup_verified=True,
+        )
+
+    def _termination_cancel_result(self) -> LightningCancellationFacts:
+        return LightningCancellationFacts(
+            cancellation_verified=True,
+            termination_facts=self._termination_result(),
+        )
+
+    def provision(self) -> object:
+        self.events.provision_called.set()
+        if self.provision_mode == "hang":
+            _synthetic_child_hang(self.events.provision_called)
+        if self.provision_mode == "die":
+            os._exit(93)
+        return _ProcessLifecycleOperation(
+            result=self._provision_result(),
+            wait_mode=self.provision_wait_mode,
+            cancel_mode=self.provision_cancel_mode,
+            wait_started=self.events.wait_started,
+            cancel_started=self.events.cancel_started,
+            cancel_result=LightningCancellationFacts(cancellation_verified=True),
+            wait_delay_seconds=self.provision_wait_delay_seconds,
+        )
+
+    def wait_ready(self) -> object:
+        self.events.ready_called.set()
+        if self.ready_mode == "hang":
+            _synthetic_child_hang(self.events.ready_called)
+        if self.ready_mode == "die":
+            os._exit(94)
+        return _ProcessLifecycleOperation(
+            result=self._ready_result(),
+            wait_mode=self.ready_wait_mode,
+            cancel_mode=self.ready_cancel_mode,
+            wait_started=self.events.wait_started,
+            cancel_started=self.events.cancel_started,
+            cancel_result=LightningCancellationFacts(cancellation_verified=True),
+            wait_delay_seconds=self.ready_wait_delay_seconds,
+        )
+
+    def terminate(self) -> object:
+        self.events.terminate_called.set()
+        self.events.termination_count.value += 1
+        if self.termination_mode == "hang_descendant":
+            context = multiprocessing.get_context("spawn")
+            descendant = context.Process(
+                target=_synthetic_child_hang,
+                args=(self.events.descendant_started,),
+                daemon=False,
+            )
+            descendant.start()
+            self.events.descendant_pid.value = descendant.pid or -1
+            _synthetic_block_forever()
+        if self.termination_mode == "die":
+            os._exit(95)
+        return _ProcessLifecycleOperation(
+            result=self._termination_result(),
+            wait_mode=self.termination_wait_mode,
+            cancel_mode=self.termination_cancel_mode,
+            wait_started=self.events.wait_started,
+            cancel_started=self.events.cancel_started,
+            cancel_result=self._termination_cancel_result(),
+            wait_delay_seconds=self.termination_wait_delay_seconds,
+        )
+
+
+def _process_lifecycle_events() -> _ProcessLifecycleEvents:
+    context = multiprocessing.get_context("spawn")
+    return _ProcessLifecycleEvents(
+        provision_called=context.Event(),
+        ready_called=context.Event(),
+        terminate_called=context.Event(),
+        wait_started=context.Event(),
+        cancel_started=context.Event(),
+        descendant_started=context.Event(),
+        termination_finished=context.Event(),
+        descendant_pid=context.Value("i", 0),
+        termination_count=context.Value("i", 0),
+    )
+
+
+@dataclass(slots=True)
+class FakeLightningPreflight:
+    """All-true preflight by default, with explicit failure injection."""
+
+    result: object = _UNSET_LIGHTNING_RESULT
+    calls: list[str] = field(default_factory=list, init=False)
+
+    def verify(self, *, synthetic_session_id: str) -> LightningPreflightFacts:
+        self.calls.append(synthetic_session_id)
+        value = (
+            LightningPreflightFacts(
+                synthetic_session_id=synthetic_session_id,
+                approval_identity_verified=True,
+                checkout_identity_verified=True,
+                d4_readiness_verified=True,
+                fixture_digest_verified=True,
+                prompt_hash_verified=True,
+                hardware_placement_verified=True,
+                policy_identity_verified=True,
+                runtime_inventory_verified=True,
+            )
+            if self.result is _UNSET_LIGHTNING_RESULT
+            else self.result
+        )
+        if isinstance(value, BaseException):
+            raise value
+        return cast(LightningPreflightFacts, value)
+
+
+@dataclass(slots=True)
+class FakeLiveSmokeFinalizer:
+    """Typed finalization proof double; no evidence is written by offline tests."""
+
+    result: object = _UNSET_LIGHTNING_RESULT
+    calls: list[Feat018LiveSmokeResult] = field(default_factory=list, init=False)
+
+    def finalize(self, *, result: Feat018LiveSmokeResult) -> LightningFinalizationFacts:
+        self.calls.append(result)
+        value = (
+            LightningFinalizationFacts(
+                finalization_verified=True,
+                evidence_pair_verified=True,
+                incident_handling_verified=True,
+            )
+            if self.result is _UNSET_LIGHTNING_RESULT
+            else self.result
+        )
+        if isinstance(value, BaseException):
+            raise value
+        return cast(LightningFinalizationFacts, value)
+
+
+@dataclass(slots=True)
+class FakeInlineLightningLifecycleBoundary:
+    """Deterministic test-only boundary for the pre-existing fake-clock coordinator tests.
+
+    NON-LIVE, TEST-SEAM ONLY (independent-review finding B3-3): this wires the module's
+    cooperative-wait helpers (``_wait_for_lightning_operation`` and friends), which trust the
+    operation handle to honor its own timeout, directly into a ``LightningLifecycleBoundary``.
+    ``run_live_smoke`` never constructs this class and never receives it unless a test explicitly
+    passes it as ``lifecycle_boundary=``; the real coordinator always defaults to the killable
+    :class:`Feat018LightningLifecycleProcessBoundary`. This double exists only to keep the
+    deadline/TTL/GPU-budget/placement coordinator-logic regression suite fast and deterministic
+    without real subprocess overhead -- it must never be injected into any live-capable path.
+    """
+
+    controller: FakeLightningSessionController
+    clock: FakeClock
+    cancellation_budget_seconds: float = 2.0
+
+    def invoke(
+        self,
+        operation: LightningLifecycleOperationName,
+        *,
+        deadline: float,
+        cancellation_deadline: float,
+        session_identity: str | None = None,
+    ) -> object:
+        operation_handle = getattr(self.controller, operation)()
+        try:
+            return _wait_for_lightning_operation(
+                operation_handle,
+                deadline=deadline,
+                clock=self.clock,
+            )
+        except TimeoutError:
+            if operation == "terminate":
+                cancelled = _cancel_termination_operation(
+                    operation_handle,
+                    deadline=cancellation_deadline,
+                    clock=self.clock,
+                    session_identity=session_identity,
+                )
+            else:
+                cancelled = _cancel_lightning_operation(
+                    operation_handle,
+                    deadline=self.clock() + self.cancellation_budget_seconds,
+                    clock=self.clock,
+                )
+            if not cancelled:
+                raise Feat018LifecycleOperationError(
+                    Feat018LiveSmokeFailureCode.SESSION_TERMINATION_CANCELLATION_FAILED
+                    if operation == "terminate"
+                    else Feat018LiveSmokeFailureCode.OPERATION_CANCELLATION_FAILED
+                ) from None
+            raise Feat018LifecycleOperationError(
+                Feat018LiveSmokeFailureCode.SESSION_TERMINATION_TIMEOUT
+                if operation == "terminate"
+                else (
+                    Feat018LiveSmokeFailureCode.PROVISION_TIMEOUT
+                    if operation == "provision"
+                    else Feat018LiveSmokeFailureCode.READY_TIMEOUT
+                )
+            ) from None
+        except Exception:  # noqa: BLE001 - deterministic provider failure mapping
+            raise Feat018LifecycleOperationError(
+                Feat018LiveSmokeFailureCode.SESSION_TERMINATION_FAILED
+                if operation == "terminate"
+                else (
+                    Feat018LiveSmokeFailureCode.PROVISION_FAILED
+                    if operation == "provision"
+                    else Feat018LiveSmokeFailureCode.READY_FAILED
+                )
+            ) from None
 
 
 def _no_op_entry(*_args: object) -> None:
@@ -1115,6 +1662,296 @@ class TestPosixContainmentConfirmation:
         finally:
             module._posix_killpg = original  # type: ignore[assignment]
 
+    def test_terminate_all_escalates_to_sigkill_when_the_group_ignores_sigterm(self) -> None:
+        """B3-1: one SIGTERM is not proof of termination -- a trapped/ignored SIGTERM must
+        still be followed by a SIGKILL, which cannot be caught, blocked, or ignored."""
+
+        clock = FakeClock()
+        containment = PosixProcessGroupContainment(
+            _probe=lambda pid: pid,
+            _clock=clock,
+            _sleep=lambda seconds: clock.advance(seconds),
+            sigkill_grace_seconds=0.1,
+            sigkill_poll_interval_seconds=0.02,
+        )
+        worker = FakeProcessHandle(_pid=41)
+        containment.confirm_worker_contained(worker, timeout=1.0, retry_interval=0.1)
+
+        signals_sent: list[int] = []
+        alive = {"value": True}
+
+        def killpg_stub(pgid: int, sig: int) -> None:
+            signals_sent.append(sig)
+            if sig == 9:
+                alive["value"] = False
+                return
+            if sig == 0 and not alive["value"]:
+                raise ProcessLookupError
+            # SIGTERM (15), or a liveness probe (0) while still alive: the group ignores it.
+
+        import sketch2life.benchmark.feat018_live_lightning_execution as module
+
+        original = module._posix_killpg
+        module._posix_killpg = killpg_stub  # type: ignore[assignment]
+        try:
+            containment.terminate_all()
+            assert signals_sent[0] == 15  # SIGTERM sent first
+            assert 9 in signals_sent  # escalated to SIGKILL after the bounded grace window
+            assert containment.is_empty() is True  # proven empty only after the SIGKILL
+            assert containment._cleanup_failed is False
+        finally:
+            module._posix_killpg = original  # type: ignore[assignment]
+
+    def test_terminate_all_never_blocks_longer_than_the_configured_grace_window(self) -> None:
+        """Even a group that never reports empty (SIGTERM and SIGKILL both silently ignored)
+        must not make ``terminate_all`` block past its own bounded grace window -- the caller's
+        own ``is_empty`` polling loop, not this method, owns final fail-closed proof."""
+
+        clock = FakeClock()
+        sleeps: list[float] = []
+
+        def fake_sleep(seconds: float) -> None:
+            sleeps.append(seconds)
+            clock.advance(seconds)
+
+        containment = PosixProcessGroupContainment(
+            _probe=lambda pid: pid,
+            _clock=clock,
+            _sleep=fake_sleep,
+            sigkill_grace_seconds=0.2,
+            sigkill_poll_interval_seconds=0.05,
+        )
+        worker = FakeProcessHandle(_pid=41)
+        containment.confirm_worker_contained(worker, timeout=1.0, retry_interval=0.1)
+
+        import sketch2life.benchmark.feat018_live_lightning_execution as module
+
+        original = module._posix_killpg
+        signals_sent: list[int] = []
+
+        def killpg_stub(pgid: int, sig: int) -> None:
+            signals_sent.append(sig)
+            # Every signal, including SIGKILL, is silently ignored: the group never empties.
+
+        module._posix_killpg = killpg_stub  # type: ignore[assignment]
+        try:
+            containment.terminate_all()  # must return, never spin forever
+            assert 15 in signals_sent
+            assert 9 in signals_sent
+            assert sum(sleeps) <= 0.2 + 1e-9
+            # The method never lies: it does not claim the group is empty when it is not.
+            assert containment.is_empty() is False
+        finally:
+            module._posix_killpg = original  # type: ignore[assignment]
+
+    def test_terminate_all_reports_cleanup_failed_when_sigkill_itself_errors(self) -> None:
+        clock = FakeClock()
+        containment = PosixProcessGroupContainment(
+            _probe=lambda pid: pid,
+            _clock=clock,
+            _sleep=lambda seconds: clock.advance(seconds),
+            sigkill_grace_seconds=0.05,
+            sigkill_poll_interval_seconds=0.01,
+        )
+        worker = FakeProcessHandle(_pid=41)
+        containment.confirm_worker_contained(worker, timeout=1.0, retry_interval=0.1)
+
+        def killpg_stub(pgid: int, sig: int) -> None:
+            if sig == 9:
+                raise PermissionError("escalation itself failed")
+            # SIGTERM and every liveness probe report the group as still alive.
+
+        import sketch2life.benchmark.feat018_live_lightning_execution as module
+
+        original = module._posix_killpg
+        module._posix_killpg = killpg_stub  # type: ignore[assignment]
+        try:
+            containment.terminate_all()  # must not raise; failure is reported, not thrown
+            assert containment._cleanup_failed is True
+        finally:
+            module._posix_killpg = original  # type: ignore[assignment]
+
+    def test_terminate_all_recovers_via_sigkill_when_sigterm_send_itself_fails(self) -> None:
+        """A SIGTERM *send* failure (e.g. a transient permission error, not merely a group that
+        ignores a successfully delivered SIGTERM) must not crash ``terminate_all`` or prevent the
+        SIGKILL escalation from still running and truthfully cleaning up."""
+
+        clock = FakeClock()
+        containment = PosixProcessGroupContainment(
+            _probe=lambda pid: pid,
+            _clock=clock,
+            _sleep=lambda seconds: clock.advance(seconds),
+            sigkill_grace_seconds=0.05,
+            sigkill_poll_interval_seconds=0.01,
+        )
+        worker = FakeProcessHandle(_pid=41)
+        containment.confirm_worker_contained(worker, timeout=1.0, retry_interval=0.1)
+
+        alive = {"value": True}
+
+        def killpg_stub(pgid: int, sig: int) -> None:
+            if sig == 15:
+                raise PermissionError("SIGTERM send itself failed")
+            if sig == 9:
+                alive["value"] = False
+                return
+            if sig == 0 and not alive["value"]:
+                raise ProcessLookupError
+            # sig == 0 while alive: no-op (group still alive)
+
+        import sketch2life.benchmark.feat018_live_lightning_execution as module
+
+        original = module._posix_killpg
+        module._posix_killpg = killpg_stub  # type: ignore[assignment]
+        try:
+            containment.terminate_all()  # must not raise despite the SIGTERM send failure
+            assert containment.is_empty() is True  # SIGKILL still ran and truthfully cleaned up
+            assert containment._cleanup_failed is False
+        finally:
+            module._posix_killpg = original  # type: ignore[assignment]
+
+    def test_terminate_all_sigterm_send_failure_never_reports_false_cleanup_success(self) -> None:
+        """If the SIGTERM send fails *and* the group survives the SIGKILL escalation too, the
+        method must never claim the group is empty -- fail-closed, not fail-open."""
+
+        clock = FakeClock()
+        containment = PosixProcessGroupContainment(
+            _probe=lambda pid: pid,
+            _clock=clock,
+            _sleep=lambda seconds: clock.advance(seconds),
+            sigkill_grace_seconds=0.05,
+            sigkill_poll_interval_seconds=0.01,
+        )
+        worker = FakeProcessHandle(_pid=41)
+        containment.confirm_worker_contained(worker, timeout=1.0, retry_interval=0.1)
+
+        def killpg_stub(pgid: int, sig: int) -> None:
+            if sig == 15:
+                raise PermissionError("SIGTERM send itself failed")
+            # sig == 0 or sig == 9: the group is unaffected and never reports empty.
+
+        import sketch2life.benchmark.feat018_live_lightning_execution as module
+
+        original = module._posix_killpg
+        module._posix_killpg = killpg_stub  # type: ignore[assignment]
+        try:
+            containment.terminate_all()  # must not raise
+            assert containment.is_empty() is False  # never a false success
+        finally:
+            module._posix_killpg = original  # type: ignore[assignment]
+
+
+def _posix_sigterm_resistant_descendant_entry(ready: Any) -> None:
+    """Real POSIX-only child target: traps SIGTERM, signals readiness, then blocks forever.
+
+    Must only ever run as a real spawned process inside
+    ``TestPosixContainmentRealProcessGroupEscalation``; never imported or executed on Windows.
+    """
+
+    signal.signal(signal.SIGTERM, signal.SIG_IGN)
+    ready.set()
+    while True:
+        time.sleep(1.0)
+
+
+def _posix_e2e_worker_entry(descendant_pid: Any, descendant_ready: Any, worker_ready: Any) -> None:
+    """Real POSIX-only worker target: becomes its own process group leader (the same first
+    instruction the real lifecycle worker uses), spawns a SIGTERM-resistant descendant inside that
+    same group, reports the descendant's pid back to the parent test process, then blocks forever
+    so the parent can terminate the *whole group* from outside -- exactly the shape
+    ``Feat018LightningLifecycleProcessBoundary`` relies on in production.
+    """
+
+    posix_worker_self_contain()
+    context = multiprocessing.get_context("spawn")
+    descendant = context.Process(
+        target=_posix_sigterm_resistant_descendant_entry,
+        args=(descendant_ready,),
+        daemon=False,
+    )
+    descendant.start()
+    descendant_pid.value = descendant.pid or -1
+    descendant_ready.wait(timeout=10.0)
+    worker_ready.set()
+    while True:
+        time.sleep(1.0)
+
+
+class TestPosixContainmentRealProcessGroupEscalation:
+    """A genuine POSIX end-to-end proof of ``PosixProcessGroupContainment.terminate_all()``.
+
+    Unlike every other containment test in this file, this test spawns real processes, installs a
+    real SIGTERM-ignoring handler in a real descendant, and calls the real (unmodified, not
+    monkeypatched) ``terminate_all()``/``is_empty()`` implementation, which issues real
+    ``os.killpg`` SIGTERM and SIGKILL signals. It is POSIX-only: ``os.setpgrp``, ``os.getpgid``,
+    and ``os.killpg`` do not exist on Windows, so this test is skipped there with an explicit
+    reason rather than faked -- a skip must never be reported or treated as a pass.
+    """
+
+    @pytest.mark.skipif(
+        not (hasattr(os, "setpgrp") and hasattr(os, "getpgid") and hasattr(os, "killpg")),
+        reason=(
+            "POSIX-only: os.setpgrp/os.getpgid/os.killpg are unavailable on this platform "
+            "(e.g. Windows), so real process-group SIGTERM/SIGKILL escalation cannot be "
+            "exercised here. This scenario requires a POSIX (Linux/macOS) run."
+        ),
+    )
+    def test_real_process_group_sigterm_ignored_then_sigkilled_leaves_no_orphan(self) -> None:
+        context = multiprocessing.get_context("spawn")
+        descendant_pid = context.Value("l", 0)
+        descendant_ready = context.Event()
+        worker_ready = context.Event()
+        worker = context.Process(
+            target=_posix_e2e_worker_entry,
+            args=(descendant_pid, descendant_ready, worker_ready),
+            daemon=False,
+        )
+        containment = PosixProcessGroupContainment(
+            sigkill_grace_seconds=2.0,
+            sigkill_poll_interval_seconds=0.05,
+        )
+        try:
+            worker.start()
+            contained = containment.confirm_worker_contained(
+                cast(ProcessHandle, worker), timeout=10.0, retry_interval=0.02
+            )
+            assert contained is True, "the real worker did not become its own process group"
+
+            assert worker_ready.wait(timeout=10.0), "the descendant never reported readiness"
+            child_pid = int(descendant_pid.value)
+            assert child_pid > 0
+            assert _synthetic_pid_is_alive(child_pid)
+
+            # The real, unmodified terminate_all(): real SIGTERM to the group, bounded grace
+            # polling, then real SIGKILL to the group -- no monkeypatched signal function and no
+            # fake containment anywhere in this call.
+            containment.terminate_all()
+
+            deadline = time.monotonic() + 5.0
+            while _synthetic_pid_is_alive(child_pid) and time.monotonic() < deadline:
+                time.sleep(0.02)
+            assert not _synthetic_pid_is_alive(child_pid), (
+                "the SIGTERM-resistant descendant survived real SIGKILL escalation"
+            )
+            assert containment.is_empty() is True
+            assert containment._cleanup_failed is False
+        finally:
+            # Safe, unconditional cleanup regardless of assertion outcome: never leak a real
+            # process. terminate_all() is idempotent-safe to call again; PID-based SIGKILL is a
+            # last-resort backstop if the group somehow was never fully confirmed.
+            with contextlib.suppress(Exception):
+                containment.terminate_all()
+            with contextlib.suppress(Exception):
+                if worker.is_alive():
+                    worker.kill()
+                worker.join(timeout=2.0)
+            child_pid_value = int(descendant_pid.value) if descendant_pid.value else 0
+            if child_pid_value > 0:
+                with contextlib.suppress(ProcessLookupError, OSError):
+                    os.kill(child_pid_value, signal.SIGKILL)
+            with contextlib.suppress(Exception):
+                containment.close()
+
 
 # ------------------------------------------------------------------------------------------
 # F4 -- explicit, pointer-width-safe Win32 ctypes bindings, exercised via a fake Kernel32
@@ -1687,6 +2524,1397 @@ def _supervisor(
         clock=clock,
         sleep=clock.advance,
     )
+
+
+def _successful_supervisor_result() -> SupervisorRunResult:
+    return SupervisorRunResult(
+        final_state=ProgressState.TERMINAL,
+        attempt_count=1,
+        terminal_outcome="SUCCEEDED",
+        cleanup_status=CleanupStatus.SUCCEEDED,
+        effective_outcome=EffectiveOutcome.SUCCEEDED,
+        raw_status="SUCCEEDED",
+    )
+
+
+@dataclass(slots=True)
+class FakeBoundedAdapterCall:
+    """A call-shaped double that never enters the real bounded runner."""
+
+    clock: FakeClock
+    result: SupervisorRunResult = field(default_factory=_successful_supervisor_result)
+    advance_seconds: float = 0.0
+    call_times: list[float] = field(default_factory=list, init=False)
+    arguments: list[tuple[object, ...]] = field(default_factory=list, init=False)
+
+    def __call__(
+        self,
+        request: VisionUnderstandingRequestV2,
+        runtime_config: QwenVisionRuntimeConfig,
+        content_policy: object,
+        prompt: str,
+        config: Feat018BoundedRunnerConfig,
+        *,
+        session_id: str | None = None,
+    ) -> SupervisorRunResult:
+        self.call_times.append(self.clock())
+        self.arguments.append(
+            (request, runtime_config, content_policy, prompt, config, session_id)
+        )
+        self.clock.advance(self.advance_seconds)
+        return self.result
+
+
+def _live_smoke_config(**overrides: object) -> Feat018LiveSmokeConfig:
+    defaults: dict[str, object] = {
+        "bounded_runner_config": _config(total_adapter_cap_seconds=10.0),
+        "session_provision_timeout_seconds": 5,
+        "session_ttl_seconds": 30,
+        "gpu_minute_cap": 1,
+        "session_termination_deadline_seconds": 2,
+        "placement_approval": LightningPlacementApproval(
+            gpu_sku="NVIDIA_L4",
+            device_index=0,
+            device_count=1,
+            minimum_vram_mib=1,
+            cuda_required=True,
+            bf16_required=True,
+            single_device_required=True,
+        ),
+    }
+    defaults.update(overrides)
+    return Feat018LiveSmokeConfig(**defaults)  # type: ignore[arg-type]
+
+
+def _process_live_smoke_config() -> Feat018LiveSmokeConfig:
+    return _live_smoke_config(
+        session_provision_timeout_seconds=3,
+        session_termination_deadline_seconds=2,
+        bounded_runner_config=_config(
+            total_adapter_cap_seconds=3.0,
+            cleanup_deadline_seconds=1.0,
+            containment_setup_timeout_seconds=1.0,
+        ),
+    )
+
+
+def _run_process_boundary_smoke(
+    controller: _ProcessLightningSessionController,
+    *,
+    config: Feat018LiveSmokeConfig | None = None,
+) -> tuple[Feat018LiveSmokeResult, FakeBoundedAdapterCall]:
+    adapter = FakeBoundedAdapterCall(FakeClock())
+    result = run_live_smoke(
+        _request("fixture.bin", "a" * 64),
+        QwenVisionRuntimeConfig(model_dir=Path("fixture-model-dir")),
+        _policy(),
+        "fixture prompt",
+        controller=controller,
+        config=config or _process_live_smoke_config(),
+        session_id="synthetic-session",
+        preflight=FakeLightningPreflight(),
+        finalizer=FakeLiveSmokeFinalizer(),
+        adapter_call=adapter,
+    )
+    return result, adapter
+
+
+def _synthetic_pid_is_alive(pid: int) -> bool:
+    if pid <= 0:
+        return False
+    try:
+        os.kill(pid, 0)
+    except OSError:
+        return False
+    return True
+
+
+class TestLiveSmokeProvisioningContract:
+    def _run(
+        self,
+        controller: FakeLightningSessionController,
+        adapter: FakeBoundedAdapterCall | None,
+        *,
+        config: Feat018LiveSmokeConfig | None = None,
+        preflight: FakeLightningPreflight | None | object = _UNSET_LIGHTNING_RESULT,
+        finalizer: FakeLiveSmokeFinalizer | None | object = _UNSET_LIGHTNING_RESULT,
+    ) -> Feat018LiveSmokeResult:
+        active_config = config or _live_smoke_config()
+        controller.ttl_seconds = active_config.session_ttl_seconds
+        active_preflight = (
+            FakeLightningPreflight()
+            if preflight is _UNSET_LIGHTNING_RESULT
+            else cast(FakeLightningPreflight | None, preflight)
+        )
+        active_finalizer = (
+            FakeLiveSmokeFinalizer()
+            if finalizer is _UNSET_LIGHTNING_RESULT
+            else cast(FakeLiveSmokeFinalizer | None, finalizer)
+        )
+        request = _request("fixture.bin", "a" * 64)
+        return run_live_smoke(
+            request,
+            QwenVisionRuntimeConfig(model_dir=Path("fixture-model-dir")),
+            _policy(),
+            "fixture prompt",
+            controller=controller,
+            config=active_config,
+            session_id="synthetic-session",
+            preflight=active_preflight,
+            finalizer=active_finalizer,
+            adapter_call=adapter,
+            lifecycle_boundary=FakeInlineLightningLifecycleBoundary(controller, controller.clock),
+            clock=controller.clock,
+        )
+
+    def test_successful_provisioning_reaches_session_ready(self) -> None:
+        clock = FakeClock()
+        controller = FakeLightningSessionController(clock)
+        adapter = FakeBoundedAdapterCall(clock)
+
+        result = self._run(controller, adapter)
+
+        assert result.effective_outcome is EffectiveOutcome.SUCCEEDED
+        assert result.session_ready is True
+        assert result.adapter_call_count == 1
+        assert result.attempt_count == 1
+        assert controller.provision_calls == 1
+        assert controller.ready_calls == 1
+        assert controller.termination_calls == 1
+
+    def test_provision_timeout_is_failed_and_never_calls_adapter(self) -> None:
+        clock = FakeClock()
+        controller = FakeLightningSessionController(
+            clock,
+            provision_result=TimeoutError(),
+            provision_advance_seconds=6.0,
+        )
+        adapter = FakeBoundedAdapterCall(clock)
+
+        result = self._run(controller, adapter)
+
+        assert result.effective_outcome is EffectiveOutcome.FAILED
+        assert result.failure_code is Feat018LiveSmokeFailureCode.PROVISION_TIMEOUT
+        assert result.adapter_call_count == 0
+        assert result.attempt_count is None
+        assert adapter.call_times == []
+        assert controller.ready_calls == 0
+        assert controller.termination_calls == 1
+
+    def test_wait_ready_timeout_is_failed_and_never_calls_adapter(self) -> None:
+        clock = FakeClock()
+        controller = FakeLightningSessionController(
+            clock,
+            ready_result=TimeoutError(),
+        )
+        adapter = FakeBoundedAdapterCall(clock)
+
+        result = self._run(controller, adapter)
+
+        assert result.effective_outcome is EffectiveOutcome.FAILED
+        assert result.failure_code is Feat018LiveSmokeFailureCode.READY_TIMEOUT
+        assert result.adapter_call_count == 0
+        assert result.attempt_count is None
+        assert adapter.call_times == []
+        assert controller.termination_calls == 1
+
+    def test_provisioning_exception_is_failed_and_never_calls_adapter(self) -> None:
+        clock = FakeClock()
+        controller = FakeLightningSessionController(
+            clock,
+            provision_result=RuntimeError("SECRET-provider-detail"),
+        )
+        adapter = FakeBoundedAdapterCall(clock)
+
+        result = self._run(controller, adapter)
+
+        assert result.effective_outcome is EffectiveOutcome.FAILED
+        assert result.failure_code is Feat018LiveSmokeFailureCode.PROVISION_FAILED
+        assert result.adapter_call_count == 0
+        assert result.attempt_count is None
+        assert adapter.call_times == []
+        assert controller.termination_calls == 1
+        assert "SECRET-provider-detail" not in str(result)
+
+    @pytest.mark.parametrize("failure", ["not_ready", "missing_budget", "missing_result"])
+    def test_every_pre_ready_failure_attempts_forced_termination_once_and_keeps_counts(
+        self, failure: str
+    ) -> None:
+        clock = FakeClock()
+        controller = FakeLightningSessionController(clock)
+        if failure == "not_ready":
+            controller.ready_result = LightningReadyFacts(
+                readiness=LightningSessionReadiness.NOT_READY,
+                lifecycle=None,
+            )
+        elif failure == "missing_budget":
+            controller.provision_result = LightningProvisionFacts(
+                allocation_confirmed=True,
+                gpu_minute_budget_start_monotonic=None,
+                session_identity="provider-session",
+                placement=controller.placement,
+            )
+        else:
+            controller.provision_result = None
+        adapter = FakeBoundedAdapterCall(clock)
+
+        result = self._run(controller, adapter)
+
+        assert result.effective_outcome is EffectiveOutcome.FAILED
+        assert result.adapter_call_count == 0
+        assert result.attempt_count is None
+        assert adapter.call_times == []
+        assert controller.termination_calls == 1
+
+    @pytest.mark.parametrize(
+        ("termination_result", "termination_advance_seconds"),
+        [
+            (
+                LightningTerminationFacts(
+                    termination_verified=False,
+                    cleanup_status=CleanupStatus.SUCCEEDED,
+                    session_identity="provider-session",
+                    session_cleanup_verified=False,
+                ),
+                0.0,
+            ),
+            (
+                LightningTerminationFacts(
+                    termination_verified=True,
+                    cleanup_status=CleanupStatus.SUCCEEDED,
+                    session_identity="provider-session",
+                    session_cleanup_verified=True,
+                ),
+                3.0,
+            ),
+        ],
+        ids=("verification-failure", "termination-timeout"),
+    )
+    def test_termination_failure_or_timeout_is_cleanup_failed(
+        self,
+        termination_result: LightningTerminationFacts,
+        termination_advance_seconds: float,
+    ) -> None:
+        clock = FakeClock()
+        controller = FakeLightningSessionController(
+            clock,
+            termination_result=termination_result,
+            termination_advance_seconds=termination_advance_seconds,
+        )
+        adapter = FakeBoundedAdapterCall(clock)
+
+        result = self._run(controller, adapter)
+
+        assert result.effective_outcome is EffectiveOutcome.CLEANUP_FAILED
+        assert result.cleanup_status is CleanupStatus.CLEANUP_FAILED
+        assert result.adapter_call_count == 1
+        assert controller.termination_calls == 1
+        assert result.failure_code in {
+            Feat018LiveSmokeFailureCode.SESSION_TERMINATION_FAILED,
+            Feat018LiveSmokeFailureCode.SESSION_TERMINATION_TIMEOUT,
+            Feat018LiveSmokeFailureCode.SESSION_TERMINATION_CANCELLATION_FAILED,
+        }
+
+    def test_session_ttl_starts_only_at_confirmed_session_ready(self) -> None:
+        clock = FakeClock()
+        controller = FakeLightningSessionController(
+            clock,
+            provision_advance_seconds=1.0,
+            ready_advance_seconds=2.0,
+        )
+        adapter = FakeBoundedAdapterCall(clock)
+
+        result = self._run(controller, adapter)
+
+        assert result.session_ready is True
+        assert result.ready_at_monotonic == 3.0
+        assert result.session_ttl_start_monotonic == result.ready_at_monotonic
+        assert result.session_ttl_deadline_monotonic == 33.0
+        assert result.session_ttl_start_monotonic != result.provision_start_monotonic
+
+        clock = FakeClock()
+        not_ready_controller = FakeLightningSessionController(
+            clock,
+            ready_result=LightningReadyFacts(
+                readiness=LightningSessionReadiness.NOT_READY,
+                lifecycle=None,
+            ),
+        )
+        not_ready_result = self._run(not_ready_controller, FakeBoundedAdapterCall(clock))
+        assert not_ready_result.session_ready is False
+        assert not_ready_result.session_ttl_start_monotonic is None
+        assert not_ready_result.session_ttl_deadline_monotonic is None
+
+    def test_total_adapter_cap_starts_immediately_before_adapter_invocation(self) -> None:
+        clock = FakeClock()
+        controller = FakeLightningSessionController(
+            clock,
+            provision_advance_seconds=2.0,
+            ready_advance_seconds=2.0,
+        )
+        adapter = FakeBoundedAdapterCall(clock)
+
+        result = self._run(controller, adapter)
+
+        assert adapter.call_times == [4.0]
+        assert result.adapter_start_monotonic == adapter.call_times[0]
+        assert result.total_adapter_cap_deadline_monotonic == 14.0
+
+    def test_cleanup_deadline_includes_session_termination(self) -> None:
+        clock = FakeClock()
+        controller = FakeLightningSessionController(
+            clock,
+            termination_advance_seconds=2.1,
+        )
+        adapter = FakeBoundedAdapterCall(clock)
+
+        result = self._run(controller, adapter)
+
+        assert result.effective_outcome is EffectiveOutcome.CLEANUP_FAILED
+        assert result.session_termination_deadline_monotonic == 2.0
+        assert controller.termination_calls == 1
+        assert controller.termination_operations[0].wait_calls == [2.0]
+
+    def test_ready_session_uses_the_existing_bounded_adapter_call_shape_once(self) -> None:
+        clock = FakeClock()
+        controller = FakeLightningSessionController(clock)
+        adapter = FakeBoundedAdapterCall(clock)
+        config = _live_smoke_config()
+
+        result = self._run(controller, adapter, config=config)
+
+        assert result.adapter_result is adapter.result
+        assert len(adapter.arguments) == 1
+        assert adapter.arguments[0][4] is config.bounded_runner_config
+        assert adapter.arguments[0][5] == "synthetic-session"
+        assert result.adapter_call_count == 1
+
+    @pytest.mark.parametrize(
+        "field",
+        [
+            "session_provision_timeout_seconds",
+            "session_ttl_seconds",
+            "gpu_minute_cap",
+            "session_termination_deadline_seconds",
+        ],
+    )
+    def test_session_budget_fields_are_positive_integers(self, field: str) -> None:
+        values: dict[str, object] = {field: 0}
+        with pytest.raises(ValueError, match="positive finite integer"):
+            _live_smoke_config(**values)
+
+
+class TestLiveSmokeIndependentReviewBlockers:
+    """Offline regression coverage for the independent-review blocker dispositions."""
+
+    def _run(
+        self,
+        controller: FakeLightningSessionController,
+        adapter: FakeBoundedAdapterCall | None,
+        *,
+        config: Feat018LiveSmokeConfig | None = None,
+        preflight: FakeLightningPreflight | None | object = _UNSET_LIGHTNING_RESULT,
+        finalizer: FakeLiveSmokeFinalizer | None | object = _UNSET_LIGHTNING_RESULT,
+    ) -> Feat018LiveSmokeResult:
+        active_config = config or _live_smoke_config()
+        controller.ttl_seconds = active_config.session_ttl_seconds
+        active_preflight = (
+            FakeLightningPreflight()
+            if preflight is _UNSET_LIGHTNING_RESULT
+            else cast(FakeLightningPreflight | None, preflight)
+        )
+        active_finalizer = (
+            FakeLiveSmokeFinalizer()
+            if finalizer is _UNSET_LIGHTNING_RESULT
+            else cast(FakeLiveSmokeFinalizer | None, finalizer)
+        )
+        return run_live_smoke(
+            _request("fixture.bin", "a" * 64),
+            QwenVisionRuntimeConfig(model_dir=Path("fixture-model-dir")),
+            _policy(),
+            "fixture prompt",
+            controller=controller,
+            config=active_config,
+            session_id="synthetic-session",
+            preflight=active_preflight,
+            finalizer=active_finalizer,
+            adapter_call=adapter,
+            lifecycle_boundary=FakeInlineLightningLifecycleBoundary(controller, controller.clock),
+            clock=controller.clock,
+        )
+
+    @staticmethod
+    def _all_preflight_facts(**overrides: object) -> LightningPreflightFacts:
+        values: dict[str, object] = {
+            "synthetic_session_id": "synthetic-session",
+            "approval_identity_verified": True,
+            "checkout_identity_verified": True,
+            "d4_readiness_verified": True,
+            "fixture_digest_verified": True,
+            "prompt_hash_verified": True,
+            "hardware_placement_verified": True,
+            "policy_identity_verified": True,
+            "runtime_inventory_verified": True,
+        }
+        values.update(overrides)
+        return LightningPreflightFacts(**values)  # type: ignore[arg-type]
+
+    def test_success_requires_typed_preflight_finalization_and_cancellable_handles(self) -> None:
+        clock = FakeClock()
+        controller = FakeLightningSessionController(clock)
+        preflight = FakeLightningPreflight()
+        finalizer = FakeLiveSmokeFinalizer()
+        adapter = FakeBoundedAdapterCall(clock)
+
+        result = self._run(
+            controller,
+            adapter,
+            preflight=preflight,
+            finalizer=finalizer,
+        )
+
+        assert result.is_success is True
+        assert result.preflight_verified is True
+        assert result.finalization_verified is True
+        assert preflight.calls == ["synthetic-session"]
+        assert len(finalizer.calls) == 1
+        assert controller.provision_operations[0].wait_calls == [5.0]
+        assert controller.ready_operations[0].wait_calls == [5.0]
+        assert controller.termination_operations[0].wait_calls == [2.0]
+        assert controller.termination_calls == 1
+
+    @pytest.mark.parametrize(
+        ("preflight", "expected_code"),
+        [
+            (None, Feat018LiveSmokeFailureCode.PREFLIGHT_MISSING),
+            (
+                FakeLightningPreflight(
+                    result=RuntimeError("SECRET-preflight-provider-detail")
+                ),
+                Feat018LiveSmokeFailureCode.PREFLIGHT_FAILED,
+            ),
+            (
+                FakeLightningPreflight(
+                    result=_all_preflight_facts(d4_readiness_verified=False)
+                ),
+                Feat018LiveSmokeFailureCode.PREFLIGHT_NOT_AUTHORIZED,
+            ),
+        ],
+        ids=("missing", "exception", "false-gate"),
+    )
+    def test_preflight_failure_is_before_provision_and_adapter(
+        self,
+        preflight: FakeLightningPreflight | None,
+        expected_code: Feat018LiveSmokeFailureCode,
+    ) -> None:
+        clock = FakeClock()
+        controller = FakeLightningSessionController(clock)
+        adapter = FakeBoundedAdapterCall(clock)
+
+        result = self._run(controller, adapter, preflight=preflight)
+
+        assert result.failure_code is expected_code
+        assert result.adapter_call_count == 0
+        assert result.attempt_count is None
+        assert adapter.call_times == []
+        assert controller.provision_calls == 0
+        assert controller.termination_calls == 0
+
+    def test_missing_adapter_seam_never_uses_a_real_default(self) -> None:
+        clock = FakeClock()
+        controller = FakeLightningSessionController(clock)
+
+        result = self._run(controller, None)
+
+        assert result.failure_code is Feat018LiveSmokeFailureCode.ADAPTER_CALL_MISSING
+        assert result.adapter_call_count == 0
+        assert result.attempt_count is None
+        assert controller.provision_calls == 0
+        assert controller.termination_calls == 0
+
+    def test_missing_finalizer_is_rejected_before_provision(self) -> None:
+        clock = FakeClock()
+        controller = FakeLightningSessionController(clock)
+        adapter = FakeBoundedAdapterCall(clock)
+
+        result = self._run(controller, adapter, finalizer=None)
+
+        assert result.failure_code is Feat018LiveSmokeFailureCode.FINALIZATION_MISSING
+        assert result.adapter_call_count == 0
+        assert adapter.call_times == []
+        assert controller.provision_calls == 0
+
+    @pytest.mark.parametrize(
+        "provision_result",
+        [None, {"allocation_confirmed": True}, object()],
+        ids=("missing", "mapping", "opaque-object"),
+    )
+    def test_untyped_or_missing_provision_facts_fail_closed_before_adapter(
+        self, provision_result: object
+    ) -> None:
+        clock = FakeClock()
+        controller = FakeLightningSessionController(clock, provision_result=provision_result)
+        adapter = FakeBoundedAdapterCall(clock)
+
+        result = self._run(controller, adapter)
+
+        assert result.effective_outcome is EffectiveOutcome.FAILED
+        assert result.adapter_call_count == 0
+        assert result.attempt_count is None
+        assert adapter.call_times == []
+        assert controller.ready_calls == 0
+        assert controller.termination_calls == 1
+
+    def test_placement_mismatch_is_rejected_before_readiness_and_adapter(self) -> None:
+        clock = FakeClock()
+        controller = FakeLightningSessionController(clock)
+        controller.placement = LightningPlacementFacts(
+            gpu_sku="NVIDIA_A10",
+            device_index=0,
+            device_count=1,
+            vram_mib=24576,
+            cuda_available=True,
+            bf16_supported=True,
+            single_device_visible=True,
+            model_device_index=0,
+            input_device_index=0,
+        )
+        adapter = FakeBoundedAdapterCall(clock)
+
+        result = self._run(controller, adapter)
+
+        assert result.failure_code is Feat018LiveSmokeFailureCode.PLACEMENT_MISMATCH
+        assert result.adapter_call_count == 0
+        assert controller.ready_calls == 0
+        assert adapter.call_times == []
+
+    @pytest.mark.parametrize(
+        ("ready_result", "expected_code"),
+        [
+            (object(), Feat018LiveSmokeFailureCode.READY_FACTS_MISSING),
+            (
+                LightningReadyFacts(
+                    readiness=LightningSessionReadiness.SESSION_READY,
+                    lifecycle=LightningSessionLifecycleFacts(
+                        session_identity="other-session",
+                        session_ready_at_monotonic=0.0,
+                        session_ttl_start_monotonic=0.0,
+                        session_ttl_deadline_monotonic=30.0,
+                    ),
+                ),
+                Feat018LiveSmokeFailureCode.SESSION_IDENTITY_MISMATCH,
+            ),
+            (
+                LightningReadyFacts(
+                    readiness=LightningSessionReadiness.SESSION_READY,
+                    lifecycle=LightningSessionLifecycleFacts(
+                        session_identity="provider-session",
+                        session_ready_at_monotonic=0.0,
+                        session_ttl_start_monotonic=0.0,
+                        session_ttl_deadline_monotonic=31.0,
+                    ),
+                ),
+                Feat018LiveSmokeFailureCode.LIFECYCLE_FACTS_INVALID,
+            ),
+        ],
+        ids=("missing-lifecycle-facts", "identity-mismatch", "ttl-contradiction"),
+    )
+    def test_readiness_lifecycle_facts_are_typed_and_bound(
+        self,
+        ready_result: object,
+        expected_code: Feat018LiveSmokeFailureCode,
+    ) -> None:
+        clock = FakeClock()
+        controller = FakeLightningSessionController(clock, ready_result=ready_result)
+        adapter = FakeBoundedAdapterCall(clock)
+
+        result = self._run(controller, adapter)
+
+        assert result.failure_code is expected_code
+        assert result.adapter_call_count == 0
+        assert result.attempt_count is None
+        assert adapter.call_times == []
+
+    def test_typed_fact_invariants_reject_missing_placement_lifecycle_and_cleanup_proof(
+        self,
+    ) -> None:
+        with pytest.raises(ValueError, match="placement facts are required"):
+            LightningProvisionFacts(
+                allocation_confirmed=True,
+                gpu_minute_budget_start_monotonic=0.0,
+                session_identity="provider-session",
+                placement=cast(LightningPlacementFacts, None),
+            )
+        with pytest.raises(ValueError, match="SESSION_READY requires lifecycle facts"):
+            LightningReadyFacts(
+                readiness=LightningSessionReadiness.SESSION_READY,
+                lifecycle=None,
+            )
+        with pytest.raises(ValueError, match="cleanup_status must be a CleanupStatus"):
+            LightningTerminationFacts(
+                termination_verified=True,
+                cleanup_status=cast(CleanupStatus, "SUCCEEDED"),
+                session_identity="provider-session",
+                session_cleanup_verified=True,
+            )
+
+    @pytest.mark.parametrize(
+        ("field", "value"),
+        [
+            ("device_count", 0),
+            ("vram_mib", 0),
+            ("model_device_index", 1),
+        ],
+    )
+    def test_placement_device_facts_reject_invalid_values(self, field: str, value: int) -> None:
+        values: dict[str, object] = {
+            "gpu_sku": "NVIDIA_L4",
+            "device_index": 0,
+            "device_count": 1,
+            "vram_mib": 24576,
+            "cuda_available": True,
+            "bf16_supported": True,
+            "single_device_visible": True,
+            "model_device_index": 0,
+            "input_device_index": 0,
+        }
+        values[field] = value
+        with pytest.raises(ValueError):
+            LightningPlacementFacts(**values)  # type: ignore[arg-type]
+
+    @pytest.mark.parametrize(
+        ("operation", "expected_code", "cancel_result"),
+        [
+            ("provision", Feat018LiveSmokeFailureCode.PROVISION_TIMEOUT, None),
+            ("ready", Feat018LiveSmokeFailureCode.READY_TIMEOUT, None),
+        ],
+        ids=("provision-wait-hang", "readiness-wait-hang"),
+    )
+    def test_provision_and_readiness_waits_are_bounded_and_cancelled(
+        self,
+        operation: str,
+        expected_code: Feat018LiveSmokeFailureCode,
+        cancel_result: object,
+    ) -> None:
+        del cancel_result
+        clock = FakeClock()
+        controller = FakeLightningSessionController(clock)
+        if operation == "provision":
+            controller.provision_result = TimeoutError()
+            controller.provision_advance_seconds = 5.0
+        else:
+            controller.ready_result = TimeoutError()
+            controller.ready_advance_seconds = 5.0
+        adapter = FakeBoundedAdapterCall(clock)
+
+        result = self._run(controller, adapter)
+
+        assert result.failure_code is expected_code
+        assert result.adapter_call_count == 0
+        assert adapter.call_times == []
+        assert controller.termination_calls == 1
+        if operation == "provision":
+            assert controller.provision_operations[0].wait_calls == [5.0]
+            assert controller.provision_operations[0].cancel_calls == [2.0]
+        else:
+            assert controller.ready_operations[0].wait_calls == [5.0]
+            assert controller.ready_operations[0].cancel_calls == [2.0]
+
+    def test_active_operation_cancellation_failure_overrides_cleanup(self) -> None:
+        clock = FakeClock()
+        controller = FakeLightningSessionController(
+            clock,
+            provision_result=TimeoutError(),
+            provision_advance_seconds=5.0,
+            provision_cancel_result=LightningCancellationFacts(
+                cancellation_verified=False
+            ),
+        )
+        adapter = FakeBoundedAdapterCall(clock)
+
+        result = self._run(controller, adapter)
+
+        assert result.effective_outcome is EffectiveOutcome.CLEANUP_FAILED
+        assert result.cleanup_status is CleanupStatus.CLEANUP_FAILED
+        assert result.failure_code is Feat018LiveSmokeFailureCode.OPERATION_CANCELLATION_FAILED
+        assert controller.termination_calls == 1
+
+    @pytest.mark.parametrize(
+        ("termination_result", "termination_advance_seconds", "cancel_result", "expected"),
+        [
+            (
+                TimeoutError(),
+                0.0,
+                LightningCancellationFacts(
+                    cancellation_verified=True,
+                    termination_facts=LightningTerminationFacts(
+                        termination_verified=True,
+                        cleanup_status=CleanupStatus.SUCCEEDED,
+                        session_identity="provider-session",
+                        session_cleanup_verified=True,
+                    ),
+                ),
+                Feat018LiveSmokeFailureCode.SESSION_TERMINATION_TIMEOUT,
+            ),
+            (
+                TimeoutError(),
+                0.0,
+                LightningCancellationFacts(cancellation_verified=False),
+                Feat018LiveSmokeFailureCode.SESSION_TERMINATION_CANCELLATION_FAILED,
+            ),
+            (
+                TimeoutError(),
+                2.0,
+                LightningCancellationFacts(cancellation_verified=True),
+                Feat018LiveSmokeFailureCode.SESSION_TERMINATION_CANCELLATION_FAILED,
+            ),
+        ],
+        ids=("timeout-cancelled", "cancellation-proof-failed", "deadline-exhausted"),
+    )
+    def test_termination_wait_and_cancellation_are_bounded(
+        self,
+        termination_result: object,
+        termination_advance_seconds: float,
+        cancel_result: object,
+        expected: Feat018LiveSmokeFailureCode,
+    ) -> None:
+        clock = FakeClock()
+        controller = FakeLightningSessionController(
+            clock,
+            termination_result=termination_result,
+            termination_advance_seconds=termination_advance_seconds,
+            termination_cancel_result=cancel_result,
+        )
+        adapter = FakeBoundedAdapterCall(clock)
+
+        result = self._run(controller, adapter)
+
+        assert result.effective_outcome is EffectiveOutcome.CLEANUP_FAILED
+        assert result.cleanup_status is CleanupStatus.CLEANUP_FAILED
+        assert result.failure_code is expected
+        assert controller.termination_calls == 1
+        if termination_advance_seconds == 0.0:
+            assert controller.termination_operations[0].cancel_calls == [2.0]
+        else:
+            assert controller.termination_operations[0].cancel_calls == []
+
+    def test_bare_true_termination_is_not_cleanup_proof(self) -> None:
+        clock = FakeClock()
+        controller = FakeLightningSessionController(clock, termination_result=True)
+        adapter = FakeBoundedAdapterCall(clock)
+
+        result = self._run(controller, adapter)
+
+        assert result.adapter_call_count == 1
+        assert result.attempt_count == 1
+        assert result.effective_outcome is EffectiveOutcome.CLEANUP_FAILED
+        assert result.failure_code is Feat018LiveSmokeFailureCode.SESSION_TERMINATION_FAILED
+        assert controller.termination_calls == 1
+
+    @pytest.mark.parametrize(
+        ("cap_kind", "expected_code", "session_ttl_seconds"),
+        [
+            ("ttl", Feat018LiveSmokeFailureCode.SESSION_TTL_EXCEEDED, 30),
+            ("gpu", Feat018LiveSmokeFailureCode.GPU_MINUTE_BUDGET_EXCEEDED, 120),
+        ],
+        ids=("ttl-boundary", "gpu-minute-boundary"),
+    )
+    def test_caps_are_rechecked_at_the_exact_pre_adapter_boundary(
+        self,
+        cap_kind: str,
+        expected_code: Feat018LiveSmokeFailureCode,
+        session_ttl_seconds: int,
+    ) -> None:
+        clock = BoundaryClock()
+        controller = FakeLightningSessionController(clock)
+
+        def ready_result() -> LightningReadyFacts:
+            ready_at = clock.raw_now
+            boundary = ready_at + (30.0 if cap_kind == "ttl" else 60.0)
+            clock.arm_jump_after_next_read(boundary)
+            return LightningReadyFacts(
+                readiness=LightningSessionReadiness.SESSION_READY,
+                lifecycle=LightningSessionLifecycleFacts(
+                    session_identity="provider-session",
+                    session_ready_at_monotonic=ready_at,
+                    session_ttl_start_monotonic=ready_at,
+                    session_ttl_deadline_monotonic=ready_at + session_ttl_seconds,
+                ),
+            )
+
+        controller.ready_result = ready_result
+        adapter = FakeBoundedAdapterCall(clock)
+
+        result = self._run(
+            controller,
+            adapter,
+            config=_live_smoke_config(session_ttl_seconds=session_ttl_seconds),
+        )
+
+        assert result.failure_code is expected_code
+        assert result.adapter_call_count == 0
+        assert result.attempt_count is None
+        assert adapter.call_times == []
+        assert controller.termination_calls == 1
+
+    @pytest.mark.parametrize(
+        "adapter_result",
+        [
+            SupervisorRunResult(
+                final_state=ProgressState.TERMINAL,
+                attempt_count=3,
+                terminal_outcome="SUCCEEDED",
+                cleanup_status=CleanupStatus.SUCCEEDED,
+                effective_outcome=EffectiveOutcome.SUCCEEDED,
+                raw_status="SUCCEEDED",
+            ),
+            SupervisorRunResult(
+                final_state=ProgressState.FROZEN,
+                attempt_count=1,
+                terminal_outcome=None,
+                cleanup_status=CleanupStatus.SUCCEEDED,
+                effective_outcome=EffectiveOutcome.SUCCEEDED,
+                raw_status=None,
+            ),
+        ],
+        ids=("attempt-count-out-of-range", "contradictory-success"),
+    )
+    def test_malformed_supervisor_result_is_rejected_without_copying_attempt_count(
+        self, adapter_result: SupervisorRunResult
+    ) -> None:
+        clock = FakeClock()
+        controller = FakeLightningSessionController(clock)
+        adapter = FakeBoundedAdapterCall(clock, result=adapter_result)
+
+        result = self._run(controller, adapter)
+
+        assert result.failure_code is Feat018LiveSmokeFailureCode.ADAPTER_RESULT_INVALID
+        assert result.adapter_call_count == 1
+        assert result.attempt_count is None
+        assert result.adapter_result is None
+        assert result.effective_outcome is EffectiveOutcome.FAILED
+
+    @pytest.mark.parametrize(
+        "finalizer",
+        [
+            FakeLiveSmokeFinalizer(result=RuntimeError("SECRET-finalizer-detail")),
+            FakeLiveSmokeFinalizer(
+                result=LightningFinalizationFacts(
+                    finalization_verified=False,
+                    evidence_pair_verified=True,
+                    incident_handling_verified=True,
+                )
+            ),
+        ],
+        ids=("exception", "unverified"),
+    )
+    def test_finalization_failure_cannot_report_success(
+        self, finalizer: FakeLiveSmokeFinalizer
+    ) -> None:
+        clock = FakeClock()
+        controller = FakeLightningSessionController(clock)
+        adapter = FakeBoundedAdapterCall(clock)
+
+        result = self._run(controller, adapter, finalizer=finalizer)
+
+        assert result.effective_outcome is EffectiveOutcome.FAILED
+        assert result.failure_code is Feat018LiveSmokeFailureCode.FINALIZATION_FAILED
+        assert result.finalization_verified is False
+        assert result.adapter_call_count == 1
+        assert len(finalizer.calls) == 1
+
+
+# ------------------------------------------------------------------------------------------
+# B3 -- actual host preemption of the lifecycle boundary
+# ------------------------------------------------------------------------------------------
+
+
+class TestLiveSmokeHostPreemption:
+    """Use real synthetic child workers to prove the host can regain control."""
+
+    def test_provision_method_that_never_returns_is_preempted_before_adapter(self) -> None:
+        events = _process_lifecycle_events()
+        controller = _ProcessLightningSessionController(events, provision_mode="hang")
+        started = time.monotonic()
+
+        result, adapter = _run_process_boundary_smoke(controller)
+
+        elapsed = time.monotonic() - started
+        assert elapsed < 10.0
+        assert result.failure_code is Feat018LiveSmokeFailureCode.PROVISION_TIMEOUT
+        assert result.effective_outcome is EffectiveOutcome.FAILED
+        assert result.cleanup_status is CleanupStatus.SUCCEEDED
+        assert result.session_ready is False
+        assert result.adapter_call_count == 0
+        assert result.attempt_count is None
+        assert adapter.call_times == []
+        assert events.provision_called.is_set()
+        assert events.terminate_called.is_set()
+        assert events.termination_count.value == 1
+
+    def test_readiness_method_that_never_returns_is_preempted_before_adapter(self) -> None:
+        events = _process_lifecycle_events()
+        controller = _ProcessLightningSessionController(events, ready_mode="hang")
+        started = time.monotonic()
+
+        result, adapter = _run_process_boundary_smoke(controller)
+
+        elapsed = time.monotonic() - started
+        assert elapsed < 10.0
+        assert result.failure_code is Feat018LiveSmokeFailureCode.READY_TIMEOUT
+        assert result.effective_outcome is EffectiveOutcome.FAILED
+        assert result.cleanup_status is CleanupStatus.SUCCEEDED
+        assert result.adapter_call_count == 0
+        assert result.attempt_count is None
+        assert adapter.call_times == []
+        assert events.provision_called.is_set()
+        assert events.ready_called.is_set()
+        assert events.terminate_called.is_set()
+        assert events.termination_count.value == 1
+
+    @pytest.mark.parametrize(
+        ("operation", "expected_code"),
+        [
+            ("provision", Feat018LiveSmokeFailureCode.PROVISION_TIMEOUT),
+            ("wait_ready", Feat018LiveSmokeFailureCode.READY_TIMEOUT),
+        ],
+        ids=("provision-wait", "readiness-wait"),
+    )
+    def test_operation_wait_that_never_returns_is_host_preempted(
+        self,
+        operation: str,
+        expected_code: Feat018LiveSmokeFailureCode,
+    ) -> None:
+        events = _process_lifecycle_events()
+        controller = _ProcessLightningSessionController(
+            events,
+            provision_wait_mode="hang" if operation == "provision" else "success",
+            ready_wait_mode="hang" if operation == "wait_ready" else "success",
+        )
+        started = time.monotonic()
+
+        result, adapter = _run_process_boundary_smoke(controller)
+
+        elapsed = time.monotonic() - started
+        assert elapsed < 10.0
+        assert result.failure_code is expected_code
+        assert result.adapter_call_count == 0
+        assert result.attempt_count is None
+        assert adapter.call_times == []
+        assert events.wait_started.is_set()
+        assert events.terminate_called.is_set()
+        assert events.termination_count.value == 1
+
+    def test_operation_cancel_that_never_returns_is_host_preempted_and_fails_closed(
+        self,
+    ) -> None:
+        events = _process_lifecycle_events()
+        controller = _ProcessLightningSessionController(
+            events,
+            provision_wait_mode="timeout",
+            provision_cancel_mode="hang",
+        )
+        started = time.monotonic()
+
+        result, adapter = _run_process_boundary_smoke(controller)
+
+        elapsed = time.monotonic() - started
+        assert elapsed < 10.0
+        assert result.failure_code is Feat018LiveSmokeFailureCode.OPERATION_CANCELLATION_FAILED
+        assert result.effective_outcome is EffectiveOutcome.CLEANUP_FAILED
+        assert result.cleanup_status is CleanupStatus.CLEANUP_FAILED
+        assert result.adapter_call_count == 0
+        assert result.attempt_count is None
+        assert adapter.call_times == []
+        assert events.wait_started.is_set()
+        assert events.cancel_started.is_set()
+        assert events.terminate_called.is_set()
+        assert events.termination_count.value == 1
+
+    def test_worker_death_before_reply_is_typed_and_does_not_call_adapter(self) -> None:
+        events = _process_lifecycle_events()
+        controller = _ProcessLightningSessionController(events, provision_mode="die")
+
+        result, adapter = _run_process_boundary_smoke(controller)
+
+        assert result.failure_code is Feat018LiveSmokeFailureCode.LIFECYCLE_WORKER_DIED
+        assert result.effective_outcome is EffectiveOutcome.FAILED
+        assert result.cleanup_status is CleanupStatus.SUCCEEDED
+        assert result.adapter_call_count == 0
+        assert result.attempt_count is None
+        assert adapter.call_times == []
+        assert events.provision_called.is_set()
+        assert events.terminate_called.is_set()
+        assert events.termination_count.value == 1
+
+    def test_late_operation_result_is_rejected_at_the_host_deadline(self) -> None:
+        events = _process_lifecycle_events()
+        controller = _ProcessLightningSessionController(
+            events, provision_wait_delay_seconds=4.0
+        )
+        config = _process_live_smoke_config()
+        started = time.monotonic()
+
+        result, adapter = _run_process_boundary_smoke(controller, config=config)
+
+        elapsed = time.monotonic() - started
+        assert elapsed < 10.0
+        assert result.failure_code is Feat018LiveSmokeFailureCode.PROVISION_TIMEOUT
+        assert result.adapter_call_count == 0
+        assert result.attempt_count is None
+        assert adapter.call_times == []
+        assert events.terminate_called.is_set()
+        assert events.termination_count.value == 1
+
+    def test_termination_hang_is_cleanup_failed_and_descendant_is_removed(self) -> None:
+        events = _process_lifecycle_events()
+        controller = _ProcessLightningSessionController(
+            events, termination_mode="hang_descendant"
+        )
+        started = time.monotonic()
+
+        result, adapter = _run_process_boundary_smoke(controller)
+
+        elapsed = time.monotonic() - started
+        assert elapsed < 10.0
+        assert result.failure_code is Feat018LiveSmokeFailureCode.SESSION_TERMINATION_TIMEOUT
+        assert result.effective_outcome is EffectiveOutcome.CLEANUP_FAILED
+        assert result.cleanup_status is CleanupStatus.CLEANUP_FAILED
+        assert result.adapter_call_count == 1
+        assert result.attempt_count == 1
+        assert adapter.call_times
+        assert events.terminate_called.is_set()
+        assert events.termination_count.value == 1
+        assert events.descendant_started.is_set()
+        descendant_pid = int(events.descendant_pid.value)
+        deadline = time.monotonic() + 3.0
+        while _synthetic_pid_is_alive(descendant_pid) and time.monotonic() < deadline:
+            time.sleep(0.02)
+        assert not _synthetic_pid_is_alive(descendant_pid)
+        assert not events.termination_finished.is_set()
+
+    def test_normal_success_through_process_boundary_preserves_counts_and_facts(self) -> None:
+        events = _process_lifecycle_events()
+        controller = _ProcessLightningSessionController(events)
+
+        result, adapter = _run_process_boundary_smoke(controller)
+
+        assert result.is_success is True
+        assert result.session_ready is True
+        assert result.adapter_call_count == 1
+        assert result.attempt_count == 1
+        assert result.session_identity == "provider-session"
+        assert result.placement is not None
+        assert adapter.call_times
+        assert events.provision_called.is_set()
+        assert events.ready_called.is_set()
+        assert events.terminate_called.is_set()
+        assert events.termination_count.value == 1
+
+
+# ------------------------------------------------------------------------------------------
+# B3-1 -- containment cleanup fail-closed, and cleanup failure overriding a prior success
+# ------------------------------------------------------------------------------------------
+
+
+class TestLightningLifecycleProcessBoundaryCleanupFailure:
+    """A containment that can never be proven empty must fail closed (never report success
+    while a member remains), and that failure must override an otherwise successfully returned
+    lifecycle result (independent-review finding B3-1)."""
+
+    def test_cleanup_resources_fails_closed_when_containment_never_proves_empty(self) -> None:
+        clock = FakeClock()
+        containment = FakeContainmentBackend(empty_after_terminate=False)
+        boundary = Feat018LightningLifecycleProcessBoundary(
+            controller=FakeLightningSessionController(clock=FakeClock()),
+            max_envelope_bytes=1_000_000,
+            containment_factory=lambda: containment,
+            cleanup_deadline_seconds=0.05,
+            confirmation_retry_interval_seconds=0.01,
+            clock=clock,
+            sleep=lambda seconds: clock.advance(seconds),
+        )
+
+        cleanup_failed = boundary._cleanup_resources(None, None, containment)
+
+        assert cleanup_failed is True
+        assert containment.terminate_calls == 1  # exactly-once cleanup, even on failure
+        assert containment.close_calls == 1
+
+    def test_cleanup_failure_overrides_a_successfully_returned_lifecycle_result(self) -> None:
+        """The lifecycle call itself genuinely succeeds (a real worker replies with a valid
+        result), but the containment can never be proven empty -- the final outcome must still
+        be a typed cleanup failure, never the successful result."""
+
+        events = _process_lifecycle_events()
+        controller = _ProcessLightningSessionController(events)
+        containment = FakeContainmentBackend(confirm_result=True, empty_after_terminate=False)
+        boundary = Feat018LightningLifecycleProcessBoundary(
+            controller=controller,
+            max_envelope_bytes=1_000_000,
+            containment_factory=lambda: containment,
+            cleanup_deadline_seconds=0.2,
+            containment_setup_timeout_seconds=5.0,
+            confirmation_retry_interval_seconds=0.01,
+        )
+        started = time.monotonic()
+        deadline = started + 10.0
+
+        with pytest.raises(Feat018LifecycleOperationError) as exc_info:
+            boundary.invoke("provision", deadline=deadline, cancellation_deadline=deadline)
+
+        elapsed = time.monotonic() - started
+        assert elapsed < 10.0
+        assert exc_info.value.failure_code is Feat018LiveSmokeFailureCode.LIFECYCLE_CLEANUP_FAILED
+        assert exc_info.value.cleanup_status is CleanupStatus.CLEANUP_FAILED
+        assert events.provision_called.is_set()  # the underlying operation genuinely succeeded
+        assert containment.terminate_calls == 1  # exactly-once cleanup
+        assert containment.close_calls == 1
+
+
+# ------------------------------------------------------------------------------------------
+# B3-2 -- IPC lifecycle-frame parser negative coverage
+# ------------------------------------------------------------------------------------------
+
+
+@dataclass(slots=True)
+class _LateArrivalConnection:
+    """Wraps a :class:`FakeBoundedConnection`, jumping the shared clock forward the instant the
+    scripted terminal frame is popped -- simulating a reply that only arrives well past the host
+    deadline, regardless of its (here, deliberately malformed) content."""
+
+    inner: FakeBoundedConnection
+    clock: FakeClock
+    jump_seconds: float
+    jump_on_kind: str
+    _jumped: bool = field(default=False, init=False)
+
+    def send_frame(self, payload: Mapping[str, object]) -> None:
+        self.inner.send_frame(payload)
+
+    def recv_frame(self, timeout: float) -> dict[str, object] | None:
+        frame = self.inner.recv_frame(timeout)
+        if frame is not None and frame.get("kind") == self.jump_on_kind and not self._jumped:
+            self._jumped = True
+            self.clock.advance(self.jump_seconds)
+        return frame
+
+    def close(self) -> None:
+        self.inner.close()
+
+
+class TestLightningLifecycleProcessBoundaryMalformedFrames:
+    """B3-2: every malformed lifecycle frame shape must fail closed with a typed protocol or
+    lifecycle failure, never invoke the adapter (the process boundary has no adapter seam of its
+    own to invoke, so this is proven by the boundary never returning a trusted, unvalidated
+    fact), and never leave the worker or its containment membership behind."""
+
+    def _boundary(
+        self,
+        connection: BoundedConnection,
+        *,
+        clock: FakeClock | None = None,
+        process: FakeProcessHandle | None = None,
+        containment: FakeContainmentBackend | None = None,
+    ) -> tuple[Feat018LightningLifecycleProcessBoundary, FakeProcessHandle, FakeContainmentBackend]:
+        clock = clock or FakeClock()
+        process = process or FakeProcessHandle()
+        containment = containment or FakeContainmentBackend()
+        launcher = FakeProcessLauncher(handle=process, connection=connection)
+        boundary = Feat018LightningLifecycleProcessBoundary(
+            controller=FakeLightningSessionController(clock=FakeClock()),
+            max_envelope_bytes=1_000_000,
+            containment_factory=lambda: containment,
+            cleanup_deadline_seconds=1.0,
+            containment_setup_timeout_seconds=1.0,
+            confirmation_retry_interval_seconds=0.01,
+            launcher=launcher,
+            clock=clock,
+            sleep=lambda seconds: clock.advance(seconds),
+        )
+        return boundary, process, containment
+
+    def _assert_failed_closed(
+        self,
+        boundary: Feat018LightningLifecycleProcessBoundary,
+        process: FakeProcessHandle,
+        containment: FakeContainmentBackend,
+        *,
+        expected_code: Feat018LiveSmokeFailureCode,
+        deadline: float = 5.0,
+    ) -> None:
+        with pytest.raises(Feat018LifecycleOperationError) as exc_info:
+            boundary.invoke("provision", deadline=deadline, cancellation_deadline=deadline)
+        assert exc_info.value.failure_code is expected_code
+        # No orphan worker: the direct worker handle was actually killed, not just abandoned.
+        assert process.kill_calls == 1
+        assert process.is_alive() is False
+        assert containment.terminate_calls == 1
+        assert containment.close_calls == 1
+
+    def test_missing_required_key_on_result_frame_fails_closed(self) -> None:
+        connection = FakeBoundedConnection()
+        connection.push({"kind": "LIFECYCLE_CALL_STARTED"})
+        connection.push({"kind": "LIFECYCLE_WAIT_STARTED"})
+        connection.push({"kind": "LIFECYCLE_OPERATION_RESULT"})  # missing required "fact"
+        boundary, process, containment = self._boundary(connection)
+
+        self._assert_failed_closed(
+            boundary,
+            process,
+            containment,
+            expected_code=Feat018LiveSmokeFailureCode.LIFECYCLE_PROTOCOL_FAILED,
+        )
+
+    def test_extra_unknown_key_on_started_frame_fails_closed(self) -> None:
+        connection = FakeBoundedConnection()
+        connection.push({"kind": "LIFECYCLE_CALL_STARTED", "unexpected": "value"})
+        boundary, process, containment = self._boundary(connection)
+
+        self._assert_failed_closed(
+            boundary,
+            process,
+            containment,
+            expected_code=Feat018LiveSmokeFailureCode.LIFECYCLE_PROTOCOL_FAILED,
+        )
+
+    def test_wrong_field_type_in_result_fact_fails_closed(self) -> None:
+        connection = FakeBoundedConnection()
+        connection.push({"kind": "LIFECYCLE_CALL_STARTED"})
+        connection.push({"kind": "LIFECYCLE_WAIT_STARTED"})
+        connection.push(
+            {"kind": "LIFECYCLE_OPERATION_RESULT", "fact": "not-a-mapping-at-all"}
+        )
+        boundary, process, containment = self._boundary(connection)
+
+        self._assert_failed_closed(
+            boundary,
+            process,
+            containment,
+            expected_code=Feat018LiveSmokeFailureCode.LIFECYCLE_RESULT_INVALID,
+        )
+
+    def test_invalid_enum_value_in_result_fact_fails_closed(self) -> None:
+        connection = FakeBoundedConnection()
+        connection.push({"kind": "LIFECYCLE_CALL_STARTED"})
+        connection.push({"kind": "LIFECYCLE_WAIT_STARTED"})
+        connection.push(
+            {
+                "kind": "LIFECYCLE_OPERATION_RESULT",
+                "fact": {
+                    "fact_type": "ready",
+                    "readiness": "NOT_A_REAL_READINESS_STATE",
+                    "lifecycle": None,
+                },
+            }
+        )
+        boundary, process, containment = self._boundary(connection)
+
+        self._assert_failed_closed(
+            boundary,
+            process,
+            containment,
+            expected_code=Feat018LiveSmokeFailureCode.LIFECYCLE_RESULT_INVALID,
+        )
+
+    def test_oversized_frame_fails_closed(self) -> None:
+        connection = FakeBoundedConnection(raise_on_recv=Feat018FrameTooLargeError("too big"))
+        boundary, process, containment = self._boundary(connection)
+
+        self._assert_failed_closed(
+            boundary,
+            process,
+            containment,
+            expected_code=Feat018LiveSmokeFailureCode.LIFECYCLE_PROTOCOL_FAILED,
+        )
+
+    def test_truncated_or_malformed_json_frame_fails_closed(self) -> None:
+        connection = FakeBoundedConnection(
+            raise_on_recv=Feat018ProtocolViolationError(
+                "malformed envelope: not valid UTF-8 JSON"
+            )
+        )
+        boundary, process, containment = self._boundary(connection)
+
+        self._assert_failed_closed(
+            boundary,
+            process,
+            containment,
+            expected_code=Feat018LiveSmokeFailureCode.LIFECYCLE_PROTOCOL_FAILED,
+        )
+
+    def test_late_malformed_reply_after_deadline_is_rejected_as_timeout_not_content(self) -> None:
+        clock = FakeClock()
+        inner = FakeBoundedConnection()
+        inner.push({"kind": "LIFECYCLE_CALL_STARTED"})
+        inner.push({"kind": "LIFECYCLE_WAIT_STARTED"})
+        # This frame is itself malformed (an unexpected extra key); the point is that lateness
+        # alone must reject it before its content is ever inspected.
+        inner.push(
+            {
+                "kind": "LIFECYCLE_OPERATION_RESULT",
+                "fact": {"fact_type": "unknown"},
+                "unexpected": "value",
+            }
+        )
+        connection = _LateArrivalConnection(
+            inner=inner,
+            clock=clock,
+            jump_seconds=100.0,
+            jump_on_kind="LIFECYCLE_OPERATION_RESULT",
+        )
+        boundary, process, containment = self._boundary(connection, clock=clock)
+
+        with pytest.raises(Feat018LifecycleOperationError) as exc_info:
+            boundary.invoke("provision", deadline=1.0, cancellation_deadline=1.0)
+
+        assert exc_info.value.failure_code is Feat018LiveSmokeFailureCode.PROVISION_TIMEOUT
+        assert process.kill_calls == 1
+        assert process.is_alive() is False
+        assert containment.terminate_calls == 1
+
+
+# ------------------------------------------------------------------------------------------
+# B3-3 -- the cooperative-wait helpers are a documented, non-live test seam only
+# ------------------------------------------------------------------------------------------
+
+
+class TestCooperativeWaitHelpersAreNonLiveOnly:
+    """B3-3: ``_wait_for_lightning_operation``/``_cancel_lightning_operation``/
+    ``_cancel_termination_operation`` reimplement a cooperative, trust-the-timeout-parameter wait
+    -- exactly what the real process boundary above was built to replace. They are retained only
+    because ``FakeInlineLightningLifecycleBoundary`` needs a fast, deterministic double for the
+    pre-existing fake-clock coordinator-logic regression suite (deadline budgeting, TTL/GPU-minute
+    caps, placement checks). This is a static proof, not just a behavioral one, that the live
+    coordinator's default path never reaches them and that there is exactly one boundary
+    construction path in ``run_live_smoke`` -- never two ambiguous timeout implementations."""
+
+    def test_run_live_smoke_default_boundary_never_uses_the_cooperative_helpers(self) -> None:
+        source = inspect.getsource(run_live_smoke)
+
+        assert "Feat018LightningLifecycleProcessBoundary(" in source
+        for cooperative_helper in (
+            "_wait_for_lightning_operation",
+            "_cancel_lightning_operation",
+            "_cancel_termination_operation",
+        ):
+            assert cooperative_helper not in source
+
+    def test_cooperative_helpers_only_caller_is_the_non_live_inline_test_double(self) -> None:
+        import sketch2life.benchmark.feat018_live_lightning_execution as module
+
+        module_source = inspect.getsource(module)
+        test_double_source = inspect.getsource(FakeInlineLightningLifecycleBoundary)
+
+        for cooperative_helper in (
+            "_wait_for_lightning_operation",
+            "_cancel_lightning_operation",
+            "_cancel_termination_operation",
+        ):
+            # Defined exactly once in the production module -- its own definition line, with no
+            # in-module caller -- so the only caller anywhere is the non-live test double below.
+            assert module_source.count(cooperative_helper) == 1
+            assert cooperative_helper in test_double_source
 
 
 # ------------------------------------------------------------------------------------------
