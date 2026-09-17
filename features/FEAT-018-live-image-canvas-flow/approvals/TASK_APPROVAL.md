@@ -357,3 +357,23 @@ D1-D12, and does not authorize Lightning, GPU, model, provider, network, or
 Stage 4 execution. The binding does not alter the existing exact-file scope,
 does not approve any FEAT-003/FEAT-017 change, and does not authorize a commit
 or push by itself.
+
+## Owner approval of FEAT-018 P2-T2 pre-staged local snapshot - 2026-09-17
+
+The project owner approves `PRESTAGED_LOCAL_SNAPSHOT` for `P2T2-LIVE-D4` with
+the following exact identity:
+
+- Model: `Qwen/Qwen3-VL-8B-Instruct`
+- Revision: `0c351dd01ed87e9c1b53cbc748cba10e6187ff3b`
+- Logical snapshot: `qwen3-vl-8b-instruct`
+- Sanitized manifest SHA-256: `8a1d50d6aef809130acd7b05b71369cccbb2360192b157f7871de2bd40c43eaf`
+- Manifest file count: `16`
+- Indexed safetensors shard count: `4`
+- Runtime setting: `allow_model_download=false`
+- Observed Lightning device fact: NVIDIA L4, `23034` MiB VRAM; this observation does not resolve D10 approval inputs.
+
+This approval closes D4 snapshot readiness only. It does not authorize model
+loading, Lightning inference, provider or network execution, Stage 4,
+production use, or any change to the remaining D1-D12 decisions. D1 and D11
+remain pending, and a separate Stage 4 approval resolving all live decisions
+is required before any FEAT-018 live smoke.

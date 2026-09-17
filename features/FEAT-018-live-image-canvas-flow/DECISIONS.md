@@ -182,3 +182,12 @@
   does not resolve D4, the remaining D1-D12 decisions, Stage 4, or any
   Lightning/GPU/model/provider/network execution. The owner binding is recorded
   separately in `approvals/TASK_APPROVAL.md`; no live run is authorized.
+
+- 2026-09-17 P2-T2 D4 snapshot decision: approve
+  `PRESTAGED_LOCAL_SNAPSHOT` for `Qwen/Qwen3-VL-8B-Instruct` revision
+  `0c351dd01ed87e9c1b53cbc748cba10e6187ff3b`, logical snapshot
+  `qwen3-vl-8b-instruct`, sanitized manifest SHA-256
+  `8a1d50d6aef809130acd7b05b71369cccbb2360192b157f7871de2bd40c43eaf`,
+  16 files, four indexed shards, and `allow_model_download=false`. This
+  resolves snapshot readiness only; D1/D11, the other D1-D12 decisions, Stage
+  4, model loading, and live execution remain unauthorized.

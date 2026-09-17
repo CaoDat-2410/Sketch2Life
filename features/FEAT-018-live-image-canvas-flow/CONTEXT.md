@@ -218,3 +218,20 @@ only: D4, the remaining D1-D12 decisions, Stage 4, and all Lightning/GPU/model/
 provider/network execution remain blocked or unauthorized. The binding is
 recorded in the task approval and does not authorize a live run, commit, or
 push by itself.
+
+## P2-T2 D4 pre-staged snapshot approval - 2026-09-17
+
+The owner approved `PRESTAGED_LOCAL_SNAPSHOT` for `P2T2-LIVE-D4` after a
+Lightning-side completeness audit. The approved identity is
+`Qwen/Qwen3-VL-8B-Instruct` at revision
+`0c351dd01ed87e9c1b53cbc748cba10e6187ff3b`, logical snapshot
+`qwen3-vl-8b-instruct`, with sanitized manifest SHA-256
+`8a1d50d6aef809130acd7b05b71369cccbb2360192b157f7871de2bd40c43eaf`.
+The manifest contains 16 files and four indexed safetensors shards, and the
+runtime download flag is `allow_model_download=false`. The observed NVIDIA L4
+and 23034 MiB VRAM are runtime facts only and remain separate from D10 approval
+inputs.
+
+This closes D4 snapshot readiness only. Model loading, Lightning inference,
+Stage 4, provider/network execution, and production use remain unauthorized;
+D1 and D11 plus the remaining live decisions still require their own approval.

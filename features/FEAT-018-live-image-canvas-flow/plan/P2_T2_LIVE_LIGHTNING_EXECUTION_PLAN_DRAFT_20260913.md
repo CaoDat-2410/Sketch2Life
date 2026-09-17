@@ -73,21 +73,22 @@ must verify that externally supplied commit before any model invocation.
 - Offline independent/POSIX verification: COMPLETE WITH FINDINGS CLOSED
 - Live coordinator source/test binding: OWNER-BOUND; runtime suitability pending
 - P2T2-LIVE-D1: BLOCKED
-- P2T2-LIVE-D4: BLOCKED
+- P2T2-LIVE-D4: OWNER-APPROVED_PRESTAGED_LOCAL_SNAPSHOT
 - P2T2-LIVE-D11: BLOCKED
 - Stage 4 live-execution approval: NOT READY
 - Lightning execution: NOT AUTHORIZED
 - Live model/GPU/provider/network execution: NONE
 
 The coordinator is implemented and verified offline, and the owner has bound
-the reviewed source/test identity. Live-runtime suitability,
-session/controller binding, and D1/D4/D11 remain pending. The current HEAD is
+the reviewed source/test identity. The D4 pre-staged snapshot is now
+owner-approved; live-runtime suitability, session/controller binding, and
+D1/D11 remain pending. The current HEAD is
 a planning/documentation identity only and is not the reviewed runtime source
 commit. This state does not open Stage 4 or authorize Lightning.
 
 Next sequence:
 
-`revised plan -> independent binding review -> owner-bound reviewed runtime commit -> D4 snapshot verification -> owner resolution of D1-D12 -> separate Stage 4 approval -> only then Lightning execution`
+`revised plan -> independent binding review -> owner-bound reviewed runtime commit -> D4 pre-staged snapshot approval -> owner resolution of D1-D12 -> separate Stage 4 approval -> only then Lightning execution`
 
 ## 1. Objective and exact scope
 
@@ -317,10 +318,10 @@ alternatives.
 The per-attempt child deadline is exactly 120 seconds and covers loading,
 generation, and decoding. A separate positive `total_adapter_cap_seconds`
 covers the entire single adapter call, including a possible second attempt,
-without resetting on retry. Readiness may inspect versions, hardware, and a
-local snapshot without loading weights; it must not preload weights. Any model
-download/load choice remains inside the future D4 approval and the child
-deadline.
+without resetting on retry. Readiness may inspect versions, hardware, and the
+approved pre-staged local snapshot without loading weights; it must not preload
+weights. The selected snapshot is approved under D4, but model loading remains
+prohibited until the separate Stage 4 approval and its child deadline.
 
 ### 2.5 Reviewed primitives and remaining orchestration boundary
 
@@ -391,7 +392,7 @@ The complete coordinator is `run_live_smoke` in this same source file, with
 tests in the same test file. Its offline implementation and verification are
   complete. The following responsibilities are implemented behind injected
   offline seams; live-runtime suitability, session/controller binding, and the
-  D1/D4/D11 gates remain pending:
+  D1/D11 gates remain pending; D4 snapshot readiness is owner-approved:
 
 1. verify approval/checkout and complete ignored-artifact baseline;
 2. construct explicit runtime config and the existing lexical policy; verify
@@ -1212,7 +1213,7 @@ concrete value, not that the future live approval has been granted.
 | P2T2-LIVE-D1 | `BLOCKED` | Offline coordinator implementation and source/test binding are complete; remaining D1 owner resolution and Stage 4 approval are pending. |
 | P2T2-LIVE-D2 | `READY_TO_RESOLVE` | Positive TTL, total adapter cap, and numeric GPU-minute/currency cap still require owner selection. |
 | P2T2-LIVE-D3 | `RESOLVED_WITH_PROPOSED_VALUE` | `ASR_EXCLUDED`, `asr_execution=false`, and `narration_status=NOT_SUPPLIED` are the proposed image-only value. |
-| P2T2-LIVE-D4 | `BLOCKED` | No locally proven pre-staged snapshot identity/completeness/revision record; see the exact unblock requirement in D4. |
+| P2T2-LIVE-D4 | `OWNER-APPROVED_PRESTAGED_LOCAL_SNAPSHOT` | Owner-approved Lightning snapshot: Qwen/Qwen3-VL-8B-Instruct at revision `0c351dd01ed87e9c1b53cbc748cba10e6187ff3b`, 16-file manifest, four indexed shards, manifest SHA-256 `8a1d50d6aef809130acd7b05b71369cccbb2360192b157f7871de2bd40c43eaf`, and `allow_model_download=false`. |
 | P2T2-LIVE-D5 | `READY_TO_RESOLVE` | Owner must choose independent-review indexing or P2 batch hold. |
 | P2T2-LIVE-D6 | `RESOLVED_WITH_PROPOSED_VALUE` | Owner-reviewed Cohort B `B01.jpg` metadata and digest match the manifest and source review. |
 | P2T2-LIVE-D7 | `RESOLVED_WITH_PROPOSED_VALUE` | Committed C1-v2 source, builder, explicit `prompt=` path, and exact UTF-8 hash are traced; Stage 4 must bind them. |
@@ -1304,35 +1305,26 @@ the modalities.
 
 ### P2T2-LIVE-D4 - Model-weight staging
 
-Planning disposition: `BLOCKED`.
+Planning disposition: `OWNER-APPROVED_PRESTAGED_LOCAL_SNAPSHOT`.
 
-The repository profile and readiness checker define the required pinned model
-revision and completeness rule, but discovery found no local, owner-reviewed
-snapshot manifest proving a session-local Qwen snapshot identity, complete
-required files/shards, and matching revision metadata. No cache path, arbitrary
-weight hash, or host-local model location is published here. D4 therefore has
-no proven selected value yet.
+The owner-approved Lightning snapshot manifest proves the session-local Qwen
+snapshot identity, complete required files/shards, matching revision metadata,
+and disabled runtime download. No cache path, arbitrary weight hash, or
+host-local model location is published here.
 
-Exact unblock requirement: the owner must provide a safe logical/session-local
-snapshot identity, the pinned revision
+The completed D4 record provides the safe logical/session-local snapshot
+identity, the pinned revision
 `0c351dd01ed87e9c1b53cbc748cba10e6187ff3b`, the readiness completeness proof
 (all loader-required files plus every shard named by the safetensors index and
-per-file revision metadata), and `allow_model_download=false`, or must
-separately approve `APPROVED_ONE_TIME_DOWNLOAD` with its source identity,
-`allow_model_download=true`, no repository weight digest, and acceptance that
-download/load stays inside the generation child deadline. Until one of those
-two owner records exists and is verifiable inside Lightning, the live run is
-blocked.
+per-file revision metadata), and `allow_model_download=false`. The selected
+manifest SHA-256 is
+`8a1d50d6aef809130acd7b05b71369cccbb2360192b157f7871de2bd40c43eaf`.
+`APPROVED_ONE_TIME_DOWNLOAD` was not selected.
 
-Select exactly one:
-
-- PRESTAGED_LOCAL_SNAPSHOT: record the session-local model directory
-  identity, allow_model_download=false, snapshot completeness, and verified
-  revision metadata; or
-- APPROVED_ONE_TIME_DOWNLOAD: record the approved source identity, the
-  allow_model_download=true setting, the absence of a repository-published
-  weight SHA-256, and the acceptance that download/load occurs inside the
-  runner's model-loading interval and 120-second deadline.
+The selected D4 option is `PRESTAGED_LOCAL_SNAPSHOT`; its record contains the
+logical snapshot identity, `allow_model_download=false`, snapshot completeness,
+verified revision metadata, and the sanitized manifest digest. The alternative
+`APPROVED_ONE_TIME_DOWNLOAD` is not selected.
 
 A download is never a separate unapproved pre-invocation phase. The runtime
 manifest and evidence contain no URL, credential, absolute path, or raw
@@ -1566,8 +1558,9 @@ authorize indexing until P2T2-LIVE-D5 is resolved and the required
 independent review occurs.
 
 This draft records planning dispositions for P2T2-LIVE-D1 through D12 but
-does not grant their separate live approval. D1/D4/D11 remain BLOCKED, D2/D5/D8/D10
-remain READY_TO_RESOLVE, and the proposed values in the other rows still
+does not grant their separate live approval. D1/D11 remain BLOCKED, D4 is
+owner-approved for the pre-staged snapshot only, D2/D5/D8/D10 remain
+READY_TO_RESOLVE, and the proposed values in the other rows still
 require the Stage 4 owner approval. Offline coordinator implementation and
 independent/POSIX verification are complete with findings closed; live runtime
 suitability and session/controller binding remain pending. The draft does not authorize live
