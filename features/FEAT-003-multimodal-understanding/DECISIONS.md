@@ -453,3 +453,50 @@ implementation or change `approvals/TASK_APPROVAL.md`.
   resulting local governance commit SHA in the final handoff without modifying tracked files. This
   additive record supersedes the pre-renewal pending wording as the current governance decision;
   earlier records and the immutable erratum preserve the historical issuance state.
+
+## P2-T4 G9 governance closeout — 2026-09-17
+
+This current decision supersedes earlier paused or pending G6-G9 wording while preserving those
+entries as historical decision context.
+
+P2-T4: COMPLETE — GOVERNANCE-CLOSED
+CLOSEOUT: COMPLETE_WITH_ACCEPTED_G6_FINDINGS
+G6: PASS_WITH_FINDINGS
+G7: PASS
+G8: PASS
+G9: COMPLETE
+P2-T5: NOT APPROVED
+INTEGRATION/RUNTIME/LIVE: NOT APPROVED
+
+### Immutable topology and evidence bindings
+
+- Implementation candidate: `21249dc696c8ea3d958e78394ed69b8ac9f9505a`.
+- Direct parent: `dc107cd45a21ccb47031a58cb7c782084624bff4`.
+- Evidence checkpoint: `c80c58fbd2b76d28af52156301caca87e7a794f5`, direct-parented to the candidate,
+  containing exactly the three G7/G8 evidence files below.
+- The G9 governance checkpoint is direct-parented to the evidence checkpoint. Its own SHA is
+  intentionally not written into tracked files and is reported only in the final handoff.
+
+| Gate | Status | Canonical path | Raw SHA-256 | Git blob ID |
+|---|---|---|---|---|
+| G7 | PASS | `features/FEAT-003-multimodal-understanding/evidence/P2_T4_G7_CLOSEOUT_EVIDENCE.json` | `5b5e26753f5b4489cb559f06fc645884ca8e0af233cd563d791a56ad2ca5e40d` | `dfad83aac7a5c53bf5bab60239500f68f32e09be` |
+| G7 | PASS | `features/FEAT-003-multimodal-understanding/evidence/P2_T4_G7_EVIDENCE_REVIEW_20260916.md` | `f204dc33ad0d73a26db4596f8c9f657c4dbbf71a9fa911ca34a4a6007071f824` | `d906827e466f357c74af0cbaf6f58eb96eaf54fa` |
+| G8 | PASS | `features/FEAT-003-multimodal-understanding/evidence/P2_T4_G8_INDEPENDENT_EVIDENCE_GOVERNANCE_REVIEW_20260917.md` | `fe0e43b00edc7141e23b53cc9499c5c769c1e1c370fb005c88a6a17f6b827119` | `5e2665f4096d5316ab1eaf49d7da2677ec6a58ee` |
+
+### Preserved findings and boundaries
+
+OPEN P2-T4 IMPLEMENTATION DEFECTS: NONE IDENTIFIED BY G6-G8
+
+- `FEAT-018-TIMING-001` remains a separate FEAT-018 remediation and is outside P2-T4.
+- Inherited mypy findings remain unchanged and outside P2-T4: arg-type findings at
+  `learning_media_resolver.py:101`, `learning_media_fallback.py:82`, and
+  `learning_media_fallback.py:85`.
+- Inherited Ruff findings remain unchanged and outside P2-T4: E501 at `learning_media.py:79`,
+  I001 at `test_learning_media_scenario_matrix.py:1`, and E501 at
+  `test_learning_media_scenario_matrix.py:14`.
+- The Policy-B architecture baseline remains unchanged and is reported truthfully as
+  `ARCHITECTURE_INVALID`: exactly one approved `application imports an outer layer` finding at
+  `backend/src/sketch2life/application/services/backend_ai_workflow.py`, with validator
+  fingerprint `fa236c8d389b608251153d601fc370efe3f3e2479446ca4a56a3d395f892e0b5`.
+- This is governance-only. P2-T5, integration/runtime/live, provider/model, GPU, Lightning,
+  network, migration, production, and PR/push activity remain not approved.

@@ -1,6 +1,6 @@
 # Evidence index
 
-This public index contains only the project's selected, closed P2-T1 through P2-T3 records.
+This public index contains only the project's selected, closed P2-T1 through P2-T4 records.
 Planning drafts, review briefs, templates, operational handoffs, and local-only diagnostic notes
 remain outside this index.
 
@@ -37,3 +37,29 @@ remain outside this index.
 
 `approvals/TASK_APPROVAL.md` remains the authoritative approval record. P2-T5 remains the owner
 of the public CLI and end-to-end multimodal fixture report.
+
+## P2-T4 G9 governance status and canonical evidence checkpoint — 2026-09-17
+
+This index publishes canonical evidence metadata and checkpoint provenance only; it does not
+duplicate or rewrite any G7/G8 evidence contents.
+
+P2-T4: COMPLETE — GOVERNANCE-CLOSED
+CLOSEOUT: COMPLETE_WITH_ACCEPTED_G6_FINDINGS
+G6: PASS_WITH_FINDINGS
+G7: PASS
+G8: PASS
+G9: COMPLETE
+P2-T5: NOT APPROVED
+INTEGRATION/RUNTIME/LIVE: NOT APPROVED
+
+Evidence checkpoint: `c80c58fbd2b76d28af52156301caca87e7a794f5`.
+Implementation candidate: `21249dc696c8ea3d958e78394ed69b8ac9f9505a`.
+Direct parent: `dc107cd45a21ccb47031a58cb7c782084624bff4`.
+The G9 governance checkpoint is direct-parented to the evidence checkpoint; its own SHA is not
+written into tracked files.
+
+| Gate | Status | Canonical record | Raw SHA-256 | Git blob ID |
+|---|---|---|---|---|
+| G7 | PASS | [P2-T4 G7 closeout evidence](P2_T4_G7_CLOSEOUT_EVIDENCE.json) | `5b5e26753f5b4489cb559f06fc645884ca8e0af233cd563d791a56ad2ca5e40d` | `dfad83aac7a5c53bf5bab60239500f68f32e09be` |
+| G7 | PASS | [P2-T4 G7 evidence review](P2_T4_G7_EVIDENCE_REVIEW_20260916.md) | `f204dc33ad0d73a26db4596f8c9f657c4dbbf71a9fa911ca34a4a6007071f824` | `d906827e466f357c74af0cbaf6f58eb96eaf54fa` |
+| G8 | PASS | [P2-T4 G8 independent evidence/governance review](P2_T4_G8_INDEPENDENT_EVIDENCE_GOVERNANCE_REVIEW_20260917.md) | `fe0e43b00edc7141e23b53cc9499c5c769c1e1c370fb005c88a6a17f6b827119` | `5e2665f4096d5316ab1eaf49d7da2677ec6a58ee` |
