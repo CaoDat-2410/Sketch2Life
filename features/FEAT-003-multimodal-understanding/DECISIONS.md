@@ -546,3 +546,28 @@ IMPLEMENTATION: NOT APPROVED
 FIXTURE/MEDIA/EVIDENCE: NOT AUTHORIZED
 RUNTIME/LIVE: NOT APPROVED
 ```
+
+## P2-T5 G2 exact implementation decision — 2026-09-20
+
+The owner selected the exact 54 individually named source, test, fixture/oracle, and synthetic
+media paths from the reviewed G2 draft. The G2 governance record is directly parented to
+`6464ad700a424fe7c0e0e1fcac34b69571be82a4` and may change only the three full governance paths
+listed in the matching G2 section of `approvals/TASK_APPROVAL.md`; no other path is authorized.
+
+That durable section also binds G1 checkpoint/revision/blob/raw identities, CPython 3.13.5 via
+`backend/.venv`, `NO_PYTHON_LOCKFILE`, the exact 55-distribution package-set hash
+`217f418ce003e9279bdcbe863437b90d0219f43264c3dafbcd7f6d459cefed48`, validator identities, and
+the inherited Policy-B/mypy/Ruff baseline. These values are reused for later G6 comparison and
+may not be re-resolved or substituted. G2 authorizes offline fixture-only implementation only;
+G3 is the next gate, G7 evidence is separate, and runtime/live/provider/model/GPU/Lightning/
+network/migration/production remain not approved.
+
+```text
+P2-T5: G1 APPROVED
+G2: APPROVED_FOR_EXACT_54_FILE_FIXTURE_ONLY_IMPLEMENTATION
+IMPLEMENTATION: NOT STARTED
+G3-G9: NOT STARTED
+FIXTURE/MEDIA: AUTHORIZED ONLY WITHIN THE EXACT 54-PATH SCOPE
+EVIDENCE: NOT AUTHORIZED
+RUNTIME/LIVE: NOT APPROVED
+```

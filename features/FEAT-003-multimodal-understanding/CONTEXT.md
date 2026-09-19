@@ -638,3 +638,30 @@ separate exact-path approval directly parented to the G1 governance record.
 
 Current state: P2-T5 G1 APPROVED; G2 NOT GRANTED; implementation NOT APPROVED;
 fixture/media/evidence NOT AUTHORIZED; runtime/live NOT APPROVED.
+
+## P2-T5 G2 exact implementation approval recorded — 2026-09-20
+
+The Project Owner approved the exact 54-path fixture-only implementation scope. The G2 record is
+directly parented to G1 approval commit `6464ad700a424fe7c0e0e1fcac34b69571be82a4` and may
+modify only these governance paths:
+
+- `features/FEAT-003-multimodal-understanding/approvals/TASK_APPROVAL.md`
+- `features/FEAT-003-multimodal-understanding/CONTEXT.md`
+- `features/FEAT-003-multimodal-understanding/DECISIONS.md`
+
+The complete individually named 54-path allowlist, immutable G1 plan bindings, exact CPython
+3.13.5 environment/package-set binding, and inherited baseline fingerprints are durably recorded
+in the G2 section of `approvals/TASK_APPROVAL.md`. No 55th path, packaging, fake-adapter, T1–T4,
+evidence, unrelated governance, runtime, provider/model, GPU, Lightning, network, migration,
+production, push, or PR path is authorized. G3 starts only after this G2 record commit exists;
+G7 evidence remains separately authorized.
+
+```text
+P2-T5: G1 APPROVED
+G2: APPROVED_FOR_EXACT_54_FILE_FIXTURE_ONLY_IMPLEMENTATION
+IMPLEMENTATION: NOT STARTED
+G3: NOT STARTED
+G4-G9: NOT STARTED
+EVIDENCE: NOT AUTHORIZED (G7 SEPARATE)
+RUNTIME/LIVE: NOT APPROVED
+```

@@ -862,6 +862,225 @@ FIXTURE/MEDIA/EVIDENCE: NOT AUTHORIZED
 RUNTIME/LIVE: NOT APPROVED
 ```
 
+## P2-T5 G2 exact implementation approval — 2026-09-20
+
+The Project Owner's direct authorization was:
+
+> I approve the P2-T5 G2 exact implementation scope exactly as listed in the reviewed draft,
+> including all 54 individually named source, test, fixture/oracle, and synthetic media paths.
+>
+> The G2 governance record must be directly parented to:
+> `6464ad700a424fe7c0e0e1fcac34b69571be82a4`
+>
+> The G2 record may modify only these governance paths:
+> `features/FEAT-003-multimodal-understanding/approvals/TASK_APPROVAL.md`,
+> `features/FEAT-003-multimodal-understanding/CONTEXT.md`, and
+> `features/FEAT-003-multimodal-understanding/DECISIONS.md`.
+>
+> No other path is authorized. This does not authorize evidence, runtime, provider/model, GPU,
+> Lightning, network, migration, production, push, or PR.
+
+The Project Owner approved the exact P2-T5 fixture-only v1 implementation scope as listed in
+this section. This G2 governance record is directly parented to the G1 approval record commit
+`6464ad700a424fe7c0e0e1fcac34b69571be82a4`. The G2 record may modify only these three
+governance paths; no other governance or implementation path is authorized by this record:
+
+- `features/FEAT-003-multimodal-understanding/approvals/TASK_APPROVAL.md`
+- `features/FEAT-003-multimodal-understanding/CONTEXT.md`
+- `features/FEAT-003-multimodal-understanding/DECISIONS.md`
+
+The exact implementation allowlist is 54 individually named paths: 10 source/test paths, four
+fixture/oracle JSON paths, and 40 synthetic media paths. No 55th path, `__init__.py`, packaging or
+entrypoint file, fake-adapter change, T1–T4 path, evidence path, or unrelated governance path is
+authorized.
+
+### Immutable G1 bindings
+
+- G1 plan checkpoint: `4b2bd6012c4069dcee021497670da13cabbe852c`.
+- G1 approval record (direct parent required for this G2 record):
+  `6464ad700a424fe7c0e0e1fcac34b69571be82a4`.
+- `PLAN.md`, revision 8: 61590 bytes, raw SHA-256
+  `4c52ccf63320de411d3551933e75a1ec05479a9471df68d8ef67fb2ee1b37b35`, Git blob
+  `6db2089ca9f2d38f8c58f28b22de2c2a58ceb26a`.
+- `P2_T5_EVALUATION_HARNESS_PLAN.md`, revision 0.15: 211691 bytes, raw SHA-256
+  `2a102acd689c0b53854562694692ce3a139ecdbbdee88f7c9fce7c136a5eea20`, Git blob
+  `f9f81f9c1dbbd8fe92d8083ce163ac85f3721ce4`.
+
+### Exact G2 environment and inherited baselines
+
+The canonical interpreter is `backend/.venv/Scripts/python.exe`, CPython 3.13.5. The PATH
+interpreter (3.14.5) is not acceptable, and packages may not be installed, upgraded, resolved,
+or substituted. `backend/pyproject.toml` is bound to source commit
+`0fda47f432212c6d79e467c8064c116ae468d34d`, Git blob
+`8f8a344f505be839b9bd0bd0d640fa0d18cf6b33`, and raw SHA-256
+`9ca3a54905d11fdb7f30a84356d23741f256b2115b254bcc9fba4efacdf17df6`. No Python lockfile is
+present (`NO_PYTHON_LOCKFILE`).
+
+The exact installed package set contains 55 distributions. Its canonical binding is the SHA-256
+`217f418ce003e9279bdcbe863437b90d0219f43264c3dafbcd7f6d459cefed48` of sorted UTF-8
+`<distribution-name>==<version>` lines joined with LF and one final LF. The materialized set is:
+
+```text
+alembic==1.20.0
+annotated-doc==0.0.5
+annotated-types==0.8.0
+anyio==4.15.1
+av==18.1.0
+boto3==1.43.95
+botocore==1.43.95
+click==8.5.0
+colorama==0.4.6
+croniter==6.2.4
+fastapi==0.141.1
+greenlet==3.5.6
+h11==0.16.0
+httpcore2==2.13.0
+httptools==0.8.0
+httpx2==2.13.0
+idna==3.19
+iniconfig==2.3.0
+jmespath==1.1.0
+librt==0.15.0
+Mako==1.4.1
+MarkupSafe==3.0.3
+mypy_extensions==1.1.0
+mypy==1.20.2
+packaging==26.3
+pathspec==1.1.1
+pluggy==1.6.0
+psycopg==3.3.5
+psycopg-binary==3.3.5
+pydantic_core==2.46.5
+pydantic==2.13.5
+pydantic-settings==2.15.0
+Pygments==2.21.0
+pytest==8.4.2
+pytest-asyncio==1.4.0
+python-dateutil==2.9.0.post0
+python-dotenv==1.2.3
+PyYAML==6.0.3
+redis==6.4.0
+rq==2.12.0
+ruff==0.16.7
+s3transfer==0.19.2
+six==1.17.0
+sketch2life-backend==0.0.0
+SQLAlchemy==2.0.54
+starlette==1.6.0
+structlog==25.5.0
+truststore==0.10.4
+typing_extensions==4.16.0
+typing-inspection==0.4.4
+tzdata==2026.4
+urllib3==2.8.0
+uvicorn==0.53.0
+watchfiles==1.2.0
+websockets==17.1
+```
+
+The validator identities are immutable: `validate_harness.py` source commit
+`0f0c546193f698ea2987a956348714dea2dc95e7`, blob
+`c2ffe59008c8ab86332953621faa328b76bd55bb`, raw SHA-256
+`0804eabbaecf471f191e259760e48aa0dc2d5a4d23da5d38336d8ede2f09d232`;
+`validate_repository_security.py` source commit `0f0c546193f698ea2987a956348714dea2dc95e7`,
+blob `08a8614f1152e0a1f5158430f26a143a0eb6e66b`, raw SHA-256
+`efd691df935565d1fa148b5b4a765ef77c90d701d210fc5e869bfbd1548dd210`;
+`validate_skeleton.py` source commit `1c2c6d357b0c27cd19f790e748f9525e3e50e2b2`, blob
+`e68970c4062837f982707123e18db480e1e6e06e`, raw SHA-256
+`82da58bfdd3fd7f406e6d9597b33a4375ba0c591e9a455c74d92ee0aba8d4a39`; and
+`validate_architecture.py` source commit `0f0c546193f698ea2987a956348714dea2dc95e7`, blob
+`efe2f642c403e2fa3c00e650a2ac505e2bf9076c`, raw SHA-256
+`fa236c8d389b608251153d601fc370efe3f3e2479446ca4a56a3d395f892e0b5`.
+
+The inherited baseline is preserved exactly: Policy B reports one `ARCHITECTURE_INVALID`
+finding for `backend/src/sketch2life/application/services/backend_ai_workflow.py` (application
+imports an outer layer); mypy retains the three recorded `learning_media_*` arg-type findings;
+Ruff retains the three recorded `learning_media.py`/`test_learning_media_scenario_matrix.py`
+findings. `FEAT-018-TIMING-001` remains a separate out-of-scope finding and is not a P2-T5
+regression.
+
+### Exact 54 implementation paths
+
+Source and tests (10):
+
+1. `backend/src/sketch2life/contracts/schemas/p2_t5_evaluation.py`
+2. `backend/src/sketch2life/application/services/p2_t5_evaluation.py`
+3. `backend/src/sketch2life/application/services/p2_t5_scoring.py`
+4. `backend/src/sketch2life/infrastructure/ai/p2_t5_fixture_loader.py`
+5. `backend/src/sketch2life/interfaces/cli/p2_t5_evaluation.py`
+6. `backend/tests/contract/test_p2_t5_evaluation_contract.py`
+7. `backend/tests/unit/test_p2_t5_evaluation.py`
+8. `backend/tests/unit/test_p2_t5_scoring.py`
+9. `backend/tests/unit/test_p2_t5_cli.py`
+10. `backend/tests/unit/test_p2_t5_privacy.py`
+
+Fixture/oracle JSON (4):
+
+11. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/manifest-v1.json`
+12. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/cases-v1.json`
+13. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/expected-v1.json`
+14. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/matching-rule-v1.json`
+
+Synthetic media (40):
+
+15. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-001.png`
+16. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-001.wav`
+17. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-002.png`
+18. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-002.wav`
+19. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-003.png`
+20. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-003.wav`
+21. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-004.png`
+22. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-004.wav`
+23. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-005.png`
+24. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-005.wav`
+25. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-006.png`
+26. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-006.wav`
+27. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-007.png`
+28. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-007.wav`
+29. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-008.png`
+30. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-008.wav`
+31. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-009.png`
+32. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-009.wav`
+33. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-010.png`
+34. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-010.wav`
+35. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-011.png`
+36. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-011.wav`
+37. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-012.png`
+38. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-012.wav`
+39. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-001.png`
+40. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-001.wav`
+41. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-002.png`
+42. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-002.wav`
+43. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-003.png`
+44. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-003.wav`
+45. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-004.png`
+46. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-004.wav`
+47. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-005.png`
+48. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-005.wav`
+49. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-006.png`
+50. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-006.wav`
+51. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-007.png`
+52. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-007.wav`
+53. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-008.png`
+54. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-008.wav`
+
+G2 authorizes only preparation of the exact 54-file offline fixture-only implementation. G3 may
+start only after this G2 record exists; G4/G5/G6/G7/G8/G9 remain future gates. Evidence is a
+separate G7 authorization. Integration, runtime/live, provider/model, GPU, Lightning, network,
+migration, production, push, and PR activity remain not approved. This record does not authorize
+any self-referential commit-SHA edit.
+
+```text
+P2-T5: G1 APPROVED
+G2: APPROVED_FOR_EXACT_54_FILE_FIXTURE_ONLY_IMPLEMENTATION
+IMPLEMENTATION: NOT STARTED
+G3: NOT STARTED
+G4-G9: NOT STARTED
+FIXTURE/MEDIA: AUTHORIZED ONLY WITHIN THE EXACT 54-PATH G2 SCOPE
+EVIDENCE: NOT AUTHORIZED (G7 SEPARATE)
+RUNTIME/LIVE/PROVIDER/MODEL/GPU/LIGHTNING/NETWORK: NOT APPROVED
+```
+
 ## P2-T5 G1 fixture-only plan approval — 2026-09-19
 
 The Project Owner approved G1 against the immutable pre-G1 plan checkpoint
