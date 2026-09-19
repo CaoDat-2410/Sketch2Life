@@ -598,3 +598,43 @@ OPEN P2-T4 IMPLEMENTATION DEFECTS: NONE IDENTIFIED BY G6-G8
   fingerprint `fa236c8d389b608251153d601fc370efe3f3e2479446ca4a56a3d395f892e0b5`.
 - This closeout does not authorize P2-T5, integration/runtime/live, provider/model, GPU,
   Lightning, network, migration, production, or PR/push activity.
+
+## P2-T5 owner decision bundle recorded — 2026-09-19
+
+The Project Owner approved `P2T5.OwnerDecisionBundleV3@1.0` for fixture-only v1 planning after
+the confirmation report `tmp/p2-t5-v3-owner-confirmation-20260919-r2/REPORT.md` passed its exact
+payload, identity, privacy, topology, and validator checks. This records planning decisions only;
+it is not G1, G2, implementation, fixture/media, evidence, or runtime approval.
+
+The approved bundle remains bound to the current plan revisions and worktree-content hashes:
+`PLAN.md` revision 7 / SHA-256 `c70ba9012c2d30467fd485d37b1a8312d45a9a3574609d94bf774264f05cbefb` /
+prospective blob `831ded8c7676130ac39e279fbba36022ee033fe4`; dedicated plan revision 0.14 /
+SHA-256 `2c5d9d2b1c4780585f874ea768dafd12caa3459b0bb6a51bd0cb008fd7608280` /
+prospective blob `ba77759c0ff1ec8a416c11a4a6e6795954aa7fc1`.
+
+Current state: P2-T5 PRE-G1; owner decision recorded; G1/G2 not granted; implementation,
+fixture/media/evidence, integration, runtime, provider/model, GPU, Lightning, network,
+migration, production, and live execution remain not approved. Next work is semantic synchronization,
+independent post-sync review, and the immutable pre-G1 plan checkpoint.
+
+## P2-T5 G1 fixture-only plan approval recorded — 2026-09-19
+
+The Project Owner approved G1 against the immutable pre-G1 plan checkpoint
+`4b2bd6012c4069dcee021497670da13cabbe852c`, whose direct parent is
+`f11a6f4fee81032a677b492303cdecd9b09663d4`. The checkpoint contains exactly the
+two synchronized P2-T5 plan files and their independently verified identities:
+
+- `PLAN.md`, revision 8, 61590 bytes, raw SHA-256
+  `4c52ccf63320de411d3551933e75a1ec05479a9471df68d8ef67fb2ee1b37b35`, blob
+  `6db2089ca9f2d38f8c58f28b22de2c2a58ceb26a`.
+- `P2_T5_EVALUATION_HARNESS_PLAN.md`, revision 0.15, 211691 bytes, raw SHA-256
+  `2a102acd689c0b53854562694692ce3a139ecdbbdee88f7c9fce7c136a5eea20`, blob
+  `f9f81f9c1dbbd8fe92d8083ce163ac85f3721ce4`.
+
+G1 freezes the fixture-only v1 plan only. G2, implementation, fixture/media,
+evidence, integration, runtime/live, provider/model, GPU, Lightning, network,
+migration, production, push, and PR activity remain not approved. G2 must be a
+separate exact-path approval directly parented to the G1 governance record.
+
+Current state: P2-T5 G1 APPROVED; G2 NOT GRANTED; implementation NOT APPROVED;
+fixture/media/evidence NOT AUTHORIZED; runtime/live NOT APPROVED.

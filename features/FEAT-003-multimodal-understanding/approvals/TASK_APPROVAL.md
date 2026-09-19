@@ -827,3 +827,67 @@ OPEN P2-T4 IMPLEMENTATION DEFECTS: NONE IDENTIFIED BY G6-G8
   fingerprint `fa236c8d389b608251153d601fc370efe3f3e2479446ca4a56a3d395f892e0b5`.
 - P2-T5, integration/runtime/live, provider/model, GPU, Lightning, network, migration,
   production, and PR/push activity remain not approved.
+
+## P2-T5 fixture-only v1 owner decision bundle approval — 2026-09-19
+
+The Project Owner approved the exact `P2T5.OwnerDecisionBundleV3@1.0` planning decision object
+after the read-only confirmation audit at
+`tmp/p2-t5-v3-owner-confirmation-20260919-r2/REPORT.md`.
+
+The approved decision is bound to the current pre-G1 plan inputs:
+
+| Path | Revision | Raw SHA-256 | Prospective Git blob |
+|---|---:|---|---|
+| `features/FEAT-003-multimodal-understanding/plan/PLAN.md` | 7 | `c70ba9012c2d30467fd485d37b1a8312d45a9a3574609d94bf774264f05cbefb` | `831ded8c7676130ac39e279fbba36022ee033fe4` |
+| `features/FEAT-003-multimodal-understanding/plan/P2_T5_EVALUATION_HARNESS_PLAN.md` | 0.14 | `2c5d9d2b1c4780585f874ea768dafd12caa3459b0bb6a51bd0cb008fd7608280` | `ba77759c0ff1ec8a416c11a4a6e6795954aa7fc1` |
+
+The owner decision freezes the bundle's eleven P2-T5 identities, exact T4/B4/ASR/conflict rule
+bindings, report canonicalization, exact fixture IDs and 20/12/8/40 matrix, oracle independence,
+metric formulas and unavailable states, deterministic correlation/retry/recapture semantics,
+CPython 3.13.5 PRE-G1 policy, `NO_PYTHON_LOCKFILE`, privacy/output boundaries, inherited
+baseline fingerprints, deferred OD-1/OD-17/OD-18, and the separate G1-G9 topology.
+
+This is a planning decision only. It authorizes no G1, G2, implementation, fixture/media,
+evidence, runtime, provider/model, GPU, Lightning, network, migration, production, integration,
+commit, push, or PR activity. The plans must next be synchronized without semantic change,
+independently reviewed, and checkpointed before a separate G1 approval can be requested.
+
+```text
+P2-T5: PRE-G1
+OWNER DECISION BUNDLE V3: APPROVED
+G1: NOT GRANTED
+G2: NOT GRANTED
+IMPLEMENTATION: NOT APPROVED
+FIXTURE/MEDIA/EVIDENCE: NOT AUTHORIZED
+RUNTIME/LIVE: NOT APPROVED
+```
+
+## P2-T5 G1 fixture-only plan approval — 2026-09-19
+
+The Project Owner approved G1 against the immutable pre-G1 plan checkpoint
+`4b2bd6012c4069dcee021497670da13cabbe852c`, whose direct parent is
+`f11a6f4fee81032a677b492303cdecd9b09663d4`. The checkpoint contains exactly the
+two synchronized P2-T5 plan paths below.
+
+| Path | Revision | Raw bytes | Raw SHA-256 | Git blob ID |
+|---|---:|---:|---|---|
+| `features/FEAT-003-multimodal-understanding/plan/PLAN.md` | 8 | 61590 | `4c52ccf63320de411d3551933e75a1ec05479a9471df68d8ef67fb2ee1b37b35` | `6db2089ca9f2d38f8c58f28b22de2c2a58ceb26a` |
+| `features/FEAT-003-multimodal-understanding/plan/P2_T5_EVALUATION_HARNESS_PLAN.md` | 0.15 | 211691 | `2a102acd689c0b53854562694692ce3a139ecdbbdee88f7c9fce7c136a5eea20` | `f9f81f9c1dbbd8fe92d8083ce163ac85f3721ce4` |
+
+G1 freezes the approved P2-T5 fixture-only v1 plan and its documented contract,
+metrics, privacy, reproducibility, topology, and evidence-authorization policy.
+It does not grant G2, implementation, fixture/media creation, evidence creation,
+integration, runtime/live, provider/model, GPU, Lightning, network, migration,
+production, push, or PR authority. G2 remains a separate exact-path approval and
+must have this G1 record commit as its direct parent. The G1 commit SHA is reported
+outside tracked content and is not embedded in the records.
+
+```text
+P2-T5: G1 APPROVED
+OWNER DECISION BUNDLE V3: APPROVED
+G1: APPROVED
+G2: NOT GRANTED
+IMPLEMENTATION: NOT APPROVED
+FIXTURE/MEDIA/EVIDENCE: NOT AUTHORIZED
+RUNTIME/LIVE: NOT APPROVED
+```
