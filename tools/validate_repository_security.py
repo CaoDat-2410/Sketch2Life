@@ -29,6 +29,34 @@ SENSITIVE_ASSIGNMENT = re.compile(
     re.MULTILINE,
 )
 ALLOWED_EXAMPLE_VALUES = {"", "change-me", "minioadmin", "placeholder", "example"}
+SYNTHETIC_FIXTURE_PATH = "backend/tests/unit/test_media_validation.py"
+SYNTHETIC_FIXTURE_BEGIN = "# SECURITY_VALIDATOR_SYNTHETIC_FIXTURES: BEGIN"
+SYNTHETIC_FIXTURE_END = "# SECURITY_VALIDATOR_SYNTHETIC_FIXTURES: END"
+SENSITIVE_ASSIGNMENT_RULE = "non-placeholder secret assignment"
+SYNTHETIC_FIXTURE_RULES = frozenset(
+    {"private key material", SENSITIVE_ASSIGNMENT_RULE}
+)
+SYNTHETIC_FIXTURE_BLOCK = re.compile(
+    rf"(?ms)^{re.escape(SYNTHETIC_FIXTURE_BEGIN)}\r?$.*?"
+    rf"^{re.escape(SYNTHETIC_FIXTURE_END)}\r?$"
+)
+
+
+def _is_allowed_synthetic_fixture_finding(
+    *,
+    relative: str,
+    rule: str,
+    text: str,
+    start: int,
+    end: int,
+) -> bool:
+    if relative != SYNTHETIC_FIXTURE_PATH or rule not in SYNTHETIC_FIXTURE_RULES:
+        return False
+    blocks = tuple(SYNTHETIC_FIXTURE_BLOCK.finditer(text))
+    if len(blocks) != 1 or end <= start:
+        return False
+    block = blocks[0]
+    return block.start() <= start and end <= block.end()
 
 
 def publishable_files() -> list[Path]:
@@ -55,7 +83,9 @@ def main() -> int:
         lower_relative = relative.lower()
         lower_name = path.name.lower()
 
-        if lower_name == ".env" or (lower_name.startswith(".env.") and lower_name not in ALLOWED_ENV_FILES):
+        if lower_name == ".env" or (
+            lower_name.startswith(".env.") and lower_name not in ALLOWED_ENV_FILES
+        ):
             errors.append(f"environment file is publishable: {relative}")
         if path.suffix.lower() in BANNED_SUFFIXES:
             errors.append(f"credential/external-document suffix is publishable: {relative}")
@@ -72,14 +102,33 @@ def main() -> int:
             continue
 
         for label, pattern in CONTENT_RULES.items():
-            if pattern.search(text):
-                errors.append(f"{label} found in: {relative}")
+            for match in pattern.finditer(text):
+                if not _is_allowed_synthetic_fixture_finding(
+                    relative=relative,
+                    rule=label,
+                    text=text,
+                    start=match.start(),
+                    end=match.end(),
+                ):
+                    errors.append(f"{label} found in: {relative}")
 
         if lower_name not in ALLOWED_ENV_FILES:
             for match in SENSITIVE_ASSIGNMENT.finditer(text):
                 value = match.group(1).strip().strip("'\"")
-                if value.lower() not in ALLOWED_EXAMPLE_VALUES and not value.startswith("${"):
-                    errors.append(f"non-placeholder secret assignment found in: {relative}")
+                if (
+                    value.lower() not in ALLOWED_EXAMPLE_VALUES
+                    and not value.startswith("${")
+                    and not _is_allowed_synthetic_fixture_finding(
+                        relative=relative,
+                        rule=SENSITIVE_ASSIGNMENT_RULE,
+                        text=text,
+                        start=match.start(),
+                        end=match.end(),
+                    )
+                ):
+                    errors.append(
+                        f"{SENSITIVE_ASSIGNMENT_RULE} found in: {relative}"
+                    )
 
     required_ignores = (
         ".env",
