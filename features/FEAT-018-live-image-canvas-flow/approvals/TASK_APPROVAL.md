@@ -344,3 +344,350 @@ This approval does not authorize:
 - any application commit or push.
 
 No commit or push is authorized by this addendum.
+
+## Owner binding of reviewed FEAT-018 P2-T2 runtime source — 2026-09-16
+
+The project owner binds `reviewed_runtime_code_commit` to:
+
+`9549a341194f40b1a9be419d6fce0d70f1ca0384`
+
+This binding identifies the exact reviewed FEAT-018 P2-T2 runner/coordinator
+source and test blobs only. It does not resolve D4, does not resolve all
+D1-D12, and does not authorize Lightning, GPU, model, provider, network, or
+Stage 4 execution. The binding does not alter the existing exact-file scope,
+does not approve any FEAT-003/FEAT-017 change, and does not authorize a commit
+or push by itself.
+
+## Owner approval of FEAT-018 P2-T2 pre-staged local snapshot - 2026-09-17
+
+The project owner approves `PRESTAGED_LOCAL_SNAPSHOT` for `P2T2-LIVE-D4` with
+the following exact identity:
+
+- Model: `Qwen/Qwen3-VL-8B-Instruct`
+- Revision: `0c351dd01ed87e9c1b53cbc748cba10e6187ff3b`
+- Logical snapshot: `qwen3-vl-8b-instruct`
+- Sanitized manifest SHA-256: `8a1d50d6aef809130acd7b05b71369cccbb2360192b157f7871de2bd40c43eaf`
+- Manifest file count: `16`
+- Indexed safetensors shard count: `4`
+- Runtime setting: `allow_model_download=false`
+- Observed Lightning device fact: NVIDIA L4, `23034` MiB VRAM; this observation does not resolve D10 approval inputs.
+
+This approval closes D4 snapshot readiness only. It does not authorize model
+loading, Lightning inference, provider or network execution, Stage 4,
+production use, or any change to the remaining D1-D12 decisions. D1 and D11
+remain pending, and a separate Stage 4 approval resolving all live decisions
+is required before any FEAT-018 live smoke.
+
+## Owner recording of FEAT-018 P2-T2 D6 sub-decisions - 2026-09-18
+
+Approver: Project owner direct instruction in the current conversation.
+
+The project owner records the following two `P2T2-LIVE-D6` sub-decisions,
+after the fifth independent binding review of the live-Lightning plan
+returned `PASS`:
+
+`P2T2-LIVE-D6.MEDIA_VALIDATION_SOURCE` =
+`SELECTED_PENDING_SEPARATE_IMPLEMENTATION_AND_REVIEW`. This selects a policy
+direction only, not a concrete implementation: the future validator must
+accept image-only input, must never fabricate or accept a placeholder audio
+input, and is not the existing `DeterministicMediaValidator` (which requires
+audio and is disqualified for this image-only smoke). No validator module,
+class, function, or Git blob is named or approved by this record. This
+sub-decision becomes `RESOLVED` only after a separate implementation
+approval defines the validator/result contract and its provenance
+serialization/hash rule, its exact identity is recorded, focused offline
+tests exist and pass, and an independent review of that implementation
+returns without a blocking finding. `P2T2-LIVE-D6` overall remains
+`NOT FINALLY RESOLVED` until then.
+
+`P2T2-LIVE-D6.MIME_EXTENSION_RULE` = `RESOLVED: REMOVE_REQUIREMENT`. The live
+path makes no MIME/extension-agreement claim. `image_admission_evaluation.py`
+(including `validate_cohort_b_source` and `load_cohort_b_manifest`) and the
+offline Cohort B tooling remain outside the live path and are not added.
+D2 admission's responsibilities are unchanged: bounded decode,
+container/codec/pixel-format checks, and source/staged digest equality.
+B01.jpg's MIME/extension remains owner-reviewed metadata only. No
+MIME/extension enforcer is added by this record.
+
+This is a documentation/governance record only. It does not implement or
+test any media validator, does not finally resolve `P2T2-LIVE-D6`, does not
+bind any `P2T2-LIVE-D11.LIVE_SEAM_BINDING` seam, does not select or change
+D1/D2/D3/D4/D5/D7-D12, and does not create a Stage 4 approval. D1 and D11
+remain `BLOCKED`, Stage 4 remains `NOT READY`, and Lightning/model/GPU/
+provider/network execution remains `NOT AUTHORIZED`. The recorded files are
+the live-Lightning plan, `CONTEXT.md`, `DECISIONS.md`, and this approval
+record; no source, test, evidence, P2-T4, or P2-T5 file changed. The next
+gate is a separate owner approval authorizing the image-only
+media-validation implementation, followed by its independent review.
+
+## Approved exact four-file offline image-only validator implementation — 2026-09-19
+
+Approver: Project owner direct instruction in the current conversation.
+
+`APPROVED_FOR_EXACT_FOUR_FILE_OFFLINE_IMAGE_ONLY_VALIDATOR_IMPLEMENTATION_ONLY`
+
+The project owner approves Design A for offline implementation and focused
+offline tests only. The implementation may modify only these four files:
+
+- `backend/src/sketch2life/contracts/schemas/media_validation.py`
+- `backend/src/sketch2life/application/services/media_validation.py`
+- `backend/src/sketch2life/domain/understanding/media_quality.py`
+- `backend/tests/unit/test_media_validation.py`
+
+The existing D2 decoder port and implementation, pure D2 structural policy,
+D2 application service, D2 tests, and dependency metadata remain read-only.
+The implementation may reuse the D2 decoder interfaces and pure policy facts,
+but must not modify D2 source, API, behavior, or tests and must not depend on
+`Feat018ImageAdmission` as an application service. If Design A requires any
+additional writable path, implementation must stop with
+`DESIGN_A_INSUFFICIENT` / `BLOCKED_PENDING_SCOPE_DECISION`.
+
+No committed fixture is approved. Deterministic JPEG and PNG inputs must be
+generated in memory in the approved test file. The image-only path has no
+audio, fabricated audio, `staged_sha256`, MIME/extension enforcement,
+subjective quality claim, model execution, GPU, provider, network, Lightning,
+or live-smoke behavior.
+
+This addendum does not authorize D11, staging, filesystem/evidence publication,
+Stage 4, live execution, production use, or any commit or push. D6 remains
+`SELECTED_PENDING_SEPARATE_IMPLEMENTATION_AND_REVIEW` and is not finally
+resolved until the bounded implementation passes focused offline validation,
+independent review, and exact identity/provenance binding. D1 and D11 remain
+`BLOCKED`, and Stage 4 remains `NOT READY`.
+
+## Separate security-fixture hygiene addendum - 2026-09-20
+
+Approver: Project owner direct instruction in the current conversation.
+
+This is a separate governance addendum for the currently blocked hygiene gate.
+It records a hygiene decision only. It does not implement the exemption, change
+the security validator, change test fixtures, or rerun the blocked validation
+matrix.
+
+### A. Four-file implementation approval
+
+- Owner decision: already approved.
+- Repository marker: already recorded exactly once in this approval record.
+- Scope: the exact four-file offline implementation only:
+  `backend/src/sketch2life/contracts/schemas/media_validation.py`,
+  `backend/src/sketch2life/application/services/media_validation.py`,
+  `backend/src/sketch2life/domain/understanding/media_quality.py`, and
+  `backend/tests/unit/test_media_validation.py`.
+- This hygiene addendum does not replace, duplicate, broaden, or alter that
+  existing marker or its surrounding approval text.
+
+### B. Security-fixture hygiene decision
+
+- Owner decision: Route A is approved separately.
+- This is a new hygiene authorization and is not part of the original four-file
+  marker.
+- `HYGIENE_ROUTE = A_NARROW_SECURITY_VALIDATOR_EXEMPTION`
+- The authorization is for a future, narrowly machine-checkable correction only;
+  no correction is implemented by this record.
+
+### New writable hygiene scope
+
+The only newly authorized hygiene target is:
+
+- `tools/validate_repository_security.py`
+
+The test file may be changed only if an explicit synthetic-fixture marker is
+required, and only at:
+
+- `backend/tests/unit/test_media_validation.py`
+
+No other file is authorized by this hygiene addendum. The following remain
+outside scope: all other source files; runtime files; configuration files;
+`.env` files; provider credentials; real API keys; real access tokens;
+passwords; private keys; service-account files; production data; D2
+decoder/policy files; FEAT-003 files; Qwen/runner/mapper/coordinator files;
+plans, context, decisions, evidence, and runtime integration files.
+
+### Exemption precision
+
+Any future exemption must be narrowly machine-checkable and constrained by all
+of the following:
+
+- the exact relative file path;
+- the exact security rule/category; and
+- the exact explicitly marked synthetic-fixture block.
+
+The exemption must not be a path-wide ignore for the entire test file, a
+repository-wide test exemption, a broad regex suppression, an ignore for all
+token/secret/private-key strings, an ignore for runtime or configuration files,
+or a general suppression of the security validator. All unmarked findings in
+the test file must continue to fail the security validator.
+
+### Fixture integrity
+
+The synthetic fixtures exist to prove that unsafe references are rejected and
+sanitized. Future hygiene work must preserve coverage for token-like,
+secret-like, credential-like, and private-key-like references; malformed
+references; structured diagnostic sanitization; parser-level sanitization; and
+direct mapping sanitization.
+
+The future implementation must not concatenate strings merely to evade scanner
+detection, encode or obfuscate strings merely to evade scanner detection,
+rename fixtures to hide their security meaning, replace all sensitive-looking
+cases with harmless values, remove privacy assertions, or weaken the
+negative-test matrix. If a marker is required, it must identify synthetic test
+data explicitly and narrowly while preserving the actual test semantics.
+
+### Strict-mypy correction authorization
+
+This addendum may also authorize the related typing-only correction at
+`backend/src/sketch2life/contracts/schemas/media_validation.py:284`. The
+correction must preserve `hide_input_in_errors=True`; the expected direction is
+to express the option through a typing-safe `ConfigDict` declaration instead of
+mutating a `TypedDict` through an unsupported update call. This authorization
+does not permit semantic result-contract changes, privacy weakening, or scope
+expansion beyond the approved hygiene files.
+
+### Exemption versus waiver
+
+If the narrow exemption is implemented and the validator exits successfully,
+the result is:
+
+`REPOSITORY_SECURITY_VALIDATOR = PASS`
+
+If the owner accepts the current finding without changing the validator, the
+result must instead be:
+
+`REPOSITORY_SECURITY_VALIDATOR = FAIL_WITH_EXPLICIT_OWNER_WAIVER`
+
+A waiver must never be labeled as technical validator `PASS`. A waiver does
+not authorize live execution, Stage 4, D11, model/GPU/provider/network
+activity, commit, or push.
+
+### Required future validation
+
+After the hygiene correction is separately implemented, run strict mypy on
+changed source files; the repository security validator; Ruff on all four
+applied Python files; focused `test_media_validation.py`; D2 image-admission
+regression tests; the harness validator; the skeleton validator; the
+architecture validator; and `git diff --check`.
+
+Known baselines must remain separately classified and must not hide new
+failures:
+
+- three semantic-catalog failures caused by the missing file
+  `backend/data/activity-catalog/golden/v1/semantic-anchor-profiles.v1.json`;
+- the unchanged architecture violation in
+  `backend/src/sketch2life/application/services/backend_ai_workflow.py`.
+
+### Governance and runtime limits
+
+This addendum does not authorize model download or loading, GPU use, provider
+calls, network calls, Lightning sessions, live inference, Stage 4, D11
+resolution, D6 final resolution, production use, migration or cutover,
+evidence publication, routes, registries, ports, integrations, commit, or push.
+It authorizes only the future narrow hygiene correction and its offline
+validation.
+
+Recorded state:
+
+`FOUR_FILE_IMPLEMENTATION_APPROVAL = ALREADY_RECORDED`
+
+`HYGIENE_APPROVAL = RECORDED`
+
+`SECURITY_VALIDATOR_CORRECTION = AUTHORIZED_PENDING_IMPLEMENTATION`
+
+`STRICT_MYPY_CORRECTION = AUTHORIZED_PENDING_IMPLEMENTATION`
+
+`FOUR_FILE_IMPLEMENTATION = APPLIED_UNCOMMITTED`
+
+`COMMIT_READY = NO`
+
+`D6 = NOT FINALLY RESOLVED`
+
+`D11 = BLOCKED`
+
+`STAGE_4 = NOT READY`
+
+`LIVE/MODEL/GPU/PROVIDER/NETWORK/LIGHTNING = NOT AUTHORIZED`
+
+`NEXT = IMPLEMENT_NARROW_HYGIENE_CORRECTION`
+
+## Owner binding of FEAT-018 P2-T2 D6 image-only media-validation source - 2026-09-20
+
+Approver: Project owner direct instruction in the current conversation.
+
+The D6 binding package independent review returned `PASS`:
+
+`D6_BINDING_REVIEW = PASS`
+
+`D6_OWNER_DECISION = RECORDED`
+
+`D6_BINDING_PACKAGE = OWNER_APPROVED`
+
+The project owner approves binding `D6.MEDIA_VALIDATION_SOURCE` and
+`P2T2-LIVE-D6.MEDIA_VALIDATION_SOURCE` to the exact committed FEAT-018
+image-only validator at commit:
+
+`16c52da26c444947ab4388712d9b7310480360b4`
+
+The exact binding identities are:
+
+- Contract: `ImageOnlyValidationResultV1@1.0`
+- Validator: `feat018-image-only-structural-validator-v1`
+- Policy: `feat018-image-only-structural-policy-v1`
+
+The accepted artifact-reference grammar is exactly:
+
+- `fixture-b[0-9]{2}`
+- `fixture:drawing:v[0-9]+`
+- `fixture:small-dark-drawing:v[0-9]+`
+- `fixture:corrupt-drawing:v[0-9]+`
+- `fixture:rejected-reference:v1`
+
+This grammar syntactically permits `fixture-b00` through `fixture-b99`. It
+does not assert that every such fixture exists, that every such fixture was
+owner-reviewed, or that every such fixture is independently authorized for a
+live run. Fixture existence, identity, and authorization remain separate
+run-specific gates.
+
+The owner records:
+
+`D6.MEDIA_VALIDATION_SOURCE = RESOLVED: EXACT_COMMITTED_IMAGE_ONLY_VALIDATOR`
+
+`P2T2-LIVE-D6.MEDIA_VALIDATION_SOURCE = RESOLVED: EXACT_COMMITTED_IMAGE_ONLY_VALIDATOR`
+
+`D6.MIME_EXTENSION_RULE = RESOLVED: REMOVE_REQUIREMENT`
+
+This resolves only the D6 media-validation-source binding. It does not resolve
+D11 or authorize Stage 4. D6 overall remains `NOT FINALLY RESOLVED` while the
+fixture identity remains `RESOLVED_WITH_PROPOSED_VALUE`.
+
+Before Stage 4:
+
+`D4 snapshot/readiness/identity = RESOLVED_FOR_RUNTIME_REVALIDATION`
+
+D4 runtime/session-local revalidation remains Stage-4-local and may occur only
+after an authorized session reaches `SESSION_READY`. The lifecycle is:
+
+```text
+Stage-4 approval
+-> provision session
+-> SESSION_READY
+-> D4 runtime/session-local revalidation
+-> D8 staging and staged digest verification
+-> exactly one smoke
+```
+
+D4 runtime/session-local revalidation is not required before Stage 4 approval.
+
+CI run `35500484772` proves only that the `feat018-posix` process-group
+cleanup workflow passed for commit `16c52da`. It must not be described as full
+validator CI or full repository validation.
+
+This addendum does not resolve D11, authorize Stage 4, or authorize Lightning,
+model loading, model inference, GPU use, provider calls, network calls,
+adapter invocation, or live execution. It does not authorize a commit or push.
+
+`D11 = BLOCKED`
+
+`STAGE_4 = NOT READY`
+
+`LIVE/MODEL/GPU/PROVIDER/NETWORK/LIGHTNING = NOT AUTHORIZED`
+
+`NEXT = INDEPENDENT_REVIEW_OF_D6_GOVERNANCE_COMMIT`

@@ -92,6 +92,12 @@ data/runtime/
 backend/data/runtime/
 **/qwen-vl-cache/
 models/
+
+# Local test-generated parent copies; keep out of repository status.
+/.tmp-g6-parent/
+/.tmp-g6-parent-copy/
+/.tmp-g6-candidate-pytest*.txt
+
 features/FEAT-000-harness/evidence/handbook-page-*.png
 
 # Android native build intermediates

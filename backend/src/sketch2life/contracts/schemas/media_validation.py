@@ -2,9 +2,21 @@
 
 from __future__ import annotations
 
-from typing import Literal
+import json
+import re
+from collections.abc import Mapping
+from enum import StrEnum
+from hashlib import sha256
+from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    ValidationError,
+    field_validator,
+    model_validator,
+)
 
 from sketch2life.domain.understanding.media_quality import (
     AudioQualitySignals,
@@ -70,7 +82,520 @@ class MediaValidationResultV1(BaseModel):
     audio_signals: AudioQualitySignalsV1
     recapture_message: str = Field(min_length=1, max_length=1_000)
     validator_policy_version: str = Field(min_length=1)
-    validator_name: Literal["deterministic-media-validator"] = "deterministic-media-validator"
+    validator_name: Literal["deterministic-media-validator"] = (
+        "deterministic-media-validator"
+    )
+
+
+IMAGE_ONLY_ARTIFACT_REFERENCE_MAX_LENGTH = 128
+IMAGE_ONLY_REJECTED_ARTIFACT_REFERENCE = 'fixture:rejected-reference:v1'
+# This is a positive allowlist, not a generic caller-controlled opaque string.
+# It preserves the image references issued by the approved media-validation
+# fixtures (the B-series IDs and the versioned drawing identities) plus the
+# fixed sanitized failure sentinel. No caller-chosen secret/token namespace is
+# accepted, even when its spelling happens to fit a safe ASCII character set.
+IMAGE_ONLY_ARTIFACT_REFERENCE_PATTERN = (
+    r'^(?:fixture-b[0-9]{2}|'
+    r'fixture:(?:drawing|small-dark-drawing|corrupt-drawing):v[0-9]+|'
+    r'fixture:rejected-reference:v1)$'
+)
+_IMAGE_ONLY_ARTIFACT_REFERENCE_RE = re.compile(
+    IMAGE_ONLY_ARTIFACT_REFERENCE_PATTERN,
+    re.ASCII,
+)
+
+_IMAGE_ONLY_REFERENCE_VALIDATION_MESSAGE = (
+    'invalid image-only artifact reference'
+)
+
+
+class ImageOnlyValidationContractError(Exception):
+    """Sanitized direct-contract rejection with no caller input retained."""
+
+    def __init__(self) -> None:
+        super().__init__(_IMAGE_ONLY_REFERENCE_VALIDATION_MESSAGE)
+
+    def errors(
+        self,
+        *,
+        include_context: bool = True,
+        include_input: bool = True,
+        include_url: bool = True,
+    ) -> list[dict[str, Any]]:
+        """Expose a ValidationError-shaped diagnostic without caller input."""
+
+        error: dict[str, Any] = {
+            'type': 'image_only_reference',
+            'loc': ('source_artifact_ref',),
+            'msg': _IMAGE_ONLY_REFERENCE_VALIDATION_MESSAGE,
+        }
+        if include_input:
+            error['input'] = None
+        if include_context:
+            error['ctx'] = {}
+        if include_url:
+            error['url'] = 'https://errors.pydantic.dev/2.13/v/image_only_reference'
+        return [error]
+
+    def json(
+        self,
+        indent: int | None = None,
+        *,
+        include_context: bool = True,
+        include_input: bool = True,
+        include_url: bool = True,
+    ) -> str:
+        """Return JSON diagnostics using the same safe fields as ``errors``."""
+
+        return json.dumps(
+            self.errors(
+                include_context=include_context,
+                include_input=include_input,
+                include_url=include_url,
+            ),
+            ensure_ascii=True,
+            indent=indent,
+            separators=None if indent is not None else (',', ':'),
+        )
+
+    def error_count(self) -> int:
+        return 1
+
+
+def _is_safe_image_only_artifact_reference(value: object) -> bool:
+    if type(value) is not str:
+        return False
+    if not value or len(value) > IMAGE_ONLY_ARTIFACT_REFERENCE_MAX_LENGTH:
+        return False
+    if value != value.strip() or not value.isascii():
+        return False
+    return _IMAGE_ONLY_ARTIFACT_REFERENCE_RE.fullmatch(value) is not None
+
+
+class ImageOnlyArtifactReferenceV1:
+    __slots__ = ('value',)
+
+    value: str
+
+    def __init__(self, value: object) -> None:
+        if not _is_safe_image_only_artifact_reference(value):
+            raise ValueError('invalid image-only artifact reference')
+        assert isinstance(value, str)
+        self.value = value
+
+
+def try_create_image_only_artifact_reference(
+    value: object,
+) -> ImageOnlyArtifactReferenceV1 | None:
+    try:
+        return ImageOnlyArtifactReferenceV1(value)
+    except (TypeError, ValueError):
+        return None
+
+
+class ImageOnlyValidationStatus(StrEnum):
+    PASS = "PASS"
+    FAIL = "FAIL"
+
+
+class ImageOnlyValidationFailureCode(StrEnum):
+    MISSING_SOURCE = "MISSING_SOURCE"
+    UNREADABLE_IMAGE = "UNREADABLE_IMAGE"
+    UNSUPPORTED_CONTAINER = "UNSUPPORTED_CONTAINER"
+    UNSUPPORTED_CODEC = "UNSUPPORTED_CODEC"
+    UNSUPPORTED_PIXEL_FORMAT = "UNSUPPORTED_PIXEL_FORMAT"
+    CORRUPT_OR_TRUNCATED = "CORRUPT_OR_TRUNCATED"
+    INPUT_TOO_LARGE = "INPUT_TOO_LARGE"
+    SOURCE_DIGEST_MISMATCH = "SOURCE_DIGEST_MISMATCH"
+    VALIDATOR_EXCEPTION = "VALIDATOR_EXCEPTION"
+    MALFORMED_RESULT = "MALFORMED_RESULT"
+    SERIALIZATION_HASH_MISMATCH = "SERIALIZATION_HASH_MISMATCH"
+
+
+class ImageOnlySourceStatus(StrEnum):
+    AVAILABLE = "AVAILABLE"
+    MISSING = "MISSING"
+    UNREADABLE = "UNREADABLE"
+    TOO_LARGE = "TOO_LARGE"
+
+
+class ImageOnlyDigestStatus(StrEnum):
+    MATCH = "MATCH"
+    MISMATCH = "MISMATCH"
+    NOT_COMPUTED = "NOT_COMPUTED"
+
+
+class ImageOnlyValidationCheckName(StrEnum):
+    SOURCE_READ = "SOURCE_READ"
+    SOURCE_DIGEST = "SOURCE_DIGEST"
+    D2_METADATA = "D2_METADATA"
+    FRAME_COUNT = "FRAME_COUNT"
+    DIMENSIONS = "DIMENSIONS"
+    PIXEL_BUDGET = "PIXEL_BUDGET"
+    LONGEST_EDGE = "LONGEST_EDGE"
+    DECODE_INTEGRITY = "DECODE_INTEGRITY"
+    STRUCTURAL_POLICY = "STRUCTURAL_POLICY"
+
+
+class ImageOnlyValidationCheckOutcome(StrEnum):
+    PASS = "PASS"
+    FAIL = "FAIL"
+    NOT_RUN = "NOT_RUN"
+
+
+IMAGE_ONLY_VALIDATION_CHECK_ORDER: tuple[ImageOnlyValidationCheckName, ...] = (
+    ImageOnlyValidationCheckName.SOURCE_READ,
+    ImageOnlyValidationCheckName.SOURCE_DIGEST,
+    ImageOnlyValidationCheckName.D2_METADATA,
+    ImageOnlyValidationCheckName.FRAME_COUNT,
+    ImageOnlyValidationCheckName.DIMENSIONS,
+    ImageOnlyValidationCheckName.PIXEL_BUDGET,
+    ImageOnlyValidationCheckName.LONGEST_EDGE,
+    ImageOnlyValidationCheckName.DECODE_INTEGRITY,
+    ImageOnlyValidationCheckName.STRUCTURAL_POLICY,
+)
+
+
+class ImageOnlyValidationCheckV1(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    name: ImageOnlyValidationCheckName
+    outcome: ImageOnlyValidationCheckOutcome
+
+
+class ImageOnlyStructuralProfileV1(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    container: str = Field(min_length=1, max_length=64, pattern=r"^[A-Za-z0-9_.-]+$")
+    codec: str = Field(min_length=1, max_length=64, pattern=r"^[A-Za-z0-9_.-]+$")
+    pixel_format: str = Field(min_length=1, max_length=64, pattern=r"^[A-Za-z0-9_.-]+$")
+    width: int = Field(ge=1)
+    height: int = Field(ge=1)
+    frame_count: Literal[1] = 1
+
+
+class ImageOnlyValidationResultV1(BaseModel):
+    model_config = ConfigDict(
+        frozen=True,
+        extra="forbid",
+        hide_input_in_errors=True,
+    )
+
+    contract_name: Literal["ImageOnlyValidationResultV1"] = (
+        "ImageOnlyValidationResultV1"
+    )
+    contract_version: Literal["1.0"] = "1.0"
+
+    @classmethod
+    def model_validate(
+        cls,
+        obj: Any,
+        *,
+        strict: bool | None = None,
+        extra: Any | None = None,
+        from_attributes: bool | None = None,
+        context: Any | None = None,
+        by_alias: bool | None = None,
+        by_name: bool | None = None,
+    ) -> ImageOnlyValidationResultV1:
+        try:
+            return super().model_validate(
+                obj,
+                strict=strict,
+                extra=extra,
+                from_attributes=from_attributes,
+                context=context,
+                by_alias=by_alias,
+                by_name=by_name,
+            )
+        except ValidationError:
+            raise ImageOnlyValidationContractError() from None
+
+    @classmethod
+    def model_validate_strings(
+        cls,
+        obj: Any,
+        *,
+        strict: bool | None = None,
+        extra: Any | None = None,
+        context: Any | None = None,
+        by_alias: bool | None = None,
+        by_name: bool | None = None,
+    ) -> ImageOnlyValidationResultV1:
+        if not isinstance(obj, Mapping):
+            raise ImageOnlyValidationContractError()
+        try:
+            return super().model_validate_strings(
+                obj,
+                strict=strict,
+                extra=extra,
+                context=context,
+                by_alias=by_alias,
+                by_name=by_name,
+            )
+        except ValidationError:
+            raise ImageOnlyValidationContractError() from None
+    @classmethod
+    def model_validate_json(
+        cls,
+        json_data: str | bytes | bytearray,
+        *,
+        strict: bool | None = None,
+        extra: Any | None = None,
+        context: Any | None = None,
+        by_alias: bool | None = None,
+        by_name: bool | None = None,
+    ) -> ImageOnlyValidationResultV1:
+        """Reject parser failures without exposing raw JSON diagnostics."""
+
+        try:
+            return super().model_validate_json(
+                json_data,
+                strict=strict,
+                extra=extra,
+                context=context,
+                by_alias=by_alias,
+                by_name=by_name,
+            )
+        except ValidationError:
+            raise ImageOnlyValidationContractError() from None
+
+    status: ImageOnlyValidationStatus
+    failure_code: ImageOnlyValidationFailureCode | None = None
+    source_artifact_ref: str = Field(
+        min_length=1,
+        max_length=IMAGE_ONLY_ARTIFACT_REFERENCE_MAX_LENGTH,
+        pattern=IMAGE_ONLY_ARTIFACT_REFERENCE_PATTERN,
+    )
+    source_status: ImageOnlySourceStatus
+    digest_status: ImageOnlyDigestStatus
+    source_sha256: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
+    byte_count: int | None = Field(default=None, ge=0)
+    structural_profile: ImageOnlyStructuralProfileV1 | None = None
+    checks: tuple[ImageOnlyValidationCheckV1, ...]
+    validator_identity: Literal["feat018-image-only-structural-validator-v1"] = (
+        "feat018-image-only-structural-validator-v1"
+    )
+    policy_identity: Literal["feat018-image-only-structural-policy-v1"] = (
+        "feat018-image-only-structural-policy-v1"
+    )
+
+    @field_validator('source_artifact_ref', mode='before')
+    @classmethod
+    def reject_unsafe_artifact_reference(cls, value: object) -> object:
+        """Reject before Pydantic can place caller input in a diagnostic."""
+
+        if not _is_safe_image_only_artifact_reference(value):
+            raise ImageOnlyValidationContractError()
+        return value
+
+    @model_validator(mode="after")
+    def validate_invariants(self) -> ImageOnlyValidationResultV1:
+        _validate_image_only_check_invariants(self)
+        _validate_image_only_source_invariants(self)
+        _validate_image_only_terminal_invariants(self)
+        return self
+
+
+def _validate_image_only_check_invariants(result: ImageOnlyValidationResultV1) -> None:
+    if not _is_safe_image_only_artifact_reference(result.source_artifact_ref):
+        raise ValueError('invalid image-only artifact reference')
+    names = tuple(check.name for check in result.checks)
+    if names != IMAGE_ONLY_VALIDATION_CHECK_ORDER:
+        raise ValueError("validation checks must use the complete canonical order")
+    failed_count = sum(
+        check.outcome is ImageOnlyValidationCheckOutcome.FAIL for check in result.checks
+    )
+    if result.status is ImageOnlyValidationStatus.PASS and failed_count:
+        raise ValueError("PASS result cannot contain a failed check")
+    if result.status is ImageOnlyValidationStatus.FAIL and failed_count != 1:
+        raise ValueError("FAIL result requires exactly one failed check")
+
+
+def _validate_image_only_source_invariants(result: ImageOnlyValidationResultV1) -> None:
+    if result.source_status is ImageOnlySourceStatus.AVAILABLE:
+        if result.digest_status is ImageOnlyDigestStatus.NOT_COMPUTED:
+            raise ValueError("available source requires a computed digest")
+        if result.source_sha256 is None or result.byte_count is None:
+            raise ValueError("available source requires complete digest and byte count")
+    elif (
+        result.digest_status is not ImageOnlyDigestStatus.NOT_COMPUTED
+        or result.source_sha256 is not None
+        or result.byte_count is not None
+    ):
+        raise ValueError("unavailable source must not carry digest or byte-count facts")
+
+
+def _validate_image_only_terminal_invariants(
+    result: ImageOnlyValidationResultV1,
+) -> None:
+    if result.status is ImageOnlyValidationStatus.PASS:
+        if result.failure_code is not None:
+            raise ValueError("PASS result must not contain a failure code")
+        complete_success = (
+            result.source_status is ImageOnlySourceStatus.AVAILABLE
+            and result.digest_status is ImageOnlyDigestStatus.MATCH
+            and result.structural_profile is not None
+            and all(
+                check.outcome is ImageOnlyValidationCheckOutcome.PASS
+                for check in result.checks
+            )
+        )
+        if not complete_success:
+            raise ValueError(
+                "PASS result requires complete and consistent success facts"
+            )
+    elif result.failure_code is None or result.structural_profile is not None:
+        raise ValueError("FAIL result requires a code and no partial success profile")
+
+    if result.digest_status is ImageOnlyDigestStatus.MISMATCH:
+        if (
+            result.failure_code
+            is not ImageOnlyValidationFailureCode.SOURCE_DIGEST_MISMATCH
+        ):
+            raise ValueError("digest mismatch requires SOURCE_DIGEST_MISMATCH")
+    elif result.failure_code is ImageOnlyValidationFailureCode.SOURCE_DIGEST_MISMATCH:
+        raise ValueError("SOURCE_DIGEST_MISMATCH requires digest mismatch facts")
+
+
+class ImageOnlyArtifactVerificationV1(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    @classmethod
+    def model_validate(
+        cls,
+        obj: Any,
+        *,
+        strict: bool | None = None,
+        extra: Any | None = None,
+        from_attributes: bool | None = None,
+        context: Any | None = None,
+        by_alias: bool | None = None,
+        by_name: bool | None = None,
+    ) -> ImageOnlyArtifactVerificationV1:
+        try:
+            return super().model_validate(
+                obj,
+                strict=strict,
+                extra=extra,
+                from_attributes=from_attributes,
+                context=context,
+                by_alias=by_alias,
+                by_name=by_name,
+            )
+        except ValidationError:
+            raise ImageOnlyValidationContractError() from None
+
+    @classmethod
+    def model_validate_strings(
+        cls,
+        obj: Any,
+        *,
+        strict: bool | None = None,
+        extra: Any | None = None,
+        context: Any | None = None,
+        by_alias: bool | None = None,
+        by_name: bool | None = None,
+    ) -> ImageOnlyArtifactVerificationV1:
+        if not isinstance(obj, Mapping):
+            raise ImageOnlyValidationContractError()
+        try:
+            return super().model_validate_strings(
+                obj,
+                strict=strict,
+                extra=extra,
+                context=context,
+                by_alias=by_alias,
+                by_name=by_name,
+            )
+        except ValidationError:
+            raise ImageOnlyValidationContractError() from None
+    @classmethod
+    def model_validate_json(
+        cls,
+        json_data: str | bytes | bytearray,
+        *,
+        strict: bool | None = None,
+        extra: Any | None = None,
+        context: Any | None = None,
+        by_alias: bool | None = None,
+        by_name: bool | None = None,
+    ) -> ImageOnlyArtifactVerificationV1:
+        """Reject parser failures without exposing raw JSON diagnostics."""
+
+        try:
+            return super().model_validate_json(
+                json_data,
+                strict=strict,
+                extra=extra,
+                context=context,
+                by_alias=by_alias,
+                by_name=by_name,
+            )
+        except ValidationError:
+            raise ImageOnlyValidationContractError() from None
+
+    status: ImageOnlyValidationStatus
+    failure_code: ImageOnlyValidationFailureCode | None = None
+    result: ImageOnlyValidationResultV1 | None = None
+
+    @model_validator(mode="after")
+    def validate_terminal_shape(self) -> ImageOnlyArtifactVerificationV1:
+        if self.status is ImageOnlyValidationStatus.PASS:
+            if self.failure_code is not None or self.result is None:
+                raise ValueError("PASS verification requires one complete result")
+        elif (
+            self.failure_code
+            not in {
+                ImageOnlyValidationFailureCode.MALFORMED_RESULT,
+                ImageOnlyValidationFailureCode.SERIALIZATION_HASH_MISMATCH,
+            }
+            or self.result is not None
+        ):
+            raise ValueError("FAIL verification requires one closed verification code")
+        return self
+
+
+def canonical_image_only_validation_bytes(result: ImageOnlyValidationResultV1) -> bytes:
+    return result.model_dump_json(
+        by_alias=False,
+        exclude_none=False,
+        indent=None,
+    ).encode("utf-8")
+
+
+def image_only_validation_artifact_sha256(result: ImageOnlyValidationResultV1) -> str:
+    return sha256(canonical_image_only_validation_bytes(result)).hexdigest()
+
+
+def verify_image_only_validation_artifact(
+    payload: bytes,
+    expected_sha256: str,
+) -> ImageOnlyArtifactVerificationV1:
+    expected_hash_is_valid = len(expected_sha256) == 64 and all(
+        character in "0123456789abcdef" for character in expected_sha256
+    )
+    if not expected_hash_is_valid or sha256(payload).hexdigest() != expected_sha256:
+        return ImageOnlyArtifactVerificationV1(
+            status=ImageOnlyValidationStatus.FAIL,
+            failure_code=ImageOnlyValidationFailureCode.SERIALIZATION_HASH_MISMATCH,
+        )
+    try:
+        result = ImageOnlyValidationResultV1.model_validate_json(payload)
+    except (ImageOnlyValidationContractError, ValidationError):
+        return ImageOnlyArtifactVerificationV1(
+            status=ImageOnlyValidationStatus.FAIL,
+            failure_code=ImageOnlyValidationFailureCode.MALFORMED_RESULT,
+        )
+    if canonical_image_only_validation_bytes(result) != payload:
+        return ImageOnlyArtifactVerificationV1(
+            status=ImageOnlyValidationStatus.FAIL,
+            failure_code=ImageOnlyValidationFailureCode.SERIALIZATION_HASH_MISMATCH,
+        )
+    return ImageOnlyArtifactVerificationV1(
+        status=ImageOnlyValidationStatus.PASS,
+        result=result,
+    )
 
 
 class MediaFixtureManifestEntryV1(BaseModel):

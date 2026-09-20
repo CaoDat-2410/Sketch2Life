@@ -2,8 +2,19 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import StrEnum
+from typing import Literal
+
+from sketch2life.domain.understanding.image_admission import (
+    AdmissionReason,
+    DecodedFrameSignals,
+    Feat018AdmissionLimits,
+    ImageMetadataSignals,
+    evaluate_cross_check,
+    evaluate_frame_count,
+    evaluate_metadata,
+)
 
 
 class MediaDecision(StrEnum):
@@ -72,6 +83,35 @@ class MediaQualityAssessment:
     policy_version: str
 
 
+@dataclass(frozen=True, slots=True)
+class ImageOnlyStructuralPolicy:
+    version: Literal["feat018-image-only-structural-policy-v1"] = (
+        "feat018-image-only-structural-policy-v1"
+    )
+    limits: Feat018AdmissionLimits = field(default_factory=Feat018AdmissionLimits)
+
+
+def evaluate_image_only_metadata(
+    signals: ImageMetadataSignals | None,
+    policy: ImageOnlyStructuralPolicy,
+) -> AdmissionReason | None:
+    return evaluate_metadata(signals, policy.limits)
+
+
+def evaluate_image_only_frame_count(
+    frame_count: int,
+    policy: ImageOnlyStructuralPolicy,
+) -> AdmissionReason | None:
+    return evaluate_frame_count(frame_count, policy.limits)
+
+
+def evaluate_image_only_cross_check(
+    metadata: ImageMetadataSignals,
+    decoded: DecodedFrameSignals,
+) -> AdmissionReason | None:
+    return evaluate_cross_check(metadata, decoded)
+
+
 def assess_image(
     signals: ImageQualitySignals, policy: MediaQualityPolicy
 ) -> tuple[MediaRecaptureReason, ...]:
@@ -79,7 +119,10 @@ def assess_image(
         return (MediaRecaptureReason.IMAGE_UNREADABLE,)
 
     reasons: list[MediaRecaptureReason] = []
-    if signals.width < policy.min_image_width or signals.height < policy.min_image_height:
+    if (
+        signals.width < policy.min_image_width
+        or signals.height < policy.min_image_height
+    ):
         reasons.append(MediaRecaptureReason.IMAGE_DIMENSIONS_TOO_SMALL)
     if (
         signals.mean_luminance is not None
@@ -88,10 +131,14 @@ def assess_image(
         reasons.append(MediaRecaptureReason.IMAGE_TOO_DARK)
     if (
         signals.luminance_standard_deviation is not None
-        and signals.luminance_standard_deviation < policy.minimum_luminance_standard_deviation
+        and signals.luminance_standard_deviation
+        < policy.minimum_luminance_standard_deviation
     ):
         reasons.append(MediaRecaptureReason.IMAGE_LOW_CONTRAST)
-    if signals.edge_strength is not None and signals.edge_strength < policy.minimum_edge_strength:
+    if (
+        signals.edge_strength is not None
+        and signals.edge_strength < policy.minimum_edge_strength
+    ):
         reasons.append(MediaRecaptureReason.IMAGE_BLURRY)
     if (
         signals.border_ink_ratio is not None
