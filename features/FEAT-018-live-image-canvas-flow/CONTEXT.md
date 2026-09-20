@@ -235,3 +235,85 @@ inputs.
 This closes D4 snapshot readiness only. Model loading, Lightning inference,
 Stage 4, provider/network execution, and production use remain unauthorized;
 D1 and D11 plus the remaining live decisions still require their own approval.
+
+## P2-T2 D6 owner-decision recording - 2026-09-18
+
+After the fifth independent binding review of the live-Lightning plan
+returned `PASS` (following the plan-only B-001 Section 12 preamble
+correction), the owner recorded two `P2T2-LIVE-D6` sub-decisions in the plan.
+
+`P2T2-LIVE-D6.MEDIA_VALIDATION_SOURCE` =
+`SELECTED_PENDING_SEPARATE_IMPLEMENTATION_AND_REVIEW`. The owner selected a
+policy direction only: the future validator must accept image-only input,
+must never fabricate or accept a placeholder audio input, and is explicitly
+not the existing `DeterministicMediaValidator` (which requires audio). No
+concrete validator module is named or approved. This sub-decision becomes
+`RESOLVED` only after a separate implementation approval defines the
+validator/result contract and its provenance serialization/hash rule, its
+exact module/class/function identity and Git blob are recorded, focused
+offline tests exist and pass, and an independent review of that
+implementation finds no blocker.
+
+`P2T2-LIVE-D6.MIME_EXTENSION_RULE` = `RESOLVED: REMOVE_REQUIREMENT`. The live
+path makes no MIME/extension-agreement claim. `image_admission_evaluation.py`
+(including `validate_cohort_b_source`) and the offline Cohort B tooling are
+not added to the live path. D2 admission's responsibilities are unchanged:
+bounded decode, container/codec/pixel-format checks, and source/staged
+digest equality. B01.jpg's MIME/extension remains owner-reviewed metadata
+only. No MIME/extension enforcer is added.
+
+`P2T2-LIVE-D6` overall remains `NOT FINALLY RESOLVED`: the fixture identity
+sub-decision is `RESOLVED_WITH_PROPOSED_VALUE`, `MIME_EXTENSION_RULE` is
+`RESOLVED`, but `MEDIA_VALIDATION_SOURCE` is still pending its separate
+implementation and review. This recording does not implement or test the
+validator, does not resolve D6 as a whole, does not bind any `P2T2-LIVE-D11`
+seam, and does not open Stage 4. D1 remains `BLOCKED`, D11 and
+`D11.LIVE_SEAM_BINDING` remain `BLOCKED`, Stage 4 remains `NOT READY`, and
+Lightning/model/GPU/provider/network execution remains `NOT AUTHORIZED`. The
+next gate is a separate owner approval authorizing the image-only
+media-validation implementation.
+
+## P2-T2 D6 media-validation-source owner binding - 2026-09-20
+
+The independent D6 binding review returned `PASS`, and the owner recorded the
+separate D6 binding addendum in `approvals/TASK_APPROVAL.md`.
+
+`D6_BINDING_REVIEW = PASS`
+
+`D6_BINDING_PACKAGE = OWNER_APPROVED`
+
+`D6_OWNER_DECISION = RECORDED`
+
+`D6.MEDIA_VALIDATION_SOURCE = RESOLVED: EXACT_COMMITTED_IMAGE_ONLY_VALIDATOR`
+
+`P2T2-LIVE-D6.MEDIA_VALIDATION_SOURCE = RESOLVED: EXACT_COMMITTED_IMAGE_ONLY_VALIDATOR`
+
+The binding is to commit
+`16c52da26c444947ab4388712d9b7310480360b4`, with contract
+`ImageOnlyValidationResultV1@1.0`, validator
+`feat018-image-only-structural-validator-v1`, and policy
+`feat018-image-only-structural-policy-v1`. The accepted artifact-reference
+grammar is `fixture-b[0-9]{2}`, `fixture:drawing:v[0-9]+`,
+`fixture:small-dark-drawing:v[0-9]+`, `fixture:corrupt-drawing:v[0-9]+`, and
+`fixture:rejected-reference:v1`. The `fixture-b[0-9]{2}` pattern syntactically
+permits `fixture-b00` through `fixture-b99`; it does not assert fixture
+existence, owner review, or live authorization. Fixture existence, identity,
+and authorization remain separate run-specific gates.
+
+`D6.MIME_EXTENSION_RULE = RESOLVED: REMOVE_REQUIREMENT`
+
+This resolves only the D6 media-validation-source binding. D6 overall remains
+`NOT FINALLY RESOLVED` while fixture identity remains
+`RESOLVED_WITH_PROPOSED_VALUE`. D11 remains `BLOCKED`, Stage 4 remains
+`NOT READY`, and live/model/GPU/provider/network/Lightning execution remains
+`NOT AUTHORIZED`.
+
+Before Stage 4, `D4 snapshot/readiness/identity = RESOLVED_FOR_RUNTIME_REVALIDATION`.
+D4 runtime/session-local revalidation is
+Stage-4-local only and may occur only after an authorized session reaches
+`SESSION_READY`; it is not required before Stage 4 approval. CI run
+`35500484772` proves only the `feat018-posix` process-group cleanup workflow
+passed for commit `16c52da`, not full validator CI or full repository
+validation.
+
+`NEXT = INDEPENDENT_REVIEW_OF_D6_GOVERNANCE_COMMIT`

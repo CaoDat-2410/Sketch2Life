@@ -1,5 +1,49 @@
 # FEAT-018 decisions
 
+- 2026-09-20 D6 media-validation-source owner binding: after the independent
+  D6 binding review returned `PASS`, record
+  `D6_BINDING_REVIEW = PASS`, `D6_BINDING_PACKAGE = OWNER_APPROVED`, and
+  `D6_OWNER_DECISION = RECORDED`. Bind
+  `D6.MEDIA_VALIDATION_SOURCE` and
+  `P2T2-LIVE-D6.MEDIA_VALIDATION_SOURCE` to
+  `RESOLVED: EXACT_COMMITTED_IMAGE_ONLY_VALIDATOR` at commit
+  `16c52da26c444947ab4388712d9b7310480360b4`, using contract
+  `ImageOnlyValidationResultV1@1.0`, validator
+  `feat018-image-only-structural-validator-v1`, and policy
+  `feat018-image-only-structural-policy-v1`. The accepted artifact-reference
+  grammar is `fixture-b[0-9]{2}`, `fixture:drawing:v[0-9]+`,
+  `fixture:small-dark-drawing:v[0-9]+`, `fixture:corrupt-drawing:v[0-9]+`, and
+  `fixture:rejected-reference:v1`; the first pattern permits B00-B99
+  syntactically, without asserting fixture existence, owner review, or live
+  authorization. Fixture existence, identity, and authorization remain
+  separate run-specific gates. Preserve
+  `D6.MIME_EXTENSION_RULE = RESOLVED: REMOVE_REQUIREMENT`; D6 overall remains
+  `NOT FINALLY RESOLVED` because fixture identity remains
+  `RESOLVED_WITH_PROPOSED_VALUE`. D11 remains `BLOCKED`, Stage 4 remains
+  `NOT READY`, and live/model/GPU/provider/network/Lightning execution remains
+  `NOT AUTHORIZED`. Before Stage 4,
+  `D4 snapshot/readiness/identity = RESOLVED_FOR_RUNTIME_REVALIDATION`; D4
+  runtime/session-local revalidation is Stage-4-local only after
+  `SESSION_READY`. CI run `35500484772` proves only the `feat018-posix`
+  process-group cleanup workflow passed for commit `16c52da`, not full
+  validator CI or full repository validation.
+  `NEXT = INDEPENDENT_REVIEW_OF_D6_GOVERNANCE_COMMIT`.
+
+- 2026-09-18 D6 owner-decision recording: record
+  `P2T2-LIVE-D6.MIME_EXTENSION_RULE = RESOLVED: REMOVE_REQUIREMENT` (no
+  MIME/extension claim on the live path, no enforcer added,
+  `image_admission_evaluation.py`/Cohort B tooling stay excluded, D2 and
+  B01.jpg metadata unchanged) and
+  `P2T2-LIVE-D6.MEDIA_VALIDATION_SOURCE = SELECTED_PENDING_SEPARATE_IMPLEMENTATION_AND_REVIEW`
+  (image-only input, no fabricated audio, existing `DeterministicMediaValidator`
+  not selected; a separate implementation approval, validator/result contract,
+  provenance hash rule, exact identity, focused tests, and independent review
+  are required before `RESOLVED`). D6 overall stays `NOT FINALLY RESOLVED`.
+  Follows the fifth independent binding review's `PASS` verdict. Does not
+  implement or test the validator, resolve D6, bind D11, or open Stage 4. D1,
+  D11, and Stage 4 stay `BLOCKED`/`NOT READY`; Lightning/model/GPU/provider/
+  network execution stays `NOT AUTHORIZED`.
+
 - 2026-09-14 continuation: keep typed V2-to-Raw mapping inside the supervised
   adapter worker. Supply the synthetic session ID explicitly; existing calls
   without it make no mapper claim. The synthetic ID is bounded, opaque and
