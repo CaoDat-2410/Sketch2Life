@@ -1,10 +1,16 @@
-"""P2-T4 offline fusion contracts: `P2T4.P2T4FusedResultV1@1.0`.
+"""P2-T4 offline fusion contracts: `P2T4.P2T4FusedResultV1@1.0` and
+`P2T4.P2T4FusionInputRejectionV2@2.0`.
 
-Frozen G1 contract (freeze commit 18d0c33d35431ca96a76692a68c6b992098699e7). Every model is
-strict, frozen, `extra="forbid"`, carries no arbitrary map, and never contains raw transcript
-text, media, provider payloads, prompts, credentials, endpoints, or absolute paths. This module
-also pins the `P2T4-CANONICAL-JSON-V1` projection used for source-result digests, the
-fusion-policy hash, and conflict identifiers.
+Frozen successor contract: freeze revision 12 (`plan/P2_T4_CONTRACT_FREEZE_REVISION_12.md`,
+source commit 5b6501b2d8b809f9dd4caf77b5c5d51d2e1e9cf2), which supersedes the G1 freeze
+revision 11 (commit 18d0c33d35431ca96a76692a68c6b992098699e7). The fused result identity is
+unchanged; the outer safe rejection is `P2T4FusionInputRejectionV2`, valid at `ADMISSIBILITY`
+in exactly two forms (ASR duplicate segment index, Vision `policy_match_view_version`
+mismatch). Every model is strict, frozen, `extra="forbid"`, carries no arbitrary map, and never
+contains raw transcript text, media, provider payloads, prompts, credentials, endpoints,
+absolute paths, or an observed non-canonical match-view value. This module also pins the
+`P2T4-CANONICAL-JSON-V1` projection used for source-result digests, the fusion-policy hash,
+and conflict identifiers.
 """
 
 from __future__ import annotations
@@ -28,7 +34,7 @@ from sketch2life.contracts.schemas.vision import (
 
 P2T4_CANONICAL_JSON_IDENTITY: Final = "P2T4-CANONICAL-JSON-V1"
 P2T4_FUSED_RESULT_IDENTITY: Final = "P2T4.P2T4FusedResultV1@1.0"
-P2T4_INPUT_REJECTION_IDENTITY: Final = "P2T4.P2T4FusionInputRejectionV1@1.0"
+P2T4_INPUT_REJECTION_IDENTITY: Final = "P2T4.P2T4FusionInputRejectionV2@2.0"
 P2T4_CONFLICT_ID_PREFIX: Final = "P2T4-CONFLICT-"
 P2T4_NEGATION_CUES: Final[tuple[tuple[str, ...], ...]] = (
     ("not",),
@@ -112,6 +118,7 @@ class P2T4RejectionFieldCode(StrEnum):
     FAILURE_BRANCH = "FAILURE_BRANCH"
     UPSTREAM_TYPE = "UPSTREAM_TYPE"
     DUPLICATE_SEGMENT_INDEX = "DUPLICATE_SEGMENT_INDEX"
+    POLICY_MATCH_VIEW_VERSION = "POLICY_MATCH_VIEW_VERSION"
 
 
 class P2T4FailedModality(StrEnum):
@@ -154,6 +161,22 @@ _PHASE_CODES: Final[dict[P2T4RejectionPhase, frozenset[P2T4RejectionCode]]] = {
     P2T4RejectionPhase.CORRELATION: frozenset({P2T4RejectionCode.CORRELATION_MISMATCH}),
 }
 
+# The exactly two admissibility forms (freeze revision 12 section 4), keyed by input slot:
+# the field code that identifies the form and the observed identity it requires.
+_ADMISSIBILITY_FORMS: Final[
+    dict[P2T4InputSlot, tuple[P2T4RejectionFieldCode, P2T4ObservedIdentity]]
+] = {
+    P2T4InputSlot.ASR: (
+        P2T4RejectionFieldCode.DUPLICATE_SEGMENT_INDEX,
+        P2T4ObservedIdentity.P2_ASR_RESULT_V1,
+    ),
+    P2T4InputSlot.VISION: (
+        P2T4RejectionFieldCode.POLICY_MATCH_VIEW_VERSION,
+        P2T4ObservedIdentity.P2_VISION_UNDERSTANDING_RESULT_V1,
+    ),
+}
+_ADMISSIBILITY_FIELD_CODES: Final = frozenset(code for code, _ in _ADMISSIBILITY_FORMS.values())
+
 CANDIDATE_KIND_RANK: Final[dict[P2T4CandidateKind, int]] = {
     P2T4CandidateKind.ENTITY: 0,
     P2T4CandidateKind.ACTION: 1,
@@ -171,13 +194,17 @@ CONFLICT_REASON_RANK: Final[dict[P2T4ConflictReasonCode, int]] = {
 # --- safe typed input rejection ------------------------------------------------------------
 
 
-class P2T4FusionInputRejectionV1(BaseModel):
-    """Terminal, closed-vocabulary rejection. Never a `P2T4FusedResultV1` status."""
+class P2T4FusionInputRejectionV2(BaseModel):
+    """Terminal, closed-vocabulary rejection. Never a `P2T4FusedResultV1` status.
+
+    The single outer-boundary rejection contract under freeze revision 12 (MV-4), used for
+    every rejection phase. No observed input value is ever carried.
+    """
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    contract_name: Literal["P2T4FusionInputRejectionV1"] = "P2T4FusionInputRejectionV1"
-    contract_version: Literal["1.0"] = "1.0"
+    contract_name: Literal["P2T4FusionInputRejectionV2"] = "P2T4FusionInputRejectionV2"
+    contract_version: Literal["2.0"] = "2.0"
     status: Literal["REJECTED"] = "REJECTED"
     input_slot: P2T4InputSlot
     phase: P2T4RejectionPhase
@@ -188,7 +215,7 @@ class P2T4FusionInputRejectionV1(BaseModel):
     field_code: P2T4RejectionFieldCode
 
     @model_validator(mode="after")
-    def _requires_closed_consistency(self) -> P2T4FusionInputRejectionV1:
+    def _requires_closed_consistency(self) -> P2T4FusionInputRejectionV2:
         if self.code not in _PHASE_CODES[self.phase]:
             raise ValueError("rejection code is not valid for its phase")
         if self.input_slot is P2T4InputSlot.BOTH or self.phase is P2T4RejectionPhase.CORRELATION:
@@ -208,14 +235,14 @@ class P2T4FusionInputRejectionV1(BaseModel):
         if self.expected_identity is not expected:
             raise ValueError("expected identity must match the rejected input slot")
         is_admissibility = self.phase is P2T4RejectionPhase.ADMISSIBILITY
-        is_duplicate = self.field_code is P2T4RejectionFieldCode.DUPLICATE_SEGMENT_INDEX
-        if (is_admissibility or is_duplicate) and (
-            not (is_admissibility and is_duplicate)
-            or self.input_slot is not P2T4InputSlot.ASR
-            or self.observed_identity is not P2T4ObservedIdentity.P2_ASR_RESULT_V1
+        form_field_code, form_observed_identity = _ADMISSIBILITY_FORMS[self.input_slot]
+        if (is_admissibility or self.field_code in _ADMISSIBILITY_FIELD_CODES) and (
+            not is_admissibility
+            or self.field_code is not form_field_code
+            or self.observed_identity is not form_observed_identity
             or self.observed_status is not P2T4ObservedStatus.SUCCEEDED
         ):
-            raise ValueError("admissibility rejection must be the exact duplicate-index form")
+            raise ValueError("admissibility rejection must be one of the two exact forms")
         return self
 
 

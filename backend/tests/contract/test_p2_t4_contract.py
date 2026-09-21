@@ -1,11 +1,13 @@
-"""Independent, hand-authored schema-parity oracle for `P2T4.P2T4FusedResultV1@1.0`.
+"""Independent, hand-authored schema-parity oracle for `P2T4.P2T4FusedResultV1@1.0` and
+`P2T4.P2T4FusionInputRejectionV2@2.0`.
 
 The oracle below lists every contract field with its requiredness/nullability, every closed
-enum and literal, the cross-field invariants, the rejection precedence, the canonical sort
-keys, and the privacy rules, transcribed by hand from the frozen G1 contract. It is checked
-behaviorally: samples are validated, serialized key sets are compared against the oracle, and
-mutations must be rejected. It never loads a schema snapshot, calls `json_schema()`, reads
-`model_fields`, or derives expectations from `p2_t4_fusion.py`.
+enum and literal, the cross-field invariants (including the exactly two admissibility forms),
+the rejection precedence, the canonical sort keys, and the privacy rules, transcribed by hand
+from the frozen successor contract (freeze revision 12). It is checked behaviorally: samples
+are validated, serialized key sets are compared against the oracle, and mutations must be
+rejected. It never loads a schema snapshot, calls `json_schema()`, reads `model_fields`, or
+derives expectations from `p2_t4_fusion.py`.
 """
 
 from __future__ import annotations
@@ -33,7 +35,7 @@ from sketch2life.contracts.schemas.p2_t4_fusion import (
     P2T4FusedResultStatus,
     P2T4FusedResultV1,
     P2T4FusedThemeV1,
-    P2T4FusionInputRejectionV1,
+    P2T4FusionInputRejectionV2,
     P2T4FusionPolicyConfigV1,
     P2T4InputSlot,
     P2T4NarrationClaimRefV1,
@@ -56,7 +58,7 @@ from sketch2life.contracts.schemas.p2_t4_fusion import (
 # Field spec: (required, nullable). A "fixed" literal field always serializes with its one
 # allowed value; it is listed under LITERALS and is rejected for any other value.
 ORACLE_FIELDS: dict[str, dict[str, tuple[bool, bool]]] = {
-    "P2T4FusionInputRejectionV1": {
+    "P2T4FusionInputRejectionV2": {
         "contract_name": (True, False),
         "contract_version": (True, False),
         "status": (True, False),
@@ -186,9 +188,9 @@ ORACLE_FIELDS: dict[str, dict[str, tuple[bool, bool]]] = {
 }
 
 ORACLE_LITERALS: dict[str, dict[str, object]] = {
-    "P2T4FusionInputRejectionV1": {
-        "contract_name": "P2T4FusionInputRejectionV1",
-        "contract_version": "1.0",
+    "P2T4FusionInputRejectionV2": {
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
         "status": "REJECTED",
     },
     "P2T4FusionPolicyConfigV1": {
@@ -251,6 +253,7 @@ ORACLE_ENUMS: dict[str, list[str]] = {
         "FAILURE_BRANCH",
         "UPSTREAM_TYPE",
         "DUPLICATE_SEGMENT_INDEX",
+        "POLICY_MATCH_VIEW_VERSION",
     ],
     "failed_modality": ["ASR", "VISION", "BOTH"],
     "conflict_reason": [
@@ -287,7 +290,7 @@ ORACLE_CONFLICT_REASON_RANK = {
 }
 
 MODELS: dict[str, type[BaseModel]] = {
-    "P2T4FusionInputRejectionV1": P2T4FusionInputRejectionV1,
+    "P2T4FusionInputRejectionV2": P2T4FusionInputRejectionV2,
     "P2T4SourceResultRefV1": P2T4SourceResultRefV1,
     "P2T4NarrationClaimRefV1": P2T4NarrationClaimRefV1,
     "P2T4FusionPolicyConfigV1": P2T4FusionPolicyConfigV1,
@@ -461,10 +464,40 @@ SAMPLE_UPSTREAM_FAILURE_RESULT: dict[str, Any] = {
     },
 }
 
+# The exactly two ADMISSIBILITY forms (freeze revision 12 section 4), transcribed by hand.
+ADMISSIBILITY_FORM_ASR_DUPLICATE_INDEX: dict[str, Any] = {
+    "contract_name": "P2T4FusionInputRejectionV2",
+    "contract_version": "2.0",
+    "status": "REJECTED",
+    "input_slot": "ASR",
+    "phase": "ADMISSIBILITY",
+    "code": "INVALID_STRUCTURE",
+    "expected_identity": "P2.AsrResultV1@1.0",
+    "observed_identity": "P2.AsrResultV1@1.0",
+    "observed_status": "SUCCEEDED",
+    "field_code": "DUPLICATE_SEGMENT_INDEX",
+}
+ADMISSIBILITY_FORM_VISION_MATCH_VIEW: dict[str, Any] = {
+    "contract_name": "P2T4FusionInputRejectionV2",
+    "contract_version": "2.0",
+    "status": "REJECTED",
+    "input_slot": "VISION",
+    "phase": "ADMISSIBILITY",
+    "code": "INVALID_STRUCTURE",
+    "expected_identity": "P2.VisionUnderstandingResultV1@1.0",
+    "observed_identity": "P2.VisionUnderstandingResultV1@1.0",
+    "observed_status": "SUCCEEDED",
+    "field_code": "POLICY_MATCH_VIEW_VERSION",
+}
+ADMISSIBILITY_FORMS: dict[str, dict[str, Any]] = {
+    "ASR": ADMISSIBILITY_FORM_ASR_DUPLICATE_INDEX,
+    "VISION": ADMISSIBILITY_FORM_VISION_MATCH_VIEW,
+}
+
 SAMPLES: dict[str, dict[str, Any]] = {
-    "P2T4FusionInputRejectionV1": {
-        "contract_name": "P2T4FusionInputRejectionV1",
-        "contract_version": "1.0",
+    "P2T4FusionInputRejectionV2": {
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
         "status": "REJECTED",
         "input_slot": "ASR",
         "phase": "ADMISSIBILITY",
@@ -504,7 +537,7 @@ SAMPLES: dict[str, dict[str, Any]] = {
 
 # Nullable fields whose null form needs a coupled change to stay valid.
 _NULL_COUPLING: dict[tuple[str, str], dict[str, Any]] = {
-    ("P2T4FusionInputRejectionV1", "observed_status"): {
+    ("P2T4FusionInputRejectionV2", "observed_status"): {
         "phase": "IDENTITY_VERSION",
         "code": "UNKNOWN_INPUT",
         "observed_identity": "UNKNOWN",
@@ -631,7 +664,7 @@ def test_rejection_precedence_and_phase_codes_follow_the_oracle() -> None:
     for phase, codes in ORACLE_PHASE_CODES.items():
         for code in codes:
             payload = _mutated(
-                "P2T4FusionInputRejectionV1",
+                "P2T4FusionInputRejectionV2",
                 input_slot="ASR",
                 phase=phase,
                 code=code,
@@ -641,24 +674,22 @@ def test_rejection_precedence_and_phase_codes_follow_the_oracle() -> None:
                 field_code="NONE",
             )
             if phase == "ADMISSIBILITY":
-                payload.update(
-                    observed_identity="P2.AsrResultV1@1.0",
-                    observed_status="SUCCEEDED",
-                    field_code="DUPLICATE_SEGMENT_INDEX",
-                )
+                for form in ADMISSIBILITY_FORMS.values():
+                    _validate("P2T4FusionInputRejectionV2", {**form, "code": code})
+                continue
             if phase == "CORRELATION":
                 payload.update(
                     input_slot="BOTH", expected_identity="NONE", field_code="CORRELATION_ID"
                 )
-            _validate("P2T4FusionInputRejectionV1", payload)
+            _validate("P2T4FusionInputRejectionV2", payload)
         for code in ORACLE_ENUMS["rejection_code"]:
             if code in codes:
                 continue
             with pytest.raises(ValidationError):
                 _validate(
-                    "P2T4FusionInputRejectionV1",
+                    "P2T4FusionInputRejectionV2",
                     _mutated(
-                        "P2T4FusionInputRejectionV1",
+                        "P2T4FusionInputRejectionV2",
                         phase=phase,
                         code=code,
                         field_code="NONE",
@@ -671,15 +702,15 @@ def test_rejection_precedence_and_phase_codes_follow_the_oracle() -> None:
 
 INVARIANTS: list[tuple[str, str, Callable[[], dict[str, Any]]]] = [
     (
-        "P2T4FusionInputRejectionV1",
+        "P2T4FusionInputRejectionV2",
         "BOTH requires CORRELATION/CORRELATION_MISMATCH/NONE/CORRELATION_ID",
-        lambda: _mutated("P2T4FusionInputRejectionV1", input_slot="BOTH"),
+        lambda: _mutated("P2T4FusionInputRejectionV2", input_slot="BOTH"),
     ),
     (
-        "P2T4FusionInputRejectionV1",
+        "P2T4FusionInputRejectionV2",
         "correlation phase requires input_slot=BOTH",
         lambda: _mutated(
-            "P2T4FusionInputRejectionV1",
+            "P2T4FusionInputRejectionV2",
             phase="CORRELATION",
             code="CORRELATION_MISMATCH",
             expected_identity="NONE",
@@ -687,26 +718,64 @@ INVARIANTS: list[tuple[str, str, Callable[[], dict[str, Any]]]] = [
         ),
     ),
     (
-        "P2T4FusionInputRejectionV1",
+        "P2T4FusionInputRejectionV2",
         "expected identity must match the slot",
         lambda: _mutated(
-            "P2T4FusionInputRejectionV1", expected_identity="P2.VisionUnderstandingResultV1@1.0"
+            "P2T4FusionInputRejectionV2", expected_identity="P2.VisionUnderstandingResultV1@1.0"
         ),
     ),
     (
-        "P2T4FusionInputRejectionV1",
+        "P2T4FusionInputRejectionV2",
         "DUPLICATE_SEGMENT_INDEX only in ADMISSIBILITY",
-        lambda: _mutated("P2T4FusionInputRejectionV1", phase="STRICT_VALIDATION"),
+        lambda: {**ADMISSIBILITY_FORM_ASR_DUPLICATE_INDEX, "phase": "STRICT_VALIDATION"},
     ),
     (
-        "P2T4FusionInputRejectionV1",
-        "ADMISSIBILITY requires the ASR slot",
-        lambda: _mutated(
-            "P2T4FusionInputRejectionV1",
-            input_slot="VISION",
-            expected_identity="P2.VisionUnderstandingResultV1@1.0",
-            observed_identity="P2.VisionUnderstandingResultV1@1.0",
-        ),
+        "P2T4FusionInputRejectionV2",
+        "POLICY_MATCH_VIEW_VERSION only in ADMISSIBILITY",
+        lambda: {**ADMISSIBILITY_FORM_VISION_MATCH_VIEW, "phase": "STRICT_VALIDATION"},
+    ),
+    (
+        "P2T4FusionInputRejectionV2",
+        "ADMISSIBILITY requires one of the two exact field codes",
+        lambda: {**ADMISSIBILITY_FORM_VISION_MATCH_VIEW, "field_code": "NONE"},
+    ),
+    (
+        "P2T4FusionInputRejectionV2",
+        "ASR admissibility form cannot carry the Vision field code",
+        lambda: {
+            **ADMISSIBILITY_FORM_ASR_DUPLICATE_INDEX,
+            "field_code": "POLICY_MATCH_VIEW_VERSION",
+        },
+    ),
+    (
+        "P2T4FusionInputRejectionV2",
+        "Vision admissibility form cannot carry the ASR field code",
+        lambda: {**ADMISSIBILITY_FORM_VISION_MATCH_VIEW, "field_code": "DUPLICATE_SEGMENT_INDEX"},
+    ),
+    (
+        "P2T4FusionInputRejectionV2",
+        "Vision admissibility form requires the P2 Vision observed identity",
+        lambda: {**ADMISSIBILITY_FORM_VISION_MATCH_VIEW, "observed_identity": "UNKNOWN"},
+    ),
+    (
+        "P2T4FusionInputRejectionV2",
+        "Vision admissibility form is success-only (observed_status=SUCCEEDED)",
+        lambda: {**ADMISSIBILITY_FORM_VISION_MATCH_VIEW, "observed_status": "FAILED"},
+    ),
+    (
+        "P2T4FusionInputRejectionV2",
+        "Vision admissibility form requires a non-null observed_status",
+        lambda: {**ADMISSIBILITY_FORM_VISION_MATCH_VIEW, "observed_status": None},
+    ),
+    (
+        "P2T4FusionInputRejectionV2",
+        "Vision admissibility form uses INVALID_STRUCTURE only",
+        lambda: {**ADMISSIBILITY_FORM_VISION_MATCH_VIEW, "code": "INVALID_DISCRIMINATOR"},
+    ),
+    (
+        "P2T4FusionInputRejectionV2",
+        "admissibility never uses the BOTH slot",
+        lambda: {**ADMISSIBILITY_FORM_VISION_MATCH_VIEW, "input_slot": "BOTH"},
     ),
     (
         "P2T4NarrationClaimRefV1",
@@ -1054,14 +1123,35 @@ def test_canonical_sort_keys_follow_the_oracle_ranks() -> None:
 
 
 def test_rejection_carries_only_closed_tokens_and_no_free_text() -> None:
-    instance = _validate("P2T4FusionInputRejectionV1", SAMPLES["P2T4FusionInputRejectionV1"])
     allowed = {token for values in ORACLE_ENUMS.values() for token in values} | {
-        "P2T4FusionInputRejectionV1",
-        "1.0",
+        "P2T4FusionInputRejectionV2",
+        "2.0",
         "REJECTED",
     }
-    for value in instance.model_dump().values():
-        assert value is None or str(value) in allowed
+    for form in ADMISSIBILITY_FORMS.values():
+        instance = _validate("P2T4FusionInputRejectionV2", form)
+        for value in instance.model_dump().values():
+            assert value is None or str(value) in allowed
+        assert "1.0" not in instance.model_dump().values()
+
+
+def test_exactly_two_admissibility_forms_are_accepted_field_for_field() -> None:
+    """Both exact ADMISSIBILITY forms validate and serialize byte-for-byte as hand-authored."""
+
+    for slot, form in ADMISSIBILITY_FORMS.items():
+        instance = _validate("P2T4FusionInputRejectionV2", form)
+        assert instance.model_dump(mode="json") == form
+        assert instance.input_slot.value == slot
+        assert instance.contract_version == "2.0"
+    assert ADMISSIBILITY_FORM_ASR_DUPLICATE_INDEX["field_code"] == "DUPLICATE_SEGMENT_INDEX"
+    assert ADMISSIBILITY_FORM_VISION_MATCH_VIEW["field_code"] == "POLICY_MATCH_VIEW_VERSION"
+    # The only fields that differ between the two forms are slot, identities, and field code.
+    differing = {
+        key
+        for key in ADMISSIBILITY_FORM_ASR_DUPLICATE_INDEX
+        if ADMISSIBILITY_FORM_ASR_DUPLICATE_INDEX[key] != ADMISSIBILITY_FORM_VISION_MATCH_VIEW[key]
+    }
+    assert differing == {"input_slot", "expected_identity", "observed_identity", "field_code"}
 
 
 def test_canonical_json_is_compact_sorted_and_utc() -> None:

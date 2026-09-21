@@ -779,3 +779,535 @@ erratum, context, or decisions file was changed by this approval record.
 - **Runtime/live/GPU/provider/Lightning:** `NOT APPROVED`.
 - **Recorded:** 2026-09-16 by Project Owner / Person 2 direct instruction in the current
   conversation.
+
+## P2-T4 G9 governance closeout — 2026-09-17
+
+The current task authorizes this governance-only closeout against the committed evidence
+checkpoint. It does not authorize implementation, evidence-byte changes, or any downstream
+execution.
+
+P2-T4: COMPLETE — GOVERNANCE-CLOSED
+CLOSEOUT: COMPLETE_WITH_ACCEPTED_G6_FINDINGS
+G6: PASS_WITH_FINDINGS
+G7: PASS
+G8: PASS
+G9: COMPLETE
+P2-T5: NOT APPROVED
+INTEGRATION/RUNTIME/LIVE: NOT APPROVED
+
+### Immutable topology and evidence bindings
+
+- Implementation candidate: `21249dc696c8ea3d958e78394ed69b8ac9f9505a`.
+- Direct parent: `dc107cd45a21ccb47031a58cb7c782084624bff4`.
+- Evidence checkpoint: `c80c58fbd2b76d28af52156301caca87e7a794f5`, with the candidate as its
+  direct parent and exactly the three G7/G8 evidence paths below.
+- The G9 governance checkpoint has the evidence checkpoint as its direct parent. Its own commit
+  SHA is intentionally not written into tracked files and is reported only in the final handoff.
+
+| Gate | Status | Canonical path | Raw SHA-256 | Git blob ID |
+|---|---|---|---|---|
+| G7 | PASS | `features/FEAT-003-multimodal-understanding/evidence/P2_T4_G7_CLOSEOUT_EVIDENCE.json` | `5b5e26753f5b4489cb559f06fc645884ca8e0af233cd563d791a56ad2ca5e40d` | `dfad83aac7a5c53bf5bab60239500f68f32e09be` |
+| G7 | PASS | `features/FEAT-003-multimodal-understanding/evidence/P2_T4_G7_EVIDENCE_REVIEW_20260916.md` | `f204dc33ad0d73a26db4596f8c9f657c4dbbf71a9fa911ca34a4a6007071f824` | `d906827e466f357c74af0cbaf6f58eb96eaf54fa` |
+| G8 | PASS | `features/FEAT-003-multimodal-understanding/evidence/P2_T4_G8_INDEPENDENT_EVIDENCE_GOVERNANCE_REVIEW_20260917.md` | `fe0e43b00edc7141e23b53cc9499c5c769c1e1c370fb005c88a6a17f6b827119` | `5e2665f4096d5316ab1eaf49d7da2677ec6a58ee` |
+
+### Preserved findings and boundaries
+
+OPEN P2-T4 IMPLEMENTATION DEFECTS: NONE IDENTIFIED BY G6-G8
+
+- `FEAT-018-TIMING-001` remains a separate FEAT-018 remediation and is outside P2-T4.
+- The inherited mypy findings remain unchanged and outside P2-T4: the three existing
+  arg-type findings at `learning_media_resolver.py:101` and
+  `learning_media_fallback.py:82` and `learning_media_fallback.py:85`.
+- The inherited Ruff findings remain unchanged and outside P2-T4: E501 at
+  `learning_media.py:79`, I001 at `test_learning_media_scenario_matrix.py:1`, and E501 at
+  `test_learning_media_scenario_matrix.py:14`.
+- The Policy-B architecture baseline remains unchanged and must be reported truthfully as
+  `ARCHITECTURE_INVALID`: exactly one approved `application imports an outer layer` finding at
+  `backend/src/sketch2life/application/services/backend_ai_workflow.py`, with validator
+  fingerprint `fa236c8d389b608251153d601fc370efe3f3e2479446ca4a56a3d395f892e0b5`.
+- P2-T5, integration/runtime/live, provider/model, GPU, Lightning, network, migration,
+  production, and PR/push activity remain not approved.
+
+## P2-T5 fixture-only v1 owner decision bundle approval — 2026-09-19
+
+The Project Owner approved the exact `P2T5.OwnerDecisionBundleV3@1.0` planning decision object
+after the read-only confirmation audit at
+`tmp/p2-t5-v3-owner-confirmation-20260919-r2/REPORT.md`.
+
+The approved decision is bound to the current pre-G1 plan inputs:
+
+| Path | Revision | Raw SHA-256 | Prospective Git blob |
+|---|---:|---|---|
+| `features/FEAT-003-multimodal-understanding/plan/PLAN.md` | 7 | `c70ba9012c2d30467fd485d37b1a8312d45a9a3574609d94bf774264f05cbefb` | `831ded8c7676130ac39e279fbba36022ee033fe4` |
+| `features/FEAT-003-multimodal-understanding/plan/P2_T5_EVALUATION_HARNESS_PLAN.md` | 0.14 | `2c5d9d2b1c4780585f874ea768dafd12caa3459b0bb6a51bd0cb008fd7608280` | `ba77759c0ff1ec8a416c11a4a6e6795954aa7fc1` |
+
+The owner decision freezes the bundle's eleven P2-T5 identities, exact T4/B4/ASR/conflict rule
+bindings, report canonicalization, exact fixture IDs and 20/12/8/40 matrix, oracle independence,
+metric formulas and unavailable states, deterministic correlation/retry/recapture semantics,
+CPython 3.13.5 PRE-G1 policy, `NO_PYTHON_LOCKFILE`, privacy/output boundaries, inherited
+baseline fingerprints, deferred OD-1/OD-17/OD-18, and the separate G1-G9 topology.
+
+This is a planning decision only. It authorizes no G1, G2, implementation, fixture/media,
+evidence, runtime, provider/model, GPU, Lightning, network, migration, production, integration,
+commit, push, or PR activity. The plans must next be synchronized without semantic change,
+independently reviewed, and checkpointed before a separate G1 approval can be requested.
+
+```text
+P2-T5: PRE-G1
+OWNER DECISION BUNDLE V3: APPROVED
+G1: NOT GRANTED
+G2: NOT GRANTED
+IMPLEMENTATION: NOT APPROVED
+FIXTURE/MEDIA/EVIDENCE: NOT AUTHORIZED
+RUNTIME/LIVE: NOT APPROVED
+```
+
+## P2-T5 G2 exact implementation approval — 2026-09-20
+
+The Project Owner's direct authorization was:
+
+> I approve the P2-T5 G2 exact implementation scope exactly as listed in the reviewed draft,
+> including all 54 individually named source, test, fixture/oracle, and synthetic media paths.
+>
+> The G2 governance record must be directly parented to:
+> `6464ad700a424fe7c0e0e1fcac34b69571be82a4`
+>
+> The G2 record may modify only these governance paths:
+> `features/FEAT-003-multimodal-understanding/approvals/TASK_APPROVAL.md`,
+> `features/FEAT-003-multimodal-understanding/CONTEXT.md`, and
+> `features/FEAT-003-multimodal-understanding/DECISIONS.md`.
+>
+> No other path is authorized. This does not authorize evidence, runtime, provider/model, GPU,
+> Lightning, network, migration, production, push, or PR.
+
+The Project Owner approved the exact P2-T5 fixture-only v1 implementation scope as listed in
+this section. This G2 governance record is directly parented to the G1 approval record commit
+`6464ad700a424fe7c0e0e1fcac34b69571be82a4`. The G2 record may modify only these three
+governance paths; no other governance or implementation path is authorized by this record:
+
+- `features/FEAT-003-multimodal-understanding/approvals/TASK_APPROVAL.md`
+- `features/FEAT-003-multimodal-understanding/CONTEXT.md`
+- `features/FEAT-003-multimodal-understanding/DECISIONS.md`
+
+The exact implementation allowlist is 54 individually named paths: 10 source/test paths, four
+fixture/oracle JSON paths, and 40 synthetic media paths. No 55th path, `__init__.py`, packaging or
+entrypoint file, fake-adapter change, T1–T4 path, evidence path, or unrelated governance path is
+authorized.
+
+### Immutable G1 bindings
+
+- G1 plan checkpoint: `4b2bd6012c4069dcee021497670da13cabbe852c`.
+- G1 approval record (direct parent required for this G2 record):
+  `6464ad700a424fe7c0e0e1fcac34b69571be82a4`.
+- `PLAN.md`, revision 8: 61590 bytes, raw SHA-256
+  `4c52ccf63320de411d3551933e75a1ec05479a9471df68d8ef67fb2ee1b37b35`, Git blob
+  `6db2089ca9f2d38f8c58f28b22de2c2a58ceb26a`.
+- `P2_T5_EVALUATION_HARNESS_PLAN.md`, revision 0.15: 211691 bytes, raw SHA-256
+  `2a102acd689c0b53854562694692ce3a139ecdbbdee88f7c9fce7c136a5eea20`, Git blob
+  `f9f81f9c1dbbd8fe92d8083ce163ac85f3721ce4`.
+
+### Exact G2 environment and inherited baselines
+
+The canonical interpreter is `backend/.venv/Scripts/python.exe`, CPython 3.13.5. The PATH
+interpreter (3.14.5) is not acceptable, and packages may not be installed, upgraded, resolved,
+or substituted. `backend/pyproject.toml` is bound to source commit
+`0fda47f432212c6d79e467c8064c116ae468d34d`, Git blob
+`8f8a344f505be839b9bd0bd0d640fa0d18cf6b33`, and raw SHA-256
+`9ca3a54905d11fdb7f30a84356d23741f256b2115b254bcc9fba4efacdf17df6`. No Python lockfile is
+present (`NO_PYTHON_LOCKFILE`).
+
+The exact installed package set contains 55 distributions. Its canonical binding is the SHA-256
+`217f418ce003e9279bdcbe863437b90d0219f43264c3dafbcd7f6d459cefed48` of sorted UTF-8
+`<distribution-name>==<version>` lines joined with LF and one final LF. The materialized set is:
+
+```text
+alembic==1.20.0
+annotated-doc==0.0.5
+annotated-types==0.8.0
+anyio==4.15.1
+av==18.1.0
+boto3==1.43.95
+botocore==1.43.95
+click==8.5.0
+colorama==0.4.6
+croniter==6.2.4
+fastapi==0.141.1
+greenlet==3.5.6
+h11==0.16.0
+httpcore2==2.13.0
+httptools==0.8.0
+httpx2==2.13.0
+idna==3.19
+iniconfig==2.3.0
+jmespath==1.1.0
+librt==0.15.0
+Mako==1.4.1
+MarkupSafe==3.0.3
+mypy_extensions==1.1.0
+mypy==1.20.2
+packaging==26.3
+pathspec==1.1.1
+pluggy==1.6.0
+psycopg==3.3.5
+psycopg-binary==3.3.5
+pydantic_core==2.46.5
+pydantic==2.13.5
+pydantic-settings==2.15.0
+Pygments==2.21.0
+pytest==8.4.2
+pytest-asyncio==1.4.0
+python-dateutil==2.9.0.post0
+python-dotenv==1.2.3
+PyYAML==6.0.3
+redis==6.4.0
+rq==2.12.0
+ruff==0.16.7
+s3transfer==0.19.2
+six==1.17.0
+sketch2life-backend==0.0.0
+SQLAlchemy==2.0.54
+starlette==1.6.0
+structlog==25.5.0
+truststore==0.10.4
+typing_extensions==4.16.0
+typing-inspection==0.4.4
+tzdata==2026.4
+urllib3==2.8.0
+uvicorn==0.53.0
+watchfiles==1.2.0
+websockets==17.1
+```
+
+The validator identities are immutable: `validate_harness.py` source commit
+`0f0c546193f698ea2987a956348714dea2dc95e7`, blob
+`c2ffe59008c8ab86332953621faa328b76bd55bb`, raw SHA-256
+`0804eabbaecf471f191e259760e48aa0dc2d5a4d23da5d38336d8ede2f09d232`;
+`validate_repository_security.py` source commit `0f0c546193f698ea2987a956348714dea2dc95e7`,
+blob `08a8614f1152e0a1f5158430f26a143a0eb6e66b`, raw SHA-256
+`efd691df935565d1fa148b5b4a765ef77c90d701d210fc5e869bfbd1548dd210`;
+`validate_skeleton.py` source commit `1c2c6d357b0c27cd19f790e748f9525e3e50e2b2`, blob
+`e68970c4062837f982707123e18db480e1e6e06e`, raw SHA-256
+`82da58bfdd3fd7f406e6d9597b33a4375ba0c591e9a455c74d92ee0aba8d4a39`; and
+`validate_architecture.py` source commit `0f0c546193f698ea2987a956348714dea2dc95e7`, blob
+`efe2f642c403e2fa3c00e650a2ac505e2bf9076c`, raw SHA-256
+`fa236c8d389b608251153d601fc370efe3f3e2479446ca4a56a3d395f892e0b5`.
+
+The inherited baseline is preserved exactly: Policy B reports one `ARCHITECTURE_INVALID`
+finding for `backend/src/sketch2life/application/services/backend_ai_workflow.py` (application
+imports an outer layer); mypy retains the three recorded `learning_media_*` arg-type findings;
+Ruff retains the three recorded `learning_media.py`/`test_learning_media_scenario_matrix.py`
+findings. `FEAT-018-TIMING-001` remains a separate out-of-scope finding and is not a P2-T5
+regression.
+
+### Exact 54 implementation paths
+
+Source and tests (10):
+
+1. `backend/src/sketch2life/contracts/schemas/p2_t5_evaluation.py`
+2. `backend/src/sketch2life/application/services/p2_t5_evaluation.py`
+3. `backend/src/sketch2life/application/services/p2_t5_scoring.py`
+4. `backend/src/sketch2life/infrastructure/ai/p2_t5_fixture_loader.py`
+5. `backend/src/sketch2life/interfaces/cli/p2_t5_evaluation.py`
+6. `backend/tests/contract/test_p2_t5_evaluation_contract.py`
+7. `backend/tests/unit/test_p2_t5_evaluation.py`
+8. `backend/tests/unit/test_p2_t5_scoring.py`
+9. `backend/tests/unit/test_p2_t5_cli.py`
+10. `backend/tests/unit/test_p2_t5_privacy.py`
+
+Fixture/oracle JSON (4):
+
+11. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/manifest-v1.json`
+12. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/cases-v1.json`
+13. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/expected-v1.json`
+14. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/matching-rule-v1.json`
+
+Synthetic media (40):
+
+15. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-001.png`
+16. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-001.wav`
+17. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-002.png`
+18. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-002.wav`
+19. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-003.png`
+20. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-003.wav`
+21. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-004.png`
+22. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-004.wav`
+23. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-005.png`
+24. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-005.wav`
+25. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-006.png`
+26. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-006.wav`
+27. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-007.png`
+28. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-007.wav`
+29. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-008.png`
+30. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-008.wav`
+31. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-009.png`
+32. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-009.wav`
+33. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-010.png`
+34. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-010.wav`
+35. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-011.png`
+36. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-011.wav`
+37. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-012.png`
+38. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-012.wav`
+39. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-001.png`
+40. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-001.wav`
+41. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-002.png`
+42. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-002.wav`
+43. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-003.png`
+44. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-003.wav`
+45. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-004.png`
+46. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-004.wav`
+47. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-005.png`
+48. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-005.wav`
+49. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-006.png`
+50. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-006.wav`
+51. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-007.png`
+52. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-007.wav`
+53. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-008.png`
+54. `features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-008.wav`
+
+G2 authorizes only preparation of the exact 54-file offline fixture-only implementation. G3 may
+start only after this G2 record exists; G4/G5/G6/G7/G8/G9 remain future gates. Evidence is a
+separate G7 authorization. Integration, runtime/live, provider/model, GPU, Lightning, network,
+migration, production, push, and PR activity remain not approved. This record does not authorize
+any self-referential commit-SHA edit.
+
+```text
+P2-T5: G1 APPROVED
+G2: APPROVED_FOR_EXACT_54_FILE_FIXTURE_ONLY_IMPLEMENTATION
+IMPLEMENTATION: NOT STARTED
+G3: NOT STARTED
+G4-G9: NOT STARTED
+FIXTURE/MEDIA: AUTHORIZED ONLY WITHIN THE EXACT 54-PATH G2 SCOPE
+EVIDENCE: NOT AUTHORIZED (G7 SEPARATE)
+RUNTIME/LIVE/PROVIDER/MODEL/GPU/LIGHTNING/NETWORK: NOT APPROVED
+```
+
+## P2-T5 G1 fixture-only plan approval — 2026-09-19
+
+The Project Owner approved G1 against the immutable pre-G1 plan checkpoint
+`4b2bd6012c4069dcee021497670da13cabbe852c`, whose direct parent is
+`f11a6f4fee81032a677b492303cdecd9b09663d4`. The checkpoint contains exactly the
+two synchronized P2-T5 plan paths below.
+
+| Path | Revision | Raw bytes | Raw SHA-256 | Git blob ID |
+|---|---:|---:|---|---|
+| `features/FEAT-003-multimodal-understanding/plan/PLAN.md` | 8 | 61590 | `4c52ccf63320de411d3551933e75a1ec05479a9471df68d8ef67fb2ee1b37b35` | `6db2089ca9f2d38f8c58f28b22de2c2a58ceb26a` |
+| `features/FEAT-003-multimodal-understanding/plan/P2_T5_EVALUATION_HARNESS_PLAN.md` | 0.15 | 211691 | `2a102acd689c0b53854562694692ce3a139ecdbbdee88f7c9fce7c136a5eea20` | `f9f81f9c1dbbd8fe92d8083ce163ac85f3721ce4` |
+
+G1 freezes the approved P2-T5 fixture-only v1 plan and its documented contract,
+metrics, privacy, reproducibility, topology, and evidence-authorization policy.
+It does not grant G2, implementation, fixture/media creation, evidence creation,
+integration, runtime/live, provider/model, GPU, Lightning, network, migration,
+production, push, or PR authority. G2 remains a separate exact-path approval and
+must have this G1 record commit as its direct parent. The G1 commit SHA is reported
+outside tracked content and is not embedded in the records.
+
+```text
+P2-T5: G1 APPROVED
+OWNER DECISION BUNDLE V3: APPROVED
+G1: APPROVED
+G2: NOT GRANTED
+IMPLEMENTATION: NOT APPROVED
+FIXTURE/MEDIA/EVIDENCE: NOT AUTHORIZED
+RUNTIME/LIVE: NOT APPROVED
+```
+
+## P2-T5 G7 exact evidence-authorization decision - 2026-09-21
+
+Owner approval is recorded for the exact draft at:
+
+`tmp/p2-t5-g7-evidence-authorization-draft-20260921-01/DRAFT.md`
+
+The approved draft raw SHA-256 is:
+
+`eb163b86954d0355189375480145828e8ab9372f89eba0f7f196082427caca10`
+
+This record authorizes only the separately governed P2-T5 G7 authorization-record
+mutation and, after this record exists, creation of the two exact evidence files
+listed below. It does not authorize runtime execution, live provider/model
+execution, G8, G9, push, PR, or unrelated changes. The authorization record
+commit must contain only this file; it must not contain either evidence file.
+
+### Traceable evidence assembler identity
+
+| Field | Value |
+|---|---|
+| Model/session | `Codex / GPT-5` (system-reported) |
+| Stable session ID | `01a0c26b-d0e5-7861-9da6-d495e8667e61` (`CODEX_SESSION_ID` / `CODEX_THREAD_ID`) |
+| Authorization-record UTC timestamp | `2026-09-21T06:13:46.5812190Z` |
+| Role | `Codex agent; G7 evidence author/assembler` |
+
+If the executor creating the evidence cannot produce this traceable identity,
+the exact required stop is
+`G7: BLOCKED_PENDING_TRACEABLE_EVIDENCE_ASSEMBLER_IDENTITY`; no approval,
+evidence, staging, commit, or push may proceed.
+
+### Exact run and evidence outputs
+
+| Field | Exact value |
+|---|---|
+| Owner run ID | `p2-t5-g7-evidence-20260921-01` |
+| JSON output | `features/FEAT-003-multimodal-understanding/evidence/P2_T5_G7_EVIDENCE_CREATION_p2-t5-g7-evidence-20260921-01.json` |
+| Markdown output | `features/FEAT-003-multimodal-understanding/evidence/P2_T5_G7_EVIDENCE_CREATION_p2-t5-g7-evidence-20260921-01.md` |
+
+Exactly these two evidence files may be created. No raw media, transcripts,
+prompts, provider payloads, credentials, tokens, endpoints, host paths,
+usernames, hostnames, environment values, raw exceptions or stack traces,
+unapproved labels, child data, or live-execution claims may be included.
+The Markdown output is sanitized only and must contain closed-contract values.
+
+The JSON output must use identity `P2T5.P2T5EvaluationReportV1@1.0` and
+canonicalization `P2T5-REPORT-CANONICAL-JSON-V1`. It must bind the stable run
+ID, G5 implementation, G6 checkpoint, fixture package, T4 policy, environment
+identity, deterministic core, typed findings/statuses, and privacy redactions.
+It must not contain a self-hash or self-blob binding. The report is fixture-only
+and deterministic; no runtime, provider, model, GPU, network, or live execution
+is authorized.
+
+### G5 and G6 checkpoint bindings
+
+| Binding | Value |
+|---|---|
+| G5 implementation commit | `323ebf9d78fff10e204875770672b21e4b58dec9` |
+| G5 parent | `9d6340672c5d1bbdd7a95004f5fad811718ec4a0` |
+| G5 tree | `09f9cea8addd6922916514dde96b1a4c583ef24f` |
+| G5 ordered 54-path digest | `dabf603ea2ccd6296a1f547a6b250b5f918f729048de1275d02ec9b7e03bbcf1` |
+| G6 report | `tmp/p2-t5-g6-checkpoint-verification-20260920/REPORT.md` |
+| G6 report bytes | `19412` |
+| G6 report raw SHA-256 | `c7d1057daa2ee7175675f5e6513dbca0520710ab3a1f73b5c7e829687089e410` |
+| G6 status | `PASS_WITH_ACCEPTED_FINDINGS` |
+
+G6 accepted findings are bound as recorded in its report: four inherited or
+out-of-scope pytest findings (`FEAT-018-TIMING-001` and three semantic catalog
+findings), three inherited mypy findings, three inherited Ruff findings, the
+owner-accepted Policy B architecture finding, two accepted blank-at-EOF
+warnings in `cases`/`expected`, and the report limitations.
+
+### Fixture, T4, and environment bindings
+
+| Artifact | Bytes | Raw SHA-256 |
+|---|---:|---|
+| `fixtures/p2-t5-evaluation-v1/manifest-v1.json` | 17336 | `17f2a1af1f3644b9178283d8097ec5b73d11e54ae4e76da22be23fb66e07d21d` |
+| `fixtures/p2-t5-evaluation-v1/cases-v1.json` | 13527 | `f715c8b65697b747751720726c10f1fcf744d7ce4cfe4fd760565c39c519fcbb` |
+| `fixtures/p2-t5-evaluation-v1/expected-v1.json` | 4838 | `23b7668f9ca30814e325cf1ba4f5f1ccae03bd37b52b3e49198e045fb5235b83` |
+| `fixtures/p2-t5-evaluation-v1/matching-rule-v1.json` | 1053 | `43fa4f06e456cf1e1b7a2d79c7ad515d4caf89c556a590790f5ab0b6879f3a49` |
+
+The fixture package is `p2-t5-evaluation-v1` version `1.0`, with 20 entries
+(12 development and 8 held-out) and 40 synthetic-only media references.
+
+| T4 binding | Value |
+|---|---|
+| Policy identity | `P2T4FusionPolicyConfigV1@1.0` |
+| Policy SHA-256 | `4b378f69a33b86aeefc7443a23ac819e46b986132525cdd8a55d112dfb96415c` |
+| Upstream contracts | `P2.AsrResultV1@1.0`, `P2.VisionUnderstandingResultV1@1.0` |
+| Deterministic profile | `FAKE_DETERMINISTIC_V1` |
+| Fused contract | `P2T4.P2T4FusedResultV1@1.0` |
+| Rejection contract | `P2T4.P2T4FusionInputRejectionV2@2.0` |
+
+| Environment binding | Value |
+|---|---|
+| Python executable | `backend/.venv/Scripts/python.exe` |
+| Python | `CPython 3.13.5` |
+| Lockfile state | `NO_PYTHON_LOCKFILE` |
+| Package identity hash | `217f418ce003e9279bdcbe863437b90d0219f43264c3dafbcd7f6d459cefed48` |
+| P2-T5 plan revision | `0.15` |
+| P2-T5 plan raw SHA-256 | `2a102acd689c0b53854562694692ce3a139ecdbbdee88f7c9fce7c136a5eea20` |
+
+### Authorized topology and status
+
+```text
+G5 implementation checkpoint
+  -> G7 authorization record (this record; direct parent G5)
+  -> G7 evidence creation (exactly two files)
+  -> G7 evidence checkpoint (direct parent authorization record)
+  -> G8 independent review (separate approval required)
+  -> G8 checkpoint
+  -> G9 (separate approval required)
+```
+
+```text
+P2-T5: G7 AUTHORIZATION RECORDED
+G5: CHECKPOINT BOUND
+G6: PASS_WITH_ACCEPTED_FINDINGS
+G7 EVIDENCE: AUTHORIZED, NOT YET CREATED
+G8: NOT STARTED
+G9: NOT STARTED
+RUNTIME/INTEGRATION/LIVE: NOT APPROVED
+```
+
+After this authorization commit, the executor may create exactly the two named
+evidence files. The evidence checkpoint must verify exact file count, raw
+SHA-256, Git blob IDs, unchanged bytes, and absence of extra paths; it must be
+a direct child of this authorization commit. No amend, split, push, or PR is
+authorized.
+
+## P2-T5 G9 governance-closeout authorization and completion — 2026-09-21
+
+The Project Owner approved the P2-T5 G9 governance-closeout authorization
+exactly as bound by draft raw SHA-256
+`8c6b8f79bc10a132d2abdede86caa5beb9299fddb876a383344f9434edf27765`.
+This section authorizes exactly one local governance-only G9 commit whose
+direct parent is `d9d32d9a7ff7977d86dd0596d0447a10abd75098`. The resulting G9
+commit SHA is intentionally not written into tracked content and must be
+reported externally.
+
+Exactly these six literal repository-relative paths may change in that commit:
+
+1. `features/FEAT-003-multimodal-understanding/approvals/TASK_APPROVAL.md`
+2. `features/FEAT-003-multimodal-understanding/plan/PLAN.md`
+3. `features/FEAT-003-multimodal-understanding/plan/P2_T5_EVALUATION_HARNESS_PLAN.md`
+4. `features/FEAT-003-multimodal-understanding/CONTEXT.md`
+5. `features/FEAT-003-multimodal-understanding/DECISIONS.md`
+6. `features/FEAT-003-multimodal-understanding/evidence/README.md`
+
+No wildcard, seventh path, implementation, test, fixture, media, evidence
+payload, freeze/package artifact, erratum, or unrelated path is authorized.
+The G7 JSON, G7 Markdown, G8 correction, and G8 review record remain immutable.
+
+### Immutable G5–G8 topology and artifact identities
+
+| Gate/artifact | Binding |
+|---|---|
+| G5 implementation checkpoint | `323ebf9d78fff10e204875770672b21e4b58dec9` |
+| G7 authorization commit | `bea4da49c9dad6228446747bfad0df3bb1ac79c5` |
+| G7 evidence checkpoint | `78e08ab11a7ac1f8b42dac8459f6088e4496fcd3` |
+| G8 correction commit | `55d8a6426a27533980e3f5bd2210c784e73eaa44`; direct parent `78e08ab11a7ac1f8b42dac8459f6088e4496fcd3` |
+| G8 review checkpoint / required G9 parent | `d9d32d9a7ff7977d86dd0596d0447a10abd75098`; direct parent `55d8a6426a27533980e3f5bd2210c784e73eaa44` |
+
+| Artifact | Repository-relative path | Raw SHA-256 | Identity |
+|---|---|---|---|
+| G8 final report (ignored/untracked) | `tmp/p2-t5-g8-independent-evidence-review-20260921-final/REPORT.md` | `488d41732fee30611488838052b27a8a4b4d1f3057a3f54c0fe87b8f616252dc` | prospective Git blob / `git hash-object`: `5988bc338c34d25c67e7eeb3d0dc995244a64a7f`; not a committed-tree blob |
+| G8 review record | `features/FEAT-003-multimodal-understanding/evidence/P2_T5_G8_INDEPENDENT_EVIDENCE_REVIEW_20260921-final.md` | `31eee8922098809324b5d3130f0465d9043fd5b6527595ed2fc912880a85bc41` | Git blob `9c7d0fe19f92ee48aae8a7fc7d2fab167ba604a5` |
+| G7 JSON evidence | `features/FEAT-003-multimodal-understanding/evidence/P2_T5_G7_EVIDENCE_CREATION_p2-t5-g7-evidence-20260921-01.json` | `e574a02dc3b018162eb08fb63eaff7a1ad0be1370a736d6d405d1c50c82d116a` | Git blob `d029fb364a8076bb617acc710b8d1ba8942b3631` |
+| G7 Markdown evidence | `features/FEAT-003-multimodal-understanding/evidence/P2_T5_G7_EVIDENCE_CREATION_p2-t5-g7-evidence-20260921-01.md` | `deaa2ecba7563f453a6f84bdb919854b76ce51cf3e6ded8d0a336542f4fd6746` | Git blob `4bf34c69f78354f4c201ddebb5b5c5a93bdf9b83` |
+
+The G8 verdict is `PASS`, the G7 evidence checkpoint is complete and bound,
+and the G7 assembler, G8 correction author, and independent G8 reviewer
+sessions remain distinct as recorded in the immutable G8 review record.
+
+### Preserved G6 disposition and boundaries
+
+The closeout preserves `G6: PASS_WITH_ACCEPTED_FINDINGS`, including the single
+owner-accepted Policy-B architecture baseline reported truthfully as
+`ARCHITECTURE_INVALID`, inherited mypy and Ruff findings, the out-of-scope
+`FEAT-018-TIMING-001` finding, accepted inherited/out-of-scope pytest and
+blank-at-EOF findings, and the sanitized
+`WIN_TEMP_DIRECTORY_PERMISSION_DENIED` limitation. The fixture-only
+12-case `DEVELOPMENT` authorization, privacy/output exclusions, and all
+G7/G8 hashes and reviewer provenance remain unchanged.
+
+This G9 closeout is governance-only. It grants no runtime, integration, live,
+provider/model, GPU, Lightning, network, migration, production, mobile, API,
+storage, push, or PR authority. It does not authorize a separate G9 evidence
+record or any modification outside the six paths above.
+
+```text
+P2-T5: COMPLETE — GOVERNANCE-CLOSED
+CLOSEOUT: COMPLETE_WITH_ACCEPTED_G6_FINDINGS
+G6: PASS_WITH_ACCEPTED_FINDINGS
+G7: COMPLETE — EVIDENCE CHECKPOINT BOUND
+G8: PASS
+G9: COMPLETE
+P2-T5 IMPLEMENTATION: COMPLETE AT G5 CHECKPOINT
+RUNTIME/INTEGRATION/LIVE: NOT APPROVED
+PROVIDER/MODEL/GPU/LIGHTNING/NETWORK: NOT APPROVED
+```

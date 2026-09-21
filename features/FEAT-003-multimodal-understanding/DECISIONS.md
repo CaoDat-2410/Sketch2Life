@@ -453,3 +453,151 @@ implementation or change `approvals/TASK_APPROVAL.md`.
   resulting local governance commit SHA in the final handoff without modifying tracked files. This
   additive record supersedes the pre-renewal pending wording as the current governance decision;
   earlier records and the immutable erratum preserve the historical issuance state.
+
+## P2-T4 G9 governance closeout — 2026-09-17
+
+This current decision supersedes earlier paused or pending G6-G9 wording while preserving those
+entries as historical decision context.
+
+P2-T4: COMPLETE — GOVERNANCE-CLOSED
+CLOSEOUT: COMPLETE_WITH_ACCEPTED_G6_FINDINGS
+G6: PASS_WITH_FINDINGS
+G7: PASS
+G8: PASS
+G9: COMPLETE
+P2-T5: NOT APPROVED
+INTEGRATION/RUNTIME/LIVE: NOT APPROVED
+
+### Immutable topology and evidence bindings
+
+- Implementation candidate: `21249dc696c8ea3d958e78394ed69b8ac9f9505a`.
+- Direct parent: `dc107cd45a21ccb47031a58cb7c782084624bff4`.
+- Evidence checkpoint: `c80c58fbd2b76d28af52156301caca87e7a794f5`, direct-parented to the candidate,
+  containing exactly the three G7/G8 evidence files below.
+- The G9 governance checkpoint is direct-parented to the evidence checkpoint. Its own SHA is
+  intentionally not written into tracked files and is reported only in the final handoff.
+
+| Gate | Status | Canonical path | Raw SHA-256 | Git blob ID |
+|---|---|---|---|---|
+| G7 | PASS | `features/FEAT-003-multimodal-understanding/evidence/P2_T4_G7_CLOSEOUT_EVIDENCE.json` | `5b5e26753f5b4489cb559f06fc645884ca8e0af233cd563d791a56ad2ca5e40d` | `dfad83aac7a5c53bf5bab60239500f68f32e09be` |
+| G7 | PASS | `features/FEAT-003-multimodal-understanding/evidence/P2_T4_G7_EVIDENCE_REVIEW_20260916.md` | `f204dc33ad0d73a26db4596f8c9f657c4dbbf71a9fa911ca34a4a6007071f824` | `d906827e466f357c74af0cbaf6f58eb96eaf54fa` |
+| G8 | PASS | `features/FEAT-003-multimodal-understanding/evidence/P2_T4_G8_INDEPENDENT_EVIDENCE_GOVERNANCE_REVIEW_20260917.md` | `fe0e43b00edc7141e23b53cc9499c5c769c1e1c370fb005c88a6a17f6b827119` | `5e2665f4096d5316ab1eaf49d7da2677ec6a58ee` |
+
+### Preserved findings and boundaries
+
+OPEN P2-T4 IMPLEMENTATION DEFECTS: NONE IDENTIFIED BY G6-G8
+
+- `FEAT-018-TIMING-001` remains a separate FEAT-018 remediation and is outside P2-T4.
+- Inherited mypy findings remain unchanged and outside P2-T4: arg-type findings at
+  `learning_media_resolver.py:101`, `learning_media_fallback.py:82`, and
+  `learning_media_fallback.py:85`.
+- Inherited Ruff findings remain unchanged and outside P2-T4: E501 at `learning_media.py:79`,
+  I001 at `test_learning_media_scenario_matrix.py:1`, and E501 at
+  `test_learning_media_scenario_matrix.py:14`.
+- The Policy-B architecture baseline remains unchanged and is reported truthfully as
+  `ARCHITECTURE_INVALID`: exactly one approved `application imports an outer layer` finding at
+  `backend/src/sketch2life/application/services/backend_ai_workflow.py`, with validator
+  fingerprint `fa236c8d389b608251153d601fc370efe3f3e2479446ca4a56a3d395f892e0b5`.
+- This is governance-only. P2-T5, integration/runtime/live, provider/model, GPU, Lightning,
+  network, migration, production, and PR/push activity remain not approved.
+
+## P2-T5 fixture-only v1 owner decision bundle — 2026-09-19
+
+Decision: the Project Owner approved `P2T5.OwnerDecisionBundleV3@1.0` exactly as recorded in the
+dedicated plan's delimited V3 bundle and confirmed by the local report
+`tmp/p2-t5-v3-owner-confirmation-20260919-r2/REPORT.md`.
+
+The decision covers the eleven P2-T5 identities; immutable T4/B4/ASR/conflict bindings; report
+canonicalization; exact 20 fixture IDs, 12 DEVELOPMENT / 8 HELD_OUT split, and 40 media paths;
+oracle ownership and anti-tuning; metric formulas and closed unavailable states; deterministic
+correlation/retry/recapture semantics; CPython 3.13.5, no installation, and `NO_PYTHON_LOCKFILE`;
+privacy/output restrictions; inherited baseline fingerprints; deferred OD-1/OD-17/OD-18; and the
+separate G1-G9 topology.
+
+This decision does not grant G1, G2, implementation, fixture/media creation, evidence creation,
+integration, runtime/live/provider/model/GPU/Lightning/network/migration/production, commit,
+push, or PR authority. The plans must be synchronized without semantic change and independently
+reviewed before the immutable pre-G1 plan checkpoint and separate G1 approval.
+
+## P2-T5 G1 fixture-only plan approval — 2026-09-19
+
+Decision: the Project Owner approved G1 for the exact pre-G1 plan checkpoint
+`4b2bd6012c4069dcee021497670da13cabbe852c`, direct-parented to
+`f11a6f4fee81032a677b492303cdecd9b09663d4`. The checkpoint contains exactly the
+two reviewed plan files:
+
+| Path | Revision | Raw bytes | Raw SHA-256 | Git blob ID |
+|---|---:|---:|---|---|
+| `features/FEAT-003-multimodal-understanding/plan/PLAN.md` | 8 | 61590 | `4c52ccf63320de411d3551933e75a1ec05479a9471df68d8ef67fb2ee1b37b35` | `6db2089ca9f2d38f8c58f28b22de2c2a58ceb26a` |
+| `features/FEAT-003-multimodal-understanding/plan/P2_T5_EVALUATION_HARNESS_PLAN.md` | 0.15 | 211691 | `2a102acd689c0b53854562694692ce3a139ecdbbdee88f7c9fce7c136a5eea20` | `f9f81f9c1dbbd8fe92d8083ce163ac85f3721ce4` |
+
+This G1 decision freezes the approved fixture-only v1 plan and its documented
+contracts, metrics, privacy/reproducibility rules, and gate topology. It does not
+grant G2, implementation, fixture/media creation, evidence creation, integration,
+runtime/live, provider/model, GPU, Lightning, network, migration, production, push,
+or PR authority. G2 remains a separate exact-path approval whose direct parent must
+be the resulting G1 governance record commit. The G1 commit SHA is reported outside
+tracked content and is not embedded in these records.
+
+```text
+P2-T5: G1 APPROVED
+G2: NOT GRANTED
+IMPLEMENTATION: NOT APPROVED
+FIXTURE/MEDIA/EVIDENCE: NOT AUTHORIZED
+RUNTIME/LIVE: NOT APPROVED
+```
+
+## P2-T5 G2 exact implementation decision — 2026-09-20
+
+The owner selected the exact 54 individually named source, test, fixture/oracle, and synthetic
+media paths from the reviewed G2 draft. The G2 governance record is directly parented to
+`6464ad700a424fe7c0e0e1fcac34b69571be82a4` and may change only the three full governance paths
+listed in the matching G2 section of `approvals/TASK_APPROVAL.md`; no other path is authorized.
+
+That durable section also binds G1 checkpoint/revision/blob/raw identities, CPython 3.13.5 via
+`backend/.venv`, `NO_PYTHON_LOCKFILE`, the exact 55-distribution package-set hash
+`217f418ce003e9279bdcbe863437b90d0219f43264c3dafbcd7f6d459cefed48`, validator identities, and
+the inherited Policy-B/mypy/Ruff baseline. These values are reused for later G6 comparison and
+may not be re-resolved or substituted. G2 authorizes offline fixture-only implementation only;
+G3 is the next gate, G7 evidence is separate, and runtime/live/provider/model/GPU/Lightning/
+network/migration/production remain not approved.
+
+```text
+P2-T5: G1 APPROVED
+G2: APPROVED_FOR_EXACT_54_FILE_FIXTURE_ONLY_IMPLEMENTATION
+IMPLEMENTATION: NOT STARTED
+G3-G9: NOT STARTED
+FIXTURE/MEDIA: AUTHORIZED ONLY WITHIN THE EXACT 54-PATH SCOPE
+EVIDENCE: NOT AUTHORIZED
+RUNTIME/LIVE: NOT APPROVED
+```
+
+## P2-T5 G9 governance-closeout decision — 2026-09-21
+
+Decision: approve exactly one local, governance-only P2-T5 G9 closeout commit
+under draft raw SHA-256
+`8c6b8f79bc10a132d2abdede86caa5beb9299fddb876a383344f9434edf27765`.
+The commit must be a direct child of G8 review checkpoint
+`d9d32d9a7ff7977d86dd0596d0447a10abd75098` and may modify only the six
+literal paths enumerated in `approvals/TASK_APPROVAL.md`. The resulting SHA is
+reported externally only.
+
+This decision closes governance state after G8 `PASS`; it does not reinterpret
+fixture-only evidence as model/provider quality, does not change any G7/G8
+bytes, and does not authorize implementation, tests, fixtures, media,
+runtime, integration, live provider/model, GPU, Lightning, network,
+migration, production, push, or PR activity. The accepted Policy-B,
+mypy/Ruff, `FEAT-018-TIMING-001`, inherited test/blank-at-EOF, and sanitized
+temporary-directory findings remain accepted and traceable.
+
+```text
+P2-T5: COMPLETE — GOVERNANCE-CLOSED
+CLOSEOUT: COMPLETE_WITH_ACCEPTED_G6_FINDINGS
+G6: PASS_WITH_ACCEPTED_FINDINGS
+G7: COMPLETE — EVIDENCE CHECKPOINT BOUND
+G8: PASS
+G9: COMPLETE
+P2-T5 IMPLEMENTATION: COMPLETE AT G5 CHECKPOINT
+RUNTIME/INTEGRATION/LIVE: NOT APPROVED
+PROVIDER/MODEL/GPU/LIGHTNING/NETWORK: NOT APPROVED
+```
