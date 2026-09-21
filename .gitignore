@@ -60,6 +60,7 @@ node_modules/
 .pnpm-store/
 coverage/
 *.tsbuildinfo
+packages/art-renderer/dist-demo/
 apps/mobile/android/.gradle/
 apps/mobile/android/build/
 apps/mobile/android/app/build/
@@ -92,6 +93,10 @@ backend/data/runtime/
 **/qwen-vl-cache/
 models/
 features/FEAT-000-harness/evidence/handbook-page-*.png
+
+# Local SRS render/source artifacts; originals and machine-specific source registers stay local.
+features/FEAT-026-current-system-srs/artifacts/Sketch2Life_SRS_Form_qa.pdf
+features/FEAT-029-master-srs/evidence/notes/SOURCES.md
 
 # Android native build intermediates
 apps/mobile/android/app/.cxx/

@@ -1,5 +1,6 @@
 packages:
   - "apps/mobile"
+  - "apps/ui-mobile"
   - "packages/art-renderer"
 allowBuilds:
   esbuild: true

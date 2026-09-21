@@ -1,4 +1,4 @@
-﻿{
+{
   "expo": {
     "name": "Sketch2Life",
     "slug": "sketch2life",
@@ -14,6 +14,28 @@
     "web": {
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Cho phép chọn một ảnh tổng hợp để kiểm tra Sketch2Life.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ],
+      "./plugins/withDebugCleartextTraffic"
+    ],
+    "android": {
+      "package": "com.sketch2life.mobile",
+      "blockedPermissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VIDEO"
+      ]
     }
   }
 }
