@@ -571,3 +571,33 @@ FIXTURE/MEDIA: AUTHORIZED ONLY WITHIN THE EXACT 54-PATH SCOPE
 EVIDENCE: NOT AUTHORIZED
 RUNTIME/LIVE: NOT APPROVED
 ```
+
+## P2-T5 G9 governance-closeout decision — 2026-09-21
+
+Decision: approve exactly one local, governance-only P2-T5 G9 closeout commit
+under draft raw SHA-256
+`8c6b8f79bc10a132d2abdede86caa5beb9299fddb876a383344f9434edf27765`.
+The commit must be a direct child of G8 review checkpoint
+`d9d32d9a7ff7977d86dd0596d0447a10abd75098` and may modify only the six
+literal paths enumerated in `approvals/TASK_APPROVAL.md`. The resulting SHA is
+reported externally only.
+
+This decision closes governance state after G8 `PASS`; it does not reinterpret
+fixture-only evidence as model/provider quality, does not change any G7/G8
+bytes, and does not authorize implementation, tests, fixtures, media,
+runtime, integration, live provider/model, GPU, Lightning, network,
+migration, production, push, or PR activity. The accepted Policy-B,
+mypy/Ruff, `FEAT-018-TIMING-001`, inherited test/blank-at-EOF, and sanitized
+temporary-directory findings remain accepted and traceable.
+
+```text
+P2-T5: COMPLETE — GOVERNANCE-CLOSED
+CLOSEOUT: COMPLETE_WITH_ACCEPTED_G6_FINDINGS
+G6: PASS_WITH_ACCEPTED_FINDINGS
+G7: COMPLETE — EVIDENCE CHECKPOINT BOUND
+G8: PASS
+G9: COMPLETE
+P2-T5 IMPLEMENTATION: COMPLETE AT G5 CHECKPOINT
+RUNTIME/INTEGRATION/LIVE: NOT APPROVED
+PROVIDER/MODEL/GPU/LIGHTNING/NETWORK: NOT APPROVED
+```

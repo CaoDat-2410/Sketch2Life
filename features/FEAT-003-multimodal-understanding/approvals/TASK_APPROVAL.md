@@ -1239,3 +1239,75 @@ evidence files. The evidence checkpoint must verify exact file count, raw
 SHA-256, Git blob IDs, unchanged bytes, and absence of extra paths; it must be
 a direct child of this authorization commit. No amend, split, push, or PR is
 authorized.
+
+## P2-T5 G9 governance-closeout authorization and completion — 2026-09-21
+
+The Project Owner approved the P2-T5 G9 governance-closeout authorization
+exactly as bound by draft raw SHA-256
+`8c6b8f79bc10a132d2abdede86caa5beb9299fddb876a383344f9434edf27765`.
+This section authorizes exactly one local governance-only G9 commit whose
+direct parent is `d9d32d9a7ff7977d86dd0596d0447a10abd75098`. The resulting G9
+commit SHA is intentionally not written into tracked content and must be
+reported externally.
+
+Exactly these six literal repository-relative paths may change in that commit:
+
+1. `features/FEAT-003-multimodal-understanding/approvals/TASK_APPROVAL.md`
+2. `features/FEAT-003-multimodal-understanding/plan/PLAN.md`
+3. `features/FEAT-003-multimodal-understanding/plan/P2_T5_EVALUATION_HARNESS_PLAN.md`
+4. `features/FEAT-003-multimodal-understanding/CONTEXT.md`
+5. `features/FEAT-003-multimodal-understanding/DECISIONS.md`
+6. `features/FEAT-003-multimodal-understanding/evidence/README.md`
+
+No wildcard, seventh path, implementation, test, fixture, media, evidence
+payload, freeze/package artifact, erratum, or unrelated path is authorized.
+The G7 JSON, G7 Markdown, G8 correction, and G8 review record remain immutable.
+
+### Immutable G5–G8 topology and artifact identities
+
+| Gate/artifact | Binding |
+|---|---|
+| G5 implementation checkpoint | `323ebf9d78fff10e204875770672b21e4b58dec9` |
+| G7 authorization commit | `bea4da49c9dad6228446747bfad0df3bb1ac79c5` |
+| G7 evidence checkpoint | `78e08ab11a7ac1f8b42dac8459f6088e4496fcd3` |
+| G8 correction commit | `55d8a6426a27533980e3f5bd2210c784e73eaa44`; direct parent `78e08ab11a7ac1f8b42dac8459f6088e4496fcd3` |
+| G8 review checkpoint / required G9 parent | `d9d32d9a7ff7977d86dd0596d0447a10abd75098`; direct parent `55d8a6426a27533980e3f5bd2210c784e73eaa44` |
+
+| Artifact | Repository-relative path | Raw SHA-256 | Identity |
+|---|---|---|---|
+| G8 final report (ignored/untracked) | `tmp/p2-t5-g8-independent-evidence-review-20260921-final/REPORT.md` | `488d41732fee30611488838052b27a8a4b4d1f3057a3f54c0fe87b8f616252dc` | prospective Git blob / `git hash-object`: `5988bc338c34d25c67e7eeb3d0dc995244a64a7f`; not a committed-tree blob |
+| G8 review record | `features/FEAT-003-multimodal-understanding/evidence/P2_T5_G8_INDEPENDENT_EVIDENCE_REVIEW_20260921-final.md` | `31eee8922098809324b5d3130f0465d9043fd5b6527595ed2fc912880a85bc41` | Git blob `9c7d0fe19f92ee48aae8a7fc7d2fab167ba604a5` |
+| G7 JSON evidence | `features/FEAT-003-multimodal-understanding/evidence/P2_T5_G7_EVIDENCE_CREATION_p2-t5-g7-evidence-20260921-01.json` | `e574a02dc3b018162eb08fb63eaff7a1ad0be1370a736d6d405d1c50c82d116a` | Git blob `d029fb364a8076bb617acc710b8d1ba8942b3631` |
+| G7 Markdown evidence | `features/FEAT-003-multimodal-understanding/evidence/P2_T5_G7_EVIDENCE_CREATION_p2-t5-g7-evidence-20260921-01.md` | `deaa2ecba7563f453a6f84bdb919854b76ce51cf3e6ded8d0a336542f4fd6746` | Git blob `4bf34c69f78354f4c201ddebb5b5c5a93bdf9b83` |
+
+The G8 verdict is `PASS`, the G7 evidence checkpoint is complete and bound,
+and the G7 assembler, G8 correction author, and independent G8 reviewer
+sessions remain distinct as recorded in the immutable G8 review record.
+
+### Preserved G6 disposition and boundaries
+
+The closeout preserves `G6: PASS_WITH_ACCEPTED_FINDINGS`, including the single
+owner-accepted Policy-B architecture baseline reported truthfully as
+`ARCHITECTURE_INVALID`, inherited mypy and Ruff findings, the out-of-scope
+`FEAT-018-TIMING-001` finding, accepted inherited/out-of-scope pytest and
+blank-at-EOF findings, and the sanitized
+`WIN_TEMP_DIRECTORY_PERMISSION_DENIED` limitation. The fixture-only
+12-case `DEVELOPMENT` authorization, privacy/output exclusions, and all
+G7/G8 hashes and reviewer provenance remain unchanged.
+
+This G9 closeout is governance-only. It grants no runtime, integration, live,
+provider/model, GPU, Lightning, network, migration, production, mobile, API,
+storage, push, or PR authority. It does not authorize a separate G9 evidence
+record or any modification outside the six paths above.
+
+```text
+P2-T5: COMPLETE — GOVERNANCE-CLOSED
+CLOSEOUT: COMPLETE_WITH_ACCEPTED_G6_FINDINGS
+G6: PASS_WITH_ACCEPTED_FINDINGS
+G7: COMPLETE — EVIDENCE CHECKPOINT BOUND
+G8: PASS
+G9: COMPLETE
+P2-T5 IMPLEMENTATION: COMPLETE AT G5 CHECKPOINT
+RUNTIME/INTEGRATION/LIVE: NOT APPROVED
+PROVIDER/MODEL/GPU/LIGHTNING/NETWORK: NOT APPROVED
+```

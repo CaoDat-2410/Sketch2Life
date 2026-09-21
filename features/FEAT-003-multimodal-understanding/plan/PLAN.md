@@ -814,3 +814,39 @@ OPEN P2-T4 IMPLEMENTATION DEFECTS: NONE IDENTIFIED BY G6-G8
   `fa236c8d389b608251153d601fc370efe3f3e2479446ca4a56a3d395f892e0b5`.
 - The closeout is governance-only. P2-T5, integration/runtime/live, provider/model, GPU,
   Lightning, network, migration, production, and PR/push activity remain not approved.
+
+## P2-T5 G9 governance closeout — 2026-09-21
+
+The Project Owner approved the governance-only G9 closeout under draft raw
+SHA-256 `8c6b8f79bc10a132d2abdede86caa5beb9299fddb876a383344f9434edf27765`.
+The single local G9 commit is direct-parented to the G8 review checkpoint
+`d9d32d9a7ff7977d86dd0596d0447a10abd75098` and may change only the six literal
+governance paths listed in the matching approval section. Its resulting SHA is
+reported externally, never embedded here.
+
+This closeout reconciles governance status after the immutable G5–G8 chain:
+G5 `323ebf9d78fff10e204875770672b21e4b58dec9`, G7 authorization
+`bea4da49c9dad6228446747bfad0df3bb1ac79c5`, G7 evidence checkpoint
+`78e08ab11a7ac1f8b42dac8459f6088e4496fcd3`, G8 correction
+`55d8a6426a27533980e3f5bd2210c784e73eaa44`, and G8 review `d9d32d9a7ff7977d86dd0596d0447a10abd75098`.
+G7/G8 evidence bytes, code, tests, fixtures, media, package/freeze artifacts,
+errata, and unrelated paths are immutable.
+
+The closeout preserves `G6: PASS_WITH_ACCEPTED_FINDINGS`, the Policy-B
+architecture baseline, inherited mypy/Ruff findings, `FEAT-018-TIMING-001`,
+the sanitized temporary-directory limitation, the 12-case `DEVELOPMENT`
+fixture-only authorization, and all privacy/output restrictions. No runtime,
+integration, live, provider/model, GPU, Lightning, network, migration,
+production, push, or PR authority is granted.
+
+```text
+P2-T5: COMPLETE — GOVERNANCE-CLOSED
+CLOSEOUT: COMPLETE_WITH_ACCEPTED_G6_FINDINGS
+G6: PASS_WITH_ACCEPTED_FINDINGS
+G7: COMPLETE — EVIDENCE CHECKPOINT BOUND
+G8: PASS
+G9: COMPLETE
+P2-T5 IMPLEMENTATION: COMPLETE AT G5 CHECKPOINT
+RUNTIME/INTEGRATION/LIVE: NOT APPROVED
+PROVIDER/MODEL/GPU/LIGHTNING/NETWORK: NOT APPROVED
+```

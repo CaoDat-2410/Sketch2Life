@@ -2630,3 +2630,40 @@ RUNTIME/LIVE/PROVIDER/MODEL/GPU/LIGHTNING/NETWORK NOT APPROVED.
 **IMPLEMENTATION:** `NOT APPROVED`
 **RUNTIME/LIVE/PROVIDER/MODEL/GPU/LIGHTNING/NETWORK:** `NOT APPROVED`
 **TRACKED P2-T5 FIXTURE/MEDIA/EVIDENCE ARTIFACTS:** `NOT CREATED`
+
+## P2-T5 G9 governance closeout — 2026-09-21
+
+Owner approval is recorded for exactly one governance-only G9 closeout commit,
+bound to draft raw SHA-256
+`8c6b8f79bc10a132d2abdede86caa5beb9299fddb876a383344f9434edf27765` and
+direct-parented to G8 review checkpoint
+`d9d32d9a7ff7977d86dd0596d0447a10abd75098`. Only the six literal paths in the
+approval record may change; the resulting G9 SHA is external-only and is not
+written here.
+
+The immutable G7/G8 evidence chain remains bound to G5
+`323ebf9d78fff10e204875770672b21e4b58dec9`, G7 authorization
+`bea4da49c9dad6228446747bfad0df3bb1ac79c5`, G7 evidence checkpoint
+`78e08ab11a7ac1f8b42dac8459f6088e4496fcd3`, G8 correction
+`55d8a6426a27533980e3f5bd2210c784e73eaa44`, and G8 review `d9d32d9a7ff7977d86dd0596d0447a10abd75098`.
+The G8 verdict is `PASS`; G7/G8 evidence bytes, implementation, tests,
+fixtures, media, and all non-allowlisted paths are immutable.
+
+G9 preserves `G6: PASS_WITH_ACCEPTED_FINDINGS`, the accepted Policy-B,
+mypy/Ruff, `FEAT-018-TIMING-001`, pytest/blank-at-EOF, and sanitized
+temporary-directory findings, the 12-case `DEVELOPMENT` fixture-only scope,
+and all privacy/output restrictions. No implementation or runtime/live,
+provider/model, GPU, Lightning, network, migration, production, integration,
+push, or PR activity is authorized.
+
+```text
+P2-T5: COMPLETE — GOVERNANCE-CLOSED
+CLOSEOUT: COMPLETE_WITH_ACCEPTED_G6_FINDINGS
+G6: PASS_WITH_ACCEPTED_FINDINGS
+G7: COMPLETE — EVIDENCE CHECKPOINT BOUND
+G8: PASS
+G9: COMPLETE
+P2-T5 IMPLEMENTATION: COMPLETE AT G5 CHECKPOINT
+RUNTIME/INTEGRATION/LIVE: NOT APPROVED
+PROVIDER/MODEL/GPU/LIGHTNING/NETWORK: NOT APPROVED
+```
