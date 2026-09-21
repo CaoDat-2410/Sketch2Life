@@ -1,0 +1,17 @@
+# FEAT-028 Pixi topic asset library context
+
+- Status: APPROVED, plan revision 2; implementation in progress (144 generated drafts pending visual review)
+- Owner: Project owner; renderer/asset implementation allocation to be confirmed before integration
+- Goal: provide a reusable, provenance-safe flat-2D asset library and topic-expansion workflow for Pixi scenes and future UI, harmonized with the child's original drawing.
+- Scope: asset audit/taxonomy; 144 stable sprite IDs across 24 atlas packs; bilingual semantic descriptors; local style-profile metadata; deterministic approved-only top-K candidate context and AI response allowlist; typed no-match/authoring proposal; licensing, review, and evidence.
+- Non-goals: replacing/regenerating the child's drawing; changing activity/objective selection or FEAT-018 Gate A/B; redesigning screens; adding or invoking a model/provider call in this revision; provider calls from Pixi/mobile; sending real child media to external generators; changing frozen FEAT-018 contracts without a reviewed addendum; publishing before per-frame visual and rights review.
+- Dependencies: FEAT-004 original-art invariants; FEAT-018 `PixiArtAssetManifestV1`, `ArtAnimationPlanV1`, Person 3 asset lifecycle, and golden-scene coverage; `docs/governance/FRONTEND_ASSET_GATE.md`; source-register IDs `handbook-v7` and `sprint-task-breakdown` as non-authoritative reference inputs.
+- Risks: unbounded theme space; style mismatch; unclear source/license; unsafe vector/image payloads; asset bloat/load cost; confusing supplements with child-authored source.
+
+## Context snapshot — 2026-09-17
+
+PixiJS 8 + GSAP 3 run behind a controlled renderer boundary. FEAT-018 owns source-art manifests, bounded animation plans, generic fallback, and 20 golden pilot scenes. FEAT-004 declares the original drawing the source of truth and permits runtime references only to approved/applied assets. Neither feature supplies a reusable topic catalog or supplemental-asset resolver. The current `loadChildArtAssetInstructions()` preserves source provenance; it is not a topic-library resolver.
+
+This feature is additive: child artwork remains immutable and authoritative; catalog art is a separate compatible supplement/background/decorative layer. Runtime resolution is deterministic and offline against approved local entries. A missing topic follows an authoring-time expansion/review path; no runtime web search, unreviewed remote fetch, or provider call is allowed. Style features are derived locally from synthetic or authorized source media. Real child media is never placed in Git or sent to an external image generator by this task.
+
+The owner chose flat 2D that harmonizes with each drawing and allowed ImageGen/open-license sources for authoring, subject to per-asset provenance/license and the separate visual gate. Revision 2 provides the backend with a text-only candidate-context builder: after adult confirmation it retrieves a bounded list from locally approved metadata, gives the model labels/aliases/descriptions/tags/roles/confusable concepts, and accepts only candidate IDs after independent validation. The model is not given the source drawing by this selector. No live model/provider call is wired yet; the versioned internal prompt/input builder is ready for a separately reviewed integration. File format and renderer-contract extension remain open pending measurement and ADR/contract review.
