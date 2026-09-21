@@ -1,7 +1,9 @@
 # FEAT-018 live image + canvas full-flow plan
 
 - Status: APPROVED for P1, isolated P2-T1 D2 and isolated P2-T1 D3-R2 Cohort A;
-  P2-T2–T5/P3/P4/shared integration pending
+  P2-T2–T5/P3/P4/shared integration pending under the original allocation. The Android/Lightning/Pixi
+  non-video shared integration is now approved under `UI_MOBILE_LIGHTNING_ANDROID_DEMO_PLAN_REV2_DETAILED.md`;
+  actual live Lightning calls remain gated by ADR-0005 amendment and cost/quota confirmation.
 - Plan revision: 2
 - Implementation status: P1 complete; P2-T1 D2 reviewed and accepted; D3-R2 Cohort A formally
   executed, independently verified and owner-approved; Cohort B remains gated

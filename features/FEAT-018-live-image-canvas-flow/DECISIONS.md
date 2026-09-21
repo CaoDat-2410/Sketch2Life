@@ -106,3 +106,26 @@
   typed-failure ASR cases remain supported. Focused and related tests, lint/type checks, repository
   validators and diff checks passed. This closes only the offline P2-T2 contract/mapping slice;
   live Lightning/GPU/model execution and all downstream/provider/mobile/shared scopes remain gated.
+
+- 2026-09-18 owner approval: proceed with FEAT-018 Shared Integration Addendum Rev 2 for the
+  non-video Android Emulator demo using a non-child synthetic/test image, backend-only Lightning
+  boundary, PixiJS original-art renderer, reviewed-asset allowlist, P4 fallback, handoff, gallery and
+  feedback. Optional narration may only be fictional adult voice. No video, real child media, mobile
+  provider credentials or durable persistence in this demo. Live dynamic Lightning remains blocked
+  until an ADR-0005 addendum and quota/cost gate are approved.
+- 2026-09-18 future auth/save constraint: implement current session/job/artifact behavior behind
+  replaceable application ports and keep `actor_ref` separate from future `owner_ref`. Later account
+  access uses the existing provider-neutral verified-principal boundary and explicit save/ownership
+  contracts; Firebase is Authentication-only and product data remains backend-owned PostgreSQL/S3-
+  compatible storage. Auth, durable save and real child-media persistence are not approved for this
+  demo.
+- 2026-09-18 image-only scope correction: remove the optional adult-fictional narration/ASR lane from
+  the Android demo. No microphone permission, audio capture/upload, or ASR request is in scope;
+  `RawUnderstandingResultV1.narration_status` remains `NOT_SUPPLIED`. Refresh the approved plan hash
+  and preserve the Lightning ADR/cost gate and per-sprite visual/rights gate.
+- 2026-09-18 live-test budget clarification: the owner reports approximately 25 Lightning credits
+  available and enough for testing; the FEAT-018 dev-only ceiling is 25 existing credits total with
+  no purchase/top-up. The owner will manually initiate live requests; Codex must not call Lightning.
+  Require a user-triggered request, no automatic inference retry, admitted synthetic/non-child image
+  only, V2 result validation and Gate A. This does not change Runpod production policy or permit
+  audio, video or real-child data.

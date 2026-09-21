@@ -44,6 +44,28 @@ The owner wants installable APKs before public Google Play release, managed auth
 - Lightning testing must remain fixture-only because the current account cannot guarantee the earlier private-network goal.
 - Runpod's queue/status semantics align with bounded backend polling, but its provider job ID is mapped to an internal job ID.
 
+## Addendum — FEAT-018 image-only Android demo (2026-09-18)
+
+- Status: owner-approved narrow development exception; the fixture-only rule remains the default
+  outside this specific FEAT-018 test path.
+- The project owner reports approximately 25 Lightning credits currently available and authorizes
+  no more than 25 existing credits in total for synthetic/non-child FEAT-018 tests. No credit
+  purchase or top-up is authorized. The repository has no provider-side credit-metering interface;
+  the owner will personally monitor usage and stop at the cap. If a call's credit cost or remaining
+  balance is unclear, do not send it.
+- The owner will manually initiate live test requests. Codex must not send live provider requests.
+  The application must never infer-trigger a provider call and must not automatically retry an
+  inference request. Retrying requires a separate explicit user action.
+- Only an explicitly selected synthetic/non-child image may be sent per request, after backend
+  image admission succeeds. No real child image, audio/ASR, video, generated-media request, or
+  production inference is included. The frontend never receives Lightning endpoints or credentials.
+- Integration must consume the approved FEAT-003 `VisionUnderstandingResultV2` boundary and map to
+  FEAT-018 `RawUnderstandingResultV1`; the historical fixture-only `/v1/live-understanding` route
+  and flat V1 adapter are not acceptable substitutes. Gate A remains mandatory.
+- This exception does not select Lightning as the production provider, change Runpod production
+  policy, authorize model downloads, waive media/privacy/contract checks, or authorize deployment
+  to a public/shared network.
+
 ## Evidence
 
 - [Android App Bundles](https://developer.android.com/guide/app-bundle)

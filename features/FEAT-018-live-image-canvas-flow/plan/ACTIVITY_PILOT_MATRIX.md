@@ -7,7 +7,7 @@ This matrix makes the pilot complete across the reviewed golden set. It does not
 - `golden` rows are the full 20-activity device/integration pilot.
 - Each golden row needs valid, ambiguous, blocked, cache-hit, cache-miss, and renderer-fallback cases.
 - A real image is only a source observation. It cannot infer age, readiness, materials, supervision, or psychological traits.
-- The current hardcoded `ACT-0004`/`OBJ_MOVEMENT_COORDINATION` fixture must be corrected before this matrix is wired.
+- Canonical P1 maps `ACT-0004` v2 to primary `OBJ_OBJECT_PERMANENCE` (with `OBJ_RECEPTIVE_LANGUAGE` secondary). The shared integration fixture was reconciled to that identity on 2026-09-18; any future pilot must continue to consume the catalog mapping rather than hardcode a different objective.
 
 ## Golden 20 — full pilot
 

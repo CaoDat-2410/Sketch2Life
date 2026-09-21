@@ -58,6 +58,11 @@ Current pre-approval review: [completeness findings and required reconciliation]
 
 Person 4 registry reconciliation: [P4 contract registry reconciliation](notes/P4_CONTRACT_REGISTRY_RECONCILIATION.md).
 
+Shared Android image-only UI/backend wiring and offline verification:
+[Android demo integration verification](notes/UI_BACKEND_ANDROID_DEMO_VERIFICATION_20260918.md).
+The note records fake-provider test results and the remaining operator-run emulator/live checks;
+no live Lightning call was made by Codex.
+
 Never store raw images, prompts, model output, tokens, signed URLs, personal metadata, or provider headers here. Store source SHA-256 and bounded metadata only.
 
 Required evidence groups:

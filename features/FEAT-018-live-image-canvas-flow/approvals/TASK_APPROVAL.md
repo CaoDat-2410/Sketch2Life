@@ -1,14 +1,43 @@
 # Task approval
 
-- Status: APPROVED (P1 implementation slice; FEAT-018 P2-T1 D2/D3-R2 with offline Cohorts A+B
-  closed; completed P2-T2 offline contract/mapping implementation; and approved offline P3/P4
-  slices integrated. P2-T3 optional narration planning remains a DRAFT and is not
-  implementation-approved. P2-T2 live Lightning execution, P2-T4 through P2-T5, provider,
-  mobile/shared integration and production scope remain separately gated)
+- Status: APPROVED for the historical slices below plus the Shared Integration Addendum Rev 2 and
+  the narrow live-test authorization recorded in ADR-0005 on 2026-09-18. The owner may manually run
+  synthetic-image Lightning tests up to the existing 25-credit total ceiling; Codex must not send
+  live requests. Authentication and durable saving remain future seams only.
 - Approver: Project owner direct instruction in the current conversation
 - Plan revision: 2
 - Requested scope: FEAT-018 revision 2 P1 implementation slice only: catalog promotion/provenance, Activity Template Library, adult context and deterministic eligibility, semantic-anchor to objective/template selection, ExperienceSpec compilation and fit validation, Gate B identity/version locking, catalog/pilot harness and feature-local evidence.
-- Explicit exclusions: P2/P3/P4/shared implementation, production API/cloud, Runpod, Android release, real child/personal data, and mobile provider credentials.
+- Explicit exclusions: production API/cloud, Runpod, Android release, real child/personal data,
+  mobile provider credentials, provider auto-retries, top-ups/purchases, and durable saving.
+
+## Shared Android / Lightning / Pixi non-video integration addendum — 2026-09-18
+
+- Approver: Project owner direct instruction in the current conversation (“duyệt, nhớ làm sao để sau này có thể nối vs auth flow, để sau này có thể lưu lại”).
+- Approved artifact: `plan/UI_MOBILE_LIGHTNING_ANDROID_DEMO_PLAN_REV2_DETAILED.md`, Shared Integration Addendum Rev 2.
+- Plan SHA-256 (image-only scope correction): `fa0f2e597fd56b221e5ef8f2b97d9f390d6206aaf9fc36bedb57b7ca3205af33`.
+- Approved at: 2026-09-18 20:29:32 Asia/Ho_Chi_Minh (2026-09-18 13:29:32 UTC).
+- Approved scope: local Android Emulator journey with image-only non-child synthetic/test image upload through the backend; Gate A, adult-entered fictional P1 context, exact Gate B/ExperienceSpec, PixiJS original-art canvas, per-frame asset/rights review and approved-only selection, P4 cache/fallback, activity handoff, session gallery and feedback. No microphone permission, audio capture/upload, or ASR call. No video.
+- Future readiness requirement: current session/job/artifact use cases use application ports with in-memory/temp adapters. Preserve the existing provider-neutral verified-principal boundary and design a later explicit authenticated save/ownership contract; do not implement Firebase sign-in, persistent storage, or a save endpoint in this demo. Firebase data products are forbidden; future persistence follows backend-owned PostgreSQL/S3-compatible architecture.
+- Boundaries: no real child media, mobile provider credentials, automatic persistence, commits/pushes, or blanket asset approval. All 144 FEAT-028 frames remain pending until individually visually reviewed and rights-cleared. Asset approval is separate from task-plan approval.
+- Provider gate: the separate ADR-0005 FEAT-018 addendum authorizes only owner-initiated local
+  synthetic-image Vision V2 requests against the existing balance, capped at 25 credits total.
+  Owner monitors the provider balance; stop if cost or remaining balance is unclear. No Codex live
+  calls, background/inferred calls, automatic retries, or public/shared-network deployment.
+- Acceptance: exact HTTP/domain contract compatibility and corrected FEAT-016 state order; full emulator non-video flow when provider gate is cleared; honest typed no-match/fallback; no silent fixtures, no video; auth/save seams covered by adapter-boundary tests without durable writes.
+- Scope/hash correction recorded 2026-09-18 21:10 Asia/Ho_Chi_Minh (14:10 UTC): the previously approved optional narration lane is removed to match the user's image-only demo requirement. This narrows scope; all approved objectives otherwise remain unchanged. The hash above identifies the corrected addendum.
+
+## Live Lightning test authorization — 2026-09-18
+
+- The owner clarified that approximately 25 Lightning credits are currently available and requested
+  a live-test path, to be run personally. This confirmation is recorded in the ADR-0005 FEAT-018
+  addendum; it does not authorize Codex to invoke Lightning.
+- Hard aggregate ceiling: at most 25 credits from the existing balance for this synthetic-image
+  demo; no purchase/top-up. The owner checks the provider's actual balance and cost before each
+  manual run and stops if either is uncertain.
+- Runtime remains one explicit user-triggered Vision request per action, with no inferred call and
+  no automatic retry. Only admitted synthetic/non-child PNG/JPEG images up to the frozen 5 MB cap.
+- Android emulator build and a real provider request remain operator-run acceptance checks; all
+  agent-side verification uses fake/offline providers.
 
 ## Approved P1 scope addendum — 2026-09-09
 
@@ -173,6 +202,20 @@ download, and any provider/network call remain separately gated and require a la
 execution approval with fixture, budget, redaction, and evidence requirements.
 
 Approved at: 2026-09-12, project owner direct instruction in the current conversation.
+
+## FEAT-018 live-vision demo budget clarification — 2026-09-18
+
+- The project owner clarified that approximately 25 Lightning credits are currently available and
+  sufficient for testing. The approved FEAT-018 image-only demo ceiling is no more than 25 existing
+  credits total; no purchase/top-up is authorized.
+- The project owner will personally initiate live provider requests. Codex must not send live
+  provider requests. Integration must require an explicit user action, make no automatic inference
+  retry, and use only admitted synthetic/non-child images. The owner monitors credits outside this
+  repository; if remaining balance or per-call cost is unclear, execution stops.
+- This clarification narrows execution to the FEAT-018 dev-only image path under the ADR-0005
+  addendum. It does not authorize ASR/audio, video, real child data, model downloads, or production
+  inference. Provider output must validate as FEAT-003 V2 and map to FEAT-018 Raw V1; existing
+  fixture-only/flat-V1 routes do not satisfy live acceptance.
 
 ## Owner approval and P2-T2 offline closure — 2026-09-12
 

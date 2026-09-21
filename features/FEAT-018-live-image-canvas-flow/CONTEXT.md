@@ -1,11 +1,14 @@
 # FEAT-018 live image and canvas context
 
 - Status: P1 complete; D3/P2-T1 closed for owner-approved offline Cohorts A+B; P2-T2 contract
-  boundary and bounded offline implementation complete; live Lightning execution and downstream
-  scopes remain separately gated
+  boundary and bounded offline implementation complete; approved local Android image-only UI/API
+  integration is implemented and offline-tested; emulator and owner-run live acceptance remain
+  pending
 - Plan revision: 2 with approved P2-T1 D2/D3-R2 and P2-T2 offline addenda
 - Owner: shared integration allocation pending contract freeze approval
-- Goal: run a non-sensitive real JPG/PNG through validation, backend-only Qwen3-VL understanding, Gate A, one-anchor/one-objective ExperienceSpec compilation, P1/Gate B, PixiJS canvas, P4 cache/fallback, off-screen handoff, gallery journey and feedback.
+- Goal: run a synthetic/non-child JPG/PNG through backend admission and the owner-triggered Lightning
+  Vision V2 path, Gate A, adult-entered one-anchor/one-objective ExperienceSpec/P1/Gate B, whole-image
+  Pixi reveal, P4 fallback, caregiver handoff, session gallery and feedback.
 - Data policy: non-sensitive test image only; no child/personal data, production data, or provider credential in Git/mobile/evidence.
 - Dependencies: FEAT-003 `VisionUnderstandingResultV2` and local Qwen adapter boundary, FEAT-015 fixture contracts, FEAT-016 runtime/session contracts, FEAT-004 PixiJS/GSAP renderer plan, ADR-0006 allocation rules. FEAT-017's remote HTTPS path is not used by P2-T2.
 - Contract authority: `plan/CONTRACT_FREEZE.md`.
@@ -125,3 +128,32 @@ report found no blocker and confirms the published contract/data scope is unchan
 
 P2-T2 offline is complete. Live Lightning/GPU/model execution, provider/network calls, P2-T3 through
 P2-T5, mobile, Gate A UI, P1 eligibility, P3/P4 and shared integration remain separately gated.
+
+## Shared Android/backend integration addendum — 2026-09-18
+
+- The project owner approved shared integration addendum revision 2 in
+  `plan/UI_MOBILE_LIGHTNING_ANDROID_DEMO_PLAN_REV2_DETAILED.md` and recorded the exact approval/hash
+  in `approvals/TASK_APPROVAL.md`.
+- Approved demo target: Android Emulator, image-only non-child synthetic/test image sent through the
+  backend to Lightning Vision, Gate A/P1/Gate B, PixiJS original-art canvas, P4 cache/fallback,
+  handoff, session gallery and feedback. No audio capture/upload/ASR and no video.
+- The current run remains unauthenticated and in-memory. Implementation must use application ports
+  with in-memory/temp adapters so future identity and durable-store adapters can be added without
+  changing domain contracts. Later sign-in/save is not implemented by this approval.
+- Future boundary follows ADR-0005: Firebase Authentication only, backend token verification through
+  provider-neutral `IdentityTokenVerifier`/`VerifiedPrincipal`, PostgreSQL/S3-compatible backend-owned
+  persistence; Firebase Storage/Firestore/Realtime Database remain forbidden.
+- ADR-0005 now has a narrow FEAT-018 owner-approved image-only development exception. The owner
+  reports ~25 existing credits and authorizes up to 25 total, no top-up; the owner will manually
+  run live requests and Codex must never do so. No automatic provider retry; only admitted synthetic/
+  non-child images; result must satisfy the FEAT-003 V2 boundary and Gate A remains mandatory.
+  FEAT-016 state order, retake invalidation,
+  P1 completed-activity context, Gate-A/B wire schemas and version adapters have been reconciled and
+  verified in the M1 evidence record. The versioned session API and Expo Android workflow are now
+  connected; offline fake-provider verification is complete. The app's user-triggered live lane is
+  enabled under the ADR-0005 25-credit ceiling, but the owner still needs to build/run the emulator
+  and personally initiate any provider request.
+- Asset review is approved as work, not as a blanket visual approval: FEAT-028's 144 frames remain
+  `REVIEW_PENDING` until each frame and its rights are reviewed and the owner records decisions.
+- The Shared Integration Addendum Rev 2 plan hash was refreshed after narrowing the media lane to
+  image-only; the corrected hash and timestamp are in `approvals/TASK_APPROVAL.md`.

@@ -17,6 +17,12 @@ This document is the single contract source for the four person plans. A person 
 
 | Contract | Version | Owner | Consumers | Required invariants |
 |---|---|---|---|---|
+| `MobileWorkflowCommandV1` / `MobileWorkflowResultV1` | 1.0 | shared/mobile | backend/mobile | request/idempotency/session/version/actor envelope; every result has status, typed provenance and typed failure on FAILED; `request_id` maps to FEAT-016 `command_id` once |
+| `WorkflowResultProvenanceV1` / `WorkflowFailureV1` | 1.0 | shared/mobile | backend/mobile | transport-only provenance/failure wrapper; safe message, stable code, retryability; never leaks raw provider detail |
+| `SessionSnapshotV1` | 1.0 | shared/mobile | backend/mobile | state/version, aware created/updated/expiry timestamps, optional typed job, `durable=false`; no owner identity or media bytes |
+| `WorkflowJobV1` | 1.0 | backend | backend/mobile | process-local poll state; terminal result/failure is typed; no provider body or media payload |
+| `SessionGalleryV1` / `SessionJourneyEntryV1` | 1.0 | shared/mobile | backend/mobile | one-session projection only; metadata/opaque refs, never media bytes, owner identity, or durable-history claims |
+| `FeedbackV1` | 1.0 | shared/mobile | backend/mobile | exact activity/objective/template/spec identity; bounded scores and controlled tags; no free-text or child profile fields |
 | `SourceMediaReferenceV1` | 1.0 | P2 | P1/P2/P3/P4/backend | `artifact_ref`, `sha256` only when `AVAILABLE`, `source_status`, immutable original; working copy never replaces source |
 | `MediaValidationResultV1` | 1.0 | P2 | backend/mobile | `PASS` or `RECAPTURE`, ordered stable reasons, image/audio signals, validator policy version |
 | `ModelProvenanceV1` | 1.0 | P2 | all AI evidence | provider, exact model, adapter version, config version; no token/URL |
@@ -24,17 +30,21 @@ This document is the single contract source for the four person plans. A person 
 | `VisionRequestV1` / `VisionUnderstandingResultV1` | 1.0 | P2 | legacy consumers | retained for compatibility; not the FEAT-018 P2-T2 integration contract |
 | `VisionUnderstandingRequestV2` / `VisionUnderstandingResultV2` | 2.0 | FEAT-003 | FEAT-018 P2-T2 consume-only adapter | FEAT-003-owned typed V2 union; FEAT-018 may consume through the approved adapter boundary and must not modify the V2 schema/runtime |
 | `RawUnderstandingResultV1` | 1.0 | P2 | Gate A/P1 | typed observation groups, confidence `0..1`, required source SHA-256, typed failure, uncertainty/conflicts and `gate_a_required=true`; observations never equal eligibility |
-| `IntegrationGateDecisionV1` | 1.0 | shared | mobile/session | gate A/B, status, actor, expected session version; Gate B includes exact activity/objective IDs and versions |
+| `GateAConfirmationV1` | 1.0 | shared | backend/mobile/session | Gate-A-only confirmation: session/version, adult actor, meaning version, confirmed claim IDs and optional correction; cannot approve eligibility/safety |
+| `IntegrationGateDecisionV1` | 1.0 | shared | mobile/session | Gate-B-only decision: status, session/version, actor at transport boundary, exact activity/objective/template/spec IDs and versions |
 | `P1ContextV1` | 1.0 | P1 | P1 filter/backend | explicit age, readiness, completed activities, materials, supervision, policy flags, candidate status |
 | `P1FilterResultV1` | 1.0 | P1 | Gate B | status, exact activity/objective IDs and versions, ordered reason codes |
-| `PixiArtAssetManifestV1` | 1.0 | P3 | renderer/mobile | asset/source IDs and versions, source hash/path reference, extraction status, provenance |
-| `ArtAnimationPlanV1` | 1.0 | P3 | renderer/bridge | plan/source asset IDs and versions, bounded motions, target IDs, duration/bounds |
-| `RendererBootstrap` + event protocol | 1 | P3 | mobile/WebView | protocol version, renderer instance ID, validated lifecycle events, bounded payloads |
+| `PixiArtAssetManifestV1` | 1.0 | P3 | renderer/mobile | immutable source hash + exactly one original asset; supplemental assets require per-asset visual approval and rights clearance; no paths or media bytes |
+| `ArtAnimationPlanV1` | 1.0 / renderer protocol 1 | P3/shared | renderer/bridge | ExperienceSpec + source identity wrapper around the unchanged camelCase renderer payload; bounded motions, known targets, source hash continuity, video disabled |
+| `RendererBootstrapV1` / `RendererEventV1` | renderer protocol 1 | P3 | mobile/WebView | protocol version, renderer instance ID, discriminated lifecycle events; strict schema and 4096-byte bridge message cap |
 | `LearningMediaRequestV1` / `LearningMediaResultV1` | 1.0 | P4 | P3/mobile | exact activity/objective/renderer versions, cache status, generation-called flag, provenance |
 | `ActivityHandoffV1` | 1.0 | P1/shared | mobile/offscreen activity | exact activity/objective IDs and versions, source session version, ready status |
-| `FeedbackV1` | 1.0 | shared | mobile/evidence | actor ref, exact activity/objective identity, recorded status; no child diagnosis/personality |
 
 ## Field-level rules
+
+The 2026-09-18 approved Shared Integration Addendum Rev 2 resolves the Gate-A/Gate-B registry ambiguity: `GateAConfirmationV1` is the versioned meaning-confirmation command; `IntegrationGateDecisionV1` remains the Gate-B result/decision and its implementation's `gate` is `"B"`. The framework-free FEAT-016 `GateAConfirmation`/`GateBDecision` types are internal adapters and must preserve those exact versioned fields. The MobileWorkflow envelopes are transport-only and do not replace domain contracts. `MobileWorkflowCommandV1.request_id` is translated once to the reducer's `command_id`; the idempotency key remains at the HTTP/application boundary.
+
+Required state order for the shared live-image slice is: valid P1 filter → `CANDIDATES_READY`; immutable ExperienceSpec + fit validation → `GATE_B_PENDING`; Gate B approval of the exact spec → `EXPERIENCE_READY`. FEAT-016's fixture reducer and transition tests were reconciled on 2026-09-18; 13 focused tests pass, including rejection of the previous order, retake invalidation, explicit `completed_activity_ids`, and exact Gate-B activity/objective/template/spec identity. P1 context validation includes every field in `P1ContextV1.missing_fields()`, especially explicit `completed_activity_ids`.
 
 ### Source and validation
 
@@ -58,31 +68,39 @@ P1 context is adult-provided. The runtime must not infer `age_months`, readiness
 
 ### Renderer and media
 
-`PixiArtAssetManifestV1` references the immutable source and optional derived masks/regions. `ArtAnimationPlanV1` can reveal/highlight/transform bounded source regions but cannot replace the original with generated art. `LearningMediaResultV1` must preserve activity/objective/renderer identity across cache hit, miss, timeout, and fallback.
+`PixiArtAssetManifestV1` references the immutable source and optional derived masks/regions. Exactly one source-original item is mandatory; every supplemental item is fail-closed unless individually visually approved and rights-cleared. `ArtAnimationPlanV1` wraps the unchanged protocol-1 renderer payload and binds it to the session's exact ExperienceSpec and source hash. The source drawing remains present and unmodified. Renderer messages are strict, size-bounded, and allowlisted; no video or generated asset can be invoked. `LearningMediaResultV1` must preserve activity/objective/renderer identity across cache hit, miss, timeout, and fallback.
 
 ## End-to-end state sequence
 
 ```mermaid
 sequenceDiagram
   participant M as Mobile
+  participant S as Session API
   participant V as Validator
   participant A as AI backend
   participant G as Gate A
   participant P as P1 catalog
-  participant R as Renderer
+  participant X as Experience compiler
   participant C as P4 cache
-  M->>V: source ref + session/version
+  participant R as Pixi renderer
+  M->>S: CREATE_SESSION (UUIDv4, version 0, idempotency)
+  S-->>M: session snapshot (version 0, ephemeral)
+  M->>V: non-child image + session/version
   V-->>M: MediaValidationResultV1
-  M->>A: Vision/optional ASR request
+  V->>A: validated image bytes (only after provider gate)
   A-->>M: RawUnderstandingResultV1 + proposal
   M->>G: adult confirmation/correction
-  G-->>P: confirmed meaning + P1ContextV1
+  G->>P: confirmed meaning + adult P1ContextV1
   P-->>M: P1FilterResultV1
-  M->>M: Gate B exact activity/objective versions
-  M->>C: LearningMediaRequestV1
-  C-->>R: LearningMediaResultV1 + ArtAnimationPlanV1
+  P->>X: exact candidate identity
+  X-->>M: immutable ExperienceSpecV1 + fit result
+  M->>G: Gate B exact activity/objective/template/spec refs
+  G->>C: LearningMediaRequestV1
+  C-->>M: LearningMediaResultV1 (same identity; fallback allowed)
+  M->>R: approved-only Pixi manifest + source-locked plan
   R-->>M: validated renderer events
-  M-->>M: ActivityHandoffV1 + FeedbackV1
+  M->>S: ActivityHandoffV1 + FeedbackV1
+  S-->>M: session-only gallery projection
 ```
 
 ## Cross-person handoff table
@@ -96,11 +114,13 @@ sequenceDiagram
 | P3 | Mobile | `PixiArtAssetManifestV1` + `ArtAnimationPlanV1` | renderer events | invalid plan, source hash mismatch, bridge error |
 | Mobile | shared | state + identity | `ActivityHandoffV1`, `FeedbackV1` | any gate/session invariant failure |
 
-## Known reconciliation items before implementation
+## Reconciliation status
 
 1. Resolved 2026-09-12: FEAT-018 P2-T2 consumes FEAT-003's approved `VisionUnderstandingResultV2` through the cross-feature adapter boundary. FEAT-018 owns a separate `RawUnderstandingResultV1` semantic handoff and must not alias FEAT-017's flat V1 or modify FEAT-003 V2. The FEAT-003 cross-feature addendum and FEAT-018 P2-T2 task addendum are recorded in the canonical approval files.
-2. The fixture currently pairs `ACT-0004` with `OBJ_MOVEMENT_COORDINATION`; the reviewed golden catalog pairs `ACT-0004` with `OBJ_OBJECT_PERMANENCE` primary and `OBJ_RECEPTIVE_LANGUAGE` secondary. P1 must correct this before wiring the pilot.
-3. `packages/art-renderer` currently exposes only protocol types. P3 must add the runtime without changing the protocol version silently.
+2. Resolved 2026-09-18: the shared FEAT-016 and Android fixture identity now pairs `ACT-0004` v2 with primary `OBJ_OBJECT_PERMANENCE` v1, consistent with the reviewed catalog; no movement-coordination identity is allowed for this activity.
+3. `packages/art-renderer` includes a standalone browser runtime/POC. Canonical backend schemas for the approved-only manifest, source-locked plan wrapper and strict bounded protocol-v1 events are tested against the TypeScript mirror. Expo WebView/native lifecycle integration remains for M6.
+
+`SessionSnapshotV1` freezes state/version, aware expiry and optional typed last-job projection. The TTL duration is a runtime setting; session/job/artifact state remains process-local and expires without durable saving. Application interfaces and in-memory adapters provide the future storage seam without an `owner_ref` field.
 
 ## Contract-freeze evidence
 
@@ -110,9 +130,9 @@ sequenceDiagram
 - Positive, malformed, stale, missing-context, fallback, and redaction fixtures.
 - One review record for every contract version change.
 
-## Revision-2 proposed engine contracts — not yet frozen
+## Revision-2 engine contracts — approved and frozen
 
-The ExperienceSpec engine adds a shared semantic handoff so video, original-art animation and the off-screen activity cannot choose independent concepts. These names and fields are proposals until the owner approves FEAT-018 plan revision 2; no implementation may treat them as active contracts before that approval.
+The approved FEAT-018 revision-2 engine adds a shared semantic handoff so video metadata, original-art animation and the off-screen activity cannot choose independent concepts. The contracts below are active at version 1.0; the video consumer remains metadata-only for the current demo.
 
 | Proposed contract | Owner | Purpose |
 |---|---|---|
@@ -133,5 +153,8 @@ Revision-2 invariants:
 - gallery is a session-journey read model, not an independent asset gallery.
 
 The V1/V2 vision reconciliation was resolved by owner decision on 2026-09-12: P2-T2 consumes
-FEAT-003 V2 and maps it into FEAT-018-owned `RawUnderstandingResultV1`. A breaking contract change
-still requires a new version and migration fixture.
+FEAT-003 V2 and maps it into FEAT-018-owned `RawUnderstandingResultV1`. P1 integer versions are
+adapted to P4's canonical `vN` strings and back through a strict lossless adapter; zero,
+leading-zero, malformed, and non-integer values are rejected. Session/job/artifact repository
+interfaces have process-local adapters only; storage remains non-durable and DTOs have no
+`owner_ref`. A breaking contract change still requires a new version and migration fixture.
