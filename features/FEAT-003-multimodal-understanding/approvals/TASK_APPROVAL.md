@@ -1110,3 +1110,133 @@ IMPLEMENTATION: NOT APPROVED
 FIXTURE/MEDIA/EVIDENCE: NOT AUTHORIZED
 RUNTIME/LIVE: NOT APPROVED
 ```
+
+## P2-T5 G7 exact evidence-authorization decision - 2026-09-21
+
+Owner approval is recorded for the exact draft at:
+
+`tmp/p2-t5-g7-evidence-authorization-draft-20260921-01/DRAFT.md`
+
+The approved draft raw SHA-256 is:
+
+`eb163b86954d0355189375480145828e8ab9372f89eba0f7f196082427caca10`
+
+This record authorizes only the separately governed P2-T5 G7 authorization-record
+mutation and, after this record exists, creation of the two exact evidence files
+listed below. It does not authorize runtime execution, live provider/model
+execution, G8, G9, push, PR, or unrelated changes. The authorization record
+commit must contain only this file; it must not contain either evidence file.
+
+### Traceable evidence assembler identity
+
+| Field | Value |
+|---|---|
+| Model/session | `Codex / GPT-5` (system-reported) |
+| Stable session ID | `01a0c26b-d0e5-7861-9da6-d495e8667e61` (`CODEX_SESSION_ID` / `CODEX_THREAD_ID`) |
+| Git identity | `AnhKhoaa157 <khoaphanconghon62@gmail.com>` |
+| Authorization-record UTC timestamp | `2026-09-21T06:13:46.5812190Z` |
+| Role | `Codex agent; G7 evidence author/assembler` |
+
+If the executor creating the evidence cannot produce this traceable identity,
+the exact required stop is
+`G7: BLOCKED_PENDING_TRACEABLE_EVIDENCE_ASSEMBLER_IDENTITY`; no approval,
+evidence, staging, commit, or push may proceed.
+
+### Exact run and evidence outputs
+
+| Field | Exact value |
+|---|---|
+| Owner run ID | `p2-t5-g7-evidence-20260921-01` |
+| JSON output | `features/FEAT-003-multimodal-understanding/evidence/P2_T5_G7_EVIDENCE_CREATION_p2-t5-g7-evidence-20260921-01.json` |
+| Markdown output | `features/FEAT-003-multimodal-understanding/evidence/P2_T5_G7_EVIDENCE_CREATION_p2-t5-g7-evidence-20260921-01.md` |
+
+Exactly these two evidence files may be created. No raw media, transcripts,
+prompts, provider payloads, credentials, tokens, endpoints, host paths,
+usernames, hostnames, environment values, raw exceptions or stack traces,
+unapproved labels, child data, or live-execution claims may be included.
+The Markdown output is sanitized only and must contain closed-contract values.
+
+The JSON output must use identity `P2T5.P2T5EvaluationReportV1@1.0` and
+canonicalization `P2T5-REPORT-CANONICAL-JSON-V1`. It must bind the stable run
+ID, G5 implementation, G6 checkpoint, fixture package, T4 policy, environment
+identity, deterministic core, typed findings/statuses, and privacy redactions.
+It must not contain a self-hash or self-blob binding. The report is fixture-only
+and deterministic; no runtime, provider, model, GPU, network, or live execution
+is authorized.
+
+### G5 and G6 checkpoint bindings
+
+| Binding | Value |
+|---|---|
+| G5 implementation commit | `323ebf9d78fff10e204875770672b21e4b58dec9` |
+| G5 parent | `9d6340672c5d1bbdd7a95004f5fad811718ec4a0` |
+| G5 tree | `09f9cea8addd6922916514dde96b1a4c583ef24f` |
+| G5 ordered 54-path digest | `dabf603ea2ccd6296a1f547a6b250b5f918f729048de1275d02ec9b7e03bbcf1` |
+| G6 report | `tmp/p2-t5-g6-checkpoint-verification-20260920/REPORT.md` |
+| G6 report bytes | `19412` |
+| G6 report raw SHA-256 | `c7d1057daa2ee7175675f5e6513dbca0520710ab3a1f73b5c7e829687089e410` |
+| G6 status | `PASS_WITH_ACCEPTED_FINDINGS` |
+
+G6 accepted findings are bound as recorded in its report: four inherited or
+out-of-scope pytest findings (`FEAT-018-TIMING-001` and three semantic catalog
+findings), three inherited mypy findings, three inherited Ruff findings, the
+owner-accepted Policy B architecture finding, two accepted blank-at-EOF
+warnings in `cases`/`expected`, and the report limitations.
+
+### Fixture, T4, and environment bindings
+
+| Artifact | Bytes | Raw SHA-256 |
+|---|---:|---|
+| `fixtures/p2-t5-evaluation-v1/manifest.json` | 17336 | `17f2a1af1f3644b9178283d8097ec5b73d11e54ae4e76da22be23fb66e07d21d` |
+| `fixtures/p2-t5-evaluation-v1/cases.jsonl` | 13527 | `f715c8b65697b747751720726c10f1fcf744d7ce4cfe4fd760565c39c519fcbb` |
+| `fixtures/p2-t5-evaluation-v1/expected.jsonl` | 4838 | `23b7668f9ca30814e325cf1ba4f5f1ccae03bd37b52b3e49198e045fb5235b83` |
+| `fixtures/p2-t5-evaluation-v1/matching.json` | 1053 | `43fa4f06e456cf1e1b7a2d79c7ad515d4caf89c556a590790f5ab0b6879f3a49` |
+
+The fixture package is `p2-t5-evaluation-v1` version `1.0`, with 20 entries
+(12 development and 8 held-out) and 40 synthetic-only media references.
+
+| T4 binding | Value |
+|---|---|
+| Policy identity | `P2T4FusionPolicyConfigV1@1.0` |
+| Policy SHA-256 | `4b378f69a33b86aeefc7443a23ac819e46b986132525cdd8a55d112dfb96415c` |
+| Upstream contracts | `P2.AsrResultV1@1.0`, `P2.VisionUnderstandingResultV1@1.0` |
+| Deterministic profile | `FAKE_DETERMINISTIC_V1` |
+| Fused contract | `P2T4.P2T4FusedResultV1@1.0` |
+| Rejection contract | `P2T4.P2T4FusionInputRejectionV2@2.0` |
+
+| Environment binding | Value |
+|---|---|
+| Python executable | `backend/.venv/Scripts/python.exe` |
+| Python | `CPython 3.13.5` |
+| Lockfile state | `NO_PYTHON_LOCKFILE` |
+| Package identity hash | `217f418ce003e9279bdcbe863437b90d0219f43264c3dafbcd7f6d459cefed48` |
+| P2-T5 plan revision | `0.15` |
+| P2-T5 plan raw SHA-256 | `2a102acd689c0b53854562694692ce3a139ecdbbdee88f7c9fce7c136a5eea20` |
+
+### Authorized topology and status
+
+```text
+G5 implementation checkpoint
+  -> G7 authorization record (this record; direct parent G5)
+  -> G7 evidence creation (exactly two files)
+  -> G7 evidence checkpoint (direct parent authorization record)
+  -> G8 independent review (separate approval required)
+  -> G8 checkpoint
+  -> G9 (separate approval required)
+```
+
+```text
+P2-T5: G7 AUTHORIZATION RECORDED
+G5: CHECKPOINT BOUND
+G6: PASS_WITH_ACCEPTED_FINDINGS
+G7 EVIDENCE: AUTHORIZED, NOT YET CREATED
+G8: NOT STARTED
+G9: NOT STARTED
+RUNTIME/INTEGRATION/LIVE: NOT APPROVED
+```
+
+After this authorization commit, the executor may create exactly the two named
+evidence files. The evidence checkpoint must verify exact file count, raw
+SHA-256, Git blob IDs, unchanged bytes, and absence of extra paths; it must be
+a direct child of this authorization commit. No amend, split, push, or PR is
+authorized.
