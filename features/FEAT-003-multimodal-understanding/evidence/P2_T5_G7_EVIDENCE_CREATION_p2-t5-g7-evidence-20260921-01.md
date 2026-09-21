@@ -9,7 +9,6 @@
 | Evidence assembler | Codex agent; G7 evidence author/assembler |
 | Model/session | Codex / GPT-5 (system-reported) |
 | Stable session ID | 01a0c26b-d0e5-7861-9da6-d495e8667e61 |
-| Git identity | AnhKhoaa157 <khoaphanconghon62@gmail.com> |
 | Evidence execution UTC | 2026-09-21T06:43:54.327722Z |
 | G7 artifact state | EVIDENCE_CREATED; CHECKPOINT_BINDING_PENDING |
 | G8 | NOT STARTED |

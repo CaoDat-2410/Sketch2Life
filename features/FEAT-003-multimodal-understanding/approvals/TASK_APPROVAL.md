@@ -1133,7 +1133,6 @@ commit must contain only this file; it must not contain either evidence file.
 |---|---|
 | Model/session | `Codex / GPT-5` (system-reported) |
 | Stable session ID | `01a0c26b-d0e5-7861-9da6-d495e8667e61` (`CODEX_SESSION_ID` / `CODEX_THREAD_ID`) |
-| Git identity | `AnhKhoaa157 <khoaphanconghon62@gmail.com>` |
 | Authorization-record UTC timestamp | `2026-09-21T06:13:46.5812190Z` |
 | Role | `Codex agent; G7 evidence author/assembler` |
 
@@ -1187,10 +1186,10 @@ warnings in `cases`/`expected`, and the report limitations.
 
 | Artifact | Bytes | Raw SHA-256 |
 |---|---:|---|
-| `fixtures/p2-t5-evaluation-v1/manifest.json` | 17336 | `17f2a1af1f3644b9178283d8097ec5b73d11e54ae4e76da22be23fb66e07d21d` |
-| `fixtures/p2-t5-evaluation-v1/cases.jsonl` | 13527 | `f715c8b65697b747751720726c10f1fcf744d7ce4cfe4fd760565c39c519fcbb` |
-| `fixtures/p2-t5-evaluation-v1/expected.jsonl` | 4838 | `23b7668f9ca30814e325cf1ba4f5f1ccae03bd37b52b3e49198e045fb5235b83` |
-| `fixtures/p2-t5-evaluation-v1/matching.json` | 1053 | `43fa4f06e456cf1e1b7a2d79c7ad515d4caf89c556a590790f5ab0b6879f3a49` |
+| `fixtures/p2-t5-evaluation-v1/manifest-v1.json` | 17336 | `17f2a1af1f3644b9178283d8097ec5b73d11e54ae4e76da22be23fb66e07d21d` |
+| `fixtures/p2-t5-evaluation-v1/cases-v1.json` | 13527 | `f715c8b65697b747751720726c10f1fcf744d7ce4cfe4fd760565c39c519fcbb` |
+| `fixtures/p2-t5-evaluation-v1/expected-v1.json` | 4838 | `23b7668f9ca30814e325cf1ba4f5f1ccae03bd37b52b3e49198e045fb5235b83` |
+| `fixtures/p2-t5-evaluation-v1/matching-rule-v1.json` | 1053 | `43fa4f06e456cf1e1b7a2d79c7ad515d4caf89c556a590790f5ab0b6879f3a49` |
 
 The fixture package is `p2-t5-evaluation-v1` version `1.0`, with 20 entries
 (12 development and 8 held-out) and 40 synthetic-only media references.
