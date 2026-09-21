@@ -1,4 +1,4 @@
-import React, {useReducer, useState} from 'react';
+import React, {useReducer} from 'react';
 import {
   Pressable,
   SafeAreaView,
@@ -14,13 +14,8 @@ import {
   reduceFixtureFlow,
   type FixtureFlowStep,
 } from './fixtureFlow';
-import {requestLiveUnderstanding} from '../../infrastructure/api/liveUnderstanding';
 
 type StepDefinition = Readonly<{key: FixtureFlowStep; label: string}>;
-
-const defaultBackendBaseUrl =
-  (globalThis as typeof globalThis & {__SKETCH2LIFE_BACKEND_URL__?: string})
-    .__SKETCH2LIFE_BACKEND_URL__ ?? 'http://10.0.2.2:8000';
 
 const steps: readonly StepDefinition[] = [
   {key: 'capture', label: 'Capture'},
@@ -37,26 +32,7 @@ export function FixtureFlowScreen(): React.JSX.Element {
     undefined,
     createInitialFixtureFlow,
   );
-  const [liveError, setLiveError] = useState<string | null>(null);
   const currentStepIndex = steps.findIndex((step) => step.key === state.step);
-
-  async function handleLiveAi(): Promise<void> {
-    setLiveError(null);
-    dispatch({type: 'START_LIVE_AI'});
-    try {
-      const result = await requestLiveUnderstanding({
-        baseUrl: defaultBackendBaseUrl,
-        sessionId: FIXTURE_CONTRACTS.sessionId,
-        expectedSessionVersion: state.sessionVersion,
-        fixtureId: 'integration-fixture-v1',
-      });
-      dispatch({type: 'LIVE_AI_SUCCEEDED', label: result.proposal_label});
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Live backend request failed';
-      setLiveError(message);
-      dispatch({type: 'LIVE_AI_FAILED', message});
-    }
-  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -112,9 +88,8 @@ export function FixtureFlowScreen(): React.JSX.Element {
         {state.step === 'capture' && (
           <CaptureStep
             aiStatus={state.aiStatus}
-            error={liveError ?? state.aiError}
+            error={state.aiError}
             onRunAi={() => dispatch({type: 'RUN_FIXTURE_AI'})}
-            onRunLiveAi={handleLiveAi}
           />
         )}
         {state.step === 'gate-a' && (
@@ -159,30 +134,23 @@ function CaptureStep({
   aiStatus,
   error,
   onRunAi,
-  onRunLiveAi,
 }: Readonly<{
   aiStatus: 'idle' | 'loading' | 'ready' | 'error';
   error: string | null;
   onRunAi: () => void;
-  onRunLiveAi: () => void;
 }>): React.JSX.Element {
-  const liveLoading = aiStatus === 'loading';
   return (
     <View style={styles.card}>
       <Text style={styles.stepKicker}>STEP 1 · CAPTURE</Text>
-      <Text style={styles.cardTitle}>Start with the child’s original idea</Text>
+      <Text style={styles.cardTitle}>Use a synthetic test drawing</Text>
       <Text style={styles.bodyText}>
-        The source drawing and narration stay immutable while the AI proposes an
-        interpretation for an adult to review.
+        This image-only fixture contains no child media or voice. The backend
+        proposal stays reviewable before the workflow continues.
       </Text>
       <DrawingPreview />
       <View style={styles.metaRow}>
-        <Text style={styles.metaLabel}>DRAWING</Text>
+        <Text style={styles.metaLabel}>TEST IMAGE</Text>
         <Text style={styles.metaValue}>{FIXTURE_CONTRACTS.sourceArtifactId}</Text>
-      </View>
-      <View style={styles.metaRow}>
-        <Text style={styles.metaLabel}>NARRATION</Text>
-        <Text style={styles.metaValue}>fixture-narration.wav</Text>
       </View>
       {error !== null && (
         <View style={styles.errorNotice}>
@@ -191,14 +159,9 @@ function CaptureStep({
         </View>
       )}
       <PrimaryButton testID="fixture-run-ai" label="Ask the fixture AI" onPress={onRunAi} />
-      <SecondaryButton
-        testID="live-run-ai"
-        label={liveLoading ? 'Waiting for live backend…' : 'Try live backend (synthetic fixture)'}
-        onPress={onRunLiveAi}
-      />
       <Text style={styles.helperText}>
-        The live button calls the Sketch2Life backend only. The backend owns the
-        provider credential and still stops at Gate A.
+        This fixture-only screen makes no provider request. The approved image-only
+        demo will be wired through the session API after its provider gate is cleared.
       </Text>
     </View>
   );
@@ -219,7 +182,7 @@ function GateAStep({
       <Text style={styles.stepKicker}>STEP 2 · GATE A</Text>
       <Text style={styles.cardTitle}>Does this look like {label}?</Text>
       <Text style={styles.bodyText}>
-        P2 fused narration and vision into a proposal. The adult confirms meaning
+        P2 vision produced a proposal with uncertainty. The adult confirms meaning
         before P1 receives it.
       </Text>
       <View style={styles.aiResult}>
@@ -228,7 +191,7 @@ function GateAStep({
           <Text style={styles.aiLabel}>{mode === 'live-backend' ? 'LIVE PROPOSAL' : 'FIXTURE PROPOSAL'}</Text>
           <Text style={styles.aiValue}>{label}</Text>
           <Text style={styles.aiConfidence}>
-            {mode === 'live-backend' ? 'Validated by backend contract · Gate A required' : '94% fixture agreement · ASR + vision'}
+            {mode === 'live-backend' ? 'Validated by backend contract · Gate A required' : '94% fixture vision result · Gate A required'}
           </Text>
         </View>
       </View>
@@ -251,7 +214,7 @@ function GateBStep({onApprove}: Readonly<{onApprove: () => void}>): React.JSX.El
       <View style={styles.activityCard}>
         <View style={styles.activityBadge}><Text style={styles.activityBadgeText}>P1</Text></View>
         <View style={styles.aiCopy}>
-          <Text style={styles.activityTitle}>Movement coordination</Text>
+          <Text style={styles.activityTitle}>Find the hidden object</Text>
           <Text style={styles.activityMeta}>
             {FIXTURE_CONTRACTS.activityId} v{FIXTURE_CONTRACTS.activityVersion}
           </Text>
@@ -278,7 +241,7 @@ function ExperienceStep({mediaStatus, onPlay, onFallback}: ExperienceStepProps):
   return (
     <View style={styles.card}>
       <Text style={styles.stepKicker}>STEP 4 · EXPERIENCE</Text>
-      <Text style={styles.cardTitle}>Watch the original idea come alive</Text>
+      <Text style={styles.cardTitle}>Watch the original drawing come alive</Text>
       <Text style={styles.bodyText}>
         The Pixi bridge keeps the whole drawing intact and plays a bounded reveal.
       </Text>
@@ -310,7 +273,7 @@ function HandoffStep({onStart}: Readonly<{onStart: () => void}>): React.JSX.Elem
       </Text>
       <View style={styles.handoffCard}>
         <Text style={styles.handoffIcon}>◎</Text>
-        <Text style={styles.activityTitle}>Movement coordination</Text>
+        <Text style={styles.activityTitle}>Object permanence</Text>
         <Text style={styles.activityMeta}>Place two safe objects and move like a butterfly.</Text>
       </View>
       <PrimaryButton testID="fixture-start-activity" label="Start activity" onPress={onStart} />
@@ -446,6 +409,3 @@ const styles = StyleSheet.create({
   errorTitle: {color: '#9B4037', fontSize: 13, fontWeight: '800'},
   errorText: {color: '#875750', fontSize: 12, lineHeight: 17, marginTop: 4},
 });
-
-
-

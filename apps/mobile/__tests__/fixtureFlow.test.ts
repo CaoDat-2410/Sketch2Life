@@ -21,7 +21,7 @@ describe('fixture UI flow state machine', () => {
     expect(state.step).toBe('complete');
     expect(state.feedbackSubmitted).toBe(true);
     expect(FIXTURE_CONTRACTS.activityId).toBe('ACT-0004');
-    expect(FIXTURE_CONTRACTS.objectiveId).toBe('OBJ_MOVEMENT_COORDINATION');
+    expect(FIXTURE_CONTRACTS.objectiveId).toBe('OBJ_OBJECT_PERMANENCE');
     expect(state.sessionVersion).toBe(6);
   });
 

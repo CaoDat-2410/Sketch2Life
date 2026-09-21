@@ -38,11 +38,11 @@ export type FixtureFlowAction =
 
 export const FIXTURE_CONTRACTS = Object.freeze({
   sessionId: 'session-fixture-001',
-  sourceArtifactId: 'child-drawing-001-whole',
+  sourceArtifactId: 'synthetic-drawing-fixture-001',
   sourceArtifactVersion: 1,
   activityId: 'ACT-0004',
   activityVersion: 2,
-  objectiveId: 'OBJ_MOVEMENT_COORDINATION',
+  objectiveId: 'OBJ_OBJECT_PERMANENCE',
   objectiveVersion: 1,
   understandingLabel: 'butterfly',
   understandingConfidence: 0.94,
