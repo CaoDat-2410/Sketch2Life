@@ -145,6 +145,40 @@ class P1ContextV1(P1ContractBase):
         return tuple(field for field in required if getattr(self, field) is None)
 
 
+class P1ContextOptionV1(P1ContractBase):
+    """Adult-readable eligibility inputs for one matching curated fixture."""
+
+    contract_name: Literal["P1ContextOptionV1"] = "P1ContextOptionV1"
+    contract_version: Literal["1.0"] = "1.0"
+    template_ref: VersionedRefV1
+    activity_ref: VersionedRefV1
+    age_months_min: int = Field(ge=0, le=155)
+    age_months_max: int = Field(ge=0, le=155)
+    readiness_ids: tuple[str, ...] = ()
+    prerequisite_activity_ids: tuple[str, ...] = ()
+    material_option_ids: tuple[str, ...]
+    minimum_supervision: Literal["NONE", "NEARBY", "DIRECT"]
+    policy_constraints: tuple[str, ...] = ()
+
+    @model_validator(mode="after")
+    def validate_age_range(self) -> P1ContextOptionV1:
+        if self.age_months_max < self.age_months_min:
+            raise ValueError("context option age max must be >= min")
+        return self
+
+
+class P1ContextOptionsV1(P1ContractBase):
+    """Read-only, bounded options derived from Gate A and adult-entered age."""
+
+    contract_name: Literal["P1ContextOptionsV1"] = "P1ContextOptionsV1"
+    contract_version: Literal["1.0"] = "1.0"
+    session_id: str = Field(min_length=1, max_length=120)
+    expected_session_version: int = Field(ge=1)
+    age_months: int = Field(ge=0, le=155)
+    confirmed_anchor_label: str = Field(min_length=1, max_length=200)
+    options: tuple[P1ContextOptionV1, ...] = Field(max_length=100)
+
+
 class LearningFocusV1(P1ContractBase):
     contract_name: Literal["LearningFocusV1"] = "LearningFocusV1"
     contract_version: Literal["1.0"] = "1.0"

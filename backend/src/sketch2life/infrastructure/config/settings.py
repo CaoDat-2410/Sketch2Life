@@ -6,7 +6,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal, Self
 
-from pydantic import model_validator
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     api_host: str = "0.0.0.0"
     api_port: int = 8000
     log_level: str = "INFO"
+    session_idle_ttl_seconds: int = Field(default=1800, ge=60, le=86_400)
 
     auth_provider: Literal["development", "firebase"] = "development"
     firebase_project_id: str = ""
@@ -30,6 +31,7 @@ class Settings(BaseSettings):
     lightning_model_profile: str = "live-p2-understanding-v1"
     lightning_asr_path: str = "/v1/asr"
     lightning_vision_path: str = "/v1/vision"
+    lightning_vision_v2_path: str = "/v2/vision"
     live_fixture_root: Path | None = None
     runpod_endpoint_id: str = ""
     runpod_api_key_file: Path | None = None

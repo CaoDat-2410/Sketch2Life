@@ -24,6 +24,7 @@ from sketch2life.contracts.schemas.p1_experience import (
     IntegrationGateDecisionV1,
     LearningFocusV1,
     MediaContinuityPlanV1,
+    P1ContextOptionV1,
     P1ContextV1,
     P1FilterResultV1,
     SemanticAnchorSetV1,
@@ -88,9 +89,7 @@ class P1ExperienceCompiler:
             }
         )
         if missing_objective_titles:
-            raise ValueError(
-                "OBJECTIVE_TITLE_MISSING:" + ",".join(missing_objective_titles)
-            )
+            raise ValueError("OBJECTIVE_TITLE_MISSING:" + ",".join(missing_objective_titles))
         self._by_id = {template.template_id: template for template in self._templates}
         self._policy_version = policy_version
 
@@ -182,6 +181,40 @@ class P1ExperienceCompiler:
             template_ref=VersionedRefV1(id=selected.template_id, version=selected.template_version),
             reason_codes=(f"ANCHOR_MATCH_SCORE:{best_score}",),
             candidate_refs=tuple(item[1].activity_ref for item in allowed),
+        )
+
+    def context_options(
+        self, anchor_set: SemanticAnchorSetV1, age_months: int
+    ) -> tuple[P1ContextOptionV1, ...]:
+        """Return only catalog-derived context values matching the confirmed anchor and age."""
+        matches = [
+            template
+            for template in self._templates
+            if template.age_months_min <= age_months <= template.age_months_max
+            and self._anchor_match_score(anchor_set, template) > 0
+        ]
+        matches.sort(
+            key=lambda template: (
+                -self._anchor_match_score(anchor_set, template),
+                template.template_id,
+            )
+        )
+        return tuple(
+            P1ContextOptionV1(
+                template_ref=VersionedRefV1(
+                    id=template.template_id,
+                    version=template.template_version,
+                ),
+                activity_ref=template.activity_ref,
+                age_months_min=template.age_months_min,
+                age_months_max=template.age_months_max,
+                readiness_ids=template.readiness_ids,
+                prerequisite_activity_ids=template.prerequisite_activity_ids,
+                material_option_ids=template.material_option_ids,
+                minimum_supervision=template.minimum_supervision,
+                policy_constraints=template.policy_constraints,
+            )
+            for template in matches
         )
 
     def compile(
@@ -346,8 +379,7 @@ class P1ExperienceCompiler:
         )
         bridge = BridgeSentenceV1(
             sentence_vi=(
-                f"Cùng khám phá {anchor.normalized_label}, "
-                f"rồi {goal.lower()} qua hoạt động này."
+                f"Cùng khám phá {anchor.normalized_label}, rồi {goal.lower()} qua hoạt động này."
             ),
             anchor_id=anchor.anchor_id,
             objective_ref=objective,

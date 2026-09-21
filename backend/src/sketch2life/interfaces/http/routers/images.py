@@ -1,0 +1,148 @@
+"""Image-only FEAT-018 routes; no audio, ASR, video, or implicit model execution."""
+
+from __future__ import annotations
+
+from typing import Annotated
+
+from fastapi import APIRouter, File, Header, Request, UploadFile
+from fastapi.responses import JSONResponse
+
+from sketch2life.application.services.ephemeral_sessions import (
+    SessionWorkflowError,
+    failure_result,
+)
+from sketch2life.application.services.live_image_demo import LiveImageDemoService
+from sketch2life.contracts.schemas.mobile_workflow import (
+    MobileWorkflowCommandV1,
+    MobileWorkflowResultV1,
+)
+
+_MAX_IMAGE_BYTES = 5_000_000
+
+router = APIRouter(prefix="/v1/sessions", tags=["image-demo"])
+
+
+@router.post(
+    "/{session_id}/media/image",
+    response_model=MobileWorkflowResultV1,
+    summary="Upload and admit one synthetic non-child image",
+)
+async def upload_image(
+    session_id: str,
+    request: Request,
+    image: Annotated[UploadFile, File(description="Single static JPEG or PNG; max 5 MB")],
+    request_id: Annotated[str, Header(alias="X-Request-ID", min_length=1, max_length=120)],
+    expected_session_version: Annotated[int, Header(alias="X-Expected-Session-Version", ge=0)],
+    idempotency_key: Annotated[str, Header(alias="Idempotency-Key", min_length=1, max_length=200)],
+    actor_ref: Annotated[str, Header(alias="X-Actor-Ref", min_length=1, max_length=160)],
+    synthetic_non_child_confirmed: Annotated[bool, Header(alias="X-Synthetic-Non-Child-Confirmed")],
+) -> JSONResponse:
+    service: LiveImageDemoService | None = request.app.state.live_image_demo_service
+    if service is None:
+        error = SessionWorkflowError(
+            code="IMAGE_DEMO_NOT_CONFIGURED",
+            status_code=503,
+            safe_message="The image-only demo service is not configured.",
+        )
+        return _error_response(
+            error,
+            request_id=request_id,
+            session_id=session_id,
+            expected_version=expected_session_version,
+        )
+    body = await image.read(_MAX_IMAGE_BYTES + 1)
+    await image.close()
+    try:
+        result, replayed = service.upload_image(
+            session_id=session_id,
+            request_id=request_id,
+            expected_session_version=expected_session_version,
+            idempotency_key=idempotency_key,
+            actor_ref=actor_ref,
+            synthetic_non_child_confirmed=synthetic_non_child_confirmed,
+            filename=image.filename or "image",
+            body=body,
+        )
+    except SessionWorkflowError as error:
+        return _error_response(
+            error,
+            request_id=request_id,
+            session_id=session_id,
+            expected_version=expected_session_version,
+        )
+    return JSONResponse(
+        status_code=200,
+        content=result.model_dump(mode="json"),
+        headers={"Idempotency-Replayed": str(replayed).lower()},
+    )
+
+
+@router.post(
+    "/{session_id}/understanding",
+    response_model=MobileWorkflowResultV1,
+    summary="Explicitly run one image-only Vision V2 request",
+)
+def run_understanding(
+    session_id: str,
+    command: MobileWorkflowCommandV1,
+    request: Request,
+) -> JSONResponse:
+    service: LiveImageDemoService | None = request.app.state.live_image_demo_service
+    if service is None:
+        error = SessionWorkflowError(
+            code="IMAGE_DEMO_NOT_CONFIGURED",
+            status_code=503,
+            safe_message="The image-only demo service is not configured.",
+        )
+        return _error_response(
+            error,
+            request_id=command.request_id,
+            session_id=command.session_id,
+            expected_version=command.expected_session_version,
+        )
+    if command.session_id != session_id:
+        error = SessionWorkflowError(
+            code="SESSION_ID_MISMATCH",
+            status_code=422,
+            safe_message="The path and command session identifiers must match.",
+        )
+        return _error_response(
+            error,
+            request_id=command.request_id,
+            session_id=command.session_id,
+            expected_version=command.expected_session_version,
+        )
+    try:
+        result, replayed = service.run_understanding(command)
+    except SessionWorkflowError as error:
+        return _error_response(
+            error,
+            request_id=command.request_id,
+            session_id=command.session_id,
+            expected_version=command.expected_session_version,
+        )
+    return JSONResponse(
+        status_code=200,
+        content=result.model_dump(mode="json"),
+        headers={"Idempotency-Replayed": str(replayed).lower()},
+    )
+
+
+def _error_response(
+    error: SessionWorkflowError,
+    *,
+    request_id: str,
+    session_id: str,
+    expected_version: int,
+) -> JSONResponse:
+    result = failure_result(
+        request_id=request_id,
+        session_id=session_id,
+        expected_session_version=expected_version,
+        observed_session_version=None,
+        error=error,
+    )
+    return JSONResponse(status_code=error.status_code, content=result.model_dump(mode="json"))
+
+
+__all__ = ["router"]
