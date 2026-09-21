@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+    <meta name="color-scheme" content="light" />
+    <title>Sketch2Life — Pixi original-art reveal</title>
+    <style>
+      :root { color-scheme: light; font-family: system-ui, sans-serif; background: #f6f8f3; color: #234134; }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; min-height: 100%; }
+      body { padding: 12px; }
+      main { display: grid; gap: 10px; }
+      #stage { width: 100%; aspect-ratio: 4 / 3; overflow: hidden; border: 1px solid #dbe6da; border-radius: 16px; background: #fffef9; }
+      #stage canvas { display: block; width: 100% !important; height: 100% !important; }
+      #status { min-height: 2.4em; color: #607568; font-size: 12px; line-height: 1.4; }
+      button { min-height: 42px; border: 0; border-radius: 13px; background: #175d4b; color: white; font: 800 13px system-ui, sans-serif; }
+      button:disabled { opacity: .45; }
+      small { color: #77877c; font-size: 10px; line-height: 1.45; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div id="status" role="status" aria-live="polite">Khởi động PixiJS…</div>
+      <div id="stage" aria-label="Bức vẽ gốc được giữ nguyên"></div>
+      <button id="play" type="button" disabled>Đang kết nối renderer…</button>
+      <small>Chỉ hiển thị ảnh gốc; chưa có sprite bổ sung nào được duyệt. Chuyển động là reveal toàn ảnh, không sinh ảnh/video.</small>
+    </main>
+    <script type="module" src="./demo/mobile.ts"></script>
+  </body>
+</html>

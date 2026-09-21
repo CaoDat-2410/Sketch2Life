@@ -11,7 +11,8 @@
         "sourceAssetId": "drawing-butterfly-001",
         "sourceAssetVersion": "1",
         "uri": "./fixtures/butterfly/drawing.svg",
-        "assetKind": "WHOLE_DRAWING"
+        "assetKind": "WHOLE_DRAWING",
+        "sourceSha256": "0000000000000000000000000000000000000000000000000000000000000000"
       },
       "extractionStatus": "FALLBACK_REQUIRED"
     }

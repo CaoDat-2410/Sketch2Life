@@ -11,6 +11,7 @@ import {validateArtAnimationPlan} from './validation';
 export interface BrowserArtPlayerOptions {
   readonly app: Application;
   readonly onEvent?: (event: PlaybackEvent) => void;
+  readonly loadTexture?: (uri: string) => Promise<Texture>;
 }
 
 export interface BrowserArtPlayer {
@@ -71,7 +72,9 @@ export function createBrowserArtPlayer(options: BrowserArtPlayerOptions): Browse
             throw new Error(`Asset instruction has no matching object: ${instruction.objectId}`);
           }
 
-          const texture = await Assets.load<Texture>(instruction.uri);
+          const texture = options.loadTexture === undefined
+            ? await Assets.load<Texture>(instruction.uri)
+            : await options.loadTexture(instruction.uri);
           const sprite = new Sprite(texture);
           sprite.anchor.set(0.5);
           setTransform(sprite, object.initialTransform, plan);

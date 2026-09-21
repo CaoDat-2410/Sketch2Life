@@ -1,2 +1,9 @@
 export {ART_RENDERER_PROTOCOL_VERSION} from './contracts';
-export type {RendererBootstrap} from './contracts';
+export {
+  MAX_RENDERER_MESSAGE_BYTES,
+  PlaybackEventSchema,
+  RendererBootstrapSchema,
+} from './contracts';
+export {parseRendererMessage} from './bridge';
+export type {PlaybackEvent, RendererBootstrap} from './contracts';
+export type {RendererMessage} from './bridge';

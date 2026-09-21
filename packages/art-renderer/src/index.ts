@@ -1,26 +1,39 @@
 export {loadChildArtAssetInstructions} from './assets';
+export {parseRendererMessage} from './bridge';
 export {createRendererBenchmarkSample} from './benchmark';
 export {createBrowserArtPlayer} from './browserPlayer';
 export {
   ART_RENDERER_PROTOCOL_VERSION,
+  ArtAnimationPlanEnvelopeSchema,
   ArtAnimationPlanSchema,
   ChildArtAssetSchema,
   FALLBACK_REASONS,
+  MAX_RENDERER_MESSAGE_BYTES,
   MOTION_KINDS,
   MotionSchema,
+  PlaybackEventSchema,
+  PixiArtAssetManifestSchema,
+  RendererLoadCommandSchema,
+  RendererPlaybackEventEnvelopeSchema,
+  RendererBootstrapSchema,
 } from './contracts';
 export type {
   ArtAnimationPlan,
+  ArtAnimationPlanEnvelope,
   ArtObject,
   ChildArtAsset,
   FallbackReason,
   Motion,
   MotionKind,
   PlaybackEvent,
+  PixiArtAssetManifest,
   RendererBootstrap,
+  RendererLoadCommand,
+  RendererPlaybackEventEnvelope,
   StagePoint,
   Transform,
 } from './contracts';
+export type {RendererMessage} from './bridge';
 export {buildPreservingFallbackPlan} from './fallback';
 export {compileMotionPlan} from './motion';
 export {ArtPlanValidationError, validateArtAnimationPlan} from './validation';

@@ -2,11 +2,15 @@ import {describe, expect, it} from 'vitest';
 
 import butterflyPlan from '../fixtures/butterfly/art_animation_plan.json';
 import {
+  ArtAnimationPlanEnvelopeSchema,
+  PixiArtAssetManifestSchema,
+  MAX_RENDERER_MESSAGE_BYTES,
   ArtPlanValidationError,
   buildPreservingFallbackPlan,
   compileMotionPlan,
   createRendererBenchmarkSample,
   loadChildArtAssetInstructions,
+  parseRendererMessage,
   validateArtAnimationPlan,
 } from '../src/index';
 
@@ -54,6 +58,70 @@ describe('art animation fixture protocol', () => {
     motions[2].to = {x: 1.1, y: 0.4};
 
     expect(() => validateArtAnimationPlan(invalidPlan)).toThrow(ArtPlanValidationError);
+  });
+
+  it('validates the shared source-locked envelope without changing renderer protocol v1', () => {
+    const sourceHash = '0'.repeat(64);
+    const envelope = {
+      contractName: 'ArtAnimationPlanV1',
+      contractVersion: '1.0',
+      sessionId: 'session-1',
+      experienceSpecRef: {id: 'spec-1', version: 2},
+      sourceArtifactRef: 'artifact:source-1',
+      sourceArtifactSha256: sourceHash,
+      plan: butterflyPlan,
+      originalArtPreserved: true,
+      videoExecuted: false,
+    };
+    expect(ArtAnimationPlanEnvelopeSchema.parse(envelope).plan.contractVersion).toBe('1');
+
+    const manifest = {
+      contractName: 'PixiArtAssetManifestV1',
+      contractVersion: '1.0',
+      sessionId: 'session-1',
+      experienceSpecRef: {id: 'spec-1', version: 2},
+      sourceArtifactRef: 'artifact:source-1',
+      sourceArtifactSha256: sourceHash,
+      assets: [{
+        assetId: 'source-1',
+        assetVersion: '1',
+        assetRef: 'artifact:source-1',
+        sha256: sourceHash,
+        role: 'ORIGINAL_ART',
+        reviewStatus: 'SOURCE_ORIGINAL',
+        rightsStatus: 'NOT_APPLICABLE',
+      }],
+      originalArtPreserved: true,
+      providerGenerationCalled: false,
+    };
+    expect(PixiArtAssetManifestSchema.parse(manifest).assets).toHaveLength(1);
+    expect(() => PixiArtAssetManifestSchema.parse({
+      ...manifest,
+      assets: [...manifest.assets, {
+        assetId: 'pending-sprite',
+        assetVersion: '1',
+        assetRef: 'asset:pending-sprite',
+        sha256: '1'.repeat(64),
+        role: 'SUPPLEMENTAL',
+        reviewStatus: 'SOURCE_ORIGINAL',
+        rightsStatus: 'NOT_APPLICABLE',
+      }],
+    })).toThrow();
+  });
+
+  it('accepts only bounded renderer bootstrap/events on the bridge', () => {
+    const bootstrap = {protocolVersion: '1', rendererInstanceId: 'renderer-1'};
+    expect(parseRendererMessage(JSON.stringify(bootstrap))).toEqual(bootstrap);
+    expect(parseRendererMessage(JSON.stringify({
+      type: 'PLAYBACK_STARTED',
+      planId: 'fixture-butterfly-art-animation',
+    }))).toMatchObject({type: 'PLAYBACK_STARTED'});
+    expect(() => parseRendererMessage('{"type":"UNKNOWN"}')).toThrow(
+      'RENDERER_MESSAGE_INVALID_CONTRACT',
+    );
+    expect(() => parseRendererMessage(' '.repeat(MAX_RENDERER_MESSAGE_BYTES + 1))).toThrow(
+      'RENDERER_MESSAGE_TOO_LARGE',
+    );
   });
 
   it('falls back without replacing the child source asset', () => {
