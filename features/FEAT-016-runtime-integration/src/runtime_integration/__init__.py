@@ -3,13 +3,14 @@ from .contracts import (
     CommandEnvelope,
     GateAConfirmation,
     GateBApproval,
+    GateBDecision,
     JobSnapshot,
     RuntimeRejected,
     SessionSnapshot,
     SessionState,
 )
 
-__all__ = ["ArtifactRef", "CommandEnvelope", "GateAConfirmation", "GateBApproval", "JobSnapshot", "RuntimeRejected", "SessionSnapshot", "SessionState"]
+__all__ = ["ArtifactRef", "CommandEnvelope", "GateAConfirmation", "GateBApproval", "GateBDecision", "JobSnapshot", "RuntimeRejected", "SessionSnapshot", "SessionState"]
 from .application import SessionAggregate
 from .jobs import LocalJobStore
 from .transport import LocalTransport, TransportEnvelope

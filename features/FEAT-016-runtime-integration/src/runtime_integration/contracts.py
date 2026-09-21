@@ -6,7 +6,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import StrEnum
-from typing import Any
+from typing import Any, Literal
 
 
 class RuntimeRejected(ValueError):
@@ -69,15 +69,33 @@ class GateAConfirmation:
 
 
 @dataclass(frozen=True)
-class GateBApproval:
+class GateBDecision:
     activity_id: str
     activity_version: int
     objective_id: str
     objective_version: int
+    template_id: str
+    template_version: int
+    spec_id: str
+    spec_version: int
+    status: Literal["APPROVED", "BLOCKED"] = "APPROVED"
+    reason_codes: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
-        if not self.activity_id or not self.objective_id or self.activity_version < 0 or self.objective_version < 0:
+        refs = (
+            (self.activity_id, self.activity_version),
+            (self.objective_id, self.objective_version),
+            (self.template_id, self.template_version),
+            (self.spec_id, self.spec_version),
+        )
+        if any(not ref_id or version < 1 for ref_id, version in refs):
             raise RuntimeRejected("GATE_B_APPROVAL_INVALID")
+        if self.status not in {"APPROVED", "BLOCKED"}:
+            raise RuntimeRejected("GATE_B_APPROVAL_INVALID")
+
+
+# Kept as an internal source-compatible name for earlier fixture callers.
+GateBApproval = GateBDecision
 
 
 @dataclass(frozen=True)
@@ -89,7 +107,7 @@ class SessionSnapshot:
     raw_understanding: Mapping[str, Any] | None = None
     gate_a: GateAConfirmation | None = None
     p1_context: Mapping[str, Any] | None = None
-    gate_b: GateBApproval | None = None
+    gate_b: GateBDecision | None = None
     experience_artifacts: tuple[ArtifactRef, ...] = ()
     handoff_completed: bool = False
     feedback: Mapping[str, Any] | None = None

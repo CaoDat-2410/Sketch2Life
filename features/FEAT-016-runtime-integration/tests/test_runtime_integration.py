@@ -3,11 +3,13 @@ from __future__ import annotations
 import hashlib
 
 import pytest
+
 from runtime_integration import (
     ArtifactRef,
     CommandEnvelope,
     GateAConfirmation,
     GateBApproval,
+    GateBDecision,
     LocalJobStore,
     RuntimeRejected,
     SessionAggregate,
@@ -15,7 +17,22 @@ from runtime_integration import (
 )
 
 ACTIVITY = ("ACT-0004", 2)
-OBJECTIVE = ("OBJ_MOVEMENT_COORDINATION", 1)
+OBJECTIVE = ("OBJ_OBJECT_PERMANENCE", 1)
+TEMPLATE = ("TPL-BUTTERFLY-01", 1)
+SPEC = ArtifactRef("experience-001", 1, "EXPERIENCE_SPEC", hashlib.sha256(b"experience").hexdigest())
+
+
+def filter_candidates(session: SessionAggregate, number: int, version: int, context: dict[str, object]) -> None:
+    session.filter_candidates(
+        cmd("session-001", number, version),
+        context,
+        activity_id=ACTIVITY[0],
+        activity_version=ACTIVITY[1],
+        objective_id=OBJECTIVE[0],
+        objective_version=OBJECTIVE[1],
+        template_id=TEMPLATE[0],
+        template_version=TEMPLATE[1],
+    )
 
 
 def cmd(session: str, number: int, version: int, actor: str = "adult") -> CommandEnvelope:
@@ -33,10 +50,15 @@ def started_session() -> SessionAggregate:
 
 def test_fixture_session_reaches_feedback():
     session = started_session()
-    context = {"age_months": 16, "readiness_ids": ["READY_SEARCH_PARTLY_HIDDEN"], "available_material_option_ids": ["GMAT-0004-PRIMARY"], "supervision_level": "DIRECT", "policy_flags": ["CAREGIVER_PRESENT"], "candidate_status": "ACTIVE_FIXTURE"}
-    session.filter_candidates(cmd("session-001", 4, 3), context, activity_id=ACTIVITY[0], activity_version=ACTIVITY[1], objective_id=OBJECTIVE[0], objective_version=OBJECTIVE[1])
-    session.approve_gate_b(cmd("session-001", 5, 4), GateBApproval(ACTIVITY[0], ACTIVITY[1], OBJECTIVE[0], OBJECTIVE[1]))
-    session.attach_experience(cmd("session-001", 6, 5), (ArtifactRef("experience-001", 1, "EXPERIENCE", hashlib.sha256(b"experience").hexdigest()),))
+    context = {"age_months": 16, "readiness_ids": ["READY_SEARCH_PARTLY_HIDDEN"], "completed_activity_ids": [], "available_material_option_ids": ["GMAT-0004-PRIMARY"], "supervision_level": "DIRECT", "policy_flags": ["CAREGIVER_PRESENT"], "candidate_status": "ACTIVE_FIXTURE"}
+    filter_candidates(session, 4, 3, context)
+    assert session.snapshot.state is SessionState.CANDIDATES_READY
+    session.attach_experience(cmd("session-001", 5, 4), (SPEC,))
+    assert session.snapshot.state is SessionState.GATE_B_PENDING
+    session.record_gate_b(
+        cmd("session-001", 6, 5),
+        GateBDecision(ACTIVITY[0], ACTIVITY[1], OBJECTIVE[0], OBJECTIVE[1], TEMPLATE[0], TEMPLATE[1], SPEC.artifact_id, SPEC.artifact_version),
+    )
     session.complete_handoff(cmd("session-001", 7, 6))
     final = session.record_feedback(cmd("session-001", 8, 7), {"observed": "completed"})
     assert final.state is SessionState.FEEDBACK_RECORDED
@@ -49,7 +71,7 @@ def test_gate_a_is_mandatory_and_stale_commands_fail():
         session.submit_media(cmd("session-001", 1, 1), (ArtifactRef("d", 1, "DRAWING"),), validation_passed=True)
     session.submit_media(cmd("session-001", 1, 0), (ArtifactRef("d", 1, "DRAWING"),), validation_passed=True)
     with pytest.raises(RuntimeRejected, match="GATE_A_REQUIRED"):
-        session.filter_candidates(cmd("session-001", 2, 1), {}, activity_id="A", activity_version=1, objective_id="O", objective_version=1)
+        session.filter_candidates(cmd("session-001", 2, 1), {}, activity_id="A", activity_version=1, objective_id="O", objective_version=1, template_id="T", template_version=1)
 
 
 def test_command_replay_is_idempotent():
@@ -64,20 +86,71 @@ def test_command_replay_is_idempotent():
 
 def test_gate_b_identity_mismatch_is_rejected():
     session = started_session()
-    context = {"age_months": 16, "readiness_ids": ["r"], "available_material_option_ids": ["m"], "supervision_level": "DIRECT", "policy_flags": [], "candidate_status": "ACTIVE_FIXTURE"}
-    session.filter_candidates(cmd("session-001", 4, 3), context, activity_id=ACTIVITY[0], activity_version=ACTIVITY[1], objective_id=OBJECTIVE[0], objective_version=OBJECTIVE[1])
+    context = {"age_months": 16, "readiness_ids": ["r"], "completed_activity_ids": [], "available_material_option_ids": ["m"], "supervision_level": "DIRECT", "policy_flags": [], "candidate_status": "ACTIVE_FIXTURE"}
+    filter_candidates(session, 4, 3, context)
+    session.attach_experience(cmd("session-001", 5, 4), (SPEC,))
     with pytest.raises(RuntimeRejected, match="GATE_B_IDENTITY_MISMATCH"):
-        session.approve_gate_b(cmd("session-001", 5, 4), GateBApproval("ACT-999", 2, OBJECTIVE[0], OBJECTIVE[1]))
+        session.record_gate_b(cmd("session-001", 6, 5), GateBDecision("ACT-999", 2, OBJECTIVE[0], OBJECTIVE[1], TEMPLATE[0], TEMPLATE[1], SPEC.artifact_id, SPEC.artifact_version))
+    assert session.snapshot.state is SessionState.GATE_B_PENDING
+
+
+def test_gate_b_blocked_result_stays_pending_and_does_not_enable_handoff():
+    session = started_session()
+    context = {"age_months": 16, "readiness_ids": ["r"], "completed_activity_ids": [], "available_material_option_ids": ["m"], "supervision_level": "DIRECT", "policy_flags": [], "candidate_status": "ACTIVE_FIXTURE"}
+    filter_candidates(session, 4, 3, context)
+    session.attach_experience(cmd("session-001", 5, 4), (SPEC,))
+    blocked = GateBDecision(
+        ACTIVITY[0], ACTIVITY[1], OBJECTIVE[0], OBJECTIVE[1], TEMPLATE[0], TEMPLATE[1],
+        SPEC.artifact_id, SPEC.artifact_version, status="BLOCKED", reason_codes=("ADULT_NOT_READY",),
+    )
+    state = session.record_gate_b(cmd("session-001", 6, 5), blocked)
+    assert state.state is SessionState.GATE_B_PENDING
+    assert state.gate_b is not None and state.gate_b.status == "BLOCKED"
+    with pytest.raises(RuntimeRejected, match="HANDOFF_NOT_READY"):
+        session.complete_handoff(cmd("session-001", 7, 6))
 
 
 def test_context_required_can_be_retried():
     session = started_session()
     missing = {"age_months": 16, "readiness_ids": [], "available_material_option_ids": [], "supervision_level": "DIRECT", "policy_flags": [], "candidate_status": "ACTIVE_FIXTURE"}
-    state = session.filter_candidates(cmd("session-001", 4, 3), missing, activity_id=ACTIVITY[0], activity_version=ACTIVITY[1], objective_id=OBJECTIVE[0], objective_version=OBJECTIVE[1])
+    state = session.filter_candidates(cmd("session-001", 4, 3), missing, activity_id=ACTIVITY[0], activity_version=ACTIVITY[1], objective_id=OBJECTIVE[0], objective_version=OBJECTIVE[1], template_id=TEMPLATE[0], template_version=TEMPLATE[1])
     assert state.state is SessionState.CONTEXT_REQUIRED
-    complete = dict(missing, readiness_ids=["r"], available_material_option_ids=["m"])
-    state = session.filter_candidates(cmd("session-001", 5, 4), complete, activity_id=ACTIVITY[0], activity_version=ACTIVITY[1], objective_id=OBJECTIVE[0], objective_version=OBJECTIVE[1])
+    complete = dict(missing, readiness_ids=["r"], completed_activity_ids=[], available_material_option_ids=["m"])
+    state = session.filter_candidates(cmd("session-001", 5, 4), complete, activity_id=ACTIVITY[0], activity_version=ACTIVITY[1], objective_id=OBJECTIVE[0], objective_version=OBJECTIVE[1], template_id=TEMPLATE[0], template_version=TEMPLATE[1])
+    assert state.state is SessionState.CANDIDATES_READY
+    state = session.attach_experience(cmd("session-001", 6, 5), (SPEC,))
     assert state.state is SessionState.GATE_B_PENDING
+
+
+def test_missing_completed_activity_list_is_context_required():
+    session = started_session()
+    context = {"age_months": 16, "readiness_ids": ["r"], "available_material_option_ids": ["m"], "supervision_level": "DIRECT", "policy_flags": [], "candidate_status": "ACTIVE_FIXTURE"}
+    state = session.filter_candidates(cmd("session-001", 4, 3), context, activity_id=ACTIVITY[0], activity_version=ACTIVITY[1], objective_id=OBJECTIVE[0], objective_version=OBJECTIVE[1], template_id=TEMPLATE[0], template_version=TEMPLATE[1])
+    assert state.state is SessionState.CONTEXT_REQUIRED
+
+
+def test_ineligible_context_does_not_advance_to_candidates_or_gate_b():
+    session = started_session()
+    context = {"age_months": 16, "readiness_ids": ["r"], "completed_activity_ids": [], "available_material_option_ids": ["m"], "supervision_level": "DIRECT", "policy_flags": [], "candidate_status": "INACTIVE"}
+    with pytest.raises(RuntimeRejected, match="P1_NO_ELIGIBLE_ACTIVITY"):
+        filter_candidates(session, 4, 3, context)
+    assert session.snapshot.state is SessionState.UNDERSTANDING_PROPOSED
+    assert session.snapshot.version == 3
+
+
+def test_gate_a_retake_invalidates_downstream_data_before_replacement():
+    session = SessionAggregate("session-001")
+    original = (ArtifactRef("drawing-001", 1, "DRAWING", "a" * 64),)
+    session.submit_media(cmd("session-001", 1, 0), original, validation_passed=True)
+    session.record_understanding(cmd("session-001", 2, 1), {"claims": [{"claim_id": "claim-1", "label": "butterfly"}]})
+    state = session.request_retake(cmd("session-001", 3, 2))
+    assert state.state is SessionState.MEDIA_RECAPTURE
+    assert state.raw_understanding is None and state.gate_a is None and state.gate_b is None
+    replacement = (ArtifactRef("drawing-002", 1, "DRAWING", "c" * 64),)
+    state = session.submit_media(cmd("session-001", 4, 3), replacement, validation_passed=True)
+    assert state.state is SessionState.CREATED
+    assert state.source_artifacts == replacement
+    assert state.raw_understanding is None and state.experience_artifacts == ()
 
 
 def test_job_completion_is_stale_safe_and_idempotent():
@@ -116,4 +189,4 @@ def test_contract_rejects_invalid_artifact_and_gate_values():
     with pytest.raises(RuntimeRejected, match="GATE_A_CONFIRMATION_INVALID"):
         GateAConfirmation(0, ())
     with pytest.raises(RuntimeRejected, match="GATE_B_APPROVAL_INVALID"):
-        GateBApproval("", -1, "", -1)
+        GateBApproval("", -1, "", -1, "", -1, "", -1)

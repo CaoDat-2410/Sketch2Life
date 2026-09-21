@@ -9,7 +9,7 @@ from .contracts import (
     ArtifactRef,
     CommandEnvelope,
     GateAConfirmation,
-    GateBApproval,
+    GateBDecision,
     RuntimeRejected,
     SessionSnapshot,
     SessionState,
@@ -53,7 +53,35 @@ class SessionAggregate:
             raise RuntimeRejected("MEDIA_SUBMISSION_NOT_ALLOWED")
         if not artifacts:
             raise RuntimeRejected("SOURCE_ARTIFACT_REQUIRED")
-        return self._apply(envelope, state=SessionState.CREATED if validation_passed else SessionState.MEDIA_RECAPTURE, source_artifacts=artifacts)
+        return self._apply(
+            envelope,
+            state=SessionState.CREATED if validation_passed else SessionState.MEDIA_RECAPTURE,
+            source_artifacts=artifacts,
+            raw_understanding=None,
+            gate_a=None,
+            p1_context=None,
+            gate_b=None,
+            experience_artifacts=(),
+            handoff_completed=False,
+            feedback=None,
+        )
+
+    def request_retake(self, envelope: CommandEnvelope) -> SessionSnapshot:
+        if (replay := self._replay(envelope)) is not None:
+            return replay
+        if self._snapshot.state is not SessionState.GATE_A_PENDING:
+            raise RuntimeRejected("RETAKE_NOT_ALLOWED")
+        return self._apply(
+            envelope,
+            state=SessionState.MEDIA_RECAPTURE,
+            raw_understanding=None,
+            gate_a=None,
+            p1_context=None,
+            gate_b=None,
+            experience_artifacts=(),
+            handoff_completed=False,
+            feedback=None,
+        )
 
     def record_understanding(self, envelope: CommandEnvelope, proposal: Mapping[str, Any]) -> SessionSnapshot:
         if (replay := self._replay(envelope)) is not None:
@@ -82,33 +110,104 @@ class SessionAggregate:
             raise RuntimeRejected("CONTEXT_REQUEST_NOT_ALLOWED")
         return self._apply(envelope, state=SessionState.CONTEXT_REQUIRED)
 
-    def filter_candidates(self, envelope: CommandEnvelope, context: Mapping[str, Any], *, activity_id: str, activity_version: int, objective_id: str, objective_version: int) -> SessionSnapshot:
+    def filter_candidates(
+        self,
+        envelope: CommandEnvelope,
+        context: Mapping[str, Any],
+        *,
+        activity_id: str,
+        activity_version: int,
+        objective_id: str,
+        objective_version: int,
+        template_id: str,
+        template_version: int,
+    ) -> SessionSnapshot:
         if (replay := self._replay(envelope)) is not None:
             return replay
         if self._snapshot.state not in {SessionState.UNDERSTANDING_PROPOSED, SessionState.CONTEXT_REQUIRED}:
             if self._snapshot.state in {SessionState.CREATED, SessionState.MEDIA_RECAPTURE}:
                 raise RuntimeRejected("GATE_A_REQUIRED")
             raise RuntimeRejected("P1_FILTER_NOT_ALLOWED")
-        required = {"age_months", "readiness_ids", "available_material_option_ids", "supervision_level", "policy_flags", "candidate_status"}
-        if required.difference(context):
+        required = {
+            "age_months",
+            "readiness_ids",
+            "completed_activity_ids",
+            "available_material_option_ids",
+            "supervision_level",
+            "policy_flags",
+            "candidate_status",
+        }
+        if required.difference(context) or any(context.get(name) is None for name in required):
             return self._apply(envelope, state=SessionState.CONTEXT_REQUIRED, p1_context=dict(context))
         if context["candidate_status"] != "ACTIVE_FIXTURE" or not context["readiness_ids"] or not context["available_material_option_ids"]:
-            return self._apply(envelope, state=SessionState.CONTEXT_REQUIRED, p1_context=dict(context))
+            raise RuntimeRejected("P1_NO_ELIGIBLE_ACTIVITY")
+        if (
+            not activity_id
+            or activity_version < 1
+            or not objective_id
+            or objective_version < 1
+            or not template_id
+            or template_version < 1
+        ):
+            raise RuntimeRejected("P1_CANDIDATE_IDENTITY_INVALID")
         proposal = dict(self._snapshot.raw_understanding or {})
-        proposal["candidate"] = {"activity_id": activity_id, "activity_version": activity_version, "objective_id": objective_id, "objective_version": objective_version}
-        return self._apply(envelope, state=SessionState.GATE_B_PENDING, raw_understanding=proposal, p1_context=dict(context))
+        proposal["candidate"] = {
+            "activity_id": activity_id,
+            "activity_version": activity_version,
+            "objective_id": objective_id,
+            "objective_version": objective_version,
+            "template_id": template_id,
+            "template_version": template_version,
+        }
+        return self._apply(
+            envelope,
+            state=SessionState.CANDIDATES_READY,
+            raw_understanding=proposal,
+            p1_context=dict(context),
+        )
 
-    def approve_gate_b(self, envelope: CommandEnvelope, approval: GateBApproval) -> SessionSnapshot:
+    def record_gate_b(self, envelope: CommandEnvelope, decision: GateBDecision) -> SessionSnapshot:
         if (replay := self._replay(envelope)) is not None:
             return replay
         if self._snapshot.state is not SessionState.GATE_B_PENDING:
             raise RuntimeRejected("GATE_B_REQUIRED")
         candidate = dict((self._snapshot.raw_understanding or {}).get("candidate", {}))
-        expected = (candidate.get("activity_id"), candidate.get("activity_version"), candidate.get("objective_id"), candidate.get("objective_version"))
-        received = (approval.activity_id, approval.activity_version, approval.objective_id, approval.objective_version)
+        specs = [artifact for artifact in self._snapshot.experience_artifacts if artifact.kind == "EXPERIENCE_SPEC"]
+        if len(specs) != 1:
+            raise RuntimeRejected("GATE_B_SPEC_REQUIRED")
+        spec = specs[0]
+        expected = (
+            candidate.get("activity_id"),
+            candidate.get("activity_version"),
+            candidate.get("objective_id"),
+            candidate.get("objective_version"),
+            candidate.get("template_id"),
+            candidate.get("template_version"),
+            spec.artifact_id,
+            spec.artifact_version,
+        )
+        received = (
+            decision.activity_id,
+            decision.activity_version,
+            decision.objective_id,
+            decision.objective_version,
+            decision.template_id,
+            decision.template_version,
+            decision.spec_id,
+            decision.spec_version,
+        )
         if expected != received:
             raise RuntimeRejected("GATE_B_IDENTITY_MISMATCH")
-        return self._apply(envelope, state=SessionState.CANDIDATES_READY, gate_b=approval)
+        next_state = (
+            SessionState.EXPERIENCE_READY
+            if decision.status == "APPROVED"
+            else SessionState.GATE_B_PENDING
+        )
+        return self._apply(envelope, state=next_state, gate_b=decision)
+
+    def approve_gate_b(self, envelope: CommandEnvelope, approval: GateBDecision) -> SessionSnapshot:
+        """Compatibility wrapper; new handlers should record the full Gate-B decision."""
+        return self.record_gate_b(envelope, approval)
 
     def attach_experience(self, envelope: CommandEnvelope, artifacts: tuple[ArtifactRef, ...]) -> SessionSnapshot:
         if (replay := self._replay(envelope)) is not None:
@@ -117,7 +216,13 @@ class SessionAggregate:
             raise RuntimeRejected("EXPERIENCE_COMPILE_NOT_ALLOWED")
         if not artifacts:
             raise RuntimeRejected("EXPERIENCE_ARTIFACT_REQUIRED")
-        return self._apply(envelope, state=SessionState.EXPERIENCE_READY, experience_artifacts=artifacts)
+        if sum(artifact.kind == "EXPERIENCE_SPEC" for artifact in artifacts) != 1:
+            raise RuntimeRejected("EXPERIENCE_SPEC_ARTIFACT_REQUIRED")
+        return self._apply(
+            envelope,
+            state=SessionState.GATE_B_PENDING,
+            experience_artifacts=artifacts,
+        )
 
     def complete_handoff(self, envelope: CommandEnvelope) -> SessionSnapshot:
         if (replay := self._replay(envelope)) is not None:
@@ -132,5 +237,3 @@ class SessionAggregate:
         if self._snapshot.state is not SessionState.HANDOFF_READY:
             raise RuntimeRejected("FEEDBACK_REQUIRES_HANDOFF")
         return self._apply(envelope, state=SessionState.FEEDBACK_RECORDED, feedback=dict(feedback))
-
-
