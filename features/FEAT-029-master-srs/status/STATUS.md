@@ -1,0 +1,11 @@
+# FEAT-029 status
+
+- Status: OWNER_APPROVED_BASELINE — complete-structure master SRS v1.3 records the owner's scope closure and observability/retention decisions; implementation remains out of scope.
+- Artifact: artifacts/Sketch2Life_Master_SRS.md (v1.3, 2,205 lines, B1–B29).
+- Owner clarifications recorded: target workflow image and narrated story; target age 0–12; Firebase auth approach; Admin highest system role with raw child-content access when needed; Parent own-child scope; Guide own-child or Admin-assigned class scope with Parent notification and petition path; retention data scope not decided; research details unclear.
+- SRS v1.3 includes B1–B29: complete SRS introduction/overall description, external interfaces, AuthN/AuthZ, relationship/cardinality model, role/resource permission matrix, Guide Console, Admin and Parent Web requirements, logical schema/data dictionary, API/error/idempotency surface, use cases, offline and still-image fallback, research questions/objectives/deliverables/WPs, verification matrix, observability, retention/legal constraints and registration-to-SRS traceability.
+- Owner-approved closure now covers MVP animation/story/micro-video, one Owner Caregiver per ChildProfile, multiple Guides, immediate assignment/revoke, stop-on-revoke, one session per Guide, Parent live redacted projection, Parent Web Phase 2, full child/session retention classes with archive, separate audit retention, combined notification channels, Grafana observability and break-glass Admin raw access.
+- Remaining high-impact questions: exact notification channels/retry, Guide raw/history field-level permissions, Parent Web session creation, break-glass dual approval/time window/notice, physical storage/queue/Grafana deployment, legal guardian verification, consent for children 7+, backup/provider-copy deletion, SLO/RPO/RTO and account lifecycle.
+- Source review/gap note: evidence/notes/REGISTRATION_SCOPE_REVIEW.md. Owner question set: artifacts/SRS_Clarification_Questions.md.
+- DOCX text/tables and embedded logo images were inspected. Bundled renderer lacked LibreOffice, so page layout was not visually verified.
+- No application code, provider configuration, cloud resource, real-child data, dataset publication, or pre-existing user file was modified.

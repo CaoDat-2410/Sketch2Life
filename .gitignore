@@ -100,3 +100,7 @@ features/FEAT-029-master-srs/evidence/notes/SOURCES.md
 
 # Android native build intermediates
 apps/mobile/android/app/.cxx/
+
+# Local alternate Gradle caches and UI capture outputs
+apps/ui-mobile/android/.gradle-alt*/
+/artifacts/

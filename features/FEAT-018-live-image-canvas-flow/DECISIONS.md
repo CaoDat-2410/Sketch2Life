@@ -129,3 +129,19 @@
   Require a user-triggered request, no automatic inference retry, admitted synthetic/non-child image
   only, V2 result validation and Gate A. This does not change Runpod production policy or permit
   audio, video or real-child data.
+
+- 2026-09-21 UI correction decision: the approved mobile integration uses BaoVC's original React
+  Native presentation shell (`BaoApp.tsx`, artwork components and screen flow) as the only user
+  journey. The former standalone `DemoWorkflowScreen` is not mounted. The shared `AppContext` now
+  owns the real session/version/idempotency client calls so the BaoVC screens drive admission,
+  explicit Lightning understanding, Gate A, P1/ExperienceSpec, Gate B, Pixi handoff and feedback.
+  The image-only scope is visible in the UI: no microphone/ASR/video call is presented. The Pixi
+  WebView receives only the backend launch contract and reads the preserved original art through
+  its short-lived capability. Auth/save remains an adapter seam, not a durable implementation.
+
+- 2026-09-21 narration workflow correction: retain image as a hard requirement and add an explicit
+  optional narration union to the reachable BaoVC Capture screen. `TEXT` is used directly with
+  `TEXT_TYPED` provenance and skips ASR; `AUDIO` is uploaded to the process-local backend session,
+  then transcribed once by faster-whisper on Lightning only after the explicit analysis command.
+  ASR failure blocks before Vision. The implementation adds `/media/audio` and the Lightning `/v1/asr`
+  route, preserves future auth/save seams, keeps mobile credential-free, and excludes video.

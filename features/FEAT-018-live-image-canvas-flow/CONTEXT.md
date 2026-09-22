@@ -153,7 +153,41 @@ P2-T5, mobile, Gate A UI, P1 eligibility, P3/P4 and shared integration remain se
   connected; offline fake-provider verification is complete. The app's user-triggered live lane is
   enabled under the ADR-0005 25-credit ceiling, but the owner still needs to build/run the emulator
   and personally initiate any provider request.
+
+## Optional narration integration closure — 2026-09-21
+
+- The owner-approved correction supersedes the earlier image-only UI note for this demo: image
+  remains mandatory, while narration now has explicit `NONE`, typed `TEXT`, and recorded `AUDIO`
+  choices on the reachable BaoVC Capture screen.
+- Typed narration is sent directly in `MobileWorkflowCommandV1` as `TEXT_TYPED`; it does not invoke
+  ASR or TTS. Recorded audio is stored as a process-local artifact and is sent to the backend-owned
+  Lightning `/v1/asr` route only after the user taps the explicit analysis action.
+- The same Lightning deployment now serves `/health`, `/v2/vision`, and `/v1/asr`. The server loads
+  faster-whisper lazily, validates source identity/hash, and returns the existing strict Phase-A ASR
+  contract. Audio failure blocks before Vision and does not silently continue.
+- Settings now load `backend/.env` deterministically even when Uvicorn starts from the repository
+  root. Mobile still contains no Lightning endpoint/token and no durable auth/save implementation.
+- Video remains excluded. Live provider calls were not made by Codex; the owner manually triggers
+  smoke requests under the approved approximately 25-credit ceiling.
 - Asset review is approved as work, not as a blanket visual approval: FEAT-028's 144 frames remain
   `REVIEW_PENDING` until each frame and its rights are reviewed and the owner records decisions.
 - The Shared Integration Addendum Rev 2 plan hash was refreshed after narrowing the media lane to
   image-only; the corrected hash and timestamp are in `approvals/TASK_APPROVAL.md`.
+
+## BaoVC UI and runtime verification — 2026-09-21
+
+- The Android client was corrected to restore and retain BaoVC's original React Native UI shell;
+  the earlier green standalone demo screen is no longer the mounted app entry.
+- Real client wiring now lives in `apps/ui-mobile/src/context/AppContext.tsx` and reuses the
+  versioned client in `apps/ui-mobile/src/demo/api.ts` as a transport adapter. The visible flow is
+  `CREATE_SESSION -> image admission -> explicit RUN_UNDERSTANDING -> Gate A -> P1 context/filter
+  -> ExperienceSpec -> Gate B -> renderer launch/handoff -> feedback`.
+- The UI renders the selected source image, backend analysis claims and backend-selected activity;
+  PixiJS is opened after handoff with the source-only renderer contract. No video, provider token or
+  durable save was added to mobile. The later narration addendum below owns the optional microphone
+  and ASR behavior.
+- Verification on this worktree: `pnpm --dir apps/ui-mobile exec tsc --noEmit` passed; the six-test
+  backend contract file `backend/tests/contract/test_live_image_demo_api.py` passed using the
+  repository backend virtualenv; the running local API returned `ADMITTED` for the approved
+  synthetic fixture upload. The owner remains responsible for manually triggering the Lightning
+  request on the emulator under the 25-credit ceiling.

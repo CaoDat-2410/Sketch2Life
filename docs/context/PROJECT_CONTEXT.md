@@ -37,6 +37,13 @@ The workspace harness and approved architecture skeleton are established and sec
 - Async progress default: bounded HTTP polling for MVP, revisited only with measured evidence.
 - Authentication: Firebase Authentication only, verified by the backend; no Firebase Storage/Firestore/Realtime Database.
 - Account model: parent/guide users authenticate with Google Sign-In or email/password; child mode has no independent child account.
+- Ownership model: each ChildProfile has exactly one Owner Caregiver (parent or legal guardian); one Owner Caregiver can create many ChildProfiles; ChildProfile has no login credential.
+- Guide model: a ChildProfile can have multiple Guide assignments, including overlapping assignments. Parent-created assignments are effective immediately and notify the Guide; exceptional Admin-created assignments notify both Owner and Guide. Share durations are 3/7/15/30 days, and the Owner can revoke immediately.
+- Session model: each Guide can run one session at a time. A Guide session notifies the Owner, exposes a live redacted projection to the Owner, and stops immediately when the Owner revokes the Guide assignment.
+- Product surfaces: mobile and Guide Console are MVP surfaces. Parent Web is a Phase 2 management/monitoring surface using the same backend authorization; it is not implicitly a session runner.
+- MVP media scope: personalized animation, narrated story, and learning micro-video are included in the owner-approved MVP target. Research dataset release remains separately gated.
+- Observability: durable domain/session events and audit records are authoritative. Grafana is an operations/dashboard layer over redacted logs, metrics, and traces; raw child media and credentials never enter telemetry.
+- Child data lifecycle: Owner selects 30/60/90 days for child/session data classes. Expired data becomes inaccessible archive data before purge. Audit retention follows a separate policy. Admin raw-content access is break-glass, reason-required, temporary in scope, and audited.
 - Ownership: the project owner controls Firebase/Google Play accounts and Android release/upload key custody.
 - Artifact storage: S3-compatible storage owned by backend ports; no direct mobile bucket access.
 - Android delivery: installable APKs for internal testing first, then signed AAB through Google Play test tracks to public release.
@@ -56,10 +63,20 @@ The attached handbook proposes a modular monolith plus workers, a FastAPI/Pydant
 - Media failure falls back to simpler safe content and does not remove the off-screen activity.
 - A session reaching a ready state must end in an off-screen activity handoff and feedback path.
 - Sensitive child data has consent, least-privilege access, retention, and deletion semantics.
+- OwnerCaregiverOwnership is the only ownership relationship for a ChildProfile; GuideAssignment grants time-bounded delegated access and never transfers ownership.
+- Guide revoke invalidates new access immediately and stops an active Guide session with an in-product message and audit/notification events.
+- Parent live monitoring exposes the necessary session projection while applying data minimization to technical metadata.
+- Business event history and security audit history are separate from Grafana technical telemetry.
 
 ## Open decisions
 
 See `features/FEAT-001-stack-and-team-plan/TEAM_ALLOCATION.md` and ADR-0006 for the revised Sprint 1 allocation, FEAT-008 for the generic skeleton, FEAT-009 for Android foundation, and FEAT-010 for auth/release/AI-provider strategy. Remaining integration questions are listed in `docs/setup/SYSTEM_QUESTIONS.md`.
+
+The following remain open and must not be invented by implementation: exact notification channel/retry matrix; Guide field-level access to raw media/history; Parent Web session creation; break-glass dual approval, notice and time window; physical database/object-storage/queue/Grafana deployment; legal-guardian verification and child assent for age 7+; backup/provider-copy deletion; production SLO/RPO/RTO; account lifecycle and Admin provisioning.
+
+## Master SRS scope closure — 2026-09-19
+
+The owner-approved target baseline is recorded in `features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md` v1.3 and the feature evidence note `features/FEAT-029-master-srs/evidence/notes/OWNER_SCOPE_CLOSURE_20260919.md`. It covers the B4–B12 workflow plus complete SRS sections for actors, relationships, schemas, contracts, state, security, observability, retention, Parent Web and verification. This is a requirements baseline; it does not authorize runtime implementation, provider calls, cloud provisioning, contract migration or deployment.
 
 ## Cross-workstream review snapshot — 2026-09-05
 

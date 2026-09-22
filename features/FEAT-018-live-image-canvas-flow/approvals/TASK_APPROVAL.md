@@ -227,3 +227,36 @@ failure cases remain valid. Focused tests (17), related tests (801 passed, 5 ski
 all repository validators and `git diff --check` passed. No model/GPU/Lightning/provider/network
 execution occurred. This approval closes P2-T2 offline only; live execution and P2-T3 through P2-T5,
 mobile, Gate A, P1 eligibility, P3/P4 and shared integration remain separately gated.
+
+## Approved full workflow debug and narration-input addendum — 2026-09-21
+
+- Approver: Project owner direct instruction in the current conversation: “thêm cái đó vào đi,
+  đó là chỉnh sửa mới để phù hợp, sau khi thêm vào thì implement”.
+- Approved plan: `plan/UI_BACKEND_FULL_WORKFLOW_ASR_DEBUG_PLAN.md`.
+- Plan SHA-256 at approval: `CA9E4137061E37600B7C42976BE5AD0E18EDEA6DD700ACE001722F8B78365E63`.
+- Approved behavior: image is mandatory; narration is optional and can be absent, recorded audio,
+  or typed text. Typed text is passed directly as transcript context with explicit `TEXT_TYPED`
+  provenance and is not converted to speech or sent through ASR. Recorded audio uses
+  `faster-whisper` in the Lightning environment with Vietnamese auto-detection as the initial
+  behavior.
+- Approved implementation scope: reconcile versioned contracts; add backend audio/text ingress and
+  orchestration; add backend-only ASR provider path; add a reachable BaoVC narration UI with a text
+  fallback; remove silent mock/video success from the live route; add contract, backend, frontend,
+  emulator and sanitized observability verification.
+- Preserved boundaries: synthetic/non-child image only, Android Emulator demo, process-local state,
+  future auth/save seam, no video generation/player in the live workflow, no provider credentials
+  in mobile, and no automatic Lightning retry.
+- Live execution boundary: Codex must not trigger Lightning or ASR provider calls. The owner alone
+  performs the approved live smoke tests after offline/API/UI wiring is verified, within the
+  existing approximately 25-credit ceiling.
+
+## Implementation closure for the approved addendum — 2026-09-21
+
+- The approved scope is implemented in the backend, Lightning service adapter, BaoVC Capture UI and
+  Android native permission manifest. The plan's implementation-result section was appended after
+  execution; the resulting plan SHA-256 is `BE6A2D754D686C1E403FD08B5BC2371847B424704106983CB6F03ED91C1EC545`.
+- Offline verification passed: mobile TypeScript, focused image/narration/ASR adapter tests, the
+  full backend contract/unit collection (5 existing skips), `git diff --check`, and repository
+  security validation. No live provider call was made.
+- The owner still controls live smoke execution and credit usage. No approval is implied for video,
+  real child data, mobile credentials, durable storage, or automatic provider retries.
