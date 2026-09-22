@@ -691,3 +691,78 @@ adapter invocation, or live execution. It does not authorize a commit or push.
 `LIVE/MODEL/GPU/PROVIDER/NETWORK/LIGHTNING = NOT AUTHORIZED`
 
 `NEXT = INDEPENDENT_REVIEW_OF_D6_GOVERNANCE_COMMIT`
+
+## Owner approval for FEAT-018 P2-T2 D9 stdout/stderr enforcement implementation scope - 2026-09-21
+
+Approver: Project owner direct instruction in the current conversation.
+
+The D9 implementation-approval package was independently reviewed with verdict
+`PASS` and is ready for this bounded owner approval record:
+
+`features/FEAT-018-live-image-canvas-flow/evidence/notes/P2_T2_D9_STDOUT_STDERR_ENFORCEMENT_IMPLEMENTATION_APPROVAL_PACKAGE_DRAFT_20260921.md`
+
+The owner selects the exact positive stream ceilings:
+
+`stdout_max_bytes = 16384`
+
+`stderr_max_bytes = 32768`
+
+The ceilings are owner policy values, not values inferred from runtime
+observation. They apply cumulatively to raw bytes for each captured
+process/stream observation. The outer adapter worker and inner generation child
+are captured separately; stdout and stderr are counted independently; exactly
+the configured ceiling is accepted; the first byte beyond it is overflow; and
+raw bytes are capture-and-discard only, before any UTF-8 or binary decoding.
+
+The only authorized implementation paths are exactly:
+
+- `backend/src/sketch2life/benchmark/feat018_live_lightning_execution.py`
+- `backend/tests/unit/test_feat018_live_lightning_execution.py`
+
+The source path may receive the bounded outer/inner capture boundaries,
+raw-byte accounting, typed D9 observations/failures, metadata-only bounded IPC
+handoff, finalization/cleanup wiring, cardinality preservation, and sanitized
+result propagation. The test path may receive only offline injected/fake tests
+for the D9 byte, lifecycle, privacy, cleanup, cardinality, POSIX, and Windows
+seams.
+
+No other path is authorized. In particular, this addendum does not authorize
+fixtures, versioned contracts or schemas, `pyproject.toml`, lockfiles,
+workflows, environment files, provider/dependency configuration,
+`qwen_vision.py`, FEAT-003, D6, D10, D11 concrete seams, plans, context,
+decisions, validators, routes, registries, evidence destinations, worktrees,
+stashes, branches, or any Stage-4 artifact.
+
+Implementation remains gated until the approval record itself receives an
+independent review with verdict `PASS`:
+
+`D9_IMPLEMENTATION_APPROVAL_RECORD = RECORDED`
+
+`D9_IMPLEMENTATION = NOT_AUTHORIZED_UNTIL_INDEPENDENT_APPROVAL_RECORD_REVIEW_PASS`
+
+The implementation must preserve the approved fail-closed contract: bounded
+capture-and-discard at both child boundaries; raw-byte accounting before
+decoding; typed limit/read/late/death/finalization failures; bounded
+metadata-only handoff; deterministic capture -> stop/close -> drain ->
+finalize -> publish -> reject-late ordering; exactly one cleanup sequence; no
+raw stream or diagnostic leakage; truthful adapter/attempt cardinality; and no
+D9-created retry, outer retry, third attempt, second adapter call, or second
+session.
+
+The following remain unresolved or blocked:
+
+`D9 = BLOCKED_PENDING_D11_AND_CONTRACT_REVIEW`
+
+`D11 = BLOCKED`
+
+`D1 = BLOCKED_BY_D11`
+
+`STAGE_4 = NOT READY`
+
+`LIVE/MODEL/GPU/PROVIDER/NETWORK/LIGHTNING = NOT AUTHORIZED`
+
+This addendum does not authorize D11 implementation or resolution, Stage 4,
+Lightning provisioning, model loading, inference, GPU use, provider/network
+access, adapter invocation, commit, push, or live execution. After the required
+independent approval-record review passes, a separate implementation goal may
+begin within the exact two-file scope only.
