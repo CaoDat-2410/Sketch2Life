@@ -2,7 +2,7 @@
 
 ## Canonical published evidence
 
-- The public, closed P2-T1 through P2-T3 evidence set is listed in
+- The public, closed P2-T1 through P2-T5 evidence set is listed in
   [`evidence/README.md`](evidence/README.md). Only records linked by that index are published
   canonical evidence. Working drafts, review handoffs, templates, and local diagnostic records
   remain intentionally local-only and are not linked from this context.

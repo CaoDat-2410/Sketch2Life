@@ -1,6 +1,6 @@
 # Task approval
 
-- Status: APPROVED (P2-T1, P2-T2 Phase A, P2-T2 Phase B, P2-T3 Phase A, and P2-T3 Phase B)
+- Status: APPROVED / GOVERNANCE-CLOSED AS APPLICABLE (P2-T1, P2-T2 Phase A, P2-T2 Phase B, P2-T3 Phase A, P2-T3 Phase B, P2-T4, and P2-T5)
 - Approver: Project owner direct instruction in the current conversation
 
 ## Historical approved scope — P2-T1
