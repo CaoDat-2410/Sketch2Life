@@ -1,6 +1,7 @@
 """FastAPI composition root."""
 
 from pathlib import Path
+import logging
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
@@ -12,7 +13,9 @@ from sketch2life.application.services.p1_experience import P1ExperienceCompiler
 from sketch2life.application.services.pixi_topic_asset_candidates import load_topic_asset_catalog
 from sketch2life.application.services.supervised_flow import SupervisedFlowService
 from sketch2life.contracts.schemas.workflow_records import SessionSnapshotV1
+from sketch2life.contracts.schemas.asr import AsrProfileId
 from sketch2life.infrastructure.ai.lightning_client import (
+    LightningAsrV2Adapter,
     UrllibJsonTransport,
     read_secret_file,
 )
@@ -44,6 +47,8 @@ from sketch2life.interfaces.http.routers.supervised_flow import (
     router as supervised_flow_router,
 )
 
+_LOGGER = logging.getLogger("sketch2life.api")
+
 
 def create_app(
     *,
@@ -73,6 +78,20 @@ def create_app(
         if live_image_demo_service is None:
             settings = get_settings()
             vision = _configured_lightning_vision(settings, artifacts)
+            asr = _configured_lightning_asr(settings, artifacts)
+            _LOGGER.info(
+                "ai_adapters_configured provider=%s base_url_configured=%s token_file_configured=%s "
+                "vision=%s asr=%s vision_profile=%s asr_profile=%s vision_path=%s asr_path=%s",
+                settings.ai_provider,
+                bool(settings.lightning_ai_base_url),
+                settings.lightning_ai_token_file is not None,
+                vision is not None,
+                asr is not None,
+                settings.lightning_model_profile,
+                settings.lightning_asr_profile,
+                settings.lightning_vision_v2_path,
+                settings.lightning_asr_path,
+            )
             live_image_demo_service = LiveImageDemoService(
                 sessions=session_service,
                 artifacts=artifacts,
@@ -80,6 +99,8 @@ def create_app(
                 admission=Feat018ImageAdmission(AvImageDecoder()),
                 vision=vision,
                 renderer_source_grants=renderer_source_grants,
+                asr=asr,
+                asr_profile_id=AsrProfileId(settings.lightning_asr_profile),
             )
         if supervised_flow_service is None:
             repo_root = Path(__file__).resolve().parents[5]
@@ -156,4 +177,37 @@ def _configured_lightning_vision(
         transport=transport,
         artifact_loader=load_artifact,
         endpoint_path=settings.lightning_vision_v2_path,
+    )
+
+
+def _configured_lightning_asr(
+    settings: Settings, artifacts: InMemoryArtifactStore
+) -> LightningAsrV2Adapter | None:
+    if (
+        settings.env == "test"
+        or settings.ai_provider != "lightning_dev"
+        or not settings.lightning_ai_base_url
+        or settings.lightning_ai_token_file is None
+    ):
+        return None
+    try:
+        token = read_secret_file(settings.lightning_ai_token_file)
+        transport = UrllibJsonTransport(
+            base_url=settings.lightning_ai_base_url,
+            token=token,
+            request_timeout_seconds=settings.ai_request_timeout_seconds,
+        )
+    except (OSError, ValueError):
+        return None
+
+    def load_artifact(artifact_ref: str) -> bytes:
+        stored = artifacts.get(artifact_ref)
+        if stored is None:
+            raise KeyError("audio artifact is unavailable")
+        return stored[1]
+
+    return LightningAsrV2Adapter(
+        transport=transport,
+        artifact_loader=load_artifact,
+        endpoint_path=settings.lightning_asr_path,
     )

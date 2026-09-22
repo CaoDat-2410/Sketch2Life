@@ -11,7 +11,13 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="SKETCH2LIFE_", env_file=".env")
+    _BACKEND_ROOT = Path(__file__).resolve().parents[4]
+    model_config = SettingsConfigDict(
+        env_prefix="SKETCH2LIFE_",
+        # Keep local startup deterministic when uvicorn is launched from the repo root.
+        # The process environment still wins over both files.
+        env_file=(_BACKEND_ROOT / ".env", ".env"),
+    )
 
     env: Literal["local", "test", "staging", "production"] = "local"
     api_host: str = "0.0.0.0"
@@ -29,6 +35,7 @@ class Settings(BaseSettings):
     lightning_ai_base_url: str = ""
     lightning_ai_token_file: Path | None = None
     lightning_model_profile: str = "live-p2-understanding-v1"
+    lightning_asr_profile: str = "WHISPER_TURBO_FP16_AUTO_V1"
     lightning_asr_path: str = "/v1/asr"
     lightning_vision_path: str = "/v1/vision"
     lightning_vision_v2_path: str = "/v2/vision"

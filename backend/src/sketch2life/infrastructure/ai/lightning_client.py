@@ -11,11 +11,14 @@ import hashlib
 import json
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Protocol
 from urllib.error import HTTPError, URLError
 from urllib.parse import urljoin, urlparse
 from urllib.request import Request, urlopen
+
+from pydantic import TypeAdapter, ValidationError
 
 from sketch2life.contracts.schemas.understanding import (
     AdapterFailureV1,
@@ -29,6 +32,13 @@ from sketch2life.contracts.schemas.understanding import (
     VisionRelationV1,
     VisionRequestV1,
     VisionUnderstandingResultV1,
+)
+from sketch2life.contracts.schemas.asr import (
+    AsrErrorCode as AsrV2ErrorCode,
+    AsrErrorDetail as AsrV2ErrorDetail,
+    AsrFailureV1 as AsrV2FailureV1,
+    AsrRequestV1 as AsrV2RequestV1,
+    AsrResultV1 as AsrV2ResultV1,
 )
 
 
@@ -219,6 +229,119 @@ class LightningAsrAdapter:
                 "ASR output failed schema validation",
                 False,
             )
+
+
+@dataclass(frozen=True, slots=True)
+class LightningAsrV2Adapter:
+    """Single-attempt adapter for the current Phase-A ASR contract.
+
+    The older ``LightningAsrAdapter`` remains intact for the legacy live-understanding
+    route. FEAT-018 uses this adapter so narration keeps the same correlation, profile,
+    and provenance guarantees as the existing V2 Vision flow.
+    """
+
+    transport: JsonTransport
+    artifact_loader: Callable[[str], bytes]
+    endpoint_path: str = "/v1/asr"
+    max_input_bytes: int = 20_000_000
+    clock: Callable[[], datetime] = lambda: datetime.now(UTC)
+
+    def transcribe(self, request: AsrV2RequestV1) -> AsrV2ResultV1:
+        try:
+            raw = self.transport.post_json(
+                self.endpoint_path,
+                {
+                    "contract_name": request.contract_name,
+                    "contract_version": request.contract_version,
+                    "request": request.model_dump(mode="json"),
+                    "source_audio": {
+                        **_artifact_payload(
+                            request.source_audio_ref,
+                            self.artifact_loader,
+                            self.max_input_bytes,
+                        ),
+                    },
+                },
+            )
+        except TimeoutError:
+            return _asr_v2_failure(
+                request,
+                AsrV2ErrorCode.ASR_TIMEOUT,
+                AsrV2ErrorDetail.TIMEOUT_BUDGET_EXCEEDED,
+                retryable=False,
+            )
+        except LightningProviderError as exc:
+            return _asr_v2_failure(
+                request,
+                _asr_v2_error_code(exc.code),
+                _asr_v2_error_detail(exc.code),
+                retryable=exc.retryable,
+            )
+        except (KeyError, TypeError, ValueError):
+            return _asr_v2_failure(
+                request,
+                AsrV2ErrorCode.INPUT_NOT_VALIDATED,
+                AsrV2ErrorDetail.SOURCE_AUDIO_UNREADABLE,
+                retryable=False,
+            )
+
+        try:
+            result = TypeAdapter(AsrV2ResultV1).validate_python(raw)
+        except ValidationError:
+            return _asr_v2_failure(
+                request,
+                AsrV2ErrorCode.ASR_SCHEMA_INVALID,
+                AsrV2ErrorDetail.OUTPUT_MAPPING_FAILED,
+                retryable=False,
+            )
+        if (
+            result.correlation_id != request.correlation_id
+            or result.source_audio_ref != request.source_audio_ref
+            or result.profile_id != request.requested_profile_id
+        ):
+            return _asr_v2_failure(
+                request,
+                AsrV2ErrorCode.ASR_SCHEMA_INVALID,
+                AsrV2ErrorDetail.OUTPUT_MAPPING_FAILED,
+                retryable=False,
+            )
+        return result
+
+
+def _asr_v2_failure(
+    request: AsrV2RequestV1,
+    error_code: AsrV2ErrorCode,
+    error_detail: AsrV2ErrorDetail,
+    *,
+    retryable: bool,
+) -> AsrV2FailureV1:
+    return AsrV2FailureV1(
+        correlation_id=request.correlation_id,
+        executed_at=datetime.now(UTC),
+        source_audio_ref=request.source_audio_ref,
+        profile_id=request.requested_profile_id,
+        attempt_number=1,
+        repair_attempted=False,
+        error_code=error_code,
+        retryable=retryable,
+        error_detail=error_detail,
+    )
+
+
+def _asr_v2_error_code(code: str) -> AsrV2ErrorCode:
+    if code in {"RATE_LIMITED", "PROVIDER_ERROR"}:
+        return AsrV2ErrorCode.ASR_PROVIDER_FAILURE
+    if code == "MALFORMED_OUTPUT":
+        return AsrV2ErrorCode.ASR_SCHEMA_INVALID
+    return AsrV2ErrorCode.ASR_PROVIDER_FAILURE
+
+
+def _asr_v2_error_detail(code: str) -> AsrV2ErrorDetail:
+    if code == "RATE_LIMITED":
+        return AsrV2ErrorDetail.TRANSIENT_RUNTIME_FAILURE
+    if code == "MALFORMED_OUTPUT":
+        return AsrV2ErrorDetail.OUTPUT_MAPPING_FAILED
+    return AsrV2ErrorDetail.PERMANENT_RUNTIME_FAILURE
 
 
 @dataclass(frozen=True, slots=True)

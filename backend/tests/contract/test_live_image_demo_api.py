@@ -273,12 +273,103 @@ def test_image_upload_requires_synthetic_non_child_confirmation_and_is_idempoten
     )
 
 
-def test_openapi_exposes_only_image_demo_routes_and_not_legacy_audio_or_video() -> None:
+def test_typed_narration_is_forwarded_as_text_without_an_asr_call() -> None:
+    client, vision = _client()
+    session_id, version = _create_session(client)
+    uploaded = client.post(
+        f"/v1/sessions/{session_id}/media/image",
+        headers=_headers(session_id, version, "typed-image"),
+        files={"image": ("synthetic.png", _IMAGE, "image/png")},
+    )
+    version = uploaded.json()["observed_session_version"]
+    started = client.post(
+        f"/v1/sessions/{session_id}/understanding",
+        json={
+            "request_id": "typed-understanding",
+            "idempotency_key": "typed-understanding-key",
+            "session_id": session_id,
+            "expected_session_version": version,
+            "actor_ref": "demo:local",
+            "payload": {
+                "operation": "RUN_UNDERSTANDING",
+                "user_initiated": True,
+                "narration": {
+                    "kind": "TEXT",
+                    "text": "Con mèo đang tìm bông hoa.",
+                    "language": "vi",
+                    "provenance": "TEXT_TYPED",
+                },
+            },
+        },
+    )
+
+    assert started.status_code == 200
+    body = started.json()
+    assert body["status"] == "SUCCEEDED"
+    assert body["payload"]["narration_status"] == "TEXT_SUPPLIED"
+    assert body["payload"]["narration"]["transcript"] == "Con mèo đang tìm bông hoa."
+    assert body["payload"]["asr_claims"][0]["source"] == "TEXT_TYPED"
+    assert vision.calls == 1
+
+
+def test_audio_is_stored_after_image_and_never_sent_without_configured_asr() -> None:
+    client, vision = _client()
+    session_id, version = _create_session(client)
+    uploaded = client.post(
+        f"/v1/sessions/{session_id}/media/image",
+        headers=_headers(session_id, version, "audio-image"),
+        files={"image": ("synthetic.png", _IMAGE, "image/png")},
+    )
+    version = uploaded.json()["observed_session_version"]
+    audio = b"RIFF" + b"\x00" * 4 + b"WAVE" + b"synthetic-wav"
+    audio_upload = client.post(
+        f"/v1/sessions/{session_id}/media/audio",
+        headers={
+            "X-Request-ID": "audio-upload",
+            "X-Expected-Session-Version": str(version),
+            "Idempotency-Key": "audio-upload-key",
+            "X-Actor-Ref": "demo:local",
+        },
+        files={"audio": ("narration.wav", audio, "audio/wav")},
+    )
+    assert audio_upload.status_code == 200
+    receipt = audio_upload.json()["payload"]
+    assert receipt["content_type"] == "audio/wav"
+
+    run = client.post(
+        f"/v1/sessions/{session_id}/understanding",
+        json={
+            "request_id": "audio-understanding",
+            "idempotency_key": "audio-understanding-key",
+            "session_id": session_id,
+            "expected_session_version": audio_upload.json()["observed_session_version"],
+            "actor_ref": "demo:local",
+            "payload": {
+                "operation": "RUN_UNDERSTANDING",
+                "user_initiated": True,
+                "narration": {
+                    "kind": "AUDIO",
+                    "artifact_ref": receipt["artifact_ref"],
+                    "sha256": receipt["sha256"],
+                    "content_type": receipt["content_type"],
+                    "byte_length": receipt["byte_length"],
+                    "provenance": "RECORDED_AUDIO",
+                },
+            },
+        },
+    )
+    assert run.status_code == 503
+    assert run.json()["failure"]["code"] == "LIGHTNING_ASR_NOT_CONFIGURED"
+    assert vision.calls == 0
+
+
+def test_openapi_exposes_image_and_optional_narration_routes_but_not_video() -> None:
     client, _vision = _client()
     paths = client.get("/openapi.json").json()["paths"]
     assert "/v1/sessions/{session_id}/media/image" in paths
+    assert "/v1/sessions/{session_id}/media/audio" in paths
     assert "/v1/sessions/{session_id}/understanding" in paths
-    assert not any("audio" in path or "video" in path for path in paths)
+    assert not any("video" in path for path in paths)
     assert "/v1/live-understanding" not in paths
 
 

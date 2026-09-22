@@ -66,6 +66,7 @@ def map_vision_result_to_raw(
     expected_source_sha256: str,
     expected_correlation_id: str,
     asr_result: AsrResultV1 | None = None,
+    typed_narration: str | None = None,
 ) -> RawUnderstandingResultV1:
     """Map one already-validated V2 result without executing a model or provider."""
 
@@ -77,8 +78,17 @@ def map_vision_result_to_raw(
         raise RawUnderstandingMappingError("stale correlation id")
     if asr_result is not None and asr_result.correlation_id != result.correlation_id:
         raise RawUnderstandingMappingError("stale correlation id")
+    if typed_narration is not None and not typed_narration.strip():
+        raise RawUnderstandingMappingError("typed narration must not be empty")
+    if typed_narration is not None and asr_result is not None:
+        raise RawUnderstandingMappingError("typed narration and ASR cannot both be supplied")
     if isinstance(result, VisionUnderstandingSuccessV2):
-        return _map_success(result, session_id=session_id, asr_result=asr_result)
+        return _map_success(
+            result,
+            session_id=session_id,
+            asr_result=asr_result,
+            typed_narration=typed_narration,
+        )
     if isinstance(result, VisionUnderstandingFailureV2):
         return _map_failure(result, session_id=session_id)
     raise RawUnderstandingMappingError("unsupported V2 result variant")
@@ -89,8 +99,9 @@ def _map_success(
     *,
     session_id: str,
     asr_result: AsrResultV1 | None,
+    typed_narration: str | None,
 ) -> RawUnderstandingSuccessV1:
-    asr_claims, narration_status, asr_failure = _map_asr(asr_result)
+    asr_claims, narration_status, asr_failure = _map_narration(asr_result, typed_narration)
     return RawUnderstandingSuccessV1(
         correlation_id=result.correlation_id,
         session_id=session_id,
@@ -182,9 +193,16 @@ def _map_failure(
     )
 
 
-def _map_asr(
+def _map_narration(
     asr_result: AsrResultV1 | None,
+    typed_narration: str | None,
 ) -> tuple[tuple[RawAsrClaimV1, ...], RawNarrationStatus, RawAsrFailureV1 | None]:
+    if typed_narration is not None:
+        return (
+            (RawAsrClaimV1(claim_id="text-typed-0", text=typed_narration, source="TEXT_TYPED"),),
+            RawNarrationStatus.TEXT_SUPPLIED,
+            None,
+        )
     if asr_result is None:
         return tuple(), RawNarrationStatus.NOT_SUPPLIED, None
     if isinstance(asr_result, AsrSuccessV1):

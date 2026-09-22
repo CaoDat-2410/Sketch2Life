@@ -13,6 +13,10 @@ from threading import RLock
 from typing import Literal, Protocol
 from uuid import uuid4
 
+from pydantic import TypeAdapter, ValidationError
+
+from sketch2life.application.ports.asr import AsrPort
+
 from sketch2life.application.ports.renderer_source_storage import (
     RendererSourceGrant,
     RendererSourceGrantStore,
@@ -34,10 +38,26 @@ from sketch2life.application.services.image_admission import (
 )
 from sketch2life.application.services.raw_understanding_mapper import map_vision_result_to_raw
 from sketch2life.contracts.schemas.image_demo import ImageAdmissionReceiptV1
+from sketch2life.contracts.schemas.asr import (
+    AsrAudioReferenceV1,
+    AsrFailureV1,
+    AsrProfileId,
+    AsrRequestV1,
+    AsrResultV1,
+    AsrSuccessV1,
+    MediaValidationProvenanceV1,
+)
 from sketch2life.contracts.schemas.mobile_workflow import (
     MobileWorkflowCommandV1,
     MobileWorkflowResultV1,
     WorkflowResultProvenanceV1,
+)
+from sketch2life.contracts.schemas.narration import (
+    NarrationAudioV1,
+    NarrationInputV1,
+    NarrationNoneV1,
+    NarrationReceiptV1,
+    NarrationTextV1,
 )
 from sketch2life.contracts.schemas.p1_experience import ExperienceSpecV1
 from sketch2life.contracts.schemas.raw_understanding import RawUnderstandingSuccessV1
@@ -53,6 +73,8 @@ from sketch2life.contracts.schemas.vision_v2 import (
 )
 
 _MAX_IMAGE_BYTES = 5_000_000
+_MAX_AUDIO_BYTES = 20_000_000
+_NARRATION_INPUT_ADAPTER: TypeAdapter[NarrationInputV1] = TypeAdapter(NarrationInputV1)
 _ADMISSION_POLICY_VERSION = "FEAT018_P2_T1_D1_20260910"
 _VISION_VERSION = WorkflowResultProvenanceV1(
     producer="VISION",
@@ -65,6 +87,12 @@ _ADMISSION_VERSION = WorkflowResultProvenanceV1(
     component="feat018-image-admission",
     component_version="1.0",
     source_contracts=("Feat018ImageAdmission", "ImageAdmissionReceiptV1"),
+)
+_NARRATION_VERSION = WorkflowResultProvenanceV1(
+    producer="APPLICATION",
+    component="feat018-narration-ingress",
+    component_version="1.0",
+    source_contracts=("NarrationInputV1", "NarrationReceiptV1"),
 )
 
 
@@ -90,6 +118,8 @@ class LiveImageDemoService:
         admission: Feat018ImageAdmission,
         vision: VisionV2Port | None,
         renderer_source_grants: RendererSourceGrantStore,
+        asr: AsrPort | None = None,
+        asr_profile_id: AsrProfileId = AsrProfileId.WHISPER_TURBO_FP16_AUTO_V1,
         now: Callable[[], datetime] = lambda: datetime.now(UTC),
     ) -> None:
         self._sessions = sessions
@@ -97,6 +127,8 @@ class LiveImageDemoService:
         self._idempotency = idempotency
         self._admission = admission
         self._vision = vision
+        self._asr = asr
+        self._asr_profile_id = asr_profile_id
         self._renderer_source_grants = renderer_source_grants
         self._now = now
         self._lock = RLock()
@@ -233,6 +265,8 @@ class LiveImageDemoService:
                         source_ref.model_dump(mode="json") if source_ref is not None else None
                     ),
                     "media_validation": validation.model_dump(mode="json"),
+                    "narration_audio_ref": None,
+                    "narration_result": None,
                     "raw_understanding": None,
                     "gate_a_confirmation": None,
                     "p1_context": None,
@@ -261,6 +295,116 @@ class LiveImageDemoService:
                 observed_version=updated.version,
                 payload=receipt.model_dump(mode="json"),
                 provenance=_ADMISSION_VERSION,
+            )
+            self._remember(scope, idempotency_key, fingerprint, result)
+            return result, False
+
+    def upload_audio(
+        self,
+        *,
+        session_id: str,
+        request_id: str,
+        expected_session_version: int,
+        idempotency_key: str,
+        actor_ref: str,
+        filename: str,
+        declared_content_type: str | None,
+        body: bytes,
+    ) -> tuple[MobileWorkflowResultV1, bool]:
+        """Store one session-local narration recording after image admission.
+
+        Audio is never sent to Lightning at this boundary. It is retained only in the
+        process-local artifact store until the explicit understanding command requests ASR.
+        """
+
+        if actor_ref != DEMO_ACTOR_REF:
+            raise _workflow_error(
+                "DEMO_ACTOR_INVALID", 422, "The local demo actor marker is invalid."
+            )
+        if not filename or len(filename) > 200:
+            raise _workflow_error("AUDIO_FILENAME_INVALID", 422, "Choose a valid audio file.")
+        if not body or len(body) > _MAX_AUDIO_BYTES:
+            raise _workflow_error(
+                "AUDIO_TOO_LARGE", 413, "Narration audio must be between 1 byte and 20 MB."
+            )
+        content_type = _sniff_audio_content_type(body, declared_content_type)
+        if content_type is None:
+            raise _workflow_error(
+                "AUDIO_FORMAT_UNSUPPORTED",
+                422,
+                "Use an m4a, wav, webm, or ogg narration recording.",
+            )
+
+        fingerprint = sha256(
+            b"FEAT018_AUDIO_UPLOAD_V1\0"
+            + body
+            + b"\0"
+            + content_type.encode("ascii")
+        ).hexdigest()
+        scope = f"{session_id}:UPLOAD_AUDIO"
+        with self._lock:
+            if replay := self._replay(scope, idempotency_key, fingerprint):
+                return replay, True
+            snapshot = self._sessions.snapshot(session_id)
+            if snapshot.version != expected_session_version:
+                raise _stale_version()
+            if snapshot.state != "CREATED":
+                raise _workflow_error(
+                    "AUDIO_UPLOAD_NOT_ALLOWED",
+                    409,
+                    "Upload narration after one image has passed admission and before analysis.",
+                )
+            prior = self._sessions.workflow_record(session_id)
+            if not isinstance(prior.values.get("source_image_ref"), dict):
+                raise _workflow_error(
+                    "IMAGE_REQUIRED_BEFORE_AUDIO",
+                    409,
+                    "Admit the required image before adding narration.",
+                )
+            stored = self._artifacts.put(
+                session_id=session_id,
+                content_type=content_type,
+                body=body,
+            )
+            receipt = NarrationReceiptV1(
+                session_id=session_id,
+                artifact_ref=stored.artifact_ref,
+                sha256=stored.sha256,
+                content_type=content_type,
+                byte_length=stored.byte_length,
+                guidance="Narration đã lưu trong phiên tạm; nút phân tích tiếp theo mới gọi ASR.",
+            )
+            updated = self._sessions.advance(
+                session_id=session_id,
+                expected_version=expected_session_version,
+                allowed_states=("CREATED",),
+                next_state="CREATED",
+                workflow_updates={
+                    "narration_audio_ref": receipt.model_dump(mode="json"),
+                    "narration_result": None,
+                    "raw_understanding": None,
+                    "gate_a_confirmation": None,
+                    "p1_context": None,
+                    "experience_spec": None,
+                    "gate_b": None,
+                    "handoff": None,
+                    "feedback": None,
+                    "journey": _append_journey(
+                        prior.values.get("journey"),
+                        stage="NARRATION",
+                        status="COMPLETED",
+                        artifact_refs=(stored.artifact_ref,),
+                    ),
+                },
+            )
+            result = _result(
+                status="SUCCEEDED",
+                request_id=request_id,
+                session_id=session_id,
+                expected_version=expected_session_version,
+                observed_version=updated.version,
+                payload=receipt.model_dump(mode="json"),
+                provenance=_NARRATION_VERSION,
             )
             self._remember(scope, idempotency_key, fingerprint, result)
             return result, False
@@ -379,12 +523,26 @@ class LiveImageDemoService:
             raise _workflow_error(
                 "DEMO_ACTOR_INVALID", 422, "The local demo actor marker is invalid."
             )
-        if command.payload != {"operation": "RUN_UNDERSTANDING", "user_initiated": True}:
+        if (
+            command.payload.get("operation") != "RUN_UNDERSTANDING"
+            or command.payload.get("user_initiated") is not True
+            or set(command.payload) - {"operation", "user_initiated", "narration"}
+        ):
             raise _workflow_error(
                 "EXPLICIT_USER_ACTION_REQUIRED",
                 422,
                 "Start image understanding from the Run button; automatic analysis is disabled.",
             )
+        try:
+            narration = _NARRATION_INPUT_ADAPTER.validate_python(
+                command.payload.get("narration", {"kind": "NONE"})
+            )
+        except ValidationError as exc:
+            raise _workflow_error(
+                "NARRATION_CONTRACT_INVALID",
+                422,
+                "Narration must be NONE, typed text, or a previously uploaded recording.",
+            ) from exc
         scope = f"{command.session_id}:RUN_UNDERSTANDING"
         fingerprint = sha256(
             json.dumps(
@@ -429,6 +587,99 @@ class LiveImageDemoService:
                     "This image must be replaced before analysis.",
                 )
             correlation_id = command.request_id
+            asr_result: AsrResultV1 | None = None
+            typed_narration: str | None = None
+            narration_context: str | None = None
+            narration_payload = _narration_payload(narration)
+            if isinstance(narration, NarrationTextV1):
+                typed_narration = narration.text.strip()
+                narration_context = typed_narration
+                narration_payload = _narration_payload(narration, transcript=typed_narration)
+            elif isinstance(narration, NarrationAudioV1):
+                stored_audio = workflow.values.get("narration_audio_ref")
+                if not isinstance(stored_audio, dict):
+                    raise _workflow_error(
+                        "NARRATION_AUDIO_NOT_UPLOADED",
+                        409,
+                        "Record and upload narration before starting analysis.",
+                    )
+                try:
+                    stored_audio_contract = NarrationReceiptV1.model_validate(stored_audio)
+                except ValueError as exc:
+                    raise _workflow_error(
+                        "NARRATION_AUDIO_PROVENANCE_INVALID",
+                        409,
+                        "The selected narration recording is no longer valid.",
+                    ) from exc
+                if (
+                    stored_audio_contract.artifact_ref != narration.artifact_ref
+                    or stored_audio_contract.sha256 != narration.sha256
+                    or stored_audio_contract.content_type != narration.content_type
+                    or stored_audio_contract.byte_length != narration.byte_length
+                ):
+                    raise _workflow_error(
+                        "NARRATION_AUDIO_MISMATCH",
+                        409,
+                        "The selected narration does not match the uploaded recording.",
+                    )
+                if self._asr is None:
+                    raise _workflow_error(
+                        "LIGHTNING_ASR_NOT_CONFIGURED",
+                        503,
+                        "Lightning ASR is not configured on the backend. No audio was sent.",
+                    )
+                asr_request = AsrRequestV1(
+                    correlation_id=correlation_id,
+                    source_audio_ref=AsrAudioReferenceV1(
+                        artifact_ref=narration.artifact_ref,
+                        sha256=narration.sha256,
+                    ),
+                    media_validation=MediaValidationProvenanceV1(
+                        validation_artifact_ref=media_validation.validation_artifact_ref,
+                        validation_artifact_sha256=media_validation.validation_artifact_sha256,
+                        decision="PASS",
+                        validator_policy_version=media_validation.validator_policy_version,
+                    ),
+                    requested_profile_id=self._asr_profile_id,
+                )
+                # One explicit ASR call; a retry requires a new user command.
+                asr_result = self._asr.transcribe(asr_request)
+                if isinstance(asr_result, AsrSuccessV1):
+                    narration_context = asr_result.transcript_raw.strip()
+                    narration_payload = _narration_payload(
+                        narration,
+                        transcript=narration_context,
+                        asr_result=asr_result,
+                    )
+                else:
+                    narration_payload = _narration_payload(narration, asr_result=asr_result)
+                    updated = self._sessions.advance(
+                        session_id=command.session_id,
+                        expected_version=command.expected_session_version,
+                        allowed_states=("CREATED",),
+                        next_state="CREATED",
+                        workflow_updates={
+                            "raw_understanding": None,
+                            "narration_result": narration_payload,
+                            "journey": _append_journey(
+                                workflow.values.get("journey"),
+                                stage="ASR",
+                                status="BLOCKED",
+                                artifact_refs=(source.artifact_ref, narration.artifact_ref),
+                            ),
+                        },
+                    )
+                    result = _result(
+                        status="BLOCKED",
+                        request_id=command.request_id,
+                        session_id=command.session_id,
+                        expected_version=command.expected_session_version,
+                        observed_version=updated.version,
+                        payload={"narration": narration_payload},
+                        provenance=_NARRATION_VERSION,
+                    )
+                    self._remember(scope, command.idempotency_key, fingerprint, result)
+                    return result, False
             vision_request = VisionUnderstandingRequestV2(
                 correlation_id=correlation_id,
                 source_image_ref=source,
@@ -436,12 +687,17 @@ class LiveImageDemoService:
                 requested_profile_id=VisionProfileIdV2.QWEN3_VL_8B_INSTRUCT_BF16_V1,
             )
             # One provider call only. A retry requires a new explicit command from the user.
-            vision_result = self._vision.understand(vision_request)
+            vision_result = self._call_vision(
+                vision_request,
+                narration_context=narration_context,
+            )
             raw_result = map_vision_result_to_raw(
                 vision_result,
                 session_id=command.session_id,
                 expected_source_sha256=source.sha256,
                 expected_correlation_id=correlation_id,
+                asr_result=asr_result,
+                typed_narration=typed_narration,
             )
             succeeded = isinstance(raw_result, RawUnderstandingSuccessV1)
             updated = self._sessions.advance(
@@ -451,6 +707,7 @@ class LiveImageDemoService:
                 next_state="GATE_A_PENDING" if succeeded else "CREATED",
                 workflow_updates={
                     "raw_understanding": raw_result.model_dump(mode="json"),
+                    "narration_result": narration_payload,
                     "gate_a_confirmation": None,
                     "p1_context": None,
                     "experience_spec": None,
@@ -469,11 +726,32 @@ class LiveImageDemoService:
                 session_id=command.session_id,
                 expected_version=command.expected_session_version,
                 observed_version=updated.version,
-                payload=raw_result.model_dump(mode="json"),
+                payload={
+                    **raw_result.model_dump(mode="json"),
+                    "narration": narration_payload,
+                },
                 provenance=_VISION_VERSION,
             )
             self._remember(scope, command.idempotency_key, fingerprint, result)
             return result, False
+
+    def _call_vision(
+        self,
+        request: VisionUnderstandingRequestV2,
+        *,
+        narration_context: str | None,
+    ) -> VisionUnderstandingSuccessV2 | VisionUnderstandingFailureV2:
+        if narration_context:
+            narration_aware = getattr(self._vision, "understand_with_narration", None)
+            if callable(narration_aware):
+                return narration_aware(request, narration_context=narration_context)
+        if self._vision is None:
+            raise _workflow_error(
+                "LIGHTNING_VISION_NOT_CONFIGURED",
+                503,
+                "Lightning Vision is not configured on the backend. No image was sent.",
+            )
+        return self._vision.understand(request)
 
     def _admit(self, body: bytes) -> Feat018AdmissionResult:
         with tempfile.TemporaryDirectory(prefix="sketch2life-image-") as folder:
@@ -569,6 +847,64 @@ def _sniff_content_type(body: bytes) -> Literal["image/jpeg", "image/png"] | Non
     if body.startswith(b"\xff\xd8\xff"):
         return "image/jpeg"
     return None
+
+
+def _sniff_audio_content_type(body: bytes, declared_content_type: str | None) -> str | None:
+    """Accept only recognized audio magic bytes; client MIME is advisory metadata."""
+
+    if body.startswith(b"RIFF") and body[8:12] == b"WAVE":
+        return "audio/wav"
+    if body.startswith(b"OggS"):
+        return "audio/ogg"
+    if body.startswith(b"\x1a\x45\xdf\xa3"):
+        return "audio/webm"
+    if len(body) >= 12 and body[4:8] == b"ftyp":
+        return "audio/mp4"
+    return None
+
+
+def _narration_payload(
+    narration: NarrationNoneV1 | NarrationTextV1 | NarrationAudioV1,
+    *,
+    transcript: str | None = None,
+    asr_result: AsrResultV1 | None = None,
+) -> dict[str, object]:
+    if isinstance(narration, NarrationNoneV1):
+        return {
+            "kind": "NONE",
+            "status": "NOT_SUPPLIED",
+            "transcript": None,
+            "language": None,
+            "provenance": "NONE",
+        }
+    if isinstance(narration, NarrationTextV1):
+        return {
+            "kind": "TEXT",
+            "status": "TEXT_SUPPLIED",
+            "transcript": transcript or narration.text,
+            "language": narration.language,
+            "provenance": narration.provenance,
+        }
+    payload: dict[str, object] = {
+        "kind": "AUDIO",
+        "status": (
+            "ASR_SUCCEEDED"
+            if isinstance(asr_result, AsrSuccessV1)
+            else "ASR_FAILED"
+            if isinstance(asr_result, AsrFailureV1)
+            else "ASR_PENDING"
+        ),
+        "transcript": transcript,
+        "language": (
+            asr_result.detected_language
+            if isinstance(asr_result, AsrSuccessV1)
+            else None
+        ),
+        "provenance": narration.provenance,
+    }
+    if asr_result is not None:
+        payload["asr"] = asr_result.model_dump(mode="json")
+    return payload
 
 
 def _admission_guidance(reason: object) -> str:

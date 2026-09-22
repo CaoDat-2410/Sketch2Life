@@ -1,4 +1,4 @@
-"""Hard request-body cap for the single-image multipart upload route."""
+"""Hard request-body caps for FEAT-018 image and narration uploads."""
 
 from __future__ import annotations
 
@@ -8,6 +8,8 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 _MAX_MULTIPART_BODY_BYTES = 5_100_000
 _UPLOAD_PATH_MARKER = "/media/image"
+_AUDIO_UPLOAD_PATH_MARKER = "/media/audio"
+_MAX_AUDIO_MULTIPART_BODY_BYTES = 20_100_000
 
 
 class _RequestBodyTooLarge(Exception):
@@ -20,11 +22,17 @@ class BoundedImageUploadMiddleware:
         self.max_body_bytes = max_body_bytes
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        if (
-            scope["type"] != "http"
-            or scope.get("method") != "POST"
-            or _UPLOAD_PATH_MARKER not in str(scope.get("path", ""))
-        ):
+        path = str(scope.get("path", ""))
+        if scope["type"] != "http" or scope.get("method") != "POST":
+            await self.app(scope, receive, send)
+            return
+        if _UPLOAD_PATH_MARKER in path:
+            body_limit = self.max_body_bytes
+            error_message = "Image upload exceeded the demo request size limit."
+        elif _AUDIO_UPLOAD_PATH_MARKER in path:
+            body_limit = _MAX_AUDIO_MULTIPART_BODY_BYTES
+            error_message = "Narration upload exceeded the demo request size limit."
+        else:
             await self.app(scope, receive, send)
             return
 
@@ -34,11 +42,11 @@ class BoundedImageUploadMiddleware:
         )
         if content_length is not None:
             try:
-                if int(content_length) > self.max_body_bytes:
-                    await _send_too_large(send)
+                if int(content_length) > body_limit:
+                    await _send_too_large(send, error_message)
                     return
             except ValueError:
-                await _send_too_large(send)
+                await _send_too_large(send, error_message)
                 return
 
         received = 0
@@ -48,17 +56,17 @@ class BoundedImageUploadMiddleware:
             message = await receive()
             if message["type"] == "http.request":
                 received += len(message.get("body", b""))
-                if received > self.max_body_bytes:
+                if received > body_limit:
                     raise _RequestBodyTooLarge
             return message
 
         try:
             await self.app(scope, bounded_receive, send)
         except _RequestBodyTooLarge:
-            await _send_too_large(send)
+            await _send_too_large(send, error_message)
 
 
-async def _send_too_large(send: Send) -> None:
+async def _send_too_large(send: Send, safe_message: str) -> None:
     body = json.dumps(
         {
             "status": "FAILED",
@@ -66,7 +74,7 @@ async def _send_too_large(send: Send) -> None:
                 "domain": "MEDIA",
                 "code": "UPLOAD_TOO_LARGE",
                 "retryable": False,
-                "safe_message": "Image upload exceeded the demo request size limit.",
+                "safe_message": safe_message,
             },
         },
         separators=(",", ":"),

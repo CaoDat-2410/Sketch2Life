@@ -85,13 +85,14 @@ class RawAsrClaimV1(BaseModel):
     claim_id: _ObservationRef
     text: str = Field(min_length=1, max_length=2_000)
     confidence: _Confidence | None = None
-    source: Literal["ASR"] = "ASR"
+    source: Literal["ASR", "TEXT_TYPED"] = "ASR"
 
 
 class RawNarrationStatus(StrEnum):
     NOT_SUPPLIED = "NOT_SUPPLIED"
     ASR_SUCCEEDED = "ASR_SUCCEEDED"
     ASR_FAILED = "ASR_FAILED"
+    TEXT_SUPPLIED = "TEXT_SUPPLIED"
 
 
 class RawAsrFailureCode(StrEnum):
@@ -215,9 +216,12 @@ class RawUnderstandingSuccessV1(RawResultEnvelopeV1):
         if self.narration_status is RawNarrationStatus.NOT_SUPPLIED:
             if self.asr_claims or self.asr_failure is not None:
                 raise ValueError("NOT_SUPPLIED narration cannot carry ASR data")
-        elif self.narration_status is RawNarrationStatus.ASR_SUCCEEDED:
+        elif self.narration_status in {
+            RawNarrationStatus.ASR_SUCCEEDED,
+            RawNarrationStatus.TEXT_SUPPLIED,
+        }:
             if self.asr_failure is not None:
-                raise ValueError("ASR_SUCCEEDED cannot carry an ASR failure")
+                raise ValueError("successful narration cannot carry an ASR failure")
         elif self.asr_failure is None:
             raise ValueError("ASR_FAILED requires a typed ASR failure")
         kinds: dict[str, str] = {}

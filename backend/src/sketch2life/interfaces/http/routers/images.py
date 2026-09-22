@@ -1,4 +1,4 @@
-"""Image-only FEAT-018 routes; no audio, ASR, video, or implicit model execution."""
+"""FEAT-018 media ingress and explicit understanding routes."""
 
 from __future__ import annotations
 
@@ -18,6 +18,7 @@ from sketch2life.contracts.schemas.mobile_workflow import (
 )
 
 _MAX_IMAGE_BYTES = 5_000_000
+_MAX_AUDIO_BYTES = 20_000_000
 
 router = APIRouter(prefix="/v1/sessions", tags=["image-demo"])
 
@@ -78,9 +79,63 @@ async def upload_image(
 
 
 @router.post(
+    "/{session_id}/media/audio",
+    response_model=MobileWorkflowResultV1,
+    summary="Upload optional session-local narration audio",
+)
+async def upload_audio(
+    session_id: str,
+    request: Request,
+    audio: Annotated[UploadFile, File(description="Narration audio; max 20 MB")],
+    request_id: Annotated[str, Header(alias="X-Request-ID", min_length=1, max_length=120)],
+    expected_session_version: Annotated[int, Header(alias="X-Expected-Session-Version", ge=0)],
+    idempotency_key: Annotated[str, Header(alias="Idempotency-Key", min_length=1, max_length=200)],
+    actor_ref: Annotated[str, Header(alias="X-Actor-Ref", min_length=1, max_length=160)],
+) -> JSONResponse:
+    service: LiveImageDemoService | None = request.app.state.live_image_demo_service
+    if service is None:
+        error = SessionWorkflowError(
+            code="IMAGE_DEMO_NOT_CONFIGURED",
+            status_code=503,
+            safe_message="The live demo service is not configured.",
+        )
+        return _error_response(
+            error,
+            request_id=request_id,
+            session_id=session_id,
+            expected_version=expected_session_version,
+        )
+    body = await audio.read(_MAX_AUDIO_BYTES + 1)
+    await audio.close()
+    try:
+        result, replayed = service.upload_audio(
+            session_id=session_id,
+            request_id=request_id,
+            expected_session_version=expected_session_version,
+            idempotency_key=idempotency_key,
+            actor_ref=actor_ref,
+            filename=audio.filename or "narration",
+            declared_content_type=audio.content_type,
+            body=body,
+        )
+    except SessionWorkflowError as error:
+        return _error_response(
+            error,
+            request_id=request_id,
+            session_id=session_id,
+            expected_version=expected_session_version,
+        )
+    return JSONResponse(
+        status_code=200,
+        content=result.model_dump(mode="json"),
+        headers={"Idempotency-Replayed": str(replayed).lower()},
+    )
+
+
+@router.post(
     "/{session_id}/understanding",
     response_model=MobileWorkflowResultV1,
-    summary="Explicitly run one image-only Vision V2 request",
+    summary="Explicitly run optional narration then Vision V2 understanding",
 )
 def run_understanding(
     session_id: str,

@@ -64,6 +64,25 @@ class LightningVisionV2Adapter:
         self._catalog = vision_profile_catalog_v2()
 
     def understand(self, request: VisionUnderstandingRequestV2) -> VisionV2Result:
+        return self._understand(request, narration_context=None)
+
+    def understand_with_narration(
+        self,
+        request: VisionUnderstandingRequestV2,
+        *,
+        narration_context: str,
+    ) -> VisionV2Result:
+        context = narration_context.strip()
+        if not context:
+            return self._understand(request, narration_context=None)
+        return self._understand(request, narration_context=context[:2_000])
+
+    def _understand(
+        self,
+        request: VisionUnderstandingRequestV2,
+        *,
+        narration_context: str | None,
+    ) -> VisionV2Result:
         profile = self._catalog.resolve(request.requested_profile_id)
         catalog_hash = vision_profile_catalog_hash_v2(self._catalog)
         if request.media_validation is None:
@@ -124,6 +143,8 @@ class LightningVisionV2Adapter:
                 "content_base64": base64.b64encode(image).decode("ascii"),
             },
         }
+        if narration_context is not None:
+            payload["narration_context"] = narration_context
         try:
             raw_result = self._transport.post_json(self._endpoint_path, payload)
         except TimeoutError:
