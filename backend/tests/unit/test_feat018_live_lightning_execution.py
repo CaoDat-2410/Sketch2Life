@@ -19,6 +19,8 @@ import multiprocessing
 import os
 import signal
 import stat
+import subprocess
+import sys
 import time
 from collections import deque
 from collections.abc import Callable, Mapping
@@ -29,9 +31,20 @@ from typing import Any, cast
 import pytest
 
 from sketch2life.benchmark.feat018_live_lightning_execution import (
+    D9_STDERR_MAX_BYTES,
+    D9_STDOUT_MAX_BYTES,
     AcceptanceResult,
     BoundedConnection,
     CleanupStatus,
+    D9BoundedByteCapture,
+    D9CaptureReport,
+    D9ProcessRole,
+    D9ProcessStreamCapture,
+    D9StreamDisposition,
+    D9StreamFailureCode,
+    D9StreamName,
+    D9StreamObservation,
+    D9StreamTerminalCategory,
     EffectiveOutcome,
     EvidenceCommitResult,
     Feat018AdapterCallSupervisor,
@@ -74,6 +87,7 @@ from sketch2life.benchmark.feat018_live_lightning_execution import (
     ProgressState,
     SupervisorRunResult,
     WindowsJobObjectContainment,
+    _adapter_result_is_accepted_success,  # noqa: PLC2701 - proves the D9-aware success contract
     _cancel_lightning_operation,  # noqa: PLC2701 - deterministic inline-boundary test seam
     _cancel_termination_operation,  # noqa: PLC2701 - deterministic inline-boundary test seam
     _wait_for_lightning_operation,  # noqa: PLC2701 - deterministic inline-boundary test seam
@@ -247,6 +261,61 @@ class FakeBoundedConnection:
         if self.raise_on_close is not None:
             raise self.raise_on_close
         self.closed = True
+
+
+def _fake_d9_report(
+    process_role: D9ProcessRole, *, attempt_number: int | None = None
+) -> D9CaptureReport:
+    if process_role is D9ProcessRole.INNER_GENERATION_CHILD and attempt_number is None:
+        attempt_number = 1
+    return D9CaptureReport(
+        observations=tuple(
+            D9StreamObservation(
+                process_role=process_role,
+                attempt_number=attempt_number,
+                stream=stream,
+                bytes_seen=0,
+                ceiling=(
+                    D9_STDOUT_MAX_BYTES
+                    if stream is D9StreamName.STDOUT
+                    else D9_STDERR_MAX_BYTES
+                ),
+                disposition=D9StreamDisposition.ACCEPTED,
+                terminal_category=D9StreamTerminalCategory.WITHIN_LIMIT,
+            )
+            for stream in D9StreamName
+        )
+    )
+
+
+@dataclass(slots=True)
+class FakeD9Capture:
+    process_role: D9ProcessRole
+    attempt_number: int | None = None
+    finalize_calls: int = field(default=0, init=False)
+
+    def finalize(self) -> D9CaptureReport:
+        self.finalize_calls += 1
+        return _fake_d9_report(self.process_role, attempt_number=self.attempt_number)
+
+
+def _fake_d9_capture_factory(
+    process_role: D9ProcessRole,
+    attempt_number: int | None,
+    stdout_max_bytes: int,
+    stderr_max_bytes: int,
+) -> FakeD9Capture:
+    assert stdout_max_bytes == D9_STDOUT_MAX_BYTES
+    assert stderr_max_bytes == D9_STDERR_MAX_BYTES
+    return FakeD9Capture(process_role, attempt_number)
+
+
+def _progress_frames(frames: list[dict[str, object]]) -> list[dict[str, object]]:
+    return [
+        frame
+        for frame in frames
+        if frame.get('kind') not in {'D9_STREAM_OBSERVATION', 'D9_STREAM_FAILURE'}
+    ]
 
 
 @dataclass(slots=True)
@@ -1368,7 +1437,7 @@ class TestBoundedConnectionFraming:
         connection = FakeBoundedConnection(max_envelope_bytes=10)
         with pytest.raises(Feat018FrameTooLargeError):
             connection.send_frame({"kind": "x", "pad": "a" * 100})
-        assert connection.sent == []
+        assert _progress_frames(connection.sent) == []
 
 
 # ------------------------------------------------------------------------------------------
@@ -2201,6 +2270,7 @@ class TestWindowsJobObjectContainmentCleanupTruth:
         launcher.connection.push(
             {"seq": 2, "kind": "GENERATION_ATTEMPT_STARTED", "attempt_number": 1}
         )
+        _push_success_d9_frames(launcher.connection)
         launcher.connection.push({"seq": 3, "kind": "TERMINAL", "outcome": "SUCCEEDED"})
         clock = FakeClock()
         launcher.connection.clock = clock
@@ -2393,6 +2463,8 @@ class TestBoundedGenerationRunner:
             "total_adapter_cap_seconds": 300.0,
             "raw_output_max_bytes": 1000,
             "ipc_envelope_max_bytes": 2000,
+            "stdout_max_bytes": D9_STDOUT_MAX_BYTES,
+            "stderr_max_bytes": D9_STDERR_MAX_BYTES,
         }
         defaults.update(overrides)
         return Feat018BoundedRunnerConfig(**defaults)  # type: ignore[arg-type]
@@ -2505,6 +2577,8 @@ def _config(**overrides: object) -> Feat018BoundedRunnerConfig:
         "total_adapter_cap_seconds": 10.0,
         "raw_output_max_bytes": 1000,
         "ipc_envelope_max_bytes": 2000,
+        "stdout_max_bytes": D9_STDOUT_MAX_BYTES,
+        "stderr_max_bytes": D9_STDERR_MAX_BYTES,
         "poll_interval_seconds": 1.0,
         "cleanup_deadline_seconds": 1.0,
         "containment_setup_timeout_seconds": 2.0,
@@ -2534,6 +2608,465 @@ def _supervisor(
     )
 
 
+class TestD9StreamEnforcement:
+    def test_ceiling_configuration_is_explicit_and_owner_bound(self) -> None:
+        with pytest.raises(TypeError):
+            Feat018BoundedRunnerConfig(
+                total_adapter_cap_seconds=1.0,
+                raw_output_max_bytes=1,
+                ipc_envelope_max_bytes=1,
+            )
+        for field_name in ('stdout_max_bytes', 'stderr_max_bytes'):
+            values = {
+                'total_adapter_cap_seconds': 1.0,
+                'raw_output_max_bytes': 1,
+                'ipc_envelope_max_bytes': 1,
+                'stdout_max_bytes': D9_STDOUT_MAX_BYTES,
+                'stderr_max_bytes': D9_STDERR_MAX_BYTES,
+            }
+            values[field_name] = 0
+            with pytest.raises(ValueError):
+                Feat018BoundedRunnerConfig(**values)
+            values[field_name] = 1
+            with pytest.raises(ValueError):
+                Feat018BoundedRunnerConfig(**values)
+
+        with pytest.raises(ValueError):
+            D9ProcessStreamCapture(
+                D9ProcessRole.OUTER_ADAPTER_WORKER,
+                None,
+                1,
+                D9_STDERR_MAX_BYTES,
+            )
+
+        with pytest.raises(ValueError):
+            D9ProcessStreamCapture(
+                D9ProcessRole.OUTER_ADAPTER_WORKER,
+                1,
+                D9_STDOUT_MAX_BYTES,
+                D9_STDERR_MAX_BYTES,
+            )
+        with pytest.raises(ValueError):
+            D9ProcessStreamCapture(
+                D9ProcessRole.INNER_GENERATION_CHILD,
+                None,
+                D9_STDOUT_MAX_BYTES,
+                D9_STDERR_MAX_BYTES,
+            )
+
+    @pytest.mark.parametrize(
+        ('stream', 'ceiling'),
+        [
+            (D9StreamName.STDOUT, D9_STDOUT_MAX_BYTES),
+            (D9StreamName.STDERR, D9_STDERR_MAX_BYTES),
+        ],
+    )
+    def test_zero_under_exact_and_first_byte_overflow(
+        self, stream: D9StreamName, ceiling: int
+    ) -> None:
+        zero = D9BoundedByteCapture(D9ProcessRole.OUTER_ADAPTER_WORKER, None, stream, ceiling)
+        assert zero.finalize().bytes_seen == 0
+
+        under = D9BoundedByteCapture(D9ProcessRole.OUTER_ADAPTER_WORKER, None, stream, ceiling)
+        under.observe_chunk(b'\x00' * (ceiling - 1))
+        under_observation = under.finalize()
+        assert under_observation.bytes_seen == ceiling - 1
+        assert under_observation.disposition is D9StreamDisposition.ACCEPTED
+
+        exact = D9BoundedByteCapture(D9ProcessRole.OUTER_ADAPTER_WORKER, None, stream, ceiling)
+        exact.observe_chunk(b'\xff' * ceiling)
+        exact_observation = exact.finalize()
+        assert exact_observation.bytes_seen == ceiling
+        assert exact_observation.disposition is D9StreamDisposition.ACCEPTED
+
+        overflow = D9BoundedByteCapture(D9ProcessRole.OUTER_ADAPTER_WORKER, None, stream, ceiling)
+        overflow.observe_chunk(b'\x00' * ceiling)
+        overflow.observe_chunk(b'\x80')
+        overflow_observation = overflow.finalize()
+        assert overflow_observation.bytes_seen == ceiling + 1
+        assert overflow_observation.disposition is D9StreamDisposition.FAILED
+        assert overflow_observation.failure_code is (
+            D9StreamFailureCode.STDOUT_LIMIT_EXCEEDED
+            if stream is D9StreamName.STDOUT
+            else D9StreamFailureCode.STDERR_LIMIT_EXCEEDED
+        )
+        assert not hasattr(overflow, 'payload')
+
+    def test_binary_malformed_and_nul_bytes_are_counted_without_decoding(self) -> None:
+        capture = D9BoundedByteCapture(
+            D9ProcessRole.INNER_GENERATION_CHILD,
+            1,
+            D9StreamName.STDOUT,
+            D9_STDOUT_MAX_BYTES,
+        )
+        raw_bytes = memoryview(b'\xff\x00\xc3')
+        capture.observe_chunk(raw_bytes)
+        observation = capture.finalize()
+        assert observation.bytes_seen == 3
+        assert observation.failure_code is None
+        assert 'ff' not in repr(observation).lower()
+
+    def test_real_capture_normal_child_exit_drains_both_streams(self) -> None:
+        probe = (
+            'import os; '
+            'from sketch2life.benchmark.feat018_live_lightning_execution import '
+            'D9ProcessRole, D9ProcessStreamCapture, D9_STDERR_MAX_BYTES, D9_STDOUT_MAX_BYTES; '
+            'capture = D9ProcessStreamCapture('
+            'D9ProcessRole.INNER_GENERATION_CHILD, 1, '
+            'D9_STDOUT_MAX_BYTES, D9_STDERR_MAX_BYTES); '
+            "os.write(1, b'probe-out'); os.write(2, b'probe-err'); "
+            'report = capture.finalize(); '
+            'assert not report.failed and all(item.bytes_seen == 9 for item in report.observations)'
+        )
+        result = subprocess.run(
+            [sys.executable, '-c', probe],
+            cwd=Path(__file__).parents[2],
+            capture_output=True,
+            check=False,
+        )
+        assert result.returncode == 0
+        assert result.stdout == b''
+        assert result.stderr == b''
+
+    @pytest.mark.parametrize(
+        ('method_name', 'failure_code'),
+        [
+            ('mark_read_failed', D9StreamFailureCode.STDOUT_CAPTURE_READ_FAILED),
+            (
+                'mark_worker_died_before_finalization',
+                D9StreamFailureCode.WORKER_DIED_BEFORE_STREAM_FINALIZATION,
+            ),
+            ('mark_finalization_failed', D9StreamFailureCode.STREAM_FINALIZATION_FAILED),
+        ],
+    )
+    def test_typed_read_death_and_finalization_failures(
+        self, method_name: str, failure_code: D9StreamFailureCode
+    ) -> None:
+        capture = D9BoundedByteCapture(
+            D9ProcessRole.OUTER_ADAPTER_WORKER,
+            None,
+            D9StreamName.STDOUT,
+            D9_STDOUT_MAX_BYTES,
+        )
+        getattr(capture, method_name)()
+        observation = capture.finalize()
+        assert observation.failure_code is failure_code
+        assert observation.disposition is D9StreamDisposition.FAILED
+
+    def test_event_order_and_late_output_are_fail_closed(self) -> None:
+        capture = D9BoundedByteCapture(
+            D9ProcessRole.OUTER_ADAPTER_WORKER,
+            None,
+            D9StreamName.STDOUT,
+            D9_STDOUT_MAX_BYTES,
+        )
+        capture.observe_chunk(b'first')
+        capture.stop_and_close()
+        capture.bounded_drain()
+        first = capture.finalize()
+        capture.mark_published()
+        capture.observe_chunk(b'late')
+        second = capture.finalize()
+        assert first.disposition is D9StreamDisposition.ACCEPTED
+        assert second.failure_code is D9StreamFailureCode.STDOUT_LATE_OUTPUT
+        assert capture.events == (
+            'capture',
+            'stop_close',
+            'bounded_drain',
+            'finalize',
+            'publish',
+            'reject_late',
+            'finalize',
+        )
+
+    def test_both_stream_overflow_publishes_only_typed_metadata(self) -> None:
+        stdout = D9BoundedByteCapture(
+            D9ProcessRole.OUTER_ADAPTER_WORKER,
+            None,
+            D9StreamName.STDOUT,
+            D9_STDOUT_MAX_BYTES,
+        )
+        stderr = D9BoundedByteCapture(
+            D9ProcessRole.OUTER_ADAPTER_WORKER,
+            None,
+            D9StreamName.STDERR,
+            D9_STDERR_MAX_BYTES,
+        )
+        stdout.observe_chunk(
+            (b'RAW-STDOUT-SECRET' * (D9_STDOUT_MAX_BYTES // 17 + 1))[
+                : D9_STDOUT_MAX_BYTES + 1
+            ]
+        )
+        stderr.observe_chunk(
+            (b'RAW-STDERR-SECRET' * (D9_STDERR_MAX_BYTES // 17 + 1))[
+                : D9_STDERR_MAX_BYTES + 1
+            ]
+        )
+        report = D9CaptureReport((stdout.finalize(), stderr.finalize()))
+        assert D9StreamFailureCode.BOTH_STREAM_LIMITS_EXCEEDED in report.failure_codes
+        assert all(isinstance(item, D9StreamObservation) for item in report.observations)
+        assert 'RAW-STDOUT-SECRET' not in repr(report)
+        assert 'RAW-STDERR-SECRET' not in repr(report)
+
+    def test_inner_worker_death_is_typed_and_does_not_retry(self) -> None:
+        launcher = _launcher()
+        launcher.handle.mark_dead()
+        clock = FakeClock()
+        reports: list[D9CaptureReport] = []
+        runner = Feat018BoundedKillableQwenGenerationRunner(
+            config=_config(),
+            worker_cap_deadline_monotonic=clock() + 10.0,
+            launcher=launcher,
+            clock=clock,
+            on_d9_report=reports.append,
+        )
+        with pytest.raises(QwenPermanentRuntimeError, match='generation worker died'):
+            runner.generate(cast(object, None), cast(object, None), Path('x.png'), 'prompt')
+        assert len(launcher.launch_calls) == 1
+        assert reports[0].failure_codes == (
+            D9StreamFailureCode.WORKER_DIED_BEFORE_STREAM_FINALIZATION,
+        )
+
+    def test_supervisor_rejects_success_after_a_stream_limit_failure(self) -> None:
+        launcher = _launcher()
+        containment = FakeContainmentBackend()
+        clock = FakeClock()
+        launcher.connection.push({'seq': 1, 'kind': 'ADAPTER_STARTED'})
+        launcher.connection.push(
+            {'seq': 2, 'kind': 'GENERATION_ATTEMPT_STARTED', 'attempt_number': 1}
+        )
+        _push_success_d9_frames(launcher.connection)
+        for frame in launcher.connection.inbox:
+            if (
+                frame.get('process_role') == D9ProcessRole.OUTER_ADAPTER_WORKER.value
+                and frame.get('stream') == D9StreamName.STDOUT.value
+            ):
+                frame.update(
+                    {
+                        'bytes_seen': D9_STDOUT_MAX_BYTES + 1,
+                        'disposition': D9StreamDisposition.FAILED.value,
+                        'terminal_category': D9StreamTerminalCategory.LIMIT_EXCEEDED.value,
+                        'failure_code': D9StreamFailureCode.STDOUT_LIMIT_EXCEEDED.value,
+                    }
+                )
+                break
+        launcher.connection.push({'seq': 3, 'kind': 'TERMINAL', 'outcome': 'SUCCEEDED'})
+        result = _supervisor(launcher=launcher, containment=containment, clock=clock).run(
+            _no_op_entry, ()
+        )
+        assert result.effective_outcome is EffectiveOutcome.FAILED
+        assert D9StreamFailureCode.STDOUT_LIMIT_EXCEEDED in result.d9_failure_codes
+        assert result.primary_failure_reason == 'D9 stream enforcement failed'
+
+    def test_one_attempt_with_stdout_stderr_observations_succeeds(self) -> None:
+        launcher = _launcher()
+        containment = FakeContainmentBackend()
+        clock = FakeClock()
+        launcher.connection.push({'seq': 1, 'kind': 'ADAPTER_STARTED'})
+        launcher.connection.push(
+            {'seq': 2, 'kind': 'GENERATION_ATTEMPT_STARTED', 'attempt_number': 1}
+        )
+        _push_success_d9_frames(launcher.connection, attempt_numbers=(1,))
+        launcher.connection.push(
+            {'seq': 3, 'kind': 'TERMINAL', 'outcome': 'SUCCEEDED', 'raw_status': 'SUCCEEDED'}
+        )
+        result = _supervisor(launcher=launcher, containment=containment, clock=clock).run(
+            _no_op_entry, ()
+        )
+        assert result.effective_outcome is EffectiveOutcome.SUCCEEDED
+        assert result.attempt_count == 1
+        assert result.primary_failure_reason is None
+        assert len(result.d9_observations) == 4
+        assert _adapter_result_is_accepted_success(result)
+
+    def test_two_accepted_attempts_publish_independent_d9_observations_and_succeed(
+        self,
+    ) -> None:
+        launcher = _launcher()
+        containment = FakeContainmentBackend()
+        clock = FakeClock()
+        launcher.connection.push({'seq': 1, 'kind': 'ADAPTER_STARTED'})
+        launcher.connection.push(
+            {'seq': 2, 'kind': 'GENERATION_ATTEMPT_STARTED', 'attempt_number': 1}
+        )
+        for stream in D9StreamName:
+            launcher.connection.push(
+                _d9_observation_frame_for_test(D9ProcessRole.INNER_GENERATION_CHILD, 1, stream)
+            )
+        launcher.connection.push(
+            {'seq': 3, 'kind': 'GENERATION_ATTEMPT_STARTED', 'attempt_number': 2}
+        )
+        for stream in D9StreamName:
+            launcher.connection.push(
+                _d9_observation_frame_for_test(D9ProcessRole.INNER_GENERATION_CHILD, 2, stream)
+            )
+        for stream in D9StreamName:
+            launcher.connection.push(
+                _d9_observation_frame_for_test(D9ProcessRole.OUTER_ADAPTER_WORKER, None, stream)
+            )
+        launcher.connection.push(
+            {'seq': 4, 'kind': 'TERMINAL', 'outcome': 'SUCCEEDED', 'raw_status': 'SUCCEEDED'}
+        )
+        result = _supervisor(launcher=launcher, containment=containment, clock=clock).run(
+            _no_op_entry, ()
+        )
+
+        # The second attempt's inner-child observations must not collide with the first's and
+        # must not be misreported as a protocol violation (the confirmed independent-review
+        # blocker: deduplication used to key only on (process_role, stream)).
+        assert result.primary_failure_reason is None
+        assert result.final_state is ProgressState.TERMINAL
+        assert result.attempt_count == 2
+        assert result.effective_outcome is EffectiveOutcome.SUCCEEDED
+        assert len(result.d9_observations) == 6
+        inner_attempt_numbers = sorted(
+            item.attempt_number
+            for item in result.d9_observations
+            if item.process_role is D9ProcessRole.INNER_GENERATION_CHILD
+        )
+        assert inner_attempt_numbers == [1, 1, 2, 2]
+        outer_attempt_numbers = {
+            item.attempt_number
+            for item in result.d9_observations
+            if item.process_role is D9ProcessRole.OUTER_ADAPTER_WORKER
+        }
+        assert outer_attempt_numbers == {None}
+        assert _adapter_result_is_accepted_success(result)
+
+    def test_duplicate_observation_within_one_attempt_is_still_rejected(self) -> None:
+        launcher = _launcher()
+        containment = FakeContainmentBackend()
+        clock = FakeClock()
+        launcher.connection.push({'seq': 1, 'kind': 'ADAPTER_STARTED'})
+        launcher.connection.push(
+            {'seq': 2, 'kind': 'GENERATION_ATTEMPT_STARTED', 'attempt_number': 1}
+        )
+        launcher.connection.push(
+            _d9_observation_frame_for_test(
+                D9ProcessRole.INNER_GENERATION_CHILD, 1, D9StreamName.STDOUT
+            )
+        )
+        launcher.connection.push(
+            _d9_observation_frame_for_test(
+                D9ProcessRole.INNER_GENERATION_CHILD, 1, D9StreamName.STDOUT
+            )
+        )
+        launcher.connection.push({'seq': 3, 'kind': 'TERMINAL', 'outcome': 'SUCCEEDED'})
+        result = _supervisor(launcher=launcher, containment=containment, clock=clock).run(
+            _no_op_entry, ()
+        )
+        assert result.final_state is ProgressState.FROZEN
+        assert result.primary_failure_reason == 'malformed D9 stream observation'
+        assert result.effective_outcome is EffectiveOutcome.FAILED
+
+    def test_observation_claiming_an_unaccepted_attempt_number_is_rejected(self) -> None:
+        launcher = _launcher()
+        containment = FakeContainmentBackend()
+        clock = FakeClock()
+        launcher.connection.push({'seq': 1, 'kind': 'ADAPTER_STARTED'})
+        launcher.connection.push(
+            {'seq': 2, 'kind': 'GENERATION_ATTEMPT_STARTED', 'attempt_number': 1}
+        )
+        launcher.connection.push(
+            _d9_observation_frame_for_test(
+                D9ProcessRole.INNER_GENERATION_CHILD, 2, D9StreamName.STDOUT
+            )
+        )
+        launcher.connection.push({'seq': 3, 'kind': 'TERMINAL', 'outcome': 'SUCCEEDED'})
+        result = _supervisor(launcher=launcher, containment=containment, clock=clock).run(
+            _no_op_entry, ()
+        )
+        assert result.final_state is ProgressState.FROZEN
+        assert result.primary_failure_reason == 'malformed D9 stream observation'
+
+    def test_runner_assigns_increasing_attempt_numbers_across_two_calls_and_never_retries(
+        self,
+    ) -> None:
+        clock = FakeClock()
+        connection_one = FakeBoundedConnection(clock=clock)
+        connection_two = FakeBoundedConnection(clock=clock)
+        for connection, attempt_number in ((connection_one, 1), (connection_two, 2)):
+            for stream in D9StreamName:
+                connection.push(
+                    _d9_observation_frame_for_test(
+                        D9ProcessRole.INNER_GENERATION_CHILD, attempt_number, stream
+                    )
+                )
+            connection.push({'kind': 'success', 'raw_output': f'attempt-{attempt_number}'})
+
+        @dataclass(slots=True)
+        class _TwoAttemptLauncher:
+            connections: list[FakeBoundedConnection]
+            launch_calls: list[tuple[Callable[..., None], tuple[object, ...]]] = field(
+                default_factory=list, init=False
+            )
+
+            def launch(
+                self, entry: Callable[..., None], args: tuple[object, ...]
+            ) -> tuple[ProcessHandle, FakeBoundedConnection]:
+                index = len(self.launch_calls)
+                self.launch_calls.append((entry, args))
+                return FakeProcessHandle(), self.connections[index]
+
+        launcher = _TwoAttemptLauncher(connections=[connection_one, connection_two])
+        reports: list[D9CaptureReport] = []
+        runner = Feat018BoundedKillableQwenGenerationRunner(
+            config=_config(),
+            worker_cap_deadline_monotonic=clock() + 10.0,
+            launcher=launcher,
+            clock=clock,
+            on_d9_report=reports.append,
+        )
+        first = runner.generate(cast(object, None), cast(object, None), Path('x.png'), 'prompt')
+        second = runner.generate(cast(object, None), cast(object, None), Path('x.png'), 'prompt')
+
+        assert first == 'attempt-1'
+        assert second == 'attempt-2'
+        assert len(launcher.launch_calls) == 2
+        assert launcher.launch_calls[0][1][-1] == 1
+        assert launcher.launch_calls[1][1][-1] == 2
+        assert len(reports) == 2
+        assert {item.attempt_number for item in reports[0].observations} == {1}
+        assert {item.attempt_number for item in reports[1].observations} == {2}
+        assert not reports[0].failed
+        assert not reports[1].failed
+
+def _d9_observation_frame_for_test(
+    process_role: D9ProcessRole, attempt_number: int | None, stream: D9StreamName
+) -> dict[str, object]:
+    return {
+        'kind': 'D9_STREAM_OBSERVATION',
+        'process_role': process_role.value,
+        'attempt_number': attempt_number,
+        'stream': stream.value,
+        'bytes_seen': 0,
+        'ceiling': (
+            D9_STDOUT_MAX_BYTES if stream is D9StreamName.STDOUT else D9_STDERR_MAX_BYTES
+        ),
+        'disposition': D9StreamDisposition.ACCEPTED.value,
+        'terminal_category': D9StreamTerminalCategory.WITHIN_LIMIT.value,
+        'failure_code': None,
+    }
+
+
+def _push_success_d9_frames(
+    connection: FakeBoundedConnection, *, attempt_numbers: tuple[int, ...] = (1,)
+) -> None:
+    """Push one clean outer-worker pair plus one clean inner-child pair per attempt."""
+
+    for stream in D9StreamName:
+        connection.push(
+            _d9_observation_frame_for_test(D9ProcessRole.OUTER_ADAPTER_WORKER, None, stream)
+        )
+    for attempt_number in attempt_numbers:
+        for stream in D9StreamName:
+            connection.push(
+                _d9_observation_frame_for_test(
+                    D9ProcessRole.INNER_GENERATION_CHILD, attempt_number, stream
+                )
+            )
+
+
 def _successful_supervisor_result() -> SupervisorRunResult:
     return SupervisorRunResult(
         final_state=ProgressState.TERMINAL,
@@ -2542,6 +3075,10 @@ def _successful_supervisor_result() -> SupervisorRunResult:
         cleanup_status=CleanupStatus.SUCCEEDED,
         effective_outcome=EffectiveOutcome.SUCCEEDED,
         raw_status="SUCCEEDED",
+        d9_observations=(
+            _fake_d9_report(D9ProcessRole.OUTER_ADAPTER_WORKER).observations
+            + _fake_d9_report(D9ProcessRole.INNER_GENERATION_CHILD).observations
+        ),
     )
 
 
@@ -3933,6 +4470,12 @@ class TestCooperativeWaitHelpersAreNonLiveOnly:
 class TestAdapterWorkerEntryGate:
     """F3: ``adapter_worker_entry`` never constructs anything before a valid release."""
 
+    @pytest.fixture(autouse=True)
+    def _fake_capture(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        import sketch2life.benchmark.feat018_live_lightning_execution as module
+
+        monkeypatch.setattr(module, '_default_d9_capture_factory', _fake_d9_capture_factory)
+
     def _args(
         self, artifact_ref: str = "fixture.bin", digest: str = "a" * 64
     ) -> tuple[
@@ -3980,6 +4523,38 @@ class TestAdapterWorkerEntryGate:
         )
         assert calls == ["self_contain"]
 
+    def test_capture_is_installed_before_self_containment_and_first_write(self) -> None:
+        events: list[str] = []
+        request, runtime_config, policy, prompt, config = self._args()
+
+        def capture_factory(
+            process_role: D9ProcessRole,
+            attempt_number: int | None,
+            stdout_max_bytes: int,
+            stderr_max_bytes: int,
+        ) -> FakeD9Capture:
+            events.append('capture')
+            return _fake_d9_capture_factory(
+                process_role, attempt_number, stdout_max_bytes, stderr_max_bytes
+            )
+
+        def self_contain() -> None:
+            events.append('self_contain')
+
+        adapter_worker_entry(
+            FakeBoundedConnection(),
+            request,
+            runtime_config,
+            policy,
+            prompt,
+            config,
+            generation_launcher=_launcher(),
+            self_contain=self_contain,
+            clock=FakeClock(),
+            capture_factory=capture_factory,
+        )
+        assert events == ['capture', 'self_contain']
+
     def test_missing_release_frame_prevents_all_construction(self) -> None:
         connection = FakeBoundedConnection()  # empty inbox, no clock bound -> returns None
         generation_launcher = _launcher()
@@ -3995,7 +4570,7 @@ class TestAdapterWorkerEntryGate:
             self_contain=lambda: None,
             clock=FakeClock(),
         )
-        assert connection.sent == []
+        assert _progress_frames(connection.sent) == []
         assert generation_launcher.launch_calls == []
 
     def test_malformed_release_frame_prevents_all_construction(self) -> None:
@@ -4014,7 +4589,7 @@ class TestAdapterWorkerEntryGate:
             self_contain=lambda: None,
             clock=FakeClock(),
         )
-        assert connection.sent == []
+        assert _progress_frames(connection.sent) == []
         assert generation_launcher.launch_calls == []
 
     def test_release_frame_missing_duration_prevents_all_construction(self) -> None:
@@ -4033,7 +4608,7 @@ class TestAdapterWorkerEntryGate:
             self_contain=lambda: None,
             clock=FakeClock(),
         )
-        assert connection.sent == []
+        assert _progress_frames(connection.sent) == []
         assert generation_launcher.launch_calls == []
 
     @pytest.mark.parametrize(
@@ -4085,7 +4660,7 @@ class TestAdapterWorkerEntryGate:
             clock=FakeClock(),
         )
 
-        assert connection.sent == []
+        assert _progress_frames(connection.sent) == []
         assert generation_launcher.launch_calls == []
 
     def test_release_completing_after_worker_gate_deadline_is_rejected(self) -> None:
@@ -4114,7 +4689,7 @@ class TestAdapterWorkerEntryGate:
             clock=clock,
         )
 
-        assert connection.sent == []
+        assert _progress_frames(connection.sent) == []
         assert generation_launcher.launch_calls == []
 
     def test_oversized_release_frame_prevents_all_construction(self) -> None:
@@ -4134,7 +4709,7 @@ class TestAdapterWorkerEntryGate:
             self_contain=lambda: None,
             clock=FakeClock(),
         )
-        assert connection.sent == []
+        assert _progress_frames(connection.sent) == []
         assert generation_launcher.launch_calls == []
 
     def test_valid_release_sends_adapter_started_and_proceeds(
@@ -4157,7 +4732,7 @@ class TestAdapterWorkerEntryGate:
             self_contain=lambda: None,
             clock=FakeClock(),
         )
-        kinds = [frame["kind"] for frame in connection.sent]
+        kinds = [frame['kind'] for frame in _progress_frames(connection.sent)]
         assert kinds[0] == "ADAPTER_STARTED"
         assert "GENERATION_ATTEMPT_STARTED" in kinds
         assert kinds[-1] == "TERMINAL"
@@ -4286,7 +4861,7 @@ class TestAdapterWorkerEntryGate:
             self_contain=lambda: None,
             clock=FakeClock(),
         )
-        kinds = [frame["kind"] for frame in connection.sent]
+        kinds = [frame['kind'] for frame in _progress_frames(connection.sent)]
         assert kinds == ["ADAPTER_STARTED", "GENERATION_ATTEMPT_STARTED", "TERMINAL"]
         assert connection.sent[-1]["outcome"] == "FAILED"
 
@@ -4311,7 +4886,7 @@ class TestAdapterWorkerEntryGate:
             self_contain=lambda: None,
             clock=FakeClock(),
         )
-        seqs = [frame["seq"] for frame in connection.sent]
+        seqs = [frame['seq'] for frame in _progress_frames(connection.sent)]
         assert seqs == list(range(1, len(seqs) + 1))
         for frame in connection.sent:
             serialized = str(frame)
@@ -4337,7 +4912,7 @@ class TestAdapterWorkerEntryGate:
                 clock=FakeClock(),
             )
 
-        assert connection.sent == []
+        assert _progress_frames(connection.sent) == []
         assert generation_launcher.launch_calls == []
 
     def test_attempt_started_send_failure_stops_before_generation_child_launch(
@@ -4389,7 +4964,7 @@ class TestAdapterWorkerEntryGate:
             )
 
         assert generation_launcher.launch_calls
-        assert [frame["kind"] for frame in connection.sent] == [
+        assert [frame['kind'] for frame in _progress_frames(connection.sent)] == [
             "ADAPTER_STARTED",
             "GENERATION_ATTEMPT_STARTED",
         ]
@@ -4853,6 +5428,7 @@ class TestAdapterCallSupervisorHangsAndCleanup:
         launcher.connection.push(
             {"seq": 2, "kind": "GENERATION_ATTEMPT_STARTED", "attempt_number": 1}
         )
+        _push_success_d9_frames(launcher.connection)
         launcher.connection.push({"seq": 3, "kind": "TERMINAL", "outcome": "SUCCEEDED"})
         supervisor = _supervisor(launcher=launcher, containment=containment, clock=clock)
         result = supervisor.run(_no_op_entry, ())
@@ -5042,6 +5618,7 @@ class TestSupervisorExceptionSafeLifecycle:
         launcher.connection.push(
             {"seq": 2, "kind": "GENERATION_ATTEMPT_STARTED", "attempt_number": 1}
         )
+        _push_success_d9_frames(launcher.connection)
         launcher.connection.push({"seq": 3, "kind": "TERMINAL", "outcome": "SUCCEEDED"})
         containment = FakeContainmentBackend(
             raise_on_is_empty=RuntimeError("SECRET-cleanup-query-detail")
