@@ -55,6 +55,10 @@ G9: COMPLETE
 P2-T5: NOT APPROVED
 INTEGRATION/RUNTIME/LIVE: NOT APPROVED
 
+The `P2-T5: NOT APPROVED` line above is retained as a 2026-09-17 P2-T4
+historical snapshot; it is superseded by the P2-T5 governance-closeout section
+below and is not the current P2-T5 status.
+
 Evidence checkpoint: `c80c58fbd2b76d28af52156301caca87e7a794f5`.
 Implementation candidate: `21249dc696c8ea3d958e78394ed69b8ac9f9505a`.
 Direct parent: `dc107cd45a21ccb47031a58cb7c782084624bff4`.
