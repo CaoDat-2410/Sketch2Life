@@ -116,6 +116,7 @@ PromptBuilder = Callable[[VisionUnderstandingRequestV2], str]
 RepairPromptBuilder = Callable[
     [VisionUnderstandingRequestV2, tuple[VisionMappingDiagnosticV2, ...]], str
 ]
+SemanticEmptyRepairPromptBuilder = Callable[[VisionUnderstandingRequestV2], str]
 TransientClassifier = Callable[[BaseException], bool]
 RawOutputHook = Callable[[str], None]
 
@@ -674,6 +675,15 @@ def _default_prompt_builder(_request: VisionUnderstandingRequestV2) -> str:
     return ""
 
 
+def _has_grounded_observation(result: VisionUnderstandingSuccessV2) -> bool:
+    """Return whether the model supplied a claim that can reach Gate A."""
+
+    # Ambiguous regions are useful diagnostics, but they are not grounded claims. Keeping this
+    # check outside the V2 schema preserves the low-level contract while allowing the live demo
+    # policy to fail closed on an empty semantic result.
+    return bool(result.entities or result.actions or result.relations or result.themes)
+
+
 class QwenVisionAdapter(VisionUnderstandingPortV2):
     """Real Qwen V2 adapter with typed failures and no raw-output leakage.
 
@@ -693,6 +703,7 @@ class QwenVisionAdapter(VisionUnderstandingPortV2):
         prompt_builder: PromptBuilder | None = None,
         prompt: str | None = None,
         repair_prompt_builder: RepairPromptBuilder | None = None,
+        semantic_empty_repair_prompt_builder: SemanticEmptyRepairPromptBuilder | None = None,
         generation_runner: QwenGenerationRunner | None = None,
         model_factory: ModelFactory | None = None,
         classify_transient: TransientClassifier = _never_transient,
@@ -710,6 +721,7 @@ class QwenVisionAdapter(VisionUnderstandingPortV2):
         if prompt is not None:
             self._prompt_builder = lambda _request: prompt
         self._repair_prompt_builder = repair_prompt_builder
+        self._semantic_empty_repair_prompt_builder = semantic_empty_repair_prompt_builder
         if generation_runner is not None and model_factory is not None:
             raise ValueError("provide generation_runner or model_factory, not both")
         if generation_runner is not None:
@@ -904,6 +916,23 @@ class QwenVisionAdapter(VisionUnderstandingPortV2):
                 attempt_number,
                 repair_attempted=repair_attempted,
             )
+            if (
+                attempt_number == 1
+                and self._enable_bounded_repair
+                and self._semantic_empty_repair_prompt_builder is not None
+                and isinstance(result, VisionUnderstandingSuccessV2)
+                and not _has_grounded_observation(result)
+            ):
+                try:
+                    repair_prompt = self._semantic_empty_repair_prompt_builder(request)
+                except Exception:  # noqa: BLE001 - repair construction cannot leak or escape
+                    return result
+                if not isinstance(repair_prompt, str) or not repair_prompt.strip():
+                    return result
+                prompt = repair_prompt
+                attempt_number = 2
+                repair_attempted = True
+                continue
             if (
                 attempt_number == 1
                 and self._enable_bounded_repair

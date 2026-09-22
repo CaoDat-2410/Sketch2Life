@@ -146,6 +146,7 @@ def _adapter(
     on_raw_output: Any = None,
     on_mapping_diagnostic: Any = None,
     repair_prompt_builder: Any = None,
+    semantic_empty_repair_prompt_builder: Any = None,
     enable_bounded_repair: bool = False,
 ) -> QwenVisionAdapter:
     return QwenVisionAdapter(
@@ -157,6 +158,7 @@ def _adapter(
         on_raw_output=on_raw_output,
         on_mapping_diagnostic=on_mapping_diagnostic,
         repair_prompt_builder=repair_prompt_builder,
+        semantic_empty_repair_prompt_builder=semantic_empty_repair_prompt_builder,
         enable_bounded_repair=enable_bounded_repair,
     )
 
@@ -202,6 +204,33 @@ def test_adapter_success_validates_source_before_generation_and_emits_v2_provena
     assert result.policy_execution_state == "PASSED"
     assert result.model_provenance is not None
     assert runner.calls == 1
+
+
+def test_semantic_empty_result_uses_one_bounded_repair_generation(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    artifact_ref, digest = _write_source(tmp_path)
+    grounded = {
+        **_empty_payload(),
+        "entities": [
+            {"observation_id": "butterfly-1", "label": _text("butterfly"), "confidence": 0.91}
+        ],
+    }
+    runner = _SequenceRunner(_raw(_empty_payload()), _raw(grounded))
+
+    result = _adapter(
+        runner,
+        semantic_empty_repair_prompt_builder=lambda _request: "semantic-empty-repair",
+        enable_bounded_repair=True,
+    ).understand(_request(artifact_ref, digest))
+
+    assert isinstance(result, VisionUnderstandingSuccessV2)
+    assert result.entities[0].label.value == "butterfly"
+    assert result.attempt_number == 2
+    assert result.repair_attempted is True
+    assert runner.calls == 2
+    assert runner.received_prompts[-1] == "semantic-empty-repair"
 
 
 def test_complete_json_fence_is_the_only_repair_and_preserves_valid_content(

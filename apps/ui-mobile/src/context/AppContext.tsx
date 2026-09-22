@@ -256,13 +256,15 @@ function mapScenePayload(payload: JsonObject, sessionId: string): SceneUnderstan
   }));
   const primary = claims[0]?.label.value || 'bức tranh';
   const narration = asObject(payload.narration);
+  const progress = asObject(payload.understanding_progress);
+  const topic = asObject(progress.topic);
   return {
     storyId: sessionId,
     entities,
     voiceTranscript: textValue(narration.transcript, 'Không có lời kể trong phiên này.'),
     complimentTitle: 'AI đã đọc được bức tranh!',
     complimentSub: 'Đây là đề xuất từ ảnh thật vừa gửi lên backend; người lớn vẫn cần xác nhận Gate A.',
-    storyTitle: topicFromClaims(claims),
+    storyTitle: textValue(topic.text, topicFromClaims(claims)),
     storySubtitle: 'Bản xem trước tĩnh từ ảnh gốc; video chưa nằm trong phạm vi demo.',
   };
 }
@@ -277,8 +279,16 @@ function workflowFailure(result: WorkflowResult<Record<string, unknown>>, fallba
   const nestedMessage = nestedCode
     ? `Backend phân tích thất bại (${nestedCode}${nestedDetail ? `: ${nestedDetail}` : ''}).`
     : '';
+  const reasonCodes = Array.isArray(payload.reason_codes)
+    ? payload.reason_codes.filter((value): value is string => typeof value === 'string')
+    : [];
+  const safeReason = reasonCodes.includes('NO_GROUNDED_CLAIMS')
+    ? 'Backend chưa tìm thấy chi tiết đủ rõ trong ảnh. Ảnh chưa được đưa vào Gate A; hãy thử ảnh rõ hơn hoặc chạy lại.'
+    : reasonCodes.includes('MAPPING_REJECTED')
+      ? 'Backend đã từ chối kết quả AI vì không khớp contract. Ảnh chưa được đưa vào Gate A.'
+      : '';
   return new DemoApiError(
-    textValue(result.failure?.safe_message, textValue(payload.guidance, nestedMessage || fallback)),
+    textValue(result.failure?.safe_message, textValue(payload.guidance, safeReason || nestedMessage || fallback)),
     textValue(result.failure?.code, nestedCode || 'WORKFLOW_BLOCKED'),
     409,
     result.failure?.retryable === true || nestedFailure.retryable === true,
@@ -529,6 +539,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [analysisClaims, setAnalysisClaims] = useState<AnalysisClaim[]>([]);
   const [selectedClaimIds, setSelectedClaimIds] = useState<string[]>([]);
   const [primaryClaimId, setPrimaryClaimId] = useState<string | null>(null);
+  const [understandingProgress, setUnderstandingProgress] = useState<JsonObject | null>(null);
+  const [directionRequeryUsed, setDirectionRequeryUsed] = useState(false);
   const [correction, setCorrection] = useState('');
   const [gateAConfirmed, setGateAConfirmed] = useState(false);
 
@@ -663,7 +675,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const payload = asObject(result.payload);
       if (result.status !== 'SUCCEEDED') throw workflowFailure(result, 'Backend không trả kết quả phân tích.');
       const claims = readAnalysisClaims(payload);
+      const progress = asObject(payload.understanding_progress);
+      if (claims.length === 0 || progress.gate_a_ready !== true) {
+        throw workflowFailure(
+          result,
+          'Backend chưa tạo được đề xuất có căn cứ; Gate A vẫn đang khóa.',
+        );
+      }
       setAnalysisClaims(claims);
+      setUnderstandingProgress(progress);
+      setDirectionRequeryUsed(false);
       setSelectedClaimIds(claims.length > 0 ? [claims[0].observation_id] : []);
       setPrimaryClaimId(claims[0]?.observation_id ?? null);
       setSceneData(mapScenePayload(payload, sessionId));
@@ -688,6 +709,40 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setWorkflowBusy('Xác nhận Gate A');
     setWorkflowError(null);
     try {
+      const currentDirection = analysisClaims.find(
+        (claim) => claim.observation_id === primaryClaimId,
+      );
+      const currentProgress = understandingProgress || {};
+      const directionChanged = primaryClaimId !== analysisClaims[0]?.observation_id;
+      if (!directionRequeryUsed && (directionChanged || correction.trim())) {
+        const requery = await workflowApi.requeryUnderstanding(sessionId, sessionVersion, {
+          priorRunId: textValue(currentProgress.run_id, 'initial-understanding'),
+          direction: currentDirection?.label.value || correction.trim(),
+          revision: numberValue(currentProgress.direction_revision, 0) + 1,
+          correction: correction.trim(),
+        });
+        updateSessionVersion(requery.observed_session_version);
+        if (requery.status !== 'SUCCEEDED') {
+          throw workflowFailure(requery, 'Backend chưa tạo lại đề xuất theo hướng đã chọn.');
+        }
+        const requeryPayload = asObject(requery.payload);
+        const requeryClaims = readAnalysisClaims(requeryPayload);
+        const requeryProgress = asObject(requeryPayload.understanding_progress);
+        if (requeryClaims.length === 0 || requeryProgress.gate_a_ready !== true) {
+          throw workflowFailure(requery, 'Backend chưa tạo được đề xuất mới có căn cứ.');
+        }
+        const matchingClaim = requeryClaims.find(
+          (claim) => claim.label.value.toLowerCase() === currentDirection?.label.value.toLowerCase(),
+        ) || requeryClaims[0];
+        setAnalysisClaims(requeryClaims);
+        setUnderstandingProgress(requeryProgress);
+        setDirectionRequeryUsed(true);
+        setSelectedClaimIds([matchingClaim.observation_id]);
+        setPrimaryClaimId(matchingClaim.observation_id);
+        setSceneData(mapScenePayload(requeryPayload, sessionId));
+        setWorkflowNotice('Đã kiểm tra lại ảnh theo hướng mới. Hãy xác nhận Gate A lần nữa.');
+        return false;
+      }
       const result = await workflowApi.confirmGateA(
         sessionId,
         sessionVersion,

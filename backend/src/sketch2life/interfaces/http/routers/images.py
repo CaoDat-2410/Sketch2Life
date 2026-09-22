@@ -183,6 +183,46 @@ def run_understanding(
     )
 
 
+@router.get(
+    "/{session_id}/understanding/progress",
+    response_model=MobileWorkflowResultV1,
+    summary="Read the last sanitized understanding stage projection",
+)
+def read_understanding_progress(
+    session_id: str,
+    request: Request,
+    request_id: str = Header(default="progress-read"),
+    expected_session_version: int = Header(default=0, alias="X-Expected-Session-Version"),
+) -> JSONResponse:
+    service: LiveImageDemoService | None = request.app.state.live_image_demo_service
+    if service is None:
+        error = SessionWorkflowError(
+            code="IMAGE_DEMO_NOT_CONFIGURED",
+            status_code=503,
+            safe_message="The image-only demo service is not configured.",
+        )
+        return _error_response(
+            error,
+            request_id=request_id,
+            session_id=session_id,
+            expected_version=expected_session_version,
+        )
+    try:
+        result = service.read_understanding_progress(
+            session_id=session_id,
+            request_id=request_id,
+            expected_version=expected_session_version,
+        )
+    except SessionWorkflowError as error:
+        return _error_response(
+            error,
+            request_id=request_id,
+            session_id=session_id,
+            expected_version=expected_session_version,
+        )
+    return JSONResponse(status_code=200, content=result.model_dump(mode="json"))
+
+
 def _error_response(
     error: SessionWorkflowError,
     *,

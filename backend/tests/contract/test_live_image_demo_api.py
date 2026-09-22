@@ -60,9 +60,10 @@ class _TestImageDecoder:
 
 
 class _CountingVision:
-    def __init__(self, *, label: str = "cây") -> None:
+    def __init__(self, *, label: str = "cây", empty: bool = False) -> None:
         self.calls = 0
         self.label = label
+        self.empty = empty
 
     def understand(self, request: VisionUnderstandingRequestV2) -> VisionUnderstandingSuccessV2:
         self.calls += 1
@@ -81,7 +82,7 @@ class _CountingVision:
             policy_match_view_version=VISION_POLICY_MATCH_VIEW_VERSION,
             policy_execution_state="PASSED",
             status="SUCCEEDED",
-            entities=(
+            entities=() if self.empty else (
                 EntityCandidateV1(
                     observation_id="subject-1",
                     label=ObservedTextV1(
@@ -314,6 +315,131 @@ def test_typed_narration_is_forwarded_as_text_without_an_asr_call() -> None:
     assert body["payload"]["narration"]["transcript"] == "Con mèo đang tìm bông hoa."
     assert body["payload"]["asr_claims"][0]["source"] == "TEXT_TYPED"
     assert vision.calls == 1
+
+
+def test_empty_vision_result_is_blocked_before_gate_a() -> None:
+    client, vision = _client(vision=_CountingVision(empty=True))
+    session_id, version = _create_session(client)
+    uploaded = client.post(
+        f"/v1/sessions/{session_id}/media/image",
+        headers=_headers(session_id, version, "empty-image"),
+        files={"image": ("synthetic.png", _IMAGE, "image/png")},
+    )
+    version = uploaded.json()["observed_session_version"]
+
+    result = client.post(
+        f"/v1/sessions/{session_id}/understanding",
+        json={
+            "request_id": "empty-understanding",
+            "idempotency_key": "empty-understanding-key",
+            "session_id": session_id,
+            "expected_session_version": version,
+            "actor_ref": "demo:local",
+            "payload": {"operation": "RUN_UNDERSTANDING", "user_initiated": True},
+        },
+    )
+
+    assert result.status_code == 200
+    body = result.json()
+    assert body["status"] == "BLOCKED"
+    assert body["payload"]["reason_codes"] == ["NO_GROUNDED_CLAIMS"]
+    assert body["payload"]["understanding_progress"]["gate_a_ready"] is False
+    assert body["payload"]["understanding_progress"]["stage"] == "BLOCKED_NO_GROUNDED_CLAIMS"
+    assert vision.calls == 1
+
+
+def test_typed_narration_is_fused_with_matching_visual_claim_and_topic_is_bounded() -> None:
+    client, vision = _client(vision=_CountingVision(label="butterfly"))
+    session_id, version = _create_session(client)
+    uploaded = client.post(
+        f"/v1/sessions/{session_id}/media/image",
+        headers=_headers(session_id, version, "fusion-image"),
+        files={"image": ("synthetic.png", _IMAGE, "image/png")},
+    )
+    version = uploaded.json()["observed_session_version"]
+    result = client.post(
+        f"/v1/sessions/{session_id}/understanding",
+        json={
+            "request_id": "fusion-understanding",
+            "idempotency_key": "fusion-understanding-key",
+            "session_id": session_id,
+            "expected_session_version": version,
+            "actor_ref": "demo:local",
+            "payload": {
+                "operation": "RUN_UNDERSTANDING",
+                "user_initiated": True,
+                "narration": {
+                    "kind": "TEXT",
+                    "text": "Con bướm đang bay trên bãi cỏ.",
+                    "language": "vi",
+                    "provenance": "TEXT_TYPED",
+                },
+            },
+        },
+    )
+
+    assert result.status_code == 200
+    body = result.json()
+    assert body["status"] == "SUCCEEDED"
+    assert body["payload"]["fused_claims"]
+    topic = body["payload"]["understanding_progress"]["topic"]
+    assert 10 <= topic["word_count"] <= 18
+    assert "con bướm" in topic["text"]
+    assert vision.calls == 1
+
+
+def test_direction_requery_rechecks_the_admitted_image_and_exposes_progress() -> None:
+    client, vision = _client()
+    session_id, version = _create_session(client)
+    uploaded = client.post(
+        f"/v1/sessions/{session_id}/media/image",
+        headers=_headers(session_id, version, "requery-image"),
+        files={"image": ("synthetic.png", _IMAGE, "image/png")},
+    )
+    version = uploaded.json()["observed_session_version"]
+    first = client.post(
+        f"/v1/sessions/{session_id}/understanding",
+        json={
+            "request_id": "requery-first",
+            "idempotency_key": "requery-first-key",
+            "session_id": session_id,
+            "expected_session_version": version,
+            "actor_ref": "demo:local",
+            "payload": {"operation": "RUN_UNDERSTANDING", "user_initiated": True},
+        },
+    )
+    version = first.json()["observed_session_version"]
+    second = client.post(
+        f"/v1/sessions/{session_id}/understanding",
+        json={
+            "request_id": "requery-second",
+            "idempotency_key": "requery-second-key",
+            "session_id": session_id,
+            "expected_session_version": version,
+            "actor_ref": "demo:local",
+            "payload": {
+                "operation": "REQUERY_UNDERSTANDING",
+                "user_initiated": True,
+                "prior_run_id": "requery-first",
+                "direction_revision": 1,
+                "selected_direction": "một hướng quan sát khác",
+                "correction": "",
+            },
+        },
+    )
+
+    assert second.status_code == 200
+    assert second.json()["status"] == "SUCCEEDED"
+    assert second.json()["payload"]["understanding_progress"]["direction_revision"] == 1
+    assert second.json()["payload"]["understanding_progress"]["stage"] == "TOPIC_READY"
+    assert vision.calls == 2
+
+    progress = client.get(
+        f"/v1/sessions/{session_id}/understanding/progress",
+        headers={"X-Expected-Session-Version": str(second.json()["observed_session_version"])},
+    )
+    assert progress.status_code == 200
+    assert progress.json()["payload"]["understanding_progress"]["run_id"] == "requery-second"
 
 
 def test_audio_is_stored_after_image_and_never_sent_without_configured_asr() -> None:

@@ -83,7 +83,8 @@ object_ref,confidence; refs point to distinct entity/action IDs. Themes: observa
 evidence_refs,confidence; evidence refs point to entity/action/relation IDs. Ambiguous regions:
 observation_id,note.
 Do not add keys, markdown fences, geometry, or metadata. Omit uncertain observations instead of
-inventing them."""
+inventing them. If the drawing contains any recognizable visible mark, emit at least one concrete
+grounded entity; do not return all five arrays empty for a non-empty admitted image."""
 
 
 def _prompt_with_narration(context: str | None) -> str:
@@ -112,6 +113,19 @@ def _repair_prompt_with_diagnostics(
         "The previous response failed the output contract. Repair only the JSON shape. "
         "Do not add explanations, markdown, metadata, or new scene claims. "
         f"Closed diagnostic categories: {diagnostic_text}."
+    )
+
+
+def _semantic_empty_repair_prompt(_request: VisionUnderstandingRequestV2) -> str:
+    """Ask for one bounded re-inspection without echoing content or widening the schema."""
+
+    return (
+        f"{_PROMPT}\n\n"
+        "The previous response was valid JSON but contained no grounded observations. Re-inspect "
+        "the visible drawing carefully and emit at least one concrete entity when a recognizable "
+        "mark is present. Use a broad visible label only when necessary. Do not invent claims, "
+        "do not add explanations, and do not return all arrays empty for a non-empty image. "
+        "This is a closed semantic-empty repair; keep the exact JSON contract."
     )
 
 
@@ -239,6 +253,7 @@ def vision_v2(
                 content_policy=LexicalRegressionContentPolicy(synthetic_prohibited_lexicon()),
                 prompt=_prompt_with_narration(payload.narration_context),
                 repair_prompt_builder=_repair_prompt_with_diagnostics,
+                semantic_empty_repair_prompt_builder=_semantic_empty_repair_prompt,
                 on_mapping_diagnostic=capture_mapping_diagnostics,
                 enable_bounded_repair=True,
             )

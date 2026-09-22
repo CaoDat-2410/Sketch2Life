@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+from dataclasses import dataclass
 from typing import Final
 
 from sketch2life.contracts.schemas.asr import (
@@ -16,9 +18,12 @@ from sketch2life.contracts.schemas.raw_understanding import (
     RawAsrClaimV1,
     RawAsrFailureCode,
     RawAsrFailureV1,
+    RawConflictCode,
+    RawConflictV1,
     RawEntityObservationV1,
     RawFailureCode,
     RawFailureV1,
+    RawFusedClaimV1,
     RawNarrationStatus,
     RawProvenanceV1,
     RawRelationObservationV1,
@@ -28,7 +33,7 @@ from sketch2life.contracts.schemas.raw_understanding import (
     RawUnderstandingResultV1,
     RawUnderstandingSuccessV1,
 )
-from sketch2life.contracts.schemas.vision import VisionErrorCode
+from sketch2life.contracts.schemas.vision import VisionErrorCode, vision_label_normalize
 from sketch2life.contracts.schemas.vision_v2 import (
     VisionNonPolicyErrorDetailV2,
     VisionUnderstandingFailureV2,
@@ -102,47 +107,58 @@ def _map_success(
     typed_narration: str | None,
 ) -> RawUnderstandingSuccessV1:
     asr_claims, narration_status, asr_failure = _map_narration(asr_result, typed_narration)
+    entities = tuple(
+        RawEntityObservationV1(
+            observation_id=item.observation_id,
+            label=item.label,
+            confidence=_required_confidence(item.confidence, item.observation_id),
+        )
+        for item in result.entities
+    )
+    actions = tuple(
+        RawActionObservationV1(
+            observation_id=item.observation_id,
+            label=item.label,
+            actor_ref=item.actor_ref,
+            object_ref=item.object_ref,
+            confidence=_required_confidence(item.confidence, item.observation_id),
+        )
+        for item in result.actions
+    )
+    relations = tuple(
+        RawRelationObservationV1(
+            observation_id=item.observation_id,
+            predicate=item.predicate,
+            subject_ref=item.subject_ref,
+            object_ref=item.object_ref,
+            confidence=_required_confidence(item.confidence, item.observation_id),
+        )
+        for item in result.relations
+    )
+    themes = tuple(
+        RawThemeObservationV1(
+            observation_id=item.observation_id,
+            label=item.label,
+            evidence_refs=item.evidence_refs,
+            confidence=_required_confidence(item.confidence, item.observation_id),
+        )
+        for item in result.themes
+    )
+    fused_claims, conflicts = _build_fusion(
+        entities=entities,
+        actions=actions,
+        relations=relations,
+        themes=themes,
+        asr_claims=asr_claims,
+    )
     return RawUnderstandingSuccessV1(
         correlation_id=result.correlation_id,
         session_id=session_id,
         source_image_ref=result.source_image_ref,
-        entities=tuple(
-            RawEntityObservationV1(
-                observation_id=item.observation_id,
-                label=item.label,
-                confidence=_required_confidence(item.confidence, item.observation_id),
-            )
-            for item in result.entities
-        ),
-        actions=tuple(
-            RawActionObservationV1(
-                observation_id=item.observation_id,
-                label=item.label,
-                actor_ref=item.actor_ref,
-                object_ref=item.object_ref,
-                confidence=_required_confidence(item.confidence, item.observation_id),
-            )
-            for item in result.actions
-        ),
-        relations=tuple(
-            RawRelationObservationV1(
-                observation_id=item.observation_id,
-                predicate=item.predicate,
-                subject_ref=item.subject_ref,
-                object_ref=item.object_ref,
-                confidence=_required_confidence(item.confidence, item.observation_id),
-            )
-            for item in result.relations
-        ),
-        themes=tuple(
-            RawThemeObservationV1(
-                observation_id=item.observation_id,
-                label=item.label,
-                evidence_refs=item.evidence_refs,
-                confidence=_required_confidence(item.confidence, item.observation_id),
-            )
-            for item in result.themes
-        ),
+        entities=entities,
+        actions=actions,
+        relations=relations,
+        themes=themes,
         ambiguous_regions=tuple(
             RawAmbiguousObservationV1(observation_id=item.observation_id, note=item.note)
             for item in result.ambiguous_regions
@@ -150,8 +166,8 @@ def _map_success(
         asr_claims=asr_claims,
         narration_status=narration_status,
         asr_failure=asr_failure,
-        fused_claims=tuple(),
-        conflicts=tuple(),
+        fused_claims=fused_claims,
+        conflicts=conflicts,
         uncertainty=None,
         uncertainty_status=RawUncertaintyStatus.NOT_PROVIDED,
         provenance=RawProvenanceV1(
@@ -222,6 +238,104 @@ def _map_narration(
             ),
         )
     raise RawUnderstandingMappingError("unsupported ASR result variant")
+
+
+_FUSION_ALIASES: Final[dict[str, tuple[str, ...]]] = {
+    "butterfly": ("butterfly", "con bướm", "bướm"),
+    "flower": ("flower", "flowers", "bông hoa", "hoa"),
+    "cat": ("cat", "con mèo", "mèo"),
+    "dog": ("dog", "con chó", "chó"),
+    "bird": ("bird", "con chim", "chim"),
+    "tree": ("tree", "cây", "cây xanh"),
+    "grass": ("grass", "cỏ", "bãi cỏ"),
+    "sun": ("sun", "mặt trời"),
+    "flying": ("flying", "fly", "bay", "đang bay"),
+    "running": ("running", "run", "chạy", "đang chạy"),
+    "moving": ("moving", "move", "chuyển động", "đang di chuyển"),
+}
+
+
+@dataclass(frozen=True, slots=True)
+class _FusionVisualClaim:
+    observation_id: str
+    text: str
+    confidence: float
+
+
+def _build_fusion(
+    *,
+    entities: tuple[RawEntityObservationV1, ...],
+    actions: tuple[RawActionObservationV1, ...],
+    relations: tuple[RawRelationObservationV1, ...],
+    themes: tuple[RawThemeObservationV1, ...],
+    asr_claims: tuple[RawAsrClaimV1, ...],
+) -> tuple[tuple[RawFusedClaimV1, ...], tuple[RawConflictV1, ...]]:
+    """Create only deterministic, provenance-preserving multimodal links.
+
+    Text/ASR is never allowed to overwrite a visual claim. A link is emitted only when a reviewed
+    alias is present in both sources; otherwise a closed disagreement is preserved for Gate A.
+    """
+
+    visual_claims = tuple(
+        _FusionVisualClaim(item.observation_id, item.label.value, item.confidence)
+        for item in entities
+    )
+    visual_claims += tuple(
+        _FusionVisualClaim(item.observation_id, item.label.value, item.confidence)
+        for item in actions
+    )
+    visual_claims += tuple(
+        _FusionVisualClaim(item.observation_id, item.label.value, item.confidence)
+        for item in themes
+    )
+    visual_claims += tuple(
+        _FusionVisualClaim(item.observation_id, item.predicate.value, item.confidence)
+        for item in relations
+    )
+    fused: list[RawFusedClaimV1] = []
+    conflicts: list[RawConflictV1] = []
+    for narration in asr_claims:
+        narration_concepts = _concepts_in_text(narration.text)
+        matching_visuals = tuple(
+            visual
+            for visual in visual_claims
+            if _claim_matches_concepts(visual.text, narration_concepts)
+        )
+        for visual in matching_visuals[:4]:
+            fused.append(
+                RawFusedClaimV1(
+                    claim_id=f"fused-{visual.observation_id}-{narration.claim_id}",
+                    source_refs=(visual.observation_id, narration.claim_id),
+                    # The only numeric source confidence is the validated vision confidence.
+                    confidence=visual.confidence,
+                )
+            )
+        if narration_concepts and visual_claims and not matching_visuals:
+            conflicts.append(
+                RawConflictV1(
+                    conflict_id=f"conflict-{visual_claims[0].observation_id}-{narration.claim_id}",
+                    claim_refs=(visual_claims[0].observation_id, narration.claim_id),
+                    code=RawConflictCode.SOURCE_DISAGREEMENT,
+                )
+            )
+    return tuple(fused), tuple(conflicts[:16])
+
+
+def _concepts_in_text(value: str) -> frozenset[str]:
+    normalized = _search_text(value)
+    return frozenset(
+        concept
+        for concept, aliases in _FUSION_ALIASES.items()
+        if any(_search_text(alias) in normalized for alias in aliases)
+    )
+
+
+def _claim_matches_concepts(value: str, concepts: frozenset[str]) -> bool:
+    return bool(concepts.intersection(_concepts_in_text(value)))
+
+
+def _search_text(value: str) -> str:
+    return re.sub(r"\s+", " ", vision_label_normalize(value).casefold()).strip()
 
 
 def _required_confidence(value: float | None, observation_id: str) -> float:

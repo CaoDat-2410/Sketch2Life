@@ -227,3 +227,28 @@ P2-T5, mobile, Gate A UI, P1 eligibility, P3/P4 and shared integration remain se
   denial for the pytest temp/cache directories. No Lightning request was made by Codex; owner-run
   Android/Lightning smoke remains pending under the existing approximately 25-credit ceiling.
 - Evidence: `evidence/notes/TOPIC_AND_T2_ACTIVITY_MATCHING_IMPLEMENTATION_20260922.md`.
+
+## Progressive Qwen multimodal response — implementation 2026-09-22
+
+- The approved plan `plan/PROGRESSIVE_QWEN_MULTIMODAL_RESPONSE_PLAN.md` is implemented without
+  widening the frozen Vision V2 or MobileWorkflow envelope. A valid-but-empty Qwen result now gets
+  one semantic repair opportunity in the Lightning adapter; if it remains empty, the application
+  returns `BLOCKED_NO_GROUNDED_CLAIMS`, keeps the session out of Gate A, and the UI shows a retry
+  message instead of `0 Thực thể`.
+- The backend now emits a sanitized `understanding_progress` projection with stage history,
+  image/narration/fused claim IDs, conflict records, repair/attempt counters, Gate-A readiness and
+  a deterministic Vietnamese topic normally bounded to 10–18 words. A read-only progress endpoint
+  is available for polling; the current provider call remains terminal/synchronous and never emits
+  partial model JSON.
+- Image and ASR/typed-text evidence remain separate. Reviewed aliases can produce a derived fused
+  claim with source references; unsupported disagreement is preserved as a closed conflict. Typed
+  text does not receive fabricated numeric confidence.
+- Choosing a different primary direction in BaoVC sends one explicit `REQUERY_UNDERSTANDING` command
+  using the admitted image and stored narration input. The backend rechecks the image, records a
+  new direction revision, retains the prior valid proposal if the re-query fails, and rejects a
+  second changed-direction re-query in the demo.
+- Verification passed: full backend test collection (`pytest -q backend/tests`, with repository
+  root on `PYTHONPATH`, 6 existing skips), focused Qwen/live contract tests, Ruff, mypy on changed
+  backend modules, mobile TypeScript, compile, diff checks and repository security validation. No
+  Lightning/model request was made by Codex; owner-run smoke remains pending under the approved
+  approximately 25-credit ceiling.

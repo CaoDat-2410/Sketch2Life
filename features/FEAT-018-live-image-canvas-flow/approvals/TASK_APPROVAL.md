@@ -301,3 +301,22 @@ mobile, Gate A, P1 eligibility, P3/P4 and shared integration remain separately g
   activities, and no contract V1 widening without a revised approval.
 - Live execution boundary: owner alone performs any Lightning smoke test under the existing
   approximately 25-credit ceiling after offline/API/UI verification passes.
+
+## Owner approval — progressive Qwen multimodal response — 2026-09-22
+
+- Approver: project owner direct instruction in the current conversation: “implement”.
+- Approved plan: `features/FEAT-018-live-image-canvas-flow/plan/PROGRESSIVE_QWEN_MULTIMODAL_RESPONSE_PLAN.md`.
+- Plan SHA-256 at approval: `2FE85477B41BA7C64C98E200DBF284E28D7783123EC3CD26721C3AEF58B2B384`.
+- Approved behavior: one default Qwen analysis request; an explicit user-selected different
+  direction starts a new bounded query and re-checks image plus narration; the displayed topic is
+  a grounded Vietnamese sentence of approximately 10–18 words; the final result combines image
+  and ASR/text evidence with confidence and provenance preserved.
+- Approved reliability behavior: expose sanitized understanding stages, fail closed when an admitted
+  non-empty image produces no grounded claims, allow one internal semantic-empty repair where the
+  provider adapter supports it, and never advance to Gate A with an empty claim set.
+- Preserved boundaries: synthetic/non-child images only, Android Emulator demo, process-local state,
+  future auth/save seam, no video generation/player, no provider credentials in mobile, no durable
+  child data, and no Codex-triggered Lightning request. Existing versioned contracts remain stable
+  unless a separately approved compatibility-preserving change is required.
+- Live execution boundary: owner alone performs Lightning smoke tests under the existing
+  approximately 25-credit ceiling after offline/API/UI verification passes.

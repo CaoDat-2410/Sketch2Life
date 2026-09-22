@@ -181,6 +181,33 @@ export class DemoApiClient {
     }, 150_000);
   }
 
+  requeryUnderstanding(
+    sessionId: string,
+    version: number,
+    options: { priorRunId: string; direction: string; revision: number; correction?: string },
+  ) {
+    return this.command(sessionId, version, 'POST', '/understanding', {
+      operation: 'REQUERY_UNDERSTANDING',
+      user_initiated: true,
+      prior_run_id: options.priorRunId,
+      direction_revision: options.revision,
+      selected_direction: options.direction,
+      correction: options.correction || '',
+    }, 150_000);
+  }
+
+  async readUnderstandingProgress(sessionId: string, version: number) {
+    const requestId = newId('req');
+    return this.request<WorkflowResult<Record<string, unknown>>>(
+      `/v1/sessions/${encodeURIComponent(sessionId)}/understanding/progress`,
+      {
+        method: 'GET',
+        headers: this.metaHeaders(version, requestId),
+      },
+      30_000,
+    );
+  }
+
   confirmGateA(
     sessionId: string,
     version: number,
