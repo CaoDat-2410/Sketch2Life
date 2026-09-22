@@ -65,15 +65,18 @@ class ActivitySemanticCatalog:
         anchor = anchor_set.primary_anchor
         if anchor.kind not in profile.accepted_anchor_kinds:
             return None
-        label = _normalize(anchor.normalized_label)
-        original = _normalize(anchor.original_label)
+        labels = (
+            _normalize(anchor.normalized_label),
+            _normalize(anchor.original_label),
+            *(_normalize(tag) for tag in anchor.semantic_tags),
+        )
         negative_match = any(
-            _phrase_match(label, phrase) or _phrase_match(original, phrase)
+            any(_phrase_match(label, phrase) for label in labels)
             for phrase in profile.negative_phrases_vi
         )
         if not negative_match:
             for phrase in profile.exact_phrases_vi:
-                if _phrase_match(label, phrase) or _phrase_match(original, phrase):
+                if any(_phrase_match(label, phrase) for label in labels):
                     return _evidence(
                         profile,
                         anchor,
@@ -83,14 +86,22 @@ class ActivitySemanticCatalog:
                         reason_codes=("EXACT_REVIEWED_PHRASE",),
                     )
             for alias in profile.aliases_vi:
-                if _phrase_match(label, alias) or _phrase_match(original, alias):
+                if any(_phrase_match(label, alias) for label in labels):
+                    tag_match = any(
+                        _phrase_match(tag, alias)
+                        for tag in anchor.semantic_tags
+                    )
                     return _evidence(
                         profile,
                         anchor,
                         "ALIAS",
                         score=88,
                         phrase=alias,
-                        reason_codes=("REVIEWED_ALIAS",),
+                        reason_codes=(
+                            "REVIEWED_CONCEPT_FAMILY"
+                            if tag_match
+                            else "REVIEWED_ALIAS",
+                        ),
                     )
         if profile.fallback_tier == "AGE_BASELINE" and profile.fallback_any_confirmed_anchor:
             return _evidence(

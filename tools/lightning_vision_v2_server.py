@@ -67,6 +67,12 @@ this synthetic, non-child drawing. Do not infer a child's personality, emotions,
 ability, development, or mental state.
 Use exactly these root keys: entities, actions, relations, themes, ambiguous_regions. Use arrays;
 use [] when uncertain. Maximums: 5 entities, 2 actions, 3 relations, 2 themes, 2 ambiguous regions.
+Prioritize entities in this order: (1) the most specific, central, visually recognizable subject,
+(2) other concrete subjects, and (3) scenery/background such as grass, sky, or broad nature labels.
+Keep the main subject first in entities; keep scenery/background last. Prefer a specific visible
+label such as "butterfly" or "flower" over a broad label such as "nature". Emit an action only when
+it is visibly anchored to an entity, and emit a theme only when it describes concrete scene context.
+Do not use a background label as the main subject when a specific subject is visible.
 Every text value is an object with value and language. Use language {status: DECLARED, tags: [vi]}
 for Vietnamese labels, or {status: NOT_DETERMINED, tags: []} when unknown. is_ground_truth must be
 false if emitted.

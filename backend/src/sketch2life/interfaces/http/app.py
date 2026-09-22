@@ -1,7 +1,7 @@
 """FastAPI composition root."""
 
-from pathlib import Path
 import logging
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
@@ -12,14 +12,15 @@ from sketch2life.application.services.live_image_demo import LiveImageDemoServic
 from sketch2life.application.services.p1_experience import P1ExperienceCompiler
 from sketch2life.application.services.pixi_topic_asset_candidates import load_topic_asset_catalog
 from sketch2life.application.services.supervised_flow import SupervisedFlowService
-from sketch2life.contracts.schemas.workflow_records import SessionSnapshotV1
 from sketch2life.contracts.schemas.asr import AsrProfileId
+from sketch2life.contracts.schemas.workflow_records import SessionSnapshotV1
 from sketch2life.infrastructure.ai.lightning_client import (
     LightningAsrV2Adapter,
     UrllibJsonTransport,
     read_secret_file,
 )
 from sketch2life.infrastructure.ai.lightning_vision_v2 import LightningVisionV2Adapter
+from sketch2life.infrastructure.catalog.activity_semantics import load_activity_semantic_catalog
 from sketch2life.infrastructure.catalog.p1_catalog import load_p1_template_library
 from sketch2life.infrastructure.config.settings import Settings, get_settings
 from sketch2life.infrastructure.media_validation.av_image_decoder import AvImageDecoder
@@ -80,7 +81,8 @@ def create_app(
             vision = _configured_lightning_vision(settings, artifacts)
             asr = _configured_lightning_asr(settings, artifacts)
             _LOGGER.info(
-                "ai_adapters_configured provider=%s base_url_configured=%s token_file_configured=%s "
+                "ai_adapters_configured provider=%s base_url_configured=%s "
+                "token_file_configured=%s "
                 "vision=%s asr=%s vision_profile=%s asr_profile=%s vision_path=%s asr_path=%s",
                 settings.ai_provider,
                 bool(settings.lightning_ai_base_url),
@@ -105,6 +107,7 @@ def create_app(
         if supervised_flow_service is None:
             repo_root = Path(__file__).resolve().parents[5]
             p1_library = load_p1_template_library(repo_root, include_mvp=True)
+            semantic_catalog = load_activity_semantic_catalog(repo_root)
             p1_compiler = P1ExperienceCompiler(
                 p1_library.templates,
                 p1_library.objective_titles_vi,
@@ -123,6 +126,7 @@ def create_app(
                 idempotency=idempotency,
                 p1_compiler=p1_compiler,
                 topic_assets=topic_assets,
+                semantic_catalog=semantic_catalog,
                 renderer_source_capability_issuer=(
                     live_image_demo_service.issue_renderer_source_capability
                     if live_image_demo_service is not None

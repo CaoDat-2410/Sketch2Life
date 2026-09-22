@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Callable, Mapping
+from dataclasses import replace
 from datetime import UTC, datetime
 from hashlib import sha256
 from threading import RLock
@@ -13,6 +14,7 @@ from uuid import uuid4
 from pydantic import TypeAdapter, ValidationError
 
 from sketch2life.application.ports.session_storage import IdempotencyReceipt, IdempotencyStore
+from sketch2life.application.ports.workflow_dependencies import SemanticCatalogPort
 from sketch2life.application.services.ephemeral_sessions import (
     DEMO_ACTOR_REF,
     EphemeralSessionService,
@@ -26,6 +28,17 @@ from sketch2life.application.services.learning_media_resolver import (
 from sketch2life.application.services.p1_experience import P1ExperienceCompiler
 from sketch2life.application.services.pixi_topic_asset_candidates import (
     build_topic_asset_candidate_context,
+)
+from sketch2life.application.services.semantic_activity_resolver import (
+    ActivityRecommendation,
+    resolve_activity_options,
+)
+from sketch2life.application.services.topic_semantics import (
+    claims_from_raw,
+    compose_topic_vi,
+    display_label_vi,
+    enrich_anchor_set,
+    semantic_tags_for_label,
 )
 from sketch2life.contracts.schemas.gate_a import GateAConfirmationV1
 from sketch2life.contracts.schemas.learning_media import (
@@ -47,6 +60,7 @@ from sketch2life.contracts.schemas.p1_experience import (
     P1FilterResultV1,
     SemanticAnchorSetV1,
     SemanticAnchorV1,
+    SemanticMatchEvidenceV1,
     VersionedRefV1,
 )
 from sketch2life.contracts.schemas.pixi_topic_asset_selection import (
@@ -88,6 +102,7 @@ class SupervisedFlowService:
         idempotency: IdempotencyStore,
         p1_compiler: P1ExperienceCompiler,
         topic_assets: tuple[TopicAssetDescriptorV1, ...] = (),
+        semantic_catalog: SemanticCatalogPort | None = None,
         renderer_source_capability_issuer: Callable[..., tuple[str, datetime]] | None = None,
         now: Callable[[], datetime] = lambda: datetime.now(UTC),
     ) -> None:
@@ -95,6 +110,7 @@ class SupervisedFlowService:
         self._idempotency = idempotency
         self._compiler = p1_compiler
         self._topic_assets = topic_assets
+        self._semantic_catalog = semantic_catalog
         self._renderer_source_capability_issuer = renderer_source_capability_issuer
         self._now = now
         self._lock = RLock()
@@ -173,12 +189,65 @@ class SupervisedFlowService:
                 raise _workflow_error(
                     "GATE_A_CORRECTION_EMPTY", 422, "The correction cannot be empty."
                 )
+            confirmed_claim_ids = tuple(confirmation.confirmed_claim_ids)
+            ranked_claims = tuple(
+                claim
+                for claim in claims_from_raw(raw)
+                if claim.observation_id in confirmed_claim_ids
+            )
+            primary_claim = next(
+                (claim for claim in ranked_claims if claim.observation_id == primary_id),
+                None,
+            )
+            if primary_claim is None:
+                raise _workflow_error(
+                    "GATE_A_CLAIM_NOT_FOUND",
+                    422,
+                    "The selected claim is not part of this image proposal.",
+            )
+            if correction:
+                primary_claim = replace(
+                    primary_claim,
+                    label=correction,
+                    display_label=display_label_vi(correction),
+                )
+            topic_claims = (primary_claim,) + tuple(
+                claim for claim in ranked_claims if claim.observation_id != primary_id
+            )
+            topic_label_vi = compose_topic_vi(topic_claims)
+            semantic_tags = tuple(
+                dict.fromkeys(
+                    tag
+                    for claim in topic_claims
+                    for tag in semantic_tags_for_label(claim.label)
+                )
+            )
+            secondary_anchors = tuple(
+                SemanticAnchorV1(
+                    anchor_id=f"anchor-{claim.observation_id}",
+                    kind=claim.kind,
+                    original_label=claim.label,
+                    normalized_label=vision_label_normalize(display_label_vi(claim.label)),
+                    semantic_tags=semantic_tags_for_label(claim.label),
+                    confidence=claim.confidence,
+                    adult_confirmed=True,
+                    provenance=AnchorProvenanceV1(
+                        source_artifact_id=raw.source_image_ref.artifact_ref,
+                        source_artifact_sha256=raw.source_image_ref.sha256,
+                        source_contract_name=raw.contract_name,
+                        source_contract_version=raw.contract_version,
+                        source_claim_ids=(claim.observation_id,),
+                    ),
+                )
+                for claim in topic_claims
+                if claim.observation_id != primary_id
+            )
             anchor = SemanticAnchorV1(
                 anchor_id=f"anchor-{primary_id}",
                 kind=kind,
-                original_label=anchor_label,
-                normalized_label=vision_label_normalize(anchor_label),
-                semantic_tags=(),
+                original_label=original_label,
+                normalized_label=vision_label_normalize(display_label_vi(anchor_label)),
+                semantic_tags=semantic_tags,
                 confidence=confidence,
                 adult_confirmed=True,
                 provenance=AnchorProvenanceV1(
@@ -186,23 +255,32 @@ class SupervisedFlowService:
                     source_artifact_sha256=raw.source_image_ref.sha256,
                     source_contract_name=raw.contract_name,
                     source_contract_version=raw.contract_version,
-                    source_claim_ids=(primary_id,),
+                    source_claim_ids=confirmed_claim_ids,
                 ),
             )
-            anchor_set = SemanticAnchorSetV1(
-                anchor_set_id=f"anchors-{command.session_id}-{snapshot.version + 1}",
-                source_artifact_id=raw.source_image_ref.artifact_ref,
-                source_artifact_sha256=raw.source_image_ref.sha256,
-                gate_a_status="CONFIRMED",
-                adult_confirmation_actor="PROJECT_OWNER",
-                primary_anchor=anchor,
-                adult_correction_label=correction,
+            anchor_set = enrich_anchor_set(
+                raw=raw,
+                confirmed_claim_ids=confirmed_claim_ids,
+                anchor_set=SemanticAnchorSetV1(
+                    anchor_set_id=f"anchors-{command.session_id}-{snapshot.version + 1}",
+                    source_artifact_id=raw.source_image_ref.artifact_ref,
+                    source_artifact_sha256=raw.source_image_ref.sha256,
+                    gate_a_status="CONFIRMED",
+                    adult_confirmation_actor="PROJECT_OWNER",
+                    primary_anchor=anchor,
+                    secondary_anchors=secondary_anchors,
+                    adult_correction_label=correction,
+                ),
             )
             topic = AdultConfirmedTopicV1.model_validate(
                 {
                     "gateAConfirmed": True,
-                    "topicLabels": (anchor_label,),
-                    "topicTags": (),
+                    "topicLabels": tuple(
+                        dict.fromkeys(
+                            (topic_label_vi, *(claim.display_label for claim in topic_claims))
+                        )
+                    )[:5],
+                    "topicTags": semantic_tags[:20],
                     "locale": "vi",
                     "styleProfileId": "flat-childlike-doodle-v1",
                     "requestedRoles": (),
@@ -222,6 +300,8 @@ class SupervisedFlowService:
                     "gate_a_confirmation": confirmation.model_dump(mode="json"),
                     "anchor_set": anchor_set.model_dump(mode="json"),
                     "topic_asset_context": asset_context.model_dump(mode="json", by_alias=True),
+                    "topic_label_vi": topic_label_vi,
+                    "topic_claim_ids": list(confirmed_claim_ids),
                     "p1_context": None,
                     "p1_filter": None,
                     "experience_spec": None,
@@ -247,7 +327,8 @@ class SupervisedFlowService:
                     "primary_anchor_choices": [
                         {
                             "claim_id": claim_id,
-                            "label": claim[0],
+                            "label": display_label_vi(claim[0]),
+                            "raw_label": claim[0],
                             "kind": claim[1],
                             "confidence": claim[2],
                         }
@@ -416,13 +497,33 @@ class SupervisedFlowService:
         if not isinstance(anchor_value, dict):
             raise _workflow_error("GATE_A_REQUIRED", 409, "A confirmed image topic is required.")
         anchor_set = SemanticAnchorSetV1.model_validate(anchor_value)
+        recommendation: ActivityRecommendation | None = None
+        direct_options = self._compiler.context_options(anchor_set, age_months)
+        if direct_options:
+            context_options = direct_options
+        elif self._semantic_catalog is not None:
+            recommendation = resolve_activity_options(
+                anchor_set=anchor_set,
+                age_months=age_months,
+                catalog=self._semantic_catalog,
+                compiler=self._compiler,
+            )
+            context_options = recommendation.options
+        else:
+            context_options = self._compiler.context_options(anchor_set, age_months)
         options = P1ContextOptionsV1(
             session_id=session_id,
             expected_session_version=snapshot.version,
             age_months=age_months,
             confirmed_anchor_label=anchor_set.primary_anchor.normalized_label,
-            options=self._compiler.context_options(anchor_set, age_months),
+            options=context_options,
         )
+        payload = options.model_dump(mode="json")
+        if recommendation is not None:
+            payload["recommendation"] = recommendation.metadata()
+        topic_label = self._sessions.workflow_record(session_id).values.get("topic_label_vi")
+        if isinstance(topic_label, str) and topic_label:
+            payload["topic_label_vi"] = topic_label
         return MobileWorkflowResultV1(
             status="SUCCEEDED",
             request_id=request_id,
@@ -430,7 +531,7 @@ class SupervisedFlowService:
             expected_session_version=expected_version,
             observed_session_version=snapshot.version,
             provenance=_FLOW_PROVENANCE,
-            payload=options.model_dump(mode="json"),
+            payload=payload,
         )
 
     def run_p1_filter(
@@ -458,7 +559,40 @@ class SupervisedFlowService:
             context = P1ContextV1.model_validate(context_value).model_copy(
                 update={"expected_session_version": snapshot.version}
             )
-            filtered = self._compiler.select(anchor_set, context)
+            semantic_match: SemanticMatchEvidenceV1 | None = None
+            preferred_template_id: str | None = None
+            direct_options = (
+                self._compiler.context_options(anchor_set, context.age_months)
+                if context.age_months is not None
+                else ()
+            )
+            if context.age_months is None or direct_options:
+                filtered = self._compiler.select(anchor_set, context)
+            elif self._semantic_catalog is not None:
+                recommendation = resolve_activity_options(
+                    anchor_set=anchor_set,
+                    age_months=context.age_months,
+                    catalog=self._semantic_catalog,
+                    compiler=self._compiler,
+                )
+                if context.selected_activity_id is not None:
+                    preferred_template_id = recommendation.template_for(
+                        context.selected_activity_id
+                    )
+                    semantic_match = recommendation.evidence_for(context.selected_activity_id)
+                if preferred_template_id is None or semantic_match is None:
+                    filtered = P1FilterResultV1(
+                        status="NO_ELIGIBLE_ACTIVITY",
+                        reason_codes=("ACTIVITY_NOT_IN_SEMANTIC_SHORTLIST",),
+                    )
+                else:
+                    filtered = self._compiler.select(
+                        anchor_set,
+                        context,
+                        preferred_template_id=preferred_template_id,
+                    )
+            else:
+                filtered = self._compiler.select(anchor_set, context)
             valid = filtered.status == "VALID_CANDIDATE"
             if valid:
                 next_state = "CANDIDATES_READY"
@@ -474,6 +608,11 @@ class SupervisedFlowService:
                 workflow_updates={
                     "p1_context": context.model_dump(mode="json"),
                     "p1_filter": filtered.model_dump(mode="json"),
+                    "semantic_match": (
+                        semantic_match.model_dump(mode="json")
+                        if semantic_match is not None
+                        else None
+                    ),
                     "journey": _append_journey(
                         values.get("journey"),
                         "P1",
@@ -523,10 +662,15 @@ class SupervisedFlowService:
                 raise _workflow_error(
                     "P1_TEMPLATE_MISSING", 409, "The selected template is unavailable."
                 )
+            semantic_match: SemanticMatchEvidenceV1 | None = None
+            semantic_match_value = values.get("semantic_match")
+            if isinstance(semantic_match_value, dict):
+                semantic_match = SemanticMatchEvidenceV1.model_validate(semantic_match_value)
             compilation = self._compiler.compile(
                 anchor_set,
                 context,
                 preferred_template_id=filtered.template_ref.id,
+                semantic_match=semantic_match,
             )
             if compilation.spec is None:
                 result = _result(
@@ -1048,17 +1192,10 @@ SelectableAnchorKind = Literal["subject", "action", "story"]
 def _selectable_claims(
     raw: RawUnderstandingSuccessV1,
 ) -> dict[str, tuple[str, SelectableAnchorKind, float]]:
-    claims: dict[str, tuple[str, SelectableAnchorKind, float]] = {}
-    for entity in raw.entities:
-        if entity.confidence is not None:
-            claims[entity.observation_id] = (entity.label.value, "subject", entity.confidence)
-    for action in raw.actions:
-        if action.confidence is not None:
-            claims[action.observation_id] = (action.label.value, "action", action.confidence)
-    for theme in raw.themes:
-        if theme.confidence is not None:
-            claims[theme.observation_id] = (theme.label.value, "story", theme.confidence)
-    return claims
+    return {
+        claim.observation_id: (claim.label, claim.kind, claim.confidence)
+        for claim in claims_from_raw(raw)
+    }
 
 
 def _learning_media_request(

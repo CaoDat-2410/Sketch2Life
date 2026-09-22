@@ -206,3 +206,24 @@ P2-T5, mobile, Gate A UI, P1 eligibility, P3/P4 and shared integration remain se
   Control policy loading a Python DLL; this is an environment limitation, not a reported code
   failure. Owner-run Lightning smoke remains pending and is limited to synthetic/non-child images
   under the existing approximately 25-credit ceiling.
+
+## Topic quality and T2 activity matching — 2026-09-22
+
+- The owner-approved plan `plan/TOPIC_AND_T2_ACTIVITY_MATCHING_FIX_PLAN.md` is implemented. The
+  backend now ranks image claims deterministically, demotes scenery/background labels, composes a
+  bounded Vietnamese topic from grounded claims, and preserves raw labels, claim IDs, confidence,
+  source identity and reviewed semantic tags through Gate A.
+- The existing reviewed semantic activity catalog is injected through `SemanticCatalogPort` into the
+  supervised workflow. Exact P1 matches keep their existing path; raw English/alias/concept-family
+  labels resolve through the reviewed catalog, with one age-safe baseline fallback labeled as an
+  expanded recommendation. Existing age, material, readiness, supervision, safety, Gate B and
+  activity/template/objective identity checks remain authoritative.
+- The generic workflow-result payload exposes optional topic/recommendation metadata without
+  widening `P1ContextOptionsV1` or changing FEAT-003. The BaoVC T2 screen clears stale state,
+  waits for the real backend chain, labels fallback provenance, and no longer presents the
+  hardcoded butterfly card/icon as a backend result. The initial claim selection is primary-only.
+- Focused contract, semantic catalog, ranking, Ruff, mypy and mobile TypeScript checks passed. The
+  repository-wide backend collection was attempted but fixture setup was blocked by Windows access
+  denial for the pytest temp/cache directories. No Lightning request was made by Codex; owner-run
+  Android/Lightning smoke remains pending under the existing approximately 25-credit ceiling.
+- Evidence: `evidence/notes/TOPIC_AND_T2_ACTIVITY_MATCHING_IMPLEMENTATION_20260922.md`.

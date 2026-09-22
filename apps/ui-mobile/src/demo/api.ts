@@ -56,6 +56,17 @@ export interface P1ContextOptions {
   age_months: number;
   confirmed_anchor_label: string;
   options: P1ContextOption[];
+  topic_label_vi?: string;
+  recommendation?: {
+    status: 'PERSONALIZED' | 'EXPANDED' | 'NO_MATCH';
+    match_mode?: 'EXACT' | 'ALIAS' | 'SAFE_FALLBACK';
+    profile_id?: string;
+    profile_version?: number;
+    score?: number;
+    reason_codes: string[];
+    fallback_reason?: string | null;
+    activity_id?: string | null;
+  };
 }
 
 export class DemoApiError extends Error {

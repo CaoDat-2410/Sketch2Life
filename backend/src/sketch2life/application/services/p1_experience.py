@@ -199,22 +199,49 @@ class P1ExperienceCompiler:
                 template.template_id,
             )
         )
-        return tuple(
-            P1ContextOptionV1(
-                template_ref=VersionedRefV1(
-                    id=template.template_id,
-                    version=template.template_version,
-                ),
-                activity_ref=template.activity_ref,
-                age_months_min=template.age_months_min,
-                age_months_max=template.age_months_max,
-                readiness_ids=template.readiness_ids,
-                prerequisite_activity_ids=template.prerequisite_activity_ids,
-                material_option_ids=template.material_option_ids,
-                minimum_supervision=template.minimum_supervision,
-                policy_constraints=template.policy_constraints,
+        return tuple(self._context_option(template) for template in matches)
+
+    def context_options_for_template_ids(
+        self, activity_ids: Iterable[str], age_months: int
+    ) -> tuple[P1ContextOptionV1, ...]:
+        """Build options for a semantic resolver's reviewed activity shortlist."""
+        requested = set(activity_ids)
+        matches = [
+            template
+            for template in self._templates
+            if template.activity_ref.id in requested
+            and template.age_months_min <= age_months <= template.age_months_max
+        ]
+        order = {activity_id: index for index, activity_id in enumerate(activity_ids)}
+        matches.sort(
+            key=lambda template: (
+                order.get(template.activity_ref.id, 999),
+                template.template_id,
             )
-            for template in matches
+        )
+        return tuple(self._context_option(template) for template in matches)
+
+    def template_id_for_activity_id(self, activity_id: str) -> str | None:
+        for template in self._templates:
+            if template.activity_ref.id == activity_id:
+                return template.template_id
+        return None
+
+    @staticmethod
+    def _context_option(template: ActivityTemplateV1) -> P1ContextOptionV1:
+        return P1ContextOptionV1(
+            template_ref=VersionedRefV1(
+                id=template.template_id,
+                version=template.template_version,
+            ),
+            activity_ref=template.activity_ref,
+            age_months_min=template.age_months_min,
+            age_months_max=template.age_months_max,
+            readiness_ids=template.readiness_ids,
+            prerequisite_activity_ids=template.prerequisite_activity_ids,
+            material_option_ids=template.material_option_ids,
+            minimum_supervision=template.minimum_supervision,
+            policy_constraints=template.policy_constraints,
         )
 
     def compile(

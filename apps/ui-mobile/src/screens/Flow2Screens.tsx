@@ -16,7 +16,6 @@ import { Kid3DButton } from '../components/Kid3DButton';
 import { RiveMascot } from '../components/RiveMascot';
 import {
   CatDrawingArtwork,
-  CraftButterflyArtwork,
   AnimatedMeadowScene,
   PlantSproutCard,
   NatureDiaryCard,
@@ -676,9 +675,11 @@ export const ActivityRecommendScreen: React.FC<ScreenProps> = ({ onNavigate }) =
   const {
     navigate,
     goBack,
+    sceneData,
     selectedActivity,
     contextOptions,
     selectedBackendActivity,
+    activityRecommendation,
     prepareActivityWorkflow,
     workflowBusy,
     workflowError,
@@ -710,7 +711,11 @@ export const ActivityRecommendScreen: React.FC<ScreenProps> = ({ onNavigate }) =
       <BounceInView delay={0}>
         <View style={styles.ageBadgeRow}>
           <Text style={styles.ageBadgeText}>
-            ⭐ {contextOptions ? 'Backend đã lọc theo anchor + độ tuổi' : 'Chưa gọi catalog backend'}
+            ⭐ {!contextOptions
+              ? 'Chưa gọi catalog backend'
+              : activityRecommendation?.status === 'EXPANDED'
+                ? 'Gợi ý mở rộng từ catalog đã duyệt'
+                : 'Backend đã lọc theo anchor + độ tuổi'}
           </Text>
         </View>
       </BounceInView>
@@ -718,10 +723,17 @@ export const ActivityRecommendScreen: React.FC<ScreenProps> = ({ onNavigate }) =
       {/* Featured Activity Card — PulseGlow wrapper */}
       <PulseGlow>
         <View style={[styles.featuredActivityCard, { borderWidth: 2, borderColor: '#FDE68A', shadowColor: '#F59E0B', shadowOpacity: 0.3, shadowRadius: 10, elevation: 6 }]}>
-          <CraftButterflyArtwork height={130} />
-          <Text style={styles.featuredActivityTitle}>{contextOptions ? selectedActivity.title : 'Hoạt động từ catalog backend'}</Text>
+          <View style={{ height: 130, borderRadius: 18, backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 18 }}>
+            <Ionicons name={contextOptions ? 'checkmark-circle-outline' : 'sparkles-outline'} size={44} color={contextOptions ? '#059669' : '#2563EB'} />
+            <Text style={{ marginTop: 8, color: '#1E3A8A', fontWeight: '800', textAlign: 'center' }}>
+              {contextOptions ? selectedActivity.title : sceneData.storyTitle}
+            </Text>
+          </View>
+          <Text style={styles.featuredActivityTitle}>{contextOptions ? selectedActivity.title : 'Đang chờ activity từ catalog backend'}</Text>
           <Text style={styles.featuredActivitySub}>
-            {contextOptions ? selectedActivity.subtitle : 'Bấm nút để backend chọn activity đúng anchor và độ tuổi, không dùng dữ liệu mock.'}
+            {contextOptions
+              ? selectedActivity.subtitle
+              : `Topic đã xác nhận: ${sceneData.storyTitle}. Bấm nút để backend chọn activity đúng anchor và độ tuổi.`}
           </Text>
           <Kid3DButton
             title={workflowBusy === 'Chuẩn bị hoạt động' ? 'Đang lọc hoạt động...' : 'Tạo gợi ý thật >'}
@@ -750,8 +762,13 @@ export const ActivityRecommendScreen: React.FC<ScreenProps> = ({ onNavigate }) =
           <Text style={styles.otherActAge}>
             {selectedBackendActivity
               ? `Backend đã chọn ${selectedBackendActivity.activity_ref.id} v${selectedBackendActivity.activity_ref.version}.`
-              : 'Activity chỉ hiện sau khi Gate A được xác nhận và backend lọc theo catalog.'}
+              : 'Activity chỉ hiện sau khi Gate A được xác nhận và backend lọc theo catalog; chưa có mock để bàn giao.'}
           </Text>
+          {activityRecommendation?.status === 'EXPANDED' && (
+            <Text style={{ color: '#92400E', fontSize: 12, marginTop: 4 }}>
+              {activityRecommendation.fallback_reason || 'Không có match trực tiếp; đã dùng baseline theo độ tuổi.'}
+            </Text>
+          )}
         </View>
       </View>
     </ScrollView>
@@ -892,7 +909,7 @@ export const ActivityDetailScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
       {/* Hero Card matching Image 2 Screen 6 */}
       <View style={styles.activityHeroCard}>
         <View style={[styles.activityHeroIcon, { backgroundColor: '#EDE9FE', alignItems: 'center', justifyContent: 'center' }]}>
-          <ButterflyIconSvg size={36} />
+          <Ionicons name="sparkles-outline" size={36} color="#6D28D9" />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={styles.activityHeroTitle}>{selectedActivity.title}</Text>

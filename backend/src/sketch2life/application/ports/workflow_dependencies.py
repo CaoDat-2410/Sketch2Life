@@ -42,6 +42,9 @@ class TemplateLibraryPort(Protocol):
 
 
 class SemanticCatalogPort(Protocol):
+    @property
+    def profiles(self) -> tuple[SemanticActivityProfileV1, ...]: ...
+
     def profile_for(self, activity_id: str) -> SemanticActivityProfileV1: ...
 
     def match(

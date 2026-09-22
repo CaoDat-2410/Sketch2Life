@@ -28,6 +28,7 @@ from sketch2life.domain.understanding.image_admission import (
     ImageMetadataSignals,
 )
 from sketch2life.infrastructure.ai.vision_lexical_policy import synthetic_prohibited_lexicon
+from sketch2life.infrastructure.catalog.activity_semantics import load_activity_semantic_catalog
 from sketch2life.infrastructure.catalog.p1_catalog import load_p1_template_library
 from sketch2life.infrastructure.storage.in_memory import (
     InMemoryArtifactStore,
@@ -59,8 +60,9 @@ class _TestImageDecoder:
 
 
 class _CountingVision:
-    def __init__(self) -> None:
+    def __init__(self, *, label: str = "cây") -> None:
         self.calls = 0
+        self.label = label
 
     def understand(self, request: VisionUnderstandingRequestV2) -> VisionUnderstandingSuccessV2:
         self.calls += 1
@@ -83,7 +85,7 @@ class _CountingVision:
                 EntityCandidateV1(
                     observation_id="subject-1",
                     label=ObservedTextV1(
-                        value="cây",
+                        value=self.label,
                         language=TextLanguageDeclarationV1(status="DECLARED", tags=("vi",)),
                     ),
                     confidence=0.96,
@@ -119,6 +121,7 @@ def _client(*, vision: _CountingVision | None = None) -> tuple[TestClient, _Coun
     )
     repo_root = Path(__file__).resolve().parents[3]
     p1_library = load_p1_template_library(repo_root, include_mvp=True)
+    semantic_catalog = load_activity_semantic_catalog(repo_root)
     supervised_flow = SupervisedFlowService(
         sessions=sessions,
         idempotency=idempotency,
@@ -126,6 +129,7 @@ def _client(*, vision: _CountingVision | None = None) -> tuple[TestClient, _Coun
             p1_library.templates,
             p1_library.objective_titles_vi,
         ),
+        semantic_catalog=semantic_catalog,
         renderer_source_capability_issuer=demo.issue_renderer_source_capability,
     )
     return TestClient(
@@ -447,6 +451,69 @@ def test_gate_a_unlocks_read_only_p1_context_options_matching_adult_entered_age(
     assert payload["confirmed_anchor_label"] == "cây"
     assert any("GMAT-0023-PRIMARY" in item["material_option_ids"] for item in payload["options"])
     assert options.json()["observed_session_version"] == version
+
+
+def test_gate_a_uses_reviewed_semantic_fallback_for_background_only_raw_label() -> None:
+    client, _vision = _client(vision=_CountingVision(label="grass"))
+    session_id, version = _create_session(client)
+    uploaded = client.post(
+        f"/v1/sessions/{session_id}/media/image",
+        headers=_headers(session_id, version, "fallback-upload"),
+        files={"image": ("synthetic.png", _IMAGE, "image/png")},
+    )
+    version = uploaded.json()["observed_session_version"]
+    inferred = client.post(
+        f"/v1/sessions/{session_id}/understanding",
+        json={
+            "request_id": "fallback-understanding",
+            "idempotency_key": "fallback-understanding-key",
+            "session_id": session_id,
+            "expected_session_version": version,
+            "actor_ref": "demo:local",
+            "payload": {"operation": "RUN_UNDERSTANDING", "user_initiated": True},
+        },
+    )
+    version = inferred.json()["observed_session_version"]
+    confirmed = client.post(
+        f"/v1/sessions/{session_id}/gate-a/confirm",
+        json={
+            "request_id": "fallback-gate-a",
+            "idempotency_key": "fallback-gate-a-key",
+            "session_id": session_id,
+            "expected_session_version": version,
+            "actor_ref": "demo:local",
+            "payload": {
+                "operation": "CONFIRM_GATE_A",
+                "user_initiated": True,
+                "primary_anchor_id": "subject-1",
+                "confirmation": {
+                    "contract_name": "GateAConfirmationV1",
+                    "contract_version": "1.0",
+                    "meaning_version": 1,
+                    "confirmed_claim_ids": ["subject-1"],
+                    "correction": None,
+                },
+            },
+        },
+    )
+    assert confirmed.status_code == 200
+
+    options = client.get(
+        f"/v1/sessions/{session_id}/p1/context-options",
+        params={"age_months": 60},
+        headers={
+            "X-Request-ID": "fallback-options",
+            "X-Expected-Session-Version": str(confirmed.json()["observed_session_version"]),
+            "X-Actor-Ref": "demo:local",
+        },
+    )
+
+    assert options.status_code == 200
+    payload = options.json()["payload"]
+    assert payload["options"]
+    assert payload["recommendation"]["status"] == "EXPANDED"
+    assert payload["recommendation"]["match_mode"] == "SAFE_FALLBACK"
+    assert payload["recommendation"]["activity_id"] == "ACT-0026"
 
 
 def test_fake_only_image_session_completes_p1_gate_b_p4_handoff_feedback_and_gallery() -> None:

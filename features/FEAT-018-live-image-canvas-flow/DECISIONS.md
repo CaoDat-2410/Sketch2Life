@@ -153,3 +153,12 @@
   unchanged, and fail closed if the repair still violates the typed V2 contract. No public schema
   widening, mobile change, video lane, auth/save implementation or Codex-triggered provider call is
   authorized. See `plan/LIVE_VISION_SCHEMA_REMEDIATION_PLAN.md` and the feature-local evidence note.
+
+- 2026-09-22 owner approval and implementation decision: keep `P1ContextOptionsV1` and FEAT-003
+  unchanged while wiring the existing reviewed semantic catalog through `SemanticCatalogPort` for
+  the BaoVC T2 flow. Rank grounded claims before Gate A, preserve raw/provenance data, compose a
+  bounded Vietnamese topic, and resolve exact/alias/concept-family/age-baseline matches through the
+  backend. Expanded fallback must be labeled and must still pass age, safety, material, readiness,
+  supervision and Gate-B identity rules. Remove hardcoded butterfly/mock presentation from the
+  backend-result path. No video, durable auth/save, mobile credentials or Codex-triggered Lightning
+  request is authorized. Evidence: `evidence/notes/TOPIC_AND_T2_ACTIVITY_MATCHING_IMPLEMENTATION_20260922.md`.

@@ -283,3 +283,21 @@ mobile, Gate A, P1 eligibility, P3/P4 and shared integration remain separately g
   unchanged outside the explicitly wired live demo construction.
 - Verification boundary: owner manually runs Lightning smoke tests under the existing approximately
   25-credit ceiling after offline/API wiring passes. Codex must not call Lightning.
+
+## Owner approval — topic quality and T2 activity matching fix — 2026-09-22
+
+- Approver: project owner direct instruction in the current conversation: “approve and implement”.
+- Approved plan: `features/FEAT-018-live-image-canvas-flow/plan/TOPIC_AND_T2_ACTIVITY_MATCHING_FIX_PLAN.md`.
+- Plan SHA-256 at approval: `6B8D86DB14B03D476D81E6F677672E4F141F8141BF2FD8D6473CA5F1A3A54A32`.
+- Approved behavior: improve grounded Vietnamese topic composition and deterministic claim ranking;
+  trigger T2 from the Gate-A-confirmed JSON; resolve activity by reviewed exact phrase, alias,
+  concept-family, or safe age-baseline fallback; expose fallback provenance; and never present the
+  hardcoded butterfly/mock activity as a backend result.
+- Approved scope: FEAT-018 supervised backend/application ports and catalog composition, BaoVC mobile
+  workflow state/presentation, contract-compatible adapters/tests/evidence, Android Emulator demo,
+  synthetic/non-child images, PixiJS handoff continuity, and future auth/save seams.
+- Preserved boundaries: no FEAT-003 schema/adapter change, no video, no Codex-triggered Lightning
+  call, no provider credentials in mobile, no durable child data, no arbitrary LLM-generated
+  activities, and no contract V1 widening without a revised approval.
+- Live execution boundary: owner alone performs any Lightning smoke test under the existing
+  approximately 25-credit ceiling after offline/API/UI verification passes.

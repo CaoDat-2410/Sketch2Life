@@ -45,6 +45,7 @@ export interface SelectedNarrationAudio {
 export interface AnalysisClaim {
   observation_id: string;
   label: { value: string };
+  rawLabel?: string;
   confidence: number;
   kind: 'subject' | 'action' | 'story';
 }
@@ -113,6 +114,7 @@ interface AppContextType {
   setSelectedActivity: (activity: MontessoriActivity) => void;
   contextOptions: P1ContextOptions | null;
   selectedBackendActivity: P1ContextOption | null;
+  activityRecommendation: P1ContextOptions['recommendation'] | null;
   prepareActivityWorkflow: () => Promise<boolean>;
   approveActivity: () => Promise<boolean>;
   completeActivityHandoff: () => Promise<boolean>;
@@ -159,13 +161,55 @@ function objectArray(value: unknown): JsonObject[] {
   return Array.isArray(value) ? value.map(asObject) : [];
 }
 
+const DISPLAY_LABELS_VI: Record<string, string> = {
+  butterfly: 'con bướm',
+  grass: 'bãi cỏ',
+  flower: 'bông hoa',
+  flowers: 'bông hoa',
+  plant: 'cây',
+  tree: 'cây',
+  sun: 'mặt trời',
+  sky: 'bầu trời',
+  flying: 'bay',
+  fly: 'bay',
+  moving: 'chuyển động',
+  nature: 'thiên nhiên',
+  garden: 'khu vườn',
+  animal: 'động vật',
+  bird: 'con chim',
+  cat: 'con mèo',
+  dog: 'con chó',
+};
+
+const BACKGROUND_LABELS = new Set([
+  'grass', 'ground', 'nature', 'background', 'sky', 'cỏ', 'bãi cỏ', 'thiên nhiên', 'bầu trời',
+]);
+
+function displayLabelVi(value: string): string {
+  return DISPLAY_LABELS_VI[value.trim().toLowerCase()] || value.trim();
+}
+
+function topicFromClaims(claims: AnalysisClaim[]): string {
+  const primary = claims[0];
+  if (!primary) return 'Khám phá bức tranh';
+  const action = claims.find((claim) => claim.kind === 'action');
+  const context = claims.find((claim) => claim.kind === 'story' && claim.observation_id !== primary.observation_id);
+  const subject = primary.kind === 'subject' ? primary.label.value : null;
+  if (subject && action) {
+    return `${subject.charAt(0).toUpperCase()}${subject.slice(1)} đang ${action.label.value}${context ? ` trong ${context.label.value}` : ''}`;
+  }
+  if (subject && context) return `Khám phá ${subject} trong ${context.label.value}`;
+  if (primary.kind === 'action') return `Khám phá hoạt động ${primary.label.value}`;
+  return `Khám phá ${primary.label.value}`;
+}
+
 function readAnalysisClaims(payload: JsonObject): AnalysisClaim[] {
   const buckets: Array<[unknown, AnalysisClaim['kind']]> = [
     [payload.entities, 'subject'],
     [payload.actions, 'action'],
     [payload.themes, 'story'],
   ];
-  return buckets.flatMap(([items, kind]) => objectArray(items).flatMap((item) => {
+  const claims = buckets.flatMap(([items, kind]) => objectArray(items).flatMap((item) => {
     const label = asObject(item.label);
     if (
       typeof item.observation_id !== 'string'
@@ -174,11 +218,21 @@ function readAnalysisClaims(payload: JsonObject): AnalysisClaim[] {
     ) return [];
     return [{
       observation_id: item.observation_id,
-      label: { value: label.value },
+      label: { value: displayLabelVi(label.value) },
+      rawLabel: label.value,
       confidence: item.confidence,
       kind,
     }];
   }));
+  return claims.sort((left, right) => {
+    const leftBackground = BACKGROUND_LABELS.has((left.rawLabel || left.label.value).toLowerCase()) ? 1 : 0;
+    const rightBackground = BACKGROUND_LABELS.has((right.rawLabel || right.label.value).toLowerCase()) ? 1 : 0;
+    const kindRank = { subject: 0, action: 1, story: 2 };
+    return leftBackground - rightBackground
+      || kindRank[left.kind] - kindRank[right.kind]
+      || right.confidence - left.confidence
+      || left.observation_id.localeCompare(right.observation_id);
+  });
 }
 
 function iconForLabel(label: string): string {
@@ -208,7 +262,7 @@ function mapScenePayload(payload: JsonObject, sessionId: string): SceneUnderstan
     voiceTranscript: textValue(narration.transcript, 'Không có lời kể trong phiên này.'),
     complimentTitle: 'AI đã đọc được bức tranh!',
     complimentSub: 'Đây là đề xuất từ ảnh thật vừa gửi lên backend; người lớn vẫn cần xác nhận Gate A.',
-    storyTitle: 'Câu chuyện từ ' + primary,
+    storyTitle: topicFromClaims(claims),
     storySubtitle: 'Bản xem trước tĩnh từ ảnh gốc; video chưa nằm trong phạm vi demo.',
   };
 }
@@ -502,6 +556,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setGateAConfirmed(false);
       setContextOptions(null);
       setSelectedBackendActivity(null);
+      setActivityRecommendation(null);
       setRendererLaunch(null);
       setAiProgress(0);
       setWorkflowNotice('Đã tạo phiên tạm trên backend. Chưa gửi ảnh hay tiêu tốn credit.');
@@ -609,7 +664,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (result.status !== 'SUCCEEDED') throw workflowFailure(result, 'Backend không trả kết quả phân tích.');
       const claims = readAnalysisClaims(payload);
       setAnalysisClaims(claims);
-      setSelectedClaimIds(claims.map((claim) => claim.observation_id));
+      setSelectedClaimIds(claims.length > 0 ? [claims[0].observation_id] : []);
       setPrimaryClaimId(claims[0]?.observation_id ?? null);
       setSceneData(mapScenePayload(payload, sessionId));
       const narrationPayload = asObject(payload.narration);
@@ -658,14 +713,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!sessionId || !gateAConfirmed || workflowBusy) return false;
     setWorkflowBusy('Chuẩn bị hoạt động');
     setWorkflowError(null);
+    setWorkflowNotice(null);
+    setContextOptions(null);
+    setSelectedBackendActivity(null);
+    setActivityRecommendation(null);
     try {
       const ageMonths = Math.min(155, Math.max(0, selectedChild.age * 12));
       const optionsResult = await workflowApi.readContextOptions(sessionId, sessionVersion, ageMonths);
       const options = optionsResult.payload;
       if (!options || options.options.length === 0) throw new Error('Backend không có hoạt động phù hợp với anchor/độ tuổi.');
-      setContextOptions(options);
       const option = options.options[0];
-      setSelectedBackendActivity(option);
       const contextResult = await workflowApi.setP1Context(sessionId, sessionVersion, {
         age_months: ageMonths,
         readiness_ids: option.readiness_ids,
@@ -688,6 +745,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const activity = mapExperienceToActivity(asObject(experienceResult.payload));
       setActivitiesList([activity]);
       setSelectedActivity(activity);
+      setContextOptions(options);
+      setSelectedBackendActivity(option);
+      setActivityRecommendation(options.recommendation || null);
       setMaterialsChecklist(Object.fromEntries(activity.materials.map((material) => [material.id, false])));
       setStepsChecklist(Object.fromEntries(activity.steps.map((step) => [step.stepNumber, false])));
       setSessionState('GATE_B_PENDING');
@@ -747,6 +807,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [selectedActivity, setSelectedActivity] = useState<MontessoriActivity>(MOCK_ACTIVITIES[0]);
   const [contextOptions, setContextOptions] = useState<P1ContextOptions | null>(null);
   const [selectedBackendActivity, setSelectedBackendActivity] = useState<P1ContextOption | null>(null);
+  const [activityRecommendation, setActivityRecommendation] = useState<P1ContextOptions['recommendation'] | null>(null);
   const [rendererLaunch, setRendererLaunch] = useState<JsonObject | null>(null);
 
   // Checklists
@@ -898,6 +959,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setSelectedActivity,
         contextOptions,
         selectedBackendActivity,
+        activityRecommendation,
         prepareActivityWorkflow,
         approveActivity,
         completeActivityHandoff,
