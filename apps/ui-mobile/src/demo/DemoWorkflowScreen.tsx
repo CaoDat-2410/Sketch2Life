@@ -18,7 +18,7 @@ import {
   RendererBootstrapSchema,
   RendererLoadCommandSchema,
   RendererPlaybackEventEnvelopeSchema,
-} from '@sketch2life/art-renderer';
+} from '../../../../packages/art-renderer/src/protocol';
 
 import {
   API_BASE_URL,

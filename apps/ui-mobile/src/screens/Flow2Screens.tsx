@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,8 @@ import {
   TouchableOpacity,
   TextInput,
 } from 'react-native';
+import * as Crypto from 'expo-crypto';
+import WebView, { type WebViewMessageEvent } from 'react-native-webview';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, radius, shadows } from '../theme';
 import { Kid3DButton } from '../components/Kid3DButton';
@@ -42,16 +44,46 @@ import {
 
 import type { ScreenId } from '../types';
 import { useAppContext } from '../context/AppContext';
+import {
+  ART_RENDERER_PROTOCOL_VERSION,
+  MAX_RENDERER_MESSAGE_BYTES,
+  RendererBootstrapSchema,
+  RendererLoadCommandSchema,
+  RendererPlaybackEventEnvelopeSchema,
+} from '../../../../packages/art-renderer/src/protocol';
+import { API_BASE_URL } from '../demo/api';
 
 interface ScreenProps {
   onNavigate?: (screen: ScreenId) => void;
+}
+
+function rendererObject(value: unknown): Record<string, unknown> {
+  return typeof value === 'object' && value !== null ? value as Record<string, unknown> : {};
+}
+
+function rendererText(value: unknown, fallback = ''): string {
+  return typeof value === 'string' ? value : fallback;
+}
+
+function utf8ByteLength(value: string): number {
+  return encodeURIComponent(value).replace(/%[0-9A-F]{2}/g, 'U').length;
 }
 
 // ==========================================
 // 1. AI PROCESSING (Image 1 - Screen 1)
 // ==========================================
 export const AiProcessingScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
-  const { navigate, goBack, aiProgress, selectedChild } = useAppContext();
+  const {
+    navigate,
+    goBack,
+    aiProgress,
+    selectedChild,
+    runAiSimulation,
+    workflowBusy,
+    workflowError,
+    workflowNotice,
+    narrationMode,
+  } = useAppContext();
   const nav = onNavigate || navigate;
 
   return (
@@ -66,9 +98,10 @@ export const AiProcessingScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
       </View>
 
       <View style={styles.headingBox}>
-        <Text style={styles.headingTitle}>Đang tạo câu chuyện...</Text>
+        <Text style={styles.headingTitle}>Đang hiểu bức tranh...</Text>
         <Text style={styles.headingSubtitle}>
-          Sketch2Life đang biến bức vẽ và giọng kể của bé {selectedChild.name} thành một câu chuyện sống động!
+          Backend sẽ xử lý ảnh tổng hợp của bé {selectedChild.name}
+          {narrationMode === 'audio' ? ' và chạy faster-whisper cho lời kể' : narrationMode === 'text' ? ' cùng nội dung lời kể đã nhập' : ''}. Video chưa nằm trong phạm vi demo.
         </Text>
       </View>
 
@@ -98,14 +131,14 @@ export const AiProcessingScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
           <View style={[styles.checkCircle, { backgroundColor: colors.greenDeep }]}>
             <Ionicons name="checkmark" size={12} color={colors.white} />
           </View>
-          <Text style={styles.checkTextDone}>Phân tích bức vẽ</Text>
+          <Text style={styles.checkTextDone}>Kiểm tra admission ảnh</Text>
         </View>
 
         <View style={styles.checkItem}>
-          <View style={[styles.checkCircle, { backgroundColor: colors.greenDeep }]}>
-            <Ionicons name="checkmark" size={12} color={colors.white} />
+          <View style={[styles.checkCircle, aiProgress >= 20 ? { backgroundColor: colors.greenDeep } : { borderColor: colors.blue, borderWidth: 2, backgroundColor: colors.blueSoft }]}>
+            <Ionicons name={aiProgress >= 20 ? 'checkmark' : 'sync'} size={12} color={aiProgress >= 20 ? colors.white : colors.blueDeep} />
           </View>
-          <Text style={styles.checkTextDone}>Nhận diện giọng kể</Text>
+          <Text style={[styles.checkTextDone, aiProgress < 20 && { color: colors.blueDeep }]}>Chuẩn bị lời kể theo lựa chọn của người lớn</Text>
         </View>
 
         <View style={styles.checkItem}>
@@ -124,7 +157,7 @@ export const AiProcessingScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
             />
           </View>
           <Text style={[styles.checkTextDone, aiProgress < 70 && { color: colors.blueDeep }]}>
-            Tạo nhân vật và bối cảnh...
+            Gọi ASR (nếu có audio) rồi gửi ảnh + context tới Vision...
           </Text>
         </View>
 
@@ -140,7 +173,7 @@ export const AiProcessingScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
             {aiProgress >= 100 && <Ionicons name="checkmark" size={12} color={colors.white} />}
           </View>
           <Text style={aiProgress >= 100 ? styles.checkTextDone : styles.checkTextPending}>
-            Hoàn thiện video câu chuyện
+            Giữ ảnh gốc cho preview/Pixi
           </Text>
         </View>
       </View>
@@ -148,11 +181,18 @@ export const AiProcessingScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
       {/* Bottom Ribbon */}
       <TouchableOpacity
         activeOpacity={0.9}
-        onPress={() => nav('scene_understanding')}
+        disabled={workflowBusy === 'Phân tích ảnh'}
+        onPress={() => {
+          void runAiSimulation();
+        }}
         style={styles.ribbonBanner}
       >
-        <Text style={styles.ribbonText}>🌸 "Một chút nữa thôi, điều kỳ diệu sắp hiện ra!" ✨</Text>
+        <Text style={styles.ribbonText}>
+          {workflowBusy === 'Phân tích ảnh' ? 'Đang gửi một request tới Lightning...' : 'Chạm để phân tích ảnh thật trên backend ✨'}
+        </Text>
       </TouchableOpacity>
+      {workflowNotice && <Text style={{ color: colors.greenDeep, textAlign: 'center', marginTop: 10 }}>{workflowNotice}</Text>}
+      {workflowError && <Text style={{ color: '#B91C1C', textAlign: 'center', marginTop: 10 }}>{workflowError}</Text>}
     </ScrollView>
   );
 };
@@ -161,7 +201,23 @@ export const AiProcessingScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
 // 2. SCENE UNDERSTANDING (Image 1 - Screen 2 / Gate A)
 // ==========================================
 export const SceneUnderstandingScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
-  const { navigate, goBack, selectedChild, sceneData } = useAppContext();
+  const {
+    navigate,
+    goBack,
+    selectedChild,
+    selectedDrawing,
+    sceneData,
+    analysisClaims,
+    selectedClaimIds,
+    primaryClaimId,
+    toggleAnalysisClaim,
+    setPrimaryClaim,
+    correction,
+    setCorrection,
+    confirmGateA,
+    workflowBusy,
+    workflowError,
+  } = useAppContext();
   const nav = onNavigate || navigate;
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
 
@@ -196,7 +252,7 @@ export const SceneUnderstandingScreen: React.FC<ScreenProps> = ({ onNavigate }) 
         </View>
         <View style={styles.artworkInnerWrap}>
           <Image
-            source={require('../../assets/images/photo_cat_paper.png')}
+            source={selectedDrawing ? { uri: selectedDrawing.uri } : require('../../assets/images/photo_cat_paper.png')}
             style={styles.artworkThumbImg}
           />
           {/* 3D Animated Laser Scanning Beam */}
@@ -205,21 +261,21 @@ export const SceneUnderstandingScreen: React.FC<ScreenProps> = ({ onNavigate }) 
           {/* Floating AI Scan Badges */}
           <View style={[styles.aiScanPin, { top: 12, left: 14 }]}>
             <View style={[styles.aiScanDot, { backgroundColor: '#A855F7' }]} />
-            <Text style={styles.aiScanPinText}>🦋 Con bướm 99%</Text>
+            <Text style={styles.aiScanPinText}>{sceneData.entities[0]?.icon || '✨'} {sceneData.entities[0]?.name || 'Đang đọc ảnh'}</Text>
           </View>
           <View style={[styles.aiScanPin, { bottom: 14, right: 14 }]}>
             <View style={[styles.aiScanDot, { backgroundColor: '#F43F5E' }]} />
-            <Text style={styles.aiScanPinText}>🌸 Bông hoa 98%</Text>
+            <Text style={styles.aiScanPinText}>{sceneData.entities[1]?.icon || '✨'} {sceneData.entities[1]?.name || 'Chi tiết ảnh'}</Text>
           </View>
           <View style={[styles.aiScanPin, { top: 14, right: 14 }]}>
             <View style={[styles.aiScanDot, { backgroundColor: '#F59E0B' }]} />
-            <Text style={styles.aiScanPinText}>☀️ Mặt trời 97%</Text>
+            <Text style={styles.aiScanPinText}>{sceneData.entities[2]?.icon || '✨'} {sceneData.entities[2]?.name || 'Bối cảnh ảnh'}</Text>
           </View>
         </View>
         <View style={styles.artworkCaptionRow}>
           <Ionicons name="sparkles" size={13} color="#2563EB" />
           <Text style={styles.artworkCaptionText}>
-            Bức vẽ gốc của bé {selectedChild.name} • 4/4 thực thể được định vị chính xác
+            Ảnh gốc từ phiên backend • {sceneData.entities.length} thực thể/nhãn được đề xuất
           </Text>
         </View>
       </View>
@@ -228,11 +284,35 @@ export const SceneUnderstandingScreen: React.FC<ScreenProps> = ({ onNavigate }) 
       <View style={styles.sectionHeaderRow}>
         <Text style={styles.sectionHeadingSmall}>Các nhân vật & chi tiết nhận diện được</Text>
         <View style={styles.countBadge}>
-          <Text style={styles.countBadgeText}>4 Thực thể</Text>
+          <Text style={styles.countBadgeText}>{sceneData.entities.length} Thực thể</Text>
         </View>
       </View>
 
       <View style={styles.entitiesGridNew}>
+        {analysisClaims.map((claim) => (
+          <TouchableOpacity
+            key={claim.observation_id}
+            activeOpacity={0.86}
+            onPress={() => toggleAnalysisClaim(claim.observation_id)}
+            style={[styles.entityCardNew, {
+              backgroundColor: selectedClaimIds.includes(claim.observation_id) ? '#F0FDF4' : '#FFFFFF',
+              borderColor: primaryClaimId === claim.observation_id ? '#2563EB' : '#CBD5E1',
+              borderWidth: primaryClaimId === claim.observation_id ? 2 : 1,
+            }]}
+          >
+            <Text style={styles.entityNameNew}>{claim.label.value}</Text>
+            <Text style={styles.entityDetailText}>{claim.kind} · {Math.round(claim.confidence * 100)}% confidence</Text>
+            <Text style={styles.entityBadgeTextNew}>
+              {primaryClaimId === claim.observation_id ? 'Chủ đề chính' : selectedClaimIds.includes(claim.observation_id) ? 'Đã chọn' : 'Bỏ chọn'}
+            </Text>
+            <TouchableOpacity onPress={() => setPrimaryClaim(claim.observation_id)}>
+              <Text style={{ color: '#2563EB', fontWeight: '800', marginTop: 8 }}>Chọn làm chủ đề</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      <View style={[styles.entitiesGridNew, { display: 'none' }]}>
         {/* Row 1: Con bướm + Bông hoa */}
         <View style={styles.entityRowNew}>
           <BounceInView delay={0} style={{ flex: 1 }}>
@@ -391,17 +471,30 @@ export const SceneUnderstandingScreen: React.FC<ScreenProps> = ({ onNavigate }) 
         </View>
       </View>
 
+      <TextInput
+        value={correction}
+        onChangeText={setCorrection}
+        placeholder="Nếu cần, sửa nhãn chủ đề cho AI (không bắt buộc)"
+        placeholderTextColor="#94A3B8"
+        style={styles.gateCorrectionInput}
+        maxLength={200}
+      />
+
       {/* 5. PRIMARY 3D CTA BUTTON */}
       <View style={[styles.actionBottom, { marginTop: 14 }]}>
         <PulseGlow>
           <Kid3DButton
-            title="Khám phá câu chuyện ngay ->"
+            title={workflowBusy === 'Xác nhận Gate A' ? 'Đang xác nhận...' : 'Xác nhận Gate A & tiếp tục'}
             color="blue"
             size="lg"
-            onPress={() => nav('story_preview')}
+            disabled={!!workflowBusy || !primaryClaimId || selectedClaimIds.length === 0}
+            onPress={async () => {
+              if (await confirmGateA()) nav('story_preview');
+            }}
           />
         </PulseGlow>
       </View>
+      {workflowError && <Text style={{ color: '#B91C1C', textAlign: 'center', marginTop: 10 }}>{workflowError}</Text>}
     </ScrollView>
   );
 };
@@ -410,7 +503,7 @@ export const SceneUnderstandingScreen: React.FC<ScreenProps> = ({ onNavigate }) 
 // 3. STORY PREVIEW (Image 1 - Screen 3)
 // ==========================================
 export const StoryPreviewScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
-  const { navigate, goBack, selectedChild } = useAppContext();
+  const { navigate, goBack, selectedChild, selectedDrawing } = useAppContext();
   const nav = onNavigate || navigate;
 
   return (
@@ -434,9 +527,13 @@ export const StoryPreviewScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
       {/* Meadow Animation Viewport */}
       <View style={styles.meadowContainer}>
         <View style={styles.durationBadge}>
-          <Text style={styles.durationText}>00:48</Text>
+          <Text style={styles.durationText}>ẢNH GỐC</Text>
         </View>
-        <AnimatedMeadowScene height={190} showPlayButton onPlayPress={() => nav('video_player')} />
+        {selectedDrawing ? (
+          <Image source={{ uri: selectedDrawing.uri }} style={styles.storySourceImage} resizeMode="contain" />
+        ) : (
+          <AnimatedMeadowScene height={190} showPlayButton={false} />
+        )}
       </View>
 
       {/* 3 Scene Thumbnails underneath — crisp vector illustrations with BounceIn */}
@@ -444,7 +541,7 @@ export const StoryPreviewScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
         <BounceInView delay={0} style={{ flex: 1 }}>
           <TouchableOpacity
             activeOpacity={0.88}
-            onPress={() => nav('video_player')}
+            onPress={() => nav('activity_recommend')}
             style={[styles.sceneThumbnail, { backgroundColor: '#FAF5FF', borderColor: '#C4B5FD' }]}
           >
             <View style={[styles.sceneIconCircle, { backgroundColor: '#EDE9FE' }]}>
@@ -458,7 +555,7 @@ export const StoryPreviewScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
         <BounceInView delay={100} style={{ flex: 1 }}>
           <TouchableOpacity
             activeOpacity={0.88}
-            onPress={() => nav('video_player')}
+            onPress={() => nav('activity_recommend')}
             style={[styles.sceneThumbnail, { backgroundColor: '#FFFBEB', borderColor: '#FDE68A' }]}
           >
             <View style={[styles.sceneIconCircle, { backgroundColor: '#FEF3C7' }]}>
@@ -472,7 +569,7 @@ export const StoryPreviewScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
         <BounceInView delay={200} style={{ flex: 1 }}>
           <TouchableOpacity
             activeOpacity={0.88}
-            onPress={() => nav('video_player')}
+            onPress={() => nav('activity_recommend')}
             style={[styles.sceneThumbnail, { backgroundColor: '#F0FDF4', borderColor: '#BBF7D0' }]}
           >
             <View style={[styles.sceneIconCircle, { backgroundColor: '#DCFCE7' }]}>
@@ -486,16 +583,16 @@ export const StoryPreviewScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
 
 
       <Text style={styles.storyQuoteCaption}>
-        "Từ nét vẽ nhỏ bé đến một thế giới đầy màu sắc! ♡"
+        "Preview tĩnh từ ảnh gốc; video chưa nằm trong phạm vi demo. ♡"
       </Text>
 
       {/* Primary 3D Button matching Image 1 */}
       <View style={styles.actionBottom}>
         <Kid3DButton
-          title="Xem video đầy đủ ->"
+          title="Xem hoạt động phù hợp ->"
           color="blue"
           size="lg"
-          onPress={() => nav('video_player')}
+          onPress={() => nav('activity_recommend')}
         />
       </View>
     </ScrollView>
@@ -576,7 +673,17 @@ export const VideoPlayerScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
 // 5. ACTIVITY RECOMMENDATION (Image 1 - Screen 5 / Gate B)
 // ==========================================
 export const ActivityRecommendScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
-  const { navigate, goBack } = useAppContext();
+  const {
+    navigate,
+    goBack,
+    selectedActivity,
+    contextOptions,
+    selectedBackendActivity,
+    prepareActivityWorkflow,
+    workflowBusy,
+    workflowError,
+    workflowNotice,
+  } = useAppContext();
   const nav = onNavigate || navigate;
 
   return (
@@ -602,7 +709,9 @@ export const ActivityRecommendScreen: React.FC<ScreenProps> = ({ onNavigate }) =
       {/* Age Badge */}
       <BounceInView delay={0}>
         <View style={styles.ageBadgeRow}>
-          <Text style={styles.ageBadgeText}>⭐ Hoạt động phù hợp cho bé 5–6 tuổi</Text>
+          <Text style={styles.ageBadgeText}>
+            ⭐ {contextOptions ? 'Backend đã lọc theo anchor + độ tuổi' : 'Chưa gọi catalog backend'}
+          </Text>
         </View>
       </BounceInView>
 
@@ -610,41 +719,40 @@ export const ActivityRecommendScreen: React.FC<ScreenProps> = ({ onNavigate }) =
       <PulseGlow>
         <View style={[styles.featuredActivityCard, { borderWidth: 2, borderColor: '#FDE68A', shadowColor: '#F59E0B', shadowOpacity: 0.3, shadowRadius: 10, elevation: 6 }]}>
           <CraftButterflyArtwork height={130} />
-          <Text style={styles.featuredActivityTitle}>Tự làm bướm sắc màu 🦋</Text>
+          <Text style={styles.featuredActivityTitle}>{contextOptions ? selectedActivity.title : 'Hoạt động từ catalog backend'}</Text>
           <Text style={styles.featuredActivitySub}>
-            Biến những cánh bướm trong câu chuyện thành sản phẩm thủ công dễ thương!
+            {contextOptions ? selectedActivity.subtitle : 'Bấm nút để backend chọn activity đúng anchor và độ tuổi, không dùng dữ liệu mock.'}
           </Text>
           <Kid3DButton
-            title="Xem hướng dẫn chi tiết >"
+            title={workflowBusy === 'Chuẩn bị hoạt động' ? 'Đang lọc hoạt động...' : 'Tạo gợi ý thật >'}
             color="blue"
             size="sm"
             style={{ marginTop: 10 }}
-            onPress={() => nav('activity_detail')}
+            disabled={!!workflowBusy}
+            onPress={async () => {
+              if (await prepareActivityWorkflow()) nav('activity_detail');
+            }}
           />
         </View>
       </PulseGlow>
+      {workflowNotice && <Text style={{ color: colors.greenDeep, textAlign: 'center', marginTop: 10 }}>{workflowNotice}</Text>}
+      {workflowError && <Text style={{ color: '#B91C1C', textAlign: 'center', marginTop: 10 }}>{workflowError}</Text>}
 
       {/* Other Activities */}
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Các hoạt động khác cho con</Text>
-        <TouchableOpacity onPress={() => nav('activity_detail')}>
-          <Text style={styles.sectionLink}>Xem thêm &gt;</Text>
-        </TouchableOpacity>
+        <Text style={styles.sectionTitle}>Nguồn lựa chọn</Text>
       </View>
 
-      <View style={styles.otherActivitiesGrid}>
-        {/* BounceIn on secondary activity cards with SVG thumbnails */}
-        <BounceInView delay={0} style={styles.otherActivityCard}>
-          <PlantSproutCard size={72} />
-          <Text style={styles.otherActTitle}>Trồng hoa nhỏ cùng con</Text>
-          <Text style={styles.otherActAge}>🌱 4 – 6 tuổi</Text>
-        </BounceInView>
-
-        <BounceInView delay={150} style={styles.otherActivityCard}>
-          <NatureDiaryCard size={72} />
-          <Text style={styles.otherActTitle}>Vẽ nhật ký thiên nhiên</Text>
-          <Text style={styles.otherActAge}>🎨 4 – 7 tuổi</Text>
-        </BounceInView>
+      <View style={styles.backendSourceCard}>
+        <Ionicons name="server-outline" size={22} color={colors.blueDeep} />
+        <View style={{ flex: 1 }}>
+          <Text style={styles.otherActTitle}>Không dùng activity mock để bàn giao</Text>
+          <Text style={styles.otherActAge}>
+            {selectedBackendActivity
+              ? `Backend đã chọn ${selectedBackendActivity.activity_ref.id} v${selectedBackendActivity.activity_ref.version}.`
+              : 'Activity chỉ hiện sau khi Gate A được xác nhận và backend lọc theo catalog.'}
+          </Text>
+        </View>
       </View>
     </ScrollView>
   );
@@ -659,12 +767,114 @@ export const ActivityDetailScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
     navigate,
     goBack,
     selectedChild,
+    selectedActivity,
     materialsChecklist,
     toggleMaterialCheck,
     stepsChecklist,
     toggleStepCheck,
+    approveActivity,
+    completeActivityHandoff,
+    rendererLaunch,
+    sessionState,
+    workflowBusy,
+    workflowError,
+    workflowNotice,
   } = useAppContext();
   const nav = onNavigate || navigate;
+  const materials = selectedActivity.materials.length > 0
+    ? selectedActivity.materials
+    : [
+        { id: 'm1', name: 'Giấy màu', type: 'paper' as const },
+        { id: 'm2', name: 'Kéo an toàn', type: 'scissors' as const },
+        { id: 'm3', name: 'Bút màu', type: 'crayon' as const },
+        { id: 'm4', name: 'Keo dán', type: 'glue' as const },
+      ];
+  const steps = selectedActivity.steps.length > 0
+    ? selectedActivity.steps
+    : [
+        { stepNumber: 1, title: 'Chuẩn bị nguyên liệu' },
+        { stepNumber: 2, title: 'Thực hiện hoạt động cùng bé' },
+        { stepNumber: 3, title: 'Cùng nhau quan sát và trò chuyện' },
+      ];
+  const rendererInstanceId = useState(() => Crypto.randomUUID())[0];
+  const rendererWebViewRef = useRef<WebView>(null);
+  const rendererCommandSent = useRef(false);
+  const [rendererStatus, setRendererStatus] = useState<string | null>(null);
+  const [rendererError, setRendererError] = useState<string | null>(null);
+  const rendererPageUrl = rendererLaunch
+    ? `${API_BASE_URL}/renderer/mobile.html?rendererInstanceId=${encodeURIComponent(rendererInstanceId)}`
+    : null;
+
+  const handleRendererMessage = (event: WebViewMessageEvent) => {
+    const serialized = event.nativeEvent.data;
+    if (!serialized || utf8ByteLength(serialized) > MAX_RENDERER_MESSAGE_BYTES) {
+      setRendererError('Pixi trả message rỗng hoặc vượt giới hạn 4 KB.');
+      return;
+    }
+    let value: unknown;
+    try {
+      value = JSON.parse(serialized);
+    } catch {
+      setRendererError('Pixi trả JSON không hợp lệ.');
+      return;
+    }
+    const bootstrap = RendererBootstrapSchema.safeParse(value);
+    if (bootstrap.success) {
+      if (bootstrap.data.rendererInstanceId !== rendererInstanceId || !rendererLaunch) {
+        setRendererError('Pixi instance không khớp launch hiện tại.');
+        return;
+      }
+      if (rendererCommandSent.current) return;
+      const launch = rendererObject(rendererLaunch);
+      const command = RendererLoadCommandSchema.safeParse({
+        contractName: 'RendererLoadCommandV1',
+        contractVersion: '1.0',
+        protocolVersion: ART_RENDERER_PROTOCOL_VERSION,
+        sequence: 1,
+        rendererInstanceId,
+        sessionId: rendererText(launch.sessionId),
+        expectedSessionVersion: launch.expectedSessionVersion,
+        experienceSpecRef: launch.experienceSpecRef,
+        sourceReadEndpoint: launch.sourceReadEndpoint,
+        sourceReadCapability: launch.sourceReadCapability,
+        assetManifest: launch.assetManifest,
+        animationPlan: launch.animationPlan,
+      });
+      if (!command.success) {
+        setRendererError('Backend launch không qua validation Pixi protocol v1.');
+        return;
+      }
+      const loadMessage = JSON.stringify(command.data);
+      if (utf8ByteLength(loadMessage) > MAX_RENDERER_MESSAGE_BYTES || !rendererWebViewRef.current) {
+        setRendererError('Pixi launch không thể gửi qua bridge.');
+        return;
+      }
+      rendererCommandSent.current = true;
+      rendererWebViewRef.current.postMessage(loadMessage);
+      setRendererStatus('Đã bắt tay Pixi protocol v1; đang reveal ảnh gốc.');
+      return;
+    }
+    const playback = RendererPlaybackEventEnvelopeSchema.safeParse(value);
+    if (playback.success) {
+      setRendererStatus(rendererText(rendererObject(playback.data.event).type, 'Pixi đã phát event.'));
+    }
+  };
+
+  const finishActivity = async () => {
+    if (sessionState === 'HANDOFF_READY') {
+      nav('feedback');
+      return;
+    }
+    if (sessionState === 'GATE_B_PENDING') {
+      await approveActivity();
+      return;
+    }
+    if (sessionState !== 'EXPERIENCE_READY') return;
+    if (await completeActivityHandoff()) {
+      rendererCommandSent.current = false;
+      setRendererStatus('Đã bàn giao; Pixi đang sẵn sàng.');
+    }
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.screenContainer} showsVerticalScrollIndicator={false}>
@@ -685,12 +895,12 @@ export const ActivityDetailScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
           <ButterflyIconSvg size={36} />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={styles.activityHeroTitle}>Tự làm bướm sắc màu</Text>
-          <Text style={styles.activityHeroSub}>Khéo tay tạo nên những cánh bướm đầy sắc màu như trong câu chuyện!</Text>
+          <Text style={styles.activityHeroTitle}>{selectedActivity.title}</Text>
+          <Text style={styles.activityHeroSub}>{selectedActivity.subtitle}</Text>
           <View style={styles.tagsRow}>
-            <Text style={[styles.tagPill, { backgroundColor: colors.blueSoft, color: colors.blueDeep }]}>👤 5–6 tuổi</Text>
-            <Text style={[styles.tagPill, { backgroundColor: colors.yellowSoft, color: colors.yellowDeep }]}>⏱️ Khoảng 30 phút</Text>
-            <Text style={[styles.tagPill, { backgroundColor: colors.greenSoft, color: colors.greenDeep }]}>📊 Sáng tạo</Text>
+            <Text style={[styles.tagPill, { backgroundColor: colors.blueSoft, color: colors.blueDeep }]}>👤 {selectedActivity.ageGroup}</Text>
+            <Text style={[styles.tagPill, { backgroundColor: colors.yellowSoft, color: colors.yellowDeep }]}>⏱️ Khoảng {selectedActivity.durationMinutes} phút</Text>
+            <Text style={[styles.tagPill, { backgroundColor: colors.greenSoft, color: colors.greenDeep }]}>📊 {selectedActivity.category}</Text>
           </View>
         </View>
       </View>
@@ -702,12 +912,7 @@ export const ActivityDetailScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
       </View>
 
       <View style={styles.materialsGrid}>
-        {[
-          { id: 'm1', name: 'Giấy màu', type: 'paper' as const },
-          { id: 'm2', name: 'Kéo an toàn', type: 'scissors' as const },
-          { id: 'm3', name: 'Bút màu', type: 'crayon' as const },
-          { id: 'm4', name: 'Keo dán', type: 'glue' as const },
-        ].map((mat) => {
+        {materials.map((mat) => {
           const isReady = materialsChecklist[mat.id];
           return (
             <TouchableOpacity
@@ -716,7 +921,7 @@ export const ActivityDetailScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
               onPress={() => toggleMaterialCheck(mat.id)}
               style={[styles.materialTile, isReady && styles.materialTileChecked]}
             >
-              <MaterialIconSvg type={mat.type} size={36} />
+              <MaterialIconSvg type={mat.type === 'general' ? 'paper' : mat.type} size={36} />
               <Text style={styles.materialName}>{mat.name}</Text>
               <View style={[styles.materialCheckBadge, isReady && styles.materialCheckBadgeActive]}>
                 <Ionicons
@@ -733,17 +938,12 @@ export const ActivityDetailScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
       {/* Execution Steps matching Image 2 Screen 6 */}
       <Text style={styles.sectionHeaderTitleStep}>Các bước thực hiện</Text>
       <View style={styles.stepsList}>
-        {[
-          'Cắt cánh bướm theo mẫu hoặc tự vẽ',
-          'Trang trí cánh bướm bằng màu sắc yêu thích',
-          'Gắn thân bướm và râu',
-          'Hoàn thiện và cùng nhau trưng bày!',
-        ].map((st, i) => {
-          const stepNum = i + 1;
+        {steps.map((step) => {
+          const stepNum = step.stepNumber;
           const isDone = stepsChecklist[stepNum];
           return (
             <TouchableOpacity
-              key={i}
+              key={step.stepNumber}
               activeOpacity={0.85}
               onPress={() => toggleStepCheck(stepNum)}
               style={[styles.stepItemCard, isDone && styles.stepItemCardDone]}
@@ -753,7 +953,7 @@ export const ActivityDetailScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
                   {isDone ? '✓' : stepNum}
                 </Text>
               </View>
-              <Text style={[styles.stepItemText, isDone && styles.stepItemTextDone]}>{st}</Text>
+              <Text style={[styles.stepItemText, isDone && styles.stepItemTextDone]}>{step.title}</Text>
             </TouchableOpacity>
           );
         })}
@@ -762,8 +962,9 @@ export const ActivityDetailScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
       {/* Safety & Parent Advice */}
       <View style={styles.adviceBox}>
         <Text style={styles.adviceTitle}>⚠️ Lưu ý an toàn</Text>
-        <Text style={styles.adviceText}>• Nên có sự đồng hành của người lớn</Text>
-        <Text style={[styles.adviceText, { marginTop: 4 }]}>• Sử dụng kéo an toàn, góc tròn</Text>
+        {(selectedActivity.safetyNotes.length > 0 ? selectedActivity.safetyNotes : ['Nên có sự đồng hành của người lớn', 'Sử dụng dụng cụ đúng độ tuổi']).map((note) => (
+          <Text key={note} style={[styles.adviceText, { marginTop: 4 }]}>• {note}</Text>
+        ))}
       </View>
 
       <View style={[styles.adviceBox, { backgroundColor: '#FEF9C3', borderColor: '#FDE047' }]}>
@@ -774,18 +975,48 @@ export const ActivityDetailScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
           <Text style={[styles.adviceTitle, { color: '#B45309' }]}>Gợi ý cho ba mẹ:</Text>
         </View>
         <Text style={[styles.adviceText, { color: '#78350F' }]}>
-          Hãy cùng bé {selectedChild.name} trò chuyện về màu sắc, thiên nhiên và những loài côn trùng xung quanh nhé! ♡
+          {selectedActivity.parentTips || `Hãy cùng bé ${selectedChild.name} trò chuyện và quan sát trong khi làm nhé! ♡`}
         </Text>
       </View>
 
+      {rendererPageUrl && sessionState === 'HANDOFF_READY' && (
+        <View style={styles.pixiCard}>
+          <Text style={styles.pixiTitle}>PixiJS · reveal ảnh gốc</Text>
+          <Text style={styles.pixiSubtitle}>Không gọi video/generation; renderer nhận manifest có hash và đọc ảnh qua capability ngắn hạn.</Text>
+          <View style={styles.pixiViewport}>
+            <WebView
+              ref={rendererWebViewRef}
+              source={{ uri: rendererPageUrl }}
+              originWhitelist={[API_BASE_URL]}
+              javaScriptEnabled
+              domStorageEnabled={false}
+              mixedContentMode="never"
+              thirdPartyCookiesEnabled={false}
+              sharedCookiesEnabled={false}
+              setSupportMultipleWindows={false}
+              onMessage={handleRendererMessage}
+              onLoadStart={() => setRendererStatus('Đang mở Pixi từ backend…')}
+              onLoadEnd={() => setRendererStatus((value) => value ?? 'Pixi đã tải; chờ handshake.')}
+              onError={() => setRendererError('Không mở được Pixi renderer từ backend.')}
+              style={styles.pixiWebView}
+            />
+          </View>
+          {rendererStatus && <Text style={styles.pixiStatus}>{rendererStatus}</Text>}
+          {rendererError && <Text style={styles.pixiError}>{rendererError}</Text>}
+        </View>
+      )}
+
       {/* Finish Session -> Go to Step 8 Feedback Loop */}
+      {workflowNotice && <Text style={{ color: colors.greenDeep, textAlign: 'center', marginBottom: 8 }}>{workflowNotice}</Text>}
+      {workflowError && <Text style={{ color: '#B91C1C', textAlign: 'center', marginBottom: 8 }}>{workflowError}</Text>}
       <View style={styles.actionBottom}>
         <Kid3DButton
-          title="Hoàn thành hoạt động ✨"
+          title={workflowBusy || (sessionState === 'GATE_B_PENDING' ? 'Duyệt Gate B' : sessionState === 'EXPERIENCE_READY' ? 'Bàn giao hoạt động & mở Pixi' : sessionState === 'HANDOFF_READY' ? 'Ghi feedback cho phiên này' : 'Hoàn thành hoạt động ✨')}
           color="green"
           size="lg"
           icon={<Ionicons name="checkmark-done-circle" size={18} color={colors.white} />}
-          onPress={() => nav('feedback')}
+          disabled={!!workflowBusy || (sessionState !== 'GATE_B_PENDING' && sessionState !== 'EXPERIENCE_READY' && sessionState !== 'HANDOFF_READY')}
+          onPress={() => void finishActivity()}
         />
       </View>
     </ScrollView>
@@ -1588,6 +1819,16 @@ const styles = StyleSheet.create({
     color: '#9F1239',
     marginTop: 2,
   },
+  gateCorrectionInput: {
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    color: colors.textBody,
+    backgroundColor: '#FFFFFF',
+    marginTop: 12,
+  },
   meadowContainer: {
     borderRadius: radius.md,
     overflow: 'hidden',
@@ -1611,6 +1852,11 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontSize: 10,
     fontWeight: '700',
+  },
+  storySourceImage: {
+    width: '100%',
+    height: 190,
+    backgroundColor: '#FEF9C3',
   },
   sceneThumbnailsRow: {
     flexDirection: 'row',
@@ -1768,6 +2014,60 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 4,
     paddingHorizontal: 12,
+  },
+  backendSourceCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+    borderRadius: radius.md,
+    padding: 12,
+    marginTop: 8,
+  },
+  pixiCard: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: radius.md,
+    borderWidth: 1.5,
+    borderColor: '#BFDBFE',
+    padding: 12,
+    marginTop: 12,
+    ...shadows.card,
+  },
+  pixiTitle: {
+    fontSize: 13,
+    fontWeight: '900',
+    color: colors.blueDeep,
+  },
+  pixiSubtitle: {
+    fontSize: 10.5,
+    color: colors.textSoft,
+    lineHeight: 15,
+    marginTop: 4,
+  },
+  pixiViewport: {
+    height: 190,
+    marginTop: 10,
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: '#DBEAFE',
+  },
+  pixiWebView: {
+    flex: 1,
+    backgroundColor: colors.white,
+  },
+  pixiStatus: {
+    fontSize: 10.5,
+    color: colors.greenDeep,
+    marginTop: 6,
+  },
+  pixiError: {
+    fontSize: 10.5,
+    color: '#B91C1C',
+    marginTop: 6,
   },
   sectionHeader: {
     flexDirection: 'row',

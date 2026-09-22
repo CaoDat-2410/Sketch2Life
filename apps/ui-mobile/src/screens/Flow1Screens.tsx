@@ -7,6 +7,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Animated,
+  TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, radius, shadows } from '../theme';
@@ -299,6 +300,9 @@ export const ChildProfileScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
     setSelectedChild,
     selectedAgeGroup,
     setSelectedAgeGroup,
+    beginWorkflow,
+    workflowBusy,
+    workflowError,
   } = useAppContext();
   const nav = onNavigate || navigate;
 
@@ -414,9 +418,13 @@ export const ChildProfileScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
           color="blue"
           size="lg"
           rightIcon={<CuteStarIconSvg size={28} />}
-          onPress={() => nav('capture')}
+          onPress={() => {
+            void beginWorkflow();
+          }}
+          disabled={!!workflowBusy}
         />
       </View>
+      {workflowError && <Text style={{ color: '#B91C1C', textAlign: 'center', marginTop: 10 }}>{workflowError}</Text>}
     </ScrollView>
   );
 };
@@ -425,12 +433,31 @@ export const ChildProfileScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
 // 5. CAPTURE / UPLOAD (Image 2 - Screen 5)
 // ==========================================
 export const CaptureScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
-  const { navigate, goBack, setDrawingImage, selectedChild } = useAppContext();
+  const {
+    navigate,
+    goBack,
+    selectedChild,
+    selectedDrawing,
+    pickDrawingImage,
+    uploadDrawing,
+    admission,
+    narrationMode,
+    setNarrationMode,
+    narrationText,
+    setNarrationText,
+    selectedNarrationAudio,
+    isRecording,
+    startRecording,
+    stopRecording,
+    uploadNarration,
+    workflowBusy,
+    workflowError,
+    workflowNotice,
+  } = useAppContext();
   const nav = onNavigate || navigate;
 
-  const handlePickImage = () => {
-    setDrawingImage('cat-drawing-sample');
-    nav('voice');
+  const handlePickImage = async () => {
+    await pickDrawingImage();
   };
 
   return (
@@ -453,7 +480,11 @@ export const CaptureScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
 
       {/* Drawing Preview Card with Cat drawing */}
       <View style={styles.drawingCardWrap}>
-        <CatDrawingArtwork height={180} />
+        {selectedDrawing ? (
+          <Image source={{ uri: selectedDrawing.uri }} style={{ width: '100%', height: 180 }} resizeMode="contain" />
+        ) : (
+          <CatDrawingArtwork height={180} />
+        )}
       </View>
 
       {/* Two Action Buttons */}
@@ -463,8 +494,8 @@ export const CaptureScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
           onPress={handlePickImage}
           style={[styles.halfBtn, { backgroundColor: colors.blue }]}
         >
-          <Ionicons name="camera" size={24} color={colors.white} />
-          <Text style={styles.halfBtnText}>Chụp ảnh bức vẽ</Text>
+          <Ionicons name="images" size={24} color={colors.white} />
+          <Text style={styles.halfBtnText}>Chọn ảnh tổng hợp</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -473,24 +504,85 @@ export const CaptureScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
           style={[styles.halfBtn, { backgroundColor: colors.greenDeep }]}
         >
           <Ionicons name="images" size={24} color={colors.white} />
-          <Text style={styles.halfBtnText}>Chọn từ thư viện</Text>
+          <Text style={styles.halfBtnText}>Đổi ảnh đã chọn</Text>
         </TouchableOpacity>
       </View>
+
+      <View style={{ marginTop: 14, padding: 14, borderRadius: 18, backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#DBEAFE' }}>
+        <Text style={{ fontSize: 15, fontWeight: '900', color: colors.textHeading }}>Lời kể (không bắt buộc)</Text>
+        <Text style={{ fontSize: 12, color: colors.textSoft, lineHeight: 17, marginTop: 4 }}>
+          Ảnh là bắt buộc. Nếu không nói được, bạn có thể nhập nội dung bằng chữ; chữ sẽ đi thẳng vào AI, không qua TTS.
+        </Text>
+        <View style={{ flexDirection: 'row', gap: 8, marginTop: 10 }}>
+          {([
+            ['none', 'Không thêm'],
+            ['text', 'Nhập chữ'],
+            ['audio', 'Ghi âm'],
+          ] as const).map(([mode, label]) => (
+            <TouchableOpacity
+              key={mode}
+              onPress={() => setNarrationMode(mode)}
+              style={{ flex: 1, minHeight: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: narrationMode === mode ? colors.blue : '#FFFFFF', borderWidth: 1, borderColor: narrationMode === mode ? colors.blue : '#CBD5E1' }}
+            >
+              <Text style={{ fontSize: 11, fontWeight: '800', color: narrationMode === mode ? colors.white : colors.textBody }}>{label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+        {narrationMode === 'text' && (
+          <TextInput
+            value={narrationText}
+            onChangeText={setNarrationText}
+            placeholder="Ví dụ: Con mèo đang đi tìm hoa..."
+            placeholderTextColor="#94A3B8"
+            multiline
+            maxLength={2000}
+            style={{ minHeight: 86, marginTop: 10, padding: 12, borderRadius: 12, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#BFDBFE', color: colors.textBody, textAlignVertical: 'top', fontSize: 13 }}
+          />
+        )}
+        {narrationMode === 'audio' && (
+          <View style={{ marginTop: 10, alignItems: 'center' }}>
+            <TouchableOpacity
+              onPress={() => void (isRecording ? stopRecording() : startRecording())}
+              style={{ minWidth: 180, minHeight: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: isRecording ? '#DC2626' : colors.greenDeep }}
+            >
+              <Text style={{ color: colors.white, fontWeight: '900' }}>{isRecording ? 'Dừng ghi âm' : 'Bắt đầu ghi âm'}</Text>
+            </TouchableOpacity>
+            <Text style={{ marginTop: 8, fontSize: 12, color: colors.textSoft }}>
+              {selectedNarrationAudio ? `Đã có bản ghi (${Math.round((selectedNarrationAudio.durationMs || 0) / 1000)} giây)` : 'M4A/WAV/WebM/Ogg · tối đa 3 phút'}
+            </Text>
+          </View>
+        )}
+      </View>
+
+      <Kid3DButton
+        title={workflowBusy === 'Tải ảnh' ? 'Đang kiểm tra ảnh...' : workflowBusy === 'Tải lời kể' ? 'Đang lưu lời kể...' : 'Gửi ảnh & tiếp tục'}
+        color="blue"
+        size="lg"
+        disabled={!selectedDrawing || !!workflowBusy || isRecording || (narrationMode === 'text' && !narrationText.trim()) || (narrationMode === 'audio' && !selectedNarrationAudio)}
+        onPress={async () => {
+          const imageAlreadyAdmitted = admission?.decision === 'ADMITTED';
+          if ((!imageAlreadyAdmitted && !(await uploadDrawing())) || !(await uploadNarration())) return;
+          nav('ai_processing');
+        }}
+      />
+
+      {workflowNotice && <Text style={{ color: colors.greenDeep, textAlign: 'center', marginTop: 10 }}>{workflowNotice}</Text>}
+      {workflowError && <Text style={{ color: '#B91C1C', textAlign: 'center', marginTop: 10 }}>{workflowError}</Text>}
 
       {/* Tips Box */}
       <View style={styles.tipsBox}>
         <Text style={styles.tipsHeading}>💡 Một số gợi ý:</Text>
         <View style={styles.tipRow}>
           <Ionicons name="checkmark-circle" size={16} color={colors.greenDeep} />
-          <Text style={styles.tipText}>Chụp nơi đủ sáng</Text>
+          <Text style={styles.tipText}>Chọn PNG/JPEG tổng hợp, tối đa 5 MB</Text>
         </View>
         <View style={styles.tipRow}>
           <Ionicons name="checkmark-circle" size={16} color={colors.greenDeep} />
-          <Text style={styles.tipText}>Giữ bức vẽ rõ nét</Text>
+          <Text style={styles.tipText}>Không dùng ảnh trẻ em hoặc dữ liệu nhận diện</Text>
         </View>
         <View style={styles.tipRow}>
           <Ionicons name="checkmark-circle" size={16} color={colors.greenDeep} />
-          <Text style={styles.tipText}>Có thể vẽ bằng bút chì, sáp màu, màu nước...</Text>
+          <Text style={styles.tipText}>Chỉ bước “Phân tích ảnh” mới gửi request Lightning</Text>
         </View>
       </View>
     </ScrollView>
@@ -509,6 +601,8 @@ export const VoiceScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
     toggleRecording,
     voiceDuration,
     setVoiceDuration,
+    stopRecording,
+    uploadNarration,
     runAiSimulation,
   } = useAppContext();
   const nav = onNavigate || navigate;
@@ -527,9 +621,12 @@ export const VoiceScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
     return `${m}:${s}`;
   };
 
-  const handleFinishVoice = () => {
-    runAiSimulation();
-    nav('ai_processing');
+  const handleFinishVoice = async () => {
+    if (isRecording) {
+      await stopRecording();
+      return;
+    }
+    if (await uploadNarration() && await runAiSimulation()) nav('ai_processing');
   };
 
   return (

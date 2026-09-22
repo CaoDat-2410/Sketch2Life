@@ -4,15 +4,15 @@
     "slug": "sketch2life",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/images/icon_butterfly.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/images/screen1_splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#EFF6FF"
     },
     "web": {
-      "favicon": "./assets/favicon.png",
+      "favicon": "./assets/images/icon_butterfly.png",
       "bundler": "metro"
     },
     "plugins": [
@@ -30,7 +30,6 @@
       "package": "com.sketch2life.mobile",
       "blockedPermissions": [
         "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO",
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
         "android.permission.READ_MEDIA_IMAGES",

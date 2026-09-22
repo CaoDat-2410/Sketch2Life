@@ -2,6 +2,19 @@ import * as Crypto from 'expo-crypto';
 
 export const DEMO_ACTOR_REF = 'demo:local';
 export const MAX_IMAGE_BYTES = 5_000_000;
+export const MAX_AUDIO_BYTES = 20_000_000;
+
+export type NarrationInput =
+  | { kind: 'NONE' }
+  | { kind: 'TEXT'; text: string; language?: string; provenance: 'TEXT_TYPED' }
+  | {
+      kind: 'AUDIO';
+      artifact_ref: string;
+      sha256: string;
+      content_type: string;
+      byte_length: number;
+      provenance: 'RECORDED_AUDIO';
+    };
 
 export type AuthTokenProvider = () => Promise<string | null>;
 
@@ -130,10 +143,30 @@ export class DemoApiClient {
     }, 30_000);
   }
 
-  runUnderstanding(sessionId: string, version: number) {
+  async uploadAudio(
+    sessionId: string,
+    version: number,
+    audio: { uri: string; fileName: string; mimeType: string },
+  ): Promise<WorkflowResult<Record<string, unknown>>> {
+    const form = new FormData();
+    form.append('audio', {
+      uri: audio.uri,
+      name: audio.fileName,
+      type: audio.mimeType,
+    } as unknown as Blob);
+    const requestId = newId('req');
+    return this.request(`/v1/sessions/${encodeURIComponent(sessionId)}/media/audio`, {
+      method: 'POST',
+      headers: this.metaHeaders(version, requestId, newId('idem')),
+      body: form,
+    }, 30_000);
+  }
+
+  runUnderstanding(sessionId: string, version: number, narration: NarrationInput = { kind: 'NONE' }) {
     return this.command(sessionId, version, 'POST', '/understanding', {
       operation: 'RUN_UNDERSTANDING',
       user_initiated: true,
+      narration,
     }, 150_000);
   }
 
@@ -234,6 +267,7 @@ export class DemoApiClient {
     completionStatus: 'COMPLETED' | 'PARTIAL' | 'NOT_ATTEMPTED',
     interestScore: number | null,
     independenceScore: number | null,
+    observationTags: string[] = [],
   ) {
     return this.command(sessionId, version, 'POST', '/feedback', {
       operation: 'RECORD_FEEDBACK',
@@ -242,7 +276,7 @@ export class DemoApiClient {
         completion_status: completionStatus,
         interest_score: interestScore,
         independence_score: independenceScore,
-        observation_tags: [],
+        observation_tags: observationTags,
       },
     });
   }

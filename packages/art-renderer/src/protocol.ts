@@ -3,6 +3,8 @@ export {
   MAX_RENDERER_MESSAGE_BYTES,
   PlaybackEventSchema,
   RendererBootstrapSchema,
+  RendererLoadCommandSchema,
+  RendererPlaybackEventEnvelopeSchema,
 } from './contracts';
 export {parseRendererMessage} from './bridge';
 export type {PlaybackEvent, RendererBootstrap} from './contracts';
