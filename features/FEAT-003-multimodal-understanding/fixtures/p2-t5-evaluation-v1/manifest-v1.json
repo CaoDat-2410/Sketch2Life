@@ -1,0 +1,397 @@
+{
+  "contract_name": "P2T5FixtureManifestV1",
+  "contract_version": "1.0",
+  "manifest_id": "p2-t5-evaluation-v1",
+  "manifest_version": "1.0",
+  "data_policy": "SYNTHETIC_ONLY",
+  "matching_rule_id": "vision-b4-matching-rule-v1",
+  "matching_rule_sha256": "43fa4f06e456cf1e1b7a2d79c7ad515d4caf89c556a590790f5ab0b6879f3a49",
+  "oracle_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/expected-v1.json",
+  "oracle_sha256": "23b7668f9ca30814e325cf1ba4f5f1ccae03bd37b52b3e49198e045fb5235b83",
+  "entries": [
+    {
+      "fixture_id": "dev-001",
+      "split": "DEVELOPMENT",
+      "image_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-001.png",
+      "audio_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-001.wav",
+      "image_sha256": "6821d3420792f57aff81ff94b0f96f372de26f544d12e60a2779a5c12a342efd",
+      "audio_sha256": "f9b3ae77bdfe12d80a3e98a705172bc9714846c6fe5b29bb574ba18fdb0ab9e1",
+      "expected_t1_decision": "PASS",
+      "expected_t1_reasons": [],
+      "asr_scenario": "VIETNAMESE",
+      "vision_scenario": "RAW_OUTPUT",
+      "t4_input_mutation": "NONE",
+      "coverage_tags": [
+        "dev-001"
+      ],
+      "wer_eligible": false,
+      "cer_eligible": false,
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "dev-002",
+      "split": "DEVELOPMENT",
+      "image_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-002.png",
+      "audio_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-002.wav",
+      "image_sha256": "6821d3420792f57aff81ff94b0f96f372de26f544d12e60a2779a5c12a342efd",
+      "audio_sha256": "f9b3ae77bdfe12d80a3e98a705172bc9714846c6fe5b29bb574ba18fdb0ab9e1",
+      "expected_t1_decision": "PASS",
+      "expected_t1_reasons": [],
+      "asr_scenario": "VIETNAMESE",
+      "vision_scenario": "RAW_OUTPUT",
+      "t4_input_mutation": "NONE",
+      "coverage_tags": [
+        "dev-002"
+      ],
+      "wer_eligible": false,
+      "cer_eligible": false,
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "dev-003",
+      "split": "DEVELOPMENT",
+      "image_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-003.png",
+      "audio_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-003.wav",
+      "image_sha256": "3cf4d85e8905dd10d1d219774981f1b419aa29f6b4c1f7cbcc0a7c6a89dab7cd",
+      "audio_sha256": "f9b3ae77bdfe12d80a3e98a705172bc9714846c6fe5b29bb574ba18fdb0ab9e1",
+      "expected_t1_decision": "RECAPTURE",
+      "expected_t1_reasons": [
+        "IMAGE_DIMENSIONS_TOO_SMALL"
+      ],
+      "asr_scenario": "VIETNAMESE",
+      "vision_scenario": "RAW_OUTPUT",
+      "t4_input_mutation": "NONE",
+      "coverage_tags": [
+        "dev-003"
+      ],
+      "wer_eligible": false,
+      "cer_eligible": false,
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "dev-004",
+      "split": "DEVELOPMENT",
+      "image_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-004.png",
+      "audio_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-004.wav",
+      "image_sha256": "6821d3420792f57aff81ff94b0f96f372de26f544d12e60a2779a5c12a342efd",
+      "audio_sha256": "410577aa259f4fa65d3d6db4ec57c7026192c9ac05febf617e817f14ee6812c3",
+      "expected_t1_decision": "RECAPTURE",
+      "expected_t1_reasons": [
+        "AUDIO_NO_SPEECH_SIGNAL"
+      ],
+      "asr_scenario": "VIETNAMESE",
+      "vision_scenario": "RAW_OUTPUT",
+      "t4_input_mutation": "NONE",
+      "coverage_tags": [
+        "dev-004"
+      ],
+      "wer_eligible": false,
+      "cer_eligible": false,
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "dev-005",
+      "split": "DEVELOPMENT",
+      "image_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-005.png",
+      "audio_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-005.wav",
+      "image_sha256": "6821d3420792f57aff81ff94b0f96f372de26f544d12e60a2779a5c12a342efd",
+      "audio_sha256": "f9b3ae77bdfe12d80a3e98a705172bc9714846c6fe5b29bb574ba18fdb0ab9e1",
+      "expected_t1_decision": "PASS",
+      "expected_t1_reasons": [],
+      "asr_scenario": "VIETNAMESE",
+      "vision_scenario": "RAW_OUTPUT",
+      "t4_input_mutation": "NONE",
+      "coverage_tags": [
+        "dev-005"
+      ],
+      "wer_eligible": true,
+      "cer_eligible": true,
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "dev-006",
+      "split": "DEVELOPMENT",
+      "image_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-006.png",
+      "audio_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-006.wav",
+      "image_sha256": "6821d3420792f57aff81ff94b0f96f372de26f544d12e60a2779a5c12a342efd",
+      "audio_sha256": "f9b3ae77bdfe12d80a3e98a705172bc9714846c6fe5b29bb574ba18fdb0ab9e1",
+      "expected_t1_decision": "PASS",
+      "expected_t1_reasons": [],
+      "asr_scenario": "SILENCE",
+      "vision_scenario": "RAW_OUTPUT",
+      "t4_input_mutation": "NONE",
+      "coverage_tags": [
+        "dev-006"
+      ],
+      "wer_eligible": false,
+      "cer_eligible": false,
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "dev-007",
+      "split": "DEVELOPMENT",
+      "image_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-007.png",
+      "audio_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-007.wav",
+      "image_sha256": "6821d3420792f57aff81ff94b0f96f372de26f544d12e60a2779a5c12a342efd",
+      "audio_sha256": "f9b3ae77bdfe12d80a3e98a705172bc9714846c6fe5b29bb574ba18fdb0ab9e1",
+      "expected_t1_decision": "PASS",
+      "expected_t1_reasons": [],
+      "asr_scenario": "TIMEOUT",
+      "vision_scenario": "RAW_OUTPUT",
+      "t4_input_mutation": "NONE",
+      "coverage_tags": [
+        "dev-007"
+      ],
+      "wer_eligible": false,
+      "cer_eligible": false,
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "dev-008",
+      "split": "DEVELOPMENT",
+      "image_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-008.png",
+      "audio_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-008.wav",
+      "image_sha256": "6821d3420792f57aff81ff94b0f96f372de26f544d12e60a2779a5c12a342efd",
+      "audio_sha256": "f9b3ae77bdfe12d80a3e98a705172bc9714846c6fe5b29bb574ba18fdb0ab9e1",
+      "expected_t1_decision": "PASS",
+      "expected_t1_reasons": [],
+      "asr_scenario": "PROVIDER_TRANSIENT_FAILURE",
+      "vision_scenario": "RAW_OUTPUT",
+      "t4_input_mutation": "NONE",
+      "coverage_tags": [
+        "dev-008"
+      ],
+      "wer_eligible": false,
+      "cer_eligible": false,
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "dev-009",
+      "split": "DEVELOPMENT",
+      "image_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-009.png",
+      "audio_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-009.wav",
+      "image_sha256": "6821d3420792f57aff81ff94b0f96f372de26f544d12e60a2779a5c12a342efd",
+      "audio_sha256": "f9b3ae77bdfe12d80a3e98a705172bc9714846c6fe5b29bb574ba18fdb0ab9e1",
+      "expected_t1_decision": "PASS",
+      "expected_t1_reasons": [],
+      "asr_scenario": "VIETNAMESE",
+      "vision_scenario": "RAW_OUTPUT",
+      "t4_input_mutation": "NONE",
+      "coverage_tags": [
+        "dev-009"
+      ],
+      "wer_eligible": false,
+      "cer_eligible": false,
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "dev-010",
+      "split": "DEVELOPMENT",
+      "image_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-010.png",
+      "audio_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-010.wav",
+      "image_sha256": "6821d3420792f57aff81ff94b0f96f372de26f544d12e60a2779a5c12a342efd",
+      "audio_sha256": "f9b3ae77bdfe12d80a3e98a705172bc9714846c6fe5b29bb574ba18fdb0ab9e1",
+      "expected_t1_decision": "PASS",
+      "expected_t1_reasons": [],
+      "asr_scenario": "VIETNAMESE",
+      "vision_scenario": "RAW_OUTPUT",
+      "t4_input_mutation": "NONE",
+      "coverage_tags": [
+        "dev-010"
+      ],
+      "wer_eligible": false,
+      "cer_eligible": false,
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "dev-011",
+      "split": "DEVELOPMENT",
+      "image_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-011.png",
+      "audio_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-011.wav",
+      "image_sha256": "6821d3420792f57aff81ff94b0f96f372de26f544d12e60a2779a5c12a342efd",
+      "audio_sha256": "f9b3ae77bdfe12d80a3e98a705172bc9714846c6fe5b29bb574ba18fdb0ab9e1",
+      "expected_t1_decision": "PASS",
+      "expected_t1_reasons": [],
+      "asr_scenario": "VIETNAMESE",
+      "vision_scenario": "TIMEOUT",
+      "t4_input_mutation": "NONE",
+      "coverage_tags": [
+        "dev-011"
+      ],
+      "wer_eligible": false,
+      "cer_eligible": false,
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "dev-012",
+      "split": "DEVELOPMENT",
+      "image_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-012.png",
+      "audio_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-dev-012.wav",
+      "image_sha256": "6821d3420792f57aff81ff94b0f96f372de26f544d12e60a2779a5c12a342efd",
+      "audio_sha256": "f9b3ae77bdfe12d80a3e98a705172bc9714846c6fe5b29bb574ba18fdb0ab9e1",
+      "expected_t1_decision": "PASS",
+      "expected_t1_reasons": [],
+      "asr_scenario": "MODEL_UNAVAILABLE",
+      "vision_scenario": "RAW_OUTPUT",
+      "t4_input_mutation": "NONE",
+      "coverage_tags": [
+        "dev-012"
+      ],
+      "wer_eligible": false,
+      "cer_eligible": false,
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "heldout-001",
+      "split": "HELD_OUT",
+      "image_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-001.png",
+      "audio_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-001.wav",
+      "image_sha256": "6821d3420792f57aff81ff94b0f96f372de26f544d12e60a2779a5c12a342efd",
+      "audio_sha256": "f9b3ae77bdfe12d80a3e98a705172bc9714846c6fe5b29bb574ba18fdb0ab9e1",
+      "expected_t1_decision": "PASS",
+      "expected_t1_reasons": [],
+      "asr_scenario": "VIETNAMESE",
+      "vision_scenario": "RAW_OUTPUT",
+      "t4_input_mutation": "NONE",
+      "coverage_tags": [
+        "heldout-001"
+      ],
+      "wer_eligible": false,
+      "cer_eligible": false,
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "heldout-002",
+      "split": "HELD_OUT",
+      "image_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-002.png",
+      "audio_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-002.wav",
+      "image_sha256": "6821d3420792f57aff81ff94b0f96f372de26f544d12e60a2779a5c12a342efd",
+      "audio_sha256": "f9b3ae77bdfe12d80a3e98a705172bc9714846c6fe5b29bb574ba18fdb0ab9e1",
+      "expected_t1_decision": "PASS",
+      "expected_t1_reasons": [],
+      "asr_scenario": "VIETNAMESE",
+      "vision_scenario": "RAW_OUTPUT",
+      "t4_input_mutation": "NONE",
+      "coverage_tags": [
+        "heldout-002"
+      ],
+      "wer_eligible": false,
+      "cer_eligible": false,
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "heldout-003",
+      "split": "HELD_OUT",
+      "image_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-003.png",
+      "audio_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-003.wav",
+      "image_sha256": "6821d3420792f57aff81ff94b0f96f372de26f544d12e60a2779a5c12a342efd",
+      "audio_sha256": "f9b3ae77bdfe12d80a3e98a705172bc9714846c6fe5b29bb574ba18fdb0ab9e1",
+      "expected_t1_decision": "PASS",
+      "expected_t1_reasons": [],
+      "asr_scenario": "SILENCE",
+      "vision_scenario": "RAW_OUTPUT",
+      "t4_input_mutation": "NONE",
+      "coverage_tags": [
+        "heldout-003"
+      ],
+      "wer_eligible": false,
+      "cer_eligible": false,
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "heldout-004",
+      "split": "HELD_OUT",
+      "image_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-004.png",
+      "audio_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-004.wav",
+      "image_sha256": "6821d3420792f57aff81ff94b0f96f372de26f544d12e60a2779a5c12a342efd",
+      "audio_sha256": "f9b3ae77bdfe12d80a3e98a705172bc9714846c6fe5b29bb574ba18fdb0ab9e1",
+      "expected_t1_decision": "PASS",
+      "expected_t1_reasons": [],
+      "asr_scenario": "PROVIDER_PERMANENT_FAILURE",
+      "vision_scenario": "PROVIDER_PERMANENT_FAILURE",
+      "t4_input_mutation": "NONE",
+      "coverage_tags": [
+        "heldout-004"
+      ],
+      "wer_eligible": false,
+      "cer_eligible": false,
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "heldout-005",
+      "split": "HELD_OUT",
+      "image_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-005.png",
+      "audio_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-005.wav",
+      "image_sha256": "6821d3420792f57aff81ff94b0f96f372de26f544d12e60a2779a5c12a342efd",
+      "audio_sha256": "f9b3ae77bdfe12d80a3e98a705172bc9714846c6fe5b29bb574ba18fdb0ab9e1",
+      "expected_t1_decision": "PASS",
+      "expected_t1_reasons": [],
+      "asr_scenario": "VIETNAMESE",
+      "vision_scenario": "RAW_OUTPUT",
+      "t4_input_mutation": "WRONG_FAMILY_ASR",
+      "coverage_tags": [
+        "heldout-005"
+      ],
+      "wer_eligible": false,
+      "cer_eligible": false,
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "heldout-006",
+      "split": "HELD_OUT",
+      "image_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-006.png",
+      "audio_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-006.wav",
+      "image_sha256": "6821d3420792f57aff81ff94b0f96f372de26f544d12e60a2779a5c12a342efd",
+      "audio_sha256": "f9b3ae77bdfe12d80a3e98a705172bc9714846c6fe5b29bb574ba18fdb0ab9e1",
+      "expected_t1_decision": "PASS",
+      "expected_t1_reasons": [],
+      "asr_scenario": "VIETNAMESE",
+      "vision_scenario": "RAW_OUTPUT",
+      "t4_input_mutation": "DUPLICATE_ASR_SEGMENT_INDEX",
+      "coverage_tags": [
+        "heldout-006"
+      ],
+      "wer_eligible": false,
+      "cer_eligible": false,
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "heldout-007",
+      "split": "HELD_OUT",
+      "image_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-007.png",
+      "audio_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-007.wav",
+      "image_sha256": "6821d3420792f57aff81ff94b0f96f372de26f544d12e60a2779a5c12a342efd",
+      "audio_sha256": "f9b3ae77bdfe12d80a3e98a705172bc9714846c6fe5b29bb574ba18fdb0ab9e1",
+      "expected_t1_decision": "PASS",
+      "expected_t1_reasons": [],
+      "asr_scenario": "VIETNAMESE",
+      "vision_scenario": "RAW_OUTPUT",
+      "t4_input_mutation": "NONCANONICAL_VISION_MATCH_VIEW",
+      "coverage_tags": [
+        "heldout-007"
+      ],
+      "wer_eligible": false,
+      "cer_eligible": false,
+      "synthetic_data": true
+    },
+    {
+      "fixture_id": "heldout-008",
+      "split": "HELD_OUT",
+      "image_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-008.png",
+      "audio_ref": "features/FEAT-003-multimodal-understanding/fixtures/p2-t5-evaluation-v1/media/feat003-p2t5-heldout-008.wav",
+      "image_sha256": "6821d3420792f57aff81ff94b0f96f372de26f544d12e60a2779a5c12a342efd",
+      "audio_sha256": "f9b3ae77bdfe12d80a3e98a705172bc9714846c6fe5b29bb574ba18fdb0ab9e1",
+      "expected_t1_decision": "PASS",
+      "expected_t1_reasons": [],
+      "asr_scenario": "VIETNAMESE",
+      "vision_scenario": "RAW_OUTPUT",
+      "t4_input_mutation": "CORRELATION_MISMATCH",
+      "coverage_tags": [
+        "heldout-008"
+      ],
+      "wer_eligible": false,
+      "cer_eligible": false,
+      "synthetic_data": true
+    }
+  ]
+}

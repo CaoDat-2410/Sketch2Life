@@ -50,6 +50,107 @@ implementation or change `approvals/TASK_APPROVAL.md`.
   `evidence/notes/P2_T4_CONTRACT_RECONCILIATION_FOLLOW_UP_IMPACT_20260913.md`, and
   `fixtures/p2-t4-contract-reconciliation-v1/manifest-v1.json`.
 
+## P2-T4 docs-only remediation and post-sync reissue record — 2026-09-14
+
+- The current task authorizes documentation-only remediation and reissue. The owner explicitly
+  selected the synchronization values in this section for the draft; recording them does not
+  freeze a contract, approve implementation, or adopt the B0 mapping.
+- The active proposed output identity is exactly `P2T4.P2T4FusedResultV1@1.0`, serialized as
+  `P2T4FusedResultV1 / 1.0`. The former `RawUnderstandingResultV1` wording is historical
+  baseline only, is not the active P2-T4 output, and does not adopt FEAT-018.
+- Post-sync review is against merge base `d706d88a70c6a9136e397bea10d29f96bafd190b`. The
+  merged tree contains the current FEAT-018 P2-T2 implementation and its frozen/implemented
+  live-development handoff `RawUnderstandingResultV1 / 1.0`, owned by FEAT-018 and closed
+  offline at `11468d3a5a327697a491f09251a3210987337da0`. This current handoff supersedes the
+  old B0 snapshot's claims-only proposal description; it is not historical evidence.
+- The reconciliation preserves the auto-merged FEAT-003 P2-T3 B1-B5 completion record and its
+  `NOT_ENOUGH_EVIDENCE` recommendation, as well as the newer FEAT-018 P2-T2 consumption
+  approval/closure records. Those upstream decisions remain authoritative and are not
+  downgraded or reinterpreted by P2-T4.
+- The FEAT-018 raw mapper consumes FEAT-003 `VisionUnderstandingResultV2` and optional P2
+  `AsrResultV1`, whereas the proposed P2-T4 fusion consumes P2 `VisionUnderstandingResultV1`.
+  Their output identities and status unions are also different: P2-T4 proposes
+  `P2T4FusedResultV1@1.0` with `FUSED | UPSTREAM_FAILURE`; FEAT-018 owns
+  `RawUnderstandingResultV1@1.0` with `SUCCEEDED | FAILED`. FEAT-018 additionally requires
+  `session_id`, `source_image_ref`, `gate_a_required=true`, and V2 profile/catalog/model
+  provenance. Its preserved ambiguous observations, `fused_claims`, claim-reference conflict
+  shape, confidence/uncertainty rules, and typed failure branch do not match the P2-T4 fused
+  observation, conflict, uncertainty, and upstream-failure shapes. The P2-T4 proposal is
+  neither an alias of nor a replacement for the implemented FEAT-018 raw handoff.
+- The immutable B0 report/manifest/reviews predate the implemented FEAT-018 raw module and
+  therefore remain a historical reconciliation snapshot. B0 remains
+  `P2T4_FEAT018_CONTRACT_FAMILY_MAPPING_V1@1.0` with `PROPOSED_NOT_ADOPTED`; a separately
+  approved integration reconciliation is required before adoption or consumer/registry change.
+- The exact rejected live identities are `FEAT018.LiveAsrResultV1@1.0` and
+  `FEAT018.LiveVisionUnderstandingResultV1@1.0`. Each validated `AsrSegmentV1.text` is
+  matched independently; token coordinates and the three-token negation window reset per
+  segment, and `transcript_raw` is not authoritative.
+- Canonical claim coordinates are `(segment_index, claim_start, claim_end)` over normalized
+  segment tokens. The policy/hash representation of `corroboration_increment` is the exact
+  decimal string `"0.10"`; `Decimal` conversion is allowed only for arithmetic. Ambiguous
+  Vision regions are omitted as fused observations and are represented only by the canonical
+  source-result reference/digest. Mixed positive/refuting spans retain support plus canonical
+  positive/refuting references and suppress adjustment and primary eligibility.
+- The synchronized freeze draft defines complete fields, duplicate/multi-span behavior,
+  canonicalization and conflict-ID bytes, null-after-finite ranking with stable source-ID
+  final tie-breaks, evidence hashes, and an independent hand-authored schema-parity oracle.
+- The current upstream `AsrSuccessV1` contract permits duplicate `AsrSegmentV1.index` values;
+  the T4 admissibility invariant is exactly: `For AsrSuccessV1, all AsrSegmentV1.index values
+  MUST be unique.` The terminal pipeline is exactly `identity/version -> strict upstream-contract
+  validation -> P2-T4 admissibility invariants -> correlation equality -> typed upstream status
+  -> fusion`; first failure is terminal and ASR is checked before Vision where slot ordering
+  applies. The duplicate rejection is exactly `status=REJECTED`, `phase=ADMISSIBILITY`,
+  `code=INVALID_STRUCTURE`, `input_slot=ASR`, `field_code=DUPLICATE_SEGMENT_INDEX`, with no
+  duplicated index, transcript, input object, exception, or validation path exposed.
+- Vision V1 global `observation_id` uniqueness across entities, actions, relations, themes, and
+  ambiguous regions is already enforced through `_validate_observation_references`; T4 adds no
+  redundant Vision uniqueness rule or new owner decision. Canonical narration references use
+  exact `(segment_index ASC, claim_start ASC, claim_end ASC)` ordering; identical coordinate
+  tuples are deduplicated before independently selecting the canonical earliest positive and
+  earliest refuting reference, independently of source tuple traversal order.
+- The exact future fixture paths, including the paths used by allowlists, acceptance records,
+  handoff text, and evidence bindings, are:
+
+  ```text
+  features/FEAT-003-multimodal-understanding/fixtures/p2-t4-fusion-v1/manifest-v1.json
+  features/FEAT-003-multimodal-understanding/fixtures/p2-t4-fusion-v1/cases-v1.json
+  features/FEAT-003-multimodal-understanding/fixtures/p2-t4-fusion-v1/expected-v1.json
+  ```
+- The synchronized draft resolves low-confidence scope: finite numeric Vision confidence below
+  the floor may emit `LOW_CONFIDENCE_EVIDENCE` for entities, actions, relations, or themes;
+  themes remain Vision-only, have no uncertainty row, and never enter primary ranking.
+- The inherited owner-approved values remain B0 Option 3, B5 removal of `NOT_FUSIBLE`, B1
+  support-only narration, B4 vision-only themes, B6's exact six-cue/three-token rule, B2
+  primary-only weighting, B3a's one-time `0.10` cap, B3b `AGREEMENT_WEIGHTED_V1`, and B3c
+  `NOT_MEASURED` null confidence.
+- The former conditional nine-file T4 proposal is superseded by the exact seven-file offline
+  core direction. It contains no mapping module/test, preservation-envelope implementation, or
+  mapping cases. The seven paths are future implementation scope only and remain unapproved.
+- The B0 mapping family `P2T4_FEAT018_CONTRACT_FAMILY_MAPPING_V1@1.0` remains
+  `PROPOSED_NOT_ADOPTED`. FEAT-018 mapping/adoption, session/request/idempotency, registry,
+  edge 3, Gate A, migration, runtime/provider/GPU/network work remain deferred.
+- The companion freeze document is a versioned review draft only. Two independent post-sync
+  final audits (technical/contract and governance/security/scope) passed, so its status is now
+  `DRAFT - READY FOR OWNER FREEZE DECISION`. The separate owner freeze decision and
+  implementation approval remain required.
+- The intermediate remediation status was exactly
+  `DRAFT - UPSTREAM RECONCILIATION REVIEW REQUIRED`; restoration to the current owner-freeze
+  ready status occurred only after both final audits passed.
+- The post-remediation technical/contract audit passed the exact fixture-path, ASR admissibility,
+  terminal-pipeline, closed-rejection, canonical-reference ordering/deduplication, and upstream
+  Vision uniqueness-attribution checks. The post-remediation governance/security/scope audit
+  passed the seven-document boundary, future-path absence, B0/FEAT-018/FEAT-020 preservation,
+  deferred-gate, and no-new-approval checks.
+- Final repository validation on review base `d706d88a70c6a9136e397bea10d29f96bafd190b` passed
+  `git diff --check`, the harness, repository-security, and skeleton validators. The architecture
+  validator still reports one pre-existing violation in unchanged
+  `backend_ai_workflow.py`, where the application service imports infrastructure catalogs/file
+  inspection. No code change is authorized in this remediation; the finding is a separate
+  architecture task and does not change the T4 documentation status.
+- The future T4 freeze/implementation source commit is
+  `UNKNOWN_UNTIL_REVIEW_APPROVED_COMMITTED`; it is distinct from the current review base and
+  from the existing FEAT-018 closure commit. No future or self-referential digest is recorded.
+
 ## FEAT-018 compatibility-review decisions (2026-09-05)
 
 - Record independent test success separately from integration readiness. P2 vision schema
@@ -205,3 +306,298 @@ implementation or change `approvals/TASK_APPROVAL.md`.
   records.
 - This decision does not freeze a profile, select a runtime default, or authorize any GPU/Lightning
   work, P2-T4, or P2-T5.
+
+## P2-T4 G1 contract-freeze and architecture-policy decision (2026-09-15)
+
+- The owner selected **Architecture Policy B / BASELINE**. The pre-existing baseline is exactly
+  one `application imports an outer layer` finding for
+  `backend/src/sketch2life/application/services/backend_ai_workflow.py`, emitted by
+  `tools/validate_architecture.py` whose current SHA-256 is
+  `fa236c8d389b608251153d601fc370efe3f3e2479446ca4a56a3d395f892e0b5`. P2-T4 must introduce
+  zero additional findings; validation remains truthfully `ARCHITECTURE_INVALID` while this exact
+  fingerprint remains.
+- The owner approved the immutable contract freeze at commit
+  `18d0c33d35431ca96a76692a68c6b992098699e7` for `P2T4.P2T4FusedResultV1@1.0`. The approved
+  normalized bindings are freeze SHA-256
+  `be96b32aa675b7b6e46eea30effb2dbb91c718dc68ba7ce36d4d627ad6058ee2` and implementation-package
+  SHA-256 `6821755722daf3bce622fe98eaf39124adb835c6854661143d79f48a943030d7`.
+- G1 authorizes only immutable-reference governance updates and preparation of a separate G2
+  request. It does not authorize implementation, schema changes, fixture generation, mapping
+  adoption, runtime/integration, provider/model/GPU/Lightning/network work, migration, or P2-T5.
+- At the time of this G1 decision, G2 implementation approval was **NOT GRANTED** and
+  implementation was **NOT STARTED / NOT AUTHORIZED**; the seven-file allowlist was not an approval.
+  G2 was subsequently approved (see the next entry and `approvals/TASK_APPROVAL.md`).
+
+## P2-T4 G2 checkpoint and Vision match-view audit record (2026-09-15)
+
+- This entry supersedes the implementation-state wording ("future", "unapproved",
+  `UNKNOWN_UNTIL_REVIEW_APPROVED_COMMITTED`) in the 2026-09-14 and G1 entries above. Those
+  entries remain dated history.
+- G2 was approved for exactly the seven-file offline implementation scope. The authoritative record
+  is the 2026-09-15 G2 entry in `approvals/TASK_APPROVAL.md` (commit `d9a13d2`). The G3-G5
+  checkpoint is `064ba62f32f1ffb964bc2208577eb0650b98e26a`, which changes exactly those seven paths.
+- Audit finding, recorded here as a finding and **not a decision**: G1 freeze section 5.2 says
+  that successful fusion requires the declared v2 match view. The upstream Vision V1 contract
+  accepts any non-empty `policy_match_view_version`, and the checkpoint performs no check, so a
+  schema-valid non-canonical Vision success reaches `FUSED`. The verdict is **VERIFIED_DEFECT**,
+  and its root cause is G1's missing pipeline placement, rejection encoding, fixture obligation,
+  and token identity.
+- The owner recorded five decisions on 2026-09-15, authoritatively in
+  `approvals/TASK_APPROVAL.md` (P2-T4 match-view successor-decisions entry): **MV-1 = B** (add
+  closed field code `POLICY_MATCH_VIEW_VERSION` at `ADMISSIBILITY`); **MV-2 = S2** (enforce only
+  for `VisionUnderstandingSuccessV1`); **MV-3 = T1** (compare exactly against the upstream
+  constant `VISION_POLICY_MATCH_VIEW_VERSION`; the T4 policy literal/hash are unchanged);
+  **MV-4 = V2** (keep `P2T4.P2T4FusedResultV1@1.0`; replace the outer rejection contract with
+  `P2T4.P2T4FusionInputRejectionV2@2.0`, superseding V1 for every outer-boundary rejection —
+  note this differs from the plan's own V1-retention recommendation; the owner is entitled to
+  select differently from a recommendation); **MV-5** (standalone successor artifacts; revision
+  11/15 are never edited in place).
+- Recording these decisions authorized, and only authorized, creating two standalone successor
+  documents: `plan/P2_T4_CONTRACT_FREEZE_REVISION_12.md` (freeze successor, normalized SHA-256
+  `d592b135d2d8a90024d48d1b8335321660e8d7f089873e48687707c760e3d3e9`) and
+  `evidence/notes/P2_T4_IMPLEMENTATION_APPROVAL_PACKAGE_REVISION_16.md` (package successor,
+  normalized SHA-256 `ad886d261d2807bcc95264d05d6a385dc79cd2f0cad44e2b4f004531b8097d4f`), plus
+  the governance-record updates and `.gitignore` exception this entry and its sibling records
+  reflect. The full analysis, including the option comparison and the exact successor semantics,
+  remains in `plan/P2_T4_MATCH_VIEW_REMEDIATION_PLAN.md` and
+  `plan/P2_T4_MATCH_VIEW_REMEDIATION_APPROVAL_REQUEST_20260915.md` (relocated from its prior
+  ignored `evidence/notes/` path).
+- Recording these decisions and issuing the two successor documents does not itself freeze a
+  contract or approve implementation. G1 freeze revision 11 and package revision 15 remain
+  immutable, byte-identical, and are not edited. G6-G9 are paused until an independent
+  successor-freeze review is performed, the owner separately grants a successor-freeze approval,
+  the owner separately approves the narrow remediation, and that remediation is implemented,
+  reviewed, and committed. Runtime, integration, and live execution remain **not approved**.
+
+## P2-T4 successor contract-freeze approval ("G1 successor") — 2026-09-15
+
+- The project owner approved the P2-T4 successor contract freeze (revision 12) and successor
+  package (revision 16) in these exact words, recorded verbatim in `approvals/TASK_APPROVAL.md`:
+
+  > I approve the P2-T4 successor contract freeze revision 12 and successor package revision 16
+  > using the four verified SHA-256 identities stated above. This approval authorizes governance
+  > recording only; remediation implementation and integration/runtime/live remain not approved.
+
+- The approval is bound to four normalized SHA-256 identities, each independently reproduced
+  twice immediately before this record was written: successor freeze
+  `d592b135d2d8a90024d48d1b8335321660e8d7f089873e48687707c760e3d3e9`, successor package
+  `ad886d261d2807bcc95264d05d6a385dc79cd2f0cad44e2b4f004531b8097d4f`, immutable predecessor
+  freeze (revision 11) `be96b32aa675b7b6e46eea30effb2dbb91c718dc68ba7ce36d4d627ad6058ee2`, and
+  immutable predecessor package (revision 15)
+  `6821755722daf3bce622fe98eaf39124adb835c6854661143d79f48a943030d7`.
+- Frozen successor semantics: the five MV-1 through MV-5 decisions recorded above; the outer
+  safe-rejection identity `P2T4.P2T4FusionInputRejectionV2@2.0`, superseding
+  `P2T4.P2T4FusionInputRejectionV1@1.0` for every outer-boundary rejection; and the Vision
+  match-view admissibility invariant, applicable only to `VisionUnderstandingSuccessV1`, checked
+  after the ASR duplicate-index invariant and before correlation/typed status. The fused-result
+  identity `P2T4.P2T4FusedResultV1@1.0` is **unchanged**.
+- This is a **governance/freeze checkpoint decision, not an implementation approval**. The
+  exact-seven-file remediation implementation remains **PENDING / NOT APPROVED**, and integration,
+  runtime, provider, model, GPU, Lightning, migration, production, and live execution all remain
+  **NOT APPROVED**. G6-G9 remain paused pending the separate remediation-implementation approval,
+  implementation, review, and commit.
+- Predecessor freeze revision 11 and package revision 15 remain immutable historical artifacts,
+  and successor freeze revision 12 and package revision 16 were not edited to record this
+  approval; all four were verified byte-identical to the digests above immediately before this
+  approval was recorded. This approval binds them by digest, not by amending their text — the
+  same convention already used for the original G1 approval.
+- The known `application imports an outer layer` finding in `backend_ai_workflow.py` remains the
+  owner-approved Architecture Policy B baseline (validator SHA-256
+  `fa236c8d389b608251153d601fc370efe3f3e2479446ca4a56a3d395f892e0b5`, exactly one finding) and is
+  unrelated to, and unchanged by, this checkpoint.
+
+## P2-T4 digest-binding integrity defect — Option A decision (2026-09-16)
+
+- The owner accepted the **VERIFIED_INTEGRITY_DEFECT** finding. The four normalized digests
+  recorded for freeze revisions 11/12 and package revisions 15/16, which are cited in the G1, G2,
+  and successor contract-freeze entries above, bind only a prefix of their documents because they
+  were computed with a first-substring search for the revision-history heading.
+- The owner selected Option A: the immutable digest-binding erratum
+  `plan/P2_T4_DIGEST_BINDING_ERRATUM_20260915.md`. It preserves revisions 11/12/15/16
+  byte-for-byte, records the legacy digests as historical only, and establishes corrected
+  normalized SHA-256, raw-file SHA-256, Git blob IDs, and source commits for all four artifacts.
+  The verbatim authorization is in `approvals/TASK_APPROVAL.md`.
+- The erratum awaits independent review, with status
+  `READY FOR INDEPENDENT ERRATUM REVIEW — NOT OWNER REAPPROVED`. No renewed binding approval has
+  been granted, and the entries above are not rewritten.
+- This decision grants no implementation authority. The seven-file remediation implementation
+  remains **NOT APPROVED**, and G6-G9 remain **PAUSED**.
+
+## P2-T4 renewed digest-binding approval after independent erratum review - 2026-09-16
+
+- The independent erratum review is **PASS**. The four corrected normalized and raw-file SHA-256
+  hashes were reproduced independently; their source paths, source commits, Git blob IDs, byte/line
+  counts, and binding-table/heading ranges were verified against erratum sections 4.1-4.4 and 5.
+  The immutable erratum's raw-file SHA-256 `8975d94b0d9be8e78935b66e1e851493c1cff5b2f1b83cdf49acfe7f9929276e`
+  and Git blob ID `4b7ed999fed45e176d57c395e63fe62e8f12accc` were also verified.
+- The owner renewed approval exactly as follows:
+
+  > I approve the P2-T4 renewed digest-binding decision exactly as written above.
+
+- The previously approved successor semantics include P2T4.P2T4FusedResultV1@1.0 and P2T4.P2T4FusionInputRejectionV2@2.0; they remain unchanged, with no semantic reapproval.
+- No implementation authority is granted by this binding approval.
+- Renewed corrected artifact bindings are **APPROVED** against erratum sections 4.1-4.4. The renewed
+  approval binds the corrected normalized, raw-file, Git blob, source-commit, and repository-path
+  identities recorded in erratum section 4. The legacy first-substring digests are historical,
+  non-canonical, and incomplete; they are not the renewed binding. The original freeze/package
+  artifacts remain byte-immutable, and the issued erratum remains byte-immutable and was not edited.
+- This decision corrects bindings only. The successor semantics previously approved remain
+  unchanged, with no semantic reapproval. The exact governance checkpoint allowlist is the six
+  existing governance documents plus the immutable erratum. Separately, the exact seven-path
+  remediation allowlist from checkpoint `064ba62f32f1ffb964bc2208577eb0650b98e26a` remains
+  unchanged, and none of those seven remediation files was modified in this checkpoint.
+- The seven-file remediation is **NOT APPROVED / NOT STARTED**. G6-G9 remain **PAUSED**.
+  Integration, runtime, provider/model, GPU, Lightning, network, migration, production, and live
+  execution remain **NOT APPROVED**.
+- No future checkpoint commit SHA is written into tracked files. The executor will report the
+  resulting local governance commit SHA in the final handoff without modifying tracked files. This
+  additive record supersedes the pre-renewal pending wording as the current governance decision;
+  earlier records and the immutable erratum preserve the historical issuance state.
+
+## P2-T4 G9 governance closeout — 2026-09-17
+
+This current decision supersedes earlier paused or pending G6-G9 wording while preserving those
+entries as historical decision context.
+
+P2-T4: COMPLETE — GOVERNANCE-CLOSED
+CLOSEOUT: COMPLETE_WITH_ACCEPTED_G6_FINDINGS
+G6: PASS_WITH_FINDINGS
+G7: PASS
+G8: PASS
+G9: COMPLETE
+P2-T5: NOT APPROVED
+INTEGRATION/RUNTIME/LIVE: NOT APPROVED
+
+### Immutable topology and evidence bindings
+
+- Implementation candidate: `21249dc696c8ea3d958e78394ed69b8ac9f9505a`.
+- Direct parent: `dc107cd45a21ccb47031a58cb7c782084624bff4`.
+- Evidence checkpoint: `c80c58fbd2b76d28af52156301caca87e7a794f5`, direct-parented to the candidate,
+  containing exactly the three G7/G8 evidence files below.
+- The G9 governance checkpoint is direct-parented to the evidence checkpoint. Its own SHA is
+  intentionally not written into tracked files and is reported only in the final handoff.
+
+| Gate | Status | Canonical path | Raw SHA-256 | Git blob ID |
+|---|---|---|---|---|
+| G7 | PASS | `features/FEAT-003-multimodal-understanding/evidence/P2_T4_G7_CLOSEOUT_EVIDENCE.json` | `5b5e26753f5b4489cb559f06fc645884ca8e0af233cd563d791a56ad2ca5e40d` | `dfad83aac7a5c53bf5bab60239500f68f32e09be` |
+| G7 | PASS | `features/FEAT-003-multimodal-understanding/evidence/P2_T4_G7_EVIDENCE_REVIEW_20260916.md` | `f204dc33ad0d73a26db4596f8c9f657c4dbbf71a9fa911ca34a4a6007071f824` | `d906827e466f357c74af0cbaf6f58eb96eaf54fa` |
+| G8 | PASS | `features/FEAT-003-multimodal-understanding/evidence/P2_T4_G8_INDEPENDENT_EVIDENCE_GOVERNANCE_REVIEW_20260917.md` | `fe0e43b00edc7141e23b53cc9499c5c769c1e1c370fb005c88a6a17f6b827119` | `5e2665f4096d5316ab1eaf49d7da2677ec6a58ee` |
+
+### Preserved findings and boundaries
+
+OPEN P2-T4 IMPLEMENTATION DEFECTS: NONE IDENTIFIED BY G6-G8
+
+- `FEAT-018-TIMING-001` remains a separate FEAT-018 remediation and is outside P2-T4.
+- Inherited mypy findings remain unchanged and outside P2-T4: arg-type findings at
+  `learning_media_resolver.py:101`, `learning_media_fallback.py:82`, and
+  `learning_media_fallback.py:85`.
+- Inherited Ruff findings remain unchanged and outside P2-T4: E501 at `learning_media.py:79`,
+  I001 at `test_learning_media_scenario_matrix.py:1`, and E501 at
+  `test_learning_media_scenario_matrix.py:14`.
+- The Policy-B architecture baseline remains unchanged and is reported truthfully as
+  `ARCHITECTURE_INVALID`: exactly one approved `application imports an outer layer` finding at
+  `backend/src/sketch2life/application/services/backend_ai_workflow.py`, with validator
+  fingerprint `fa236c8d389b608251153d601fc370efe3f3e2479446ca4a56a3d395f892e0b5`.
+- This is governance-only. P2-T5, integration/runtime/live, provider/model, GPU, Lightning,
+  network, migration, production, and PR/push activity remain not approved.
+
+## P2-T5 fixture-only v1 owner decision bundle — 2026-09-19
+
+Decision: the Project Owner approved `P2T5.OwnerDecisionBundleV3@1.0` exactly as recorded in the
+dedicated plan's delimited V3 bundle and confirmed by the local report
+`tmp/p2-t5-v3-owner-confirmation-20260919-r2/REPORT.md`.
+
+The decision covers the eleven P2-T5 identities; immutable T4/B4/ASR/conflict bindings; report
+canonicalization; exact 20 fixture IDs, 12 DEVELOPMENT / 8 HELD_OUT split, and 40 media paths;
+oracle ownership and anti-tuning; metric formulas and closed unavailable states; deterministic
+correlation/retry/recapture semantics; CPython 3.13.5, no installation, and `NO_PYTHON_LOCKFILE`;
+privacy/output restrictions; inherited baseline fingerprints; deferred OD-1/OD-17/OD-18; and the
+separate G1-G9 topology.
+
+This decision does not grant G1, G2, implementation, fixture/media creation, evidence creation,
+integration, runtime/live/provider/model/GPU/Lightning/network/migration/production, commit,
+push, or PR authority. The plans must be synchronized without semantic change and independently
+reviewed before the immutable pre-G1 plan checkpoint and separate G1 approval.
+
+## P2-T5 G1 fixture-only plan approval — 2026-09-19
+
+Decision: the Project Owner approved G1 for the exact pre-G1 plan checkpoint
+`4b2bd6012c4069dcee021497670da13cabbe852c`, direct-parented to
+`f11a6f4fee81032a677b492303cdecd9b09663d4`. The checkpoint contains exactly the
+two reviewed plan files:
+
+| Path | Revision | Raw bytes | Raw SHA-256 | Git blob ID |
+|---|---:|---:|---|---|
+| `features/FEAT-003-multimodal-understanding/plan/PLAN.md` | 8 | 61590 | `4c52ccf63320de411d3551933e75a1ec05479a9471df68d8ef67fb2ee1b37b35` | `6db2089ca9f2d38f8c58f28b22de2c2a58ceb26a` |
+| `features/FEAT-003-multimodal-understanding/plan/P2_T5_EVALUATION_HARNESS_PLAN.md` | 0.15 | 211691 | `2a102acd689c0b53854562694692ce3a139ecdbbdee88f7c9fce7c136a5eea20` | `f9f81f9c1dbbd8fe92d8083ce163ac85f3721ce4` |
+
+This G1 decision freezes the approved fixture-only v1 plan and its documented
+contracts, metrics, privacy/reproducibility rules, and gate topology. It does not
+grant G2, implementation, fixture/media creation, evidence creation, integration,
+runtime/live, provider/model, GPU, Lightning, network, migration, production, push,
+or PR authority. G2 remains a separate exact-path approval whose direct parent must
+be the resulting G1 governance record commit. The G1 commit SHA is reported outside
+tracked content and is not embedded in these records.
+
+```text
+P2-T5: G1 APPROVED
+G2: NOT GRANTED
+IMPLEMENTATION: NOT APPROVED
+FIXTURE/MEDIA/EVIDENCE: NOT AUTHORIZED
+RUNTIME/LIVE: NOT APPROVED
+```
+
+## P2-T5 G2 exact implementation decision — 2026-09-20
+
+The owner selected the exact 54 individually named source, test, fixture/oracle, and synthetic
+media paths from the reviewed G2 draft. The G2 governance record is directly parented to
+`6464ad700a424fe7c0e0e1fcac34b69571be82a4` and may change only the three full governance paths
+listed in the matching G2 section of `approvals/TASK_APPROVAL.md`; no other path is authorized.
+
+That durable section also binds G1 checkpoint/revision/blob/raw identities, CPython 3.13.5 via
+`backend/.venv`, `NO_PYTHON_LOCKFILE`, the exact 55-distribution package-set hash
+`217f418ce003e9279bdcbe863437b90d0219f43264c3dafbcd7f6d459cefed48`, validator identities, and
+the inherited Policy-B/mypy/Ruff baseline. These values are reused for later G6 comparison and
+may not be re-resolved or substituted. G2 authorizes offline fixture-only implementation only;
+G3 is the next gate, G7 evidence is separate, and runtime/live/provider/model/GPU/Lightning/
+network/migration/production remain not approved.
+
+```text
+P2-T5: G1 APPROVED
+G2: APPROVED_FOR_EXACT_54_FILE_FIXTURE_ONLY_IMPLEMENTATION
+IMPLEMENTATION: NOT STARTED
+G3-G9: NOT STARTED
+FIXTURE/MEDIA: AUTHORIZED ONLY WITHIN THE EXACT 54-PATH SCOPE
+EVIDENCE: NOT AUTHORIZED
+RUNTIME/LIVE: NOT APPROVED
+```
+
+## P2-T5 G9 governance-closeout decision — 2026-09-21
+
+Decision: approve exactly one local, governance-only P2-T5 G9 closeout commit
+under draft raw SHA-256
+`8c6b8f79bc10a132d2abdede86caa5beb9299fddb876a383344f9434edf27765`.
+The commit must be a direct child of G8 review checkpoint
+`d9d32d9a7ff7977d86dd0596d0447a10abd75098` and may modify only the six
+literal paths enumerated in `approvals/TASK_APPROVAL.md`. The resulting SHA is
+reported externally only.
+
+This decision closes governance state after G8 `PASS`; it does not reinterpret
+fixture-only evidence as model/provider quality, does not change any G7/G8
+bytes, and does not authorize implementation, tests, fixtures, media,
+runtime, integration, live provider/model, GPU, Lightning, network,
+migration, production, push, or PR activity. The accepted Policy-B,
+mypy/Ruff, `FEAT-018-TIMING-001`, inherited test/blank-at-EOF, and sanitized
+temporary-directory findings remain accepted and traceable.
+
+```text
+P2-T5: COMPLETE — GOVERNANCE-CLOSED
+CLOSEOUT: COMPLETE_WITH_ACCEPTED_G6_FINDINGS
+G6: PASS_WITH_ACCEPTED_FINDINGS
+G7: COMPLETE — EVIDENCE CHECKPOINT BOUND
+G8: PASS
+G9: COMPLETE
+P2-T5 IMPLEMENTATION: COMPLETE AT G5 CHECKPOINT
+RUNTIME/INTEGRATION/LIVE: NOT APPROVED
+PROVIDER/MODEL/GPU/LIGHTNING/NETWORK: NOT APPROVED
+```

@@ -1,0 +1,2593 @@
+{
+  "contract_name": "P2T4FusionExpectedV1",
+  "contract_version": "1.0",
+  "target_contract": "P2T4.P2T4FusedResultV1@1.0",
+  "canonicalization_identity": "P2T4-CANONICAL-JSON-V1",
+  "synthetic_data": true,
+  "authoring": "Hand-authored from the frozen successor contract (freeze revision 12, source commit 5b6501b2d8b809f9dd4caf77b5c5d51d2e1e9cf2, superseding the G1 freeze at 18d0c33d35431ca96a76692a68c6b992098699e7). Each `result` is the exact P2T4-CANONICAL-JSON-V1 projection of the expected P2T4FusedResultV1 or P2T4FusionInputRejectionV2; `canonical_sha256` is SHA-256 of its canonical UTF-8 bytes. Source-result digests, the policy hash, and conflict identifiers were bound with the frozen byte algorithms over the hand-authored case inputs, never by running the implementation under test. Under the 2026-09-16 remediation every REJECTED result carries the P2T4FusionInputRejectionV2/2.0 identity with a recomputed canonical digest; the FUSED and UPSTREAM_FAILURE results are byte-identical to the G2 checkpoint. No observed non-canonical policy_match_view_version value is stored here; the vision-failure-noncanonical-match-view source digest binds it only through SHA-256.",
+  "cases": {
+    "agreement-all-kinds": {
+      "outcome": "FUSED",
+      "result": {
+        "contract_name": "P2T4FusedResultV1",
+        "contract_version": "1.0",
+        "status": "FUSED",
+        "correlation_id": "corr-p2t4-0001",
+        "executed_at": "2026-09-15T12:00:00.000000Z",
+        "source_asr_result_ref": {
+          "identity": "P2.AsrResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "9c46c7a7ea530c0f2d581ccbf6be9fcf24a87c78b1f346c3dbbfe237571ec34b"
+        },
+        "source_vision_result_ref": {
+          "identity": "P2.VisionUnderstandingResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "4338452d86c744fb3ec23a884ddfcba9a4ec7a33bfef9e9cc39efcf95b8ede67"
+        },
+        "fusion_policy_config_hash": "4b378f69a33b86aeefc7443a23ac819e46b986132525cdd8a55d112dfb96415c",
+        "entities": [
+          {
+            "fused_observation_id": "e-child",
+            "source_observation_ref": "e-child",
+            "label": {
+              "value": "child",
+              "language": {
+                "status": "DECLARED",
+                "tags": [
+                  "en"
+                ],
+                "is_ground_truth": false
+              }
+            },
+            "narration_support_applied": true,
+            "narration_support_ref": {
+              "segment_index": 0,
+              "claim_start": 1,
+              "claim_end": 2
+            },
+            "primary_interpretation": true
+          },
+          {
+            "fused_observation_id": "e-house",
+            "source_observation_ref": "e-house",
+            "label": {
+              "value": "house",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "narration_support_applied": true,
+            "narration_support_ref": {
+              "segment_index": 0,
+              "claim_start": 5,
+              "claim_end": 6
+            },
+            "primary_interpretation": true
+          }
+        ],
+        "actions": [
+          {
+            "fused_observation_id": "a-draws",
+            "source_observation_ref": "a-draws",
+            "label": {
+              "value": "draws",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "actor_ref": "e-child",
+            "object_ref": "e-house",
+            "narration_support_applied": true,
+            "narration_support_ref": {
+              "segment_index": 0,
+              "claim_start": 2,
+              "claim_end": 3
+            },
+            "primary_interpretation": true
+          }
+        ],
+        "relations": [
+          {
+            "fused_observation_id": "r-child-house",
+            "source_observation_ref": "r-child-house",
+            "predicate": {
+              "value": "draws a red",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "subject_ref": "e-child",
+            "object_ref": "e-house",
+            "narration_support_applied": true,
+            "narration_support_ref": {
+              "segment_index": 0,
+              "claim_start": 2,
+              "claim_end": 5
+            },
+            "primary_interpretation": true
+          }
+        ],
+        "themes": [
+          {
+            "fused_observation_id": "t-home",
+            "source_observation_ref": "t-home",
+            "label": {
+              "value": "home life",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "evidence_refs": [
+              "e-house",
+              "a-draws"
+            ]
+          }
+        ],
+        "conflicts": [],
+        "uncertainty": {
+          "formula_id": "AGREEMENT_WEIGHTED_V1",
+          "per_observation": [
+            {
+              "observation_id": "e-child",
+              "candidate_kind": "ENTITY",
+              "certainty_status": "MEASURED",
+              "certainty": 0.8
+            },
+            {
+              "observation_id": "e-house",
+              "candidate_kind": "ENTITY",
+              "certainty_status": "MEASURED",
+              "certainty": 0.9
+            },
+            {
+              "observation_id": "a-draws",
+              "candidate_kind": "ACTION",
+              "certainty_status": "MEASURED",
+              "certainty": 0.7
+            },
+            {
+              "observation_id": "r-child-house",
+              "candidate_kind": "RELATION",
+              "certainty_status": "MEASURED",
+              "certainty": 0.6
+            }
+          ]
+        },
+        "upstream_failure": null
+      },
+      "canonical_sha256": "2660aa8ba5e1d4efea02f70d6e0b17405d3f71c9b79c117cd4655754f7eeaaf4"
+    },
+    "asr-only-narration": {
+      "outcome": "FUSED",
+      "result": {
+        "contract_name": "P2T4FusedResultV1",
+        "contract_version": "1.0",
+        "status": "FUSED",
+        "correlation_id": "corr-p2t4-0001",
+        "executed_at": "2026-09-15T12:00:00.000000Z",
+        "source_asr_result_ref": {
+          "identity": "P2.AsrResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "7bebe3a0683fa6e17aff536a0dc65d519b20b546205fb43f1282ecd25d92f692"
+        },
+        "source_vision_result_ref": {
+          "identity": "P2.VisionUnderstandingResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "21ae5268ec53a755a42f738bde25951db7cf5b55566a5da28123d2f6f29717d5"
+        },
+        "fusion_policy_config_hash": "4b378f69a33b86aeefc7443a23ac819e46b986132525cdd8a55d112dfb96415c",
+        "entities": [
+          {
+            "fused_observation_id": "e-house",
+            "source_observation_ref": "e-house",
+            "label": {
+              "value": "house",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "narration_support_applied": false,
+            "narration_support_ref": null,
+            "primary_interpretation": true
+          }
+        ],
+        "actions": [],
+        "relations": [],
+        "themes": [],
+        "conflicts": [],
+        "uncertainty": {
+          "formula_id": "AGREEMENT_WEIGHTED_V1",
+          "per_observation": [
+            {
+              "observation_id": "e-house",
+              "candidate_kind": "ENTITY",
+              "certainty_status": "MEASURED",
+              "certainty": 0.8
+            }
+          ]
+        },
+        "upstream_failure": null
+      },
+      "canonical_sha256": "d64a4f673db701901db279e0ddcbd0095a0e6aedeac95014cb632d21e8ff29c3"
+    },
+    "vision-only-empty-transcript": {
+      "outcome": "FUSED",
+      "result": {
+        "contract_name": "P2T4FusedResultV1",
+        "contract_version": "1.0",
+        "status": "FUSED",
+        "correlation_id": "corr-p2t4-0001",
+        "executed_at": "2026-09-15T12:00:00.000000Z",
+        "source_asr_result_ref": {
+          "identity": "P2.AsrResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "e98789fab4d3a9ca751650aa213bd04d3cd0667c0301bb269b84b08986a87098"
+        },
+        "source_vision_result_ref": {
+          "identity": "P2.VisionUnderstandingResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "21ae5268ec53a755a42f738bde25951db7cf5b55566a5da28123d2f6f29717d5"
+        },
+        "fusion_policy_config_hash": "4b378f69a33b86aeefc7443a23ac819e46b986132525cdd8a55d112dfb96415c",
+        "entities": [
+          {
+            "fused_observation_id": "e-house",
+            "source_observation_ref": "e-house",
+            "label": {
+              "value": "house",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "narration_support_applied": false,
+            "narration_support_ref": null,
+            "primary_interpretation": true
+          }
+        ],
+        "actions": [],
+        "relations": [],
+        "themes": [],
+        "conflicts": [],
+        "uncertainty": {
+          "formula_id": "AGREEMENT_WEIGHTED_V1",
+          "per_observation": [
+            {
+              "observation_id": "e-house",
+              "candidate_kind": "ENTITY",
+              "certainty_status": "MEASURED",
+              "certainty": 0.8
+            }
+          ]
+        },
+        "upstream_failure": null
+      },
+      "canonical_sha256": "d48c67b1e027f175cd954309ff47140bd856a39051ebf0da255251f5c4f809f4"
+    },
+    "entity-negation-contradiction": {
+      "outcome": "FUSED",
+      "result": {
+        "contract_name": "P2T4FusedResultV1",
+        "contract_version": "1.0",
+        "status": "FUSED",
+        "correlation_id": "corr-p2t4-0001",
+        "executed_at": "2026-09-15T12:00:00.000000Z",
+        "source_asr_result_ref": {
+          "identity": "P2.AsrResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "8fa96eee997f84c8cfd8d10568e679ed8954cf2c81a58df49a5d621456c5e24b"
+        },
+        "source_vision_result_ref": {
+          "identity": "P2.VisionUnderstandingResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "21ae5268ec53a755a42f738bde25951db7cf5b55566a5da28123d2f6f29717d5"
+        },
+        "fusion_policy_config_hash": "4b378f69a33b86aeefc7443a23ac819e46b986132525cdd8a55d112dfb96415c",
+        "entities": [
+          {
+            "fused_observation_id": "e-house",
+            "source_observation_ref": "e-house",
+            "label": {
+              "value": "house",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "narration_support_applied": false,
+            "narration_support_ref": null,
+            "primary_interpretation": false
+          }
+        ],
+        "actions": [],
+        "relations": [],
+        "themes": [],
+        "conflicts": [
+          {
+            "conflict_id": "P2T4-CONFLICT-4c4b93dee4f98f0dc1e30051f1a1a61f2b6175ae20b8d53f6f168329a547476b",
+            "reason_code": "ENTITY_ATTRIBUTE_CONTRADICTION",
+            "vision_claim_ref": "e-house",
+            "narration_claim_ref": {
+              "segment_index": 0,
+              "claim_start": 4,
+              "claim_end": 5
+            },
+            "recommended_reviewer_attention": true
+          }
+        ],
+        "uncertainty": {
+          "formula_id": "AGREEMENT_WEIGHTED_V1",
+          "per_observation": [
+            {
+              "observation_id": "e-house",
+              "candidate_kind": "ENTITY",
+              "certainty_status": "NOT_APPLICABLE_CONFLICTING",
+              "certainty": null
+            }
+          ]
+        },
+        "upstream_failure": null
+      },
+      "canonical_sha256": "0b66e8d037f623997d43af6a65a289981da9c4673412f48cc2680d1ce350cd05"
+    },
+    "action-negation-contradiction": {
+      "outcome": "FUSED",
+      "result": {
+        "contract_name": "P2T4FusedResultV1",
+        "contract_version": "1.0",
+        "status": "FUSED",
+        "correlation_id": "corr-p2t4-0001",
+        "executed_at": "2026-09-15T12:00:00.000000Z",
+        "source_asr_result_ref": {
+          "identity": "P2.AsrResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "f78a1d47bf8e95bf818eaad125f6be9927ebc7af462bd44a407fabeaa2b1b13f"
+        },
+        "source_vision_result_ref": {
+          "identity": "P2.VisionUnderstandingResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "f545863bde21d135bed29dda56e5e0e295b9b10569e457c77e54402f96a63e5d"
+        },
+        "fusion_policy_config_hash": "4b378f69a33b86aeefc7443a23ac819e46b986132525cdd8a55d112dfb96415c",
+        "entities": [
+          {
+            "fused_observation_id": "e-child",
+            "source_observation_ref": "e-child",
+            "label": {
+              "value": "child",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "narration_support_applied": true,
+            "narration_support_ref": {
+              "segment_index": 0,
+              "claim_start": 1,
+              "claim_end": 2
+            },
+            "primary_interpretation": true
+          }
+        ],
+        "actions": [
+          {
+            "fused_observation_id": "a-draws",
+            "source_observation_ref": "a-draws",
+            "label": {
+              "value": "draws",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "actor_ref": "e-child",
+            "object_ref": null,
+            "narration_support_applied": false,
+            "narration_support_ref": null,
+            "primary_interpretation": false
+          }
+        ],
+        "relations": [],
+        "themes": [],
+        "conflicts": [
+          {
+            "conflict_id": "P2T4-CONFLICT-5efc6041b095933ed6f8b64fbc221a1e15091046e2dd2b82f9b5c6e29e1c7c99",
+            "reason_code": "ACTION_CONTRADICTION",
+            "vision_claim_ref": "a-draws",
+            "narration_claim_ref": {
+              "segment_index": 0,
+              "claim_start": 3,
+              "claim_end": 4
+            },
+            "recommended_reviewer_attention": true
+          }
+        ],
+        "uncertainty": {
+          "formula_id": "AGREEMENT_WEIGHTED_V1",
+          "per_observation": [
+            {
+              "observation_id": "e-child",
+              "candidate_kind": "ENTITY",
+              "certainty_status": "MEASURED",
+              "certainty": 0.8
+            },
+            {
+              "observation_id": "a-draws",
+              "candidate_kind": "ACTION",
+              "certainty_status": "NOT_APPLICABLE_CONFLICTING",
+              "certainty": null
+            }
+          ]
+        },
+        "upstream_failure": null
+      },
+      "canonical_sha256": "46554d416d68ebd967ff6b53f77636fbb078a30994616927f8592b7695cdd05e"
+    },
+    "relation-negation-ascii-apostrophe": {
+      "outcome": "FUSED",
+      "result": {
+        "contract_name": "P2T4FusedResultV1",
+        "contract_version": "1.0",
+        "status": "FUSED",
+        "correlation_id": "corr-p2t4-0001",
+        "executed_at": "2026-09-15T12:00:00.000000Z",
+        "source_asr_result_ref": {
+          "identity": "P2.AsrResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "25562133e5aec25eb58be39a7bddbcd0bd7e46636fb182336724fbb4f0d88278"
+        },
+        "source_vision_result_ref": {
+          "identity": "P2.VisionUnderstandingResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "b3c666ea6c93686f57c1c9559e86db823c6e45fdd3b0a08db67724579ec9238d"
+        },
+        "fusion_policy_config_hash": "4b378f69a33b86aeefc7443a23ac819e46b986132525cdd8a55d112dfb96415c",
+        "entities": [
+          {
+            "fused_observation_id": "e-cat",
+            "source_observation_ref": "e-cat",
+            "label": {
+              "value": "cat",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "narration_support_applied": true,
+            "narration_support_ref": {
+              "segment_index": 0,
+              "claim_start": 1,
+              "claim_end": 2
+            },
+            "primary_interpretation": true
+          },
+          {
+            "fused_observation_id": "e-mat",
+            "source_observation_ref": "e-mat",
+            "label": {
+              "value": "mat",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "narration_support_applied": true,
+            "narration_support_ref": {
+              "segment_index": 0,
+              "claim_start": 6,
+              "claim_end": 7
+            },
+            "primary_interpretation": true
+          }
+        ],
+        "actions": [],
+        "relations": [
+          {
+            "fused_observation_id": "r-on",
+            "source_observation_ref": "r-on",
+            "predicate": {
+              "value": "on",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "subject_ref": "e-cat",
+            "object_ref": "e-mat",
+            "narration_support_applied": false,
+            "narration_support_ref": null,
+            "primary_interpretation": false
+          }
+        ],
+        "themes": [],
+        "conflicts": [
+          {
+            "conflict_id": "P2T4-CONFLICT-56c48c77d72a17e2754fe5af13798e0d86e75c1eb1f1eaea0dbffc6e77f979e3",
+            "reason_code": "RELATION_CONTRADICTION",
+            "vision_claim_ref": "r-on",
+            "narration_claim_ref": {
+              "segment_index": 0,
+              "claim_start": 4,
+              "claim_end": 5
+            },
+            "recommended_reviewer_attention": true
+          }
+        ],
+        "uncertainty": {
+          "formula_id": "AGREEMENT_WEIGHTED_V1",
+          "per_observation": [
+            {
+              "observation_id": "e-cat",
+              "candidate_kind": "ENTITY",
+              "certainty_status": "MEASURED",
+              "certainty": 0.8
+            },
+            {
+              "observation_id": "e-mat",
+              "candidate_kind": "ENTITY",
+              "certainty_status": "MEASURED",
+              "certainty": 0.7
+            },
+            {
+              "observation_id": "r-on",
+              "candidate_kind": "RELATION",
+              "certainty_status": "NOT_APPLICABLE_CONFLICTING",
+              "certainty": null
+            }
+          ]
+        },
+        "upstream_failure": null
+      },
+      "canonical_sha256": "261be003892290a5cfab949919bebcaa5daa893e033f32b2ab348426ac97afe6"
+    },
+    "curly-apostrophe-and-casefold": {
+      "outcome": "FUSED",
+      "result": {
+        "contract_name": "P2T4FusedResultV1",
+        "contract_version": "1.0",
+        "status": "FUSED",
+        "correlation_id": "corr-p2t4-0001",
+        "executed_at": "2026-09-15T12:00:00.000000Z",
+        "source_asr_result_ref": {
+          "identity": "P2.AsrResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "b21370e4342a72fea4743fe9e8c5b8ecbacc8552c45ce40160d992654c80381f"
+        },
+        "source_vision_result_ref": {
+          "identity": "P2.VisionUnderstandingResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "6f700a414f0d863413bb860204f0234fb479b407a2f086fb6d71127d1fc92177"
+        },
+        "fusion_policy_config_hash": "4b378f69a33b86aeefc7443a23ac819e46b986132525cdd8a55d112dfb96415c",
+        "entities": [
+          {
+            "fused_observation_id": "e-dog",
+            "source_observation_ref": "e-dog",
+            "label": {
+              "value": "Dog",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "narration_support_applied": true,
+            "narration_support_ref": {
+              "segment_index": 0,
+              "claim_start": 1,
+              "claim_end": 2
+            },
+            "primary_interpretation": true
+          }
+        ],
+        "actions": [
+          {
+            "fused_observation_id": "a-run",
+            "source_observation_ref": "a-run",
+            "label": {
+              "value": "run",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "actor_ref": "e-dog",
+            "object_ref": null,
+            "narration_support_applied": false,
+            "narration_support_ref": null,
+            "primary_interpretation": false
+          }
+        ],
+        "relations": [],
+        "themes": [],
+        "conflicts": [
+          {
+            "conflict_id": "P2T4-CONFLICT-92f3fb1abe608eb6e850b26ad60ef7f4c36c9d0f65ff8a8d51065ca94c18ffa3",
+            "reason_code": "ACTION_CONTRADICTION",
+            "vision_claim_ref": "a-run",
+            "narration_claim_ref": {
+              "segment_index": 0,
+              "claim_start": 4,
+              "claim_end": 5
+            },
+            "recommended_reviewer_attention": true
+          }
+        ],
+        "uncertainty": {
+          "formula_id": "AGREEMENT_WEIGHTED_V1",
+          "per_observation": [
+            {
+              "observation_id": "e-dog",
+              "candidate_kind": "ENTITY",
+              "certainty_status": "MEASURED",
+              "certainty": 0.8
+            },
+            {
+              "observation_id": "a-run",
+              "candidate_kind": "ACTION",
+              "certainty_status": "NOT_APPLICABLE_CONFLICTING",
+              "certainty": null
+            }
+          ]
+        },
+        "upstream_failure": null
+      },
+      "canonical_sha256": "4691beb622014ba1a6f28ad055090f2c0b727811b738a09fb5ba52baab747642"
+    },
+    "cue-outside-window": {
+      "outcome": "FUSED",
+      "result": {
+        "contract_name": "P2T4FusedResultV1",
+        "contract_version": "1.0",
+        "status": "FUSED",
+        "correlation_id": "corr-p2t4-0001",
+        "executed_at": "2026-09-15T12:00:00.000000Z",
+        "source_asr_result_ref": {
+          "identity": "P2.AsrResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "ee8a98a19ac480ae693d4f802c537f1c464d8e7e456676e171403a205a2cef0a"
+        },
+        "source_vision_result_ref": {
+          "identity": "P2.VisionUnderstandingResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "40d877538e51819b9db797bb4942f2021ba8aaa1eab2bae29374165950f54ec8"
+        },
+        "fusion_policy_config_hash": "4b378f69a33b86aeefc7443a23ac819e46b986132525cdd8a55d112dfb96415c",
+        "entities": [
+          {
+            "fused_observation_id": "e-dog",
+            "source_observation_ref": "e-dog",
+            "label": {
+              "value": "dog",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "narration_support_applied": true,
+            "narration_support_ref": {
+              "segment_index": 0,
+              "claim_start": 4,
+              "claim_end": 5
+            },
+            "primary_interpretation": true
+          }
+        ],
+        "actions": [],
+        "relations": [],
+        "themes": [],
+        "conflicts": [],
+        "uncertainty": {
+          "formula_id": "AGREEMENT_WEIGHTED_V1",
+          "per_observation": [
+            {
+              "observation_id": "e-dog",
+              "candidate_kind": "ENTITY",
+              "certainty_status": "MEASURED",
+              "certainty": 0.8
+            }
+          ]
+        },
+        "upstream_failure": null
+      },
+      "canonical_sha256": "7cb9b9cd60226f66bb4b630e80d29334709d42a437fa8a191d3cd52f0ab63339"
+    },
+    "short-segment-prefix": {
+      "outcome": "FUSED",
+      "result": {
+        "contract_name": "P2T4FusedResultV1",
+        "contract_version": "1.0",
+        "status": "FUSED",
+        "correlation_id": "corr-p2t4-0001",
+        "executed_at": "2026-09-15T12:00:00.000000Z",
+        "source_asr_result_ref": {
+          "identity": "P2.AsrResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "bf4d60b5f30832906a880ef333cf2b4f3f7e7fc44eab849cd9005e30caf60fc4"
+        },
+        "source_vision_result_ref": {
+          "identity": "P2.VisionUnderstandingResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "40d877538e51819b9db797bb4942f2021ba8aaa1eab2bae29374165950f54ec8"
+        },
+        "fusion_policy_config_hash": "4b378f69a33b86aeefc7443a23ac819e46b986132525cdd8a55d112dfb96415c",
+        "entities": [
+          {
+            "fused_observation_id": "e-dog",
+            "source_observation_ref": "e-dog",
+            "label": {
+              "value": "dog",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "narration_support_applied": false,
+            "narration_support_ref": null,
+            "primary_interpretation": false
+          }
+        ],
+        "actions": [],
+        "relations": [],
+        "themes": [],
+        "conflicts": [
+          {
+            "conflict_id": "P2T4-CONFLICT-4b3ecc6648443373cb2f5aad84fdcb8383f56e59d138cbbd17dc9ddc12d46bf6",
+            "reason_code": "ENTITY_ATTRIBUTE_CONTRADICTION",
+            "vision_claim_ref": "e-dog",
+            "narration_claim_ref": {
+              "segment_index": 0,
+              "claim_start": 1,
+              "claim_end": 2
+            },
+            "recommended_reviewer_attention": true
+          }
+        ],
+        "uncertainty": {
+          "formula_id": "AGREEMENT_WEIGHTED_V1",
+          "per_observation": [
+            {
+              "observation_id": "e-dog",
+              "candidate_kind": "ENTITY",
+              "certainty_status": "NOT_APPLICABLE_CONFLICTING",
+              "certainty": null
+            }
+          ]
+        },
+        "upstream_failure": null
+      },
+      "canonical_sha256": "e2231114d80639d59d7bfcb7968126b48e8dff06beee305f6526d7a856ff2457"
+    },
+    "partial-cue-sequence": {
+      "outcome": "FUSED",
+      "result": {
+        "contract_name": "P2T4FusedResultV1",
+        "contract_version": "1.0",
+        "status": "FUSED",
+        "correlation_id": "corr-p2t4-0001",
+        "executed_at": "2026-09-15T12:00:00.000000Z",
+        "source_asr_result_ref": {
+          "identity": "P2.AsrResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "0ca726bb6b500b9a9569df60439e27715df098cf384cd17910ccc4e461df723e"
+        },
+        "source_vision_result_ref": {
+          "identity": "P2.VisionUnderstandingResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "40d877538e51819b9db797bb4942f2021ba8aaa1eab2bae29374165950f54ec8"
+        },
+        "fusion_policy_config_hash": "4b378f69a33b86aeefc7443a23ac819e46b986132525cdd8a55d112dfb96415c",
+        "entities": [
+          {
+            "fused_observation_id": "e-dog",
+            "source_observation_ref": "e-dog",
+            "label": {
+              "value": "dog",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "narration_support_applied": true,
+            "narration_support_ref": {
+              "segment_index": 0,
+              "claim_start": 1,
+              "claim_end": 2
+            },
+            "primary_interpretation": true
+          }
+        ],
+        "actions": [],
+        "relations": [],
+        "themes": [],
+        "conflicts": [],
+        "uncertainty": {
+          "formula_id": "AGREEMENT_WEIGHTED_V1",
+          "per_observation": [
+            {
+              "observation_id": "e-dog",
+              "candidate_kind": "ENTITY",
+              "certainty_status": "MEASURED",
+              "certainty": 0.8
+            }
+          ]
+        },
+        "upstream_failure": null
+      },
+      "canonical_sha256": "e092cdd4233854b62adca5da6d02786240b04778d40e4f479b32532284e3bd9e"
+    },
+    "mixed-positive-and-refuting": {
+      "outcome": "FUSED",
+      "result": {
+        "contract_name": "P2T4FusedResultV1",
+        "contract_version": "1.0",
+        "status": "FUSED",
+        "correlation_id": "corr-p2t4-0001",
+        "executed_at": "2026-09-15T12:00:00.000000Z",
+        "source_asr_result_ref": {
+          "identity": "P2.AsrResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "ef3a5a8f3174ef1489a15a47e74412a7a21965a955471caba87726661a611aff"
+        },
+        "source_vision_result_ref": {
+          "identity": "P2.VisionUnderstandingResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "40d877538e51819b9db797bb4942f2021ba8aaa1eab2bae29374165950f54ec8"
+        },
+        "fusion_policy_config_hash": "4b378f69a33b86aeefc7443a23ac819e46b986132525cdd8a55d112dfb96415c",
+        "entities": [
+          {
+            "fused_observation_id": "e-dog",
+            "source_observation_ref": "e-dog",
+            "label": {
+              "value": "dog",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "narration_support_applied": true,
+            "narration_support_ref": {
+              "segment_index": 0,
+              "claim_start": 1,
+              "claim_end": 2
+            },
+            "primary_interpretation": false
+          }
+        ],
+        "actions": [],
+        "relations": [],
+        "themes": [],
+        "conflicts": [
+          {
+            "conflict_id": "P2T4-CONFLICT-4b3ecc6648443373cb2f5aad84fdcb8383f56e59d138cbbd17dc9ddc12d46bf6",
+            "reason_code": "ENTITY_ATTRIBUTE_CONTRADICTION",
+            "vision_claim_ref": "e-dog",
+            "narration_claim_ref": {
+              "segment_index": 0,
+              "claim_start": 5,
+              "claim_end": 6
+            },
+            "recommended_reviewer_attention": true
+          }
+        ],
+        "uncertainty": {
+          "formula_id": "AGREEMENT_WEIGHTED_V1",
+          "per_observation": [
+            {
+              "observation_id": "e-dog",
+              "candidate_kind": "ENTITY",
+              "certainty_status": "NOT_APPLICABLE_CONFLICTING",
+              "certainty": null
+            }
+          ]
+        },
+        "upstream_failure": null
+      },
+      "canonical_sha256": "0b90f06d10a6ef7dc8efca296395c3b3326630f5c2cf1d172517ec12f6332fd9"
+    },
+    "no-vision-counterpart": {
+      "outcome": "FUSED",
+      "result": {
+        "contract_name": "P2T4FusedResultV1",
+        "contract_version": "1.0",
+        "status": "FUSED",
+        "correlation_id": "corr-p2t4-0001",
+        "executed_at": "2026-09-15T12:00:00.000000Z",
+        "source_asr_result_ref": {
+          "identity": "P2.AsrResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "332f964a87a85933e40664998949012b0dcd77d9fc6bc5c28420b46ef9854639"
+        },
+        "source_vision_result_ref": {
+          "identity": "P2.VisionUnderstandingResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "b7b2a7ea39e1ab146551cfcd69841f19db9fe5a8419c051b08f9188d12e8b1c8"
+        },
+        "fusion_policy_config_hash": "4b378f69a33b86aeefc7443a23ac819e46b986132525cdd8a55d112dfb96415c",
+        "entities": [
+          {
+            "fused_observation_id": "e-dog",
+            "source_observation_ref": "e-dog",
+            "label": {
+              "value": "dog",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "narration_support_applied": false,
+            "narration_support_ref": null,
+            "primary_interpretation": true
+          }
+        ],
+        "actions": [],
+        "relations": [],
+        "themes": [],
+        "conflicts": [],
+        "uncertainty": {
+          "formula_id": "AGREEMENT_WEIGHTED_V1",
+          "per_observation": [
+            {
+              "observation_id": "e-dog",
+              "candidate_kind": "ENTITY",
+              "certainty_status": "MEASURED",
+              "certainty": 0.8
+            }
+          ]
+        },
+        "upstream_failure": null
+      },
+      "canonical_sha256": "cd91e32820c86332b93d141f6ec265576cd36271844793eb4b251d50b1d843b8"
+    },
+    "duplicate-overlapping-multi-segment-spans": {
+      "outcome": "FUSED",
+      "result": {
+        "contract_name": "P2T4FusedResultV1",
+        "contract_version": "1.0",
+        "status": "FUSED",
+        "correlation_id": "corr-p2t4-0001",
+        "executed_at": "2026-09-15T12:00:00.000000Z",
+        "source_asr_result_ref": {
+          "identity": "P2.AsrResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "df2d106d108b7f704d8fe6cc3cbe44cce173c6a7dc0599150846ba23797cff75"
+        },
+        "source_vision_result_ref": {
+          "identity": "P2.VisionUnderstandingResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "12ca543faeb23ec2211079f1d598cb360ab45c4b1c7ad9fbf89b7d3f81f2010a"
+        },
+        "fusion_policy_config_hash": "4b378f69a33b86aeefc7443a23ac819e46b986132525cdd8a55d112dfb96415c",
+        "entities": [
+          {
+            "fused_observation_id": "e-dog",
+            "source_observation_ref": "e-dog",
+            "label": {
+              "value": "dog",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "narration_support_applied": true,
+            "narration_support_ref": {
+              "segment_index": 0,
+              "claim_start": 0,
+              "claim_end": 1
+            },
+            "primary_interpretation": true
+          },
+          {
+            "fused_observation_id": "e-dogdog",
+            "source_observation_ref": "e-dogdog",
+            "label": {
+              "value": "dog dog",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "narration_support_applied": true,
+            "narration_support_ref": {
+              "segment_index": 0,
+              "claim_start": 0,
+              "claim_end": 2
+            },
+            "primary_interpretation": true
+          }
+        ],
+        "actions": [],
+        "relations": [],
+        "themes": [],
+        "conflicts": [],
+        "uncertainty": {
+          "formula_id": "AGREEMENT_WEIGHTED_V1",
+          "per_observation": [
+            {
+              "observation_id": "e-dog",
+              "candidate_kind": "ENTITY",
+              "certainty_status": "MEASURED",
+              "certainty": 0.8
+            },
+            {
+              "observation_id": "e-dogdog",
+              "candidate_kind": "ENTITY",
+              "certainty_status": "MEASURED",
+              "certainty": 0.7
+            }
+          ]
+        },
+        "upstream_failure": null
+      },
+      "canonical_sha256": "161fcca11f0deb21c85f543410c4a9525703f2f0b004fccd9b3fd912a37ecc42"
+    },
+    "cross-segment-coordinate-reset": {
+      "outcome": "FUSED",
+      "result": {
+        "contract_name": "P2T4FusedResultV1",
+        "contract_version": "1.0",
+        "status": "FUSED",
+        "correlation_id": "corr-p2t4-0001",
+        "executed_at": "2026-09-15T12:00:00.000000Z",
+        "source_asr_result_ref": {
+          "identity": "P2.AsrResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "81e7695884c6f15a4141a0ad51a323b678b44ee8d18f589bff30a0cad29b3d78"
+        },
+        "source_vision_result_ref": {
+          "identity": "P2.VisionUnderstandingResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "15e1b1c9e6d4a8fad9f2c70cafa86a5fc9a46bb49d8131b88cf9bb329cdebff9"
+        },
+        "fusion_policy_config_hash": "4b378f69a33b86aeefc7443a23ac819e46b986132525cdd8a55d112dfb96415c",
+        "entities": [
+          {
+            "fused_observation_id": "e-redhouse",
+            "source_observation_ref": "e-redhouse",
+            "label": {
+              "value": "red house",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "narration_support_applied": false,
+            "narration_support_ref": null,
+            "primary_interpretation": true
+          },
+          {
+            "fused_observation_id": "e-house",
+            "source_observation_ref": "e-house",
+            "label": {
+              "value": "house",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "narration_support_applied": true,
+            "narration_support_ref": {
+              "segment_index": 1,
+              "claim_start": 0,
+              "claim_end": 1
+            },
+            "primary_interpretation": true
+          }
+        ],
+        "actions": [],
+        "relations": [],
+        "themes": [],
+        "conflicts": [],
+        "uncertainty": {
+          "formula_id": "AGREEMENT_WEIGHTED_V1",
+          "per_observation": [
+            {
+              "observation_id": "e-house",
+              "candidate_kind": "ENTITY",
+              "certainty_status": "MEASURED",
+              "certainty": 0.8
+            },
+            {
+              "observation_id": "e-redhouse",
+              "candidate_kind": "ENTITY",
+              "certainty_status": "MEASURED",
+              "certainty": 0.8
+            }
+          ]
+        },
+        "upstream_failure": null
+      },
+      "canonical_sha256": "49e2ca9856dd5360d08cabc763977ad8d017b7665538f4d1f046483491278b54"
+    },
+    "segment-source-order-independence": {
+      "outcome": "FUSED",
+      "result": {
+        "contract_name": "P2T4FusedResultV1",
+        "contract_version": "1.0",
+        "status": "FUSED",
+        "correlation_id": "corr-p2t4-0001",
+        "executed_at": "2026-09-15T12:00:00.000000Z",
+        "source_asr_result_ref": {
+          "identity": "P2.AsrResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "9b05c8c4da16d4950d6f807cfa1e339a8b34ce3f65759318d85e8e5d7a297fc5"
+        },
+        "source_vision_result_ref": {
+          "identity": "P2.VisionUnderstandingResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "40d877538e51819b9db797bb4942f2021ba8aaa1eab2bae29374165950f54ec8"
+        },
+        "fusion_policy_config_hash": "4b378f69a33b86aeefc7443a23ac819e46b986132525cdd8a55d112dfb96415c",
+        "entities": [
+          {
+            "fused_observation_id": "e-dog",
+            "source_observation_ref": "e-dog",
+            "label": {
+              "value": "dog",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "narration_support_applied": true,
+            "narration_support_ref": {
+              "segment_index": 0,
+              "claim_start": 1,
+              "claim_end": 2
+            },
+            "primary_interpretation": true
+          }
+        ],
+        "actions": [],
+        "relations": [],
+        "themes": [],
+        "conflicts": [],
+        "uncertainty": {
+          "formula_id": "AGREEMENT_WEIGHTED_V1",
+          "per_observation": [
+            {
+              "observation_id": "e-dog",
+              "candidate_kind": "ENTITY",
+              "certainty_status": "MEASURED",
+              "certainty": 0.8
+            }
+          ]
+        },
+        "upstream_failure": null
+      },
+      "canonical_sha256": "bec07aea06c8e229dd6bc21f3980a4b6a2801024c2bf61687336661c92010deb"
+    },
+    "duplicate-segment-index-rejection": {
+      "outcome": "REJECTED",
+      "result": {
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
+        "status": "REJECTED",
+        "input_slot": "ASR",
+        "phase": "ADMISSIBILITY",
+        "code": "INVALID_STRUCTURE",
+        "expected_identity": "P2.AsrResultV1@1.0",
+        "observed_identity": "P2.AsrResultV1@1.0",
+        "observed_status": "SUCCEEDED",
+        "field_code": "DUPLICATE_SEGMENT_INDEX"
+      },
+      "canonical_sha256": "a75f1cc12b63857b6d79d6726e6b1cec45e285452c2118018626e0c1d21fffd8"
+    },
+    "admissibility-before-correlation-and-status": {
+      "outcome": "REJECTED",
+      "result": {
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
+        "status": "REJECTED",
+        "input_slot": "ASR",
+        "phase": "ADMISSIBILITY",
+        "code": "INVALID_STRUCTURE",
+        "expected_identity": "P2.AsrResultV1@1.0",
+        "observed_identity": "P2.AsrResultV1@1.0",
+        "observed_status": "SUCCEEDED",
+        "field_code": "DUPLICATE_SEGMENT_INDEX"
+      },
+      "canonical_sha256": "a75f1cc12b63857b6d79d6726e6b1cec45e285452c2118018626e0c1d21fffd8"
+    },
+    "strict-asr-before-strict-vision": {
+      "outcome": "REJECTED",
+      "result": {
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
+        "status": "REJECTED",
+        "input_slot": "ASR",
+        "phase": "STRICT_VALIDATION",
+        "code": "INVALID_STRUCTURE",
+        "expected_identity": "P2.AsrResultV1@1.0",
+        "observed_identity": "P2.AsrResultV1@1.0",
+        "observed_status": "SUCCEEDED",
+        "field_code": "CORRELATION_ID"
+      },
+      "canonical_sha256": "93170e0f787d3d95e6a6947f8850d920917967f25789365fbea27eb1d0076907"
+    },
+    "identity-vision-before-strict-asr": {
+      "outcome": "REJECTED",
+      "result": {
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
+        "status": "REJECTED",
+        "input_slot": "VISION",
+        "phase": "IDENTITY_VERSION",
+        "code": "WRONG_FAMILY",
+        "expected_identity": "P2.VisionUnderstandingResultV1@1.0",
+        "observed_identity": "P2.VisionUnderstandingResultV2@2.0",
+        "observed_status": "SUCCEEDED",
+        "field_code": "CONTRACT_NAME"
+      },
+      "canonical_sha256": "8216c2a45f15742ca8556c310e29e0648756cf4cf5b235c6b35a50226b090c08"
+    },
+    "feat018-live-asr-model-wrong-family": {
+      "outcome": "REJECTED",
+      "result": {
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
+        "status": "REJECTED",
+        "input_slot": "ASR",
+        "phase": "IDENTITY_VERSION",
+        "code": "WRONG_FAMILY",
+        "expected_identity": "P2.AsrResultV1@1.0",
+        "observed_identity": "FEAT018.LiveAsrResultV1@1.0",
+        "observed_status": "SUCCEEDED",
+        "field_code": "UPSTREAM_TYPE"
+      },
+      "canonical_sha256": "21a5f3111971b7dbecb1f562e76f9b29185c47f61105b6d31baa57ecf35405f6"
+    },
+    "feat018-live-vision-model-wrong-family": {
+      "outcome": "REJECTED",
+      "result": {
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
+        "status": "REJECTED",
+        "input_slot": "VISION",
+        "phase": "IDENTITY_VERSION",
+        "code": "WRONG_FAMILY",
+        "expected_identity": "P2.VisionUnderstandingResultV1@1.0",
+        "observed_identity": "FEAT018.LiveVisionUnderstandingResultV1@1.0",
+        "observed_status": "FAILED",
+        "field_code": "UPSTREAM_TYPE"
+      },
+      "canonical_sha256": "e45620e56682db3cee35f87573e437300433422e374a3abaee08b1f44698dd4b"
+    },
+    "vision-v2-model-wrong-family": {
+      "outcome": "REJECTED",
+      "result": {
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
+        "status": "REJECTED",
+        "input_slot": "VISION",
+        "phase": "IDENTITY_VERSION",
+        "code": "WRONG_FAMILY",
+        "expected_identity": "P2.VisionUnderstandingResultV1@1.0",
+        "observed_identity": "P2.VisionUnderstandingResultV2@2.0",
+        "observed_status": "FAILED",
+        "field_code": "UPSTREAM_TYPE"
+      },
+      "canonical_sha256": "6bbe613241b27af264390a4f4835bc1e47575afea8dc1aa066461d23fa11c38f"
+    },
+    "p2-vision-model-in-asr-slot": {
+      "outcome": "REJECTED",
+      "result": {
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
+        "status": "REJECTED",
+        "input_slot": "ASR",
+        "phase": "IDENTITY_VERSION",
+        "code": "WRONG_FAMILY",
+        "expected_identity": "P2.AsrResultV1@1.0",
+        "observed_identity": "P2.VisionUnderstandingResultV1@1.0",
+        "observed_status": "SUCCEEDED",
+        "field_code": "UPSTREAM_TYPE"
+      },
+      "canonical_sha256": "46820ea8e7bcbe862ef68fb524637ef2b83464e5d06cb63f52ee747ef9031d47"
+    },
+    "unknown-object-asr": {
+      "outcome": "REJECTED",
+      "result": {
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
+        "status": "REJECTED",
+        "input_slot": "ASR",
+        "phase": "IDENTITY_VERSION",
+        "code": "UNKNOWN_INPUT",
+        "expected_identity": "P2.AsrResultV1@1.0",
+        "observed_identity": "UNKNOWN",
+        "observed_status": null,
+        "field_code": "UPSTREAM_TYPE"
+      },
+      "canonical_sha256": "dd4a4682ca70687812b434e05abb33db6d6901073b8cfd16d50287e83aa30cd4"
+    },
+    "unknown-contract-name-vision": {
+      "outcome": "REJECTED",
+      "result": {
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
+        "status": "REJECTED",
+        "input_slot": "VISION",
+        "phase": "IDENTITY_VERSION",
+        "code": "UNKNOWN_INPUT",
+        "expected_identity": "P2.VisionUnderstandingResultV1@1.0",
+        "observed_identity": "UNKNOWN",
+        "observed_status": "SUCCEEDED",
+        "field_code": "CONTRACT_NAME"
+      },
+      "canonical_sha256": "be4a3c733534e92a4b3b2c58008a49e80d51bc5bcb0b1dfe944e5f8630ab03e5"
+    },
+    "unsupported-version-asr": {
+      "outcome": "REJECTED",
+      "result": {
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
+        "status": "REJECTED",
+        "input_slot": "ASR",
+        "phase": "IDENTITY_VERSION",
+        "code": "UNSUPPORTED_VERSION",
+        "expected_identity": "P2.AsrResultV1@1.0",
+        "observed_identity": "UNKNOWN",
+        "observed_status": "SUCCEEDED",
+        "field_code": "CONTRACT_VERSION"
+      },
+      "canonical_sha256": "dcb3f8260582e4be13ebf0f7de35a19d0101ba14a764979c3e99bff7299e5850"
+    },
+    "invalid-discriminator-vision": {
+      "outcome": "REJECTED",
+      "result": {
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
+        "status": "REJECTED",
+        "input_slot": "VISION",
+        "phase": "STRICT_VALIDATION",
+        "code": "INVALID_DISCRIMINATOR",
+        "expected_identity": "P2.VisionUnderstandingResultV1@1.0",
+        "observed_identity": "P2.VisionUnderstandingResultV1@1.0",
+        "observed_status": "UNKNOWN",
+        "field_code": "STATUS"
+      },
+      "canonical_sha256": "0a84761b0b8ed6b21210d35fcff61e638ba10a7adbdf0e3f26c420489c70b746"
+    },
+    "missing-status-asr": {
+      "outcome": "REJECTED",
+      "result": {
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
+        "status": "REJECTED",
+        "input_slot": "ASR",
+        "phase": "STRICT_VALIDATION",
+        "code": "INVALID_DISCRIMINATOR",
+        "expected_identity": "P2.AsrResultV1@1.0",
+        "observed_identity": "P2.AsrResultV1@1.0",
+        "observed_status": null,
+        "field_code": "STATUS"
+      },
+      "canonical_sha256": "56230e2571a46b646078279f635d566f5c89be6cedb90cd4c4ff18254df0164b"
+    },
+    "failure-branch-structure-vision": {
+      "outcome": "REJECTED",
+      "result": {
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
+        "status": "REJECTED",
+        "input_slot": "VISION",
+        "phase": "STRICT_VALIDATION",
+        "code": "INVALID_STRUCTURE",
+        "expected_identity": "P2.VisionUnderstandingResultV1@1.0",
+        "observed_identity": "P2.VisionUnderstandingResultV1@1.0",
+        "observed_status": "FAILED",
+        "field_code": "FAILURE_BRANCH"
+      },
+      "canonical_sha256": "cf62a2da32a0373fcde92e0e290120e5a852a8c3459e6772b72750f315485010"
+    },
+    "source-reference-structure-asr": {
+      "outcome": "REJECTED",
+      "result": {
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
+        "status": "REJECTED",
+        "input_slot": "ASR",
+        "phase": "STRICT_VALIDATION",
+        "code": "INVALID_STRUCTURE",
+        "expected_identity": "P2.AsrResultV1@1.0",
+        "observed_identity": "P2.AsrResultV1@1.0",
+        "observed_status": "SUCCEEDED",
+        "field_code": "SOURCE_REFERENCE"
+      },
+      "canonical_sha256": "b4598e86827e1a9e8b7ab2a37001305ffb4e733867856bf2b836ab6cb9faf3de"
+    },
+    "correlation-mismatch-before-status": {
+      "outcome": "REJECTED",
+      "result": {
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
+        "status": "REJECTED",
+        "input_slot": "BOTH",
+        "phase": "CORRELATION",
+        "code": "CORRELATION_MISMATCH",
+        "expected_identity": "NONE",
+        "observed_identity": "UNKNOWN",
+        "observed_status": null,
+        "field_code": "CORRELATION_ID"
+      },
+      "canonical_sha256": "e6085cfc01a1196fbb413d1d80d59db181601780b7a67bf716564a074ac2b4fa"
+    },
+    "asr-failure": {
+      "outcome": "UPSTREAM_FAILURE",
+      "result": {
+        "contract_name": "P2T4FusedResultV1",
+        "contract_version": "1.0",
+        "status": "UPSTREAM_FAILURE",
+        "correlation_id": "corr-p2t4-0001",
+        "executed_at": "2026-09-15T12:00:00.000000Z",
+        "source_asr_result_ref": {
+          "identity": "P2.AsrResultV1@1.0",
+          "status": "FAILED",
+          "result_sha256": "526777efd65911359498f9f89dfae892e8f7870547c85b8e8350dc66775cc094"
+        },
+        "source_vision_result_ref": {
+          "identity": "P2.VisionUnderstandingResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "21ae5268ec53a755a42f738bde25951db7cf5b55566a5da28123d2f6f29717d5"
+        },
+        "fusion_policy_config_hash": "4b378f69a33b86aeefc7443a23ac819e46b986132525cdd8a55d112dfb96415c",
+        "entities": [],
+        "actions": [],
+        "relations": [],
+        "themes": [],
+        "conflicts": [],
+        "uncertainty": {
+          "formula_id": "AGREEMENT_WEIGHTED_V1",
+          "per_observation": []
+        },
+        "upstream_failure": {
+          "contract_name": "P2T4UpstreamFailureRefV1",
+          "contract_version": "1.0",
+          "failed_modality": "ASR",
+          "asr_failure_ref": {
+            "source_asr_result_ref": {
+              "identity": "P2.AsrResultV1@1.0",
+              "status": "FAILED",
+              "result_sha256": "526777efd65911359498f9f89dfae892e8f7870547c85b8e8350dc66775cc094"
+            },
+            "error_code": "ASR_TIMEOUT",
+            "error_detail": "TIMEOUT_BUDGET_EXCEEDED",
+            "attempt_number": 1,
+            "retryable": true,
+            "repair_attempted": false
+          },
+          "vision_failure_ref": null
+        }
+      },
+      "canonical_sha256": "b344aa9d596752421f18ec34268338511f9c8751f80b64db5f15c4d2b212fb1d"
+    },
+    "vision-failure-prohibited-claim": {
+      "outcome": "UPSTREAM_FAILURE",
+      "result": {
+        "contract_name": "P2T4FusedResultV1",
+        "contract_version": "1.0",
+        "status": "UPSTREAM_FAILURE",
+        "correlation_id": "corr-p2t4-0001",
+        "executed_at": "2026-09-15T12:00:00.000000Z",
+        "source_asr_result_ref": {
+          "identity": "P2.AsrResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "3efe9d580aa1914c3b17ef80f05e92f8cc9b3b71d9501d481c8fecb0e4aea7b3"
+        },
+        "source_vision_result_ref": {
+          "identity": "P2.VisionUnderstandingResultV1@1.0",
+          "status": "FAILED",
+          "result_sha256": "4bb2321028375eac2f854076eb85ce36b78fb0cc3506710bdf3eb8602d795818"
+        },
+        "fusion_policy_config_hash": "4b378f69a33b86aeefc7443a23ac819e46b986132525cdd8a55d112dfb96415c",
+        "entities": [],
+        "actions": [],
+        "relations": [],
+        "themes": [],
+        "conflicts": [],
+        "uncertainty": {
+          "formula_id": "AGREEMENT_WEIGHTED_V1",
+          "per_observation": []
+        },
+        "upstream_failure": {
+          "contract_name": "P2T4UpstreamFailureRefV1",
+          "contract_version": "1.0",
+          "failed_modality": "VISION",
+          "asr_failure_ref": null,
+          "vision_failure_ref": {
+            "source_vision_result_ref": {
+              "identity": "P2.VisionUnderstandingResultV1@1.0",
+              "status": "FAILED",
+              "result_sha256": "4bb2321028375eac2f854076eb85ce36b78fb0cc3506710bdf3eb8602d795818"
+            },
+            "error_code": "PROHIBITED_CLAIM_DETECTED",
+            "error_detail": "MENTAL_STATE_CLAIM",
+            "attempt_number": 1,
+            "retryable": false,
+            "repair_attempted": false,
+            "policy_execution_state": "BLOCKED"
+          }
+        }
+      },
+      "canonical_sha256": "109424748561f026cc223110fc646e6bf001844f59f9049a98311b78d44bf9e1"
+    },
+    "both-failures": {
+      "outcome": "UPSTREAM_FAILURE",
+      "result": {
+        "contract_name": "P2T4FusedResultV1",
+        "contract_version": "1.0",
+        "status": "UPSTREAM_FAILURE",
+        "correlation_id": "corr-p2t4-0001",
+        "executed_at": "2026-09-15T12:00:00.000000Z",
+        "source_asr_result_ref": {
+          "identity": "P2.AsrResultV1@1.0",
+          "status": "FAILED",
+          "result_sha256": "822fdf64aadad78157f475c8816d780ffa29ada0b2111966a759ce1ce123036a"
+        },
+        "source_vision_result_ref": {
+          "identity": "P2.VisionUnderstandingResultV1@1.0",
+          "status": "FAILED",
+          "result_sha256": "3ae3c5b30466e2570e3de43918da439ef20c26f60e47892bc59400ce3bdf8013"
+        },
+        "fusion_policy_config_hash": "4b378f69a33b86aeefc7443a23ac819e46b986132525cdd8a55d112dfb96415c",
+        "entities": [],
+        "actions": [],
+        "relations": [],
+        "themes": [],
+        "conflicts": [],
+        "uncertainty": {
+          "formula_id": "AGREEMENT_WEIGHTED_V1",
+          "per_observation": []
+        },
+        "upstream_failure": {
+          "contract_name": "P2T4UpstreamFailureRefV1",
+          "contract_version": "1.0",
+          "failed_modality": "BOTH",
+          "asr_failure_ref": {
+            "source_asr_result_ref": {
+              "identity": "P2.AsrResultV1@1.0",
+              "status": "FAILED",
+              "result_sha256": "822fdf64aadad78157f475c8816d780ffa29ada0b2111966a759ce1ce123036a"
+            },
+            "error_code": "ASR_SCHEMA_INVALID",
+            "error_detail": "OUTPUT_MAPPING_FAILED",
+            "attempt_number": 2,
+            "retryable": false,
+            "repair_attempted": true
+          },
+          "vision_failure_ref": {
+            "source_vision_result_ref": {
+              "identity": "P2.VisionUnderstandingResultV1@1.0",
+              "status": "FAILED",
+              "result_sha256": "3ae3c5b30466e2570e3de43918da439ef20c26f60e47892bc59400ce3bdf8013"
+            },
+            "error_code": "VISION_SCHEMA_INVALID",
+            "error_detail": "OUTPUT_MAPPING_FAILED",
+            "attempt_number": 1,
+            "retryable": false,
+            "repair_attempted": true,
+            "policy_execution_state": "NOT_EXECUTED"
+          }
+        }
+      },
+      "canonical_sha256": "5c62750f8194f2a324e4b919a79152f21d00647bf55b6bea2f7a761d38940a22"
+    },
+    "empty-success": {
+      "outcome": "FUSED",
+      "result": {
+        "contract_name": "P2T4FusedResultV1",
+        "contract_version": "1.0",
+        "status": "FUSED",
+        "correlation_id": "corr-p2t4-0001",
+        "executed_at": "2026-09-15T12:00:00.000000Z",
+        "source_asr_result_ref": {
+          "identity": "P2.AsrResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "e98789fab4d3a9ca751650aa213bd04d3cd0667c0301bb269b84b08986a87098"
+        },
+        "source_vision_result_ref": {
+          "identity": "P2.VisionUnderstandingResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "5eec5d9e3d3d59ffc294d0c9eb8fa70c31378af679c228a3bdf0599f56fad0b5"
+        },
+        "fusion_policy_config_hash": "4b378f69a33b86aeefc7443a23ac819e46b986132525cdd8a55d112dfb96415c",
+        "entities": [],
+        "actions": [],
+        "relations": [],
+        "themes": [],
+        "conflicts": [],
+        "uncertainty": {
+          "formula_id": "AGREEMENT_WEIGHTED_V1",
+          "per_observation": []
+        },
+        "upstream_failure": null
+      },
+      "canonical_sha256": "b6df9e10266af026ea482613240d3e4d45882fd3b3683b49d074c51c1a5adaa1"
+    },
+    "ambiguous-regions-omitted": {
+      "outcome": "FUSED",
+      "result": {
+        "contract_name": "P2T4FusedResultV1",
+        "contract_version": "1.0",
+        "status": "FUSED",
+        "correlation_id": "corr-p2t4-0001",
+        "executed_at": "2026-09-15T12:00:00.000000Z",
+        "source_asr_result_ref": {
+          "identity": "P2.AsrResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "f6d2fcc5bf624c7d1cb1ef32030fbb419e859d6e454c07061137163c11d29ee9"
+        },
+        "source_vision_result_ref": {
+          "identity": "P2.VisionUnderstandingResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "54d4654e1360c72c4038844d05fa037ac0159ba492a46f1286563bb941afdd28"
+        },
+        "fusion_policy_config_hash": "4b378f69a33b86aeefc7443a23ac819e46b986132525cdd8a55d112dfb96415c",
+        "entities": [],
+        "actions": [],
+        "relations": [],
+        "themes": [],
+        "conflicts": [],
+        "uncertainty": {
+          "formula_id": "AGREEMENT_WEIGHTED_V1",
+          "per_observation": []
+        },
+        "upstream_failure": null
+      },
+      "canonical_sha256": "2d750cbabb48ceab4a94a203a8f90f225347a495e4b3e2fdc8dcbdc335788978"
+    },
+    "confidence-floor-boundaries": {
+      "outcome": "FUSED",
+      "result": {
+        "contract_name": "P2T4FusedResultV1",
+        "contract_version": "1.0",
+        "status": "FUSED",
+        "correlation_id": "corr-p2t4-0001",
+        "executed_at": "2026-09-15T12:00:00.000000Z",
+        "source_asr_result_ref": {
+          "identity": "P2.AsrResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "3f7da8278d1a216613c953426211810c759620d02a52069d14d85745f4bdf1c3"
+        },
+        "source_vision_result_ref": {
+          "identity": "P2.VisionUnderstandingResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "72561e7f03bddbb5dfd4a8e8d801a6b908179f208aed5de52a79fc321ee31db2"
+        },
+        "fusion_policy_config_hash": "4b378f69a33b86aeefc7443a23ac819e46b986132525cdd8a55d112dfb96415c",
+        "entities": [
+          {
+            "fused_observation_id": "e-cat",
+            "source_observation_ref": "e-cat",
+            "label": {
+              "value": "cat",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "narration_support_applied": true,
+            "narration_support_ref": {
+              "segment_index": 0,
+              "claim_start": 1,
+              "claim_end": 2
+            },
+            "primary_interpretation": false
+          },
+          {
+            "fused_observation_id": "e-dog",
+            "source_observation_ref": "e-dog",
+            "label": {
+              "value": "dog",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "narration_support_applied": false,
+            "narration_support_ref": null,
+            "primary_interpretation": true
+          },
+          {
+            "fused_observation_id": "e-bird",
+            "source_observation_ref": "e-bird",
+            "label": {
+              "value": "bird",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "narration_support_applied": false,
+            "narration_support_ref": null,
+            "primary_interpretation": true
+          },
+          {
+            "fused_observation_id": "e-fish",
+            "source_observation_ref": "e-fish",
+            "label": {
+              "value": "fish",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "narration_support_applied": true,
+            "narration_support_ref": {
+              "segment_index": 0,
+              "claim_start": 4,
+              "claim_end": 5
+            },
+            "primary_interpretation": false
+          }
+        ],
+        "actions": [],
+        "relations": [],
+        "themes": [
+          {
+            "fused_observation_id": "t-cats",
+            "source_observation_ref": "t-cats",
+            "label": {
+              "value": "cats",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "evidence_refs": [
+              "e-cat"
+            ]
+          },
+          {
+            "fused_observation_id": "t-birds",
+            "source_observation_ref": "t-birds",
+            "label": {
+              "value": "birds",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "evidence_refs": [
+              "e-bird"
+            ]
+          }
+        ],
+        "conflicts": [
+          {
+            "conflict_id": "P2T4-CONFLICT-1d121574539dc0075884eb3db19a3d8bbb7a37b90ece38d021ef279c8f28a242",
+            "reason_code": "LOW_CONFIDENCE_EVIDENCE",
+            "vision_claim_ref": "e-cat",
+            "narration_claim_ref": {
+              "segment_index": 0,
+              "claim_start": 1,
+              "claim_end": 2
+            },
+            "recommended_reviewer_attention": true
+          },
+          {
+            "conflict_id": "P2T4-CONFLICT-91b746343da9e662a5381556667ada8f40ddff310f3ba4bd6a504079e7f06667",
+            "reason_code": "LOW_CONFIDENCE_EVIDENCE",
+            "vision_claim_ref": "e-fish",
+            "narration_claim_ref": {
+              "segment_index": 0,
+              "claim_start": 4,
+              "claim_end": 5
+            },
+            "recommended_reviewer_attention": true
+          },
+          {
+            "conflict_id": "P2T4-CONFLICT-3655240f209ea0e4a28702ccd68ce953a90b843c8d60a55bc7e70dd9b7d89c43",
+            "reason_code": "LOW_CONFIDENCE_EVIDENCE",
+            "vision_claim_ref": "t-cats",
+            "narration_claim_ref": null,
+            "recommended_reviewer_attention": true
+          }
+        ],
+        "uncertainty": {
+          "formula_id": "AGREEMENT_WEIGHTED_V1",
+          "per_observation": [
+            {
+              "observation_id": "e-bird",
+              "candidate_kind": "ENTITY",
+              "certainty_status": "MEASURED",
+              "certainty": 0.9
+            },
+            {
+              "observation_id": "e-cat",
+              "candidate_kind": "ENTITY",
+              "certainty_status": "NOT_APPLICABLE_CONFLICTING",
+              "certainty": null
+            },
+            {
+              "observation_id": "e-dog",
+              "candidate_kind": "ENTITY",
+              "certainty_status": "MEASURED",
+              "certainty": 0.5
+            },
+            {
+              "observation_id": "e-fish",
+              "candidate_kind": "ENTITY",
+              "certainty_status": "NOT_APPLICABLE_CONFLICTING",
+              "certainty": null
+            }
+          ]
+        },
+        "upstream_failure": null
+      },
+      "canonical_sha256": "f60fe952291ac002cef6ae0673d7468668b5aa13d8fd304bba0bcf62bbcdb21c"
+    },
+    "null-confidence-support": {
+      "outcome": "FUSED",
+      "result": {
+        "contract_name": "P2T4FusedResultV1",
+        "contract_version": "1.0",
+        "status": "FUSED",
+        "correlation_id": "corr-p2t4-0001",
+        "executed_at": "2026-09-15T12:00:00.000000Z",
+        "source_asr_result_ref": {
+          "identity": "P2.AsrResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "2c14ffd47ff5cc716cd632fe32c4bc6c034a917781548d447bc27370c89775c5"
+        },
+        "source_vision_result_ref": {
+          "identity": "P2.VisionUnderstandingResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "6306cf225d13980f49e1b7e07a3abe4163e840e698b59ce5d54181ba120e560c"
+        },
+        "fusion_policy_config_hash": "4b378f69a33b86aeefc7443a23ac819e46b986132525cdd8a55d112dfb96415c",
+        "entities": [
+          {
+            "fused_observation_id": "e-apple",
+            "source_observation_ref": "e-apple",
+            "label": {
+              "value": "apple",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "narration_support_applied": true,
+            "narration_support_ref": {
+              "segment_index": 0,
+              "claim_start": 1,
+              "claim_end": 2
+            },
+            "primary_interpretation": true
+          },
+          {
+            "fused_observation_id": "e-banana",
+            "source_observation_ref": "e-banana",
+            "label": {
+              "value": "banana",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "narration_support_applied": false,
+            "narration_support_ref": null,
+            "primary_interpretation": true
+          }
+        ],
+        "actions": [],
+        "relations": [],
+        "themes": [],
+        "conflicts": [],
+        "uncertainty": {
+          "formula_id": "AGREEMENT_WEIGHTED_V1",
+          "per_observation": [
+            {
+              "observation_id": "e-apple",
+              "candidate_kind": "ENTITY",
+              "certainty_status": "NOT_MEASURED",
+              "certainty": null
+            },
+            {
+              "observation_id": "e-banana",
+              "candidate_kind": "ENTITY",
+              "certainty_status": "NOT_MEASURED",
+              "certainty": null
+            }
+          ]
+        },
+        "upstream_failure": null
+      },
+      "canonical_sha256": "f838964a3e9a5cb84c093e4e0ea2df7e5bc942b44e396b2c27f058aec9768808"
+    },
+    "group-ranking-and-cap": {
+      "outcome": "FUSED",
+      "result": {
+        "contract_name": "P2T4FusedResultV1",
+        "contract_version": "1.0",
+        "status": "FUSED",
+        "correlation_id": "corr-p2t4-0001",
+        "executed_at": "2026-09-15T12:00:00.000000Z",
+        "source_asr_result_ref": {
+          "identity": "P2.AsrResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "899540eff30fd1da90e5fdf3e6d985cec74a7e6b3b6d154185293d8fd3408676"
+        },
+        "source_vision_result_ref": {
+          "identity": "P2.VisionUnderstandingResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "66d74c314cbd8bf515d9941b2e9f0c242b9f0bfe292bc503635099b7bb90adf8"
+        },
+        "fusion_policy_config_hash": "4b378f69a33b86aeefc7443a23ac819e46b986132525cdd8a55d112dfb96415c",
+        "entities": [
+          {
+            "fused_observation_id": "e-tree-z",
+            "source_observation_ref": "e-tree-z",
+            "label": {
+              "value": "tree",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "narration_support_applied": false,
+            "narration_support_ref": null,
+            "primary_interpretation": false
+          },
+          {
+            "fused_observation_id": "e-tree-a",
+            "source_observation_ref": "e-tree-a",
+            "label": {
+              "value": "tree",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "narration_support_applied": false,
+            "narration_support_ref": null,
+            "primary_interpretation": true
+          },
+          {
+            "fused_observation_id": "e-rock-1",
+            "source_observation_ref": "e-rock-1",
+            "label": {
+              "value": "rock",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "narration_support_applied": true,
+            "narration_support_ref": {
+              "segment_index": 0,
+              "claim_start": 1,
+              "claim_end": 2
+            },
+            "primary_interpretation": false
+          },
+          {
+            "fused_observation_id": "e-rock-2",
+            "source_observation_ref": "e-rock-2",
+            "label": {
+              "value": "rock",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "narration_support_applied": true,
+            "narration_support_ref": {
+              "segment_index": 0,
+              "claim_start": 1,
+              "claim_end": 2
+            },
+            "primary_interpretation": true
+          },
+          {
+            "fused_observation_id": "e-rock-3",
+            "source_observation_ref": "e-rock-3",
+            "label": {
+              "value": "rock",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "narration_support_applied": true,
+            "narration_support_ref": {
+              "segment_index": 0,
+              "claim_start": 1,
+              "claim_end": 2
+            },
+            "primary_interpretation": false
+          }
+        ],
+        "actions": [],
+        "relations": [],
+        "themes": [],
+        "conflicts": [],
+        "uncertainty": {
+          "formula_id": "AGREEMENT_WEIGHTED_V1",
+          "per_observation": [
+            {
+              "observation_id": "e-rock-1",
+              "candidate_kind": "ENTITY",
+              "certainty_status": "MEASURED",
+              "certainty": 0.6
+            },
+            {
+              "observation_id": "e-rock-2",
+              "candidate_kind": "ENTITY",
+              "certainty_status": "MEASURED",
+              "certainty": 1.0
+            },
+            {
+              "observation_id": "e-rock-3",
+              "candidate_kind": "ENTITY",
+              "certainty_status": "NOT_MEASURED",
+              "certainty": null
+            },
+            {
+              "observation_id": "e-tree-a",
+              "candidate_kind": "ENTITY",
+              "certainty_status": "NOT_MEASURED",
+              "certainty": null
+            },
+            {
+              "observation_id": "e-tree-z",
+              "candidate_kind": "ENTITY",
+              "certainty_status": "NOT_MEASURED",
+              "certainty": null
+            }
+          ]
+        },
+        "upstream_failure": null
+      },
+      "canonical_sha256": "19104773b3acf7490846f4849604d47e60dee1141ed85c9a86e6f0ac6aadc7e4"
+    },
+    "conflict-eligibility-outranks-confidence": {
+      "outcome": "FUSED",
+      "result": {
+        "contract_name": "P2T4FusedResultV1",
+        "contract_version": "1.0",
+        "status": "FUSED",
+        "correlation_id": "corr-p2t4-0001",
+        "executed_at": "2026-09-15T12:00:00.000000Z",
+        "source_asr_result_ref": {
+          "identity": "P2.AsrResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "e98789fab4d3a9ca751650aa213bd04d3cd0667c0301bb269b84b08986a87098"
+        },
+        "source_vision_result_ref": {
+          "identity": "P2.VisionUnderstandingResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "127ac54c17d9026e89120dfa411ff63246145cc2ab463ccd4260709ad66eadf4"
+        },
+        "fusion_policy_config_hash": "4b378f69a33b86aeefc7443a23ac819e46b986132525cdd8a55d112dfb96415c",
+        "entities": [
+          {
+            "fused_observation_id": "e-t1",
+            "source_observation_ref": "e-t1",
+            "label": {
+              "value": "tree",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "narration_support_applied": false,
+            "narration_support_ref": null,
+            "primary_interpretation": false
+          },
+          {
+            "fused_observation_id": "e-t2",
+            "source_observation_ref": "e-t2",
+            "label": {
+              "value": "tree",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "narration_support_applied": false,
+            "narration_support_ref": null,
+            "primary_interpretation": true
+          }
+        ],
+        "actions": [],
+        "relations": [],
+        "themes": [],
+        "conflicts": [
+          {
+            "conflict_id": "P2T4-CONFLICT-776f26686425420da9a1f9cfa800645bf488657d49f1094c85774a8acccc533d",
+            "reason_code": "LOW_CONFIDENCE_EVIDENCE",
+            "vision_claim_ref": "e-t1",
+            "narration_claim_ref": null,
+            "recommended_reviewer_attention": true
+          }
+        ],
+        "uncertainty": {
+          "formula_id": "AGREEMENT_WEIGHTED_V1",
+          "per_observation": [
+            {
+              "observation_id": "e-t1",
+              "candidate_kind": "ENTITY",
+              "certainty_status": "NOT_APPLICABLE_CONFLICTING",
+              "certainty": null
+            },
+            {
+              "observation_id": "e-t2",
+              "candidate_kind": "ENTITY",
+              "certainty_status": "NOT_MEASURED",
+              "certainty": null
+            }
+          ]
+        },
+        "upstream_failure": null
+      },
+      "canonical_sha256": "9b1ee5b4fd0a86d161924f616a997b444edad5d299d771b97d75cf805f8f2d09"
+    },
+    "action-and-relation-grouping-by-references": {
+      "outcome": "FUSED",
+      "result": {
+        "contract_name": "P2T4FusedResultV1",
+        "contract_version": "1.0",
+        "status": "FUSED",
+        "correlation_id": "corr-p2t4-0001",
+        "executed_at": "2026-09-15T12:00:00.000000Z",
+        "source_asr_result_ref": {
+          "identity": "P2.AsrResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "ac3b8db545350890157a17292873c60240d611e6ef47d50df14af9b0d55e7e1a"
+        },
+        "source_vision_result_ref": {
+          "identity": "P2.VisionUnderstandingResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "8106953b5e45997ddc0bd731c7c2c282326e523e7d0b3a2000006e1da8f9cd59"
+        },
+        "fusion_policy_config_hash": "4b378f69a33b86aeefc7443a23ac819e46b986132525cdd8a55d112dfb96415c",
+        "entities": [
+          {
+            "fused_observation_id": "e-ann",
+            "source_observation_ref": "e-ann",
+            "label": {
+              "value": "ann",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "narration_support_applied": true,
+            "narration_support_ref": {
+              "segment_index": 0,
+              "claim_start": 0,
+              "claim_end": 1
+            },
+            "primary_interpretation": true
+          },
+          {
+            "fused_observation_id": "e-ben",
+            "source_observation_ref": "e-ben",
+            "label": {
+              "value": "ben",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "narration_support_applied": true,
+            "narration_support_ref": {
+              "segment_index": 0,
+              "claim_start": 3,
+              "claim_end": 4
+            },
+            "primary_interpretation": true
+          }
+        ],
+        "actions": [
+          {
+            "fused_observation_id": "a-1",
+            "source_observation_ref": "a-1",
+            "label": {
+              "value": "draws",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "actor_ref": "e-ann",
+            "object_ref": null,
+            "narration_support_applied": true,
+            "narration_support_ref": {
+              "segment_index": 0,
+              "claim_start": 1,
+              "claim_end": 2
+            },
+            "primary_interpretation": false
+          },
+          {
+            "fused_observation_id": "a-2",
+            "source_observation_ref": "a-2",
+            "label": {
+              "value": "draws",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "actor_ref": "e-ben",
+            "object_ref": null,
+            "narration_support_applied": true,
+            "narration_support_ref": {
+              "segment_index": 0,
+              "claim_start": 1,
+              "claim_end": 2
+            },
+            "primary_interpretation": true
+          },
+          {
+            "fused_observation_id": "a-3",
+            "source_observation_ref": "a-3",
+            "label": {
+              "value": "draws",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "actor_ref": "e-ann",
+            "object_ref": null,
+            "narration_support_applied": true,
+            "narration_support_ref": {
+              "segment_index": 0,
+              "claim_start": 1,
+              "claim_end": 2
+            },
+            "primary_interpretation": true
+          }
+        ],
+        "relations": [
+          {
+            "fused_observation_id": "r-1",
+            "source_observation_ref": "r-1",
+            "predicate": {
+              "value": "near",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "subject_ref": "e-ann",
+            "object_ref": "e-ben",
+            "narration_support_applied": false,
+            "narration_support_ref": null,
+            "primary_interpretation": true
+          },
+          {
+            "fused_observation_id": "r-2",
+            "source_observation_ref": "r-2",
+            "predicate": {
+              "value": "near",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "subject_ref": "e-ben",
+            "object_ref": "e-ann",
+            "narration_support_applied": false,
+            "narration_support_ref": null,
+            "primary_interpretation": true
+          }
+        ],
+        "themes": [],
+        "conflicts": [],
+        "uncertainty": {
+          "formula_id": "AGREEMENT_WEIGHTED_V1",
+          "per_observation": [
+            {
+              "observation_id": "e-ann",
+              "candidate_kind": "ENTITY",
+              "certainty_status": "MEASURED",
+              "certainty": 0.9
+            },
+            {
+              "observation_id": "e-ben",
+              "candidate_kind": "ENTITY",
+              "certainty_status": "MEASURED",
+              "certainty": 0.9
+            },
+            {
+              "observation_id": "a-1",
+              "candidate_kind": "ACTION",
+              "certainty_status": "MEASURED",
+              "certainty": 0.5
+            },
+            {
+              "observation_id": "a-2",
+              "candidate_kind": "ACTION",
+              "certainty_status": "MEASURED",
+              "certainty": 0.7
+            },
+            {
+              "observation_id": "a-3",
+              "candidate_kind": "ACTION",
+              "certainty_status": "MEASURED",
+              "certainty": 1.0
+            },
+            {
+              "observation_id": "r-1",
+              "candidate_kind": "RELATION",
+              "certainty_status": "MEASURED",
+              "certainty": 0.5
+            },
+            {
+              "observation_id": "r-2",
+              "candidate_kind": "RELATION",
+              "certainty_status": "MEASURED",
+              "certainty": 0.6
+            }
+          ]
+        },
+        "upstream_failure": null
+      },
+      "canonical_sha256": "fc637ae595b5bf984f630af8d2d95fb37a13c0ce6419936d9026da3bba048bed"
+    },
+    "theme-evidence-refs-preserved": {
+      "outcome": "FUSED",
+      "result": {
+        "contract_name": "P2T4FusedResultV1",
+        "contract_version": "1.0",
+        "status": "FUSED",
+        "correlation_id": "corr-p2t4-0001",
+        "executed_at": "2026-09-15T12:00:00.000000Z",
+        "source_asr_result_ref": {
+          "identity": "P2.AsrResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "e98789fab4d3a9ca751650aa213bd04d3cd0667c0301bb269b84b08986a87098"
+        },
+        "source_vision_result_ref": {
+          "identity": "P2.VisionUnderstandingResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "9d44b6e7ca75be1f7283e6181440caabc00735fc9cbb1cd6b20fa00780947672"
+        },
+        "fusion_policy_config_hash": "4b378f69a33b86aeefc7443a23ac819e46b986132525cdd8a55d112dfb96415c",
+        "entities": [
+          {
+            "fused_observation_id": "e-alpha",
+            "source_observation_ref": "e-alpha",
+            "label": {
+              "value": "alpha",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "narration_support_applied": false,
+            "narration_support_ref": null,
+            "primary_interpretation": true
+          },
+          {
+            "fused_observation_id": "e-beta",
+            "source_observation_ref": "e-beta",
+            "label": {
+              "value": "beta",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "narration_support_applied": false,
+            "narration_support_ref": null,
+            "primary_interpretation": true
+          }
+        ],
+        "actions": [],
+        "relations": [],
+        "themes": [
+          {
+            "fused_observation_id": "t-mix",
+            "source_observation_ref": "t-mix",
+            "label": {
+              "value": "mixed",
+              "language": {
+                "status": "NOT_DETERMINED",
+                "tags": [],
+                "is_ground_truth": false
+              }
+            },
+            "evidence_refs": [
+              "e-beta",
+              "e-alpha",
+              "e-beta"
+            ]
+          }
+        ],
+        "conflicts": [],
+        "uncertainty": {
+          "formula_id": "AGREEMENT_WEIGHTED_V1",
+          "per_observation": [
+            {
+              "observation_id": "e-alpha",
+              "candidate_kind": "ENTITY",
+              "certainty_status": "MEASURED",
+              "certainty": 0.9
+            },
+            {
+              "observation_id": "e-beta",
+              "candidate_kind": "ENTITY",
+              "certainty_status": "MEASURED",
+              "certainty": 0.9
+            }
+          ]
+        },
+        "upstream_failure": null
+      },
+      "canonical_sha256": "facc2626205e0b6a809d46ee3ad2adf8db56531eb324e46ad74c58a5df26005c"
+    },
+    "vision-noncanonical-match-view-rejection": {
+      "outcome": "REJECTED",
+      "result": {
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
+        "status": "REJECTED",
+        "input_slot": "VISION",
+        "phase": "ADMISSIBILITY",
+        "code": "INVALID_STRUCTURE",
+        "expected_identity": "P2.VisionUnderstandingResultV1@1.0",
+        "observed_identity": "P2.VisionUnderstandingResultV1@1.0",
+        "observed_status": "SUCCEEDED",
+        "field_code": "POLICY_MATCH_VIEW_VERSION"
+      },
+      "canonical_sha256": "d5ad9ed2bd2b1c88380b20214d21ebd0df5e7cdbd77b0ce0bed141848840ecc8"
+    },
+    "vision-policy-literal-match-view-rejection": {
+      "outcome": "REJECTED",
+      "result": {
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
+        "status": "REJECTED",
+        "input_slot": "VISION",
+        "phase": "ADMISSIBILITY",
+        "code": "INVALID_STRUCTURE",
+        "expected_identity": "P2.VisionUnderstandingResultV1@1.0",
+        "observed_identity": "P2.VisionUnderstandingResultV1@1.0",
+        "observed_status": "SUCCEEDED",
+        "field_code": "POLICY_MATCH_VIEW_VERSION"
+      },
+      "canonical_sha256": "d5ad9ed2bd2b1c88380b20214d21ebd0df5e7cdbd77b0ce0bed141848840ecc8"
+    },
+    "asr-duplicate-index-before-vision-match-view": {
+      "outcome": "REJECTED",
+      "result": {
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
+        "status": "REJECTED",
+        "input_slot": "ASR",
+        "phase": "ADMISSIBILITY",
+        "code": "INVALID_STRUCTURE",
+        "expected_identity": "P2.AsrResultV1@1.0",
+        "observed_identity": "P2.AsrResultV1@1.0",
+        "observed_status": "SUCCEEDED",
+        "field_code": "DUPLICATE_SEGMENT_INDEX"
+      },
+      "canonical_sha256": "a75f1cc12b63857b6d79d6726e6b1cec45e285452c2118018626e0c1d21fffd8"
+    },
+    "vision-match-view-before-correlation": {
+      "outcome": "REJECTED",
+      "result": {
+        "contract_name": "P2T4FusionInputRejectionV2",
+        "contract_version": "2.0",
+        "status": "REJECTED",
+        "input_slot": "VISION",
+        "phase": "ADMISSIBILITY",
+        "code": "INVALID_STRUCTURE",
+        "expected_identity": "P2.VisionUnderstandingResultV1@1.0",
+        "observed_identity": "P2.VisionUnderstandingResultV1@1.0",
+        "observed_status": "SUCCEEDED",
+        "field_code": "POLICY_MATCH_VIEW_VERSION"
+      },
+      "canonical_sha256": "d5ad9ed2bd2b1c88380b20214d21ebd0df5e7cdbd77b0ce0bed141848840ecc8"
+    },
+    "vision-failure-noncanonical-match-view": {
+      "outcome": "UPSTREAM_FAILURE",
+      "result": {
+        "contract_name": "P2T4FusedResultV1",
+        "contract_version": "1.0",
+        "status": "UPSTREAM_FAILURE",
+        "correlation_id": "corr-p2t4-0001",
+        "executed_at": "2026-09-15T12:00:00.000000Z",
+        "source_asr_result_ref": {
+          "identity": "P2.AsrResultV1@1.0",
+          "status": "SUCCEEDED",
+          "result_sha256": "3efe9d580aa1914c3b17ef80f05e92f8cc9b3b71d9501d481c8fecb0e4aea7b3"
+        },
+        "source_vision_result_ref": {
+          "identity": "P2.VisionUnderstandingResultV1@1.0",
+          "status": "FAILED",
+          "result_sha256": "4fe907ea8ace1909576782c1b4201e19ca135a2bc78b80461ef4b1a9ab9b29c5"
+        },
+        "fusion_policy_config_hash": "4b378f69a33b86aeefc7443a23ac819e46b986132525cdd8a55d112dfb96415c",
+        "entities": [],
+        "actions": [],
+        "relations": [],
+        "themes": [],
+        "conflicts": [],
+        "uncertainty": {
+          "formula_id": "AGREEMENT_WEIGHTED_V1",
+          "per_observation": []
+        },
+        "upstream_failure": {
+          "contract_name": "P2T4UpstreamFailureRefV1",
+          "contract_version": "1.0",
+          "failed_modality": "VISION",
+          "asr_failure_ref": null,
+          "vision_failure_ref": {
+            "source_vision_result_ref": {
+              "identity": "P2.VisionUnderstandingResultV1@1.0",
+              "status": "FAILED",
+              "result_sha256": "4fe907ea8ace1909576782c1b4201e19ca135a2bc78b80461ef4b1a9ab9b29c5"
+            },
+            "error_code": "PROHIBITED_CLAIM_DETECTED",
+            "error_detail": "MENTAL_STATE_CLAIM",
+            "attempt_number": 1,
+            "retryable": false,
+            "repair_attempted": false,
+            "policy_execution_state": "BLOCKED"
+          }
+        }
+      },
+      "canonical_sha256": "67a46235bf58845c12f42916dd43738eef722c9f09bd591bd6da1a7e5713dfad"
+    }
+  }
+}
