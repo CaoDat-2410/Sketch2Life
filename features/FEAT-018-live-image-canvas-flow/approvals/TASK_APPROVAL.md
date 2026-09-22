@@ -260,3 +260,26 @@ mobile, Gate A, P1 eligibility, P3/P4 and shared integration remain separately g
   security validation. No live provider call was made.
 - The owner still controls live smoke execution and credit usage. No approval is implied for video,
   real child data, mobile credentials, durable storage, or automatic provider retries.
+
+## Owner approval — live VLM schema-output remediation — 2026-09-22
+
+- Approver: project owner direct instruction in the current conversation: “approve and implement”.
+- Approved plan: `features/FEAT-018-live-image-canvas-flow/plan/LIVE_VISION_SCHEMA_REMEDIATION_PLAN.md`.
+- Plan SHA-256 at approval: `F4EE8D7967243F5E91D5E6CA84812DDDC4689F03BCA49BDFBFF9C416DD9F1B99`.
+- Scope: connect the already-approved FEAT-027 bounded VLM normalizer (`3565c94`) and the existing
+  private schema-path diagnostics (`b9a8a07`) to the FEAT-018 Lightning `/v2/vision` live demo path;
+  add one internal schema-repair generation at most; preserve the FEAT-003 V2 boundary and
+  fail-closed validation.
+- Approved behavior: the live route may perform at most two provider generations for one explicit
+  user request, only when the first response fails output mapping/schema validation. This supersedes
+  the earlier “no automatic provider retry” wording only for this bounded internal schema-repair
+  transition; it does not authorize client retries, unbounded retries, ASR/video calls, production
+  inference, or Codex-triggered Lightning requests.
+- Privacy boundary: no raw model output, prompt, image bytes, narration, credentials, child data or
+  raw exception text may be logged, persisted, committed or returned. Only closed diagnostics,
+  attempt/repair state and existing provenance may be recorded.
+- Contract boundary: no schema widening or version change is approved by this entry. Any necessary
+  V2 contract migration requires a new approval. Existing strict adapter/test behavior remains
+  unchanged outside the explicitly wired live demo construction.
+- Verification boundary: owner manually runs Lightning smoke tests under the existing approximately
+  25-credit ceiling after offline/API wiring passes. Codex must not call Lightning.

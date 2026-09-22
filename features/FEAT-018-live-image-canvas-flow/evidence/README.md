@@ -86,3 +86,8 @@ Selected P1 catalog and Gate integrity implementation record:
 Selected P1 online-model compatibility implementation record:
 [P1 online-model compatibility tests](notes/P1_ONLINE_MODEL_COMPATIBILITY_IMPLEMENTATION_20260911.md)
 (`EV-018-P1-ONLINE-MODEL-COMPATIBILITY-20260911`; provider-shaped adapter fixtures, P1 handoff coverage and offline validation).
+
+Selected live VLM schema-output remediation implementation record:
+[Live VLM schema remediation](notes/LIVE_VISION_SCHEMA_REMEDIATION_IMPLEMENTATION_20260922.md)
+(`EV-018-LIVE-VISION-SCHEMA-20260922`; bounded live-route repair wiring and sanitized local
+verification; owner-run Lightning smoke remains pending).

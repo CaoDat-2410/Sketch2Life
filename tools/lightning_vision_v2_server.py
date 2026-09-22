@@ -12,6 +12,7 @@ import logging
 import os
 import sys
 import tempfile
+from collections.abc import Mapping
 from datetime import UTC, datetime
 from hashlib import sha256
 from pathlib import Path
@@ -38,10 +39,12 @@ from sketch2life.contracts.schemas.asr import (
 )
 from sketch2life.contracts.schemas.vision import VisionImageReferenceV1
 from sketch2life.contracts.schemas.vision_v2 import (
+    VisionMappingDiagnosticV2,
     VisionUnderstandingRequestV2,
 )
 from sketch2life.infrastructure.ai.qwen_vision import QwenVisionAdapter
 from sketch2life.infrastructure.ai.qwen_vision_runtime_config import (
+    VISION_MODEL_CACHE_DIR_ENV_VAR,
     VISION_MODEL_DIR_ENV_VAR,
     QwenVisionRuntimeConfig,
 )
@@ -54,6 +57,7 @@ MAX_INPUT_BYTES = 5_000_000
 MAX_AUDIO_BYTES = 20_000_000
 EXPECTED_AUTH = os.getenv("LIGHTNING_DEV_AUTH", "").strip()
 VLM_ROOT = Path(os.getenv("SKETCH2LIFE_VLM_ROOT", "models/vlm/qwen3-vl-8b-instruct"))
+_OPERATOR_MODEL_DIR_ENV_VAR = "MODEL_DIR"
 logger = logging.getLogger("sketch2life.lightning_vision_v2")
 _ASR_MODEL_LOCK = Lock()
 _ASR_MODEL = None
@@ -87,6 +91,39 @@ def _prompt_with_narration(context: str | None) -> str:
         f"{context[:2_000]}\n"
         "--- NARRATION CONTEXT END ---"
     )
+
+
+def _repair_prompt_with_diagnostics(
+    _request: VisionUnderstandingRequestV2,
+    diagnostics: tuple[VisionMappingDiagnosticV2, ...],
+) -> str:
+    """Build a closed repair prompt without echoing model/provider/user content."""
+
+    tokens = tuple(dict.fromkeys(item.value for item in diagnostics))
+    diagnostic_text = ", ".join(tokens) or "SCHEMA_TYPE_OR_CONSTRAINT_INVALID"
+    return (
+        f"{_PROMPT}\n\n"
+        "The previous response failed the output contract. Repair only the JSON shape. "
+        "Do not add explanations, markdown, metadata, or new scene claims. "
+        f"Closed diagnostic categories: {diagnostic_text}."
+    )
+
+
+def _vision_runtime_environment(environ: Mapping[str, str]) -> dict[str, str]:
+    """Resolve the live model path without treating a blank env value as configured."""
+
+    runtime_env = dict(environ)
+    model_dir = runtime_env.get(VISION_MODEL_DIR_ENV_VAR, "").strip()
+    cache_dir = runtime_env.get(VISION_MODEL_CACHE_DIR_ENV_VAR, "").strip()
+    if not model_dir and not cache_dir:
+        for env_name in (_OPERATOR_MODEL_DIR_ENV_VAR, "SKETCH2LIFE_VLM_ROOT"):
+            candidate = runtime_env.get(env_name, "").strip()
+            if candidate:
+                runtime_env[VISION_MODEL_DIR_ENV_VAR] = candidate
+                break
+        else:
+            runtime_env[VISION_MODEL_DIR_ENV_VAR] = str(VLM_ROOT)
+    return runtime_env
 
 
 class _SourceImageV1(BaseModel):
@@ -181,31 +218,50 @@ def vision_v2(
                     "source_image_ref": local_reference,
                 }
             )
-            runtime_env = dict(os.environ)
-            runtime_env.setdefault(VISION_MODEL_DIR_ENV_VAR, str(VLM_ROOT))
+            runtime_env = _vision_runtime_environment(os.environ)
             runtime = QwenVisionRuntimeConfig.from_env(runtime_env)
+            mapping_diagnostics: list[str] = []
+
+            def capture_mapping_diagnostics(items: tuple[object, ...]) -> None:
+                for item in items:
+                    value = getattr(item, "value", None)
+                    if isinstance(value, str) and value not in mapping_diagnostics:
+                        mapping_diagnostics.append(value)
+
             adapter = QwenVisionAdapter(
                 runtime,
                 content_policy=LexicalRegressionContentPolicy(synthetic_prohibited_lexicon()),
                 prompt=_prompt_with_narration(payload.narration_context),
-                enable_bounded_repair=False,
+                repair_prompt_builder=_repair_prompt_with_diagnostics,
+                on_mapping_diagnostic=capture_mapping_diagnostics,
+                enable_bounded_repair=True,
             )
             result = adapter.understand(local_request)
             # Keep the Lightning console useful without logging image bytes, model output,
             # prompts, credentials, or child data. HTTP 200 can still carry a typed FAILED
             # Vision result, so log the contract outcome explicitly.
+            diagnostics_text = ",".join(mapping_diagnostics) or "NONE"
             if result.status == "FAILED":
                 logger.warning(
-                    "vision_request_completed status=FAILED error_code=%s retryable=%s",
+                    "vision_request_completed status=FAILED error_code=%s error_detail=%s "
+                    "retryable=%s attempt=%s repair_attempted=%s mapping_diagnostics=%s",
                     result.error_code.value,
+                    result.error_detail.value,
                     result.retryable,
+                    result.attempt_number,
+                    result.repair_attempted,
+                    diagnostics_text,
                 )
             else:
                 logger.info(
-                    "vision_request_completed status=SUCCEEDED entities=%d actions=%d themes=%d",
+                    "vision_request_completed status=SUCCEEDED entities=%d actions=%d themes=%d "
+                    "attempt=%s repair_attempted=%s mapping_diagnostics=%s",
                     len(result.entities),
                     len(result.actions),
                     len(result.themes),
+                    result.attempt_number,
+                    result.repair_attempted,
+                    diagnostics_text,
                 )
             wire_result = result.model_dump(mode="json")
             wire_result["source_image_ref"]["artifact_ref"] = artifact.artifact_ref
@@ -368,7 +424,7 @@ def asr_v1(
                 (
                     f"{model_identifier}|{os.getenv('SKETCH2LIFE_ASR_DEVICE', 'cuda')}|"
                     f"{os.getenv('SKETCH2LIFE_ASR_COMPUTE_TYPE', 'float16')}|vad=true|beam=5"
-                ).encode("utf-8")
+                ).encode()
             ).hexdigest()
             result = AsrSuccessV1(
                 correlation_id=payload.request.correlation_id,

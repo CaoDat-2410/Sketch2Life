@@ -53,6 +53,13 @@ _FENCE_PATTERN = re.compile(r"^```(?:json)?\s*\n(.*)\n```$", re.DOTALL)
 _ALLOWED_PROVIDER_KEYS = frozenset(
     {"entities", "actions", "relations", "themes", "ambiguous_regions"}
 )
+_REPAIRABLE_SCHEMA_DETAILS = frozenset(
+    {
+        VisionNonPolicyErrorDetailV2.OUTPUT_MAPPING_FAILED,
+        VisionNonPolicyErrorDetailV2.DUPLICATE_OBSERVATION_ID,
+        VisionNonPolicyErrorDetailV2.REFERENCE_INTEGRITY_VIOLATION,
+    }
+)
 _DEVICE_ERROR_KEYWORDS = (
     "cuda",
     "cudnn",
@@ -106,6 +113,9 @@ class QwenModelBundle:
 
 ModelFactory = Callable[[VisionProfileV2, QwenVisionRuntimeConfig], QwenModelBundle]
 PromptBuilder = Callable[[VisionUnderstandingRequestV2], str]
+RepairPromptBuilder = Callable[
+    [VisionUnderstandingRequestV2, tuple[VisionMappingDiagnosticV2, ...]], str
+]
 TransientClassifier = Callable[[BaseException], bool]
 RawOutputHook = Callable[[str], None]
 
@@ -682,6 +692,7 @@ class QwenVisionAdapter(VisionUnderstandingPortV2):
         content_policy: ObservableContentPolicyV1,
         prompt_builder: PromptBuilder | None = None,
         prompt: str | None = None,
+        repair_prompt_builder: RepairPromptBuilder | None = None,
         generation_runner: QwenGenerationRunner | None = None,
         model_factory: ModelFactory | None = None,
         classify_transient: TransientClassifier = _never_transient,
@@ -698,6 +709,7 @@ class QwenVisionAdapter(VisionUnderstandingPortV2):
         self._prompt_builder: PromptBuilder = prompt_builder or _default_prompt_builder
         if prompt is not None:
             self._prompt_builder = lambda _request: prompt
+        self._repair_prompt_builder = repair_prompt_builder
         if generation_runner is not None and model_factory is not None:
             raise ValueError("provide generation_runner or model_factory, not both")
         if generation_runner is not None:
@@ -768,6 +780,7 @@ class QwenVisionAdapter(VisionUnderstandingPortV2):
             )
 
         attempt_number = 1
+        repair_attempted = False
         while True:
             try:
                 raw_output = self._generation_runner.generate(
@@ -883,9 +896,36 @@ class QwenVisionAdapter(VisionUnderstandingPortV2):
                 with suppress(Exception):
                     self._on_raw_output(raw_output)
 
-            return self._map_raw_output(
-                request, profile, catalog_hash, raw_output, attempt_number
+            result = self._map_raw_output(
+                request,
+                profile,
+                catalog_hash,
+                raw_output,
+                attempt_number,
+                repair_attempted=repair_attempted,
             )
+            if (
+                attempt_number == 1
+                and self._enable_bounded_repair
+                and self._repair_prompt_builder is not None
+                and isinstance(result, VisionUnderstandingFailureV2)
+                and result.error_code is VisionErrorCode.VISION_SCHEMA_INVALID
+                and result.error_detail in _REPAIRABLE_SCHEMA_DETAILS
+            ):
+                diagnostics = result.mapping_diagnostics or (
+                    VisionMappingDiagnosticV2.SCHEMA_TYPE_OR_CONSTRAINT_INVALID,
+                )
+                try:
+                    repair_prompt = self._repair_prompt_builder(request, diagnostics)
+                except Exception:  # noqa: BLE001 - repair construction cannot leak or escape
+                    return result
+                if not isinstance(repair_prompt, str) or not repair_prompt.strip():
+                    return result
+                prompt = repair_prompt
+                attempt_number = 2
+                repair_attempted = True
+                continue
+            return result
 
     def _map_raw_output(
         self,
@@ -894,14 +934,19 @@ class QwenVisionAdapter(VisionUnderstandingPortV2):
         catalog_hash: str,
         raw_output: str,
         attempt_number: int,
+        *,
+        repair_attempted: bool = False,
     ) -> VisionUnderstandingResultV2:
         if not isinstance(raw_output, str):
-            payload, repair_attempted = None, False
+            payload, mapping_repair_attempted = None, False
             parse_diagnostics = (QwenOutputMappingDiagnostic.RAW_NOT_STRING,)
         else:
-            payload, repair_attempted, parse_diagnostics = _parse_raw_output_with_diagnostic(
-                raw_output
-            )
+            (
+                payload,
+                mapping_repair_attempted,
+                parse_diagnostics,
+            ) = _parse_raw_output_with_diagnostic(raw_output)
+        repair_attempted = repair_attempted or mapping_repair_attempted
         if payload is None:
             self._emit_mapping_diagnostic(parse_diagnostics)
             return self._schema_failure(
@@ -1240,6 +1285,7 @@ __all__ = [
     "QwenVisionAdapter",
     "QwenVisionUnderstandingAdapter",
     "QwenModelLike",
+    "RepairPromptBuilder",
     "RawOutputHook",
     "TransformersQwenGenerationRunner",
 ]

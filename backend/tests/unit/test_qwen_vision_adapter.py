@@ -16,6 +16,7 @@ from sketch2life.contracts.schemas.vision import (
     VisionProhibitedClaimCategory,
 )
 from sketch2life.contracts.schemas.vision_v2 import (
+    VisionMappingDiagnosticV2,
     VisionNonPolicyErrorDetailV2,
     VisionProfileCatalogV2,
     VisionProfileV2,
@@ -144,6 +145,7 @@ def _adapter(
     prompt: str = "",
     on_raw_output: Any = None,
     on_mapping_diagnostic: Any = None,
+    repair_prompt_builder: Any = None,
     enable_bounded_repair: bool = False,
 ) -> QwenVisionAdapter:
     return QwenVisionAdapter(
@@ -154,6 +156,7 @@ def _adapter(
         model_factory=model_factory,
         on_raw_output=on_raw_output,
         on_mapping_diagnostic=on_mapping_diagnostic,
+        repair_prompt_builder=repair_prompt_builder,
         enable_bounded_repair=enable_bounded_repair,
     )
 
@@ -353,6 +356,75 @@ def test_bounded_repair_unwraps_result_and_object_references(
     assert isinstance(result, VisionUnderstandingSuccessV2)
     assert result.entities[0].observation_id == "entity-1"
     assert result.actions[0].actor_ref == "entity-1"
+
+
+def test_live_schema_repair_retries_once_with_closed_diagnostics(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    artifact_ref, digest = _write_source(tmp_path)
+    runner = _SequenceRunner("not JSON", _raw(_empty_payload()))
+    repair_prompts: list[tuple[VisionMappingDiagnosticV2, ...]] = []
+
+    def repair_prompt(
+        _request: VisionUnderstandingRequestV2,
+        diagnostics: tuple[VisionMappingDiagnosticV2, ...],
+    ) -> str:
+        repair_prompts.append(diagnostics)
+        return "repair prompt: emit only the canonical JSON object"
+
+    result = _adapter(
+        runner,
+        repair_prompt_builder=repair_prompt,
+        enable_bounded_repair=True,
+    ).understand(_request(artifact_ref, digest))
+
+    assert isinstance(result, VisionUnderstandingSuccessV2)
+    assert result.attempt_number == 2
+    assert result.repair_attempted is True
+    assert runner.calls == 2
+    assert repair_prompts == [(VisionMappingDiagnosticV2.STRICT_JSON_PARSE_FAILED,)]
+
+
+def test_live_schema_repair_stops_after_one_retry(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    artifact_ref, digest = _write_source(tmp_path)
+    runner = _SequenceRunner("not JSON", "still not JSON")
+
+    result = _adapter(
+        runner,
+        repair_prompt_builder=lambda _request, _diagnostics: "repair prompt",
+        enable_bounded_repair=True,
+    ).understand(_request(artifact_ref, digest))
+
+    assert isinstance(result, VisionUnderstandingFailureV2)
+    assert result.error_code is VisionErrorCode.VISION_SCHEMA_INVALID
+    assert result.attempt_number == 2
+    assert result.repair_attempted is True
+    assert runner.calls == 2
+
+
+def test_strict_adapter_does_not_retry_even_when_repair_builder_is_supplied(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    artifact_ref, digest = _write_source(tmp_path)
+    invalid_payload = {**_empty_payload(), "unexpected": "rejected"}
+    runner = _SequenceRunner(_raw(invalid_payload), _raw(_empty_payload()))
+
+    result = _adapter(
+        runner,
+        repair_prompt_builder=lambda _request, _diagnostics: "repair prompt",
+        enable_bounded_repair=False,
+    ).understand(_request(artifact_ref, digest))
+
+    assert isinstance(result, VisionUnderstandingFailureV2)
+    assert result.error_code is VisionErrorCode.VISION_SCHEMA_INVALID
+    assert result.attempt_number == 1
+    assert result.repair_attempted is False
+    assert runner.calls == 1
 
 
 def test_bounded_repair_does_not_turn_unknown_only_output_into_empty_success(

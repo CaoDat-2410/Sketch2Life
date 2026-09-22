@@ -191,3 +191,18 @@ P2-T5, mobile, Gate A UI, P1 eligibility, P3/P4 and shared integration remain se
   repository backend virtualenv; the running local API returned `ADMITTED` for the approved
   synthetic fixture upload. The owner remains responsible for manually triggering the Lightning
   request on the emulator under the 25-credit ceiling.
+
+## Live VLM schema-output remediation — 2026-09-22
+
+- The approved FEAT-018 live `/v2/vision` route now reuses FEAT-027's bounded Qwen payload
+  normalizer and FEAT-003's closed mapping diagnostics. It performs at most one internal repair
+  generation after the first output fails mapping/schema validation; it does not widen the V2
+  contract or enable client/unbounded retries.
+- Repair prompts contain the canonical JSON instructions and closed diagnostic tokens only. Raw
+  model output, image bytes, narration, credentials, child data and raw exception text are not
+  logged, persisted, returned or committed.
+- Local tests, Ruff, compile checks, architecture validation, repository security validation and
+  diff checks passed. Mypy was attempted but blocked by the workstation's Windows Application
+  Control policy loading a Python DLL; this is an environment limitation, not a reported code
+  failure. Owner-run Lightning smoke remains pending and is limited to synthetic/non-child images
+  under the existing approximately 25-credit ceiling.

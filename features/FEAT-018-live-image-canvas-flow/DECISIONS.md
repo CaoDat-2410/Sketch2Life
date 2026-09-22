@@ -145,3 +145,11 @@
   then transcribed once by faster-whisper on Lightning only after the explicit analysis command.
   ASR failure blocks before Vision. The implementation adds `/media/audio` and the Lightning `/v1/asr`
   route, preserves future auth/save seams, keeps mobile credential-free, and excludes video.
+
+- 2026-09-22 owner approval and implementation decision: wire the existing FEAT-027 bounded Qwen
+  payload normalizer and FEAT-003 closed mapping diagnostics into the FEAT-018 Lightning `/v2/vision`
+  live route. Permit one internal schema-repair generation only after the first mapping/schema
+  failure, cap the request at two provider generations, keep strict/offline adapter behavior
+  unchanged, and fail closed if the repair still violates the typed V2 contract. No public schema
+  widening, mobile change, video lane, auth/save implementation or Codex-triggered provider call is
+  authorized. See `plan/LIVE_VISION_SCHEMA_REMEDIATION_PLAN.md` and the feature-local evidence note.
