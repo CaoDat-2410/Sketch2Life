@@ -90,6 +90,7 @@ from sketch2life.benchmark.feat018_live_lightning_execution import (
     _adapter_result_is_accepted_success,  # noqa: PLC2701 - proves the D9-aware success contract
     _cancel_lightning_operation,  # noqa: PLC2701 - deterministic inline-boundary test seam
     _cancel_termination_operation,  # noqa: PLC2701 - deterministic inline-boundary test seam
+    _generation_child_entry_with_capture,  # noqa: PLC2701 - D9 child IPC seam
     _wait_for_lightning_operation,  # noqa: PLC2701 - deterministic inline-boundary test seam
     _Win32JobHandles,  # noqa: PLC2701 - white-box test of the ctypes binding surface (F4)
     adapter_worker_entry,
@@ -293,9 +294,14 @@ class FakeD9Capture:
     process_role: D9ProcessRole
     attempt_number: int | None = None
     finalize_calls: int = field(default=0, init=False)
+    quiescence_calls: int = field(default=0, init=False)
 
     def finalize(self) -> D9CaptureReport:
         self.finalize_calls += 1
+        return _fake_d9_report(self.process_role, attempt_number=self.attempt_number)
+
+    def verify_writer_quiescence(self) -> D9CaptureReport:
+        self.quiescence_calls += 1
         return _fake_d9_report(self.process_role, attempt_number=self.attempt_number)
 
 
@@ -304,7 +310,9 @@ def _fake_d9_capture_factory(
     attempt_number: int | None,
     stdout_max_bytes: int,
     stderr_max_bytes: int,
+    on_terminal_failure: Callable[[D9StreamFailureCode], None] | None,
 ) -> FakeD9Capture:
+    del on_terminal_failure
     assert stdout_max_bytes == D9_STDOUT_MAX_BYTES
     assert stderr_max_bytes == D9_STDERR_MAX_BYTES
     return FakeD9Capture(process_role, attempt_number)
@@ -2706,6 +2714,235 @@ class TestD9StreamEnforcement:
         assert observation.failure_code is None
         assert 'ff' not in repr(observation).lower()
 
+    def test_forged_over_limit_within_limit_observation_cannot_succeed(self) -> None:
+        launcher = _launcher()
+        containment = FakeContainmentBackend()
+        clock = FakeClock()
+        launcher.connection.push({'seq': 1, 'kind': 'ADAPTER_STARTED'})
+        launcher.connection.push(
+            {'seq': 2, 'kind': 'GENERATION_ATTEMPT_STARTED', 'attempt_number': 1}
+        )
+        _push_success_d9_frames(launcher.connection)
+        for frame in launcher.connection.inbox:
+            if (
+                frame.get('process_role') == D9ProcessRole.OUTER_ADAPTER_WORKER.value
+                and frame.get('stream') == D9StreamName.STDOUT.value
+            ):
+                frame['bytes_seen'] = D9_STDOUT_MAX_BYTES + 1
+                break
+        launcher.connection.push(
+            {'seq': 3, 'kind': 'TERMINAL', 'outcome': 'SUCCEEDED', 'raw_status': 'SUCCEEDED'}
+        )
+
+        result = _supervisor(launcher=launcher, containment=containment, clock=clock).run(
+            _no_op_entry, ()
+        )
+
+        assert result.final_state is ProgressState.FROZEN
+        assert result.effective_outcome is EffectiveOutcome.FAILED
+        assert result.primary_failure_reason == 'malformed D9 stream observation'
+        assert not _adapter_result_is_accepted_success(result)
+
+    @pytest.mark.parametrize(
+        ('bytes_seen', 'terminal_category', 'failure_code'),
+        [
+            (
+                D9_STDOUT_MAX_BYTES,
+                D9StreamTerminalCategory.LIMIT_EXCEEDED,
+                D9StreamFailureCode.STDOUT_LIMIT_EXCEEDED,
+            ),
+            (
+                D9_STDOUT_MAX_BYTES + 1,
+                D9StreamTerminalCategory.READ_FAILED,
+                D9StreamFailureCode.STDOUT_CAPTURE_READ_FAILED,
+            ),
+            (
+                0,
+                D9StreamTerminalCategory.WORKER_DIED_BEFORE_STREAM_FINALIZATION,
+                D9StreamFailureCode.STREAM_FINALIZATION_FAILED,
+            ),
+        ],
+    )
+    def test_observation_contract_rejects_inconsistent_count_category_pairs(
+        self,
+        bytes_seen: int,
+        terminal_category: D9StreamTerminalCategory,
+        failure_code: D9StreamFailureCode,
+    ) -> None:
+        with pytest.raises(ValueError):
+            D9StreamObservation(
+                process_role=D9ProcessRole.OUTER_ADAPTER_WORKER,
+                attempt_number=None,
+                stream=D9StreamName.STDOUT,
+                bytes_seen=bytes_seen,
+                ceiling=D9_STDOUT_MAX_BYTES,
+                disposition=D9StreamDisposition.FAILED,
+                terminal_category=terminal_category,
+                failure_code=failure_code,
+            )
+
+    def test_overflow_triggers_cleanup_before_total_deadline_and_preserves_fact(
+        self,
+    ) -> None:
+        launcher = _launcher()
+        containment = FakeContainmentBackend()
+        clock = FakeClock()
+        config = _config(total_adapter_cap_seconds=10.0)
+        launcher.connection.push({'seq': 1, 'kind': 'ADAPTER_STARTED'})
+        launcher.connection.push(
+            {'seq': 2, 'kind': 'GENERATION_ATTEMPT_STARTED', 'attempt_number': 1}
+        )
+        frame = _d9_observation_frame_for_test(
+            D9ProcessRole.INNER_GENERATION_CHILD, 1, D9StreamName.STDOUT
+        )
+        frame.update(
+            {
+                'bytes_seen': D9_STDOUT_MAX_BYTES + 1,
+                'disposition': D9StreamDisposition.FAILED.value,
+                'terminal_category': D9StreamTerminalCategory.LIMIT_EXCEEDED.value,
+                'failure_code': D9StreamFailureCode.STDOUT_LIMIT_EXCEEDED.value,
+            }
+        )
+        launcher.connection.push(frame)
+
+        result = _supervisor(
+            launcher=launcher,
+            containment=containment,
+            clock=clock,
+            config=config,
+        ).run(_no_op_entry, ())
+
+        assert clock() < config.total_adapter_cap_seconds
+        assert launcher.handle.terminate_calls == 1
+        assert containment.terminate_calls == 1
+        assert result.primary_failure_reason == 'D9 stream enforcement failed'
+        assert D9StreamFailureCode.STDOUT_LIMIT_EXCEEDED in result.d9_failure_codes
+        assert result.effective_outcome is EffectiveOutcome.FAILED
+
+    def test_inner_failure_signal_stops_generation_without_retry_or_fact_loss(
+        self,
+    ) -> None:
+        launcher = _launcher()
+        clock = FakeClock()
+        reports: list[D9CaptureReport] = []
+        failure_code = D9StreamFailureCode.STDOUT_LIMIT_EXCEEDED
+        launcher.connection.push(
+            {'kind': 'D9_STREAM_FAILURE', 'failure_code': failure_code.value}
+        )
+        launcher.connection.push(
+            {'kind': 'd9_failure', 'failure_code': failure_code.value}
+        )
+        runner = Feat018BoundedKillableQwenGenerationRunner(
+            config=_config(),
+            worker_cap_deadline_monotonic=clock() + 10.0,
+            launcher=launcher,
+            clock=clock,
+            on_d9_report=reports.append,
+        )
+
+        with pytest.raises(QwenPermanentRuntimeError, match='D9 stream enforcement failed'):
+            runner.generate(cast(object, None), cast(object, None), Path('x.png'), 'prompt')
+
+        assert len(launcher.launch_calls) == 1
+        assert launcher.handle.terminate_calls == 1
+        assert reports[0].failure_codes == (failure_code,)
+
+    def test_generation_child_uses_the_already_bounded_ipc_endpoint(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        import sketch2life.infrastructure.ai.qwen_vision as qwen_module
+
+        def fail_before_model_work(*_args: object, **_kwargs: object) -> None:
+            raise RuntimeError
+
+        monkeypatch.setattr(qwen_module, '_default_model_factory', fail_before_model_work)
+        connection = FakeBoundedConnection()
+
+        _generation_child_entry_with_capture(
+            connection,
+            cast(Any, object()),
+            cast(Any, object()),
+            'fixture.png',
+            'fixture prompt',
+            1_000,
+            1_000_000,
+            capture_factory=_fake_d9_capture_factory,
+            attempt_number=1,
+        )
+
+        assert [frame['kind'] for frame in connection.sent] == [
+            'D9_STREAM_OBSERVATION',
+            'D9_STREAM_OBSERVATION',
+            'model_load_failed',
+        ]
+
+    def test_queued_late_failure_after_terminal_invalidates_success(self) -> None:
+        launcher = _launcher()
+        containment = FakeContainmentBackend()
+        clock = FakeClock()
+        launcher.connection.push({'seq': 1, 'kind': 'ADAPTER_STARTED'})
+        launcher.connection.push(
+            {'seq': 2, 'kind': 'GENERATION_ATTEMPT_STARTED', 'attempt_number': 1}
+        )
+        _push_success_d9_frames(launcher.connection)
+        launcher.connection.push(
+            {'seq': 3, 'kind': 'TERMINAL', 'outcome': 'SUCCEEDED', 'raw_status': 'SUCCEEDED'}
+        )
+        launcher.connection.push(
+            {
+                'kind': 'D9_STREAM_FAILURE',
+                'failure_code': D9StreamFailureCode.STDOUT_LATE_OUTPUT.value,
+            }
+        )
+
+        result = _supervisor(
+            launcher=launcher,
+            containment=containment,
+            clock=clock,
+        ).run(_no_op_entry, ())
+
+        assert result.final_state is ProgressState.TERMINAL
+        assert result.terminal_outcome == 'SUCCEEDED'
+        assert result.effective_outcome is EffectiveOutcome.FAILED
+        assert result.primary_failure_reason == 'D9 stream enforcement failed'
+        assert D9StreamFailureCode.STDOUT_LATE_OUTPUT in result.d9_failure_codes
+        assert not launcher.connection.inbox
+        assert not _adapter_result_is_accepted_success(result)
+
+    def test_real_connection_zero_timeout_drains_queued_late_failure(self) -> None:
+        receiver_raw, sender_raw = multiprocessing.Pipe(duplex=True)
+        receiver = MultiprocessingBoundedConnection(receiver_raw, 1_000_000)
+        sender = MultiprocessingBoundedConnection(sender_raw, 1_000_000)
+        expected = {
+            'kind': 'D9_STREAM_FAILURE',
+            'failure_code': D9StreamFailureCode.STDOUT_LATE_OUTPUT.value,
+        }
+        try:
+            sender.send_frame(expected)
+            assert receiver.recv_frame(0.0) == expected
+        finally:
+            sender.close()
+            receiver.close()
+
+    def test_sustained_output_keeps_bookkeeping_bounded_after_overflow(self) -> None:
+        notifications: list[D9StreamFailureCode] = []
+        capture = D9BoundedByteCapture(
+            D9ProcessRole.OUTER_ADAPTER_WORKER,
+            None,
+            D9StreamName.STDOUT,
+            D9_STDOUT_MAX_BYTES,
+            notifications.append,
+        )
+        capture.observe_chunk(b'x' * (D9_STDOUT_MAX_BYTES + 1))
+        for _ in range(10_000):
+            capture.observe_chunk(b'x')
+        observation = capture.finalize()
+
+        assert observation.bytes_seen == D9_STDOUT_MAX_BYTES + 1
+        assert observation.failure_code is D9StreamFailureCode.STDOUT_LIMIT_EXCEEDED
+        assert notifications == [D9StreamFailureCode.STDOUT_LIMIT_EXCEEDED]
+        assert len(capture.events) <= 8
+
     def test_real_capture_normal_child_exit_drains_both_streams(self) -> None:
         probe = (
             'import os; '
@@ -2715,7 +2952,7 @@ class TestD9StreamEnforcement:
             'D9ProcessRole.INNER_GENERATION_CHILD, 1, '
             'D9_STDOUT_MAX_BYTES, D9_STDERR_MAX_BYTES); '
             "os.write(1, b'probe-out'); os.write(2, b'probe-err'); "
-            'report = capture.finalize(); '
+            'capture.finalize(); report = capture.verify_writer_quiescence(); '
             'assert not report.failed and all(item.bytes_seen == 9 for item in report.observations)'
         )
         result = subprocess.run(
@@ -2726,6 +2963,49 @@ class TestD9StreamEnforcement:
         )
         assert result.returncode == 0
         assert result.stdout == b''
+        assert result.stderr == b''
+
+    def test_real_capture_late_output_before_quiescence_invalidates_success(self) -> None:
+        probe = (
+            'import json, os, sys; '
+            'from sketch2life.benchmark.feat018_live_lightning_execution import '
+            'D9ProcessRole, D9ProcessStreamCapture, D9_STDERR_MAX_BYTES, D9_STDOUT_MAX_BYTES; '
+            'report_fd = os.dup(1); failures = []; '
+            'capture = D9ProcessStreamCapture('
+            'D9ProcessRole.INNER_GENERATION_CHILD, 1, '
+            'D9_STDOUT_MAX_BYTES, D9_STDERR_MAX_BYTES, failures.append); '
+            'initial = capture.finalize(); '
+            "late_count = os.write(1, b'late'); "
+            "buffered_count = sys.stderr.write('buffered'); "
+            'final = capture.verify_writer_quiescence(); '
+            "payload = {'initial_failed': initial.failed, 'late_count': late_count, "
+            "'buffered_count': buffered_count, 'final_failed': final.failed, "
+            "'failure_codes': sorted(item.value for item in failures)}; "
+            "os.write(report_fd, (json.dumps(payload) + '\\n').encode('utf-8')); "
+            'os.close(report_fd)'
+        )
+        result = subprocess.run(
+            [sys.executable, '-c', probe],
+            cwd=Path(__file__).parents[2],
+            capture_output=True,
+            check=False,
+            timeout=5.0,
+        )
+
+        assert result.returncode == 0
+        payload = json.loads(result.stdout)
+        assert payload == {
+            'initial_failed': False,
+            'late_count': 4,
+            'buffered_count': 8,
+            'final_failed': True,
+            'failure_codes': sorted(
+                [
+                    D9StreamFailureCode.STDOUT_LATE_OUTPUT.value,
+                    D9StreamFailureCode.STDERR_LATE_OUTPUT.value,
+                ]
+            ),
+        }
         assert result.stderr == b''
 
     @pytest.mark.parametrize(
@@ -4532,10 +4812,16 @@ class TestAdapterWorkerEntryGate:
             attempt_number: int | None,
             stdout_max_bytes: int,
             stderr_max_bytes: int,
+            on_terminal_failure: Callable[[D9StreamFailureCode], None] | None,
         ) -> FakeD9Capture:
+            del on_terminal_failure
             events.append('capture')
             return _fake_d9_capture_factory(
-                process_role, attempt_number, stdout_max_bytes, stderr_max_bytes
+                process_role,
+                attempt_number,
+                stdout_max_bytes,
+                stderr_max_bytes,
+                None,
             )
 
         def self_contain() -> None:

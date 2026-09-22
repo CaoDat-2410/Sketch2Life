@@ -28,6 +28,7 @@ import sys
 import threading
 import time
 import uuid
+from collections import deque
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field, replace
 from enum import StrEnum
@@ -246,7 +247,8 @@ class D9StreamObservation:
             raise ValueError('terminal_category must be a D9StreamTerminalCategory')
         if self.terminal_category is D9StreamTerminalCategory.WITHIN_LIMIT:
             if (
-                self.disposition is not D9StreamDisposition.ACCEPTED
+                self.bytes_seen > self.ceiling
+                or self.disposition is not D9StreamDisposition.ACCEPTED
                 or self.failure_code is not None
             ):
                 raise ValueError('WITHIN_LIMIT must be an accepted observation')
@@ -257,17 +259,25 @@ class D9StreamObservation:
                 D9StreamTerminalCategory.LIMIT_EXCEEDED: _D9_STREAM_LIMIT_CODES[self.stream],
                 D9StreamTerminalCategory.READ_FAILED: _D9_STREAM_READ_CODES[self.stream],
                 D9StreamTerminalCategory.LATE_OUTPUT: _D9_STREAM_LATE_CODES[self.stream],
-            }.get(self.terminal_category)
-            if expected_code is not None and self.failure_code is not expected_code:
+                D9StreamTerminalCategory.WORKER_DIED_BEFORE_STREAM_FINALIZATION: (
+                    D9StreamFailureCode.WORKER_DIED_BEFORE_STREAM_FINALIZATION
+                ),
+                D9StreamTerminalCategory.STREAM_FINALIZATION_FAILED: (
+                    D9StreamFailureCode.STREAM_FINALIZATION_FAILED
+                ),
+            }[self.terminal_category]
+            if self.failure_code is not expected_code:
                 raise ValueError('D9 stream failure code does not match the stream')
-            if self.terminal_category in (
-                D9StreamTerminalCategory.WORKER_DIED_BEFORE_STREAM_FINALIZATION,
-                D9StreamTerminalCategory.STREAM_FINALIZATION_FAILED,
-            ) and self.failure_code not in (
-                D9StreamFailureCode.WORKER_DIED_BEFORE_STREAM_FINALIZATION,
-                D9StreamFailureCode.STREAM_FINALIZATION_FAILED,
+            if (
+                self.terminal_category is D9StreamTerminalCategory.LIMIT_EXCEEDED
+                and self.bytes_seen != self.ceiling + 1
             ):
-                raise ValueError('D9 finalization failure code is invalid')
+                raise ValueError('LIMIT_EXCEEDED requires a saturated ceiling + 1 count')
+            if (
+                self.terminal_category is not D9StreamTerminalCategory.LIMIT_EXCEEDED
+                and self.bytes_seen > self.ceiling
+            ):
+                raise ValueError('only LIMIT_EXCEEDED may carry an over-limit count')
 
     @property
     def category(self) -> D9StreamTerminalCategory:
@@ -325,22 +335,31 @@ class D9CaptureReport:
         *,
         attempt_number: int | None,
     ) -> D9CaptureReport:
-        observations = tuple(
-            D9StreamObservation(
-                process_role=process_role,
-                attempt_number=attempt_number,
-                stream=stream,
-                bytes_seen=0,
-                ceiling=_D9_STREAM_CEILINGS[stream],
-                disposition=D9StreamDisposition.FAILED,
-                terminal_category=_d9_failure_category(
-                    _d9_failure_code_for_stream(code, stream)
-                ),
-                failure_code=_d9_failure_code_for_stream(code, stream),
+        observations: list[D9StreamObservation] = []
+        for stream in D9StreamName:
+            stream_code = _d9_failure_code_for_stream(code, stream)
+            ceiling = _D9_STREAM_CEILINGS[stream]
+            observations.append(
+                D9StreamObservation(
+                    process_role=process_role,
+                    attempt_number=attempt_number,
+                    stream=stream,
+                    bytes_seen=(
+                        ceiling + 1
+                        if stream_code is _D9_STREAM_LIMIT_CODES[stream]
+                        else 0
+                    ),
+                    ceiling=ceiling,
+                    disposition=D9StreamDisposition.FAILED,
+                    terminal_category=_d9_failure_category(stream_code),
+                    failure_code=stream_code,
+                )
             )
-            for stream in D9StreamName
-        )
-        return cls(observations=observations, failure_codes=(code,))
+        return cls(observations=tuple(observations), failure_codes=(code,))
+
+
+_D9_CAPTURE_EVENT_CAPACITY = 8
+D9TerminalFailureCallback = Callable[[D9StreamFailureCode], None]
 
 
 @dataclass(slots=True)
@@ -351,10 +370,16 @@ class D9BoundedByteCapture:
     attempt_number: int | None
     stream: D9StreamName
     ceiling: int
+    on_terminal_failure: D9TerminalFailureCallback | None = field(default=None, repr=False)
     _bytes_seen: int = field(default=0, init=False, repr=False)
     _failure_code: D9StreamFailureCode | None = field(default=None, init=False, repr=False)
     _finalized: bool = field(default=False, init=False, repr=False)
-    _events: list[str] = field(default_factory=list, init=False, repr=False)
+    _terminal_failure_notified: bool = field(default=False, init=False, repr=False)
+    _events: deque[str] = field(
+        default_factory=lambda: deque(maxlen=_D9_CAPTURE_EVENT_CAPACITY),
+        init=False,
+        repr=False,
+    )
     _lock: threading.Lock = field(default_factory=threading.Lock, init=False, repr=False)
 
     def __post_init__(self) -> None:
@@ -378,19 +403,24 @@ class D9BoundedByteCapture:
         except (TypeError, ValueError):
             self.mark_read_failed()
             return
+        notification: tuple[D9TerminalFailureCallback, D9StreamFailureCode] | None = None
         with self._lock:
             if self._finalized:
-                self._failure_code = self._failure_code or _D9_STREAM_LATE_CODES[self.stream]
+                notification = self._set_terminal_failure_locked(
+                    _D9_STREAM_LATE_CODES[self.stream]
+                )
                 self._events.append('reject_late')
-                return
-            self._events.append('capture')
-            if self._failure_code is not None:
-                return
-            if self._bytes_seen + length > self.ceiling:
-                self._bytes_seen = self.ceiling + 1
-                self._failure_code = _D9_STREAM_LIMIT_CODES[self.stream]
             else:
-                self._bytes_seen += length
+                self._events.append('capture')
+                if self._failure_code is None:
+                    if self._bytes_seen + length > self.ceiling:
+                        self._bytes_seen = self.ceiling + 1
+                        notification = self._set_terminal_failure_locked(
+                            _D9_STREAM_LIMIT_CODES[self.stream]
+                        )
+                    else:
+                        self._bytes_seen += length
+        self._dispatch_terminal_failure(notification)
 
     def stop_and_close(self) -> None:
         with self._lock:
@@ -401,26 +431,66 @@ class D9BoundedByteCapture:
             self._events.append('bounded_drain')
 
     def mark_read_failed(self) -> None:
+        notification: tuple[D9TerminalFailureCallback, D9StreamFailureCode] | None = None
         with self._lock:
             if self._finalized:
-                self._failure_code = self._failure_code or _D9_STREAM_LATE_CODES[self.stream]
+                notification = self._set_terminal_failure_locked(
+                    _D9_STREAM_LATE_CODES[self.stream]
+                )
                 self._events.append('reject_late')
-                return
-            if self._failure_code is None:
-                self._failure_code = _D9_STREAM_READ_CODES[self.stream]
-            self._events.append('read_failed')
+            else:
+                notification = self._set_terminal_failure_locked(
+                    _D9_STREAM_READ_CODES[self.stream]
+                )
+                self._events.append('read_failed')
+        self._dispatch_terminal_failure(notification)
+
+    def mark_late_output(self) -> None:
+        notification: tuple[D9TerminalFailureCallback, D9StreamFailureCode] | None
+        with self._lock:
+            notification = self._set_terminal_failure_locked(
+                _D9_STREAM_LATE_CODES[self.stream]
+            )
+            self._events.append('reject_late')
+        self._dispatch_terminal_failure(notification)
 
     def mark_worker_died_before_finalization(self) -> None:
+        notification: tuple[D9TerminalFailureCallback, D9StreamFailureCode] | None
         with self._lock:
-            if self._failure_code is None:
-                self._failure_code = D9StreamFailureCode.WORKER_DIED_BEFORE_STREAM_FINALIZATION
+            notification = self._set_terminal_failure_locked(
+                D9StreamFailureCode.WORKER_DIED_BEFORE_STREAM_FINALIZATION
+            )
             self._events.append('worker_died')
+        self._dispatch_terminal_failure(notification)
 
     def mark_finalization_failed(self) -> None:
+        notification: tuple[D9TerminalFailureCallback, D9StreamFailureCode] | None
         with self._lock:
-            if self._failure_code is None:
-                self._failure_code = D9StreamFailureCode.STREAM_FINALIZATION_FAILED
+            notification = self._set_terminal_failure_locked(
+                D9StreamFailureCode.STREAM_FINALIZATION_FAILED
+            )
             self._events.append('finalization_failed')
+        self._dispatch_terminal_failure(notification)
+
+    def _set_terminal_failure_locked(
+        self, code: D9StreamFailureCode
+    ) -> tuple[D9TerminalFailureCallback, D9StreamFailureCode] | None:
+        if self._failure_code is None:
+            self._failure_code = code
+        if self._terminal_failure_notified or self.on_terminal_failure is None:
+            return None
+        self._terminal_failure_notified = True
+        return self.on_terminal_failure, self._failure_code
+
+    @staticmethod
+    def _dispatch_terminal_failure(
+        notification: tuple[D9TerminalFailureCallback, D9StreamFailureCode] | None,
+    ) -> None:
+        if notification is None:
+            return
+        callback, code = notification
+        with contextlib.suppress(Exception):
+            callback(code)
 
     def finalize(self) -> D9StreamObservation:
         with self._lock:
@@ -460,6 +530,8 @@ class D9BoundedByteCapture:
 
 class D9Capture(Protocol):
     def finalize(self) -> D9CaptureReport: ...
+
+    def verify_writer_quiescence(self) -> D9CaptureReport: ...
 
 
 def _d9_observation_frame(observation: D9StreamObservation) -> dict[str, object]:
@@ -648,6 +720,7 @@ def _d9_success_contract(
         item.disposition is D9StreamDisposition.ACCEPTED
         and item.terminal_category is D9StreamTerminalCategory.WITHIN_LIMIT
         and item.failure_code is None
+        and item.bytes_seen <= item.ceiling
         for item in observations
     )
 
@@ -662,13 +735,21 @@ class D9ProcessStreamCapture:
     attempt_number: int | None
     stdout_max_bytes: int
     stderr_max_bytes: int
+    on_terminal_failure: D9TerminalFailureCallback | None = field(default=None, repr=False)
     _counters: dict[D9StreamName, D9BoundedByteCapture] = field(init=False)
     _read_fds: dict[D9StreamName, int] = field(default_factory=dict, init=False, repr=False)
     _saved_fds: dict[D9StreamName, int] = field(default_factory=dict, init=False, repr=False)
     _threads: dict[D9StreamName, threading.Thread] = field(
         default_factory=dict, init=False, repr=False
     )
+    _late_read_fds: dict[D9StreamName, int] = field(
+        default_factory=dict, init=False, repr=False
+    )
+    _late_threads: dict[D9StreamName, threading.Thread] = field(
+        default_factory=dict, init=False, repr=False
+    )
     _finalized: bool = field(default=False, init=False, repr=False)
+    _quiescence_verified: bool = field(default=False, init=False, repr=False)
 
     def __post_init__(self) -> None:
         if self.stdout_max_bytes != D9_STDOUT_MAX_BYTES:
@@ -677,13 +758,25 @@ class D9ProcessStreamCapture:
             raise ValueError('stderr D9 ceiling is not owner-approved')
         self._counters = {
             D9StreamName.STDOUT: D9BoundedByteCapture(
-                self.process_role, self.attempt_number, D9StreamName.STDOUT, self.stdout_max_bytes
+                self.process_role,
+                self.attempt_number,
+                D9StreamName.STDOUT,
+                self.stdout_max_bytes,
+                self._handle_terminal_failure,
             ),
             D9StreamName.STDERR: D9BoundedByteCapture(
-                self.process_role, self.attempt_number, D9StreamName.STDERR, self.stderr_max_bytes
+                self.process_role,
+                self.attempt_number,
+                D9StreamName.STDERR,
+                self.stderr_max_bytes,
+                self._handle_terminal_failure,
             ),
         }
         self._install()
+
+    def _handle_terminal_failure(self, code: D9StreamFailureCode) -> None:
+        if self.on_terminal_failure is not None:
+            self.on_terminal_failure(code)
 
     def _install(self) -> None:
         try:
@@ -705,7 +798,7 @@ class D9ProcessStreamCapture:
                 self._threads[stream] = reader
                 reader.start()
         except BaseException:
-            self._stop_writers()
+            self._close_standard_writers()
             for fd in (*self._read_fds.values(), *self._saved_fds.values()):
                 with contextlib.suppress(OSError):
                     os.close(fd)
@@ -722,23 +815,63 @@ class D9ProcessStreamCapture:
         except Exception:  # noqa: BLE001 - only a typed read failure may cross the seam
             counter.mark_read_failed()
 
-    def _stop_writers(self) -> None:
+    def _late_reader(self, stream: D9StreamName, read_fd: int) -> None:
+        counter = self._counters[stream]
         try:
-            devnull = os.open(os.devnull, os.O_WRONLY)
-        except OSError:
-            for counter in self._counters.values():
-                counter.mark_finalization_failed()
-            return
-        try:
-            for fd in (1, 2):
-                try:
-                    os.dup2(devnull, fd)
-                except OSError:
-                    for counter in self._counters.values():
-                        counter.mark_finalization_failed()
-        finally:
+            while True:
+                raw_bytes = os.read(read_fd, 4096)
+                if not raw_bytes:
+                    break
+                counter.mark_late_output()
+        except Exception:  # noqa: BLE001 - only typed finalization state is retained
+            counter.mark_finalization_failed()
+
+    @staticmethod
+    def _close_standard_writers() -> None:
+        for fd in (1, 2):
             with contextlib.suppress(OSError):
-                os.close(devnull)
+                os.close(fd)
+
+    def _flush_standard_writers(self) -> None:
+        for stream, writer in (
+            (D9StreamName.STDOUT, sys.stdout),
+            (D9StreamName.STDERR, sys.stderr),
+        ):
+            try:
+                writer.flush()
+            except Exception:  # noqa: BLE001 - buffered failures remain typed
+                self._counters[stream].mark_finalization_failed()
+
+    def _switch_to_late_detection(self) -> None:
+        for stream, fd in ((D9StreamName.STDOUT, 1), (D9StreamName.STDERR, 2)):
+            read_fd: int | None = None
+            write_fd: int | None = None
+            try:
+                read_fd, write_fd = os.pipe()
+                os.set_inheritable(read_fd, False)
+                os.set_inheritable(write_fd, False)
+                os.dup2(write_fd, fd)
+                os.set_inheritable(fd, False)
+                os.close(write_fd)
+                write_fd = None
+                self._late_read_fds[stream] = read_fd
+                reader = threading.Thread(
+                    target=self._late_reader,
+                    args=(stream, read_fd),
+                    daemon=True,
+                )
+                self._late_threads[stream] = reader
+                reader.start()
+            except BaseException:
+                self._counters[stream].mark_finalization_failed()
+                if read_fd is not None:
+                    with contextlib.suppress(OSError):
+                        os.close(read_fd)
+                if write_fd is not None:
+                    with contextlib.suppress(OSError):
+                        os.close(write_fd)
+                with contextlib.suppress(OSError):
+                    os.close(fd)
 
     def finalize(self) -> D9CaptureReport:
         if self._finalized:
@@ -746,15 +879,10 @@ class D9ProcessStreamCapture:
                 observations=tuple(counter.finalize() for counter in self._counters.values())
             )
         self._finalized = True
-        try:
-            sys.stdout.flush()
-            sys.stderr.flush()
-        except Exception:  # noqa: BLE001 - buffered stream failure is typed below
-            for counter in self._counters.values():
-                counter.mark_finalization_failed()
+        self._flush_standard_writers()
         for stream in D9StreamName:
             self._counters[stream].stop_and_close()
-        self._stop_writers()
+        self._switch_to_late_detection()
         for stream, reader in self._threads.items():
             reader.join(timeout=1.0)
             if reader.is_alive():
@@ -771,8 +899,31 @@ class D9ProcessStreamCapture:
             observations=tuple(counter.finalize() for counter in self._counters.values())
         )
 
+    def verify_writer_quiescence(self) -> D9CaptureReport:
+        if not self._finalized:
+            self.finalize()
+        if self._quiescence_verified:
+            return D9CaptureReport(
+                observations=tuple(counter.finalize() for counter in self._counters.values())
+            )
+        self._quiescence_verified = True
+        self._flush_standard_writers()
+        self._close_standard_writers()
+        for stream, reader in self._late_threads.items():
+            reader.join(timeout=1.0)
+            if reader.is_alive():
+                self._counters[stream].mark_finalization_failed()
+        for fd in self._late_read_fds.values():
+            with contextlib.suppress(OSError):
+                os.close(fd)
+        return D9CaptureReport(
+            observations=tuple(counter.finalize() for counter in self._counters.values())
+        )
 
-D9CaptureFactory = Callable[[D9ProcessRole, int | None, int, int], D9Capture]
+
+D9CaptureFactory = Callable[
+    [D9ProcessRole, int | None, int, int, D9TerminalFailureCallback | None], D9Capture
+]
 
 
 def _default_d9_capture_factory(
@@ -780,8 +931,15 @@ def _default_d9_capture_factory(
     attempt_number: int | None,
     stdout_max_bytes: int,
     stderr_max_bytes: int,
+    on_terminal_failure: D9TerminalFailureCallback | None,
 ) -> D9Capture:
-    return D9ProcessStreamCapture(process_role, attempt_number, stdout_max_bytes, stderr_max_bytes)
+    return D9ProcessStreamCapture(
+        process_role,
+        attempt_number,
+        stdout_max_bytes,
+        stderr_max_bytes,
+        on_terminal_failure,
+    )
 
 
 # --------------------------------------------------------------------------------------
@@ -914,10 +1072,12 @@ class MultiprocessingBoundedConnection:
     max_envelope_bytes: int
 
     def send_frame(self, payload: Mapping[str, object]) -> None:
-        self.connection.send_bytes(encode_envelope(payload, max_bytes=self.max_envelope_bytes))
+        self.connection.send_bytes(
+            encode_envelope(payload, max_bytes=self.max_envelope_bytes)
+        )
 
     def recv_frame(self, timeout: float) -> dict[str, object] | None:
-        if timeout <= 0 or not self.connection.poll(max(timeout, 0.0)):
+        if timeout < 0 or not self.connection.poll(timeout):
             return None
         try:
             raw = self.connection.recv_bytes(maxlength=self.max_envelope_bytes)
@@ -1738,7 +1898,7 @@ def _bounded_terminate_kill_join(
 
 
 def _generation_child_entry(
-    connection: _RawConnection,
+    connection: BoundedConnection,
     profile: VisionProfileV2,
     runtime_config: QwenVisionRuntimeConfig,
     image_path: str,
@@ -1763,7 +1923,7 @@ def _generation_child_entry(
     )
 
 def _generation_child_entry_with_capture(
-    connection: _RawConnection,
+    connection: BoundedConnection,
     profile: VisionProfileV2,
     runtime_config: QwenVisionRuntimeConfig,
     image_path: str,
@@ -1774,15 +1934,23 @@ def _generation_child_entry_with_capture(
     capture_factory: D9CaptureFactory,
     attempt_number: int,
 ) -> None:
-    bounded = MultiprocessingBoundedConnection(
-        connection=connection, max_envelope_bytes=ipc_envelope_max_bytes
-    )
+    # The process launcher applies this ceiling before the endpoint crosses the spawn
+    # boundary. Re-wrapping that bounded endpoint would hide its send_frame API behind
+    # a nonexistent raw send_bytes method.
+    del ipc_envelope_max_bytes
+    bounded = connection
+    send_frame = _synchronized_frame_sender(bounded.send_frame)
+
+    def _notify_terminal_failure(code: D9StreamFailureCode) -> None:
+        _try_send_d9_failure(send_frame, code)
+
     try:
         capture = capture_factory(
             D9ProcessRole.INNER_GENERATION_CHILD,
             attempt_number,
             D9_STDOUT_MAX_BYTES,
             D9_STDERR_MAX_BYTES,
+            _notify_terminal_failure,
         )
     except Exception:  # noqa: BLE001 - only a typed D9 failure crosses the boundary
         report = D9CaptureReport.failure(
@@ -1790,8 +1958,8 @@ def _generation_child_entry_with_capture(
             D9StreamFailureCode.STREAM_FINALIZATION_FAILED,
             attempt_number=attempt_number,
         )
-        _try_send_d9_report(bounded.send_frame, report)
-        _try_send(bounded, {'kind': 'd9_failure', 'failure_code': report.failure_codes[0].value})
+        _try_send_d9_report(send_frame, report)
+        _try_send(send_frame, {'kind': 'd9_failure', 'failure_code': report.failure_codes[0].value})
         return
 
     outcome_frame: dict[str, object] = {'kind': 'provider_failure'}
@@ -1827,28 +1995,51 @@ def _generation_child_entry_with_capture(
         outcome_frame = {'kind': 'provider_failure'}
     finally:
         try:
-            report = capture.finalize()
+            capture.finalize()
+            report = capture.verify_writer_quiescence()
         except Exception:  # noqa: BLE001 - finalization is fail-closed and typed
             report = D9CaptureReport.failure(
                 D9ProcessRole.INNER_GENERATION_CHILD,
                 D9StreamFailureCode.STREAM_FINALIZATION_FAILED,
                 attempt_number=attempt_number,
             )
-        _try_send_d9_report(bounded.send_frame, report)
+        _try_send_d9_report(send_frame, report)
         if report.failed:
             outcome_frame = {
                 'kind': 'd9_failure',
                 'failure_code': report.failure_codes[0].value,
             }
         try:
-            bounded.send_frame(outcome_frame)
+            send_frame(outcome_frame)
         except Feat018FrameTooLargeError:
-            _try_send(bounded, {'kind': 'ipc_envelope_overflow'})
+            _try_send(send_frame, {'kind': 'ipc_envelope_overflow'})
 
 
-def _try_send(bounded: MultiprocessingBoundedConnection, payload: Mapping[str, object]) -> None:
+def _synchronized_frame_sender(
+    send_frame: Callable[[Mapping[str, object]], None],
+) -> Callable[[Mapping[str, object]], None]:
+    send_lock = threading.Lock()
+
+    def _send(payload: Mapping[str, object]) -> None:
+        with send_lock:
+            send_frame(payload)
+
+    return _send
+
+
+def _try_send(
+    send_frame: Callable[[Mapping[str, object]], None],
+    payload: Mapping[str, object],
+) -> None:
     with contextlib.suppress(OSError):
-        bounded.send_frame(payload)
+        send_frame(payload)
+
+
+def _try_send_d9_failure(
+    send_frame: Callable[[Mapping[str, object]], None], code: D9StreamFailureCode
+) -> None:
+    with contextlib.suppress(Exception):
+        send_frame(_d9_failure_frame(code))
 
 
 @dataclass(slots=True)
@@ -1912,6 +2103,8 @@ class Feat018BoundedKillableQwenGenerationRunner:
         failure_codes: list[D9StreamFailureCode] = []
         worker_died = False
         cleanup_succeeded = True
+        outcome_received = False
+        post_cleanup_protocol_valid = True
         try:
             try:
                 while True:
@@ -1942,6 +2135,11 @@ class Feat018BoundedKillableQwenGenerationRunner:
                         ):
                             raise Feat018ProtocolViolationError('malformed D9 stream observation')
                         observations.append(observation)
+                        if observation.failed:
+                            assert observation.failure_code is not None
+                            if observation.failure_code not in failure_codes:
+                                failure_codes.append(observation.failure_code)
+                            break
                         continue
                     if frame.get('kind') == 'D9_STREAM_FAILURE':
                         code = _d9_failure_from_frame(frame)
@@ -1949,19 +2147,32 @@ class Feat018BoundedKillableQwenGenerationRunner:
                             raise Feat018ProtocolViolationError('malformed D9 stream failure')
                         if code not in failure_codes:
                             failure_codes.append(code)
-                        continue
+                        break
+                    outcome_received = True
                     break
             except (Feat018ProtocolViolationError, EOFError, OSError):
                 raise QwenPermanentRuntimeError from None
         finally:
-            try:
-                connection.close()
-            except Exception:  # noqa: BLE001 - cleanup must not hide the bounded result
-                cleanup_succeeded = False
             if not _bounded_terminate_kill_join(
                 process, grace_seconds=1.0, kill_join_seconds=1.0
             ):
                 cleanup_succeeded = False
+            post_cleanup_protocol_valid = self._drain_post_cleanup_d9(
+                connection,
+                observations,
+                failure_codes,
+                attempt_number=attempt_number,
+                outcome_received=outcome_received,
+            )
+            try:
+                connection.close()
+            except Exception:  # noqa: BLE001 - cleanup must not hide the bounded result
+                cleanup_succeeded = False
+
+        if not post_cleanup_protocol_valid and (
+            D9StreamFailureCode.STREAM_FINALIZATION_FAILED not in failure_codes
+        ):
+            failure_codes.append(D9StreamFailureCode.STREAM_FINALIZATION_FAILED)
 
         if worker_died:
             report = D9CaptureReport.failure(
@@ -1990,6 +2201,61 @@ class Feat018BoundedKillableQwenGenerationRunner:
         if report.failed:
             raise QwenPermanentRuntimeError('D9 stream enforcement failed')
         return _interpret_generation_child_frame(frame)
+
+    @staticmethod
+    def _drain_post_cleanup_d9(
+        connection: BoundedConnection,
+        observations: list[D9StreamObservation],
+        failure_codes: list[D9StreamFailureCode],
+        *,
+        attempt_number: int,
+        outcome_received: bool,
+    ) -> bool:
+        protocol_valid = True
+        for _ in range(32):
+            try:
+                frame = connection.recv_frame(0.0)
+            except Exception:  # noqa: BLE001 - post-cleanup transport detail is sanitized
+                return False
+            if frame is None:
+                return protocol_valid
+            if frame.get('kind') == 'D9_STREAM_OBSERVATION':
+                observation = _d9_observation_from_frame(frame)
+                if (
+                    observation is None
+                    or observation.process_role is not D9ProcessRole.INNER_GENERATION_CHILD
+                    or observation.attempt_number != attempt_number
+                    or observation.stream in {item.stream for item in observations}
+                ):
+                    protocol_valid = False
+                    continue
+                observations.append(observation)
+                if outcome_received and not observation.failed:
+                    protocol_valid = False
+                if observation.failed:
+                    assert observation.failure_code is not None
+                    if observation.failure_code not in failure_codes:
+                        failure_codes.append(observation.failure_code)
+                continue
+            if frame.get('kind') == 'D9_STREAM_FAILURE':
+                code = _d9_failure_from_frame(frame)
+                if code is None:
+                    protocol_valid = False
+                elif code not in failure_codes:
+                    failure_codes.append(code)
+                continue
+            if frame.get('kind') == 'd9_failure':
+                code = _d9_failure_from_frame(frame)
+                if code is None:
+                    protocol_valid = False
+                elif code not in failure_codes:
+                    failure_codes.append(code)
+                continue
+            protocol_valid = False
+        try:
+            return connection.recv_frame(0.0) is None and protocol_valid
+        except Exception:  # noqa: BLE001 - post-cleanup transport detail is sanitized
+            return False
 
 def _interpret_generation_child_frame(frame: Mapping[str, object]) -> str:
     kind = frame.get("kind")
@@ -2121,6 +2387,8 @@ class Feat018AdapterCallSupervisor:
         state_machine = Feat018ProgressStateMachine(cap_deadline_monotonic=cap_deadline_monotonic)
         d9_observations: list[D9StreamObservation] = []
         d9_failure_codes: list[D9StreamFailureCode] = []
+        d9_capture_expected = False
+        worker_died_before_cleanup = False
 
         try:
             try:
@@ -2136,6 +2404,7 @@ class Feat018AdapterCallSupervisor:
                     stopped_before_containment = True
                     primary_failure_reason = gated.failure_reason
                 else:
+                    d9_capture_expected = True
                     progress_failure_reason = self._run_progress_loop(
                         process,
                         connection,
@@ -2146,21 +2415,9 @@ class Feat018AdapterCallSupervisor:
                     )
                     primary_failure_reason = primary_failure_reason or progress_failure_reason
                     try:
-                        worker_died = not process.is_alive()
+                        worker_died_before_cleanup = not process.is_alive()
                     except Exception:  # noqa: BLE001 - unknown liveness fails closed
-                        worker_died = True
-                    _d9_fill_missing(
-                        d9_observations,
-                        d9_failure_codes,
-                        worker_died=(
-                            worker_died and state_machine.state is not ProgressState.TERMINAL
-                        ),
-                        attempt_count=state_machine.attempt_count,
-                    )
-                    if d9_failure_codes or any(item.failed for item in d9_observations):
-                        primary_failure_reason = (
-                            primary_failure_reason or 'D9 stream enforcement failed'
-                        )
+                        worker_died_before_cleanup = True
         except Exception:  # noqa: BLE001 - any unforeseen lifecycle failure still cleans up
             primary_failure_reason = primary_failure_reason or "adapter worker lifecycle failure"
             state_machine.force_freeze()
@@ -2178,6 +2435,16 @@ class Feat018AdapterCallSupervisor:
             if cleanup_status is CleanupStatus.CLEANUP_FAILED:
                 cleanup_failed = True
             if connection is not None:
+                if d9_capture_expected:
+                    post_cleanup_failure = self._drain_post_cleanup_d9(
+                        connection,
+                        state_machine,
+                        d9_observations,
+                        d9_failure_codes,
+                    )
+                    primary_failure_reason = (
+                        primary_failure_reason or post_cleanup_failure
+                    )
                 try:
                     connection.close()
                 except Exception:  # noqa: BLE001 - containment close must still run
@@ -2190,6 +2457,21 @@ class Feat018AdapterCallSupervisor:
                 cleanup_failed = True
             if cleanup_failed:
                 cleanup_status = CleanupStatus.CLEANUP_FAILED
+
+        if d9_capture_expected:
+            _d9_fill_missing(
+                d9_observations,
+                d9_failure_codes,
+                worker_died=(
+                    worker_died_before_cleanup
+                    and state_machine.state is not ProgressState.TERMINAL
+                ),
+                attempt_count=state_machine.attempt_count,
+            )
+            if d9_failure_codes or any(item.failed for item in d9_observations):
+                primary_failure_reason = (
+                    primary_failure_reason or 'D9 stream enforcement failed'
+                )
 
         if cleanup_status is CleanupStatus.CLEANUP_FAILED and primary_failure_reason is None:
             primary_failure_reason = "cleanup verification failed"
@@ -2322,6 +2604,9 @@ class Feat018AdapterCallSupervisor:
                 if observation.failed and observation.failure_code not in d9_failure_codes:
                     assert observation.failure_code is not None
                     d9_failure_codes.append(observation.failure_code)
+                if observation.failed:
+                    state_machine.force_freeze()
+                    return 'D9 stream enforcement failed'
                 continue
             if raw_frame.get('kind') == 'D9_STREAM_FAILURE':
                 code = _d9_failure_from_frame(raw_frame)
@@ -2330,7 +2615,8 @@ class Feat018AdapterCallSupervisor:
                     return 'malformed D9 stream failure'
                 if code not in d9_failure_codes:
                     d9_failure_codes.append(code)
-                continue
+                state_machine.force_freeze()
+                return 'D9 stream enforcement failed'
             event = _progress_event_from_frame(raw_frame)
             if event is None:
                 state_machine.force_freeze()
@@ -2354,6 +2640,61 @@ class Feat018AdapterCallSupervisor:
                     AcceptanceResult.REJECTED_CLOSED: "progress stream was already closed",
                 }[result]
         return None
+
+    @staticmethod
+    def _drain_post_cleanup_d9(
+        connection: BoundedConnection,
+        state_machine: Feat018ProgressStateMachine,
+        d9_observations: list[D9StreamObservation],
+        d9_failure_codes: list[D9StreamFailureCode],
+    ) -> str | None:
+        failure_reason: str | None = None
+        for _ in range(32):
+            try:
+                frame = connection.recv_frame(0.0)
+            except Exception:  # noqa: BLE001 - post-cleanup transport detail is sanitized
+                return failure_reason or 'post-cleanup D9 frame receive failed'
+            if frame is None:
+                return failure_reason
+            if frame.get('kind') == 'D9_STREAM_OBSERVATION':
+                observation = _d9_observation_from_frame(frame)
+                if (
+                    observation is None
+                    or (
+                        observation.attempt_number is not None
+                        and observation.attempt_number > (state_machine.attempt_count or 0)
+                    )
+                    or not _d9_record_observation(d9_observations, observation)
+                ):
+                    failure_reason = failure_reason or 'malformed D9 stream observation'
+                    continue
+                if (
+                    state_machine.state is ProgressState.TERMINAL
+                    and not observation.failed
+                ):
+                    failure_reason = failure_reason or 'D9 frame arrived after terminal event'
+                if observation.failed:
+                    assert observation.failure_code is not None
+                    if observation.failure_code not in d9_failure_codes:
+                        d9_failure_codes.append(observation.failure_code)
+                    failure_reason = failure_reason or 'D9 stream enforcement failed'
+                continue
+            if frame.get('kind') == 'D9_STREAM_FAILURE':
+                code = _d9_failure_from_frame(frame)
+                if code is None:
+                    failure_reason = failure_reason or 'malformed D9 stream failure'
+                else:
+                    if code not in d9_failure_codes:
+                        d9_failure_codes.append(code)
+                    failure_reason = failure_reason or 'D9 stream enforcement failed'
+                continue
+            failure_reason = failure_reason or 'unexpected post-cleanup progress frame'
+        try:
+            if connection.recv_frame(0.0) is not None:
+                return failure_reason or 'post-cleanup D9 frame limit exceeded'
+        except Exception:  # noqa: BLE001 - post-cleanup transport detail is sanitized
+            return failure_reason or 'post-cleanup D9 frame receive failed'
+        return failure_reason
 
     def _cleanup_partial_containment(
         self, containment: ContainmentBackend | None
@@ -2463,12 +2804,18 @@ def _adapter_worker_entry_with_d9(
     clock: Callable[[], float],
     capture_factory: D9CaptureFactory,
 ) -> None:
+    send_frame = _synchronized_frame_sender(connection.send_frame)
+
+    def _notify_terminal_failure(code: D9StreamFailureCode) -> None:
+        _try_send_d9_failure(send_frame, code)
+
     try:
         capture = capture_factory(
             D9ProcessRole.OUTER_ADAPTER_WORKER,
             None,
             config.stdout_max_bytes,
             config.stderr_max_bytes,
+            _notify_terminal_failure,
         )
     except Exception:  # noqa: BLE001 - capture setup fails closed with typed metadata
         report = D9CaptureReport.failure(
@@ -2486,7 +2833,7 @@ def _adapter_worker_entry_with_d9(
 
     def _publish_d9(report: D9CaptureReport) -> None:
         try:
-            _send_d9_report(connection.send_frame, report)
+            _send_d9_report(send_frame, report)
         except Exception:  # noqa: BLE001 - raw transport details never cross the seam
             raise Feat018ProtocolViolationError('worker D9 report send failed') from None
 
@@ -2523,7 +2870,7 @@ def _adapter_worker_entry_with_d9(
 
         def _send(kind: str, **extra: object) -> None:
             try:
-                connection.send_frame({'seq': _next_seq(), 'kind': kind, **extra})
+                send_frame({'seq': _next_seq(), 'kind': kind, **extra})
             except Exception:  # noqa: BLE001 - progress delivery is a typed protocol step
                 raise Feat018ProtocolViolationError(
                     'worker progress event send failed'
@@ -2531,7 +2878,7 @@ def _adapter_worker_entry_with_d9(
 
         def _send_d9(report: D9CaptureReport) -> None:
             try:
-                _send_d9_report(connection.send_frame, report)
+                _send_d9_report(send_frame, report)
             except Exception:  # noqa: BLE001 - raw transport details never cross the seam
                 raise Feat018ProtocolViolationError('worker D9 report send failed') from None
 
@@ -2596,7 +2943,8 @@ def _adapter_worker_entry_with_d9(
         raise
     finally:
         try:
-            report = capture.finalize()
+            capture.finalize()
+            report = capture.verify_writer_quiescence()
         except Exception:  # noqa: BLE001 - finalization is typed and fail-closed
             report = D9CaptureReport.failure(
                 D9ProcessRole.OUTER_ADAPTER_WORKER,
