@@ -26,6 +26,9 @@ import {
   SceneUnderstandingScreen,
   StoryPreviewScreen,
   ActivityRecommendScreen,
+  ExperienceReviewScreen,
+  PixiIntroScreen,
+  VideoPlaceholderScreen,
   ActivityDetailScreen,
   FeedbackLoopScreen,
 } from './src/screens';
@@ -43,8 +46,11 @@ const SCREENS: ScreenMeta[] = [
   { id: 'scene_understanding', title: '8. Scene Understanding', subtitle: 'Hiểu tranh (Gate A)', flow: 'flow2', workflowStep: 2, stepName: 'Bước 2: Gate A' },
   { id: 'story_preview', title: '9. Story Preview', subtitle: 'Phase 1: Art Animation', flow: 'flow2', workflowStep: 5, stepName: 'Bước 5: Hoạt hình' },
   { id: 'activity_recommend', title: '10. Activity Recommendation', subtitle: 'Gợi ý Montessori (Gate B)', flow: 'flow2', workflowStep: 3, stepName: 'Bước 3: Gate B' },
-  { id: 'activity_detail', title: '11. Activity Detail', subtitle: 'Phase 3: Off-Screen', flow: 'flow2', workflowStep: 7, stepName: 'Bước 7: Ngoài đời' },
-  { id: 'feedback', title: '12. Feedback Loop', subtitle: 'Đánh giá & quan sát', flow: 'flow2', workflowStep: 8, stepName: 'Bước 8: Phản hồi' },
+  { id: 'experience_review', title: '11. Parent Review', subtitle: 'Người lớn duyệt Gate B', flow: 'flow2', workflowStep: 4, stepName: 'Bước 4: Duyệt' },
+  { id: 'pixi_intro', title: '12. Pixi Story Intro', subtitle: 'Tranh chuyển động', flow: 'flow2', workflowStep: 5, stepName: 'Bước 5: Pixi' },
+  { id: 'video_placeholder', title: '13. Video Placeholder', subtitle: 'Seam video tương lai', flow: 'flow2', workflowStep: 6, stepName: 'Bước 6: Video' },
+  { id: 'activity_detail', title: '14. Outdoor Activity', subtitle: 'Hoạt động ngoài trời', flow: 'flow2', workflowStep: 7, stepName: 'Bước 7: Ngoài đời' },
+  { id: 'feedback', title: '15. Feedback Loop', subtitle: 'Đánh giá & quan sát', flow: 'flow2', workflowStep: 8, stepName: 'Bước 8: Phản hồi' },
 ];
 
 function MainAppContent() {
@@ -121,6 +127,12 @@ function MainAppContent() {
         return <StoryPreviewScreen />;
       case 'activity_recommend':
         return <ActivityRecommendScreen />;
+      case 'experience_review':
+        return <ExperienceReviewScreen />;
+      case 'pixi_intro':
+        return <PixiIntroScreen />;
+      case 'video_placeholder':
+        return <VideoPlaceholderScreen />;
       case 'activity_detail':
         return <ActivityDetailScreen />;
       case 'feedback':

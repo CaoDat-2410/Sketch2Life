@@ -260,6 +260,11 @@ def test_session_image_upload_is_admitted_then_requires_an_explicit_understandin
     assert started.status_code == 200
     assert started.json()["status"] == "SUCCEEDED"
     assert started.json()["payload"]["narration_status"] == "NOT_SUPPLIED"
+    directions = started.json()["payload"]["topic_directions"]
+    assert 1 <= len(directions) <= 3
+    assert directions[0]["title_vi"].startswith("Cùng khám phá")
+    assert directions[0]["source_claim_ids"]
+    assert all("chi tiết trong tranh" not in item["title_vi"] for item in directions)
     assert vision.calls == 1
 
 
@@ -921,6 +926,13 @@ def test_fake_only_image_session_completes_p1_gate_b_p4_handoff_feedback_and_gal
     assert (
         launch["animationPlan"]["experienceSpecRef"] == launch["assetManifest"]["experienceSpecRef"]
     )
+    assert [
+        motion["kind"] for motion in launch["animationPlan"]["plan"]["motions"]
+    ] == ["DRAW_REVEAL", "SCALE", "MOVE_TO", "ROTATE"]
+    storyboard = renderer.json()["payload"]["pixi_intro_storyboard"]
+    assert storyboard["original_art_preserved"] is True
+    assert storyboard["video_placeholder_only"] is True
+    assert len(storyboard["beats"]) == 4
     assert renderer.json()["observed_session_version"] == version
 
     source_headers = {"X-Render-Source-Capability": launch["sourceReadCapability"]}

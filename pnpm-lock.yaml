@@ -119,6 +119,9 @@ importers:
       expo-linear-gradient:
         specifier: ~14.0.2
         version: 14.0.2(expo@52.0.49(d6d603685cfd5ae18ecc3ae2a6b5794a))(react-native@0.76.9(@babel/core@7.29.7(supports-color@8.1.1))(@babel/preset-env@7.29.7(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@react-native-community/cli@20.2.0(supports-color@8.1.1)(typescript@5.9.3))(@types/react@18.3.31)(react@18.3.1)(supports-color@8.1.1))(react@18.3.1)
+      expo-screen-orientation:
+        specifier: ~8.0.4
+        version: 8.0.4(expo@52.0.49(d6d603685cfd5ae18ecc3ae2a6b5794a))(react-native@0.76.9(@babel/core@7.29.7(supports-color@8.1.1))(@babel/preset-env@7.29.7(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@react-native-community/cli@20.2.0(supports-color@8.1.1)(typescript@5.9.3))(@types/react@18.3.31)(react@18.3.1)(supports-color@8.1.1))
       expo-status-bar:
         specifier: ~2.0.1
         version: 2.0.1(react-native@0.76.9(@babel/core@7.29.7(supports-color@8.1.1))(@babel/preset-env@7.29.7(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@react-native-community/cli@20.2.0(supports-color@8.1.1)(typescript@5.9.3))(@types/react@18.3.31)(react@18.3.1)(supports-color@8.1.1))(react@18.3.1)
@@ -2971,6 +2974,12 @@ packages:
 
   expo-modules-core@2.2.3:
     resolution: {integrity: sha512-01QqZzpP/wWlxnNly4G06MsOBUTbMDj02DQigZoXfDh80vd/rk3/uVXqnZgOdLSggTs6DnvOgAUy0H2q30XdUg==}
+
+  expo-screen-orientation@8.0.4:
+    resolution: {integrity: sha512-kJrIZ/44+Gs5D5nyP6SXqTUbJEOsRgzk+nUcKeVZ0Vmx0szGrvSvhzdus7853xT/sqyAARsqBMlx626jAMu/Jg==}
+    peerDependencies:
+      expo: '*'
+      react-native: '*'
 
   expo-status-bar@2.0.1:
     resolution: {integrity: sha512-AkIPX7jWHRPp83UBZ1iXtVvyr0g+DgBVvIXTtlmPtmUsm8Vq9Bb5IGj86PW8osuFlgoTVAg7HI/+Ok7yEYwiRg==}
@@ -9307,6 +9316,11 @@ snapshots:
   expo-modules-core@2.2.3:
     dependencies:
       invariant: 2.2.4
+
+  expo-screen-orientation@8.0.4(expo@52.0.49(d6d603685cfd5ae18ecc3ae2a6b5794a))(react-native@0.76.9(@babel/core@7.29.7(supports-color@8.1.1))(@babel/preset-env@7.29.7(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@react-native-community/cli@20.2.0(supports-color@8.1.1)(typescript@5.9.3))(@types/react@18.3.31)(react@18.3.1)(supports-color@8.1.1)):
+    dependencies:
+      expo: 52.0.49(d6d603685cfd5ae18ecc3ae2a6b5794a)
+      react-native: 0.76.9(@babel/core@7.29.7(supports-color@8.1.1))(@babel/preset-env@7.29.7(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@react-native-community/cli@20.2.0(supports-color@8.1.1)(typescript@5.9.3))(@types/react@18.3.31)(react@18.3.1)(supports-color@8.1.1)
 
   expo-status-bar@2.0.1(react-native@0.76.9(@babel/core@7.29.7(supports-color@8.1.1))(@babel/preset-env@7.29.7(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@react-native-community/cli@20.2.0(supports-color@8.1.1)(typescript@5.9.3))(@types/react@18.3.31)(react@18.3.1)(supports-color@8.1.1))(react@18.3.1):
     dependencies:

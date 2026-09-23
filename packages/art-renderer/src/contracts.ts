@@ -244,6 +244,44 @@ export const MAX_RENDERER_MESSAGE_BYTES = 4096;
 export type RendererBootstrap = z.infer<typeof RendererBootstrapSchema>;
 export type PlaybackEvent = z.infer<typeof PlaybackEventSchema>;
 
+export const PLAYBACK_CONTROL_ACTIONS = [
+  'PLAY',
+  'PAUSE',
+  'REPLAY',
+  'SEEK_RELATIVE_SECONDS',
+  'SEEK_TO_SECONDS',
+] as const;
+
+export const RendererControlCommandSchema = z.object({
+  protocolVersion: z.literal(ART_RENDERER_PROTOCOL_VERSION),
+  rendererInstanceId: z.string().min(1).max(120),
+  sequence: z.number().int().min(1),
+  type: z.literal('PLAYBACK_CONTROL'),
+  action: z.enum(PLAYBACK_CONTROL_ACTIONS),
+  seconds: z.number().finite().min(-30).max(300).optional(),
+}).strict().superRefine((command, context) => {
+  const needsSeconds = command.action === 'SEEK_RELATIVE_SECONDS' || command.action === 'SEEK_TO_SECONDS';
+  if (needsSeconds && command.seconds === undefined) {
+    context.addIssue({code: z.ZodIssueCode.custom, message: 'Seek controls require seconds.', path: ['seconds']});
+  }
+  if (!needsSeconds && command.seconds !== undefined) {
+    context.addIssue({code: z.ZodIssueCode.custom, message: 'This control does not accept seconds.', path: ['seconds']});
+  }
+});
+
+export const RendererPlaybackStateEnvelopeSchema = z.object({
+  protocolVersion: z.literal(ART_RENDERER_PROTOCOL_VERSION),
+  rendererInstanceId: z.string().min(1).max(120),
+  sequence: z.number().int().min(1),
+  type: z.literal('PLAYBACK_STATE'),
+  positionSeconds: z.number().finite().min(0).max(300),
+  durationSeconds: z.number().finite().min(0).max(300),
+  state: z.enum(['READY', 'PLAYING', 'PAUSED', 'COMPLETED']),
+}).strict();
+
+export type RendererControlCommand = z.infer<typeof RendererControlCommandSchema>;
+export type RendererPlaybackStateEnvelope = z.infer<typeof RendererPlaybackStateEnvelopeSchema>;
+
 export const RendererLoadCommandSchema = z.object({
   contractName: z.literal('RendererLoadCommandV1'),
   contractVersion: z.literal('1.0'),

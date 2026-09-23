@@ -1,9 +1,9 @@
 # FEAT-018 live image and canvas context
 
 - Status: P1 complete; D3/P2-T1 closed for owner-approved offline Cohorts A+B; P2-T2 contract
-  boundary and bounded offline implementation complete; approved local Android image-only UI/API
-  integration is implemented and offline-tested; emulator and owner-run live acceptance remain
-  pending
+  boundary and bounded offline implementation complete; the approved staged topic/Pixi/video-
+  placeholder/outdoor-activity flow is implemented, offline-tested, Android-built and boot-smoked;
+  owner-run live Lightning flow and full orientation/control acceptance remain pending
 - Plan revision: 2 with approved P2-T1 D2/D3-R2 and P2-T2 offline addenda
 - Owner: shared integration allocation pending contract freeze approval
 - Goal: run a synthetic/non-child JPG/PNG through backend admission and the owner-triggered Lightning
@@ -15,6 +15,18 @@
 - Pilot: 20 golden activities for full device/integration flow; 100 MVP activities for offline catalog/reference validation.
 
 ## Current state
+
+The 2026-09-23 staged story-intro increment is implemented under the approved
+`PIXI_STORY_INTRO_TOPIC_DIRECTIONS_FLOW_PLAN.md`. Backend understanding now returns at most three
+source-linked Vietnamese topic directions and retains the one-changed-direction re-query boundary.
+Gate B remains the immutable ExperienceSpec approval. After approval, the mobile app opens a
+dedicated landscape Pixi intro with timeline controls and synchronized captions, then an explicit
+landscape main-video placeholder, restores portrait, creates the existing handoff and opens the
+outdoor activity. The renderer uses the original source image only and emits four bounded beats;
+no video or provider generation was added. Android x86_64 build/install and initial portrait boot
+passed. Evidence is recorded in
+`evidence/notes/PIXI_STORY_INTRO_TOPIC_DIRECTIONS_IMPLEMENTATION_20260923.md`; the complete live
+flow remains an owner-run synthetic-image check because Codex did not spend Lightning credits.
 
 P2 research round 1 is complete as documentation only (2026-09-09). Working research
 and handoff notes remain local-only; publish selected completed P2 records after
@@ -335,3 +347,20 @@ P2-T5, mobile, Gate A UI, P1 eligibility, P3/P4 and shared integration remain se
   TypeScript source-only renderer launch test. The focused and full backend suites, mobile and
   renderer TypeScript/tests, Ruff, mypy, architecture and security checks pass. The only harness
   finding remains the unrelated user-owned FEAT-026 directory structure.
+
+## Pixi story-intro and staged media flow — 2026-09-23
+
+- Status: `APPROVED — IMPLEMENTATION AUTHORIZED`; implementation is in progress.
+- Owner emulator review confirms the current Pixi surface is not an effective animation: the live
+  path supplies one whole-image reveal, the player has no seek/pause/progress controls, and the
+  WebView is embedded at the end of the portrait activity-detail page. Topic choices also remain
+  too close to raw claims and can collapse unknown labels into generic Vietnamese text.
+- The owner confirmed the target order: Gate B keeps its exact ExperienceSpec approval meaning,
+  followed by a landscape Pixi presentation-style opening from the original drawing, a landscape
+  placeholder for the future main video, portrait outdoor activity instructions, then feedback.
+- The owner also confirmed at most three complete grounded Vietnamese topic directions; selecting
+  a different direction uses the existing bounded one-time re-query. Loading must communicate real
+  stages so model/renderer work is not mistaken for a frozen app.
+- Detailed scope, contracts, flow, acceptance criteria, risk controls and verification are in
+  `plan/PIXI_STORY_INTRO_TOPIC_DIRECTIONS_FLOW_PLAN.md`. No runtime code may change until the owner
+  approves that exact plan and its hash is recorded.

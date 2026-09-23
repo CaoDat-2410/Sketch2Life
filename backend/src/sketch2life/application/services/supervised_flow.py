@@ -1034,6 +1034,12 @@ class SupervisedFlowService:
                                     "source_sha256": source_sha256,
                                 },
                                 "extraction_status": "READY",
+                                "initial_transform": {
+                                    "position": {"x": 0.5, "y": 0.5},
+                                    "scale": 0.92,
+                                    "rotation_degrees": -1.5,
+                                    "opacity": 1,
+                                },
                             }
                         ],
                         "motions": [
@@ -1043,7 +1049,31 @@ class SupervisedFlowService:
                                 "kind": "DRAW_REVEAL",
                                 "target_id": "original-art",
                                 "duration_seconds": 1.6,
-                            }
+                            },
+                            {
+                                "id": "original-art-focus",
+                                "scene_id": "story-focus",
+                                "kind": "SCALE",
+                                "target_id": "original-art",
+                                "duration_seconds": 2.2,
+                                "scale": 1.08,
+                            },
+                            {
+                                "id": "original-art-drift",
+                                "scene_id": "story-motion",
+                                "kind": "MOVE_TO",
+                                "target_id": "original-art",
+                                "duration_seconds": 2.4,
+                                "to": {"x": 0.53, "y": 0.48},
+                            },
+                            {
+                                "id": "original-art-settle",
+                                "scene_id": "story-settle",
+                                "kind": "ROTATE",
+                                "target_id": "original-art",
+                                "duration_seconds": 1.5,
+                                "rotation_degrees": 1.5,
+                            },
                         ],
                     },
                     "original_art_preserved": True,
@@ -1094,7 +1124,45 @@ class SupervisedFlowService:
                 payload={
                     "renderer_launch": launch.model_dump(
                         mode="json", by_alias=True, exclude_none=True
-                    )
+                    ),
+                    "pixi_intro_storyboard": {
+                        "contract_name": "PixiIntroStoryboardV1",
+                        "contract_version": "1.0",
+                        "session_id": command.session_id,
+                        "experience_spec_ref": spec_ref.model_dump(mode="json"),
+                        "source_artifact_ref": source_artifact_ref,
+                        "beats": [
+                            {
+                                "beat_id": "drawing-arrives",
+                                "start_seconds": 0.0,
+                                "end_seconds": 1.6,
+                                "caption_vi": "Bức vẽ của con đang bước vào câu chuyện…",
+                            },
+                            {
+                                "beat_id": "subject-focus",
+                                "start_seconds": 1.6,
+                                "end_seconds": 3.8,
+                                "caption_vi": (
+                                    "Cùng nhìn gần hơn: "
+                                    f"{display_label_vi(spec.anchor_set.primary_anchor.normalized_label)}."
+                                ),
+                            },
+                            {
+                                "beat_id": "story-motion",
+                                "start_seconds": 3.8,
+                                "end_seconds": 6.2,
+                                "caption_vi": spec.bridge_sentence.sentence_vi,
+                            },
+                            {
+                                "beat_id": "video-handoff",
+                                "start_seconds": 6.2,
+                                "end_seconds": 7.7,
+                                "caption_vi": "Sẵn sàng bước vào câu chuyện chính!",
+                            },
+                        ],
+                        "original_art_preserved": True,
+                        "video_placeholder_only": True,
+                    },
                 },
             )
             self._remember(scope, command.idempotency_key, fingerprint, result)

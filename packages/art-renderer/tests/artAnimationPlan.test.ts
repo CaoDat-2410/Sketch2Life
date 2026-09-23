@@ -5,6 +5,8 @@ import {
   ArtAnimationPlanEnvelopeSchema,
   PixiArtAssetManifestSchema,
   RendererLoadCommandSchema,
+  RendererControlCommandSchema,
+  RendererPlaybackStateEnvelopeSchema,
   MAX_RENDERER_MESSAGE_BYTES,
   ArtPlanValidationError,
   buildPreservingFallbackPlan,
@@ -123,6 +125,33 @@ describe('art animation fixture protocol', () => {
     expect(() => parseRendererMessage(' '.repeat(MAX_RENDERER_MESSAGE_BYTES + 1))).toThrow(
       'RENDERER_MESSAGE_TOO_LARGE',
     );
+  });
+
+  it('validates bounded playback controls and progress for the landscape intro', () => {
+    expect(RendererControlCommandSchema.parse({
+      protocolVersion: '1',
+      rendererInstanceId: 'renderer-1',
+      sequence: 1,
+      type: 'PLAYBACK_CONTROL',
+      action: 'SEEK_RELATIVE_SECONDS',
+      seconds: -2,
+    }).seconds).toBe(-2);
+    expect(() => RendererControlCommandSchema.parse({
+      protocolVersion: '1',
+      rendererInstanceId: 'renderer-1',
+      sequence: 2,
+      type: 'PLAYBACK_CONTROL',
+      action: 'SEEK_TO_SECONDS',
+    })).toThrow();
+    expect(RendererPlaybackStateEnvelopeSchema.parse({
+      protocolVersion: '1',
+      rendererInstanceId: 'renderer-1',
+      sequence: 3,
+      type: 'PLAYBACK_STATE',
+      positionSeconds: 3.2,
+      durationSeconds: 7.7,
+      state: 'PLAYING',
+    }).state).toBe('PLAYING');
   });
 
   it('parses the source-only Python launch shape when optional values are omitted', () => {

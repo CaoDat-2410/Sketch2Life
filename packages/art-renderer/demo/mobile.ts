@@ -4,6 +4,7 @@ import {
   ART_RENDERER_PROTOCOL_VERSION,
   createBrowserArtPlayer,
   MAX_RENDERER_MESSAGE_BYTES,
+  RendererControlCommandSchema,
   RendererLoadCommandSchema,
   type PlaybackEvent,
   type RendererLoadCommand,
@@ -39,6 +40,7 @@ let launch: RendererLoadCommand | null = null;
 let sourceBlob: Blob | null = null;
 let eventSequence = 0;
 let lastLoadMessage: string | null = null;
+let lastProgressPostAt = 0;
 
 function post(value: unknown): void {
   const serialized = JSON.stringify(value);
@@ -102,6 +104,21 @@ const player = createBrowserArtPlayer({
       event,
     });
   },
+  onProgress: (progress) => {
+    const now = performance.now();
+    if (progress.state === 'PLAYING' && now - lastProgressPostAt < 100) return;
+    lastProgressPostAt = now;
+    eventSequence += 1;
+    post({
+      protocolVersion: ART_RENDERER_PROTOCOL_VERSION,
+      rendererInstanceId,
+      sequence: eventSequence,
+      type: 'PLAYBACK_STATE',
+      positionSeconds: progress.positionSeconds,
+      durationSeconds: progress.durationSeconds,
+      state: progress.state,
+    });
+  },
 });
 
 async function loadLaunch(serialized: string): Promise<void> {
@@ -145,8 +162,9 @@ async function loadLaunch(serialized: string): Promise<void> {
     await player.load(command.animationPlan.plan);
     launch = command;
     playButton.disabled = false;
-    playButton.textContent = 'Chạy reveal toàn ảnh';
-    status.textContent = 'Pixi đã nạp ảnh gốc. Chạm để chạy chuyển động; không có asset thay thế.';
+    playButton.textContent = 'Tạm dừng / tiếp tục';
+    status.textContent = 'Pixi đã nạp ảnh gốc và bắt đầu câu chuyện.';
+    player.play();
   } catch {
     sourceBlob = null;
     status.textContent = 'Không nạp được ảnh gốc. Hãy về app và mở Pixi lại thủ công; không tự retry.';
@@ -156,7 +174,23 @@ async function loadLaunch(serialized: string): Promise<void> {
 
 function receiveNativeMessage(event: MessageEvent): void {
   const serialized = typeof event.data === 'string' ? event.data : '';
-  if (serialized) void loadLaunch(serialized);
+  if (!serialized || new TextEncoder().encode(serialized).byteLength > MAX_RENDERER_MESSAGE_BYTES) return;
+  try {
+    const control = RendererControlCommandSchema.safeParse(JSON.parse(serialized));
+    if (control.success && control.data.rendererInstanceId === rendererInstanceId) {
+      switch (control.data.action) {
+        case 'PLAY': player.play(); break;
+        case 'PAUSE': player.pause(); break;
+        case 'REPLAY': player.replay(); break;
+        case 'SEEK_RELATIVE_SECONDS': player.seekRelative(control.data.seconds ?? 0); break;
+        case 'SEEK_TO_SECONDS': player.seekTo(control.data.seconds ?? 0); break;
+      }
+      return;
+    }
+  } catch {
+    return;
+  }
+  void loadLaunch(serialized);
 }
 
 window.addEventListener('message', receiveNativeMessage);
@@ -164,7 +198,10 @@ document.addEventListener('message', receiveNativeMessage as EventListener);
 playButton.addEventListener('click', () => {
   if (launch === null) return;
   try {
-    player.play();
+    const state = player.getPlaybackState();
+    if (state.state === 'PLAYING') player.pause();
+    else if (state.state === 'COMPLETED') player.replay();
+    else player.play();
   } catch {
     status.textContent = 'Pixi không phát được chuyển động; ảnh gốc vẫn còn trong app.';
   }

@@ -100,6 +100,34 @@ class RankedClaim:
     confidence: float
 
 
+@dataclass(frozen=True, slots=True)
+class TopicDirection:
+    direction_id: str
+    priority: int
+    title_vi: str
+    summary_vi: str
+    primary_claim_id: str
+    source_claim_ids: tuple[str, ...]
+    confidence_band: Literal["HIGH", "MEDIUM", "LOW"]
+    image_covered: bool
+    narration_covered: bool
+    requires_requery: bool
+
+    def as_payload(self) -> dict[str, object]:
+        return {
+            "direction_id": self.direction_id,
+            "priority": self.priority,
+            "title_vi": self.title_vi,
+            "summary_vi": self.summary_vi,
+            "primary_claim_id": self.primary_claim_id,
+            "source_claim_ids": list(self.source_claim_ids),
+            "confidence_band": self.confidence_band,
+            "image_covered": self.image_covered,
+            "narration_covered": self.narration_covered,
+            "requires_requery": self.requires_requery,
+        }
+
+
 def _key(value: str) -> str:
     return re.sub(r"\s+", " ", value.casefold().strip())
 
@@ -215,6 +243,86 @@ def compose_topic_vi(claims: Iterable[RankedClaim]) -> str:
     return f"Cùng khám phá {primary.display_label}!"
 
 
+def build_topic_directions(
+    claims: Iterable[RankedClaim], *, narration_available: bool = False
+) -> tuple[TopicDirection, ...]:
+    """Build at most three complete, distinct and source-linked topic directions."""
+
+    ranked = tuple(
+        claim
+        for claim in rank_claims(claims)
+        if _key(claim.display_label) not in {"", "chi tiết trong tranh"}
+    )
+    if not ranked:
+        return ()
+    subjects = tuple(claim for claim in ranked if claim.kind == "subject")
+    actions = tuple(claim for claim in ranked if claim.kind == "action")
+    contexts = tuple(claim for claim in ranked if claim.kind == "story")
+    primaries = subjects or actions or contexts
+    candidates: list[tuple[str, RankedClaim, tuple[RankedClaim, ...]]] = []
+
+    for primary in primaries[:3]:
+        supporting: list[RankedClaim] = [primary]
+        action = next(
+            (item for item in actions if item.observation_id != primary.observation_id), None
+        )
+        context = next(
+            (item for item in contexts if item.observation_id != primary.observation_id), None
+        )
+        if action is not None:
+            supporting.append(action)
+        if context is not None:
+            supporting.append(context)
+        title = compose_topic_vi(tuple(supporting))
+        candidates.append((title, primary, tuple(supporting)))
+
+    if len(candidates) < 3 and subjects:
+        primary = subjects[0]
+        for context in contexts[1:3]:
+            context_supporting = (primary, context)
+            candidates.append(
+                (compose_topic_vi(context_supporting), primary, context_supporting)
+            )
+
+    directions: list[TopicDirection] = []
+    seen_titles: set[str] = set()
+    for title, primary, supporting_claims in candidates:
+        normalized_title = _key(title)
+        if normalized_title in seen_titles:
+            continue
+        seen_titles.add(normalized_title)
+        confidence = sum(item.confidence for item in supporting_claims) / len(
+            supporting_claims
+        )
+        band: Literal["HIGH", "MEDIUM", "LOW"] = (
+            "HIGH" if confidence >= 0.8 else "MEDIUM" if confidence >= 0.55 else "LOW"
+        )
+        priority = len(directions) + 1
+        directions.append(
+            TopicDirection(
+                direction_id=f"topic-direction-{priority}",
+                priority=priority,
+                title_vi=title,
+                summary_vi=(
+                    "Kết hợp những gì nhìn thấy trong tranh và lời kể của con."
+                    if narration_available
+                    else "Được ghép từ những chi tiết rõ nhất trong bức tranh."
+                ),
+                primary_claim_id=primary.observation_id,
+                source_claim_ids=tuple(
+                    dict.fromkeys(item.observation_id for item in supporting_claims)
+                ),
+                confidence_band=band,
+                image_covered=True,
+                narration_covered=narration_available,
+                requires_requery=priority > 1,
+            )
+        )
+        if len(directions) == 3:
+            break
+    return tuple(directions)
+
+
 def enrich_anchor_set(
     *,
     raw: RawUnderstandingSuccessV1,
@@ -261,6 +369,8 @@ def normalized_display_label(label: str) -> str:
 
 __all__ = [
     "RankedClaim",
+    "TopicDirection",
+    "build_topic_directions",
     "claims_from_raw",
     "compose_topic_vi",
     "display_label_vi",

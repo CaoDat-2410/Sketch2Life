@@ -41,5 +41,25 @@ if (!flow2.includes('Dành cho người lớn') || !flow2.includes('Thử lại'
 if (!shell.includes('Về bước ảnh') || !shell.includes('Thử lại')) {
   throw new Error('Global workflow modal must expose bounded recovery actions.');
 }
+if (
+  !flow2.includes("nav('pixi_intro')")
+  || !flow2.includes("nav('video_placeholder')")
+  || !flow2.includes("nav('activity_detail')")
+) {
+  throw new Error('Gate B, Pixi intro, video placeholder and outdoor activity order must remain explicit.');
+}
+if (
+  !flow2.includes('OrientationLock.LANDSCAPE')
+  || !flow2.includes('OrientationLock.PORTRAIT_UP')
+  || !flow2.includes('RendererControlCommandSchema')
+) {
+  throw new Error('Landscape lifecycle and bounded Pixi playback controls must remain wired.');
+}
+if (!flow2.includes('Video chính sẽ được thêm ở phiên bản sau')) {
+  throw new Error('The future-video surface must remain an honest placeholder.');
+}
+if (!flow2.includes('Đang tạo các hướng câu chuyện')) {
+  throw new Error('Understanding must expose stage-aware loading instead of a frozen percentage.');
+}
 
 console.log('UI_COPY_AND_RECOVERY_VALID');

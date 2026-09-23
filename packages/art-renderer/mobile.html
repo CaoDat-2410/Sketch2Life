@@ -6,17 +6,20 @@
     <meta name="color-scheme" content="light" />
     <title>Sketch2Life — Pixi original-art reveal</title>
     <style>
-      :root { color-scheme: light; font-family: system-ui, sans-serif; background: #f6f8f3; color: #234134; }
+      :root { color-scheme: light; font-family: system-ui, sans-serif; background: #101827; color: #234134; }
       * { box-sizing: border-box; }
-      html, body { margin: 0; min-height: 100%; }
-      body { padding: 12px; }
-      main { display: grid; gap: 10px; }
-      #stage { width: 100%; aspect-ratio: 4 / 3; overflow: hidden; border: 1px solid #dbe6da; border-radius: 16px; background: #fffef9; }
-      #stage canvas { display: block; width: 100% !important; height: 100% !important; }
-      #status { min-height: 2.4em; color: #607568; font-size: 12px; line-height: 1.4; }
-      button { min-height: 42px; border: 0; border-radius: 13px; background: #175d4b; color: white; font: 800 13px system-ui, sans-serif; }
-      button:disabled { opacity: .45; }
-      small { color: #77877c; font-size: 10px; line-height: 1.45; }
+      html, body, main { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+      body { background: radial-gradient(circle at 50% 45%, #253753 0%, #101827 74%); }
+      main { display: flex; align-items: center; justify-content: center; }
+      #stage { position: relative; width: min(100vw, calc(100vh * 4 / 3)); height: min(100vh, calc(100vw * 3 / 4)); overflow: hidden; border: 1px solid rgba(219,230,218,.72); border-radius: 20px; background: radial-gradient(circle at 50% 45%, #fffef9 0%, #eef7ff 100%); box-shadow: 0 18px 50px rgba(0,0,0,.32); }
+      #stage canvas { position: relative; z-index: 1; display: block; width: 100% !important; height: 100% !important; }
+      #stage::before, #stage::after { content: ''; position: absolute; z-index: 2; inset: 7%; pointer-events: none; border-radius: 26px; opacity: .75; }
+      #stage::before { background: radial-gradient(circle at 8% 24%, #fde68a 0 5px, transparent 6px), radial-gradient(circle at 92% 20%, #93c5fd 0 6px, transparent 7px), radial-gradient(circle at 86% 82%, #f9a8d4 0 5px, transparent 6px), radial-gradient(circle at 12% 78%, #86efac 0 6px, transparent 7px); animation: story-sparkle 3.6s ease-in-out infinite alternate; }
+      #stage::after { border: 2px solid rgba(96,165,250,.4); animation: story-focus 4.2s ease-in-out infinite; }
+      @keyframes story-sparkle { from { transform: translate3d(-5px, 3px, 0) scale(.98); opacity: .48; } to { transform: translate3d(7px, -4px, 0) scale(1.03); opacity: .9; } }
+      @keyframes story-focus { 0%, 100% { transform: scale(.96); opacity: .2; } 50% { transform: scale(1.02); opacity: .65; } }
+      @media (prefers-reduced-motion: reduce) { #stage::before, #stage::after { animation: none; } }
+      #status, button, small { display: none; }
     </style>
   </head>
   <body>
@@ -24,7 +27,7 @@
       <div id="status" role="status" aria-live="polite">Khởi động PixiJS…</div>
       <div id="stage" aria-label="Bức vẽ gốc được giữ nguyên"></div>
       <button id="play" type="button" disabled>Đang kết nối renderer…</button>
-      <small>Chỉ hiển thị ảnh gốc; chưa có sprite bổ sung nào được duyệt. Chuyển động là reveal toàn ảnh, không sinh ảnh/video.</small>
+      <small>Ảnh gốc được giữ nguyên trong một intro chuyển động ngắn; không sinh ảnh hay video thay thế.</small>
     </main>
     <script type="module" src="./demo/mobile.ts"></script>
   </body>

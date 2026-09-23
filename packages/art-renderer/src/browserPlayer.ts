@@ -12,11 +12,23 @@ export interface BrowserArtPlayerOptions {
   readonly app: Application;
   readonly onEvent?: (event: PlaybackEvent) => void;
   readonly loadTexture?: (uri: string) => Promise<Texture>;
+  readonly onProgress?: (state: BrowserPlaybackState) => void;
+}
+
+export interface BrowserPlaybackState {
+  readonly positionSeconds: number;
+  readonly durationSeconds: number;
+  readonly state: 'READY' | 'PLAYING' | 'PAUSED' | 'COMPLETED';
 }
 
 export interface BrowserArtPlayer {
   load(input: unknown): Promise<void>;
   play(): void;
+  pause(): void;
+  replay(): void;
+  seekTo(seconds: number): void;
+  seekRelative(seconds: number): void;
+  getPlaybackState(): BrowserPlaybackState;
   destroy(): void;
   getLastBenchmark(): RendererBenchmarkSample | null;
 }
@@ -46,12 +58,46 @@ export function createBrowserArtPlayer(options: BrowserArtPlayerOptions): Browse
   let loaded: LoadedPlan | null = null;
   let timeline: gsap.core.Timeline | null = null;
   let lastBenchmark: RendererBenchmarkSample | null = null;
+  let frameCounter: (() => void) | null = null;
+  let playbackStartedAt = 0;
+  let framesRendered = 0;
+  let playbackState: BrowserPlaybackState = {
+    positionSeconds: 0,
+    durationSeconds: 0,
+    state: 'READY',
+  };
 
   const emit = (event: PlaybackEvent): void => options.onEvent?.(event);
+  const publishProgress = (state: BrowserPlaybackState): void => {
+    playbackState = state;
+    options.onProgress?.(state);
+  };
+  const clampTime = (seconds: number): number => Math.min(
+    Math.max(Number.isFinite(seconds) ? seconds : 0, 0),
+    timeline?.duration() ?? playbackState.durationSeconds,
+  );
+  const stopFrameCounter = (): void => {
+    if (frameCounter === null) return;
+    options.app.ticker.remove(frameCounter);
+    frameCounter = null;
+  };
+  const startFrameCounter = (reset = false): void => {
+    stopFrameCounter();
+    if (reset) {
+      playbackStartedAt = performance.now();
+      framesRendered = 0;
+    }
+    frameCounter = () => {
+      framesRendered += 1;
+    };
+    options.app.ticker.add(frameCounter);
+  };
 
   return {
     async load(input: unknown): Promise<void> {
+      stopFrameCounter();
       timeline?.kill();
+      timeline = null;
       scene.removeChildren();
       lastBenchmark = null;
 
@@ -88,6 +134,7 @@ export function createBrowserArtPlayer(options: BrowserArtPlayerOptions): Browse
         sprites: new Map(spriteEntries),
         loadedAt: startedAt,
       };
+      publishProgress({positionSeconds: 0, durationSeconds: 0, state: 'READY'});
       lastBenchmark = createRendererBenchmarkSample(plan.planId, startedAt, performance.now(), 0);
     },
 
@@ -96,19 +143,32 @@ export function createBrowserArtPlayer(options: BrowserArtPlayerOptions): Browse
         throw new Error('Load an art animation plan before playback.');
       }
 
-      timeline?.kill();
-      const playbackStartedAt = performance.now();
-      let framesRendered = 0;
-      const countFrame = (): void => {
-        framesRendered += 1;
-      };
-      options.app.ticker.add(countFrame);
+      if (timeline !== null) {
+        startFrameCounter();
+        timeline.play();
+        publishProgress({
+          positionSeconds: timeline.time(),
+          durationSeconds: timeline.duration(),
+          state: 'PLAYING',
+        });
+        return;
+      }
+
+      startFrameCounter(true);
 
       const compiledMotions = compileMotionPlan(loaded.plan);
       timeline = gsap.timeline({
         paused: true,
+        onUpdate: () => {
+          if (timeline === null) return;
+          publishProgress({
+            positionSeconds: timeline.time(),
+            durationSeconds: timeline.duration(),
+            state: timeline.paused() ? 'PAUSED' : 'PLAYING',
+          });
+        },
         onComplete: () => {
-          options.app.ticker.remove(countFrame);
+          stopFrameCounter();
           lastBenchmark = createRendererBenchmarkSample(
             loaded?.plan.planId ?? 'unknown-plan',
             playbackStartedAt,
@@ -116,13 +176,19 @@ export function createBrowserArtPlayer(options: BrowserArtPlayerOptions): Browse
             framesRendered,
           );
           emit({type: 'PLAYBACK_COMPLETED', planId: loaded?.plan.planId ?? 'unknown-plan'});
+          const durationSeconds = timeline?.duration() ?? playbackState.durationSeconds;
+          publishProgress({
+            positionSeconds: durationSeconds,
+            durationSeconds,
+            state: 'COMPLETED',
+          });
         },
       });
 
       for (const motion of compiledMotions) {
         const sprite = loaded.sprites.get(motion.targetId);
         if (sprite === undefined) {
-          options.app.ticker.remove(countFrame);
+          stopFrameCounter();
           emit({
             type: 'PLAYBACK_FAILED',
             planId: loaded.plan.planId,
@@ -164,13 +230,60 @@ export function createBrowserArtPlayer(options: BrowserArtPlayerOptions): Browse
       }
 
       emit({type: 'PLAYBACK_STARTED', planId: loaded.plan.planId});
+      publishProgress({
+        positionSeconds: 0,
+        durationSeconds: timeline.duration(),
+        state: 'PLAYING',
+      });
       timeline.play(0);
     },
 
+    pause(): void {
+      if (timeline === null) return;
+      timeline.pause();
+      stopFrameCounter();
+      publishProgress({
+        positionSeconds: timeline.time(),
+        durationSeconds: timeline.duration(),
+        state: 'PAUSED',
+      });
+    },
+
+    replay(): void {
+      if (timeline === null) {
+        throw new Error('Play an art animation plan before replay.');
+      }
+      emit({type: 'PLAYBACK_STARTED', planId: loaded?.plan.planId ?? 'unknown-plan'});
+      startFrameCounter(true);
+      publishProgress({positionSeconds: 0, durationSeconds: timeline.duration(), state: 'PLAYING'});
+      timeline.restart();
+    },
+
+    seekTo(seconds: number): void {
+      if (timeline === null) return;
+      const next = clampTime(seconds);
+      timeline.time(next, false);
+      publishProgress({...playbackState, positionSeconds: next, durationSeconds: timeline.duration()});
+    },
+
+    seekRelative(seconds: number): void {
+      if (timeline === null) return;
+      const next = clampTime(timeline.time() + seconds);
+      timeline.time(next, false);
+      publishProgress({...playbackState, positionSeconds: next, durationSeconds: timeline.duration()});
+    },
+
+    getPlaybackState(): BrowserPlaybackState {
+      return playbackState;
+    },
+
     destroy(): void {
+      stopFrameCounter();
       timeline?.kill();
+      timeline = null;
       scene.destroy({children: true});
       loaded = null;
+      playbackState = {positionSeconds: 0, durationSeconds: 0, state: 'READY'};
     },
 
     getLastBenchmark(): RendererBenchmarkSample | null {

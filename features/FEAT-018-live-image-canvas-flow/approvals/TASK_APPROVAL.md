@@ -1,5 +1,24 @@
 # Task approval
 
+## Pixi story intro, topic directions and staged activity flow — 2026-09-23
+
+- Approver: Project owner direct instruction in the current conversation (`duyệt`).
+- Approved artifact: `plan/PIXI_STORY_INTRO_TOPIC_DIRECTIONS_FLOW_PLAN.md`.
+- Approved plan SHA-256: `52b31594d4e177b6cd5c1c3a71dce996a0a92b8b623f0b038c3e33f9a964c262`.
+- Approved at: 2026-09-23 13:43:40 Asia/Ho_Chi_Minh (2026-09-23 06:43:40 UTC).
+- Approved flow: required drawing and optional narration; staged understanding; at most three
+  grounded Vietnamese topic directions; Gate A; strict-fit activity and exact Gate B; landscape
+  source-preserving Pixi presentation intro with captions and timeline controls; honest landscape
+  main-video placeholder; portrait outdoor activity; session feedback.
+- Approved implementation scope: additive topic-direction projection and bounded changed-direction
+  re-query; deterministic source-preserving multi-beat renderer plan; additive strict renderer
+  play/pause/replay/seek/progress bridge messages; mobile screen split and orientation lifecycle;
+  stage-aware loading, friendly recovery, focused/full tests and feature-local evidence.
+- Boundaries: Gate A/Gate B and strict P1 identity remain unchanged; no real video or video provider,
+  generated replacement artwork, unreviewed supplemental visual asset, auth implementation,
+  durable persistence, credential in mobile/Git, real child data, unrelated FEAT-026 change or
+  Codex-triggered Lightning request.
+
 ## Vision, topic, V2 catalog, Pixi and child UX repair — 2026-09-22
 
 - Approver: Project owner direct instruction in the current conversation (`ok, implement`).

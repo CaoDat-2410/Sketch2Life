@@ -13,7 +13,9 @@ export {
   MotionSchema,
   PlaybackEventSchema,
   PixiArtAssetManifestSchema,
+  RendererControlCommandSchema,
   RendererLoadCommandSchema,
+  RendererPlaybackStateEnvelopeSchema,
   RendererPlaybackEventEnvelopeSchema,
   RendererBootstrapSchema,
 } from './contracts';
@@ -28,8 +30,10 @@ export type {
   PlaybackEvent,
   PixiArtAssetManifest,
   RendererBootstrap,
+  RendererControlCommand,
   RendererLoadCommand,
   RendererPlaybackEventEnvelope,
+  RendererPlaybackStateEnvelope,
   StagePoint,
   Transform,
 } from './contracts';

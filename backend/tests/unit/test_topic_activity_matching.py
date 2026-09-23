@@ -10,6 +10,7 @@ from sketch2life.application.services.semantic_activity_resolver import (
 )
 from sketch2life.application.services.topic_semantics import (
     RankedClaim,
+    build_topic_directions,
     compose_topic_vi,
     display_label_vi,
     rank_claims,
@@ -105,6 +106,18 @@ def test_bird_claims_are_localized_deduplicated_and_compose_one_vietnamese_topic
         "bird on branch",
     }.intersection({claim.display_label for claim in claims})
     assert compose_topic_vi(claims) == "Cùng khám phá con chim đậu trên cành cây!"
+
+    directions = build_topic_directions(claims, narration_available=True)
+    assert 1 <= len(directions) <= 3
+    assert directions[0].title_vi == "Cùng khám phá con chim đậu trên cành cây!"
+    assert directions[0].source_claim_ids == (
+        "subject-bird",
+        "action-perching",
+        "story-bird",
+    )
+    assert directions[0].narration_covered is True
+    assert all("chi tiết trong tranh" not in item.title_vi for item in directions)
+    assert len({item.title_vi for item in directions}) == len(directions)
 
 
 def test_v2_bird_shortlist_is_bounded_and_never_uses_unrelated_transfer() -> None:

@@ -39,6 +39,10 @@ from sketch2life.application.services.raw_understanding_mapper import (
     RawUnderstandingMappingError,
     map_vision_result_to_raw,
 )
+from sketch2life.application.services.topic_semantics import (
+    build_topic_directions,
+    claims_from_raw,
+)
 from sketch2life.contracts.schemas.asr import (
     AsrAudioReferenceV1,
     AsrFailureV1,
@@ -850,16 +854,26 @@ class LiveImageDemoService:
                 else None
             )
             output_payload: dict[str, object]
-            if succeeded and raw_result is not None:
+            if succeeded and isinstance(raw_result, RawUnderstandingSuccessV1):
+                topic_directions = [
+                    item.as_payload()
+                    for item in build_topic_directions(
+                        claims_from_raw(raw_result),
+                        narration_available=not isinstance(narration, NarrationNoneV1),
+                    )
+                ]
                 output_payload = {
                     **raw_result.model_dump(mode="json"),
                     "narration": narration_payload,
                     "understanding_progress": progress,
+                    "topic_directions": topic_directions,
                 }
             else:
+                previous_directions = workflow.values.get("topic_directions", [])
                 output_payload = {
                     "narration": narration_payload,
                     "understanding_progress": progress,
+                    "topic_directions": previous_directions if is_requery else [],
                     "reason_codes": list(reason_codes),
                 }
                 if raw_result is not None:
@@ -876,6 +890,7 @@ class LiveImageDemoService:
                     "understanding_direction_signature": direction_signature,
                     "direction_revision": direction_revision,
                     "understanding_progress": progress,
+                    "topic_directions": output_payload.get("topic_directions", []),
                     "gate_a_confirmation": None,
                     "p1_context": None,
                     "experience_spec": None,
@@ -1203,6 +1218,9 @@ def _stored_understanding_payload(values: dict[str, object]) -> dict[str, object
     progress = values.get("understanding_progress")
     if isinstance(progress, dict):
         payload["understanding_progress"] = progress
+    directions = values.get("topic_directions")
+    if isinstance(directions, list):
+        payload["topic_directions"] = directions
     return payload
 
 

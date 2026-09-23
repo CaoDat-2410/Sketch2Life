@@ -12,6 +12,9 @@ export type ScreenId =
   | 'story_preview'
   | 'video_player'
   | 'activity_recommend'
+  | 'experience_review'
+  | 'pixi_intro'
+  | 'video_placeholder'
   | 'activity_detail'
   // Workflow Step 8 (Image 3)
   | 'feedback';

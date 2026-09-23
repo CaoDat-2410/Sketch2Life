@@ -51,6 +51,17 @@ export interface AnalysisClaim {
   kind: 'subject' | 'action' | 'story';
 }
 
+export interface TopicDirection {
+  direction_id: string;
+  priority: number;
+  title_vi: string;
+  summary_vi: string;
+  primary_claim_id: string;
+  source_claim_ids: string[];
+  confidence_band: 'HIGH' | 'MEDIUM' | 'LOW';
+  requires_requery: boolean;
+}
+
 interface AppContextType {
   // Navigation
   currentScreen: ScreenId;
@@ -102,6 +113,9 @@ interface AppContextType {
   sceneData: SceneUnderstandingResponse;
   runAiSimulation: () => Promise<boolean>;
   analysisClaims: AnalysisClaim[];
+  topicDirections: TopicDirection[];
+  selectedTopicDirectionId: string | null;
+  selectTopicDirection: (directionId: string) => void;
   selectedClaimIds: string[];
   primaryClaimId: string | null;
   toggleAnalysisClaim: (claimId: string) => void;
@@ -121,8 +135,10 @@ interface AppContextType {
   selectBackendActivity: (activityId: string) => void;
   prepareActivityWorkflow: () => Promise<boolean>;
   approveActivity: () => Promise<boolean>;
+  prepareRendererIntro: () => Promise<boolean>;
   completeActivityHandoff: () => Promise<boolean>;
   rendererLaunch: Record<string, unknown> | null;
+  pixiIntroStoryboard: Record<string, unknown> | null;
   materialsChecklist: Record<string, boolean>;
   toggleMaterialCheck: (id: string) => void;
   stepsChecklist: Record<number, boolean>;
@@ -256,6 +272,47 @@ function readAnalysisClaims(payload: JsonObject): AnalysisClaim[] {
     seen.add(key);
     return true;
   });
+}
+
+function readTopicDirections(payload: JsonObject, claims: AnalysisClaim[]): TopicDirection[] {
+  const parsed = objectArray(payload.topic_directions).flatMap((item) => {
+    const sourceClaimIds = Array.isArray(item.source_claim_ids)
+      ? item.source_claim_ids.filter((value): value is string => typeof value === 'string')
+      : [];
+    if (
+      typeof item.direction_id !== 'string'
+      || typeof item.title_vi !== 'string'
+      || typeof item.primary_claim_id !== 'string'
+      || sourceClaimIds.length === 0
+    ) return [];
+    return [{
+      direction_id: item.direction_id,
+      priority: numberValue(item.priority, 1),
+      title_vi: item.title_vi,
+      summary_vi: textValue(item.summary_vi, 'Được ghép từ bức tranh và lời kể của con.'),
+      primary_claim_id: item.primary_claim_id,
+      source_claim_ids: sourceClaimIds,
+      confidence_band: ['HIGH', 'MEDIUM', 'LOW'].includes(textValue(item.confidence_band))
+        ? textValue(item.confidence_band) as TopicDirection['confidence_band']
+        : 'MEDIUM',
+      requires_requery: item.requires_requery === true,
+    }];
+  });
+  if (parsed.length > 0) return parsed.slice(0, 3);
+  if (claims.length === 0) return [];
+  const fallbackTitle = claims[0].label.value === 'chi tiết trong tranh'
+    ? 'Cùng khám phá câu chuyện trong bức tranh!'
+    : topicFromClaims(claims);
+  return [{
+    direction_id: 'topic-direction-1',
+    priority: 1,
+    title_vi: fallbackTitle,
+    summary_vi: 'Được ghép từ những chi tiết rõ nhất trong bức tranh.',
+    primary_claim_id: claims[0].observation_id,
+    source_claim_ids: claims.slice(0, 3).map((claim) => claim.observation_id),
+    confidence_band: claims[0].confidence >= 0.8 ? 'HIGH' : 'MEDIUM',
+    requires_requery: false,
+  }];
 }
 
 function iconForLabel(label: string): string {
@@ -597,6 +654,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [aiProgress, setAiProgress] = useState<number>(0);
   const [sceneData, setSceneData] = useState<SceneUnderstandingResponse>(MOCK_SCENE_UNDERSTANDING);
   const [analysisClaims, setAnalysisClaims] = useState<AnalysisClaim[]>([]);
+  const [topicDirections, setTopicDirections] = useState<TopicDirection[]>([]);
+  const [selectedTopicDirectionId, setSelectedTopicDirectionId] = useState<string | null>(null);
   const [selectedClaimIds, setSelectedClaimIds] = useState<string[]>([]);
   const [primaryClaimId, setPrimaryClaimId] = useState<string | null>(null);
   const [understandingProgress, setUnderstandingProgress] = useState<JsonObject | null>(null);
@@ -623,6 +682,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setIsRecording(false);
       setVoiceDuration(0);
       setAnalysisClaims([]);
+      setTopicDirections([]);
+      setSelectedTopicDirectionId(null);
       setSelectedClaimIds([]);
       setPrimaryClaimId(null);
       setGateAConfirmed(false);
@@ -630,6 +691,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setSelectedBackendActivity(null);
       setActivityRecommendation(null);
       setRendererLaunch(null);
+      setPixiIntroStoryboard(null);
       setAiProgress(0);
       setWorkflowNotice('Phiên khám phá đã sẵn sàng. Hãy chọn bức vẽ của con.');
       navigate('capture');
@@ -743,10 +805,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         );
       }
       setAnalysisClaims(claims);
+      const directions = readTopicDirections(payload, claims);
+      setTopicDirections(directions);
+      setSelectedTopicDirectionId(directions[0]?.direction_id ?? null);
       setUnderstandingProgress(progress);
       setDirectionRequeryUsed(false);
-      setSelectedClaimIds(claims.length > 0 ? [claims[0].observation_id] : []);
-      setPrimaryClaimId(claims[0]?.observation_id ?? null);
+      setSelectedClaimIds(directions[0]?.source_claim_ids ?? (claims.length > 0 ? [claims[0].observation_id] : []));
+      setPrimaryClaimId(directions[0]?.primary_claim_id ?? claims[0]?.observation_id ?? null);
       setSceneData(mapScenePayload(payload, sessionId));
       const narrationPayload = asObject(payload.narration);
       setVoiceTranscript(textValue(narrationPayload.transcript));
@@ -769,15 +834,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setWorkflowBusy('Xác nhận Gate A');
     setWorkflowError(null);
     try {
-      const currentDirection = analysisClaims.find(
-        (claim) => claim.observation_id === primaryClaimId,
+      const selectedDirection = topicDirections.find(
+        (direction) => direction.direction_id === selectedTopicDirectionId,
       );
+      const currentDirection = analysisClaims.find((claim) => claim.observation_id === primaryClaimId);
       const currentProgress = understandingProgress || {};
-      const directionChanged = primaryClaimId !== analysisClaims[0]?.observation_id;
+      const directionChanged = selectedDirection?.requires_requery === true;
       if (!directionRequeryUsed && (directionChanged || correction.trim())) {
         const requery = await workflowApi.requeryUnderstanding(sessionId, sessionVersion, {
           priorRunId: textValue(currentProgress.run_id, 'initial-understanding'),
-          direction: currentDirection?.label.value || correction.trim(),
+          direction: selectedDirection?.title_vi || currentDirection?.label.value || correction.trim(),
           revision: numberValue(currentProgress.direction_revision, 0) + 1,
           correction: correction.trim(),
         });
@@ -787,6 +853,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
         const requeryPayload = asObject(requery.payload);
         const requeryClaims = readAnalysisClaims(requeryPayload);
+        const requeryDirections = readTopicDirections(requeryPayload, requeryClaims);
         const requeryProgress = asObject(requeryPayload.understanding_progress);
         if (requeryClaims.length === 0 || requeryProgress.gate_a_ready !== true) {
           throw workflowFailure(requery, 'Chưa tạo được đề xuất mới đủ căn cứ.');
@@ -795,10 +862,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           (claim) => claim.label.value.toLowerCase() === currentDirection?.label.value.toLowerCase(),
         ) || requeryClaims[0];
         setAnalysisClaims(requeryClaims);
+        setTopicDirections(requeryDirections);
+        setSelectedTopicDirectionId(requeryDirections[0]?.direction_id ?? null);
         setUnderstandingProgress(requeryProgress);
         setDirectionRequeryUsed(true);
-        setSelectedClaimIds([matchingClaim.observation_id]);
-        setPrimaryClaimId(matchingClaim.observation_id);
+        setSelectedClaimIds(requeryDirections[0]?.source_claim_ids ?? [matchingClaim.observation_id]);
+        setPrimaryClaimId(requeryDirections[0]?.primary_claim_id ?? matchingClaim.observation_id);
         setSceneData(mapScenePayload(requeryPayload, sessionId));
         setWorkflowNotice('Đã xem lại theo hướng mới. Mời người lớn xác nhận chủ đề.');
         return false;
@@ -932,14 +1001,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  const prepareRendererIntro = async (): Promise<boolean> => {
+    if (!sessionId || sessionState !== 'EXPERIENCE_READY' || workflowBusy) return false;
+    if (rendererLaunch) return true;
+    setWorkflowBusy('Mở câu chuyện');
+    setWorkflowError(null);
+    try {
+      const rendererResult = await workflowApi.prepareRenderer(sessionId, sessionVersion);
+      if (rendererResult.status !== 'SUCCEEDED') {
+        throw workflowFailure(rendererResult, 'Bức tranh chuyển động chưa sẵn sàng.');
+      }
+      const payload = asObject(rendererResult.payload);
+      setRendererLaunch(asObject(payload.renderer_launch));
+      setPixiIntroStoryboard(asObject(payload.pixi_intro_storyboard));
+      setWorkflowNotice('Bức vẽ đã sẵn sàng bước vào câu chuyện.');
+      return true;
+    } catch (error) {
+      setWorkflowError(friendlyError(error, 'Chưa thể mở bức tranh chuyển động. Hãy thử lại.'));
+      return false;
+    } finally {
+      setWorkflowBusy(null);
+    }
+  };
+
   const completeActivityHandoff = async (): Promise<boolean> => {
     if (!sessionId || sessionState !== 'EXPERIENCE_READY' || workflowBusy) return false;
     setWorkflowBusy('Bàn giao hoạt động');
     setWorkflowError(null);
     try {
-      const rendererResult = await workflowApi.prepareRenderer(sessionId, sessionVersion);
-      if (rendererResult.status !== 'SUCCEEDED') throw workflowFailure(rendererResult, 'Bức tranh chuyển động chưa sẵn sàng.');
-      setRendererLaunch(asObject(rendererResult.payload).renderer_launch as JsonObject);
       const handoffResult = await workflowApi.completeHandoff(sessionId, sessionVersion);
       updateSessionVersion(handoffResult.observed_session_version);
       if (handoffResult.status !== 'SUCCEEDED') throw workflowFailure(handoffResult, 'Chưa thể bàn giao hoạt động.');
@@ -962,6 +1051,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [activityRecommendation, setActivityRecommendation] = useState<P1ContextOptions['recommendation'] | null>(null);
   const [activityRecommendationCards, setActivityRecommendationCards] = useState<ActivityRecommendationCard[]>([]);
   const [rendererLaunch, setRendererLaunch] = useState<JsonObject | null>(null);
+  const [pixiIntroStoryboard, setPixiIntroStoryboard] = useState<JsonObject | null>(null);
 
   // Checklists
   const [materialsChecklist, setMaterialsChecklist] = useState<Record<string, boolean>>({});
@@ -1052,6 +1142,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setSelectedClaimIds((previous) => previous.includes(claimId) ? previous : [...previous, claimId]);
   };
 
+  const selectTopicDirection = (directionId: string) => {
+    const direction = topicDirections.find((item) => item.direction_id === directionId);
+    if (!direction) return;
+    setSelectedTopicDirectionId(directionId);
+    setPrimaryClaimId(direction.primary_claim_id);
+    setSelectedClaimIds(direction.source_claim_ids);
+    setSceneData((previous) => ({...previous, storyTitle: direction.title_vi}));
+  };
+
   const selectBackendActivity = (activityId: string) => {
     const option = contextOptions?.options.find((item) => item.activity_ref.id === activityId) || null;
     setSelectedBackendActivity(option);
@@ -1105,6 +1204,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         sceneData,
         runAiSimulation,
         analysisClaims,
+        topicDirections,
+        selectedTopicDirectionId,
+        selectTopicDirection,
         selectedClaimIds,
         primaryClaimId,
         toggleAnalysisClaim,
@@ -1123,8 +1225,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         selectBackendActivity,
         prepareActivityWorkflow,
         approveActivity,
+        prepareRendererIntro,
         completeActivityHandoff,
         rendererLaunch,
+        pixiIntroStoryboard,
         materialsChecklist,
         toggleMaterialCheck,
         stepsChecklist,

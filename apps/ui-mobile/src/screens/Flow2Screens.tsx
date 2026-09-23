@@ -7,11 +7,11 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  Modal,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
 import * as Crypto from 'expo-crypto';
+import * as ScreenOrientation from 'expo-screen-orientation';
 import WebView, { type WebViewMessageEvent } from 'react-native-webview';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, radius, shadows } from '../theme';
@@ -50,8 +50,10 @@ import {
   ART_RENDERER_PROTOCOL_VERSION,
   MAX_RENDERER_MESSAGE_BYTES,
   RendererBootstrapSchema,
+  RendererControlCommandSchema,
   RendererLoadCommandSchema,
   RendererPlaybackEventEnvelopeSchema,
+  RendererPlaybackStateEnvelopeSchema,
 } from '../../../../packages/art-renderer/src/protocol';
 import { API_BASE_URL } from '../demo/api';
 
@@ -86,6 +88,21 @@ export const AiProcessingScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
     narrationMode,
   } = useAppContext();
   const nav = onNavigate || navigate;
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+
+  useEffect(() => {
+    if (workflowBusy !== 'Phân tích ảnh') return;
+    const timer = setInterval(() => setElapsedSeconds((value) => value + 1), 1000);
+    return () => clearInterval(timer);
+  }, [workflowBusy]);
+
+  const loadingStage = elapsedSeconds < 3
+    ? 'Đang kiểm tra ảnh'
+    : elapsedSeconds < 8
+      ? narrationMode === 'none' ? 'Đang tìm nhân vật và hành động' : 'Đang ghép tranh với lời kể'
+      : elapsedSeconds < 18
+        ? 'Đang tạo các hướng câu chuyện'
+        : 'Bước này cần thêm một chút thời gian';
 
   return (
     <ScrollView contentContainerStyle={styles.screenContainer} showsVerticalScrollIndicator={false}>
@@ -115,15 +132,18 @@ export const AiProcessingScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
         />
       </View>
 
-      {/* Progress Bar */}
+      {/* Stage-aware loading: do not invent a percentage while inference is synchronous. */}
       <View style={styles.progressContainer}>
         <View style={styles.progressLabelRow}>
-          <Text style={styles.progressLabel}>Tiến độ khám phá</Text>
-          <Text style={styles.progressPercent}>{aiProgress}%</Text>
+          <Text style={styles.progressLabel}>{workflowBusy === 'Phân tích ảnh' ? loadingStage : 'Sẵn sàng khám phá'}</Text>
+          <Ionicons name={workflowBusy === 'Phân tích ảnh' ? 'sparkles' : 'checkmark-circle'} size={18} color={colors.blueDeep} />
         </View>
         <View style={styles.progressBarTrack}>
-          <View style={[styles.progressBarFill, { width: `${aiProgress}%` }]} />
+          <View style={[styles.progressBarFill, { width: workflowBusy === 'Phân tích ảnh' ? '68%' : aiProgress >= 100 ? '100%' : '12%' }]} />
         </View>
+        {elapsedSeconds >= 18 && workflowBusy === 'Phân tích ảnh' && (
+          <Text style={styles.pixiSubtitle}>AI vẫn đang làm việc; bạn có thể quay lại nếu không muốn chờ.</Text>
+        )}
       </View>
 
       {/* 4 Pipeline Checklist Items */}
@@ -208,16 +228,18 @@ export const SceneUnderstandingScreen: React.FC<ScreenProps> = ({ onNavigate }) 
     selectedDrawing,
     sceneData,
     analysisClaims,
+    topicDirections,
+    selectedTopicDirectionId,
+    selectTopicDirection,
     selectedClaimIds,
     primaryClaimId,
-    toggleAnalysisClaim,
-    setPrimaryClaim,
     correction,
     setCorrection,
     confirmGateA,
     workflowBusy,
   } = useAppContext();
   const nav = onNavigate || navigate;
+  const [showEvidence, setShowEvidence] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
 
   return (
@@ -279,40 +301,59 @@ export const SceneUnderstandingScreen: React.FC<ScreenProps> = ({ onNavigate }) 
         </View>
       </View>
 
-      {/* 2. DETECTED ENTITIES SECTION — 2x2 Tactile 3D Animated Cards */}
+      {/* Topic directions: complete ideas first, raw evidence remains adult-readable. */}
       <View style={styles.sectionHeaderRow}>
-        <Text style={styles.sectionHeadingSmall}>Các nhân vật & chi tiết nhận diện được</Text>
+        <Text style={styles.sectionHeadingSmall}>Con muốn kể câu chuyện nào?</Text>
         <View style={styles.countBadge}>
-          <Text style={styles.countBadgeText}>{sceneData.entities.length} Thực thể</Text>
+          <Text style={styles.countBadgeText}>{topicDirections.length} hướng</Text>
         </View>
       </View>
 
       <View style={styles.entitiesGridNew}>
-        {analysisClaims.map((claim) => (
+        {topicDirections.map((direction) => {
+          const selected = selectedTopicDirectionId === direction.direction_id;
+          return (
           <TouchableOpacity
-            key={claim.observation_id}
+            key={direction.direction_id}
+            accessibilityRole="radio"
+            accessibilityState={{ selected }}
+            accessibilityLabel={`Hướng ${direction.priority}: ${direction.title_vi}`}
             activeOpacity={0.86}
-            onPress={() => toggleAnalysisClaim(claim.observation_id)}
+            onPress={() => selectTopicDirection(direction.direction_id)}
             style={[styles.entityCardNew, {
-              backgroundColor: selectedClaimIds.includes(claim.observation_id) ? '#F0FDF4' : '#FFFFFF',
-              borderColor: primaryClaimId === claim.observation_id ? '#2563EB' : '#CBD5E1',
-              borderWidth: primaryClaimId === claim.observation_id ? 2 : 1,
+              backgroundColor: selected ? '#F0FDF4' : '#FFFFFF',
+              borderColor: selected ? '#2563EB' : '#CBD5E1',
+              borderWidth: selected ? 2 : 1,
             }]}
           >
-            <Text style={styles.entityNameNew}>{claim.label.value}</Text>
-            <Text style={styles.entityDetailText}>
-              {claim.kind === 'subject' ? 'Nhân vật / vật thể' : claim.kind === 'action' ? 'Hành động' : 'Bối cảnh'}
-              {' · '}{claim.confidence >= 0.8 ? 'Khá rõ' : 'Cần kiểm tra'}
+            <Text style={styles.entityNameNew}>{direction.title_vi}</Text>
+            <Text style={styles.entityDetailText}>{direction.summary_vi}</Text>
+            <Text style={[styles.entityBadgeTextNew, { marginTop: 8, color: selected ? '#15803D' : '#64748B' }]}>
+              {selected ? '✓ Đang chọn' : direction.requires_requery ? 'Chọn để AI xem lại hướng này' : 'Chọn hướng này'}
             </Text>
-            <Text style={styles.entityBadgeTextNew}>
-              {primaryClaimId === claim.observation_id ? 'Chủ đề chính' : selectedClaimIds.includes(claim.observation_id) ? 'Đã chọn' : 'Bỏ chọn'}
-            </Text>
-            <TouchableOpacity onPress={() => setPrimaryClaim(claim.observation_id)}>
-              <Text style={{ color: '#2563EB', fontWeight: '800', marginTop: 8 }}>Chọn làm chủ đề</Text>
-            </TouchableOpacity>
           </TouchableOpacity>
-        ))}
+          );
+        })}
       </View>
+
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessibilityState={{ expanded: showEvidence }}
+        onPress={() => setShowEvidence((value) => !value)}
+        style={styles.adultDetailsToggle}
+      >
+        <Text style={styles.adultDetailsTitle}>Chi tiết AI nhận ra</Text>
+        <Ionicons name={showEvidence ? 'chevron-up' : 'chevron-down'} size={20} color={colors.blueDeep} />
+      </TouchableOpacity>
+      {showEvidence && (
+        <View style={styles.evidenceChipWrap}>
+          {analysisClaims.map((claim) => (
+            <View key={claim.observation_id} style={styles.evidenceChip}>
+              <Text style={styles.evidenceChipText}>{claim.label.value}</Text>
+            </View>
+          ))}
+        </View>
+      )}
 
       <View style={[styles.entitiesGridNew, { display: 'none' }]}>
         {/* Row 1: Con bướm + Bông hoa */}
@@ -748,7 +789,7 @@ export const ActivityRecommendScreen: React.FC<ScreenProps> = ({ onNavigate }) =
             size="md"
             disabled={!!workflowBusy || !selectedBackendActivity}
             onPress={async () => {
-              if (await prepareActivityWorkflow()) nav('activity_detail');
+              if (await prepareActivityWorkflow()) nav('experience_review');
             }}
           />
         </View>
@@ -760,25 +801,340 @@ export const ActivityRecommendScreen: React.FC<ScreenProps> = ({ onNavigate }) =
 
 
 // ==========================================
-// 6. ACTIVITY DETAIL (Image 1 - Screen 6)
+// 6. ADULT EXPERIENCE REVIEW / GATE B
+// ==========================================
+export const ExperienceReviewScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
+  const { navigate, goBack, selectedActivity, approveActivity, sessionState, workflowBusy } = useAppContext();
+  const nav = onNavigate || navigate;
+  const approveAndContinue = async () => {
+    if (sessionState === 'EXPERIENCE_READY' || await approveActivity()) nav('pixi_intro');
+  };
+
+  return (
+    <ScrollView contentContainerStyle={styles.screenContainer} showsVerticalScrollIndicator={false}>
+      <View style={styles.topHeader}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Quay lại" onPress={goBack} style={styles.backBtn}>
+          <Ionicons name="arrow-back" size={20} color={colors.textBody} />
+        </TouchableOpacity>
+        <Text style={styles.screenHeaderTitle}>Người lớn xem lại</Text>
+        <View style={{ width: 48 }} />
+      </View>
+      <View style={[styles.topicSummaryCard, { marginTop: 14 }]}>
+        <Ionicons name="shield-checkmark" size={28} color="#2563EB" />
+        <View style={{ flex: 1 }}>
+          <Text style={styles.topicSummaryLabel}>Hoạt động đã chọn</Text>
+          <Text style={styles.topicSummaryText}>{selectedActivity.title}</Text>
+          <Text style={styles.activityChoiceSummary}>{selectedActivity.subtitle}</Text>
+        </View>
+      </View>
+      <View style={styles.activityHeroCard}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.activityHeroTitle}>Trước khi bắt đầu</Text>
+          <Text style={styles.activityHeroSub}>Kiểm tra thời gian, vật liệu và cách đồng hành cùng con.</Text>
+          <View style={styles.tagsRow}>
+            <Text style={styles.activityMetaPill}>⏱ {selectedActivity.durationMinutes} phút</Text>
+            <Text style={styles.activityMetaPill}>👤 {selectedActivity.ageGroup}</Text>
+            <Text style={styles.activityMetaPill}>🧺 {selectedActivity.materials.length} vật liệu</Text>
+          </View>
+        </View>
+      </View>
+      <View style={styles.adviceBox}>
+        <Text style={styles.adviceTitle}>Dành cho người lớn</Text>
+        <Text style={styles.adviceText}>Lần xác nhận này khóa đúng hoạt động và mục tiêu. Hoạt động ngoài trời sẽ bắt đầu sau phần tranh chuyển động và màn video giới thiệu.</Text>
+      </View>
+      <View style={styles.actionBottom}>
+        <Kid3DButton
+          title={workflowBusy ? 'Đang xác nhận...' : sessionState === 'EXPERIENCE_READY' ? 'Xem tranh chuyển động' : 'Xác nhận & xem tranh'}
+          color="green"
+          size="lg"
+          disabled={!!workflowBusy}
+          onPress={() => void approveAndContinue()}
+        />
+      </View>
+    </ScrollView>
+  );
+};
+
+function formatPlaybackTime(value: number): string {
+  const seconds = Math.max(0, Math.round(value));
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+}
+
+// ==========================================
+// 7. LANDSCAPE PIXI STORY INTRO
+// ==========================================
+export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
+  const {
+    navigate,
+    goBack,
+    selectedDrawing,
+    sceneData,
+    rendererLaunch,
+    pixiIntroStoryboard,
+    prepareRendererIntro,
+    workflowBusy,
+  } = useAppContext();
+  const nav = onNavigate || navigate;
+  const rendererInstanceId = useState(() => Crypto.randomUUID())[0];
+  const rendererWebViewRef = useRef<WebView>(null);
+  const rendererCommandSent = useRef(false);
+  const controlSequence = useRef(1);
+  const [rendererAttempt, setRendererAttempt] = useState(0);
+  const [rendererFailed, setRendererFailed] = useState(false);
+  const [rendererStatus, setRendererStatus] = useState('Đang xoay màn hình để mở câu chuyện…');
+  const [playback, setPlayback] = useState({ position: 0, duration: 0, state: 'READY' });
+  const rendererPageUrl = rendererLaunch
+    ? `${API_BASE_URL}/renderer/mobile.html?rendererInstanceId=${encodeURIComponent(rendererInstanceId)}`
+    : null;
+
+  const beats = Array.isArray(pixiIntroStoryboard?.beats)
+    ? pixiIntroStoryboard.beats.map(rendererObject)
+    : [];
+  const activeBeat = beats.find((beat) => (
+    playback.position >= Number(beat.start_seconds || 0)
+    && playback.position < Number(beat.end_seconds || Number.MAX_SAFE_INTEGER)
+  ));
+  const caption = rendererText(activeBeat?.caption_vi, sceneData.storyTitle);
+
+  useEffect(() => {
+    let mounted = true;
+    void ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE).catch(() => {
+      if (mounted) setRendererStatus('Màn hình chưa xoay được; câu chuyện vẫn có thể tiếp tục.');
+    });
+    return () => { mounted = false; };
+  }, []);
+
+  useEffect(() => {
+    if (!rendererLaunch && !workflowBusy) void prepareRendererIntro();
+  }, [rendererLaunch, workflowBusy, prepareRendererIntro]);
+
+  useEffect(() => {
+    if (!rendererPageUrl || rendererFailed || playback.duration > 0) return;
+    const timeout = setTimeout(() => {
+      setRendererFailed(true);
+      setRendererStatus('Câu chuyện mất nhiều thời gian hơn dự kiến. Bạn có thể thử lại hoặc dùng ảnh gốc.');
+    }, 15000);
+    return () => clearTimeout(timeout);
+  }, [rendererPageUrl, rendererFailed, playback.duration]);
+
+  const postControl = (action: 'PLAY' | 'PAUSE' | 'REPLAY' | 'SEEK_RELATIVE_SECONDS', seconds?: number) => {
+    if (!rendererWebViewRef.current) return;
+    const parsed = RendererControlCommandSchema.safeParse({
+      protocolVersion: ART_RENDERER_PROTOCOL_VERSION,
+      rendererInstanceId,
+      sequence: controlSequence.current++,
+      type: 'PLAYBACK_CONTROL',
+      action,
+      ...(seconds === undefined ? {} : { seconds }),
+    });
+    if (parsed.success) rendererWebViewRef.current.postMessage(JSON.stringify(parsed.data));
+  };
+
+  const handleRendererMessage = (event: WebViewMessageEvent) => {
+    const serialized = event.nativeEvent.data;
+    if (!serialized || utf8ByteLength(serialized) > MAX_RENDERER_MESSAGE_BYTES) return;
+    let value: unknown;
+    try { value = JSON.parse(serialized); } catch { return; }
+    const bootstrap = RendererBootstrapSchema.safeParse(value);
+    if (bootstrap.success && rendererLaunch && !rendererCommandSent.current) {
+      if (bootstrap.data.rendererInstanceId !== rendererInstanceId) return;
+      const launch = rendererObject(rendererLaunch);
+      const command = RendererLoadCommandSchema.safeParse({
+        contractName: 'RendererLoadCommandV1',
+        contractVersion: '1.0',
+        protocolVersion: ART_RENDERER_PROTOCOL_VERSION,
+        sequence: 1,
+        rendererInstanceId,
+        sessionId: rendererText(launch.sessionId),
+        expectedSessionVersion: launch.expectedSessionVersion,
+        experienceSpecRef: launch.experienceSpecRef,
+        sourceReadEndpoint: launch.sourceReadEndpoint,
+        sourceReadCapability: launch.sourceReadCapability,
+        assetManifest: launch.assetManifest,
+        animationPlan: launch.animationPlan,
+      });
+      if (!command.success || !rendererWebViewRef.current) {
+        setRendererFailed(true);
+        setRendererStatus('Bức tranh chưa sẵn sàng. Ảnh gốc vẫn được giữ nguyên.');
+        return;
+      }
+      rendererCommandSent.current = true;
+      rendererWebViewRef.current.postMessage(JSON.stringify(command.data));
+      setRendererStatus('Đang dựng chuyển động từ bức vẽ gốc…');
+      return;
+    }
+    const state = RendererPlaybackStateEnvelopeSchema.safeParse(value);
+    if (state.success && state.data.rendererInstanceId === rendererInstanceId) {
+      setRendererFailed(false);
+      setPlayback({
+        position: state.data.positionSeconds,
+        duration: state.data.durationSeconds,
+        state: state.data.state,
+      });
+      setRendererStatus(state.data.state === 'COMPLETED' ? 'Câu chuyện mở đầu đã sẵn sàng!' : 'Bức vẽ của con đang chuyển động…');
+      return;
+    }
+    const lifecycle = RendererPlaybackEventEnvelopeSchema.safeParse(value);
+    if (lifecycle.success && lifecycle.data.event.type === 'PLAYBACK_FAILED') {
+      setRendererFailed(true);
+      setRendererStatus('Chuyển động chưa mở được. Ảnh gốc vẫn an toàn.');
+    }
+  };
+
+  const retry = () => {
+    rendererCommandSent.current = false;
+    setRendererFailed(false);
+    setPlayback({ position: 0, duration: 0, state: 'READY' });
+    setRendererStatus('Đang thử mở lại câu chuyện…');
+    setRendererAttempt((value) => value + 1);
+  };
+
+  const returnToReview = async () => {
+    await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP).catch(() => undefined);
+    goBack();
+  };
+
+  const continueToVideo = () => {
+    nav('video_placeholder');
+  };
+
+  return (
+    <View style={styles.pixiIntroScreen}>
+      <View style={styles.pixiIntroHeader}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Quay lại" onPress={() => void returnToReview()} style={styles.pixiControlButton}>
+          <Ionicons name="arrow-back" size={22} color="#FFFFFF" />
+        </TouchableOpacity>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.pixiIntroTitle}>Bức vẽ bước vào câu chuyện ✨</Text>
+          <Text style={styles.pixiIntroStatus}>{rendererStatus}</Text>
+        </View>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Tiếp tục đến video" onPress={continueToVideo} style={styles.pixiContinueButton}>
+          <Text style={styles.pixiContinueText}>Tiếp tục</Text>
+          <Ionicons name="arrow-forward" size={18} color="#172033" />
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.pixiIntroStage}>
+        {rendererFailed || !rendererPageUrl ? (
+          selectedDrawing ? (
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+              <Image source={{ uri: selectedDrawing.uri }} style={styles.pixiIntroFallback} resizeMode="contain" />
+              <Text style={styles.sourceFallbackText}>Bức vẽ gốc của con vẫn an toàn ở đây.</Text>
+            </View>
+          ) : null
+        ) : (
+          <WebView
+            key={rendererAttempt}
+            ref={rendererWebViewRef}
+            source={{ uri: rendererPageUrl }}
+            originWhitelist={[API_BASE_URL]}
+            javaScriptEnabled
+            domStorageEnabled={false}
+            mixedContentMode="never"
+            onMessage={handleRendererMessage}
+            onLoadStart={() => setRendererStatus('Đang kết nối sân khấu Pixi…')}
+            onError={() => { setRendererFailed(true); setRendererStatus('Chưa mở được chuyển động. Ảnh gốc vẫn an toàn.'); }}
+            onHttpError={() => { setRendererFailed(true); setRendererStatus('Chưa tải được sân khấu. Ảnh gốc vẫn an toàn.'); }}
+            style={styles.pixiIntroWebView}
+          />
+        )}
+        <View style={styles.pixiCaptionOverlay} pointerEvents="none">
+          <Text style={styles.pixiCaptionText}>{caption}</Text>
+        </View>
+      </View>
+
+      <View style={styles.pixiTimelineBar}>
+        <TouchableOpacity accessibilityLabel="Tua lại 2 giây" onPress={() => postControl('SEEK_RELATIVE_SECONDS', -2)} style={styles.pixiControlButton}>
+          <Ionicons name="play-back" size={22} color="#FFFFFF" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          accessibilityLabel={playback.state === 'PLAYING' ? 'Tạm dừng' : 'Phát'}
+          onPress={() => postControl(playback.state === 'PLAYING' ? 'PAUSE' : 'PLAY')}
+          style={[styles.pixiControlButton, styles.pixiPlayButton]}
+        >
+          <Ionicons name={playback.state === 'PLAYING' ? 'pause' : 'play'} size={26} color="#172033" />
+        </TouchableOpacity>
+        <TouchableOpacity accessibilityLabel="Tua tới 2 giây" onPress={() => postControl('SEEK_RELATIVE_SECONDS', 2)} style={styles.pixiControlButton}>
+          <Ionicons name="play-forward" size={22} color="#FFFFFF" />
+        </TouchableOpacity>
+        <View style={styles.pixiProgressTrack}>
+          <View style={[styles.pixiProgressFill, { width: `${playback.duration > 0 ? Math.min(100, playback.position / playback.duration * 100) : 0}%` }]} />
+        </View>
+        <Text style={styles.pixiTimeText}>{formatPlaybackTime(playback.position)} / {formatPlaybackTime(playback.duration)}</Text>
+        <TouchableOpacity accessibilityLabel="Xem lại từ đầu" onPress={() => postControl('REPLAY')} style={styles.pixiControlButton}>
+          <Ionicons name="refresh" size={22} color="#FFFFFF" />
+        </TouchableOpacity>
+        {rendererFailed && (
+          <TouchableOpacity accessibilityLabel="Thử mở lại" onPress={retry} style={styles.pixiRetryButton}>
+            <Text style={styles.pixiContinueText}>Thử lại</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    </View>
+  );
+};
+
+// ==========================================
+// 8. LANDSCAPE VIDEO PLACEHOLDER
+// ==========================================
+export const VideoPlaceholderScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
+  const { navigate, goBack, sceneData, selectedDrawing, completeActivityHandoff, workflowBusy } = useAppContext();
+  const nav = onNavigate || navigate;
+  useEffect(() => {
+    void ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE).catch(() => undefined);
+  }, []);
+
+  const returnToIntro = () => {
+    goBack();
+  };
+
+  const continueOutside = async () => {
+    if (await completeActivityHandoff()) {
+      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP).catch(() => undefined);
+      nav('activity_detail');
+    }
+  };
+
+  return (
+    <View style={styles.videoPlaceholderScreen}>
+      <TouchableOpacity accessibilityRole="button" accessibilityLabel="Quay lại" onPress={returnToIntro} style={[styles.pixiControlButton, { position: 'absolute', top: 18, left: 18, zIndex: 3 }]}>
+        <Ionicons name="arrow-back" size={22} color="#FFFFFF" />
+      </TouchableOpacity>
+      <View style={styles.videoPlaceholderVisual}>
+        {selectedDrawing && <Image source={{ uri: selectedDrawing.uri }} style={styles.videoPlaceholderImage} resizeMode="cover" />}
+        <View style={styles.videoPlaceholderShade} />
+        <View style={styles.videoPlaceholderBadge}><Ionicons name="videocam" size={24} color="#7C3AED" /><Text style={styles.videoPlaceholderBadgeText}>VIDEO CHÍNH</Text></View>
+      </View>
+      <View style={styles.videoPlaceholderCopy}>
+        <Text style={styles.videoPlaceholderTitle}>{sceneData.storyTitle}</Text>
+        <Text style={styles.videoPlaceholderText}>Video chính sẽ được thêm ở phiên bản sau. Bây giờ mình cùng mang câu chuyện ra ngoài đời nhé!</Text>
+        <Kid3DButton
+          title={workflowBusy ? 'Đang chuẩn bị...' : 'Tiếp tục hoạt động ngoài trời'}
+          color="green"
+          size="md"
+          disabled={!!workflowBusy}
+          onPress={() => void continueOutside()}
+        />
+      </View>
+    </View>
+  );
+};
+
+
+// ==========================================
+// 9. OUTDOOR ACTIVITY DETAIL
 // ==========================================
 export const ActivityDetailScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
   const {
     navigate,
     goBack,
     selectedChild,
-    selectedDrawing,
     selectedActivity,
     materialsChecklist,
     toggleMaterialCheck,
     stepsChecklist,
     toggleStepCheck,
-    approveActivity,
-    completeActivityHandoff,
-    rendererLaunch,
     sessionState,
-    workflowBusy,
-    workflowError,
     workflowNotice,
   } = useAppContext();
   const nav = onNavigate || navigate;
@@ -797,103 +1153,7 @@ export const ActivityDetailScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
         { stepNumber: 2, title: 'Thực hiện hoạt động cùng bé' },
         { stepNumber: 3, title: 'Cùng nhau quan sát và trò chuyện' },
       ];
-  const rendererInstanceId = useState(() => Crypto.randomUUID())[0];
-  const rendererWebViewRef = useRef<WebView>(null);
-  const rendererCommandSent = useRef(false);
-  const [rendererStatus, setRendererStatus] = useState<string | null>(null);
-  const [rendererError, setRendererError] = useState<string | null>(null);
-  const [rendererFailed, setRendererFailed] = useState(false);
-  const [rendererAttempt, setRendererAttempt] = useState(0);
   const [showAdultDetails, setShowAdultDetails] = useState(false);
-  const rendererPageUrl = rendererLaunch
-    ? `${API_BASE_URL}/renderer/mobile.html?rendererInstanceId=${encodeURIComponent(rendererInstanceId)}`
-    : null;
-
-  const failRenderer = (message: string) => {
-    setRendererFailed(true);
-    setRendererStatus(null);
-    setRendererError(message);
-  };
-
-  const retryRenderer = () => {
-    rendererCommandSent.current = false;
-    setRendererError(null);
-    setRendererFailed(false);
-    setRendererStatus('Đang thử mở lại bức tranh…');
-    setRendererAttempt((value) => value + 1);
-  };
-
-  const handleRendererMessage = (event: WebViewMessageEvent) => {
-    const serialized = event.nativeEvent.data;
-    if (!serialized || utf8ByteLength(serialized) > MAX_RENDERER_MESSAGE_BYTES) {
-      failRenderer('Bức tranh chưa mở được. Hãy thử lại hoặc tiếp tục với ảnh gốc.');
-      return;
-    }
-    let value: unknown;
-    try {
-      value = JSON.parse(serialized);
-    } catch {
-      failRenderer('Bức tranh chưa mở được. Hãy thử lại sau một chút.');
-      return;
-    }
-    const bootstrap = RendererBootstrapSchema.safeParse(value);
-    if (bootstrap.success) {
-      if (bootstrap.data.rendererInstanceId !== rendererInstanceId || !rendererLaunch) {
-        failRenderer('Phiên xem tranh đã thay đổi. Hãy mở lại hoạt động.');
-        return;
-      }
-      if (rendererCommandSent.current) return;
-      const launch = rendererObject(rendererLaunch);
-      const command = RendererLoadCommandSchema.safeParse({
-        contractName: 'RendererLoadCommandV1',
-        contractVersion: '1.0',
-        protocolVersion: ART_RENDERER_PROTOCOL_VERSION,
-        sequence: 1,
-        rendererInstanceId,
-        sessionId: rendererText(launch.sessionId),
-        expectedSessionVersion: launch.expectedSessionVersion,
-        experienceSpecRef: launch.experienceSpecRef,
-        sourceReadEndpoint: launch.sourceReadEndpoint,
-        sourceReadCapability: launch.sourceReadCapability,
-        assetManifest: launch.assetManifest,
-        animationPlan: launch.animationPlan,
-      });
-      if (!command.success) {
-        failRenderer('Bức tranh chưa sẵn sàng để chuyển động. Hãy thử lại.');
-        return;
-      }
-      const loadMessage = JSON.stringify(command.data);
-      if (utf8ByteLength(loadMessage) > MAX_RENDERER_MESSAGE_BYTES || !rendererWebViewRef.current) {
-        failRenderer('Bức tranh chưa sẵn sàng để chuyển động. Hãy thử lại.');
-        return;
-      }
-      rendererCommandSent.current = true;
-      rendererWebViewRef.current.postMessage(loadMessage);
-      setRendererStatus('Đã kết nối phần xem tranh; đang mở ảnh gốc.');
-      return;
-    }
-    const playback = RendererPlaybackEventEnvelopeSchema.safeParse(value);
-    if (playback.success) {
-      setRendererFailed(false);
-      setRendererStatus('Bức tranh đang chuyển động.');
-    }
-  };
-
-  const finishActivity = async () => {
-    if (sessionState === 'HANDOFF_READY') {
-      nav('feedback');
-      return;
-    }
-    if (sessionState === 'GATE_B_PENDING') {
-      await approveActivity();
-      return;
-    }
-    if (sessionState !== 'EXPERIENCE_READY') return;
-    if (await completeActivityHandoff()) {
-      rendererCommandSent.current = false;
-      setRendererStatus('Đã bàn giao; bức tranh sắp được mở.');
-    }
-  };
 
   return (
     <ScrollView contentContainerStyle={styles.screenContainer} showsVerticalScrollIndicator={false}>
@@ -1016,84 +1276,16 @@ export const ActivityDetailScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
         </>
       )}
 
-      {rendererPageUrl && sessionState === 'HANDOFF_READY' && (
-        <View style={styles.pixiCard}>
-          <Text style={styles.pixiTitle}>✨ Bức tranh của con chuyển động</Text>
-          <Text style={styles.pixiSubtitle}>Ảnh gốc được giữ nguyên và mở ngay trong phiên này.</Text>
-          <View style={styles.pixiViewport}>
-            {rendererFailed && selectedDrawing ? (
-              <View style={styles.sourceFallbackWrap}>
-                <Image source={{ uri: selectedDrawing.uri }} style={styles.sourceFallbackImage} resizeMode="contain" />
-                <Text style={styles.sourceFallbackText}>Bức vẽ gốc của con vẫn an toàn ở đây.</Text>
-              </View>
-            ) : (
-              <WebView
-                key={rendererAttempt}
-                ref={rendererWebViewRef}
-                source={{ uri: rendererPageUrl }}
-                originWhitelist={[API_BASE_URL]}
-                javaScriptEnabled
-                domStorageEnabled={false}
-                mixedContentMode="never"
-                thirdPartyCookiesEnabled={false}
-                sharedCookiesEnabled={false}
-                setSupportMultipleWindows={false}
-                onMessage={handleRendererMessage}
-                onLoadStart={() => setRendererStatus('Đang mở bức tranh…')}
-                onLoadEnd={() => setRendererStatus((value) => value ?? 'Bức tranh đã sẵn sàng.')}
-                onError={() => failRenderer('Chưa mở được bức tranh chuyển động. Ảnh gốc vẫn được giữ lại.')}
-                onHttpError={() => failRenderer('Chưa mở được bức tranh chuyển động. Ảnh gốc vẫn được giữ lại.')}
-                style={styles.pixiWebView}
-              />
-            )}
-          </View>
-          {rendererStatus && <Text style={styles.pixiStatus}>{rendererStatus}</Text>}
-        </View>
-      )}
-
-      <Modal
-        transparent
-        visible={Boolean(rendererError)}
-        animationType="fade"
-        onRequestClose={() => setRendererError(null)}
-      >
-        <View style={styles.localModalBackdrop}>
-          <View style={styles.localModalCard} accessibilityRole="alert">
-            <Text style={styles.localModalEmoji}>🌤️</Text>
-            <Text style={styles.localModalTitle}>Mình chưa mở được tranh</Text>
-            <Text style={styles.localModalText}>{rendererError}</Text>
-            <View style={styles.localModalActions}>
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessibilityLabel="Tiếp tục với ảnh gốc"
-                onPress={() => setRendererError(null)}
-                style={[styles.localModalButton, styles.localModalSecondaryButton]}
-              >
-                <Text style={styles.localModalSecondaryText}>Dùng ảnh gốc</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessibilityLabel="Thử mở lại bức tranh"
-                onPress={retryRenderer}
-                style={styles.localModalButton}
-              >
-                <Text style={styles.localModalButtonText}>Thử lại</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Finish Session -> Go to Step 8 Feedback Loop */}
+      {/* Outdoor activity is intentionally separate from Gate B and Pixi. */}
       {workflowNotice && <Text style={{ color: colors.greenDeep, textAlign: 'center', marginBottom: 8 }}>{workflowNotice}</Text>}
       <View style={styles.actionBottom}>
         <Kid3DButton
-          title={workflowBusy ? 'Đang chuẩn bị...' : (sessionState === 'GATE_B_PENDING' ? 'Người lớn xác nhận hoạt động' : sessionState === 'EXPERIENCE_READY' ? 'Bắt đầu hoạt động' : sessionState === 'HANDOFF_READY' ? 'Ghi lại buổi khám phá' : 'Hoàn thành hoạt động ✨')}
+          title="Hoàn thành & ghi lại buổi khám phá"
           color="green"
           size="lg"
           icon={<Ionicons name="checkmark-done-circle" size={18} color={colors.white} />}
-          disabled={!!workflowBusy || (sessionState !== 'GATE_B_PENDING' && sessionState !== 'EXPERIENCE_READY' && sessionState !== 'HANDOFF_READY')}
-          onPress={() => void finishActivity()}
+          disabled={sessionState !== 'HANDOFF_READY'}
+          onPress={() => nav('feedback')}
         />
       </View>
     </ScrollView>
@@ -1469,6 +1661,59 @@ export const FeedbackLoopScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
 };
 
 const styles = StyleSheet.create({
+  evidenceChipWrap: {
+    flexDirection: 'row', flexWrap: 'wrap', gap: 8, padding: 12,
+    backgroundColor: '#F8FAFC', borderRadius: 16, marginBottom: 10,
+  },
+  evidenceChip: { backgroundColor: '#E0F2FE', borderRadius: 14, paddingHorizontal: 10, paddingVertical: 6 },
+  evidenceChipText: { color: '#075985', fontSize: 12, fontWeight: '700' },
+  pixiIntroScreen: { flex: 1, backgroundColor: '#10162A', padding: 12, gap: 10 },
+  pixiIntroHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 54 },
+  pixiIntroTitle: { color: '#FFFFFF', fontSize: 20, fontWeight: '900' },
+  pixiIntroStatus: { color: '#BFDBFE', fontSize: 12, marginTop: 2 },
+  pixiContinueButton: {
+    minHeight: 46, paddingHorizontal: 16, borderRadius: 23, backgroundColor: '#FDE68A',
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+  },
+  pixiContinueText: { color: '#172033', fontSize: 14, fontWeight: '900' },
+  pixiIntroStage: {
+    flex: 1, borderRadius: 20, overflow: 'hidden', backgroundColor: '#FFFEF9',
+    borderWidth: 2, borderColor: '#60A5FA', position: 'relative',
+  },
+  pixiIntroWebView: { flex: 1, backgroundColor: '#FFFEF9' },
+  pixiIntroFallback: { width: '100%', flex: 1, backgroundColor: '#FFFEF9' },
+  pixiCaptionOverlay: {
+    position: 'absolute', left: 20, right: 20, bottom: 16, alignItems: 'center',
+  },
+  pixiCaptionText: {
+    color: '#FFFFFF', backgroundColor: 'rgba(15,23,42,0.82)', paddingHorizontal: 18,
+    paddingVertical: 10, borderRadius: 16, fontSize: 17, fontWeight: '800', textAlign: 'center',
+  },
+  pixiTimelineBar: { minHeight: 58, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  pixiControlButton: {
+    width: 48, height: 48, borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.14)',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  pixiPlayButton: { backgroundColor: '#FDE68A' },
+  pixiRetryButton: {
+    minHeight: 44, paddingHorizontal: 14, borderRadius: 22, backgroundColor: '#FDE68A',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  pixiProgressTrack: { flex: 1, height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.2)', overflow: 'hidden' },
+  pixiProgressFill: { height: '100%', borderRadius: 4, backgroundColor: '#60A5FA' },
+  pixiTimeText: { minWidth: 78, color: '#FFFFFF', fontSize: 12, fontWeight: '700', textAlign: 'center' },
+  videoPlaceholderScreen: { flex: 1, flexDirection: 'row', backgroundColor: '#111827', padding: 18, gap: 20 },
+  videoPlaceholderVisual: { flex: 1.35, borderRadius: 22, overflow: 'hidden', backgroundColor: '#1E293B' },
+  videoPlaceholderImage: { width: '100%', height: '100%', opacity: 0.72 },
+  videoPlaceholderShade: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(15,23,42,0.28)' },
+  videoPlaceholderBadge: {
+    position: 'absolute', alignSelf: 'center', top: '42%', backgroundColor: 'rgba(255,255,255,0.94)',
+    borderRadius: 18, paddingHorizontal: 18, paddingVertical: 12, flexDirection: 'row', gap: 8, alignItems: 'center',
+  },
+  videoPlaceholderBadgeText: { color: '#5B21B6', fontWeight: '900', letterSpacing: 0.8 },
+  videoPlaceholderCopy: { flex: 1, justifyContent: 'center', gap: 16, paddingRight: 18 },
+  videoPlaceholderTitle: { color: '#FFFFFF', fontSize: 26, lineHeight: 33, fontWeight: '900' },
+  videoPlaceholderText: { color: '#CBD5E1', fontSize: 16, lineHeight: 24 },
   localModalBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(15, 23, 42, 0.45)',
