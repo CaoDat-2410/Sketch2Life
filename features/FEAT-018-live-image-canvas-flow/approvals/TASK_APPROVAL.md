@@ -1029,3 +1029,78 @@ LIVE/MODEL/GPU/PROVIDER/NETWORK/LIGHTNING = NOT AUTHORIZED
 NEXT = PREPARE_D1_OWNER_RESOLUTION_AND_D6_FIXTURE_BINDING
 reviewed_runtime_code_commit = 9549a341194f40b1a9be419d6fce0d70f1ca0384
 ```
+
+## Owner scoped push authorization for the D1/D6 prerequisite commit - 2026-09-23
+
+Approver: Project owner, by direct instruction in the current conversation,
+"Safely commit and publish the reviewed FEAT-018 D1/D6 prerequisite package",
+dated 2026-09-23.
+Recorded by: Claude Code (Claude Opus 5.5) at 2026-09-23 12:50:07 UTC.
+Verbatim authorization clause from that instruction:
+
+> The owner authorizes one normal, non-force push to
+> `origin/feature/feat018-p2t2-live-lightning` of only the commits described
+> below. This supersedes the prior `PUSH = NOT_AUTHORIZED` only for this branch
+> and operation.
+
+This entry is additive. The R1 addendum, the R2 amendment and every earlier
+byte of this file are preserved unchanged.
+
+### Basis
+
+The R2 condition for staging and commit was met: the new fresh independent
+review of the exact R2 candidate,
+`tmp/feat018-p2t2-d1-d6-prerequisite-independent-review-20260923/REVIEW_3.md`,
+returned `PASS`. The exact staged R2 candidate was then committed as:
+
+- `62d132ea3b0013e4c3ef72350990b18a6ce41a1f`
+  `docs(feat018): synchronize D1/D6 preparation gate`; parent
+  `86836d24cfcd83ca14c0bc50e79fff1103cb9ecc`; exactly five paths and fourteen
+  semantic hunks, with blobs `CONTEXT.md` `f4b9e9e10a027e18426b334c60f4d34e33604255`,
+  `DECISIONS.md` `63dbca5e6f91757191315ef2004c13bcebfbe79c`, live plan
+  `5485f60957cee77beee93ebb85e20d57bc4c1ffc`, D6 package
+  `b80e4d4d5e565f575155c7e31787a4f6b4c0ddf2` and `TASK_APPROVAL.md`
+  `e091c923f70a4d6a919e7eed5059b8bad896c5bd`.
+
+### Exact push scope
+
+The owner authorizes exactly one normal, non-force, fast-forward push to
+`origin` branch `feature/feat018-p2t2-live-lightning`, whose remote value
+before the push must be `86836d24cfcd83ca14c0bc50e79fff1103cb9ecc`. The push
+may publish only these two commits:
+
+1. the prerequisite commit `62d132ea3b0013e4c3ef72350990b18a6ce41a1f`;
+2. the approval-record follow-up commit that adds only this entry, subject
+   `docs(feat018): authorize scoped prerequisite push`, whose parent is the
+   prerequisite commit.
+
+The push must not use force, tags or any other ref, and must not be preceded
+by fetch, rebase, merge or reconciliation. If the remote rejects the push or
+has diverged, the operation stops without retry or reconciliation.
+
+This authorization does not publish or approve the remaining D9 worktree
+changes, the untracked D1 package, the D9 reconciliation note, the supporting
+preparation note, the owner commit-readiness note or the ignored reports. It
+authorizes no other push, branch/worktree/stash/remote change, source/tests,
+fixtures, contracts, dependencies, workflows, or runtime activity.
+
+At recording time:
+
+```text
+D1_D6_PREREQUISITE_INDEPENDENT_REVIEW = PASS (REVIEW_3.md)
+D1_D6_PREREQUISITE_COMMIT = 62d132ea3b0013e4c3ef72350990b18a6ce41a1f
+PUSH = AUTHORIZED_ONCE: origin/feature/feat018-p2t2-live-lightning, fast-forward from 86836d24cfcd83ca14c0bc50e79fff1103cb9ecc, prerequisite commit plus this approval-record commit only
+PUSH (every other branch, ref, commit or operation) = NOT_AUTHORIZED
+```
+
+It does not resolve D1, D6 fixture identity, D11, Stage 4 or live execution:
+
+```text
+D1 = BLOCKED_BY_D11
+D6 = NOT FINALLY RESOLVED; FIXTURE IDENTITY = RESOLVED_WITH_PROPOSED_VALUE
+D11 = BLOCKED
+STAGE_4 = NOT READY
+LIVE/MODEL/GPU/PROVIDER/NETWORK/LIGHTNING = NOT AUTHORIZED
+NEXT = PREPARE_D1_OWNER_RESOLUTION_AND_D6_FIXTURE_BINDING
+reviewed_runtime_code_commit = 9549a341194f40b1a9be419d6fce0d70f1ca0384
+```
