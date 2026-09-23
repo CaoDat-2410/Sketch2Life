@@ -17,6 +17,17 @@ export type MotionKind = (typeof MOTION_KINDS)[number];
 
 const normalizedNumber = z.number().finite().min(0).max(1);
 
+export const SourceRegionSchema = z.object({
+  x: normalizedNumber,
+  y: normalizedNumber,
+  width: z.number().finite().gt(0).max(1),
+  height: z.number().finite().gt(0).max(1),
+}).strict().superRefine((region, context) => {
+  if (region.x + region.width > 1 || region.y + region.height > 1) {
+    context.addIssue({code: z.ZodIssueCode.custom, message: 'Source region must stay inside the image.'});
+  }
+});
+
 export const StagePointSchema = z.object({
   x: normalizedNumber,
   y: normalizedNumber,
@@ -45,6 +56,7 @@ export const ChildArtAssetSchema = z
     cropVersion: z.string().regex(/^[1-9][0-9]*$/).optional(),
     maskVersion: z.string().regex(/^[1-9][0-9]*$/).optional(),
     sourceSha256: z.string().regex(/^[a-f0-9]{64}$/),
+    sourceRegion: SourceRegionSchema.optional(),
   })
   .strict()
   .superRefine((asset, context) => {
@@ -53,6 +65,14 @@ export const ChildArtAssetSchema = z
         code: z.ZodIssueCode.custom,
         message: 'CROP assets require cropVersion provenance.',
         path: ['cropVersion'],
+      });
+    }
+
+    if (asset.assetKind === 'CROP' && asset.sourceRegion === undefined) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'CROP assets require sourceRegion provenance.',
+        path: ['sourceRegion'],
       });
     }
 
@@ -71,6 +91,7 @@ export const ArtObjectSchema = z.object({
   asset: ChildArtAssetSchema,
   initialTransform: TransformSchema.default(DEFAULT_TRANSFORM),
   extractionStatus: z.enum(['READY', 'FALLBACK_REQUIRED']).default('READY'),
+  interactive: z.boolean().default(false),
 }).strict();
 
 export const MotionSchema = z
@@ -210,6 +231,97 @@ export type Motion = z.infer<typeof MotionSchema>;
 export type ArtAnimationPlan = z.infer<typeof ArtAnimationPlanSchema>;
 export type ArtAnimationPlanEnvelope = z.infer<typeof ArtAnimationPlanEnvelopeSchema>;
 export type PixiArtAssetManifest = z.infer<typeof PixiArtAssetManifestSchema>;
+export type SourceRegion = z.infer<typeof SourceRegionSchema>;
+
+const SubjectCandidateSchema = z.object({
+  candidateId: z.string().regex(/^[a-z0-9-]+$/),
+  labelVi: z.string().min(1).max(60),
+  sourceClaimIds: z.array(z.string().min(1)).min(1).max(8),
+  confidence: z.number().finite().min(0).max(1),
+  confidenceBand: z.enum(['HIGH', 'MEDIUM', 'LOW']),
+  imageCovered: z.boolean(),
+  narrationCovered: z.boolean(),
+  relationRefs: z.array(z.string().min(1)).max(8),
+}).strict();
+
+export const SubjectCandidateSetSchema = z.object({
+  contractName: z.literal('SubjectCandidateSetV1'),
+  contractVersion: z.literal('1.0'),
+  sessionId: z.string().min(1).max(120),
+  sourceArtifactRef: z.string().min(1).max(300),
+  sourceArtifactSha256: z.string().regex(/^[a-f0-9]{64}$/),
+  maxItems: z.literal(3),
+  items: z.array(SubjectCandidateSchema).min(1).max(3),
+  originalArtPreserved: z.literal(true),
+}).strict();
+
+export const SceneExplorationPlanSchema = z.object({
+  contractName: z.literal('SceneExplorationPlanV1'),
+  contractVersion: z.literal('1.0'),
+  sessionId: z.string().min(1).max(120),
+  experienceSpecRef: VersionedRefSchema,
+  sourceArtifactRef: z.string().min(1).max(300),
+  primarySubjectRef: z.string().min(1).max(120),
+  primaryLabelVi: z.string().min(1).max(60),
+  relationLabelVi: z.string().min(1).max(80).optional(),
+  learningBridgeVi: z.string().min(1).max(240),
+  beats: z.array(z.object({
+    beatId: z.string().regex(/^[a-z][a-z0-9-]*$/),
+    order: z.number().int().min(1).max(4),
+    effect: z.enum(['REVEAL', 'FOCUS', 'TRACE_RELATION', 'ZOOM_OUT']),
+    targetRef: z.string().min(1).max(120).optional(),
+    labelVi: z.string().min(1).max(60),
+    captionVi: z.string().min(1).max(180),
+    startSeconds: z.number().finite().min(0).max(30),
+    endSeconds: z.number().finite().gt(0).max(30),
+    tapEnabled: z.boolean(),
+  }).strict().superRefine((beat, context) => {
+    if (beat.endSeconds <= beat.startSeconds) {
+      context.addIssue({code: z.ZodIssueCode.custom, message: 'Beat end must be after start.'});
+    }
+  })).min(2).max(4),
+  tapToDiscover: z.literal(true),
+  videoExecuted: z.literal(false),
+}).strict();
+
+export const SceneFocusPlanSchema = z.object({
+  contractName: z.literal('SceneFocusPlanV1'),
+  contractVersion: z.literal('1.0'),
+  sessionId: z.string().min(1).max(120),
+  experienceSpecRef: VersionedRefSchema,
+  sourceArtifactRef: z.string().min(1).max(300),
+  sourceArtifactSha256: z.string().regex(/^[a-f0-9]{64}$/),
+  extractionStatus: z.enum(['READY', 'FALLBACK_REQUIRED']),
+  targets: z.array(z.object({
+    targetRef: z.string().min(1).max(120),
+    labelVi: z.string().min(1).max(60),
+    sourceRegion: SourceRegionSchema.optional(),
+    regionConfidence: z.number().finite().min(0).max(1).optional(),
+    depthLayer: z.number().int().min(0).max(2),
+    hitSlop: z.number().finite().min(0).max(0.25),
+    assetKind: z.enum(['CROP', 'TRANSPARENT_PNG', 'MASK']).optional(),
+    extractionVersion: z.string().min(1).optional(),
+  }).strict().superRefine((target, context) => {
+    if (target.sourceRegion !== undefined && (
+      target.regionConfidence === undefined || target.assetKind === undefined || target.extractionVersion === undefined
+    )) {
+      context.addIssue({code: z.ZodIssueCode.custom, message: 'Localized targets require provenance.'});
+    }
+  })).max(3),
+  fallbackReason: z.enum(['NO_LOCALIZER', 'REGION_INVALID', 'CUTOUT_FAILED']).optional(),
+}).strict().superRefine((plan, context) => {
+  if (plan.extractionStatus === 'READY' && plan.targets.length === 0) {
+    context.addIssue({code: z.ZodIssueCode.custom, message: 'Ready focus plans require targets.'});
+  }
+  if (plan.extractionStatus === 'FALLBACK_REQUIRED' && plan.targets.length > 0) {
+    context.addIssue({code: z.ZodIssueCode.custom, message: 'Fallback focus plans cannot expose regions.'});
+  }
+  if (plan.extractionStatus === 'FALLBACK_REQUIRED' && plan.fallbackReason === undefined) {
+    context.addIssue({code: z.ZodIssueCode.custom, message: 'Fallback focus plans require a reason.'});
+  }
+});
+
+export type SceneFocusPlan = z.infer<typeof SceneFocusPlanSchema>;
 
 export const FALLBACK_REASONS = [
   'EXTRACTION_UNAVAILABLE',
@@ -237,6 +349,17 @@ export const PlaybackEventSchema = z.discriminatedUnion('type', [
     type: z.literal('PLAYBACK_FAILED'),
     planId: z.string().min(1).max(120),
     reason: z.string().min(1).max(160),
+  }).strict(),
+  z.object({
+    type: z.literal('DISCOVERED_ENTITY'),
+    planId: z.string().min(1).max(120),
+    objectId: z.string().min(1).max(120),
+    labelVi: z.string().min(1).max(60),
+  }).strict(),
+  z.object({
+    type: z.literal('FOCUS_CHANGED'),
+    planId: z.string().min(1).max(120),
+    objectId: z.string().min(1).max(120),
   }).strict(),
 ]);
 
@@ -295,6 +418,8 @@ export const RendererLoadCommandSchema = z.object({
   sourceReadCapability: z.string().min(40).max(200),
   assetManifest: PixiArtAssetManifestSchema,
   animationPlan: ArtAnimationPlanEnvelopeSchema,
+  sceneExplorationPlan: SceneExplorationPlanSchema.optional(),
+  sceneFocusPlan: SceneFocusPlanSchema.optional(),
 }).strict().superRefine((command, context) => {
   const plan = command.animationPlan;
   const manifest = command.assetManifest;
@@ -316,17 +441,14 @@ export const RendererLoadCommandSchema = z.object({
     !plan.originalArtPreserved ||
     plan.videoExecuted ||
     manifest.providerGenerationCalled ||
-    manifest.assets.length !== 1 ||
-    manifest.assets[0]?.role !== 'ORIGINAL_ART'
+    manifest.assets.filter((asset) => asset.role === 'ORIGINAL_ART').length !== 1
   ) {
-    context.addIssue({code: z.ZodIssueCode.custom, message: 'Demo renderer accepts original art only.'});
+    context.addIssue({code: z.ZodIssueCode.custom, message: 'Renderer requires exactly one preserved original asset.'});
   }
   if (
-    plan.plan.objects.length !== 1 ||
-    plan.plan.objects[0]?.asset.assetKind !== 'WHOLE_DRAWING' ||
-    plan.plan.objects[0]?.asset.uri !== 'source:original-art'
+    plan.plan.objects.some((object) => object.asset.uri !== 'source:original-art')
   ) {
-    context.addIssue({code: z.ZodIssueCode.custom, message: 'Demo renderer accepts one whole-source image only.'});
+    context.addIssue({code: z.ZodIssueCode.custom, message: 'Pixi objects must load from the source capability.'});
   }
 });
 

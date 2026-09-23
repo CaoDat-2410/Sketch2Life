@@ -8,6 +8,11 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, model_validator
 
 from sketch2life.contracts.schemas.p1_experience import VersionedRefV1
+from sketch2life.contracts.schemas.scene_exploration import (
+    SceneExplorationPlanV1,
+    SceneFocusPlanV1,
+    SourceRegionV1,
+)
 
 
 class RendererPointV1(BaseModel):
@@ -40,11 +45,14 @@ class RendererChildArtAssetV1(BaseModel):
     crop_version: str | None = Field(default=None, alias="cropVersion", pattern=r"^[1-9][0-9]*$")
     mask_version: str | None = Field(default=None, alias="maskVersion", pattern=r"^[1-9][0-9]*$")
     source_sha256: str = Field(alias="sourceSha256", pattern=r"^[a-f0-9]{64}$")
+    source_region: SourceRegionV1 | None = Field(default=None, alias="sourceRegion")
 
     @model_validator(mode="after")
     def require_extraction_provenance(self) -> RendererChildArtAssetV1:
         if self.asset_kind == "CROP" and self.crop_version is None:
             raise ValueError("crop asset requires cropVersion provenance")
+        if self.asset_kind == "CROP" and self.source_region is None:
+            raise ValueError("crop asset requires a sourceRegion")
         if self.asset_kind == "MASK" and self.mask_version is None:
             raise ValueError("mask asset requires maskVersion provenance")
         return self
@@ -62,6 +70,7 @@ class RendererArtObjectV1(BaseModel):
     extraction_status: Literal["READY", "FALLBACK_REQUIRED"] = Field(
         default="READY", alias="extractionStatus"
     )
+    interactive: bool = False
 
 
 class RendererMotionV1(BaseModel):
@@ -219,6 +228,10 @@ class PixiRendererLaunchV1(BaseModel):
     experience_spec_ref: VersionedRefV1 = Field(alias="experienceSpecRef")
     asset_manifest: PixiArtAssetManifestV1 = Field(alias="assetManifest")
     animation_plan: ArtAnimationPlanV1 = Field(alias="animationPlan")
+    scene_exploration_plan: SceneExplorationPlanV1 | None = Field(
+        default=None, alias="sceneExplorationPlan"
+    )
+    scene_focus_plan: SceneFocusPlanV1 | None = Field(default=None, alias="sceneFocusPlan")
     source_read_endpoint: Literal["/v1/renderer/source"] = Field(alias="sourceReadEndpoint")
     source_read_capability: str = Field(alias="sourceReadCapability", min_length=40, max_length=200)
     source_read_expires_at: datetime = Field(alias="sourceReadExpiresAt")
@@ -252,6 +265,21 @@ class PixiRendererLaunchV1(BaseModel):
             raise ValueError("renderer manifest and plan must retain the launch identity")
         if self.animation_plan.video_executed or not self.animation_plan.original_art_preserved:
             raise ValueError("image-only renderer must preserve source art and exclude video")
+        if self.scene_exploration_plan is not None and (
+            self.scene_exploration_plan.session_id != self.session_id
+            or self.scene_exploration_plan.experience_spec_ref != self.experience_spec_ref
+            or self.scene_exploration_plan.source_artifact_ref
+            != self.asset_manifest.source_artifact_ref
+        ):
+            raise ValueError("scene exploration must retain the renderer launch identity")
+        if self.scene_focus_plan is not None and (
+            self.scene_focus_plan.session_id != self.session_id
+            or self.scene_focus_plan.experience_spec_ref != self.experience_spec_ref
+            or self.scene_focus_plan.source_artifact_ref != self.asset_manifest.source_artifact_ref
+            or self.scene_focus_plan.source_artifact_sha256
+            != self.asset_manifest.source_artifact_sha256
+        ):
+            raise ValueError("scene focus must retain the renderer source identity")
         return self
 
 
@@ -294,11 +322,30 @@ class RendererPlaybackFailedV1(BaseModel):
     reason: str = Field(min_length=1, max_length=160)
 
 
+class RendererEntityDiscoveredV1(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    type: Literal["DISCOVERED_ENTITY"]
+    planId: str = Field(min_length=1, max_length=120)
+    objectId: str = Field(min_length=1, max_length=120)
+    labelVi: str = Field(min_length=1, max_length=60)
+
+
+class RendererFocusChangedV1(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    type: Literal["FOCUS_CHANGED"]
+    planId: str = Field(min_length=1, max_length=120)
+    objectId: str = Field(min_length=1, max_length=120)
+
+
 RendererEventV1 = Annotated[
     RendererPlaybackStartedV1
     | RendererPlaybackCompletedV1
     | RendererFallbackAppliedV1
-    | RendererPlaybackFailedV1,
+    | RendererPlaybackFailedV1
+    | RendererEntityDiscoveredV1
+    | RendererFocusChangedV1,
     Field(discriminator="type"),
 ]
 RendererEventAdapterV1: TypeAdapter[RendererEventV1] = TypeAdapter(RendererEventV1)
@@ -312,6 +359,11 @@ __all__ = [
     "PixiRendererLaunchV1",
     "RendererBootstrapV1",
     "RendererChildArtAssetV1",
+    "RendererEntityDiscoveredV1",
     "RendererEventAdapterV1",
     "RendererEventV1",
+    "RendererFocusChangedV1",
+    "SceneExplorationPlanV1",
+    "SceneFocusPlanV1",
+    "SourceRegionV1",
 ]

@@ -7,6 +7,7 @@ import {
   RendererLoadCommandSchema,
   RendererControlCommandSchema,
   RendererPlaybackStateEnvelopeSchema,
+  PlaybackEventSchema,
   MAX_RENDERER_MESSAGE_BYTES,
   ArtPlanValidationError,
   buildPreservingFallbackPlan,
@@ -61,6 +62,55 @@ describe('art animation fixture protocol', () => {
     motions[2].to = {x: 1.1, y: 0.4};
 
     expect(() => validateArtAnimationPlan(invalidPlan)).toThrow(ArtPlanValidationError);
+  });
+
+  it('accepts bounded source-derived layers and discovery events', () => {
+    const layeredPlan = structuredClone(butterflyPlan) as {
+      objects: Array<Record<string, unknown>>;
+      motions: Array<Record<string, unknown>>;
+    };
+    layeredPlan.objects.push({
+      id: 'leaf',
+      label: 'chiếc lá',
+      asset: {
+        sourceAssetId: 'drawing-butterfly-001',
+        sourceAssetVersion: '1',
+        uri: 'source:original-art',
+        assetKind: 'CROP',
+        cropVersion: '1',
+        sourceRegion: {x: 0.05, y: 0.55, width: 0.2, height: 0.3},
+        sourceSha256: '0'.repeat(64),
+      },
+      initialTransform: {
+        position: {x: 0.2, y: 0.7},
+        scale: 0.9,
+        rotationDegrees: 0,
+        opacity: 1,
+      },
+      extractionStatus: 'READY',
+      interactive: true,
+    });
+    layeredPlan.motions.push({
+      id: 'leaf-reveal',
+      sceneId: 'focus-reveal',
+      kind: 'DRAW_REVEAL',
+      targetId: 'leaf',
+      durationSeconds: 0.8,
+    });
+
+    const parsed = validateArtAnimationPlan(layeredPlan);
+    expect(loadChildArtAssetInstructions(parsed)[1]?.sourceRegion).toEqual({
+      x: 0.05,
+      y: 0.55,
+      width: 0.2,
+      height: 0.3,
+    });
+    expect(PlaybackEventSchema.parse({
+      type: 'DISCOVERED_ENTITY',
+      planId: 'fixture-butterfly-art-animation',
+      objectId: 'leaf',
+      labelVi: 'chiếc lá',
+    })).toMatchObject({type: 'DISCOVERED_ENTITY', objectId: 'leaf'});
   });
 
   it('validates the shared source-locked envelope without changing renderer protocol v1', () => {

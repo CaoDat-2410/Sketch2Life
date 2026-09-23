@@ -1,4 +1,4 @@
-import type {ArtAnimationPlan, ArtObject, ChildArtAsset} from './contracts';
+import type {ArtAnimationPlan, ArtObject, ChildArtAsset, SourceRegion} from './contracts';
 
 export interface LoadedChildArtAsset {
   readonly objectId: string;
@@ -7,6 +7,7 @@ export interface LoadedChildArtAsset {
   readonly cropVersion?: string;
   readonly maskVersion?: string;
   readonly sourceSha256?: string;
+  readonly sourceRegion?: SourceRegion;
   readonly uri: string;
   readonly extractionStatus: ArtObject['extractionStatus'];
 }
@@ -20,6 +21,7 @@ function toLoadedAsset(object: ArtObject): LoadedChildArtAsset {
     cropVersion: asset.cropVersion,
     maskVersion: asset.maskVersion,
     sourceSha256: asset.sourceSha256,
+    sourceRegion: asset.sourceRegion,
     uri: asset.uri,
     extractionStatus: object.extractionStatus,
   };

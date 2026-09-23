@@ -379,3 +379,22 @@ P2-T5, mobile, Gate A UI, P1 eligibility, P3/P4 and shared integration remain se
 - Existing Gate A, Gate B, ExperienceSpec identity, original-art preservation, auth/save seams,
   synthetic/non-child demo boundary and no-Codex-Lightning-call rule remain unchanged. FEAT-003
   contracts and unrelated FEAT-026 files remain out of scope.
+
+## Pixi-only exploration implementation — 2026-09-23
+
+- Implemented on `codex/feat-018-pixi-exploration`. `SubjectCandidateSetV1` now projects at most
+  three confirmed concrete entities into short Vietnamese labels with image/narration coverage,
+  confidence bands and source claim references. `SceneExplorationPlanV1` adds bounded reveal,
+  focus, relation and learning-bridge beats without changing the Qwen/FEAT-003 contract.
+- Added `SceneFocusPlanV1` and explicit normalized source-region provenance. A region is accepted
+  only when an approved localizer supplies a bounded region plus extraction version/confidence;
+  absent or invalid localization produces `FALLBACK_REQUIRED` and keeps the whole original image.
+  No fake bounding boxes, generated replacement artwork or supplemental assets are introduced.
+- PixiJS now accepts source-derived crop layers, applies the crop in the WebView, supports GSAP
+  motion for multiple source-preserving objects, and emits bounded `FOCUS_CHANGED` and
+  `DISCOVERED_ENTITY` events. BaoVC shows child-friendly discovery chips and handles those events
+  without exposing technical error codes.
+- The video placeholder/handoff remains unchanged. MP4/TTS/worker/encoder/playback/READY/retry,
+  auth, durable persistence, FEAT-003 and live Lightning calls remain excluded from this branch.
+- Verification is recorded in
+  `evidence/notes/PERSONALIZED_DRAWING_EXPLORATION_IMPLEMENTATION_20260923.md`.

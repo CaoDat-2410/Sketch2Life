@@ -882,6 +882,7 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
   const [rendererAttempt, setRendererAttempt] = useState(0);
   const [rendererFailed, setRendererFailed] = useState(false);
   const [rendererStatus, setRendererStatus] = useState('Đang xoay màn hình để mở câu chuyện…');
+  const [discoveredLabel, setDiscoveredLabel] = useState<string | null>(null);
   const [playback, setPlayback] = useState({ position: 0, duration: 0, state: 'READY' });
   const rendererPageUrl = rendererLaunch
     ? `${API_BASE_URL}/renderer/mobile.html?rendererInstanceId=${encodeURIComponent(rendererInstanceId)}`
@@ -895,6 +896,9 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
     && playback.position < Number(beat.end_seconds || Number.MAX_SAFE_INTEGER)
   ));
   const caption = rendererText(activeBeat?.caption_vi, sceneData.storyTitle);
+  const storyboardCandidates = Array.isArray(pixiIntroStoryboard?.subject_candidates)
+    ? pixiIntroStoryboard.subject_candidates.map(rendererObject).slice(0, 3)
+    : [];
 
   useEffect(() => {
     let mounted = true;
@@ -952,6 +956,8 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
         sourceReadCapability: launch.sourceReadCapability,
         assetManifest: launch.assetManifest,
         animationPlan: launch.animationPlan,
+        sceneExplorationPlan: launch.sceneExplorationPlan,
+        sceneFocusPlan: launch.sceneFocusPlan,
       });
       if (!command.success || !rendererWebViewRef.current) {
         setRendererFailed(true);
@@ -975,9 +981,14 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
       return;
     }
     const lifecycle = RendererPlaybackEventEnvelopeSchema.safeParse(value);
-    if (lifecycle.success && lifecycle.data.event.type === 'PLAYBACK_FAILED') {
-      setRendererFailed(true);
-      setRendererStatus('Chuyển động chưa mở được. Ảnh gốc vẫn an toàn.');
+    if (lifecycle.success) {
+      if (lifecycle.data.event.type === 'DISCOVERED_ENTITY') {
+        setDiscoveredLabel(lifecycle.data.event.labelVi);
+        setRendererStatus(`Con vừa chạm vào ${lifecycle.data.event.labelVi}.`);
+      } else if (lifecycle.data.event.type === 'PLAYBACK_FAILED') {
+        setRendererFailed(true);
+        setRendererStatus('Chuyển động chưa mở được. Ảnh gốc vẫn an toàn.');
+      }
     }
   };
 
@@ -1038,6 +1049,31 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
             style={styles.pixiIntroWebView}
           />
         )}
+        <View style={styles.pixiDiscoverPanel}>
+          <Text style={styles.pixiDiscoverHint}>Chạm vào chi tiết để khám phá</Text>
+          <View style={styles.pixiDiscoverChips}>
+            {storyboardCandidates.map((candidate) => {
+              const id = rendererText(candidate.candidate_id ?? candidate.candidateId);
+              const label = rendererText(candidate.label_vi ?? candidate.labelVi);
+              if (!id || !label) return null;
+              return (
+                <TouchableOpacity
+                  key={id}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Khám phá ${label}`}
+                  onPress={() => {
+                    setDiscoveredLabel(label);
+                    setRendererStatus(`Con vừa chạm vào ${label}.`);
+                  }}
+                  style={[styles.pixiDiscoverChip, discoveredLabel === label && styles.pixiDiscoverChipActive]}
+                >
+                  <Text style={styles.pixiDiscoverChipText}>{label}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+          {discoveredLabel && <Text style={styles.pixiDiscoveredText}>✨ {discoveredLabel}</Text>}
+        </View>
         <View style={styles.pixiCaptionOverlay} pointerEvents="none">
           <Text style={styles.pixiCaptionText}>{caption}</Text>
         </View>
@@ -1682,6 +1718,24 @@ const styles = StyleSheet.create({
   },
   pixiIntroWebView: { flex: 1, backgroundColor: '#FFFEF9' },
   pixiIntroFallback: { width: '100%', flex: 1, backgroundColor: '#FFFEF9' },
+  pixiDiscoverPanel: {
+    position: 'absolute', left: 16, top: 14, right: 16, alignItems: 'center',
+  },
+  pixiDiscoverHint: {
+    color: '#172033', backgroundColor: 'rgba(255,255,255,0.92)', paddingHorizontal: 12,
+    paddingVertical: 6, borderRadius: 14, fontSize: 12, fontWeight: '800',
+  },
+  pixiDiscoverChips: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8, marginTop: 8 },
+  pixiDiscoverChip: {
+    backgroundColor: 'rgba(219,234,254,0.95)', borderColor: '#93C5FD', borderWidth: 1,
+    borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6,
+  },
+  pixiDiscoverChipActive: { backgroundColor: '#FDE68A', borderColor: '#F59E0B' },
+  pixiDiscoverChipText: { color: '#1E3A8A', fontSize: 12, fontWeight: '800' },
+  pixiDiscoveredText: {
+    marginTop: 6, color: '#047857', backgroundColor: 'rgba(236,253,245,0.95)',
+    paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, fontSize: 12, fontWeight: '800',
+  },
   pixiCaptionOverlay: {
     position: 'absolute', left: 20, right: 20, bottom: 16, alignItems: 'center',
   },

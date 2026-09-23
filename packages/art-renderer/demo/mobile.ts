@@ -1,4 +1,4 @@
-import {Application, Texture} from 'pixi.js';
+import {Application, Rectangle, Texture} from 'pixi.js';
 
 import {
   ART_RENDERER_PROTOCOL_VERSION,
@@ -69,12 +69,18 @@ function setPlaybackStatus(event: PlaybackEvent): void {
       status.textContent = 'Pixi không phát được chuyển động; ảnh gốc vẫn còn trong app.';
       playButton.disabled = false;
       break;
+    case 'FOCUS_CHANGED':
+      status.textContent = 'Đang soi gần hơn một chi tiết trong bức vẽ…';
+      break;
+    case 'DISCOVERED_ENTITY':
+      status.textContent = `Con vừa khám phá ${event.labelVi}.`;
+      break;
   }
 }
 
 const player = createBrowserArtPlayer({
   app,
-  loadTexture: async () => {
+  loadTexture: async (_uri, sourceRegion) => {
     if (sourceBlob === null) throw new Error('The original image is not loaded.');
     const bitmap = await createImageBitmap(sourceBlob);
     const canvas = document.createElement('canvas');
@@ -87,7 +93,17 @@ const player = createBrowserArtPlayer({
     }
     context.drawImage(bitmap, 0, 0);
     bitmap.close();
-    return Texture.from(canvas);
+    const fullTexture = Texture.from(canvas);
+    if (sourceRegion === undefined) return fullTexture;
+    const x = Math.floor(sourceRegion.x * bitmap.width);
+    const y = Math.floor(sourceRegion.y * bitmap.height);
+    const width = Math.max(1, Math.floor(sourceRegion.width * bitmap.width));
+    const height = Math.max(1, Math.floor(sourceRegion.height * bitmap.height));
+    return new Texture({
+      source: fullTexture.source,
+      frame: new Rectangle(x, y, width, height),
+      orig: new Rectangle(0, 0, width, height),
+    });
   },
   onEvent: (event) => {
     setPlaybackStatus(event);

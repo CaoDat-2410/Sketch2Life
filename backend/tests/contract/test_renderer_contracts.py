@@ -13,6 +13,10 @@ from sketch2life.contracts.schemas.renderer import (
     RendererBootstrapV1,
     RendererEventAdapterV1,
 )
+from sketch2life.contracts.schemas.scene_exploration import (
+    SceneFocusPlanV1,
+    SourceRegionV1,
+)
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 RENDERER_FIXTURE = (
@@ -139,4 +143,60 @@ def test_renderer_bootstrap_and_event_protocol_are_typed_and_bounded() -> None:
     with pytest.raises(ValidationError):
         RendererEventAdapterV1.validate_python(
             {"type": "PLAYBACK_FAILED", "planId": "plan-1", "reason": "x" * 161}
+        )
+
+
+def test_scene_focus_requires_explicit_bounded_source_regions() -> None:
+    region = SourceRegionV1(x=0.1, y=0.2, width=0.25, height=0.3)
+    assert region.x + region.width <= 1
+    ready = SceneFocusPlanV1.model_validate(
+        {
+            "contractName": "SceneFocusPlanV1",
+            "contractVersion": "1.0",
+            "sessionId": "session-1",
+            "experienceSpecRef": {"id": "spec-1", "version": 2},
+            "sourceArtifactRef": "artifact:source-1",
+            "sourceArtifactSha256": SOURCE_HASH,
+            "extractionStatus": "READY",
+            "targets": [
+                {
+                    "targetRef": "bird-1",
+                    "labelVi": "con chim",
+                    "sourceRegion": region.model_dump(mode="json"),
+                    "regionConfidence": 0.91,
+                    "depthLayer": 1,
+                    "hitSlop": 0.06,
+                    "assetKind": "CROP",
+                    "extractionVersion": "1",
+                }
+            ],
+        }
+    )
+    assert ready.extraction_status == "READY"
+    with pytest.raises(ValidationError, match="inside"):
+        SourceRegionV1(x=0.9, y=0.1, width=0.2, height=0.2)
+    with pytest.raises(ValidationError, match="fallback"):
+        SceneFocusPlanV1.model_validate(
+            {
+                "contractName": "SceneFocusPlanV1",
+                "contractVersion": "1.0",
+                "sessionId": "session-1",
+                "experienceSpecRef": {"id": "spec-1", "version": 2},
+                "sourceArtifactRef": "artifact:source-1",
+                "sourceArtifactSha256": SOURCE_HASH,
+                "extractionStatus": "FALLBACK_REQUIRED",
+                "targets": [
+                    {
+                        "targetRef": "bird-1",
+                        "labelVi": "con chim",
+                        "sourceRegion": region.model_dump(mode="json"),
+                        "regionConfidence": 0.91,
+                        "depthLayer": 1,
+                        "hitSlop": 0.06,
+                        "assetKind": "CROP",
+                        "extractionVersion": "1",
+                    }
+                ],
+                "fallbackReason": "NO_LOCALIZER",
+            }
         )

@@ -33,6 +33,11 @@ from sketch2life.application.services.p1_experience import P1ExperienceCompiler
 from sketch2life.application.services.pixi_topic_asset_candidates import (
     build_topic_asset_candidate_context,
 )
+from sketch2life.application.services.scene_exploration import (
+    build_scene_exploration_plan,
+    build_scene_focus_plan,
+    build_subject_candidates,
+)
 from sketch2life.application.services.semantic_activity_resolver import (
     ActivityRecommendation,
     resolve_activity_options,
@@ -999,6 +1004,40 @@ class SupervisedFlowService:
                     "EXPERIENCE_SPEC_MISSING", 409, "The approved experience is unavailable."
                 )
             spec = ExperienceSpecV1.model_validate(spec_value)
+            raw_value = workflow.values.get("raw_understanding")
+            anchor_value = workflow.values.get("anchor_set")
+            if not isinstance(raw_value, dict) or not isinstance(anchor_value, dict):
+                raise _workflow_error(
+                    "UNDERSTANDING_RESULT_MISSING",
+                    409,
+                    "The approved drawing understanding is unavailable.",
+                )
+            raw = _RAW_RESULT_ADAPTER.validate_python(raw_value)
+            if not isinstance(raw, RawUnderstandingSuccessV1):
+                raise _workflow_error(
+                    "UNDERSTANDING_FAILED", 409, "The drawing understanding is unavailable."
+                )
+            anchor_set = SemanticAnchorSetV1.model_validate(anchor_value)
+            subject_candidates = build_subject_candidates(
+                session_id=command.session_id,
+                raw=raw,
+                anchor_set=anchor_set,
+            )
+            scene_exploration = build_scene_exploration_plan(
+                session_id=command.session_id,
+                experience_spec_ref=VersionedRefV1(id=spec.spec_id, version=spec.spec_version),
+                raw=raw,
+                candidates=subject_candidates,
+                learning_bridge_vi=spec.bridge_sentence.sentence_vi,
+            )
+            region_hints = workflow.values.get("scene_focus_regions")
+            focus_plan = build_scene_focus_plan(
+                session_id=command.session_id,
+                experience_spec_ref=VersionedRefV1(id=spec.spec_id, version=spec.spec_version),
+                raw=raw,
+                candidates=subject_candidates,
+                region_hints=region_hints if isinstance(region_hints, dict) else None,
+            )
             capability, expires_at = self._renderer_source_capability_issuer(
                 session_id=command.session_id,
                 expected_session_version=snapshot.version,
@@ -1009,6 +1048,112 @@ class SupervisedFlowService:
             spec_ref = VersionedRefV1(id=spec.spec_id, version=spec.spec_version)
             source_artifact_ref = spec.source_artifact_id
             source_sha256 = spec.source_artifact_sha256
+            renderer_objects: list[dict[str, object]] = [
+                {
+                    "id": "original-art",
+                    "label": subject_candidates.items[0].label_vi,
+                    "asset": {
+                        "source_asset_id": "source-original-art",
+                        "source_asset_version": "1",
+                        "uri": "source:original-art",
+                        "asset_kind": "WHOLE_DRAWING",
+                        "source_sha256": source_sha256,
+                    },
+                    "extraction_status": "READY",
+                    "interactive": False,
+                    "initial_transform": {
+                        "position": {"x": 0.5, "y": 0.5},
+                        "scale": 0.92,
+                        "rotation_degrees": -1.5,
+                        "opacity": 1,
+                    },
+                }
+            ]
+            renderer_motions: list[dict[str, object]] = [
+                {
+                    "id": "original-art-reveal",
+                    "scene_id": "whole-image-reveal",
+                    "kind": "DRAW_REVEAL",
+                    "target_id": "original-art",
+                    "duration_seconds": 1.6,
+                },
+                {
+                    "id": "original-art-focus",
+                    "scene_id": "story-focus",
+                    "kind": "SCALE",
+                    "target_id": "original-art",
+                    "duration_seconds": 2.2,
+                    "scale": 1.08,
+                },
+                {
+                    "id": "original-art-drift",
+                    "scene_id": "story-motion",
+                    "kind": "MOVE_TO",
+                    "target_id": "original-art",
+                    "duration_seconds": 2.4,
+                    "to": {"x": 0.53, "y": 0.48},
+                },
+                {
+                    "id": "original-art-settle",
+                    "scene_id": "story-settle",
+                    "kind": "ROTATE",
+                    "target_id": "original-art",
+                    "duration_seconds": 1.5,
+                    "rotation_degrees": 1.5,
+                },
+            ]
+            if focus_plan.extraction_status == "READY":
+                for target in focus_plan.targets:
+                    assert target.source_region is not None
+                    object_id = f"focus-{target.target_ref}"
+                    center_x = target.source_region.x + target.source_region.width / 2
+                    center_y = target.source_region.y + target.source_region.height / 2
+                    renderer_objects.append(
+                        {
+                            "id": object_id,
+                            "label": target.label_vi,
+                            "asset": {
+                                "source_asset_id": "source-original-art",
+                                "source_asset_version": "1",
+                                "uri": "source:original-art",
+                                "asset_kind": target.asset_kind,
+                                "crop_version": target.extraction_version,
+                                "source_region": target.source_region.model_dump(mode="python"),
+                                "source_sha256": source_sha256,
+                            },
+                            "extraction_status": "READY",
+                            "interactive": True,
+                            "initial_transform": {
+                                "position": {"x": center_x, "y": center_y},
+                                "scale": 0.82 + target.depth_layer * 0.06,
+                                "rotation_degrees": 0,
+                                "opacity": 0,
+                            },
+                        }
+                    )
+                    renderer_motions.extend(
+                        [
+                            {
+                                "id": f"{object_id}-reveal",
+                                "scene_id": "focus-reveal",
+                                "kind": "DRAW_REVEAL",
+                                "target_id": object_id,
+                                "duration_seconds": 0.8,
+                            },
+                            {
+                                "id": f"{object_id}-float",
+                                "scene_id": "focus-parallax",
+                                "kind": "MOVE_TO",
+                                "target_id": object_id,
+                                "duration_seconds": 1.4,
+                                "to": {
+                                    "x": min(0.92, max(0.08, center_x + 0.02)),
+                                    "y": min(0.92, max(0.08, center_y - 0.015)),
+                                },
+                            },
+                        ]
+                    )
+
             renderer_plan = ArtAnimationPlanV1.model_validate(
                 {
                     "contract_name": "ArtAnimationPlanV1",
@@ -1022,59 +1167,8 @@ class SupervisedFlowService:
                         "plan_id": spec.spec_id,
                         "plan_version": str(spec.spec_version),
                         "stage": {"width": 800, "height": 600},
-                        "objects": [
-                            {
-                                "id": "original-art",
-                                "label": spec.anchor_set.primary_anchor.normalized_label,
-                                "asset": {
-                                    "source_asset_id": "source-original-art",
-                                    "source_asset_version": "1",
-                                    "uri": "source:original-art",
-                                    "asset_kind": "WHOLE_DRAWING",
-                                    "source_sha256": source_sha256,
-                                },
-                                "extraction_status": "READY",
-                                "initial_transform": {
-                                    "position": {"x": 0.5, "y": 0.5},
-                                    "scale": 0.92,
-                                    "rotation_degrees": -1.5,
-                                    "opacity": 1,
-                                },
-                            }
-                        ],
-                        "motions": [
-                            {
-                                "id": "original-art-reveal",
-                                "scene_id": "whole-image-reveal",
-                                "kind": "DRAW_REVEAL",
-                                "target_id": "original-art",
-                                "duration_seconds": 1.6,
-                            },
-                            {
-                                "id": "original-art-focus",
-                                "scene_id": "story-focus",
-                                "kind": "SCALE",
-                                "target_id": "original-art",
-                                "duration_seconds": 2.2,
-                                "scale": 1.08,
-                            },
-                            {
-                                "id": "original-art-drift",
-                                "scene_id": "story-motion",
-                                "kind": "MOVE_TO",
-                                "target_id": "original-art",
-                                "duration_seconds": 2.4,
-                                "to": {"x": 0.53, "y": 0.48},
-                            },
-                            {
-                                "id": "original-art-settle",
-                                "scene_id": "story-settle",
-                                "kind": "ROTATE",
-                                "target_id": "original-art",
-                                "duration_seconds": 1.5,
-                                "rotation_degrees": 1.5,
-                            },
-                        ],
+                        "objects": renderer_objects,
+                        "motions": renderer_motions,
                     },
                     "original_art_preserved": True,
                     "video_executed": False,
@@ -1112,6 +1206,12 @@ class SupervisedFlowService:
                     "experience_spec_ref": spec_ref.model_dump(mode="python"),
                     "asset_manifest": manifest.model_dump(mode="python"),
                     "animation_plan": renderer_plan.model_dump(mode="python"),
+                    "scene_exploration_plan": scene_exploration.model_dump(
+                        mode="python", by_alias=True, exclude_none=True
+                    ),
+                    "scene_focus_plan": focus_plan.model_dump(
+                        mode="python", by_alias=True, exclude_none=True
+                    ),
                     "source_read_endpoint": "/v1/renderer/source",
                     "source_read_capability": capability,
                     "source_read_expires_at": expires_at,
@@ -1125,6 +1225,15 @@ class SupervisedFlowService:
                     "renderer_launch": launch.model_dump(
                         mode="json", by_alias=True, exclude_none=True
                     ),
+                    "subject_candidates": subject_candidates.model_dump(
+                        mode="json", by_alias=True, exclude_none=True
+                    ),
+                    "scene_exploration_plan": scene_exploration.model_dump(
+                        mode="json", by_alias=True, exclude_none=True
+                    ),
+                    "scene_focus_plan": focus_plan.model_dump(
+                        mode="json", by_alias=True, exclude_none=True
+                    ),
                     "pixi_intro_storyboard": {
                         "contract_name": "PixiIntroStoryboardV1",
                         "contract_version": "1.0",
@@ -1133,33 +1242,23 @@ class SupervisedFlowService:
                         "source_artifact_ref": source_artifact_ref,
                         "beats": [
                             {
-                                "beat_id": "drawing-arrives",
-                                "start_seconds": 0.0,
-                                "end_seconds": 1.6,
-                                "caption_vi": "Bức vẽ của con đang bước vào câu chuyện…",
-                            },
-                            {
-                                "beat_id": "subject-focus",
-                                "start_seconds": 1.6,
-                                "end_seconds": 3.8,
-                                "caption_vi": (
-                                    "Cùng nhìn gần hơn: "
-                                    f"{display_label_vi(spec.anchor_set.primary_anchor.normalized_label)}."
-                                ),
-                            },
-                            {
-                                "beat_id": "story-motion",
-                                "start_seconds": 3.8,
-                                "end_seconds": 6.2,
-                                "caption_vi": spec.bridge_sentence.sentence_vi,
-                            },
-                            {
-                                "beat_id": "video-handoff",
-                                "start_seconds": 6.2,
-                                "end_seconds": 7.7,
-                                "caption_vi": "Sẵn sàng bước vào câu chuyện chính!",
-                            },
+                                "beat_id": beat.beat_id,
+                                "start_seconds": beat.start_seconds,
+                                "end_seconds": beat.end_seconds,
+                                "caption_vi": beat.caption_vi,
+                                "label_vi": beat.label_vi,
+                                "target_ref": beat.target_ref,
+                                "effect": beat.effect,
+                                "tap_enabled": beat.tap_enabled,
+                            }
+                            for beat in scene_exploration.beats
                         ],
+                        "subject_candidates": subject_candidates.model_dump(
+                            mode="json", by_alias=True, exclude_none=True
+                        ),
+                        "scene_focus_plan": focus_plan.model_dump(
+                            mode="json", by_alias=True, exclude_none=True
+                        ),
                         "original_art_preserved": True,
                         "video_placeholder_only": True,
                     },

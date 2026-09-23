@@ -1,9 +1,9 @@
-import {Assets, Container, Sprite, Texture, type Application} from 'pixi.js';
+import {Assets, Container, Rectangle, Sprite, Texture, type Application} from 'pixi.js';
 import {gsap} from 'gsap';
 
 import {loadChildArtAssetInstructions} from './assets';
 import {createRendererBenchmarkSample, type RendererBenchmarkSample} from './benchmark';
-import type {ArtAnimationPlan, PlaybackEvent, Transform} from './contracts';
+import type {ArtAnimationPlan, PlaybackEvent, SourceRegion, Transform} from './contracts';
 import {buildPreservingFallbackPlan} from './fallback';
 import {compileMotionPlan} from './motion';
 import {validateArtAnimationPlan} from './validation';
@@ -11,7 +11,7 @@ import {validateArtAnimationPlan} from './validation';
 export interface BrowserArtPlayerOptions {
   readonly app: Application;
   readonly onEvent?: (event: PlaybackEvent) => void;
-  readonly loadTexture?: (uri: string) => Promise<Texture>;
+  readonly loadTexture?: (uri: string, sourceRegion?: SourceRegion) => Promise<Texture>;
   readonly onProgress?: (state: BrowserPlaybackState) => void;
 }
 
@@ -120,10 +120,27 @@ export function createBrowserArtPlayer(options: BrowserArtPlayerOptions): Browse
 
           const texture = options.loadTexture === undefined
             ? await Assets.load<Texture>(instruction.uri)
-            : await options.loadTexture(instruction.uri);
+            : await options.loadTexture(instruction.uri, instruction.sourceRegion);
           const sprite = new Sprite(texture);
           sprite.anchor.set(0.5);
           setTransform(sprite, object.initialTransform, plan);
+          if (object.interactive) {
+            sprite.eventMode = 'static';
+            sprite.cursor = 'pointer';
+            sprite.on('pointertap', () => {
+              emit({
+                type: 'FOCUS_CHANGED',
+                planId: plan.planId,
+                objectId: object.id,
+              });
+              emit({
+                type: 'DISCOVERED_ENTITY',
+                planId: plan.planId,
+                objectId: object.id,
+                labelVi: object.label,
+              });
+            });
+          }
           scene.addChild(sprite);
           return [object.id, sprite] as const;
         }),

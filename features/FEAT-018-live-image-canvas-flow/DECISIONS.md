@@ -170,3 +170,15 @@
   playback and READY/retry semantics are assigned to another task and are excluded here. Preserve
   the existing video placeholder/handoff seam, Gate A/B and ExperienceSpec identity; do not change
   FEAT-003, auth/persistence, mobile credentials, live provider calls or FEAT-026.
+
+- 2026-09-23 implementation decision: keep Qwen semantic output and geometry localization as
+  separate contracts. `SceneExplorationPlanV1` may use only confirmed short subject labels and
+  typed relations; `SceneFocusPlanV1` may expose a CROP layer only with a bounded normalized region,
+  extraction version and confidence. Missing/invalid localization is a valid `FALLBACK_REQUIRED`
+  state that renders the preserved whole drawing. This prevents visually plausible but ungrounded
+  subject placement from being presented as truth.
+- 2026-09-23 implementation decision: the source capability remains the only runtime image input.
+  Source-derived crops reuse that capability and are not separate generated assets. Pixi discovery
+  events are bounded and Vietnamese; the mobile shell also exposes at most three subject chips so
+  discovery remains usable when geometry is unavailable. The future video implementation consumes
+  the unchanged placeholder/handoff seam.
