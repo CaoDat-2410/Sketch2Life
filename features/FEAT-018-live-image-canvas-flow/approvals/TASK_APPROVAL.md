@@ -1104,3 +1104,90 @@ LIVE/MODEL/GPU/PROVIDER/NETWORK/LIGHTNING = NOT AUTHORIZED
 NEXT = PREPARE_D1_OWNER_RESOLUTION_AND_D6_FIXTURE_BINDING
 reviewed_runtime_code_commit = 9549a341194f40b1a9be419d6fce0d70f1ca0384
 ```
+
+## Owner D9 governance publication and scoped push authorization - 2026-09-23
+
+Approver: Project owner, by direct instruction in the current conversation,
+"Publish the reviewed FEAT-018 D9 governance candidate only if every gate
+below is clean", dated 2026-09-23.
+Recorded by: Claude Code (Claude Opus 5.5) at 2026-09-23 13:44:29 UTC.
+Verbatim authorization clause from that instruction:
+
+> This goal authorizes one D9 candidate commit and one normal, non-force push
+> to `origin/feature/feat018-p2t2-live-lightning`. This is a new, one-time
+> authorization; it supersedes prior PUSH=NOT_AUTHORIZED only for this
+> operation.
+
+This entry is additive. The R1 addendum, the R2 amendment, the D1/D6 push
+authorization and every earlier byte of this file are preserved unchanged.
+
+### Basis
+
+The post-prerequisite independent review of the D9 governance
+reconciliation,
+`tmp/feat018-p2t2-d9-post-prerequisite-independent-review-20260923/REVIEW.md`,
+returned `PASS` for the exact four-path D9-only candidate on parent
+`b976da5e6195ade65fb8ca701161b7c704e17b84`. The owner accepts that review's
+non-blocking observations N-01 through N-04 unchanged as the owner
+disposition; no candidate content was edited. All preflight gates were clean,
+and the exact candidate was committed as:
+
+- `c0f39d586a438be85a1a036ba8c8a21f4cefe4af`
+  `docs(feat018): publish D9 governance reconciliation`; parent
+  `b976da5e6195ade65fb8ca701161b7c704e17b84`; tree
+  `ece12f5d98befe9686a70c161eaaa518d3e6ba15`; exactly four paths under
+  `features/FEAT-018-live-image-canvas-flow/`: `CONTEXT.md`
+  `4a2e2c20e4ebf2eeb373987b1a7902752fbcc85a`, `DECISIONS.md`
+  `2508cd3a3cc91bb78631feaa8dbaa22c9a196246`, live plan
+  `16feda7c2804b57e72d0833b3b9e4235acbae206`, and the new
+  `evidence/notes/P2_T2_D9_GOVERNANCE_RECONCILIATION_20260922.md`
+  `88af91a03bc53dd42a878360fe173bc8553aa7bb`.
+
+### Exact push scope
+
+The owner authorizes exactly one normal, non-force, fast-forward push to
+`origin` branch `feature/feat018-p2t2-live-lightning`, whose remote value
+before the push must be `b976da5e6195ade65fb8ca701161b7c704e17b84`. The push
+may publish only these two commits:
+
+1. the D9 governance commit `c0f39d586a438be85a1a036ba8c8a21f4cefe4af`;
+2. the approval-record follow-up commit that adds only this entry, subject
+   `docs(feat018): authorize scoped D9 push`, whose parent is the D9
+   governance commit.
+
+The push must not use force, tags or any other ref, and must not be preceded
+by fetch, rebase, merge or reconciliation. If the remote rejects the push or
+has diverged, the operation stops without retry or reconciliation.
+
+This authorization does not publish or approve the untracked D1
+owner-resolution package draft, the D1/D6 owner commit-readiness review note,
+the D1/D6 prerequisite governance approval correction note, or the ignored
+reports. It authorizes no other commit, push, branch/worktree/stash/remote
+change, source/tests, fixtures, contracts, dependencies, workflows, or runtime
+activity.
+
+At recording time:
+
+```text
+D9_POST_PREREQUISITE_INDEPENDENT_REVIEW = PASS
+D9_REVIEW_OBSERVATIONS_N01_N04 = ACCEPTED_UNCHANGED_BY_OWNER
+D9_GOVERNANCE_COMMIT = c0f39d586a438be85a1a036ba8c8a21f4cefe4af
+PUSH = AUTHORIZED_ONCE: origin/feature/feat018-p2t2-live-lightning, fast-forward from b976da5e6195ade65fb8ca701161b7c704e17b84, D9 governance commit plus this approval-record commit only
+PUSH (every other branch, ref, commit or operation) = NOT_AUTHORIZED
+```
+
+It does not resolve D9, D1, D6 fixture identity, D11, Stage 4 or live
+execution:
+
+```text
+P2T2-LIVE-D9 = NOT RESOLVED
+D9_LIVE_D11_CARRIER_SCOPE = UNKNOWN_UNRESOLVED_PENDING_D11
+D9 numeric ceilings (raw_output_max_bytes=65536, ipc_envelope_max_bytes=98304) = OWNER_SELECTED_CANDIDATE_ONLY
+D1 = BLOCKED_BY_D11
+D6 = NOT FINALLY RESOLVED; FIXTURE IDENTITY = RESOLVED_WITH_PROPOSED_VALUE
+D11 = BLOCKED
+STAGE_4 = NOT READY
+LIVE/MODEL/GPU/PROVIDER/NETWORK/LIGHTNING = NOT AUTHORIZED
+NEXT = PREPARE_D1_OWNER_RESOLUTION_AND_D6_FIXTURE_BINDING
+reviewed_runtime_code_commit = 9549a341194f40b1a9be419d6fce0d70f1ca0384
+```
