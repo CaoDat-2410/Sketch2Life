@@ -131,7 +131,7 @@ sequence below:
 Current next sequence, after the 2026-09-20 D6 owner binding (Section 11 is
 canonical):
 
-`INDEPENDENT_REVIEW_OF_D6_GOVERNANCE_COMMIT -> approved-caller and concrete live-seam binding under D11 -> D11 resolution -> owner resolution of D1-D12 -> separate Stage 4 approval -> provision session -> SESSION_READY -> D4 runtime/session-local revalidation -> D8 staging and staged digest verification -> exactly one smoke`
+`PREPARE_D1_OWNER_RESOLUTION_AND_D6_FIXTURE_BINDING -> approved-caller and concrete live-seam binding under D11 -> D11 resolution -> owner resolution of D1-D12 -> separate Stage 4 approval -> provision session -> SESSION_READY -> D4 runtime/session-local revalidation -> D8 staging and staged digest verification -> exactly one smoke`
 
 Update history, 2026-09-17 through 2026-09-20:
 
@@ -142,9 +142,11 @@ Update history, 2026-09-17 through 2026-09-20:
    (R-001..R-007). The R-001..R-007 plan remediation is recorded in Sections
    2.7-2.7.7, precondition 5, Phases 0-2, Sections 5-8, the P2T2-LIVE-D3, D6,
    and D11 sections, and Sections 9-12.
-3. The only current next gate is `INDEPENDENT_BINDING_REVIEW_RERUN`, a new
-   review of the R-001..R-007 remediation. Every earlier `NEXT` value in
-   Sections 11 and 12 is historical.
+3. The only current next gate is
+   `PREPARE_D1_OWNER_RESOLUTION_AND_D6_FIXTURE_BINDING`. The prior
+   `INDEPENDENT_BINDING_REVIEW_RERUN` was satisfied by the independent review
+   and is historical. Every earlier `NEXT` value in Sections 11 and 12 is
+   historical.
 4. The T-001..T-007 plan remediation corrected the preflight evidence boundary,
    cardinality rules, evidence hand-offs, timing/placement wording, approved
    caller binding, import identities, and inventory dependency requirements.
@@ -163,17 +165,22 @@ Update history, 2026-09-17 through 2026-09-20:
    `P2T2-LIVE-D6.MIME_EXTENSION_RULE` to `RESOLVED: REMOVE_REQUIREMENT` and
    set `P2T2-LIVE-D6.MEDIA_VALIDATION_SOURCE` to
    `SELECTED_PENDING_SEPARATE_IMPLEMENTATION_AND_REVIEW` (Sections 2.7.5,
-   2.7.6, and 9). D6 overall remains `NOT FINALLY RESOLVED`. The next gate is
-   the separate image-only validator implementation approval and independent
-   review. Its static-validation record is the current Section 12.5 entry.
+   2.7.6, and 9). D6 overall remains `NOT FINALLY RESOLVED`. At that time, the
+   next gate was the separate image-only validator implementation approval and
+   independent review, and its static-validation record was the Section 12.5
+   entry. Both are now historical: that gate is not the present gate, the
+   Section 12.5 entry is not the current validation record, and the later
+   item 8 records the subsequent state.
 
 8. The 2026-09-20 D6 owner binding recorded
    `D6_BINDING_REVIEW = PASS`, `D6_BINDING_PACKAGE = OWNER_APPROVED`, and
    `D6.MEDIA_VALIDATION_SOURCE = RESOLVED: EXACT_COMMITTED_IMAGE_ONLY_VALIDATOR`
    at commit `16c52da26c444947ab4388712d9b7310480360b4`. D6 fixture identity
-   remains `RESOLVED_WITH_PROPOSED_VALUE`; the next gate is
-   `INDEPENDENT_REVIEW_OF_D6_GOVERNANCE_COMMIT`. Its static-validation record
-   is the current Section 12.6 entry.
+   remains `RESOLVED_WITH_PROPOSED_VALUE`; at that time, the next gate was
+   `INDEPENDENT_REVIEW_OF_D6_GOVERNANCE_COMMIT`. The F-002 correction now
+   advances the current gate to
+   `PREPARE_D1_OWNER_RESOLUTION_AND_D6_FIXTURE_BINDING`. Its static-validation
+   record is the current Section 12.6 entry.
 
 These updates do not change the D1, D4, D11, Stage 4, or execution
 authorization status. `P2T2-LIVE-D6.MEDIA_VALIDATION_SOURCE` is resolved to
@@ -2351,7 +2358,7 @@ disposition is explicit:
 |---|---|---|---|
 | 1 | Exact two-file scope approval, with the FEAT-003 exclusion | COMPLETE | `6c1d607eb379a3b5b5b8f5cf120a904460da9ff1` and the feature-local approval package |
 | 2 | Offline coordinator implementation and verification with injected seams and synthetic local process tests only | COMPLETE FOR OFFLINE IMPLEMENTATION/VERIFICATION | `7f5cbe57fc9756c3e7fa5c248cd655c1dce0ec7b` and `9549a341194f40b1a9be419d6fce0d70f1ca0384`; offline coordinator/POSIX findings are closed; no live execution is claimed |
-| 3 | Offline independent review/finalization and source/plan binding review | COMPLETE FOR OFFLINE IMPLEMENTATION/VERIFICATION; SOURCE/TEST BINDING RECORDED | Offline review/finalization records close the offline findings; owner binding records `9549a341194f40b1a9be419d6fce0d70f1ca0384` for source/test identity only; live suitability and the concrete live-seam binding remain pending; the 2026-09-17 first independent plan binding review returned `PASS_WITH_FINDINGS` and its F-001/F-002 plan remediation is recorded in Sections 2.7.1-2.7.3; the second binding review returned `PASS_WITH_FINDINGS` (R-001..R-007), and its plan remediation is recorded in Sections 2.7-2.7.7 and the D6/D11 sections; `INDEPENDENT_BINDING_REVIEW_RERUN` is next |
+| 3 | Offline independent review/finalization and source/plan binding review | COMPLETE FOR OFFLINE IMPLEMENTATION/VERIFICATION; SOURCE/TEST BINDING RECORDED | Offline review/finalization records close the offline findings; owner binding records `9549a341194f40b1a9be419d6fce0d70f1ca0384` for source/test identity only; live suitability and the concrete live-seam binding remain pending; the 2026-09-17 first independent plan binding review returned `PASS_WITH_FINDINGS` and its F-001/F-002 plan remediation is recorded in Sections 2.7.1-2.7.3; the second binding review returned `PASS_WITH_FINDINGS` (R-001..R-007), and its plan remediation is recorded in Sections 2.7-2.7.7 and the D6/D11 sections; the current next gate is `PREPARE_D1_OWNER_RESOLUTION_AND_D6_FIXTURE_BINDING` |
 | 4 | Separate owner live-execution approval resolving D1-D12 and supplying the post-approval checkout commit | PENDING | owner approval must name exact fixture, prompt, hardware, budget, redaction, evidence pair, and external `approval_record_commit` |
 | 5 | Open Lightning and run the approved smoke | BLOCKED UNTIL STAGE 4 | no live process, model, GPU, provider, network, or Lightning execution is authorized by this draft |
 
@@ -2832,9 +2839,11 @@ review returned `PASS`, and the owner then recorded the D6 source binding:
 `P2T2-LIVE-D6.MIME_EXTENSION_RULE` remains `RESOLVED: REMOVE_REQUIREMENT`,
 and `P2T2-LIVE-D6.MEDIA_VALIDATION_SOURCE` is now
 `RESOLVED: EXACT_COMMITTED_IMAGE_ONLY_VALIDATOR` at commit
-`16c52da26c444947ab4388712d9b7310480360b4`. The next gate is the independent
-review of this D6 governance commit, then the concrete live-seam binding under
-D11 and D11 resolution.
+`16c52da26c444947ab4388712d9b7310480360b4`. The next gate recorded at that time was the independent
+review of this D6 governance commit; that review/correction sequence is
+historical and satisfied by the 2026-09-20 governance-review rerun `PASS`.
+Section 11 `CURRENT` is the sole canonical current gate. Concrete live-seam
+binding under D11 and D11 resolution remain downstream unresolved work.
 
 ```text
 HISTORICAL - BEFORE THE 2026-09-17 PLAN-ONLY CORRECTION:
@@ -2939,7 +2948,7 @@ B001_SECTION_12_PREAMBLE_CORRECTED
 D6_BINDING_REVIEW = PASS
 D6_BINDING_PACKAGE = OWNER_APPROVED
 D6_OWNER_DECISION = RECORDED
-NEXT=INDEPENDENT_REVIEW_OF_D6_GOVERNANCE_COMMIT
+NEXT=PREPARE_D1_OWNER_RESOLUTION_AND_D6_FIXTURE_BINDING
 D1 = BLOCKED
 D4 = OWNER-APPROVED_PRESTAGED_LOCAL_SNAPSHOT
 D4 snapshot/readiness/identity = RESOLVED_FOR_RUNTIME_REVALIDATION
@@ -2954,9 +2963,9 @@ LIGHTNING/MODEL/GPU/PROVIDER/NETWORK EXECUTION = NOT AUTHORIZED
 reviewed_runtime_code_commit = 9549a341194f40b1a9be419d6fce0d70f1ca0384
 
 THEN:
-INDEPENDENT_REVIEW_OF_D6_GOVERNANCE_COMMIT
-(independent review of the owner addendum and synchronized governance commit;
-this does not resolve D11, Stage 4, or the proposed fixture identity)
+PREPARE_D1_OWNER_RESOLUTION_AND_D6_FIXTURE_BINDING
+(owner-resolution preparation and exact D6 fixture-identity binding; this does
+not resolve D1, D6 overall, D11, Stage 4, or the proposed fixture identity)
 
 THEN:
 BIND_CONCRETE_LIVE_SEAMS_UNDER_D11
@@ -3422,5 +3431,5 @@ D6.MIME_EXTENSION_RULE = RESOLVED: REMOVE_REQUIREMENT
 D11 = BLOCKED
 STAGE_4 = NOT READY
 LIVE/MODEL/GPU/PROVIDER/NETWORK/LIGHTNING = NOT AUTHORIZED
-NEXT = INDEPENDENT_REVIEW_OF_D6_GOVERNANCE_COMMIT
+NEXT = PREPARE_D1_OWNER_RESOLUTION_AND_D6_FIXTURE_BINDING
 ```

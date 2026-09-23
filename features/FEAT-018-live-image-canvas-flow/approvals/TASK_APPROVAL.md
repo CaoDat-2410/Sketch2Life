@@ -766,3 +766,266 @@ Lightning provisioning, model loading, inference, GPU use, provider/network
 access, adapter invocation, commit, push, or live execution. After the required
 independent approval-record review passes, a separate implementation goal may
 begin within the exact two-file scope only.
+
+## Owner transition and conditional D1/D6 prerequisite commit approval - 2026-09-23
+
+Approver: Project owner, by direct instruction in the current conversation,
+"Complete D1/D6 Prerequisite Governance and Approval", dated 2026-09-23.
+Recorded by: Codex at 2026-09-23 05:52:09 UTC.
+Instruction SHA-256:
+`8a1663664625561fc4f952850dd8d48be7f5da1d06080bcb7fde5d2491721243`.
+Plan/scope revision: `P2T2-D1D6-PREREQUISITE-R1`, defined in this addendum.
+Baseline branch: `feature/feat018-p2t2-live-lightning`.
+Baseline HEAD: `86836d24cfcd83ca14c0bc50e79fff1103cb9ecc`; index empty.
+
+### Historical review lineage and current transition
+
+The owner preserves the preceding 2026-09-20 D6 approval and its
+`NEXT = INDEPENDENT_REVIEW_OF_D6_GOVERNANCE_COMMIT` text unchanged as
+historical provenance. That NEXT described the gate at the time of the
+validator-source binding; it is satisfied and is not the current global gate.
+
+The completed review/correction lineage is:
+
+- `tmp/feat018-p2t2-d6-governance-independent-review-20260920/REVIEW.md`:
+  reviewed the D6 governance commits and identified stale NEXT markers (F-001).
+- `tmp/feat018-p2t2-next-gate-correction-20260920/REPORT.md`:
+  recorded the F-001 current-marker synchronization.
+- `tmp/feat018-p2t2-f002-next-prose-correction-20260920/REPORT.md`:
+  recorded the five F-002 current-sequence prose corrections.
+- `tmp/feat018-p2t2-d6-governance-independent-review-rerun-20260920/REVIEW.md`:
+  returned `PASS` for that historical review/correction sequence and permitted
+  owner-resolution package preparation, without resolving execution gates.
+
+The later prerequisite boundary review
+(`tmp/feat018-p2t2-d1-d6-prerequisite-commit-boundary-review-20260923/REPORT.md`)
+found that the old approval NEXT remained in the actual file and that O-01
+still stated an unqualified old sequence. This new owner decision disposes
+of those discrepancies prospectively; it does not rewrite history or claim
+that the previously reported approval-marker edit was present.
+
+The owner now records the completed D6 review as moving the global/current
+NEXT to:
+
+```text
+NEXT = PREPARE_D1_OWNER_RESOLUTION_AND_D6_FIXTURE_BINDING
+```
+
+The live plan's Section 11 `CURRENT` remains the sole canonical current-state
+block. This approval records that same gate; it does not establish a competing
+sequence. Preparation and exact fixture binding remain pending activities,
+not completed D1/D6 resolutions. The independent prerequisite review below is
+a package-local commit gate and does not replace or satisfy the global NEXT.
+
+### Exact authorized documentation scope and preparation plan
+
+`D1_D6_PREREQUISITE_PREPARATION = APPROVED`
+
+Only the following five tracked paths and thirteen semantic hunks belong to
+the future prerequisite candidate. All paths are under
+`features/FEAT-018-live-image-canvas-flow/`.
+
+| Path | Authorized candidate changes |
+|---|---|
+| `CONTEXT.md` | Existing global NEXT replacement only |
+| `DECISIONS.md` | Existing D6-entry NEXT replacement only |
+| `plan/P2_T2_LIVE_LIGHTNING_EXECUTION_PLAN_DRAFT_20260913.md` | Existing current execution sequence, update-history items 3 and 8, Stage-3 table NEXT, Section 11 CURRENT NEXT, first THEN action, Section 12.6 NEXT; plus the explicit O-01 historical qualification |
+| `evidence/notes/P2_T2_D6_MEDIA_VALIDATION_BINDING_PACKAGE_DRAFT_20260920.md` | Existing top and final NEXT replacements only |
+| `approvals/TASK_APPROVAL.md` | This additive transition/approval record only; all preceding text is preserved |
+
+The eleven existing synchronization hunks are the prior boundary report's
+context-U01, decisions-U01, plan-U04/U05/U06/U12/U14/U16/U17, and d6-U01/U02.
+The plan's pre-D9 snapshot is blob
+`c80e1299c19472f8ba6d8d9933504faf20761cfe`. Its "current Section 12.6"
+pointer belongs in the prerequisite-only candidate, which has no D9 Section
+12.7. The later D9-owned "historical Section 12.6" pointer remains preserved
+in the working tree and excluded from the prerequisite candidate.
+
+O-01 is the three-line stale sequence at baseline HEAD plan lines 2835-2837
+(entry working-tree lines 2963-2965). The authorized correction explicitly
+labels the old D6 governance-review sequence historical/satisfied, points to
+Section 11 `CURRENT` as the sole canonical current gate, and preserves D11
+binding/resolution as downstream unresolved work. No unrelated plan meaning
+may change.
+
+Preparation records this approval first, then corrects only O-01 in the
+working plan, reconstructs the five-file candidate in memory from HEAD plus
+the exact scope above, runs the required checks, and records its exact blobs
+and deterministic recipe. All current D9 working-tree content is preserved.
+The untracked D1 owner-resolution package, D9 reconciliation note, every
+D9-only delta, and every other path are excluded from the future commit.
+The separately permitted feature-local preparation evidence note and ignored
+report are review support only and are not added to this five-file candidate.
+
+Acceptance criteria for revision `P2T2-D1D6-PREREQUISITE-R1`:
+
+1. Preserve historical approval bytes; the new attributable record and all
+   candidate current markers agree on the preparation NEXT.
+2. O-01 is explicitly historical/satisfied and cannot be read as the current
+   gate; Section 11 `CURRENT` remains canonical.
+3. Reproduce exact candidate blobs from HEAD plus only the thirteen semantic
+   hunks above, with no D1 package or D9-only additions.
+4. Preserve the protected states below, the existing runtime binding, all
+   unrelated working-tree content, HEAD, and the empty index.
+5. Run harness, repository-security, skeleton and architecture validators plus
+   both working-tree/cached diff checks; architecture may retain only the
+   unchanged `backend_ai_workflow.py` outer-layer finding.
+6. Obtain a fresh independent review of this exact scope, approval record,
+   candidate contents/identities, consistency and preservation with verdict
+   `PASS` before any staging or commit.
+
+### Conditional commit authorization and limits
+
+The owner authorizes the exact prerequisite candidate to be staged and
+committed only after that fresh independent review returns `PASS`. Earlier
+D6/D9 reviews and authoring checks do not satisfy this new gate. Any change
+to the reviewed candidate or baseline requires revalidation and a fresh
+independent PASS; scope expansion requires separate owner authorization.
+
+Proposed future commit message:
+
+```text
+docs(feat018): synchronize D1/D6 preparation gate
+```
+
+At recording time:
+
+```text
+D1_D6_PREREQUISITE_SCOPE = OWNER_AUTHORIZED_CONDITIONAL_ON_FRESH_INDEPENDENT_PASS
+D1_D6_PREREQUISITE_INDEPENDENT_REVIEW = PENDING
+D1_D6_PREREQUISITE_STAGING_AND_COMMIT = NOT_PERMITTED_BEFORE_FRESH_INDEPENDENT_PASS
+PUSH = NOT_AUTHORIZED
+```
+
+This preparation task performs no staging or commit. This approval does not
+authorize push, D9 publication, source/tests, fixtures, contracts, dependencies,
+workflows, branch/worktree/stash/remote changes, or any runtime activity.
+It does not resolve D1, D6 fixture identity, D11, Stage 4 or live execution:
+
+```text
+D1 = BLOCKED_BY_D11
+D6 = NOT FINALLY RESOLVED; FIXTURE IDENTITY = RESOLVED_WITH_PROPOSED_VALUE
+D11 = BLOCKED
+STAGE_4 = NOT READY
+LIVE/MODEL/GPU/PROVIDER/NETWORK/LIGHTNING = NOT AUTHORIZED
+reviewed_runtime_code_commit = 9549a341194f40b1a9be419d6fce0d70f1ca0384
+```
+
+D6 media-validation-source and MIME/extension decisions remain as previously
+owner-bound. No D9 numeric value, enforcement, carrier or live status changes.
+
+## Owner scope amendment for plan update-history item 7 (B-03) - 2026-09-23
+
+Approver: Project owner, by direct instruction in the current conversation,
+"Correct the FEAT-018 D1/D6 prerequisite-governance package after independent
+review REVIEW_2.md", dated 2026-09-23.
+Recorded by: Claude Code (Claude Opus 5.5) at 2026-09-23 07:50:28 UTC.
+Instruction SHA-256 (UTF-8 text, LF line endings, no trailing newline):
+`bd3f37d20a599b0d555d7ab83fedaf293b6c52c0a97d8b4f00e8d691ad67f400`.
+Plan/scope revision: `P2T2-D1D6-PREREQUISITE-R2`, amending revision
+`P2T2-D1D6-PREREQUISITE-R1` recorded in the preceding addendum.
+Baseline branch: `feature/feat018-p2t2-live-lightning`.
+Baseline HEAD: `86836d24cfcd83ca14c0bc50e79fff1103cb9ecc`; index empty.
+
+### Reason for the amendment
+
+The second fresh independent review of the R1 candidate,
+`tmp/feat018-p2t2-d1-d6-prerequisite-independent-review-20260923/REVIEW_2.md`,
+returned `BLOCKED`. Its finding B-03 identified that live-plan update-history
+item 7 still stated the 2026-09-18 next gate in the present tense and called
+the Section 12.5 entry "current". That contradicts the Section 12 preamble,
+the Section 12.5 `HISTORICAL (SUPERSEDED)` heading, item 3 and item 8. Its
+findings B-01 and B-02 concern only the non-candidate supporting note and
+the ignored preparation report; they do not change the candidate scope.
+The review reports `REVIEW.md` and `REVIEW_2.md` are preserved unchanged.
+
+### Amended exact candidate scope
+
+The owner authorizes exactly one additional candidate hunk:
+
+- `plan-I07`: in live-plan update-history item 7 (baseline HEAD plan lines
+  166-168), qualify the 2026-09-18 next gate and the Section 12.5 reference
+  as historical ("at that time"), state that they are not the present gate
+  or the current validation record, and state that the later item 8 records
+  the subsequent state. The historical facts of item 7 are preserved and no
+  other plan meaning changes.
+
+The candidate remains exactly the same five tracked paths under
+`features/FEAT-018-live-image-canvas-flow/` (`CONTEXT.md`, `DECISIONS.md`,
+`plan/P2_T2_LIVE_LIGHTNING_EXECUTION_PLAN_DRAFT_20260913.md`,
+`evidence/notes/P2_T2_D6_MEDIA_VALIDATION_BINDING_PACKAGE_DRAFT_20260920.md`
+and `approvals/TASK_APPROVAL.md`). It now has exactly fourteen semantic
+hunks:
+
+1. the eleven existing synchronization hunks context-U01, decisions-U01,
+   plan-U04/U05/U06/U12/U14/U16/U17 and d6-U01/U02;
+2. the plan-O01 historical qualification;
+3. the plan-I07 historical qualification authorized here;
+4. approval-ADD01, the additive approval text appended after the historical
+   prefix of this file. It now consists of the R1 addendum and this R2
+   amendment as one contiguous appended block; every earlier byte is
+   preserved.
+
+In the R1 scope table, the plan row gains only plan-I07. The R1 addendum is
+preserved unchanged as historical provenance. Where it says "thirteen
+semantic hunks" or defines the candidate by revision R1, this amendment
+supersedes it for the current candidate. No other scope expansion is
+authorized. In particular, the dated 2026-09-18 wording in `CONTEXT.md`
+noted as observation O-02 in `REVIEW_2.md` is not changed by this amendment.
+The D1 package, the D9 reconciliation note, every D9-only delta, the
+supporting preparation note, the ignored reports and every other path remain
+excluded.
+
+### Amended acceptance criteria for revision `P2T2-D1D6-PREREQUISITE-R2`
+
+1. Preserve historical approval bytes, including the complete R1 addendum;
+   the attributable records and all candidate current markers agree on
+   `NEXT = PREPARE_D1_OWNER_RESOLUTION_AND_D6_FIXTURE_BINDING`.
+2. O-01 and item 7 are explicitly historical and cannot be read as the
+   current gate or current validation record; Section 11 `CURRENT` remains
+   canonical.
+3. Reproduce exact candidate blobs from HEAD plus only the fourteen semantic
+   hunks above, using a recipe that yields them when applied literally, with
+   no D1 package or D9-only additions.
+4. Preserve the protected states below, the existing runtime binding, all
+   unrelated working-tree content, HEAD, and the empty index.
+5. Run harness, repository-security, skeleton and architecture validators plus
+   both working-tree/cached diff checks; architecture may retain only the
+   unchanged `backend_ai_workflow.py` outer-layer finding.
+6. Obtain a new fresh independent review of this exact R2 scope, approval
+   record, candidate contents/identities, consistency and preservation, in a
+   session separate from the authoring session and written to a new report
+   filename, with verdict `PASS` before any staging or commit.
+
+### Conditional commit authorization and limits
+
+The R2 candidate remains conditional. It may be staged and committed only
+after the new fresh independent review returns `PASS`. `REVIEW.md`,
+`REVIEW_2.md`, earlier D6/D9 reviews and authoring checks do not satisfy this
+gate. Any change to the reviewed candidate or baseline requires revalidation
+and a fresh independent PASS; scope expansion requires separate owner
+authorization.
+
+At recording time:
+
+```text
+D1_D6_PREREQUISITE_SCOPE = OWNER_AUTHORIZED_R2_CONDITIONAL_ON_FRESH_INDEPENDENT_PASS
+D1_D6_PREREQUISITE_INDEPENDENT_REVIEW = PENDING
+D1_D6_PREREQUISITE_STAGING_AND_COMMIT = NOT_PERMITTED_BEFORE_FRESH_INDEPENDENT_PASS
+PUSH = NOT_AUTHORIZED
+```
+
+This amendment performs no staging or commit and authorizes no push, D9
+publication, source/tests, fixtures, contracts, dependencies, workflows,
+branch/worktree/stash/remote changes, or any runtime activity. It does not
+resolve D1, D6 fixture identity, D11, Stage 4 or live execution:
+
+```text
+D1 = BLOCKED_BY_D11
+D6 = NOT FINALLY RESOLVED; FIXTURE IDENTITY = RESOLVED_WITH_PROPOSED_VALUE
+D11 = BLOCKED
+STAGE_4 = NOT READY
+LIVE/MODEL/GPU/PROVIDER/NETWORK/LIGHTNING = NOT AUTHORIZED
+NEXT = PREPARE_D1_OWNER_RESOLUTION_AND_D6_FIXTURE_BINDING
+reviewed_runtime_code_commit = 9549a341194f40b1a9be419d6fce0d70f1ca0384
+```

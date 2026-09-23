@@ -27,7 +27,7 @@
   `SESSION_READY`. CI run `35500484772` proves only the `feat018-posix`
   process-group cleanup workflow passed for commit `16c52da`, not full
   validator CI or full repository validation.
-  `NEXT = INDEPENDENT_REVIEW_OF_D6_GOVERNANCE_COMMIT`.
+  `NEXT = PREPARE_D1_OWNER_RESOLUTION_AND_D6_FIXTURE_BINDING`.
 
 - 2026-09-18 D6 owner-decision recording: record
   `P2T2-LIVE-D6.MIME_EXTENSION_RULE = RESOLVED: REMOVE_REQUIREMENT` (no

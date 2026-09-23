@@ -316,4 +316,4 @@ Stage-4-local only and may occur only after an authorized session reaches
 passed for commit `16c52da`, not full validator CI or full repository
 validation.
 
-`NEXT = INDEPENDENT_REVIEW_OF_D6_GOVERNANCE_COMMIT`
+`NEXT = PREPARE_D1_OWNER_RESOLUTION_AND_D6_FIXTURE_BINDING`
