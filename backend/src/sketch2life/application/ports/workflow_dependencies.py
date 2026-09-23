@@ -55,6 +55,9 @@ class SemanticCatalogPort(Protocol):
 
 
 class SemanticCatalogV2Port(Protocol):
+    @property
+    def profiles(self) -> tuple[SemanticActivityProfileV2, ...]: ...
+
     def profile_for(self, activity_id: str) -> SemanticActivityProfileV2: ...
 
     def match_scene(
@@ -78,6 +81,8 @@ class ActivityCatalogMetadataPort(Protocol):
     def primary_material_ids(self, activity_id: str) -> tuple[str, ...]: ...
 
     def duration_spec(self, activity_id: str) -> dict[str, Any] | None: ...
+
+    def recommendation_display(self, activity_id: str) -> dict[str, Any] | None: ...
 
 
 @dataclass(frozen=True, slots=True)

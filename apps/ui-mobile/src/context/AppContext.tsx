@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useRef, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { Platform } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Audio } from 'expo-av';
@@ -19,6 +19,7 @@ import {
   DemoApiError,
   MAX_IMAGE_BYTES,
   type NarrationInput,
+  type ActivityRecommendationCard,
   type P1ContextOption,
   type P1ContextOptions,
   type WorkflowResult,
@@ -73,6 +74,7 @@ interface AppContextType {
   uploadDrawing: () => Promise<boolean>;
   workflowBusy: string | null;
   workflowError: string | null;
+  dismissWorkflowError: () => void;
   workflowNotice: string | null;
   sessionId: string | null;
   sessionVersion: number;
@@ -115,6 +117,8 @@ interface AppContextType {
   contextOptions: P1ContextOptions | null;
   selectedBackendActivity: P1ContextOption | null;
   activityRecommendation: P1ContextOptions['recommendation'] | null;
+  activityRecommendationCards: ActivityRecommendationCard[];
+  selectBackendActivity: (activityId: string) => void;
   prepareActivityWorkflow: () => Promise<boolean>;
   approveActivity: () => Promise<boolean>;
   completeActivityHandoff: () => Promise<boolean>;
@@ -177,6 +181,12 @@ const DISPLAY_LABELS_VI: Record<string, string> = {
   garden: 'khu vườn',
   animal: 'động vật',
   bird: 'con chim',
+  branch: 'cành cây',
+  leaf: 'chiếc lá',
+  leaves: 'những chiếc lá',
+  perching: 'đậu trên cành',
+  'bird on branch': 'con chim đậu trên cành cây',
+  'outdoor scene': 'khung cảnh ngoài trời',
   cat: 'con mèo',
   dog: 'con chó',
 };
@@ -186,7 +196,10 @@ const BACKGROUND_LABELS = new Set([
 ]);
 
 function displayLabelVi(value: string): string {
-  return DISPLAY_LABELS_VI[value.trim().toLowerCase()] || value.trim();
+  const cleaned = value.trim();
+  const translated = DISPLAY_LABELS_VI[cleaned.toLowerCase()];
+  if (translated) return translated;
+  return /^[A-Za-z][A-Za-z\s-]*$/.test(cleaned) ? 'chi tiết trong tranh' : cleaned;
 }
 
 function topicFromClaims(claims: AnalysisClaim[]): string {
@@ -196,7 +209,10 @@ function topicFromClaims(claims: AnalysisClaim[]): string {
   const context = claims.find((claim) => claim.kind === 'story' && claim.observation_id !== primary.observation_id);
   const subject = primary.kind === 'subject' ? primary.label.value : null;
   if (subject && action) {
-    return `${subject.charAt(0).toUpperCase()}${subject.slice(1)} đang ${action.label.value}${context ? ` trong ${context.label.value}` : ''}`;
+    if (context?.label.value.includes(subject) && context.label.value.includes(action.label.value.split(' ')[0])) {
+      return `Cùng khám phá ${context.label.value}!`;
+    }
+    return `Cùng khám phá ${subject} đang ${action.label.value}${context ? ` giữa ${context.label.value}` : ''}!`;
   }
   if (subject && context) return `Khám phá ${subject} trong ${context.label.value}`;
   if (primary.kind === 'action') return `Khám phá hoạt động ${primary.label.value}`;
@@ -224,7 +240,7 @@ function readAnalysisClaims(payload: JsonObject): AnalysisClaim[] {
       kind,
     }];
   }));
-  return claims.sort((left, right) => {
+  const ranked = claims.sort((left, right) => {
     const leftBackground = BACKGROUND_LABELS.has((left.rawLabel || left.label.value).toLowerCase()) ? 1 : 0;
     const rightBackground = BACKGROUND_LABELS.has((right.rawLabel || right.label.value).toLowerCase()) ? 1 : 0;
     const kindRank = { subject: 0, action: 1, story: 2 };
@@ -232,6 +248,13 @@ function readAnalysisClaims(payload: JsonObject): AnalysisClaim[] {
       || kindRank[left.kind] - kindRank[right.kind]
       || right.confidence - left.confidence
       || left.observation_id.localeCompare(right.observation_id);
+  });
+  const seen = new Set<string>();
+  return ranked.filter((claim) => {
+    const key = `${claim.kind}:${claim.label.value.toLowerCase()}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
   });
 }
 
@@ -263,9 +286,9 @@ function mapScenePayload(payload: JsonObject, sessionId: string): SceneUnderstan
     entities,
     voiceTranscript: textValue(narration.transcript, 'Không có lời kể trong phiên này.'),
     complimentTitle: 'AI đã đọc được bức tranh!',
-    complimentSub: 'Đây là đề xuất từ ảnh thật vừa gửi lên backend; người lớn vẫn cần xác nhận Gate A.',
+    complimentSub: 'Mời người lớn cùng bé kiểm tra những chi tiết vừa tìm thấy.',
     storyTitle: textValue(topic.text, topicFromClaims(claims)),
-    storySubtitle: 'Bản xem trước tĩnh từ ảnh gốc; video chưa nằm trong phạm vi demo.',
+    storySubtitle: 'Cùng nhìn lại bức vẽ gốc và câu chuyện của con.',
   };
 }
 
@@ -275,24 +298,47 @@ function workflowFailure(result: WorkflowResult<Record<string, unknown>>, fallba
   const narration = asObject(payload.narration);
   const asr = asObject(narration.asr);
   const nestedCode = textValue(nestedFailure.code, textValue(asr.error_code));
-  const nestedDetail = textValue(nestedFailure.upstream_detail, textValue(asr.error_detail));
-  const nestedMessage = nestedCode
-    ? `Backend phân tích thất bại (${nestedCode}${nestedDetail ? `: ${nestedDetail}` : ''}).`
-    : '';
-  const reasonCodes = Array.isArray(payload.reason_codes)
-    ? payload.reason_codes.filter((value): value is string => typeof value === 'string')
-    : [];
+  const filterResult = asObject(payload.filter_result);
+  const fitEvaluation = asObject(payload.fit_evaluation);
+  const gateB = asObject(payload.gate_b);
+  const reasonCodes = [
+    payload.reason_codes,
+    filterResult.reason_codes,
+    fitEvaluation.reason_codes,
+    gateB.reason_codes,
+  ].flatMap((values) => Array.isArray(values)
+    ? values.filter((value): value is string => typeof value === 'string')
+    : []);
   const safeReason = reasonCodes.includes('NO_GROUNDED_CLAIMS')
-    ? 'Backend chưa tìm thấy chi tiết đủ rõ trong ảnh. Ảnh chưa được đưa vào Gate A; hãy thử ảnh rõ hơn hoặc chạy lại.'
+    ? 'Mình chưa nhìn rõ đủ chi tiết. Hãy thử ảnh sáng, rõ hơn hoặc đọc lại bức tranh.'
     : reasonCodes.includes('MAPPING_REJECTED')
-      ? 'Backend đã từ chối kết quả AI vì không khớp contract. Ảnh chưa được đưa vào Gate A.'
+      ? 'Kết quả vừa nhận chưa đủ tin cậy. Hãy thử đọc lại bức tranh.'
+      : reasonCodes.some((code) => [
+        'ANCHOR_TEMPLATE_MISMATCH',
+        'ANCHOR_KIND_TEMPLATE_MISMATCH',
+        'FIT_BELOW_THRESHOLD',
+        'NO_ELIGIBLE_ACTIVITY',
+        'ACTIVITY_NOT_IN_SEMANTIC_SHORTLIST',
+      ].includes(code))
+        ? 'Chưa tìm thấy hoạt động phù hợp với chủ đề và độ tuổi. Hãy chọn hướng khác hoặc thử lại.'
+        : reasonCodes.some((code) => code.includes('STALE_') || code.includes('VERSION'))
+          ? 'Lựa chọn hoạt động đã thay đổi. Hãy tải lại danh sách rồi thử lại.'
+          : reasonCodes.some((code) => code.includes('GATE_A') || code.includes('SESSION'))
+            ? 'Phiên khám phá đã thay đổi. Hãy quay lại xác nhận chủ đề trước khi chọn hoạt động.'
       : '';
   return new DemoApiError(
-    textValue(result.failure?.safe_message, textValue(payload.guidance, safeReason || nestedMessage || fallback)),
+    safeReason || fallback,
     textValue(result.failure?.code, nestedCode || 'WORKFLOW_BLOCKED'),
     409,
     result.failure?.retryable === true || nestedFailure.retryable === true,
   );
+}
+
+function friendlyError(error: unknown, fallback: string): string {
+  if (!(error instanceof DemoApiError)) return fallback;
+  if (error.code === 'NETWORK_ERROR') return 'Chưa kết nối được với máy chủ. Hãy kiểm tra mạng rồi thử lại.';
+  if (error.code === 'REQUEST_TIMEOUT') return 'Máy chủ đang xử lý lâu hơn dự kiến. Bạn có thể thử lại.';
+  return fallback;
 }
 
 function materialTypeForId(id: string): 'paper' | 'scissors' | 'crayon' | 'glue' | 'general' {
@@ -304,7 +350,10 @@ function materialTypeForId(id: string): 'paper' | 'scissors' | 'crayon' | 'glue'
   return 'general';
 }
 
-function mapExperienceToActivity(payload: JsonObject): MontessoriActivity {
+function mapExperienceToActivity(
+  payload: JsonObject,
+  display?: ActivityRecommendationCard,
+): MontessoriActivity {
   const spec = asObject(payload.experience_spec);
   const template = asObject(spec.activity_template);
   const plan = asObject(spec.activity_plan);
@@ -322,17 +371,24 @@ function mapExperienceToActivity(payload: JsonObject): MontessoriActivity {
   const maxAge = numberValue(template.age_months_max);
   return {
     id: textValue(activityRef.id, 'backend-activity'),
-    title: textValue(template.template_id, 'Hoạt động từ catalog backend'),
-    subtitle: textValue(bridge.sentence_vi, 'Hoạt động được chọn từ anchor đã được người lớn xác nhận.'),
-    ageGroup: String(minAge / 12) + '–' + String(maxAge / 12) + ' tuổi',
-    durationMinutes: 30,
+    title: display?.title_vi || 'Hoạt động khám phá',
+    subtitle: display?.summary_vi || textValue(bridge.sentence_vi, 'Hoạt động được chọn từ chủ đề đã xác nhận.'),
+    ageGroup: display?.age_label_vi || String(Math.floor(minAge / 12)) + '–' + String(Math.ceil((maxAge + 1) / 12)) + ' tuổi',
+    durationMinutes: display?.duration_minutes || 15,
     category: textValue(focus.child_facing_goal_vi, 'Montessori'),
     materials: materials.map((value, index) => {
       const id = textValue(value, 'material-' + String(index + 1));
-      return { id, name: id.replace(/[-_]/g, ' '), type: materialTypeForId(id), isReady: false };
+      return {
+        id,
+        name: display?.material_labels_vi[index] || 'Vật liệu quen thuộc',
+        type: materialTypeForId(id),
+        isReady: false,
+      };
     }),
     steps: steps.map((value, index) => ({ stepNumber: index + 1, title: textValue(value, 'Bước ' + String(index + 1)), isDone: false })),
-    safetyNotes: safety.map((value) => textValue(value)),
+    safetyNotes: safety.length > 0
+      ? ['Người lớn kiểm tra vật liệu và ở gần trong suốt hoạt động.']
+      : [],
     parentTips: textValue(bridge.sentence_vi, 'Người lớn đồng hành và giữ đúng điều kiện an toàn đã chọn.'),
   };
 }
@@ -397,8 +453,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [drawingImage, setDrawingImage] = useState<string>('cat-drawing-sample');
   const [selectedDrawing, setSelectedDrawing] = useState<SelectedDrawing | null>(null);
   const [workflowBusy, setWorkflowBusy] = useState<string | null>(null);
+  const activityWorkflowLockRef = useRef(false);
   const [workflowError, setWorkflowError] = useState<string | null>(null);
   const [workflowNotice, setWorkflowNotice] = useState<string | null>(null);
+  useEffect(() => {
+    setWorkflowNotice(null);
+  }, [currentScreen]);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [sessionVersion, setSessionVersion] = useState(0);
   const sessionVersionRef = useRef(0);
@@ -478,7 +538,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         durationMs,
       });
       setVoiceDuration(Math.round((durationMs ?? 0) / 1000));
-      setWorkflowNotice('Đã ghi lời kể. Nút tiếp tục sẽ upload audio rồi mới gọi ASR.');
+      setWorkflowNotice('Đã ghi lời kể. Chạm tiếp tục khi bạn đã sẵn sàng.');
       return true;
     } catch {
       recordingRef.current = null;
@@ -514,7 +574,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const result = await workflowApi.uploadAudio(sessionId, sessionVersionRef.current, selectedNarrationAudio);
       const payload = asObject(result.payload);
-      if (result.status !== 'SUCCEEDED') throw workflowFailure(result, 'Backend không nhận được lời kể.');
+      if (result.status !== 'SUCCEEDED') throw workflowFailure(result, 'Chưa nhận được lời kể.');
       updateSessionVersion(result.observed_session_version);
       setSelectedNarrationAudio((previous) => previous ? {
         ...previous,
@@ -523,10 +583,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         byteLength: numberValue(payload.byte_length),
         contentType: textValue(payload.content_type, previous.mimeType),
       } : previous);
-      setWorkflowNotice('Lời kể đã được upload trong phiên tạm. Chưa gọi ASR cho tới nút phân tích.');
+      setWorkflowNotice('Lời kể đã sẵn sàng trong phiên khám phá này.');
       return true;
     } catch (error) {
-      setWorkflowError(error instanceof DemoApiError ? error.message : 'Backend không nhận được lời kể.');
+      setWorkflowError(friendlyError(error, 'Chưa gửi được lời kể. Hãy thử lại.'));
       return false;
     } finally {
       setWorkflowBusy(null);
@@ -571,11 +631,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setActivityRecommendation(null);
       setRendererLaunch(null);
       setAiProgress(0);
-      setWorkflowNotice('Đã tạo phiên tạm trên backend. Chưa gửi ảnh hay tiêu tốn credit.');
+      setWorkflowNotice('Phiên khám phá đã sẵn sàng. Hãy chọn bức vẽ của con.');
       navigate('capture');
       return true;
     } catch (error) {
-      setWorkflowError(error instanceof DemoApiError ? error.message : 'Không tạo được phiên backend.');
+      setWorkflowError(friendlyError(error, 'Chưa bắt đầu được phiên mới. Hãy thử lại.'));
       return false;
     } finally {
       setWorkflowBusy(null);
@@ -628,13 +688,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const payload = asObject(result.payload);
       setAdmission(payload);
       if (result.status !== 'SUCCEEDED' || textValue(payload.decision) !== 'ADMITTED') {
-        throw workflowFailure(result, 'Backend yêu cầu chọn lại ảnh.');
+        throw workflowFailure(result, 'Ảnh này chưa dùng được. Hãy chọn lại ảnh.');
       }
       setSessionState('CREATED');
-      setWorkflowNotice('Ảnh đã qua admission. Chỉ nút phân tích tiếp theo mới gọi Lightning.');
+      setWorkflowNotice('Ảnh đã sẵn sàng. Chạm tiếp tục để khám phá bức tranh.');
       return true;
     } catch (error) {
-      setWorkflowError(error instanceof DemoApiError ? error.message : 'Backend không nhận ảnh.');
+      setWorkflowError(friendlyError(error, 'Chưa gửi được ảnh. Hãy chọn ảnh và thử lại.'));
       return false;
     } finally {
       setWorkflowBusy(null);
@@ -673,13 +733,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const result = await workflowApi.runUnderstanding(sessionId, sessionVersion, narration);
       updateSessionVersion(result.observed_session_version);
       const payload = asObject(result.payload);
-      if (result.status !== 'SUCCEEDED') throw workflowFailure(result, 'Backend không trả kết quả phân tích.');
+      if (result.status !== 'SUCCEEDED') throw workflowFailure(result, 'Chưa đọc được bức tranh.');
       const claims = readAnalysisClaims(payload);
       const progress = asObject(payload.understanding_progress);
       if (claims.length === 0 || progress.gate_a_ready !== true) {
         throw workflowFailure(
           result,
-          'Backend chưa tạo được đề xuất có căn cứ; Gate A vẫn đang khóa.',
+          'Mình chưa tìm thấy đủ chi tiết đáng tin cậy. Hãy thử lại với ảnh rõ hơn.',
         );
       }
       setAnalysisClaims(claims);
@@ -692,12 +752,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setVoiceTranscript(textValue(narrationPayload.transcript));
       setSessionState('GATE_A_PENDING');
       setAiProgress(100);
-      setWorkflowNotice('Đã nhận kết quả Lightning/backend. Hãy kiểm tra và xác nhận Gate A.');
+      setWorkflowNotice('Đã tìm thấy một vài chi tiết. Mời người lớn kiểm tra cùng con.');
       navigate('scene_understanding');
       return true;
     } catch (error) {
       setAiProgress(0);
-      setWorkflowError(error instanceof DemoApiError ? error.message : 'Không phân tích được ảnh.');
+      setWorkflowError(friendlyError(error, 'Chưa đọc được bức tranh. Hãy thử lại với ảnh rõ hơn.'));
       return false;
     } finally {
       setWorkflowBusy(null);
@@ -723,13 +783,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         });
         updateSessionVersion(requery.observed_session_version);
         if (requery.status !== 'SUCCEEDED') {
-          throw workflowFailure(requery, 'Backend chưa tạo lại đề xuất theo hướng đã chọn.');
+          throw workflowFailure(requery, 'Chưa tạo lại được đề xuất theo hướng đã chọn.');
         }
         const requeryPayload = asObject(requery.payload);
         const requeryClaims = readAnalysisClaims(requeryPayload);
         const requeryProgress = asObject(requeryPayload.understanding_progress);
         if (requeryClaims.length === 0 || requeryProgress.gate_a_ready !== true) {
-          throw workflowFailure(requery, 'Backend chưa tạo được đề xuất mới có căn cứ.');
+          throw workflowFailure(requery, 'Chưa tạo được đề xuất mới đủ căn cứ.');
         }
         const matchingClaim = requeryClaims.find(
           (claim) => claim.label.value.toLowerCase() === currentDirection?.label.value.toLowerCase(),
@@ -740,7 +800,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setSelectedClaimIds([matchingClaim.observation_id]);
         setPrimaryClaimId(matchingClaim.observation_id);
         setSceneData(mapScenePayload(requeryPayload, sessionId));
-        setWorkflowNotice('Đã kiểm tra lại ảnh theo hướng mới. Hãy xác nhận Gate A lần nữa.');
+        setWorkflowNotice('Đã xem lại theo hướng mới. Mời người lớn xác nhận chủ đề.');
         return false;
       }
       const result = await workflowApi.confirmGateA(
@@ -751,13 +811,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         correction.trim() || null,
       );
       updateSessionVersion(result.observed_session_version);
-      if (result.status !== 'SUCCEEDED') throw workflowFailure(result, 'Backend chưa nhận Gate A.');
+      if (result.status !== 'SUCCEEDED') throw workflowFailure(result, 'Chưa xác nhận được chủ đề.');
       setGateAConfirmed(true);
       setSessionState('UNDERSTANDING_PROPOSED');
-      setWorkflowNotice('Gate A đã được người lớn xác nhận; có thể tạo lựa chọn hoạt động.');
+      setWorkflowNotice('Người lớn đã xác nhận chủ đề. Giờ mình cùng chọn hoạt động nhé.');
       return true;
     } catch (error) {
-      setWorkflowError(error instanceof DemoApiError ? error.message : 'Không xác nhận được Gate A.');
+      setWorkflowError(friendlyError(error, 'Chưa xác nhận được chủ đề. Hãy kiểm tra lựa chọn rồi thử lại.'));
       return false;
     } finally {
       setWorkflowBusy(null);
@@ -765,19 +825,48 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const prepareActivityWorkflow = async (): Promise<boolean> => {
-    if (!sessionId || !gateAConfirmed || workflowBusy) return false;
+    const hasPreparedActivity = Boolean(
+      contextOptions
+      && selectedBackendActivity
+      && ['GATE_B_PENDING', 'EXPERIENCE_READY', 'HANDOFF_READY', 'COMPLETED'].includes(sessionState),
+    );
+    if (hasPreparedActivity) {
+      setWorkflowError(null);
+      setWorkflowNotice('Hoạt động đã sẵn sàng để xem lại.');
+      return true;
+    }
+    if (
+      !sessionId
+      || !gateAConfirmed
+      || sessionState !== 'UNDERSTANDING_PROPOSED'
+      || workflowBusy
+      || activityWorkflowLockRef.current
+    ) return false;
+    activityWorkflowLockRef.current = true;
     setWorkflowBusy('Chuẩn bị hoạt động');
     setWorkflowError(null);
     setWorkflowNotice(null);
-    setContextOptions(null);
-    setSelectedBackendActivity(null);
-    setActivityRecommendation(null);
     try {
       const ageMonths = Math.min(155, Math.max(0, selectedChild.age * 12));
-      const optionsResult = await workflowApi.readContextOptions(sessionId, sessionVersion, ageMonths);
-      const options = optionsResult.payload;
-      if (!options || options.options.length === 0) throw new Error('Backend không có hoạt động phù hợp với anchor/độ tuổi.');
-      const option = options.options[0];
+      let options = contextOptions;
+      let option = selectedBackendActivity;
+      if (!options) {
+        const optionsResult = await workflowApi.readContextOptions(sessionId, sessionVersion, ageMonths);
+        options = optionsResult.payload;
+        if (!options || options.options.length === 0) {
+          throw new Error('Chưa tìm thấy hoạt động thật sự phù hợp. Hãy chọn lại chủ đề hoặc thử ảnh rõ hơn.');
+        }
+        option = options.options[0];
+        setContextOptions(options);
+        setSelectedBackendActivity(option);
+        setActivityRecommendation(options.recommendation || null);
+        setActivityRecommendationCards(options.activity_recommendations?.options || []);
+        setWorkflowNotice('Đã tìm thấy các hoạt động phù hợp. Người lớn chọn một hoạt động để tiếp tục.');
+        return false;
+      }
+      if (!option) {
+        throw new Error('Hãy chọn một hoạt động trước khi tiếp tục.');
+      }
       const contextResult = await workflowApi.setP1Context(sessionId, sessionVersion, {
         age_months: ageMonths,
         readiness_ids: option.readiness_ids,
@@ -796,8 +885,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (filterResult.status !== 'SUCCEEDED') throw workflowFailure(filterResult, 'Không tìm thấy hoạt động đạt điều kiện.');
       const experienceResult = await workflowApi.prepareExperience(sessionId, filterResult.observed_session_version);
       updateSessionVersion(experienceResult.observed_session_version);
-      if (experienceResult.status !== 'SUCCEEDED') throw workflowFailure(experienceResult, 'Không tạo được ExperienceSpec.');
-      const activity = mapExperienceToActivity(asObject(experienceResult.payload));
+      if (experienceResult.status !== 'SUCCEEDED') {
+        throw workflowFailure(experienceResult, 'Chưa chuẩn bị được hoạt động phù hợp.');
+      }
+      const display = options.activity_recommendations?.options.find(
+        (item) => item.activity_id === option?.activity_ref.id,
+      );
+      const activity = mapExperienceToActivity(asObject(experienceResult.payload), display);
       setActivitiesList([activity]);
       setSelectedActivity(activity);
       setContextOptions(options);
@@ -806,12 +900,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setMaterialsChecklist(Object.fromEntries(activity.materials.map((material) => [material.id, false])));
       setStepsChecklist(Object.fromEntries(activity.steps.map((step) => [step.stepNumber, false])));
       setSessionState('GATE_B_PENDING');
-      setWorkflowNotice('Backend đã chuẩn bị hoạt động và ExperienceSpec. Hãy xem rồi duyệt Gate B.');
+      setWorkflowNotice('Hoạt động đã được chuẩn bị. Mời người lớn xem và xác nhận.');
       return true;
     } catch (error) {
-      setWorkflowError(error instanceof DemoApiError ? error.message : error instanceof Error ? error.message : 'Không chuẩn bị được hoạt động.');
+      setWorkflowError(error instanceof Error && !(error instanceof DemoApiError)
+        ? error.message
+        : friendlyError(error, 'Chưa chuẩn bị được hoạt động phù hợp. Hãy thử lại.'));
       return false;
     } finally {
+      activityWorkflowLockRef.current = false;
       setWorkflowBusy(null);
     }
   };
@@ -823,12 +920,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const result = await workflowApi.approveGateB(sessionId, sessionVersion);
       updateSessionVersion(result.observed_session_version);
-      if (result.status !== 'SUCCEEDED') throw workflowFailure(result, 'Backend chưa nhận Gate B.');
+      if (result.status !== 'SUCCEEDED') throw workflowFailure(result, 'Chưa xác nhận được hoạt động.');
       setSessionState('EXPERIENCE_READY');
-      setWorkflowNotice('Gate B đã duyệt. Video không được gọi; learning media dùng fallback/Pixi original-art.');
+      setWorkflowNotice('Hoạt động đã được xác nhận. Bức vẽ gốc vẫn được giữ nguyên.');
       return true;
     } catch (error) {
-      setWorkflowError(error instanceof DemoApiError ? error.message : 'Không duyệt được Gate B.');
+      setWorkflowError(friendlyError(error, 'Chưa xác nhận được hoạt động. Hãy thử lại.'));
       return false;
     } finally {
       setWorkflowBusy(null);
@@ -841,16 +938,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setWorkflowError(null);
     try {
       const rendererResult = await workflowApi.prepareRenderer(sessionId, sessionVersion);
-      if (rendererResult.status !== 'SUCCEEDED') throw workflowFailure(rendererResult, 'Pixi renderer chưa sẵn sàng.');
+      if (rendererResult.status !== 'SUCCEEDED') throw workflowFailure(rendererResult, 'Bức tranh chuyển động chưa sẵn sàng.');
       setRendererLaunch(asObject(rendererResult.payload).renderer_launch as JsonObject);
       const handoffResult = await workflowApi.completeHandoff(sessionId, sessionVersion);
       updateSessionVersion(handoffResult.observed_session_version);
       if (handoffResult.status !== 'SUCCEEDED') throw workflowFailure(handoffResult, 'Chưa thể bàn giao hoạt động.');
       setSessionState('HANDOFF_READY');
-      setWorkflowNotice('Hoạt động đã được bàn giao; có thể ghi feedback phiên chạy.');
+      setWorkflowNotice('Hoạt động đã sẵn sàng. Sau khi hoàn thành, hãy ghi lại vài nhận xét.');
       return true;
     } catch (error) {
-      setWorkflowError(error instanceof DemoApiError ? error.message : 'Không thể bàn giao hoạt động.');
+      setWorkflowError(friendlyError(error, 'Chưa thể mở phần trải nghiệm. Hãy thử lại.'));
       return false;
     } finally {
       setWorkflowBusy(null);
@@ -863,6 +960,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [contextOptions, setContextOptions] = useState<P1ContextOptions | null>(null);
   const [selectedBackendActivity, setSelectedBackendActivity] = useState<P1ContextOption | null>(null);
   const [activityRecommendation, setActivityRecommendation] = useState<P1ContextOptions['recommendation'] | null>(null);
+  const [activityRecommendationCards, setActivityRecommendationCards] = useState<ActivityRecommendationCard[]>([]);
   const [rendererLaunch, setRendererLaunch] = useState<JsonObject | null>(null);
 
   // Checklists
@@ -886,10 +984,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Feedback State
   const [completionStatus, setCompletionStatus] = useState<'completed' | 'partial' | 'not_attempted'>(
-    'completed'
+    'not_attempted'
   );
-  const [interestScore, setInterestScore] = useState<number>(5);
-  const [independenceScore, setIndependenceScore] = useState<number>(4);
+  const [interestScore, setInterestScore] = useState<number>(0);
+  const [independenceScore, setIndependenceScore] = useState<number>(0);
   const [selectedObservationTags, setSelectedObservationTags] = useState<string[]>([
     'Nhớ vòi bướm hút mật',
     'Tự tay dán cánh',
@@ -910,7 +1008,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const saveFeedback = async (): Promise<boolean> => {
     if (!sessionId || sessionState !== 'HANDOFF_READY' || workflowBusy) {
-      setWorkflowError('Backend chưa ở trạng thái bàn giao; feedback chưa được gửi.');
+      setWorkflowError('Hoạt động chưa hoàn tất. Hãy quay lại bước hướng dẫn trước khi ghi nhận xét.');
       return false;
     }
     setIsSavingFeedback(true);
@@ -926,16 +1024,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         selectedObservationTags,
       );
       updateSessionVersion(result.observed_session_version);
-      if (result.status !== 'SUCCEEDED') throw workflowFailure(result, 'Backend không nhận feedback.');
+      if (result.status !== 'SUCCEEDED') throw workflowFailure(result, 'Chưa ghi nhận được nhận xét.');
       setSessionState('FEEDBACK_RECORDED');
-      setToastMessage('✨ Đã ghi feedback cho phiên chạy tạm.');
+      setToastMessage('✨ Đã ghi nhận nhận xét trong phiên này.');
       setTimeout(() => {
         setToastMessage(null);
         resetTo('dashboard');
       }, 1200);
       return true;
     } catch (error) {
-      setWorkflowError(error instanceof DemoApiError ? error.message : 'Feedback chưa được lưu.');
+      setWorkflowError(friendlyError(error, 'Chưa lưu được phản hồi. Hãy thử lại.'));
       return false;
     } finally {
       setWorkflowBusy(null);
@@ -952,6 +1050,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const setPrimaryClaim = (claimId: string) => {
     setPrimaryClaimId(claimId);
     setSelectedClaimIds((previous) => previous.includes(claimId) ? previous : [...previous, claimId]);
+  };
+
+  const selectBackendActivity = (activityId: string) => {
+    const option = contextOptions?.options.find((item) => item.activity_ref.id === activityId) || null;
+    setSelectedBackendActivity(option);
   };
 
   return (
@@ -976,6 +1079,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         uploadDrawing,
         workflowBusy,
         workflowError,
+        dismissWorkflowError: () => setWorkflowError(null),
         workflowNotice,
         sessionId,
         sessionVersion,
@@ -1015,6 +1119,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         contextOptions,
         selectedBackendActivity,
         activityRecommendation,
+        activityRecommendationCards,
+        selectBackendActivity,
         prepareActivityWorkflow,
         approveActivity,
         completeActivityHandoff,

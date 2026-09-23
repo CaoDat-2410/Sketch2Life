@@ -147,6 +147,8 @@ def _adapter(
     on_mapping_diagnostic: Any = None,
     repair_prompt_builder: Any = None,
     semantic_empty_repair_prompt_builder: Any = None,
+    quality_repair_prompt_builder: Any = None,
+    quality_repair_predicate: Any = None,
     enable_bounded_repair: bool = False,
 ) -> QwenVisionAdapter:
     return QwenVisionAdapter(
@@ -159,8 +161,43 @@ def _adapter(
         on_mapping_diagnostic=on_mapping_diagnostic,
         repair_prompt_builder=repair_prompt_builder,
         semantic_empty_repair_prompt_builder=semantic_empty_repair_prompt_builder,
+        quality_repair_prompt_builder=quality_repair_prompt_builder,
+        quality_repair_predicate=quality_repair_predicate,
         enable_bounded_repair=enable_bounded_repair,
     )
+
+
+def test_quality_repair_shares_the_single_bounded_retry(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    artifact_ref, digest = _write_source(tmp_path)
+    broad = {
+        **_empty_payload(),
+        "entities": [
+            {"observation_id": "entity-1", "label": _text("nature"), "confidence": 0.9}
+        ],
+    }
+    specific = {
+        **_empty_payload(),
+        "entities": [
+            {"observation_id": "entity-1", "label": _text("con chim"), "confidence": 0.9}
+        ],
+    }
+    runner = _SequenceRunner(_raw(broad), _raw(specific))
+
+    result = _adapter(
+        runner,
+        prompt="initial",
+        quality_repair_prompt_builder=lambda _request: "quality-repair",
+        quality_repair_predicate=lambda success: success.entities[0].label.value == "nature",
+        enable_bounded_repair=True,
+    ).understand(_request(artifact_ref, digest))
+
+    assert isinstance(result, VisionUnderstandingSuccessV2)
+    assert result.attempt_number == 2
+    assert result.repair_attempted is True
+    assert result.entities[0].label.value == "con chim"
+    assert runner.calls == 2
+    assert runner.received_prompts == ["initial", "quality-repair"]
 
 
 def _write_source(tmp_path: Path) -> tuple[str, str]:

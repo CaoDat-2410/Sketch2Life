@@ -85,6 +85,29 @@ class FileWorkflowCatalogMetadata:
             max_minutes=variant.duration_minutes,
         ).model_dump(mode="json")
 
+    def recommendation_display(self, activity_id: str) -> dict[str, Any] | None:
+        variant = self._curated_by_id.get(activity_id)
+        if variant is None:
+            return None
+        material_labels = tuple(
+            _MATERIAL_LABELS_VI.get(material_id, "Vật liệu quen thuộc")
+            for material_id in variant.material_option_ids
+        )
+        supervision = {
+            "NONE": "Trẻ có thể tự làm khi đã sẵn sàng",
+            "NEARBY": "Người lớn ở gần hỗ trợ",
+            "DIRECT": "Người lớn cùng thực hiện",
+        }[variant.minimum_supervision]
+        minimum, maximum = variant.age_months
+        return {
+            "title_vi": variant.title_vi,
+            "summary_vi": variant.action_vi,
+            "duration_minutes": variant.duration_minutes,
+            "age_label_vi": f"{minimum // 12}–{(maximum + 1) // 12} tuổi",
+            "supervision_label_vi": supervision,
+            "material_labels_vi": material_labels[:4],
+        }
+
     def _load_records(self) -> dict[str, dict[str, Any]]:
         records: dict[str, dict[str, Any]] = {}
         paths = (
@@ -138,3 +161,16 @@ class FileWorkflowCatalogMetadata:
 
 
 __all__ = ["FileWorkflowCatalogMetadata", "WorkflowMetadataLoadError"]
+
+
+_MATERIAL_LABELS_VI: dict[str, str] = {
+    "MAT_NATURE_OBJECTS": "Vật mẫu thiên nhiên an toàn",
+    "MAT_PICTURE_CARDS": "Thẻ hình",
+    "MAT_SORTING_TRAY": "Khay phân loại",
+    "MAT_MOVEMENT_MARKERS": "Dấu mốc vận động",
+    "MAT_CARE_TRAY": "Khay chăm sóc",
+    "MAT_PAPER_CRAYON": "Giấy và bút màu",
+    "MAT_PLANT_TRAY": "Khay quan sát cây",
+    "MAT_SEQUENCE_CARDS": "Thẻ trình tự",
+    "MAT_FLOOR_TAPE": "Băng dán sàn",
+}

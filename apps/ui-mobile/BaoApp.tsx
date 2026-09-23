@@ -10,6 +10,7 @@ import {
   Platform,
   useWindowDimensions,
   Animated,
+  Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, radius, shadows } from './src/theme';
@@ -38,7 +39,7 @@ const SCREENS: ScreenMeta[] = [
   { id: 'profile', title: '4. Child Profile', subtitle: 'Hồ sơ trẻ & consent', flow: 'flow1', workflowStep: 1, stepName: 'Bước 1: Hồ sơ' },
   { id: 'capture', title: '5. Capture / Upload', subtitle: 'Thêm tranh vẽ của bé', flow: 'flow1', workflowStep: 1, stepName: 'Bước 1: Tranh vẽ' },
   { id: 'voice', title: '6. Voice Recording', subtitle: 'Kể chuyện bằng giọng nói', flow: 'flow1', workflowStep: 1, stepName: 'Bước 1: Lời kể' },
-  { id: 'ai_processing', title: '7. AI Processing', subtitle: 'ASR + VLM Fusion (70%)', flow: 'flow2', workflowStep: 2, stepName: 'Bước 2: Xử lý AI' },
+  { id: 'ai_processing', title: '7. Xử lý bức tranh', subtitle: 'Ghép ảnh và lời kể', flow: 'flow2', workflowStep: 2, stepName: 'Bước 2: Xử lý AI' },
   { id: 'scene_understanding', title: '8. Scene Understanding', subtitle: 'Hiểu tranh (Gate A)', flow: 'flow2', workflowStep: 2, stepName: 'Bước 2: Gate A' },
   { id: 'story_preview', title: '9. Story Preview', subtitle: 'Phase 1: Art Animation', flow: 'flow2', workflowStep: 5, stepName: 'Bước 5: Hoạt hình' },
   { id: 'activity_recommend', title: '10. Activity Recommendation', subtitle: 'Gợi ý Montessori (Gate B)', flow: 'flow2', workflowStep: 3, stepName: 'Bước 3: Gate B' },
@@ -48,7 +49,7 @@ const SCREENS: ScreenMeta[] = [
 
 function MainAppContent() {
   const { width: windowWidth } = useWindowDimensions();
-  const { currentScreen, navigate, toastMessage } = useAppContext();
+  const { currentScreen, navigate, toastMessage, workflowError, dismissWorkflowError } = useAppContext();
 
   // Check if developer mode is enabled via query param (?dev=true)
   const [isDevMode, setIsDevMode] = useState<boolean>(() => {
@@ -64,6 +65,7 @@ function MainAppContent() {
 
   // Hidden feature: Triple-tap the status bar clock to toggle dev mode
   const handleClockTap = () => {
+    if (Platform.OS !== 'web') return;
     setTapClockCount((prev) => {
       if (prev + 1 >= 3) {
         setIsDevMode((mode) => !mode);
@@ -209,7 +211,7 @@ function MainAppContent() {
       <View style={[styles.appContainer, isDevMode && { paddingTop: 46 }]}>
         <View style={[styles.phoneChassis, !isDesktopWeb && styles.phoneChassisNative]}>
           {/* Native Mobile Status Bar (hidden on splash because splash hero image fills the bezel) */}
-          {currentScreen !== 'splash' && (
+          {Platform.OS === 'web' && currentScreen !== 'splash' && (
             <View style={styles.mobileStatusBar}>
               <TouchableOpacity activeOpacity={0.7} onPress={handleClockTap}>
                 <Text style={styles.statusBarClock}>9:41</Text>
@@ -241,11 +243,50 @@ function MainAppContent() {
           </View>
 
           {/* Virtual Home Bar */}
-          <View style={styles.homeBarContainer}>
-            <View style={styles.homeBarIndicator} />
-          </View>
+          {Platform.OS === 'web' && (
+            <View style={styles.homeBarContainer}>
+              <View style={styles.homeBarIndicator} />
+            </View>
+          )}
         </View>
       </View>
+      <Modal
+        transparent
+        visible={Boolean(workflowError)}
+        animationType="fade"
+        onRequestClose={dismissWorkflowError}
+      >
+        <View style={styles.errorBackdrop}>
+          <View style={styles.errorCard} accessibilityRole="alert">
+            <View style={styles.errorIcon}>
+              <Ionicons name="cloud-offline-outline" size={28} color="#E11D48" />
+            </View>
+            <Text style={styles.errorTitle}>Mình chưa làm được bước này</Text>
+            <Text style={styles.errorMessage}>{workflowError}</Text>
+            <View style={styles.errorActions}>
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel="Quay về bước chọn ảnh"
+                style={[styles.errorButton, styles.errorSecondaryButton]}
+                onPress={() => {
+                  dismissWorkflowError();
+                  navigate('capture');
+                }}
+              >
+                <Text style={styles.errorSecondaryText}>Về bước ảnh</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel="Đóng thông báo và thử lại"
+                style={styles.errorButton}
+                onPress={dismissWorkflowError}
+              >
+                <Text style={styles.errorButtonText}>Thử lại</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -259,6 +300,45 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
+  errorBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.45)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  errorCard: {
+    width: '100%',
+    maxWidth: 360,
+    borderRadius: 24,
+    backgroundColor: '#FFFFFF',
+    padding: 24,
+    alignItems: 'center',
+  },
+  errorIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#FFF1F2',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  errorTitle: { fontSize: 19, fontWeight: '900', color: '#172033', textAlign: 'center' },
+  errorMessage: { fontSize: 15, lineHeight: 22, color: '#475569', textAlign: 'center', marginTop: 8 },
+  errorActions: { flexDirection: 'row', gap: 10, marginTop: 20 },
+  errorButton: {
+    minHeight: 48,
+    minWidth: 126,
+    borderRadius: 24,
+    backgroundColor: '#2563EB',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+  },
+  errorButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '800' },
+  errorSecondaryButton: { backgroundColor: '#EFF6FF', borderWidth: 1, borderColor: '#93C5FD' },
+  errorSecondaryText: { color: '#1D4ED8', fontSize: 15, fontWeight: '800' },
   outerContainer: {
     flex: 1,
     backgroundColor: '#0F172A',

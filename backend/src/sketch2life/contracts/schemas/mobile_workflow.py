@@ -50,6 +50,41 @@ class WorkflowFailureV1(BaseModel):
     safe_message: str = Field(min_length=1, max_length=240)
 
 
+class ActivityRecommendationCardV1(BaseModel):
+    """Adult-readable, bounded activity choice derived from reviewed catalog data."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    contract_name: Literal["ActivityRecommendationCardV1"] = (
+        "ActivityRecommendationCardV1"
+    )
+    contract_version: Literal["1.0"] = "1.0"
+    priority: int = Field(ge=1, le=3)
+    activity_id: str = Field(pattern=r"^ACT-[0-9]{4}$")
+    activity_version: int = Field(ge=1)
+    title_vi: str = Field(min_length=1, max_length=160)
+    summary_vi: str = Field(min_length=1, max_length=500)
+    match_reason_vi: str = Field(min_length=1, max_length=300)
+    duration_minutes: int = Field(ge=1, le=240)
+    age_label_vi: str = Field(min_length=1, max_length=80)
+    supervision_label_vi: str = Field(min_length=1, max_length=120)
+    material_labels_vi: tuple[str, ...] = Field(default=(), max_length=4)
+    fit_source: Literal["DIRECT", "RELATED"]
+
+
+class ActivityRecommendationSetV1(BaseModel):
+    """Versioned additive read model; the frozen P1 option contract stays intact."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    contract_name: Literal["ActivityRecommendationSetV1"] = (
+        "ActivityRecommendationSetV1"
+    )
+    contract_version: Literal["1.0"] = "1.0"
+    topic_label_vi: str = Field(min_length=1, max_length=240)
+    options: tuple[ActivityRecommendationCardV1, ...] = Field(max_length=3)
+
+
 class MobileWorkflowResultV1(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
@@ -75,6 +110,8 @@ class MobileWorkflowResultV1(BaseModel):
 
 
 __all__ = [
+    "ActivityRecommendationCardV1",
+    "ActivityRecommendationSetV1",
     "MobileWorkflowCommandV1",
     "MobileWorkflowResultV1",
     "WorkflowFailureV1",

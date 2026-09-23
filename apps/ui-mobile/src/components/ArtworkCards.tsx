@@ -1147,7 +1147,19 @@ export const JellyBounceView: React.FC<{
   style?: any;
   containerStyle?: any;
   activeOpacity?: number;
-}> = ({ children, onPress, style, containerStyle, activeOpacity = 0.85 }) => {
+  accessibilityLabel?: string;
+  accessibilityRole?: 'button' | 'radio';
+  accessibilityState?: { selected?: boolean; disabled?: boolean };
+}> = ({
+  children,
+  onPress,
+  style,
+  containerStyle,
+  activeOpacity = 0.85,
+  accessibilityLabel,
+  accessibilityRole = 'button',
+  accessibilityState,
+}) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () => {
@@ -1178,6 +1190,9 @@ export const JellyBounceView: React.FC<{
 
   return (
     <TouchableOpacity
+      accessibilityLabel={accessibilityLabel}
+      accessibilityRole={accessibilityRole}
+      accessibilityState={accessibilityState}
       activeOpacity={activeOpacity}
       onPress={onPress}
       onPressIn={handlePressIn}

@@ -29,7 +29,11 @@ from sketch2life.domain.understanding.image_admission import (
 )
 from sketch2life.infrastructure.ai.vision_lexical_policy import synthetic_prohibited_lexicon
 from sketch2life.infrastructure.catalog.activity_semantics import load_activity_semantic_catalog
+from sketch2life.infrastructure.catalog.activity_semantics_v2 import (
+    load_activity_semantic_catalog_v2,
+)
 from sketch2life.infrastructure.catalog.p1_catalog import load_p1_template_library
+from sketch2life.infrastructure.catalog.workflow_metadata import FileWorkflowCatalogMetadata
 from sketch2life.infrastructure.storage.in_memory import (
     InMemoryArtifactStore,
     InMemoryIdempotencyStore,
@@ -44,6 +48,16 @@ from sketch2life.infrastructure.storage.in_memory_renderer_source_grants import 
 from sketch2life.interfaces.http.app import create_app
 
 _IMAGE = b"\x89PNG\r\n\x1a\nsynthetic-only-image-fixture"
+
+
+def _contains_none(value: object) -> bool:
+    if value is None:
+        return True
+    if isinstance(value, dict):
+        return any(_contains_none(item) for item in value.values())
+    if isinstance(value, list):
+        return any(_contains_none(item) for item in value)
+    return False
 
 
 class _TestImageDecoder:
@@ -121,8 +135,13 @@ def _client(*, vision: _CountingVision | None = None) -> tuple[TestClient, _Coun
         renderer_source_grants=InMemoryRendererSourceGrantStore(),
     )
     repo_root = Path(__file__).resolve().parents[3]
-    p1_library = load_p1_template_library(repo_root, include_mvp=True)
+    p1_library = load_p1_template_library(
+        repo_root, include_mvp=True, include_expansion=True
+    )
     semantic_catalog = load_activity_semantic_catalog(repo_root)
+    semantic_catalog_v2 = load_activity_semantic_catalog_v2(
+        repo_root, include_expansion=True
+    )
     supervised_flow = SupervisedFlowService(
         sessions=sessions,
         idempotency=idempotency,
@@ -131,6 +150,8 @@ def _client(*, vision: _CountingVision | None = None) -> tuple[TestClient, _Coun
             p1_library.objective_titles_vi,
         ),
         semantic_catalog=semantic_catalog,
+        semantic_catalog_v2=semantic_catalog_v2,
+        catalog_metadata=FileWorkflowCatalogMetadata(repo_root),
         renderer_source_capability_issuer=demo.issue_renderer_source_capability,
     )
     return TestClient(
@@ -575,11 +596,13 @@ def test_gate_a_unlocks_read_only_p1_context_options_matching_adult_entered_age(
     assert payload["contract_name"] == "P1ContextOptionsV1"
     assert payload["age_months"] == 30
     assert payload["confirmed_anchor_label"] == "cây"
-    assert any("GMAT-0023-PRIMARY" in item["material_option_ids"] for item in payload["options"])
+    assert 1 <= len(payload["options"]) <= 3
+    assert payload["activity_recommendations"]["options"]
+    assert payload["activity_recommendations"]["options"][0]["title_vi"]
     assert options.json()["observed_session_version"] == version
 
 
-def test_gate_a_uses_reviewed_semantic_fallback_for_background_only_raw_label() -> None:
+def test_gate_a_never_uses_age_only_fallback_for_background_only_raw_label() -> None:
     client, _vision = _client(vision=_CountingVision(label="grass"))
     session_id, version = _create_session(client)
     uploaded = client.post(
@@ -637,9 +660,120 @@ def test_gate_a_uses_reviewed_semantic_fallback_for_background_only_raw_label() 
     assert options.status_code == 200
     payload = options.json()["payload"]
     assert payload["options"]
-    assert payload["recommendation"]["status"] == "EXPANDED"
-    assert payload["recommendation"]["match_mode"] == "SAFE_FALLBACK"
-    assert payload["recommendation"]["activity_id"] == "ACT-0026"
+    assert len(payload["options"]) <= 3
+    assert all(item["activity_ref"]["id"] != "ACT-0026" for item in payload["options"])
+    assert payload["activity_recommendations"]["options"]
+
+
+def test_butterfly_non_primary_activity_option_is_strict_fit_without_rerunning_vision() -> None:
+    client, vision = _client(vision=_CountingVision(label="butterfly"))
+    session_id, version = _create_session(client)
+    uploaded = client.post(
+        f"/v1/sessions/{session_id}/media/image",
+        headers=_headers(session_id, version, "butterfly-upload"),
+        files={"image": ("synthetic.png", _IMAGE, "image/png")},
+    )
+    version = uploaded.json()["observed_session_version"]
+    inferred = _command(
+        client,
+        session_id=session_id,
+        version=version,
+        key="butterfly-understanding",
+        route="/understanding",
+        payload={"operation": "RUN_UNDERSTANDING", "user_initiated": True},
+    )
+    version = inferred.json()["observed_session_version"]
+    gate_a = _command(
+        client,
+        session_id=session_id,
+        version=version,
+        key="butterfly-gate-a",
+        route="/gate-a/confirm",
+        payload={
+            "operation": "CONFIRM_GATE_A",
+            "user_initiated": True,
+            "primary_anchor_id": "subject-1",
+            "confirmation": {
+                "contract_name": "GateAConfirmationV1",
+                "contract_version": "1.0",
+                "meaning_version": 1,
+                "confirmed_claim_ids": ["subject-1"],
+                "correction": None,
+            },
+        },
+    )
+    version = gate_a.json()["observed_session_version"]
+    options_response = client.get(
+        f"/v1/sessions/{session_id}/p1/context-options",
+        params={"age_months": 60},
+        headers={
+            "X-Request-ID": "butterfly-options",
+            "X-Expected-Session-Version": str(version),
+            "X-Actor-Ref": "demo:local",
+        },
+    )
+    payload = options_response.json()["payload"]
+    assert len(payload["options"]) >= 2
+    option = payload["options"][1]
+    assert option["activity_ref"]["id"].startswith("ACT-01")
+    assert len(payload["options"]) <= 3
+    assert payload["activity_recommendations"]["options"][0]["title_vi"]
+    assert all(item["activity_ref"]["id"] != "ACT-0026" for item in payload["options"])
+    assert all(item["activity_ref"]["id"] != "ACT-0029" for item in payload["options"])
+    assert vision.calls == 1
+
+    context = _command(
+        client,
+        session_id=session_id,
+        version=version,
+        key="butterfly-context",
+        route="/p1-context",
+        method="put",
+        payload={
+            "operation": "SET_P1_CONTEXT",
+            "user_initiated": True,
+            "context": {
+                "contract_name": "P1ContextV1",
+                "contract_version": "1.0",
+                "session_id": session_id,
+                "expected_session_version": version,
+                "age_months": 60,
+                "readiness_ids": option["readiness_ids"],
+                "completed_activity_ids": option["prerequisite_activity_ids"],
+                "available_material_option_ids": option["material_option_ids"],
+                "supervision_level": option["minimum_supervision"],
+                "policy_flags": option["policy_constraints"],
+                "candidate_status": "ACTIVE_FIXTURE",
+                "gate_a_confirmed": True,
+                "selected_activity_id": option["activity_ref"]["id"],
+                "selected_activity_version": option["activity_ref"]["version"],
+            },
+        },
+    )
+    filtered = _command(
+        client,
+        session_id=session_id,
+        version=context.json()["observed_session_version"],
+        key="butterfly-filter",
+        route="/p1-filter",
+        payload={"operation": "RUN_P1_FILTER", "user_initiated": True},
+    )
+    prepared = _command(
+        client,
+        session_id=session_id,
+        version=filtered.json()["observed_session_version"],
+        key="butterfly-prepare",
+        route="/experience/prepare",
+        payload={"operation": "PREPARE_EXPERIENCE", "user_initiated": True},
+    )
+
+    assert filtered.json()["status"] == "SUCCEEDED"
+    assert prepared.json()["status"] == "SUCCEEDED"
+    assert prepared.json()["payload"]["status"] == "AWAITING_ADULT_GATE_B"
+    assert (
+        prepared.json()["payload"]["experience_spec"]["activity_template"]["activity_ref"]
+        == option["activity_ref"]
+    )
 
 
 def test_fake_only_image_session_completes_p1_gate_b_p4_handoff_feedback_and_gallery() -> None:
@@ -751,6 +885,7 @@ def test_fake_only_image_session_completes_p1_gate_b_p4_handoff_feedback_and_gal
     assert prepared.status_code == 200
     assert prepared.json()["payload"]["status"] == "AWAITING_ADULT_GATE_B"
     assert prepared.json()["payload"]["generation_called"] is False
+    assert vision.calls == 1
     version = prepared.json()["observed_session_version"]
 
     approved = _command(
@@ -777,6 +912,7 @@ def test_fake_only_image_session_completes_p1_gate_b_p4_handoff_feedback_and_gal
     assert renderer.status_code == 200
     launch = renderer.json()["payload"]["renderer_launch"]
     assert launch["assetManifest"]["providerGenerationCalled"] is False
+    assert not _contains_none(launch)
     assert launch["assetManifest"]["assets"][0]["role"] == "ORIGINAL_ART"
     assert (
         launch["animationPlan"]["plan"]["planId"]

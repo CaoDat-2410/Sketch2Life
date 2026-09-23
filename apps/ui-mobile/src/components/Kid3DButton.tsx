@@ -91,6 +91,9 @@ export const Kid3DButton: React.FC<Kid3DButtonProps> = ({
   return (
     <Animated.View style={[{ transform: [{ translateY }, { scale }] }, style]}>
       <TouchableOpacity
+        accessibilityRole="button"
+        accessibilityLabel={title}
+        accessibilityState={{ disabled }}
         activeOpacity={0.9}
         disabled={disabled}
         onPressIn={handlePressIn}

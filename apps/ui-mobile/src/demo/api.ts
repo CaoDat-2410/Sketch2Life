@@ -67,6 +67,28 @@ export interface P1ContextOptions {
     fallback_reason?: string | null;
     activity_id?: string | null;
   };
+  activity_recommendations?: {
+    contract_name: 'ActivityRecommendationSetV1';
+    contract_version: '1.0';
+    topic_label_vi: string;
+    options: ActivityRecommendationCard[];
+  };
+}
+
+export interface ActivityRecommendationCard {
+  contract_name: 'ActivityRecommendationCardV1';
+  contract_version: '1.0';
+  priority: number;
+  activity_id: string;
+  activity_version: number;
+  title_vi: string;
+  summary_vi: string;
+  match_reason_vi: string;
+  duration_minutes: number;
+  age_label_vi: string;
+  supervision_label_vi: string;
+  material_labels_vi: string[];
+  fit_source: 'DIRECT' | 'RELATED';
 }
 
 export class DemoApiError extends Error {

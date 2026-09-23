@@ -21,7 +21,11 @@ from sketch2life.infrastructure.ai.lightning_client import (
 )
 from sketch2life.infrastructure.ai.lightning_vision_v2 import LightningVisionV2Adapter
 from sketch2life.infrastructure.catalog.activity_semantics import load_activity_semantic_catalog
+from sketch2life.infrastructure.catalog.activity_semantics_v2 import (
+    load_activity_semantic_catalog_v2,
+)
 from sketch2life.infrastructure.catalog.p1_catalog import load_p1_template_library
+from sketch2life.infrastructure.catalog.workflow_metadata import FileWorkflowCatalogMetadata
 from sketch2life.infrastructure.config.settings import Settings, get_settings
 from sketch2life.infrastructure.media_validation.av_image_decoder import AvImageDecoder
 from sketch2life.infrastructure.storage.in_memory import (
@@ -106,8 +110,14 @@ def create_app(
             )
         if supervised_flow_service is None:
             repo_root = Path(__file__).resolve().parents[5]
-            p1_library = load_p1_template_library(repo_root, include_mvp=True)
+            p1_library = load_p1_template_library(
+                repo_root, include_mvp=True, include_expansion=True
+            )
             semantic_catalog = load_activity_semantic_catalog(repo_root)
+            semantic_catalog_v2 = load_activity_semantic_catalog_v2(
+                repo_root, include_expansion=True
+            )
+            catalog_metadata = FileWorkflowCatalogMetadata(repo_root)
             p1_compiler = P1ExperienceCompiler(
                 p1_library.templates,
                 p1_library.objective_titles_vi,
@@ -127,6 +137,8 @@ def create_app(
                 p1_compiler=p1_compiler,
                 topic_assets=topic_assets,
                 semantic_catalog=semantic_catalog,
+                semantic_catalog_v2=semantic_catalog_v2,
+                catalog_metadata=catalog_metadata,
                 renderer_source_capability_issuer=(
                     live_image_demo_service.issue_renderer_source_capability
                     if live_image_demo_service is not None

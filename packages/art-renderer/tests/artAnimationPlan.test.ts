@@ -4,6 +4,7 @@ import butterflyPlan from '../fixtures/butterfly/art_animation_plan.json';
 import {
   ArtAnimationPlanEnvelopeSchema,
   PixiArtAssetManifestSchema,
+  RendererLoadCommandSchema,
   MAX_RENDERER_MESSAGE_BYTES,
   ArtPlanValidationError,
   buildPreservingFallbackPlan,
@@ -122,6 +123,103 @@ describe('art animation fixture protocol', () => {
     expect(() => parseRendererMessage(' '.repeat(MAX_RENDERER_MESSAGE_BYTES + 1))).toThrow(
       'RENDERER_MESSAGE_TOO_LARGE',
     );
+  });
+
+  it('parses the source-only Python launch shape when optional values are omitted', () => {
+    const sourceHash = 'a'.repeat(64);
+    const sessionId = 'session-python-bridge';
+    const experienceSpecRef = {id: 'spec-python-bridge', version: 1};
+    const plan = {
+      contractVersion: '1',
+      planId: experienceSpecRef.id,
+      planVersion: String(experienceSpecRef.version),
+      stage: {width: 800, height: 600},
+      objects: [{
+        id: 'original_art',
+        label: 'Bức vẽ gốc',
+        asset: {
+          sourceAssetId: 'source-art',
+          sourceAssetVersion: '1',
+          uri: 'source:original-art',
+          assetKind: 'WHOLE_DRAWING',
+          sourceSha256: sourceHash,
+        },
+        initialTransform: {
+          position: {x: 0.5, y: 0.5},
+          scale: 1,
+          rotationDegrees: 0,
+          opacity: 1,
+        },
+        extractionStatus: 'READY',
+      }],
+      motions: [{
+        id: 'reveal_original',
+        sceneId: 'reveal_original',
+        kind: 'DRAW_REVEAL',
+        targetId: 'original_art',
+        durationSeconds: 1.5,
+      }],
+    };
+    const launch = {
+      contractName: 'RendererLoadCommandV1',
+      contractVersion: '1.0',
+      protocolVersion: '1',
+      sequence: 1,
+      rendererInstanceId: 'renderer-python-bridge',
+      sessionId,
+      expectedSessionVersion: 7,
+      experienceSpecRef,
+      sourceReadEndpoint: '/v1/renderer/source',
+      sourceReadCapability: 'c'.repeat(64),
+      assetManifest: {
+        contractName: 'PixiArtAssetManifestV1',
+        contractVersion: '1.0',
+        sessionId,
+        experienceSpecRef,
+        sourceArtifactRef: 'artifact:source-art',
+        sourceArtifactSha256: sourceHash,
+        assets: [{
+          assetId: 'source-art',
+          assetVersion: '1',
+          assetRef: 'artifact:source-art',
+          sha256: sourceHash,
+          role: 'ORIGINAL_ART',
+          reviewStatus: 'SOURCE_ORIGINAL',
+          rightsStatus: 'NOT_APPLICABLE',
+        }],
+        originalArtPreserved: true,
+        providerGenerationCalled: false,
+      },
+      animationPlan: {
+        contractName: 'ArtAnimationPlanV1',
+        contractVersion: '1.0',
+        sessionId,
+        experienceSpecRef,
+        sourceArtifactRef: 'artifact:source-art',
+        sourceArtifactSha256: sourceHash,
+        plan,
+        originalArtPreserved: true,
+        videoExecuted: false,
+      },
+    };
+
+    expect(RendererLoadCommandSchema.parse(launch).animationPlan.plan.motions[0]).toMatchObject({
+      kind: 'DRAW_REVEAL',
+    });
+    expect(JSON.stringify(launch)).not.toContain(':null');
+    expect(() => RendererLoadCommandSchema.parse({
+      ...launch,
+      animationPlan: {
+        ...launch.animationPlan,
+        plan: {
+          ...plan,
+          objects: [{
+            ...plan.objects[0],
+            asset: {...plan.objects[0].asset, cropVersion: null},
+          }],
+        },
+      },
+    })).toThrow();
   });
 
   it('falls back without replacing the child source asset', () => {

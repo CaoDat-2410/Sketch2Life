@@ -104,6 +104,9 @@ importers:
       expo:
         specifier: ~52.0.32
         version: 52.0.49(d6d603685cfd5ae18ecc3ae2a6b5794a)
+      expo-asset:
+        specifier: ~11.0.5
+        version: 11.0.5(expo@52.0.49(d6d603685cfd5ae18ecc3ae2a6b5794a))(react-native@0.76.9(@babel/core@7.29.7(supports-color@8.1.1))(@babel/preset-env@7.29.7(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@react-native-community/cli@20.2.0(supports-color@8.1.1)(typescript@5.9.3))(@types/react@18.3.31)(react@18.3.1)(supports-color@8.1.1))(react@18.3.1)(supports-color@8.1.1)
       expo-av:
         specifier: ~15.0.2
         version: 15.0.2(expo@52.0.49(d6d603685cfd5ae18ecc3ae2a6b5794a))(react-native-web@0.19.13(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-native@0.76.9(@babel/core@7.29.7(supports-color@8.1.1))(@babel/preset-env@7.29.7(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@react-native-community/cli@20.2.0(supports-color@8.1.1)(typescript@5.9.3))(@types/react@18.3.31)(react@18.3.1)(supports-color@8.1.1))(react@18.3.1)

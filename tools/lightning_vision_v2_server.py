@@ -41,6 +41,7 @@ from sketch2life.contracts.schemas.vision import VisionImageReferenceV1
 from sketch2life.contracts.schemas.vision_v2 import (
     VisionMappingDiagnosticV2,
     VisionUnderstandingRequestV2,
+    VisionUnderstandingSuccessV2,
 )
 from sketch2life.infrastructure.ai.qwen_vision import QwenVisionAdapter
 from sketch2life.infrastructure.ai.qwen_vision_runtime_config import (
@@ -69,8 +70,12 @@ Use exactly these root keys: entities, actions, relations, themes, ambiguous_reg
 use [] when uncertain. Maximums: 5 entities, 2 actions, 3 relations, 2 themes, 2 ambiguous regions.
 Prioritize entities in this order: (1) the most specific, central, visually recognizable subject,
 (2) other concrete subjects, and (3) scenery/background such as grass, sky, or broad nature labels.
-Keep the main subject first in entities; keep scenery/background last. Prefer a specific visible
-label such as "butterfly" or "flower" over a broad label such as "nature". Emit an action only when
+Keep the main subject first in entities; keep scenery/background last. Use concise Vietnamese
+labels whenever the object is recognizable (for example "con chim", "cành cây", "chiếc lá",
+"đậu trên cành"). Prefer a specific visible label such as "con bướm" or "bông hoa" over a broad
+label such as "thiên nhiên". Never repeat the same normalized entity, action, or theme. Do not emit
+an aggregate phrase such as "chim trên cành" when the same bird, branch, and relation/action are
+already represented separately. Emit an action only when
 it is visibly anchored to an entity, and emit a theme only when it describes concrete scene context.
 Do not use a background label as the main subject when a specific subject is visible.
 Every text value is an object with value and language. Use language {status: DECLARED, tags: [vi]}
@@ -126,6 +131,47 @@ def _semantic_empty_repair_prompt(_request: VisionUnderstandingRequestV2) -> str
         "mark is present. Use a broad visible label only when necessary. Do not invent claims, "
         "do not add explanations, and do not return all arrays empty for a non-empty image. "
         "This is a closed semantic-empty repair; keep the exact JSON contract."
+    )
+
+
+def _quality_repair_prompt(
+    _request: VisionUnderstandingRequestV2,
+    narration_context: str | None,
+) -> str:
+    return (
+        f"{_prompt_with_narration(narration_context)}\n\n"
+        "The previous response passed the schema but was too broad, duplicated labels, or missed "
+        "a clearly narrated visible subject. Re-inspect the drawing once. Put the specific central "
+        "subject first, use concise Vietnamese labels, remove semantic duplicates, and connect a "
+        "visible action to its entity. Keep only image-grounded observations and the exact schema."
+    )
+
+
+def _needs_quality_repair(
+    result: VisionUnderstandingSuccessV2,
+    narration_context: str | None,
+) -> bool:
+    labels = [item.label.value.casefold().strip() for item in result.entities]
+    actions = [item.label.value.casefold().strip() for item in result.actions]
+    themes = [item.label.value.casefold().strip() for item in result.themes]
+    if len(labels) != len(set(labels)) or len(actions) != len(set(actions)):
+        return True
+    if len(themes) != len(set(themes)):
+        return True
+    broad = {"nature", "thiên nhiên", "outdoor scene", "khung cảnh ngoài trời", "background"}
+    if labels and labels[0] in broad and any(label not in broad for label in labels[1:]):
+        return True
+    narration = (narration_context or "").casefold()
+    narrated_subjects = (
+        ({"bird", "chim"}, {"bird", "chim"}),
+        ({"butterfly", "bướm"}, {"butterfly", "bướm"}),
+        ({"flower", "hoa"}, {"flower", "hoa"}),
+    )
+    all_labels = " ".join(labels)
+    return any(
+        any(token in narration for token in narration_tokens)
+        and not any(token in all_labels for token in output_tokens)
+        for narration_tokens, output_tokens in narrated_subjects
     )
 
 
@@ -254,6 +300,12 @@ def vision_v2(
                 prompt=_prompt_with_narration(payload.narration_context),
                 repair_prompt_builder=_repair_prompt_with_diagnostics,
                 semantic_empty_repair_prompt_builder=_semantic_empty_repair_prompt,
+                quality_repair_prompt_builder=lambda request: _quality_repair_prompt(
+                    request, payload.narration_context
+                ),
+                quality_repair_predicate=lambda result: _needs_quality_repair(
+                    result, payload.narration_context
+                ),
                 on_mapping_diagnostic=capture_mapping_diagnostics,
                 enable_bounded_repair=True,
             )

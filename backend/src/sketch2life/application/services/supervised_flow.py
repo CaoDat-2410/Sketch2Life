@@ -14,7 +14,11 @@ from uuid import uuid4
 from pydantic import TypeAdapter, ValidationError
 
 from sketch2life.application.ports.session_storage import IdempotencyReceipt, IdempotencyStore
-from sketch2life.application.ports.workflow_dependencies import SemanticCatalogPort
+from sketch2life.application.ports.workflow_dependencies import (
+    ActivityCatalogMetadataPort,
+    SemanticCatalogPort,
+    SemanticCatalogV2Port,
+)
 from sketch2life.application.services.ephemeral_sessions import (
     DEMO_ACTOR_REF,
     EphemeralSessionService,
@@ -32,6 +36,7 @@ from sketch2life.application.services.pixi_topic_asset_candidates import (
 from sketch2life.application.services.semantic_activity_resolver import (
     ActivityRecommendation,
     resolve_activity_options,
+    resolve_activity_options_v2,
 )
 from sketch2life.application.services.topic_semantics import (
     claims_from_raw,
@@ -46,6 +51,8 @@ from sketch2life.contracts.schemas.learning_media import (
     LearningMediaResultV1,
 )
 from sketch2life.contracts.schemas.mobile_workflow import (
+    ActivityRecommendationCardV1,
+    ActivityRecommendationSetV1,
     MobileWorkflowCommandV1,
     MobileWorkflowResultV1,
     WorkflowResultProvenanceV1,
@@ -92,6 +99,55 @@ _FLOW_PROVENANCE = WorkflowResultProvenanceV1(
 )
 
 
+def _narration_text(value: object) -> str:
+    if not isinstance(value, dict):
+        return ""
+    transcript = value.get("transcript")
+    return transcript.strip() if isinstance(transcript, str) else ""
+
+
+def _recommendation_set(
+    *,
+    recommendation: ActivityRecommendation,
+    metadata: ActivityCatalogMetadataPort,
+    topic_label_vi: str,
+) -> ActivityRecommendationSetV1:
+    cards: list[ActivityRecommendationCardV1] = []
+    for priority, option in enumerate(recommendation.options[:3], start=1):
+        display = metadata.recommendation_display(option.activity_ref.id)
+        match = recommendation.v2_match_for(option.activity_ref.id)
+        if display is None or match is None:
+            continue
+        reason = (
+            f"Tiếp nối trực tiếp từ {topic_label_vi.lower()}."
+            if match.continuity_mode == "DIRECT_CONTINUATION"
+            else f"Mở rộng nhẹ từ {topic_label_vi.lower()} sang một kỹ năng liên quan."
+        )
+        cards.append(
+            ActivityRecommendationCardV1(
+                priority=priority,
+                activity_id=option.activity_ref.id,
+                activity_version=option.activity_ref.version,
+                title_vi=str(display["title_vi"]),
+                summary_vi=str(display["summary_vi"]),
+                match_reason_vi=reason,
+                duration_minutes=int(display["duration_minutes"]),
+                age_label_vi=str(display["age_label_vi"]),
+                supervision_label_vi=str(display["supervision_label_vi"]),
+                material_labels_vi=tuple(display.get("material_labels_vi", ())),
+                fit_source=(
+                    "DIRECT"
+                    if match.continuity_mode == "DIRECT_CONTINUATION"
+                    else "RELATED"
+                ),
+            )
+        )
+    return ActivityRecommendationSetV1(
+        topic_label_vi=topic_label_vi,
+        options=tuple(cards),
+    )
+
+
 class SupervisedFlowService:
     """Own the explicit human gates and deterministic workflow progression."""
 
@@ -103,6 +159,8 @@ class SupervisedFlowService:
         p1_compiler: P1ExperienceCompiler,
         topic_assets: tuple[TopicAssetDescriptorV1, ...] = (),
         semantic_catalog: SemanticCatalogPort | None = None,
+        semantic_catalog_v2: SemanticCatalogV2Port | None = None,
+        catalog_metadata: ActivityCatalogMetadataPort | None = None,
         renderer_source_capability_issuer: Callable[..., tuple[str, datetime]] | None = None,
         now: Callable[[], datetime] = lambda: datetime.now(UTC),
     ) -> None:
@@ -111,6 +169,8 @@ class SupervisedFlowService:
         self._compiler = p1_compiler
         self._topic_assets = topic_assets
         self._semantic_catalog = semantic_catalog
+        self._semantic_catalog_v2 = semantic_catalog_v2
+        self._catalog_metadata = catalog_metadata
         self._renderer_source_capability_issuer = renderer_source_capability_issuer
         self._now = now
         self._lock = RLock()
@@ -498,9 +558,16 @@ class SupervisedFlowService:
             raise _workflow_error("GATE_A_REQUIRED", 409, "A confirmed image topic is required.")
         anchor_set = SemanticAnchorSetV1.model_validate(anchor_value)
         recommendation: ActivityRecommendation | None = None
-        direct_options = self._compiler.context_options(anchor_set, age_months)
-        if direct_options:
-            context_options = direct_options
+        narration_text = _narration_text(values.get("narration_result"))
+        if self._semantic_catalog_v2 is not None:
+            recommendation = resolve_activity_options_v2(
+                anchor_set=anchor_set,
+                age_months=age_months,
+                catalog=self._semantic_catalog_v2,
+                compiler=self._compiler,
+                narration_text=narration_text,
+            )
+            context_options = recommendation.options
         elif self._semantic_catalog is not None:
             recommendation = resolve_activity_options(
                 anchor_set=anchor_set,
@@ -524,6 +591,12 @@ class SupervisedFlowService:
         topic_label = self._sessions.workflow_record(session_id).values.get("topic_label_vi")
         if isinstance(topic_label, str) and topic_label:
             payload["topic_label_vi"] = topic_label
+            if recommendation is not None and self._catalog_metadata is not None:
+                payload["activity_recommendations"] = _recommendation_set(
+                    recommendation=recommendation,
+                    metadata=self._catalog_metadata,
+                    topic_label_vi=topic_label,
+                ).model_dump(mode="json")
         return MobileWorkflowResultV1(
             status="SUCCEEDED",
             request_id=request_id,
@@ -561,13 +634,32 @@ class SupervisedFlowService:
             )
             semantic_match: SemanticMatchEvidenceV1 | None = None
             preferred_template_id: str | None = None
-            direct_options = (
-                self._compiler.context_options(anchor_set, context.age_months)
-                if context.age_months is not None
-                else ()
-            )
-            if context.age_months is None or direct_options:
+            if context.age_months is None:
                 filtered = self._compiler.select(anchor_set, context)
+            elif self._semantic_catalog_v2 is not None:
+                recommendation = resolve_activity_options_v2(
+                    anchor_set=anchor_set,
+                    age_months=context.age_months,
+                    catalog=self._semantic_catalog_v2,
+                    compiler=self._compiler,
+                    narration_text=_narration_text(values.get("narration_result")),
+                )
+                if context.selected_activity_id is not None:
+                    preferred_template_id = recommendation.template_for(
+                        context.selected_activity_id
+                    )
+                    semantic_match = recommendation.evidence_for(context.selected_activity_id)
+                if preferred_template_id is None or semantic_match is None:
+                    filtered = P1FilterResultV1(
+                        status="NO_ELIGIBLE_ACTIVITY",
+                        reason_codes=("ACTIVITY_NOT_IN_SEMANTIC_SHORTLIST",),
+                    )
+                else:
+                    filtered = self._compiler.select(
+                        anchor_set,
+                        context,
+                        preferred_template_id=preferred_template_id,
+                    )
             elif self._semantic_catalog is not None:
                 recommendation = resolve_activity_options(
                     anchor_set=anchor_set,
@@ -999,7 +1091,11 @@ class SupervisedFlowService:
                 status="SUCCEEDED",
                 command=command,
                 observed_version=snapshot.version,
-                payload={"renderer_launch": launch.model_dump(mode="json", by_alias=True)},
+                payload={
+                    "renderer_launch": launch.model_dump(
+                        mode="json", by_alias=True, exclude_none=True
+                    )
+                },
             )
             self._remember(scope, command.idempotency_key, fingerprint, result)
             return result, False

@@ -1,5 +1,43 @@
 # Task approval
 
+## Vision, topic, V2 catalog, Pixi and child UX repair — 2026-09-22
+
+- Approver: Project owner direct instruction in the current conversation (`ok, implement`).
+- Approved artifact: `plan/VISION_TOPIC_ACTIVITY_CATALOG_PIXI_CHILD_UX_PLAN.md`.
+- Approved plan SHA-256: `2c50728dfe46f0ea65b5f7157e1608bb1efb7d1b848962f397b2d8360cf93363`.
+- Approved at: 2026-09-22 20:32:34 Asia/Ho_Chi_Minh (2026-09-22 13:32:34 UTC).
+- Inspected base commit for the mandatory read-only UI audit:
+  `f98958f6690e6d233ca79d8be1defec56fdd85be` on `codex/feat-018-contract-plan`.
+- Approved scope: mandatory no-code full-flow UI audit; one shared bounded Qwen repair budget;
+  grounded Vietnamese normalization, deduplication and topic composition; live HTTP wiring to the
+  reviewed V2 expansion catalog; at most three prioritized strict-fit activity cards with adult
+  selection and readable Vietnamese metadata; full reachable BaoVC child/parent UX and modal error
+  pass; canonical Pixi transport serialization and Python-to-TypeScript compatibility tests; focused
+  and full relevant verification with feature-local evidence.
+- Boundaries: image remains required; audio/manual-text narration remains optional; no unrelated
+  age-safe activity fallback; no weakening of P1/Gate A/Gate B/safety policy; no video integration,
+  auth implementation, durable persistence, real child data, provider credential in mobile/Git,
+  generated visual asset, unrelated FEAT-026 change or Codex-triggered Lightning request.
+- Implementation gate: Phase 0 must first record `UI_AUDIT_COMPLETE — NO CODE CHANGED`; application
+  or runtime code may change only after that checkpoint.
+
+## Activity suggestion strict-fit and UI recovery — 2026-09-22
+
+- Approver: Project owner direct instruction in the current conversation (`implement task`).
+- Approved artifact: `plan/ACTIVITY_SUGGESTION_STRICT_FIT_UI_RECOVERY_PLAN.md`.
+- Approved plan SHA-256: `aebcd718b23ff2e5ff1231efa0a50b32e62534323619bc69adff5addbd6bc6b0`.
+- Approved at: 2026-09-22 13:58:44 Asia/Ho_Chi_Minh (2026-09-22 06:58:44 UTC).
+- Approved scope: align reviewed activity discovery with the existing strict P1 fit/continuity
+  policy; deterministically continue to the next reviewed candidate after a rejection; preserve the
+  selected identity through P1 and ExperienceSpec; add atomic BaoVC request locking, existing-result
+  reopening, state preservation, and safe typed error mapping; add focused backend/mobile regression
+  coverage and feature-local evidence.
+- Boundaries: no FEAT-003/Qwen/Lightning contract or prompt change, no weakening of strict Gate B,
+  no generated or mock activity fallback, no provider request by Codex, no video, no auth or durable
+  persistence implementation, no credentials, and no unrelated FEAT-026 changes.
+- Implementation record: completed and verified on 2026-09-22. Evidence:
+  `evidence/notes/ACTIVITY_SUGGESTION_STRICT_FIT_UI_RECOVERY_IMPLEMENTATION_20260922.md`.
+
 - Status: APPROVED for the historical slices below plus the Shared Integration Addendum Rev 2 and
   the narrow live-test authorization recorded in ADR-0005 on 2026-09-18. The owner may manually run
   synthetic-image Lightning tests up to the existing 25-credit total ceiling; Codex must not send

@@ -38,6 +38,12 @@ _LABELS_VI: dict[str, str] = {
     "garden": "khu vườn",
     "animal": "động vật",
     "bird": "con chim",
+    "branch": "cành cây",
+    "leaf": "chiếc lá",
+    "leaves": "những chiếc lá",
+    "perching": "đậu trên cành",
+    "bird on branch": "con chim đậu trên cành cây",
+    "outdoor scene": "khung cảnh ngoài trời",
     "cat": "con mèo",
     "dog": "con chó",
     "water": "nước",
@@ -55,6 +61,11 @@ _SEMANTIC_TAGS: dict[str, tuple[str, ...]] = {
     "garden": ("thiên nhiên", "quan sát cây"),
     "animal": ("động vật",),
     "bird": ("động vật", "chuyển động"),
+    "branch": ("cây", "thiên nhiên", "quan sát cây"),
+    "leaf": ("cây", "thiên nhiên", "quan sát cây"),
+    "leaves": ("cây", "thiên nhiên", "quan sát cây"),
+    "perching": ("động vật", "chuyển động"),
+    "bird on branch": ("động vật", "thiên nhiên", "chuyển động"),
     "flying": ("chuyển động",),
     "fly": ("chuyển động",),
     "moving": ("chuyển động",),
@@ -70,6 +81,13 @@ _BACKGROUND_LABELS = {
     "bãi cỏ",
     "thiên nhiên",
     "bầu trời",
+}
+
+_CANONICAL_DISPLAY_KEYS: dict[str, str] = {
+    "leaf": "leaf",
+    "leaves": "leaf",
+    "chiếc lá": "leaf",
+    "những chiếc lá": "leaf",
 }
 
 
@@ -89,7 +107,13 @@ def _key(value: str) -> str:
 def display_label_vi(label: str) -> str:
     """Return a closed Vietnamese display label or the original label."""
 
-    return _LABELS_VI.get(_key(label), label.strip())
+    translated = _LABELS_VI.get(_key(label))
+    if translated is not None:
+        return translated
+    cleaned = label.strip()
+    if cleaned and cleaned.isascii() and re.fullmatch(r"[A-Za-z][A-Za-z\s-]*", cleaned):
+        return "chi tiết trong tranh"
+    return cleaned
 
 
 def semantic_tags_for_label(label: str) -> tuple[str, ...]:
@@ -99,7 +123,7 @@ def semantic_tags_for_label(label: str) -> tuple[str, ...]:
 
 
 def rank_claims(claims: Iterable[RankedClaim]) -> tuple[RankedClaim, ...]:
-    """Prefer a specific visible subject over scenery and broad themes."""
+    """Prefer specific evidence and remove canonical duplicate display claims."""
 
     def sort_key(claim: RankedClaim) -> tuple[int, int, float, str]:
         normalized = _key(claim.label)
@@ -113,7 +137,21 @@ def rank_claims(claims: Iterable[RankedClaim]) -> tuple[RankedClaim, ...]:
             f"{-specificity}:{claim.observation_id}",
         )
 
-    return tuple(sorted(claims, key=sort_key))
+    ranked = sorted(claims, key=sort_key)
+    deduplicated: list[RankedClaim] = []
+    seen: set[tuple[str, str]] = set()
+    for claim in ranked:
+        display_key = _key(claim.display_label)
+        canonical = _CANONICAL_DISPLAY_KEYS.get(
+            _key(claim.label),
+            _CANONICAL_DISPLAY_KEYS.get(display_key, display_key),
+        )
+        key = (claim.kind, canonical)
+        if key in seen:
+            continue
+        seen.add(key)
+        deduplicated.append(claim)
+    return tuple(deduplicated)
 
 
 def claims_from_raw(raw: RawUnderstandingSuccessV1) -> tuple[RankedClaim, ...]:
@@ -153,14 +191,28 @@ def compose_topic_vi(claims: Iterable[RankedClaim]) -> str:
     )
     if primary.kind == "subject" and actions:
         action = actions[0]
+        complete_context = next(
+            (
+                context
+                for context in contexts
+                if _key(primary.display_label) in _key(context)
+                and _key(action).split()[0] in _key(context)
+            ),
+            None,
+        )
+        if complete_context:
+            return f"Cùng khám phá {complete_context}!"
         if contexts:
-            return f"{primary.display_label.capitalize()} đang {action} trong {contexts[0]}"
-        return f"{primary.display_label.capitalize()} đang {action}"
+            return (
+                f"Cùng khám phá {primary.display_label} đang {action} "
+                f"giữa {contexts[0]}!"
+            )
+        return f"Cùng khám phá {primary.display_label} đang {action}!"
     if primary.kind == "subject" and contexts:
-        return f"Khám phá {primary.display_label} trong {contexts[0]}"
+        return f"Cùng khám phá {primary.display_label} trong {contexts[0]}!"
     if primary.kind == "action":
-        return f"Khám phá hoạt động {primary.display_label}"
-    return f"Khám phá {primary.display_label}"
+        return f"Cùng khám phá hoạt động {primary.display_label}!"
+    return f"Cùng khám phá {primary.display_label}!"
 
 
 def enrich_anchor_set(

@@ -252,3 +252,86 @@ P2-T5, mobile, Gate A UI, P1 eligibility, P3/P4 and shared integration remain se
   backend modules, mobile TypeScript, compile, diff checks and repository security validation. No
   Lightning/model request was made by Codex; owner-run smoke remains pending under the approved
   approximately 25-credit ceiling.
+
+## Activity suggestion strict-fit/UI recovery diagnosis — 2026-09-22
+
+- A real Android session reached `CANDIDATES_READY` but `PREPARE_EXPERIENCE` returned a typed
+  `BLOCKED` envelope with `ANCHOR_TEMPLATE_MISMATCH` and `FIT_BELOW_THRESHOLD`. The selected
+  `ACT-0029` candidate came from loose token overlap, while the unchanged strict continuity gate
+  correctly rejected it before ExperienceSpec creation.
+- HTTP access logs showed `200 OK` because blocked workflow outcomes use the versioned response
+  envelope; the UI hid the closed reasons behind a generic ExperienceSpec message and could start
+  a duplicate chain before React busy state re-rendered.
+- The approved repair is documented in
+  `plan/ACTIVITY_SUGGESTION_STRICT_FIT_UI_RECOVERY_PLAN.md`; implementation was authorized by the
+  owner on 2026-09-22. It aligns
+  option discovery with strict compilation, tries the next reviewed eligible candidate, preserves
+  exact identity, adds an atomic UI request lock, reopens existing results, and retains failures
+  without showing a mock activity. No provider call is required or authorized for this repair.
+- Implementation is complete. Direct options and semantic candidates now share the compiler's
+  strict fit policy before exposure; ranked semantic resolution continues to the next reviewed
+  candidate after rejection. BaoVC preserves valid state, synchronously locks the activity request,
+  reopens prepared results without network calls, and maps closed P1/fit reasons to safe Vietnamese
+  guidance. The butterfly/ACT-0029 regression and Gate-A-to-ExperienceSpec identity continuity are
+  covered by unit and HTTP contract tests. Verification evidence is in
+  `evidence/notes/ACTIVITY_SUGGESTION_STRICT_FIT_UI_RECOVERY_IMPLEMENTATION_20260922.md`.
+
+## Vision/topic/catalog/Pixi/child-UX follow-up — 2026-09-22
+
+- Status: `APPROVED — IN_PROGRESS`; mandatory Phase 0 read-only UI audit completed with checkpoint
+  `UI_AUDIT_COMPLETE — NO CODE CHANGED`. Application/runtime implementation may now start.
+- Owner emulator evidence shows four remaining integration-quality problems: English and duplicate
+  labels can escape the live Qwen result into the Vietnamese UI; topic composition remains raw and
+  overly generic; the real HTTP runtime still loads the baseline/legacy activity catalog and can
+  present an unrelated age-safe activity with template/material/safety IDs; and a valid backend
+  Pixi launch is rejected by the strict TypeScript bridge because Python sends optional values as
+  explicit `null`.
+- The full reachable BaoVC flow also renders expected failures as inline red technical text and
+  mixes child instructions with backend, Gate, ExperienceSpec, catalog and protocol terminology.
+- The proposed repair is documented in
+  `plan/VISION_TOPIC_ACTIVITY_CATALOG_PIXI_CHILD_UX_PLAN.md`. It introduces a single shared vision
+  repair budget, grounded Vietnamese normalization/topic composition, V2 expansion catalog runtime
+  wiring, at most three strict-fit prioritized activity cards with adult selection, an app-level
+  friendly error modal, a full child-facing copy/accessibility pass, and canonical Pixi transport
+  serialization verified across Python and the actual TypeScript schema.
+- Before any implementation, the revised plan requires a complete read-only audit of every
+  reachable BaoVC screen and important loading/error/navigation state. The audit must produce a
+  prioritized feature-local finding matrix and an explicit `UI_AUDIT_COMPLETE — NO CODE CHANGED`
+  checkpoint; the already-observed UI, activity and Pixi defects remain mandatory scope.
+- The audit is complete at base commit `f98958f6690e6d233ca79d8be1defec56fdd85be` on Android Emulator
+  1080x2424/density 420. It found 25 bounded issues covering truthfulness, topic/activity continuity,
+  Pixi transport, modal errors, stale notices, hard-coded butterfly preview/feedback, native chrome,
+  keyboard/accessibility and child-facing copy. The prioritized matrix is recorded in
+  `evidence/notes/FULL_UI_READ_ONLY_AUDIT_20260922.md`; no implementation/runtime code changed during
+  the audit and no scope expansion is required.
+- Boundaries remain synthetic/non-child demo inputs, process-local state, future auth/save seams,
+  original-art preservation, no video, no credential in mobile/Git, no unrelated FEAT-026 changes,
+  and no Codex-triggered Lightning request.
+
+## Vision/topic/activity/catalog/Pixi/child-UX implementation closure — 2026-09-23
+
+- The approved plan `plan/VISION_TOPIC_ACTIVITY_CATALOG_PIXI_CHILD_UX_PLAN.md` is implemented for
+  the offline/API/UI scope. Phase 0's read-only audit remains recorded in
+  `evidence/notes/FULL_UI_READ_ONLY_AUDIT_20260922.md` and was completed before source changes.
+- The HTTP composition root now loads the curated V2 semantic catalog. The bird/branch path returns
+  up to three prioritized strict-fit reviewed activities with Vietnamese display metadata; age-only
+  unrelated activities are not exposed. Choosing a different offered card reruns the selected
+  downstream P1/ExperienceSpec path without rerunning Qwen while Gate A is unchanged.
+- Topic rendering now ranks specific visual evidence, translates covered English labels, removes
+  duplicates/aggregate labels and composes a grounded Vietnamese sentence. The Qwen live adapter
+  shares one bounded semantic-quality repair budget with schema repair, so a request can still make
+  at most two model generations.
+- BaoVC now presents concise child-friendly copy, uses a global friendly error modal, hides raw
+  activity/provider/contract diagnostics, and keeps adult details in the activity flow. The Pixi
+  bridge omits nullable optional fields and preserves the original drawing when playback fails.
+- Verification evidence is recorded in
+  `evidence/notes/VISION_TOPIC_ACTIVITY_CATALOG_PIXI_CHILD_UX_IMPLEMENTATION_20260923.md`.
+  Offline tests, TypeScript, renderer tests, architecture validation and repository security
+  validation passed. No live Lightning request, video path, auth flow or durable persistence was
+  added; the future auth/save seam remains process-local and adapter-based.
+- Final acceptance-gap closure added friendly recovery actions, original-art Pixi fallback/retry,
+  collapsed adult guidance, keyboard avoidance, broader accessibility state, truthful process-local
+  feedback copy, a mobile UI copy guard, a non-primary activity/no-Vision-rerun contract test and a
+  TypeScript source-only renderer launch test. The focused and full backend suites, mobile and
+  renderer TypeScript/tests, Ruff, mypy, architecture and security checks pass. The only harness
+  finding remains the unrelated user-owned FEAT-026 directory structure.

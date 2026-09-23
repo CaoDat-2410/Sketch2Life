@@ -8,6 +8,8 @@ import {
   TouchableOpacity,
   Animated,
   TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, radius, shadows } from '../theme';
@@ -108,7 +110,7 @@ export const OnboardingScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
       <View style={styles.headingBox}>
         <Text style={[styles.headingTitle, { fontSize: 24, color: '#1E40AF', lineHeight: 30 }]}>{"Nét vẽ của con\ncó thể sống dậy!"}</Text>
         <Text style={styles.headingSubtitle}>
-          Sketch2Life biến những bức vẽ thành câu chuyện hoạt hình sinh động và gợi ý hoạt động ngoài màn hình phù hợp với độ tuổi.
+          Sketch2Life giúp hiểu chủ đề trong tranh và gợi ý hoạt động ngoài màn hình phù hợp với độ tuổi.
         </Text>
       </View>
 
@@ -123,7 +125,7 @@ export const OnboardingScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
           <View style={[styles.valueIconOrb, { backgroundColor: '#38BDF8' }]}>
             <Ionicons name="sparkles" size={18} color={colors.white} />
           </View>
-          <Text style={styles.valuePropText}>Biến tranh vẽ thành câu chuyện và nhân vật hoạt hình</Text>
+          <Text style={styles.valuePropText}>Khám phá chủ đề từ tranh vẽ và lời kể</Text>
         </View>
 
         <View style={[styles.valuePropCard, { backgroundColor: '#F0FDF4', borderColor: '#BBF7D0' }]}>
@@ -195,6 +197,8 @@ export const DashboardScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
         {/* Big Yellow Action Banner — PulseGlow so it calls for attention */}
         <PulseGlow style={{ marginHorizontal: 0 }}>
           <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="Tạo câu chuyện mới"
             activeOpacity={0.9}
             onPress={() => nav('profile')}
             style={[styles.createStoryCard, { shadowColor: '#F59E0B', shadowOpacity: 0.35, shadowRadius: 12, elevation: 8 }]}
@@ -212,8 +216,8 @@ export const DashboardScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
 
         {/* Recent Stories */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Câu chuyện gần đây</Text>
-          <TouchableOpacity onPress={() => nav('story_preview')}>
+          <Text style={styles.sectionTitle}>Câu chuyện mẫu</Text>
+          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Xem các câu chuyện mẫu" onPress={() => nav('story_preview')}>
             <Text style={styles.sectionLink}>Xem tất cả &gt;</Text>
           </TouchableOpacity>
         </View>
@@ -221,7 +225,7 @@ export const DashboardScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.recentStoriesRow}>
           {/* Card 1: Rainbow Fish — BounceIn with delay 0 */}
           <BounceInView delay={0} style={styles.storyCard}>
-            <TouchableOpacity activeOpacity={0.88} onPress={() => nav('story_preview')} style={{ flex: 1 }}>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Mở câu chuyện mẫu Chú cá cầu vồng" activeOpacity={0.88} onPress={() => nav('story_preview')} style={{ flex: 1 }}>
               <RainbowFishArtwork height={85} />
               <Text numberOfLines={1} style={styles.storyCardTitle}>Chú cá cầu vồng và đại dương rực rỡ</Text>
               <Text style={styles.storyCardDate}>12 Tháng 4, 2025</Text>
@@ -230,7 +234,7 @@ export const DashboardScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
 
           {/* Card 2: Robot — BounceIn with delay 150ms */}
           <BounceInView delay={150} style={styles.storyCard}>
-            <TouchableOpacity activeOpacity={0.88} onPress={() => nav('story_preview')} style={{ flex: 1 }}>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Mở câu chuyện mẫu Robot khám phá thiên nhiên" activeOpacity={0.88} onPress={() => nav('story_preview')} style={{ flex: 1 }}>
               <StoryRobotArtwork height={85} />
               <Text numberOfLines={1} style={styles.storyCardTitle}>Robot khám phá thiên nhiên</Text>
               <Text style={styles.storyCardDate}>8 Tháng 4, 2025</Text>
@@ -240,11 +244,13 @@ export const DashboardScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
 
         {/* Today's Recommended Activity */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Hoạt động gợi ý hôm nay</Text>
+          <Text style={styles.sectionTitle}>Hoạt động mẫu hôm nay</Text>
         </View>
 
         <BounceInView delay={300}>
           <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="Mở hoạt động mẫu Cùng trồng một hạt mầm"
             activeOpacity={0.9}
             onPress={() => nav('activity_recommend')}
             style={[styles.todayActivityCard, { borderWidth: 2, borderColor: '#FEF08A' }]}
@@ -302,7 +308,6 @@ export const ChildProfileScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
     setSelectedAgeGroup,
     beginWorkflow,
     workflowBusy,
-    workflowError,
   } = useAppContext();
   const nav = onNavigate || navigate;
 
@@ -317,13 +322,11 @@ export const ChildProfileScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
     <ScrollView contentContainerStyle={styles.screenContainer} showsVerticalScrollIndicator={false}>
       {/* Top Header */}
       <View style={styles.topHeader}>
-        <TouchableOpacity onPress={goBack} style={styles.backBtn}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Quay lại" onPress={goBack} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={20} color={colors.textBody} />
         </TouchableOpacity>
         <Text style={styles.screenHeaderTitle}>Hồ sơ của bé</Text>
-        <TouchableOpacity onPress={() => nav('capture')}>
-          <Text style={styles.skipBtn}>Bỏ qua</Text>
-        </TouchableOpacity>
+        <View style={{ width: 48 }} />
       </View>
 
       <View style={styles.headingBox}>
@@ -424,7 +427,6 @@ export const ChildProfileScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
           disabled={!!workflowBusy}
         />
       </View>
-      {workflowError && <Text style={{ color: '#B91C1C', textAlign: 'center', marginTop: 10 }}>{workflowError}</Text>}
     </ScrollView>
   );
 };
@@ -451,7 +453,6 @@ export const CaptureScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
     stopRecording,
     uploadNarration,
     workflowBusy,
-    workflowError,
     workflowNotice,
   } = useAppContext();
   const nav = onNavigate || navigate;
@@ -461,10 +462,19 @@ export const CaptureScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.screenContainer} showsVerticalScrollIndicator={false}>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 12 : 0}
+    >
+    <ScrollView
+      contentContainerStyle={styles.screenContainer}
+      showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+    >
       {/* Header */}
       <View style={styles.topHeader}>
-        <TouchableOpacity onPress={goBack} style={styles.backBtn}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Quay lại" onPress={goBack} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={20} color={colors.textBody} />
         </TouchableOpacity>
         <Text style={styles.screenHeaderTitle}>Thêm bức vẽ của bé</Text>
@@ -487,31 +497,23 @@ export const CaptureScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
         )}
       </View>
 
-      {/* Two Action Buttons */}
       <View style={styles.actionGridRow}>
         <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel={selectedDrawing ? 'Chọn ảnh khác' : 'Chọn ảnh'}
           activeOpacity={0.9}
           onPress={handlePickImage}
-          style={[styles.halfBtn, { backgroundColor: colors.blue }]}
+          style={[styles.halfBtn, { flex: 1, backgroundColor: colors.blue }]}
         >
           <Ionicons name="images" size={24} color={colors.white} />
-          <Text style={styles.halfBtnText}>Chọn ảnh tổng hợp</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          activeOpacity={0.9}
-          onPress={handlePickImage}
-          style={[styles.halfBtn, { backgroundColor: colors.greenDeep }]}
-        >
-          <Ionicons name="images" size={24} color={colors.white} />
-          <Text style={styles.halfBtnText}>Đổi ảnh đã chọn</Text>
+          <Text style={styles.halfBtnText}>{selectedDrawing ? 'Chọn ảnh khác' : 'Chọn ảnh'}</Text>
         </TouchableOpacity>
       </View>
 
       <View style={{ marginTop: 14, padding: 14, borderRadius: 18, backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#DBEAFE' }}>
         <Text style={{ fontSize: 15, fontWeight: '900', color: colors.textHeading }}>Lời kể (không bắt buộc)</Text>
         <Text style={{ fontSize: 12, color: colors.textSoft, lineHeight: 17, marginTop: 4 }}>
-          Ảnh là bắt buộc. Nếu không nói được, bạn có thể nhập nội dung bằng chữ; chữ sẽ đi thẳng vào AI, không qua TTS.
+          Ảnh là bắt buộc. Bạn có thể kể bằng giọng nói, nhập chữ hoặc bỏ qua lời kể.
         </Text>
         <View style={{ flexDirection: 'row', gap: 8, marginTop: 10 }}>
           {([
@@ -521,8 +523,11 @@ export const CaptureScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
           ] as const).map(([mode, label]) => (
             <TouchableOpacity
               key={mode}
+              accessibilityRole="radio"
+              accessibilityLabel={label}
+              accessibilityState={{ selected: narrationMode === mode }}
               onPress={() => setNarrationMode(mode)}
-              style={{ flex: 1, minHeight: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: narrationMode === mode ? colors.blue : '#FFFFFF', borderWidth: 1, borderColor: narrationMode === mode ? colors.blue : '#CBD5E1' }}
+              style={{ flex: 1, minHeight: 48, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: narrationMode === mode ? colors.blue : '#FFFFFF', borderWidth: 1, borderColor: narrationMode === mode ? colors.blue : '#CBD5E1' }}
             >
               <Text style={{ fontSize: 11, fontWeight: '800', color: narrationMode === mode ? colors.white : colors.textBody }}>{label}</Text>
             </TouchableOpacity>
@@ -542,13 +547,16 @@ export const CaptureScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
         {narrationMode === 'audio' && (
           <View style={{ marginTop: 10, alignItems: 'center' }}>
             <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel={isRecording ? 'Dừng ghi âm' : 'Bắt đầu ghi âm'}
+              accessibilityState={{ busy: isRecording }}
               onPress={() => void (isRecording ? stopRecording() : startRecording())}
-              style={{ minWidth: 180, minHeight: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: isRecording ? '#DC2626' : colors.greenDeep }}
+              style={{ minWidth: 180, minHeight: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', backgroundColor: isRecording ? '#DC2626' : colors.greenDeep }}
             >
               <Text style={{ color: colors.white, fontWeight: '900' }}>{isRecording ? 'Dừng ghi âm' : 'Bắt đầu ghi âm'}</Text>
             </TouchableOpacity>
             <Text style={{ marginTop: 8, fontSize: 12, color: colors.textSoft }}>
-              {selectedNarrationAudio ? `Đã có bản ghi (${Math.round((selectedNarrationAudio.durationMs || 0) / 1000)} giây)` : 'M4A/WAV/WebM/Ogg · tối đa 3 phút'}
+              {selectedNarrationAudio ? `Đã có bản ghi (${Math.round((selectedNarrationAudio.durationMs || 0) / 1000)} giây)` : 'Có thể ghi tối đa 3 phút'}
             </Text>
           </View>
         )}
@@ -567,25 +575,25 @@ export const CaptureScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
       />
 
       {workflowNotice && <Text style={{ color: colors.greenDeep, textAlign: 'center', marginTop: 10 }}>{workflowNotice}</Text>}
-      {workflowError && <Text style={{ color: '#B91C1C', textAlign: 'center', marginTop: 10 }}>{workflowError}</Text>}
 
       {/* Tips Box */}
       <View style={styles.tipsBox}>
         <Text style={styles.tipsHeading}>💡 Một số gợi ý:</Text>
         <View style={styles.tipRow}>
           <Ionicons name="checkmark-circle" size={16} color={colors.greenDeep} />
-          <Text style={styles.tipText}>Chọn PNG/JPEG tổng hợp, tối đa 5 MB</Text>
+          <Text style={styles.tipText}>Chọn ảnh rõ, đủ sáng và không quá 5 MB</Text>
         </View>
         <View style={styles.tipRow}>
           <Ionicons name="checkmark-circle" size={16} color={colors.greenDeep} />
-          <Text style={styles.tipText}>Không dùng ảnh trẻ em hoặc dữ liệu nhận diện</Text>
+          <Text style={styles.tipText}>Chỉ dùng tranh vẽ, không dùng ảnh có khuôn mặt trẻ em</Text>
         </View>
         <View style={styles.tipRow}>
           <Ionicons name="checkmark-circle" size={16} color={colors.greenDeep} />
-          <Text style={styles.tipText}>Chỉ bước “Phân tích ảnh” mới gửi request Lightning</Text>
+          <Text style={styles.tipText}>Ảnh chỉ được dùng để tạo gợi ý trong phiên này</Text>
         </View>
       </View>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -601,9 +609,8 @@ export const VoiceScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
     toggleRecording,
     voiceDuration,
     setVoiceDuration,
-    stopRecording,
+    selectedNarrationAudio,
     uploadNarration,
-    runAiSimulation,
   } = useAppContext();
   const nav = onNavigate || navigate;
 
@@ -622,18 +629,15 @@ export const VoiceScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
   };
 
   const handleFinishVoice = async () => {
-    if (isRecording) {
-      await stopRecording();
-      return;
-    }
-    if (await uploadNarration() && await runAiSimulation()) nav('ai_processing');
+    if (isRecording || !selectedNarrationAudio) return;
+    if (await uploadNarration()) nav('ai_processing');
   };
 
   return (
     <ScrollView contentContainerStyle={styles.screenContainer} showsVerticalScrollIndicator={false}>
       {/* Header */}
       <View style={styles.topHeader}>
-        <TouchableOpacity onPress={goBack} style={styles.backBtn}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Quay lại" onPress={goBack} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={20} color={colors.textBody} />
         </TouchableOpacity>
         <Text style={styles.screenHeaderTitle}>Kể chuyện bằng giọng nói</Text>
@@ -663,24 +667,21 @@ export const VoiceScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
         </Text>
       </View>
 
-      {/* Recording Controls matching Image 2 Screen 6 */}
+      {/* Recording Controls */}
       <View style={styles.recordControlsRow}>
         <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel={isRecording ? 'Dừng ghi âm' : selectedNarrationAudio ? 'Ghi lại lời kể' : 'Bắt đầu kể'}
+          accessibilityState={{ busy: isRecording }}
           onPress={toggleRecording}
-          style={styles.auxRecordBtn}
-        >
-          <Ionicons name={isRecording ? 'pause' : 'play'} size={20} color={colors.textBody} />
-          <Text style={styles.auxRecordText}>{isRecording ? 'Tạm dừng' : 'Ghi âm'}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={handleFinishVoice}
           style={styles.mainRecordBtn}
         >
-          <View style={styles.recordInnerSquare} />
+          <Ionicons name={isRecording ? 'stop' : 'mic'} size={28} color={colors.white} />
         </TouchableOpacity>
 
         <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel="Hủy ghi âm"
           onPress={goBack}
           style={styles.auxRecordBtn}
         >
@@ -690,15 +691,21 @@ export const VoiceScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
       </View>
       {isRecording && (
         <Text style={[styles.recordingLabel, { color: '#EF4444', fontWeight: '700' }]}>
-          Đang ghi âm... Chạm nút đỏ để hoàn tất
+          Đang ghi âm... Chạm nút đỏ để dừng
         </Text>
       )}
-      {!isRecording && (
-        <TouchableOpacity onPress={handleFinishVoice}>
-          <Text style={styles.recordingLabel}>
-            Chạm nút đỏ ở giữa để tiếp tục
-          </Text>
-        </TouchableOpacity>
+      {!isRecording && !selectedNarrationAudio && (
+        <Text style={styles.recordingLabel}>Chạm nút micro để bắt đầu kể</Text>
+      )}
+      {!isRecording && selectedNarrationAudio && (
+        <View style={styles.actionBottom}>
+          <Kid3DButton
+            title="Dùng lời kể này"
+            color="blue"
+            size="lg"
+            onPress={() => void handleFinishVoice()}
+          />
+        </View>
       )}
     </ScrollView>
   );
@@ -739,9 +746,9 @@ const styles = StyleSheet.create({
     color: colors.textLight,
   },
   backBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: colors.lineSoft,
     alignItems: 'center',
     justifyContent: 'center',

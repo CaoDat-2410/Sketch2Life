@@ -192,6 +192,14 @@ class P1ExperienceCompiler:
             for template in self._templates
             if template.age_months_min <= age_months <= template.age_months_max
             and self._anchor_match_score(anchor_set, template) > 0
+            and (
+                fit := self.candidate_fit(
+                    anchor_set,
+                    template_id=template.template_id,
+                )
+            )
+            is not None
+            and fit.status == "PASS"
         ]
         matches.sort(
             key=lambda template: (
@@ -226,6 +234,32 @@ class P1ExperienceCompiler:
             if template.activity_ref.id == activity_id:
                 return template.template_id
         return None
+
+    def candidate_fit(
+        self,
+        anchor_set: SemanticAnchorSetV1,
+        *,
+        template_id: str,
+        semantic_match: SemanticMatchEvidenceV1 | None = None,
+    ) -> ActivityFitEvaluationV1 | None:
+        """Evaluate discovery candidates with the compiler's authoritative fit policy.
+
+        Context options do not yet contain adult-entered readiness/material values, so
+        this method intentionally evaluates only the anchor/objective continuity and
+        weighted fit that can be known at discovery time. ``select`` still enforces all
+        hard context rules after the adult submits the exact selected option.
+        """
+        template = self._by_id.get(template_id)
+        if template is None:
+            return None
+        objective = template.objective_refs[0]
+        return self._fit_evaluation(
+            anchor_set,
+            template,
+            objective,
+            self._anchor_match_score(anchor_set, template),
+            semantic_match,
+        )
 
     @staticmethod
     def _context_option(template: ActivityTemplateV1) -> P1ContextOptionV1:
@@ -507,8 +541,6 @@ class P1ExperienceCompiler:
         exact normalized-label/tag compatibility and a compatible semantic kind.
         Token overlap alone can never promote an unrelated activity.
         """
-        if semantic_match is not None:
-            return ()
         anchor = anchor_set.primary_anchor
         supported_labels = {item.casefold().strip() for item in template.supported_anchor_labels}
         anchor_labels = {
@@ -519,7 +551,7 @@ class P1ExperienceCompiler:
         failures: list[str] = []
         if anchor.kind not in template.supported_anchor_kinds:
             failures.append("ANCHOR_KIND_TEMPLATE_MISMATCH")
-        if not anchor_labels & supported_labels:
+        if semantic_match is None and not anchor_labels & supported_labels:
             failures.append("ANCHOR_TEMPLATE_MISMATCH")
         return tuple(failures)
 
