@@ -1,6 +1,6 @@
 # Sketch2Life — Master SRS Markdown context
 
-- Status: OWNER_APPROVED_BASELINE — v1.3 scope closure recorded; implementation and physical deployment remain out of scope
+- Status: OWNER_APPROVED_BASELINE — v1.4 scope clarification recorded; implementation and physical deployment remain out of scope
 - Owner: Project owner / Codex
 - Goal: produce one Vietnamese master Markdown SRS that consolidates actors, scope, use cases, business rules, domain entities, state transitions, functional and non-functional requirements, versioned contracts, traceability, and unresolved decisions.
 - Scope: documentation only. The SRS follows the B4–B12 workflow while adding B1–B3 and B13–B19 completeness sections from the supplied reference and the Sketch2Life product journey shown in the supplied workflow image. Current repository evidence and user-confirmed target requirements are labeled separately.
@@ -32,9 +32,24 @@
 - Admin raw child data access is break-glass, reason-required and audited.
 - Legal note: Nghị định 13/2023/NĐ-CP was reviewed for child consent, best-interest, deletion and the general 72-hour response rule; it does not itself prescribe a universal 30/60/90 product retention period. Legal exceptions and production privacy review remain TBD.
 
-## Completion snapshot — 2026-09-18
+## Owner media-pipeline clarification — 2026-09-23
 
-- Consolidated Vietnamese SRS v1.3 completed at artifacts/Sketch2Life_Master_SRS.md with B1–B29, target workflow diagram, business rules, domain entities/ERD, relationship/cardinality, logical schemas/data dictionary, API/error surface, state model, FR/NFR, versioned contract families, Parent Web, observability, retention/legal constraints, use cases, verification, traceability and open decisions.
+- PixiJS remains the interactive drawing-exploration implementation. It keeps tap-to-discover and
+  2.5D source-derived layers; it is not converted into whiteboard mode.
+- Whiteboard animation is a separate video implementation that runs after Gate B and starts in
+  parallel while Pixi is playing. It uses the same approved learning thread and ExperienceSpec.
+- Target pipeline: current VLM localization → SAM 2.1 Hiera Small masks → contour/stroke extraction
+  → deterministic whiteboard render → FFmpeg/NVENC MP4, with an independent TTS narration track.
+- Parent continuation is exposed only after the MP4 is ready. Generation failure is retryable and
+  must not be presented as successful video. Current scope is process-local/session-only; auth and
+  durable save remain future work.
+- Exact codec/size/timeout/retry/TTS voice and exhausted-failure recovery remain OPEN_TBD. See
+  `evidence/notes/WHITEBOARD_VIDEO_SCOPE_UPDATE_20260923.md`.
+
+## Completion snapshot — 2026-09-23
+
+- Consolidated Vietnamese SRS v1.4 completed at artifacts/Sketch2Life_Master_SRS.md with B1–B29, target workflow diagram, business rules, domain entities/ERD, relationship/cardinality, logical schemas/data dictionary, API/error surface, state model, FR/NFR, versioned contract families, Parent Web, observability, retention/legal constraints, use cases, verification, traceability and open decisions.
+- The v1.4 update separates PixiJS Personalized Drawing Exploration from the parallel whiteboard MP4 job, records the SAM 2.1 Small/mask/stroke/TTS pipeline target, and adds the READY/retry gate without claiming runtime implementation.
 - Focused contract/runtime tests passed (27 collected). Markdown structure and catalog checks passed.
 - Repository-wide harness/security validators still report pre-existing FEAT-026 issues recorded in evidence/notes/VALIDATION_20260918.md; no unrelated files were changed.
 

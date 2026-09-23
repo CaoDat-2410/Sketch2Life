@@ -27,3 +27,14 @@ The owner approved the v1.3 target baseline. The master SRS now records:
 - Durable business/audit logs, Grafana observability and break-glass Admin raw access.
 
 The legal note records the reviewed Nghị định 13/2023/NĐ-CP child-data constraints and does not invent a statutory 30/60/90 retention period. Remaining deployment, legal-policy and account-lifecycle questions remain explicitly TBD. No runtime, provider, cloud or pre-existing user files were modified.
+
+## Pixi/whiteboard media clarification — 2026-09-23
+
+The owner clarified that PixiJS remains the interactive Personalized Drawing Exploration layer,
+including tap-to-discover and 2.5D source-derived layers. Whiteboard video is a separate MP4
+implementation that starts while Pixi is playing, uses the same learning thread/ExperienceSpec, and
+targets VLM localization → SAM 2.1 Small → contour/stroke extraction → deterministic render →
+FFmpeg/NVENC with independent TTS. Parent continuation is offered only after video READY; failure
+is retryable and must not be shown as success. Current media is session-local; the next planned
+implementation task is MP4 generation. Exact encoding, TTS, worker, retry and quality gates remain
+TBD. No runtime/provider/cloud change was made in this documentation update.

@@ -41,3 +41,13 @@
 - 2026-09-19: Admin raw child-content access is break-glass only, reason-required and fully audited. Dual approval, time window and notice are explicit remaining policy questions.
 - 2026-09-19: Legal review added Nghị định 13/2023/NĐ-CP constraints: no statutory universal 30/60/90 retention period was found; child processing must follow best-interest and consent rules, and a valid deletion request is generally handled within 72 hours subject to legal exceptions. The SRS records this as a legal constraint, not legal advice.
 - 2026-09-19: Cross-feature decisions were promoted to `docs/adr/ADR-0008-child-profile-ownership-guide-assignment-and-observability.md`; physical storage, notification, telemetry and deployment choices remain TBD.
+
+- 2026-09-23: Owner clarified the media sequence for the master SRS. PixiJS remains the
+  interactive `Personalized Drawing Exploration` implementation, including tap-to-discover and
+  2.5D cut-out. A separate whiteboard-video implementation is generated after Gate B while Pixi
+  is playing, using the same learning thread/ExperienceSpec: VLM localization, SAM 2.1 Small
+  segmentation, contour/stroke extraction, deterministic MP4 rendering and independent TTS.
+  Parent continuation is exposed only after the video is ready; generation failure is retryable
+  and must not be shown as success. The current video artifact is process-local/session-only;
+  auth and durable save remain future work. MP4 implementation is the next implementation task;
+  this decision changes the SRS target only and does not authorize runtime code or provider calls.
