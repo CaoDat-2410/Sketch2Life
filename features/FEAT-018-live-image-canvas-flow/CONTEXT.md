@@ -364,3 +364,18 @@ P2-T5, mobile, Gate A UI, P1 eligibility, P3/P4 and shared integration remain se
 - Detailed scope, contracts, flow, acceptance criteria, risk controls and verification are in
   `plan/PIXI_STORY_INTRO_TOPIC_DIRECTIONS_FLOW_PLAN.md`. No runtime code may change until the owner
   approves that exact plan and its hash is recorded.
+
+## Pixi-only exploration implementation authorization — 2026-09-23
+
+- Status: `APPROVED — IMPLEMENTATION AUTHORIZED` on branch
+  `codex/feat-018-pixi-exploration`.
+- The owner approved implementation of
+  `plan/PERSONALIZED_DRAWING_EXPLORATION_TAP_25D_PLAN.md` for subject-only Vietnamese labels,
+  `SceneExplorationPlanV1`, bounded localization/cut-outs, tap-to-discover, 2.5D rendering,
+  mobile flow, tests and feature-local evidence.
+- Whiteboard MP4 generation, TTS, video worker/encoder, video playback and video READY/retry are
+  explicitly excluded from this branch and are owned by another implementation task. This branch
+  preserves only the existing video placeholder/handoff seam.
+- Existing Gate A, Gate B, ExperienceSpec identity, original-art preservation, auth/save seams,
+  synthetic/non-child demo boundary and no-Codex-Lightning-call rule remain unchanged. FEAT-003
+  contracts and unrelated FEAT-026 files remain out of scope.

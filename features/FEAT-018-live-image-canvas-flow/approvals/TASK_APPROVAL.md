@@ -377,3 +377,23 @@ mobile, Gate A, P1 eligibility, P3/P4 and shared integration remain separately g
   unless a separately approved compatibility-preserving change is required.
 - Live execution boundary: owner alone performs Lightning smoke tests under the existing
   approximately 25-credit ceiling after offline/API/UI verification passes.
+
+## Pixi-only Personalized Drawing Exploration implementation — 2026-09-23
+
+- Approver: Project owner direct instruction in the current conversation: create a new branch and
+  implement the task while excluding video because another person owns it.
+- Approved artifact: `plan/PERSONALIZED_DRAWING_EXPLORATION_TAP_25D_PLAN.md`.
+- Approved plan SHA-256: `82A52F7030A5D3CE0A60E02E159A2F1436FFC6104715EE314C0D4C7B6A72C729`.
+- Approved at: 2026-09-23 18:52:54 Asia/Ho_Chi_Minh.
+- Implementation branch: `codex/feat-018-pixi-exploration`.
+- Approved scope: subject-only Vietnamese candidate projection; `SceneExplorationPlanV1` and
+  `SceneFocusPlanV1`; bounded localization and source-derived cut-outs; tap-to-discover;
+  2.5D PixiJS/GSAP scene; landscape mobile flow; placeholder/handoff continuity; tests and
+  feature-local evidence.
+- Explicit exclusions: whiteboard MP4 generation, TTS, masks/strokes for video, video worker/
+  encoder, video playback/READY/retry implementation, FEAT-003 changes, auth, durable persistence,
+  live provider calls, mobile credentials, generated visual assets, real child data and unrelated
+  FEAT-026 changes.
+- Boundary: preserve the existing video placeholder/handoff seam, Gate A/Gate B, exact
+  ExperienceSpec identity, original-art provenance, future auth/save seam and the owner-run
+  Lightning boundary. No video work may be added to this branch without renewed approval.

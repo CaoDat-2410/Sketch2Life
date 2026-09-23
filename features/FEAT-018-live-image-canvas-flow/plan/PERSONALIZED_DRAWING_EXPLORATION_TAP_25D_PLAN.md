@@ -1,11 +1,11 @@
 # Personalized Drawing Exploration: tap-to-discover and 2.5D cut-out plan
 
-Status: `AWAITING_APPROVAL`
+Status: `APPROVED — IMPLEMENTATION AUTHORIZED`
 
 Date: 2026-09-23
 Feature: `FEAT-018-live-image-canvas-flow`
-Target branch: `codex/feat-018-contract-plan`
-Plan revision: `2 — Visual Exploration direction`
+Target branch: `codex/feat-018-pixi-exploration`
+Plan revision: `3 — Pixi-only implementation`
 Supersedes for the Pixi/topic slice: the whole-image-only sections of
 `PIXI_STORY_INTRO_TOPIC_DIRECTIONS_FLOW_PLAN.md`. It does not undo the already-approved
 Gate A, Gate B, video-placeholder, orientation, auth/save seam or Lightning boundaries.
@@ -25,7 +25,7 @@ image + optional narration
        -> 2.5D source-derived layers when extraction passes
        -> tap-to-discover hotspots for confirmed entities
        -> guided focus beats and short captions
-   -> whiteboard MP4 implementation (separate next task; not part of this Pixi slice)
+   -> existing video placeholder/handoff seam (video implementation owned by another task)
   -> portrait outdoor activity
 ```
 
@@ -62,6 +62,8 @@ the deterministic PixiJS/GSAP execution payload compiled from that higher-level 
   views with provenance, never replacements.
 - The flow remains landscape for Pixi and the future video seam, then portrait for the outdoor
   activity.
+- Whiteboard MP4 generation, TTS, encoding and video-worker implementation are owned by another
+  task/person. This branch preserves only the placeholder/handoff seam and does not implement video.
 - Real video, generated replacement artwork, auth, durable save and Codex-triggered Lightning
   requests remain out of scope.
 
@@ -423,40 +425,22 @@ label, then resumes only when the user chooses to continue.
 - `apps/ui-mobile/src/screens/Flow2Screens.tsx`, `BaoApp.tsx` and related styles/types
 - feature-local tests, context/decisions, evidence and approval records
 
-## 10.1 Next implementation task — whiteboard MP4 generation
+## 10.1 Video boundary — handoff only (out of scope)
 
-This is a separate follow-up task after the Pixi exploration slice and is recorded here so the
-media order remains explicit. It is planned, not authorized by this document yet.
+This branch does not implement whiteboard MP4 generation. The Pixi flow must keep a typed,
+replaceable handoff seam for the separately owned video task:
 
 ```text
 Gate B / ExperienceSpec
-  -> start Pixi exploration
-  -> start WhiteboardVideoJob concurrently
-       VLM localization
-       -> SAM 2.1 Hiera Small mask
-       -> contour/stroke extraction
-       -> deterministic whiteboard render
-       -> independent TTS from learning_thread
-       -> FFmpeg/NVENC MP4
-  -> Parent continue only when video READY
-  -> video playback
-  -> outdoor activity
+  -> PixiJS Personalized Drawing Exploration
+  -> existing video placeholder/handoff seam
+  -> portrait outdoor activity
 ```
 
-The follow-up plan must define `WhiteboardVideoJobV1`, `WhiteboardVideoResultV1` and
-`WhiteboardVideoStatusV1`, bind every stage to the same source/spec/learning-thread identity,
-expose loading while Pixi is playing, and provide explicit retry for a typed failure. The current
-scope is process-local/session-only. It must not add auth, durable persistence, mobile provider
-credentials, automatic provider retry, LTX/video diffusion or generated replacement artwork.
-
-Required follow-up acceptance:
-
-- VLM → SAM2 Small → stroke extraction → MP4 pipeline is deterministic/auditable for a fixed input.
-- Original drawing, masks, strokes, TTS script/audio and MP4 retain source hash/provenance.
-- Parent cannot continue to video/activity while the MP4 is missing or unvalidated.
-- Retry is explicit/idempotent and never reports a failed job as READY.
-- Exact codec, resolution, size, timeout, retry budget, TTS voice and exhausted-failure recovery are
-  separately approved before implementation.
+The Pixi implementation may expose `video_placeholder`/handoff state and preserve the exact
+`ExperienceSpec`, source hash and learning-thread references, but it must not create or mutate
+`WhiteboardVideoJob`, TTS, masks/strokes, encoder output or provider video state. Video READY,
+retry and MP4 playback are acceptance responsibilities of the other task.
 
 No `FEAT-026` path may be modified or staged.
 
@@ -477,16 +461,15 @@ No `FEAT-026` path may be modified or staged.
 
 ## 12. Approval gate
 
-This plan is `AWAITING_APPROVAL`. No implementation, dependency installation, live Lightning call,
-commit or push is authorized by this document alone.
+This plan is `APPROVED — IMPLEMENTATION AUTHORIZED` for Pixi-only slices A–D on
+`codex/feat-018-pixi-exploration`.
 
-After explicit approval:
+Authorized implementation boundaries:
 
-1. compute this plan's SHA-256;
-2. append the exact scope, boundaries, approver, timestamp and hash to
-   `features/FEAT-018-live-image-canvas-flow/approvals/TASK_APPROVAL.md`;
-3. update feature context/decisions to `APPROVED — IMPLEMENTATION AUTHORIZED`;
-4. implement slices A–D in small commits, adding evidence after each meaningful slice;
-5. stop for renewed approval if segmentation requires an unapproved provider, generated assets,
-   breaking contract migration, auth/persistence, video or live-provider execution beyond the
-   approved owner-run boundary.
+1. implement subject projection, exploration planning, bounded localization/cut-outs, renderer
+   bridge, Pixi mobile flow, tests and feature-local evidence;
+2. preserve Gate A/Gate B, source/spec identity, auth/save seams and the existing video placeholder;
+3. do not implement video generation, video playback, TTS, encoder/worker changes, live Lightning
+   calls, auth/persistence, generated assets or FEAT-026 changes;
+4. stop for renewed approval if implementation requires a breaking contract migration, an
+   unapproved provider, generated assets, auth/persistence or any video scope.

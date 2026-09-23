@@ -162,3 +162,11 @@
   supervision and Gate-B identity rules. Remove hardcoded butterfly/mock presentation from the
   backend-result path. No video, durable auth/save, mobile credentials or Codex-triggered Lightning
   request is authorized. Evidence: `evidence/notes/TOPIC_AND_T2_ACTIVITY_MATCHING_IMPLEMENTATION_20260922.md`.
+
+- 2026-09-23 owner approval: implement the Pixi-only `Personalized Drawing Exploration` slice on
+  `codex/feat-018-pixi-exploration`, covering subject-only Vietnamese labels, learning-thread
+  exploration planning, bounded localization/cut-outs, tap-to-discover, 2.5D Pixi rendering,
+  mobile orientation/UX, tests and evidence. Whiteboard MP4 generation, TTS, video worker/encoder,
+  playback and READY/retry semantics are assigned to another task and are excluded here. Preserve
+  the existing video placeholder/handoff seam, Gate A/B and ExperienceSpec identity; do not change
+  FEAT-003, auth/persistence, mobile credentials, live provider calls or FEAT-026.
