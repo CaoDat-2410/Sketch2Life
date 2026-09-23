@@ -1,5 +1,42 @@
 # FEAT-018 decisions
 
+- 2026-09-22 D9 offline enforcement implementation and correction: record that
+  the owner-approved exact D9 stdout/stderr ceilings (`stdout_max_bytes=16384`,
+  `stderr_max_bytes=32768`, approved 2026-09-21 in
+  `approvals/TASK_APPROVAL.md`) were implemented at commit
+  `552bc5d939f36b2b87dc7f0cea909110e8750107`, that an independent post-commit
+  review found four correctness gaps (F1-F4: over-limit-observation
+  acceptance, delayed stop/cleanup on stream failure, unbounded capture
+  bookkeeping, and late-output/queued-failure success survival), and that the
+  correction was applied to the same two authorized files only, independently
+  re-reviewed with verdict `PASS`
+  (`tmp/feat018-p2t2-d9-independent-correction-review-20260922/REVIEW.md`),
+  and committed as `86836d24cfcd83ca14c0bc50e79fff1103cb9ecc`
+  (`fix(feat018): close D9 stream enforcement gaps`; blobs
+  `e1c89536e612b9f801ff2e429e76f3f0d0c370ee` and
+  `3a4db7fd56185da82749b95dd42ca1a3bdc13c0d`), independently re-verified by a
+  follow-up commit checkpoint
+  (`tmp/feat018-p2t2-d9-followup-commit-checkpoint-20260922/REPORT.md`,
+  verdict `PASS`). This closes only the D9 offline enforcement
+  implementation: no raw stream payload is retained or published, and D9
+  introduces no additional retry, attempt, adapter call, or session. It does
+  not bind a new `reviewed_runtime_code_commit`, does not resolve
+  `P2T2-LIVE-D9` or `D9_LIVE_D11_CARRIER_SCOPE` (both remain dependent on the
+  unresolved D11 live-seam binding), and does not resolve D11, D1, or D6
+  overall. D11 remains `BLOCKED`, D1 remains `BLOCKED_BY_D11`, D6 overall
+  remains `NOT FINALLY RESOLVED` (fixture identity still proposed), Stage 4
+  remains `NOT READY`, and Lightning/model/GPU/provider/network execution
+  remains `NOT AUTHORIZED`. The architecture validator's pre-existing
+  `backend_ai_workflow.py` finding is unchanged. The candidate-only
+  `raw_output_max_bytes=65536` and `ipc_envelope_max_bytes=98304` remain
+  `OWNER_SELECTED_CANDIDATE_ONLY`; the stdout/stderr approval applies to
+  stdout/stderr only. The first independent review of this reconciliation
+  returned `BLOCKED` (F-01..F-06) and was corrected on 2026-09-22; its review
+  gate is package-local only
+  (`FRESH_INDEPENDENT_D9_GOVERNANCE_RECONCILIATION_REREVIEW`) and does not
+  replace, supersede, or satisfy the global `NEXT`, which remains
+  `PREPARE_D1_OWNER_RESOLUTION_AND_D6_FIXTURE_BINDING`.
+
 - 2026-09-20 D6 media-validation-source owner binding: after the independent
   D6 binding review returned `PASS`, record
   `D6_BINDING_REVIEW = PASS`, `D6_BINDING_PACKAGE = OWNER_APPROVED`, and

@@ -6,7 +6,9 @@ NOT AN IMPLEMENTATION AUTHORIZATION
 NOT A LIVE EXECUTION AUTHORIZATION
 
 Date: 2026-09-16 (reconciliation baseline).
-Last updated: 2026-09-20 (plan-only correction, binding-findings remediation,
+Last updated: 2026-09-22 (D9 offline-implementation-and-correction
+reconciliation; D9 package correction; plan-only correction,
+binding-findings remediation,
 R-001..R-007 remediation, T-001..T-007 plan remediation, T-001 boundary
 wording correction, the F-001/F-002 authorized-run-boundary order and D1
 wording correction, the B-001 Section 12 preamble correction, the
@@ -80,7 +82,10 @@ authorization or a live runtime identity. A future owner approval must receive a
 file must never contain its own future commit hash; the execution checkout
 must verify that externally supplied commit before any model invocation.
 
-## Canonical reconciliation state (2026-09-20; D6 owner binding recorded)
+## Canonical reconciliation state (2026-09-21; D9 package correction recorded)
+
+Addendum (2026-09-22): the D9 offline-implementation reconciliation below is
+additive to this 2026-09-21 state and does not remove or rewrite it.
 
 - Offline coordinator implementation: COMPLETE
 - Offline independent/POSIX verification: COMPLETE WITH FINDINGS CLOSED
@@ -96,6 +101,34 @@ must verify that externally supplied commit before any model invocation.
   (Section 2.7.6)
 - P2T2-LIVE-D6 overall: NOT FINALLY RESOLVED (fixture identity remains
   `RESOLVED_WITH_PROPOSED_VALUE`)
+- P2T2-LIVE-D9: NOT RESOLVED
+- D9 numeric ceilings: OWNER_SELECTED_CANDIDATE_ONLY
+- D9 stdout/stderr enforcement: SEPARATE_ENFORCEMENT_APPROVAL_REQUIRED
+- D9_PACKAGE = DESIGN_RECORD_ONLY
+- D9_LIVE_D11_CARRIER_SCOPE = UNKNOWN_UNRESOLVED_PENDING_D11
+- D9_PACKAGE_REVIEW = BLOCKED_PENDING_D11_AND_CONTRACT_REVIEW
+- D9 = NOT RESOLVED
+- D9 numeric ceilings (2026-09-22 note): unchanged; `raw_output_max_bytes=65536`
+  and `ipc_envelope_max_bytes=98304` remain `OWNER_SELECTED_CANDIDATE_ONLY`
+- D9 stdout/stderr enforcement (2026-09-22 update): OWNER-APPROVED EXACT VALUES
+  (`stdout_max_bytes=16384`, `stderr_max_bytes=32768`), approved 2026-09-21 in
+  `approvals/TASK_APPROVAL.md`, and implemented offline (authoritative
+  checkpoint `86836d2`); this supersedes
+  `SEPARATE_ENFORCEMENT_APPROVAL_REQUIRED` for stdout/stderr only
+- D9_OFFLINE_ENFORCEMENT_IMPLEMENTATION = IMPLEMENTED_CORRECTED_AND_INDEPENDENTLY_REVIEWED_PASS
+  (`tmp/feat018-p2t2-d9-independent-correction-review-20260922/REVIEW.md`)
+- D9_OFFLINE_IMPLEMENTATION_COMMIT = `86836d24cfcd83ca14c0bc50e79fff1103cb9ecc`
+  (`fix(feat018): close D9 stream enforcement gaps`; sole child of
+  `552bc5d939f36b2b87dc7f0cea909110e8750107`)
+- D9_OFFLINE_IMPLEMENTATION_SOURCE_BLOB = `e1c89536e612b9f801ff2e429e76f3f0d0c370ee`
+- D9_OFFLINE_IMPLEMENTATION_TEST_BLOB = `3a4db7fd56185da82749b95dd42ca1a3bdc13c0d`
+- D9 offline no-raw-payload and no-extra-attempt/adapter-call/session
+  invariants: independently reproduced and confirmed held
+- P2T2-LIVE-D9 (live carrier/session integration): unchanged by the above,
+  remains `NOT RESOLVED`
+- D9_LIVE_D11_CARRIER_SCOPE = UNKNOWN_UNRESOLVED_PENDING_D11 (unchanged)
+- `reviewed_runtime_code_commit` is unchanged by this reconciliation and is
+  not rebound to the D9 offline-implementation commit
 - P2T2-LIVE-D11: BLOCKED
 - P2T2-LIVE-D11 sub-decision `LIVE_SEAM_BINDING`: BLOCKED (Section 2.7.7)
 - Stage 4 live-execution approval: NOT READY
@@ -180,7 +213,30 @@ Update history, 2026-09-17 through 2026-09-20:
    `INDEPENDENT_REVIEW_OF_D6_GOVERNANCE_COMMIT`. The F-002 correction now
    advances the current gate to
    `PREPARE_D1_OWNER_RESOLUTION_AND_D6_FIXTURE_BINDING`. Its static-validation
-   record is the current Section 12.6 entry.
+   record is the historical Section 12.6 entry.
+
+9. The 2026-09-22 D9 offline-implementation reconciliation records that the
+   owner-approved exact D9 stdout/stderr ceilings (`stdout_max_bytes=16384`,
+   `stderr_max_bytes=32768`, approved 2026-09-21) were implemented at commit
+   `552bc5d939f36b2b87dc7f0cea909110e8750107`; that an independent
+   post-commit review found four correctness gaps (F1-F4) and returned
+   `BLOCKED`; that the correction was applied to the same two authorized
+   files only and independently re-reviewed with verdict `PASS`; and that the
+   correction was committed as `86836d24cfcd83ca14c0bc50e79fff1103cb9ecc`
+   (`fix(feat018): close D9 stream enforcement gaps`), independently
+   re-verified by a follow-up commit checkpoint with verdict `PASS`. This is a
+   reconciliation of the D9 **offline implementation** only: it does not bind
+   a new `reviewed_runtime_code_commit`, does not resolve `P2T2-LIVE-D9` or
+   `D9_LIVE_D11_CARRIER_SCOPE` (both remain dependent on the unresolved D11
+   live-seam binding), and does not change D1, D6, D11, D4, or Stage 4
+   status. Its static-validation record is the current Section 12.7 entry.
+   Its first independent review returned `BLOCKED` (F-01..F-06); those
+   findings were corrected on 2026-09-22. Its review gate is package-local
+   only: `FRESH_INDEPENDENT_D9_GOVERNANCE_RECONCILIATION_REREVIEW`. That gate
+   does not replace, supersede, or satisfy the still-open global
+   `PREPARE_D1_OWNER_RESOLUTION_AND_D6_FIXTURE_BINDING` gate from item 8,
+   which remains the only current next gate (item 3 and Section 11
+   `CURRENT`).
 
 These updates do not change the D1, D4, D11, Stage 4, or execution
 authorization status. `P2T2-LIVE-D6.MEDIA_VALIDATION_SOURCE` is resolved to
@@ -188,6 +244,8 @@ the exact committed image-only validator, and
 `P2T2-LIVE-D6.MIME_EXTENSION_RULE` remains resolved to
 `RESOLVED: REMOVE_REQUIREMENT`; both are recorded in Section 9. D4
 runtime/session-local revalidation remains Stage-4-local after `SESSION_READY`.
+The 2026-09-22 D9 offline-implementation reconciliation in item 9 does not
+change any of these facts and does not resolve `P2T2-LIVE-D9`.
 
 ## 1. Objective and exact scope
 
@@ -481,14 +539,18 @@ Repository conventions use feature-local, directly imported executors under
   source remains unchanged.
 - `backend/tests/unit/test_feat018_live_lightning_execution.py`: offline tests
   with injected seams plus synthetic local process-boundary tests only; no
-  Lightning/provider/model execution occurs. It covers raw and IPC overflow, stdout/stderr
-  ceilings, per-attempt timeout and total-cap termination, child/IPC cleanup
-  on success and failure, pre-adapter `0/null`, bounded-dispatch failures with
-  `1/null`, model-reaching `1/1`, explicitly transient retry `1/2`, no third or
-  outer retry, and evidence-pair hash/rename integrity. It does not claim a
-  dedicated adapter-input-rejection case; that path is represented by the
-  adapter's typed `attempt_number=0` while the host cardinality remains
-  `1/null`. Prompt-hash selection,
+  Lightning/provider/model execution occurs. It covers the existing raw and
+  IPC overflow, per-attempt timeout and total-cap termination, child/IPC
+  cleanup on success and failure, pre-adapter `0/null`, bounded-dispatch
+  failures with `1/null`, model-reaching `1/1`, explicitly transient retry
+  `1/2`, no third or outer retry, and evidence-pair hash/rename integrity.
+  The D9 stdout/stderr capture, byte-accounting, finalization, leakage, and
+  platform cases remain future implementation/test requirements because the
+  reviewed runtime currently only declares/validates those fields and has no
+  stream capture or enforcement. It does not claim a dedicated
+  adapter-input-rejection case; that path is represented by the adapter's
+  typed `attempt_number=0` while the host cardinality remains `1/null`.
+  Prompt-hash selection,
   device placement, full evidence redaction and incident handling are covered
   by offline injected coordinator seams; live-runtime suitability and the
   concrete live-seam binding (Section 2.7.7) remain pending. The verification
@@ -1504,17 +1566,24 @@ condition is "reasonable", "available", or "unchanged" is not sufficient.
      launcher is reached only after `CONTAINMENT_READY`, and the accepted
      progress stream contains at most one attempt-1 and one attempt-2 start.
 
-11. Bounded output and IPC. P2T2-LIVE-D9 records the exact proposed integer
-    values `raw_output_max_bytes=65536`, `ipc_envelope_max_bytes=98304`,
-    `stdout_max_bytes=0`, and `stderr_max_bytes=0`, plus their enforcement
-    component. The ceiling is enforced before an unbounded raw value can cross
-    the child-parent boundary. A zero stream ceiling means the stream is
-    disabled and any byte is a failure. stdout and stderr are either disabled or
-    captured by a bounded, non-persistent sink; they may not contain prompts,
-    raw model output, credentials, URLs, paths, or provider payloads. If the
-    selected runner or harness cannot prove these bounds, the run stops before
-   model invocation. The exact profile setting max_new_tokens=512 must remain
-   recorded and unchanged, but it does not by itself prove a byte bound.
+11. Bounded output and IPC. P2T2-LIVE-D9 remains `NOT RESOLVED`. The
+    owner-selected candidates are `raw_output_max_bytes=65536` and
+    `ipc_envelope_max_bytes=98304`; they are not exact runtime bindings.
+    `stdout/stderr=SEPARATE_ENFORCEMENT_APPROVAL_REQUIRED`: no numeric stream
+    ceilings or disable semantics are selected. The reviewed runtime currently
+    only declares and validates `stdout_max_bytes`/`stderr_max_bytes`; it has
+    no stream capture, worker hand-off, byte enforcement, overflow action, or
+    stream tests. The D9 design record proposes bounded, non-persistent
+    capture-and-discard with raw-byte accounting, no UTF-8 decoding, typed
+    overflow/read/death/late/finalization outcomes, and the event order
+    `capture -> stop/close -> bounded drain -> finalize -> publish -> reject
+    later bytes`. A future approved runner may not carry prompts, raw model
+    output, secrets, tokens, credentials, URLs, absolute paths, provider
+    details, traceback/exception text, process handles, or identifiers.
+    If the future approved contract cannot prove these bounds, the run stops
+    before model/provider work. The exact profile setting max_new_tokens=512
+    must remain recorded and unchanged, but it does not by itself prove a byte
+    bound.
 
 12. Runtime manifest. A sanitized runtime manifest is created inside
     Lightning after source, dependency, CUDA, driver, and GPU checks and
@@ -2017,7 +2086,10 @@ kill; cleanup confirms both levels are absent; late events are rejected; and
 - the exact profile, model identifier/revision, config/catalog hashes,
   dependencies, prompt identity/hash, policy identity, and hardware facts
   match the approval;
-- the configured raw-output, IPC, stdout, and stderr ceilings were enforced;
+- the separately approved D9 contract is bound and future runtime evidence
+  confirms the approved raw-output, IPC, stdout, and stderr rules; this is a
+  future gate because the reviewed source currently only declares/validates
+  the stdout/stderr fields;
 - the live nested-spawn assertion succeeded: the outer worker was really
   non-daemon, its inner generation child was really spawned only after the
   containment release gate, and the containment mechanism covered all
@@ -2213,8 +2285,9 @@ they must not infer or synthesize missing metadata.
   provision-time single-device visibility. A post-load model/input placement
   assertion is publishable only when its separate reviewed typed carrier is
   bound under D10/D11; current placement facts do not prove it;
-- max_new_tokens=512, raw_output_max_bytes, ipc_envelope_max_bytes,
-  stdout_max_bytes, stderr_max_bytes, and an enforcement=CONFIRMED result;
+- the D9 candidate-state marker; after separate D9/D11 approval, the exact
+  approved raw-output, IPC, stdout, and stderr ceilings plus an
+  `enforcement=CONFIRMED` result;
 - adapter_call_count and attempt_count using the conditional cardinality
   rules above, together with the adapter's typed attempt/result status when a
   V2 result exists; no raw model output;
@@ -2331,7 +2404,7 @@ concrete value, not that the future live approval has been granted.
 | P2T2-LIVE-D6.MIME_EXTENSION_RULE | `RESOLVED: REMOVE_REQUIREMENT` | Owner-resolved (2026-09-18): MIME/extension agreement removed from precondition 5; no enforcer added; `image_admission_evaluation.py`/Cohort B tooling stay off the live path; D2 responsibilities and B01.jpg's owner-reviewed MIME/extension metadata are unchanged (Section 2.7.6). |
 | P2T2-LIVE-D7 | `RESOLVED_WITH_PROPOSED_VALUE` | Committed C1-v2 source, builder, explicit `prompt=` path, and exact UTF-8 hash are traced; Stage 4 must bind them. |
 | P2T2-LIVE-D8 | `READY_TO_RESOLVE` | Mount/copy/upload session-relative staging method remains an owner choice. |
-| P2T2-LIVE-D9 | `RESOLVED_WITH_PROPOSED_VALUE` | Proposed integers are 65536, 98304, 0, and 0 with the reviewed bounded enforcement path. |
+| P2T2-LIVE-D9 | `NOT RESOLVED` | Numeric ceilings are owner-selected candidates only: `raw_output_max_bytes=65536` and `ipc_envelope_max_bytes=98304`. `stdout/stderr=SEPARATE_ENFORCEMENT_APPROVAL_REQUIRED`; the reviewed runtime only declares/validates those fields, and the D9 design record is blocked pending D11 and contract review. 2026-09-22 update: `stdout_max_bytes=16384`/`stderr_max_bytes=32768` are now owner-approved exact values, and the offline enforcement is implemented, corrected, independently reviewed `PASS`, and committed at `86836d24cfcd83ca14c0bc50e79fff1103cb9ecc` (see the "P2T2-LIVE-D9" section below, 2026-09-22 addendum). This is the offline-implementation state only; the live decision `P2T2-LIVE-D9` remains `NOT RESOLVED` because `D9_LIVE_D11_CARRIER_SCOPE` is still `UNKNOWN_UNRESOLVED_PENDING_D11`. |
 | P2T2-LIVE-D10 | `READY_TO_RESOLVE` | Approval values and observed GPU evidence must be supplied separately; no live hardware was observed here. |
 | P2T2-LIVE-D11 | `BLOCKED` | Exact two-file scope and source/test binding are complete; live-runtime suitability, the concrete live-seam binding, and Stage 4 approval remain pending. |
 | P2T2-LIVE-D11.LIVE_SEAM_BINDING | `BLOCKED` | No concrete approved host caller, `LightningPreflight`, `LightningSessionController`, `LightningSmokeFinalizer`, or adapter-dispatch wrapper is bound. The caller/seam identities, check-owner map, recording contract, and typed-carrier resolution in Section 2.7.7 must be bound before D11 can be resolved. |
@@ -2592,29 +2665,80 @@ fail-closed.
 
 ### P2T2-LIVE-D9 - Raw output, IPC, stdout, and stderr ceilings
 
-Planning disposition: `RESOLVED_WITH_PROPOSED_VALUE`.
+Planning disposition: `NOT RESOLVED`.
 
-The proposed exact integers are
-`raw_output_max_bytes=65536`, `ipc_envelope_max_bytes=98304`,
-`stdout_max_bytes=0`, and `stderr_max_bytes=0`. The zero stream values mean
-the streams are disabled; any observed byte fails the run. These values are
-approval values, not implicit source defaults, and must be passed explicitly
-to `Feat018BoundedRunnerConfig`.
+The owner-selected candidate values are
+`raw_output_max_bytes=65536` and `ipc_envelope_max_bytes=98304`. They remain
+candidate-only and are not `EXACT_VALUE_BOUND`. The stream decision is
+`stdout/stderr=SEPARATE_ENFORCEMENT_APPROVAL_REQUIRED`; no numeric
+`stdout_max_bytes` or `stderr_max_bytes` value, zero-disable behavior, or
+automatic byte-failure behavior is selected.
 
-Record exact positive integer values for raw_output_max_bytes and
-ipc_envelope_max_bytes, exact non-negative integer values for
-stdout_max_bytes and stderr_max_bytes, the enforcement component and phase,
-UTF-8/protocol behavior, and the exact overflow action
-TERMINATE_AND_MARK_FAILED. The fixed model bound max_new_tokens=512 remains
-in force but does not replace these ceilings. The proposed
-`NEW_GLUE_EXPLICITLY_APPROVED` boundary must enforce the raw-output ceiling
-before any raw value crosses IPC, send only an envelope already proven to fit
-the IPC ceiling, and make stdout/stderr bounded and non-persistent. The
-reviewed bounded implementation, not the old subprocess `Connection.send` or
-the old in-process runner, is the selected boundary. These are required
-implementation/test acceptance conditions for the exact scope in Section 2.5;
-if the selected approval values cannot be proven at runtime, the owner must
-leave the live run unapproved.
+The reviewed runtime currently only declares and validates
+`stdout_max_bytes`/`stderr_max_bytes`. It has no stream capture, worker
+  hand-off, byte enforcement, overflow handling, typed stream failure carrier,
+  or stream tests. The D9 package is `D9_PACKAGE=DESIGN_RECORD_ONLY` with
+  `D9_LIVE_D11_CARRIER_SCOPE=UNKNOWN_UNRESOLVED_PENDING_D11` and
+  `D9_PACKAGE_REVIEW=BLOCKED_PENDING_D11_AND_CONTRACT_REVIEW`; D9 remains
+  `NOT RESOLVED`.
+
+The future D9 decision must record the exact approved raw/IPC values, any
+approved stream ceilings, the enforcement component and phase, UTF-8/binary
+behavior, the event order `capture -> stop/close -> bounded drain ->
+finalize -> publish -> reject later bytes`, the typed outcome set including
+`STREAM_FINALIZATION_FAILED`, and the exact overflow action
+`TERMINATE_AND_MARK_FAILED`. Drain/finalization failure must publish no
+success, must still run cleanup, and must not carry raw stream content into
+evidence or logs; cleanup failure may override the effective outcome. The
+fixed model bound `max_new_tokens=512` remains in force but does not replace
+these ceilings. The reviewed bounded implementation, not the old subprocess
+`Connection.send` or the old in-process runner, is the historical offline
+boundary; it does not provide current stdout/stderr enforcement. If a future
+approved contract cannot prove these bounds, the owner must leave the live
+run unapproved.
+
+**2026-09-22 offline-implementation addendum (additive; does not change the
+`NOT RESOLVED` planning disposition above).** The stdout/stderr half of this
+decision has since been separately owner-approved with exact values
+(`approvals/TASK_APPROVAL.md`, 2026-09-21: `stdout_max_bytes=16384`,
+`stderr_max_bytes=32768`) and implemented, corrected, and independently
+reviewed at HEAD. This addendum distinguishes three states that must not be
+conflated:
+
+- **Historical pre-implementation D9 package state (2026-09-21 and earlier,
+  unchanged above):** `raw_output_max_bytes`/`ipc_envelope_max_bytes` remain
+  owner-selected candidates only, and `D9_PACKAGE=DESIGN_RECORD_ONLY`.
+- **Completed offline D9 stdout/stderr implementation/correction state
+  (new, this addendum):** implemented at
+  `552bc5d939f36b2b87dc7f0cea909110e8750107`; an independent post-commit
+  review found four correctness gaps (F1-F4) and returned `BLOCKED`
+  (`tmp/feat018-p2t2-d9-two-commit-post-commit-review-20260922/REVIEW.md`);
+  the correction, confined to the same two authorized files, was
+  independently reviewed with verdict `PASS`
+  (`tmp/feat018-p2t2-d9-independent-correction-review-20260922/REVIEW.md`)
+  and committed as `86836d24cfcd83ca14c0bc50e79fff1103cb9ecc`
+  (`fix(feat018): close D9 stream enforcement gaps`; source blob
+  `e1c89536e612b9f801ff2e429e76f3f0d0c370ee`, test blob
+  `3a4db7fd56185da82749b95dd42ca1a3bdc13c0d`), independently re-verified by a
+  follow-up commit checkpoint with verdict `PASS`
+  (`tmp/feat018-p2t2-d9-followup-commit-checkpoint-20260922/REPORT.md`). No
+  raw stream payload is retained or published, and no D9-created retry,
+  additional attempt, adapter call, or session was introduced. The
+  architecture validator's pre-existing `backend_ai_workflow.py` finding is
+  unchanged.
+- **Still-unresolved live D9/D11 carrier state (unchanged):** commit
+  `86836d2` is not bound as `reviewed_runtime_code_commit`;
+  `raw_output_max_bytes`/`ipc_envelope_max_bytes` remain unresolved;
+  `D9_LIVE_D11_CARRIER_SCOPE=UNKNOWN_UNRESOLVED_PENDING_D11` and
+  `P2T2-LIVE-D9` remain `NOT RESOLVED`; D11 and `D11.LIVE_SEAM_BINDING`
+  remain `BLOCKED`, D1 remains `BLOCKED_BY_D11`, and Stage 4 remains
+  `NOT READY`; and Lightning/model/GPU/provider/network execution remains
+  `NOT AUTHORIZED`.
+
+Full reconciliation detail, including before/after hashes and validation
+results, is in
+`evidence/notes/P2_T2_D9_GOVERNANCE_RECONCILIATION_20260922.md`. The
+static-validation record for this addendum is Section 12.7.
 
 ### P2T2-LIVE-D10 - Exact GPU/SKU/VRAM/BF16 decision
 
@@ -2956,6 +3080,12 @@ D4 runtime/session-local revalidation = STAGE_4_LOCAL_ONLY_AFTER_SESSION_READY
 D6 = NOT FINALLY RESOLVED; FIXTURE IDENTITY = RESOLVED_WITH_PROPOSED_VALUE
 D6.MEDIA_VALIDATION_SOURCE = RESOLVED: EXACT_COMMITTED_IMAGE_ONLY_VALIDATOR
 D6.MIME_EXTENSION_RULE = RESOLVED: REMOVE_REQUIREMENT
+D9_PACKAGE = DESIGN_RECORD_ONLY
+D9 numeric ceilings = OWNER_SELECTED_CANDIDATE_ONLY
+D9 stdout/stderr enforcement = SEPARATE_ENFORCEMENT_APPROVAL_REQUIRED
+D9_LIVE_D11_CARRIER_SCOPE = UNKNOWN_UNRESOLVED_PENDING_D11
+D9_PACKAGE_REVIEW = BLOCKED_PENDING_D11_AND_CONTRACT_REVIEW
+D9 = NOT RESOLVED
 D11 = BLOCKED
 D11.LIVE_SEAM_BINDING = BLOCKED PENDING APPROVED HOST CALLER, CONCRETE LightningPreflight, LightningSessionController, LightningSmokeFinalizer, ADAPTER-DISPATCH, AND TYPED-CARRIER BINDING
 STAGE 4 = NOT READY
@@ -2996,13 +3126,39 @@ STAGE_4_APPROVAL_DRAFT
 -> SEPARATE_GOVERNANCE_DOCS_UPDATE
 ```
 
+**2026-09-22 addendum (status-neutral; does not change the `CURRENT` block,
+its `NEXT`, the THEN sequence above, or any D1/D4/D6/D11/Stage-4 status, and
+does not resolve `P2T2-LIVE-D9`).** The D9 offline stdout/stderr enforcement
+implementation described in the "P2T2-LIVE-D9" section's 2026-09-22 addendum
+(Section 9, above) and in the Canonical reconciliation state block at the top
+of this document is reconciled here. It is a documentation-only
+reconciliation of already-committed, already-independently-reviewed work
+(commit `86836d24cfcd83ca14c0bc50e79fff1103cb9ecc`); it performs no
+Lightning, GPU, model, provider, network, subprocess, or benchmark execution,
+and it does not advance the THEN sequence above, which still begins with
+`PREPARE_D1_OWNER_RESOLUTION_AND_D6_FIXTURE_BINDING`. This addendum is not a
+canonical current-state source: the `CURRENT` block above remains the sole
+canonical current-state block, and its
+`NEXT=PREPARE_D1_OWNER_RESOLUTION_AND_D6_FIXTURE_BINDING` remains the only
+global next gate. The separate approval called for by the `CURRENT` line
+`D9 stdout/stderr enforcement = SEPARATE_ENFORCEMENT_APPROVAL_REQUIRED` was
+granted by the owner on 2026-09-21 (`approvals/TASK_APPROVAL.md`); this
+addendum records that fact without amending the `CURRENT` block. The review
+gate for this D9 reconciliation package is package-local only:
+`FRESH_INDEPENDENT_D9_GOVERNANCE_RECONCILIATION_REREVIEW`. It does not
+replace, supersede, or satisfy the global `NEXT`. Its static-validation
+record is Section 12.7.
+
 ## 12. Static validation records
 
 Section 12 keeps each correction's validation record for provenance.
 
 - Sections 12.0, 12.1, 12.2, 12.3, 12.4, and 12.5 are `HISTORICAL` and
   `SUPERSEDED`. Their `NEXT` values were satisfied and are not current.
-- Section 12.6 is the current validation record.
+- Section 12.6 is `HISTORICAL` (`SUPERSEDED`) as a validation record only.
+  Its `NEXT` value, `PREPARE_D1_OWNER_RESOLUTION_AND_D6_FIXTURE_BINDING`, is
+  not satisfied; it remains the current global gate in Section 11 `CURRENT`.
+- Section 12.7 is the current validation record.
 - Section 11 `CURRENT` is canonical.
 
 ### 12.0 HISTORICAL (SUPERSEDED): plan-only correction validation (2026-09-17)
@@ -3377,7 +3533,7 @@ D6_OVERALL = NOT_FINALLY_RESOLVED
 NEXT = SEPARATE_IMAGE_ONLY_VALIDATOR_IMPLEMENTATION_APPROVAL
 ```
 
-### 12.6 CURRENT: P2T2-LIVE-D6 owner binding validation (2026-09-20)
+### 12.6 HISTORICAL (SUPERSEDED): P2T2-LIVE-D6 owner binding validation (2026-09-20)
 
 This is a governance/documentation synchronization only. It records the
 owner-approved D6 media-validation-source binding after the independent D6
@@ -3432,4 +3588,78 @@ D11 = BLOCKED
 STAGE_4 = NOT READY
 LIVE/MODEL/GPU/PROVIDER/NETWORK/LIGHTNING = NOT AUTHORIZED
 NEXT = PREPARE_D1_OWNER_RESOLUTION_AND_D6_FIXTURE_BINDING
+```
+
+### 12.7 CURRENT: D9 offline-implementation-and-correction reconciliation validation (2026-09-22)
+
+This is a governance/documentation synchronization only. It reconciles
+`CONTEXT.md`, `DECISIONS.md`, and this plan with the already-committed,
+already-independently-reviewed D9 stdout/stderr enforcement correction at
+commit `86836d24cfcd83ca14c0bc50e79fff1103cb9ecc`. It changes no
+implementation, test, D2 dependency, security validator, runtime seam,
+worktree, or stash, does not modify `approvals/TASK_APPROVAL.md`, and does
+not create a Stage 4 approval.
+
+Validation establishes:
+
+- HEAD `86836d24cfcd83ca14c0bc50e79fff1103cb9ecc`, parent
+  `552bc5d939f36b2b87dc7f0cea909110e8750107`, commit message exactly
+  `fix(feat018): close D9 stream enforcement gaps`, containing exactly the
+  two authorized files at blobs `e1c89536e612b9f801ff2e429e76f3f0d0c370ee`
+  and `3a4db7fd56185da82749b95dd42ca1a3bdc13c0d` (independently re-verified
+  by `git rev-parse` and `git diff-tree` in this reconciliation);
+- the independent correction review
+  (`tmp/feat018-p2t2-d9-independent-correction-review-20260922/REVIEW.md`)
+  and the follow-up commit checkpoint
+  (`tmp/feat018-p2t2-d9-followup-commit-checkpoint-20260922/REPORT.md`) both
+  record verdict `PASS`;
+- the diff is limited to `CONTEXT.md`, `DECISIONS.md`, this plan, and one new
+  evidence note
+  (`evidence/notes/P2_T2_D9_GOVERNANCE_RECONCILIATION_20260922.md`); the
+  pre-existing D6 draft and the untracked D1 draft are byte-identical to
+  their hashes before this reconciliation
+  (`b80e4d4d5e565f575155c7e31787a4f6b4c0ddf2` and
+  `9b42d46c9326f35e952816569d59df5274335993`);
+- `P2T2-LIVE-D9` remains `NOT RESOLVED` and `D9_LIVE_D11_CARRIER_SCOPE`
+  remains `UNKNOWN_UNRESOLVED_PENDING_D11`; `reviewed_runtime_code_commit`
+  remains `9549a341194f40b1a9be419d6fce0d70f1ca0384`, unchanged and not
+  rebound to `86836d2`;
+- the first independent review of this reconciliation
+  (`tmp/feat018-p2t2-d9-governance-reconciliation-independent-review-20260922/REVIEW.md`)
+  returned `BLOCKED` with findings F-01..F-06, and the correction
+  (`tmp/feat018-p2t2-d9-governance-reconciliation-correction-20260922/REPORT.md`)
+  restored the pre-existing global `NEXT` in `CONTEXT.md`, kept Section
+  12.6's still-open `NEXT` out of the satisfied list, separated the
+  candidate-only raw-output/IPC ceilings from the owner-approved stdout/stderr
+  ceilings, restored "Section 11 `CURRENT` is canonical.", restored "D9
+  package correction" in the header, and corrected the Section 9
+  cross-reference; and
+- compared with the pre-reconciliation blobs, every pre-existing uncommitted
+  addition in `CONTEXT.md`, `DECISIONS.md`, and this plan is preserved except
+  three disclosed edits in this plan: the header's first line (date and new
+  lead item; its prior items are retained), pointer correction #2 in
+  update-history item 8, and a pure append to the Section 9 `P2T2-LIVE-D9`
+  row.
+
+```text
+STATIC_VALIDATION = PASS
+git diff --check = PASS
+HARNESS_VALID
+REPOSITORY_SECURITY_VALID (1031 publishable files scanned)
+SKELETON_VALID
+ARCHITECTURE_INVALID (sole finding: backend_ai_workflow.py, PRE_EXISTING_UNCHANGED, blob 2f339ab982d65ea490c20475baeeb122a57ba5ef at HEAD and worktree, empty diff)
+Git index = empty
+D9_OFFLINE_ENFORCEMENT_IMPLEMENTATION = IMPLEMENTED_CORRECTED_AND_INDEPENDENTLY_REVIEWED_PASS
+D9_OFFLINE_IMPLEMENTATION_COMMIT = 86836d24cfcd83ca14c0bc50e79fff1103cb9ecc
+D9 numeric ceilings (raw_output_max_bytes=65536, ipc_envelope_max_bytes=98304) = OWNER_SELECTED_CANDIDATE_ONLY
+D9 stdout/stderr = OWNER-APPROVED EXACT VALUES (16384/32768), IMPLEMENTED OFFLINE; supersedes SEPARATE_ENFORCEMENT_APPROVAL_REQUIRED for stdout/stderr only
+P2T2-LIVE-D9 = NOT RESOLVED
+D9_LIVE_D11_CARRIER_SCOPE = UNKNOWN_UNRESOLVED_PENDING_D11
+D11 = BLOCKED
+D1 = BLOCKED_BY_D11
+D6 = NOT FINALLY RESOLVED
+STAGE_4 = NOT READY
+LIVE/MODEL/GPU/PROVIDER/NETWORK/LIGHTNING = NOT AUTHORIZED
+NEXT = PREPARE_D1_OWNER_RESOLUTION_AND_D6_FIXTURE_BINDING (global; Section 11 CURRENT; unchanged)
+D9_RECONCILIATION_PACKAGE_GATE = FRESH_INDEPENDENT_D9_GOVERNANCE_RECONCILIATION_REREVIEW (package-local; does not replace, supersede, or satisfy NEXT)
 ```

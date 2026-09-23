@@ -316,4 +316,82 @@ Stage-4-local only and may occur only after an authorized session reaches
 passed for commit `16c52da`, not full validator CI or full repository
 validation.
 
+## P2-T2 D9 offline enforcement implementation and correction - 2026-09-22
+
+The owner approved the exact D9 stdout/stderr enforcement ceilings on
+2026-09-21 (`approvals/TASK_APPROVAL.md`, "Owner approval for FEAT-018 P2-T2
+D9 stdout/stderr enforcement implementation scope"): `stdout_max_bytes =
+16384` and `stderr_max_bytes = 32768`, applied independently per process role
+and stream, as owner policy values rather than runtime-inferred defaults. The
+authorized scope was exactly the existing two-file bounded-runner pair.
+Implementation remained gated behind an independent review of the approval
+record itself, which returned `PASS`
+(`tmp/feat018-p2t2-d9-approval-record-independent-review-20260922/REVIEW.md`).
+
+The D9 offline enforcement was then implemented at commit
+`552bc5d939f36b2b87dc7f0cea909110e8750107`. A fresh, independent post-commit
+correctness review
+(`tmp/feat018-p2t2-d9-two-commit-post-commit-review-20260922/REVIEW.md`)
+returned `BLOCKED` and identified four correctness gaps (F1-F4): an
+over-limit observation could reach the success contract; an observed stream
+failure did not immediately stop the workload or trigger cleanup; capture
+control bookkeeping was not fixed-bounded under sustained output; and late
+output after finalization, or a D9 failure fact queued after an apparent
+terminal success, could leave a successful result standing.
+
+The correction was applied, uncommitted, to the same two authorized files
+only, and reviewed fresh and independently
+(`tmp/feat018-p2t2-d9-independent-correction-review-20260922/REVIEW.md`,
+verdict `PASS`): F1-F4 were independently reproduced as closed, including two
+real-subprocess/real-OS-pipe regressions (native and buffered late writes
+after finalization; a real zero-timeout `multiprocessing.Pipe` drain of an
+already-queued fact), a 10,000-plus-chunk sustained-output bookkeeping
+regression, and additional adversarial probes against the observation
+invariant. The correction was then committed as
+`86836d24cfcd83ca14c0bc50e79fff1103cb9ecc`
+(`fix(feat018): close D9 stream enforcement gaps`), the sole child of
+`552bc5d939f36b2b87dc7f0cea909110e8750107`, containing exactly:
+
+- `backend/src/sketch2life/benchmark/feat018_live_lightning_execution.py`
+  (blob `e1c89536e612b9f801ff2e429e76f3f0d0c370ee`)
+- `backend/tests/unit/test_feat018_live_lightning_execution.py`
+  (blob `3a4db7fd56185da82749b95dd42ca1a3bdc13c0d`)
+
+A follow-up commit checkpoint independently re-verified the commit's exact
+scope, blobs, message, and repository-state preservation
+(`tmp/feat018-p2t2-d9-followup-commit-checkpoint-20260922/REPORT.md`, verdict
+`PASS`).
+
+D9 offline stdout/stderr enforcement is complete and committed at this
+checkpoint: raw bytes are counted independently per stream before any
+decoding and are capture-and-discard only, with no raw stream payload
+retained or published; the typed observation/failure contract is closed
+against forged or inconsistent metadata; and D9 introduces no additional
+retry, attempt, adapter call, or session. The architecture validator's
+pre-existing `backend_ai_workflow.py` finding is unchanged by this work.
+
+This closes only the D9 **offline enforcement implementation**. It does not
+bind commit `86836d2` as the live-approved `reviewed_runtime_code_commit`,
+does not resolve `P2T2-LIVE-D9` or `D9_LIVE_D11_CARRIER_SCOPE` (both remain
+dependent on the unresolved D11 live-seam binding), and does not resolve D11,
+D1, or D6 overall (fixture identity remains proposed). D11 remains `BLOCKED`,
+D1 remains `BLOCKED_BY_D11`, Stage 4 remains `NOT READY`, and
+Lightning/model/GPU/provider/network execution remains `NOT AUTHORIZED`. No
+commit, push, approval-record edit, or live execution occurred as part of
+this reconciliation. Full reconciliation detail is in
+`evidence/notes/P2_T2_D9_GOVERNANCE_RECONCILIATION_20260922.md`.
+
+The candidate-only D9 numeric ceilings are unchanged:
+`raw_output_max_bytes=65536` and `ipc_envelope_max_bytes=98304` remain
+`OWNER_SELECTED_CANDIDATE_ONLY`; the stdout/stderr approval above applies to
+stdout/stderr only.
+
+The first independent review of this reconciliation
+(`tmp/feat018-p2t2-d9-governance-reconciliation-independent-review-20260922/REVIEW.md`)
+returned `BLOCKED` (F-01..F-06); the findings were corrected on 2026-09-22.
+This reconciliation's review gate is package-local only:
+`FRESH_INDEPENDENT_D9_GOVERNANCE_RECONCILIATION_REREVIEW`. It does not
+replace, supersede, or satisfy the global `NEXT` below, which remains the
+live plan's Section 11 `CURRENT` gate.
+
 `NEXT = PREPARE_D1_OWNER_RESOLUTION_AND_D6_FIXTURE_BINDING`
