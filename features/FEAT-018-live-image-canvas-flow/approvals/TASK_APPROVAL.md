@@ -416,3 +416,19 @@ mobile, Gate A, P1 eligibility, P3/P4 and shared integration remain separately g
   visual assets, real child data and unrelated FEAT-026/FEAT-029 changes.
 - Boundary: preserve Gate A/Gate B, exact ExperienceSpec identity, original-art provenance,
   existing video placeholder/handoff seam, future auth/save seam and owner-run Lightning boundary.
+
+## Owner approval — subject-first direct image selection — 2026-09-24
+
+- Approver: project owner direct instruction in the current conversation: “implement”, after
+  answering “Cho phép” for an additional Qwen/Lightning localization request and “ok” for the
+  spotlight/outline fallback when a valid mask is unavailable.
+- Approved artifact: updated `plan/PIXI_FULLSCREEN_INTRO_HOTSPOT_DISCOVERY_PLAN.md`.
+- Approved behavior: remove the three normal topic-direction cards; let the child/parent tap a
+  localized subject directly on the artwork; send `SELECT_SUBJECT` to the backend; return one
+  grounded Vietnamese sentence/topic and show Gate A only after that response; re-query when a
+  different subject is tapped; reuse the selected region in Pixi.
+- Approved runtime boundary: localization is backend-only through Lightning/Qwen; mobile receives
+  typed bounded regions only and never receives credentials. If localization fails, preserve the
+  original image and use a friendly retry/fallback state without invented hitboxes.
+- Scope remains Pixi/subject selection only. Video generation, MP4, TTS, auth, persistence, real
+  child data, FEAT-003 changes and Codex-triggered provider calls remain excluded.

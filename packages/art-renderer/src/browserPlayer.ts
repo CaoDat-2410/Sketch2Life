@@ -1,4 +1,4 @@
-import {Assets, Container, Rectangle, Sprite, Texture, type Application} from 'pixi.js';
+import {Assets, Container, Graphics, Rectangle, Sprite, Texture, type Application} from 'pixi.js';
 import {gsap} from 'gsap';
 
 import {loadChildArtAssetInstructions} from './assets';
@@ -51,6 +51,7 @@ interface LoadedPlan {
   readonly plan: ArtAnimationPlan;
   readonly context: BrowserArtPlayerLoadOptions;
   readonly sprites: ReadonlyMap<string, Sprite>;
+  readonly focusFrames: ReadonlyMap<string, Graphics>;
   readonly loadedAt: number;
 }
 
@@ -183,6 +184,13 @@ export function createBrowserArtPlayer(options: BrowserArtPlayerOptions): Browse
               if (lastFocusObjectId === object.id && now - lastFocusAt < 350) return;
               lastFocusObjectId = object.id;
               lastFocusAt = now;
+              for (const [frameId, frame] of loaded?.focusFrames ?? []) {
+                gsap.to(frame, {
+                  alpha: frameId === object.id ? 1 : 0.22,
+                  duration: 0.22,
+                  overwrite: true,
+                });
+              }
               setInteractionPhase('DISCOVERY_FOCUSED');
               emit({
                 type: 'FOCUS_CHANGED',
@@ -201,11 +209,30 @@ export function createBrowserArtPlayer(options: BrowserArtPlayerOptions): Browse
           return [object.id, sprite] as const;
         }),
       );
+      const focusFrames = new Map<string, Graphics>();
+      for (const target of context.sceneFocusPlan?.targets ?? []) {
+        if (target.sourceRegion === undefined) continue;
+        const frame = new Graphics()
+          .roundRect(
+            target.sourceRegion.x * plan.stage.width,
+            target.sourceRegion.y * plan.stage.height,
+            target.sourceRegion.width * plan.stage.width,
+            target.sourceRegion.height * plan.stage.height,
+            18,
+          )
+          .stroke({color: 0x2563eb, width: 4, alpha: 0.92});
+        frame.alpha = 0;
+        frame.eventMode = 'none';
+        frame.zIndex = 3000;
+        scene.addChild(frame);
+        focusFrames.set(`focus-${target.targetRef}`, frame);
+      }
 
       loaded = {
         plan,
         context,
         sprites: new Map(spriteEntries),
+        focusFrames,
         loadedAt: startedAt,
       };
       if (context.sceneFocusPlan?.extractionStatus === 'FALLBACK_REQUIRED') {
@@ -296,6 +323,12 @@ export function createBrowserArtPlayer(options: BrowserArtPlayerOptions): Browse
         switch (motion.kind) {
           case 'DRAW_REVEAL':
             timeline.set(sprite, {alpha: 0}).to(sprite, {alpha: 1, duration});
+            if (loaded.focusFrames.has(motion.targetId)) {
+              const frame = loaded.focusFrames.get(motion.targetId);
+              if (frame !== undefined) {
+                timeline.to(frame, {alpha: 0.9, duration}, '<');
+              }
+            }
             break;
           case 'MOVE':
           case 'MOVE_TO':

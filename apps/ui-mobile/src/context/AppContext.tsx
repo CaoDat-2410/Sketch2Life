@@ -62,6 +62,14 @@ export interface TopicDirection {
   requires_requery: boolean;
 }
 
+export interface SubjectTarget {
+  candidateId: string;
+  labelVi: string;
+  confidence: number;
+  confidenceBand: 'HIGH' | 'MEDIUM' | 'LOW';
+  region: { x: number; y: number; width: number; height: number };
+}
+
 interface AppContextType {
   // Navigation
   currentScreen: ScreenId;
@@ -123,6 +131,10 @@ interface AppContextType {
   correction: string;
   setCorrection: (value: string) => void;
   confirmGateA: () => Promise<boolean>;
+  subjectTargets: SubjectTarget[];
+  selectedSubjectId: string | null;
+  selectedSubjectSentence: string;
+  selectSubject: (target: SubjectTarget) => Promise<boolean>;
 
   // Montessori Activity
   activitiesList: MontessoriActivity[];
@@ -313,6 +325,32 @@ function readTopicDirections(payload: JsonObject, claims: AnalysisClaim[]): Topi
     confidence_band: claims[0].confidence >= 0.8 ? 'HIGH' : 'MEDIUM',
     requires_requery: false,
   }];
+}
+
+function readSubjectTargets(payload: JsonObject): SubjectTarget[] {
+  const regions = asObject(payload.subject_regions);
+  return objectArray(payload.subject_candidates).flatMap((item) => {
+    const candidateId = textValue(item.candidate_id);
+    const labelVi = textValue(item.label_vi, 'chi tiết trong tranh');
+    const region = asObject(regions[candidateId]);
+    const x = numberValue(region.x, -1);
+    const y = numberValue(region.y, -1);
+    const width = numberValue(region.width, -1);
+    const height = numberValue(region.height, -1);
+    if (!candidateId || !labelVi || x < 0 || y < 0 || width <= 0 || height <= 0
+      || x + width > 1 || y + height > 1) return [];
+    const confidence = numberValue(item.confidence, 0);
+    const confidenceBand = ['HIGH', 'MEDIUM', 'LOW'].includes(textValue(item.confidence_band))
+      ? textValue(item.confidence_band) as SubjectTarget['confidenceBand']
+      : confidence >= 0.8 ? 'HIGH' : confidence >= 0.55 ? 'MEDIUM' : 'LOW';
+    return [{
+      candidateId,
+      labelVi,
+      confidence,
+      confidenceBand,
+      region: { x, y, width, height },
+    }];
+  }).slice(0, 3);
 }
 
 function iconForLabel(label: string): string {
@@ -658,6 +696,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [selectedTopicDirectionId, setSelectedTopicDirectionId] = useState<string | null>(null);
   const [selectedClaimIds, setSelectedClaimIds] = useState<string[]>([]);
   const [primaryClaimId, setPrimaryClaimId] = useState<string | null>(null);
+  const [subjectTargets, setSubjectTargets] = useState<SubjectTarget[]>([]);
+  const [selectedSubjectId, setSelectedSubjectId] = useState<string | null>(null);
+  const [selectedSubjectSentence, setSelectedSubjectSentence] = useState('');
   const [understandingProgress, setUnderstandingProgress] = useState<JsonObject | null>(null);
   const [directionRequeryUsed, setDirectionRequeryUsed] = useState(false);
   const [correction, setCorrection] = useState('');
@@ -686,6 +727,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setSelectedTopicDirectionId(null);
       setSelectedClaimIds([]);
       setPrimaryClaimId(null);
+      setSubjectTargets([]);
+      setSelectedSubjectId(null);
+      setSelectedSubjectSentence('');
       setGateAConfirmed(false);
       setContextOptions(null);
       setSelectedBackendActivity(null);
@@ -807,17 +851,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setAnalysisClaims(claims);
       const directions = readTopicDirections(payload, claims);
       setTopicDirections(directions);
-      setSelectedTopicDirectionId(directions[0]?.direction_id ?? null);
+      setSelectedTopicDirectionId(null);
       setUnderstandingProgress(progress);
       setDirectionRequeryUsed(false);
-      setSelectedClaimIds(directions[0]?.source_claim_ids ?? (claims.length > 0 ? [claims[0].observation_id] : []));
-      setPrimaryClaimId(directions[0]?.primary_claim_id ?? claims[0]?.observation_id ?? null);
+      setSelectedClaimIds([]);
+      setPrimaryClaimId(null);
+      setSubjectTargets(readSubjectTargets(payload));
+      setSelectedSubjectId(null);
+      setSelectedSubjectSentence('');
       setSceneData(mapScenePayload(payload, sessionId));
       const narrationPayload = asObject(payload.narration);
       setVoiceTranscript(textValue(narrationPayload.transcript));
       setSessionState('GATE_A_PENDING');
       setAiProgress(100);
-      setWorkflowNotice('Đã tìm thấy một vài chi tiết. Mời người lớn kiểm tra cùng con.');
+      setWorkflowNotice('Chạm vào một chi tiết trong tranh để chọn chủ đề.');
       navigate('scene_understanding');
       return true;
     } catch (error) {
@@ -829,8 +876,53 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  const selectSubject = async (target: SubjectTarget): Promise<boolean> => {
+    if (!sessionId || workflowBusy || !subjectTargets.some((item) => item.candidateId === target.candidateId)) {
+      return false;
+    }
+    setWorkflowBusy('Đang chọn chủ thể');
+    setWorkflowError(null);
+    try {
+      const result = await workflowApi.selectSubject(
+        sessionId,
+        sessionVersionRef.current,
+        target.candidateId,
+        target.labelVi,
+      );
+      updateSessionVersion(result.observed_session_version);
+      if (result.status !== 'SUCCEEDED') {
+        throw workflowFailure(result, 'Chưa chọn được chủ thể. Hãy thử lại.');
+      }
+      const payload = asObject(result.payload);
+      const selection = asObject(payload.subject_selection);
+      const claims = readAnalysisClaims(payload);
+      const supportIds = Array.isArray(selection.support_claim_ids)
+        ? selection.support_claim_ids.filter((value): value is string => typeof value === 'string')
+        : [target.candidateId];
+      const selectedId = textValue(selection.selected_subject_id, target.candidateId);
+      const sentence = textValue(selection.sentence_vi, `Cùng khám phá ${target.labelVi}!`);
+      setAnalysisClaims(claims.length > 0 ? claims : analysisClaims);
+      setSubjectTargets(readSubjectTargets(payload).length > 0 ? readSubjectTargets(payload) : subjectTargets);
+      setSelectedSubjectId(selectedId);
+      setSelectedSubjectSentence(sentence);
+      setSelectedClaimIds(Array.from(new Set([selectedId, ...supportIds])));
+      setPrimaryClaimId(selectedId);
+      setTopicDirections([]);
+      setSelectedTopicDirectionId(null);
+      setUnderstandingProgress(asObject(payload.understanding_progress));
+      setSceneData({ ...mapScenePayload(payload, sessionId), storyTitle: sentence });
+      setWorkflowNotice('Đã chọn chủ thể. Mời người lớn kiểm tra câu chuyện.');
+      return true;
+    } catch (error) {
+      setWorkflowError(friendlyError(error, 'Chưa chọn được chủ thể. Hãy thử lại.'));
+      return false;
+    } finally {
+      setWorkflowBusy(null);
+    }
+  };
+
   const confirmGateA = async (): Promise<boolean> => {
-    if (!sessionId || !primaryClaimId || selectedClaimIds.length === 0 || workflowBusy) return false;
+    if (!sessionId || !selectedSubjectId || !primaryClaimId || selectedClaimIds.length === 0 || workflowBusy) return false;
     setWorkflowBusy('Xác nhận Gate A');
     setWorkflowError(null);
     try {
@@ -1214,6 +1306,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         correction,
         setCorrection,
         confirmGateA,
+        subjectTargets,
+        selectedSubjectId,
+        selectedSubjectSentence,
+        selectSubject,
 
         activitiesList,
         selectedActivity,

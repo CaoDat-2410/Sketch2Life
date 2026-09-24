@@ -192,3 +192,9 @@
   already-confirmed candidate refs; the existing `build_scene_focus_plan` remains the single
   validator. No localizer result means `FALLBACK_REQUIRED`, preserving the original drawing and
   preventing guessed hitboxes.
+- 2026-09-24 owner decision: replace the normal three-card topic-direction review with a
+  subject-first picker. The user taps a localized subject directly on the original artwork; the
+  backend receives `SELECT_SUBJECT`, re-checks image/narration evidence when the selection changes,
+  and returns one grounded Vietnamese sentence before Gate A. Localization is an explicit backend-
+  only Qwen/Lightning call; if it has no valid mask/region, use the approved spotlight/outline
+  fallback and never fabricate a hitbox. The selected region and claim identity are reused by Pixi.

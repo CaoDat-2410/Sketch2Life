@@ -8,6 +8,7 @@ and temporary media files are never logged.
 from __future__ import annotations
 
 import base64
+import json
 import logging
 import os
 import sys
@@ -20,7 +21,7 @@ from threading import Lock
 from typing import Literal
 
 from fastapi import FastAPI, Header, HTTPException
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 _BACKEND_SRC = _REPO_ROOT / "backend" / "src"
@@ -42,8 +43,12 @@ from sketch2life.contracts.schemas.vision_v2 import (
     VisionMappingDiagnosticV2,
     VisionUnderstandingRequestV2,
     VisionUnderstandingSuccessV2,
+    vision_profile_catalog_v2,
 )
-from sketch2life.infrastructure.ai.qwen_vision import QwenVisionAdapter
+from sketch2life.infrastructure.ai.qwen_vision import (
+    KillableSubprocessQwenGenerationRunner,
+    QwenVisionAdapter,
+)
 from sketch2life.infrastructure.ai.qwen_vision_runtime_config import (
     VISION_MODEL_CACHE_DIR_ENV_VAR,
     VISION_MODEL_DIR_ENV_VAR,
@@ -90,6 +95,16 @@ observation_id,note.
 Do not add keys, markdown fences, geometry, or metadata. Omit uncertain observations instead of
 inventing them. If the drawing contains any recognizable visible mark, emit at least one concrete
 grounded entity; do not return all five arrays empty for a non-empty admitted image."""
+
+_LOCALIZATION_PROMPT = """Return exactly one strict JSON object and no surrounding text.
+Locate only the listed visible drawing subjects. Do not invent a subject that is not visibly
+present. Use exactly one root key: regions. Each region must contain target_ref, x, y, width,
+height, confidence. Coordinates are normalized to the full source image: x/y is the top-left,
+width/height are positive and every rectangle must stay inside 0..1. Return at most one region
+per target_ref and omit targets that cannot be located confidently. Prefer a tight rectangle around
+the visible subject, including its full hand-drawn mark but little background. The allowed target
+refs and Vietnamese labels are supplied below. Do not emit markdown, explanations, masks, pixels,
+or any other keys."""
 
 
 def _prompt_with_narration(context: str | None) -> str:
@@ -209,6 +224,35 @@ class LightningVisionRequestV2(BaseModel):
     request: VisionUnderstandingRequestV2
     source_image: _SourceImageV1
     narration_context: str | None = Field(default=None, max_length=2_000)
+
+
+class _LocalizationRequestV1(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    contract_name: Literal["SceneLocalizationRequestV1"] = "SceneLocalizationRequestV1"
+    contract_version: Literal["1.0"] = "1.0"
+    session_id: str = Field(min_length=1, max_length=120)
+    experience_spec_ref: dict[str, object] | None = None
+    source_image: _SourceImageV1
+    targets: list[str] = Field(min_length=1, max_length=3)
+    target_labels: dict[str, str] = Field(default_factory=dict, max_length=3)
+
+
+class _LocalizationRegionV1(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    target_ref: str = Field(min_length=1, max_length=120)
+    x: float = Field(ge=0, le=1)
+    y: float = Field(ge=0, le=1)
+    width: float = Field(gt=0, le=1)
+    height: float = Field(gt=0, le=1)
+    confidence: float = Field(ge=0, le=1)
+
+    @model_validator(mode="after")
+    def validate_inside(self) -> _LocalizationRegionV1:
+        if self.x + self.width > 1 or self.y + self.height > 1:
+            raise ValueError("region outside source")
+        return self
 
 
 class _SourceAudioV1(BaseModel):
@@ -341,6 +385,82 @@ def vision_v2(
             return wire_result
     except (OSError, ValueError, RuntimeError):
         raise HTTPException(status_code=503, detail="vision runtime is unavailable") from None
+
+
+@app.post("/v2/localize")
+def localize_v2(
+    payload: _LocalizationRequestV1,
+    authorization: str | None = Header(default=None),
+) -> dict[str, object]:
+    """Run one bounded geometry pass for confirmed semantic subjects."""
+
+    _require_auth(authorization)
+    artifact = payload.source_image
+    try:
+        image = base64.b64decode(artifact.content_base64, validate=True)
+    except (ValueError, TypeError):
+        raise HTTPException(status_code=422, detail="invalid image payload") from None
+    if not image or len(image) > MAX_INPUT_BYTES or sha256(image).hexdigest() != artifact.sha256:
+        raise HTTPException(status_code=422, detail="source image integrity check failed")
+    if artifact.content_type == "image/png" and not image.startswith(b"\x89PNG\r\n\x1a\n"):
+        raise HTTPException(status_code=422, detail="image type mismatch")
+    if artifact.content_type == "image/jpeg" and not image.startswith(b"\xff\xd8\xff"):
+        raise HTTPException(status_code=422, detail="image type mismatch")
+    labels = {
+        target: payload.target_labels.get(target, target)
+        for target in payload.targets
+    }
+    prompt = (
+        f"{_LOCALIZATION_PROMPT}\n\nALLOWED TARGETS (use exact target_ref):\n"
+        + "\n".join(f"- {target}: {label}" for target, label in labels.items())
+    )
+    try:
+        with tempfile.TemporaryDirectory(prefix="sketch2life-localize-") as temporary:
+            suffix = ".png" if artifact.content_type == "image/png" else ".jpg"
+            image_path = Path(temporary) / f"source{suffix}"
+            image_path.write_bytes(image)
+            runtime = QwenVisionRuntimeConfig.from_env(_vision_runtime_environment(os.environ))
+            profile = vision_profile_catalog_v2().resolve(
+                next(iter(vision_profile_catalog_v2().profiles)).profile_id
+            )
+            raw_output = KillableSubprocessQwenGenerationRunner().generate(
+                profile,
+                runtime,
+                image_path,
+                prompt,
+            )
+        decoded = json.loads(raw_output)
+        if not isinstance(decoded, dict) or not isinstance(decoded.get("regions"), list):
+            raise TypeError("localization schema invalid")
+        regions: list[dict[str, object]] = []
+        seen: set[str] = set()
+        for item in decoded["regions"]:
+            if not isinstance(item, dict):
+                raise TypeError("localization item invalid")
+            region = _LocalizationRegionV1.model_validate(item)
+            if region.target_ref not in payload.targets or region.target_ref in seen:
+                raise ValueError("localization target invalid")
+            seen.add(region.target_ref)
+            regions.append(
+                {
+                    "target_ref": region.target_ref,
+                    "region": {
+                        "x": region.x,
+                        "y": region.y,
+                        "width": region.width,
+                        "height": region.height,
+                    },
+                    "confidence": region.confidence,
+                }
+            )
+        return {
+            "contract_name": "SceneLocalizationResultV1",
+            "contract_version": "1.0",
+            "regions": regions[:3],
+        }
+    except (OSError, RuntimeError, TypeError, ValueError, json.JSONDecodeError):
+        logger.warning("localization_request_completed status=FAILED")
+        raise HTTPException(status_code=503, detail="localization runtime is unavailable") from None
 
 
 def _require_auth(authorization: str | None) -> None:

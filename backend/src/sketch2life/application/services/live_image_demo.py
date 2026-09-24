@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import secrets
 import tempfile
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from datetime import UTC, datetime, timedelta
 from hashlib import sha256
 from pathlib import Path
@@ -19,6 +19,10 @@ from sketch2life.application.ports.asr import AsrPort
 from sketch2life.application.ports.renderer_source_storage import (
     RendererSourceGrant,
     RendererSourceGrantStore,
+)
+from sketch2life.application.ports.scene_localization import (
+    SceneLocalizationPort,
+    SceneLocalizationRequest,
 )
 from sketch2life.application.ports.session_storage import (
     ArtifactStore,
@@ -42,6 +46,8 @@ from sketch2life.application.services.raw_understanding_mapper import (
 from sketch2life.application.services.topic_semantics import (
     build_topic_directions,
     claims_from_raw,
+    compose_topic_vi,
+    display_label_vi,
 )
 from sketch2life.contracts.schemas.asr import (
     AsrAudioReferenceV1,
@@ -82,6 +88,7 @@ from sketch2life.contracts.schemas.vision_v2 import (
 _MAX_IMAGE_BYTES = 5_000_000
 _MAX_AUDIO_BYTES = 20_000_000
 _NARRATION_INPUT_ADAPTER: TypeAdapter[NarrationInputV1] = TypeAdapter(NarrationInputV1)
+_RAW_RESULT_ADAPTER: TypeAdapter[RawUnderstandingSuccessV1] = TypeAdapter(RawUnderstandingSuccessV1)
 _ADMISSION_POLICY_VERSION = "FEAT018_P2_T1_D1_20260910"
 _VISION_VERSION = WorkflowResultProvenanceV1(
     producer="VISION",
@@ -126,6 +133,7 @@ class LiveImageDemoService:
         vision: VisionV2Port | None,
         renderer_source_grants: RendererSourceGrantStore,
         asr: AsrPort | None = None,
+        scene_localizer: SceneLocalizationPort | None = None,
         asr_profile_id: AsrProfileId = AsrProfileId.WHISPER_TURBO_FP16_AUTO_V1,
         now: Callable[[], datetime] = lambda: datetime.now(UTC),
     ) -> None:
@@ -135,6 +143,7 @@ class LiveImageDemoService:
         self._admission = admission
         self._vision = vision
         self._asr = asr
+        self._scene_localizer = scene_localizer
         self._asr_profile_id = asr_profile_id
         self._renderer_source_grants = renderer_source_grants
         self._now = now
@@ -862,11 +871,28 @@ class LiveImageDemoService:
                         narration_available=not isinstance(narration, NarrationNoneV1),
                     )
                 ]
+                subject_candidates = _subject_picker_candidates(raw_result)
+                subject_regions = self._localize_subjects(
+                    command.session_id,
+                    raw_result,
+                    tuple(item["candidate_id"] for item in subject_candidates),
+                    attempt_id=command.idempotency_key,
+                )
                 output_payload = {
                     **raw_result.model_dump(mode="json"),
                     "narration": narration_payload,
                     "understanding_progress": progress,
                     "topic_directions": topic_directions,
+                    "subject_candidates": subject_candidates,
+                    "subject_regions": subject_regions,
+                    "subject_localization": {
+                        "status": "READY" if subject_regions else "FALLBACK_REQUIRED",
+                        "message_vi": (
+                            "Chạm vào một chi tiết trong tranh để chọn chủ đề."
+                            if subject_regions
+                            else "Chưa tìm thấy vùng chạm chính xác; người lớn có thể thử lại."
+                        ),
+                    },
                 }
             else:
                 previous_directions = workflow.values.get("topic_directions", [])
@@ -891,6 +917,9 @@ class LiveImageDemoService:
                     "direction_revision": direction_revision,
                     "understanding_progress": progress,
                     "topic_directions": output_payload.get("topic_directions", []),
+                    "subject_candidates": output_payload.get("subject_candidates", []),
+                    "subject_regions": output_payload.get("subject_regions", {}),
+                    "subject_localization": output_payload.get("subject_localization", {}),
                     "gate_a_confirmation": None,
                     "p1_context": None,
                     "experience_spec": None,
@@ -915,6 +944,208 @@ class LiveImageDemoService:
             )
             self._remember(scope, command.idempotency_key, fingerprint, result)
             return result, False
+
+    def select_subject(
+        self, command: MobileWorkflowCommandV1
+    ) -> tuple[MobileWorkflowResultV1, bool]:
+        """Resolve one tapped subject without trusting a client-side label.
+
+        Semantic evidence is already available from the explicit image-understanding request.
+        Selection reuses those claims, composes a new grounded sentence, and performs a fresh
+        bounded localization attempt for the selected subject. This keeps the tap responsive and
+        avoids asking Qwen to invent a new schema response merely because the user changed focus.
+        """
+
+        operation = "SELECT_SUBJECT"
+        required = {
+            "operation",
+            "user_initiated",
+            "selected_subject_id",
+            "selected_subject_label",
+        }
+        if command.actor_ref != DEMO_ACTOR_REF:
+            raise _workflow_error(
+                "DEMO_ACTOR_INVALID", 422, "The local demo actor marker is invalid."
+            )
+        fingerprint = self._validate_command(command, operation, required)
+        scope = f"{command.session_id}:{operation}"
+        with self._lock:
+            if replay := self._replay(scope, command.idempotency_key, fingerprint):
+                return replay, True
+            snapshot = self._sessions.snapshot(command.session_id)
+            if snapshot.version != command.expected_session_version:
+                raise _stale_version()
+            if snapshot.state != "GATE_A_PENDING":
+                raise _workflow_error(
+                    "SUBJECT_SELECTION_NOT_ALLOWED",
+                    409,
+                    "Chọn chủ thể sau khi ảnh đã được phân tích.",
+                )
+            values = self._sessions.workflow_record(command.session_id).values
+            raw_value = values.get("raw_understanding")
+            if not isinstance(raw_value, dict):
+                raise _workflow_error(
+                    "UNDERSTANDING_RESULT_MISSING",
+                    409,
+                    "Chưa có kết quả đọc ảnh để chọn chủ thể.",
+                )
+            raw = _RAW_RESULT_ADAPTER.validate_python(raw_value)
+            if not isinstance(raw, RawUnderstandingSuccessV1):
+                raise _workflow_error(
+                    "UNDERSTANDING_FAILED", 409, "Kết quả đọc ảnh không còn sẵn sàng."
+                )
+            selected_id = command.payload.get("selected_subject_id")
+            if not isinstance(selected_id, str) or not selected_id.strip():
+                raise _workflow_error(
+                    "SUBJECT_SELECTION_INVALID", 422, "Chọn một chủ thể trong tranh."
+                )
+            candidates = _subject_picker_candidates(raw)
+            candidate = next(
+                (item for item in candidates if item["candidate_id"] == selected_id), None
+            )
+            if candidate is None:
+                raise _workflow_error(
+                    "SUBJECT_SELECTION_INVALID",
+                    422,
+                    "Chủ thể này không còn thuộc kết quả đọc ảnh.",
+                )
+            claims = claims_from_raw(raw)
+            primary = next(
+                (claim for claim in claims if claim.observation_id == selected_id), None
+            )
+            if primary is None:
+                raise _workflow_error(
+                    "SUBJECT_SELECTION_INVALID", 422, "Chủ thể này chưa đủ căn cứ."
+                )
+            support = tuple(
+                claim
+                for claim in claims
+                if claim.observation_id != selected_id and claim.kind in {"action", "story"}
+            )[:2]
+            sentence = compose_topic_vi((primary, *support))
+            subject_regions = self._localize_subjects(
+                command.session_id,
+                raw,
+                (selected_id,),
+                attempt_id=command.idempotency_key,
+            )
+            prior_regions = values.get("subject_regions")
+            if not subject_regions and isinstance(prior_regions, dict):
+                subject_regions = {
+                    selected_id: prior_regions[selected_id]
+                } if isinstance(prior_regions.get(selected_id), dict) else {}
+            narration = values.get("narration_result")
+            progress = values.get("understanding_progress")
+            progress_payload = dict(progress) if isinstance(progress, dict) else {}
+            progress_payload.update(
+                {
+                    "stage": "SUBJECT_SELECTED",
+                    "stage_status": "COMPLETED",
+                    "gate_a_ready": True,
+                    "selected_subject_id": selected_id,
+                    "selected_subject_label_vi": candidate["label_vi"],
+                }
+            )
+            subject_selection = {
+                "selected_subject_id": selected_id,
+                "selected_subject_label_vi": candidate["label_vi"],
+                "sentence_vi": sentence,
+                "support_claim_ids": [
+                    primary.observation_id,
+                    *(item.observation_id for item in support),
+                ],
+            }
+            updated = self._sessions.advance(
+                session_id=command.session_id,
+                expected_version=snapshot.version,
+                allowed_states=("GATE_A_PENDING",),
+                next_state="GATE_A_PENDING",
+                workflow_updates={
+                    "selected_subject": subject_selection,
+                    "subject_regions": subject_regions,
+                    "subject_localization": {
+                        "status": "READY" if subject_regions else "FALLBACK_REQUIRED",
+                        "message_vi": (
+                            "Chạm lại để thử tìm vùng chính xác."
+                            if not subject_regions
+                            else "Đã chọn chủ thể."
+                        ),
+                    },
+                    "understanding_progress": progress_payload,
+                },
+            )
+            raw_payload = raw.model_dump(mode="json")
+            output_payload = {
+                **raw_payload,
+                "narration": (
+                    narration if isinstance(narration, dict) else {"status": "NOT_SUPPLIED"}
+                ),
+                "understanding_progress": progress_payload,
+                "subject_candidates": candidates,
+                "subject_regions": subject_regions,
+                "subject_localization": {
+                    "status": "READY" if subject_regions else "FALLBACK_REQUIRED",
+                    "message_vi": (
+                        "Đã chọn chủ thể."
+                        if subject_regions
+                        else "Chưa tìm thấy vùng chạm chính xác; hãy thử lại."
+                    ),
+                },
+                "subject_selection": subject_selection,
+                "topic": {
+                    "text": sentence,
+                    "support_state": "GROUNDED",
+                    "support_claim_ids": subject_selection["support_claim_ids"],
+                    "source_kinds": ["VISION"],
+                },
+            }
+            result = _result(
+                status="SUCCEEDED",
+                request_id=command.request_id,
+                session_id=command.session_id,
+                expected_version=command.expected_session_version,
+                observed_version=updated.version,
+                payload=output_payload,
+                provenance=_VISION_VERSION,
+            )
+            self._remember(scope, command.idempotency_key, fingerprint, result)
+            return result, False
+
+    def _localize_subjects(
+        self,
+        session_id: str,
+        raw: RawUnderstandingSuccessV1,
+        target_refs: tuple[str, ...],
+        *,
+        attempt_id: str,
+    ) -> dict[str, Mapping[str, float]]:
+        if self._scene_localizer is None or not target_refs:
+            return {}
+        try:
+            localized = self._scene_localizer.localize(
+                SceneLocalizationRequest(
+                    session_id=session_id,
+                    experience_spec_ref=None,
+                    source_artifact_ref=raw.source_image_ref.artifact_ref,
+                    source_artifact_sha256=raw.source_image_ref.sha256,
+                    target_refs=target_refs,
+                    attempt_id=attempt_id,
+                    target_labels={
+                        item.observation_id: display_label_vi(item.label.value)
+                        for item in raw.entities
+                        if item.observation_id in target_refs
+                    },
+                )
+            )
+        except Exception:
+            return {}
+        if not isinstance(localized, Mapping):
+            return {}
+        return {
+            ref: dict(region)
+            for ref, region in localized.items()
+            if ref in target_refs and isinstance(region, Mapping)
+        }
 
     def read_understanding_progress(
         self, *, session_id: str, request_id: str, expected_version: int
@@ -973,6 +1204,30 @@ class LiveImageDemoService:
                 Feat018AdmissionRequest(path=source_path, artifact_ref="pending")
             )
 
+    def _validate_command(
+        self,
+        command: MobileWorkflowCommandV1,
+        operation: str,
+        required_keys: set[str],
+    ) -> str:
+        if (
+            set(command.payload) != required_keys
+            or command.payload.get("operation") != operation
+            or command.payload.get("user_initiated") is not True
+        ):
+            raise _workflow_error(
+                "EXPLICIT_USER_ACTION_REQUIRED",
+                422,
+                "Chọn một chủ thể trực tiếp trong bức tranh để tiếp tục.",
+            )
+        return sha256(
+            json.dumps(
+                command.model_dump(mode="json", exclude={"created_at"}),
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode("utf-8")
+        ).hexdigest()
+
     def _replay(self, scope: str, key: str, fingerprint: str) -> MobileWorkflowResultV1 | None:
         receipt = self._idempotency.get(scope=scope, key=key)
         if receipt is None:
@@ -1018,6 +1273,42 @@ def _direction_signature(direction: str, correction: str) -> str:
         separators=(",", ":"),
     )
     return sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def _subject_picker_candidates(raw: RawUnderstandingSuccessV1) -> list[dict[str, object]]:
+    """Project only concrete VLM entities into the direct-tap picker."""
+
+    relation_refs: dict[str, list[str]] = {}
+    for relation in raw.relations:
+        relation_refs.setdefault(relation.subject_ref, []).append(relation.observation_id)
+        relation_refs.setdefault(relation.object_ref, []).append(relation.observation_id)
+    candidates: list[dict[str, object]] = []
+    seen_labels: set[str] = set()
+    for entity in raw.entities:
+        label_vi = display_label_vi(entity.label.value).strip()
+        normalized = label_vi.casefold()
+        if not label_vi or normalized in seen_labels:
+            continue
+        seen_labels.add(normalized)
+        candidates.append(
+            {
+                "candidate_id": entity.observation_id,
+                "label_vi": label_vi,
+                "confidence": entity.confidence,
+                "confidence_band": (
+                    "HIGH"
+                    if entity.confidence >= 0.8
+                    else "MEDIUM"
+                    if entity.confidence >= 0.55
+                    else "LOW"
+                ),
+                "source_claim_ids": [entity.observation_id],
+                "relation_refs": relation_refs.get(entity.observation_id, [])[:4],
+            }
+        )
+        if len(candidates) == 3:
+            break
+    return candidates
 
 
 def _append_direction_context(
@@ -1221,6 +1512,15 @@ def _stored_understanding_payload(values: dict[str, object]) -> dict[str, object
     directions = values.get("topic_directions")
     if isinstance(directions, list):
         payload["topic_directions"] = directions
+    candidates = values.get("subject_candidates")
+    if isinstance(candidates, list):
+        payload["subject_candidates"] = candidates
+    regions = values.get("subject_regions")
+    if isinstance(regions, dict):
+        payload["subject_regions"] = regions
+    localization = values.get("subject_localization")
+    if isinstance(localization, dict):
+        payload["subject_localization"] = localization
     return payload
 
 

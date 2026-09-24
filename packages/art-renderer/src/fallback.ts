@@ -32,8 +32,24 @@ export function buildPreservingFallbackPlan(
       sceneId: `fallback-${index + 1}`,
       kind: 'SCALE' as const,
       targetId: object.id,
-      durationSeconds: 0.6,
-      scale: 1.05,
+      durationSeconds: 1.1,
+      scale: 1.12,
+    },
+    {
+      id: `fallback-drift-${object.id}`,
+      sceneId: `fallback-${index + 1}`,
+      kind: 'MOVE_TO' as const,
+      targetId: object.id,
+      durationSeconds: 1.2,
+      to: {x: 0.52, y: 0.48},
+    },
+    {
+      id: `fallback-settle-${object.id}`,
+      sceneId: `fallback-${index + 1}`,
+      kind: 'ROTATE' as const,
+      targetId: object.id,
+      durationSeconds: 0.8,
+      rotationDegrees: 1.4,
     },
   ]);
 

@@ -19,6 +19,9 @@ from sketch2life.infrastructure.ai.lightning_client import (
     UrllibJsonTransport,
     read_secret_file,
 )
+from sketch2life.infrastructure.ai.lightning_scene_localization import (
+    LightningSceneLocalizationAdapter,
+)
 from sketch2life.infrastructure.ai.lightning_vision_v2 import LightningVisionV2Adapter
 from sketch2life.infrastructure.catalog.activity_semantics import load_activity_semantic_catalog
 from sketch2life.infrastructure.catalog.activity_semantics_v2 import (
@@ -69,6 +72,7 @@ def create_app(
         redoc_url=None,
     )
     application.add_middleware(BoundedImageUploadMiddleware)
+    scene_localizer = None
     if session_service is None:
         artifacts = InMemoryArtifactStore()
         idempotency = InMemoryIdempotencyStore()
@@ -84,6 +88,7 @@ def create_app(
             settings = get_settings()
             vision = _configured_lightning_vision(settings, artifacts)
             asr = _configured_lightning_asr(settings, artifacts)
+            scene_localizer = _configured_lightning_scene_localizer(settings, artifacts)
             _LOGGER.info(
                 "ai_adapters_configured provider=%s base_url_configured=%s "
                 "token_file_configured=%s "
@@ -106,6 +111,7 @@ def create_app(
                 vision=vision,
                 renderer_source_grants=renderer_source_grants,
                 asr=asr,
+                scene_localizer=scene_localizer,
                 asr_profile_id=AsrProfileId(settings.lightning_asr_profile),
             )
         if supervised_flow_service is None:
@@ -139,6 +145,7 @@ def create_app(
                 semantic_catalog=semantic_catalog,
                 semantic_catalog_v2=semantic_catalog_v2,
                 catalog_metadata=catalog_metadata,
+                scene_localizer=scene_localizer,
                 renderer_source_capability_issuer=(
                     live_image_demo_service.issue_renderer_source_capability
                     if live_image_demo_service is not None
@@ -226,4 +233,36 @@ def _configured_lightning_asr(
         transport=transport,
         artifact_loader=load_artifact,
         endpoint_path=settings.lightning_asr_path,
+    )
+
+
+def _configured_lightning_scene_localizer(
+    settings: Settings, artifacts: InMemoryArtifactStore
+) -> LightningSceneLocalizationAdapter | None:
+    if (
+        settings.env == "test"
+        or settings.ai_provider != "lightning_dev"
+        or not settings.lightning_ai_base_url
+        or settings.lightning_ai_token_file is None
+    ):
+        return None
+    try:
+        token = read_secret_file(settings.lightning_ai_token_file)
+        transport = UrllibJsonTransport(
+            base_url=settings.lightning_ai_base_url,
+            token=token,
+            request_timeout_seconds=settings.ai_request_timeout_seconds,
+        )
+    except (OSError, ValueError):
+        return None
+
+    def load_artifact(artifact_ref: str) -> bytes:
+        stored = artifacts.get(artifact_ref)
+        if stored is None:
+            raise KeyError("image artifact is unavailable")
+        return stored[1]
+
+    return LightningSceneLocalizationAdapter(
+        transport=transport,
+        artifact_loader=load_artifact,
     )

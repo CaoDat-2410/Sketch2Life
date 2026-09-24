@@ -468,6 +468,53 @@ def test_direction_requery_rechecks_the_admitted_image_and_exposes_progress() ->
     assert progress.json()["payload"]["understanding_progress"]["run_id"] == "requery-second"
 
 
+def test_subject_selection_replaces_topic_without_rendering_direction_cards() -> None:
+    client, vision = _client(vision=_CountingVision(label="bird"))
+    session_id, version = _create_session(client)
+    uploaded = client.post(
+        f"/v1/sessions/{session_id}/media/image",
+        headers=_headers(session_id, version, "subject-image"),
+        files={"image": ("synthetic.png", _IMAGE, "image/png")},
+    )
+    version = uploaded.json()["observed_session_version"]
+    started = client.post(
+        f"/v1/sessions/{session_id}/understanding",
+        json={
+            "request_id": "subject-understanding",
+            "idempotency_key": "subject-understanding-key",
+            "session_id": session_id,
+            "expected_session_version": version,
+            "actor_ref": "demo:local",
+            "payload": {"operation": "RUN_UNDERSTANDING", "user_initiated": True},
+        },
+    )
+    version = started.json()["observed_session_version"]
+    selected = client.post(
+        f"/v1/sessions/{session_id}/understanding",
+        json={
+            "request_id": "subject-select",
+            "idempotency_key": "subject-select-key",
+            "session_id": session_id,
+            "expected_session_version": version,
+            "actor_ref": "demo:local",
+            "payload": {
+                "operation": "SELECT_SUBJECT",
+                "user_initiated": True,
+                "selected_subject_id": "subject-1",
+                "selected_subject_label": "con chim",
+            },
+        },
+    )
+
+    assert selected.status_code == 200
+    body = selected.json()
+    assert body["status"] == "SUCCEEDED"
+    assert body["payload"]["subject_selection"]["selected_subject_id"] == "subject-1"
+    assert "con chim" in body["payload"]["subject_selection"]["sentence_vi"]
+    assert body["payload"]["understanding_progress"]["stage"] == "SUBJECT_SELECTED"
+    assert vision.calls == 1
+
+
 def test_audio_is_stored_after_image_and_never_sent_without_configured_asr() -> None:
     client, vision = _client()
     session_id, version = _create_session(client)

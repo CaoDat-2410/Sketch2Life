@@ -230,9 +230,10 @@ export const SceneUnderstandingScreen: React.FC<ScreenProps> = ({ onNavigate }) 
     selectedDrawing,
     sceneData,
     analysisClaims,
-    topicDirections,
-    selectedTopicDirectionId,
-    selectTopicDirection,
+    subjectTargets,
+    selectedSubjectId,
+    selectedSubjectSentence,
+    selectSubject,
     selectedClaimIds,
     primaryClaimId,
     correction,
@@ -268,7 +269,7 @@ export const SceneUnderstandingScreen: React.FC<ScreenProps> = ({ onNavigate }) 
         </Text>
       </View>
 
-      {/* 1. ARTWORK SPOTLIGHT CARD — Mini Polaroid with Floating AI Scan Pins */}
+      {/* 1. ARTWORK SPOTLIGHT CARD — the artwork itself is the subject picker. */}
       <View style={styles.artworkSpotlightCard}>
         <View style={styles.tapeHeader}>
           <View style={styles.washiTape} />
@@ -277,66 +278,70 @@ export const SceneUnderstandingScreen: React.FC<ScreenProps> = ({ onNavigate }) 
           <Image
             source={selectedDrawing ? { uri: selectedDrawing.uri } : require('../../assets/images/photo_cat_paper.png')}
             style={styles.artworkThumbImg}
+            resizeMode="stretch"
           />
-          {/* 3D Animated Laser Scanning Beam */}
-          <MagicScanBeam containerHeight={140} />
-
-          {/* Floating AI Scan Badges */}
-          <View style={[styles.aiScanPin, { top: 12, left: 14 }]}>
-            <View style={[styles.aiScanDot, { backgroundColor: '#A855F7' }]} />
-            <Text style={styles.aiScanPinText}>{sceneData.entities[0]?.icon || '✨'} {sceneData.entities[0]?.name || 'Đang đọc ảnh'}</Text>
+          <View pointerEvents="none" style={StyleSheet.absoluteFillObject}>
+            <MagicScanBeam containerHeight={140} />
           </View>
-          <View style={[styles.aiScanPin, { bottom: 14, right: 14 }]}>
-            <View style={[styles.aiScanDot, { backgroundColor: '#F43F5E' }]} />
-            <Text style={styles.aiScanPinText}>{sceneData.entities[1]?.icon || '✨'} {sceneData.entities[1]?.name || 'Chi tiết ảnh'}</Text>
-          </View>
-          <View style={[styles.aiScanPin, { top: 14, right: 14 }]}>
-            <View style={[styles.aiScanDot, { backgroundColor: '#F59E0B' }]} />
-            <Text style={styles.aiScanPinText}>{sceneData.entities[2]?.icon || '✨'} {sceneData.entities[2]?.name || 'Bối cảnh ảnh'}</Text>
-          </View>
+          {subjectTargets.map((target) => {
+            const selected = selectedSubjectId === target.candidateId;
+            return (
+              <TouchableOpacity
+                key={target.candidateId}
+                accessibilityRole="button"
+                accessibilityLabel={`Chọn ${target.labelVi}`}
+                onPress={() => void selectSubject(target)}
+                disabled={!!workflowBusy}
+                activeOpacity={0.72}
+                style={[
+                  styles.subjectHotspot,
+                  {
+                    left: `${target.region.x * 100}%`,
+                    top: `${target.region.y * 100}%`,
+                    width: `${target.region.width * 100}%`,
+                    height: `${target.region.height * 100}%`,
+                  },
+                  selected && styles.subjectHotspotSelected,
+                ]}
+              >
+                <Text numberOfLines={1} style={styles.subjectHotspotLabel}>{target.labelVi}</Text>
+              </TouchableOpacity>
+            );
+          })}
+          {subjectTargets.length === 0 && (
+            <View pointerEvents="none" style={styles.subjectPickerFallback}>
+              <Ionicons name="scan-outline" size={20} color="#2563EB" />
+              <Text style={styles.subjectPickerFallbackText}>Chưa tìm thấy vùng chạm. Có thể thử lại.</Text>
+            </View>
+          )}
         </View>
         <View style={styles.artworkCaptionRow}>
           <Ionicons name="sparkles" size={13} color="#2563EB" />
           <Text style={styles.artworkCaptionText}>
-            Ảnh gốc • {sceneData.entities.length} chi tiết được đề xuất
+            Ảnh gốc • chạm vào chi tiết con muốn khám phá
           </Text>
         </View>
       </View>
 
-      {/* Topic directions: complete ideas first, raw evidence remains adult-readable. */}
+      {/* Subject-first selection: no precomputed topic cards. */}
       <View style={styles.sectionHeaderRow}>
-        <Text style={styles.sectionHeadingSmall}>Con muốn kể câu chuyện nào?</Text>
+        <Text style={styles.sectionHeadingSmall}>Chọn một chi tiết trong tranh</Text>
         <View style={styles.countBadge}>
-          <Text style={styles.countBadgeText}>{topicDirections.length} hướng</Text>
+          <Text style={styles.countBadgeText}>{subjectTargets.length} vùng chạm</Text>
         </View>
       </View>
-
-      <View style={styles.entitiesGridNew}>
-        {topicDirections.map((direction) => {
-          const selected = selectedTopicDirectionId === direction.direction_id;
-          return (
-          <TouchableOpacity
-            key={direction.direction_id}
-            accessibilityRole="radio"
-            accessibilityState={{ selected }}
-            accessibilityLabel={`Hướng ${direction.priority}: ${direction.title_vi}`}
-            activeOpacity={0.86}
-            onPress={() => selectTopicDirection(direction.direction_id)}
-            style={[styles.entityCardNew, {
-              backgroundColor: selected ? '#F0FDF4' : '#FFFFFF',
-              borderColor: selected ? '#2563EB' : '#CBD5E1',
-              borderWidth: selected ? 2 : 1,
-            }]}
-          >
-            <Text style={styles.entityNameNew}>{direction.title_vi}</Text>
-            <Text style={styles.entityDetailText}>{direction.summary_vi}</Text>
-            <Text style={[styles.entityBadgeTextNew, { marginTop: 8, color: selected ? '#15803D' : '#64748B' }]}>
-              {selected ? '✓ Đang chọn' : direction.requires_requery ? 'Chọn để AI xem lại hướng này' : 'Chọn hướng này'}
-            </Text>
-          </TouchableOpacity>
-          );
-        })}
-      </View>
+      <Text style={styles.subjectPickerHint}>
+        Chạm đúng vào con vật, cây hoặc chi tiết con muốn làm câu chuyện.
+      </Text>
+      {selectedSubjectId && (
+        <View style={styles.selectedSubjectCard}>
+          <Ionicons name="checkmark-circle" size={22} color="#059669" />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.selectedSubjectTitle}>Đã chọn chủ thể</Text>
+            <Text style={styles.selectedSubjectSentence}>{selectedSubjectSentence}</Text>
+          </View>
+        </View>
+      )}
 
       <TouchableOpacity
         accessibilityRole="button"
@@ -532,7 +537,7 @@ export const SceneUnderstandingScreen: React.FC<ScreenProps> = ({ onNavigate }) 
             title={workflowBusy === 'Xác nhận Gate A' ? 'Đang xác nhận...' : 'Đúng rồi, tiếp tục'}
             color="blue"
             size="lg"
-            disabled={!!workflowBusy || !primaryClaimId || selectedClaimIds.length === 0}
+            disabled={!!workflowBusy || !selectedSubjectId || !primaryClaimId || selectedClaimIds.length === 0}
             onPress={async () => {
               if (await confirmGateA()) nav('story_preview');
             }}
@@ -2144,6 +2149,66 @@ const styles = StyleSheet.create({
     height: '100%',
     resizeMode: 'contain',
   },
+  subjectHotspot: {
+    position: 'absolute',
+    minWidth: 34,
+    minHeight: 28,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: 'rgba(37, 99, 235, 0.72)',
+    backgroundColor: 'rgba(219, 234, 254, 0.16)',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    paddingTop: 2,
+  },
+  subjectHotspotSelected: {
+    borderColor: '#059669',
+    borderWidth: 3,
+    backgroundColor: 'rgba(167, 243, 208, 0.24)',
+  },
+  subjectHotspotLabel: {
+    maxWidth: 120,
+    color: '#1E3A8A',
+    backgroundColor: 'rgba(255,255,255,0.94)',
+    borderRadius: 10,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    fontSize: 9,
+    fontWeight: '900',
+  },
+  subjectPickerFallback: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 44,
+    backgroundColor: 'rgba(239, 246, 255, 0.62)',
+  },
+  subjectPickerFallbackText: {
+    marginTop: 4,
+    color: '#1D4ED8',
+    fontSize: 11,
+    fontWeight: '800',
+    textAlign: 'center',
+  },
+  subjectPickerHint: {
+    marginBottom: 8,
+    color: '#64748B',
+    fontSize: 12,
+    lineHeight: 17,
+  },
+  selectedSubjectCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 9,
+    padding: 12,
+    marginBottom: 8,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+    backgroundColor: '#ECFDF5',
+  },
+  selectedSubjectTitle: { color: '#047857', fontSize: 12, fontWeight: '900' },
+  selectedSubjectSentence: { color: '#065F46', fontSize: 13, lineHeight: 18, marginTop: 3 },
   aiScanPin: {
     position: 'absolute',
     flexDirection: 'row',

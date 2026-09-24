@@ -168,7 +168,10 @@ def run_understanding(
             expected_version=command.expected_session_version,
         )
     try:
-        result, replayed = service.run_understanding(command)
+        if command.payload.get("operation") == "SELECT_SUBJECT":
+            result, replayed = service.select_subject(command)
+        else:
+            result, replayed = service.run_understanding(command)
     except SessionWorkflowError as error:
         return _error_response(
             error,

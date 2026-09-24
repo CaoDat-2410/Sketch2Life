@@ -13,11 +13,11 @@ from uuid import uuid4
 
 from pydantic import TypeAdapter, ValidationError
 
-from sketch2life.application.ports.session_storage import IdempotencyReceipt, IdempotencyStore
 from sketch2life.application.ports.scene_localization import (
     SceneLocalizationPort,
     SceneLocalizationRequest,
 )
+from sketch2life.application.ports.session_storage import IdempotencyReceipt, IdempotencyStore
 from sketch2life.application.ports.workflow_dependencies import (
     ActivityCatalogMetadataPort,
     SemanticCatalogPort,
@@ -1047,7 +1047,9 @@ class SupervisedFlowService:
                 learning_bridge_vi=spec.bridge_sentence.sentence_vi,
             )
             region_hints = workflow.values.get("scene_focus_regions")
-            if self._scene_localizer is not None:
+            if not isinstance(region_hints, dict):
+                region_hints = workflow.values.get("subject_regions")
+            if self._scene_localizer is not None and not isinstance(region_hints, dict):
                 try:
                     localized_regions = self._scene_localizer.localize(
                         SceneLocalizationRequest(
@@ -1057,8 +1059,14 @@ class SupervisedFlowService:
                             ),
                             source_artifact_ref=raw.source_image_ref.artifact_ref,
                             source_artifact_sha256=raw.source_image_ref.sha256,
-                            target_refs=tuple(candidate.candidate_id for candidate in subject_candidates.items),
+                            target_refs=tuple(
+                                candidate.candidate_id for candidate in subject_candidates.items
+                            ),
                             attempt_id=f"{command.idempotency_key}:scene-localization",
+                            target_labels={
+                                candidate.candidate_id: candidate.label_vi
+                                for candidate in subject_candidates.items
+                            },
                         )
                     )
                     if localized_regions is not None:

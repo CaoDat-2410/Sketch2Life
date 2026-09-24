@@ -419,3 +419,17 @@ P2-T5, mobile, Gate A UI, P1 eligibility, P3/P4 and shared integration remain se
   a red-screen or native crash.
 - Verification is recorded in
   `evidence/notes/PIXI_FULLSCREEN_INTRO_HOTSPOT_DISCOVERY_IMPLEMENTATION_20260923.md`.
+
+## Subject-first direct picker — 2026-09-24
+
+- The approved normal Gate-A path is now subject-first: the artwork itself is the picker, so the
+  child/parent taps a localized subject instead of choosing among three precomputed topic cards.
+- `SELECT_SUBJECT` is a backend workflow operation. It accepts only an existing semantic candidate,
+  composes one grounded Vietnamese sentence, returns the selected claim/region projection and keeps
+  Gate A pending for adult confirmation. A changed subject is re-resolved from the same admitted
+  image evidence rather than being a client-side label change.
+- Live geometry uses a backend-only Qwen/Lightning `/v2/localize` call with strict bounded regions;
+  missing/invalid geometry falls back without fabricated hitboxes. The selected subject region is
+  reused when `PREPARE_RENDERER` builds the Pixi focus plan.
+- Evidence is recorded in
+  `evidence/notes/SUBJECT_FIRST_DIRECT_PICKER_IMPLEMENTATION_20260924.md`.

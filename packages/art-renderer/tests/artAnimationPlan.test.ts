@@ -330,7 +330,7 @@ describe('art animation fixture protocol', () => {
 
     expect(fallback.mode).toBe('WHOLE_DRAWING_REVEAL');
     expect(fallback.plan.objects[0].asset.sourceAssetId).toBe('drawing-butterfly-001');
-    expect(fallback.plan.motions.every((motion) => ['DRAW_REVEAL', 'SCALE'].includes(motion.kind))).toBe(
+    expect(fallback.plan.motions.every((motion) => ['DRAW_REVEAL', 'SCALE', 'MOVE_TO', 'ROTATE'].includes(motion.kind))).toBe(
       true,
     );
   });

@@ -1,6 +1,6 @@
 # PixiJS fullscreen intro and direct hotspot discovery
 
-Status: `IMPLEMENTED — OFFLINE VERIFIED; LOCALIZER ADAPTER REMAINS OPTIONAL`
+Status: `IMPLEMENTED — OFFLINE VERIFIED; LIVE LIGHTNING SMOKE TEST OWNER-RUN`
 
 Date: 2026-09-23
 Feature: `FEAT-018-live-image-canvas-flow`
@@ -54,12 +54,32 @@ must not claim that subject separation succeeded.
 
 ## 4. Contract changes
 
+### 4.0 Subject-first Gate A selection (approved addendum)
+
+The normal mobile path no longer renders three precomputed topic-direction cards. After image
+understanding, the backend returns a bounded set of confirmed subject candidates plus their
+localized source regions. The child/parent taps the actual subject in the artwork; that stable
+candidate id becomes the sole primary claim for the next request. The backend then creates one
+short Vietnamese sentence/topic from the selected subject and the preserved image/narration
+evidence. Gate A is shown only after this selection response succeeds.
+
+Changing the tapped subject is an explicit `SELECT_SUBJECT` request. It is not a client-side label
+swap: the backend re-queries the grounded evidence, replaces the selected claim and sentence, and
+returns a fresh localization/exploration projection for that subject. The mobile UI may keep the
+adult evidence accordion, but it must not show the old three direction cards in the normal flow.
+
+Localization is requested once after semantic understanding and again after a changed subject
+selection. A provider failure leaves the original image intact and shows a friendly retry state;
+it must never fabricate a hitbox. When a valid region exists, the same region identity is reused
+by the Gate-A artwork picker and the later Pixi discovery scene.
+
 ### 4.1 Localization boundary
 
-Add a backend application port for one user-triggered localization attempt after the approved
-subject is known. The port returns only typed, bounded normalized regions for confirmed subjects.
-It may be backed by a Lightning runtime adapter later, but it must not widen the frozen Qwen/FEAT-003
-semantic contract.
+Add a backend application port for bounded localization after semantic understanding and after a
+changed subject selection. The port returns only typed, bounded normalized regions for confirmed
+subjects. The live implementation uses the backend-only Lightning `/v2/localize` operation; offline
+tests inject a deterministic port double. It must not widen the frozen Qwen/FEAT-003 semantic
+contract.
 
 Required checks:
 
@@ -144,6 +164,10 @@ Rules:
 - disable seek/replay until renderer duration is known;
 - source failure shows the original native preview and a friendly modal/action;
 - never show contract names, raw provider errors, paths or error codes to the child.
+
+The subject picker uses the same friendly modal pattern for localization/selection failures. A
+failed selection keeps the previous confirmed subject and sentence, so the user can retry without
+losing the Gate-A review state.
 
 ## 8. Acceptance criteria
 
@@ -498,7 +522,9 @@ Implementation status:
 
 - renderer contracts, intro gating, direct hotspot event path, chrome auto-hide, source lifecycle,
   Android fullscreen seam and friendly fallback are implemented;
-- backend localization is exposed through `SceneLocalizationPort` and strict `SceneFocusPlanV1`
-  validation; the current composition root deliberately has no provider/localizer implementation,
-  so live sessions without supervised geometry stay in the honest whole-image fallback;
+- backend localization is exposed through `SceneLocalizationPort`, strict `SceneFocusPlanV1`
+  validation and the backend-only Lightning `/v2/localize` adapter; unavailable localization still
+  stays in the honest whole-image fallback;
+- the Gate-A screen uses direct subject hitboxes and `SELECT_SUBJECT`; topic-direction cards are
+  retained only as a compatibility read model and are not rendered in the normal flow;
 - video/MP4 and provider execution remain excluded as approved.

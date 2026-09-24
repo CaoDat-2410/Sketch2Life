@@ -10,7 +10,7 @@ regions before they reach Pixi.
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Protocol
 
 from sketch2life.contracts.schemas.p1_experience import VersionedRefV1
@@ -19,11 +19,12 @@ from sketch2life.contracts.schemas.p1_experience import VersionedRefV1
 @dataclass(frozen=True, slots=True)
 class SceneLocalizationRequest:
     session_id: str
-    experience_spec_ref: VersionedRefV1
+    experience_spec_ref: VersionedRefV1 | None
     source_artifact_ref: str
     source_artifact_sha256: str
     target_refs: tuple[str, ...]
     attempt_id: str
+    target_labels: Mapping[str, str] = field(default_factory=dict)
 
 
 class SceneLocalizationPort(Protocol):

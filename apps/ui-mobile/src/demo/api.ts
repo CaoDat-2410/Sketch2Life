@@ -218,6 +218,20 @@ export class DemoApiClient {
     }, 150_000);
   }
 
+  selectSubject(
+    sessionId: string,
+    version: number,
+    subjectId: string,
+    subjectLabel: string,
+  ) {
+    return this.command(sessionId, version, 'POST', '/understanding', {
+      operation: 'SELECT_SUBJECT',
+      user_initiated: true,
+      selected_subject_id: subjectId,
+      selected_subject_label: subjectLabel,
+    }, 60_000);
+  }
+
   async readUnderstandingProgress(sessionId: string, version: number) {
     const requestId = newId('req');
     return this.request<WorkflowResult<Record<string, unknown>>>(
