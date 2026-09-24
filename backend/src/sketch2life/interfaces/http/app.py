@@ -25,6 +25,14 @@ from sketch2life.infrastructure.ai.lightning_client import (
     read_secret_file,
 )
 from sketch2life.infrastructure.ai.lightning_vision_v2 import LightningVisionV2Adapter
+from sketch2life.infrastructure.media.whiteboard_pipeline_factory import (
+    build_lightning_whiteboard_mvp_pipeline,
+)
+from sketch2life.infrastructure.media.whiteboard_runtime import (
+    EspeakVietnameseTts,
+    FfmpegWhiteboardEncoder,
+    WhiteboardLearningThreadScripts,
+)
 from sketch2life.infrastructure.catalog.activity_semantics import load_activity_semantic_catalog
 from sketch2life.infrastructure.catalog.activity_semantics_v2 import (
     load_activity_semantic_catalog_v2,
@@ -116,6 +124,8 @@ def create_app(
                 asr=asr,
                 asr_profile_id=AsrProfileId(settings.lightning_asr_profile),
             )
+        if whiteboard_video_pipeline is None:
+            whiteboard_video_pipeline = _configured_whiteboard_pipeline(settings, artifacts)
         if supervised_flow_service is None:
             repo_root = Path(__file__).resolve().parents[5]
             p1_library = load_p1_template_library(
@@ -208,6 +218,51 @@ def _configured_lightning_vision(
         artifact_loader=load_artifact,
         endpoint_path=settings.lightning_vision_v2_path,
     )
+
+
+def _configured_whiteboard_pipeline(
+    settings: Settings, artifacts: InMemoryArtifactStore
+) -> WhiteboardVideoPipeline | None:
+    if (
+        settings.env == "test"
+        or not settings.whiteboard_video_enabled
+        or settings.ai_provider != "lightning_dev"
+        or not settings.lightning_ai_base_url
+        or settings.whiteboard_learning_thread_fixture is None
+    ):
+        return None
+    try:
+        token = (
+            read_secret_file(settings.lightning_ai_token_file)
+            if settings.lightning_ai_token_file is not None
+            else ""
+        )
+        transport = UrllibJsonTransport(
+            base_url=settings.lightning_ai_base_url,
+            token=token,
+            request_timeout_seconds=settings.ai_request_timeout_seconds,
+        )
+        script_path = settings.whiteboard_learning_thread_fixture
+        if not script_path.is_absolute():
+            script_path = Path(__file__).resolve().parents[4] / script_path
+        scripts = WhiteboardLearningThreadScripts(script_path)
+        tts = EspeakVietnameseTts(settings.whiteboard_tts_executable)
+        encoder = FfmpegWhiteboardEncoder(settings.whiteboard_ffmpeg_executable)
+        return build_lightning_whiteboard_mvp_pipeline(
+            transport=transport,
+            artifacts=artifacts,
+            artifact_root=settings.whiteboard_video_artifact_root,
+            script_for=scripts.script_for,
+            synthesize_tts=tts.synthesize,
+            encode_mp4=encoder.encode,
+            inspect_mp4=encoder.inspect,
+            localization_path=settings.lightning_whiteboard_localization_path,
+            segmentation_path=settings.lightning_whiteboard_segmentation_path,
+            max_size_bytes=settings.whiteboard_video_max_size_bytes,
+        )
+    except (OSError, RuntimeError, ValueError):
+        _LOGGER.exception("whiteboard_pipeline_configuration_failed")
+        return None
 
 
 def _configured_lightning_asr(

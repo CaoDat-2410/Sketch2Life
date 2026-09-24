@@ -75,20 +75,22 @@ class UrllibJsonTransport:
         parsed = urlparse(self.base_url)
         if parsed.scheme != "https" and parsed.hostname not in {"localhost", "127.0.0.1"}:
             raise ValueError("live Lightning endpoint must use HTTPS outside local development")
-        if not self.token.strip():
+        if not self.token.strip() and parsed.hostname not in {"localhost", "127.0.0.1"}:
             raise ValueError("live Lightning token cannot be empty")
 
     def post_json(self, path: str, payload: Mapping[str, object]) -> Mapping[str, object]:
         url = urljoin(f"{self.base_url.rstrip('/')}/", path.lstrip("/"))
         body = json.dumps(payload, separators=(",", ":"), ensure_ascii=True).encode("utf-8")
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        }
+        if self.token.strip():
+            headers["Authorization"] = f"Bearer {self.token}"
         request = Request(
             url,
             data=body,
-            headers={
-                "Authorization": f"Bearer {self.token}",
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-            },
+            headers=headers,
             method="POST",
         )
         try:

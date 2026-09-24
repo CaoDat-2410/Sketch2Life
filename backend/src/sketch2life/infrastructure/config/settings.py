@@ -45,6 +45,9 @@ class Settings(BaseSettings):
     whiteboard_video_auto_run: bool = False
     whiteboard_video_artifact_root: Path = Path(".runtime/whiteboard")
     whiteboard_video_max_size_bytes: int = Field(default=12 * 1024 * 1024, ge=1)
+    whiteboard_learning_thread_fixture: Path | None = None
+    whiteboard_tts_executable: str = "espeak-ng"
+    whiteboard_ffmpeg_executable: str = "ffmpeg"
     live_fixture_root: Path | None = None
     runpod_endpoint_id: str = ""
     runpod_api_key_file: Path | None = None
