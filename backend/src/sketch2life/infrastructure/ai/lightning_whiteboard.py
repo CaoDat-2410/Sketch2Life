@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import logging
 from collections.abc import Callable, Mapping
 from typing import Any
 
@@ -17,6 +18,8 @@ from sketch2life.infrastructure.ai.lightning_client import (
     JsonTransport,
     LightningProviderError,
 )
+
+_LOGGER = logging.getLogger("sketch2life.lightning_whiteboard")
 
 
 class LightningWhiteboardLocalizationAdapter:
@@ -84,6 +87,11 @@ class LightningWhiteboardLocalizationAdapter:
         except LightningProviderError as error:
             raise WhiteboardVideoPipelineError(error.code, retryable=error.retryable) from error
         except (KeyError, TypeError, ValueError) as error:
+            _LOGGER.error(
+                "whiteboard_localization_adapter_rejected error_type=%s reason=%s",
+                type(error).__name__,
+                str(error),
+            )
             raise WhiteboardVideoPipelineError("LOCALIZATION_SCHEMA_INVALID", retryable=False) from error
 
 
