@@ -601,5 +601,10 @@ contract mismatch, not a Qwen model failure and not an image-localization qualit
 - Unsupported signatures and digest mismatches fail closed before the provider transport is called.
 - Regression coverage validates the exact request against `_LocalizationRequestV1` for both image
   types and covers unsupported signatures and digest mismatch.
+- The localization parser now tolerates a fenced JSON response and the previously documented
+  nested `region` projection, then normalizes both into the same strict bounded region model.
+- 503 diagnostics are now closed reason tokens (`MODEL_OUTPUT_JSON_INVALID`,
+  `MODEL_OUTPUT_SCHEMA_INVALID`, `MODEL_OUTPUT_REGION_INVALID`, `MODEL_RUNTIME_TIMEOUT`,
+  `MODEL_UNAVAILABLE` or `MODEL_RUNTIME_FAILURE`) without logging model output.
 - The live owner-run smoke test remains pending; it requires restarting the Lightning service with
   this commit and consumes the owner-controlled quota.

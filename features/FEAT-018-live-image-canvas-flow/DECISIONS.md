@@ -202,3 +202,7 @@
   boundary. `SceneLocalizationRequestV1.source_image.content_type` is derived from the admitted
   image signature and is never supplied by mobile or inferred from an untrusted filename. Unknown
   signatures and hash mismatches fail closed before the provider call.
+- 2026-09-24 implementation decision: localization output may be normalized only for two bounded
+  provider formatting variants: a complete fenced JSON object and the previously documented
+  nested `region` shape. Both are converted into the same strict normalized-region model; arbitrary
+  prose, unknown fields, invalid geometry and unknown target refs remain failures.

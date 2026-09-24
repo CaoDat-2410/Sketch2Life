@@ -4,7 +4,7 @@ from collections.abc import Mapping
 from hashlib import sha256
 
 from fastapi.testclient import TestClient
-from tools.lightning_vision_v2_server import _LocalizationRequestV1
+from tools.lightning_vision_v2_server import _LocalizationRequestV1, _parse_localization_output
 from tools.lightning_vision_v2_server import app as lightning_app
 
 from sketch2life.application.ports.scene_localization import SceneLocalizationRequest
@@ -118,3 +118,16 @@ def test_lightning_validation_error_does_not_echo_request_body() -> None:
 
     assert response.status_code == 422
     assert response.json() == {"detail": "request contract invalid"}
+
+
+def test_localization_parser_accepts_fenced_and_nested_provider_json() -> None:
+    regions = _parse_localization_output(
+        """```json
+        {"regions":[{"target_ref":"entity-1","region":{"x":0.1,"y":0.2,"width":0.3,"height":0.4},"confidence":0.9}]}
+        ```"""
+    )
+
+    assert len(regions) == 1
+    assert regions[0].target_ref == "entity-1"
+    assert regions[0].x == 0.1
+    assert regions[0].confidence == 0.9

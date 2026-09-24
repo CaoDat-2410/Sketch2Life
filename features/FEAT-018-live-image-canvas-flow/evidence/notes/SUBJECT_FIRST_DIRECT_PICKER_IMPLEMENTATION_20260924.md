@@ -42,6 +42,11 @@ Branch: `codex/feat-018-pixi-exploration`
 - Lightning request-validation failures now log only the endpoint and rejected field locations and
   return a generic contract error body; image bytes, prompts, credentials and provider input are
   not logged.
+- The later 503 regression was reproduced by code-path review: Qwen model loading succeeds for
+  `/v2/vision`, while localization output parsing/validation/runtime failures were all collapsed
+  into one generic 503. The route now records a closed reason token and accepts only bounded fenced
+  or nested-region JSON variants before applying the existing target/geometry checks.
+- `backend/.venv/Scripts/python.exe -m pytest backend/tests/unit/test_lightning_scene_localization.py backend/tests/contract/test_live_image_demo_api.py -q` — 19 passed.
 - Full `backend/tests` was attempted but the host's shared pytest temporary directory returned
   Windows `Access denied`; the focused contract suite passed in the project virtualenv.
 

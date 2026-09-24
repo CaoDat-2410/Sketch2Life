@@ -11,6 +11,7 @@ import base64
 import json
 import logging
 import os
+import re
 import sys
 import tempfile
 from collections.abc import Mapping
@@ -49,6 +50,10 @@ from sketch2life.contracts.schemas.vision_v2 import (
 )
 from sketch2life.infrastructure.ai.qwen_vision import (
     KillableSubprocessQwenGenerationRunner,
+    QwenDeviceUnavailableError,
+    QwenModelLoadError,
+    QwenPermanentRuntimeError,
+    QwenTimeoutError,
     QwenVisionAdapter,
 )
 from sketch2life.infrastructure.ai.qwen_vision_runtime_config import (
@@ -107,6 +112,10 @@ per target_ref and omit targets that cannot be located confidently. Prefer a tig
 the visible subject, including its full hand-drawn mark but little background. The allowed target
 refs and Vietnamese labels are supplied below. Do not emit markdown, explanations, masks, pixels,
 or any other keys."""
+
+_LOCALIZATION_FENCE_PATTERN = re.compile(
+    r"^```(?:json)?\s*(.*?)\s*```$", re.DOTALL | re.IGNORECASE
+)
 
 
 def _prompt_with_narration(context: str | None) -> str:
@@ -452,15 +461,10 @@ def localize_v2(
                 image_path,
                 prompt,
             )
-        decoded = json.loads(raw_output)
-        if not isinstance(decoded, dict) or not isinstance(decoded.get("regions"), list):
-            raise TypeError("localization schema invalid")
+        parsed_regions = _parse_localization_output(raw_output)
         regions: list[dict[str, object]] = []
         seen: set[str] = set()
-        for item in decoded["regions"]:
-            if not isinstance(item, dict):
-                raise TypeError("localization item invalid")
-            region = _LocalizationRegionV1.model_validate(item)
+        for region in parsed_regions:
             if region.target_ref not in payload.targets or region.target_ref in seen:
                 raise ValueError("localization target invalid")
             seen.add(region.target_ref)
@@ -481,9 +485,72 @@ def localize_v2(
             "contract_version": "1.0",
             "regions": regions[:3],
         }
-    except (OSError, RuntimeError, TypeError, ValueError, json.JSONDecodeError):
-        logger.warning("localization_request_completed status=FAILED")
+    except json.JSONDecodeError:
+        logger.warning(
+            "localization_request_completed status=FAILED reason=MODEL_OUTPUT_JSON_INVALID"
+        )
         raise HTTPException(status_code=503, detail="localization runtime is unavailable") from None
+    except TypeError:
+        logger.warning(
+            "localization_request_completed status=FAILED reason=MODEL_OUTPUT_SCHEMA_INVALID"
+        )
+        raise HTTPException(status_code=503, detail="localization runtime is unavailable") from None
+    except ValueError:
+        logger.warning(
+            "localization_request_completed status=FAILED reason=MODEL_OUTPUT_REGION_INVALID"
+        )
+        raise HTTPException(status_code=503, detail="localization runtime is unavailable") from None
+    except QwenTimeoutError:
+        logger.warning(
+            "localization_request_completed status=FAILED reason=MODEL_RUNTIME_TIMEOUT"
+        )
+        raise HTTPException(status_code=503, detail="localization runtime is unavailable") from None
+    except (QwenModelLoadError, QwenDeviceUnavailableError):
+        logger.warning(
+            "localization_request_completed status=FAILED reason=MODEL_UNAVAILABLE"
+        )
+        raise HTTPException(status_code=503, detail="localization runtime is unavailable") from None
+    except (OSError, QwenPermanentRuntimeError, RuntimeError):
+        logger.warning(
+            "localization_request_completed status=FAILED reason=MODEL_RUNTIME_FAILURE"
+        )
+        raise HTTPException(status_code=503, detail="localization runtime is unavailable") from None
+
+
+def _parse_localization_output(raw_output: str) -> list[_LocalizationRegionV1]:
+    """Accept bounded JSON and harmless provider formatting variants only."""
+
+    text = raw_output.strip()
+    fence_match = _LOCALIZATION_FENCE_PATTERN.fullmatch(text)
+    if fence_match is not None:
+        text = fence_match.group(1).strip()
+    decoded = json.loads(text)
+    if not isinstance(decoded, dict) or not isinstance(decoded.get("regions"), list):
+        raise TypeError("localization schema invalid")
+
+    parsed: list[_LocalizationRegionV1] = []
+    for item in decoded["regions"]:
+        if not isinstance(item, dict):
+            raise TypeError("localization item invalid")
+        normalized = item
+        nested = item.get("region")
+        if nested is not None:
+            if not isinstance(nested, dict):
+                raise TypeError("localization region invalid")
+            if set(item) != {"target_ref", "region", "confidence"}:
+                raise TypeError("localization item has unexpected keys")
+            if set(nested) != {"x", "y", "width", "height"}:
+                raise TypeError("localization region has unexpected keys")
+            normalized = {
+                "target_ref": item.get("target_ref"),
+                "x": nested.get("x"),
+                "y": nested.get("y"),
+                "width": nested.get("width"),
+                "height": nested.get("height"),
+                "confidence": item.get("confidence"),
+            }
+        parsed.append(_LocalizationRegionV1.model_validate(normalized))
+    return parsed
 
 
 def _require_auth(authorization: str | None) -> None:
