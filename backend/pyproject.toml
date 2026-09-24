@@ -55,6 +55,13 @@ vision-qwen = [
 image-admission = [
   "av==18.1.0",
 ]
+# FEAT-018 MVP renderer; optional so backend installation stays lightweight.
+whiteboard-renderer = [
+  "Pillow>=11,<13",
+  "imageio>=2.37,<3",
+  "imageio-ffmpeg>=0.6,<1",
+  "numpy>=2,<3",
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/sketch2life"]
