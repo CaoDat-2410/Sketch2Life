@@ -125,7 +125,17 @@ def create_app(
                 asr_profile_id=AsrProfileId(settings.lightning_asr_profile),
             )
         if whiteboard_video_pipeline is None:
-            whiteboard_video_pipeline = _configured_whiteboard_pipeline(settings, artifacts)
+            # Use the exact store owned by the upload service.  This keeps the
+            # admitted source image visible to the background video job even
+            # when the service is supplied by an alternate composition path.
+            source_artifacts = (
+                live_image_demo_service.artifact_store
+                if live_image_demo_service is not None
+                else artifacts
+            )
+            whiteboard_video_pipeline = _configured_whiteboard_pipeline(
+                settings, source_artifacts
+            )
         if supervised_flow_service is None:
             repo_root = Path(__file__).resolve().parents[5]
             p1_library = load_p1_template_library(
