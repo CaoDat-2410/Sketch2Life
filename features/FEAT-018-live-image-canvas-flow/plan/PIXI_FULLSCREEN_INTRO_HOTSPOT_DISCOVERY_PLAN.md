@@ -603,6 +603,9 @@ contract mismatch, not a Qwen model failure and not an image-localization qualit
   types and covers unsupported signatures and digest mismatch.
 - The localization parser now tolerates a fenced JSON response and the previously documented
   nested `region` projection, then normalizes both into the same strict bounded region model.
+- The prompt now requires decimal confidence in `0..1`; a numeric percentage in `1..100` is
+  normalized only at the provider boundary, and a returned label can resolve to a target ref only
+  when the label match is unique. Unknown targets remain rejected.
 - 503 diagnostics are now closed reason tokens (`MODEL_OUTPUT_JSON_INVALID`,
   `MODEL_OUTPUT_SCHEMA_INVALID`, `MODEL_OUTPUT_REGION_INVALID`, `MODEL_RUNTIME_TIMEOUT`,
   `MODEL_UNAVAILABLE` or `MODEL_RUNTIME_FAILURE`) without logging model output.

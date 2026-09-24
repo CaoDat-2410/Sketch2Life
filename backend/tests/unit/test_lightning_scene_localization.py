@@ -4,7 +4,11 @@ from collections.abc import Mapping
 from hashlib import sha256
 
 from fastapi.testclient import TestClient
-from tools.lightning_vision_v2_server import _LocalizationRequestV1, _parse_localization_output
+from tools.lightning_vision_v2_server import (
+    _LocalizationRequestV1,
+    _parse_localization_output,
+    _resolve_localization_target_ref,
+)
 from tools.lightning_vision_v2_server import app as lightning_app
 
 from sketch2life.application.ports.scene_localization import SceneLocalizationRequest
@@ -131,3 +135,27 @@ def test_localization_parser_accepts_fenced_and_nested_provider_json() -> None:
     assert regions[0].target_ref == "entity-1"
     assert regions[0].x == 0.1
     assert regions[0].confidence == 0.9
+
+
+def test_localization_parser_normalizes_bounded_percentage_confidence() -> None:
+    regions = _parse_localization_output(
+        '{"regions":[{"target_ref":"entity-1","x":0.1,"y":0.2,"width":0.3,"height":0.4,"confidence":95}]}'
+    )
+
+    assert regions[0].confidence == 0.95
+
+
+def test_localization_target_label_can_resolve_only_when_unique() -> None:
+    payload = _LocalizationRequestV1(
+        session_id="session-1",
+        source_image={
+            "artifact_ref": "artifact:session-1:image-1",
+            "sha256": "a" * 64,
+            "content_type": "image/png",
+            "content_base64": "YQ==",
+        },
+        targets=["entity-1"],
+        target_labels={"entity-1": "con chim"},
+    )
+
+    assert _resolve_localization_target_ref("con chim", payload) == "entity-1"

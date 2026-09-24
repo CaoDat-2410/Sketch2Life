@@ -446,4 +446,5 @@ P2-T5, mobile, Gate A UI, P1 eligibility, P3/P4 and shared integration remain se
 - A subsequent Lightning 503 was narrowed to the localization generation/output boundary: Qwen
   loaded and `/v2/vision` returned 200, while `/v2/localize` collapsed JSON/schema/runtime errors
   into one generic 503. The Lightning route now accepts only bounded fenced/nested formatting
-  variants, preserves strict region validation, and logs a closed failure reason for diagnosis.
+  variants, normalizes bounded percentage confidence and unique label-to-target matches, preserves
+  strict region validation, and logs a closed failure reason for diagnosis.

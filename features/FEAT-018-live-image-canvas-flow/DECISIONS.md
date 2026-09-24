@@ -206,3 +206,7 @@
   provider formatting variants: a complete fenced JSON object and the previously documented
   nested `region` shape. Both are converted into the same strict normalized-region model; arbitrary
   prose, unknown fields, invalid geometry and unknown target refs remain failures.
+- 2026-09-24 implementation decision: provider confidence is contractually decimal `0..1`. For
+  compatibility with common model output, numeric percentages from `1..100` are converted to the
+  decimal form at the Lightning boundary; target labels may resolve to ids only on a unique exact
+  normalized match. Ambiguous labels and unknown ids remain fail-closed.

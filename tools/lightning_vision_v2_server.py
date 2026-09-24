@@ -110,8 +110,9 @@ height, confidence. Coordinates are normalized to the full source image: x/y is 
 width/height are positive and every rectangle must stay inside 0..1. Return at most one region
 per target_ref and omit targets that cannot be located confidently. Prefer a tight rectangle around
 the visible subject, including its full hand-drawn mark but little background. The allowed target
-refs and Vietnamese labels are supplied below. Do not emit markdown, explanations, masks, pixels,
-or any other keys."""
+refs and Vietnamese labels are supplied below. Copy target_ref exactly from the allowed target
+refs; never replace it with the label. Confidence must be a decimal number from 0 to 1, never a
+percentage. Do not emit markdown, explanations, masks, pixels, or any other keys."""
 
 _LOCALIZATION_FENCE_PATTERN = re.compile(
     r"^```(?:json)?\s*(.*?)\s*```$", re.DOTALL | re.IGNORECASE
@@ -465,12 +466,13 @@ def localize_v2(
         regions: list[dict[str, object]] = []
         seen: set[str] = set()
         for region in parsed_regions:
-            if region.target_ref not in payload.targets or region.target_ref in seen:
+            target_ref = _resolve_localization_target_ref(region.target_ref, payload)
+            if target_ref in seen:
                 raise ValueError("localization target invalid")
-            seen.add(region.target_ref)
+            seen.add(target_ref)
             regions.append(
                 {
-                    "target_ref": region.target_ref,
+                    "target_ref": target_ref,
                     "region": {
                         "x": region.x,
                         "y": region.y,
@@ -549,8 +551,31 @@ def _parse_localization_output(raw_output: str) -> list[_LocalizationRegionV1]:
                 "height": nested.get("height"),
                 "confidence": item.get("confidence"),
             }
+        confidence = normalized.get("confidence")
+        if (
+            isinstance(confidence, (int, float))
+            and not isinstance(confidence, bool)
+            and 1 < confidence <= 100
+        ):
+            normalized = {**normalized, "confidence": confidence / 100}
         parsed.append(_LocalizationRegionV1.model_validate(normalized))
     return parsed
+
+
+def _resolve_localization_target_ref(
+    target_ref: str, payload: _LocalizationRequestV1
+) -> str:
+    if target_ref in payload.targets:
+        return target_ref
+    normalized = target_ref.strip().casefold()
+    matches = [
+        candidate
+        for candidate in payload.targets
+        if payload.target_labels.get(candidate, "").strip().casefold() == normalized
+    ]
+    if len(matches) == 1:
+        return matches[0]
+    raise ValueError("localization target invalid")
 
 
 def _require_auth(authorization: str | None) -> None:
