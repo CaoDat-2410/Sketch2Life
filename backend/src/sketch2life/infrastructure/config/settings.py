@@ -40,6 +40,7 @@ class Settings(BaseSettings):
     lightning_vision_path: str = "/v1/vision"
     lightning_vision_v2_path: str = "/v2/vision"
     lightning_whiteboard_localization_path: str = "/v1/whiteboard/localize"
+    lightning_whiteboard_segmentation_path: str = "/v1/whiteboard/segment"
     whiteboard_video_enabled: bool = False
     whiteboard_video_auto_run: bool = False
     whiteboard_video_artifact_root: Path = Path(".runtime/whiteboard")

@@ -60,7 +60,9 @@ whiteboard-renderer = [
   "Pillow>=11,<13",
   "imageio>=2.37,<3",
   "imageio-ffmpeg>=0.6,<1",
-  "numpy>=2,<3",
+  # Lightning Studio may preinstall scipy/sklearn wheels built against NumPy 1.x.
+  # Keep the renderer compatible with both NumPy 1.26 and newer environments.
+  "numpy>=1.26,<2",
 ]
 
 [tool.hatch.build.targets.wheel]
