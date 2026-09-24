@@ -8,6 +8,20 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
+class WhiteboardVideoCreateRequestV1(BaseModel):
+    """Safe request body for creating a session-local video job."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    contract_name: Literal["WhiteboardVideoCreateRequestV1"] = "WhiteboardVideoCreateRequestV1"
+    contract_version: Literal["1.0"] = "1.0"
+    experience_spec_id: str = Field(min_length=1, max_length=160)
+    source_artifact_id: str = Field(min_length=1, max_length=200)
+    source_hash: str = Field(pattern=r"^[0-9a-f]{64}$")
+    learning_thread_ref: str = Field(min_length=1, max_length=200)
+    idempotency_key: str = Field(min_length=1, max_length=200)
+
+
 class WhiteboardVideoJobV1(BaseModel):
     """Pollable job state; media bytes and provider diagnostics are excluded."""
 

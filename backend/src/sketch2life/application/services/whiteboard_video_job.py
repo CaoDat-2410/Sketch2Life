@@ -23,6 +23,14 @@ class WhiteboardVideoPipelineError(RuntimeError):
         self.retryable = retryable
 
 
+class UnconfiguredWhiteboardVideoPipeline:
+    """Default local adapter; real provider wiring is a later implementation slice."""
+
+    def run(self, job: WhiteboardVideoJobV1, update_stage: Callable[[str, int], None]) -> WhiteboardVideoResultV1:
+        del job, update_stage
+        raise WhiteboardVideoPipelineError("PIPELINE_NOT_CONFIGURED", retryable=False)
+
+
 class WhiteboardVideoPipeline(Protocol):
     def run(
         self,
@@ -47,6 +55,9 @@ class InMemoryWhiteboardVideoJobStore:
     def history(self, job_id: str) -> tuple[WhiteboardVideoJobV1, ...]:
         return tuple(self._attempt_history.get(job_id, ()))
 
+    def for_session(self, session_id: str) -> tuple[WhiteboardVideoJobV1, ...]:
+        return tuple(job for job in self._jobs.values() if job.session_id == session_id)
+
     def record(self, job: WhiteboardVideoJobV1) -> None:
         self._attempt_history.setdefault(job.job_id, []).append(job)
 
@@ -65,6 +76,8 @@ class WhiteboardVideoJobService:
         self._store = store or InMemoryWhiteboardVideoJobStore()
         self._now = now
         self._lock = RLock()
+        self._idempotency: dict[tuple[str, str], tuple[tuple[str, ...], str]] = {}
+        self._results: dict[str, WhiteboardVideoResultV1] = {}
 
     @property
     def store(self) -> InMemoryWhiteboardVideoJobStore:
@@ -100,6 +113,40 @@ class WhiteboardVideoJobService:
             self._store.put(job)
             self._store.record(job)
         return job
+
+    def create_or_replay(
+        self,
+        *,
+        session_id: str,
+        experience_spec_id: str,
+        source_artifact_id: str,
+        source_hash: str,
+        learning_thread_ref: str,
+        idempotency_key: str,
+    ) -> tuple[WhiteboardVideoJobV1, bool]:
+        fingerprint = (
+            experience_spec_id,
+            source_artifact_id,
+            source_hash,
+            learning_thread_ref,
+        )
+        key = (session_id, idempotency_key)
+        with self._lock:
+            prior = self._idempotency.get(key)
+            if prior is not None:
+                if prior[0] != fingerprint:
+                    raise ValueError("idempotency key payload mismatch")
+                return self._store.get(prior[1]), True
+            job = self.create_job(
+                session_id=session_id,
+                experience_spec_id=experience_spec_id,
+                source_artifact_id=source_artifact_id,
+                source_hash=source_hash,
+                learning_thread_ref=learning_thread_ref,
+                idempotency_key=idempotency_key,
+            )
+            self._idempotency[key] = (fingerprint, job.job_id)
+            return job, False
 
     def run(self, job_id: str) -> WhiteboardVideoResultV1:
         with self._lock:
@@ -137,7 +184,11 @@ class WhiteboardVideoJobService:
                 progress=100,
                 completed_at=self._now(),
             )
+            self._results[job_id] = result
         return result
+
+    def result(self, job_id: str) -> WhiteboardVideoResultV1 | None:
+        return self._results.get(job_id)
 
     def retry(self, job_id: str, *, idempotency_key: str) -> WhiteboardVideoJobV1:
         with self._lock:
@@ -177,4 +228,5 @@ __all__ = [
     "WhiteboardVideoJobService",
     "WhiteboardVideoPipeline",
     "WhiteboardVideoPipelineError",
+    "UnconfiguredWhiteboardVideoPipeline",
 ]

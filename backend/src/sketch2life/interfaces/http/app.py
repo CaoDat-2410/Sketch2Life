@@ -12,6 +12,10 @@ from sketch2life.application.services.live_image_demo import LiveImageDemoServic
 from sketch2life.application.services.p1_experience import P1ExperienceCompiler
 from sketch2life.application.services.pixi_topic_asset_candidates import load_topic_asset_catalog
 from sketch2life.application.services.supervised_flow import SupervisedFlowService
+from sketch2life.application.services.whiteboard_video_job import (
+    UnconfiguredWhiteboardVideoPipeline,
+    WhiteboardVideoJobService,
+)
 from sketch2life.contracts.schemas.asr import AsrProfileId
 from sketch2life.contracts.schemas.workflow_records import SessionSnapshotV1
 from sketch2life.infrastructure.ai.lightning_client import (
@@ -48,6 +52,7 @@ from sketch2life.interfaces.http.routers.sessions import router as sessions_rout
 from sketch2life.interfaces.http.routers.supervised_flow import (
     renderer_source_router,
 )
+from sketch2life.interfaces.http.routers.whiteboard_video import router as whiteboard_video_router
 from sketch2life.interfaces.http.routers.supervised_flow import (
     router as supervised_flow_router,
 )
@@ -60,6 +65,7 @@ def create_app(
     session_service: EphemeralSessionService | None = None,
     live_image_demo_service: LiveImageDemoService | None = None,
     supervised_flow_service: SupervisedFlowService | None = None,
+    whiteboard_video_job_service: WhiteboardVideoJobService | None = None,
 ) -> FastAPI:
     """Create the local image-only API composition root with ephemeral adapters."""
     application = FastAPI(
@@ -148,11 +154,17 @@ def create_app(
     application.state.session_service = session_service
     application.state.live_image_demo_service = live_image_demo_service
     application.state.supervised_flow_service = supervised_flow_service
+    if whiteboard_video_job_service is None:
+        whiteboard_video_job_service = WhiteboardVideoJobService(
+            pipeline=UnconfiguredWhiteboardVideoPipeline()
+        )
+    application.state.whiteboard_video_job_service = whiteboard_video_job_service
     application.include_router(health_router)
     application.include_router(sessions_router)
     application.include_router(images_router)
     application.include_router(supervised_flow_router)
     application.include_router(renderer_source_router)
+    application.include_router(whiteboard_video_router)
     renderer_dist = Path(__file__).resolve().parents[5] / "packages" / "art-renderer" / "dist-demo"
     if renderer_dist.is_dir():
         application.mount(
