@@ -3,10 +3,14 @@
 from __future__ import annotations
 
 import json
+import logging
 import shutil
 import subprocess
 from pathlib import Path
 from typing import Any
+
+
+_LOGGER = logging.getLogger("sketch2life.whiteboard_runtime")
 
 
 class WhiteboardLearningThreadScripts:
@@ -79,7 +83,17 @@ class FfmpegWhiteboardEncoder:
             "-map",
             "1:a:0",
             "-c:v",
-            "copy",
+            "libx264",
+            "-profile:v",
+            "high",
+            "-level:v",
+            "4.1",
+            "-pix_fmt",
+            "yuv420p",
+            "-preset",
+            "veryfast",
+            "-crf",
+            "23",
             "-c:a",
             "aac",
             "-ar",
@@ -94,6 +108,11 @@ class FfmpegWhiteboardEncoder:
         ]
         completed = subprocess.run(command, capture_output=True, text=True, timeout=45)
         if completed.returncode != 0 or not output.is_file() or output.stat().st_size <= 0:
+            _LOGGER.error(
+                "whiteboard_ffmpeg_failed returncode=%s stderr=%s",
+                completed.returncode,
+                completed.stderr[-2000:].strip(),
+            )
             raise RuntimeError("FFmpeg did not produce a whiteboard MP4")
 
     def inspect(self, path: str | Path) -> tuple[float, str, int]:
@@ -112,6 +131,11 @@ class FfmpegWhiteboardEncoder:
         ]
         completed = subprocess.run(command, capture_output=True, text=True, timeout=20)
         if completed.returncode != 0:
+            _LOGGER.error(
+                "whiteboard_ffprobe_failed returncode=%s stderr=%s",
+                completed.returncode,
+                completed.stderr[-2000:].strip(),
+            )
             raise RuntimeError("FFprobe could not inspect the MP4")
         payload = json.loads(completed.stdout)
         streams = payload.get("streams", [])
