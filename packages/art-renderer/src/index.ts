@@ -22,6 +22,7 @@ export {
   RendererPlaybackStateEnvelopeSchema,
   RendererPlaybackEventEnvelopeSchema,
   RendererBootstrapSchema,
+  RendererInteractionPhaseSchema,
 } from './contracts';
 export type {
   ArtAnimationPlan,
@@ -32,8 +33,10 @@ export type {
   Motion,
   MotionKind,
   PlaybackEvent,
+  RendererInteractionPhase,
   PixiArtAssetManifest,
   SceneFocusPlan,
+  SceneExplorationPlan,
   SourceRegion,
   RendererBootstrap,
   RendererControlCommand,

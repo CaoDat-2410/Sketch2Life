@@ -7,11 +7,12 @@ export {
   RendererLoadCommandSchema,
   RendererPlaybackEventEnvelopeSchema,
   RendererPlaybackStateEnvelopeSchema,
+  RendererInteractionPhaseSchema,
   SceneExplorationPlanSchema,
   SceneFocusPlanSchema,
   SourceRegionSchema,
   SubjectCandidateSetSchema,
 } from './contracts';
 export {parseRendererMessage} from './bridge';
-export type {PlaybackEvent, RendererBootstrap} from './contracts';
+export type {PlaybackEvent, RendererBootstrap, RendererInteractionPhase} from './contracts';
 export type {RendererMessage} from './bridge';

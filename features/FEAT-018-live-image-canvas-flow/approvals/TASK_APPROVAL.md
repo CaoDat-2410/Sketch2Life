@@ -397,3 +397,22 @@ mobile, Gate A, P1 eligibility, P3/P4 and shared integration remain separately g
 - Boundary: preserve the existing video placeholder/handoff seam, Gate A/Gate B, exact
   ExperienceSpec identity, original-art provenance, future auth/save seam and the owner-run
   Lightning boundary. No video work may be added to this branch without renewed approval.
+
+## Owner approval — Pixi fullscreen intro and direct hotspot discovery — 2026-09-23
+
+- Approver: project owner direct instruction in the current conversation: “implement”.
+- Approved artifact: `plan/PIXI_FULLSCREEN_INTRO_HOTSPOT_DISCOVERY_PLAN.md`.
+- Plan SHA-256 at approval: `672C7F137EB0BAAEA516A559393E7B2EA23908D4241423368444A2FEE2B8E494`.
+- Implementation branch: `codex/feat-018-pixi-exploration`.
+- Approved behavior: bounded subject localization after semantic understanding; mandatory non-
+  interactive Pixi intro before `DISCOVERY_READY`; direct taps on validated image regions; empty-
+  canvas chrome toggle; auto-hiding playback controls; immersive landscape fullscreen with full
+  orientation/system-bar restoration on every exit path; friendly staged loading and fallback.
+- Approved scope: additive renderer state/events, backend localization validation and bounded payload
+  mapping, Pixi intro/hit testing/2.5D presentation, Android fullscreen lifecycle, loading/error UX,
+  focused tests and feature-local evidence.
+- Explicit exclusions: whiteboard MP4 generation, TTS, video worker/encoder/player, auth,
+  persistence, FEAT-003 changes, provider credentials in mobile/Git, live provider calls, generated
+  visual assets, real child data and unrelated FEAT-026/FEAT-029 changes.
+- Boundary: preserve Gate A/Gate B, exact ExperienceSpec identity, original-art provenance,
+  existing video placeholder/handoff seam, future auth/save seam and owner-run Lightning boundary.

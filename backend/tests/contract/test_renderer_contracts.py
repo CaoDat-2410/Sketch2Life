@@ -136,6 +136,24 @@ def test_renderer_bootstrap_and_event_protocol_are_typed_and_bounded() -> None:
         ).reason
         == "MASK_INVALID"
     )
+    assert (
+        RendererEventAdapterV1.validate_python(
+            {"type": "INTRO_COMPLETED", "planId": "plan-1"}
+        ).type
+        == "INTRO_COMPLETED"
+    )
+    assert (
+        RendererEventAdapterV1.validate_python(
+            {"type": "DISCOVERY_READY", "planId": "plan-1", "targetCount": 2}
+        ).targetCount
+        == 2
+    )
+    assert (
+        RendererEventAdapterV1.validate_python(
+            {"type": "CANVAS_TAPPED", "planId": "plan-1"}
+        ).type
+        == "CANVAS_TAPPED"
+    )
     with pytest.raises(ValidationError):
         RendererEventAdapterV1.validate_python(
             {"type": "FALLBACK_APPLIED", "planId": "plan-1", "reason": "unknown"}

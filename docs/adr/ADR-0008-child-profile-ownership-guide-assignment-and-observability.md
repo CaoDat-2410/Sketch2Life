@@ -20,6 +20,8 @@ The registration form and workflow images contain both product scope and project
 - The ChildProfile has no login credential or Firebase identity.
 - Parent and legal guardian are represented by the same OwnerCaregiver concept; the legal relationship verification workflow remains a separate policy question.
 - Firebase Authentication verifies adult identity only. Backend authorization resolves ownership and delegated access.
+- Adult account roles are mutually exclusive: `PARENT`, `GUIDE` or `ADMIN`. There is no `CHILD` role or child credential; the child is a supervised session participant.
+- The test environment uses the owner-controlled real Firebase Authentication project. Tokens, service-account material and other credentials remain runtime-only and outside the repository.
 
 ### Guide assignment
 
@@ -38,8 +40,9 @@ The registration form and workflow images contain both product scope and project
 - Opening a Guide session creates an Owner notification and a live session projection.
 - The Owner can monitor necessary session information in real time; UI data is minimized and excludes internal technical metadata, credentials and provider details.
 - Revoking the Guide during an active session immediately stops the session, blocks further Guide commands, shows an in-product message and records event/audit/notification data.
-- Mobile and Guide Console are the MVP product surfaces.
-- Parent Web is a Phase 2 management and monitoring surface using the same backend authorization model. It manages ChildProfiles, Guide assignments, history, notifications, retention and feedback. It is not implicitly a session-running client.
+- Mobile, Guide Console and Parent Web are required target operational surfaces using the same backend authorization model.
+- Guide Console is desktop-browser first. Parent Web is responsive and must work on mobile and desktop browsers. Parent Web manages ChildProfiles, Guide assignments, history, notifications, retention and feedback. It is not implicitly a session-running client unless a separate command contract is approved.
+- Parent live monitoring is intentionally minimal: phase, status, progress and update time; technical errors, provider details, traces, job payloads and raw child content are excluded.
 
 ### MVP experience
 
@@ -62,7 +65,8 @@ The registration form and workflow images contain both product scope and project
 - Existing class/family grouping may remain for administrative/reporting scope, but it cannot create an additional ChildProfile owner or implicit Guide access.
 - API and schema work must use the direct GuideAssignment model or document an approved compatibility mapping before implementation.
 - Parent notifications, revoke events, session projections, retention transitions and Admin break-glass reads require durable records and audit coverage.
-- Parent Web can reuse backend APIs and policy decisions, but its UI and session-creation capabilities require a separate Phase 2 implementation decision.
+- Parent Web reuses backend APIs and policy decisions. Its management, monitoring, history, privacy and feedback capabilities are in the target scope; session-creation UX remains a separate command decision.
+- Test implementation must include rate limits, retry budgets, idempotency, concurrency guards and redacted backend operational monitoring even when AI uses fixtures/fakes.
 - Physical storage, queue, notification, telemetry and Grafana technologies remain open until the relevant ADR/implementation gate.
 
 ## Non-decisions kept open
@@ -83,4 +87,3 @@ The registration form and workflow images contain both product scope and project
 - `features/FEAT-029-master-srs/approvals/TASK_APPROVAL.md` owner scope closure addendum.
 - `docs/context/PROJECT_CONTEXT.md` master SRS scope closure entry.
 - [Nghị định 13/2023/NĐ-CP](https://vbpl.moj.gov.vn/boyte/Pages/vbpq-toanvan.aspx?ItemID=161106&Keyword=) as a privacy/child-data constraint source.
-

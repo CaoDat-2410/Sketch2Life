@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sketch2life.local/contracts/activity-preparation-profile.v1.schema.json",
+  "title": "ActivityPreparationCatalogV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract_name", "contract_version", "catalog_revision", "profiles"],
+  "properties": {
+    "contract_name": {"const": "ActivityPreparationCatalogV1"},
+    "contract_version": {"const": "1.0"},
+    "catalog_revision": {"type": "string", "minLength": 1},
+    "profiles": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/profile"}
+    }
+  },
+  "$defs": {
+    "ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^ACT-[0-9]{4}$"},
+        "version": {"type": "integer", "minimum": 1}
+      }
+    },
+    "printDefaults": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["paper_size", "preferred_format", "editable_source_formats", "color_mode", "copies", "cut_required", "lamination"],
+      "properties": {
+        "paper_size": {"const": "A4"},
+        "preferred_format": {"const": "PDF"},
+        "editable_source_formats": {"type": "array", "minItems": 1, "maxItems": 2, "items": {"enum": ["SVG", "PNG"]}},
+        "color_mode": {"enum": ["COLOR", "GRAYSCALE"]},
+        "copies": {"type": "integer", "minimum": 1, "maximum": 10},
+        "cut_required": {"type": "boolean"},
+        "lamination": {"enum": ["NOT_NEEDED", "OPTIONAL", "RECOMMENDED"]}
+      }
+    },
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract_name", "contract_version", "activity_ref", "catalog_revision", "print_requirement", "guide_note_vi", "planned_asset_kinds", "asset_set_status", "asset_set_refs", "print_defaults", "provenance"],
+      "properties": {
+        "contract_name": {"const": "ActivityPreparationProfileV1"},
+        "contract_version": {"const": "1.0"},
+        "activity_ref": {"$ref": "#/$defs/ref"},
+        "catalog_revision": {"type": "string", "minLength": 1},
+        "print_requirement": {"enum": ["NO_PRINTABLE_ASSET", "PRINT_RECOMMENDED", "PRINT_REQUIRED"]},
+        "guide_note_vi": {"type": "string", "minLength": 1, "maxLength": 320},
+        "planned_asset_kinds": {
+          "type": "array",
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": {"enum": ["MATCHING_CARD_SET", "SEQUENCE_CARD_SET", "PICTURE_CARD_SET", "SORTING_BOARD", "WORKSHEET", "LABEL_SET", "OBSERVATION_RECORD_SHEET", "REFERENCE_SHEET", "OTHER_REVIEWED_PRINTABLE"]}
+        },
+        "asset_set_status": {"enum": ["NOT_APPLICABLE", "PLANNED", "READY", "BLOCKED", "DEPRECATED"]},
+        "asset_set_refs": {"type": "array", "maxItems": 4, "items": {"type": "string", "minLength": 1}},
+        "print_defaults": {"anyOf": [{"$ref": "#/$defs/printDefaults"}, {"type": "null"}]},
+        "provenance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["source", "review_status", "classification_version"],
+          "properties": {
+            "source": {"const": "AUTHORED_CATALOG"},
+            "review_status": {"enum": ["PENDING_OWNER_REVIEW", "OWNER_REVIEWED", "APPROVED"]},
+            "classification_version": {"type": "string", "minLength": 1}
+          }
+        }
+      }
+    }
+  }
+}

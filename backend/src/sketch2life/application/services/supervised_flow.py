@@ -14,6 +14,10 @@ from uuid import uuid4
 from pydantic import TypeAdapter, ValidationError
 
 from sketch2life.application.ports.session_storage import IdempotencyReceipt, IdempotencyStore
+from sketch2life.application.ports.scene_localization import (
+    SceneLocalizationPort,
+    SceneLocalizationRequest,
+)
 from sketch2life.application.ports.workflow_dependencies import (
     ActivityCatalogMetadataPort,
     SemanticCatalogPort,
@@ -140,6 +144,16 @@ def _recommendation_set(
                 age_label_vi=str(display["age_label_vi"]),
                 supervision_label_vi=str(display["supervision_label_vi"]),
                 material_labels_vi=tuple(display.get("material_labels_vi", ())),
+                preparation_requirement=str(
+                    display.get("preparation_requirement", "NO_PRINTABLE_ASSET")
+                ),
+                preparation_summary_vi=str(display.get("preparation_summary_vi", "")),
+                preparation_asset_kinds=tuple(
+                    str(value) for value in display.get("preparation_asset_kinds", ())
+                ),
+                preparation_asset_status=str(
+                    display.get("preparation_asset_status", "NOT_APPLICABLE")
+                ),
                 fit_source=(
                     "DIRECT"
                     if match.continuity_mode == "DIRECT_CONTINUATION"
@@ -166,6 +180,7 @@ class SupervisedFlowService:
         semantic_catalog: SemanticCatalogPort | None = None,
         semantic_catalog_v2: SemanticCatalogV2Port | None = None,
         catalog_metadata: ActivityCatalogMetadataPort | None = None,
+        scene_localizer: SceneLocalizationPort | None = None,
         renderer_source_capability_issuer: Callable[..., tuple[str, datetime]] | None = None,
         now: Callable[[], datetime] = lambda: datetime.now(UTC),
     ) -> None:
@@ -176,6 +191,7 @@ class SupervisedFlowService:
         self._semantic_catalog = semantic_catalog
         self._semantic_catalog_v2 = semantic_catalog_v2
         self._catalog_metadata = catalog_metadata
+        self._scene_localizer = scene_localizer
         self._renderer_source_capability_issuer = renderer_source_capability_issuer
         self._now = now
         self._lock = RLock()
@@ -1031,6 +1047,26 @@ class SupervisedFlowService:
                 learning_bridge_vi=spec.bridge_sentence.sentence_vi,
             )
             region_hints = workflow.values.get("scene_focus_regions")
+            if self._scene_localizer is not None:
+                try:
+                    localized_regions = self._scene_localizer.localize(
+                        SceneLocalizationRequest(
+                            session_id=command.session_id,
+                            experience_spec_ref=VersionedRefV1(
+                                id=spec.spec_id, version=spec.spec_version
+                            ),
+                            source_artifact_ref=raw.source_image_ref.artifact_ref,
+                            source_artifact_sha256=raw.source_image_ref.sha256,
+                            target_refs=tuple(candidate.candidate_id for candidate in subject_candidates.items),
+                            attempt_id=f"{command.idempotency_key}:scene-localization",
+                        )
+                    )
+                    if localized_regions is not None:
+                        region_hints = localized_regions
+                except Exception:
+                    # Localization is an optional enhancement.  A provider failure must
+                    # never block the source-preserving Pixi fallback or leak provider data.
+                    region_hints = None
             focus_plan = build_scene_focus_plan(
                 session_id=command.session_id,
                 experience_spec_ref=VersionedRefV1(id=spec.spec_id, version=spec.spec_version),

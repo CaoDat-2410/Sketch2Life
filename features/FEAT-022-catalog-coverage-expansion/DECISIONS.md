@@ -28,3 +28,13 @@ An activity counts toward coverage only after age fit, safety, prerequisite, mat
 ## Decision 4: Authored catalog only
 
 AI may classify a scene and rank approved catalog entries, but it may not create or mutate an activity at runtime. New catalog records require provenance, review status, safety notes, age adaptation rationale, and a catalog revision before becoming eligible.
+
+## Decision 5: Separate activity preparation from physical materials — approved classification slice
+
+The owner directed that the catalog must distinguish ordinary physical materials from prepared
+printable assets. The approved first delivery classifies every selectable activity as `NO_PRINTABLE_ASSET`,
+`PRINT_RECOMMENDED` or `PRINT_REQUIRED`, identifies the planned printable pack kind and records a
+guide-facing Vietnamese note. PDF/A4 is the future canonical download format; editable sources may
+be retained. Printable files, asset readiness, parent/guide download UI and print endpoints are a
+follow-up after the classification report is reviewed. The detailed draft is recorded in
+`plan/ACTIVITY_PREPARATION_ASSET_CLASSIFICATION_PLAN.md` and `evidence/`.

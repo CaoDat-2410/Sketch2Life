@@ -11,6 +11,11 @@ from pathlib import Path
 from typing import Any
 
 from sketch2life.contracts.schemas.semantic_personalization_v2 import ActivityDurationV2
+from sketch2life.contracts.schemas.activity_preparation import ActivityPreparationProfileV1
+from sketch2life.infrastructure.catalog.activity_preparation import (
+    ActivityPreparationCatalogError,
+    load_activity_preparation_catalog,
+)
 from sketch2life.infrastructure.catalog.curated_catalog import load_curated_catalog_v2
 
 
@@ -26,6 +31,12 @@ class FileWorkflowCatalogMetadata:
             self._curated_by_id = load_curated_catalog_v2(self._root).by_activity_id()
         except (OSError, ValueError) as exc:
             raise WorkflowMetadataLoadError("cannot load curated workflow metadata") from exc
+        try:
+            self._preparation_catalog = load_activity_preparation_catalog(self._root)
+        except ActivityPreparationCatalogError as exc:
+            raise WorkflowMetadataLoadError(
+                "cannot load activity preparation metadata"
+            ) from exc
         self._primary_materials = self._load_primary_materials()
 
     def primary_material_ids(self, activity_id: str) -> tuple[str, ...]:
@@ -99,6 +110,7 @@ class FileWorkflowCatalogMetadata:
             "DIRECT": "Người lớn cùng thực hiện",
         }[variant.minimum_supervision]
         minimum, maximum = variant.age_months
+        preparation = self._preparation_catalog.profile_for(activity_id, variant.activity_version)
         return {
             "title_vi": variant.title_vi,
             "summary_vi": variant.action_vi,
@@ -106,7 +118,16 @@ class FileWorkflowCatalogMetadata:
             "age_label_vi": f"{minimum // 12}–{(maximum + 1) // 12} tuổi",
             "supervision_label_vi": supervision,
             "material_labels_vi": material_labels[:4],
+            "preparation_requirement": preparation.print_requirement,
+            "preparation_summary_vi": preparation.guide_note_vi,
+            "preparation_asset_kinds": preparation.planned_asset_kinds,
+            "preparation_asset_status": preparation.asset_set_status,
         }
+
+    def preparation_profile(
+        self, activity_id: str, activity_version: int = 1
+    ) -> ActivityPreparationProfileV1:
+        return self._preparation_catalog.profile_for(activity_id, activity_version)
 
     def _load_records(self) -> dict[str, dict[str, Any]]:
         records: dict[str, dict[str, Any]] = {}

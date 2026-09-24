@@ -11,7 +11,9 @@ import {
   Platform,
 } from 'react-native';
 import * as Crypto from 'expo-crypto';
+import * as NavigationBar from 'expo-navigation-bar';
 import * as ScreenOrientation from 'expo-screen-orientation';
+import { StatusBar } from 'expo-status-bar';
 import WebView, { type WebViewMessageEvent } from 'react-native-webview';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, radius, shadows } from '../theme';
@@ -881,9 +883,16 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
   const controlSequence = useRef(1);
   const [rendererAttempt, setRendererAttempt] = useState(0);
   const [rendererFailed, setRendererFailed] = useState(false);
-  const [rendererStatus, setRendererStatus] = useState('Đang xoay màn hình để mở câu chuyện…');
+  const [rendererStatus, setRendererStatus] = useState('Đang chuẩn bị bức vẽ…');
   const [discoveredLabel, setDiscoveredLabel] = useState<string | null>(null);
-  const [playback, setPlayback] = useState({ position: 0, duration: 0, state: 'READY' });
+  const [chromeVisible, setChromeVisible] = useState(true);
+  const chromeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [playback, setPlayback] = useState({
+    position: 0,
+    duration: 0,
+    state: 'READY',
+    interactionPhase: 'INTRO_LOADING',
+  });
   const rendererPageUrl = rendererLaunch
     ? `${API_BASE_URL}/renderer/mobile.html?rendererInstanceId=${encodeURIComponent(rendererInstanceId)}`
     : null;
@@ -895,17 +904,67 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
     playback.position >= Number(beat.start_seconds || 0)
     && playback.position < Number(beat.end_seconds || Number.MAX_SAFE_INTEGER)
   ));
-  const caption = rendererText(activeBeat?.caption_vi, sceneData.storyTitle);
-  const storyboardCandidates = Array.isArray(pixiIntroStoryboard?.subject_candidates)
-    ? pixiIntroStoryboard.subject_candidates.map(rendererObject).slice(0, 3)
-    : [];
+  const caption = rendererText(
+    activeBeat?.caption_vi,
+    playback.interactionPhase === 'DISCOVERY_READY' || playback.interactionPhase === 'DISCOVERY_FOCUSED'
+      ? 'Chạm vào một chi tiết trong tranh để khám phá.'
+      : sceneData.storyTitle,
+  );
+  const canContinue = rendererFailed
+    || playback.interactionPhase === 'DISCOVERY_READY'
+    || playback.interactionPhase === 'DISCOVERY_FOCUSED'
+    || playback.interactionPhase === 'FALLBACK';
+
+  const clearChromeTimer = () => {
+    if (chromeTimer.current !== null) {
+      clearTimeout(chromeTimer.current);
+      chromeTimer.current = null;
+    }
+  };
+
+  const armChromeAutoHide = () => {
+    clearChromeTimer();
+    if (playback.interactionPhase === 'INTRO_LOADING') return;
+    chromeTimer.current = setTimeout(() => setChromeVisible(false), 3000);
+  };
+
+  const showChrome = () => {
+    setChromeVisible(true);
+    armChromeAutoHide();
+  };
+
+  const toggleChrome = () => {
+    if (chromeVisible) {
+      clearChromeTimer();
+      setChromeVisible(false);
+    } else {
+      showChrome();
+    }
+  };
+
+  const restoreSystemUi = async () => {
+    await NavigationBar.setVisibilityAsync('visible').catch(() => undefined);
+    await NavigationBar.setPositionAsync('relative').catch(() => undefined);
+    await NavigationBar.setBackgroundColorAsync('#FFFFFF').catch(() => undefined);
+    await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP).catch(() => undefined);
+  };
 
   useEffect(() => {
     let mounted = true;
-    void ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE).catch(() => {
-      if (mounted) setRendererStatus('Màn hình chưa xoay được; câu chuyện vẫn có thể tiếp tục.');
+    void (async () => {
+      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+      await NavigationBar.setPositionAsync('absolute');
+      await NavigationBar.setBackgroundColorAsync('#00000000');
+      await NavigationBar.setBehaviorAsync('overlay-swipe');
+      await NavigationBar.setVisibilityAsync('hidden');
+    })().catch(() => {
+      if (mounted) setRendererStatus('Màn hình chưa mở toàn cảnh; câu chuyện vẫn có thể tiếp tục.');
     });
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+      clearChromeTimer();
+      void restoreSystemUi();
+    };
   }, []);
 
   useEffect(() => {
@@ -920,6 +979,10 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
     }, 15000);
     return () => clearTimeout(timeout);
   }, [rendererPageUrl, rendererFailed, playback.duration]);
+
+  useEffect(() => {
+    if (playback.interactionPhase !== 'INTRO_LOADING' && chromeVisible) armChromeAutoHide();
+  }, [playback.interactionPhase]);
 
   const postControl = (action: 'PLAY' | 'PAUSE' | 'REPLAY' | 'SEEK_RELATIVE_SECONDS', seconds?: number) => {
     if (!rendererWebViewRef.current) return;
@@ -976,18 +1039,44 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
         position: state.data.positionSeconds,
         duration: state.data.durationSeconds,
         state: state.data.state,
+        interactionPhase: state.data.interactionPhase,
       });
-      setRendererStatus(state.data.state === 'COMPLETED' ? 'Câu chuyện mở đầu đã sẵn sàng!' : 'Bức vẽ của con đang chuyển động…');
+      setRendererStatus(
+        state.data.interactionPhase === 'DISCOVERY_READY'
+          ? 'Chạm vào một chi tiết trong tranh để khám phá.'
+          : state.data.interactionPhase === 'FALLBACK'
+            ? 'Một vài chi tiết chưa tách được; ảnh gốc vẫn an toàn.'
+            : state.data.state === 'COMPLETED'
+              ? 'Phần mở đầu đã sẵn sàng.'
+              : 'Đang mở bức vẽ của con…',
+      );
       return;
     }
     const lifecycle = RendererPlaybackEventEnvelopeSchema.safeParse(value);
     if (lifecycle.success) {
-      if (lifecycle.data.event.type === 'DISCOVERED_ENTITY') {
-        setDiscoveredLabel(lifecycle.data.event.labelVi);
-        setRendererStatus(`Con vừa chạm vào ${lifecycle.data.event.labelVi}.`);
-      } else if (lifecycle.data.event.type === 'PLAYBACK_FAILED') {
-        setRendererFailed(true);
-        setRendererStatus('Chuyển động chưa mở được. Ảnh gốc vẫn an toàn.');
+      switch (lifecycle.data.event.type) {
+        case 'DISCOVERED_ENTITY':
+          setDiscoveredLabel(lifecycle.data.event.labelVi);
+          setRendererStatus(`Con vừa khám phá ${lifecycle.data.event.labelVi}.`);
+          break;
+        case 'CANVAS_TAPPED':
+          toggleChrome();
+          break;
+        case 'INTRO_COMPLETED':
+          setRendererStatus('Đang mở các điểm chạm trong bức vẽ…');
+          break;
+        case 'DISCOVERY_READY':
+          setRendererStatus('Chạm vào một chi tiết trong tranh để khám phá.');
+          setChromeVisible(true);
+          armChromeAutoHide();
+          break;
+        case 'PLAYBACK_FAILED':
+          setRendererFailed(true);
+          setRendererStatus('Chuyển động chưa mở được. Ảnh gốc vẫn an toàn.');
+          setChromeVisible(true);
+          break;
+        default:
+          break;
       }
     }
   };
@@ -995,36 +1084,26 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
   const retry = () => {
     rendererCommandSent.current = false;
     setRendererFailed(false);
-    setPlayback({ position: 0, duration: 0, state: 'READY' });
+    setPlayback({ position: 0, duration: 0, state: 'READY', interactionPhase: 'INTRO_LOADING' });
+    setChromeVisible(true);
     setRendererStatus('Đang thử mở lại câu chuyện…');
     setRendererAttempt((value) => value + 1);
   };
 
   const returnToReview = async () => {
-    await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP).catch(() => undefined);
+    await restoreSystemUi();
     goBack();
   };
 
-  const continueToVideo = () => {
+  const continueToVideo = async () => {
+    if (!canContinue) return;
+    await restoreSystemUi();
     nav('video_placeholder');
   };
 
   return (
     <View style={styles.pixiIntroScreen}>
-      <View style={styles.pixiIntroHeader}>
-        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Quay lại" onPress={() => void returnToReview()} style={styles.pixiControlButton}>
-          <Ionicons name="arrow-back" size={22} color="#FFFFFF" />
-        </TouchableOpacity>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.pixiIntroTitle}>Bức vẽ bước vào câu chuyện ✨</Text>
-          <Text style={styles.pixiIntroStatus}>{rendererStatus}</Text>
-        </View>
-        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Tiếp tục đến video" onPress={continueToVideo} style={styles.pixiContinueButton}>
-          <Text style={styles.pixiContinueText}>Tiếp tục</Text>
-          <Ionicons name="arrow-forward" size={18} color="#172033" />
-        </TouchableOpacity>
-      </View>
-
+      <StatusBar hidden />
       <View style={styles.pixiIntroStage}>
         {rendererFailed || !rendererPageUrl ? (
           selectedDrawing ? (
@@ -1049,61 +1128,64 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
             style={styles.pixiIntroWebView}
           />
         )}
-        <View style={styles.pixiDiscoverPanel}>
-          <Text style={styles.pixiDiscoverHint}>Chạm vào chi tiết để khám phá</Text>
-          <View style={styles.pixiDiscoverChips}>
-            {storyboardCandidates.map((candidate) => {
-              const id = rendererText(candidate.candidate_id ?? candidate.candidateId);
-              const label = rendererText(candidate.label_vi ?? candidate.labelVi);
-              if (!id || !label) return null;
-              return (
-                <TouchableOpacity
-                  key={id}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Khám phá ${label}`}
-                  onPress={() => {
-                    setDiscoveredLabel(label);
-                    setRendererStatus(`Con vừa chạm vào ${label}.`);
-                  }}
-                  style={[styles.pixiDiscoverChip, discoveredLabel === label && styles.pixiDiscoverChipActive]}
-                >
-                  <Text style={styles.pixiDiscoverChipText}>{label}</Text>
+        {chromeVisible && (
+          <View style={styles.pixiChromeLayer} pointerEvents="box-none">
+            <View style={styles.pixiIntroHeader} pointerEvents="box-none">
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Quay lại" onPress={() => void returnToReview()} style={styles.pixiControlButton}>
+                <Ionicons name="arrow-back" size={22} color="#FFFFFF" />
+              </TouchableOpacity>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.pixiIntroTitle}>Bức vẽ bước vào câu chuyện ✨</Text>
+                <Text style={styles.pixiIntroStatus}>{rendererStatus}</Text>
+              </View>
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel="Tiếp tục đến video"
+                disabled={!canContinue}
+                onPress={() => void continueToVideo()}
+                style={[styles.pixiContinueButton, !canContinue && styles.pixiContinueButtonDisabled]}
+              >
+                <Text style={styles.pixiContinueText}>{canContinue ? 'Tiếp tục' : 'Đang mở…'}</Text>
+                <Ionicons name="arrow-forward" size={18} color="#172033" />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.pixiCaptionOverlay} pointerEvents="none">
+              <Text style={styles.pixiCaptionText}>{caption}</Text>
+            </View>
+            <View style={styles.pixiTimelineBar}>
+              <TouchableOpacity disabled={playback.duration <= 0} accessibilityLabel="Tua lại 2 giây" onPress={() => { showChrome(); postControl('SEEK_RELATIVE_SECONDS', -2); }} style={styles.pixiControlButton}>
+                <Ionicons name="play-back" size={22} color="#FFFFFF" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                disabled={playback.duration <= 0}
+                accessibilityLabel={playback.state === 'PLAYING' ? 'Tạm dừng' : 'Phát'}
+                onPress={() => { showChrome(); postControl(playback.state === 'PLAYING' ? 'PAUSE' : 'PLAY'); }}
+                style={[styles.pixiControlButton, styles.pixiPlayButton]}
+              >
+                <Ionicons name={playback.state === 'PLAYING' ? 'pause' : 'play'} size={26} color="#172033" />
+              </TouchableOpacity>
+              <TouchableOpacity disabled={playback.duration <= 0} accessibilityLabel="Tua tới 2 giây" onPress={() => { showChrome(); postControl('SEEK_RELATIVE_SECONDS', 2); }} style={styles.pixiControlButton}>
+                <Ionicons name="play-forward" size={22} color="#FFFFFF" />
+              </TouchableOpacity>
+              <View style={styles.pixiProgressTrack}>
+                <View style={[styles.pixiProgressFill, { width: `${playback.duration > 0 ? Math.min(100, playback.position / playback.duration * 100) : 0}%` }]} />
+              </View>
+              <Text style={styles.pixiTimeText}>{playback.duration > 0 ? `${formatPlaybackTime(playback.position)} / ${formatPlaybackTime(playback.duration)}` : 'Đang mở…'}</Text>
+              <TouchableOpacity disabled={playback.duration <= 0} accessibilityLabel="Xem lại từ đầu" onPress={() => { showChrome(); postControl('REPLAY'); }} style={styles.pixiControlButton}>
+                <Ionicons name="refresh" size={22} color="#FFFFFF" />
+              </TouchableOpacity>
+              {rendererFailed && (
+                <TouchableOpacity accessibilityLabel="Thử mở lại" onPress={retry} style={styles.pixiRetryButton}>
+                  <Text style={styles.pixiContinueText}>Thử lại</Text>
                 </TouchableOpacity>
-              );
-            })}
+              )}
+            </View>
           </View>
-          {discoveredLabel && <Text style={styles.pixiDiscoveredText}>✨ {discoveredLabel}</Text>}
-        </View>
-        <View style={styles.pixiCaptionOverlay} pointerEvents="none">
-          <Text style={styles.pixiCaptionText}>{caption}</Text>
-        </View>
-      </View>
-
-      <View style={styles.pixiTimelineBar}>
-        <TouchableOpacity accessibilityLabel="Tua lại 2 giây" onPress={() => postControl('SEEK_RELATIVE_SECONDS', -2)} style={styles.pixiControlButton}>
-          <Ionicons name="play-back" size={22} color="#FFFFFF" />
-        </TouchableOpacity>
-        <TouchableOpacity
-          accessibilityLabel={playback.state === 'PLAYING' ? 'Tạm dừng' : 'Phát'}
-          onPress={() => postControl(playback.state === 'PLAYING' ? 'PAUSE' : 'PLAY')}
-          style={[styles.pixiControlButton, styles.pixiPlayButton]}
-        >
-          <Ionicons name={playback.state === 'PLAYING' ? 'pause' : 'play'} size={26} color="#172033" />
-        </TouchableOpacity>
-        <TouchableOpacity accessibilityLabel="Tua tới 2 giây" onPress={() => postControl('SEEK_RELATIVE_SECONDS', 2)} style={styles.pixiControlButton}>
-          <Ionicons name="play-forward" size={22} color="#FFFFFF" />
-        </TouchableOpacity>
-        <View style={styles.pixiProgressTrack}>
-          <View style={[styles.pixiProgressFill, { width: `${playback.duration > 0 ? Math.min(100, playback.position / playback.duration * 100) : 0}%` }]} />
-        </View>
-        <Text style={styles.pixiTimeText}>{formatPlaybackTime(playback.position)} / {formatPlaybackTime(playback.duration)}</Text>
-        <TouchableOpacity accessibilityLabel="Xem lại từ đầu" onPress={() => postControl('REPLAY')} style={styles.pixiControlButton}>
-          <Ionicons name="refresh" size={22} color="#FFFFFF" />
-        </TouchableOpacity>
-        {rendererFailed && (
-          <TouchableOpacity accessibilityLabel="Thử mở lại" onPress={retry} style={styles.pixiRetryButton}>
-            <Text style={styles.pixiContinueText}>Thử lại</Text>
-          </TouchableOpacity>
+        )}
+        {!chromeVisible && discoveredLabel && (
+          <View style={styles.pixiDiscoveredToast} pointerEvents="none">
+            <Text style={styles.pixiDiscoveredText}>✨ {discoveredLabel}</Text>
+          </View>
         )}
       </View>
     </View>
@@ -1703,7 +1785,8 @@ const styles = StyleSheet.create({
   },
   evidenceChip: { backgroundColor: '#E0F2FE', borderRadius: 14, paddingHorizontal: 10, paddingVertical: 6 },
   evidenceChipText: { color: '#075985', fontSize: 12, fontWeight: '700' },
-  pixiIntroScreen: { flex: 1, backgroundColor: '#10162A', padding: 12, gap: 10 },
+  pixiIntroScreen: { flex: 1, backgroundColor: '#10162A' },
+  pixiChromeLayer: { ...StyleSheet.absoluteFillObject, zIndex: 3, justifyContent: 'space-between', padding: 12 },
   pixiIntroHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 54 },
   pixiIntroTitle: { color: '#FFFFFF', fontSize: 20, fontWeight: '900' },
   pixiIntroStatus: { color: '#BFDBFE', fontSize: 12, marginTop: 2 },
@@ -1711,10 +1794,10 @@ const styles = StyleSheet.create({
     minHeight: 46, paddingHorizontal: 16, borderRadius: 23, backgroundColor: '#FDE68A',
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
   },
+  pixiContinueButtonDisabled: { opacity: 0.62 },
   pixiContinueText: { color: '#172033', fontSize: 14, fontWeight: '900' },
   pixiIntroStage: {
-    flex: 1, borderRadius: 20, overflow: 'hidden', backgroundColor: '#FFFEF9',
-    borderWidth: 2, borderColor: '#60A5FA', position: 'relative',
+    flex: 1, overflow: 'hidden', backgroundColor: '#FFFEF9', position: 'relative',
   },
   pixiIntroWebView: { flex: 1, backgroundColor: '#FFFEF9' },
   pixiIntroFallback: { width: '100%', flex: 1, backgroundColor: '#FFFEF9' },
@@ -1736,6 +1819,7 @@ const styles = StyleSheet.create({
     marginTop: 6, color: '#047857', backgroundColor: 'rgba(236,253,245,0.95)',
     paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, fontSize: 12, fontWeight: '800',
   },
+  pixiDiscoveredToast: { position: 'absolute', top: 18, left: 0, right: 0, alignItems: 'center', zIndex: 2 },
   pixiCaptionOverlay: {
     position: 'absolute', left: 20, right: 20, bottom: 16, alignItems: 'center',
   },
@@ -1743,7 +1827,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF', backgroundColor: 'rgba(15,23,42,0.82)', paddingHorizontal: 18,
     paddingVertical: 10, borderRadius: 16, fontSize: 17, fontWeight: '800', textAlign: 'center',
   },
-  pixiTimelineBar: { minHeight: 58, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  pixiTimelineBar: { minHeight: 58, flexDirection: 'row', alignItems: 'center', gap: 10, paddingBottom: 4 },
   pixiControlButton: {
     width: 48, height: 48, borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.14)',
     alignItems: 'center', justifyContent: 'center',

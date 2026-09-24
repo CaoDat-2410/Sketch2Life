@@ -1,10 +1,10 @@
 # SRS tổng thể Sketch2Life
 
 - Mã tài liệu: S2L-SRS-MASTER
-- Phiên bản: 1.4
+- Phiên bản: 1.6
 - Ngôn ngữ: Tiếng Việt
 - Ngày lập: 2026-09-23
-- Trạng thái: Baseline mục tiêu đã được owner chốt; v1.4 bổ sung ranh giới PixiJS/whiteboard video và các chi tiết pháp lý, vận hành, physical deployment còn được đánh dấu TBD
+- Trạng thái: Baseline mục tiêu đã được owner chốt; v1.6 bổ sung implementation-grade detail cho test architecture, APIs, roles, UI surfaces, monitoring, rate-limit, fixtures và verification
 - Căn cứ: tài liệu/mã nguồn repository hiện tại, Phieu_FA26SE225.docx, câu trả lời owner và hai ảnh workflow đã cung cấp
 - Loại tài liệu: SRS cho sản phẩm mục tiêu, có chú thích riêng về mức độ hiện thực hóa
 
@@ -41,6 +41,7 @@
 - [B26. Retention, archive, deletion và legal constraints](#b26-retention-archive-deletion-và-legal-constraints)
 - [B27. API/event contract baseline](#b27-apievent-contract-baseline)
 - [B28. Verification, acceptance và remaining TBD](#b28-verification-acceptance-và-remaining-tbd)
+- [Annex A. Implementation-grade test SRS annex](#annex-a-implementation-grade-test-srs-annex)
 - [B29. Source and legal reference register](#b29-source-and-legal-reference-register)
 
 
@@ -64,7 +65,7 @@ B20–B28 là phần owner-approved scope closure và **ghi đè các dòng OPEN
 - Một `Owner Caregiver` (cha/mẹ hoặc người giám hộ) sở hữu chính xác một ChildProfile; một Owner Caregiver có thể tạo nhiều ChildProfile.
 - Một ChildProfile có thể có nhiều Guide; Guide được cấp quyền trong toàn bộ thời gian assignment/share còn hiệu lực.
 - ChildProfile không có tài khoản đăng nhập riêng; mỗi session có đúng một adult operator.
-- Parent Web là surface Phase 2 theo cùng backend authorization; MVP không bị mở rộng ngầm bởi quyết định này.
+- Parent Web là surface bắt buộc của target vận hành, dùng cùng backend authorization; cách chia thứ tự implementation không làm giảm scope yêu cầu.
 - Guide session bị Parent revoke thì dừng ngay, hiển thị thông báo trên màn hình và gửi notification cho các bên liên quan.
 - Parent được xem live toàn bộ thông tin cần thiết của Guide session, nhưng UI phải áp dụng data minimization, không hiển thị toàn bộ metadata thô.
 - Parent Web dùng để quản lý, theo dõi, cập nhật thông tin trẻ và gửi feedback; không tự động được coi là client mở session.
@@ -72,6 +73,29 @@ B20–B28 là phần owner-approved scope closure và **ghi đè các dòng OPEN
 - Dữ liệu hết hạn được chuyển sang trạng thái archive hạn chế quyền xem trước khi purge theo deletion policy; archive không được hiển thị cho Parent/Guide.
 - Assignment chồng thời gian giữa nhiều Guide được phép; mỗi Guide chỉ chạy một session tại một thời điểm.
 - Notification dùng kết hợp nhiều kênh, nhưng exact channel matrix và retry policy vẫn là `OPEN_TBD`.
+
+### 0.1.b. Owner clarification ngày 2026-09-23 — architecture và vận hành
+
+- Kiến trúc test được chốt là FastAPI/Python modular monolith, PostgreSQL, Redis/RQ,
+  MinIO local, React Native Android, Guide Console React/TypeScript cho desktop và Parent Web
+  responsive cho desktop/mobile browser. API dùng REST/OpenAPI và bounded HTTP polling cho job.
+- Môi trường hiện tại là test/demo. Chưa mở scope kết nối Lightning, stress test AI, cloud
+  deployment hoặc production release. AI/media dùng fixture, fake adapter hoặc local test worker.
+- Đăng nhập test dùng Firebase Authentication project thật do owner quản lý; backend phải verify
+  Firebase ID token. Runtime secrets/config phải ở local secret store hoặc environment ngoài repo;
+  không commit token, service-account JSON, refresh token hoặc credential.
+- Chỉ có adult roles `PARENT`, `GUIDE`, `ADMIN`; một account chỉ có một adult role. Không có
+  `CHILD` role hoặc child credential. Trẻ vẫn là participant trong supervised session.
+- Parent Web và Guide Console đều thuộc target vận hành, không gắn nhãn Phase 2. Guide Console
+  ưu tiên desktop browser; Parent Web phải usable trên mobile browser. UI ưu tiên tiếng Việt.
+- Parent live monitoring chỉ hiển thị child/guide alias cần thiết, phase, status, progress và
+  thời điểm cập nhật. Không hiển thị lỗi kỹ thuật, prompt, provider detail, trace/job payload
+  hoặc raw child content.
+- Backend monitoring là yêu cầu bắt buộc: health, latency, errors, queue/job, database/storage,
+  session active/stuck/failed/revoked, assignment/notification, security và data lifecycle.
+  Business event/audit là nguồn sự thật; telemetry phải redacted.
+- Rate limit, idempotency, retry budget và concurrency guard là yêu cầu bắt buộc trong test;
+  không được bỏ qua chỉ vì chưa kết nối provider thật.
 
 ### 0.2 Nhãn trạng thái yêu cầu và evidence
 
@@ -130,6 +154,46 @@ phải bằng chứng runtime đã triển khai:
 
 Bảng đối chiếu chi tiết được lưu tại
 `features/FEAT-029-master-srs/evidence/notes/WHITEBOARD_VIDEO_SCOPE_UPDATE_20260923.md`.
+
+### 0.6 Change log v1.5 — architecture test, adult-only roles và full operational scope
+
+Owner responses ngày 2026-09-23 khóa thêm các yêu cầu sau:
+
+- Chốt FastAPI/Python modular monolith, PostgreSQL, Redis/RQ, MinIO local, React Native Android,
+  Guide Console React/TypeScript desktop và Parent Web responsive mobile/desktop; REST/OpenAPI
+  và bounded polling là baseline test.
+- Dùng Firebase Authentication project thật trong test; token/credential chỉ nằm ở runtime secret
+  và backend luôn verify ID token. Lightning, AI stress test và production deployment chưa thuộc
+  scope hiện tại.
+- Chỉ giữ adult roles Parent/Guide/Admin, mutually exclusive; bỏ hoàn toàn child role/credential.
+- Parent Web là scope bắt buộc của toàn bộ SRS vận hành, không gọi là Phase 2. Guide Console cũng
+  là scope bắt buộc; UI ưu tiên tiếng Việt.
+- Parent chỉ thấy phase, status, progress và thời điểm cập nhật trong live monitoring. Backend
+  phải có monitoring redacted cho health, errors, latency, jobs, sessions, assignment/notification,
+  security và data lifecycle.
+- Rate limiting, retry budget, idempotency và concurrency guard là requirements bắt buộc kể cả khi
+  AI mới chạy bằng fixture/fake adapter.
+
+Bản ghi owner decision chi tiết nằm tại
+`features/FEAT-029-master-srs/evidence/notes/OWNER_REQUIREMENTS_CLOSURE_20260923.md`.
+
+### 0.7 Change log v1.6 — implementation-grade detail expansion
+
+Không có owner decision mới được tự suy ra trong v1.6. Bản cập nhật này phân rã các quyết định
+đã chốt ở v1.5 thành các chi tiết có thể dùng để thiết kế và kiểm thử:
+
+- local test topology và boundary của từng service/adapter;
+- bounded-context/backend module ownership;
+- adult role/resource action matrix;
+- state transition và terminal/recovery rules;
+- API envelope, header, pagination, status/error behavior;
+- Parent Web, Guide Console và mobile screen requirements;
+- backend monitoring signals, dashboards, redaction và operational evidence;
+- rate-limit/retry/idempotency test cases;
+- synthetic persona/fixture strategy và implementation completion gate.
+
+Các chi tiết numeric production, provider execution, cloud deployment và các quyết định vẫn mở ở
+B28 không bị chuyển thành acceptance gate chỉ vì được mô tả chi tiết hơn.
 
 
 ## B1. Giới thiệu và mục tiêu tài liệu
@@ -231,7 +295,7 @@ Không dùng fixture, local adapter hoặc demo metadata để tuyên bố produ
 
 | User class | Có credential? | Mức tin cậy | Boundary |
 |---|---:|---|---|
-| Child supervised mode | Không | Người dùng được giám sát | Không cấp quyền domain; mọi action qua session của adult. |
+| Child participant | Không | Participant được adult giám sát | Không phải role hoặc principal; mọi action qua session của adult. |
 | Parent | Có | Adult đã xác thực và có guardian link | Chỉ children được liên kết; không tự mở class scope. |
 | Guide | Có | Adult đã xác thực và có active GuideAssignment | Assignment do Parent/Admin cấp; không tự xem ngoài scope. |
 | Admin | Có | Adult có top-level role | Có quyền quản trị và raw support access theo owner; mọi action cần server enforcement/audit. |
@@ -242,10 +306,11 @@ Không dùng fixture, local adapter hoặc demo metadata để tuyên bố produ
 
 | Thành phần | Mục tiêu hiện tại | Chưa chốt |
 |---|---|---|
-| Parent/Child app | Android theo repository architecture; child mode supervised. | Android version/device matrix, tablet support, localization, accessibility. |
-| Guide Console | Deliverable trong phiếu. | Web/mobile platform, browser matrix, deployment target. |
-| Backend | HTTPS API, domain/application inward, adapter/provider boundary. | Production topology, regions, scale, SLO/RPO/RTO. |
-| Authentication | Firebase Authentication, Google Sign-In/email-password adult identity. | Invitation, verification, recovery, MFA/reauth, Admin provisioning. |
+| Mobile app | Android theo repository architecture; child là participant trong supervised mode, không có child role. | Android version/device matrix, tablet support, accessibility chi tiết. |
+| Guide Console | React/TypeScript web console, ưu tiên desktop browser. | Exact browser version matrix và deployment target. |
+| Parent Web | React/TypeScript responsive web, phải usable trên mobile browser và desktop browser. | Exact browser version matrix và deployment target. |
+| Backend | FastAPI/Python modular monolith, HTTPS REST/OpenAPI, domain/application inward, adapter/provider boundary. | Production topology, regions, scale, SLO/RPO/RTO. |
+| Authentication | Firebase Authentication project thật cho test; Google Sign-In/email-password adult identity; backend verify ID token. | Invitation, verification, recovery, MFA/reauth, Admin provisioning. |
 | Data storage | Backend-owned PostgreSQL/S3-compatible/queue boundary theo architecture; không dùng Firebase Storage/Firestore/Realtime Database. | Physical schema, migrations, backup and disaster recovery. |
 | AI/media | Backend-only adapters; VLM hiện tại, SAM 2.1 Hiera Small cho segmentation mục tiêu, contour/stroke engine, TTS và FFmpeg/NVENC cho whiteboard video. Lightning fixture/dev và Runpod target sau gate theo ADR. | Provider approval, model versions, data processing/retention, worker/GPU scheduling. |
 | Renderer | PixiJS/GSAP boundary với original source; whiteboard MP4 là media implementation độc lập, không thay Pixi. | Production WebView/native lifecycle, video job/encoding protocol. |
@@ -277,7 +342,7 @@ Không dùng fixture, local adapter hoặc demo metadata để tuyên bố produ
 - Không coi Admin là được miễn consent, audit hoặc retention.
 - Không coi Parent notification là Parent consent/approval; Parent có quyền revoke assignment đã được chốt.
 - Không coi logical schema trong B14 là canonical runtime schema.
-- Không tự mở rộng Parent Web vào MVP; PixiJS exploration, narrated story và whiteboard micro-video là MVP target theo owner closure, Parent Web là Phase 2.
+- Parent Web là surface bắt buộc của target vận hành; PixiJS exploration, narrated story và whiteboard micro-video cũng là target bắt buộc theo owner closure.
 - Không coi research sample, threshold, ethics, dataset release hoặc production SLO là đã được phê duyệt.
 
 ## B3. Bối cảnh hệ thống và interface bên ngoài
@@ -340,10 +405,11 @@ Mọi mutation interface logical phải mang các field sau, trừ endpoint auth
 
 | Hệ thống | Vai trò và ranh giới |
 |---|---|
-| Ứng dụng Parent/Child | Ứng dụng mobile Android theo kiến trúc hiện tại; trẻ dùng supervised mode, người lớn đăng nhập. Xử lý capture/quyền thiết bị, review, playback, activity handoff và gọi backend; không quyết định business rules hay authorization. Parent Web là surface Phase 2 dùng cùng backend policy. Offline local behavior còn TBD. |
-| Guide Console | Deliverable có trong phiếu, gồm curriculum management, mapping review, observation records, recommendation override, template curation và assigned-child sessions. Nền tảng web/mobile cụ thể còn OPEN_TBD; authorization dùng cùng backend policy. |
+| Ứng dụng mobile | Ứng dụng mobile Android theo kiến trúc hiện tại; trẻ dùng supervised mode, người lớn đăng nhập. Xử lý capture/quyền thiết bị, review, playback, activity handoff và gọi backend; không quyết định business rules hay authorization. |
+| Parent Web | Web responsive cho Parent, phải hỗ trợ mobile browser và desktop browser; dùng cùng domain/application API và backend policy với mobile. Không có permission model riêng. |
+| Guide Console | Web console desktop cho Guide, gồm curriculum management, mapping review, observation records, recommendation override, template curation và assigned-child sessions. Authorization dùng cùng backend policy. |
 | Sketch2Life backend | Nguồn thẩm quyền cho session ID/version, authentication verification, authorization, ràng buộc an toàn/Montessori, validate contract, artifact refs và job status. |
-| Provider xác thực | Firebase Authentication; owner xác nhận giữ hướng auth hiện tại cho Parent, Guide và Admin. Repo ghi Google Sign-In và email/password cho người lớn; backend verify ID token và tự quyết định authorization. Cấm Firebase Storage, Firestore và Realtime Database. Chi tiết provisioning/lifecycle vẫn TBD. |
+| Provider xác thực | Firebase Authentication project thật cho môi trường test; Parent, Guide và Admin là adult identities dùng Google Sign-In/email/password. Backend verify ID token và tự quyết định authorization. Cấm Firebase Storage, Firestore và Realtime Database. Chi tiết provisioning/lifecycle vẫn TBD. |
 | Adapter AI/model | Port/adapter backend-only, trung lập provider cho ASR, VLM/fusion và phần tạo learning-media nếu được duyệt riêng. Model chỉ đề xuất meaning/content, không duyệt safety, eligibility hay human gate. |
 | Artifact/object storage | Ranh giới S3-compatible do backend sở hữu cho artifact gốc/derived. Mobile không nhận bucket credentials và không gọi S3 trực tiếp. |
 | PixiJS/GSAP renderer | Renderer xác định, chạy kế hoạch Personalized Drawing Exploration đã validate trên tranh gốc và asset được duyệt; không thay thế tranh gốc và không sinh whiteboard MP4. |
@@ -353,10 +419,10 @@ Mọi mutation interface logical phải mang các field sau, trừ endpoint auth
 
 #### Authentication (AuthN)
 
-- Owner xác nhận giữ cách xác thực hiện tại trong repository. Theo docs/security/AUTHENTICATION.md, Parent/Guide là adult identity dùng Firebase Authentication; phương thức khởi đầu là Google Sign-In và email/password. Firebase chứng minh danh tính, không quyết định role hoặc quyền truy cập.
+- Owner xác nhận dùng Firebase Authentication project thật cho môi trường test. Parent/Guide/Admin là adult identities dùng Google Sign-In và email/password. Firebase chứng minh danh tính, không quyết định role hoặc quyền truy cập.
 - Backend xác minh ID token qua verifier port/adapter trước use case. Source security yêu cầu kiểm tra signature, kid, issuer, audience/project ID, expiry, issued-at, subject và auth time; kiểm tra revocation với thao tác nhạy cảm và sau đổi account/role.
 - Không tin role, uid, guardian relationship, classroom membership hoặc navigation mode do mobile gửi lên. Map verified principal sang internal adult ID, role assignment và các relationship record phía server.
-- Chỉ người lớn xác thực. Child mode chạy bên trong session do Parent/Guide có quyền mở và không tạo/stored credential riêng cho trẻ.
+- Chỉ người lớn xác thực. Child mode chạy bên trong session do Parent/Guide có quyền mở và không tạo/stored credential hoặc role riêng cho trẻ.
 - Cấm lưu token rõ trong log hoặc AsyncStorage; Firebase Storage, Firestore, Realtime Database và Firebase-hosted product state bị cấm theo repository security boundary.
 - Provider exception trả lỗi generic 401/403, không lộ token hoặc nội dung provider. Role changes và relationship revocation phải có hiệu lực ở backend; chi tiết account lifecycle/UX còn OPEN_TBD.
 
@@ -366,10 +432,10 @@ Authorization do backend/domain/application policy thực thi ở mỗi resource
 
 | Actor/role | Scope được owner xác nhận hoặc ghi trong phiếu | Actions thuộc scope | Giới hạn còn cần chốt |
 |---|---|---|---|
-| Child supervised mode | Không có authenticated principal độc lập; chỉ session hiện tại do adult mở. | Vẽ/kể, xem story/animation/media được duyệt, tham gia activity. | Không đổi account, profile, consent, role, retention hoặc admin settings. PIN/parent gate cho exit/setup còn TBD. |
-| Parent/Owner Caregiver | ChildProfile có `owner_adult_id` trỏ tới adult này. | Profile/consent, session capture, Gate A/B, recommendation/activity, feedback/history/screen time, Guide assignment/revoke, retention/deletion. | Không chuyển ownership qua Guide; legal guardian verification và account lifecycle còn TBD. |
-| Guide | ChildProfile có GuideAssignment active trỏ tới adult này. | Session participation, assigned-child observation/history, KB/mapping/override/templates theo permission profile. | Assignment expiry/revoke chặn access; raw/history field-level visibility còn TBD. |
-| System Admin | Owner xác nhận là role cao nhất hệ thống. | Account/role/assignment, model/safety/screen-time config, retention/consent/deletion, jobs/model/platform health và break-glass raw access. | Break-glass reason/notice/time-window/dual approval/provisioning chi tiết được khóa ở B25/B26. |
+| Child participant | Không có authenticated principal độc lập; chỉ session hiện tại do adult mở. | Vẽ/kể, xem story/animation/media được duyệt, tham gia activity. | Không phải role; không đổi account, profile, consent, retention hoặc admin settings. |
+| Parent/Owner Caregiver | Adult account có role `PARENT`; ChildProfile có `owner_adult_id` trỏ tới adult này. | Profile/consent, session capture, Gate A/B, recommendation/activity, feedback/history/screen time, Guide assignment/revoke, retention/deletion. | Không chuyển ownership qua Guide; legal guardian verification và account lifecycle còn TBD. |
+| Guide | Adult account có role `GUIDE`, ChildProfile có GuideAssignment active trỏ tới adult này. | Session participation, assigned-child observation/history, KB/mapping/override/templates theo permission profile. | Assignment expiry/revoke chặn access; raw/history field-level visibility còn TBD. |
+| System Admin | Adult account có role `ADMIN`, là role cao nhất hệ thống. | Account/role/assignment, model/safety/screen-time config, retention/consent/deletion, jobs/model/platform health và break-glass raw access. | Break-glass reason/notice/time-window/dual approval/provisioning chi tiết được khóa ở B25/B26. |
 | AI/service identity | Operation/job và artifact được backend cấp cho một purpose/session cụ thể. | Chạy inference/selection/rendering theo allowlist, consent và approved contract. | Không thể xác nhận Gate A/B, đổi guardian relationship, publish KB hoặc cấp quyền; không được dùng quyền adult/admin. |
 
 **Ma trận authorization chi tiết theo resource**
@@ -401,7 +467,7 @@ Authorization do backend/domain/application policy thực thi ở mỗi resource
 
 ### B5.1 Mục đích
 
-Sketch2Life chuyển tranh và lời kể của trẻ thành trải nghiệm học tập cá nhân hóa có người lớn xem xét. Owner xác nhận workflow mục tiêu gồm hai lớp media nối tiếp: PixiJS `Personalized Drawing Exploration` và whiteboard learning video MP4. PixiJS giữ tap-to-discover/2.5D; video là implementation độc lập, được khởi tạo trong lúc Pixi đang phát, rồi mới bàn giao sang hoạt động Montessori ngoài màn hình. Dải tuổi mục tiêu là 0–12; narration của trẻ là input hiểu tranh riêng, còn TTS video là narration track độc lập dựa trên learning thread. Parent Web là Phase 2.
+Sketch2Life chuyển tranh và lời kể của trẻ thành trải nghiệm học tập cá nhân hóa có người lớn xem xét. Owner xác nhận workflow mục tiêu gồm hai lớp media nối tiếp: PixiJS `Personalized Drawing Exploration` và whiteboard learning video MP4. PixiJS giữ tap-to-discover/2.5D; video là implementation độc lập, được khởi tạo trong lúc Pixi đang phát, rồi mới bàn giao sang hoạt động Montessori ngoài màn hình. Dải tuổi mục tiêu là 0–12; narration của trẻ là input hiểu tranh riêng, còn TTS video là narration track độc lập dựa trên learning thread. Parent Web là surface bắt buộc trong target vận hành.
 
 ### B5.2 Luồng mục tiêu trong phạm vi SRS
 
@@ -500,12 +566,12 @@ flowchart TD
 | 3.2(c) Functional requirements | Child/adult, Parent/Guardian, Guide, AI engine, System Admin actors and capabilities. | B4.1, B4.3, B10. | Parent access is one-owner-per-child scoped; Guide access is active Parent/Admin assignment scoped; Admin highest role and raw child-content access are break-glass audited. |
 | 3.2(d) NFR | Off-screen orientation, original artwork ownership, misrecognition, content/activity safety, pedagogy, privacy, responsiveness, offline. | B6, B10, B11. | Preserve registered nonfunctional topics; measurable targets absent in form remain TBD. |
 | 3.2(e) Theory/practical | Montessori sequence, drawing development/sketch understanding, child speech, constrained recommendation, safety; KB, dataset annotation, guide validation and household study. | B12.7 research scope; evidence/source register. | Include as research context/plan; no performance result claimed. |
-| 3.2(f) Products | Mobile app, Guide Console, KB, understanding, Pixi exploration, whiteboard video, story, recommender, annotated dataset, evaluation report. | B5.6, FR-031 onward, B12.7, B21. | MVP target includes Pixi exploration, narrated story and whiteboard micro-video; current implementation status remains separate. Parent Web is Phase 2; research dataset/release remains TBD. |
+| 3.2(f) Products | Mobile app, Guide Console, Parent Web, KB, understanding, Pixi exploration, whiteboard video, story, recommender, annotated dataset, evaluation report. | B5.6, FR-031 onward, B12.7, B21. | Target includes Pixi exploration, narrated story, whiteboard micro-video, Guide Console và Parent Web; current implementation status remains separate. Research dataset/release remains TBD. |
 | 3.2(g) Work packages | WP1 domain/research, WP2 backend/recommender, WP3 AI/segmentation/whiteboard-video/story, WP4 mobile/Guide Console. | B12.7 project work-package trace. | Registered allocation recorded as project organization, not runtime authorization or proof of completed implementation. MP4 implementation is the next planned task. |
 | 3.3 Research | Two research questions, objectives, mixed methods, comparative baselines, household trial, contribution and related-work themes. | B12.7. | Preserve as intended study design from form. Owner says details are not yet clear; sample sizes, protocol, thresholds and approvals remain TBD. |
-| 4 Other comments | Minimum scope: KB, multimodal + adult confirmation, constrained recommender, activity delivery, Guide Console. Animation/story/dataset release are extended scope; secure guides/families early. | B5.6, B20.2 and B21. | Owner chose workflow target and approved animation/story/micro-video for MVP; Parent Web remains Phase 2; dataset release stays TBD. |
+| 4 Other comments | Required scope: KB, multimodal + adult confirmation, constrained recommender, activity delivery, Guide Console, Parent Web, animation/story/micro-video và vận hành backend. | B5.6, B20.2 and B21. | Owner chose full workflow and required Parent Web as part of the operational target; dataset release stays TBD. |
 
-**Scope distinction:** “Product target” means what the complete Sketch2Life experience is intended to do. “MVP/extended” means what the capstone must deliver by its deadline. Owner approved Pixi exploration, narrated story and whiteboard learning micro-video as MVP target scope. Pixi is processed/displayed first; whiteboard video generation starts concurrently and must be ready before the Parent continuation action. Parent Web is explicitly Phase 2. Research dataset release, exact deployment and production operations remain separate TBD gates.
+**Scope distinction:** “Product target” means what the complete Sketch2Life experience is intended to do. Implementation tasks may be sequenced, but the SRS does not remove required surfaces from scope. Owner approved Pixi exploration, narrated story, whiteboard learning micro-video, Guide Console and Parent Web as target scope. Pixi is processed/displayed first; whiteboard video generation starts concurrently and must be ready before the Parent continuation action. Research dataset release, exact deployment and production operations remain separate TBD gates.
 ## B6. Business rules
 
 | ID | Quy tắc | Điều kiện chấp nhận/kiểm tra | Trạng thái |
@@ -730,7 +796,7 @@ Các FR mô tả hành vi mục tiêu; mức trạng thái phản ánh bằng ch
 
 | ID | Yêu cầu | Điều kiện chấp nhận | Ưu tiên / trạng thái |
 |---|---|---|---|
-| FR-031 | Hệ thống phải xác thực adult Parent/Guide bằng phương thức được repository hiện tại hỗ trợ: Firebase Authentication với Google Sign-In và email/password. | Backend xác minh ID token; role/relationship lấy từ server-side records; Admin provider/provisioning còn phải xác nhận. | Must / OWNER_CONFIRMED current approach; Admin flow TBD |
+| FR-031 | Hệ thống phải xác thực adult Parent/Guide/Admin bằng Firebase Authentication với Google Sign-In và email/password. | Backend xác minh ID token thật trong test; role/relationship lấy từ server-side records; một account chỉ có một adult role; không có child role. | Must / OWNER_CONFIRMED test integration; Admin provisioning TBD |
 | FR-032 | Backend phải authorize từng request theo verified principal, role, child relationship, session và resource. | Client-supplied UID/role/guardian/class/mode không cấp quyền; access chéo child/session bị từ chối. | Must / ACCEPTED_ARCH + OWNER_CONFIRMED scope |
 | FR-033 | Parent/Guardian chỉ được truy cập children được liên kết với mình. | Cross-family access bị deny trừ relationship được backend xác minh. | Must / OWNER_CONFIRMED |
 | FR-034 | Guide operations phải hỗ trợ ChildProfile được Guide assign trực tiếp bởi Parent hoặc Admin exception. | Backend chỉ mở resource có active GuideAssignment; Parent-created assignment notify Guide, Admin-created assignment notify Parent+Guide; Parent revoke có hiệu lực ngay và dừng session. | Must target / OWNER_CONFIRMED; channel/retry details TBD |
@@ -759,6 +825,12 @@ Các FR mô tả hành vi mục tiêu; mức trạng thái phản ánh bằng ch
 | FR-057 | Hệ thống phải tạo narration track TTS độc lập cho whiteboard video từ learning thread. | Script/voice không lấy raw child narration làm voice track mặc định; nội dung phải khớp subject, relation và objective đã duyệt. | Must / OWNER_CONFIRMED target; TTS provider/voice TBD |
 | FR-058 | Hệ thống chỉ được báo Parent tiếp tục khi whiteboard video READY. | Pixi có thể hoàn thành trước và hiển thị loading; retryable failure hiện recovery/retry; không phát fake MP4 hoặc mở continue sớm. | Must / OWNER_CONFIRMED target; exhausted recovery TBD |
 | FR-059 | Hệ thống phải giữ whiteboard video là derived session-local artifact trong scope hiện tại. | MP4/mask/stroke/TTS refs có source hash/provenance/expiry; không claim auth ownership/durable save. | Must / OWNER_CONFIRMED; future persistence gate |
+| FR-060 | Hệ thống phải authenticate adult account bằng Firebase Authentication project thật trong môi trường test và backend phải verify ID token trước protected operation. | Token hợp lệ được map tới đúng một adult role `PARENT`, `GUIDE` hoặc `ADMIN`; token invalid/expired/revoked bị từ chối; không có `CHILD` role. | Must / OWNER_CONFIRMED; test integration |
+| FR-061 | Hệ thống phải hỗ trợ Parent Web responsive cho mobile browser và desktop browser. | Parent quản lý ChildProfile, Guide assignment, revoke, history, retention/deletion, feedback và xem live projection trong đúng owner scope. | Must / OWNER_CONFIRMED target |
+| FR-062 | Hệ thống phải hỗ trợ Guide Console web cho desktop browser. | Guide xem assigned children, mở session, thực hiện Gate A/B, xem recommendation, ghi observation/feedback và thao tác KB theo permission. | Must / OWNER_CONFIRMED target |
+| FR-063 | Hệ thống phải cung cấp Parent live monitoring tối giản. | Parent thấy phase, status, progress và thời điểm cập nhật; không trả technical error, prompt, provider detail, trace/job payload hoặc raw child content. | Must / OWNER_CONFIRMED target |
+| FR-064 | Hệ thống phải enforce rate limit, retry budget, idempotency và concurrency guard cho các command nhạy cảm. | Vượt giới hạn trả typed `RATE_LIMITED`; duplicate không nhân đôi mutation/job/event; mỗi Guide chỉ có một active session; retry bị giới hạn. | Must / OWNER_CONFIRMED test policy |
+| FR-065 | Hệ thống phải cung cấp backend operational monitoring. | Có redacted health, request/error/latency, queue/job, database/storage, session, assignment/notification, security và data-lifecycle signals; business/audit record vẫn là source of truth. | Must / OWNER_CONFIRMED target |
 
 ## B11. Ràng buộc và NFR
 
@@ -807,8 +879,19 @@ Các FR mô tả hành vi mục tiêu; mức trạng thái phản ánh bằng ch
 | NFR-036 | Video provenance | MP4, mask, crop, stroke/vector and TTS artifacts must preserve source hash, learning thread, ExperienceSpec, model/config and job lineage. | Artifact/provenance contract tests and redaction inspection. |
 | NFR-037 | Video readiness gate | Parent continue action must remain unavailable until the validated whiteboard MP4 is READY; retry must be explicit and idempotent. | State transition, UI and failure-injection tests; exhausted retry policy TBD. |
 | NFR-038 | TTS separation | TTS input/script/voice provenance must be independent of raw child narration; no raw child voice is copied into the generated track without a separately approved policy. | Contract/privacy review and artifact lineage test; voice policy TBD. |
+| NFR-039 | Test authentication | Test environment uses a real owner-controlled Firebase Authentication project; secrets are runtime-only and never committed. Backend verifies signature, issuer, audience, expiry, issued-at, subject and revocation according to the authentication guide. | Firebase integration test with controlled test accounts; repository secret scan. |
+| NFR-040 | Role model | Only adult roles `PARENT`, `GUIDE` and `ADMIN` exist; roles are mutually exclusive per account. Child remains a supervised participant and never receives a credential or role. | Auth/authorization negative tests and schema constraint. |
+| NFR-041 | Web compatibility | Guide Console is desktop-browser first. Parent Web is responsive and must be usable on mobile browser and desktop browser. | Browser/device walkthrough and responsive layout checks; exact browser versions TBD. |
+| NFR-042 | Localization | UI copy is Vietnamese-first across mobile, Guide Console and Parent Web. Additional locales may be added later without changing domain contracts. | Copy review and locale smoke test. |
+| NFR-043 | Parent monitoring privacy | Parent live projection contains only phase, status, progress and update timestamps plus minimum necessary aliases/status; technical errors and internal metadata are excluded. | Projection contract and redaction tests. |
+| NFR-044 | Rate limiting and abuse control | Test API enforces request, upload, retry, concurrency and active-session limits; limits are configuration-driven and return typed errors. | Deterministic rate-limit, retry-budget, idempotency and one-session-per-Guide tests. |
+| NFR-045 | Backend observability | Backend emits redacted structured logs, metrics and durable business/security audit records for health, errors, latency, jobs, sessions, assignments, notifications, security and data lifecycle. | Local test observability checks, redaction scan and audit replay. |
+| NFR-046 | Test-stage scope | AI-provider latency/quality stress testing, Lightning connectivity and production availability/capacity are outside this implementation stage. Fixture/fake adapters must still exercise success, timeout, malformed, retry, rate-limit and failure paths. | Fixture fault-injection suite; no provider call required. |
 
-Các con số chưa được owner xác nhận (availability, latency, payload size, RPO/RTO, số user đồng thời, supported OS, deletion SLA) không được bịa thêm trong SRS. Đặt chúng sau khi đo hoặc qua quyết định/ADR được chấp thuận.
+Các con số production chưa được owner xác nhận (availability, latency SLO, payload size, RPO/RTO,
+số user đồng thời, supported OS, deletion SLA) không được bịa thêm trong SRS. Ở test stage,
+chấp nhận theo hành vi, contract, fault-injection và usability thông thường; AI/provider stress
+test chưa thuộc task này.
 
 ## B12. Contract, truy vết và review
 
@@ -960,7 +1043,7 @@ Tiểu mục này ghi lại câu hỏi nghiên cứu, mục tiêu, phương phá
 
 | Sản phẩm | Cách thể hiện trong SRS |
 |---|---|
-| Ứng dụng Parent và Child | Sản phẩm MVP; kiến trúc repository hướng Android. Parent Web là surface Phase 2 dùng cùng backend policy. |
+| Ứng dụng Parent và supervised child | Sản phẩm target; kiến trúc repository hướng Android. Child là participant, không phải role. Parent Web là responsive surface bắt buộc dùng cùng backend policy. |
 | Montessori Guide Console | Sản phẩm trong phiếu và nằm trong MVP; nền tảng cụ thể còn OPEN_TBD, permission dùng direct GuideAssignment. |
 | Montessori Curriculum Knowledge Base | Nguồn dữ liệu domain cần có; qualification, quy trình review/publish và mức sẵn sàng production là các gate riêng. |
 | Multimodal Drawing Understanding Engine | Năng lực mục tiêu; phải giữ thứ tự ưu tiên nguồn và thể hiện không chắc chắn; provider, ngưỡng và privacy policy còn mở. |
@@ -1551,7 +1634,7 @@ Các câu dưới đây là phần còn cần owner trả lời; không được
 
 | ID | Câu hỏi khóa schema/relationship | Vì sao ảnh hưởng hệ thống |
 |---|---|---|
-| SCHEMA-Q-001 | MVP strategy cho animation, narrated story và micro-video? | Đã trả lời: cả ba là MVP target; Parent Web Phase 2; nghiên cứu/dataset release TBD. Superseded by B20. |
+| SCHEMA-Q-001 | Scope strategy cho animation, narrated story, micro-video và Parent Web? | Đã trả lời: các media và Parent Web đều thuộc target vận hành; nghiên cứu/dataset release TBD. Superseded by B20. |
 | SCHEMA-Q-002 | Parent notification khi Guide được assign có phải approval/consent không? | Đã trả lời: notification không phải approval; Parent có quyền revoke. Superseded by B22/B23. |
 | SCHEMA-Q-003 | Parent petition có tạm dừng Guide access không? | Đã trả lời: Parent có thể revoke ngay; petition là kênh bổ sung, không thay thế revoke. Resolution/SLA vẫn TBD. |
 | SCHEMA-Q-004 | Guide trong thời gian share có quyền Gate A/B, raw media, feedback và history đến mức nào? | Đã trả lời: quyền Parent-like trong toàn thời gian share; field-level raw/history policy vẫn TBD. |
@@ -1579,7 +1662,7 @@ Các câu dưới đây là phần còn cần owner trả lời; không được
 | Relationship/schema/API logical additions in B13–B16 | OWNER_APPROVED_TARGET_BASELINE; still not runtime migration |
 | Retention/archive for all child/session data classes | OWNER_CONFIRMED; legal exceptions, backup/provider copies and purge proof TBD |
 | Research protocol and thresholds | OPEN_TBD |
-| MVP/extended classification | OWNER_CONFIRMED for Pixi exploration, narrated story và whiteboard micro-video; Parent Web Phase 2; research release TBD |
+| Target scope classification | OWNER_CONFIRMED for Pixi exploration, narrated story, whiteboard micro-video, Guide Console và Parent Web; research release TBD |
 | Production implementation readiness | Not claimed |
 
 ## B20. Owner-approved scope closure
@@ -1599,33 +1682,38 @@ Các câu dưới đây là phần còn cần owner trả lời; không được
 | OC-009 | Parent theo dõi cả thời điểm bắt đầu và kết thúc session; sau session có thể feedback. | OWNER_CONFIRMED |
 | OC-010 | Parent revoke trong khi Guide session đang chạy làm session dừng ngay và UI hiển thị thông báo. | OWNER_CONFIRMED |
 | OC-011 | Parent xem toàn bộ thông tin cần thiết trong live view, nhưng UI phải loại bỏ metadata thô không cần thiết. | OWNER_CONFIRMED |
-| OC-012 | Parent Web là surface Phase 2; dùng chung backend authorization; tập trung quản lý, theo dõi và cập nhật thông tin trẻ. | OWNER_CONFIRMED |
+| OC-012 | Parent Web là surface bắt buộc của target vận hành; dùng chung backend authorization; tập trung quản lý, theo dõi và cập nhật thông tin trẻ. | OWNER_CONFIRMED |
 | OC-013 | Mỗi Guide chỉ được chạy một session tại một thời điểm. | OWNER_CONFIRMED |
 | OC-014 | Retention 30/60/90 ngày áp dụng cho toàn bộ data classes của child/session; dữ liệu hết hạn chuyển sang archive hạn chế quyền xem, sau đó purge theo policy. | OWNER_CONFIRMED; exact lifecycle in B26 |
 | OC-015 | Audit log tách khỏi retention của dữ liệu trẻ và có nguyên tắc lưu riêng. | OWNER_CONFIRMED |
 | OC-016 | Notification dùng kết hợp nhiều kênh. | OWNER_CONFIRMED; channel matrix TBD |
 | OC-017 | Admin chỉ xem raw child data qua break-glass access, phải có lý do và audit. | OWNER_CONFIRMED; safeguards in B25/B26 |
 
-### B20.2 Phân loại MVP và Phase 2
+### B20.2 Phạm vi target và thứ tự implementation
 
-| Surface/capability | MVP | Phase 2 | Ghi chú |
-|---|---:|---:|---|
-| Adult authentication | Có | — | Firebase Authentication theo repository |
-| ChildProfile | Có | — | Không có child login |
-| Drawing/narration capture | Có | — | Narration được edit/re-record |
-| Human Gate A/B | Có | — | Parent/Guide theo permission |
-| Recommendation | Có | — | Montessori constraints |
-| PixiJS Personalized Drawing Exploration | Có | — | Tap-to-discover + 2.5D source-derived layers, giữ nét gốc của trẻ |
-| Narrated story | Có | — | Reality-grounded |
-| Whiteboard learning micro-video | Có | — | 5–10 giây; MP4 generation là implementation task kế tiếp, TTS độc lập từ learning thread |
-| Off-screen activity | Có | — | Không tính vào digital timer |
-| Guide Console | Có | — | Assignment, session, observation, KB theo scope |
-| Parent mobile live monitoring | Có | — | Read-only trong Guide session |
-| Guide assignment/revoke | Có | — | 3/7/15/30 ngày |
-| Audit/business event log | Có | — | Bắt buộc cho sensitive actions |
-| Grafana observability | Có ở mức vận hành | Mở rộng dashboard | Không phải end-user UI |
-| Parent Web | Không | Có | Thiết kế API từ MVP, triển khai Phase 2 |
-| Advanced research export | Chưa cam kết | TBD | Cần protocol/consent riêng |
+Mọi surface dưới đây đều thuộc SRS tổng cho quá trình vận hành. Việc triển khai có thể được
+chia task theo thứ tự, nhưng không được gắn nhãn Phase 2 để loại Parent Web, monitoring hoặc
+Guide Console khỏi yêu cầu đích.
+
+| Surface/capability | Target scope | Ghi chú |
+|---|---|---|
+| Adult authentication | Bắt buộc | Firebase Authentication thật trong test; backend verify token |
+| Child participant | Bắt buộc | Không có child login hoặc child role |
+| ChildProfile | Bắt buộc | Một Owner Caregiver; một owner có nhiều profile |
+| Drawing/narration capture | Bắt buộc | Narration được edit/re-record |
+| Human Gate A/B | Bắt buộc | Parent/Guide theo permission |
+| Recommendation | Bắt buộc | Montessori constraints |
+| PixiJS Personalized Drawing Exploration | Bắt buộc | Tap-to-discover + 2.5D source-derived layers |
+| Narrated story | Bắt buộc | Reality-grounded |
+| Whiteboard learning micro-video | Bắt buộc | 5–10 giây; MP4/TTS implementation là task kế tiếp |
+| Off-screen activity | Bắt buộc | Không tính vào digital timer |
+| Guide Console | Bắt buộc | Desktop web: assignment, session, observation, KB theo scope |
+| Parent Web | Bắt buộc | Responsive web: child, assignment, monitoring, history, privacy, feedback |
+| Parent live monitoring | Bắt buộc | Chỉ phase, status, progress và thời điểm cập nhật; không hiển thị technical detail |
+| Guide assignment/revoke | Bắt buộc | 3/7/15/30 ngày, revoke ngay |
+| Audit/business event log | Bắt buộc | Sensitive actions và workflow events |
+| Backend operational monitoring | Bắt buộc | Health, errors, jobs, sessions, security, notification, data lifecycle |
+| Research export | Tách policy | Chỉ khi có consent/protocol được phê duyệt |
 
 ## B21. Product surfaces và Parent Web
 
@@ -1654,22 +1742,26 @@ Các màn hình tối thiểu:
 17. Consent/retention/deletion settings.
 18. Notification center.
 
-### B21.2 Parent Web Phase 2
+### B21.2 Parent Web
 
-Parent Web không tạo một permission model riêng. Web gọi cùng domain/application API và nhận cùng policy decision như mobile.
+Parent Web là surface bắt buộc của target vận hành. Web không tạo một permission model riêng;
+web gọi cùng domain/application API và nhận cùng policy decision như mobile. Parent Web phải
+usable trên mobile browser và desktop browser.
 
 | Module | Nội dung bắt buộc |
 |---|---|
 | Dashboard | Nhiều ChildProfile, session gần nhất, session đang chạy, notification và lỗi cần xử lý |
 | Child information | Tên hiển thị, age band, readiness/context, consent, history và observation |
 | Guide management | Assign, xem assignment, xem expiry, revoke, xem lịch sử thay đổi |
-| Live monitoring | Guide, child, phase, activity, status, timestamps, safety state và event summary cần thiết |
+| Live monitoring | Child/Guide alias cần thiết, phase, status, progress và timestamps; không hiển thị lỗi kỹ thuật, prompt, provider detail, trace/job payload hoặc raw child content |
 | History | Story, animation, micro-video, activity, completion và feedback trong retention window |
 | Privacy | Retention 30/60/90, archive state, deletion request, consent withdrawal |
 | Feedback | Gửi feedback sau session; không sửa ngược event đã ghi |
 | Notifications | Xem notification đa kênh và trạng thái delivery |
 
-Parent Web mặc định không được coi là client mở session. Khả năng mở session từ web vẫn là `OPEN_TBD` và không được suy ra từ việc web có quyền quản lý.
+Parent Web mặc định là client quản lý/theo dõi, không tự động mở session nếu chưa có command
+contract riêng. Việc mở session từ web vẫn là `OPEN_TBD` về command UX, không làm giảm các chức
+năng quản lý, monitoring, history, privacy và feedback đã chốt ở trên.
 
 ### B21.3 Guide Console
 
@@ -1792,19 +1884,15 @@ When Owner revokes a Guide during an active session:
 
 ### B23.4 Parent live projection
 
-Parent sees a purpose-built projection, not raw event metadata:
+Parent sees a minimal purpose-built projection, not raw event metadata:
 
-- ChildProfile display name or configured alias.
-- Guide display name.
-- Session status.
+- ChildProfile alias when needed.
+- Guide display name when needed.
 - Current workflow phase.
-- Activity/story/animation/micro-video status.
-- Start time and end time.
-- Safety validation status.
-- Human Gate status.
-- Processing error that requires Parent action.
-- Revoke status.
-- Last update time.
+- Overall session status.
+- Bounded progress indicator or progress stage.
+- Start time and last update time.
+- Revoke/ended status.
 
 Parent does not automatically see:
 
@@ -1814,8 +1902,12 @@ Parent does not automatically see:
 - Trace IDs as UI data.
 - Internal job payloads.
 - Full database metadata.
+- Technical error details, stack traces, retry internals or provider/model diagnostics.
+- Raw drawing, raw audio, transcript or derived media unless a separate resource permission allows it.
 
-Raw drawing, audio, transcript and generated media visibility remains controlled by consent, retention and permission policy.
+If Parent action is required, the UI may show a bounded user-facing state such as `ACTION_REQUIRED`
+without exposing the underlying technical error. Raw drawing, audio, transcript and generated media
+visibility remains controlled by consent, retention and permission policy.
 
 ## B24. Logical schema canonical target
 
@@ -2054,11 +2146,30 @@ Không đưa vào ordinary technical logs, metrics label hoặc dashboard:
 - Session credential.
 - Provider secret.
 - Signed object URL.
+
+### B25.5. Test-stage rate-limit baseline
+
+Các giới hạn dưới đây áp dụng cho test backend và phải được cấu hình, đo được và kiểm thử;
+chúng không phải production capacity claim:
+
+| Boundary | Baseline |
+|---|---|
+| Active Guide session | Tối đa 1 session đang chạy trên mỗi Guide |
+| Session start | Tối đa 5 lần/phút/user |
+| Processing retry | Tối đa 3 lần/session cho cùng một processing stage |
+| Original image upload | Tối đa 10 MB/file |
+| Narration upload | Tối đa 20 MB/file |
+| API abuse | Giới hạn theo user và IP; ngưỡng cụ thể là configuration-driven và trả `RATE_LIMITED` |
+| Duplicate command | Idempotency key trả lại result/job cũ, không tạo mutation/event/job mới |
+
+Rate limit không được dùng để che giấu lỗi hệ thống hoặc thay thế audit. Retry budget,
+concurrency guard và stale-session check phải được áp dụng trước khi enqueue hoặc publish derived
+artifact.
 - Full prompt có dữ liệu trẻ.
 
 Logs chỉ dùng IDs, pseudonymous references, hash, enum, aggregate hoặc redacted summary.
 
-### B25.5. Break-glass Admin
+### B25.6. Break-glass Admin
 
 Admin raw access phải tạo `BreakGlassAccess` hoặc audit tương đương với:
 
@@ -2255,12 +2366,19 @@ Không trả về raw provider error, access token, object URL hoặc dữ liệ
 | AT-021 | Whiteboard video fails | Parent sees a safe retryable state; no fake video and no continue action before READY; retry does not duplicate source mutation/spend under idempotency rules. |
 | AT-022 | Pixi completes before video | Pixi shows a friendly waiting state; Parent is notified only when the validated whiteboard MP4 becomes READY. |
 | AT-023 | Whiteboard provenance mismatch | Stale source hash, unconfirmed target, invalid mask/stroke/TTS ref or unsafe output is rejected closed. |
+| AT-024 | Firebase test login | Real test Firebase token is verified by backend; invalid/expired/revoked token is rejected; no Firebase credential or token is written to repository/logs. |
+| AT-025 | Adult role exclusivity | An account has exactly one of `PARENT`, `GUIDE`, `ADMIN`; a child has no role or credential; client-supplied role cannot change authorization. |
+| AT-026 | Parent Web responsive | Parent can use dashboard, child management, Guide assignment/revoke, history, retention/deletion, feedback and live projection on mobile and desktop browser. |
+| AT-027 | Guide Console desktop | Guide can view assigned children, open one session, complete Gate A/B, review recommendation and record observation/feedback within assignment scope. |
+| AT-028 | Parent minimal projection | Parent sees phase, status, progress and update time; technical errors, provider details, prompts, traces, job payloads and raw child content are absent. |
+| AT-029 | Rate limit and idempotency | Exceeding request/upload/retry/concurrency budget returns `RATE_LIMITED`; duplicate command does not duplicate state, job or event. |
+| AT-030 | Backend monitoring | Redacted health, latency, errors, queue/job, session, assignment/notification, security and lifecycle signals are available; durable business/audit records remain authoritative. |
 
 ### B28.2. Remaining TBD không được tự suy ra
 
 1. Kênh notification cụ thể và retry/dead-letter policy.
 2. Guide có được xem raw media/transcript/history đầy đủ hay chỉ projection trong thời gian assignment.
-3. Parent Web có được mở session trong tương lai hay chỉ quản lý/theo dõi.
+3. Parent Web command UX có được mở session hay chỉ quản lý/theo dõi; việc này không làm giảm các chức năng Parent Web đã thuộc target.
 4. Break-glass có cần dual approval, user notice và giới hạn thời gian bắt buộc hay không.
 5. Physical database/object storage/queue/Grafana deployment cụ thể.
 6. Region lưu trữ AWS và data residency.
@@ -2275,6 +2393,390 @@ Không trả về raw provider error, access token, object URL hoặc dữ liệ
 14. TTS provider/voice/locale/safety review and whether an adult may disable TTS for a session.
 15. Mask/stroke quality thresholds and whether the adult must watch the full whiteboard video before
     physical-activity handoff.
+
+## Annex A. Implementation-grade test SRS annex
+
+### A.1 Mục tiêu và ranh giới của annex
+
+Annex này chuyển baseline requirements thành hướng dẫn đủ cụ thể để đội backend, mobile, Guide
+Console, Parent Web và QA bắt đầu thiết kế/triển khai trong môi trường test. Annex không thay thế
+ADR hoặc contract registry đã được phê duyệt; các logical API/schema chưa có source runtime vẫn
+được đánh dấu `PROPOSED_UNADOPTED`.
+
+Trong giai đoạn này:
+
+- Firebase Authentication dùng project thật do owner quản lý, với test accounts riêng.
+- PostgreSQL, Redis/RQ, MinIO và observability stack chạy local/test; không yêu cầu cloud.
+- AI/media dùng fake adapter, fixture hoặc local deterministic worker; không gọi Lightning.
+- Không dùng real child data, seed credential, provider token hoặc service-account file trong repo.
+- Mọi client chỉ gọi backend API; client không gọi database, object storage, queue hoặc AI provider.
+- Parent Web và Guide Console là product surfaces bắt buộc của target; thứ tự làm chỉ là sequencing.
+
+### A.2 Topology test được chốt
+
+| Node | Trách nhiệm | Được phép gọi | Không được phép gọi |
+|---|---|---|---|
+| Android Mobile | Login, capture, review, supervised playback, Parent/Guide workflow view | Backend HTTPS bằng Firebase ID token | PostgreSQL, Redis, MinIO, AI provider, provider secret |
+| Guide Console | Roster được assign, session, Gate A/B, observation, KB/mapping theo quyền | Backend HTTPS bằng Firebase ID token | Database, object storage, provider trực tiếp |
+| Parent Web | ChildProfile, assignment, revoke, history, retention, feedback, minimal live projection | Backend HTTPS bằng Firebase ID token | Database, object storage, provider trực tiếp |
+| FastAPI API | Auth dependency, request validation, application commands/queries, response/error mapping | Application services và ports | Domain rule bị viết trực tiếp trong route |
+| Auth adapter | Verify Firebase ID token, map verified principal | Firebase Auth runtime config | Firebase Storage/Firestore/Realtime Database |
+| PostgreSQL adapter | Persist adult, child, relationship, session, events, audit, retention, jobs | Repository ports | AI/provider SDK |
+| MinIO adapter | Store original/derived test artifacts, checksum, expiry refs | Object-storage port | Mobile credentials/direct access |
+| Redis/RQ adapter | Queue job, retry, status, notification outbox | Queue port | Direct domain mutation bypass application service |
+| Test worker | Chạy fake ASR/VLM/render/video/TTS và failure injection | Versioned fixtures/contracts | Lightning/network provider |
+| Observability | Structured redacted logs, metrics, audit dashboards | Local telemetry pipeline | Raw media, token, prompt, provider secret |
+
+Luồng dependency bắt buộc:
+
+```text
+Client
+  -> HTTP adapter/dependencies
+  -> application command/query
+  -> domain policy + aggregate
+  -> repository/storage/queue/identity ports
+  -> local test adapters
+```
+
+Không được tạo shortcut từ route tới ORM model, từ mobile tới MinIO, hoặc từ worker tới session
+table mà bỏ qua application completion command và `expected_session_version`.
+
+### A.3 Backend bounded contexts và ownership
+
+| Context | Owns | Main commands/queries | Invariants bắt buộc |
+|---|---|---|---|
+| Identity | Adult account, Firebase subject mapping, role | Resolve token, create/update account, suspend | Token verified; một account đúng một adult role |
+| Authorization | Ownership, GuideAssignment, permission resolution | Check access, assign, revoke, petition decision | Scope kiểm tra server-side ở mỗi request |
+| Child Profile | ChildProfile, readiness/context, consent refs | Create/update/list child, retention preference | Một owner; Parent chỉ thấy child của mình |
+| Session | Session aggregate, version, state/event sequence | Open, command, cancel, revoke, complete | Một active session/Guide; stale command bị reject |
+| Media | Original/derived artifact, admission, provenance | Upload metadata, validate, expire/archive | Original immutable; derivative có source/provenance |
+| Understanding | Fixture ASR/VLM/fusion proposal | Queue, map, retry, Gate A proposal | AI proposal không tự thành fact |
+| Recommendation | Catalog, hard rules, candidate set, Gate B | Compile candidates, select, lock spec | Safety/prerequisite trước ranking |
+| Experience Media | Story, Pixi, whiteboard job, handoff | Prepare/play/status/retry | Exact ExperienceSpec xuyên suốt |
+| Notification | Outbox, delivery/read state | Enqueue, deliver fake, retry, dead-letter | Delivery không tự thành consent |
+| Audit/Telemetry | Business events, security audit, metrics/logs | Record, query, redact, replay | Audit/business record tách technical telemetry |
+| Retention | Expiry, archive, purge, deletion request | Plan, archive, purge, receipt | Expiry làm Parent/Guide invisible trước purge |
+
+Mỗi context phải expose port/command typed. Domain không import FastAPI, Firebase SDK, SQLAlchemy,
+Redis, MinIO, React hoặc model SDK.
+
+### A.4 Ma trận resource/action theo role
+
+| Resource/action | Parent | Guide | Admin |
+|---|---|---|---|
+| Đăng nhập/resolve identity | Có | Có | Có |
+| Tạo/sửa ChildProfile của mình | Có | Không | Có theo admin policy |
+| Xóa/yêu cầu xóa child của mình | Có | Không | Xử lý request, không tự đổi owner policy |
+| Xem child của mình | Có | Không nếu chưa assignment | Có theo scope quản trị |
+| Xem child được assign | Không áp dụng | Có khi assignment ACTIVE | Có |
+| Assign Guide cho child mình sở hữu | Có | Không | Có exception |
+| Revoke Guide | Có cho child mình sở hữu | Không | Có |
+| Mở Guide session | Không nếu Parent Web chưa có command riêng | Có với assignment ACTIVE | Có theo support/admin policy |
+| Capture drawing/narration | Có cho child mình sở hữu | Có trong assignment/session scope | Không trong thao tác thường |
+| Gate A/B | Có trong owner session | Có trong assigned session | Không tự thay human decision nếu không có policy |
+| Xem recommendation/activity | Có owner scope | Có assignment scope | Có redacted/admin scope |
+| Override recommendation | Theo quyền Parent được cấp | Có trong hard safety/prerequisite bounds | Quản lý policy, không bypass hard rule |
+| Ghi observation/feedback | Có owner scope | Có assignment scope | Có support scope |
+| Xem history | Có owner scope | Có assignment scope và field policy | Có theo audit/support policy |
+| Xem Parent live projection | Có child mình sở hữu | Chỉ session mình vận hành | Có operational scope |
+| Xem technical monitoring | Không | Không | Có dashboard operational |
+| Xem security audit | Không | Không | Có, theo least privilege |
+| Raw child access | Không mặc định | Không mặc định | Chỉ break-glass, reason-required, audited |
+| Chọn retention 30/60/90 | Có cho child mình sở hữu | Không | Quản lý policy/process |
+
+`ADMIN` không phải cách bypass hard safety rule. `GUIDE` không thể tự gán assignment hoặc tự đổi
+role. `PARENT` không thể truy cập child của Parent khác. UI ẩn nút không thay thế policy backend.
+
+### A.5 State transition và terminal rules
+
+#### Adult principal
+
+| State | Cho phép | Chuyển tiếp |
+|---|---|---|
+| `UNRESOLVED` | Chưa map Firebase subject | `VERIFIED`, `DENIED` |
+| `VERIFIED` | Token hợp lệ, role/relationship đang resolve | `ACTIVE`, `SUSPENDED`, `DENIED` |
+| `ACTIVE` | Được gọi protected API trong scope | `SUSPENDED`, `REVOKED` |
+| `SUSPENDED` | Không mở command nhạy cảm | `ACTIVE`, `REVOKED` |
+| `REVOKED` | Không truy cập protected resource | Terminal; provisioning policy TBD |
+
+#### GuideAssignment
+
+| State | Điều kiện | Command hợp lệ |
+|---|---|---|
+| `ACTIVE` | Được Parent/Admin cấp, chưa hết hạn, chưa revoke | Read/action theo permission profile |
+| `PETITION_PENDING` | Parent gửi petition bổ sung | Chỉ xử lý petition; không tự đổi access |
+| `EXPIRED` | Qua `effective_to` | Không mở resource/session mới |
+| `REVOKED` | Owner/Admin revoke | Không mở resource; active session chuyển `REVOKED` |
+
+Assignment có hiệu lực ngay khi tạo. Expiry phải được kiểm tra lazy tại authorization và có thể có
+scheduled transition để tạo event/notification.
+
+#### Session
+
+| State | Main entry | Main exit |
+|---|---|---|
+| `CREATED` | Adult authorized mở session | `INPUT_CAPTURE`, `CANCELLED`, `REVOKED` |
+| `INPUT_CAPTURE` | Capture metadata/media | `UNDERSTANDING`, `MEDIA_RECAPTURE`, `CANCELLED` |
+| `UNDERSTANDING` | Job accepted | `GATE_A_PENDING`, `FAILED`, `RETRYABLE` |
+| `GATE_A_PENDING` | Proposal available | `UNDERSTANDING_PROPOSED`, `MEDIA_RECAPTURE`, `CANCELLED` |
+| `UNDERSTANDING_PROPOSED` | Adult confirms/corrects | `CONTEXT_REQUIRED`, `CANDIDATES_READY`, `GATE_A_PENDING` |
+| `CONTEXT_REQUIRED` | Thiếu context bắt buộc | `CANDIDATES_READY`, `CANCELLED` |
+| `CANDIDATES_READY` | Hard-filtered candidates ready | `GATE_B_PENDING`, `NO_VALID_ACTIVITY` |
+| `GATE_B_PENDING` | Candidate set ready | `EXPERIENCE_READY`, `CANDIDATES_READY`, `CANCELLED` |
+| `EXPERIENCE_READY` | Exact spec locked | `HANDOFF_READY`, `FAILED`, `RETRYABLE` |
+| `HANDOFF_READY` | Story/media/fallback valid | `FEEDBACK_RECORDED`, `CANCELLED` |
+| `FEEDBACK_RECORDED` | Adult feedback accepted | Terminal success |
+| `REVOKED` | Owner revoke hoặc assignment invalidated | Terminal; derived result không publish |
+| `FAILED` | Non-retryable failure | Terminal hoặc new explicit session |
+
+#### Job, artifact và notification
+
+| Aggregate | States |
+|---|---|
+| Job | `QUEUED → RUNNING → SUCCEEDED`; lỗi có thể `RETRYABLE_FAILURE → QUEUED/RUNNING`; exhausted thành `FAILED`; revoke thành `CANCELLED` hoặc `DISCARDED_NON_PUBLISHABLE` |
+| Artifact | `PENDING → AVAILABLE`; lỗi `BLOCKED`; expiry `EXPIRED → ARCHIVED → PURGED`; artifact derived stale không được play |
+| Notification | `PENDING → SENT → DELIVERED → READ`; lỗi `FAILED → RETRYING → DEAD_LETTER`; delivery không tự grant permission |
+
+### A.6 API behavior chi tiết cho test
+
+#### Authentication và request headers
+
+Protected request dùng:
+
+```http
+Authorization: Bearer <Firebase ID token>
+X-Request-ID: <uuid>
+Idempotency-Key: <stable-key-for-mutation>
+If-Match: <aggregate-version>
+Accept: application/json
+```
+
+Backend không nhận `role`, `owner_adult_id`, `guide_scope` hoặc `authorization_mode` từ client để
+quyết định quyền. Client chỉ gửi resource ID; backend resolve scope từ verified principal và DB.
+
+#### Response envelope
+
+Success response logical form:
+
+```json
+{
+  "data": {},
+  "meta": {
+    "schema_version": "1.0",
+    "resource_version": 4,
+    "next_cursor": null
+  },
+  "correlation_id": "uuid"
+}
+```
+
+Error response logical form:
+
+```json
+{
+  "error": {
+    "code": "FORBIDDEN_SCOPE",
+    "message_key": "access.denied",
+    "retryable": false,
+    "field_errors": [],
+    "safe_details": {}
+  },
+  "correlation_id": "uuid"
+}
+```
+
+`safe_details` không chứa token, provider body, prompt, stack trace, signed URL, raw media hoặc
+ChildProfile khác. Client dùng `message_key` để hiển thị tiếng Việt; backend không trả câu lỗi
+technical trực tiếp cho Parent live projection.
+
+#### HTTP/status mapping
+
+| Status | Dùng cho | Ví dụ |
+|---:|---|---|
+| 200/201/202 | Query, create, accepted job | Session created, job queued |
+| 400 | Envelope/command malformed | Missing required field |
+| 401 | Token absent/invalid/expired/revoked | `AUTH_INVALID` |
+| 403 | Token hợp lệ nhưng ngoài scope | `FORBIDDEN_SCOPE`, `ADMIN_REQUIRED` |
+| 404 | Resource không tồn tại trong authorized view | `RESOURCE_NOT_FOUND` |
+| 409 | Stale version, duplicate conflict, invalid state transition | `STALE_VERSION`, `IDEMPOTENCY_CONFLICT` |
+| 413 | Payload vượt limit | `SIZE_LIMIT` |
+| 422 | Domain validation/hard rule | `CONTEXT_REQUIRED`, `HARD_RULE_BLOCKED` |
+| 429 | Rate limit/retry budget/concurrency | `RATE_LIMITED`, `RETRY_EXHAUSTED` |
+| 500/503 | Unexpected/test infrastructure failure | Generic safe error + correlation ID |
+
+#### Pagination và filtering
+
+History, notifications, audit và roster dùng cursor pagination. Cursor gắn với query shape,
+authorization scope và expiry; đổi filter hoặc role scope làm cursor cũ invalid. Không dùng page
+number làm source of truth cho event replay. Mọi list endpoint phải có limit server-side và trả
+`QUERY_LIMIT` khi filter/limit vượt policy.
+
+#### Endpoint groups
+
+| Group | Endpoints logical | Client |
+|---|---|---|
+| Auth | `/v1/auth/resolve`, `/v1/auth/me` | Mobile/Web |
+| Children | `/v1/children`, `/v1/children/{id}`, `/v1/children/{id}/history` | Parent Web/Mobile/Guide read |
+| Assignment | `/v1/children/{id}/guide-assignments`, `/v1/guide-assignments/{id}/revoke`, `/petitions` | Parent/Guide/Admin |
+| Session | `/v1/sessions`, `/v1/sessions/{id}`, `/live`, `/events`, `/actions` | Mobile/Guide/Parent read |
+| Media | `/v1/sessions/{id}/media`, `/admission` | Mobile/backend |
+| Gates | `/v1/sessions/{id}/gate-a`, `/candidates`, `/gate-b` | Mobile/Guide/Parent |
+| Experience | `/v1/sessions/{id}/experience`, `/whiteboard-video-jobs`, `/handoff` | Backend/mobile |
+| Feedback | `/v1/sessions/{id}/feedback`, `/v1/children/{id}/feedback` | Parent/Guide |
+| Privacy | `/v1/children/{id}/retention`, `/deletion-requests`, `/consent/withdraw` | Parent/Admin |
+| Notifications | `/v1/notifications`, `/v1/notifications/{id}/read` | Parent/Guide/Admin |
+| Admin operations | `/v1/admin/audit`, `/monitoring`, `/raw-access`, `/retention/jobs` | Admin |
+
+### A.7 Screen và interaction requirements
+
+#### Parent Web — responsive mobile/desktop
+
+| Screen | Required content/action | Privacy boundary |
+|---|---|---|
+| PW-01 Login | Firebase sign-in, generic auth failure, sign-out | Không hiển thị token |
+| PW-02 Dashboard | Nhiều child, session gần nhất, active session, notification summary | Không hiển thị provider/job detail |
+| PW-03 Child profile | Profile, age band, readiness/context, consent, retention | Chỉ owner scope |
+| PW-04 Guide management | Assign, expiry, revoke, assignment history, petition/status | Không cho Guide tự grant |
+| PW-05 Live monitoring | Alias, phase, status, progress, updated time | Không hiển thị technical error/raw payload |
+| PW-06 History | Story/animation/video/activity/feedback trong retention window | Archive không hiện trong normal view |
+| PW-07 Privacy | Chọn 30/60/90, withdraw consent, deletion request/status | Mọi mutation audit |
+| PW-08 Feedback/notifications | Feedback sau session, notification list/read state | Không sửa ngược immutable event |
+
+Parent Web responsive phải giữ được action chính trên mobile browser; bảng dữ liệu dùng card/list
+responsive, không yêu cầu hover-only interaction.
+
+#### Guide Console — desktop-first
+
+| Screen | Required content/action |
+|---|---|
+| GC-01 Login | Firebase sign-in, generic failure, role mismatch handling |
+| GC-02 Assigned roster | Child assigned, assignment status/expiry, search/filter/cursor |
+| GC-03 Session workspace | Open/continue/end one session; phase/status; command pending state |
+| GC-04 Gate A | Proposal, uncertainty/source refs, edit/confirm/retake |
+| GC-05 Recommendation/Gate B | Candidate, fit reason, blocked reason, exact version, approve/override within bounds |
+| GC-06 Observation | Completed/partial/not attempted, interest, independence, notes |
+| GC-07 Curriculum/KB | Review/mapping/template actions only under permission profile; version/audit |
+| GC-08 History | Assigned-scope history, pagination, retention visibility |
+
+Guide Console không hiển thị child ngoài active/effective assignment. Assignment expiry/revoke phải
+được reflected trước khi action command được gửi; stale UI không được bypass backend.
+
+#### Mobile app
+
+| Area | Required behavior |
+|---|---|
+| Account | Adult login, role-aware navigation, no child account screen |
+| Parent | Child list, capture, Gate A/B, assignment, live monitoring, feedback/privacy |
+| Guide | Assigned children, session workspace, Gate A/B, observation/feedback |
+| Supervised child | Drawing/narration/playback/activity participation inside adult session only |
+| Failure | Bounded Vietnamese guidance, retry/recapture where allowed, no raw technical detail |
+
+### A.8 Backend monitoring và evidence requirements
+
+| Signal family | Required fields | Audience | Không được chứa |
+|---|---|---|---|
+| API health | service, route group, status class, latency bucket, correlation ID | Admin/QA | Token, payload, child name |
+| Auth/security | auth result, role resolution, deny code, actor pseudonymous ID, target type | Admin/security | ID token, email unless needed, raw child data |
+| Session | session state, phase, version, duration, revoke/failed reason code | Admin/QA; Parent summary subset | Prompt, raw media, provider details |
+| Job/queue | job type, state, attempt, retryable, queue age, terminal code | Admin/QA | Provider request/response body |
+| Assignment/notification | assignment event, expiry/revoke, delivery state, retry count | Admin/QA; Parent/Guide notification subset | Unrelated child scope |
+| Storage/data lifecycle | artifact class, checksum result, expiry/archive/purge outcome | Admin/QA | Signed URL, raw object |
+| Business audit | actor, action, target, reason, outcome, timestamp, correlation | Admin/security | Unnecessary payload |
+
+Minimum local dashboards:
+
+1. API health and error summary.
+2. Active/stuck/failed/revoked sessions.
+3. Queue/job state and retry budget.
+4. Assignment expiry/revoke and notification delivery.
+5. Auth deny, role changes and break-glass access.
+6. Archive/purge/deletion backlog and failures.
+
+Business events and `audit_events` are authoritative. Grafana/metrics/logs are views and diagnostic
+signals, not the only record. Every dashboard query must apply redaction and bounded cardinality.
+
+### A.9 Rate-limit, retry và idempotency behavior
+
+| Operation | Test baseline | Key/scope | Expected on exceed |
+|---|---:|---|---|
+| Active Guide session | 1 | `guide_id` | `SESSION_ALREADY_ACTIVE` / 409 |
+| Session start | 5/minute | `adult_id` | `RATE_LIMITED` / 429 |
+| Processing retry | 3/session/stage | `session_id + stage` | `RETRY_EXHAUSTED` / 429 or 409 |
+| Image upload | 10 MB/file | request/artifact | `SIZE_LIMIT` / 413 |
+| Audio upload | 20 MB/file | request/artifact | `SIZE_LIMIT` / 413 |
+| API abuse | Config-driven user/IP limit | `adult_id`, source IP | `RATE_LIMITED` / 429 |
+| Mutation duplicate | Same idempotency key + same hash | actor scope + key | Return original result |
+| Mutation key conflict | Same key + different request hash | actor scope + key | `IDEMPOTENCY_CONFLICT` / 409 |
+| Stale mutation | Old aggregate/session version | aggregate ID + version | `STALE_VERSION` / 409, no state change |
+
+Rate-limit state không được làm mất original artifact hoặc business event. Retry phải tạo attempt
+metadata; không được lặp notification/job/event ngoài idempotency boundary. Admin không được dùng
+role để bỏ qua safety, consent hoặc audit; health endpoint có policy riêng và không nhận child data.
+
+### A.10 Synthetic personas, fixtures và test data
+
+| Persona | Role | Scope |
+|---|---|---|
+| `PARENT_A` | `PARENT` | Owns `CHILD_A1`, `CHILD_A2`; can assign/revoke Guide |
+| `PARENT_B` | `PARENT` | Owns `CHILD_B1`; cross-owner negative-test target |
+| `GUIDE_A` | `GUIDE` | Active assignment to `CHILD_A1`; one active session |
+| `GUIDE_B` | `GUIDE` | Overlapping assignment to `CHILD_A1`; independent session scope |
+| `GUIDE_EXPIRED` | `GUIDE` | Expired/revoked assignment; all new access denied |
+| `ADMIN_A` | `ADMIN` | Account/assignment/monitoring/audit; raw access only break-glass |
+| `UNRESOLVED` | none | Valid Firebase subject with no internal mapping |
+
+Required fixture families:
+
+- successful capture → understanding proposal → Gate A → candidates → Gate B → handoff;
+- invalid image/audio and recapture;
+- ambiguous proposal and adult correction;
+- no valid activity due hard rule;
+- stale session version and duplicate idempotency key;
+- Guide assignment create/expire/revoke, including revoke during active session;
+- whiteboard job queued/running/ready/retryable/exhausted failure;
+- notification sent/failed/retry/dead-letter;
+- retention archive/purge/deletion receipt;
+- rate-limit, redaction and cross-owner/cross-Guide negative tests.
+
+Firebase test accounts may be created by a local setup script or owner-controlled runtime process;
+email/password, refresh token, service account and real child data must not be stored as fixtures.
+
+### A.11 Verification strategy và definition of complete
+
+| Verification layer | Scope | Required evidence |
+|---|---|---|
+| Domain unit | State transitions, ownership, hard rules, role/assignment, retention | Deterministic tests with no network |
+| Application unit | Commands/queries, idempotency, retry, policy resolution | Port fakes and typed outcomes |
+| Contract | Request/response/event/error schema and version | JSON/schema fixtures, compatibility checks |
+| Infrastructure integration | Firebase token verification, PostgreSQL, MinIO, Redis/RQ | Disposable local services and sanitized logs |
+| API integration | Protected route + authz + persistence + events | Parent/Guide/Admin positive and negative cases |
+| UI integration | Mobile, Guide Console, Parent Web workflows | Role-specific walkthrough and responsive checks |
+| Security/privacy | Token tampering, cross-owner, revoke, redaction, break-glass | Deny matrix, scan, audit replay |
+| Fault injection | Timeout, malformed output, queue failure, retry exhaustion, rate limit | Typed failure and recovery evidence |
+| Accessibility/usability | Vietnamese-first navigation, form errors, mobile web, desktop Guide | Review checklist and screenshots |
+
+Một requirement chỉ được đánh dấu complete khi có requirement ID → code/contract path → test case
+hoặc review evidence → kết quả. Fixture pass không được ghi là provider/production pass. Không
+được đóng test-stage backend nếu thiếu authz negative tests, revoke test, redaction test,
+idempotency test hoặc Parent Web/Guide Console walkthrough.
+
+### A.12 Thứ tự triển khai test backend và client
+
+1. Firebase token verification, adult account mapping và exclusive role constraint.
+2. PostgreSQL migrations/repositories cho Adult, ChildProfile, Ownership, Assignment, Session,
+   Event, Audit và Retention.
+3. Authorization policy và negative tests cho Parent/Guide/Admin.
+4. Guide assignment, expiry, revoke, notification outbox và active-session stop.
+5. Session API, optimistic version, command idempotency và event sequence.
+6. Media metadata/admission và MinIO local artifact boundary.
+7. Fixture understanding, Gate A, deterministic recommendation và Gate B.
+8. Fake job worker, polling, retry/rate-limit/concurrency và whiteboard/Pixi test seams.
+9. Guide Console desktop flow và Parent Web responsive flow dùng chung policy/API.
+10. Backend monitoring, audit dashboards, retention/archive/deletion exercises.
+11. Full synthetic end-to-end walkthrough, security scan và feature-local evidence closure.
+
+Không có bước nào ở annex này yêu cầu Lightning, model benchmark thật, cloud deployment, signed
+release hoặc production capacity test.
 
 ## B29. Source and legal reference register
 

@@ -284,6 +284,8 @@ export const SceneExplorationPlanSchema = z.object({
   videoExecuted: z.literal(false),
 }).strict();
 
+export type SceneExplorationPlan = z.infer<typeof SceneExplorationPlanSchema>;
+
 export const SceneFocusPlanSchema = z.object({
   contractName: z.literal('SceneFocusPlanV1'),
   contractVersion: z.literal('1.0'),
@@ -340,6 +342,13 @@ export const RendererBootstrapSchema = z.object({
 export const PlaybackEventSchema = z.discriminatedUnion('type', [
   z.object({type: z.literal('PLAYBACK_STARTED'), planId: z.string().min(1).max(120)}).strict(),
   z.object({type: z.literal('PLAYBACK_COMPLETED'), planId: z.string().min(1).max(120)}).strict(),
+  z.object({type: z.literal('INTRO_COMPLETED'), planId: z.string().min(1).max(120)}).strict(),
+  z.object({
+    type: z.literal('DISCOVERY_READY'),
+    planId: z.string().min(1).max(120),
+    targetCount: z.number().int().min(0).max(3),
+  }).strict(),
+  z.object({type: z.literal('CANVAS_TAPPED'), planId: z.string().min(1).max(120)}).strict(),
   z.object({
     type: z.literal('FALLBACK_APPLIED'),
     planId: z.string().min(1).max(120),
@@ -366,6 +375,17 @@ export const PlaybackEventSchema = z.discriminatedUnion('type', [
 export const MAX_RENDERER_MESSAGE_BYTES = 4096;
 export type RendererBootstrap = z.infer<typeof RendererBootstrapSchema>;
 export type PlaybackEvent = z.infer<typeof PlaybackEventSchema>;
+
+export const RENDERER_INTERACTION_PHASES = [
+  'INTRO_LOADING',
+  'INTRO_PLAYING',
+  'DISCOVERY_READY',
+  'DISCOVERY_FOCUSED',
+  'FALLBACK',
+] as const;
+
+export const RendererInteractionPhaseSchema = z.enum(RENDERER_INTERACTION_PHASES);
+export type RendererInteractionPhase = z.infer<typeof RendererInteractionPhaseSchema>;
 
 export const PLAYBACK_CONTROL_ACTIONS = [
   'PLAY',
@@ -400,6 +420,7 @@ export const RendererPlaybackStateEnvelopeSchema = z.object({
   positionSeconds: z.number().finite().min(0).max(300),
   durationSeconds: z.number().finite().min(0).max(300),
   state: z.enum(['READY', 'PLAYING', 'PAUSED', 'COMPLETED']),
+  interactionPhase: RendererInteractionPhaseSchema.default('INTRO_LOADING'),
 }).strict();
 
 export type RendererControlCommand = z.infer<typeof RendererControlCommandSchema>;

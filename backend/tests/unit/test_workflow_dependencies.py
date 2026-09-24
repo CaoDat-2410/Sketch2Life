@@ -37,6 +37,10 @@ def test_file_metadata_adapter_exposes_authored_material_and_multiday_duration()
         "min_days": 3,
         "max_days": 5,
     }
+    preparation = metadata.preparation_profile("ACT-0102")
+    assert preparation.print_requirement == "PRINT_REQUIRED"
+    assert preparation.asset_set_status == "PLANNED"
+    assert preparation.print_defaults is not None
 
 
 def test_real_composition_builds_complete_dependency_bundle() -> None:

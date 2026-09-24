@@ -69,6 +69,20 @@ class ActivityRecommendationCardV1(BaseModel):
     age_label_vi: str = Field(min_length=1, max_length=80)
     supervision_label_vi: str = Field(min_length=1, max_length=120)
     material_labels_vi: tuple[str, ...] = Field(default=(), max_length=4)
+    preparation_requirement: Literal[
+        "NO_PRINTABLE_ASSET",
+        "PRINT_RECOMMENDED",
+        "PRINT_REQUIRED",
+    ] = "NO_PRINTABLE_ASSET"
+    preparation_summary_vi: str = Field(default="", max_length=320)
+    preparation_asset_kinds: tuple[str, ...] = Field(default=(), max_length=4)
+    preparation_asset_status: Literal[
+        "NOT_APPLICABLE",
+        "PLANNED",
+        "READY",
+        "BLOCKED",
+        "DEPRECATED",
+    ] = "NOT_APPLICABLE"
     fit_source: Literal["DIRECT", "RELATED"]
 
 

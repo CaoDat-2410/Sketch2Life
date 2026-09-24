@@ -1,6 +1,6 @@
 # Sketch2Life — Master SRS Markdown context
 
-- Status: OWNER_APPROVED_BASELINE — v1.4 scope clarification recorded; implementation and physical deployment remain out of scope
+- Status: OWNER_APPROVED_BASELINE — v1.6 implementation-grade test SRS detail recorded; implementation and physical deployment remain separately gated
 - Owner: Project owner / Codex
 - Goal: produce one Vietnamese master Markdown SRS that consolidates actors, scope, use cases, business rules, domain entities, state transitions, functional and non-functional requirements, versioned contracts, traceability, and unresolved decisions.
 - Scope: documentation only. The SRS follows the B4–B12 workflow while adding B1–B3 and B13–B19 completeness sections from the supplied reference and the Sketch2Life product journey shown in the supplied workflow image. Current repository evidence and user-confirmed target requirements are labeled separately.
@@ -13,8 +13,12 @@
   - Include detailed contract families while retaining the current incompatible same-name families as unresolved; do not silently adopt a proposed mapping.
   - Admin may grant a Guide class assignment; existing Parents receive a notification and may petition a change.
   - Admin may view raw child drawing/audio/transcript/observation when needed; Firebase remains the authentication provider/boundary.
+  - Test authentication uses the owner-controlled real Firebase Authentication project; secrets remain runtime-only.
+  - Adult roles are mutually exclusive `PARENT`, `GUIDE` and `ADMIN`; there is no child role or child credential.
+  - Parent Web and Guide Console are required operational surfaces, not deferred scope; Parent Web is responsive for mobile and desktop browsers, Guide Console is desktop-first, and Vietnamese is the first UI language.
+  - Parent live monitoring is limited to phase, status, progress and update time; backend operational monitoring, rate limits, retry budgets, idempotency and concurrency guards are mandatory test requirements.
 - Catalog-derived target coverage: activity records cover age bands 0–3, 3–6, 6–9, and 9–12 years, represented by inclusive completed-month ranges 0–35, 36–71, 72–107, and 108–155 respectively. Exact activity readiness and safety fields remain authoritative.
-- Non-goals: application code changes, contract migration/adoption, provider or model execution, cloud changes, frontend asset generation/promotion, release, commit/push, or changes to pre-existing user work.
+- Non-goals for this documentation update: application code changes, contract migration/adoption, provider or model execution, cloud changes, frontend asset generation/promotion, release, commit/push, or changes to pre-existing user work. The SRS target itself includes the required backend monitoring, rate-limit, Parent Web and Guide Console capabilities.
 - Source boundary: the current working tree contains pre-existing modified and untracked files. They may be inspected as current evidence but must not be changed by this feature. Existing external handbooks/workbooks remain contextual references and must not be copied into the SRS.
 - Output: artifacts/Sketch2Life_Master_SRS.md
 
@@ -26,7 +30,7 @@
 - A Guide can operate one session at a time. A Parent receives notification and live monitoring information when a Guide session starts/ends.
 - Revoking a Guide during an active session stops the session immediately and shows an on-screen message.
 - Parent live views expose the necessary redacted projection, not every technical metadata field.
-- Parent Web is Phase 2 for child management, monitoring and information updates; it uses the same backend authorization and is not implicitly a session runner.
+- Parent Web is a required operational surface for child management, monitoring and information updates; it uses the same backend authorization and is not implicitly a session runner.
 - Retention 30/60/90 applies to all child/session data classes; expired data becomes Parent/Guide-invisible archive data before purge. Audit retention is separate.
 - Notification uses combined channels. Grafana is used for redacted metrics/logs/traces and dashboards; durable business and audit records remain authoritative.
 - Admin raw child data access is break-glass, reason-required and audited.
@@ -46,9 +50,17 @@
 - Exact codec/size/timeout/retry/TTS voice and exhausted-failure recovery remain OPEN_TBD. See
   `evidence/notes/WHITEBOARD_VIDEO_SCOPE_UPDATE_20260923.md`.
 
+## Owner requirements closure — 2026-09-23
+
+- v1.5 records the test architecture, real Firebase test authentication, adult-only mutually
+  exclusive roles, required Guide Console and Parent Web, Vietnamese-first UI, minimal Parent
+  monitoring projection, mandatory backend monitoring and test-stage rate-limit/idempotency guards.
+- Lightning connectivity, AI/provider stress testing and production deployment remain outside the
+  current stage.
+
 ## Completion snapshot — 2026-09-23
 
-- Consolidated Vietnamese SRS v1.4 completed at artifacts/Sketch2Life_Master_SRS.md with B1–B29, target workflow diagram, business rules, domain entities/ERD, relationship/cardinality, logical schemas/data dictionary, API/error surface, state model, FR/NFR, versioned contract families, Parent Web, observability, retention/legal constraints, use cases, verification, traceability and open decisions.
+- Consolidated Vietnamese SRS v1.6 completed at artifacts/Sketch2Life_Master_SRS.md with B1–B29 plus Annex A implementation-grade test detail: target workflow diagram, business rules, domain entities/ERD, relationship/cardinality, logical schemas/data dictionary, API/error surface, state model, FR/NFR, versioned contract families, required Parent Web and Guide Console, observability, retention/legal constraints, use cases, verification, traceability, synthetic fixtures and implementation sequencing.
 - The v1.4 update separates PixiJS Personalized Drawing Exploration from the parallel whiteboard MP4 job, records the SAM 2.1 Small/mask/stroke/TTS pipeline target, and adds the READY/retry gate without claiming runtime implementation.
 - Focused contract/runtime tests passed (27 collected). Markdown structure and catalog checks passed.
 - Repository-wide harness/security validators still report pre-existing FEAT-026 issues recorded in evidence/notes/VALIDATION_20260918.md; no unrelated files were changed.

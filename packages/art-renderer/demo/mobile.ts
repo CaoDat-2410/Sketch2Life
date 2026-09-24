@@ -61,6 +61,15 @@ function setPlaybackStatus(event: PlaybackEvent): void {
       status.textContent = 'Đã hoàn tất reveal toàn ảnh gốc.';
       playButton.disabled = false;
       break;
+    case 'INTRO_COMPLETED':
+      status.textContent = 'Phần mở đầu đã xong; chuẩn bị cho con chạm khám phá.';
+      break;
+    case 'DISCOVERY_READY':
+      status.textContent = 'Chạm vào một chi tiết trong tranh để khám phá.';
+      playButton.disabled = false;
+      break;
+    case 'CANVAS_TAPPED':
+      break;
     case 'FALLBACK_APPLIED':
       status.textContent = 'Renderer dùng chuyển động dự phòng, vẫn giữ nguyên ảnh gốc.';
       playButton.disabled = false;
@@ -83,9 +92,11 @@ const player = createBrowserArtPlayer({
   loadTexture: async (_uri, sourceRegion) => {
     if (sourceBlob === null) throw new Error('The original image is not loaded.');
     const bitmap = await createImageBitmap(sourceBlob);
+    const bitmapWidth = bitmap.width;
+    const bitmapHeight = bitmap.height;
     const canvas = document.createElement('canvas');
-    canvas.width = bitmap.width;
-    canvas.height = bitmap.height;
+    canvas.width = bitmapWidth;
+    canvas.height = bitmapHeight;
     const context = canvas.getContext('2d');
     if (context === null) {
       bitmap.close();
@@ -95,10 +106,10 @@ const player = createBrowserArtPlayer({
     bitmap.close();
     const fullTexture = Texture.from(canvas);
     if (sourceRegion === undefined) return fullTexture;
-    const x = Math.floor(sourceRegion.x * bitmap.width);
-    const y = Math.floor(sourceRegion.y * bitmap.height);
-    const width = Math.max(1, Math.floor(sourceRegion.width * bitmap.width));
-    const height = Math.max(1, Math.floor(sourceRegion.height * bitmap.height));
+    const x = Math.floor(sourceRegion.x * bitmapWidth);
+    const y = Math.floor(sourceRegion.y * bitmapHeight);
+    const width = Math.max(1, Math.floor(sourceRegion.width * bitmapWidth));
+    const height = Math.max(1, Math.floor(sourceRegion.height * bitmapHeight));
     return new Texture({
       source: fullTexture.source,
       frame: new Rectangle(x, y, width, height),
@@ -133,6 +144,7 @@ const player = createBrowserArtPlayer({
       positionSeconds: progress.positionSeconds,
       durationSeconds: progress.durationSeconds,
       state: progress.state,
+      interactionPhase: progress.interactionPhase,
     });
   },
 });
@@ -175,7 +187,10 @@ async function loadLaunch(serialized: string): Promise<void> {
     if (image.size <= 0 || image.size > 5_000_000) throw new Error('SOURCE_SIZE_INVALID');
     if (image.type !== 'image/png' && image.type !== 'image/jpeg') throw new Error('SOURCE_TYPE_INVALID');
     sourceBlob = image;
-    await player.load(command.animationPlan.plan);
+    await player.load(command.animationPlan.plan, {
+      sceneExplorationPlan: command.sceneExplorationPlan,
+      sceneFocusPlan: command.sceneFocusPlan,
+    });
     launch = command;
     playButton.disabled = false;
     playButton.textContent = 'Tạm dừng / tiếp tục';

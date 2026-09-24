@@ -30,17 +30,17 @@ The workspace harness and approved architecture skeleton are established and sec
 - MVP ambition: cover the full experience, divided into four owned workstreams.
 - Delivery model: Sprint 1 uses four independently runnable, fixture/contract-driven workstreams; integration runtime work is deferred to a separately planned Integration Sprint.
 - Planning distinction: the project roadmap is dependency-driven, while team sprint assignment is parallel-workstream-driven; one must not be used as the other.
-- Mobile delivery: Android-only, bare React Native, one app with role-based child/parent/guide modes.
+- Mobile delivery: Android-only, bare React Native, one app with adult Parent/Guide modes and supervised child participation; child has no role or credential.
 - Android identity and support: `com.sketch2life.mobile`; minSdk 29, targetSdk 36, compileSdk 37.
 - AI connectivity: every provider is backend-only through an authenticated adapter; the current Lightning account is not treated as private networking.
 - AI provider lifecycle: Lightning AI is fixture/dev only on the current normal account; Runpod Serverless is the production target behind the same backend port.
 - Async progress default: bounded HTTP polling for MVP, revisited only with measured evidence.
-- Authentication: Firebase Authentication only, verified by the backend; no Firebase Storage/Firestore/Realtime Database.
+- Authentication: Firebase Authentication only, verified by the backend; test uses the owner-controlled real Firebase project; no Firebase Storage/Firestore/Realtime Database.
 - Account model: parent/guide users authenticate with Google Sign-In or email/password; child mode has no independent child account.
 - Ownership model: each ChildProfile has exactly one Owner Caregiver (parent or legal guardian); one Owner Caregiver can create many ChildProfiles; ChildProfile has no login credential.
 - Guide model: a ChildProfile can have multiple Guide assignments, including overlapping assignments. Parent-created assignments are effective immediately and notify the Guide; exceptional Admin-created assignments notify both Owner and Guide. Share durations are 3/7/15/30 days, and the Owner can revoke immediately.
 - Session model: each Guide can run one session at a time. A Guide session notifies the Owner, exposes a live redacted projection to the Owner, and stops immediately when the Owner revokes the Guide assignment.
-- Product surfaces: mobile and Guide Console are MVP surfaces. Parent Web is a Phase 2 management/monitoring surface using the same backend authorization; it is not implicitly a session runner.
+- Product surfaces: mobile, desktop Guide Console and responsive Parent Web are all target operational surfaces using the same backend authorization. Parent Web is not implicitly a session runner unless a separate command contract is approved.
 - MVP media scope: personalized animation, narrated story, and learning micro-video are included in the owner-approved MVP target. Research dataset release remains separately gated.
 - Observability: durable domain/session events and audit records are authoritative. Grafana is an operations/dashboard layer over redacted logs, metrics, and traces; raw child media and credentials never enter telemetry.
 - Child data lifecycle: Owner selects 30/60/90 days for child/session data classes. Expired data becomes inaccessible archive data before purge. Audit retention follows a separate policy. Admin raw-content access is break-glass, reason-required, temporary in scope, and audited.
@@ -72,11 +72,11 @@ The attached handbook proposes a modular monolith plus workers, a FastAPI/Pydant
 
 See `features/FEAT-001-stack-and-team-plan/TEAM_ALLOCATION.md` and ADR-0006 for the revised Sprint 1 allocation, FEAT-008 for the generic skeleton, FEAT-009 for Android foundation, and FEAT-010 for auth/release/AI-provider strategy. Remaining integration questions are listed in `docs/setup/SYSTEM_QUESTIONS.md`.
 
-The following remain open and must not be invented by implementation: exact notification channel/retry matrix; Guide field-level access to raw media/history; Parent Web session creation; break-glass dual approval, notice and time window; physical database/object-storage/queue/Grafana deployment; legal-guardian verification and child assent for age 7+; backup/provider-copy deletion; production SLO/RPO/RTO; account lifecycle and Admin provisioning.
+The following remain open and must not be invented by implementation: exact notification channel/retry matrix; Guide field-level access to raw media/history; Parent Web session-creation command UX; break-glass dual approval, notice and time window; physical deployment details; legal-guardian verification and child assent for age 7+; backup/provider-copy deletion; production SLO/RPO/RTO; account lifecycle and Admin provisioning. Test-stage rate limits, redacted backend monitoring and adult-only role enforcement are requirements, not optional scope.
 
 ## Master SRS scope closure — 2026-09-19
 
-The owner-approved target baseline is recorded in `features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md` v1.3 and the feature evidence note `features/FEAT-029-master-srs/evidence/notes/OWNER_SCOPE_CLOSURE_20260919.md`. It covers the B4–B12 workflow plus complete SRS sections for actors, relationships, schemas, contracts, state, security, observability, retention, Parent Web and verification. This is a requirements baseline; it does not authorize runtime implementation, provider calls, cloud provisioning, contract migration or deployment.
+The owner-approved target baseline is recorded in `features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md` v1.6 and the feature evidence notes `OWNER_SCOPE_CLOSURE_20260919.md`, `OWNER_REQUIREMENTS_CLOSURE_20260923.md` and `SRS_DETAIL_EXPANSION_20260923.md`. It covers the B4–B12 workflow plus complete SRS sections for actors, relationships, schemas, contracts, state, security, observability, retention, Parent Web, verification and implementation-grade test detail. This is a requirements baseline; it does not authorize runtime implementation, provider calls, cloud provisioning, contract migration or deployment.
 
 ## Cross-workstream review snapshot — 2026-09-05
 

@@ -202,6 +202,29 @@ describe('art animation fixture protocol', () => {
       durationSeconds: 7.7,
       state: 'PLAYING',
     }).state).toBe('PLAYING');
+    expect(PlaybackEventSchema.parse({
+      type: 'INTRO_COMPLETED',
+      planId: 'fixture-butterfly-art-animation',
+    })).toMatchObject({type: 'INTRO_COMPLETED'});
+    expect(PlaybackEventSchema.parse({
+      type: 'DISCOVERY_READY',
+      planId: 'fixture-butterfly-art-animation',
+      targetCount: 2,
+    })).toMatchObject({type: 'DISCOVERY_READY', targetCount: 2});
+    expect(PlaybackEventSchema.parse({
+      type: 'CANVAS_TAPPED',
+      planId: 'fixture-butterfly-art-animation',
+    })).toMatchObject({type: 'CANVAS_TAPPED'});
+    expect(RendererPlaybackStateEnvelopeSchema.parse({
+      protocolVersion: '1',
+      rendererInstanceId: 'renderer-1',
+      sequence: 4,
+      type: 'PLAYBACK_STATE',
+      positionSeconds: 7,
+      durationSeconds: 7,
+      state: 'COMPLETED',
+      interactionPhase: 'DISCOVERY_READY',
+    }).interactionPhase).toBe('DISCOVERY_READY');
   });
 
   it('parses the source-only Python launch shape when optional values are omitted', () => {

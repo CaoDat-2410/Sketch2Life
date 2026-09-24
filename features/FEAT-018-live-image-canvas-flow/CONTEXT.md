@@ -398,3 +398,24 @@ P2-T5, mobile, Gate A UI, P1 eligibility, P3/P4 and shared integration remain se
   auth, durable persistence, FEAT-003 and live Lightning calls remain excluded from this branch.
 - Verification is recorded in
   `evidence/notes/PERSONALIZED_DRAWING_EXPLORATION_IMPLEMENTATION_20260923.md`.
+
+## Pixi fullscreen intro and direct hotspot discovery — 2026-09-23
+
+- Implemented the approved fullscreen interaction slice on `codex/feat-018-pixi-exploration`.
+  The WebView stage now occupies the full landscape viewport; the native header/timeline are an
+  auto-hidden overlay, and the Android navigation/status UI is restored on Back, Continue,
+  unmount, retry and renderer failure.
+- Renderer playback now exposes bounded `INTRO_LOADING`, `INTRO_PLAYING`, `DISCOVERY_READY`,
+  `DISCOVERY_FOCUSED` and `FALLBACK` phases. Hotspot listeners are attached only after the intro
+  completes and a validated `SceneFocusPlanV1` exists. Empty-canvas taps toggle the chrome and
+  accepted subject taps emit focus/discovery events with the short Vietnamese label.
+- Added the provider-neutral `SceneLocalizationPort` seam. The current demo still accepts only
+  supervised `scene_focus_regions`; absent or invalid geometry remains an honest fallback and
+  never invents a subject region. This keeps semantic Qwen output separate from localization and
+  leaves the future Lightning/local model adapter replaceable.
+- Hardened source-image lifecycle by reading `ImageBitmap` dimensions before release, rebuilt the
+  served Pixi bundle, and added `expo-navigation-bar` for native immersive mode. A stale Metro
+  process was restarted after the dependency install; the Android dev build then launched without
+  a red-screen or native crash.
+- Verification is recorded in
+  `evidence/notes/PIXI_FULLSCREEN_INTRO_HOTSPOT_DISCOVERY_IMPLEMENTATION_20260923.md`.

@@ -3,7 +3,15 @@ import {gsap} from 'gsap';
 
 import {loadChildArtAssetInstructions} from './assets';
 import {createRendererBenchmarkSample, type RendererBenchmarkSample} from './benchmark';
-import type {ArtAnimationPlan, PlaybackEvent, SourceRegion, Transform} from './contracts';
+import type {
+  ArtAnimationPlan,
+  PlaybackEvent,
+  RendererInteractionPhase,
+  SceneExplorationPlan,
+  SceneFocusPlan,
+  SourceRegion,
+  Transform,
+} from './contracts';
 import {buildPreservingFallbackPlan} from './fallback';
 import {compileMotionPlan} from './motion';
 import {validateArtAnimationPlan} from './validation';
@@ -15,14 +23,20 @@ export interface BrowserArtPlayerOptions {
   readonly onProgress?: (state: BrowserPlaybackState) => void;
 }
 
+export interface BrowserArtPlayerLoadOptions {
+  readonly sceneExplorationPlan?: SceneExplorationPlan;
+  readonly sceneFocusPlan?: SceneFocusPlan;
+}
+
 export interface BrowserPlaybackState {
   readonly positionSeconds: number;
   readonly durationSeconds: number;
   readonly state: 'READY' | 'PLAYING' | 'PAUSED' | 'COMPLETED';
+  readonly interactionPhase: RendererInteractionPhase;
 }
 
 export interface BrowserArtPlayer {
-  load(input: unknown): Promise<void>;
+  load(input: unknown, context?: BrowserArtPlayerLoadOptions): Promise<void>;
   play(): void;
   pause(): void;
   replay(): void;
@@ -35,6 +49,7 @@ export interface BrowserArtPlayer {
 
 interface LoadedPlan {
   readonly plan: ArtAnimationPlan;
+  readonly context: BrowserArtPlayerLoadOptions;
   readonly sprites: ReadonlyMap<string, Sprite>;
   readonly loadedAt: number;
 }
@@ -65,12 +80,20 @@ export function createBrowserArtPlayer(options: BrowserArtPlayerOptions): Browse
     positionSeconds: 0,
     durationSeconds: 0,
     state: 'READY',
+    interactionPhase: 'INTRO_LOADING',
   };
+  let interactionPhase: RendererInteractionPhase = 'INTRO_LOADING';
+  let lastFocusObjectId: string | null = null;
+  let lastFocusAt = 0;
 
   const emit = (event: PlaybackEvent): void => options.onEvent?.(event);
   const publishProgress = (state: BrowserPlaybackState): void => {
     playbackState = state;
     options.onProgress?.(state);
+  };
+  const setInteractionPhase = (next: RendererInteractionPhase): void => {
+    interactionPhase = next;
+    publishProgress({...playbackState, interactionPhase: next});
   };
   const clampTime = (seconds: number): number => Math.min(
     Math.max(Number.isFinite(seconds) ? seconds : 0, 0),
@@ -94,12 +117,16 @@ export function createBrowserArtPlayer(options: BrowserArtPlayerOptions): Browse
   };
 
   return {
-    async load(input: unknown): Promise<void> {
+    async load(input: unknown, context: BrowserArtPlayerLoadOptions = {}): Promise<void> {
       stopFrameCounter();
       timeline?.kill();
       timeline = null;
-      scene.removeChildren();
+      scene.removeAllListeners();
+      scene.removeChildren().forEach((child) => child.destroy());
       lastBenchmark = null;
+      interactionPhase = 'INTRO_LOADING';
+      lastFocusObjectId = null;
+      lastFocusAt = 0;
 
       let plan = validateArtAnimationPlan(input);
       const fallbackObject = plan.objects.find((object) => object.extractionStatus === 'FALLBACK_REQUIRED');
@@ -111,8 +138,16 @@ export function createBrowserArtPlayer(options: BrowserArtPlayerOptions): Browse
 
       const startedAt = performance.now();
       options.app.renderer.resize(plan.stage.width, plan.stage.height);
+      scene.eventMode = 'static';
+      scene.sortableChildren = true;
+      scene.hitArea = new Rectangle(0, 0, plan.stage.width, plan.stage.height);
+      scene.on('pointertap', (event) => {
+        if (event.target !== scene) return;
+        if (interactionPhase !== 'DISCOVERY_READY' && interactionPhase !== 'DISCOVERY_FOCUSED' && interactionPhase !== 'FALLBACK') return;
+        emit({type: 'CANVAS_TAPPED', planId: plan.planId});
+      });
       const spriteEntries = await Promise.all(
-        loadChildArtAssetInstructions(plan).map(async (instruction) => {
+        loadChildArtAssetInstructions(plan).map(async (instruction, targetOrder) => {
           const object = plan.objects.find((candidate) => candidate.id === instruction.objectId);
           if (object === undefined) {
             throw new Error(`Asset instruction has no matching object: ${instruction.objectId}`);
@@ -125,9 +160,30 @@ export function createBrowserArtPlayer(options: BrowserArtPlayerOptions): Browse
           sprite.anchor.set(0.5);
           setTransform(sprite, object.initialTransform, plan);
           if (object.interactive) {
+            const focusTarget = context.sceneFocusPlan?.targets.find(
+              (target) => `focus-${target.targetRef}` === object.id,
+            );
+            const hitSlop = focusTarget?.hitSlop ?? 0;
+            const localSlopX = (plan.stage.width * hitSlop) / Math.max(sprite.scale.x, 0.01);
+            const localSlopY = (plan.stage.height * hitSlop) / Math.max(sprite.scale.y, 0.01);
+            sprite.hitArea = new Rectangle(
+              -sprite.texture.width / 2 - localSlopX,
+              -sprite.texture.height / 2 - localSlopY,
+              sprite.texture.width + localSlopX * 2,
+              sprite.texture.height + localSlopY * 2,
+            );
+            sprite.zIndex = (focusTarget?.depthLayer ?? 1) * 1000
+              + Math.round((focusTarget?.regionConfidence ?? 0) * 100)
+              + targetOrder;
             sprite.eventMode = 'static';
             sprite.cursor = 'pointer';
             sprite.on('pointertap', () => {
+              if (interactionPhase !== 'DISCOVERY_READY' && interactionPhase !== 'DISCOVERY_FOCUSED') return;
+              const now = performance.now();
+              if (lastFocusObjectId === object.id && now - lastFocusAt < 350) return;
+              lastFocusObjectId = object.id;
+              lastFocusAt = now;
+              setInteractionPhase('DISCOVERY_FOCUSED');
               emit({
                 type: 'FOCUS_CHANGED',
                 planId: plan.planId,
@@ -148,10 +204,14 @@ export function createBrowserArtPlayer(options: BrowserArtPlayerOptions): Browse
 
       loaded = {
         plan,
+        context,
         sprites: new Map(spriteEntries),
         loadedAt: startedAt,
       };
-      publishProgress({positionSeconds: 0, durationSeconds: 0, state: 'READY'});
+      if (context.sceneFocusPlan?.extractionStatus === 'FALLBACK_REQUIRED') {
+        interactionPhase = 'FALLBACK';
+      }
+      publishProgress({positionSeconds: 0, durationSeconds: 0, state: 'READY', interactionPhase});
       lastBenchmark = createRendererBenchmarkSample(plan.planId, startedAt, performance.now(), 0);
     },
 
@@ -163,10 +223,12 @@ export function createBrowserArtPlayer(options: BrowserArtPlayerOptions): Browse
       if (timeline !== null) {
         startFrameCounter();
         timeline.play();
+        setInteractionPhase('INTRO_PLAYING');
         publishProgress({
           positionSeconds: timeline.time(),
           durationSeconds: timeline.duration(),
           state: 'PLAYING',
+          interactionPhase,
         });
         return;
       }
@@ -182,6 +244,7 @@ export function createBrowserArtPlayer(options: BrowserArtPlayerOptions): Browse
             positionSeconds: timeline.time(),
             durationSeconds: timeline.duration(),
             state: timeline.paused() ? 'PAUSED' : 'PLAYING',
+            interactionPhase,
           });
         },
         onComplete: () => {
@@ -192,12 +255,27 @@ export function createBrowserArtPlayer(options: BrowserArtPlayerOptions): Browse
             performance.now(),
             framesRendered,
           );
-          emit({type: 'PLAYBACK_COMPLETED', planId: loaded?.plan.planId ?? 'unknown-plan'});
+          const planId = loaded?.plan.planId ?? 'unknown-plan';
+          emit({type: 'PLAYBACK_COMPLETED', planId});
+          emit({type: 'INTRO_COMPLETED', planId});
+          const focusReady = loaded?.context.sceneFocusPlan?.extractionStatus === 'READY';
+          if (focusReady) {
+            interactionPhase = 'DISCOVERY_READY';
+            emit({
+              type: 'DISCOVERY_READY',
+              planId,
+              targetCount: loaded?.context.sceneFocusPlan?.targets.length ?? 0,
+            });
+          } else {
+            interactionPhase = 'FALLBACK';
+            emit({type: 'FALLBACK_APPLIED', planId, reason: 'EXTRACTION_UNAVAILABLE'});
+          }
           const durationSeconds = timeline?.duration() ?? playbackState.durationSeconds;
           publishProgress({
             positionSeconds: durationSeconds,
             durationSeconds,
             state: 'COMPLETED',
+            interactionPhase,
           });
         },
       });
@@ -251,7 +329,9 @@ export function createBrowserArtPlayer(options: BrowserArtPlayerOptions): Browse
         positionSeconds: 0,
         durationSeconds: timeline.duration(),
         state: 'PLAYING',
+        interactionPhase: 'INTRO_PLAYING',
       });
+      interactionPhase = 'INTRO_PLAYING';
       timeline.play(0);
     },
 
@@ -263,6 +343,7 @@ export function createBrowserArtPlayer(options: BrowserArtPlayerOptions): Browse
         positionSeconds: timeline.time(),
         durationSeconds: timeline.duration(),
         state: 'PAUSED',
+        interactionPhase,
       });
     },
 
@@ -272,7 +353,10 @@ export function createBrowserArtPlayer(options: BrowserArtPlayerOptions): Browse
       }
       emit({type: 'PLAYBACK_STARTED', planId: loaded?.plan.planId ?? 'unknown-plan'});
       startFrameCounter(true);
-      publishProgress({positionSeconds: 0, durationSeconds: timeline.duration(), state: 'PLAYING'});
+      interactionPhase = 'INTRO_PLAYING';
+      lastFocusObjectId = null;
+      lastFocusAt = 0;
+      publishProgress({positionSeconds: 0, durationSeconds: timeline.duration(), state: 'PLAYING', interactionPhase});
       timeline.restart();
     },
 
@@ -280,14 +364,14 @@ export function createBrowserArtPlayer(options: BrowserArtPlayerOptions): Browse
       if (timeline === null) return;
       const next = clampTime(seconds);
       timeline.time(next, false);
-      publishProgress({...playbackState, positionSeconds: next, durationSeconds: timeline.duration()});
+      publishProgress({...playbackState, positionSeconds: next, durationSeconds: timeline.duration(), interactionPhase});
     },
 
     seekRelative(seconds: number): void {
       if (timeline === null) return;
       const next = clampTime(timeline.time() + seconds);
       timeline.time(next, false);
-      publishProgress({...playbackState, positionSeconds: next, durationSeconds: timeline.duration()});
+      publishProgress({...playbackState, positionSeconds: next, durationSeconds: timeline.duration(), interactionPhase});
     },
 
     getPlaybackState(): BrowserPlaybackState {
@@ -300,7 +384,10 @@ export function createBrowserArtPlayer(options: BrowserArtPlayerOptions): Browse
       timeline = null;
       scene.destroy({children: true});
       loaded = null;
-      playbackState = {positionSeconds: 0, durationSeconds: 0, state: 'READY'};
+      interactionPhase = 'INTRO_LOADING';
+      lastFocusObjectId = null;
+      lastFocusAt = 0;
+      playbackState = {positionSeconds: 0, durationSeconds: 0, state: 'READY', interactionPhase};
     },
 
     getLastBenchmark(): RendererBenchmarkSample | null {

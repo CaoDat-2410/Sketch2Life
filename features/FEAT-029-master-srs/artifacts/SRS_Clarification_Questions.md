@@ -198,3 +198,11 @@ Nếu muốn trả lời nhanh, ưu tiên các mục còn mở: **Q-002–003 (s
 | Admin raw access | Break-glass. | B25 safeguards; dual approval/time window/notice remain OPEN_TBD. |
 
 
+# Supersession note — 2026-09-23
+
+The owner answered the architecture and scope questions in the current conversation. The current
+answers are authoritative in `Sketch2Life_Master_SRS.md` v1.6 and
+`evidence/notes/OWNER_REQUIREMENTS_CLOSURE_20260923.md`. In particular, Parent Web is required
+target scope rather than a Phase 2 exclusion, Firebase real-project test integration is approved,
+adult roles are mutually exclusive, and there is no child role or credential. The questions below
+remain as historical traceability unless explicitly marked open in SRS v1.6.

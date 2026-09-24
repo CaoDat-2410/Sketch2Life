@@ -51,3 +51,27 @@
   and must not be shown as success. The current video artifact is process-local/session-only;
   auth and durable save remain future work. MP4 implementation is the next implementation task;
   this decision changes the SRS target only and does not authorize runtime code or provider calls.
+
+- 2026-09-23: Owner approved the test architecture baseline: FastAPI/Python modular monolith,
+  PostgreSQL, Redis/RQ, MinIO local, Android React Native, desktop-first React/TypeScript Guide
+  Console, responsive React/TypeScript Parent Web, REST/OpenAPI and bounded HTTP polling.
+- 2026-09-23: Owner directed that test authentication use the real owner-controlled Firebase
+  Authentication project. Backend verification remains authoritative; credentials stay outside the
+  repository and Firebase Storage/Firestore/Realtime Database remain forbidden.
+- 2026-09-23: Owner rejected multi-role adult accounts. Only mutually exclusive adult roles
+  `PARENT`, `GUIDE` and `ADMIN` exist. Child is a supervised participant, not a role and not an
+  authenticated account.
+- 2026-09-23: Owner promoted Parent Web from a sequencing/Phase-2 label to required target
+  operational scope. Parent Web must support mobile and desktop browsers; Guide Console is required
+  and desktop-first. UI is Vietnamese-first.
+- 2026-09-23: Parent live monitoring is restricted to phase, status, progress and update time plus
+  minimum aliases; technical errors, provider details, prompts, traces, job payloads and raw child
+  content are not exposed.
+- 2026-09-23: Backend operational monitoring, rate limiting, retry budgets, idempotency and
+  concurrency guards are mandatory test requirements. Lightning connectivity, AI/provider stress
+  testing and production deployment are explicitly outside the current stage.
+- 2026-09-23: Expand the master SRS to v1.6 with an implementation-grade annex. The annex may
+  decompose existing decisions into topology, bounded contexts, role/resource actions, state
+  transitions, API behavior, UI requirements, monitoring, rate-limit/idempotency tests, synthetic
+  fixtures, verification layers and implementation order, but must not invent new production SLOs,
+  provider decisions or unresolved B28 answers.

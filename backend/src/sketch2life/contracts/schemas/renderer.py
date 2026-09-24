@@ -304,6 +304,28 @@ class RendererPlaybackCompletedV1(BaseModel):
     planId: str = Field(min_length=1, max_length=120)
 
 
+class RendererIntroCompletedV1(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    type: Literal["INTRO_COMPLETED"]
+    planId: str = Field(min_length=1, max_length=120)
+
+
+class RendererDiscoveryReadyV1(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    type: Literal["DISCOVERY_READY"]
+    planId: str = Field(min_length=1, max_length=120)
+    targetCount: int = Field(ge=0, le=3)
+
+
+class RendererCanvasTappedV1(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    type: Literal["CANVAS_TAPPED"]
+    planId: str = Field(min_length=1, max_length=120)
+
+
 class RendererFallbackAppliedV1(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
@@ -342,6 +364,9 @@ class RendererFocusChangedV1(BaseModel):
 RendererEventV1 = Annotated[
     RendererPlaybackStartedV1
     | RendererPlaybackCompletedV1
+    | RendererIntroCompletedV1
+    | RendererDiscoveryReadyV1
+    | RendererCanvasTappedV1
     | RendererFallbackAppliedV1
     | RendererPlaybackFailedV1
     | RendererEntityDiscoveredV1
@@ -358,11 +383,14 @@ __all__ = [
     "PixiManifestAssetV1",
     "PixiRendererLaunchV1",
     "RendererBootstrapV1",
+    "RendererCanvasTappedV1",
     "RendererChildArtAssetV1",
+    "RendererDiscoveryReadyV1",
     "RendererEntityDiscoveredV1",
     "RendererEventAdapterV1",
     "RendererEventV1",
     "RendererFocusChangedV1",
+    "RendererIntroCompletedV1",
     "SceneExplorationPlanV1",
     "SceneFocusPlanV1",
     "SourceRegionV1",

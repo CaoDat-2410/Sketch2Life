@@ -165,6 +165,18 @@ def build_scene_exploration_plan(
                     tap_enabled=True,
                 )
             )
+    else:
+        beats.append(
+            SceneExplorationBeatV1(
+                beat_id="whole-scene-context",
+                order=3,
+                effect="ZOOM_OUT",
+                label_vi="bức tranh",
+                caption_vi="Con cùng nhìn lại cả bức tranh nhé.",
+                start_seconds=3.5,
+                end_seconds=5.2,
+            )
+        )
     beats.append(
         SceneExplorationBeatV1(
             beat_id="learning-bridge",
@@ -172,7 +184,7 @@ def build_scene_exploration_plan(
             effect="ZOOM_OUT",
             label_vi="bức tranh",
             caption_vi=learning_bridge_vi[:180],
-            start_seconds=5.7 if len(beats) == 2 else 5.7,
+            start_seconds=5.2 if len(beats) == 3 else 5.7,
             end_seconds=7.3,
         )
     )
@@ -206,6 +218,17 @@ def build_scene_focus_plan(
             source_artifact_sha256=raw.source_image_ref.sha256,
             extraction_status="FALLBACK_REQUIRED",
             fallback_reason="NO_LOCALIZER",
+        )
+
+    candidate_ids = {candidate.candidate_id for candidate in candidates.items}
+    if len(region_hints) > 3 or any(ref not in candidate_ids for ref in region_hints):
+        return SceneFocusPlanV1(
+            session_id=session_id,
+            experience_spec_ref=experience_spec_ref,
+            source_artifact_ref=raw.source_image_ref.artifact_ref,
+            source_artifact_sha256=raw.source_image_ref.sha256,
+            extraction_status="FALLBACK_REQUIRED",
+            fallback_reason="REGION_INVALID",
         )
 
     targets: list[SceneFocusTargetV1] = []

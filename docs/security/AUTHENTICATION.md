@@ -49,7 +49,9 @@ All media and artifact persistence goes through the backend's S3-compatible obje
 
 ## Environment rules
 
-- Local/test may use development identities or Firebase Auth Emulator fixtures.
+- Current test integration uses the owner-controlled real Firebase Authentication project with
+  dedicated test accounts. Firebase Auth Emulator remains permitted for isolated unit tests, but
+  it is not the required end-to-end test path.
 - Staging/production require Firebase Authentication and an explicit project ID.
 - Service credentials are runtime secret references; use workload identity where hosting supports it.
 - Production must enable appropriate provider protections, quota alerts, account recovery, and least-privilege administrator access.

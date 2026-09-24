@@ -37,3 +37,34 @@
 - 2026-09-19: Owner approved combined notification channels, Grafana-based observability, durable business/audit logs, and separate audit retention.
 - 2026-09-19: Owner approved full child/session data retention classes under the 30/60/90-day policy, archive-to-restricted-storage before purge, and Admin raw-content access only through break-glass.
 - 2026-09-19: Documentation scope authorizes updating the master Markdown SRS and feature records. It does not authorize application implementation, provider calls, cloud provisioning, contract migration, or deployment.
+
+## Addendum — owner requirements closure for v1.5
+
+- 2026-09-23: Owner approved updating the SRS and feature records with the architecture and
+  requirements answers recorded in `evidence/notes/OWNER_REQUIREMENTS_CLOSURE_20260923.md`.
+- Approved target: FastAPI/Python modular monolith, PostgreSQL, Redis/RQ, MinIO local, Android
+  React Native, desktop-first Guide Console, responsive Parent Web, REST/OpenAPI and bounded polling.
+- Approved test authentication: real owner-controlled Firebase Authentication project with backend
+  token verification. Secrets remain runtime-only and no Firebase data products may be introduced.
+- Approved role model: mutually exclusive adult `PARENT`, `GUIDE`, `ADMIN`; no child role or child
+  credential.
+- Approved scope: Parent Web and Guide Console are required operational surfaces; Parent Web is not
+  deferred to a Phase 2 scope. Vietnamese is the first UI language.
+- Approved Parent projection: phase, status, progress and update time only, with minimum aliases;
+  technical errors and internal processing metadata are excluded.
+- Approved test requirements: rate limits, retry budgets, idempotency, concurrency guards and
+  redacted backend operational monitoring. Lightning connectivity, AI stress testing, cloud
+  provisioning and production release remain outside this documentation update.
+- This addendum authorizes SRS/context/ADR/evidence/status updates only. It does not authorize
+  runtime implementation or Firebase/provider calls in this turn.
+
+## Addendum — implementation-grade SRS detail expansion v1.6
+
+- 2026-09-23: The owner requested a more detailed SRS for the complete target and test operation.
+- Approved documentation expansion: local test topology, bounded contexts, role/resource matrix,
+  state transitions, API behavior, screen requirements, monitoring signals, rate-limit/idempotency
+  behavior, synthetic personas/fixtures, verification layers and implementation sequencing.
+- No new product decision is inferred by this expansion. Numeric production SLO/capacity, provider
+  execution, cloud deployment, production release and unresolved B28 questions remain unchanged.
+- This addendum authorizes documentation/evidence/status updates only; it does not authorize runtime
+  code, Firebase calls, Lightning calls or deployment.

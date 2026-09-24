@@ -182,3 +182,13 @@
   events are bounded and Vietnamese; the mobile shell also exposes at most three subject chips so
   discovery remains usable when geometry is unavailable. The future video implementation consumes
   the unchanged placeholder/handoff seam.
+- 2026-09-23 implementation decision: Pixi entry is now an immersive landscape intro followed by
+  direct image interaction. `INTRO_COMPLETED` and `DISCOVERY_READY` stay separate so a child cannot
+  tap a hotspot while the reveal/localization phase is still running. The control row is overlay
+  chrome with a three-second idle hide; empty-canvas taps reveal it again. Native orientation and
+  navigation-bar state are restored on every exit path.
+- 2026-09-23 implementation decision: add `SceneLocalizationPort` as the application boundary for
+  future local/Lightning geometry adapters. The port may return normalized regions only for the
+  already-confirmed candidate refs; the existing `build_scene_focus_plan` remains the single
+  validator. No localizer result means `FALLBACK_REQUIRED`, preserving the original drawing and
+  preventing guessed hitboxes.

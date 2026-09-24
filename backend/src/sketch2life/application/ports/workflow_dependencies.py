@@ -11,6 +11,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any, Protocol
 
+from sketch2life.contracts.schemas.activity_preparation import ActivityPreparationProfileV1
 from sketch2life.application.services.media_validation import (
     MediaValidationRequest,
 )
@@ -83,6 +84,10 @@ class ActivityCatalogMetadataPort(Protocol):
     def duration_spec(self, activity_id: str) -> dict[str, Any] | None: ...
 
     def recommendation_display(self, activity_id: str) -> dict[str, Any] | None: ...
+
+    def preparation_profile(
+        self, activity_id: str, activity_version: int = 1
+    ) -> ActivityPreparationProfileV1: ...
 
 
 @dataclass(frozen=True, slots=True)
