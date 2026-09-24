@@ -16,6 +16,7 @@ from sketch2life.application.services.whiteboard_video_job import (
     UnconfiguredWhiteboardVideoPipeline,
     WhiteboardVideoJobService,
 )
+from sketch2life.application.services.whiteboard_video_pipeline import WhiteboardVideoPipeline
 from sketch2life.contracts.schemas.asr import AsrProfileId
 from sketch2life.contracts.schemas.workflow_records import SessionSnapshotV1
 from sketch2life.infrastructure.ai.lightning_client import (
@@ -66,6 +67,7 @@ def create_app(
     live_image_demo_service: LiveImageDemoService | None = None,
     supervised_flow_service: SupervisedFlowService | None = None,
     whiteboard_video_job_service: WhiteboardVideoJobService | None = None,
+    whiteboard_video_pipeline: WhiteboardVideoPipeline | None = None,
 ) -> FastAPI:
     """Create the local image-only API composition root with ephemeral adapters."""
     application = FastAPI(
@@ -156,7 +158,7 @@ def create_app(
     application.state.supervised_flow_service = supervised_flow_service
     if whiteboard_video_job_service is None:
         whiteboard_video_job_service = WhiteboardVideoJobService(
-            pipeline=UnconfiguredWhiteboardVideoPipeline()
+            pipeline=whiteboard_video_pipeline or UnconfiguredWhiteboardVideoPipeline()
         )
     application.state.whiteboard_video_job_service = whiteboard_video_job_service
     application.include_router(health_router)
