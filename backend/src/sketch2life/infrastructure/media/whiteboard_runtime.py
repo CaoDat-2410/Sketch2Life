@@ -104,6 +104,8 @@ class FfmpegWhiteboardEncoder:
             "128k",
             "-t",
             "8.0",
+            "-r",
+            "30",
             str(output),
         ]
         completed = subprocess.run(command, capture_output=True, text=True, timeout=45)

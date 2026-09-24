@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Request, status
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
+from pathlib import Path
 
 from sketch2life.application.services.whiteboard_video_job import WhiteboardVideoJobService
 from sketch2life.contracts.schemas.whiteboard_video import (
@@ -80,7 +81,37 @@ def get_whiteboard_video_status(session_id: str, request: Request) -> Whiteboard
         progress=job.progress,
         retryable=job.status == "RETRYABLE_FAILURE",
         retry_action="RETRY" if job.status == "RETRYABLE_FAILURE" else "NONE",
-        video_artifact_ref=result.mp4_ref if result is not None and job.status == "READY" else None,
+        video_artifact_ref=(
+            str(request.url_for("stream_whiteboard_video", session_id=session_id))
+            if result is not None and job.status == "READY"
+            else None
+        ),
+    )
+
+
+@router.get(
+    "/{session_id}/whiteboard-video/file",
+    name="stream_whiteboard_video",
+    response_class=FileResponse,
+)
+def stream_whiteboard_video(session_id: str, request: Request) -> FileResponse:
+    """Stream the ready MP4 through an HTTP URL usable by a browser video tag."""
+
+    service = _service(request)
+    matching = service.store.for_session(session_id)
+    if not matching:
+        raise HTTPException(status_code=404, detail="WHITEBOARD_VIDEO_NOT_FOUND")
+    job = max(matching, key=lambda item: item.created_at)
+    result = service.result(job.job_id)
+    if job.status != "READY" or result is None:
+        raise HTTPException(status_code=409, detail="WHITEBOARD_VIDEO_NOT_READY")
+    path = Path(result.mp4_ref)
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="WHITEBOARD_VIDEO_FILE_NOT_FOUND")
+    return FileResponse(
+        path,
+        media_type="video/mp4",
+        filename=f"{job.job_id}.mp4",
     )
 
 
