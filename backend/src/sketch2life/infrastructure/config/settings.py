@@ -39,6 +39,7 @@ class Settings(BaseSettings):
     lightning_asr_path: str = "/v1/asr"
     lightning_vision_path: str = "/v1/vision"
     lightning_vision_v2_path: str = "/v2/vision"
+    lightning_whiteboard_localization_path: str = "/v1/whiteboard/localize"
     live_fixture_root: Path | None = None
     runpod_endpoint_id: str = ""
     runpod_api_key_file: Path | None = None
