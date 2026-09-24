@@ -40,6 +40,10 @@ class Settings(BaseSettings):
     lightning_vision_path: str = "/v1/vision"
     lightning_vision_v2_path: str = "/v2/vision"
     lightning_whiteboard_localization_path: str = "/v1/whiteboard/localize"
+    whiteboard_video_enabled: bool = False
+    whiteboard_video_auto_run: bool = False
+    whiteboard_video_artifact_root: Path = Path(".runtime/whiteboard")
+    whiteboard_video_max_size_bytes: int = Field(default=12 * 1024 * 1024, ge=1)
     live_fixture_root: Path | None = None
     runpod_endpoint_id: str = ""
     runpod_api_key_file: Path | None = None

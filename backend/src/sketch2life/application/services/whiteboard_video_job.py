@@ -83,6 +83,18 @@ class WhiteboardVideoJobService:
     def store(self) -> InMemoryWhiteboardVideoJobStore:
         return self._store
 
+    @property
+    def can_run(self) -> bool:
+        """Whether this service has a configured executable pipeline."""
+        return not isinstance(self._pipeline, UnconfiguredWhiteboardVideoPipeline)
+
+    def run_safely(self, job_id: str) -> None:
+        """Run a background job without leaking provider errors to the HTTP layer."""
+        try:
+            self.run(job_id)
+        except WhiteboardVideoPipelineError:
+            return
+
     def create_job(
         self,
         *,
@@ -151,7 +163,12 @@ class WhiteboardVideoJobService:
     def run(self, job_id: str) -> WhiteboardVideoResultV1:
         with self._lock:
             job = self._store.get(job_id)
-            self._update(job, status="RUNNING", progress=max(job.progress, 1))
+            self._update(
+                job,
+                status="RUNNING",
+                progress=max(job.progress, 1),
+                started_at=job.started_at or self._now(),
+            )
             job = self._store.get(job_id)
 
         try:

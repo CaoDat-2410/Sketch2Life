@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Request, status
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 
 from sketch2life.application.services.whiteboard_video_job import WhiteboardVideoJobService
@@ -31,6 +31,7 @@ def create_whiteboard_video_job(
     session_id: str,
     body: WhiteboardVideoCreateRequestV1,
     request: Request,
+    background_tasks: BackgroundTasks,
 ) -> JSONResponse:
     service = _service(request)
     try:
@@ -44,6 +45,8 @@ def create_whiteboard_video_job(
         )
     except ValueError as error:
         raise HTTPException(status_code=409, detail="IDEMPOTENCY_KEY_PAYLOAD_MISMATCH") from error
+    if not replayed and service.can_run:
+        background_tasks.add_task(service.run_safely, job.job_id)
     return JSONResponse(
         status_code=200 if replayed else 201,
         content=job.model_dump(mode="json"),
