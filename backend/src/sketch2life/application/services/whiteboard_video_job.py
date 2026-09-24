@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 from threading import RLock
@@ -12,6 +13,8 @@ from sketch2life.contracts.schemas.whiteboard_video import (
     WhiteboardVideoJobV1,
     WhiteboardVideoResultV1,
 )
+
+_LOGGER = logging.getLogger("sketch2life.whiteboard_video")
 
 
 class WhiteboardVideoPipelineError(RuntimeError):
@@ -92,7 +95,13 @@ class WhiteboardVideoJobService:
         """Run a background job without leaking provider errors to the HTTP layer."""
         try:
             self.run(job_id)
-        except WhiteboardVideoPipelineError:
+        except WhiteboardVideoPipelineError as error:
+            _LOGGER.error(
+                "whiteboard_job_failed job_id=%s code=%s retryable=%s",
+                job_id,
+                error.code,
+                error.retryable,
+            )
             return
 
     def create_job(
