@@ -35,6 +35,13 @@ Branch: `codex/feat-018-pixi-exploration`
 - `pnpm --dir packages/art-renderer run build:demo` — passed; local ignored `dist-demo` rebuilt.
 - `pnpm --dir apps/ui-mobile exec tsc --noEmit` — passed.
 - `pnpm --dir apps/ui-mobile test` — passed.
+- `backend/.venv/Scripts/python.exe -m pytest backend/tests/unit/test_lightning_scene_localization.py -q` — 3 passed;
+  validates PNG/JPEG `content_type`, unsupported-signature fail-closed behavior and digest mismatch.
+- The exact adapter payload validates against Lightning `_LocalizationRequestV1`; Ruff and compileall
+  passed after the contract fix.
+- Lightning request-validation failures now log only the endpoint and rejected field locations and
+  return a generic contract error body; image bytes, prompts, credentials and provider input are
+  not logged.
 - Full `backend/tests` was attempted but the host's shared pytest temporary directory returned
   Windows `Access denied`; the focused contract suite passed in the project virtualenv.
 

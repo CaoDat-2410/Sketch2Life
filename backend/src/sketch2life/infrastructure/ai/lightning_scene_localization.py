@@ -5,6 +5,7 @@ from __future__ import annotations
 import base64
 import hashlib
 from collections.abc import Callable, Mapping
+from typing import Literal
 
 from sketch2life.application.ports.scene_localization import SceneLocalizationRequest
 from sketch2life.infrastructure.ai.lightning_client import (
@@ -43,6 +44,9 @@ class LightningSceneLocalizationAdapter:
             digest = hashlib.sha256(image).hexdigest()
             if digest != request.source_artifact_sha256:
                 return None
+            content_type = _image_content_type(image)
+            if content_type is None:
+                return None
             raw = self._transport.post_json(
                 self._endpoint_path,
                 {
@@ -57,6 +61,7 @@ class LightningSceneLocalizationAdapter:
                     "source_image": {
                         "artifact_ref": request.source_artifact_ref,
                         "sha256": digest,
+                        "content_type": content_type,
                         "content_base64": base64.b64encode(image).decode("ascii"),
                     },
                     "targets": list(request.target_refs),
@@ -91,6 +96,16 @@ class LightningSceneLocalizationAdapter:
             return result or None
         except (KeyError, LightningProviderError, TimeoutError, TypeError, ValueError, OSError):
             return None
+
+
+def _image_content_type(image: bytes) -> Literal["image/jpeg", "image/png"] | None:
+    """Derive the provider MIME type from the admitted image signature."""
+
+    if image.startswith(b"\x89PNG\r\n\x1a\n"):
+        return "image/png"
+    if image.startswith(b"\xff\xd8\xff"):
+        return "image/jpeg"
+    return None
 
 
 __all__ = ["LightningSceneLocalizationAdapter"]

@@ -198,3 +198,7 @@
   and returns one grounded Vietnamese sentence before Gate A. Localization is an explicit backend-
   only Qwen/Lightning call; if it has no valid mask/region, use the approved spotlight/outline
   fallback and never fabricate a hitbox. The selected region and claim identity are reused by Pixi.
+- 2026-09-24 implementation decision: keep MIME detection at the backend Lightning adapter
+  boundary. `SceneLocalizationRequestV1.source_image.content_type` is derived from the admitted
+  image signature and is never supplied by mobile or inferred from an untrusted filename. Unknown
+  signatures and hash mismatches fail closed before the provider call.

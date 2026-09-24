@@ -20,7 +20,9 @@ from pathlib import Path
 from threading import Lock
 from typing import Literal
 
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import FastAPI, Header, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -273,6 +275,27 @@ class LightningAsrRequestV1(BaseModel):
 
 
 app = FastAPI(title="Sketch2Life Lightning Vision and ASR", version="2.1.0", redoc_url=None)
+
+
+@app.exception_handler(RequestValidationError)
+async def request_validation_error(
+    request: Request, exc: RequestValidationError
+) -> JSONResponse:
+    """Log only safe field locations for malformed provider requests."""
+
+    fields: list[str] = []
+    for error in exc.errors():
+        location = ".".join(
+            str(part) for part in error.get("loc", ()) if str(part) not in {"body"}
+        )
+        if location and location not in fields:
+            fields.append(location)
+    logger.warning(
+        "request_validation_failed path=%s fields=%s",
+        request.url.path,
+        ",".join(fields) or "UNKNOWN",
+    )
+    return JSONResponse(status_code=422, content={"detail": "request contract invalid"})
 
 
 @app.get("/health")

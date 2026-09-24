@@ -528,3 +528,78 @@ Implementation status:
 - the Gate-A screen uses direct subject hitboxes and `SELECT_SUBJECT`; topic-direction cards are
   retained only as a compatibility read model and are not rendered in the normal flow;
 - video/MP4 and provider execution remain excluded as approved.
+
+## 17. Proposed fix — Lightning `/v2/localize` 422 contract mismatch
+
+Status: `IMPLEMENTED — OFFLINE VERIFIED; LIVE LIGHTNING SMOKE TEST OWNER-RUN`
+
+### 17.1 Diagnosis
+
+The Lightning log shows `POST /v2/localize 422 Unprocessable Entity`. The failure occurs at
+FastAPI/Pydantic request validation, before `localize_v2` executes. The backend adapter currently
+sends this `source_image` shape:
+
+```json
+{
+  "artifact_ref": "...",
+  "sha256": "...",
+  "content_base64": "..."
+}
+```
+
+The Lightning `_SourceImageV1` contract requires one additional field:
+`content_type: "image/png" | "image/jpeg"`. The adapter already has the original bytes, so it
+can derive and validate this value before making the provider request. This is a client/provider
+contract mismatch, not a Qwen model failure and not an image-localization quality failure.
+
+### 17.2 Fix scope
+
+1. Fix `LightningSceneLocalizationAdapter` to detect the MIME type from admitted image bytes and
+   include `source_image.content_type` in every `/v2/localize` request.
+2. Fail closed before transport for an unsupported or unrecognized image signature; do not send a
+   guessed extension or a fabricated content type.
+3. Keep the existing hash, byte-size, target identity, max-three-target and normalized-region
+   checks unchanged.
+4. Add a sanitized request-validation log path on the Lightning service so future 422 contract
+   failures identify the rejected field/operation without logging image bytes, prompts, tokens or
+   child data.
+5. Keep the public mobile contract unchanged. The content type is derived at the backend adapter
+   boundary and credentials remain backend-only.
+
+### 17.3 Contract acceptance criteria
+
+- A valid PNG localization request reaches `localize_v2` and no longer fails with 422 due to a
+  missing field.
+- A valid JPEG request carries `content_type: "image/jpeg"` and follows the same path.
+- A mismatched signature, unsupported image or digest mismatch is rejected locally/fail-closed;
+  it must not call Lightning with an invented MIME type.
+- The provider response remains `SceneLocalizationResultV1@1.0` and is mapped to the same bounded
+  `subject_regions` projection used by the UI and Pixi.
+- Provider/runtime failure remains a friendly `FALLBACK_REQUIRED` state; no raw HTTP status or
+  Pydantic error is shown to the child.
+- The existing `/v2/vision` path, subject picker, Gate A confirmation and Pixi fallback behavior
+  remain regression-free.
+
+### 17.4 Verification plan
+
+- Unit-test the adapter payload for both PNG and JPEG, including exact `content_type` and no secret
+  or raw image logging.
+- Unit-test unsupported-signature and hash-mismatch fail-closed behavior with a transport spy.
+- Add a request-contract regression test proving the adapter payload validates against the Lightning
+  `_LocalizationRequestV1` model.
+- Run the focused backend contract suite, Ruff, compileall, mobile TypeScript/UI validation and
+  Pixi renderer tests.
+- Run one owner-controlled Lightning smoke test: image analysis `POST /v2/vision` succeeds, then
+  localization `POST /v2/localize` returns 200 and the app receives at least one validated
+  `subject_region` when Qwen finds a target. If Qwen returns no usable region, the expected result
+  is the explicit fallback state, not a 422.
+
+### 17.5 Implementation result
+
+- `LightningSceneLocalizationAdapter` now derives `image/png` or `image/jpeg` from the admitted
+  byte signature and sends the required `source_image.content_type` field.
+- Unsupported signatures and digest mismatches fail closed before the provider transport is called.
+- Regression coverage validates the exact request against `_LocalizationRequestV1` for both image
+  types and covers unsupported signatures and digest mismatch.
+- The live owner-run smoke test remains pending; it requires restarting the Lightning service with
+  this commit and consumes the owner-controlled quota.

@@ -432,3 +432,18 @@ mobile, Gate A, P1 eligibility, P3/P4 and shared integration remain separately g
   original image and use a friendly retry/fallback state without invented hitboxes.
 - Scope remains Pixi/subject selection only. Video generation, MP4, TTS, auth, persistence, real
   child data, FEAT-003 changes and Codex-triggered provider calls remain excluded.
+
+## Owner approval — Lightning localization 422 contract fix — 2026-09-24
+
+- Approver: project owner direct instruction in the current conversation: “implement”, after the
+  diagnosis that `/v2/localize` rejects the adapter payload because `source_image.content_type`
+  is missing.
+- Approved artifact: proposed fix in `plan/PIXI_FULLSCREEN_INTRO_HOTSPOT_DISCOVERY_PLAN.md`,
+  section 17.
+- Approved behavior: derive the admitted image MIME type at the backend Lightning adapter boundary,
+  include it in `SceneLocalizationRequestV1`, fail closed for unsupported signatures, and preserve
+  all existing hash, identity, target and bounded-region validation.
+- Approved verification: adapter/unit regression tests, focused backend tests, static checks and
+  an owner-run Lightning smoke test; no live provider call is made by Codex.
+- Scope remains restricted to the localization contract mismatch and its diagnostics. No mobile
+  credential changes, video/MP4/TTS work, auth, persistence or unrelated feature changes.

@@ -1,0 +1,120 @@
+from __future__ import annotations
+
+from collections.abc import Mapping
+from hashlib import sha256
+
+from fastapi.testclient import TestClient
+from tools.lightning_vision_v2_server import _LocalizationRequestV1
+from tools.lightning_vision_v2_server import app as lightning_app
+
+from sketch2life.application.ports.scene_localization import SceneLocalizationRequest
+from sketch2life.infrastructure.ai.lightning_scene_localization import (
+    LightningSceneLocalizationAdapter,
+)
+
+
+class FakeTransport:
+    def __init__(self) -> None:
+        self.calls: list[tuple[str, Mapping[str, object]]] = []
+
+    def post_json(self, path: str, payload: Mapping[str, object]) -> Mapping[str, object]:
+        self.calls.append((path, payload))
+        return {
+            "regions": [
+                {
+                    "target_ref": "entity-1",
+                    "region": {"x": 0.1, "y": 0.2, "width": 0.3, "height": 0.4},
+                }
+            ]
+        }
+
+
+def _request(image: bytes) -> SceneLocalizationRequest:
+    return SceneLocalizationRequest(
+        session_id="session-1",
+        experience_spec_ref=None,
+        source_artifact_ref="artifact:session-1:image-1",
+        source_artifact_sha256=sha256(image).hexdigest(),
+        target_refs=("entity-1",),
+        attempt_id="attempt-1",
+        target_labels={"entity-1": "con chim"},
+    )
+
+
+def test_adapter_sends_provider_contract_for_png_and_jpeg() -> None:
+    for image, expected_content_type in (
+        (b"\x89PNG\r\n\x1a\nsynthetic-png", "image/png"),
+        (b"\xff\xd8\xffsynthetic-jpeg", "image/jpeg"),
+    ):
+        transport = FakeTransport()
+        adapter = LightningSceneLocalizationAdapter(
+            transport=transport,
+            artifact_loader=lambda _, image=image: image,
+        )
+
+        result = adapter.localize(_request(image))
+
+        assert result == {
+            "entity-1": {"x": 0.1, "y": 0.2, "width": 0.3, "height": 0.4}
+        }
+        path, payload = transport.calls[0]
+        assert path == "/v2/localize"
+        _LocalizationRequestV1.model_validate(payload)
+        source_image = payload["source_image"]
+        assert isinstance(source_image, dict)
+        assert source_image["content_type"] == expected_content_type
+
+
+def test_adapter_fails_closed_for_unsupported_image_without_transport_call() -> None:
+    image = b"not-an-admitted-image"
+    transport = FakeTransport()
+    adapter = LightningSceneLocalizationAdapter(
+        transport=transport,
+        artifact_loader=lambda _: image,
+    )
+
+    assert adapter.localize(_request(image)) is None
+    assert transport.calls == []
+
+
+def test_adapter_fails_closed_when_source_digest_does_not_match() -> None:
+    image = b"\x89PNG\r\n\x1a\nsynthetic-png"
+    request = _request(image)
+    request = SceneLocalizationRequest(
+        session_id=request.session_id,
+        experience_spec_ref=request.experience_spec_ref,
+        source_artifact_ref=request.source_artifact_ref,
+        source_artifact_sha256="0" * 64,
+        target_refs=request.target_refs,
+        attempt_id=request.attempt_id,
+        target_labels=request.target_labels,
+    )
+    transport = FakeTransport()
+    adapter = LightningSceneLocalizationAdapter(
+        transport=transport,
+        artifact_loader=lambda _: image,
+    )
+
+    assert adapter.localize(request) is None
+    assert transport.calls == []
+
+
+def test_lightning_validation_error_does_not_echo_request_body() -> None:
+    response = TestClient(lightning_app).post(
+        "/v2/localize",
+        json={
+            "contract_name": "SceneLocalizationRequestV1",
+            "contract_version": "1.0",
+            "session_id": "session-1",
+            "experience_spec_ref": None,
+            "source_image": {
+                "artifact_ref": "artifact:session-1:image-1",
+                "sha256": "a" * 64,
+                "content_base64": "YQ==",
+            },
+            "targets": ["entity-1"],
+        },
+    )
+
+    assert response.status_code == 422
+    assert response.json() == {"detail": "request contract invalid"}

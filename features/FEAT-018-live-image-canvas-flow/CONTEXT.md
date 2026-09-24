@@ -433,3 +433,13 @@ P2-T5, mobile, Gate A UI, P1 eligibility, P3/P4 and shared integration remain se
   reused when `PREPARE_RENDERER` builds the Pixi focus plan.
 - Evidence is recorded in
   `evidence/notes/SUBJECT_FIRST_DIRECT_PICKER_IMPLEMENTATION_20260924.md`.
+
+## Lightning localization contract fix — 2026-09-24
+
+- The first live `/v2/localize` request returned 422 before Qwen ran because the backend adapter
+  omitted the required `source_image.content_type` field. The adapter now derives the MIME type
+  from admitted PNG/JPEG bytes, includes it in the provider request and fails closed for unknown
+  signatures or digest mismatches.
+- The provider-neutral mobile and subject-selection contracts are unchanged. Evidence is recorded
+  in `evidence/notes/SUBJECT_FIRST_DIRECT_PICKER_IMPLEMENTATION_20260924.md`; a live Lightning
+  smoke test remains owner-run after restarting the service.
