@@ -10,6 +10,7 @@ from __future__ import annotations
 import base64
 import json
 import logging
+import math
 import os
 import re
 import sys
@@ -488,35 +489,17 @@ def localize_v2(
             "regions": regions[:3],
         }
     except json.JSONDecodeError:
-        logger.warning(
-            "localization_request_completed status=FAILED reason=MODEL_OUTPUT_JSON_INVALID"
-        )
-        raise HTTPException(status_code=503, detail="localization runtime is unavailable") from None
+        return _localization_fallback("MODEL_OUTPUT_JSON_INVALID")
     except TypeError:
-        logger.warning(
-            "localization_request_completed status=FAILED reason=MODEL_OUTPUT_SCHEMA_INVALID"
-        )
-        raise HTTPException(status_code=503, detail="localization runtime is unavailable") from None
+        return _localization_fallback("MODEL_OUTPUT_SCHEMA_INVALID")
     except ValueError:
-        logger.warning(
-            "localization_request_completed status=FAILED reason=MODEL_OUTPUT_REGION_INVALID"
-        )
-        raise HTTPException(status_code=503, detail="localization runtime is unavailable") from None
+        return _localization_fallback("MODEL_OUTPUT_REGION_INVALID")
     except QwenTimeoutError:
-        logger.warning(
-            "localization_request_completed status=FAILED reason=MODEL_RUNTIME_TIMEOUT"
-        )
-        raise HTTPException(status_code=503, detail="localization runtime is unavailable") from None
+        return _localization_fallback("MODEL_RUNTIME_TIMEOUT")
     except (QwenModelLoadError, QwenDeviceUnavailableError):
-        logger.warning(
-            "localization_request_completed status=FAILED reason=MODEL_UNAVAILABLE"
-        )
-        raise HTTPException(status_code=503, detail="localization runtime is unavailable") from None
+        return _localization_fallback("MODEL_UNAVAILABLE")
     except (OSError, QwenPermanentRuntimeError, RuntimeError):
-        logger.warning(
-            "localization_request_completed status=FAILED reason=MODEL_RUNTIME_FAILURE"
-        )
-        raise HTTPException(status_code=503, detail="localization runtime is unavailable") from None
+        return _localization_fallback("MODEL_RUNTIME_FAILURE")
 
 
 def _parse_localization_output(raw_output: str) -> list[_LocalizationRegionV1]:
@@ -558,8 +541,38 @@ def _parse_localization_output(raw_output: str) -> list[_LocalizationRegionV1]:
             and 1 < confidence <= 100
         ):
             normalized = {**normalized, "confidence": confidence / 100}
+        coordinates = {
+            key: normalized.get(key) for key in ("x", "y", "width", "height")
+        }
+        if all(
+            isinstance(value, (int, float)) and not isinstance(value, bool)
+            for value in coordinates.values()
+        ):
+            normalized_coordinates = {
+                key: _normalize_localization_scalar(float(value))
+                for key, value in coordinates.items()
+            }
+            if any(value > 1.0 for value in normalized_coordinates.values()):
+                raise ValueError("localization coordinate unit is unsupported")
+            x = min(max(normalized_coordinates["x"], 0.0), 1.0)
+            y = min(max(normalized_coordinates["y"], 0.0), 1.0)
+            normalized = {
+                **normalized,
+                "x": x,
+                "y": y,
+                "width": min(normalized_coordinates["width"], 1.0 - x),
+                "height": min(normalized_coordinates["height"], 1.0 - y),
+            }
         parsed.append(_LocalizationRegionV1.model_validate(normalized))
     return parsed
+
+
+def _normalize_localization_scalar(value: float) -> float:
+    if not math.isfinite(value):
+        return value
+    if 1.0 < value <= 100.0:
+        return value / 100.0
+    return value
 
 
 def _resolve_localization_target_ref(
@@ -576,6 +589,17 @@ def _resolve_localization_target_ref(
     if len(matches) == 1:
         return matches[0]
     raise ValueError("localization target invalid")
+
+
+def _localization_fallback(reason: str) -> dict[str, object]:
+    logger.warning("localization_request_completed status=FALLBACK reason=%s", reason)
+    return {
+        "contract_name": "SceneLocalizationResultV1",
+        "contract_version": "1.0",
+        "status": "FALLBACK_REQUIRED",
+        "regions": [],
+        "fallback_reason": reason,
+    }
 
 
 def _require_auth(authorization: str | None) -> None:

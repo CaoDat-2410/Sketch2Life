@@ -606,8 +606,15 @@ contract mismatch, not a Qwen model failure and not an image-localization qualit
 - The prompt now requires decimal confidence in `0..1`; a numeric percentage in `1..100` is
   normalized only at the provider boundary, and a returned label can resolve to a target ref only
   when the label match is unique. Unknown targets remain rejected.
+- Coordinate values are normalized from a bounded percentage representation when Qwen uses that
+  common unit, and boxes that cross the source edge are clipped to the source boundary. Negative,
+  non-finite, zero-size, unsupported-unit and otherwise invalid boxes remain rejected.
 - 503 diagnostics are now closed reason tokens (`MODEL_OUTPUT_JSON_INVALID`,
   `MODEL_OUTPUT_SCHEMA_INVALID`, `MODEL_OUTPUT_REGION_INVALID`, `MODEL_RUNTIME_TIMEOUT`,
   `MODEL_UNAVAILABLE` or `MODEL_RUNTIME_FAILURE`) without logging model output.
+- Model-output/runtime localization failures now return the typed empty-region fallback with HTTP
+  200; only malformed input, authentication, digest or image-admission failures remain 4xx. This
+  keeps provider failure in the approved `FALLBACK_REQUIRED` path instead of surfacing 503 to the
+  demo workflow.
 - The live owner-run smoke test remains pending; it requires restarting the Lightning service with
   this commit and consumes the owner-controlled quota.

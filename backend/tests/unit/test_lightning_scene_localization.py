@@ -4,7 +4,9 @@ from collections.abc import Mapping
 from hashlib import sha256
 
 from fastapi.testclient import TestClient
+from pytest import approx
 from tools.lightning_vision_v2_server import (
+    _localization_fallback,
     _LocalizationRequestV1,
     _parse_localization_output,
     _resolve_localization_target_ref,
@@ -145,6 +147,17 @@ def test_localization_parser_normalizes_bounded_percentage_confidence() -> None:
     assert regions[0].confidence == 0.95
 
 
+def test_localization_parser_normalizes_percent_coordinates_and_clips_to_image() -> None:
+    regions = _parse_localization_output(
+        '{"regions":[{"target_ref":"entity-1","x":80,"y":20,"width":30,"height":90,"confidence":0.9}]}'
+    )
+
+    assert regions[0].x == 0.8
+    assert regions[0].y == 0.2
+    assert regions[0].width == approx(0.2)
+    assert regions[0].height == 0.8
+
+
 def test_localization_target_label_can_resolve_only_when_unique() -> None:
     payload = _LocalizationRequestV1(
         session_id="session-1",
@@ -159,3 +172,13 @@ def test_localization_target_label_can_resolve_only_when_unique() -> None:
     )
 
     assert _resolve_localization_target_ref("con chim", payload) == "entity-1"
+
+
+def test_localization_model_failure_is_a_typed_fallback_not_http_failure() -> None:
+    assert _localization_fallback("MODEL_OUTPUT_REGION_INVALID") == {
+        "contract_name": "SceneLocalizationResultV1",
+        "contract_version": "1.0",
+        "status": "FALLBACK_REQUIRED",
+        "regions": [],
+        "fallback_reason": "MODEL_OUTPUT_REGION_INVALID",
+    }

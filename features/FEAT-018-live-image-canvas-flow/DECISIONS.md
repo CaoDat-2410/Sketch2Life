@@ -210,3 +210,9 @@
   compatibility with common model output, numeric percentages from `1..100` are converted to the
   decimal form at the Lightning boundary; target labels may resolve to ids only on a unique exact
   normalized match. Ambiguous labels and unknown ids remain fail-closed.
+- 2026-09-24 implementation decision: localization coordinates may arrive as bounded percentages
+  and are converted to normalized source coordinates. A box crossing the source edge is clipped to
+  that edge; negative, non-finite, zero-size or unsupported-unit geometry remains fail-closed.
+- 2026-09-24 implementation decision: localization model/runtime failures are represented as an
+  empty `SceneLocalizationResultV1` fallback with HTTP 200. Input/authentication/integrity errors
+  remain HTTP failures; provider failure must not break the child-facing workflow.
