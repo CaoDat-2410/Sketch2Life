@@ -2,8 +2,8 @@
 
 Status: `DRAFT — AWAITING_OWNER_APPROVAL`
 
-Date: 2026-09-25  
-Feature: `FEAT-018-live-image-canvas-flow`  
+Date: 2026-09-25
+Feature: `FEAT-018-live-image-canvas-flow`
 Target branch: `codex/feat-018-pixi-exploration`
 
 ## 1. Problem statement
