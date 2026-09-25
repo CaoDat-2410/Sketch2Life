@@ -45,6 +45,28 @@ new: understanding -> learning thread -> visual exploration plan
 visual beat exists and which confirmed claim it teaches. The existing `ArtAnimationPlanV1` remains
 the deterministic PixiJS/GSAP execution payload compiled from that higher-level plan.
 
+## Owner rollback addendum — 2026-09-25
+
+Status: `APPROVED — IMPLEMENTATION AUTHORIZED`
+
+The owner requested that the direct image-tap/localization slice be removed from the normal live
+demo because the extra Qwen/Lightning geometry request adds latency and currently falls back too
+often. The Gate-A runtime therefore returns to the previously approved topic-direction flow:
+
+- `/v2/vision` is the only provider request during initial image understanding.
+- The mobile screen renders up to three grounded Vietnamese `topic_directions` and does not place
+  tappable regions or require a subject tap before Gate A.
+- The first deterministic direction is selected by default; the adult may edit the topic text
+  before confirming Gate A.
+- The runtime does not call `/v2/localize`; Pixi keeps the original-art/whole-drawing fallback
+  until a separate localization decision is approved again.
+- The localization adapter and endpoint remain isolated for future work, but they are not part of
+  this user-facing request path.
+
+Acceptance: one initial understanding request produces the topic screen without a localization
+request, no `FALLBACK_REQUIRED` localization state is shown, and Gate A can continue without a
+tap on the artwork.
+
 ## 2. Owner decisions captured by this plan
 
 - Gate A cards use short Vietnamese subject labels, not complete sentences. Examples: `Con chim`,

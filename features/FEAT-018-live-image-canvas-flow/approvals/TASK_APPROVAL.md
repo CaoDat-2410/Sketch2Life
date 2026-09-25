@@ -447,3 +447,16 @@ mobile, Gate A, P1 eligibility, P3/P4 and shared integration remain separately g
   an owner-run Lightning smoke test; no live provider call is made by Codex.
 - Scope remains restricted to the localization contract mismatch and its diagnostics. No mobile
   credential changes, video/MP4/TTS work, auth, persistence or unrelated feature changes.
+
+## Owner approval — rollback direct subject tapping and localization runtime — 2026-09-25
+
+- Approver: project owner direct instruction in the current conversation: “bỏ cái phần tap trên
+  hình đi, tự nhận diện 3 chủ đề như trước thôi, ko tap màn hình nữa, bỏ cái API kia đi”.
+- Approved behavior: restore the normal topic-direction screen with up to three grounded Vietnamese
+  topics; select the first direction by default; allow adult correction before Gate A; do not render
+  image hotspots or require a tap on the artwork.
+- Approved runtime boundary: the initial workflow calls `/v2/vision` once and does not call
+  `/v2/localize`. Localization remains isolated for a future explicitly approved Pixi slice and
+  is not used to block or fallback the child-facing topic flow.
+- Verification: focused backend contract tests, frontend typecheck/UI validation, and a runtime log
+  check showing no `/v2/localize` request for the initial understanding flow.

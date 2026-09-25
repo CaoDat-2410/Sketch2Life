@@ -549,6 +549,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [selectedDrawing, setSelectedDrawing] = useState<SelectedDrawing | null>(null);
   const [workflowBusy, setWorkflowBusy] = useState<string | null>(null);
   const activityWorkflowLockRef = useRef(false);
+  const understandingRequestLockRef = useRef(false);
   const [workflowError, setWorkflowError] = useState<string | null>(null);
   const [workflowNotice, setWorkflowNotice] = useState<string | null>(null);
   useEffect(() => {
@@ -808,7 +809,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const runAiSimulation = async (): Promise<boolean> => {
-    if (!sessionId || !admission || workflowBusy) return false;
+    if (!sessionId || !admission || workflowBusy || understandingRequestLockRef.current) return false;
+    understandingRequestLockRef.current = true;
     let narration: NarrationInput = { kind: 'NONE' };
     if (narrationMode === 'text') {
       const text = narrationText.trim();
@@ -851,12 +853,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setAnalysisClaims(claims);
       const directions = readTopicDirections(payload, claims);
       setTopicDirections(directions);
-      setSelectedTopicDirectionId(null);
+      setSelectedTopicDirectionId(directions[0]?.direction_id ?? null);
       setUnderstandingProgress(progress);
       setDirectionRequeryUsed(false);
-      setSelectedClaimIds([]);
-      setPrimaryClaimId(null);
-      setSubjectTargets(readSubjectTargets(payload));
+      setSelectedClaimIds(directions[0]?.source_claim_ids ?? (claims.length > 0 ? [claims[0].observation_id] : []));
+      setPrimaryClaimId(directions[0]?.primary_claim_id ?? claims[0]?.observation_id ?? null);
+      setSubjectTargets([]);
       setSelectedSubjectId(null);
       setSelectedSubjectSentence('');
       setSceneData(mapScenePayload(payload, sessionId));
@@ -864,7 +866,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setVoiceTranscript(textValue(narrationPayload.transcript));
       setSessionState('GATE_A_PENDING');
       setAiProgress(100);
-      setWorkflowNotice('Chạm vào một chi tiết trong tranh để chọn chủ đề.');
+      setWorkflowNotice('Đã tìm thấy các chủ đề từ bức tranh. Mời người lớn kiểm tra cùng con.');
       navigate('scene_understanding');
       return true;
     } catch (error) {
@@ -873,6 +875,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return false;
     } finally {
       setWorkflowBusy(null);
+      understandingRequestLockRef.current = false;
     }
   };
 
@@ -922,7 +925,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const confirmGateA = async (): Promise<boolean> => {
-    if (!sessionId || !selectedSubjectId || !primaryClaimId || selectedClaimIds.length === 0 || workflowBusy) return false;
+    if (!sessionId || !primaryClaimId || selectedClaimIds.length === 0 || workflowBusy) return false;
     setWorkflowBusy('Xác nhận Gate A');
     setWorkflowError(null);
     try {

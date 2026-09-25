@@ -872,26 +872,16 @@ class LiveImageDemoService:
                     )
                 ]
                 subject_candidates = _subject_picker_candidates(raw_result)
-                subject_regions = self._localize_subjects(
-                    command.session_id,
-                    raw_result,
-                    tuple(item["candidate_id"] for item in subject_candidates),
-                    attempt_id=command.idempotency_key,
-                )
                 output_payload = {
                     **raw_result.model_dump(mode="json"),
                     "narration": narration_payload,
                     "understanding_progress": progress,
                     "topic_directions": topic_directions,
                     "subject_candidates": subject_candidates,
-                    "subject_regions": subject_regions,
+                    "subject_regions": {},
                     "subject_localization": {
-                        "status": "READY" if subject_regions else "FALLBACK_REQUIRED",
-                        "message_vi": (
-                            "Chạm vào một chi tiết trong tranh để chọn chủ đề."
-                            if subject_regions
-                            else "Chưa tìm thấy vùng chạm chính xác; người lớn có thể thử lại."
-                        ),
+                        "status": "NOT_REQUESTED",
+                        "message_vi": "Chủ đề được tạo từ kết quả nhận diện ảnh và lời kể.",
                     },
                 }
             else:
@@ -1023,14 +1013,9 @@ class LiveImageDemoService:
                 if claim.observation_id != selected_id and claim.kind in {"action", "story"}
             )[:2]
             sentence = compose_topic_vi((primary, *support))
-            subject_regions = self._localize_subjects(
-                command.session_id,
-                raw,
-                (selected_id,),
-                attempt_id=command.idempotency_key,
-            )
             prior_regions = values.get("subject_regions")
-            if not subject_regions and isinstance(prior_regions, dict):
+            subject_regions = {}
+            if isinstance(prior_regions, dict):
                 subject_regions = {
                     selected_id: prior_regions[selected_id]
                 } if isinstance(prior_regions.get(selected_id), dict) else {}

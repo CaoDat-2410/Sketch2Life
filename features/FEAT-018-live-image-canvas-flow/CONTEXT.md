@@ -450,3 +450,17 @@ P2-T5, mobile, Gate A UI, P1 eligibility, P3/P4 and shared integration remain se
   strict region validation, clips edge-crossing boxes to the source boundary, and logs a closed
   failure reason for diagnosis. Model-output/runtime failure now returns an empty-region fallback
   projection with HTTP 200, so the UI can remain in its safe fallback path instead of receiving 503.
+
+## Topic-direction rollback — 2026-09-25
+
+- The owner rolled back the direct subject-tap experiment because the extra geometry request made
+  the first analysis slow and frequently produced a localization fallback. The normal runtime now
+  uses one `/v2/vision` request, renders up to three grounded `topic_directions`, selects the first
+  direction by default, and allows an adult correction before Gate A.
+- The Gate-A mobile screen no longer renders image hitboxes or waits for `subject_regions`. The
+  original drawing remains a non-interactive evidence preview, and no `/v2/localize` request is
+  wired from the default API composition root. The localization endpoint/adapter remains isolated
+  for a future separately approved Pixi slice.
+- Added a frontend request lock so rapid repeated taps cannot submit the initial understanding
+  command twice. Focused backend and frontend checks verify one semantic request and zero
+  localization calls for the initial flow.

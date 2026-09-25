@@ -216,3 +216,9 @@
 - 2026-09-24 implementation decision: localization model/runtime failures are represented as an
   empty `SceneLocalizationResultV1` fallback with HTTP 200. Input/authentication/integrity errors
   remain HTTP failures; provider failure must not break the child-facing workflow.
+- 2026-09-25 owner rollback decision: remove direct image tapping and localization from the normal
+  initial workflow. `/v2/vision` produces up to three grounded topic directions; the first is
+  selected deterministically and the adult may edit the topic before Gate A. The default app
+  composition does not inject a scene localizer, so `/v2/localize` cannot add a second AI request
+  or block the topic screen. The localization adapter and endpoint remain isolated for a future
+  explicitly approved Pixi-only integration.

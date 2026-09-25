@@ -88,7 +88,10 @@ def create_app(
             settings = get_settings()
             vision = _configured_lightning_vision(settings, artifacts)
             asr = _configured_lightning_asr(settings, artifacts)
-            scene_localizer = _configured_lightning_scene_localizer(settings, artifacts)
+            # Geometry localization is intentionally disabled in the normal demo path.  The
+            # owner requested the fast topic-direction flow; Pixi keeps its whole-drawing
+            # fallback until a separate localization slice is approved again.
+            scene_localizer = None
             _LOGGER.info(
                 "ai_adapters_configured provider=%s base_url_configured=%s "
                 "token_file_configured=%s "

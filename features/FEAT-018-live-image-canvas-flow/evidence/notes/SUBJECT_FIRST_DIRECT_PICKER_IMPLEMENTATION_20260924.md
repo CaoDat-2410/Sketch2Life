@@ -58,3 +58,18 @@ Branch: `codex/feat-018-pixi-exploration`
 The owner must restart the Lightning service with the updated `tools/lightning_vision_v2_server.py`
 before a live localization smoke test. The smoke test consumes the existing owner-controlled quota;
 Codex did not call Lightning.
+
+## Rollback verification — 2026-09-25
+
+The owner requested removal of the direct subject picker and its initial localization request. The
+runtime now restores the three-topic Gate-A flow: the first topic direction is selected by default,
+the adult can edit it, and the original artwork is not a tap target. The default API composition
+does not wire `SceneLocalizationPort`, so the initial understanding request calls only `/v2/vision`.
+
+Verification:
+
+- `backend/.venv/Scripts/python.exe -m pytest backend/tests/contract/test_live_image_demo_api.py backend/tests/unit/test_lightning_scene_localization.py -q` — 23 passed.
+- `apps/ui-mobile/node_modules/.bin/tsc.cmd --noEmit` — passed.
+- `node apps/ui-mobile/scripts/validate-ui-copy.mjs` — passed.
+- A duplicate-submit lock guards the initial understanding action; a contract test injects a localizer
+  and confirms it receives zero calls during the initial understanding request.

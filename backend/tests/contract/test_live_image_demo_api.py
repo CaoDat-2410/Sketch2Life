@@ -116,7 +116,22 @@ class _CountingVision:
         )
 
 
-def _client(*, vision: _CountingVision | None = None) -> tuple[TestClient, _CountingVision]:
+class _CountingLocalizer:
+    def __init__(self) -> None:
+        self.calls = 0
+
+    def localize(self, request: object) -> dict[str, dict[str, float]]:
+        self.calls += 1
+        return {
+            "subject-1": {"x": 0.1, "y": 0.1, "width": 0.2, "height": 0.2},
+        }
+
+
+def _client(
+    *,
+    vision: _CountingVision | None = None,
+    scene_localizer: _CountingLocalizer | None = None,
+) -> tuple[TestClient, _CountingVision]:
     artifacts = InMemoryArtifactStore()
     idempotency = InMemoryIdempotencyStore()
     sessions = EphemeralSessionService(
@@ -133,6 +148,7 @@ def _client(*, vision: _CountingVision | None = None) -> tuple[TestClient, _Coun
         admission=Feat018ImageAdmission(_TestImageDecoder()),
         vision=actual_vision,
         renderer_source_grants=InMemoryRendererSourceGrantStore(),
+        scene_localizer=scene_localizer,
     )
     repo_root = Path(__file__).resolve().parents[3]
     p1_library = load_p1_template_library(
@@ -214,7 +230,8 @@ def _command(
 
 
 def test_session_image_upload_is_admitted_then_requires_an_explicit_understanding_command() -> None:
-    client, vision = _client()
+    localizer = _CountingLocalizer()
+    client, vision = _client(scene_localizer=localizer)
     session_id, version = _create_session(client)
 
     uploaded = client.post(
@@ -266,6 +283,7 @@ def test_session_image_upload_is_admitted_then_requires_an_explicit_understandin
     assert directions[0]["source_claim_ids"]
     assert all("chi tiết trong tranh" not in item["title_vi"] for item in directions)
     assert vision.calls == 1
+    assert localizer.calls == 0
 
 
 def test_image_upload_requires_synthetic_non_child_confirmation_and_is_idempotent() -> None:
