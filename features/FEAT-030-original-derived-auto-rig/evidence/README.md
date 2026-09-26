@@ -6,6 +6,7 @@
 |---|---|---|---|---|
 | E-030-AUDIT-001 | Establish current renderer and supervised-flow baseline | Architecture review | `notes/CURRENT_RUNTIME_AUDIT_20260925.md` | COMPLETE_FOR_PLANNING |
 | E-030-IMPL-001 | V2 contracts, package capability, rig registry, Pixi CPU skinning, Android preference/fallback | Implementation/test review | `notes/IMPLEMENTATION_20260925.md` | PASS_WITH_RECORDED_LIMITATION |
+| E-030-FIX-002 | Android HTTP WebView package-integrity compatibility | Runtime diagnosis and regression tests | `notes/ANDROID_WEBVIEW_SHA256_FIX_20260926.md` | PASS_PENDING_VISUAL_RETEST |
 
 ## Planned evidence groups
 

@@ -64,5 +64,6 @@ export type {
 } from './contracts';
 export type {RendererMessage} from './bridge';
 export {buildPreservingFallbackPlan} from './fallback';
+export {sha256Hex, sha256HexPortable} from './sha256';
 export {compileMotionPlan} from './motion';
 export {ArtPlanValidationError, validateArtAnimationPlan} from './validation';

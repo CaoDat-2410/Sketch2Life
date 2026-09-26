@@ -1,6 +1,6 @@
 # FEAT-030 Original-derived auto-rig context
 
-- Status: IMPLEMENTED_BASELINE; Renderer V2 and safe cutout motion are active, while benchmark-approved live segmentation/worker activation remains pending.
+- Status: IMPLEMENTED_BASELINE; Renderer V2 and safe cutout motion are active, including an Android HTTP-WebView SHA-256 compatibility path; benchmark-approved live segmentation/worker activation remains pending.
 - Owner: Project owner; implementation allocation is not yet approved.
 - Goal: turn a validated subject from the child's immutable drawing into a bounded, explainable PixiJS 2D rig so the drawing visibly moves while remaining recognizably the child's work.
 - Scope: target selection, spatial grounding, segmentation, original-derived masks/textures, mesh and skeleton generation, skin weights, rig validation, bounded motion profiles, asynchronous preparation, Renderer V2 loading, PixiJS CPU skinning, deterministic fallback, provenance, metrics, and golden-scene evidence.

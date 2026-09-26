@@ -8,6 +8,7 @@ import {
   RendererControlCommandSchema,
   RendererLoadCommandSchema,
   RendererLoadCommandV2Schema,
+  sha256Hex,
   type PlaybackEvent,
   type RendererLoadCommand,
   type RendererLoadCommandV2,
@@ -238,7 +239,11 @@ async function loadLaunch(serialized: string): Promise<void> {
         autoRigPlayer.load(packageJson, command.animationPlan, foregroundTexture);
         activePlayer = autoRigPlayer;
         v2InteractionPhase = 'INTRO_LOADING';
-      } catch {
+      } catch (error) {
+        console.error(
+          '[art-renderer] Renderer V2 package could not start.',
+          error instanceof Error ? error.message : 'UNKNOWN_RENDERER_V2_ERROR',
+        );
         await classicPlayer.load(v2FallbackPlan(command));
         activePlayer = classicPlayer;
         v2InteractionPhase = 'FALLBACK';
@@ -340,11 +345,6 @@ async function textureFromBlob(blob: Blob, removePaper: boolean): Promise<Textur
     context.putImageData(image, 0, 0);
   }
   return Texture.from(canvas);
-}
-
-async function sha256Hex(value: ArrayBuffer): Promise<string> {
-  const digest = await crypto.subtle.digest('SHA-256', value);
-  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 
 function v2FallbackPlan(command: RendererLoadCommandV2): unknown {
