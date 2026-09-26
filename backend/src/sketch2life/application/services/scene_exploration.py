@@ -130,7 +130,7 @@ def build_scene_exploration_plan(
             label_vi="bức tranh",
             caption_vi="Bức vẽ của con đang mở ra.",
             start_seconds=0,
-            end_seconds=1.4,
+            end_seconds=2.0,
         ),
         SceneExplorationBeatV1(
             beat_id="subject-focus",
@@ -139,8 +139,8 @@ def build_scene_exploration_plan(
             target_ref=primary.candidate_id,
             label_vi=primary.label_vi,
             caption_vi=f"Con đã vẽ {primary.label_vi}.",
-            start_seconds=1.4,
-            end_seconds=3.5,
+            start_seconds=2.0,
+            end_seconds=4.2,
             tap_enabled=True,
         ),
     ]
@@ -160,8 +160,8 @@ def build_scene_exploration_plan(
                     target_ref=other_ref,
                     label_vi=other_label,
                     caption_vi=f"{primary.label_vi} và {other_label} đang kể cùng một câu chuyện.",
-                    start_seconds=3.5,
-                    end_seconds=5.7,
+                    start_seconds=4.2,
+                    end_seconds=9.0,
                     tap_enabled=True,
                 )
             )
@@ -173,8 +173,8 @@ def build_scene_exploration_plan(
                 effect="ZOOM_OUT",
                 label_vi="bức tranh",
                 caption_vi="Con cùng nhìn lại cả bức tranh nhé.",
-                start_seconds=3.5,
-                end_seconds=5.2,
+                start_seconds=4.2,
+                end_seconds=9.0,
             )
         )
     beats.append(
@@ -184,8 +184,8 @@ def build_scene_exploration_plan(
             effect="ZOOM_OUT",
             label_vi="bức tranh",
             caption_vi=learning_bridge_vi[:180],
-            start_seconds=5.2 if len(beats) == 3 else 5.7,
-            end_seconds=7.3,
+            start_seconds=9.0,
+            end_seconds=12.0,
         )
     )
     return SceneExplorationPlanV1(

@@ -22,6 +22,13 @@
 | D-030-08 | Classify masks/cutouts/meshes as `ORIGINAL_DERIVED`, separate from creative supplemental assets. | PROPOSED | They require provenance/integrity review, not the same visual-approval semantics as generated decoration. |
 | D-030-09 | For MVP, avoid destructive background inpainting. Translation is allowed only when a validated background patch exists; otherwise use internal deformation, pivot motion, camera focus, or V1. | PROPOSED | Prevents visible holes and fabricated drawing content. |
 | D-030-10 | Split delivery into separately approved milestones; a plan approval does not authorize every model/dependency at once. | PROPOSED | The feature crosses AI, backend, storage, mobile, renderer, and governance boundaries. |
+| D-030-14 | Compile the playback timeline during load and expose a non-zero authoritative duration before autoplay. | ACCEPTED 2026-09-26 | Prevents mobile from disabling pause/seek and makes control state deterministic. |
+| D-030-15 | Use a 12–15 second guided intro followed by a bounded idle loop. | ACCEPTED 2026-09-26 | Gives the child enough time to see authored parts move without delaying the next experience step. |
+| D-030-16 | A full rig requires validated subject and part masks; a full-frame mesh is never a successful full rig. | ACCEPTED 2026-09-26 | Prevents the current whole-image stretching failure. |
+| D-030-17 | AI may ground/segment/estimate parts; final animation remains an allowlisted deterministic archetype profile. | ACCEPTED 2026-09-26 | Improves extraction while preserving explainability, safety and reproducibility. |
+| D-030-18 | Select SAM 2.1 Hiera Small for the MVP benchmark/integration path and exclude gated SAM 3. | ACCEPTED 2026-09-26 | Removes checkpoint-access friction, keeps the backend-only model small, and preserves the no-second-Qwen-call rule. |
+| D-030-19 | Keep initial single-L4 GPU admission serialized and require measured 4 GiB peak headroom plus a 100-job stress pass before concurrency. | PROPOSED REVISION 4 | Qwen3-VL 8B BF16 and segmentation residency must not be assumed safe on 24 GB. |
+| D-030-20 | Use AI only for subject/part perception; keep rig construction and animation deterministic. | PROPOSED REVISION 4 | Produces explainable package artifacts and avoids generative redraw or invented motion. |
 
 ## Clarification of full-topic coverage
 

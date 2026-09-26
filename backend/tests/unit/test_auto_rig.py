@@ -6,6 +6,7 @@ from datetime import UTC, datetime
 import pytest
 
 from sketch2life.application.ports.segmentation import (
+    SubjectPartSegmentationResult,
     SubjectSegmentationRequest,
     SubjectSegmentationResult,
 )
@@ -76,6 +77,23 @@ def test_motion_plan_targets_only_known_archetype_bones() -> None:
 
     assert {track.bone_id for track in plan.tracks}.issubset({bone.bone_id for bone in rig.bones})
     assert plan.max_motion_level == 2
+    assert plan.duration_seconds == 12
+    assert all(track.keyframes[-1].at_seconds == 12 for track in plan.tracks)
+
+
+@pytest.mark.parametrize("archetype", tuple(RigArchetype))
+def test_every_archetype_has_a_twelve_second_bounded_intro(archetype: RigArchetype) -> None:
+    plan = build_animation_plan(
+        plan_id=f"visual-{archetype}",
+        session_id="session-1",
+        experience_spec_ref=VersionedRefV1(id="spec-1", version=1),
+        package_id=f"rig-{archetype}",
+        archetype=archetype,
+        learning_bridge_vi="Mình cùng khám phá tiếp nhé.",
+    )
+
+    assert plan.duration_seconds == 12
+    assert all(track.keyframes[-1].at_seconds == 12 for track in plan.tracks)
 
 
 def test_package_capability_is_bounded_and_returns_hash_bound_json() -> None:
@@ -132,6 +150,14 @@ def test_gate_a_preparation_is_idempotent_and_uses_safe_partial_tier() -> None:
 
 
 class _FixtureSegmenter:
+    def __init__(
+        self,
+        mask_artifact_ref: str | None = None,
+        mask_sha256: str | None = None,
+    ) -> None:
+        self.mask_artifact_ref = mask_artifact_ref
+        self.mask_sha256 = mask_sha256
+
     def segment(self, request: SubjectSegmentationRequest) -> SubjectSegmentationResult:
         assert request.target_label == "con chim"
         return SubjectSegmentationResult(
@@ -139,15 +165,27 @@ class _FixtureSegmenter:
             confidence=0.92,
             adapter_id="fixture-segmenter",
             adapter_version="1",
+            mask_artifact_ref=self.mask_artifact_ref,
+            mask_sha256=self.mask_sha256,
+            parts=(
+                SubjectPartSegmentationResult(
+                    part_id="body",
+                    role="body",
+                    source_region=SourceRegionV1(x=0.25, y=0.15, width=0.4, height=0.5),
+                    confidence=0.9,
+                ),
+            ),
         )
 
 
 def test_successful_gate_a_segmentation_promotes_full_rig_tier() -> None:
+    artifacts = InMemoryArtifactStore()
+    mask = artifacts.put(session_id="session-1", content_type="image/png", body=b"mask")
     service = AutoRigService(
-        artifacts=InMemoryArtifactStore(),
+        artifacts=artifacts,
         grants=InMemoryRigPackageGrantStore(),
         jobs=InMemoryJobStore(),
-        segmenter=_FixtureSegmenter(),
+        segmenter=_FixtureSegmenter(mask.artifact_ref, mask.sha256),
         now=lambda: datetime(2026, 9, 25, 6, 0, tzinfo=UTC),
     )
     job = service.start_gate_a_preparation(

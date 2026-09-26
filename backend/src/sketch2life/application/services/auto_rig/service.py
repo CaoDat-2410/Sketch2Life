@@ -27,6 +27,7 @@ from sketch2life.application.services.auto_rig.rig_builder import (
 )
 from sketch2life.contracts.schemas.auto_rig import (
     AutoRigJobV1,
+    DerivedArtifactRefV1,
     RigDeliveryTier,
     RiggedArtworkPackageV1,
     RigJobStage,
@@ -114,7 +115,11 @@ class AutoRigService:
         if segmentation is not None:
             with self._lock:
                 self._prepared_regions[session_id] = segmentation
-        succeeded = segmentation is not None
+        succeeded = (
+            segmentation is not None
+            and segmentation.mask_artifact_ref is not None
+            and bool(segmentation.parts)
+        )
         job = AutoRigJobV1(
             contractName="AutoRigJobV1",
             contractVersion="1.0",
@@ -131,7 +136,15 @@ class AutoRigService:
             selectedTier=(
                 RigDeliveryTier.FULL_AUTO_RIG if succeeded else RigDeliveryTier.CUTOUT_MICRO_MOTION
             ),
-            failureCode=None if succeeded else "SEGMENTATION_ADAPTER_UNAVAILABLE",
+            failureCode=(
+                None
+                if succeeded
+                else (
+                    "SEGMENTATION_PARTS_UNAVAILABLE"
+                    if segmentation is not None
+                    else "SEGMENTATION_ADAPTER_UNAVAILABLE"
+                )
+            ),
             retryable=False,
             createdAt=now,
             updatedAt=now,
@@ -158,8 +171,8 @@ class AutoRigService:
         archetype = classify_archetype(target_label, semantic_tags)
         with self._lock:
             prepared = self._prepared_regions.get(session_id)
-        # Without a benchmark-approved segmentation adapter, use a source-derived
-        # transparent foreground over the complete canvas and remain at the cutout tier.
+        # The normalized region is always retained in the rig package. A full rig is only
+        # eligible after the mask artifact is present and hash-verified below.
         region = (
             prepared.source_region
             if prepared is not None
@@ -167,19 +180,7 @@ class AutoRigService:
         )
         rig = build_template_rig(archetype=archetype, source_region=region)
         geometry_reasons = validate_rig_geometry(rig)
-        tier = (
-            RigDeliveryTier.FULL_AUTO_RIG
-            if prepared is not None
-            else RigDeliveryTier.CUTOUT_MICRO_MOTION
-        )
-        reasons = (
-            geometry_reasons
-            if prepared is not None
-            else ("SEGMENTATION_ADAPTER_UNAVAILABLE", *geometry_reasons)
-        )
         valid = not geometry_reasons
-        if not valid:
-            tier = RigDeliveryTier.BBOX_VISUAL_FOCUS
         target = RigTargetV1(
             canonicalEntityId=target_id,
             normalizedLabel=target_label,
@@ -187,6 +188,50 @@ class AutoRigService:
             semanticTags=semantic_tags,
         )
         package_id = f"rig-{session_id}-{experience_spec_ref.version}"
+        stored_mask = None
+        derived_artifacts: tuple[DerivedArtifactRefV1, ...] = ()
+        if prepared is not None and prepared.mask_artifact_ref is not None:
+            stored_mask = self._artifacts.get(prepared.mask_artifact_ref)
+            if (
+                stored_mask is not None
+                and stored_mask[0].sha256 == prepared.mask_sha256
+                and stored_mask[0].content_type == "image/png"
+            ):
+                # A mask is source-derived media, so its own digest is not expected to equal
+                # the source digest. The source identity is carried by the contract below.
+                derived_artifacts = (
+                    DerivedArtifactRefV1(
+                        artifactRef=stored_mask[0].artifact_ref,
+                        sha256=stored_mask[0].sha256,
+                        contentType=stored_mask[0].content_type,
+                        byteLength=stored_mask[0].byte_length,
+                        role="ORIGINAL_DERIVED_MASK",
+                        sourceSha256=source_sha256,
+                        operation="SAM2.1 prompt-bounded subject segmentation",
+                        operationVersion=prepared.adapter_version,
+                    ),
+                )
+        has_valid_subject_mask = stored_mask is not None and prepared is not None
+        has_valid_parts = has_valid_subject_mask and bool(prepared.parts)
+        tier = (
+            RigDeliveryTier.FULL_AUTO_RIG
+            if has_valid_parts
+            else RigDeliveryTier.CUTOUT_MICRO_MOTION
+        )
+        reasons = (
+            geometry_reasons
+            if has_valid_parts
+            else (
+                "SEGMENTATION_PARTS_UNAVAILABLE"
+                if prepared is not None
+                else "SEGMENTATION_ADAPTER_UNAVAILABLE",
+                *geometry_reasons,
+            )
+        )
+        if not valid:
+            tier = RigDeliveryTier.BBOX_VISUAL_FOCUS
+        if not has_valid_subject_mask:
+            derived_artifacts = ()
         validation = RigValidationResultV1(
             contractName="RigValidationResultV1",
             contractVersion="1.0",
@@ -206,7 +251,7 @@ class AutoRigService:
             archetype=archetype,
             tier=tier,
             rig=rig if valid else None,
-            derivedArtifacts=(),
+            derivedArtifacts=derived_artifacts,
             validation=validation,
             pipelineVersion="1",
             createdAt=self._aware_now(),

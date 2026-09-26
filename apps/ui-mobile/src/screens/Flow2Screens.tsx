@@ -9,6 +9,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  type GestureResponderEvent,
 } from 'react-native';
 import * as Crypto from 'expo-crypto';
 import * as NavigationBar from 'expo-navigation-bar';
@@ -886,6 +887,7 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
   const [discoveredLabel, setDiscoveredLabel] = useState<string | null>(null);
   const [chromeVisible, setChromeVisible] = useState(true);
   const chromeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const progressTrackWidth = useRef(1);
   const [playback, setPlayback] = useState({
     position: 0,
     duration: 0,
@@ -923,7 +925,7 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
 
   const armChromeAutoHide = () => {
     clearChromeTimer();
-    if (playback.interactionPhase === 'INTRO_LOADING') return;
+    if (playback.interactionPhase === 'INTRO_LOADING' || playback.state !== 'PLAYING') return;
     chromeTimer.current = setTimeout(() => setChromeVisible(false), 3000);
   };
 
@@ -980,10 +982,15 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
   }, [rendererPageUrl, rendererFailed, playback.duration]);
 
   useEffect(() => {
+    if (playback.state !== 'PLAYING') {
+      clearChromeTimer();
+      setChromeVisible(true);
+      return;
+    }
     if (playback.interactionPhase !== 'INTRO_LOADING' && chromeVisible) armChromeAutoHide();
-  }, [playback.interactionPhase]);
+  }, [playback.interactionPhase, playback.state]);
 
-  const postControl = (action: 'PLAY' | 'PAUSE' | 'REPLAY' | 'SEEK_RELATIVE_SECONDS', seconds?: number) => {
+  const postControl = (action: 'PLAY' | 'PAUSE' | 'REPLAY' | 'SEEK_RELATIVE_SECONDS' | 'SEEK_TO_SECONDS', seconds?: number) => {
     if (!rendererWebViewRef.current) return;
     const parsed = RendererControlCommandSchema.safeParse({
       protocolVersion: ART_RENDERER_PROTOCOL_VERSION,
@@ -994,6 +1001,14 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
       ...(seconds === undefined ? {} : { seconds }),
     });
     if (parsed.success) rendererWebViewRef.current.postMessage(JSON.stringify(parsed.data));
+  };
+
+  const seekFromProgressEvent = (event: GestureResponderEvent) => {
+    if (playback.duration <= 0) return;
+    const ratio = Math.min(1, Math.max(0, event.nativeEvent.locationX / progressTrackWidth.current));
+    setPlayback((current) => ({ ...current, position: ratio * current.duration }));
+    postControl('SEEK_TO_SECONDS', ratio * playback.duration);
+    setChromeVisible(true);
   };
 
   const handleRendererMessage = (event: WebViewMessageEvent) => {
@@ -1171,7 +1186,7 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
               <Text style={styles.pixiCaptionText}>{caption}</Text>
             </View>
             <View style={styles.pixiTimelineBar}>
-              <TouchableOpacity disabled={playback.duration <= 0} accessibilityLabel="Tua lại 2 giây" onPress={() => { showChrome(); postControl('SEEK_RELATIVE_SECONDS', -2); }} style={styles.pixiControlButton}>
+              <TouchableOpacity disabled={playback.duration <= 0} accessibilityLabel="Tua lại 3 giây" onPress={() => { showChrome(); postControl('SEEK_RELATIVE_SECONDS', -3); }} style={styles.pixiControlButton}>
                 <Ionicons name="play-back" size={22} color="#FFFFFF" />
               </TouchableOpacity>
               <TouchableOpacity
@@ -1182,10 +1197,19 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
               >
                 <Ionicons name={playback.state === 'PLAYING' ? 'pause' : 'play'} size={26} color="#172033" />
               </TouchableOpacity>
-              <TouchableOpacity disabled={playback.duration <= 0} accessibilityLabel="Tua tới 2 giây" onPress={() => { showChrome(); postControl('SEEK_RELATIVE_SECONDS', 2); }} style={styles.pixiControlButton}>
+              <TouchableOpacity disabled={playback.duration <= 0} accessibilityLabel="Tua tới 3 giây" onPress={() => { showChrome(); postControl('SEEK_RELATIVE_SECONDS', 3); }} style={styles.pixiControlButton}>
                 <Ionicons name="play-forward" size={22} color="#FFFFFF" />
               </TouchableOpacity>
-              <View style={styles.pixiProgressTrack}>
+              <View
+                accessibilityRole="adjustable"
+                accessibilityLabel="Thanh thời gian chuyển động"
+                onLayout={(event) => { progressTrackWidth.current = Math.max(1, event.nativeEvent.layout.width); }}
+                onStartShouldSetResponder={() => playback.duration > 0}
+                onMoveShouldSetResponder={() => playback.duration > 0}
+                onResponderGrant={seekFromProgressEvent}
+                onResponderMove={seekFromProgressEvent}
+                style={styles.pixiProgressTrack}
+              >
                 <View style={[styles.pixiProgressFill, { width: `${playback.duration > 0 ? Math.min(100, playback.position / playback.duration * 100) : 0}%` }]} />
               </View>
               <Text style={styles.pixiTimeText}>{playback.duration > 0 ? `${formatPlaybackTime(playback.position)} / ${formatPlaybackTime(playback.duration)}` : 'Đang mở…'}</Text>
@@ -1805,7 +1829,11 @@ const styles = StyleSheet.create({
   evidenceChipText: { color: '#075985', fontSize: 12, fontWeight: '700' },
   pixiIntroScreen: { flex: 1, backgroundColor: '#10162A' },
   pixiChromeLayer: { ...StyleSheet.absoluteFillObject, zIndex: 3, justifyContent: 'space-between', padding: 12 },
-  pixiIntroHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 54 },
+  pixiIntroHeader: {
+    flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 58,
+    paddingHorizontal: 8, paddingVertical: 6, borderRadius: 30,
+    backgroundColor: 'rgba(15,23,42,0.82)',
+  },
   pixiIntroTitle: { color: '#FFFFFF', fontSize: 20, fontWeight: '900' },
   pixiIntroStatus: { color: '#BFDBFE', fontSize: 12, marginTop: 2 },
   pixiContinueButton: {
@@ -1845,17 +1873,21 @@ const styles = StyleSheet.create({
     color: '#FFFFFF', backgroundColor: 'rgba(15,23,42,0.82)', paddingHorizontal: 18,
     paddingVertical: 10, borderRadius: 16, fontSize: 17, fontWeight: '800', textAlign: 'center',
   },
-  pixiTimelineBar: { minHeight: 58, flexDirection: 'row', alignItems: 'center', gap: 10, paddingBottom: 4 },
+  pixiTimelineBar: {
+    minHeight: 62, flexDirection: 'row', alignItems: 'center', gap: 10,
+    paddingHorizontal: 10, paddingVertical: 7, borderRadius: 31,
+    backgroundColor: 'rgba(15,23,42,0.88)',
+  },
   pixiControlButton: {
-    width: 48, height: 48, borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.14)',
-    alignItems: 'center', justifyContent: 'center',
+    width: 48, height: 48, borderRadius: 24, backgroundColor: 'rgba(30,41,59,0.94)',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.28)', alignItems: 'center', justifyContent: 'center',
   },
   pixiPlayButton: { backgroundColor: '#FDE68A' },
   pixiRetryButton: {
     minHeight: 44, paddingHorizontal: 14, borderRadius: 22, backgroundColor: '#FDE68A',
     alignItems: 'center', justifyContent: 'center',
   },
-  pixiProgressTrack: { flex: 1, height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.2)', overflow: 'hidden' },
+  pixiProgressTrack: { flex: 1, height: 12, borderRadius: 6, backgroundColor: 'rgba(255,255,255,0.3)', overflow: 'hidden' },
   pixiProgressFill: { height: '100%', borderRadius: 4, backgroundColor: '#60A5FA' },
   pixiTimeText: { minWidth: 78, color: '#FFFFFF', fontSize: 12, fontWeight: '700', textAlign: 'center' },
   videoPlaceholderScreen: { flex: 1, flexDirection: 'row', backgroundColor: '#111827', padding: 18, gap: 20 },

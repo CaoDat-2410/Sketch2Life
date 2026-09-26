@@ -1,7 +1,7 @@
 # FEAT-030 Original-derived auto-rig context
 
-- Status: IMPLEMENTED_BASELINE; Renderer V2 and safe cutout motion are active, including an Android HTTP-WebView SHA-256 compatibility path; benchmark-approved live segmentation/worker activation remains pending.
-- Owner: Project owner; implementation allocation is not yet approved.
+- Status: REVISION_3_PART_AWARE_BASELINE_IMPLEMENTED; REVISION_4_SAM21_WORKER_IMPLEMENTATION_IN_PROGRESS; LIVE_ACTIVATION_PENDING_L4_BENCHMARK.
+- Owner: Project owner; Revision 4 implementation is explicitly approved, while live default activation remains benchmark-gated.
 - Goal: turn a validated subject from the child's immutable drawing into a bounded, explainable PixiJS 2D rig so the drawing visibly moves while remaining recognizably the child's work.
 - Scope: target selection, spatial grounding, segmentation, original-derived masks/textures, mesh and skeleton generation, skin weights, rig validation, bounded motion profiles, asynchronous preparation, Renderer V2 loading, PixiJS CPU skinning, deterministic fallback, provenance, metrics, and golden-scene evidence.
 - Non-goals: generative redrawing; replacing the original; semantic re-analysis through a second Qwen request; AI video generation; changing Gate A or Gate B authority; letting the renderer or mobile app call model providers; inventing actions unsupported by the drawing and learning objective; removing Renderer V1.
@@ -32,9 +32,13 @@ The original drawing remains immutable. Every mask, crop, texture, mesh, rig, an
 - `feat-029-master-srs`, `sketch2life-workflow`, and accepted feature records are requirement baselines, not implementation approval.
 - Exact segmentation, grounding, and geometry libraries remain candidates until an ADR records benchmark evidence. The handbook explicitly does not freeze providers without evaluation.
 
-## Planning boundary
+## Revision 4 implementation boundary
 
-This revision creates architecture, contracts, phased milestones, acceptance criteria, and evidence requirements only. It does not alter runtime code, install a model, generate visual assets, or activate a provider.
+The approved implementation now includes the typed SAM 2.1 worker contract, a lazy process-scoped
+Lightning runtime, a backend-only adapter, deterministic bounded box proposal, mask provenance,
+and safe typed fallback. The SAM2 dependency/checkpoint is not installed or downloaded by the
+repository change. Live activation remains opt-in via `SKETCH2LIFE_LIGHTNING_SAM21_ENABLED=true`
+until the L4 benchmark and deployment ADR evidence are recorded.
 
 ## Owner closure — 2026-09-25
 

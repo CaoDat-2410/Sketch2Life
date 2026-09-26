@@ -17,6 +17,27 @@ class SubjectSegmentationRequest:
     target_label: str
     target_confidence: float
     semantic_tags: tuple[str, ...]
+    prompt_region: SourceRegionV1 | None = None
+    positive_points: tuple[tuple[float, float], ...] = ()
+    negative_points: tuple[tuple[float, float], ...] = ()
+    requested_part_roles: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class SubjectPartSegmentationResult:
+    """A bounded semantic-part result returned by a replaceable segmenter.
+
+    SAM2 is the perception step only.  The application still decides whether a part is
+    suitable for a rig and the renderer never treats a missing part as permission to
+    invent anatomy.
+    """
+
+    part_id: str
+    role: str
+    source_region: SourceRegionV1
+    confidence: float
+    mask_artifact_ref: str | None = None
+    mask_sha256: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -27,6 +48,7 @@ class SubjectSegmentationResult:
     adapter_version: str
     mask_artifact_ref: str | None = None
     mask_sha256: str | None = None
+    parts: tuple[SubjectPartSegmentationResult, ...] = ()
 
 
 class SubjectSegmentationPort(Protocol):
@@ -37,4 +59,5 @@ __all__ = [
     "SubjectSegmentationPort",
     "SubjectSegmentationRequest",
     "SubjectSegmentationResult",
+    "SubjectPartSegmentationResult",
 ]

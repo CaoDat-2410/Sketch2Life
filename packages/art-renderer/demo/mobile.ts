@@ -235,8 +235,8 @@ async function loadLaunch(serialized: string): Promise<void> {
         if (packageBytes.byteLength <= 0 || packageBytes.byteLength > 1_000_000) throw new Error('RIG_PACKAGE_SIZE_INVALID');
         if (await sha256Hex(packageBytes) !== command.packageSha256) throw new Error('RIG_PACKAGE_HASH_MISMATCH');
         const packageJson: unknown = JSON.parse(new TextDecoder().decode(packageBytes));
-        const foregroundTexture = await textureFromBlob(image, true);
-        autoRigPlayer.load(packageJson, command.animationPlan, foregroundTexture);
+        const foreground = await textureFromBlob(image, true);
+        autoRigPlayer.load(packageJson, command.animationPlan, foreground.texture, foreground.canvas);
         activePlayer = autoRigPlayer;
         v2InteractionPhase = 'INTRO_LOADING';
       } catch (error) {
@@ -311,6 +311,14 @@ playButton.addEventListener('click', () => {
   }
 });
 
+app.canvas.addEventListener('pointerdown', () => {
+  if (launch?.contractName !== 'RendererLoadCommandV2') return;
+  postLifecycle({
+    type: 'CANVAS_TAPPED',
+    planId: launch.animationPlan.planId,
+  });
+});
+
 window.addEventListener('pagehide', () => {
   classicPlayer.destroy();
   autoRigPlayer.destroy();
@@ -321,7 +329,7 @@ window.addEventListener('pagehide', () => {
 status.textContent = 'Pixi sẵn sàng, đang chờ launch của đúng phiên.';
 post({protocolVersion: ART_RENDERER_PROTOCOL_VERSION, rendererInstanceId});
 
-async function textureFromBlob(blob: Blob, removePaper: boolean): Promise<Texture> {
+async function textureFromBlob(blob: Blob, removePaper: boolean): Promise<{texture: Texture; canvas: HTMLCanvasElement}> {
   const bitmap = await createImageBitmap(blob);
   const canvas = document.createElement('canvas');
   canvas.width = bitmap.width;
@@ -344,7 +352,7 @@ async function textureFromBlob(blob: Blob, removePaper: boolean): Promise<Textur
     }
     context.putImageData(image, 0, 0);
   }
-  return Texture.from(canvas);
+  return {texture: Texture.from(canvas), canvas};
 }
 
 function v2FallbackPlan(command: RendererLoadCommandV2): unknown {

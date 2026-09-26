@@ -20,6 +20,7 @@ from sketch2life.infrastructure.ai.lightning_client import (
     UrllibJsonTransport,
     read_secret_file,
 )
+from sketch2life.infrastructure.ai.lightning_sam21 import LightningSam21SegmentationAdapter
 from sketch2life.infrastructure.ai.lightning_scene_localization import (
     LightningSceneLocalizationAdapter,
 )
@@ -83,11 +84,13 @@ def create_app(
         artifacts = InMemoryArtifactStore()
         idempotency = InMemoryIdempotencyStore()
         renderer_source_grants = InMemoryRendererSourceGrantStore()
+        settings = get_settings()
         if auto_rig_service is None:
             auto_rig_service = AutoRigService(
                 artifacts=artifacts,
                 grants=InMemoryRigPackageGrantStore(),
                 jobs=InMemoryJobStore(),
+                segmenter=_configured_lightning_sam21(settings, artifacts),
             )
         session_service = EphemeralSessionService(
             sessions=InMemorySessionRepository[SessionSnapshotV1](),
@@ -97,7 +100,6 @@ def create_app(
             idle_ttl_seconds=get_settings().session_idle_ttl_seconds,
         )
         if live_image_demo_service is None:
-            settings = get_settings()
             vision = _configured_lightning_vision(settings, artifacts)
             asr = _configured_lightning_asr(settings, artifacts)
             # Geometry localization is intentionally disabled in the normal demo path.  The
@@ -250,6 +252,44 @@ def _configured_lightning_asr(
         transport=transport,
         artifact_loader=load_artifact,
         endpoint_path=settings.lightning_asr_path,
+    )
+
+
+def _configured_lightning_sam21(
+    settings: Settings, artifacts: InMemoryArtifactStore
+) -> LightningSam21SegmentationAdapter | None:
+    if (
+        not settings.lightning_sam21_enabled
+        or settings.env == "test"
+        or settings.ai_provider != "lightning_dev"
+        or not settings.lightning_ai_base_url
+        or settings.lightning_ai_token_file is None
+    ):
+        return None
+    try:
+        token = read_secret_file(settings.lightning_ai_token_file)
+        transport = UrllibJsonTransport(
+            base_url=settings.lightning_ai_base_url,
+            token=token,
+            request_timeout_seconds=settings.ai_request_timeout_seconds,
+        )
+    except (OSError, ValueError):
+        return None
+
+    def load_artifact(artifact_ref: str) -> bytes:
+        stored = artifacts.get(artifact_ref)
+        if stored is None:
+            raise KeyError("image artifact is unavailable")
+        return stored[1]
+
+    def write_artifact(session_id: str, content_type: str, body: bytes) -> object:
+        return artifacts.put(session_id=session_id, content_type=content_type, body=body)
+
+    return LightningSam21SegmentationAdapter(
+        transport=transport,
+        artifact_loader=load_artifact,
+        artifact_writer=write_artifact,
+        endpoint_path=settings.lightning_sam21_path,
     )
 
 

@@ -273,7 +273,14 @@ def _track(
 
 
 def _tracks(archetype: RigArchetype) -> tuple[BoneMotionTrackV2, ...]:
-    settle = ((0.0, _pose()), (0.8, _pose(y=-0.015)), (1.6, _pose()))
+    settle = (
+        (0.0, _pose()),
+        (2.5, _pose(y=-0.012, sx=1.008, sy=1.008)),
+        (5.0, _pose()),
+        (7.5, _pose(y=-0.009)),
+        (10.0, _pose()),
+        (12.0, _pose()),
+    )
     if archetype is RigArchetype.BUTTERFLY:
         return (
             _track(
@@ -282,10 +289,17 @@ def _tracks(archetype: RigArchetype) -> tuple[BoneMotionTrackV2, ...]:
                 "flutter",
                 (
                     (0, _pose()),
-                    (0.55, _pose(rotation=-12, sx=0.9)),
-                    (1.1, _pose()),
-                    (1.65, _pose(rotation=-10, sx=0.92)),
-                    (2.2, _pose()),
+                    (1.4, _pose(rotation=-7, sx=0.96)),
+                    (2.0, _pose(rotation=14, sx=0.88)),
+                    (2.7, _pose(rotation=-11, sx=0.93)),
+                    (3.4, _pose(rotation=12, sx=0.9)),
+                    (4.2, _pose()),
+                    (6.0, _pose(rotation=-6, sx=0.96)),
+                    (6.7, _pose(rotation=13, sx=0.9)),
+                    (7.5, _pose(rotation=-9, sx=0.94)),
+                    (8.3, _pose()),
+                    (10.2, _pose(rotation=-4, sx=0.98)),
+                    (12.0, _pose()),
                 ),
             ),
             _track(
@@ -294,17 +308,30 @@ def _tracks(archetype: RigArchetype) -> tuple[BoneMotionTrackV2, ...]:
                 "flutter",
                 (
                     (0, _pose()),
-                    (0.55, _pose(rotation=12, sx=0.9)),
-                    (1.1, _pose()),
-                    (1.65, _pose(rotation=10, sx=0.92)),
-                    (2.2, _pose()),
+                    (1.5, _pose(rotation=6, sx=0.97)),
+                    (2.1, _pose(rotation=-13, sx=0.89)),
+                    (2.8, _pose(rotation=10, sx=0.94)),
+                    (3.5, _pose(rotation=-12, sx=0.91)),
+                    (4.3, _pose()),
+                    (6.1, _pose(rotation=5, sx=0.97)),
+                    (6.8, _pose(rotation=-12, sx=0.91)),
+                    (7.6, _pose(rotation=8, sx=0.95)),
+                    (8.4, _pose()),
+                    (10.3, _pose(rotation=4, sx=0.98)),
+                    (12.0, _pose()),
                 ),
             ),
             _track(
                 "body-bob",
                 "root",
                 "breathe",
-                ((0, _pose()), (1.1, _pose(y=-0.018)), (2.2, _pose())),
+                (
+                    (0, _pose()),
+                    (3.0, _pose(y=-0.012, sy=1.008)),
+                    (6.0, _pose()),
+                    (9.0, _pose(y=-0.01, sy=1.006)),
+                    (12.0, _pose()),
+                ),
             ),
         )
     if archetype is RigArchetype.BIRD:
@@ -313,19 +340,37 @@ def _tracks(archetype: RigArchetype) -> tuple[BoneMotionTrackV2, ...]:
                 "bird-breathe",
                 "root",
                 "breathe",
-                ((0, _pose()), (1.2, _pose(sx=1.015, sy=1.02)), (2.4, _pose())),
+                (
+                    (0, _pose()),
+                    (3, _pose(sx=1.01, sy=1.014)),
+                    (6, _pose()),
+                    (9, _pose(sy=1.01)),
+                    (12, _pose()),
+                ),
             ),
             _track(
                 "head-tilt",
                 "head",
                 "tilt",
-                ((0, _pose()), (1.1, _pose(rotation=7)), (2.2, _pose(rotation=-3)), (3.0, _pose())),
+                (
+                    (0, _pose()),
+                    (3, _pose(rotation=6)),
+                    (6, _pose(rotation=-3)),
+                    (9, _pose(rotation=4)),
+                    (12, _pose()),
+                ),
             ),
             _track(
                 "wing-settle",
                 "wing",
                 "sway",
-                ((0, _pose()), (1.5, _pose(rotation=5)), (3.0, _pose())),
+                (
+                    (0, _pose()),
+                    (3, _pose(rotation=4)),
+                    (6, _pose()),
+                    (9, _pose(rotation=3)),
+                    (12, _pose()),
+                ),
             ),
         )
     if archetype in {RigArchetype.FLOWER, RigArchetype.TREE_BRANCH}:
@@ -334,13 +379,25 @@ def _tracks(archetype: RigArchetype) -> tuple[BoneMotionTrackV2, ...]:
                 "stem-sway",
                 "stem",
                 "sway",
-                ((0, _pose()), (1.4, _pose(rotation=-4)), (2.8, _pose(rotation=4)), (4.2, _pose())),
+                (
+                    (0, _pose()),
+                    (3, _pose(rotation=-4)),
+                    (6, _pose(rotation=4)),
+                    (9, _pose(rotation=-3)),
+                    (12, _pose()),
+                ),
             ),
             _track(
                 "crown-sway",
                 "crown",
                 "sway",
-                ((0, _pose()), (1.4, _pose(rotation=6)), (2.8, _pose(rotation=-5)), (4.2, _pose())),
+                (
+                    (0, _pose()),
+                    (3, _pose(rotation=6)),
+                    (6, _pose(rotation=-5)),
+                    (9, _pose(rotation=4)),
+                    (12, _pose()),
+                ),
             ),
         )
     if archetype is RigArchetype.FISH:
@@ -351,17 +408,25 @@ def _tracks(archetype: RigArchetype) -> tuple[BoneMotionTrackV2, ...]:
                 "swim",
                 (
                     (0, _pose()),
-                    (0.7, _pose(rotation=-12)),
-                    (1.4, _pose(rotation=12)),
-                    (2.1, _pose(rotation=-8)),
-                    (2.8, _pose()),
+                    (2, _pose(rotation=-10)),
+                    (4, _pose(rotation=12)),
+                    (6, _pose(rotation=-9)),
+                    (8, _pose(rotation=10)),
+                    (10, _pose(rotation=-6)),
+                    (12, _pose()),
                 ),
             ),
             _track(
                 "fish-drift",
                 "root",
                 "swim",
-                ((0, _pose()), (1.4, _pose(x=0.025, y=-0.01)), (2.8, _pose())),
+                (
+                    (0, _pose()),
+                    (3, _pose(x=0.018, y=-0.008)),
+                    (6, _pose()),
+                    (9, _pose(x=-0.012, y=0.006)),
+                    (12, _pose()),
+                ),
             ),
         )
     if archetype is RigArchetype.BIPED:
@@ -370,13 +435,19 @@ def _tracks(archetype: RigArchetype) -> tuple[BoneMotionTrackV2, ...]:
                 "person-breathe",
                 "root",
                 "breathe",
-                ((0, _pose()), (1.2, _pose(sy=1.015)), (2.4, _pose())),
+                (
+                    (0, _pose()),
+                    (3, _pose(sy=1.012)),
+                    (6, _pose()),
+                    (9, _pose(sy=1.01)),
+                    (12, _pose()),
+                ),
             ),
             _track(
                 "person-head",
                 "head",
                 "tilt",
-                ((0, _pose()), (1.2, _pose(rotation=5)), (2.4, _pose())),
+                ((0, _pose()), (4, _pose(rotation=5)), (8, _pose(rotation=-2)), (12, _pose())),
             ),
         )
     return (_track("gentle-focus", "root", "focus", settle),)

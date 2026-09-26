@@ -42,6 +42,11 @@ from sketch2life.contracts.schemas.asr import (
     AsrSpeechDiagnostic,
     AsrSuccessV1,
 )
+from sketch2life.contracts.schemas.sam21 import (
+    Sam21PointV1,
+    Sam21SegmentationResponseV1,
+)
+from sketch2life.contracts.schemas.scene_exploration import SourceRegionV1
 from sketch2life.contracts.schemas.vision import VisionImageReferenceV1
 from sketch2life.contracts.schemas.vision_v2 import (
     VisionMappingDiagnosticV2,
@@ -62,6 +67,13 @@ from sketch2life.infrastructure.ai.qwen_vision_runtime_config import (
     VISION_MODEL_DIR_ENV_VAR,
     QwenVisionRuntimeConfig,
 )
+from sketch2life.infrastructure.ai.sam21_runtime import (
+    Sam21ConfigurationError,
+    Sam21ImageSegmenter,
+    Sam21MaskRejectedError,
+    Sam21PromptRequiredError,
+    Sam21RuntimeConfig,
+)
 from sketch2life.infrastructure.ai.vision_lexical_policy import (
     LexicalRegressionContentPolicy,
     synthetic_prohibited_lexicon,
@@ -75,6 +87,8 @@ _OPERATOR_MODEL_DIR_ENV_VAR = "MODEL_DIR"
 logger = logging.getLogger("sketch2life.lightning_vision_v2")
 _ASR_MODEL_LOCK = Lock()
 _ASR_MODEL = None
+_SAM21_MODEL_LOCK = Lock()
+_SAM21_SEGMENTER: Sam21ImageSegmenter | None = None
 
 _PROMPT = """Return exactly one strict JSON object and no surrounding text. Analyze visible marks in
 this synthetic, non-child drawing. Do not infer a child's personality, emotions, intent, diagnosis,
@@ -186,8 +200,18 @@ def _needs_quality_repair(
         return True
     if len(themes) != len(set(themes)):
         return True
-    broad = {"nature", "thiên nhiên", "outdoor scene", "khung cảnh ngoài trời", "background"}
-    if labels and labels[0] in broad and any(label not in broad for label in labels[1:]):
+    broad = {
+        "nature",
+        "thiên nhiên",
+        "outdoor scene",
+        "khung cảnh ngoài trời",
+        "background",
+    }
+    if (
+        labels
+        and labels[0] in broad
+        and any(label not in broad for label in labels[1:])
+    ):
         return True
     narration = (narration_context or "").casefold()
     narrated_subjects = (
@@ -268,6 +292,23 @@ class _LocalizationRegionV1(BaseModel):
         return self
 
 
+class _Sam21SegmentationRequestV1(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    contract_name: Literal["Sam21SegmentationRequestV1"] = "Sam21SegmentationRequestV1"
+    contract_version: Literal["1.0"] = "1.0"
+    session_id: str = Field(min_length=1, max_length=120)
+    target_id: str = Field(min_length=1, max_length=160)
+    target_label: str = Field(min_length=1, max_length=160)
+    target_confidence: float = Field(ge=0, le=1)
+    semantic_tags: list[str] = Field(default_factory=list, max_length=32)
+    prompt_region: SourceRegionV1 | None = None
+    positive_points: list[Sam21PointV1] = Field(default_factory=list, max_length=8)
+    negative_points: list[Sam21PointV1] = Field(default_factory=list, max_length=8)
+    requested_part_roles: list[str] = Field(default_factory=list, max_length=8)
+    source_image: _SourceImageV1
+
+
 class _SourceAudioV1(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
@@ -285,7 +326,9 @@ class LightningAsrRequestV1(BaseModel):
     source_audio: _SourceAudioV1
 
 
-app = FastAPI(title="Sketch2Life Lightning Vision and ASR", version="2.1.0", redoc_url=None)
+app = FastAPI(
+    title="Sketch2Life Lightning Vision and ASR", version="2.1.0", redoc_url=None
+)
 
 
 @app.exception_handler(RequestValidationError)
@@ -320,23 +363,32 @@ def vision_v2(
     authorization: str | None = Header(default=None),
 ) -> dict[str, object]:
     if not EXPECTED_AUTH:
-        raise HTTPException(status_code=503, detail="provider authentication is not configured")
+        raise HTTPException(
+            status_code=503, detail="provider authentication is not configured"
+        )
     if authorization != f"Bearer {EXPECTED_AUTH}":
         raise HTTPException(status_code=401, detail="unauthorized")
 
     reference = payload.request.source_image_ref
     artifact = payload.source_image
-    if artifact.artifact_ref != reference.artifact_ref or artifact.sha256 != reference.sha256:
+    if (
+        artifact.artifact_ref != reference.artifact_ref
+        or artifact.sha256 != reference.sha256
+    ):
         raise HTTPException(status_code=422, detail="source identity mismatch")
     try:
         image = base64.b64decode(artifact.content_base64, validate=True)
     except (ValueError, TypeError):
         raise HTTPException(status_code=422, detail="invalid image payload") from None
     if not image or len(image) > MAX_INPUT_BYTES:
-        raise HTTPException(status_code=413, detail="image size is outside the allowed range")
+        raise HTTPException(
+            status_code=413, detail="image size is outside the allowed range"
+        )
     if sha256(image).hexdigest() != artifact.sha256:
         raise HTTPException(status_code=422, detail="source digest mismatch")
-    if artifact.content_type == "image/png" and not image.startswith(b"\x89PNG\r\n\x1a\n"):
+    if artifact.content_type == "image/png" and not image.startswith(
+        b"\x89PNG\r\n\x1a\n"
+    ):
         raise HTTPException(status_code=422, detail="image type mismatch")
     if artifact.content_type == "image/jpeg" and not image.startswith(b"\xff\xd8\xff"):
         raise HTTPException(status_code=422, detail="image type mismatch")
@@ -374,7 +426,9 @@ def vision_v2(
 
             adapter = QwenVisionAdapter(
                 runtime,
-                content_policy=LexicalRegressionContentPolicy(synthetic_prohibited_lexicon()),
+                content_policy=LexicalRegressionContentPolicy(
+                    synthetic_prohibited_lexicon()
+                ),
                 prompt=_prompt_with_narration(payload.narration_context),
                 repair_prompt_builder=_repair_prompt_with_diagnostics,
                 semantic_empty_repair_prompt_builder=_semantic_empty_repair_prompt,
@@ -418,7 +472,9 @@ def vision_v2(
             wire_result["source_image_ref"]["artifact_ref"] = artifact.artifact_ref
             return wire_result
     except (OSError, ValueError, RuntimeError):
-        raise HTTPException(status_code=503, detail="vision runtime is unavailable") from None
+        raise HTTPException(
+            status_code=503, detail="vision runtime is unavailable"
+        ) from None
 
 
 @app.post("/v2/localize")
@@ -434,15 +490,22 @@ def localize_v2(
         image = base64.b64decode(artifact.content_base64, validate=True)
     except (ValueError, TypeError):
         raise HTTPException(status_code=422, detail="invalid image payload") from None
-    if not image or len(image) > MAX_INPUT_BYTES or sha256(image).hexdigest() != artifact.sha256:
-        raise HTTPException(status_code=422, detail="source image integrity check failed")
-    if artifact.content_type == "image/png" and not image.startswith(b"\x89PNG\r\n\x1a\n"):
+    if (
+        not image
+        or len(image) > MAX_INPUT_BYTES
+        or sha256(image).hexdigest() != artifact.sha256
+    ):
+        raise HTTPException(
+            status_code=422, detail="source image integrity check failed"
+        )
+    if artifact.content_type == "image/png" and not image.startswith(
+        b"\x89PNG\r\n\x1a\n"
+    ):
         raise HTTPException(status_code=422, detail="image type mismatch")
     if artifact.content_type == "image/jpeg" and not image.startswith(b"\xff\xd8\xff"):
         raise HTTPException(status_code=422, detail="image type mismatch")
     labels = {
-        target: payload.target_labels.get(target, target)
-        for target in payload.targets
+        target: payload.target_labels.get(target, target) for target in payload.targets
     }
     prompt = (
         f"{_LOCALIZATION_PROMPT}\n\nALLOWED TARGETS (use exact target_ref):\n"
@@ -453,7 +516,9 @@ def localize_v2(
             suffix = ".png" if artifact.content_type == "image/png" else ".jpg"
             image_path = Path(temporary) / f"source{suffix}"
             image_path.write_bytes(image)
-            runtime = QwenVisionRuntimeConfig.from_env(_vision_runtime_environment(os.environ))
+            runtime = QwenVisionRuntimeConfig.from_env(
+                _vision_runtime_environment(os.environ)
+            )
             profile = vision_profile_catalog_v2().resolve(
                 next(iter(vision_profile_catalog_v2().profiles)).profile_id
             )
@@ -500,6 +565,106 @@ def localize_v2(
         return _localization_fallback("MODEL_UNAVAILABLE")
     except (OSError, QwenPermanentRuntimeError, RuntimeError):
         return _localization_fallback("MODEL_RUNTIME_FAILURE")
+
+
+@app.post("/v2/rig/segment")
+def segment_rig_subject_v2(
+    payload: _Sam21SegmentationRequestV1,
+    authorization: str | None = Header(default=None),
+) -> dict[str, object]:
+    """Run one prompt-bounded SAM2.1 pass without a second semantic model call."""
+
+    _require_auth(authorization)
+    artifact = payload.source_image
+    try:
+        image = base64.b64decode(artifact.content_base64, validate=True)
+    except (ValueError, TypeError):
+        raise HTTPException(status_code=422, detail="invalid image payload") from None
+    if (
+        not image
+        or len(image) > MAX_INPUT_BYTES
+        or sha256(image).hexdigest() != artifact.sha256
+    ):
+        raise HTTPException(
+            status_code=422, detail="source image integrity check failed"
+        )
+    if artifact.content_type == "image/png" and not image.startswith(
+        b"\x89PNG\r\n\x1a\n"
+    ):
+        raise HTTPException(status_code=422, detail="image type mismatch")
+    if artifact.content_type == "image/jpeg" and not image.startswith(b"\xff\xd8\xff"):
+        raise HTTPException(status_code=422, detail="image type mismatch")
+    try:
+        segmenter = _sam21_segmenter()
+        result = segmenter.segment(
+            image,
+            prompt_region=payload.prompt_region,
+            positive_points=tuple(
+                (point.x, point.y) for point in payload.positive_points
+            ),
+            negative_points=tuple(
+                (point.x, point.y) for point in payload.negative_points
+            ),
+        )
+        if len(result.mask_png) > MAX_INPUT_BYTES:
+            raise Sam21MaskRejectedError("mask exceeded the response limit")
+        response = Sam21SegmentationResponseV1(
+            contractName="Sam21SegmentationResponseV1",
+            contractVersion="1.0",
+            status="SUCCEEDED",
+            adapterId="sam21-hiera-small",
+            adapterVersion="1",
+            sourceSha256=artifact.sha256,
+            sourceRegion=result.source_region,
+            confidence=result.confidence,
+            maskBase64=base64.b64encode(result.mask_png).decode("ascii"),
+            maskContentType="image/png",
+        )
+        logger.info(
+            "sam21_segmentation_completed status=SUCCEEDED target=%s confidence=%.3f",
+            payload.target_id,
+            result.confidence,
+        )
+        return response.model_dump(mode="json", by_alias=True, exclude_none=True)
+    except Sam21PromptRequiredError:
+        return _sam21_failure(artifact.sha256, "PROMPT_REQUIRED", False)
+    except Sam21MaskRejectedError:
+        return _sam21_failure(artifact.sha256, "MASK_REJECTED", False)
+    except Sam21ConfigurationError:
+        return _sam21_failure(artifact.sha256, "MODEL_UNAVAILABLE", True)
+    except (OSError, RuntimeError, ValueError):
+        return _sam21_failure(artifact.sha256, "MODEL_RUNTIME_FAILURE", True)
+
+
+def _sam21_segmenter() -> Sam21ImageSegmenter:
+    global _SAM21_SEGMENTER
+    if _SAM21_SEGMENTER is not None:
+        return _SAM21_SEGMENTER
+    with _SAM21_MODEL_LOCK:
+        if _SAM21_SEGMENTER is None:
+            _SAM21_SEGMENTER = Sam21ImageSegmenter(
+                Sam21RuntimeConfig.from_env(dict(os.environ))
+            )
+        return _SAM21_SEGMENTER
+
+
+def _sam21_failure(source_sha256: str, code: str, retryable: bool) -> dict[str, object]:
+    response = Sam21SegmentationResponseV1(
+        contractName="Sam21SegmentationResponseV1",
+        contractVersion="1.0",
+        status="FAILED",
+        adapterId="sam21-hiera-small",
+        adapterVersion="1",
+        sourceSha256=source_sha256,
+        failureCode=code,
+        retryable=retryable,
+    )
+    logger.warning(
+        "sam21_segmentation_completed status=FAILED code=%s retryable=%s",
+        code,
+        retryable,
+    )
+    return response.model_dump(mode="json", by_alias=True, exclude_none=True)
 
 
 def _parse_localization_output(raw_output: str) -> list[_LocalizationRegionV1]:
@@ -604,7 +769,9 @@ def _localization_fallback(reason: str) -> dict[str, object]:
 
 def _require_auth(authorization: str | None) -> None:
     if not EXPECTED_AUTH:
-        raise HTTPException(status_code=503, detail="provider authentication is not configured")
+        raise HTTPException(
+            status_code=503, detail="provider authentication is not configured"
+        )
     if authorization != f"Bearer {EXPECTED_AUTH}":
         raise HTTPException(status_code=401, detail="unauthorized")
 
@@ -615,7 +782,9 @@ def _decode_audio(source: _SourceAudioV1) -> bytes:
     except (ValueError, TypeError):
         raise HTTPException(status_code=422, detail="invalid audio payload") from None
     if not audio or len(audio) > MAX_AUDIO_BYTES:
-        raise HTTPException(status_code=413, detail="audio size is outside the allowed range")
+        raise HTTPException(
+            status_code=413, detail="audio size is outside the allowed range"
+        )
     if sha256(audio).hexdigest() != source.sha256:
         raise HTTPException(status_code=422, detail="source digest mismatch")
     if _audio_suffix(audio) is None:
@@ -642,10 +811,16 @@ def _load_asr_model():
     device = os.getenv("SKETCH2LIFE_ASR_DEVICE", "cuda").strip()
     compute_type = os.getenv("SKETCH2LIFE_ASR_COMPUTE_TYPE", "float16").strip()
     cache_key = (model_root or model_size, device, compute_type)
-    if getattr(_load_asr_model, "_cache_key", None) == cache_key and _ASR_MODEL is not None:
+    if (
+        getattr(_load_asr_model, "_cache_key", None) == cache_key
+        and _ASR_MODEL is not None
+    ):
         return _ASR_MODEL
     with _ASR_MODEL_LOCK:
-        if getattr(_load_asr_model, "_cache_key", None) == cache_key and _ASR_MODEL is not None:
+        if (
+            getattr(_load_asr_model, "_cache_key", None) == cache_key
+            and _ASR_MODEL is not None
+        ):
             return _ASR_MODEL
         from faster_whisper import WhisperModel
 
@@ -686,9 +861,15 @@ def asr_v1(
     _require_auth(authorization)
     reference = payload.request.source_audio_ref
     artifact = payload.source_audio
-    if artifact.artifact_ref != reference.artifact_ref or artifact.sha256 != reference.sha256:
+    if (
+        artifact.artifact_ref != reference.artifact_ref
+        or artifact.sha256 != reference.sha256
+    ):
         raise HTTPException(status_code=422, detail="source identity mismatch")
-    if payload.request.media_validation is None or payload.request.media_validation.decision != "PASS":
+    if (
+        payload.request.media_validation is None
+        or payload.request.media_validation.decision != "PASS"
+    ):
         raise HTTPException(status_code=422, detail="audio admission is required")
     audio = _decode_audio(artifact)
     suffix = _audio_suffix(audio)
@@ -778,7 +959,9 @@ def asr_v1(
                 vad_enabled=True,
                 duration_after_vad_seconds=duration if segments else 0.0,
                 model_identifier=model_identifier,
-                model_revision=os.getenv("SKETCH2LIFE_ASR_MODEL_REVISION", "lightning-runtime"),
+                model_revision=os.getenv(
+                    "SKETCH2LIFE_ASR_MODEL_REVISION", "lightning-runtime"
+                ),
                 adapter_version="faster-whisper-lightning-v1",
                 runtime_version=runtime_version,
                 config_hash=config_hash,
@@ -786,10 +969,14 @@ def asr_v1(
                     media_validation_artifact_ref=payload.request.media_validation.validation_artifact_ref,
                     media_validation_artifact_sha256=payload.request.media_validation.validation_artifact_sha256,
                     mean_segment_log_probability=(
-                        sum(logprob_values) / len(logprob_values) if logprob_values else None
+                        sum(logprob_values) / len(logprob_values)
+                        if logprob_values
+                        else None
                     ),
                     mean_no_speech_probability=(
-                        sum(no_speech_values) / len(no_speech_values) if no_speech_values else None
+                        sum(no_speech_values) / len(no_speech_values)
+                        if no_speech_values
+                        else None
                     ),
                 ),
             )
@@ -802,7 +989,9 @@ def asr_v1(
     except HTTPException:
         raise
     except ImportError:
-        logger.error("asr_request_completed status=FAILED error_code=ASR_MODEL_UNAVAILABLE")
+        logger.error(
+            "asr_request_completed status=FAILED error_code=ASR_MODEL_UNAVAILABLE"
+        )
         return _asr_failure(
             payload.request,
             AsrErrorCode.ASR_MODEL_UNAVAILABLE,
@@ -826,7 +1015,9 @@ def asr_v1(
             retryable=False,
         ).model_dump(mode="json")
     except (OSError, ValueError, TypeError):
-        logger.error("asr_request_completed status=FAILED error_code=ASR_PROVIDER_FAILURE")
+        logger.error(
+            "asr_request_completed status=FAILED error_code=ASR_PROVIDER_FAILURE"
+        )
         return _asr_failure(
             payload.request,
             AsrErrorCode.ASR_PROVIDER_FAILURE,
