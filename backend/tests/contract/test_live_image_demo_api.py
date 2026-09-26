@@ -5,6 +5,7 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
+from sketch2life.application.services.auto_rig import AutoRigService
 from sketch2life.application.services.ephemeral_sessions import EphemeralSessionService
 from sketch2life.application.services.image_admission import Feat018ImageAdmission
 from sketch2life.application.services.live_image_demo import LiveImageDemoService
@@ -37,7 +38,11 @@ from sketch2life.infrastructure.catalog.workflow_metadata import FileWorkflowCat
 from sketch2life.infrastructure.storage.in_memory import (
     InMemoryArtifactStore,
     InMemoryIdempotencyStore,
+    InMemoryJobStore,
     InMemorySessionRepository,
+)
+from sketch2life.infrastructure.storage.in_memory_auto_rig_grants import (
+    InMemoryRigPackageGrantStore,
 )
 from sketch2life.infrastructure.storage.in_memory_demo_workflow import (
     InMemoryDemoWorkflowStore,
@@ -96,7 +101,9 @@ class _CountingVision:
             policy_match_view_version=VISION_POLICY_MATCH_VIEW_VERSION,
             policy_execution_state="PASSED",
             status="SUCCEEDED",
-            entities=() if self.empty else (
+            entities=()
+            if self.empty
+            else (
                 EntityCandidateV1(
                     observation_id="subject-1",
                     label=ObservedTextV1(
@@ -151,12 +158,13 @@ def _client(
         scene_localizer=scene_localizer,
     )
     repo_root = Path(__file__).resolve().parents[3]
-    p1_library = load_p1_template_library(
-        repo_root, include_mvp=True, include_expansion=True
-    )
+    p1_library = load_p1_template_library(repo_root, include_mvp=True, include_expansion=True)
     semantic_catalog = load_activity_semantic_catalog(repo_root)
-    semantic_catalog_v2 = load_activity_semantic_catalog_v2(
-        repo_root, include_expansion=True
+    semantic_catalog_v2 = load_activity_semantic_catalog_v2(repo_root, include_expansion=True)
+    auto_rig = AutoRigService(
+        artifacts=artifacts,
+        grants=InMemoryRigPackageGrantStore(),
+        jobs=InMemoryJobStore(),
     )
     supervised_flow = SupervisedFlowService(
         sessions=sessions,
@@ -169,12 +177,14 @@ def _client(
         semantic_catalog_v2=semantic_catalog_v2,
         catalog_metadata=FileWorkflowCatalogMetadata(repo_root),
         renderer_source_capability_issuer=demo.issue_renderer_source_capability,
+        auto_rig_service=auto_rig,
     )
     return TestClient(
         create_app(
             session_service=sessions,
             live_image_demo_service=demo,
             supervised_flow_service=supervised_flow,
+            auto_rig_service=auto_rig,
         )
     ), actual_vision
 
@@ -981,6 +991,7 @@ def test_fake_only_image_session_completes_p1_gate_b_p4_handoff_feedback_and_gal
     )
     assert renderer.status_code == 200
     launch = renderer.json()["payload"]["renderer_launch"]
+    launch_v2 = renderer.json()["payload"]["renderer_launch_v2"]
     assert launch["assetManifest"]["providerGenerationCalled"] is False
     assert not _contains_none(launch)
     assert launch["assetManifest"]["assets"][0]["role"] == "ORIGINAL_ART"
@@ -991,9 +1002,22 @@ def test_fake_only_image_session_completes_p1_gate_b_p4_handoff_feedback_and_gal
     assert (
         launch["animationPlan"]["experienceSpecRef"] == launch["assetManifest"]["experienceSpecRef"]
     )
-    assert [
-        motion["kind"] for motion in launch["animationPlan"]["plan"]["motions"]
-    ] == ["DRAW_REVEAL", "SCALE", "MOVE_TO", "ROTATE"]
+    assert [motion["kind"] for motion in launch["animationPlan"]["plan"]["motions"]] == [
+        "DRAW_REVEAL",
+        "SCALE",
+        "MOVE_TO",
+        "ROTATE",
+    ]
+    assert launch_v2["contractName"] == "PixiRendererLaunchV2"
+    assert launch_v2["animationPlan"]["tier"] == "CUTOUT_MICRO_MOTION"
+    assert launch_v2["fallbackLaunch"]["contractName"] == "PixiRendererLaunchV1"
+    package = client.get(
+        launch_v2["packageReadEndpoint"],
+        headers={"X-Rig-Package-Capability": launch_v2["packageReadCapability"]},
+    )
+    assert package.status_code == 200
+    assert package.headers["X-Content-SHA256"] == launch_v2["packageSha256"]
+    assert package.json()["originalArtPreserved"] is True
     storyboard = renderer.json()["payload"]["pixi_intro_storyboard"]
     assert storyboard["original_art_preserved"] is True
     assert storyboard["video_placeholder_only"] is True

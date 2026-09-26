@@ -54,6 +54,7 @@ import {
   RendererBootstrapSchema,
   RendererControlCommandSchema,
   RendererLoadCommandSchema,
+  RendererLoadCommandV2Schema,
   RendererPlaybackEventEnvelopeSchema,
   RendererPlaybackStateEnvelopeSchema,
 } from '../../../../packages/art-renderer/src/protocol';
@@ -905,7 +906,7 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
   const caption = rendererText(
     activeBeat?.caption_vi,
     playback.interactionPhase === 'DISCOVERY_READY' || playback.interactionPhase === 'DISCOVERY_FOCUSED'
-      ? 'Chạm vào một chi tiết trong tranh để khám phá.'
+      ? 'Bức vẽ của con đã chuyển động và sẵn sàng bước tiếp.'
       : sceneData.storyTitle,
   );
   const canContinue = rendererFailed
@@ -1004,22 +1005,41 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
     if (bootstrap.success && rendererLaunch && !rendererCommandSent.current) {
       if (bootstrap.data.rendererInstanceId !== rendererInstanceId) return;
       const launch = rendererObject(rendererLaunch);
-      const command = RendererLoadCommandSchema.safeParse({
-        contractName: 'RendererLoadCommandV1',
-        contractVersion: '1.0',
-        protocolVersion: ART_RENDERER_PROTOCOL_VERSION,
-        sequence: 1,
-        rendererInstanceId,
-        sessionId: rendererText(launch.sessionId),
-        expectedSessionVersion: launch.expectedSessionVersion,
-        experienceSpecRef: launch.experienceSpecRef,
-        sourceReadEndpoint: launch.sourceReadEndpoint,
-        sourceReadCapability: launch.sourceReadCapability,
-        assetManifest: launch.assetManifest,
-        animationPlan: launch.animationPlan,
-        sceneExplorationPlan: launch.sceneExplorationPlan,
-        sceneFocusPlan: launch.sceneFocusPlan,
-      });
+      const isV2 = launch.contractName === 'PixiRendererLaunchV2';
+      const command = isV2
+        ? RendererLoadCommandV2Schema.safeParse({
+          contractName: 'RendererLoadCommandV2',
+          contractVersion: '2.0',
+          protocolVersion: '2',
+          sequence: 1,
+          rendererInstanceId,
+          sessionId: rendererText(launch.sessionId),
+          expectedSessionVersion: launch.expectedSessionVersion,
+          experienceSpecRef: launch.experienceSpecRef,
+          sourceReadEndpoint: launch.sourceReadEndpoint,
+          sourceReadCapability: launch.sourceReadCapability,
+          sourceSha256: launch.sourceSha256,
+          packageReadEndpoint: launch.packageReadEndpoint,
+          packageReadCapability: launch.packageReadCapability,
+          packageSha256: launch.packageSha256,
+          animationPlan: launch.animationPlan,
+        })
+        : RendererLoadCommandSchema.safeParse({
+          contractName: 'RendererLoadCommandV1',
+          contractVersion: '1.0',
+          protocolVersion: ART_RENDERER_PROTOCOL_VERSION,
+          sequence: 1,
+          rendererInstanceId,
+          sessionId: rendererText(launch.sessionId),
+          expectedSessionVersion: launch.expectedSessionVersion,
+          experienceSpecRef: launch.experienceSpecRef,
+          sourceReadEndpoint: launch.sourceReadEndpoint,
+          sourceReadCapability: launch.sourceReadCapability,
+          assetManifest: launch.assetManifest,
+          animationPlan: launch.animationPlan,
+          sceneExplorationPlan: launch.sceneExplorationPlan,
+          sceneFocusPlan: launch.sceneFocusPlan,
+        });
       if (!command.success || !rendererWebViewRef.current) {
         setRendererFailed(true);
         setRendererStatus('Bức tranh chưa sẵn sàng. Ảnh gốc vẫn được giữ nguyên.');
@@ -1027,7 +1047,7 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
       }
       rendererCommandSent.current = true;
       rendererWebViewRef.current.postMessage(JSON.stringify(command.data));
-      setRendererStatus('Đang dựng chuyển động từ bức vẽ gốc…');
+      setRendererStatus(isV2 ? 'Đang làm các nét vẽ chuyển động…' : 'Đang dựng chuyển động từ bức vẽ gốc…');
       return;
     }
     const state = RendererPlaybackStateEnvelopeSchema.safeParse(value);
@@ -1041,7 +1061,7 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
       });
       setRendererStatus(
         state.data.interactionPhase === 'DISCOVERY_READY'
-          ? 'Chạm vào một chi tiết trong tranh để khám phá.'
+          ? 'Bức vẽ chuyển động đã sẵn sàng.'
           : state.data.interactionPhase === 'FALLBACK'
             ? 'Một vài chi tiết chưa tách được; ảnh gốc vẫn an toàn.'
             : state.data.state === 'COMPLETED'
@@ -1061,10 +1081,10 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
           toggleChrome();
           break;
         case 'INTRO_COMPLETED':
-          setRendererStatus('Đang mở các điểm chạm trong bức vẽ…');
+          setRendererStatus('Chuyển động từ bức vẽ đã hoàn thành.');
           break;
         case 'DISCOVERY_READY':
-          setRendererStatus('Chạm vào một chi tiết trong tranh để khám phá.');
+          setRendererStatus('Bức vẽ chuyển động đã sẵn sàng.');
           setChromeVisible(true);
           armChromeAutoHide();
           break;

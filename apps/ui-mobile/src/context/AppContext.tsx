@@ -1107,7 +1107,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         throw workflowFailure(rendererResult, 'Bức tranh chuyển động chưa sẵn sàng.');
       }
       const payload = asObject(rendererResult.payload);
-      setRendererLaunch(asObject(payload.renderer_launch));
+      setRendererLaunch(asObject(payload.renderer_launch_v2 ?? payload.renderer_launch));
       setPixiIntroStoryboard(asObject(payload.pixi_intro_storyboard));
       setWorkflowNotice('Bức vẽ đã sẵn sàng bước vào câu chuyện.');
       return true;

@@ -2,6 +2,22 @@ export {loadChildArtAssetInstructions} from './assets';
 export {parseRendererMessage} from './bridge';
 export {createRendererBenchmarkSample} from './benchmark';
 export {createBrowserArtPlayer} from './browserPlayer';
+export {createAutoRigPlayer} from './autoRigPlayer';
+export {
+  BonePoseV2Schema,
+  RendererLoadCommandV2Schema,
+  RigArchetypeSchema,
+  RigDefinitionV1Schema,
+  RigDeliveryTierSchema,
+  RiggedArtworkPackageV1Schema,
+  VisualAnimationPlanV2Schema,
+} from './contractsV2';
+export type {
+  RendererLoadCommandV2,
+  RigDefinitionV1,
+  RiggedArtworkPackageV1,
+  VisualAnimationPlanV2,
+} from './contractsV2';
 export {
   ART_RENDERER_PROTOCOL_VERSION,
   ArtAnimationPlanEnvelopeSchema,

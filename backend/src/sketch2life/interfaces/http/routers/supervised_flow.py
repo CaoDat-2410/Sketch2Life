@@ -7,6 +7,7 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Header, Query, Request
 from fastapi.responses import JSONResponse, Response
 
+from sketch2life.application.services.auto_rig import AutoRigPackageUnavailable, AutoRigService
 from sketch2life.application.services.ephemeral_sessions import (
     SessionWorkflowError,
     failure_result,
@@ -189,6 +190,35 @@ def read_renderer_source(
             "Cache-Control": "no-store, max-age=0",
             "X-Content-Type-Options": "nosniff",
             "Content-Disposition": "inline",
+        },
+    )
+
+
+@renderer_source_router.get("/v1/renderer/rig-package")
+def read_renderer_rig_package(
+    request: Request,
+    capability: Annotated[
+        str,
+        Header(alias="X-Rig-Package-Capability", min_length=40, max_length=200),
+    ],
+) -> Response:
+    service: AutoRigService | None = request.app.state.auto_rig_service
+    if service is None:
+        return JSONResponse(status_code=503, content={"code": "RIG_PACKAGE_NOT_CONFIGURED"})
+    try:
+        content_type, body, digest = service.read_package(capability)
+    except AutoRigPackageUnavailable:
+        return JSONResponse(
+            status_code=410,
+            content={"code": "RIG_PACKAGE_UNAVAILABLE", "message": "The movement package expired."},
+        )
+    return Response(
+        content=body,
+        media_type=content_type,
+        headers={
+            "Cache-Control": "no-store, max-age=0",
+            "X-Content-Type-Options": "nosniff",
+            "X-Content-SHA256": digest,
         },
     )
 

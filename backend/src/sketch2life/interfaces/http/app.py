@@ -6,6 +6,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
+from sketch2life.application.services.auto_rig import AutoRigService
 from sketch2life.application.services.ephemeral_sessions import EphemeralSessionService
 from sketch2life.application.services.image_admission import Feat018ImageAdmission
 from sketch2life.application.services.live_image_demo import LiveImageDemoService
@@ -34,7 +35,11 @@ from sketch2life.infrastructure.media_validation.av_image_decoder import AvImage
 from sketch2life.infrastructure.storage.in_memory import (
     InMemoryArtifactStore,
     InMemoryIdempotencyStore,
+    InMemoryJobStore,
     InMemorySessionRepository,
+)
+from sketch2life.infrastructure.storage.in_memory_auto_rig_grants import (
+    InMemoryRigPackageGrantStore,
 )
 from sketch2life.infrastructure.storage.in_memory_demo_workflow import (
     InMemoryDemoWorkflowStore,
@@ -63,6 +68,7 @@ def create_app(
     session_service: EphemeralSessionService | None = None,
     live_image_demo_service: LiveImageDemoService | None = None,
     supervised_flow_service: SupervisedFlowService | None = None,
+    auto_rig_service: AutoRigService | None = None,
 ) -> FastAPI:
     """Create the local image-only API composition root with ephemeral adapters."""
     application = FastAPI(
@@ -77,6 +83,12 @@ def create_app(
         artifacts = InMemoryArtifactStore()
         idempotency = InMemoryIdempotencyStore()
         renderer_source_grants = InMemoryRendererSourceGrantStore()
+        if auto_rig_service is None:
+            auto_rig_service = AutoRigService(
+                artifacts=artifacts,
+                grants=InMemoryRigPackageGrantStore(),
+                jobs=InMemoryJobStore(),
+            )
         session_service = EphemeralSessionService(
             sessions=InMemorySessionRepository[SessionSnapshotV1](),
             idempotency=idempotency,
@@ -154,10 +166,12 @@ def create_app(
                     if live_image_demo_service is not None
                     else None
                 ),
+                auto_rig_service=auto_rig_service,
             )
     application.state.session_service = session_service
     application.state.live_image_demo_service = live_image_demo_service
     application.state.supervised_flow_service = supervised_flow_service
+    application.state.auto_rig_service = auto_rig_service
     application.include_router(health_router)
     application.include_router(sessions_router)
     application.include_router(images_router)

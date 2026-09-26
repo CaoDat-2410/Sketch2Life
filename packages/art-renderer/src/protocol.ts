@@ -14,5 +14,7 @@ export {
   SubjectCandidateSetSchema,
 } from './contracts';
 export {parseRendererMessage} from './bridge';
+export {RendererLoadCommandV2Schema} from './contractsV2';
+export type {RendererLoadCommandV2} from './contractsV2';
 export type {PlaybackEvent, RendererBootstrap, RendererInteractionPhase} from './contracts';
 export type {RendererMessage} from './bridge';

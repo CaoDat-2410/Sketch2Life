@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from collections.abc import Callable, Mapping
 from dataclasses import replace
 from datetime import UTC, datetime
@@ -23,6 +24,7 @@ from sketch2life.application.ports.workflow_dependencies import (
     SemanticCatalogPort,
     SemanticCatalogV2Port,
 )
+from sketch2life.application.services.auto_rig import AutoRigService
 from sketch2life.application.services.ephemeral_sessions import (
     DEMO_ACTOR_REF,
     EphemeralSessionService,
@@ -92,6 +94,7 @@ from sketch2life.contracts.schemas.renderer import (
     PixiArtAssetManifestV1,
     PixiRendererLaunchV1,
 )
+from sketch2life.contracts.schemas.renderer_v2 import PixiRendererLaunchV2
 from sketch2life.contracts.schemas.vision import vision_label_normalize
 from sketch2life.contracts.schemas.workflow_records import (
     FeedbackV1,
@@ -100,6 +103,7 @@ from sketch2life.contracts.schemas.workflow_records import (
 )
 
 _RAW_RESULT_ADAPTER: TypeAdapter[RawUnderstandingResultV1] = TypeAdapter(RawUnderstandingResultV1)
+_LOGGER = logging.getLogger("sketch2life.supervised_flow")
 _FLOW_PROVENANCE = WorkflowResultProvenanceV1(
     producer="APPLICATION",
     component="feat018-supervised-flow",
@@ -155,9 +159,7 @@ def _recommendation_set(
                     display.get("preparation_asset_status", "NOT_APPLICABLE")
                 ),
                 fit_source=(
-                    "DIRECT"
-                    if match.continuity_mode == "DIRECT_CONTINUATION"
-                    else "RELATED"
+                    "DIRECT" if match.continuity_mode == "DIRECT_CONTINUATION" else "RELATED"
                 ),
             )
         )
@@ -182,6 +184,7 @@ class SupervisedFlowService:
         catalog_metadata: ActivityCatalogMetadataPort | None = None,
         scene_localizer: SceneLocalizationPort | None = None,
         renderer_source_capability_issuer: Callable[..., tuple[str, datetime]] | None = None,
+        auto_rig_service: AutoRigService | None = None,
         now: Callable[[], datetime] = lambda: datetime.now(UTC),
     ) -> None:
         self._sessions = sessions
@@ -193,6 +196,7 @@ class SupervisedFlowService:
         self._catalog_metadata = catalog_metadata
         self._scene_localizer = scene_localizer
         self._renderer_source_capability_issuer = renderer_source_capability_issuer
+        self._auto_rig_service = auto_rig_service
         self._now = now
         self._lock = RLock()
         self._media_resolver = LearningMediaResolver(InMemoryLearningMediaStore())
@@ -285,7 +289,7 @@ class SupervisedFlowService:
                     "GATE_A_CLAIM_NOT_FOUND",
                     422,
                     "The selected claim is not part of this image proposal.",
-            )
+                )
             if correction:
                 primary_claim = replace(
                     primary_claim,
@@ -298,9 +302,7 @@ class SupervisedFlowService:
             topic_label_vi = compose_topic_vi(topic_claims)
             semantic_tags = tuple(
                 dict.fromkeys(
-                    tag
-                    for claim in topic_claims
-                    for tag in semantic_tags_for_label(claim.label)
+                    tag for claim in topic_claims for tag in semantic_tags_for_label(claim.label)
                 )
             )
             secondary_anchors = tuple(
@@ -398,6 +400,27 @@ class SupervisedFlowService:
                     ),
                 },
             )
+            auto_rig_job: dict[str, object] | None = None
+            if self._auto_rig_service is not None:
+                try:
+                    auto_rig_job = self._auto_rig_service.start_gate_a_preparation(
+                        session_id=command.session_id,
+                        request_id=f"{command.request_id}:auto-rig",
+                        source_artifact_ref=raw.source_image_ref.artifact_ref,
+                        source_sha256=raw.source_image_ref.sha256,
+                        target_id=anchor.anchor_id,
+                        target_label=anchor.normalized_label,
+                        target_confidence=anchor.confidence,
+                        semantic_tags=anchor.semantic_tags,
+                    ).model_dump(mode="json", by_alias=True, exclude_none=True)
+                except Exception:
+                    # Derived media preparation never invalidates the accepted Gate A choice.
+                    _LOGGER.warning(
+                        "auto_rig_gate_a_preparation_failed session_id=%s",
+                        command.session_id,
+                        exc_info=True,
+                    )
+                    auto_rig_job = None
             result = _result(
                 status="SUCCEEDED",
                 command=command,
@@ -417,6 +440,7 @@ class SupervisedFlowService:
                         if claim_id in confirmation.confirmed_claim_ids
                     ],
                     "topic_asset_context": asset_context.model_dump(mode="json", by_alias=True),
+                    "auto_rig_job": auto_rig_job,
                 },
             )
             self._remember(scope, command.idempotency_key, fingerprint, result)
@@ -1261,6 +1285,49 @@ class SupervisedFlowService:
                     "source_read_expires_at": expires_at,
                 }
             )
+            launch_v2: PixiRendererLaunchV2 | None = None
+            if self._auto_rig_service is not None:
+                try:
+                    package, visual_plan, package_capability, package_expires_at, package_sha = (
+                        self._auto_rig_service.prepare_template_package(
+                            session_id=command.session_id,
+                            source_artifact_ref=source_artifact_ref,
+                            source_sha256=source_sha256,
+                            target_id=anchor_set.primary_anchor.anchor_id,
+                            target_label=anchor_set.primary_anchor.normalized_label,
+                            target_confidence=anchor_set.primary_anchor.confidence,
+                            semantic_tags=anchor_set.primary_anchor.semantic_tags,
+                            experience_spec_ref=spec_ref,
+                            learning_bridge_vi=spec.bridge_sentence.sentence_vi,
+                        )
+                    )
+                    del package
+                    launch_v2 = PixiRendererLaunchV2(
+                        contractName="PixiRendererLaunchV2",
+                        contractVersion="2.0",
+                        sessionId=command.session_id,
+                        expectedSessionVersion=snapshot.version,
+                        experienceSpecRef=spec_ref,
+                        sourceReadEndpoint="/v1/renderer/source",
+                        sourceReadCapability=capability,
+                        sourceSha256=source_sha256,
+                        packageReadEndpoint="/v1/renderer/rig-package",
+                        packageReadCapability=package_capability,
+                        packageSha256=package_sha,
+                        packageReadExpiresAt=package_expires_at,
+                        animationPlan=visual_plan,
+                        fallbackLaunch=launch.model_dump(
+                            mode="json", by_alias=True, exclude_none=True
+                        ),
+                    )
+                except Exception:
+                    # V2 is an enhancement. V1 remains the session-safe fallback.
+                    _LOGGER.warning(
+                        "auto_rig_renderer_v2_failed session_id=%s",
+                        command.session_id,
+                        exc_info=True,
+                    )
+                    launch_v2 = None
             result = _result(
                 status="SUCCEEDED",
                 command=command,
@@ -1268,6 +1335,11 @@ class SupervisedFlowService:
                 payload={
                     "renderer_launch": launch.model_dump(
                         mode="json", by_alias=True, exclude_none=True
+                    ),
+                    "renderer_launch_v2": (
+                        launch_v2.model_dump(mode="json", by_alias=True, exclude_none=True)
+                        if launch_v2 is not None
+                        else None
                     ),
                     "subject_candidates": subject_candidates.model_dump(
                         mode="json", by_alias=True, exclude_none=True
