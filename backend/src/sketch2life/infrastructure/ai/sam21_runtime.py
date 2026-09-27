@@ -272,8 +272,13 @@ def _resolve_model_config(config_text: str, model_root: Path | None) -> str:
     if not config_text:
         return ""
     config_path = Path(config_text).expanduser()
-    if config_path.is_absolute() and config_path.is_file():
-        return str(config_path.resolve())
+    # Meta's build_sam2 passes this value to Hydra as ``config_name``. Hydra expects
+    # the package-relative name (for example ``configs/sam2.1/sam2.1_hiera_s.yaml``),
+    # not the absolute filesystem path that operators commonly put in env files.
+    if config_path.is_absolute():
+        normalized = _config_name_from_absolute_path(config_path)
+        if normalized is not None:
+            return normalized
 
     relative_paths = [config_path]
     if config_path.parts[:1] != ("configs",):
@@ -295,9 +300,22 @@ def _resolve_model_config(config_text: str, model_root: Path | None) -> str:
         for relative in relative_paths:
             candidate = root / relative
             if candidate.is_file():
-                return str(candidate.resolve())
+                return _as_hydra_config_name(relative)
     # Keep the Hydra config name when the installed SAM2 package owns the config search path.
     return config_text
+
+
+def _config_name_from_absolute_path(config_path: Path) -> str | None:
+    parts = config_path.parts
+    try:
+        configs_index = len(parts) - 1 - tuple(reversed(parts)).index("configs")
+    except ValueError:
+        return None
+    return _as_hydra_config_name(Path(*parts[configs_index:]))
+
+
+def _as_hydra_config_name(path: Path) -> str:
+    return path.as_posix().lstrip("/")
 
 
 def _add_sam2_source_path() -> None:

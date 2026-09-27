@@ -17,13 +17,13 @@ def test_sam21_config_resolves_checkpoint_and_config_from_model_dir(tmp_path: Pa
         {
             "SAM2_MODEL_DIR": str(model_dir),
             "SKETCH2LIFE_SAM21_CHECKPOINT": str(model_dir / "renamed.pt"),
-            "SKETCH2LIFE_SAM21_MODEL_CONFIG": "configs/sam2.1/sam2.1_hiera_s.yaml",
+            "SKETCH2LIFE_SAM21_MODEL_CONFIG": str(config_path),
             "SKETCH2LIFE_SAM21_DEVICE": "cuda",
         }
     )
 
     assert config.checkpoint == checkpoint_path.resolve()
-    assert config.model_config == str(config_path.resolve())
+    assert config.model_config == "configs/sam2.1/sam2.1_hiera_s.yaml"
     assert config.device == "cuda"
 
 
@@ -57,4 +57,4 @@ def test_sam21_config_resolves_vendored_sam2_layout(tmp_path: Path) -> None:
     )
 
     assert config.checkpoint == checkpoint_path.resolve()
-    assert config.model_config == str(config_path.resolve())
+    assert config.model_config == "configs/sam2.1/sam2.1_hiera_s.yaml"

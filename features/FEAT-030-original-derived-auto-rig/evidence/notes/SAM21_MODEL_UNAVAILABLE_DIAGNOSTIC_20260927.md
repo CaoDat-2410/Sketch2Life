@@ -23,8 +23,8 @@ quality rejection and does not indicate a mobile/UI contract failure.
   vendored checkout is also added to `sys.path` at first SAM2 use, so it does not require a
   separate global package install when `SAM2_ROOT` is configured.
 - Relative SAM2 config paths are resolved against the process directory, the model directory,
-  and the installed `sam2` package. Hydra-owned config names remain unchanged when the package
-  owns the config search path.
+  and the installed `sam2` package. Absolute config paths are normalized back to the
+  package-relative Hydra name because Meta's `build_sam2` passes the value as `config_name`.
 - The provider response remains the safe typed `MODEL_UNAVAILABLE` result. The private worker
   log additionally emits a closed diagnostic reason such as `CHECKPOINT_NOT_FOUND`,
   `RUNTIME_DEPENDENCIES_UNAVAILABLE`, or `CUDA_UNAVAILABLE`.
