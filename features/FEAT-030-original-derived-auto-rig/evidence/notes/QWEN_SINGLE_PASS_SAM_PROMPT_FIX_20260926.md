@@ -23,6 +23,10 @@ Scope: Lightning `/v2/vision` and backend SAM 2.1 prompt preparation
 - Colored/ink pixels are clustered before choosing a component box, with a bounded aggregate
   fallback for sparse drawings. Blank images remain fail-closed and no full-frame prompt is sent.
 - Structured vision logs include whether bounded repair was enabled.
+- The Lightning service logger is forced to INFO so the typed `SUCCEEDED`/`FAILED` outcome is
+  visible even when the HTTP access log only shows `200 OK`.
+- Greedy Qwen generation clears unused sampling-only config fields to remove the misleading
+  Transformers warning.
 
 ## Verification
 

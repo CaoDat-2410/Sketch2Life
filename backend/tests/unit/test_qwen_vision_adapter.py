@@ -1052,8 +1052,14 @@ def test_transformers_runner_can_be_tested_without_importing_optional_packages(
             assert kwargs["skip_special_tokens"] is True
             return [_raw(_empty_payload())]
 
+    class FakeGenerationConfig:
+        temperature = 0.7
+        top_p = 0.9
+        top_k = 20
+
     class FakeModel:
         device = "cuda:0"
+        generation_config = FakeGenerationConfig()
 
         def __init__(self) -> None:
             self.generate_kwargs: dict[str, object] = {}
@@ -1082,6 +1088,9 @@ def test_transformers_runner_can_be_tested_without_importing_optional_packages(
     assert model.generate_kwargs["num_beams"] == 1
     assert model.generate_kwargs["max_new_tokens"] == profile.decoding.max_new_tokens
     assert "temperature" not in model.generate_kwargs
+    assert model.generation_config.temperature is None
+    assert model.generation_config.top_p is None
+    assert model.generation_config.top_k is None
 
 
 def test_default_factory_lazily_imports_optional_runtime_and_sanitizes_missing_import(

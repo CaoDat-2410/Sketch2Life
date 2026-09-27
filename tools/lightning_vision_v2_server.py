@@ -85,6 +85,7 @@ EXPECTED_AUTH = os.getenv("LIGHTNING_DEV_AUTH", "").strip()
 VLM_ROOT = Path(os.getenv("SKETCH2LIFE_VLM_ROOT", "models/vlm/qwen3-vl-8b-instruct"))
 _OPERATOR_MODEL_DIR_ENV_VAR = "MODEL_DIR"
 logger = logging.getLogger("sketch2life.lightning_vision_v2")
+logger.setLevel(logging.INFO)
 _ASR_MODEL_LOCK = Lock()
 _ASR_MODEL = None
 _SAM21_MODEL_LOCK = Lock()

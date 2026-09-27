@@ -480,6 +480,24 @@ def _coerce_model_bundle(
     raise QwenModelLoadError
 
 
+def _sanitize_greedy_generation_config(bundle: QwenModelBundle, profile: VisionProfileV2) -> None:
+    """Remove sampling-only fields that Transformers warns about for greedy decoding."""
+
+    if profile.decoding.sampling_enabled:
+        return
+    generation_config = getattr(bundle.model, "generation_config", None)
+    if generation_config is None:
+        return
+    for field_name in ("temperature", "top_p", "top_k"):
+        if hasattr(generation_config, field_name):
+            try:
+                setattr(generation_config, field_name, None)
+            except (AttributeError, TypeError):
+                # Some provider config wrappers are immutable; explicit generate kwargs still
+                # keep this request deterministic and the warning remains non-fatal.
+                continue
+
+
 def _generate_from_bundle(
     bundle: QwenModelBundle,
     profile: VisionProfileV2,
@@ -514,6 +532,7 @@ def _generate_from_bundle(
         input_ids = inputs.get("input_ids")
         if input_ids is None:
             raise QwenPermanentRuntimeError
+        _sanitize_greedy_generation_config(bundle, profile)
         generated_ids = bundle.model.generate(
             **dict(inputs),
             do_sample=profile.decoding.sampling_enabled,
