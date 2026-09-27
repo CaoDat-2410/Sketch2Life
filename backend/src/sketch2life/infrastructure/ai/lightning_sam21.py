@@ -124,10 +124,13 @@ class LightningSam21SegmentationAdapter(SubjectSegmentationPort):
 
 
 def propose_colored_component_region(image: bytes) -> SourceRegionV1 | None:
-    """Create a conservative box prompt from the largest colored ink component.
+    """Create a conservative SAM box from visible colored ink.
 
-    This is only a prompt proposal, never a mask.  It avoids a second Qwen call and refuses
-    broad/full-canvas proposals.  SAM2 remains responsible for the final silhouette.
+    This is only a prompt proposal, never a mask. Child drawings often contain disconnected
+    strokes, so the component scan first joins nearby strokes before selecting the largest
+    cluster. If no reliable cluster survives, a bounded box around all visible ink is used as a
+    last resort. Blank images and broad/full-canvas proposals still return ``None`` so SAM2 can
+    fail closed instead of receiving an unsafe full-frame prompt.
     """
 
     try:
@@ -149,13 +152,29 @@ def propose_colored_component_region(image: bytes) -> SourceRegionV1 | None:
         or max(red, green, blue) < 95
         for red, green, blue in pixels
     ]
+    if width < 2 or height < 2:
+        return None
+
+    # Downsampling can break a child's continuous crayon stroke into many one-pixel islands.
+    # Join only nearby islands; this is deliberately much smaller than the canvas so unrelated
+    # subjects do not automatically become one giant prompt.
+    radius = max(2, min(4, round(min(width, height) * 0.04)))
+    clustered_ink = [False] * (width * height)
+    ink_points = [
+        (index % width, index // width) for index, is_ink in enumerate(ink) if is_ink
+    ]
+    for x, y in ink_points:
+        for next_y in range(max(0, y - radius), min(height, y + radius + 1)):
+            for next_x in range(max(0, x - radius), min(width, x + radius + 1)):
+                clustered_ink[next_y * width + next_x] = True
+
     components: list[list[tuple[int, int]]] = []
     seen: set[tuple[int, int]] = set()
     for start_y in range(height):
         for start_x in range(width):
             start = (start_x, start_y)
             index = start_y * width + start_x
-            if not ink[index] or start in seen:
+            if not clustered_ink[index] or start in seen:
                 continue
             stack = [start]
             seen.add(start)
@@ -166,26 +185,75 @@ def propose_colored_component_region(image: bytes) -> SourceRegionV1 | None:
                 for next_y in range(max(0, y - 1), min(height, y + 2)):
                     for next_x in range(max(0, x - 1), min(width, x + 2)):
                         candidate = (next_x, next_y)
-                        if candidate in seen or not ink[next_y * width + next_x]:
+                        if candidate in seen or not clustered_ink[next_y * width + next_x]:
                             continue
                         seen.add(candidate)
                         stack.append(candidate)
             if len(component) >= 3:
                 components.append(component)
-    if not components:
+    if components:
+        component = max(components, key=len)
+        region = _region_from_pixel_box(component, width, height, padding=0.12)
+        if region is not None:
+            return region
+
+    # Thin or low-contrast drawings may not produce a component large enough to trust. A
+    # bounded aggregate prompt gives SAM2 useful context without silently authorizing a full
+    # canvas mask. The final mask is still subject to the worker's area/quality gates.
+    if ink_points:
+        return _region_from_pixel_box(ink_points, width, height, padding=0.08)
+    return None
+
+
+def _region_from_pixel_box(
+    points: list[tuple[int, int]],
+    width: int,
+    height: int,
+    *,
+    padding: float,
+) -> SourceRegionV1 | None:
+    if not points:
         return None
-    component = max(components, key=len)
-    xs = [point[0] for point in component]
-    ys = [point[1] for point in component]
+    xs = [point[0] for point in points]
+    ys = [point[1] for point in points]
     x0, x1 = min(xs) / width, (max(xs) + 1) / width
     y0, y1 = min(ys) / height, (max(ys) + 1) / height
-    pad_x = max((x1 - x0) * 0.12, 0.02)
-    pad_y = max((y1 - y0) * 0.12, 0.02)
+    pad_x = max((x1 - x0) * padding, 0.02)
+    pad_y = max((y1 - y0) * padding, 0.02)
     x0 = max(0.0, x0 - pad_x)
     y0 = max(0.0, y0 - pad_y)
     x1 = min(1.0, x1 + pad_x)
     y1 = min(1.0, y1 + pad_y)
-    if (x1 - x0) * (y1 - y0) >= 0.85:
+
+    # Keep a safety margin below the runtime's 0.85 maximum. If the visible marks span almost
+    # the whole image, shrink around their center rather than returning a full-frame prompt.
+    max_area = 0.78
+    box_width = x1 - x0
+    box_height = y1 - y0
+    area = box_width * box_height
+    if area >= 0.85:
+        scale = (max_area / area) ** 0.5
+        center_x = (x0 + x1) / 2
+        center_y = (y0 + y1) / 2
+        box_width *= scale
+        box_height *= scale
+        x0 = center_x - box_width / 2
+        y0 = center_y - box_height / 2
+        x1 = center_x + box_width / 2
+        y1 = center_y + box_height / 2
+        if x0 < 0:
+            x1 -= x0
+            x0 = 0.0
+        if y0 < 0:
+            y1 -= y0
+            y0 = 0.0
+        if x1 > 1:
+            x0 -= x1 - 1
+            x1 = 1.0
+        if y1 > 1:
+            y0 -= y1 - 1
+            y1 = 1.0
+    if x1 <= x0 or y1 <= y0 or (x1 - x0) * (y1 - y0) >= 0.85:
         return None
     return SourceRegionV1(x=x0, y=y0, width=x1 - x0, height=y1 - y0)
 

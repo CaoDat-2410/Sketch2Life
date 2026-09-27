@@ -25,3 +25,14 @@
 - Approval evidence: the project owner explicitly replied “implement” after the SAM 2.1 plan was selected.
 - Live default activation remains gated by the model ADR and benchmark evidence described in the plan.
 - Hash refresh note: the plan status now records the approved staged implementation and benchmark-gated live activation; no model/architecture scope was broadened.
+
+## Runtime bugfix addendum
+
+- State: IMPLEMENTATION APPROVED BY OWNER FIX REQUEST
+- Scope: remove the accidental second Qwen inference from the live Lightning vision request by
+  making bounded repair opt-in; improve backend SAM 2.1 box-prompt preparation for non-blank
+  drawings without restoring an unconditional localization call or permitting full-frame prompts.
+- Approval evidence: the project owner explicitly requested fixing the two observed runtime
+  failures (`Qwen` loading twice and SAM2 `PROMPT_REQUIRED`) in the current task.
+- Boundary: this addendum does not activate SAM2 by default, change the model ADR gate, or alter
+  the approved renderer/domain contracts.

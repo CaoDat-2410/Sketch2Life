@@ -1,8 +1,8 @@
 # FEAT-030 Original-derived Pixi auto-rig plan
 
-- Status: REVISION 4 IMPLEMENTATION IN PROGRESS — LIVE ACTIVATION BENCHMARK-GATED
+- Status: REVISION 4 IMPLEMENTATION IN PROGRESS; QWEN/SAM RUNTIME FIX APPLIED — LIVE ACTIVATION BENCHMARK-GATED
 - Plan revision: 4
-- Implementation status: REVISION 3 PART-AWARE LOCAL BASELINE IMPLEMENTED; REVISION 4 SAM2.1 CONTRACT/ADAPTER/WORKER PATH IMPLEMENTED; GPU BENCHMARK PENDING
+- Implementation status: REVISION 3 PART-AWARE LOCAL BASELINE IMPLEMENTED; REVISION 4 SAM2.1 CONTRACT/ADAPTER/WORKER PATH IMPLEMENTED; QWEN SINGLE-PASS/SAM PROMPT FIX VERIFIED; GPU BENCHMARK PENDING
 - Supersedes: no approved feature; it expands beyond the draft FEAT-018 visual-quality plan
 - Planning date: 2026-09-25 (Asia/Saigon)
 
@@ -941,3 +941,25 @@ R4-T1 and R4-T2 are approved separately from runtime activation. No model packag
 2. Approve the provisional corpus size and go/no-go thresholds in 22.3.
 3. Approve serialized single-L4 GPU admission as the default and forbid concurrency until measured headroom passes.
 4. Approve the implementation order R4-T1 through R4-T10; benchmark approval does not automatically authorize runtime activation.
+
+### 22.12 Runtime bugfix slice — Qwen single pass and SAM prompt handoff
+
+The staged Lightning path has two operational safeguards:
+
+- `/v2/vision` performs one Qwen inference by default. Bounded semantic/quality/schema repair is
+  retained only as an explicit benchmark switch (`SKETCH2LIFE_LIGHTNING_VISION_BOUNDED_REPAIR=true`),
+  because the killable runner loads the checkpoint in a fresh subprocess for each attempt.
+- The backend creates the SAM2 box prompt from the source drawing when Gate-A localization is not
+  available. Nearby colored/ink pixels are clustered to survive downsampled crayon strokes; a
+  bounded aggregate box is used only as a final proposal. Blank images, invalid images, and
+  unsafe full-canvas proposals remain fail-closed. The SAM worker still owns final mask quality
+  and rejection gates.
+
+Acceptance checks for this slice:
+
+- one `/v2/vision` request with the default environment has `attempt=1` and
+  `repair_attempted=false` in the structured result/log;
+- a valid colored drawing produces a non-empty normalized `prompt_region` before
+  `/v2/rig/segment` is called;
+- a blank drawing produces no prompt rather than a fabricated full-frame region;
+- the existing typed Qwen/SAM contracts and fallback behavior remain green.

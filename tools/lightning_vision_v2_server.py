@@ -89,6 +89,7 @@ _ASR_MODEL_LOCK = Lock()
 _ASR_MODEL = None
 _SAM21_MODEL_LOCK = Lock()
 _SAM21_SEGMENTER: Sam21ImageSegmenter | None = None
+_VISION_BOUNDED_REPAIR_ENV_VAR = "SKETCH2LIFE_LIGHTNING_VISION_BOUNDED_REPAIR"
 
 _PROMPT = """Return exactly one strict JSON object and no surrounding text. Analyze visible marks in
 this synthetic, non-child drawing. Do not infer a child's personality, emotions, intent, diagnosis,
@@ -145,6 +146,13 @@ def _prompt_with_narration(context: str | None) -> str:
         f"{context[:2_000]}\n"
         "--- NARRATION CONTEXT END ---"
     )
+
+
+def _vision_bounded_repair_enabled(environ: Mapping[str, str]) -> bool:
+    """Keep the live Lightning request to one Qwen inference by default."""
+
+    value = environ.get(_VISION_BOUNDED_REPAIR_ENV_VAR, "").strip().casefold()
+    return value in {"1", "true", "yes", "on"}
 
 
 def _repair_prompt_with_diagnostics(
@@ -416,6 +424,7 @@ def vision_v2(
             )
             runtime_env = _vision_runtime_environment(os.environ)
             runtime = QwenVisionRuntimeConfig.from_env(runtime_env)
+            bounded_repair_enabled = _vision_bounded_repair_enabled(os.environ)
             mapping_diagnostics: list[str] = []
 
             def capture_mapping_diagnostics(items: tuple[object, ...]) -> None:
@@ -439,7 +448,10 @@ def vision_v2(
                     result, payload.narration_context
                 ),
                 on_mapping_diagnostic=capture_mapping_diagnostics,
-                enable_bounded_repair=True,
+                # The killable runner loads Qwen inside a new subprocess per attempt. Keep
+                # production requests to one inference; bounded repair is opt-in for benchmark
+                # runs only, so one /v2/vision request cannot emit two checkpoint-load sequences.
+                enable_bounded_repair=bounded_repair_enabled,
             )
             result = adapter.understand(local_request)
             # Keep the Lightning console useful without logging image bytes, model output,
@@ -449,23 +461,26 @@ def vision_v2(
             if result.status == "FAILED":
                 logger.warning(
                     "vision_request_completed status=FAILED error_code=%s error_detail=%s "
-                    "retryable=%s attempt=%s repair_attempted=%s mapping_diagnostics=%s",
+                    "retryable=%s attempt=%s repair_attempted=%s bounded_repair=%s "
+                    "mapping_diagnostics=%s",
                     result.error_code.value,
                     result.error_detail.value,
                     result.retryable,
                     result.attempt_number,
                     result.repair_attempted,
+                    bounded_repair_enabled,
                     diagnostics_text,
                 )
             else:
                 logger.info(
                     "vision_request_completed status=SUCCEEDED entities=%d actions=%d themes=%d "
-                    "attempt=%s repair_attempted=%s mapping_diagnostics=%s",
+                    "attempt=%s repair_attempted=%s bounded_repair=%s mapping_diagnostics=%s",
                     len(result.entities),
                     len(result.actions),
                     len(result.themes),
                     result.attempt_number,
                     result.repair_attempted,
+                    bounded_repair_enabled,
                     diagnostics_text,
                 )
             wire_result = result.model_dump(mode="json")

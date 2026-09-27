@@ -1,6 +1,6 @@
 # FEAT-030 Original-derived auto-rig context
 
-- Status: REVISION_3_PART_AWARE_BASELINE_IMPLEMENTED; REVISION_4_SAM21_WORKER_IMPLEMENTATION_IN_PROGRESS; LIVE_ACTIVATION_PENDING_L4_BENCHMARK.
+- Status: REVISION_3_PART_AWARE_BASELINE_IMPLEMENTED; REVISION_4_SAM21_WORKER_IMPLEMENTATION_IN_PROGRESS; QWEN_SINGLE_PASS_AND_SAM_PROMPT_FIX_IMPLEMENTED; LIVE_ACTIVATION_PENDING_L4_BENCHMARK.
 - Owner: Project owner; Revision 4 implementation is explicitly approved, while live default activation remains benchmark-gated.
 - Goal: turn a validated subject from the child's immutable drawing into a bounded, explainable PixiJS 2D rig so the drawing visibly moves while remaining recognizably the child's work.
 - Scope: target selection, spatial grounding, segmentation, original-derived masks/textures, mesh and skeleton generation, skin weights, rig validation, bounded motion profiles, asynchronous preparation, Renderer V2 loading, PixiJS CPU skinning, deterministic fallback, provenance, metrics, and golden-scene evidence.
@@ -45,3 +45,5 @@ until the L4 benchmark and deployment ADR evidence are recorded.
 - Spatial grounding and segmentation may begin after Gate A to hide latency. Gate B is still required before the final motion/experience plan is compiled or presented.
 - Coverage must address the full range of children's drawing topics. This means all initially identified archetype families plus deterministic `generic_organic`, `rigid`, and `unknown` handling; it does not permit fabricated semantics or guarantee a bespoke skeleton for every possible object.
 - Auto-rig may run as a separate worker/service on the same Lightning L4 host. Because Qwen currently lazy-loads when used, implementation must measure combined VRAM and coordinate GPU work rather than assuming both models can run concurrently without limits.
+- Lightning `/v2/vision` keeps bounded repair disabled by default so one live request performs at most one Qwen inference; repair remains an explicit benchmark opt-in through `SKETCH2LIFE_LIGHTNING_VISION_BOUNDED_REPAIR=true`.
+- The backend SAM2 adapter now creates a bounded box from clustered colored ink before calling `/v2/rig/segment`; blank or invalid images still fail closed. Pillow is a runtime dependency because prompt extraction occurs in the backend process.

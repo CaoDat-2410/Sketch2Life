@@ -2,10 +2,16 @@ from __future__ import annotations
 
 import base64
 import hashlib
+from io import BytesIO
+
+from PIL import Image, ImageDraw
 
 from sketch2life.application.ports.segmentation import SubjectSegmentationRequest
 from sketch2life.contracts.schemas.scene_exploration import SourceRegionV1
-from sketch2life.infrastructure.ai.lightning_sam21 import LightningSam21SegmentationAdapter
+from sketch2life.infrastructure.ai.lightning_sam21 import (
+    LightningSam21SegmentationAdapter,
+    propose_colored_component_region,
+)
 
 _PNG = base64.b64decode(
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
@@ -103,3 +109,32 @@ def test_sam21_adapter_returns_none_for_typed_provider_failure() -> None:
     )
 
     assert adapter.segment(_request()) is None
+
+
+def _drawing_png(*, blank: bool = False) -> bytes:
+    image = Image.new("RGB", (800, 500), "white")
+    if not blank:
+        draw = ImageDraw.Draw(image)
+        # Separate crayon-like strokes that should be joined into one useful SAM prompt.
+        draw.line((220, 230, 320, 140), fill=(20, 130, 240), width=14)
+        draw.line((320, 140, 420, 230), fill=(20, 130, 240), width=14)
+        draw.ellipse((250, 160, 390, 300), outline=(245, 120, 20), width=18)
+        draw.line((320, 210, 320, 390), fill=(20, 130, 240), width=16)
+    buffer = BytesIO()
+    image.save(buffer, format="PNG")
+    return buffer.getvalue()
+
+
+def test_prompt_proposal_joins_fragmented_colored_drawing_strokes() -> None:
+    region = propose_colored_component_region(_drawing_png())
+
+    assert region is not None
+    assert 0 < region.x < 1
+    assert 0 < region.y < 1
+    assert region.width * region.height < 0.85
+    assert region.width > 0.2
+    assert region.height > 0.2
+
+
+def test_prompt_proposal_fails_closed_for_blank_drawing() -> None:
+    assert propose_colored_component_region(_drawing_png(blank=True)) is None
