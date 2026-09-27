@@ -316,4 +316,121 @@ Stage-4-local only and may occur only after an authorized session reaches
 passed for commit `16c52da`, not full validator CI or full repository
 validation.
 
-`NEXT = INDEPENDENT_REVIEW_OF_D6_GOVERNANCE_COMMIT`
+## P2-T2 D9 offline enforcement implementation and correction - 2026-09-22
+
+The owner approved the exact D9 stdout/stderr enforcement ceilings on
+2026-09-21 (`approvals/TASK_APPROVAL.md`, "Owner approval for FEAT-018 P2-T2
+D9 stdout/stderr enforcement implementation scope"): `stdout_max_bytes =
+16384` and `stderr_max_bytes = 32768`, applied independently per process role
+and stream, as owner policy values rather than runtime-inferred defaults. The
+authorized scope was exactly the existing two-file bounded-runner pair.
+Implementation remained gated behind an independent review of the approval
+record itself, which returned `PASS`
+(`tmp/feat018-p2t2-d9-approval-record-independent-review-20260922/REVIEW.md`).
+
+The D9 offline enforcement was then implemented at commit
+`552bc5d939f36b2b87dc7f0cea909110e8750107`. A fresh, independent post-commit
+correctness review
+(`tmp/feat018-p2t2-d9-two-commit-post-commit-review-20260922/REVIEW.md`)
+returned `BLOCKED` and identified four correctness gaps (F1-F4): an
+over-limit observation could reach the success contract; an observed stream
+failure did not immediately stop the workload or trigger cleanup; capture
+control bookkeeping was not fixed-bounded under sustained output; and late
+output after finalization, or a D9 failure fact queued after an apparent
+terminal success, could leave a successful result standing.
+
+The correction was applied, uncommitted, to the same two authorized files
+only, and reviewed fresh and independently
+(`tmp/feat018-p2t2-d9-independent-correction-review-20260922/REVIEW.md`,
+verdict `PASS`): F1-F4 were independently reproduced as closed, including two
+real-subprocess/real-OS-pipe regressions (native and buffered late writes
+after finalization; a real zero-timeout `multiprocessing.Pipe` drain of an
+already-queued fact), a 10,000-plus-chunk sustained-output bookkeeping
+regression, and additional adversarial probes against the observation
+invariant. The correction was then committed as
+`86836d24cfcd83ca14c0bc50e79fff1103cb9ecc`
+(`fix(feat018): close D9 stream enforcement gaps`), the sole child of
+`552bc5d939f36b2b87dc7f0cea909110e8750107`, containing exactly:
+
+- `backend/src/sketch2life/benchmark/feat018_live_lightning_execution.py`
+  (blob `e1c89536e612b9f801ff2e429e76f3f0d0c370ee`)
+- `backend/tests/unit/test_feat018_live_lightning_execution.py`
+  (blob `3a4db7fd56185da82749b95dd42ca1a3bdc13c0d`)
+
+A follow-up commit checkpoint independently re-verified the commit's exact
+scope, blobs, message, and repository-state preservation
+(`tmp/feat018-p2t2-d9-followup-commit-checkpoint-20260922/REPORT.md`, verdict
+`PASS`).
+
+D9 offline stdout/stderr enforcement is complete and committed at this
+checkpoint: raw bytes are counted independently per stream before any
+decoding and are capture-and-discard only, with no raw stream payload
+retained or published; the typed observation/failure contract is closed
+against forged or inconsistent metadata; and D9 introduces no additional
+retry, attempt, adapter call, or session. The architecture validator's
+pre-existing `backend_ai_workflow.py` finding is unchanged by this work.
+
+This closes only the D9 **offline enforcement implementation**. It does not
+bind commit `86836d2` as the live-approved `reviewed_runtime_code_commit`,
+does not resolve `P2T2-LIVE-D9` or `D9_LIVE_D11_CARRIER_SCOPE` (both remain
+dependent on the unresolved D11 live-seam binding), and does not resolve D11,
+D1, or D6 overall (fixture identity remains proposed). D11 remains `BLOCKED`,
+D1 remains `BLOCKED_BY_D11`, Stage 4 remains `NOT READY`, and
+Lightning/model/GPU/provider/network execution remains `NOT AUTHORIZED`. No
+commit, push, approval-record edit, or live execution occurred as part of
+this reconciliation. Full reconciliation detail is in
+`evidence/notes/P2_T2_D9_GOVERNANCE_RECONCILIATION_20260922.md`.
+
+The candidate-only D9 numeric ceilings are unchanged:
+`raw_output_max_bytes=65536` and `ipc_envelope_max_bytes=98304` remain
+`OWNER_SELECTED_CANDIDATE_ONLY`; the stdout/stderr approval above applies to
+stdout/stderr only.
+
+The first independent review of this reconciliation
+(`tmp/feat018-p2t2-d9-governance-reconciliation-independent-review-20260922/REVIEW.md`)
+returned `BLOCKED` (F-01..F-06); the findings were corrected on 2026-09-22.
+This reconciliation's review gate is package-local only:
+`FRESH_INDEPENDENT_D9_GOVERNANCE_RECONCILIATION_REREVIEW`. It does not
+replace, supersede, or satisfy the global `NEXT` below, which remains the
+live plan's Section 11 `CURRENT` gate.
+
+`NEXT = PREPARE_D1_OWNER_RESOLUTION_AND_D6_FIXTURE_BINDING`
+
+## P2-T2 OD-11 prospective fixture-candidate pointer - 2026-09-27
+
+The 2026-09-18 and 2026-09-20 D6 entries and the 2026-09-22 D9 entry above
+retain their meaning as dated records. The earlier B01 P2-T2 live-fixture
+proposal remains historical and accurate for its recording time. From this
+date, C01 is the sole prospective P2-T2 candidate; it is not D6-bound:
+`D6_fixture_selected = null` and `validation_artifact_ref` remains unbound.
+The current validator does not accept `fixture:c01:v1`. Person 2's exact
+formal fixture-identity status is recorded in the dated OD-11 approval
+addendum as `D6 = NOT FINALLY RESOLVED; FIXTURE IDENTITY = PROSPECTIVE_CANDIDATE_ONLY (C01); D6_fixture_selected = null; validation_artifact_ref = UNBOUND`. D6 remains
+`NOT FINALLY RESOLVED`; D11 remains `BLOCKED`, Stage 4 remains `NOT READY`,
+and live execution remains `NOT AUTHORIZED`. Section 11 `CURRENT` of the
+P2-T2 plan remains the sole canonical current-state block; its global `NEXT`
+is unchanged.
+
+## P2-T2 validator grammar documentation synchronization - 2026-09-27
+
+This dated status update records the validator implementation at commit
+`71b48ab9ea687faded378136166f158a13d33add`, which accepts six
+artifact-reference alternatives: `fixture-b[0-9]{2}`, the exact literal
+`fixture:c01:v1`, `fixture:drawing:v[0-9]+`,
+`fixture:small-dark-drawing:v[0-9]+`,
+`fixture:corrupt-drawing:v[0-9]+`, and `fixture:rejected-reference:v1`.
+The schema blob is `c7744667d96e9891dea97bd34699e60fe0a0cb00` and the test
+blob is `b8c6384a33da6fc5d217e6b6bcce99131eacfe85`. The result contract and
+structural policy remain `ImageOnlyValidationResultV1@1.0` and
+`feat018-image-only-structural-policy-v1`.
+
+The earlier 2026-09-27 OD-11 pointer's statement that the current validator
+does not accept `fixture:c01:v1` is retained as history for the state at its
+recording time. This implementation update is not an owner rebind: the last
+owner-bound `D6.MEDIA_VALIDATION_SOURCE` remains the exact source at commit
+`16c52da26c444947ab4388712d9b7310480360b4`. C01 remains the sole prospective
+candidate, not a bound fixture: `D6_fixture_selected = null` and
+`validation_artifact_ref = UNBOUND`. D6 remains `NOT FINALLY RESOLVED`; D11
+remains `BLOCKED`; Stage 4 remains `NOT READY`; staging, upload, session
+creation, and live use remain unauthorized. This record does not adopt or
+complete the E-1–E-8 checklist.

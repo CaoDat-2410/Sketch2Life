@@ -724,6 +724,7 @@ def test_image_only_reference_value_object_accepts_only_approved_fixture_ids() -
     accepted = (
         'fixture-b01',
         'fixture-b08',
+        'fixture:c01:v1',
         'fixture:drawing:v1',
         'fixture:small-dark-drawing:v1',
         'fixture:corrupt-drawing:v1',
@@ -754,6 +755,8 @@ def test_image_only_reference_value_object_accepts_only_approved_fixture_ids() -
         'fixture:drawing#v1',
         'https://user:password@example.test/drawing.png',
         'fixture:valid:v1',
+        'fixture:c02:v1',
+        'fixture:c01:v2',
         maximum,
         'fixture:' + ('a' * (IMAGE_ONLY_ARTIFACT_REFERENCE_MAX_LENGTH + 1)),
         'fixture:drawing:\u2603:v1',
@@ -967,6 +970,31 @@ def test_image_only_approved_fixture_references_pass_normally(
     )
     assert result.status is ImageOnlyValidationStatus.PASS
     assert result.source_artifact_ref == artifact_ref
+
+def test_image_only_c01_reference_survives_result_and_json_verification(
+    tmp_path: Path,
+) -> None:
+    reference = 'fixture:c01:v1'
+    result = _validate_image_only(
+        tmp_path / 'synthetic.bin',
+        b'bounded-source',
+        _ImageOnlyStubDecoder(),
+        artifact_ref=reference,
+    )
+    canonical = canonical_image_only_validation_bytes(result)
+    parsed = ImageOnlyValidationResultV1.model_validate_json(canonical)
+    verified = verify_image_only_validation_artifact(
+        canonical,
+        image_only_validation_artifact_sha256(result),
+    )
+
+    assert result.status is ImageOnlyValidationStatus.PASS
+    assert result.source_artifact_ref == reference
+    assert parsed == result
+    assert parsed.source_artifact_ref == reference
+    assert verified.result == result
+    assert verified.result.source_artifact_ref == reference
+
 
 def test_image_only_contract_rejects_malformed_and_extra_fields(tmp_path: Path) -> None:
     valid = _validate_image_only(

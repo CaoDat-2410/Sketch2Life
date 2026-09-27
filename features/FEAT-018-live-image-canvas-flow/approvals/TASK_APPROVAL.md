@@ -691,3 +691,719 @@ adapter invocation, or live execution. It does not authorize a commit or push.
 `LIVE/MODEL/GPU/PROVIDER/NETWORK/LIGHTNING = NOT AUTHORIZED`
 
 `NEXT = INDEPENDENT_REVIEW_OF_D6_GOVERNANCE_COMMIT`
+
+## Owner approval for FEAT-018 P2-T2 D9 stdout/stderr enforcement implementation scope - 2026-09-21
+
+Approver: Project owner direct instruction in the current conversation.
+
+The D9 implementation-approval package was independently reviewed with verdict
+`PASS` and is ready for this bounded owner approval record:
+
+`features/FEAT-018-live-image-canvas-flow/evidence/notes/P2_T2_D9_STDOUT_STDERR_ENFORCEMENT_IMPLEMENTATION_APPROVAL_PACKAGE_DRAFT_20260921.md`
+
+The owner selects the exact positive stream ceilings:
+
+`stdout_max_bytes = 16384`
+
+`stderr_max_bytes = 32768`
+
+The ceilings are owner policy values, not values inferred from runtime
+observation. They apply cumulatively to raw bytes for each captured
+process/stream observation. The outer adapter worker and inner generation child
+are captured separately; stdout and stderr are counted independently; exactly
+the configured ceiling is accepted; the first byte beyond it is overflow; and
+raw bytes are capture-and-discard only, before any UTF-8 or binary decoding.
+
+The only authorized implementation paths are exactly:
+
+- `backend/src/sketch2life/benchmark/feat018_live_lightning_execution.py`
+- `backend/tests/unit/test_feat018_live_lightning_execution.py`
+
+The source path may receive the bounded outer/inner capture boundaries,
+raw-byte accounting, typed D9 observations/failures, metadata-only bounded IPC
+handoff, finalization/cleanup wiring, cardinality preservation, and sanitized
+result propagation. The test path may receive only offline injected/fake tests
+for the D9 byte, lifecycle, privacy, cleanup, cardinality, POSIX, and Windows
+seams.
+
+No other path is authorized. In particular, this addendum does not authorize
+fixtures, versioned contracts or schemas, `pyproject.toml`, lockfiles,
+workflows, environment files, provider/dependency configuration,
+`qwen_vision.py`, FEAT-003, D6, D10, D11 concrete seams, plans, context,
+decisions, validators, routes, registries, evidence destinations, worktrees,
+stashes, branches, or any Stage-4 artifact.
+
+Implementation remains gated until the approval record itself receives an
+independent review with verdict `PASS`:
+
+`D9_IMPLEMENTATION_APPROVAL_RECORD = RECORDED`
+
+`D9_IMPLEMENTATION = NOT_AUTHORIZED_UNTIL_INDEPENDENT_APPROVAL_RECORD_REVIEW_PASS`
+
+The implementation must preserve the approved fail-closed contract: bounded
+capture-and-discard at both child boundaries; raw-byte accounting before
+decoding; typed limit/read/late/death/finalization failures; bounded
+metadata-only handoff; deterministic capture -> stop/close -> drain ->
+finalize -> publish -> reject-late ordering; exactly one cleanup sequence; no
+raw stream or diagnostic leakage; truthful adapter/attempt cardinality; and no
+D9-created retry, outer retry, third attempt, second adapter call, or second
+session.
+
+The following remain unresolved or blocked:
+
+`D9 = BLOCKED_PENDING_D11_AND_CONTRACT_REVIEW`
+
+`D11 = BLOCKED`
+
+`D1 = BLOCKED_BY_D11`
+
+`STAGE_4 = NOT READY`
+
+`LIVE/MODEL/GPU/PROVIDER/NETWORK/LIGHTNING = NOT AUTHORIZED`
+
+This addendum does not authorize D11 implementation or resolution, Stage 4,
+Lightning provisioning, model loading, inference, GPU use, provider/network
+access, adapter invocation, commit, push, or live execution. After the required
+independent approval-record review passes, a separate implementation goal may
+begin within the exact two-file scope only.
+
+## Owner transition and conditional D1/D6 prerequisite commit approval - 2026-09-23
+
+Approver: Project owner, by direct instruction in the current conversation,
+"Complete D1/D6 Prerequisite Governance and Approval", dated 2026-09-23.
+Recorded by: Codex at 2026-09-23 05:52:09 UTC.
+Instruction SHA-256:
+`8a1663664625561fc4f952850dd8d48be7f5da1d06080bcb7fde5d2491721243`.
+Plan/scope revision: `P2T2-D1D6-PREREQUISITE-R1`, defined in this addendum.
+Baseline branch: `feature/feat018-p2t2-live-lightning`.
+Baseline HEAD: `86836d24cfcd83ca14c0bc50e79fff1103cb9ecc`; index empty.
+
+### Historical review lineage and current transition
+
+The owner preserves the preceding 2026-09-20 D6 approval and its
+`NEXT = INDEPENDENT_REVIEW_OF_D6_GOVERNANCE_COMMIT` text unchanged as
+historical provenance. That NEXT described the gate at the time of the
+validator-source binding; it is satisfied and is not the current global gate.
+
+The completed review/correction lineage is:
+
+- `tmp/feat018-p2t2-d6-governance-independent-review-20260920/REVIEW.md`:
+  reviewed the D6 governance commits and identified stale NEXT markers (F-001).
+- `tmp/feat018-p2t2-next-gate-correction-20260920/REPORT.md`:
+  recorded the F-001 current-marker synchronization.
+- `tmp/feat018-p2t2-f002-next-prose-correction-20260920/REPORT.md`:
+  recorded the five F-002 current-sequence prose corrections.
+- `tmp/feat018-p2t2-d6-governance-independent-review-rerun-20260920/REVIEW.md`:
+  returned `PASS` for that historical review/correction sequence and permitted
+  owner-resolution package preparation, without resolving execution gates.
+
+The later prerequisite boundary review
+(`tmp/feat018-p2t2-d1-d6-prerequisite-commit-boundary-review-20260923/REPORT.md`)
+found that the old approval NEXT remained in the actual file and that O-01
+still stated an unqualified old sequence. This new owner decision disposes
+of those discrepancies prospectively; it does not rewrite history or claim
+that the previously reported approval-marker edit was present.
+
+The owner now records the completed D6 review as moving the global/current
+NEXT to:
+
+```text
+NEXT = PREPARE_D1_OWNER_RESOLUTION_AND_D6_FIXTURE_BINDING
+```
+
+The live plan's Section 11 `CURRENT` remains the sole canonical current-state
+block. This approval records that same gate; it does not establish a competing
+sequence. Preparation and exact fixture binding remain pending activities,
+not completed D1/D6 resolutions. The independent prerequisite review below is
+a package-local commit gate and does not replace or satisfy the global NEXT.
+
+### Exact authorized documentation scope and preparation plan
+
+`D1_D6_PREREQUISITE_PREPARATION = APPROVED`
+
+Only the following five tracked paths and thirteen semantic hunks belong to
+the future prerequisite candidate. All paths are under
+`features/FEAT-018-live-image-canvas-flow/`.
+
+| Path | Authorized candidate changes |
+|---|---|
+| `CONTEXT.md` | Existing global NEXT replacement only |
+| `DECISIONS.md` | Existing D6-entry NEXT replacement only |
+| `plan/P2_T2_LIVE_LIGHTNING_EXECUTION_PLAN_DRAFT_20260913.md` | Existing current execution sequence, update-history items 3 and 8, Stage-3 table NEXT, Section 11 CURRENT NEXT, first THEN action, Section 12.6 NEXT; plus the explicit O-01 historical qualification |
+| `evidence/notes/P2_T2_D6_MEDIA_VALIDATION_BINDING_PACKAGE_DRAFT_20260920.md` | Existing top and final NEXT replacements only |
+| `approvals/TASK_APPROVAL.md` | This additive transition/approval record only; all preceding text is preserved |
+
+The eleven existing synchronization hunks are the prior boundary report's
+context-U01, decisions-U01, plan-U04/U05/U06/U12/U14/U16/U17, and d6-U01/U02.
+The plan's pre-D9 snapshot is blob
+`c80e1299c19472f8ba6d8d9933504faf20761cfe`. Its "current Section 12.6"
+pointer belongs in the prerequisite-only candidate, which has no D9 Section
+12.7. The later D9-owned "historical Section 12.6" pointer remains preserved
+in the working tree and excluded from the prerequisite candidate.
+
+O-01 is the three-line stale sequence at baseline HEAD plan lines 2835-2837
+(entry working-tree lines 2963-2965). The authorized correction explicitly
+labels the old D6 governance-review sequence historical/satisfied, points to
+Section 11 `CURRENT` as the sole canonical current gate, and preserves D11
+binding/resolution as downstream unresolved work. No unrelated plan meaning
+may change.
+
+Preparation records this approval first, then corrects only O-01 in the
+working plan, reconstructs the five-file candidate in memory from HEAD plus
+the exact scope above, runs the required checks, and records its exact blobs
+and deterministic recipe. All current D9 working-tree content is preserved.
+The untracked D1 owner-resolution package, D9 reconciliation note, every
+D9-only delta, and every other path are excluded from the future commit.
+The separately permitted feature-local preparation evidence note and ignored
+report are review support only and are not added to this five-file candidate.
+
+Acceptance criteria for revision `P2T2-D1D6-PREREQUISITE-R1`:
+
+1. Preserve historical approval bytes; the new attributable record and all
+   candidate current markers agree on the preparation NEXT.
+2. O-01 is explicitly historical/satisfied and cannot be read as the current
+   gate; Section 11 `CURRENT` remains canonical.
+3. Reproduce exact candidate blobs from HEAD plus only the thirteen semantic
+   hunks above, with no D1 package or D9-only additions.
+4. Preserve the protected states below, the existing runtime binding, all
+   unrelated working-tree content, HEAD, and the empty index.
+5. Run harness, repository-security, skeleton and architecture validators plus
+   both working-tree/cached diff checks; architecture may retain only the
+   unchanged `backend_ai_workflow.py` outer-layer finding.
+6. Obtain a fresh independent review of this exact scope, approval record,
+   candidate contents/identities, consistency and preservation with verdict
+   `PASS` before any staging or commit.
+
+### Conditional commit authorization and limits
+
+The owner authorizes the exact prerequisite candidate to be staged and
+committed only after that fresh independent review returns `PASS`. Earlier
+D6/D9 reviews and authoring checks do not satisfy this new gate. Any change
+to the reviewed candidate or baseline requires revalidation and a fresh
+independent PASS; scope expansion requires separate owner authorization.
+
+Proposed future commit message:
+
+```text
+docs(feat018): synchronize D1/D6 preparation gate
+```
+
+At recording time:
+
+```text
+D1_D6_PREREQUISITE_SCOPE = OWNER_AUTHORIZED_CONDITIONAL_ON_FRESH_INDEPENDENT_PASS
+D1_D6_PREREQUISITE_INDEPENDENT_REVIEW = PENDING
+D1_D6_PREREQUISITE_STAGING_AND_COMMIT = NOT_PERMITTED_BEFORE_FRESH_INDEPENDENT_PASS
+PUSH = NOT_AUTHORIZED
+```
+
+This preparation task performs no staging or commit. This approval does not
+authorize push, D9 publication, source/tests, fixtures, contracts, dependencies,
+workflows, branch/worktree/stash/remote changes, or any runtime activity.
+It does not resolve D1, D6 fixture identity, D11, Stage 4 or live execution:
+
+```text
+D1 = BLOCKED_BY_D11
+D6 = NOT FINALLY RESOLVED; FIXTURE IDENTITY = RESOLVED_WITH_PROPOSED_VALUE
+D11 = BLOCKED
+STAGE_4 = NOT READY
+LIVE/MODEL/GPU/PROVIDER/NETWORK/LIGHTNING = NOT AUTHORIZED
+reviewed_runtime_code_commit = 9549a341194f40b1a9be419d6fce0d70f1ca0384
+```
+
+D6 media-validation-source and MIME/extension decisions remain as previously
+owner-bound. No D9 numeric value, enforcement, carrier or live status changes.
+
+## Owner scope amendment for plan update-history item 7 (B-03) - 2026-09-23
+
+Approver: Project owner, by direct instruction in the current conversation,
+"Correct the FEAT-018 D1/D6 prerequisite-governance package after independent
+review REVIEW_2.md", dated 2026-09-23.
+Recorded by: Claude Code (Claude Opus 5.5) at 2026-09-23 07:50:28 UTC.
+Instruction SHA-256 (UTF-8 text, LF line endings, no trailing newline):
+`bd3f37d20a599b0d555d7ab83fedaf293b6c52c0a97d8b4f00e8d691ad67f400`.
+Plan/scope revision: `P2T2-D1D6-PREREQUISITE-R2`, amending revision
+`P2T2-D1D6-PREREQUISITE-R1` recorded in the preceding addendum.
+Baseline branch: `feature/feat018-p2t2-live-lightning`.
+Baseline HEAD: `86836d24cfcd83ca14c0bc50e79fff1103cb9ecc`; index empty.
+
+### Reason for the amendment
+
+The second fresh independent review of the R1 candidate,
+`tmp/feat018-p2t2-d1-d6-prerequisite-independent-review-20260923/REVIEW_2.md`,
+returned `BLOCKED`. Its finding B-03 identified that live-plan update-history
+item 7 still stated the 2026-09-18 next gate in the present tense and called
+the Section 12.5 entry "current". That contradicts the Section 12 preamble,
+the Section 12.5 `HISTORICAL (SUPERSEDED)` heading, item 3 and item 8. Its
+findings B-01 and B-02 concern only the non-candidate supporting note and
+the ignored preparation report; they do not change the candidate scope.
+The review reports `REVIEW.md` and `REVIEW_2.md` are preserved unchanged.
+
+### Amended exact candidate scope
+
+The owner authorizes exactly one additional candidate hunk:
+
+- `plan-I07`: in live-plan update-history item 7 (baseline HEAD plan lines
+  166-168), qualify the 2026-09-18 next gate and the Section 12.5 reference
+  as historical ("at that time"), state that they are not the present gate
+  or the current validation record, and state that the later item 8 records
+  the subsequent state. The historical facts of item 7 are preserved and no
+  other plan meaning changes.
+
+The candidate remains exactly the same five tracked paths under
+`features/FEAT-018-live-image-canvas-flow/` (`CONTEXT.md`, `DECISIONS.md`,
+`plan/P2_T2_LIVE_LIGHTNING_EXECUTION_PLAN_DRAFT_20260913.md`,
+`evidence/notes/P2_T2_D6_MEDIA_VALIDATION_BINDING_PACKAGE_DRAFT_20260920.md`
+and `approvals/TASK_APPROVAL.md`). It now has exactly fourteen semantic
+hunks:
+
+1. the eleven existing synchronization hunks context-U01, decisions-U01,
+   plan-U04/U05/U06/U12/U14/U16/U17 and d6-U01/U02;
+2. the plan-O01 historical qualification;
+3. the plan-I07 historical qualification authorized here;
+4. approval-ADD01, the additive approval text appended after the historical
+   prefix of this file. It now consists of the R1 addendum and this R2
+   amendment as one contiguous appended block; every earlier byte is
+   preserved.
+
+In the R1 scope table, the plan row gains only plan-I07. The R1 addendum is
+preserved unchanged as historical provenance. Where it says "thirteen
+semantic hunks" or defines the candidate by revision R1, this amendment
+supersedes it for the current candidate. No other scope expansion is
+authorized. In particular, the dated 2026-09-18 wording in `CONTEXT.md`
+noted as observation O-02 in `REVIEW_2.md` is not changed by this amendment.
+The D1 package, the D9 reconciliation note, every D9-only delta, the
+supporting preparation note, the ignored reports and every other path remain
+excluded.
+
+### Amended acceptance criteria for revision `P2T2-D1D6-PREREQUISITE-R2`
+
+1. Preserve historical approval bytes, including the complete R1 addendum;
+   the attributable records and all candidate current markers agree on
+   `NEXT = PREPARE_D1_OWNER_RESOLUTION_AND_D6_FIXTURE_BINDING`.
+2. O-01 and item 7 are explicitly historical and cannot be read as the
+   current gate or current validation record; Section 11 `CURRENT` remains
+   canonical.
+3. Reproduce exact candidate blobs from HEAD plus only the fourteen semantic
+   hunks above, using a recipe that yields them when applied literally, with
+   no D1 package or D9-only additions.
+4. Preserve the protected states below, the existing runtime binding, all
+   unrelated working-tree content, HEAD, and the empty index.
+5. Run harness, repository-security, skeleton and architecture validators plus
+   both working-tree/cached diff checks; architecture may retain only the
+   unchanged `backend_ai_workflow.py` outer-layer finding.
+6. Obtain a new fresh independent review of this exact R2 scope, approval
+   record, candidate contents/identities, consistency and preservation, in a
+   session separate from the authoring session and written to a new report
+   filename, with verdict `PASS` before any staging or commit.
+
+### Conditional commit authorization and limits
+
+The R2 candidate remains conditional. It may be staged and committed only
+after the new fresh independent review returns `PASS`. `REVIEW.md`,
+`REVIEW_2.md`, earlier D6/D9 reviews and authoring checks do not satisfy this
+gate. Any change to the reviewed candidate or baseline requires revalidation
+and a fresh independent PASS; scope expansion requires separate owner
+authorization.
+
+At recording time:
+
+```text
+D1_D6_PREREQUISITE_SCOPE = OWNER_AUTHORIZED_R2_CONDITIONAL_ON_FRESH_INDEPENDENT_PASS
+D1_D6_PREREQUISITE_INDEPENDENT_REVIEW = PENDING
+D1_D6_PREREQUISITE_STAGING_AND_COMMIT = NOT_PERMITTED_BEFORE_FRESH_INDEPENDENT_PASS
+PUSH = NOT_AUTHORIZED
+```
+
+This amendment performs no staging or commit and authorizes no push, D9
+publication, source/tests, fixtures, contracts, dependencies, workflows,
+branch/worktree/stash/remote changes, or any runtime activity. It does not
+resolve D1, D6 fixture identity, D11, Stage 4 or live execution:
+
+```text
+D1 = BLOCKED_BY_D11
+D6 = NOT FINALLY RESOLVED; FIXTURE IDENTITY = RESOLVED_WITH_PROPOSED_VALUE
+D11 = BLOCKED
+STAGE_4 = NOT READY
+LIVE/MODEL/GPU/PROVIDER/NETWORK/LIGHTNING = NOT AUTHORIZED
+NEXT = PREPARE_D1_OWNER_RESOLUTION_AND_D6_FIXTURE_BINDING
+reviewed_runtime_code_commit = 9549a341194f40b1a9be419d6fce0d70f1ca0384
+```
+
+## Owner scoped push authorization for the D1/D6 prerequisite commit - 2026-09-23
+
+Approver: Project owner, by direct instruction in the current conversation,
+"Safely commit and publish the reviewed FEAT-018 D1/D6 prerequisite package",
+dated 2026-09-23.
+Recorded by: Claude Code (Claude Opus 5.5) at 2026-09-23 12:50:07 UTC.
+Verbatim authorization clause from that instruction:
+
+> The owner authorizes one normal, non-force push to
+> `origin/feature/feat018-p2t2-live-lightning` of only the commits described
+> below. This supersedes the prior `PUSH = NOT_AUTHORIZED` only for this branch
+> and operation.
+
+This entry is additive. The R1 addendum, the R2 amendment and every earlier
+byte of this file are preserved unchanged.
+
+### Basis
+
+The R2 condition for staging and commit was met: the new fresh independent
+review of the exact R2 candidate,
+`tmp/feat018-p2t2-d1-d6-prerequisite-independent-review-20260923/REVIEW_3.md`,
+returned `PASS`. The exact staged R2 candidate was then committed as:
+
+- `62d132ea3b0013e4c3ef72350990b18a6ce41a1f`
+  `docs(feat018): synchronize D1/D6 preparation gate`; parent
+  `86836d24cfcd83ca14c0bc50e79fff1103cb9ecc`; exactly five paths and fourteen
+  semantic hunks, with blobs `CONTEXT.md` `f4b9e9e10a027e18426b334c60f4d34e33604255`,
+  `DECISIONS.md` `63dbca5e6f91757191315ef2004c13bcebfbe79c`, live plan
+  `5485f60957cee77beee93ebb85e20d57bc4c1ffc`, D6 package
+  `b80e4d4d5e565f575155c7e31787a4f6b4c0ddf2` and `TASK_APPROVAL.md`
+  `e091c923f70a4d6a919e7eed5059b8bad896c5bd`.
+
+### Exact push scope
+
+The owner authorizes exactly one normal, non-force, fast-forward push to
+`origin` branch `feature/feat018-p2t2-live-lightning`, whose remote value
+before the push must be `86836d24cfcd83ca14c0bc50e79fff1103cb9ecc`. The push
+may publish only these two commits:
+
+1. the prerequisite commit `62d132ea3b0013e4c3ef72350990b18a6ce41a1f`;
+2. the approval-record follow-up commit that adds only this entry, subject
+   `docs(feat018): authorize scoped prerequisite push`, whose parent is the
+   prerequisite commit.
+
+The push must not use force, tags or any other ref, and must not be preceded
+by fetch, rebase, merge or reconciliation. If the remote rejects the push or
+has diverged, the operation stops without retry or reconciliation.
+
+This authorization does not publish or approve the remaining D9 worktree
+changes, the untracked D1 package, the D9 reconciliation note, the supporting
+preparation note, the owner commit-readiness note or the ignored reports. It
+authorizes no other push, branch/worktree/stash/remote change, source/tests,
+fixtures, contracts, dependencies, workflows, or runtime activity.
+
+At recording time:
+
+```text
+D1_D6_PREREQUISITE_INDEPENDENT_REVIEW = PASS (REVIEW_3.md)
+D1_D6_PREREQUISITE_COMMIT = 62d132ea3b0013e4c3ef72350990b18a6ce41a1f
+PUSH = AUTHORIZED_ONCE: origin/feature/feat018-p2t2-live-lightning, fast-forward from 86836d24cfcd83ca14c0bc50e79fff1103cb9ecc, prerequisite commit plus this approval-record commit only
+PUSH (every other branch, ref, commit or operation) = NOT_AUTHORIZED
+```
+
+It does not resolve D1, D6 fixture identity, D11, Stage 4 or live execution:
+
+```text
+D1 = BLOCKED_BY_D11
+D6 = NOT FINALLY RESOLVED; FIXTURE IDENTITY = RESOLVED_WITH_PROPOSED_VALUE
+D11 = BLOCKED
+STAGE_4 = NOT READY
+LIVE/MODEL/GPU/PROVIDER/NETWORK/LIGHTNING = NOT AUTHORIZED
+NEXT = PREPARE_D1_OWNER_RESOLUTION_AND_D6_FIXTURE_BINDING
+reviewed_runtime_code_commit = 9549a341194f40b1a9be419d6fce0d70f1ca0384
+```
+
+## Owner D9 governance publication and scoped push authorization - 2026-09-23
+
+Approver: Project owner, by direct instruction in the current conversation,
+"Publish the reviewed FEAT-018 D9 governance candidate only if every gate
+below is clean", dated 2026-09-23.
+Recorded by: Claude Code (Claude Opus 5.5) at 2026-09-23 13:44:29 UTC.
+Verbatim authorization clause from that instruction:
+
+> This goal authorizes one D9 candidate commit and one normal, non-force push
+> to `origin/feature/feat018-p2t2-live-lightning`. This is a new, one-time
+> authorization; it supersedes prior PUSH=NOT_AUTHORIZED only for this
+> operation.
+
+This entry is additive. The R1 addendum, the R2 amendment, the D1/D6 push
+authorization and every earlier byte of this file are preserved unchanged.
+
+### Basis
+
+The post-prerequisite independent review of the D9 governance
+reconciliation,
+`tmp/feat018-p2t2-d9-post-prerequisite-independent-review-20260923/REVIEW.md`,
+returned `PASS` for the exact four-path D9-only candidate on parent
+`b976da5e6195ade65fb8ca701161b7c704e17b84`. The owner accepts that review's
+non-blocking observations N-01 through N-04 unchanged as the owner
+disposition; no candidate content was edited. All preflight gates were clean,
+and the exact candidate was committed as:
+
+- `c0f39d586a438be85a1a036ba8c8a21f4cefe4af`
+  `docs(feat018): publish D9 governance reconciliation`; parent
+  `b976da5e6195ade65fb8ca701161b7c704e17b84`; tree
+  `ece12f5d98befe9686a70c161eaaa518d3e6ba15`; exactly four paths under
+  `features/FEAT-018-live-image-canvas-flow/`: `CONTEXT.md`
+  `4a2e2c20e4ebf2eeb373987b1a7902752fbcc85a`, `DECISIONS.md`
+  `2508cd3a3cc91bb78631feaa8dbaa22c9a196246`, live plan
+  `16feda7c2804b57e72d0833b3b9e4235acbae206`, and the new
+  `evidence/notes/P2_T2_D9_GOVERNANCE_RECONCILIATION_20260922.md`
+  `88af91a03bc53dd42a878360fe173bc8553aa7bb`.
+
+### Exact push scope
+
+The owner authorizes exactly one normal, non-force, fast-forward push to
+`origin` branch `feature/feat018-p2t2-live-lightning`, whose remote value
+before the push must be `b976da5e6195ade65fb8ca701161b7c704e17b84`. The push
+may publish only these two commits:
+
+1. the D9 governance commit `c0f39d586a438be85a1a036ba8c8a21f4cefe4af`;
+2. the approval-record follow-up commit that adds only this entry, subject
+   `docs(feat018): authorize scoped D9 push`, whose parent is the D9
+   governance commit.
+
+The push must not use force, tags or any other ref, and must not be preceded
+by fetch, rebase, merge or reconciliation. If the remote rejects the push or
+has diverged, the operation stops without retry or reconciliation.
+
+This authorization does not publish or approve the untracked D1
+owner-resolution package draft, the D1/D6 owner commit-readiness review note,
+the D1/D6 prerequisite governance approval correction note, or the ignored
+reports. It authorizes no other commit, push, branch/worktree/stash/remote
+change, source/tests, fixtures, contracts, dependencies, workflows, or runtime
+activity.
+
+At recording time:
+
+```text
+D9_POST_PREREQUISITE_INDEPENDENT_REVIEW = PASS
+D9_REVIEW_OBSERVATIONS_N01_N04 = ACCEPTED_UNCHANGED_BY_OWNER
+D9_GOVERNANCE_COMMIT = c0f39d586a438be85a1a036ba8c8a21f4cefe4af
+PUSH = AUTHORIZED_ONCE: origin/feature/feat018-p2t2-live-lightning, fast-forward from b976da5e6195ade65fb8ca701161b7c704e17b84, D9 governance commit plus this approval-record commit only
+PUSH (every other branch, ref, commit or operation) = NOT_AUTHORIZED
+```
+
+It does not resolve D9, D1, D6 fixture identity, D11, Stage 4 or live
+execution:
+
+```text
+P2T2-LIVE-D9 = NOT RESOLVED
+D9_LIVE_D11_CARRIER_SCOPE = UNKNOWN_UNRESOLVED_PENDING_D11
+D9 numeric ceilings (raw_output_max_bytes=65536, ipc_envelope_max_bytes=98304) = OWNER_SELECTED_CANDIDATE_ONLY
+D1 = BLOCKED_BY_D11
+D6 = NOT FINALLY RESOLVED; FIXTURE IDENTITY = RESOLVED_WITH_PROPOSED_VALUE
+D11 = BLOCKED
+STAGE_4 = NOT READY
+LIVE/MODEL/GPU/PROVIDER/NETWORK/LIGHTNING = NOT AUTHORIZED
+NEXT = PREPARE_D1_OWNER_RESOLUTION_AND_D6_FIXTURE_BINDING
+reviewed_runtime_code_commit = 9549a341194f40b1a9be419d6fce0d70f1ca0384
+```
+
+## Owner authorization of FEAT-018 P2-T2 OD-11 governance pointers - 2026-09-27
+
+Status: APPROVED for OD-11 governance-only insertions in the four paths below.
+Approver: Person 2.
+Approval timestamp: 2026-09-27 20:05:38 +07:00 (recording timestamp; approval was conveyed in this conversation).
+Independent candidate reviewer designated by Person 2: Claude Code in a new top-level session (not a subagent or fork), separate from and not the candidate editor.
+Plan revision: 2; baseline HEAD `f2efb397ea396fab3ccbf991aeb7faa2128ccec4`;
+baseline plan blob `16feda7c2804b57e72d0833b3b9e4235acbae206`.
+
+Exact governance-file scope:
+1. `features/FEAT-018-live-image-canvas-flow/approvals/TASK_APPROVAL.md`;
+2. `features/FEAT-018-live-image-canvas-flow/plan/P2_T2_LIVE_LIGHTNING_EXECUTION_PLAN_DRAFT_20260913.md`;
+3. `features/FEAT-018-live-image-canvas-flow/CONTEXT.md`;
+4. `features/FEAT-018-live-image-canvas-flow/DECISIONS.md`.
+
+Only additive OD-11 insertions at the approved Section 3 precondition 4,
+Section 9 post-table and detailed D6, Section 11 `CURRENT`, `CONTEXT.md` EOF,
+and newest-first `DECISIONS.md` locations are authorized. The earlier B01
+proposal and Cohort B records remain unchanged and accurate as dated history.
+From 2026-09-27, C01 is the sole prospective P2-T2 candidate; Person 2's exact
+formal fixture-identity status wording is `D6 = NOT FINALLY RESOLVED; FIXTURE IDENTITY = PROSPECTIVE_CANDIDATE_ONLY (C01); D6_fixture_selected = null; validation_artifact_ref = UNBOUND`. This does not bind C01:
+`D6_fixture_selected = null`; `validation_artifact_ref` remains unbound;
+the current validator does not accept `fixture:c01:v1`; D6 remains
+`NOT FINALLY RESOLVED`. D11 remains `BLOCKED`, Stage 4 `NOT READY`, and
+live execution `NOT AUTHORIZED`. Section 11 `CURRENT` remains canonical;
+its global `NEXT` is unchanged.
+
+Acceptance and review order:
+1. Edit only the approved four-file candidate. Preserve all earlier text.
+2. Run `python -B tools/validate_harness.py`,
+   `python -B tools/validate_repository_security.py`,
+   `python -B tools/validate_architecture.py`, and `git diff --check`.
+   Record the actual commands, environment, outputs, exit codes, timestamps,
+   and interpretation in a separate FEAT-018 evidence note. If architecture
+   still reports the known `backend_ai_workflow.py` issue, record the actual
+   failure and prove it is pre-existing and unchanged; do not call it PASS.
+3. Freeze the exact four-file diff and each candidate file identity after
+   those results are recorded. The evidence note is outside the candidate
+   diff and staged list.
+4. The named independent reviewer, in a fresh session separate from the
+   editor, reviews exactly that frozen candidate. Require `PASS` before
+   commit consideration. After `PASS`, do not edit the candidate; any change
+   requires new validation, a new freeze, and a fresh independent review.
+   Store the review report at
+   `features/FEAT-018-live-image-canvas-flow/evidence/notes/OD11_B01_C01_SUPERSESSION_REVIEW_20260927.md`,
+   outside the four-file candidate diff and staged list. Committing the
+   report requires separate authorization.
+5. A commit requires separate explicit Person 2 approval of the reviewed
+   candidate and exact staged four-file list. This addendum authorizes no
+   commit or push.
+
+This scope does not adopt E-1 through E-8, CW-1, or CW-2 as a complete
+authoritative checklist or mapping. It does not edit the owner-input note
+or any R-07 pointer inside it, validator source/tests, artifact-reference
+grammar or mirrors, `D6.MEDIA_VALIDATION_SOURCE`, fixture bytes, or Cohort B
+history. It authorizes no fixture binding, rehearsal, staging, upload,
+provider access, session creation, Lightning/model/GPU use, or live run.
+
+## Owner approval of FEAT-018 P2-T2 C01 validator literal - 2026-09-27
+
+Status: APPROVED for the exact two-file offline validator code/test task below.
+Approver: Person 2, by direct scope instruction in the current conversation.
+Approval timestamp: 2026-09-27 21:14:27 +07:00 (recording timestamp;
+Person 2's direct scope instruction preceded it). Recorded by: Codex.
+Scope reviewer: Codex in this session, against the validator authorization
+advisory and the committed FEAT-018 records. The independent implementation
+reviewer remains pending and must review the frozen candidate in a new
+top-level session, neither a subagent nor a fork, after validation.
+Plan revision: 2. Baseline HEAD: `a0473fc61f5dce023012ece816972b1bd8de0042`.
+Baseline P2-T2 plan blob: `fb5c203524b8191713f3ef70f1ecbe66b4a1ecc3`.
+Baseline validator schema blob: `e5681c2f260329513788d117d0425c043fe215a2`.
+Baseline validator test blob: `cd4a170105b59ba40c1416135e13f4adaa97b886`.
+
+The task plan is to add only the exact literal `fixture:c01:v1` to the
+image-only artifact-reference allowlist, add focused in-memory regression
+tests, run the relevant tests and repository checks, and freeze the resulting
+two-file candidate for independent review. The accepted-reference grammar in
+plan Section 2.7.5 and its governance mirrors is intentionally deferred to a
+third, separately authorized documentation synchronization after the reviewed
+validator implementation has a new commit/blob identity.
+
+Exact writable implementation paths:
+
+1. `backend/src/sketch2life/contracts/schemas/media_validation.py`;
+2. `backend/tests/unit/test_media_validation.py`.
+
+Acceptance criteria:
+
+1. Add one literal alternative, `fixture:c01:v1`, without a C-series pattern,
+   a version pattern, or references for C02 through C08. Preserve the existing
+   `fixture-b[0-9]{2}` alternative, all drawing alternatives, and
+   `fixture:rejected-reference:v1` unchanged.
+2. Show that `fixture:c01:v1` is accepted and remains byte-for-byte the same
+   in the validator result, its JSON round trip, and artifact verification.
+3. Show that `fixture:c02:v1` and `fixture:c01:v2` are rejected. Keep the
+   existing B-series, drawing, and rejected-reference tests passing.
+4. Use deterministic in-memory test bytes and stubs; do not open or add an
+   image fixture. Make no policy, result-field, failure-vocabulary,
+   provenance, hashing, or validator-flow change.
+5. Run the focused validator tests, applicable Ruff and strict mypy checks,
+   `python -B tools/validate_harness.py`,
+   `python -B tools/validate_repository_security.py`,
+   `python -B tools/validate_architecture.py`, and `git diff --check`.
+   Record actual results, including any unchanged pre-existing architecture
+   failure, in FEAT-018-local evidence. Freeze the exact two-file diff and
+   identities before independent review. Any post-review edit requires a new
+   validation, freeze, and independent review.
+
+`ImageOnlyValidationResultV1@1.0` and
+`feat018-image-only-structural-policy-v1` are retention proposals only. The
+independent implementation reviewer must explicitly confirm or reject them.
+If the reviewer disagrees, stop for a new Person 2 decision; do not change a
+contract or policy version under this approval.
+
+This approval does not cover the service, domain policy, D2 admission path,
+manifest, dependency, runtime, unrelated tests, plan, context, decisions, or
+grammar mirrors. It does not rebind `D6.MEDIA_VALIDATION_SOURCE` or bind the
+C01 fixture identity: `D6_fixture_selected = null` and
+`validation_artifact_ref = UNBOUND`. A new validator commit/blob identity,
+grammar-documentation approval and review, and a separate owner rebind are
+required in that order. This record grants no commit or push and no staging,
+upload, provider access, session creation, Lightning/model/GPU execution, or
+live use.
+
+## Person 2 one-time C01 validator commit and push authorization - 2026-09-27
+
+Approver: Person 2, by direct instruction in the current conversation,
+"OK đẩy lên cho tôi đi", following the exact three-file commit scope and
+commit subject proposed immediately beforehand.
+Recorded by: Codex at 2026-09-27 22:08:42 +07:00.
+
+Person 2 authorizes exactly one local commit with subject
+`feat(feat018): allow C01 image validation reference`, containing only:
+
+1. `backend/src/sketch2life/contracts/schemas/media_validation.py`;
+2. `backend/tests/unit/test_media_validation.py`;
+3. `features/FEAT-018-live-image-canvas-flow/approvals/TASK_APPROVAL.md`.
+
+The approval file may contain its existing validator implementation approval
+and this append-only commit/push authorization. The two code/test paths must
+remain byte-identical to the independently reviewed candidate. No patch,
+validation report, review report, OD-11 artifact, or other path is included.
+
+Person 2 separately authorizes one normal, non-force, fast-forward push of
+that one commit to `origin/feature/feat018-p2t2-live-lightning`, only if the
+remote branch still points to `a0473fc61f5dce023012ece816972b1bd8de0042`
+immediately before the push. The local parent must be the same baseline.
+If either precondition differs, stop without fetch, rebase, merge, retry, or
+reconciliation. No other commit, ref, tag, branch, or push is authorized.
+
+This one-time authorization does not resolve or rebind D6, select or bind C01,
+authorize grammar documentation synchronization, D11, D1/D12, Stage 4,
+staging, upload, provider access, session creation, Lightning/model/GPU
+execution, or live use. All untracked evidence and patch files remain outside
+this commit and push.
+
+## Person 2 docs-only validator-grammar synchronization approval - 2026-09-27
+
+Approver: Person 2, by direct instruction in the current conversation.
+Recorded by: Codex on 2026-09-27.
+
+Person 2 approves a documentation-only synchronization in exactly these four
+files:
+
+1. `features/FEAT-018-live-image-canvas-flow/plan/P2_T2_LIVE_LIGHTNING_EXECUTION_PLAN_DRAFT_20260913.md`;
+2. `features/FEAT-018-live-image-canvas-flow/approvals/TASK_APPROVAL.md`;
+3. `features/FEAT-018-live-image-canvas-flow/CONTEXT.md`; and
+4. `features/FEAT-018-live-image-canvas-flow/DECISIONS.md`.
+
+The plan update is limited to Section 2.7.5 and Section 11 `CURRENT`. It
+distinguishes the five-alternative grammar at the 2026-09-20 owner binding
+from the six-alternative code-level allowlist at commit
+`71b48ab9ea687faded378136166f158a13d33add`, and records the dated current
+status without rewriting the earlier OD-11 pointer. The six code-level
+alternatives are `fixture-b[0-9]{2}`, the exact literal `fixture:c01:v1`,
+`fixture:drawing:v[0-9]+`, `fixture:small-dark-drawing:v[0-9]+`,
+`fixture:corrupt-drawing:v[0-9]+`, and `fixture:rejected-reference:v1`.
+The schema blob is `c7744667d96e9891dea97bd34699e60fe0a0cb00`; the test blob is
+`b8c6384a33da6fc5d217e6b6bcce99131eacfe85`. The contract and policy remain
+`ImageOnlyValidationResultV1@1.0` and
+`feat018-image-only-structural-policy-v1`.
+
+The CONTEXT and DECISIONS additions are dated status mirrors; prior records
+remain historical and unchanged. C01 remains `PROSPECTIVE_CANDIDATE_ONLY`,
+`D6_fixture_selected = null`, and `validation_artifact_ref = UNBOUND`. The
+last owner-bound `D6.MEDIA_VALIDATION_SOURCE` remains at commit
+`16c52da26c444947ab4388712d9b7310480360b4`; this approval grants no rebind.
+D6 remains `NOT FINALLY RESOLVED`, and D11, Stage 4, staging, upload, session,
+and live-use gates do not advance. No E-1–E-8 checklist is adopted or
+completed by this documentation task.
+
+This approval authorizes no code or test edits, contract or policy change,
+D6 rebind, fixture binding, commit, push, staging, upload, provider access,
+session creation, or live use. No path outside the four listed files is in
+scope. The actual validation results for this documentation change are to be
+recorded below after checks run; their recorded outcome does not widen this
+authorization.
+
+Validation results recorded 2026-09-27:
+
+- `python -B tools/validate_harness.py`: exit 0, `HARNESS_VALID`.
+- `python -B tools/validate_repository_security.py`: exit 0,
+  `REPOSITORY_SECURITY_VALID`; 1,038 publishable files scanned and no
+  absolute machine paths found.
+- `python -B tools/validate_architecture.py`: exit 1,
+  `ARCHITECTURE_INVALID` because
+  `backend/src/sketch2life/application/services/backend_ai_workflow.py`
+  imports an outer layer. This is recorded as a failure, not a pass; the file
+  is unchanged from HEAD (blob
+  `2f339ab982d65ea490c20475baeeb122a57ba5ef`).
+- `git diff --check`: exit 0, no whitespace errors.
+
+No tests were run; this was a documentation-only synchronization. These
+results are self-recorded and do not substitute for the separately required
+independent review of the frozen four-file diff.

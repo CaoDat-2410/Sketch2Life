@@ -91,11 +91,12 @@ IMAGE_ONLY_ARTIFACT_REFERENCE_MAX_LENGTH = 128
 IMAGE_ONLY_REJECTED_ARTIFACT_REFERENCE = 'fixture:rejected-reference:v1'
 # This is a positive allowlist, not a generic caller-controlled opaque string.
 # It preserves the image references issued by the approved media-validation
-# fixtures (the B-series IDs and the versioned drawing identities) plus the
+# fixtures (the B-series IDs, exact C01 literal, and versioned drawing IDs) plus the
 # fixed sanitized failure sentinel. No caller-chosen secret/token namespace is
 # accepted, even when its spelling happens to fit a safe ASCII character set.
 IMAGE_ONLY_ARTIFACT_REFERENCE_PATTERN = (
     r'^(?:fixture-b[0-9]{2}|'
+    r'fixture:c01:v1|'
     r'fixture:(?:drawing|small-dark-drawing|corrupt-drawing):v[0-9]+|'
     r'fixture:rejected-reference:v1)$'
 )
