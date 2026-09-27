@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Request, status
 from fastapi.responses import FileResponse, JSONResponse
-from pathlib import Path
 
 from sketch2life.application.services.whiteboard_video_job import WhiteboardVideoJobService
 from sketch2life.contracts.schemas.whiteboard_video import (

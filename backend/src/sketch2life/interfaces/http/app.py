@@ -62,6 +62,9 @@ from sketch2life.interfaces.http.routers.supervised_flow import (
     renderer_source_router,
 )
 from sketch2life.interfaces.http.routers.whiteboard_video import router as whiteboard_video_router
+from sketch2life.interfaces.http.routers.whiteboard_storyboard import (
+    router as whiteboard_storyboard_router,
+)
 from sketch2life.interfaces.http.routers.supervised_flow import (
     router as supervised_flow_router,
 )
@@ -187,6 +190,7 @@ def create_app(
     application.include_router(supervised_flow_router)
     application.include_router(renderer_source_router)
     application.include_router(whiteboard_video_router)
+    application.include_router(whiteboard_storyboard_router)
     renderer_dist = Path(__file__).resolve().parents[5] / "packages" / "art-renderer" / "dist-demo"
     if renderer_dist.is_dir():
         application.mount(
