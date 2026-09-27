@@ -1465,6 +1465,14 @@ condition is "reasonable", "available", or "unchanged" is not sufficient.
    and magic before use. No child, personal, production, or unreviewed image
    is permitted.
 
+   OD-11 pointer (2026-09-27): The B01 fixture value above remains
+   the historical P2-T2 proposal as recorded. From this date, C01 is the sole
+   prospective P2-T2 fixture candidate. No fixture is bound:
+   `D6_fixture_selected = null`; `validation_artifact_ref` remains unbound.
+   The current validator does not accept `fixture:c01:v1`. D6 remains
+   `NOT FINALLY RESOLVED`. The dated OD-11 approval addendum and Section 11
+   `CURRENT` control the later candidate status.
+
 5. Admission, validation, and staging integrity.
    - **Admission.** Before a vision call, the exact fixture's P2-T1 D2
      image-admission outcome is exactly `ADMITTED` under the bounded limits
@@ -2410,6 +2418,13 @@ concrete value, not that the future live approval has been granted.
 | P2T2-LIVE-D11.LIVE_SEAM_BINDING | `BLOCKED` | No concrete approved host caller, `LightningPreflight`, `LightningSessionController`, `LightningSmokeFinalizer`, or adapter-dispatch wrapper is bound. The caller/seam identities, check-owner map, recording contract, and typed-carrier resolution in Section 2.7.7 must be bound before D11 can be resolved. |
 | P2T2-LIVE-D12 | `RESOLVED_WITH_PROPOSED_VALUE` | Synthetic lexical regression policy identity and scope are committed and proposed. |
 
+OD-11 pointer (2026-09-27) for the `P2T2-LIVE-D6` row: its B01
+proposal and fixture-identity disposition are preserved as the recorded
+pre-OD-11 state. From this date, C01 is the sole prospective candidate;
+`D6_fixture_selected = null`. The dated OD-11 approval addendum and Section 11
+`CURRENT` control the current and future fixture-candidate status. This note
+changes no other decision row and grants no live approval.
+
 D4 is owner-approved for the pre-staged snapshot identity and has
 `D4 snapshot/readiness/identity = RESOLVED_FOR_RUNTIME_REVALIDATION`; D4
 runtime/session-local revalidation remains Stage-4-local only after
@@ -2569,6 +2584,13 @@ the same byte count, dimensions, and digest. The owner-review reference is
 the local `SOURCE_REVIEW.md`, dated 2026-09-12, with visual disposition PASS.
 The final approval must repeat these checks on the immutable original before
 staging; the review artifact must not contain image bytes or an absolute path.
+
+OD-11 pointer (2026-09-27): The preceding B01 identity, source
+review, and recheck text remain unchanged and accurate for the proposal when
+recorded; they are not evidence that C01 is bound or validated. C01 is only
+the sole prospective candidate. `D6_fixture_selected = null` and
+`validation_artifact_ref` remains unbound. The current validator does not
+accept `fixture:c01:v1`; D6 remains `NOT FINALLY RESOLVED`.
 
 Record exactly one owner-approved fixture_id, source/derivation identity,
 owner visual-review reference and date, MIME/extension, width, height,
@@ -3078,6 +3100,13 @@ D4 = OWNER-APPROVED_PRESTAGED_LOCAL_SNAPSHOT
 D4 snapshot/readiness/identity = RESOLVED_FOR_RUNTIME_REVALIDATION
 D4 runtime/session-local revalidation = STAGE_4_LOCAL_ONLY_AFTER_SESSION_READY
 D6 = NOT FINALLY RESOLVED; FIXTURE IDENTITY = RESOLVED_WITH_PROPOSED_VALUE
+OD-11 (2026-09-27): The fixture-identity clause immediately above is
+the pre-OD-11 proposal; from this date the owner-approved formal
+fixture-identity status is D6 = NOT FINALLY RESOLVED; FIXTURE IDENTITY = PROSPECTIVE_CANDIDATE_ONLY (C01); D6_fixture_selected = null; validation_artifact_ref = UNBOUND.
+OD-11: Earlier B01 P2-T2 proposal = HISTORICAL AS RECORDED; C01 = SOLE
+PROSPECTIVE CANDIDATE ONLY; D6_fixture_selected = null;
+validation_artifact_ref = UNBOUND; fixture:c01:v1 = NOT ACCEPTED BY CURRENT
+VALIDATOR; D6 = NOT FINALLY RESOLVED.
 D6.MEDIA_VALIDATION_SOURCE = RESOLVED: EXACT_COMMITTED_IMAGE_ONLY_VALIDATOR
 D6.MIME_EXTENSION_RULE = RESOLVED: REMOVE_REQUIREMENT
 D9_PACKAGE = DESIGN_RECORD_ONLY

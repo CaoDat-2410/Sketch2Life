@@ -395,3 +395,18 @@ replace, supersede, or satisfy the global `NEXT` below, which remains the
 live plan's Section 11 `CURRENT` gate.
 
 `NEXT = PREPARE_D1_OWNER_RESOLUTION_AND_D6_FIXTURE_BINDING`
+
+## P2-T2 OD-11 prospective fixture-candidate pointer - 2026-09-27
+
+The 2026-09-18 and 2026-09-20 D6 entries and the 2026-09-22 D9 entry above
+retain their meaning as dated records. The earlier B01 P2-T2 live-fixture
+proposal remains historical and accurate for its recording time. From this
+date, C01 is the sole prospective P2-T2 candidate; it is not D6-bound:
+`D6_fixture_selected = null` and `validation_artifact_ref` remains unbound.
+The current validator does not accept `fixture:c01:v1`. Person 2's exact
+formal fixture-identity status is recorded in the dated OD-11 approval
+addendum as `D6 = NOT FINALLY RESOLVED; FIXTURE IDENTITY = PROSPECTIVE_CANDIDATE_ONLY (C01); D6_fixture_selected = null; validation_artifact_ref = UNBOUND`. D6 remains
+`NOT FINALLY RESOLVED`; D11 remains `BLOCKED`, Stage 4 remains `NOT READY`,
+and live execution remains `NOT AUTHORIZED`. Section 11 `CURRENT` of the
+P2-T2 plan remains the sole canonical current-state block; its global `NEXT`
+is unchanged.

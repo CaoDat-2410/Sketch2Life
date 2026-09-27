@@ -1,5 +1,17 @@
 # FEAT-018 decisions
 
+- 2026-09-27 P2-T2 OD-11 prospective fixture-candidate pointer:
+  the earlier B01 P2-T2 live-fixture proposal remains historical and accurate
+  as recorded. From this date C01 is the sole prospective candidate, not a
+  bound D6 fixture. `D6_fixture_selected = null`; `validation_artifact_ref`
+  remains unbound because the current validator does not accept
+  `fixture:c01:v1`. Person 2's formal fixture-identity status wording is
+  `D6 = NOT FINALLY RESOLVED; FIXTURE IDENTITY = PROSPECTIVE_CANDIDATE_ONLY (C01); D6_fixture_selected = null; validation_artifact_ref = UNBOUND` in the dated OD-11 approval
+  addendum. D6 remains `NOT FINALLY RESOLVED`; D11 remains `BLOCKED`;
+  Stage 4 remains `NOT READY`; live execution remains `NOT AUTHORIZED`.
+  The plan's Section 11 `CURRENT` controls the current/future candidate
+  status; Cohort B history and the existing validator grammar are unchanged.
+
 - 2026-09-22 D9 offline enforcement implementation and correction: record that
   the owner-approved exact D9 stdout/stderr ceilings (`stdout_max_bytes=16384`,
   `stderr_max_bytes=32768`, approved 2026-09-21 in

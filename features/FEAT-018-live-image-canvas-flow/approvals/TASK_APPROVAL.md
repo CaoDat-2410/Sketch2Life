@@ -1191,3 +1191,61 @@ LIVE/MODEL/GPU/PROVIDER/NETWORK/LIGHTNING = NOT AUTHORIZED
 NEXT = PREPARE_D1_OWNER_RESOLUTION_AND_D6_FIXTURE_BINDING
 reviewed_runtime_code_commit = 9549a341194f40b1a9be419d6fce0d70f1ca0384
 ```
+
+## Owner authorization of FEAT-018 P2-T2 OD-11 governance pointers - 2026-09-27
+
+Status: APPROVED for OD-11 governance-only insertions in the four paths below.
+Approver: Person 2.
+Approval timestamp: 2026-09-27 20:05:38 +07:00 (recording timestamp; approval was conveyed in this conversation).
+Independent candidate reviewer designated by Person 2: Claude Code in a new top-level session (not a subagent or fork), separate from and not the candidate editor.
+Plan revision: 2; baseline HEAD `f2efb397ea396fab3ccbf991aeb7faa2128ccec4`;
+baseline plan blob `16feda7c2804b57e72d0833b3b9e4235acbae206`.
+
+Exact governance-file scope:
+1. `features/FEAT-018-live-image-canvas-flow/approvals/TASK_APPROVAL.md`;
+2. `features/FEAT-018-live-image-canvas-flow/plan/P2_T2_LIVE_LIGHTNING_EXECUTION_PLAN_DRAFT_20260913.md`;
+3. `features/FEAT-018-live-image-canvas-flow/CONTEXT.md`;
+4. `features/FEAT-018-live-image-canvas-flow/DECISIONS.md`.
+
+Only additive OD-11 insertions at the approved Section 3 precondition 4,
+Section 9 post-table and detailed D6, Section 11 `CURRENT`, `CONTEXT.md` EOF,
+and newest-first `DECISIONS.md` locations are authorized. The earlier B01
+proposal and Cohort B records remain unchanged and accurate as dated history.
+From 2026-09-27, C01 is the sole prospective P2-T2 candidate; Person 2's exact
+formal fixture-identity status wording is `D6 = NOT FINALLY RESOLVED; FIXTURE IDENTITY = PROSPECTIVE_CANDIDATE_ONLY (C01); D6_fixture_selected = null; validation_artifact_ref = UNBOUND`. This does not bind C01:
+`D6_fixture_selected = null`; `validation_artifact_ref` remains unbound;
+the current validator does not accept `fixture:c01:v1`; D6 remains
+`NOT FINALLY RESOLVED`. D11 remains `BLOCKED`, Stage 4 `NOT READY`, and
+live execution `NOT AUTHORIZED`. Section 11 `CURRENT` remains canonical;
+its global `NEXT` is unchanged.
+
+Acceptance and review order:
+1. Edit only the approved four-file candidate. Preserve all earlier text.
+2. Run `python -B tools/validate_harness.py`,
+   `python -B tools/validate_repository_security.py`,
+   `python -B tools/validate_architecture.py`, and `git diff --check`.
+   Record the actual commands, environment, outputs, exit codes, timestamps,
+   and interpretation in a separate FEAT-018 evidence note. If architecture
+   still reports the known `backend_ai_workflow.py` issue, record the actual
+   failure and prove it is pre-existing and unchanged; do not call it PASS.
+3. Freeze the exact four-file diff and each candidate file identity after
+   those results are recorded. The evidence note is outside the candidate
+   diff and staged list.
+4. The named independent reviewer, in a fresh session separate from the
+   editor, reviews exactly that frozen candidate. Require `PASS` before
+   commit consideration. After `PASS`, do not edit the candidate; any change
+   requires new validation, a new freeze, and a fresh independent review.
+   Store the review report at
+   `features/FEAT-018-live-image-canvas-flow/evidence/notes/OD11_B01_C01_SUPERSESSION_REVIEW_20260927.md`,
+   outside the four-file candidate diff and staged list. Committing the
+   report requires separate authorization.
+5. A commit requires separate explicit Person 2 approval of the reviewed
+   candidate and exact staged four-file list. This addendum authorizes no
+   commit or push.
+
+This scope does not adopt E-1 through E-8, CW-1, or CW-2 as a complete
+authoritative checklist or mapping. It does not edit the owner-input note
+or any R-07 pointer inside it, validator source/tests, artifact-reference
+grammar or mirrors, `D6.MEDIA_VALIDATION_SOURCE`, fixture bytes, or Cohort B
+history. It authorizes no fixture binding, rehearsal, staging, upload,
+provider access, session creation, Lightning/model/GPU use, or live run.
