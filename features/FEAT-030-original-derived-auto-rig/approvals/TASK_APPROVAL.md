@@ -31,7 +31,8 @@
 - State: IMPLEMENTATION APPROVED BY OWNER FIX REQUEST
 - Scope: remove the accidental second Qwen inference from the live Lightning vision request by
   making bounded repair opt-in; improve backend SAM 2.1 box-prompt preparation for non-blank
-  drawings without restoring an unconditional localization call or permitting full-frame prompts.
+  drawings without restoring an unconditional localization call or permitting full-frame prompts;
+  allow only in-memory structural normalization of common Qwen JSON shape drift.
 - Approval evidence: the project owner explicitly requested fixing the two observed runtime
   failures (`Qwen` loading twice and SAM2 `PROMPT_REQUIRED`) in the current task.
 - Boundary: this addendum does not activate SAM2 by default, change the model ADR gate, or alter

@@ -150,6 +150,7 @@ def _adapter(
     quality_repair_prompt_builder: Any = None,
     quality_repair_predicate: Any = None,
     enable_bounded_repair: bool = False,
+    enable_structural_repair: bool = False,
 ) -> QwenVisionAdapter:
     return QwenVisionAdapter(
         QwenVisionRuntimeConfig(model_dir=Path("local-model")),
@@ -164,6 +165,7 @@ def _adapter(
         quality_repair_prompt_builder=quality_repair_prompt_builder,
         quality_repair_predicate=quality_repair_predicate,
         enable_bounded_repair=enable_bounded_repair,
+        enable_structural_repair=enable_structural_repair,
     )
 
 
@@ -490,6 +492,31 @@ def test_strict_adapter_does_not_retry_even_when_repair_builder_is_supplied(
     assert result.error_code is VisionErrorCode.VISION_SCHEMA_INVALID
     assert result.attempt_number == 1
     assert result.repair_attempted is False
+    assert runner.calls == 1
+
+
+def test_structural_repair_salvages_common_qwen_shape_drift_without_second_inference(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    artifact_ref, digest = _write_source(tmp_path)
+    drifted_payload = {
+        **_empty_payload(),
+        "entities": [{"label": "con bướm", "confidence": 0.91}],
+        "unexpected_provider_metadata": "discarded",
+    }
+    runner = _SequenceRunner(_raw(drifted_payload))
+
+    result = _adapter(
+        runner,
+        enable_structural_repair=True,
+    ).understand(_request(artifact_ref, digest))
+
+    assert isinstance(result, VisionUnderstandingSuccessV2)
+    assert result.entities[0].label.value == "con bướm"
+    assert result.entities[0].observation_id == "entity-1"
+    assert result.repair_attempted is True
+    assert result.attempt_number == 1
     assert runner.calls == 1
 
 

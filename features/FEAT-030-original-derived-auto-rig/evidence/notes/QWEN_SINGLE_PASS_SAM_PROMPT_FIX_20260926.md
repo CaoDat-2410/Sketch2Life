@@ -1,6 +1,6 @@
 # Qwen single-pass and SAM prompt handoff fix
 
-Date: 2026-09-26  
+Date: 2026-09-26; updated 2026-09-27
 Scope: Lightning `/v2/vision` and backend SAM 2.1 prompt preparation
 
 ## Findings
@@ -17,6 +17,8 @@ Scope: Lightning `/v2/vision` and backend SAM 2.1 prompt preparation
 - Live Lightning vision now uses one Qwen inference by default.
 - Bounded repair remains available only with the explicit benchmark flag
   `SKETCH2LIFE_LIGHTNING_VISION_BOUNDED_REPAIR=true`.
+- Structural normalization is enabled independently for the live route, allowing safe in-memory
+  conversion of common Qwen JSON shape drift without a second inference.
 - The backend declares Pillow as a runtime dependency for image prompt preparation.
 - Colored/ink pixels are clustered before choosing a component box, with a bounded aggregate
   fallback for sparse drawings. Blank images remain fail-closed and no full-frame prompt is sent.
@@ -30,7 +32,7 @@ Command:
 $env:PYTHONPATH='backend/src'; backend/.venv/Scripts/python.exe -m pytest backend/tests/unit/test_lightning_sam21.py backend/tests/unit/test_qwen_vision_adapter.py --basetemp "$env:TEMP\sketch2life-qwen-sam-fix"
 ```
 
-Result: `56 passed`.
+Result: `57 passed` after adding the one-inference structural-normalization regression test.
 
 Additional checks:
 

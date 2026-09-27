@@ -1,7 +1,7 @@
 """Conservative normalization for real VLM observation payloads.
 
 The normalizer is deliberately provider-agnostic and only runs when the real
-CLI opts into bounded repair. It converts common JSON-shape drift into the
+caller explicitly opts into structural repair. It converts common JSON-shape drift into the
 canonical observation payload, drops unsafe optional claims, and leaves the
 final contract validation to ``VisionUnderstandingSuccessV2``.
 """

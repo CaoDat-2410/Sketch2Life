@@ -946,9 +946,10 @@ R4-T1 and R4-T2 are approved separately from runtime activation. No model packag
 
 The staged Lightning path has two operational safeguards:
 
-- `/v2/vision` performs one Qwen inference by default. Bounded semantic/quality/schema repair is
+- `/v2/vision` performs one Qwen inference by default. Bounded semantic/quality/schema retry is
   retained only as an explicit benchmark switch (`SKETCH2LIFE_LIGHTNING_VISION_BOUNDED_REPAIR=true`),
-  because the killable runner loads the checkpoint in a fresh subprocess for each attempt.
+  because the killable runner loads the checkpoint in a fresh subprocess for each attempt. Safe
+  structural normalization is enabled independently in memory and does not call Qwen again.
 - The backend creates the SAM2 box prompt from the source drawing when Gate-A localization is not
   available. Nearby colored/ink pixels are clustered to survive downsampled crayon strokes; a
   bounded aggregate box is used only as a final proposal. Blank images, invalid images, and

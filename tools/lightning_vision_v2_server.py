@@ -452,6 +452,9 @@ def vision_v2(
                 # production requests to one inference; bounded repair is opt-in for benchmark
                 # runs only, so one /v2/vision request cannot emit two checkpoint-load sequences.
                 enable_bounded_repair=bounded_repair_enabled,
+                # Normalize common Qwen JSON shape drift in memory without invoking the model
+                # again. This keeps the one-inference guarantee while accepting safe aliases.
+                enable_structural_repair=True,
             )
             result = adapter.understand(local_request)
             # Keep the Lightning console useful without logging image bytes, model output,

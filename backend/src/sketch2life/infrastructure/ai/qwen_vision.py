@@ -715,6 +715,7 @@ class QwenVisionAdapter(VisionUnderstandingPortV2):
         on_raw_output: RawOutputHook | None = None,
         on_mapping_diagnostic: MappingDiagnosticHook | None = None,
         enable_bounded_repair: bool = False,
+        enable_structural_repair: bool = False,
     ) -> None:
         if prompt is not None and prompt_builder is not None:
             raise ValueError("provide prompt or prompt_builder, not both")
@@ -741,6 +742,9 @@ class QwenVisionAdapter(VisionUnderstandingPortV2):
         self._on_raw_output = on_raw_output
         self._on_mapping_diagnostic = on_mapping_diagnostic
         self._enable_bounded_repair = enable_bounded_repair
+        # Bounded retry historically implied structural normalization. Keep that compatibility
+        # while allowing the live server to enable normalization without a second inference.
+        self._enable_structural_repair = enable_structural_repair or enable_bounded_repair
 
     def understand(self, request: VisionUnderstandingRequestV2) -> VisionUnderstandingResultV2:
         catalog_hash = vision_profile_catalog_hash_v2(self._catalog)
@@ -1018,7 +1022,7 @@ class QwenVisionAdapter(VisionUnderstandingPortV2):
                 ),
             )
         if (
-            not self._enable_bounded_repair
+            not self._enable_structural_repair
             and not set(payload).issubset(_ALLOWED_PROVIDER_KEYS)
         ):
             self._emit_mapping_diagnostic((QwenOutputMappingDiagnostic.TOP_LEVEL_KEY_REJECTED,))
@@ -1032,10 +1036,10 @@ class QwenVisionAdapter(VisionUnderstandingPortV2):
                 mapping_diagnostics=(VisionMappingDiagnosticV2.TOP_LEVEL_KEY_REJECTED,),
             )
 
-        normalized_payload, bounded_repair = _normalize_provider_payload(
-            payload, enable_structural_repair=self._enable_bounded_repair
+        normalized_payload, structural_repair = _normalize_provider_payload(
+            payload, enable_structural_repair=self._enable_structural_repair
         )
-        repair_attempted = repair_attempted or bounded_repair
+        repair_attempted = repair_attempted or structural_repair
 
         merged: dict[str, Any] = {
             **normalized_payload,
