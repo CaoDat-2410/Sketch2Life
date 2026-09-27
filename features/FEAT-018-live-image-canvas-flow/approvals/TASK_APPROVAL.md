@@ -1347,3 +1347,63 @@ authorize grammar documentation synchronization, D11, D1/D12, Stage 4,
 staging, upload, provider access, session creation, Lightning/model/GPU
 execution, or live use. All untracked evidence and patch files remain outside
 this commit and push.
+
+## Person 2 docs-only validator-grammar synchronization approval - 2026-09-27
+
+Approver: Person 2, by direct instruction in the current conversation.
+Recorded by: Codex on 2026-09-27.
+
+Person 2 approves a documentation-only synchronization in exactly these four
+files:
+
+1. `features/FEAT-018-live-image-canvas-flow/plan/P2_T2_LIVE_LIGHTNING_EXECUTION_PLAN_DRAFT_20260913.md`;
+2. `features/FEAT-018-live-image-canvas-flow/approvals/TASK_APPROVAL.md`;
+3. `features/FEAT-018-live-image-canvas-flow/CONTEXT.md`; and
+4. `features/FEAT-018-live-image-canvas-flow/DECISIONS.md`.
+
+The plan update is limited to Section 2.7.5 and Section 11 `CURRENT`. It
+distinguishes the five-alternative grammar at the 2026-09-20 owner binding
+from the six-alternative code-level allowlist at commit
+`71b48ab9ea687faded378136166f158a13d33add`, and records the dated current
+status without rewriting the earlier OD-11 pointer. The six code-level
+alternatives are `fixture-b[0-9]{2}`, the exact literal `fixture:c01:v1`,
+`fixture:drawing:v[0-9]+`, `fixture:small-dark-drawing:v[0-9]+`,
+`fixture:corrupt-drawing:v[0-9]+`, and `fixture:rejected-reference:v1`.
+The schema blob is `c7744667d96e9891dea97bd34699e60fe0a0cb00`; the test blob is
+`b8c6384a33da6fc5d217e6b6bcce99131eacfe85`. The contract and policy remain
+`ImageOnlyValidationResultV1@1.0` and
+`feat018-image-only-structural-policy-v1`.
+
+The CONTEXT and DECISIONS additions are dated status mirrors; prior records
+remain historical and unchanged. C01 remains `PROSPECTIVE_CANDIDATE_ONLY`,
+`D6_fixture_selected = null`, and `validation_artifact_ref = UNBOUND`. The
+last owner-bound `D6.MEDIA_VALIDATION_SOURCE` remains at commit
+`16c52da26c444947ab4388712d9b7310480360b4`; this approval grants no rebind.
+D6 remains `NOT FINALLY RESOLVED`, and D11, Stage 4, staging, upload, session,
+and live-use gates do not advance. No E-1–E-8 checklist is adopted or
+completed by this documentation task.
+
+This approval authorizes no code or test edits, contract or policy change,
+D6 rebind, fixture binding, commit, push, staging, upload, provider access,
+session creation, or live use. No path outside the four listed files is in
+scope. The actual validation results for this documentation change are to be
+recorded below after checks run; their recorded outcome does not widen this
+authorization.
+
+Validation results recorded 2026-09-27:
+
+- `python -B tools/validate_harness.py`: exit 0, `HARNESS_VALID`.
+- `python -B tools/validate_repository_security.py`: exit 0,
+  `REPOSITORY_SECURITY_VALID`; 1,038 publishable files scanned and no
+  absolute machine paths found.
+- `python -B tools/validate_architecture.py`: exit 1,
+  `ARCHITECTURE_INVALID` because
+  `backend/src/sketch2life/application/services/backend_ai_workflow.py`
+  imports an outer layer. This is recorded as a failure, not a pass; the file
+  is unchanged from HEAD (blob
+  `2f339ab982d65ea490c20475baeeb122a57ba5ef`).
+- `git diff --check`: exit 0, no whitespace errors.
+
+No tests were run; this was a documentation-only synchronization. These
+results are self-recorded and do not substitute for the separately required
+independent review of the frozen four-file diff.

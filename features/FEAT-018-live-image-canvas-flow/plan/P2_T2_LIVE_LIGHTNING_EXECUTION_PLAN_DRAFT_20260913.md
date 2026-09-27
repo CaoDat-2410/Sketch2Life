@@ -1143,7 +1143,9 @@ The exact committed four-file validator identity is:
 | `backend/src/sketch2life/domain/understanding/media_quality.py` | image-only structural policy bridge | `b8d89efebc6ae8a82b3821e3d833627ef4fd2439` |
 | `backend/tests/unit/test_media_validation.py` | deterministic contract and validator tests | `cd4a170105b59ba40c1416135e13f4adaa97b886` |
 
-The accepted artifact-reference grammar is exactly:
+At the 2026-09-20 owner binding at commit
+`16c52da26c444947ab4388712d9b7310480360b4`, the accepted
+artifact-reference grammar was exactly:
 
 - `fixture-b[0-9]{2}`;
 - `fixture:drawing:v[0-9]+`;
@@ -1156,6 +1158,32 @@ The `fixture-b[0-9]{2}` pattern syntactically permits `fixture-b00` through
 such fixture was owner-reviewed, or that every such fixture is independently
 authorized for a live run. Fixture existence, identity, and authorization
 remain separate run-specific gates.
+
+**Dated code-level grammar update (2026-09-27; not a D6 rebind).** The
+validator implementation committed at `71b48ab9ea687faded378136166f158a13d33add`
+now accepts the following six artifact-reference alternatives:
+
+- `fixture-b[0-9]{2}`;
+- the exact literal `fixture:c01:v1`;
+- `fixture:drawing:v[0-9]+`;
+- `fixture:small-dark-drawing:v[0-9]+`;
+- `fixture:corrupt-drawing:v[0-9]+`; and
+- `fixture:rejected-reference:v1`.
+
+This is the code-level allowlist at that commit, not an owner-bound D6
+allowlist. The exact changed schema blob is
+`c7744667d96e9891dea97bd34699e60fe0a0cb00` at
+`backend/src/sketch2life/contracts/schemas/media_validation.py`; the exact
+changed test blob is `b8c6384a33da6fc5d217e6b6bcce99131eacfe85` at
+`backend/tests/unit/test_media_validation.py`. The result contract remains
+`ImageOnlyValidationResultV1@1.0`, and the structural policy remains
+`feat018-image-only-structural-policy-v1`. The last owner binding of
+`P2T2-LIVE-D6.MEDIA_VALIDATION_SOURCE` remains the earlier exact source at
+`16c52da26c444947ab4388712d9b7310480360b4`; it has not been rebound to
+`71b48ab9ea687faded378136166f158a13d33add`. C01 remains only a prospective
+candidate: `D6_fixture_selected = null` and `validation_artifact_ref = UNBOUND`.
+This update changes no contract or policy version and resolves no D6, D11,
+Stage 4, staging, upload, session, or live-use gate.
 
 The canonical artifact hash is the lowercase SHA-256 of UTF-8 bytes from
 `result.model_dump_json(by_alias=False, exclude_none=False, indent=None)`.
@@ -3107,6 +3135,15 @@ OD-11: Earlier B01 P2-T2 proposal = HISTORICAL AS RECORDED; C01 = SOLE
 PROSPECTIVE CANDIDATE ONLY; D6_fixture_selected = null;
 validation_artifact_ref = UNBOUND; fixture:c01:v1 = NOT ACCEPTED BY CURRENT
 VALIDATOR; D6 = NOT FINALLY RESOLVED.
+OD-11 CURRENT CODE UPDATE (2026-09-27; code status only, not an owner rebind):
+validator_code_commit = 71b48ab9ea687faded378136166f158a13d33add
+validator_code_artifact_reference_allowlist = fixture-b[0-9]{2}; fixture:c01:v1 (exact literal); fixture:drawing:v[0-9]+; fixture:small-dark-drawing:v[0-9]+; fixture:corrupt-drawing:v[0-9]+; fixture:rejected-reference:v1
+validator_schema_blob = c7744667d96e9891dea97bd34699e60fe0a0cb00
+validator_test_blob = b8c6384a33da6fc5d217e6b6bcce99131eacfe85
+The prior OD-11 acceptance statement above is historical as recorded. The
+current code accepts fixture:c01:v1, but D6.MEDIA_VALIDATION_SOURCE remains
+owner-bound to 16c52da26c444947ab4388712d9b7310480360b4; no rebind is recorded.
+D6_fixture_selected = null; validation_artifact_ref = UNBOUND.
 D6.MEDIA_VALIDATION_SOURCE = RESOLVED: EXACT_COMMITTED_IMAGE_ONLY_VALIDATOR
 D6.MIME_EXTENSION_RULE = RESOLVED: REMOVE_REQUIREMENT
 D9_PACKAGE = DESIGN_RECORD_ONLY

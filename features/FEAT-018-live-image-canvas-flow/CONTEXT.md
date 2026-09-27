@@ -410,3 +410,27 @@ addendum as `D6 = NOT FINALLY RESOLVED; FIXTURE IDENTITY = PROSPECTIVE_CANDIDATE
 and live execution remains `NOT AUTHORIZED`. Section 11 `CURRENT` of the
 P2-T2 plan remains the sole canonical current-state block; its global `NEXT`
 is unchanged.
+
+## P2-T2 validator grammar documentation synchronization - 2026-09-27
+
+This dated status update records the validator implementation at commit
+`71b48ab9ea687faded378136166f158a13d33add`, which accepts six
+artifact-reference alternatives: `fixture-b[0-9]{2}`, the exact literal
+`fixture:c01:v1`, `fixture:drawing:v[0-9]+`,
+`fixture:small-dark-drawing:v[0-9]+`,
+`fixture:corrupt-drawing:v[0-9]+`, and `fixture:rejected-reference:v1`.
+The schema blob is `c7744667d96e9891dea97bd34699e60fe0a0cb00` and the test
+blob is `b8c6384a33da6fc5d217e6b6bcce99131eacfe85`. The result contract and
+structural policy remain `ImageOnlyValidationResultV1@1.0` and
+`feat018-image-only-structural-policy-v1`.
+
+The earlier 2026-09-27 OD-11 pointer's statement that the current validator
+does not accept `fixture:c01:v1` is retained as history for the state at its
+recording time. This implementation update is not an owner rebind: the last
+owner-bound `D6.MEDIA_VALIDATION_SOURCE` remains the exact source at commit
+`16c52da26c444947ab4388712d9b7310480360b4`. C01 remains the sole prospective
+candidate, not a bound fixture: `D6_fixture_selected = null` and
+`validation_artifact_ref = UNBOUND`. D6 remains `NOT FINALLY RESOLVED`; D11
+remains `BLOCKED`; Stage 4 remains `NOT READY`; staging, upload, session
+creation, and live use remain unauthorized. This record does not adopt or
+complete the E-1–E-8 checklist.
