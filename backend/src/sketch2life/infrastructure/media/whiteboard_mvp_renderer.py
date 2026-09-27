@@ -9,6 +9,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Literal
+
+WhiteboardMotion = Literal["INTRO", "FOCUS", "DEMONSTRATE", "RECAP"]
 
 
 @dataclass(frozen=True)
@@ -48,6 +51,7 @@ def render_progressive_reveal(
     output_path: str | Path,
     *,
     spec: WhiteboardMvpRenderSpec | None = None,
+    motion_schedule: tuple[WhiteboardMotion, ...] = (),
 ) -> WhiteboardMvpRenderResult:
     """Render an RGBA cutout to the contract-compatible MVP MP4."""
 
@@ -62,6 +66,8 @@ def render_progressive_reveal(
 
     render_spec = spec or WhiteboardMvpRenderSpec()
     render_spec.validate()
+    if len(motion_schedule) > 5:
+        raise ValueError("whiteboard motion schedule is too long")
 
     source = Image.open(cutout_path).convert("RGBA")
     source.thumbnail((560, 560), Image.Resampling.LANCZOS)
@@ -102,6 +108,12 @@ def render_progressive_reveal(
                 rgb * frame_alpha[:, :, None]
                 + white * (1.0 - frame_alpha[:, :, None])
             ).astype(np.uint8)
+            if motion_schedule:
+                motion_index = min(
+                    len(motion_schedule) - 1,
+                    int(frame_index / max(1, frame_count) * len(motion_schedule)),
+                )
+                frame = _apply_motion(frame, motion_schedule[motion_index])
             writer.append_data(frame)
     finally:
         writer.close()
@@ -121,8 +133,50 @@ def render_progressive_reveal(
     )
 
 
+def _apply_motion(frame, motion: WhiteboardMotion):
+    """Add restrained scene motion without introducing unreviewed visual claims."""
+
+    import numpy as np
+    from PIL import Image, ImageDraw
+
+    height, width = frame.shape[:2]
+    if motion == "FOCUS":
+        crop_height = round(height * 0.82)
+        crop_width = round(width * 0.82)
+        top = (height - crop_height) // 2
+        left = (width - crop_width) // 2
+        focused = Image.fromarray(
+            frame[top : top + crop_height, left : left + crop_width]
+        )
+        return np.asarray(focused.resize((width, height), Image.Resampling.LANCZOS))
+
+    if motion == "DEMONSTRATE":
+        image = Image.fromarray(frame)
+        draw = ImageDraw.Draw(image, "RGBA")
+        center_y = height // 2
+        margin = round(width * 0.22)
+        blue = (43, 105, 176, 180)
+        draw.line((margin, center_y, width - margin, center_y), fill=blue, width=5)
+        draw.line((margin, center_y, margin + 28, center_y - 18), fill=blue, width=5)
+        draw.line((margin, center_y, margin + 28, center_y + 18), fill=blue, width=5)
+        draw.line(
+            (width - margin, center_y, width - margin - 28, center_y - 18),
+            fill=blue,
+            width=5,
+        )
+        draw.line(
+            (width - margin, center_y, width - margin - 28, center_y + 18),
+            fill=blue,
+            width=5,
+        )
+        return np.asarray(image)
+
+    return frame
+
+
 __all__ = [
     "WhiteboardMvpRenderResult",
     "WhiteboardMvpRenderSpec",
+    "WhiteboardMotion",
     "render_progressive_reveal",
 ]

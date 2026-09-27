@@ -25,12 +25,19 @@ def test_create_accepts_storyboard_narration_and_duration() -> None:
             **body("idem-storyboard-001"),
             "narration_vi": "Ria mèo giúp mèo cảm nhận vật cản.",
             "video_duration_seconds": 14.0,
+            "scene_motions": ["INTRO", "FOCUS", "DEMONSTRATE", "RECAP"],
         },
     )
 
     assert response.status_code == 201
     assert response.json()["narration_vi"] == "Ria mèo giúp mèo cảm nhận vật cản."
     assert response.json()["video_duration_seconds"] == 14.0
+    assert response.json()["scene_motions"] == [
+        "INTRO",
+        "FOCUS",
+        "DEMONSTRATE",
+        "RECAP",
+    ]
 
 
 def test_create_and_poll_whiteboard_video_job() -> None:

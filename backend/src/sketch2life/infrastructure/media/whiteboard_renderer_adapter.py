@@ -57,6 +57,7 @@ class MvpWhiteboardRendererAdapter:
                 self._cutout_path_for(strokes.stroke_refs[0]),
                 self._output_path_for(job.job_id),
                 spec=render_spec,
+                motion_schedule=job.scene_motions,
             )
         except (OSError, RuntimeError, ValueError) as error:
             raise WhiteboardVideoPipelineError("RENDER_FAILED", retryable=True) from error

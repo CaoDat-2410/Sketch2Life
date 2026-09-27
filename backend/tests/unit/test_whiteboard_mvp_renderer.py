@@ -19,6 +19,14 @@ def test_mvp_render_spec_matches_contract_defaults() -> None:
     assert spec.max_size_bytes == 12 * 1024 * 1024
 
 
+def test_mvp_render_spec_accepts_storyboard_duration() -> None:
+    spec = WhiteboardMvpRenderSpec(duration_seconds=14.0)
+
+    spec.validate()
+
+    assert spec.duration_seconds == 14.0
+
+
 @pytest.mark.parametrize(
     ("field", "value"),
     [("width", 600), ("height", 600), ("duration_seconds", 4.0)],

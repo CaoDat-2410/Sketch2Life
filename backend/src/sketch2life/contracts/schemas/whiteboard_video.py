@@ -7,6 +7,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+WhiteboardMotionV1 = Literal["INTRO", "FOCUS", "DEMONSTRATE", "RECAP"]
+
 
 class WhiteboardVideoCreateRequestV1(BaseModel):
     """Safe request body for creating a session-local video job."""
@@ -22,6 +24,7 @@ class WhiteboardVideoCreateRequestV1(BaseModel):
     idempotency_key: str = Field(min_length=1, max_length=200)
     narration_vi: str | None = Field(default=None, min_length=1, max_length=10_000)
     video_duration_seconds: float = Field(default=8.0, ge=5.0, le=45.0)
+    scene_motions: tuple[WhiteboardMotionV1, ...] = Field(default=(), max_length=5)
 
 
 class WhiteboardVideoJobV1(BaseModel):
@@ -40,6 +43,7 @@ class WhiteboardVideoJobV1(BaseModel):
     learning_thread_ref: str = Field(min_length=1, max_length=200)
     narration_vi: str | None = Field(default=None, min_length=1, max_length=10_000)
     video_duration_seconds: float = Field(default=8.0, ge=5.0, le=45.0)
+    scene_motions: tuple[WhiteboardMotionV1, ...] = Field(default=(), max_length=5)
     status: Literal[
         "QUEUED",
         "RUNNING",

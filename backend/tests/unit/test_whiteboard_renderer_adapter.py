@@ -34,12 +34,13 @@ def _job() -> WhiteboardVideoJobV1:
 
 
 def test_adapter_resolves_cutout_and_returns_render_reference(monkeypatch, tmp_path) -> None:
-    captured: dict[str, str | float] = {}
+    captured: dict[str, object] = {}
 
-    def fake_render(cutout_path, output_path, *, spec):
+    def fake_render(cutout_path, output_path, *, spec, motion_schedule):
         captured["cutout"] = str(cutout_path)
         captured["output"] = str(output_path)
         captured["duration"] = spec.duration_seconds
+        captured["motion_schedule"] = motion_schedule
         return WhiteboardMvpRenderResult(
             output_path=str(output_path),
             width=1280,
@@ -64,5 +65,46 @@ def test_adapter_resolves_cutout_and_returns_render_reference(monkeypatch, tmp_p
     assert captured["cutout"].endswith("cutout-1.png")
     assert captured["output"].endswith("job-1.mp4")
     assert captured["duration"] == 8.0
+    assert captured["motion_schedule"] == ()
     assert rendered.source_hash == "a" * 64
     assert rendered.render_ref.endswith("job-1.mp4")
+
+
+def test_adapter_forwards_storyboard_motion_schedule(monkeypatch, tmp_path) -> None:
+    captured: dict[str, object] = {}
+
+    def fake_render(cutout_path, output_path, *, spec, motion_schedule):
+        captured["motion_schedule"] = motion_schedule
+        return WhiteboardMvpRenderResult(
+            output_path=str(output_path),
+            width=1280,
+            height=720,
+            fps=30,
+            duration_seconds=14.0,
+            codec="H264_AVC_HIGH_L4_1",
+            size_bytes=100,
+        )
+
+    monkeypatch.setattr(adapter_module, "render_progressive_reveal", fake_render)
+    adapter = MvpWhiteboardRendererAdapter(
+        cutout_path_for=lambda ref: tmp_path / f"{ref}.png",
+        output_path_for=lambda job_id: tmp_path / f"{job_id}.mp4",
+    )
+    job = _job().model_copy(
+        update={
+            "video_duration_seconds": 14.0,
+            "scene_motions": ("INTRO", "FOCUS", "DEMONSTRATE", "RECAP"),
+        }
+    )
+
+    adapter.render(
+        job,
+        StrokeBatch(source_hash="a" * 64, stroke_refs=("cutout-1",)),
+    )
+
+    assert captured["motion_schedule"] == (
+        "INTRO",
+        "FOCUS",
+        "DEMONSTRATE",
+        "RECAP",
+    )
