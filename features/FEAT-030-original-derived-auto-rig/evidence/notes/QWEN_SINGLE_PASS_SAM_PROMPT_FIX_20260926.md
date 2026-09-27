@@ -27,6 +27,10 @@ Scope: Lightning `/v2/vision` and backend SAM 2.1 prompt preparation
   visible even when the HTTP access log only shows `200 OK`.
 - Greedy Qwen generation clears unused sampling-only config fields to remove the misleading
   Transformers warning.
+- The prompt now includes an exact minimal JSON example and explicitly forbids empty arrays for
+  non-empty admitted drawings.
+- The worker prints a sanitized completion line to stdout, and the mobile client keeps safe
+  reason-specific recovery copy visible to the parent/guide.
 
 ## Verification
 

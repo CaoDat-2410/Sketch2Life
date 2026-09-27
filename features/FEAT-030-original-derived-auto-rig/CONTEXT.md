@@ -48,4 +48,5 @@ until the L4 benchmark and deployment ADR evidence are recorded.
 - Lightning `/v2/vision` keeps bounded repair disabled by default so one live request performs at most one Qwen inference; repair remains an explicit benchmark opt-in through `SKETCH2LIFE_LIGHTNING_VISION_BOUNDED_REPAIR=true`.
 - The same live route enables in-memory structural normalization separately, so common Qwen JSON shape drift is canonicalized without starting a second model attempt.
 - Lightning runtime logging is explicitly INFO-level so typed vision outcomes are visible even when the worker returns HTTP 200; greedy generation removes unused sampling fields to avoid misleading Transformers warnings.
+- The Lightning worker also emits a sanitized stdout completion line, and the mobile client preserves closed, parent-facing workflow messages instead of collapsing them into a generic image-read error.
 - The backend SAM2 adapter now creates a bounded box from clustered colored ink before calling `/v2/rig/segment`; blank or invalid images still fail closed. Pillow is a runtime dependency because prompt extraction occurs in the backend process.

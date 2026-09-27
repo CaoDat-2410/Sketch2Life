@@ -118,7 +118,10 @@ evidence_refs,confidence; evidence refs point to entity/action/relation IDs. Amb
 observation_id,note.
 Do not add keys, markdown fences, geometry, or metadata. Omit uncertain observations instead of
 inventing them. If the drawing contains any recognizable visible mark, emit at least one concrete
-grounded entity; do not return all five arrays empty for a non-empty admitted image."""
+grounded entity; do not return all five arrays empty for a non-empty admitted image.
+
+Use this exact shape for a single recognized entity (replace the values and keep the other arrays):
+{"entities":[{"observation_id":"entity-1","label":{"value":"con chim","language":{"status":"DECLARED","tags":["vi"]},"is_ground_truth":false},"confidence":0.9}],"actions":[],"relations":[],"themes":[],"ambiguous_regions":[]}"""
 
 _LOCALIZATION_PROMPT = """Return exactly one strict JSON object and no surrounding text.
 Locate only the listed visible drawing subjects. Do not invent a subject that is not visibly
@@ -462,6 +465,25 @@ def vision_v2(
             # prompts, credentials, or child data. HTTP 200 can still carry a typed FAILED
             # Vision result, so log the contract outcome explicitly.
             diagnostics_text = ",".join(mapping_diagnostics) or "NONE"
+            # Some Lightning/Uvicorn deployments suppress application logger handlers. Keep a
+            # sanitized stdout line so HTTP 200 can always be distinguished from typed failure.
+            if result.status == "FAILED":
+                print(
+                    "vision_request_completed "
+                    f"status=FAILED error_code={result.error_code.value} "
+                    f"error_detail={result.error_detail.value} attempt={result.attempt_number} "
+                    f"repair_attempted={result.repair_attempted} "
+                    f"mapping_diagnostics={diagnostics_text}",
+                    flush=True,
+                )
+            else:
+                print(
+                    "vision_request_completed "
+                    f"status=SUCCEEDED entities={len(result.entities)} "
+                    f"actions={len(result.actions)} themes={len(result.themes)} "
+                    f"attempt={result.attempt_number} repair_attempted={result.repair_attempted}",
+                    flush=True,
+                )
             if result.status == "FAILED":
                 logger.warning(
                     "vision_request_completed status=FAILED error_code=%s error_detail=%s "

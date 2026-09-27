@@ -433,7 +433,10 @@ function friendlyError(error: unknown, fallback: string): string {
   if (!(error instanceof DemoApiError)) return fallback;
   if (error.code === 'NETWORK_ERROR') return 'Chưa kết nối được với máy chủ. Hãy kiểm tra mạng rồi thử lại.';
   if (error.code === 'REQUEST_TIMEOUT') return 'Máy chủ đang xử lý lâu hơn dự kiến. Bạn có thể thử lại.';
-  return fallback;
+  // DemoApiError.message is already a safe, parent-facing message selected from closed
+  // reason codes. Preserve it instead of hiding every workflow distinction behind one generic
+  // fallback; internal provider codes remain in the non-UI error field.
+  return error.message || fallback;
 }
 
 function materialTypeForId(id: string): 'paper' | 'scissors' | 'crayon' | 'glue' | 'general' {
