@@ -671,7 +671,11 @@ def segment_rig_subject_v2(
         return _sam21_failure(artifact.sha256, "PROMPT_REQUIRED", False)
     except Sam21MaskRejectedError:
         return _sam21_failure(artifact.sha256, "MASK_REJECTED", False)
-    except Sam21ConfigurationError:
+    except Sam21ConfigurationError as exc:
+        logger.warning(
+            "sam21_runtime_unavailable reason=%s",
+            exc.reason_code,
+        )
         return _sam21_failure(artifact.sha256, "MODEL_UNAVAILABLE", True)
     except (OSError, RuntimeError, ValueError):
         return _sam21_failure(artifact.sha256, "MODEL_RUNTIME_FAILURE", True)

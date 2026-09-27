@@ -8,6 +8,7 @@ turns a missing prompt into a full-frame mask.
 
 from __future__ import annotations
 
+import importlib.util
 import io
 import os
 from dataclasses import dataclass
@@ -23,7 +24,16 @@ class Sam21RuntimeError(RuntimeError):
 
 
 class Sam21ConfigurationError(Sam21RuntimeError):
-    pass
+    """A safe, operator-facing configuration failure with a closed reason code."""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        reason_code: str = "RUNTIME_DEPENDENCIES_UNAVAILABLE",
+    ) -> None:
+        super().__init__(message)
+        self.reason_code = reason_code
 
 
 class Sam21PromptRequiredError(Sam21RuntimeError):
@@ -46,12 +56,19 @@ class Sam21RuntimeConfig:
     def from_env(cls, environ: dict[str, str] | None = None) -> Sam21RuntimeConfig:
         values = os.environ if environ is None else environ
         checkpoint_text = values.get("SKETCH2LIFE_SAM21_CHECKPOINT", "").strip()
+        model_root_text = (
+            values.get("SKETCH2LIFE_SAM21_MODEL_DIR", "").strip()
+            or values.get("SAM2_MODEL_DIR", "").strip()
+        )
+        model_root = Path(model_root_text).expanduser() if model_root_text else None
+        checkpoint = _resolve_checkpoint(checkpoint_text, model_root)
+        model_config_text = values.get(
+            "SKETCH2LIFE_SAM21_MODEL_CONFIG",
+            "configs/sam2.1/sam2.1_hiera_s.yaml",
+        ).strip()
         return cls(
-            checkpoint=Path(checkpoint_text) if checkpoint_text else None,
-            model_config=values.get(
-                "SKETCH2LIFE_SAM21_MODEL_CONFIG",
-                "configs/sam2.1/sam2.1_hiera_s.yaml",
-            ).strip(),
+            checkpoint=checkpoint,
+            model_config=_resolve_model_config(model_config_text, model_root),
             device=values.get("SKETCH2LIFE_SAM21_DEVICE", "cuda").strip() or "cuda",
         )
 
@@ -89,7 +106,10 @@ class Sam21ImageSegmenter:
         try:
             from PIL import Image
         except ImportError as exc:
-            raise Sam21ConfigurationError("Pillow is unavailable") from exc
+            raise Sam21ConfigurationError(
+                "Pillow is unavailable",
+                reason_code="PILLOW_UNAVAILABLE",
+            ) from exc
 
         with Image.open(io.BytesIO(image)) as source:
             rgb = source.convert("RGB")
@@ -101,7 +121,10 @@ class Sam21ImageSegmenter:
         try:
             import numpy as np
         except ImportError as exc:
-            raise Sam21ConfigurationError("NumPy is unavailable") from exc
+            raise Sam21ConfigurationError(
+                "NumPy is unavailable",
+                reason_code="NUMPY_UNAVAILABLE",
+            ) from exc
 
         box = None
         if prompt_region is not None:
@@ -165,7 +188,10 @@ class Sam21ImageSegmenter:
         try:
             import numpy as np
         except ImportError as exc:
-            raise Sam21ConfigurationError("NumPy is unavailable") from exc
+            raise Sam21ConfigurationError(
+                "NumPy is unavailable",
+                reason_code="NUMPY_UNAVAILABLE",
+            ) from exc
         return np.asarray(image)
 
     def _get_predictor(self) -> Any:
@@ -175,19 +201,29 @@ class Sam21ImageSegmenter:
             if self._predictor is not None:
                 return self._predictor
             if self._config.checkpoint is None or not self._config.checkpoint.is_file():
-                raise Sam21ConfigurationError("SAM2.1 checkpoint is not configured")
+                raise Sam21ConfigurationError(
+                    "SAM2.1 checkpoint is not configured",
+                    reason_code="CHECKPOINT_NOT_FOUND",
+                )
             if not self._config.model_config:
-                raise Sam21ConfigurationError("SAM2.1 model config is not configured")
+                raise Sam21ConfigurationError(
+                    "SAM2.1 model config is not configured",
+                    reason_code="MODEL_CONFIG_NOT_FOUND",
+                )
             try:
                 import torch
                 from sam2.build_sam import build_sam2
                 from sam2.sam2_image_predictor import SAM2ImagePredictor
             except ImportError as exc:
                 raise Sam21ConfigurationError(
-                    "SAM2.1 runtime dependencies are unavailable"
+                    "SAM2.1 runtime dependencies are unavailable",
+                    reason_code="RUNTIME_DEPENDENCIES_UNAVAILABLE",
                 ) from exc
             if self._config.device.startswith("cuda") and not torch.cuda.is_available():
-                raise Sam21ConfigurationError("CUDA is unavailable for SAM2.1")
+                raise Sam21ConfigurationError(
+                    "CUDA is unavailable for SAM2.1",
+                    reason_code="CUDA_UNAVAILABLE",
+                )
             model = build_sam2(
                 self._config.model_config,
                 str(self._config.checkpoint),
@@ -196,6 +232,66 @@ class Sam21ImageSegmenter:
             )
             self._predictor = SAM2ImagePredictor(model)
             return self._predictor
+
+
+_CHECKPOINT_NAMES = (
+    "sam2.1_hiera_small.pt",
+    "sam2.1_hiera_small.pth",
+    "sam2.1_hiera_s.pt",
+    "sam2.1_hiera_s.pth",
+    "sam2_hiera_small.pt",
+    "sam2_hiera_small.pth",
+)
+
+
+def _resolve_checkpoint(checkpoint_text: str, model_root: Path | None) -> Path | None:
+    candidates: list[Path] = []
+    if checkpoint_text:
+        explicit = Path(checkpoint_text).expanduser()
+        candidates.append(explicit if explicit.is_absolute() else Path.cwd() / explicit)
+    if model_root is not None:
+        root = model_root if model_root.is_dir() else model_root.parent
+        candidates.extend(
+            candidate
+            for base in (root, root / "checkpoints")
+            for candidate in (base / name for name in _CHECKPOINT_NAMES)
+        )
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate.resolve()
+    if checkpoint_text:
+        explicit = Path(checkpoint_text).expanduser()
+        return (explicit if explicit.is_absolute() else Path.cwd() / explicit).resolve()
+    return None
+
+
+def _resolve_model_config(config_text: str, model_root: Path | None) -> str:
+    if not config_text:
+        return ""
+    config_path = Path(config_text).expanduser()
+    if config_path.is_absolute() and config_path.is_file():
+        return str(config_path.resolve())
+
+    relative_paths = [config_path]
+    if config_path.parts[:1] != ("configs",):
+        relative_paths.append(Path("configs") / config_path)
+    roots = [Path.cwd()]
+    if model_root is not None:
+        roots.append(model_root if model_root.is_dir() else model_root.parent)
+    try:
+        sam2_spec = importlib.util.find_spec("sam2")
+    except (ImportError, ValueError):
+        sam2_spec = None
+    if sam2_spec is not None and sam2_spec.submodule_search_locations:
+        roots.extend(Path(location) for location in sam2_spec.submodule_search_locations)
+
+    for root in roots:
+        for relative in relative_paths:
+            candidate = root / relative
+            if candidate.is_file():
+                return str(candidate.resolve())
+    # Keep the Hydra config name when the installed SAM2 package owns the config search path.
+    return config_text
 
 
 def _points_as_arrays(
