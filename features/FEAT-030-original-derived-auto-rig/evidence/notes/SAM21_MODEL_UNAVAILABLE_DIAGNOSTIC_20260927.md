@@ -18,8 +18,10 @@ quality rejection and does not indicate a mobile/UI contract failure.
 ## Repository change
 
 - The Lightning runtime now accepts `SAM2_MODEL_DIR` (or
-  `SKETCH2LIFE_SAM21_MODEL_DIR`) as a directory fallback and resolves the standard Hiera Small
-  checkpoint names when the explicit checkpoint path is absent or renamed.
+  `SKETCH2LIFE_SAM21_MODEL_DIR`/`SAM2_ROOT`) as a directory fallback and resolves the standard
+  Hiera Small checkpoint names when the explicit checkpoint path is absent or renamed. A
+  vendored checkout is also added to `sys.path` at first SAM2 use, so it does not require a
+  separate global package install when `SAM2_ROOT` is configured.
 - Relative SAM2 config paths are resolved against the process directory, the model directory,
   and the installed `sam2` package. Hydra-owned config names remain unchanged when the package
   owns the config search path.

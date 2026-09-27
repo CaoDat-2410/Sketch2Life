@@ -38,3 +38,23 @@ def test_sam21_config_keeps_installed_package_config_name_when_not_local(tmp_pat
 
     assert config.checkpoint == missing_checkpoint.resolve()
     assert config.model_config == "configs/sam2.1/sam2.1_hiera_s.yaml"
+
+
+def test_sam21_config_resolves_vendored_sam2_layout(tmp_path: Path) -> None:
+    sam2_root = tmp_path / "vendor" / "sam2"
+    config_path = sam2_root / "sam2" / "configs" / "sam2.1" / "sam2.1_hiera_s.yaml"
+    config_path.parent.mkdir(parents=True)
+    config_path.write_text("model: test\n", encoding="utf-8")
+    checkpoint_path = sam2_root / "checkpoints" / "sam2.1_hiera_small.pt"
+    checkpoint_path.parent.mkdir(parents=True)
+    checkpoint_path.write_bytes(b"fixture")
+
+    config = Sam21RuntimeConfig.from_env(
+        {
+            "SAM2_ROOT": str(sam2_root),
+            "SKETCH2LIFE_SAM21_MODEL_CONFIG": "configs/sam2.1/sam2.1_hiera_s.yaml",
+        }
+    )
+
+    assert config.checkpoint == checkpoint_path.resolve()
+    assert config.model_config == str(config_path.resolve())

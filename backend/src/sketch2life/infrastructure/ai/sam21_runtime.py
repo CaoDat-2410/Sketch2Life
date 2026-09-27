@@ -11,6 +11,7 @@ from __future__ import annotations
 import importlib.util
 import io
 import os
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from threading import Lock
@@ -59,6 +60,7 @@ class Sam21RuntimeConfig:
         model_root_text = (
             values.get("SKETCH2LIFE_SAM21_MODEL_DIR", "").strip()
             or values.get("SAM2_MODEL_DIR", "").strip()
+            or values.get("SAM2_ROOT", "").strip()
         )
         model_root = Path(model_root_text).expanduser() if model_root_text else None
         checkpoint = _resolve_checkpoint(checkpoint_text, model_root)
@@ -211,6 +213,7 @@ class Sam21ImageSegmenter:
                     reason_code="MODEL_CONFIG_NOT_FOUND",
                 )
             try:
+                _add_sam2_source_path()
                 import torch
                 from sam2.build_sam import build_sam2
                 from sam2.sam2_image_predictor import SAM2ImagePredictor
@@ -277,7 +280,10 @@ def _resolve_model_config(config_text: str, model_root: Path | None) -> str:
         relative_paths.append(Path("configs") / config_path)
     roots = [Path.cwd()]
     if model_root is not None:
-        roots.append(model_root if model_root.is_dir() else model_root.parent)
+        root = model_root if model_root.is_dir() else model_root.parent
+        roots.append(root)
+        if (root / "sam2").is_dir():
+            roots.append(root / "sam2")
     try:
         sam2_spec = importlib.util.find_spec("sam2")
     except (ImportError, ValueError):
@@ -292,6 +298,22 @@ def _resolve_model_config(config_text: str, model_root: Path | None) -> str:
                 return str(candidate.resolve())
     # Keep the Hydra config name when the installed SAM2 package owns the config search path.
     return config_text
+
+
+def _add_sam2_source_path() -> None:
+    """Make a vendored SAM2 checkout importable without requiring a global install."""
+
+    for env_name in ("SKETCH2LIFE_SAM21_MODEL_DIR", "SAM2_MODEL_DIR", "SAM2_ROOT"):
+        raw_root = os.getenv(env_name, "").strip()
+        if not raw_root:
+            continue
+        root = Path(raw_root).expanduser()
+        if not root.is_dir() or not (root / "sam2").is_dir():
+            continue
+        resolved_root = str(root.resolve())
+        if resolved_root not in sys.path:
+            sys.path.insert(0, resolved_root)
+        return
 
 
 def _points_as_arrays(
