@@ -41,10 +41,16 @@ class WhiteboardSafetyValidator:
             raise WhiteboardVideoPipelineError("PROVENANCE_MISMATCH", retryable=False)
         if encoded.source_hash != job.source_hash:
             raise WhiteboardVideoPipelineError("PROVENANCE_MISMATCH", retryable=False)
-        refs = (*masks.mask_refs, *strokes.stroke_refs, render.render_ref, tts.tts_ref, encoded.mp4_ref)
+        refs = (
+            *masks.mask_refs,
+            *strokes.stroke_refs,
+            render.render_ref,
+            tts.tts_ref,
+            encoded.mp4_ref,
+        )
         if not refs or not all(self._artifact_exists(ref) for ref in refs):
             raise WhiteboardVideoPipelineError("ARTIFACT_MISSING", retryable=False)
-        if not 5.0 <= encoded.duration_seconds <= 10.0:
+        if not 5.0 <= encoded.duration_seconds <= 45.0:
             raise WhiteboardVideoPipelineError("VIDEO_DURATION_INVALID", retryable=False)
         if encoded.codec != "H264_AVC_HIGH_L4_1":
             raise WhiteboardVideoPipelineError("VIDEO_CODEC_INVALID", retryable=False)

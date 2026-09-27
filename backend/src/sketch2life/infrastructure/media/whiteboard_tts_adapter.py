@@ -32,7 +32,7 @@ class WhiteboardTtsAdapter:
 
     def synthesize(self, job: WhiteboardVideoJobV1) -> TtsTrack:
         try:
-            script = self._script_for(job.learning_thread_ref)
+            script = job.narration_vi or self._script_for(job.learning_thread_ref)
             if not script or len(script) > 10_000:
                 raise ValueError("TTS script is empty or exceeds the safety limit")
             output_path = self._output_path_for(job.job_id)

@@ -34,11 +34,12 @@ def _job() -> WhiteboardVideoJobV1:
 
 
 def test_adapter_resolves_cutout_and_returns_render_reference(monkeypatch, tmp_path) -> None:
-    captured: dict[str, str] = {}
+    captured: dict[str, str | float] = {}
 
     def fake_render(cutout_path, output_path, *, spec):
         captured["cutout"] = str(cutout_path)
         captured["output"] = str(output_path)
+        captured["duration"] = spec.duration_seconds
         return WhiteboardMvpRenderResult(
             output_path=str(output_path),
             width=1280,
@@ -62,5 +63,6 @@ def test_adapter_resolves_cutout_and_returns_render_reference(monkeypatch, tmp_p
 
     assert captured["cutout"].endswith("cutout-1.png")
     assert captured["output"].endswith("job-1.mp4")
+    assert captured["duration"] == 8.0
     assert rendered.source_hash == "a" * 64
     assert rendered.render_ref.endswith("job-1.mp4")

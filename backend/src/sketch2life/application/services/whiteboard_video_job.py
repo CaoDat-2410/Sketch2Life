@@ -29,7 +29,11 @@ class WhiteboardVideoPipelineError(RuntimeError):
 class UnconfiguredWhiteboardVideoPipeline:
     """Default local adapter; real provider wiring is a later implementation slice."""
 
-    def run(self, job: WhiteboardVideoJobV1, update_stage: Callable[[str, int], None]) -> WhiteboardVideoResultV1:
+    def run(
+        self,
+        job: WhiteboardVideoJobV1,
+        update_stage: Callable[[str, int], None],
+    ) -> WhiteboardVideoResultV1:
         del job, update_stage
         raise WhiteboardVideoPipelineError("PIPELINE_NOT_CONFIGURED", retryable=False)
 
@@ -113,6 +117,8 @@ class WhiteboardVideoJobService:
         source_hash: str,
         learning_thread_ref: str,
         idempotency_key: str,
+        narration_vi: str | None = None,
+        video_duration_seconds: float = 8.0,
     ) -> WhiteboardVideoJobV1:
         now = self._now()
         job = WhiteboardVideoJobV1(
@@ -122,6 +128,8 @@ class WhiteboardVideoJobService:
             source_artifact_id=source_artifact_id,
             source_hash=source_hash,
             learning_thread_ref=learning_thread_ref,
+            narration_vi=narration_vi,
+            video_duration_seconds=video_duration_seconds,
             status="QUEUED",
             progress=0,
             current_stage="NOT_STARTED",
@@ -144,12 +152,16 @@ class WhiteboardVideoJobService:
         source_hash: str,
         learning_thread_ref: str,
         idempotency_key: str,
+        narration_vi: str | None = None,
+        video_duration_seconds: float = 8.0,
     ) -> tuple[WhiteboardVideoJobV1, bool]:
         fingerprint = (
             experience_spec_id,
             source_artifact_id,
             source_hash,
             learning_thread_ref,
+            narration_vi,
+            str(video_duration_seconds),
         )
         key = (session_id, idempotency_key)
         with self._lock:
@@ -165,6 +177,8 @@ class WhiteboardVideoJobService:
                 source_hash=source_hash,
                 learning_thread_ref=learning_thread_ref,
                 idempotency_key=idempotency_key,
+                narration_vi=narration_vi,
+                video_duration_seconds=video_duration_seconds,
             )
             self._idempotency[key] = (fingerprint, job.job_id)
             return job, False
@@ -181,11 +195,17 @@ class WhiteboardVideoJobService:
             job = self._store.get(job_id)
 
         try:
-            result = self._pipeline.run(job, lambda stage, progress: self._advance(job_id, stage, progress))
+            result = self._pipeline.run(
+                job, lambda stage, progress: self._advance(job_id, stage, progress)
+            )
         except WhiteboardVideoPipelineError as error:
             with self._lock:
                 current = self._store.get(job_id)
-                terminal_status = "RETRYABLE_FAILURE" if error.retryable and current.attempt < 3 else "FAILED"
+                terminal_status = (
+                    "RETRYABLE_FAILURE"
+                    if error.retryable and current.attempt < 3
+                    else "FAILED"
+                )
                 self._update(
                     current,
                     status=terminal_status,

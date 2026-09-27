@@ -44,6 +44,8 @@ def create_whiteboard_video_job(
             source_hash=body.source_hash,
             learning_thread_ref=body.learning_thread_ref,
             idempotency_key=body.idempotency_key,
+            narration_vi=body.narration_vi,
+            video_duration_seconds=body.video_duration_seconds,
         )
     except ValueError as error:
         raise HTTPException(status_code=409, detail="IDEMPOTENCY_KEY_PAYLOAD_MISMATCH") from error

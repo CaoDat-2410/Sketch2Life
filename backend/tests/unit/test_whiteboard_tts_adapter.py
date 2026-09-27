@@ -45,3 +45,23 @@ def test_tts_adapter_uses_learning_thread_and_returns_artifact(tmp_path) -> None
     assert captured == ["script for thread-1"]
     assert track.source_hash == "a" * 64
     assert track.tts_ref.endswith("job-1.wav")
+
+
+def test_tts_adapter_prefers_storyboard_narration_when_supplied(tmp_path) -> None:
+    captured: list[str] = []
+
+    def synthesize(script: str, output_path: str) -> None:
+        captured.append(script)
+        with open(output_path, "wb") as file:
+            file.write(b"fake-audio")
+
+    adapter = WhiteboardTtsAdapter(
+        script_for=lambda _: "fallback script",
+        synthesize=synthesize,
+        output_path_for=lambda job_id: tmp_path / f"{job_id}.wav",
+    )
+    job = _job().model_copy(update={"narration_vi": "Ria mèo giúp mèo cảm nhận vật cản."})
+
+    adapter.synthesize(job)
+
+    assert captured == ["Ria mèo giúp mèo cảm nhận vật cản."]

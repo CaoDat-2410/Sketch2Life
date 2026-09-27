@@ -28,8 +28,8 @@ class WhiteboardMvpRenderSpec:
             raise ValueError("render dimensions must be divisible by 16")
         if self.fps <= 0:
             raise ValueError("render fps must be positive")
-        if not 5.0 <= self.duration_seconds <= 10.0:
-            raise ValueError("render duration must be between 5 and 10 seconds")
+        if not 5.0 <= self.duration_seconds <= 45.0:
+            raise ValueError("render duration must be between 5 and 45 seconds")
 
 
 @dataclass(frozen=True)

@@ -102,8 +102,6 @@ class FfmpegWhiteboardEncoder:
             "2",
             "-b:a",
             "128k",
-            "-t",
-            "8.0",
             "-r",
             "30",
             str(output),

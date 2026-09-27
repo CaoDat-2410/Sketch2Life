@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from dataclasses import replace
 from pathlib import Path
 
 from sketch2life.application.services.whiteboard_video_job import (
@@ -47,10 +48,15 @@ class MvpWhiteboardRendererAdapter:
             raise WhiteboardVideoPipelineError("NO_STROKE_ARTIFACT", retryable=False)
 
         try:
+            render_spec = self._spec or WhiteboardMvpRenderSpec()
+            render_spec = replace(
+                render_spec,
+                duration_seconds=job.video_duration_seconds,
+            )
             result = render_progressive_reveal(
                 self._cutout_path_for(strokes.stroke_refs[0]),
                 self._output_path_for(job.job_id),
-                spec=self._spec,
+                spec=render_spec,
             )
         except (OSError, RuntimeError, ValueError) as error:
             raise WhiteboardVideoPipelineError("RENDER_FAILED", retryable=True) from error

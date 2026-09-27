@@ -16,6 +16,23 @@ def body(idempotency_key: str = "idem-001") -> dict[str, str]:
     }
 
 
+def test_create_accepts_storyboard_narration_and_duration() -> None:
+    client = TestClient(create_app())
+
+    response = client.post(
+        "/v1/sessions/session-001/whiteboard-video-jobs",
+        json={
+            **body("idem-storyboard-001"),
+            "narration_vi": "Ria mèo giúp mèo cảm nhận vật cản.",
+            "video_duration_seconds": 14.0,
+        },
+    )
+
+    assert response.status_code == 201
+    assert response.json()["narration_vi"] == "Ria mèo giúp mèo cảm nhận vật cản."
+    assert response.json()["video_duration_seconds"] == 14.0
+
+
 def test_create_and_poll_whiteboard_video_job() -> None:
     client = TestClient(create_app())
 

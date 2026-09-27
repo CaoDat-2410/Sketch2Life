@@ -47,7 +47,7 @@ class WhiteboardMp4EncoderAdapter:
             duration_seconds, codec, size_bytes = self._inspect(output)
             if codec != "H264_AVC_HIGH_L4_1":
                 raise ValueError("encoded video codec is not contract compatible")
-            if not 5.0 <= duration_seconds <= 10.0:
+            if not 5.0 <= duration_seconds <= 45.0:
                 raise ValueError("encoded video duration is outside the contract range")
             if size_bytes <= 0 or size_bytes > self._max_size_bytes:
                 raise ValueError("encoded video size is outside the contract range")

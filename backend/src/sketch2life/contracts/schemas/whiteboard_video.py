@@ -20,6 +20,8 @@ class WhiteboardVideoCreateRequestV1(BaseModel):
     source_hash: str = Field(pattern=r"^[0-9a-f]{64}$")
     learning_thread_ref: str = Field(min_length=1, max_length=200)
     idempotency_key: str = Field(min_length=1, max_length=200)
+    narration_vi: str | None = Field(default=None, min_length=1, max_length=10_000)
+    video_duration_seconds: float = Field(default=8.0, ge=5.0, le=45.0)
 
 
 class WhiteboardVideoJobV1(BaseModel):
@@ -36,6 +38,8 @@ class WhiteboardVideoJobV1(BaseModel):
     source_artifact_id: str = Field(min_length=1, max_length=200)
     source_hash: str = Field(pattern=r"^[0-9a-f]{64}$")
     learning_thread_ref: str = Field(min_length=1, max_length=200)
+    narration_vi: str | None = Field(default=None, min_length=1, max_length=10_000)
+    video_duration_seconds: float = Field(default=8.0, ge=5.0, le=45.0)
     status: Literal[
         "QUEUED",
         "RUNNING",
@@ -147,7 +151,7 @@ class WhiteboardVideoResultV1(BaseModel):
     source_hash: str = Field(pattern=r"^[0-9a-f]{64}$")
     experience_spec_id: str = Field(min_length=1, max_length=160)
     learning_thread_ref: str = Field(min_length=1, max_length=200)
-    duration_seconds: float = Field(ge=5, le=10)
+    duration_seconds: float = Field(ge=5, le=45)
     codec: Literal["H264_AVC_HIGH_L4_1"]
     size_bytes: int = Field(gt=0, le=12 * 1024 * 1024)
     safety_status: Literal["PASSED"] = "PASSED"
