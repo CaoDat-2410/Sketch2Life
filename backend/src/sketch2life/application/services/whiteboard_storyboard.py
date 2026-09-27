@@ -156,5 +156,25 @@ class WhiteboardStoryboardGenerator:
             scenes=scenes,
         )
 
+    def generate_for_age(
+        self,
+        *,
+        subject_claim: str,
+        feature_claim: str,
+        age_months: int,
+    ) -> WhiteboardStoryboardV1:
+        """Resolve an adult-supplied P1 age into a reviewed audience band."""
+
+        if not 72 <= age_months <= 155:
+            raise ValueError("no reviewed whiteboard audience band matches this age")
+        audience_band: AudienceBand = (
+            "EARLY_PRIMARY" if age_months < 108 else "PRIMARY"
+        )
+        return self.generate(
+            subject_claim=subject_claim,
+            feature_claim=feature_claim,
+            audience_band=audience_band,
+        )
+
 
 __all__ = ["AudienceBand", "WhiteboardStoryboardGenerator"]

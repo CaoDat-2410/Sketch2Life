@@ -27,3 +27,22 @@ def test_cat_whiskers_storyboard_is_age_bounded_and_scene_grounded() -> None:
 def test_storyboard_rejects_unreviewed_topic() -> None:
     with pytest.raises(ValueError, match="no reviewed whiteboard knowledge template"):
         WhiteboardStoryboardGenerator().generate(subject_claim="con voi", feature_claim="cái vòi")
+
+
+def test_storyboard_resolves_p1_age_months_to_primary_band() -> None:
+    storyboard = WhiteboardStoryboardGenerator().generate_for_age(
+        subject_claim="con mèo",
+        feature_claim="ria mèo",
+        age_months=120,
+    )
+
+    assert (storyboard.audience_age_min, storyboard.audience_age_max) == (9, 12)
+
+
+def test_storyboard_rejects_age_without_reviewed_audience_band() -> None:
+    with pytest.raises(ValueError, match="no reviewed whiteboard audience band"):
+        WhiteboardStoryboardGenerator().generate_for_age(
+            subject_claim="con mèo",
+            feature_claim="ria mèo",
+            age_months=60,
+        )

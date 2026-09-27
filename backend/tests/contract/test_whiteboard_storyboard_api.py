@@ -34,3 +34,35 @@ def test_storyboard_preview_rejects_unreviewed_topic() -> None:
 
     assert response.status_code == 422
     assert response.json()["detail"] == "UNREVIEWED_STORYBOARD_TOPIC"
+
+
+def test_storyboard_preview_accepts_adult_supplied_age_months() -> None:
+    client = TestClient(create_app())
+
+    response = client.post(
+        "/v1/whiteboard/storyboards/preview",
+        json={
+            "subject_claim": "con mèo",
+            "feature_claim": "ria mèo",
+            "age_months": 120,
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["audience_age_min"] == 9
+
+
+def test_storyboard_preview_rejects_age_without_reviewed_audience_band() -> None:
+    client = TestClient(create_app())
+
+    response = client.post(
+        "/v1/whiteboard/storyboards/preview",
+        json={
+            "subject_claim": "con mèo",
+            "feature_claim": "ria mèo",
+            "age_months": 60,
+        },
+    )
+
+    assert response.status_code == 422
+    assert response.json()["detail"] == "AGE_BAND_NOT_SUPPORTED"
