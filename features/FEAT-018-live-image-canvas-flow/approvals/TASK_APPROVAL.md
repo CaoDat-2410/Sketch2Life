@@ -1249,3 +1249,101 @@ or any R-07 pointer inside it, validator source/tests, artifact-reference
 grammar or mirrors, `D6.MEDIA_VALIDATION_SOURCE`, fixture bytes, or Cohort B
 history. It authorizes no fixture binding, rehearsal, staging, upload,
 provider access, session creation, Lightning/model/GPU use, or live run.
+
+## Owner approval of FEAT-018 P2-T2 C01 validator literal - 2026-09-27
+
+Status: APPROVED for the exact two-file offline validator code/test task below.
+Approver: Person 2, by direct scope instruction in the current conversation.
+Approval timestamp: 2026-09-27 21:14:27 +07:00 (recording timestamp;
+Person 2's direct scope instruction preceded it). Recorded by: Codex.
+Scope reviewer: Codex in this session, against the validator authorization
+advisory and the committed FEAT-018 records. The independent implementation
+reviewer remains pending and must review the frozen candidate in a new
+top-level session, neither a subagent nor a fork, after validation.
+Plan revision: 2. Baseline HEAD: `a0473fc61f5dce023012ece816972b1bd8de0042`.
+Baseline P2-T2 plan blob: `fb5c203524b8191713f3ef70f1ecbe66b4a1ecc3`.
+Baseline validator schema blob: `e5681c2f260329513788d117d0425c043fe215a2`.
+Baseline validator test blob: `cd4a170105b59ba40c1416135e13f4adaa97b886`.
+
+The task plan is to add only the exact literal `fixture:c01:v1` to the
+image-only artifact-reference allowlist, add focused in-memory regression
+tests, run the relevant tests and repository checks, and freeze the resulting
+two-file candidate for independent review. The accepted-reference grammar in
+plan Section 2.7.5 and its governance mirrors is intentionally deferred to a
+third, separately authorized documentation synchronization after the reviewed
+validator implementation has a new commit/blob identity.
+
+Exact writable implementation paths:
+
+1. `backend/src/sketch2life/contracts/schemas/media_validation.py`;
+2. `backend/tests/unit/test_media_validation.py`.
+
+Acceptance criteria:
+
+1. Add one literal alternative, `fixture:c01:v1`, without a C-series pattern,
+   a version pattern, or references for C02 through C08. Preserve the existing
+   `fixture-b[0-9]{2}` alternative, all drawing alternatives, and
+   `fixture:rejected-reference:v1` unchanged.
+2. Show that `fixture:c01:v1` is accepted and remains byte-for-byte the same
+   in the validator result, its JSON round trip, and artifact verification.
+3. Show that `fixture:c02:v1` and `fixture:c01:v2` are rejected. Keep the
+   existing B-series, drawing, and rejected-reference tests passing.
+4. Use deterministic in-memory test bytes and stubs; do not open or add an
+   image fixture. Make no policy, result-field, failure-vocabulary,
+   provenance, hashing, or validator-flow change.
+5. Run the focused validator tests, applicable Ruff and strict mypy checks,
+   `python -B tools/validate_harness.py`,
+   `python -B tools/validate_repository_security.py`,
+   `python -B tools/validate_architecture.py`, and `git diff --check`.
+   Record actual results, including any unchanged pre-existing architecture
+   failure, in FEAT-018-local evidence. Freeze the exact two-file diff and
+   identities before independent review. Any post-review edit requires a new
+   validation, freeze, and independent review.
+
+`ImageOnlyValidationResultV1@1.0` and
+`feat018-image-only-structural-policy-v1` are retention proposals only. The
+independent implementation reviewer must explicitly confirm or reject them.
+If the reviewer disagrees, stop for a new Person 2 decision; do not change a
+contract or policy version under this approval.
+
+This approval does not cover the service, domain policy, D2 admission path,
+manifest, dependency, runtime, unrelated tests, plan, context, decisions, or
+grammar mirrors. It does not rebind `D6.MEDIA_VALIDATION_SOURCE` or bind the
+C01 fixture identity: `D6_fixture_selected = null` and
+`validation_artifact_ref = UNBOUND`. A new validator commit/blob identity,
+grammar-documentation approval and review, and a separate owner rebind are
+required in that order. This record grants no commit or push and no staging,
+upload, provider access, session creation, Lightning/model/GPU execution, or
+live use.
+
+## Person 2 one-time C01 validator commit and push authorization - 2026-09-27
+
+Approver: Person 2, by direct instruction in the current conversation,
+"OK đẩy lên cho tôi đi", following the exact three-file commit scope and
+commit subject proposed immediately beforehand.
+Recorded by: Codex at 2026-09-27 22:08:42 +07:00.
+
+Person 2 authorizes exactly one local commit with subject
+`feat(feat018): allow C01 image validation reference`, containing only:
+
+1. `backend/src/sketch2life/contracts/schemas/media_validation.py`;
+2. `backend/tests/unit/test_media_validation.py`;
+3. `features/FEAT-018-live-image-canvas-flow/approvals/TASK_APPROVAL.md`.
+
+The approval file may contain its existing validator implementation approval
+and this append-only commit/push authorization. The two code/test paths must
+remain byte-identical to the independently reviewed candidate. No patch,
+validation report, review report, OD-11 artifact, or other path is included.
+
+Person 2 separately authorizes one normal, non-force, fast-forward push of
+that one commit to `origin/feature/feat018-p2t2-live-lightning`, only if the
+remote branch still points to `a0473fc61f5dce023012ece816972b1bd8de0042`
+immediately before the push. The local parent must be the same baseline.
+If either precondition differs, stop without fetch, rebase, merge, retry, or
+reconciliation. No other commit, ref, tag, branch, or push is authorized.
+
+This one-time authorization does not resolve or rebind D6, select or bind C01,
+authorize grammar documentation synchronization, D11, D1/D12, Stage 4,
+staging, upload, provider access, session creation, Lightning/model/GPU
+execution, or live use. All untracked evidence and patch files remain outside
+this commit and push.
