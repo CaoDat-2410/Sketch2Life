@@ -38,6 +38,13 @@ features/FEAT-003-multimodal-understanding/evidence/notes/*
 /features/FEAT-018-live-image-canvas-flow/evidence/notes/P2_D3_COHORT_A_FORMAL_DRAFT_20260911.md
 /features/FEAT-018-live-image-canvas-flow/evidence/notes/P2_D3_COHORT_A_INDEPENDENT_VERIFICATION_DRAFT_20260911.md
 
+# FEAT-018 P2-T2 local handoff and owner-preparation drafts; selected evidence is published explicitly.
+/features/FEAT-018-live-image-canvas-flow/evidence/notes/P2_T2_CONTINUATION_HANDOFF_20260927.md
+/features/FEAT-018-live-image-canvas-flow/evidence/notes/P2_T2_D1_D6_OWNER_INPUT_CANDIDATES_AND_DEADLINE_FINDING_DRAFT_20260923.md
+/features/FEAT-018-live-image-canvas-flow/evidence/notes/P2_T2_D1_D6_OWNER_RESOLUTION_FIXTURE_BINDING_PREPARATION_20260923.md
+/features/FEAT-018-live-image-canvas-flow/evidence/notes/P2_T2_D1_D6_PREREQUISITE_GOVERNANCE_APPROVAL_CORRECTION_20260923.md
+/features/FEAT-018-live-image-canvas-flow/evidence/notes/P2_T2_D1_OWNER_RESOLUTION_PACKAGE_DRAFT_20260920.md
+
 # Python
 __pycache__/
 *.py[cod]
