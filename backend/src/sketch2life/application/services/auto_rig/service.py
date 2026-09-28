@@ -10,8 +10,8 @@ from hashlib import sha256
 from threading import RLock
 
 from sketch2life.application.ports.auto_rig_storage import (
-    RigPackageGrant,
-    RigPackageGrantStore,
+    RigArtifactGrant,
+    RigArtifactGrantStore,
 )
 from sketch2life.application.ports.segmentation import (
     SubjectSegmentationPort,
@@ -51,7 +51,7 @@ class AutoRigService:
         self,
         *,
         artifacts: ArtifactStore,
-        grants: RigPackageGrantStore,
+        grants: RigArtifactGrantStore,
         jobs: JobStore[AutoRigJobV1],
         segmenter: SubjectSegmentationPort | None = None,
         now: Callable[[], datetime] | None = None,
@@ -80,9 +80,8 @@ class AutoRigService:
     ) -> AutoRigJobV1:
         """Register bounded preprocessing immediately after Gate A.
 
-        The current local adapter has no benchmark-approved segmentation model, so it
-        finishes as PARTIAL_SUCCESS and selects cutout micro-motion. A future worker can
-        replace this implementation without changing the job contract.
+        A verified subject mask without semantic part masks remains a partial job and is
+        delivered through the explicit subject-cutout tier, not mislabeled as a full rig.
         """
         job_id = f"auto-rig-{session_id}"
         existing = self._jobs.get(job_id)
@@ -115,10 +114,13 @@ class AutoRigService:
         if segmentation is not None:
             with self._lock:
                 self._prepared_regions[session_id] = segmentation
+        # The current package/renderer contract has no independent part-mask handoff, so
+        # metadata-only part proposals are not yet a deliverable full rig.
+        has_renderable_parts = False
         succeeded = (
             segmentation is not None
             and segmentation.mask_artifact_ref is not None
-            and bool(segmentation.parts)
+            and has_renderable_parts
         )
         job = AutoRigJobV1(
             contractName="AutoRigJobV1",
@@ -140,7 +142,11 @@ class AutoRigService:
                 None
                 if succeeded
                 else (
-                    "SEGMENTATION_PARTS_UNAVAILABLE"
+                    (
+                        "SEGMENTATION_PART_MASKS_NOT_RENDERABLE"
+                        if segmentation is not None and segmentation.parts
+                        else "SEGMENTATION_PARTS_UNAVAILABLE"
+                    )
                     if segmentation is not None
                     else "SEGMENTATION_ADAPTER_UNAVAILABLE"
                 )
@@ -167,7 +173,7 @@ class AutoRigService:
         semantic_tags: tuple[str, ...],
         experience_spec_ref: VersionedRefV1,
         learning_bridge_vi: str,
-    ) -> tuple[RiggedArtworkPackageV1, VisualAnimationPlanV2, str, datetime, str]:
+    ) -> tuple[RiggedArtworkPackageV1, VisualAnimationPlanV2, str, datetime, str, str | None]:
         archetype = classify_archetype(target_label, semantic_tags)
         with self._lock:
             prepared = self._prepared_regions.get(session_id)
@@ -191,12 +197,15 @@ class AutoRigService:
         stored_mask = None
         derived_artifacts: tuple[DerivedArtifactRefV1, ...] = ()
         if prepared is not None and prepared.mask_artifact_ref is not None:
-            stored_mask = self._artifacts.get(prepared.mask_artifact_ref)
+            candidate_mask = self._artifacts.get(prepared.mask_artifact_ref)
             if (
-                stored_mask is not None
-                and stored_mask[0].sha256 == prepared.mask_sha256
-                and stored_mask[0].content_type == "image/png"
+                candidate_mask is not None
+                and candidate_mask[0].session_id == session_id
+                and candidate_mask[0].sha256 == prepared.mask_sha256
+                and candidate_mask[0].content_type == "image/png"
+                and candidate_mask[1].startswith(b"\x89PNG\r\n\x1a\n")
             ):
+                stored_mask = candidate_mask
                 # A mask is source-derived media, so its own digest is not expected to equal
                 # the source digest. The source identity is carried by the contract below.
                 derived_artifacts = (
@@ -212,7 +221,9 @@ class AutoRigService:
                     ),
                 )
         has_valid_subject_mask = stored_mask is not None and prepared is not None
-        has_valid_parts = has_valid_subject_mask and bool(prepared.parts)
+        # Do not advertise FULL_AUTO_RIG until per-part mask assets cross the package and
+        # renderer contracts; the current Pixi path only consumes a verified subject mask.
+        has_valid_parts = False
         tier = (
             RigDeliveryTier.FULL_AUTO_RIG
             if has_valid_parts
@@ -222,7 +233,11 @@ class AutoRigService:
             geometry_reasons
             if has_valid_parts
             else (
-                "SEGMENTATION_PARTS_UNAVAILABLE"
+                (
+                    "SEGMENTATION_PART_MASKS_NOT_RENDERABLE"
+                    if prepared is not None and prepared.parts
+                    else "SEGMENTATION_PARTS_UNAVAILABLE"
+                )
                 if prepared is not None
                 else "SEGMENTATION_ADAPTER_UNAVAILABLE",
                 *geometry_reasons,
@@ -280,16 +295,29 @@ class AutoRigService:
         capability = secrets.token_urlsafe(48)
         expires_at = self._aware_now() + timedelta(seconds=self._capability_ttl_seconds)
         self._grants.put(
-            RigPackageGrant(
+            RigArtifactGrant(
                 capability_sha256=sha256(capability.encode("utf-8")).hexdigest(),
                 session_id=session_id,
                 artifact_ref=descriptor.artifact_ref,
-                package_sha256=descriptor.sha256,
+                artifact_sha256=descriptor.sha256,
                 expires_at=expires_at,
                 remaining_reads=2,
             )
         )
-        return package, plan, capability, expires_at, descriptor.sha256
+        mask_capability = None
+        if stored_mask is not None and derived_artifacts:
+            mask_capability = secrets.token_urlsafe(48)
+            self._grants.put(
+                RigArtifactGrant(
+                    capability_sha256=sha256(mask_capability.encode("utf-8")).hexdigest(),
+                    session_id=session_id,
+                    artifact_ref=stored_mask[0].artifact_ref,
+                    artifact_sha256=stored_mask[0].sha256,
+                    expires_at=expires_at,
+                    remaining_reads=2,
+                )
+            )
+        return package, plan, capability, expires_at, descriptor.sha256, mask_capability
 
     def read_package(self, capability: str) -> tuple[str, bytes, str]:
         grant = self._grants.consume(
@@ -301,8 +329,31 @@ class AutoRigService:
         if stored is None:
             raise AutoRigPackageUnavailable("rig package artifact is unavailable")
         descriptor, body = stored
-        if descriptor.session_id != grant.session_id or descriptor.sha256 != grant.package_sha256:
+        if (
+            descriptor.session_id != grant.session_id
+            or descriptor.sha256 != grant.artifact_sha256
+            or descriptor.content_type != "application/vnd.sketch2life.rig-package+json"
+        ):
             raise AutoRigPackageUnavailable("rig package identity mismatch")
+        return descriptor.content_type, body, descriptor.sha256
+
+    def read_mask(self, capability: str) -> tuple[str, bytes, str]:
+        grant = self._grants.consume(
+            sha256(capability.encode("utf-8")).hexdigest(), now=self._aware_now()
+        )
+        if grant is None:
+            raise AutoRigPackageUnavailable("derived mask capability is unavailable")
+        stored = self._artifacts.get(grant.artifact_ref)
+        if stored is None:
+            raise AutoRigPackageUnavailable("derived mask artifact is unavailable")
+        descriptor, body = stored
+        if (
+            descriptor.session_id != grant.session_id
+            or descriptor.sha256 != grant.artifact_sha256
+            or descriptor.content_type != "image/png"
+            or not body.startswith(b"\x89PNG\r\n\x1a\n")
+        ):
+            raise AutoRigPackageUnavailable("derived mask identity mismatch")
         return descriptor.content_type, body, descriptor.sha256
 
     def _aware_now(self) -> datetime:

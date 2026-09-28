@@ -353,6 +353,7 @@ export const PlaybackEventSchema = z.discriminatedUnion('type', [
     type: z.literal('FALLBACK_APPLIED'),
     planId: z.string().min(1).max(120),
     reason: z.enum(FALLBACK_REASONS),
+    durationSeconds: z.number().finite().min(1).max(30).optional(),
   }).strict(),
   z.object({
     type: z.literal('PLAYBACK_FAILED'),

@@ -1037,6 +1037,9 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
           packageReadEndpoint: launch.packageReadEndpoint,
           packageReadCapability: launch.packageReadCapability,
           packageSha256: launch.packageSha256,
+          ...(launch.maskReadEndpoint === undefined ? {} : {maskReadEndpoint: launch.maskReadEndpoint}),
+          ...(launch.maskReadCapability === undefined ? {} : {maskReadCapability: launch.maskReadCapability}),
+          ...(launch.maskSha256 === undefined ? {} : {maskSha256: launch.maskSha256}),
           animationPlan: launch.animationPlan,
         })
         : RendererLoadCommandSchema.safeParse({
@@ -1087,10 +1090,11 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
     }
     const lifecycle = RendererPlaybackEventEnvelopeSchema.safeParse(value);
     if (lifecycle.success) {
-      switch (lifecycle.data.event.type) {
+      const lifecycleEvent = lifecycle.data.event;
+      switch (lifecycleEvent.type) {
         case 'DISCOVERED_ENTITY':
-          setDiscoveredLabel(lifecycle.data.event.labelVi);
-          setRendererStatus(`Con vừa khám phá ${lifecycle.data.event.labelVi}.`);
+          setDiscoveredLabel(lifecycleEvent.labelVi);
+          setRendererStatus(`Con vừa khám phá ${lifecycleEvent.labelVi}.`);
           break;
         case 'CANVAS_TAPPED':
           toggleChrome();
@@ -1102,6 +1106,16 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
           setRendererStatus('Bức vẽ chuyển động đã sẵn sàng.');
           setChromeVisible(true);
           armChromeAutoHide();
+          break;
+        case 'FALLBACK_APPLIED':
+          setPlayback((current) => ({
+            ...current,
+            duration: lifecycleEvent.durationSeconds ?? current.duration,
+            state: 'PLAYING',
+            interactionPhase: 'FALLBACK',
+          }));
+          setRendererStatus('Một vài chi tiết chưa tách được; đang dùng chuyển động an toàn.');
+          setChromeVisible(true);
           break;
         case 'PLAYBACK_FAILED':
           setRendererFailed(true);

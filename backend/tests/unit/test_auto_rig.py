@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import base64
 import json
 from datetime import UTC, datetime
 
 import pytest
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
 
 from sketch2life.application.ports.segmentation import (
     SubjectPartSegmentationResult,
@@ -20,10 +23,16 @@ from sketch2life.application.services.auto_rig import (
 )
 from sketch2life.contracts.schemas.auto_rig import RigArchetype, RigDeliveryTier
 from sketch2life.contracts.schemas.p1_experience import VersionedRefV1
+from sketch2life.contracts.schemas.renderer_v2 import PixiRendererLaunchV2
 from sketch2life.contracts.schemas.scene_exploration import SourceRegionV1
 from sketch2life.infrastructure.storage.in_memory import InMemoryArtifactStore, InMemoryJobStore
 from sketch2life.infrastructure.storage.in_memory_auto_rig_grants import (
     InMemoryRigPackageGrantStore,
+)
+from sketch2life.interfaces.http.routers.supervised_flow import renderer_source_router
+
+_TINY_PNG = base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+n7QAAAABJRU5ErkJggg=="
 )
 
 
@@ -105,16 +114,18 @@ def test_package_capability_is_bounded_and_returns_hash_bound_json() -> None:
         now=lambda: datetime(2026, 9, 25, 6, 0, tzinfo=UTC),
     )
 
-    package, plan, capability, expires_at, digest = service.prepare_template_package(
-        session_id="session-1",
-        source_artifact_ref="artifact:source",
-        source_sha256="a" * 64,
-        target_id="anchor-bird",
-        target_label="con chim",
-        target_confidence=0.94,
-        semantic_tags=("animal",),
-        experience_spec_ref=VersionedRefV1(id="spec-1", version=1),
-        learning_bridge_vi="Chim chọn nơi nào để sống nhỉ?",
+    package, plan, capability, expires_at, digest, mask_capability = (
+        service.prepare_template_package(
+            session_id="session-1",
+            source_artifact_ref="artifact:source",
+            source_sha256="a" * 64,
+            target_id="anchor-bird",
+            target_label="con chim",
+            target_confidence=0.94,
+            semantic_tags=("animal",),
+            experience_spec_ref=VersionedRefV1(id="spec-1", version=1),
+            learning_bridge_vi="Chim chọn nơi nào để sống nhỉ?",
+        )
     )
 
     content_type, body, observed_digest = service.read_package(capability)
@@ -126,6 +137,7 @@ def test_package_capability_is_bounded_and_returns_hash_bound_json() -> None:
     assert package.tier is RigDeliveryTier.CUTOUT_MICRO_MOTION
     assert plan.package_id == package.package_id
     assert expires_at > datetime(2026, 9, 25, 6, 0, tzinfo=UTC)
+    assert mask_capability is None
 
     service.read_package(capability)
     with pytest.raises(AutoRigPackageUnavailable):
@@ -178,9 +190,9 @@ class _FixtureSegmenter:
         )
 
 
-def test_successful_gate_a_segmentation_promotes_full_rig_tier() -> None:
+def test_part_metadata_without_renderer_mask_handoff_stays_at_cutout_tier() -> None:
     artifacts = InMemoryArtifactStore()
-    mask = artifacts.put(session_id="session-1", content_type="image/png", body=b"mask")
+    mask = artifacts.put(session_id="session-1", content_type="image/png", body=_TINY_PNG)
     service = AutoRigService(
         artifacts=artifacts,
         grants=InMemoryRigPackageGrantStore(),
@@ -210,8 +222,98 @@ def test_successful_gate_a_segmentation_promotes_full_rig_tier() -> None:
         learning_bridge_vi="Chim chọn nơi nào để sống nhỉ?",
     )
 
-    assert job.status == "SUCCEEDED"
-    assert package.tier is RigDeliveryTier.FULL_AUTO_RIG
+    assert job.status == "PARTIAL_SUCCESS"
+    assert job.failure_code == "SEGMENTATION_PART_MASKS_NOT_RENDERABLE"
+    assert package.tier is RigDeliveryTier.CUTOUT_MICRO_MOTION
     assert package.rig is not None
     assert package.rig.source_region.x == 0.2
-    assert plan.tier is RigDeliveryTier.FULL_AUTO_RIG
+    assert plan.tier is RigDeliveryTier.CUTOUT_MICRO_MOTION
+
+
+class _SubjectOnlySegmenter:
+    def __init__(self, mask_artifact_ref: str, mask_sha256: str) -> None:
+        self.mask_artifact_ref = mask_artifact_ref
+        self.mask_sha256 = mask_sha256
+
+    def segment(self, request: SubjectSegmentationRequest) -> SubjectSegmentationResult:
+        return SubjectSegmentationResult(
+            source_region=SourceRegionV1(x=0.2, y=0.1, width=0.5, height=0.7),
+            confidence=0.92,
+            adapter_id="fixture-sam21",
+            adapter_version="1",
+            mask_artifact_ref=self.mask_artifact_ref,
+            mask_sha256=self.mask_sha256,
+        )
+
+
+def test_successful_subject_only_mask_gets_separate_bounded_renderer_capability() -> None:
+    artifacts = InMemoryArtifactStore()
+    mask = artifacts.put(session_id="session-1", content_type="image/png", body=_TINY_PNG)
+    service = AutoRigService(
+        artifacts=artifacts,
+        grants=InMemoryRigPackageGrantStore(),
+        jobs=InMemoryJobStore(),
+        segmenter=_SubjectOnlySegmenter(mask.artifact_ref, mask.sha256),
+        now=lambda: datetime(2026, 9, 25, 6, 0, tzinfo=UTC),
+    )
+    job = service.start_gate_a_preparation(
+        session_id="session-1",
+        request_id="request-1",
+        source_artifact_ref="artifact:source",
+        source_sha256="a" * 64,
+        target_id="anchor-butterfly",
+        target_label="con bướm",
+        target_confidence=0.94,
+        semantic_tags=("animal",),
+    )
+    package, plan, package_capability, package_expires_at, package_digest, mask_capability = (
+        service.prepare_template_package(
+            session_id="session-1",
+            source_artifact_ref="artifact:source",
+            source_sha256="a" * 64,
+            target_id="anchor-butterfly",
+            target_label="con bướm",
+            target_confidence=0.94,
+            semantic_tags=("animal",),
+            experience_spec_ref=VersionedRefV1(id="spec-1", version=1),
+            learning_bridge_vi="Mình cùng khám phá đôi cánh nhé.",
+        )
+    )
+
+    assert job.status == "PARTIAL_SUCCESS"
+    assert package.tier is RigDeliveryTier.CUTOUT_MICRO_MOTION
+    assert mask_capability is not None
+    launch = PixiRendererLaunchV2(
+        contractName="PixiRendererLaunchV2",
+        contractVersion="2.0",
+        sessionId="session-1",
+        expectedSessionVersion=4,
+        experienceSpecRef={"id": "spec-1", "version": 1},
+        sourceReadEndpoint="/v1/renderer/source",
+        sourceReadCapability="s" * 48,
+        sourceSha256="a" * 64,
+        packageReadEndpoint="/v1/renderer/rig-package",
+        packageReadCapability=package_capability,
+        packageSha256=package_digest,
+        packageReadExpiresAt=package_expires_at,
+        maskReadEndpoint="/v1/renderer/rig-mask",
+        maskReadCapability=mask_capability,
+        maskSha256=package.derived_artifacts[0].sha256,
+        animationPlan=plan,
+        fallbackLaunch={"contractName": "PixiRendererLaunchV1"},
+    )
+    assert launch.mask_read_capability == mask_capability
+    app = FastAPI()
+    app.state.auto_rig_service = service
+    app.include_router(renderer_source_router)
+    response = TestClient(app).get(
+        "/v1/renderer/rig-mask",
+        headers={"X-Rig-Mask-Capability": mask_capability},
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/png"
+    assert response.headers["x-content-sha256"] == mask.sha256
+    assert response.content == _TINY_PNG
+    service.read_mask(mask_capability)  # bounded explicit renderer retry
+    with pytest.raises(AutoRigPackageUnavailable):
+        service.read_mask(mask_capability)

@@ -37,3 +37,13 @@
   failures (`Qwen` loading twice and SAM2 `PROMPT_REQUIRED`) in the current task.
 - Boundary: this addendum does not activate SAM2 by default, change the model ADR gate, or alter
   the approved renderer/domain contracts.
+
+## SAM2 success / Pixi cutout handoff runtime fix — 2026-09-27
+
+- State: APPROVED_BY_DIRECT_OWNER_FIX_REQUEST
+- Plan: `plan/RUNTIME_MASK_HANDOFF_FIX_20260927.md`
+- Plan SHA-256: `FCB84DADE0A36AC190ACE9D3912744F8DAAB1B71FCC1098DC8D66DD2DC6B9979`
+- Scope: short-lived derived-mask read capability, verified mask consumption by PixiJS, subject-only cutout micro-motion when SAM2 supplies no parts, explicit safe downgrade diagnostics, and focused regression evidence.
+- Approval evidence: the project owner explicitly requested diagnosis and correction after showing `sam21_segmentation_completed status=SUCCEEDED` while the Android experience appeared to fall back.
+- Boundary: no new model/provider activation, no fabricated semantic parts, no change to Gate A/B or learning/activity flow; `FULL_AUTO_RIG` still requires validated independent parts.
+- Hash refresh note: only the implementation-status field changed from `IN_PROGRESS` to `IMPLEMENTED_LOCALLY; ANDROID_LIGHTNING_VISUAL_RETEST_PENDING`; approved scope and acceptance criteria are unchanged.

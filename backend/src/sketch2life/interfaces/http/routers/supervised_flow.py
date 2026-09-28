@@ -223,6 +223,35 @@ def read_renderer_rig_package(
     )
 
 
+@renderer_source_router.get("/v1/renderer/rig-mask")
+def read_renderer_rig_mask(
+    request: Request,
+    capability: Annotated[
+        str,
+        Header(alias="X-Rig-Mask-Capability", min_length=40, max_length=200),
+    ],
+) -> Response:
+    service: AutoRigService | None = request.app.state.auto_rig_service
+    if service is None:
+        return JSONResponse(status_code=503, content={"code": "RIG_MASK_NOT_CONFIGURED"})
+    try:
+        content_type, body, digest = service.read_mask(capability)
+    except AutoRigPackageUnavailable:
+        return JSONResponse(
+            status_code=410,
+            content={"code": "RIG_MASK_UNAVAILABLE", "message": "The derived mask expired."},
+        )
+    return Response(
+        content=body,
+        media_type=content_type,
+        headers={
+            "Cache-Control": "no-store, max-age=0",
+            "X-Content-Type-Options": "nosniff",
+            "X-Content-SHA256": digest,
+        },
+    )
+
+
 def _execute(
     method_name: str,
     session_id: str,

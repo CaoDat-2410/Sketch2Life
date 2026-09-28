@@ -138,8 +138,16 @@ export const RendererLoadCommandV2Schema = z.object({
   packageReadEndpoint: z.literal('/v1/renderer/rig-package'),
   packageReadCapability: z.string().min(40).max(200),
   packageSha256: z.string().regex(/^[a-f0-9]{64}$/),
+  maskReadEndpoint: z.literal('/v1/renderer/rig-mask').optional(),
+  maskReadCapability: z.string().min(40).max(200).optional(),
+  maskSha256: z.string().regex(/^[a-f0-9]{64}$/).optional(),
   animationPlan: VisualAnimationPlanV2Schema,
-}).strict();
+}).strict().superRefine((command, context) => {
+  const maskFields = [command.maskReadEndpoint, command.maskReadCapability, command.maskSha256];
+  if (maskFields.some((value) => value !== undefined) && maskFields.some((value) => value === undefined)) {
+    context.addIssue({code: z.ZodIssueCode.custom, message: 'Derived mask endpoint, capability and digest must be supplied together.'});
+  }
+});
 
 export type RigDefinitionV1 = z.infer<typeof RigDefinitionV1Schema>;
 export type RiggedArtworkPackageV1 = z.infer<typeof RiggedArtworkPackageV1Schema>;

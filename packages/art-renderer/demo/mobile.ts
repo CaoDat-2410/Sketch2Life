@@ -8,6 +8,8 @@ import {
   RendererControlCommandSchema,
   RendererLoadCommandSchema,
   RendererLoadCommandV2Schema,
+  RiggedArtworkPackageV1Schema,
+  matchesDerivedMaskProvenance,
   sha256Hex,
   type PlaybackEvent,
   type RendererLoadCommand,
@@ -208,6 +210,7 @@ async function loadLaunch(serialized: string): Promise<void> {
     return;
   }
   lastLoadMessage = serialized;
+  launch = command;
   status.textContent = 'Đang lấy đúng ảnh gốc từ backend qua capability tạm…';
   try {
     const response = await fetch(new URL(command.sourceReadEndpoint, window.location.href), {
@@ -220,6 +223,10 @@ async function loadLaunch(serialized: string): Promise<void> {
     const image = await response.blob();
     if (image.size <= 0 || image.size > 5_000_000) throw new Error('SOURCE_SIZE_INVALID');
     if (image.type !== 'image/png' && image.type !== 'image/jpeg') throw new Error('SOURCE_TYPE_INVALID');
+    if (
+      command.contractName === 'RendererLoadCommandV2'
+      && await sha256Hex(await image.arrayBuffer()) !== command.sourceSha256
+    ) throw new Error('SOURCE_HASH_MISMATCH');
     sourceBlob = image;
     if (command.contractName === 'RendererLoadCommandV2') {
       status.textContent = 'Đang chuẩn bị từng nét vẽ chuyển động…';
@@ -235,23 +242,67 @@ async function loadLaunch(serialized: string): Promise<void> {
         if (packageBytes.byteLength <= 0 || packageBytes.byteLength > 1_000_000) throw new Error('RIG_PACKAGE_SIZE_INVALID');
         if (await sha256Hex(packageBytes) !== command.packageSha256) throw new Error('RIG_PACKAGE_HASH_MISMATCH');
         const packageJson: unknown = JSON.parse(new TextDecoder().decode(packageBytes));
-        const foreground = await textureFromBlob(image, true);
-        autoRigPlayer.load(packageJson, command.animationPlan, foreground.texture, foreground.canvas);
+        const rigPackage = RiggedArtworkPackageV1Schema.parse(packageJson);
+        if (rigPackage.sessionId !== command.sessionId || rigPackage.sourceSha256 !== command.sourceSha256) {
+          throw new Error('RIG_PACKAGE_SOURCE_MISMATCH');
+        }
+        const foreground = await textureFromBlob(image, false, 1200);
+        let maskCanvas: HTMLCanvasElement | undefined;
+        if (rigPackage.tier === 'CUTOUT_MICRO_MOTION') {
+          if (
+            command.maskReadEndpoint === undefined
+            || command.maskReadCapability === undefined
+            || command.maskSha256 === undefined
+            || !rigPackage.derivedArtifacts.some((artifact) => (
+              matchesDerivedMaskProvenance(artifact, rigPackage.sourceSha256, command.maskSha256!)
+            ))
+          ) throw new Error('MASK_CAPABILITY_OR_PROVENANCE_INVALID');
+
+          const maskResponse = await fetch(new URL(command.maskReadEndpoint, window.location.href), {
+            method: 'GET',
+            headers: {'X-Rig-Mask-Capability': command.maskReadCapability},
+            cache: 'no-store',
+            credentials: 'same-origin',
+          });
+          if (!maskResponse.ok || maskResponse.headers.get('Content-Type')?.split(';')[0] !== 'image/png') {
+            throw new Error('MASK_UNAVAILABLE');
+          }
+          const maskBytes = await maskResponse.arrayBuffer();
+          if (
+            maskBytes.byteLength <= 8
+            || maskBytes.byteLength > 5_000_000
+            || await sha256Hex(maskBytes) !== command.maskSha256
+            || maskResponse.headers.get('X-Content-SHA256') !== command.maskSha256
+          ) throw new Error('MASK_HASH_OR_SIZE_INVALID');
+          const maskBitmap = await createImageBitmap(new Blob([maskBytes], {type: 'image/png'}));
+          if (maskBitmap.width !== foreground.sourceWidth || maskBitmap.height !== foreground.sourceHeight) {
+            maskBitmap.close();
+            throw new Error('MASK_DIMENSIONS_MISMATCH');
+          }
+          maskCanvas = document.createElement('canvas');
+          maskCanvas.width = foreground.canvas.width;
+          maskCanvas.height = foreground.canvas.height;
+          const maskContext = maskCanvas.getContext('2d', {willReadFrequently: true});
+          if (maskContext === null) {
+            maskBitmap.close();
+            throw new Error('MASK_CANVAS_UNAVAILABLE');
+          }
+          maskContext.drawImage(maskBitmap, 0, 0, maskCanvas.width, maskCanvas.height);
+          maskBitmap.close();
+        }
+        autoRigPlayer.load(packageJson, command.animationPlan, foreground.texture, foreground.canvas, maskCanvas);
         activePlayer = autoRigPlayer;
         v2InteractionPhase = 'INTRO_LOADING';
       } catch (error) {
-        console.error(
-          '[art-renderer] Renderer V2 package could not start.',
-          error instanceof Error ? error.message : 'UNKNOWN_RENDERER_V2_ERROR',
-        );
+        console.error('[art-renderer] Renderer V2 package could not start.', safeFailureCode(error));
         await classicPlayer.load(v2FallbackPlan(command));
         activePlayer = classicPlayer;
         v2InteractionPhase = 'FALLBACK';
-        launch = command;
         postLifecycle({
           type: 'FALLBACK_APPLIED',
           planId: command.animationPlan.planId,
-          reason: 'EXTRACTION_UNAVAILABLE',
+          reason: fallbackReason(error),
+          durationSeconds: command.animationPlan.durationSeconds,
         });
       }
     } else {
@@ -261,7 +312,6 @@ async function loadLaunch(serialized: string): Promise<void> {
       });
       activePlayer = classicPlayer;
     }
-    launch = command;
     playButton.disabled = false;
     playButton.textContent = 'Tạm dừng / tiếp tục';
     status.textContent = 'Pixi đã nạp ảnh gốc và bắt đầu câu chuyện.';
@@ -269,10 +319,17 @@ async function loadLaunch(serialized: string): Promise<void> {
       postLifecycle({type: 'PLAYBACK_STARTED', planId: command.animationPlan.planId});
     }
     activePlayer.play();
-  } catch {
+  } catch (error) {
     sourceBlob = null;
     status.textContent = 'Không nạp được ảnh gốc. Hãy về app và mở Pixi lại thủ công; không tự retry.';
     playButton.disabled = true;
+    if (command.contractName === 'RendererLoadCommandV2') {
+      postLifecycle({
+        type: 'PLAYBACK_FAILED',
+        planId: command.animationPlan.planId,
+        reason: safeFailureCode(error),
+      });
+    }
   }
 }
 
@@ -329,17 +386,24 @@ window.addEventListener('pagehide', () => {
 status.textContent = 'Pixi sẵn sàng, đang chờ launch của đúng phiên.';
 post({protocolVersion: ART_RENDERER_PROTOCOL_VERSION, rendererInstanceId});
 
-async function textureFromBlob(blob: Blob, removePaper: boolean): Promise<{texture: Texture; canvas: HTMLCanvasElement}> {
+async function textureFromBlob(
+  blob: Blob,
+  removePaper: boolean,
+  maxDimension?: number,
+): Promise<{texture: Texture; canvas: HTMLCanvasElement; sourceWidth: number; sourceHeight: number}> {
   const bitmap = await createImageBitmap(blob);
+  const sourceWidth = bitmap.width;
+  const sourceHeight = bitmap.height;
+  const scale = maxDimension === undefined ? 1 : Math.min(1, maxDimension / Math.max(sourceWidth, sourceHeight));
   const canvas = document.createElement('canvas');
-  canvas.width = bitmap.width;
-  canvas.height = bitmap.height;
+  canvas.width = Math.max(1, Math.round(sourceWidth * scale));
+  canvas.height = Math.max(1, Math.round(sourceHeight * scale));
   const context = canvas.getContext('2d', {willReadFrequently: removePaper});
   if (context === null) {
     bitmap.close();
     throw new Error('Canvas context is unavailable.');
   }
-  context.drawImage(bitmap, 0, 0);
+  context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
   bitmap.close();
   if (removePaper) {
     const image = context.getImageData(0, 0, canvas.width, canvas.height);
@@ -352,7 +416,28 @@ async function textureFromBlob(blob: Blob, removePaper: boolean): Promise<{textu
     }
     context.putImageData(image, 0, 0);
   }
-  return {texture: Texture.from(canvas), canvas};
+  return {texture: Texture.from(canvas), canvas, sourceWidth, sourceHeight};
+}
+
+function safeFailureCode(error: unknown): string {
+  const message = error instanceof Error ? error.message : '';
+  const knownCodes = [
+    'SOURCE_UNAVAILABLE', 'SOURCE_SIZE_INVALID', 'SOURCE_TYPE_INVALID', 'SOURCE_HASH_MISMATCH',
+    'RIG_PACKAGE_UNAVAILABLE', 'RIG_PACKAGE_SIZE_INVALID', 'RIG_PACKAGE_HASH_MISMATCH',
+    'RIG_PACKAGE_SOURCE_MISMATCH',
+    'MASK_UNAVAILABLE', 'MASK_CAPABILITY_OR_PROVENANCE_INVALID', 'MASK_HASH_OR_SIZE_INVALID',
+    'MASK_DIMENSIONS_MISMATCH', 'MASK_CANVAS_UNAVAILABLE', 'MASK_AREA_INVALID',
+    'MASK_REGION_INVALID', 'MASK_REGION_MISMATCH', 'MASK_DIMENSIONS_INVALID',
+    'MASK_BACKGROUND_PATCH_UNSAFE', 'SUBJECT_MASK_UNAVAILABLE',
+  ];
+  return knownCodes.includes(message) ? message : 'RENDERER_V2_START_FAILED';
+}
+
+function fallbackReason(error: unknown): 'EXTRACTION_UNAVAILABLE' | 'MASK_INVALID' | 'ASSET_LOAD_FAILED' | 'MOTION_COMPILE_FAILED' {
+  const code = safeFailureCode(error);
+  if (code.startsWith('MASK_')) return 'MASK_INVALID';
+  if (code.includes('PACKAGE') || code.includes('SOURCE')) return 'ASSET_LOAD_FAILED';
+  return code === 'RENDERER_V2_START_FAILED' ? 'MOTION_COMPILE_FAILED' : 'EXTRACTION_UNAVAILABLE';
 }
 
 function v2FallbackPlan(command: RendererLoadCommandV2): unknown {

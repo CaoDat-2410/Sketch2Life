@@ -9,6 +9,7 @@ import {
   type VisualAnimationPlanV2,
 } from './contractsV2';
 import {detectPrimaryForegroundRegion, type NormalizedRegion} from './foregroundRegion';
+import {createSubjectCutoutLayers, requireVerifiedCutoutMask} from './subjectCutout';
 
 interface MutablePose {
   rotationDegrees: number;
@@ -25,7 +26,13 @@ export interface AutoRigPlayerOptions {
 }
 
 export interface AutoRigPlayer {
-  load(packageInput: unknown, planInput: unknown, sourceTexture: Texture, sourceCanvas?: HTMLCanvasElement): void;
+  load(
+    packageInput: unknown,
+    planInput: unknown,
+    sourceTexture: Texture,
+    sourceCanvas?: HTMLCanvasElement,
+    maskCanvas?: HTMLCanvasElement,
+  ): void;
   play(): void;
   pause(): void;
   replay(): void;
@@ -51,6 +58,9 @@ export function createAutoRigPlayer(options: AutoRigPlayerOptions): AutoRigPlaye
   let timeline: gsap.core.Timeline | null = null;
   let idleTimeline: gsap.core.Timeline | null = null;
   let mesh: Mesh<MeshGeometry> | null = null;
+  let cutoutSprite: Sprite | null = null;
+  let cutoutPivot = {x: 0, y: 0};
+  let cutoutBaseScale = {x: 1, y: 1};
   let geometry: MeshGeometry | null = null;
   let activeRig: RigDefinitionV1 | null = null;
   let partMeshes: PartMeshState[] = [];
@@ -69,6 +79,18 @@ export function createAutoRigPlayer(options: AutoRigPlayerOptions): AutoRigPlaye
   const deform = (): void => {
     const rig = activeRig;
     if (rig == null) return;
+    if (cutoutSprite !== null) {
+      const rootPose = poses.get('root');
+      if (rootPose !== undefined) {
+        cutoutSprite.position.set(
+          cutoutPivot.x + rootPose.translateX * STAGE_WIDTH,
+          cutoutPivot.y + rootPose.translateY * STAGE_HEIGHT,
+        );
+        cutoutSprite.rotation = rootPose.rotationDegrees * Math.PI / 180;
+        cutoutSprite.scale.set(cutoutBaseScale.x * rootPose.scaleX, cutoutBaseScale.y * rootPose.scaleY);
+      }
+      return;
+    }
     if (partMeshes.length > 0) {
       const bones = new Map(rig.bones.map((bone) => [bone.boneId, bone]));
       const root = bones.get('root');
@@ -140,12 +162,22 @@ export function createAutoRigPlayer(options: AutoRigPlayerOptions): AutoRigPlaye
   };
 
   return {
-    load(packageInput: unknown, planInput: unknown, sourceTexture: Texture, sourceCanvas?: HTMLCanvasElement): void {
+    load(
+      packageInput: unknown,
+      planInput: unknown,
+      sourceTexture: Texture,
+      sourceCanvas?: HTMLCanvasElement,
+      maskCanvas?: HTMLCanvasElement,
+    ): void {
       timeline?.kill();
       idleTimeline?.kill();
       idleTimeline = null;
       stopTicker();
       scene.removeChildren().forEach((child) => child.destroy());
+      mesh = null;
+      geometry = null;
+      cutoutSprite = null;
+      cutoutBaseScale = {x: 1, y: 1};
       const parsedPackage = RiggedArtworkPackageV1Schema.parse(packageInput);
       const parsedPlan = VisualAnimationPlanV2Schema.parse(planInput);
       if (parsedPackage.packageId !== parsedPlan.packageId || parsedPackage.sessionId !== parsedPlan.sessionId) {
@@ -159,12 +191,7 @@ export function createAutoRigPlayer(options: AutoRigPlayerOptions): AutoRigPlaye
       options.app.renderer.resize(STAGE_WIDTH, STAGE_HEIGHT);
 
       const detectedRegion = sourceCanvas === undefined ? null : regionFromCanvas(sourceCanvas);
-      const hasDerivedMask = parsedPackage.derivedArtifacts.some((artifact) => {
-        if (typeof artifact !== 'object' || artifact === null) return false;
-        const candidate = artifact as {role?: unknown; sourceSha256?: unknown};
-        return candidate.role === 'ORIGINAL_DERIVED_MASK' && candidate.sourceSha256 === parsedPackage.sourceSha256;
-      });
-      const packageRegion = hasDerivedMask ? parsedPackage.rig.sourceRegion : detectedRegion;
+      const packageRegion = maskCanvas === undefined ? detectedRegion : regionFromMask(sourceCanvas, maskCanvas);
       if (packageRegion === null && parsedPackage.rig.sourceRegion.width > 0.85 && parsedPackage.rig.sourceRegion.height > 0.85) {
         throw new Error('A full-frame mesh is not eligible for V2 subject motion.');
       }
@@ -173,19 +200,52 @@ export function createAutoRigPlayer(options: AutoRigPlayerOptions): AutoRigPlaye
         : {...parsedPackage.rig, sourceRegion: packageRegion};
       activeRig = rig;
       partMeshes = [];
-      if (sourceCanvas !== undefined && packageRegion !== null) {
+      requireVerifiedCutoutMask(parsedPackage.tier, maskCanvas !== undefined);
+      if (parsedPackage.tier === 'CUTOUT_MICRO_MOTION' && sourceCanvas !== undefined && maskCanvas !== undefined) {
+        const sourceContext = sourceCanvas.getContext('2d', {willReadFrequently: true});
+        const maskContext = maskCanvas.getContext('2d', {willReadFrequently: true});
+        if (sourceContext === null || maskContext === null) throw new Error('MASK_CANVAS_UNAVAILABLE');
+        const layers = createSubjectCutoutLayers(
+          sourceContext.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height).data,
+          maskContext.getImageData(0, 0, maskCanvas.width, maskCanvas.height).data,
+          sourceCanvas.width,
+          sourceCanvas.height,
+        );
+        if (!regionMatches(packageRegion, layers.sourceRegion)) throw new Error('MASK_REGION_MISMATCH');
+        activeRig = {...rig, sourceRegion: layers.sourceRegion};
+        const backgroundCanvas = canvasFromPixels(sourceCanvas.width, sourceCanvas.height, layers.backgroundPixels);
+        const cutoutCanvas = canvasFromPixels(sourceCanvas.width, sourceCanvas.height, layers.subjectPixels);
+        const background = spriteFromCanvas(backgroundCanvas);
+        background.zIndex = 0;
+        scene.addChild(background);
+        cutoutSprite = new Sprite(Texture.from(cutoutCanvas));
+        cutoutSprite.width = STAGE_WIDTH;
+        cutoutSprite.height = STAGE_HEIGHT;
+        cutoutBaseScale = {x: STAGE_WIDTH / sourceCanvas.width, y: STAGE_HEIGHT / sourceCanvas.height};
+        cutoutPivot = {
+          x: (layers.sourceRegion.x + layers.sourceRegion.width / 2) * STAGE_WIDTH,
+          y: (layers.sourceRegion.y + layers.sourceRegion.height / 2) * STAGE_HEIGHT,
+        };
+        cutoutSprite.anchor.set(
+          (layers.sourceRegion.x + layers.sourceRegion.width / 2),
+          (layers.sourceRegion.y + layers.sourceRegion.height / 2),
+        );
+        cutoutSprite.position.set(cutoutPivot.x, cutoutPivot.y);
+        cutoutSprite.zIndex = 10;
+        scene.addChild(cutoutSprite);
+      } else if (sourceCanvas !== undefined && packageRegion !== null) {
         const background = backgroundSprite(sourceCanvas, packageRegion);
         background.zIndex = 0;
         scene.addChild(background);
       }
-      if (rig.archetype === 'butterfly' && packageRegion !== null) {
+      if (parsedPackage.tier !== 'CUTOUT_MICRO_MOTION' && rig.archetype === 'butterfly' && packageRegion !== null) {
         const butterfly = butterflyPartMeshes(rig, sourceTexture);
         partMeshes = butterfly.states;
         butterfly.meshes.forEach((part, index) => {
           part.zIndex = 10 + index;
           scene.addChild(part);
         });
-      } else {
+      } else if (cutoutSprite === null) {
         geometry = new MeshGeometry({
           positions: restPositions(rig, STAGE_WIDTH, STAGE_HEIGHT),
           uvs: new Float32Array(rig.vertices.flatMap((vertex) => [
@@ -271,6 +331,8 @@ export function createAutoRigPlayer(options: AutoRigPlayerOptions): AutoRigPlaye
       mesh = null;
       geometry = null;
       activeRig = null;
+      cutoutSprite = null;
+      cutoutBaseScale = {x: 1, y: 1};
       partMeshes = [];
       packageValue = null;
       plan = null;
@@ -304,6 +366,68 @@ function backgroundSprite(canvas: HTMLCanvasElement, region: NormalizedRegion): 
   sprite.width = STAGE_WIDTH;
   sprite.height = STAGE_HEIGHT;
   return sprite;
+}
+
+function spriteFromCanvas(canvas: HTMLCanvasElement): Sprite {
+  const sprite = new Sprite(Texture.from(canvas));
+  sprite.width = STAGE_WIDTH;
+  sprite.height = STAGE_HEIGHT;
+  return sprite;
+}
+
+function canvasFromPixels(width: number, height: number, pixels: Uint8ClampedArray): HTMLCanvasElement {
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext('2d');
+  if (context === null) throw new Error('Cutout canvas is unavailable.');
+  const image = context.createImageData(width, height);
+  image.data.set(pixels);
+  context.putImageData(image, 0, 0);
+  return canvas;
+}
+
+function regionFromMask(source: HTMLCanvasElement | undefined, mask: HTMLCanvasElement): NormalizedRegion {
+  if (source === undefined || source.width !== mask.width || source.height !== mask.height) {
+    throw new Error('MASK_DIMENSIONS_MISMATCH');
+  }
+  const context = mask.getContext('2d', {willReadFrequently: true});
+  if (context === null) throw new Error('MASK_CANVAS_UNAVAILABLE');
+  const pixels = context.getImageData(0, 0, mask.width, mask.height).data;
+  const width = mask.width;
+  const height = mask.height;
+  let minX = width;
+  let minY = height;
+  let maxX = -1;
+  let maxY = -1;
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const offset = (y * width + x) * 4;
+      if ((pixels[offset] + pixels[offset + 1] + pixels[offset + 2]) / 3 * pixels[offset + 3] / 255 <= 8) continue;
+      minX = Math.min(minX, x);
+      minY = Math.min(minY, y);
+      maxX = Math.max(maxX, x);
+      maxY = Math.max(maxY, y);
+    }
+  }
+  if (maxX < minX || (maxX - minX + 1) * (maxY - minY + 1) / (width * height) > 0.9) {
+    throw new Error('MASK_REGION_INVALID');
+  }
+  return {
+    x: minX / width,
+    y: minY / height,
+    width: (maxX + 1 - minX) / width,
+    height: (maxY + 1 - minY) / height,
+  };
+}
+
+function regionMatches(expected: NormalizedRegion | null, actual: NormalizedRegion): boolean {
+  if (expected === null) return false;
+  const tolerance = 0.04;
+  return actual.x >= expected.x - tolerance
+    && actual.y >= expected.y - tolerance
+    && actual.x + actual.width <= expected.x + expected.width + tolerance
+    && actual.y + actual.height <= expected.y + expected.height + tolerance;
 }
 
 function butterflyPartMeshes(

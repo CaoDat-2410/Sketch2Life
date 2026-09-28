@@ -1288,20 +1288,24 @@ class SupervisedFlowService:
             launch_v2: PixiRendererLaunchV2 | None = None
             if self._auto_rig_service is not None:
                 try:
-                    package, visual_plan, package_capability, package_expires_at, package_sha = (
-                        self._auto_rig_service.prepare_template_package(
-                            session_id=command.session_id,
-                            source_artifact_ref=source_artifact_ref,
-                            source_sha256=source_sha256,
-                            target_id=anchor_set.primary_anchor.anchor_id,
-                            target_label=anchor_set.primary_anchor.normalized_label,
-                            target_confidence=anchor_set.primary_anchor.confidence,
-                            semantic_tags=anchor_set.primary_anchor.semantic_tags,
-                            experience_spec_ref=spec_ref,
-                            learning_bridge_vi=spec.bridge_sentence.sentence_vi,
-                        )
+                    (
+                        package,
+                        visual_plan,
+                        package_capability,
+                        package_expires_at,
+                        package_sha,
+                        mask_capability,
+                    ) = self._auto_rig_service.prepare_template_package(
+                        session_id=command.session_id,
+                        source_artifact_ref=source_artifact_ref,
+                        source_sha256=source_sha256,
+                        target_id=anchor_set.primary_anchor.anchor_id,
+                        target_label=anchor_set.primary_anchor.normalized_label,
+                        target_confidence=anchor_set.primary_anchor.confidence,
+                        semantic_tags=anchor_set.primary_anchor.semantic_tags,
+                        experience_spec_ref=spec_ref,
+                        learning_bridge_vi=spec.bridge_sentence.sentence_vi,
                     )
-                    del package
                     launch_v2 = PixiRendererLaunchV2(
                         contractName="PixiRendererLaunchV2",
                         contractVersion="2.0",
@@ -1315,6 +1319,23 @@ class SupervisedFlowService:
                         packageReadCapability=package_capability,
                         packageSha256=package_sha,
                         packageReadExpiresAt=package_expires_at,
+                        maskReadEndpoint=(
+                            "/v1/renderer/rig-mask" if mask_capability is not None else None
+                        ),
+                        maskReadCapability=mask_capability,
+                        maskSha256=(
+                            next(
+                                (
+                                    artifact.sha256
+                                    for artifact in package.derived_artifacts
+                                    if artifact.role == "ORIGINAL_DERIVED_MASK"
+                                    and artifact.source_sha256 == source_sha256
+                                ),
+                                None,
+                            )
+                            if mask_capability is not None
+                            else None
+                        ),
                         animationPlan=visual_plan,
                         fallbackLaunch=launch.model_dump(
                             mode="json", by_alias=True, exclude_none=True

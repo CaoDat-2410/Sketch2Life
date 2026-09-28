@@ -1,6 +1,11 @@
 import {describe, expect, it} from 'vitest';
 
-import {RiggedArtworkPackageV1Schema, VisualAnimationPlanV2Schema} from '../src/contractsV2';
+import {
+  RendererLoadCommandV2Schema,
+  RiggedArtworkPackageV1Schema,
+  VisualAnimationPlanV2Schema,
+} from '../src/contractsV2';
+import {PlaybackEventSchema} from '../src/contracts';
 
 const rig = {
   contractName: 'RigDefinitionV1',
@@ -72,5 +77,70 @@ describe('Renderer V2 contracts', () => {
       maxMotionLevel: 2,
     });
     expect(result.success).toBe(true);
+  });
+
+  it('keeps old launches valid and requires all fields for a derived-mask capability', () => {
+    const command = {
+      contractName: 'RendererLoadCommandV2',
+      contractVersion: '2.0',
+      protocolVersion: '2',
+      sequence: 1,
+      rendererInstanceId: 'renderer-1',
+      sessionId: 'session-1',
+      expectedSessionVersion: 3,
+      experienceSpecRef: {id: 'spec-1', version: 1},
+      sourceReadEndpoint: '/v1/renderer/source',
+      sourceReadCapability: 's'.repeat(48),
+      sourceSha256: 'a'.repeat(64),
+      packageReadEndpoint: '/v1/renderer/rig-package',
+      packageReadCapability: 'p'.repeat(48),
+      packageSha256: 'b'.repeat(64),
+      animationPlan: {
+        contractName: 'VisualAnimationPlanV2',
+        contractVersion: '2.0',
+        planId: 'visual-1',
+        sessionId: 'session-1',
+        experienceSpecRef: {id: 'spec-1', version: 1},
+        packageId: 'rig-session-1',
+        archetype: 'butterfly',
+        tier: 'CUTOUT_MICRO_MOTION',
+        durationSeconds: 2,
+        tracks: [{
+          trackId: 'root-motion',
+          boneId: 'root',
+          profile: 'breathe',
+          keyframes: [
+            {atSeconds: 0, pose: {}},
+            {atSeconds: 2, pose: {}},
+          ],
+        }],
+        learningBridgeVi: 'Cùng khám phá nhé.',
+      },
+    };
+    expect(RendererLoadCommandV2Schema.safeParse(command).success).toBe(true);
+    expect(RendererLoadCommandV2Schema.safeParse({
+      ...command,
+      maskReadEndpoint: '/v1/renderer/rig-mask',
+    }).success).toBe(false);
+    expect(RendererLoadCommandV2Schema.safeParse({
+      ...command,
+      maskReadEndpoint: '/v1/renderer/rig-mask',
+      maskReadCapability: 'm'.repeat(48),
+      maskSha256: 'c'.repeat(64),
+    }).success).toBe(true);
+  });
+
+  it('reports a bounded fallback duration to the native playback controls', () => {
+    expect(PlaybackEventSchema.safeParse({
+      type: 'FALLBACK_APPLIED',
+      planId: 'visual-1',
+      reason: 'MASK_INVALID',
+      durationSeconds: 12,
+    }).success).toBe(true);
+    expect(PlaybackEventSchema.safeParse({
+      type: 'PLAYBACK_FAILED',
+      planId: 'visual-1',
+      reason: 'RIG_PACKAGE_SOURCE_MISMATCH',
+    }).success).toBe(true);
   });
 });

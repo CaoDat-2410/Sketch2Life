@@ -81,11 +81,27 @@ class PixiRendererLaunchV2(BaseModel):
     )
     package_sha256: str = Field(alias="packageSha256", pattern=r"^[a-f0-9]{64}$")
     package_read_expires_at: datetime = Field(alias="packageReadExpiresAt")
+    mask_read_endpoint: Literal["/v1/renderer/rig-mask"] | None = Field(
+        default=None, alias="maskReadEndpoint"
+    )
+    mask_read_capability: str | None = Field(
+        default=None, alias="maskReadCapability", min_length=40, max_length=200
+    )
+    mask_sha256: str | None = Field(
+        default=None, alias="maskSha256", pattern=r"^[a-f0-9]{64}$"
+    )
     animation_plan: VisualAnimationPlanV2 = Field(alias="animationPlan")
     fallback_launch: dict[str, object] = Field(alias="fallbackLaunch")
 
     @model_validator(mode="after")
     def validate_identity(self) -> PixiRendererLaunchV2:
+        mask_fields = (self.mask_read_endpoint, self.mask_read_capability, self.mask_sha256)
+        if any(value is not None for value in mask_fields) and not all(
+            value is not None for value in mask_fields
+        ):
+            raise ValueError(
+                "derived mask endpoint, capability and digest must be supplied together"
+            )
         if (
             self.package_read_expires_at.tzinfo is None
             or self.package_read_expires_at.utcoffset() is None
@@ -117,7 +133,27 @@ class RendererLoadCommandV2(BaseModel):
         alias="packageReadCapability", min_length=40, max_length=200
     )
     package_sha256: str = Field(alias="packageSha256", pattern=r"^[a-f0-9]{64}$")
+    mask_read_endpoint: Literal["/v1/renderer/rig-mask"] | None = Field(
+        default=None, alias="maskReadEndpoint"
+    )
+    mask_read_capability: str | None = Field(
+        default=None, alias="maskReadCapability", min_length=40, max_length=200
+    )
+    mask_sha256: str | None = Field(
+        default=None, alias="maskSha256", pattern=r"^[a-f0-9]{64}$"
+    )
     animation_plan: VisualAnimationPlanV2 = Field(alias="animationPlan")
+
+    @model_validator(mode="after")
+    def validate_mask_capability(self) -> RendererLoadCommandV2:
+        mask_fields = (self.mask_read_endpoint, self.mask_read_capability, self.mask_sha256)
+        if any(value is not None for value in mask_fields) and not all(
+            value is not None for value in mask_fields
+        ):
+            raise ValueError(
+                "derived mask endpoint, capability and digest must be supplied together"
+            )
+        return self
 
 
 __all__ = [

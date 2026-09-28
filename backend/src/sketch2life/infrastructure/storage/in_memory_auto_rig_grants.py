@@ -6,19 +6,19 @@ from dataclasses import replace
 from datetime import datetime
 from threading import RLock
 
-from sketch2life.application.ports.auto_rig_storage import RigPackageGrant
+from sketch2life.application.ports.auto_rig_storage import RigArtifactGrant
 
 
-class InMemoryRigPackageGrantStore:
+class InMemoryRigArtifactGrantStore:
     def __init__(self) -> None:
-        self._items: dict[str, RigPackageGrant] = {}
+        self._items: dict[str, RigArtifactGrant] = {}
         self._lock = RLock()
 
-    def put(self, grant: RigPackageGrant) -> None:
+    def put(self, grant: RigArtifactGrant) -> None:
         with self._lock:
             self._items[grant.capability_sha256] = grant
 
-    def consume(self, capability_sha256: str, *, now: datetime) -> RigPackageGrant | None:
+    def consume(self, capability_sha256: str, *, now: datetime) -> RigArtifactGrant | None:
         with self._lock:
             grant = self._items.get(capability_sha256)
             if grant is None:
@@ -42,4 +42,6 @@ class InMemoryRigPackageGrantStore:
             return len(expired)
 
 
-__all__ = ["InMemoryRigPackageGrantStore"]
+InMemoryRigPackageGrantStore = InMemoryRigArtifactGrantStore
+
+__all__ = ["InMemoryRigArtifactGrantStore", "InMemoryRigPackageGrantStore"]

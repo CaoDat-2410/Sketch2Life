@@ -10,6 +10,7 @@
 | E-030-REV3-003 | Functional controls, 12-second motion, subject isolation and butterfly part composition | Implementation and regression review | `notes/REVISION3_PART_AWARE_BASELINE_20260926.md` | PASS_PENDING_ANDROID_VISUAL_REVIEW |
 | E-030-R4-PLAN-004 | Single-L4 AI-assisted semantic-part rigging candidate and delivery plan | Source/architecture review | `notes/REVISION4_AI_SEGMENTATION_PLAN_20260926.md` | APPROVED_AND_IMPLEMENTED_WITH_BENCHMARK_PENDING |
 | E-030-R4-IMPL-005 | Typed SAM2.1 worker route, backend adapter, bounded prompt proposal and mask provenance | Unit/contract review | `notes/REVISION4_SAM21_IMPLEMENTATION_20260926.md` | PASS_UNIT_TESTS_BENCHMARK_PENDING |
+| E-030-FIX-006 | SAM2-success mask handoff, verified Pixi cutout motion and explicit renderer failure/fallback lifecycle | Focused backend/renderer regression, typecheck and bundle build | `notes/SAM2_SUCCESS_MASK_HANDOFF_FIX_20260927.md` | PASS_LOCAL_CHECKS_PENDING_ANDROID_LIGHTNING_VISUAL_RETEST |
 
 ## Planned evidence groups
 

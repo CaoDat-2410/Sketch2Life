@@ -1,6 +1,6 @@
 # FEAT-030 Original-derived auto-rig context
 
-- Status: REVISION_3_PART_AWARE_BASELINE_IMPLEMENTED; REVISION_4_SAM21_WORKER_IMPLEMENTATION_IN_PROGRESS; QWEN_SINGLE_PASS_AND_SAM_PROMPT_FIX_IMPLEMENTED; LIVE_ACTIVATION_PENDING_L4_BENCHMARK.
+- Status: REVISION_3_PART_AWARE_BASELINE_IMPLEMENTED; REVISION_4_SAM21_WORKER_IMPLEMENTATION_IN_PROGRESS; QWEN_SINGLE_PASS_AND_SAM_PROMPT_FIX_IMPLEMENTED; SAM2_SUCCESS_MASK_HANDOFF_FIX_IMPLEMENTED_LOCALLY; ANDROID_LIGHTNING_VISUAL_RETEST_PENDING; LIVE_ACTIVATION_PENDING_L4_BENCHMARK.
 - Owner: Project owner; Revision 4 implementation is explicitly approved, while live default activation remains benchmark-gated.
 - Goal: turn a validated subject from the child's immutable drawing into a bounded, explainable PixiJS 2D rig so the drawing visibly moves while remaining recognizably the child's work.
 - Scope: target selection, spatial grounding, segmentation, original-derived masks/textures, mesh and skeleton generation, skin weights, rig validation, bounded motion profiles, asynchronous preparation, Renderer V2 loading, PixiJS CPU skinning, deterministic fallback, provenance, metrics, and golden-scene evidence.
@@ -51,3 +51,5 @@ until the L4 benchmark and deployment ADR evidence are recorded.
 - The Lightning worker also emits a sanitized stdout completion line, and the mobile client preserves closed, parent-facing workflow messages instead of collapsing them into a generic image-read error.
 - The backend SAM2 adapter now creates a bounded box from clustered colored ink before calling `/v2/rig/segment`; blank or invalid images still fail closed. Pillow is a runtime dependency because prompt extraction occurs in the backend process.
 - The 2026-09-27 Lightning evidence confirms Qwen is single-pass and successful while SAM2 returns typed `MODEL_UNAVAILABLE`. The worker now resolves standard checkpoint/config locations from `SAM2_MODEL_DIR` and logs a closed private diagnostic reason without exposing provider details to mobile; live SAM2 activation still requires the private runtime dependency/checkpoint setup.
+- The 2026-09-27 SAM2-success runtime fix now gives the WebView a separate short-lived mask capability, verifies source/package/mask hashes and mask dimensions, and composes a subject-only cutout only when neutral-paper corner checks validate a safe local background patch. Subject-only masks stay at `CUTOUT_MICRO_MOTION`; missing/unsafe masks use V1 and send a playback result so the mobile screen cannot remain indefinitely at zero duration. Android + live Lightning visual retest is still pending.
+- Metadata-only part proposals no longer promote a package to `FULL_AUTO_RIG`; the current package/renderer path does not yet deliver independent part masks to PixiJS.

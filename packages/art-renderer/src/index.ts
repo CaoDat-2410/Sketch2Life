@@ -4,6 +4,12 @@ export {createRendererBenchmarkSample} from './benchmark';
 export {createBrowserArtPlayer} from './browserPlayer';
 export {createAutoRigPlayer} from './autoRigPlayer';
 export {
+  createSubjectCutoutLayers,
+  matchesDerivedMaskProvenance,
+  requireVerifiedCutoutMask,
+} from './subjectCutout';
+export type {SubjectCutoutLayers} from './subjectCutout';
+export {
   BonePoseV2Schema,
   RendererLoadCommandV2Schema,
   RigArchetypeSchema,

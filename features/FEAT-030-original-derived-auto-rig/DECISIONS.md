@@ -30,6 +30,7 @@
 | D-030-19 | Keep initial single-L4 GPU admission serialized and require measured 4 GiB peak headroom plus a 100-job stress pass before concurrency. | PROPOSED REVISION 4 | Qwen3-VL 8B BF16 and segmentation residency must not be assumed safe on 24 GB. |
 | D-030-20 | Use AI only for subject/part perception; keep rig construction and animation deterministic. | PROPOSED REVISION 4 | Produces explainable package artifacts and avoids generative redraw or invented motion. |
 | D-030-21 | Keep Lightning `/v2/vision` single-pass by default; expose bounded Qwen retry only as an explicit benchmark flag, enable safe structural normalization in memory, and generate SAM2 box prompts from bounded colored-ink regions in the backend. | IMPLEMENTED 2026-09-26 | Prevents one request from loading Qwen twice while salvaging common JSON shape drift and fixing `PROMPT_REQUIRED` without restoring an unconditional localization call or permitting full-frame prompts. |
+| D-030-22 | Treat a successful SAM2 subject mask as usable only after a separate bounded read capability, integrity/source checks, and renderer consumption; allow subject-only cutout motion only when the background-paper patch is validated, otherwise use the safe V1 path. | ACCEPTED_AND_IMPLEMENTED_LOCALLY 2026-09-27 | Separates model success from renderer readiness, prevents synthetic anatomy from a bounding box, and preserves the original drawing when extraction or background reconstruction is unsafe. |
 
 ## Clarification of full-topic coverage
 
