@@ -109,11 +109,17 @@ def render_progressive_reveal(
                 + white * (1.0 - frame_alpha[:, :, None])
             ).astype(np.uint8)
             if motion_schedule:
+                schedule_position = progress * len(motion_schedule)
                 motion_index = min(
                     len(motion_schedule) - 1,
-                    int(frame_index / max(1, frame_count) * len(motion_schedule)),
+                    int(schedule_position),
                 )
-                frame = _apply_motion(frame, motion_schedule[motion_index])
+                motion_progress = schedule_position - motion_index
+                frame = _apply_motion(
+                    frame,
+                    motion_schedule[motion_index],
+                    motion_progress,
+                )
             writer.append_data(frame)
     finally:
         writer.close()
@@ -133,16 +139,21 @@ def render_progressive_reveal(
     )
 
 
-def _apply_motion(frame, motion: WhiteboardMotion):
-    """Add restrained scene motion without introducing unreviewed visual claims."""
+def _apply_motion(frame, motion: WhiteboardMotion, progress: float = 0.0):
+    """Add visible storyboard motion without introducing unreviewed claims."""
 
     import numpy as np
     from PIL import Image, ImageDraw
 
     height, width = frame.shape[:2]
+    if motion == "INTRO":
+        scale = 0.92 + (0.08 * progress)
+        return _center_scale(frame, scale)
+
     if motion == "FOCUS":
-        crop_height = round(height * 0.82)
-        crop_width = round(width * 0.82)
+        scale = 1.12 + (0.12 * progress)
+        crop_height = round(height / scale)
+        crop_width = round(width / scale)
         top = (height - crop_height) // 2
         left = (width - crop_width) // 2
         focused = Image.fromarray(
@@ -153,25 +164,50 @@ def _apply_motion(frame, motion: WhiteboardMotion):
     if motion == "DEMONSTRATE":
         image = Image.fromarray(frame)
         draw = ImageDraw.Draw(image, "RGBA")
-        center_y = height // 2
-        margin = round(width * 0.22)
-        blue = (43, 105, 176, 180)
-        draw.line((margin, center_y, width - margin, center_y), fill=blue, width=5)
-        draw.line((margin, center_y, margin + 28, center_y - 18), fill=blue, width=5)
-        draw.line((margin, center_y, margin + 28, center_y + 18), fill=blue, width=5)
-        draw.line(
-            (width - margin, center_y, width - margin - 28, center_y - 18),
-            fill=blue,
-            width=5,
+        center_x, center_y = width // 2, height // 2
+        radius = round(min(width, height) * (0.14 + 0.05 * progress))
+        blue = (43, 105, 176, 220)
+        gold = (234, 159, 45, 220)
+        draw.ellipse(
+            (center_x - radius, center_y - radius, center_x + radius, center_y + radius),
+            outline=gold,
+            width=8,
         )
-        draw.line(
-            (width - margin, center_y, width - margin - 28, center_y + 18),
+        arrow_y = round(height * (0.78 - 0.20 * progress))
+        margin = round(width * 0.16)
+        draw.line((margin, arrow_y, width - margin, arrow_y), fill=blue, width=7)
+        draw.polygon(
+            ((margin, arrow_y), (margin + 34, arrow_y - 24), (margin + 34, arrow_y + 24)),
             fill=blue,
-            width=5,
+        )
+        draw.polygon(
+            ((width - margin, arrow_y), (width - margin - 34, arrow_y - 24),
+             (width - margin - 34, arrow_y + 24)),
+            fill=blue,
         )
         return np.asarray(image)
 
+    if motion == "RECAP":
+        return _center_scale(frame, 1.06 - (0.06 * progress))
+
     return frame
+
+
+def _center_scale(frame, scale: float):
+    """Scale around the canvas center while preserving the output dimensions."""
+
+    import numpy as np
+    from PIL import Image
+
+    height, width = frame.shape[:2]
+    if scale <= 1.0:
+        return frame
+    crop_height = max(1, round(height / scale))
+    crop_width = max(1, round(width / scale))
+    top = (height - crop_height) // 2
+    left = (width - crop_width) // 2
+    cropped = Image.fromarray(frame[top : top + crop_height, left : left + crop_width])
+    return np.asarray(cropped.resize((width, height), Image.Resampling.LANCZOS))
 
 
 __all__ = [
