@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+from contextlib import nullcontext
 import hashlib
 import io
 import json
@@ -101,8 +102,15 @@ def localize(payload: dict[str, Any]) -> dict[str, Any]:
         from qwen_vl_utils import process_vision_info
 
         image_inputs, video_inputs = process_vision_info(messages)
-        inputs = processor(text=[text], images=image_inputs, videos=video_inputs, return_tensors="pt").to("cuda")
         import torch
+
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        inputs = processor(
+            text=[text],
+            images=image_inputs,
+            videos=video_inputs,
+            return_tensors="pt",
+        ).to(device)
 
         with torch.inference_mode():
             output = vlm.generate(**inputs, max_new_tokens=64, do_sample=False)
@@ -137,7 +145,12 @@ def segment(payload: dict[str, Any]) -> dict[str, Any]:
             _sam_predictor = SAM2ImagePredictor.from_pretrained("facebook/sam2.1-hiera-small")
         image_array = np.asarray(image)
         _sam_predictor.set_image(image_array)
-        with torch.inference_mode(), torch.autocast("cuda", dtype=torch.bfloat16):
+        autocast_context = (
+            torch.autocast("cuda", dtype=torch.bfloat16)
+            if torch.cuda.is_available()
+            else nullcontext()
+        )
+        with torch.inference_mode(), autocast_context:
             masks, scores, _ = _sam_predictor.predict(box=np.asarray(box), multimask_output=True)
         mask = np.asarray(masks[int(np.argmax(scores))]).squeeze() > 0.5
         buffer = io.BytesIO()
