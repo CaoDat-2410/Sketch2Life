@@ -80,6 +80,7 @@ def render_progressive_reveal(
     rgba = np.asarray(canvas)
     rgb = rgba[:, :, :3].astype(np.float32)
     alpha = rgba[:, :, 3].astype(np.float32) / 255.0
+    stroke_points = _ordered_boundary_points(alpha > 0.05)
     y_ratio = np.arange(render_spec.height, dtype=np.float32)[:, None]
     y_ratio /= render_spec.height
     frame_count = round(render_spec.fps * render_spec.duration_seconds)
@@ -108,6 +109,7 @@ def render_progressive_reveal(
                 rgb * frame_alpha[:, :, None]
                 + white * (1.0 - frame_alpha[:, :, None])
             ).astype(np.uint8)
+            frame = _draw_progressive_strokes(frame, stroke_points, progress)
             if motion_schedule:
                 schedule_position = progress * len(motion_schedule)
                 motion_index = min(
@@ -208,6 +210,75 @@ def _center_scale(frame, scale: float):
     left = (width - crop_width) // 2
     cropped = Image.fromarray(frame[top : top + crop_height, left : left + crop_width])
     return np.asarray(cropped.resize((width, height), Image.Resampling.LANCZOS))
+
+
+def _ordered_boundary_points(mask):
+    """Return a deterministic contour-like order for progressive drawing."""
+
+    import numpy as np
+
+    ys, xs = np.where(mask)
+    if len(xs) == 0:
+        return []
+    points = np.column_stack((xs, ys)).astype(np.int32)
+    if len(points) > 8000:
+        sample = np.linspace(0, len(points) - 1, 8000, dtype=np.int32)
+        points = points[sample]
+    center = points.mean(axis=0)
+    angles = np.arctan2(points[:, 1] - center[1], points[:, 0] - center[0])
+    order = np.argsort(angles)
+    return [tuple(point) for point in points[order].tolist()]
+
+
+def _draw_progressive_strokes(frame, points, progress: float):
+    """Draw the subject contour and move a visible marker hand with the pen."""
+
+    import numpy as np
+    from PIL import Image, ImageDraw
+
+    if len(points) < 2 or progress <= 0:
+        return frame
+    visible_count = max(2, round(len(points) * min(1.0, progress * 1.35)))
+    image = Image.fromarray(frame)
+    draw = ImageDraw.Draw(image, "RGBA")
+    draw.line(
+        points[:visible_count],
+        fill=(35, 35, 35, 235),
+        width=4,
+        joint="curve",
+    )
+    _draw_marker_hand(draw, points[visible_count - 1])
+    return np.asarray(image)
+
+
+def _draw_marker_hand(draw, point):
+    """Draw a small whiteboard hand/marker cursor at the active stroke point."""
+
+    x, y = point
+    hand_x, hand_y = x + 22, y + 28
+    outline = (28, 34, 42, 255)
+    skin = (255, 224, 190, 255)
+    sleeve = (54, 112, 190, 255)
+    draw.line((x, y, hand_x, hand_y - 8), fill=(43, 105, 176, 255), width=5)
+    draw.line((x, y, x + 14, y - 18), fill=outline, width=4)
+    draw.ellipse(
+        (hand_x - 15, hand_y - 12, hand_x + 17, hand_y + 23),
+        fill=skin,
+        outline=outline,
+        width=3,
+    )
+    draw.rounded_rectangle(
+        (hand_x - 17, hand_y + 13, hand_x + 19, hand_y + 31),
+        radius=8,
+        fill=sleeve,
+        outline=outline,
+        width=3,
+    )
+    draw.line(
+        (hand_x - 4, hand_y - 8, hand_x + 4, hand_y - 25),
+        fill=skin,
+        width=8,
+    )
 
 
 __all__ = [
