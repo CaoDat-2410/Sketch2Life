@@ -7,6 +7,7 @@ from contextlib import nullcontext
 import hashlib
 import io
 import json
+import logging
 import os
 import re
 from typing import Any
@@ -14,6 +15,7 @@ from typing import Any
 from fastapi import FastAPI, HTTPException
 
 app = FastAPI(title="Sketch2Life Whiteboard Provider", version="1.0.0")
+_LOGGER = logging.getLogger("sketch2life.whiteboard_provider")
 
 MODEL_ID = os.getenv("SKETCH2LIFE_VLM_MODEL", "Qwen/Qwen3-VL-2B-Instruct")
 _vlm = None
@@ -79,6 +81,30 @@ def _parse_box(text: str, width: int, height: int) -> list[float]:
     return box
 
 
+def _cpu_foreground_mask(image: Any) -> Any:
+    """Build a conservative mask for CPU-only development environments."""
+
+    import numpy as np
+
+    pixels = np.asarray(image.convert("RGB"))
+    return np.any(pixels < 245, axis=2)
+
+
+def _mask_box(mask: Any) -> list[float]:
+    import numpy as np
+
+    ys, xs = np.where(mask)
+    if len(xs) == 0 or len(ys) == 0:
+        raise ValueError("cpu fallback could not find foreground pixels")
+    return [float(xs.min()), float(ys.min()), float(xs.max() + 1), float(ys.max() + 1)]
+
+
+def _cpu_fallback_enabled() -> bool:
+    import torch
+
+    return not torch.cuda.is_available()
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok", "service": "whiteboard-provider"}
@@ -88,6 +114,18 @@ def health() -> dict[str, str]:
 def localize(payload: dict[str, Any]) -> dict[str, Any]:
     try:
         _, image, source_hash = _decode_source(payload)
+        job_id = str(payload.get("job_id", ""))
+        if not job_id:
+            raise ValueError("job_id is required")
+        if _cpu_fallback_enabled():
+            _boxes[job_id] = _mask_box(_cpu_foreground_mask(image))
+            return {
+                "source_hash": source_hash,
+                "regions": [{
+                    "region_ref": f"{job_id}:region-001",
+                    "confidence": 0.99,
+                }],
+            }
         vlm, processor = _load_vlm()
         image_path = "/tmp/whiteboard-provider-input.png"
         image.save(image_path)
@@ -117,12 +155,10 @@ def localize(payload: dict[str, Any]) -> dict[str, Any]:
         trimmed = [out[len(inp):] for inp, out in zip(inputs.input_ids, output)]
         answer = processor.batch_decode(trimmed, skip_special_tokens=True)[0]
         box = _parse_box(answer, image.width, image.height)
-        job_id = str(payload.get("job_id", ""))
-        if not job_id:
-            raise ValueError("job_id is required")
         _boxes[job_id] = box
         return {"source_hash": source_hash, "regions": [{"region_ref": f"{job_id}:region-001", "confidence": 0.9}]}
-    except (KeyError, TypeError, ValueError, OSError) as error:
+    except (KeyError, TypeError, ValueError, OSError, RuntimeError) as error:
+        _LOGGER.exception("whiteboard_localization_failed")
         raise HTTPException(status_code=422, detail="LOCALIZATION_FAILED") from error
 
 
@@ -138,6 +174,18 @@ def segment(payload: dict[str, Any]) -> dict[str, Any]:
         box = _boxes.get(job_id)
         if box is None:
             raise ValueError("localization is required before segmentation")
+        if _cpu_fallback_enabled():
+            buffer = io.BytesIO()
+            Image.fromarray(
+                (_cpu_foreground_mask(image).astype("uint8") * 255)
+            ).save(buffer, format="PNG")
+            return {
+                "source_hash": source_hash,
+                "masks": [{
+                    "mask_ref": f"{job_id}:mask-001",
+                    "content_base64": base64.b64encode(buffer.getvalue()).decode("ascii"),
+                }],
+            }
         global _sam_predictor
         if _sam_predictor is None:
             from sam2.sam2_image_predictor import SAM2ImagePredictor
@@ -162,7 +210,8 @@ def segment(payload: dict[str, Any]) -> dict[str, Any]:
                 "content_base64": base64.b64encode(buffer.getvalue()).decode("ascii"),
             }],
         }
-    except (KeyError, TypeError, ValueError, OSError) as error:
+    except (KeyError, TypeError, ValueError, OSError, RuntimeError) as error:
+        _LOGGER.exception("whiteboard_segmentation_failed")
         raise HTTPException(status_code=422, detail="SEGMENTATION_FAILED") from error
 
 
