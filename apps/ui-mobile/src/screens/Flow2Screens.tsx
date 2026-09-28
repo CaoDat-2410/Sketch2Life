@@ -921,13 +921,14 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
   const nav = onNavigate || navigate;
   const rendererInstanceId = useState(() => Crypto.randomUUID())[0];
   const rendererWebViewRef = useRef<WebView>(null);
-  const rendererCommandSent = useRef(false);
+  const rendererPendingCommand = useRef<string | null>(null);
   const rendererPreparationAttempted = useRef(false);
   const controlSequence = useRef(1);
   const [rendererAttempt, setRendererAttempt] = useState(0);
   const [rendererFailed, setRendererFailed] = useState(false);
   const [rendererPreparationFailed, setRendererPreparationFailed] = useState(false);
   const [rendererHandshakeReceived, setRendererHandshakeReceived] = useState(false);
+  const [rendererReadyReceived, setRendererReadyReceived] = useState(false);
   const [rendererStatus, setRendererStatus] = useState('Đang chuẩn bị bức vẽ…');
   const [discoveredLabel, setDiscoveredLabel] = useState<string | null>(null);
   const [chromeVisible, setChromeVisible] = useState(true);
@@ -1026,14 +1027,17 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
 
   useEffect(() => {
     if (!rendererPageUrl || rendererFailed || playback.duration > 0) return;
+    const timeoutMs = !rendererHandshakeReceived ? 15000 : !rendererReadyReceived ? 30000 : 45000;
     const timeout = setTimeout(() => {
       setRendererFailed(true);
-      setRendererStatus(rendererHandshakeReceived
-        ? 'Pixi đã kết nối nhưng chưa bắt đầu phát. Hãy thử mở lại; ảnh gốc vẫn an toàn.'
-        : 'Pixi chưa phản hồi. Hãy kiểm tra kết nối rồi thử lại; ảnh gốc vẫn an toàn.');
-    }, rendererHandshakeReceived ? 45000 : 15000);
+      setRendererStatus(!rendererHandshakeReceived
+        ? 'Pixi chưa phản hồi. Hãy kiểm tra kết nối rồi thử lại; ảnh gốc vẫn an toàn.'
+        : !rendererReadyReceived
+          ? 'Pixi chưa khởi tạo xong. Hãy thử mở lại; ảnh gốc vẫn an toàn.'
+          : 'Pixi đã sẵn sàng nhưng chưa nạp được chuyển động. Hãy thử mở lại; ảnh gốc vẫn an toàn.');
+    }, timeoutMs);
     return () => clearTimeout(timeout);
-  }, [rendererPageUrl, rendererFailed, playback.duration, rendererHandshakeReceived, rendererAttempt]);
+  }, [rendererPageUrl, rendererFailed, playback.duration, rendererHandshakeReceived, rendererReadyReceived, rendererAttempt]);
 
   useEffect(() => {
     if (playback.state !== 'PLAYING') {
@@ -1071,60 +1075,72 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
     let value: unknown;
     try { value = JSON.parse(serialized); } catch { return; }
     const bootstrap = RendererBootstrapSchema.safeParse(value);
-    if (bootstrap.success && rendererLaunch && !rendererCommandSent.current) {
+    if (bootstrap.success && rendererLaunch) {
       if (bootstrap.data.rendererInstanceId !== rendererInstanceId) return;
+      const isRendererReady = rendererPendingCommand.current !== null;
       setRendererHandshakeReceived(true);
-      const launch = rendererObject(rendererLaunch);
-      const isV2 = launch.contractName === 'PixiRendererLaunchV2';
-      const command = isV2
-        ? RendererLoadCommandV2Schema.safeParse({
-          contractName: 'RendererLoadCommandV2',
-          contractVersion: '2.0',
-          protocolVersion: '2',
-          sequence: 1,
-          rendererInstanceId,
-          sessionId: rendererText(launch.sessionId),
-          expectedSessionVersion: launch.expectedSessionVersion,
-          experienceSpecRef: launch.experienceSpecRef,
-          sourceReadEndpoint: launch.sourceReadEndpoint,
-          sourceReadCapability: launch.sourceReadCapability,
-          sourceSha256: launch.sourceSha256,
-          packageReadEndpoint: launch.packageReadEndpoint,
-          packageReadCapability: launch.packageReadCapability,
-          packageSha256: launch.packageSha256,
-          ...(launch.maskReadEndpoint === undefined ? {} : {maskReadEndpoint: launch.maskReadEndpoint}),
-          ...(launch.maskReadCapability === undefined ? {} : {maskReadCapability: launch.maskReadCapability}),
-          ...(launch.maskSha256 === undefined ? {} : {maskSha256: launch.maskSha256}),
-          animationPlan: launch.animationPlan,
-        })
-        : RendererLoadCommandSchema.safeParse({
-          contractName: 'RendererLoadCommandV1',
-          contractVersion: '1.0',
-          protocolVersion: ART_RENDERER_PROTOCOL_VERSION,
-          sequence: 1,
-          rendererInstanceId,
-          sessionId: rendererText(launch.sessionId),
-          expectedSessionVersion: launch.expectedSessionVersion,
-          experienceSpecRef: launch.experienceSpecRef,
-          sourceReadEndpoint: launch.sourceReadEndpoint,
-          sourceReadCapability: launch.sourceReadCapability,
-          assetManifest: launch.assetManifest,
-          animationPlan: launch.animationPlan,
-          sceneExplorationPlan: launch.sceneExplorationPlan,
-          sceneFocusPlan: launch.sceneFocusPlan,
-        });
-      if (!command.success || !rendererWebViewRef.current) {
-        setRendererFailed(true);
-        setRendererStatus('Bức tranh chưa sẵn sàng. Ảnh gốc vẫn được giữ nguyên.');
-        return;
+      setRendererReadyReceived(isRendererReady);
+      let commandMessage = rendererPendingCommand.current;
+      if (commandMessage === null) {
+        const launch = rendererObject(rendererLaunch);
+        const isV2 = launch.contractName === 'PixiRendererLaunchV2';
+        const command = isV2
+          ? RendererLoadCommandV2Schema.safeParse({
+            contractName: 'RendererLoadCommandV2',
+            contractVersion: '2.0',
+            protocolVersion: '2',
+            sequence: 1,
+            rendererInstanceId,
+            sessionId: rendererText(launch.sessionId),
+            expectedSessionVersion: launch.expectedSessionVersion,
+            experienceSpecRef: launch.experienceSpecRef,
+            sourceReadEndpoint: launch.sourceReadEndpoint,
+            sourceReadCapability: launch.sourceReadCapability,
+            sourceSha256: launch.sourceSha256,
+            packageReadEndpoint: launch.packageReadEndpoint,
+            packageReadCapability: launch.packageReadCapability,
+            packageSha256: launch.packageSha256,
+            ...(launch.maskReadEndpoint === undefined ? {} : {maskReadEndpoint: launch.maskReadEndpoint}),
+            ...(launch.maskReadCapability === undefined ? {} : {maskReadCapability: launch.maskReadCapability}),
+            ...(launch.maskSha256 === undefined ? {} : {maskSha256: launch.maskSha256}),
+            animationPlan: launch.animationPlan,
+          })
+          : RendererLoadCommandSchema.safeParse({
+            contractName: 'RendererLoadCommandV1',
+            contractVersion: '1.0',
+            protocolVersion: ART_RENDERER_PROTOCOL_VERSION,
+            sequence: 1,
+            rendererInstanceId,
+            sessionId: rendererText(launch.sessionId),
+            expectedSessionVersion: launch.expectedSessionVersion,
+            experienceSpecRef: launch.experienceSpecRef,
+            sourceReadEndpoint: launch.sourceReadEndpoint,
+            sourceReadCapability: launch.sourceReadCapability,
+            assetManifest: launch.assetManifest,
+            animationPlan: launch.animationPlan,
+            sceneExplorationPlan: launch.sceneExplorationPlan,
+            sceneFocusPlan: launch.sceneFocusPlan,
+          });
+        if (!command.success) {
+          setRendererFailed(true);
+          setRendererStatus('Bức tranh chưa sẵn sàng. Ảnh gốc vẫn được giữ nguyên.');
+          return;
+        }
+        commandMessage = JSON.stringify(command.data);
+        rendererPendingCommand.current = commandMessage;
       }
-      rendererCommandSent.current = true;
-      rendererWebViewRef.current.postMessage(JSON.stringify(command.data));
-      setRendererStatus(isV2 ? 'Đang làm các nét vẽ chuyển động…' : 'Đang dựng chuyển động từ bức vẽ gốc…');
+      if (!rendererWebViewRef.current) return;
+      // The renderer repeats its bootstrap once WebGL startup finishes. Replay
+      // the exact same bounded launch then; the page gate suppresses duplicates.
+      rendererWebViewRef.current.postMessage(commandMessage);
+      setRendererStatus(isRendererReady
+        ? 'Pixi sẵn sàng; đang nạp ảnh và chuyển động…'
+        : 'Pixi đã kết nối; đang khởi tạo sân khấu…');
       return;
     }
     const state = RendererPlaybackStateEnvelopeSchema.safeParse(value);
     if (state.success && state.data.rendererInstanceId === rendererInstanceId) {
+      setRendererReadyReceived(true);
       setRendererFailed(false);
       setPlayback({
         position: state.data.positionSeconds,
@@ -1145,6 +1161,7 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
     }
     const lifecycle = RendererPlaybackEventEnvelopeSchema.safeParse(value);
     if (lifecycle.success) {
+      setRendererReadyReceived(true);
       const lifecycleEvent = lifecycle.data.event;
       switch (lifecycleEvent.type) {
         case 'DISCOVERED_ENTITY':
@@ -1184,8 +1201,9 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
   };
 
   const retry = () => {
-    rendererCommandSent.current = false;
+    rendererPendingCommand.current = null;
     setRendererHandshakeReceived(false);
+    setRendererReadyReceived(false);
     setRendererFailed(false);
     setPlayback({ position: 0, duration: 0, state: 'READY', interactionPhase: 'INTRO_LOADING' });
     setChromeVisible(true);

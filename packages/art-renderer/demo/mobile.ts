@@ -11,6 +11,7 @@ import {
   RiggedArtworkPackageV1Schema,
   matchesDerivedMaskProvenance,
   sha256Hex,
+  createRendererStartupGate,
   type PlaybackEvent,
   type RendererLoadCommand,
   type RendererLoadCommandV2,
@@ -32,15 +33,7 @@ if (stage === null || status === null || playButton === null || rendererInstance
 }
 
 const app = new Application();
-await app.init({
-  width: 800,
-  height: 600,
-  background: '#fffef9',
-  antialias: true,
-  autoDensity: true,
-  resolution: Math.min(window.devicePixelRatio || 1, 2),
-});
-stage.append(app.canvas);
+let rendererInitialized = false;
 
 type ActiveLaunch = RendererLoadCommand | RendererLoadCommandV2;
 type PlaybackController = Pick<ReturnType<typeof createBrowserArtPlayer>, 'play' | 'pause' | 'replay' | 'seekTo' | 'seekRelative' | 'getPlaybackState'>;
@@ -351,11 +344,12 @@ function receiveNativeMessage(event: MessageEvent): void {
   } catch {
     return;
   }
-  void loadLaunch(serialized);
+  const parsedV2 = RendererLoadCommandV2Schema.safeParse(JSON.parse(serialized));
+  const parsedV1 = RendererLoadCommandSchema.safeParse(JSON.parse(serialized));
+  const command = parsedV2.success ? parsedV2.data : parsedV1.success ? parsedV1.data : null;
+  if (command?.rendererInstanceId === rendererInstanceId) startupGate.receive(serialized);
 }
 
-window.addEventListener('message', receiveNativeMessage);
-document.addEventListener('message', receiveNativeMessage as EventListener);
 playButton.addEventListener('click', () => {
   if (launch === null) return;
   try {
@@ -368,23 +362,71 @@ playButton.addEventListener('click', () => {
   }
 });
 
-app.canvas.addEventListener('pointerdown', () => {
-  if (launch?.contractName !== 'RendererLoadCommandV2') return;
-  postLifecycle({
-    type: 'CANVAS_TAPPED',
-    planId: launch.animationPlan.planId,
-  });
-});
-
 window.addEventListener('pagehide', () => {
   classicPlayer.destroy();
   autoRigPlayer.destroy();
   sourceBlob = null;
-  app.destroy(true);
+  if (rendererInitialized) app.destroy(true);
 });
 
-status.textContent = 'Pixi sẵn sàng, đang chờ launch của đúng phiên.';
-post({protocolVersion: ART_RENDERER_PROTOCOL_VERSION, rendererInstanceId});
+function reportPixiInitializationFailure(serialized: string): void {
+  let parsedJson: unknown;
+  try {
+    parsedJson = JSON.parse(serialized);
+  } catch {
+    return;
+  }
+  const parsedV2 = RendererLoadCommandV2Schema.safeParse(parsedJson);
+  const parsedV1 = RendererLoadCommandSchema.safeParse(parsedJson);
+  const command = parsedV2.success ? parsedV2.data : parsedV1.success ? parsedV1.data : null;
+  if (command === null || command.rendererInstanceId !== rendererInstanceId) return;
+  launch = command;
+  const planId = command.contractName === 'RendererLoadCommandV2'
+    ? command.animationPlan.planId
+    : command.animationPlan.plan.planId;
+  postLifecycle({type: 'PLAYBACK_FAILED', planId, reason: 'PIXI_APPLICATION_INIT_FAILED'});
+}
+
+const startupGate = createRendererStartupGate(
+  (serialized) => { void loadLaunch(serialized); },
+  reportPixiInitializationFailure,
+);
+
+function postRendererBootstrap(): void {
+  post({protocolVersion: ART_RENDERER_PROTOCOL_VERSION, rendererInstanceId});
+}
+
+window.addEventListener('message', receiveNativeMessage);
+document.addEventListener('message', receiveNativeMessage as EventListener);
+status.textContent = 'Đã kết nối app; đang khởi tạo sân khấu Pixi…';
+postRendererBootstrap();
+
+void app.init({
+  width: 800,
+  height: 600,
+  background: '#fffef9',
+  antialias: true,
+  autoDensity: true,
+  resolution: Math.min(window.devicePixelRatio || 1, 2),
+}).then(() => {
+  stage.append(app.canvas);
+  rendererInitialized = true;
+  app.canvas.addEventListener('pointerdown', () => {
+    if (launch?.contractName !== 'RendererLoadCommandV2') return;
+    postLifecycle({type: 'CANVAS_TAPPED', planId: launch.animationPlan.planId});
+  });
+  status.textContent = 'Pixi sẵn sàng, đang chờ launch của đúng phiên.';
+  startupGate.markReady();
+  // React Native WebView can drop a native->page postMessage during WebGL
+  // startup. Re-announcing the same bootstrap makes the host replay its one
+  // cached launch after the renderer message listener is fully ready.
+  postRendererBootstrap();
+}).catch(() => {
+  console.error('[art-renderer] Pixi application initialization failed.');
+  status.textContent = 'Pixi chưa khởi tạo được; ảnh gốc vẫn an toàn trong app.';
+  startupGate.markFailed();
+  postRendererBootstrap();
+});
 
 async function textureFromBlob(
   blob: Blob,

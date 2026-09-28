@@ -71,6 +71,7 @@ export type {
 export type {RendererMessage} from './bridge';
 export {buildPreservingFallbackPlan} from './fallback';
 export {sha256Hex, sha256HexPortable} from './sha256';
+export {createRendererStartupGate} from './startupGate';
 export {detectPrimaryForegroundRegion} from './foregroundRegion';
 export {compileMotionPlan} from './motion';
 export {ArtPlanValidationError, validateArtAnimationPlan} from './validation';

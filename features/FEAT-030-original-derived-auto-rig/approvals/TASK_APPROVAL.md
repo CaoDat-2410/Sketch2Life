@@ -47,3 +47,13 @@
 - Approval evidence: the project owner explicitly requested diagnosis and correction after showing `sam21_segmentation_completed status=SUCCEEDED` while the Android experience appeared to fall back.
 - Boundary: no new model/provider activation, no fabricated semantic parts, no change to Gate A/B or learning/activity flow; `FULL_AUTO_RIG` still requires validated independent parts.
 - Hash refresh note: only the implementation-status field changed from `IN_PROGRESS` to `IMPLEMENTED_LOCALLY; ANDROID_LIGHTNING_VISUAL_RETEST_PENDING`; approved scope and acceptance criteria are unchanged.
+
+## Renderer boot/bridge timeout follow-up — 2026-09-28
+
+- State: APPROVED_BY_DIRECT_OWNER_FIX_REQUEST; IMPLEMENTED_LOCALLY; ANDROID_ARTIFACT_RETEST_PENDING
+- Plan: `plan/RUNTIME_MASK_HANDOFF_FIX_20260927.md`, follow-up section dated 2026-09-28
+- Plan SHA-256: `DC763A8168134D36DD4697542D374CE71DE612A5E197DC9D8BD7BAF9F8141D6D`
+- Approved scope: implement AC-FIX-030-07 through AC-FIX-030-09: bootstrap before asynchronous Pixi initialization, bounded one-command queue/replay, explicit initialization failure signaling, stage-aware native timeout, and focused regression tests.
+- Approval evidence: the owner’s explicit request “check lỗi và fix” for the continuing SAM2-success/runtime-fallback issue and the follow-up report “vẫn fallback.” This is a scoped continuation of AC-FIX-030-04 (no indefinite INTRO_LOADING), not new model/provider or product-flow scope.
+- Boundary: no model/provider activation, Gate A/B changes, learning/activity-flow changes, or child-data logging. Android + Lightning visual retest remains required before marking the runtime fix complete.
+- Hash refresh: emulator evidence corrected the Pixi-init-stall hypothesis to a lost native-to-WebView launch delivery; the plan now specifies exact-message replay and idempotent deduplication under the already-approved one-command queue/replay scope. No contract, architecture boundary, or acceptance scope was broadened.

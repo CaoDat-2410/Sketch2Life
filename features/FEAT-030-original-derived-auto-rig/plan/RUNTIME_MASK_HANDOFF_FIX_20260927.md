@@ -1,6 +1,6 @@
 # FEAT-030 runtime fix — SAM2 mask handoff and cutout playback
 
-- Status: APPROVED_BY_DIRECT_OWNER_FIX_REQUEST; IMPLEMENTED_LOCALLY; ANDROID_LIGHTNING_VISUAL_RETEST_PENDING
+- Status: APPROVED_BY_DIRECT_OWNER_FIX_REQUEST; MASK_HANDOFF_IMPLEMENTED; STARTUP_BRIDGE_REPLAY_IMPLEMENTED_LOCALLY; ANDROID_ARTIFACT_RETEST_PENDING
 - Date: 2026-09-27
 - Scope: fix the runtime path where the Lightning worker reports SAM2.1 segmentation `SUCCEEDED`, but PixiJS does not consume the returned mask and the mobile screen later times out or appears to fall back.
 - Authority: direct owner request “fallback rồi, dù sam 2 chạy success, check lỗi và fix”, current FEAT-030 approved requirements, and the existing `CUTOUT_MICRO_MOTION` tier requirement. This addendum does not activate a new model or provider.
@@ -39,3 +39,21 @@ The SAM2.1 adapter stores the mask and the package advertises an `ORIGINAL_DERIV
 - No new SAM/Qwen inference, model activation, extra provider, AI-generated image, or fabricated semantic part mask.
 - No change to Gate A/Gate B, learning content, or the final video/activity workflow.
 - No promotion from subject-only mask to full auto-rig without validated semantic part masks and rig criteria.
+
+## Follow-up — renderer boot/bridge timeout, 2026-09-28
+
+- Status: APPROVED_BY_DIRECT_OWNER_FIX_REQUEST; STARTUP_BRIDGE_REPLAY_IMPLEMENTED_LOCALLY; ANDROID_ARTIFACT_RETEST_PENDING
+- Scope: continue the same unresolved renderer handoff covered by AC-FIX-030-04 and AC-FIX-030-07..09. The owner supplied a current Android screen showing that the first startup-handshake change still did not start playback.
+- Evidence-based diagnosis (emulator retest, 2026-09-28): on `emulator-5554` (Pixel_10, Android 17, x86_64), WebGL 1 and WebGL 2 contexts were available. Pixi initialization completed and attached one canvas; the page then remained at “Pixi sẵn sàng, đang chờ launch của đúng phiên.” The native screen had received the bootstrap (it showed the post-handshake timeout), but the backend logged no source, rig-package, or rig-mask read. This rejects the earlier hypothesis that `Application.init()` itself was stuck: the native-to-WebView launch post sent with the initial bootstrap can be lost during WebView/renderer startup. The bridge must replay the same bounded launch after Pixi readiness, without creating another capability or inference.
+- Planned changes:
+  1. Keep the bridge installed before asynchronous Pixi initialization and send the initial bootstrap immediately.
+  2. Cache one validated native launch command and replay the exact same command when the page re-announces bootstrap after Pixi becomes ready (or initialization fails); make replay idempotent so all artifact reads and playback happen at most once.
+  3. Keep the native timeout bounded and stage-aware: distinguish missing bootstrap, Pixi initialization, and post-ready launch/load timeout; never describe these as a SAM2/mask fallback.
+  4. Preserve sanitized initialization-failure reporting, all existing artifact-integrity checks, and focused replay/deduplication regression tests.
+- Acceptance criteria:
+  - AC-FIX-030-07: the initial bootstrap is posted before Pixi GPU initialization; the exact same validated launch is replayed after readiness and processed once even if the first native-to-WebView delivery is dropped.
+  - AC-FIX-030-08: Pixi initialization rejection or a bounded stage-specific timeout is surfaced as a renderer-startup failure, not a segmentation/mask fallback; no indefinite loading state remains.
+  - AC-FIX-030-09: regression tests cover queued/replayed delivery, duplicate suppression before and after ready/failure, and initialization failure; existing renderer tests and bundle build pass.
+- Verification: art-renderer unit tests/typecheck/build, mobile typecheck, and renderer-host asset smoke checks. Android validation should confirm that replay causes one source/package/mask fetch and playback using a safe local fixture. Do not invoke live model inference for this bridge regression. Repository security validation is required before any commit/push.
+- Authority: the owner’s approved request to fix the continuing renderer fallback, followed by the current failing screenshot. This refines the approved bounded one-command queue/replay under AC-FIX-030-07..09; no model/provider activation, external contract change, Gate change, or child-data handling is included.
+- Local verification completed 2026-09-28: art-renderer tests (32 passed), art-renderer typecheck, Vite mobile renderer build, and mobile TypeScript check passed. Emulator retest reproduced working WebGL and successful Pixi init followed by a missing launch/artifact read. The idempotent replay change is implemented; full Android artifact-read retest remains pending because re-entering the flow may call the configured Lightning provider.
