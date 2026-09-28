@@ -289,11 +289,11 @@ function MainAppContent() {
               </TouchableOpacity>
               <TouchableOpacity
                 accessibilityRole="button"
-                accessibilityLabel="Đóng thông báo và thử lại"
+                accessibilityLabel="Đóng thông báo lỗi"
                 style={styles.errorButton}
                 onPress={dismissWorkflowError}
               >
-                <Text style={styles.errorButtonText}>Thử lại</Text>
+                <Text style={styles.errorButtonText}>Đóng</Text>
               </TouchableOpacity>
             </View>
           </View>

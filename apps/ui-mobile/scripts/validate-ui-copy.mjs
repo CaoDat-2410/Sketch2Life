@@ -38,8 +38,8 @@ if (!flow2.includes('Bức vẽ gốc của con vẫn an toàn ở đây.')) {
 if (!flow2.includes('Dành cho người lớn') || !flow2.includes('Thử lại')) {
   throw new Error('Adult details and renderer recovery actions must remain available.');
 }
-if (!shell.includes('Về bước ảnh') || !shell.includes('Thử lại')) {
-  throw new Error('Global workflow modal must expose bounded recovery actions.');
+if (!shell.includes('Về bước ảnh') || !shell.includes('Đóng') || !flow2.includes('Thử lại')) {
+  throw new Error('Workflow errors must expose a truthful dismiss action and explicit screen-level retry.');
 }
 if (
   !flow2.includes("nav('pixi_intro')")

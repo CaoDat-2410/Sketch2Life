@@ -464,3 +464,22 @@ P2-T5, mobile, Gate A UI, P1 eligibility, P3/P4 and shared integration remain se
 - Added a frontend request lock so rapid repeated taps cannot submit the initial understanding
   command twice. Focused backend and frontend checks verify one semantic request and zero
   localization calls for the initial flow.
+
+## Main-flow hardening — 2026-09-28
+
+- The approved mobile-only reliability slice now uses a synchronous single-flight guard across
+  session mutations, validates narration before acquiring that guard, prevents image-picker/upload
+  races, and clears prior-session media, corrections, activity state and feedback only after a new
+  session is successfully created.
+- Recording has one authoritative timer, a three-minute cap, start/stop/cancel guards and cleanup on
+  failure. Image admission now fails early unless picker metadata identifies matching PNG/JPEG.
+- Feedback labels map to the five `FeedbackV1` enum values; the UI no longer offers unsaved free-text
+  notes because the current versioned contract forbids them. Ordinary dashboard entry is guarded by
+  the preceding workflow state.
+- Identical requests reuse their existing idempotency key after an ambiguous timeout/network/server
+  result; definitive responses or changed commands use a new key. Pixi preparation is attempted
+  once automatically, then requires an explicit retry. No backend contract or provider code changed.
+- Deterministic mobile tests, mobile typecheck, UI validation, renderer tests/build, backend feedback
+  contract tests and Android Metro export passed. Emulator/device acceptance remains pending because
+  `adb` is unavailable; no live AI request was made.
+- Evidence: `evidence/notes/MAIN_FLOW_HARDENING_IMPLEMENTATION_20260928.md`.

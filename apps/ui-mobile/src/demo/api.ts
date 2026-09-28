@@ -1,4 +1,9 @@
 import * as Crypto from 'expo-crypto';
+import {
+  outcomeMayHaveCommitted,
+  PendingIdempotencyKeys,
+  withPendingIdempotencyKey as withPendingRequestKey,
+} from './retryIdentity';
 
 export const DEMO_ACTOR_REF = 'demo:local';
 export const MAX_IMAGE_BYTES = 5_000_000;
@@ -135,6 +140,8 @@ function toError(value: unknown, statusCode: number): DemoApiError {
 export class DemoApiClient {
   readonly baseUrl: string;
   private readonly getAuthToken?: AuthTokenProvider;
+  private readonly pendingIdempotencyKeys = new PendingIdempotencyKeys();
+  private pendingSessionCreation: { sessionId: string; idempotencyKey: string } | null = null;
 
   constructor(baseUrl = API_BASE_URL, getAuthToken?: AuthTokenProvider) {
     this.baseUrl = baseUrl.replace(/\/+$/, '');
@@ -142,16 +149,26 @@ export class DemoApiClient {
   }
 
   async createSession(): Promise<WorkflowResult<Record<string, unknown>>> {
-    const sessionId = Crypto.randomUUID();
-    const requestId = newId('req');
-    return this.jsonRequest('/v1/sessions', {
-      request_id: requestId,
-      idempotency_key: newId('idem'),
-      session_id: sessionId,
-      expected_session_version: 0,
-      actor_ref: DEMO_ACTOR_REF,
-      payload: { operation: 'CREATE_SESSION' },
-    }, 30_000, 'POST');
+    const pending = this.pendingSessionCreation ?? {
+      sessionId: Crypto.randomUUID(),
+      idempotencyKey: newId('idem'),
+    };
+    this.pendingSessionCreation = pending;
+    try {
+      const result = await this.jsonRequest('/v1/sessions', {
+        request_id: newId('req'),
+        idempotency_key: pending.idempotencyKey,
+        session_id: pending.sessionId,
+        expected_session_version: 0,
+        actor_ref: DEMO_ACTOR_REF,
+        payload: { operation: 'CREATE_SESSION' },
+      }, 30_000, 'POST');
+      this.pendingSessionCreation = null;
+      return result;
+    } catch (error) {
+      if (!outcomeMayHaveCommitted(error)) this.pendingSessionCreation = null;
+      throw error;
+    }
   }
 
   async uploadImage(
@@ -159,21 +176,24 @@ export class DemoApiClient {
     version: number,
     image: { uri: string; fileName: string; mimeType: string },
   ): Promise<WorkflowResult<Record<string, unknown>>> {
-    const form = new FormData();
-    form.append('image', {
-      uri: image.uri,
-      name: image.fileName,
-      type: image.mimeType,
-    } as unknown as Blob);
-    const requestId = newId('req');
-    return this.request(`/v1/sessions/${encodeURIComponent(sessionId)}/media/image`, {
-      method: 'POST',
-      headers: {
-        ...this.metaHeaders(version, requestId, newId('idem')),
-        'X-Synthetic-Non-Child-Confirmed': 'true',
-      },
-      body: form,
-    }, 30_000);
+    const path = `/v1/sessions/${encodeURIComponent(sessionId)}/media/image`;
+    const scope = JSON.stringify({ sessionId, version, path, uri: image.uri, fileName: image.fileName, mimeType: image.mimeType });
+    return this.withPendingIdempotencyKey(scope, async (idempotencyKey) => {
+      const form = new FormData();
+      form.append('image', {
+        uri: image.uri,
+        name: image.fileName,
+        type: image.mimeType,
+      } as unknown as Blob);
+      return this.request(path, {
+        method: 'POST',
+        headers: {
+          ...this.metaHeaders(version, newId('req'), idempotencyKey),
+          'X-Synthetic-Non-Child-Confirmed': 'true',
+        },
+        body: form,
+      }, 30_000);
+    });
   }
 
   async uploadAudio(
@@ -181,18 +201,21 @@ export class DemoApiClient {
     version: number,
     audio: { uri: string; fileName: string; mimeType: string },
   ): Promise<WorkflowResult<Record<string, unknown>>> {
-    const form = new FormData();
-    form.append('audio', {
-      uri: audio.uri,
-      name: audio.fileName,
-      type: audio.mimeType,
-    } as unknown as Blob);
-    const requestId = newId('req');
-    return this.request(`/v1/sessions/${encodeURIComponent(sessionId)}/media/audio`, {
-      method: 'POST',
-      headers: this.metaHeaders(version, requestId, newId('idem')),
-      body: form,
-    }, 30_000);
+    const path = `/v1/sessions/${encodeURIComponent(sessionId)}/media/audio`;
+    const scope = JSON.stringify({ sessionId, version, path, uri: audio.uri, fileName: audio.fileName, mimeType: audio.mimeType });
+    return this.withPendingIdempotencyKey(scope, async (idempotencyKey) => {
+      const form = new FormData();
+      form.append('audio', {
+        uri: audio.uri,
+        name: audio.fileName,
+        type: audio.mimeType,
+      } as unknown as Blob);
+      return this.request(path, {
+        method: 'POST',
+        headers: this.metaHeaders(version, newId('req'), idempotencyKey),
+        body: form,
+      }, 30_000);
+    });
   }
 
   runUnderstanding(sessionId: string, version: number, narration: NarrationInput = { kind: 'NONE' }) {
@@ -387,11 +410,13 @@ export class DemoApiClient {
     payload: Record<string, unknown>,
     timeoutMs = 30_000,
   ) {
-    return this.jsonRequest(
-      `/v1/sessions/${encodeURIComponent(sessionId)}${suffix}`,
+    const path = `/v1/sessions/${encodeURIComponent(sessionId)}${suffix}`;
+    const scope = JSON.stringify({ sessionId, version, method, suffix, payload });
+    return this.withPendingIdempotencyKey(scope, (idempotencyKey) => this.jsonRequest(
+      path,
       {
         request_id: newId('req'),
-        idempotency_key: newId('idem'),
+        idempotency_key: idempotencyKey,
         session_id: sessionId,
         expected_session_version: version,
         actor_ref: DEMO_ACTOR_REF,
@@ -399,7 +424,11 @@ export class DemoApiClient {
       },
       timeoutMs,
       method,
-    );
+    ));
+  }
+
+  private withPendingIdempotencyKey<T>(scope: string, operation: (key: string) => Promise<T>): Promise<T> {
+    return withPendingRequestKey(this.pendingIdempotencyKeys, scope, () => newId('idem'), operation);
   }
 
   private jsonRequest<T = WorkflowResult<Record<string, unknown>>>(
@@ -451,7 +480,7 @@ export class DemoApiClient {
       if (error instanceof DemoApiError) throw error;
       if (error instanceof Error && error.name === 'AbortError') {
         throw new DemoApiError(
-          'Request timed out. No automatic retry was sent; tap the action again only if you choose.',
+          'Request timed out. The result may be uncertain; retry the same action explicitly.',
           'REQUEST_TIMEOUT',
           408,
           true,

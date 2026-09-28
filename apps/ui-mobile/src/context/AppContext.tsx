@@ -18,12 +18,18 @@ import {
   createDemoApi,
   DemoApiError,
   MAX_IMAGE_BYTES,
-  type NarrationInput,
   type ActivityRecommendationCard,
   type P1ContextOption,
   type P1ContextOptions,
   type WorkflowResult,
 } from '../demo/api';
+import {
+  acquireSingleFlight,
+  normalizeSupportedImage,
+  prepareNarration,
+  releaseSingleFlight,
+  type FeedbackObservationCode,
+} from './workflowSafety';
 
 export interface SelectedDrawing {
   uri: string;
@@ -109,11 +115,12 @@ interface AppContextType {
   selectedNarrationAudio: SelectedNarrationAudio | null;
   startRecording: () => Promise<boolean>;
   stopRecording: () => Promise<boolean>;
+  cancelRecording: () => Promise<void>;
   uploadNarration: () => Promise<boolean>;
   isRecording: boolean;
+  isRecordingStarting: boolean;
   voiceDuration: number;
   toggleRecording: () => void;
-  setVoiceDuration: (dur: number) => void;
   voiceTranscript: string;
 
   // AI Pipeline
@@ -131,6 +138,7 @@ interface AppContextType {
   correction: string;
   setCorrection: (value: string) => void;
   confirmGateA: () => Promise<boolean>;
+  gateAConfirmed: boolean;
   subjectTargets: SubjectTarget[];
   selectedSubjectId: string | null;
   selectedSubjectSentence: string;
@@ -163,10 +171,8 @@ interface AppContextType {
   setInterestScore: (score: number) => void;
   independenceScore: number;
   setIndependenceScore: (score: number) => void;
-  selectedObservationTags: string[];
-  toggleObservationTag: (tag: string) => void;
-  parentNotes: string;
-  setParentNotes: (notes: string) => void;
+  selectedObservationTags: FeedbackObservationCode[];
+  toggleObservationTag: (tag: FeedbackObservationCode) => void;
   isSavingFeedback: boolean;
   saveFeedback: () => Promise<boolean>;
   toastMessage: string | null;
@@ -551,8 +557,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [drawingImage, setDrawingImage] = useState<string>('cat-drawing-sample');
   const [selectedDrawing, setSelectedDrawing] = useState<SelectedDrawing | null>(null);
   const [workflowBusy, setWorkflowBusy] = useState<string | null>(null);
-  const activityWorkflowLockRef = useRef(false);
-  const understandingRequestLockRef = useRef(false);
+  const sessionMutationLockRef = useRef(false);
+  const imagePickerLockRef = useRef(false);
+  const recordingStartLockRef = useRef(false);
+  const recordingStopLockRef = useRef(false);
+  const recordingCancelRequestedRef = useRef(false);
   const [workflowError, setWorkflowError] = useState<string | null>(null);
   const [workflowNotice, setWorkflowNotice] = useState<string | null>(null);
   useEffect(() => {
@@ -573,61 +582,98 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [narrationText, setNarrationText] = useState('');
   const [selectedNarrationAudio, setSelectedNarrationAudio] = useState<SelectedNarrationAudio | null>(null);
   const [isRecording, setIsRecording] = useState<boolean>(false);
+  const [isRecordingStarting, setIsRecordingStarting] = useState(false);
   const [voiceDuration, setVoiceDuration] = useState<number>(0);
   const [voiceTranscript, setVoiceTranscript] = useState('');
   const recordingRef = useRef<Audio.Recording | null>(null);
   const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const recordingElapsedSecondsRef = useRef(0);
+
+  const clearRecordingTimer = () => {
+    if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+    recordingTimerRef.current = null;
+  };
 
   const startRecording = async (): Promise<boolean> => {
-    if (workflowBusy || isRecording) return false;
+    if (workflowBusy || sessionMutationLockRef.current || isRecording || recordingRef.current
+      || recordingStartLockRef.current || recordingStopLockRef.current) return false;
+    recordingStartLockRef.current = true;
+    setIsRecordingStarting(true);
+    recordingCancelRequestedRef.current = false;
+    let pendingRecording: Audio.Recording | null = null;
+    const discardPendingRecording = async () => {
+      const pending = pendingRecording;
+      pendingRecording = null;
+      if (!pending) return;
+      try {
+        await pending.stopAndUnloadAsync();
+      } catch {
+        // A permission/cancel race may leave the recorder only partially prepared.
+      }
+    };
     try {
       const permission = await Audio.requestPermissionsAsync();
+      if (recordingCancelRequestedRef.current) return false;
       if (!permission.granted) {
         setWorkflowError('Cần cấp quyền micro để ghi lời kể, hoặc chọn Nhập chữ.');
         return false;
       }
       await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true });
-      const recording = new Audio.Recording();
-      await recording.prepareToRecordAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
-      await recording.startAsync();
-      recordingRef.current = recording;
+      if (recordingCancelRequestedRef.current) return false;
+      pendingRecording = new Audio.Recording();
+      await pendingRecording.prepareToRecordAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
+      if (recordingCancelRequestedRef.current) {
+        await discardPendingRecording();
+        return false;
+      }
+      await pendingRecording.startAsync();
+      if (recordingCancelRequestedRef.current) {
+        await discardPendingRecording();
+        return false;
+      }
+      recordingRef.current = pendingRecording;
+      pendingRecording = null;
       setNarrationMode('audio');
       setSelectedNarrationAudio(null);
+      recordingElapsedSecondsRef.current = 0;
       setVoiceDuration(0);
       setIsRecording(true);
       recordingTimerRef.current = setInterval(() => {
-        setVoiceDuration((current) => {
-          if (current >= 180) {
-            void stopRecording();
-            return current;
-          }
-          return current + 1;
-        });
+        const elapsed = Math.min(180, recordingElapsedSecondsRef.current + 1);
+        recordingElapsedSecondsRef.current = elapsed;
+        setVoiceDuration(elapsed);
+        if (elapsed >= 180) void stopRecording();
       }, 1000);
       setWorkflowError(null);
       setWorkflowNotice('Đang ghi lời kể. Chạm Dừng khi nói xong, tối đa 3 phút.');
       return true;
     } catch {
+      const cancelled = recordingCancelRequestedRef.current;
+      clearRecordingTimer();
+      await discardPendingRecording();
       recordingRef.current = null;
-      if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
-      recordingTimerRef.current = null;
+      recordingElapsedSecondsRef.current = 0;
       setIsRecording(false);
-      setWorkflowError('Không thể mở micro trên emulator. Bạn có thể dùng ô Nhập chữ.');
+      if (!cancelled) setWorkflowError('Không thể mở micro trên emulator. Bạn có thể dùng ô Nhập chữ.');
       return false;
+    } finally {
+      recordingStartLockRef.current = false;
+      setIsRecordingStarting(false);
+      recordingCancelRequestedRef.current = false;
     }
   };
 
   const stopRecording = async (): Promise<boolean> => {
     const recording = recordingRef.current;
-    if (!recording) return false;
+    if (!recording || recordingStopLockRef.current) return false;
+    recordingStopLockRef.current = true;
+    clearRecordingTimer();
     try {
       await recording.stopAndUnloadAsync();
       const status = await recording.getStatusAsync();
       const durationMs = status.durationMillis ?? undefined;
       const uri = recording.getURI();
       recordingRef.current = null;
-      if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
-      recordingTimerRef.current = null;
       setIsRecording(false);
       if (!uri) throw new Error('recording-uri-missing');
       setSelectedNarrationAudio({
@@ -636,14 +682,48 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         mimeType: 'audio/mp4',
         durationMs,
       });
-      setVoiceDuration(Math.round((durationMs ?? 0) / 1000));
+      const durationSeconds = Math.min(180, Math.round((durationMs ?? 0) / 1000));
+      recordingElapsedSecondsRef.current = durationSeconds;
+      setVoiceDuration(durationSeconds);
       setWorkflowNotice('Đã ghi lời kể. Chạm tiếp tục khi bạn đã sẵn sàng.');
       return true;
     } catch {
       recordingRef.current = null;
       setIsRecording(false);
+      setSelectedNarrationAudio(null);
       setWorkflowError('Không lưu được bản ghi. Hãy thử lại hoặc nhập lời kể bằng chữ.');
       return false;
+    } finally {
+      clearRecordingTimer();
+      recordingStopLockRef.current = false;
+    }
+  };
+
+  const cancelRecording = async (): Promise<void> => {
+    if (recordingStartLockRef.current) {
+      recordingCancelRequestedRef.current = true;
+      clearRecordingTimer();
+      recordingElapsedSecondsRef.current = 0;
+      setVoiceDuration(0);
+      setIsRecording(false);
+      setSelectedNarrationAudio(null);
+      return;
+    }
+    if (recordingStopLockRef.current) return;
+    recordingStopLockRef.current = true;
+    clearRecordingTimer();
+    const recording = recordingRef.current;
+    recordingRef.current = null;
+    try {
+      if (recording) await recording.stopAndUnloadAsync();
+    } catch {
+      // Discard is best-effort; the local recording must not keep its timer or state alive.
+    } finally {
+      recordingElapsedSecondsRef.current = 0;
+      setVoiceDuration(0);
+      setIsRecording(false);
+      setSelectedNarrationAudio(null);
+      recordingStopLockRef.current = false;
     }
   };
 
@@ -668,6 +748,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (selectedNarrationAudio.artifactRef && selectedNarrationAudio.sha256 && selectedNarrationAudio.byteLength) {
       return true;
     }
+    if (!acquireSingleFlight(sessionMutationLockRef)) return false;
     setWorkflowBusy('Tải lời kể');
     setWorkflowError(null);
     try {
@@ -689,6 +770,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return false;
     } finally {
       setWorkflowBusy(null);
+      releaseSingleFlight(sessionMutationLockRef);
     }
   };
 
@@ -709,23 +791,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [gateAConfirmed, setGateAConfirmed] = useState(false);
 
   const beginWorkflow = async (): Promise<boolean> => {
-    if (workflowBusy) return false;
+    if (workflowBusy || imagePickerLockRef.current || !acquireSingleFlight(sessionMutationLockRef)) return false;
     setWorkflowBusy('Tạo phiên');
     setWorkflowError(null);
     setWorkflowNotice(null);
     try {
+      if (recordingStartLockRef.current || recordingStopLockRef.current) {
+        setWorkflowError('Hãy dừng ghi âm hiện tại trước khi bắt đầu phiên mới.');
+        return false;
+      }
+      if (recordingRef.current && !(await stopRecording())) return false;
       const result = await workflowApi.createSession();
       const snapshot = asObject(result.payload);
       setSessionId(result.session_id);
       updateSessionVersion(result.observed_session_version);
       setSessionState(textValue(snapshot.state, 'CREATED'));
       setAdmission(null);
+      setSelectedDrawing(null);
+      setDrawingImage('cat-drawing-sample');
       setNarrationMode('none');
       setNarrationText('');
       setSelectedNarrationAudio(null);
       setVoiceTranscript('');
       setIsRecording(false);
+      recordingElapsedSecondsRef.current = 0;
+      clearRecordingTimer();
       setVoiceDuration(0);
+      setSceneData(MOCK_SCENE_UNDERSTANDING);
       setAnalysisClaims([]);
       setTopicDirections([]);
       setSelectedTopicDirectionId(null);
@@ -734,13 +826,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setSubjectTargets([]);
       setSelectedSubjectId(null);
       setSelectedSubjectSentence('');
+      setUnderstandingProgress(null);
+      setDirectionRequeryUsed(false);
+      setCorrection('');
       setGateAConfirmed(false);
       setContextOptions(null);
       setSelectedBackendActivity(null);
       setActivityRecommendation(null);
+      setActivityRecommendationCards([]);
+      setActivitiesList(MOCK_ACTIVITIES);
+      setSelectedActivity(MOCK_ACTIVITIES[0]);
+      setMaterialsChecklist({});
+      setStepsChecklist({});
       setRendererLaunch(null);
       setPixiIntroStoryboard(null);
       setAiProgress(0);
+      setCompletionStatus('not_attempted');
+      setInterestScore(0);
+      setIndependenceScore(0);
+      setSelectedObservationTags([]);
+      setIsSavingFeedback(false);
+      setToastMessage(null);
       setWorkflowNotice('Phiên khám phá đã sẵn sàng. Hãy chọn bức vẽ của con.');
       navigate('capture');
       return true;
@@ -749,10 +855,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return false;
     } finally {
       setWorkflowBusy(null);
+      releaseSingleFlight(sessionMutationLockRef);
     }
   };
 
   const pickDrawingImage = async (): Promise<boolean> => {
+    if (workflowBusy || sessionMutationLockRef.current || imagePickerLockRef.current) return false;
+    imagePickerLockRef.current = true;
     setWorkflowError(null);
     setWorkflowNotice(null);
     try {
@@ -766,14 +875,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (result.canceled || !result.assets[0]) return false;
       const asset = result.assets[0];
       if (asset.fileSize !== undefined && asset.fileSize > MAX_IMAGE_BYTES) {
+        setSelectedDrawing(null);
+        setDrawingImage('cat-drawing-sample');
+        setAdmission(null);
         setWorkflowError('Ảnh vượt giới hạn demo 5 MB.');
         return false;
       }
-      const isPng = asset.fileName?.toLowerCase().endsWith('.png') || asset.mimeType === 'image/png';
+      const supportedImage = normalizeSupportedImage(asset.fileName, asset.mimeType);
+      if (!supportedImage) {
+        setSelectedDrawing(null);
+        setDrawingImage('cat-drawing-sample');
+        setAdmission(null);
+        setWorkflowError('Chỉ nhận ảnh PNG hoặc JPEG. Hãy chọn ảnh khác rồi thử lại.');
+        return false;
+      }
       const selected: SelectedDrawing = {
         uri: asset.uri,
-        fileName: asset.fileName || `sketch-${Date.now()}${isPng ? '.png' : '.jpg'}`,
-        mimeType: isPng ? 'image/png' : 'image/jpeg',
+        fileName: asset.fileName?.trim()
+          ? supportedImage.fileName
+          : `sketch-${Date.now()}.${supportedImage.mimeType === 'image/png' ? 'png' : 'jpg'}`,
+        mimeType: supportedImage.mimeType,
         fileSize: asset.fileSize,
       };
       setSelectedDrawing(selected);
@@ -784,16 +905,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } catch {
       setWorkflowError('Không mở được bộ chọn ảnh Android.');
       return false;
+    } finally {
+      imagePickerLockRef.current = false;
     }
   };
 
   const uploadDrawing = async (): Promise<boolean> => {
-    if (!sessionId || !selectedDrawing || workflowBusy) return false;
+    if (!sessionId || !selectedDrawing || workflowBusy || imagePickerLockRef.current
+      || !acquireSingleFlight(sessionMutationLockRef)) return false;
     setWorkflowBusy('Tải ảnh');
     setWorkflowError(null);
     setWorkflowNotice(null);
     try {
-      const result = await workflowApi.uploadImage(sessionId, sessionVersion, selectedDrawing);
+      const result = await workflowApi.uploadImage(sessionId, sessionVersionRef.current, selectedDrawing);
       updateSessionVersion(result.observed_session_version);
       const payload = asObject(result.payload);
       setAdmission(payload);
@@ -808,40 +932,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return false;
     } finally {
       setWorkflowBusy(null);
+      releaseSingleFlight(sessionMutationLockRef);
     }
   };
 
   const runAiSimulation = async (): Promise<boolean> => {
-    if (!sessionId || !admission || workflowBusy || understandingRequestLockRef.current) return false;
-    understandingRequestLockRef.current = true;
-    let narration: NarrationInput = { kind: 'NONE' };
-    if (narrationMode === 'text') {
-      const text = narrationText.trim();
-      if (!text) {
-        setWorkflowError('Hãy nhập lời kể hoặc chọn Không thêm lời kể.');
-        return false;
-      }
-      narration = { kind: 'TEXT', text, language: 'vi', provenance: 'TEXT_TYPED' };
-    } else if (narrationMode === 'audio') {
-      if (!selectedNarrationAudio?.artifactRef || !selectedNarrationAudio.sha256 || !selectedNarrationAudio.byteLength) {
-        setWorkflowError('Lời kể chưa được upload. Quay lại bước ảnh và thử lại.');
-        return false;
-      }
-      narration = {
-        kind: 'AUDIO',
-        artifact_ref: selectedNarrationAudio.artifactRef,
-        sha256: selectedNarrationAudio.sha256,
-        content_type: selectedNarrationAudio.contentType || selectedNarrationAudio.mimeType,
-        byte_length: selectedNarrationAudio.byteLength,
-        provenance: 'RECORDED_AUDIO',
-      };
+    if (!sessionId || !admission || workflowBusy) return false;
+    const preparedNarration = prepareNarration(narrationMode, narrationText, selectedNarrationAudio);
+    if (!preparedNarration.ok) {
+      setWorkflowError(preparedNarration.message);
+      return false;
     }
+    if (!acquireSingleFlight(sessionMutationLockRef)) return false;
     setWorkflowBusy('Phân tích ảnh');
     setWorkflowError(null);
     setWorkflowNotice(null);
     setAiProgress(20);
     try {
-      const result = await workflowApi.runUnderstanding(sessionId, sessionVersion, narration);
+      const result = await workflowApi.runUnderstanding(sessionId, sessionVersionRef.current, preparedNarration.narration);
       updateSessionVersion(result.observed_session_version);
       const payload = asObject(result.payload);
       if (result.status !== 'SUCCEEDED') throw workflowFailure(result, 'Chưa đọc được bức tranh.');
@@ -878,7 +986,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return false;
     } finally {
       setWorkflowBusy(null);
-      understandingRequestLockRef.current = false;
+      releaseSingleFlight(sessionMutationLockRef);
     }
   };
 
@@ -886,6 +994,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!sessionId || workflowBusy || !subjectTargets.some((item) => item.candidateId === target.candidateId)) {
       return false;
     }
+    if (!acquireSingleFlight(sessionMutationLockRef)) return false;
     setWorkflowBusy('Đang chọn chủ thể');
     setWorkflowError(null);
     try {
@@ -924,11 +1033,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return false;
     } finally {
       setWorkflowBusy(null);
+      releaseSingleFlight(sessionMutationLockRef);
     }
   };
 
   const confirmGateA = async (): Promise<boolean> => {
     if (!sessionId || !primaryClaimId || selectedClaimIds.length === 0 || workflowBusy) return false;
+    if (!acquireSingleFlight(sessionMutationLockRef)) return false;
     setWorkflowBusy('Xác nhận Gate A');
     setWorkflowError(null);
     try {
@@ -988,6 +1099,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return false;
     } finally {
       setWorkflowBusy(null);
+      releaseSingleFlight(sessionMutationLockRef);
     }
   };
 
@@ -1007,9 +1119,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       || !gateAConfirmed
       || sessionState !== 'UNDERSTANDING_PROPOSED'
       || workflowBusy
-      || activityWorkflowLockRef.current
     ) return false;
-    activityWorkflowLockRef.current = true;
+    if (!acquireSingleFlight(sessionMutationLockRef)) return false;
     setWorkflowBusy('Chuẩn bị hoạt động');
     setWorkflowError(null);
     setWorkflowNotice(null);
@@ -1075,13 +1186,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         : friendlyError(error, 'Chưa chuẩn bị được hoạt động phù hợp. Hãy thử lại.'));
       return false;
     } finally {
-      activityWorkflowLockRef.current = false;
       setWorkflowBusy(null);
+      releaseSingleFlight(sessionMutationLockRef);
     }
   };
 
   const approveActivity = async (): Promise<boolean> => {
     if (!sessionId || sessionState !== 'GATE_B_PENDING' || workflowBusy) return false;
+    if (!acquireSingleFlight(sessionMutationLockRef)) return false;
     setWorkflowBusy('Duyệt Gate B');
     setWorkflowError(null);
     try {
@@ -1096,12 +1208,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return false;
     } finally {
       setWorkflowBusy(null);
+      releaseSingleFlight(sessionMutationLockRef);
     }
   };
 
   const prepareRendererIntro = async (): Promise<boolean> => {
     if (!sessionId || sessionState !== 'EXPERIENCE_READY' || workflowBusy) return false;
     if (rendererLaunch) return true;
+    if (!acquireSingleFlight(sessionMutationLockRef)) return false;
     setWorkflowBusy('Mở câu chuyện');
     setWorkflowError(null);
     try {
@@ -1119,11 +1233,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return false;
     } finally {
       setWorkflowBusy(null);
+      releaseSingleFlight(sessionMutationLockRef);
     }
   };
 
   const completeActivityHandoff = async (): Promise<boolean> => {
     if (!sessionId || sessionState !== 'EXPERIENCE_READY' || workflowBusy) return false;
+    if (!acquireSingleFlight(sessionMutationLockRef)) return false;
     setWorkflowBusy('Bàn giao hoạt động');
     setWorkflowError(null);
     try {
@@ -1138,6 +1254,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return false;
     } finally {
       setWorkflowBusy(null);
+      releaseSingleFlight(sessionMutationLockRef);
     }
   };
 
@@ -1176,20 +1293,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   );
   const [interestScore, setInterestScore] = useState<number>(0);
   const [independenceScore, setIndependenceScore] = useState<number>(0);
-  const [selectedObservationTags, setSelectedObservationTags] = useState<string[]>([
-    'Nhớ vòi bướm hút mật',
-    'Tự tay dán cánh',
-  ]);
-  const [parentNotes, setParentNotes] = useState<string>(
-    'Bé An rất vui khi cầm chú bướm giấy tự làm đi quanh nhà vờ như bướm bay hút mật hoa!'
-  );
+  const [selectedObservationTags, setSelectedObservationTags] = useState<FeedbackObservationCode[]>([]);
   const [isSavingFeedback, setIsSavingFeedback] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const toggleObservationTag = (tag: string) => {
-    setSelectedObservationTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
-    );
+  const toggleObservationTag = (tag: FeedbackObservationCode) => {
+    setSelectedObservationTags((prev) => prev.includes(tag)
+      ? prev.filter((current) => current !== tag)
+      : [...prev, tag]);
   };
 
   const clearToast = () => setToastMessage(null);
@@ -1199,6 +1310,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setWorkflowError('Hoạt động chưa hoàn tất. Hãy quay lại bước hướng dẫn trước khi ghi nhận xét.');
       return false;
     }
+    if (!acquireSingleFlight(sessionMutationLockRef)) return false;
     setIsSavingFeedback(true);
     setWorkflowBusy('Lưu feedback');
     setWorkflowError(null);
@@ -1226,6 +1338,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } finally {
       setWorkflowBusy(null);
       setIsSavingFeedback(false);
+      releaseSingleFlight(sessionMutationLockRef);
     }
   };
 
@@ -1291,11 +1404,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         selectedNarrationAudio,
         startRecording,
         stopRecording,
+        cancelRecording,
         uploadNarration,
         isRecording,
+        isRecordingStarting,
         voiceDuration,
         toggleRecording,
-        setVoiceDuration,
         voiceTranscript,
 
         aiProgress,
@@ -1312,6 +1426,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         correction,
         setCorrection,
         confirmGateA,
+        gateAConfirmed,
         subjectTargets,
         selectedSubjectId,
         selectedSubjectSentence,
@@ -1344,8 +1459,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setIndependenceScore,
         selectedObservationTags,
         toggleObservationTag,
-        parentNotes,
-        setParentNotes,
         isSavingFeedback,
         saveFeedback,
         toastMessage,

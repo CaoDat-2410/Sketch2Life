@@ -91,3 +91,9 @@ Selected live VLM schema-output remediation implementation record:
 [Live VLM schema remediation](notes/LIVE_VISION_SCHEMA_REMEDIATION_IMPLEMENTATION_20260922.md)
 (`EV-018-LIVE-VISION-SCHEMA-20260922`; bounded live-route repair wiring and sanitized local
 verification; owner-run Lightning smoke remains pending).
+
+Selected main-flow reliability implementation record:
+[Main-flow hardening](notes/MAIN_FLOW_HARDENING_IMPLEMENTATION_20260928.md)
+(`EV-018-MAIN-FLOW-HARDENING-20260928`; deterministic request/feedback/image/audio regressions,
+mobile typecheck, UI validation, renderer suite/build, backend contract confirmation and Android
+Metro bundle; emulator and live-provider acceptance remain operator-run).

@@ -49,6 +49,7 @@ import {
 
 import type { ScreenId } from '../types';
 import { useAppContext } from '../context/AppContext';
+import { FEEDBACK_OBSERVATIONS } from '../context/workflowSafety';
 import {
   ART_RENDERER_PROTOCOL_VERSION,
   MAX_RENDERER_MESSAGE_BYTES,
@@ -76,6 +77,28 @@ function rendererText(value: unknown, fallback = ''): string {
 function utf8ByteLength(value: string): number {
   return encodeURIComponent(value).replace(/%[0-9A-F]{2}/g, 'U').length;
 }
+
+const FlowPrerequisiteNotice: React.FC<{
+  title: string;
+  message: string;
+  action: string;
+  onAction: () => void;
+}> = ({ title, message, action, onAction }) => (
+  <ScrollView contentContainerStyle={styles.screenContainer}>
+    <View style={styles.topHeader}>
+      <Text style={styles.screenHeaderTitle}>Bước tiếp theo</Text>
+      <View style={{ width: 30 }} />
+    </View>
+    <View style={[styles.topicSummaryCard, { marginTop: 28 }]}>
+      <Ionicons name="lock-closed" size={26} color="#2563EB" />
+      <View style={{ flex: 1 }}>
+        <Text style={styles.topicSummaryText}>{title}</Text>
+        <Text style={styles.activityChoiceSummary}>{message}</Text>
+      </View>
+    </View>
+    <Kid3DButton title={action} color="blue" size="md" onPress={onAction} />
+  </ScrollView>
+);
 
 // ==========================================
 // 1. AI PROCESSING (Image 1 - Screen 1)
@@ -698,6 +721,8 @@ export const ActivityRecommendScreen: React.FC<ScreenProps> = ({ onNavigate }) =
     selectBackendActivity,
     prepareActivityWorkflow,
     sessionState,
+    sessionId,
+    gateAConfirmed,
     workflowBusy,
     workflowNotice,
   } = useAppContext();
@@ -705,8 +730,25 @@ export const ActivityRecommendScreen: React.FC<ScreenProps> = ({ onNavigate }) =
   const hasPreparedActivity = Boolean(
     contextOptions
     && selectedBackendActivity
-    && ['GATE_B_PENDING', 'EXPERIENCE_READY', 'HANDOFF_READY', 'COMPLETED'].includes(sessionState),
+    && ['GATE_B_PENDING', 'EXPERIENCE_READY'].includes(sessionState),
   );
+  const activityFlowReady = Boolean(
+    sessionId
+    && gateAConfirmed
+    && ['UNDERSTANDING_PROPOSED', 'GATE_B_PENDING', 'EXPERIENCE_READY']
+      .includes(sessionState),
+  );
+
+  if (!activityFlowReady) {
+    return (
+      <FlowPrerequisiteNotice
+        title="Trước tiên, hãy cùng xem lại chủ đề từ bức vẽ"
+        message="Hoạt động được gợi ý sau khi người lớn xác nhận chủ đề ở bước trước."
+        action="Bắt đầu từ hồ sơ của bé"
+        onAction={() => nav('profile')}
+      />
+    );
+  }
 
   return (
     <ScrollView contentContainerStyle={[styles.screenContainer, { backgroundColor: '#FFFBF0' }]} showsVerticalScrollIndicator={false}>
@@ -880,9 +922,12 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
   const rendererInstanceId = useState(() => Crypto.randomUUID())[0];
   const rendererWebViewRef = useRef<WebView>(null);
   const rendererCommandSent = useRef(false);
+  const rendererPreparationAttempted = useRef(false);
   const controlSequence = useRef(1);
   const [rendererAttempt, setRendererAttempt] = useState(0);
   const [rendererFailed, setRendererFailed] = useState(false);
+  const [rendererPreparationFailed, setRendererPreparationFailed] = useState(false);
+  const [rendererHandshakeReceived, setRendererHandshakeReceived] = useState(false);
   const [rendererStatus, setRendererStatus] = useState('Đang chuẩn bị bức vẽ…');
   const [discoveredLabel, setDiscoveredLabel] = useState<string | null>(null);
   const [chromeVisible, setChromeVisible] = useState(true);
@@ -969,17 +1014,26 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
   }, []);
 
   useEffect(() => {
-    if (!rendererLaunch && !workflowBusy) void prepareRendererIntro();
+    if (rendererLaunch || workflowBusy || rendererPreparationAttempted.current) return;
+    rendererPreparationAttempted.current = true;
+    void prepareRendererIntro().then((succeeded) => {
+      if (!succeeded) {
+        setRendererPreparationFailed(true);
+        setRendererStatus('Chưa thể mở câu chuyện. Hãy thử lại khi kết nối đã sẵn sàng.');
+      }
+    });
   }, [rendererLaunch, workflowBusy, prepareRendererIntro]);
 
   useEffect(() => {
     if (!rendererPageUrl || rendererFailed || playback.duration > 0) return;
     const timeout = setTimeout(() => {
       setRendererFailed(true);
-      setRendererStatus('Câu chuyện mất nhiều thời gian hơn dự kiến. Bạn có thể thử lại hoặc dùng ảnh gốc.');
-    }, 15000);
+      setRendererStatus(rendererHandshakeReceived
+        ? 'Pixi đã kết nối nhưng chưa bắt đầu phát. Hãy thử mở lại; ảnh gốc vẫn an toàn.'
+        : 'Pixi chưa phản hồi. Hãy kiểm tra kết nối rồi thử lại; ảnh gốc vẫn an toàn.');
+    }, rendererHandshakeReceived ? 45000 : 15000);
     return () => clearTimeout(timeout);
-  }, [rendererPageUrl, rendererFailed, playback.duration]);
+  }, [rendererPageUrl, rendererFailed, playback.duration, rendererHandshakeReceived, rendererAttempt]);
 
   useEffect(() => {
     if (playback.state !== 'PLAYING') {
@@ -1019,6 +1073,7 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
     const bootstrap = RendererBootstrapSchema.safeParse(value);
     if (bootstrap.success && rendererLaunch && !rendererCommandSent.current) {
       if (bootstrap.data.rendererInstanceId !== rendererInstanceId) return;
+      setRendererHandshakeReceived(true);
       const launch = rendererObject(rendererLaunch);
       const isV2 = launch.contractName === 'PixiRendererLaunchV2';
       const command = isV2
@@ -1130,11 +1185,22 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
 
   const retry = () => {
     rendererCommandSent.current = false;
+    setRendererHandshakeReceived(false);
     setRendererFailed(false);
     setPlayback({ position: 0, duration: 0, state: 'READY', interactionPhase: 'INTRO_LOADING' });
     setChromeVisible(true);
     setRendererStatus('Đang thử mở lại câu chuyện…');
     setRendererAttempt((value) => value + 1);
+  };
+
+  const retryRendererPreparation = async () => {
+    if (workflowBusy) return;
+    setRendererPreparationFailed(false);
+    const succeeded = await prepareRendererIntro();
+    if (!succeeded) {
+      setRendererPreparationFailed(true);
+      setRendererStatus('Chưa thể mở câu chuyện. Hãy kiểm tra kết nối rồi thử lại.');
+    }
   };
 
   const returnToReview = async () => {
@@ -1233,6 +1299,18 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
               {rendererFailed && (
                 <TouchableOpacity accessibilityLabel="Thử mở lại" onPress={retry} style={styles.pixiRetryButton}>
                   <Text style={styles.pixiContinueText}>Thử lại</Text>
+                </TouchableOpacity>
+              )}
+              {rendererPreparationFailed && !rendererLaunch && (
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityLabel="Thử chuẩn bị câu chuyện lại"
+                  accessibilityState={{ disabled: Boolean(workflowBusy), busy: Boolean(workflowBusy) }}
+                  disabled={Boolean(workflowBusy)}
+                  onPress={() => void retryRendererPreparation()}
+                  style={styles.pixiRetryButton}
+                >
+                  <Text style={styles.pixiContinueText}>{workflowBusy ? 'Đang thử…' : 'Thử lại'}</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -1473,6 +1551,8 @@ export const FeedbackLoopScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
   const {
     navigate,
     goBack,
+    sessionId,
+    sessionState,
     selectedChild,
     selectedActivity,
     completionStatus,
@@ -1483,24 +1563,35 @@ export const FeedbackLoopScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
     setIndependenceScore,
     selectedObservationTags,
     toggleObservationTag,
-    parentNotes,
-    setParentNotes,
     isSavingFeedback,
     saveFeedback,
   } = useAppContext();
   const nav = onNavigate || navigate;
 
-  const fineMotorTags = [
-    { label: 'Tự làm được một bước', emoji: '🌱' },
-    { label: 'Quan sát chi tiết', emoji: '🔎' },
-    { label: 'Nhớ trình tự', emoji: '🧩' },
-  ];
+  if (!sessionId || !['HANDOFF_READY', 'FEEDBACK_RECORDED'].includes(sessionState)) {
+    return (
+      <FlowPrerequisiteNotice
+        title="Phản hồi sẽ mở sau hoạt động"
+        message="Hãy đi qua bước chọn và xác nhận hoạt động, rồi ghi nhận nhận xét ở đây."
+        action="Bắt đầu từ hồ sơ của bé"
+        onAction={() => nav('profile')}
+      />
+    );
+  }
 
-  const cognitiveTags = [
-    { label: 'Đặt câu hỏi mới', emoji: '💡' },
-    { label: 'Muốn thử thêm', emoji: '🎨' },
-    { label: 'Chủ động nhờ hỗ trợ', emoji: '🤝' },
-  ];
+  if (sessionState === 'FEEDBACK_RECORDED') {
+    return (
+      <FlowPrerequisiteNotice
+        title="Đã ghi nhận buổi khám phá"
+        message="Các lựa chọn phản hồi đã được ghi trong phiên hiện tại."
+        action="Về trang chủ"
+        onAction={() => nav('dashboard')}
+      />
+    );
+  }
+
+  const fineMotorTags = FEEDBACK_OBSERVATIONS.filter((item) => item.group === 'fineMotor');
+  const cognitiveTags = FEEDBACK_OBSERVATIONS.filter((item) => item.group === 'cognitive');
 
   const interestFeedback = [
     '',
@@ -1742,13 +1833,13 @@ export const FeedbackLoopScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
       <Text style={styles.tagCategoryLabel}>✂️ Kỹ năng vận động tinh:</Text>
       <View style={styles.quickTagsGrid}>
         {fineMotorTags.map((item) => {
-          const isSel = selectedObservationTags.includes(item.label);
+          const isSel = selectedObservationTags.includes(item.code);
           return (
             <JellyBounceView
-              key={item.label}
+              key={item.code}
               accessibilityLabel={item.label}
               accessibilityState={{ selected: isSel }}
-              onPress={() => toggleObservationTag(item.label)}
+              onPress={() => toggleObservationTag(item.code)}
               style={[styles.quickTagChipNew, isSel && styles.quickTagChipNewActive]}
             >
               <Text style={{ fontSize: 13, marginRight: 4 }}>{item.emoji}</Text>
@@ -1767,13 +1858,13 @@ export const FeedbackLoopScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
       <Text style={[styles.tagCategoryLabel, { marginTop: 6 }]}>💡 Tư duy, Ngôn ngữ &amp; Sáng tạo:</Text>
       <View style={styles.quickTagsGrid}>
         {cognitiveTags.map((item) => {
-          const isSel = selectedObservationTags.includes(item.label);
+          const isSel = selectedObservationTags.includes(item.code);
           return (
             <JellyBounceView
-              key={item.label}
+              key={item.code}
               accessibilityLabel={item.label}
               accessibilityState={{ selected: isSel }}
-              onPress={() => toggleObservationTag(item.label)}
+              onPress={() => toggleObservationTag(item.code)}
               style={[styles.quickTagChipNew, isSel && styles.quickTagChipNewActive]}
             >
               <Text style={{ fontSize: 13, marginRight: 4 }}>{item.emoji}</Text>
@@ -1788,20 +1879,15 @@ export const FeedbackLoopScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
         })}
       </View>
 
-      {/* Section 4: Parent Scrapbook Note Input */}
+      {/* Free-text notes are deliberately excluded by FeedbackV1. */}
       <View style={styles.parentNoteCardNew}>
         <View style={styles.parentNoteHeader}>
-          <Text style={{ fontSize: 16 }}>💌</Text>
-          <Text style={styles.parentNoteTitle}>Sổ tay cảm xúc &amp; Lời nhắn gửi từ Ba Mẹ:</Text>
+          <Text style={{ fontSize: 16 }}>🔒</Text>
+          <Text style={styles.parentNoteTitle}>Ghi chú riêng</Text>
         </View>
-        <TextInput
-          value={parentNotes}
-          onChangeText={setParentNotes}
-          multiline
-          placeholder="Ghi lại khoảnh khắc đáng nhớ hoặc câu nói ngộ nghĩnh của bé hôm nay..."
-          placeholderTextColor="#94A3B8"
-          style={styles.parentNoteInputNew}
-        />
+        <Text style={styles.parentNoteInputNew}>
+          Bản thử nghiệm chỉ lưu các lựa chọn quan sát ở trên; ghi chú tự do chưa được lưu.
+        </Text>
       </View>
 
       {/* Section 5: History Update Card */}

@@ -449,8 +449,10 @@ export const CaptureScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
     setNarrationText,
     selectedNarrationAudio,
     isRecording,
+    isRecordingStarting,
     startRecording,
     stopRecording,
+    cancelRecording,
     uploadNarration,
     workflowBusy,
     workflowNotice,
@@ -474,7 +476,12 @@ export const CaptureScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
     >
       {/* Header */}
       <View style={styles.topHeader}>
-        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Quay lại" onPress={goBack} style={styles.backBtn}>
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel="Quay lại"
+          onPress={() => { if (isRecording || isRecordingStarting) void cancelRecording().then(goBack); else goBack(); }}
+          style={styles.backBtn}
+        >
           <Ionicons name="arrow-back" size={20} color={colors.textBody} />
         </TouchableOpacity>
         <Text style={styles.screenHeaderTitle}>Thêm bức vẽ của bé</Text>
@@ -526,6 +533,7 @@ export const CaptureScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
               accessibilityRole="radio"
               accessibilityLabel={label}
               accessibilityState={{ selected: narrationMode === mode }}
+              disabled={Boolean(workflowBusy) || isRecording || isRecordingStarting}
               onPress={() => setNarrationMode(mode)}
               style={{ flex: 1, minHeight: 48, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: narrationMode === mode ? colors.blue : '#FFFFFF', borderWidth: 1, borderColor: narrationMode === mode ? colors.blue : '#CBD5E1' }}
             >
@@ -537,6 +545,7 @@ export const CaptureScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
           <TextInput
             value={narrationText}
             onChangeText={setNarrationText}
+            editable={!workflowBusy && !isRecording && !isRecordingStarting}
             placeholder="Ví dụ: Con mèo đang đi tìm hoa..."
             placeholderTextColor="#94A3B8"
             multiline
@@ -548,12 +557,15 @@ export const CaptureScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
           <View style={{ marginTop: 10, alignItems: 'center' }}>
             <TouchableOpacity
               accessibilityRole="button"
-              accessibilityLabel={isRecording ? 'Dừng ghi âm' : 'Bắt đầu ghi âm'}
-              accessibilityState={{ busy: isRecording }}
+              accessibilityLabel={isRecording ? 'Dừng ghi âm' : isRecordingStarting ? 'Đang mở micro' : 'Bắt đầu ghi âm'}
+              accessibilityState={{ busy: isRecording || isRecordingStarting, disabled: isRecordingStarting }}
+              disabled={isRecordingStarting}
               onPress={() => void (isRecording ? stopRecording() : startRecording())}
               style={{ minWidth: 180, minHeight: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', backgroundColor: isRecording ? '#DC2626' : colors.greenDeep }}
             >
-              <Text style={{ color: colors.white, fontWeight: '900' }}>{isRecording ? 'Dừng ghi âm' : 'Bắt đầu ghi âm'}</Text>
+              <Text style={{ color: colors.white, fontWeight: '900' }}>
+                {isRecording ? 'Dừng ghi âm' : isRecordingStarting ? 'Đang mở micro…' : 'Bắt đầu ghi âm'}
+              </Text>
             </TouchableOpacity>
             <Text style={{ marginTop: 8, fontSize: 12, color: colors.textSoft }}>
               {selectedNarrationAudio ? `Đã có bản ghi (${Math.round((selectedNarrationAudio.durationMs || 0) / 1000)} giây)` : 'Có thể ghi tối đa 3 phút'}
@@ -566,7 +578,7 @@ export const CaptureScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
         title={workflowBusy === 'Tải ảnh' ? 'Đang kiểm tra ảnh...' : workflowBusy === 'Tải lời kể' ? 'Đang lưu lời kể...' : 'Gửi ảnh & tiếp tục'}
         color="blue"
         size="lg"
-        disabled={!selectedDrawing || !!workflowBusy || isRecording || (narrationMode === 'text' && !narrationText.trim()) || (narrationMode === 'audio' && !selectedNarrationAudio)}
+        disabled={!selectedDrawing || !!workflowBusy || isRecording || isRecordingStarting || (narrationMode === 'text' && !narrationText.trim()) || (narrationMode === 'audio' && !selectedNarrationAudio)}
         onPress={async () => {
           const imageAlreadyAdmitted = admission?.decision === 'ADMITTED';
           if ((!imageAlreadyAdmitted && !(await uploadDrawing())) || !(await uploadNarration())) return;
@@ -606,21 +618,14 @@ export const VoiceScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
     goBack,
     selectedChild,
     isRecording,
+    isRecordingStarting,
     toggleRecording,
     voiceDuration,
-    setVoiceDuration,
     selectedNarrationAudio,
+    cancelRecording,
     uploadNarration,
   } = useAppContext();
   const nav = onNavigate || navigate;
-
-  useEffect(() => {
-    if (!isRecording) return;
-    const interval = setInterval(() => {
-      setVoiceDuration(voiceDuration < 180 ? voiceDuration + 1 : voiceDuration);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [isRecording, voiceDuration, setVoiceDuration]);
 
   const formatTime = (sec: number) => {
     const m = Math.floor(sec / 60).toString().padStart(2, '0');
@@ -637,7 +642,12 @@ export const VoiceScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
     <ScrollView contentContainerStyle={styles.screenContainer} showsVerticalScrollIndicator={false}>
       {/* Header */}
       <View style={styles.topHeader}>
-        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Quay lại" onPress={goBack} style={styles.backBtn}>
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel="Quay lại"
+          onPress={() => { if (isRecording || isRecordingStarting) void cancelRecording().then(goBack); else goBack(); }}
+          style={styles.backBtn}
+        >
           <Ionicons name="arrow-back" size={20} color={colors.textBody} />
         </TouchableOpacity>
         <Text style={styles.screenHeaderTitle}>Kể chuyện bằng giọng nói</Text>
@@ -663,7 +673,7 @@ export const VoiceScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
           style={{ width: '92%', height: 42, resizeMode: 'contain', marginVertical: 6 }}
         />
         <Text style={[styles.waveformTimer, isRecording && { color: '#EF4444' }]}>
-          {isRecording ? `Đang ghi âm...  ${formatTime(voiceDuration)} / 03:00` : `${formatTime(voiceDuration)} / 03:00`}
+          {isRecordingStarting ? 'Đang mở micro…' : `${isRecording ? 'Đang ghi âm...  ' : ''}${formatTime(voiceDuration)} / 03:00`}
         </Text>
       </View>
 
@@ -671,8 +681,9 @@ export const VoiceScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
       <View style={styles.recordControlsRow}>
         <TouchableOpacity
           accessibilityRole="button"
-          accessibilityLabel={isRecording ? 'Dừng ghi âm' : selectedNarrationAudio ? 'Ghi lại lời kể' : 'Bắt đầu kể'}
-          accessibilityState={{ busy: isRecording }}
+          accessibilityLabel={isRecording ? 'Dừng ghi âm' : isRecordingStarting ? 'Đang mở micro' : selectedNarrationAudio ? 'Ghi lại lời kể' : 'Bắt đầu kể'}
+          accessibilityState={{ busy: isRecording || isRecordingStarting, disabled: isRecordingStarting }}
+          disabled={isRecordingStarting}
           onPress={toggleRecording}
           style={styles.mainRecordBtn}
         >
@@ -682,19 +693,22 @@ export const VoiceScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
         <TouchableOpacity
           accessibilityRole="button"
           accessibilityLabel="Hủy ghi âm"
-          onPress={goBack}
+          onPress={() => void cancelRecording().then(goBack)}
           style={styles.auxRecordBtn}
         >
           <Ionicons name="close" size={20} color={colors.textLight} />
           <Text style={styles.auxRecordText}>Hủy</Text>
         </TouchableOpacity>
       </View>
+      {isRecordingStarting && (
+        <Text style={styles.recordingLabel}>Đang xin quyền và mở micro…</Text>
+      )}
       {isRecording && (
         <Text style={[styles.recordingLabel, { color: '#EF4444', fontWeight: '700' }]}>
           Đang ghi âm... Chạm nút đỏ để dừng
         </Text>
       )}
-      {!isRecording && !selectedNarrationAudio && (
+      {!isRecording && !isRecordingStarting && !selectedNarrationAudio && (
         <Text style={styles.recordingLabel}>Chạm nút micro để bắt đầu kể</Text>
       )}
       {!isRecording && selectedNarrationAudio && (

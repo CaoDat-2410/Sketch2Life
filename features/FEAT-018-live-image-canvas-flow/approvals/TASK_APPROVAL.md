@@ -460,3 +460,20 @@ mobile, Gate A, P1 eligibility, P3/P4 and shared integration remain separately g
   is not used to block or fallback the child-facing topic flow.
 - Verification: focused backend contract tests, frontend typecheck/UI validation, and a runtime log
   check showing no `/v2/localize` request for the initial understanding flow.
+
+## Owner approval — FEAT-018 main-flow hardening — 2026-09-28
+
+- Approver: project owner direct instruction in the current conversation: “xác định các lỗi tiềm
+  năng về luồng chính và fix luôn 1 lần”.
+- Approved artifact: `plan/MAIN_FLOW_HARDENING_PLAN_20260928.md`.
+- Plan SHA-256 at approval: `C15ED48934AB83D30908E69F1BB15E654AE430748885F8174422E93FAA1EA868`.
+- Approved scope: synchronous request guards and retry-safe preflight; reset session-scoped state;
+  repair single-clock audio recording lifecycle; fail-fast JPEG/PNG validation; map feedback to
+  `FeedbackV1` enums and stop presenting unsupported free-text notes as saved; prevent ordinary
+  dashboard entry points from bypassing required workflow state; prevent renderer auto-retry loops,
+  provide explicit retry, make error-modal copy accurate; safely replay an identical command after
+  ambiguous transport failure with the existing idempotency contract; focused regression tests and
+  feature-local evidence.
+- Explicit exclusions: backend/versioned contract changes, free-text note storage, persistence,
+  auth, live provider calls, real child data, video, Pixi redesign, unrelated work and commit/push.
+- Approved at: 2026-09-28 15:57:19 Asia/Ho_Chi_Minh.
