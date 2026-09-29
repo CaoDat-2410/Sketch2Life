@@ -374,6 +374,9 @@ export const PlaybackEventSchema = z.discriminatedUnion('type', [
 ]);
 
 export const MAX_RENDERER_MESSAGE_BYTES = 4096;
+// Launch commands contain bounded animation tracks and can legitimately be
+// larger than progress/control events. Keep a separate cap for native->page.
+export const MAX_RENDERER_COMMAND_BYTES = 128 * 1024;
 export type RendererBootstrap = z.infer<typeof RendererBootstrapSchema>;
 export type PlaybackEvent = z.infer<typeof PlaybackEventSchema>;
 

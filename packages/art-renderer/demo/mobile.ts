@@ -5,6 +5,7 @@ import {
   createAutoRigPlayer,
   createBrowserArtPlayer,
   MAX_RENDERER_MESSAGE_BYTES,
+  MAX_RENDERER_COMMAND_BYTES,
   RendererControlCommandSchema,
   RendererLoadCommandSchema,
   RendererLoadCommandV2Schema,
@@ -12,6 +13,7 @@ import {
   matchesDerivedMaskProvenance,
   sha256Hex,
   createRendererStartupGate,
+  buildV2FallbackPlan,
   type PlaybackEvent,
   type RendererLoadCommand,
   type RendererLoadCommandV2,
@@ -20,6 +22,7 @@ import {
 declare global {
   interface Window {
     ReactNativeWebView?: {postMessage(message: string): void};
+    __sketch2lifeReceiveNativeMessage?: (serialized: string) => void;
   }
 }
 
@@ -42,6 +45,7 @@ let launch: ActiveLaunch | null = null;
 let sourceBlob: Blob | null = null;
 let eventSequence = 0;
 let lastLoadMessage: string | null = null;
+let lastAcceptedLaunchMessage: string | null = null;
 let lastProgressPostAt = 0;
 let activePlayer: PlaybackController | null = null;
 let v2InteractionPhase: 'INTRO_LOADING' | 'INTRO_PLAYING' | 'DISCOVERY_READY' | 'FALLBACK' = 'INTRO_LOADING';
@@ -183,7 +187,7 @@ async function loadLaunch(serialized: string): Promise<void> {
     status.textContent = 'Renderer này đã nhận một launch. Mở Pixi lại từ app để tạo launch mới.';
     return;
   }
-  if (new TextEncoder().encode(serialized).byteLength > MAX_RENDERER_MESSAGE_BYTES) {
+  if (new TextEncoder().encode(serialized).byteLength > MAX_RENDERER_COMMAND_BYTES) {
     status.textContent = 'Launch vượt giới hạn bridge; không có ảnh nào được tải.';
     return;
   }
@@ -241,7 +245,7 @@ async function loadLaunch(serialized: string): Promise<void> {
         }
         const foreground = await textureFromBlob(image, false, 1200);
         let maskCanvas: HTMLCanvasElement | undefined;
-        if (rigPackage.tier === 'CUTOUT_MICRO_MOTION') {
+        if (rigPackage.tier === 'CUTOUT_MICRO_MOTION' || rigPackage.tier === 'FULL_AUTO_RIG') {
           if (
             command.maskReadEndpoint === undefined
             || command.maskReadCapability === undefined
@@ -267,28 +271,62 @@ async function loadLaunch(serialized: string): Promise<void> {
             || await sha256Hex(maskBytes) !== command.maskSha256
             || maskResponse.headers.get('X-Content-SHA256') !== command.maskSha256
           ) throw new Error('MASK_HASH_OR_SIZE_INVALID');
-          const maskBitmap = await createImageBitmap(new Blob([maskBytes], {type: 'image/png'}));
-          if (maskBitmap.width !== foreground.sourceWidth || maskBitmap.height !== foreground.sourceHeight) {
-            maskBitmap.close();
-            throw new Error('MASK_DIMENSIONS_MISMATCH');
-          }
-          maskCanvas = document.createElement('canvas');
-          maskCanvas.width = foreground.canvas.width;
-          maskCanvas.height = foreground.canvas.height;
-          const maskContext = maskCanvas.getContext('2d', {willReadFrequently: true});
-          if (maskContext === null) {
-            maskBitmap.close();
-            throw new Error('MASK_CANVAS_UNAVAILABLE');
-          }
-          maskContext.drawImage(maskBitmap, 0, 0, maskCanvas.width, maskCanvas.height);
-          maskBitmap.close();
+          maskCanvas = await maskCanvasFromBytes(maskBytes, foreground);
         }
-        autoRigPlayer.load(packageJson, command.animationPlan, foreground.texture, foreground.canvas, maskCanvas);
+        if (rigPackage.tier !== 'FULL_AUTO_RIG' || maskCanvas === undefined || rigPackage.parts.length < 2) {
+          throw new Error('PART_MASKS_REQUIRED');
+        }
+        const partMaskCanvases = new Map<string, HTMLCanvasElement>();
+        const packagePartIds = new Set(rigPackage.parts.map((part) => part.partId));
+        if (
+          command.partMaskReads.length !== rigPackage.parts.length
+          || command.rigParts.length !== rigPackage.parts.length
+        ) throw new Error('PART_MASK_HANDOFF_INVALID');
+        for (const partRead of command.partMaskReads) {
+          const packagePart = rigPackage.parts.find((part) => part.partId === partRead.partId);
+          const commandPart = command.rigParts.find((part) => part.partId === partRead.partId);
+          if (
+            packagePart === undefined
+            || commandPart === undefined
+            || packagePart.boneId !== partRead.boneId
+            || packagePart.maskSha256 !== partRead.sha256
+            || commandPart.maskArtifactRef !== packagePart.maskArtifactRef
+            || commandPart.maskSha256 !== packagePart.maskSha256
+            || !rigPackage.derivedArtifacts.some((artifact) => (
+              matchesDerivedPartMaskProvenance(artifact, rigPackage.sourceSha256, packagePart.maskArtifactRef, partRead.sha256)
+            ))
+          ) throw new Error('PART_MASK_PROVENANCE_INVALID');
+          const partResponse = await fetch(new URL(partRead.readEndpoint, window.location.href), {
+            method: 'GET',
+            headers: {'X-Rig-Mask-Capability': partRead.readCapability},
+            cache: 'no-store',
+            credentials: 'same-origin',
+          });
+          if (!partResponse.ok || partResponse.headers.get('Content-Type')?.split(';')[0] !== 'image/png') {
+            throw new Error('PART_MASK_UNAVAILABLE');
+          }
+          const partBytes = await partResponse.arrayBuffer();
+          if (
+            partBytes.byteLength <= 8
+            || partBytes.byteLength > 5_000_000
+            || await sha256Hex(partBytes) !== partRead.sha256
+            || partResponse.headers.get('X-Content-SHA256') !== partRead.sha256
+          ) throw new Error('PART_MASK_HASH_INVALID');
+          partMaskCanvases.set(partRead.partId, await maskCanvasFromBytes(partBytes, foreground));
+        }
+        if (packagePartIds.size !== partMaskCanvases.size) throw new Error('PART_MASK_HANDOFF_INVALID');
+        autoRigPlayer.load(
+          packageJson,
+          command.animationPlan,
+          foreground.canvas,
+          maskCanvas,
+          partMaskCanvases,
+        );
         activePlayer = autoRigPlayer;
         v2InteractionPhase = 'INTRO_LOADING';
       } catch (error) {
         console.error('[art-renderer] Renderer V2 package could not start.', safeFailureCode(error));
-        await classicPlayer.load(v2FallbackPlan(command));
+        await classicPlayer.load(buildV2FallbackPlan(command));
         activePlayer = classicPlayer;
         v2InteractionPhase = 'FALLBACK';
         postLifecycle({
@@ -328,10 +366,12 @@ async function loadLaunch(serialized: string): Promise<void> {
 
 function receiveNativeMessage(event: MessageEvent): void {
   const serialized = typeof event.data === 'string' ? event.data : '';
-  if (!serialized || new TextEncoder().encode(serialized).byteLength > MAX_RENDERER_MESSAGE_BYTES) return;
+  const serializedByteLength = new TextEncoder().encode(serialized).byteLength;
+  if (!serialized || serializedByteLength > MAX_RENDERER_COMMAND_BYTES) return;
   try {
     const control = RendererControlCommandSchema.safeParse(JSON.parse(serialized));
     if (control.success && control.data.rendererInstanceId === rendererInstanceId) {
+      if (serializedByteLength > MAX_RENDERER_MESSAGE_BYTES) return;
       switch (control.data.action) {
         case 'PLAY': activePlayer?.play(); break;
         case 'PAUSE': activePlayer?.pause(); break;
@@ -347,8 +387,20 @@ function receiveNativeMessage(event: MessageEvent): void {
   const parsedV2 = RendererLoadCommandV2Schema.safeParse(JSON.parse(serialized));
   const parsedV1 = RendererLoadCommandSchema.safeParse(JSON.parse(serialized));
   const command = parsedV2.success ? parsedV2.data : parsedV1.success ? parsedV1.data : null;
-  if (command?.rendererInstanceId === rendererInstanceId) startupGate.receive(serialized);
+  if (command?.rendererInstanceId === rendererInstanceId) {
+    if (lastAcceptedLaunchMessage !== serialized) {
+      lastAcceptedLaunchMessage = serialized;
+      // A bootstrap only confirms that the page can talk to native. This
+      // state is the explicit acknowledgment that native launch reached JS.
+      postProgress(0, 0, 'READY', v2InteractionPhase);
+    }
+    startupGate.receive(serialized);
+  }
 }
+
+window.__sketch2lifeReceiveNativeMessage = (serialized) => {
+  receiveNativeMessage({data: serialized} as MessageEvent);
+};
 
 playButton.addEventListener('click', () => {
   if (launch === null) return;
@@ -470,9 +522,48 @@ function safeFailureCode(error: unknown): string {
     'MASK_UNAVAILABLE', 'MASK_CAPABILITY_OR_PROVENANCE_INVALID', 'MASK_HASH_OR_SIZE_INVALID',
     'MASK_DIMENSIONS_MISMATCH', 'MASK_CANVAS_UNAVAILABLE', 'MASK_AREA_INVALID',
     'MASK_REGION_INVALID', 'MASK_REGION_MISMATCH', 'MASK_DIMENSIONS_INVALID',
-    'MASK_BACKGROUND_PATCH_UNSAFE', 'SUBJECT_MASK_UNAVAILABLE',
+    'MASK_BACKGROUND_PATCH_UNSAFE', 'SUBJECT_MASK_UNAVAILABLE', 'PART_MASKS_REQUIRED',
+    'PART_MASK_HANDOFF_INVALID', 'PART_MASK_PROVENANCE_INVALID', 'PART_MASK_UNAVAILABLE',
+    'PART_MASK_HASH_INVALID', 'PART_MASK_CANVAS_UNAVAILABLE', 'PART_MASK_DIMENSIONS_MISMATCH',
+    'PART_MASK_QUALITY_INVALID', 'PART_MASK_COVERAGE_INVALID',
   ];
   return knownCodes.includes(message) ? message : 'RENDERER_V2_START_FAILED';
+}
+
+async function maskCanvasFromBytes(
+  bytes: ArrayBuffer,
+  foreground: {canvas: HTMLCanvasElement; sourceWidth: number; sourceHeight: number},
+): Promise<HTMLCanvasElement> {
+  const bitmap = await createImageBitmap(new Blob([bytes], {type: 'image/png'}));
+  if (bitmap.width !== foreground.sourceWidth || bitmap.height !== foreground.sourceHeight) {
+    bitmap.close();
+    throw new Error('MASK_DIMENSIONS_MISMATCH');
+  }
+  const canvas = document.createElement('canvas');
+  canvas.width = foreground.canvas.width;
+  canvas.height = foreground.canvas.height;
+  const context = canvas.getContext('2d', {willReadFrequently: true});
+  if (context === null) {
+    bitmap.close();
+    throw new Error('MASK_CANVAS_UNAVAILABLE');
+  }
+  context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
+  return canvas;
+}
+
+function matchesDerivedPartMaskProvenance(
+  artifact: unknown,
+  sourceSha256: string,
+  artifactRef: string,
+  digest: string,
+): boolean {
+  if (typeof artifact !== 'object' || artifact === null) return false;
+  const item = artifact as Record<string, unknown>;
+  return item.role === 'ORIGINAL_DERIVED_PART_MASK'
+    && item.sourceSha256 === sourceSha256
+    && item.artifactRef === artifactRef
+    && item.sha256 === digest;
 }
 
 function fallbackReason(error: unknown): 'EXTRACTION_UNAVAILABLE' | 'MASK_INVALID' | 'ASSET_LOAD_FAILED' | 'MOTION_COMPILE_FAILED' {
@@ -480,37 +571,4 @@ function fallbackReason(error: unknown): 'EXTRACTION_UNAVAILABLE' | 'MASK_INVALI
   if (code.startsWith('MASK_')) return 'MASK_INVALID';
   if (code.includes('PACKAGE') || code.includes('SOURCE')) return 'ASSET_LOAD_FAILED';
   return code === 'RENDERER_V2_START_FAILED' ? 'MOTION_COMPILE_FAILED' : 'EXTRACTION_UNAVAILABLE';
-}
-
-function v2FallbackPlan(command: RendererLoadCommandV2): unknown {
-  return {
-    contractVersion: '1',
-    planId: command.animationPlan.planId,
-    planVersion: String(command.experienceSpecRef.version),
-    stage: {width: 800, height: 600},
-    objects: [{
-      id: 'original-art',
-      label: command.animationPlan.learningBridgeVi,
-      asset: {
-        sourceAssetId: 'source-original-art',
-        sourceAssetVersion: '1',
-        uri: 'source:original-art',
-        assetKind: 'WHOLE_DRAWING',
-        sourceSha256: command.sourceSha256,
-      },
-      initialTransform: {
-        position: {x: 0.5, y: 0.5},
-        scale: 0.94,
-        rotationDegrees: 0,
-        opacity: 1,
-      },
-      extractionStatus: 'READY',
-      interactive: false,
-    }],
-    motions: [
-      {id: 'fallback-reveal', sceneId: 'fallback', kind: 'DRAW_REVEAL', targetId: 'original-art', durationSeconds: 1.2},
-      {id: 'fallback-focus', sceneId: 'fallback', kind: 'SCALE', targetId: 'original-art', durationSeconds: 1.8, scale: 1.04},
-      {id: 'fallback-settle', sceneId: 'fallback', kind: 'ROTATE', targetId: 'original-art', durationSeconds: 1.2, rotationDegrees: 1},
-    ],
-  };
 }

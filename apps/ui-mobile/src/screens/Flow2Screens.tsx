@@ -1103,6 +1103,8 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
             ...(launch.maskReadEndpoint === undefined ? {} : {maskReadEndpoint: launch.maskReadEndpoint}),
             ...(launch.maskReadCapability === undefined ? {} : {maskReadCapability: launch.maskReadCapability}),
             ...(launch.maskSha256 === undefined ? {} : {maskSha256: launch.maskSha256}),
+            partMaskReads: launch.partMaskReads ?? [],
+            rigParts: launch.rigParts ?? [],
             animationPlan: launch.animationPlan,
           })
           : RendererLoadCommandSchema.safeParse({

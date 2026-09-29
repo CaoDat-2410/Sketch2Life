@@ -2,6 +2,22 @@ import {z} from 'zod';
 
 const normalized = z.number().finite().min(0).max(1);
 const identifier = z.string().regex(/^[a-z][a-z0-9_-]*$/);
+const sourceRegionSchema = z.object({
+  x: normalized,
+  y: normalized,
+  width: z.number().finite().gt(0).max(1),
+  height: z.number().finite().gt(0).max(1),
+}).strict();
+
+const rigPartSchema = z.object({
+  partId: identifier,
+  role: z.string().min(1).max(48),
+  boneId: identifier,
+  sourceRegion: sourceRegionSchema,
+  confidence: normalized,
+  maskArtifactRef: z.string().min(1).max(300),
+  maskSha256: z.string().regex(/^[a-f0-9]{64}$/),
+}).strict();
 
 export const RigArchetypeSchema = z.enum([
   'butterfly',
@@ -33,12 +49,7 @@ export const RigDefinitionV1Schema = z.object({
   contractName: z.literal('RigDefinitionV1'),
   contractVersion: z.literal('1.0'),
   archetype: RigArchetypeSchema,
-  sourceRegion: z.object({
-    x: normalized,
-    y: normalized,
-    width: z.number().finite().gt(0).max(1),
-    height: z.number().finite().gt(0).max(1),
-  }).strict(),
+  sourceRegion: sourceRegionSchema,
   vertices: z.array(z.object({x: normalized, y: normalized, u: normalized, v: normalized}).strict()).min(4).max(1024),
   triangles: z.array(z.object({a: z.number().int().min(0).max(1023), b: z.number().int().min(0).max(1023), c: z.number().int().min(0).max(1023)}).strict()).min(2).max(2048),
   bones: z.array(z.object({
@@ -77,7 +88,8 @@ export const RiggedArtworkPackageV1Schema = z.object({
   archetype: RigArchetypeSchema,
   tier: RigDeliveryTierSchema,
   rig: RigDefinitionV1Schema.nullable().optional(),
-  derivedArtifacts: z.array(z.unknown()).max(4).default([]),
+  parts: z.array(rigPartSchema).max(8).default([]),
+  derivedArtifacts: z.array(z.unknown()).max(9).default([]),
   validation: z.object({
     contractName: z.literal('RigValidationResultV1'),
     contractVersion: z.literal('1.0'),
@@ -91,7 +103,11 @@ export const RiggedArtworkPackageV1Schema = z.object({
   originalArtPreserved: z.literal(true),
 }).strict().superRefine((value, context) => {
   if (value.tier === 'FULL_AUTO_RIG' && value.rig === undefined) context.addIssue({code: z.ZodIssueCode.custom, message: 'Full auto-rig requires rig data.'});
+  if (value.tier === 'FULL_AUTO_RIG' && value.parts.length < 2) context.addIssue({code: z.ZodIssueCode.custom, message: 'Full auto-rig requires independently masked parts.'});
   if (value.validation.selectedTier !== value.tier) context.addIssue({code: z.ZodIssueCode.custom, message: 'Validation tier drift.'});
+  if (new Set(value.parts.map((part) => part.partId)).size !== value.parts.length) context.addIssue({code: z.ZodIssueCode.custom, message: 'Rig part IDs must be unique.'});
+  const bones = new Set(value.rig?.bones.map((bone) => bone.boneId) ?? []);
+  if (value.parts.some((part) => !bones.has(part.boneId))) context.addIssue({code: z.ZodIssueCode.custom, message: 'Rig part references an unknown bone.'});
 });
 
 export const BonePoseV2Schema = z.object({
@@ -123,6 +139,15 @@ export const VisualAnimationPlanV2Schema = z.object({
   maxMotionLevel: z.union([z.literal(0), z.literal(1), z.literal(2)]).default(2),
 }).strict();
 
+export const PartMaskReadV1Schema = z.object({
+  partId: identifier,
+  boneId: identifier,
+  sourceRegion: sourceRegionSchema,
+  readEndpoint: z.literal('/v1/renderer/rig-mask'),
+  readCapability: z.string().min(40).max(200),
+  sha256: z.string().regex(/^[a-f0-9]{64}$/),
+}).strict();
+
 export const RendererLoadCommandV2Schema = z.object({
   contractName: z.literal('RendererLoadCommandV2'),
   contractVersion: z.literal('2.0'),
@@ -141,15 +166,25 @@ export const RendererLoadCommandV2Schema = z.object({
   maskReadEndpoint: z.literal('/v1/renderer/rig-mask').optional(),
   maskReadCapability: z.string().min(40).max(200).optional(),
   maskSha256: z.string().regex(/^[a-f0-9]{64}$/).optional(),
+  partMaskReads: z.array(PartMaskReadV1Schema).max(8).default([]),
+  rigParts: z.array(rigPartSchema).max(8).default([]),
   animationPlan: VisualAnimationPlanV2Schema,
 }).strict().superRefine((command, context) => {
   const maskFields = [command.maskReadEndpoint, command.maskReadCapability, command.maskSha256];
   if (maskFields.some((value) => value !== undefined) && maskFields.some((value) => value === undefined)) {
     context.addIssue({code: z.ZodIssueCode.custom, message: 'Derived mask endpoint, capability and digest must be supplied together.'});
   }
+  if (new Set(command.partMaskReads.map((part) => part.partId)).size !== command.partMaskReads.length) {
+    context.addIssue({code: z.ZodIssueCode.custom, message: 'Part mask capability IDs must be unique.'});
+  }
+  if (JSON.stringify(command.partMaskReads.map((part) => part.partId).sort())
+    !== JSON.stringify(command.rigParts.map((part) => part.partId).sort())) {
+    context.addIssue({code: z.ZodIssueCode.custom, message: 'Part masks and rig metadata must match.'});
+  }
 });
 
 export type RigDefinitionV1 = z.infer<typeof RigDefinitionV1Schema>;
 export type RiggedArtworkPackageV1 = z.infer<typeof RiggedArtworkPackageV1Schema>;
 export type VisualAnimationPlanV2 = z.infer<typeof VisualAnimationPlanV2Schema>;
+export type PartMaskReadV1 = z.infer<typeof PartMaskReadV1Schema>;
 export type RendererLoadCommandV2 = z.infer<typeof RendererLoadCommandV2Schema>;

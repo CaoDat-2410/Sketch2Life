@@ -13,6 +13,7 @@ import type {
   Transform,
 } from './contracts';
 import {buildPreservingFallbackPlan} from './fallback';
+import {fitCanvasToStage} from './canvasFit';
 import {compileMotionPlan} from './motion';
 import {validateArtAnimationPlan} from './validation';
 
@@ -55,9 +56,9 @@ interface LoadedPlan {
   readonly loadedAt: number;
 }
 
-function setTransform(sprite: Sprite, transform: Transform, plan: ArtAnimationPlan): void {
+function setTransform(sprite: Sprite, transform: Transform, plan: ArtAnimationPlan, fitScale = 1): void {
   sprite.position.set(transform.position.x * plan.stage.width, transform.position.y * plan.stage.height);
-  sprite.scale.set(transform.scale);
+  sprite.scale.set(transform.scale * fitScale);
   sprite.rotation = (transform.rotationDegrees * Math.PI) / 180;
   sprite.alpha = transform.opacity;
 }
@@ -159,7 +160,10 @@ export function createBrowserArtPlayer(options: BrowserArtPlayerOptions): Browse
             : await options.loadTexture(instruction.uri, instruction.sourceRegion);
           const sprite = new Sprite(texture);
           sprite.anchor.set(0.5);
-          setTransform(sprite, object.initialTransform, plan);
+          const fitScale = object.asset.assetKind === 'WHOLE_DRAWING'
+            ? fitCanvasToStage(texture.width, texture.height, plan.stage.width, plan.stage.height).scale
+            : 1;
+          setTransform(sprite, object.initialTransform, plan, fitScale);
           if (object.interactive) {
             const focusTarget = context.sceneFocusPlan?.targets.find(
               (target) => `focus-${target.targetRef}` === object.id,

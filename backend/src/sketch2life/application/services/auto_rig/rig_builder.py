@@ -233,9 +233,9 @@ def build_animation_plan(
     tier: RigDeliveryTier = RigDeliveryTier.FULL_AUTO_RIG,
 ) -> VisualAnimationPlanV2:
     tracks = _tracks(archetype)
-    duration = (
-        max(frame.at_seconds for track in tracks for frame in track.keyframes) if tracks else 4
-    )
+    # Keep the complete story within the requested 15–30s range. Semantic motion ends at
+    # 14.4s; the remaining 5.6s is a deliberate still hold, not a looping idle animation.
+    duration = 20
     return VisualAnimationPlanV2(
         contractName="VisualAnimationPlanV2",
         contractVersion="2.0",
@@ -246,9 +246,20 @@ def build_animation_plan(
         archetype=archetype,
         tier=tier,
         durationSeconds=duration,
-        tracks=tracks,
+        tracks=tuple(_stretch_track(track, 1.2) for track in tracks),
         learningBridgeVi=learning_bridge_vi,
         maxMotionLevel=2,
+    )
+
+
+def _stretch_track(track: BoneMotionTrackV2, factor: float) -> BoneMotionTrackV2:
+    return track.model_copy(
+        update={
+            "keyframes": tuple(
+                frame.model_copy(update={"at_seconds": round(frame.at_seconds * factor, 3)})
+                for frame in track.keyframes
+            )
+        }
     )
 
 

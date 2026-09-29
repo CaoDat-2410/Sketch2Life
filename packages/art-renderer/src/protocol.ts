@@ -1,6 +1,7 @@
 export {ART_RENDERER_PROTOCOL_VERSION} from './contracts';
 export {
   MAX_RENDERER_MESSAGE_BYTES,
+  MAX_RENDERER_COMMAND_BYTES,
   PlaybackEventSchema,
   RendererBootstrapSchema,
   RendererControlCommandSchema,
@@ -13,7 +14,7 @@ export {
   SourceRegionSchema,
   SubjectCandidateSetSchema,
 } from './contracts';
-export {parseRendererMessage} from './bridge';
+export {createNativeBridgeInjection, parseRendererMessage} from './bridge';
 export {RendererLoadCommandV2Schema} from './contractsV2';
 export type {RendererLoadCommandV2} from './contractsV2';
 export type {PlaybackEvent, RendererBootstrap, RendererInteractionPhase} from './contracts';

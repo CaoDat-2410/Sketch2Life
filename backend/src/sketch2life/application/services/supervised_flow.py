@@ -1295,6 +1295,7 @@ class SupervisedFlowService:
                         package_expires_at,
                         package_sha,
                         mask_capability,
+                        part_mask_reads,
                     ) = self._auto_rig_service.prepare_template_package(
                         session_id=command.session_id,
                         source_artifact_ref=source_artifact_ref,
@@ -1336,6 +1337,8 @@ class SupervisedFlowService:
                             if mask_capability is not None
                             else None
                         ),
+                        partMaskReads=part_mask_reads,
+                        rigParts=package.parts,
                         animationPlan=visual_plan,
                         fallbackLaunch=launch.model_dump(
                             mode="json", by_alias=True, exclude_none=True

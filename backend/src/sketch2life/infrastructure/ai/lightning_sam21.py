@@ -10,6 +10,7 @@ from typing import Any, Literal
 from pydantic import ValidationError
 
 from sketch2life.application.ports.segmentation import (
+    SubjectPartSegmentationResult,
     SubjectSegmentationPort,
     SubjectSegmentationRequest,
     SubjectSegmentationResult,
@@ -84,6 +85,23 @@ class LightningSam21SegmentationAdapter(SubjectSegmentationPort):
             mask_ref, mask_sha256 = self._store_mask(request.session_id, response.mask_base64)
             if response.source_region is None or response.confidence is None:
                 return None
+            parts: list[SubjectPartSegmentationResult] = []
+            for part in response.part_masks:
+                part_ref, part_sha256 = self._store_mask(request.session_id, part.mask_base64)
+                if part_ref is None or part_sha256 is None:
+                    continue
+                parts.append(
+                    SubjectPartSegmentationResult(
+                        part_id=part.part_id,
+                        role=part.role,
+                        source_region=part.source_region,
+                        confidence=part.confidence,
+                        mask_artifact_ref=part_ref,
+                        mask_sha256=part_sha256,
+                        operation="SAM2.1 prompt-bounded part segmentation",
+                        operation_version=response.adapter_version,
+                    )
+                )
             return SubjectSegmentationResult(
                 source_region=response.source_region,
                 confidence=response.confidence,
@@ -91,6 +109,7 @@ class LightningSam21SegmentationAdapter(SubjectSegmentationPort):
                 adapter_version=response.adapter_version,
                 mask_artifact_ref=mask_ref,
                 mask_sha256=mask_sha256,
+                parts=tuple(parts),
             )
         except (
             KeyError,

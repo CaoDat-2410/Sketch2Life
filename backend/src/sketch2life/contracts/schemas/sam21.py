@@ -16,6 +16,17 @@ class Sam21PointV1(BaseModel):
     y: float = Field(ge=0, le=1, allow_inf_nan=False)
 
 
+class Sam21PartMaskV1(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid", populate_by_name=True)
+
+    part_id: str = Field(alias="partId", pattern=r"^[a-z][a-z0-9_-]*$")
+    role: str = Field(min_length=1, max_length=48)
+    source_region: SourceRegionV1 = Field(alias="sourceRegion")
+    confidence: float = Field(ge=0, le=1, allow_inf_nan=False)
+    mask_base64: str = Field(alias="maskBase64", min_length=1, max_length=1_400_000)
+    mask_content_type: Literal["image/png"] = Field(alias="maskContentType")
+
+
 class Sam21SegmentationResponseV1(BaseModel):
     """A bounded response; the mask is optional so degradation remains explicit."""
 
@@ -33,6 +44,7 @@ class Sam21SegmentationResponseV1(BaseModel):
     mask_content_type: Literal["image/png"] | None = Field(
         default=None, alias="maskContentType"
     )
+    part_masks: tuple[Sam21PartMaskV1, ...] = Field(default=(), alias="partMasks", max_length=4)
     failure_code: str | None = Field(default=None, alias="failureCode", max_length=80)
     retryable: bool = False
 
@@ -43,9 +55,11 @@ class Sam21SegmentationResponseV1(BaseModel):
                 raise ValueError("successful segmentation requires a source region and confidence")
             if self.mask_base64 is not None and self.mask_content_type != "image/png":
                 raise ValueError("mask content type is required when a mask is returned")
+            if len({part.part_id for part in self.part_masks}) != len(self.part_masks):
+                raise ValueError("part mask IDs must be unique")
         elif self.failure_code is None:
             raise ValueError("failed segmentation requires a failure code")
         return self
 
 
-__all__ = ["Sam21PointV1", "Sam21SegmentationResponseV1"]
+__all__ = ["Sam21PartMaskV1", "Sam21PointV1", "Sam21SegmentationResponseV1"]

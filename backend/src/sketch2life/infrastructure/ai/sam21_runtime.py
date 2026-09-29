@@ -82,6 +82,13 @@ class Sam21MaskOutput:
     mask_png: bytes
 
 
+@dataclass(frozen=True, slots=True)
+class Sam21Prompt:
+    prompt_region: SourceRegionV1 | None
+    positive_points: tuple[tuple[float, float], ...]
+    negative_points: tuple[tuple[float, float], ...]
+
+
 class Sam21ImageSegmenter:
     """Process-scoped SAM2.1 predictor with serialized lazy initialization."""
 
@@ -94,6 +101,7 @@ class Sam21ImageSegmenter:
         self._config = config
         self._predictor = predictor
         self._lock = Lock()
+        self._inference_lock = Lock()
 
     def segment(
         self,
@@ -103,7 +111,28 @@ class Sam21ImageSegmenter:
         positive_points: tuple[tuple[float, float], ...],
         negative_points: tuple[tuple[float, float], ...],
     ) -> Sam21MaskOutput:
-        if prompt_region is None and not positive_points and not negative_points:
+        output = self.segment_many(
+            image,
+            (Sam21Prompt(prompt_region, positive_points, negative_points),),
+        )[0]
+        if output is None:
+            raise Sam21MaskRejectedError("SAM2 returned no valid mask")
+        return output
+
+    def segment_many(
+        self,
+        image: bytes,
+        prompts: tuple[Sam21Prompt, ...],
+    ) -> tuple[Sam21MaskOutput | None, ...]:
+        """Encode the image once and predict a bounded set of subject/part masks."""
+        if not prompts or len(prompts) > 5:
+            raise ValueError("SAM2 prompt batch must contain one to five prompts")
+        if any(
+            prompt.prompt_region is None
+            and not prompt.positive_points
+            and not prompt.negative_points
+            for prompt in prompts
+        ):
             raise Sam21PromptRequiredError("SAM2 requires a bounded box or point prompt")
         try:
             from PIL import Image
@@ -118,7 +147,6 @@ class Sam21ImageSegmenter:
             width, height = rgb.size
             array = self._image_array(rgb)
         predictor = self._get_predictor()
-        predictor.set_image(array)
 
         try:
             import numpy as np
@@ -128,62 +156,76 @@ class Sam21ImageSegmenter:
                 reason_code="NUMPY_UNAVAILABLE",
             ) from exc
 
-        box = None
-        if prompt_region is not None:
-            box = np.asarray(
-                [
-                    prompt_region.x * width,
-                    prompt_region.y * height,
-                    (prompt_region.x + prompt_region.width) * width,
-                    (prompt_region.y + prompt_region.height) * height,
-                ],
-                dtype=np.float32,
-            )
-        point_coords, point_labels = _points_as_arrays(
-            positive_points, negative_points, width, height, np
-        )
-        try:
-            masks, scores, _ = predictor.predict(
-                point_coords=point_coords,
-                point_labels=point_labels,
-                box=box,
-                multimask_output=False,
-            )
-        except TypeError:
-            # Some SAM2 releases omit optional None arguments from the predictor signature.
-            kwargs: dict[str, object] = {"multimask_output": False}
-            if point_coords is not None:
-                kwargs["point_coords"] = point_coords
-                kwargs["point_labels"] = point_labels
-            if box is not None:
-                kwargs["box"] = box
-            masks, scores, _ = predictor.predict(**kwargs)
+        outputs: list[Sam21MaskOutput | None] = []
+        with self._inference_lock:
+            predictor.set_image(array)
+            for prompt in prompts:
+                box = None
+                if prompt.prompt_region is not None:
+                    box = np.asarray(
+                        [
+                            prompt.prompt_region.x * width,
+                            prompt.prompt_region.y * height,
+                            (prompt.prompt_region.x + prompt.prompt_region.width) * width,
+                            (prompt.prompt_region.y + prompt.prompt_region.height) * height,
+                        ],
+                        dtype=np.float32,
+                    )
+                point_coords, point_labels = _points_as_arrays(
+                    prompt.positive_points, prompt.negative_points, width, height, np
+                )
+                try:
+                    try:
+                        masks, scores, _ = predictor.predict(
+                            point_coords=point_coords,
+                            point_labels=point_labels,
+                            box=box,
+                            multimask_output=False,
+                        )
+                    except TypeError:
+                        kwargs: dict[str, object] = {"multimask_output": False}
+                        if point_coords is not None:
+                            kwargs["point_coords"] = point_coords
+                            kwargs["point_labels"] = point_labels
+                        if box is not None:
+                            kwargs["box"] = box
+                        masks, scores, _ = predictor.predict(**kwargs)
 
-        mask = np.asarray(masks)[0].astype(bool)
-        if mask.ndim != 2 or mask.shape != (height, width):
-            raise Sam21MaskRejectedError("SAM2 returned an invalid mask shape")
-        area_fraction = float(mask.mean())
-        if not self._config.min_area_fraction <= area_fraction <= self._config.max_area_fraction:
-            raise Sam21MaskRejectedError("SAM2 mask area is outside the safe range")
-        ys, xs = np.where(mask)
-        if len(xs) == 0 or len(ys) == 0:
-            raise Sam21MaskRejectedError("SAM2 returned an empty mask")
-        region = SourceRegionV1(
-            x=float(xs.min() / width),
-            y=float(ys.min() / height),
-            width=float((xs.max() + 1 - xs.min()) / width),
-            height=float((ys.max() + 1 - ys.min()) / height),
-        )
-        confidence = float(np.asarray(scores).reshape(-1)[0])
-        confidence = min(max(confidence, 0.0), 1.0)
-        output = Image.fromarray((mask.astype("uint8") * 255), mode="L")
-        buffer = io.BytesIO()
-        output.save(buffer, format="PNG", optimize=True)
-        return Sam21MaskOutput(
-            source_region=region,
-            confidence=confidence,
-            mask_png=buffer.getvalue(),
-        )
+                    mask = np.asarray(masks)[0].astype(bool)
+                    if mask.ndim != 2 or mask.shape != (height, width):
+                        raise Sam21MaskRejectedError("SAM2 returned an invalid mask shape")
+                    area_fraction = float(mask.mean())
+                    if not (
+                        self._config.min_area_fraction
+                        <= area_fraction
+                        <= self._config.max_area_fraction
+                    ):
+                        raise Sam21MaskRejectedError("SAM2 mask area is outside the safe range")
+                    ys, xs = np.where(mask)
+                    if len(xs) == 0 or len(ys) == 0:
+                        raise Sam21MaskRejectedError("SAM2 returned an empty mask")
+                    region = SourceRegionV1(
+                        x=float(xs.min() / width),
+                        y=float(ys.min() / height),
+                        width=float((xs.max() + 1 - xs.min()) / width),
+                        height=float((ys.max() + 1 - ys.min()) / height),
+                    )
+                    confidence = float(np.asarray(scores).reshape(-1)[0])
+                    confidence = min(max(confidence, 0.0), 1.0)
+                    output = Image.fromarray((mask.astype("uint8") * 255), mode="L")
+                    buffer = io.BytesIO()
+                    output.save(buffer, format="PNG", optimize=True)
+                    outputs.append(
+                        Sam21MaskOutput(
+                            source_region=region,
+                            confidence=confidence,
+                            mask_png=buffer.getvalue(),
+                        )
+                    )
+                except Sam21MaskRejectedError:
+                    # A bad part prompt must not discard an already valid parent silhouette.
+                    outputs.append(None)
+        return tuple(outputs)
 
     @staticmethod
     def _image_array(image: Any) -> Any:
@@ -353,6 +395,7 @@ __all__ = [
     "Sam21ConfigurationError",
     "Sam21ImageSegmenter",
     "Sam21MaskOutput",
+    "Sam21Prompt",
     "Sam21MaskRejectedError",
     "Sam21PromptRequiredError",
     "Sam21RuntimeConfig",

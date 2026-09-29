@@ -57,3 +57,24 @@
 - Approval evidence: the owner’s explicit request “check lỗi và fix” for the continuing SAM2-success/runtime-fallback issue and the follow-up report “vẫn fallback.” This is a scoped continuation of AC-FIX-030-04 (no indefinite INTRO_LOADING), not new model/provider or product-flow scope.
 - Boundary: no model/provider activation, Gate A/B changes, learning/activity-flow changes, or child-data logging. Android + Lightning visual retest remains required before marking the runtime fix complete.
 - Hash refresh: emulator evidence corrected the Pixi-init-stall hypothesis to a lost native-to-WebView launch delivery; the plan now specifies exact-message replay and idempotent deduplication under the already-approved one-command queue/replay scope. No contract, architecture boundary, or acceptance scope was broadened.
+
+## Owner approval — Pixi part-motion restoration — 2026-09-28
+
+- Approver: project owner direct instruction in the current conversation: “fix lại giùm cái”,
+  clarified to a 15–30 second duration and fallback order of AI part masks, image-processing
+  separation, then the established Pixi method. The owner selected multiple action beats followed
+  by rest with a fixed camera.
+- Approved plan: `plan/PIXIJ_PART_MOTION_RESTORATION_20260928.md`.
+- Plan SHA-256: `C98E2EC9B7BA8C6C6EAEB2D2A1DFA75E8C40817711DCC17AE747D358DF998F1C`.
+- Approved scope: carry validated independent part masks through the existing FEAT-030 SAM2.1 and
+  renderer pipeline; deterministic image-processing fallback; honest legacy Pixi fallback; fixed
+  camera/no full-art zoom or rotation; 20-second default choreography within 15–30 seconds with
+  multiple action beats and a still ending; tests and feature-local evidence.
+- Preserved boundaries: no Codex-triggered Qwen/SAM/Lightning request, no extra Qwen generation,
+  no change to the live SAM activation/L4 benchmark gate, no real child data or provider credentials,
+  and no change to Gate A/B, topic/learning contracts or immutable source-art provenance.
+- Implementation status refresh — 2026-09-29: the plan's implementation-status field now records
+  local offline verification complete and real-mask/Android acceptance pending. Current plan
+  SHA-256: `2AF2286718B1A969D037FA768DDFE9B6F4E7422948CA2C095DD1CAB7815E9244`. The approved scope,
+  architecture, exclusions and acceptance criteria are unchanged from the owner-approved hash above.
+- Implementation evidence: `evidence/notes/PIXI_PART_MOTION_RESTORATION_20260929.md`.

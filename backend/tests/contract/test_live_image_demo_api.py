@@ -1032,6 +1032,33 @@ def test_fake_only_image_session_completes_p1_gate_b_p4_handoff_feedback_and_gal
     assert client.get("/v1/renderer/source", headers=source_headers).content == _IMAGE
     assert client.get("/v1/renderer/source", headers=source_headers).status_code == 404
 
+    refreshed_renderer = _command(
+        client,
+        session_id=session_id,
+        version=version,
+        key="full-renderer-retry",
+        route="/renderer/launch",
+        payload={"operation": "PREPARE_RENDERER", "user_initiated": True},
+    )
+    assert refreshed_renderer.status_code == 200
+    refreshed_v1 = refreshed_renderer.json()["payload"]["renderer_launch"]
+    refreshed_v2 = refreshed_renderer.json()["payload"]["renderer_launch_v2"]
+    assert refreshed_v1["sourceReadCapability"] != launch["sourceReadCapability"]
+    assert refreshed_v2["packageReadCapability"] != launch_v2["packageReadCapability"]
+    refreshed_source = client.get(
+        refreshed_v1["sourceReadEndpoint"],
+        headers={"X-Render-Source-Capability": refreshed_v1["sourceReadCapability"]},
+    )
+    refreshed_package = client.get(
+        refreshed_v2["packageReadEndpoint"],
+        headers={"X-Rig-Package-Capability": refreshed_v2["packageReadCapability"]},
+    )
+    assert refreshed_source.status_code == 200
+    assert refreshed_source.content == _IMAGE
+    assert refreshed_package.status_code == 200
+    assert refreshed_renderer.json()["observed_session_version"] == version
+    assert vision.calls == 1
+
     handoff = _command(
         client,
         session_id=session_id,

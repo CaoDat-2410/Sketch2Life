@@ -38,6 +38,8 @@ class SubjectPartSegmentationResult:
     confidence: float
     mask_artifact_ref: str | None = None
     mask_sha256: str | None = None
+    operation: str = "SAM2.1 prompt-bounded part segmentation"
+    operation_version: str = "1"
 
 
 @dataclass(frozen=True, slots=True)

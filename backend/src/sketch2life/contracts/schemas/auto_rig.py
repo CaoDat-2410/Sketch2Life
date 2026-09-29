@@ -193,6 +193,7 @@ class DerivedArtifactRefV1(BaseModel):
     byte_length: int = Field(alias="byteLength", ge=1, le=10_000_000)
     role: Literal[
         "ORIGINAL_DERIVED_MASK",
+        "ORIGINAL_DERIVED_PART_MASK",
         "ORIGINAL_DERIVED_TEXTURE",
         "ORIGINAL_DERIVED_BACKGROUND_PATCH",
         "ORIGINAL_DERIVED_RIG_PACKAGE",
@@ -200,6 +201,18 @@ class DerivedArtifactRefV1(BaseModel):
     source_sha256: str = Field(alias="sourceSha256", pattern=r"^[a-f0-9]{64}$")
     operation: str = Field(min_length=1, max_length=120)
     operation_version: str = Field(alias="operationVersion", min_length=1, max_length=40)
+
+
+class RigPartV1(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid", populate_by_name=True)
+
+    part_id: str = Field(alias="partId", pattern=r"^[a-z][a-z0-9_-]*$")
+    role: str = Field(min_length=1, max_length=48)
+    bone_id: str = Field(alias="boneId", pattern=r"^[a-z][a-z0-9_-]*$")
+    source_region: SourceRegionV1 = Field(alias="sourceRegion")
+    confidence: float = Field(ge=0, le=1, allow_inf_nan=False)
+    mask_artifact_ref: str = Field(alias="maskArtifactRef", min_length=1, max_length=300)
+    mask_sha256: str = Field(alias="maskSha256", pattern=r"^[a-f0-9]{64}$")
 
 
 class RiggedArtworkPackageV1(BaseModel):
@@ -215,8 +228,9 @@ class RiggedArtworkPackageV1(BaseModel):
     archetype: RigArchetype
     tier: RigDeliveryTier
     rig: RigDefinitionV1 | None = None
+    parts: tuple[RigPartV1, ...] = Field(default=(), max_length=8)
     derived_artifacts: tuple[DerivedArtifactRefV1, ...] = Field(
-        default=(), alias="derivedArtifacts", max_length=4
+        default=(), alias="derivedArtifacts", max_length=9
     )
     validation: RigValidationResultV1
     pipeline_version: str = Field(alias="pipelineVersion", pattern=r"^[1-9][0-9]*$")
@@ -229,10 +243,30 @@ class RiggedArtworkPackageV1(BaseModel):
             raise ValueError("package creation time must be timezone-aware")
         if self.tier == RigDeliveryTier.FULL_AUTO_RIG and self.rig is None:
             raise ValueError("full auto-rig tier requires a rig definition")
+        if self.tier == RigDeliveryTier.FULL_AUTO_RIG and len(self.parts) < 2:
+            raise ValueError("full auto-rig tier requires independently masked parts")
         if self.validation.selected_tier != self.tier:
             raise ValueError("validation tier must match package tier")
         if any(item.source_sha256 != self.source_sha256 for item in self.derived_artifacts):
             raise ValueError("every derived artifact must retain the source hash")
+        if len({part.part_id for part in self.parts}) != len(self.parts):
+            raise ValueError("rig part IDs must be unique")
+        if self.parts:
+            if self.rig is None:
+                raise ValueError("rig parts require a rig definition")
+            bone_ids = {bone.bone_id for bone in self.rig.bones}
+            if any(part.bone_id not in bone_ids for part in self.parts):
+                raise ValueError("rig part references an unknown bone")
+            artifact_hashes = {
+                (item.artifact_ref, item.sha256)
+                for item in self.derived_artifacts
+                if item.role == "ORIGINAL_DERIVED_PART_MASK"
+            }
+            if any(
+                (part.mask_artifact_ref, part.mask_sha256) not in artifact_hashes
+                for part in self.parts
+            ):
+                raise ValueError("rig part mask lacks source-derived provenance")
         return self
 
 
@@ -265,6 +299,7 @@ __all__ = [
     "RigDefinitionV1",
     "RigDeliveryTier",
     "RigInfluenceV1",
+    "RigPartV1",
     "RigJobStage",
     "RigJobStatus",
     "RigPreparationRequestV1",

@@ -12,6 +12,7 @@
 | E-030-R4-IMPL-005 | Typed SAM2.1 worker route, backend adapter, bounded prompt proposal and mask provenance | Unit/contract review | `notes/REVISION4_SAM21_IMPLEMENTATION_20260926.md` | PASS_UNIT_TESTS_BENCHMARK_PENDING |
 | E-030-FIX-006 | SAM2-success mask handoff, verified Pixi cutout motion and explicit renderer failure/fallback lifecycle | Focused backend/renderer regression, typecheck and bundle build | `notes/SAM2_SUCCESS_MASK_HANDOFF_FIX_20260927.md` | PASS_LOCAL_CHECKS_PENDING_ANDROID_LIGHTNING_VISUAL_RETEST |
 | E-030-FIX-007 | Early bootstrap, idempotent native-to-WebView launch replay, startup failure reporting and stage-aware timeout | Emulator root-cause reproduction, renderer unit/type checks, mobile typecheck and bundle build | `notes/PIXI_STARTUP_HANDSHAKE_FIX_20260928.md` | PASS_LOCAL_CHECKS; POST-FIX_ARTIFACT_FLOW_PENDING |
+| E-030-FIX-008 | SAM2.1 part-mask handoff, deterministic mask partition fallback, separate Pixi part sprites, 20s multi-beat/rest timeline, contain-fit framing and backend mask-source diagnostics | Focused synthetic backend/runtime/renderer tests, typecheck and production demo build | `notes/PIXI_PART_MOTION_RESTORATION_20260929.md` | PASS_OFFLINE_CHECKS; LIVE_MASK_QUALITY_AND_ANDROID_RETEST_PENDING |
 
 ## Planned evidence groups
 

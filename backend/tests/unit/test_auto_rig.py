@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 import json
 from datetime import UTC, datetime
+from io import BytesIO
 
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from PIL import Image, ImageDraw
 
 from sketch2life.application.ports.segmentation import (
     SubjectPartSegmentationResult,
@@ -86,12 +89,12 @@ def test_motion_plan_targets_only_known_archetype_bones() -> None:
 
     assert {track.bone_id for track in plan.tracks}.issubset({bone.bone_id for bone in rig.bones})
     assert plan.max_motion_level == 2
-    assert plan.duration_seconds == 12
-    assert all(track.keyframes[-1].at_seconds == 12 for track in plan.tracks)
+    assert plan.duration_seconds == 20
+    assert all(track.keyframes[-1].at_seconds == 14.4 for track in plan.tracks)
 
 
 @pytest.mark.parametrize("archetype", tuple(RigArchetype))
-def test_every_archetype_has_a_twelve_second_bounded_intro(archetype: RigArchetype) -> None:
+def test_every_archetype_has_a_twenty_second_intro_and_still_rest(archetype: RigArchetype) -> None:
     plan = build_animation_plan(
         plan_id=f"visual-{archetype}",
         session_id="session-1",
@@ -101,8 +104,8 @@ def test_every_archetype_has_a_twelve_second_bounded_intro(archetype: RigArchety
         learning_bridge_vi="Mình cùng khám phá tiếp nhé.",
     )
 
-    assert plan.duration_seconds == 12
-    assert all(track.keyframes[-1].at_seconds == 12 for track in plan.tracks)
+    assert plan.duration_seconds == 20
+    assert all(track.keyframes[-1].at_seconds == 14.4 for track in plan.tracks)
 
 
 def test_package_capability_is_bounded_and_returns_hash_bound_json() -> None:
@@ -114,7 +117,7 @@ def test_package_capability_is_bounded_and_returns_hash_bound_json() -> None:
         now=lambda: datetime(2026, 9, 25, 6, 0, tzinfo=UTC),
     )
 
-    package, plan, capability, expires_at, digest, mask_capability = (
+    package, plan, capability, expires_at, digest, mask_capability, part_mask_reads = (
         service.prepare_template_package(
             session_id="session-1",
             source_artifact_ref="artifact:source",
@@ -138,6 +141,7 @@ def test_package_capability_is_bounded_and_returns_hash_bound_json() -> None:
     assert plan.package_id == package.package_id
     assert expires_at > datetime(2026, 9, 25, 6, 0, tzinfo=UTC)
     assert mask_capability is None
+    assert part_mask_reads == ()
 
     service.read_package(capability)
     with pytest.raises(AutoRigPackageUnavailable):
@@ -223,7 +227,7 @@ def test_part_metadata_without_renderer_mask_handoff_stays_at_cutout_tier() -> N
     )
 
     assert job.status == "PARTIAL_SUCCESS"
-    assert job.failure_code == "SEGMENTATION_PART_MASKS_NOT_RENDERABLE"
+    assert job.failure_code == "SEGMENTATION_PARTS_UNAVAILABLE"
     assert package.tier is RigDeliveryTier.CUTOUT_MICRO_MOTION
     assert package.rig is not None
     assert package.rig.source_region.x == 0.2
@@ -246,6 +250,72 @@ class _SubjectOnlySegmenter:
         )
 
 
+def _png_bytes(image: Image.Image) -> bytes:
+    output = BytesIO()
+    image.save(output, format="PNG")
+    return output.getvalue()
+
+
+def test_subject_only_butterfly_mask_is_partitioned_and_promoted_with_part_capabilities() -> None:
+    source_image = Image.new("RGB", (100, 100), "white")
+    source_draw = ImageDraw.Draw(source_image)
+    source_draw.ellipse((10, 20, 45, 68), fill=(235, 120, 30))
+    source_draw.ellipse((55, 20, 90, 68), fill=(235, 120, 30))
+    source_draw.rectangle((44, 32, 56, 82), fill=(20, 130, 240))
+    source_png = _png_bytes(source_image)
+    mask = Image.new("L", (100, 100), 0)
+    mask_draw = ImageDraw.Draw(mask)
+    mask_draw.ellipse((10, 20, 45, 68), fill=255)
+    mask_draw.ellipse((55, 20, 90, 68), fill=255)
+    mask_draw.rectangle((44, 32, 56, 82), fill=255)
+    mask_png = _png_bytes(mask)
+
+    artifacts = InMemoryArtifactStore()
+    source = artifacts.put(session_id="session-parts", content_type="image/png", body=source_png)
+    parent = artifacts.put(session_id="session-parts", content_type="image/png", body=mask_png)
+    service = AutoRigService(
+        artifacts=artifacts,
+        grants=InMemoryRigPackageGrantStore(),
+        jobs=InMemoryJobStore(),
+        segmenter=_SubjectOnlySegmenter(parent.artifact_ref, parent.sha256),
+        now=lambda: datetime(2026, 9, 25, 6, 0, tzinfo=UTC),
+    )
+
+    job = service.start_gate_a_preparation(
+        session_id="session-parts",
+        request_id="request-parts",
+        source_artifact_ref=source.artifact_ref,
+        source_sha256=hashlib.sha256(source_png).hexdigest(),
+        target_id="anchor-butterfly",
+        target_label="con bướm",
+        target_confidence=0.94,
+        semantic_tags=("animal",),
+    )
+    package, plan, _package_cap, _expires, _package_sha, _parent_cap, part_reads = (
+        service.prepare_template_package(
+            session_id="session-parts",
+            source_artifact_ref=source.artifact_ref,
+            source_sha256=hashlib.sha256(source_png).hexdigest(),
+            target_id="anchor-butterfly",
+            target_label="con bướm",
+            target_confidence=0.94,
+            semantic_tags=("animal",),
+            experience_spec_ref=VersionedRefV1(id="spec-parts", version=1),
+            learning_bridge_vi="Cùng xem đôi cánh chuyển động nhé.",
+        )
+    )
+
+    assert job.status == "SUCCEEDED"
+    assert package.tier is RigDeliveryTier.FULL_AUTO_RIG
+    assert {part.part_id for part in package.parts} == {"left-wing", "body", "right-wing"}
+    assert len(part_reads) == 3
+    assert plan.duration_seconds == 20
+    for part_read in part_reads:
+        content_type, body, digest = service.read_mask(part_read.read_capability)
+        assert content_type == "image/png"
+        assert hashlib.sha256(body).hexdigest() == digest == part_read.sha256
+
+
 def test_successful_subject_only_mask_gets_separate_bounded_renderer_capability() -> None:
     artifacts = InMemoryArtifactStore()
     mask = artifacts.put(session_id="session-1", content_type="image/png", body=_TINY_PNG)
@@ -266,7 +336,7 @@ def test_successful_subject_only_mask_gets_separate_bounded_renderer_capability(
         target_confidence=0.94,
         semantic_tags=("animal",),
     )
-    package, plan, package_capability, package_expires_at, package_digest, mask_capability = (
+    package, plan, package_capability, package_expires_at, package_digest, mask_capability, _ = (
         service.prepare_template_package(
             session_id="session-1",
             source_artifact_ref="artifact:source",

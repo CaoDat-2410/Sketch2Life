@@ -71,6 +71,7 @@ from sketch2life.infrastructure.ai.sam21_runtime import (
     Sam21ConfigurationError,
     Sam21ImageSegmenter,
     Sam21MaskRejectedError,
+    Sam21Prompt,
     Sam21PromptRequiredError,
     Sam21RuntimeConfig,
 )
@@ -317,7 +318,7 @@ class _Sam21SegmentationRequestV1(BaseModel):
     prompt_region: SourceRegionV1 | None = None
     positive_points: list[Sam21PointV1] = Field(default_factory=list, max_length=8)
     negative_points: list[Sam21PointV1] = Field(default_factory=list, max_length=8)
-    requested_part_roles: list[str] = Field(default_factory=list, max_length=8)
+    requested_part_roles: list[str] = Field(default_factory=list, max_length=4)
     source_image: _SourceImageV1
 
 
@@ -637,18 +638,79 @@ def segment_rig_subject_v2(
         raise HTTPException(status_code=422, detail="image type mismatch")
     try:
         segmenter = _sam21_segmenter()
-        result = segmenter.segment(
-            image,
-            prompt_region=payload.prompt_region,
-            positive_points=tuple(
-                (point.x, point.y) for point in payload.positive_points
-            ),
-            negative_points=tuple(
-                (point.x, point.y) for point in payload.negative_points
-            ),
+        prompts = [
+            Sam21Prompt(
+                prompt_region=payload.prompt_region,
+                positive_points=tuple((point.x, point.y) for point in payload.positive_points),
+                negative_points=tuple((point.x, point.y) for point in payload.negative_points),
+            )
+        ]
+        part_roles = tuple(dict.fromkeys(payload.requested_part_roles))[:4]
+        part_prompt_regions = {
+            role: _sam21_part_prompt_region(role, payload.prompt_region)
+            for role in part_roles
+        }
+        prompts.extend(
+            Sam21Prompt(
+                prompt_region=region,
+                positive_points=(
+                    (
+                        region.x + region.width / 2,
+                        region.y + region.height / 2,
+                    ),
+                ),
+                negative_points=tuple(
+                    (point.x, point.y) for point in payload.negative_points
+                ),
+            )
+            for region in part_prompt_regions.values()
+            if region is not None
         )
+        outputs = segmenter.segment_many(image, tuple(prompts))
+        result = outputs[0]
+        if result is None:
+            raise Sam21MaskRejectedError("SAM2 returned no valid subject mask")
         if len(result.mask_png) > MAX_INPUT_BYTES:
             raise Sam21MaskRejectedError("mask exceeded the response limit")
+        part_masks: list[dict[str, object]] = []
+        parent_pixel_count = _mask_pixel_count(result.mask_png)
+        accepted_part_masks: list[bytes] = []
+        for (role, prompt_region), part_output in zip(
+            ((role, region) for role, region in part_prompt_regions.items() if region is not None),
+            outputs[1:],
+            strict=True,
+        ):
+            if part_output is None:
+                continue
+            clipped_result = _clip_part_mask_to_parent(
+                part_output.mask_png,
+                result.mask_png,
+                prompt_region,
+            )
+            if clipped_result is None:
+                continue
+            clipped, clipped_region = clipped_result
+            part_pixels = _mask_pixel_count(clipped)
+            if parent_pixel_count <= 0 or not 0.015 <= part_pixels / parent_pixel_count <= 0.75:
+                continue
+            if any(_mask_iou(clipped, existing) >= 0.55 for existing in accepted_part_masks):
+                continue
+            accepted_part_masks.append(clipped)
+            part_masks.append(
+                {
+                    "part_id": role,
+                    "role": role,
+                    "source_region": clipped_region,
+                    "confidence": part_output.confidence,
+                    "mask_base64": base64.b64encode(clipped).decode("ascii"),
+                    "mask_content_type": "image/png",
+                }
+            )
+        response_bytes = len(result.mask_png) + sum(
+            len(str(item["mask_base64"])) * 3 // 4 for item in part_masks
+        )
+        if response_bytes > MAX_INPUT_BYTES:
+            part_masks = []
         response = Sam21SegmentationResponseV1(
             contractName="Sam21SegmentationResponseV1",
             contractVersion="1.0",
@@ -660,11 +722,13 @@ def segment_rig_subject_v2(
             confidence=result.confidence,
             maskBase64=base64.b64encode(result.mask_png).decode("ascii"),
             maskContentType="image/png",
+            partMasks=tuple(part_masks),
         )
         logger.info(
-            "sam21_segmentation_completed status=SUCCEEDED target=%s confidence=%.3f",
+            "sam21_segmentation_completed status=SUCCEEDED target=%s confidence=%.3f part_masks=%s",
             payload.target_id,
             result.confidence,
+            len(part_masks),
         )
         return response.model_dump(mode="json", by_alias=True, exclude_none=True)
     except Sam21PromptRequiredError:
@@ -710,6 +774,113 @@ def _sam21_failure(source_sha256: str, code: str, retryable: bool) -> dict[str, 
         retryable,
     )
     return response.model_dump(mode="json", by_alias=True, exclude_none=True)
+
+
+_PART_ANCHORS: dict[str, tuple[float, float, float, float]] = {
+    "left-wing": (0.23, 0.39, 0.50, 0.82),
+    "right-wing": (0.77, 0.39, 0.50, 0.82),
+    "wing": (0.5, 0.42, 0.82, 0.58),
+    "body": (0.5, 0.52, 0.34, 0.88),
+    "head": (0.52, 0.18, 0.52, 0.42),
+    "crown": (0.5, 0.28, 0.94, 0.58),
+    "stem": (0.5, 0.76, 0.38, 0.56),
+    "tail": (0.16, 0.5, 0.40, 0.72),
+    "torso": (0.5, 0.47, 0.44, 0.56),
+    "left-leg": (0.34, 0.82, 0.45, 0.38),
+    "right-leg": (0.66, 0.82, 0.45, 0.38),
+}
+
+
+def _sam21_part_prompt_region(
+    role: str, parent_region: SourceRegionV1 | None
+) -> SourceRegionV1 | None:
+    anchor = _PART_ANCHORS.get(role)
+    if anchor is None or parent_region is None:
+        return None
+    center_x, center_y, relative_width, relative_height = anchor
+    width = min(parent_region.width, parent_region.width * relative_width)
+    height = min(parent_region.height, parent_region.height * relative_height)
+    x = parent_region.x + center_x * parent_region.width - width / 2
+    y = parent_region.y + center_y * parent_region.height - height / 2
+    x = min(max(parent_region.x, x), parent_region.x + parent_region.width - width)
+    y = min(max(parent_region.y, y), parent_region.y + parent_region.height - height)
+    return SourceRegionV1(x=x, y=y, width=width, height=height)
+
+
+def _clip_part_mask_to_parent(
+    part_mask_png: bytes,
+    parent_mask_png: bytes,
+    prompt_region: SourceRegionV1,
+) -> tuple[bytes, SourceRegionV1] | None:
+    try:
+        import io
+
+        from PIL import Image, ImageChops, ImageDraw
+
+        with Image.open(io.BytesIO(part_mask_png)) as part_source:
+            part = part_source.convert("L")
+        with Image.open(io.BytesIO(parent_mask_png)) as parent_source:
+            parent = parent_source.convert("L")
+        if part.size != parent.size:
+            return None
+        width, height = part.size
+        clip = Image.new("L", part.size, 0)
+        draw = ImageDraw.Draw(clip)
+        draw.rectangle(
+            (
+                int(prompt_region.x * width),
+                int(prompt_region.y * height),
+                min(width - 1, int((prompt_region.x + prompt_region.width) * width)),
+                min(height - 1, int((prompt_region.y + prompt_region.height) * height)),
+            ),
+            fill=255,
+        )
+        clipped = ImageChops.darker(ImageChops.darker(part, parent), clip)
+        bounds = clipped.getbbox()
+        if bounds is None:
+            return None
+        output = io.BytesIO()
+        clipped.save(output, format="PNG", optimize=True)
+        left, top, right, bottom = bounds
+        return (
+            output.getvalue(),
+            SourceRegionV1(
+                x=left / width,
+                y=top / height,
+                width=(right - left) / width,
+                height=(bottom - top) / height,
+            ),
+        )
+    except (ImportError, OSError, ValueError):
+        return None
+
+
+def _mask_pixel_count(mask_png: bytes) -> int:
+    import io
+
+    from PIL import Image
+
+    with Image.open(io.BytesIO(mask_png)) as source:
+        return sum(source.convert("L").histogram()[128:])
+
+
+def _mask_iou(left_png: bytes, right_png: bytes) -> float:
+    import io
+
+    from PIL import Image, ImageChops
+
+    with Image.open(io.BytesIO(left_png)) as left_source:
+        left = left_source.convert("L")
+    with Image.open(io.BytesIO(right_png)) as right_source:
+        right = right_source.convert("L")
+    if left.size != right.size:
+        return 1.0
+    intersection = ImageChops.darker(left, right)
+    union = ImageChops.lighter(left, right)
+    union_count = sum(union.histogram()[128:])
+    if union_count == 0:
+        return 1.0
+    return sum(intersection.histogram()[128:]) / union_count
 
 
 def _parse_localization_output(raw_output: str) -> list[_LocalizationRegionV1]:

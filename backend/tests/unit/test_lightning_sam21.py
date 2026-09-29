@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 import hashlib
+from dataclasses import replace
 from io import BytesIO
 
 from PIL import Image, ImageDraw
@@ -109,6 +110,63 @@ def test_sam21_adapter_returns_none_for_typed_provider_failure() -> None:
     )
 
     assert adapter.segment(_request()) is None
+
+
+def test_sam21_adapter_preserves_independent_part_mask_artifacts() -> None:
+    digest = hashlib.sha256(_IMAGE).hexdigest()
+    response = {
+        "contractName": "Sam21SegmentationResponseV1",
+        "contractVersion": "1.0",
+        "status": "SUCCEEDED",
+        "adapterId": "sam21-hiera-small",
+        "adapterVersion": "1",
+        "sourceSha256": digest,
+        "sourceRegion": {"x": 0.1, "y": 0.1, "width": 0.8, "height": 0.8},
+        "confidence": 0.93,
+        "maskBase64": base64.b64encode(_PNG).decode("ascii"),
+        "maskContentType": "image/png",
+        "partMasks": [
+            {
+                "partId": role,
+                "role": role,
+                "sourceRegion": {"x": 0.1, "y": 0.1, "width": 0.3, "height": 0.4},
+                "confidence": 0.82,
+                "maskBase64": base64.b64encode(_PNG).decode("ascii"),
+                "maskContentType": "image/png",
+            }
+            for role in ("left-wing", "body", "right-wing")
+        ],
+    }
+    transport = _Transport(response)
+    stored: list[tuple[str, str, bytes]] = []
+
+    def writer(session: str, content_type: str, body: bytes) -> object:
+        artifact_id = len(stored)
+        stored.append((session, content_type, body))
+        return type(
+            "Descriptor",
+            (),
+            {
+                "artifact_ref": f"artifact:mask-{artifact_id}",
+                "sha256": hashlib.sha256(body).hexdigest(),
+            },
+        )()
+
+    adapter = LightningSam21SegmentationAdapter(
+        transport=transport,
+        artifact_loader=lambda _: _IMAGE,
+        artifact_writer=writer,
+    )
+    request = replace(_request(), requested_part_roles=("left-wing", "body", "right-wing"))
+
+    result = adapter.segment(request)
+
+    assert result is not None
+    assert [part.role for part in result.parts] == ["left-wing", "body", "right-wing"]
+    assert len({part.mask_artifact_ref for part in result.parts}) == 3
+    assert len(stored) == 4  # subject silhouette plus three independent part masks
+    assert transport.payload is not None
+    assert transport.payload["requested_part_roles"] == ["left-wing", "body", "right-wing"]
 
 
 def _drawing_png(*, blank: bool = False) -> bytes:

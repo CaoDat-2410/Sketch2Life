@@ -1,5 +1,5 @@
 export {loadChildArtAssetInstructions} from './assets';
-export {parseRendererMessage} from './bridge';
+export {createNativeBridgeInjection, parseRendererMessage} from './bridge';
 export {createRendererBenchmarkSample} from './benchmark';
 export {createBrowserArtPlayer} from './browserPlayer';
 export {createAutoRigPlayer} from './autoRigPlayer';
@@ -35,6 +35,7 @@ export {
   SubjectCandidateSetSchema,
   FALLBACK_REASONS,
   MAX_RENDERER_MESSAGE_BYTES,
+  MAX_RENDERER_COMMAND_BYTES,
   MOTION_KINDS,
   MotionSchema,
   PlaybackEventSchema,
@@ -72,6 +73,7 @@ export type {RendererMessage} from './bridge';
 export {buildPreservingFallbackPlan} from './fallback';
 export {sha256Hex, sha256HexPortable} from './sha256';
 export {createRendererStartupGate} from './startupGate';
+export {buildV2FallbackPlan} from './v2FallbackPlan';
 export {detectPrimaryForegroundRegion} from './foregroundRegion';
 export {compileMotionPlan} from './motion';
 export {ArtPlanValidationError, validateArtAnimationPlan} from './validation';

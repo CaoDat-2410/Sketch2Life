@@ -1,4 +1,4 @@
-import {Container, Mesh, MeshGeometry, Sprite, Texture, type Application} from 'pixi.js';
+import {Container, Sprite, Texture, type Application} from 'pixi.js';
 import {gsap} from 'gsap';
 
 import {
@@ -8,8 +8,9 @@ import {
   type RiggedArtworkPackageV1,
   type VisualAnimationPlanV2,
 } from './contractsV2';
-import {detectPrimaryForegroundRegion, type NormalizedRegion} from './foregroundRegion';
+import {type NormalizedRegion} from './foregroundRegion';
 import {createSubjectCutoutLayers, requireVerifiedCutoutMask} from './subjectCutout';
+import {fitCanvasToStage, type CanvasFit} from './canvasFit';
 
 interface MutablePose {
   rotationDegrees: number;
@@ -19,9 +20,11 @@ interface MutablePose {
   scaleY: number;
 }
 
+type PlaybackState = 'READY' | 'PLAYING' | 'PAUSED' | 'COMPLETED';
+
 export interface AutoRigPlayerOptions {
   readonly app: Application;
-  readonly onProgress?: (positionSeconds: number, durationSeconds: number, state: 'READY' | 'PLAYING' | 'PAUSED' | 'COMPLETED') => void;
+  readonly onProgress?: (positionSeconds: number, durationSeconds: number, state: PlaybackState) => void;
   readonly onCompleted?: () => void;
 }
 
@@ -29,26 +32,26 @@ export interface AutoRigPlayer {
   load(
     packageInput: unknown,
     planInput: unknown,
-    sourceTexture: Texture,
     sourceCanvas?: HTMLCanvasElement,
     maskCanvas?: HTMLCanvasElement,
+    partMaskCanvases?: ReadonlyMap<string, HTMLCanvasElement>,
   ): void;
   play(): void;
   pause(): void;
   replay(): void;
   seekTo(seconds: number): void;
   seekRelative(seconds: number): void;
-  getPlaybackState(): {positionSeconds: number; durationSeconds: number; state: 'READY' | 'PLAYING' | 'PAUSED' | 'COMPLETED'};
+  getPlaybackState(): {positionSeconds: number; durationSeconds: number; state: PlaybackState};
   destroy(): void;
 }
 
 const STAGE_WIDTH = 800;
 const STAGE_HEIGHT = 600;
 
-interface PartMeshState {
+interface PartSpriteState {
+  readonly partId: string;
   readonly boneId: string;
-  readonly geometry: MeshGeometry;
-  readonly rest: Float32Array;
+  readonly sprite: Sprite;
 }
 
 export function createAutoRigPlayer(options: AutoRigPlayerOptions): AutoRigPlayer {
@@ -56,19 +59,18 @@ export function createAutoRigPlayer(options: AutoRigPlayerOptions): AutoRigPlaye
   scene.sortableChildren = true;
   options.app.stage.addChild(scene);
   let timeline: gsap.core.Timeline | null = null;
-  let idleTimeline: gsap.core.Timeline | null = null;
-  let mesh: Mesh<MeshGeometry> | null = null;
   let cutoutSprite: Sprite | null = null;
   let cutoutPivot = {x: 0, y: 0};
-  let cutoutBaseScale = {x: 1, y: 1};
-  let geometry: MeshGeometry | null = null;
+  let artworkFit: CanvasFit = {scale: 1, x: 0, y: 0};
+  let sourceSize = {width: STAGE_WIDTH, height: STAGE_HEIGHT};
   let activeRig: RigDefinitionV1 | null = null;
-  let partMeshes: PartMeshState[] = [];
+  let partSprites: PartSpriteState[] = [];
   let packageValue: RiggedArtworkPackageV1 | null = null;
   let plan: VisualAnimationPlanV2 | null = null;
   let poses = new Map<string, MutablePose>();
+  let ownedTextures: Texture[] = [];
   let ticker: (() => void) | null = null;
-  let state: 'READY' | 'PLAYING' | 'PAUSED' | 'COMPLETED' = 'READY';
+  let state: PlaybackState = 'READY';
 
   const publish = (): void => options.onProgress?.(timeline?.time() ?? 0, timeline?.duration() ?? 0, state);
   const stopTicker = (): void => {
@@ -78,36 +80,36 @@ export function createAutoRigPlayer(options: AutoRigPlayerOptions): AutoRigPlaye
 
   const deform = (): void => {
     const rig = activeRig;
-    if (rig == null) return;
+    if (rig === null) return;
+    const rootPose = poses.get('root') ?? neutralPose();
     if (cutoutSprite !== null) {
-      const rootPose = poses.get('root');
-      if (rootPose !== undefined) {
-        cutoutSprite.position.set(
-          cutoutPivot.x + rootPose.translateX * STAGE_WIDTH,
-          cutoutPivot.y + rootPose.translateY * STAGE_HEIGHT,
-        );
-        cutoutSprite.rotation = rootPose.rotationDegrees * Math.PI / 180;
-        cutoutSprite.scale.set(cutoutBaseScale.x * rootPose.scaleX, cutoutBaseScale.y * rootPose.scaleY);
-      }
+      // Whole-subject fallback may breathe/float by a few pixels, but never scales or rotates
+      // the drawing. The camera and original artwork framing remain fixed.
+      cutoutSprite.position.set(
+        cutoutPivot.x + rootPose.translateX * STAGE_WIDTH,
+        cutoutPivot.y + rootPose.translateY * STAGE_HEIGHT,
+      );
       return;
     }
-    if (partMeshes.length > 0) {
-      const bones = new Map(rig.bones.map((bone) => [bone.boneId, bone]));
-      const root = bones.get('root');
-      const rootPose = poses.get('root');
-      for (const part of partMeshes) {
-        const bone = bones.get(part.boneId);
-        const pose = poses.get(part.boneId);
-        if (bone === undefined || pose === undefined) continue;
-        let next = transformPositions(part.rest, rig, bone, pose, STAGE_WIDTH, STAGE_HEIGHT);
-        if (part.boneId !== 'root' && root !== undefined && rootPose !== undefined) {
-          next = transformPositions(next, rig, root, rootPose, STAGE_WIDTH, STAGE_HEIGHT);
-        }
-        part.geometry.positions = next;
-      }
-      return;
+
+    const bones = new Map(rig.bones.map((bone) => [bone.boneId, bone]));
+    for (const part of partSprites) {
+      const bone = bones.get(part.boneId);
+      const pose = poses.get(part.boneId);
+      if (bone === undefined || pose === undefined) continue;
+      const sourcePivotX = (rig.sourceRegion.x + bone.pivotX * rig.sourceRegion.width) * sourceSize.width;
+      const sourcePivotY = (rig.sourceRegion.y + bone.pivotY * rig.sourceRegion.height) * sourceSize.height;
+      const world = composeBoneTransform(bone, pose, rig, bones, poses, sourceSize, artworkFit);
+      part.sprite.position.set(world.x, world.y);
+      part.sprite.rotation = world.rotationDegrees * Math.PI / 180;
+      part.sprite.scale.set(
+        artworkFit.scale * world.scaleX,
+        artworkFit.scale * world.scaleY,
+      );
+      // Keep this assertion close to the transform: all sprite pivots are source-image coords,
+      // so rotation only changes the isolated part around its semantic joint.
+      part.sprite.pivot.set(sourcePivotX, sourcePivotY);
     }
-    if (geometry !== null) geometry.positions = skinPositions(rig, poses, STAGE_WIDTH, STAGE_HEIGHT);
   };
 
   const startTicker = (): void => {
@@ -116,23 +118,35 @@ export function createAutoRigPlayer(options: AutoRigPlayerOptions): AutoRigPlaye
     options.app.ticker.add(ticker);
   };
 
+  const clearVisuals = (): void => {
+    timeline?.kill();
+    timeline = null;
+    stopTicker();
+    scene.removeChildren().forEach((child) => child.destroy());
+    for (const texture of ownedTextures) texture.destroy(true);
+    ownedTextures = [];
+    cutoutSprite = null;
+    cutoutPivot = {x: 0, y: 0};
+    artworkFit = {scale: 1, x: 0, y: 0};
+    sourceSize = {width: STAGE_WIDTH, height: STAGE_HEIGHT};
+    partSprites = [];
+    activeRig = null;
+    packageValue = null;
+    plan = null;
+    poses.clear();
+    state = 'READY';
+  };
+
   const buildTimeline = (animationPlan: VisualAnimationPlanV2): gsap.core.Timeline => {
     const nextTimeline = gsap.timeline({
       paused: true,
       onUpdate: publish,
       onComplete: () => {
+        // Every semantic track returns to neutral before the final still hold. Do not start an
+        // infinite idle loop here: the completed frame must remain exactly still.
         state = 'COMPLETED';
-        const rootPose = poses.get('root');
-        if (rootPose !== undefined) {
-          idleTimeline?.kill();
-          idleTimeline = gsap.timeline({repeat: -1, yoyo: true})
-            .to(rootPose, {translateY: -0.006, rotationDegrees: 0.8, duration: 1.8, ease: 'sine.inOut'})
-            .to(rootPose, {translateY: 0.003, rotationDegrees: -0.5, duration: 2.1, ease: 'sine.inOut'});
-          startTicker();
-        } else {
-          stopTicker();
-        }
         deform();
+        stopTicker();
         publish();
         options.onCompleted?.();
       },
@@ -156,114 +170,106 @@ export function createAutoRigPlayer(options: AutoRigPlayerOptions): AutoRigPlaye
         previousTime = frame.atSeconds;
       }
     }
-    // Keep the authoritative duration stable even when the last semantic track ends early.
+    // This no-op is the authored final rest: semantic motion stops early, and playback holds
+    // the neutral pose until the full 20-second experience ends.
     nextTimeline.set({}, {}, animationPlan.durationSeconds);
     return nextTimeline;
   };
 
   return {
-    load(
-      packageInput: unknown,
-      planInput: unknown,
-      sourceTexture: Texture,
-      sourceCanvas?: HTMLCanvasElement,
-      maskCanvas?: HTMLCanvasElement,
-    ): void {
-      timeline?.kill();
-      idleTimeline?.kill();
-      idleTimeline = null;
-      stopTicker();
-      scene.removeChildren().forEach((child) => child.destroy());
-      mesh = null;
-      geometry = null;
-      cutoutSprite = null;
-      cutoutBaseScale = {x: 1, y: 1};
-      const parsedPackage = RiggedArtworkPackageV1Schema.parse(packageInput);
-      const parsedPlan = VisualAnimationPlanV2Schema.parse(planInput);
-      if (parsedPackage.packageId !== parsedPlan.packageId || parsedPackage.sessionId !== parsedPlan.sessionId) {
-        throw new Error('Rig package and animation plan identity drift.');
-      }
-      if (parsedPackage.rig == null || !parsedPackage.validation.valid) {
-        throw new Error('Rig package is not eligible for mesh playback.');
-      }
-      packageValue = parsedPackage;
-      plan = parsedPlan;
-      options.app.renderer.resize(STAGE_WIDTH, STAGE_HEIGHT);
-
-      const detectedRegion = sourceCanvas === undefined ? null : regionFromCanvas(sourceCanvas);
-      const packageRegion = maskCanvas === undefined ? detectedRegion : regionFromMask(sourceCanvas, maskCanvas);
-      if (packageRegion === null && parsedPackage.rig.sourceRegion.width > 0.85 && parsedPackage.rig.sourceRegion.height > 0.85) {
-        throw new Error('A full-frame mesh is not eligible for V2 subject motion.');
-      }
-      const rig: RigDefinitionV1 = packageRegion === null
-        ? parsedPackage.rig
-        : {...parsedPackage.rig, sourceRegion: packageRegion};
-      activeRig = rig;
-      partMeshes = [];
-      requireVerifiedCutoutMask(parsedPackage.tier, maskCanvas !== undefined);
-      if (parsedPackage.tier === 'CUTOUT_MICRO_MOTION' && sourceCanvas !== undefined && maskCanvas !== undefined) {
+    load(packageInput, planInput, sourceCanvas, maskCanvas, partMaskCanvases = new Map()): void {
+      clearVisuals();
+      try {
+        const parsedPackage = RiggedArtworkPackageV1Schema.parse(packageInput);
+        const parsedPlan = VisualAnimationPlanV2Schema.parse(planInput);
+        if (parsedPackage.packageId !== parsedPlan.packageId || parsedPackage.sessionId !== parsedPlan.sessionId) {
+          throw new Error('Rig package and animation plan identity drift.');
+        }
+        if (parsedPackage.rig == null || !parsedPackage.validation.valid) {
+          throw new Error('Rig package is not eligible for V2 playback.');
+        }
+        if (sourceCanvas === undefined || maskCanvas === undefined) {
+          throw new Error('SUBJECT_MASK_UNAVAILABLE');
+        }
+        requireVerifiedCutoutMask(parsedPackage.tier, true);
         const sourceContext = sourceCanvas.getContext('2d', {willReadFrequently: true});
         const maskContext = maskCanvas.getContext('2d', {willReadFrequently: true});
         if (sourceContext === null || maskContext === null) throw new Error('MASK_CANVAS_UNAVAILABLE');
-        const layers = createSubjectCutoutLayers(
-          sourceContext.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height).data,
-          maskContext.getImageData(0, 0, maskCanvas.width, maskCanvas.height).data,
-          sourceCanvas.width,
-          sourceCanvas.height,
-        );
+        if (sourceCanvas.width !== maskCanvas.width || sourceCanvas.height !== maskCanvas.height) {
+          throw new Error('MASK_DIMENSIONS_MISMATCH');
+        }
+        const sourcePixels = sourceContext.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height).data;
+        const maskPixels = maskContext.getImageData(0, 0, maskCanvas.width, maskCanvas.height).data;
+        const layers = createSubjectCutoutLayers(sourcePixels, maskPixels, sourceCanvas.width, sourceCanvas.height);
+        const packageRegion = regionFromMask(sourceCanvas, maskCanvas);
         if (!regionMatches(packageRegion, layers.sourceRegion)) throw new Error('MASK_REGION_MISMATCH');
-        activeRig = {...rig, sourceRegion: layers.sourceRegion};
+        const rig: RigDefinitionV1 = {...parsedPackage.rig, sourceRegion: layers.sourceRegion};
+        activeRig = rig;
+        packageValue = parsedPackage;
+        plan = parsedPlan;
+        options.app.renderer.resize(STAGE_WIDTH, STAGE_HEIGHT);
+        sourceSize = {width: sourceCanvas.width, height: sourceCanvas.height};
+        artworkFit = fitCanvasToStage(sourceCanvas.width, sourceCanvas.height, STAGE_WIDTH, STAGE_HEIGHT);
+
         const backgroundCanvas = canvasFromPixels(sourceCanvas.width, sourceCanvas.height, layers.backgroundPixels);
-        const cutoutCanvas = canvasFromPixels(sourceCanvas.width, sourceCanvas.height, layers.subjectPixels);
-        const background = spriteFromCanvas(backgroundCanvas);
+        const background = addCanvasSprite(backgroundCanvas, ownedTextures, artworkFit);
         background.zIndex = 0;
         scene.addChild(background);
-        cutoutSprite = new Sprite(Texture.from(cutoutCanvas));
-        cutoutSprite.width = STAGE_WIDTH;
-        cutoutSprite.height = STAGE_HEIGHT;
-        cutoutBaseScale = {x: STAGE_WIDTH / sourceCanvas.width, y: STAGE_HEIGHT / sourceCanvas.height};
-        cutoutPivot = {
-          x: (layers.sourceRegion.x + layers.sourceRegion.width / 2) * STAGE_WIDTH,
-          y: (layers.sourceRegion.y + layers.sourceRegion.height / 2) * STAGE_HEIGHT,
-        };
-        cutoutSprite.anchor.set(
-          (layers.sourceRegion.x + layers.sourceRegion.width / 2),
-          (layers.sourceRegion.y + layers.sourceRegion.height / 2),
-        );
-        cutoutSprite.position.set(cutoutPivot.x, cutoutPivot.y);
-        cutoutSprite.zIndex = 10;
-        scene.addChild(cutoutSprite);
-      } else if (sourceCanvas !== undefined && packageRegion !== null) {
-        const background = backgroundSprite(sourceCanvas, packageRegion);
-        background.zIndex = 0;
-        scene.addChild(background);
+
+        if (parsedPackage.tier === 'CUTOUT_MICRO_MOTION') {
+          const cutoutCanvas = canvasFromPixels(sourceCanvas.width, sourceCanvas.height, layers.subjectPixels);
+          cutoutSprite = addCanvasSprite(cutoutCanvas, ownedTextures, artworkFit);
+          cutoutSprite.anchor.set(
+            (layers.sourceRegion.x + layers.sourceRegion.width / 2),
+            (layers.sourceRegion.y + layers.sourceRegion.height / 2),
+          );
+          cutoutPivot = {
+            x: artworkFit.x + (layers.sourceRegion.x + layers.sourceRegion.width / 2) * sourceSize.width * artworkFit.scale,
+            y: artworkFit.y + (layers.sourceRegion.y + layers.sourceRegion.height / 2) * sourceSize.height * artworkFit.scale,
+          };
+          cutoutSprite.position.set(cutoutPivot.x, cutoutPivot.y);
+          cutoutSprite.zIndex = 10;
+          scene.addChild(cutoutSprite);
+        } else if (parsedPackage.tier === 'FULL_AUTO_RIG') {
+          if (parsedPackage.parts.length < 2 || partMaskCanvases.size !== parsedPackage.parts.length) {
+            throw new Error('PART_MASKS_REQUIRED');
+          }
+          validatePartMasks(parsedPackage, maskPixels, partMaskCanvases, sourceCanvas.width, sourceCanvas.height);
+          const orderedParts = [...parsedPackage.parts].sort((left, right) => {
+            if (left.boneId === 'root') return 1;
+            if (right.boneId === 'root') return -1;
+            return 0;
+          });
+          for (const [index, part] of orderedParts.entries()) {
+            const partMask = partMaskCanvases.get(part.partId);
+            if (partMask === undefined) throw new Error('PART_MASK_HANDOFF_INVALID');
+            const partContext = partMask.getContext('2d', {willReadFrequently: true});
+            if (partContext === null) throw new Error('PART_MASK_CANVAS_UNAVAILABLE');
+            const partPixels = partContext.getImageData(0, 0, partMask.width, partMask.height).data;
+            const partCanvas = canvasFromPixels(
+              sourceCanvas.width,
+              sourceCanvas.height,
+              applyMask(sourcePixels, partPixels, sourceCanvas.width, sourceCanvas.height),
+            );
+            const sprite = addCanvasSprite(partCanvas, ownedTextures, artworkFit);
+            sprite.zIndex = 10 + index;
+            scene.addChild(sprite);
+            partSprites.push({partId: part.partId, boneId: part.boneId, sprite});
+          }
+        } else {
+          throw new Error('RIG_TIER_NOT_RENDERABLE');
+        }
+
+        poses = new Map(rig.bones.map((bone) => [bone.boneId, neutralPose()]));
+        timeline = buildTimeline(parsedPlan);
+        timeline.pause(0);
+        deform();
+        state = 'READY';
+        publish();
+      } catch (error) {
+        clearVisuals();
+        throw error;
       }
-      if (parsedPackage.tier !== 'CUTOUT_MICRO_MOTION' && rig.archetype === 'butterfly' && packageRegion !== null) {
-        const butterfly = butterflyPartMeshes(rig, sourceTexture);
-        partMeshes = butterfly.states;
-        butterfly.meshes.forEach((part, index) => {
-          part.zIndex = 10 + index;
-          scene.addChild(part);
-        });
-      } else if (cutoutSprite === null) {
-        geometry = new MeshGeometry({
-          positions: restPositions(rig, STAGE_WIDTH, STAGE_HEIGHT),
-          uvs: new Float32Array(rig.vertices.flatMap((vertex) => [
-            rig.sourceRegion.x + vertex.u * rig.sourceRegion.width,
-            rig.sourceRegion.y + vertex.v * rig.sourceRegion.height,
-          ])),
-          indices: new Uint32Array(rig.triangles.flatMap((triangle) => [triangle.a, triangle.b, triangle.c])),
-        });
-        mesh = new Mesh({geometry, texture: sourceTexture});
-        mesh.zIndex = 10;
-        scene.addChild(mesh);
-      }
-      poses = new Map(rig.bones.map((bone) => [bone.boneId, neutralPose()]));
-      timeline = buildTimeline(parsedPlan);
-      timeline.pause(0);
-      deform();
-      state = 'READY';
-      publish();
     },
 
     play(): void {
@@ -271,8 +277,6 @@ export function createAutoRigPlayer(options: AutoRigPlayerOptions): AutoRigPlaye
         throw new Error('Load a valid rig before playback.');
       }
       if (state === 'COMPLETED' || timeline.time() >= timeline.duration()) timeline.pause(0);
-      idleTimeline?.kill();
-      idleTimeline = null;
       startTicker();
       state = 'PLAYING';
       timeline.play();
@@ -281,8 +285,7 @@ export function createAutoRigPlayer(options: AutoRigPlayerOptions): AutoRigPlaye
 
     pause(): void {
       if (timeline === null) return;
-      idleTimeline?.pause();
-      timeline?.pause();
+      timeline.pause();
       stopTicker();
       deform();
       state = 'PAUSED';
@@ -291,8 +294,6 @@ export function createAutoRigPlayer(options: AutoRigPlayerOptions): AutoRigPlaye
 
     replay(): void {
       if (timeline === null) throw new Error('Play the rig before replay.');
-      idleTimeline?.kill();
-      idleTimeline = null;
       startTicker();
       state = 'PLAYING';
       timeline.restart();
@@ -322,56 +323,61 @@ export function createAutoRigPlayer(options: AutoRigPlayerOptions): AutoRigPlaye
     },
 
     destroy(): void {
-      timeline?.kill();
-      timeline = null;
-      idleTimeline?.kill();
-      idleTimeline = null;
-      stopTicker();
+      clearVisuals();
       scene.destroy({children: true});
-      mesh = null;
-      geometry = null;
-      activeRig = null;
-      cutoutSprite = null;
-      cutoutBaseScale = {x: 1, y: 1};
-      partMeshes = [];
-      packageValue = null;
-      plan = null;
       poses.clear();
     },
   };
 }
 
-function regionFromCanvas(canvas: HTMLCanvasElement): NormalizedRegion | null {
-  const context = canvas.getContext('2d', {willReadFrequently: true});
-  if (context === null) return null;
-  const image = context.getImageData(0, 0, canvas.width, canvas.height);
-  return detectPrimaryForegroundRegion(image.data, canvas.width, canvas.height);
+function composeBoneTransform(
+  targetBone: RigDefinitionV1['bones'][number],
+  targetPose: MutablePose,
+  rig: RigDefinitionV1,
+  bones: ReadonlyMap<string, RigDefinitionV1['bones'][number]>,
+  poses: ReadonlyMap<string, MutablePose>,
+  sourceSize: {width: number; height: number},
+  artworkFit: CanvasFit,
+): {x: number; y: number; rotationDegrees: number; scaleX: number; scaleY: number} {
+  const chain: RigDefinitionV1['bones'][number][] = [];
+  let current: RigDefinitionV1['bones'][number] | undefined = targetBone;
+  while (current !== undefined) {
+    chain.unshift(current);
+    current = current.parentId === null ? undefined : bones.get(current.parentId);
+  }
+  let x = artworkFit.x + (rig.sourceRegion.x + targetBone.pivotX * rig.sourceRegion.width) * sourceSize.width * artworkFit.scale;
+  let y = artworkFit.y + (rig.sourceRegion.y + targetBone.pivotY * rig.sourceRegion.height) * sourceSize.height * artworkFit.scale;
+  let rotationDegrees = 0;
+  let scaleX = 1;
+  let scaleY = 1;
+  for (const bone of chain) {
+    const pose = poses.get(bone.boneId) ?? (bone.boneId === targetBone.boneId ? targetPose : neutralPose());
+    const root = bone.boneId === 'root';
+    const localScaleX = root ? 1 : pose.scaleX;
+    const localScaleY = root ? 1 : pose.scaleY;
+    const localRotation = root
+      ? 0
+      : Math.max(-bone.maxRotationDegrees, Math.min(bone.maxRotationDegrees, pose.rotationDegrees));
+    const pivotX = artworkFit.x + (rig.sourceRegion.x + bone.pivotX * rig.sourceRegion.width) * sourceSize.width * artworkFit.scale;
+    const pivotY = artworkFit.y + (rig.sourceRegion.y + bone.pivotY * rig.sourceRegion.height) * sourceSize.height * artworkFit.scale;
+    const angle = localRotation * Math.PI / 180;
+    const dx = (x - pivotX) * localScaleX;
+    const dy = (y - pivotY) * localScaleY;
+    x = pivotX + dx * Math.cos(angle) - dy * Math.sin(angle) + pose.translateX * STAGE_WIDTH;
+    y = pivotY + dx * Math.sin(angle) + dy * Math.cos(angle) + pose.translateY * STAGE_HEIGHT;
+    rotationDegrees += localRotation;
+    scaleX *= localScaleX;
+    scaleY *= localScaleY;
+  }
+  return {x, y, rotationDegrees, scaleX, scaleY};
 }
 
-function backgroundSprite(canvas: HTMLCanvasElement, region: NormalizedRegion): Sprite {
-  const background = document.createElement('canvas');
-  background.width = canvas.width;
-  background.height = canvas.height;
-  const context = background.getContext('2d');
-  if (context === null) throw new Error('Background canvas is unavailable.');
-  context.drawImage(canvas, 0, 0);
-  context.fillStyle = '#fffef9';
-  context.fillRect(
-    Math.floor(region.x * canvas.width),
-    Math.floor(region.y * canvas.height),
-    Math.ceil(region.width * canvas.width),
-    Math.ceil(region.height * canvas.height),
-  );
-  const sprite = new Sprite(Texture.from(background));
-  sprite.width = STAGE_WIDTH;
-  sprite.height = STAGE_HEIGHT;
-  return sprite;
-}
-
-function spriteFromCanvas(canvas: HTMLCanvasElement): Sprite {
-  const sprite = new Sprite(Texture.from(canvas));
-  sprite.width = STAGE_WIDTH;
-  sprite.height = STAGE_HEIGHT;
+function addCanvasSprite(canvas: HTMLCanvasElement, ownedTextures: Texture[], fit: CanvasFit): Sprite {
+  const texture = Texture.from(canvas);
+  ownedTextures.push(texture);
+  const sprite = new Sprite(texture);
+  sprite.scale.set(fit.scale);
+  sprite.position.set(fit.x, fit.y);
   return sprite;
 }
 
@@ -387,10 +393,82 @@ function canvasFromPixels(width: number, height: number, pixels: Uint8ClampedArr
   return canvas;
 }
 
-function regionFromMask(source: HTMLCanvasElement | undefined, mask: HTMLCanvasElement): NormalizedRegion {
-  if (source === undefined || source.width !== mask.width || source.height !== mask.height) {
-    throw new Error('MASK_DIMENSIONS_MISMATCH');
+function applyMask(
+  source: Uint8ClampedArray,
+  mask: Uint8ClampedArray,
+  width: number,
+  height: number,
+): Uint8ClampedArray {
+  if (source.length !== width * height * 4 || mask.length !== source.length) {
+    throw new Error('PART_MASK_DIMENSIONS_MISMATCH');
   }
+  const output = new Uint8ClampedArray(source);
+  for (let offset = 0; offset < output.length; offset += 4) {
+    const maskAlpha = Math.round((mask[offset] + mask[offset + 1] + mask[offset + 2]) / 3)
+      * mask[offset + 3] / 255;
+    output[offset + 3] = Math.round(output[offset + 3] * maskAlpha / 255);
+  }
+  return output;
+}
+
+function validatePartMasks(
+  packageValue: RiggedArtworkPackageV1,
+  parentMask: Uint8ClampedArray,
+  partMasks: ReadonlyMap<string, HTMLCanvasElement>,
+  width: number,
+  height: number,
+): void {
+  const ids = new Set(packageValue.parts.map((part) => part.partId));
+  if (ids.size !== packageValue.parts.length || ids.size !== partMasks.size) {
+    throw new Error('PART_MASK_HANDOFF_INVALID');
+  }
+  const parent = new Uint8Array(width * height);
+  const combined = new Uint8Array(width * height);
+  let parentCount = 0;
+  for (let index = 0; index < parent.length; index += 1) {
+    const offset = index * 4;
+    parent[index] = Math.round((parentMask[offset] + parentMask[offset + 1] + parentMask[offset + 2]) / 3)
+      * parentMask[offset + 3] / 255 >= 128 ? 1 : 0;
+    parentCount += parent[index];
+  }
+  if (parentCount === 0) throw new Error('MASK_AREA_INVALID');
+  let unionCount = 0;
+  for (const part of packageValue.parts) {
+    const canvas = partMasks.get(part.partId);
+    if (canvas === undefined || canvas.width !== width || canvas.height !== height) {
+      throw new Error('PART_MASK_DIMENSIONS_MISMATCH');
+    }
+    const context = canvas.getContext('2d', {willReadFrequently: true});
+    if (context === null) throw new Error('PART_MASK_CANVAS_UNAVAILABLE');
+    const pixels = context.getImageData(0, 0, width, height).data;
+    let partCount = 0;
+    let outsideCount = 0;
+    let overlapCount = 0;
+    for (let index = 0; index < parent.length; index += 1) {
+      const offset = index * 4;
+      const value = Math.round((pixels[offset] + pixels[offset + 1] + pixels[offset + 2]) / 3)
+        * pixels[offset + 3] / 255 >= 128 ? 1 : 0;
+      if (value === 0) continue;
+      partCount += 1;
+      if (parent[index] === 0) outsideCount += 1;
+      if (combined[index] === 1) overlapCount += 1;
+      else {
+        combined[index] = 1;
+        unionCount += 1;
+      }
+    }
+    if (
+      partCount < Math.max(12, parentCount * 0.025)
+      || partCount > parentCount * 0.75
+      || outsideCount / partCount > 0.08
+      || overlapCount / partCount > 0.08
+    ) throw new Error('PART_MASK_QUALITY_INVALID');
+  }
+  if (unionCount / parentCount < 0.85) throw new Error('PART_MASK_COVERAGE_INVALID');
+}
+
+function regionFromMask(source: HTMLCanvasElement, mask: HTMLCanvasElement): NormalizedRegion {
+  if (source.width !== mask.width || source.height !== mask.height) throw new Error('MASK_DIMENSIONS_MISMATCH');
   const context = mask.getContext('2d', {willReadFrequently: true});
   if (context === null) throw new Error('MASK_CANVAS_UNAVAILABLE');
   const pixels = context.getImageData(0, 0, mask.width, mask.height).data;
@@ -421,8 +499,7 @@ function regionFromMask(source: HTMLCanvasElement | undefined, mask: HTMLCanvasE
   };
 }
 
-function regionMatches(expected: NormalizedRegion | null, actual: NormalizedRegion): boolean {
-  if (expected === null) return false;
+function regionMatches(expected: NormalizedRegion, actual: NormalizedRegion): boolean {
   const tolerance = 0.04;
   return actual.x >= expected.x - tolerance
     && actual.y >= expected.y - tolerance
@@ -430,122 +507,6 @@ function regionMatches(expected: NormalizedRegion | null, actual: NormalizedRegi
     && actual.y + actual.height <= expected.y + expected.height + tolerance;
 }
 
-function butterflyPartMeshes(
-  rig: RigDefinitionV1,
-  texture: Texture,
-): {meshes: Mesh<MeshGeometry>[]; states: PartMeshState[]} {
-  const parts: Array<{boneId: string; region: NormalizedRegion}> = [
-    {boneId: 'left-wing', region: relativeRegion(rig.sourceRegion, 0, 0.08, 0.47, 0.84)},
-    {boneId: 'right-wing', region: relativeRegion(rig.sourceRegion, 0.53, 0.08, 0.47, 0.84)},
-    {boneId: 'root', region: relativeRegion(rig.sourceRegion, 0.38, 0, 0.24, 1)},
-  ];
-  const meshes: Mesh<MeshGeometry>[] = [];
-  const states: PartMeshState[] = [];
-  for (const part of parts) {
-    const rest = rectanglePositions(part.region, STAGE_WIDTH, STAGE_HEIGHT);
-    const partGeometry = new MeshGeometry({
-      positions: rest,
-      uvs: new Float32Array([
-        part.region.x, part.region.y,
-        part.region.x + part.region.width, part.region.y,
-        part.region.x, part.region.y + part.region.height,
-        part.region.x + part.region.width, part.region.y + part.region.height,
-      ]),
-      indices: new Uint32Array([0, 2, 1, 1, 2, 3]),
-    });
-    meshes.push(new Mesh({geometry: partGeometry, texture}));
-    states.push({boneId: part.boneId, geometry: partGeometry, rest});
-  }
-  return {meshes, states};
-}
-
-function relativeRegion(
-  source: NormalizedRegion,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-): NormalizedRegion {
-  return {
-    x: source.x + x * source.width,
-    y: source.y + y * source.height,
-    width: width * source.width,
-    height: height * source.height,
-  };
-}
-
-function rectanglePositions(region: NormalizedRegion, width: number, height: number): Float32Array {
-  const left = region.x * width;
-  const top = region.y * height;
-  const right = (region.x + region.width) * width;
-  const bottom = (region.y + region.height) * height;
-  return new Float32Array([left, top, right, top, left, bottom, right, bottom]);
-}
-
-function transformPositions(
-  rest: Float32Array,
-  rig: RigDefinitionV1,
-  bone: RigDefinitionV1['bones'][number],
-  pose: MutablePose,
-  width: number,
-  height: number,
-): Float32Array {
-  const output = new Float32Array(rest.length);
-  const pivotX = (rig.sourceRegion.x + bone.pivotX * rig.sourceRegion.width) * width;
-  const pivotY = (rig.sourceRegion.y + bone.pivotY * rig.sourceRegion.height) * height;
-  const angle = Math.max(-bone.maxRotationDegrees, Math.min(bone.maxRotationDegrees, pose.rotationDegrees)) * Math.PI / 180;
-  for (let index = 0; index < rest.length; index += 2) {
-    const localX = (rest[index] - pivotX) * pose.scaleX;
-    const localY = (rest[index + 1] - pivotY) * pose.scaleY;
-    output[index] = pivotX + localX * Math.cos(angle) - localY * Math.sin(angle) + pose.translateX * width;
-    output[index + 1] = pivotY + localX * Math.sin(angle) + localY * Math.cos(angle) + pose.translateY * height;
-  }
-  return output;
-}
-
 function neutralPose(): MutablePose {
   return {rotationDegrees: 0, translateX: 0, translateY: 0, scaleX: 1, scaleY: 1};
-}
-
-function restPositions(rig: RigDefinitionV1, width: number, height: number): Float32Array {
-  const region = rig.sourceRegion;
-  return new Float32Array(rig.vertices.flatMap((vertex) => [
-    (region.x + vertex.x * region.width) * width,
-    (region.y + vertex.y * region.height) * height,
-  ]));
-}
-
-function skinPositions(
-  rig: RigDefinitionV1,
-  poses: ReadonlyMap<string, MutablePose>,
-  width: number,
-  height: number,
-): Float32Array {
-  const rest = restPositions(rig, width, height);
-  const output = new Float32Array(rest.length);
-  const bones = new Map(rig.bones.map((bone) => [bone.boneId, bone]));
-  for (const vertexWeights of rig.weights) {
-    const offset = vertexWeights.vertexIndex * 2;
-    const x = rest[offset];
-    const y = rest[offset + 1];
-    let nextX = 0;
-    let nextY = 0;
-    for (const influence of vertexWeights.influences) {
-      const bone = bones.get(influence.boneId);
-      const pose = poses.get(influence.boneId);
-      if (bone === undefined || pose === undefined) continue;
-      const pivotX = (rig.sourceRegion.x + bone.pivotX * rig.sourceRegion.width) * width;
-      const pivotY = (rig.sourceRegion.y + bone.pivotY * rig.sourceRegion.height) * height;
-      const angle = Math.max(-bone.maxRotationDegrees, Math.min(bone.maxRotationDegrees, pose.rotationDegrees)) * Math.PI / 180;
-      const localX = (x - pivotX) * pose.scaleX;
-      const localY = (y - pivotY) * pose.scaleY;
-      const transformedX = pivotX + localX * Math.cos(angle) - localY * Math.sin(angle) + pose.translateX * width;
-      const transformedY = pivotY + localX * Math.sin(angle) + localY * Math.cos(angle) + pose.translateY * height;
-      nextX += transformedX * influence.weight;
-      nextY += transformedY * influence.weight;
-    }
-    output[offset] = nextX;
-    output[offset + 1] = nextY;
-  }
-  return output;
 }

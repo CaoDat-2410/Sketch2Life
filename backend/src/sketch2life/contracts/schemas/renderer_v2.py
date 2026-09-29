@@ -7,8 +7,9 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from sketch2life.contracts.schemas.auto_rig import RigArchetype, RigDeliveryTier
+from sketch2life.contracts.schemas.auto_rig import RigArchetype, RigDeliveryTier, RigPartV1
 from sketch2life.contracts.schemas.p1_experience import VersionedRefV1
+from sketch2life.contracts.schemas.scene_exploration import SourceRegionV1
 
 
 class BonePoseV2(BaseModel):
@@ -64,6 +65,17 @@ class VisualAnimationPlanV2(BaseModel):
     max_motion_level: Literal[0, 1, 2] = Field(default=2, alias="maxMotionLevel")
 
 
+class PartMaskReadV1(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid", populate_by_name=True)
+
+    part_id: str = Field(alias="partId", pattern=r"^[a-z][a-z0-9_-]*$")
+    bone_id: str = Field(alias="boneId", pattern=r"^[a-z][a-z0-9_-]*$")
+    source_region: SourceRegionV1 = Field(alias="sourceRegion")
+    read_endpoint: Literal["/v1/renderer/rig-mask"] = Field(alias="readEndpoint")
+    read_capability: str = Field(alias="readCapability", min_length=40, max_length=200)
+    sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
+
+
 class PixiRendererLaunchV2(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid", populate_by_name=True)
 
@@ -90,6 +102,10 @@ class PixiRendererLaunchV2(BaseModel):
     mask_sha256: str | None = Field(
         default=None, alias="maskSha256", pattern=r"^[a-f0-9]{64}$"
     )
+    part_mask_reads: tuple[PartMaskReadV1, ...] = Field(
+        default=(), alias="partMaskReads", max_length=8
+    )
+    rig_parts: tuple[RigPartV1, ...] = Field(default=(), alias="rigParts", max_length=8)
     animation_plan: VisualAnimationPlanV2 = Field(alias="animationPlan")
     fallback_launch: dict[str, object] = Field(alias="fallbackLaunch")
 
@@ -111,6 +127,12 @@ class PixiRendererLaunchV2(BaseModel):
             raise ValueError("animation plan session must match launch")
         if self.animation_plan.experience_spec_ref != self.experience_spec_ref:
             raise ValueError("animation plan experience must match launch")
+        if len({item.part_id for item in self.part_mask_reads}) != len(self.part_mask_reads):
+            raise ValueError("part mask capabilities must have unique part IDs")
+        read_ids = {item.part_id for item in self.part_mask_reads}
+        rig_ids = {item.part_id for item in self.rig_parts}
+        if read_ids != rig_ids:
+            raise ValueError("part masks and rig part metadata must match")
         return self
 
 
@@ -142,6 +164,10 @@ class RendererLoadCommandV2(BaseModel):
     mask_sha256: str | None = Field(
         default=None, alias="maskSha256", pattern=r"^[a-f0-9]{64}$"
     )
+    part_mask_reads: tuple[PartMaskReadV1, ...] = Field(
+        default=(), alias="partMaskReads", max_length=8
+    )
+    rig_parts: tuple[RigPartV1, ...] = Field(default=(), alias="rigParts", max_length=8)
     animation_plan: VisualAnimationPlanV2 = Field(alias="animationPlan")
 
     @model_validator(mode="after")
@@ -153,6 +179,12 @@ class RendererLoadCommandV2(BaseModel):
             raise ValueError(
                 "derived mask endpoint, capability and digest must be supplied together"
             )
+        if len({item.part_id for item in self.part_mask_reads}) != len(self.part_mask_reads):
+            raise ValueError("part mask capabilities must have unique part IDs")
+        read_ids = {item.part_id for item in self.part_mask_reads}
+        rig_ids = {item.part_id for item in self.rig_parts}
+        if read_ids != rig_ids:
+            raise ValueError("part masks and rig part metadata must match")
         return self
 
 
@@ -161,6 +193,7 @@ __all__ = [
     "BoneMotionTrackV2",
     "BonePoseV2",
     "PixiRendererLaunchV2",
+    "PartMaskReadV1",
     "RendererLoadCommandV2",
     "VisualAnimationPlanV2",
 ]
