@@ -2,7 +2,7 @@
 
 - Status: APPROVED
 - Plan revision: 1
-- Implementation status: IMPLEMENTED_LOCALLY; OFFLINE_CHECKS_PASS; REAL_MASK_QUALITY_AND_ANDROID_RETEST_PENDING
+- Implementation status: FOLLOW_UP_IMPLEMENTED_LOCALLY; RENDERER_CHECKS_PASS; FRESH_ANDROID_FLOW_PENDING
 - Feature: FEAT-030 original-derived auto-rig; FEAT-018 mobile Pixi playback consumer
 - Approval source: project owner direct request to fix the short zoom/rotation-only Pixi result,
   clarified to target 15–30 seconds, try image-processing part separation if AI does not provide
@@ -103,3 +103,18 @@ option, and the established Pixi original-art fallback only when neither can saf
 - Runtime: inspect backend logs and a fresh-session emulator run only when an owner-started flow is
   available; do not trigger live AI from Codex.
 - Run the repository security validator before any commit/push.
+
+## Approved follow-up — consume the subject-only cutout tier (2026-09-29)
+
+- Owner approval: direct request to fix the persistent fallback and restart the local backend.
+- Scope: let the WebView send a validated `CUTOUT_MICRO_MOTION` package, its source image, and
+  its verified subject mask to the existing Pixi auto-rig player without demanding independent
+  part masks. Keep the `FULL_AUTO_RIG` path fail-closed unless every declared part mask is fetched,
+  hash-checked, provenance-checked, and validated. Unsupported tiers continue through the safe
+  original-art fallback.
+- Acceptance: a subject-only cutout package loads with zero part-mask reads and starts V2 playback;
+  a full rig missing part masks still fails safely; an invalid subject mask still falls back;
+  focused player tests, renderer checks/build, and backend health after restart pass.
+- Boundaries: no provider requests, SAM activation/configuration changes, contract changes, or
+  changes to Gate A/B, source provenance, or full-rig quality gates. Backend restart clears only
+  its in-memory demo sessions; a new owner-run flow is needed for visual acceptance.

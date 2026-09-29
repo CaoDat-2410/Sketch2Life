@@ -78,3 +78,18 @@
   SHA-256: `2AF2286718B1A969D037FA768DDFE9B6F4E7422948CA2C095DD1CAB7815E9244`. The approved scope,
   architecture, exclusions and acceptance criteria are unchanged from the owner-approved hash above.
 - Implementation evidence: `evidence/notes/PIXI_PART_MOTION_RESTORATION_20260929.md`.
+
+## Owner approval — consume subject-only cutout tier — 2026-09-29
+
+- Approver: project owner, direct request in the current conversation (“sửa r sau đó restart backend”).
+- Approved plan: `plan/PIXIJ_PART_MOTION_RESTORATION_20260928.md`, follow-up section “consume the subject-only cutout tier”.
+- Plan SHA-256: `4E80D6865B60FC579524CA117248270898E46F3BC8BE0AF26E88B90EF8AEC06E`.
+- Scope: render a validated `CUTOUT_MICRO_MOTION` package from its verified subject mask without
+  requiring independent part masks; preserve strict `FULL_AUTO_RIG` part-mask validation; add
+  focused regression tests and feature-local evidence; restart the local backend.
+- Boundaries: no provider/model calls or configuration changes, no contract/Gate/source-provenance
+  changes, and no weakening of full-rig validation. Restart clears process-local demo sessions.
+- Implementation-status hash refresh: after recording the approved implementation and validation
+  outcome in the plan status field, its SHA-256 is now
+  `ADCFCF88538D1ACD60FF277427A80D05C5F7A5887D793D7CBA801847C52AF492`; scope and acceptance
+  criteria are unchanged.

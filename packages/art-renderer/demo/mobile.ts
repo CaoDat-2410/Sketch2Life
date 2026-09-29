@@ -273,48 +273,57 @@ async function loadLaunch(serialized: string): Promise<void> {
           ) throw new Error('MASK_HASH_OR_SIZE_INVALID');
           maskCanvas = await maskCanvasFromBytes(maskBytes, foreground);
         }
-        if (rigPackage.tier !== 'FULL_AUTO_RIG' || maskCanvas === undefined || rigPackage.parts.length < 2) {
-          throw new Error('PART_MASKS_REQUIRED');
-        }
         const partMaskCanvases = new Map<string, HTMLCanvasElement>();
-        const packagePartIds = new Set(rigPackage.parts.map((part) => part.partId));
-        if (
-          command.partMaskReads.length !== rigPackage.parts.length
-          || command.rigParts.length !== rigPackage.parts.length
-        ) throw new Error('PART_MASK_HANDOFF_INVALID');
-        for (const partRead of command.partMaskReads) {
-          const packagePart = rigPackage.parts.find((part) => part.partId === partRead.partId);
-          const commandPart = command.rigParts.find((part) => part.partId === partRead.partId);
-          if (
-            packagePart === undefined
-            || commandPart === undefined
-            || packagePart.boneId !== partRead.boneId
-            || packagePart.maskSha256 !== partRead.sha256
-            || commandPart.maskArtifactRef !== packagePart.maskArtifactRef
-            || commandPart.maskSha256 !== packagePart.maskSha256
-            || !rigPackage.derivedArtifacts.some((artifact) => (
-              matchesDerivedPartMaskProvenance(artifact, rigPackage.sourceSha256, packagePart.maskArtifactRef, partRead.sha256)
-            ))
-          ) throw new Error('PART_MASK_PROVENANCE_INVALID');
-          const partResponse = await fetch(new URL(partRead.readEndpoint, window.location.href), {
-            method: 'GET',
-            headers: {'X-Rig-Mask-Capability': partRead.readCapability},
-            cache: 'no-store',
-            credentials: 'same-origin',
-          });
-          if (!partResponse.ok || partResponse.headers.get('Content-Type')?.split(';')[0] !== 'image/png') {
-            throw new Error('PART_MASK_UNAVAILABLE');
+        if (rigPackage.tier === 'FULL_AUTO_RIG') {
+          if (maskCanvas === undefined || rigPackage.parts.length < 2) {
+            throw new Error('PART_MASKS_REQUIRED');
           }
-          const partBytes = await partResponse.arrayBuffer();
+          const packagePartIds = new Set(rigPackage.parts.map((part) => part.partId));
           if (
-            partBytes.byteLength <= 8
-            || partBytes.byteLength > 5_000_000
-            || await sha256Hex(partBytes) !== partRead.sha256
-            || partResponse.headers.get('X-Content-SHA256') !== partRead.sha256
-          ) throw new Error('PART_MASK_HASH_INVALID');
-          partMaskCanvases.set(partRead.partId, await maskCanvasFromBytes(partBytes, foreground));
+            command.partMaskReads.length !== rigPackage.parts.length
+            || command.rigParts.length !== rigPackage.parts.length
+          ) throw new Error('PART_MASK_HANDOFF_INVALID');
+          for (const partRead of command.partMaskReads) {
+            const packagePart = rigPackage.parts.find((part) => part.partId === partRead.partId);
+            const commandPart = command.rigParts.find((part) => part.partId === partRead.partId);
+            if (
+              packagePart === undefined
+              || commandPart === undefined
+              || packagePart.boneId !== partRead.boneId
+              || packagePart.maskSha256 !== partRead.sha256
+              || commandPart.maskArtifactRef !== packagePart.maskArtifactRef
+              || commandPart.maskSha256 !== packagePart.maskSha256
+              || !rigPackage.derivedArtifacts.some((artifact) => (
+                matchesDerivedPartMaskProvenance(artifact, rigPackage.sourceSha256, packagePart.maskArtifactRef, partRead.sha256)
+              ))
+            ) throw new Error('PART_MASK_PROVENANCE_INVALID');
+            const partResponse = await fetch(new URL(partRead.readEndpoint, window.location.href), {
+              method: 'GET',
+              headers: {'X-Rig-Mask-Capability': partRead.readCapability},
+              cache: 'no-store',
+              credentials: 'same-origin',
+            });
+            if (!partResponse.ok || partResponse.headers.get('Content-Type')?.split(';')[0] !== 'image/png') {
+              throw new Error('PART_MASK_UNAVAILABLE');
+            }
+            const partBytes = await partResponse.arrayBuffer();
+            if (
+              partBytes.byteLength <= 8
+              || partBytes.byteLength > 5_000_000
+              || await sha256Hex(partBytes) !== partRead.sha256
+              || partResponse.headers.get('X-Content-SHA256') !== partRead.sha256
+            ) throw new Error('PART_MASK_HASH_INVALID');
+            partMaskCanvases.set(partRead.partId, await maskCanvasFromBytes(partBytes, foreground));
+          }
+          if (packagePartIds.size !== partMaskCanvases.size) throw new Error('PART_MASK_HANDOFF_INVALID');
+        } else if (rigPackage.tier === 'CUTOUT_MICRO_MOTION') {
+          // A verified subject silhouette is a valid lower tier; it must not be rejected for
+          // lacking independent part masks. The player keeps the silhouette intact and moves it
+          // only within its fixed framing. FULL_AUTO_RIG remains separately part-mask gated.
+          if (maskCanvas === undefined) throw new Error('SUBJECT_MASK_UNAVAILABLE');
+        } else {
+          throw new Error('RIG_TIER_NOT_RENDERABLE');
         }
-        if (packagePartIds.size !== partMaskCanvases.size) throw new Error('PART_MASK_HANDOFF_INVALID');
         autoRigPlayer.load(
           packageJson,
           command.animationPlan,
@@ -523,6 +532,7 @@ function safeFailureCode(error: unknown): string {
     'MASK_DIMENSIONS_MISMATCH', 'MASK_CANVAS_UNAVAILABLE', 'MASK_AREA_INVALID',
     'MASK_REGION_INVALID', 'MASK_REGION_MISMATCH', 'MASK_DIMENSIONS_INVALID',
     'MASK_BACKGROUND_PATCH_UNSAFE', 'SUBJECT_MASK_UNAVAILABLE', 'PART_MASKS_REQUIRED',
+    'RIG_TIER_NOT_RENDERABLE',
     'PART_MASK_HANDOFF_INVALID', 'PART_MASK_PROVENANCE_INVALID', 'PART_MASK_UNAVAILABLE',
     'PART_MASK_HASH_INVALID', 'PART_MASK_CANVAS_UNAVAILABLE', 'PART_MASK_DIMENSIONS_MISMATCH',
     'PART_MASK_QUALITY_INVALID', 'PART_MASK_COVERAGE_INVALID',

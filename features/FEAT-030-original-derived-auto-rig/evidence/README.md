@@ -13,6 +13,7 @@
 | E-030-FIX-006 | SAM2-success mask handoff, verified Pixi cutout motion and explicit renderer failure/fallback lifecycle | Focused backend/renderer regression, typecheck and bundle build | `notes/SAM2_SUCCESS_MASK_HANDOFF_FIX_20260927.md` | PASS_LOCAL_CHECKS_PENDING_ANDROID_LIGHTNING_VISUAL_RETEST |
 | E-030-FIX-007 | Early bootstrap, idempotent native-to-WebView launch replay, startup failure reporting and stage-aware timeout | Emulator root-cause reproduction, renderer unit/type checks, mobile typecheck and bundle build | `notes/PIXI_STARTUP_HANDSHAKE_FIX_20260928.md` | PASS_LOCAL_CHECKS; POST-FIX_ARTIFACT_FLOW_PENDING |
 | E-030-FIX-008 | SAM2.1 part-mask handoff, deterministic mask partition fallback, separate Pixi part sprites, 20s multi-beat/rest timeline, contain-fit framing and backend mask-source diagnostics | Focused synthetic backend/runtime/renderer tests, typecheck and production demo build | `notes/PIXI_PART_MOTION_RESTORATION_20260929.md` | PASS_OFFLINE_CHECKS; LIVE_MASK_QUALITY_AND_ANDROID_RETEST_PENDING |
+| E-030-FIX-009 | Consume verified `CUTOUT_MICRO_MOTION` packages without requiring part masks; preserve strict `FULL_AUTO_RIG` gate | Android console diagnosis, renderer tests/typecheck/build, backend restart and HTTP probes | `notes/CUTOUT_TIER_CONSUMPTION_FIX_20260929.md` | PASS_LOCAL_CHECKS; FRESH_ANDROID_FLOW_PENDING |
 
 ## Planned evidence groups
 

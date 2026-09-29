@@ -186,6 +186,35 @@ describe('Pixi independent part playback', () => {
     player.destroy();
   });
 
+  it('plays a validated subject-only cutout without requiring part masks', () => {
+    vi.stubGlobal('document', {createElement: () => new MemoryCanvas()});
+    const stage = {
+      children: [] as {children: unknown[]}[],
+      addChild(child: {children: unknown[]}): void { this.children.push(child); },
+    };
+    const app = {stage, renderer: {resize: vi.fn()}, ticker: {add: vi.fn(), remove: vi.fn()}};
+    const {source, parent} = makeFixtureCanvases();
+    const cutoutPackage = {
+      ...packageFixture,
+      tier: 'CUTOUT_MICRO_MOTION',
+      parts: [],
+      derivedArtifacts: [packageFixture.derivedArtifacts[0]],
+      validation: {...packageFixture.validation, selectedTier: 'CUTOUT_MICRO_MOTION'},
+    };
+    const cutoutPlan = {
+      ...planFixture,
+      tier: 'CUTOUT_MICRO_MOTION',
+      tracks: [{...planFixture.tracks[0], trackId: 'subject-breathe', boneId: 'root', profile: 'breathe'}],
+    };
+    const player = createAutoRigPlayer({app: app as never});
+
+    player.load(cutoutPackage, cutoutPlan, source as never, parent as never, new Map());
+
+    expect(stage.children[0].children).toHaveLength(2); // reconstructed paper plus intact subject cutout
+    expect(player.getPlaybackState()).toMatchObject({durationSeconds: 20, state: 'READY'});
+    player.destroy();
+  });
+
   it('clears partially composed Pixi layers when invalid part masks degrade to fallback', () => {
     vi.stubGlobal('document', {createElement: () => new MemoryCanvas()});
     const stage = {
