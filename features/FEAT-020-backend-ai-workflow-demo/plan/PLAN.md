@@ -1,8 +1,8 @@
 # FEAT-020 — Complete Backend AI Workflow Demo Plan
 
-**Status:** `AWAITING_APPROVAL`
-**Implementation status:** `NOT_STARTED`
-**Approval:** pending in `approvals/TASK_APPROVAL.md`
+**Status:** `OWNER_CHANGE_DRAFT`
+**Implementation status:** `NOT_AUTHORIZED_BY_THIS_AMENDMENT`
+**Base approval:** the approval record on file covers the earlier FEAT-020 plan revision; it does not approve the 2026-09-28 expansion below.
 **Target runtime:** Lightning Studio, GPU-backed, repository pulled from GitHub
 **Primary deliverable:** one backend command and one real-AI E2E test
 
@@ -11,6 +11,17 @@
 Implement one cohesive backend-only vertical slice for the current Sketch2Life workflow. The slice must use the existing domain contracts and services where they are valid, add the missing application orchestration and production mappings, and execute the main workflow with real model adapters in one Lightning Studio process.
 
 The acceptance target is not a collection of isolated endpoints. It is a single executable workflow with typed contracts, explicit gates, provenance, safety validation, artifact identity continuity, and a final manifest that explains every stage.
+
+### Owner-requested amendment — 2026-09-28
+
+This revision records the owner's expanded target: an illustrated short video of 40–60 seconds, age-adapted educational content, editable script with both quick controls and free-form instructions, explicit adult script approval before any image generation, and selectable narration language/voice. Detailed future work is split into:
+
+- `CONTENT_STORY_EXPERIENCE_PLAN.md` — understanding-to-approved-script and narration selection;
+- `VIDEO_STORY_PRODUCTION_PLAN.md` — approved-script-to-illustrated-video generation and validation.
+
+The current video-model baseline remains Wan2.2 TI2V-5B. New contract shapes in the two plans are proposals only. The old 5–10 second micro-video target in this plan is replaced by 40–60 seconds only for the expanded story-video experience. This amendment authorizes documentation updates, not implementation. Preserve the earlier approval as historical scope; obtain explicit approval for this amendment before coding.
+
+FEAT-020 remains backend-only. These plans specify interaction and contract behavior, but frontend implementation requires its own feature plan and approval.
 
 ## 2. Scope
 
@@ -26,7 +37,10 @@ The acceptance target is not a collection of isolated endpoints. It is a single 
 - P1 filtering, Montessori selection, learning objective, and experience compilation;
 - story and scene planning with reality-grounded constraints;
 - original-art-preserving animation/artifact planning;
-- real micro-video generation through an approved model adapter, followed by duration/content/safety validation;
+- real illustrated short-video generation through an approved model adapter, followed by duration/content/safety/provenance validation;
+- a reviewed age-aware knowledge query and complete script revision/approval gate before image generation;
+- language/voice selection and a separate TTS narration track;
+- a 40–60 second illustrated story-video assembled from validated scene outputs;
 - off-screen activity handoff and a demo feedback/observation/history record;
 - a versioned workflow result contract and sanitized JSON manifest;
 - one E2E test that uses real configured model adapters and one real image;
@@ -43,7 +57,7 @@ The acceptance target is not a collection of isolated endpoints. It is a single 
 - committing real child images, audio, credentials, or model secrets;
 - treating the existing fixture flow as acceptance evidence;
 - a separately operated HTTP provider server in the main demo path;
-- silently replacing the child’s original image with a generated redraw;
+- overwriting the child’s original image/audio with a generated redraw; derived illustration is permitted only as a separately identified artifact with source provenance;
 - claiming a successful complete workflow when a required AI/video stage was skipped.
 
 ## 3. Current-state assessment: what is right and what needs correction
@@ -153,7 +167,7 @@ The preferred path is direct in-process model execution in Lightning Studio:
 
 The existing HTTP Lightning provider wrapper may remain useful for diagnostics or a later deployment topology, but it is not part of this feature’s acceptance path. The main path must not require starting a second server or calling a fixture endpoint.
 
-Candidate model profiles already referenced by project records are Whisper large-v3-turbo via faster-whisper and Qwen/Qwen3-VL-8B-Instruct. A video profile such as Wan2.2-TI2V-5B is only a candidate until availability, license, VRAM, latency, and output quality are recorded in an ADR. The implementation must fail preflight if a required model profile is not actually configured.
+Candidate profiles already referenced by project records include Whisper large-v3-turbo via faster-whisper and Qwen/Qwen3-VL-8B-Instruct. The owner selected the current Wan2.2-TI2V-5B as the video-model baseline for this plan. Its exact checkpoint/runtime/license, L4 VRAM, latency and output quality still require preflight/benchmark evidence and ADR recording; fail preflight when a required profile is not configured.
 
 ### 5.4 Interface/CLI layer
 
@@ -220,10 +234,13 @@ Failure: `NO_ELIGIBLE_ACTIVITY`, `GATE_B_REQUIRED`, or `POLICY_BLOCKED`.
 
 ### Stage 6 — Story and scene planning
 
-- Generate a short, reality-grounded story from the confirmed anchor and objective.
-- Produce separate branches for original-art animation, micro-video learning explanation, and off-screen activity.
-- Enforce child-image identity hash and reject unsupported story facts.
-- Set micro-video target duration to 5–10 seconds and store plan/model provenance.
+- Query reviewed educational evidence using confirmed anchors, the selected objective, the existing age/readiness context, and the chosen output language.
+- Generate a complete 40–60 second story script that retells the picture and includes only age-appropriate, evidence-backed knowledge.
+- Allow both quick edit controls and free-form adult instructions, separately or together; every successful edit returns a new complete script revision.
+- Require adult approval of the exact script/evidence/audience/language/voice packet before any image-generation call.
+- Produce separate branches for original-art animation, illustrated 40–60 second story video, and off-screen activity.
+- Preserve the original image hash; any illustrated redraw is a derivative with source lineage and must not add unsupported facts.
+- Store script/storyboard/model provenance and reject unsupported story facts.
 
 Failure: `STORY_PLAN_FAILED` or `SCENE_PLAN_FAILED`.
 
@@ -236,10 +253,12 @@ Failure: `STORY_PLAN_FAILED` or `SCENE_PLAN_FAILED`.
 
 Failure: `ART_OUTPUT_INVALID`.
 
-### Stage 8 — Real learning micro-video
+### Stage 8 — Real illustrated story video
 
+- Generate narration through the selected TTS profile independently from silent per-scene video rendering.
+- Generate illustrated reference images only after valid script approval; render short scene clips using the current Wan2.2 TI2V-5B baseline and assemble them against measured narration timing.
 - Call the configured real video-generation adapter; do not use a fixture, pre-baked video, or cache hit as proof of AI generation.
-- Validate decodability, duration (5–10 seconds), content policy, and correspondence to the objective.
+- Validate decodability, duration (40–60 seconds), narration completeness, content policy, provenance, and correspondence to approved anchors/claims/objective.
 - Record model/version, safe job ID, inputs, output checksum, and validator results.
 - A fallback may be a degraded handoff, but cannot receive `WORKFLOW_COMPLETE` in this strict feature.
 
@@ -317,9 +336,10 @@ The test asserts at least:
 5. Gate A and Gate B have explicit `DEMO_AUTOPILOT` decisions;
 6. P1 candidate, objective, and experience identity are present;
 7. art output preserves source identity/hash;
-8. video exists, is decodable, is 5–10 seconds, and passes safety/content validation;
-9. activity handoff, demo feedback, and history records are present;
-10. the sanitized manifest contains no secrets or raw credential headers.
+8. the complete video exists, is decodable, is 40–60 seconds, includes the approved TTS narration, and passes safety/content/provenance validation;
+9. no image-generation adapter was called before approval of the exact final script packet;
+10. activity handoff, demo feedback, and history records are present;
+11. the sanitized manifest contains no secrets or raw credential headers.
 
 If the configured video model is unavailable, the test fails preflight rather than downgrading acceptance to a cache/fallback result. A future degraded-mode test may cover fallback semantics, but it is not this feature’s success test.
 
@@ -336,13 +356,17 @@ If the configured video model is unavailable, the test fails preflight rather th
 | AC-07 | Fusion preserves cross-modal conflicts and validates prohibited inference fields. |
 | AC-08 | Gate A and Gate B are explicit, auditable, and stop the run when autopilot is not enabled. |
 | AC-09 | P1 selection and `ExperienceSpecV1` use existing catalog/rules and preserve identity continuity. |
-| AC-10 | Story/scene plans cover art, micro-video, and off-screen activity and are reality-grounded. |
+| AC-10 | Story/scene plans cover art, illustrated short video, and off-screen activity; educational claims are source-backed and age-appropriate. |
 | AC-11 | Art output preserves the original drawing and records derived artifact provenance. |
-| AC-12 | Configured real AI video generation produces a validated 5–10 second micro-video; fallback/cache cannot falsely yield complete success. |
+| AC-12 | Configured real AI video generation produces a validated 40–60 second illustrated story video with separate approved TTS; fallback/cache cannot falsely yield complete success. |
 | AC-13 | Activity handoff, demo feedback, and history records are connected in the same run. |
 | AC-14 | A single real-AI E2E test covers the complete path without fixture IDs or fake adapters. |
 | AC-15 | Runtime failures return typed statuses and nonzero exit codes; no stage is silently skipped. |
 | AC-16 | Security, harness, architecture, skeleton, unit, and E2E validation pass before commit. |
+| AC-17 | Adult can revise the complete script using quick controls, free-form instructions, or both; each revision is immutable and reviewable. |
+| AC-18 | No image-generation request is made until an adult approves the exact current script, evidence, audience, language, and narration profile. |
+| AC-19 | Age-aware evidence retrieval and script facts preserve claim-level source provenance; uncertain image identity cannot produce unsupported species-specific facts. |
+| AC-20 | Language/voice choices are capability-checked and the selected TTS narration is independent from video-model output. |
 
 ## 11. Implementation milestones
 
@@ -375,7 +399,7 @@ Implementation remains blocked until approval.
 
 - Add story/scene orchestration.
 - Add original-art artifact path.
-- Add real video adapter and 5–10 second safety/content validation.
+- Add reviewed evidence/story approval flow, then TTS and per-scene illustrated video; validate the complete 40–60 second output.
 
 ### M5 — One-command orchestrator
 
@@ -400,7 +424,9 @@ Implementation remains blocked until approval.
 | Arbitrary image is ambiguous | Return uncertainty; do not infer psychology; allow typed Gate A correction. |
 | Image cannot test ASR | Make audio optional and report `NOT_PROVIDED`; use a second real audio input for multimodal coverage. |
 | GPU/VRAM/model quota insufficient | Preflight; keep profiles configurable; fail `RUNTIME_NOT_READY`. |
-| Video generation is slow/expensive | Use one small acceptance image, record timing, document model profile, never replace generation with a fixture. |
+| Video generation is slow/expensive on L4 | Render asynchronously while Pixi plays, bound GPU concurrency, record full-job P50/P95 and peak VRAM, and do not claim timing before L4 measurement. |
+| Video redraw changes subject or invents knowledge | Bind each scene to confirmed anchors/approved evidence claims, retain original source, validate derivatives, and block publication on mismatch. |
+| Script/TTS duration differs from target | Measure rendered audio; return to script approval when outside 40–60 seconds; never silently truncate approved narration. |
 | Autopilot is mistaken for consent | Store `DEMO_AUTOPILOT`; disable outside demo CLI; block production entry points. |
 | Model output drifts | Pin revision/manifest, validate schema/safety, store provenance. |
 | In-memory records disappear | Scope as demo; make persistence a separate approved feature. |

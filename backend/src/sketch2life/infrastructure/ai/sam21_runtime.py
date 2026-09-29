@@ -180,10 +180,10 @@ class Sam21ImageSegmenter:
                             point_coords=point_coords,
                             point_labels=point_labels,
                             box=box,
-                            multimask_output=False,
+                            multimask_output=True,
                         )
                     except TypeError:
-                        kwargs: dict[str, object] = {"multimask_output": False}
+                        kwargs: dict[str, object] = {"multimask_output": True}
                         if point_coords is not None:
                             kwargs["point_coords"] = point_coords
                             kwargs["point_labels"] = point_labels
@@ -191,16 +191,16 @@ class Sam21ImageSegmenter:
                             kwargs["box"] = box
                         masks, scores, _ = predictor.predict(**kwargs)
 
-                    mask = np.asarray(masks)[0].astype(bool)
-                    if mask.ndim != 2 or mask.shape != (height, width):
-                        raise Sam21MaskRejectedError("SAM2 returned an invalid mask shape")
-                    area_fraction = float(mask.mean())
-                    if not (
-                        self._config.min_area_fraction
-                        <= area_fraction
-                        <= self._config.max_area_fraction
-                    ):
-                        raise Sam21MaskRejectedError("SAM2 mask area is outside the safe range")
+                    mask, confidence = _select_prompt_consistent_candidate(
+                        masks,
+                        scores,
+                        width=width,
+                        height=height,
+                        prompt=prompt,
+                        min_area_fraction=self._config.min_area_fraction,
+                        max_area_fraction=self._config.max_area_fraction,
+                        numpy=np,
+                    )
                     ys, xs = np.where(mask)
                     if len(xs) == 0 or len(ys) == 0:
                         raise Sam21MaskRejectedError("SAM2 returned an empty mask")
@@ -210,8 +210,6 @@ class Sam21ImageSegmenter:
                         width=float((xs.max() + 1 - xs.min()) / width),
                         height=float((ys.max() + 1 - ys.min()) / height),
                     )
-                    confidence = float(np.asarray(scores).reshape(-1)[0])
-                    confidence = min(max(confidence, 0.0), 1.0)
                     output = Image.fromarray((mask.astype("uint8") * 255), mode="L")
                     buffer = io.BytesIO()
                     output.save(buffer, format="PNG", optimize=True)
@@ -277,6 +275,73 @@ class Sam21ImageSegmenter:
             )
             self._predictor = SAM2ImagePredictor(model)
             return self._predictor
+
+
+def _select_prompt_consistent_candidate(
+    masks: Any,
+    scores: Any,
+    *,
+    width: int,
+    height: int,
+    prompt: Sam21Prompt,
+    min_area_fraction: float,
+    max_area_fraction: float,
+    numpy: Any,
+) -> tuple[Any, float]:
+    """Choose the highest-scoring valid SAM candidate consistent with its prompt."""
+    candidates = numpy.asarray(masks)
+    if candidates.ndim == 2:
+        candidates = candidates[numpy.newaxis, ...]
+    if candidates.ndim != 3 or candidates.shape[1:] != (height, width):
+        raise Sam21MaskRejectedError("SAM2 returned invalid candidate mask dimensions")
+    confidence_scores = numpy.asarray(scores, dtype=float).reshape(-1)
+    if len(confidence_scores) != len(candidates):
+        raise Sam21MaskRejectedError("SAM2 returned mismatched mask candidate scores")
+
+    box_bounds = None
+    if prompt.prompt_region is not None:
+        region = prompt.prompt_region
+        left = max(0, min(width, int(region.x * width)))
+        top = max(0, min(height, int(region.y * height)))
+        right = max(left + 1, min(width, int(numpy.ceil((region.x + region.width) * width))))
+        bottom = max(top + 1, min(height, int(numpy.ceil((region.y + region.height) * height))))
+        box_bounds = (left, top, right, bottom)
+
+    def point_is_inside(mask: Any, point: tuple[float, float]) -> bool:
+        x = max(0, min(width - 1, int(point[0] * width)))
+        y = max(0, min(height - 1, int(point[1] * height)))
+        return bool(mask[y, x])
+
+    valid: list[tuple[float, int, Any]] = []
+    for index, candidate in enumerate(candidates):
+        mask = candidate.astype(bool)
+        area_fraction = float(mask.mean())
+        if not min_area_fraction <= area_fraction <= max_area_fraction:
+            continue
+        if any(not point_is_inside(mask, point) for point in prompt.positive_points):
+            continue
+        if any(point_is_inside(mask, point) for point in prompt.negative_points):
+            continue
+        prompt_fit = 1.0
+        if box_bounds is not None:
+            left, top, right, bottom = box_bounds
+            in_box = int(mask[top:bottom, left:right].sum())
+            if in_box == 0:
+                continue
+            outside_fraction = 1.0 - in_box / max(1, int(mask.sum()))
+            if outside_fraction > 0.45:
+                continue
+            prompt_fit = 1.0 - outside_fraction
+        score = float(confidence_scores[index])
+        if not numpy.isfinite(score):
+            continue
+        # SAM's quality estimate remains dominant; prompt fit only breaks close ties.
+        valid.append((score + 0.02 * prompt_fit, index, mask))
+    if not valid:
+        raise Sam21MaskRejectedError("SAM2 returned no prompt-consistent mask candidate")
+    _, selected_index, mask = max(valid, key=lambda item: (item[0], -item[1]))
+    confidence = min(max(float(confidence_scores[selected_index]), 0.0), 1.0)
+    return mask, confidence
 
 
 _CHECKPOINT_NAMES = (

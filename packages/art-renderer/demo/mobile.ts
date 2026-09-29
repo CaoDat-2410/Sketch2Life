@@ -13,7 +13,6 @@ import {
   matchesDerivedMaskProvenance,
   sha256Hex,
   createRendererStartupGate,
-  buildV2FallbackPlan,
   type PlaybackEvent,
   type RendererLoadCommand,
   type RendererLoadCommandV2,
@@ -84,7 +83,7 @@ function setPlaybackStatus(event: PlaybackEvent): void {
       break;
     case 'PLAYBACK_FAILED':
       status.textContent = 'Pixi không phát được chuyển động; ảnh gốc vẫn còn trong app.';
-      playButton.disabled = false;
+      playButton.disabled = true;
       break;
     case 'FOCUS_CHANGED':
       status.textContent = 'Đang soi gần hơn một chi tiết trong bức vẽ…';
@@ -335,15 +334,16 @@ async function loadLaunch(serialized: string): Promise<void> {
         v2InteractionPhase = 'INTRO_LOADING';
       } catch (error) {
         console.error('[art-renderer] Renderer V2 package could not start.', safeFailureCode(error));
-        await classicPlayer.load(buildV2FallbackPlan(command));
-        activePlayer = classicPlayer;
-        v2InteractionPhase = 'FALLBACK';
+        activePlayer = null;
+        playButton.disabled = true;
+        playButton.textContent = 'Thử mở lại trong ứng dụng';
+        status.textContent = 'Đang giữ ảnh gốc. Hãy thử mở chuyển động lại trong ứng dụng.';
         postLifecycle({
-          type: 'FALLBACK_APPLIED',
+          type: 'PLAYBACK_FAILED',
           planId: command.animationPlan.planId,
-          reason: fallbackReason(error),
-          durationSeconds: command.animationPlan.durationSeconds,
+          reason: safeFailureCode(error),
         });
+        return;
       }
     } else {
       await classicPlayer.load(command.animationPlan.plan, {
@@ -531,7 +531,7 @@ function safeFailureCode(error: unknown): string {
     'MASK_UNAVAILABLE', 'MASK_CAPABILITY_OR_PROVENANCE_INVALID', 'MASK_HASH_OR_SIZE_INVALID',
     'MASK_DIMENSIONS_MISMATCH', 'MASK_CANVAS_UNAVAILABLE', 'MASK_AREA_INVALID',
     'MASK_REGION_INVALID', 'MASK_REGION_MISMATCH', 'MASK_DIMENSIONS_INVALID',
-    'MASK_BACKGROUND_PATCH_UNSAFE', 'SUBJECT_MASK_UNAVAILABLE', 'PART_MASKS_REQUIRED',
+    'MASK_BACKGROUND_RECONSTRUCTION_FAILED', 'SUBJECT_MASK_UNAVAILABLE', 'PART_MASKS_REQUIRED',
     'RIG_TIER_NOT_RENDERABLE',
     'PART_MASK_HANDOFF_INVALID', 'PART_MASK_PROVENANCE_INVALID', 'PART_MASK_UNAVAILABLE',
     'PART_MASK_HASH_INVALID', 'PART_MASK_CANVAS_UNAVAILABLE', 'PART_MASK_DIMENSIONS_MISMATCH',
@@ -574,11 +574,4 @@ function matchesDerivedPartMaskProvenance(
     && item.sourceSha256 === sourceSha256
     && item.artifactRef === artifactRef
     && item.sha256 === digest;
-}
-
-function fallbackReason(error: unknown): 'EXTRACTION_UNAVAILABLE' | 'MASK_INVALID' | 'ASSET_LOAD_FAILED' | 'MOTION_COMPILE_FAILED' {
-  const code = safeFailureCode(error);
-  if (code.startsWith('MASK_')) return 'MASK_INVALID';
-  if (code.includes('PACKAGE') || code.includes('SOURCE')) return 'ASSET_LOAD_FAILED';
-  return code === 'RENDERER_V2_START_FAILED' ? 'MOTION_COMPILE_FAILED' : 'EXTRACTION_UNAVAILABLE';
 }

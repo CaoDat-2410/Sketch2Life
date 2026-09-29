@@ -14,6 +14,8 @@
 | E-030-FIX-007 | Early bootstrap, idempotent native-to-WebView launch replay, startup failure reporting and stage-aware timeout | Emulator root-cause reproduction, renderer unit/type checks, mobile typecheck and bundle build | `notes/PIXI_STARTUP_HANDSHAKE_FIX_20260928.md` | PASS_LOCAL_CHECKS; POST-FIX_ARTIFACT_FLOW_PENDING |
 | E-030-FIX-008 | SAM2.1 part-mask handoff, deterministic mask partition fallback, separate Pixi part sprites, 20s multi-beat/rest timeline, contain-fit framing and backend mask-source diagnostics | Focused synthetic backend/runtime/renderer tests, typecheck and production demo build | `notes/PIXI_PART_MOTION_RESTORATION_20260929.md` | PASS_OFFLINE_CHECKS; LIVE_MASK_QUALITY_AND_ANDROID_RETEST_PENDING |
 | E-030-FIX-009 | Consume verified `CUTOUT_MICRO_MOTION` packages without requiring part masks; preserve strict `FULL_AUTO_RIG` gate | Android console diagnosis, renderer tests/typecheck/build, backend restart and HTTP probes | `notes/CUTOUT_TIER_CONSUMPTION_FIX_20260929.md` | PASS_LOCAL_CHECKS; FRESH_ANDROID_FLOW_PENDING |
+| E-030-FIX-010 | Mask-bounded cutout inpainting, no automatic V2-to-V1 fallback, Gate-A/Gate-B/Pixi loading surfaces and earlier package preparation | Android logcat diagnosis, renderer/mobile tests and checks, bundle build and backend probes | `notes/NO_V1_FALLBACK_PRELOAD_INPAINT_20260929.md` | PASS_LOCAL_CHECKS; FRESH_ANDROID_VISUAL_AND_WEBGL_RETEST_PENDING |
+| E-030-FIX-011 | High-pigment cutout edge artifacts; likely color contamination during inpainting, mask-vs-renderer attribution still unverified | Owner screenshot review and source inspection; no matching live source/mask logs | `notes/HEAVY_PIGMENT_CUTOUT_DIAGNOSIS_20260929.md` and `notes/INTEGRATED_MASK_AND_CUTOUT_QUALITY_20260929.md` | SYNTHETIC_IMPLEMENTATION_AND_OFFLINE_TESTS_PASS; REAL_DRAWING_AND_ANDROID_RETEST_PENDING |
 
 ## Planned evidence groups
 
@@ -26,3 +28,10 @@
 - Security/privacy: no credentials or child media in Git/logs; capability replay/expiry tests; artifact deletion and session isolation.
 
 Every result must include command/input, environment/device/model/config, timestamp, output path, reviewer, interpretation, and limitations.
+
+Documentation-only mask-quality diagnosis (no model/runtime call):
+[SAM 2.1 mask-quality audit](notes/SAM21_MASK_QUALITY_DIAGNOSIS_20260929.md) is the pre-implementation
+baseline. The approved integrated workstream and current offline evidence are in
+[`SAM21_MASK_ACCURACY_AND_AUTO_RIG_QUALITY_PLAN_20260929.md`](../plan/SAM21_MASK_ACCURACY_AND_AUTO_RIG_QUALITY_PLAN_20260929.md)
+and [the implementation record](notes/INTEGRATED_MASK_AND_CUTOUT_QUALITY_20260929.md). Live SAM/L4,
+real mask references and Android visual acceptance remain unverified.

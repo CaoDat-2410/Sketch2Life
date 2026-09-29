@@ -43,6 +43,22 @@ def test_file_metadata_adapter_exposes_authored_material_and_multiday_duration()
     assert preparation.print_defaults is not None
 
 
+def test_recommendation_display_supports_versioned_golden_activity_without_stale_prep() -> None:
+    metadata = FileWorkflowCatalogMetadata(ROOT)
+
+    display = metadata.recommendation_display("ACT-0055", 2)
+
+    assert display is not None
+    assert display["title_vi"] == "Quan sát các bộ phận của cây"
+    assert display["duration_minutes"] == 15
+    assert display["material_labels_vi"] == (
+        "một cây rau thơm ăn được còn nguyên rễ, kính lúp nhựa và bộ thẻ rễ-thân-lá-hoa",
+    )
+    assert display["preparation_asset_status"] == "BLOCKED"
+    assert "phiên bản này" in display["preparation_summary_vi"]
+    assert metadata.recommendation_display("ACT-0055", 1) is None
+
+
 def test_real_composition_builds_complete_dependency_bundle() -> None:
     dependencies = build_real_workflow_dependencies(ROOT, include_expansion=True)
 

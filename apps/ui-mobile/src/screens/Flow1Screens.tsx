@@ -34,10 +34,136 @@ import {
 
 import type { ScreenId } from '../types';
 import { useAppContext } from '../context/AppContext';
+import type { ChildLearningProfileInput } from '../demo/api';
 
 interface ScreenProps {
   onNavigate?: (screen: ScreenId) => void;
 }
+
+const PROFILE_INTERESTS = [
+  ['ANIMAL_BUTTERFLY', 'Bướm'],
+  ['ANIMAL_GENERIC', 'Động vật'],
+  ['ANIMAL_MOVEMENT', 'Chuyển động'],
+  ['PLANT_FLOWER', 'Hoa'],
+  ['PLANT_STRUCTURE', 'Cây và lá'],
+  ['SUN_LIGHT', 'Mặt trời, ánh sáng'],
+  ['NATURE_OBSERVATION', 'Thiên nhiên'],
+  ['SCIENCE_OBSERVATION', 'Khám phá khoa học'],
+  ['COUNTING_NUMBER', 'Số và đếm'],
+  ['LANGUAGE_PRINT', 'Chữ và kể chuyện'],
+] as const;
+
+const PROFILE_READINESS = [
+  ['READY_SEARCH_PARTLY_HIDDEN', 'Tìm vật bị che một phần'],
+  ['READY_STABLE_SEATED_TRANSFER', 'Ngồi vững, đặt vật vào hộp'],
+  ['READY_FOLLOWS_WASH_SEQUENCE', 'Làm theo trình tự rửa tay'],
+  ['READY_NOTICES_SMALL_SPILL', 'Nhìn thấy và lau vết nước'],
+  ['READY_CARRIES_SMALL_CONTAINER', 'Mang cốc nhỏ an toàn'],
+  ['READY_CONTROLLED_TWO_HAND_POUR', 'Rót bằng hai tay có kiểm soát'],
+  ['READY_PINCH_AND_ALIGN_BUTTON', 'Cài nút lớn bằng hai ngón'],
+  ['READY_CARRIES_PLACE_SETTING', 'Mang và sắp bàn ăn'],
+  ['READY_MATCHES_IDENTICAL_COLOR', 'Ghép màu giống nhau'],
+  ['READY_TRIPOD_OR_FUNCTIONAL_GRIP', 'Cầm bút và tô vùng rộng'],
+  ['READY_HANDLES_PLANT_SAMPLE', 'Cầm và quan sát mẫu cây'],
+  ['READY_RECORDS_CHANGES_OVER_TIME', 'Theo dõi thay đổi theo thời gian'],
+  ['READY_PLACE_VALUE_TO_THOUSANDS', 'Biểu diễn số đến hàng nghìn'],
+  ['READY_IDENTIFIES_NOUN_VERB', 'Nhận biết danh từ và động từ'],
+  ['READY_ESTIMATES_SHORT_TASK', 'Ước lượng việc 10–20 phút'],
+  ['READY_TABLE_AND_BAR_GRAPH', 'Đọc bảng và biểu đồ cột'],
+  ['READY_COMPARE_OBSERVABLE_TRAITS', 'So sánh đặc điểm nhìn thấy'],
+  ['READY_MODELS_LIGHT_AND_SHADOW', 'Khám phá ánh sáng và bóng'],
+  ['READY_DISTINGUISHES_CLAIM_EVIDENCE', 'Phân biệt ý kiến và dữ kiện'],
+  ['READY_MANAGES_RESEARCH_MILESTONE', 'Hoàn thành mốc nghiên cứu'],
+] as const;
+
+const PROFILE_MATERIALS = [
+  ['GMAT-0004-PRIMARY', 'Khăn voan và bóng vải'],
+  ['GMAT-0004-SUBSTITUTE', 'Khăn cotton và thú vải'],
+  ['GMAT-0016-PRIMARY', 'Bát silicone và bóng vải'],
+  ['GMAT-0016-SUBSTITUTE', 'Hộp nhựa và tất cuộn'],
+  ['GMAT-0019-PRIMARY', 'Chậu thấp, xà phòng, khăn'],
+  ['GMAT-0019-SUBSTITUTE', 'Bồn rửa và khăn riêng'],
+  ['GMAT-0020-PRIMARY', 'Khay, nước và khăn cotton'],
+  ['GMAT-0020-SUBSTITUTE', 'Tấm lót, cốc đo, vải'],
+  ['GMAT-0023-PRIMARY', 'Cây không độc, ca nhỏ, khay'],
+  ['GMAT-0023-SUBSTITUTE', 'Rau thơm và cốc rót'],
+  ['GMAT-0026-PRIMARY', 'Bình quai và viên gỗ lớn'],
+  ['GMAT-0026-SUBSTITUTE', 'Cốc quai và khay nhựa'],
+  ['GMAT-0030-PRIMARY', 'Khung cài nút lớn'],
+  ['GMAT-0030-SUBSTITUTE', 'Áo khoác có nút lớn'],
+  ['GMAT-0033-PRIMARY', 'Bộ đồ ăn và khăn vải'],
+  ['GMAT-0033-SUBSTITUTE', 'Bộ đồ ăn nhựa và bìa'],
+  ['GMAT-0039-PRIMARY', 'Bảng màu và thảm xám'],
+  ['GMAT-0039-SUBSTITUTE', 'Thẻ màu ép plastic'],
+  ['GMAT-0046-PRIMARY', 'Khung hình và bút chì màu'],
+  ['GMAT-0046-SUBSTITUTE', 'Khuôn nhựa và bút sáp'],
+  ['GMAT-0055-PRIMARY', 'Cây rau, kính lúp, thẻ cây'],
+  ['GMAT-0055-SUBSTITUTE', 'Hành lá có rễ, kính lúp'],
+  ['GMAT-0058-PRIMARY', 'Hộp trong, nước, đá, nhiệt kế'],
+  ['GMAT-0058-SUBSTITUTE', 'Bát inox, đá, nhiệt kế'],
+  ['GMAT-0061-PRIMARY', 'Bộ stamp game và thẻ phép tính'],
+  ['GMAT-0061-SUBSTITUTE', 'Thẻ hàng và khay màu'],
+  ['GMAT-0067-PRIMARY', 'Ký hiệu ngữ pháp và thẻ câu'],
+  ['GMAT-0067-SUBSTITUTE', 'Ký hiệu giấy và phong bì đáp án'],
+  ['GMAT-0074-PRIMARY', 'Bảng tuần, thẻ việc, đồng hồ'],
+  ['GMAT-0074-SUBSTITUTE', 'Lịch giấy và đồng hồ bếp'],
+  ['GMAT-0085-PRIMARY', 'Phiếu dữ liệu và giấy biểu đồ'],
+  ['GMAT-0085-SUBSTITUTE', 'Thẻ dữ liệu tổng hợp'],
+  ['GMAT-0087-PRIMARY', 'Thẻ ảnh và khóa phân loại'],
+  ['GMAT-0087-SUBSTITUTE', 'Đồ vật gia dụng an toàn'],
+  ['GMAT-0091-PRIMARY', 'Đèn LED, quả cầu và phiếu ghi'],
+  ['GMAT-0091-SUBSTITUTE', 'Đèn pin, bóng bàn, băng giấy'],
+  ['GMAT-0097-PRIMARY', 'Nguồn in và phiếu lập luận'],
+  ['GMAT-0097-SUBSTITUTE', 'Bài đọc và giấy ba cột'],
+  ['GMAT-0099-PRIMARY', 'Planner, nguồn và vật liệu trình bày'],
+  ['GMAT-0099-SUBSTITUTE', 'Bìa hồ sơ, lịch và tài liệu in'],
+] as const;
+
+const PROFILE_PROGRESS = [
+  { activity_id: 'ACT-0055', objective_id: 'OBJ_SCIENTIFIC_OBSERVATION', label: 'Quan sát cấu tạo cây' },
+  { activity_id: 'ACT-0058', objective_id: 'OBJ_SCIENTIFIC_INQUIRY', label: 'Khám phá vòng tuần hoàn nước' },
+  { activity_id: 'ACT-0091', objective_id: 'OBJ_SCIENTIFIC_OBSERVATION', label: 'Quan sát ánh sáng và bóng' },
+] as const;
+
+const PROFILE_SUPPORTS = [
+  ['HANDS_ON', 'Thích tự tay thao tác'],
+  ['MOVEMENT', 'Thích hoạt động có vận động'],
+  ['VISUAL_SEQUENCE', 'Hợp với các bước trực quan'],
+  ['OBSERVATION', 'Thích quan sát, khám phá'],
+] as const;
+
+const PROFILE_SUPERVISION = [
+  ['NONE', 'Không có người lớn giám sát'],
+  ['NEARBY', 'Người lớn ở gần'],
+  ['DIRECT', 'Người lớn hướng dẫn trực tiếp'],
+] as const;
+
+const ChoiceChip: React.FC<{
+  label: string;
+  selected: boolean;
+  disabled?: boolean;
+  onPress: () => void;
+}> = ({ label, selected, disabled, onPress }) => (
+  <TouchableOpacity
+    accessibilityRole="checkbox"
+    accessibilityState={{ checked: selected, disabled: Boolean(disabled) }}
+    onPress={onPress}
+    disabled={disabled}
+    style={{
+      borderRadius: 18,
+      borderWidth: 1,
+      borderColor: selected ? '#2563EB' : '#CBD5E1',
+      backgroundColor: selected ? '#DBEAFE' : '#FFFFFF',
+      opacity: disabled ? 0.45 : 1,
+      paddingHorizontal: 11,
+      paddingVertical: 8,
+    }}
+  >
+    <Text style={{ color: selected ? '#1D4ED8' : '#475569', fontSize: 12, fontWeight: '700' }}>
+      {selected ? '✓ ' : ''}{label}
+    </Text>
+  </TouchableOpacity>
+);
 
 // ==========================================
 // 1. SPLASH SCREEN (Image 2 - Screen 1)
@@ -285,9 +411,9 @@ export const DashboardScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
           <Ionicons name="compass-outline" size={22} color={colors.textLight} />
           <Text style={styles.navText}>Khám phá</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={() => nav('feedback')}>
+        <TouchableOpacity style={styles.navItem} onPress={() => nav('profile')}>
           <Ionicons name="settings-outline" size={22} color={colors.textLight} />
-          <Text style={styles.navText}>Cài đặt</Text>
+          <Text style={styles.navText}>Hồ sơ</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -306,10 +432,51 @@ export const ChildProfileScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
     setSelectedChild,
     selectedAgeGroup,
     setSelectedAgeGroup,
+    selectedChildLearningProfile,
+    updateSelectedChildLearningProfile,
+    resetSelectedChildLearningProfile,
     beginWorkflow,
     workflowBusy,
+    sessionState,
   } = useAppContext();
   const nav = onNavigate || navigate;
+  const [profileMaterialQuery, setProfileMaterialQuery] = useState('');
+  const profile = selectedChildLearningProfile;
+  const progressConfirmedBy = profile?.profile_declared_by || 'CAREGIVER';
+  const profileEditable = sessionState === 'NOT_STARTED' || sessionState === 'FEEDBACK_RECORDED';
+  const profileRequiresAdultInputs = Boolean(
+    profile && (profile.readiness_ids === null || profile.available_material_option_ids === null),
+  );
+  const visibleProfileMaterials = PROFILE_MATERIALS.filter(([id, label]) => (
+    `${id} ${label}`.toLocaleLowerCase().includes(profileMaterialQuery.trim().toLocaleLowerCase())
+  )).slice(0, 10);
+
+  const toggleProfileConcept = (field: 'interests' | 'dislikes', conceptId: string) => {
+    const currentValues = profile?.[field] || [];
+    const updated = currentValues.includes(conceptId)
+      ? currentValues.filter((item) => item !== conceptId)
+      : [...currentValues, conceptId];
+    const opposite = field === 'interests' ? 'dislikes' : 'interests';
+    updateSelectedChildLearningProfile({
+      [field]: updated,
+      [opposite]: (profile?.[opposite] || []).filter((item) => item !== conceptId),
+    });
+  };
+
+  const toggleProfileProgress = (item: (typeof PROFILE_PROGRESS)[number]) => {
+    const progress = profile?.adult_confirmed_progress || [];
+    const exists = progress.some((entry) => entry.activity_id === item.activity_id);
+    updateSelectedChildLearningProfile({
+      adult_confirmed_progress: exists
+        ? progress.filter((entry) => entry.activity_id !== item.activity_id)
+        : [...progress, {
+          activity_id: item.activity_id,
+          objective_id: item.objective_id,
+          confirmed_at: new Date().toISOString().slice(0, 10),
+          confirmed_by: progressConfirmedBy,
+        }],
+    });
+  };
 
   const ageList = [
     { id: '3-4', title: '3 – 4 tuổi', desc: 'Khám phá thế giới qua sắc màu', icon: 'color-palette', bg: '#DCFCE7', color: '#16A34A' },
@@ -414,6 +581,140 @@ export const ChildProfileScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
         })}
       </View>
 
+      <View style={{ marginTop: 18, borderWidth: 1, borderColor: '#BFDBFE', borderRadius: 18, padding: 16, backgroundColor: '#F8FBFF' }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 16, fontWeight: '800', color: '#172554' }}>Hồ sơ thử nghiệm cho bé</Text>
+            <Text style={{ fontSize: 12, lineHeight: 17, color: '#64748B', marginTop: 4 }}>
+              Chỉ giữ trong phiên ứng dụng hiện tại; chưa lưu lâu dài. Các lựa chọn chỉ ảnh hưởng bộ gợi ý Montessori, không huấn luyện hay gọi Qwen thêm.
+            </Text>
+          </View>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="Xóa hồ sơ thử nghiệm"
+            onPress={resetSelectedChildLearningProfile}
+            disabled={!profileEditable || !profile}
+            style={{ padding: 8, opacity: profileEditable && profile ? 1 : 0.4 }}
+          >
+            <Text style={{ color: '#B91C1C', fontSize: 12, fontWeight: '800' }}>Xóa thử</Text>
+          </TouchableOpacity>
+        </View>
+
+        {profile && (
+          <Text style={{ color: '#64748B', fontSize: 11, lineHeight: 16, marginTop: 8 }}>
+            Khai báo bởi {profile.profile_declared_by === 'CAREGIVER' ? 'cha mẹ/người chăm sóc' : 'Guide'} · cập nhật {new Date(profile.profile_recorded_at).toLocaleString('vi-VN')} · tự xóa khi đóng ứng dụng.
+          </Text>
+        )}
+
+        {!profileEditable ? (
+          <Text style={{ color: '#B45309', fontSize: 13, marginTop: 12 }}>
+            Hồ sơ bị khóa trong lúc đang có hoạt động. Có thể chỉnh lại sau khi kết thúc phiên.
+          </Text>
+        ) : (
+          <>
+            <Text style={{ color: '#334155', fontSize: 12, fontWeight: '800', marginTop: 16, marginBottom: 8 }}>Mức người lớn có thể giám sát</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 7 }}>
+              {PROFILE_SUPERVISION.map(([id, label]) => (
+                <ChoiceChip
+                  key={id}
+                  label={label}
+                  selected={profile ? profile.adult_supervision_available === id : id === 'NEARBY'}
+                  onPress={() => updateSelectedChildLearningProfile({ adult_supervision_available: id })}
+                />
+              ))}
+            </View>
+
+            <Text style={{ color: '#334155', fontSize: 12, fontWeight: '800', marginTop: 16, marginBottom: 8 }}>Sở thích bé đã thể hiện</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 7 }}>
+              {PROFILE_INTERESTS.map(([id, label]) => (
+                <ChoiceChip key={`interest-${id}`} label={label} selected={Boolean(profile?.interests.includes(id))} onPress={() => toggleProfileConcept('interests', id)} />
+              ))}
+            </View>
+            <Text style={{ color: '#334155', fontSize: 12, fontWeight: '800', marginTop: 14, marginBottom: 8 }}>Chủ đề bé không thích / muốn tránh</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 7 }}>
+              {PROFILE_INTERESTS.map(([id, label]) => (
+                <ChoiceChip key={`dislike-${id}`} label={label} selected={Boolean(profile?.dislikes.includes(id))} onPress={() => toggleProfileConcept('dislikes', id)} />
+              ))}
+            </View>
+
+            <Text style={{ color: '#334155', fontSize: 12, fontWeight: '800', marginTop: 14, marginBottom: 7 }}>Tiến trình người lớn đã xác nhận</Text>
+            <Text style={{ color: '#64748B', fontSize: 11, marginBottom: 7 }}>Chọn người lớn khai báo hồ sơ này; tiến trình bên dưới cũng ghi riêng người xác nhận và ngày xác nhận.</Text>
+            <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
+              {(['CAREGIVER', 'GUIDE'] as const).map((source) => (
+                <ChoiceChip key={source} label={source === 'CAREGIVER' ? 'Cha mẹ/người chăm sóc' : 'Guide'} selected={progressConfirmedBy === source} onPress={() => updateSelectedChildLearningProfile({ profile_declared_by: source })} />
+              ))}
+            </View>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 7 }}>
+              {PROFILE_PROGRESS.map((item) => (
+                <ChoiceChip key={item.activity_id} label={item.label} selected={Boolean(profile?.adult_confirmed_progress.some((entry) => entry.activity_id === item.activity_id))} onPress={() => toggleProfileProgress(item)} />
+              ))}
+            </View>
+            {profile?.adult_confirmed_progress.map((entry) => {
+              const milestone = PROFILE_PROGRESS.find((item) => item.activity_id === entry.activity_id);
+              return milestone ? (
+                <Text key={`${entry.activity_id}-${entry.objective_id}`} style={{ color: '#64748B', fontSize: 11, marginTop: 4 }}>
+                  {milestone.label} · {entry.confirmed_by === 'CAREGIVER' ? 'Cha mẹ/người chăm sóc' : 'Guide'} · {entry.confirmed_at}
+                </Text>
+              ) : null;
+            })}
+            <Text style={{ color: '#64748B', fontSize: 11, marginTop: 5 }}>Ngày và người xác nhận được ghi tự động; chỉ dùng tiến trình do người lớn xác nhận, không coi việc hoàn thành đơn thuần là đã thành thạo.</Text>
+
+            <Text style={{ color: '#334155', fontSize: 12, fontWeight: '800', marginTop: 14, marginBottom: 8 }}>Sẵn sàng hiện tại (điều kiện lọc)</Text>
+            <ChoiceChip
+              label={profile?.readiness_ids === null || !profile ? 'Chọn mục người lớn đã xác nhận' : `Đã chọn ${profile.readiness_ids.length} mục sẵn sàng`}
+              selected={Boolean(profile && profile.readiness_ids !== null)}
+              onPress={() => updateSelectedChildLearningProfile({ readiness_ids: profile?.readiness_ids === null || !profile ? [] : null })}
+            />
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 7, marginTop: 8 }}>
+              {PROFILE_READINESS.map(([id, label]) => (
+                <ChoiceChip key={id} label={label} disabled={profile?.readiness_ids === null || !profile} selected={Boolean(profile?.readiness_ids?.includes(id))} onPress={() => {
+                  const values = profile?.readiness_ids || [];
+                  updateSelectedChildLearningProfile({ readiness_ids: values.includes(id) ? values.filter((value) => value !== id) : [...values, id] });
+                }} />
+              ))}
+            </View>
+
+            <Text style={{ color: '#334155', fontSize: 12, fontWeight: '800', marginTop: 14, marginBottom: 8 }}>Vật liệu đang có (điều kiện lọc)</Text>
+            <ChoiceChip
+              label={profile?.available_material_option_ids === null || !profile ? 'Chọn vật liệu người lớn xác nhận đang có' : `Đã chọn ${profile.available_material_option_ids.length} vật liệu`}
+              selected={Boolean(profile && profile.available_material_option_ids !== null)}
+              onPress={() => updateSelectedChildLearningProfile({ available_material_option_ids: profile?.available_material_option_ids === null || !profile ? [] : null })}
+            />
+            <TextInput
+              value={profileMaterialQuery}
+              onChangeText={setProfileMaterialQuery}
+              placeholder="Tìm trong 40 lựa chọn vật liệu…"
+              accessibilityLabel="Tìm vật liệu trong catalog"
+              style={{ borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 10, backgroundColor: '#FFFFFF', paddingHorizontal: 12, paddingVertical: 9, marginTop: 9, fontSize: 12 }}
+            />
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 7, marginTop: 8 }}>
+              {visibleProfileMaterials.map(([id, label]) => (
+                <ChoiceChip key={id} label={label} disabled={profile?.available_material_option_ids === null || !profile} selected={Boolean(profile?.available_material_option_ids?.includes(id))} onPress={() => {
+                  const values = profile?.available_material_option_ids || [];
+                  updateSelectedChildLearningProfile({ available_material_option_ids: values.includes(id) ? values.filter((value) => value !== id) : [...values, id] });
+                }} />
+              ))}
+            </View>
+            <Text style={{ color: '#64748B', fontSize: 11, marginTop: 5 }}>Đang hiện {visibleProfileMaterials.length} kết quả; tìm theo tên hoặc mã GMAT. Danh sách trống nghĩa là không có hoạt động nào được xác nhận là đủ vật liệu.</Text>
+
+            <Text style={{ color: '#334155', fontSize: 12, fontWeight: '800', marginTop: 14, marginBottom: 8 }}>Cách học người lớn đã chọn cho bé</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 7 }}>
+              {PROFILE_SUPPORTS.map(([id, label]) => (
+                <ChoiceChip key={id} label={label} selected={Boolean(profile?.learning_support_ids.includes(id))} onPress={() => {
+                  const values = profile?.learning_support_ids || [];
+                  updateSelectedChildLearningProfile({ learning_support_ids: values.includes(id) ? values.filter((value) => value !== id) : [...values, id] as ChildLearningProfileInput['learning_support_ids'] });
+                }} />
+              ))}
+            </View>
+            {profileRequiresAdultInputs && (
+              <Text style={{ color: '#B45309', fontSize: 12, lineHeight: 18, marginTop: 14 }}>
+                Để dùng profile an toàn, hãy mở cả hai bộ lọc và xác nhận readiness/vật liệu trước khi bắt đầu. Chọn rỗng là xác nhận hiện chưa có mục nào; hoạt động cần các mục đó sẽ không được gợi ý.
+              </Text>
+            )}
+          </>
+        )}
+      </View>
+
       {/* CTA */}
       <View style={styles.actionBottom}>
         <Kid3DButton
@@ -424,7 +725,7 @@ export const ChildProfileScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
           onPress={() => {
             void beginWorkflow();
           }}
-          disabled={!!workflowBusy}
+          disabled={!!workflowBusy || profileRequiresAdultInputs}
         />
       </View>
     </ScrollView>

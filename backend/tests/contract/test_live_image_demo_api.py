@@ -616,7 +616,7 @@ def test_image_upload_transport_enforces_a_hard_multipart_body_cap() -> None:
 
 
 def test_gate_a_unlocks_read_only_p1_context_options_matching_adult_entered_age() -> None:
-    client, _vision = _client()
+    client, vision = _client()
     session_id, version = _create_session(client)
     uploaded = client.post(
         f"/v1/sessions/{session_id}/media/image",
@@ -680,6 +680,65 @@ def test_gate_a_unlocks_read_only_p1_context_options_matching_adult_entered_age(
     assert payload["activity_recommendations"]["options"]
     assert payload["activity_recommendations"]["options"][0]["title_vi"]
     assert options.json()["observed_session_version"] == version
+
+    personalized = client.post(
+        f"/v1/sessions/{session_id}/p1/context-options",
+        headers={
+            "X-Request-ID": "p1-options-profile",
+            "X-Expected-Session-Version": str(version),
+            "X-Actor-Ref": "demo:local",
+        },
+        json={
+            "contract_name": "P1ContextOptionsRequestV1",
+            "contract_version": "1.0",
+            "age_months": 72,
+            "child_profile": {
+                "contract_name": "ChildLearningProfileContextV1",
+                "contract_version": "1.0",
+                "profile_declared_by": "CAREGIVER",
+                "profile_recorded_at": datetime.now(UTC).isoformat(),
+                "interests": ["PLANT_STRUCTURE"],
+                "dislikes": [],
+                "adult_confirmed_progress": [
+                    {
+                        "activity_id": "ACT-0055",
+                        "objective_id": "OBJ_SCIENTIFIC_OBSERVATION",
+                        "confirmed_at": datetime.now(UTC).date().isoformat(),
+                        "confirmed_by": "GUIDE",
+                    }
+                ],
+                "readiness_ids": ["READY_HANDLES_PLANT_SAMPLE"],
+                "available_material_option_ids": [
+                    "GMAT-0055-PRIMARY",
+                    "GMAT-0055-SUBSTITUTE",
+                ],
+                "learning_support_ids": [],
+            },
+        },
+    )
+    assert personalized.status_code == 200
+    personalized_payload = personalized.json()["payload"]
+    comparison = personalized_payload["personalization_comparison"]
+    assert comparison["contract_name"] == "P1PersonalizationComparisonV1"
+    assert comparison["baseline_activity_ids"]
+    assert comparison["personalized_activity_ids"] == [
+        item["activity_ref"]["id"] for item in personalized_payload["options"]
+    ]
+    assert personalized_payload["baseline_activity_recommendations"]["options"]
+    assert (
+        personalized_payload["personalization_comparison"]["profile_provenance"]["declared_by"]
+        == "CAREGIVER"
+    )
+    assert any(
+        "Guide xác nhận OBJ_SCIENTIFIC_OBSERVATION ngày"
+        in item["match_reason_vi"]
+        for item in personalized_payload["activity_recommendations"]["options"]
+    ), {
+        "recommendations": personalized_payload["activity_recommendations"],
+        "options": personalized_payload["options"],
+    }
+    assert personalized.json()["observed_session_version"] == version
+    assert vision.calls == 1
 
 
 def test_gate_a_never_uses_age_only_fallback_for_background_only_raw_label() -> None:

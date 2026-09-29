@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import UTC, date, datetime
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -14,6 +15,9 @@ from sketch2life.application.services.topic_semantics import (
     compose_topic_vi,
     display_label_vi,
     rank_claims,
+)
+from sketch2life.contracts.schemas.child_learning_profile import (
+    ChildLearningProfileContextV1,
 )
 from sketch2life.contracts.schemas.p1_experience import (
     AnchorProvenanceV1,
@@ -137,6 +141,77 @@ def test_v2_bird_shortlist_is_bounded_and_never_uses_unrelated_transfer() -> Non
     assert activity_ids == ("ACT-0102", "ACT-0106", "ACT-0110")
     assert "ACT-0026" not in activity_ids
     assert all(recommendation.v2_match_for(activity_id) for activity_id in activity_ids)
+
+
+def test_child_profile_changes_bounded_ranking_and_explicit_dislike_is_a_hard_filter() -> None:
+    library = load_p1_template_library(ROOT, include_mvp=True, include_expansion=True)
+    compiler = P1ExperienceCompiler(library.templates, library.objective_titles_vi)
+    catalog = load_activity_semantic_catalog_v2(ROOT, include_expansion=True)
+    anchor = _anchor("cây", tags=("hoa", "thiên nhiên"))
+
+    baseline = resolve_activity_options_v2(
+        anchor_set=anchor, age_months=72, catalog=catalog, compiler=compiler
+    )
+    readiness_ids = ("READY_HANDLES_PLANT_SAMPLE",)
+    material_ids = ("GMAT-0055-PRIMARY", "GMAT-0055-SUBSTITUTE")
+    assert baseline.options
+    interested = resolve_activity_options_v2(
+        anchor_set=anchor,
+        age_months=72,
+        catalog=catalog,
+        compiler=compiler,
+        child_profile=ChildLearningProfileContextV1(
+            profile_declared_by="CAREGIVER",
+            profile_recorded_at=datetime.now(UTC),
+            interests=("PLANT_STRUCTURE",),
+            adult_confirmed_progress=(
+                {
+                    "activity_id": "ACT-0055",
+                    "objective_id": "OBJ_SCIENTIFIC_OBSERVATION",
+                    "confirmed_at": date.today(),
+                    "confirmed_by": "GUIDE",
+                },
+            ),
+            readiness_ids=readiness_ids,
+            available_material_option_ids=material_ids,
+            learning_support_ids=("OBSERVATION",),
+        ),
+    )
+    assert interested.options
+    assert interested.v2_match_for(interested.options[0].activity_ref.id) is not None
+    assert "EXPLICIT_INTEREST_MATCH" in interested.personalization_reasons_for(
+        interested.options[0].activity_ref.id
+    )
+    matching_progress = interested.progress_evidence_for(
+        interested.options[0].activity_ref.id
+    )
+    if "ADULT_CONFIRMED_PROGRESS_MATCH" in interested.personalization_reasons_for(
+        interested.options[0].activity_ref.id
+    ):
+        assert matching_progress
+        assert matching_progress[0].confirmed_by == "GUIDE"
+        assert matching_progress[0].confirmed_at == date.today()
+
+    avoided = resolve_activity_options_v2(
+        anchor_set=anchor,
+        age_months=72,
+        catalog=catalog,
+        compiler=compiler,
+        child_profile=ChildLearningProfileContextV1(
+            profile_declared_by="GUIDE",
+            profile_recorded_at=datetime.now(UTC),
+            dislikes=("PLANT_STRUCTURE",),
+            readiness_ids=readiness_ids,
+            available_material_option_ids=material_ids,
+            adult_supervision_available="DIRECT",
+        ),
+    )
+    excluded_ids = {
+        activity_id
+        for activity_id, reason in avoided.excluded_by_profile
+        if reason == "EXPLICIT_DISLIKE"
+    }
+    assert "ACT-0055" in excluded_ids
 
 
 def test_semantic_catalog_returns_safe_age_fallback_for_raw_english_background() -> None:

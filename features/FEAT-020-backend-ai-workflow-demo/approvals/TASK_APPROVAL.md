@@ -4,7 +4,7 @@
 
 **Feature:** `FEAT-020-backend-ai-workflow-demo`
 **Plan:** `features/FEAT-020-backend-ai-workflow-demo/plan/FINAL_IMPLEMENTATION_PLAN.md` plus the approved PixiJS asset-plan revision and the owner-approved `SEMANTIC_ACTIVITY_SCALING_REMEDIATION_PLAN.md`
-**Current status:** `APPROVED`
+**Historical base-plan status:** `APPROVED` (2026-09-13); **2026-09-28 amendment:** `APPROVED_FOR_DOCUMENTATION_ONLY`; **amended implementation status:** `NOT_AUTHORIZED`
 **Approver:** project owner (explicit approval in current task)
 **Approval date:** 2026-09-13
 
@@ -58,3 +58,10 @@ Plan: features/FEAT-020-backend-ai-workflow-demo/plan/SEMANTIC_PERSONALIZATION_V
 Decision record: features/FEAT-020-backend-ai-workflow-demo/DECISIONS_SEMANTIC_PERSONALIZATION_V2.md
 Scope: shared age-invariant scene understanding, reviewed concept ontology, semantic recall improvement, new V2 contracts, first-class fallback mode, mode-aware Gate B/story/bridge/telemetry, and real-AI regression coverage.
 Explicitly deferred: UI, PixiJS runtime, video generation, real caregiver feedback, persistence and production catalog approval.
+
+## Addendum — owner-requested story/video planning update (2026-09-28)
+
+- **Status:** `APPROVED_FOR_DOCUMENTATION_ONLY`; this is not an implementation approval.
+- **Authorized documents:** `plan/PLAN.md`, `plan/CONTENT_STORY_EXPERIENCE_PLAN.md`, `plan/VIDEO_STORY_PRODUCTION_PLAN.md`, feature context/decisions/evidence, and the linked FEAT-029 master SRS sections B30–B32.
+- **Owner-confirmed target:** illustrated 40–60 second story video; age/readiness-based educational knowledge; both quick and free-form script edits; adult approval of the full exact script before image generation; selectable supported language/voice; keep Wan2.2 TI2V-5B baseline; redraw is allowed as a derived artifact while the original remains immutable.
+- **Approval boundary:** the earlier 2026-09-13 plan approval does not cover these expanded requirements. Implementation, UI code, provider execution, model downloads, contract migration, cloud changes, release, commit/push, and changes to unrelated/pre-existing user files remain excluded. Keep amendment status `OWNER_CHANGE_DRAFT` until separately reviewed and approved.

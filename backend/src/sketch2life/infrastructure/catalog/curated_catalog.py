@@ -125,6 +125,7 @@ class CuratedActivityVariant:
             readiness_ids=(),
             prerequisite_activity_ids=(),
             material_option_ids=self.material_option_ids,
+            material_option_groups=(self.material_option_ids,),
             minimum_supervision=self.minimum_supervision,
             policy_constraints=self.policy_constraints,
             safety_rule_ids=tuple(

@@ -222,3 +222,17 @@
   composition does not inject a scene localizer, so `/v2/localize` cannot add a second AI request
   or block the topic screen. The localization adapter and endpoint remain isolated for a future
   explicitly approved Pixi-only integration.
+- 2026-09-28 Pixi bridge recovery: distinguish native launch/control commands from renderer events
+  with separate bounded payload limits (128 KiB and 4 KiB respectively), and mark the renderer
+  ready only on a matching renderer response. Explicit manual retry rotates the page-shell URL and
+  refreshes the existing renderer launch/capabilities once; bootstrap does not trigger retries.
+  Keep capability/hash validation and deterministic package behavior unchanged, and never invoke
+  Qwen/SAM/Lightning from this retry path. Fresh-session Android playback remains an operator-run
+  acceptance check because the inspected in-memory session had exceeded its idle TTL.
+
+- 2026-09-29 proposed bird-topic correction (awaiting owner approval): normalize only reviewed exact
+  bird aliases at backend/mobile boundaries and rank a sufficiently supported whole-animal claim
+  ahead of branch/leaf context, preserving source IDs and the existing three-direction cap. Keep
+  one Qwen inference and the current V2 subject-first prompt; do not infer a bird without a source
+  claim or add localization/SAM calls. See `plan/BIRD_SUBJECT_TOPIC_RECALL_FIX_PLAN_20260929.md`.
+- 2026-09-29 integrated child-profile and rig-quality plan: one owner approval covers profile UI/recommender and SAM 2.1/renderer quality; independent test gates remain. Current edits are session-only, with durable backend/storage as a future target. Include interests/dislikes, adult-confirmed progression, readiness/materials and optional explicit support; expose editing in Parent/Guide and only at initial child selection in the main flow. Awaiting approval of the exact plan hash. See `plan/INTEGRATED_CHILD_PROFILE_AND_RIG_QUALITY_PLAN_20260929.md`.

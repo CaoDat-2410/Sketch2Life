@@ -38,7 +38,7 @@ describe('SAM subject cutout composition', () => {
       .toThrow('MASK_DIMENSIONS_INVALID');
   });
 
-  it('routes a subject-only package without a verified mask to the existing V1 fallback', () => {
+  it('rejects a subject-only package when its verified mask is unavailable', () => {
     expect(() => requireVerifiedCutoutMask('CUTOUT_MICRO_MOTION', false))
       .toThrow('SUBJECT_MASK_UNAVAILABLE');
     expect(() => requireVerifiedCutoutMask('CUTOUT_MICRO_MOTION', true)).not.toThrow();
@@ -58,18 +58,100 @@ describe('SAM subject cutout composition', () => {
     expect(matchesDerivedMaskProvenance({...descriptor, contentType: 'image/jpeg'}, 'a'.repeat(64), 'b'.repeat(64))).toBe(false);
   });
 
-  it('rejects a patch when corner samples do not establish a neutral paper background', () => {
-    const source = new Uint8ClampedArray(4 * 4 * 4);
-    const mask = new Uint8ClampedArray(4 * 4 * 4);
-    for (let pixel = 0; pixel < 16; pixel += 1) {
-      source.set([30, 90, 220, 255], pixel * 4);
-      mask.set([255, 255, 255, 255], pixel * 4);
-    }
-    for (let y = 1; y < 3; y += 1) {
-      for (let x = 1; x < 3; x += 1) {
-        mask.set([0, 0, 0, 255], (y * 4 + x) * 4);
+  it('inpaints a valid subject mask from its local background when image corners are non-neutral', () => {
+    const width = 12;
+    const height = 12;
+    const source = new Uint8ClampedArray(width * height * 4);
+    const mask = new Uint8ClampedArray(width * height * 4);
+    for (let y = 0; y < height; y += 1) {
+      for (let x = 0; x < width; x += 1) {
+        source.set([238, 235, 228, 255], (y * width + x) * 4);
+        mask.set([0, 0, 0, 255], (y * width + x) * 4);
       }
     }
-    expect(() => createSubjectCutoutLayers(source, mask, 4, 4)).toThrow('MASK_BACKGROUND_PATCH_UNSAFE');
+    for (const [x, y, rgb] of [
+      [0, 0, [30, 90, 220]], [width - 1, 0, [30, 90, 220]],
+      [0, height - 1, [30, 90, 220]], [width - 1, height - 1, [30, 90, 220]],
+    ] as const) source.set([...rgb, 255], (y * width + x) * 4);
+    for (let y = 4; y < 8; y += 1) {
+      for (let x = 4; x < 8; x += 1) {
+        const offset = (y * width + x) * 4;
+        source.set([220, 40, 20, 255], offset);
+        mask.set([255, 255, 255, 255], offset);
+      }
+    }
+
+    const sourceBefore = new Uint8ClampedArray(source);
+    const layers = createSubjectCutoutLayers(source, mask, width, height);
+    const subjectPixel = (5 * width + 5) * 4;
+    const outsidePixel = (0 * width + 0) * 4;
+
+    expect(Array.from(layers.backgroundPixels.slice(subjectPixel, subjectPixel + 4))).toEqual([238, 235, 228, 255]);
+    expect(Array.from(layers.backgroundPixels.slice(outsidePixel, outsidePixel + 4))).toEqual([30, 90, 220, 255]);
+    expect(Array.from(layers.subjectPixels.slice(subjectPixel, subjectPixel + 4))).toEqual([220, 40, 20, 255]);
+    expect(source).toEqual(sourceBefore);
+  });
+
+  it('uses nearby paper rather than saturated pigment donors and preserves every outside pixel', () => {
+    const width = 18;
+    const height = 18;
+    const source = new Uint8ClampedArray(width * height * 4);
+    const mask = new Uint8ClampedArray(width * height * 4);
+    for (let y = 0; y < height; y += 1) {
+      for (let x = 0; x < width; x += 1) {
+        const offset = (y * width + x) * 4;
+        source.set([238, 235, 228, 255], offset);
+        mask.set([0, 0, 0, 255], offset);
+      }
+    }
+    // A heavy orange crayon ring just outside the SAM subject mask.
+    for (let y = 5; y < 13; y += 1) {
+      for (let x = 5; x < 13; x += 1) {
+        if (x >= 7 && x < 11 && y >= 7 && y < 11) continue;
+        source.set([245, 105, 12, 255], (y * width + x) * 4);
+      }
+    }
+    for (let y = 7; y < 11; y += 1) {
+      for (let x = 7; x < 11; x += 1) {
+        const offset = (y * width + x) * 4;
+        source.set([30, 110, 230, 255], offset);
+        mask.set([255, 255, 255, 255], offset);
+      }
+    }
+
+    const original = new Uint8ClampedArray(source);
+    const layers = createSubjectCutoutLayers(source, mask, width, height);
+    const subjectOffset = (8 * width + 8) * 4;
+    expect(Array.from(layers.backgroundPixels.slice(subjectOffset, subjectOffset + 3)))
+      .toEqual([238, 235, 228]);
+    for (let pixel = 0; pixel < width * height; pixel += 1) {
+      const offset = pixel * 4;
+      const masked = mask[offset] > 8;
+      if (!masked) {
+        expect(Array.from(layers.backgroundPixels.slice(offset, offset + 4)))
+          .toEqual(Array.from(original.slice(offset, offset + 4)));
+      }
+    }
+    expect(source).toEqual(original);
+  });
+
+  it('rejects a mask whose local neighborhood contains no credible paper donors', () => {
+    const width = 12;
+    const height = 12;
+    const source = new Uint8ClampedArray(width * height * 4);
+    const mask = new Uint8ClampedArray(width * height * 4);
+    for (let pixel = 0; pixel < width * height; pixel += 1) {
+      source.set([90, 35, 205, 255], pixel * 4);
+      mask.set([0, 0, 0, 255], pixel * 4);
+    }
+    for (let y = 4; y < 8; y += 1) {
+      for (let x = 4; x < 8; x += 1) {
+        const offset = (y * width + x) * 4;
+        source.set([230, 45, 28, 255], offset);
+        mask.set([255, 255, 255, 255], offset);
+      }
+    }
+    expect(() => createSubjectCutoutLayers(source, mask, width, height))
+      .toThrow('MASK_BACKGROUND_RECONSTRUCTION_FAILED');
   });
 });

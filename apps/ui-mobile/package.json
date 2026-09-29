@@ -4,8 +4,12 @@
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
+    "start:dev-client": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-android-dev.ps1 -Mode lan",
+    "start:android-dev": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-android-dev.ps1",
+    "start:android-reverse": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-android-dev.ps1 -Mode reverse",
     "test": "node scripts/validate-ui-copy.mjs",
     "android": "expo run:android",
+    "android:dev": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-android-dev.ps1 -LaunchAndroid",
     "ios": "expo run:ios",
     "web": "expo start --web",
     "build:web": "expo export --platform web",

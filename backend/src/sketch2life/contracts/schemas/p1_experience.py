@@ -214,6 +214,7 @@ class ActivityTemplateV1(P1ContractBase):
     readiness_ids: tuple[str, ...] = ()
     prerequisite_activity_ids: tuple[str, ...] = ()
     material_option_ids: tuple[str, ...] = Field(min_length=1)
+    material_option_groups: tuple[tuple[str, ...], ...] = ()
     minimum_supervision: Literal["NONE", "NEARBY", "DIRECT"]
     policy_constraints: tuple[str, ...] = ()
     safety_rule_ids: tuple[str, ...] = Field(min_length=1)
@@ -236,6 +237,13 @@ class ActivityTemplateV1(P1ContractBase):
     def validate_age_range(self) -> ActivityTemplateV1:
         if self.age_months_max < self.age_months_min:
             raise ValueError("template age max must be >= min")
+        if any(not group for group in self.material_option_groups):
+            raise ValueError("template material groups cannot be empty")
+        if any(
+            not set(group) <= set(self.material_option_ids)
+            for group in self.material_option_groups
+        ):
+            raise ValueError("template material groups must be represented by template options")
         if self.production_eligible != (self.review_status == "PRODUCTION_APPROVED"):
             raise ValueError(
                 "production_eligible must be true only for PRODUCTION_APPROVED templates"

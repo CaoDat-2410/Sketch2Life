@@ -93,3 +93,34 @@
   outcome in the plan status field, its SHA-256 is now
   `ADCFCF88538D1ACD60FF277427A80D05C5F7A5887D793D7CBA801847C52AF492`; scope and acceptance
   criteria are unchanged.
+
+## Owner approval — no V1 fallback, earlier preparation and bounded cutout inpainting — 2026-09-29
+
+- Approver: project owner, direct instruction in the current conversation (“tiếp đi, ko đc fallback,
+  có thể kéo dài thời gian ra, làm 1 cái màn hình load hoặc chủ động load từ lúc mà xác nhận đi”).
+- Approval timestamp: 2026-09-29 12:50 Asia/Saigon.
+- Approved plan: `plan/NO_V1_FALLBACK_PRELOAD_AND_CUTOUT_INPAINT_20260929.md`, revision 1.
+- Approved plan SHA-256: `65C492C49E3C382ECDAD5D0B7E9AAE98565F81B9708A975847FB52B3349D938B`.
+- Scope: bounded deterministic background inpainting inside a verified subject mask; remove automatic
+  V2-to-V1 whole-art recovery; retain original and show typed failure/retry; prepare renderer package
+  immediately after Gate-B approval; add visible loading while Gate-A/Gate-B/render work is in progress;
+  extend renderer timeout to 90 seconds; tests and feature-local evidence.
+- Boundaries: original pixels and provenance remain immutable; no changes to AI providers/model
+  settings/contracts/Gates; no provider call by Codex; invalid masks still fail closed and show source
+  plus retry instead of silently animating the full drawing. Legacy V1 commands remain supported only
+  when explicitly selected, not as V2 error recovery.
+
+## Integrated quality/personalization plan — approval tracked by FEAT-018
+
+- The SAM 2.1 mask benchmark and high-pigment renderer work are detailed under this feature, but
+  are not a separate approval request.
+- The single combined approval is recorded at FEAT-018
+  `plan/INTEGRATED_CHILD_PROFILE_AND_RIG_QUALITY_PLAN_20260929.md` and
+  `approvals/TASK_APPROVAL.md`.
+- Original approval ledger hash (superseded after hash reconciliation):
+  `78F02568914A81F0007B86D68F9541414AACA50212C4A4E755456B2BCEE55F92`.
+- Current approved integrated plan revision 1 SHA-256:
+  `40B627FC34DC63418464F7F583F1C5A3A3B3F0F5ED205C9DCDA8E5DEB75A4503`.
+- The owner reconfirmed the current exact artifact with “duyệt” at 2026-09-29 07:56:46 UTC;
+  mismatch and scope-preservation details are recorded in FEAT-018's approval ledger.
+- Implement only within that exact scope; existing benchmark/model ADR gates remain mandatory.

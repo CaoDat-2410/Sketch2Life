@@ -3,7 +3,9 @@
 - Status: P1 complete; D3/P2-T1 closed for owner-approved offline Cohorts A+B; P2-T2 contract
   boundary and bounded offline implementation complete; the approved staged topic/Pixi/video-
   placeholder/outdoor-activity flow is implemented, offline-tested, Android-built and boot-smoked;
-  owner-run live Lightning flow and full orientation/control acceptance remain pending
+  owner-run live Lightning flow and full orientation/control acceptance remain pending;
+  bird-topic recall correction is planned and awaiting owner approval; integrated child-profile UI,
+  Montessori personalization and SAM/renderer quality plan is APPROVED and in progress
 - Plan revision: 2 with approved P2-T1 D2/D3-R2 and P2-T2 offline addenda
 - Owner: shared integration allocation pending contract freeze approval
 - Goal: run a synthetic/non-child JPG/PNG through backend admission and the owner-triggered Lightning
@@ -27,6 +29,15 @@ no video or provider generation was added. Android x86_64 build/install and init
 passed. Evidence is recorded in
 `evidence/notes/PIXI_STORY_INTRO_TOPIC_DIRECTIONS_IMPLEMENTATION_20260923.md`; the complete live
 flow remains an owner-run synthetic-image check because Codex did not spend Lightning credits.
+
+The 2026-09-29 owner screenshot shows a visible bird represented only by a generic detail label while
+branch and leaf become the topic cards. Source inspection found that the Lightning V2 prompt already
+prioritizes a central recognizable subject, but backend and mobile label mapping are separate exact
+vocabularies; unknown ASCII labels are genericized and backend topic generation removes them. Topic
+ordering also does not distinguish a whole animal from a plant part. The exact live Qwen label was not
+available, so model omission cannot be ruled out. A synthetic alias/ordering correction plan is
+recorded in `plan/BIRD_SUBJECT_TOPIC_RECALL_FIX_PLAN_20260929.md` and awaits owner approval; no code
+was changed for this report.
 
 P2 research round 1 is complete as documentation only (2026-09-09). Working research
 and handoff notes remain local-only; publish selected completed P2 records after
@@ -483,3 +494,42 @@ P2-T5, mobile, Gate A UI, P1 eligibility, P3/P4 and shared integration remain se
   contract tests and Android Metro export passed. Emulator/device acceptance remains pending because
   `adb` is unavailable; no live AI request was made.
 - Evidence: `evidence/notes/MAIN_FLOW_HARDENING_IMPLEMENTATION_20260928.md`.
+
+## Pixi Android WebView bridge recovery — 2026-09-28
+
+- Fixed native-to-WebView launch/control delivery with a safe serialized JavaScript bridge and a
+  separate 128 KiB validated-command ceiling; renderer events retain the 4 KiB limit. Bootstrap
+  is no longer treated as playback readiness.
+- Renderer retries now use a fresh page-shell URL and, only after an explicit user retry, request
+  a new renderer launch so source/package capabilities are renewed. No automatic retry or
+  Qwen/SAM/Lightning call was added.
+- Renderer, mobile, UI and focused fake-backend contract checks pass. The existing observed demo
+  session expired before fresh-session Android playback could be verified (its retry returned
+  HTTP 410); live device acceptance remains pending an owner-started flow.
+- Evidence: `evidence/notes/PIXI_ANDROID_WEBVIEW_BRIDGE_RECOVERY_20260928.md`.
+
+## Part-aware Pixi motion restoration — 2026-09-28
+
+- Renderer V2 now receives separate source-hash-bound part-mask capabilities and renders independently masked Pixi sprites for the validated anatomy; it no longer substitutes rectangular butterfly slices or stretches the whole subject to imply wing motion.
+- The default playback is 20 seconds: several part-specific action beats, then a still ending. Camera framing remains fixed; whole-drawing zoom/rotation and the infinite completion idle are removed. When parts cannot be validated, the existing Pixi fallback uses only very small in-frame translations, then rests.
+- Synthetic renderer/backend tests, renderer typecheck and demo build, and mobile TypeScript check pass. Android visual playback and real Lightning/SAM mask quality remain operator-run and unverified here.
+- Evidence: `../FEAT-030-original-derived-auto-rig/evidence/notes/PIXI_PART_MOTION_RESTORATION_20260928.md`.
+- The 2026-09-29 cross-feature audit found that Montessori recommendations used age and current confirmed scene/catalog matching, not a persisted child preference/history profile; current-scene anchor priority is only a relevance proxy. The owner approved session-only profile edits (durable backend/storage is a later target), interests/dislikes, adult-confirmed progression, readiness/materials and optional support, and editor placement in Parent/Guide plus initial child selection only. The integrated FEAT-018/020/030 implementation is in progress; acceptance gaps are recorded in `evidence/notes/INTEGRATED_CHILD_PROFILE_AND_RIG_QUALITY_IMPLEMENTATION_20260929.md`.
+
+## Integrated child-profile and rig-quality implementation — 2026-09-29
+
+- Child learning profile fields are held in volatile app state and sent through the versioned P1
+  options request. Safety/supervision, adult-confirmed prerequisites, dislikes, readiness and every
+  required material group are hard gates; interests, adult-confirmed objectives and explicit
+  non-clinical supports only adjust deterministic ranking after those gates.
+- The profile editor is exposed from the Parent/Guide profile area and at initial child selection;
+  the active child flow locks profile edits. Baseline and personalized options are compared in the
+  UI without a second Qwen request.
+- Catalog audit found 100/300 templates with readiness metadata, all 300 with material and
+  supervision metadata, 94 scene concepts, and no per-child preference/history in catalog data.
+  Profile mode fails closed for missing readiness/material metadata; no catalog rows were invented.
+- Synthetic SAM candidate selection, mask metrics and pigment-donor cutout checks are implemented.
+  Synthetic results do not establish real SAM accuracy or L4 performance.
+- Backend full suite, targeted Python lint, mobile typecheck/UI tests and focused renderer tests pass.
+  Android acceptance remains pending because `adb` is unavailable in this environment.
+- Evidence: `evidence/notes/INTEGRATED_CHILD_PROFILE_AND_RIG_QUALITY_IMPLEMENTATION_20260929.md`.

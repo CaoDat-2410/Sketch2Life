@@ -74,6 +74,13 @@ See `features/FEAT-001-stack-and-team-plan/TEAM_ALLOCATION.md` and ADR-0006 for 
 
 The following remain open and must not be invented by implementation: exact notification channel/retry matrix; Guide field-level access to raw media/history; Parent Web session-creation command UX; break-glass dual approval, notice and time window; physical deployment details; legal-guardian verification and child assent for age 7+; backup/provider-copy deletion; production SLO/RPO/RTO; account lifecycle and Admin provisioning. Test-stage rate limits, redacted backend monitoring and adult-only role enforcement are requirements, not optional scope.
 
+## Local Android development connectivity baseline — 2026-09-28
+
+`apps/ui-mobile` uses Expo SDK 52 with a native development client. The supported local launch
+paths are LAN mode for physical devices and explicit ADB reverse mode for localhost/emulator use.
+The repository records this recovery in FEAT-032; a host Metro probe alone does not prove that an
+Android device can reach the server, and device reload evidence requires a connected ADB device.
+
 ## Master SRS scope closure — 2026-09-19
 
 The owner-approved target baseline is recorded in `features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md` v1.6 and the feature evidence notes `OWNER_SCOPE_CLOSURE_20260919.md`, `OWNER_REQUIREMENTS_CLOSURE_20260923.md` and `SRS_DETAIL_EXPANSION_20260923.md`. It covers the B4–B12 workflow plus complete SRS sections for actors, relationships, schemas, contracts, state, security, observability, retention, Parent Web, verification and implementation-grade test detail. This is a requirements baseline; it does not authorize runtime implementation, provider calls, cloud provisioning, contract migration or deployment.
@@ -81,3 +88,13 @@ The owner-approved target baseline is recorded in `features/FEAT-029-master-srs/
 ## Cross-workstream review snapshot — 2026-09-05
 
 Remote workstreams P1 b3f397c, P2 f3014e5, P3 68aceeb and P4 f0dd622 have independent implementations. They are not an integrated runtime and are not merged into the foundation main baseline. FEAT-015 records pinned branch readiness, reproduced test evidence and proposed integration/test gates. ADR-0006 remains unchanged; integration allocation/implementation still requires separate approval. P4 branch context/plan status is stale relative to its approval/code and is explicitly flagged in the review rather than silently corrected here.
+
+## Session-only Montessori profile and mask-quality increment — 2026-09-29
+
+The owner-approved integrated FEAT-018/020/030 increment adds request-scoped explicit child learning
+context to deterministic activity ranking, plus offline SAM2.1 candidate checks and pigment-safe
+mask-bounded cutout reconstruction. ADR-0010 fixes the current boundary: profile edits remain
+volatile/session-only, with no new durable backend record or storage-provider decision. Backend,
+mobile, renderer and security evidence is indexed under the owning FEAT-018/020/030 records. Real
+SAM/L4 performance, held-out mask quality and Android emulator visual acceptance remain open; a
+synthetic selector score is not a real-model quality claim.

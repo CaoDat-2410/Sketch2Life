@@ -1,10 +1,12 @@
 import React, { useRef, useState, useEffect } from 'react';
 import {
+  ActivityIndicator,
   View,
   Text,
   Image,
   StyleSheet,
   ScrollView,
+  Modal,
   TouchableOpacity,
   TextInput,
   KeyboardAvoidingView,
@@ -52,6 +54,7 @@ import { useAppContext } from '../context/AppContext';
 import { FEEDBACK_OBSERVATIONS } from '../context/workflowSafety';
 import {
   ART_RENDERER_PROTOCOL_VERSION,
+  createNativeBridgeInjection,
   MAX_RENDERER_MESSAGE_BYTES,
   RendererBootstrapSchema,
   RendererControlCommandSchema,
@@ -76,6 +79,16 @@ function rendererText(value: unknown, fallback = ''): string {
 
 function utf8ByteLength(value: string): number {
   return encodeURIComponent(value).replace(/%[0-9A-F]{2}/g, 'U').length;
+}
+
+function rendererBridgeFailureCode(error: unknown): string {
+  if (error instanceof Error && error.message === 'RENDERER_COMMAND_TOO_LARGE') {
+    return 'RENDERER_COMMAND_TOO_LARGE';
+  }
+  if (error instanceof Error && error.message === 'RENDERER_MESSAGE_INVALID_JSON') {
+    return 'RENDERER_MESSAGE_INVALID_JSON';
+  }
+  return 'RENDERER_BRIDGE_INJECTION_FAILED';
 }
 
 const FlowPrerequisiteNotice: React.FC<{
@@ -552,7 +565,7 @@ export const SceneUnderstandingScreen: React.FC<ScreenProps> = ({ onNavigate }) 
       <View style={[styles.actionBottom, { marginTop: 14 }]}>
         <PulseGlow>
           <Kid3DButton
-            title={workflowBusy === 'Xác nhận Gate A' ? 'Đang xác nhận...' : 'Đúng rồi, tiếp tục'}
+            title={workflowBusy === 'Xác nhận Gate A' ? 'Đang chuẩn bị chuyển động...' : 'Đúng rồi, tiếp tục'}
             color="blue"
             size="lg"
             disabled={!!workflowBusy || !primaryClaimId || selectedClaimIds.length === 0}
@@ -562,6 +575,23 @@ export const SceneUnderstandingScreen: React.FC<ScreenProps> = ({ onNavigate }) 
           />
         </PulseGlow>
       </View>
+      <Modal
+        visible={workflowBusy === 'Xác nhận Gate A'}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => undefined}
+      >
+        <View style={styles.rigPreparationBackdrop}>
+          <View style={styles.rigPreparationCard}>
+            <ActivityIndicator size="large" color="#2563EB" />
+            <Text accessibilityRole="header" style={styles.rigPreparationTitle}>Đang chuẩn bị chuyển động</Text>
+            <Text style={styles.rigPreparationText} accessibilityLiveRegion="polite">
+              Mình đang phân tích chủ thể và tách nét vẽ. Ảnh gốc vẫn được giữ nguyên.
+            </Text>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -718,6 +748,7 @@ export const ActivityRecommendScreen: React.FC<ScreenProps> = ({ onNavigate }) =
     contextOptions,
     selectedBackendActivity,
     activityRecommendationCards,
+    selectedChildLearningProfile,
     selectBackendActivity,
     prepareActivityWorkflow,
     sessionState,
@@ -777,6 +808,27 @@ export const ActivityRecommendScreen: React.FC<ScreenProps> = ({ onNavigate }) =
           <Text style={styles.topicSummaryText}>{sceneData.storyTitle}</Text>
         </View>
       </View>
+
+      {contextOptions?.personalization_comparison && (
+        <View style={{ borderRadius: 16, borderWidth: 1, borderColor: '#C4B5FD', backgroundColor: '#F5F3FF', padding: 14, marginBottom: 14 }}>
+          <Text style={{ color: '#4C1D95', fontWeight: '800', fontSize: 14 }}>So sánh tác động hồ sơ</Text>
+          <Text style={{ color: '#6D28D9', fontSize: 11, marginTop: 3 }}>Bộ gợi ý Montessori là bộ lọc/xếp hạng xác định; không gọi AI/Qwen thêm và không huấn luyện model.</Text>
+          <Text style={{ color: '#64748B', fontSize: 11, marginTop: 5 }}>
+            Hồ sơ khai báo bởi {contextOptions.personalization_comparison.profile_provenance.declared_by === 'GUIDE' ? 'Guide' : 'cha mẹ/người chăm sóc'} · cập nhật {new Date(contextOptions.personalization_comparison.profile_provenance.recorded_at).toLocaleString('vi-VN')}.
+          </Text>
+          <Text style={{ color: '#334155', fontSize: 12, marginTop: 9, fontWeight: '700' }}>Chưa cá nhân hóa: {contextOptions.baseline_activity_recommendations?.options.map((item) => item.title_vi).join(' → ') || 'không có hoạt động phù hợp'}</Text>
+          <Text style={{ color: '#334155', fontSize: 12, marginTop: 5, fontWeight: '700' }}>Theo hồ sơ: {activityRecommendationCards.map((item) => item.title_vi).join(' → ') || 'không có hoạt động qua điều kiện'}</Text>
+          <Text style={{ color: '#64748B', fontSize: 11, marginTop: 7 }}>
+            {contextOptions.personalization_comparison.rank_changed ? 'Thứ tự/tập hợp đã thay đổi.' : 'Thứ tự không đổi với các trường hiện chọn.'}
+            {' '} {contextOptions.personalization_comparison.excluded_activity_count} hoạt động bị loại bởi điều kiện giám sát, readiness, vật liệu, tiên quyết hoặc chủ đề cần tránh.
+          </Text>
+          {selectedChildLearningProfile && (
+            <Text style={{ color: '#64748B', fontSize: 11, marginTop: 3 }}>
+              Sở thích/tiến trình/cách học chỉ xếp hạng lại; giám sát, readiness, vật liệu, tiên quyết và không thích là điều kiện lọc.
+            </Text>
+          )}
+        </View>
+      )}
 
       {!contextOptions ? (
         <View style={styles.emptyActivityCard}>
@@ -888,13 +940,30 @@ export const ExperienceReviewScreen: React.FC<ScreenProps> = ({ onNavigate }) =>
       </View>
       <View style={styles.actionBottom}>
         <Kid3DButton
-          title={workflowBusy ? 'Đang xác nhận...' : sessionState === 'EXPERIENCE_READY' ? 'Xem tranh chuyển động' : 'Xác nhận & xem tranh'}
+          title={workflowBusy ? 'Đang chuẩn bị tranh chuyển động...' : sessionState === 'EXPERIENCE_READY' ? 'Xem tranh chuyển động' : 'Xác nhận & xem tranh'}
           color="green"
           size="lg"
           disabled={!!workflowBusy}
           onPress={() => void approveAndContinue()}
         />
       </View>
+      <Modal
+        visible={workflowBusy === 'Duyệt Gate B'}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => undefined}
+      >
+        <View style={styles.rigPreparationBackdrop}>
+          <View style={styles.rigPreparationCard}>
+            <ActivityIndicator size="large" color="#16A34A" />
+            <Text accessibilityRole="header" style={styles.rigPreparationTitle}>Đang mở sân khấu Pixi</Text>
+            <Text style={styles.rigPreparationText} accessibilityLiveRegion="polite">
+              Hoạt động đã được xác nhận. Mình đang chuẩn bị ảnh và chuyển động trước khi mở.
+            </Text>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -919,7 +988,7 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
     workflowBusy,
   } = useAppContext();
   const nav = onNavigate || navigate;
-  const rendererInstanceId = useState(() => Crypto.randomUUID())[0];
+  const [rendererInstanceId, setRendererInstanceId] = useState(() => Crypto.randomUUID());
   const rendererWebViewRef = useRef<WebView>(null);
   const rendererPendingCommand = useRef<string | null>(null);
   const rendererPreparationAttempted = useRef(false);
@@ -928,7 +997,7 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
   const [rendererFailed, setRendererFailed] = useState(false);
   const [rendererPreparationFailed, setRendererPreparationFailed] = useState(false);
   const [rendererHandshakeReceived, setRendererHandshakeReceived] = useState(false);
-  const [rendererReadyReceived, setRendererReadyReceived] = useState(false);
+  const [rendererCommandAccepted, setRendererCommandAccepted] = useState(false);
   const [rendererStatus, setRendererStatus] = useState('Đang chuẩn bị bức vẽ…');
   const [discoveredLabel, setDiscoveredLabel] = useState<string | null>(null);
   const [chromeVisible, setChromeVisible] = useState(true);
@@ -941,7 +1010,7 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
     interactionPhase: 'INTRO_LOADING',
   });
   const rendererPageUrl = rendererLaunch
-    ? `${API_BASE_URL}/renderer/mobile.html?rendererInstanceId=${encodeURIComponent(rendererInstanceId)}`
+    ? `${API_BASE_URL}/renderer/mobile.html?rendererInstanceId=${encodeURIComponent(rendererInstanceId)}&rendererAttempt=${rendererAttempt}`
     : null;
 
   const beats = Array.isArray(pixiIntroStoryboard?.beats)
@@ -1027,17 +1096,17 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
 
   useEffect(() => {
     if (!rendererPageUrl || rendererFailed || playback.duration > 0) return;
-    const timeoutMs = !rendererHandshakeReceived ? 15000 : !rendererReadyReceived ? 30000 : 45000;
+    const timeoutMs = !rendererHandshakeReceived ? 20000 : 90000;
     const timeout = setTimeout(() => {
       setRendererFailed(true);
       setRendererStatus(!rendererHandshakeReceived
         ? 'Pixi chưa phản hồi. Hãy kiểm tra kết nối rồi thử lại; ảnh gốc vẫn an toàn.'
-        : !rendererReadyReceived
-          ? 'Pixi chưa khởi tạo xong. Hãy thử mở lại; ảnh gốc vẫn an toàn.'
-          : 'Pixi đã sẵn sàng nhưng chưa nạp được chuyển động. Hãy thử mở lại; ảnh gốc vẫn an toàn.');
+        : !rendererCommandAccepted
+          ? 'Pixi đang chuẩn bị ảnh và mask lâu hơn dự kiến. Bạn có thể thử mở lại; ảnh gốc vẫn an toàn.'
+          : 'Pixi chưa hoàn tất chuyển động. Hãy thử mở lại; ảnh gốc vẫn an toàn.');
     }, timeoutMs);
     return () => clearTimeout(timeout);
-  }, [rendererPageUrl, rendererFailed, playback.duration, rendererHandshakeReceived, rendererReadyReceived, rendererAttempt]);
+  }, [rendererPageUrl, rendererFailed, playback.duration, rendererHandshakeReceived, rendererCommandAccepted, rendererAttempt]);
 
   useEffect(() => {
     if (playback.state !== 'PLAYING') {
@@ -1058,7 +1127,14 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
       action,
       ...(seconds === undefined ? {} : { seconds }),
     });
-    if (parsed.success) rendererWebViewRef.current.postMessage(JSON.stringify(parsed.data));
+    if (parsed.success) {
+      try {
+        rendererWebViewRef.current.injectJavaScript(createNativeBridgeInjection(JSON.stringify(parsed.data)));
+      } catch (error) {
+        console.warn('[pixi-bridge] playback control injection rejected', rendererBridgeFailureCode(error));
+        setRendererStatus('Pixi chưa nhận được điều khiển. Hãy thử mở lại; ảnh gốc vẫn an toàn.');
+      }
+    }
   };
 
   const seekFromProgressEvent = (event: GestureResponderEvent) => {
@@ -1077,9 +1153,7 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
     const bootstrap = RendererBootstrapSchema.safeParse(value);
     if (bootstrap.success && rendererLaunch) {
       if (bootstrap.data.rendererInstanceId !== rendererInstanceId) return;
-      const isRendererReady = rendererPendingCommand.current !== null;
       setRendererHandshakeReceived(true);
-      setRendererReadyReceived(isRendererReady);
       let commandMessage = rendererPendingCommand.current;
       if (commandMessage === null) {
         const launch = rendererObject(rendererLaunch);
@@ -1134,15 +1208,19 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
       if (!rendererWebViewRef.current) return;
       // The renderer repeats its bootstrap once WebGL startup finishes. Replay
       // the exact same bounded launch then; the page gate suppresses duplicates.
-      rendererWebViewRef.current.postMessage(commandMessage);
-      setRendererStatus(isRendererReady
-        ? 'Pixi sẵn sàng; đang nạp ảnh và chuyển động…'
-        : 'Pixi đã kết nối; đang khởi tạo sân khấu…');
+      try {
+        rendererWebViewRef.current.injectJavaScript(createNativeBridgeInjection(commandMessage));
+        setRendererStatus('Pixi đã kết nối; đang gửi lệnh mở sân khấu…');
+      } catch (error) {
+        console.warn('[pixi-bridge] launch injection rejected', rendererBridgeFailureCode(error), utf8ByteLength(commandMessage));
+        setRendererFailed(true);
+        setRendererStatus('Không gửi được lệnh mở Pixi. Ảnh gốc vẫn an toàn; hãy thử lại.');
+      }
       return;
     }
     const state = RendererPlaybackStateEnvelopeSchema.safeParse(value);
     if (state.success && state.data.rendererInstanceId === rendererInstanceId) {
-      setRendererReadyReceived(true);
+      setRendererCommandAccepted(true);
       setRendererFailed(false);
       setPlayback({
         position: state.data.positionSeconds,
@@ -1163,7 +1241,8 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
     }
     const lifecycle = RendererPlaybackEventEnvelopeSchema.safeParse(value);
     if (lifecycle.success) {
-      setRendererReadyReceived(true);
+      if (lifecycle.data.rendererInstanceId !== rendererInstanceId) return;
+      setRendererCommandAccepted(true);
       const lifecycleEvent = lifecycle.data.event;
       switch (lifecycleEvent.type) {
         case 'DISCOVERED_ENTITY':
@@ -1203,14 +1282,24 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
   };
 
   const retry = () => {
+    if (workflowBusy) return;
     rendererPendingCommand.current = null;
     setRendererHandshakeReceived(false);
-    setRendererReadyReceived(false);
-    setRendererFailed(false);
+    setRendererCommandAccepted(false);
     setPlayback({ position: 0, duration: 0, state: 'READY', interactionPhase: 'INTRO_LOADING' });
     setChromeVisible(true);
-    setRendererStatus('Đang thử mở lại câu chuyện…');
-    setRendererAttempt((value) => value + 1);
+    setRendererStatus('Đang làm mới quyền mở Pixi…');
+    void prepareRendererIntro(true).then((succeeded) => {
+      if (!succeeded) {
+        setRendererFailed(true);
+        setRendererStatus('Chưa làm mới được lệnh mở Pixi. Hãy thử lại; ảnh gốc vẫn an toàn.');
+        return;
+      }
+      setRendererInstanceId(Crypto.randomUUID());
+      setRendererAttempt((value) => value + 1);
+      setRendererFailed(false);
+      setRendererStatus('Đang kết nối sân khấu Pixi…');
+    });
   };
 
   const retryRendererPreparation = async () => {
@@ -1260,6 +1349,16 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
             onHttpError={() => { setRendererFailed(true); setRendererStatus('Chưa tải được sân khấu. Ảnh gốc vẫn an toàn.'); }}
             style={styles.pixiIntroWebView}
           />
+        )}
+        {!rendererFailed && !rendererCommandAccepted && (
+          <View style={styles.pixiLoadingOverlay} pointerEvents="none">
+            <View style={styles.pixiLoadingCard}>
+              <ActivityIndicator size="large" color="#2563EB" />
+              <Text accessibilityRole="header" style={styles.pixiLoadingTitle}>Đang dựng chuyển động từ tranh</Text>
+              <Text style={styles.pixiLoadingText} accessibilityLiveRegion="polite">{rendererStatus}</Text>
+              <Text style={styles.pixiLoadingHint}>Bước này có thể mất thêm thời gian; ảnh gốc vẫn an toàn.</Text>
+            </View>
+          </View>
         )}
         {chromeVisible && (
           <View style={styles.pixiChromeLayer} pointerEvents="box-none">
@@ -1317,8 +1416,15 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
                 <Ionicons name="refresh" size={22} color="#FFFFFF" />
               </TouchableOpacity>
               {rendererFailed && (
-                <TouchableOpacity accessibilityLabel="Thử mở lại" onPress={retry} style={styles.pixiRetryButton}>
-                  <Text style={styles.pixiContinueText}>Thử lại</Text>
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityLabel="Thử mở lại"
+                  accessibilityState={{disabled: Boolean(workflowBusy), busy: Boolean(workflowBusy)}}
+                  disabled={Boolean(workflowBusy)}
+                  onPress={retry}
+                  style={styles.pixiRetryButton}
+                >
+                  <Text style={styles.pixiContinueText}>{workflowBusy ? 'Đang làm mới…' : 'Thử lại'}</Text>
                 </TouchableOpacity>
               )}
               {rendererPreparationFailed && !rendererLaunch && (
@@ -1966,6 +2072,28 @@ const styles = StyleSheet.create({
     flex: 1, overflow: 'hidden', backgroundColor: '#FFFEF9', position: 'relative',
   },
   pixiIntroWebView: { flex: 1, backgroundColor: '#FFFEF9' },
+  pixiLoadingOverlay: {
+    ...StyleSheet.absoluteFillObject, zIndex: 2, alignItems: 'center', justifyContent: 'center',
+    padding: 24, backgroundColor: 'rgba(248,250,252,0.36)',
+  },
+  pixiLoadingCard: {
+    width: '100%', maxWidth: 380, alignItems: 'center', gap: 12, padding: 24,
+    borderRadius: 24, backgroundColor: 'rgba(255,255,255,0.96)',
+    borderWidth: 1, borderColor: '#DBEAFE', ...shadows.card,
+  },
+  pixiLoadingTitle: { color: '#172033', fontSize: 18, fontWeight: '900', textAlign: 'center' },
+  pixiLoadingText: { color: '#1D4ED8', fontSize: 14, fontWeight: '800', textAlign: 'center' },
+  pixiLoadingHint: { color: '#64748B', fontSize: 12, textAlign: 'center' },
+  rigPreparationBackdrop: {
+    flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24,
+    backgroundColor: 'rgba(15,23,42,0.56)',
+  },
+  rigPreparationCard: {
+    width: '100%', maxWidth: 380, alignItems: 'center', gap: 12, padding: 26,
+    borderRadius: 24, backgroundColor: '#FFFFFF', ...shadows.card,
+  },
+  rigPreparationTitle: { color: '#172033', fontSize: 18, fontWeight: '900', textAlign: 'center' },
+  rigPreparationText: { color: '#475569', fontSize: 14, lineHeight: 21, textAlign: 'center' },
   pixiIntroFallback: { width: '100%', flex: 1, backgroundColor: '#FFFEF9' },
   pixiDiscoverPanel: {
     position: 'absolute', left: 16, top: 14, right: 16, alignItems: 'center',

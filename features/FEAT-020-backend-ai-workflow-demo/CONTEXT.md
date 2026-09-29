@@ -59,3 +59,25 @@ The post-merge D3/P2-T1 work is already recorded as closed for its offline cohor
 After approval and implementation, an operator can execute one command in Lightning Studio with a real image. The command loads the configured local Lightning model adapters, runs the workflow orchestrator, and writes a sanitized result manifest. With a configured video model, the successful terminal state is `WORKFLOW_COMPLETE`; if a required stage cannot run, the command fails with a typed stage/status and evidence rather than silently claiming completion.
 
 Demo-only human decisions are explicit `DEMO_AUTOPILOT` decisions. They are recorded with actor, timestamp, reason, and decision mode, and are forbidden as an implicit production bypass.
+
+## Owner change context — 2026-09-28
+
+The owner requested a documentation-only design expansion for story and video. The target is an illustrated 40–60 second short; it retells the adult-confirmed picture, adds age/readiness-appropriate knowledge from reviewed sources, supports both quick script controls and free-form revisions, requires adult approval of the exact full script packet before image generation, and offers supported language/voice selection with independent TTS. Illustration redraw is allowed only as a derived artifact; the original remains immutable. The current Wan2.2 TI2V-5B video profile is retained as the baseline.
+
+Detailed proposals are split into `plan/CONTENT_STORY_EXPERIENCE_PLAN.md` and `plan/VIDEO_STORY_PRODUCTION_PLAN.md`. `plan/PLAN.md` records the owner amendment and supersedes its former 5–10 second target for this experience. All newly proposed schemas remain `PROPOSED_UNADOPTED`. FEAT-020 is still backend-only; the plans describe UI behavior but do not authorize frontend code. The earlier approval record does not include this amendment; runtime implementation requires a separate explicit approval of this exact revision.
+
+The 2026-09-29 FEAT-018 screenshot review also traced the shared backend topic producer: unknown ASCII
+bird labels are converted to a generic display label and excluded from topic directions, while
+whole-animal claims are not prioritized over branch/leaf claims. The cross-boundary correction is
+planned under FEAT-018 (which owns the mobile consumer); it is awaiting approval and changes no code,
+contract or model prompt at this stage.
+
+The 2026-09-29 Montessori audit found that the prior semantic resolver did not consume a persisted
+child preference/progression profile; primary-anchor interest alignment is a current-scene
+relevance proxy. The integrated FEAT-018/020/030 plan is approved. FEAT-020 implements the
+versioned, request-scoped child context and deterministic hard-gate/preference scoring path without
+catalog expansion or persistent storage. FEAT-018 owns the mobile editor; Android acceptance and
+held-out pedagogical/catalog review remain pending. See this feature's
+`evidence/notes/CHILD_PROFILE_REQUEST_SCOPED_IMPLEMENTATION_20260929.md` and
+`docs/adr/ADR-0010-session-scoped-child-learning-context.md` for the backend evidence and accepted
+volatile-state/request boundary.

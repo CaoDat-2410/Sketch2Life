@@ -8,6 +8,7 @@ from PIL import Image
 from sketch2life.contracts.schemas.scene_exploration import SourceRegionV1
 from sketch2life.infrastructure.ai.sam21_runtime import (
     Sam21ImageSegmenter,
+    Sam21MaskRejectedError,
     Sam21Prompt,
     Sam21RuntimeConfig,
 )
@@ -30,7 +31,8 @@ def test_bad_part_prompt_does_not_discard_successful_subject_mask() -> None:
         def set_image(self, image: object) -> None:
             self.image = image
 
-        def predict(self, **_kwargs: object) -> tuple[object, object, None]:
+        def predict(self, **kwargs: object) -> tuple[object, object, None]:
+            assert kwargs["multimask_output"] is True
             self.calls += 1
             mask = numpy.zeros((40, 40), dtype=bool)
             if self.calls == 1:
@@ -58,3 +60,61 @@ def test_bad_part_prompt_does_not_discard_successful_subject_mask() -> None:
     assert outputs[0] is not None
     assert outputs[0].source_region.width == 0.6
     assert outputs[1] is None
+
+
+def test_multimask_selection_rejects_high_score_candidate_that_violates_points() -> None:
+    numpy = pytest.importorskip("numpy")
+
+    class Predictor:
+        def set_image(self, _image: object) -> None:
+            pass
+
+        def predict(self, **kwargs: object) -> tuple[object, object, None]:
+            assert kwargs["multimask_output"] is True
+            distractor = numpy.zeros((40, 40), dtype=bool)
+            distractor[4:36, 4:36] = True
+            target = numpy.zeros((40, 40), dtype=bool)
+            target[10:20, 10:20] = True
+            return numpy.asarray([distractor, target]), numpy.asarray([0.99, 0.76]), None
+
+    runtime = Sam21ImageSegmenter(
+        Sam21RuntimeConfig(checkpoint=None, model_config="", device="cpu"),
+        predictor=Predictor(),
+    )
+    output = runtime.segment(
+        _image_png(),
+        prompt_region=SourceRegionV1(x=0.15, y=0.15, width=0.65, height=0.65),
+        positive_points=((0.3, 0.3),),
+        negative_points=((0.7, 0.7),),
+    )
+
+    with Image.open(BytesIO(output.mask_png)) as mask_image:
+        selected = numpy.asarray(mask_image) > 0
+    assert selected[12, 12]
+    assert not selected[28, 28]
+    assert output.confidence == 0.76
+
+
+def test_multimask_selection_returns_typed_rejection_when_no_candidate_matches_prompt() -> None:
+    numpy = pytest.importorskip("numpy")
+
+    class Predictor:
+        def set_image(self, _image: object) -> None:
+            pass
+
+        def predict(self, **_kwargs: object) -> tuple[object, object, None]:
+            mask = numpy.zeros((40, 40), dtype=bool)
+            mask[10:20, 10:20] = True
+            return numpy.asarray([mask]), numpy.asarray([0.95]), None
+
+    runtime = Sam21ImageSegmenter(
+        Sam21RuntimeConfig(checkpoint=None, model_config="", device="cpu"),
+        predictor=Predictor(),
+    )
+    with pytest.raises(Sam21MaskRejectedError, match="no valid mask"):
+        runtime.segment(
+            _image_png(),
+            prompt_region=None,
+            positive_points=((0.3, 0.3),),
+            negative_points=((0.35, 0.35),),
+        )

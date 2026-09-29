@@ -97,3 +97,26 @@ Selected main-flow reliability implementation record:
 (`EV-018-MAIN-FLOW-HARDENING-20260928`; deterministic request/feedback/image/audio regressions,
 mobile typecheck, UI validation, renderer suite/build, backend contract confirmation and Android
 Metro bundle; emulator and live-provider acceptance remain operator-run).
+
+Selected Pixi Android WebView bridge recovery record:
+[Pixi Android WebView bridge recovery](notes/PIXI_ANDROID_WEBVIEW_BRIDGE_RECOVERY_20260928.md)
+(`EV-018-PIXI-WEBVIEW-BRIDGE-RECOVERY-20260928`; bridge-size/readiness/cache/capability fixes and
+offline regression checks passed; fresh-session Android playback acceptance remains pending).
+
+Pending diagnosis and plan (not implementation evidence):
+[Bird subject topic recall diagnosis](notes/BIRD_SUBJECT_TOPIC_RECALL_DIAGNOSIS_20260929.md)
+and [correction plan](../plan/BIRD_SUBJECT_TOPIC_RECALL_FIX_PLAN_20260929.md) record the genericized
+bird claim and confidence-only topic ordering found by source inspection; owner approval is pending.
+
+Part-aware Pixi playback verification is recorded in FEAT-030:
+[Pixi part-motion restoration](../../FEAT-030-original-derived-auto-rig/evidence/notes/PIXI_PART_MOTION_RESTORATION_20260928.md)
+(`E-030-FIX-008`; synthetic/offline checks pass; Android visual and live SAM acceptance remain pending).
+
+Documentation-only Montessori/profile audit:
+[child-context audit](notes/CHILD_CONTEXT_MONTESSORI_AUDIT_20260929.md) identifies the current
+age/current-scene boundary and lack of consumed longitudinal preferences. The proposed integrated
+editor, recommender and SAM/renderer plan is
+[`INTEGRATED_CHILD_PROFILE_AND_RIG_QUALITY_PLAN_20260929.md`](../plan/INTEGRATED_CHILD_PROFILE_AND_RIG_QUALITY_PLAN_20260929.md)
+is approved. The implementation record is
+[indexed here](notes/INTEGRATED_CHILD_PROFILE_AND_RIG_QUALITY_IMPLEMENTATION_20260929.md); it
+distinguishes passing offline evidence from pending Android/L4/live-mask acceptance.

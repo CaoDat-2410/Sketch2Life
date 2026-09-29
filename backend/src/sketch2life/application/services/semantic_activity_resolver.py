@@ -11,6 +11,10 @@ from sketch2life.application.ports.workflow_dependencies import (
     SemanticCatalogV2Port,
 )
 from sketch2life.application.services.p1_experience import P1ExperienceCompiler
+from sketch2life.contracts.schemas.child_learning_profile import (
+    AdultConfirmedProgressV1,
+    ChildLearningProfileContextV1,
+)
 from sketch2life.contracts.schemas.p1_experience import (
     P1ContextOptionV1,
     SemanticAnchorSetV1,
@@ -30,6 +34,11 @@ class ActivityRecommendation:
     template_by_activity_id: tuple[tuple[str, str], ...]
     rejected_reason_codes: tuple[str, ...] = ()
     v2_match_by_activity_id: tuple[tuple[str, SemanticActivityMatchV2], ...] = ()
+    personalization_reasons_by_activity_id: tuple[tuple[str, tuple[str, ...]], ...] = ()
+    progress_evidence_by_activity_id: tuple[
+        tuple[str, tuple[AdultConfirmedProgressV1, ...]], ...
+    ] = ()
+    excluded_by_profile: tuple[tuple[str, str], ...] = ()
 
     @property
     def selected_evidence(self) -> SemanticMatchEvidenceV1 | None:
@@ -47,6 +56,12 @@ class ActivityRecommendation:
 
     def v2_match_for(self, activity_id: str) -> SemanticActivityMatchV2 | None:
         return dict(self.v2_match_by_activity_id).get(activity_id)
+
+    def personalization_reasons_for(self, activity_id: str) -> tuple[str, ...]:
+        return dict(self.personalization_reasons_by_activity_id).get(activity_id, ())
+
+    def progress_evidence_for(self, activity_id: str) -> tuple[AdultConfirmedProgressV1, ...]:
+        return dict(self.progress_evidence_by_activity_id).get(activity_id, ())
 
     def metadata(self) -> dict[str, object]:
         evidence = self.selected_evidence
@@ -142,6 +157,7 @@ def resolve_activity_options_v2(
     compiler: P1ExperienceCompiler,
     narration_text: str = "",
     limit: int = 3,
+    child_profile: ChildLearningProfileContextV1 | None = None,
 ) -> ActivityRecommendation:
     """Return only reviewed semantic matches from the expanded V2 catalog.
 
@@ -152,8 +168,10 @@ def resolve_activity_options_v2(
 
     scene = _scene_from_anchor_set(anchor_set, narration_text=narration_text)
     age_band = _age_band(age_months)
-    rows: list[tuple[float, int, str, str, SemanticActivityMatchV2]] = []
+    rows: list[tuple[float, int, str, str, SemanticActivityMatchV2, tuple[str, ...]]] = []
     rejected: list[str] = []
+    excluded_by_profile: list[tuple[str, str]] = []
+    progress_evidence: dict[str, tuple[AdultConfirmedProgressV1, ...]] = {}
     for profile in catalog.profiles:
         if profile.age_band != age_band or profile.review_status in {"BLOCKED", "DEPRECATED"}:
             continue
@@ -164,6 +182,49 @@ def resolve_activity_options_v2(
         match = catalog.match_scene(scene, profile)
         if match is None or match.match_mode == "AGE_BASELINE_FALLBACK":
             continue
+        template = compiler.template_for_activity_id(profile.activity_id)
+        if template is None:
+            rejected.append("STALE_TEMPLATE")
+            continue
+        if child_profile is not None:
+            supervision_rank = {"NONE": 0, "NEARBY": 1, "DIRECT": 2}
+            if supervision_rank[template.minimum_supervision] > supervision_rank[
+                child_profile.adult_supervision_available
+            ]:
+                excluded_by_profile.append((profile.activity_id, "SUPERVISION_UNAVAILABLE"))
+                continue
+            confirmed_activity_ids = {
+                item.activity_id for item in child_profile.adult_confirmed_progress
+            }
+            if not set(template.prerequisite_activity_ids) <= confirmed_activity_ids:
+                excluded_by_profile.append((profile.activity_id, "PREREQUISITE_NOT_CONFIRMED"))
+                continue
+            activity_concepts = set(profile.concept_ids) | set(profile.parent_concept_ids)
+            matched_dislikes = (
+                _expanded_profile_concepts(child_profile.dislikes) & activity_concepts
+            )
+            if matched_dislikes:
+                excluded_by_profile.append((profile.activity_id, "EXPLICIT_DISLIKE"))
+                continue
+            if child_profile.readiness_ids is None:
+                excluded_by_profile.append((profile.activity_id, "READINESS_PROFILE_REQUIRED"))
+                continue
+            if not template.readiness_ids:
+                excluded_by_profile.append((profile.activity_id, "READINESS_METADATA_MISSING"))
+                continue
+            required_readiness = set(template.readiness_ids)
+            known_readiness = set(child_profile.readiness_ids)
+            if not required_readiness <= known_readiness:
+                excluded_by_profile.append((profile.activity_id, "READINESS_NOT_CONFIRMED"))
+                continue
+            if child_profile.available_material_option_ids is None:
+                excluded_by_profile.append((profile.activity_id, "MATERIAL_PROFILE_REQUIRED"))
+                continue
+            if not compiler.materials_available_for_template(
+                template, child_profile.available_material_option_ids
+            ):
+                excluded_by_profile.append((profile.activity_id, "MATERIAL_NOT_AVAILABLE"))
+                continue
         legacy = catalog.to_legacy_evidence(match)
         fit = compiler.candidate_fit(
             anchor_set,
@@ -176,18 +237,55 @@ def resolve_activity_options_v2(
         if fit.status != "PASS":
             rejected.extend(fit.reason_codes)
             continue
+        reasons: list[str] = []
+        score_adjustment = 0.0
+        if child_profile is not None:
+            matched_interests = (
+                _expanded_profile_concepts(child_profile.interests) & activity_concepts
+            )
+            if matched_interests:
+                score_adjustment += 0.12
+                reasons.append("EXPLICIT_INTEREST_MATCH")
+            activity_objective_ids = {
+                profile.primary_objective_id,
+                *profile.secondary_objective_ids,
+            }
+            matched_progress = tuple(
+                item
+                for item in child_profile.adult_confirmed_progress
+                if item.objective_id in activity_objective_ids
+            )
+            if matched_progress:
+                score_adjustment += 0.05
+                reasons.append("ADULT_CONFIRMED_PROGRESS_MATCH")
+                progress_evidence[profile.activity_id] = matched_progress
+            support_match = _support_matches(
+                child_profile, template.interaction_mode, profile.primary_objective_id
+            )
+            if support_match:
+                score_adjustment += 0.03
+                reasons.append("EXPLICIT_LEARNING_SUPPORT_MATCH")
+        adjusted_match = match.model_copy(
+            update={
+                "overall_personalization_score": min(
+                    0.99, match.overall_personalization_score + score_adjustment
+                ),
+                "reason_codes": tuple((*match.reason_codes, *reasons)),
+            }
+        )
         rows.append(
             (
-                match.overall_personalization_score,
+                adjusted_match.overall_personalization_score,
                 match.semantic_relevance,
                 profile.activity_id,
                 template_id,
-                match,
+                adjusted_match,
+                tuple(reasons),
             )
         )
 
     ranked = sorted(rows, key=lambda row: (-row[0], -row[1], row[2], row[3]))
-    selected: list[tuple[float, int, str, str, SemanticActivityMatchV2]] = []
+    selected: list[tuple[float, int, str, str, SemanticActivityMatchV2, tuple[str, ...]]] = []
     seen_families: set[str] = set()
     for row in ranked:
         family_id = row[4].activity_family_id or row[2]
@@ -207,7 +305,45 @@ def resolve_activity_options_v2(
         template_by_activity_id=tuple((row[2], row[3]) for row in selected),
         rejected_reason_codes=tuple(dict.fromkeys(rejected)),
         v2_match_by_activity_id=tuple((row[2], row[4]) for row in selected),
+        personalization_reasons_by_activity_id=tuple((row[2], row[5]) for row in selected),
+        progress_evidence_by_activity_id=tuple(
+            (row[2], progress_evidence[row[2]])
+            for row in selected
+            if row[2] in progress_evidence
+        ),
+        excluded_by_profile=tuple(excluded_by_profile),
     )
+
+
+def _support_matches(
+    profile: ChildLearningProfileContextV1,
+    interaction_mode: str,
+    objective_id: str,
+) -> bool:
+    support_modes = {
+        "HANDS_ON": {"TRANSFER", "CARE", "SORTING", "TRACING"},
+        "MOVEMENT": {"OBJ_MOVEMENT_COORDINATION"},
+        "VISUAL_SEQUENCE": {"SEQUENCE"},
+        "OBSERVATION": {"OBSERVATION", "RESEARCH"},
+    }
+    return any(
+        interaction_mode in support_modes.get(support, set())
+        or objective_id in support_modes.get(support, set())
+        for support in profile.learning_support_ids
+    )
+
+
+def _expanded_profile_concepts(concepts: tuple[str, ...]) -> set[str]:
+    parents = {
+        "ANIMAL_BUTTERFLY": "ANIMAL",
+        "ANIMAL_GENERIC": "ANIMAL",
+        "ANIMAL_MOVEMENT": "ANIMAL",
+        "PLANT_FLOWER": "PLANT",
+        "PLANT_STRUCTURE": "PLANT",
+        "NATURE_OBSERVATION": "NATURE",
+        "SCIENCE_OBSERVATION": "SCIENCE",
+    }
+    return set(concepts) | {parents[item] for item in concepts if item in parents}
 
 
 def _scene_from_anchor_set(

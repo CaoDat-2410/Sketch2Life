@@ -56,6 +56,9 @@ from sketch2life.application.services.topic_semantics import (
     enrich_anchor_set,
     semantic_tags_for_label,
 )
+from sketch2life.contracts.schemas.child_learning_profile import (
+    ChildLearningProfileContextV1,
+)
 from sketch2life.contracts.schemas.gate_a import GateAConfirmationV1
 from sketch2life.contracts.schemas.learning_media import (
     LearningMediaRequestV1,
@@ -119,6 +122,13 @@ def _narration_text(value: object) -> str:
     return transcript.strip() if isinstance(transcript, str) else ""
 
 
+def _profile_exclusion_counts(recommendation: ActivityRecommendation) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for _, reason in recommendation.excluded_by_profile:
+        counts[reason] = counts.get(reason, 0) + 1
+    return counts
+
+
 def _recommendation_set(
     *,
     recommendation: ActivityRecommendation,
@@ -127,7 +137,9 @@ def _recommendation_set(
 ) -> ActivityRecommendationSetV1:
     cards: list[ActivityRecommendationCardV1] = []
     for priority, option in enumerate(recommendation.options[:3], start=1):
-        display = metadata.recommendation_display(option.activity_ref.id)
+        display = metadata.recommendation_display(
+            option.activity_ref.id, option.activity_ref.version
+        )
         match = recommendation.v2_match_for(option.activity_ref.id)
         if display is None or match is None:
             continue
@@ -136,6 +148,28 @@ def _recommendation_set(
             if match.continuity_mode == "DIRECT_CONTINUATION"
             else f"Mở rộng nhẹ từ {topic_label_vi.lower()} sang một kỹ năng liên quan."
         )
+        profile_reasons: list[str] = []
+        reason_codes = recommendation.personalization_reasons_for(option.activity_ref.id)
+        if "EXPLICIT_INTEREST_MATCH" in reason_codes:
+            profile_reasons.append("khớp sở thích đã chọn")
+        if "ADULT_CONFIRMED_PROGRESS_MATCH" in reason_codes:
+            evidence = recommendation.progress_evidence_for(option.activity_ref.id)
+            if evidence:
+                sources = {"CAREGIVER": "cha mẹ/người chăm sóc", "GUIDE": "Guide"}
+                progress_notes = tuple(
+                    (
+                        f"{sources[item.confirmed_by]} xác nhận {item.objective_id} "
+                        f"ngày {item.confirmed_at.isoformat()}"
+                    )
+                    for item in evidence[:2]
+                )
+                profile_reasons.append("tiếp nối tiến trình (" + "; ".join(progress_notes) + ")")
+            else:
+                profile_reasons.append("tiếp nối tiến trình người lớn đã xác nhận")
+        if "EXPLICIT_LEARNING_SUPPORT_MATCH" in reason_codes:
+            profile_reasons.append("phù hợp cách học đã chọn")
+        if profile_reasons:
+            reason += " Cá nhân hóa: " + "; ".join(profile_reasons) + "."
         cards.append(
             ActivityRecommendationCardV1(
                 priority=priority,
@@ -586,6 +620,7 @@ class SupervisedFlowService:
         expected_version: int,
         actor_ref: str,
         age_months: int,
+        child_profile: ChildLearningProfileContextV1 | None = None,
     ) -> MobileWorkflowResultV1:
         if actor_ref != DEMO_ACTOR_REF:
             raise _workflow_error(
@@ -603,14 +638,24 @@ class SupervisedFlowService:
             raise _workflow_error("GATE_A_REQUIRED", 409, "A confirmed image topic is required.")
         anchor_set = SemanticAnchorSetV1.model_validate(anchor_value)
         recommendation: ActivityRecommendation | None = None
+        baseline_recommendation: ActivityRecommendation | None = None
         narration_text = _narration_text(values.get("narration_result"))
         if self._semantic_catalog_v2 is not None:
+            if child_profile is not None:
+                baseline_recommendation = resolve_activity_options_v2(
+                    anchor_set=anchor_set,
+                    age_months=age_months,
+                    catalog=self._semantic_catalog_v2,
+                    compiler=self._compiler,
+                    narration_text=narration_text,
+                )
             recommendation = resolve_activity_options_v2(
                 anchor_set=anchor_set,
                 age_months=age_months,
                 catalog=self._semantic_catalog_v2,
                 compiler=self._compiler,
                 narration_text=narration_text,
+                child_profile=child_profile,
             )
             context_options = recommendation.options
         elif self._semantic_catalog is not None:
@@ -622,6 +667,12 @@ class SupervisedFlowService:
             )
             context_options = recommendation.options
         else:
+            if child_profile is not None:
+                raise _workflow_error(
+                    "PROFILE_CATALOG_UNAVAILABLE",
+                    503,
+                    "Profile-based recommendations are temporarily unavailable.",
+                )
             context_options = self._compiler.context_options(anchor_set, age_months)
         options = P1ContextOptionsV1(
             session_id=session_id,
@@ -633,6 +684,37 @@ class SupervisedFlowService:
         payload = options.model_dump(mode="json")
         if recommendation is not None:
             payload["recommendation"] = recommendation.metadata()
+        if child_profile is not None:
+            personalized_ids = [option.activity_ref.id for option in context_options]
+            baseline_ids = (
+                [option.activity_ref.id for option in baseline_recommendation.options]
+                if baseline_recommendation is not None
+                else []
+            )
+            payload["personalization_comparison"] = {
+                "contract_name": "P1PersonalizationComparisonV1",
+                "contract_version": "1.0",
+                "baseline_activity_ids": baseline_ids,
+                "personalized_activity_ids": personalized_ids,
+                "rank_changed": baseline_ids != personalized_ids,
+                "profile_signal_counts": {
+                    "interests": len(child_profile.interests),
+                    "dislikes": len(child_profile.dislikes),
+                    "adult_confirmed_progress": len(child_profile.adult_confirmed_progress),
+                    "readiness_constraints_enabled": child_profile.readiness_ids is not None,
+                    "material_constraints_enabled": (
+                        child_profile.available_material_option_ids is not None
+                    ),
+                    "learning_supports": len(child_profile.learning_support_ids),
+                },
+                "profile_provenance": {
+                    "declared_by": child_profile.profile_declared_by,
+                    "recorded_at": child_profile.profile_recorded_at.isoformat(),
+                },
+                "adult_supervision_available": child_profile.adult_supervision_available,
+                "excluded_activity_count": len(recommendation.excluded_by_profile),
+                "excluded_reason_counts": _profile_exclusion_counts(recommendation),
+            }
         topic_label = self._sessions.workflow_record(session_id).values.get("topic_label_vi")
         if isinstance(topic_label, str) and topic_label:
             payload["topic_label_vi"] = topic_label
@@ -642,6 +724,12 @@ class SupervisedFlowService:
                     metadata=self._catalog_metadata,
                     topic_label_vi=topic_label,
                 ).model_dump(mode="json")
+                if baseline_recommendation is not None:
+                    payload["baseline_activity_recommendations"] = _recommendation_set(
+                        recommendation=baseline_recommendation,
+                        metadata=self._catalog_metadata,
+                        topic_label_vi=topic_label,
+                    ).model_dump(mode="json")
         return MobileWorkflowResultV1(
             status="SUCCEEDED",
             request_id=request_id,

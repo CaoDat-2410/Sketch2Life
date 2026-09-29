@@ -114,6 +114,11 @@ def _template_from_record(
         for group_id in record["material_group_ids"]
         for option_id in groups_by_id[group_id]["any_of"]
     )
+    material_groups = tuple(
+        tuple(str(option_id) for option_id in groups_by_id[group_id]["any_of"])
+        for group_id in record["material_group_ids"]
+        if groups_by_id[group_id].get("required", True)
+    )
     objective_labels = {ref["id"].casefold() for ref in objective_refs}
     labels = set(_slug_tokens(record["title"]["vi-VN"]))
     labels.update(_slug_tokens(record["purpose_vi"]))
@@ -142,6 +147,7 @@ def _template_from_record(
         readiness_ids=tuple(item["id"] for item in record["readiness_criteria"]),
         prerequisite_activity_ids=tuple(record["prerequisite_activity_ids"]),
         material_option_ids=material_ids,
+        material_option_groups=material_groups,
         minimum_supervision=record["safety"]["minimum_supervision"],
         policy_constraints=tuple(record["policy_constraints"]),
         safety_rule_ids=tuple(
@@ -195,6 +201,11 @@ def _template_from_mvp_record(record: dict[str, Any]) -> ActivityTemplateV1:
         for group in record["material_groups"]
         for option_id in group["any_of"]
     )
+    material_groups = tuple(
+        tuple(str(option_id) for option_id in group["any_of"])
+        for group in record["material_groups"]
+        if group.get("required", True)
+    )
     safety = record["safety"]
     safety_rule_ids = tuple(
         f"{activity_id}:HAZARD:{index + 1}"
@@ -218,6 +229,7 @@ def _template_from_mvp_record(record: dict[str, Any]) -> ActivityTemplateV1:
         readiness_ids=tuple(str(item) for item in record["readiness_tags"]),
         prerequisite_activity_ids=tuple(str(item) for item in record["prerequisite_activity_ids"]),
         material_option_ids=material_ids,
+        material_option_groups=material_groups,
         minimum_supervision=safety["minimum_supervision"],
         policy_constraints=tuple(str(item) for item in record["policy_constraints"]),
         safety_rule_ids=safety_rule_ids,

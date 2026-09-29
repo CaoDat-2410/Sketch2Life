@@ -74,13 +74,34 @@ not carry that setting into a release build.
 repository root:
 
 ```powershell
-pnpm --filter sketch2life-mobile exec expo run:android
+pnpm --dir apps/ui-mobile android:dev
 ```
 
-After the development build is installed, start Metro for the dev client in another terminal:
+This is the preferred fresh-install path: Expo builds the debug variant, starts Metro on port
+8081, installs the native app, and launches it. The Android Gradle project uses
+`BuildConfig.DEBUG`, so a debug APK intentionally expects Metro and does not contain a release
+JavaScript bundle. Do not open an old debug APK directly from Android Studio/app icon while Metro
+is stopped; that produces the native `Unable to load script` screen shown in the bug report.
+
+If the native debug build is already installed, start Metro separately:
 
 ```powershell
-pnpm --filter sketch2life-mobile exec expo start --dev-client
+pnpm --dir apps/ui-mobile start:dev-client
+```
+
+This uses Expo LAN mode so a physical Android device can reach the host. For an emulator or USB
+device with Android SDK Platform-Tools installed, the localhost/reverse path is also supported:
+
+```powershell
+pnpm --dir apps/ui-mobile start:android-reverse
+```
+
+If the app shows `Could not connect to development server` and the URL contains
+`127.0.0.1:8081`, either use the LAN command above or verify the reverse mapping with
+`adb reverse tcp:8081 tcp:8081`. A successful host probe is:
+
+```powershell
+Invoke-WebRequest http://127.0.0.1:8081/status -UseBasicParsing
 ```
 
 The app uses Android's system image picker only. It requests a single image, with camera, audio,
@@ -105,6 +126,14 @@ The main API contract is available at `/docs`. Important routes include `POST /v
 commands under `/v1/sessions/{id}`, `POST /v1/sessions/{id}/renderer/launch`, and
 `GET /v1/renderer/source` (short-lived capability required). The OpenAPI schemas and backend tests
 are the source of truth for exact request/response contracts.
+
+For the approved session-only child-profile test, the app preserves
+`GET /v1/sessions/{id}/p1/context-options` when no profile is supplied and sends a versioned
+`POST` to the same route with `P1ContextOptionsRequestV1` when an adult has enabled profile filters.
+The POST checks the same actor/session/version and returns baseline-vs-personalized options plus
+exclusion counts; it neither mutates session version nor calls Qwen again. Current profile state is
+volatile app memory only. Do not add a saved-profile API or storage adapter without the separate
+privacy/authorization/storage approval in ADR-0010.
 
 ## Limits and future auth seam
 

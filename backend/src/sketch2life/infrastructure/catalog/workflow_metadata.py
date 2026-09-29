@@ -10,8 +10,8 @@ import json
 from pathlib import Path
 from typing import Any
 
-from sketch2life.contracts.schemas.semantic_personalization_v2 import ActivityDurationV2
 from sketch2life.contracts.schemas.activity_preparation import ActivityPreparationProfileV1
+from sketch2life.contracts.schemas.semantic_personalization_v2 import ActivityDurationV2
 from sketch2life.infrastructure.catalog.activity_preparation import (
     ActivityPreparationCatalogError,
     load_activity_preparation_catalog,
@@ -38,6 +38,7 @@ class FileWorkflowCatalogMetadata:
                 "cannot load activity preparation metadata"
             ) from exc
         self._primary_materials = self._load_primary_materials()
+        self._material_labels = self._load_material_labels()
 
     def primary_material_ids(self, activity_id: str) -> tuple[str, ...]:
         primary = self._primary_materials.get(activity_id)
@@ -96,32 +97,94 @@ class FileWorkflowCatalogMetadata:
             max_minutes=variant.duration_minutes,
         ).model_dump(mode="json")
 
-    def recommendation_display(self, activity_id: str) -> dict[str, Any] | None:
+    def recommendation_display(
+        self, activity_id: str, activity_version: int = 1
+    ) -> dict[str, Any] | None:
         variant = self._curated_by_id.get(activity_id)
-        if variant is None:
+        if variant is not None and variant.activity_version == activity_version:
+            material_labels = tuple(
+                self._material_labels.get(
+                    material_id, _MATERIAL_LABELS_VI.get(material_id, "Vật liệu quen thuộc")
+                )
+                for material_id in variant.material_option_ids
+            )
+            supervision = _supervision_label(variant.minimum_supervision)
+            minimum, maximum = variant.age_months
+            preparation = self._preparation_catalog.profile_for(
+                activity_id, variant.activity_version
+            )
+            return {
+                "title_vi": variant.title_vi,
+                "summary_vi": variant.action_vi,
+                "duration_minutes": variant.duration_minutes,
+                "age_label_vi": f"{minimum // 12}–{(maximum + 1) // 12} tuổi",
+                "supervision_label_vi": supervision,
+                "material_labels_vi": material_labels[:4],
+                "preparation_requirement": preparation.print_requirement,
+                "preparation_summary_vi": preparation.guide_note_vi,
+                "preparation_asset_kinds": preparation.planned_asset_kinds,
+                "preparation_asset_status": preparation.asset_set_status,
+            }
+
+        record = self._records_by_id.get(activity_id)
+        if record is None or record.get("version") != activity_version:
+            return None
+        title = record.get("title")
+        title_vi = title.get("vi-VN") if isinstance(title, dict) else None
+        age = record.get("age_months")
+        safety = record.get("safety")
+        duration = record.get("duration_minutes")
+        if not isinstance(title_vi, str) or not isinstance(age, dict):
+            return None
+        if not isinstance(safety, dict) or not isinstance(duration, dict):
+            return None
+        try:
+            minimum_age = int(age["min"])
+            maximum_age = int(age["max"])
+            duration_minutes = int(duration["min"])
+        except (KeyError, TypeError, ValueError):
+            return None
+        if minimum_age < 0 or maximum_age < minimum_age or duration_minutes < 1:
+            return None
+        supervision = _supervision_label(safety.get("minimum_supervision"))
+        if supervision is None:
             return None
         material_labels = tuple(
-            _MATERIAL_LABELS_VI.get(material_id, "Vật liệu quen thuộc")
-            for material_id in variant.material_option_ids
+            self._material_labels.get(
+                material_id, _MATERIAL_LABELS_VI.get(material_id, "Vật liệu quen thuộc")
+            )
+            for material_id in self.primary_material_ids(activity_id)
+            if material_id in self._material_labels
         )
-        supervision = {
-            "NONE": "Trẻ có thể tự làm khi đã sẵn sàng",
-            "NEARBY": "Người lớn ở gần hỗ trợ",
-            "DIRECT": "Người lớn cùng thực hiện",
-        }[variant.minimum_supervision]
-        minimum, maximum = variant.age_months
-        preparation = self._preparation_catalog.profile_for(activity_id, variant.activity_version)
+        purpose = record.get("purpose_vi") or record.get("direct_aim_vi")
+        summary = purpose if isinstance(purpose, str) else "Hoạt động theo chủ đề đã xác nhận."
+        try:
+            preparation = self._preparation_catalog.profile_for(activity_id, activity_version)
+        except ActivityPreparationCatalogError:
+            preparation_fields: dict[str, Any] = {
+                "preparation_requirement": "PRINT_RECOMMENDED",
+                "preparation_summary_vi": (
+                    "Chưa có hồ sơ chuẩn bị được duyệt cho phiên bản này; "
+                    "người lớn cần kiểm tra lại vật liệu và hướng dẫn trước khi bắt đầu."
+                ),
+                "preparation_asset_kinds": (),
+                "preparation_asset_status": "BLOCKED",
+            }
+        else:
+            preparation_fields = {
+                "preparation_requirement": preparation.print_requirement,
+                "preparation_summary_vi": preparation.guide_note_vi,
+                "preparation_asset_kinds": preparation.planned_asset_kinds,
+                "preparation_asset_status": preparation.asset_set_status,
+            }
         return {
-            "title_vi": variant.title_vi,
-            "summary_vi": variant.action_vi,
-            "duration_minutes": variant.duration_minutes,
-            "age_label_vi": f"{minimum // 12}–{(maximum + 1) // 12} tuổi",
+            "title_vi": title_vi,
+            "summary_vi": summary,
+            "duration_minutes": duration_minutes,
+            "age_label_vi": f"{minimum_age // 12}–{(maximum_age + 1) // 12} tuổi",
             "supervision_label_vi": supervision,
             "material_labels_vi": material_labels[:4],
-            "preparation_requirement": preparation.print_requirement,
-            "preparation_summary_vi": preparation.guide_note_vi,
-            "preparation_asset_kinds": preparation.planned_asset_kinds,
-            "preparation_asset_status": preparation.asset_set_status,
+            **preparation_fields,
         }
 
     def preparation_profile(
@@ -180,6 +243,27 @@ class FileWorkflowCatalogMetadata:
                 result[group["activity_id"]] = (*result.get(group["activity_id"], ()), *values)
         return result
 
+    def _load_material_labels(self) -> dict[str, str]:
+        path = (
+            self._root
+            / "data"
+            / "activity-catalog"
+            / "golden"
+            / "v1"
+            / "material-registry.v1.json"
+        )
+        try:
+            document = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise WorkflowMetadataLoadError("cannot read material registry") from exc
+        return {
+            item["id"]: item["label_vi"]
+            for item in document.get("options", [])
+            if isinstance(item, dict)
+            and isinstance(item.get("id"), str)
+            and isinstance(item.get("label_vi"), str)
+        }
+
 
 __all__ = ["FileWorkflowCatalogMetadata", "WorkflowMetadataLoadError"]
 
@@ -195,3 +279,11 @@ _MATERIAL_LABELS_VI: dict[str, str] = {
     "MAT_SEQUENCE_CARDS": "Thẻ trình tự",
     "MAT_FLOOR_TAPE": "Băng dán sàn",
 }
+
+
+def _supervision_label(value: object) -> str | None:
+    return {
+        "NONE": "Trẻ có thể tự làm khi đã sẵn sàng",
+        "NEARBY": "Người lớn ở gần hỗ trợ",
+        "DIRECT": "Người lớn cùng thực hiện",
+    }.get(value)

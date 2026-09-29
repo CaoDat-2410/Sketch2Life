@@ -21,6 +21,7 @@ import {
   type ActivityRecommendationCard,
   type P1ContextOption,
   type P1ContextOptions,
+  type ChildLearningProfileInput,
   type WorkflowResult,
 } from '../demo/api';
 import {
@@ -90,6 +91,9 @@ interface AppContextType {
   setSelectedChild: (child: ChildProfile) => void;
   selectedAgeGroup: string;
   setSelectedAgeGroup: (ageGroup: string) => void;
+  selectedChildLearningProfile: ChildLearningProfileInput | null;
+  updateSelectedChildLearningProfile: (patch: Partial<ChildLearningProfileInput>) => void;
+  resetSelectedChildLearningProfile: () => void;
 
   // Drawing
   drawingImage: string;
@@ -155,7 +159,7 @@ interface AppContextType {
   selectBackendActivity: (activityId: string) => void;
   prepareActivityWorkflow: () => Promise<boolean>;
   approveActivity: () => Promise<boolean>;
-  prepareRendererIntro: () => Promise<boolean>;
+  prepareRendererIntro: (refreshLaunch?: boolean) => Promise<boolean>;
   completeActivityHandoff: () => Promise<boolean>;
   rendererLaunch: Record<string, unknown> | null;
   pixiIntroStoryboard: Record<string, unknown> | null;
@@ -552,6 +556,48 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [childrenList] = useState<ChildProfile[]>(MOCK_CHILDREN);
   const [selectedChild, setSelectedChild] = useState<ChildProfile>(MOCK_CHILDREN[0]);
   const [selectedAgeGroup, setSelectedAgeGroup] = useState<string>('5-6');
+  const [childLearningProfiles, setChildLearningProfiles] = useState<
+    Record<string, ChildLearningProfileInput>
+  >({});
+  const selectedChildLearningProfile = childLearningProfiles[selectedChild.id] || null;
+  const updateSelectedChildLearningProfile = (patch: Partial<ChildLearningProfileInput>) => {
+    setChildLearningProfiles((current) => {
+      const previous = current[selectedChild.id] || {
+        profile_declared_by: 'CAREGIVER' as const,
+        profile_recorded_at: new Date().toISOString(),
+        interests: [],
+        dislikes: [],
+        adult_confirmed_progress: [],
+        readiness_ids: null,
+        available_material_option_ids: null,
+        adult_supervision_available: 'NEARBY',
+        learning_support_ids: [],
+      };
+      return {
+        ...current,
+        [selectedChild.id]: {
+          ...previous,
+          ...patch,
+          profile_recorded_at: new Date().toISOString(),
+        },
+      };
+    });
+    setContextOptions(null);
+    setSelectedBackendActivity(null);
+    setActivityRecommendation(null);
+    setActivityRecommendationCards([]);
+  };
+  const resetSelectedChildLearningProfile = () => {
+    setChildLearningProfiles((current) => {
+      const next = { ...current };
+      delete next[selectedChild.id];
+      return next;
+    });
+    setContextOptions(null);
+    setSelectedBackendActivity(null);
+    setActivityRecommendation(null);
+    setActivityRecommendationCards([]);
+  };
 
   // Drawing
   const [drawingImage, setDrawingImage] = useState<string>('cat-drawing-sample');
@@ -1125,13 +1171,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setWorkflowError(null);
     setWorkflowNotice(null);
     try {
-      const ageMonths = Math.min(155, Math.max(0, selectedChild.age * 12));
+      const ageMonthsByGroup: Record<string, number> = {
+        '3-4': 48,
+        '5-6': 60,
+        '7-8': 96,
+        '9+': 120,
+      };
+      const ageMonths = ageMonthsByGroup[selectedAgeGroup]
+        ?? Math.min(155, Math.max(0, selectedChild.age * 12));
       let options = contextOptions;
       let option = selectedBackendActivity;
       if (!options) {
-        const optionsResult = await workflowApi.readContextOptions(sessionId, sessionVersion, ageMonths);
+        const optionsResult = await workflowApi.readContextOptions(
+          sessionId,
+          sessionVersion,
+          ageMonths,
+          selectedChildLearningProfile || undefined,
+        );
         options = optionsResult.payload;
         if (!options || options.options.length === 0) {
+          const excluded = options?.personalization_comparison?.excluded_activity_count || 0;
+          if (excluded > 0) {
+            throw new Error('Hồ sơ thử nghiệm đang loại hết hoạt động phù hợp. Hãy nới điều kiện sẵn sàng/vật liệu hoặc bỏ chủ đề cần tránh rồi thử lại.');
+          }
           throw new Error('Chưa tìm thấy hoạt động thật sự phù hợp. Hãy chọn lại chủ đề hoặc thử ảnh rõ hơn.');
         }
         option = options.options[0];
@@ -1147,9 +1209,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
       const contextResult = await workflowApi.setP1Context(sessionId, sessionVersion, {
         age_months: ageMonths,
-        readiness_ids: option.readiness_ids,
-        completed_activity_ids: option.prerequisite_activity_ids,
-        available_material_option_ids: option.material_option_ids,
+        readiness_ids: selectedChildLearningProfile?.readiness_ids ?? option.readiness_ids,
+        completed_activity_ids: selectedChildLearningProfile
+          ? selectedChildLearningProfile.adult_confirmed_progress.map((item) => item.activity_id)
+          : option.prerequisite_activity_ids,
+        available_material_option_ids: selectedChildLearningProfile?.available_material_option_ids
+          ?? option.material_option_ids,
         supervision_level: option.minimum_supervision,
         policy_flags: option.policy_constraints,
         candidate_status: 'ACTIVE_FIXTURE',
@@ -1201,7 +1266,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       updateSessionVersion(result.observed_session_version);
       if (result.status !== 'SUCCEEDED') throw workflowFailure(result, 'Chưa xác nhận được hoạt động.');
       setSessionState('EXPERIENCE_READY');
-      setWorkflowNotice('Hoạt động đã được xác nhận. Bức vẽ gốc vẫn được giữ nguyên.');
+      setWorkflowNotice('Đã xác nhận hoạt động. Đang chuẩn bị sân khấu chuyển động…');
+      try {
+        const rendererResult = await workflowApi.prepareRenderer(sessionId, result.observed_session_version);
+        updateSessionVersion(rendererResult.observed_session_version);
+        if (rendererResult.status !== 'SUCCEEDED') {
+          throw workflowFailure(rendererResult, 'Chưa chuẩn bị xong sân khấu chuyển động.');
+        }
+        const payload = asObject(rendererResult.payload);
+        const renderer = payload.renderer_launch_v2 ?? payload.renderer_launch;
+        if (!renderer) throw new Error('Máy chủ chưa trả gói mở Pixi.');
+        setRendererLaunch(asObject(renderer));
+        setPixiIntroStoryboard(asObject(payload.pixi_intro_storyboard));
+        setWorkflowNotice('Sân khấu đã chuẩn bị xong. Đang mở bức vẽ gốc.');
+      } catch (error) {
+        setWorkflowError(friendlyError(error, 'Chủ đề đã được duyệt; sân khấu sẽ tiếp tục chuẩn bị khi mở.'));
+      }
       return true;
     } catch (error) {
       setWorkflowError(friendlyError(error, 'Chưa xác nhận được hoạt động. Hãy thử lại.'));
@@ -1212,9 +1292,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const prepareRendererIntro = async (): Promise<boolean> => {
+  const prepareRendererIntro = async (refreshLaunch = false): Promise<boolean> => {
     if (!sessionId || sessionState !== 'EXPERIENCE_READY' || workflowBusy) return false;
-    if (rendererLaunch) return true;
+    if (rendererLaunch && !refreshLaunch) return true;
     if (!acquireSingleFlight(sessionMutationLockRef)) return false;
     setWorkflowBusy('Mở câu chuyện');
     setWorkflowError(null);
@@ -1381,6 +1461,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setSelectedChild,
         selectedAgeGroup,
         setSelectedAgeGroup,
+        selectedChildLearningProfile,
+        updateSelectedChildLearningProfile,
+        resetSelectedChildLearningProfile,
 
         drawingImage,
         setDrawingImage,

@@ -78,6 +78,53 @@ export interface P1ContextOptions {
     topic_label_vi: string;
     options: ActivityRecommendationCard[];
   };
+  baseline_activity_recommendations?: {
+    contract_name: 'ActivityRecommendationSetV1';
+    contract_version: '1.0';
+    topic_label_vi: string;
+    options: ActivityRecommendationCard[];
+  };
+  personalization_comparison?: {
+    contract_name: 'P1PersonalizationComparisonV1';
+    contract_version: '1.0';
+    baseline_activity_ids: string[];
+    personalized_activity_ids: string[];
+    rank_changed: boolean;
+    profile_signal_counts: {
+      interests: number;
+      dislikes: number;
+      adult_confirmed_progress: number;
+      readiness_constraints_enabled: boolean;
+      material_constraints_enabled: boolean;
+      learning_supports: number;
+    };
+    profile_provenance: {
+      declared_by: 'CAREGIVER' | 'GUIDE';
+      recorded_at: string;
+    };
+    excluded_activity_count: number;
+    excluded_reason_counts: Record<string, number>;
+    adult_supervision_available: 'NONE' | 'NEARBY' | 'DIRECT';
+  };
+}
+
+export interface AdultConfirmedProgress {
+  activity_id: string;
+  objective_id: string;
+  confirmed_at: string;
+  confirmed_by: 'CAREGIVER' | 'GUIDE';
+}
+
+export interface ChildLearningProfileInput {
+  profile_declared_by: 'CAREGIVER' | 'GUIDE';
+  profile_recorded_at: string;
+  interests: string[];
+  dislikes: string[];
+  adult_confirmed_progress: AdultConfirmedProgress[];
+  readiness_ids: string[] | null;
+  available_material_option_ids: string[] | null;
+  adult_supervision_available: 'NONE' | 'NEARBY' | 'DIRECT';
+  learning_support_ids: Array<'HANDS_ON' | 'MOVEMENT' | 'VISUAL_SEQUENCE' | 'OBSERVATION'>;
 }
 
 export interface ActivityRecommendationCard {
@@ -288,8 +335,33 @@ export class DemoApiClient {
     });
   }
 
-  async readContextOptions(sessionId: string, version: number, ageMonths: number) {
+  async readContextOptions(
+    sessionId: string,
+    version: number,
+    ageMonths: number,
+    childProfile?: ChildLearningProfileInput,
+  ) {
     const requestId = newId('req');
+    if (childProfile) {
+      return this.request<WorkflowResult<P1ContextOptions>>(
+        `/v1/sessions/${encodeURIComponent(sessionId)}/p1/context-options`,
+        {
+          method: 'POST',
+          headers: this.metaHeaders(version, requestId),
+          body: JSON.stringify({
+            contract_name: 'P1ContextOptionsRequestV1',
+            contract_version: '1.0',
+            age_months: ageMonths,
+            child_profile: {
+              contract_name: 'ChildLearningProfileContextV1',
+              contract_version: '1.0',
+              ...childProfile,
+            },
+          }),
+        },
+        30_000,
+      );
+    }
     return this.request<WorkflowResult<P1ContextOptions>>(
       `/v1/sessions/${encodeURIComponent(sessionId)}/p1/context-options?age_months=${ageMonths}`,
       {

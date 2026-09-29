@@ -40,6 +40,52 @@ pnpm --dir apps/mobile android
 pnpm --dir apps/mobile android:apk:debug
 ```
 
+### Android dev-client and Metro connectivity
+
+The current Android app is `apps/ui-mobile` (`sketch2life-mobile`). Start its development client
+with LAN mode when using a physical device or when ADB is unavailable:
+
+```powershell
+pnpm --dir apps/ui-mobile start:dev-client
+```
+
+For a fresh native debug install, use the one-command path so Expo builds the debug variant,
+starts Metro, and launches the app against that server:
+
+```powershell
+pnpm --dir apps/ui-mobile android:dev
+```
+
+Do not launch an old debug APK directly from Android Studio/app icon and expect it to contain the
+JavaScript bundle: this project intentionally leaves the JS out of debug APKs and loads it from
+Metro. A direct launch without Metro produces the native `Unable to load script` screen.
+
+For an emulator or USB-connected device, use the helper to install the loopback reverse mapping
+before starting Metro:
+
+```powershell
+pnpm --dir apps/ui-mobile start:android-reverse
+```
+
+The reverse mode requires Android SDK Platform-Tools and a running/connected device. If the app
+shows `Could not connect to development server` with a URL at `127.0.0.1:8081`, check the host
+server first:
+
+```powershell
+Invoke-WebRequest http://127.0.0.1:8081/status -UseBasicParsing
+```
+
+If that probe succeeds, reload the app after either using LAN mode or confirming:
+
+```powershell
+adb reverse tcp:8081 tcp:8081
+adb devices -l
+```
+
+`127.0.0.1` is the Android runtime's own loopback address unless the reverse mapping exists. Do
+not put a host IP, backend token, provider URL, or secret into the mobile bundle or an `EXPO_PUBLIC_*`
+variable.
+
 The official React Native 0.87 Android native project is committed under `apps/mobile/android/`. There is no iOS target. Use an API 29 emulator/device for compatibility checks and API 36 for target-behavior checks.
 
 Android constants are frozen by ADR-0004:

@@ -235,6 +235,10 @@ class P1ExperienceCompiler:
                 return template.template_id
         return None
 
+    def template_for_activity_id(self, activity_id: str) -> ActivityTemplateV1 | None:
+        template_id = self.template_id_for_activity_id(activity_id)
+        return self._by_id.get(template_id) if template_id is not None else None
+
     def candidate_fit(
         self,
         anchor_set: SemanticAnchorSetV1,
@@ -501,6 +505,15 @@ class P1ExperienceCompiler:
         return exact_hits * 3 + token_hits
 
     @staticmethod
+    def materials_available_for_template(
+        template: ActivityTemplateV1,
+        available_material_option_ids: tuple[str, ...] | set[str],
+    ) -> bool:
+        required_groups = template.material_option_groups or (template.material_option_ids,)
+        available = set(available_material_option_ids)
+        return all(bool(set(group) & available) for group in required_groups)
+
+    @staticmethod
     def _hard_rule_failures(template: ActivityTemplateV1, context: P1ContextV1) -> tuple[str, ...]:
         assert context.age_months is not None
         assert context.readiness_ids is not None
@@ -525,7 +538,9 @@ class P1ExperienceCompiler:
             failures.append("BLOCK_INSUFFICIENT_SUPERVISION")
         if not set(template.policy_constraints) <= set(context.policy_flags):
             failures.append("BLOCK_POLICY_CONSTRAINT")
-        if not set(template.material_option_ids) & set(context.available_material_option_ids):
+        if not P1ExperienceCompiler.materials_available_for_template(
+            template, context.available_material_option_ids
+        ):
             failures.append("BLOCK_MISSING_MATERIAL")
         return tuple(failures)
 

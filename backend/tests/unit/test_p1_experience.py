@@ -127,6 +127,21 @@ def test_catalog_loader_promotes_twenty_golden_templates_and_act0004_mapping() -
     assert all(template.production_eligible is False for template in library.templates)
 
 
+def test_mvp_material_groups_require_one_available_item_from_every_required_group() -> None:
+    library = load_p1_template_library(ROOT, include_mvp=True)
+    template = library.by_activity("ACT-0002")[0]
+    assert len(template.material_option_groups) == 2
+    first_option = template.material_option_groups[0][0]
+    second_option = template.material_option_groups[1][0]
+
+    assert not P1ExperienceCompiler.materials_available_for_template(
+        template, (first_option,)
+    )
+    assert P1ExperienceCompiler.materials_available_for_template(
+        template, (first_option, second_option)
+    )
+
+
 def test_butterfly_fold_print_compiles_one_spec_and_gate_b_locks_identity() -> None:
     library = load_p1_template_library(ROOT)
     fixture = _butterfly_template()

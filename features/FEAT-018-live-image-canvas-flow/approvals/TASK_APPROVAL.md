@@ -477,3 +477,63 @@ mobile, Gate A, P1 eligibility, P3/P4 and shared integration remain separately g
 - Explicit exclusions: backend/versioned contract changes, free-text note storage, persistence,
   auth, live provider calls, real child data, video, Pixi redesign, unrelated work and commit/push.
 - Approved at: 2026-09-28 15:57:19 Asia/Ho_Chi_Minh.
+
+## Owner approval — Pixi Android WebView bridge recovery — 2026-09-28
+
+- Approver: project owner direct instruction in the current conversation: “check log và fix bug”.
+- Approved artifact: `plan/PIXI_ANDROID_WEBVIEW_BRIDGE_RECOVERY_20260928.md`.
+- Plan SHA-256 at approval: `9FD77933A662BACE7EEE714432307087EE5977D39DAB2A1F8797544AFFCEF3B4`.
+- Approved scope: repair bounded native-to-WebView Pixi launch/control delivery using a 128 KiB native-command cap distinct from the 4 KiB renderer-event cap; separate bootstrap from actual renderer readiness; give explicit renderer retries a fresh page-shell URL; refresh expired source/package capabilities only after an explicit retry through the existing renderer-launch command; preserve the existing capability, hash, contract and fallback checks; add focused bridge tests, an offline capability-renewal contract regression and feature-local evidence. No automatic retry or Qwen/SAM/Lightning request is added. The plan records oversize-launch rejection, stale cached HTML/removed-hash 404, and expired-capability 404 evidence found during the investigation.
+- Approved exclusions: backend/API/provider/model changes, Lightning/Qwen/SAM calls, visual redesign/assets, video, auth/persistence, real child data, unrelated workflow changes, and commit/push.
+- Approved at: 2026-09-28 15:02:00 UTC (22:02:00 Asia/Ho_Chi_Minh).
+- Implementation record (2026-09-28): scope unchanged; approved plan hash at authorization was
+  `9FD77933A662BACE7EEE714432307087EE5977D39DAB2A1F8797544AFFCEF3B4`; the plan now includes an
+  execution outcome and has final SHA-256
+  `0C1FA24DB5E38D59384CA1F9419B7679B7AE4D1FD8549ADEFF20AA5314AB3CA8`. Offline checks passed;
+  fresh-session Android playback acceptance remains pending because the inspected in-memory session
+  expired before it could be retried. See the feature-local evidence note.
+
+## Pending owner approval — integrated child profile and rig quality — 2026-09-29
+
+- Owner confirmed one combined plan and one approval for the child-profile/recommender and
+  SAM/renderer quality workstreams.
+- Proposed artifact: `plan/INTEGRATED_CHILD_PROFILE_AND_RIG_QUALITY_PLAN_20260929.md`, revision 1.
+- State: APPROVED by the explicit owner reply “duyệt”.
+- Plan SHA-256: `78F02568914A81F0007B86D68F9541414AACA50212C4A4E755456B2BCEE55F92`.
+- Participating scope: FEAT-018 profile UI/orchestration; FEAT-020 catalog/recommender; FEAT-030
+  SAM 2.1 mask benchmark/quality and high-pigment renderer reconstruction.
+- Owner-confirmed profile scope: edits are session-only for this increment; long-term backend and
+  approved-storage persistence is a future target. Fields include interests/dislikes,
+  adult-confirmed accomplishments/progression, readiness/materials and optional explicit
+  non-clinical support preferences. Editing is available in Parent/Guide and at initial child
+  selection only, not midway through the active flow.
+- Separate test gates remain required for both workstreams before the single coordinated release.
+
+## Owner approval — integrated child profile and rig quality — 2026-09-29
+
+- Approver: project owner, explicit reply “duyệt” in this conversation.
+- Approval timestamp: 2026-09-29 14:13:24 Asia/Ho_Chi_Minh (2026-09-29 07:13:24 UTC).
+- Approved artifact: `plan/INTEGRATED_CHILD_PROFILE_AND_RIG_QUALITY_PLAN_20260929.md`, revision 1.
+- Approved plan SHA-256: `78F02568914A81F0007B86D68F9541414AACA50212C4A4E755456B2BCEE55F92`.
+- Approved acceptance criteria: AC-INT-01 through AC-INT-10 in the exact approved plan.
+- Approved scope: adult-editable session profile at Parent/Guide and initial child selection; versioned
+  profile context to the deterministic Montessori resolver; profile-aware eligible-first ranking and
+  explanation; catalog coverage audit; synthetic SAM 2.1 mask benchmark and bounded multimask
+  candidate evaluation; mask-quality gates; high-pigment cutout reconstruction; integrated Android,
+  backend, renderer, contract and security verification across FEAT-018/020/030.
+- Current profile edits remain session-only. Durable backend/storage writes, storage technology
+  selection, consent/auth/retention implementation, live provider calls initiated by Codex, model
+  downloads/training, child media in evidence, automatic retries/fallbacks, and changes to Gate A/B
+  are excluded. Long-term storage is a future target and requires its own approved storage/privacy
+  decision before implementation.
+- Both technical workstreams must pass their independent tests before the single coordinated release.
+
+## Approval hash reconciliation — 2026-09-29
+
+- During implementation audit, the plan's current SHA-256 was found to differ from the hash in the
+  first approval entry. The approved content file was not rewritten to conceal that discrepancy.
+- The owner's latest explicit reply, “duyệt”, confirms implementation approval for the integrated
+  plan currently present at `plan/INTEGRATED_CHILD_PROFILE_AND_RIG_QUALITY_PLAN_20260929.md`.
+- Current approved artifact SHA-256: `40B627FC34DC63418464F7F583F1C5A3A3B3F0F5ED205C9DCDA8E5DEB75A4503`.
+- Reconfirmation timestamp: 2026-09-29 07:56:46 UTC (14:56:46 Asia/Ho_Chi_Minh).
+- The current reply does not expand the original scope or remove any acceptance gate.
