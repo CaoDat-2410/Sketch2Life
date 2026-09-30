@@ -86,3 +86,13 @@ saturated donors, preserves outside-mask pixels exactly, and still fails closed 
 exists within the bound. All 48 renderer tests, renderer typecheck/build, and mobile typecheck/copy
 checks pass. No model/provider call or user image was used. Android visual/live-SAM retest remains
 pending. See [E-030-FIX-013](evidence/notes/PIXI_MASK_BACKGROUND_RECONSTRUCTION_FIX_20260930.md).
+
+The owner then reported the same error again. Sanitized backend logs confirmed renderer page, source,
+package and all four masks were served successfully; the failure remained inside Pixi cutout
+reconstruction. E-030-FIX-014 supersedes the 12-pixel-only recovery: local donors remain preferred,
+with a deterministic estimate from at least eight credible unmasked paper pixels as a same-image
+fallback when nearby pixels are all pigment. Inpainting still writes only inside the verified mask,
+preserves outside pixels/source bytes, and fails closed if the unmasked image has no credible paper
+samples. Renderer tests (49), typecheck/build, mobile typecheck/UI-copy checks pass; backend served
+the rebuilt page/bundle with HTTP 200. Fresh Android visual acceptance remains pending because this
+shell has no accessible `adb`/Android SDK path. No provider call or image was used in the fix.

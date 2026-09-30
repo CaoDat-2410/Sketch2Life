@@ -52,6 +52,10 @@ export function createSubjectCutoutLayers(
   let maxX = -1;
   let maxY = -1;
   let foregroundCount = 0;
+  let paperRedTotal = 0;
+  let paperGreenTotal = 0;
+  let paperBlueTotal = 0;
+  let paperPixelCount = 0;
 
   for (let y = 0; y < height; y += 1) {
     for (let x = 0; x < width; x += 1) {
@@ -59,6 +63,21 @@ export function createSubjectCutoutLayers(
       const maskAlpha = Math.round((maskPixels[offset] + maskPixels[offset + 1] + maskPixels[offset + 2]) / 3)
         * maskPixels[offset + 3] / 255;
       if (maskAlpha <= 8) {
+        // Collect only credible paper from outside the verified mask; this is used solely when
+        // pigment hides every nearby donor around a mask component.
+        if (sourcePixels[offset + 3] > 8) {
+          const red = sourcePixels[offset];
+          const green = sourcePixels[offset + 1];
+          const blue = sourcePixels[offset + 2];
+          const luminance = red * 0.2126 + green * 0.7152 + blue * 0.0722;
+          const chroma = Math.max(red, green, blue) - Math.min(red, green, blue);
+          if (luminance >= 120 && chroma <= 80) {
+            paperRedTotal += red;
+            paperGreenTotal += green;
+            paperBlueTotal += blue;
+            paperPixelCount += 1;
+          }
+        }
         continue;
       }
       insideMask[y * width + x] = 1;
@@ -78,7 +97,22 @@ export function createSubjectCutoutLayers(
 
   const backgroundPixels = new Uint8ClampedArray(sourcePixels);
   const subjectPixels = new Uint8ClampedArray(sourcePixels);
-  inpaintMaskRegion(sourcePixels, backgroundPixels, insideMask, width, height, foregroundCount);
+  const sameImagePaperEstimate: [number, number, number] | null = paperPixelCount >= 8
+    ? [
+      Math.round(paperRedTotal / paperPixelCount),
+      Math.round(paperGreenTotal / paperPixelCount),
+      Math.round(paperBlueTotal / paperPixelCount),
+    ]
+    : null;
+  inpaintMaskRegion(
+    sourcePixels,
+    backgroundPixels,
+    insideMask,
+    width,
+    height,
+    foregroundCount,
+    sameImagePaperEstimate,
+  );
   for (let pixel = 0; pixel < pixelCount; pixel += 1) {
     const offset = pixel * 4;
     if (insideMask[pixel] === 0) {
@@ -115,6 +149,7 @@ function inpaintMaskRegion(
   width: number,
   height: number,
   foregroundCount: number,
+  sameImagePaperEstimate: readonly [number, number, number] | null,
 ): void {
   const known = new Uint8Array(insideMask.length);
   const queue = new Uint32Array(foregroundCount);
@@ -127,7 +162,7 @@ function inpaintMaskRegion(
     for (let x = 0; x < width; x += 1) {
       const pixel = y * width + x;
       if (insideMask[pixel] === 0 || !touchesUnmaskedPixel(insideMask, x, y, width, height)) continue;
-      const estimate = sampleLocalBackground(source, insideMask, x, y, width, height);
+      const estimate = sampleLocalBackground(source, insideMask, x, y, width, height) ?? sameImagePaperEstimate;
       if (estimate === null) continue;
       writeRgb(output, pixel, estimate);
       known[pixel] = 1;

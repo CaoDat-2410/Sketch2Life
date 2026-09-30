@@ -34,3 +34,10 @@ Updated: 2026-09-30
   those unrelated feature folders were not changed. `tools/validate_architecture.py` and
   `tools/validate_repository_security.py` pass; security scanned 1,742 publishable files.
 - Evidence: `evidence/notes/SUBJECT_RECALL_AND_PIXI_MAIN_FLOW_HARDENING_IMPLEMENTATION_20260930.md`.
+- Follow-up to `MASK_BACKGROUND_RECONSTRUCTION_FAILED`: backend source/package/four-mask reads
+  returned HTTP 200, while synthetic reproduction isolated the defect to a saturated outline beyond
+  the local donor radius. FEAT-030 now seeds only masked-pixel reconstruction from credible
+  same-image paper when local donors are absent. Renderer tests (49), typecheck/build, mobile
+  typecheck/UI-copy checks pass; backend serves the rebuilt renderer assets with HTTP 200. Fresh
+  Android visual playback remains unverified because `adb` is unavailable in this shell. Evidence:
+  `evidence/notes/PIXI_RENDERER_DIAGNOSTIC_PARTIAL_20260930.md` and FEAT-030 `E-030-FIX-014`.

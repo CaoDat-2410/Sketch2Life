@@ -567,3 +567,9 @@ mobile, Gate A, P1 eligibility, P3/P4 and shared integration remain separately g
   synthetic, stage-by-stage audit/fix of the Pixi main-flow state transitions. No Codex-initiated
   provider calls, user artwork in evidence, unrelated work, commit, push, or release.
 - Approved at: 2026-09-30 07:08:49 UTC (14:08:49 Asia/Ho_Chi_Minh).
+
+## Execution record refresh — Pixi renderer playback failure plan — 2026-09-30
+
+- The owner-approved scope remains the plan hash recorded above: `C90438646F8B9AF9F063F31F8EE4F39EAEF1C46AFF21B543AEE5EF67679A367C`.
+- The plan now records the confirmed cutout diagnosis, synthetic regression and offline verification; its current SHA-256 is `58F34C26AFD2AE822677DB5C53E2C082C665F1523FE9AF19960B68680D26747E`.
+- This is an execution-status update only. No scope, exclusions, contracts, provider calls or acceptance criteria changed. Fresh Android visual playback remains pending.

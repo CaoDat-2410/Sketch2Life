@@ -44,3 +44,13 @@
 The initial registry must include `butterfly`, `bird`, `flower`, `tree_branch`, `fish`, `biped`, `rigid`, `generic_organic`, and `unknown`. Topic aliases map into this registry using canonical Gate A semantics. A topic without a trustworthy specialized fit goes to `generic_organic`, `rigid`, or `unknown`, then to an appropriate lower visual tier. “Full-topic coverage” therefore means a defined, safe, testable outcome for every input—not unrestricted skeleton or motion generation.
 
 These owner decisions and the remaining proposed architecture must be recorded in the relevant ADR before implementation that depends on them.
+
+## Renderer donor recovery refinement — 2026-09-30
+
+Under approved D-030-27/D-030-28 and the integrated cutout-quality scope, renderer reconstruction
+now prefers local credible paper donors and may use a deterministic estimate from credible,
+unmasked pixels elsewhere in the same source image only when local donors are absent. This estimate
+seeds reconstruction but never expands the verified mask or changes pixels outside it. If no credible
+unmasked paper samples exist, the typed failure remains. Synthetic regression evidence is
+`E-030-FIX-014`; this is an implementation detail within the approved donor-quality scope, not a new
+model/provider or fallback-tier decision.

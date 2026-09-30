@@ -14,3 +14,8 @@ Updated: 2026-09-30
   and VRAM with Qwen resident, Android visual acceptance, and the existing model ADR gate. Live SAM
   activation remains disabled/gated.
 - Evidence: `evidence/notes/SAM21_BENCHMARK_RUNABILITY_20260930.md`.
+- Pixi follow-up: the repeated `MASK_BACKGROUND_RECONSTRUCTION_FAILED` was isolated from successful
+  HTTP 200 artifact reads to local paper-donor reconstruction. Added same-image credible-paper
+  seeding for dense outlines, strictly within the verified mask. Renderer suite 49, typecheck/build,
+  and mobile typecheck/UI-copy validation pass; rebuilt page/bundle return HTTP 200. Fresh Android
+  visual acceptance remains pending. See `evidence/notes/PIXI_MASK_BACKGROUND_RECONSTRUCTION_FIX_FOLLOWUP_20260930.md`.

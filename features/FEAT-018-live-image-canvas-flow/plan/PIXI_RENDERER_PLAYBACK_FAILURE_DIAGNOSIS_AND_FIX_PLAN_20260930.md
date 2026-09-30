@@ -48,6 +48,18 @@ Do not use real child media or place artwork/screenshots containing child data i
 - AC-PIXI-FAIL-05: Existing backend-only provider boundaries and all unrelated worktree changes are
   preserved.
 
-## Execution record
+## Execution record — 2026-09-30
 
-Pending implementation and verification.
+- Backend logs for the owner-reported flow show HTTP 200 for renderer launch/page, source, rig
+  package, and all four mask reads. The supplied/logged safe error was
+  `MASK_BACKGROUND_RECONSTRUCTION_FAILED`, isolating failure to local cutout reconstruction.
+- A deterministic synthetic thick saturated-outline fixture reproduced the same error beyond the
+  12-pixel local donor radius. The renderer now prefers local paper, then derives a same-image
+  baseline from at least eight credible unmasked paper pixels only when local donors are absent. All
+  writes remain inside the verified mask; the source and outside-mask pixels are unchanged; no-paper
+  images continue to fail closed.
+- Renderer tests (49), renderer typecheck/build, mobile typecheck and UI-copy checks pass. The
+  backend served the rebuilt renderer page and bundle with HTTP 200 without a restart.
+- Partial acceptance only: a fresh Android visual launch is still pending because this shell has no
+  accessible `adb`/Android SDK path. No screenshot/artwork was retained and no provider/model call
+  was made. See FEAT-030 `E-030-FIX-014` for detailed evidence.

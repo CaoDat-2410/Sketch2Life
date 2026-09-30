@@ -49,3 +49,15 @@ mobile typecheck and UI-copy tests pass. Details are in FEAT-030
 No Android visual acceptance is claimed: although `emulator-5554` is connected, a fresh current-flow
 launch requires the live backend rig/mask path and was not initiated by Codex. No image/provider
 request was made. The separate bird-topic issue remains under its awaiting-approval plan.
+
+## Owner-reported mask reconstruction failure follow-up — 2026-09-30
+
+The owner then supplied the exact failure `MASK_BACKGROUND_RECONSTRUCTION_FAILED`. Backend access
+logs for that flow confirmed HTTP 200 for renderer launch/page, source, rig package, and all four
+mask reads. This locates the failure after successful artifact delivery, in renderer cutout
+reconstruction. A synthetic saturated outline wider than the existing local-donor radius reproduced
+the error. FEAT-030 E-030-FIX-014 adds same-image credible-paper recovery only for masked-pixel
+inpainting, retaining source bytes and exact outside-mask pixels; no credible source paper still
+fails closed. Renderer suite (49), typecheck/build and mobile checks pass, and the rebuilt static
+bundle is served with HTTP 200. A fresh emulator visual retest is pending because `adb` is not
+available in the current shell; no provider call or user image was used.

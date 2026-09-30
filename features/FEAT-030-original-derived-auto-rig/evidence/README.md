@@ -18,6 +18,7 @@
 | E-030-FIX-011 | High-pigment cutout edge artifacts; likely color contamination during inpainting, mask-vs-renderer attribution still unverified | Owner screenshot review and source inspection; no matching live source/mask logs | `notes/HEAVY_PIGMENT_CUTOUT_DIAGNOSIS_20260929.md` and `notes/INTEGRATED_MASK_AND_CUTOUT_QUALITY_20260929.md` | SYNTHETIC_IMPLEMENTATION_AND_OFFLINE_TESTS_PASS; REAL_DRAWING_AND_ANDROID_RETEST_PENDING |
 | E-030-SAM-QUALITY-012 | Decouple analytic mask fixtures from pytest; reproduce bounded-selector metrics and grounded thin-detail case | Synthetic-only benchmark and regression suite | `notes/SAM21_BENCHMARK_RUNABILITY_20260930.md` | PASS_SELECTOR_PLUMBING; REAL SAM/L4/HELD-OUT QUALITY PENDING |
 | E-030-FIX-013 | Reproduce and fix bounded local-donor failure on a dense saturated outline | Synthetic renderer regression, typecheck, bundle and mobile checks | `notes/PIXI_MASK_BACKGROUND_RECONSTRUCTION_FIX_20260930.md` | OFFLINE_PASS; ANDROID_VISUAL_ACCEPTANCE_PENDING |
+| E-030-FIX-014 | Recover when a high-pigment outline exceeds the local donor radius while preserving strict mask bounds | Backend artifact log review, synthetic 16px outline regression, renderer/mobile tests and served bundle probe | `notes/PIXI_MASK_BACKGROUND_RECONSTRUCTION_FIX_FOLLOWUP_20260930.md` | OFFLINE_PASS; FRESH_ANDROID_VISUAL_ACCEPTANCE_PENDING |
 
 ## Planned evidence groups
 

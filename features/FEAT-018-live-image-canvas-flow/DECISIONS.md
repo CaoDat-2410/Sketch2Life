@@ -241,3 +241,8 @@
   terminal typed failure reporting for both renderer contracts, and idempotent player cleanup;
   neither automatic retry nor implicit V1/whole-image fallback is permitted. See
   `plan/SUBJECT_RECALL_AND_PIXI_MAIN_FLOW_HARDENING_PLAN_20260930.md` and the implementation record.
+- 2026-09-30 Pixi cutout follow-up: successful source/package/mask HTTP reads do not prove that local
+  background reconstruction can seed every mask component. Under the already-approved cutout
+  quality scope, use credible same-image unmasked paper as a seed only when the nearby search has
+  none; preserve the verified mask and immutable source, and retain typed failure when no credible
+  paper exists. See FEAT-030 `E-030-FIX-014`; this does not add renderer V1 recovery.

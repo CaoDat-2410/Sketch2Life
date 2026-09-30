@@ -114,6 +114,11 @@ Pixi mask-background renderer regression:
 [synthetic local-donor fix](../../FEAT-030-original-derived-auto-rig/evidence/notes/PIXI_MASK_BACKGROUND_RECONSTRUCTION_FIX_20260930.md)
 (`E-030-FIX-013`; offline checks pass; Android visual acceptance pending).
 
+The repeated `MASK_BACKGROUND_RECONSTRUCTION_FAILED` follow-up and same-image paper-donor recovery
+are recorded in FEAT-030 [E-030-FIX-014](../../FEAT-030-original-derived-auto-rig/evidence/notes/PIXI_MASK_BACKGROUND_RECONSTRUCTION_FIX_FOLLOWUP_20260930.md).
+The backend delivered renderer artifacts successfully; renderer/mobile offline checks pass, while a
+fresh Android visual retest remains pending.
+
 Part-aware Pixi playback verification is recorded in FEAT-030:
 [Pixi part-motion restoration](../../FEAT-030-original-derived-auto-rig/evidence/notes/PIXI_PART_MOTION_RESTORATION_20260928.md)
 (`E-030-FIX-008`; synthetic/offline checks pass; Android visual and live SAM acceptance remain pending).

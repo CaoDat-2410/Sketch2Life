@@ -565,3 +565,11 @@ visual acceptance remains pending. See FEAT-030 `E-030-FIX-013` and the FEAT-018
 `evidence/notes/SUBJECT_RECALL_AND_PIXI_MAIN_FLOW_HARDENING_IMPLEMENTATION_20260930.md`. The approved subject
 and Pixi main-flow increment now has offline regression coverage; its fresh visual acceptance still
 requires a real backend rig/mask response and was not inferred from Metro bundle delivery.
+
+The owner then reported the same Pixi mask-background failure again. Backend reads for the page,
+source, package and four masks all returned HTTP 200. The 12-pixel local donor search had not covered
+the dense-outline case; FEAT-030 added a credible same-image paper seed for local-search misses,
+without changing pixels outside the verified mask or allowing automatic V1 recovery. Renderer (49
+tests), mobile and static-build checks pass. This shell cannot reload Android because `adb` is not
+available, so fresh visual playback remains pending. See the FEAT-018 Pixi diagnostic follow-up and
+FEAT-030 `E-030-FIX-014`.
