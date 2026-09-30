@@ -120,6 +120,7 @@ from sketch2life.contracts.schemas.renderer import (
     PixiRendererLaunchV1,
 )
 from sketch2life.contracts.schemas.renderer_v2 import PixiRendererLaunchV2
+from sketch2life.contracts.schemas.scene_exploration import SourceRegionV1
 from sketch2life.contracts.schemas.vision import VisionImageReferenceV1, vision_label_normalize
 from sketch2life.contracts.schemas.workflow_records import (
     FeedbackV1,
@@ -662,6 +663,7 @@ class SupervisedFlowService:
                         target_label=anchor.normalized_label,
                         target_confidence=anchor.confidence,
                         semantic_tags=anchor.semantic_tags,
+                        prompt_region=_region_hint_for_target(values, primary_id),
                     ).model_dump(mode="json", by_alias=True, exclude_none=True)
                 except Exception:
                     # Derived media preparation never invalidates the accepted Gate A choice.
@@ -2540,6 +2542,25 @@ class SupervisedFlowService:
 
 
 SelectableAnchorKind = Literal["subject", "action", "story"]
+
+
+def _region_hint_for_target(
+    values: Mapping[str, Any], target_id: str
+) -> SourceRegionV1 | None:
+    """Reuse an existing localized region only when it is keyed to this confirmed claim."""
+
+    for key in ("scene_focus_regions", "subject_regions"):
+        regions = values.get(key)
+        if not isinstance(regions, Mapping):
+            continue
+        candidate = regions.get(target_id)
+        if not isinstance(candidate, Mapping):
+            continue
+        try:
+            return SourceRegionV1.model_validate(candidate)
+        except ValidationError:
+            continue
+    return None
 
 
 def _selectable_claims(

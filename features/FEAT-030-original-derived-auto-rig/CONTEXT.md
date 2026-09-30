@@ -96,3 +96,21 @@ preserves outside pixels/source bytes, and fails closed if the unmasked image ha
 samples. Renderer tests (49), typecheck/build, mobile typecheck/UI-copy checks pass; backend served
 the rebuilt page/bundle with HTTP 200. Fresh Android visual acceptance remains pending because this
 shell has no accessible `adb`/Android SDK path. No provider call or image was used in the fix.
+
+## SAM 2.1 prompt-refinement follow-up — 2026-09-30
+
+- A new revision-1 plan was approved by the owner at 2026-09-30 23:17 Asia/Saigon; implementation
+  is implemented locally at
+  `plan/SAM21_PROMPT_REFINEMENT_FOLLOWUP_20260930.md`.
+- Existing multimask output/selection is already implemented. The reviewed gaps are target-grounded
+  positive/negative point generation and a bounded use of SAM's iterative mask input; prior
+  synthetic selector results also warn that thin-detail recall can fall without explicit anchors.
+- The proposal keeps SAM 2.1 and the current checkpoint path, excludes fine-tuning, and caps any
+  refinement at two extra predictions per source image. No fine-tuning or model call is included.
+- Local implementation now reuses a target-keyed normalized region when present, seeds SAM from
+  actual ink/paper evidence, filters part seeds against the accepted subject silhouette, and keeps
+  one iterative mask-input pass per subject and first eligible part. Candidate ranking uses SAM's
+  score with small prompt-fit, 8-connected-component, and source-boundary tie-breaks. Focused and
+  full backend tests, Ruff, and Python compilation pass. Real SAM/L4 quality and Android review are
+  still activation gates; see
+  `evidence/notes/SAM21_PROMPT_REFINEMENT_IMPLEMENTATION_20260930.md`.

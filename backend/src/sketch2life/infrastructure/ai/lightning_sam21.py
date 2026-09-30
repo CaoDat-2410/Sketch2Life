@@ -5,6 +5,7 @@ from __future__ import annotations
 import base64
 import hashlib
 from collections.abc import Callable
+from dataclasses import dataclass
 from typing import Any, Literal
 
 from pydantic import ValidationError
@@ -54,7 +55,19 @@ class LightningSam21SegmentationAdapter(SubjectSegmentationPort):
             content_type = _image_content_type(image)
             if content_type is None:
                 return None
-            prompt_region = request.prompt_region or propose_colored_component_region(image)
+            proposal = propose_colored_component_prompt(
+                image,
+                preferred_region=request.prompt_region,
+            )
+            prompt_region = request.prompt_region or proposal.prompt_region
+            positive_points = _merge_prompt_points(
+                request.positive_points,
+                proposal.positive_points,
+            )
+            negative_points = _merge_prompt_points(
+                request.negative_points,
+                proposal.negative_points,
+            )
             raw = self._transport.post_json(
                 self._endpoint_path,
                 {
@@ -68,8 +81,8 @@ class LightningSam21SegmentationAdapter(SubjectSegmentationPort):
                     "prompt_region": (
                         prompt_region.model_dump(mode="json") if prompt_region is not None else None
                     ),
-                    "positive_points": [{"x": x, "y": y} for x, y in request.positive_points],
-                    "negative_points": [{"x": x, "y": y} for x, y in request.negative_points],
+                    "positive_points": [{"x": x, "y": y} for x, y in positive_points],
+                    "negative_points": [{"x": x, "y": y} for x, y in negative_points],
                     "requested_part_roles": list(request.requested_part_roles),
                     "source_image": {
                         "artifact_ref": request.source_artifact_ref,
@@ -142,6 +155,134 @@ class LightningSam21SegmentationAdapter(SubjectSegmentationPort):
         return artifact_ref, artifact_sha256
 
 
+@dataclass(frozen=True, slots=True)
+class Sam21PromptProposal:
+    prompt_region: SourceRegionV1 | None
+    positive_points: tuple[tuple[float, float], ...] = ()
+    negative_points: tuple[tuple[float, float], ...] = ()
+
+
+def propose_colored_component_prompt(
+    image: bytes,
+    *,
+    preferred_region: SourceRegionV1 | None = None,
+    include_negative: bool = True,
+) -> Sam21PromptProposal:
+    """Derive conservative point prompts from ink and neutral paper in the source image.
+
+    Color/edge evidence only supplies SAM prompts. It never creates or edits a mask. An explicit
+    localized region takes precedence; otherwise the existing bounded largest-ink proposal is
+    used. A point is omitted when no sufficiently clear pixel exists.
+    """
+
+    region = preferred_region or propose_colored_component_region(image)
+    if region is None:
+        return Sam21PromptProposal(prompt_region=None)
+    try:
+        from io import BytesIO
+
+        from PIL import Image
+
+        with Image.open(BytesIO(image)) as source:
+            small = source.convert("RGB")
+            small.thumbnail((96, 96))
+            width, height = small.size
+            pixel_access = small.load()
+            pixels = [pixel_access[x, y] for y in range(height) for x in range(width)]
+    except (ImportError, OSError, ValueError):
+        return Sam21PromptProposal(prompt_region=region)
+
+    left = max(0, min(width, int(region.x * width)))
+    top = max(0, min(height, int(region.y * height)))
+    right = max(left + 1, min(width, int((region.x + region.width) * width + 0.999)))
+    bottom = max(top + 1, min(height, int((region.y + region.height) * height + 0.999)))
+    ink = [
+        (max(red, green, blue) - min(red, green, blue) >= 20 and min(red, green, blue) < 245)
+        or max(red, green, blue) < 95
+        for red, green, blue in pixels
+    ]
+
+    target_ink = [
+        (x, y)
+        for y in range(top, bottom)
+        for x in range(left, right)
+        if ink[y * width + x]
+    ]
+    positive_points: tuple[tuple[float, float], ...] = ()
+    if len(target_ink) >= 3:
+        center_x = sum(x for x, _ in target_ink) / len(target_ink)
+        center_y = sum(y for _, y in target_ink) / len(target_ink)
+        # Prefer a dense actual-ink core, not the often-empty geometric center of a box around a
+        # thin, asymmetric, or multi-part drawing.
+        best_core: tuple[int, float, int, int] | None = None
+        for x, y in target_ink:
+            density = sum(
+                ink[next_y * width + next_x]
+                for next_y in range(max(0, y - 2), min(height, y + 3))
+                for next_x in range(max(0, x - 2), min(width, x + 3))
+            )
+            if density < 3:
+                continue
+            candidate = (
+                density,
+                -((x - center_x) ** 2 + (y - center_y) ** 2),
+                -y,
+                -x,
+            )
+            if best_core is None or candidate > best_core:
+                best_core = candidate
+        if best_core is not None:
+            x, y = -best_core[3], -best_core[2]
+            positive_points = (((x + 0.5) / width, (y + 0.5) / height),)
+
+    # A negative point is allowed only on bright, low-chroma paper outside the localized box
+    # and away from every detected ink stroke. If no such point exists, do not guess.
+    margin = 3
+    region_center_x = (region.x + region.width / 2) * width
+    region_center_y = (region.y + region.height / 2) * height
+    best_negative: tuple[float, int, int] | None = None
+    if include_negative:
+        for y in range(0, height, 2):
+            for x in range(0, width, 2):
+                pixel_index = y * width + x
+                if ink[pixel_index]:
+                    continue
+                red, green, blue = pixels[pixel_index]
+                if max(red, green, blue) - min(red, green, blue) > 18:
+                    continue
+                if (red + green + blue) / 3 < 220:
+                    continue
+                if left - margin <= x < right + margin and top - margin <= y < bottom + margin:
+                    continue
+                if any(
+                    ink[next_y * width + next_x]
+                    for next_y in range(max(0, y - margin), min(height, y + margin + 1))
+                    for next_x in range(max(0, x - margin), min(width, x + margin + 1))
+                ):
+                    continue
+                distance = (x - region_center_x) ** 2 + (y - region_center_y) ** 2
+                candidate = (distance, y, x)
+                if best_negative is None or candidate > best_negative:
+                    best_negative = candidate
+    negative_points = (
+        (((best_negative[2] + 0.5) / width, (best_negative[1] + 0.5) / height),)
+        if best_negative is not None
+        else ()
+    )
+    return Sam21PromptProposal(region, positive_points, negative_points)
+
+
+def _merge_prompt_points(
+    supplied: tuple[tuple[float, float], ...],
+    proposed: tuple[tuple[float, float], ...],
+) -> tuple[tuple[float, float], ...]:
+    merged: list[tuple[float, float]] = []
+    for point in (*supplied, *proposed):
+        if point not in merged and len(merged) < 8:
+            merged.append(point)
+    return tuple(merged)
+
+
 def propose_colored_component_region(image: bytes) -> SourceRegionV1 | None:
     """Create a conservative SAM box from visible colored ink.
 
@@ -163,7 +304,8 @@ def propose_colored_component_region(image: bytes) -> SourceRegionV1 | None:
             small = source.convert("RGB")
             small.thumbnail((96, 96))
             width, height = small.size
-            pixels = list(small.getdata())
+            pixel_access = small.load()
+            pixels = [pixel_access[x, y] for y in range(height) for x in range(width)]
     except (OSError, ValueError):
         return None
     ink = [

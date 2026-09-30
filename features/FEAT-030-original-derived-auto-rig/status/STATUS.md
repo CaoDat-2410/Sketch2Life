@@ -19,3 +19,13 @@ Updated: 2026-09-30
   seeding for dense outlines, strictly within the verified mask. Renderer suite 49, typecheck/build,
   and mobile typecheck/UI-copy validation pass; rebuilt page/bundle return HTTP 200. Fresh Android
   visual acceptance remains pending. See `evidence/notes/PIXI_MASK_BACKGROUND_RECONSTRUCTION_FIX_FOLLOWUP_20260930.md`.
+
+- SAM 2.1 prompt/refinement follow-up plan revision 1 is owner-approved and implementation is in
+  locally implemented. It reuses current multimask selection, adds target-grounded point prompts,
+  connected-component/boundary tie-breaks, and one bounded mask-input refinement for at most one
+  subject plus one eligible part per source image. No fine-tuning or model call has been run.
+  Held-out quality review, L4 latency/VRAM measurement, and Android visual acceptance remain open.
+  See
+  `plan/SAM21_PROMPT_REFINEMENT_FOLLOWUP_20260930.md` and
+  `evidence/notes/SAM21_PROMPT_REFINEMENT_BASELINE_20260930.md` and
+  `evidence/notes/SAM21_PROMPT_REFINEMENT_IMPLEMENTATION_20260930.md`.

@@ -33,6 +33,10 @@ _BACKEND_SRC = _REPO_ROOT / "backend" / "src"
 if _BACKEND_SRC.is_dir() and str(_BACKEND_SRC) not in sys.path:
     sys.path.insert(0, str(_BACKEND_SRC))
 
+from sketch2life.contracts.schemas.activity_ranking import (
+    ActivityRankingRequestV1,
+    ActivityRankingResultV1,
+)
 from sketch2life.contracts.schemas.asr import (
     AsrErrorCode,
     AsrErrorDetail,
@@ -46,10 +50,6 @@ from sketch2life.contracts.schemas.asr import (
 from sketch2life.contracts.schemas.child_preference_classification import (
     ChildPreferenceClassificationRequestV1,
 )
-from sketch2life.contracts.schemas.activity_ranking import (
-    ActivityRankingRequestV1,
-    ActivityRankingResultV1,
-)
 from sketch2life.contracts.schemas.sam21 import (
     Sam21PointV1,
     Sam21SegmentationResponseV1,
@@ -62,10 +62,13 @@ from sketch2life.contracts.schemas.vision_v2 import (
     VisionUnderstandingSuccessV2,
     vision_profile_catalog_v2,
 )
+from sketch2life.infrastructure.ai.lightning_sam21 import (
+    propose_colored_component_prompt,
+)
+from sketch2life.infrastructure.ai.qwen_activity_ranker import QwenActivityRanker
 from sketch2life.infrastructure.ai.qwen_child_preference_classifier import (
     QwenChildPreferenceClassifier,
 )
-from sketch2life.infrastructure.ai.qwen_activity_ranker import QwenActivityRanker
 from sketch2life.infrastructure.ai.qwen_vision import (
     PersistentSubprocessQwenGenerationRunner,
     QwenDeviceUnavailableError,
@@ -757,25 +760,29 @@ def segment_rig_subject_v2(
             )
         ]
         part_roles = tuple(dict.fromkeys(payload.requested_part_roles))[:4]
-        part_prompt_regions = {
-            role: _sam21_part_prompt_region(role, payload.prompt_region)
-            for role in part_roles
-        }
+        part_prompt_regions: dict[str, SourceRegionV1] = {}
+        part_prompt_points: dict[str, tuple[tuple[float, float], ...]] = {}
+        for role in part_roles:
+            region = _sam21_part_prompt_region(role, payload.prompt_region)
+            if region is None:
+                continue
+            part_prompt_regions[role] = region
+            proposal = propose_colored_component_prompt(
+                image,
+                preferred_region=region,
+                include_negative=False,
+            )
+            # A geometric box center can be blank in an asymmetric drawing. Only provide a
+            # positive point when a visible ink pixel anchors that part region.
+            part_prompt_points[role] = proposal.positive_points
         prompts.extend(
             Sam21Prompt(
                 prompt_region=region,
-                positive_points=(
-                    (
-                        region.x + region.width / 2,
-                        region.y + region.height / 2,
-                    ),
-                ),
-                negative_points=tuple(
-                    (point.x, point.y) for point in payload.negative_points
-                ),
+                positive_points=part_prompt_points.get(role, ()),
+                negative_points=(),
+                refinement_group="part",
             )
-            for region in part_prompt_regions.values()
-            if region is not None
+            for role, region in part_prompt_regions.items()
         )
         # Qwen is kept resident to share one model load with preference classification. Do not
         # overlap its GPU generation with SAM2 model loading/inference on the single-L4 setup.

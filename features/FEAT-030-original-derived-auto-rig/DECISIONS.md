@@ -54,3 +54,20 @@ seeds reconstruction but never expands the verified mask or changes pixels outsi
 unmasked paper samples exist, the typed failure remains. Synthetic regression evidence is
 `E-030-FIX-014`; this is an implementation detail within the approved donor-quality scope, not a new
 model/provider or fallback-tier decision.
+
+## SAM 2.1 prompt-refinement decisions — owner-approved — 2026-09-30
+
+- Keep the current SAM 2.1 Hiera Small/checkpoint path; do not fine-tune, change models, or add a
+  checkpoint/dependency in this work.
+- Generate positive/negative prompts only from high-confidence target/part evidence; use color/edge
+  cues to propose or rank, never to silently synthesize or rewrite mask pixels.
+- Permit at most two extra SAM predictions per source image for one refinement round; no generic
+  retries, extra Qwen inference, concurrent GPU work, or relaxation of mask/fallback policy.
+- State: APPROVED under plan revision 1 by the owner's “ok, implement” on 2026-09-30. Plan:
+  `plan/SAM21_PROMPT_REFINEMENT_FOLLOWUP_20260930.md`. Approval hash/timestamp are recorded in
+  `approvals/TASK_APPROVAL.md`.
+- Implementation detail under that approval: only localized evidence keyed to the confirmed
+  target is reused; otherwise deterministic image-ink proposals are prompt-only. Background
+  negatives require neutral paper outside the target box. Part positive/correction seeds are
+  removed unless they lie inside the already accepted subject silhouette. Iterative correction is
+  limited to one subject and one part; it cannot alter the original or relax part-mask containment.

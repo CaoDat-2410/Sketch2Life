@@ -124,3 +124,25 @@
 - The owner reconfirmed the current exact artifact with “duyệt” at 2026-09-29 07:56:46 UTC;
   mismatch and scope-preservation details are recorded in FEAT-018's approval ledger.
 - Implement only within that exact scope; existing benchmark/model ADR gates remain mandatory.
+
+## SAM 2.1 prompt-refinement follow-up — APPROVED
+
+- State: APPROVED
+- Plan: `plan/SAM21_PROMPT_REFINEMENT_FOLLOWUP_20260930.md`
+- Plan revision: 1
+- Approved pre-implementation plan SHA-256: `79500D1A0634AC7C30C184C405048A6A30AC267ECE5CA5A39948F77CD1D8030E`
+- Post-implementation plan SHA-256 (status/evidence update; approved scope unchanged):
+  `9DB8F44BF750DC429F4D5A72EED1F43D50AB97917F797A094BEA707058FB08D6`
+- Approved at: 2026-09-30 23:17:06 Asia/Saigon (2026-09-30 16:17:06 UTC)
+- Approver/evidence: project owner replied “ok, implement” to this exact plan.
+- Requested scope: target-grounded positive/negative point generation, improved bounded candidate
+  scoring, one iterative mask-input refinement round with at most two additional SAM predictions
+  per source image, synthetic ground-truth evaluation, focused tests and FEAT-030 evidence.
+- Explicit exclusions: SAM 2 fine-tuning/training, checkpoint/dependency/model changes, SAM 3/3.1,
+  extra Qwen calls, retry loops, parallel GPU inference, mask-policy weakening, and real child
+  artwork in repository/evidence.
+- Approval boundary: implement only the plan's stated scope; live model activation remains behind
+  the existing FEAT-030 ADR and L4 benchmark gates.
+- Implementation status: locally implemented and repository-tested; reviewed held-out quality,
+  target L4 latency/VRAM, and Android visual acceptance remain pending. No model/provider request,
+  fine-tuning, dependency addition, or checkpoint download was performed.

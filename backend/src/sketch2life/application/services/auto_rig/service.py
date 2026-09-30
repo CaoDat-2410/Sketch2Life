@@ -88,6 +88,7 @@ class AutoRigService:
         target_label: str | None = None,
         target_confidence: float | None = None,
         semantic_tags: tuple[str, ...] = (),
+        prompt_region: SourceRegionV1 | None = None,
     ) -> AutoRigJobV1:
         """Register bounded preprocessing immediately after Gate A.
 
@@ -120,6 +121,7 @@ class AutoRigService:
                         target_label=target_label,
                         target_confidence=target_confidence,
                         semantic_tags=semantic_tags,
+                        prompt_region=prompt_region,
                         requested_part_roles=_requested_roles(
                             classify_archetype(target_label, semantic_tags)
                         ),
