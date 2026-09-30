@@ -11,6 +11,7 @@ from sketch2life.application.services.image_admission import Feat018ImageAdmissi
 from sketch2life.application.services.live_image_demo import LiveImageDemoService
 from sketch2life.application.services.p1_experience import P1ExperienceCompiler
 from sketch2life.application.services.pixi_topic_asset_candidates import load_topic_asset_catalog
+from sketch2life.application.services.story_video_job import StoryVideoJobService
 from sketch2life.application.services.supervised_flow import SupervisedFlowService
 from sketch2life.application.services.whiteboard_video_job import (
     UnconfiguredWhiteboardVideoPipeline,
@@ -25,6 +26,13 @@ from sketch2life.infrastructure.ai.lightning_client import (
     read_secret_file,
 )
 from sketch2life.infrastructure.ai.lightning_vision_v2 import LightningVisionV2Adapter
+from sketch2life.infrastructure.catalog.activity_semantics import load_activity_semantic_catalog
+from sketch2life.infrastructure.catalog.activity_semantics_v2 import (
+    load_activity_semantic_catalog_v2,
+)
+from sketch2life.infrastructure.catalog.p1_catalog import load_p1_template_library
+from sketch2life.infrastructure.catalog.workflow_metadata import FileWorkflowCatalogMetadata
+from sketch2life.infrastructure.config.settings import Settings, get_settings
 from sketch2life.infrastructure.media.whiteboard_pipeline_factory import (
     build_lightning_whiteboard_mvp_pipeline,
 )
@@ -33,13 +41,6 @@ from sketch2life.infrastructure.media.whiteboard_runtime import (
     FfmpegWhiteboardEncoder,
     WhiteboardLearningThreadScripts,
 )
-from sketch2life.infrastructure.catalog.activity_semantics import load_activity_semantic_catalog
-from sketch2life.infrastructure.catalog.activity_semantics_v2 import (
-    load_activity_semantic_catalog_v2,
-)
-from sketch2life.infrastructure.catalog.p1_catalog import load_p1_template_library
-from sketch2life.infrastructure.catalog.workflow_metadata import FileWorkflowCatalogMetadata
-from sketch2life.infrastructure.config.settings import Settings, get_settings
 from sketch2life.infrastructure.media_validation.av_image_decoder import AvImageDecoder
 from sketch2life.infrastructure.storage.in_memory import (
     InMemoryArtifactStore,
@@ -58,16 +59,17 @@ from sketch2life.interfaces.http.middleware.bounded_image_upload import (
 from sketch2life.interfaces.http.routers.health import router as health_router
 from sketch2life.interfaces.http.routers.images import router as images_router
 from sketch2life.interfaces.http.routers.sessions import router as sessions_router
+from sketch2life.interfaces.http.routers.story_video import router as story_video_router
 from sketch2life.interfaces.http.routers.supervised_flow import (
     renderer_source_router,
-)
-from sketch2life.interfaces.http.routers.whiteboard_video import router as whiteboard_video_router
-from sketch2life.interfaces.http.routers.whiteboard_storyboard import (
-    router as whiteboard_storyboard_router,
 )
 from sketch2life.interfaces.http.routers.supervised_flow import (
     router as supervised_flow_router,
 )
+from sketch2life.interfaces.http.routers.whiteboard_storyboard import (
+    router as whiteboard_storyboard_router,
+)
+from sketch2life.interfaces.http.routers.whiteboard_video import router as whiteboard_video_router
 
 _LOGGER = logging.getLogger("sketch2life.api")
 
@@ -79,6 +81,7 @@ def create_app(
     supervised_flow_service: SupervisedFlowService | None = None,
     whiteboard_video_job_service: WhiteboardVideoJobService | None = None,
     whiteboard_video_pipeline: WhiteboardVideoPipeline | None = None,
+    story_video_job_service: StoryVideoJobService | None = None,
 ) -> FastAPI:
     """Create the local image-only API composition root with ephemeral adapters."""
     application = FastAPI(
@@ -184,6 +187,7 @@ def create_app(
             pipeline=whiteboard_video_pipeline or UnconfiguredWhiteboardVideoPipeline()
         )
     application.state.whiteboard_video_job_service = whiteboard_video_job_service
+    application.state.story_video_job_service = story_video_job_service or StoryVideoJobService()
     application.include_router(health_router)
     application.include_router(sessions_router)
     application.include_router(images_router)
@@ -191,6 +195,7 @@ def create_app(
     application.include_router(renderer_source_router)
     application.include_router(whiteboard_video_router)
     application.include_router(whiteboard_storyboard_router)
+    application.include_router(story_video_router)
     renderer_dist = Path(__file__).resolve().parents[5] / "packages" / "art-renderer" / "dist-demo"
     if renderer_dist.is_dir():
         application.mount(

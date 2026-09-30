@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import base64
-from contextlib import nullcontext
 import hashlib
 import io
 import json
 import logging
 import os
 import re
+from contextlib import nullcontext
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
@@ -29,11 +29,11 @@ def _decode_source(payload: dict[str, Any]) -> tuple[bytes, Any, str]:
 
     source = payload.get("source_image")
     if not isinstance(source, dict):
-        raise ValueError("source_image is required")
+        raise TypeError("source_image is required")
     encoded = source.get("content_base64")
     expected_hash = source.get("sha256")
     if not isinstance(encoded, str) or not isinstance(expected_hash, str):
-        raise ValueError("source image payload is invalid")
+        raise TypeError("source image payload is invalid")
     try:
         data = base64.b64decode(encoded, validate=True)
         image = Image.open(io.BytesIO(data)).convert("RGB")
@@ -177,7 +177,7 @@ def segment(payload: dict[str, Any]) -> dict[str, Any]:
         if _cpu_fallback_enabled():
             buffer = io.BytesIO()
             Image.fromarray(
-                (_cpu_foreground_mask(image).astype("uint8") * 255)
+                _cpu_foreground_mask(image).astype("uint8") * 255
             ).save(buffer, format="PNG")
             return {
                 "source_hash": source_hash,
@@ -202,7 +202,7 @@ def segment(payload: dict[str, Any]) -> dict[str, Any]:
             masks, scores, _ = _sam_predictor.predict(box=np.asarray(box), multimask_output=True)
         mask = np.asarray(masks[int(np.argmax(scores))]).squeeze() > 0.5
         buffer = io.BytesIO()
-        Image.fromarray((mask.astype(np.uint8) * 255)).save(buffer, format="PNG")
+        Image.fromarray(mask.astype(np.uint8) * 255).save(buffer, format="PNG")
         return {
             "source_hash": source_hash,
             "masks": [{
@@ -213,6 +213,71 @@ def segment(payload: dict[str, Any]) -> dict[str, Any]:
     except (KeyError, TypeError, ValueError, OSError, RuntimeError) as error:
         _LOGGER.exception("whiteboard_segmentation_failed")
         raise HTTPException(status_code=422, detail="SEGMENTATION_FAILED") from error
+
+
+def _story_video_blocked(contract: str, error_code: str) -> dict[str, Any]:
+    """Return an honest typed result until the corresponding model is configured."""
+
+    if contract == "NarrationAssetV1":
+        return {
+            "contract": contract,
+            "version": "1.0",
+            "status": "BLOCKED",
+            "locale": "vi-VN",
+            "voice_model_ref": "unconfigured",
+            "segment_timing_seconds": [],
+            "error_code": error_code,
+        }
+    if contract == "IllustrationAssetV1":
+        return {
+            "contract": contract,
+            "version": "1.0",
+            "status": "BLOCKED",
+            "scene_id": "scene-1",
+            "source_image_ref": "unavailable",
+            "source_image_sha256": "0" * 64,
+            "model_profile_ref": "unconfigured",
+            "error_code": error_code,
+        }
+    if contract == "VideoSceneArtifactV1":
+        return {
+            "contract": contract,
+            "version": "1.0",
+            "status": "BLOCKED",
+            "scene_id": "scene-1",
+            "model_profile_ref": "wan2.2-ti2v-5b",
+            "error_code": error_code,
+        }
+    return {
+        "contract": "VideoArtifactV1",
+        "version": "1.0",
+        "status": "BLOCKED",
+        "error_code": error_code,
+    }
+
+
+@app.post("/v1/story-video/narration")
+def story_video_narration(payload: dict[str, Any]) -> dict[str, Any]:
+    del payload
+    return _story_video_blocked("NarrationAssetV1", "TTS_RUNTIME_NOT_CONFIGURED")
+
+
+@app.post("/v1/story-video/illustration")
+def story_video_illustration(payload: dict[str, Any]) -> dict[str, Any]:
+    del payload
+    return _story_video_blocked("IllustrationAssetV1", "IMAGE_RUNTIME_NOT_CONFIGURED")
+
+
+@app.post("/v1/story-video/scene")
+def story_video_scene(payload: dict[str, Any]) -> dict[str, Any]:
+    del payload
+    return _story_video_blocked("VideoSceneArtifactV1", "WAN_RUNTIME_NOT_CONFIGURED")
+
+
+@app.post("/v1/story-video/assembly")
+def story_video_assembly(payload: dict[str, Any]) -> dict[str, Any]:
+    del payload
+    return _story_video_blocked("VideoArtifactV1", "ASSEMBLY_RUNTIME_NOT_CONFIGURED")
 
 
 if __name__ == "__main__":
