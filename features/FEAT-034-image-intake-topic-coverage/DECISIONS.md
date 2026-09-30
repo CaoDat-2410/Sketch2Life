@@ -1,5 +1,11 @@
 # Feature decisions
 
+## Owner-approved preview/mask follow-ups (2026-09-30)
+
+- Subsequent owner choice supersedes initial full-list presentation only: show three ordered cards first, with “Xem thêm” for all remaining eligible cards. Backend catalog filtering/ranking and adult selection are preserved.
+- Invalid mask handling is fail-closed at worker selection and backend artifact admission. Keep renderer's 75% maximum; do not crop/truncate oversized masks or hide rejection by animating the whole drawing. Synthetic validation does not imply segmentation quality or external deployment success.
+- Local backend restarted after 65 passing focused tests. External worker deployment and a fresh session remain necessary. Owner subsequently requested commit/push of these follow-ups; unrelated feature edits and local runtime logs are excluded.
+
 ## Approved decisions — plan revision 1 (2026-09-30)
 
 1. Review and correct all 300 active catalog mappings/cards; first repair topic-to-concept aliases and contaminated tags before increasing catalog quantity.

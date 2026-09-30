@@ -812,6 +812,7 @@ export const ActivityRecommendScreen: React.FC<ScreenProps> = ({ onNavigate }) =
   } = useAppContext();
   const nav = onNavigate || navigate;
   const autoLoadKeyRef = useRef<string | null>(null);
+  const [showAllActivities, setShowAllActivities] = useState(false);
   const emptyActivityMessage = contextOptions?.empty_reason === 'TOPIC_UNMAPPED'
     ? 'Chủ đề này chưa được nối với hoạt động nào trong danh mục đã duyệt. Hãy quay lại kiểm tra chủ thể hoặc chọn một hướng khác.'
     : contextOptions?.empty_reason === 'NO_RELEVANT_ACTIVITY_FOR_AGE'
@@ -833,6 +834,15 @@ export const ActivityRecommendScreen: React.FC<ScreenProps> = ({ onNavigate }) =
       .includes(sessionState),
   );
   const autoLoadKey = `${sessionId || ''}:${selectedChild.id}:${selectedAgeMonths}:${selectedChildLearningProfile?.profile_recorded_at || ''}`;
+  useEffect(() => {
+    setShowAllActivities(false);
+  }, [autoLoadKey, sceneData.storyTitle]);
+  const visibleActivityCards = showAllActivities
+    ? activityRecommendationCards
+    : activityRecommendationCards.slice(0, 3);
+  const selectedOutsidePreview = selectedBackendActivity && !visibleActivityCards.some(
+    (card) => card.activity_id === selectedBackendActivity.activity_id,
+  );
   useEffect(() => {
     if (!activityFlowReady || hasPreparedActivity || contextOptions || workflowBusy || !sessionId) return;
     if (autoLoadKeyRef.current === autoLoadKey) return;
@@ -929,7 +939,7 @@ export const ActivityRecommendScreen: React.FC<ScreenProps> = ({ onNavigate }) =
         {activityRankingStatus === 'UNAVAILABLE' && (
           <Text style={styles.activityChoiceReason}>AI chưa xếp hạng được; danh sách đầy đủ vẫn dùng được.</Text>
         )}
-          {activityRecommendationCards.map((card) => {
+          {visibleActivityCards.map((card) => {
             const selected = selectedBackendActivity?.activity_id === card.activity_id;
           const aiRank = rankedActivityIds.indexOf(card.activity_id);
             return (
@@ -961,6 +971,21 @@ export const ActivityRecommendScreen: React.FC<ScreenProps> = ({ onNavigate }) =
               </TouchableOpacity>
             );
           })}
+          {!showAllActivities && activityRecommendationCards.length > 3 && (
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Xem thêm hoạt động phù hợp"
+              onPress={() => setShowAllActivities(true)}
+              style={{ padding: 14, alignItems: 'center' }}
+            >
+              <Text style={{ color: '#2563EB', fontWeight: '700' }}>
+                Xem thêm ({activityRecommendationCards.length - 3} hoạt động)
+              </Text>
+            </TouchableOpacity>
+          )}
+          {selectedOutsidePreview && (
+            <Text style={styles.activityChoiceReason}>Đang chọn: {selectedBackendActivity.title_vi}</Text>
+          )}
           <Kid3DButton
             title={hasPreparedActivity ? 'Xem hướng dẫn' : workflowBusy ? 'Đang chuẩn bị...' : 'Chọn hoạt động này'}
             color="green"

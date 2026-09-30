@@ -51,7 +51,9 @@ class Sam21RuntimeConfig:
     model_config: str
     device: str
     min_area_fraction: float = 0.002
-    max_area_fraction: float = 0.85
+    # Match the renderer's verified-cutout limit; choose another multimask candidate
+    # rather than exporting a mask that playback will necessarily reject.
+    max_area_fraction: float = 0.75
 
     @classmethod
     def from_env(cls, environ: dict[str, str] | None = None) -> Sam21RuntimeConfig:

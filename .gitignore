@@ -89,6 +89,7 @@ data/seeds/
 Thumbs.db
 
 # Runtime outputs
+runtime-output/
 tmp/
 output/
 data/runtime/

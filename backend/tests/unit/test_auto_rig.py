@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import base64
 import hashlib
 import json
 from datetime import UTC, datetime
@@ -34,9 +33,18 @@ from sketch2life.infrastructure.storage.in_memory_auto_rig_grants import (
 )
 from sketch2life.interfaces.http.routers.supervised_flow import renderer_source_router
 
-_TINY_PNG = base64.b64decode(
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+n7QAAAABJRU5ErkJggg=="
-)
+
+def _small_fixture_png(*, mask: bool) -> bytes:
+    image = Image.new("L" if mask else "RGB", (8, 8), 0 if mask else "white")
+    if mask:
+        ImageDraw.Draw(image).rectangle((3, 3, 4, 4), fill=255)
+    output = BytesIO()
+    image.save(output, format="PNG")
+    return output.getvalue()
+
+
+_TINY_PNG = _small_fixture_png(mask=True)
+_SOURCE_PNG = _small_fixture_png(mask=False)
 
 
 @pytest.mark.parametrize(
@@ -196,6 +204,7 @@ class _FixtureSegmenter:
 
 def test_part_metadata_without_renderer_mask_handoff_stays_at_cutout_tier() -> None:
     artifacts = InMemoryArtifactStore()
+    source = artifacts.put(session_id="session-1", content_type="image/png", body=_SOURCE_PNG)
     mask = artifacts.put(session_id="session-1", content_type="image/png", body=_TINY_PNG)
     service = AutoRigService(
         artifacts=artifacts,
@@ -207,8 +216,8 @@ def test_part_metadata_without_renderer_mask_handoff_stays_at_cutout_tier() -> N
     job = service.start_gate_a_preparation(
         session_id="session-1",
         request_id="request-1",
-        source_artifact_ref="artifact:source",
-        source_sha256="a" * 64,
+        source_artifact_ref=source.artifact_ref,
+        source_sha256=source.sha256,
         target_id="anchor-bird",
         target_label="con chim",
         target_confidence=0.94,
@@ -216,8 +225,8 @@ def test_part_metadata_without_renderer_mask_handoff_stays_at_cutout_tier() -> N
     )
     package, plan, *_ = service.prepare_template_package(
         session_id="session-1",
-        source_artifact_ref="artifact:source",
-        source_sha256="a" * 64,
+        source_artifact_ref=source.artifact_ref,
+        source_sha256=source.sha256,
         target_id="anchor-bird",
         target_label="con chim",
         target_confidence=0.94,
@@ -254,6 +263,40 @@ def _png_bytes(image: Image.Image) -> bytes:
     output = BytesIO()
     image.save(output, format="PNG")
     return output.getvalue()
+
+
+def test_oversized_subject_mask_never_gets_a_renderer_capability() -> None:
+    artifacts = InMemoryArtifactStore()
+    source = artifacts.put(session_id="session-invalid", content_type="image/png", body=_SOURCE_PNG)
+    invalid_mask = _png_bytes(Image.new("L", (8, 8), 255))
+    parent = artifacts.put(
+        session_id="session-invalid", content_type="image/png", body=invalid_mask
+    )
+    service = AutoRigService(
+        artifacts=artifacts,
+        grants=InMemoryRigPackageGrantStore(),
+        jobs=InMemoryJobStore(),
+        segmenter=_SubjectOnlySegmenter(parent.artifact_ref, parent.sha256),
+    )
+    job = service.start_gate_a_preparation(
+        session_id="session-invalid", request_id="request-invalid",
+        source_artifact_ref=source.artifact_ref, source_sha256=source.sha256,
+        target_id="butterfly", target_label="con bướm", target_confidence=0.9,
+    )
+    package, _plan, _cap, _expires, _sha, mask_cap, part_reads = service.prepare_template_package(
+        session_id="session-invalid", source_artifact_ref=source.artifact_ref,
+        source_sha256=source.sha256, target_id="butterfly", target_label="con bướm",
+        target_confidence=0.9, semantic_tags=(),
+        experience_spec_ref=VersionedRefV1(id="spec-invalid", version=1),
+        learning_bridge_vi="Cùng xem đôi cánh nhé.",
+    )
+    assert job.failure_code == "MASK_AREA_INVALID"
+    assert job.status != "SUCCEEDED"
+    assert mask_cap is None
+    assert part_reads == ()
+    assert package.parts == ()
+    assert package.derived_artifacts == ()
+    assert artifacts.get(source.artifact_ref)[1] == _SOURCE_PNG
 
 
 def test_subject_only_butterfly_mask_is_partitioned_and_promoted_with_part_capabilities() -> None:
@@ -318,6 +361,7 @@ def test_subject_only_butterfly_mask_is_partitioned_and_promoted_with_part_capab
 
 def test_successful_subject_only_mask_gets_separate_bounded_renderer_capability() -> None:
     artifacts = InMemoryArtifactStore()
+    source = artifacts.put(session_id="session-1", content_type="image/png", body=_SOURCE_PNG)
     mask = artifacts.put(session_id="session-1", content_type="image/png", body=_TINY_PNG)
     service = AutoRigService(
         artifacts=artifacts,
@@ -329,8 +373,8 @@ def test_successful_subject_only_mask_gets_separate_bounded_renderer_capability(
     job = service.start_gate_a_preparation(
         session_id="session-1",
         request_id="request-1",
-        source_artifact_ref="artifact:source",
-        source_sha256="a" * 64,
+        source_artifact_ref=source.artifact_ref,
+        source_sha256=source.sha256,
         target_id="anchor-butterfly",
         target_label="con bướm",
         target_confidence=0.94,
@@ -339,8 +383,8 @@ def test_successful_subject_only_mask_gets_separate_bounded_renderer_capability(
     package, plan, package_capability, package_expires_at, package_digest, mask_capability, _ = (
         service.prepare_template_package(
             session_id="session-1",
-            source_artifact_ref="artifact:source",
-            source_sha256="a" * 64,
+            source_artifact_ref=source.artifact_ref,
+            source_sha256=source.sha256,
             target_id="anchor-butterfly",
             target_label="con bướm",
             target_confidence=0.94,
@@ -361,7 +405,7 @@ def test_successful_subject_only_mask_gets_separate_bounded_renderer_capability(
         experienceSpecRef={"id": "spec-1", "version": 1},
         sourceReadEndpoint="/v1/renderer/source",
         sourceReadCapability="s" * 48,
-        sourceSha256="a" * 64,
+        sourceSha256=source.sha256,
         packageReadEndpoint="/v1/renderer/rig-package",
         packageReadCapability=package_capability,
         packageSha256=package_digest,

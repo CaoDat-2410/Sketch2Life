@@ -22,6 +22,7 @@ from sketch2life.application.ports.segmentation import (
     SubjectSegmentationResult,
 )
 from sketch2life.application.ports.session_storage import ArtifactStore, JobStore
+from sketch2life.application.services.auto_rig.mask_validation import subject_mask_rejection
 from sketch2life.application.services.auto_rig.part_masks import (
     derive_part_masks_from_subject_mask,
 )
@@ -99,6 +100,7 @@ class AutoRigService:
         if existing is not None:
             return existing
         now = self._aware_now()
+        mask_failure: str | None = None
         segmentation: SubjectSegmentationResult | None = None
         if (
             self._segmenter is not None
@@ -130,6 +132,14 @@ class AutoRigService:
             and source_artifact_ref is not None
             and source_sha256 is not None
         ):
+            mask_failure = self._subject_mask_failure(
+                session_id, source_artifact_ref, source_sha256, segmentation
+            )
+            if mask_failure is not None:
+                LOGGER.info("auto_rig_subject_mask_rejected reason=%s", mask_failure)
+                segmentation = replace(
+                    segmentation, mask_artifact_ref=None, mask_sha256=None, parts=()
+                )
             segmentation = self._ensure_part_masks(
                 session_id=session_id,
                 source_artifact_ref=source_artifact_ref,
@@ -165,6 +175,8 @@ class AutoRigService:
             failureCode=(
                 None
                 if succeeded
+                else mask_failure
+                if mask_failure is not None
                 else (
                     (
                         "SEGMENTATION_PART_MASKS_NOT_RENDERABLE"
@@ -236,6 +248,9 @@ class AutoRigService:
                 and candidate_mask[0].sha256 == prepared.mask_sha256
                 and candidate_mask[0].content_type == "image/png"
                 and candidate_mask[1].startswith(b"\x89PNG\r\n\x1a\n")
+                and self._subject_mask_failure(
+                    session_id, source_artifact_ref, source_sha256, prepared
+                ) is None
             ):
                 stored_mask = candidate_mask
                 # A mask is source-derived media, so its own digest is not expected to equal
@@ -443,6 +458,29 @@ class AutoRigService:
         ):
             raise AutoRigPackageUnavailable("rig package identity mismatch")
         return descriptor.content_type, body, descriptor.sha256
+
+    def _subject_mask_failure(
+        self,
+        session_id: str,
+        source_artifact_ref: str,
+        source_sha256: str,
+        segmentation: SubjectSegmentationResult,
+    ) -> str | None:
+        source = self._artifacts.get(source_artifact_ref)
+        mask = self._artifacts.get(segmentation.mask_artifact_ref or "")
+        if (
+            source is None
+            or source[0].session_id != session_id
+            or source[0].sha256 != source_sha256
+            or sha256(source[1]).hexdigest() != source_sha256
+            or mask is None
+            or mask[0].session_id != session_id
+            or mask[0].content_type != "image/png"
+            or mask[0].sha256 != segmentation.mask_sha256
+            or sha256(mask[1]).hexdigest() != segmentation.mask_sha256
+        ):
+            return "MASK_PROVENANCE_INVALID"
+        return subject_mask_rejection(source[1], mask[1])
 
     def _ensure_part_masks(
         self,

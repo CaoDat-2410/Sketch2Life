@@ -21,6 +21,58 @@ def _image_png() -> bytes:
     return output.getvalue()
 
 
+def test_multimask_selection_skips_renderer_incompatible_large_candidate() -> None:
+    numpy = pytest.importorskip("numpy")
+
+    class Predictor:
+        def set_image(self, _image: object) -> None:
+            pass
+
+        def predict(self, **kwargs: object) -> tuple[object, object, None]:
+            assert kwargs["multimask_output"] is True
+            oversized = numpy.zeros((40, 40), dtype=bool)
+            oversized[:33, :] = True  # 82.5%: formerly accepted, rejected by Pixi.
+            target = numpy.zeros((40, 40), dtype=bool)
+            target[10:30, 10:30] = True
+            return numpy.asarray([oversized, target]), numpy.asarray([0.99, 0.8]), None
+
+    runtime = Sam21ImageSegmenter(
+        Sam21RuntimeConfig(checkpoint=None, model_config="", device="cpu"),
+        predictor=Predictor(),
+    )
+    assert runtime.segment(
+        _image_png(),
+        prompt_region=SourceRegionV1(x=0, y=0, width=1, height=1),
+        positive_points=((0.5, 0.5),),
+        negative_points=(),
+    ).confidence == 0.8
+
+
+def test_only_oversized_mask_is_rejected_instead_of_exported() -> None:
+    numpy = pytest.importorskip("numpy")
+
+    class Predictor:
+        def set_image(self, _image: object) -> None:
+            pass
+
+        def predict(self, **kwargs: object) -> tuple[object, object, None]:
+            mask = numpy.zeros((40, 40), dtype=bool)
+            mask[:33, :] = True
+            return numpy.asarray([mask]), numpy.asarray([0.99]), None
+
+    runtime = Sam21ImageSegmenter(
+        Sam21RuntimeConfig(checkpoint=None, model_config="", device="cpu"),
+        predictor=Predictor(),
+    )
+    with pytest.raises(Sam21MaskRejectedError):
+        runtime.segment(
+            _image_png(),
+            prompt_region=SourceRegionV1(x=0, y=0, width=1, height=1),
+            positive_points=((0.5, 0.5),),
+            negative_points=(),
+        )
+
+
 def test_bad_part_prompt_does_not_discard_successful_subject_mask() -> None:
     numpy = pytest.importorskip("numpy")
 

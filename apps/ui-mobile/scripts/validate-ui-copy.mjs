@@ -59,14 +59,17 @@ const removedActivityGateCopy = [
 if (
   removedActivityGateCopy.some((copy) => flow2.includes(copy))
   || !flow2.includes('void prepareActivityWorkflow()')
-  || !flow2.includes('activityRecommendationCards.map')
+  || !flow2.includes('visibleActivityCards.map')
+  || !flow2.includes('activityRecommendationCards.slice(0, 3)')
+  || !flow2.includes('setShowAllActivities(true)')
+  || !flow2.includes('Xem thêm (')
   || !flow2.includes("onPress={() => nav('profile')}")
   || !appContext.includes('workflowApi.readActivitySuggestions(')
   || appContext.includes('readiness_ids: profile.readiness_ids ?? []')
   || appContext.includes('available_material_option_ids: profile.available_material_option_ids ?? []')
   || !flow2.includes('toàn bộ hoạt động đã duyệt, đúng chủ đề và độ tuổi')
 ) {
-  throw new Error('Activity entry must automatically show the complete topic/age list, without readiness/material filters or an intermediate checklist.');
+  throw new Error('Activity entry must show three cards with access to the complete eligible list, without readiness/material filters or an intermediate checklist.');
 }
 if (
   splitChildAgeMonths(35).years !== 2
