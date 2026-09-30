@@ -14,6 +14,10 @@ from uuid import uuid4
 
 from pydantic import TypeAdapter, ValidationError
 
+from sketch2life.application.ports.activity_ranker import (
+    ActivityRankerPort,
+    ActivityRankingUnavailable,
+)
 from sketch2life.application.ports.scene_localization import (
     SceneLocalizationPort,
     SceneLocalizationRequest,
@@ -49,6 +53,7 @@ from sketch2life.application.services.scene_exploration import (
 )
 from sketch2life.application.services.semantic_activity_resolver import (
     ActivityRecommendation,
+    confirmed_topic_scene,
     resolve_activity_options,
     resolve_activity_options_v2,
 )
@@ -58,6 +63,11 @@ from sketch2life.application.services.topic_semantics import (
     display_label_vi,
     enrich_anchor_set,
     semantic_tags_for_label,
+)
+from sketch2life.contracts.schemas.activity_ranking import (
+    ActivityRankingCandidateV1,
+    ActivityRankingRequestV1,
+    ActivityRankingResultV1,
 )
 from sketch2life.contracts.schemas.child_learning_profile import (
     ActivityContextCandidateSetV2,
@@ -75,7 +85,7 @@ from sketch2life.contracts.schemas.mobile_workflow import (
     ActivityRecommendationCardV1,
     ActivityRecommendationCardV2,
     ActivityRecommendationSetV1,
-    ActivityRecommendationSetV2,
+    ActivityRecommendationSetV3,
     MobileWorkflowCommandV1,
     MobileWorkflowResultV1,
     WorkflowResultProvenanceV1,
@@ -119,6 +129,12 @@ from sketch2life.contracts.schemas.workflow_records import (
 
 _RAW_RESULT_ADAPTER: TypeAdapter[RawUnderstandingResultV1] = TypeAdapter(RawUnderstandingResultV1)
 _LOGGER = logging.getLogger("sketch2life.supervised_flow")
+ActivityEmptyReason = Literal[
+    "TOPIC_UNMAPPED",
+    "NO_RELEVANT_ACTIVITY_FOR_AGE",
+    "RELEVANT_ACTIVITY_BLOCKED_BY_SAFETY_OR_ADULT_PRESENCE",
+    "CATALOG_CARD_NOT_DISPLAYABLE",
+]
 _FLOW_PROVENANCE = WorkflowResultProvenanceV1(
     producer="APPLICATION",
     component="feat018-supervised-flow",
@@ -250,7 +266,8 @@ def _complete_recommendation_set(
     age_months: int,
     anchor_label_vi: str,
     topic_label_vi: str,
-) -> ActivityRecommendationSetV2:
+    empty_reason: ActivityEmptyReason | None,
+) -> ActivityRecommendationSetV3:
     cards: list[ActivityRecommendationCardV2] = []
     for priority, option in enumerate(recommendation.options, start=1):
         display = metadata.recommendation_display(
@@ -295,7 +312,7 @@ def _complete_recommendation_set(
                 ),
             )
         )
-    return ActivityRecommendationSetV2(
+    return ActivityRecommendationSetV3(
         session_id=session_id,
         expected_session_version=session_version,
         age_months=age_months,
@@ -303,7 +320,70 @@ def _complete_recommendation_set(
         topic_label_vi=topic_label_vi,
         total_count=len(cards),
         options=tuple(cards),
+        empty_reason=empty_reason if not cards else None,
     )
+
+
+def _empty_activity_reason(
+    *,
+    anchor_set: SemanticAnchorSetV1,
+    narration_text: str,
+    age_months: int,
+    catalog: SemanticCatalogV2Port,
+    metadata: ActivityCatalogMetadataPort,
+    recommendation: ActivityRecommendation,
+    semantically_matched_ids: set[str],
+    displayable_ids: set[str],
+) -> ActivityEmptyReason:
+    scene = confirmed_topic_scene(anchor_set, narration_text=narration_text)
+    scene_concepts = {
+        concept.concept_id
+        for concept in (scene.primary_concept, *scene.secondary_concepts)
+        if concept.concept_id != "UNCLASSIFIED_SCENE"
+    }
+    profiles = tuple(catalog.profiles)
+    catalog_concepts = {
+        concept_id
+        for profile in profiles
+        for concept_id in (*profile.concept_ids, *profile.parent_concept_ids)
+    }
+    if not scene_concepts or not (scene_concepts & catalog_concepts):
+        return "TOPIC_UNMAPPED"
+
+    relevant_profiles = []
+    for profile in profiles:
+        if profile.review_status in {"BLOCKED", "DEPRECATED"}:
+            continue
+        match = catalog.match_scene(scene, profile)
+        if match is not None and match.match_mode != "AGE_BASELINE_FALLBACK":
+            relevant_profiles.append(profile)
+
+    age_band = (
+        "0-3"
+        if age_months < 36
+        else "3-6"
+        if age_months < 72
+        else "6-9"
+        if age_months < 108
+        else "9-12"
+    )
+    age_profiles = [profile for profile in relevant_profiles if profile.age_band == age_band]
+    if recommendation.excluded_by_profile:
+        return "RELEVANT_ACTIVITY_BLOCKED_BY_SAFETY_OR_ADULT_PRESENCE"
+    if age_profiles and all(
+        metadata.recommendation_display(profile.activity_id, profile.activity_version) is None
+        for profile in age_profiles
+    ):
+        return "CATALOG_CARD_NOT_DISPLAYABLE"
+    if not age_profiles and relevant_profiles:
+        return "NO_RELEVANT_ACTIVITY_FOR_AGE"
+    if semantically_matched_ids and not semantically_matched_ids & displayable_ids:
+        return "CATALOG_CARD_NOT_DISPLAYABLE"
+    if "STALE_TEMPLATE" in recommendation.rejected_reason_codes:
+        return "CATALOG_CARD_NOT_DISPLAYABLE"
+    if not relevant_profiles:
+        return "TOPIC_UNMAPPED"
+    return "NO_RELEVANT_ACTIVITY_FOR_AGE"
 
 
 class SupervisedFlowService:
@@ -322,6 +402,7 @@ class SupervisedFlowService:
         scene_localizer: SceneLocalizationPort | None = None,
         renderer_source_capability_issuer: Callable[..., tuple[str, datetime]] | None = None,
         auto_rig_service: AutoRigService | None = None,
+        activity_ranker: ActivityRankerPort | None = None,
         now: Callable[[], datetime] = lambda: datetime.now(UTC),
     ) -> None:
         self._sessions = sessions
@@ -334,6 +415,7 @@ class SupervisedFlowService:
         self._scene_localizer = scene_localizer
         self._renderer_source_capability_issuer = renderer_source_capability_issuer
         self._auto_rig_service = auto_rig_service
+        self._activity_ranker = activity_ranker
         self._now = now
         self._lock = RLock()
         self._media_resolver = LearningMediaResolver(InMemoryLearningMediaStore())
@@ -967,6 +1049,7 @@ class SupervisedFlowService:
         if not isinstance(anchor_value, dict):
             raise _workflow_error("GATE_A_REQUIRED", 409, "A confirmed image topic is required.")
         anchor_set = SemanticAnchorSetV1.model_validate(anchor_value)
+        narration_text = _narration_text(values.get("narration_result"))
         child_profile = ChildLearningProfileContextV1(
             profile_declared_by=request.child_profile.profile_declared_by,
             profile_recorded_at=request.child_profile.profile_recorded_at,
@@ -983,7 +1066,7 @@ class SupervisedFlowService:
             age_months=request.age_months,
             catalog=self._semantic_catalog_v2,
             compiler=self._compiler,
-            narration_text=_narration_text(values.get("narration_result")),
+            narration_text=narration_text,
             child_profile=child_profile,
             limit=None,
             require_authored_readiness=False,
@@ -1002,6 +1085,9 @@ class SupervisedFlowService:
                 option.activity_ref.id, option.activity_ref.version
             )
             is not None
+        }
+        semantically_matched_ids = {
+            option.activity_ref.id for option in recommendation.options
         }
         recommendation = replace(
             recommendation,
@@ -1042,6 +1128,20 @@ class SupervisedFlowService:
             if isinstance(stored_topic, str) and stored_topic.strip()
             else anchor_set.primary_anchor.normalized_label
         )
+        empty_reason = (
+            _empty_activity_reason(
+                anchor_set=anchor_set,
+                narration_text=narration_text,
+                age_months=request.age_months,
+                catalog=self._semantic_catalog_v2,
+                metadata=self._catalog_metadata,
+                recommendation=recommendation,
+                semantically_matched_ids=semantically_matched_ids,
+                displayable_ids=displayable_ids,
+            )
+            if not recommendation.options
+            else None
+        )
         suggestions = _complete_recommendation_set(
             recommendation=recommendation,
             metadata=self._catalog_metadata,
@@ -1050,6 +1150,7 @@ class SupervisedFlowService:
             age_months=request.age_months,
             anchor_label_vi=anchor_set.primary_anchor.normalized_label,
             topic_label_vi=topic_label,
+            empty_reason=empty_reason,
         )
         return MobileWorkflowResultV1(
             status="SUCCEEDED",
@@ -1059,6 +1160,76 @@ class SupervisedFlowService:
             observed_session_version=snapshot.version,
             provenance=_FLOW_PROVENANCE,
             payload=suggestions.model_dump(mode="json"),
+        )
+
+    def rank_p1_activity_suggestions(
+        self,
+        *,
+        session_id: str,
+        request_id: str,
+        expected_version: int,
+        actor_ref: str,
+        request: P1ActivitySuggestionsRequestV1,
+    ) -> MobileWorkflowResultV1:
+        """Recompute the eligible set on the backend, then rank IDs without changing membership."""
+
+        deterministic = self.read_p1_activity_suggestions(
+            session_id=session_id,
+            request_id=request_id,
+            expected_version=expected_version,
+            actor_ref=actor_ref,
+            request=request,
+        )
+        if deterministic.status != "SUCCEEDED" or deterministic.payload is None:
+            return deterministic
+        options = ActivityRecommendationSetV3.model_validate(deterministic.payload)
+        if not options.options:
+            ranked = ActivityRankingResultV1(request_id=request_id, ranked_activity_ids=())
+            return deterministic.model_copy(update={"payload": ranked.model_dump(mode="json")})
+        if self._activity_ranker is None:
+            raise _workflow_error(
+                "ACTIVITY_RANKING_UNAVAILABLE",
+                503,
+                "Danh sách hoạt động đã tải; AI chưa thể xếp hạng lúc này.",
+            )
+        assert self._semantic_catalog_v2 is not None
+        candidates = tuple(
+            ActivityRankingCandidateV1(
+                activity_id=card.activity_id,
+                title_vi=card.title_vi,
+                summary_vi=card.summary_vi,
+                match_reason_vi=card.match_reason_vi,
+                concept_ids=self._semantic_catalog_v2.profile_for(card.activity_id).concept_ids,
+                objective_ids=(
+                    self._semantic_catalog_v2.profile_for(card.activity_id).primary_objective_id,
+                    *self._semantic_catalog_v2.profile_for(card.activity_id).secondary_objective_ids,
+                ),
+            )
+            for card in options.options
+        )
+        rank_request = ActivityRankingRequestV1(
+            request_id=request_id,
+            topic_label_vi=options.topic_label_vi,
+            age_months=options.age_months,
+            confirmed_interest_ids=request.child_profile.interests,
+            confirmed_avoid_ids=request.child_profile.dislikes,
+            candidates=candidates,
+        )
+        try:
+            ranked = self._activity_ranker.rank(rank_request)
+        except ActivityRankingUnavailable:
+            raise
+        except Exception:
+            raise ActivityRankingUnavailable("ACTIVITY_RANKING_UNAVAILABLE", False) from None
+        eligible_ids = {item.activity_id for item in candidates}
+        if (
+            ranked.request_id != request_id
+            or len(ranked.ranked_activity_ids) != min(3, len(eligible_ids))
+            or not set(ranked.ranked_activity_ids) <= eligible_ids
+        ):
+            raise ActivityRankingUnavailable("ACTIVITY_RANKING_INVALID_RESULT", False)
+        return deterministic.model_copy(
+            update={"payload": ranked.model_dump(mode="json")}
         )
 
     def read_p1_context_candidates(

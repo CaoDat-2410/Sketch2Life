@@ -144,12 +144,14 @@ class FileWorkflowCatalogMetadata:
         duration = record.get("duration_minutes")
         if not isinstance(title_vi, str) or not isinstance(age, dict):
             return None
-        if not isinstance(safety, dict) or not isinstance(duration, dict):
+        if not isinstance(safety, dict):
             return None
         try:
             minimum_age = int(age["min"])
             maximum_age = int(age["max"])
-            duration_minutes = int(duration["min"])
+            duration_minutes = (
+                int(duration["min"]) if isinstance(duration, dict) else int(duration)
+            )
         except (KeyError, TypeError, ValueError):
             return None
         if minimum_age < 0 or maximum_age < minimum_age or duration_minutes < 1:

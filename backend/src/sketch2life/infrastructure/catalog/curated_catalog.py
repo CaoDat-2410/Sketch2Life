@@ -41,6 +41,7 @@ _INTERACTION_MODES: dict[str, str] = {
     "science": "OBSERVATION",
     "social_studies": "RESEARCH",
 }
+_SEMANTIC_MAPPING_OVERRIDES = "semantic-mapping-overrides.v1.json"
 
 
 @dataclass(frozen=True, slots=True)
@@ -197,11 +198,15 @@ def load_curated_catalog_v2(
     if requested_revision == "catalog-2026-09-expansion-1":
         raw_families = _restore_expansion_one_families(raw_families)
         overrides: dict[str, dict[str, Any]] = {}
+        semantic_overrides: dict[str, tuple[str, ...]] = {}
         effective_revision = requested_revision
     else:
         overrides, effective_revision = _load_variant_contract_overrides(
             directory, base_revision
         )
+        semantic_overrides, semantic_revision = _load_semantic_mapping_overrides(directory)
+        if semantic_revision:
+            effective_revision = semantic_revision
     variants: list[CuratedActivityVariant] = []
     family_ids: set[str] = set()
     activity_ids: set[str] = set()
@@ -210,7 +215,8 @@ def load_curated_catalog_v2(
         if family_id in family_ids:
             raise CuratedCatalogError(f"duplicate activity family: {family_id}")
         family_ids.add(family_id)
-        concept_ids = _required_tuple(family, "concept_ids")
+        family_concepts = _required_tuple(family, "concept_ids")
+        concept_ids = semantic_overrides.get(family_id, family_concepts)
         objective_key = (
             "allowed_objective_ids"
             if "allowed_objective_ids" in family
@@ -436,6 +442,12 @@ def load_curated_catalog_v2(
             "variant contract manifest contains unknown activities: "
             + ",".join(sorted(unknown_overrides))
         )
+    unknown_semantic_overrides = set(semantic_overrides) - family_ids
+    if unknown_semantic_overrides:
+        raise CuratedCatalogError(
+            "semantic mapping manifest contains unknown families: "
+            + ",".join(sorted(unknown_semantic_overrides))
+        )
     if len(family_ids) != 50:
         raise CuratedCatalogError(
             f"curated V2 catalog must contain 50 activity families, found {len(family_ids)}"
@@ -445,6 +457,45 @@ def load_curated_catalog_v2(
             f"curated V2 catalog must contain 200 variants, found {len(variants)}"
         )
     return CuratedCatalogV2(effective_revision, tuple(variants))
+
+
+def _load_semantic_mapping_overrides(
+    directory: Path,
+) -> tuple[dict[str, tuple[str, ...]], str | None]:
+    path = directory / _SEMANTIC_MAPPING_OVERRIDES
+    if not path.exists():
+        return {}, None
+    try:
+        document = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise CuratedCatalogError(f"cannot read semantic mapping overrides: {path}") from exc
+    if document.get("schema_version") != 1:
+        raise CuratedCatalogError("invalid semantic mapping overrides schema")
+    revision = document.get("catalog_revision")
+    families = document.get("families")
+    if not isinstance(revision, str) or not revision or not isinstance(families, list):
+        raise CuratedCatalogError("semantic mapping overrides are incomplete")
+    result: dict[str, tuple[str, ...]] = {}
+    for item in families:
+        if not isinstance(item, dict):
+            raise CuratedCatalogError("semantic mapping override must be an object")
+        family_id = item.get("family_id")
+        concepts = item.get("concept_ids")
+        rationale = item.get("rationale")
+        if (
+            not isinstance(family_id, str)
+            or not family_id.strip()
+            or family_id in result
+            or not isinstance(concepts, list)
+            or not concepts
+            or not all(isinstance(value, str) and value.strip() for value in concepts)
+            or len(set(concepts)) != len(concepts)
+            or not isinstance(rationale, str)
+            or not rationale.strip()
+        ):
+            raise CuratedCatalogError("semantic mapping override is invalid")
+        result[family_id] = tuple(value.strip() for value in concepts)
+    return result, revision
 
 
 def _restore_expansion_one_families(

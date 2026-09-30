@@ -17,10 +17,9 @@ import {
 import {
   createDemoApi,
   DemoApiError,
-  MAX_IMAGE_BYTES,
   type ActivityRecommendationCardV2,
   type ActivityContextCandidateSet,
-  type ActivityRecommendationSetV2,
+  type ActivityRecommendationSetV3,
   type P1ContextOptions,
   type ChildLearningProfileInput,
   type ChildPreferenceClassification,
@@ -28,18 +27,21 @@ import {
 } from '../demo/api';
 import {
   acquireSingleFlight,
-  normalizeSupportedImage,
   prepareNarration,
   releaseSingleFlight,
   type FeedbackObservationCode,
 } from './workflowSafety';
+import { imageIntakeErrorMessage, preparePickedImage } from './imageIntake';
 import { resetSessionBoundProfileAnswers } from '../demo/sessionProfileAnswers.mjs';
 
 export interface SelectedDrawing {
   uri: string;
+  uploadUri?: string;
   fileName: string;
   mimeType: string;
   fileSize?: number;
+  sourceMimeType?: string;
+  normalizationPolicy?: string;
 }
 
 export interface SelectedNarrationAudio {
@@ -162,11 +164,13 @@ interface AppContextType {
   activitiesList: MontessoriActivity[];
   selectedActivity: MontessoriActivity;
   setSelectedActivity: (activity: MontessoriActivity) => void;
-  contextOptions: ActivityRecommendationSetV2 | null;
+  contextOptions: ActivityRecommendationSetV3 | null;
   contextCandidates: ActivityContextCandidateSet | null;
   selectedBackendActivity: ActivityRecommendationCardV2 | null;
   activityRecommendation: P1ContextOptions['recommendation'] | null;
   activityRecommendationCards: ActivityRecommendationCardV2[];
+  rankedActivityIds: string[];
+  activityRankingStatus: 'IDLE' | 'PENDING' | 'COMPLETE' | 'UNAVAILABLE';
   selectBackendActivity: (activityId: string) => void;
   prepareActivityWorkflow: () => Promise<boolean>;
   approveActivity: () => Promise<boolean>;
@@ -440,6 +444,21 @@ function workflowFailure(result: WorkflowResult<Record<string, unknown>>, fallba
   const narration = asObject(payload.narration);
   const asr = asObject(narration.asr);
   const nestedCode = textValue(nestedFailure.code, textValue(asr.error_code));
+  const mediaReason = textValue(payload.reason, textValue(result.failure?.code, nestedCode));
+  const mediaMessages: Record<string, string> = {
+    FILE_BYTES_EXCEEDED: 'Ảnh vượt giới hạn 5 MB sau kiểm tra. Hãy chọn ảnh nhỏ hơn hoặc xuất lại ảnh.',
+    PIXEL_BUDGET_EXCEEDED: 'Ảnh có quá nhiều điểm ảnh. Hãy giảm kích thước rồi thử lại.',
+    LONGEST_EDGE_EXCEEDED: 'Cạnh dài của ảnh vượt giới hạn. Hãy giảm kích thước ảnh rồi thử lại.',
+    MULTIPLE_FRAMES: 'Ảnh động chưa được hỗ trợ. Hãy chọn một khung hình tĩnh.',
+    UNSUPPORTED_CONTAINER: 'Định dạng ảnh chưa được hỗ trợ. Hãy xuất ảnh tĩnh thành PNG hoặc JPEG.',
+    UNSUPPORTED_CODEC: 'Mã hóa ảnh chưa được hỗ trợ. Hãy xuất lại thành PNG hoặc JPEG.',
+    UNSUPPORTED_PIXEL_FORMAT: 'Kiểu màu của ảnh chưa được hỗ trợ. Hãy xuất lại thành PNG hoặc JPEG.',
+    NOT_AN_IMAGE: 'Tệp đã chọn không phải ảnh hợp lệ. Hãy chọn lại ảnh.',
+    CORRUPT_OR_TRUNCATED: 'Ảnh bị lỗi hoặc chưa tải đầy đủ. Hãy tải/lưu ảnh về máy rồi chọn lại.',
+    MISSING_SOURCE: 'Không đọc được ảnh đã chọn. Hãy chọn lại ảnh từ thư viện.',
+    DECODER_ERROR: 'Thiết bị không giải mã được ảnh. Hãy xuất lại thành PNG hoặc JPEG.',
+    INTERNAL_ERROR: 'Hệ thống chưa xử lý được ảnh này. Ảnh trước đó vẫn được giữ.',
+  };
   const filterResult = asObject(payload.filter_result);
   const fitEvaluation = asObject(payload.fit_evaluation);
   const gateB = asObject(payload.gate_b);
@@ -469,7 +488,7 @@ function workflowFailure(result: WorkflowResult<Record<string, unknown>>, fallba
             ? 'Phiên khám phá đã thay đổi. Hãy quay lại xác nhận chủ đề trước khi chọn hoạt động.'
       : '';
   return new DemoApiError(
-    safeReason || fallback,
+    safeReason || mediaMessages[mediaReason] || result.failure?.safe_message || fallback,
     textValue(result.failure?.code, nestedCode || 'WORKFLOW_BLOCKED'),
     409,
     result.failure?.retryable === true || nestedFailure.retryable === true,
@@ -608,6 +627,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setSelectedBackendActivity(null);
     setActivityRecommendation(null);
     setActivityRecommendationCards([]);
+    setRankedActivityIds([]);
+    setActivityRankingStatus('IDLE');
   };
   const setSelectedChild = (child: ChildProfile) => {
     setSelectedChildState(child);
@@ -657,6 +678,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setSelectedBackendActivity(null);
     setActivityRecommendation(null);
     setActivityRecommendationCards([]);
+    setRankedActivityIds([]);
+    setActivityRankingStatus('IDLE');
   };
   const classifySelectedChildPreferences = async (
     interestTextDraft?: string,
@@ -686,6 +709,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setSelectedBackendActivity(null);
     setActivityRecommendation(null);
     setActivityRecommendationCards([]);
+    setRankedActivityIds([]);
+    setActivityRankingStatus('IDLE');
   };
 
   // Drawing
@@ -1010,36 +1035,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
       if (result.canceled || !result.assets[0]) return false;
       const asset = result.assets[0];
-      if (asset.fileSize !== undefined && asset.fileSize > MAX_IMAGE_BYTES) {
-        setSelectedDrawing(null);
-        setDrawingImage('cat-drawing-sample');
-        setAdmission(null);
-        setWorkflowError('Ảnh vượt giới hạn demo 5 MB.');
-        return false;
-      }
-      const supportedImage = normalizeSupportedImage(asset.fileName, asset.mimeType);
-      if (!supportedImage) {
-        setSelectedDrawing(null);
-        setDrawingImage('cat-drawing-sample');
-        setAdmission(null);
-        setWorkflowError('Chỉ nhận ảnh PNG hoặc JPEG. Hãy chọn ảnh khác rồi thử lại.');
-        return false;
-      }
+      const prepared = await preparePickedImage(asset);
       const selected: SelectedDrawing = {
-        uri: asset.uri,
-        fileName: asset.fileName?.trim()
-          ? supportedImage.fileName
-          : `sketch-${Date.now()}.${supportedImage.mimeType === 'image/png' ? 'png' : 'jpg'}`,
-        mimeType: supportedImage.mimeType,
-        fileSize: asset.fileSize,
+        ...prepared,
       };
       setSelectedDrawing(selected);
       setDrawingImage(selected.uri);
       setAdmission(null);
       setWorkflowNotice('Đã chọn ảnh. Chỉ dùng ảnh tổng hợp/ảnh do người lớn tạo cho demo.');
       return true;
-    } catch {
-      setWorkflowError('Không mở được bộ chọn ảnh Android.');
+    } catch (error) {
+      const code = error && typeof error === 'object' && 'code' in error
+        ? String(error.code)
+        : 'IMAGE_PICKER_FAILED';
+      setWorkflowError(code === 'IMAGE_PICKER_FAILED'
+        ? 'Không mở được bộ chọn ảnh. Hãy thử lại; ảnh trước đó vẫn được giữ.'
+        : imageIntakeErrorMessage(code));
       return false;
     } finally {
       imagePickerLockRef.current = false;
@@ -1267,6 +1278,57 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  const requestActivityRankingInBackground = (
+    session: string,
+    version: number,
+    ageMonths: number,
+    profile: ChildLearningProfileInput,
+    cards: ActivityRecommendationCardV2[],
+  ) => {
+    if (!cards.length) {
+      setActivityRankingStatus('IDLE');
+      return;
+    }
+    const token = {};
+    activityRankingTokenRef.current = token;
+    setRankedActivityIds([]);
+    setActivityRankingStatus('PENDING');
+    void workflowApi.rankActivitySuggestions(session, version, ageMonths, profile)
+      .then((response) => {
+        if (activityRankingTokenRef.current !== token) return;
+        const result = response.payload;
+        const eligibleIds = new Set(cards.map((card) => card.activity_id));
+        const rankedIds = result?.ranked_activity_ids;
+        if (
+          response.status !== 'SUCCEEDED'
+          || !rankedIds
+          || rankedIds.length !== Math.min(3, cards.length)
+          || new Set(rankedIds).size !== rankedIds.length
+          || rankedIds.some((id) => !eligibleIds.has(id))
+        ) {
+          setActivityRankingStatus('UNAVAILABLE');
+          return;
+        }
+        const rankIndex = new Map(rankedIds.map((id, index) => [id, index]));
+        const ordered = [...cards].sort((left, right) => (
+          (rankIndex.get(left.activity_id) ?? Number.MAX_SAFE_INTEGER)
+          - (rankIndex.get(right.activity_id) ?? Number.MAX_SAFE_INTEGER)
+          || left.priority - right.priority
+        ));
+        setRankedActivityIds(rankedIds);
+        setActivityRecommendationCards(ordered.map((card, index) => ({
+          ...card,
+          priority: index + 1,
+        })));
+        setActivityRankingStatus('COMPLETE');
+      })
+      .catch(() => {
+        if (activityRankingTokenRef.current === token) {
+          setActivityRankingStatus('UNAVAILABLE');
+        }
+      });
+  };
+
   const prepareActivityWorkflow = async (): Promise<boolean> => {
     const hasPreparedActivity = Boolean(
       contextOptions
@@ -1312,7 +1374,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setSelectedBackendActivity(null);
         setActivityRecommendation(null);
         setActivityRecommendationCards(suggestions.options);
+        setRankedActivityIds([]);
         setWorkflowNotice('Đã tải toàn bộ hoạt động phù hợp chủ đề và độ tuổi. Sở thích đã xác nhận được dùng để sắp xếp danh sách.');
+        requestActivityRankingInBackground(
+          sessionId,
+          sessionVersion,
+          ageMonths,
+          profile,
+          suggestions.options,
+        );
         return false;
       }
 
@@ -1454,11 +1524,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Montessori Activities
   const [activitiesList, setActivitiesList] = useState<MontessoriActivity[]>(MOCK_ACTIVITIES);
   const [selectedActivity, setSelectedActivity] = useState<MontessoriActivity>(MOCK_ACTIVITIES[0]);
-  const [contextOptions, setContextOptions] = useState<ActivityRecommendationSetV2 | null>(null);
+  const [contextOptions, setContextOptions] = useState<ActivityRecommendationSetV3 | null>(null);
   const [contextCandidates, setContextCandidates] = useState<ActivityContextCandidateSet | null>(null);
   const [selectedBackendActivity, setSelectedBackendActivity] = useState<ActivityRecommendationCardV2 | null>(null);
   const [activityRecommendation, setActivityRecommendation] = useState<P1ContextOptions['recommendation'] | null>(null);
   const [activityRecommendationCards, setActivityRecommendationCards] = useState<ActivityRecommendationCardV2[]>([]);
+  const [rankedActivityIds, setRankedActivityIds] = useState<string[]>([]);
+  const [activityRankingStatus, setActivityRankingStatus] = useState<
+    'IDLE' | 'PENDING' | 'COMPLETE' | 'UNAVAILABLE'
+  >('IDLE');
+  const activityRankingTokenRef = useRef<object | null>(null);
+  useEffect(() => {
+    if (!contextOptions) {
+      activityRankingTokenRef.current = null;
+      setRankedActivityIds([]);
+      setActivityRankingStatus('IDLE');
+    }
+  }, [contextOptions]);
   const [rendererLaunch, setRendererLaunch] = useState<JsonObject | null>(null);
   const [pixiIntroStoryboard, setPixiIntroStoryboard] = useState<JsonObject | null>(null);
 
@@ -1646,6 +1728,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         selectedBackendActivity,
         activityRecommendation,
         activityRecommendationCards,
+        rankedActivityIds,
+        activityRankingStatus,
         selectBackendActivity,
         prepareActivityWorkflow,
         approveActivity,

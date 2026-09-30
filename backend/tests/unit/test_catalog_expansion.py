@@ -16,6 +16,7 @@ from sketch2life.infrastructure.catalog.activity_semantics_v2 import (
 )
 from sketch2life.infrastructure.catalog.curated_catalog import load_curated_catalog_v2
 from sketch2life.infrastructure.catalog.p1_catalog import load_p1_template_library
+from sketch2life.infrastructure.catalog.workflow_metadata import FileWorkflowCatalogMetadata
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -27,13 +28,35 @@ def test_expansion_is_opt_in_and_keeps_mvp_rollback() -> None:
         include_mvp=True,
         include_expansion=True,
     )
-
     assert len(baseline.templates) == 100
     assert len(expanded.templates) == 300
     assert {template.activity_ref.id for template in baseline.templates}.isdisjoint(
         template.activity_ref.id for template in expanded.templates[100:]
     )
 
+
+def test_every_mvp_and_expansion_activity_has_a_renderable_recommendation_card() -> None:
+    catalog = load_activity_semantic_catalog_v2(ROOT, include_expansion=True)
+    metadata = FileWorkflowCatalogMetadata(ROOT)
+    cards = [
+        metadata.recommendation_display(profile.activity_id, profile.activity_version)
+        for profile in catalog.profiles
+    ]
+
+    assert len(cards) == 300
+    assert all(card is not None for card in cards)
+    assert all(
+        isinstance(card["title_vi"], str)
+        and card["title_vi"].strip()
+        and isinstance(card["summary_vi"], str)
+        and card["summary_vi"].strip()
+        and isinstance(card["duration_minutes"], int)
+        and isinstance(card["age_label_vi"], str)
+        and isinstance(card["supervision_label_vi"], str)
+        for card in cards
+        if card is not None
+    )
+    assert metadata.recommendation_display("ACT-0001", 1)["duration_minutes"] == 10
 
 def test_legacy_readiness_tags_map_to_contract_ids_and_caregiver_is_a_safety_gate() -> None:
     library = load_p1_template_library(ROOT, include_mvp=True)
@@ -73,14 +96,17 @@ def test_curated_quality_gate_passes_against_baseline_plus_expansion() -> None:
     assert report.activity_family_count >= 60
 
 
-def test_post_filter_tiered_coverage_has_no_remaining_scoped_gaps() -> None:
+def test_post_filter_tiered_coverage_reports_real_animal_age_gap_after_tag_cleanup() -> None:
     expanded = load_activity_semantic_catalog_v2(ROOT, include_expansion=True)
 
     report = build_coverage_quality_report(expanded.profiles)
 
     assert report.selectable_variant_count == 300
-    assert report.covered_pair_ratio == 1.0
-    assert report.gaps == ()
+    assert report.covered_pair_ratio < 1.0
+    assert [
+        (gap.concept_id, gap.age_band, gap.candidate_count, gap.target_count)
+        for gap in report.gaps
+    ] == [("ANIMAL_GENERIC", "3-6", 4, 5)]
 
 
 def test_objective_age_coverage_has_two_candidates_per_age_band() -> None:
@@ -135,7 +161,7 @@ def test_revision_two_exposes_variant_objectives_butterfly_and_typed_duration() 
     curated = load_curated_catalog_v2(ROOT)
     by_id = curated.by_activity_id()
 
-    assert curated.catalog_revision == "catalog-2026-09-expansion-2"
+    assert curated.catalog_revision == "catalog-2026-09-expansion-3"
     assert {
         item.activity_id
         for item in curated.variants
@@ -148,6 +174,11 @@ def test_revision_two_exposes_variant_objectives_butterfly_and_typed_duration() 
     assert by_id["ACT-0123"].daily_observation_minutes == 5
     assert (by_id["ACT-0123"].min_days, by_id["ACT-0123"].max_days) == (3, 5)
     assert by_id["ACT-0123"].to_template().production_eligible is False
+    assert by_id["ACT-0101"].concept_ids == ("ANIMAL_GENERIC", "NATURE_OBSERVATION")
+    assert by_id["ACT-0105"].concept_ids == ("ANIMAL_GENERIC", "SCIENCE_NATURE")
+    assert by_id["ACT-0109"].concept_ids == ("ANIMAL_GENERIC", "ANIMAL_MOVEMENT")
+    assert by_id["ACT-0113"].concept_ids == ("ANIMAL_BUTTERFLY",)
+    assert by_id["ACT-0114"].concept_ids == ("ANIMAL_BUTTERFLY",)
 
 
 def test_expansion_one_rollback_revision_remains_loadable() -> None:

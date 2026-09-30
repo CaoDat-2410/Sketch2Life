@@ -46,6 +46,10 @@ from sketch2life.contracts.schemas.asr import (
 from sketch2life.contracts.schemas.child_preference_classification import (
     ChildPreferenceClassificationRequestV1,
 )
+from sketch2life.contracts.schemas.activity_ranking import (
+    ActivityRankingRequestV1,
+    ActivityRankingResultV1,
+)
 from sketch2life.contracts.schemas.sam21 import (
     Sam21PointV1,
     Sam21SegmentationResponseV1,
@@ -61,6 +65,7 @@ from sketch2life.contracts.schemas.vision_v2 import (
 from sketch2life.infrastructure.ai.qwen_child_preference_classifier import (
     QwenChildPreferenceClassifier,
 )
+from sketch2life.infrastructure.ai.qwen_activity_ranker import QwenActivityRanker
 from sketch2life.infrastructure.ai.qwen_vision import (
     PersistentSubprocessQwenGenerationRunner,
     QwenDeviceUnavailableError,
@@ -581,6 +586,47 @@ def classify_child_preferences_v2(
         )
         raise HTTPException(status_code=503, detail="preference classifier unavailable") from None
     logger.info("preference_classification_completed request_id=%s", payload.request_id)
+    return result.model_dump(mode="json")
+
+
+@app.post("/v2/p1/activity-rank", response_model=ActivityRankingResultV1)
+def rank_p1_activities_v2(
+    payload: ActivityRankingRequestV1,
+    authorization: str | None = Header(default=None),
+) -> dict[str, object]:
+    """Rank only bounded backend-supplied eligible IDs; return no generated activity text."""
+
+    _require_auth(authorization)
+    try:
+        runtime = QwenVisionRuntimeConfig.from_env(_vision_runtime_environment(os.environ))
+        ranker = QwenActivityRanker(runtime, generation_runner=_QWEN_GENERATION_RUNNER)
+        with _QWEN_MODEL_REQUEST_LOCK:
+            result = ranker.rank(payload)
+    except QwenTimeoutError:
+        logger.warning(
+            "activity_ranking_failed request_id=%s code=MODEL_RUNTIME_TIMEOUT",
+            payload.request_id,
+        )
+        raise HTTPException(status_code=504, detail="activity ranking timed out") from None
+    except (QwenModelLoadError, QwenDeviceUnavailableError):
+        logger.warning(
+            "activity_ranking_failed request_id=%s code=MODEL_UNAVAILABLE",
+            payload.request_id,
+        )
+        raise HTTPException(status_code=503, detail="activity ranking unavailable") from None
+    except (QwenPermanentRuntimeError, ValueError, TypeError, json.JSONDecodeError):
+        logger.warning(
+            "activity_ranking_failed request_id=%s code=MODEL_OUTPUT_INVALID",
+            payload.request_id,
+        )
+        raise HTTPException(status_code=502, detail="activity ranking failed") from None
+    except RuntimeError:
+        logger.warning(
+            "activity_ranking_failed request_id=%s code=MODEL_RUNTIME_FAILURE",
+            payload.request_id,
+        )
+        raise HTTPException(status_code=503, detail="activity ranking unavailable") from None
+    logger.info("activity_ranking_completed request_id=%s", payload.request_id)
     return result.model_dump(mode="json")
 
 

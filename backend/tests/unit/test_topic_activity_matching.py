@@ -299,6 +299,50 @@ def test_complete_discovery_returns_all_matches_without_readiness_or_material_an
     )
 
 
+def test_giraffe_subject_resolves_to_complete_general_animal_catalog_in_all_age_bands() -> None:
+    library = load_p1_template_library(ROOT, include_mvp=True, include_expansion=True)
+    compiler = P1ExperienceCompiler(library.templates, library.objective_titles_vi)
+    catalog = load_activity_semantic_catalog_v2(ROOT, include_expansion=True)
+
+    age_activity_ids = {
+        24: {"ACT-0101", "ACT-0105", "ACT-0109", "ACT-0117"},
+        48: {"ACT-0102", "ACT-0106", "ACT-0110", "ACT-0118"},
+        84: {"ACT-0103", "ACT-0107", "ACT-0111", "ACT-0119"},
+        120: {"ACT-0104", "ACT-0108", "ACT-0112", "ACT-0120"},
+    }
+    for label in ("hươu cao cổ", "giraffe"):
+        for age_months, expected_ids in age_activity_ids.items():
+            anchor = _anchor(label)
+            recommendation = resolve_activity_options_v2(
+                anchor_set=anchor,
+                age_months=age_months,
+                catalog=catalog,
+                compiler=compiler,
+                limit=None,
+                complete_discovery=True,
+                adult_participating=True,
+            )
+            activity_ids = {item.activity_ref.id for item in recommendation.options}
+
+            assert recommendation.options, (label, age_months)
+            assert expected_ids <= activity_ids
+            assert not {"ACT-0113", "ACT-0114", "ACT-0115", "ACT-0116"} & activity_ids
+            assert anchor.primary_anchor.normalized_label == label
+
+
+def test_mvp_concept_mapping_uses_word_boundaries_and_rejects_known_false_matches() -> None:
+    catalog = load_activity_semantic_catalog_v2(ROOT)
+    profiles = {item.activity_id: item for item in catalog.profiles}
+
+    assert "ANIMAL_GENERIC" not in profiles["ACT-0053"].concept_ids  # các lớp Trái Đất
+    assert "ANIMAL_GENERIC" not in profiles["ACT-0070"].concept_ids  # báo cáo nghiên cứu
+    assert "WATER_NATURE" not in profiles["ACT-0036"].concept_ids  # tháp hồng
+    assert "OBJECT_TRANSFER" not in profiles["ACT-0081"].concept_ids  # chuyển đổi số
+    assert "ANIMAL_GENERIC" not in profiles["ACT-0043"].concept_ids  # chữ cái
+    assert "ANIMAL_GENERIC" not in profiles["ACT-0044"].concept_ids  # chữ cái
+    assert all(not item.concept_ids[0].startswith("ACTIVITY_") for item in profiles.values())
+
+
 def test_context_shortlist_defers_relevance_ranking_until_after_adult_hard_gates() -> None:
     rows = [
         (0.99, 98, "ACT-Z", "T-Z", SimpleNamespace(activity_family_id="FAMILY-Z"), ()),

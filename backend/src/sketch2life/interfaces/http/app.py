@@ -9,6 +9,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+from sketch2life.application.ports.activity_ranker import ActivityRankerPort
 from sketch2life.application.ports.child_preference_classifier import (
     ChildPreferenceClassifierPort,
 )
@@ -26,6 +27,7 @@ from sketch2life.contracts.schemas.mobile_workflow import (
     WorkflowResultProvenanceV1,
 )
 from sketch2life.contracts.schemas.workflow_records import SessionSnapshotV1
+from sketch2life.infrastructure.ai.lightning_activity_ranker import LightningActivityRanker
 from sketch2life.infrastructure.ai.lightning_child_preference_classifier import (
     LightningChildPreferenceClassifier,
 )
@@ -112,6 +114,7 @@ def create_app(
     supervised_flow_service: SupervisedFlowService | None = None,
     auto_rig_service: AutoRigService | None = None,
     child_preference_classifier: ChildPreferenceClassifierPort | None = None,
+    activity_ranker: ActivityRankerPort | None = None,
 ) -> FastAPI:
     """Create the local image-only API composition root with ephemeral adapters."""
     application = FastAPI(
@@ -213,6 +216,8 @@ def create_app(
         settings = get_settings()
         if child_preference_classifier is None:
             child_preference_classifier = _configured_lightning_preference_classifier(settings)
+        if activity_ranker is None:
+            activity_ranker = _configured_lightning_activity_ranker(settings)
         if auto_rig_service is None:
             auto_rig_service = AutoRigService(
                 artifacts=artifacts,
@@ -297,12 +302,14 @@ def create_app(
                     else None
                 ),
                 auto_rig_service=auto_rig_service,
+                activity_ranker=activity_ranker,
             )
     application.state.session_service = session_service
     application.state.live_image_demo_service = live_image_demo_service
     application.state.supervised_flow_service = supervised_flow_service
     application.state.auto_rig_service = auto_rig_service
     application.state.child_preference_classifier = child_preference_classifier
+    application.state.activity_ranker = activity_ranker
     application.include_router(health_router)
     application.include_router(child_preferences_router)
     application.include_router(sessions_router)
@@ -339,6 +346,28 @@ def _configured_lightning_preference_classifier(
     except (OSError, ValueError):
         return None
     return LightningChildPreferenceClassifier(transport=transport)
+
+
+def _configured_lightning_activity_ranker(
+    settings: Settings,
+) -> LightningActivityRanker | None:
+    if (
+        settings.env == "test"
+        or settings.ai_provider != "lightning_dev"
+        or not settings.lightning_ai_base_url
+        or settings.lightning_ai_token_file is None
+    ):
+        return None
+    try:
+        token = read_secret_file(settings.lightning_ai_token_file)
+        transport = UrllibJsonTransport(
+            base_url=settings.lightning_ai_base_url,
+            token=token,
+            request_timeout_seconds=min(settings.ai_request_timeout_seconds, 30.0),
+        )
+    except (OSError, ValueError):
+        return None
+    return LightningActivityRanker(transport=transport)
 
 
 def _configured_lightning_vision(

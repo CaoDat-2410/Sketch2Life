@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import re
+import unicodedata
 from dataclasses import dataclass
 from hashlib import sha256
 
@@ -361,6 +363,20 @@ def resolve_activity_options_v2(
     )
 
 
+def confirmed_topic_scene(
+    anchor_set: SemanticAnchorSetV1,
+    *,
+    narration_text: str = "",
+) -> ConfirmedSceneUnderstandingV2:
+    """Build the same reviewed concept projection used by complete discovery."""
+
+    return _scene_from_anchor_set(
+        anchor_set,
+        narration_text=narration_text,
+        complete_discovery=True,
+    )
+
+
 def _select_activity_rows(
     rows: list[ActivityOptionRow],
     *,
@@ -538,37 +554,99 @@ def _concept_ids(
     *,
     complete_discovery: bool = False,
 ) -> tuple[str, ...]:
-    text = " ".join((label, *tags)).casefold()
+    text = unicodedata.normalize("NFC", " ".join((label, *tags)).casefold())
     result: list[str] = []
-    animal_topic = any(
-        token in text
-        for token in (
-            "bướm",
-            "butterfly",
-            "chim",
-            "bird",
-            "động vật",
-            "animal",
-            "con vật",
-        )
+
+    def has(*terms: str) -> bool:
+        return any(_contains_term(text, term) for term in terms)
+
+    butterfly_topic = has("bướm", "butterfly")
+    animal_topic = butterfly_topic or has(
+        "động vật",
+        "con vật",
+        "animal",
+        "mammal",
+        "hươu cao cổ",
+        "giraffe",
+        "hươu",
+        "nai",
+        "voi",
+        "elephant",
+        "sư tử",
+        "lion",
+        "hổ",
+        "tiger",
+        "ngựa vằn",
+        "zebra",
+        "ngựa",
+        "horse",
+        "khỉ",
+        "monkey",
+        "gấu",
+        "bear",
+        "thỏ",
+        "rabbit",
+        "chó",
+        "dog",
+        "mèo",
+        "cat",
+        "bò",
+        "cừu",
+        "dê",
+        "he-goat",
+        "chim",
+        "bird",
+        "bồ câu",
+        "pigeon",
+        "đại bàng",
+        "eagle",
+        "vịt",
+        "duck",
+        "gà",
+        "chicken",
+        "cá",
+        "fish",
+        "cá voi",
+        "whale",
+        "cá heo",
+        "dolphin",
+        "cá sấu",
+        "crocodile",
+        "rùa",
+        "turtle",
+        "rắn",
+        "snake",
+        "ếch",
+        "frog",
+        "côn trùng",
+        "insect",
+        "ong",
+        "bee",
+        "kiến",
+        "ant",
     )
-    if "bướm" in text or "butterfly" in text:
-        result.extend(("ANIMAL_BUTTERFLY", "ANIMAL_GENERIC", "ANIMAL_MOVEMENT"))
-    elif any(token in text for token in ("chim", "bird", "động vật", "animal", "con vật")):
+    if butterfly_topic:
+        result.extend(("ANIMAL_BUTTERFLY", "ANIMAL_GENERIC"))
+    elif animal_topic:
         result.extend(
             ("ANIMAL_GENERIC",)
             if complete_discovery
             else ("ANIMAL_GENERIC", "NATURE_OBSERVATION")
         )
-        if any(token in text for token in ("bay", "flying", "đậu", "perching", "chuyển động")):
+        if has("bay", "flying", "đậu", "perching", "chuyển động"):
             result.append("ANIMAL_MOVEMENT")
-    if any(token in text for token in ("hoa", "cây", "lá", "flower", "plant", "leaf")) and not (
+    if has("hoa", "cây", "lá", "flower", "plant", "leaf") and not (
         complete_discovery and animal_topic
     ):
         result.extend(("PLANT_STRUCTURE", "NATURE_OBSERVATION"))
-    if any(token in text for token in ("mặt trời", "sun", "ánh sáng")):
+    if has("mặt trời", "sun", "ánh sáng"):
         result.extend(("SUN_LIGHT", "SCIENCE_OBSERVATION"))
     return tuple(dict.fromkeys(result))
+
+
+def _contains_term(text: str, term: str) -> bool:
+    normalized = unicodedata.normalize("NFC", term.casefold().strip())
+    return bool(re.search(rf"(?<!\w){re.escape(normalized)}(?!\w)", text))
 
 
 def _complete_discovery_profile(
@@ -580,15 +658,7 @@ def _complete_discovery_profile(
     matching. These three catalog rows currently carry topic tags contradicted
     by their reviewed activity descriptions.
     """
-    topic_overrides = {
-        "ACT-0043": ("LANGUAGE_PRINT",),
-        "ACT-0044": ("LANGUAGE_PRINT",),
-        "ACT-0114": ("ANIMAL_BUTTERFLY", "NATURE_OBSERVATION"),
-    }
     update: dict[str, object] = {"exact_phrases_vi": (), "aliases_vi": ()}
-    concepts = topic_overrides.get(profile.activity_id)
-    if concepts is not None:
-        update["concept_ids"] = concepts
     return profile.model_copy(update=update)
 
 

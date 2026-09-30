@@ -799,6 +799,8 @@ export const ActivityRecommendScreen: React.FC<ScreenProps> = ({ onNavigate }) =
     selectedChildLearningProfile,
     selectedBackendActivity,
     activityRecommendationCards,
+    rankedActivityIds,
+    activityRankingStatus,
     selectBackendActivity,
     prepareActivityWorkflow,
     sessionState,
@@ -810,6 +812,15 @@ export const ActivityRecommendScreen: React.FC<ScreenProps> = ({ onNavigate }) =
   } = useAppContext();
   const nav = onNavigate || navigate;
   const autoLoadKeyRef = useRef<string | null>(null);
+  const emptyActivityMessage = contextOptions?.empty_reason === 'TOPIC_UNMAPPED'
+    ? 'Chủ đề này chưa được nối với hoạt động nào trong danh mục đã duyệt. Hãy quay lại kiểm tra chủ thể hoặc chọn một hướng khác.'
+    : contextOptions?.empty_reason === 'NO_RELEVANT_ACTIVITY_FOR_AGE'
+      ? 'Danh mục hiện chưa có hoạt động phù hợp với chủ đề này ở độ tuổi của bé. Hãy quay lại chọn hướng khác; bộ lọc tuổi vẫn được giữ.'
+      : contextOptions?.empty_reason === 'RELEVANT_ACTIVITY_BLOCKED_BY_SAFETY_OR_ADULT_PRESENCE'
+        ? 'Các hoạt động liên quan hiện không đáp ứng điều kiện an toàn hoặc người lớn đồng hành. Hãy kiểm tra lại điều kiện cùng bé.'
+        : contextOptions?.empty_reason === 'CATALOG_CARD_NOT_DISPLAYABLE'
+          ? 'Có hoạt động khớp chủ đề nhưng thông tin hiển thị trong danh mục chưa đầy đủ. Không có mục nào được chọn tự động; hãy thử lại sau.'
+          : 'Máy chủ chưa cung cấp lý do cho danh sách rỗng. Hãy thử tải lại hoặc quay lại chủ đề.';
   const hasPreparedActivity = Boolean(
     contextOptions
     && selectedBackendActivity
@@ -900,17 +911,27 @@ export const ActivityRecommendScreen: React.FC<ScreenProps> = ({ onNavigate }) =
       ) : activityRecommendationCards.length === 0 ? (
         <View style={styles.emptyActivityCard}>
           <Text style={styles.emptyActivityEmoji}>🌱</Text>
-          <Text style={styles.featuredActivityTitle}>Chưa tìm thấy hoạt động khớp chủ đề và độ tuổi</Text>
+          <Text style={styles.featuredActivityTitle}>Chưa có hoạt động để chọn</Text>
           <Text style={styles.featuredActivitySub}>
-            Hiện chưa có hoạt động đã duyệt phù hợp với chủ đề đã xác nhận và độ tuổi của bé. Hãy quay lại kiểm tra thông tin đó.
+            {emptyActivityMessage}
           </Text>
-          <Kid3DButton title="Quay lại hồ sơ bé" color="blue" size="sm" style={{ marginTop: 12 }} onPress={() => nav('profile')} />
+          <Kid3DButton title="Kiểm tra chủ đề khác" color="blue" size="sm" style={{ marginTop: 12 }} onPress={goBack} />
         </View>
       ) : (
         <View style={styles.activityChoiceList}>
           <Text style={styles.headingSubtitle}>{contextOptions.total_count} hoạt động phù hợp chủ đề và độ tuổi</Text>
+        {activityRankingStatus === 'PENDING' && (
+          <Text style={styles.activityChoiceReason}>AI đang chọn 3 gợi ý; bạn có thể chọn hoạt động ngay.</Text>
+        )}
+        {activityRankingStatus === 'COMPLETE' && (
+          <Text style={styles.activityChoiceReason}>AI đã làm nổi bật 3 gợi ý. Danh sách đầy đủ vẫn được giữ nguyên.</Text>
+        )}
+        {activityRankingStatus === 'UNAVAILABLE' && (
+          <Text style={styles.activityChoiceReason}>AI chưa xếp hạng được; danh sách đầy đủ vẫn dùng được.</Text>
+        )}
           {activityRecommendationCards.map((card) => {
             const selected = selectedBackendActivity?.activity_id === card.activity_id;
+          const aiRank = rankedActivityIds.indexOf(card.activity_id);
             return (
               <TouchableOpacity
                 key={card.activity_id}
@@ -921,7 +942,7 @@ export const ActivityRecommendScreen: React.FC<ScreenProps> = ({ onNavigate }) =
                 style={[styles.activityChoiceCard, selected && styles.activityChoiceCardSelected]}
               >
                 <View style={styles.activityPriorityBadge}>
-                  <Text style={styles.activityPriorityText}>{card.priority}</Text>
+                  <Text style={styles.activityPriorityText}>{aiRank >= 0 ? `AI ${aiRank + 1}` : card.priority}</Text>
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.activityChoiceTitle}>{card.title_vi}</Text>

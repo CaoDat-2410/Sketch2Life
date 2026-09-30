@@ -4,9 +4,12 @@ import { describe, expect, it } from 'vitest';
 import {
   acquireSingleFlight,
   FEEDBACK_OBSERVATIONS,
+  inspectImagePickerMetadata,
   normalizeSupportedImage,
   prepareNarration,
   releaseSingleFlight,
+  sourceImageExceedsDecodeBudget,
+  targetImageDimensions,
 } from '../src/context/workflowSafety.ts';
 
 describe('main-flow synchronous request guard', () => {
@@ -38,6 +41,27 @@ describe('drawing upload metadata', () => {
     [null, null],
   ])('fails closed for unsupported or conflicting metadata', (fileName, mimeType) => {
     expect(normalizeSupportedImage(fileName, mimeType)).toBeNull();
+  });
+});
+
+describe('bounded image intake metadata', () => {
+  it('recognizes allowed static formats and treats picker conflicts/animations explicitly', () => {
+    expect(inspectImagePickerMetadata('photo.HEIC', 'image/heic')).toMatchObject({
+      format: 'image/heic', metadataConflict: false, unsupportedAnimation: false,
+    });
+    expect(inspectImagePickerMetadata('drawing.png', 'image/jpeg').metadataConflict).toBe(true);
+    expect(inspectImagePickerMetadata('loop.gif', 'image/gif').unsupportedAnimation).toBe(true);
+    expect(inspectImagePickerMetadata('loop.apng', 'image/apng').unsupportedAnimation).toBe(true);
+  });
+
+  it('computes a bounded output size and rejects source dimensions before native decode', () => {
+    const target = targetImageDimensions(6000, 4000);
+    expect(target).not.toBeNull();
+    expect(target.width * target.height).toBeLessThanOrEqual(4_000_000);
+    expect(Math.max(target.width, target.height)).toBeLessThanOrEqual(4096);
+    expect(sourceImageExceedsDecodeBudget(6000, 4000)).toBe(false);
+    expect(sourceImageExceedsDecodeBudget(12_001, 1000)).toBe(true);
+    expect(sourceImageExceedsDecodeBudget(5000, 3000)).toBe(true);
   });
 });
 

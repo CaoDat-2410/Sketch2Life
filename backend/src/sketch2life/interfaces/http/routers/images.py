@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, File, Header, Request, UploadFile
+from fastapi import APIRouter, File, Form, Header, Request, UploadFile
 from fastapi.responses import JSONResponse
 
 from sketch2life.application.services.ephemeral_sessions import (
@@ -18,6 +18,7 @@ from sketch2life.contracts.schemas.mobile_workflow import (
 )
 
 _MAX_IMAGE_BYTES = 5_000_000
+_MAX_SOURCE_IMAGE_BYTES = 15_000_000
 _MAX_AUDIO_BYTES = 20_000_000
 
 router = APIRouter(prefix="/v1/sessions", tags=["image-demo"])
@@ -31,12 +32,18 @@ router = APIRouter(prefix="/v1/sessions", tags=["image-demo"])
 async def upload_image(
     session_id: str,
     request: Request,
-    image: Annotated[UploadFile, File(description="Single static JPEG or PNG; max 5 MB")],
+    image: Annotated[UploadFile, File(description="Normalized static JPEG or PNG; max 5 MB")],
     request_id: Annotated[str, Header(alias="X-Request-ID", min_length=1, max_length=120)],
     expected_session_version: Annotated[int, Header(alias="X-Expected-Session-Version", ge=0)],
     idempotency_key: Annotated[str, Header(alias="Idempotency-Key", min_length=1, max_length=200)],
     actor_ref: Annotated[str, Header(alias="X-Actor-Ref", min_length=1, max_length=160)],
     synthetic_non_child_confirmed: Annotated[bool, Header(alias="X-Synthetic-Non-Child-Confirmed")],
+    source_image: Annotated[
+        UploadFile | None,
+        File(description="Optional immutable original when client normalization was required"),
+    ] = None,
+    source_media_type: Annotated[str, Form(max_length=80)] = "application/octet-stream",
+    normalization_policy: Annotated[str, Form(max_length=80)] = "IDENTITY_V1",
 ) -> JSONResponse:
     service: LiveImageDemoService | None = request.app.state.live_image_demo_service
     if service is None:
@@ -53,6 +60,13 @@ async def upload_image(
         )
     body = await image.read(_MAX_IMAGE_BYTES + 1)
     await image.close()
+    source_body = (
+        await source_image.read(_MAX_SOURCE_IMAGE_BYTES + 1)
+        if source_image is not None
+        else None
+    )
+    if source_image is not None:
+        await source_image.close()
     try:
         result, replayed = service.upload_image(
             session_id=session_id,
@@ -63,6 +77,9 @@ async def upload_image(
             synthetic_non_child_confirmed=synthetic_non_child_confirmed,
             filename=image.filename or "image",
             body=body,
+            source_body=source_body,
+            source_media_type=source_media_type,
+            normalization_policy=normalization_policy,
         )
     except SessionWorkflowError as error:
         return _error_response(

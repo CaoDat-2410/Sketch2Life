@@ -58,7 +58,7 @@ from sketch2life.contracts.schemas.asr import (
     AsrSuccessV1,
     MediaValidationProvenanceV1,
 )
-from sketch2life.contracts.schemas.image_demo import ImageAdmissionReceiptV1
+from sketch2life.contracts.schemas.image_demo import ImageAdmissionReceiptV2
 from sketch2life.contracts.schemas.mobile_workflow import (
     MobileWorkflowCommandV1,
     MobileWorkflowResultV1,
@@ -86,6 +86,7 @@ from sketch2life.contracts.schemas.vision_v2 import (
 )
 
 _MAX_IMAGE_BYTES = 5_000_000
+_MAX_SOURCE_IMAGE_BYTES = 15_000_000
 _MAX_AUDIO_BYTES = 20_000_000
 _NARRATION_INPUT_ADAPTER: TypeAdapter[NarrationInputV1] = TypeAdapter(NarrationInputV1)
 _RAW_RESULT_ADAPTER: TypeAdapter[RawUnderstandingSuccessV1] = TypeAdapter(RawUnderstandingSuccessV1)
@@ -99,8 +100,8 @@ _VISION_VERSION = WorkflowResultProvenanceV1(
 _ADMISSION_VERSION = WorkflowResultProvenanceV1(
     producer="APPLICATION",
     component="feat018-image-admission",
-    component_version="1.0",
-    source_contracts=("Feat018ImageAdmission", "ImageAdmissionReceiptV1"),
+    component_version="2.0",
+    source_contracts=("Feat018ImageAdmission", "ImageAdmissionReceiptV2"),
 )
 _NARRATION_VERSION = WorkflowResultProvenanceV1(
     producer="APPLICATION",
@@ -160,6 +161,9 @@ class LiveImageDemoService:
         synthetic_non_child_confirmed: bool,
         filename: str,
         body: bytes,
+        source_body: bytes | None = None,
+        source_media_type: str = "application/octet-stream",
+        normalization_policy: str = "IDENTITY_V1",
     ) -> tuple[MobileWorkflowResultV1, bool]:
         if actor_ref != DEMO_ACTOR_REF:
             raise _workflow_error(
@@ -175,7 +179,15 @@ class LiveImageDemoService:
             raise _workflow_error("IMAGE_FILENAME_INVALID", 422, "Choose a valid image file.")
 
         fingerprint = sha256(
-            b"FEAT018_IMAGE_UPLOAD_V1\0" + body + b"\0synthetic-non-child-confirmed"
+            b"FEAT018_IMAGE_UPLOAD_V2\0"
+            + body
+            + b"\0"
+            + (source_body or b"")
+            + b"\0"
+            + source_media_type.encode("ascii", errors="ignore")
+            + b"\0"
+            + normalization_policy.encode("ascii", errors="ignore")
+            + b"\0synthetic-non-child-confirmed"
         ).hexdigest()
         scope = f"{session_id}:UPLOAD_IMAGE"
         with self._lock:
@@ -201,10 +213,76 @@ class LiveImageDemoService:
                     "Use the retake action before choosing another image.",
                 )
 
+            if source_body is not None and len(source_body) > _MAX_SOURCE_IMAGE_BYTES:
+                raise _workflow_error(
+                    "IMAGE_SOURCE_TOO_LARGE",
+                    413,
+                    "Ảnh gốc vượt giới hạn 15 MB. Hãy chọn ảnh nhỏ hơn.",
+                )
+            if normalization_policy not in {
+                "IDENTITY_V1",
+                "EXPO_IMAGE_MANIPULATOR_JPEG_V1",
+                "EXPO_IMAGE_MANIPULATOR_PNG_V1",
+            }:
+                raise _workflow_error(
+                    "IMAGE_NORMALIZATION_POLICY_UNSUPPORTED",
+                    422,
+                    "Không nhận diện được cách chuyển đổi ảnh. Hãy chọn lại ảnh gốc.",
+                )
+            if (normalization_policy == "IDENTITY_V1") != (source_body is None):
+                raise _workflow_error(
+                    "IMAGE_NORMALIZATION_PROVENANCE_INVALID",
+                    422,
+                    "Thiếu ảnh gốc hoặc thông tin chuyển đổi. Hãy chọn lại ảnh.",
+                )
+            source_snapshot = source_body if source_body is not None else body
+            detected_source_type, source_error = _inspect_uploaded_source(source_snapshot)
+            if source_error == "ANIMATED":
+                raise _workflow_error(
+                    "IMAGE_ANIMATED_UNSUPPORTED", 422,
+                    "Ảnh động chưa được hỗ trợ. Hãy chọn một khung hình tĩnh rồi thử lại.",
+                )
+            if detected_source_type is None:
+                raise _workflow_error(
+                    "IMAGE_UNSUPPORTED_FORMAT", 415,
+                    "Định dạng ảnh này chưa được hỗ trợ. Hãy xuất ảnh tĩnh thành PNG hoặc JPEG.",
+                )
+            declared_source_type = _canonical_source_type(source_media_type)
+            if declared_source_type is not None and not _source_types_compatible(
+                declared_source_type, detected_source_type
+            ):
+                raise _workflow_error(
+                    "IMAGE_METADATA_CONFLICT",
+                    422,
+                    "Thông tin định dạng không khớp với nội dung ảnh. "
+                    "Hãy xuất PNG/JPEG rồi chọn lại.",
+                )
+            if normalization_policy == "IDENTITY_V1" and detected_source_type not in {
+                "image/jpeg", "image/png"
+            }:
+                raise _workflow_error(
+                    "IMAGE_NORMALIZATION_REQUIRED", 422,
+                    "Ảnh cần được chuyển đổi trước khi xử lý. Hãy cập nhật ứng dụng rồi thử lại.",
+                )
+            derived_type = _sniff_content_type(body)
+            expected_derived_type = (
+                "image/jpeg"
+                if normalization_policy.endswith("JPEG_V1")
+                else "image/png"
+                if normalization_policy.endswith("PNG_V1")
+                else detected_source_type
+            )
+            if derived_type is None or derived_type != expected_derived_type:
+                raise _workflow_error(
+                    "IMAGE_NORMALIZATION_OUTPUT_INVALID", 422,
+                    "Ảnh sau chuyển đổi không đúng định dạng an toàn. Hãy chọn lại ảnh.",
+                )
+
             admission_result = self._admit(body)
             admitted = admission_result.decision.outcome.value == "ADMITTED"
             source_ref: VisionImageReferenceV1 | None = None
-            content_type = _sniff_content_type(body)
+            original_ref: VisionImageReferenceV1 | None = None
+            content_type = derived_type
             if admitted:
                 if content_type is None or admission_result.source is None:
                     raise _workflow_error(
@@ -212,12 +290,24 @@ class LiveImageDemoService:
                         500,
                         "Image admission could not be verified.",
                     )
-                stored = self._artifacts.put(
+                source_stored = self._artifacts.put(
                     session_id=session_id,
-                    content_type=content_type,
-                    body=body,
+                    content_type=detected_source_type,
+                    body=source_snapshot,
                 )
-                if stored.sha256 != admission_result.source.sha256:
+                stored = (
+                    self._artifacts.put(
+                        session_id=session_id,
+                        content_type=content_type,
+                        body=body,
+                    )
+                    if source_body is not None
+                    else source_stored
+                )
+                if (
+                    stored.sha256 != admission_result.source.sha256
+                    or source_stored.sha256 != sha256(source_snapshot).hexdigest()
+                ):
                     self._artifacts.delete_session(session_id)
                     raise _workflow_error(
                         "IMAGE_HASH_MISMATCH", 500, "The uploaded image failed its integrity check."
@@ -226,8 +316,12 @@ class LiveImageDemoService:
                     artifact_ref=stored.artifact_ref,
                     sha256=stored.sha256,
                 )
+                original_ref = VisionImageReferenceV1(
+                    artifact_ref=source_stored.artifact_ref,
+                    sha256=source_stored.sha256,
+                )
 
-            receipt = ImageAdmissionReceiptV1(
+            receipt = ImageAdmissionReceiptV2(
                 session_id=session_id,
                 decision="ADMITTED" if admitted else "RECAPTURE",
                 outcome=admission_result.decision.outcome.value,
@@ -235,6 +329,17 @@ class LiveImageDemoService:
                     admission_result.decision.reason.value
                     if admission_result.decision.reason is not None
                     else None
+                ),
+                original_image_ref=original_ref,
+                source_content_type=detected_source_type,
+                source_byte_length=len(source_snapshot),
+                normalization_policy=cast(
+                    Literal[
+                        "IDENTITY_V1",
+                        "EXPO_IMAGE_MANIPULATOR_JPEG_V1",
+                        "EXPO_IMAGE_MANIPULATOR_PNG_V1",
+                    ],
+                    normalization_policy,
                 ),
                 source_image_ref=source_ref,
                 content_type=content_type if admitted else None,
@@ -253,7 +358,7 @@ class LiveImageDemoService:
             )
             evidence_body = json.dumps(
                 {
-                    "contract_name": "Feat018ImageAdmissionEvidenceV1",
+                    "contract_name": "Feat018ImageAdmissionEvidenceV2",
                     "policy_version": _ADMISSION_POLICY_VERSION,
                     "receipt": receipt.model_dump(mode="json"),
                 },
@@ -280,6 +385,20 @@ class LiveImageDemoService:
                     "source_image_ref": (
                         source_ref.model_dump(mode="json") if source_ref is not None else None
                     ),
+                    "image_derivation_provenance": {
+                        "contract_name": "ImageAdmissionReceiptV2",
+                        "original_image_ref": (
+                            original_ref.model_dump(mode="json")
+                            if original_ref is not None
+                            else None
+                        ),
+                        "normalized_image_ref": (
+                            source_ref.model_dump(mode="json") if source_ref is not None else None
+                        ),
+                        "source_content_type": detected_source_type,
+                        "source_byte_length": len(source_snapshot),
+                        "normalization_policy": normalization_policy,
+                    },
                     "media_validation": validation.model_dump(mode="json"),
                     "narration_audio_ref": None,
                     "narration_result": None,
@@ -1643,6 +1762,79 @@ def _sniff_content_type(body: bytes) -> Literal["image/jpeg", "image/png"] | Non
     if body.startswith(b"\xff\xd8\xff"):
         return "image/jpeg"
     return None
+
+
+SourceImageContentType = Literal[
+    "image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"
+]
+
+_SOURCE_IMAGE_TYPES = frozenset(
+    {"image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"}
+)
+
+
+def _canonical_source_type(value: str) -> str | None:
+    normalized = value.split(";", 1)[0].strip().lower()
+    if normalized == "image/jpg":
+        return "image/jpeg"
+    return normalized if normalized in _SOURCE_IMAGE_TYPES else None
+
+
+def _source_types_compatible(declared: str, detected: str) -> bool:
+    return declared == detected or {declared, detected} <= {"image/heic", "image/heif"}
+
+
+def _inspect_uploaded_source(
+    body: bytes,
+) -> tuple[SourceImageContentType | None, str | None]:
+    """Identify only bounded still-image containers; never trust picker name/MIME alone."""
+
+    if body.startswith(b"\xff\xd8\xff"):
+        return "image/jpeg", None
+    if body.startswith(b"\x89PNG\r\n\x1a\n"):
+        offset = 8
+        while offset + 12 <= len(body):
+            chunk_length = int.from_bytes(body[offset : offset + 4], "big")
+            chunk_type = body[offset + 4 : offset + 8]
+            chunk_end = offset + 12 + chunk_length
+            if chunk_end > len(body):
+                return "image/png", "CORRUPT"
+            if chunk_type == b"acTL":
+                return "image/png", "ANIMATED"
+            if chunk_type == b"IEND":
+                return "image/png", None
+            offset = chunk_end
+        return "image/png", "CORRUPT"
+    if len(body) >= 12 and body.startswith(b"RIFF") and body[8:12] == b"WEBP":
+        declared_end = int.from_bytes(body[4:8], "little") + 8
+        if declared_end > len(body) or declared_end < 12:
+            return "image/webp", "CORRUPT"
+        offset = 12
+        while offset + 8 <= declared_end:
+            chunk_type = body[offset : offset + 4]
+            chunk_length = int.from_bytes(body[offset + 4 : offset + 8], "little")
+            chunk_end = offset + 8 + chunk_length
+            if chunk_end > declared_end:
+                return "image/webp", "CORRUPT"
+            if chunk_type in {b"ANIM", b"ANMF"}:
+                return "image/webp", "ANIMATED"
+            offset = chunk_end + (chunk_length & 1)
+        return "image/webp", None
+    if len(body) >= 16 and body[4:8] == b"ftyp":
+        box_size = int.from_bytes(body[:4], "big")
+        if box_size < 16 or box_size > len(body) or box_size % 4 != 0:
+            return None, "CORRUPT"
+        brands = {body[8:12]}
+        brands.update(body[offset : offset + 4] for offset in range(16, box_size, 4))
+        if brands & {b"hevc", b"hevx", b"msf1"}:
+            return None, "ANIMATED"
+        if brands & {b"heic", b"heix"}:
+            return "image/heic", None
+        if b"heif" in brands:
+            return "image/heif", None
+        if b"mif1" in brands:
+            return "image/heif", None
+    return None, None
 
 
 def _sniff_audio_content_type(

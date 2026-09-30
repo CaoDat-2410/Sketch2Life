@@ -150,6 +150,41 @@ class ActivityRecommendationSetV2(BaseModel):
         return self
 
 
+class ActivityRecommendationSetV3(BaseModel):
+    """Full eligible list plus an explicit diagnosis when the list is empty."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    contract_name: Literal["ActivityRecommendationSetV3"] = "ActivityRecommendationSetV3"
+    contract_version: Literal["3.0"] = "3.0"
+    session_id: str = Field(min_length=1, max_length=120)
+    expected_session_version: int = Field(ge=1)
+    age_months: int = Field(ge=0, le=155)
+    confirmed_anchor_label: str = Field(min_length=1, max_length=200)
+    topic_label_vi: str = Field(min_length=1, max_length=240)
+    total_count: int = Field(ge=0)
+    options: tuple[ActivityRecommendationCardV2, ...]
+    empty_reason: Literal[
+        "TOPIC_UNMAPPED",
+        "NO_RELEVANT_ACTIVITY_FOR_AGE",
+        "RELEVANT_ACTIVITY_BLOCKED_BY_SAFETY_OR_ADULT_PRESENCE",
+        "CATALOG_CARD_NOT_DISPLAYABLE",
+    ] | None = None
+
+    @model_validator(mode="after")
+    def validate_complete_ordered_set(self) -> ActivityRecommendationSetV3:
+        if self.total_count != len(self.options):
+            raise ValueError("total_count must equal the complete option count")
+        activity_ids = [option.activity_id for option in self.options]
+        if len(activity_ids) != len(set(activity_ids)):
+            raise ValueError("activity suggestion IDs must be unique")
+        if [option.priority for option in self.options] != list(range(1, len(self.options) + 1)):
+            raise ValueError("activity priority must enumerate the complete ordered set")
+        if (self.total_count == 0) != (self.empty_reason is not None):
+            raise ValueError("empty_reason is required exactly when the option list is empty")
+        return self
+
+
 class MobileWorkflowResultV1(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 

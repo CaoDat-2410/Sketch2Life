@@ -24,18 +24,21 @@ import {
   API_BASE_URL,
   createDemoApi,
   DemoApiError,
-  MAX_IMAGE_BYTES,
   type P1ContextOption,
   type P1ContextOptions,
   type WorkflowResult,
 } from './api';
+import { imageIntakeErrorMessage, preparePickedImage } from '../context/imageIntake';
 
 type JsonObject = Record<string, unknown>;
 type SelectedImage = {
   uri: string;
+  uploadUri?: string;
   fileName: string;
   mimeType: string;
   fileSize?: number;
+  sourceMimeType?: string;
+  normalizationPolicy?: string;
 };
 type Claim = {
   observation_id: string;
@@ -205,8 +208,10 @@ export default function DemoWorkflowScreen() {
   }
 
   async function chooseImage() {
+    if (busy) return;
     setError(null);
     setNotice(null);
+    setBusy('Preparing image');
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images'],
@@ -217,30 +222,7 @@ export default function DemoWorkflowScreen() {
       });
       if (result.canceled || !result.assets[0]) return;
       const asset = result.assets[0];
-      if (asset.fileSize !== undefined && asset.fileSize > MAX_IMAGE_BYTES) {
-        setError({ code: 'IMAGE_TOO_LARGE', message: 'Ảnh vượt giới hạn demo 5 MB. Hãy chọn ảnh nhỏ hơn.' });
-        return;
-      }
-      const extension = asset.fileName?.split('.').pop()?.toLowerCase();
-      const mimeByExtension: Record<string, string> = {
-        jpg: 'image/jpeg',
-        jpeg: 'image/jpeg',
-        png: 'image/png',
-      };
-      const mimeType = asset.mimeType?.toLowerCase() || mimeByExtension[extension || ''];
-      if (mimeType !== 'image/jpeg' && mimeType !== 'image/png') {
-        setError({
-          code: 'UNSUPPORTED_IMAGE_TYPE',
-          message: 'Demo chỉ nhận ảnh PNG hoặc JPEG. Hãy xuất/chuyển ảnh tổng hợp sang một trong hai định dạng này.',
-        });
-        return;
-      }
-      setSelectedImage({
-        uri: asset.uri,
-        fileName: asset.fileName || `synthetic-${Date.now()}.${mimeType === 'image/png' ? 'png' : 'jpg'}`,
-        mimeType,
-        fileSize: asset.fileSize,
-      });
+      setSelectedImage(await preparePickedImage(asset));
       setSyntheticConfirmed(false);
       setAdmission(null);
       setUnderstanding(null);
@@ -253,8 +235,18 @@ export default function DemoWorkflowScreen() {
       setFeedback(null);
       setGallery(null);
       clearRenderer();
-    } catch {
-      setError({ code: 'IMAGE_PICKER_FAILED', message: 'Không mở được bộ chọn ảnh. Có thể thử lại bằng nút chọn ảnh.' });
+    } catch (caught) {
+      const code = caught && typeof caught === 'object' && 'code' in caught
+        ? String(caught.code)
+        : 'IMAGE_PICKER_FAILED';
+      setError({
+        code,
+        message: code === 'IMAGE_PICKER_FAILED'
+          ? 'Không mở được bộ chọn ảnh. Hãy thử lại; ảnh trước đó vẫn được giữ.'
+          : imageIntakeErrorMessage(code),
+      });
+    } finally {
+      setBusy(null);
     }
   }
 
@@ -508,13 +500,13 @@ export default function DemoWorkflowScreen() {
         </Section>
 
         <Section number="02" title="Chọn và gửi ảnh" subtitle="Dùng bộ chọn ảnh của Android; không xin quyền microphone/camera.">
-          <Pressable style={styles.secondaryButton} onPress={() => void chooseImage()}>
-            <Text style={styles.secondaryButtonText}>{selectedImage ? 'Chọn ảnh khác' : 'Chọn ảnh tổng hợp'}</Text>
+          <Pressable style={styles.secondaryButton} onPress={() => void chooseImage()} disabled={!!busy}>
+            <Text style={styles.secondaryButtonText}>{busy === 'Preparing image' ? 'Đang kiểm tra ảnh…' : selectedImage ? 'Chọn ảnh khác' : 'Chọn ảnh tổng hợp'}</Text>
           </Pressable>
           {selectedImage && (
             <View style={styles.imageCard}>
               <Image source={{ uri: selectedImage.uri }} style={styles.previewImage} resizeMode="contain" />
-              <Text style={styles.imageCaption}>{selectedImage.fileName} · tối đa 5 MB</Text>
+              <Text style={styles.imageCaption}>{selectedImage.fileName} · ảnh gốc tối đa 15 MB; ảnh gửi backend tối đa 5 MB</Text>
             </View>
           )}
           <Pressable

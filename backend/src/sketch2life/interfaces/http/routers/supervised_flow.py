@@ -7,6 +7,7 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Header, Query, Request
 from fastapi.responses import JSONResponse, Response
 
+from sketch2life.application.ports.activity_ranker import ActivityRankingUnavailable
 from sketch2life.application.services.auto_rig import AutoRigPackageUnavailable, AutoRigService
 from sketch2life.application.services.ephemeral_sessions import (
     SessionWorkflowError,
@@ -161,6 +162,62 @@ def read_p1_activity_suggestions(
             expected_version=expected_session_version,
             actor_ref=actor_ref,
             request=body,
+        )
+    except SessionWorkflowError as error:
+        return _failure(
+            error,
+            request_id=request_id,
+            session_id=session_id,
+            expected_version=expected_session_version,
+        )
+    return JSONResponse(status_code=200, content=result.model_dump(mode="json"))
+
+
+@router.post(
+    "/{session_id}/p1/activity-suggestions/rank",
+    response_model=MobileWorkflowResultV1,
+)
+def rank_p1_activity_suggestions(
+    session_id: str,
+    body: P1ActivitySuggestionsRequestV1,
+    request: Request,
+    request_id: Annotated[str, Header(alias="X-Request-ID", min_length=1, max_length=120)],
+    expected_session_version: Annotated[int, Header(alias="X-Expected-Session-Version", ge=0)],
+    actor_ref: Annotated[str, Header(alias="X-Actor-Ref", min_length=1, max_length=160)],
+) -> JSONResponse:
+    service: SupervisedFlowService | None = request.app.state.supervised_flow_service
+    if service is None:
+        error = SessionWorkflowError(
+            code="SUPERVISED_FLOW_NOT_CONFIGURED",
+            status_code=503,
+            safe_message="The supervised demo flow is not configured.",
+        )
+        return _failure(
+            error,
+            request_id=request_id,
+            session_id=session_id,
+            expected_version=expected_session_version,
+        )
+    try:
+        result = service.rank_p1_activity_suggestions(
+            session_id=session_id,
+            request_id=request_id,
+            expected_version=expected_session_version,
+            actor_ref=actor_ref,
+            request=body,
+        )
+    except ActivityRankingUnavailable as error:
+        workflow_error = SessionWorkflowError(
+            code=error.code,
+            status_code=504 if error.code == "ACTIVITY_RANKING_TIMEOUT" else 503,
+            safe_message="Danh sách hoạt động vẫn dùng được; AI chưa xếp hạng xong.",
+            retryable=error.retryable,
+        )
+        return _failure(
+            workflow_error,
+            request_id=request_id,
+            session_id=session_id,
+            expected_version=expected_session_version,
         )
     except SessionWorkflowError as error:
         return _failure(

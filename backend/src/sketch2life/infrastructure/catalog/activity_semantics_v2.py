@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
@@ -38,6 +39,61 @@ _ACTIVITY_CONCEPT_OVERRIDES: dict[str, tuple[str, ...]] = {
     "ACT-0055": ("PLANT_FLOWER", "PLANT_STRUCTURE", "NATURE_OBSERVATION"),
     "ACT-0058": ("WATER_CYCLE", "SCIENCE_OBSERVATION"),
     "ACT-0091": ("SUN_LIGHT", "MOON_PHASE", "SCIENCE_OBSERVATION"),
+    "ACT-0003": ("MOVEMENT_COORDINATION",),
+    "ACT-0005": ("OBJECT_TRANSFER",),
+    "ACT-0006": ("SENSORIAL_DISCRIMINATION",),
+    "ACT-0007": ("SENSORIAL_DISCRIMINATION",),
+    "ACT-0012": ("SENSORIAL_DISCRIMINATION",),
+    "ACT-0013": ("OBJECT_TRANSFER",),
+    "ACT-0021": ("PRACTICAL_LIFE",),
+    "ACT-0031": ("PRACTICAL_LIFE",),
+    "ACT-0036": ("SENSORIAL_DISCRIMINATION",),
+    "ACT-0037": ("SENSORIAL_DISCRIMINATION",),
+    "ACT-0038": ("SENSORIAL_DISCRIMINATION",),
+    "ACT-0039": ("COLOR_BASIC", "SENSORIAL_COLOR"),
+    "ACT-0041": ("SENSORIAL_DISCRIMINATION",),
+    "ACT-0043": ("LANGUAGE_PRINT",),
+    "ACT-0044": ("LANGUAGE_PRINT",),
+    "ACT-0049": ("COUNTING_NUMBER",),
+    "ACT-0050": ("MATHEMATICAL_REASONING", "COUNTING_NUMBER"),
+    "ACT-0053": ("SCIENCE_NATURE",),
+    "ACT-0057": ("ANIMAL_GENERIC", "SCIENCE_NATURE"),
+    "ACT-0061": ("MATHEMATICAL_REASONING", "COUNTING_NUMBER"),
+    "ACT-0062": ("MATHEMATICAL_REASONING",),
+    "ACT-0065": ("MATHEMATICAL_REASONING", "SHAPE_GEOMETRY"),
+    "ACT-0066": ("MATHEMATICAL_REASONING",),
+    "ACT-0067": ("LANGUAGE_PRINT",),
+    "ACT-0068": ("LANGUAGE_PRINT",),
+    "ACT-0069": ("LANGUAGE_PRINT",),
+    "ACT-0070": ("SCIENTIFIC_INQUIRY",),
+    "ACT-0071": ("SCIENCE_NATURE",),
+    "ACT-0072": ("GEOGRAPHY",),
+    "ACT-0073": ("PEOPLE_FAMILY",),
+    "ACT-0074": ("PRACTICAL_LIFE", "MATHEMATICAL_REASONING"),
+    "ACT-0075": ("SOCIAL_STUDIES",),
+    "ACT-0076": ("MATHEMATICAL_REASONING",),
+    "ACT-0077": ("MATHEMATICAL_REASONING",),
+    "ACT-0078": ("MATHEMATICAL_REASONING",),
+    "ACT-0079": ("MATHEMATICAL_REASONING",),
+    "ACT-0080": ("MATHEMATICAL_REASONING",),
+    "ACT-0081": ("MATHEMATICAL_REASONING",),
+    "ACT-0082": ("SHAPE_GEOMETRY", "MATHEMATICAL_REASONING"),
+    "ACT-0083": ("SHAPE_GEOMETRY", "MATHEMATICAL_REASONING"),
+    "ACT-0084": ("MATHEMATICAL_REASONING",),
+    "ACT-0085": ("MATHEMATICAL_REASONING", "SCIENTIFIC_INQUIRY"),
+    "ACT-0086": ("SCIENCE_NATURE",),
+    "ACT-0087": ("ANIMAL_GENERIC", "NATURE_OBSERVATION"),
+    "ACT-0088": ("SCIENCE_NATURE", "NATURE_OBSERVATION"),
+    "ACT-0089": ("SCIENCE_NATURE",),
+    "ACT-0090": ("SCIENCE_NATURE",),
+    "ACT-0092": ("SCIENCE_NATURE",),
+    "ACT-0093": ("HISTORY_CULTURE",),
+    "ACT-0094": ("GEOGRAPHY",),
+    "ACT-0095": ("SOCIAL_STUDIES",),
+    "ACT-0096": ("SOCIAL_STUDIES", "MATHEMATICAL_REASONING"),
+    "ACT-0097": ("LANGUAGE_PRINT", "SCIENTIFIC_INQUIRY"),
+    "ACT-0098": ("ARTS_VISUAL",),
+    "ACT-0099": ("SCIENTIFIC_INQUIRY",),
 }
 
 _CONCEPT_SCORE = {
@@ -426,49 +482,57 @@ def _pedagogical_alignment_score(profile: SemanticActivityProfileV2) -> float:
 def _concepts_for_profile(activity_id: str, phrases: tuple[str, ...]) -> tuple[str, ...]:
     if activity_id in _ACTIVITY_CONCEPT_OVERRIDES:
         return _ACTIVITY_CONCEPT_OVERRIDES[activity_id]
-    text = " ".join(phrases).casefold()
+    text = unicodedata.normalize("NFC", " ".join(phrases).casefold())
     concepts: list[str] = []
-    if any(token in text for token in ("hoa", "cây", "lá", "cỏ")):
+    if _has_any_term(text, "hoa", "cây", "lá", "cỏ", "flower", "plant", "leaf"):
         concepts.extend(("PLANT_STRUCTURE", "NATURE_OBSERVATION"))
-    if any(token in text for token in ("bướm", "chim", "động vật")):
-        concepts.extend(("ANIMAL", "NATURE_OBSERVATION"))
-    if any(token in text for token in ("mặt trời", "ánh sáng", "mặt trăng")):
+    if _has_any_term(
+        text,
+        "bướm", "butterfly", "chim", "bird", "động vật", "con vật", "animal",
+        "hươu cao cổ", "giraffe", "hươu", "voi", "elephant", "sư tử", "lion",
+        "hổ", "tiger", "ngựa", "horse", "khỉ", "monkey", "thỏ", "rabbit",
+        "chó", "dog", "mèo", "cat", "cá", "fish", "cá voi", "whale",
+        "cá heo", "dolphin", "rùa", "turtle", "ếch", "frog", "côn trùng", "insect",
+    ):
+        concepts.extend(("ANIMAL_GENERIC", "NATURE_OBSERVATION"))
+    if _has_any_term(text, "bướm", "butterfly"):
+        concepts.append("ANIMAL_BUTTERFLY")
+    if _has_any_term(text, "mặt trời", "ánh sáng", "mặt trăng", "sun", "moon"):
         concepts.extend(("SUN_LIGHT", "SCIENCE_OBSERVATION"))
-    if any(token in text for token in ("đếm", "số", "toán", "biểu đồ")):
+    if _has_any_term(text, "đếm", "số", "toán", "biểu đồ", "count", "number", "math"):
         concepts.append("COUNTING_DATA")
-    if any(token in text for token in ("động vật", "con vật", "chim", "cá", "chó", "mèo")):
-        concepts.append("ANIMAL_GENERIC")
-    if any(token in text for token in ("gia đình", "người", "cơ thể")):
+    if _has_any_term(text, "gia đình", "người", "cơ thể", "family", "people", "body"):
         concepts.append("PEOPLE_FAMILY")
-    if any(token in text for token in ("phương tiện", "xe", "giao thông")):
+    if _has_any_term(text, "phương tiện", "xe", "giao thông", "transport", "vehicle"):
         concepts.append("VEHICLE_TRANSPORT")
-    if any(token in text for token in ("thời tiết", "mưa", "mây", "gió")):
+    if _has_any_term(text, "thời tiết", "mưa", "mây", "gió", "weather"):
         concepts.append("WEATHER_NATURE")
-    if any(token in text for token in ("nước", "sông", "hồ", "biển")):
+    if _has_any_term(text, "nước", "sông", "hồ", "biển", "water", "river", "ocean"):
         concepts.append("WATER_NATURE")
-    if any(token in text for token in ("khối hình", "hình học", "hình tròn", "hình vuông")):
+    if _has_any_term(text, "khối hình", "hình học", "hình tròn", "hình vuông", "geometry"):
         concepts.append("SHAPE_GEOMETRY")
-    if any(token in text for token in ("âm thanh", "tiếng", "nhạc")):
+    if _has_any_term(text, "âm thanh", "tiếng", "nhạc", "sound", "music"):
         concepts.append("SOUND_MUSIC")
-    if any(token in text for token in ("chữ cái", "đọc", "âm vị", "nét")):
+    if _has_any_term(text, "chữ cái", "đọc", "âm vị", "nét", "language", "letter"):
         concepts.append("LANGUAGE_PRINT")
-    if any(
-        token in text
-        for token in (
-            "rửa tay", "lau", "mang khay", "cắt", "cài", "chào hỏi", "sắp bàn", "quét"
-        )
+    if _has_any_term(
+        text, "rửa tay", "lau", "mang khay", "cắt", "cài", "chào hỏi", "sắp bàn", "quét"
     ):
         concepts.append("PRACTICAL_LIFE")
-    if any(
-        token in text
-        for token in ("vũ trụ", "trái đất", "địa hình", "vật chất", "máy cơ", "chuỗi thức ăn")
-    ):
+    if _has_any_term(text, "vũ trụ", "trái đất", "địa hình", "vật chất", "máy cơ", "chuỗi thức ăn"):
         concepts.append("SCIENCE_NATURE")
-    if any(token in text for token in ("rót", "chuyển", "gấp", "xếp")):
+    if _has_any_term(text, "rót", "chuyển", "gấp", "xếp"):
         concepts.extend(("OBJECT_TRANSFER", "SEQUENCE"))
     if not concepts:
-        concepts.append("ACTIVITY_" + activity_id)
+        concepts.append("MONTESSORI_MATERIAL")
     return tuple(dict.fromkeys(concepts))
+
+
+def _has_any_term(text: str, *terms: str) -> bool:
+    return any(
+        re.search(rf"(?<!\w){re.escape(unicodedata.normalize('NFC', term.casefold()))}(?!\w)", text)
+        for term in terms
+    )
 
 
 def _parents(concept_id: str) -> tuple[str, ...]:

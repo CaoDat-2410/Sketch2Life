@@ -1,6 +1,17 @@
 import type { NarrationInput } from '../demo/api';
 
 export type SupportedImageMimeType = 'image/jpeg' | 'image/png';
+export type SourceImageMimeType = SupportedImageMimeType | 'image/webp' | 'image/heic' | 'image/heif';
+export type ImagePickerMetadata = {
+  format: SourceImageMimeType | null;
+  metadataConflict: boolean;
+  metadataMissing: boolean;
+  unsupportedAnimation: boolean;
+};
+
+export const MAX_SOURCE_IMAGE_BYTES = 15_000_000;
+export const MAX_SOURCE_IMAGE_PIXELS = 12_000_000;
+export const MAX_SOURCE_IMAGE_EDGE = 6_000;
 export type FeedbackObservationCode =
   | 'STARTED_INDEPENDENTLY'
   | 'COMPLETED_STEPS'
@@ -55,6 +66,57 @@ export function normalizeSupportedImage(
     ? extension ? name : `${name}.${canonicalExtension}`
     : `drawing.${canonicalExtension}`;
   return { fileName: normalizedFileName, mimeType: resolvedMime };
+}
+
+export function inspectImagePickerMetadata(
+  fileName: string | null | undefined,
+  mimeType: string | null | undefined,
+): ImagePickerMetadata {
+  const extension = fileName?.trim().match(/\.([^.\\/]+)$/)?.[1]?.toLowerCase() ?? '';
+  const mime = mimeType?.split(';', 1)[0]?.trim().toLowerCase() ?? '';
+  const byExtension: Record<string, SourceImageMimeType> = {
+    jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp',
+    heic: 'image/heic', heif: 'image/heif',
+  };
+  const byMime: Record<string, SourceImageMimeType> = {
+    'image/jpg': 'image/jpeg', 'image/jpeg': 'image/jpeg', 'image/png': 'image/png',
+    'image/webp': 'image/webp', 'image/heic': 'image/heic', 'image/heif': 'image/heif',
+  };
+  const extensionFormat = byExtension[extension] ?? null;
+  const mimeFormat = byMime[mime] ?? null;
+  const unsupportedAnimation = mime === 'image/gif' || mime === 'image/apng'
+    || ['gif', 'apng'].includes(extension);
+  return {
+    format: mimeFormat ?? extensionFormat,
+    metadataConflict: Boolean(mimeFormat && extensionFormat && mimeFormat !== extensionFormat),
+    metadataMissing: !mimeFormat && !extensionFormat,
+    unsupportedAnimation,
+  };
+}
+
+export function sourceImageExceedsDecodeBudget(width: number, height: number): boolean {
+  return !Number.isFinite(width) || !Number.isFinite(height)
+    || width < 1 || height < 1
+    || width * height > MAX_SOURCE_IMAGE_PIXELS
+    || Math.max(width, height) > MAX_SOURCE_IMAGE_EDGE;
+}
+
+export function targetImageDimensions(
+  width: number,
+  height: number,
+  maxPixels = 4_000_000,
+  maxEdge = 4_096,
+): { width: number; height: number } | null {
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width < 1 || height < 1) return null;
+  const scale = Math.min(
+    1,
+    Math.sqrt(maxPixels / (width * height)),
+    maxEdge / Math.max(width, height),
+  );
+  return {
+    width: Math.max(1, Math.floor(width * scale)),
+    height: Math.max(1, Math.floor(height * scale)),
+  };
 }
 
 export type NarrationValidation =

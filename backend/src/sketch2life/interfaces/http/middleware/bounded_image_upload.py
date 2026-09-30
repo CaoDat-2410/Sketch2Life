@@ -6,7 +6,7 @@ import json
 
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-_MAX_MULTIPART_BODY_BYTES = 5_100_000
+_MAX_MULTIPART_BODY_BYTES = 20_100_000
 _UPLOAD_PATH_MARKER = "/media/image"
 _AUDIO_UPLOAD_PATH_MARKER = "/media/audio"
 _MAX_AUDIO_MULTIPART_BODY_BYTES = 20_100_000
@@ -28,7 +28,7 @@ class BoundedImageUploadMiddleware:
             return
         if _UPLOAD_PATH_MARKER in path:
             body_limit = self.max_body_bytes
-            error_message = "Image upload exceeded the demo request size limit."
+            error_message = "Image upload exceeded the 20 MB source-plus-derivative limit."
         elif _AUDIO_UPLOAD_PATH_MARKER in path:
             body_limit = _MAX_AUDIO_MULTIPART_BODY_BYTES
             error_message = "Narration upload exceeded the demo request size limit."

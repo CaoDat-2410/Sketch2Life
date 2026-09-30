@@ -200,9 +200,9 @@ export interface ActivityRecommendationCardV2 extends Omit<ActivityRecommendatio
   policy_constraints: string[];
 }
 
-export interface ActivityRecommendationSetV2 {
-  contract_name: 'ActivityRecommendationSetV2';
-  contract_version: '2.0';
+export interface ActivityRecommendationSetV3 {
+  contract_name: 'ActivityRecommendationSetV3';
+  contract_version: '3.0';
   session_id: string;
   expected_session_version: number;
   age_months: number;
@@ -210,6 +210,16 @@ export interface ActivityRecommendationSetV2 {
   topic_label_vi: string;
   total_count: number;
   options: ActivityRecommendationCardV2[];
+  empty_reason: 'TOPIC_UNMAPPED' | 'NO_RELEVANT_ACTIVITY_FOR_AGE'
+    | 'RELEVANT_ACTIVITY_BLOCKED_BY_SAFETY_OR_ADULT_PRESENCE'
+    | 'CATALOG_CARD_NOT_DISPLAYABLE' | null;
+}
+
+export interface ActivityRankingResultV1 {
+  contract_name: 'ActivityRankingResultV1';
+  contract_version: '1.0';
+  request_id: string;
+  ranked_activity_ids: string[];
 }
 
 export class DemoApiError extends Error {
@@ -281,17 +291,44 @@ export class DemoApiClient {
   async uploadImage(
     sessionId: string,
     version: number,
-    image: { uri: string; fileName: string; mimeType: string },
+    image: {
+      uri: string;
+      uploadUri?: string;
+      fileName: string;
+      mimeType: string;
+      sourceMimeType?: string;
+      normalizationPolicy?: string;
+    },
   ): Promise<WorkflowResult<Record<string, unknown>>> {
     const path = `/v1/sessions/${encodeURIComponent(sessionId)}/media/image`;
-    const scope = JSON.stringify({ sessionId, version, path, uri: image.uri, fileName: image.fileName, mimeType: image.mimeType });
+    const scope = JSON.stringify({
+      sessionId,
+      version,
+      path,
+      sourceUri: image.uri,
+      uploadUri: image.uploadUri ?? image.uri,
+      fileName: image.fileName,
+      mimeType: image.mimeType,
+      sourceMimeType: image.sourceMimeType,
+      normalizationPolicy: image.normalizationPolicy,
+    });
     return this.withPendingIdempotencyKey(scope, async (idempotencyKey) => {
       const form = new FormData();
       form.append('image', {
-        uri: image.uri,
+        uri: image.uploadUri ?? image.uri,
         name: image.fileName,
         type: image.mimeType,
       } as unknown as Blob);
+      form.append('source_media_type', image.sourceMimeType ?? image.mimeType);
+      form.append('normalization_policy', image.normalizationPolicy ?? 'IDENTITY_V1');
+      if (image.uploadUri) {
+        const sourceExtension = image.sourceMimeType?.split('/')[1]?.replace('jpeg', 'jpg') ?? 'bin';
+        form.append('source_image', {
+          uri: image.uri,
+          name: `source.${sourceExtension}`,
+          type: image.sourceMimeType ?? 'application/octet-stream',
+        } as unknown as Blob);
+      }
       return this.request(path, {
         method: 'POST',
         headers: {
@@ -299,7 +336,7 @@ export class DemoApiClient {
           'X-Synthetic-Non-Child-Confirmed': 'true',
         },
         body: form,
-      }, 30_000);
+      }, 60_000);
     });
   }
 
@@ -464,7 +501,7 @@ export class DemoApiClient {
       throw new DemoApiError('Trẻ dưới 3 tuổi cần có người chăm sóc đồng hành trực tiếp.', 'UNDER_THREE_CAREGIVER_REQUIRED', 422);
     }
     const requestId = newId('req-activity-suggestions');
-    return this.request<WorkflowResult<ActivityRecommendationSetV2>>(
+    return this.request<WorkflowResult<ActivityRecommendationSetV3>>(
       `/v1/sessions/${encodeURIComponent(sessionId)}/p1/activity-suggestions`,
       {
         method: 'POST',
@@ -478,6 +515,36 @@ export class DemoApiClient {
         })),
       },
       30_000,
+    );
+  }
+
+  async rankActivitySuggestions(
+    sessionId: string,
+    version: number,
+    ageMonths: number,
+    childProfile: ChildLearningProfileInput,
+  ) {
+    if (childProfile.adult_participating !== true) {
+      throw new DemoApiError('Cần có người lớn đồng hành trong hoạt động.', 'ADULT_PARTICIPATION_REQUIRED', 422);
+    }
+    if (ageMonths < 36 && childProfile.caregiver_participating !== true) {
+      throw new DemoApiError('Trẻ dưới 3 tuổi cần có người chăm sóc đồng hành trực tiếp.', 'UNDER_THREE_CAREGIVER_REQUIRED', 422);
+    }
+    const requestId = newId('req-activity-rank');
+    return this.request<WorkflowResult<ActivityRankingResultV1>>(
+      `/v1/sessions/${encodeURIComponent(sessionId)}/p1/activity-suggestions/rank`,
+      {
+        method: 'POST',
+        headers: {
+          ...this.metaHeaders(version, requestId),
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(buildP1ActivitySuggestionsRequest({
+          ageMonths,
+          childProfile,
+        })),
+      },
+      25_000,
     );
   }
 

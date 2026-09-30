@@ -1,0 +1,30 @@
+# FEAT-034 — Image intake and topic-activity coverage
+
+- Status: IN_PROGRESS
+- Owner: Project owner
+- Goal: Make common static drawing/photo formats either process reliably or fail with actionable, stage-specific guidance; review and correct every active Montessori catalog mapping so confirmed subjects resolve to appropriate activities for the child's age.
+- Scope: Android/mobile image intake and normalization; backend image-admission diagnostics; confirmed-topic normalization; full audit/correction of all 300 active activity mappings and display cards; age-band coverage; targeted Montessori catalog additions only where a demonstrated gap remains; parent-facing recovery copy and regression evidence.
+- Non-goals: Implementing before explicit approval; accepting arbitrary/animated/RAW media; silently changing the original; relaxing age, adult-presence, safety, or policy rules; AI-invented Montessori activities; broad catalog inflation; durable child-profile/media storage; real-child media in tests; generated visual assets; provider/GPU execution.
+- Dependencies: FEAT-018 image admission and mobile flow; FEAT-020 supervised workflow contracts; FEAT-022 catalog coverage; FEAT-029 SRS; current approved FEAT-033 complete topic-and-age discovery semantics.
+- Risks: Native decoder behavior differs by OS/device; normalization can reduce visual fidelity or consume memory; overly broad animal tags can surface irrelevant cards; an honest empty state must distinguish a real curriculum gap from mapping, eligibility, or catalog-display failures.
+
+## Context snapshot
+
+- The current image client accepts only PNG/JPEG and rejects inputs above 5,000,000 bytes. Backend admission is narrower than a generic image library: static PNG/JPEG, at most 5,000,000 bytes, 4,000,000 pixels, and a 4,096-pixel longest edge. Backend admission already has typed internal reasons, but the picker catch path is generic and the public UX does not consistently expose the precise stage/reason.
+- A read-only catalog audit loaded 300 P1 templates / semantic profiles: the 100-record MVP plus 200 curated age-band variants across 50 curated activity families. Six family IDs currently overlap animal concepts (24 age variants); this count alone does not establish accurate or balanced topic coverage. The requested scope now includes checking and correcting the full 300-record mapping, not only animal entries.
+- The current confirmed-topic adapter recognizes some animal terms (e.g. bird/bướm/animal/con vật) but has no explicit giraffe/hươu cao cổ alias. The complete-discovery route intentionally excludes age-only fallback, so an unmapped confirmed subject can yield an empty result even while general animal activities exist.
+- The current curated expansion also has animal-family concept labels worth auditing: general observation/classification/movement rows include `ANIMAL_BUTTERFLY`, while the butterfly family includes broad `ANIMAL_GENERIC`. This may create false matches as well as misses; it must be resolved through reviewed concept ownership, not by weakening matching.
+- Existing approved behavior: return the full relevant topic-and-age list; use adult-confirmed child interests only to order that list; do not insert a readiness/material checklist; preserve adult/caregiver participation and existing safety gates.
+- Owner's plan clarification (2026-09-30): retain the full list and let AI highlight/rank three; when AI ranking is slow or unavailable, show the safety-filtered list and clearly report that AI ranking did not complete. Exact-hash plan approval is recorded in `approvals/TASK_APPROVAL.md`.
+- Source register references: `expo-imagepicker-asset-metadata`, `expo-image-manipulator-formats`, `amshq-montessori-biology-classification`, and `montessori-foundation-scope-sequence-ages-3-12`.
+- Plan revision 1 was explicitly approved by the project owner on 2026-09-30 at the exact SHA-256 recorded in `approvals/TASK_APPROVAL.md`. Implementation is now authorized only within that scope.
+
+## Implementation findings (2026-09-30)
+
+- Confirmed giraffe aliases (`hươu cao cổ`, `giraffe`) resolve deterministically to general animal concepts while preserving the adult-confirmed topic label. Species-only butterfly activities remain excluded from general-animal matches.
+- Corrected taxonomy ownership for animal observation, classification, movement, and butterfly-specific families; corrected MVP semantic false positives and Unicode/word-boundary matching.
+- Full runtime-loaded catalog audit covers 300 unique activity profiles and 300/300 displayable cards. It records 77 code-level mapping corrections and 223 rows requiring qualified Montessori review; automated shape/matching checks are not pedagogy approval.
+- Current structural coverage has four displayable `ANIMAL_GENERIC` matches for age band 3–6. This is a measured catalog gap candidate, not authorization to create unreviewed activity content.
+- Mobile intake now performs bounded metadata/content checks and one normalization attempt, preserving source/derivative hashes and session provenance; backend validates static format, MIME/content consistency, byte/pixel/edge limits, and animation markers before admission.
+- Android emulator/device and app package are present, but the picker-to-backend flow has not been manually verified in this implementation pass. Do not advertise WebP/HEIC/HEIF as runtime-verified until that matrix is exercised on the pinned Android/iOS runtimes.
+- The pinned approval SHA is preserved: the approved `plan/PLAN.md` is immutable. Its embedded pre-approval status banner is historical; live approval and implementation state are tracked in `approvals/TASK_APPROVAL.md` and `status/STATUS.md`.

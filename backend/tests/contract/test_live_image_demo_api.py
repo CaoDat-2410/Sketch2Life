@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import base64
 from datetime import UTC, datetime
 from pathlib import Path
 
 from fastapi.testclient import TestClient
 
+from sketch2life.application.ports.activity_ranker import ActivityRankerPort
 from sketch2life.application.ports.child_preference_classifier import (
     ChildPreferenceClassifierPort,
 )
@@ -14,6 +16,10 @@ from sketch2life.application.services.image_admission import Feat018ImageAdmissi
 from sketch2life.application.services.live_image_demo import LiveImageDemoService
 from sketch2life.application.services.p1_experience import P1ExperienceCompiler
 from sketch2life.application.services.supervised_flow import SupervisedFlowService
+from sketch2life.contracts.schemas.activity_ranking import (
+    ActivityRankingRequestV1,
+    ActivityRankingResultV1,
+)
 from sketch2life.contracts.schemas.child_preference_classification import (
     ChildPreferenceClassificationRequestV1,
     ChildPreferenceClassificationV1,
@@ -63,7 +69,26 @@ from sketch2life.infrastructure.storage.in_memory_renderer_source_grants import 
 )
 from sketch2life.interfaces.http.app import create_app
 
-_IMAGE = b"\x89PNG\r\n\x1a\nsynthetic-only-image-fixture"
+_IMAGE = base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAA"
+    "DUlEQVR4nGP4////fwAJ+wP9KobjigAAAABJRU5ErkJggg=="
+)
+_SOURCE_WEBP = (
+    b"RIFF" + (16).to_bytes(4, "little") + b"WEBPVP8 "
+    + (4).to_bytes(4, "little") + b"test"
+)
+
+
+class _TestActivityRanker(ActivityRankerPort):
+    def __init__(self) -> None:
+        self.requests: list[ActivityRankingRequestV1] = []
+
+    def rank(self, request: ActivityRankingRequestV1) -> ActivityRankingResultV1:
+        self.requests.append(request)
+        return ActivityRankingResultV1(
+            request_id=request.request_id,
+            ranked_activity_ids=tuple(item.activity_id for item in request.candidates[:3]),
+        )
 
 
 class _TestPreferenceClassifier(ChildPreferenceClassifierPort):
@@ -471,8 +496,80 @@ def test_context_candidates_and_v2_finalization_keep_profile_and_supervision_ses
     assert approved.json()["payload"]["generation_called"] is False
 
 
+def test_empty_activity_list_explains_unmapped_topic() -> None:
+    client, _ = _client(vision=_CountingVision(label="spaceship"))
+    session_id, version = _create_session(client)
+    uploaded = client.post(
+        f"/v1/sessions/{session_id}/media/image",
+        headers=_headers(session_id, version, "unmapped-topic-upload"),
+        files={"image": ("synthetic.png", _IMAGE, "image/png")},
+    )
+    version = uploaded.json()["observed_session_version"]
+    understood = _command(
+        client,
+        session_id=session_id,
+        version=version,
+        key="unmapped-topic-understanding",
+        route="/understanding",
+        payload={"operation": "RUN_UNDERSTANDING", "user_initiated": True},
+    )
+    version = understood.json()["observed_session_version"]
+    confirmed = _command(
+        client,
+        session_id=session_id,
+        version=version,
+        key="unmapped-topic-confirm",
+        route="/gate-a/confirm",
+        payload={
+            "operation": "CONFIRM_GATE_A",
+            "user_initiated": True,
+            "primary_anchor_id": "subject-1",
+            "confirmation": {
+                "contract_name": "GateAConfirmationV1",
+                "contract_version": "1.0",
+                "meaning_version": 1,
+                "confirmed_claim_ids": ["subject-1"],
+                "correction": None,
+            },
+        },
+    )
+    version = confirmed.json()["observed_session_version"]
+    suggestions = client.post(
+        f"/v1/sessions/{session_id}/p1/activity-suggestions",
+        headers={
+            "X-Request-ID": "unmapped-topic-suggestions",
+            "X-Expected-Session-Version": str(version),
+            "X-Actor-Ref": "demo:local",
+        },
+        json={
+            "contract_name": "P1ActivitySuggestionsRequestV1",
+            "contract_version": "1.0",
+            "age_months": 60,
+            "child_profile": {
+                "contract_name": "ConfirmedChildPreferencesV1",
+                "contract_version": "1.0",
+                "profile_declared_by": "CAREGIVER",
+                "profile_recorded_at": datetime.now(UTC).isoformat(),
+                "preference_tags_confirmed": True,
+                "interests": [],
+                "dislikes": [],
+            },
+            "adult_participating": True,
+            "caregiver_participating": False,
+        },
+    )
+
+    assert suggestions.status_code == 200, suggestions.text
+    payload = suggestions.json()["payload"]
+    assert payload["contract_name"] == "ActivityRecommendationSetV3"
+    assert payload["total_count"] == 0
+    assert payload["options"] == []
+    assert payload["empty_reason"] == "TOPIC_UNMAPPED"
+
+
 def test_complete_activity_suggestions_and_p1_v4_ignore_readiness_material_and_history() -> None:
-    client, _ = _client(vision=_CountingVision(label="con chim"))
+    ranker = _TestActivityRanker()
+    client, _ = _client(vision=_CountingVision(label="con chim"), activity_ranker=ranker)
     session_id, version = _create_session(client)
     uploaded = client.post(
         f"/v1/sessions/{session_id}/media/image",
@@ -537,13 +634,45 @@ def test_complete_activity_suggestions_and_p1_v4_ignore_readiness_material_and_h
     )
     assert suggestions_response.status_code == 200, suggestions_response.text
     suggestions = suggestions_response.json()["payload"]
-    assert suggestions["contract_name"] == "ActivityRecommendationSetV2"
+    assert suggestions["contract_name"] == "ActivityRecommendationSetV3"
+    assert suggestions["empty_reason"] is None
     assert suggestions["total_count"] == len(suggestions["options"]) > 3
     suggested_ids = {item["activity_id"] for item in suggestions["options"]}
     assert "ACT-0102" in suggested_ids
     assert "ACT-0043" not in suggested_ids
     assert "ACT-0114" not in suggested_ids
     assert any("Khớp sở thích" in item["match_reason_vi"] for item in suggestions["options"])
+    ranking_response = client.post(
+        f"/v1/sessions/{session_id}/p1/activity-suggestions/rank",
+        headers={
+            "X-Request-ID": "v4-discovery-rank",
+            "X-Expected-Session-Version": str(version),
+            "X-Actor-Ref": "demo:local",
+        },
+        json={
+            "contract_name": "P1ActivitySuggestionsRequestV1",
+            "contract_version": "1.0",
+            "age_months": 60,
+            "child_profile": {
+                "contract_name": "ConfirmedChildPreferencesV1",
+                "contract_version": "1.0",
+                "profile_declared_by": "CAREGIVER",
+                "profile_recorded_at": datetime.now(UTC).isoformat(),
+                "preference_tags_confirmed": True,
+                "interests": ["ANIMAL_GENERIC"],
+                "dislikes": [],
+            },
+            "adult_participating": True,
+            "caregiver_participating": False,
+        },
+    )
+    assert ranking_response.status_code == 200, ranking_response.text
+    ranked = ranking_response.json()["payload"]
+    assert ranked["contract_name"] == "ActivityRankingResultV1"
+    assert len(ranked["ranked_activity_ids"]) == 3
+    assert set(ranked["ranked_activity_ids"]) <= suggested_ids
+    assert len(ranker.requests) == 1
+    assert {item.activity_id for item in ranker.requests[0].candidates} == suggested_ids
     selected = suggestions["options"][0]
 
     context = _command(
@@ -677,6 +806,7 @@ def _client(
     vision: _CountingVision | None = None,
     scene_localizer: _CountingLocalizer | None = None,
     child_preference_classifier: ChildPreferenceClassifierPort | None = None,
+    activity_ranker: ActivityRankerPort | None = None,
 ) -> tuple[TestClient, _CountingVision]:
     artifacts = InMemoryArtifactStore()
     idempotency = InMemoryIdempotencyStore()
@@ -717,6 +847,7 @@ def _client(
         catalog_metadata=FileWorkflowCatalogMetadata(repo_root),
         renderer_source_capability_issuer=demo.issue_renderer_source_capability,
         auto_rig_service=auto_rig,
+        activity_ranker=activity_ranker,
     )
     return TestClient(
         create_app(
@@ -725,6 +856,7 @@ def _client(
             supervised_flow_service=supervised_flow,
             auto_rig_service=auto_rig,
             child_preference_classifier=child_preference_classifier,
+            activity_ranker=activity_ranker,
         )
     ), actual_vision
 
@@ -754,6 +886,54 @@ def _headers(session_id: str, version: int, key: str) -> dict[str, str]:
         "X-Actor-Ref": "demo:local",
         "X-Synthetic-Non-Child-Confirmed": "true",
     }
+
+
+def test_image_normalization_keeps_original_and_derived_artifact_provenance() -> None:
+    client, _ = _client()
+    session_id, version = _create_session(client)
+    response = client.post(
+        f"/v1/sessions/{session_id}/media/image",
+        headers=_headers(session_id, version, "normalized-upload"),
+        data={
+            "source_media_type": "image/webp",
+            "normalization_policy": "EXPO_IMAGE_MANIPULATOR_PNG_V1",
+        },
+        files={
+            "image": ("drawing.png", _IMAGE, "image/png"),
+            "source_image": ("source.webp", _SOURCE_WEBP, "image/webp"),
+        },
+    )
+
+    assert response.status_code == 200, response.text
+    receipt = response.json()["payload"]
+    assert receipt["contract_name"] == "ImageAdmissionReceiptV2"
+    assert receipt["normalization_policy"] == "EXPO_IMAGE_MANIPULATOR_PNG_V1"
+    assert receipt["source_content_type"] == "image/webp"
+    assert receipt["source_byte_length"] == len(_SOURCE_WEBP)
+    assert receipt["content_type"] == "image/png"
+    assert receipt["original_image_ref"]["sha256"] != receipt["source_image_ref"]["sha256"]
+
+
+def test_image_upload_rejects_animated_and_conflicting_source_metadata() -> None:
+    client, _ = _client()
+    session_id, version = _create_session(client)
+    animated_png = b"\x89PNG\r\n\x1a\n" + b"\x00\x00\x00\x08acTL" + bytes(12)
+    animated = client.post(
+        f"/v1/sessions/{session_id}/media/image",
+        headers=_headers(session_id, version, "animated-upload"),
+        files={"image": ("animated.png", animated_png, "image/png")},
+    )
+    assert animated.status_code == 422
+    assert animated.json()["failure"]["code"] == "IMAGE_ANIMATED_UNSUPPORTED"
+
+    conflict = client.post(
+        f"/v1/sessions/{session_id}/media/image",
+        headers=_headers(session_id, version, "conflicting-upload"),
+        data={"source_media_type": "image/jpeg"},
+        files={"image": ("drawing.png", _IMAGE, "image/png")},
+    )
+    assert conflict.status_code == 422
+    assert conflict.json()["failure"]["code"] == "IMAGE_METADATA_CONFLICT"
 
 
 def _command(
@@ -1203,7 +1383,7 @@ def test_image_upload_transport_enforces_a_hard_multipart_body_cap() -> None:
     client, _vision = _client()
     response = client.post(
         "/v1/sessions/not-created/media/image",
-        content=b"x" * 5_100_001,
+        content=b"x" * 20_100_001,
         headers={"Content-Type": "multipart/form-data; boundary=unused"},
     )
     assert response.status_code == 413
