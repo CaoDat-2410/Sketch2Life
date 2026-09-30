@@ -911,7 +911,7 @@ def test_typed_narration_is_forwarded_as_text_without_an_asr_call() -> None:
     assert vision.calls == 1
 
 
-def test_empty_vision_result_is_blocked_before_gate_a() -> None:
+def test_empty_vision_result_can_requery_once_then_confirm_an_adult_subject() -> None:
     client, vision = _client(vision=_CountingVision(empty=True))
     session_id, version = _create_session(client)
     uploaded = client.post(
@@ -939,7 +939,62 @@ def test_empty_vision_result_is_blocked_before_gate_a() -> None:
     assert body["payload"]["reason_codes"] == ["NO_GROUNDED_CLAIMS"]
     assert body["payload"]["understanding_progress"]["gate_a_ready"] is False
     assert body["payload"]["understanding_progress"]["stage"] == "BLOCKED_NO_GROUNDED_CLAIMS"
-    assert vision.calls == 1
+    version = body["observed_session_version"]
+
+    requery = client.post(
+        f"/v1/sessions/{session_id}/understanding",
+        json={
+            "request_id": "empty-subject-requery",
+            "idempotency_key": "empty-subject-requery-key",
+            "session_id": session_id,
+            "expected_session_version": version,
+            "actor_ref": "demo:local",
+            "payload": {
+                "operation": "REQUERY_UNDERSTANDING",
+                "user_initiated": True,
+                "prior_run_id": "empty-understanding",
+                "direction_revision": 1,
+                "selected_direction": "con chim",
+                "correction": "con chim",
+            },
+        },
+    )
+    assert requery.status_code == 200
+    assert requery.json()["status"] == "BLOCKED"
+    assert requery.json()["payload"]["understanding_progress"]["direction_revision"] == 1
+    assert requery.json()["payload"]["reason_codes"] == ["NO_GROUNDED_CLAIMS"]
+
+    confirmed = client.post(
+        f"/v1/sessions/{session_id}/gate-a/confirm",
+        json={
+            "request_id": "adult-bird-confirmation",
+            "idempotency_key": "adult-bird-confirmation-key",
+            "session_id": session_id,
+            "expected_session_version": requery.json()["observed_session_version"],
+            "actor_ref": "demo:local",
+            "payload": {
+                "operation": "CONFIRM_GATE_A",
+                "user_initiated": True,
+                "primary_anchor_id": None,
+                "confirmation": {
+                    "contract_name": "GateAConfirmationV2",
+                    "contract_version": "2.0",
+                    "meaning_version": 2,
+                    "confirmed_claim_ids": [],
+                    "adult_subject_label": "con chim",
+                },
+            },
+        },
+    )
+    assert confirmed.status_code == 200
+    confirmed_payload = confirmed.json()["payload"]
+    anchor = confirmed_payload["anchor_set"]["primary_anchor"]
+    assert confirmed.json()["status"] == "SUCCEEDED"
+    assert confirmed_payload["primary_subject_origin"] == "ADULT_ENTERED"
+    assert anchor["provenance"]["source_claim_ids"] == []
+    assert anchor["provenance"]["source_contract_name"] == "AdultSubjectConfirmationV1"
+    assert anchor["provenance"]["source_adult_assertion_id"].startswith("adult-assertion-")
+    assert vision.calls == 2
 
 
 def test_typed_narration_is_fused_with_matching_visual_claim_and_topic_is_bounded() -> None:
@@ -1022,7 +1077,7 @@ def test_direction_requery_rechecks_the_admitted_image_and_exposes_progress() ->
         },
     )
 
-    assert second.status_code == 200
+    assert second.status_code == 200, second.text
     assert second.json()["status"] == "SUCCEEDED"
     assert second.json()["payload"]["understanding_progress"]["direction_revision"] == 1
     assert second.json()["payload"]["understanding_progress"]["stage"] == "TOPIC_READY"
@@ -1802,3 +1857,81 @@ def test_fake_only_image_session_completes_p1_gate_b_p4_handoff_feedback_and_gal
     assert gallery.json()["payload"]["durable"] is False
     assert len(gallery.json()["payload"]["entries"]) >= 5
     assert vision.calls == 1
+
+
+def test_vision_runtime_failure_is_recoverable_without_exposing_exception_text() -> None:
+    class _FailingVision:
+        calls = 0
+
+        def understand(self, request: VisionUnderstandingRequestV2):
+            del request
+            self.calls += 1
+            raise RuntimeError("synthetic private provider detail")
+
+    vision = _FailingVision()
+    client, _ = _client(vision=vision)  # type: ignore[arg-type]
+    session_id, version = _create_session(client)
+    uploaded = client.post(
+        f"/v1/sessions/{session_id}/media/image",
+        headers=_headers(session_id, version, "provider-failure-image"),
+        files={"image": ("synthetic.png", _IMAGE, "image/png")},
+    )
+    version = uploaded.json()["observed_session_version"]
+    first = _command(
+        client,
+        session_id=session_id,
+        version=version,
+        key="provider-failure-first",
+        route="/understanding",
+        payload={"operation": "RUN_UNDERSTANDING", "user_initiated": True},
+    )
+    assert first.status_code == 200
+    assert first.json()["status"] == "BLOCKED"
+    assert first.json()["payload"]["reason_codes"] == ["VISION_REQUEST_FAILED"]
+    assert first.json()["payload"]["understanding_progress"]["stage"] == "FAILED"
+    assert "synthetic private provider detail" not in first.text
+
+    second = _command(
+        client,
+        session_id=session_id,
+        version=first.json()["observed_session_version"],
+        key="provider-failure-requery",
+        route="/understanding",
+        payload={
+            "operation": "REQUERY_UNDERSTANDING",
+            "user_initiated": True,
+            "prior_run_id": "request-provider-failure-first",
+            "direction_revision": 1,
+            "selected_direction": "con chim",
+            "correction": "con chim",
+        },
+    )
+    assert second.status_code == 200, second.text
+    assert second.json()["status"] == "BLOCKED"
+
+    confirmed = _command(
+        client,
+        session_id=session_id,
+        version=second.json()["observed_session_version"],
+        key="provider-failure-adult-subject",
+        route="/gate-a/confirm",
+        payload={
+            "operation": "CONFIRM_GATE_A",
+            "user_initiated": True,
+            "primary_anchor_id": None,
+            "confirmation": {
+                "contract_name": "GateAConfirmationV2",
+                "contract_version": "2.0",
+                "meaning_version": 2,
+                "confirmed_claim_ids": [],
+                "adult_subject_label": "con chim",
+            },
+        },
+    )
+    assert confirmed.status_code == 200, confirmed.text
+    assert confirmed.json()["payload"]["primary_subject_origin"] == "ADULT_ENTERED"
+    assert (
+        confirmed.json()["payload"]["anchor_set"]["primary_anchor"]["provenance"]["source_claim_ids"]
+        == []
+    )
+    assert vision.calls == 2

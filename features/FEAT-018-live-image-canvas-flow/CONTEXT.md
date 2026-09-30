@@ -4,8 +4,9 @@
   boundary and bounded offline implementation complete; the approved staged topic/Pixi/video-
   placeholder/outdoor-activity flow is implemented, offline-tested, Android-built and boot-smoked;
   owner-run live Lightning flow and full orientation/control acceptance remain pending;
-  bird-topic recall correction is planned and awaiting owner approval; integrated child-profile UI,
-  Montessori personalization and SAM/renderer quality plan is APPROVED and in progress
+  subject-recall and Pixi main-flow hardening plan is approved; offline implementation and focused
+  verification pass, while fresh backend-rig Pixi playback acceptance remains pending; integrated
+  child-profile UI, Montessori personalization and SAM/renderer quality plan is APPROVED and in progress
 - Plan revision: 2 with approved P2-T1 D2/D3-R2 and P2-T2 offline addenda
 - Owner: shared integration allocation pending contract freeze approval
 - Goal: run a synthetic/non-child JPG/PNG through backend admission and the owner-triggered Lightning
@@ -17,6 +18,14 @@
 - Pilot: 20 golden activities for full device/integration flow; 100 MVP activities for offline catalog/reference validation.
 
 ## Current state
+
+The owner approved `plan/PIXI_RENDERER_PLAYBACK_FAILURE_DIAGNOSIS_AND_FIX_PLAN_20260930.md`.
+Safe allowlisted renderer failure codes now reach development diagnostics instead of being hidden
+by the generic Pixi error copy. The initial synthetic emulator flow was blocked before it created a
+Pixi launch; the owner later supplied the exact `MASK_BACKGROUND_RECONSTRUCTION_FAILED` code. A
+synthetic regression reproduced and fixed its bounded paper-donor failure class; fresh Android
+visual acceptance remains pending. See
+`evidence/notes/PIXI_RENDERER_DIAGNOSTIC_PARTIAL_20260930.md`.
 
 The 2026-09-23 staged story-intro increment is implemented under the approved
 `PIXI_STORY_INTRO_TOPIC_DIRECTIONS_FLOW_PLAN.md`. Backend understanding now returns at most three
@@ -30,14 +39,13 @@ passed. Evidence is recorded in
 `evidence/notes/PIXI_STORY_INTRO_TOPIC_DIRECTIONS_IMPLEMENTATION_20260923.md`; the complete live
 flow remains an owner-run synthetic-image check because Codex did not spend Lightning credits.
 
-The 2026-09-29 owner screenshot shows a visible bird represented only by a generic detail label while
-branch and leaf become the topic cards. Source inspection found that the Lightning V2 prompt already
-prioritizes a central recognizable subject, but backend and mobile label mapping are separate exact
-vocabularies; unknown ASCII labels are genericized and backend topic generation removes them. Topic
-ordering also does not distinguish a whole animal from a plant part. The exact live Qwen label was not
-available, so model omission cannot be ruled out. A synthetic alias/ordering correction plan is
-recorded in `plan/BIRD_SUBJECT_TOPIC_RECALL_FIX_PLAN_20260929.md` and awaits owner approval; no code
-was changed for this report.
+The 2026-09-29 owner screenshot showed a visible bird represented only by a generic detail label while
+branch and leaf became topic cards. The approved 2026-09-30 implementation preserves unknown valid
+labels for adult review, canonicalizes reviewed bird/animal aliases, and ranks whole-animal claims
+ahead of part claims without fabricating evidence. Adults can correct/add a subject, explicitly
+re-query once, or continue with a versioned adult-provenance Gate A when AI has no usable claim. The
+Qwen miss itself remains probabilistic and has not been tested with a live model call. See
+`evidence/notes/SUBJECT_RECALL_AND_PIXI_MAIN_FLOW_HARDENING_IMPLEMENTATION_20260930.md`.
 
 P2 research round 1 is complete as documentation only (2026-09-09). Working research
 and handoff notes remain local-only; publish selected completed P2 records after
@@ -544,3 +552,16 @@ the full live classification/readiness/Gate-B journey, visual SAM acceptance, re
 mask quality, L4 runtime budget and the comparable native input-to-presented-pixel trace remain
 unverified. See FEAT-033 `FEAT033-EV-20260930-09` and FEAT-030
 `E-030-SAM-QUALITY-012`.
+
+## Pixi mask-background failure follow-up — 2026-09-30
+
+The owner supplied the exact renderer failure `MASK_BACKGROUND_RECONSTRUCTION_FAILED`. A synthetic
+renderer regression reproduced it when a seven-pixel saturated outline separated the subject mask
+from nearby paper; the renderer's bounded low-chroma paper search now reaches 12 pixels and still
+fails closed when no credible donor is found. Renderer tests (48), renderer typecheck/build, mobile
+typecheck and UI-copy tests pass. The connected emulator was not used for a fresh Pixi launch because
+the current app path needs a live rig/mask backend response; no provider call was made. Android
+visual acceptance remains pending. See FEAT-030 `E-030-FIX-013` and the FEAT-018 evidence record at
+`evidence/notes/SUBJECT_RECALL_AND_PIXI_MAIN_FLOW_HARDENING_IMPLEMENTATION_20260930.md`. The approved subject
+and Pixi main-flow increment now has offline regression coverage; its fresh visual acceptance still
+requires a real backend rig/mask response and was not inferred from Metro bundle delivery.

@@ -1,4 +1,6 @@
 export {ART_RENDERER_PROTOCOL_VERSION} from './contracts';
+export {normalizeRendererFailureCode, RENDERER_FAILURE_CODES} from './failureDiagnostics';
+export type {RendererFailureCode} from './failureDiagnostics';
 export {
   MAX_RENDERER_MESSAGE_BYTES,
   MAX_RENDERER_COMMAND_BYTES,

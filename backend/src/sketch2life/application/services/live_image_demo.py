@@ -593,7 +593,9 @@ class LiveImageDemoService:
             snapshot = self._sessions.snapshot(command.session_id)
             if snapshot.version != command.expected_session_version:
                 raise _stale_version()
-            allowed_states = ("GATE_A_PENDING",) if is_requery else ("CREATED",)
+            allowed_states = (
+                ("GATE_A_PENDING", "CREATED") if is_requery else ("CREATED",)
+            )
             if snapshot.state not in allowed_states:
                 raise _workflow_error(
                     "IMAGE_NOT_READY_FOR_UNDERSTANDING",
@@ -609,7 +611,15 @@ class LiveImageDemoService:
                     if isinstance(stored_progress, dict)
                     else None
                 )
-                if stored_run_id != command.payload.get("prior_run_id"):
+                recovery_without_run = (
+                    snapshot.state == "CREATED"
+                    and stored_progress is None
+                    and command.payload.get("prior_run_id") == "manual-subject-recovery"
+                )
+                if (
+                    not recovery_without_run
+                    and stored_run_id != command.payload.get("prior_run_id")
+                ):
                     raise _workflow_error(
                         "DIRECTION_REQUERY_STALE",
                         409,
@@ -646,6 +656,13 @@ class LiveImageDemoService:
                         "This demo allows one explicit direction re-query per session.",
                     )
                 direction_revision += 1
+                requested_revision = command.payload.get("direction_revision")
+                if requested_revision != direction_revision:
+                    raise _workflow_error(
+                        "DIRECTION_REQUERY_STALE",
+                        409,
+                        "The re-analysis request does not match the current session revision.",
+                    )
                 narration_value = workflow.values.get("narration_input", {"kind": "NONE"})
             else:
                 narration_value = command.payload.get("narration", {"kind": "NONE"})
@@ -796,10 +813,76 @@ class LiveImageDemoService:
                 requested_profile_id=VisionProfileIdV2.QWEN3_VL_8B_INSTRUCT_BF16_V1,
             )
             # One provider call only. A retry requires a new explicit command from the user.
-            vision_result = self._call_vision(
-                vision_request,
-                narration_context=narration_context,
-            )
+            # A transport/runtime exception is converted to a typed recoverable state so the
+            # adult can review or enter the subject; raw provider exception text is never returned.
+            try:
+                vision_result = self._call_vision(
+                    vision_request,
+                    narration_context=narration_context,
+                )
+            except Exception:
+                failure_progress = _progress_payload(
+                    run_id=command.request_id,
+                    stage="FAILED",
+                    stage_status="BLOCKED",
+                    direction_revision=direction_revision,
+                    narration=narration_payload,
+                    reason_codes=("VISION_REQUEST_FAILED",),
+                    gate_a_ready=False,
+                    requery=is_requery,
+                )
+                prior_directions = workflow.values.get("topic_directions", [])
+                updated = self._sessions.advance(
+                    session_id=command.session_id,
+                    expected_version=command.expected_session_version,
+                    allowed_states=allowed_states,
+                    next_state="GATE_A_PENDING",
+                    workflow_updates={
+                        "raw_understanding": previous_raw if is_requery else None,
+                        "narration_result": narration_payload,
+                        "narration_input": narration.model_dump(mode="json"),
+                        "understanding_direction_signature": direction_signature,
+                        "direction_revision": direction_revision,
+                        "understanding_progress": failure_progress,
+                        "topic_directions": prior_directions if is_requery else [],
+                        "subject_candidates": (
+                            workflow.values.get("subject_candidates", []) if is_requery else []
+                        ),
+                        "subject_regions": (
+                            workflow.values.get("subject_regions", {}) if is_requery else {}
+                        ),
+                        "subject_localization": (
+                            workflow.values.get("subject_localization", {}) if is_requery else {}
+                        ),
+                        "gate_a_confirmation": None,
+                        "p1_context": None,
+                        "experience_spec": None,
+                        "gate_b": None,
+                        "journey": _append_journey(
+                            workflow.values.get("journey"),
+                            stage="UNDERSTANDING",
+                            status="BLOCKED",
+                            artifact_refs=(source.artifact_ref,),
+                            reason_codes=("VISION_REQUEST_FAILED",),
+                        ),
+                    },
+                )
+                result = _result(
+                    status="BLOCKED",
+                    request_id=command.request_id,
+                    session_id=command.session_id,
+                    expected_version=command.expected_session_version,
+                    observed_version=updated.version,
+                    payload={
+                        "narration": narration_payload,
+                        "understanding_progress": failure_progress,
+                        "topic_directions": prior_directions if is_requery else [],
+                        "reason_codes": ["VISION_REQUEST_FAILED"],
+                    },
+                    provenance=_VISION_VERSION,
+                )
+                self._remember(scope, command.idempotency_key, fingerprint, result)
+                return result, False
             mapping_error: RawUnderstandingMappingError | None = None
             try:
                 raw_result = map_vision_result_to_raw(
@@ -852,12 +935,14 @@ class LiveImageDemoService:
             )
             next_state = (
                 "GATE_A_PENDING"
-                if succeeded or (is_requery and isinstance(previous_raw, dict))
+                if succeeded
+                or isinstance(raw_result, RawUnderstandingSuccessV1)
+                or (is_requery and isinstance(previous_raw, dict))
                 else "CREATED"
             )
             stored_raw = (
                 raw_result.model_dump(mode="json")
-                if succeeded and raw_result is not None
+                if isinstance(raw_result, RawUnderstandingSuccessV1)
                 else previous_raw
                 if is_requery
                 else None

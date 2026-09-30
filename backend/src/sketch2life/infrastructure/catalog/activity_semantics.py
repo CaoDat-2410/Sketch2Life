@@ -154,6 +154,11 @@ def _evidence(
     fallback_reason: str | None = None,
 ) -> SemanticMatchEvidenceV1:
     claim_ids = tuple(anchor.provenance.source_claim_ids)
+    adult_assertion_ids = (
+        (anchor.provenance.source_adult_assertion_id,)
+        if anchor.provenance.source_adult_assertion_id
+        else ()
+    )
     return SemanticMatchEvidenceV1(
         match_mode=mode,
         profile_id=profile.profile_id,
@@ -162,6 +167,7 @@ def _evidence(
         matched_phrases_vi=(phrase,) if phrase else (),
         matched_concept_ids=(profile.profile_id,),
         evidence_claim_ids=claim_ids,
+        evidence_adult_assertion_ids=adult_assertion_ids,
         reason_codes=reason_codes,
         fallback_reason=fallback_reason,
     )

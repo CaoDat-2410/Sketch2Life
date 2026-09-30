@@ -33,8 +33,15 @@ class SceneConceptV2(BaseModel):
         "UNCLASSIFIED",
     ] = "SECONDARY_VISUAL"
     child_interest_alignment: float = Field(default=0.0, ge=0, le=1)
-    evidence_claim_ids: tuple[str, ...] = Field(min_length=1)
-    source_kinds: tuple[Literal["ASR", "VLM", "FUSION"], ...] = Field(min_length=1)
+    evidence_claim_ids: tuple[str, ...] = ()
+    evidence_adult_assertion_ids: tuple[str, ...] = ()
+    source_kinds: tuple[Literal["ASR", "VLM", "FUSION", "ADULT"], ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def require_traceable_evidence(self) -> SceneConceptV2:
+        if not self.evidence_claim_ids and not self.evidence_adult_assertion_ids:
+            raise ValueError("scene concepts must retain claim or adult assertion evidence")
+        return self
 
 
 class ConfirmedSceneUnderstandingV2(BaseModel):
@@ -198,7 +205,8 @@ class SemanticActivityMatchV2(BaseModel):
     matched_concept_ids: tuple[str, ...] = ()
     matched_phrases_vi: tuple[str, ...] = ()
     matched_anchor_labels_vi: tuple[str, ...] = ()
-    evidence_claim_ids: tuple[str, ...] = Field(min_length=1)
+    evidence_claim_ids: tuple[str, ...] = ()
+    evidence_adult_assertion_ids: tuple[str, ...] = ()
     reason_codes: tuple[str, ...] = Field(min_length=1)
     fallback_reason: str | None = Field(default=None, max_length=200)
     continuity_mode: Literal["DIRECT_CONTINUATION", "RELATED_EXPANSION"] = (
@@ -224,6 +232,7 @@ class SemanticActivityMatchV2(BaseModel):
         min_length=1,
         max_length=500,
     )
+
     offscreen_instruction_vi: str = Field(
         default="Thực hiện hoạt động ngoài màn hình cùng người lớn.",
         min_length=1,
@@ -232,6 +241,8 @@ class SemanticActivityMatchV2(BaseModel):
 
     @model_validator(mode="after")
     def validate_mode(self) -> SemanticActivityMatchV2:
+        if not self.evidence_claim_ids and not self.evidence_adult_assertion_ids:
+            raise ValueError("activity match must retain claim or adult assertion evidence")
         is_fallback = self.match_mode == "AGE_BASELINE_FALLBACK"
         if is_fallback and not self.fallback_reason:
             raise ValueError("baseline fallback requires fallback_reason")

@@ -135,6 +135,43 @@ describe('SAM subject cutout composition', () => {
     expect(source).toEqual(original);
   });
 
+  it('reconstructs through a thick saturated outline using nearby credible paper', () => {
+    const width = 40;
+    const height = 40;
+    const source = new Uint8ClampedArray(width * height * 4);
+    const mask = new Uint8ClampedArray(width * height * 4);
+    const isInside = (x: number, y: number) => x >= 15 && x <= 24 && y >= 15 && y <= 24;
+
+    for (let y = 0; y < height; y += 1) {
+      for (let x = 0; x < width; x += 1) {
+        const offset = (y * width + x) * 4;
+        const inside = isInside(x, y);
+        const dx = x < 15 ? 15 - x : x > 24 ? x - 24 : 0;
+        const dy = y < 15 ? 15 - y : y > 24 ? y - 24 : 0;
+        const thickPigmentOutline = !inside && Math.max(dx, dy) <= 7;
+        source.set(inside ? [25, 110, 235, 255] : thickPigmentOutline ? [245, 105, 12, 255] : [238, 235, 228, 255], offset);
+        mask.set(inside ? [255, 255, 255, 255] : [0, 0, 0, 255], offset);
+      }
+    }
+
+    const original = new Uint8ClampedArray(source);
+    const layers = createSubjectCutoutLayers(source, mask, width, height);
+    const centerOffset = (20 * width + 20) * 4;
+
+    expect(Array.from(layers.backgroundPixels.slice(centerOffset, centerOffset + 3)))
+      .toEqual([238, 235, 228]);
+    expect(Array.from(layers.subjectPixels.slice(centerOffset, centerOffset + 4)))
+      .toEqual([25, 110, 235, 255]);
+    for (let pixel = 0; pixel < width * height; pixel += 1) {
+      const offset = pixel * 4;
+      if (mask[offset] <= 8) {
+        expect(Array.from(layers.backgroundPixels.slice(offset, offset + 4)))
+          .toEqual(Array.from(original.slice(offset, offset + 4)));
+      }
+    }
+    expect(source).toEqual(original);
+  });
+
   it('rejects a mask whose local neighborhood contains no credible paper donors', () => {
     const width = 12;
     const height = 12;

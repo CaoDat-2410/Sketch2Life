@@ -449,7 +449,17 @@ def _scene_from_anchor_set(
                     ),
                     child_interest_alignment=1.0 if anchor_index == 0 else 0.65,
                     evidence_claim_ids=anchor.provenance.source_claim_ids,
-                    source_kinds=("FUSION",) if narration_text.strip() else ("VLM",),
+                    evidence_adult_assertion_ids=(
+                        (anchor.provenance.source_adult_assertion_id,)
+                        if anchor.provenance.source_adult_assertion_id
+                        else ()
+                    ),
+                    source_kinds=(
+                        ("ADULT",)
+                        if anchor.provenance.source_adult_assertion_id
+                        and not anchor.provenance.source_claim_ids
+                        else ("FUSION",) if narration_text.strip() else ("VLM",)
+                    ),
                 )
             )
     if not concepts:
@@ -461,7 +471,15 @@ def _scene_from_anchor_set(
                 concept_role="PRIMARY_VISUAL",
                 child_interest_alignment=0.5,
                 evidence_claim_ids=anchor_set.primary_anchor.provenance.source_claim_ids,
-                source_kinds=("VLM",),
+                evidence_adult_assertion_ids=(
+                    (anchor_set.primary_anchor.provenance.source_adult_assertion_id,)
+                    if anchor_set.primary_anchor.provenance.source_adult_assertion_id
+                    else ()
+                ),
+                source_kinds=("ADULT",)
+                if anchor_set.primary_anchor.provenance.source_adult_assertion_id
+                and not anchor_set.primary_anchor.provenance.source_claim_ids
+                else ("VLM",),
             )
         )
     primary = concepts[0]

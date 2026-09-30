@@ -16,6 +16,8 @@
 | E-030-FIX-009 | Consume verified `CUTOUT_MICRO_MOTION` packages without requiring part masks; preserve strict `FULL_AUTO_RIG` gate | Android console diagnosis, renderer tests/typecheck/build, backend restart and HTTP probes | `notes/CUTOUT_TIER_CONSUMPTION_FIX_20260929.md` | PASS_LOCAL_CHECKS; FRESH_ANDROID_FLOW_PENDING |
 | E-030-FIX-010 | Mask-bounded cutout inpainting, no automatic V2-to-V1 fallback, Gate-A/Gate-B/Pixi loading surfaces and earlier package preparation | Android logcat diagnosis, renderer/mobile tests and checks, bundle build and backend probes | `notes/NO_V1_FALLBACK_PRELOAD_INPAINT_20260929.md` | PASS_LOCAL_CHECKS; FRESH_ANDROID_VISUAL_AND_WEBGL_RETEST_PENDING |
 | E-030-FIX-011 | High-pigment cutout edge artifacts; likely color contamination during inpainting, mask-vs-renderer attribution still unverified | Owner screenshot review and source inspection; no matching live source/mask logs | `notes/HEAVY_PIGMENT_CUTOUT_DIAGNOSIS_20260929.md` and `notes/INTEGRATED_MASK_AND_CUTOUT_QUALITY_20260929.md` | SYNTHETIC_IMPLEMENTATION_AND_OFFLINE_TESTS_PASS; REAL_DRAWING_AND_ANDROID_RETEST_PENDING |
+| E-030-SAM-QUALITY-012 | Decouple analytic mask fixtures from pytest; reproduce bounded-selector metrics and grounded thin-detail case | Synthetic-only benchmark and regression suite | `notes/SAM21_BENCHMARK_RUNABILITY_20260930.md` | PASS_SELECTOR_PLUMBING; REAL SAM/L4/HELD-OUT QUALITY PENDING |
+| E-030-FIX-013 | Reproduce and fix bounded local-donor failure on a dense saturated outline | Synthetic renderer regression, typecheck, bundle and mobile checks | `notes/PIXI_MASK_BACKGROUND_RECONSTRUCTION_FIX_20260930.md` | OFFLINE_PASS; ANDROID_VISUAL_ACCEPTANCE_PENDING |
 
 ## Planned evidence groups
 

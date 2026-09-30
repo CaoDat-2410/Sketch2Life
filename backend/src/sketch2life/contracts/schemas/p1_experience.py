@@ -41,6 +41,7 @@ class AnchorProvenanceV1(P1ContractBase):
     source_contract_name: str = Field(min_length=1, max_length=120)
     source_contract_version: str = Field(min_length=1, max_length=40)
     source_claim_ids: tuple[str, ...] = ()
+    source_adult_assertion_id: str | None = Field(default=None, min_length=1, max_length=160)
 
 
 class SemanticAnchorV1(P1ContractBase):
@@ -57,8 +58,8 @@ class SemanticAnchorV1(P1ContractBase):
     def require_confirmed_provenance(self) -> SemanticAnchorV1:
         if not self.adult_confirmed:
             raise ValueError("P1 requires an adult-confirmed anchor")
-        if not self.provenance.source_claim_ids:
-            raise ValueError("anchor provenance must retain source claim IDs")
+        if not self.provenance.source_claim_ids and not self.provenance.source_adult_assertion_id:
+            raise ValueError("anchor provenance must retain claim or adult assertion provenance")
         return self
 
 
@@ -99,12 +100,15 @@ class SemanticMatchEvidenceV1(P1ContractBase):
     matched_phrases_vi: tuple[str, ...] = ()
     matched_concept_ids: tuple[str, ...] = ()
     matched_objective_ids: tuple[str, ...] = ()
-    evidence_claim_ids: tuple[str, ...] = Field(min_length=1)
+    evidence_claim_ids: tuple[str, ...] = ()
+    evidence_adult_assertion_ids: tuple[str, ...] = ()
     reason_codes: tuple[str, ...] = ()
     fallback_reason: str | None = Field(default=None, max_length=160)
 
     @model_validator(mode="after")
     def validate_fallback_reason(self) -> SemanticMatchEvidenceV1:
+        if not self.evidence_claim_ids and not self.evidence_adult_assertion_ids:
+            raise ValueError("semantic match evidence must retain an AI claim or adult assertion")
         if self.match_mode == "SAFE_FALLBACK" and not self.fallback_reason:
             raise ValueError("safe fallback evidence requires fallback_reason")
         if self.match_mode != "SAFE_FALLBACK" and self.fallback_reason is not None:

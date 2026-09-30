@@ -95,6 +95,47 @@ def test_multimask_selection_rejects_high_score_candidate_that_violates_points()
     assert output.confidence == 0.76
 
 
+def test_multimask_selection_rejects_candidate_missing_grounded_thin_detail() -> None:
+    numpy = pytest.importorskip("numpy")
+
+    class Predictor:
+        def set_image(self, _image: object) -> None:
+            pass
+
+        def predict(self, **kwargs: object) -> tuple[object, object, None]:
+            assert kwargs["multimask_output"] is True
+            distractor = numpy.zeros((40, 40), dtype=bool)
+            distractor[10:30, 10:30] = True
+            distractor[32:35, 32:35] = True
+            missing_thin_detail = numpy.zeros((40, 40), dtype=bool)
+            missing_thin_detail[10:30, 10:30] = True
+            complete = missing_thin_detail.copy()
+            complete[18, 8:10] = True
+            return (
+                numpy.asarray([distractor, missing_thin_detail, complete]),
+                numpy.asarray([0.99, 0.90, 0.80]),
+                None,
+            )
+
+    runtime = Sam21ImageSegmenter(
+        Sam21RuntimeConfig(checkpoint=None, model_config="", device="cpu"),
+        predictor=Predictor(),
+    )
+    output = runtime.segment(
+        _image_png(),
+        prompt_region=SourceRegionV1(x=0.1, y=0.1, width=0.7, height=0.7),
+        positive_points=((0.5, 0.5), (8.5 / 40, 18.5 / 40)),
+        negative_points=((33.5 / 40, 33.5 / 40),),
+    )
+
+    with Image.open(BytesIO(output.mask_png)) as mask_image:
+        selected = numpy.asarray(mask_image) > 0
+    assert selected[18, 8]
+    assert selected[18, 9]
+    assert not selected[33, 33]
+    assert output.confidence == 0.80
+
+
 def test_multimask_selection_returns_typed_rejection_when_no_candidate_matches_prompt() -> None:
     numpy = pytest.importorskip("numpy")
 

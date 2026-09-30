@@ -13,6 +13,7 @@ import {
   matchesDerivedMaskProvenance,
   sha256Hex,
   createRendererStartupGate,
+  normalizeRendererFailureCode,
   type PlaybackEvent,
   type RendererLoadCommand,
   type RendererLoadCommandV2,
@@ -38,7 +39,7 @@ const app = new Application();
 let rendererInitialized = false;
 
 type ActiveLaunch = RendererLoadCommand | RendererLoadCommandV2;
-type PlaybackController = Pick<ReturnType<typeof createBrowserArtPlayer>, 'play' | 'pause' | 'replay' | 'seekTo' | 'seekRelative' | 'getPlaybackState'>;
+type PlaybackController = Pick<ReturnType<typeof createBrowserArtPlayer>, 'play' | 'pause' | 'replay' | 'seekTo' | 'seekRelative' | 'getPlaybackState' | 'destroy'>;
 
 let launch: ActiveLaunch | null = null;
 let sourceBlob: Blob | null = null;
@@ -47,7 +48,14 @@ let lastLoadMessage: string | null = null;
 let lastAcceptedLaunchMessage: string | null = null;
 let lastProgressPostAt = 0;
 let activePlayer: PlaybackController | null = null;
+const destroyedPlayers = new Set<PlaybackController>();
 let v2InteractionPhase: 'INTRO_LOADING' | 'INTRO_PLAYING' | 'DISCOVERY_READY' | 'FALLBACK' = 'INTRO_LOADING';
+
+function safelyDestroyPlayer(player: PlaybackController | null): void {
+  if (player === null || destroyedPlayers.has(player)) return;
+  destroyedPlayers.add(player);
+  try { player.destroy(); } catch { /* Cleanup must not suppress the typed failure. */ }
+}
 
 function post(value: unknown): void {
   const serialized = JSON.stringify(value);
@@ -334,6 +342,7 @@ async function loadLaunch(serialized: string): Promise<void> {
         v2InteractionPhase = 'INTRO_LOADING';
       } catch (error) {
         console.error('[art-renderer] Renderer V2 package could not start.', safeFailureCode(error));
+        safelyDestroyPlayer(autoRigPlayer);
         activePlayer = null;
         playButton.disabled = true;
         playButton.textContent = 'Thử mở lại trong ứng dụng';
@@ -360,16 +369,22 @@ async function loadLaunch(serialized: string): Promise<void> {
     }
     activePlayer.play();
   } catch (error) {
+    try {
+      safelyDestroyPlayer(command.contractName === 'RendererLoadCommandV2' ? autoRigPlayer : classicPlayer);
+    } catch {
+      // Keep the original source and still report the launch failure.
+    }
+    activePlayer = null;
     sourceBlob = null;
     status.textContent = 'Không nạp được ảnh gốc. Hãy về app và mở Pixi lại thủ công; không tự retry.';
     playButton.disabled = true;
-    if (command.contractName === 'RendererLoadCommandV2') {
-      postLifecycle({
-        type: 'PLAYBACK_FAILED',
-        planId: command.animationPlan.planId,
-        reason: safeFailureCode(error),
-      });
-    }
+    postLifecycle({
+      type: 'PLAYBACK_FAILED',
+      planId: command.contractName === 'RendererLoadCommandV2'
+        ? command.animationPlan.planId
+        : command.animationPlan.plan.planId,
+      reason: safeFailureCode(error),
+    });
   }
 }
 
@@ -377,10 +392,16 @@ function receiveNativeMessage(event: MessageEvent): void {
   const serialized = typeof event.data === 'string' ? event.data : '';
   const serializedByteLength = new TextEncoder().encode(serialized).byteLength;
   if (!serialized || serializedByteLength > MAX_RENDERER_COMMAND_BYTES) return;
+  let parsed: unknown;
   try {
-    const control = RendererControlCommandSchema.safeParse(JSON.parse(serialized));
-    if (control.success && control.data.rendererInstanceId === rendererInstanceId) {
-      if (serializedByteLength > MAX_RENDERER_MESSAGE_BYTES) return;
+    parsed = JSON.parse(serialized);
+  } catch {
+    return;
+  }
+  const control = RendererControlCommandSchema.safeParse(parsed);
+  if (control.success && control.data.rendererInstanceId === rendererInstanceId) {
+    if (serializedByteLength > MAX_RENDERER_MESSAGE_BYTES) return;
+    try {
       switch (control.data.action) {
         case 'PLAY': activePlayer?.play(); break;
         case 'PAUSE': activePlayer?.pause(); break;
@@ -388,13 +409,13 @@ function receiveNativeMessage(event: MessageEvent): void {
         case 'SEEK_RELATIVE_SECONDS': activePlayer?.seekRelative(control.data.seconds ?? 0); break;
         case 'SEEK_TO_SECONDS': activePlayer?.seekTo(control.data.seconds ?? 0); break;
       }
-      return;
+    } catch (error) {
+      reportPlaybackFailure(error);
     }
-  } catch {
     return;
   }
-  const parsedV2 = RendererLoadCommandV2Schema.safeParse(JSON.parse(serialized));
-  const parsedV1 = RendererLoadCommandSchema.safeParse(JSON.parse(serialized));
+  const parsedV2 = RendererLoadCommandV2Schema.safeParse(parsed);
+  const parsedV1 = RendererLoadCommandSchema.safeParse(parsed);
   const command = parsedV2.success ? parsedV2.data : parsedV1.success ? parsedV1.data : null;
   if (command?.rendererInstanceId === rendererInstanceId) {
     if (lastAcceptedLaunchMessage !== serialized) {
@@ -418,14 +439,37 @@ playButton.addEventListener('click', () => {
     if (stateValue?.state === 'PLAYING') activePlayer?.pause();
     else if (stateValue?.state === 'COMPLETED') activePlayer?.replay();
     else activePlayer?.play();
-  } catch {
-    status.textContent = 'Pixi không phát được chuyển động; ảnh gốc vẫn còn trong app.';
+  } catch (error) {
+    reportPlaybackFailure(error);
   }
 });
 
+function reportPlaybackFailure(error: unknown): void {
+  const reason = safeFailureCode(error);
+  safelyDestroyPlayer(activePlayer);
+  activePlayer = null;
+  playButton.disabled = true;
+  playButton.textContent = 'Thử mở lại trong ứng dụng';
+  status.textContent = 'Pixi không phát được chuyển động; ảnh gốc vẫn còn trong app.';
+  if (launch !== null) {
+    postLifecycle({
+      type: 'PLAYBACK_FAILED',
+      planId: launch.contractName === 'RendererLoadCommandV2'
+        ? launch.animationPlan.planId
+        : launch.animationPlan.plan.planId,
+      reason,
+    });
+  }
+}
+
 window.addEventListener('pagehide', () => {
-  classicPlayer.destroy();
-  autoRigPlayer.destroy();
+  safelyDestroyPlayer(activePlayer);
+  if (activePlayer === null && launch !== null) {
+    safelyDestroyPlayer(launch.contractName === 'RendererLoadCommandV2' ? autoRigPlayer : classicPlayer);
+  } else if (launch === null) {
+    safelyDestroyPlayer(classicPlayer);
+    safelyDestroyPlayer(autoRigPlayer);
+  }
   sourceBlob = null;
   if (rendererInitialized) app.destroy(true);
 });
@@ -523,21 +567,7 @@ async function textureFromBlob(
 }
 
 function safeFailureCode(error: unknown): string {
-  const message = error instanceof Error ? error.message : '';
-  const knownCodes = [
-    'SOURCE_UNAVAILABLE', 'SOURCE_SIZE_INVALID', 'SOURCE_TYPE_INVALID', 'SOURCE_HASH_MISMATCH',
-    'RIG_PACKAGE_UNAVAILABLE', 'RIG_PACKAGE_SIZE_INVALID', 'RIG_PACKAGE_HASH_MISMATCH',
-    'RIG_PACKAGE_SOURCE_MISMATCH',
-    'MASK_UNAVAILABLE', 'MASK_CAPABILITY_OR_PROVENANCE_INVALID', 'MASK_HASH_OR_SIZE_INVALID',
-    'MASK_DIMENSIONS_MISMATCH', 'MASK_CANVAS_UNAVAILABLE', 'MASK_AREA_INVALID',
-    'MASK_REGION_INVALID', 'MASK_REGION_MISMATCH', 'MASK_DIMENSIONS_INVALID',
-    'MASK_BACKGROUND_RECONSTRUCTION_FAILED', 'SUBJECT_MASK_UNAVAILABLE', 'PART_MASKS_REQUIRED',
-    'RIG_TIER_NOT_RENDERABLE',
-    'PART_MASK_HANDOFF_INVALID', 'PART_MASK_PROVENANCE_INVALID', 'PART_MASK_UNAVAILABLE',
-    'PART_MASK_HASH_INVALID', 'PART_MASK_CANVAS_UNAVAILABLE', 'PART_MASK_DIMENSIONS_MISMATCH',
-    'PART_MASK_QUALITY_INVALID', 'PART_MASK_COVERAGE_INVALID',
-  ];
-  return knownCodes.includes(message) ? message : 'RENDERER_V2_START_FAILED';
+  return normalizeRendererFailureCode(error);
 }
 
 async function maskCanvasFromBytes(

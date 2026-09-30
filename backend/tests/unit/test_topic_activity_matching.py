@@ -5,6 +5,11 @@ from pathlib import Path
 from types import SimpleNamespace
 
 from sketch2life.application.services.p1_experience import P1ExperienceCompiler
+from sketch2life.application.services.scene_exploration import (
+    build_scene_exploration_plan,
+    build_scene_focus_plan,
+    build_subject_candidates,
+)
 from sketch2life.application.services.semantic_activity_resolver import (
     _select_activity_rows,
     resolve_activity_options,
@@ -24,6 +29,7 @@ from sketch2life.contracts.schemas.p1_experience import (
     AnchorProvenanceV1,
     SemanticAnchorSetV1,
     SemanticAnchorV1,
+    VersionedRefV1,
 )
 from sketch2life.infrastructure.catalog.activity_semantics import (
     load_activity_semantic_catalog,
@@ -123,6 +129,93 @@ def test_bird_claims_are_localized_deduplicated_and_compose_one_vietnamese_topic
     assert directions[0].narration_covered is True
     assert all("chi tiết trong tranh" not in item.title_vi for item in directions)
     assert len({item.title_vi for item in directions}) == len(directions)
+
+
+def test_whole_animal_subject_outranks_high_confidence_parts_and_keeps_unknown_labels() -> None:
+    assert display_label_vi("bluebird") == "bluebird"
+    claims = rank_claims(
+        (
+            RankedClaim("part-branch", "branch", "cành cây", "subject", 0.99),
+            RankedClaim("part-leaf", "leaf", "chiếc lá", "subject", 0.98),
+            RankedClaim("whole-bird", "bird", "con chim", "subject", 0.52),
+            RankedClaim("unknown-subject", "bluebird", "bluebird", "subject", 0.61),
+        )
+    )
+
+    assert [claim.observation_id for claim in claims][:2] == ["whole-bird", "unknown-subject"]
+    directions = build_topic_directions(claims)
+    assert directions[0].primary_claim_id == "whole-bird"
+    assert any("bluebird" in direction.title_vi for direction in directions)
+
+
+def test_adult_entered_subject_keeps_human_provenance_without_ai_claim_ids() -> None:
+    digest = "b" * 64
+    assertion_id = "adult-assertion-bird-test"
+    anchor_set = SemanticAnchorSetV1(
+        anchor_set_id="anchors-adult-subject",
+        source_artifact_id="synthetic-drawing.png",
+        source_artifact_sha256=digest,
+        gate_a_status="CONFIRMED",
+        adult_confirmation_actor="PROJECT_OWNER",
+        primary_anchor=SemanticAnchorV1(
+            anchor_id=f"anchor-{assertion_id}",
+            kind="subject",
+            original_label="con chim",
+            normalized_label="con chim",
+            semantic_tags=("động vật", "chuyển động"),
+            confidence=1.0,
+            adult_confirmed=True,
+            provenance=AnchorProvenanceV1(
+                source_artifact_id="synthetic-drawing.png",
+                source_artifact_sha256=digest,
+                source_contract_name="AdultSubjectConfirmationV1",
+                source_contract_version="1.0",
+                source_claim_ids=(),
+                source_adult_assertion_id=assertion_id,
+            ),
+        ),
+    )
+    candidates = build_subject_candidates(
+        session_id="session-adult", raw=None, anchor_set=anchor_set
+    )
+    scene_plan = build_scene_exploration_plan(
+        session_id="session-adult",
+        experience_spec_ref=VersionedRefV1(id="SPEC-ADULT", version=1),
+        raw=None,
+        candidates=candidates,
+        learning_bridge_vi="Cùng người lớn khám phá con chim.",
+    )
+    focus_plan = build_scene_focus_plan(
+        session_id="session-adult",
+        experience_spec_ref=VersionedRefV1(id="SPEC-ADULT", version=1),
+        raw=None,
+        candidates=candidates,
+    )
+    recommendation = resolve_activity_options_v2(
+        anchor_set=anchor_set,
+        age_months=60,
+        catalog=load_activity_semantic_catalog_v2(ROOT, include_expansion=True),
+        compiler=P1ExperienceCompiler(
+            (
+                library := load_p1_template_library(
+                    ROOT, include_mvp=True, include_expansion=True
+                )
+            ).templates,
+            library.objective_titles_vi,
+        ),
+    )
+
+    assert candidates.items[0].source_claim_ids == ()
+    assert candidates.items[0].source_adult_assertion_id == assertion_id
+    assert candidates.items[0].candidate_id == assertion_id
+    assert scene_plan.source_artifact_ref == "synthetic-drawing.png"
+    assert scene_plan.primary_subject_ref == assertion_id
+    assert focus_plan.extraction_status == "FALLBACK_REQUIRED"
+    assert recommendation.options
+    match = recommendation.v2_match_for(recommendation.options[0].activity_ref.id)
+    assert match is not None
+    assert match.evidence_claim_ids == ()
+    assert match.evidence_adult_assertion_ids == (assertion_id,)
 
 
 def test_v2_bird_shortlist_is_bounded_and_never_uses_unrelated_transfer() -> None:

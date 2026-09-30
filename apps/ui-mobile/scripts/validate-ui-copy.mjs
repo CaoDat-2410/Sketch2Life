@@ -16,6 +16,7 @@ import {
   PreferenceRevisionGate,
 } from '../src/demo/preferenceRevisionGate.mjs';
 import {resetSessionBoundProfileAnswers} from '../src/demo/sessionProfileAnswers.mjs';
+import {rendererWatchdogDeadline} from '../src/context/rendererPlaybackWatchdog.mjs';
 
 const root = resolve(import.meta.dirname, '..');
 const files = [
@@ -46,6 +47,7 @@ const flow2 = readFileSync(resolve(root, 'src/screens/Flow2Screens.tsx'), 'utf8'
 const shell = readFileSync(resolve(root, 'BaoApp.tsx'), 'utf8');
 const appContext = readFileSync(resolve(root, 'src/context/AppContext.tsx'), 'utf8');
 const apiClient = readFileSync(resolve(root, 'src/demo/api.ts'), 'utf8');
+const rendererHost = readFileSync(resolve(root, '../../packages/art-renderer/demo/mobile.ts'), 'utf8');
 const removedActivityGateCopy = [
   'Bắt đầu kiểm tra',
   'Kiểm tra điều kiện của nhóm nhỏ',
@@ -389,6 +391,56 @@ if (
 }
 if (!flow2.includes('Bức vẽ gốc của con vẫn an toàn ở đây.')) {
   throw new Error('Pixi failure must keep the original drawing visible.');
+}
+if (
+  !appContext.includes("return cleaned;")
+  || !appContext.includes("'bird', 'parrot', 'sparrow'")
+  || !flow2.includes('Phân tích lại theo chủ thể này (tối đa 1 lần)')
+  || !flow2.includes('Chủ thể nhập tại đây được ghi nhận là xác nhận của người lớn')
+  || flow2.includes("if (!directionRequeryUsed && (directionChanged || correction.trim()))")
+) {
+  throw new Error('Subject labels must stay reviewable, with explicit one-time re-analysis and provenance-aware adult confirmation.');
+}
+if (
+  !rendererHost.includes('reportPlaybackFailure(error);')
+  || !rendererHost.includes('activePlayer = null;')
+  || !rendererHost.includes('safelyDestroyPlayer(autoRigPlayer)')
+  || !flow2.includes('rendererWatchdogDeadline')
+  || !flow2.includes('playback.duration <= 0')
+) {
+  throw new Error('Pixi startup and playback failures must clean up the active renderer, reach native as typed failures, and have a bounded watchdog.');
+}
+const rendererPreparationStart = appContext.indexOf('const prepareRendererIntro = async');
+const rendererPreparationEnd = appContext.indexOf('const completeActivityHandoff =', rendererPreparationStart);
+const rendererPreparationImplementation = appContext.slice(rendererPreparationStart, rendererPreparationEnd);
+if (
+  rendererPreparationStart < 0
+  || rendererPreparationEnd < 0
+  || !rendererPreparationImplementation.includes('updateSessionVersion(rendererResult.observed_session_version)')
+  || !flow2.includes('!rendererPreparationFailed && playback.duration <= 0')
+) {
+  throw new Error('Late Pixi preparation must advance the session version and stop showing an infinite loader after preparation failure.');
+}
+const watchdogBase = {
+  pageActive: true,
+  failed: false,
+  handshakeReceived: true,
+  commandAccepted: true,
+  durationSeconds: 20,
+  state: 'PLAYING',
+  lastProgressAt: 10_000,
+  now: 17_500,
+};
+if (
+  rendererWatchdogDeadline({...watchdogBase, handshakeReceived: false}).stage !== 'HANDSHAKE'
+  || rendererWatchdogDeadline({...watchdogBase, durationSeconds: 0}).stage !== 'PREPARATION'
+  || rendererWatchdogDeadline({...watchdogBase, state: 'READY'}).stage !== 'STARTUP'
+  || rendererWatchdogDeadline(watchdogBase).remainingMs !== 500
+  || rendererWatchdogDeadline({...watchdogBase, state: 'PAUSED'}) !== null
+  || rendererWatchdogDeadline({...watchdogBase, state: 'COMPLETED'}) !== null
+  || !flow2.includes('playback.duration <= 0')
+) {
+  throw new Error('Pixi must keep loading visible until media is prepared and detect stalled startup/playback without timing out intentional pause/completion.');
 }
 if (!flow2.includes('Dành cho người lớn') || !flow2.includes('Thử lại')) {
   throw new Error('Adult details and renderer recovery actions must remain available.');

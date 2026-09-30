@@ -378,20 +378,28 @@ export class DemoApiClient {
     sessionId: string,
     version: number,
     claimIds: string[],
-    primaryAnchorId: string,
-    correction: string | null,
+    primaryAnchorId: string | null,
+    adultSubjectLabel: string | null,
   ) {
     return this.command(sessionId, version, 'POST', '/gate-a/confirm', {
       operation: 'CONFIRM_GATE_A',
       user_initiated: true,
       primary_anchor_id: primaryAnchorId,
-      confirmation: {
-        contract_name: 'GateAConfirmationV1',
-        contract_version: '1.0',
-        meaning_version: 1,
-        confirmed_claim_ids: claimIds,
-        correction,
-      },
+      confirmation: adultSubjectLabel
+        ? {
+          contract_name: 'GateAConfirmationV2',
+          contract_version: '2.0',
+          meaning_version: 2,
+          confirmed_claim_ids: claimIds,
+          adult_subject_label: adultSubjectLabel,
+        }
+        : {
+          contract_name: 'GateAConfirmationV1',
+          contract_version: '1.0',
+          meaning_version: 1,
+          confirmed_claim_ids: claimIds,
+          correction: null,
+        },
     });
   }
 

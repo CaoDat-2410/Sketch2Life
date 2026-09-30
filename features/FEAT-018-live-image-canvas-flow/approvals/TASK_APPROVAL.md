@@ -537,3 +537,33 @@ mobile, Gate A, P1 eligibility, P3/P4 and shared integration remain separately g
 - Current approved artifact SHA-256: `40B627FC34DC63418464F7F583F1C5A3A3B3F0F5ED205C9DCDA8E5DEB75A4503`.
 - Reconfirmation timestamp: 2026-09-29 07:56:46 UTC (14:56:46 Asia/Ho_Chi_Minh).
 - The current reply does not expand the original scope or remove any acceptance gate.
+
+## Owner approval — Pixi renderer playback failure diagnosis and fix — 2026-09-30
+
+- Approver: project owner, explicit reply “duyệt, fix cái đó đi” in the current conversation.
+- Approved artifact: `plan/PIXI_RENDERER_PLAYBACK_FAILURE_DIAGNOSIS_AND_FIX_PLAN_20260930.md`.
+- Approved plan SHA-256: `C90438646F8B9AF9F063F31F8EE4F39EAEF1C46AFF21B543AEE5EF67679A367C`.
+- Approved scope: expose only bounded/allowlisted renderer failure diagnostics; reproduce the Pixi
+  playback failure with synthetic/non-child media; fix the confirmed client renderer/bridge defect;
+  add focused regression coverage; rebuild the static renderer bundle; and verify on the Android
+  emulator. No backend AI/SAM/provider changes, secrets, real child media, unrelated changes,
+  commit, or push.
+- Approved at: 2026-09-30 (Asia/Ho_Chi_Minh).
+
+## Owner approval — subject recall and Pixi main-flow hardening — 2026-09-30
+
+- Approver: project owner, explicit “duyệt” for the bird-recall plan, followed by the scope direction
+  to correct subject recognition, add adult-entered missing subjects with an AI re-query option, and
+  audit/fix potential main-flow bugs with particular focus on Pixi. The owner confirmed choices 1A,
+  2A, 3A: adult-confirmed continuation after a miss, edit/add subjects, and one explicit shared
+  re-query per image session.
+- Approved artifact: `plan/SUBJECT_RECALL_AND_PIXI_MAIN_FLOW_HARDENING_PLAN_20260930.md`.
+- Plan SHA-256: `6EF237C0117AED6C8A4B513D69F084131FAB5E8B5C6C29DB2157E6607D92F65F`.
+- Approved acceptance criteria: `AC-SUBJECT-01` through `AC-SUBJECT-05`, `AC-PIXI-01` through
+  `AC-PIXI-03`, and `AC-VERIFY-01` / `AC-PRIVACY-01` in the exact approved plan.
+- Scope: bounded subject recall/canonicalization and whole-subject ranking; adult correction/addition;
+  recoverable zero-claim and re-query-failure paths; an additive versioned Gate-A path with explicit
+  adult provenance; one user-triggered re-query shared with the existing direction budget; and a
+  synthetic, stage-by-stage audit/fix of the Pixi main-flow state transitions. No Codex-initiated
+  provider calls, user artwork in evidence, unrelated work, commit, push, or release.
+- Approved at: 2026-09-30 07:08:49 UTC (14:08:49 Asia/Ho_Chi_Minh).

@@ -103,10 +103,16 @@ Selected Pixi Android WebView bridge recovery record:
 (`EV-018-PIXI-WEBVIEW-BRIDGE-RECOVERY-20260928`; bridge-size/readiness/cache/capability fixes and
 offline regression checks passed; fresh-session Android playback acceptance remains pending).
 
-Pending diagnosis and plan (not implementation evidence):
-[Bird subject topic recall diagnosis](notes/BIRD_SUBJECT_TOPIC_RECALL_DIAGNOSIS_20260929.md)
-and [correction plan](../plan/BIRD_SUBJECT_TOPIC_RECALL_FIX_PLAN_20260929.md) record the genericized
-bird claim and confidence-only topic ordering found by source inspection; owner approval is pending.
+Approved subject-recall and Pixi main-flow implementation:
+[implementation and verification record](notes/SUBJECT_RECALL_AND_PIXI_MAIN_FLOW_HARDENING_IMPLEMENTATION_20260930.md)
+records the bounded alias/ranking and adult-recovery changes, the stage watchdog and typed playback
+failures, focused offline checks, and the remaining live rig/emulator visual acceptance boundary.
+The earlier diagnosis remains available at
+[`BIRD_SUBJECT_TOPIC_RECALL_DIAGNOSIS_20260929.md`](notes/BIRD_SUBJECT_TOPIC_RECALL_DIAGNOSIS_20260929.md).
+
+Pixi mask-background renderer regression:
+[synthetic local-donor fix](../../FEAT-030-original-derived-auto-rig/evidence/notes/PIXI_MASK_BACKGROUND_RECONSTRUCTION_FIX_20260930.md)
+(`E-030-FIX-013`; offline checks pass; Android visual acceptance pending).
 
 Part-aware Pixi playback verification is recorded in FEAT-030:
 [Pixi part-motion restoration](../../FEAT-030-original-derived-auto-rig/evidence/notes/PIXI_PART_MOTION_RESTORATION_20260928.md)

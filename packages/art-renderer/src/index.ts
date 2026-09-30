@@ -73,6 +73,8 @@ export type {RendererMessage} from './bridge';
 export {buildPreservingFallbackPlan} from './fallback';
 export {sha256Hex, sha256HexPortable} from './sha256';
 export {createRendererStartupGate} from './startupGate';
+export {normalizeRendererFailureCode, RENDERER_FAILURE_CODES} from './failureDiagnostics';
+export type {RendererFailureCode} from './failureDiagnostics';
 export {buildV2FallbackPlan} from './v2FallbackPlan';
 export {detectPrimaryForegroundRegion} from './foregroundRegion';
 export {compileMotionPlan} from './motion';

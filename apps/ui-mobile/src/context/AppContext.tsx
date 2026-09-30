@@ -139,6 +139,8 @@ interface AppContextType {
   aiProgress: number;
   sceneData: SceneUnderstandingResponse;
   runAiSimulation: () => Promise<boolean>;
+  requerySubject: () => Promise<boolean>;
+  directionRequeryUsed: boolean;
   analysisClaims: AnalysisClaim[];
   topicDirections: TopicDirection[];
   selectedTopicDirectionId: string | null;
@@ -228,6 +230,12 @@ const DISPLAY_LABELS_VI: Record<string, string> = {
   garden: 'khu vườn',
   animal: 'động vật',
   bird: 'con chim',
+  parrot: 'con vẹt',
+  sparrow: 'chim sẻ',
+  eagle: 'đại bàng',
+  duck: 'con vịt',
+  chicken: 'con gà',
+  robin: 'chim cổ đỏ',
   branch: 'cành cây',
   leaf: 'chiếc lá',
   leaves: 'những chiếc lá',
@@ -236,17 +244,31 @@ const DISPLAY_LABELS_VI: Record<string, string> = {
   'outdoor scene': 'khung cảnh ngoài trời',
   cat: 'con mèo',
   dog: 'con chó',
+  fish: 'con cá',
+  rabbit: 'con thỏ',
+  turtle: 'con rùa',
+  frog: 'con ếch',
 };
 
 const BACKGROUND_LABELS = new Set([
   'grass', 'ground', 'nature', 'background', 'sky', 'cỏ', 'bãi cỏ', 'thiên nhiên', 'bầu trời',
+]);
+const WHOLE_SUBJECT_LABELS = new Set([
+  'bird', 'parrot', 'sparrow', 'eagle', 'duck', 'chicken', 'robin', 'cat', 'dog', 'fish',
+  'rabbit', 'turtle', 'frog', 'butterfly', 'con chim', 'con vẹt', 'chim sẻ', 'đại bàng',
+  'con vịt', 'con gà', 'con mèo', 'con chó', 'con cá', 'con thỏ', 'con rùa', 'con ếch', 'con bướm',
+]);
+const SUBJECT_PART_LABELS = new Set([
+  'branch', 'twig', 'leaf', 'leaves', 'stem', 'petal', 'wing', 'beak', 'grass', 'ground',
+  'background', 'sky', 'cành cây', 'cành', 'nhánh', 'chiếc lá', 'những chiếc lá', 'lá',
+  'thân cây', 'cánh', 'mỏ', 'bãi cỏ', 'bầu trời',
 ]);
 
 function displayLabelVi(value: string): string {
   const cleaned = value.trim();
   const translated = DISPLAY_LABELS_VI[cleaned.toLowerCase()];
   if (translated) return translated;
-  return /^[A-Za-z][A-Za-z\s-]*$/.test(cleaned) ? 'chi tiết trong tranh' : cleaned;
+  return cleaned;
 }
 
 function topicFromClaims(claims: AnalysisClaim[]): string {
@@ -288,10 +310,16 @@ function readAnalysisClaims(payload: JsonObject): AnalysisClaim[] {
     }];
   }));
   const ranked = claims.sort((left, right) => {
-    const leftBackground = BACKGROUND_LABELS.has((left.rawLabel || left.label.value).toLowerCase()) ? 1 : 0;
-    const rightBackground = BACKGROUND_LABELS.has((right.rawLabel || right.label.value).toLowerCase()) ? 1 : 0;
+    const leftLabel = (left.rawLabel || left.label.value).toLowerCase();
+    const rightLabel = (right.rawLabel || right.label.value).toLowerCase();
+    const leftBackground = BACKGROUND_LABELS.has(leftLabel) ? 1 : 0;
+    const rightBackground = BACKGROUND_LABELS.has(rightLabel) ? 1 : 0;
+    const subjectRank = (claim: AnalysisClaim, label: string) => claim.kind !== 'subject'
+      ? 0
+      : WHOLE_SUBJECT_LABELS.has(label) ? 0 : SUBJECT_PART_LABELS.has(label) ? 2 : 1;
     const kindRank = { subject: 0, action: 1, story: 2 };
     return leftBackground - rightBackground
+      || subjectRank(left, leftLabel) - subjectRank(right, rightLabel)
       || kindRank[left.kind] - kindRank[right.kind]
       || right.confidence - left.confidence
       || left.observation_id.localeCompare(right.observation_id);
@@ -1060,15 +1088,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const result = await workflowApi.runUnderstanding(sessionId, sessionVersionRef.current, preparedNarration.narration);
       updateSessionVersion(result.observed_session_version);
       const payload = asObject(result.payload);
-      if (result.status !== 'SUCCEEDED') throw workflowFailure(result, 'Chưa đọc được bức tranh.');
       const claims = readAnalysisClaims(payload);
       const progress = asObject(payload.understanding_progress);
       if (claims.length === 0 || progress.gate_a_ready !== true) {
-        throw workflowFailure(
-          result,
-          'Mình chưa tìm thấy đủ chi tiết đáng tin cậy. Hãy thử lại với ảnh rõ hơn.',
-        );
+        if (result.status !== 'SUCCEEDED' && !progress.stage) {
+          throw workflowFailure(result, 'Chưa đọc được bức tranh.');
+        }
+        setAnalysisClaims([]);
+        setTopicDirections([]);
+        setSelectedTopicDirectionId(null);
+        setSelectedClaimIds([]);
+        setPrimaryClaimId(null);
+        setUnderstandingProgress(progress);
+        setDirectionRequeryUsed(false);
+        setCorrection('');
+        setSceneData(mapScenePayload(payload, sessionId));
+        setSessionState('GATE_A_PENDING');
+        setAiProgress(100);
+        setWorkflowNotice('AI chưa nhận ra chủ thể rõ ràng. Người lớn có thể nhập chủ thể, yêu cầu phân tích lại một lần hoặc xác nhận chủ thể đã biết.');
+        navigate('scene_understanding');
+        return true;
       }
+      if (result.status !== 'SUCCEEDED') throw workflowFailure(result, 'Chưa đọc được bức tranh.');
       setAnalysisClaims(claims);
       const directions = readTopicDirections(payload, claims);
       setTopicDirections(directions);
@@ -1091,6 +1132,54 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } catch (error) {
       setAiProgress(0);
       setWorkflowError(friendlyError(error, 'Chưa đọc được bức tranh. Hãy thử lại với ảnh rõ hơn.'));
+      return false;
+    } finally {
+      setWorkflowBusy(null);
+      releaseSingleFlight(sessionMutationLockRef);
+    }
+  };
+
+  const requerySubject = async (): Promise<boolean> => {
+    const selectedDirection = topicDirections.find(
+      (direction) => direction.direction_id === selectedTopicDirectionId,
+    );
+    const subject = correction.trim()
+      || (selectedDirection?.requires_requery ? selectedDirection.title_vi : '');
+    if (!sessionId || !subject || directionRequeryUsed || workflowBusy) return false;
+    if (!acquireSingleFlight(sessionMutationLockRef)) return false;
+    setWorkflowBusy('Phân tích lại chủ thể');
+    setWorkflowError(null);
+    setWorkflowNotice(null);
+    setDirectionRequeryUsed(true);
+    try {
+      const progress = understandingProgress || {};
+      const result = await workflowApi.requeryUnderstanding(sessionId, sessionVersionRef.current, {
+        priorRunId: textValue(progress.run_id, 'manual-subject-recovery'),
+        direction: subject,
+        revision: numberValue(progress.direction_revision, 0) + 1,
+        correction: correction.trim(),
+      });
+      updateSessionVersion(result.observed_session_version);
+      const payload = asObject(result.payload);
+      const claims = readAnalysisClaims(payload);
+      const directions = readTopicDirections(payload, claims);
+      const nextProgress = asObject(payload.understanding_progress);
+      setAnalysisClaims(claims);
+      setTopicDirections(directions);
+      setSelectedTopicDirectionId(directions[0]?.direction_id ?? null);
+      setSelectedClaimIds(directions[0]?.source_claim_ids ?? []);
+      setPrimaryClaimId(directions[0]?.primary_claim_id ?? null);
+      setUnderstandingProgress(nextProgress);
+      setSceneData(mapScenePayload(payload, sessionId));
+      setSessionState('GATE_A_PENDING');
+      if (result.status !== 'SUCCEEDED' || claims.length === 0 || nextProgress.gate_a_ready !== true) {
+        setWorkflowNotice(`AI vẫn chưa xác nhận được “${subject}”. Chủ thể này sẽ được ghi rõ là do người lớn nhập và bạn vẫn có thể tiếp tục.`);
+        return true;
+      }
+      setWorkflowNotice(`Đã phân tích lại theo “${subject}”. Hãy kiểm tra chủ thể rồi tiếp tục.`);
+      return true;
+    } catch (error) {
+      setWorkflowError(friendlyError(error, 'Không phân tích lại được. Bạn vẫn có thể tiếp tục với chủ thể người lớn đã nhập.'));
       return false;
     } finally {
       setWorkflowBusy(null);
@@ -1146,55 +1235,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const confirmGateA = async (): Promise<boolean> => {
-    if (!sessionId || !primaryClaimId || selectedClaimIds.length === 0 || workflowBusy) return false;
+    const adultSubject = correction.trim();
+    if (
+      !sessionId
+      || workflowBusy
+      || (!adultSubject && (!primaryClaimId || selectedClaimIds.length === 0))
+    ) return false;
     if (!acquireSingleFlight(sessionMutationLockRef)) return false;
     setWorkflowBusy('Xác nhận Gate A');
     setWorkflowError(null);
     try {
-      const selectedDirection = topicDirections.find(
-        (direction) => direction.direction_id === selectedTopicDirectionId,
-      );
-      const currentDirection = analysisClaims.find((claim) => claim.observation_id === primaryClaimId);
-      const currentProgress = understandingProgress || {};
-      const directionChanged = selectedDirection?.requires_requery === true;
-      if (!directionRequeryUsed && (directionChanged || correction.trim())) {
-        const requery = await workflowApi.requeryUnderstanding(sessionId, sessionVersion, {
-          priorRunId: textValue(currentProgress.run_id, 'initial-understanding'),
-          direction: selectedDirection?.title_vi || currentDirection?.label.value || correction.trim(),
-          revision: numberValue(currentProgress.direction_revision, 0) + 1,
-          correction: correction.trim(),
-        });
-        updateSessionVersion(requery.observed_session_version);
-        if (requery.status !== 'SUCCEEDED') {
-          throw workflowFailure(requery, 'Chưa tạo lại được đề xuất theo hướng đã chọn.');
-        }
-        const requeryPayload = asObject(requery.payload);
-        const requeryClaims = readAnalysisClaims(requeryPayload);
-        const requeryDirections = readTopicDirections(requeryPayload, requeryClaims);
-        const requeryProgress = asObject(requeryPayload.understanding_progress);
-        if (requeryClaims.length === 0 || requeryProgress.gate_a_ready !== true) {
-          throw workflowFailure(requery, 'Chưa tạo được đề xuất mới đủ căn cứ.');
-        }
-        const matchingClaim = requeryClaims.find(
-          (claim) => claim.label.value.toLowerCase() === currentDirection?.label.value.toLowerCase(),
-        ) || requeryClaims[0];
-        setAnalysisClaims(requeryClaims);
-        setTopicDirections(requeryDirections);
-        setSelectedTopicDirectionId(requeryDirections[0]?.direction_id ?? null);
-        setUnderstandingProgress(requeryProgress);
-        setDirectionRequeryUsed(true);
-        setSelectedClaimIds(requeryDirections[0]?.source_claim_ids ?? [matchingClaim.observation_id]);
-        setPrimaryClaimId(requeryDirections[0]?.primary_claim_id ?? matchingClaim.observation_id);
-        setSceneData(mapScenePayload(requeryPayload, sessionId));
-        setWorkflowNotice('Đã xem lại theo hướng mới. Mời người lớn xác nhận chủ đề.');
-        return false;
-      }
       const result = await workflowApi.confirmGateA(
         sessionId,
         sessionVersion,
         selectedClaimIds,
-        primaryClaimId,
-        correction.trim() || null,
+        adultSubject ? null : primaryClaimId,
+        adultSubject || null,
       );
       updateSessionVersion(result.observed_session_version);
       if (result.status !== 'SUCCEEDED') throw workflowFailure(result, 'Chưa xác nhận được chủ đề.');
@@ -1356,6 +1412,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setWorkflowError(null);
     try {
       const rendererResult = await workflowApi.prepareRenderer(sessionId, sessionVersion);
+      updateSessionVersion(rendererResult.observed_session_version);
       if (rendererResult.status !== 'SUCCEEDED') {
         throw workflowFailure(rendererResult, 'Bức tranh chuyển động chưa sẵn sàng.');
       }
@@ -1562,6 +1619,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         aiProgress,
         sceneData,
         runAiSimulation,
+        requerySubject,
+        directionRequeryUsed,
         analysisClaims,
         topicDirections,
         selectedTopicDirectionId,

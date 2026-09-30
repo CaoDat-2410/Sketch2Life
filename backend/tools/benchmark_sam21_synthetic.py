@@ -1,19 +1,21 @@
 """Run a deterministic selector/metric smoke benchmark on synthetic masks only.
 
-This does not load SAM, a checkpoint, an L4, or any child image. The archetype mask
-fixtures live with the unit tests and each synthetic candidate includes a known
-wrong-object island, which is marked by one negative point.
+This does not load SAM, a checkpoint, an L4, or any child image. Fixtures are shared
+with the unit tests through a dependency-free benchmark module. Each synthetic
+candidate includes a known wrong-object island marked by one negative point.
 """
 
 from __future__ import annotations
 
 import json
-import runpy
 import time
-from pathlib import Path
 
-import numpy as np
+import numpy as np  # type: ignore[import-not-found]
 
+from sketch2life.benchmark.sam21_synthetic_masks import (
+    SYNTHETIC_ARCHETYPES,
+    archetype_mask,
+)
 from sketch2life.contracts.schemas.scene_exploration import SourceRegionV1
 from sketch2life.infrastructure.ai.sam21_quality import part_parent_consistency, score_mask
 from sketch2life.infrastructure.ai.sam21_runtime import (
@@ -22,14 +24,50 @@ from sketch2life.infrastructure.ai.sam21_runtime import (
 )
 
 
-BACKEND_ROOT = Path(__file__).resolve().parents[1]
-_corpus = runpy.run_path(str(BACKEND_ROOT / "tests/unit/test_sam21_quality_metrics.py"))
-_archetype_mask = _corpus["_archetype_mask"]
-
-
 def _average(rows: list[dict[str, float | None]]) -> dict[str, float | None]:
     keys = tuple(key for key, value in rows[0].items() if value is not None)
-    return {key: sum(float(row[key]) for row in rows) / len(rows) for key in keys}
+    averages: dict[str, float | None] = {}
+    for key in keys:
+        numeric_values: list[float] = []
+        for row in rows:
+            value = row[key]
+            if not isinstance(value, int | float):
+                raise ValueError(f"Synthetic benchmark metric {key!r} must be numeric")
+            numeric_values.append(float(value))
+        averages[key] = sum(numeric_values) / len(numeric_values)
+    return averages
+
+
+def _thin_detail_anchor_case() -> dict[str, object]:
+    distractor = np.zeros((40, 40), dtype=bool)
+    distractor[10:30, 10:30] = True
+    distractor[32:35, 32:35] = True
+    missing_detail = np.zeros((40, 40), dtype=bool)
+    missing_detail[10:30, 10:30] = True
+    complete = missing_detail.copy()
+    complete[18, 8:10] = True
+    selected, confidence = _select_prompt_consistent_candidate(
+        np.asarray([distractor, missing_detail, complete]),
+        np.asarray([0.99, 0.90, 0.80]),
+        width=40,
+        height=40,
+        prompt=Sam21Prompt(
+            prompt_region=SourceRegionV1(x=0.1, y=0.1, width=0.7, height=0.7),
+            positive_points=((0.5, 0.5), (8.5 / 40, 18.5 / 40)),
+            negative_points=((33.5 / 40, 33.5 / 40),),
+        ),
+        min_area_fraction=0.002,
+        max_area_fraction=0.85,
+        numpy=np,
+    )
+    if not bool(selected[18, 8]) or not bool(selected[18, 9]) or bool(selected[33, 33]):
+        raise RuntimeError("SAM prompt selector violated grounded thin-detail constraints")
+    return {
+        "status": "PASS",
+        "selected_confidence": confidence,
+        "grounded_thin_detail_pixels_preserved": 2,
+        "wrong_object_pixels_excluded": True,
+    }
 
 
 def main() -> None:
@@ -37,12 +75,8 @@ def main() -> None:
     selected_metrics: list[dict[str, float | None]] = []
     parent_part_scores: list[float] = []
     elapsed = 0.0
-    categories = (
-        "butterfly", "bird", "flower", "tree_branch", "fish", "biped",
-        "rigid", "generic_organic", "unknown",
-    )
-    for archetype in categories:
-        reference, details = _archetype_mask(archetype)
+    for archetype in SYNTHETIC_ARCHETYPES:
+        reference, details = archetype_mask(archetype)
         distractor = [row[:] for row in reference]
         for y in range(54, 60):
             for x in range(54, 60):
@@ -86,17 +120,24 @@ def main() -> None:
     print(json.dumps({
         "contract_name": "SyntheticSam21CandidateBenchmarkV1",
         "fixture_kind": "generated_binary_masks_no_child_media",
-        "archetypes": list(categories),
-        "candidate_policy": "reject area-invalid/positive-point-missing/negative-point-included/box-inconsistent; highest SAM score among remaining",
+        "archetypes": list(SYNTHETIC_ARCHETYPES),
+        "candidate_policy": (
+            "reject area-invalid/positive-point-missing/negative-point-included/"
+            "box-inconsistent; highest SAM score among remaining"
+        ),
         "baseline": _average(baseline_metrics),
         "prompt_validated_candidate": _average(selected_metrics),
         "parent_part_consistency_mean": sum(parent_part_scores) / len(parent_part_scores),
         "candidate_validation_cpu_wall_ms_total": round(elapsed * 1000, 3),
         "sam_model_latency_ms": None,
         "peak_l4_vram_mib": None,
-        "selection_success_count": len(categories),
+        "selection_success_count": len(SYNTHETIC_ARCHETYPES),
         "selection_rejection_count": 0,
-        "interpretation": "Tests prompt consistency and metric plumbing only; not a SAM accuracy estimate or held-out benchmark.",
+        "grounded_thin_detail_anchor_case": _thin_detail_anchor_case(),
+        "interpretation": (
+            "Tests prompt consistency and metric plumbing only; not a SAM accuracy estimate "
+            "or held-out benchmark."
+        ),
     }, ensure_ascii=False, indent=2, sort_keys=True))
 
 

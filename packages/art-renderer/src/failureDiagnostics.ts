@@ -1,0 +1,45 @@
+export const RENDERER_FAILURE_CODES = [
+  'SOURCE_UNAVAILABLE',
+  'SOURCE_SIZE_INVALID',
+  'SOURCE_TYPE_INVALID',
+  'SOURCE_HASH_MISMATCH',
+  'RIG_PACKAGE_UNAVAILABLE',
+  'RIG_PACKAGE_SIZE_INVALID',
+  'RIG_PACKAGE_HASH_MISMATCH',
+  'RIG_PACKAGE_SOURCE_MISMATCH',
+  'MASK_UNAVAILABLE',
+  'MASK_CAPABILITY_OR_PROVENANCE_INVALID',
+  'MASK_HASH_OR_SIZE_INVALID',
+  'MASK_DIMENSIONS_MISMATCH',
+  'MASK_CANVAS_UNAVAILABLE',
+  'MASK_AREA_INVALID',
+  'MASK_REGION_INVALID',
+  'MASK_REGION_MISMATCH',
+  'MASK_DIMENSIONS_INVALID',
+  'MASK_BACKGROUND_RECONSTRUCTION_FAILED',
+  'SUBJECT_MASK_UNAVAILABLE',
+  'PART_MASKS_REQUIRED',
+  'RIG_TIER_NOT_RENDERABLE',
+  'PART_MASK_HANDOFF_INVALID',
+  'PART_MASK_PROVENANCE_INVALID',
+  'PART_MASK_UNAVAILABLE',
+  'PART_MASK_HASH_INVALID',
+  'PART_MASK_CANVAS_UNAVAILABLE',
+  'PART_MASK_DIMENSIONS_MISMATCH',
+  'PART_MASK_QUALITY_INVALID',
+  'PART_MASK_COVERAGE_INVALID',
+  'PIXI_APPLICATION_INIT_FAILED',
+  'RENDERER_V2_START_FAILED',
+] as const;
+
+export type RendererFailureCode = (typeof RENDERER_FAILURE_CODES)[number];
+
+const rendererFailureCodeSet: ReadonlySet<string> = new Set(RENDERER_FAILURE_CODES);
+
+/** Return only a known renderer diagnostic token; never propagate an exception message. */
+export function normalizeRendererFailureCode(value: unknown): RendererFailureCode {
+  const candidate = value instanceof Error ? value.message : typeof value === 'string' ? value : '';
+  return rendererFailureCodeSet.has(candidate)
+    ? candidate as RendererFailureCode
+    : 'RENDERER_V2_START_FAILED';
+}

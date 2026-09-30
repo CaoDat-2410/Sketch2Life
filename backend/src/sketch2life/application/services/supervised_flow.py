@@ -66,7 +66,7 @@ from sketch2life.contracts.schemas.child_learning_profile import (
     ChildLearningProfileContextV2,
     P1ActivitySuggestionsRequestV1,
 )
-from sketch2life.contracts.schemas.gate_a import GateAConfirmationV1
+from sketch2life.contracts.schemas.gate_a import GateAConfirmationV1, GateAConfirmationV2
 from sketch2life.contracts.schemas.learning_media import (
     LearningMediaRequestV1,
     LearningMediaResultV1,
@@ -110,7 +110,7 @@ from sketch2life.contracts.schemas.renderer import (
     PixiRendererLaunchV1,
 )
 from sketch2life.contracts.schemas.renderer_v2 import PixiRendererLaunchV2
-from sketch2life.contracts.schemas.vision import vision_label_normalize
+from sketch2life.contracts.schemas.vision import VisionImageReferenceV1, vision_label_normalize
 from sketch2life.contracts.schemas.workflow_records import (
     FeedbackV1,
     SessionGalleryV1,
@@ -123,7 +123,13 @@ _FLOW_PROVENANCE = WorkflowResultProvenanceV1(
     producer="APPLICATION",
     component="feat018-supervised-flow",
     component_version="1.0",
-    source_contracts=("GateAConfirmationV1", "P1ContextV1", "P1ContextV4", "ExperienceSpecV1"),
+    source_contracts=(
+        "GateAConfirmationV1",
+        "GateAConfirmationV2",
+        "P1ContextV1",
+        "P1ContextV4",
+        "ExperienceSpecV1",
+    ),
 )
 
 
@@ -345,11 +351,42 @@ class SupervisedFlowService:
                 return replay, True
             snapshot = self._sessions.snapshot(command.session_id)
             self._expect_version(snapshot.version, command.expected_session_version)
+            values = self._sessions.workflow_record(command.session_id).values
+            confirmation_value = _require_mapping(command.payload.get("confirmation"))
+            if confirmation_value.get("contract_name") == "GateAConfirmationV2":
+                if snapshot.state not in {"GATE_A_PENDING", "CREATED"}:
+                    raise _workflow_error(
+                        "GATE_A_REQUIRED",
+                        409,
+                        "An admitted image is required before confirming a subject.",
+                    )
+                try:
+                    confirmation_v2 = GateAConfirmationV2.model_validate(
+                        {
+                            **confirmation_value,
+                            "session_id": command.session_id,
+                            "expected_session_version": command.expected_session_version,
+                            "actor_ref": command.actor_ref,
+                        }
+                    )
+                except ValidationError as exc:
+                    raise _workflow_error(
+                        "GATE_A_CONFIRMATION_INVALID",
+                        422,
+                        "Enter a subject or select a visible image claim.",
+                    ) from exc
+                result = self._confirm_adult_subject(
+                    command=command,
+                    snapshot=snapshot,
+                    values=values,
+                    confirmation=confirmation_v2,
+                )
+                self._remember(scope, command.idempotency_key, fingerprint, result)
+                return result, False
             if snapshot.state != "GATE_A_PENDING":
                 raise _workflow_error(
                     "GATE_A_REQUIRED", 409, "Image understanding must finish first."
                 )
-            values = self._sessions.workflow_record(command.session_id).values
             raw_value = values.get("raw_understanding")
             if not isinstance(raw_value, dict):
                 raise _workflow_error(
@@ -365,7 +402,7 @@ class SupervisedFlowService:
             try:
                 confirmation = GateAConfirmationV1.model_validate(
                     {
-                        **_require_mapping(command.payload.get("confirmation")),
+                    **confirmation_value,
                         "session_id": command.session_id,
                         "expected_session_version": command.expected_session_version,
                         "actor_ref": command.actor_ref,
@@ -576,6 +613,193 @@ class SupervisedFlowService:
             )
             self._remember(scope, command.idempotency_key, fingerprint, result)
             return result, False
+
+    def _confirm_adult_subject(
+        self,
+        *,
+        command: MobileWorkflowCommandV1,
+        snapshot: Any,
+        values: Mapping[str, Any],
+        confirmation: GateAConfirmationV2,
+    ) -> MobileWorkflowResultV1:
+        source_value = values.get("source_image_ref")
+        try:
+            source = VisionImageReferenceV1.model_validate(source_value)
+        except ValidationError as exc:
+            raise _workflow_error(
+                "IMAGE_ADMISSION_PROVENANCE_MISSING",
+                409,
+                "Admit an image before confirming its subject.",
+            ) from exc
+
+        raw: RawUnderstandingSuccessV1 | None = None
+        raw_value = values.get("raw_understanding")
+        if isinstance(raw_value, dict):
+            try:
+                parsed = _RAW_RESULT_ADAPTER.validate_python(raw_value)
+            except ValidationError:
+                parsed = None
+            if isinstance(parsed, RawUnderstandingSuccessV1):
+                raw = parsed
+        claims = _selectable_claims(raw) if raw is not None else {}
+        if not set(confirmation.confirmed_claim_ids).issubset(claims):
+            raise _workflow_error(
+                "GATE_A_CLAIM_NOT_FOUND",
+                422,
+                "A selected AI claim is no longer available for this image.",
+            )
+        label = confirmation.adult_subject_label.strip() if confirmation.adult_subject_label else ""
+        if not label:
+            raise _workflow_error(
+                "GATE_A_CORRECTION_EMPTY", 422, "Enter the subject you want the story to focus on."
+            )
+
+        assertion_id = "adult-assertion-" + sha256(
+            f"{command.session_id}:{source.sha256}:{label.casefold()}".encode()
+        ).hexdigest()[:24]
+        selected_claims = tuple(
+            claim
+            for claim in claims_from_raw(raw)
+            if claim.observation_id in confirmation.confirmed_claim_ids
+        ) if raw is not None else ()
+        adult_tags = semantic_tags_for_label(label)
+        combined_tags = tuple(dict.fromkeys((
+            *adult_tags,
+            *(tag for claim in selected_claims for tag in semantic_tags_for_label(claim.label)),
+        )))
+        secondary_anchors = tuple(
+            SemanticAnchorV1(
+                anchor_id=f"anchor-{claim.observation_id}",
+                kind=claim.kind,
+                original_label=claim.label,
+                normalized_label=vision_label_normalize(display_label_vi(claim.label)),
+                semantic_tags=semantic_tags_for_label(claim.label),
+                confidence=claim.confidence,
+                adult_confirmed=True,
+                provenance=AnchorProvenanceV1(
+                    source_artifact_id=source.artifact_ref,
+                    source_artifact_sha256=source.sha256,
+                    source_contract_name=(
+                        raw.contract_name if raw is not None else "RawUnderstandingResultV1"
+                    ),
+                    source_contract_version=raw.contract_version if raw is not None else "1.0",
+                    source_claim_ids=(claim.observation_id,),
+                ),
+            )
+            for claim in selected_claims
+        )
+        anchor = SemanticAnchorV1(
+            anchor_id=f"anchor-{assertion_id}",
+            kind="subject",
+            original_label=label,
+            normalized_label=vision_label_normalize(display_label_vi(label)),
+            semantic_tags=combined_tags,
+            confidence=1.0,
+            adult_confirmed=True,
+            provenance=AnchorProvenanceV1(
+                source_artifact_id=source.artifact_ref,
+                source_artifact_sha256=source.sha256,
+                source_contract_name="AdultSubjectConfirmationV1",
+                source_contract_version="1.0",
+                source_claim_ids=(),
+                source_adult_assertion_id=assertion_id,
+            ),
+        )
+        anchor_set = SemanticAnchorSetV1(
+            anchor_set_id=f"anchors-{command.session_id}-{snapshot.version + 1}",
+            source_artifact_id=source.artifact_ref,
+            source_artifact_sha256=source.sha256,
+            gate_a_status="CONFIRMED",
+            adult_confirmation_actor="PROJECT_OWNER",
+            primary_anchor=anchor,
+            secondary_anchors=secondary_anchors,
+            adult_correction_label=label,
+        )
+        topic_label_vi = f"Cùng khám phá {anchor.normalized_label}!"
+        topic_tags = tuple(dict.fromkeys(combined_tags))
+        topic = AdultConfirmedTopicV1.model_validate(
+            {
+                "gateAConfirmed": True,
+                "topicLabels": tuple(dict.fromkeys((
+                    topic_label_vi,
+                    *(claim.display_label for claim in selected_claims),
+                )))[:5],
+                "topicTags": topic_tags[:20],
+                "locale": "vi",
+                "styleProfileId": "flat-childlike-doodle-v1",
+                "requestedRoles": (),
+                "maxCandidates": 8,
+            }
+        )
+        asset_context = build_topic_asset_candidate_context(query=topic, assets=self._topic_assets)
+        updated = self._sessions.advance(
+            session_id=command.session_id,
+            expected_version=snapshot.version,
+            allowed_states=("GATE_A_PENDING", "CREATED"),
+            next_state="UNDERSTANDING_PROPOSED",
+            workflow_updates={
+                "gate_a_confirmation": confirmation.model_dump(mode="json"),
+                "anchor_set": anchor_set.model_dump(mode="json"),
+                "topic_asset_context": asset_context.model_dump(mode="json", by_alias=True),
+                "topic_label_vi": topic_label_vi,
+                "topic_claim_ids": list(confirmation.confirmed_claim_ids),
+                "p1_context": None,
+                "p1_filter": None,
+                "experience_spec": None,
+                "gate_b": None,
+                "learning_media": None,
+                "handoff": None,
+                "feedback": None,
+                "journey": _append_journey(
+                    values.get("journey"),
+                    "GATE_A",
+                    "COMPLETED",
+                    artifact_refs=(source.artifact_ref,),
+                ),
+            },
+        )
+        auto_rig_job: dict[str, object] | None = None
+        if self._auto_rig_service is not None:
+            try:
+                auto_rig_job = self._auto_rig_service.start_gate_a_preparation(
+                    session_id=command.session_id,
+                    request_id=f"{command.request_id}:auto-rig",
+                    source_artifact_ref=source.artifact_ref,
+                    source_sha256=source.sha256,
+                    target_id=anchor.anchor_id,
+                    target_label=anchor.normalized_label,
+                    target_confidence=anchor.confidence,
+                    semantic_tags=anchor.semantic_tags,
+                ).model_dump(mode="json", by_alias=True, exclude_none=True)
+            except Exception:
+                _LOGGER.warning(
+                    "auto_rig_gate_a_preparation_failed session_id=%s",
+                    command.session_id,
+                    exc_info=True,
+                )
+        return _result(
+            status="SUCCEEDED",
+            command=command,
+            observed_version=updated.version,
+            payload={
+                "gate_a_confirmation": confirmation.model_dump(mode="json"),
+                "anchor_set": anchor_set.model_dump(mode="json"),
+                "primary_subject_origin": "ADULT_ENTERED",
+                "adult_assertion_id": assertion_id,
+                "primary_anchor_choices": [
+                    {
+                        "claim_id": claim.observation_id,
+                        "label": claim.display_label,
+                        "raw_label": claim.label,
+                        "kind": claim.kind,
+                        "confidence": claim.confidence,
+                    }
+                    for claim in selected_claims
+                ],
+                "topic_asset_context": asset_context.model_dump(mode="json", by_alias=True),
+                "auto_rig_job": auto_rig_job,
+            },
+        )
 
     def request_retake(
         self, command: MobileWorkflowCommandV1
@@ -1590,18 +1814,25 @@ class SupervisedFlowService:
             spec = ExperienceSpecV1.model_validate(spec_value)
             raw_value = workflow.values.get("raw_understanding")
             anchor_value = workflow.values.get("anchor_set")
-            if not isinstance(raw_value, dict) or not isinstance(anchor_value, dict):
+            if not isinstance(anchor_value, dict):
                 raise _workflow_error(
                     "UNDERSTANDING_RESULT_MISSING",
                     409,
                     "The approved drawing understanding is unavailable.",
                 )
-            raw = _RAW_RESULT_ADAPTER.validate_python(raw_value)
-            if not isinstance(raw, RawUnderstandingSuccessV1):
+            raw: RawUnderstandingSuccessV1 | None = None
+            if isinstance(raw_value, dict):
+                try:
+                    parsed_raw = _RAW_RESULT_ADAPTER.validate_python(raw_value)
+                except ValidationError:
+                    parsed_raw = None
+                if isinstance(parsed_raw, RawUnderstandingSuccessV1):
+                    raw = parsed_raw
+            anchor_set = SemanticAnchorSetV1.model_validate(anchor_value)
+            if raw is None and not anchor_set.primary_anchor.provenance.source_adult_assertion_id:
                 raise _workflow_error(
                     "UNDERSTANDING_FAILED", 409, "The drawing understanding is unavailable."
                 )
-            anchor_set = SemanticAnchorSetV1.model_validate(anchor_value)
             subject_candidates = build_subject_candidates(
                 session_id=command.session_id,
                 raw=raw,
@@ -1617,7 +1848,11 @@ class SupervisedFlowService:
             region_hints = workflow.values.get("scene_focus_regions")
             if not isinstance(region_hints, dict):
                 region_hints = workflow.values.get("subject_regions")
-            if self._scene_localizer is not None and not isinstance(region_hints, dict):
+            if (
+                self._scene_localizer is not None
+                and raw is not None
+                and not isinstance(region_hints, dict)
+            ):
                 try:
                     localized_regions = self._scene_localizer.localize(
                         SceneLocalizationRequest(
@@ -1625,8 +1860,8 @@ class SupervisedFlowService:
                             experience_spec_ref=VersionedRefV1(
                                 id=spec.spec_id, version=spec.spec_version
                             ),
-                            source_artifact_ref=raw.source_image_ref.artifact_ref,
-                            source_artifact_sha256=raw.source_image_ref.sha256,
+                            source_artifact_ref=subject_candidates.source_artifact_ref,
+                            source_artifact_sha256=subject_candidates.source_artifact_sha256,
                             target_refs=tuple(
                                 candidate.candidate_id for candidate in subject_candidates.items
                             ),

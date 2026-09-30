@@ -9,6 +9,8 @@ const NEIGHBOR_OFFSETS = [
   [-1, 0],            [1, 0],
   [-1, 1],  [0, 1],    [1, 1],
 ] as const;
+// Paper may sit beyond a dense crayon outline; keep the search local and bounded.
+const MAX_LOCAL_BACKGROUND_RADIUS = 12;
 
 export function requireVerifiedCutoutMask(tier: string, hasVerifiedMask: boolean): void {
   if (tier === 'CUTOUT_MICRO_MOTION' && !hasVerifiedMask) {
@@ -178,7 +180,7 @@ function sampleLocalBackground(
 ): [number, number, number] | null {
   // Search a small expanding neighborhood for plausible paper, never use saturated
   // drawing pigment as a donor. If the mask is fully enclosed by pigment, reject it.
-  for (let radius = 1; radius <= 5; radius += 1) {
+  for (let radius = 1; radius <= MAX_LOCAL_BACKGROUND_RADIUS; radius += 1) {
     let redTotal = 0;
     let greenTotal = 0;
     let blueTotal = 0;

@@ -34,12 +34,21 @@ class SubjectCandidateV1(BaseModel):
 
     candidate_id: str = Field(alias="candidateId", pattern=r"^[a-z0-9-]+$")
     label_vi: str = Field(alias="labelVi", min_length=1, max_length=60)
-    source_claim_ids: tuple[str, ...] = Field(alias="sourceClaimIds", min_length=1, max_length=8)
+    source_claim_ids: tuple[str, ...] = Field(default=(), alias="sourceClaimIds", max_length=8)
+    source_adult_assertion_id: str | None = Field(
+        default=None, alias="sourceAdultAssertionId", max_length=160
+    )
     confidence: float = Field(ge=0, le=1, allow_inf_nan=False)
     confidence_band: Literal["HIGH", "MEDIUM", "LOW"] = Field(alias="confidenceBand")
     image_covered: bool = Field(alias="imageCovered")
     narration_covered: bool = Field(alias="narrationCovered")
     relation_refs: tuple[str, ...] = Field(default=(), alias="relationRefs", max_length=8)
+
+    @model_validator(mode="after")
+    def require_traceable_source(self) -> SubjectCandidateV1:
+        if not self.source_claim_ids and not self.source_adult_assertion_id:
+            raise ValueError("subject candidates must retain claim or adult assertion provenance")
+        return self
 
 
 class SubjectCandidateSetV1(BaseModel):

@@ -221,6 +221,14 @@ class ActivitySemanticCatalogV2:
                 for claim_id in concept.evidence_claim_ids
             )
         )
+        evidence_adult_assertion_ids = tuple(
+            dict.fromkeys(
+                assertion_id
+                for concept in (scene.primary_concept, *scene.secondary_concepts)
+                if not concept_ids or concept.concept_id in concept_ids
+                for assertion_id in concept.evidence_adult_assertion_ids
+            )
+        )
         return SemanticActivityMatchV2(
             match_mode=mode,  # type: ignore[arg-type]
             profile_id=profile.profile_id,
@@ -248,7 +256,8 @@ class ActivitySemanticCatalogV2:
             matched_concept_ids=matched_concepts,
             matched_phrases_vi=matched_phrases,
             matched_anchor_labels_vi=matched_labels,
-            evidence_claim_ids=evidence_claim_ids or ("fusion:scene",),
+            evidence_claim_ids=evidence_claim_ids,
+            evidence_adult_assertion_ids=evidence_adult_assertion_ids,
             reason_codes=tuple(dict.fromkeys(effective_reason_codes)),
             fallback_reason=fallback_reason,
             continuity_mode=profile.continuity_mode,
@@ -281,6 +290,7 @@ class ActivitySemanticCatalogV2:
             matched_concept_ids=match.matched_concept_ids,
             matched_objective_ids=match.matched_objective_ids,
             evidence_claim_ids=match.evidence_claim_ids,
+            evidence_adult_assertion_ids=match.evidence_adult_assertion_ids,
             reason_codes=match.reason_codes,
             fallback_reason=match.fallback_reason,
         )

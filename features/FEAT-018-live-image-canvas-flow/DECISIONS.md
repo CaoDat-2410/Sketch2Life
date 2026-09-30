@@ -230,9 +230,14 @@
   Qwen/SAM/Lightning from this retry path. Fresh-session Android playback remains an operator-run
   acceptance check because the inspected in-memory session had exceeded its idle TTL.
 
-- 2026-09-29 proposed bird-topic correction (awaiting owner approval): normalize only reviewed exact
-  bird aliases at backend/mobile boundaries and rank a sufficiently supported whole-animal claim
-  ahead of branch/leaf context, preserving source IDs and the existing three-direction cap. Keep
-  one Qwen inference and the current V2 subject-first prompt; do not infer a bird without a source
-  claim or add localization/SAM calls. See `plan/BIRD_SUBJECT_TOPIC_RECALL_FIX_PLAN_20260929.md`.
+- 2026-09-29 bird-topic correction proposal (superseded by the 2026-09-30 approved combined plan):
+  normalize reviewed exact aliases and rank whole-subject claims while preserving provenance; the
+  approved implementation outcome is documented in the linked evidence note below.
 - 2026-09-29 integrated child-profile and rig-quality plan: one owner approval covers profile UI/recommender and SAM 2.1/renderer quality; independent test gates remain. Current edits are session-only, with durable backend/storage as a future target. Include interests/dislikes, adult-confirmed progression, readiness/materials and optional explicit support; expose editing in Parent/Guide and only at initial child selection in the main flow. Awaiting approval of the exact plan hash. See `plan/INTEGRATED_CHILD_PROFILE_AND_RIG_QUALITY_PLAN_20260929.md`.
+- 2026-09-30 approved subject/Pixi hardening: never turn an unknown model label into a generic label
+  that is then filtered; preserve it for adult correction. An adult-supplied subject is a distinct
+  provenance source, not a fabricated AI claim. Re-query remains explicitly adult-triggered and
+  shares the one-per-image budget. Pixi preparation/playback gets stage-specific finite watchdogs,
+  terminal typed failure reporting for both renderer contracts, and idempotent player cleanup;
+  neither automatic retry nor implicit V1/whole-image fallback is permitted. See
+  `plan/SUBJECT_RECALL_AND_PIXI_MAIN_FLOW_HARDENING_PLAN_20260930.md` and the implementation record.

@@ -38,6 +38,12 @@ _LABELS_VI: dict[str, str] = {
     "garden": "khu vườn",
     "animal": "động vật",
     "bird": "con chim",
+    "parrot": "con vẹt",
+    "sparrow": "chim sẻ",
+    "eagle": "đại bàng",
+    "duck": "con vịt",
+    "chicken": "con gà",
+    "robin": "chim cổ đỏ",
     "branch": "cành cây",
     "leaf": "chiếc lá",
     "leaves": "những chiếc lá",
@@ -51,6 +57,10 @@ _LABELS_VI: dict[str, str] = {
     "outdoor scene": "khung cảnh ngoài trời",
     "cat": "con mèo",
     "dog": "con chó",
+    "fish": "con cá",
+    "rabbit": "con thỏ",
+    "turtle": "con rùa",
+    "frog": "con ếch",
     "water": "nước",
     "rain": "mưa",
 }
@@ -100,6 +110,13 @@ _BACKGROUND_LABELS = {
     "bãi cỏ",
     "thiên nhiên",
     "bầu trời",
+}
+
+_WHOLE_SUBJECT_TAGS = {"động vật"}
+_SUBJECT_PART_LABELS = {
+    "branch", "twig", "leaf", "leaves", "stem", "petal", "wing", "beak",
+    "cành cây", "cành", "nhánh", "chiếc lá", "những chiếc lá", "lá", "thân cây",
+    "cánh", "mỏ", "grass", "ground", "background", "sky", "bãi cỏ", "bầu trời",
 }
 
 _CANONICAL_DISPLAY_KEYS: dict[str, str] = {
@@ -158,8 +175,6 @@ def display_label_vi(label: str) -> str:
     if translated is not None:
         return translated
     cleaned = label.strip()
-    if cleaned and cleaned.isascii() and re.fullmatch(r"[A-Za-z][A-Za-z\s-]*", cleaned):
-        return "chi tiết trong tranh"
     return cleaned
 
 
@@ -172,13 +187,22 @@ def semantic_tags_for_label(label: str) -> tuple[str, ...]:
 def rank_claims(claims: Iterable[RankedClaim]) -> tuple[RankedClaim, ...]:
     """Prefer specific evidence and remove canonical duplicate display claims."""
 
-    def sort_key(claim: RankedClaim) -> tuple[int, int, float, str]:
+    def sort_key(claim: RankedClaim) -> tuple[int, int, int, float, str]:
         normalized = _key(claim.label)
         role_rank = {"subject": 0, "action": 1, "story": 2}[claim.kind]
         background_penalty = 1 if normalized in _BACKGROUND_LABELS else 0
+        subject_rank = 0
+        if claim.kind == "subject":
+            tags = set(semantic_tags_for_label(claim.label))
+            subject_rank = (
+                0 if tags & _WHOLE_SUBJECT_TAGS
+                else 2 if normalized in _SUBJECT_PART_LABELS
+                else 1
+            )
         specificity = min(len(normalized.split()), 4)
         return (
             background_penalty,
+            subject_rank,
             role_rank,
             -claim.confidence,
             f"{-specificity}:{claim.observation_id}",

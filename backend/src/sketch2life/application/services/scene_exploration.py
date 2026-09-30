@@ -31,21 +31,25 @@ def confidence_band(value: float) -> str:
 def build_subject_candidates(
     *,
     session_id: str,
-    raw: RawUnderstandingSuccessV1,
+    raw: RawUnderstandingSuccessV1 | None,
     anchor_set: SemanticAnchorSetV1,
 ) -> SubjectCandidateSetV1:
     """Project at most three confirmed concrete entities into short Vietnamese labels."""
 
-    entity_by_id = {item.observation_id: item for item in raw.entities}
-    ordered_refs = [
-        anchor_set.primary_anchor.provenance.source_claim_ids[0]
-    ] + [
+    entity_by_id = {item.observation_id: item for item in raw.entities} if raw is not None else {}
+    primary_provenance = anchor_set.primary_anchor.provenance
+    primary_ref = (
+        primary_provenance.source_claim_ids[0]
+        if primary_provenance.source_claim_ids
+        else primary_provenance.source_adult_assertion_id
+    )
+    ordered_refs = ([primary_ref] if primary_ref else []) + [
         anchor.provenance.source_claim_ids[0]
         for anchor in anchor_set.secondary_anchors
         if anchor.provenance.source_claim_ids
     ]
     relation_refs_by_subject: dict[str, list[str]] = {}
-    for relation in raw.relations:
+    for relation in (raw.relations if raw is not None else ()):
         relation_refs_by_subject.setdefault(relation.subject_ref, []).append(
             relation.observation_id
         )
@@ -53,12 +57,32 @@ def build_subject_candidates(
             relation.observation_id
         )
 
-    narration_covered = bool(raw.asr_claims) or raw.narration_status.value == "TEXT_SUPPLIED"
+    narration_covered = (
+        bool(raw.asr_claims) or raw.narration_status.value == "TEXT_SUPPLIED"
+        if raw is not None
+        else False
+    )
     items: list[SubjectCandidateV1] = []
     seen: set[str] = set()
+    primary = anchor_set.primary_anchor
+    if primary.provenance.source_adult_assertion_id:
+        adult_ref = primary.provenance.source_adult_assertion_id
+        items.append(
+            SubjectCandidateV1(
+                candidate_id=primary.anchor_id.removeprefix("anchor-"),
+                label_vi=display_label_vi(primary.normalized_label),
+                source_claim_ids=(),
+                source_adult_assertion_id=adult_ref,
+                confidence=primary.confidence,
+                confidence_band=confidence_band(primary.confidence),
+                image_covered=True,
+                narration_covered=narration_covered,
+            )
+        )
+        seen.add(adult_ref)
     for ref in ordered_refs:
         entity = entity_by_id.get(ref)
-        if entity is None or ref in seen:
+        if entity is None or ref in seen or len(items) >= 3:
             continue
         label_vi = display_label_vi(entity.label.value)
         if not label_vi or label_vi == "chi tiết trong tranh":
@@ -80,12 +104,12 @@ def build_subject_candidates(
             break
 
     if not items:
-        primary = anchor_set.primary_anchor
         items.append(
             SubjectCandidateV1(
                 candidate_id=primary.anchor_id.removeprefix("anchor-"),
                 label_vi=display_label_vi(primary.normalized_label),
                 source_claim_ids=primary.provenance.source_claim_ids[:1],
+                source_adult_assertion_id=primary.provenance.source_adult_assertion_id,
                 confidence=primary.confidence,
                 confidence_band=confidence_band(primary.confidence),
                 image_covered=True,
@@ -95,8 +119,12 @@ def build_subject_candidates(
 
     return SubjectCandidateSetV1(
         session_id=session_id,
-        source_artifact_ref=raw.source_image_ref.artifact_ref,
-        source_artifact_sha256=raw.source_image_ref.sha256,
+        source_artifact_ref=(
+            raw.source_image_ref.artifact_ref if raw is not None else anchor_set.source_artifact_id
+        ),
+        source_artifact_sha256=(
+            raw.source_image_ref.sha256 if raw is not None else anchor_set.source_artifact_sha256
+        ),
         items=tuple(items),
     )
 
@@ -105,18 +133,20 @@ def build_scene_exploration_plan(
     *,
     session_id: str,
     experience_spec_ref: VersionedRefV1,
-    raw: RawUnderstandingSuccessV1,
+    raw: RawUnderstandingSuccessV1 | None,
     candidates: SubjectCandidateSetV1,
     learning_bridge_vi: str,
 ) -> SceneExplorationPlanV1:
     primary = candidates.items[0]
-    entity_labels = {
-        item.observation_id: display_label_vi(item.label.value) for item in raw.entities
-    }
+    entity_labels = (
+        {item.observation_id: display_label_vi(item.label.value) for item in raw.entities}
+        if raw is not None
+        else {}
+    )
     relation = next(
         (
             item
-            for item in raw.relations
+            for item in (raw.relations if raw is not None else ())
             if primary.candidate_id in {item.subject_ref, item.object_ref}
         ),
         None,
@@ -191,7 +221,7 @@ def build_scene_exploration_plan(
     return SceneExplorationPlanV1(
         session_id=session_id,
         experience_spec_ref=experience_spec_ref,
-        source_artifact_ref=raw.source_image_ref.artifact_ref,
+        source_artifact_ref=candidates.source_artifact_ref,
         primary_subject_ref=primary.candidate_id,
         primary_label_vi=primary.label_vi,
         relation_label_vi=relation_label,
@@ -204,7 +234,7 @@ def build_scene_focus_plan(
     *,
     session_id: str,
     experience_spec_ref: VersionedRefV1,
-    raw: RawUnderstandingSuccessV1,
+    raw: RawUnderstandingSuccessV1 | None,
     candidates: SubjectCandidateSetV1,
     region_hints: Mapping[str, Mapping[str, float]] | None = None,
 ) -> SceneFocusPlanV1:
@@ -214,8 +244,8 @@ def build_scene_focus_plan(
         return SceneFocusPlanV1(
             session_id=session_id,
             experience_spec_ref=experience_spec_ref,
-            source_artifact_ref=raw.source_image_ref.artifact_ref,
-            source_artifact_sha256=raw.source_image_ref.sha256,
+            source_artifact_ref=candidates.source_artifact_ref,
+            source_artifact_sha256=candidates.source_artifact_sha256,
             extraction_status="FALLBACK_REQUIRED",
             fallback_reason="NO_LOCALIZER",
         )
@@ -225,8 +255,8 @@ def build_scene_focus_plan(
         return SceneFocusPlanV1(
             session_id=session_id,
             experience_spec_ref=experience_spec_ref,
-            source_artifact_ref=raw.source_image_ref.artifact_ref,
-            source_artifact_sha256=raw.source_image_ref.sha256,
+            source_artifact_ref=candidates.source_artifact_ref,
+            source_artifact_sha256=candidates.source_artifact_sha256,
             extraction_status="FALLBACK_REQUIRED",
             fallback_reason="REGION_INVALID",
         )
@@ -253,8 +283,8 @@ def build_scene_focus_plan(
             return SceneFocusPlanV1(
                 session_id=session_id,
                 experience_spec_ref=experience_spec_ref,
-                source_artifact_ref=raw.source_image_ref.artifact_ref,
-                source_artifact_sha256=raw.source_image_ref.sha256,
+                source_artifact_ref=candidates.source_artifact_ref,
+                source_artifact_sha256=candidates.source_artifact_sha256,
                 extraction_status="FALLBACK_REQUIRED",
                 fallback_reason="REGION_INVALID",
             )
@@ -262,16 +292,16 @@ def build_scene_focus_plan(
         return SceneFocusPlanV1(
             session_id=session_id,
             experience_spec_ref=experience_spec_ref,
-            source_artifact_ref=raw.source_image_ref.artifact_ref,
-            source_artifact_sha256=raw.source_image_ref.sha256,
+            source_artifact_ref=candidates.source_artifact_ref,
+            source_artifact_sha256=candidates.source_artifact_sha256,
             extraction_status="FALLBACK_REQUIRED",
             fallback_reason="NO_LOCALIZER",
         )
     return SceneFocusPlanV1(
         session_id=session_id,
         experience_spec_ref=experience_spec_ref,
-        source_artifact_ref=raw.source_image_ref.artifact_ref,
-        source_artifact_sha256=raw.source_image_ref.sha256,
+        source_artifact_ref=candidates.source_artifact_ref,
+        source_artifact_sha256=candidates.source_artifact_sha256,
         extraction_status="READY",
         targets=tuple(targets),
     )
