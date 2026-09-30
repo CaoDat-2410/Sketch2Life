@@ -15,6 +15,7 @@ from sketch2life.application.services.ephemeral_sessions import (
 from sketch2life.application.services.supervised_flow import SupervisedFlowService
 from sketch2life.contracts.schemas.child_learning_profile import (
     P1ContextOptionsRequestV1,
+    P1ContextOptionsRequestV2,
 )
 from sketch2life.contracts.schemas.mobile_workflow import (
     MobileWorkflowCommandV1,
@@ -96,6 +97,7 @@ def read_p1_context_options(
     expected_session_version: Annotated[int, Header(alias="X-Expected-Session-Version", ge=0)],
     actor_ref: Annotated[str, Header(alias="X-Actor-Ref", min_length=1, max_length=160)],
     age_months: Annotated[int, Query(alias="age_months", ge=0, le=155)],
+    caregiver_participating: Annotated[bool, Query()] = False,
 ) -> JSONResponse:
     service: SupervisedFlowService | None = request.app.state.supervised_flow_service
     if service is None:
@@ -117,6 +119,7 @@ def read_p1_context_options(
             expected_version=expected_session_version,
             actor_ref=actor_ref,
             age_months=age_months,
+            caregiver_participating=caregiver_participating,
         )
     except SessionWorkflowError as error:
         return _failure(
@@ -158,6 +161,94 @@ def read_personalized_p1_context_options(
             actor_ref=actor_ref,
             age_months=body.age_months,
             child_profile=body.child_profile,
+        )
+    except SessionWorkflowError as error:
+        return _failure(
+            error,
+            request_id=request_id,
+            session_id=session_id,
+            expected_version=expected_session_version,
+        )
+    return JSONResponse(status_code=200, content=result.model_dump(mode="json"))
+
+
+@router.get("/{session_id}/p1/context-candidates", response_model=MobileWorkflowResultV1)
+def read_p1_context_candidates(
+    session_id: str,
+    request: Request,
+    request_id: Annotated[str, Header(alias="X-Request-ID", min_length=1, max_length=120)],
+    expected_session_version: Annotated[int, Header(alias="X-Expected-Session-Version", ge=0)],
+    actor_ref: Annotated[str, Header(alias="X-Actor-Ref", min_length=1, max_length=160)],
+    age_months: Annotated[int, Query(alias="age_months", ge=0, le=155)],
+) -> JSONResponse:
+    service: SupervisedFlowService | None = request.app.state.supervised_flow_service
+    if service is None:
+        error = SessionWorkflowError(
+            code="SUPERVISED_FLOW_NOT_CONFIGURED",
+            status_code=503,
+            safe_message="The supervised demo flow is not configured.",
+        )
+        return _failure(
+            error,
+            request_id=request_id,
+            session_id=session_id,
+            expected_version=expected_session_version,
+        )
+    try:
+        result = service.read_p1_context_candidates(
+            session_id=session_id,
+            request_id=request_id,
+            expected_version=expected_session_version,
+            actor_ref=actor_ref,
+            age_months=age_months,
+        )
+    except SessionWorkflowError as error:
+        return _failure(
+            error,
+            request_id=request_id,
+            session_id=session_id,
+            expected_version=expected_session_version,
+        )
+    return JSONResponse(status_code=200, content=result.model_dump(mode="json"))
+
+
+@router.post(
+    "/{session_id}/p1/context-options/finalize",
+    response_model=MobileWorkflowResultV1,
+)
+def finalize_p1_context_options(
+    session_id: str,
+    body: P1ContextOptionsRequestV2,
+    request: Request,
+    request_id: Annotated[str, Header(alias="X-Request-ID", min_length=1, max_length=120)],
+    expected_session_version: Annotated[int, Header(alias="X-Expected-Session-Version", ge=0)],
+    actor_ref: Annotated[str, Header(alias="X-Actor-Ref", min_length=1, max_length=160)],
+) -> JSONResponse:
+    service: SupervisedFlowService | None = request.app.state.supervised_flow_service
+    if service is None:
+        error = SessionWorkflowError(
+            code="SUPERVISED_FLOW_NOT_CONFIGURED",
+            status_code=503,
+            safe_message="The supervised demo flow is not configured.",
+        )
+        return _failure(
+            error,
+            request_id=request_id,
+            session_id=session_id,
+            expected_version=expected_session_version,
+        )
+    try:
+        result = service.read_p1_context_options(
+            session_id=session_id,
+            request_id=request_id,
+            expected_version=expected_session_version,
+            actor_ref=actor_ref,
+            age_months=body.age_months,
+            child_profile=body.child_profile,
+            candidate_activity_ids=body.candidate_activity_ids,
+            supervision_confirmed_activity_ids=body.supervision_confirmed_activity_ids,
+            caregiver_participating=body.caregiver_participating,
+            include_personalization_comparison=False,
         )
     except SessionWorkflowError as error:
         return _failure(

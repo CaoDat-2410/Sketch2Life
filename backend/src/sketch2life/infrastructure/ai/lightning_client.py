@@ -20,6 +20,21 @@ from urllib.request import Request, urlopen
 
 from pydantic import TypeAdapter, ValidationError
 
+from sketch2life.contracts.schemas.asr import (
+    AsrErrorCode as AsrV2ErrorCode,
+)
+from sketch2life.contracts.schemas.asr import (
+    AsrErrorDetail as AsrV2ErrorDetail,
+)
+from sketch2life.contracts.schemas.asr import (
+    AsrFailureV1 as AsrV2FailureV1,
+)
+from sketch2life.contracts.schemas.asr import (
+    AsrRequestV1 as AsrV2RequestV1,
+)
+from sketch2life.contracts.schemas.asr import (
+    AsrResultV1 as AsrV2ResultV1,
+)
 from sketch2life.contracts.schemas.understanding import (
     AdapterFailureV1,
     AsrQualityV1,
@@ -32,13 +47,6 @@ from sketch2life.contracts.schemas.understanding import (
     VisionRelationV1,
     VisionRequestV1,
     VisionUnderstandingResultV1,
-)
-from sketch2life.contracts.schemas.asr import (
-    AsrErrorCode as AsrV2ErrorCode,
-    AsrErrorDetail as AsrV2ErrorDetail,
-    AsrFailureV1 as AsrV2FailureV1,
-    AsrRequestV1 as AsrV2RequestV1,
-    AsrResultV1 as AsrV2ResultV1,
 )
 
 
@@ -95,6 +103,10 @@ class UrllibJsonTransport:
             with urlopen(request, timeout=self.request_timeout_seconds) as response:
                 raw = response.read(self.max_response_bytes + 1)
         except HTTPError as exc:
+            if exc.code == 404:
+                raise LightningProviderError(
+                    "ENDPOINT_NOT_FOUND", "Lightning operation route was not found", False
+                ) from None
             if exc.code in {408, 504}:
                 raise TimeoutError("Lightning request timed out") from None
             if exc.code == 429:

@@ -1,11 +1,17 @@
 """FastAPI composition root."""
 
 import logging
+import re
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+from sketch2life.application.ports.child_preference_classifier import (
+    ChildPreferenceClassifierPort,
+)
 from sketch2life.application.services.auto_rig import AutoRigService
 from sketch2life.application.services.ephemeral_sessions import EphemeralSessionService
 from sketch2life.application.services.image_admission import Feat018ImageAdmission
@@ -14,7 +20,15 @@ from sketch2life.application.services.p1_experience import P1ExperienceCompiler
 from sketch2life.application.services.pixi_topic_asset_candidates import load_topic_asset_catalog
 from sketch2life.application.services.supervised_flow import SupervisedFlowService
 from sketch2life.contracts.schemas.asr import AsrProfileId
+from sketch2life.contracts.schemas.mobile_workflow import (
+    MobileWorkflowResultV1,
+    WorkflowFailureV1,
+    WorkflowResultProvenanceV1,
+)
 from sketch2life.contracts.schemas.workflow_records import SessionSnapshotV1
+from sketch2life.infrastructure.ai.lightning_child_preference_classifier import (
+    LightningChildPreferenceClassifier,
+)
 from sketch2life.infrastructure.ai.lightning_client import (
     LightningAsrV2Adapter,
     UrllibJsonTransport,
@@ -51,6 +65,9 @@ from sketch2life.infrastructure.storage.in_memory_renderer_source_grants import 
 from sketch2life.interfaces.http.middleware.bounded_image_upload import (
     BoundedImageUploadMiddleware,
 )
+from sketch2life.interfaces.http.routers.child_preferences import (
+    router as child_preferences_router,
+)
 from sketch2life.interfaces.http.routers.health import router as health_router
 from sketch2life.interfaces.http.routers.images import router as images_router
 from sketch2life.interfaces.http.routers.sessions import router as sessions_router
@@ -62,6 +79,30 @@ from sketch2life.interfaces.http.routers.supervised_flow import (
 )
 
 _LOGGER = logging.getLogger("sketch2life.api")
+_SAFE_ID = re.compile(r"^[A-Za-z0-9._:-]{1,120}$")
+_SAFE_CONTEXT_PROFILE_FIELDS = frozenset({
+    "contract_name",
+    "contract_version",
+    "age_months",
+    "child_profile",
+    "profile_declared_by",
+    "profile_recorded_at",
+    "interests",
+    "dislikes",
+    "adult_confirmed_progress",
+    "activity_id",
+    "objective_id",
+    "confirmed_at",
+    "confirmed_by",
+    "readiness_ids",
+    "available_material_option_ids",
+    "adult_supervision_available",
+    "learning_support_ids",
+    "candidate_activity_ids",
+    "adult_participating",
+    "caregiver_participating",
+    "supervision_confirmed_activity_ids",
+})
 
 
 def create_app(
@@ -70,6 +111,7 @@ def create_app(
     live_image_demo_service: LiveImageDemoService | None = None,
     supervised_flow_service: SupervisedFlowService | None = None,
     auto_rig_service: AutoRigService | None = None,
+    child_preference_classifier: ChildPreferenceClassifierPort | None = None,
 ) -> FastAPI:
     """Create the local image-only API composition root with ephemeral adapters."""
     application = FastAPI(
@@ -78,6 +120,90 @@ def create_app(
         docs_url="/docs",
         redoc_url=None,
     )
+
+    @application.exception_handler(RequestValidationError)
+    async def handle_request_validation_error(
+        request: Request, exc: RequestValidationError
+    ) -> JSONResponse:
+        is_context_options_route = (
+            request.url.path.endswith("/p1/context-options")
+            or request.url.path.endswith("/p1/context-options/finalize")
+        )
+        if not is_context_options_route:
+            return JSONResponse(status_code=422, content={"detail": "request contract invalid"})
+
+        safe_paths: list[str] = []
+        safe_codes: list[str] = []
+        for issue in exc.errors():
+            location = issue.get("loc", ())
+            parts = [
+                str(part) for part in location if str(part) not in {"body", "query"}
+            ]
+            safe_parts = [
+                part if part in _SAFE_CONTEXT_PROFILE_FIELDS
+                else "item" if part.isdigit()
+                else "field"
+                for part in parts[:8]
+            ]
+            path = ".".join(safe_parts) or "request"
+            code = issue.get("type")
+            safe_paths.append(path[:160])
+            safe_codes.append(
+                str(code)[:64]
+                if isinstance(code, str) and re.fullmatch(r"[a-z0-9_.-]+", code)
+                else "validation_error"
+            )
+
+        request_id = request.headers.get("X-Request-ID", "validation-error")
+        if not _SAFE_ID.fullmatch(request_id):
+            request_id = "validation-error"
+        path_session_id = request.path_params.get("session_id", "unknown-session")
+        if not isinstance(path_session_id, str) or not _SAFE_ID.fullmatch(path_session_id):
+            path_session_id = "unknown-session"
+        raw_expected_version = request.headers.get("X-Expected-Session-Version", "0")
+        expected_version = int(raw_expected_version) if raw_expected_version.isdigit() else 0
+        expected_version = min(expected_version, 2**31 - 1)
+
+        # Only bounded Pydantic locations and error codes are logged. Submitted values,
+        # free text, request bodies, and Pydantic's human-readable messages are excluded.
+        _LOGGER.warning(
+            "request_validation_failed route=p1_context_options request_id=%s "
+            "fields=%s codes=%s",
+            request_id,
+            ",".join(dict.fromkeys(safe_paths)) or "request",
+            ",".join(dict.fromkeys(safe_codes)) or "validation_error",
+        )
+        failure = MobileWorkflowResultV1(
+            status="FAILED",
+            request_id=request_id,
+            session_id=path_session_id,
+            expected_session_version=expected_version,
+            observed_session_version=expected_version,
+            provenance=WorkflowResultProvenanceV1(
+                producer="APPLICATION",
+                component="request-validation",
+                component_version="1.0",
+                source_contracts=(
+                    (
+                        "P1ContextOptionsRequestV2"
+                        if request.url.path.endswith("/p1/context-options/finalize")
+                        else "P1ContextOptionsQueryV1"
+                        if request.method == "GET"
+                        else "P1ContextOptionsRequestV1"
+                    ),
+                ),
+            ),
+            failure=WorkflowFailureV1(
+                domain="TRANSPORT",
+                code="REQUEST_VALIDATION_FAILED",
+                retryable=False,
+                safe_message=(
+                    "Một số thông tin hồ sơ chưa hợp lệ. Hãy kiểm tra lựa chọn rồi thử lại."
+                ),
+            ),
+        )
+        return JSONResponse(status_code=422, content=failure.model_dump(mode="json"))
+
     application.add_middleware(BoundedImageUploadMiddleware)
     scene_localizer = None
     if session_service is None:
@@ -85,6 +211,8 @@ def create_app(
         idempotency = InMemoryIdempotencyStore()
         renderer_source_grants = InMemoryRendererSourceGrantStore()
         settings = get_settings()
+        if child_preference_classifier is None:
+            child_preference_classifier = _configured_lightning_preference_classifier(settings)
         if auto_rig_service is None:
             auto_rig_service = AutoRigService(
                 artifacts=artifacts,
@@ -174,7 +302,9 @@ def create_app(
     application.state.live_image_demo_service = live_image_demo_service
     application.state.supervised_flow_service = supervised_flow_service
     application.state.auto_rig_service = auto_rig_service
+    application.state.child_preference_classifier = child_preference_classifier
     application.include_router(health_router)
+    application.include_router(child_preferences_router)
     application.include_router(sessions_router)
     application.include_router(images_router)
     application.include_router(supervised_flow_router)
@@ -187,6 +317,28 @@ def create_app(
             name="pixi-renderer",
         )
     return application
+
+
+def _configured_lightning_preference_classifier(
+    settings: Settings,
+) -> LightningChildPreferenceClassifier | None:
+    if (
+        settings.env == "test"
+        or settings.ai_provider != "lightning_dev"
+        or not settings.lightning_ai_base_url
+        or settings.lightning_ai_token_file is None
+    ):
+        return None
+    try:
+        token = read_secret_file(settings.lightning_ai_token_file)
+        transport = UrllibJsonTransport(
+            base_url=settings.lightning_ai_base_url,
+            token=token,
+            request_timeout_seconds=settings.ai_request_timeout_seconds,
+        )
+    except (OSError, ValueError):
+        return None
+    return LightningChildPreferenceClassifier(transport=transport)
 
 
 def _configured_lightning_vision(

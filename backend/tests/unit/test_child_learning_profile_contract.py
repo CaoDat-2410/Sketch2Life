@@ -5,9 +5,14 @@ from datetime import UTC, date, datetime, timedelta
 import pytest
 from pydantic import ValidationError
 
+from sketch2life.application.services.activity_supervision import (
+    supervision_requirement_for_age,
+)
 from sketch2life.contracts.schemas.child_learning_profile import (
     ChildLearningProfileContextV1,
+    ChildLearningProfileContextV2,
     P1ContextOptionsRequestV1,
+    P1ContextOptionsRequestV2,
 )
 
 
@@ -98,3 +103,53 @@ def test_context_options_request_requires_versioned_safe_profile_identifiers() -
             age_months=60,
             child_profile={"available_material_option_ids": ["unreviewed material"]},
         )
+
+
+def test_v2_profile_accepts_material_ids_from_both_active_catalog_namespaces() -> None:
+    profile = ChildLearningProfileContextV2(
+        profile_declared_by="CAREGIVER",
+        profile_recorded_at=datetime.now(UTC),
+        available_material_option_ids=("MAT_PLANT_TRAY", "GMAT-0055-PRIMARY"),
+    )
+
+    assert profile.available_material_option_ids == (
+        "MAT_PLANT_TRAY",
+        "GMAT-0055-PRIMARY",
+    )
+
+
+def test_v2_request_requires_caregiver_for_under_three_and_keeps_36_month_boundary() -> None:
+    profile = ChildLearningProfileContextV2(
+        profile_declared_by="CAREGIVER",
+        profile_recorded_at=datetime.now(UTC),
+    )
+    common = {
+        "child_profile": profile,
+        "adult_participating": True,
+        "candidate_activity_ids": ("ACT-0001",),
+        "supervision_confirmed_activity_ids": ("ACT-0001",),
+    }
+
+    with pytest.raises(ValidationError, match="participating caregiver"):
+        P1ContextOptionsRequestV2(age_months=35, **common)
+
+    under_three = P1ContextOptionsRequestV2(
+        age_months=35,
+        caregiver_participating=True,
+        **common,
+    )
+    assert under_three.caregiver_participating is True
+
+    age_three = P1ContextOptionsRequestV2(age_months=36, **common)
+    assert age_three.caregiver_participating is False
+
+
+def test_under_three_supervision_is_direct_caregiver_despite_weaker_catalog_minimum() -> None:
+    assert supervision_requirement_for_age(35, "NEARBY") == (
+        "DIRECT",
+        "Người chăm sóc ở bên và giám sát trực tiếp",
+    )
+    assert supervision_requirement_for_age(36, "NEARBY") == (
+        "NEARBY",
+        "Người lớn ở gần",
+    )

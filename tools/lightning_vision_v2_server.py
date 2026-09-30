@@ -16,6 +16,7 @@ import re
 import sys
 import tempfile
 from collections.abc import Mapping
+from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from hashlib import sha256
 from pathlib import Path
@@ -42,6 +43,9 @@ from sketch2life.contracts.schemas.asr import (
     AsrSpeechDiagnostic,
     AsrSuccessV1,
 )
+from sketch2life.contracts.schemas.child_preference_classification import (
+    ChildPreferenceClassificationRequestV1,
+)
 from sketch2life.contracts.schemas.sam21 import (
     Sam21PointV1,
     Sam21SegmentationResponseV1,
@@ -54,8 +58,11 @@ from sketch2life.contracts.schemas.vision_v2 import (
     VisionUnderstandingSuccessV2,
     vision_profile_catalog_v2,
 )
+from sketch2life.infrastructure.ai.qwen_child_preference_classifier import (
+    QwenChildPreferenceClassifier,
+)
 from sketch2life.infrastructure.ai.qwen_vision import (
-    KillableSubprocessQwenGenerationRunner,
+    PersistentSubprocessQwenGenerationRunner,
     QwenDeviceUnavailableError,
     QwenModelLoadError,
     QwenPermanentRuntimeError,
@@ -89,6 +96,8 @@ logger = logging.getLogger("sketch2life.lightning_vision_v2")
 logger.setLevel(logging.INFO)
 _ASR_MODEL_LOCK = Lock()
 _ASR_MODEL = None
+_QWEN_MODEL_REQUEST_LOCK = Lock()
+_QWEN_GENERATION_RUNNER = PersistentSubprocessQwenGenerationRunner()
 _SAM21_MODEL_LOCK = Lock()
 _SAM21_SEGMENTER: Sam21ImageSegmenter | None = None
 _VISION_BOUNDED_REPAIR_ENV_VAR = "SKETCH2LIFE_LIGHTNING_VISION_BOUNDED_REPAIR"
@@ -339,8 +348,19 @@ class LightningAsrRequestV1(BaseModel):
     source_audio: _SourceAudioV1
 
 
+@asynccontextmanager
+async def _app_lifespan(_app: FastAPI):
+    try:
+        yield
+    finally:
+        _QWEN_GENERATION_RUNNER.close()
+
+
 app = FastAPI(
-    title="Sketch2Life Lightning Vision and ASR", version="2.1.0", redoc_url=None
+    title="Sketch2Life Lightning Vision and ASR",
+    version="2.1.0",
+    redoc_url=None,
+    lifespan=_app_lifespan,
 )
 
 
@@ -453,6 +473,7 @@ def vision_v2(
                     result, payload.narration_context
                 ),
                 on_mapping_diagnostic=capture_mapping_diagnostics,
+                generation_runner=_QWEN_GENERATION_RUNNER,
                 # The killable runner loads Qwen inside a new subprocess per attempt. Keep
                 # production requests to one inference; bounded repair is opt-in for benchmark
                 # runs only, so one /v2/vision request cannot emit two checkpoint-load sequences.
@@ -461,7 +482,8 @@ def vision_v2(
                 # again. This keeps the one-inference guarantee while accepting safe aliases.
                 enable_structural_repair=True,
             )
-            result = adapter.understand(local_request)
+            with _QWEN_MODEL_REQUEST_LOCK:
+                result = adapter.understand(local_request)
             # Keep the Lightning console useful without logging image bytes, model output,
             # prompts, credentials, or child data. HTTP 200 can still carry a typed FAILED
             # Vision result, so log the contract outcome explicitly.
@@ -519,6 +541,49 @@ def vision_v2(
         ) from None
 
 
+@app.post("/v2/profile/preferences/classify")
+def classify_child_preferences_v2(
+    payload: ChildPreferenceClassificationRequestV1,
+    authorization: str | None = Header(default=None),
+) -> dict[str, object]:
+    """Classify bounded adult-entered phrases into reviewed IDs; never persist or log text."""
+
+    _require_auth(authorization)
+    try:
+        runtime = QwenVisionRuntimeConfig.from_env(_vision_runtime_environment(os.environ))
+        classifier = QwenChildPreferenceClassifier(
+            runtime, generation_runner=_QWEN_GENERATION_RUNNER
+        )
+        with _QWEN_MODEL_REQUEST_LOCK:
+            result = classifier.classify(payload)
+    except QwenTimeoutError:
+        logger.warning(
+            "preference_classification_failed request_id=%s code=MODEL_RUNTIME_TIMEOUT",
+            payload.request_id,
+        )
+        raise HTTPException(status_code=504, detail="preference classification timed out") from None
+    except (QwenModelLoadError, QwenDeviceUnavailableError):
+        logger.warning(
+            "preference_classification_failed request_id=%s code=MODEL_UNAVAILABLE",
+            payload.request_id,
+        )
+        raise HTTPException(status_code=503, detail="preference classifier unavailable") from None
+    except (QwenPermanentRuntimeError, ValueError, TypeError, json.JSONDecodeError):
+        logger.warning(
+            "preference_classification_failed request_id=%s code=MODEL_OUTPUT_INVALID",
+            payload.request_id,
+        )
+        raise HTTPException(status_code=502, detail="preference classification failed") from None
+    except RuntimeError:
+        logger.warning(
+            "preference_classification_failed request_id=%s code=MODEL_RUNTIME_FAILURE",
+            payload.request_id,
+        )
+        raise HTTPException(status_code=503, detail="preference classifier unavailable") from None
+    logger.info("preference_classification_completed request_id=%s", payload.request_id)
+    return result.model_dump(mode="json")
+
+
 @app.post("/v2/localize")
 def localize_v2(
     payload: _LocalizationRequestV1,
@@ -564,12 +629,13 @@ def localize_v2(
             profile = vision_profile_catalog_v2().resolve(
                 next(iter(vision_profile_catalog_v2().profiles)).profile_id
             )
-            raw_output = KillableSubprocessQwenGenerationRunner().generate(
-                profile,
-                runtime,
-                image_path,
-                prompt,
-            )
+            with _QWEN_MODEL_REQUEST_LOCK:
+                raw_output = _QWEN_GENERATION_RUNNER.generate(
+                    profile,
+                    runtime,
+                    image_path,
+                    prompt,
+                )
         parsed_regions = _parse_localization_output(raw_output)
         regions: list[dict[str, object]] = []
         seen: set[str] = set()
@@ -637,7 +703,6 @@ def segment_rig_subject_v2(
     if artifact.content_type == "image/jpeg" and not image.startswith(b"\xff\xd8\xff"):
         raise HTTPException(status_code=422, detail="image type mismatch")
     try:
-        segmenter = _sam21_segmenter()
         prompts = [
             Sam21Prompt(
                 prompt_region=payload.prompt_region,
@@ -666,7 +731,11 @@ def segment_rig_subject_v2(
             for region in part_prompt_regions.values()
             if region is not None
         )
-        outputs = segmenter.segment_many(image, tuple(prompts))
+        # Qwen is kept resident to share one model load with preference classification. Do not
+        # overlap its GPU generation with SAM2 model loading/inference on the single-L4 setup.
+        with _QWEN_MODEL_REQUEST_LOCK:
+            segmenter = _sam21_segmenter()
+            outputs = segmenter.segment_many(image, tuple(prompts))
         result = outputs[0]
         if result is None:
             raise Sam21MaskRejectedError("SAM2 returned no valid subject mask")

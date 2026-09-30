@@ -26,6 +26,15 @@ from sketch2life.contracts.schemas.semantic_personalization_v2 import (
     SemanticActivityMatchV2,
 )
 
+ActivityOptionRow = tuple[
+    float,
+    int,
+    str,
+    str,
+    SemanticActivityMatchV2,
+    tuple[str, ...],
+]
+
 
 @dataclass(frozen=True, slots=True)
 class ActivityRecommendation:
@@ -158,6 +167,9 @@ def resolve_activity_options_v2(
     narration_text: str = "",
     limit: int = 3,
     child_profile: ChildLearningProfileContextV1 | None = None,
+    candidate_activity_ids: tuple[str, ...] = (),
+    require_authored_readiness: bool = False,
+    order_by_relevance: bool = True,
 ) -> ActivityRecommendation:
     """Return only reviewed semantic matches from the expanded V2 catalog.
 
@@ -168,12 +180,15 @@ def resolve_activity_options_v2(
 
     scene = _scene_from_anchor_set(anchor_set, narration_text=narration_text)
     age_band = _age_band(age_months)
-    rows: list[tuple[float, int, str, str, SemanticActivityMatchV2, tuple[str, ...]]] = []
+    rows: list[ActivityOptionRow] = []
     rejected: list[str] = []
     excluded_by_profile: list[tuple[str, str]] = []
     progress_evidence: dict[str, tuple[AdultConfirmedProgressV1, ...]] = {}
+    candidate_allowlist = set(candidate_activity_ids)
     for profile in catalog.profiles:
         if profile.age_band != age_band or profile.review_status in {"BLOCKED", "DEPRECATED"}:
+            continue
+        if candidate_allowlist and profile.activity_id not in candidate_allowlist:
             continue
         template_id = compiler.template_id_for_activity_id(profile.activity_id)
         if template_id is None:
@@ -185,6 +200,15 @@ def resolve_activity_options_v2(
         template = compiler.template_for_activity_id(profile.activity_id)
         if template is None:
             rejected.append("STALE_TEMPLATE")
+            continue
+        if require_authored_readiness and template.readiness_metadata_status != "AUTHORED":
+            rejected.append("READINESS_METADATA_MISSING")
+            continue
+        if (
+            child_profile is not None
+            and template.readiness_metadata_status != "AUTHORED"
+        ):
+            rejected.append("READINESS_METADATA_MISSING")
             continue
         if child_profile is not None:
             supervision_rank = {"NONE": 0, "NEARBY": 1, "DIRECT": 2}
@@ -203,17 +227,11 @@ def resolve_activity_options_v2(
             matched_dislikes = (
                 _expanded_profile_concepts(child_profile.dislikes) & activity_concepts
             )
-            if matched_dislikes:
-                excluded_by_profile.append((profile.activity_id, "EXPLICIT_DISLIKE"))
-                continue
-            if child_profile.readiness_ids is None:
+            required_readiness = set(template.readiness_ids)
+            if required_readiness and child_profile.readiness_ids is None:
                 excluded_by_profile.append((profile.activity_id, "READINESS_PROFILE_REQUIRED"))
                 continue
-            if not template.readiness_ids:
-                excluded_by_profile.append((profile.activity_id, "READINESS_METADATA_MISSING"))
-                continue
-            required_readiness = set(template.readiness_ids)
-            known_readiness = set(child_profile.readiness_ids)
+            known_readiness = set(child_profile.readiness_ids or ())
             if not required_readiness <= known_readiness:
                 excluded_by_profile.append((profile.activity_id, "READINESS_NOT_CONFIRMED"))
                 continue
@@ -246,6 +264,9 @@ def resolve_activity_options_v2(
             if matched_interests:
                 score_adjustment += 0.12
                 reasons.append("EXPLICIT_INTEREST_MATCH")
+            if matched_dislikes:
+                score_adjustment -= 0.12
+                reasons.append("EXPLICIT_AVOIDANCE_MATCH")
             activity_objective_ids = {
                 profile.primary_objective_id,
                 *profile.secondary_objective_ids,
@@ -268,7 +289,7 @@ def resolve_activity_options_v2(
         adjusted_match = match.model_copy(
             update={
                 "overall_personalization_score": min(
-                    0.99, match.overall_personalization_score + score_adjustment
+                    0.99, max(0.0, match.overall_personalization_score + score_adjustment)
                 ),
                 "reason_codes": tuple((*match.reason_codes, *reasons)),
             }
@@ -284,18 +305,11 @@ def resolve_activity_options_v2(
             )
         )
 
-    ranked = sorted(rows, key=lambda row: (-row[0], -row[1], row[2], row[3]))
-    selected: list[tuple[float, int, str, str, SemanticActivityMatchV2, tuple[str, ...]]] = []
-    seen_families: set[str] = set()
-    for row in ranked:
-        family_id = row[4].activity_family_id or row[2]
-        if family_id in seen_families:
-            continue
-        selected.append(row)
-        seen_families.add(family_id)
-        if len(selected) >= max(1, min(limit, 3)):
-            break
-
+    selected = _select_activity_rows(
+        rows,
+        limit=limit,
+        order_by_relevance=order_by_relevance,
+    )
     activity_ids = tuple(row[2] for row in selected)
     return ActivityRecommendation(
         options=compiler.context_options_for_template_ids(activity_ids, age_months),
@@ -313,6 +327,31 @@ def resolve_activity_options_v2(
         ),
         excluded_by_profile=tuple(excluded_by_profile),
     )
+
+
+def _select_activity_rows(
+    rows: list[ActivityOptionRow],
+    *,
+    limit: int,
+    order_by_relevance: bool,
+) -> list[ActivityOptionRow]:
+    """Select a bounded, family-diverse list, optionally postponing relevance ranking."""
+    ordered = (
+        sorted(rows, key=lambda row: (-row[0], -row[1], row[2], row[3]))
+        if order_by_relevance
+        else sorted(rows, key=lambda row: (row[2], row[3]))
+    )
+    selected: list[ActivityOptionRow] = []
+    seen_families: set[str] = set()
+    for row in ordered:
+        family_id = row[4].activity_family_id or row[2]
+        if family_id in seen_families:
+            continue
+        selected.append(row)
+        seen_families.add(family_id)
+        if len(selected) >= max(1, min(limit, 3)):
+            break
+    return selected
 
 
 def _support_matches(

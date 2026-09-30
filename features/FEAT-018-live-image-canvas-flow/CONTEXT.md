@@ -533,3 +533,14 @@ P2-T5, mobile, Gate A UI, P1 eligibility, P3/P4 and shared integration remain se
 - Backend full suite, targeted Python lint, mobile typecheck/UI tests and focused renderer tests pass.
   Android acceptance remains pending because `adb` is unavailable in this environment.
 - Evidence: `evidence/notes/INTEGRATED_CHILD_PROFILE_AND_RIG_QUALITY_IMPLEMENTATION_20260929.md`.
+
+## Integrated increment verification update — 2026-09-30
+
+The connected local Android environment is now available: backend health returned HTTP 200, Expo
+Metro status and the monorepo Android bundle route returned HTTP 200, `emulator-5554` is connected
+with the mobile `MainActivity` foreground, and ADB reverse `8081 -> 8081` is active. This supersedes
+the earlier note that `adb` was not on PATH for that environment. It is connectivity evidence only;
+the full live classification/readiness/Gate-B journey, visual SAM acceptance, reviewed held-out
+mask quality, L4 runtime budget and the comparable native input-to-presented-pixel trace remain
+unverified. See FEAT-033 `FEAT033-EV-20260930-09` and FEAT-030
+`E-030-SAM-QUALITY-012`.

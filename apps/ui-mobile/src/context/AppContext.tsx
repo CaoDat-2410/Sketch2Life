@@ -19,9 +19,12 @@ import {
   DemoApiError,
   MAX_IMAGE_BYTES,
   type ActivityRecommendationCard,
+  type ActivityContextCandidateSet,
   type P1ContextOption,
   type P1ContextOptions,
   type ChildLearningProfileInput,
+  type ChildPreferenceClassification,
+  type ActivityContextAnswers,
   type WorkflowResult,
 } from '../demo/api';
 import {
@@ -31,6 +34,7 @@ import {
   releaseSingleFlight,
   type FeedbackObservationCode,
 } from './workflowSafety';
+import { resetSessionBoundProfileAnswers } from '../demo/sessionProfileAnswers.mjs';
 
 export interface SelectedDrawing {
   uri: string;
@@ -89,11 +93,16 @@ interface AppContextType {
   childrenList: ChildProfile[];
   selectedChild: ChildProfile;
   setSelectedChild: (child: ChildProfile) => void;
-  selectedAgeGroup: string;
-  setSelectedAgeGroup: (ageGroup: string) => void;
+  selectedAgeMonths: number;
+  setSelectedAgeMonths: (ageMonths: number) => void;
   selectedChildLearningProfile: ChildLearningProfileInput | null;
   updateSelectedChildLearningProfile: (patch: Partial<ChildLearningProfileInput>) => void;
   resetSelectedChildLearningProfile: () => void;
+  classifySelectedChildPreferences: (
+    interestText?: string,
+    avoidText?: string,
+  ) => Promise<ChildPreferenceClassification | null>;
+  profileClassificationBusy: boolean;
 
   // Drawing
   drawingImage: string;
@@ -153,11 +162,12 @@ interface AppContextType {
   selectedActivity: MontessoriActivity;
   setSelectedActivity: (activity: MontessoriActivity) => void;
   contextOptions: P1ContextOptions | null;
+  contextCandidates: ActivityContextCandidateSet | null;
   selectedBackendActivity: P1ContextOption | null;
   activityRecommendation: P1ContextOptions['recommendation'] | null;
   activityRecommendationCards: ActivityRecommendationCard[];
   selectBackendActivity: (activityId: string) => void;
-  prepareActivityWorkflow: () => Promise<boolean>;
+  prepareActivityWorkflow: (answers?: ActivityContextAnswers) => Promise<boolean>;
   approveActivity: () => Promise<boolean>;
   prepareRendererIntro: (refreshLaunch?: boolean) => Promise<boolean>;
   completeActivityHandoff: () => Promise<boolean>;
@@ -554,23 +564,56 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Child Profile
   const [childrenList] = useState<ChildProfile[]>(MOCK_CHILDREN);
-  const [selectedChild, setSelectedChild] = useState<ChildProfile>(MOCK_CHILDREN[0]);
-  const [selectedAgeGroup, setSelectedAgeGroup] = useState<string>('5-6');
+  const [selectedChild, setSelectedChildState] = useState<ChildProfile>(MOCK_CHILDREN[0]);
+  const [childAgeMonthsById, setChildAgeMonthsById] = useState<Record<string, number>>(
+    () => Object.fromEntries(MOCK_CHILDREN.map((child) => [child.id, child.age * 12])),
+  );
+  const selectedAgeMonths = childAgeMonthsById[selectedChild.id] ?? selectedChild.age * 12;
   const [childLearningProfiles, setChildLearningProfiles] = useState<
     Record<string, ChildLearningProfileInput>
   >({});
   const selectedChildLearningProfile = childLearningProfiles[selectedChild.id] || null;
+  const [profileClassificationBusy, setProfileClassificationBusy] = useState(false);
+  const profileClassifierLockRef = useRef(false);
+  const invalidateP1Selection = () => {
+    setContextOptions(null);
+    setContextCandidates(null);
+    setSelectedBackendActivity(null);
+    setActivityRecommendation(null);
+    setActivityRecommendationCards([]);
+  };
+  const setSelectedChild = (child: ChildProfile) => {
+    setSelectedChildState(child);
+    invalidateP1Selection();
+  };
+  const setSelectedAgeMonths = (ageMonths: number) => {
+    if (!Number.isFinite(ageMonths)) return;
+    const boundedAgeMonths = Math.max(0, Math.min(155, Math.trunc(ageMonths)));
+    setChildAgeMonthsById((current) => ({
+      ...current,
+      [selectedChild.id]: boundedAgeMonths,
+    }));
+    invalidateP1Selection();
+  };
   const updateSelectedChildLearningProfile = (patch: Partial<ChildLearningProfileInput>) => {
+    const contextOnlyPatch = Object.keys(patch).every((key) => (
+      key === 'readiness_ids' || key === 'available_material_option_ids'
+    ));
     setChildLearningProfiles((current) => {
       const previous = current[selectedChild.id] || {
         profile_declared_by: 'CAREGIVER' as const,
         profile_recorded_at: new Date().toISOString(),
+        interest_text: '',
+        avoid_text: '',
+        proposed_interest_tags: [],
+        proposed_avoid_tags: [],
+        preference_tags_confirmed: false,
         interests: [],
         dislikes: [],
-        adult_confirmed_progress: [],
         readiness_ids: null,
         available_material_option_ids: null,
-        adult_supervision_available: 'NEARBY',
+        adult_participating: null,
+        caregiver_participating: null,
         learning_support_ids: [],
       };
       return {
@@ -583,9 +626,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
     });
     setContextOptions(null);
+    if (!contextOnlyPatch) setContextCandidates(null);
     setSelectedBackendActivity(null);
     setActivityRecommendation(null);
     setActivityRecommendationCards([]);
+  };
+  const classifySelectedChildPreferences = async (
+    interestTextDraft?: string,
+    avoidTextDraft?: string,
+  ): Promise<ChildPreferenceClassification | null> => {
+    const profile = childLearningProfiles[selectedChild.id];
+    const interestText = (interestTextDraft ?? profile?.interest_text ?? '').trim().slice(0, 240);
+    const avoidText = (avoidTextDraft ?? profile?.avoid_text ?? '').trim().slice(0, 240);
+    if ((!interestText && !avoidText) || profileClassifierLockRef.current) return null;
+    profileClassifierLockRef.current = true;
+    setProfileClassificationBusy(true);
+    try {
+      return await workflowApi.classifyChildPreferences(interestText, avoidText);
+    } finally {
+      profileClassifierLockRef.current = false;
+      setProfileClassificationBusy(false);
+    }
   };
   const resetSelectedChildLearningProfile = () => {
     setChildLearningProfiles((current) => {
@@ -594,6 +655,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return next;
     });
     setContextOptions(null);
+    setContextCandidates(null);
     setSelectedBackendActivity(null);
     setActivityRecommendation(null);
     setActivityRecommendationCards([]);
@@ -877,6 +939,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setCorrection('');
       setGateAConfirmed(false);
       setContextOptions(null);
+      setContextCandidates(null);
       setSelectedBackendActivity(null);
       setActivityRecommendation(null);
       setActivityRecommendationCards([]);
@@ -1149,7 +1212,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const prepareActivityWorkflow = async (): Promise<boolean> => {
+  const prepareActivityWorkflow = async (answers?: ActivityContextAnswers): Promise<boolean> => {
     const hasPreparedActivity = Boolean(
       contextOptions
       && selectedBackendActivity
@@ -1171,51 +1234,78 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setWorkflowError(null);
     setWorkflowNotice(null);
     try {
-      const ageMonthsByGroup: Record<string, number> = {
-        '3-4': 48,
-        '5-6': 60,
-        '7-8': 96,
-        '9+': 120,
-      };
-      const ageMonths = ageMonthsByGroup[selectedAgeGroup]
-        ?? Math.min(155, Math.max(0, selectedChild.age * 12));
-      let options = contextOptions;
-      let option = selectedBackendActivity;
-      if (!options) {
+      const ageMonths = selectedAgeMonths;
+      if (!contextCandidates) {
+        const optionsResult = await workflowApi.readContextCandidates(
+          sessionId,
+          sessionVersion,
+          ageMonths,
+        );
+        const candidates = optionsResult.payload;
+        if (!candidates || candidates.candidates.length === 0) {
+          throw new Error('Chưa tìm thấy hoạt động thật sự phù hợp. Hãy chọn lại chủ đề hoặc thử ảnh rõ hơn.');
+        }
+        setContextCandidates(candidates);
+        setWorkflowNotice('Đã tải một nhóm nhỏ theo chủ đề và độ tuổi. Hãy xác nhận tiêu chí/vật liệu cụ thể trước khi xem gợi ý cuối.');
+        return false;
+      }
+
+      if (!contextOptions) {
+        const profile = selectedChildLearningProfile
+          ? {
+              ...selectedChildLearningProfile,
+              readiness_ids: answers?.readiness_ids ?? selectedChildLearningProfile.readiness_ids,
+              available_material_option_ids: answers?.available_material_option_ids
+                ?? selectedChildLearningProfile.available_material_option_ids,
+            }
+          : null;
+        if (!profile || profile.adult_participating !== true) {
+          throw new Error('Cần xác nhận người lớn sẽ đồng hành trong hoạt động.');
+        }
+        if (!answers?.supervision_confirmed_activity_ids.length) {
+          throw new Error('Hãy xác nhận mức giám sát có thể đáp ứng cho ít nhất một hoạt động.');
+        }
+        if (profile.readiness_ids === null || profile.available_material_option_ids === null) {
+          throw new Error('Hãy trả lời các câu hỏi readiness và vật liệu của nhóm hoạt động trước.');
+        }
+        if (answers) updateSelectedChildLearningProfile(answers);
         const optionsResult = await workflowApi.readContextOptions(
           sessionId,
           sessionVersion,
           ageMonths,
-          selectedChildLearningProfile || undefined,
+          profile,
+          contextCandidates.candidates.map((item) => item.activity_ref.id),
+          answers.supervision_confirmed_activity_ids,
         );
-        options = optionsResult.payload;
+        const options = optionsResult.payload;
         if (!options || options.options.length === 0) {
-          const excluded = options?.personalization_comparison?.excluded_activity_count || 0;
-          if (excluded > 0) {
-            throw new Error('Hồ sơ thử nghiệm đang loại hết hoạt động phù hợp. Hãy nới điều kiện sẵn sàng/vật liệu hoặc bỏ chủ đề cần tránh rồi thử lại.');
-          }
-          throw new Error('Chưa tìm thấy hoạt động thật sự phù hợp. Hãy chọn lại chủ đề hoặc thử ảnh rõ hơn.');
+          throw new Error('Chưa có hoạt động nào vượt qua điều kiện đã xác nhận. Có thể thử lại với nhóm chủ đề khác; điều này không đánh giá năng lực của bé.');
         }
-        option = options.options[0];
+        const option = options.options[0];
         setContextOptions(options);
         setSelectedBackendActivity(option);
         setActivityRecommendation(options.recommendation || null);
         setActivityRecommendationCards(options.activity_recommendations?.options || []);
-        setWorkflowNotice('Đã tìm thấy các hoạt động phù hợp. Người lớn chọn một hoạt động để tiếp tục.');
+        setWorkflowNotice('Đây là các hoạt động còn phù hợp sau readiness, vật liệu và các điều kiện an toàn.');
         return false;
       }
+
+      let options = contextOptions;
+      const option = selectedBackendActivity;
       if (!option) {
         throw new Error('Hãy chọn một hoạt động trước khi tiếp tục.');
       }
+      const readinessIds = selectedChildLearningProfile?.readiness_ids ?? option.readiness_ids;
+      const availableMaterialIds = selectedChildLearningProfile?.available_material_option_ids
+        ?? option.material_option_ids;
       const contextResult = await workflowApi.setP1Context(sessionId, sessionVersion, {
         age_months: ageMonths,
-        readiness_ids: selectedChildLearningProfile?.readiness_ids ?? option.readiness_ids,
-        completed_activity_ids: selectedChildLearningProfile
-          ? selectedChildLearningProfile.adult_confirmed_progress.map((item) => item.activity_id)
-          : option.prerequisite_activity_ids,
-        available_material_option_ids: selectedChildLearningProfile?.available_material_option_ids
-          ?? option.material_option_ids,
-        supervision_level: option.minimum_supervision,
+        contextual_candidate_flow: true,
+        readiness_ids: readinessIds,
+        completed_activity_ids: [],
+        available_material_option_ids: availableMaterialIds,
+        supervision_level: selectedChildLearningProfile?.adult_participating ? 'DIRECT' : 'NONE',
+        caregiver_participating: selectedChildLearningProfile?.caregiver_participating === true,
         policy_flags: option.policy_constraints,
         candidate_status: 'ACTIVE_FIXTURE',
         selected_activity_id: option.activity_ref.id,
@@ -1342,6 +1432,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [activitiesList, setActivitiesList] = useState<MontessoriActivity[]>(MOCK_ACTIVITIES);
   const [selectedActivity, setSelectedActivity] = useState<MontessoriActivity>(MOCK_ACTIVITIES[0]);
   const [contextOptions, setContextOptions] = useState<P1ContextOptions | null>(null);
+  const [contextCandidates, setContextCandidates] = useState<ActivityContextCandidateSet | null>(null);
   const [selectedBackendActivity, setSelectedBackendActivity] = useState<P1ContextOption | null>(null);
   const [activityRecommendation, setActivityRecommendation] = useState<P1ContextOptions['recommendation'] | null>(null);
   const [activityRecommendationCards, setActivityRecommendationCards] = useState<ActivityRecommendationCard[]>([]);
@@ -1405,6 +1496,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       );
       updateSessionVersion(result.observed_session_version);
       if (result.status !== 'SUCCEEDED') throw workflowFailure(result, 'Chưa ghi nhận được nhận xét.');
+      if (selectedChildLearningProfile) {
+        updateSelectedChildLearningProfile(
+          resetSessionBoundProfileAnswers(selectedChildLearningProfile),
+        );
+      }
       setSessionState('FEEDBACK_RECORDED');
       setToastMessage('✨ Đã ghi nhận nhận xét trong phiên này.');
       setTimeout(() => {
@@ -1459,11 +1555,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         childrenList,
         selectedChild,
         setSelectedChild,
-        selectedAgeGroup,
-        setSelectedAgeGroup,
+        selectedAgeMonths,
+        setSelectedAgeMonths,
         selectedChildLearningProfile,
         updateSelectedChildLearningProfile,
         resetSelectedChildLearningProfile,
+        classifySelectedChildPreferences,
+        profileClassificationBusy,
 
         drawingImage,
         setDrawingImage,
@@ -1519,6 +1617,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         selectedActivity,
         setSelectedActivity,
         contextOptions,
+        contextCandidates,
         selectedBackendActivity,
         activityRecommendation,
         activityRecommendationCards,

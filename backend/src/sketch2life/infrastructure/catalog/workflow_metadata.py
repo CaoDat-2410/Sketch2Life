@@ -58,6 +58,14 @@ class FileWorkflowCatalogMetadata:
         variant = self._curated_by_id.get(activity_id)
         return tuple(variant.material_option_ids) if variant is not None else ()
 
+    def material_labels_for_ids(self, material_ids: tuple[str, ...]) -> dict[str, str]:
+        return {
+            material_id: self._material_labels.get(
+                material_id, _MATERIAL_LABELS_VI.get(material_id, "Vật liệu phù hợp")
+            )
+            for material_id in material_ids
+        }
+
     def duration_spec(self, activity_id: str) -> dict[str, Any] | None:
         record = self._records_by_id.get(activity_id)
         if isinstance(record, dict):

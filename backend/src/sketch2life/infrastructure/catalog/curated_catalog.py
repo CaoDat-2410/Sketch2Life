@@ -123,6 +123,7 @@ class CuratedActivityVariant:
             age_months_min=minimum,
             age_months_max=maximum,
             readiness_ids=(),
+            readiness_metadata_status="UNSPECIFIED",
             prerequisite_activity_ids=(),
             material_option_ids=self.material_option_ids,
             material_option_groups=(self.material_option_ids,),

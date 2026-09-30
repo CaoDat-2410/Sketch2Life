@@ -13,6 +13,7 @@ from sketch2life.contracts.schemas.p1_experience import (
     ActivityTemplateV1,
     AnchorProvenanceV1,
     P1ContextV1,
+    P1ContextV2,
     SemanticAnchorSetV1,
     SemanticAnchorV1,
     VersionedRefV1,
@@ -959,3 +960,28 @@ def test_gate_b_blocks_spec_id_drift_before_hash_check() -> None:
 
     assert decision.status == "BLOCKED"
     assert decision.reason_codes == ("SPEC_ID_MISMATCH",)
+
+
+def test_p1_context_v2_requires_caregiver_under_three_and_preserves_36_month_boundary() -> None:
+    with pytest.raises(ValidationError, match="participating caregiver"):
+        P1ContextV2(
+            session_id="session-under-three",
+            expected_session_version=1,
+            age_months=35,
+        )
+
+    under_three = P1ContextV2(
+        session_id="session-under-three",
+        expected_session_version=1,
+        age_months=35,
+        caregiver_participating=True,
+    )
+    age_three = P1ContextV2(
+        session_id="session-three",
+        expected_session_version=1,
+        age_months=36,
+    )
+
+    assert under_three.contract_version == "2.0"
+    assert under_three.caregiver_participating is True
+    assert age_three.caregiver_participating is False

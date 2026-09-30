@@ -6,6 +6,7 @@ from types import SimpleNamespace
 
 from sketch2life.application.services.p1_experience import P1ExperienceCompiler
 from sketch2life.application.services.semantic_activity_resolver import (
+    _select_activity_rows,
     resolve_activity_options,
     resolve_activity_options_v2,
 )
@@ -143,7 +144,22 @@ def test_v2_bird_shortlist_is_bounded_and_never_uses_unrelated_transfer() -> Non
     assert all(recommendation.v2_match_for(activity_id) for activity_id in activity_ids)
 
 
-def test_child_profile_changes_bounded_ranking_and_explicit_dislike_is_a_hard_filter() -> None:
+def test_context_shortlist_defers_relevance_ranking_until_after_adult_hard_gates() -> None:
+    rows = [
+        (0.99, 98, "ACT-Z", "T-Z", SimpleNamespace(activity_family_id="FAMILY-Z"), ()),
+        (0.80, 90, "ACT-Y", "T-Y", SimpleNamespace(activity_family_id="FAMILY-Y"), ()),
+        (0.70, 85, "ACT-X", "T-X", SimpleNamespace(activity_family_id="FAMILY-X"), ()),
+        (0.10, 60, "ACT-A", "T-A", SimpleNamespace(activity_family_id="FAMILY-A"), ()),
+    ]
+
+    ranked = _select_activity_rows(rows, limit=3, order_by_relevance=True)
+    unranked = _select_activity_rows(rows, limit=3, order_by_relevance=False)
+
+    assert tuple(row[2] for row in ranked) == ("ACT-Z", "ACT-Y", "ACT-X")
+    assert tuple(row[2] for row in unranked) == ("ACT-A", "ACT-X", "ACT-Y")
+
+
+def test_child_preferences_only_adjust_ranking_after_hard_eligibility() -> None:
     library = load_p1_template_library(ROOT, include_mvp=True, include_expansion=True)
     compiler = P1ExperienceCompiler(library.templates, library.objective_titles_vi)
     catalog = load_activity_semantic_catalog_v2(ROOT, include_expansion=True)
@@ -206,12 +222,11 @@ def test_child_profile_changes_bounded_ranking_and_explicit_dislike_is_a_hard_fi
             adult_supervision_available="DIRECT",
         ),
     )
-    excluded_ids = {
-        activity_id
-        for activity_id, reason in avoided.excluded_by_profile
-        if reason == "EXPLICIT_DISLIKE"
-    }
-    assert "ACT-0055" in excluded_ids
+    avoided_ids = tuple(option.activity_ref.id for option in avoided.options)
+    assert avoided.options
+    assert "ACT-0055" in avoided_ids
+    assert "EXPLICIT_AVOIDANCE_MATCH" in avoided.personalization_reasons_for("ACT-0055")
+    assert all(reason != "EXPLICIT_DISLIKE" for _, reason in avoided.excluded_by_profile)
 
 
 def test_semantic_catalog_returns_safe_age_fallback_for_raw_english_background() -> None:

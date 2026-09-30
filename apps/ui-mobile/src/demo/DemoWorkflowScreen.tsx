@@ -108,6 +108,7 @@ export default function DemoWorkflowScreen() {
   const [correction, setCorrection] = useState('');
   const [ageYears, setAgeYears] = useState('');
   const [ageMonths, setAgeMonths] = useState('0');
+  const [caregiverParticipating, setCaregiverParticipating] = useState(false);
   const [contextOptions, setContextOptions] = useState<P1ContextOptions | null>(null);
   const [selectedActivity, setSelectedActivity] = useState<P1ContextOption | null>(null);
   const [readiness, setReadiness] = useState<string[]>([]);
@@ -281,10 +282,25 @@ export default function DemoWorkflowScreen() {
 
   async function loadContextOptions() {
     if (!sessionId || !isAgeValid || busy) return;
+    if (ageMonthsTotal < 36 && !caregiverParticipating) {
+      setError({
+        code: 'UNDER_THREE_CAREGIVER_REQUIRED',
+        message: 'Trẻ dưới 3 tuổi cần người chăm sóc có mặt và giám sát trực tiếp.',
+      });
+      return;
+    }
     setBusy('Đọc lựa chọn P1');
     setError(null);
     try {
-      const result = await api.readContextOptions(sessionId, sessionVersion, ageMonthsTotal);
+      const result = await api.readContextOptions(
+        sessionId,
+        sessionVersion,
+        ageMonthsTotal,
+        undefined,
+        [],
+        [],
+        caregiverParticipating,
+      );
       const payload = result.payload;
       if (!payload) throw new DemoApiError('Backend returned no P1 options.', 'INVALID_RESPONSE', 200);
       setContextOptions(payload);
@@ -658,6 +674,16 @@ export default function DemoWorkflowScreen() {
               <Field label="Tuổi (năm)" value={ageYears} onChangeText={setAgeYears} keyboardType="number-pad" placeholder="vd. 5" />
               <Field label="Tháng thêm" value={ageMonths} onChangeText={setAgeMonths} keyboardType="number-pad" placeholder="0–11" />
             </View>
+            {isAgeValid && ageMonthsTotal < 36 && (
+              <View style={{ marginBottom: 12 }}>
+                <Text style={styles.fieldLabel}>Yêu cầu cho trẻ dưới 3 tuổi</Text>
+                <ChoicePill
+                  label="Người chăm sóc sẽ ở bên và giám sát trực tiếp"
+                  selected={caregiverParticipating}
+                  onPress={() => setCaregiverParticipating((value) => !value)}
+                />
+              </View>
+            )}
             <ActionButton title="Tải lựa chọn phù hợp từ backend" disabled={!isAgeValid || !!busy} loading={busy === 'Đọc lựa chọn P1'} onPress={() => void loadContextOptions()} />
             {contextOptions && (
               <View style={styles.optionPanel}>
@@ -697,6 +723,7 @@ export default function DemoWorkflowScreen() {
                         if (!sessionId || !selectedActivity || !supervision) return;
                         void runStep('Lưu bối cảnh', () => api.setP1Context(sessionId, sessionVersion, {
                           age_months: ageMonthsTotal,
+                          caregiver_participating: caregiverParticipating,
                           readiness_ids: readiness,
                           completed_activity_ids: completedActivities,
                           available_material_option_ids: availableMaterials,

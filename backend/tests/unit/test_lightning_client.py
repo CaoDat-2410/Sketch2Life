@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from pathlib import Path
+from urllib.error import HTTPError
+
+import pytest
 
 from sketch2life.contracts.schemas.media_validation import SourceMediaReferenceV1
 from sketch2life.contracts.schemas.understanding import (
@@ -14,6 +17,7 @@ from sketch2life.infrastructure.ai.lightning_client import (
     LightningAsrAdapter,
     LightningProviderError,
     LightningVisionAdapter,
+    UrllibJsonTransport,
 )
 
 FIXTURE_ROOT = (
@@ -117,6 +121,25 @@ def test_rate_limit_is_typed_and_does_not_leak_provider_payload() -> None:
     assert result.failure is not None
     assert result.failure.code == "RATE_LIMITED"
     assert "provider" not in result.failure.message.lower()
+
+
+def test_json_transport_maps_missing_route_without_exposing_response_body(monkeypatch) -> None:
+    def missing_route(request, timeout):
+        del timeout
+        raise HTTPError(request.full_url, 404, "synthetic-private-provider-detail", {}, None)
+
+    monkeypatch.setattr("sketch2life.infrastructure.ai.lightning_client.urlopen", missing_route)
+    transport = UrllibJsonTransport(
+        base_url="https://lightning.example.invalid",
+        token="synthetic-token",
+    )
+
+    with pytest.raises(LightningProviderError) as raised:
+        transport.post_json("/v2/profile/preferences/classify", {"text": "synthetic"})
+
+    assert raised.value.code == "ENDPOINT_NOT_FOUND"
+    assert raised.value.retryable is False
+    assert "synthetic-private-provider-detail" not in str(raised.value)
 
 
 def test_source_hash_mismatch_fails_closed() -> None:

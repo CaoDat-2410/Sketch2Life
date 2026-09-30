@@ -35,6 +35,30 @@ def test_expansion_is_opt_in_and_keeps_mvp_rollback() -> None:
     )
 
 
+def test_legacy_readiness_tags_map_to_contract_ids_and_caregiver_is_a_safety_gate() -> None:
+    library = load_p1_template_library(ROOT, include_mvp=True)
+    by_activity_id = {template.activity_ref.id: template for template in library.templates}
+
+    assert by_activity_id["ACT-0034"].readiness_ids == (
+        "READY_FOLLOWS_ONE_STEP_DIRECTION",
+    )
+    assert by_activity_id["ACT-0051"].readiness_ids == (
+        "READY_READS_SIMPLE_INSTRUCTIONS",
+    )
+    assert by_activity_id["ACT-0076"].readiness_ids == (
+        "READY_WORKS_WITH_MULTI_STEP_PLAN",
+    )
+    toddler = by_activity_id["ACT-0001"]
+    assert toddler.readiness_ids == ()
+    assert toddler.minimum_supervision == "DIRECT"
+    assert "CAREGIVER_PRESENT" in toddler.policy_constraints
+    assert all(
+        readiness_id.startswith("READY_")
+        for template in library.templates
+        for readiness_id in template.readiness_ids
+    )
+
+
 def test_curated_quality_gate_passes_against_baseline_plus_expansion() -> None:
     curated = load_curated_catalog_v2(ROOT)
     baseline_profiles = load_activity_semantic_catalog_v2(ROOT).profiles

@@ -49,6 +49,8 @@ features/FEAT-003-multimodal-understanding/evidence/notes/*
 __pycache__/
 *.py[cod]
 .pytest_cache/
+# Explicit pytest --basetemp outputs are disposable local fixtures, not publishable source.
+/backend/.pytest-tmp-*/
 .mypy_cache/
 .ruff_cache/
 .venv/

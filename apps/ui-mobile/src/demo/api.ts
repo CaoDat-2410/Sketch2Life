@@ -1,4 +1,7 @@
 import * as Crypto from 'expo-crypto';
+import { classifyApiResponseError } from './apiResponseError.mjs';
+import { buildP1ContextOptionsRequest } from './p1ContextOptionsRequest.mjs';
+import { buildP1ContextRequest } from './p1ContextRequest.mjs';
 import {
   outcomeMayHaveCommitted,
   PendingIdempotencyKeys,
@@ -51,6 +54,36 @@ export interface P1ContextOption {
   material_option_ids: string[];
   minimum_supervision: 'NONE' | 'NEARBY' | 'DIRECT';
   policy_constraints: string[];
+}
+
+export interface ActivityContextCandidate {
+  contract_name: 'ActivityContextCandidateV2';
+  contract_version: '2.0';
+  template_ref: { id: string; version: number };
+  activity_ref: { id: string; version: number };
+  title_vi: string;
+  summary_vi: string;
+  age_months_min: number;
+  age_months_max: number;
+  readiness_ids: string[];
+  readiness_metadata_status: 'AUTHORED' | 'UNSPECIFIED';
+  prerequisite_activity_ids: string[];
+  material_option_ids: string[];
+  material_option_groups: string[][];
+  material_labels_by_id: Record<string, string>;
+  minimum_supervision: 'NONE' | 'NEARBY' | 'DIRECT';
+  supervision_label_vi: string;
+  policy_constraints: string[];
+}
+
+export interface ActivityContextCandidateSet {
+  contract_name: 'ActivityContextCandidateSetV2';
+  contract_version: '2.0';
+  session_id: string;
+  expected_session_version: number;
+  age_months: number;
+  confirmed_anchor_label: string;
+  candidates: ActivityContextCandidate[];
 }
 
 export interface P1ContextOptions {
@@ -108,23 +141,43 @@ export interface P1ContextOptions {
   };
 }
 
-export interface AdultConfirmedProgress {
-  activity_id: string;
-  objective_id: string;
-  confirmed_at: string;
-  confirmed_by: 'CAREGIVER' | 'GUIDE';
-}
-
 export interface ChildLearningProfileInput {
   profile_declared_by: 'CAREGIVER' | 'GUIDE';
   profile_recorded_at: string;
+  interest_text: string;
+  avoid_text: string;
+  proposed_interest_tags: ChildPreferenceTag[];
+  proposed_avoid_tags: ChildPreferenceTag[];
+  preference_tags_confirmed: boolean;
   interests: string[];
   dislikes: string[];
-  adult_confirmed_progress: AdultConfirmedProgress[];
   readiness_ids: string[] | null;
   available_material_option_ids: string[] | null;
-  adult_supervision_available: 'NONE' | 'NEARBY' | 'DIRECT';
+  adult_participating: boolean | null;
+  caregiver_participating: boolean | null;
   learning_support_ids: Array<'HANDS_ON' | 'MOVEMENT' | 'VISUAL_SEQUENCE' | 'OBSERVATION'>;
+}
+
+export interface ChildPreferenceTag {
+  concept_id: string;
+  label_vi: string;
+  confidence: number;
+}
+
+export interface ChildPreferenceClassification {
+  contract_name: 'ChildPreferenceClassificationV1';
+  contract_version: '1.0';
+  request_id: string;
+  interest_tags: ChildPreferenceTag[];
+  avoid_tags: ChildPreferenceTag[];
+  interest_unmapped: boolean;
+  avoid_unmapped: boolean;
+}
+
+export interface ActivityContextAnswers {
+  readiness_ids: string[];
+  available_material_option_ids: string[];
+  supervision_confirmed_activity_ids: string[];
 }
 
 export interface ActivityRecommendationCard {
@@ -165,23 +218,14 @@ function newId(prefix: string): string {
   return `${prefix}-${Crypto.randomUUID()}`;
 }
 
-function toError(value: unknown, statusCode: number): DemoApiError {
-  if (typeof value === 'object' && value !== null) {
-    const body = value as {
-      failure?: { code?: unknown; safe_message?: unknown; retryable?: unknown };
-    };
-    if (body.failure && typeof body.failure === 'object') {
-      return new DemoApiError(
-        typeof body.failure.safe_message === 'string'
-          ? body.failure.safe_message
-          : 'Backend rejected the request.',
-        typeof body.failure.code === 'string' ? body.failure.code : 'REQUEST_FAILED',
-        statusCode,
-        body.failure.retryable === true,
-      );
-    }
-  }
-  return new DemoApiError('Backend returned an unreadable response.', 'INVALID_RESPONSE', statusCode);
+function toError(
+  value: unknown,
+  statusCode: number,
+  isJson: boolean,
+  responseOk = false,
+): DemoApiError {
+  const failure = classifyApiResponseError({ body: value, statusCode, isJson, responseOk });
+  return new DemoApiError(failure.message, failure.code, failure.statusCode, failure.retryable);
 }
 
 export class DemoApiClient {
@@ -340,30 +384,29 @@ export class DemoApiClient {
     version: number,
     ageMonths: number,
     childProfile?: ChildLearningProfileInput,
+    candidateActivityIds: string[] = [],
+    supervisionConfirmedActivityIds: string[] = [],
+    caregiverParticipating = false,
   ) {
     const requestId = newId('req');
     if (childProfile) {
       return this.request<WorkflowResult<P1ContextOptions>>(
-        `/v1/sessions/${encodeURIComponent(sessionId)}/p1/context-options`,
+        `/v1/sessions/${encodeURIComponent(sessionId)}/p1/context-options/finalize`,
         {
           method: 'POST',
           headers: this.metaHeaders(version, requestId),
-          body: JSON.stringify({
-            contract_name: 'P1ContextOptionsRequestV1',
-            contract_version: '1.0',
-            age_months: ageMonths,
-            child_profile: {
-              contract_name: 'ChildLearningProfileContextV1',
-              contract_version: '1.0',
-              ...childProfile,
-            },
-          }),
+          body: JSON.stringify(buildP1ContextOptionsRequest({
+            ageMonths,
+            childProfile,
+            candidateActivityIds,
+            supervisionConfirmedActivityIds,
+          })),
         },
         30_000,
       );
     }
     return this.request<WorkflowResult<P1ContextOptions>>(
-      `/v1/sessions/${encodeURIComponent(sessionId)}/p1/context-options?age_months=${ageMonths}`,
+      `/v1/sessions/${encodeURIComponent(sessionId)}/p1/context-options?age_months=${ageMonths}${ageMonths < 36 ? `&caregiver_participating=${caregiverParticipating}` : ''}`,
       {
         method: 'GET',
         headers: this.metaHeaders(version, requestId),
@@ -372,18 +415,48 @@ export class DemoApiClient {
     );
   }
 
+  async readContextCandidates(sessionId: string, version: number, ageMonths: number) {
+    const requestId = newId('req-context-candidates');
+    return this.request<WorkflowResult<ActivityContextCandidateSet>>(
+      `/v1/sessions/${encodeURIComponent(sessionId)}/p1/context-candidates?age_months=${ageMonths}`,
+      {
+        method: 'GET',
+        headers: this.metaHeaders(version, requestId),
+      },
+      30_000,
+    );
+  }
+
+  classifyChildPreferences(
+    interestText: string,
+    avoidText: string,
+  ): Promise<ChildPreferenceClassification> {
+    const requestId = newId('profile-pref');
+    return this.request<ChildPreferenceClassification>('/v1/profile/preferences/classify', {
+      method: 'POST',
+      headers: {
+        ...this.metaHeaders(0, requestId),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contract_name: 'ChildPreferenceClassificationRequestV1',
+        contract_version: '1.0',
+        request_id: requestId,
+        interest_text: interestText.trim().slice(0, 240),
+        avoid_text: avoidText.trim().slice(0, 240),
+      }),
+    }, 150_000);
+  }
+
   setP1Context(sessionId: string, version: number, context: Record<string, unknown>) {
     return this.command(sessionId, version, 'PUT', '/p1-context', {
       operation: 'SET_P1_CONTEXT',
       user_initiated: true,
-      context: {
-        contract_name: 'P1ContextV1',
-        contract_version: '1.0',
-        session_id: sessionId,
-        expected_session_version: version,
-        gate_a_confirmed: true,
-        ...context,
-      },
+      context: buildP1ContextRequest({
+        sessionId,
+        expectedSessionVersion: version,
+        context,
+      }),
     });
   }
 
@@ -543,9 +616,22 @@ export class DemoApiClient {
         headers,
         signal: controller.signal,
       });
-      const body: unknown = await response.json().catch(() => null);
+      const responseText = await response.text();
+      let body: unknown = null;
+      let isJson = false;
+      if (responseText.trim()) {
+        try {
+          body = JSON.parse(responseText) as unknown;
+          isJson = true;
+        } catch {
+          // Keep response contents out of errors and logs; only classify the format.
+        }
+      }
       if (!response.ok || (typeof body === 'object' && body !== null && 'status' in body && body.status === 'FAILED')) {
-        throw toError(body, response.status);
+        throw toError(body, response.status, isJson);
+      }
+      if (!isJson || typeof body !== 'object' || body === null || Array.isArray(body)) {
+        throw toError(body, response.status, isJson, true);
       }
       return body as T;
     } catch (error) {

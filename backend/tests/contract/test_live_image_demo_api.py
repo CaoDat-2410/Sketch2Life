@@ -5,12 +5,20 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
+from sketch2life.application.ports.child_preference_classifier import (
+    ChildPreferenceClassifierPort,
+)
 from sketch2life.application.services.auto_rig import AutoRigService
 from sketch2life.application.services.ephemeral_sessions import EphemeralSessionService
 from sketch2life.application.services.image_admission import Feat018ImageAdmission
 from sketch2life.application.services.live_image_demo import LiveImageDemoService
 from sketch2life.application.services.p1_experience import P1ExperienceCompiler
 from sketch2life.application.services.supervised_flow import SupervisedFlowService
+from sketch2life.contracts.schemas.child_preference_classification import (
+    ChildPreferenceClassificationRequestV1,
+    ChildPreferenceClassificationV1,
+    ChildPreferenceTagV1,
+)
 from sketch2life.contracts.schemas.vision import (
     VISION_POLICY_MATCH_VIEW_VERSION,
     EntityCandidateV1,
@@ -27,6 +35,9 @@ from sketch2life.contracts.schemas.vision_v2 import (
 from sketch2life.domain.understanding.image_admission import (
     DecodedFrameSignals,
     ImageMetadataSignals,
+)
+from sketch2life.infrastructure.ai.lightning_child_preference_classifier import (
+    ChildPreferenceClassificationUnavailable,
 )
 from sketch2life.infrastructure.ai.vision_lexical_policy import synthetic_prohibited_lexicon
 from sketch2life.infrastructure.catalog.activity_semantics import load_activity_semantic_catalog
@@ -55,6 +66,43 @@ from sketch2life.interfaces.http.app import create_app
 _IMAGE = b"\x89PNG\r\n\x1a\nsynthetic-only-image-fixture"
 
 
+class _TestPreferenceClassifier(ChildPreferenceClassifierPort):
+    def __init__(self) -> None:
+        self.requests: list[ChildPreferenceClassificationRequestV1] = []
+
+    def classify(
+        self, request: ChildPreferenceClassificationRequestV1
+    ) -> ChildPreferenceClassificationV1:
+        self.requests.append(request)
+        return ChildPreferenceClassificationV1(
+            request_id=request.request_id,
+            interest_tags=(
+                ChildPreferenceTagV1(
+                    concept_id="ANIMAL_GENERIC",
+                    label_vi="Động vật",
+                    confidence=0.82,
+                ),
+            ),
+        )
+
+
+class _FailingPreferenceClassifier(ChildPreferenceClassifierPort):
+    def classify(
+        self, request: ChildPreferenceClassificationRequestV1
+    ) -> ChildPreferenceClassificationV1:
+        raise RuntimeError(f"synthetic upstream failure for {request.interest_text}")
+
+
+class _MissingPreferenceEndpointClassifier(ChildPreferenceClassifierPort):
+    def classify(
+        self, request: ChildPreferenceClassificationRequestV1
+    ) -> ChildPreferenceClassificationV1:
+        del request
+        raise ChildPreferenceClassificationUnavailable(
+            "CLASSIFIER_ENDPOINT_UNAVAILABLE", False
+        )
+
+
 def _contains_none(value: object) -> bool:
     if value is None:
         return True
@@ -63,6 +111,364 @@ def _contains_none(value: object) -> bool:
     if isinstance(value, list):
         return any(_contains_none(item) for item in value)
     return False
+
+
+def test_profile_context_validation_returns_safe_typed_failure(caplog) -> None:
+    client = TestClient(create_app())
+    response = client.post(
+        "/v1/sessions/synthetic-session/p1/context-options",
+        headers={
+            "X-Request-ID": "profile-invalid-1",
+            "X-Expected-Session-Version": "2",
+            "X-Actor-Ref": "demo:local",
+        },
+        json={
+            "contract_name": "P1ContextOptionsRequestV1",
+            "contract_version": "1.0",
+            "age_months": 60,
+            "child_profile": {
+                "contract_name": "ChildLearningProfileContextV1",
+                "contract_version": "1.0",
+                "profile_declared_by": "CAREGIVER",
+                "profile_recorded_at": datetime.now(UTC).isoformat(),
+                "interests": ["private free text must never leak"],
+                "dislikes": [],
+            },
+        },
+    )
+
+    assert response.status_code == 422
+    body = response.json()
+    assert body["contract_name"] == "MobileWorkflowResultV1"
+    assert body["status"] == "FAILED"
+    assert body["failure"]["code"] == "REQUEST_VALIDATION_FAILED"
+    assert "private free text must never leak" not in response.text
+    assert "child_profile.interests" in caplog.text
+    assert "private free text must never leak" not in caplog.text
+
+
+def test_context_options_query_validation_returns_safe_typed_failure(caplog) -> None:
+    client = TestClient(create_app())
+    response = client.get(
+        "/v1/sessions/synthetic-session/p1/context-options",
+        params={"age_months": 156},
+        headers={
+            "X-Request-ID": "query-invalid-1",
+            "X-Expected-Session-Version": "2",
+            "X-Actor-Ref": "demo:local",
+        },
+    )
+
+    assert response.status_code == 422
+    body = response.json()
+    assert body["contract_name"] == "MobileWorkflowResultV1"
+    assert body["status"] == "FAILED"
+    assert body["failure"]["code"] == "REQUEST_VALIDATION_FAILED"
+    assert body["provenance"]["source_contracts"] == ["P1ContextOptionsQueryV1"]
+    assert "age_months" in caplog.text
+    assert "156" not in caplog.text
+
+
+def test_preference_classifier_is_backend_owned_bounded_and_does_not_log_text(caplog) -> None:
+    classifier = _TestPreferenceClassifier()
+    client, _ = _client(child_preference_classifier=classifier)
+    private_synthetic_phrase = "synthetic private phrase that must not appear in logs"
+    response = client.post(
+        "/v1/profile/preferences/classify",
+        headers={"X-Actor-Ref": "demo:local"},
+        json={
+            "contract_name": "ChildPreferenceClassificationRequestV1",
+            "contract_version": "1.0",
+            "request_id": "preference-test-1",
+            "interest_text": private_synthetic_phrase,
+            "avoid_text": "",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["interest_tags"][0]["concept_id"] == "ANIMAL_GENERIC"
+    assert len(classifier.requests) == 1
+    assert classifier.requests[0].interest_text == private_synthetic_phrase
+    assert private_synthetic_phrase not in caplog.text
+
+
+def test_preference_classifier_upstream_exception_returns_safe_typed_failure(caplog) -> None:
+    client, _ = _client(child_preference_classifier=_FailingPreferenceClassifier())
+    private_synthetic_phrase = "synthetic preference must not leak"
+    response = client.post(
+        "/v1/profile/preferences/classify",
+        headers={"X-Actor-Ref": "demo:local"},
+        json={
+            "contract_name": "ChildPreferenceClassificationRequestV1",
+            "contract_version": "1.0",
+            "request_id": "preference-upstream-failure",
+            "interest_text": private_synthetic_phrase,
+            "avoid_text": "",
+        },
+    )
+
+    assert response.status_code == 500
+    body = response.json()
+    assert body["status"] == "FAILED"
+    assert body["failure"]["code"] == "CLASSIFIER_INTERNAL_ERROR"
+    assert isinstance(body["failure"]["safe_message"], str)
+    assert private_synthetic_phrase not in response.text
+    assert private_synthetic_phrase not in caplog.text
+
+
+def test_missing_lightning_classifier_route_has_actionable_safe_failure(caplog) -> None:
+    client, _ = _client(
+        child_preference_classifier=_MissingPreferenceEndpointClassifier()
+    )
+    private_synthetic_phrase = "synthetic preference must not appear in logs"
+    response = client.post(
+        "/v1/profile/preferences/classify",
+        headers={"X-Actor-Ref": "demo:local"},
+        json={
+            "contract_name": "ChildPreferenceClassificationRequestV1",
+            "contract_version": "1.0",
+            "request_id": "preference-endpoint-missing",
+            "interest_text": private_synthetic_phrase,
+            "avoid_text": "",
+        },
+    )
+
+    assert response.status_code == 503
+    assert response.json()["failure"]["code"] == "CLASSIFIER_ENDPOINT_UNAVAILABLE"
+    assert response.json()["failure"]["retryable"] is False
+    assert "cập nhật" in response.json()["failure"]["safe_message"]
+    assert "khởi động lại" in response.json()["failure"]["safe_message"]
+    assert private_synthetic_phrase not in response.text
+    assert private_synthetic_phrase not in caplog.text
+
+
+def test_context_candidates_and_v2_finalization_keep_profile_and_supervision_session_scoped() -> (
+    None
+):
+    preference_classifier = _TestPreferenceClassifier()
+    client, _ = _client(
+        vision=_CountingVision(label="con chim"),
+        child_preference_classifier=preference_classifier,
+    )
+    classified = client.post(
+        "/v1/profile/preferences/classify",
+        headers={"X-Actor-Ref": "demo:local"},
+        json={
+            "contract_name": "ChildPreferenceClassificationRequestV1",
+            "contract_version": "1.0",
+            "request_id": "v2-context-preference-classification",
+            "interest_text": "synthetic interest in birds",
+            "avoid_text": "",
+        },
+    )
+    assert classified.status_code == 200
+    assert len(preference_classifier.requests) == 1
+    assert classified.json()["interest_tags"][0]["concept_id"] == "ANIMAL_GENERIC"
+    session_id, version = _create_session(client)
+    uploaded = client.post(
+        f"/v1/sessions/{session_id}/media/image",
+        headers=_headers(session_id, version, "v2-context-upload"),
+        files={"image": ("synthetic.png", _IMAGE, "image/png")},
+    )
+    assert uploaded.status_code == 200
+    version = uploaded.json()["observed_session_version"]
+    inferred = _command(
+        client,
+        session_id=session_id,
+        version=version,
+        key="v2-context-understanding",
+        route="/understanding",
+        payload={"operation": "RUN_UNDERSTANDING", "user_initiated": True},
+    )
+    version = inferred.json()["observed_session_version"]
+    confirmed = _command(
+        client,
+        session_id=session_id,
+        version=version,
+        key="v2-context-gate-a",
+        route="/gate-a/confirm",
+        payload={
+            "operation": "CONFIRM_GATE_A",
+            "user_initiated": True,
+            "primary_anchor_id": "subject-1",
+            "confirmation": {
+                "contract_name": "GateAConfirmationV1",
+                "contract_version": "1.0",
+                "meaning_version": 1,
+                "confirmed_claim_ids": ["subject-1"],
+                "correction": None,
+            },
+        },
+    )
+    version = confirmed.json()["observed_session_version"]
+    headers = {
+        "X-Request-ID": "v2-context-candidates",
+        "X-Expected-Session-Version": str(version),
+        "X-Actor-Ref": "demo:local",
+    }
+    candidates_response = client.get(
+        f"/v1/sessions/{session_id}/p1/context-candidates",
+        params={"age_months": 60},
+        headers=headers,
+    )
+    assert candidates_response.status_code == 200
+    candidates = candidates_response.json()["payload"]["candidates"]
+    assert 1 <= len(candidates) <= 3
+    candidate_ids = [item["activity_ref"]["id"] for item in candidates]
+    assert candidate_ids == sorted(candidate_ids)
+    material_ids = sorted(
+        {material_id for item in candidates for material_id in item["material_option_ids"]}
+    )
+
+    classified_tags = classified.json()["interest_tags"]
+    readiness_ids = sorted({
+        readiness_id
+        for candidate in candidates
+        for readiness_id in candidate["readiness_ids"]
+    })
+    profile = {
+        "contract_name": "ChildLearningProfileContextV2",
+        "contract_version": "2.0",
+        "profile_declared_by": "CAREGIVER",
+        "profile_recorded_at": datetime.now(UTC).isoformat(),
+        "preference_tags_confirmed": True,
+        "interests": [tag["concept_id"] for tag in classified_tags],
+        "dislikes": [],
+        "readiness_ids": readiness_ids,
+        "available_material_option_ids": material_ids,
+        "learning_support_ids": [],
+    }
+    body = {
+        "contract_name": "P1ContextOptionsRequestV2",
+        "contract_version": "2.0",
+        "age_months": 60,
+        "child_profile": profile,
+        "adult_participating": True,
+        "candidate_activity_ids": candidate_ids,
+        "supervision_confirmed_activity_ids": candidate_ids,
+    }
+    finalized = client.post(
+        f"/v1/sessions/{session_id}/p1/context-options/finalize",
+        headers={**headers, "X-Request-ID": "v2-context-finalize"},
+        json=body,
+    )
+    assert finalized.status_code == 200, (material_ids, finalized.text)
+    final_payload = finalized.json()["payload"]
+    assert final_payload["contract_name"] == "P1ContextOptionsV1"
+    assert "personalization_comparison" not in final_payload
+    assert "baseline_activity_recommendations" not in final_payload
+
+    unconfirmed_profile = {**profile, "preference_tags_confirmed": False}
+    unconfirmed_tags = client.post(
+        f"/v1/sessions/{session_id}/p1/context-options/finalize",
+        headers={**headers, "X-Request-ID": "v2-context-unconfirmed-preference"},
+        json={**body, "child_profile": unconfirmed_profile},
+    )
+    assert unconfirmed_tags.status_code == 422
+    assert unconfirmed_tags.json()["failure"]["code"] == "REQUEST_VALIDATION_FAILED"
+    assert "ANIMAL_GENERIC" not in unconfirmed_tags.text
+
+    injected_activity = "ACT-9999"
+    injected = client.post(
+        f"/v1/sessions/{session_id}/p1/context-options/finalize",
+        headers={**headers, "X-Request-ID": "v2-context-injected-candidate"},
+        json={
+            **body,
+            "candidate_activity_ids": [injected_activity],
+            "supervision_confirmed_activity_ids": [injected_activity],
+        },
+    )
+    assert injected.status_code == 409
+    assert injected.json()["failure"]["code"] == "CONTEXT_CANDIDATE_SET_STALE"
+
+    invalid_profile = {**profile, "adult_supervision_available": "DIRECT"}
+    rejected = client.post(
+        f"/v1/sessions/{session_id}/p1/context-options/finalize",
+        headers={**headers, "X-Request-ID": "v2-context-legacy-supervision"},
+        json={**body, "child_profile": invalid_profile},
+    )
+    assert rejected.status_code == 422
+    assert rejected.json()["failure"]["code"] == "REQUEST_VALIDATION_FAILED"
+    assert rejected.json()["provenance"]["source_contracts"] == [
+        "P1ContextOptionsRequestV2"
+    ]
+    assert "adult_supervision_available" not in rejected.text
+
+    eligible_option = next(
+        (
+            option
+            for option in final_payload["options"]
+            if not option["prerequisite_activity_ids"]
+        ),
+        None,
+    )
+    assert eligible_option is not None, (
+        "V2 finalization must keep an eligible no-history alternative"
+    )
+    context = _command(
+        client,
+        session_id=session_id,
+        version=version,
+        key="v2-context-set-p1-context",
+        route="/p1-context",
+        method="put",
+        payload={
+            "operation": "SET_P1_CONTEXT",
+            "user_initiated": True,
+            "context": {
+                "contract_name": "P1ContextV3",
+                "contract_version": "3.0",
+                "candidate_selection_mode": "CONTEXTUAL_SHORTLIST",
+                "session_id": session_id,
+                "expected_session_version": version,
+                "age_months": 60,
+                "readiness_ids": readiness_ids,
+                "completed_activity_ids": [],
+                "available_material_option_ids": material_ids,
+                "supervision_level": eligible_option["minimum_supervision"],
+                "policy_flags": eligible_option["policy_constraints"],
+                "candidate_status": "ACTIVE_FIXTURE",
+                "gate_a_confirmed": True,
+                "selected_activity_id": eligible_option["activity_ref"]["id"],
+                "selected_activity_version": eligible_option["activity_ref"]["version"],
+            },
+        },
+    )
+    assert context.status_code == 200, context.text
+    version = context.json()["observed_session_version"]
+    filtered = _command(
+        client,
+        session_id=session_id,
+        version=version,
+        key="v2-context-run-p1-filter",
+        route="/p1-filter",
+        payload={"operation": "RUN_P1_FILTER", "user_initiated": True},
+    )
+    assert filtered.status_code == 200, filtered.text
+    filter_result = filtered.json()["payload"]["filter_result"]
+    assert filter_result["status"] == "VALID_CANDIDATE", filter_result["reason_codes"]
+    version = filtered.json()["observed_session_version"]
+    prepared = _command(
+        client,
+        session_id=session_id,
+        version=version,
+        key="v2-context-prepare-experience",
+        route="/experience/prepare",
+        payload={"operation": "PREPARE_EXPERIENCE", "user_initiated": True},
+    )
+    assert prepared.status_code == 200, prepared.text
+    assert prepared.json()["payload"]["status"] == "AWAITING_ADULT_GATE_B"
+    version = prepared.json()["observed_session_version"]
+    approved = _command(
+        client,
+        session_id=session_id,
+        version=version,
+        key="v2-context-approve-gate-b",
+        route="/gate-b/approve",
+        payload={"operation": "APPROVE_GATE_B", "user_initiated": True, "approved": True},
+    )
+    assert approved.status_code == 200, approved.text
+    assert approved.json()["payload"]["generation_called"] is False
 
 
 class _TestImageDecoder:
@@ -138,6 +544,7 @@ def _client(
     *,
     vision: _CountingVision | None = None,
     scene_localizer: _CountingLocalizer | None = None,
+    child_preference_classifier: ChildPreferenceClassifierPort | None = None,
 ) -> tuple[TestClient, _CountingVision]:
     artifacts = InMemoryArtifactStore()
     idempotency = InMemoryIdempotencyStore()
@@ -185,6 +592,7 @@ def _client(
             live_image_demo_service=demo,
             supervised_flow_service=supervised_flow,
             auto_rig_service=auto_rig,
+            child_preference_classifier=child_preference_classifier,
         )
     ), actual_vision
 
@@ -615,7 +1023,7 @@ def test_image_upload_transport_enforces_a_hard_multipart_body_cap() -> None:
     assert response.json()["failure"]["code"] == "UPLOAD_TOO_LARGE"
 
 
-def test_gate_a_unlocks_read_only_p1_context_options_matching_adult_entered_age() -> None:
+def test_under_three_p1_options_require_caregiver_and_candidates_show_direct_supervision() -> None:
     client, vision = _client()
     session_id, version = _create_session(client)
     uploaded = client.post(
@@ -661,11 +1069,66 @@ def test_gate_a_unlocks_read_only_p1_context_options_matching_adult_entered_age(
     assert confirmed.status_code == 200
     version = confirmed.json()["observed_session_version"]
 
-    options = client.get(
+    blocked_options = client.get(
         f"/v1/sessions/{session_id}/p1/context-options",
         params={"age_months": 30},
         headers={
             "X-Request-ID": "p1-options",
+            "X-Expected-Session-Version": str(version),
+            "X-Actor-Ref": "demo:local",
+        },
+    )
+    assert blocked_options.status_code == 422
+    assert blocked_options.json()["failure"]["code"] == "UNDER_THREE_CAREGIVER_REQUIRED"
+
+    candidates = client.get(
+        f"/v1/sessions/{session_id}/p1/context-candidates",
+        params={"age_months": 30},
+        headers={
+            "X-Request-ID": "p1-under-three-candidates",
+            "X-Expected-Session-Version": str(version),
+            "X-Actor-Ref": "demo:local",
+        },
+    )
+    assert candidates.status_code == 200
+    for candidate in candidates.json()["payload"]["candidates"]:
+        assert candidate["minimum_supervision"] == "DIRECT"
+        assert candidate["supervision_label_vi"] == "Người chăm sóc ở bên và giám sát trực tiếp"
+
+    legacy_context = _command(
+        client,
+        session_id=session_id,
+        version=version,
+        key="p1-under-three-legacy-context",
+        route="/p1-context",
+        method="put",
+        payload={
+            "operation": "SET_P1_CONTEXT",
+            "user_initiated": True,
+            "context": {
+                "contract_name": "P1ContextV1",
+                "contract_version": "1.0",
+                "session_id": session_id,
+                "expected_session_version": version,
+                "age_months": 30,
+                "readiness_ids": [],
+                "completed_activity_ids": [],
+                "available_material_option_ids": [],
+                "supervision_level": "DIRECT",
+                "policy_flags": [],
+                "candidate_status": "ACTIVE_FIXTURE",
+                "gate_a_confirmed": True,
+            },
+        },
+    )
+    assert legacy_context.status_code == 422
+    assert legacy_context.json()["failure"]["code"] == "UNDER_THREE_CAREGIVER_REQUIRED"
+
+    options = client.get(
+        f"/v1/sessions/{session_id}/p1/context-options",
+        params={"age_months": 30, "caregiver_participating": True},
+        headers={
+            "X-Request-ID": "p1-options-caregiver-confirmed",
             "X-Expected-Session-Version": str(version),
             "X-Actor-Ref": "demo:local",
         },
@@ -730,8 +1193,7 @@ def test_gate_a_unlocks_read_only_p1_context_options_matching_adult_entered_age(
         == "CAREGIVER"
     )
     assert any(
-        "Guide xác nhận OBJ_SCIENTIFIC_OBSERVATION ngày"
-        in item["match_reason_vi"]
+        "Guide xác nhận OBJ_SCIENTIFIC_OBSERVATION ngày" in item["match_reason_vi"]
         for item in personalized_payload["activity_recommendations"]["options"]
     ), {
         "recommendations": personalized_payload["activity_recommendations"],
@@ -739,6 +1201,48 @@ def test_gate_a_unlocks_read_only_p1_context_options_matching_adult_entered_age(
     }
     assert personalized.json()["observed_session_version"] == version
     assert vision.calls == 1
+
+    option = payload["options"][0]
+    under_three_context = _command(
+        client,
+        session_id=session_id,
+        version=version,
+        key="p1-under-three-context-v2",
+        route="/p1-context",
+        method="put",
+        payload={
+            "operation": "SET_P1_CONTEXT",
+            "user_initiated": True,
+            "context": {
+                "contract_name": "P1ContextV2",
+                "contract_version": "2.0",
+                "session_id": session_id,
+                "expected_session_version": version,
+                "age_months": 30,
+                "caregiver_participating": True,
+                "readiness_ids": option["readiness_ids"],
+                "completed_activity_ids": option["prerequisite_activity_ids"],
+                "available_material_option_ids": option["material_option_ids"],
+                "supervision_level": "DIRECT",
+                "policy_flags": option["policy_constraints"],
+                "candidate_status": "ACTIVE_FIXTURE",
+                "gate_a_confirmed": True,
+                "selected_activity_id": option["activity_ref"]["id"],
+                "selected_activity_version": option["activity_ref"]["version"],
+            },
+        },
+    )
+    assert under_three_context.status_code == 200, under_three_context.text
+    filter_result = _command(
+        client,
+        session_id=session_id,
+        version=under_three_context.json()["observed_session_version"],
+        key="p1-under-three-filter-v2",
+        route="/p1-filter",
+        payload={"operation": "RUN_P1_FILTER", "user_initiated": True},
+    )
+    assert filter_result.status_code == 200, filter_result.text
+    assert filter_result.json()["payload"]["filter_result"]["status"] == "VALID_CANDIDATE"
 
 
 def test_gate_a_never_uses_age_only_fallback_for_background_only_raw_label() -> None:
@@ -961,7 +1465,7 @@ def test_fake_only_image_session_completes_p1_gate_b_p4_handoff_feedback_and_gal
 
     options = client.get(
         f"/v1/sessions/{session_id}/p1/context-options",
-        params={"age_months": 30},
+        params={"age_months": 60},
         headers={
             "X-Request-ID": "full-options",
             "X-Expected-Session-Version": str(version),
@@ -985,7 +1489,7 @@ def test_fake_only_image_session_completes_p1_gate_b_p4_handoff_feedback_and_gal
                 "contract_version": "1.0",
                 "session_id": session_id,
                 "expected_session_version": version,
-                "age_months": 30,
+                "age_months": 60,
                 "readiness_ids": option["readiness_ids"],
                 "completed_activity_ids": option["prerequisite_activity_ids"],
                 "available_material_option_ids": option["material_option_ids"],

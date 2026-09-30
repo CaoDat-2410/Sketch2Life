@@ -22,6 +22,7 @@ from hashlib import sha256
 from multiprocessing.connection import Connection
 from multiprocessing.process import BaseProcess
 from pathlib import Path
+from threading import Lock as ThreadLock
 from typing import Any, Protocol, cast
 
 from pydantic import ValidationError
@@ -393,7 +394,7 @@ class QwenGenerationRunner(Protocol):
         self,
         profile: VisionProfileV2,
         runtime_config: QwenVisionRuntimeConfig,
-        image_path: Path,
+        image_path: Path | None,
         prompt: str,
     ) -> str: ...
 
@@ -501,7 +502,7 @@ def _sanitize_greedy_generation_config(bundle: QwenModelBundle, profile: VisionP
 def _generate_from_bundle(
     bundle: QwenModelBundle,
     profile: VisionProfileV2,
-    image_path: Path,
+    image_path: Path | None,
     prompt: str,
 ) -> str:
     """Use only the provider calls whose exact parameter mapping is B2-verifiable."""
@@ -509,10 +510,10 @@ def _generate_from_bundle(
     messages = [
         {
             "role": "user",
-            "content": [
-                {"type": "image", "image": str(image_path)},
-                {"type": "text", "text": prompt},
-            ],
+            "content": (
+                ([{"type": "image", "image": str(image_path)}] if image_path else [])
+                + [{"type": "text", "text": prompt}]
+            ),
         }
     ]
     try:
@@ -576,7 +577,7 @@ class TransformersQwenGenerationRunner:
         self,
         profile: VisionProfileV2,
         runtime_config: QwenVisionRuntimeConfig,
-        image_path: Path,
+        image_path: Path | None,
         prompt: str,
     ) -> str:
         try:
@@ -600,7 +601,7 @@ def _qwen_worker_entry(
     connection: Connection,
     profile: VisionProfileV2,
     runtime_config: QwenVisionRuntimeConfig,
-    image_path: str,
+    image_path: str | None,
     prompt: str,
 ) -> None:
     """Load and run the optional model inside a process the parent can terminate."""
@@ -618,13 +619,76 @@ def _qwen_worker_entry(
         return
 
     try:
-        raw_output = _generate_from_bundle(bundle, profile, Path(image_path), prompt)
+        raw_output = _generate_from_bundle(
+            bundle,
+            profile,
+            Path(image_path) if image_path is not None else None,
+            prompt,
+        )
     except QwenTimeoutError:
         _send_worker_message(connection, "timeout")
     except Exception:
         _send_worker_message(connection, "provider_failure")
     else:
         _send_worker_message(connection, "success", raw_output)
+
+
+def _persistent_qwen_worker_entry(connection: Connection) -> None:
+    """Serve serialized generations while keeping exactly one loaded model bundle alive."""
+
+    bundle: QwenModelBundle | None = None
+    loaded_profile: VisionProfileV2 | None = None
+    loaded_runtime: QwenVisionRuntimeConfig | None = None
+    try:
+        while True:
+            try:
+                message = connection.recv()
+            except (EOFError, OSError):
+                return
+            if message == ("stop",):
+                return
+            if not isinstance(message, tuple) or len(message) != 4:
+                _send_worker_message(connection, "provider_failure")
+                return
+            profile, runtime_config, image_path, prompt = message
+            if not isinstance(profile, VisionProfileV2) or not isinstance(
+                runtime_config, QwenVisionRuntimeConfig
+            ):
+                _send_worker_message(connection, "provider_failure")
+                return
+            if bundle is None:
+                try:
+                    bundle = _coerce_model_bundle(
+                        _default_model_factory(profile, runtime_config)
+                    )
+                except QwenDeviceUnavailableError:
+                    _send_worker_message(connection, "device_unavailable")
+                    return
+                except Exception:
+                    _send_worker_message(connection, "model_load_failed")
+                    return
+                loaded_profile = profile
+                loaded_runtime = runtime_config
+            elif profile != loaded_profile or runtime_config != loaded_runtime:
+                _send_worker_message(connection, "configuration_mismatch")
+                return
+            try:
+                raw_output = _generate_from_bundle(
+                    bundle,
+                    profile,
+                    Path(image_path) if isinstance(image_path, str) else None,
+                    prompt if isinstance(prompt, str) else "",
+                )
+            except QwenTimeoutError:
+                _send_worker_message(connection, "timeout")
+                return
+            except Exception:
+                _send_worker_message(connection, "provider_failure")
+                return
+            _send_worker_message(connection, "success", raw_output)
+    finally:
+        with suppress(OSError):
+            connection.close()
 
 
 def _terminate_worker(process: BaseProcess) -> None:
@@ -645,14 +709,14 @@ class KillableSubprocessQwenGenerationRunner:
         self,
         profile: VisionProfileV2,
         runtime_config: QwenVisionRuntimeConfig,
-        image_path: Path,
+        image_path: Path | None,
         prompt: str,
     ) -> str:
         context = multiprocessing.get_context("spawn")
         receiver, sender = context.Pipe(duplex=False)
         process = context.Process(
             target=_qwen_worker_entry,
-            args=(sender, profile, runtime_config, str(image_path), prompt),
+            args=(sender, profile, runtime_config, str(image_path) if image_path else None, prompt),
             daemon=True,
         )
         try:
@@ -688,6 +752,119 @@ class KillableSubprocessQwenGenerationRunner:
         if kind == "timeout":
             raise QwenTimeoutError
         raise QwenPermanentRuntimeError
+
+
+class PersistentSubprocessQwenGenerationRunner:
+    """Keep one killable subprocess/model loaded and serialize bounded generations."""
+
+    def __init__(
+        self,
+        *,
+        worker_target: Callable[[Connection], None] = _persistent_qwen_worker_entry,
+    ) -> None:
+        self._worker_target = worker_target
+        self._lock = ThreadLock()
+        self._process: BaseProcess | None = None
+        self._connection: Connection | None = None
+        self._signature: tuple[VisionProfileV2, QwenVisionRuntimeConfig] | None = None
+
+    def generate(
+        self,
+        profile: VisionProfileV2,
+        runtime_config: QwenVisionRuntimeConfig,
+        image_path: Path | None,
+        prompt: str,
+    ) -> str:
+        with self._lock:
+            self._ensure_worker(profile, runtime_config)
+            connection = self._connection
+            process = self._process
+            if connection is None or process is None:
+                raise QwenModelLoadError
+            try:
+                connection.send(
+                    (
+                        profile,
+                        runtime_config,
+                        str(image_path) if image_path is not None else None,
+                        prompt,
+                    )
+                )
+                if not connection.poll(profile.timeout_seconds):
+                    self._stop_worker()
+                    raise QwenTimeoutError
+                message = connection.recv()
+            except QwenTimeoutError:
+                raise
+            except (EOFError, OSError, BrokenPipeError):
+                self._stop_worker()
+                raise QwenPermanentRuntimeError from None
+
+            if not isinstance(message, tuple) or len(message) != 2:
+                self._stop_worker()
+                raise QwenPermanentRuntimeError
+            kind, value = message
+            if kind == "success" and isinstance(value, str):
+                return value
+
+            self._stop_worker()
+            if kind == "device_unavailable":
+                raise QwenDeviceUnavailableError
+            if kind == "model_load_failed":
+                raise QwenModelLoadError
+            if kind == "timeout":
+                raise QwenTimeoutError
+            raise QwenPermanentRuntimeError
+
+    def close(self) -> None:
+        """Release the persistent model worker, normally during service shutdown."""
+
+        with self._lock:
+            self._stop_worker()
+
+    def _ensure_worker(
+        self,
+        profile: VisionProfileV2,
+        runtime_config: QwenVisionRuntimeConfig,
+    ) -> None:
+        signature = (profile, runtime_config)
+        if self._signature != signature:
+            self._stop_worker()
+        if self._process is not None and self._process.is_alive():
+            return
+        self._stop_worker()
+        context = multiprocessing.get_context("spawn")
+        receiver, sender = context.Pipe(duplex=True)
+        process = context.Process(
+            target=self._worker_target,
+            args=(sender,),
+            daemon=True,
+        )
+        try:
+            process.start()
+        except Exception:
+            receiver.close()
+            sender.close()
+            raise QwenModelLoadError from None
+        sender.close()
+        self._connection = receiver
+        self._process = process
+        self._signature = signature
+
+    def _stop_worker(self) -> None:
+        process = self._process
+        connection = self._connection
+        self._process = None
+        self._connection = None
+        self._signature = None
+        if connection is not None:
+            if process is not None and process.is_alive():
+                with suppress(BrokenPipeError, EOFError, OSError):
+                    connection.send(("stop",))
+                process.join(timeout=1.0)
+            connection.close()
+        if process is not None and process.is_alive():
+            _terminate_worker(process)
 
 
 def _default_prompt_builder(_request: VisionUnderstandingRequestV2) -> str:
@@ -1365,6 +1542,7 @@ __all__ = [
     "QwenVisionAdapter",
     "QwenVisionUnderstandingAdapter",
     "QwenModelLike",
+    "PersistentSubprocessQwenGenerationRunner",
     "RepairPromptBuilder",
     "RawOutputHook",
     "TransformersQwenGenerationRunner",

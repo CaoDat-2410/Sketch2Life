@@ -9,7 +9,7 @@ from dataclasses import replace
 from datetime import UTC, datetime
 from hashlib import sha256
 from threading import RLock
-from typing import Any, Literal
+from typing import Any, Literal, cast
 from uuid import uuid4
 
 from pydantic import TypeAdapter, ValidationError
@@ -23,6 +23,9 @@ from sketch2life.application.ports.workflow_dependencies import (
     ActivityCatalogMetadataPort,
     SemanticCatalogPort,
     SemanticCatalogV2Port,
+)
+from sketch2life.application.services.activity_supervision import (
+    supervision_requirement_for_age,
 )
 from sketch2life.application.services.auto_rig import AutoRigService
 from sketch2life.application.services.ephemeral_sessions import (
@@ -57,7 +60,10 @@ from sketch2life.application.services.topic_semantics import (
     semantic_tags_for_label,
 )
 from sketch2life.contracts.schemas.child_learning_profile import (
+    ActivityContextCandidateSetV2,
+    ActivityContextCandidateV2,
     ChildLearningProfileContextV1,
+    ChildLearningProfileContextV2,
 )
 from sketch2life.contracts.schemas.gate_a import GateAConfirmationV1
 from sketch2life.contracts.schemas.learning_media import (
@@ -78,6 +84,8 @@ from sketch2life.contracts.schemas.p1_experience import (
     IntegrationGateDecisionV1,
     P1ContextOptionsV1,
     P1ContextV1,
+    P1ContextV2,
+    P1ContextV3,
     P1FilterResultV1,
     SemanticAnchorSetV1,
     SemanticAnchorV1,
@@ -120,6 +128,26 @@ def _narration_text(value: object) -> str:
         return ""
     transcript = value.get("transcript")
     return transcript.strip() if isinstance(transcript, str) else ""
+
+
+def _preparation_requirement(value: object) -> Literal[
+    "NO_PRINTABLE_ASSET", "PRINT_RECOMMENDED", "PRINT_REQUIRED"
+]:
+    allowed = {"NO_PRINTABLE_ASSET", "PRINT_RECOMMENDED", "PRINT_REQUIRED"}
+    if not isinstance(value, str) or value not in allowed:
+        raise ValueError("Catalog preparation requirement is not a supported contract value")
+    return cast(Literal["NO_PRINTABLE_ASSET", "PRINT_RECOMMENDED", "PRINT_REQUIRED"], value)
+
+
+def _preparation_asset_status(value: object) -> Literal[
+    "NOT_APPLICABLE", "PLANNED", "READY", "BLOCKED", "DEPRECATED"
+]:
+    allowed = {"NOT_APPLICABLE", "PLANNED", "READY", "BLOCKED", "DEPRECATED"}
+    if not isinstance(value, str) or value not in allowed:
+        raise ValueError("Catalog preparation asset status is not a supported contract value")
+    return cast(
+        Literal["NOT_APPLICABLE", "PLANNED", "READY", "BLOCKED", "DEPRECATED"], value
+    )
 
 
 def _profile_exclusion_counts(recommendation: ActivityRecommendation) -> dict[str, int]:
@@ -182,14 +210,14 @@ def _recommendation_set(
                 age_label_vi=str(display["age_label_vi"]),
                 supervision_label_vi=str(display["supervision_label_vi"]),
                 material_labels_vi=tuple(display.get("material_labels_vi", ())),
-                preparation_requirement=str(
+                preparation_requirement=_preparation_requirement(
                     display.get("preparation_requirement", "NO_PRINTABLE_ASSET")
                 ),
                 preparation_summary_vi=str(display.get("preparation_summary_vi", "")),
                 preparation_asset_kinds=tuple(
                     str(value) for value in display.get("preparation_asset_kinds", ())
                 ),
-                preparation_asset_status=str(
+                preparation_asset_status=_preparation_asset_status(
                     display.get("preparation_asset_status", "NOT_APPLICABLE")
                 ),
                 fit_source=(
@@ -560,9 +588,7 @@ class SupervisedFlowService:
                     "GATE_A_REQUIRED", 409, "Confirm Gate A before entering adult context."
                 )
             try:
-                context = P1ContextV1.model_validate(
-                    _require_mapping(command.payload.get("context"))
-                )
+                context = _parse_p1_context(command.payload.get("context"))
             except ValidationError as exc:
                 raise _workflow_error(
                     "P1_CONTEXT_INVALID", 422, "Complete the requested adult context fields."
@@ -612,6 +638,105 @@ class SupervisedFlowService:
             self._remember(scope, command.idempotency_key, fingerprint, result)
             return result, False
 
+    def read_p1_context_candidates(
+        self,
+        *,
+        session_id: str,
+        request_id: str,
+        expected_version: int,
+        actor_ref: str,
+        age_months: int,
+    ) -> MobileWorkflowResultV1:
+        result = self.read_p1_context_options(
+            session_id=session_id,
+            request_id=request_id,
+            expected_version=expected_version,
+            actor_ref=actor_ref,
+            age_months=age_months,
+            require_authored_readiness=True,
+            rank_candidates=False,
+            candidate_discovery_only=True,
+        )
+        if result.status != "SUCCEEDED" or result.payload is None:
+            return result
+        if not isinstance(result.payload, Mapping):
+            return result
+        options = P1ContextOptionsV1.model_validate(
+            {
+                key: result.payload[key]
+                for key in (
+                    "session_id",
+                    "expected_session_version",
+                    "age_months",
+                    "confirmed_anchor_label",
+                    "options",
+                )
+                if key in result.payload
+            }
+        )
+        candidates: list[ActivityContextCandidateV2] = []
+        # Phase one is selected without relevance ranking; stable display order
+        # must not expose a score as an implied recommendation priority. Final
+        # ranking occurs only after the adult answers activity-specific gates.
+        for option in sorted(options.options, key=lambda item: item.activity_ref.id):
+            template = self._compiler.template_for_activity_id(option.activity_ref.id)
+            if template is None:
+                continue
+            display = (
+                self._catalog_metadata.recommendation_display(
+                    option.activity_ref.id, option.activity_ref.version
+                )
+                if self._catalog_metadata is not None
+                else None
+            )
+            material_labels = (
+                self._catalog_metadata.material_labels_for_ids(option.material_option_ids)
+                if self._catalog_metadata is not None
+                else {}
+            )
+            under_three = options.age_months < 36
+            minimum_supervision, supervision_label = supervision_requirement_for_age(
+                options.age_months,
+                template.minimum_supervision,
+            )
+            if not under_three and display is not None:
+                supervision_label = str(display.get("supervision_label_vi", supervision_label))
+            candidates.append(
+                ActivityContextCandidateV2(
+                    template_ref=option.template_ref,
+                    activity_ref=option.activity_ref,
+                    title_vi=(
+                        str(display["title_vi"])
+                        if display is not None
+                        else "Hoạt động cùng chủ đề đã xác nhận"
+                    ),
+                    summary_vi=(
+                        str(display["summary_vi"])
+                        if display is not None
+                        else "Người lớn xem điều kiện và hướng dẫn trước khi bắt đầu."
+                    ),
+                    age_months_min=option.age_months_min,
+                    age_months_max=option.age_months_max,
+                    readiness_ids=template.readiness_ids,
+                    readiness_metadata_status=template.readiness_metadata_status,
+                    prerequisite_activity_ids=template.prerequisite_activity_ids,
+                    material_option_ids=template.material_option_ids,
+                    material_option_groups=template.material_option_groups,
+                    material_labels_by_id=material_labels,
+                    minimum_supervision=minimum_supervision,
+                    supervision_label_vi=supervision_label,
+                    policy_constraints=template.policy_constraints,
+                )
+            )
+        candidate_set = ActivityContextCandidateSetV2(
+            session_id=options.session_id,
+            expected_session_version=options.expected_session_version,
+            age_months=options.age_months,
+            confirmed_anchor_label=options.confirmed_anchor_label,
+            candidates=tuple(candidates),
+        )
+        return result.model_copy(update={"payload": candidate_set.model_dump(mode="json")})
+
     def read_p1_context_options(
         self,
         *,
@@ -620,11 +745,24 @@ class SupervisedFlowService:
         expected_version: int,
         actor_ref: str,
         age_months: int,
-        child_profile: ChildLearningProfileContextV1 | None = None,
+        child_profile: ChildLearningProfileContextV1 | ChildLearningProfileContextV2 | None = None,
+        candidate_activity_ids: tuple[str, ...] = (),
+        supervision_confirmed_activity_ids: tuple[str, ...] = (),
+        caregiver_participating: bool = False,
+        candidate_discovery_only: bool = False,
+        include_personalization_comparison: bool = True,
+        require_authored_readiness: bool = False,
+        rank_candidates: bool = True,
     ) -> MobileWorkflowResultV1:
         if actor_ref != DEMO_ACTOR_REF:
             raise _workflow_error(
                 "DEMO_ACTOR_INVALID", 422, "The local demo actor marker is invalid."
+            )
+        if age_months < 36 and not caregiver_participating and not candidate_discovery_only:
+            raise _workflow_error(
+                "UNDER_THREE_CAREGIVER_REQUIRED",
+                422,
+                "A participating caregiver is required for children under three.",
             )
         snapshot = self._sessions.snapshot(session_id)
         self._expect_version(snapshot.version, expected_version)
@@ -637,17 +775,69 @@ class SupervisedFlowService:
         if not isinstance(anchor_value, dict):
             raise _workflow_error("GATE_A_REQUIRED", 409, "A confirmed image topic is required.")
         anchor_set = SemanticAnchorSetV1.model_validate(anchor_value)
+        if isinstance(child_profile, ChildLearningProfileContextV2):
+            if self._semantic_catalog_v2 is None:
+                raise _workflow_error(
+                    "PROFILE_CATALOG_UNAVAILABLE",
+                    503,
+                    "Profile-based recommendations are temporarily unavailable.",
+                )
+            server_shortlist = resolve_activity_options_v2(
+                anchor_set=anchor_set,
+                age_months=age_months,
+                catalog=self._semantic_catalog_v2,
+                compiler=self._compiler,
+                narration_text=_narration_text(values.get("narration_result")),
+                require_authored_readiness=True,
+                order_by_relevance=False,
+            )
+            server_candidate_ids = {
+                option.activity_ref.id for option in server_shortlist.options
+            }
+            if set(candidate_activity_ids) != server_candidate_ids:
+                raise _workflow_error(
+                    "CONTEXT_CANDIDATE_SET_STALE",
+                    409,
+                    "The activity candidate list changed. Reload it before confirming conditions.",
+                )
+            confirmed = set(supervision_confirmed_activity_ids)
+            effective_candidates = tuple(
+                activity_id for activity_id in candidate_activity_ids if activity_id in confirmed
+            )
+            if not effective_candidates:
+                raise _workflow_error(
+                    "ACTIVITY_SUPERVISION_NOT_CONFIRMED",
+                    422,
+                    "Confirm the supervision requirement for at least one candidate activity.",
+                )
+            child_profile = ChildLearningProfileContextV1(
+                profile_declared_by=child_profile.profile_declared_by,
+                profile_recorded_at=child_profile.profile_recorded_at,
+                interests=child_profile.interests,
+                dislikes=child_profile.dislikes,
+                adult_confirmed_progress=(),
+                readiness_ids=child_profile.readiness_ids,
+                available_material_option_ids=child_profile.available_material_option_ids,
+                # The V2 request only includes candidates for which an adult explicitly
+                # confirmed that the displayed requirement can be provided. This value is
+                # an internal compatibility adapter for the deterministic V1 resolver.
+                adult_supervision_available="DIRECT",
+                learning_support_ids=child_profile.learning_support_ids,
+            )
+            candidate_activity_ids = effective_candidates
         recommendation: ActivityRecommendation | None = None
         baseline_recommendation: ActivityRecommendation | None = None
         narration_text = _narration_text(values.get("narration_result"))
         if self._semantic_catalog_v2 is not None:
-            if child_profile is not None:
+            if child_profile is not None and include_personalization_comparison:
                 baseline_recommendation = resolve_activity_options_v2(
                     anchor_set=anchor_set,
                     age_months=age_months,
                     catalog=self._semantic_catalog_v2,
                     compiler=self._compiler,
                     narration_text=narration_text,
+                    candidate_activity_ids=candidate_activity_ids,
+                    require_authored_readiness=require_authored_readiness,
                 )
             recommendation = resolve_activity_options_v2(
                 anchor_set=anchor_set,
@@ -656,6 +846,9 @@ class SupervisedFlowService:
                 compiler=self._compiler,
                 narration_text=narration_text,
                 child_profile=child_profile,
+                candidate_activity_ids=candidate_activity_ids,
+                require_authored_readiness=require_authored_readiness,
+                order_by_relevance=rank_candidates,
             )
             context_options = recommendation.options
         elif self._semantic_catalog is not None:
@@ -684,7 +877,11 @@ class SupervisedFlowService:
         payload = options.model_dump(mode="json")
         if recommendation is not None:
             payload["recommendation"] = recommendation.metadata()
-        if child_profile is not None:
+        if (
+            child_profile is not None
+            and include_personalization_comparison
+            and recommendation is not None
+        ):
             personalized_ids = [option.activity_ref.id for option in context_options]
             baseline_ids = (
                 [option.activity_ref.id for option in baseline_recommendation.options]
@@ -724,7 +921,7 @@ class SupervisedFlowService:
                     metadata=self._catalog_metadata,
                     topic_label_vi=topic_label,
                 ).model_dump(mode="json")
-                if baseline_recommendation is not None:
+                if baseline_recommendation is not None and include_personalization_comparison:
                     payload["baseline_activity_recommendations"] = _recommendation_set(
                         recommendation=baseline_recommendation,
                         metadata=self._catalog_metadata,
@@ -762,7 +959,7 @@ class SupervisedFlowService:
                     "P1_CONTEXT_REQUIRED", 409, "Enter all required adult context before filtering."
                 )
             anchor_set = SemanticAnchorSetV1.model_validate(anchor_value)
-            context = P1ContextV1.model_validate(context_value).model_copy(
+            context = _context_for_p1_rules(context_value).model_copy(
                 update={"expected_session_version": snapshot.version}
             )
             semantic_match: SemanticMatchEvidenceV1 | None = None
@@ -770,18 +967,51 @@ class SupervisedFlowService:
             if context.age_months is None:
                 filtered = self._compiler.select(anchor_set, context)
             elif self._semantic_catalog_v2 is not None:
-                recommendation = resolve_activity_options_v2(
-                    anchor_set=anchor_set,
-                    age_months=context.age_months,
-                    catalog=self._semantic_catalog_v2,
-                    compiler=self._compiler,
-                    narration_text=_narration_text(values.get("narration_result")),
-                )
-                if context.selected_activity_id is not None:
-                    preferred_template_id = recommendation.template_for(
-                        context.selected_activity_id
+                selected_id = context.selected_activity_id
+                if context_value.get("contract_name") == "P1ContextV3":
+                    # V3 identifies the explicit candidate -> adult conditions
+                    # -> final options flow. Validate its selection against
+                    # the same bounded, unranked server shortlist, not a fresh
+                    # relevance-ranked top-three that can drift.
+                    candidate_shortlist = resolve_activity_options_v2(
+                        anchor_set=anchor_set,
+                        age_months=context.age_months,
+                        catalog=self._semantic_catalog_v2,
+                        compiler=self._compiler,
+                        narration_text=_narration_text(values.get("narration_result")),
+                        require_authored_readiness=True,
+                        order_by_relevance=False,
                     )
-                    semantic_match = recommendation.evidence_for(context.selected_activity_id)
+                    allowed_candidate_ids = {
+                        option.activity_ref.id for option in candidate_shortlist.options
+                    }
+                    recommendation = None
+                    if selected_id is not None and selected_id in allowed_candidate_ids:
+                        recommendation = resolve_activity_options_v2(
+                            anchor_set=anchor_set,
+                            age_months=context.age_months,
+                            catalog=self._semantic_catalog_v2,
+                            compiler=self._compiler,
+                            narration_text=_narration_text(values.get("narration_result")),
+                            candidate_activity_ids=(selected_id,),
+                            require_authored_readiness=True,
+                            order_by_relevance=False,
+                        )
+                    if recommendation is not None:
+                        preferred_template_id = recommendation.template_for(selected_id)
+                        semantic_match = recommendation.evidence_for(selected_id)
+                else:
+                    # Keep V1/V2's legacy options route backward-compatible.
+                    recommendation = resolve_activity_options_v2(
+                        anchor_set=anchor_set,
+                        age_months=context.age_months,
+                        catalog=self._semantic_catalog_v2,
+                        compiler=self._compiler,
+                        narration_text=_narration_text(values.get("narration_result")),
+                    )
+                    if selected_id is not None:
+                        preferred_template_id = recommendation.template_for(selected_id)
+                        semantic_match = recommendation.evidence_for(selected_id)
                 if preferred_template_id is None or semantic_match is None:
                     filtered = P1FilterResultV1(
                         status="NO_ELIGIBLE_ACTIVITY",
@@ -879,7 +1109,7 @@ class SupervisedFlowService:
             ):
                 raise _workflow_error("P1_RESULT_MISSING", 409, "The P1 selection is unavailable.")
             anchor_set = SemanticAnchorSetV1.model_validate(anchor_value)
-            context = P1ContextV1.model_validate(context_value).model_copy(
+            context = _context_for_p1_rules(context_value).model_copy(
                 update={"expected_session_version": snapshot.version}
             )
             filtered = P1FilterResultV1.model_validate(filter_value)
@@ -982,7 +1212,7 @@ class SupervisedFlowService:
                     "EXPERIENCE_SPEC_MISSING", 409, "The prepared experience is unavailable."
                 )
             spec = ExperienceSpecV1.model_validate(spec_value)
-            context = P1ContextV1.model_validate(context_value).model_copy(
+            context = _context_for_p1_rules(context_value).model_copy(
                 update={"expected_session_version": snapshot.version}
             )
             gate_b = self._compiler.approve_gate_b(spec, context)
@@ -1754,6 +1984,31 @@ def _require_mapping(value: object) -> Mapping[str, Any]:
             "WORKFLOW_PAYLOAD_INVALID", 422, "The workflow action payload is invalid."
         )
     return value
+
+
+def _parse_p1_context(value: object) -> P1ContextV1 | P1ContextV2 | P1ContextV3:
+    raw = _require_mapping(value)
+    if raw.get("contract_name") == "P1ContextV3":
+        return P1ContextV3.model_validate(raw)
+    if raw.get("contract_name") == "P1ContextV2":
+        return P1ContextV2.model_validate(raw)
+    context = P1ContextV1.model_validate(raw)
+    if context.age_months is not None and context.age_months < 36:
+        raise _workflow_error(
+            "UNDER_THREE_CAREGIVER_REQUIRED",
+            422,
+            "The legacy P1 context cannot confirm caregiver participation for children "
+            "under three.",
+        )
+    return context
+
+
+def _context_for_p1_rules(value: object) -> P1ContextV1:
+    context = _parse_p1_context(value)
+    if not isinstance(context, P1ContextV2):
+        return context
+    base_fields = P1ContextV1.model_fields.keys() - {"contract_name", "contract_version"}
+    return P1ContextV1(**{field: getattr(context, field) for field in base_fields})
 
 
 def _workflow_error(code: str, status_code: int, message: str) -> SessionWorkflowError:

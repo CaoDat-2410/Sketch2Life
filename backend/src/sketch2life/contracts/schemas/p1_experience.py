@@ -145,6 +145,32 @@ class P1ContextV1(P1ContractBase):
         return tuple(field for field in required if getattr(self, field) is None)
 
 
+class P1ContextV2(P1ContextV1):
+    """P1 eligibility context with explicit caregiver confirmation for ages 0–3."""
+
+    contract_name: Literal["P1ContextV2"] = "P1ContextV2"
+    contract_version: Literal["2.0"] = "2.0"
+    caregiver_participating: bool = False
+
+    @model_validator(mode="after")
+    def under_three_requires_caregiver(self) -> P1ContextV2:
+        if (
+            self.age_months is not None
+            and self.age_months < 36
+            and not self.caregiver_participating
+        ):
+            raise ValueError("children under three require a participating caregiver")
+        return self
+
+
+class P1ContextV3(P1ContextV2):
+    """Adult context for the explicitly finalized, two-phase candidate flow."""
+
+    contract_name: Literal["P1ContextV3"] = "P1ContextV3"
+    contract_version: Literal["3.0"] = "3.0"
+    candidate_selection_mode: Literal["CONTEXTUAL_SHORTLIST"]
+
+
 class P1ContextOptionV1(P1ContractBase):
     """Adult-readable eligibility inputs for one matching curated fixture."""
 
@@ -212,6 +238,7 @@ class ActivityTemplateV1(P1ContractBase):
     age_months_min: int = Field(ge=0, le=155)
     age_months_max: int = Field(ge=0, le=155)
     readiness_ids: tuple[str, ...] = ()
+    readiness_metadata_status: Literal["AUTHORED", "UNSPECIFIED"] = "AUTHORED"
     prerequisite_activity_ids: tuple[str, ...] = ()
     material_option_ids: tuple[str, ...] = Field(min_length=1)
     material_option_groups: tuple[tuple[str, ...], ...] = ()
@@ -244,6 +271,8 @@ class ActivityTemplateV1(P1ContractBase):
             for group in self.material_option_groups
         ):
             raise ValueError("template material groups must be represented by template options")
+        if self.readiness_ids and self.readiness_metadata_status != "AUTHORED":
+            raise ValueError("readiness IDs require authored readiness metadata")
         if self.production_eligible != (self.review_status == "PRODUCTION_APPROVED"):
             raise ValueError(
                 "production_eligible must be true only for PRODUCTION_APPROVED templates"

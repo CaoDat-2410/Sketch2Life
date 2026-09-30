@@ -35,6 +35,44 @@ _CATALOG_AREA_TERMS = frozenset({
     "science",
     "sensorial",
 })
+_MVP_READINESS_ID_ALIASES = {
+    "follows_one_step_direction": "READY_FOLLOWS_ONE_STEP_DIRECTION",
+    "reads_simple_instructions": "READY_READS_SIMPLE_INSTRUCTIONS",
+    "works_with_multi_step_plan": "READY_WORKS_WITH_MULTI_STEP_PLAN",
+}
+
+
+def _mvp_readiness_ids(record: dict[str, Any]) -> tuple[str, ...]:
+    """Adapt legacy readiness tags to the P1 contract namespace.
+
+    ``caregiver_present`` is not a child readiness criterion: in the MVP source
+    it is redundant with the explicit caregiver safety policy and DIRECT
+    supervision requirement, which are checked separately by the V2 flow.
+    Fail closed if that relationship changes in the source catalog.
+    """
+
+    raw_ids = tuple(str(item) for item in record["readiness_tags"])
+    normalized: list[str] = []
+    for readiness_id in raw_ids:
+        if readiness_id == "caregiver_present":
+            if (
+                int(record["age_months"]["max"]) >= 36
+                or record["safety"]["minimum_supervision"] != "DIRECT"
+                or "CAREGIVER_PRESENT" not in record["policy_constraints"]
+            ):
+                raise CatalogLoadError(
+                    "caregiver readiness tag must be represented by the under-three safety gate"
+                )
+            continue
+        canonical_id = _MVP_READINESS_ID_ALIASES.get(readiness_id, readiness_id)
+        if not re.fullmatch(r"READY_[A-Z0-9_]+", canonical_id):
+            raise CatalogLoadError(
+                f"unsupported MVP readiness identifier: {readiness_id}"
+            )
+        normalized.append(canonical_id)
+    if len(normalized) != len(set(normalized)):
+        raise CatalogLoadError("MVP readiness identifiers collide after normalization")
+    return tuple(normalized)
 
 
 @dataclass(frozen=True, slots=True)
@@ -226,7 +264,7 @@ def _template_from_mvp_record(record: dict[str, Any]) -> ActivityTemplateV1:
         interaction_mode=_interaction_mode_from_mvp(record),  # type: ignore[arg-type]
         age_months_min=int(record["age_months"]["min"]),
         age_months_max=int(record["age_months"]["max"]),
-        readiness_ids=tuple(str(item) for item in record["readiness_tags"]),
+        readiness_ids=_mvp_readiness_ids(record),
         prerequisite_activity_ids=tuple(str(item) for item in record["prerequisite_activity_ids"]),
         material_option_ids=material_ids,
         material_option_groups=material_groups,

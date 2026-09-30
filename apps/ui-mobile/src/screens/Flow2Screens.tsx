@@ -746,9 +746,11 @@ export const ActivityRecommendScreen: React.FC<ScreenProps> = ({ onNavigate }) =
     goBack,
     sceneData,
     contextOptions,
+    contextCandidates,
     selectedBackendActivity,
     activityRecommendationCards,
     selectedChildLearningProfile,
+    updateSelectedChildLearningProfile,
     selectBackendActivity,
     prepareActivityWorkflow,
     sessionState,
@@ -758,6 +760,26 @@ export const ActivityRecommendScreen: React.FC<ScreenProps> = ({ onNavigate }) =
     workflowNotice,
   } = useAppContext();
   const nav = onNavigate || navigate;
+  const [readinessSelection, setReadinessSelection] = useState<string[]>([]);
+  const [materialSelection, setMaterialSelection] = useState<string[]>([]);
+  const [supervisionConfirmedActivityIds, setSupervisionConfirmedActivityIds] = useState<string[]>([]);
+  useEffect(() => {
+    setReadinessSelection(selectedChildLearningProfile?.readiness_ids || []);
+    setMaterialSelection(selectedChildLearningProfile?.available_material_option_ids || []);
+    setSupervisionConfirmedActivityIds([]);
+  }, [contextCandidates?.expected_session_version, selectedChildLearningProfile?.profile_recorded_at]);
+  const toggleSelection = (items: string[], setItems: (items: string[]) => void, item: string) => {
+    setItems(items.includes(item) ? items.filter((value) => value !== item) : [...items, item]);
+  };
+  const candidateOptions = contextCandidates?.candidates || [];
+  const candidateReadinessIds = [...new Set(candidateOptions.flatMap((item) => item.readiness_ids))];
+  const candidateMaterialIds = [...new Set(candidateOptions.flatMap((item) => item.material_option_ids))];
+  const candidateMaterialLabels = new Map<string, string>();
+  candidateOptions.forEach((item) => {
+    Object.entries(item.material_labels_by_id || {}).forEach(([id, label]) => {
+      candidateMaterialLabels.set(id, label);
+    });
+  });
   const hasPreparedActivity = Boolean(
     contextOptions
     && selectedBackendActivity
@@ -769,6 +791,32 @@ export const ActivityRecommendScreen: React.FC<ScreenProps> = ({ onNavigate }) =
     && ['UNDERSTANDING_PROPOSED', 'GATE_B_PENDING', 'EXPERIENCE_READY']
       .includes(sessionState),
   );
+
+  const readinessLabelById: Record<string, string> = {
+    READY_SEARCH_PARTLY_HIDDEN: 'Tìm một vật quen thuộc khi còn nhìn thấy một phần',
+    READY_STABLE_SEATED_TRANSFER: 'Ngồi vững và chuyển vật vào hộp',
+    READY_FOLLOWS_WASH_SEQUENCE: 'Thực hiện được trình tự rửa tay',
+    READY_NOTICES_SMALL_SPILL: 'Nhận ra và lau vết nước nhỏ',
+    READY_CARRIES_SMALL_CONTAINER: 'Mang cốc nhỏ an toàn',
+    READY_CONTROLLED_TWO_HAND_POUR: 'Rót bằng hai tay có kiểm soát',
+    READY_PINCH_AND_ALIGN_BUTTON: 'Cài nút lớn bằng hai ngón',
+    READY_CARRIES_PLACE_SETTING: 'Mang và sắp bộ đồ ăn',
+    READY_MATCHES_IDENTICAL_COLOR: 'Ghép hai màu giống nhau',
+    READY_TRIPOD_OR_FUNCTIONAL_GRIP: 'Cầm bút và tô vùng rộng',
+    READY_HANDLES_PLANT_SAMPLE: 'Cầm và quan sát mẫu cây an toàn',
+    READY_RECORDS_CHANGES_OVER_TIME: 'Theo dõi thay đổi qua các lần quan sát',
+    READY_PLACE_VALUE_TO_THOUSANDS: 'Biểu diễn số đến hàng nghìn',
+    READY_IDENTIFIES_NOUN_VERB: 'Nhận biết danh từ và động từ',
+    READY_ESTIMATES_SHORT_TASK: 'Ước lượng thời lượng việc ngắn',
+    READY_TABLE_AND_BAR_GRAPH: 'Đọc bảng và biểu đồ cột',
+    READY_COMPARE_OBSERVABLE_TRAITS: 'So sánh đặc điểm có thể quan sát',
+    READY_MODELS_LIGHT_AND_SHADOW: 'Khám phá ánh sáng và bóng',
+    READY_DISTINGUISHES_CLAIM_EVIDENCE: 'Phân biệt nhận định với bằng chứng',
+    READY_MANAGES_RESEARCH_MILESTONE: 'Hoàn thành một mốc tìm hiểu',
+    READY_FOLLOWS_ONE_STEP_DIRECTION: 'Làm theo hướng dẫn gồm một bước',
+    READY_READS_SIMPLE_INSTRUCTIONS: 'Đọc và làm theo hướng dẫn đơn giản',
+    READY_WORKS_WITH_MULTI_STEP_PLAN: 'Làm theo kế hoạch gồm nhiều bước',
+  };
 
   if (!activityFlowReady) {
     return (
@@ -809,41 +857,84 @@ export const ActivityRecommendScreen: React.FC<ScreenProps> = ({ onNavigate }) =
         </View>
       </View>
 
-      {contextOptions?.personalization_comparison && (
-        <View style={{ borderRadius: 16, borderWidth: 1, borderColor: '#C4B5FD', backgroundColor: '#F5F3FF', padding: 14, marginBottom: 14 }}>
-          <Text style={{ color: '#4C1D95', fontWeight: '800', fontSize: 14 }}>So sánh tác động hồ sơ</Text>
-          <Text style={{ color: '#6D28D9', fontSize: 11, marginTop: 3 }}>Bộ gợi ý Montessori là bộ lọc/xếp hạng xác định; không gọi AI/Qwen thêm và không huấn luyện model.</Text>
-          <Text style={{ color: '#64748B', fontSize: 11, marginTop: 5 }}>
-            Hồ sơ khai báo bởi {contextOptions.personalization_comparison.profile_provenance.declared_by === 'GUIDE' ? 'Guide' : 'cha mẹ/người chăm sóc'} · cập nhật {new Date(contextOptions.personalization_comparison.profile_provenance.recorded_at).toLocaleString('vi-VN')}.
-          </Text>
-          <Text style={{ color: '#334155', fontSize: 12, marginTop: 9, fontWeight: '700' }}>Chưa cá nhân hóa: {contextOptions.baseline_activity_recommendations?.options.map((item) => item.title_vi).join(' → ') || 'không có hoạt động phù hợp'}</Text>
-          <Text style={{ color: '#334155', fontSize: 12, marginTop: 5, fontWeight: '700' }}>Theo hồ sơ: {activityRecommendationCards.map((item) => item.title_vi).join(' → ') || 'không có hoạt động qua điều kiện'}</Text>
-          <Text style={{ color: '#64748B', fontSize: 11, marginTop: 7 }}>
-            {contextOptions.personalization_comparison.rank_changed ? 'Thứ tự/tập hợp đã thay đổi.' : 'Thứ tự không đổi với các trường hiện chọn.'}
-            {' '} {contextOptions.personalization_comparison.excluded_activity_count} hoạt động bị loại bởi điều kiện giám sát, readiness, vật liệu, tiên quyết hoặc chủ đề cần tránh.
-          </Text>
-          {selectedChildLearningProfile && (
-            <Text style={{ color: '#64748B', fontSize: 11, marginTop: 3 }}>
-              Sở thích/tiến trình/cách học chỉ xếp hạng lại; giám sát, readiness, vật liệu, tiên quyết và không thích là điều kiện lọc.
-            </Text>
-          )}
-        </View>
-      )}
-
-      {!contextOptions ? (
+      {!contextCandidates ? (
         <View style={styles.emptyActivityCard}>
           <Text style={styles.emptyActivityEmoji}>🌱</Text>
-          <Text style={styles.featuredActivityTitle}>Sẵn sàng tìm hoạt động</Text>
+          <Text style={styles.featuredActivityTitle}>Tìm nhóm ứng viên theo chủ đề</Text>
           <Text style={styles.featuredActivitySub}>
-            Mình sẽ chọn tối đa 3 hoạt động đúng chủ đề và độ tuổi.
+            Hệ thống lấy tối đa 3 hoạt động liên quan để hỏi đúng readiness và vật liệu cần thiết — đây chưa phải gợi ý cuối.
           </Text>
           <Kid3DButton
-            title={workflowBusy === 'Chuẩn bị hoạt động' ? 'Đang tìm...' : 'Xem gợi ý'}
+            title={workflowBusy === 'Chuẩn bị hoạt động' ? 'Đang tìm...' : 'Bắt đầu kiểm tra'}
             color="blue"
             size="sm"
             style={{ marginTop: 12 }}
             disabled={!!workflowBusy}
             onPress={() => void prepareActivityWorkflow()}
+          />
+        </View>
+      ) : !contextOptions ? (
+        <View style={{ borderRadius: 18, borderWidth: 1, borderColor: '#BFDBFE', backgroundColor: '#F8FBFF', padding: 15, marginBottom: 14 }}>
+          <Text style={{ color: '#172554', fontSize: 16, fontWeight: '800' }}>Kiểm tra điều kiện của nhóm nhỏ</Text>
+          <Text style={{ color: '#64748B', fontSize: 12, lineHeight: 18, marginTop: 5 }}>
+            Các hoạt động dưới đây chỉ là ứng viên để xác định điều kiện, chưa phải đề xuất cuối. Readiness là hành vi cụ thể đã quan sát, không phải điểm hay nhãn năng lực.
+          </Text>
+          {candidateOptions.map((option) => {
+            return (
+              <View key={`${option.activity_ref.id}:${option.activity_ref.version}`} style={{ marginTop: 10, padding: 11, borderRadius: 12, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#DBEAFE' }}>
+                <Text style={{ color: '#1E293B', fontSize: 13, fontWeight: '800' }}>{option.title_vi}</Text>
+                <Text style={{ color: '#64748B', fontSize: 11, lineHeight: 16, marginTop: 3 }}>{option.summary_vi}</Text>
+                <Text style={{ color: '#475569', fontSize: 11, marginTop: 5 }}>Giám sát tối thiểu: {option.supervision_label_vi}</Text>
+                {option.readiness_metadata_status !== 'AUTHORED' ? (
+                  <Text style={{ color: '#B45309', fontSize: 11, marginTop: 4 }}>Chưa có readiness được duyệt; hoạt động này sẽ không được xếp vào kết quả.</Text>
+                ) : option.readiness_ids.length ? (
+                  <Text style={{ color: '#475569', fontSize: 11, marginTop: 4 }}>Cần xác nhận: {option.readiness_ids.map((id) => readinessLabelById[id] || 'một tiêu chí readiness đã duyệt').join(' · ')}</Text>
+                ) : <Text style={{ color: '#475569', fontSize: 11, marginTop: 4 }}>Không có prerequisite readiness được khai báo.</Text>}
+                {option.prerequisite_activity_ids.length > 0 && <Text style={{ color: '#B45309', fontSize: 11, marginTop: 4 }}>Có hoạt động tiên quyết chưa được xác nhận trong phiên; ứng viên này sẽ chỉ bị loại nếu cần tiên quyết đó.</Text>}
+                <TouchableOpacity
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: supervisionConfirmedActivityIds.includes(option.activity_ref.id) }}
+                  onPress={() => toggleSelection(supervisionConfirmedActivityIds, setSupervisionConfirmedActivityIds, option.activity_ref.id)}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 9, paddingVertical: 5 }}
+                >
+                  <Ionicons name={supervisionConfirmedActivityIds.includes(option.activity_ref.id) ? 'checkbox' : 'square-outline'} size={19} color={supervisionConfirmedActivityIds.includes(option.activity_ref.id) ? '#2563EB' : '#94A3B8'} />
+                  <Text style={{ flex: 1, color: '#334155', fontSize: 11 }}>Tôi xác nhận có thể bảo đảm mức giám sát này cho hoạt động</Text>
+                </TouchableOpacity>
+              </View>
+            );
+          })}
+
+          {candidateReadinessIds.length > 0 && <>
+            <Text style={{ color: '#334155', fontSize: 12, fontWeight: '800', marginTop: 14, marginBottom: 4 }}>Bé đã thể hiện được hành vi nào?</Text>
+            <Text style={{ color: '#64748B', fontSize: 11, marginBottom: 7 }}>Chỉ đánh dấu điều người lớn đã quan sát. Không chắc/chưa quan sát thì để trống; chỉ ứng viên cần tiêu chí đó bị loại.</Text>
+            {candidateReadinessIds.map((id) => (
+              <TouchableOpacity key={id} accessibilityRole="checkbox" accessibilityState={{ checked: readinessSelection.includes(id) }} onPress={() => toggleSelection(readinessSelection, setReadinessSelection, id)} style={{ flexDirection: 'row', alignItems: 'center', gap: 9, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#E2E8F0' }}>
+                <Ionicons name={readinessSelection.includes(id) ? 'checkbox' : 'square-outline'} size={20} color={readinessSelection.includes(id) ? '#2563EB' : '#94A3B8'} />
+                <Text style={{ flex: 1, color: '#334155', fontSize: 12 }}>{readinessLabelById[id] || 'Hành vi readiness cụ thể của hoạt động'}</Text>
+              </TouchableOpacity>
+            ))}
+          </>}
+
+          {candidateMaterialIds.length > 0 && <>
+            <Text style={{ color: '#334155', fontSize: 12, fontWeight: '800', marginTop: 14, marginBottom: 4 }}>Vật liệu nào đang có?</Text>
+            <Text style={{ color: '#64748B', fontSize: 11, marginBottom: 6 }}>Chỉ chọn vật liệu thực sự có thể chuẩn bị. Mỗi hoạt động vẫn phải đủ ít nhất một lựa chọn trong từng nhóm vật liệu bắt buộc.</Text>
+            {candidateMaterialIds.map((id) => (
+              <TouchableOpacity key={id} accessibilityRole="checkbox" accessibilityState={{ checked: materialSelection.includes(id) }} onPress={() => toggleSelection(materialSelection, setMaterialSelection, id)} style={{ flexDirection: 'row', alignItems: 'center', gap: 9, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#E2E8F0' }}>
+                <Ionicons name={materialSelection.includes(id) ? 'checkbox' : 'square-outline'} size={20} color={materialSelection.includes(id) ? '#2563EB' : '#94A3B8'} />
+                <Text style={{ flex: 1, color: '#334155', fontSize: 12 }}>{candidateMaterialLabels.get(id) || 'Vật liệu cho hoạt động'}</Text>
+              </TouchableOpacity>
+            ))}
+          </>}
+
+          <Text style={{ color: '#64748B', fontSize: 11, lineHeight: 16, marginTop: 11 }}>Điều kiện giám sát, tiên quyết, vật liệu và an toàn vẫn là bộ lọc cứng; sở thích đã xác nhận chỉ xếp hạng các ứng viên còn đủ điều kiện.</Text>
+          {supervisionConfirmedActivityIds.length === 0 && <Text style={{ color: '#B45309', fontSize: 11, lineHeight: 16, marginTop: 6 }}>Hãy xác nhận riêng những hoạt động mà người lớn có thể đáp ứng đúng mức giám sát được nêu.</Text>}
+          <Kid3DButton
+            title={workflowBusy === 'Chuẩn bị hoạt động' ? 'Đang lọc...' : 'Xác nhận điều kiện & xem gợi ý'}
+            color="blue"
+            size="sm"
+            style={{ marginTop: 12 }}
+            disabled={!!workflowBusy || selectedChildLearningProfile?.adult_participating !== true || supervisionConfirmedActivityIds.length === 0}
+            onPress={() => void prepareActivityWorkflow({ readiness_ids: readinessSelection, available_material_option_ids: materialSelection, supervision_confirmed_activity_ids: supervisionConfirmedActivityIds })}
           />
         </View>
       ) : (
