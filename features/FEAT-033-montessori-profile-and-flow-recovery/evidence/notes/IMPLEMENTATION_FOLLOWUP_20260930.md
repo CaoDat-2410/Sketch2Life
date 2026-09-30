@@ -761,3 +761,20 @@ using `backend/.venv/Scripts/python.exe` (the first attempt used system Python, 
 backend's Pillow/PyAV dependencies and failed during test collection). Mobile UI-copy and TypeScript
 checks, focused Ruff, `git diff --check`, fresh catalog generation, and the repository security
 validator also passed; 1,727 publishable files were scanned.
+
+## Restart the stale local backend and verify the typed validation fix — 2026-09-30
+
+Evidence ID: `FEAT033-EV-20260930-28` · Related criteria: AC-01, AC-02, AC-10, AC-11.
+At the owner's request, stopped only the verified stale Uvicorn process tree serving local port
+8000 (PIDs 10652 and 8796), then started the current repository source from `backend/.venv` bound
+to `0.0.0.0:8000`. The new process is PID 36444; startup completed and `/health` returned
+`{"status":"ok","service":"sketch2life-api"}`. A synthetic invalid-age GET returned HTTP 422
+with `MobileWorkflowResultV1`, status `FAILED`, and code `REQUEST_VALIDATION_FAILED`. The server log
+contains only `route=p1_context_options`, a synthetic request ID, `fields=age_months`, and
+`codes=less_than_equal`; no submitted values were logged. The startup/runtime logs are local under
+`runtime-output/` and are not part of the commit. This confirms the local typed-validation fix is
+loaded; it does not verify remote Lightning classification or the full Android Gate-B journey.
+
+The approved FEAT-033 implementation was committed and pushed as `a22d6a8` to
+`origin/codex/feat-018-pixi-exploration`. Independent FEAT-029/030/031 worktree changes were not
+staged or included.
