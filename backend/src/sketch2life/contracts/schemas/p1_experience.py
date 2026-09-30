@@ -171,6 +171,43 @@ class P1ContextV3(P1ContextV2):
     candidate_selection_mode: Literal["CONTEXTUAL_SHORTLIST"]
 
 
+class P1ContextV4(P1ContextV2):
+    """Complete topic+age selection; removed profile eligibility fields stay absent."""
+
+    contract_name: Literal["P1ContextV4"] = "P1ContextV4"
+    contract_version: Literal["4.0"] = "4.0"
+    candidate_selection_mode: Literal["COMPLETE_TOPIC_AGE_LIST"]
+    discovery_policy: Literal["TOPIC_AGE_SAFETY_DISCOVERY_V1"]
+    adult_participating: Literal[True]
+
+    @model_validator(mode="after")
+    def require_gate_a_selection_and_no_removed_answers(self) -> P1ContextV4:
+        if not self.gate_a_confirmed:
+            raise ValueError("Gate A must be confirmed before activity selection")
+        if (self.selected_activity_id is None) != (self.selected_activity_version is None):
+            raise ValueError("selected activity ID and version must be supplied together")
+        if self.readiness_ids is not None:
+            raise ValueError("readiness is not part of this activity selection contract")
+        if self.completed_activity_ids is not None:
+            raise ValueError("completed history is not part of this activity selection contract")
+        if self.available_material_option_ids is not None:
+            raise ValueError(
+                "material availability is not part of this activity selection contract"
+            )
+        if self.supervision_level is not None or self.policy_flags is not None:
+            raise ValueError("supervision and policy facts are server-validated in this contract")
+        if self.candidate_status is not None:
+            raise ValueError("catalog status is server-validated in this contract")
+        return self
+
+    def missing_fields(self) -> tuple[str, ...]:
+        return tuple(
+            field
+            for field in ("age_months", "selected_activity_id", "selected_activity_version")
+            if getattr(self, field) is None
+        )
+
+
 class P1ContextOptionV1(P1ContractBase):
     """Adult-readable eligibility inputs for one matching curated fixture."""
 

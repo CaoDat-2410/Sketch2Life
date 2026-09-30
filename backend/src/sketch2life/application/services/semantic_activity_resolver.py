@@ -24,6 +24,7 @@ from sketch2life.contracts.schemas.semantic_personalization_v2 import (
     ConfirmedSceneUnderstandingV2,
     SceneConceptV2,
     SemanticActivityMatchV2,
+    SemanticActivityProfileV2,
 )
 
 ActivityOptionRow = tuple[
@@ -165,11 +166,14 @@ def resolve_activity_options_v2(
     catalog: SemanticCatalogV2Port,
     compiler: P1ExperienceCompiler,
     narration_text: str = "",
-    limit: int = 3,
+    limit: int | None = 3,
     child_profile: ChildLearningProfileContextV1 | None = None,
     candidate_activity_ids: tuple[str, ...] = (),
     require_authored_readiness: bool = False,
     order_by_relevance: bool = True,
+    complete_discovery: bool = False,
+    adult_participating: bool = False,
+    caregiver_participating: bool = False,
 ) -> ActivityRecommendation:
     """Return only reviewed semantic matches from the expanded V2 catalog.
 
@@ -178,7 +182,11 @@ def resolve_activity_options_v2(
     child's picture.
     """
 
-    scene = _scene_from_anchor_set(anchor_set, narration_text=narration_text)
+    scene = _scene_from_anchor_set(
+        anchor_set,
+        narration_text=narration_text,
+        complete_discovery=complete_discovery,
+    )
     age_band = _age_band(age_months)
     rows: list[ActivityOptionRow] = []
     rejected: list[str] = []
@@ -194,23 +202,50 @@ def resolve_activity_options_v2(
         if template_id is None:
             rejected.append("STALE_TEMPLATE")
             continue
-        match = catalog.match_scene(scene, profile)
+        matching_profile = (
+            _complete_discovery_profile(profile) if complete_discovery else profile
+        )
+        match = catalog.match_scene(scene, matching_profile)
         if match is None or match.match_mode == "AGE_BASELINE_FALLBACK":
             continue
         template = compiler.template_for_activity_id(profile.activity_id)
         if template is None:
             rejected.append("STALE_TEMPLATE")
             continue
-        if require_authored_readiness and template.readiness_metadata_status != "AUTHORED":
-            rejected.append("READINESS_METADATA_MISSING")
+        if complete_discovery and not (
+            template.age_months_min <= age_months <= template.age_months_max
+        ):
             continue
         if (
-            child_profile is not None
+            require_authored_readiness
+            and not complete_discovery
             and template.readiness_metadata_status != "AUTHORED"
         ):
             rejected.append("READINESS_METADATA_MISSING")
             continue
-        if child_profile is not None:
+        if (
+            child_profile is not None
+            and not complete_discovery
+            and template.readiness_metadata_status != "AUTHORED"
+        ):
+            rejected.append("READINESS_METADATA_MISSING")
+            continue
+        activity_concepts = set(profile.concept_ids) | set(profile.parent_concept_ids)
+        matched_dislikes = (
+            _expanded_profile_concepts(child_profile.dislikes) & activity_concepts
+            if child_profile is not None
+            else set()
+        )
+        if complete_discovery:
+            if not adult_participating:
+                excluded_by_profile.append((profile.activity_id, "ADULT_PARTICIPATION_REQUIRED"))
+                continue
+            if "CAREGIVER_PRESENT" in template.policy_constraints and not (
+                caregiver_participating or adult_participating
+            ):
+                excluded_by_profile.append((profile.activity_id, "SUPERVISION_UNAVAILABLE"))
+                continue
+        if child_profile is not None and not complete_discovery:
             supervision_rank = {"NONE": 0, "NEARBY": 1, "DIRECT": 2}
             if supervision_rank[template.minimum_supervision] > supervision_rank[
                 child_profile.adult_supervision_available
@@ -223,10 +258,6 @@ def resolve_activity_options_v2(
             if not set(template.prerequisite_activity_ids) <= confirmed_activity_ids:
                 excluded_by_profile.append((profile.activity_id, "PREREQUISITE_NOT_CONFIRMED"))
                 continue
-            activity_concepts = set(profile.concept_ids) | set(profile.parent_concept_ids)
-            matched_dislikes = (
-                _expanded_profile_concepts(child_profile.dislikes) & activity_concepts
-            )
             required_readiness = set(template.readiness_ids)
             if required_readiness and child_profile.readiness_ids is None:
                 excluded_by_profile.append((profile.activity_id, "READINESS_PROFILE_REQUIRED"))
@@ -309,6 +340,7 @@ def resolve_activity_options_v2(
         rows,
         limit=limit,
         order_by_relevance=order_by_relevance,
+        deduplicate_families=not complete_discovery,
     )
     activity_ids = tuple(row[2] for row in selected)
     return ActivityRecommendation(
@@ -332,8 +364,9 @@ def resolve_activity_options_v2(
 def _select_activity_rows(
     rows: list[ActivityOptionRow],
     *,
-    limit: int,
+    limit: int | None,
     order_by_relevance: bool,
+    deduplicate_families: bool = True,
 ) -> list[ActivityOptionRow]:
     """Select a bounded, family-diverse list, optionally postponing relevance ranking."""
     ordered = (
@@ -345,11 +378,11 @@ def _select_activity_rows(
     seen_families: set[str] = set()
     for row in ordered:
         family_id = row[4].activity_family_id or row[2]
-        if family_id in seen_families:
+        if deduplicate_families and family_id in seen_families:
             continue
         selected.append(row)
         seen_families.add(family_id)
-        if len(selected) >= max(1, min(limit, 3)):
+        if limit is not None and len(selected) >= max(1, min(limit, 3)):
             break
     return selected
 
@@ -389,12 +422,17 @@ def _scene_from_anchor_set(
     anchor_set: SemanticAnchorSetV1,
     *,
     narration_text: str,
+    complete_discovery: bool = False,
 ) -> ConfirmedSceneUnderstandingV2:
     anchors = (anchor_set.primary_anchor, *anchor_set.secondary_anchors)
     concepts: list[SceneConceptV2] = []
     seen: set[str] = set()
     for anchor_index, anchor in enumerate(anchors):
-        for concept_id in _concept_ids(anchor.normalized_label, anchor.semantic_tags):
+        for concept_id in _concept_ids(
+            anchor.normalized_label,
+            anchor.semantic_tags,
+            complete_discovery=complete_discovery,
+        ):
             if concept_id in seen:
                 continue
             seen.add(concept_id)
@@ -476,20 +514,64 @@ def _age_band(age_months: int) -> str:
     return "9-12"
 
 
-def _concept_ids(label: str, tags: tuple[str, ...]) -> tuple[str, ...]:
+def _concept_ids(
+    label: str,
+    tags: tuple[str, ...],
+    *,
+    complete_discovery: bool = False,
+) -> tuple[str, ...]:
     text = " ".join((label, *tags)).casefold()
     result: list[str] = []
+    animal_topic = any(
+        token in text
+        for token in (
+            "bướm",
+            "butterfly",
+            "chim",
+            "bird",
+            "động vật",
+            "animal",
+            "con vật",
+        )
+    )
     if "bướm" in text or "butterfly" in text:
         result.extend(("ANIMAL_BUTTERFLY", "ANIMAL_GENERIC", "ANIMAL_MOVEMENT"))
     elif any(token in text for token in ("chim", "bird", "động vật", "animal", "con vật")):
-        result.extend(("ANIMAL_GENERIC", "NATURE_OBSERVATION"))
+        result.extend(
+            ("ANIMAL_GENERIC",)
+            if complete_discovery
+            else ("ANIMAL_GENERIC", "NATURE_OBSERVATION")
+        )
         if any(token in text for token in ("bay", "flying", "đậu", "perching", "chuyển động")):
             result.append("ANIMAL_MOVEMENT")
-    if any(token in text for token in ("hoa", "cây", "lá", "flower", "plant", "leaf")):
+    if any(token in text for token in ("hoa", "cây", "lá", "flower", "plant", "leaf")) and not (
+        complete_discovery and animal_topic
+    ):
         result.extend(("PLANT_STRUCTURE", "NATURE_OBSERVATION"))
     if any(token in text for token in ("mặt trời", "sun", "ánh sáng")):
         result.extend(("SUN_LIGHT", "SCIENCE_OBSERVATION"))
     return tuple(dict.fromkeys(result))
+
+
+def _complete_discovery_profile(
+    profile: SemanticActivityProfileV2,
+) -> SemanticActivityProfileV2:
+    """Correct known cross-topic tags only for the new complete-list contract.
+
+    The legacy V2 route remains byte-for-byte governed by its existing catalog
+    matching. These three catalog rows currently carry topic tags contradicted
+    by their reviewed activity descriptions.
+    """
+    topic_overrides = {
+        "ACT-0043": ("LANGUAGE_PRINT",),
+        "ACT-0044": ("LANGUAGE_PRINT",),
+        "ACT-0114": ("ANIMAL_BUTTERFLY", "NATURE_OBSERVATION"),
+    }
+    update: dict[str, object] = {"exact_phrases_vi": (), "aliases_vi": ()}
+    concepts = topic_overrides.get(profile.activity_id)
+    if concepts is not None:
+        update["concept_ids"] = concepts
+    return profile.model_copy(update=update)
 
 
 def _parent_concepts(concept_id: str) -> tuple[str, ...]:

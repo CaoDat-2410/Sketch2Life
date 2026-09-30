@@ -180,6 +180,53 @@ class ChildLearningProfileContextV2(P1ContractBase):
         return self
 
 
+class ConfirmedChildPreferencesV1(P1ContractBase):
+    """Minimal adult-confirmed preference context for complete activity discovery."""
+
+    contract_name: Literal["ConfirmedChildPreferencesV1"] = "ConfirmedChildPreferencesV1"
+    contract_version: Literal["1.0"] = "1.0"
+    profile_declared_by: Literal["CAREGIVER", "GUIDE"]
+    profile_recorded_at: datetime
+    preference_tags_confirmed: bool = False
+    interests: tuple[PreferenceConceptId, ...] = Field(default=(), max_length=12)
+    dislikes: tuple[PreferenceConceptId, ...] = Field(default=(), max_length=12)
+
+    @field_validator("profile_recorded_at")
+    @classmethod
+    def validate_profile_recorded_at(cls, value: datetime) -> datetime:
+        if value.tzinfo is None or value.utcoffset() is None:
+            raise ValueError("profile recorded_at must include a timezone")
+        if value.astimezone(UTC) > datetime.now(UTC) + timedelta(seconds=30):
+            raise ValueError("profile recorded_at cannot be future-dated")
+        return value
+
+    @model_validator(mode="after")
+    def reject_duplicate_or_conflicting_tags(self) -> ConfirmedChildPreferencesV1:
+        for values in (self.interests, self.dislikes):
+            if len(values) != len(set(values)):
+                raise ValueError("preference tags must be unique")
+        if set(self.interests) & set(self.dislikes):
+            raise ValueError("an explicit interest cannot also be a dislike")
+        if (self.interests or self.dislikes) and not self.preference_tags_confirmed:
+            raise ValueError("preference tags require adult confirmation")
+        return self
+
+
+class P1ActivitySuggestionsRequestV1(P1ContractBase):
+    contract_name: Literal["P1ActivitySuggestionsRequestV1"] = "P1ActivitySuggestionsRequestV1"
+    contract_version: Literal["1.0"] = "1.0"
+    age_months: int = Field(ge=0, le=155)
+    child_profile: ConfirmedChildPreferencesV1
+    adult_participating: Literal[True]
+    caregiver_participating: bool = False
+
+    @model_validator(mode="after")
+    def under_three_requires_caregiver(self) -> P1ActivitySuggestionsRequestV1:
+        if self.age_months < 36 and not self.caregiver_participating:
+            raise ValueError("children under three require a participating caregiver")
+        return self
+
+
 class ActivityContextCandidateV2(P1ContractBase):
     contract_name: Literal["ActivityContextCandidateV2"] = "ActivityContextCandidateV2"
     contract_version: Literal["2.0"] = "2.0"

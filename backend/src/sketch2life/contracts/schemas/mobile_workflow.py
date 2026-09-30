@@ -99,6 +99,57 @@ class ActivityRecommendationSetV1(BaseModel):
     options: tuple[ActivityRecommendationCardV1, ...] = Field(max_length=3)
 
 
+class ActivityRecommendationCardV2(BaseModel):
+    """One reviewed activity in the complete topic-and-age discovery set."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    contract_name: Literal["ActivityRecommendationCardV2"] = "ActivityRecommendationCardV2"
+    contract_version: Literal["2.0"] = "2.0"
+    priority: int = Field(ge=1)
+    activity_id: str = Field(pattern=r"^ACT-[0-9]{4}$")
+    activity_version: int = Field(ge=1)
+    template_id: str = Field(min_length=1, max_length=120)
+    template_version: int = Field(ge=1)
+    title_vi: str = Field(min_length=1, max_length=160)
+    summary_vi: str = Field(min_length=1, max_length=500)
+    match_reason_vi: str = Field(min_length=1, max_length=300)
+    duration_minutes: int = Field(ge=1, le=240)
+    age_label_vi: str = Field(min_length=1, max_length=80)
+    minimum_supervision: Literal["NONE", "NEARBY", "DIRECT"]
+    supervision_label_vi: str = Field(min_length=1, max_length=120)
+    material_labels_vi: tuple[str, ...] = Field(default=(), max_length=48)
+    policy_constraints: tuple[str, ...] = Field(default=(), max_length=24)
+    fit_source: Literal["DIRECT", "RELATED"]
+
+
+class ActivityRecommendationSetV2(BaseModel):
+    """Complete reviewed topic+age result set; unlike V1 this is not top-three bounded."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    contract_name: Literal["ActivityRecommendationSetV2"] = "ActivityRecommendationSetV2"
+    contract_version: Literal["2.0"] = "2.0"
+    session_id: str = Field(min_length=1, max_length=120)
+    expected_session_version: int = Field(ge=1)
+    age_months: int = Field(ge=0, le=155)
+    confirmed_anchor_label: str = Field(min_length=1, max_length=200)
+    topic_label_vi: str = Field(min_length=1, max_length=240)
+    total_count: int = Field(ge=0)
+    options: tuple[ActivityRecommendationCardV2, ...]
+
+    @model_validator(mode="after")
+    def validate_complete_ordered_set(self) -> ActivityRecommendationSetV2:
+        if self.total_count != len(self.options):
+            raise ValueError("total_count must equal the complete option count")
+        activity_ids = [option.activity_id for option in self.options]
+        if len(activity_ids) != len(set(activity_ids)):
+            raise ValueError("activity suggestion IDs must be unique")
+        if [option.priority for option in self.options] != list(range(1, len(self.options) + 1)):
+            raise ValueError("activity priority must enumerate the complete ordered set")
+        return self
+
+
 class MobileWorkflowResultV1(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
@@ -125,7 +176,9 @@ class MobileWorkflowResultV1(BaseModel):
 
 __all__ = [
     "ActivityRecommendationCardV1",
+    "ActivityRecommendationCardV2",
     "ActivityRecommendationSetV1",
+    "ActivityRecommendationSetV2",
     "MobileWorkflowCommandV1",
     "MobileWorkflowResultV1",
     "WorkflowFailureV1",

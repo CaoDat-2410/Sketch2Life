@@ -11,9 +11,12 @@ from sketch2life.application.services.activity_supervision import (
 from sketch2life.contracts.schemas.child_learning_profile import (
     ChildLearningProfileContextV1,
     ChildLearningProfileContextV2,
+    ConfirmedChildPreferencesV1,
+    P1ActivitySuggestionsRequestV1,
     P1ContextOptionsRequestV1,
     P1ContextOptionsRequestV2,
 )
+from sketch2life.contracts.schemas.p1_experience import P1ContextV4
 
 
 def test_session_profile_is_versioned_bounded_and_has_no_identity_or_free_text_fields() -> None:
@@ -153,3 +156,70 @@ def test_under_three_supervision_is_direct_caregiver_despite_weaker_catalog_mini
         "NEARBY",
         "Người lớn ở gần",
     )
+
+
+def test_activity_suggestions_request_contains_only_adult_confirmed_profile_tags() -> None:
+    profile = ConfirmedChildPreferencesV1(
+        profile_declared_by="CAREGIVER",
+        profile_recorded_at=datetime.now(UTC),
+        preference_tags_confirmed=True,
+        interests=("ANIMAL_GENERIC",),
+    )
+    request = P1ActivitySuggestionsRequestV1(
+        age_months=60,
+        child_profile=profile,
+        adult_participating=True,
+    )
+
+    assert request.child_profile.interests == ("ANIMAL_GENERIC",)
+    with pytest.raises(ValidationError, match="adult confirmation"):
+        P1ActivitySuggestionsRequestV1(
+            age_months=60,
+            child_profile={
+                "profile_declared_by": "CAREGIVER",
+                "profile_recorded_at": datetime.now(UTC),
+                "preference_tags_confirmed": False,
+                "interests": ["ANIMAL_GENERIC"],
+            },
+            adult_participating=True,
+        )
+    with pytest.raises(ValidationError, match="participating caregiver"):
+        P1ActivitySuggestionsRequestV1(
+            age_months=35,
+            child_profile={
+                "profile_declared_by": "CAREGIVER",
+                "profile_recorded_at": datetime.now(UTC),
+            },
+            adult_participating=True,
+            caregiver_participating=False,
+        )
+
+
+def test_p1_context_v4_removes_readiness_history_material_fields_but_keeps_safety_facts() -> None:
+    context = P1ContextV4(
+        session_id="session-synthetic",
+        expected_session_version=2,
+        age_months=60,
+        readiness_ids=None,
+        completed_activity_ids=None,
+        available_material_option_ids=None,
+        supervision_level=None,
+        policy_flags=None,
+        candidate_status=None,
+        gate_a_confirmed=True,
+        selected_activity_id="ACT-0102",
+        selected_activity_version=1,
+        caregiver_participating=False,
+        adult_participating=True,
+        candidate_selection_mode="COMPLETE_TOPIC_AGE_LIST",
+        discovery_policy="TOPIC_AGE_SAFETY_DISCOVERY_V1",
+    )
+    assert context.missing_fields() == ()
+
+    with pytest.raises(ValidationError, match="readiness is not part"):
+        P1ContextV4(
+            **{
+                **context.model_dump(),
+                "readiness_ids": ("READY_HANDLES_PLANT_SAMPLE",),
+            }
+        )

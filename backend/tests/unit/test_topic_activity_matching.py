@@ -129,8 +129,11 @@ def test_v2_bird_shortlist_is_bounded_and_never_uses_unrelated_transfer() -> Non
     library = load_p1_template_library(ROOT, include_mvp=True, include_expansion=True)
     compiler = P1ExperienceCompiler(library.templates, library.objective_titles_vi)
 
+    anchor = _anchor("con chim đậu trên cành cây", tags=("động vật", "chuyển động"))
     recommendation = resolve_activity_options_v2(
-        anchor_set=_anchor("con chim đậu trên cành", tags=("động vật", "chuyển động")),
+        # Exercise the same sparse evidence commonly produced by vision; the
+        # full topic list must not depend on extra tags being present.
+        anchor_set=anchor,
         age_months=60,
         catalog=load_activity_semantic_catalog_v2(ROOT, include_expansion=True),
         compiler=compiler,
@@ -142,6 +145,65 @@ def test_v2_bird_shortlist_is_bounded_and_never_uses_unrelated_transfer() -> Non
     assert activity_ids == ("ACT-0102", "ACT-0106", "ACT-0110")
     assert "ACT-0026" not in activity_ids
     assert all(recommendation.v2_match_for(activity_id) for activity_id in activity_ids)
+
+
+def test_complete_discovery_returns_all_matches_without_readiness_or_material_answers() -> None:
+    library = load_p1_template_library(ROOT, include_mvp=True, include_expansion=True)
+    compiler = P1ExperienceCompiler(library.templates, library.objective_titles_vi)
+    catalog = load_activity_semantic_catalog_v2(ROOT, include_expansion=True)
+    profile = ChildLearningProfileContextV1(
+        profile_declared_by="CAREGIVER",
+        profile_recorded_at=datetime.now(UTC),
+        interests=("ANIMAL_GENERIC",),
+        readiness_ids=None,
+        available_material_option_ids=None,
+        adult_supervision_available="DIRECT",
+    )
+    anchor = _anchor("con chim đậu trên cành cây", tags=("động vật", "chuyển động"))
+
+    recommendation = resolve_activity_options_v2(
+        anchor_set=anchor,
+        age_months=60,
+        catalog=catalog,
+        compiler=compiler,
+        child_profile=profile,
+        limit=None,
+        complete_discovery=True,
+        adult_participating=True,
+    )
+
+    activity_ids = tuple(option.activity_ref.id for option in recommendation.options)
+    assert len(activity_ids) > 3
+    assert len(activity_ids) == len(set(activity_ids))
+    assert "ACT-0102" in activity_ids
+    assert "ACT-0026" not in activity_ids
+    assert "ACT-0043" not in activity_ids
+    assert "ACT-0044" not in activity_ids
+    assert "ACT-0114" not in activity_ids
+    assert not {"ACT-0034", "ACT-0130", "ACT-0138", "ACT-0174", "ACT-0254"}.intersection(
+        activity_ids
+    )
+    assert all(
+        compiler.template_for_activity_id(activity_id).age_months_min
+        <= 60
+        <= compiler.template_for_activity_id(activity_id).age_months_max
+        for activity_id in activity_ids
+    )
+    assert recommendation.excluded_by_profile == ()
+    without_profile = resolve_activity_options_v2(
+        anchor_set=anchor,
+        age_months=60,
+        catalog=catalog,
+        compiler=compiler,
+        limit=None,
+        complete_discovery=True,
+        adult_participating=True,
+    )
+    assert {item.activity_ref.id for item in without_profile.options} == set(activity_ids)
+    assert any(
+        "EXPLICIT_INTEREST_MATCH" in recommendation.personalization_reasons_for(activity_id)
+        for activity_id in activity_ids
+    )
 
 
 def test_context_shortlist_defers_relevance_ranking_until_after_adult_hard_gates() -> None:

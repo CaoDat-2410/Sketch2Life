@@ -64,6 +64,7 @@ from sketch2life.contracts.schemas.child_learning_profile import (
     ActivityContextCandidateV2,
     ChildLearningProfileContextV1,
     ChildLearningProfileContextV2,
+    P1ActivitySuggestionsRequestV1,
 )
 from sketch2life.contracts.schemas.gate_a import GateAConfirmationV1
 from sketch2life.contracts.schemas.learning_media import (
@@ -72,7 +73,9 @@ from sketch2life.contracts.schemas.learning_media import (
 )
 from sketch2life.contracts.schemas.mobile_workflow import (
     ActivityRecommendationCardV1,
+    ActivityRecommendationCardV2,
     ActivityRecommendationSetV1,
+    ActivityRecommendationSetV2,
     MobileWorkflowCommandV1,
     MobileWorkflowResultV1,
     WorkflowResultProvenanceV1,
@@ -86,6 +89,7 @@ from sketch2life.contracts.schemas.p1_experience import (
     P1ContextV1,
     P1ContextV2,
     P1ContextV3,
+    P1ContextV4,
     P1FilterResultV1,
     SemanticAnchorSetV1,
     SemanticAnchorV1,
@@ -119,7 +123,7 @@ _FLOW_PROVENANCE = WorkflowResultProvenanceV1(
     producer="APPLICATION",
     component="feat018-supervised-flow",
     component_version="1.0",
-    source_contracts=("GateAConfirmationV1", "P1ContextV1", "ExperienceSpecV1"),
+    source_contracts=("GateAConfirmationV1", "P1ContextV1", "P1ContextV4", "ExperienceSpecV1"),
 )
 
 
@@ -227,6 +231,71 @@ def _recommendation_set(
         )
     return ActivityRecommendationSetV1(
         topic_label_vi=topic_label_vi,
+        options=tuple(cards),
+    )
+
+
+def _complete_recommendation_set(
+    *,
+    recommendation: ActivityRecommendation,
+    metadata: ActivityCatalogMetadataPort,
+    session_id: str,
+    session_version: int,
+    age_months: int,
+    anchor_label_vi: str,
+    topic_label_vi: str,
+) -> ActivityRecommendationSetV2:
+    cards: list[ActivityRecommendationCardV2] = []
+    for priority, option in enumerate(recommendation.options, start=1):
+        display = metadata.recommendation_display(
+            option.activity_ref.id, option.activity_ref.version
+        )
+        match = recommendation.v2_match_for(option.activity_ref.id)
+        template_id = recommendation.template_for(option.activity_ref.id)
+        if display is None or match is None or template_id is None:
+            raise ValueError(
+                f"complete recommendation metadata is missing for {option.activity_ref.id}"
+            )
+        reasons = recommendation.personalization_reasons_for(option.activity_ref.id)
+        match_reason = (
+            f"Phù hợp với chủ đề {topic_label_vi.lower()} đã xác nhận."
+        )
+        if "EXPLICIT_INTEREST_MATCH" in reasons:
+            match_reason += " Khớp sở thích đã xác nhận trong hồ sơ của bé."
+        if "EXPLICIT_AVOIDANCE_MATCH" in reasons:
+            match_reason += " Được xếp sau do gần chủ đề bé muốn tránh."
+        minimum_supervision, supervision_label = supervision_requirement_for_age(
+            age_months,
+            option.minimum_supervision,
+        )
+        cards.append(
+            ActivityRecommendationCardV2(
+                priority=priority,
+                activity_id=option.activity_ref.id,
+                activity_version=option.activity_ref.version,
+                template_id=template_id,
+                template_version=option.template_ref.version,
+                title_vi=str(display["title_vi"]),
+                summary_vi=str(display["summary_vi"]),
+                match_reason_vi=match_reason,
+                duration_minutes=int(display["duration_minutes"]),
+                age_label_vi=str(display["age_label_vi"]),
+                minimum_supervision=minimum_supervision,
+                supervision_label_vi=supervision_label,
+                material_labels_vi=tuple(display.get("material_labels_vi", ())),
+                policy_constraints=option.policy_constraints,
+                fit_source=(
+                    "DIRECT" if match.continuity_mode == "DIRECT_CONTINUATION" else "RELATED"
+                ),
+            )
+        )
+    return ActivityRecommendationSetV2(
+        session_id=session_id,
+        expected_session_version=session_version,
+        age_months=age_months,
+        confirmed_anchor_label=anchor_label_vi,
+        topic_label_vi=topic_label_vi,
+        total_count=len(cards),
         options=tuple(cards),
     )
 
@@ -638,6 +707,136 @@ class SupervisedFlowService:
             self._remember(scope, command.idempotency_key, fingerprint, result)
             return result, False
 
+    def read_p1_activity_suggestions(
+        self,
+        *,
+        session_id: str,
+        request_id: str,
+        expected_version: int,
+        actor_ref: str,
+        request: P1ActivitySuggestionsRequestV1,
+    ) -> MobileWorkflowResultV1:
+        if actor_ref != DEMO_ACTOR_REF:
+            raise _workflow_error(
+                "DEMO_ACTOR_INVALID", 422, "The local demo actor marker is invalid."
+            )
+        if request.age_months < 36 and not request.caregiver_participating:
+            raise _workflow_error(
+                "UNDER_THREE_CAREGIVER_REQUIRED",
+                422,
+                "A participating caregiver is required for children under three.",
+            )
+        snapshot = self._sessions.snapshot(session_id)
+        self._expect_version(snapshot.version, expected_version)
+        if snapshot.state not in {"UNDERSTANDING_PROPOSED", "CONTEXT_REQUIRED"}:
+            raise _workflow_error(
+                "GATE_A_REQUIRED", 409, "Confirm Gate A before requesting activity suggestions."
+            )
+        if self._semantic_catalog_v2 is None or self._catalog_metadata is None:
+            raise _workflow_error(
+                "ACTIVITY_CATALOG_UNAVAILABLE",
+                503,
+                "Activity suggestions are temporarily unavailable.",
+            )
+        values = self._sessions.workflow_record(session_id).values
+        anchor_value = values.get("anchor_set")
+        if not isinstance(anchor_value, dict):
+            raise _workflow_error("GATE_A_REQUIRED", 409, "A confirmed image topic is required.")
+        anchor_set = SemanticAnchorSetV1.model_validate(anchor_value)
+        child_profile = ChildLearningProfileContextV1(
+            profile_declared_by=request.child_profile.profile_declared_by,
+            profile_recorded_at=request.child_profile.profile_recorded_at,
+            interests=tuple(str(item) for item in request.child_profile.interests),
+            dislikes=tuple(str(item) for item in request.child_profile.dislikes),
+            adult_confirmed_progress=(),
+            readiness_ids=None,
+            available_material_option_ids=None,
+            adult_supervision_available="DIRECT",
+            learning_support_ids=(),
+        )
+        recommendation = resolve_activity_options_v2(
+            anchor_set=anchor_set,
+            age_months=request.age_months,
+            catalog=self._semantic_catalog_v2,
+            compiler=self._compiler,
+            narration_text=_narration_text(values.get("narration_result")),
+            child_profile=child_profile,
+            limit=None,
+            require_authored_readiness=False,
+            order_by_relevance=True,
+            complete_discovery=True,
+            adult_participating=request.adult_participating,
+            caregiver_participating=request.caregiver_participating,
+        )
+        # A topic match must also have a reviewed card the app can actually
+        # render. Keep this catalog-integrity check separate from readiness,
+        # prerequisite, materials-availability, and supervision questionnaires.
+        displayable_ids = {
+            option.activity_ref.id
+            for option in recommendation.options
+            if self._catalog_metadata.recommendation_display(
+                option.activity_ref.id, option.activity_ref.version
+            )
+            is not None
+        }
+        recommendation = replace(
+            recommendation,
+            options=tuple(
+                option
+                for option in recommendation.options
+                if option.activity_ref.id in displayable_ids
+            ),
+            evidence_by_activity_id=tuple(
+                item
+                for item in recommendation.evidence_by_activity_id
+                if item[0] in displayable_ids
+            ),
+            template_by_activity_id=tuple(
+                item
+                for item in recommendation.template_by_activity_id
+                if item[0] in displayable_ids
+            ),
+            v2_match_by_activity_id=tuple(
+                item
+                for item in recommendation.v2_match_by_activity_id
+                if item[0] in displayable_ids
+            ),
+            personalization_reasons_by_activity_id=tuple(
+                item
+                for item in recommendation.personalization_reasons_by_activity_id
+                if item[0] in displayable_ids
+            ),
+            progress_evidence_by_activity_id=tuple(
+                item
+                for item in recommendation.progress_evidence_by_activity_id
+                if item[0] in displayable_ids
+            ),
+        )
+        stored_topic = values.get("topic_label_vi")
+        topic_label = (
+            stored_topic.strip()
+            if isinstance(stored_topic, str) and stored_topic.strip()
+            else anchor_set.primary_anchor.normalized_label
+        )
+        suggestions = _complete_recommendation_set(
+            recommendation=recommendation,
+            metadata=self._catalog_metadata,
+            session_id=session_id,
+            session_version=snapshot.version,
+            age_months=request.age_months,
+            anchor_label_vi=anchor_set.primary_anchor.normalized_label,
+            topic_label_vi=topic_label,
+        )
+        return MobileWorkflowResultV1(
+            status="SUCCEEDED",
+            request_id=request_id,
+            session_id=session_id,
+            expected_session_version=expected_version,
+            observed_session_version=snapshot.version,
+            provenance=_FLOW_PROVENANCE,
+            payload=suggestions.model_dump(mode="json"),
+        )
+
     def read_p1_context_candidates(
         self,
         *,
@@ -968,7 +1167,34 @@ class SupervisedFlowService:
                 filtered = self._compiler.select(anchor_set, context)
             elif self._semantic_catalog_v2 is not None:
                 selected_id = context.selected_activity_id
-                if context_value.get("contract_name") == "P1ContextV3":
+                if context_value.get("contract_name") == "P1ContextV4":
+                    selected_option = None
+                    if context.selected_activity_id is not None and context.age_months is not None:
+                        discovery = resolve_activity_options_v2(
+                            anchor_set=anchor_set,
+                            age_months=context.age_months,
+                            catalog=self._semantic_catalog_v2,
+                            compiler=self._compiler,
+                            narration_text=_narration_text(values.get("narration_result")),
+                            candidate_activity_ids=(context.selected_activity_id,),
+                            order_by_relevance=False,
+                            complete_discovery=True,
+                            adult_participating=context.adult_participating,
+                            caregiver_participating=context.caregiver_participating,
+                        )
+                        selected_option = next(
+                            (
+                                option
+                                for option in discovery.options
+                                if option.activity_ref.id == context.selected_activity_id
+                                and option.activity_ref.version == context.selected_activity_version
+                            ),
+                            None,
+                        )
+                    if selected_option is not None:
+                        preferred_template_id = selected_option.template_ref.id
+                        semantic_match = discovery.evidence_for(context.selected_activity_id)
+                elif context_value.get("contract_name") == "P1ContextV3":
                     # V3 identifies the explicit candidate -> adult conditions
                     # -> final options flow. Validate its selection against
                     # the same bounded, unranked server shortlist, not a fresh
@@ -1986,8 +2212,10 @@ def _require_mapping(value: object) -> Mapping[str, Any]:
     return value
 
 
-def _parse_p1_context(value: object) -> P1ContextV1 | P1ContextV2 | P1ContextV3:
+def _parse_p1_context(value: object) -> P1ContextV1 | P1ContextV2 | P1ContextV3 | P1ContextV4:
     raw = _require_mapping(value)
+    if raw.get("contract_name") == "P1ContextV4":
+        return P1ContextV4.model_validate(raw)
     if raw.get("contract_name") == "P1ContextV3":
         return P1ContextV3.model_validate(raw)
     if raw.get("contract_name") == "P1ContextV2":
@@ -2005,6 +2233,8 @@ def _parse_p1_context(value: object) -> P1ContextV1 | P1ContextV2 | P1ContextV3:
 
 def _context_for_p1_rules(value: object) -> P1ContextV1:
     context = _parse_p1_context(value)
+    if isinstance(context, P1ContextV4):
+        return context
     if not isinstance(context, P1ContextV2):
         return context
     base_fields = P1ContextV1.model_fields.keys() - {"contract_name", "contract_version"}

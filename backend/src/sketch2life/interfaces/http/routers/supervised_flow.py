@@ -14,6 +14,7 @@ from sketch2life.application.services.ephemeral_sessions import (
 )
 from sketch2life.application.services.supervised_flow import SupervisedFlowService
 from sketch2life.contracts.schemas.child_learning_profile import (
+    P1ActivitySuggestionsRequestV1,
     P1ContextOptionsRequestV1,
     P1ContextOptionsRequestV2,
 )
@@ -120,6 +121,46 @@ def read_p1_context_options(
             actor_ref=actor_ref,
             age_months=age_months,
             caregiver_participating=caregiver_participating,
+        )
+    except SessionWorkflowError as error:
+        return _failure(
+            error,
+            request_id=request_id,
+            session_id=session_id,
+            expected_version=expected_session_version,
+        )
+    return JSONResponse(status_code=200, content=result.model_dump(mode="json"))
+
+
+@router.post("/{session_id}/p1/activity-suggestions", response_model=MobileWorkflowResultV1)
+def read_p1_activity_suggestions(
+    session_id: str,
+    body: P1ActivitySuggestionsRequestV1,
+    request: Request,
+    request_id: Annotated[str, Header(alias="X-Request-ID", min_length=1, max_length=120)],
+    expected_session_version: Annotated[int, Header(alias="X-Expected-Session-Version", ge=0)],
+    actor_ref: Annotated[str, Header(alias="X-Actor-Ref", min_length=1, max_length=160)],
+) -> JSONResponse:
+    service: SupervisedFlowService | None = request.app.state.supervised_flow_service
+    if service is None:
+        error = SessionWorkflowError(
+            code="SUPERVISED_FLOW_NOT_CONFIGURED",
+            status_code=503,
+            safe_message="The supervised demo flow is not configured.",
+        )
+        return _failure(
+            error,
+            request_id=request_id,
+            session_id=session_id,
+            expected_version=expected_session_version,
+        )
+    try:
+        result = service.read_p1_activity_suggestions(
+            session_id=session_id,
+            request_id=request_id,
+            expected_version=expected_session_version,
+            actor_ref=actor_ref,
+            request=body,
         )
     except SessionWorkflowError as error:
         return _failure(

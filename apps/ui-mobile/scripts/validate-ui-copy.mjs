@@ -2,6 +2,7 @@ import {readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {classifyApiResponseError} from '../src/demo/apiResponseError.mjs';
 import {buildP1ContextOptionsRequest} from '../src/demo/p1ContextOptionsRequest.mjs';
+import {buildP1ActivitySuggestionsRequest} from '../src/demo/p1ActivitySuggestionsRequest.mjs';
 import {buildP1ContextRequest} from '../src/demo/p1ContextRequest.mjs';
 import {
   adjustChildAgeByMonths,
@@ -45,6 +46,26 @@ const flow2 = readFileSync(resolve(root, 'src/screens/Flow2Screens.tsx'), 'utf8'
 const shell = readFileSync(resolve(root, 'BaoApp.tsx'), 'utf8');
 const appContext = readFileSync(resolve(root, 'src/context/AppContext.tsx'), 'utf8');
 const apiClient = readFileSync(resolve(root, 'src/demo/api.ts'), 'utf8');
+const removedActivityGateCopy = [
+  'Bắt đầu kiểm tra',
+  'Kiểm tra điều kiện của nhóm nhỏ',
+  'Xác nhận điều kiện & xem gợi ý',
+  'Bé đã thể hiện được hành vi nào?',
+  'Vật liệu nào đang có?',
+  'Tôi xác nhận có thể bảo đảm mức giám sát này cho hoạt động',
+];
+if (
+  removedActivityGateCopy.some((copy) => flow2.includes(copy))
+  || !flow2.includes('void prepareActivityWorkflow()')
+  || !flow2.includes('activityRecommendationCards.map')
+  || !flow2.includes("onPress={() => nav('profile')}")
+  || !appContext.includes('workflowApi.readActivitySuggestions(')
+  || appContext.includes('readiness_ids: profile.readiness_ids ?? []')
+  || appContext.includes('available_material_option_ids: profile.available_material_option_ids ?? []')
+  || !flow2.includes('toàn bộ hoạt động đã duyệt, đúng chủ đề và độ tuổi')
+) {
+  throw new Error('Activity entry must automatically show the complete topic/age list, without readiness/material filters or an intermediate checklist.');
+}
 if (
   splitChildAgeMonths(35).years !== 2
   || splitChildAgeMonths(35).months !== 11
@@ -101,6 +122,18 @@ const mobileContextRequest = buildP1ContextOptionsRequest({
   candidateActivityIds: ['ACT-0001'],
   supervisionConfirmedActivityIds: ['ACT-0001'],
 });
+const unconfirmedSuggestionsRequest = buildP1ActivitySuggestionsRequest({
+  ageMonths: 60,
+  childProfile: requestProfile,
+});
+const confirmedSuggestionsRequest = buildP1ActivitySuggestionsRequest({
+  ageMonths: 60,
+  childProfile: {
+    ...requestProfile,
+    preference_tags_confirmed: true,
+    interests: ['ANIMAL_GENERIC'],
+  },
+});
 const olderP1ContextRequest = buildP1ContextRequest({
   sessionId: 'session-fixture',
   expectedSessionVersion: 2,
@@ -115,6 +148,24 @@ const contextualP1ContextRequest = buildP1ContextRequest({
   sessionId: 'session-fixture',
   expectedSessionVersion: 2,
   context: {age_months: 60, contextual_candidate_flow: true},
+});
+const completeListP1ContextRequest = buildP1ContextRequest({
+  sessionId: 'session-fixture',
+  expectedSessionVersion: 2,
+  context: {
+    age_months: 60,
+    complete_activity_discovery_flow: true,
+    adult_participating: true,
+    caregiver_participating: false,
+    readiness_ids: null,
+    completed_activity_ids: null,
+    available_material_option_ids: null,
+    supervision_level: null,
+    policy_flags: null,
+    candidate_status: null,
+    selected_activity_id: 'ACT-0102',
+    selected_activity_version: 1,
+  },
 });
 if (
   mobileContextRequest.contract_name !== 'P1ContextOptionsRequestV2'
@@ -134,9 +185,22 @@ if (
   || contextualP1ContextRequest.contract_name !== 'P1ContextV3'
   || contextualP1ContextRequest.candidate_selection_mode !== 'CONTEXTUAL_SHORTLIST'
   || contextualP1ContextRequest.contextual_candidate_flow !== undefined
+  || unconfirmedSuggestionsRequest.child_profile.interests.length !== 0
+  || unconfirmedSuggestionsRequest.child_profile.dislikes.length !== 0
+  || unconfirmedSuggestionsRequest.child_profile.interest_text !== undefined
+  || unconfirmedSuggestionsRequest.child_profile.readiness_ids !== undefined
+  || unconfirmedSuggestionsRequest.child_profile.available_material_option_ids !== undefined
+  || confirmedSuggestionsRequest.child_profile.interests.join(',') !== 'ANIMAL_GENERIC'
+  || confirmedSuggestionsRequest.child_profile.preference_tags_confirmed !== true
+  || completeListP1ContextRequest.contract_name !== 'P1ContextV4'
+  || completeListP1ContextRequest.candidate_selection_mode !== 'COMPLETE_TOPIC_AGE_LIST'
+  || completeListP1ContextRequest.discovery_policy !== 'TOPIC_AGE_SAFETY_DISCOVERY_V1'
+  || completeListP1ContextRequest.readiness_ids !== null
+  || completeListP1ContextRequest.available_material_option_ids !== null
+  || !apiClient.includes("/p1/activity-suggestions")
   || !apiClient.includes('buildP1ContextRequest({')
 ) {
-  throw new Error('The mobile P1 serializer must preserve reviewed material IDs and keep unconfirmed/raw preferences out of the context request.');
+  throw new Error('The new activity-discovery serializers must keep unconfirmed/raw preferences and removed readiness/material answers out of the request while using P1ContextV4.');
 }
 if (
   flow1.includes('selectedAgeGroup')

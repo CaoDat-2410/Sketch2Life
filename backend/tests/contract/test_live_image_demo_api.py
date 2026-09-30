@@ -471,6 +471,138 @@ def test_context_candidates_and_v2_finalization_keep_profile_and_supervision_ses
     assert approved.json()["payload"]["generation_called"] is False
 
 
+def test_complete_activity_suggestions_and_p1_v4_ignore_readiness_material_and_history() -> None:
+    client, _ = _client(vision=_CountingVision(label="con chim"))
+    session_id, version = _create_session(client)
+    uploaded = client.post(
+        f"/v1/sessions/{session_id}/media/image",
+        headers=_headers(session_id, version, "v4-discovery-upload"),
+        files={"image": ("synthetic.png", _IMAGE, "image/png")},
+    )
+    assert uploaded.status_code == 200
+    version = uploaded.json()["observed_session_version"]
+    inferred = _command(
+        client,
+        session_id=session_id,
+        version=version,
+        key="v4-discovery-understanding",
+        route="/understanding",
+        payload={"operation": "RUN_UNDERSTANDING", "user_initiated": True},
+    )
+    version = inferred.json()["observed_session_version"]
+    confirmed = _command(
+        client,
+        session_id=session_id,
+        version=version,
+        key="v4-discovery-gate-a",
+        route="/gate-a/confirm",
+        payload={
+            "operation": "CONFIRM_GATE_A",
+            "user_initiated": True,
+            "primary_anchor_id": "subject-1",
+            "confirmation": {
+                "contract_name": "GateAConfirmationV1",
+                "contract_version": "1.0",
+                "meaning_version": 1,
+                "confirmed_claim_ids": ["subject-1"],
+                "correction": None,
+            },
+        },
+    )
+    version = confirmed.json()["observed_session_version"]
+    headers = {
+        "X-Request-ID": "v4-discovery-read-all",
+        "X-Expected-Session-Version": str(version),
+        "X-Actor-Ref": "demo:local",
+    }
+    suggestions_response = client.post(
+        f"/v1/sessions/{session_id}/p1/activity-suggestions",
+        headers=headers,
+        json={
+            "contract_name": "P1ActivitySuggestionsRequestV1",
+            "contract_version": "1.0",
+            "age_months": 60,
+            "child_profile": {
+                "contract_name": "ConfirmedChildPreferencesV1",
+                "contract_version": "1.0",
+                "profile_declared_by": "CAREGIVER",
+                "profile_recorded_at": datetime.now(UTC).isoformat(),
+                "preference_tags_confirmed": True,
+                "interests": ["ANIMAL_GENERIC"],
+                "dislikes": [],
+            },
+            "adult_participating": True,
+            "caregiver_participating": False,
+        },
+    )
+    assert suggestions_response.status_code == 200, suggestions_response.text
+    suggestions = suggestions_response.json()["payload"]
+    assert suggestions["contract_name"] == "ActivityRecommendationSetV2"
+    assert suggestions["total_count"] == len(suggestions["options"]) > 3
+    suggested_ids = {item["activity_id"] for item in suggestions["options"]}
+    assert "ACT-0102" in suggested_ids
+    assert "ACT-0043" not in suggested_ids
+    assert "ACT-0114" not in suggested_ids
+    assert any("Khớp sở thích" in item["match_reason_vi"] for item in suggestions["options"])
+    selected = suggestions["options"][0]
+
+    context = _command(
+        client,
+        session_id=session_id,
+        version=version,
+        key="v4-discovery-set-context",
+        route="/p1-context",
+        method="put",
+        payload={
+            "operation": "SET_P1_CONTEXT",
+            "user_initiated": True,
+            "context": {
+                "contract_name": "P1ContextV4",
+                "contract_version": "4.0",
+                "candidate_selection_mode": "COMPLETE_TOPIC_AGE_LIST",
+                "discovery_policy": "TOPIC_AGE_SAFETY_DISCOVERY_V1",
+                "session_id": session_id,
+                "expected_session_version": version,
+                "age_months": 60,
+                "readiness_ids": None,
+                "completed_activity_ids": None,
+                "available_material_option_ids": None,
+                "supervision_level": None,
+                "policy_flags": None,
+                "candidate_status": None,
+                "gate_a_confirmed": True,
+                "selected_activity_id": selected["activity_id"],
+                "selected_activity_version": selected["activity_version"],
+                "caregiver_participating": False,
+                "adult_participating": True,
+            },
+        },
+    )
+    assert context.status_code == 200, context.text
+    version = context.json()["observed_session_version"]
+    filtered = _command(
+        client,
+        session_id=session_id,
+        version=version,
+        key="v4-discovery-filter",
+        route="/p1-filter",
+        payload={"operation": "RUN_P1_FILTER", "user_initiated": True},
+    )
+    assert filtered.status_code == 200, filtered.text
+    assert filtered.json()["payload"]["filter_result"]["status"] == "VALID_CANDIDATE"
+    version = filtered.json()["observed_session_version"]
+    prepared = _command(
+        client,
+        session_id=session_id,
+        version=version,
+        key="v4-discovery-prepare",
+        route="/experience/prepare",
+        payload={"operation": "PREPARE_EXPERIENCE", "user_initiated": True},
+    )
+    assert prepared.status_code == 200, prepared.text
+    assert prepared.json()["payload"]["status"] == "AWAITING_ADULT_GATE_B"
+
+
 class _TestImageDecoder:
     def read_metadata(self, snapshot: bytes) -> ImageMetadataSignals | None:
         if not snapshot.startswith(b"\x89PNG\r\n\x1a\n"):

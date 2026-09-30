@@ -1,6 +1,10 @@
 # FEAT-033 — Montessori profile form and workflow recovery
 
-Completion audit: phase-one candidates are selected using stable activity IDs and family
+## Current approved scope — revision 6 (2026-09-30)
+
+SRS v1.8 B33 and the exact-hash-approved revision 6 plan supersede the prior readiness/material discovery flow. The target behavior is the complete reviewed activity set matching the Gate-A topic and exact age, personalized in ordering by adult-confirmed child-profile interests. Readiness, history, and current material availability are not discovery filters; activity safety/policy and adult/caregiver supervision remain visible and enforced without an intermediate checklist. The additive activity-suggestions endpoint, mobile request/display path, and P1ContextV4 selection validation are implemented and pass the full backend unit/contract suite plus mobile validation/typechecking. Native-device and deployed-Lightning behavior are not claimed by this local verification; see evidence note `COMPLETE_TOPIC_AGE_DISCOVERY_20260930.md`.
+
+Historical revision-5 completion audit (superseded by the approved revision 6 scope): phase-one candidates are selected using stable activity IDs and family
 deduplication without relevance ranking. The server recomputes the same shortlist, applies adult-
 confirmed readiness/material/supervision hard gates, then ranks survivors. An adversarial test
 covers the pre-gate ranking failure. Catalog audit numbers and recommendation preparation enums

@@ -18,13 +18,12 @@ import {
   createDemoApi,
   DemoApiError,
   MAX_IMAGE_BYTES,
-  type ActivityRecommendationCard,
+  type ActivityRecommendationCardV2,
   type ActivityContextCandidateSet,
-  type P1ContextOption,
+  type ActivityRecommendationSetV2,
   type P1ContextOptions,
   type ChildLearningProfileInput,
   type ChildPreferenceClassification,
-  type ActivityContextAnswers,
   type WorkflowResult,
 } from '../demo/api';
 import {
@@ -161,13 +160,13 @@ interface AppContextType {
   activitiesList: MontessoriActivity[];
   selectedActivity: MontessoriActivity;
   setSelectedActivity: (activity: MontessoriActivity) => void;
-  contextOptions: P1ContextOptions | null;
+  contextOptions: ActivityRecommendationSetV2 | null;
   contextCandidates: ActivityContextCandidateSet | null;
-  selectedBackendActivity: P1ContextOption | null;
+  selectedBackendActivity: ActivityRecommendationCardV2 | null;
   activityRecommendation: P1ContextOptions['recommendation'] | null;
-  activityRecommendationCards: ActivityRecommendationCard[];
+  activityRecommendationCards: ActivityRecommendationCardV2[];
   selectBackendActivity: (activityId: string) => void;
-  prepareActivityWorkflow: (answers?: ActivityContextAnswers) => Promise<boolean>;
+  prepareActivityWorkflow: () => Promise<boolean>;
   approveActivity: () => Promise<boolean>;
   prepareRendererIntro: (refreshLaunch?: boolean) => Promise<boolean>;
   completeActivityHandoff: () => Promise<boolean>;
@@ -470,7 +469,7 @@ function materialTypeForId(id: string): 'paper' | 'scissors' | 'crayon' | 'glue'
 
 function mapExperienceToActivity(
   payload: JsonObject,
-  display?: ActivityRecommendationCard,
+  display?: ActivityRecommendationCardV2,
 ): MontessoriActivity {
   const spec = asObject(payload.experience_spec);
   const template = asObject(spec.activity_template);
@@ -1212,7 +1211,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const prepareActivityWorkflow = async (answers?: ActivityContextAnswers): Promise<boolean> => {
+  const prepareActivityWorkflow = async (): Promise<boolean> => {
     const hasPreparedActivity = Boolean(
       contextOptions
       && selectedBackendActivity
@@ -1235,81 +1234,50 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setWorkflowNotice(null);
     try {
       const ageMonths = selectedAgeMonths;
-      if (!contextCandidates) {
-        const optionsResult = await workflowApi.readContextCandidates(
-          sessionId,
-          sessionVersion,
-          ageMonths,
-        );
-        const candidates = optionsResult.payload;
-        if (!candidates || candidates.candidates.length === 0) {
-          throw new Error('Chưa tìm thấy hoạt động thật sự phù hợp. Hãy chọn lại chủ đề hoặc thử ảnh rõ hơn.');
-        }
-        setContextCandidates(candidates);
-        setWorkflowNotice('Đã tải một nhóm nhỏ theo chủ đề và độ tuổi. Hãy xác nhận tiêu chí/vật liệu cụ thể trước khi xem gợi ý cuối.');
-        return false;
-      }
-
       if (!contextOptions) {
-        const profile = selectedChildLearningProfile
-          ? {
-              ...selectedChildLearningProfile,
-              readiness_ids: answers?.readiness_ids ?? selectedChildLearningProfile.readiness_ids,
-              available_material_option_ids: answers?.available_material_option_ids
-                ?? selectedChildLearningProfile.available_material_option_ids,
-            }
-          : null;
+        const profile = selectedChildLearningProfile;
         if (!profile || profile.adult_participating !== true) {
           throw new Error('Cần xác nhận người lớn sẽ đồng hành trong hoạt động.');
         }
-        if (!answers?.supervision_confirmed_activity_ids.length) {
-          throw new Error('Hãy xác nhận mức giám sát có thể đáp ứng cho ít nhất một hoạt động.');
+        if (ageMonths < 36 && profile.caregiver_participating !== true) {
+          throw new Error('Trẻ dưới 3 tuổi cần có người chăm sóc đồng hành trực tiếp.');
         }
-        if (profile.readiness_ids === null || profile.available_material_option_ids === null) {
-          throw new Error('Hãy trả lời các câu hỏi readiness và vật liệu của nhóm hoạt động trước.');
-        }
-        if (answers) updateSelectedChildLearningProfile(answers);
-        const optionsResult = await workflowApi.readContextOptions(
+        const optionsResult = await workflowApi.readActivitySuggestions(
           sessionId,
           sessionVersion,
           ageMonths,
           profile,
-          contextCandidates.candidates.map((item) => item.activity_ref.id),
-          answers.supervision_confirmed_activity_ids,
         );
-        const options = optionsResult.payload;
-        if (!options || options.options.length === 0) {
-          throw new Error('Chưa có hoạt động nào vượt qua điều kiện đã xác nhận. Có thể thử lại với nhóm chủ đề khác; điều này không đánh giá năng lực của bé.');
+        const suggestions = optionsResult.payload;
+        if (!suggestions) {
+          throw new Error('Máy chủ chưa trả danh sách hoạt động phù hợp.');
         }
-        const option = options.options[0];
-        setContextOptions(options);
-        setSelectedBackendActivity(option);
-        setActivityRecommendation(options.recommendation || null);
-        setActivityRecommendationCards(options.activity_recommendations?.options || []);
-        setWorkflowNotice('Đây là các hoạt động còn phù hợp sau readiness, vật liệu và các điều kiện an toàn.');
+        setContextOptions(suggestions);
+        setSelectedBackendActivity(null);
+        setActivityRecommendation(null);
+        setActivityRecommendationCards(suggestions.options);
+        setWorkflowNotice('Đã tải toàn bộ hoạt động phù hợp chủ đề và độ tuổi. Sở thích đã xác nhận được dùng để sắp xếp danh sách.');
         return false;
       }
 
-      let options = contextOptions;
+      const options = contextOptions;
       const option = selectedBackendActivity;
       if (!option) {
         throw new Error('Hãy chọn một hoạt động trước khi tiếp tục.');
       }
-      const readinessIds = selectedChildLearningProfile?.readiness_ids ?? option.readiness_ids;
-      const availableMaterialIds = selectedChildLearningProfile?.available_material_option_ids
-        ?? option.material_option_ids;
       const contextResult = await workflowApi.setP1Context(sessionId, sessionVersion, {
         age_months: ageMonths,
-        contextual_candidate_flow: true,
-        readiness_ids: readinessIds,
-        completed_activity_ids: [],
-        available_material_option_ids: availableMaterialIds,
-        supervision_level: selectedChildLearningProfile?.adult_participating ? 'DIRECT' : 'NONE',
+        complete_activity_discovery_flow: true,
+        readiness_ids: null,
+        completed_activity_ids: null,
+        available_material_option_ids: null,
+        supervision_level: null,
+        policy_flags: null,
+        candidate_status: null,
+        adult_participating: true,
         caregiver_participating: selectedChildLearningProfile?.caregiver_participating === true,
-        policy_flags: option.policy_constraints,
-        candidate_status: 'ACTIVE_FIXTURE',
-        selected_activity_id: option.activity_ref.id,
-        selected_activity_version: option.activity_ref.version,
+        selected_activity_id: option.activity_id,
+        selected_activity_version: option.activity_version,
       });
       updateSessionVersion(contextResult.observed_session_version);
       if (contextResult.status !== 'SUCCEEDED') throw workflowFailure(contextResult, 'Bối cảnh người lớn chưa đủ.');
@@ -1321,15 +1289,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (experienceResult.status !== 'SUCCEEDED') {
         throw workflowFailure(experienceResult, 'Chưa chuẩn bị được hoạt động phù hợp.');
       }
-      const display = options.activity_recommendations?.options.find(
-        (item) => item.activity_id === option?.activity_ref.id,
-      );
+      const display = options.options.find((item) => item.activity_id === option.activity_id);
       const activity = mapExperienceToActivity(asObject(experienceResult.payload), display);
       setActivitiesList([activity]);
       setSelectedActivity(activity);
       setContextOptions(options);
       setSelectedBackendActivity(option);
-      setActivityRecommendation(options.recommendation || null);
+      setActivityRecommendation(null);
       setMaterialsChecklist(Object.fromEntries(activity.materials.map((material) => [material.id, false])));
       setStepsChecklist(Object.fromEntries(activity.steps.map((step) => [step.stepNumber, false])));
       setSessionState('GATE_B_PENDING');
@@ -1431,11 +1397,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Montessori Activities
   const [activitiesList, setActivitiesList] = useState<MontessoriActivity[]>(MOCK_ACTIVITIES);
   const [selectedActivity, setSelectedActivity] = useState<MontessoriActivity>(MOCK_ACTIVITIES[0]);
-  const [contextOptions, setContextOptions] = useState<P1ContextOptions | null>(null);
+  const [contextOptions, setContextOptions] = useState<ActivityRecommendationSetV2 | null>(null);
   const [contextCandidates, setContextCandidates] = useState<ActivityContextCandidateSet | null>(null);
-  const [selectedBackendActivity, setSelectedBackendActivity] = useState<P1ContextOption | null>(null);
+  const [selectedBackendActivity, setSelectedBackendActivity] = useState<ActivityRecommendationCardV2 | null>(null);
   const [activityRecommendation, setActivityRecommendation] = useState<P1ContextOptions['recommendation'] | null>(null);
-  const [activityRecommendationCards, setActivityRecommendationCards] = useState<ActivityRecommendationCard[]>([]);
+  const [activityRecommendationCards, setActivityRecommendationCards] = useState<ActivityRecommendationCardV2[]>([]);
   const [rendererLaunch, setRendererLaunch] = useState<JsonObject | null>(null);
   const [pixiIntroStoryboard, setPixiIntroStoryboard] = useState<JsonObject | null>(null);
 
@@ -1539,7 +1505,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const selectBackendActivity = (activityId: string) => {
-    const option = contextOptions?.options.find((item) => item.activity_ref.id === activityId) || null;
+    const option = contextOptions?.options.find((item) => item.activity_id === activityId) || null;
     setSelectedBackendActivity(option);
   };
 

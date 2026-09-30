@@ -1,6 +1,7 @@
 import * as Crypto from 'expo-crypto';
 import { classifyApiResponseError } from './apiResponseError.mjs';
 import { buildP1ContextOptionsRequest } from './p1ContextOptionsRequest.mjs';
+import { buildP1ActivitySuggestionsRequest } from './p1ActivitySuggestionsRequest.mjs';
 import { buildP1ContextRequest } from './p1ContextRequest.mjs';
 import {
   outcomeMayHaveCommitted,
@@ -174,12 +175,6 @@ export interface ChildPreferenceClassification {
   avoid_unmapped: boolean;
 }
 
-export interface ActivityContextAnswers {
-  readiness_ids: string[];
-  available_material_option_ids: string[];
-  supervision_confirmed_activity_ids: string[];
-}
-
 export interface ActivityRecommendationCard {
   contract_name: 'ActivityRecommendationCardV1';
   contract_version: '1.0';
@@ -194,6 +189,27 @@ export interface ActivityRecommendationCard {
   supervision_label_vi: string;
   material_labels_vi: string[];
   fit_source: 'DIRECT' | 'RELATED';
+}
+
+export interface ActivityRecommendationCardV2 extends Omit<ActivityRecommendationCard, 'contract_name' | 'contract_version'> {
+  contract_name: 'ActivityRecommendationCardV2';
+  contract_version: '2.0';
+  template_id: string;
+  template_version: number;
+  minimum_supervision: 'NONE' | 'NEARBY' | 'DIRECT';
+  policy_constraints: string[];
+}
+
+export interface ActivityRecommendationSetV2 {
+  contract_name: 'ActivityRecommendationSetV2';
+  contract_version: '2.0';
+  session_id: string;
+  expected_session_version: number;
+  age_months: number;
+  confirmed_anchor_label: string;
+  topic_label_vi: string;
+  total_count: number;
+  options: ActivityRecommendationCardV2[];
 }
 
 export class DemoApiError extends Error {
@@ -422,6 +438,36 @@ export class DemoApiClient {
       {
         method: 'GET',
         headers: this.metaHeaders(version, requestId),
+      },
+      30_000,
+    );
+  }
+
+  async readActivitySuggestions(
+    sessionId: string,
+    version: number,
+    ageMonths: number,
+    childProfile: ChildLearningProfileInput,
+  ) {
+    if (childProfile.adult_participating !== true) {
+      throw new DemoApiError('Cần có người lớn đồng hành trong hoạt động.', 'ADULT_PARTICIPATION_REQUIRED', 422);
+    }
+    if (ageMonths < 36 && childProfile.caregiver_participating !== true) {
+      throw new DemoApiError('Trẻ dưới 3 tuổi cần có người chăm sóc đồng hành trực tiếp.', 'UNDER_THREE_CAREGIVER_REQUIRED', 422);
+    }
+    const requestId = newId('req-activity-suggestions');
+    return this.request<WorkflowResult<ActivityRecommendationSetV2>>(
+      `/v1/sessions/${encodeURIComponent(sessionId)}/p1/activity-suggestions`,
+      {
+        method: 'POST',
+        headers: {
+          ...this.metaHeaders(version, requestId),
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(buildP1ActivitySuggestionsRequest({
+          ageMonths,
+          childProfile,
+        })),
       },
       30_000,
     );

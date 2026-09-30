@@ -26,6 +26,7 @@ from sketch2life.contracts.schemas.p1_experience import (
     MediaContinuityPlanV1,
     P1ContextOptionV1,
     P1ContextV1,
+    P1ContextV4,
     P1FilterResultV1,
     SemanticAnchorSetV1,
     SemanticMatchEvidenceV1,
@@ -372,6 +373,8 @@ class P1ExperienceCompiler:
             reason = tuple(f"MISSING_CONTEXT:{field}" for field in context.missing_fields())
         elif context_identity_failures:
             reason = context_identity_failures
+        elif isinstance(context, P1ContextV4) and self._hard_rule_failures(template, context):
+            reason = self._hard_rule_failures(template, context)
         elif spec.fit_evaluation.status != "PASS":
             reason = ("FIT_BELOW_THRESHOLD",)
         elif anchor_failures:
@@ -514,7 +517,36 @@ class P1ExperienceCompiler:
         return all(bool(set(group) & available) for group in required_groups)
 
     @staticmethod
-    def _hard_rule_failures(template: ActivityTemplateV1, context: P1ContextV1) -> tuple[str, ...]:
+    def _hard_rule_failures(
+        template: ActivityTemplateV1,
+        context: P1ContextV1 | P1ContextV4,
+    ) -> tuple[str, ...]:
+        if isinstance(context, P1ContextV4):
+            failures: list[str] = []
+            if context.age_months is None or not (
+                template.age_months_min <= context.age_months <= template.age_months_max
+            ):
+                failures.append("BLOCK_AGE")
+            if not context.adult_participating:
+                failures.append("BLOCK_ADULT_PARTICIPATION")
+            if (
+                context.age_months is not None
+                and context.age_months < 36
+                and not context.caregiver_participating
+            ):
+                failures.append("BLOCK_CAREGIVER_REQUIRED")
+            if template.minimum_supervision == "DIRECT" and not context.adult_participating:
+                failures.append("BLOCK_INSUFFICIENT_SUPERVISION")
+            unknown_policies = set(template.policy_constraints) - {"CAREGIVER_PRESENT"}
+            if unknown_policies:
+                failures.append("BLOCK_UNSUPPORTED_POLICY_CONSTRAINT")
+            if (
+                "CAREGIVER_PRESENT" in template.policy_constraints
+                and not context.adult_participating
+            ):
+                failures.append("BLOCK_POLICY_CONSTRAINT")
+            return tuple(failures)
+
         assert context.age_months is not None
         assert context.readiness_ids is not None
         assert context.completed_activity_ids is not None
