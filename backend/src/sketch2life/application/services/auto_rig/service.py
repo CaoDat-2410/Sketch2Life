@@ -547,8 +547,11 @@ class AutoRigService:
                     confidence=part.confidence,
                     mask_artifact_ref=descriptor.artifact_ref,
                     mask_sha256=descriptor.sha256,
-                    operation="deterministic source-image part processing",
-                    operation_version="1",
+                    operation=(
+                        f"imgproc:v2:p={segmentation.mask_sha256}:"
+                        f"edge={part.boundary_contrast:.2f}:anchor={part.anchor_fit:.2f}"
+                    ),
+                    operation_version="2-color55-s512",
                 )
             )
         verified_generated = _validate_part_masks(

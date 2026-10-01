@@ -146,3 +146,18 @@
 - Implementation status: locally implemented and repository-tested; reviewed held-out quality,
   target L4 latency/VRAM, and Android visual acceptance remain pending. No model/provider request,
   fine-tuning, dependency addition, or checkpoint download was performed.
+
+## Pixi sprite show and AI motion matching — APPROVED
+
+- State: APPROVED FOR IMPLEMENTATION
+- Plan: `features/FEAT-030-original-derived-auto-rig/plan/PIXI_SPRITE_SHOW_AND_AI_MOTION_MATCHING_20261001.md`
+- Plan revision: 4
+- Exact pre-approval plan SHA-256: `04DD49A6AC903052BDD3DBB674EE85A5537C642330CFF9F09E5170662B98FEEA`
+- Post-approval plan SHA-256 (approval-state metadata only; approved scope unchanged):
+  `7EDC97306D9F832F2AD19B38853ED8D77F5ECB8CE71540BD16B381A7D21E0BB7`
+- Approved at: 2026-10-01 00:44:56 Asia/Saigon (2026-09-30 17:44:56 UTC)
+- Approver/evidence: project owner replied “duyệt plan, tạo nhánh mới rồi mới implement” to the exact revision-4 plan/hash.
+- Required branch: `codex/pixi-ai-show-20261001`; created before implementation.
+- Approved scope: evidence-bounded image-processing mask proposals; a gap audit and reuse of existing visually approved sprites; add new sprite sequences only where a demonstrated behavior/scene gap requires them and after per-frame visual/provenance review; a versioned structured Pixi visual-show plan; one bounded post-Gate-B backend multimodal request that may use a minimized image crop; distinct companion sprites are allowed within the scene budget; visual beats only, with voice/captions deferred; subject disagreement returns to caregiver confirmation; AI failure is a visible typed error preserving the original, with no automatic retry or substitute show.
+- Constraints: Gate A remains authoritative for the selected subject and Gate B for the selected activity. Model output is schema/allowlist validated; no arbitrary code, unapproved asset, silent subject/activity change, automatic V1 fallback, or real child image in repo fixtures/logs. Asset runtime use remains gated by rights/provenance and FEAT-028 catalog eligibility. Live multimodal provider activation remains gated on privacy/retention, contract/ADR, latency/VRAM and Android evidence.
+- Implementation status at approval: not yet started. No code, runtime asset reference, model/provider request, or asset promotion was part of the approval action.

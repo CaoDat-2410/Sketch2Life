@@ -18,6 +18,12 @@ from sketch2life.application.ports.activity_ranker import (
     ActivityRankerPort,
     ActivityRankingUnavailable,
 )
+from sketch2life.application.ports.pixi_show_planner import (
+    PixiShowAssetCandidate,
+    PixiShowPlannerPort,
+    PixiShowPlannerUnavailable,
+    PixiShowPlanningRequest,
+)
 from sketch2life.application.ports.scene_localization import (
     SceneLocalizationPort,
     SceneLocalizationRequest,
@@ -43,6 +49,7 @@ from sketch2life.application.services.learning_media_resolver import (
     LearningMediaResolver,
 )
 from sketch2life.application.services.p1_experience import P1ExperienceCompiler
+from sketch2life.application.services.pixi_show_compiler import compile_pixi_show_plan
 from sketch2life.application.services.pixi_topic_asset_candidates import (
     build_topic_asset_candidate_context,
 )
@@ -69,6 +76,7 @@ from sketch2life.contracts.schemas.activity_ranking import (
     ActivityRankingRequestV1,
     ActivityRankingResultV1,
 )
+from sketch2life.contracts.schemas.auto_rig import RiggedArtworkPackageV1
 from sketch2life.contracts.schemas.child_learning_profile import (
     ActivityContextCandidateSetV2,
     ActivityContextCandidateV2,
@@ -105,6 +113,10 @@ from sketch2life.contracts.schemas.p1_experience import (
     SemanticAnchorV1,
     SemanticMatchEvidenceV1,
     VersionedRefV1,
+)
+from sketch2life.contracts.schemas.pixi_show import (
+    PixiRendererShowEnvelopeV1,
+    PixiShowAssetReadV1,
 )
 from sketch2life.contracts.schemas.pixi_topic_asset_selection import (
     AdultConfirmedTopicV1,
@@ -404,6 +416,14 @@ class SupervisedFlowService:
         renderer_source_capability_issuer: Callable[..., tuple[str, datetime]] | None = None,
         auto_rig_service: AutoRigService | None = None,
         activity_ranker: ActivityRankerPort | None = None,
+        pixi_show_planner: PixiShowPlannerPort | None = None,
+        pixi_show_planner_required: bool = False,
+        pixi_show_crop_provider: (
+            Callable[[str, str, str, str, str], tuple[bytes, str, SourceRegionV1]] | None
+        ) = None,
+        pixi_show_asset_issuer: (
+            Callable[[tuple[str, ...]], tuple[PixiShowAssetReadV1, ...]] | None
+        ) = None,
         now: Callable[[], datetime] = lambda: datetime.now(UTC),
     ) -> None:
         self._sessions = sessions
@@ -417,6 +437,10 @@ class SupervisedFlowService:
         self._renderer_source_capability_issuer = renderer_source_capability_issuer
         self._auto_rig_service = auto_rig_service
         self._activity_ranker = activity_ranker
+        self._pixi_show_planner = pixi_show_planner
+        self._pixi_show_planner_required = pixi_show_planner_required
+        self._pixi_show_crop_provider = pixi_show_crop_provider
+        self._pixi_show_asset_issuer = pixi_show_asset_issuer
         self._now = now
         self._lock = RLock()
         self._media_resolver = LearningMediaResolver(InMemoryLearningMediaStore())
@@ -2238,6 +2262,7 @@ class SupervisedFlowService:
                 }
             )
             launch_v2: PixiRendererLaunchV2 | None = None
+            package: RiggedArtworkPackageV1 | None = None
             if self._auto_rig_service is not None:
                 try:
                     (
@@ -2292,18 +2317,134 @@ class SupervisedFlowService:
                         partMaskReads=part_mask_reads,
                         rigParts=package.parts,
                         animationPlan=visual_plan,
-                        fallbackLaunch=launch.model_dump(
-                            mode="json", by_alias=True, exclude_none=True
-                        ),
+                        # Retain the frozen V2 field for wire compatibility, but do not package
+                        # a classic launch that could be mistaken for an automatic fallback.
+                        fallbackLaunch={},
                     )
                 except Exception:
-                    # V2 is an enhancement. V1 remains the session-safe fallback.
-                    _LOGGER.warning(
-                        "auto_rig_renderer_v2_failed session_id=%s",
-                        command.session_id,
-                        exc_info=True,
+                    # A configured V2 path must fail visibly. The exact original is retained by
+                    # the renderer screen; returning V1 here would silently change the experience.
+                    _LOGGER.warning("auto_rig_renderer_v2_failed code=PREPARATION_FAILED")
+                    raise _workflow_error(
+                        "PIXI_PREPARATION_FAILED",
+                        503,
+                        "Chưa chuẩn bị được sân khấu chuyển động. Ảnh gốc vẫn an toàn; "
+                        "hãy thử lại khi Pixi sẵn sàng.",
+                        domain="PIXI",
+                    ) from None
+            show_envelope: PixiRendererShowEnvelopeV1 | None = None
+            if self._pixi_show_planner_required:
+                try:
+                    if launch_v2 is None or package is None:
+                        raise PixiShowPlannerUnavailable("PLANNER_UNAVAILABLE")
+                    activity = spec.activity_plan.presentation_steps_vi[0]
+                    objective_id = spec.learning_focus.objective_ref.id
+                    objective_label = spec.learning_focus.child_facing_goal_vi
+                    candidate_context = build_topic_asset_candidate_context(
+                        query=AdultConfirmedTopicV1(
+                            gateAConfirmed=True,
+                            topicLabels=tuple(
+                                dict.fromkeys(
+                                    (
+                                        anchor_set.primary_anchor.normalized_label,
+                                        activity,
+                                        objective_label,
+                                    )
+                                )
+                            )[:5],
+                            topicTags=anchor_set.primary_anchor.semantic_tags[:20],
+                            locale="vi",
+                            maxCandidates=6,
+                        ),
+                        assets=self._topic_assets,
                     )
-                    launch_v2 = None
+                    if candidate_context.status != "READY":
+                        miss_reason = candidate_context.miss_reason
+                        code = (
+                            "NO_COMPATIBLE_ASSET"
+                            if miss_reason == "NO_SEMANTIC_MATCH"
+                            else "NO_ELIGIBLE_ASSETS"
+                        )
+                        raise PixiShowPlannerUnavailable(code)
+                    if package.tier.value == "WHOLE_DRAWING_V1":
+                        raise PixiShowPlannerUnavailable("BEHAVIOR_CAPABILITY_UNSUPPORTED")
+                    if (
+                        self._pixi_show_planner is None
+                        or self._pixi_show_crop_provider is None
+                        or self._pixi_show_asset_issuer is None
+                    ):
+                        raise PixiShowPlannerUnavailable("PLANNER_UNAVAILABLE")
+                    parent_mask = next(
+                        (
+                            artifact
+                            for artifact in package.derived_artifacts
+                            if artifact.role == "ORIGINAL_DERIVED_MASK"
+                            and artifact.source_sha256 == source_sha256
+                        ),
+                        None,
+                    )
+                    if parent_mask is None:
+                        raise PixiShowPlannerUnavailable("SUBJECT_CROP_UNAVAILABLE")
+                    crop_bytes, crop_content_type, source_subject_region = (
+                        self._pixi_show_crop_provider(
+                            command.session_id,
+                            source_artifact_ref,
+                            source_sha256,
+                            parent_mask.artifact_ref,
+                            parent_mask.sha256,
+                        )
+                    )
+                    planner_candidates = tuple(
+                        PixiShowAssetCandidate(
+                            asset_id=item.asset_id,
+                            label=item.label.vi,
+                            role=item.render_role,
+                            visual_description=item.visual_description.vi,
+                            topic_tags=item.topic_tags[:12],
+                        )
+                        for item in candidate_context.candidates
+                    )
+                    planning_request = PixiShowPlanningRequest(
+                        request_id=command.request_id,
+                        session_id=command.session_id,
+                        source_artifact_ref=source_artifact_ref,
+                        source_sha256=source_sha256,
+                        package_id=package.package_id,
+                        subject_region=source_subject_region,
+                        confirmed_subject_id=anchor_set.primary_anchor.anchor_id,
+                        confirmed_subject_label=anchor_set.primary_anchor.normalized_label,
+                        subject_tags=anchor_set.primary_anchor.semantic_tags,
+                        experience_spec_id=spec.spec_id,
+                        experience_spec_version=spec.spec_version,
+                        renderer_duration_seconds=launch_v2.animation_plan.duration_seconds,
+                        activity_id=spec.activity_template.activity_ref.id,
+                        activity_label=activity,
+                        objective_ids=(objective_id,),
+                        objective_labels=(objective_label,),
+                        rig_tier=package.tier.value,
+                        part_roles=tuple(part.role for part in package.parts),
+                        candidate_assets=planner_candidates,
+                        source_crop_content_type=crop_content_type,
+                        source_crop_bytes=crop_bytes,
+                    )
+                    intent = self._pixi_show_planner.plan(planning_request)
+                    show_plan = compile_pixi_show_plan(
+                        request=planning_request,
+                        intent=intent,
+                    )
+                    asset_reads = self._pixi_show_asset_issuer(show_plan.selected_asset_ids)
+                    show_envelope = PixiRendererShowEnvelopeV1(
+                        contractName="PixiRendererShowEnvelopeV1",
+                        contractVersion="1.0",
+                        rendererLaunchV2=launch_v2,
+                        showPlan=show_plan,
+                        assetReads=asset_reads,
+                    )
+                except PixiShowPlannerUnavailable as error:
+                    raise _pixi_show_workflow_error(error.code) from None
+                except Exception:
+                    _LOGGER.warning("pixi_show_preparation_failed code=INTERNAL_FAILURE")
+                    raise _pixi_show_workflow_error("PLANNER_UNAVAILABLE") from None
             result = _result(
                 status="SUCCEEDED",
                 command=command,
@@ -2315,6 +2456,18 @@ class SupervisedFlowService:
                     "renderer_launch_v2": (
                         launch_v2.model_dump(mode="json", by_alias=True, exclude_none=True)
                         if launch_v2 is not None
+                        else None
+                    ),
+                    "renderer_mode": (
+                        "PIXI_SHOW_V1"
+                        if show_envelope is not None
+                        else "PIXI_V2"
+                        if launch_v2 is not None
+                        else "LEGACY_V1"
+                    ),
+                    "renderer_show_envelope_v1": (
+                        show_envelope.model_dump(mode="json", by_alias=True, exclude_none=True)
+                        if show_envelope is not None
                         else None
                     ),
                     "subject_candidates": subject_candidates.model_dump(
@@ -2668,8 +2821,59 @@ def _context_for_p1_rules(value: object) -> P1ContextV1:
     return P1ContextV1(**{field: getattr(context, field) for field in base_fields})
 
 
-def _workflow_error(code: str, status_code: int, message: str) -> SessionWorkflowError:
-    return SessionWorkflowError(code=code, status_code=status_code, safe_message=message)
+def _workflow_error(
+    code: str,
+    status_code: int,
+    message: str,
+    *,
+    domain: Literal["TRANSPORT", "SESSION", "MEDIA", "AI", "P1", "GATE", "PIXI", "P4"] = "SESSION",
+    retryable: bool = False,
+) -> SessionWorkflowError:
+    return SessionWorkflowError(
+        code=code,
+        status_code=status_code,
+        safe_message=message,
+        domain=domain,
+        retryable=retryable,
+    )
+
+
+def _pixi_show_workflow_error(code: str) -> SessionWorkflowError:
+    messages = {
+        "PIXI_SHOW_DISABLED": "Pixi chưa được bật cho phiên này. Ảnh gốc vẫn an toàn.",
+        "NO_ELIGIBLE_ASSETS": (
+            "Thư viện nhân vật chưa có asset đủ quyền sử dụng cho ảnh này. Ảnh gốc vẫn an toàn."
+        ),
+        "NO_COMPATIBLE_ASSET": (
+            "Chưa có sprite phù hợp để ghép vào câu chuyện này. Ảnh gốc vẫn an toàn."
+        ),
+        "SUBJECT_CROP_UNAVAILABLE": (
+            "Chưa thể tạo vùng ảnh an toàn cho bước phân loại. Ảnh gốc vẫn an toàn."
+        ),
+        "PLANNER_TIMEOUT": "AI lập chuyển động quá thời gian. Hãy thử lại bằng nút Thử lại.",
+        "PLANNER_UNAVAILABLE": "AI lập chuyển động hiện chưa sẵn sàng. Hãy thử lại thủ công.",
+        "PLANNER_INVALID_RESULT": (
+            "AI trả về kế hoạch không hợp lệ nên Pixi chưa mở. Ảnh gốc vẫn an toàn."
+        ),
+        "SUBJECT_RECONFIRMATION_REQUIRED": (
+            "AI chưa khớp với chủ thể người lớn đã xác nhận. Hãy quay lại kiểm tra chủ thể."
+        ),
+        "BEHAVIOR_CAPABILITY_UNSUPPORTED": (
+            "Mask hiện tại chưa hỗ trợ kiểu chuyển động đó. Ảnh gốc vẫn an toàn."
+        ),
+    }
+    retryable = code in {"PLANNER_TIMEOUT", "PLANNER_UNAVAILABLE"}
+    return _workflow_error(
+        code if code in PixiShowPlannerUnavailable.CODES else "PLANNER_UNAVAILABLE",
+        504
+        if code == "PLANNER_TIMEOUT"
+        else 409
+        if code == "SUBJECT_RECONFIRMATION_REQUIRED"
+        else 503,
+        messages.get(code, messages["PLANNER_UNAVAILABLE"]),
+        domain="PIXI",
+        retryable=retryable,
+    )
 
 
 def _result(

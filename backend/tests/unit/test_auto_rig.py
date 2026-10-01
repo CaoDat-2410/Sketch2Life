@@ -116,6 +116,26 @@ def test_every_archetype_has_a_twenty_second_intro_and_still_rest(archetype: Rig
     assert all(track.keyframes[-1].at_seconds == 14.4 for track in plan.tracks)
 
 
+@pytest.mark.parametrize("archetype", tuple(RigArchetype))
+def test_every_cutout_plan_has_visible_root_translation_without_zoom_or_rotation(
+    archetype: RigArchetype,
+) -> None:
+    plan = build_animation_plan(
+        plan_id="cutout-motion", session_id="session-cutout",
+        experience_spec_ref=VersionedRefV1(id="spec-cutout", version=1),
+        package_id="package-cutout", archetype=archetype,
+        learning_bridge_vi="Cùng xem bức tranh nhé.", tier=RigDeliveryTier.CUTOUT_MICRO_MOTION,
+    )
+    assert len(plan.tracks) == 1
+    assert plan.tracks[0].bone_id == "root"
+    assert any(abs(frame.pose.translate_y) >= 0.018 for frame in plan.tracks[0].keyframes)
+    assert all(
+        frame.pose.scale_x == frame.pose.scale_y == 1 and frame.pose.rotation_degrees == 0
+        for frame in plan.tracks[0].keyframes
+    )
+    assert plan.tracks[0].keyframes[-1].pose.translate_y == 0
+
+
 def test_package_capability_is_bounded_and_returns_hash_bound_json() -> None:
     artifacts = InMemoryArtifactStore()
     service = AutoRigService(

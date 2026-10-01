@@ -13,6 +13,7 @@ from sketch2life.application.ports.activity_ranker import ActivityRankerPort
 from sketch2life.application.ports.child_preference_classifier import (
     ChildPreferenceClassifierPort,
 )
+from sketch2life.application.ports.pixi_show_planner import PixiShowPlannerPort
 from sketch2life.application.services.auto_rig import AutoRigService
 from sketch2life.application.services.ephemeral_sessions import EphemeralSessionService
 from sketch2life.application.services.image_admission import Feat018ImageAdmission
@@ -26,6 +27,7 @@ from sketch2life.contracts.schemas.mobile_workflow import (
     WorkflowFailureV1,
     WorkflowResultProvenanceV1,
 )
+from sketch2life.contracts.schemas.scene_exploration import SourceRegionV1
 from sketch2life.contracts.schemas.workflow_records import SessionSnapshotV1
 from sketch2life.infrastructure.ai.lightning_activity_ranker import LightningActivityRanker
 from sketch2life.infrastructure.ai.lightning_child_preference_classifier import (
@@ -115,6 +117,8 @@ def create_app(
     auto_rig_service: AutoRigService | None = None,
     child_preference_classifier: ChildPreferenceClassifierPort | None = None,
     activity_ranker: ActivityRankerPort | None = None,
+    pixi_show_planner: PixiShowPlannerPort | None = None,
+    pixi_show_asset_service: PixiShowAssetService | None = None,
 ) -> FastAPI:
     """Create the local image-only API composition root with ephemeral adapters."""
     application = FastAPI(
@@ -209,15 +213,19 @@ def create_app(
 
     application.add_middleware(BoundedImageUploadMiddleware)
     scene_localizer = None
+    pixi_show_planner_required = False
     if session_service is None:
         artifacts = InMemoryArtifactStore()
         idempotency = InMemoryIdempotencyStore()
         renderer_source_grants = InMemoryRendererSourceGrantStore()
         settings = get_settings()
+        pixi_show_planner_required = settings.pixi_show_planner_enabled
         if child_preference_classifier is None:
             child_preference_classifier = _configured_lightning_preference_classifier(settings)
         if activity_ranker is None:
             activity_ranker = _configured_lightning_activity_ranker(settings)
+        if pixi_show_planner is None:
+            pixi_show_planner = _configured_lightning_pixi_show_planner(settings)
         if auto_rig_service is None:
             auto_rig_service = AutoRigService(
                 artifacts=artifacts,
@@ -287,6 +295,39 @@ def create_app(
                 / "asset-catalog.v2.json"
             )
             topic_assets = load_topic_asset_catalog(asset_catalog_path)
+            feature_root = asset_catalog_path.resolve().parents[2]
+            if pixi_show_asset_service is None:
+                pixi_show_asset_service = PixiShowAssetService(
+                    feature_root=feature_root,
+                    assets=topic_assets,
+                )
+
+            def load_pixi_subject_crop(
+                session_id: str,
+                source_ref: str,
+                source_sha256: str,
+                mask_ref: str,
+                mask_sha256: str,
+            ) -> tuple[bytes, str, SourceRegionV1]:
+                source_item = artifacts.get(source_ref)
+                mask_item = artifacts.get(mask_ref)
+                if (
+                    source_item is None
+                    or mask_item is None
+                    or source_item[0].session_id != session_id
+                    or mask_item[0].session_id != session_id
+                    or source_item[0].sha256 != source_sha256
+                    or mask_item[0].sha256 != mask_sha256
+                    or source_item[0].content_type not in {"image/png", "image/jpeg"}
+                    or mask_item[0].content_type != "image/png"
+                ):
+                    from sketch2life.infrastructure.ai.pixi_subject_crop import (
+                        PixiSubjectCropUnavailable,
+                    )
+
+                    raise PixiSubjectCropUnavailable from None
+                return build_pixi_subject_crop(source_item[1], mask_item[1])
+
             supervised_flow_service = SupervisedFlowService(
                 sessions=session_service,
                 idempotency=idempotency,
@@ -303,6 +344,10 @@ def create_app(
                 ),
                 auto_rig_service=auto_rig_service,
                 activity_ranker=activity_ranker,
+                pixi_show_planner=pixi_show_planner,
+                pixi_show_planner_required=pixi_show_planner_required,
+                pixi_show_crop_provider=load_pixi_subject_crop,
+                pixi_show_asset_issuer=pixi_show_asset_service.issue_reads,
             )
     application.state.session_service = session_service
     application.state.live_image_demo_service = live_image_demo_service
@@ -310,6 +355,8 @@ def create_app(
     application.state.auto_rig_service = auto_rig_service
     application.state.child_preference_classifier = child_preference_classifier
     application.state.activity_ranker = activity_ranker
+    application.state.pixi_show_planner = pixi_show_planner
+    application.state.pixi_show_asset_service = pixi_show_asset_service
     application.include_router(health_router)
     application.include_router(child_preferences_router)
     application.include_router(sessions_router)
@@ -368,6 +415,32 @@ def _configured_lightning_activity_ranker(
     except (OSError, ValueError):
         return None
     return LightningActivityRanker(transport=transport)
+
+
+def _configured_lightning_pixi_show_planner(
+    settings: Settings,
+) -> LightningPixiShowPlanner | None:
+    if (
+        not settings.pixi_show_planner_enabled
+        or settings.env == "test"
+        or settings.ai_provider != "lightning_dev"
+        or not settings.lightning_ai_base_url
+        or settings.lightning_ai_token_file is None
+    ):
+        return None
+    try:
+        token = read_secret_file(settings.lightning_ai_token_file)
+        transport = UrllibJsonTransport(
+            base_url=settings.lightning_ai_base_url,
+            token=token,
+            request_timeout_seconds=min(settings.ai_request_timeout_seconds, 60.0),
+        )
+    except (OSError, ValueError):
+        return None
+    return LightningPixiShowPlanner(
+        transport=transport,
+        endpoint_path=settings.lightning_pixi_show_path,
+    )
 
 
 def _configured_lightning_vision(

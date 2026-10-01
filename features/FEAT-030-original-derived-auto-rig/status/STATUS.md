@@ -1,7 +1,7 @@
 # FEAT-030 status
 
 Status: IN_PROGRESS
-Updated: 2026-09-30
+Updated: 2026-10-01
 
 - The approved revision-4 SAM2.1 worker and integrated quality workstream are implemented locally;
   multimask candidates are bounded and filtered by existing prompt/area constraints.
@@ -29,3 +29,31 @@ Updated: 2026-09-30
   `plan/SAM21_PROMPT_REFINEMENT_FOLLOWUP_20260930.md` and
   `evidence/notes/SAM21_PROMPT_REFINEMENT_BASELINE_20260930.md` and
   `evidence/notes/SAM21_PROMPT_REFINEMENT_IMPLEMENTATION_20260930.md`.
+
+## Approved Pixi sprite show plan — implementation in progress (2026-10-01)
+
+- Revision 4 of `plan/PIXI_SPRITE_SHOW_AND_AI_MOTION_MATCHING_20261001.md` records all four owner
+  choices: visual beats only (narration/captions deferred), companion characters allowed, a bounded
+  image/crop permitted in the one post-Gate-B planner call, and visible typed failure with no
+  automatic retry or substitute show. It retains gap-driven sprite coverage across supported
+  behavior classes and the owner's visual approval of 144 frames; rights clearance/runtime remain
+  pending.
+- Plan revision 4 was explicitly approved; the exact pre-approval hash, branch and scope are recorded
+  in `approvals/TASK_APPROVAL.md`. Implementation is authorized on `codex/pixi-ai-show-20261001`.
+  FEAT-028 rights/runtime eligibility and live provider/Android gates remain separate constraints.
+
+- Offline implementation is in place on `codex/pixi-ai-show-20261001`: additive versioned show
+  contracts, one bounded post-Gate-B planner adapter (disabled by default), deterministic validator/
+  compiler, capability-bound sprite reads, and mobile-to-Pixi V3 bridge. V1/V2 contracts remain
+  unchanged; failures are visible and preserve the original with no automatic retry/fallback.
+- Image-processing part proposals require visible connected-color evidence inside the verified
+  subject mask; uniform silhouettes return no parts. Full backend suite reached 100%; workspace
+  typecheck/tests/build and focused Ruff passed. See
+  `evidence/notes/PIXI_SHOW_IMPLEMENTATION_20261001.md`.
+- FEAT-028 gap audit found only static one-pose catalog frames. Walker and flyer draft cycles were
+  added under FEAT-028 `assets/generated/`; they are not visually approved, catalogued, rights-cleared,
+  or runtime-referenced. Existing 144 visual approvals do not clear their rights.
+- Still gated: caregiver subject-reconfirmation round-trip, per-frame review/provenance and rights
+  for new sprite drafts, external-provider privacy/retention, live Qwen single-call validation,
+  Lightning L4 latency/VRAM, and fresh Android playback. No live model request or Android run was
+  performed. Runtime planner remains disabled.

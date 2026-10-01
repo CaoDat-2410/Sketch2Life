@@ -19,5 +19,19 @@ export {
 export {createNativeBridgeInjection, parseRendererMessage} from './bridge';
 export {RendererLoadCommandV2Schema} from './contractsV2';
 export type {RendererLoadCommandV2} from './contractsV2';
+export {
+  PixiRendererShowEnvelopeV1Schema,
+  PixiRendererLaunchV2WireSchema,
+  PixiShowAssetReadV1Schema,
+  PixiShowPlanV1Schema,
+  RendererLoadCommandV3Schema,
+} from './contractsPixiShow';
+export type {
+  PixiRendererShowEnvelopeV1,
+  PixiRendererLaunchV2Wire,
+  PixiShowAssetReadV1,
+  PixiShowPlanV1,
+  RendererLoadCommandV3,
+} from './contractsPixiShow';
 export type {PlaybackEvent, RendererBootstrap, RendererInteractionPhase} from './contracts';
 export type {RendererMessage} from './bridge';

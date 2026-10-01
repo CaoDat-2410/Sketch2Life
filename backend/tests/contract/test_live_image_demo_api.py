@@ -1940,7 +1940,8 @@ def test_fake_only_image_session_completes_p1_gate_b_p4_handoff_feedback_and_gal
     ]
     assert launch_v2["contractName"] == "PixiRendererLaunchV2"
     assert launch_v2["animationPlan"]["tier"] == "CUTOUT_MICRO_MOTION"
-    assert launch_v2["fallbackLaunch"]["contractName"] == "PixiRendererLaunchV1"
+    assert launch_v2["fallbackLaunch"] == {}
+    assert renderer.json()["payload"]["renderer_mode"] == "PIXI_V2"
     package = client.get(
         launch_v2["packageReadEndpoint"],
         headers={"X-Rig-Package-Capability": launch_v2["packageReadCapability"]},

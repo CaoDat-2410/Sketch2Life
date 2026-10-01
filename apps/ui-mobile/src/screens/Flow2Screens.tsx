@@ -61,6 +61,8 @@ import {
   RendererControlCommandSchema,
   RendererLoadCommandSchema,
   RendererLoadCommandV2Schema,
+  RendererLoadCommandV3Schema,
+  PixiRendererShowEnvelopeV1Schema,
   RendererPlaybackEventEnvelopeSchema,
   RendererPlaybackStateEnvelopeSchema,
   normalizeRendererFailureCode,
@@ -77,6 +79,82 @@ function rendererObject(value: unknown): Record<string, unknown> {
 
 function rendererText(value: unknown, fallback = ''): string {
   return typeof value === 'string' ? value : fallback;
+}
+
+function buildRendererLoadMessage(value: unknown, rendererInstanceId: string): string | null {
+  const launch = rendererObject(value);
+  if (launch.contractName === 'PixiRendererShowEnvelopeV1') {
+    const envelope = PixiRendererShowEnvelopeV1Schema.safeParse(launch);
+    if (!envelope.success) return null;
+    const base = envelope.data.rendererLaunchV2;
+    const command = RendererLoadCommandV3Schema.safeParse({
+      contractName: 'RendererLoadCommandV3',
+      contractVersion: '3.0',
+      protocolVersion: '3',
+      sequence: 1,
+      rendererInstanceId,
+      sessionId: base.sessionId,
+      expectedSessionVersion: base.expectedSessionVersion,
+      experienceSpecRef: base.experienceSpecRef,
+      sourceReadEndpoint: base.sourceReadEndpoint,
+      sourceReadCapability: base.sourceReadCapability,
+      sourceSha256: base.sourceSha256,
+      packageReadEndpoint: base.packageReadEndpoint,
+      packageReadCapability: base.packageReadCapability,
+      packageSha256: base.packageSha256,
+      ...(base.maskReadEndpoint === undefined ? {} : {maskReadEndpoint: base.maskReadEndpoint}),
+      ...(base.maskReadCapability === undefined ? {} : {maskReadCapability: base.maskReadCapability}),
+      ...(base.maskSha256 === undefined ? {} : {maskSha256: base.maskSha256}),
+      partMaskReads: base.partMaskReads,
+      rigParts: base.rigParts,
+      animationPlan: base.animationPlan,
+      showPlan: envelope.data.showPlan,
+      assetReads: envelope.data.assetReads,
+    });
+    return command.success ? JSON.stringify(command.data) : null;
+  }
+  if (launch.contractName === 'PixiRendererLaunchV2') {
+    const command = RendererLoadCommandV2Schema.safeParse({
+      contractName: 'RendererLoadCommandV2',
+      contractVersion: '2.0',
+      protocolVersion: '2',
+      sequence: 1,
+      rendererInstanceId,
+      sessionId: rendererText(launch.sessionId),
+      expectedSessionVersion: launch.expectedSessionVersion,
+      experienceSpecRef: launch.experienceSpecRef,
+      sourceReadEndpoint: launch.sourceReadEndpoint,
+      sourceReadCapability: launch.sourceReadCapability,
+      sourceSha256: launch.sourceSha256,
+      packageReadEndpoint: launch.packageReadEndpoint,
+      packageReadCapability: launch.packageReadCapability,
+      packageSha256: launch.packageSha256,
+      ...(launch.maskReadEndpoint === undefined ? {} : {maskReadEndpoint: launch.maskReadEndpoint}),
+      ...(launch.maskReadCapability === undefined ? {} : {maskReadCapability: launch.maskReadCapability}),
+      ...(launch.maskSha256 === undefined ? {} : {maskSha256: launch.maskSha256}),
+      partMaskReads: launch.partMaskReads ?? [],
+      rigParts: launch.rigParts ?? [],
+      animationPlan: launch.animationPlan,
+    });
+    return command.success ? JSON.stringify(command.data) : null;
+  }
+  const command = RendererLoadCommandSchema.safeParse({
+    contractName: 'RendererLoadCommandV1',
+    contractVersion: '1.0',
+    protocolVersion: ART_RENDERER_PROTOCOL_VERSION,
+    sequence: 1,
+    rendererInstanceId,
+    sessionId: rendererText(launch.sessionId),
+    expectedSessionVersion: launch.expectedSessionVersion,
+    experienceSpecRef: launch.experienceSpecRef,
+    sourceReadEndpoint: launch.sourceReadEndpoint,
+    sourceReadCapability: launch.sourceReadCapability,
+    assetManifest: launch.assetManifest,
+    animationPlan: launch.animationPlan,
+    sceneExplorationPlan: launch.sceneExplorationPlan,
+    sceneFocusPlan: launch.sceneFocusPlan,
+  });
+  return command.success ? JSON.stringify(command.data) : null;
 }
 
 function utf8ByteLength(value: string): number {
@@ -1093,6 +1171,7 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
     pixiIntroStoryboard,
     prepareRendererIntro,
     workflowBusy,
+    workflowError,
   } = useAppContext();
   const nav = onNavigate || navigate;
   const [rendererInstanceId, setRendererInstanceId] = useState(() => Crypto.randomUUID());
@@ -1193,6 +1272,12 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
 
   useEffect(() => {
     if (rendererLaunch || workflowBusy || rendererPreparationAttempted.current) return;
+    if (workflowError) {
+      rendererPreparationAttempted.current = true;
+      setRendererPreparationFailed(true);
+      setRendererStatus(workflowError);
+      return;
+    }
     rendererPreparationAttempted.current = true;
     void prepareRendererIntro().then((succeeded) => {
       if (!succeeded) {
@@ -1200,7 +1285,7 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
         setRendererStatus('Chưa thể mở câu chuyện. Hãy thử lại khi kết nối đã sẵn sàng.');
       }
     });
-  }, [rendererLaunch, workflowBusy, prepareRendererIntro]);
+  }, [rendererLaunch, workflowBusy, workflowError, prepareRendererIntro]);
 
   useEffect(() => {
     const deadline = rendererWatchdogDeadline({
@@ -1275,53 +1360,12 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
       setRendererHeartbeatAt(Date.now());
       let commandMessage = rendererPendingCommand.current;
       if (commandMessage === null) {
-        const launch = rendererObject(rendererLaunch);
-        const isV2 = launch.contractName === 'PixiRendererLaunchV2';
-        const command = isV2
-          ? RendererLoadCommandV2Schema.safeParse({
-            contractName: 'RendererLoadCommandV2',
-            contractVersion: '2.0',
-            protocolVersion: '2',
-            sequence: 1,
-            rendererInstanceId,
-            sessionId: rendererText(launch.sessionId),
-            expectedSessionVersion: launch.expectedSessionVersion,
-            experienceSpecRef: launch.experienceSpecRef,
-            sourceReadEndpoint: launch.sourceReadEndpoint,
-            sourceReadCapability: launch.sourceReadCapability,
-            sourceSha256: launch.sourceSha256,
-            packageReadEndpoint: launch.packageReadEndpoint,
-            packageReadCapability: launch.packageReadCapability,
-            packageSha256: launch.packageSha256,
-            ...(launch.maskReadEndpoint === undefined ? {} : {maskReadEndpoint: launch.maskReadEndpoint}),
-            ...(launch.maskReadCapability === undefined ? {} : {maskReadCapability: launch.maskReadCapability}),
-            ...(launch.maskSha256 === undefined ? {} : {maskSha256: launch.maskSha256}),
-            partMaskReads: launch.partMaskReads ?? [],
-            rigParts: launch.rigParts ?? [],
-            animationPlan: launch.animationPlan,
-          })
-          : RendererLoadCommandSchema.safeParse({
-            contractName: 'RendererLoadCommandV1',
-            contractVersion: '1.0',
-            protocolVersion: ART_RENDERER_PROTOCOL_VERSION,
-            sequence: 1,
-            rendererInstanceId,
-            sessionId: rendererText(launch.sessionId),
-            expectedSessionVersion: launch.expectedSessionVersion,
-            experienceSpecRef: launch.experienceSpecRef,
-            sourceReadEndpoint: launch.sourceReadEndpoint,
-            sourceReadCapability: launch.sourceReadCapability,
-            assetManifest: launch.assetManifest,
-            animationPlan: launch.animationPlan,
-            sceneExplorationPlan: launch.sceneExplorationPlan,
-            sceneFocusPlan: launch.sceneFocusPlan,
-          });
-        if (!command.success) {
+        commandMessage = buildRendererLoadMessage(rendererLaunch, rendererInstanceId);
+        if (commandMessage === null) {
           setRendererFailed(true);
           setRendererStatus('Bức tranh chưa sẵn sàng. Ảnh gốc vẫn được giữ nguyên.');
           return;
         }
-        commandMessage = JSON.stringify(command.data);
         rendererPendingCommand.current = commandMessage;
       }
       if (!rendererWebViewRef.current) return;

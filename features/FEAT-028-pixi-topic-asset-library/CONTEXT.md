@@ -1,6 +1,6 @@
 # FEAT-028 Pixi topic asset library context
 
-- Status: APPROVED, plan revision 2; implementation in progress (144 generated drafts pending visual review)
+- Status: APPROVED, plan revision 2; implementation in progress (144 catalog frames visually approved but rights/runtime gated; two new motion sheets are unreviewed drafts)
 - Owner: Project owner; renderer/asset implementation allocation to be confirmed before integration
 - Goal: provide a reusable, provenance-safe flat-2D asset library and topic-expansion workflow for Pixi scenes and future UI, harmonized with the child's original drawing.
 - Scope: asset audit/taxonomy; 144 stable sprite IDs across 24 atlas packs; bilingual semantic descriptors; local style-profile metadata; deterministic approved-only top-K candidate context and AI response allowlist; typed no-match/authoring proposal; licensing, review, and evidence.

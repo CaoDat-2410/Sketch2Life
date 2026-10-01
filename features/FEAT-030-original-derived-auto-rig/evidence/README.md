@@ -19,6 +19,7 @@
 | E-030-SAM-QUALITY-012 | Decouple analytic mask fixtures from pytest; reproduce bounded-selector metrics and grounded thin-detail case | Synthetic-only benchmark and regression suite | `notes/SAM21_BENCHMARK_RUNABILITY_20260930.md` | PASS_SELECTOR_PLUMBING; REAL SAM/L4/HELD-OUT QUALITY PENDING |
 | E-030-FIX-013 | Reproduce and fix bounded local-donor failure on a dense saturated outline | Synthetic renderer regression, typecheck, bundle and mobile checks | `notes/PIXI_MASK_BACKGROUND_RECONSTRUCTION_FIX_20260930.md` | OFFLINE_PASS; ANDROID_VISUAL_ACCEPTANCE_PENDING |
 | E-030-FIX-014 | Recover when a high-pigment outline exceeds the local donor radius while preserving strict mask bounds | Backend artifact log review, synthetic 16px outline regression, renderer/mobile tests and served bundle probe | `notes/PIXI_MASK_BACKGROUND_RECONSTRUCTION_FIX_FOLLOWUP_20260930.md` | OFFLINE_PASS; FRESH_ANDROID_VISUAL_ACCEPTANCE_PENDING |
+| E-030-SHOW-015 | Additive AI-authored Pixi visual show contract/bridge, evidence-bounded part proposals, rights-filtered sprite capabilities, and static-vs-motion asset gap audit | Full backend suite; TypeScript/mobile tests and typecheck; renderer build; Ruff; repository security validation; generated draft provenance | `notes/PIXI_SHOW_IMPLEMENTATION_20261001.md` | OFFLINE_PASS; planner disabled; new sprites pending visual/rights review; live model, L4 and Android gates open |
 
 ## Planned evidence groups
 

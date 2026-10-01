@@ -7,6 +7,7 @@ from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 from hashlib import sha256
 from threading import RLock
+from typing import Literal
 from uuid import UUID
 
 from sketch2life.application.ports.demo_workflow_storage import (
@@ -42,12 +43,16 @@ class SessionWorkflowError(Exception):
         status_code: int,
         safe_message: str,
         retryable: bool = False,
+        domain: Literal[
+            "TRANSPORT", "SESSION", "MEDIA", "AI", "P1", "GATE", "PIXI", "P4"
+        ] = "SESSION",
     ) -> None:
         super().__init__(code)
         self.code = code
         self.status_code = status_code
         self.safe_message = safe_message
         self.retryable = retryable
+        self.domain = domain
 
 
 class EphemeralSessionService:
@@ -380,7 +385,7 @@ def failure_result(
         ),
         provenance=_provenance(),
         failure=WorkflowFailureV1(
-            domain="SESSION",
+            domain=error.domain,
             code=error.code,
             retryable=error.retryable,
             safe_message=error.safe_message,

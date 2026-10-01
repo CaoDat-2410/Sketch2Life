@@ -24,15 +24,15 @@ def _silhouette() -> bytes:
 @pytest.mark.parametrize(
     ("archetype", "expected_roles"),
     [
-        (RigArchetype.BUTTERFLY, {"left-wing", "body", "right-wing"}),
-        (RigArchetype.BIRD, {"head", "body", "wing"}),
-        (RigArchetype.FLOWER, {"crown", "stem"}),
-        (RigArchetype.TREE_BRANCH, {"crown", "stem"}),
-        (RigArchetype.FISH, {"tail", "body", "head"}),
-        (RigArchetype.BIPED, {"head", "torso", "left-leg", "right-leg"}),
+        (RigArchetype.BUTTERFLY, set()),
+        (RigArchetype.BIRD, set()),
+        (RigArchetype.FLOWER, set()),
+        (RigArchetype.TREE_BRANCH, set()),
+        (RigArchetype.FISH, set()),
+        (RigArchetype.BIPED, set()),
     ],
 )
-def test_mask_partition_emits_disjoint_archetype_parts_without_inventing_pixels(
+def test_uniform_silhouette_does_not_invent_archetype_parts(
     archetype: RigArchetype, expected_roles: set[str]
 ) -> None:
     source = Image.new("RGB", (100, 100), "white")
@@ -41,6 +41,19 @@ def test_mask_partition_emits_disjoint_archetype_parts_without_inventing_pixels(
     parts = derive_part_masks_from_subject_mask(_png(source), parent_bytes, archetype)
 
     assert {part.role for part in parts} == expected_roles
+
+
+def test_visible_disjoint_components_can_be_proposed_as_butterfly_parts() -> None:
+    source = Image.new("RGB", (100, 100), "white")
+    draw = ImageDraw.Draw(source)
+    draw.ellipse((21, 33, 39, 51), fill=(255, 30, 30))
+    draw.ellipse((41, 41, 59, 59), fill=(30, 80, 255))
+    draw.ellipse((61, 33, 79, 51), fill=(255, 30, 30))
+    parent_bytes = _silhouette()
+
+    parts = derive_part_masks_from_subject_mask(_png(source), parent_bytes, RigArchetype.BUTTERFLY)
+
+    assert {part.role for part in parts} == {"left-wing", "body", "right-wing"}
     parent = Image.open(BytesIO(parent_bytes)).convert("1")
     part_images = [Image.open(BytesIO(part.mask_png)).convert("1") for part in parts]
     parent_pixels = list(parent.getdata())
@@ -51,10 +64,10 @@ def test_mask_partition_emits_disjoint_archetype_parts_without_inventing_pixels(
                 continue
             assert parent_pixels[index]
             assignments[index] += 1
-    assert all(
-        count == (1 if inside else 0)
-        for count, inside in zip(assignments, parent_pixels, strict=True)
-    )
+    assert all(count <= 1 and (inside or count == 0) for count, inside in zip(
+        assignments, parent_pixels, strict=True
+    ))
+    assert sum(assignments) < sum(parent_pixels)
 
 
 @pytest.mark.parametrize(

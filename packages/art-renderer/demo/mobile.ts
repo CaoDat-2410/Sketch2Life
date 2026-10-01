@@ -1,4 +1,4 @@
-import {Application, Rectangle, Texture} from 'pixi.js';
+import {Application, Container, Rectangle, Sprite, Texture} from 'pixi.js';
 
 import {
   ART_RENDERER_PROTOCOL_VERSION,
@@ -9,6 +9,7 @@ import {
   RendererControlCommandSchema,
   RendererLoadCommandSchema,
   RendererLoadCommandV2Schema,
+  RendererLoadCommandV3Schema,
   RiggedArtworkPackageV1Schema,
   matchesDerivedMaskProvenance,
   sha256Hex,
@@ -17,6 +18,7 @@ import {
   type PlaybackEvent,
   type RendererLoadCommand,
   type RendererLoadCommandV2,
+  type RendererLoadCommandV3,
 } from '../src/index';
 
 declare global {
@@ -38,7 +40,7 @@ if (stage === null || status === null || playButton === null || rendererInstance
 const app = new Application();
 let rendererInitialized = false;
 
-type ActiveLaunch = RendererLoadCommand | RendererLoadCommandV2;
+type ActiveLaunch = RendererLoadCommand | RendererLoadCommandV2 | RendererLoadCommandV3;
 type PlaybackController = Pick<ReturnType<typeof createBrowserArtPlayer>, 'play' | 'pause' | 'replay' | 'seekTo' | 'seekRelative' | 'getPlaybackState' | 'destroy'>;
 
 let launch: ActiveLaunch | null = null;
@@ -50,6 +52,26 @@ let lastProgressPostAt = 0;
 let activePlayer: PlaybackController | null = null;
 const destroyedPlayers = new Set<PlaybackController>();
 let v2InteractionPhase: 'INTRO_LOADING' | 'INTRO_PLAYING' | 'DISCOVERY_READY' | 'FALLBACK' = 'INTRO_LOADING';
+let supplementalRoot: Container | null = null;
+let supplementalTextures: Texture[] = [];
+let supplementalSprites = new Map<string, Sprite>();
+
+function isV2Launch(command: ActiveLaunch): command is RendererLoadCommandV2 | RendererLoadCommandV3 {
+  return command.contractName === 'RendererLoadCommandV2' || command.contractName === 'RendererLoadCommandV3';
+}
+
+function launchPlanId(command: ActiveLaunch): string {
+  return isV2Launch(command) ? command.animationPlan.planId : command.animationPlan.plan.planId;
+}
+
+function stopSupplementalShow(): void {
+  autoRigPlayer.setShowBeat(null, 0);
+  supplementalRoot?.destroy({children: true});
+  supplementalRoot = null;
+  supplementalSprites.clear();
+  for (const texture of supplementalTextures) texture.destroy(true);
+  supplementalTextures = [];
+}
 
 function safelyDestroyPlayer(player: PlaybackController | null): void {
   if (player === null || destroyedPlayers.has(player)) return;
@@ -69,7 +91,11 @@ function post(value: unknown): void {
 function setPlaybackStatus(event: PlaybackEvent): void {
   switch (event.type) {
     case 'PLAYBACK_STARTED':
-      status.textContent = 'Đang reveal bức vẽ gốc bằng PixiJS…';
+      status.textContent = launch !== null && isV2Launch(launch)
+        ? launch.animationPlan.tier === 'CUTOUT_MICRO_MOTION'
+          ? 'Chủ thể chuyển động nhẹ; chưa tách được bộ phận.'
+          : 'Đang phát chuyển động các bộ phận bằng PixiJS…'
+        : 'Đang reveal bức vẽ gốc bằng PixiJS…';
       playButton.disabled = true;
       break;
     case 'PLAYBACK_COMPLETED':
@@ -176,10 +202,11 @@ const autoRigPlayer = createAutoRigPlayer({
   app,
   onProgress: (positionSeconds, durationSeconds, stateValue) => {
     if (stateValue === 'PLAYING') v2InteractionPhase = 'INTRO_PLAYING';
+    if (launch?.contractName === 'RendererLoadCommandV3') syncShowToTime(positionSeconds);
     postProgress(positionSeconds, durationSeconds, stateValue, v2InteractionPhase);
   },
   onCompleted: () => {
-    if (launch === null) return;
+    if (launch === null || !isV2Launch(launch)) return;
     const planId = launch.animationPlan.planId;
     v2InteractionPhase = 'DISCOVERY_READY';
     postLifecycle({type: 'PLAYBACK_COMPLETED', planId});
@@ -206,9 +233,16 @@ async function loadLaunch(serialized: string): Promise<void> {
     status.textContent = 'Launch không phải JSON hợp lệ.';
     return;
   }
+  const parsedV3 = RendererLoadCommandV3Schema.safeParse(parsedJson);
   const parsedV2 = RendererLoadCommandV2Schema.safeParse(parsedJson);
   const parsedV1 = RendererLoadCommandSchema.safeParse(parsedJson);
-  const command = parsedV2.success ? parsedV2.data : parsedV1.success ? parsedV1.data : null;
+  const command = parsedV3.success
+    ? parsedV3.data
+    : parsedV2.success
+      ? parsedV2.data
+      : parsedV1.success
+        ? parsedV1.data
+        : null;
   if (command === null || command.rendererInstanceId !== rendererInstanceId) {
     status.textContent = 'Launch sai contract hoặc không khớp renderer instance.';
     return;
@@ -228,11 +262,11 @@ async function loadLaunch(serialized: string): Promise<void> {
     if (image.size <= 0 || image.size > 5_000_000) throw new Error('SOURCE_SIZE_INVALID');
     if (image.type !== 'image/png' && image.type !== 'image/jpeg') throw new Error('SOURCE_TYPE_INVALID');
     if (
-      command.contractName === 'RendererLoadCommandV2'
+      isV2Launch(command)
       && await sha256Hex(await image.arrayBuffer()) !== command.sourceSha256
     ) throw new Error('SOURCE_HASH_MISMATCH');
     sourceBlob = image;
-    if (command.contractName === 'RendererLoadCommandV2') {
+    if (isV2Launch(command)) {
       status.textContent = 'Đang chuẩn bị từng nét vẽ chuyển động…';
       try {
         const packageResponse = await fetch(new URL(command.packageReadEndpoint, window.location.href), {
@@ -340,8 +374,12 @@ async function loadLaunch(serialized: string): Promise<void> {
         );
         activePlayer = autoRigPlayer;
         v2InteractionPhase = 'INTRO_LOADING';
+        if (command.contractName === 'RendererLoadCommandV3') {
+          await loadSupplementalShow(command);
+        }
       } catch (error) {
         console.error('[art-renderer] Renderer V2 package could not start.', safeFailureCode(error));
+        stopSupplementalShow();
         safelyDestroyPlayer(autoRigPlayer);
         activePlayer = null;
         playButton.disabled = true;
@@ -364,13 +402,14 @@ async function loadLaunch(serialized: string): Promise<void> {
     playButton.disabled = false;
     playButton.textContent = 'Tạm dừng / tiếp tục';
     status.textContent = 'Pixi đã nạp ảnh gốc và bắt đầu câu chuyện.';
-    if (command.contractName === 'RendererLoadCommandV2') {
+    if (isV2Launch(command)) {
       postLifecycle({type: 'PLAYBACK_STARTED', planId: command.animationPlan.planId});
     }
     activePlayer.play();
   } catch (error) {
     try {
-      safelyDestroyPlayer(command.contractName === 'RendererLoadCommandV2' ? autoRigPlayer : classicPlayer);
+      stopSupplementalShow();
+      safelyDestroyPlayer(isV2Launch(command) ? autoRigPlayer : classicPlayer);
     } catch {
       // Keep the original source and still report the launch failure.
     }
@@ -380,9 +419,7 @@ async function loadLaunch(serialized: string): Promise<void> {
     playButton.disabled = true;
     postLifecycle({
       type: 'PLAYBACK_FAILED',
-      planId: command.contractName === 'RendererLoadCommandV2'
-        ? command.animationPlan.planId
-        : command.animationPlan.plan.planId,
+      planId: launchPlanId(command),
       reason: safeFailureCode(error),
     });
   }
@@ -414,9 +451,16 @@ function receiveNativeMessage(event: MessageEvent): void {
     }
     return;
   }
+  const parsedV3 = RendererLoadCommandV3Schema.safeParse(parsed);
   const parsedV2 = RendererLoadCommandV2Schema.safeParse(parsed);
   const parsedV1 = RendererLoadCommandSchema.safeParse(parsed);
-  const command = parsedV2.success ? parsedV2.data : parsedV1.success ? parsedV1.data : null;
+  const command = parsedV3.success
+    ? parsedV3.data
+    : parsedV2.success
+      ? parsedV2.data
+      : parsedV1.success
+        ? parsedV1.data
+        : null;
   if (command?.rendererInstanceId === rendererInstanceId) {
     if (lastAcceptedLaunchMessage !== serialized) {
       lastAcceptedLaunchMessage = serialized;
@@ -446,6 +490,7 @@ playButton.addEventListener('click', () => {
 
 function reportPlaybackFailure(error: unknown): void {
   const reason = safeFailureCode(error);
+  stopSupplementalShow();
   safelyDestroyPlayer(activePlayer);
   activePlayer = null;
   playButton.disabled = true;
@@ -454,18 +499,17 @@ function reportPlaybackFailure(error: unknown): void {
   if (launch !== null) {
     postLifecycle({
       type: 'PLAYBACK_FAILED',
-      planId: launch.contractName === 'RendererLoadCommandV2'
-        ? launch.animationPlan.planId
-        : launch.animationPlan.plan.planId,
+      planId: launchPlanId(launch),
       reason,
     });
   }
 }
 
 window.addEventListener('pagehide', () => {
+  stopSupplementalShow();
   safelyDestroyPlayer(activePlayer);
   if (activePlayer === null && launch !== null) {
-    safelyDestroyPlayer(launch.contractName === 'RendererLoadCommandV2' ? autoRigPlayer : classicPlayer);
+    safelyDestroyPlayer(isV2Launch(launch) ? autoRigPlayer : classicPlayer);
   } else if (launch === null) {
     safelyDestroyPlayer(classicPlayer);
     safelyDestroyPlayer(autoRigPlayer);
@@ -481,14 +525,19 @@ function reportPixiInitializationFailure(serialized: string): void {
   } catch {
     return;
   }
+  const parsedV3 = RendererLoadCommandV3Schema.safeParse(parsedJson);
   const parsedV2 = RendererLoadCommandV2Schema.safeParse(parsedJson);
   const parsedV1 = RendererLoadCommandSchema.safeParse(parsedJson);
-  const command = parsedV2.success ? parsedV2.data : parsedV1.success ? parsedV1.data : null;
+  const command = parsedV3.success
+    ? parsedV3.data
+    : parsedV2.success
+      ? parsedV2.data
+      : parsedV1.success
+        ? parsedV1.data
+        : null;
   if (command === null || command.rendererInstanceId !== rendererInstanceId) return;
   launch = command;
-  const planId = command.contractName === 'RendererLoadCommandV2'
-    ? command.animationPlan.planId
-    : command.animationPlan.plan.planId;
+  const planId = launchPlanId(command);
   postLifecycle({type: 'PLAYBACK_FAILED', planId, reason: 'PIXI_APPLICATION_INIT_FAILED'});
 }
 
@@ -517,7 +566,7 @@ void app.init({
   stage.append(app.canvas);
   rendererInitialized = true;
   app.canvas.addEventListener('pointerdown', () => {
-    if (launch?.contractName !== 'RendererLoadCommandV2') return;
+    if (launch === null || !isV2Launch(launch)) return;
     postLifecycle({type: 'CANVAS_TAPPED', planId: launch.animationPlan.planId});
   });
   status.textContent = 'Pixi sẵn sàng, đang chờ launch của đúng phiên.';
@@ -564,6 +613,102 @@ async function textureFromBlob(
     context.putImageData(image, 0, 0);
   }
   return {texture: Texture.from(canvas), canvas, sourceWidth, sourceHeight};
+}
+
+async function loadSupplementalShow(command: RendererLoadCommandV3): Promise<void> {
+  stopSupplementalShow();
+  const root = new Container();
+  const textures: Texture[] = [];
+    const sprites = new Map<string, Sprite>();
+  try {
+    for (const read of command.assetReads) {
+      const response = await fetch(new URL(read.readEndpoint, window.location.href), {
+        method: 'GET',
+        headers: {'X-Pixi-Asset-Capability': read.readCapability},
+        cache: 'no-store',
+        credentials: 'same-origin',
+      });
+      if (!response.ok) throw new Error('SHOW_ASSET_UNAVAILABLE');
+      if (response.headers.get('Content-Type')?.split(';')[0] !== read.contentType) {
+        throw new Error('SHOW_ASSET_TYPE_INVALID');
+      }
+      const bytes = await response.arrayBuffer();
+      if (
+        bytes.byteLength !== read.byteLength
+        || bytes.byteLength <= 0
+        || bytes.byteLength > 1_000_000
+        || await sha256Hex(bytes) !== read.sha256
+        || response.headers.get('X-Content-SHA256') !== read.sha256
+      ) throw new Error('SHOW_ASSET_HASH_INVALID');
+      const decoded = await textureFromBlob(new Blob([bytes], {type: read.contentType}), false, 360);
+      const texture = decoded.texture;
+      textures.push(texture);
+      const sprite = new Sprite(texture);
+      sprite.anchor.set(0.5);
+      const fit = Math.min(160 / Math.max(1, texture.width), 138 / Math.max(1, texture.height));
+      sprite.scale.set(fit);
+      sprite.alpha = 0;
+      sprite.visible = false;
+      root.addChild(sprite);
+      sprites.set(read.assetId, sprite);
+    }
+
+    const beats = command.showPlan.beats.filter((beat) => beat.targetRole === 'SUPPLEMENTAL_ASSET');
+    const missingAsset = beats.some((beat) => beat.assetId === undefined || !sprites.has(beat.assetId));
+    if (missingAsset || sprites.size !== command.showPlan.selectedAssetIds.length) {
+      throw new Error('SHOW_ASSET_PLAN_MISMATCH');
+    }
+
+    supplementalRoot = root;
+    supplementalTextures = textures;
+    supplementalSprites = sprites;
+    app.stage.addChild(root);
+    syncShowToTime(autoRigPlayer.getPlaybackState().positionSeconds);
+  } catch (error) {
+    root.destroy({children: true});
+    for (const texture of textures) texture.destroy(true);
+    throw error;
+  }
+}
+
+function syncShowToTime(position: number): void {
+  const current = launch;
+  if (current === null || current.contractName !== 'RendererLoadCommandV3') return;
+  const activeSourceBeat = current.showPlan.beats.find((beat) => (
+    beat.targetRole === 'SOURCE_SUBJECT'
+    && position >= beat.startSeconds
+    && position < beat.endSeconds
+  ));
+  autoRigPlayer.setShowBeat(
+    activeSourceBeat?.action ?? null,
+    activeSourceBeat === undefined
+      ? 0
+      : Math.min(1, (position - activeSourceBeat.startSeconds) / (activeSourceBeat.endSeconds - activeSourceBeat.startSeconds)),
+  );
+
+  for (const [assetId, sprite] of supplementalSprites) {
+    const beat = current.showPlan.beats.find((candidate) => candidate.assetId === assetId
+      && candidate.targetRole === 'SUPPLEMENTAL_ASSET'
+      && position >= candidate.startSeconds
+      && position < candidate.endSeconds);
+    if (beat === undefined) {
+      sprite.visible = false;
+      sprite.alpha = 0;
+      continue;
+    }
+    const progress = Math.min(1, Math.max(0, (position - beat.startSeconds) / (beat.endSeconds - beat.startSeconds)));
+    const eased = progress * progress * (3 - 2 * progress);
+    const targetX = beat.x * 800;
+    const targetY = beat.y * 600;
+    sprite.visible = true;
+    sprite.alpha = beat.action === 'NOTICE' ? Math.min(1, progress * 5) : 1;
+    sprite.x = beat.action === 'APPROACH' ? targetX + (1 - eased) * 32 : targetX;
+    sprite.y = beat.action === 'INTERACT'
+      ? targetY - Math.sin(progress * Math.PI * 2) * 10
+      : beat.action === 'NOTICE'
+        ? targetY - Math.sin(progress * Math.PI) * 7
+        : targetY;
+  }
 }
 
 function safeFailureCode(error: unknown): string {

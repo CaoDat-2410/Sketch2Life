@@ -41,6 +41,8 @@ class Settings(BaseSettings):
     lightning_vision_v2_path: str = "/v2/vision"
     lightning_sam21_enabled: bool = False
     lightning_sam21_path: str = "/v2/rig/segment"
+    pixi_show_planner_enabled: bool = False
+    lightning_pixi_show_path: str = "/v2/pixi/show-plan"
     live_fixture_root: Path | None = None
     runpod_endpoint_id: str = ""
     runpod_api_key_file: Path | None = None

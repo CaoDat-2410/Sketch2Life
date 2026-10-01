@@ -154,6 +154,40 @@ function makeFixtureCanvases(): {source: MemoryCanvas; parent: MemoryCanvas; par
 afterEach(() => vi.unstubAllGlobals());
 
 describe('Pixi independent part playback', () => {
+  it('moves a cutout subject visibly while leaving camera/background scale and rotation fixed', () => {
+    vi.stubGlobal('document', {createElement: () => new MemoryCanvas()});
+    const stage = {
+      children: [] as {children: unknown[]}[],
+      addChild(child: {children: unknown[]}): void { this.children.push(child); },
+    };
+    const app = {stage, renderer: {resize: vi.fn()}, ticker: {add: vi.fn(), remove: vi.fn()}};
+    const {source, parent} = makeFixtureCanvases();
+    const player = createAutoRigPlayer({app: app as never});
+    player.load(
+      {...packageFixture, tier: 'CUTOUT_MICRO_MOTION', parts: [],
+        validation: {...packageFixture.validation, selectedTier: 'CUTOUT_MICRO_MOTION'}},
+      {...planFixture, tier: 'CUTOUT_MICRO_MOTION', tracks: [{
+        trackId: 'subject-settle', boneId: 'root', profile: 'breathe', repeat: 0,
+        keyframes: [{atSeconds: 0, pose: neutral},
+          {atSeconds: 3, pose: {...neutral, translateY: -0.024}},
+          {atSeconds: 14.4, pose: neutral}],
+      }]}, source as never, parent as never,
+    );
+    const sprites = stage.children[0].children as {
+      position: {x: number; y: number}; scale: {x: number; y: number}; rotation: number;
+    }[];
+    const initialY = sprites[1].position.y;
+    const initialBackgroundY = sprites[0].position.y;
+    const initialScale = sprites[1].scale.x;
+    player.seekTo(3);
+    expect(initialY - sprites[1].position.y).toBeGreaterThan(10);
+    expect(sprites[0].position.y).toBe(initialBackgroundY);
+    expect(sprites[1].scale.x).toBe(initialScale);
+    expect(sprites[1].rotation).toBe(0);
+    player.seekTo(20);
+    expect(sprites[1].position.y).toBe(initialY);
+    player.destroy();
+  });
   it('builds separate semantic sprites, follows wing keyframes, and rests through 20s', () => {
     vi.stubGlobal('document', {createElement: () => new MemoryCanvas()});
     const stage = {
@@ -182,6 +216,10 @@ describe('Pixi independent part playback', () => {
     player.seekTo(1);
     expect(sprites.some((sprite) => Math.abs(sprite.rotation) > 0.1)).toBe(true);
     player.seekTo(19);
+    expect(sprites.every((sprite) => Math.abs(sprite.rotation) < 0.001)).toBe(true);
+    player.setShowBeat('FLAP', 0.125);
+    expect(sprites.some((sprite) => Math.abs(sprite.rotation) > 0.1)).toBe(true);
+    player.setShowBeat(null, 0);
     expect(sprites.every((sprite) => Math.abs(sprite.rotation) < 0.001)).toBe(true);
     player.destroy();
   });

@@ -23,6 +23,10 @@ from sketch2life.contracts.schemas.mobile_workflow import (
     MobileWorkflowCommandV1,
     MobileWorkflowResultV1,
 )
+from sketch2life.infrastructure.catalog.pixi_show_assets import (
+    PixiShowAssetService,
+    PixiShowAssetUnavailable,
+)
 
 router = APIRouter(prefix="/v1/sessions", tags=["supervised-flow"])
 renderer_source_router = APIRouter(tags=["renderer"])
@@ -477,6 +481,35 @@ def read_renderer_rig_mask(
     return Response(
         content=body,
         media_type=content_type,
+        headers={
+            "Cache-Control": "no-store, max-age=0",
+            "X-Content-Type-Options": "nosniff",
+            "X-Content-SHA256": digest,
+        },
+    )
+
+
+@renderer_source_router.get("/v1/renderer/pixi-asset")
+def read_renderer_pixi_asset(
+    request: Request,
+    capability: Annotated[
+        str,
+        Header(alias="X-Pixi-Asset-Capability", min_length=40, max_length=200),
+    ],
+) -> Response:
+    service: PixiShowAssetService | None = request.app.state.pixi_show_asset_service
+    if service is None:
+        return JSONResponse(status_code=503, content={"code": "PIXI_ASSET_NOT_CONFIGURED"})
+    try:
+        body, digest = service.read(capability)
+    except PixiShowAssetUnavailable:
+        return JSONResponse(
+            status_code=410,
+            content={"code": "PIXI_ASSET_UNAVAILABLE", "message": "The selected frame expired."},
+        )
+    return Response(
+        content=body,
+        media_type="image/png",
         headers={
             "Cache-Control": "no-store, max-age=0",
             "X-Content-Type-Options": "nosniff",

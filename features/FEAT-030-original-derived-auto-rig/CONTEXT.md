@@ -1,10 +1,10 @@
 # FEAT-030 Original-derived auto-rig context
 
-- Status: REVISION_3_PART_AWARE_BASELINE_IMPLEMENTED; REVISION_4_SAM21_WORKER_IMPLEMENTATION_IN_PROGRESS; QWEN_SINGLE_PASS_AND_SAM_PROMPT_FIX_IMPLEMENTED; SAM2_SUCCESS_MASK_HANDOFF_FIX_IMPLEMENTED_LOCALLY; PIXI_STARTUP_BRIDGE_REPLAY_IMPLEMENTED_LOCALLY; NO_AUTOMATIC_V2_TO_V1_FALLBACK_AND_GATE_B_PRELOAD_IMPLEMENTED_LOCALLY; HIGH_PIGMENT_AND_MASK_QUALITY_CHANGES_IMPLEMENTED_OFFLINE; ANDROID_VISUAL_RETEST_PENDING; LIVE_ACTIVATION_PENDING_L4_BENCHMARK.
-- Owner: Project owner; Revision 4 implementation is explicitly approved, while live default activation remains benchmark-gated.
+- Status: REVISION_3_PART_AWARE_BASELINE_IMPLEMENTED; REVISION_4_SAM21_WORKER_IMPLEMENTATION_IN_PROGRESS; QWEN_SINGLE_PASS_AND_SAM_PROMPT_FIX_IMPLEMENTED; SAM2_SUCCESS_MASK_HANDOFF_FIX_IMPLEMENTED_LOCALLY; PIXI_STARTUP_BRIDGE_REPLAY_IMPLEMENTED_LOCALLY; NO_AUTOMATIC_V2_TO_V1_FALLBACK_AND_GATE_B_PRELOAD_IMPLEMENTED_LOCALLY; HIGH_PIGMENT_AND_MASK_QUALITY_CHANGES_IMPLEMENTED_OFFLINE; PIXI_SHOW_V1_OFFLINE_BRIDGE_IMPLEMENTED; PIXI_SHOW_RUNTIME_DISABLED; NEW_SPRITE_VISUAL_AND_RIGHTS_REVIEW_PENDING; ANDROID_VISUAL_RETEST_AND_LIVE_L4_BENCHMARK_PENDING.
+- Owner: Project owner; auto-rig revision 4 and Pixi sprite-show plan revision 4 are approved for implementation. Live activation remains gated by separate asset-rights, privacy/retention, L4, contract, and Android evidence.
 - Goal: turn a validated subject from the child's immutable drawing into a bounded, explainable PixiJS 2D rig so the drawing visibly moves while remaining recognizably the child's work.
 - Scope: target selection, spatial grounding, segmentation, original-derived masks/textures, mesh and skeleton generation, skin weights, rig validation, bounded motion profiles, asynchronous preparation, Renderer V2 loading, PixiJS CPU skinning, deterministic fallback, provenance, metrics, and golden-scene evidence.
-- Non-goals: generative redrawing; replacing the original; semantic re-analysis through a second Qwen request; AI video generation; changing Gate A or Gate B authority; letting the renderer or mobile app call model providers; inventing actions unsupported by the drawing and learning objective; removing Renderer V1.
+- Non-goals: generative redrawing; replacing the original; any extra Qwen inference outside the single bounded post-Gate-B multimodal show-planning request approved by plan revision 4; AI video generation; changing Gate A or Gate B authority; letting the renderer or mobile app call model providers; inventing actions unsupported by the drawing and learning objective; removing Renderer V1 compatibility.
 - Dependencies: FEAT-003 canonical understanding, FEAT-004 art player invariants, FEAT-005/018 supervised flow and Gate B, FEAT-028 approved supplemental assets, FEAT-029 master SRS, `docs/governance/FRONTEND_ASSET_GATE.md`, and the repository approval/evidence policies.
 - Risks: poor masks on children's drawings, GPU contention with Qwen, long preparation time, bridge payload size, background holes/ghosting, unstable mesh topology, unsafe or semantically invented motion, and derived artifacts being mistaken for approved creative assets.
 
@@ -32,7 +32,7 @@ The original drawing remains immutable. Every mask, crop, texture, mesh, rig, an
 - `feat-029-master-srs`, `sketch2life-workflow`, and accepted feature records are requirement baselines, not implementation approval.
 - Exact segmentation, grounding, and geometry libraries remain candidates until an ADR records benchmark evidence. The handbook explicitly does not freeze providers without evaluation.
 
-## Revision 4 implementation boundary
+## Auto-rig implementation revision 4 boundary
 
 The approved implementation now includes the typed SAM 2.1 worker contract, a lazy process-scoped
 Lightning runtime, a backend-only adapter, deterministic bounded box proposal, mask provenance,
@@ -114,3 +114,55 @@ shell has no accessible `adb`/Android SDK path. No provider call or image was us
   full backend tests, Ruff, and Python compilation pass. Real SAM/L4 quality and Android review are
   still activation gates; see
   `evidence/notes/SAM21_PROMPT_REFINEMENT_IMPLEMENTATION_20260930.md`.
+
+## Pixi sprite show / AI motion matching proposal — 2026-10-01
+
+- The owner requested reviewed sprite reuse, bounded image-processing part separation when SAM lacks
+  usable parts, and AI classification/planning that can select from a sprite list and create a
+  content-bearing PixiJS show.
+- The owner visually approved all 144 existing FEAT-028 catalog v2.0.0 frames on 2026-10-01; exact
+  catalog hash and review scope are recorded in FEAT-028 `assets/REVIEW.md`. Rights remain pending,
+  so none is runtime-eligible or promoted to approved/applied.
+- The current catalog sprites are static single-pose frames, not walk/flight cycles. Any additions
+  are gap-driven and need separate per-frame review; no need to expand all 144 by default.
+- Code inspection found the existing deterministic part splitter assigns nearest-anchor regions
+  with constant `0.7` confidence. The revision-2 plan treats this as an untrusted baseline, not
+  anatomical evidence; image-processing proposals must earn acceptance through held-out metrics.
+- The proposed AI output is a structured, backend-validated visual show plan using confirmed subject
+  and Gate-B experience, verified rig capability, and approved sprite IDs. It is not arbitrary code
+  or generated replacement art. The owner resolved the product questions for revision 4: visual
+  beats only for now; distinct companion characters permitted; one bounded source crop may be sent
+  to the planner without overriding Gate A/B; and failures show an error with no automatic retry or
+  substitute show.
+- Planning artifact: `plan/PIXI_SPRITE_SHOW_AND_AI_MOTION_MATCHING_20261001.md` revision 4. Sprite
+  gaps are assessed across the supported behavior registry; walker/flyer are representative
+  starting cases, not the only intended subject types. Exact-plan approval is recorded, and
+  implementation is authorized on `codex/pixi-ai-show-20261001`. ADR/contract review, image-provider
+  privacy/retention review, and asset rights/runtime eligibility remain gates for their respective
+  integrations. No model call or asset promotion has occurred.
+
+## Pixi show implementation — offline bridge; runtime gated — 2026-10-01
+
+- Implemented additive `PixiShowPlanV1` / `PixiRendererShowEnvelopeV1` backend and TypeScript
+  contracts, deterministic compiler, one-call Lightning planner adapter, bounded source crop,
+  rights-filtered asset capability service, and V3 renderer bridge. Frozen V1/V2 contracts remain
+  unchanged. Backend and Lightning planner flags default off; no live model/provider request was
+  made. A planner failure preserves the original and is surfaced as a typed error without automatic
+  retry, V1 fallback, or a substitute show.
+- The planner is wired only after Gate B and is constrained by the adult-confirmed Gate-A subject,
+  selected activity/objective, verified rig tier/part roles, exact renderer duration, candidate
+  allowlist, bounded crop, and deterministic motion templates. Pixi receives selected short-lived
+  PNG capabilities and validates hashes/bytes. Static sprites cannot claim articulated action.
+- Part-image processing proposes only visible connected color regions inside the verified subject
+  mask. A uniform silhouette yields no parts; role anchors only label evidenced regions. Synthetic
+  checks prove parent containment and no overlap; they do not establish real-drawing anatomy.
+- FEAT-028 inventory audit: 144 catalog frames across 24 topic families are single-pose entries;
+  none is an animation-ready locomotion cycle. Metadata roles: 69 `SUBJECT`, 51 `PROP`, 18
+  `ENVIRONMENT`, 6 `EFFECT`. Walker/flyer are the first demonstrated animation gaps; two four-pose
+  draft sheets are stored in FEAT-028 `assets/generated/` and remain unreviewed, uncatalogued, and
+  runtime-ineligible. Existing 144-frame visual approval is distinct from rights clearance.
+- Verification: full backend suite reached 100%; `pnpm -r typecheck`, `pnpm -r test`, renderer demo
+  build, focused Ruff, and Python syntax checks passed. Repository security validation passed after
+  deleting task-created pytest scratch directories. Android playback, rights-cleared sprite
+  composition, live Qwen behavior/subject classification, privacy/retention review, and L4
+  latency/VRAM remain unverified. Details: `evidence/notes/PIXI_SHOW_IMPLEMENTATION_20261001.md`.

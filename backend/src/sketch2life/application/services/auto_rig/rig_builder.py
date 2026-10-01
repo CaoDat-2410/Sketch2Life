@@ -232,7 +232,18 @@ def build_animation_plan(
     learning_bridge_vi: str,
     tier: RigDeliveryTier = RigDeliveryTier.FULL_AUTO_RIG,
 ) -> VisualAnimationPlanV2:
-    tracks = _tracks(archetype)
+    tracks = (
+        (_track("subject-settle", "root", "breathe", (
+            (0, _pose()),
+            (2.5, _pose(y=-0.024)),
+            (5, _pose()),
+            (7.5, _pose(y=-0.018)),
+            (10, _pose()),
+            (12, _pose()),
+        )),)
+        if tier is RigDeliveryTier.CUTOUT_MICRO_MOTION
+        else _tracks(archetype)
+    )
     # Keep the complete story within the requested 15–30s range. Semantic motion ends at
     # 14.4s; the remaining 5.6s is a deliberate still hold, not a looping idle animation.
     duration = 20

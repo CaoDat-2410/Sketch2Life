@@ -41,9 +41,22 @@ export interface AutoRigPlayer {
   replay(): void;
   seekTo(seconds: number): void;
   seekRelative(seconds: number): void;
+  setShowBeat(action: AutoRigShowAction | null, progress: number): void;
   getPlaybackState(): {positionSeconds: number; durationSeconds: number; state: PlaybackState};
   destroy(): void;
 }
+
+export type AutoRigShowAction =
+  | 'NOTICE'
+  | 'APPROACH'
+  | 'INTERACT'
+  | 'WALK_STEP'
+  | 'FLAP'
+  | 'GLIDE'
+  | 'SWIM'
+  | 'SLITHER'
+  | 'ROLL'
+  | 'SETTLE';
 
 const STAGE_WIDTH = 800;
 const STAGE_HEIGHT = 600;
@@ -71,6 +84,7 @@ export function createAutoRigPlayer(options: AutoRigPlayerOptions): AutoRigPlaye
   let ownedTextures: Texture[] = [];
   let ticker: (() => void) | null = null;
   let state: PlaybackState = 'READY';
+  let showBeat: {action: AutoRigShowAction; progress: number} | null = null;
 
   const publish = (): void => options.onProgress?.(timeline?.time() ?? 0, timeline?.duration() ?? 0, state);
   const stopTicker = (): void => {
@@ -85,9 +99,10 @@ export function createAutoRigPlayer(options: AutoRigPlayerOptions): AutoRigPlaye
     if (cutoutSprite !== null) {
       // Whole-subject fallback may breathe/float by a few pixels, but never scales or rotates
       // the drawing. The camera and original artwork framing remain fixed.
+      const showOffset = cutoutShowOffset(showBeat);
       cutoutSprite.position.set(
-        cutoutPivot.x + rootPose.translateX * STAGE_WIDTH,
-        cutoutPivot.y + rootPose.translateY * STAGE_HEIGHT,
+        cutoutPivot.x + rootPose.translateX * STAGE_WIDTH + showOffset.x,
+        cutoutPivot.y + rootPose.translateY * STAGE_HEIGHT + showOffset.y,
       );
       return;
     }
@@ -100,8 +115,11 @@ export function createAutoRigPlayer(options: AutoRigPlayerOptions): AutoRigPlaye
       const sourcePivotX = (rig.sourceRegion.x + bone.pivotX * rig.sourceRegion.width) * sourceSize.width;
       const sourcePivotY = (rig.sourceRegion.y + bone.pivotY * rig.sourceRegion.height) * sourceSize.height;
       const world = composeBoneTransform(bone, pose, rig, bones, poses, sourceSize, artworkFit);
-      part.sprite.position.set(world.x, world.y);
-      part.sprite.rotation = world.rotationDegrees * Math.PI / 180;
+      const role = packageValue?.parts.find((candidate) => candidate.partId === part.partId)?.role ?? '';
+      const showMotion = fullRigShowMotion(role, showBeat);
+      const rootOffset = bone.boneId === 'root' ? fullRigRootOffset(showBeat) : {x: 0, y: 0};
+      part.sprite.position.set(world.x + rootOffset.x, world.y + rootOffset.y);
+      part.sprite.rotation = (world.rotationDegrees + showMotion.rotationDegrees) * Math.PI / 180;
       part.sprite.scale.set(
         artworkFit.scale * world.scaleX,
         artworkFit.scale * world.scaleY,
@@ -134,6 +152,7 @@ export function createAutoRigPlayer(options: AutoRigPlayerOptions): AutoRigPlaye
     packageValue = null;
     plan = null;
     poses.clear();
+    showBeat = null;
     state = 'READY';
   };
 
@@ -316,6 +335,13 @@ export function createAutoRigPlayer(options: AutoRigPlayerOptions): AutoRigPlaye
       if (next < timeline.duration() && state === 'COMPLETED') state = 'PAUSED';
       deform();
       publish();
+    },
+
+    setShowBeat(action, progress): void {
+      showBeat = action === null
+        ? null
+        : {action, progress: Math.min(1, Math.max(0, progress))};
+      deform();
     },
 
     getPlaybackState() {
@@ -509,4 +535,56 @@ function regionMatches(expected: NormalizedRegion, actual: NormalizedRegion): bo
 
 function neutralPose(): MutablePose {
   return {rotationDegrees: 0, translateX: 0, translateY: 0, scaleX: 1, scaleY: 1};
+}
+
+function cutoutShowOffset(
+  beat: {action: AutoRigShowAction; progress: number} | null,
+): {x: number; y: number} {
+  if (beat === null) return {x: 0, y: 0};
+  const wave = Math.sin(beat.progress * Math.PI * 2);
+  switch (beat.action) {
+    case 'APPROACH': return {x: 8 * beat.progress, y: -Math.sin(beat.progress * Math.PI) * 2};
+    case 'NOTICE': return {x: 0, y: -Math.sin(beat.progress * Math.PI) * 2};
+    case 'INTERACT': return {x: 0, y: -wave * 3};
+    default: return {x: 0, y: 0};
+  }
+}
+
+function fullRigRootOffset(
+  beat: {action: AutoRigShowAction; progress: number} | null,
+): {x: number; y: number} {
+  if (beat === null) return {x: 0, y: 0};
+  switch (beat.action) {
+    case 'APPROACH': return {x: 7 * beat.progress, y: 0};
+    case 'NOTICE': return {x: 0, y: -Math.sin(beat.progress * Math.PI) * 2};
+    case 'INTERACT': return {x: 0, y: -Math.sin(beat.progress * Math.PI * 2) * 2};
+    default: return {x: 0, y: 0};
+  }
+}
+
+function fullRigShowMotion(
+  rawRole: string,
+  beat: {action: AutoRigShowAction; progress: number} | null,
+): {rotationDegrees: number} {
+  if (beat === null) return {rotationDegrees: 0};
+  const role = rawRole.toLowerCase().replaceAll('_', '-');
+  const wave = Math.sin(beat.progress * Math.PI * 4);
+  if (beat.action === 'WALK_STEP' && role.includes('leg')) {
+    const side = role.includes('left') || role.includes('fore') ? 1 : -1;
+    return {rotationDegrees: wave * 8 * side};
+  }
+  if (beat.action === 'FLAP' && role.includes('wing')) return {rotationDegrees: wave * 9};
+  if (beat.action === 'GLIDE' && role.includes('wing')) {
+    return {rotationDegrees: Math.sin(beat.progress * Math.PI) * 2};
+  }
+  if (beat.action === 'SWIM' && (role.includes('tail') || role.includes('fin'))) {
+    return {rotationDegrees: wave * 7};
+  }
+  if (beat.action === 'SLITHER' && (role.includes('body') || role.includes('tail'))) {
+    return {rotationDegrees: wave * 4};
+  }
+  if (beat.action === 'ROLL' && role.includes('wheel')) {
+    return {rotationDegrees: beat.progress * 18};
+  }
+  return {rotationDegrees: 0};
 }
