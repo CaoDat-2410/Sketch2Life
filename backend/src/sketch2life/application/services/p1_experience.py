@@ -517,35 +517,43 @@ class P1ExperienceCompiler:
         return all(bool(set(group) & available) for group in required_groups)
 
     @staticmethod
+    def discovery_eligibility_failures(
+        template: ActivityTemplateV1,
+        *,
+        age_months: int | None,
+        adult_participating: bool,
+        caregiver_participating: bool,
+    ) -> tuple[str, ...]:
+        """Shared V4 safety admission for suggestions and final selection."""
+        failures: list[str] = []
+        if age_months is None or not (
+            template.age_months_min <= age_months <= template.age_months_max
+        ):
+            failures.append("BLOCK_AGE")
+        if not adult_participating:
+            failures.append("BLOCK_ADULT_PARTICIPATION")
+        if age_months is not None and age_months < 36 and not caregiver_participating:
+            failures.append("BLOCK_CAREGIVER_REQUIRED")
+        if template.minimum_supervision == "DIRECT" and not adult_participating:
+            failures.append("BLOCK_INSUFFICIENT_SUPERVISION")
+        if set(template.policy_constraints) - {"CAREGIVER_PRESENT"}:
+            failures.append("BLOCK_UNSUPPORTED_POLICY_CONSTRAINT")
+        if "CAREGIVER_PRESENT" in template.policy_constraints and not adult_participating:
+            failures.append("BLOCK_POLICY_CONSTRAINT")
+        return tuple(failures)
+
+    @staticmethod
     def _hard_rule_failures(
         template: ActivityTemplateV1,
         context: P1ContextV1 | P1ContextV4,
     ) -> tuple[str, ...]:
         if isinstance(context, P1ContextV4):
-            failures: list[str] = []
-            if context.age_months is None or not (
-                template.age_months_min <= context.age_months <= template.age_months_max
-            ):
-                failures.append("BLOCK_AGE")
-            if not context.adult_participating:
-                failures.append("BLOCK_ADULT_PARTICIPATION")
-            if (
-                context.age_months is not None
-                and context.age_months < 36
-                and not context.caregiver_participating
-            ):
-                failures.append("BLOCK_CAREGIVER_REQUIRED")
-            if template.minimum_supervision == "DIRECT" and not context.adult_participating:
-                failures.append("BLOCK_INSUFFICIENT_SUPERVISION")
-            unknown_policies = set(template.policy_constraints) - {"CAREGIVER_PRESENT"}
-            if unknown_policies:
-                failures.append("BLOCK_UNSUPPORTED_POLICY_CONSTRAINT")
-            if (
-                "CAREGIVER_PRESENT" in template.policy_constraints
-                and not context.adult_participating
-            ):
-                failures.append("BLOCK_POLICY_CONSTRAINT")
-            return tuple(failures)
+            return P1ExperienceCompiler.discovery_eligibility_failures(
+                template,
+                age_months=context.age_months,
+                adult_participating=context.adult_participating,
+                caregiver_participating=context.caregiver_participating,
+            )
 
         assert context.age_months is not None
         assert context.readiness_ids is not None

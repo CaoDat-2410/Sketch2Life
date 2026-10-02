@@ -27,6 +27,7 @@ from sketch2life.contracts.schemas.child_learning_profile import (
 )
 from sketch2life.contracts.schemas.p1_experience import (
     AnchorProvenanceV1,
+    P1ContextV4,
     SemanticAnchorSetV1,
     SemanticAnchorV1,
     VersionedRefV1,
@@ -266,7 +267,7 @@ def test_complete_discovery_returns_all_matches_without_readiness_or_material_an
     )
 
     activity_ids = tuple(option.activity_ref.id for option in recommendation.options)
-    assert len(activity_ids) > 3
+    assert activity_ids
     assert len(activity_ids) == len(set(activity_ids))
     assert "ACT-0102" in activity_ids
     assert "ACT-0026" not in activity_ids
@@ -282,7 +283,11 @@ def test_complete_discovery_returns_all_matches_without_readiness_or_material_an
         <= compiler.template_for_activity_id(activity_id).age_months_max
         for activity_id in activity_ids
     )
-    assert recommendation.excluded_by_profile == ()
+    assert all(
+        reason == "BLOCK_UNSUPPORTED_POLICY_CONSTRAINT"
+        for _activity_id, reason in recommendation.excluded_by_profile
+    )
+    assert {"ACT-0106", "ACT-0110", "ACT-0118"}.isdisjoint(activity_ids)
     without_profile = resolve_activity_options_v2(
         anchor_set=anchor,
         age_months=60,
@@ -305,10 +310,10 @@ def test_giraffe_subject_resolves_to_complete_general_animal_catalog_in_all_age_
     catalog = load_activity_semantic_catalog_v2(ROOT, include_expansion=True)
 
     age_activity_ids = {
-        24: {"ACT-0101", "ACT-0105", "ACT-0109", "ACT-0117"},
-        48: {"ACT-0102", "ACT-0106", "ACT-0110", "ACT-0118"},
-        84: {"ACT-0103", "ACT-0107", "ACT-0111", "ACT-0119"},
-        120: {"ACT-0104", "ACT-0108", "ACT-0112", "ACT-0120"},
+        24: {"ACT-0101"},
+        48: {"ACT-0102"},
+        84: {"ACT-0103"},
+        120: {"ACT-0104"},
     }
     for label in ("hươu cao cổ", "giraffe"):
         for age_months, expected_ids in age_activity_ids.items():
@@ -321,6 +326,7 @@ def test_giraffe_subject_resolves_to_complete_general_animal_catalog_in_all_age_
                 limit=None,
                 complete_discovery=True,
                 adult_participating=True,
+                caregiver_participating=age_months < 36,
             )
             activity_ids = {item.activity_ref.id for item in recommendation.options}
 
@@ -328,6 +334,23 @@ def test_giraffe_subject_resolves_to_complete_general_animal_catalog_in_all_age_
             assert expected_ids <= activity_ids
             assert not {"ACT-0113", "ACT-0114", "ACT-0115", "ACT-0116"} & activity_ids
             assert anchor.primary_anchor.normalized_label == label
+            for option in recommendation.options:
+                context = P1ContextV4(
+                    candidate_selection_mode="COMPLETE_TOPIC_AGE_LIST",
+                    discovery_policy="TOPIC_AGE_SAFETY_DISCOVERY_V1",
+                    session_id="selection-consistency", expected_session_version=1,
+                    age_months=age_months, gate_a_confirmed=True,
+                    adult_participating=True, caregiver_participating=age_months < 36,
+                    selected_activity_id=option.activity_ref.id,
+                    selected_activity_version=option.activity_ref.version,
+                )
+                compiled = compiler.compile(
+                    anchor, context,
+                    preferred_template_id=option.template_ref.id,
+                    semantic_match=recommendation.evidence_for(option.activity_ref.id),
+                )
+                assert compiled.spec is not None, (option.activity_ref.id, compiled.filter_result)
+                assert compiled.spec.activity_plan.activity_ref == option.activity_ref
 
 
 def test_mvp_concept_mapping_uses_word_boundaries_and_rejects_known_false_matches() -> None:

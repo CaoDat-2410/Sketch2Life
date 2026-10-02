@@ -8,4 +8,5 @@ Evidence is feature-local. Source inventory, verification commands, outputs, env
 - evidence/notes/REGISTRATION_SCOPE_REVIEW.md: registration-to-SRS coverage and gaps, auth context, source/render limitations.
 - evidence/notes/OWNER_SCOPE_CLOSURE_20260919.md: owner-approved relationship, Parent Web, session revoke, retention, audit/Grafana and legal source review.
 - artifacts/SRS_Clarification_Questions.md: owner questions for scope, authentication/authorization, privacy, workflow, Guide Console, AI, offline behavior, research, and NFR acceptance.
+- evidence/notes/OWNER_CHANGE_STORY_VIDEO_20260928.md: owner-confirmed v1.7 story/video change, supersession analysis, plan/SRS updates, proposed-contract status, and review limitations.
 

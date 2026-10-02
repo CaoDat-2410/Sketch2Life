@@ -1,0 +1,10 @@
+flowchart LR
+    Draft["DRAFT<br/>context and scope"] --> Planned["PLANNED<br/>plan + acceptance"]
+    Planned --> Awaiting["AWAITING_APPROVAL"]
+    Awaiting --> Approved["APPROVED<br/>exact scope"]
+    Approved --> Progress["IN_PROGRESS<br/>implementation + evidence"]
+    Progress --> Review["REVIEW<br/>quality + security"]
+    Review --> Done["DONE<br/>status/context updated"]
+    Review --> Revision["NEEDS_REVISION"]
+    Revision --> Planned
+    Approved -. "scope/architecture change" .-> Revision

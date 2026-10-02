@@ -13,6 +13,7 @@ from sketch2life.application.ports.activity_ranker import ActivityRankerPort
 from sketch2life.application.ports.child_preference_classifier import (
     ChildPreferenceClassifierPort,
 )
+from sketch2life.application.ports.pixi_motion_cycle import PixiMotionCycleIssue
 from sketch2life.application.ports.pixi_show_planner import PixiShowPlannerPort
 from sketch2life.application.services.auto_rig import AutoRigService
 from sketch2life.application.services.ephemeral_sessions import EphemeralSessionService
@@ -38,16 +39,24 @@ from sketch2life.infrastructure.ai.lightning_client import (
     UrllibJsonTransport,
     read_secret_file,
 )
+from sketch2life.infrastructure.ai.lightning_pixi_show_planner import (
+    LightningPixiShowPlanner,
+)
 from sketch2life.infrastructure.ai.lightning_sam21 import LightningSam21SegmentationAdapter
 from sketch2life.infrastructure.ai.lightning_scene_localization import (
     LightningSceneLocalizationAdapter,
 )
 from sketch2life.infrastructure.ai.lightning_vision_v2 import LightningVisionV2Adapter
+from sketch2life.infrastructure.ai.pixi_subject_crop import build_pixi_subject_crop
 from sketch2life.infrastructure.catalog.activity_semantics import load_activity_semantic_catalog
 from sketch2life.infrastructure.catalog.activity_semantics_v2 import (
     load_activity_semantic_catalog_v2,
 )
 from sketch2life.infrastructure.catalog.p1_catalog import load_p1_template_library
+from sketch2life.infrastructure.catalog.pixi_show_assets import (
+    PixiShowAssetService,
+    PixiShowAssetUnavailable,
+)
 from sketch2life.infrastructure.catalog.workflow_metadata import FileWorkflowCatalogMetadata
 from sketch2life.infrastructure.config.settings import Settings, get_settings
 from sketch2life.infrastructure.media_validation.av_image_decoder import AvImageDecoder
@@ -84,29 +93,31 @@ from sketch2life.interfaces.http.routers.supervised_flow import (
 
 _LOGGER = logging.getLogger("sketch2life.api")
 _SAFE_ID = re.compile(r"^[A-Za-z0-9._:-]{1,120}$")
-_SAFE_CONTEXT_PROFILE_FIELDS = frozenset({
-    "contract_name",
-    "contract_version",
-    "age_months",
-    "child_profile",
-    "profile_declared_by",
-    "profile_recorded_at",
-    "interests",
-    "dislikes",
-    "adult_confirmed_progress",
-    "activity_id",
-    "objective_id",
-    "confirmed_at",
-    "confirmed_by",
-    "readiness_ids",
-    "available_material_option_ids",
-    "adult_supervision_available",
-    "learning_support_ids",
-    "candidate_activity_ids",
-    "adult_participating",
-    "caregiver_participating",
-    "supervision_confirmed_activity_ids",
-})
+_SAFE_CONTEXT_PROFILE_FIELDS = frozenset(
+    {
+        "contract_name",
+        "contract_version",
+        "age_months",
+        "child_profile",
+        "profile_declared_by",
+        "profile_recorded_at",
+        "interests",
+        "dislikes",
+        "adult_confirmed_progress",
+        "activity_id",
+        "objective_id",
+        "confirmed_at",
+        "confirmed_by",
+        "readiness_ids",
+        "available_material_option_ids",
+        "adult_supervision_available",
+        "learning_support_ids",
+        "candidate_activity_ids",
+        "adult_participating",
+        "caregiver_participating",
+        "supervision_confirmed_activity_ids",
+    }
+)
 
 
 def create_app(
@@ -132,10 +143,9 @@ def create_app(
     async def handle_request_validation_error(
         request: Request, exc: RequestValidationError
     ) -> JSONResponse:
-        is_context_options_route = (
-            request.url.path.endswith("/p1/context-options")
-            or request.url.path.endswith("/p1/context-options/finalize")
-        )
+        is_context_options_route = request.url.path.endswith(
+            "/p1/context-options"
+        ) or request.url.path.endswith("/p1/context-options/finalize")
         if not is_context_options_route:
             return JSONResponse(status_code=422, content={"detail": "request contract invalid"})
 
@@ -143,12 +153,12 @@ def create_app(
         safe_codes: list[str] = []
         for issue in exc.errors():
             location = issue.get("loc", ())
-            parts = [
-                str(part) for part in location if str(part) not in {"body", "query"}
-            ]
+            parts = [str(part) for part in location if str(part) not in {"body", "query"}]
             safe_parts = [
-                part if part in _SAFE_CONTEXT_PROFILE_FIELDS
-                else "item" if part.isdigit()
+                part
+                if part in _SAFE_CONTEXT_PROFILE_FIELDS
+                else "item"
+                if part.isdigit()
                 else "field"
                 for part in parts[:8]
             ]
@@ -174,8 +184,7 @@ def create_app(
         # Only bounded Pydantic locations and error codes are logged. Submitted values,
         # free text, request bodies, and Pydantic's human-readable messages are excluded.
         _LOGGER.warning(
-            "request_validation_failed route=p1_context_options request_id=%s "
-            "fields=%s codes=%s",
+            "request_validation_failed route=p1_context_options request_id=%s fields=%s codes=%s",
             request_id,
             ",".join(dict.fromkeys(safe_paths)) or "request",
             ",".join(dict.fromkeys(safe_codes)) or "validation_error",
@@ -300,6 +309,16 @@ def create_app(
                 pixi_show_asset_service = PixiShowAssetService(
                     feature_root=feature_root,
                     assets=topic_assets,
+                    motion_cycle_manifest_path=(
+                        asset_catalog_path.parent / "motion-cycle-review-manifest.rev1.json"
+                    ),
+                    motion_cycle_dev_preview_catalog_path=(
+                        feature_root
+                        / "assets"
+                        / "applied"
+                        / "motion-cycle-local-preview-catalog.v1.json"
+                    ),
+                    allow_dev_preview=settings.pixi_sprite_cycle_dev_preview_allowed,
                 )
 
             def load_pixi_subject_crop(
@@ -328,6 +347,28 @@ def create_app(
                     raise PixiSubjectCropUnavailable from None
                 return build_pixi_subject_crop(source_item[1], mask_item[1])
 
+            def issue_pixi_motion_cycle(
+                cycle_id: str,
+                *,
+                start_seconds: float,
+                end_seconds: float,
+                x: float,
+                y: float,
+            ) -> PixiMotionCycleIssue:
+                if pixi_show_asset_service is None:
+                    return PixiMotionCycleIssue(None, "ASSET_UNAVAILABLE")
+                try:
+                    cycle = pixi_show_asset_service.issue_motion_cycle_read(
+                        cycle_id,
+                        start_seconds=start_seconds,
+                        end_seconds=end_seconds,
+                        x=x,
+                        y=y,
+                    )
+                    return PixiMotionCycleIssue(cycle)
+                except PixiShowAssetUnavailable as error:
+                    return PixiMotionCycleIssue(None, error.reason_code)
+
             supervised_flow_service = SupervisedFlowService(
                 sessions=session_service,
                 idempotency=idempotency,
@@ -348,6 +389,7 @@ def create_app(
                 pixi_show_planner_required=pixi_show_planner_required,
                 pixi_show_crop_provider=load_pixi_subject_crop,
                 pixi_show_asset_issuer=pixi_show_asset_service.issue_reads,
+                pixi_motion_cycle_issuer=issue_pixi_motion_cycle,
             )
     application.state.session_service = session_service
     application.state.live_image_demo_service = live_image_demo_service

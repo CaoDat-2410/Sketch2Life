@@ -84,3 +84,13 @@ Conflicts needing owner direction include: the form's early-childhood population
 - Role scope: Admin is the highest system role; Parent access is limited to their own children; Guide access covers own children plus Admin-assigned class records. Existing Parents receive a notification and may petition a change; petition/revocation/consent details remain open.
 - Admin access: Admin may view raw drawing/audio/transcript/observation when needed; safeguards, audit detail and provisioning remain OPEN_TBD.
 - Retention data classes and research protocol: not decided yet; keep explicit OPEN_TBD requirements and ask no fabricated values.
+
+## Owner story/video amendment — 2026-09-28
+
+The owner has now superseded the earlier 2026-09-23 whiteboard-video target for the story-video experience: target duration is 40–60 seconds; illustration redraw is permitted as a derivative; the story retells the adult-confirmed picture and adds age/readiness-appropriate knowledge; the adult can use both quick controls and free-form script edits; an exact full script must be approved before any image-generation request; language and supported voice category are selectable; the current Wan2.2 TI2V-5B baseline is retained. Pixi remains an independent renderer; original image/audio remain immutable; narration is a separate TTS path.
+
+SRS v1.7 B30–B32 is the current product-target authority for this topic. New contracts are `PROPOSED_UNADOPTED`; no runtime schema migration, provider call, implementation, or performance claim is implied. See `evidence/notes/OWNER_CHANGE_STORY_VIDEO_20260928.md`.
+
+## Owner Montessori discovery amendment — 2026-09-30
+
+SRS v1.8 B33 records the owner's direction to show the complete reviewed activity set matching the confirmed drawing topic and exact age, personalize its ordering with adult-confirmed child-profile interests, and remove child readiness/history/material availability as recommendation filters. Authored safety/policy, catalog status, exact age/topic and adult/caregiver supervision remain constraints. This amends product requirements only; FEAT-033 rev6 governs implementation approval and additive contracts/ADR. It does not claim runtime completion.

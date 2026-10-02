@@ -10,6 +10,9 @@ import {
   RendererLoadCommandSchema,
   RendererLoadCommandV2Schema,
   RendererLoadCommandV3Schema,
+  RendererLoadCommandV4Schema,
+  getSpriteCycleFrameIndex,
+  getSpriteCycleTransform,
   RiggedArtworkPackageV1Schema,
   matchesDerivedMaskProvenance,
   sha256Hex,
@@ -19,6 +22,8 @@ import {
   type RendererLoadCommand,
   type RendererLoadCommandV2,
   type RendererLoadCommandV3,
+  type RendererLoadCommandV4,
+  type PixiSpriteCycleReadV1,
 } from '../src/index';
 
 declare global {
@@ -40,7 +45,7 @@ if (stage === null || status === null || playButton === null || rendererInstance
 const app = new Application();
 let rendererInitialized = false;
 
-type ActiveLaunch = RendererLoadCommand | RendererLoadCommandV2 | RendererLoadCommandV3;
+type ActiveLaunch = RendererLoadCommand | RendererLoadCommandV2 | RendererLoadCommandV3 | RendererLoadCommandV4;
 type PlaybackController = Pick<ReturnType<typeof createBrowserArtPlayer>, 'play' | 'pause' | 'replay' | 'seekTo' | 'seekRelative' | 'getPlaybackState' | 'destroy'>;
 
 let launch: ActiveLaunch | null = null;
@@ -55,9 +60,14 @@ let v2InteractionPhase: 'INTRO_LOADING' | 'INTRO_PLAYING' | 'DISCOVERY_READY' | 
 let supplementalRoot: Container | null = null;
 let supplementalTextures: Texture[] = [];
 let supplementalSprites = new Map<string, Sprite>();
+let activeSpriteCycle: {cycle: PixiSpriteCycleReadV1; root: Container; sprite: Sprite; textures: Texture[]; frameIndex: number | null; wasVisible: boolean} | null = null;
 
-function isV2Launch(command: ActiveLaunch): command is RendererLoadCommandV2 | RendererLoadCommandV3 {
-  return command.contractName === 'RendererLoadCommandV2' || command.contractName === 'RendererLoadCommandV3';
+function isV2Launch(command: ActiveLaunch): command is RendererLoadCommandV2 | RendererLoadCommandV3 | RendererLoadCommandV4 {
+  return command.contractName === 'RendererLoadCommandV2' || command.contractName === 'RendererLoadCommandV3' || command.contractName === 'RendererLoadCommandV4';
+}
+
+function isShowLaunch(command: ActiveLaunch): command is RendererLoadCommandV3 | RendererLoadCommandV4 {
+  return command.contractName === 'RendererLoadCommandV3' || command.contractName === 'RendererLoadCommandV4';
 }
 
 function launchPlanId(command: ActiveLaunch): string {
@@ -66,6 +76,7 @@ function launchPlanId(command: ActiveLaunch): string {
 
 function stopSupplementalShow(): void {
   autoRigPlayer.setShowBeat(null, 0);
+  stopActiveSpriteCycle();
   supplementalRoot?.destroy({children: true});
   supplementalRoot = null;
   supplementalSprites.clear();
@@ -202,7 +213,7 @@ const autoRigPlayer = createAutoRigPlayer({
   app,
   onProgress: (positionSeconds, durationSeconds, stateValue) => {
     if (stateValue === 'PLAYING') v2InteractionPhase = 'INTRO_PLAYING';
-    if (launch?.contractName === 'RendererLoadCommandV3') syncShowToTime(positionSeconds);
+    if (launch !== null && isShowLaunch(launch)) syncShowToTime(positionSeconds);
     postProgress(positionSeconds, durationSeconds, stateValue, v2InteractionPhase);
   },
   onCompleted: () => {
@@ -233,10 +244,13 @@ async function loadLaunch(serialized: string): Promise<void> {
     status.textContent = 'Launch không phải JSON hợp lệ.';
     return;
   }
+  const parsedV4 = RendererLoadCommandV4Schema.safeParse(parsedJson);
   const parsedV3 = RendererLoadCommandV3Schema.safeParse(parsedJson);
   const parsedV2 = RendererLoadCommandV2Schema.safeParse(parsedJson);
   const parsedV1 = RendererLoadCommandSchema.safeParse(parsedJson);
-  const command = parsedV3.success
+  const command = parsedV4.success
+    ? parsedV4.data
+    : parsedV3.success
     ? parsedV3.data
     : parsedV2.success
       ? parsedV2.data
@@ -249,6 +263,13 @@ async function loadLaunch(serialized: string): Promise<void> {
   }
   lastLoadMessage = serialized;
   launch = command;
+  if (command.contractName === 'RendererLoadCommandV4' && command.spriteCycleStatus === 'BLOCKED') {
+    console.info('[pixi-cycle]', JSON.stringify({
+      event: 'blocked',
+      behaviorClassId: command.showPlan.behaviorClass,
+      reason: command.spriteCycleReasonCode ?? 'FRAME_QA_FAILED',
+    }));
+  }
   status.textContent = 'Đang lấy đúng ảnh gốc từ backend qua capability tạm…';
   try {
     const response = await fetch(new URL(command.sourceReadEndpoint, window.location.href), {
@@ -374,8 +395,11 @@ async function loadLaunch(serialized: string): Promise<void> {
         );
         activePlayer = autoRigPlayer;
         v2InteractionPhase = 'INTRO_LOADING';
-        if (command.contractName === 'RendererLoadCommandV3') {
+        if (isShowLaunch(command)) {
           await loadSupplementalShow(command);
+        }
+        if (command.contractName === 'RendererLoadCommandV4' && command.spriteCycle !== undefined) {
+          await loadSpriteCycle(command);
         }
       } catch (error) {
         console.error('[art-renderer] Renderer V2 package could not start.', safeFailureCode(error));
@@ -451,10 +475,13 @@ function receiveNativeMessage(event: MessageEvent): void {
     }
     return;
   }
+  const parsedV4 = RendererLoadCommandV4Schema.safeParse(parsed);
   const parsedV3 = RendererLoadCommandV3Schema.safeParse(parsed);
   const parsedV2 = RendererLoadCommandV2Schema.safeParse(parsed);
   const parsedV1 = RendererLoadCommandSchema.safeParse(parsed);
-  const command = parsedV3.success
+  const command = parsedV4.success
+    ? parsedV4.data
+    : parsedV3.success
     ? parsedV3.data
     : parsedV2.success
       ? parsedV2.data
@@ -525,10 +552,13 @@ function reportPixiInitializationFailure(serialized: string): void {
   } catch {
     return;
   }
+  const parsedV4 = RendererLoadCommandV4Schema.safeParse(parsedJson);
   const parsedV3 = RendererLoadCommandV3Schema.safeParse(parsedJson);
   const parsedV2 = RendererLoadCommandV2Schema.safeParse(parsedJson);
   const parsedV1 = RendererLoadCommandSchema.safeParse(parsedJson);
-  const command = parsedV3.success
+  const command = parsedV4.success
+    ? parsedV4.data
+    : parsedV3.success
     ? parsedV3.data
     : parsedV2.success
       ? parsedV2.data
@@ -615,7 +645,7 @@ async function textureFromBlob(
   return {texture: Texture.from(canvas), canvas, sourceWidth, sourceHeight};
 }
 
-async function loadSupplementalShow(command: RendererLoadCommandV3): Promise<void> {
+async function loadSupplementalShow(command: RendererLoadCommandV3 | RendererLoadCommandV4): Promise<void> {
   stopSupplementalShow();
   const root = new Container();
   const textures: Texture[] = [];
@@ -671,9 +701,97 @@ async function loadSupplementalShow(command: RendererLoadCommandV3): Promise<voi
   }
 }
 
+async function loadSpriteCycle(command: RendererLoadCommandV4): Promise<void> {
+  const cycle = command.spriteCycle;
+  if (cycle === undefined) return;
+  stopActiveSpriteCycle();
+  const root = new Container();
+  const textures: Texture[] = [];
+  let totalBytes = 0;
+  try {
+    spriteCycleLog('loading', cycle);
+    for (const [index, read] of cycle.frameReads.entries()) {
+      const response = await fetch(new URL(read.readEndpoint, window.location.href), {
+        method: 'GET',
+        headers: {'X-Pixi-Asset-Capability': read.readCapability},
+        cache: 'no-store',
+        credentials: 'same-origin',
+      });
+      if (!response.ok) throw new Error('SPRITE_CYCLE_FRAME_UNAVAILABLE');
+      if (response.headers.get('Content-Type')?.split(';')[0] !== read.contentType) {
+        throw new Error('SPRITE_CYCLE_LAYOUT_INVALID');
+      }
+      const bytes = await response.arrayBuffer();
+      totalBytes += bytes.byteLength;
+      if (
+        bytes.byteLength !== read.byteLength
+        || bytes.byteLength <= 0
+        || bytes.byteLength > 1_000_000
+        || totalBytes > 2_000_000
+        || await sha256Hex(bytes) !== read.sha256
+        || response.headers.get('X-Content-SHA256') !== read.sha256
+      ) throw new Error('SPRITE_CYCLE_FRAME_HASH_INVALID');
+      try {
+        const decoded = await textureFromBlob(new Blob([bytes], {type: read.contentType}), false, 320);
+        textures[index] = decoded.texture;
+      } catch {
+        throw new Error('SPRITE_CYCLE_RENDER_FAILED');
+      }
+    }
+    const decodedFrames = textures;
+    if (decodedFrames.length !== cycle.frameReads.length || decodedFrames.some((texture) => texture.width <= 0 || texture.height <= 0)) {
+      throw new Error('SPRITE_CYCLE_LAYOUT_INVALID');
+    }
+    spriteCycleLog('decoded', cycle, {frameCount: decodedFrames.length, byteLength: totalBytes});
+    const maxWidth = Math.max(...decodedFrames.map((texture) => texture.width));
+    const maxHeight = Math.max(...decodedFrames.map((texture) => texture.height));
+    const sprite = new Sprite(decodedFrames[0]);
+    sprite.anchor.set(0.5);
+    const fit = Math.min(150 / Math.max(1, maxWidth, maxHeight), 1) * (cycle.scale / 0.4);
+    sprite.scale.set(fit);
+    sprite.x = cycle.x * 800;
+    sprite.y = cycle.y * 600;
+    sprite.visible = false;
+    root.addChild(sprite);
+    app.stage.addChild(root);
+    activeSpriteCycle = {cycle, root, sprite, textures, frameIndex: null, wasVisible: false};
+    spriteCycleLog('ready', cycle, {frameCount: decodedFrames.length, byteLength: totalBytes});
+    syncSpriteCycleToTime(autoRigPlayer.getPlaybackState().positionSeconds);
+  } catch (error) {
+    if (activeSpriteCycle?.root === root) activeSpriteCycle = null;
+    root.destroy({children: true});
+    for (const texture of textures) texture?.destroy(true);
+    spriteCycleLog('failed', cycle, {reason: safeFailureCode(error)});
+    throw error;
+  }
+}
+
+function stopActiveSpriteCycle(): void {
+  if (activeSpriteCycle === null) return;
+  activeSpriteCycle.root.destroy({children: true});
+  for (const texture of activeSpriteCycle.textures) texture.destroy(true);
+  activeSpriteCycle = null;
+}
+
+function spriteCycleLog(
+  event: 'loading' | 'decoded' | 'ready' | 'playing' | 'frame' | 'failed',
+  cycle: PixiSpriteCycleReadV1,
+  detail: {frameCount?: number; frameIndex?: number; byteLength?: number; reason?: string} = {},
+): void {
+  console.info('[pixi-cycle]', JSON.stringify({
+    event,
+    cycleId: cycle.cycleId,
+    behaviorClassId: cycle.behaviorClassId,
+    frameCount: detail.frameCount ?? cycle.frameReads.length,
+    ...(detail.frameIndex === undefined ? {} : {frameIndex: detail.frameIndex}),
+    ...(detail.byteLength === undefined ? {} : {byteLength: detail.byteLength}),
+    ...(detail.reason === undefined ? {} : {reason: detail.reason}),
+  }));
+}
+
 function syncShowToTime(position: number): void {
   const current = launch;
-  if (current === null || current.contractName !== 'RendererLoadCommandV3') return;
+  if (current === null || !isShowLaunch(current)) return;
   const activeSourceBeat = current.showPlan.beats.find((beat) => (
     beat.targetRole === 'SOURCE_SUBJECT'
     && position >= beat.startSeconds
@@ -709,6 +827,29 @@ function syncShowToTime(position: number): void {
         ? targetY - Math.sin(progress * Math.PI) * 7
         : targetY;
   }
+  syncSpriteCycleToTime(position);
+}
+
+function syncSpriteCycleToTime(positionSeconds: number): void {
+  const active = activeSpriteCycle;
+  if (active === null) return;
+  const index = getSpriteCycleFrameIndex(active.cycle, positionSeconds);
+  if (index === null) {
+    active.sprite.visible = false;
+    active.wasVisible = false;
+    return;
+  }
+  if (active.frameIndex !== index) {
+    active.sprite.texture = active.textures[index];
+    active.frameIndex = index;
+    spriteCycleLog('frame', active.cycle, {frameIndex: index});
+  }
+  if (!active.wasVisible) spriteCycleLog('playing', active.cycle, {frameIndex: index});
+  active.wasVisible = true;
+  const transform = getSpriteCycleTransform(active.cycle, positionSeconds);
+  active.sprite.x = active.cycle.x * 800 + transform.offsetX;
+  active.sprite.y = active.cycle.y * 600 + transform.offsetY;
+  active.sprite.visible = true;
 }
 
 function safeFailureCode(error: unknown): string {

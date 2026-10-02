@@ -239,13 +239,17 @@ def resolve_activity_options_v2(
             else set()
         )
         if complete_discovery:
-            if not adult_participating:
-                excluded_by_profile.append((profile.activity_id, "ADULT_PARTICIPATION_REQUIRED"))
-                continue
-            if "CAREGIVER_PRESENT" in template.policy_constraints and not (
-                caregiver_participating or adult_participating
-            ):
-                excluded_by_profile.append((profile.activity_id, "SUPERVISION_UNAVAILABLE"))
+            safety_failures = compiler.discovery_eligibility_failures(
+                template,
+                age_months=age_months,
+                adult_participating=adult_participating,
+                caregiver_participating=caregiver_participating,
+            )
+            if safety_failures:
+                rejected.extend(safety_failures)
+                excluded_by_profile.extend(
+                    (profile.activity_id, reason) for reason in safety_failures
+                )
                 continue
         if child_profile is not None and not complete_discovery:
             supervision_rank = {"NONE": 0, "NEARBY": 1, "DIRECT": 2}

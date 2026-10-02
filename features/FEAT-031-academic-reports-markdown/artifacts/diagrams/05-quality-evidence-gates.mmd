@@ -1,0 +1,14 @@
+flowchart LR
+    Change["Proposed change"] --> Source["Source/context review"]
+    Source --> Plan["Feature plan + acceptance"]
+    Plan --> Approval{"Explicit approval?"}
+    Approval -- "No" --> Revise["Revise scope or ask owner"]
+    Revise --> Plan
+    Approval -- "Yes" --> Build["Implement with versioned contracts"]
+    Build --> Unit["Unit + fixture tests"]
+    Unit --> Contract["Contract + integration tests"]
+    Contract --> Security["Architecture + security validators"]
+    Security --> Evidence["Feature-local evidence"]
+    Evidence --> OwnerReview{"Acceptance review"}
+    OwnerReview -- "Revise" --> Plan
+    OwnerReview -- "Accept" --> Done["Update context, decisions, status"]

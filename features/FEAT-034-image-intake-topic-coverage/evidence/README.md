@@ -12,6 +12,8 @@ Plan revision 1 is approved at the exact hash recorded in `../approvals/TASK_APP
 Only synthetic fixture hashes, sanitized test output, aggregate runtime measurements, catalog reports, and qualified review notes belong here. Never copy a user image, child data, URI/path, EXIF, credentials, or raw provider output into this directory.
 # Follow-up evidence
 
+- `notes/SELECTION_AND_CUTOUT_MOTION_20260930.md`: reproduced non-first selection failure, shared safety admission, cutout-only motion compatibility, 136 backend/50 renderer tests and verified local build/restart.
+
 - `notes/MASK_BACKEND_BOUNDARY_20260930.md`: backend early pixel/provenance admission, invalid-mask capability regression, 65 passing focused tests and verified local backend restart.
 
 - `notes/THREE_CARD_PREVIEW_MASK_LIMIT_20260930.md`: owner-approved three-card expandable preview, aggregate live mask diagnostic, six passing SAM regression tests, and external deployment limitation.

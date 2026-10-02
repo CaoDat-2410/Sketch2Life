@@ -1,0 +1,19 @@
+flowchart LR
+    Parent["Parent<br/>Adult account"] --> Mobile["Android mobile app"]
+    Guide["Guide<br/>Adult account"] --> Console["Guide Console"]
+    Parent --> Web["Parent Web"]
+    Child["Child participant<br/>No account"] --> Mobile
+    Mobile -->|"HTTPS + verified adult token"| API["Sketch2Life backend<br/>FastAPI modular monolith"]
+    Console -->|"HTTPS + verified adult token"| API
+    Web -->|"HTTPS + verified adult token"| API
+    API --> Auth["Firebase Authentication<br/>identity only"]
+    API --> Domain["Domain + application rules<br/>ownership, gates, eligibility"]
+    Domain --> DB["PostgreSQL<br/>session and business truth"]
+    Domain --> Object["S3-compatible storage<br/>originals and derivatives"]
+    Domain --> Queue["Redis/RQ<br/>bounded jobs"]
+    Domain --> AI["AI/media adapters<br/>fixture/dev first"]
+    Domain --> Audit["Durable events + redacted telemetry"]
+    API --> Renderer["Pixi bridge<br/>validated renderer plan"]
+    Mobile --> Renderer
+    classDef external fill:#f5f5f5,stroke:#555,color:#111;
+    class Auth,AI,Object external;

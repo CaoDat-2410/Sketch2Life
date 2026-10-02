@@ -33,3 +33,27 @@ def test_production_accepts_firebase_and_runpod_runtime_references() -> None:
 
     assert settings.auth_provider == "firebase"
     assert settings.ai_provider == "runpod"
+
+
+@pytest.mark.parametrize("env", ["local", "test"])
+def test_pixi_sprite_dev_preview_requires_explicit_local_test_flag(env: str) -> None:
+    assert Settings(env=env).pixi_sprite_cycle_dev_preview_allowed is False
+    assert Settings(
+        env=env,
+        pixi_sprite_cycle_dev_preview_enabled=True,
+    ).pixi_sprite_cycle_dev_preview_allowed is True
+
+
+@pytest.mark.parametrize("env", ["staging", "production"])
+def test_pixi_sprite_dev_preview_cannot_be_enabled_outside_local_test(env: str) -> None:
+    settings = Settings(
+        env=env,
+        auth_provider="firebase",
+        firebase_project_id="fixture-project",
+        ai_provider="runpod" if env == "production" else "disabled",
+        runpod_endpoint_id="fixture-endpoint" if env == "production" else "",
+        runpod_api_key_file=Path("/runtime/secrets/runpod-key") if env == "production" else None,
+        pixi_sprite_cycle_dev_preview_enabled=True,
+    )
+
+    assert settings.pixi_sprite_cycle_dev_preview_allowed is False

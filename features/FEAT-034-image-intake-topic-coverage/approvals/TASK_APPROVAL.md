@@ -2,6 +2,8 @@
 
 ## Approved follow-up — 2026-09-30
 
+- Owner's latest direct bug-fix authorization covers `plan/RECOMMENDATION_SELECTION_PIXI_FOLLOWUP_20260930.md` (APPROVED): non-first card selection consistency, verified Pixi playback defects/copy, regression evidence. Readiness/history question does not authorize restoring removed gates.
+
 - Additional owner instruction: “continue” after the mask diagnosis; backend early-validation scope and acceptance are recorded before implementation in `plan/MASK_BACKEND_BOUNDARY_FOLLOWUP_20260930.md` (APPROVED). No provider redeployment/commit is implied.
 
 - Owner authorization: reported excess activity cards and invalid masks, then selected “3 mục trước, có ‘Xem thêm’”.

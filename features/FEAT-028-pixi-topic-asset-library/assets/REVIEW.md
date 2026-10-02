@@ -49,3 +49,59 @@ catalog, moved to `approved/` or `applied/`, rights-cleared, or referenced by ru
 |---|---|---|---|
 | `walker-corgi-cycle-draft.png` | Four quadruped walk poses | VISUAL_REVIEW_PENDING — each of 4 frames separately | BLOCKED; uncatalogued and rights pending |
 | `flyer-songbird-cycle-draft.png` | Four songbird wing-flap poses | VISUAL_REVIEW_PENDING — each of 4 frames separately | BLOCKED; uncatalogued and rights pending |
+
+## Motion sprite review batch — owner visual approval — 2026-10-01
+
+- Decision: the project owner approved the visual batch (“ok, chốt cái này”) on 2026-10-01.
+- Exact visual scope: all seven sheets and all 28 proposed row-major frame IDs listed in
+  `assets/generated/SPRITE_MOTION_REVIEW_BATCH_20261001.md`, including two walker, one flyer, one
+  swimmer, one crawler, one slitherer, and one roller sequence (four frames per sequence).
+- This is visual approval only. It does not establish rights clearance, production crop/pivot/loop
+  correctness, catalog registration, renderer compatibility, `approved/` or `applied/` state, or
+  runtime eligibility. The files remain in `generated/`; the catalog and runtime are unchanged.
+- The two earlier `walker-corgi-cycle-draft.png` and `flyer-songbird-cycle-draft.png` remain
+  separate unreviewed drafts; this decision applies only to the seven v2/v1 sheets listed below.
+- Record of attribution and limitations: `../evidence/notes/MOTION_SPRITE_VISUAL_APPROVAL_20261001.md`.
+
+| Draft sheet | Motion family | Current review state | Runtime state |
+|---|---|---|---|
+| `motion-walker-corgi-v2-20261001.png` | Quadruped walk; `draft.walker.corgi.v2.frame-01`…`04` | VISUAL_APPROVED — 4 frames | BLOCKED; rights/crop/pivot/catalog/runtime pending |
+| `motion-walker-child-v2-20261001.png` | Biped walk; `draft.walker.child.v2.frame-01`…`04` | VISUAL_APPROVED — 4 frames | BLOCKED; rights/crop/pivot/catalog/runtime pending |
+| `motion-flyer-songbird-v2-20261001.png` | Wing flap; `draft.flyer.songbird.v2.frame-01`…`04` | VISUAL_APPROVED — 4 frames | BLOCKED; rights/crop/pivot/catalog/runtime pending |
+| `motion-swimmer-goldfish-v1-20261001.png` | Swimming; `draft.swimmer.goldfish.v1.frame-01`…`04` | VISUAL_APPROVED — 4 frames | BLOCKED; rights/crop/pivot/catalog/runtime pending |
+| `motion-crawler-snail-v2-20261001.png` | Crawling; `draft.crawler.snail.v2.frame-01`…`04` | VISUAL_APPROVED — 4 frames | BLOCKED; rights/crop/pivot/catalog/runtime pending |
+| `motion-slitherer-snake-v2-20261001.png` | Slithering; `draft.slitherer.snake.v2.frame-01`…`04` | VISUAL_APPROVED — 4 frames | BLOCKED; rights/crop/pivot/catalog/runtime pending |
+| `motion-roller-car-v1-20261001.png` | Wheel rolling; `draft.roller.car.v1.frame-01`…`04` | VISUAL_APPROVED — 4 frames | BLOCKED; rights/crop/pivot/catalog/runtime pending |
+
+## Motion-sequence expansion — owner visual approval — 2026-10-02
+
+An additional 30 four-pose cycle sheets were generated to cover the approved behavior registry,
+including morphology-specific variants. This is a separate batch from the seven visually approved
+concept sheets above. None of these 120 proposed frames is visually approved. Alpha-channel/corner,
+canvas dimensions, and file hashes are recorded in
+`assets/generated/motion-cycle-review-manifest.rev1.json`; cycle IDs, class IDs, ImageGen output IDs,
+and concise prompt summaries are recorded there as well. The review inventory and direct image links
+are in `assets/generated/SPRITE_MOTION_REVIEW_BATCH_REV2_20261001.md`.
+
+The manifest currently preserves prompt summaries and ImageGen output IDs, but not the full prompt
+transcripts. Attach or recover those transcripts before the later rights/provenance clearance gate;
+do not treat the summary as complete generation provenance.
+
+- Owner visual review: `APPROVED` for all 30 sheets / 120 frames by the project owner's explicit
+  instruction “duyệt sprite”; the approval is limited to the visual design of these sheets/frames.
+- Rights/provenance clearance: `REVIEW_REQUIRED`; ImageGen provenance is recorded, but this is not
+  legal clearance.
+- Crop/pivot/loop QA: `NOT_QA_VERIFIED`; generated sheets are not animation-ready frame atlases.
+- Catalog/renderer/runtime: not registered, not verified, and not eligible. Original sheets remain
+  in `generated/`; hash-matched visual-approval copies are in `approved/` but must not be used by a
+  runtime loader until every independent gate is cleared.
+- Wooden-cube slide: approved visually as a wooden cube asset; its repeated poses are not a frame
+  animation. The renderer may represent it only as one static frame with explicit transform-driven
+  slider motion after technical/runtime gates pass.
+
+This approval supersedes the prior pending visual state for the 30-sheet expansion only; the seven
+earlier concept sheets retain their original 2026-10-01 visual approval. It does not extend to the two
+separate `walker-corgi-cycle-draft.png` and `flyer-songbird-cycle-draft.png` files. The 37 cycle sheets
+listed by the FEAT-030 cycle manifest are now visually approved, while rights, technical QA, catalog,
+renderer verification, and runtime eligibility remain separate gates. No runtime behavior is enabled
+by this visual decision.

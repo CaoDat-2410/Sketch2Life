@@ -161,3 +161,53 @@
 - Approved scope: evidence-bounded image-processing mask proposals; a gap audit and reuse of existing visually approved sprites; add new sprite sequences only where a demonstrated behavior/scene gap requires them and after per-frame visual/provenance review; a versioned structured Pixi visual-show plan; one bounded post-Gate-B backend multimodal request that may use a minimized image crop; distinct companion sprites are allowed within the scene budget; visual beats only, with voice/captions deferred; subject disagreement returns to caregiver confirmation; AI failure is a visible typed error preserving the original, with no automatic retry or substitute show.
 - Constraints: Gate A remains authoritative for the selected subject and Gate B for the selected activity. Model output is schema/allowlist validated; no arbitrary code, unapproved asset, silent subject/activity change, automatic V1 fallback, or real child image in repo fixtures/logs. Asset runtime use remains gated by rights/provenance and FEAT-028 catalog eligibility. Live multimodal provider activation remains gated on privacy/retention, contract/ADR, latency/VRAM and Android evidence.
 - Implementation status at approval: not yet started. No code, runtime asset reference, model/provider request, or asset promotion was part of the approval action.
+
+## Subject behavior registry and complete motion-sprite coverage — revision 5
+
+- State: APPROVED FOR IMPLEMENTATION
+- Plan: `plan/PIXIJ_SUBJECT_BEHAVIOR_CLASS_REGISTRY_REV5_DRAFT_20261001.md`
+- Plan revision: 5
+- Exact approved plan SHA-256: `11C2DABC405D0C8C3C57768CD97A4277A34F63B97CD22DF984F3D0FE09FA32FD`
+- Post-approval plan SHA-256 (approval/implementation-status metadata only; approved scope unchanged):
+  `EEB9D66FC3E664A9BFF73C8AE9082ECA6173C57F59BA38E5B01F42FB44E0C791`
+- Approved at: 2026-10-01 22:57:34 Asia/Saigon (2026-10-01 15:57:34 UTC)
+- Approver/evidence: the project owner replied “dueyejt” to the explicit question asking approval of
+  this exact revision/hash; interpreted in context as “duyệt” (approved).
+- Approved scope: map all currently supported Gate-A and FEAT-028 topics, with a reviewed extension
+  path; define separate subject families, rig archetypes, behavior classes and action primitives;
+  allow multiple compatible capabilities per subject and AI selection per beat; include animals,
+  people, plants, scene/effect elements and objects; provide one or more reusable motion-sprite cycles
+  for every enabled non-static behavior class, with family/class variants where needed; add deterministic
+  compatibility/readiness enforcement, unknown/still outcomes, tests and evidence.
+- Asset boundary: the 28 frames in seven existing concept sheets have visual approval only. Any new
+  generated sheets remain in FEAT-028 `assets/generated/` pending per-frame visual review, provenance/
+  rights review, crop/pivot/loop QA, catalog registration, renderer verification and runtime eligibility.
+- Integration boundary: no arbitrary model code/assets, no silent Gate-A/B drift, no changes to frozen
+  FEAT-018 contracts without an additive reviewed contract/ADR, no live provider activation beyond
+  existing privacy/L4/Android gates, and no real child data in fixtures or evidence.
+- Required branch: `codex/pixi-ai-show-20261001` (already active for the approved revision-4 work).
+
+## Sprite-cycle PixiJS integration — revision 1
+
+- State: APPROVED FOR IMPLEMENTATION BY DIRECT OWNER REQUEST
+- Plan: `plan/SPRITE_CYCLE_RENDERER_INTEGRATION_20261002.md`
+- Exact plan SHA-256: `BD42C65E032E1D5FB603B81BC8CF46356E8DC5FAC9CF42A89EE4D784B6A4C44F`
+- Approved at: 2026-10-02 (Asia/Saigon; direct request in this task)
+- Approver/evidence: project owner explicitly requested “duyệt sprite, nối vào renderer trên pixijs đi, check potential bugs và fix, gate, log nó luôn cho dễ debug”. The approved scope is the exact plan above.
+- Scope: visual approval for the 30-sheet/120-frame expansion batch; additive motion-cycle capability and synchronized Pixi frame player; lifecycle gates and safe diagnostics; regression coverage and feature-local evidence.
+- Boundary: visual approval is not rights clearance or production runtime approval. Do not enable any sheet until rights/provenance, technical frame QA, catalog, renderer, and Android gates pass. Frozen V1/V2/V3 contracts remain unchanged.
+
+## Sprite-cycle local runtime activation — revision 1
+
+- State: APPROVED BY OWNER'S DIRECT IMPLEMENTATION REQUEST
+- Plan: `plan/SPRITE_CYCLE_LOCAL_RUNTIME_ACTIVATION_20261002.md`
+- Exact pre-approval plan SHA-256: `9808D1690A44A08D924A607E0745055EBD3CE8FCE2E2376C6E8819FF38FB810A`
+- Post-approval plan SHA-256 (approval metadata only; scope unchanged):
+  `A6E9B06636279769AE3D8A2B1696CE04A96465188BD843B1CD9D93006F529A1A`
+- Approved at: 2026-10-02 (Asia/Saigon)
+- Approver/evidence: the project owner explicitly requested “bật sprite mới trong runtime đi” and
+  followed the remaining-gate explanation with “tự làm đi”. This directly authorizes the bounded
+  plan above: archive recoverable provenance; QA all 37 cycles; enable only passing, currently
+  selectable cycles for local/test Android preview; keep production rights/runtime gates closed.
+- Scope boundary: no production or public-distribution clearance, no weakening of production gates,
+  no unreviewed asset edits, and no commit/push authorization.

@@ -1,6 +1,6 @@
 # FEAT-030 Original-derived auto-rig context
 
-- Status: REVISION_3_PART_AWARE_BASELINE_IMPLEMENTED; REVISION_4_SAM21_WORKER_IMPLEMENTATION_IN_PROGRESS; QWEN_SINGLE_PASS_AND_SAM_PROMPT_FIX_IMPLEMENTED; SAM2_SUCCESS_MASK_HANDOFF_FIX_IMPLEMENTED_LOCALLY; PIXI_STARTUP_BRIDGE_REPLAY_IMPLEMENTED_LOCALLY; NO_AUTOMATIC_V2_TO_V1_FALLBACK_AND_GATE_B_PRELOAD_IMPLEMENTED_LOCALLY; HIGH_PIGMENT_AND_MASK_QUALITY_CHANGES_IMPLEMENTED_OFFLINE; PIXI_SHOW_V1_OFFLINE_BRIDGE_IMPLEMENTED; PIXI_SHOW_RUNTIME_DISABLED; NEW_SPRITE_VISUAL_AND_RIGHTS_REVIEW_PENDING; ANDROID_VISUAL_RETEST_AND_LIVE_L4_BENCHMARK_PENDING.
+- Status: REVISION_3_PART_AWARE_BASELINE_IMPLEMENTED; REVISION_4_SAM21_WORKER_IMPLEMENTATION_IN_PROGRESS; QWEN_SINGLE_PASS_AND_SAM_PROMPT_FIX_IMPLEMENTED; SAM2_SUCCESS_MASK_HANDOFF_FIX_IMPLEMENTED_LOCALLY; PIXI_STARTUP_BRIDGE_REPLAY_IMPLEMENTED_LOCALLY; NO_AUTOMATIC_V2_TO_V1_FALLBACK_AND_GATE_B_PRELOAD_IMPLEMENTED_LOCALLY; HIGH_PIGMENT_AND_MASK_QUALITY_CHANGES_IMPLEMENTED_OFFLINE; PIXI_SHOW_V1_OFFLINE_BRIDGE_IMPLEMENTED; PIXI_SHOW_RUNTIME_DISABLED; MOTION_SPRITE_VISUAL_APPROVED_RIGHTS_AND_TECHNICAL_REVIEW_PENDING; SUBJECT_BEHAVIOR_REGISTRY_REVISION_5_IN_PROGRESS; ANDROID_VISUAL_RETEST_AND_LIVE_L4_BENCHMARK_PENDING.
 - Owner: Project owner; auto-rig revision 4 and Pixi sprite-show plan revision 4 are approved for implementation. Live activation remains gated by separate asset-rights, privacy/retention, L4, contract, and Android evidence.
 - Goal: turn a validated subject from the child's immutable drawing into a bounded, explainable PixiJS 2D rig so the drawing visibly moves while remaining recognizably the child's work.
 - Scope: target selection, spatial grounding, segmentation, original-derived masks/textures, mesh and skeleton generation, skin weights, rig validation, bounded motion profiles, asynchronous preparation, Renderer V2 loading, PixiJS CPU skinning, deterministic fallback, provenance, metrics, and golden-scene evidence.
@@ -141,6 +141,29 @@ shell has no accessible `adb`/Android SDK path. No provider call or image was us
   privacy/retention review, and asset rights/runtime eligibility remain gates for their respective
   integrations. No model call or asset promotion has occurred.
 
+## Subject behavior registry addendum — draft — 2026-10-01
+
+- The owner requested a comprehensive, explicit class registry for supported animals, people,
+  plants, objects, vehicles, and other subjects (e.g. walker/flyer/swimmer), and approved the visual
+  appearance of all 28 frames in seven FEAT-028 motion concept sheets.
+- Approved plan: `plan/PIXIJ_SUBJECT_BEHAVIOR_CLASS_REGISTRY_REV5_DRAFT_20261001.md` (revision 5).
+  It separates
+  semantic subject families, structural rig archetypes, behavior classes, and action primitives;
+  AI may select only from a deterministic, evidence-backed registry.
+- Revision 5 is approved for implementation by the owner. The exact pre-approval hash and
+  status-only post-approval hash are recorded in `approvals/TASK_APPROVAL.md`. Approved plan
+  revision 4 and its hash remain untouched. The seven motion sheets remain in FEAT-028
+  `assets/generated/`; visual approval does not imply rights, technical QA, catalog, or runtime approval.
+- Revision-5 exact pre-approval SHA-256: `11C2DABC405D0C8C3C57768CD97A4277A34F63B97CD22DF984F3D0FE09FA32FD`.
+- Owner clarified the coverage boundary (all current Gate-A/FEAT-028 topics plus a reviewed
+  extension path), approved multi-capability subjects with behavior chosen per beat, and included
+  plants/environment/effect motion. The owner also requested motion sprites for all supported
+  non-static behaviors, with one or more reusable cycles per compatible behavior class and variants
+  where needed. `STILL`/`UNKNOWN` are safe no-motion outcomes. The owner approved the exact revision;
+  implementation is underway. See
+  `evidence/notes/BEHAVIOR_REGISTRY_IMPLEMENTATION_20261001.md`. New sprite candidates remain gated
+  on separate visual review, rights/provenance and technical/runtime checks.
+
 ## Pixi show implementation — offline bridge; runtime gated — 2026-10-01
 
 - Implemented additive `PixiShowPlanV1` / `PixiRendererShowEnvelopeV1` backend and TypeScript
@@ -166,3 +189,23 @@ shell has no accessible `adb`/Android SDK path. No provider call or image was us
   deleting task-created pytest scratch directories. Android playback, rights-cleared sprite
   composition, live Qwen behavior/subject classification, privacy/retention review, and L4
   latency/VRAM remain unverified. Details: `evidence/notes/PIXI_SHOW_IMPLEMENTATION_20261001.md`.
+
+## Local sprite-cycle preview activation — 2026-10-02
+
+Under the separate owner-approved local activation plan, the backend now has a default-off preview
+gate limited to local/test environments. The exact-hash applied catalog exposes only the avian
+walker and corgi walker cycles; the production manifest and rights/runtime gates are unchanged.
+The app-root Metro startup/root-resolution issue was also fixed and its Android bundle now serves
+successfully. Backend focused tests, renderer tests/typecheck/build, and mobile check pass. A full
+image-to-visible-Pixi playback has not yet been verified on the emulator; do not treat this as
+Android acceptance or production activation. See
+`../../FEAT-028-pixi-topic-asset-library/evidence/notes/MOTION_CYCLE_LOCAL_PREVIEW_ACTIVATION_20261002.md`.
+
+## Sprite-cycle renderer sidecar — 2026-10-02
+
+The owner visually approved the new 30-sheet/120-frame sprite batch. The additive V4 Pixi renderer
+sidecar is implemented offline: it accepts gated frame capabilities, checks content hashes, and
+syncs animation to the existing show clock. Backend, renderer, mobile, build, typecheck, Ruff, and
+repository security checks passed. Visual approval is not runtime approval: rights/provenance,
+crop/pivot/loop QA, catalog registration, formal renderer verification, and Android acceptance remain
+open, so the checked-in manifest still rejects runtime use. Details: `evidence/notes/SPRITE_CYCLE_PIXI_INTEGRATION_20261002.md`.

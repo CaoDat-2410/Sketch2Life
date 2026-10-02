@@ -42,12 +42,18 @@ class Settings(BaseSettings):
     lightning_sam21_enabled: bool = False
     lightning_sam21_path: str = "/v2/rig/segment"
     pixi_show_planner_enabled: bool = False
+    pixi_sprite_cycle_dev_preview_enabled: bool = False
     lightning_pixi_show_path: str = "/v2/pixi/show-plan"
     live_fixture_root: Path | None = None
     runpod_endpoint_id: str = ""
     runpod_api_key_file: Path | None = None
     ai_connect_timeout_seconds: float = 5.0
     ai_request_timeout_seconds: float = 120.0
+
+    @property
+    def pixi_sprite_cycle_dev_preview_allowed(self) -> bool:
+        """Keep the owner-authorized preview unavailable outside local/test deployments."""
+        return self.pixi_sprite_cycle_dev_preview_enabled and self.env in {"local", "test"}
 
     @model_validator(mode="after")
     def enforce_deployment_provider_policy(self) -> Self:

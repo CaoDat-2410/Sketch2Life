@@ -94,6 +94,10 @@ if (-not $pnpm) {
   throw 'pnpm was not found on PATH. Install pnpm 11 or activate the repository toolchain.'
 }
 
+# The native dev client requests the app's `index` entry. In this monorepo,
+# Expo's workspace-root detection would resolve that entry from the repository root.
+$env:EXPO_NO_METRO_WORKSPACE_ROOT = '1'
+
 $adb = $null
 $adbServerPort = $null
 $adbDevice = $null

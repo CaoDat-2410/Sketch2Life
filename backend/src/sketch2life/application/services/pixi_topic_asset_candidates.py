@@ -110,7 +110,9 @@ def build_topic_asset_candidate_context(
     approved = tuple(
         asset
         for asset in assets
-        if asset.runtime_eligible and asset.review_status in {"APPROVED", "APPLIED"}
+        if asset.runtime_eligible
+        and asset.review_status in {"APPROVED", "APPLIED"}
+        and asset.provenance.license_status == "CLEARED"
     )
     if not approved:
         return _miss_context(query, "NO_APPROVED_ASSETS")
@@ -185,6 +187,7 @@ def validate_topic_asset_selection(
             or asset is None
             or not asset.runtime_eligible
             or asset.review_status not in {"APPROVED", "APPLIED"}
+            or asset.provenance.license_status != "CLEARED"
         ):
             raise ValueError("model selected an unknown, unapproved, or out-of-context asset ID")
     return selection

@@ -1,0 +1,16 @@
+flowchart TB
+    subgraph Sprint1["Sprint 1 - independent fixture/contract lanes"]
+        P1Lane["P1: catalog, taxonomy, rules, fixtures"]
+        P2Lane["P2: media validation, ASR/VLM/fusion, raw contract"]
+        P3Lane["P3: Pixi/GSAP, Motion DSL, preservation tests"]
+        P4Lane["P4: cache, resolver, video/fallback contract"]
+    end
+    P1Lane --> Freeze["Review + contract/fixture freeze"]
+    P2Lane --> Freeze
+    P3Lane --> Freeze
+    P4Lane --> Freeze
+    Freeze --> Integration["Integration Sprint<br/>separately allocated"]
+    Integration --> Backend["Backend/session/authorization"]
+    Integration --> Mobile["Android capture/playback/gates"]
+    Integration --> Web["Parent Web + Guide Console"]
+    Integration --> QA["Cross-component QA + security"]

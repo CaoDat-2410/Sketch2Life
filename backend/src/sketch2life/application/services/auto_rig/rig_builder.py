@@ -62,6 +62,10 @@ _ALIASES: dict[RigArchetype, tuple[str, ...]] = {
         "thuyen",
         "do choi",
     ),
+    RigArchetype.GENERIC_ORGANIC: (
+        "con cho", "chu cho", "dog", "puppy", "corgi",
+        "con meo", "cat", "kitten", "huou cao co", "giraffe", "con tho", "rabbit",
+    ),
 }
 
 

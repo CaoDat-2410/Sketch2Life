@@ -1,10 +1,10 @@
 # SRS tổng thể Sketch2Life
 
 - Mã tài liệu: S2L-SRS-MASTER
-- Phiên bản: 1.6
+- Phiên bản: 1.8
 - Ngôn ngữ: Tiếng Việt
-- Ngày lập: 2026-09-23
-- Trạng thái: Baseline mục tiêu đã được owner chốt; v1.6 bổ sung implementation-grade detail cho test architecture, APIs, roles, UI surfaces, monitoring, rate-limit, fixtures và verification
+- Ngày lập: 2026-09-28
+- Trạng thái: Baseline v1.7 được mở rộng theo yêu cầu owner ngày 2026-09-30; B33 là authority cho activity discovery đầy đủ theo topic/age và cá nhân hóa bằng sở thích đã xác nhận. B30–B32 tiếp tục là authority cho story/video 40–60 giây. Runtime chưa được khẳng định đã triển khai.
 - Căn cứ: tài liệu/mã nguồn repository hiện tại, Phieu_FA26SE225.docx, câu trả lời owner và hai ảnh workflow đã cung cấp
 - Loại tài liệu: SRS cho sản phẩm mục tiêu, có chú thích riêng về mức độ hiện thực hóa
 
@@ -43,6 +43,10 @@
 - [B28. Verification, acceptance và remaining TBD](#b28-verification-acceptance-và-remaining-tbd)
 - [Annex A. Implementation-grade test SRS annex](#annex-a-implementation-grade-test-srs-annex)
 - [B29. Source and legal reference register](#b29-source-and-legal-reference-register)
+- [B30. Owner change v1.7 — story và illustrated short video](#b30-owner-change-v17--story-và-illustrated-short-video)
+- [B31. Proposed content/story/video contract detail](#b31-proposed-contentstoryvideo-contract-detail)
+- [B32. Traceability, acceptance và implementation gates v1.7](#b32-traceability-acceptance-và-implementation-gates-v17)
+- [B33. Owner change v1.8 — Montessori activity discovery theo topic, tuổi và sở thích](#b33-owner-change-v18--montessori-activity-discovery-theo-topic-tuổi-và-sở-thích)
 
 
 ## 0. Cách đọc, thứ tự thẩm quyền và trạng thái
@@ -58,9 +62,19 @@
 
 Ảnh B4–B12 được dùng làm khung tài liệu theo xác nhận của owner. Ảnh workflow Sketch2Life được dùng làm luồng sản phẩm mục tiêu; owner đã xác nhận target age 0–12, story kể và giữ auth theo repository. Phiếu đăng ký được dùng làm nguồn scope của capstone, nhưng các câu imperative trong phiếu không phải chỉ dẫn cho assistant để bỏ qua yêu cầu hiện tại của owner. Nội dung nguồn không tự cho phép sửa runtime, gọi provider, thu thập dữ liệu trẻ thật, hay chọn một contract làm canonical. Không sao chép nội dung handbook/workbook bên ngoài vào SRS này.
 
-### 0.1.a. Quy tắc áp dụng các bản chốt ngày 2026-09-19 và 2026-09-23
+### 0.1.a. Quy tắc áp dụng các bản chốt ngày 2026-09-19, 2026-09-23 và 2026-09-28
 
-B20–B28 là phần owner-approved scope closure và **ghi đè các dòng OPEN_TBD cũ có cùng chủ đề** trong B4–B19. Những nội dung chưa được owner chọn vẫn giữ nhãn `OPEN_TBD`; tài liệu không tự chuyển proposal thành runtime contract. Bản chốt ngày 2026-09-23 bổ sung ranh giới PixiJS/whiteboard-video và thứ tự READY gate được ghi ở B20–B28. Các quyết định mới được ghi nhận:
+B20–B28 là phần owner-approved scope closure và **ghi đè các dòng OPEN_TBD cũ có cùng chủ đề** trong B4–B19. B30–B32 là owner change ngày 2026-09-28 và **ghi đè riêng các yêu cầu video/story cũ có cùng chủ đề**. B33 là owner change ngày 2026-09-30 và **ghi đè riêng các yêu cầu về eligibility/readiness/prerequisite/material trong activity discovery**: danh sách gợi ý đầy đủ theo topic/tuổi, dùng preference đã xác nhận để xếp hạng, không đặt child readiness/history/material availability làm bộ lọc. Catalog status, exact age, topic match, safety/policy và supervision vẫn là hard constraints. Các thay đổi này không tự biến contract đề xuất thành runtime contract; contract mới phải version hóa và được ghi nhận riêng.
+
+Các quyết định 2026-09-28 được ghi nhận tại B30–B32:
+
+- Short video mục tiêu dài 40–60 giây, kể lại tranh đã xác nhận và đưa kiến thức phù hợp tuổi.
+- Cho phép tạo lại tranh/đối tượng theo phong cách minh họa dưới dạng derived artifact; original image/audio không bị ghi đè.
+- Knowledge query dùng tuổi/readiness Montessori từ ChildProfile/context đã được người lớn cung cấp/xác nhận; không suy tuổi hoặc readiness từ media.
+- Người lớn có cả quick-edit controls và free-form instructions; AI phải trả về toàn bộ bản script mới để duyệt.
+- Final script approval là gate trước khi gọi bất kỳ image-generation model nào.
+- Người lớn chọn ngôn ngữ/voice category được hỗ trợ; TTS là asset độc lập, video model chỉ tạo hình ảnh/chuyển động.
+- Giữ Wan2.2 TI2V-5B làm video-model baseline hiện tại; L4 performance phải đo trên môi trường đích, không suy ra từ benchmark GPU khác.
 
 - Một `Owner Caregiver` (cha/mẹ hoặc người giám hộ) sở hữu chính xác một ChildProfile; một Owner Caregiver có thể tạo nhiều ChildProfile.
 - Một ChildProfile có thể có nhiều Guide; Guide được cấp quyền trong toàn bộ thời gian assignment/share còn hiệu lực.
@@ -284,7 +298,7 @@ Không dùng fixture, local adapter hoặc demo metadata để tuyên bố produ
 | Gate B | Adult duyệt activity/objective/template/version. | Parent, Guide |
 | Story/scene | Tạo nội dung kể chuyện và scene dựa trên meaning/objective đã duyệt; safety screen. | Story service, child, adult |
 | Personalized Drawing Exploration | PixiJS/GSAP focus, tap-to-discover và 2.5D cut-out/parallax trên chính tranh gốc; không thay thế source. | Renderer, child |
-| Whiteboard learning video | Video MP4 5–10 giây dựng lại/reveal nét tranh gốc bằng pipeline segmentation + contour/stroke; có TTS độc lập và safety/content validation. | Video service, child, Parent/Guide |
+| Illustrated story short | Video MP4 40–60 giây kể lại tranh đã xác nhận và giải thích kiến thức có nguồn, phù hợp tuổi; có thể vẽ lại thành minh họa derived, có TTS độc lập và safety/content/provenance validation. | Story/video service, child, Parent/Guide |
 | Off-screen handoff | Materials, substitute, setup, steps, supervision và safety để thực hiện hoạt động thật. | Parent, Guide, child |
 | Observation/history | Ghi completed/partial/not attempted, interest/independence và observation/history. | Parent, Guide |
 | Guide Console | KB, mapping review, class observation, override, template curation và assignment view. | Guide, Admin |
@@ -312,8 +326,8 @@ Không dùng fixture, local adapter hoặc demo metadata để tuyên bố produ
 | Backend | FastAPI/Python modular monolith, HTTPS REST/OpenAPI, domain/application inward, adapter/provider boundary. | Production topology, regions, scale, SLO/RPO/RTO. |
 | Authentication | Firebase Authentication project thật cho test; Google Sign-In/email-password adult identity; backend verify ID token. | Invitation, verification, recovery, MFA/reauth, Admin provisioning. |
 | Data storage | Backend-owned PostgreSQL/S3-compatible/queue boundary theo architecture; không dùng Firebase Storage/Firestore/Realtime Database. | Physical schema, migrations, backup and disaster recovery. |
-| AI/media | Backend-only adapters; VLM hiện tại, SAM 2.1 Hiera Small cho segmentation mục tiêu, contour/stroke engine, TTS và FFmpeg/NVENC cho whiteboard video. Lightning fixture/dev và Runpod target sau gate theo ADR. | Provider approval, model versions, data processing/retention, worker/GPU scheduling. |
-| Renderer | PixiJS/GSAP boundary với original source; whiteboard MP4 là media implementation độc lập, không thay Pixi. | Production WebView/native lifecycle, video job/encoding protocol. |
+| AI/media | Backend-only adapters; VLM/ASR cho understanding; reviewed knowledge retrieval; constrained story planner; language/voice-aware TTS; illustration generation; Wan2.2 TI2V-5B hiện là video-model baseline; FFmpeg/NVENC có thể assemble/encode. | Provider/model revisions, knowledge source/review, data processing/retention, worker/GPU scheduling và benchmark L4. |
+| Renderer | PixiJS/GSAP remains a separate interactive experience on the original drawing. Illustrated MP4 is a separate derived media flow and may redraw the confirmed subject without replacing the source. | Production WebView/native lifecycle, illustration/video job and encoding protocol. |
 
 ### B2.5 Assumptions, dependencies và constraints
 
@@ -328,11 +342,11 @@ Không dùng fixture, local adapter hoặc demo metadata để tuyên bố produ
 | ASM-007 | Constraint | Real child data chỉ thu thập sau consent/deletion/research controls. | REGISTERED_SCOPE |
 | ASM-008 | Dependency | Direct GuideAssignment, Parent/Admin notification, revoke and optional petition cần assignment/relationship service. | OWNER_CONFIRMED behavior; channel/review details TBD |
 | ASM-009 | Dependency | Retention 30/60/90 cần data class và deletion policy trước implementation. | OWNER_CONFIRMED choice; policy TBD |
-| ASM-010 | Constraint | PixiJS exploration và whiteboard video là hai implementation độc lập; video bắt đầu trong lúc Pixi đang phát và dùng chung learning thread/ExperienceSpec. | OWNER_CONFIRMED |
-| ASM-011 | Constraint | Whiteboard video phải giữ identity/nét gốc của trẻ; mọi mask, crop, stroke path và MP4 là derived artifact có source hash/provenance. | OWNER_CONFIRMED / ACCEPTED_ARCH |
-| ASM-012 | Dependency | SAM 2.1 Hiera Small là segmentation baseline sau VLM localization; Grounding DINO và video diffusion chỉ là future/optional fallback. | OWNER_CONFIRMED target; implementation gate TBD |
-| ASM-013 | Constraint | TTS là narration độc lập được tạo từ learning thread, không dùng lại raw voice/narration của trẻ làm voice track mặc định. | OWNER_CONFIRMED; voice/provider details TBD |
-| ASM-014 | Constraint | Whiteboard MP4 hiện chỉ tồn tại trong session/process-local flow; auth và durable save là future scope. | OWNER_CONFIRMED |
+| ASM-010 | Constraint | PixiJS exploration và illustrated story video là hai implementation độc lập; video job chỉ bắt đầu sau adult script approval và có thể chạy trong lúc Pixi phát. | OWNER_CONFIRMED 2026-09-23/28 |
+| ASM-011 | Constraint | Original drawing/audio luôn immutable; masks/crops/strokes, illustrated stills, clips, narration và MP4 là derived artifacts có source/package hash/provenance. | OWNER_CONFIRMED source integrity; redraw allowed 2026-09-28 |
+| ASM-012 | Dependency | Wan2.2 TI2V-5B giữ làm video-model baseline; exact image model, revisions, L4 profile and GPU lifecycle require benchmark/ADR. | OWNER_CONFIRMED baseline; operational profile TBD |
+| ASM-013 | Constraint | TTS narration tách khỏi raw voice/narration của trẻ và video model; adult chọn supported language/voice profile. | OWNER_CONFIRMED 2026-09-28; provider/catalog details TBD |
+| ASM-014 | Constraint | Video artifact lifecycle remains governed by session/retention policy; v1.7 does not infer durable persistence or change prior storage decisions. | Existing owner scope; lifecycle target needs feature-level implementation plan |
 
 ### B2.6 Ngoài phạm vi hoặc chưa được phép suy ra
 
@@ -342,7 +356,7 @@ Không dùng fixture, local adapter hoặc demo metadata để tuyên bố produ
 - Không coi Admin là được miễn consent, audit hoặc retention.
 - Không coi Parent notification là Parent consent/approval; Parent có quyền revoke assignment đã được chốt.
 - Không coi logical schema trong B14 là canonical runtime schema.
-- Parent Web là surface bắt buộc của target vận hành; PixiJS exploration, narrated story và whiteboard micro-video cũng là target bắt buộc theo owner closure.
+- Parent Web là surface bắt buộc của target vận hành; PixiJS exploration, narrated story và illustrated story short cũng là target bắt buộc theo owner closure.
 - Không coi research sample, threshold, ethics, dataset release hoặc production SLO là đã được phê duyệt.
 
 ## B3. Bối cảnh hệ thống và interface bên ngoài
@@ -467,7 +481,7 @@ Authorization do backend/domain/application policy thực thi ở mỗi resource
 
 ### B5.1 Mục đích
 
-Sketch2Life chuyển tranh và lời kể của trẻ thành trải nghiệm học tập cá nhân hóa có người lớn xem xét. Owner xác nhận workflow mục tiêu gồm hai lớp media nối tiếp: PixiJS `Personalized Drawing Exploration` và whiteboard learning video MP4. PixiJS giữ tap-to-discover/2.5D; video là implementation độc lập, được khởi tạo trong lúc Pixi đang phát, rồi mới bàn giao sang hoạt động Montessori ngoài màn hình. Dải tuổi mục tiêu là 0–12; narration của trẻ là input hiểu tranh riêng, còn TTS video là narration track độc lập dựa trên learning thread. Parent Web là surface bắt buộc trong target vận hành.
+Sketch2Life chuyển tranh và lời kể của trẻ thành trải nghiệm học tập cá nhân hóa có người lớn xem xét. Target gồm PixiJS `Personalized Drawing Exploration` và một illustrated story short MP4 40–60 giây. PixiJS giữ tap-to-discover/2.5D trên tranh gốc; video là implementation độc lập, dùng script đã được người lớn duyệt, kể lại subject đã xác nhận và bổ sung kiến thức có nguồn theo age/readiness context. Video được tạo trong lúc Pixi phát khi đủ điều kiện; sau video mới handoff sang hoạt động Montessori ngoài màn hình. Tuổi mục tiêu là 0–12; narration trẻ là input hiểu tranh, còn TTS video có ngôn ngữ/voice được người lớn chọn và không mặc định dùng raw child narration. Minh họa được phép vẽ lại nhưng luôn là derivative; source không bị thay. Parent Web là surface bắt buộc.
 
 ### B5.2 Luồng mục tiêu trong phạm vi SRS
 
@@ -478,9 +492,9 @@ Sketch2Life chuyển tranh và lời kể của trẻ thành trải nghiệm h�
 | 1. Đầu vào và context | Người lớn mở phiên được giám sát. Trẻ đưa tranh gốc và narration; narration có thể sửa/ghi lại khi chưa rõ. Tuổi, readiness, history liên quan và consent do người lớn cung cấp. | Reference ảnh/âm thanh bất biến và context người lớn có giới hạn. | Capture, consent UX và tạo session bền vững chưa được nối đầy đủ. |
 | 2. Validate, hiểu và xác nhận | Media được kiểm tra xác định; ASR chuyển narration thành transcript; VLM quan sát tranh; fusion giữ lại claim, ambiguity và conflict theo nguồn. Người lớn xem ở Gate A, sửa meaning, chỉnh narration hoặc yêu cầu ghi lại. | Meaning đã được người lớn xác nhận, giữ provenance của nguồn và correction. | Có media validation và các họ contract ASR/Vision offline/dev; Gate A UX/API production chưa được nối. |
 | 3. Đề xuất Montessori | Kiểm tra catalog status, tuổi chính xác, readiness, prerequisite, supervision/policy và materials trước mọi ranking. Chỉ chọn activity/objective có sẵn. Người lớn xem đề xuất/alternatives ở Gate B. | Cặp activity/objective đúng ID/version được duyệt cùng nhau. | P1 filter/compiler và Gate B integrity có ở offline/fixture; catalog đủ chuẩn production và UI/API còn mở. |
-| 4. Lập story/scene | Nội dung dựa trên meaning đã xác nhận và learning objective đã duyệt; phù hợp tuổi và có cơ sở thực tế. | Experience plan có version, gắn với identity đã duyệt. | Có contract/plan; trải nghiệm người dùng chưa hoàn chỉnh. |
+| 4. Lập story/scene và duyệt script | Query kiến thức từ source được review bằng confirmed meaning, objective, age/readiness và locale. Adult sửa bằng quick controls, free-form hoặc cả hai; AI trả bản hoàn chỉnh mới. Adult chọn voice/language và duyệt đúng script/evidence/profile trước image generation. | Approved story package có exact refs/hash, claim citations, age/language/voice, script revision và adult approval. | Có plan mới; contracts/API/UI chưa canonical/chưa triển khai. |
 | 5. PixiJS Personalized Drawing Exploration | Sau Gate B, PixiJS/GSAP trình diễn tranh gốc theo learning thread: focus subject, tap-to-discover, relation focus và 2.5D cut-out/parallax có provenance. | Pixi interactive scene và derived source layers; không tạo video và không thay source. | Plan/renderer offline đang được phát triển; mobile/live integration còn theo feature gate. |
-| 6. Whiteboard video generation | Đồng thời với Pixi, backend tạo whiteboard MP4 từ cùng source/learning thread: VLM localization → SAM 2.1 Small → contour/stroke → deterministic render → FFmpeg/NVENC; TTS độc lập. | Video 5–10 giây, identity/spec/source continuity, safety/content validation và typed job status. Parent chỉ được tiếp tục khi video READY; lỗi có retry. | OWNER_CONFIRMED target; MP4 implementation là task kế tiếp, chưa triển khai. |
+| 6. Illustrated story-video generation | Sau final script approval, backend tạo still minh họa theo cảnh, render clip ngắn bằng Wan2.2 TI2V-5B baseline, tạo TTS riêng theo language/voice selection và assemble theo audio timing. Có thể chạy trong lúc Pixi phát. | MP4 40–60 giây; scene/script/claim/source/spec continuity; audio completeness; safety/provenance validation; typed async job. Parent chỉ tiếp tục khi READY; lỗi có recovery/retry rõ. | OWNER_CONFIRMED scope 2026-09-28; implementation/benchmark/contracts còn gated. |
 | 7. Chuyển sang hoạt động ngoài màn hình | Dừng playback số và bàn giao đúng activity đã duyệt, materials/substitutes, chuẩn bị, bước thực hiện và an toàn/giám sát. | Hoạt động Montessori thật có người lớn giám sát. | Có handoff contract/fixture; session production chưa nối. |
 | 8. Feedback và history | Parent/Guide ghi hoàn thành, một phần hoặc chưa thực hiện; ghi chú interest, independence, observations. Cập nhật history mà không suy ra hoàn thành từ thời lượng xem. | Feedback gắn chính xác activity/objective/spec đã duyệt. | Contract gallery/feedback hiện process-local hoặc fixture-only; history bền vững chưa nối. |
 
@@ -492,8 +506,9 @@ Sketch2Life chuyển tranh và lời kể của trẻ thành trải nghiệm h�
 - Identity người lớn, authorization theo role/quan hệ, session có người lớn giám sát, consent, retention và deletion.
 - Đầu vào tranh/narration và media admission xác định.
 - ASR, VLM, fusion, Gate A, context người lớn, deterministic activity filtering và Gate B.
-- PixiJS Personalized Drawing Exploration, whiteboard learning-media riêng, fallback/retry, handoff ngoài màn hình, feedback/history.
-- Whiteboard video job, source-derived masks/strokes, TTS provenance, MP4 encoding và session-only artifact lifecycle.
+- Age-aware reviewed knowledge query, claim provenance, story draft/edit/approval, selectable narration locale/voice.
+- PixiJS Personalized Drawing Exploration, illustrated short-video generation, fallback/retry, handoff ngoài màn hình, feedback/history.
+- Story/video/TTS jobs, derived illustration provenance, scene timing, MP4 assembly/validation and approved artifact lifecycle.
 - Admin account/role/family-class workflows; model/safety/time configuration; privacy operations; job/platform monitoring theo phiếu.
 - Research dataset/evaluation deliverables, Guide validation và household trial theo phiếu, subject to consent and approved protocol.
 - Contract versioned, session/job semantics, provenance, security, acceptance criteria và traceability.
@@ -535,26 +550,37 @@ flowchart TD
     J -- Không --> K[Trả NO_VALID_ACTIVITY và reason]
     J -- Có --> L[Đề xuất activity/objective + learning focus]
     L --> M[Gate B: người lớn duyệt cặp ID/version]
-    M --> N[Khóa ExperienceSpec và lập story/scene]
-    N --> O[Khởi tạo Pixi exploration + whiteboard job song song]
-    O --> P[PixiJS: focus, tap-to-discover, 2.5D]
-    O --> Q[VLM localization → SAM2 Small → stroke extraction → MP4 + TTS]
-    Q --> R{Video READY?}
-    R -- Đang xử lý --> S[Loading hiển thị trong lúc Pixi phát]
-    S --> R
-    R -- Retryable failure --> T[Parent thấy lỗi an toàn và bấm retry]
-    T --> Q
-    R -- Có --> U{Pixi cũng đã xong?}
-    P --> U
-    U -- Chưa --> S2[Giữ trạng thái chờ thân thiện; chưa mở tiếp tục]
-    S2 --> U
-    U -- Rồi --> V[Parent được báo; bấm tiếp tục]
-    V --> W[Phát whiteboard MP4]
-    W --> W2[Video kết thúc]
-    W2 --> X[Handoff hoạt động ngoài màn hình]
-    X --> X2[Parent/Guide cùng trẻ thực hiện; không tính vào timer số]
-    X2 --> Y[Adult ghi completed/partial/not attempted + quan sát]
-    Y --> Z[History theo consent và retention 30/60/90 ngày]
+    M --> N[Khóa ExperienceSpec + age/readiness + locale]
+    N --> O[Query kiến thức đã review, có citation]
+    O --> P[Draft script kể tranh + kiến thức]
+    P --> P1[Adult sửa bằng quick controls, free-form hoặc cả hai]
+    P1 --> P2[AI trả toàn bộ revision mới]
+    P2 --> P3[Chọn voice/locale, nghe preview]
+    P3 --> P4{Adult duyệt đúng script/hash?}
+    P4 -- Chưa --> P1
+    P4 -- Có --> Q[Khởi tạo Pixi và approved video job]
+    Q --> R[PixiJS: focus, tap-to-discover, 2.5D trên tranh gốc]
+    Q --> S[TTS narration độc lập + đo audio timing]
+    Q --> T[Tạo minh họa theo scene sau script approval]
+    T --> U[Wan2.2 TI2V-5B render clip ngắn từng scene]
+    S --> V[Ghép scene theo audio timeline + mux TTS]
+    U --> V
+    V --> W{Video 40–60s, đủ audio và validator PASS?}
+    W -- Đang xử lý --> X[Progress an toàn trong lúc Pixi phát]
+    X --> V
+    W -- Retryable failure --> Y[Parent thấy recovery/retry rõ]
+    Y --> Q
+    W -- Có --> Z{Pixi cũng đã xong?}
+    R --> Z
+    Z -- Chưa --> Z1[Chờ; chưa mở continue]
+    Z1 --> Z
+    Z -- Rồi --> Z2[Parent được báo; bấm tiếp tục]
+    Z2 --> Z3[Phát illustrated story MP4]
+    Z3 --> Z4[Video kết thúc]
+    Z4 --> Z5[Handoff hoạt động ngoài màn hình]
+    Z5 --> Z6[Parent/Guide cùng trẻ thực hiện; không tính vào timer số]
+    Z6 --> Z7[Adult ghi completed/partial/not attempted + quan sát]
+    Z7 --> Z8[History theo consent và retention 30/60/90 ngày]
 ```
 ### B5.6 Truy vết scope theo phiếu đăng ký
 
@@ -562,16 +588,16 @@ flowchart TD
 |---|---|---|---|
 | 3.1 Project name | Sketch2Life chuyển tranh trẻ thành Montessori experience cá nhân hóa. | B5.1 mục đích; B5.2 workflow. | OWNER_CONFIRMED; target age 0–12 được owner xác nhận. |
 | 3.2(a) Context | Interest signal, material sequence, generic AI không phải pedagogy, screen restriction, sketch domain gap, misrecognition/safety/privacy risk. | B5.1, B6, B10, B11, B12.7. | Nguồn rationale; từng luận điểm được phân loại thành constraint hoặc research premise, không coi mọi câu là implementation fact. |
-| 3.2(b) Proposed solution | Capture + child description; multimodal understanding; six curriculum areas; age/prior-work filtering; animation/whiteboard reveal trên original lines; guarded story; off-screen activity; safety; observation history. | B5.2, B6, B10, B12.7. | Workflow image là target; Pixi exploration và whiteboard video được owner tách thành hai implementation; Child-description precedence và sequence semantics được truy thành yêu cầu nhưng acceptance detail cần chốt. |
+| 3.2(b) Proposed solution | Capture + child description; multimodal understanding; age/prior-work filtering; Pixi exploration; age-aware evidence-backed illustrated story short; adult script/voice gate; off-screen activity; safety; observation history. | B5.2, B6, B10, B12.7, B30–B32. | Owner v1.7 supersedes whiteboard-only micro-video target; Pixi/video remain separate; exact content-source governance and performance thresholds remain TBD. |
 | 3.2(c) Functional requirements | Child/adult, Parent/Guardian, Guide, AI engine, System Admin actors and capabilities. | B4.1, B4.3, B10. | Parent access is one-owner-per-child scoped; Guide access is active Parent/Admin assignment scoped; Admin highest role and raw child-content access are break-glass audited. |
 | 3.2(d) NFR | Off-screen orientation, original artwork ownership, misrecognition, content/activity safety, pedagogy, privacy, responsiveness, offline. | B6, B10, B11. | Preserve registered nonfunctional topics; measurable targets absent in form remain TBD. |
 | 3.2(e) Theory/practical | Montessori sequence, drawing development/sketch understanding, child speech, constrained recommendation, safety; KB, dataset annotation, guide validation and household study. | B12.7 research scope; evidence/source register. | Include as research context/plan; no performance result claimed. |
-| 3.2(f) Products | Mobile app, Guide Console, Parent Web, KB, understanding, Pixi exploration, whiteboard video, story, recommender, annotated dataset, evaluation report. | B5.6, FR-031 onward, B12.7, B21. | Target includes Pixi exploration, narrated story, whiteboard micro-video, Guide Console và Parent Web; current implementation status remains separate. Research dataset/release remains TBD. |
-| 3.2(g) Work packages | WP1 domain/research, WP2 backend/recommender, WP3 AI/segmentation/whiteboard-video/story, WP4 mobile/Guide Console. | B12.7 project work-package trace. | Registered allocation recorded as project organization, not runtime authorization or proof of completed implementation. MP4 implementation is the next planned task. |
+| 3.2(f) Products | Mobile app, Guide Console, Parent Web, KB, understanding, Pixi exploration, illustrated story short, recommender, annotated dataset, evaluation report. | B5.6, FR-031 onward, B12.7, B21, B30–B32. | Target includes Pixi exploration, age-aware narrated illustrated story, Guide Console and Parent Web; current implementation status remains separate. Research dataset/release remains TBD. |
+| 3.2(g) Work packages | WP1 domain/research, WP2 backend/recommender, WP3 AI/story/illustration/video, WP4 mobile/Guide Console. | B12.7 project work-package trace. | Registered allocation is project organization, not runtime authorization or proof of completion. New story/video work requires FEAT-020 amendment approval before implementation. |
 | 3.3 Research | Two research questions, objectives, mixed methods, comparative baselines, household trial, contribution and related-work themes. | B12.7. | Preserve as intended study design from form. Owner says details are not yet clear; sample sizes, protocol, thresholds and approvals remain TBD. |
-| 4 Other comments | Required scope: KB, multimodal + adult confirmation, constrained recommender, activity delivery, Guide Console, Parent Web, animation/story/micro-video và vận hành backend. | B5.6, B20.2 and B21. | Owner chose full workflow and required Parent Web as part of the operational target; dataset release stays TBD. |
+| 4 Other comments | Required scope: KB, multimodal + adult confirmation, constrained recommender, activity delivery, Guide Console, Parent Web, animation/age-aware illustrated story video and backend operations. | B5.6, B20.2, B21, B30–B32. | Owner chose full workflow and required Parent Web as part of the operational target; dataset release stays TBD. |
 
-**Scope distinction:** “Product target” means what the complete Sketch2Life experience is intended to do. Implementation tasks may be sequenced, but the SRS does not remove required surfaces from scope. Owner approved Pixi exploration, narrated story, whiteboard learning micro-video, Guide Console and Parent Web as target scope. Pixi is processed/displayed first; whiteboard video generation starts concurrently and must be ready before the Parent continuation action. Research dataset release, exact deployment and production operations remain separate TBD gates.
+**Scope distinction:** “Product target” means what the complete Sketch2Life experience is intended to do. Implementation tasks may be sequenced, but the SRS does not remove required surfaces from scope. Owner approved Pixi exploration, narrated story, illustrated story short, Guide Console and Parent Web as target scope. Pixi remains separate and can play while the approved story-video job runs; video generation starts only after adult script approval and must be READY before Parent continuation. Research dataset release, exact deployment and production operations remain separate TBD gates.
 ## B6. Business rules
 
 | ID | Quy tắc | Điều kiện chấp nhận/kiểm tra | Trạng thái |
@@ -584,19 +610,19 @@ flowchart TD
 | BR-006 | Kiểm tra chất lượng/an toàn media trước khi gọi inference. | Media lỗi/không hỗ trợ trả RECAPTURE với reason ổn định, không gọi ASR/VLM cho submission đó. | CURRENT_IMPLEMENTED / FIXTURE_ONLY |
 | BR-007 | Kết quả ASR/VLM/fusion là đề xuất, không phải meaning chuẩn của trẻ. | Kết quả AI giữ source/model/config provenance, ambiguity/conflict và yêu cầu người lớn xem xét. | ACCEPTED_ARCH |
 | BR-008 | Gate A là bước người lớn xác nhận hoặc sửa meaning. | P1 không dùng anchor chưa xác nhận như sự thật do người lớn duyệt; correction giữ actor/provenance. | OWNER_CONFIRMED / ACCEPTED_ARCH |
-| BR-009 | Context người lớn phải được cung cấp tường minh; không suy luận tuổi, readiness, activity đã hoàn thành, materials, supervision, policy flags, consent hoặc quan hệ guardian từ media. | Thiếu context trả CONTEXT_REQUIRED hoặc typed failure; không tự điền giá trị làm yếu safety. | ACCEPTED_ARCH / FIXTURE_ONLY |
+| BR-009 | Context safety cần thiết phải do người lớn cung cấp tường minh; không suy luận tuổi, activity đã hoàn thành, materials, supervision, policy flags, consent hoặc quan hệ guardian từ media. Child readiness/history/material availability không phải context bắt buộc để khám phá/gợi ý activity. | Thiếu age/topic/adult-supervision context trả typed failure; không tự điền giá trị làm yếu safety. | ACCEPTED_ARCH; activity-discovery override in B33 |
 | BR-010 | Chỉ chọn activity/objective có trong catalog và có identity/version. AI chỉ xếp hạng ứng viên đã qua deterministic constraints. | ID/version được tìm thấy trong catalog; phản hồi model ngoài allowlist bị từ chối. | ACCEPTED_ARCH |
-| BR-011 | Hard rules Montessori chạy trước model selection/ranking: catalog status, tuổi, readiness, prerequisite, supervision/policy và materials cần thiết. | Giữ mọi reason của hard rule thất bại; ứng viên bị block không được ranking. | CURRENT_IMPLEMENTED / FIXTURE_ONLY |
-| BR-012 | Target population của SRS là 0–12 tuổi theo owner; tuổi được tính theo số tháng đã đủ và min/max catalog là inclusive. | Các band: 0–3 = 0–35 tháng; 3–6 = 36–71; 6–9 = 72–107; 9–12 = 108–155. Tuổi/readiness/safety từng activity vẫn là căn cứ eligibility cuối. | OWNER_CONFIRMED / SOURCE_VERIFIED |
+| BR-011 | Activity discovery áp dụng hard rules trước ranking: reviewed/active catalog status, tuổi chính xác, topic đã được Gate A xác nhận, supervision/policy và an toàn. Readiness, lịch sử hoàn thành và khả năng có sẵn vật liệu không loại activity khỏi danh sách gợi ý. Sở thích/không thích đã được người lớn xác nhận chỉ xếp hạng/giải thích kết quả trong tập topic+age, không đổi topic hay xóa các kết quả còn lại. | Trả toàn bộ tập khớp (có pagination nếu cần); không cắt cố định top 3. Giữ mọi ứng viên qua các hard rules trên trước khi ranking. | OWNER_CONFIRMED 2026-09-30; runtime contract/implementation gated |
+| BR-012 | Target population của SRS là 0–12 tuổi theo owner; tuổi được tính theo số tháng đã đủ và min/max catalog là inclusive. | Các band: 0–3 = 0–35 tháng; 3–6 = 36–71; 6–9 = 72–107; 9–12 = 108–155. Exact age/topic constrain discovery; readiness không phải discovery eligibility. | OWNER_CONFIRMED / SOURCE_VERIFIED; activity-discovery override in B33 |
 | BR-013 | Age band 0–3 cần caregiver có mặt và giám sát trực tiếp. | Chặn ứng viên nếu thiếu policy hoặc mức giám sát tương ứng. | CURRENT_IMPLEMENTED |
-| BR-014 | Không nới rule để buộc phải có gợi ý. | Nếu không có ứng viên hợp lệ, trả NO_VALID_ACTIVITY/NO_ELIGIBLE_ACTIVITY cùng reasons; không cho duyệt lựa chọn bị block. | CURRENT_IMPLEMENTED / ACCEPTED_ARCH |
+| BR-014 | Không nới age/topic/catalog/supervision/policy/safety để buộc phải có gợi ý; không dùng readiness/history/material thiếu để tạo kết quả rỗng. | Nếu không có activity reviewed nào thực sự khớp topic+age sau các hard rules còn hiệu lực, trả typed no-match với lý do đó; không fallback sang topic không liên quan. | OWNER_CONFIRMED 2026-09-30; runtime contract/implementation gated |
 | BR-015 | Gate B duyệt activity và learning objective cùng nhau với version chính xác; ExperienceSpec phải khớp lựa chọn đó. | Stale version, objective không khớp, record inactive, fit lỗi hoặc spec thay đổi đều bị chặn và không sửa session mới hơn. | ACCEPTED_ARCH / FIXTURE_ONLY |
 | BR-016 | Story, animation, learning media, handoff và feedback giữ nguyên identity activity/objective đã duyệt. | Fallback có thể giản lược media nhưng không đổi activity/objective/template/spec âm thầm. | ACCEPTED_ARCH |
 | BR-017 | Animation cá nhân hóa vận hành trên tranh gốc. | Renderer chỉ reveal/highlight/biến đổi có giới hạn trên vùng source đã validate; ảnh sinh mới không thay tranh gốc. Asset bổ sung tách riêng và có provenance. | ACCEPTED_ARCH / FIXTURE_ONLY |
 | BR-018 | Learning media là artifact riêng. Tìm reviewed/cache trước khi tạo khi cache miss. | Cache hit phải READY; media stale/corrupt/unsafe hoặc provider lỗi trả fallback/block có type. | ACCEPTED_ARCH / FIXTURE_ONLY |
-| BR-019 | Lỗi AI/media không được làm sai identity hoặc tạo fake success; recovery phải theo từng media phase. | Pixi có thể fallback về ảnh gốc; whiteboard video giữ trạng thái retryable và chưa mở Parent continue khi chưa READY. Chính sách bỏ qua sau exhausted failure vẫn OPEN_TBD. | ACCEPTED_ARCH / OWNER_CONFIRMED |
+| BR-019 | Lỗi AI/media không được làm sai approved identity hoặc tạo fake success; recovery phải theo từng media phase. | Pixi có thể fallback về ảnh gốc; illustrated video giữ trạng thái retryable và chưa mở Parent continue khi chưa READY. Chính sách bỏ qua sau exhausted failure vẫn OPEN_TBD. | ACCEPTED_ARCH / OWNER_CONFIRMED |
 | BR-020 | Workflow số nên tối đa khoảng 10 phút; không tính hoạt động thể chất/ngoài trời. | Mục tiêu từ lúc bắt đầu luồng số đến handoff. Quy tắc timer, dung sai, chạy nền và pause còn TBD. | OWNER_CONFIRMED / OPEN_TBD |
-| BR-021 | Micro-video mục tiêu dài 5–10 giây và có tính giáo dục. Video giải thích objective, không thay tranh hay hoạt động thật của trẻ. | Video nếu được tạo phải đúng duration và qua kiểm tra safety/content. Video chưa nằm trong demo Android FEAT-018 đã duyệt. | OWNER_CONFIRMED IMAGE TARGET / APPROVED_PLAN GATE |
+| BR-021 | Illustrated story short mục tiêu dài 40–60 giây, kể lại tranh đã xác nhận và bổ sung kiến thức có nguồn theo tuổi/readiness. Video không thay tranh gốc hoặc hoạt động thật của trẻ. | Exact script/evidence/audience/language/voice phải được adult duyệt trước image generation; final media duration/audio/content/safety/provenance phải pass. | OWNER_CONFIRMED 2026-09-28; contracts/implementation gated |
 | BR-022 | Handoff chấm dứt playback số và chuyển sang activity thể chất. | Không tự phát clip giải trí khác; hiển thị chuẩn bị, materials, safety và xác nhận hoàn thành do người lớn quan sát. | ACCEPTED_ARCH |
 | BR-023 | Feedback là quan sát của người lớn. | Ghi completed/partial/not attempted, rating interest/independence nếu có, observation tags và refs đã duyệt; không suy ra hoàn thành từ thời lượng xem. | ACCEPTED_ARCH / FIXTURE_ONLY |
 | BR-024 | Owner chọn retention cho toàn bộ child/session data classes: 30, 60 hoặc 90 ngày. | Hết hạn chuyển archive không hiển thị cho Parent/Guide rồi purge theo policy; audit log có retention riêng; backup/provider copy và legal exceptions vẫn TBD. | OWNER_CONFIRMED; lifecycle in B26 |
@@ -616,7 +642,7 @@ flowchart TD
 | BR-037 | PixiJS exploration failure phải degrade thành still image/guided fallback, giữ original drawing và không làm sai ExperienceSpec. | Không regenerate/replace original; typed failure/fallback giữ exact approved activity/objective. Whiteboard video failure tuân theo BR-044 và không được giả lập READY. | REGISTERED_SCOPE / ACCEPTED_ARCH |
 | BR-038 | Real child research data chỉ được thu thập sau khi consent và deletion procedures được thiết lập. | Research consent, data purpose, retention, release and withdrawal are recorded; sample/protocol/retention details TBD. | REGISTERED_SCOPE / OPEN_TBD |
 | BR-039 | Khi image và child description bất đồng, hệ thống ưu tiên lời mô tả của trẻ và trả explicit uncertainty thay vì label chắc chắn nhưng sai. | Giữ provenance/conflict; uncertainty được Gate A adult review; confidence/threshold/UI semantics còn TBD. | REGISTERED_SCOPE / OPEN_TBD |
-| BR-040 | PixiJS Personalized Drawing Exploration và whiteboard video là hai implementation độc lập trong cùng một ExperienceSpec. | Pixi xử lý focus/tap/2.5D; whiteboard job dùng cùng `learning_thread`, source artifact và activity/objective identity; không để một implementation tự đổi meaning của implementation kia. | OWNER_CONFIRMED |
+| BR-040 | PixiJS Personalized Drawing Exploration và illustrated story video là hai implementation độc lập trong cùng một ExperienceSpec. | Pixi xử lý focus/tap/2.5D; video job dùng cùng source/spec/activity/objective identity plus approved story package; không để một implementation tự đổi meaning của implementation kia. | OWNER_CONFIRMED; video details amended in B30 |
 | BR-041 | Whiteboard video generation phải khởi tạo trong lúc Pixi đang phát để giảm thời gian chờ cảm nhận. | Job có trạng thái/polling/progress typed; Pixi không bị block bởi inference/encoding nhưng Parent continue action vẫn bị khóa tới khi video READY. | OWNER_CONFIRMED / TARGET |
 | BR-042 | Whiteboard video phải giữ lại nét/identity của tranh gốc và không tự bịa chủ thể hoặc hành động mới. | VLM localization, mask, stroke path, TTS script và MP4 đều truy nguyên về source claims, `learning_thread`, ExperienceSpec và source hash; content/safety validation chạy trước READY. | OWNER_CONFIRMED / ACCEPTED_ARCH |
 | BR-043 | TTS là narration độc lập của video, không đồng nhất với narration/voice input của trẻ. | TTS script được tạo từ learning thread/approved objective; raw child narration chỉ là input understanding và không bị dùng làm voice track mặc định. | OWNER_CONFIRMED; provider/voice TBD |
@@ -761,7 +787,7 @@ Các FR mô tả hành vi mục tiêu; mức trạng thái phản ánh bằng ch
 | FR-014 | Hệ thống phải xây StoryPlan/ScenePlan dựa trên meaning đã được xác nhận và objective đã duyệt. | Scene có learning basis, source/spec refs, age suitability và duration; không chế child facts. | Must / ACCEPTED_ARCH; schema TBD |
 | FR-015 | Hệ thống phải dựng animation cá nhân hóa trên chính tranh gốc. | Renderer xác thực hash, bounds, motion/object caps và approved asset provenance; output không thay thế original. | Must / local renderer WIP |
 | FR-016 | Hệ thống phải chọn learning assets được review/cache trước và chỉ tạo mới theo provider gate được duyệt. | READY cache hit dùng được; corrupt/stale/unsafe hit bị loại; provider call có audit/budget/policy. | Must / APPROVED_PLAN; production TBD |
-| FR-017 | Hệ thống phải tạo whiteboard learning video 5–10 giây theo workflow mục tiêu, tách khỏi PixiJS exploration. | Video dùng source-derived masks/strokes, learning thread/ExperienceSpec và TTS độc lập; chỉ READY sau content/safety/provenance validation. | Must / OWNER_CONFIRMED target; MP4 implementation next |
+| FR-017 | Hệ thống phải tạo illustrated story short 40–60 giây theo workflow mục tiêu, tách khỏi PixiJS exploration. | Video dùng exact approved story package, có thể dùng illustration redraw dưới dạng derivative, TTS độc lập; chỉ READY sau duration/audio/content/safety/provenance validation. | Must / OWNER_CONFIRMED 2026-09-28; contracts/implementation gated |
 | FR-018 | Hệ thống phải cung cấp typed fallback khi animation/video/provider/content validation không sẵn sàng. | Fallback không đổi activity/objective/template đã duyệt và vẫn cho phép handoff ngoài màn hình. | Must / ACCEPTED_ARCH |
 | FR-019 | Hệ thống phải đưa hoạt động thật ngoài màn hình lên trước sau phần trải nghiệm số. | Handoff nêu materials/substitutes, chuẩn bị, các bước và supervision/safety; playback kết thúc khi chuyển sang physical activity. | Must / TARGET; handoff fixture |
 | FR-020 | Hệ thống phải cho adult ghi nhận completed, partial hoặc not attempted và quan sát interest/independence. | Feedback có adult actor/time và refs chính xác; thời lượng xem không tự đánh dấu completed. | Must / FIXTURE_ONLY |
@@ -786,9 +812,9 @@ Các FR mô tả hành vi mục tiêu; mức trạng thái phản ánh bằng ch
 | Thiếu adult context | `CONTEXT_REQUIRED` và nêu đúng trường cần bổ sung; không relax hard rules. |
 | Không có activity/objective hợp lệ | `NO_VALID_ACTIVITY` với aggregate reasons; cho người lớn sửa context nếu thích hợp. |
 | Gate decision dùng version cũ | Reject conflict/stale; trả current version; không ghi đè lựa chọn mới hơn. |
-| Learning media không an toàn/chưa sẵn sàng | Pixi có thể dùng source-image fallback; whiteboard video giữ `RETRYABLE_FAILURE`, hiển thị loading/retry an toàn và chưa mở Parent continue khi chưa READY. |
-| Whiteboard video đang generate | Hiển thị stage/progress thân thiện trong lúc Pixi phát; không khóa renderer vì job video. |
-| Whiteboard video generation lỗi | Không trả fake success/MP4; giữ source/spec identity, cho Parent retry theo idempotency/job rule; exhausted-failure recovery còn theo policy TBD. |
+| Learning media không an toàn/chưa sẵn sàng | Pixi có thể dùng source-image fallback; illustrated video giữ typed retryable/block status, hiển thị loading/retry an toàn và chưa mở Parent continue khi chưa READY. |
+| Illustrated video đang generate | Hiển thị safe phase/progress trong lúc Pixi phát; không khóa renderer vì job video; scene work chỉ bắt đầu sau valid script approval. |
+| Illustrated video generation lỗi | Không trả fake success/MP4; giữ source/package/spec identity, cho Parent retry theo idempotency/job rule; exhausted-failure recovery còn theo policy TBD. |
 | Guardian mất quyền/consent bị thu hồi | Từ chối command/access mới; ghi audit metadata tối thiểu. |
 | Job được retry cùng key | Trả cùng result/job reference, không nhân đôi external spend hoặc mutation. |
 
@@ -820,17 +846,28 @@ Các FR mô tả hành vi mục tiêu; mức trạng thái phản ánh bằng ch
 | FR-052 | Khi image và child description bất đồng, understanding engine phải ưu tiên lời mô tả của trẻ và biểu diễn uncertainty thay vì khẳng định nhãn sai với confidence cao. | Proposal giữ modality/source conflict; adult review thấy ambiguity; không dùng nhãn uncertain như eligibility fact. | Registered target / acceptance details TBD |
 | FR-053 | Parent/Guardian phải kiểm tra screen time của từng session và activity outcome/history của child mình. | Per-session digital duration and completion status are linked but independent; physical/off-screen time excluded from 10-minute digital target. | Must registered scope / timing semantics TBD |
 | FR-054 | Hệ thống phải dựng PixiJS Personalized Drawing Exploration riêng với whiteboard video. | Sau Gate B, Pixi dùng learning thread để focus/tap/2.5D trên original art; Pixi không bị thay thế bởi video generation. | Must / OWNER_CONFIRMED target; implementation staged |
-| FR-055 | Hệ thống phải khởi tạo whiteboard-video job trong lúc Pixi đang phát. | Job giữ cùng session/spec/source/learning-thread identity, có typed progress và không chặn renderer khỏi hiển thị loading. | Must / OWNER_CONFIRMED target; MP4 task next |
-| FR-056 | Hệ thống phải tạo whiteboard MP4 từ nét tranh gốc khi có thể. | VLM định vị subject/region, SAM 2.1 Hiera Small tạo mask, contour/stroke engine tạo path, deterministic renderer và FFmpeg/NVENC tạo MP4; mọi bước có provenance. | Must / OWNER_CONFIRMED target; runtime not implemented |
-| FR-057 | Hệ thống phải tạo narration track TTS độc lập cho whiteboard video từ learning thread. | Script/voice không lấy raw child narration làm voice track mặc định; nội dung phải khớp subject, relation và objective đã duyệt. | Must / OWNER_CONFIRMED target; TTS provider/voice TBD |
-| FR-058 | Hệ thống chỉ được báo Parent tiếp tục khi whiteboard video READY. | Pixi có thể hoàn thành trước và hiển thị loading; retryable failure hiện recovery/retry; không phát fake MP4 hoặc mở continue sớm. | Must / OWNER_CONFIRMED target; exhausted recovery TBD |
-| FR-059 | Hệ thống phải giữ whiteboard video là derived session-local artifact trong scope hiện tại. | MP4/mask/stroke/TTS refs có source hash/provenance/expiry; không claim auth ownership/durable save. | Must / OWNER_CONFIRMED; future persistence gate |
+| FR-055 | Hệ thống phải khởi tạo illustrated-video job sau script approval; job có thể chạy trong lúc Pixi đang phát. | Job giữ cùng session/spec/source/package identity, có typed progress và không chặn Pixi khỏi phát/loading. | Must / OWNER_CONFIRMED 2026-09-28; implementation gated |
+| FR-056 | Hệ thống phải tạo illustrated story MP4 dài 40–60 giây. | Storyboard ánh xạ từng scene tới approved script segment, anchor/claim và derived illustration; current Wan2.2 TI2V-5B baseline render per scene; mọi bước có provenance. | Must / OWNER_CONFIRMED 2026-09-28; L4 benchmark TBD |
+| FR-057 | Hệ thống phải tạo narration track TTS độc lập và cho adult chọn supported locale/voice. | TTS dùng exact approved script; measured audio duration kiểm soát scene timeline; raw child narration không được dùng làm voice track mặc định. | Must / OWNER_CONFIRMED 2026-09-28; provider/catalog TBD |
+| FR-058 | Hệ thống chỉ được báo Parent tiếp tục khi illustrated video READY và handoff hợp lệ. | READY cần final MP4 + complete audio + mandatory validators; retryable failure hiển thị recovery; không phát fake MP4/mở continue sớm. | Must / OWNER_CONFIRMED READY gate retained; detailed validation in B31 |
+| FR-059 | Hệ thống phải giữ video và toàn bộ scene/audio/illustration là derived artifacts có lifecycle rõ. | Mỗi output trỏ source/package/script/model/validator version/hash; storage/retention follows approved policy; v1.7 không tự quyết durable/persist behavior. | Must / provenance accepted; lifecycle specifics TBD |
 | FR-060 | Hệ thống phải authenticate adult account bằng Firebase Authentication project thật trong môi trường test và backend phải verify ID token trước protected operation. | Token hợp lệ được map tới đúng một adult role `PARENT`, `GUIDE` hoặc `ADMIN`; token invalid/expired/revoked bị từ chối; không có `CHILD` role. | Must / OWNER_CONFIRMED; test integration |
 | FR-061 | Hệ thống phải hỗ trợ Parent Web responsive cho mobile browser và desktop browser. | Parent quản lý ChildProfile, Guide assignment, revoke, history, retention/deletion, feedback và xem live projection trong đúng owner scope. | Must / OWNER_CONFIRMED target |
 | FR-062 | Hệ thống phải hỗ trợ Guide Console web cho desktop browser. | Guide xem assigned children, mở session, thực hiện Gate A/B, xem recommendation, ghi observation/feedback và thao tác KB theo permission. | Must / OWNER_CONFIRMED target |
 | FR-063 | Hệ thống phải cung cấp Parent live monitoring tối giản. | Parent thấy phase, status, progress và thời điểm cập nhật; không trả technical error, prompt, provider detail, trace/job payload hoặc raw child content. | Must / OWNER_CONFIRMED target |
 | FR-064 | Hệ thống phải enforce rate limit, retry budget, idempotency và concurrency guard cho các command nhạy cảm. | Vượt giới hạn trả typed `RATE_LIMITED`; duplicate không nhân đôi mutation/job/event; mỗi Guide chỉ có một active session; retry bị giới hạn. | Must / OWNER_CONFIRMED test policy |
 | FR-065 | Hệ thống phải cung cấp backend operational monitoring. | Có redacted health, request/error/latency, queue/job, database/storage, session, assignment/notification, security và data-lifecycle signals; business/audit record vẫn là source of truth. | Must / OWNER_CONFIRMED target |
+| FR-066 | Hệ thống phải dùng age/readiness context đã được adult cung cấp/xác nhận để query và điều chỉnh nội dung kiến thức. | Dùng age bands/catalog/P1 hard rules hiện có; không suy tuổi/readiness từ image/audio; thay profile version làm stale draft/package. | Must / OWNER_CONFIRMED 2026-09-28; precise UX TBD |
+| FR-067 | Hệ thống phải truy xuất kiến thức từ source đã review và giữ citation ở cấp claim. | Mỗi fact trong script/scene trỏ tới claim ID, source revision và section/page/record; subject chưa chắc không được nhận fact đặc hiệu loài. | Must / OWNER_CONFIRMED need; source registry/reviewer TBD |
+| FR-068 | Hệ thống phải tạo script kể lại tranh và tích hợp kiến thức phù hợp tuổi/objective trong 40–60 giây. | Draft gắn Gate A anchors, Gate B spec, evidence set, audience, locale, segment/claim map, duration estimate, hash và planner provenance. | Must / OWNER_CONFIRMED 2026-09-28; PROPOSED_UNADOPTED contract |
+| FR-069 | Hệ thống phải cho adult sửa script bằng quick controls và free-form instruction. | Cho dùng riêng từng cách hoặc kết hợp; mỗi lần sửa thành công trả full immutable revision, change summary và validation; không patch ngầm revision cũ. | Must / OWNER_CONFIRMED 2026-09-28; exact controls TBD |
+| FR-070 | Hệ thống phải yêu cầu adult duyệt đúng bản script cuối trước mọi image-generation call. | Approval hash-bound với script, evidence, audience, `ExperienceSpec`, locale/voice; stale/missing approval bị chặn trước adapter invocation. | Must / OWNER_CONFIRMED 2026-09-28; authorization/audit required |
+| FR-071 | Hệ thống phải cho adult chọn output language và TTS voice category trong các profile provider hỗ trợ. | Hiển thị supported locale/voice, style/pace metadata và preview; không hứa profile không tồn tại; locale mismatch trả typed error. | Must / OWNER_CONFIRMED 2026-09-28; inventory TBD |
+| FR-072 | Hệ thống phải giữ TTS và video generation thành hai adapter/asset path độc lập. | Video model không tự sinh lời kể; TTS asset có text hash, locale, voice/model provenance, per-segment duration/timestamps và audio validation. | Must / OWNER_CONFIRMED; TTS provider TBD |
+| FR-073 | Hệ thống có thể vẽ lại source subject theo illustration style nhưng phải bảo toàn original artifact. | Redraw tạo derivative ref/hash/style/model provenance; không ghi đè original; generated text không được dùng làm nhãn chính xác; scene không thêm claim ngoài approved evidence. | Must / OWNER_CONFIRMED 2026-09-28; style policy TBD |
+| FR-074 | Hệ thống phải dùng Wan2.2 TI2V-5B làm video-model baseline hiện tại và render theo scene. | Profile/version/config được pin trong manifest; đổi model cần ADR/benchmark approval; L4 không được chạy đồng thời các model lớn nếu preflight chưa chứng minh VRAM. | Must / owner-selected baseline; exact profile/revision TBD |
+| FR-075 | Hệ thống phải validate assembled media trước READY. | Check 40–60 sec, decode/stream/audio completeness, script/claim order, provenance/hash, safety, stale approval and playable artifact; `NOT_RUN` không tương đương PASS. | Must / OWNER_CONFIRMED target; thresholds TBD |
+| FR-076 | Hệ thống phải hỗ trợ async job progress, bounded retry, idempotency, cancellation/stale-input handling cho story/video. | Replays không nhân đôi billable job; revoke/stale result không publish; client chỉ nhận safe progress; READY chỉ sau complete artifact/report. | Must / accepted session-job architecture; numeric budgets TBD |
 
 ## B11. Ràng buộc và NFR
 
@@ -843,7 +880,7 @@ Các FR mô tả hành vi mục tiêu; mức trạng thái phản ánh bằng ch
 | NFR-005 | Integrity | Original, gate, spec, feedback và audit provenance không bị ghi đè âm thầm. | Hash/version checks, immutable events hoặc versioned persistence; production storage TBD. |
 | NFR-006 | Safety | Deterministic policy/hard rules chạy trước AI ranking/rendering; unsafe/unknown content fail closed. | Domain tests; production-qualified policy/content evaluator TBD. |
 | NFR-007 | Privacy retention | Owner chọn 30/60/90 ngày cho toàn bộ child/session data classes; expiry chuyển archive hạn chế quyền xem trước purge; audit log có retention riêng. | Deletion verification/evidence, backup/provider-copy expiry, clock semantics và legal exceptions TBD. |
-| NFR-008 | Availability/recovery | Provider/storage/queue failure không làm mất original, gate decision hay approved identity; Pixi có fallback, whiteboard job có retryable recovery và không fake READY. | Failure injection; production SLO/DR targets TBD. |
+| NFR-008 | Availability/recovery | Provider/storage/queue failure không làm mất original, gate decision hay approved identity; Pixi có fallback, illustrated-video job có retryable recovery và không fake READY. | Failure injection; production SLO/DR targets TBD. |
 | NFR-009 | Latency | Không có latency target tổng thể được owner chốt; async jobs phải có progress/terminal result và bounded polling. | Baseline đo trước khi đặt SLO; polling khoảng 2–10s là architecture guidance. |
 | NFR-010 | Performance | Digital flow mục tiêu khoảng 10 phút tối đa; off-screen activity ngoài phạm vi timer. | Instrument digital stages sau khi timer/pause semantics chốt. |
 | NFR-011 | Usability/accessibility | Adult có thể review uncertainty, edit narration, hiểu vì sao candidate bị loại và tiếp tục handoff. | Moderated usability/accessibility criteria chưa được xác định. |
@@ -867,17 +904,17 @@ Các FR mô tả hành vi mục tiêu; mức trạng thái phản ánh bằng ch
 | NFR-024 | Privileged audit | Account, role, Owner/Guide assignment, model/safety/time config, consent/retention/deletion và support actions phải truy vết adult actor, target, action, time và outcome. | Admin audit policy confirmed by registered scope; audit content/retention TBD. |
 | NFR-025 | Research privacy | Real-child research data phải có consent, purpose limitation, access control, withdrawal and deletion process trước collection. | Registered form requires consent/deletion before collection; ethics, release and retention protocol TBD. |
 | NFR-026 | Offline tolerance | Capture và activity instructions vẫn usable khi mạng yếu; generation được queued tới khi connectivity trở lại. | Registered NFR. Device persistence duration, encryption, sync conflict and queued-data consent checks TBD. |
-| NFR-027 | Degraded experience | Nếu Pixi fail thì still/source fallback; nếu whiteboard video fail thì retryable recovery và không mở continue trước READY. | Registered form and approved target workflow; exhausted video failure policy TBD. |
+| NFR-027 | Degraded experience | Nếu Pixi fail thì still/source fallback; nếu illustrated video fail thì typed retryable recovery và không mở continue trước READY. | Owner target v1.7; exhausted video failure policy TBD. |
 | NFR-028 | Responsiveness | Processing phải đủ nhanh để giữ sự chú ý trong một sitting; do form chưa có số, không áp latency threshold tự đặt. | Benchmark/threshold required before quantitative acceptance. |
 | NFR-029 | Pedagogical governance | Recommendation phải theo Montessori material sequence, được trained Guide reviewable/overridable trong safe domain. | Registered scope; reviewer qualification and override policy TBD. |
 | NFR-030 | Research validity | Study results phải nêu rõ nhóm tuổi/input condition/baseline, guide rating agreement, sequence violations, trial comparison and limitations; không khẳng định learning outcome dài hạn khi trial ngắn. | Registered methodology and explicit stated limitation; protocol/sample/analysis TBD. |
 | NFR-031 | Child-data governance | Real child drawings, voice and observation records are sensitive minor data; collection, processing, research use and deletion must have guardian consent and defined controls before real-data trial. | Registration form + repo private-AI boundary; exact consent copy/data classes/ethics approval TBD. |
-| NFR-032 | Original-work integrity | Pixi và whiteboard video phải dùng/diễn giải nét tranh gốc, không silently substitute một bản vẽ được regenerate; mask, stroke path, TTS và MP4 phải giữ source/learning provenance. | Registered requirement + owner clarification; source hash/derivative provenance and fallback tests. |
+| NFR-032 | Original-work integrity | Pixi phải giữ/render trên source; illustrated video may redraw for presentation, but must never overwrite the original. Every redraw/mask/stroke/TTS/clip/MP4 is a separately identified derivative with source/learning provenance. | Owner-confirmed v1.7; immutable original hash and derivative lineage checks. |
 | NFR-033 | Misrecognition safety | Do not confidently assert an uncertain drawing identification to a child; surface uncertainty for adult review and preserve the child's own description when conflicting with pixels. | Registered scope; confidence calibration and UI copy threshold TBD. |
-| NFR-034 | Off-screen orientation | Screen activity is a short bridge; each successful target workflow hands off to a concrete physical activity after Pixi and READY whiteboard video, while exception/cancel semantics remain defined separately. | Owner-confirmed image workflow + registration; hard-stop behavior TBD. |
+| NFR-034 | Off-screen orientation | Screen activity is a short bridge; each successful target workflow hands off to a concrete physical activity after Pixi and READY illustrated story video, while exception/cancel semantics remain defined separately. | Owner-confirmed image workflow + v1.7; hard-stop behavior TBD. |
 | NFR-035 | Whiteboard concurrency | Whiteboard generation must start while Pixi is playing and expose bounded progress/terminal state without blocking Pixi rendering. | Job/renderer integration test; exact latency target TBD. |
-| NFR-036 | Video provenance | MP4, mask, crop, stroke/vector and TTS artifacts must preserve source hash, learning thread, ExperienceSpec, model/config and job lineage. | Artifact/provenance contract tests and redaction inspection. |
-| NFR-037 | Video readiness gate | Parent continue action must remain unavailable until the validated whiteboard MP4 is READY; retry must be explicit and idempotent. | State transition, UI and failure-injection tests; exhausted retry policy TBD. |
+| NFR-036 | Video provenance | MP4, illustration, mask/crop/stroke where used, TTS and scene clips preserve source/package/script/ExperienceSpec/model/config/validator/job lineage. | Artifact/provenance contract tests and redaction inspection. |
+| NFR-037 | Video readiness gate | Parent continue action must remain unavailable until the validated 40–60 second illustrated story MP4 is READY; retry must be explicit and idempotent. | State transition, UI and failure-injection tests; exhausted retry policy TBD. |
 | NFR-038 | TTS separation | TTS input/script/voice provenance must be independent of raw child narration; no raw child voice is copied into the generated track without a separately approved policy. | Contract/privacy review and artifact lineage test; voice policy TBD. |
 | NFR-039 | Test authentication | Test environment uses a real owner-controlled Firebase Authentication project; secrets are runtime-only and never committed. Backend verifies signature, issuer, audience, expiry, issued-at, subject and revocation according to the authentication guide. | Firebase integration test with controlled test accounts; repository secret scan. |
 | NFR-040 | Role model | Only adult roles `PARENT`, `GUIDE` and `ADMIN` exist; roles are mutually exclusive per account. Child remains a supervised participant and never receives a credential or role. | Auth/authorization negative tests and schema constraint. |
@@ -887,11 +924,30 @@ Các FR mô tả hành vi mục tiêu; mức trạng thái phản ánh bằng ch
 | NFR-044 | Rate limiting and abuse control | Test API enforces request, upload, retry, concurrency and active-session limits; limits are configuration-driven and return typed errors. | Deterministic rate-limit, retry-budget, idempotency and one-session-per-Guide tests. |
 | NFR-045 | Backend observability | Backend emits redacted structured logs, metrics and durable business/security audit records for health, errors, latency, jobs, sessions, assignments, notifications, security and data lifecycle. | Local test observability checks, redaction scan and audit replay. |
 | NFR-046 | Test-stage scope | AI-provider latency/quality stress testing, Lightning connectivity and production availability/capacity are outside this implementation stage. Fixture/fake adapters must still exercise success, timeout, malformed, retry, rate-limit and failure paths. | Fixture fault-injection suite; no provider call required. |
+| NFR-047 | Script approval ordering | Image/video generation must not be invoked until the adult approves the exact current script packet. | Integration spy/adapter-call assertion with missing, stale and valid approval cases. |
+| NFR-048 | Educational grounding | Every factual teaching statement is traceable to a reviewed, age-applicable source claim; unsupported or uncertain-species facts block or trigger clarification. | Claim-coverage validator and reviewed evidence corpus; source/reviewer policy TBD. |
+| NFR-049 | Age suitability | Story complexity and knowledge query use authorized age band/readiness and selected locale; age/readiness are not inferred from child media. | Age-band boundary cases using existing 0–3/3–6/6–9/9–12 catalog bands; per-activity P1 rules remain hard constraints. |
+| NFR-050 | Script revision integrity | Quick edits and free-form edits create complete immutable revisions; stale commands cannot overwrite later revisions; approval is invalidated on relevant input change. | Version/hash/idempotency tests and audit history review. |
+| NFR-051 | Narration integrity | TTS audio represents the entire approved script in the selected supported locale/voice; measured audio duration, not estimate, is the timing source. No silent truncation or unapproved text insertion. | Text/audio segment coverage, locale/voice capability and measured-duration validation. |
+| NFR-052 | Runtime duration | Final story video duration is 40–60 seconds inclusive. If narration/render timing cannot meet the range, return to script review or typed failure; never alter approved text silently. | MP4 metadata plus audio completeness check; exception policy TBD. |
+| NFR-053 | L4 resource safety | Wan2.2 TI2V-5B remains the baseline; model co-residency/concurrency must be bounded by actual L4 VRAM preflight and measured workload. No timing is inferred from other GPUs. | Target-L4 benchmark, peak-VRAM/OOM/retry reporting; numeric P95 SLO TBD. |
+| NFR-054 | Generated-visual integrity | Derived illustration/video stays consistent with confirmed anchors and approved claims, identifies itself internally as generated/derived, and cannot silently assert generated anatomy as observed source fact. | Per-scene claim/anchor coverage, content review rubric and lineage check; numeric visual threshold TBD. |
 
 Các con số production chưa được owner xác nhận (availability, latency SLO, payload size, RPO/RTO,
 số user đồng thời, supported OS, deletion SLA) không được bịa thêm trong SRS. Ở test stage,
 chấp nhận theo hành vi, contract, fault-injection và usability thông thường; AI/provider stress
 test chưa thuộc task này.
+
+### 0.8 Change log v1.7 — owner-requested story/video flow expansion
+
+Ngày 2026-09-28, owner chọn video short 40–60 giây; cho phép hình ảnh được vẽ lại theo phong cách
+minh họa; yêu cầu kể tranh cộng kiến thức theo tuổi/Montessori; yêu cầu cả quick edits và free-form
+script edits; bắt buộc duyệt bản script hoàn chỉnh trước image generation; và cần chọn ngôn ngữ/giọng.
+Owner chọn giữ Wan2.2 TI2V-5B làm baseline hiện tại. B30–B32 ghi scope, requirement, trạng thái,
+logical contracts, API/jobs, validation và acceptance. Các schema/API mới là proposal chưa canonical;
+việc cập nhật tài liệu không xác nhận implementation, không migrate contract và không tự cấp quyền
+triển khai. Bảng whiteboard 5–10 giây/pipeline v1.4 được giữ làm lịch sử nhưng bị thay thế cho
+story-video target theo precedence ở B30.
 
 ## B12. Contract, truy vết và review
 
@@ -921,12 +977,12 @@ test chưa thuộc task này.
 | C-12 Gate commands/decisions | GateAConfirmationV1 1.0; IntegrationGateDecisionV1 1.0; nội bộ GateAConfirmation/GateBDecision | Gate A: session/version, adult actor, meaning version, confirmed claim IDs, optional correction. Gate B: exact activity/objective/template/spec IDs+versions và status; implementation gate B. Không dùng Gate A để duyệt safety/eligibility. | shared/backend/mobile → session reducer | FEAT-018 Shared Integration Addendum Rev 2 đã làm rõ role; fixture reducer/tests đã reconciled. |
 | C-13 P1 context/filter | P1ContextV1, P1FilterResultV1 1.0 | Explicit age, readiness, completed activities, materials, supervision, policy flags, candidate status; result eligible/blocked, exact IDs/versions, ordered reason codes. | P1 filter → Gate B/mobile | Hard-rule compiler/filter fixture; completed_activity_ids explicit; activity profile qualification còn mở. |
 | C-14 Personalization/experience | SemanticAnchorSetV1, LearningFocusV1, ActivityTemplateV1, ExperienceSpecV1, ActivityFitEvaluationV1, BridgeSentenceV1 1.0 | Một primary anchor, objective, template; P2 cung cấp observations, P1 chọn pedagogy; ExperienceSpec là nguồn identity/version chung; fit có deterministic evidence; consumer không đổi concept. | P2 → P1 → P3/P4/mobile | FEAT-018 Rev2 approved freeze; phần triển khai/UX/backend persistence chưa hoàn chỉnh. |
-| C-15 Pixi/exploration renderer | PixiArtAssetManifestV1, ArtAnimationPlanV1 1.0, `SceneExplorationPlanV1`/`SceneFocusPlanV1` target; renderer protocol 1 RendererBootstrapV1/RendererEventV1 | Original source hash bắt buộc; source-derived crop/mask layers có provenance; bounded focus/tap/parallax/motions; plan khóa spec/source/learning-thread identity; video generation không nằm trong Pixi bridge; strict bridge message cap 4096 bytes. | P3 renderer → mobile/WebView | Pixi exploration plan/renderer tests và local WIP; whiteboard MP4 integration chưa triển khai. |
-| C-16 Learning media | LearningMediaRequestV1/LearningMediaResultV1 1.0 | Khóa exact activity/objective/renderer versions, cache state, generation-called flag, provenance; cache hit/miss/timeout/fallback giữ identity. | P4 → P3/mobile | Approved FEAT-018 contract target/fixture; demo Android metadata-only, whiteboard MP4 là next task. |
+| C-15 Pixi/exploration renderer | PixiArtAssetManifestV1, ArtAnimationPlanV1 1.0, `SceneExplorationPlanV1`/`SceneFocusPlanV1` target; renderer protocol 1 RendererBootstrapV1/RendererEventV1 | Original source hash bắt buộc; source-derived crop/mask layers có provenance; bounded focus/tap/parallax/motions; plan khóa spec/source/learning-thread identity; story-video generation không nằm trong Pixi bridge; strict bridge message cap 4096 bytes. | P3 renderer → mobile/WebView | Pixi exploration plan/renderer tests và local WIP; story-video integration chưa triển khai. |
+| C-16 Learning media | LearningMediaRequestV1/LearningMediaResultV1 1.0 | Khóa exact activity/objective/renderer versions, cache state, generation-called flag, provenance; cache hit/miss/timeout/fallback giữ identity. | P4 → P3/mobile | Approved FEAT-018 contract target/fixture; demo Android metadata-only; illustrated short uses new proposed C-20 contracts. |
 | C-17 Activity handoff | ActivityHandoffV1 1.0 | Exact activity/objective IDs+versions, source session version, READY state, materials/preparation/safety và guardian handoff theo domain. | P1/shared → mobile/off-screen activity | Fixture/accepted boundary; chưa là durable production workflow. |
 | C-18 Repository ports/identity adapters | SessionRepository, JobStore, ArtifactStore, IdempotencyStore; SessionRecord, StoredArtifact, IdempotencyReceipt; P1 int↔P4 vN adapter | Port tách domain khỏi persistence; adapter version chỉ nhận dạng số hợp lệ, reject zero/leading-zero/malformed/non-integer; session/job/artifact implementation hiện process-local. | FEAT-016/application → future adapters | Local untracked WIP/fixture. Không có PostgreSQL/S3 adapter production được chứng minh. |
 | C-19 Admin/privacy/retention | Chưa tìm thấy một contract canonical chung bao trùm Admin permission, guardian retention 30/60/90, deletion receipt và consent withdrawal. | SRS yêu cầu least privilege, actor/time/reason và expiry; DTO, data classes, legal policy, cascade/backups, conflict rules chưa được thống nhất. | Admin/privacy service → owner/security/product | OPEN_TBD; không tự chế serialized contract. |
-| C-20 Whiteboard video generation | `WhiteboardVideoJobV1`, `WhiteboardVideoResultV1`, `WhiteboardVideoStatusV1` logical target; source-derived mask/stroke/TTS/MP4 refs | Job bind session/spec/source/learning-thread identity; stages include LOCALIZING, SEGMENTING, EXTRACTING_STROKES, RENDERING, ENCODING, READY, RETRYABLE_FAILURE; no raw model/provider body; READY requires safety/content/provenance validation. | Backend video worker → Parent/mobile/activity flow | OWNER_CONFIRMED target; serialized contract, worker and encoding details PROPOSED_UNADOPTED/next implementation task. |
+| C-20 Illustrated story-video generation | `ApprovedStoryPackageV1`, `StoryboardPlanV1`, `IllustrationImageRequestV1/AssetV1`, `NarrationRenderRequestV1/AssetV1`, `VideoSceneRenderRequestV1/ArtifactV1`, `VideoAssemblyRequestV1`, `VideoArtifactV1`, `VideoValidationReportV1`, `VideoJobStatusV1` logical proposals | Job binds exact approved script/evidence/audience/locale/voice/spec/source hashes; image generation is blocked until adult approval; TTS is separate; Wan renders silent scenes; final READY requires 40–60 sec, complete audio, content/safety/provenance checks. | Story/video application and adapters → Parent/mobile/activity flow | Owner-confirmed target v1.7; every new serialized contract remains `PROPOSED_UNADOPTED`; see B31/FEAT-020 plans. |
 
 **Xử lý các family xung đột:** AsrResultV1, VisionUnderstandingResultV1 và RawUnderstandingResultV1 có collision material về shape/semantics. Báo cáo FEAT-003 đề xuất P2T4_FEAT018_CONTRACT_FAMILY_MAPPING_V1@1.0 với ba directional edges và fail-closed mapping, nhưng trạng thái là review complete, owner confirmation/adoption pending. Vì vậy SRS ghi riêng các identity như bảng trên; chỉ áp dụng mapping sau khi quyết định adoption/registry cutover và fixture migration được approve.
 
@@ -938,10 +994,10 @@ test chưa thuộc task này.
 | Capture, narration, validate | BR-004..008 | FR-003..009; NFR-005, NFR-006 | C-04..C-10 | Câu trả lời owner; workflow image; FEAT-018 plan/CONTRACT_FREEZE.md; backend contracts/schemas/asr.py, vision.py, understanding.py. | Invalid media stops inference; edit/retake provenance; Gate A audit. |
 | Context, activity filtering | BR-009..014 | FR-005, FR-010..011; NFR-006, NFR-012, NFR-018 | C-13, C-14 | data/activity-catalog/mvp/activities.v1.json; packages/domain-montessori/spec/RULE_SEMANTICS.md; FEAT-018 CONTRACT_FREEZE.md. | Age/readiness/prerequisite/material/supervision negatives; NO_VALID_ACTIVITY. |
 | Gate B, story/scene | BR-015..016 | FR-012..014; NFR-005, NFR-012, NFR-014 | C-12..C-14 | FEAT-018 CONTRACT_FREEZE.md Rev 2; backend contracts/schemas/gate_a.py and p1_experience.py. | Exact IDs/versions, stale rejection, source/spec continuity. |
-| Pixi exploration, whiteboard video and learning media | BR-017..021, BR-040..045, BR-030 | FR-014..018, FR-054..059; NFR-005..006, NFR-016..018, NFR-035..038 | C-05, C-14..C-16, C-20 | Workflow image; packages/art-renderer; backend renderer/learning-media contracts; FEAT-018 exploration plan; whiteboard proposal/evidence note. | Source hash, learning-thread continuity, mask/stroke/TTS provenance, bounded job/retry/ready gate and safe fallback. |
+| Pixi exploration, illustrated story video and learning media | BR-017..021, BR-040..045, BR-030 | FR-014..018, FR-054..076; NFR-005..006, NFR-016..018, NFR-035..054 | C-05, C-14..C-16, C-20 | Workflow image; art-renderer; FEAT-018 exploration plan; FEAT-020 content/video plans; SRS B30–B32. | Adult-approved script gate; age/evidence/source continuity; separate TTS; derived illustration lineage; 40–60 sec job, bounded retry, READY validation. |
 | Off-screen activity, feedback | BR-019, BR-022..023 | FR-018..021; NFR-006, NFR-011..012 | C-03, C-17 | Workflow image; FEAT-018 CONTRACT_FREEZE.md; packages/domain-montessori/spec/. | Correct activity handoff; adult-only completion/observation. |
 | Async, audit, security, deletion | BR-024..029 | FR-022..029; NFR-001..020 | C-01..C-05, C-18..C-19 | docs/architecture/CONTRACTS_AND_INTEGRATION.md; docs/security/PRIVATE_AI_BOUNDARY.md; user retention answer; FEAT-003 reconciliation report. | Idempotency, authz, redaction, expiry/deletion proof. |
-| Guide/Admin/Capstone operations | BR-031..039, BR-040..045 | FR-031..059; NFR-021..038 | C-01, C-02, C-18..C-20 | Phieu_FA26SE225.docx sections 3.2(c)–(g), 3.3 and section 4; docs/security/AUTHENTICATION.md; owner answers. | Adult token verification, cross-child deny, Guide assignment, Admin audit, offline queue, whiteboard job/provenance/retry, research consent. |
+| Guide/Admin/Capstone operations | BR-031..039, BR-040..045 | FR-031..076; NFR-021..054 | C-01, C-02, C-18..C-20 | Phieu_FA26SE225.docx sections 3.2(c)–(g), 3.3 and section 4; docs/security/AUTHENTICATION.md; owner answers. | Adult token verification, cross-child deny, Guide assignment, Admin audit, offline queue, approved story/video job, provenance/retry, research consent. |
 
 ### B12.4 Câu hỏi còn mở cần trả lời trước khi khóa API/schema cuối
 
@@ -956,7 +1012,7 @@ test chưa thuộc task này.
 | OPEN-007 | Quyền truy cập/xóa khi có nhiều guardian; xử lý khi consent bị rút hoặc guardian relationship chấm dứt? | Access/revocation/deletion semantics chưa khóa. |
 | OPEN-008 | Chuẩn production qualification cho Montessori catalog, nguồn tham khảo, evaluator/reviewer, version lifecycle và refresh? | Baseline 100 activity không thể mặc định đưa vào production. |
 | OPEN-009 | Contract collision ASR/Vision/RawUnderstanding adoption: nhận mapping đề xuất nào, namespace/version, owner và rollout/migration? | Không được cutover hoặc cast schema; consumer integration giữ blocked. |
-| OPEN-010 | Whiteboard video phase/provider: Pixi exploration và whiteboard MP4 là hai implementation; video job chạy trong lúc Pixi phát và Parent continue chỉ mở khi READY. Cần chốt exact provider/worker/encoding gate. | Product sequence đã owner chốt; provider/worker/encoding và production readiness còn TBD. |
+| OPEN-010 | Illustrated story-video execution: Pixi exploration và story video là hai implementations; image/video generation starts only after adult approval and may run while Pixi plays; Parent continue only after READY. Exact Wan checkpoint, illustration provider, worker/encoding and L4 acceptance gate remain to be decided. | Product sequence, duration, approval and current Wan baseline are owner-confirmed; execution profile/benchmark and production readiness remain TBD. |
 | OPEN-011 | Quy tắc narration transcript free-text/observation notes, moderation và retention; FeedbackV1 cấm free-text theo frozen shape. | UX/feedback data contract và safety review chưa thống nhất. |
 | OPEN-012 | Product-level terminal/recovery states cho cancel, consent withdrawal, provider/storage failure, expiry khi session đang chạy? | API lifecycle/error contract chưa khóa ngoài fixture order. |
 | OPEN-013 | Production NFR targets: availability, latency, payload caps, scale, Android support, RPO/RTO, deletion SLA, accessibility/language coverage? | Không đặt numeric SLO/acceptance threshold không có owner evidence. |
@@ -966,7 +1022,7 @@ test chưa thuộc task này.
 | OPEN-017 | Parent/Guide permission matrix: profile/consent/gates/history/retention/delete; multi-guardian disagreement and role combinations? | Owner gave own-child scope; action-by-action rights and conflicts still TBD. |
 | OPEN-018 | Guide class scope: Admin là người cấp assignment; Parent nhận notification nếu đã tồn tại và có thể kiến nghị đổi. Cần chốt child có phải đồng thời guardian-linked không, ai quyết định petition và cách revoke. | Người cấp và notification/petition path đã rõ; điều kiện liên kết, resolution và revoke còn TBD. |
 | OPEN-019 | Admin là role cao nhất và được xem raw drawing/audio/transcript/observation khi cần. Controls nào bắt buộc cho quyền này: reason, notice, time limit, break-glass, dual approval, audit và retention? | Quyền xem đã xác nhận; controls và lifecycle còn TBD. |
-| OPEN-020 | MVP vs extended classification across Pixi exploration, whiteboard video, narrated story, Guide Console, dataset creation and dataset release? | Owner đã chốt Pixi exploration, narrated story và whiteboard micro-video là MVP target; current implementation/delivery status vẫn tách riêng. |
+| OPEN-020 | MVP vs extended classification across Pixi exploration, illustrated story video, narrated story, Guide Console, dataset creation and dataset release? | Owner đã chốt Pixi exploration, narrated story and illustrated 40–60 second story video as target; current implementation/delivery status and dataset release remain separate. |
 | OPEN-027 | Whiteboard video exact codec/resolution/bitrate/size, job timeout, retry count/backoff, exhausted-failure recovery và có bắt buộc xem hết video trước activity hay không? | Target order và retryable failure đã rõ; các ngưỡng vận hành/UX này cần benchmark/provider/product approval. |
 | OPEN-028 | TTS voice/provider, locale, voice safety review và khả năng tắt TTS theo session? | TTS độc lập và lấy script từ learning thread đã rõ; voice/provider/policy chưa chốt. |
 | OPEN-029 | Mask/stroke quality gate: ngưỡng region confidence, mask quality, contour acceptance và fallback khi nét không thể tách? | SAM2 Small là baseline; numeric quality thresholds và exhausted-failure handling cần đo/duyệt. |
@@ -985,8 +1041,8 @@ test chưa thuộc task này.
 - [ ] Owner/Security chốt data classes, expiry clock, default, cascade/backup và deletion proof cho 30/60/90 ngày.
 - [ ] Chủ sở hữu FEAT-003/018 chấp thuận hoặc bác mapping contract collision bằng ADR/approval và registry migration plan.
 - [ ] Montessori reviewer chốt qualification/approval cho production catalog và activity safety sources.
-- [x] Product owner chốt video phase: whiteboard MP4 là implementation riêng, chạy song song khi Pixi phát, Parent continue chỉ sau READY; duration mục tiêu 5–10 giây.
-- [ ] Platform/product chốt provider/worker/codec/size, timeout/retry, TTS voice policy và exhausted-failure recovery.
+- [x] Product owner chốt video phase mới: illustrated MP4 40–60 giây; adult duyệt exact script trước image generation; job có thể chạy trong lúc Pixi phát; Parent continue chỉ sau READY; giữ Wan2.2 TI2V-5B baseline.
+- [ ] Platform/product chốt exact model/checkpoint/image provider, worker/codec/size, timeout/retry, supported TTS voices/languages, L4 thresholds và exhausted-failure recovery.
 - [ ] API/Platform chốt terminal states, persistence, scale/security/NFR targets; kiểm thử end-to-end qua backend/mobile/renderer.
 - [ ] Rà soát privacy notice/consent, accessibility, localization và retention implementation với đúng người có thẩm quyền.
 
@@ -1384,7 +1440,7 @@ Các schema trong phần này là logical SRS schema. Chúng mô tả identity, 
 | API-008 | POST /v1/sessions/{id}/gate-a | Parent/Guide authorized | GateDecision GATE_A | session next state | STALE_VERSION, PROPOSAL_NOT_FOUND, FORBIDDEN |
 | API-009 | POST /v1/sessions/{id}/candidates | Backend | AdultContext refs, catalog/policy versions | ActivityCandidate set | CONTEXT_REQUIRED, CATALOG_UNAVAILABLE |
 | API-010 | POST /v1/sessions/{id}/gate-b | Parent/Guide authorized | candidate/spec choice | ExperienceSpec locked | HARD_RULE_BLOCKED, STALE_CATALOG, FORBIDDEN |
-| API-011 | POST /v1/sessions/{id}/experience | Backend | spec ref, Pixi exploration/whiteboard-video flags | Job/ExperienceSnapshot | SPEC_INVALID, SAFETY_BLOCKED, PROVIDER_FAILURE |
+| API-011 | POST /v1/sessions/{id}/experience | Backend | spec ref, Pixi exploration/story-video intent flags | ExperienceSnapshot/job refs | SPEC_INVALID, SAFETY_BLOCKED, PROVIDER_FAILURE |
 | API-012 | GET /v1/sessions/{id}/handoff | Parent/Guide authorized | session/version | ActivityHandoff | FORBIDDEN, NOT_READY |
 | API-013 | POST /v1/sessions/{id}/feedback | Parent/Guide authorized | ObservationFeedback | Feedback + history job | FORBIDDEN, INVALID_OUTCOME, STALE_VERSION |
 | API-014 | GET /v1/children/{child_id}/history | Owner/Guide assignment/Admin | filters/cursor | SessionHistory page | FORBIDDEN, RETENTION_EXPIRED |
@@ -1397,8 +1453,17 @@ Các schema trong phần này là logical SRS schema. Chúng mô tả identity, 
 | API-021 | POST /v1/deletion-requests | Owner/Admin | child/account/artifact scope | DeletionRequest | FORBIDDEN, CONSENT_CONFLICT |
 | API-022 | GET /v1/jobs/{job_id} | Authorized actor | job id/cursor | Job state/result ref | FORBIDDEN, JOB_NOT_FOUND |
 | API-023 | GET /v1/admin/audit | Admin/security reviewer | filters/cursor | Redacted audit page | ADMIN_REQUIRED, QUERY_LIMIT |
-| API-024 | POST /v1/sessions/{id}/whiteboard-video-jobs | Backend after Gate B | exact spec/source/learning-thread refs, idempotency | WhiteboardVideoJob QUEUED/RUNNING | SPEC_INVALID, SOURCE_MISMATCH, CONSENT_REQUIRED, IDEMPOTENCY_CONFLICT |
-| API-025 | GET /v1/sessions/{id}/whiteboard-video | Parent/Guide authorized | session/version and job ref | redacted status/progress or READY MP4 ref | FORBIDDEN, VIDEO_NOT_READY, RETRYABLE_FAILURE, RETENTION_EXPIRED |
+| API-024 | POST /v1/sessions/{id}/illustrated-story-video-jobs | Backend after Script Approval | exact approved package/script/evidence/audience/spec refs+hashes, idempotency | StoryVideoJob QUEUED/RUNNING | SCRIPT_NOT_APPROVED, APPROVAL_STALE, SPEC_INVALID, SOURCE_MISMATCH, CONSENT_REQUIRED, IDEMPOTENCY_CONFLICT |
+| API-025 | GET /v1/sessions/{id}/story-video | Parent/Guide authorized | session/version and job/artifact ref | redacted status/progress or READY MP4 ref | FORBIDDEN, VIDEO_NOT_READY, RETRYABLE_FAILURE, RETENTION_EXPIRED |
+| API-026 | GET /v1/sessions/{id}/audience-profile | Parent/Guide authorized | session/version | current age-band/readiness/locale refs, or `AGE_CONTEXT_REQUIRED` | FORBIDDEN, PROFILE_STALE |
+| API-027 | POST /v1/sessions/{id}/learning-evidence-queries | Backend after Gate A/B | confirmed anchor refs, exact spec/objective, audience, locale, source-policy version, idempotency | `LearningEvidenceSetV1` | SUBJECT_UNCERTAIN, NO_REVIEWED_EVIDENCE, AGE_CONTEXT_REQUIRED, SOURCE_POLICY_UNAVAILABLE |
+| API-028 | POST /v1/sessions/{id}/story-drafts | Parent/Guide authorized | source/understanding/gate/spec/evidence/audience refs+hashes, locale, duration 40–60, idempotency | full `StoryScriptDraftV1` or typed planner job | GATE_A_REQUIRED, GATE_B_REQUIRED, SCRIPT_CONSTRAINT_FAILED, PLANNER_RETRYABLE_FAILURE |
+| API-029 | POST /v1/sessions/{id}/story-drafts/{draft_id}/revisions | Parent/Guide authorized | expected revision, quick actions[], optional free-form instruction, actor/idempotency | complete immutable next draft + change summary | STALE_DRAFT, EDIT_CONFLICT, CLAIM_GROUNDING_FAILED, RATE_LIMITED |
+| API-030 | GET /v1/narration-profiles?locale={locale} | Authorized adult | supported locale | capability-filtered voice/style/pace choices | LOCALE_UNSUPPORTED, FORBIDDEN |
+| API-031 | POST /v1/narration-previews | Authorized adult | supported profile/version, bounded sample text/hash, locale | short non-durable preview ref/status | VOICE_UNAVAILABLE, LOCALE_UNSUPPORTED, RATE_LIMITED |
+| API-032 | POST /v1/sessions/{id}/story-approvals | Parent/Guide authorized | exact draft/script/evidence/audience/spec/locale/voice hashes, decision, idempotency | immutable `ScriptApprovalV1` + approved package ref/hash | STALE_DRAFT, APPROVAL_STALE, CONTENT_BLOCKED, FORBIDDEN |
+| API-033 | POST /v1/sessions/{id}/story-video-jobs/{job_id}/retry | Parent/Guide authorized | expected session/job version, idempotency key, approved package hash | same/current or new bounded attempt ref | RETRY_BUDGET_EXHAUSTED, APPROVAL_STALE, IDEMPOTENCY_CONFLICT |
+| API-034 | POST /v1/sessions/{id}/story-video-jobs/{job_id}/cancel | Parent/Guide authorized | expected session/job version, reason, idempotency | cancellation status; late results non-publishable | FORBIDDEN, JOB_TERMINAL, STALE_VERSION |
 
 ### B15.2 Error envelope
 
@@ -1459,7 +1524,7 @@ Core error codes:
 | UC-006 | Capture drawing and narration | Child + adult | Immutable original media and admission result. |
 | UC-007 | Understand and review Gate A | AI + Parent/Guide | Proposal corrected/confirmed or retake required. |
 | UC-008 | Filter and approve Gate B | Backend + Parent/Guide | Exact activity/objective/spec locked. |
-| UC-009 | Run Pixi exploration and generate whiteboard learning video | Backend/media/renderer | Pixi exploration remains interactive; whiteboard job reaches READY or typed retryable failure. |
+| UC-009 | Review story and generate illustrated learning short | Backend/media/renderer | Adult approves exact age-aware script/voice packet; Pixi remains interactive; 40–60 second story-video job reaches READY or typed recovery. |
 | UC-010 | Handoff to off-screen activity | Parent/Guide + child | Activity card and handoff ready. |
 | UC-011 | Record feedback and history | Parent/Guide | ObservationFeedback and history update. |
 | UC-012 | Admin raw support read | Admin | Audited raw view or fail closed. |
@@ -1508,15 +1573,15 @@ Mỗi scenario phải ghi actor, precondition, command, expected state, emitted 
 | Postconditions | ExperienceSpec locked; story/animation/video/handoff reference same identity. |
 | Negative | Blocked candidate, stale catalog, mismatched objective or unauthorized Guide class scope rejected. |
 
-#### UC-009 Pixi exploration and whiteboard video
+#### UC-009 Review story and generate illustrated video
 
 | Item | Expected |
 |---|---|
-| Preconditions | Gate B has locked the exact ExperienceSpec; source image and learning thread are available; adult has processing consent. |
-| Main steps | Backend creates the Pixi `SceneExplorationPlan`; it starts the whiteboard-video job; mobile opens Pixi while the job reports bounded stages; VLM/SAM/stroke/MP4/TTS stages retain the same source/spec identity. |
-| Postconditions | Pixi may complete first; Parent/Guide receives the continue action only after the validated whiteboard MP4 is READY; video playback then hands off to the exact activity. |
-| Negative | Stale source/spec, invalid mask/stroke provenance, unsafe content, provider/encoder failure or revoked consent never becomes READY; retryable failure is shown with an explicit retry path and no fake video. |
-| Open | Exact codec/size, retry budget, TTS voice policy, exhausted-failure recovery and whether the full video must be watched remain TBD. |
+| Preconditions | Gate B has locked the exact ExperienceSpec; source/context and processing consent are valid; age/readiness and supported locale are available. |
+| Main steps | Backend retrieves reviewed claims and builds script; adult edits by quick controls/free text, selects a supported voice and approves exact hashes; only then it creates illustration/video jobs while Pixi plays; TTS timing drives assembly; validators decide READY. |
+| Postconditions | Every scene links to approved script/claim/anchor; final MP4 is 40–60 seconds with full TTS; Parent/Guide continues only after video READY and activity handoff readiness. |
+| Negative | Missing/stale approval causes zero image/video calls; unsupported facts/voice, unsafe or mismatched scene, failed audio/MP4 or revoked consent never becomes READY; recovery is explicit and idempotent. |
+| Open | Exact codec/size, scene count/style, retry budget, voice inventory, L4 latency/quality threshold, exhausted-failure recovery and whether the full video must be watched remain TBD. |
 
 #### UC-012 Admin raw support read
 
@@ -1597,7 +1662,7 @@ Source or owner decision → requirement ID → relationship/entity/schema → A
 | TR-001 | Owner adult-supervised flow | BR-001, FR-001, SCH-006 | API-005, UC-005 | Cross-child and child-credential negative tests |
 | TR-002 | Owner Guide assignment answer | BR-002, BR-032, REL-004..008, SCH-004 | API-015..017, UC-003..004 | Assignment/notification/petition state tests |
 | TR-003 | Owner Admin raw access answer | BR-003, BR-033, FR-043, FR-046 | API-018, UC-012 | Admin/non-Admin raw-read and audit tests |
-| TR-004 | Workflow image/story/media | BR-016, BR-021, BR-040..045, FR-014..019, FR-054..059, SCH-011 | API-011..012, API-024..025, UC-009..010 | Pixi/whiteboard identity continuity, concurrent job, READY gate, retry and provenance tests |
+| TR-004 | Owner workflow/story/video v1.7 | BR-016, BR-021, BR-040..045, FR-014..019, FR-054..076, SCH-011 | API-011..012, API-024..034, UC-009..010 | Age/evidence grounding, script approval before image calls, Pixi/story-video separation, 40–60 second audio/video, READY gate, retry and derivative provenance. |
 | TR-005 | Retention choice | BR-024, FR-022..023, SCH-006/007/retention | API-019..020, UC-013 | Choice validation and expiry/deletion tests |
 | TR-006 | Registration research scope | FR-049..050, NFR-025/NFR-030 | API-014/research export, UC-014 | Consent/protocol/data-release gate |
 | TR-007 | Auth repository guide | BR-031, FR-031..033, NFR-002/003/022 | API-001, UC-001 | Token/role/relationship negative tests |
@@ -1662,7 +1727,7 @@ Các câu dưới đây là phần còn cần owner trả lời; không được
 | Relationship/schema/API logical additions in B13–B16 | OWNER_APPROVED_TARGET_BASELINE; still not runtime migration |
 | Retention/archive for all child/session data classes | OWNER_CONFIRMED; legal exceptions, backup/provider copies and purge proof TBD |
 | Research protocol and thresholds | OPEN_TBD |
-| Target scope classification | OWNER_CONFIRMED for Pixi exploration, narrated story, whiteboard micro-video, Guide Console và Parent Web; research release TBD |
+| Target scope classification | OWNER_CONFIRMED for Pixi exploration, narrated illustrated 40–60 second story video, Guide Console and Parent Web; research release TBD |
 | Production implementation readiness | Not claimed |
 
 ## B20. Owner-approved scope closure
@@ -1671,7 +1736,7 @@ Các câu dưới đây là phần còn cần owner trả lời; không được
 
 | ID | Quyết định | Trạng thái |
 |---|---|---|
-| OC-001 | MVP giữ PixiJS Personalized Drawing Exploration, narrated story và whiteboard learning micro-video theo workflow mục tiêu; Pixi chạy trước, whiteboard job chạy song song và phải READY trước Parent continue. | OWNER_CONFIRMED |
+| OC-001 | MVP giữ PixiJS Personalized Drawing Exploration, narrated story và illustrated story video theo workflow mục tiêu; v1.7 amends the earlier 5–10 second whiteboard scope to a 40–60 second short, requires adult approval before image generation, allows derivative illustration, and keeps READY before Parent continue. Pixi and video remain separate; video may run while Pixi plays after approval. | OWNER_CONFIRMED_AMENDED_2026-09-28 |
 | OC-002 | Người đăng ký là adult; trẻ chỉ có ChildProfile, không có child account. | OWNER_CONFIRMED |
 | OC-003 | Một Owner Caregiver sở hữu chính xác một ChildProfile; một Owner Caregiver có thể tạo nhiều ChildProfile. | OWNER_CONFIRMED |
 | OC-004 | Một ChildProfile có thể có nhiều Guide, kể cả các Guide có assignment chồng thời gian. | OWNER_CONFIRMED |
@@ -1705,7 +1770,7 @@ Guide Console khỏi yêu cầu đích.
 | Recommendation | Bắt buộc | Montessori constraints |
 | PixiJS Personalized Drawing Exploration | Bắt buộc | Tap-to-discover + 2.5D source-derived layers |
 | Narrated story | Bắt buộc | Reality-grounded |
-| Whiteboard learning micro-video | Bắt buộc | 5–10 giây; MP4/TTS implementation là task kế tiếp |
+| Illustrated story short | Bắt buộc | 40–60 giây; script/voice adult approval trước image generation; Wan2.2 TI2V-5B baseline |
 | Off-screen activity | Bắt buộc | Không tính vào digital timer |
 | Guide Console | Bắt buộc | Desktop web: assignment, session, observation, KB theo scope |
 | Parent Web | Bắt buộc | Responsive web: child, assignment, monitoring, history, privacy, feedback |
@@ -1754,7 +1819,7 @@ usable trên mobile browser và desktop browser.
 | Child information | Tên hiển thị, age band, readiness/context, consent, history và observation |
 | Guide management | Assign, xem assignment, xem expiry, revoke, xem lịch sử thay đổi |
 | Live monitoring | Child/Guide alias cần thiết, phase, status, progress và timestamps; không hiển thị lỗi kỹ thuật, prompt, provider detail, trace/job payload hoặc raw child content |
-| History | Story, animation, micro-video, activity, completion và feedback trong retention window |
+| History | Story, animation, illustrated story video, activity, completion và feedback trong retention window |
 | Privacy | Retention 30/60/90, archive state, deletion request, consent withdrawal |
 | Feedback | Gửi feedback sau session; không sửa ngược event đã ghi |
 | Notifications | Xem notification đa kênh và trạng thái delivery |
@@ -2128,8 +2193,9 @@ Exact deployment, tenancy, retention và Grafana hosting vẫn là `OPEN_TBD`.
 
 1. Platform health: latency, errors, queue, database, storage.
 2. Session operations: active/stuck/failed/revoked sessions.
-3. AI/media pipeline: ASR, VLM, recommendation, Pixi exploration, localization, SAM2 segmentation,
-   stroke extraction, TTS, whiteboard MP4 encoding and safety validation.
+3. AI/media pipeline: ASR, VLM, reviewed knowledge retrieval, story draft/revision/approval,
+   recommendation, Pixi exploration, TTS, illustration generation, per-scene Wan rendering,
+   MP4 assembly, and safety/content/provenance validation.
 4. Assignment/notification: assign, revoke, expiry, delivery delay, failure.
 5. Security: login failure, deny, break-glass, raw access, role changes.
 6. Data lifecycle: archive backlog, deletion failure, orphan artifact, retention violation.
@@ -2206,11 +2272,12 @@ Owner chọn 30, 60 hoặc 90 ngày. Quy tắc áp dụng:
 | Original drawing | Có | Có thể | Không | Có |
 | Narration audio | Có | Có thể | Không | Có |
 | Transcript | Có | Có thể | Không | Có |
-| Story text | Có | Có thể | Không | Có |
+| Story drafts, approved script and narration text | Có | Có thể | Không | Có |
+| Knowledge queries and claim/source links tied to a child session | Có | Có thể | Không | Có |
 | Animation | Có | Có thể | Không | Có |
-| Micro-video | Có | Có thể | Không | Có |
-| Whiteboard masks/stroke paths | Có | Có thể | Không | Có |
-| Whiteboard MP4/TTS track | Có | Có thể | Không | Có |
+| Illustrated stills and per-scene video clips | Có | Có thể | Không | Có |
+| Pixi source crops/masks/layers where used | Có | Có thể | Không | Có |
+| TTS audio and illustrated story MP4 | Có | Có thể | Không | Có |
 | Activity instruction | Có | Có thể | Không | Có |
 | Observation | Có | Policy riêng trong child data | Không | Có |
 | Feedback | Có | Policy riêng trong child data | Không | Có |
@@ -2361,11 +2428,11 @@ Không trả về raw provider error, access token, object URL hoặc dữ liệ
 | AT-016 | Technical log inspection | Không có raw child content, token hoặc secret |
 | AT-017 | Session event replay | Sequence và state transition tái dựng được |
 | AT-018 | Notification failure | Retry/dead-letter status được ghi nhận |
-| AT-019 | Gate B approved, Pixi starts | Pixi exploration opens; whiteboard job starts concurrently and reports bounded stages without blocking Pixi playback. |
-| AT-020 | Whiteboard video succeeds | VLM/SAM/stroke/TTS/MP4 artifacts retain source/spec/learning-thread identity; status becomes READY only after safety/content validation. |
-| AT-021 | Whiteboard video fails | Parent sees a safe retryable state; no fake video and no continue action before READY; retry does not duplicate source mutation/spend under idempotency rules. |
-| AT-022 | Pixi completes before video | Pixi shows a friendly waiting state; Parent is notified only when the validated whiteboard MP4 becomes READY. |
-| AT-023 | Whiteboard provenance mismatch | Stale source hash, unconfirmed target, invalid mask/stroke/TTS ref or unsafe output is rejected closed. |
+| AT-019 | Script approved, Pixi starts | Pixi exploration opens; illustrated-video job starts only after hash-bound Script Approval and reports bounded safe stages without blocking Pixi playback. |
+| AT-020 | Illustrated video succeeds | Illustration/TTS/scene/MP4 artifacts retain source/package/spec/claim identity; 40–60 second output becomes READY only after all mandatory validation passes. |
+| AT-021 | Illustrated video fails | Parent sees a safe typed recovery state; no fake video and no continue action before READY; retry does not duplicate source mutation/spend under idempotency rules. |
+| AT-022 | Pixi completes before video | Pixi shows a friendly waiting state; Parent is notified only when the validated illustrated story MP4 becomes READY. |
+| AT-023 | Story/video provenance mismatch | Stale approval/source hash, unsupported claim/subject, invalid illustration/TTS/scene ref or unsafe output is rejected closed. |
 | AT-024 | Firebase test login | Real test Firebase token is verified by backend; invalid/expired/revoked token is rejected; no Firebase credential or token is written to repository/logs. |
 | AT-025 | Adult role exclusivity | An account has exactly one of `PARENT`, `GUIDE`, `ADMIN`; a child has no role or credential; client-supplied role cannot change authorization. |
 | AT-026 | Parent Web responsive | Parent can use dashboard, child management, Guide assignment/revoke, history, retention/deletion, feedback and live projection on mobile and desktop browser. |
@@ -2388,11 +2455,15 @@ Không trả về raw provider error, access token, object URL hoặc dữ liệ
 10. Backup và provider copy deletion SLA.
 11. Numeric SLO/SLA, RPO/RTO và capacity target.
 12. Account lifecycle, MFA, recovery và Admin provisioning.
-13. Whiteboard video codec/resolution/bitrate/maximum size, timeout, retry count/backoff and
-    exhausted-failure recovery.
-14. TTS provider/voice/locale/safety review and whether an adult may disable TTS for a session.
-15. Mask/stroke quality thresholds and whether the adult must watch the full whiteboard video before
-    physical-activity handoff.
+13. Exact Wan checkpoint/revision and illustration-model profile/license; output codec/resolution/FPS/bitrate/maximum size; job timeout, retry count/backoff and exhausted-failure recovery.
+14. Supported TTS provider/locale/voice inventory, category/style/pace labels, pronunciation lexicon, preview lifecycle, subtitle requirement and whether TTS can be disabled for a session.
+15. Visual-style catalogue, scene count/transition policy, subject/style continuity rubric and whether an adult must watch the complete short before physical-activity handoff.
+16. Reviewed educational knowledge corpus, claim citation format, source-license/quotation policy, reviewer qualification and freshness/update workflow.
+17. Per-age-band writing rubric and which Montessori readiness dimensions are selected per session versus read from ChildProfile.
+18. Exact quick-action catalogue/labels, parameter bounds, conflict resolution when quick and free-form instructions disagree, and free-form moderation limits.
+19. Whether changing only voice profile requires another explicit approval confirmation; script/source/spec/age/evidence/locale changes always invalidate the approved package.
+20. Target-L4 output quality threshold, peak VRAM/concurrency limits, P50/P95 maximum wait, queue policy and cost ceiling; no cross-GPU timing inference.
+21. Visual validator/evaluation corpus, allowed content comparison method, human-review sampling and fallback completion semantics.
 
 ## Annex A. Implementation-grade test SRS annex
 
@@ -2452,7 +2523,7 @@ table mà bỏ qua application completion command và `expected_session_version`
 | Media | Original/derived artifact, admission, provenance | Upload metadata, validate, expire/archive | Original immutable; derivative có source/provenance |
 | Understanding | Fixture ASR/VLM/fusion proposal | Queue, map, retry, Gate A proposal | AI proposal không tự thành fact |
 | Recommendation | Catalog, hard rules, candidate set, Gate B | Compile candidates, select, lock spec | Safety/prerequisite trước ranking |
-| Experience Media | Story, Pixi, whiteboard job, handoff | Prepare/play/status/retry | Exact ExperienceSpec xuyên suốt |
+| Experience Media | Approved story, Pixi, illustrated-video job, handoff | Prepare/play/status/retry | Exact ExperienceSpec and approved story-package refs |
 | Notification | Outbox, delivery/read state | Enqueue, deliver fake, retry, dead-letter | Delivery không tự thành consent |
 | Audit/Telemetry | Business events, security audit, metrics/logs | Record, query, redact, replay | Audit/business record tách technical telemetry |
 | Retention | Expiry, archive, purge, deletion request | Plan, archive, purge, receipt | Expiry làm Parent/Guide invisible trước purge |
@@ -2621,7 +2692,7 @@ number làm source of truth cho event replay. Mọi list endpoint phải có lim
 | Session | `/v1/sessions`, `/v1/sessions/{id}`, `/live`, `/events`, `/actions` | Mobile/Guide/Parent read |
 | Media | `/v1/sessions/{id}/media`, `/admission` | Mobile/backend |
 | Gates | `/v1/sessions/{id}/gate-a`, `/candidates`, `/gate-b` | Mobile/Guide/Parent |
-| Experience | `/v1/sessions/{id}/experience`, `/whiteboard-video-jobs`, `/handoff` | Backend/mobile |
+| Experience | `/v1/sessions/{id}/experience`, `/story-drafts`, `/story-approvals`, `/story-video-jobs`, `/handoff` | Backend/mobile |
 | Feedback | `/v1/sessions/{id}/feedback`, `/v1/children/{id}/feedback` | Parent/Guide |
 | Privacy | `/v1/children/{id}/retention`, `/deletion-requests`, `/consent/withdraw` | Parent/Admin |
 | Notifications | `/v1/notifications`, `/v1/notifications/{id}/read` | Parent/Guide/Admin |
@@ -2733,7 +2804,7 @@ Required fixture families:
 - no valid activity due hard rule;
 - stale session version and duplicate idempotency key;
 - Guide assignment create/expire/revoke, including revoke during active session;
-- whiteboard job queued/running/ready/retryable/exhausted failure;
+- illustrated story-video job queued/running/ready/retryable/exhausted failure;
 - notification sent/failed/retry/dead-letter;
 - retention archive/purge/deletion receipt;
 - rate-limit, redaction and cross-owner/cross-Guide negative tests.
@@ -2792,6 +2863,10 @@ release hoặc production capacity test.
 | `docs/architecture/CONTRACTS_AND_INTEGRATION.md` | Contract/integration boundary |
 | `docs/adr/ADR-0003` đến `ADR-0006` | Architecture and workstream constraints |
 | `features/FEAT-029-master-srs/evidence/notes/WHITEBOARD_VIDEO_SCOPE_UPDATE_20260923.md` | Owner clarification and comparison of PixiJS exploration versus whiteboard MP4 scope |
+| `https://github.com/yogendra-yatnalkar/storyboard-ai` | Pattern reference for global direction, scene planning and per-scene orchestration; no source code imported |
+| `https://github.com/Atharva-Kanherkar/chalkboard` | Pattern reference for typed scene scripts, per-scene narration and audio-led timing; no source code imported |
+| `https://github.com/Wan-Video/Wan2.2` | Official Wan2.2 model/run instructions used for the retained TI2V-5B baseline feasibility boundary |
+| `https://www.nvidia.com/en-us/data-center/l4/` | Official L4 device memory specifications used for the target GPU preflight discussion |
 
 ### B29.2. Legal references reviewed
 
@@ -2802,3 +2877,282 @@ release hoặc production capacity test.
 | [Luật Trẻ em 102/2016/QH13](https://vbpl.moj.gov.vn/vanphongchinhphu/Pages/vbpqen-toanvan.aspx?ItemID=11044) | Context for children’s rights and best-interest principle |
 
 Các nguồn pháp luật chỉ dùng để đặt constraint và câu hỏi legal/privacy. Tài liệu này không thay thế legal review cho việc triển khai production.
+
+## B30. Owner change v1.7 — story và illustrated short video
+
+### B30.1 Authority, status và precedence
+
+Ngày 2026-09-28, owner yêu cầu mở rộng luồng story/video và trả lời rõ các lựa chọn: video dài khoảng 40–60 giây; được vẽ lại source theo phong cách minh họa; video kể lại tranh và dạy kiến thức về subject theo tuổi/Montessori; người lớn có cả quick controls lẫn free-form script edit; AI trả toàn bộ bản mới để người lớn chốt trước khi gửi bất kỳ yêu cầu tạo ảnh nào; người lớn chọn ngôn ngữ/voice category; tiếp tục giữ Wan2.2 TI2V-5B làm video-model baseline.
+
+Quy tắc áp dụng:
+
+1. Các yêu cầu B30–B32 và FR-066–FR-076/NFR-047–NFR-054 là target mới, có authority cao hơn các mô tả video/story cũ cùng chủ đề ở B5, B10, B20–B28.
+2. Target whiteboard 5–10 giây, deterministic-only pipeline ở B5/B10 và change log v1.4 là lịch sử scope ngày 2026-09-23. Chúng không còn là acceptance target cho illustrated story short. PixiJS exploration, Gate A/B, activity handoff, READY gate, source provenance, independent TTS và child-data privacy vẫn tiếp tục có hiệu lực nếu không mâu thuẫn với B30.
+3. Video 40–60 giây là experience riêng, không làm PixiJS thành video renderer. Pixi tiếp tục hoạt động trên source drawing. Illustrated video có thể vẽ lại nhưng phải giữ original bất biến và gắn derivative lineage.
+4. Wan2.2 TI2V-5B là baseline model hiện tại theo owner selection. Không đổi model trong phạm vi yêu cầu này; checkpoint/revision/runtime profile, độ phân giải và benchmark L4 vẫn phải được ghi/đánh giá trước khi implementation freeze.
+5. Các contract/API trong B31 và hai plan FEAT-020 là `PROPOSED_UNADOPTED`. Chúng cần contract-registry reconciliation, ADR/approval và migration plan trước runtime use. SRS update này là documentation-only.
+
+### B30.2 Product flow target
+
+```mermaid
+flowchart TD
+    A[Original image + optional child narration] --> B[Admission + VLM/ASR understanding]
+    B --> C[Gate A adult confirms/corrects subject and meaning]
+    C --> D[Age/readiness context + Montessori filters]
+    D --> E[Gate B adult approves activity/objective]
+    E --> F[Freeze ExperienceSpec]
+    F --> G[Query reviewed knowledge with age/readiness/locale]
+    G --> H[Draft 40–60 second scene script]
+    H --> I[Adult edits with quick controls, free text, or both]
+    I --> J[Return complete immutable revision]
+    J --> K[Choose language/voice and preview]
+    K --> L{Adult approves exact script packet?}
+    L -- No --> I
+    L -- Yes --> M[ApprovedStoryPackage]
+    M --> N[Pixi exploration on original drawing]
+    M --> O[TTS per segment + measured audio timeline]
+    M --> P[Illustration stills per scene]
+    P --> Q[Wan2.2 TI2V-5B silent scene clips]
+    O --> R[Assemble MP4 against narration timing]
+    Q --> R
+    R --> S{40–60 sec + audio + provenance/content validation pass?}
+    S -- No --> T[Typed failure/review/retry; no READY]
+    T --> O
+    S -- Yes --> U[Video READY]
+    N --> V{Pixi and video/handoff ready?}
+    U --> V
+    V -- Yes --> W[Parent continues; video then off-screen activity]
+```
+
+Gate sequence is explicit: Gate A confirms meaning; Gate B confirms activity/objective/spec; Script Approval confirms exact narration and knowledge packet. None substitutes for another. Image generation is strictly downstream of Script Approval.
+
+### B30.3 New/changed functional requirements
+
+The authoritative requirement rows are FR-066–FR-076 in B10.2. They require age-aware retrieval; claim/source citations; a 40–60 second story; immutable revisions from quick and free-form edits; hash-bound approval before image generation; locale/voice selection; separate TTS/video adapters; permitted derivative redraw; Wan baseline; final media validation; and async idempotent jobs. FR-017 and FR-055–FR-059 were rewritten to align with the new target.
+
+The target story has two semantically distinct content classes:
+
+- `OBSERVED_FROM_IMAGE`: what the adult-confirmed drawing/narration actually supports, with observation/anchor IDs and uncertainty;
+- `EDUCATIONAL_FACT`: external knowledge, each sentence tied to an approved source claim and applicable age/readiness;
+- optional `SAFE_NARRATIVE_BRIDGE`: connective/imaginary language, clearly not stated as an observed or scientific fact.
+
+The system must not use a low-confidence species label to retrieve species-specific anatomy or behavior as fact. If the source is ambiguous, Gate A correction or a general explanation is required.
+
+### B30.4 Adult script and narration interaction
+
+The story editor supports both interaction modes in the same revision service:
+
+1. Quick controls are typed catalog actions with parameters, such as simplify language, shorten, add evidence-backed detail, focus on a selected subject part, remove/reorder a segment, or change tone. Exact labels/catalog remain proposal until UI review.
+2. Free-form instruction lets the adult describe a change in their own words. The model may interpret the request but must obey allowed claim, age, duration and safety constraints.
+3. A single edit may combine selected quick controls and free text. Conflicts return an explicit validation issue; the service does not silently pick one instruction.
+4. Each successful edit creates a full immutable new revision, displays the complete script and a change summary, and retains the prior revision. No partial text delta is treated as final.
+5. The approval screen identifies the audience/age band, locale, selected voice, estimated narration duration, fact claims/source list and uncertainty warnings. Adult approves the exact revision/hash.
+6. Changing script, source meaning, evidence set, selected activity/objective, age/readiness, or spoken locale invalidates approval. A voice-only variation requires an explicit confirmation if audible delivery changes; exact reapproval UX is `OPEN_TBD`.
+7. Voice picker lists only currently supported locales/voice profiles, presents categories/style/pace metadata, and may play a bounded generated preview. Full TTS rendering occurs after approval. Provider-specific voice IDs stay backend-side.
+
+The raw child narration remains an understanding input. The default output narration is the chosen TTS voice. Reusing or cloning the child’s voice is not authorized by this change.
+
+### B30.5 Age-aware knowledge requirements
+
+Use the existing target age range 0–12 and catalog bands: 0–3, 3–6, 6–9, 9–12. Use existing inclusive completed-month definitions recorded in FEAT-020; activity readiness/prerequisite/supervision/safety constraints remain hard rules. Knowledge query should use the profile age band/readiness already authorized for the session; if missing, ask the adult to supply/confirm context. Do not request/store a new date of birth solely for story generation when a band is sufficient.
+
+Age affects: vocabulary, sentence complexity, number of facts, abstractness, pacing, explanation depth, and safety phrasing. The SRS does not claim Montessori qualification merely because a script was adapted to an age band. Exact per-band writing rubric and source review roles remain `OPEN_TBD` pending pedagogical review.
+
+Knowledge retrieval must use a versioned reviewed source policy. Each emitted fact includes source identity/revision and exact locator. Model recall without source evidence is insufficient. Source rights/quotation limits, corpus freshness, reviewer qualification and publication process remain `OPEN_TBD`.
+
+## B31. Proposed content/story/video contract detail
+
+**Contract status for every schema in this section: `PROPOSED_UNADOPTED`.** Existing runtime contracts such as `ConfirmedSceneUnderstandingV2`, `SemanticAnchorSetV1`, `P1ContextV1`, `ExperienceSpecV1`, Gate decisions and artifact refs remain canonical only within their existing namespaces. B31 schemas do not rename/migrate them. Detailed implementation-oriented field/invariant lists live in:
+
+- `features/FEAT-020-backend-ai-workflow-demo/plan/CONTENT_STORY_EXPERIENCE_PLAN.md`
+- `features/FEAT-020-backend-ai-workflow-demo/plan/VIDEO_STORY_PRODUCTION_PLAN.md`
+
+### B31.1 Contract inventory and ownership proposal
+
+| Proposed contract | Producer → consumer | Core purpose | Status |
+|---|---|---|---|
+| `LearningAudienceProfileV1` | ChildProfile/context → knowledge/story services | Authorized age band, readiness ref, locale and adult confirmation provenance. | `PROPOSED_UNADOPTED` |
+| `LearningKnowledgeQueryV1` | Story application → reviewed knowledge service | Query by confirmed anchors, ExperienceSpec/objective, age/readiness, locale and source policy. | `PROPOSED_UNADOPTED` |
+| `LearningEvidenceSetV1` / `LearningClaimV1` | Knowledge service → story planner/reviewer | Reviewed source claims, age applicability, citations, review status and claim kind. | `PROPOSED_UNADOPTED` |
+| `StoryDraftRequestV1` | Application → story planner | Exact source/anchor/spec/audience/evidence inputs, locale and 40–60 sec target. | `PROPOSED_UNADOPTED` |
+| `StoryScriptDraftV1` | Story planner → adult review | Full revision, scene/segment narration, claim coverage, estimated duration and validation. | `PROPOSED_UNADOPTED` |
+| `ScriptEditCommandV1` | Adult client → story application | Immutable revision command with quick actions, free text, selection and expected revision. | `PROPOSED_UNADOPTED` |
+| `NarrationProfileV1` / preview | TTS catalog → adult client | Provider-neutral locale/voice/style/pace catalog and bounded preview. | `PROPOSED_UNADOPTED` |
+| `ScriptApprovalV1` | Parent/Guide → story application | Adult decision bound to exact script/evidence/spec/audience/locale/voice hashes. | `PROPOSED_UNADOPTED` |
+| `ApprovedStoryPackageV1` | Story application → video application | Immutable approved packet that gates all illustration/video calls. | `PROPOSED_UNADOPTED` |
+| `StoryboardPlanV1` / `StoryboardSceneV1` | Planner → image/video adapters | Ordered scene records mapping approved narration/claims/anchors to visual constraints. | `PROPOSED_UNADOPTED` |
+| `IllustrationImageRequestV1` / `IllustrationAssetV1` | Image adapter → video adapter | Derived text-free illustration, source lineage, style/model and safety report. | `PROPOSED_UNADOPTED` |
+| `NarrationRenderRequestV1` / `NarrationAssetV1` | TTS adapter → assembler | Approved segment audio, selected voice, measured timing and text/audio provenance. | `PROPOSED_UNADOPTED` |
+| `VideoSceneRenderRequestV1` / `VideoSceneArtifactV1` | Video application ↔ Wan adapter | Silent scene clip request/result, bounded motion, profile/model and validator metadata. | `PROPOSED_UNADOPTED` |
+| `VideoAssemblyRequestV1` / `VideoArtifactV1` | Assembler → session/player | Ordered scene/audio assembly and final MP4 derived artifact. | `PROPOSED_UNADOPTED` |
+| `VideoValidationReportV1` | Validators → publish gate | Technical, audio, claim, visual, safety, privacy and provenance outcomes. | `PROPOSED_UNADOPTED` |
+| `VideoJobStatusV1` | Worker → backend/client projection | Async stage/status/progress, retries, cancellation and stale-job semantics. | `PROPOSED_UNADOPTED` |
+
+### B31.2 Shared envelope and common invariants
+
+Every mutation/job request must contain: contract name/version; command/request ID; idempotency key; `session_id`; `expected_session_version`; verified adult actor context; timestamp with timezone; trace/correlation ID; immutable parent artifact refs/versions/hashes; policy/config version. Every response must echo the accepted identity refs, actual state/status, output refs/hashes when available, typed warnings/errors and provider-neutral provenance.
+
+Common rules:
+
+- IDs are stable within a versioned artifact; revisions are immutable and monotonically ordered.
+- Hash exact canonical content (UTF-8/canonical serialization) and record the hash algorithm. Hashing raw prompts is not a substitute for hashing approved user-facing script/claim content.
+- Every derivative links to source image hash, approved package hash, session/spec refs, producer model/config revision and validator policy/version.
+- Backend resolves adult/child relationship and session permission; client-supplied role/UID/age/activity/source hash cannot authorize access.
+- Stale session, script, evidence, profile, approval, package or consent rejects downstream mutation/job; no stale provider result can publish as current.
+- Provider/model outputs are untrusted proposals; schema, safety, factual grounding and adult-gate validations remain application-owned.
+- Raw media, full prompts, provider payloads, tokens, signed URLs and private job details are excluded from client projections and normal telemetry.
+- Secret/provider credentials remain backend-only. Mobile/Parent Web never call video/TTS providers directly.
+
+### B31.3 Field groups and mandatory field semantics
+
+| Contract group | Mandatory field groups | Critical invariants |
+|---|---|---|
+| Audience/query | profile ref/version, age band/source, readiness ref, locale, adult selector, confirmed anchor refs, exact `ExperienceSpec`/objective, source-policy ref/version | Age/readiness are adult/profile sourced, not media-inferred; age band must use existing catalog values. |
+| Evidence/claim | claim ID/version, statement, claim kind, applicable age/readiness, locale, anchor/objective link, citation source ID/revision/locator, review state | Educational fact requires approved citation; observed fact requires confirmed observation/anchor; no fact is emitted from unreviewed evidence. |
+| Draft/revision | draft ID/revision, complete segment list/text, source/gate/spec/audience/evidence refs and hashes, duration target/estimate, validation, provenance | Complete replacement revision; segment claim map; 40–60 target; never silently omit unsupported sentence or exceed age/safety constraints. |
+| Edit/approval | expected revision, actor, quick action list, optional free text, idempotency, exact approved hashes, timestamp | Combined edit supported; stale revision rejected; approval is exact and invalidated by dependency change. |
+| Voice/TTS | locale, voice ID/version, style/pace, pronunciation refs, text hash, per-segment audio hash/duration/timing, model provenance | Only supported voice/locale; no child-voice cloning; full approved text represented in audio. |
+| Storyboard/image | scene order, approved segment/claim/anchor refs, visual goal, allowed/forbidden lists, style/model, source hash, artifact output hash | Image request occurs only after approval; generated text labels not trusted; derivative never overwrites original. |
+| Video scene | Wan profile/revision/config, scene/still refs, bounded duration/motion, job ID, silent clip hash/metadata, retry state | Scene is linked to approved story; output is silent; bounded concurrency/preflight; no provider call without approval. |
+| Final video/validation | ordered scene hashes, audio hash/timeline, MP4 hash/duration/codecs, package/script/approval hashes, validation report, source lineage | Duration 40–60 inclusive; audio complete; mandatory checks `PASS`; final READY atomically published. |
+| Job/status | state, stage, safe progress, timestamps, expected/current version, retry budget, idempotency and terminal reason | READY only with playable artifact/report; stale/revoked result non-publishable; public status is redacted. |
+
+### B31.4 Logical API/command inventory
+
+Paths/HTTP methods are not frozen in v1.7. Application commands and response semantics proposed:
+
+| Capability | Request → result | Gate/authorization |
+|---|---|---|
+| `readAudienceProfile` | session/child ref → current authorized profile/version or `AGE_CONTEXT_REQUIRED` | Parent owner or active assigned Guide; server resolves profile. |
+| `queryLearningEvidence` | `LearningKnowledgeQueryV1` → `LearningEvidenceSetV1` | Gate A and Gate B/spec current; source policy is reviewed. |
+| `createStoryDraft` | `StoryDraftRequestV1` → draft/job status | Confirmed anchor/spec/audience/evidence refs current. |
+| `reviseStoryDraft` | `ScriptEditCommandV1` → complete next revision | Adult authorized; expected revision/session version required. |
+| `listNarrationProfiles` / `previewNarrationVoice` | locale/profile → supported choices/short preview | No image/video generation; provider capability checked. |
+| `approveStoryScript` | `ScriptApprovalV1` → approval ref/hash or typed rejection | Parent/Guide permitted for session; exact content and version revalidated. |
+| `createIllustrationAndVideoJob` | approved package ref/hash + idempotency → `VideoJobStatusV1` | Valid current approval required before any image/video adapter invocation. |
+| `getVideoJob` / `retryVideoJob` / `cancelVideoJob` | opaque job ref + expected version → safe status/terminal result | Same adult/session authorization; retry budget and revocation enforced. |
+| `getReadyVideoArtifact` | session/job/artifact ref → `VideoArtifactV1` or typed not-ready | Only current READY artifact; no broad object-store URLs in logs. |
+
+Error envelope uses existing API conventions but needs new stable reason codes: `GATE_A_REQUIRED`, `GATE_B_REQUIRED`, `AGE_CONTEXT_REQUIRED`, `SUBJECT_UNCERTAIN`, `NO_REVIEWED_EVIDENCE`, `CLAIM_GROUNDING_FAILED`, `SCRIPT_CONSTRAINT_FAILED`, `STALE_DRAFT`, `EDIT_CONFLICT`, `SCRIPT_NOT_APPROVED`, `APPROVAL_STALE`, `VOICE_UNAVAILABLE`, `LOCALE_UNSUPPORTED`, `TTS_TEXT_MISMATCH`, `AUDIO_DURATION_OUT_OF_RANGE`, `MODEL_PROFILE_UNAVAILABLE`, `GPU_NOT_READY`, `ILLUSTRATION_INVALID`, `ILLUSTRATION_UNSAFE`, `VIDEO_SCENE_FAILED`, `ASSEMBLY_FAILED`, `VIDEO_INVALID`, `CONTENT_MISMATCH`, `VALIDATION_FAILED`, `STALE_INPUT`, `SESSION_REVOKED`, `RETRY_BUDGET_EXHAUSTED`, `RATE_LIMITED`, `IDEMPOTENCY_CONFLICT`.
+
+Each error includes stable `code`, safe localized message, retryability, allowed user action, correlation ID and current safe version; internal provider detail goes only to redacted secured telemetry.
+
+### B31.5 Job states and publish gate
+
+Proposed high-level lifecycle:
+
+```text
+SCRIPT_DRAFTED → SCRIPT_REVIEW → SCRIPT_REVISED* → SCRIPT_APPROVED
+    → VIDEO_QUEUED → PREFLIGHT → {TTS_RENDERING, ILLUSTRATION_RENDERING}
+    → SCENE_RENDERING → ASSEMBLING → VALIDATING → READY
+```
+
+Blocked/terminal states include `GATE_A_REQUIRED`, `GATE_B_REQUIRED`, `AGE_CONTEXT_REQUIRED`, `NO_REVIEWED_EVIDENCE`, `SCRIPT_NOT_APPROVED`, `CONTENT_BLOCKED`, `PROFILE_UNAVAILABLE`, `RETRYABLE_FAILURE`, `FAILED`, `CANCELLED`, `STALE_INPUT`, `SESSION_REVOKED`, `EXPIRED`. Exact state-to-session mapping must be reconciled with FEAT-016/runtime integration contract families before adoption.
+
+`READY` requires all of: current adult approval/package hash; readable complete MP4; duration 40–60 seconds; complete selected TTS track; scene order matching approved script; all mandatory validation results passing; source/model/policy lineage persisted; artifact is readable for the active authorized session. `FALLBACK`/still narration is not `READY` AI video and cannot be mislabeled as such. Parent Continue additionally requires the existing Pixi/activity handoff gate conditions.
+
+### B31.6 Validation and provenance contract
+
+`VideoValidationReportV1` has `report_id/version`, `artifact_ref/hash`, `package/script/approval hashes`, `validator_bundle_version`, `policy_version`, run timestamp, and checks. Each check includes `check_id`, dimension, `PASS | WARN | FAIL | NOT_RUN`, stable reason codes, evidence ref, safe summary and validator version.
+
+Mandatory dimensions: media decode/container; duration; video stream/frame integrity; audio stream/completeness/locale; narration text-to-audio coverage; scene-to-script order; claim/source coverage; allowed/forbidden entity/action; source lineage; style/subject continuity; content/safety; privacy/redaction; current consent/session/approval; MP4 artifact readability. No mandatory `NOT_RUN` can pass. Numeric perceptual similarity/continuity thresholds and independent human-review sampling remain TBD until a synthetic/reviewed evaluation corpus and scoring rubric are approved.
+
+## B32. Traceability, acceptance và implementation gates v1.7
+
+### B32.1 Requirements-to-plan-to-contract traceability
+
+| Requirement | Detailed plan | Main contracts | Acceptance evidence |
+|---|---|---|---|
+| FR-066 / NFR-049 — age/readiness adapts query/script | `CONTENT_STORY_EXPERIENCE_PLAN.md` §§3–5, 7 | `LearningAudienceProfileV1`, `LearningKnowledgeQueryV1` | Age-band/readiness boundary review; no media-derived age; age-specific rubric review. |
+| FR-067 / NFR-048 — reviewed facts/citations | Content plan §§4, 6.2, 7 | `LearningEvidenceSetV1`, `LearningClaimV1` | Claim coverage report; source-revision/citation validation; uncertain-subject negative case. |
+| FR-068 — 40–60 sec script/story | Content plan §§5–7 | `StoryDraftRequestV1`, `StoryScriptDraftV1` | Full script has estimated duration and segments; final measured narration/video within target. |
+| FR-069 / NFR-050 — both edit modes | Content plan §§5, 6.4, 9 | `ScriptEditCommandV1`, `StoryScriptDraftV1` | Quick-only, freeform-only, combined edit; full immutable revised draft; stale version rejection. |
+| FR-070 / NFR-047 — script gate before image calls | Content plan §§5–9; video plan §4 | `ScriptApprovalV1`, `ApprovedStoryPackageV1` | Provider spy sees zero calls without valid current approval; hash mutation invalidates. |
+| FR-071 / FR-072 / NFR-051 — selected voice/language + separate TTS | Content plan §§5, 6.5; video plan §§5.4–5.5 | `NarrationProfileV1`, `NarrationRenderRequestV1`, `NarrationAssetV1` | Supported/unsupported locale cases; full text coverage; measured duration/timing; independent adapter lineage. |
+| FR-073 / NFR-054 — redraw with source integrity | Video plan §§1, 5.3, 6.3, 9 | `IllustrationImageRequestV1`, `IllustrationAssetV1` | Original checksum unchanged; derivative lineage complete; no ungrounded visual facts. |
+| FR-074 / NFR-053 — Wan/L4 baseline | Video plan §§3, 6.4, 8 | `VideoSceneRenderRequestV1`, `VideoSceneArtifactV1` | L4 benchmark with VRAM/OOM/latency/quality; no claims inferred from other GPUs. |
+| FR-075 / NFR-052 — final validation and duration | Video plan §§5.6, 6.5–6.6, 9 | `VideoArtifactV1`, `VideoValidationReportV1` | 40–60 sec metadata; decode/audio completeness/content/provenance reports all mandatory checks pass. |
+| FR-076 / existing async/job rules — safe retries and progress | Video plan §§5.7, 7, 10 | `VideoJobStatusV1`, job/event envelopes | Idempotency, retry, cancellation, revoke, stale result, concurrency and redaction tests. |
+
+### B32.2 Acceptance scenarios
+
+| Scenario | Given | When | Then |
+|---|---|---|---|
+| A. Happy path | Gate A/B current, reviewed facts found, age/profile and supported locale available | Adult creates, revises/chooses voice, approves, then starts video | Exact package is rendered to 40–60 sec MP4 with complete TTS and validation; only then `READY`. |
+| B. Quick edit | Current draft is open | Adult chooses a quick action | Full new revision returned; prior draft remains immutable; no image call until approval. |
+| C. Free-form edit | Current draft is open | Adult supplies a free-form change | Constraints still enforced; complete revision and change summary returned. |
+| D. Combined edit | Current draft is open | Adult chooses quick action and adds free-form instruction | Both applied or explicit conflict returned; no silent priority inversion. |
+| E. Stale approval | Approved script hash exists | Script/age/spec/evidence/locale changes | Approval/package becomes stale; generation call denied. |
+| F. Uncertain species | VLM subject candidate is ambiguous and not confirmed | Knowledge query requests species-specific details | System asks adult/generalizes; no unsupported species fact in script. |
+| G. No reviewed source | Query has no applicable approved citation | Story planner requests educational facts | `NO_REVIEWED_EVIDENCE` or clarification; no model-memory fact is presented as verified. |
+| H. Unsupported voice/locale | Selected language/profile pair is absent | Adult previews or requests TTS | Clear supported choices or `LOCALE_UNSUPPORTED`; no fake voice asset. |
+| I. Audio out of range | Approved text rendered outside 40–60 sec | Assembly is attempted | Return to script review/typed error; do not truncate narration or alter approved speech rate silently. |
+| J. GPU out of memory | L4 preflight/resource limit fails | Video job starts | Fail/defer with typed safe status; no false READY; no overlapping model load beyond policy. |
+| K. Partial scene failure | Several scene clips pass, one fails | Retry is requested | Reuse only current validated scene hashes; retry failed scene bounded/idempotent; final assembly only after complete set. |
+| L. Revoked session | Adult session permission/consent is revoked during generation | Provider result arrives later | Cancel where supported; mark stale/non-publishable; no Parent/Guide playback access. |
+| M. Illustration adds subject/fact | Generated image includes disallowed entity/anatomy | Visual validator runs | `ILLUSTRATION_INVALID`/`CONTENT_MISMATCH`; no artifact reaches READY. |
+| N. Retry replay | Same retry request/key is repeated | Worker/client submits duplicate | Same job/result or idempotency conflict; no duplicate generation charge or mutation. |
+
+### B32.3 Nonfunctional/performance evaluation
+
+Confirmed quantitative target: total final video duration 40–60 seconds. Not yet confirmed: maximum wait, P50/P95 generation time, peak model residency, concurrency, output resolution/FPS/bitrate, visual similarity score, quality acceptance threshold, retry counts and provider cost ceiling. These values must remain `OPEN_TBD` until target L4 tests and adult review.
+
+Wan2.2 upstream documents TI2V-5B operation with offload at a 24 GB GPU-memory boundary; NVIDIA lists L4 with 24 GB. This is a boundary-fit profile, not proof that all models can remain resident together. L4 evaluation must include GPU/runtime/profile/checkpoint hashes; video and image model settings; peak VRAM and offload; model load/generation/assembly/validation stage latency; full-package P50/P95; OOM/retry/rejection rate; supported scene-count corpus; subject/style continuity and content errors; device playback decode; and whether Pixi playback remains smooth under load. Do not claim H100/4090 timings as L4 results. Queue video asynchronously while Pixi plays; use bounded model concurrency and unload/offload VLM/SAM/image/video weights based on measured memory. Sources: [Wan2.2 official repository](https://github.com/Wan-Video/Wan2.2), [NVIDIA L4 specifications](https://www.nvidia.com/en-us/data-center/l4/).
+
+### B32.4 Security, privacy and retention
+
+- Existing consent, adult authorization, retention, deletion, provider boundary and backend-only credential rules apply to image, narration, transcript, knowledge query, prompt, derived still, TTS, scene clips, video and job evidence.
+- User-facing Parent progress is limited to safe phase/status/progress/update time. Do not expose prompts, provider endpoint/job payload, raw error, model internals or source media through polling/logging.
+- Derivative generation does not authorize external provider retention. Provider-copy retention/deletion, processing region, training opt-out, source upload lifecycle and exact consent disclosure remain `OPEN_TBD` and are release gates.
+- Evidence is synthetic or sanitized; no real child image/audio/script/provider payload is committed. Keep child media out of telemetry and general test fixtures.
+- A style/profile/voice preview must not become a durable child artifact unless consent/retention policy covers it.
+
+### B32.5 Work package order and definition of ready
+
+1. Review content/video plans and owner-confirm all product controls/defaults.
+2. Reconcile proposed schemas with canonical contract registry; record contract decisions/migrations in ADR/contract-freeze evidence.
+3. Select/review knowledge corpus, citation policy, age writing rubric, voice catalog and image style profiles.
+4. Implement audience/knowledge/story/revision/approval path with synthetic fixtures; prove no provider image calls before approval.
+5. Implement voice catalog/preview and TTS segment rendering; verify measured timing and text coverage.
+6. Implement illustration asset provenance/validation; approve style/quality rubric.
+7. Implement Wan per-scene adapter and L4 resource lifecycle; collect actual benchmark/evidence.
+8. Implement async jobs, assembly, complete validator, playback/continue gate, retries and failure recovery.
+9. Complete privacy/security/retention review and quality evaluation; update feature evidence/status/context/decisions.
+10. Obtain separate implementation approval under FEAT-020 before writing runtime code.
+
+Definition of ready for implementation: owner approves both plans; all blocking TBDs affecting safety/provider data/contract ownership are resolved or explicitly scoped out; proposed contracts are reconciled; knowledge and voice/style source governance is assigned; L4 configuration and acceptance rubric exist; test/evidence plan uses synthetic data; feature status/approval record reflects this exact revision.
+
+### B32.6 Remaining decisions
+
+The owner has resolved video duration, redraw permission, age-adapted educational purpose, both script-edit modes, pre-image approval, language/voice selection, and keeping the current Wan model. Still open: exact scene count and arc; visual-style catalogue; child age/readiness prompt UX; reviewed knowledge corpus and reviewer; claim citation UI; quick-control wording and conflicting edit precedence; supported languages/voices/providers/pronunciation; voice-only reapproval UX; captions/subtitles; exact Wan/image checkpoint revisions and license; L4 wait/quality/concurrency/cost thresholds; media retention/provider copies; fallback completion semantics; and final API paths/schema namespace/version.
+
+## B33. Owner change v1.8 — Montessori activity discovery theo topic, tuổi và sở thích
+
+### B33.1 Authority and scope
+
+On 2026-09-30 the project owner directed the product to remove the readiness/condition checklist and show the normal activity list directly, then clarified that the system must not report an empty list merely because of the removed gate, should return the full list matching the drawing topic, and should also use the child's profile interests. This section is the owner-approved target for activity discovery and supersedes conflicting readiness/prerequisite/material eligibility language in B5–B19 and BR-009/011/012/014 **only for constructing the recommendation list**. It does not claim that the implementation or deployment is complete.
+
+This change does not weaken authored activity execution safety, policy, consent, age, reviewed-catalog status, topic confirmation, or required adult/caregiver supervision. It does not authorize durable profile storage or AI-generated catalog content. Child profiles and confirmed preference tags remain session-scoped for the approved increment.
+
+### B33.2 Discovery behavior
+
+1. After Gate A confirms a drawing topic, automatically load the complete set of reviewed/active catalog activities compatible with that confirmed topic and the child's exact adult-provided age. Return the full set; do not hard-cap it at three. Use pagination/load-more only if transport or rendering requires it, and ensure the adult can reach every matching result.
+2. Apply only these discovery exclusions: unreviewed/inactive/blocked catalog state; incompatible exact-age bounds; confirmed-topic/semantic mismatch; authored safety/policy constraints; and required adult/caregiver supervision constraints. Ages 0–35 months still require a participating caregiver and direct caregiver supervision.
+3. Do not ask for, infer, or filter discovery by child readiness, completed-activity history, or current material availability. Missing values for these fields must never turn otherwise topic/age-matching results into an empty list. Materials and setup requirements may be shown as preparation information after selection and before the adult starts the activity; they are not an activity-discovery gate.
+4. Use only adult-confirmed, reviewed preference tags from the active child profile to personalize ranking and concise match explanations. Interest/dislike signals cannot change the Gate-A topic, invent an activity, violate age/safety/supervision rules, or remove otherwise matching topic+age activities. If no confirmed preference tag matches, return the same complete topic+age set in deterministic catalog order.
+5. If the set is genuinely empty after the allowed topic, exact-age, catalog-status, safety and supervision rules, return a typed topic+age no-match and let the adult correct the topic/age or return to the earlier flow. Do not fallback to unrelated topics and do not describe missing readiness/material/history answers as the cause.
+
+### B33.3 Acceptance scenarios
+
+| Scenario | Given | When | Then |
+|---|---|---|---|
+| Full matching set | Gate A is confirmed and several reviewed activities match the child's exact age and topic | Activity selection opens | Every matching activity is reachable; result count is not truncated to three; no readiness/material checklist appears. |
+| Profile personalization | Confirmed interests overlap some topic-matching activities and dislikes overlap others | Server constructs the list | Preference matches rank/annotate first and avoid matches are deprioritized, while all activities that pass the discovery hard rules remain in the result set. |
+| Missing child readiness/history/materials | Those profile answers are absent | Activity selection opens | Topic+age-matching activities are still returned; no empty state is produced by those missing values. |
+| Safety/supervision failure | Candidate requires a safety policy or supervision fact that is absent/unsatisfied | Discovery runs | Candidate is withheld with a safe typed reason; no other safety gate is weakened. |
+| Genuine no-match | No reviewed activity matches the confirmed topic and exact age | Discovery completes | Return a typed topic+age no-match; no unrelated fallback and no misleading readiness/material prompt. |
+| Under-three child | Age is 0–35 months | Discovery runs | Required caregiver participation and direct-supervision rules remain enforced. |
+
+### B33.4 Contract and implementation gate
+
+The runtime implementation must use additive, versioned contracts for complete activity discovery and any changed P1/Gate-B context. Existing frozen V1–V3 wire contracts must not be mutated in place. Record the selected contract boundary in an ADR and feature approval before implementation. Preference classifier output remains a reviewed allowlist proposal that an adult confirms; the classifier does not author or choose catalog activity records. Tests must cover full result cardinality, exact topic/age boundaries, preference ordering without suppression, absent readiness/material/history, genuine no-match, safety/supervision, and under-three caregiver behavior. Keep evidence synthetic/sanitized and store it under FEAT-033.

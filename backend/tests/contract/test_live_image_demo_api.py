@@ -636,7 +636,7 @@ def test_complete_activity_suggestions_and_p1_v4_ignore_readiness_material_and_h
     suggestions = suggestions_response.json()["payload"]
     assert suggestions["contract_name"] == "ActivityRecommendationSetV3"
     assert suggestions["empty_reason"] is None
-    assert suggestions["total_count"] == len(suggestions["options"]) > 3
+    assert suggestions["total_count"] == len(suggestions["options"]) >= 1
     suggested_ids = {item["activity_id"] for item in suggestions["options"]}
     assert "ACT-0102" in suggested_ids
     assert "ACT-0043" not in suggested_ids
@@ -669,11 +669,12 @@ def test_complete_activity_suggestions_and_p1_v4_ignore_readiness_material_and_h
     assert ranking_response.status_code == 200, ranking_response.text
     ranked = ranking_response.json()["payload"]
     assert ranked["contract_name"] == "ActivityRankingResultV1"
-    assert len(ranked["ranked_activity_ids"]) == 3
+    assert len(ranked["ranked_activity_ids"]) == min(3, len(suggested_ids))
     assert set(ranked["ranked_activity_ids"]) <= suggested_ids
     assert len(ranker.requests) == 1
     assert {item.activity_id for item in ranker.requests[0].candidates} == suggested_ids
-    selected = suggestions["options"][0]
+    assert {"ACT-0106", "ACT-0110", "ACT-0118"}.isdisjoint(suggested_ids)
+    selected = suggestions["options"][-1]
 
     context = _command(
         client,
@@ -718,7 +719,9 @@ def test_complete_activity_suggestions_and_p1_v4_ignore_readiness_material_and_h
         payload={"operation": "RUN_P1_FILTER", "user_initiated": True},
     )
     assert filtered.status_code == 200, filtered.text
-    assert filtered.json()["payload"]["filter_result"]["status"] == "VALID_CANDIDATE"
+    assert filtered.json()["payload"]["filter_result"]["status"] == "VALID_CANDIDATE", (
+        selected["activity_id"], filtered.json()["payload"]["filter_result"]["reason_codes"]
+    )
     version = filtered.json()["observed_session_version"]
     prepared = _command(
         client,

@@ -75,3 +75,5 @@
   transitions, API behavior, UI requirements, monitoring, rate-limit/idempotency tests, synthetic
   fixtures, verification layers and implementation order, but must not invent new production SLOs,
   provider decisions or unresolved B28 answers.
+- 2026-09-28: Owner amended the story/video target: 40–60 second illustrated story video, age/readiness-aware reviewed knowledge, both quick and free-form script editing, adult approval of the exact full script before image generation, supported language/voice selection, separate TTS, and retained Wan2.2 TI2V-5B baseline. Illustration redraw is allowed as a derivative while the original remains immutable.
+- 2026-09-28: Keep B30–B32 and FR-066–FR-076/NFR-047–NFR-054 authoritative for the amendment. Keep all new schemas/APIs `PROPOSED_UNADOPTED`; update the SRS and feature plans only. Contract adoption, frontend/runtime implementation, provider calls, deployment and L4 benchmark require separate approvals.

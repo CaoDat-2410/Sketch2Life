@@ -12,6 +12,8 @@
 - Next gate: capture the Android synthetic-fixture flow and obtain qualified Montessori review for unresolved catalog mappings/content gaps before claiming all plan acceptance criteria complete.
 # Follow-up — 2026-09-30
 
+Latest requested fix: shared V4 eligibility for suggestions/selection, translation-only cutout motion and truthful delivery copy implemented. 136 focused backend/50 renderer tests, Ruff/typecheck/build/security passed. Backend restarted; health 200 and rebuilt renderer asset verified. Fresh-session visual retest and full dog part rigging remain unverified; readiness/history restoration awaits owner choice. Latest changes are uncommitted.
+
 Publication authorized by the owner's explicit “commit and pussh” instruction. Publish only the preview/mask fixes, their tests and FEAT-034 records; leave unrelated SRS/story/report edits uncommitted. External Lightning update/restart is not performed by Git publication.
 
 Backend early mask admission added under explicit “continue”; 65 focused tests, Ruff and repository security passed. Backend restarted and health returned 200; in-memory sessions reset. Emulator/Metro remain connected; app reload not performed because tool policy blocked the restart attempt. External worker deployment and fresh user-flow validation remain pending; no new commit/push. Evidence: `../evidence/notes/MASK_BACKEND_BOUNDARY_20260930.md`.

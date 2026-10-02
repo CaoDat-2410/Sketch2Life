@@ -63,6 +63,8 @@ import {
   RendererLoadCommandV2Schema,
   RendererLoadCommandV3Schema,
   PixiRendererShowEnvelopeV1Schema,
+  PixiRendererShowEnvelopeV2Schema,
+  RendererLoadCommandV4Schema,
   RendererPlaybackEventEnvelopeSchema,
   RendererPlaybackStateEnvelopeSchema,
   normalizeRendererFailureCode,
@@ -83,6 +85,39 @@ function rendererText(value: unknown, fallback = ''): string {
 
 function buildRendererLoadMessage(value: unknown, rendererInstanceId: string): string | null {
   const launch = rendererObject(value);
+  if (launch.contractName === 'PixiRendererShowEnvelopeV2') {
+    const envelope = PixiRendererShowEnvelopeV2Schema.safeParse(launch);
+    if (!envelope.success) return null;
+    const base = envelope.data.rendererLaunchV2;
+    const command = RendererLoadCommandV4Schema.safeParse({
+      contractName: 'RendererLoadCommandV4',
+      contractVersion: '4.0',
+      protocolVersion: '4',
+      sequence: 1,
+      rendererInstanceId,
+      sessionId: base.sessionId,
+      expectedSessionVersion: base.expectedSessionVersion,
+      experienceSpecRef: base.experienceSpecRef,
+      sourceReadEndpoint: base.sourceReadEndpoint,
+      sourceReadCapability: base.sourceReadCapability,
+      sourceSha256: base.sourceSha256,
+      packageReadEndpoint: base.packageReadEndpoint,
+      packageReadCapability: base.packageReadCapability,
+      packageSha256: base.packageSha256,
+      ...(base.maskReadEndpoint === undefined ? {} : {maskReadEndpoint: base.maskReadEndpoint}),
+      ...(base.maskReadCapability === undefined ? {} : {maskReadCapability: base.maskReadCapability}),
+      ...(base.maskSha256 === undefined ? {} : {maskSha256: base.maskSha256}),
+      partMaskReads: base.partMaskReads,
+      rigParts: base.rigParts,
+      animationPlan: base.animationPlan,
+      showPlan: envelope.data.showPlan,
+      assetReads: envelope.data.assetReads,
+      spriteCycleStatus: envelope.data.spriteCycleStatus,
+      ...(envelope.data.spriteCycleReasonCode === undefined ? {} : {spriteCycleReasonCode: envelope.data.spriteCycleReasonCode}),
+      ...(envelope.data.spriteCycle === undefined ? {} : {spriteCycle: envelope.data.spriteCycle}),
+    });
+    return command.success ? JSON.stringify(command.data) : null;
+  }
   if (launch.contractName === 'PixiRendererShowEnvelopeV1') {
     const envelope = PixiRendererShowEnvelopeV1Schema.safeParse(launch);
     if (!envelope.success) return null;

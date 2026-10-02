@@ -68,3 +68,12 @@
   execution, cloud deployment, production release and unresolved B28 questions remain unchanged.
 - This addendum authorizes documentation/evidence/status updates only; it does not authorize runtime
   code, Firebase calls, Lightning calls or deployment.
+
+## Addendum — owner story/video scope amendment v1.7
+
+- **Date:** 2026-09-28
+- **Status:** `APPROVED_FOR_DOCUMENTATION_ONLY` by the owner's direct request to update the plans and master SRS.
+- **Authorized:** revise the master Markdown SRS; create two detailed FEAT-020 planning documents; update feature context, decision, evidence, status and approval records.
+- **Confirmed target:** 40–60 second illustrated story video; age/readiness-aware educational knowledge; adult editing through quick controls and free text; full script returned and approved before image generation; supported language/voice selection; independent TTS; retain Wan2.2 TI2V-5B baseline; redraw allowed only as derivative while original remains immutable.
+- **Contract treatment:** proposed schemas, endpoint names, error codes and state mappings remain `PROPOSED_UNADOPTED` until registry reconciliation and approval.
+- **Not authorized:** runtime/frontend code, provider/model calls, model downloads, contract migration, cloud changes, deployment, release, commit/push, real-child media collection, or modification of unrelated pre-existing changes. This documentation approval does not approve FEAT-020 implementation.

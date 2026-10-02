@@ -1,7 +1,14 @@
 # FEAT-030 status
 
 Status: IN_PROGRESS
-Updated: 2026-10-01
+Updated: 2026-10-02
+
+## Local sprite-cycle runtime preview — 2026-10-02
+
+- Enabled `motion.walker-avian.v1` and `motion.walker-corgi.v2` in the explicit, default-off local/test preview catalog after exact provenance/hash and alpha-cycle QA. `motion.flyer-songbird.v2` remains blocked by excessive centroid drift; the other candidates did not pass the current conservative preview screen.
+- Added the server-side local/test gate and kept production manifest rights/runtime flags unchanged. Found the existing Pixi show planner was disabled, so restarted the local backend with that planner enabled; image-flow use will invoke the configured AI planner, while readiness checks did not submit images. Metro now resolves the mobile app as root and the pnpm-linked shared renderer; backend health and Android bundle both returned HTTP 200.
+- Verification: 22 focused backend tests, Ruff, 57 renderer tests, renderer typecheck/demo build, and mobile UI check passed. Full Android image-to-Pixi visible animation was not run; device playback acceptance is still pending.
+- Evidence: `../../FEAT-028-pixi-topic-asset-library/evidence/notes/MOTION_CYCLE_LOCAL_PREVIEW_ACTIVATION_20261002.md`. No commit/push performed.
 
 - The approved revision-4 SAM2.1 worker and integrated quality workstream are implemented locally;
   multimask candidates are bounded and filtered by existing prompt/area constraints.
@@ -50,10 +57,58 @@ Updated: 2026-10-01
   subject mask; uniform silhouettes return no parts. Full backend suite reached 100%; workspace
   typecheck/tests/build and focused Ruff passed. See
   `evidence/notes/PIXI_SHOW_IMPLEMENTATION_20261001.md`.
-- FEAT-028 gap audit found only static one-pose catalog frames. Walker and flyer draft cycles were
-  added under FEAT-028 `assets/generated/`; they are not visually approved, catalogued, rights-cleared,
-  or runtime-referenced. Existing 144 visual approvals do not clear their rights.
-- Still gated: caregiver subject-reconfirmation round-trip, per-frame review/provenance and rights
+- Additive planning update: the owner visually approved all 28 frames in seven FEAT-028 motion
+  concept sheets on 2026-10-01; this is not rights, crop/pivot, catalog, or runtime approval. A
+  subject-family/behavior-class registry addendum now includes required motion-sprite coverage for
+  every supported non-static behavior and is APPROVED FOR IMPLEMENTATION at
+  `plan/PIXIJ_SUBJECT_BEHAVIOR_CLASS_REGISTRY_REV5_DRAFT_20261001.md`. Owner confirmed full current
+  taxonomy coverage plus a reviewed extension path, multiple capabilities selected per beat, and
+  plants/environment/effect motion, and one or more reusable cycles per compatible behavior class
+  with variants where needed. Approved revision 4 remains unchanged. At approval time implementation
+  had not started; current progress is recorded below.
+- Exact pre-approval revision-5 plan SHA-256 and post-approval hash are recorded in
+  `approvals/TASK_APPROVAL.md`.
+
+## Subject/behavior registry and motion-cycle coverage — implementation in progress (2026-10-01)
+
+- Implemented an isolated domain registry with 29 behavior classes, separate semantic family / rig
+  archetype / action primitive fields, multi-capability topic profiles, static/unknown outcomes, and
+  deterministic compatibility/readiness checks. All 144 current FEAT-028 catalog topic IDs map to a
+  reviewed profile; morphology corrections distinguish mollusks, insects, aquatic mammals, and
+  flying reptiles. People now carry character-motion capabilities instead of being mislabeled static.
+- Every behavior class has at least one cycle ID. The FEAT-028 provenance manifest covers all 37
+  four-pose cycles (seven previously visually approved sheets plus 30 newly generated sheets).
+  The new 30-sheet batch is awaiting owner visual review. Nothing was added to the asset catalog or
+  runtime; every behavior remains runtime-ineligible pending rights, crop/pivot/loop QA, catalog,
+  renderer, and contract/provider gates.
+- Validation: focused registry tests (7 passed), Ruff, formatting, PNG dimensions/RGBA and asset
+  hashes pass. The focused tests also prove exact catalog-topic coverage, class-to-cycle provenance,
+  closed unknown handling, and that no behavior is runtime-selectable.
+- No live AI/provider request, Android run, contract mutation, asset promotion, or commit/push was
+  performed. Evidence: `evidence/notes/BEHAVIOR_REGISTRY_IMPLEMENTATION_20261001.md`.
+- FEAT-028 gap audit found only static one-pose catalog frames. Seven four-pose motion sheets have
+  visual approval for all 28 frames; the additional 30 four-pose sheets remain pending owner visual
+  review. None is crop/pivot/loop-verified, catalogued, rights-cleared, or runtime-referenced.
+  Existing 144 catalog visual approvals and the 28 approved motion frames do not clear rights.
+- Still gated: caregiver subject-reconfirmation round-trip, motion-frame technical/provenance and rights
   for new sprite drafts, external-provider privacy/retention, live Qwen single-call validation,
   Lightning L4 latency/VRAM, and fresh Android playback. No live model request or Android run was
   performed. Runtime planner remains disabled.
+
+## Sprite-cycle Pixi integration — offline implementation verified (2026-10-02)
+
+- Owner visually approved the 30-sheet/120-frame expansion; all 37 cycle sheets now have visual
+  approval. Hash-matched copies are in FEAT-028 `assets/approved/`; generated originals are preserved.
+- Added additive Python envelope V2 / renderer command V4 cycle contracts and capability-bound PNG
+  frame reads; the Pixi demo selects frames from the existing playback clock, with bounded placement,
+  safe cycle logs, and cleanup on failures. V1/V2/V3 contracts remain unchanged.
+- Independent rights, crop/pivot/loop QA, catalog, formal renderer, and runtime gates remain closed.
+  The demo build/tests do not establish cleared rights or Android acceptance; no live cycle can play.
+- Verification: complete backend suite passed; workspace tests passed (57 renderer + 7 mobile tests),
+  workspace typecheck passed; `apps/ui-mobile` bridge/context TypeScript check also passed. Renderer
+  demo build passed, focused Ruff passed. Repository security
+  validation passed after replacing a local machine path in the related evidence note. See
+  `evidence/notes/SPRITE_CYCLE_PIXI_INTEGRATION_20261002.md`.
+- Global harness validation remains blocked by missing evidence subdirectories in FEAT-026, FEAT-033,
+  and FEAT-034; FEAT-028 and FEAT-030 have no missing harness paths. These out-of-scope feature paths
+  were left untouched.

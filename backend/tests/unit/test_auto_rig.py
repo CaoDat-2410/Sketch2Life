@@ -58,6 +58,8 @@ _SOURCE_PNG = _small_fixture_png(mask=False)
         ("bé gái", RigArchetype.BIPED),
         ("ngôi nhà", RigArchetype.RIGID),
         ("vật thể lạ", RigArchetype.UNKNOWN),
+        ("chú chó corgi", RigArchetype.GENERIC_ORGANIC),
+        ("con mèo", RigArchetype.GENERIC_ORGANIC),
     ],
 )
 def test_archetype_registry_covers_named_and_unknown_topics(

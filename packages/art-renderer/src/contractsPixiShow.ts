@@ -231,8 +231,184 @@ export const RendererLoadCommandV3Schema = z.object({
   }
 });
 
+export const PixiSpriteCycleReadV1Schema = z.object({
+  cycleId: z.string().regex(/^motion\.[a-z0-9.-]+$/).max(100),
+  behaviorClassId: z.enum([
+    'walker.biped', 'walker.quadruped', 'walker.avian', 'runner.biped', 'runner.quadruped',
+    'hopper', 'flyer', 'glider', 'swimmer', 'crawler', 'slitherer', 'climber', 'waver',
+    'reacher', 'dancer', 'turner', 'swaying_plant', 'growing', 'blooming', 'drifting',
+    'falling', 'flowing', 'flickering', 'roller', 'rotator', 'swinger', 'bouncer',
+    'slider', 'opener_closer',
+  ]),
+  variantId: z.string().regex(/^[a-z0-9-]+$/).max(60),
+  playbackKind: z.enum(['FRAME_SEQUENCE', 'TRANSFORM_DRIVEN']),
+  loopMode: z.enum(['LOOP', 'ONCE']),
+  frameRate: z.number().int().min(1).max(12),
+  startSeconds: z.number().finite().min(0).max(30),
+  endSeconds: z.number().finite().gt(0).max(30),
+  x: z.number().finite().min(0.12).max(0.88),
+  y: z.number().finite().min(0.12).max(0.88),
+  scale: z.number().finite().min(0.2).max(0.6),
+  frameReads: z.array(PixiShowAssetReadV1Schema).min(1).max(4),
+}).strict().superRefine((cycle, context) => {
+  const expectedFrameCount = cycle.playbackKind === 'TRANSFORM_DRIVEN' ? 1 : 4;
+  if (cycle.frameReads.length !== expectedFrameCount) {
+    context.addIssue({code: z.ZodIssueCode.custom, path: ['frameReads'], message: 'Sprite cycle has an invalid frame count.'});
+  }
+  const frameIds = cycle.frameReads.map((frame) => frame.assetId);
+  const expectedIds = Array.from({length: expectedFrameCount}, (_, index) => `${cycle.cycleId}.frame-${String(index + 1).padStart(2, '0')}`);
+  if (JSON.stringify(frameIds) !== JSON.stringify(expectedIds)) {
+    context.addIssue({code: z.ZodIssueCode.custom, path: ['frameReads'], message: 'Sprite cycle frame IDs must be complete and ordered.'});
+  }
+  if (cycle.endSeconds <= cycle.startSeconds) {
+    context.addIssue({code: z.ZodIssueCode.custom, path: ['endSeconds'], message: 'Sprite cycle beat must have positive duration.'});
+  }
+  if (cycle.playbackKind === 'TRANSFORM_DRIVEN' && cycle.behaviorClassId !== 'slider') {
+    context.addIssue({code: z.ZodIssueCode.custom, path: ['behaviorClassId'], message: 'Single-frame transform motion is only allowed for the slider class.'});
+  }
+});
+
+export const PixiRendererShowEnvelopeV2Schema = z.object({
+  contractName: z.literal('PixiRendererShowEnvelopeV2'),
+  contractVersion: z.literal('2.0'),
+  rendererLaunchV2: PixiRendererLaunchV2WireSchema,
+  showPlan: PixiShowPlanV1Schema,
+  assetReads: z.array(PixiShowAssetReadV1Schema).min(1).max(3),
+  spriteCycleStatus: z.enum(['READY', 'BLOCKED', 'NOT_APPLICABLE']),
+  spriteCycleReasonCode: z.enum([
+    'ASSET_UNAVAILABLE', 'INVALID_CYCLE_REQUEST', 'UNKNOWN_CYCLE', 'VISUAL_REVIEW_REQUIRED',
+    'RIGHTS_NOT_CLEARED', 'FRAME_QA_REQUIRED', 'CATALOG_NOT_REGISTERED', 'RENDERER_NOT_VERIFIED',
+    'RUNTIME_NOT_ELIGIBLE', 'FRAME_QA_FAILED', 'NO_SAFE_PLACEMENT',
+  ]).optional(),
+  spriteCycle: PixiSpriteCycleReadV1Schema.optional(),
+}).strict().superRefine((envelope, context) => {
+  const launch = envelope.rendererLaunchV2;
+  const plan = envelope.showPlan;
+  if (
+    launch.sessionId !== plan.sessionId
+    || launch.sourceSha256 !== plan.sourceSha256
+    || launch.animationPlan.packageId !== plan.packageId
+    || launch.experienceSpecRef.id !== plan.experienceSpecRef.id
+    || launch.experienceSpecRef.version !== plan.experienceSpecRef.version
+  ) {
+    context.addIssue({code: z.ZodIssueCode.custom, message: 'Show envelope identity differs from its V2 launch.'});
+  }
+  const readIds = envelope.assetReads.map((read) => read.assetId);
+  if (new Set(readIds).size !== readIds.length || readIds.length !== plan.selectedAssetIds.length || plan.selectedAssetIds.some((id) => !readIds.includes(id))) {
+    context.addIssue({code: z.ZodIssueCode.custom, path: ['assetReads'], message: 'Static capabilities must match selected show assets.'});
+  }
+  if (envelope.spriteCycle && envelope.spriteCycle.endSeconds > plan.durationSeconds) {
+    context.addIssue({code: z.ZodIssueCode.custom, path: ['spriteCycle', 'endSeconds'], message: 'Sprite cycle exceeds the show duration.'});
+  }
+  if (envelope.spriteCycleStatus === 'READY' && (envelope.spriteCycle === undefined || envelope.spriteCycleReasonCode !== undefined)) {
+    context.addIssue({code: z.ZodIssueCode.custom, path: ['spriteCycleStatus'], message: 'READY requires cycle data and no reason.'});
+  }
+  if (envelope.spriteCycleStatus === 'BLOCKED' && (envelope.spriteCycle !== undefined || envelope.spriteCycleReasonCode === undefined)) {
+    context.addIssue({code: z.ZodIssueCode.custom, path: ['spriteCycleStatus'], message: 'BLOCKED requires a reason and no cycle data.'});
+  }
+  if (envelope.spriteCycleStatus === 'NOT_APPLICABLE' && (envelope.spriteCycle !== undefined || envelope.spriteCycleReasonCode !== undefined)) {
+    context.addIssue({code: z.ZodIssueCode.custom, path: ['spriteCycleStatus'], message: 'NOT_APPLICABLE cannot contain cycle data or a reason.'});
+  }
+  if (envelope.spriteCycle !== undefined) {
+    const familyClasses: Record<string, readonly string[]> = {
+      BIRD: ['flyer', 'glider', 'walker.avian'],
+      INSECT: ['flyer', 'crawler'],
+      FISH: ['swimmer'],
+      QUADRUPED: ['walker.quadruped', 'runner.quadruped', 'hopper', 'crawler', 'slitherer', 'climber'],
+      BIPED: ['walker.biped', 'runner.biped', 'climber', 'waver', 'reacher', 'dancer', 'turner'],
+      PLANT: ['swaying_plant', 'growing', 'blooming'],
+      VEHICLE: ['roller', 'glider', 'drifting', 'slider', 'rotator'],
+      OBJECT: ['roller', 'drifting', 'slider', 'rotator', 'swinger', 'bouncer', 'opener_closer'],
+      UNKNOWN: [],
+    };
+    if (!familyClasses[plan.visualSubjectHintId]?.includes(envelope.spriteCycle.behaviorClassId)) {
+      context.addIssue({code: z.ZodIssueCode.custom, path: ['spriteCycle', 'behaviorClassId'], message: 'Sprite cycle is incompatible with the confirmed subject family.'});
+    }
+    const cycle = envelope.spriteCycle;
+    const region = plan.sourceSubjectRegion;
+    if (
+      region.x - 0.14 <= cycle.x && cycle.x <= region.x + region.width + 0.14
+      && region.y - 0.14 <= cycle.y && cycle.y <= region.y + region.height + 0.14
+    ) {
+      context.addIssue({code: z.ZodIssueCode.custom, path: ['spriteCycle'], message: 'Sprite cycle overlaps the padded source-subject bounds.'});
+    }
+    if (plan.beats.some((beat) => beat.targetRole === 'SUPPLEMENTAL_ASSET' && Math.hypot(cycle.x - beat.x, cycle.y - beat.y) < 0.22)) {
+      context.addIssue({code: z.ZodIssueCode.custom, path: ['spriteCycle'], message: 'Sprite cycle overlaps a static supplemental asset.'});
+    }
+  }
+});
+
+export const RendererLoadCommandV4Schema = z.object({
+  ...RendererLoadCommandV3Schema.shape,
+  contractName: z.literal('RendererLoadCommandV4'),
+  contractVersion: z.literal('4.0'),
+  protocolVersion: z.literal('4'),
+  spriteCycleStatus: z.enum(['READY', 'BLOCKED', 'NOT_APPLICABLE']),
+  spriteCycleReasonCode: z.enum([
+    'ASSET_UNAVAILABLE', 'INVALID_CYCLE_REQUEST', 'UNKNOWN_CYCLE', 'VISUAL_REVIEW_REQUIRED',
+    'RIGHTS_NOT_CLEARED', 'FRAME_QA_REQUIRED', 'CATALOG_NOT_REGISTERED', 'RENDERER_NOT_VERIFIED',
+    'RUNTIME_NOT_ELIGIBLE', 'FRAME_QA_FAILED', 'NO_SAFE_PLACEMENT',
+  ]).optional(),
+  spriteCycle: PixiSpriteCycleReadV1Schema.optional(),
+}).strict().superRefine((command, context) => {
+  const {spriteCycle, spriteCycleStatus, spriteCycleReasonCode, ...v4Fields} = command;
+  const legacyValidation = RendererLoadCommandV3Schema.safeParse({
+    ...v4Fields,
+    contractName: 'RendererLoadCommandV3',
+    contractVersion: '3.0',
+    protocolVersion: '3',
+  });
+  if (!legacyValidation.success) {
+    context.addIssue({code: z.ZodIssueCode.custom, message: 'V4 base show must satisfy all V3 invariants.'});
+  }
+  if (spriteCycleStatus === 'READY' && (spriteCycle === undefined || spriteCycleReasonCode !== undefined)) {
+    context.addIssue({code: z.ZodIssueCode.custom, path: ['spriteCycleStatus'], message: 'READY requires cycle data and no reason.'});
+  }
+  if (spriteCycleStatus === 'BLOCKED' && (spriteCycle !== undefined || spriteCycleReasonCode === undefined)) {
+    context.addIssue({code: z.ZodIssueCode.custom, path: ['spriteCycleStatus'], message: 'BLOCKED requires a reason and no cycle data.'});
+  }
+  if (spriteCycleStatus === 'NOT_APPLICABLE' && (spriteCycle !== undefined || spriteCycleReasonCode !== undefined)) {
+    context.addIssue({code: z.ZodIssueCode.custom, path: ['spriteCycleStatus'], message: 'NOT_APPLICABLE cannot contain cycle data or a reason.'});
+  }
+  if (spriteCycle === undefined) return;
+  const cycle = spriteCycle;
+  if (cycle.endSeconds > command.showPlan.durationSeconds) {
+    context.addIssue({code: z.ZodIssueCode.custom, path: ['spriteCycle', 'endSeconds'], message: 'Sprite cycle exceeds the show duration.'});
+  }
+  const familyClasses: Record<string, readonly string[]> = {
+    BIRD: ['flyer', 'glider', 'walker.avian'],
+    INSECT: ['flyer', 'crawler'],
+    FISH: ['swimmer'],
+    QUADRUPED: ['walker.quadruped', 'runner.quadruped', 'hopper', 'crawler', 'slitherer', 'climber'],
+    BIPED: ['walker.biped', 'runner.biped', 'climber', 'waver', 'reacher', 'dancer', 'turner'],
+    PLANT: ['swaying_plant', 'growing', 'blooming'],
+    VEHICLE: ['roller', 'glider', 'drifting', 'slider', 'rotator'],
+    OBJECT: ['roller', 'drifting', 'slider', 'rotator', 'swinger', 'bouncer', 'opener_closer'],
+    UNKNOWN: [],
+  };
+  if (!familyClasses[command.showPlan.visualSubjectHintId]?.includes(cycle.behaviorClassId)) {
+    context.addIssue({code: z.ZodIssueCode.custom, path: ['spriteCycle', 'behaviorClassId'], message: 'Sprite cycle is incompatible with the confirmed subject family.'});
+  }
+  const region = command.showPlan.sourceSubjectRegion;
+  if (
+    region.x - 0.14 <= cycle.x && cycle.x <= region.x + region.width + 0.14
+    && region.y - 0.14 <= cycle.y && cycle.y <= region.y + region.height + 0.14
+  ) {
+    context.addIssue({code: z.ZodIssueCode.custom, path: ['spriteCycle'], message: 'Sprite cycle must remain outside the padded source-subject bounds.'});
+  }
+  for (const [index, beat] of command.showPlan.beats.entries()) {
+    if (beat.targetRole === 'SUPPLEMENTAL_ASSET' && Math.hypot(cycle.x - beat.x, cycle.y - beat.y) < 0.22) {
+      context.addIssue({code: z.ZodIssueCode.custom, path: ['spriteCycle'], message: `Sprite cycle overlaps supplemental asset beat ${index}.`});
+      break;
+    }
+  }
+});
+
 export type PixiShowPlanV1 = z.infer<typeof PixiShowPlanV1Schema>;
 export type PixiShowAssetReadV1 = z.infer<typeof PixiShowAssetReadV1Schema>;
 export type PixiRendererLaunchV2Wire = z.infer<typeof PixiRendererLaunchV2WireSchema>;
 export type PixiRendererShowEnvelopeV1 = z.infer<typeof PixiRendererShowEnvelopeV1Schema>;
 export type RendererLoadCommandV3 = z.infer<typeof RendererLoadCommandV3Schema>;
+export type PixiSpriteCycleReadV1 = z.infer<typeof PixiSpriteCycleReadV1Schema>;
+export type PixiRendererShowEnvelopeV2 = z.infer<typeof PixiRendererShowEnvelopeV2Schema>;
+export type RendererLoadCommandV4 = z.infer<typeof RendererLoadCommandV4Schema>;

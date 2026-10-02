@@ -2,6 +2,10 @@
 
 ## Owner-approved preview/mask follow-ups (2026-09-30)
 
+- Listing and selection must share V4 safety admission. Preserve unsupported catalog policy constraints and exclude unresolved conditional cards, rather than promise eligibility then reject on click. Counts in the mapping audit are structural matches, not all currently executable activities.
+- Cutout animation receives translation-only root tracks regardless of full-rig archetype. Do not call subject-only micro-motion full rigging; separate anatomy masks remain necessary.
+- Readiness/history restoration is a separate owner choice at the initial profile stage; the current bug fix does not reinstate deleted checklists or infer readiness from age/interests.
+
 - Subsequent owner choice supersedes initial full-list presentation only: show three ordered cards first, with “Xem thêm” for all remaining eligible cards. Backend catalog filtering/ranking and adult selection are preserved.
 - Invalid mask handling is fail-closed at worker selection and backend artifact admission. Keep renderer's 75% maximum; do not crop/truncate oversized masks or hide rejection by animating the whole drawing. Synthetic validation does not imply segmentation quality or external deployment success.
 - Local backend restarted after 65 passing focused tests. External worker deployment and a fresh session remain necessary. Owner subsequently requested commit/push of these follow-ups; unrelated feature edits and local runtime logs are excluded.

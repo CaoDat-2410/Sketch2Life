@@ -72,3 +72,22 @@ model/provider or fallback-tier decision.
   negatives require neutral paper outside the target box. Part positive/correction seeds are
   removed unless they lie inside the already accepted subject silhouette. Iterative correction is
   limited to one subject and one part; it cannot alter the original or relax part-mask containment.
+
+## Local preview activation — 2026-10-02
+
+- Owner-approved local/test-only activation is separate from production runtime approval. Keep the
+  environment gate default-off and reject the preview path outside `local`/`test`.
+- Allowlist only cycles passing provenance/hash and conservative frame-alpha QA. Current allowlist:
+  avian walker and corgi walker. Keep flyer and all other cycles blocked until their own evidence
+  passes; never substitute a different cycle silently.
+- Preserve production rights fields and manifest eligibility unchanged. A successful Metro bundle
+  load is not proof of visible sprite playback; Android acceptance remains pending until a complete
+  image flow visibly animates the selected cycle.
+
+## Sprite-cycle renderer sidecar — accepted — 2026-10-02
+
+ADR-030-09 accepts additive capability-bound cycle reads and Pixi V4 playback while preserving
+V1/V2/V3. User visual approval does not clear legal/provenance, technical, catalog, renderer, or
+Android gates; the expansion manifest remains runtime-ineligible. See
+`adr/ADR-030-09-sprite-cycle-renderer-sidecar.md` and
+`evidence/notes/SPRITE_CYCLE_PIXI_INTEGRATION_20261002.md`.

@@ -21,6 +21,8 @@
 
 ## Implementation findings (2026-09-30)
 
+- Non-first selection bug reproduced: discovery included activities final V4 admission rejected for unsupported safety policy constraints. Shared admission now prevents listing those blocked cards; age/adult/caregiver rules remain intact. Eligible counts can be smaller than structural mapping counts. Cutout plans now always author root translations rather than unused scale/child-bone tracks; this does not create full dog anatomy. 136 backend/50 renderer tests passed; backend restarted, rebuilt renderer served, fresh session needed. Evidence: `evidence/notes/SELECTION_AND_CUTOUT_MOTION_20260930.md`.
+
 - Backend now validates source/mask identity, dimensions, PNG decode and renderer-equivalent area before part generation/caching and packaging. Invalid masks receive a specific job/log reason and no mask read capability. 65 focused tests passed; local backend restarted and health is 200. In-memory sessions reset; external Lightning deployment/fresh-flow validation remain pending. See `evidence/notes/MASK_BACKEND_BOUNDARY_20260930.md`.
 
 - Owner-approved follow-up: show three activity cards initially with “Xem thêm” for the complete eligible list. The measured live mask area was 81.595%, accepted by the worker's former 85% ceiling but rejected by Pixi's 75% ceiling. Worker candidate selection now uses 75%; synthetic tests pass, external Lightning deployment/fresh-session validation remain pending. See `evidence/notes/THREE_CARD_PREVIEW_MASK_LIMIT_20260930.md`.

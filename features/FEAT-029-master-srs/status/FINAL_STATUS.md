@@ -69,3 +69,10 @@ verification layers and the test-stage implementation sequence.
 
 The annex explicitly keeps Lightning, AI/provider stress testing, cloud deployment, production
 capacity, signed release and real-child data outside the current stage.
+
+## Documentation amendment v1.7 — 2026-09-28
+
+- Updated master SRS to v1.7 and added B30–B32 for the owner-confirmed illustrated 40–60 second story-video flow, age-aware reviewed knowledge, dual-mode script edits, pre-image approval, voice/language selection, independent TTS, Wan2.2 TI2V-5B baseline, proposed contracts/APIs/jobs, validation and L4 evaluation gates.
+- Created two FEAT-020 plans: `plan/CONTENT_STORY_EXPERIENCE_PLAN.md` and `plan/VIDEO_STORY_PRODUCTION_PLAN.md`.
+- Updated active target/acceptance references where they conflicted. 2026-09-23 whiteboard details remain historical where superseded.
+- New contract/API shapes remain `PROPOSED_UNADOPTED`; implementation approval is separate. No code, provider call, model execution or test suite was run.

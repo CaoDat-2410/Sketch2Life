@@ -18,6 +18,7 @@ from sketch2life.application.ports.activity_ranker import (
     ActivityRankerPort,
     ActivityRankingUnavailable,
 )
+from sketch2life.application.ports.pixi_motion_cycle import PixiMotionCycleIssue
 from sketch2life.application.ports.pixi_show_planner import (
     PixiShowAssetCandidate,
     PixiShowPlannerPort,
@@ -49,6 +50,7 @@ from sketch2life.application.services.learning_media_resolver import (
     LearningMediaResolver,
 )
 from sketch2life.application.services.p1_experience import P1ExperienceCompiler
+from sketch2life.application.services.pixi_motion_cycle_compiler import select_motion_cycle
 from sketch2life.application.services.pixi_show_compiler import compile_pixi_show_plan
 from sketch2life.application.services.pixi_topic_asset_candidates import (
     build_topic_asset_candidate_context,
@@ -114,10 +116,11 @@ from sketch2life.contracts.schemas.p1_experience import (
     SemanticMatchEvidenceV1,
     VersionedRefV1,
 )
-from sketch2life.contracts.schemas.pixi_show import (
-    PixiRendererShowEnvelopeV1,
-    PixiShowAssetReadV1,
+from sketch2life.contracts.schemas.pixi_motion_cycle import (
+    PixiRendererShowEnvelopeV2,
+    PixiSpriteCycleReadV1,
 )
+from sketch2life.contracts.schemas.pixi_show import PixiShowAssetReadV1
 from sketch2life.contracts.schemas.pixi_topic_asset_selection import (
     AdultConfirmedTopicV1,
     TopicAssetDescriptorV1,
@@ -169,24 +172,22 @@ def _narration_text(value: object) -> str:
     return transcript.strip() if isinstance(transcript, str) else ""
 
 
-def _preparation_requirement(value: object) -> Literal[
-    "NO_PRINTABLE_ASSET", "PRINT_RECOMMENDED", "PRINT_REQUIRED"
-]:
+def _preparation_requirement(
+    value: object,
+) -> Literal["NO_PRINTABLE_ASSET", "PRINT_RECOMMENDED", "PRINT_REQUIRED"]:
     allowed = {"NO_PRINTABLE_ASSET", "PRINT_RECOMMENDED", "PRINT_REQUIRED"}
     if not isinstance(value, str) or value not in allowed:
         raise ValueError("Catalog preparation requirement is not a supported contract value")
     return cast(Literal["NO_PRINTABLE_ASSET", "PRINT_RECOMMENDED", "PRINT_REQUIRED"], value)
 
 
-def _preparation_asset_status(value: object) -> Literal[
-    "NOT_APPLICABLE", "PLANNED", "READY", "BLOCKED", "DEPRECATED"
-]:
+def _preparation_asset_status(
+    value: object,
+) -> Literal["NOT_APPLICABLE", "PLANNED", "READY", "BLOCKED", "DEPRECATED"]:
     allowed = {"NOT_APPLICABLE", "PLANNED", "READY", "BLOCKED", "DEPRECATED"}
     if not isinstance(value, str) or value not in allowed:
         raise ValueError("Catalog preparation asset status is not a supported contract value")
-    return cast(
-        Literal["NOT_APPLICABLE", "PLANNED", "READY", "BLOCKED", "DEPRECATED"], value
-    )
+    return cast(Literal["NOT_APPLICABLE", "PLANNED", "READY", "BLOCKED", "DEPRECATED"], value)
 
 
 def _profile_exclusion_counts(recommendation: ActivityRecommendation) -> dict[str, int]:
@@ -293,9 +294,7 @@ def _complete_recommendation_set(
                 f"complete recommendation metadata is missing for {option.activity_ref.id}"
             )
         reasons = recommendation.personalization_reasons_for(option.activity_ref.id)
-        match_reason = (
-            f"Phù hợp với chủ đề {topic_label_vi.lower()} đã xác nhận."
-        )
+        match_reason = f"Phù hợp với chủ đề {topic_label_vi.lower()} đã xác nhận."
         if "EXPLICIT_INTEREST_MATCH" in reasons:
             match_reason += " Khớp sở thích đã xác nhận trong hồ sơ của bé."
         if "EXPLICIT_AVOIDANCE_MATCH" in reasons:
@@ -424,6 +423,7 @@ class SupervisedFlowService:
         pixi_show_asset_issuer: (
             Callable[[tuple[str, ...]], tuple[PixiShowAssetReadV1, ...]] | None
         ) = None,
+        pixi_motion_cycle_issuer: Callable[..., PixiMotionCycleIssue] | None = None,
         now: Callable[[], datetime] = lambda: datetime.now(UTC),
     ) -> None:
         self._sessions = sessions
@@ -441,6 +441,7 @@ class SupervisedFlowService:
         self._pixi_show_planner_required = pixi_show_planner_required
         self._pixi_show_crop_provider = pixi_show_crop_provider
         self._pixi_show_asset_issuer = pixi_show_asset_issuer
+        self._pixi_motion_cycle_issuer = pixi_motion_cycle_issuer
         self._now = now
         self._lock = RLock()
         self._media_resolver = LearningMediaResolver(InMemoryLearningMediaStore())
@@ -509,7 +510,7 @@ class SupervisedFlowService:
             try:
                 confirmation = GateAConfirmationV1.model_validate(
                     {
-                    **confirmation_value,
+                        **confirmation_value,
                         "session_id": command.session_id,
                         "expected_session_version": command.expected_session_version,
                         "actor_ref": command.actor_ref,
@@ -762,19 +763,34 @@ class SupervisedFlowService:
                 "GATE_A_CORRECTION_EMPTY", 422, "Enter the subject you want the story to focus on."
             )
 
-        assertion_id = "adult-assertion-" + sha256(
-            f"{command.session_id}:{source.sha256}:{label.casefold()}".encode()
-        ).hexdigest()[:24]
-        selected_claims = tuple(
-            claim
-            for claim in claims_from_raw(raw)
-            if claim.observation_id in confirmation.confirmed_claim_ids
-        ) if raw is not None else ()
+        assertion_id = (
+            "adult-assertion-"
+            + sha256(
+                f"{command.session_id}:{source.sha256}:{label.casefold()}".encode()
+            ).hexdigest()[:24]
+        )
+        selected_claims = (
+            tuple(
+                claim
+                for claim in claims_from_raw(raw)
+                if claim.observation_id in confirmation.confirmed_claim_ids
+            )
+            if raw is not None
+            else ()
+        )
         adult_tags = semantic_tags_for_label(label)
-        combined_tags = tuple(dict.fromkeys((
-            *adult_tags,
-            *(tag for claim in selected_claims for tag in semantic_tags_for_label(claim.label)),
-        )))
+        combined_tags = tuple(
+            dict.fromkeys(
+                (
+                    *adult_tags,
+                    *(
+                        tag
+                        for claim in selected_claims
+                        for tag in semantic_tags_for_label(claim.label)
+                    ),
+                )
+            )
+        )
         secondary_anchors = tuple(
             SemanticAnchorV1(
                 anchor_id=f"anchor-{claim.observation_id}",
@@ -828,10 +844,14 @@ class SupervisedFlowService:
         topic = AdultConfirmedTopicV1.model_validate(
             {
                 "gateAConfirmed": True,
-                "topicLabels": tuple(dict.fromkeys((
-                    topic_label_vi,
-                    *(claim.display_label for claim in selected_claims),
-                )))[:5],
+                "topicLabels": tuple(
+                    dict.fromkeys(
+                        (
+                            topic_label_vi,
+                            *(claim.display_label for claim in selected_claims),
+                        )
+                    )
+                )[:5],
                 "topicTags": topic_tags[:20],
                 "locale": "vi",
                 "styleProfileId": "flat-childlike-doodle-v1",
@@ -1112,9 +1132,7 @@ class SupervisedFlowService:
             )
             is not None
         }
-        semantically_matched_ids = {
-            option.activity_ref.id for option in recommendation.options
-        }
+        semantically_matched_ids = {option.activity_ref.id for option in recommendation.options}
         recommendation = replace(
             recommendation,
             options=tuple(
@@ -1228,7 +1246,9 @@ class SupervisedFlowService:
                 concept_ids=self._semantic_catalog_v2.profile_for(card.activity_id).concept_ids,
                 objective_ids=(
                     self._semantic_catalog_v2.profile_for(card.activity_id).primary_objective_id,
-                    *self._semantic_catalog_v2.profile_for(card.activity_id).secondary_objective_ids,
+                    *self._semantic_catalog_v2.profile_for(
+                        card.activity_id
+                    ).secondary_objective_ids,
                 ),
             )
             for card in options.options
@@ -1254,9 +1274,7 @@ class SupervisedFlowService:
             or not set(ranked.ranked_activity_ids) <= eligible_ids
         ):
             raise ActivityRankingUnavailable("ACTIVITY_RANKING_INVALID_RESULT", False)
-        return deterministic.model_copy(
-            update={"payload": ranked.model_dump(mode="json")}
-        )
+        return deterministic.model_copy(update={"payload": ranked.model_dump(mode="json")})
 
     def read_p1_context_candidates(
         self,
@@ -1411,9 +1429,7 @@ class SupervisedFlowService:
                 require_authored_readiness=True,
                 order_by_relevance=False,
             )
-            server_candidate_ids = {
-                option.activity_ref.id for option in server_shortlist.options
-            }
+            server_candidate_ids = {option.activity_ref.id for option in server_shortlist.options}
             if set(candidate_activity_ids) != server_candidate_ids:
                 raise _workflow_error(
                     "CONTEXT_CANDIDATE_SET_STALE",
@@ -2332,7 +2348,7 @@ class SupervisedFlowService:
                         "hãy thử lại khi Pixi sẵn sàng.",
                         domain="PIXI",
                     ) from None
-            show_envelope: PixiRendererShowEnvelopeV1 | None = None
+            show_envelope: PixiRendererShowEnvelopeV2 | None = None
             if self._pixi_show_planner_required:
                 try:
                     if launch_v2 is None or package is None:
@@ -2433,12 +2449,52 @@ class SupervisedFlowService:
                         intent=intent,
                     )
                     asset_reads = self._pixi_show_asset_issuer(show_plan.selected_asset_ids)
-                    show_envelope = PixiRendererShowEnvelopeV1(
-                        contractName="PixiRendererShowEnvelopeV1",
-                        contractVersion="1.0",
+                    cycle_selection = select_motion_cycle(show_plan)
+                    sprite_cycle: PixiSpriteCycleReadV1 | None = None
+                    cycle_status = "NOT_APPLICABLE"
+                    cycle_reason: str | None = None
+                    if cycle_selection.reason_code is not None:
+                        cycle_status = "BLOCKED"
+                        cycle_reason = cycle_selection.reason_code
+                    elif cycle_selection.cycle_id is not None:
+                        if self._pixi_motion_cycle_issuer is None:
+                            cycle_status = "BLOCKED"
+                            cycle_reason = "RENDERER_NOT_VERIFIED"
+                        else:
+                            issue = self._pixi_motion_cycle_issuer(
+                                cycle_selection.cycle_id,
+                                start_seconds=cycle_selection.start_seconds,
+                                end_seconds=cycle_selection.end_seconds,
+                                x=cycle_selection.x,
+                                y=cycle_selection.y,
+                            )
+                            if issue.cycle is None:
+                                cycle_status = "BLOCKED"
+                                cycle_reason = issue.reason_code or "FRAME_QA_FAILED"
+                            else:
+                                sprite_cycle = issue.cycle
+                                cycle_status = "READY"
+                    show_envelope = PixiRendererShowEnvelopeV2(
+                        contractName="PixiRendererShowEnvelopeV2",
+                        contractVersion="2.0",
                         rendererLaunchV2=launch_v2,
                         showPlan=show_plan,
                         assetReads=asset_reads,
+                        spriteCycleStatus=cycle_status,
+                        spriteCycleReasonCode=cycle_reason,
+                        spriteCycle=sprite_cycle,
+                    )
+                    _LOGGER.info(
+                        "pixi_sprite_cycle_decision "
+                        "status=%s cycle_id=%s behavior_class=%s reason=%s",
+                        cycle_status,
+                        cycle_selection.cycle_id or "none",
+                        (
+                            sprite_cycle.behavior_class_id
+                            if sprite_cycle is not None
+                            else show_plan.behavior_class.value
+                        ),
+                        cycle_reason or "none",
                     )
                 except PixiShowPlannerUnavailable as error:
                     raise _pixi_show_workflow_error(error.code) from None
@@ -2459,16 +2515,18 @@ class SupervisedFlowService:
                         else None
                     ),
                     "renderer_mode": (
-                        "PIXI_SHOW_V1"
+                        "PIXI_SHOW_V2"
                         if show_envelope is not None
                         else "PIXI_V2"
                         if launch_v2 is not None
                         else "LEGACY_V1"
                     ),
                     "renderer_show_envelope_v1": (
+                        None
+                    ),
+                    "renderer_show_envelope_v2": (
                         show_envelope.model_dump(mode="json", by_alias=True, exclude_none=True)
-                        if show_envelope is not None
-                        else None
+                        if show_envelope is not None else None
                     ),
                     "subject_candidates": subject_candidates.model_dump(
                         mode="json", by_alias=True, exclude_none=True
@@ -2697,9 +2755,7 @@ class SupervisedFlowService:
 SelectableAnchorKind = Literal["subject", "action", "story"]
 
 
-def _region_hint_for_target(
-    values: Mapping[str, Any], target_id: str
-) -> SourceRegionV1 | None:
+def _region_hint_for_target(values: Mapping[str, Any], target_id: str) -> SourceRegionV1 | None:
     """Reuse an existing localized region only when it is keyed to this confirmed claim."""
 
     for key in ("scene_focus_regions", "subject_regions"):

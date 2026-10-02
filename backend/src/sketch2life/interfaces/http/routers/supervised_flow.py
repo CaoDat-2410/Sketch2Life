@@ -502,10 +502,10 @@ def read_renderer_pixi_asset(
         return JSONResponse(status_code=503, content={"code": "PIXI_ASSET_NOT_CONFIGURED"})
     try:
         body, digest = service.read(capability)
-    except PixiShowAssetUnavailable:
+    except PixiShowAssetUnavailable as error:
         return JSONResponse(
             status_code=410,
-            content={"code": "PIXI_ASSET_UNAVAILABLE", "message": "The selected frame expired."},
+            content={"code": "PIXI_ASSET_UNAVAILABLE", "reason": error.reason_code},
         )
     return Response(
         content=body,

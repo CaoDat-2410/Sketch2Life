@@ -26,19 +26,26 @@ export type {
 } from './contractsV2';
 export {
   PixiRendererShowEnvelopeV1Schema,
+  PixiRendererShowEnvelopeV2Schema,
+  PixiSpriteCycleReadV1Schema,
   PixiRendererLaunchV2WireSchema,
   PixiShowAssetReadV1Schema,
   PixiShowBeatV1Schema,
   PixiShowPlanV1Schema,
   RendererLoadCommandV3Schema,
+  RendererLoadCommandV4Schema,
 } from './contractsPixiShow';
 export type {
   PixiRendererShowEnvelopeV1,
+  PixiRendererShowEnvelopeV2,
+  PixiSpriteCycleReadV1,
   PixiRendererLaunchV2Wire,
   PixiShowAssetReadV1,
   PixiShowPlanV1,
   RendererLoadCommandV3,
+  RendererLoadCommandV4,
 } from './contractsPixiShow';
+export {getSpriteCycleFrameIndex, getSpriteCycleTransform} from './spriteCycle';
 export {
   ART_RENDERER_PROTOCOL_VERSION,
   ArtAnimationPlanEnvelopeSchema,
