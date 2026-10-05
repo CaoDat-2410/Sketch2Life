@@ -1598,6 +1598,7 @@ class SupervisedFlowService:
                     "P1_CONTEXT_REQUIRED", 409, "Enter all required adult context before filtering."
                 )
             anchor_set = SemanticAnchorSetV1.model_validate(anchor_value)
+            validated_context = _parse_p1_context(context_value)
             context = _context_for_p1_rules(context_value).model_copy(
                 update={"expected_session_version": snapshot.version}
             )
@@ -1607,7 +1608,7 @@ class SupervisedFlowService:
                 filtered = self._compiler.select(anchor_set, context)
             elif self._semantic_catalog_v2 is not None:
                 selected_id = context.selected_activity_id
-                if context_value.get("contract_name") == "P1ContextV4":
+                if isinstance(validated_context, P1ContextV4):
                     selected_option = None
                     if context.selected_activity_id is not None and context.age_months is not None:
                         discovery = resolve_activity_options_v2(
@@ -1619,8 +1620,8 @@ class SupervisedFlowService:
                             candidate_activity_ids=(context.selected_activity_id,),
                             order_by_relevance=False,
                             complete_discovery=True,
-                            adult_participating=context.adult_participating,
-                            caregiver_participating=context.caregiver_participating,
+                            adult_participating=validated_context.adult_participating,
+                            caregiver_participating=validated_context.caregiver_participating,
                         )
                         selected_option = next(
                             (
@@ -1631,10 +1632,10 @@ class SupervisedFlowService:
                             ),
                             None,
                         )
-                    if selected_option is not None:
+                    if selected_option is not None and selected_id is not None:
                         preferred_template_id = selected_option.template_ref.id
-                        semantic_match = discovery.evidence_for(context.selected_activity_id)
-                elif context_value.get("contract_name") == "P1ContextV3":
+                        semantic_match = discovery.evidence_for(selected_id)
+                elif isinstance(validated_context, P1ContextV3):
                     # V3 identifies the explicit candidate -> adult conditions
                     # -> final options flow. Validate its selection against
                     # the same bounded, unranked server shortlist, not a fresh
@@ -1663,7 +1664,7 @@ class SupervisedFlowService:
                             require_authored_readiness=True,
                             order_by_relevance=False,
                         )
-                    if recommendation is not None:
+                    if selected_id is not None and recommendation is not None:
                         preferred_template_id = recommendation.template_for(selected_id)
                         semantic_match = recommendation.evidence_for(selected_id)
                 else:
@@ -2542,12 +2543,8 @@ class SupervisedFlowService:
                         if launch_v2 is not None
                         else "LEGACY_V1"
                     ),
-                    "renderer_show_envelope_v1": (
-                        None
-                    ),
-                    "renderer_show_envelope_v2": (
-                        None
-                    ),
+                    "renderer_show_envelope_v1": (None),
+                    "renderer_show_envelope_v2": (None),
                     "renderer_show_envelope_v3": (
                         show_envelope.model_dump(mode="json", by_alias=True, exclude_none=True)
                         if show_envelope is not None
@@ -2892,14 +2889,12 @@ def _parse_p1_context(value: object) -> P1ContextV1 | P1ContextV2 | P1ContextV3 
     return context
 
 
-def _context_for_p1_rules(value: object) -> P1ContextV1:
+def _context_for_p1_rules(value: object) -> P1ContextV1 | P1ContextV4:
     context = _parse_p1_context(value)
-    if isinstance(context, P1ContextV4):
-        return context
-    if not isinstance(context, P1ContextV2):
+    if isinstance(context, (P1ContextV1, P1ContextV4)):
         return context
     base_fields = P1ContextV1.model_fields.keys() - {"contract_name", "contract_version"}
-    return P1ContextV1(**{field: getattr(context, field) for field in base_fields})
+    return P1ContextV1.model_validate({field: getattr(context, field) for field in base_fields})
 
 
 def _workflow_error(

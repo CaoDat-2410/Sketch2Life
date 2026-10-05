@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import math
-from typing import Any, cast
+from typing import Any
 
 from sketch2life.contracts.schemas.child_preference_classification import (
     ChildPreferenceClassificationRequestV1,
@@ -121,7 +121,7 @@ def _allowed_tags(value: object) -> tuple[tuple[tuple[PreferenceConceptId, float
             and math.isfinite(float(confidence_value))
             and 0.0 <= float(confidence_value) <= 1.0
         ):
-            concept_id = cast(PreferenceConceptId, concept_value)
+            concept_id = concept_value
             if all(existing_id != concept_id for existing_id, _ in result):
                 result.append((concept_id, float(confidence_value)))
         else:

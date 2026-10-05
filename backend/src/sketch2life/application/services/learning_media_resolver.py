@@ -6,6 +6,7 @@ from typing import Protocol
 
 from sketch2life.contracts.schemas.learning_media import (
     LearningMediaProvenanceV1,
+    LearningMediaReasonCode,
     LearningMediaRequestV1,
     LearningMediaResultV1,
     ReviewedLearningMediaAssetV1,
@@ -42,11 +43,12 @@ class LearningMediaResolver:
         if not self._identity_matches(request, asset):
             return self._failure(request, "STALE_MEDIA")
         if asset.media_status != "AVAILABLE":
-            reason = {
-                "STALE": "STALE_MEDIA",
-                "CORRUPT": "CORRUPT_MEDIA",
-                "UNSAFE": "UNSAFE_MEDIA",
-            }[asset.media_status]
+            if asset.media_status == "STALE":
+                reason: LearningMediaReasonCode = "STALE_MEDIA"
+            elif asset.media_status == "CORRUPT":
+                reason = "CORRUPT_MEDIA"
+            else:
+                reason = "UNSAFE_MEDIA"
             return self._failure(request, reason)
 
         return LearningMediaResultV1(
@@ -83,7 +85,9 @@ class LearningMediaResolver:
         )
 
     @staticmethod
-    def _failure(request: LearningMediaRequestV1, reason: str) -> LearningMediaResultV1:
+    def _failure(
+        request: LearningMediaRequestV1, reason: LearningMediaReasonCode
+    ) -> LearningMediaResultV1:
         return LearningMediaResultV1(
             status="BLOCKED",
             cache_status="MISS",

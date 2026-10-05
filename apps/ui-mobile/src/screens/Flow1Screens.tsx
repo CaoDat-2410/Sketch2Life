@@ -26,9 +26,7 @@ import {
   MomAvatarImage,
   SunIconSvg,
   ChildAvatarImage,
-  FloatingParticles,
   BounceInView,
-  PulseGlow,
   CuteStarIconSvg,
 } from '../components/ArtworkCards';
 
@@ -219,9 +217,6 @@ export const DashboardScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#F0F9FF' }}>
-      {/* Decorative floating particles top */}
-      <FloatingParticles count={7} style={{ top: 60, height: 80, zIndex: 0 }} />
-
       <ScrollView contentContainerStyle={[styles.screenContainer, { backgroundColor: 'transparent' }]} showsVerticalScrollIndicator={false}>
         {/* Header Greeting */}
         <View style={styles.dashboardHeader}>
@@ -241,25 +236,23 @@ export const DashboardScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
           </View>
         </View>
 
-        {/* Big Yellow Action Banner — PulseGlow so it calls for attention */}
-        <PulseGlow style={{ marginHorizontal: 0 }}>
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessibilityLabel="Tạo câu chuyện mới"
-            activeOpacity={0.9}
-            onPress={() => nav('profile')}
-            style={[styles.createStoryCard, { shadowColor: '#F59E0B', shadowOpacity: 0.35, shadowRadius: 12, elevation: 8 }]}
-          >
-            <View style={styles.createIconOrb}>
-              <Ionicons name="add" size={28} color={colors.yellowDeep} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.createStoryTitle}>+ Tạo câu chuyện mới</Text>
-              <Text style={styles.createStorySub}>Từ một bức vẽ của bé {selectedChild.name}</Text>
-            </View>
-            <Text style={{ fontSize: 24 }}>✨</Text>
-          </TouchableOpacity>
-        </PulseGlow>
+        {/* Keep this high-frequency Home action static to avoid a permanent GPU pulse loop. */}
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel="Tạo câu chuyện mới"
+          activeOpacity={0.9}
+          onPress={() => nav('profile')}
+          style={[styles.createStoryCard, { shadowColor: '#F59E0B', shadowOpacity: 0.35, shadowRadius: 12, elevation: 8 }]}
+        >
+          <View style={styles.createIconOrb}>
+            <Ionicons name="add" size={28} color={colors.yellowDeep} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.createStoryTitle}>+ Tạo câu chuyện mới</Text>
+            <Text style={styles.createStorySub}>Từ một bức vẽ của bé {selectedChild.name}</Text>
+          </View>
+          <Text style={{ fontSize: 24 }}>✨</Text>
+        </TouchableOpacity>
 
         {/* Recent Stories */}
         <View style={styles.sectionHeader}>

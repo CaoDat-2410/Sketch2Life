@@ -96,7 +96,7 @@ class P1ExperienceCompiler:
 
     @staticmethod
     def _context_identity_failures(
-        context: P1ContextV1,
+        context: P1ContextV1 | P1ContextV4,
         template: ActivityTemplateV1,
         objective: VersionedRefV1,
     ) -> tuple[str, ...]:
@@ -125,7 +125,7 @@ class P1ExperienceCompiler:
     def select(
         self,
         anchor_set: SemanticAnchorSetV1,
-        context: P1ContextV1,
+        context: P1ContextV1 | P1ContextV4,
         *,
         preferred_template_id: str | None = None,
     ) -> P1FilterResultV1:
@@ -286,7 +286,7 @@ class P1ExperienceCompiler:
     def compile(
         self,
         anchor_set: SemanticAnchorSetV1,
-        context: P1ContextV1,
+        context: P1ContextV1 | P1ContextV4,
         *,
         preferred_template_id: str | None = None,
         semantic_match: SemanticMatchEvidenceV1 | None = None,
@@ -353,7 +353,7 @@ class P1ExperienceCompiler:
     def approve_gate_b(
         self,
         spec: ExperienceSpecV1,
-        context: P1ContextV1,
+        context: P1ContextV1 | P1ContextV4,
     ) -> IntegrationGateDecisionV1:
         """Re-check identity/version locks against the current catalog."""
         template = self._by_id.get(spec.activity_template.template_id)
@@ -414,7 +414,7 @@ class P1ExperienceCompiler:
     def _build_spec(
         self,
         anchor_set: SemanticAnchorSetV1,
-        context: P1ContextV1,
+        context: P1ContextV1 | P1ContextV4,
         template: ActivityTemplateV1,
         objective: VersionedRefV1,
         fit: ActivityFitEvaluationV1,
@@ -587,10 +587,7 @@ class P1ExperienceCompiler:
             failures.append("BLOCK_MISSING_READINESS")
         if not set(template.prerequisite_activity_ids) <= set(completed_activity_ids):
             failures.append("BLOCK_MISSING_PREREQUISITE")
-        if (
-            SUPERVISION_RANK[supervision_level]
-            < SUPERVISION_RANK[template.minimum_supervision]
-        ):
+        if SUPERVISION_RANK[supervision_level] < SUPERVISION_RANK[template.minimum_supervision]:
             failures.append("BLOCK_INSUFFICIENT_SUPERVISION")
         if not set(template.policy_constraints) <= set(policy_flags):
             failures.append("BLOCK_POLICY_CONSTRAINT")

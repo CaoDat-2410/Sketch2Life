@@ -8,6 +8,7 @@
     "start:android-dev": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-android-dev.ps1",
     "start:android-reverse": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-android-dev.ps1 -Mode reverse",
     "test": "vitest run tests && node scripts/validate-ui-copy.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.typecheck.json",
     "android": "expo run:android",
     "android:dev": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-android-dev.ps1 -LaunchAndroid",
     "ios": "expo run:ios",

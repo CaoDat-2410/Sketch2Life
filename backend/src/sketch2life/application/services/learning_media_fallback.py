@@ -5,7 +5,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from sketch2life.contracts.schemas.learning_media import (
+    LearningMediaFallbackType,
     LearningMediaProvenanceV1,
+    LearningMediaReasonCode,
     LearningMediaRequestV1,
     LearningMediaResultV1,
 )
@@ -23,7 +25,9 @@ class LearningMediaFallback:
     def __init__(self, still_narration: ApprovedStillNarration | None = None) -> None:
         self._still_narration = still_narration
 
-    def resolve(self, request: LearningMediaRequestV1, reason_code: str) -> LearningMediaResultV1:
+    def resolve(
+        self, request: LearningMediaRequestV1, reason_code: LearningMediaReasonCode
+    ) -> LearningMediaResultV1:
         if self._still_narration is not None:
             return self._result(
                 request,
@@ -49,7 +53,9 @@ class LearningMediaFallback:
         )
 
     @staticmethod
-    def handoff(request: LearningMediaRequestV1, reason_code: str) -> LearningMediaResultV1:
+    def handoff(
+        request: LearningMediaRequestV1, reason_code: LearningMediaReasonCode
+    ) -> LearningMediaResultV1:
         return LearningMediaFallback._result(
             request,
             reason_code,
@@ -63,9 +69,9 @@ class LearningMediaFallback:
     @staticmethod
     def _result(
         request: LearningMediaRequestV1,
-        reason_code: str,
+        reason_code: LearningMediaReasonCode,
         *,
-        fallback_type: str,
+        fallback_type: LearningMediaFallbackType,
         provenance: LearningMediaProvenanceV1,
         asset_ref: str | None = None,
     ) -> LearningMediaResultV1:

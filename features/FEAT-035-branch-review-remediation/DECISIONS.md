@@ -28,8 +28,25 @@ provisioning, release signing with an unapproved key, asset-rights promotion, or
 
 ## Approval-integrity reconciliation — 2026-10-05
 
-The owner explicitly approved continuation with “approve”. The plan file was not edited; the
-approval record now records the current plan SHA-256
+The owner explicitly approved continuation with “approve”. The parent plan file was not edited;
+the approval record records its SHA-256
 `DCA28C79763AF55C6CC083CD500F19655EEB760D4206928E8334DEE5DEE94A1E`. Work continues within
-plan revision 1 and retains all provider, credential, asset-rights, deployment, commit, and push
-gates.
+parent plan revision 1 and retains provider, credential, asset-rights, and deployment gates.
+
+## Subject-linked local sprite preview — 2026-10-05
+
+Under approved mobile runtime plan revision 4, the local walker cycle must share the source
+subject's root/show translation and be placed beside (not over) the original drawing. Keep the
+cycle capability, production rights gates, source preservation, and local-only preview boundary
+unchanged. This is a renderer composition fix; it is not new artwork approval.
+
+The owner has separately authorized validated commit/push (see the authorization above). Provider,
+secret, asset-rights, and deployment gates remain closed.
+
+## Runtime performance and Android inset — 2026-10-05
+
+The approved revision-4 emulator follow-up records two additional measured corrections: Android
+15+ receives its system status-bar inset before app content, and Home no longer runs its purely
+decorative infinite particle/CTA loops. Keep story/Pixi playback motion intact. On the installed
+debug preview, an 8-second idle Home interval produced zero rendered frames and zero janky frames.
+These changes do not remove functional navigation or playback controls.

@@ -5,7 +5,14 @@ const {getDefaultConfig} = require('expo/metro-config');
 const appRoot = __dirname;
 const workspaceRoot = path.resolve(appRoot, '../..');
 const pnpmVirtualStore = path.join(workspaceRoot, 'node_modules', '.pnpm');
+// Expo otherwise promotes the Metro server root to the monorepo root, which
+// makes its relative entry resolver look for this app's index.ts in the wrong
+// directory. This app already declares its pnpm and shared-package roots below.
+process.env.EXPO_NO_METRO_WORKSPACE_ROOT = '1';
 const config = getDefaultConfig(appRoot);
+// Leave CPU capacity for the emulator and local API instead of spawning one
+// transform worker for every host core during a cold build.
+config.maxWorkers = 4;
 
 // Keep the native dev-client's `index` entry rooted in this app. The previous
 // config watched the entire pnpm virtual store, which made Metro discover the

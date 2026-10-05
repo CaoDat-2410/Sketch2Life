@@ -145,6 +145,12 @@ function MainAppContent() {
   return (
     <SafeAreaView style={styles.outerContainer}>
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      {Platform.OS === 'android' && Number(Platform.Version) >= 35 && (
+        <View
+          pointerEvents="none"
+          style={{ height: StatusBar.currentHeight ?? 0, backgroundColor: '#EFF6FF' }}
+        />
+      )}
 
       {/* Optional Developer Quick Bar: ONLY visible if ?dev=true or 3x tap clock */}
       {isDevMode && (

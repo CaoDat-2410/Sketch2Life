@@ -21,12 +21,20 @@ export const FloatingParticles: React.FC<{ count?: number; style?: object }> = (
   ).current;
 
   useEffect(() => {
+    let active = true;
+    const timers = new Set<ReturnType<typeof setTimeout>>();
+    const animations = new Set<Animated.CompositeAnimation>();
+    const schedule = (callback: () => void, delay: number) => {
+      const timer = setTimeout(() => { timers.delete(timer); if (active) callback(); }, delay);
+      timers.add(timer);
+    };
     particles.forEach((p) => {
       const loop = () => {
+        if (!active) return;
         p.translateY.setValue(0);
         p.opacity.setValue(0.6);
         p.scale.setValue(0.7);
-        Animated.parallel([
+        const animation = Animated.parallel([
           Animated.sequence([
             Animated.timing(p.opacity, { toValue: 1, duration: 400, delay: p.delay, useNativeDriver: true }),
             Animated.timing(p.opacity, { toValue: 0, duration: 600, delay: 800, useNativeDriver: true }),
@@ -36,10 +44,20 @@ export const FloatingParticles: React.FC<{ count?: number; style?: object }> = (
             Animated.timing(p.scale, { toValue: 1.3, duration: 600, delay: p.delay, useNativeDriver: true }),
             Animated.timing(p.scale, { toValue: 0.6, duration: 1400, delay: 0, useNativeDriver: true }),
           ]),
-        ]).start(() => setTimeout(loop, Math.random() * 600 + 200));
+        ]);
+        animations.add(animation);
+        animation.start(({ finished }) => {
+          animations.delete(animation);
+          if (active && finished) schedule(loop, Math.random() * 600 + 200);
+        });
       };
-      setTimeout(loop, p.delay);
+      schedule(loop, p.delay);
     });
+    return () => {
+      active = false;
+      timers.forEach(clearTimeout);
+      animations.forEach((animation) => animation.stop());
+    };
   }, []);
 
   return (
@@ -108,12 +126,14 @@ export const PulseGlow: React.FC<{ children: React.ReactNode; style?: object }> 
   const glowAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    Animated.loop(
+    const loop1 = Animated.loop(
       Animated.sequence([
         Animated.timing(glowAnim, { toValue: 1.06, duration: 900, useNativeDriver: true }),
         Animated.timing(glowAnim, { toValue: 1, duration: 900, useNativeDriver: true }),
       ])
-    ).start();
+    );
+    loop1.start();
+    return () => { loop1.stop(); };
   }, []);
 
   return (
@@ -130,14 +150,16 @@ export const SparkleRing: React.FC<{ size?: number }> = ({ size = 90 }) => {
   const rotateAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.loop(
+    const loop1 = Animated.loop(
       Animated.timing(rotateAnim, {
         toValue: 1,
         duration: 4000,
         easing: Easing.linear,
         useNativeDriver: true,
       })
-    ).start();
+    );
+    loop1.start();
+    return () => { loop1.stop(); };
   }, []);
 
   const rotate = rotateAnim.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
@@ -196,7 +218,7 @@ export const SplashHeroIllustration: React.FC<{ height?: number }> = ({ height =
   const floatAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.loop(
+    const loop1 = Animated.loop(
       Animated.sequence([
         Animated.timing(floatAnim, {
           toValue: -6,
@@ -209,7 +231,9 @@ export const SplashHeroIllustration: React.FC<{ height?: number }> = ({ height =
           useNativeDriver: true,
         }),
       ])
-    ).start();
+    );
+    loop1.start();
+    return () => { loop1.stop(); };
   }, []);
 
   return (
@@ -237,7 +261,7 @@ export const OnboardingHeroIllustration: React.FC<{ height?: number }> = ({ heig
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    Animated.loop(
+    const loop1 = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
           toValue: 1.03,
@@ -250,7 +274,9 @@ export const OnboardingHeroIllustration: React.FC<{ height?: number }> = ({ heig
           useNativeDriver: true,
         }),
       ])
-    ).start();
+    );
+    loop1.start();
+    return () => { loop1.stop(); };
   }, []);
 
   return (
@@ -278,7 +304,7 @@ export const VoiceGirlMicIllustration: React.FC<{ height?: number }> = ({ height
   const breatheAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    Animated.loop(
+    const loop1 = Animated.loop(
       Animated.sequence([
         Animated.timing(breatheAnim, {
           toValue: 1.025,
@@ -291,7 +317,9 @@ export const VoiceGirlMicIllustration: React.FC<{ height?: number }> = ({ height
           useNativeDriver: true,
         }),
       ])
-    ).start();
+    );
+    loop1.start();
+    return () => { loop1.stop(); };
   }, []);
 
   return (
@@ -385,7 +413,7 @@ export const RobotAiIllustration: React.FC<{ height?: number }> = ({ height = 18
   const floatAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.loop(
+    const loop1 = Animated.loop(
       Animated.sequence([
         Animated.timing(floatAnim, {
           toValue: -8,
@@ -398,7 +426,9 @@ export const RobotAiIllustration: React.FC<{ height?: number }> = ({ height = 18
           useNativeDriver: true,
         }),
       ])
-    ).start();
+    );
+    loop1.start();
+    return () => { loop1.stop(); };
   }, []);
 
   return (
@@ -458,12 +488,14 @@ export const PlantSproutCard: React.FC<{ size?: number; height?: number }> = ({ 
   const bounceAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    Animated.loop(
+    const loop1 = Animated.loop(
       Animated.sequence([
         Animated.timing(bounceAnim, { toValue: 1.05, duration: 1000, useNativeDriver: true }),
         Animated.timing(bounceAnim, { toValue: 1, duration: 1000, useNativeDriver: true }),
       ])
-    ).start();
+    );
+    loop1.start();
+    return () => { loop1.stop(); };
   }, []);
 
   const w = size || 80;
@@ -500,12 +532,14 @@ export const NatureDiaryCard: React.FC<{ size?: number; height?: number }> = ({ 
   const floatAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.loop(
+    const loop1 = Animated.loop(
       Animated.sequence([
         Animated.timing(floatAnim, { toValue: -4, duration: 1200, useNativeDriver: true }),
         Animated.timing(floatAnim, { toValue: 0, duration: 1200, useNativeDriver: true }),
       ])
-    ).start();
+    );
+    loop1.start();
+    return () => { loop1.stop(); };
   }, []);
 
   const w = size || 80;
@@ -875,19 +909,22 @@ export const FlappingButterflySvg: React.FC<{ size?: number }> = ({ size = 38 })
   const floatAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.loop(
+    const loop1 = Animated.loop(
       Animated.sequence([
         Animated.timing(flapAnim, { toValue: 0.35, duration: 240, useNativeDriver: true }),
         Animated.timing(flapAnim, { toValue: 1, duration: 240, useNativeDriver: true }),
       ])
-    ).start();
+    );
 
-    Animated.loop(
+    const loop2 = Animated.loop(
       Animated.sequence([
         Animated.timing(floatAnim, { toValue: -4, duration: 800, useNativeDriver: true }),
         Animated.timing(floatAnim, { toValue: 4, duration: 800, useNativeDriver: true }),
       ])
-    ).start();
+    );
+    loop1.start();
+    loop2.start();
+    return () => { loop1.stop(); loop2.stop(); };
   }, []);
 
   return (
@@ -909,21 +946,24 @@ export const SpinningSunSvg: React.FC<{ size?: number }> = ({ size = 38 }) => {
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    Animated.loop(
+    const loop1 = Animated.loop(
       Animated.timing(spinAnim, {
         toValue: 1,
         duration: 8000,
         easing: Easing.linear,
         useNativeDriver: true,
       })
-    ).start();
+    );
 
-    Animated.loop(
+    const loop2 = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, { toValue: 1.08, duration: 1200, useNativeDriver: true }),
         Animated.timing(pulseAnim, { toValue: 1, duration: 1200, useNativeDriver: true }),
       ])
-    ).start();
+    );
+    loop1.start();
+    loop2.start();
+    return () => { loop1.stop(); loop2.stop(); };
   }, []);
 
   const spin = spinAnim.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
@@ -946,12 +986,14 @@ export const SwayingFlowerSvg: React.FC<{ size?: number }> = ({ size = 38 }) => 
   const swayAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.loop(
+    const loop1 = Animated.loop(
       Animated.sequence([
         Animated.timing(swayAnim, { toValue: 1, duration: 1400, useNativeDriver: true }),
         Animated.timing(swayAnim, { toValue: -1, duration: 1400, useNativeDriver: true }),
       ])
-    ).start();
+    );
+    loop1.start();
+    return () => { loop1.stop(); };
   }, []);
 
   const sway = swayAnim.interpolate({ inputRange: [-1, 1], outputRange: ['-8deg', '8deg'] });
@@ -974,12 +1016,14 @@ export const RipplingGrassSvg: React.FC<{ size?: number }> = ({ size = 38 }) => 
   const rippleAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    Animated.loop(
+    const loop1 = Animated.loop(
       Animated.sequence([
         Animated.timing(rippleAnim, { toValue: 1.08, duration: 900, useNativeDriver: true }),
         Animated.timing(rippleAnim, { toValue: 0.95, duration: 900, useNativeDriver: true }),
       ])
-    ).start();
+    );
+    loop1.start();
+    return () => { loop1.stop(); };
   }, []);
 
   return (
@@ -1000,12 +1044,14 @@ export const MagicScanBeam: React.FC<{ containerHeight?: number }> = ({ containe
   const scanAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.loop(
+    const loop1 = Animated.loop(
       Animated.sequence([
         Animated.timing(scanAnim, { toValue: 1, duration: 2200, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
         Animated.timing(scanAnim, { toValue: 0, duration: 2200, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
       ])
-    ).start();
+    );
+    loop1.start();
+    return () => { loop1.stop(); };
   }, []);
 
   const translateY = scanAnim.interpolate({
@@ -1103,8 +1149,8 @@ export const LivingAudioEqualizer: React.FC<{ isPlaying?: boolean }> = ({ isPlay
       const cfg = BAR_CONFIGS[i];
       const animation = Animated.loop(
         Animated.sequence([
-          Animated.timing(anim, { toValue: 1, duration: cfg.duration, useNativeDriver: false }),
-          Animated.timing(anim, { toValue: 0.15, duration: cfg.duration * 0.9, useNativeDriver: false }),
+          Animated.timing(anim, { toValue: 1, duration: cfg.duration, useNativeDriver: true }),
+          Animated.timing(anim, { toValue: 0.15, duration: cfg.duration * 0.9, useNativeDriver: true }),
         ])
       );
       animation.start();
@@ -1119,9 +1165,9 @@ export const LivingAudioEqualizer: React.FC<{ isPlaying?: boolean }> = ({ isPlay
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2.5, height: 34, paddingHorizontal: 4 }}>
       {BAR_CONFIGS.map((cfg, idx) => {
-        const height = anims[idx].interpolate({
+        const scaleY = anims[idx].interpolate({
           inputRange: [0, 1],
-          outputRange: [cfg.minH, cfg.maxH],
+          outputRange: [cfg.minH / cfg.maxH, 1],
         });
         const bg = idx % 3 === 0 ? '#0284C7' : idx % 3 === 1 ? '#38BDF8' : '#818CF8';
         return (
@@ -1129,7 +1175,8 @@ export const LivingAudioEqualizer: React.FC<{ isPlaying?: boolean }> = ({ isPlay
             key={idx}
             style={{
               width: 3.2,
-              height: isPlaying ? height : cfg.baseH * 0.55,
+              height: cfg.maxH,
+              transform: [{ scaleY: isPlaying ? scaleY : cfg.baseH * 0.55 / cfg.maxH }],
               backgroundColor: bg,
               borderRadius: 1.6,
             }}

@@ -181,10 +181,14 @@ describe('Pixi independent part playback', () => {
     const initialScale = sprites[1].scale.x;
     player.seekTo(3);
     expect(initialY - sprites[1].position.y).toBeGreaterThan(10);
+    expect(player.getSubjectTranslation().y).toBeCloseTo(-14.4);
+    player.setShowBeat('NOTICE', 0.5);
+    expect(player.getSubjectTranslation().y).toBeCloseTo(-16.4);
     expect(sprites[0].position.y).toBe(initialBackgroundY);
     expect(sprites[1].scale.x).toBe(initialScale);
     expect(sprites[1].rotation).toBe(0);
     player.seekTo(20);
+    player.setShowBeat(null, 0);
     expect(sprites[1].position.y).toBe(initialY);
     player.destroy();
   });

@@ -76,8 +76,14 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 python_version = "3.12"
 strict = true
 packages = ["sketch2life"]
+follow_untyped_imports = true
 
 [[tool.mypy.overrides]]
 # faster-whisper (P2-T2 Phase B) ships no type stubs/py.typed marker.
 module = "faster_whisper.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# These optional GPU dependencies are imported lazily and are not installed in the CPU test env.
+module = ["torch", "torch.*", "sam2", "sam2.*"]
 ignore_missing_imports = true

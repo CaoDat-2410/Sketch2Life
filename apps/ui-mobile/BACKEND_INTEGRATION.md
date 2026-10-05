@@ -142,3 +142,20 @@ for this demo. When auth is approved later, the provider can add a bearer token 
 Lightning credentials to the mobile app. Backend ownership/persistent storage still needs an
 approved contract and adapter; this demo intentionally does not save sessions across process
 restarts or users.
+
+# Local Pixi runtime test — 2026-10-05
+
+Start the API from the repository root with `powershell -File tools/start_local_backend.ps1`.
+This uses ignored backend provider settings and enables the previously approved local/test
+Pixi planner and QA-passed sprite preview. Starting the API does not submit inference.
+Use `-SourceOnly` only when intentionally testing the older source-only path. A bare uvicorn
+launch retains the settings defaults, which disable both planner and sprite preview.
+
+For a repeatable emulator test without Metro, build the internal debug APK with
+`-Psketch2life.bundledPreview=true`. This embeds the optimized JS bundle and 29 image/font
+assets and disables native developer support for that debug build. Normal debug hot reload
+and release signing remain unchanged. The APK is still an internal debug-signed artifact.
+
+Only `motion.walker-corgi.v2` and `motion.walker-avian.v1` currently pass the local preview
+allowlist. Other subject/action cycles remain independently gated; enabling the preview flag
+does not make the complete 29-class registry playable. The source artwork remains separate.

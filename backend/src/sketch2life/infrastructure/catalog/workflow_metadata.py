@@ -34,9 +34,7 @@ class FileWorkflowCatalogMetadata:
         try:
             self._preparation_catalog = load_activity_preparation_catalog(self._root)
         except ActivityPreparationCatalogError as exc:
-            raise WorkflowMetadataLoadError(
-                "cannot load activity preparation metadata"
-            ) from exc
+            raise WorkflowMetadataLoadError("cannot load activity preparation metadata") from exc
         self._primary_materials = self._load_primary_materials()
         self._material_labels = self._load_material_labels()
 
@@ -146,14 +144,21 @@ class FileWorkflowCatalogMetadata:
             return None
         if not isinstance(safety, dict):
             return None
-        try:
-            minimum_age = int(age["min"])
-            maximum_age = int(age["max"])
-            duration_minutes = (
-                int(duration["min"]) if isinstance(duration, dict) else int(duration)
-            )
-        except (KeyError, TypeError, ValueError):
+        minimum_value = age.get("min")
+        maximum_value = age.get("max")
+        duration_value = duration.get("min") if isinstance(duration, dict) else duration
+        if (
+            isinstance(minimum_value, bool)
+            or not isinstance(minimum_value, (int, float))
+            or isinstance(maximum_value, bool)
+            or not isinstance(maximum_value, (int, float))
+            or isinstance(duration_value, bool)
+            or not isinstance(duration_value, (int, float))
+        ):
             return None
+        minimum_age = int(minimum_value)
+        maximum_age = int(maximum_value)
+        duration_minutes = int(duration_value)
         if minimum_age < 0 or maximum_age < minimum_age or duration_minutes < 1:
             return None
         supervision = _supervision_label(safety.get("minimum_supervision"))
@@ -224,12 +229,7 @@ class FileWorkflowCatalogMetadata:
 
     def _load_primary_materials(self) -> dict[str, tuple[str, ...]]:
         path = (
-            self._root
-            / "data"
-            / "activity-catalog"
-            / "golden"
-            / "v1"
-            / "material-registry.v1.json"
+            self._root / "data" / "activity-catalog" / "golden" / "v1" / "material-registry.v1.json"
         )
         try:
             document = json.loads(path.read_text(encoding="utf-8"))
@@ -255,12 +255,7 @@ class FileWorkflowCatalogMetadata:
 
     def _load_material_labels(self) -> dict[str, str]:
         path = (
-            self._root
-            / "data"
-            / "activity-catalog"
-            / "golden"
-            / "v1"
-            / "material-registry.v1.json"
+            self._root / "data" / "activity-catalog" / "golden" / "v1" / "material-registry.v1.json"
         )
         try:
             document = json.loads(path.read_text(encoding="utf-8"))
@@ -292,8 +287,10 @@ _MATERIAL_LABELS_VI: dict[str, str] = {
 
 
 def _supervision_label(value: object) -> str | None:
-    return {
-        "NONE": "Trẻ có thể tự làm khi đã sẵn sàng",
-        "NEARBY": "Người lớn ở gần hỗ trợ",
-        "DIRECT": "Người lớn cùng thực hiện",
-    }.get(value)
+    if value == "NONE":
+        return "Trẻ có thể tự làm khi đã sẵn sàng"
+    if value == "NEARBY":
+        return "Người lớn ở gần hỗ trợ"
+    if value == "DIRECT":
+        return "Người lớn cùng thực hiện"
+    return None

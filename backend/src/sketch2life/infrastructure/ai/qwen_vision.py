@@ -19,7 +19,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import StrEnum
 from hashlib import sha256
-from multiprocessing.connection import Connection
+from multiprocessing.connection import Connection, PipeConnection
 from multiprocessing.process import BaseProcess
 from pathlib import Path
 from threading import Lock as ThreadLock
@@ -188,9 +188,7 @@ class QwenSchemaPathDiagnostic(StrEnum):
     SCHEMA_PATH_RELATIONS_PREDICATE_LANGUAGE_STATUS = (
         "SCHEMA_PATH_RELATIONS_PREDICATE_LANGUAGE_STATUS"
     )
-    SCHEMA_PATH_RELATIONS_PREDICATE_LANGUAGE_TAGS = (
-        "SCHEMA_PATH_RELATIONS_PREDICATE_LANGUAGE_TAGS"
-    )
+    SCHEMA_PATH_RELATIONS_PREDICATE_LANGUAGE_TAGS = "SCHEMA_PATH_RELATIONS_PREDICATE_LANGUAGE_TAGS"
     SCHEMA_PATH_RELATIONS_PREDICATE_LANGUAGE_IS_GROUND_TRUTH = (
         "SCHEMA_PATH_RELATIONS_PREDICATE_LANGUAGE_IS_GROUND_TRUTH"
     )
@@ -211,9 +209,7 @@ class QwenSchemaPathDiagnostic(StrEnum):
     SCHEMA_PATH_THEMES_EVIDENCE_REFS_ITEM = "SCHEMA_PATH_THEMES_EVIDENCE_REFS_ITEM"
     SCHEMA_PATH_THEMES_CONFIDENCE = "SCHEMA_PATH_THEMES_CONFIDENCE"
 
-    SCHEMA_PATH_AMBIGUOUS_REGIONS_OBSERVATION_ID = (
-        "SCHEMA_PATH_AMBIGUOUS_REGIONS_OBSERVATION_ID"
-    )
+    SCHEMA_PATH_AMBIGUOUS_REGIONS_OBSERVATION_ID = "SCHEMA_PATH_AMBIGUOUS_REGIONS_OBSERVATION_ID"
     SCHEMA_PATH_AMBIGUOUS_REGIONS_NOTE = "SCHEMA_PATH_AMBIGUOUS_REGIONS_NOTE"
     SCHEMA_PATH_AMBIGUOUS_REGIONS_NOTE_VALUE = "SCHEMA_PATH_AMBIGUOUS_REGIONS_NOTE_VALUE"
     SCHEMA_PATH_AMBIGUOUS_REGIONS_NOTE_LANGUAGE = "SCHEMA_PATH_AMBIGUOUS_REGIONS_NOTE_LANGUAGE"
@@ -472,7 +468,7 @@ def _default_model_factory(
 
 
 def _coerce_model_bundle(
-    value: QwenModelBundle | tuple[QwenModelLike, QwenProcessorLike]
+    value: QwenModelBundle | tuple[QwenModelLike, QwenProcessorLike],
 ) -> QwenModelBundle:
     if isinstance(value, QwenModelBundle):
         return value
@@ -658,9 +654,7 @@ def _persistent_qwen_worker_entry(connection: Connection) -> None:
                 return
             if bundle is None:
                 try:
-                    bundle = _coerce_model_bundle(
-                        _default_model_factory(profile, runtime_config)
-                    )
+                    bundle = _coerce_model_bundle(_default_model_factory(profile, runtime_config))
                 except QwenDeviceUnavailableError:
                     _send_worker_message(connection, "device_unavailable")
                     return
@@ -765,7 +759,7 @@ class PersistentSubprocessQwenGenerationRunner:
         self._worker_target = worker_target
         self._lock = ThreadLock()
         self._process: BaseProcess | None = None
-        self._connection: Connection | None = None
+        self._connection: Connection | PipeConnection | None = None
         self._signature: tuple[VisionProfileV2, QwenVisionRuntimeConfig] | None = None
 
     def generate(
@@ -1217,10 +1211,7 @@ class QwenVisionAdapter(VisionUnderstandingPortV2):
                     VisionMappingDiagnosticV2(item.value) for item in parse_diagnostics
                 ),
             )
-        if (
-            not self._enable_structural_repair
-            and not set(payload).issubset(_ALLOWED_PROVIDER_KEYS)
-        ):
+        if not self._enable_structural_repair and not set(payload).issubset(_ALLOWED_PROVIDER_KEYS):
             self._emit_mapping_diagnostic((QwenOutputMappingDiagnostic.TOP_LEVEL_KEY_REJECTED,))
             return self._schema_failure(
                 request,
@@ -1421,9 +1412,7 @@ def _verify_image_reference(artifact_ref: str, expected_sha256: str) -> None:
             VisionNonPolicyErrorDetailV2.SOURCE_IMAGE_UNREADABLE
         ) from exc
     if digest.hexdigest() != expected_sha256:
-        raise _InputImageIntegrityError(
-            VisionNonPolicyErrorDetailV2.SOURCE_IMAGE_HASH_MISMATCH
-        )
+        raise _InputImageIntegrityError(VisionNonPolicyErrorDetailV2.SOURCE_IMAGE_HASH_MISMATCH)
 
 
 def _parse_raw_output(raw_output: str) -> tuple[dict[str, Any] | None, bool]:

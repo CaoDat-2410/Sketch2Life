@@ -33,7 +33,7 @@ export const RiveMascot: React.FC<RiveMascotProps> = ({
 
   // 1. Idle Floating & Breathing Loop
   useEffect(() => {
-    Animated.loop(
+    const loop1 = Animated.loop(
       Animated.sequence([
         Animated.parallel([
           Animated.timing(floatAnim, {
@@ -60,7 +60,9 @@ export const RiveMascot: React.FC<RiveMascotProps> = ({
           }),
         ]),
       ])
-    ).start();
+    );
+    loop1.start();
+    return () => { loop1.stop(); };
   }, []);
 
   // 2. Interactive Tap Bounce

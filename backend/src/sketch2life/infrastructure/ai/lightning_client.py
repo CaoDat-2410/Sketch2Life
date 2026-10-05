@@ -312,7 +312,7 @@ class LightningAsrV2Adapter:
             )
 
         try:
-            result = TypeAdapter(AsrV2ResultV1).validate_python(raw)
+            result: AsrV2ResultV1 = TypeAdapter(AsrV2ResultV1).validate_python(raw)
         except ValidationError:
             return _asr_v2_failure(
                 request,

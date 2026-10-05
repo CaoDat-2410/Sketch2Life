@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from threading import RLock
-from typing import cast
+from typing import Literal, cast
 
 from PIL import Image
 
@@ -31,11 +31,35 @@ _CAPABILITY_READS = 4
 _LOGGER = logging.getLogger(__name__)
 _MOTION_BEHAVIOR_IDS = frozenset(
     {
-        "walker.biped", "walker.quadruped", "walker.avian", "runner.biped", "runner.quadruped",
-        "hopper", "flyer", "glider", "swimmer", "crawler", "slitherer", "climber", "waver",
-        "reacher", "dancer", "turner", "swaying_plant", "growing", "blooming", "drifting",
-        "falling", "flowing", "flickering", "roller", "rotator", "swinger", "bouncer",
-        "slider", "opener_closer",
+        "walker.biped",
+        "walker.quadruped",
+        "walker.avian",
+        "runner.biped",
+        "runner.quadruped",
+        "hopper",
+        "flyer",
+        "glider",
+        "swimmer",
+        "crawler",
+        "slitherer",
+        "climber",
+        "waver",
+        "reacher",
+        "dancer",
+        "turner",
+        "swaying_plant",
+        "growing",
+        "blooming",
+        "drifting",
+        "falling",
+        "flowing",
+        "flickering",
+        "roller",
+        "rotator",
+        "swinger",
+        "bouncer",
+        "slider",
+        "opener_closer",
     }
 )
 
@@ -120,7 +144,8 @@ class PixiShowAssetService:
                 for token, grant in self._grants.items()
                 if grant.expires_at > now and grant.remaining_reads > 0
             }
-            for asset_id, content, content_type in prepared:
+            for asset_id, content, _content_type in prepared:
+                content_type: Literal["image/png"] = "image/png"
                 token = secrets.token_urlsafe(48)
                 digest = hashlib.sha256(content).hexdigest()
                 self._grants[token] = _Grant(
@@ -152,7 +177,7 @@ class PixiShowAssetService:
         y: float,
         scale: float = 0.4,
         frame_rate: int = 6,
-        loop_mode: str = "LOOP",
+        loop_mode: Literal["LOOP", "ONCE"] = "LOOP",
     ) -> PixiSpriteCycleReadV1:
         """Issue frame capabilities only after every independent motion asset gate passes."""
         if (
@@ -182,19 +207,23 @@ class PixiShowAssetService:
                 _safe_cycle_log_id(cycle_id),
             )
             raise PixiShowAssetUnavailable("UNKNOWN_CYCLE") from None
+        behavior_class_id = cycle.get("behaviorClassId")
+        variant_id = cycle.get("variantId")
+        playback_kind_value = cycle.get("playbackKind")
         if (
-            cycle.get("behaviorClassId") not in _MOTION_BEHAVIOR_IDS
-            or not isinstance(cycle.get("variantId"), str)
-            or re.fullmatch(r"[a-z0-9-]{1,60}", cycle["variantId"]) is None
-            or cycle.get("playbackKind") not in {None, "FRAME_SEQUENCE", "TRANSFORM_DRIVEN"}
-            or (
-                cycle.get("playbackKind") == "TRANSFORM_DRIVEN"
-                and cycle.get("behaviorClassId") != "slider"
-            )
+            not isinstance(behavior_class_id, str)
+            or behavior_class_id not in _MOTION_BEHAVIOR_IDS
+            or not isinstance(variant_id, str)
+            or re.fullmatch(r"[a-z0-9-]{1,60}", variant_id) is None
+            or playback_kind_value not in {None, "FRAME_SEQUENCE", "TRANSFORM_DRIVEN"}
+            or (playback_kind_value == "TRANSFORM_DRIVEN" and behavior_class_id != "slider")
         ):
             raise PixiShowAssetUnavailable("FRAME_QA_FAILED") from None
         manifest = self._read_motion_cycle_manifest()
-        gates = manifest.get("commonGates", {})
+        gates = manifest.get("commonGates")
+        visual_approval = manifest.get("ownerVisualApproval")
+        if not isinstance(gates, dict) or not isinstance(visual_approval, dict):
+            raise PixiShowAssetUnavailable from None
         dev_preview = self._allow_dev_preview
         if dev_preview:
             if not self._is_dev_preview_registered(cycle, manifest):
@@ -208,7 +237,7 @@ class PixiShowAssetService:
         else:
             checks = (
                 (
-                    manifest.get("ownerVisualApproval", {}).get("decision") == "APPROVED",
+                    visual_approval.get("decision") == "APPROVED",
                     "VISUAL_REVIEW_REQUIRED",
                 ),
                 (
@@ -240,7 +269,7 @@ class PixiShowAssetService:
                 cycle,
                 asset_directory="applied" if dev_preview else "approved",
             )
-            playback_kind = (
+            playback_kind: Literal["FRAME_SEQUENCE", "TRANSFORM_DRIVEN"] = (
                 "TRANSFORM_DRIVEN"
                 if cycle.get("playbackKind") == "TRANSFORM_DRIVEN"
                 else "FRAME_SEQUENCE"
@@ -267,8 +296,8 @@ class PixiShowAssetService:
 
         result = PixiSpriteCycleReadV1(
             cycleId=cycle_id,
-            behaviorClassId=cycle["behaviorClassId"],
-            variantId=cycle["variantId"],
+            behaviorClassId=behavior_class_id,
+            variantId=variant_id,
             playbackKind=playback_kind,
             loopMode=loop_mode,
             frameRate=frame_rate,
@@ -341,8 +370,10 @@ class PixiShowAssetService:
         cycle: dict[str, object],
         manifest: dict[str, object],
     ) -> bool:
+        visual_approval = manifest.get("ownerVisualApproval")
         if (
-            manifest.get("ownerVisualApproval", {}).get("decision") != "APPROVED"
+            not isinstance(visual_approval, dict)
+            or visual_approval.get("decision") != "APPROVED"
             or not str(cycle.get("visualReview", "")).startswith("VISUAL_APPROVED")
         ):
             return False

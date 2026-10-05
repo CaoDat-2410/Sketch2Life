@@ -27,3 +27,9 @@ Hard constraints carried into the plan:
 - Firebase Authentication is identity only; Firebase Storage/Firestore/Realtime Database remain forbidden. The mobile app must not receive AI-provider credentials/endpoints.
 - Do not select new infrastructure/storage or change an unapproved global contract without an ADR and approval.
 - Protect user changes; no deployment, credential provisioning, media deletions, or asset promotions are authorized by this task. The owner's subsequent instruction to fix remaining errors and push authorizes commit/push after validation. UI/artwork generation remains behind its separate approval gate.
+
+## 2026-10-05 runtime follow-up
+
+The owner additionally requested that the companion walker not look detached from the source dog or drift vertically while the dog moves. Mobile-recovery sub-plan revision 4 is approved; the parent FEAT-035 plan remains at revision 1. The Pixi sidecar now reads the source subject's current root/show translation from `AutoRigPlayer` and applies it to the approved local sprite cycle; the synthetic browser fixture places that cycle beside the dog while keeping it outside protected drawing bounds. Browser replay and seek observations confirm the sprite follows the source translation. This does not grant new cycle eligibility, asset rights, inference, or production access.
+
+The same approved runtime package restored bundled artwork in the Android preview, added the Android 15 status-bar inset, removed nonfunctional perpetual Home particles/pulsing, and bounded renderer progress messages and GPU work. The emulator flow reached Home, Story Preview, and the next-step gate without a native/JS crash. An 8-second idle Home capture reported zero rendered frames and zero janky frames. Full verification is tracked in `status/STATUS.md` and feature-local evidence; shared-motion Pixi behavior is browser-fixture verified, not claimed as emulator-WebView verified.

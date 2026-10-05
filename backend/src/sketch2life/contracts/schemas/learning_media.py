@@ -6,6 +6,17 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+LearningMediaFallbackType = Literal["STILL_NARRATION", "WHOLE_IMAGE_REVEAL", "SUPERVISED_HANDOFF"]
+LearningMediaReasonCode = Literal[
+    "CACHE_MISS",
+    "STALE_MEDIA",
+    "CORRUPT_MEDIA",
+    "UNSAFE_MEDIA",
+    "RENDERER_FAILURE",
+    "MEDIA_UNAVAILABLE",
+    "PROVIDER_TIMEOUT",
+]
+
 
 class LearningMediaProvenanceV1(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
@@ -19,9 +30,7 @@ class LearningMediaProvenanceV1(BaseModel):
     @model_validator(mode="after")
     def require_reviewed_asset(self) -> LearningMediaProvenanceV1:
         if self.source == "reviewed_cache" and (
-            self.asset_ref is None
-            or self.asset_sha256 is None
-            or self.review_status != "REVIEWED"
+            self.asset_ref is None or self.asset_sha256 is None or self.review_status != "REVIEWED"
         ):
             raise ValueError("reviewed cache provenance requires ref, hash, and REVIEWED status")
         return self
@@ -76,20 +85,10 @@ class LearningMediaResultV1(BaseModel):
     renderer_plan_id: str = Field(min_length=1, max_length=120)
     renderer_plan_version: str = Field(pattern=r"^v[0-9]+$")
     asset_ref: str | None = Field(default=None, min_length=1)
-    fallback_type: Literal[
-        "STILL_NARRATION", "WHOLE_IMAGE_REVEAL", "SUPERVISED_HANDOFF"
-    ] | None = None
+    fallback_type: LearningMediaFallbackType | None = None
     generation_called: bool
     provenance: LearningMediaProvenanceV1
-    reason_code: Literal[
-        "CACHE_MISS",
-        "STALE_MEDIA",
-        "CORRUPT_MEDIA",
-        "UNSAFE_MEDIA",
-        "RENDERER_FAILURE",
-        "MEDIA_UNAVAILABLE",
-        "PROVIDER_TIMEOUT",
-    ] | None = None
+    reason_code: LearningMediaReasonCode | None = None
 
     @model_validator(mode="after")
     def validate_result_state(self) -> LearningMediaResultV1:

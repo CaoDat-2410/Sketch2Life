@@ -86,13 +86,27 @@ class LightningSceneLocalizationAdapter:
                     return None
                 if not isinstance(region, dict) or target_ref in result:
                     return None
-                values_only = {
-                    key: region.get(key)
-                    for key in ("x", "y", "width", "height")
-                }
-                if not all(isinstance(value, (int, float)) for value in values_only.values()):
+                x = region.get("x")
+                y = region.get("y")
+                width = region.get("width")
+                height = region.get("height")
+                if (
+                    isinstance(x, bool)
+                    or not isinstance(x, (int, float))
+                    or isinstance(y, bool)
+                    or not isinstance(y, (int, float))
+                    or isinstance(width, bool)
+                    or not isinstance(width, (int, float))
+                    or isinstance(height, bool)
+                    or not isinstance(height, (int, float))
+                ):
                     return None
-                result[target_ref] = {key: float(value) for key, value in values_only.items()}
+                result[target_ref] = {
+                    "x": float(x),
+                    "y": float(y),
+                    "width": float(width),
+                    "height": float(height),
+                }
             return result or None
         except (KeyError, LightningProviderError, TimeoutError, TypeError, ValueError, OSError):
             return None

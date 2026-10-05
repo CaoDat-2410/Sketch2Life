@@ -1,4 +1,5 @@
 import {Application, Container, Rectangle, Sprite, Texture} from 'pixi.js';
+import {shouldPostMobileProgress} from '../src/mobileProgress';
 
 import {
   ART_RENDERER_PROTOCOL_VERSION,
@@ -56,6 +57,8 @@ let eventSequence = 0;
 let lastLoadMessage: string | null = null;
 let lastAcceptedLaunchMessage: string | null = null;
 let lastProgressPostAt = 0;
+let lastProgressState = '';
+let forceNextProgressPost = false;
 let activePlayer: PlaybackController | null = null;
 const destroyedPlayers = new Set<PlaybackController>();
 let v2InteractionPhase: 'INTRO_LOADING' | 'INTRO_PLAYING' | 'DISCOVERY_READY' | 'FALLBACK' = 'INTRO_LOADING';
@@ -157,9 +160,19 @@ function postLifecycle(event: PlaybackEvent): void {
   });
 }
 
-function postProgress(positionSeconds: number, durationSeconds: number, stateValue: 'READY' | 'PLAYING' | 'PAUSED' | 'COMPLETED', interactionPhase: string): void {
+function postProgress(
+  positionSeconds: number,
+  durationSeconds: number,
+  stateValue: 'READY' | 'PLAYING' | 'PAUSED' | 'COMPLETED',
+  interactionPhase: string,
+  flush = false,
+): void {
   const now = performance.now();
-  if (stateValue === 'PLAYING' && now - lastProgressPostAt < 100) return;
+  const stateKey = `${stateValue}:${interactionPhase}:${durationSeconds}`;
+  // The Pixi clock stays smooth locally; only the native control chrome needs
+  // four updates per second. Always deliver state and phase transitions at once.
+  if (!shouldPostMobileProgress(stateValue, lastProgressState, stateKey, now - lastProgressPostAt, flush)) return;
+  lastProgressState = stateKey;
   lastProgressPostAt = now;
   eventSequence += 1;
   post({
@@ -207,16 +220,20 @@ const classicPlayer = createBrowserArtPlayer({
     postLifecycle(event);
   },
   onProgress: (progress) => {
-    postProgress(progress.positionSeconds, progress.durationSeconds, progress.state, progress.interactionPhase);
+    const flush = forceNextProgressPost;
+    forceNextProgressPost = false;
+    postProgress(progress.positionSeconds, progress.durationSeconds, progress.state, progress.interactionPhase, flush);
   },
 });
 
 const autoRigPlayer = createAutoRigPlayer({
   app,
   onProgress: (positionSeconds, durationSeconds, stateValue) => {
+    const flush = forceNextProgressPost;
+    forceNextProgressPost = false;
     if (stateValue === 'PLAYING') v2InteractionPhase = 'INTRO_PLAYING';
     if (launch !== null && isShowLaunch(launch)) syncShowToTime(positionSeconds);
-    postProgress(positionSeconds, durationSeconds, stateValue, v2InteractionPhase);
+    postProgress(positionSeconds, durationSeconds, stateValue, v2InteractionPhase, flush);
   },
   onCompleted: () => {
     if (launch === null || !isV2Launch(launch)) return;
@@ -471,9 +488,18 @@ function receiveNativeMessage(event: MessageEvent): void {
       switch (control.data.action) {
         case 'PLAY': activePlayer?.play(); break;
         case 'PAUSE': activePlayer?.pause(); break;
-        case 'REPLAY': activePlayer?.replay(); break;
-        case 'SEEK_RELATIVE_SECONDS': activePlayer?.seekRelative(control.data.seconds ?? 0); break;
-        case 'SEEK_TO_SECONDS': activePlayer?.seekTo(control.data.seconds ?? 0); break;
+        case 'REPLAY':
+          forceNextProgressPost = true;
+          activePlayer?.replay();
+          break;
+        case 'SEEK_RELATIVE_SECONDS':
+          forceNextProgressPost = true;
+          activePlayer?.seekRelative(control.data.seconds ?? 0);
+          break;
+        case 'SEEK_TO_SECONDS':
+          forceNextProgressPost = true;
+          activePlayer?.seekTo(control.data.seconds ?? 0);
+          break;
       }
     } catch (error) {
       reportPlaybackFailure(error);
@@ -602,8 +628,9 @@ void app.init({
   background: '#fffef9',
   antialias: true,
   autoDensity: true,
-  resolution: Math.min(window.devicePixelRatio || 1, 2),
+  resolution: Math.min(window.devicePixelRatio || 1, 1.5),
 }).then(() => {
+  app.ticker.maxFPS = 30;
   stage.append(app.canvas);
   rendererInitialized = true;
   app.canvas.addEventListener('pointerdown', () => {
@@ -858,8 +885,9 @@ function syncSpriteCycleToTime(positionSeconds: number): void {
   if (!active.wasVisible) spriteCycleLog('playing', active.cycle, {frameIndex: index});
   active.wasVisible = true;
   const transform = getSpriteCycleTransform(active.cycle, positionSeconds);
-  active.sprite.x = active.cycle.x * 800 + transform.offsetX;
-  active.sprite.y = active.cycle.y * 600 + transform.offsetY;
+  const subjectTranslation = autoRigPlayer.getSubjectTranslation();
+  active.sprite.x = active.cycle.x * 800 + subjectTranslation.x + transform.offsetX;
+  active.sprite.y = active.cycle.y * 600 + subjectTranslation.y + transform.offsetY;
   active.sprite.visible = true;
 }
 

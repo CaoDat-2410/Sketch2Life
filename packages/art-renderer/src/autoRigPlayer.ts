@@ -42,6 +42,8 @@ export interface AutoRigPlayer {
   seekTo(seconds: number): void;
   seekRelative(seconds: number): void;
   setShowBeat(action: AutoRigShowAction | null, progress: number): void;
+  /** Root translation currently applied to the source subject, in stage pixels. */
+  getSubjectTranslation(): {x: number; y: number};
   getPlaybackState(): {positionSeconds: number; durationSeconds: number; state: PlaybackState};
   destroy(): void;
 }
@@ -92,17 +94,27 @@ export function createAutoRigPlayer(options: AutoRigPlayerOptions): AutoRigPlaye
     ticker = null;
   };
 
+  const getSubjectTranslation = (): {x: number; y: number} => {
+    const rootPose = poses.get('root') ?? neutralPose();
+    const showOffset = cutoutSprite === null
+      ? fullRigRootOffset(showBeat)
+      : cutoutShowOffset(showBeat);
+    return {
+      x: rootPose.translateX * STAGE_WIDTH + showOffset.x,
+      y: rootPose.translateY * STAGE_HEIGHT + showOffset.y,
+    };
+  };
+
   const deform = (): void => {
     const rig = activeRig;
     if (rig === null) return;
-    const rootPose = poses.get('root') ?? neutralPose();
     if (cutoutSprite !== null) {
       // Whole-subject fallback may breathe/float by a few pixels, but never scales or rotates
       // the drawing. The camera and original artwork framing remain fixed.
-      const showOffset = cutoutShowOffset(showBeat);
+      const subjectTranslation = getSubjectTranslation();
       cutoutSprite.position.set(
-        cutoutPivot.x + rootPose.translateX * STAGE_WIDTH + showOffset.x,
-        cutoutPivot.y + rootPose.translateY * STAGE_HEIGHT + showOffset.y,
+        cutoutPivot.x + subjectTranslation.x,
+        cutoutPivot.y + subjectTranslation.y,
       );
       return;
     }
@@ -343,6 +355,8 @@ export function createAutoRigPlayer(options: AutoRigPlayerOptions): AutoRigPlaye
         : {action, progress: Math.min(1, Math.max(0, progress))};
       deform();
     },
+
+    getSubjectTranslation,
 
     getPlaybackState() {
       return {positionSeconds: timeline?.time() ?? 0, durationSeconds: timeline?.duration() ?? 0, state};

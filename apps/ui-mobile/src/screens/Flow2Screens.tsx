@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 import {
   ActivityIndicator,
   View,
@@ -1269,6 +1269,8 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
   const rendererPageUrl = rendererLaunch
     ? `${API_BASE_URL}/renderer/mobile.html?rendererInstanceId=${encodeURIComponent(rendererInstanceId)}&rendererAttempt=${rendererAttempt}`
     : null;
+  const rendererSource = useMemo(() => rendererPageUrl ? { uri: rendererPageUrl } : undefined, [rendererPageUrl]);
+  const rendererOrigins = useMemo(() => [API_BASE_URL], []);
 
   const beats = Array.isArray(pixiIntroStoryboard?.beats)
     ? pixiIntroStoryboard.beats.map(rendererObject)
@@ -1469,7 +1471,11 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
             ? 'Một vài chi tiết chưa tách được; ảnh gốc vẫn an toàn.'
             : state.data.state === 'COMPLETED'
               ? 'Phần mở đầu đã sẵn sàng.'
-              : 'Đang mở bức vẽ của con…',
+              : state.data.state === 'PLAYING'
+                ? 'Bức vẽ của con đang chuyển động.'
+                : state.data.state === 'PAUSED'
+                  ? 'Câu chuyện đang tạm dừng.'
+                  : 'Đang mở bức vẽ của con…',
       );
       return;
     }
@@ -1582,8 +1588,8 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
           <WebView
             key={rendererAttempt}
             ref={rendererWebViewRef}
-            source={{ uri: rendererPageUrl }}
-            originWhitelist={[API_BASE_URL]}
+            source={rendererSource}
+            originWhitelist={rendererOrigins}
             javaScriptEnabled
             domStorageEnabled={false}
             mixedContentMode="never"

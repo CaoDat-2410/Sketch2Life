@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 
 from sketch2life.application.services.topic_semantics import display_label_vi
 from sketch2life.contracts.schemas.p1_experience import SemanticAnchorSetV1, VersionedRefV1
@@ -18,6 +18,14 @@ from sketch2life.contracts.schemas.scene_exploration import (
     SubjectCandidateSetV1,
     SubjectCandidateV1,
 )
+
+
+def _validate_contract[ContractModel: BaseModel](
+    model: type[ContractModel], **fields: object
+) -> ContractModel:
+    """Validate alias-aware contract fields without bypassing Pydantic runtime checks."""
+
+    return model.model_validate(fields)
 
 
 def confidence_band(value: float) -> str:
@@ -49,13 +57,11 @@ def build_subject_candidates(
         if anchor.provenance.source_claim_ids
     ]
     relation_refs_by_subject: dict[str, list[str]] = {}
-    for relation in (raw.relations if raw is not None else ()):
+    for relation in raw.relations if raw is not None else ():
         relation_refs_by_subject.setdefault(relation.subject_ref, []).append(
             relation.observation_id
         )
-        relation_refs_by_subject.setdefault(relation.object_ref, []).append(
-            relation.observation_id
-        )
+        relation_refs_by_subject.setdefault(relation.object_ref, []).append(relation.observation_id)
 
     narration_covered = (
         bool(raw.asr_claims) or raw.narration_status.value == "TEXT_SUPPLIED"
@@ -68,7 +74,8 @@ def build_subject_candidates(
     if primary.provenance.source_adult_assertion_id:
         adult_ref = primary.provenance.source_adult_assertion_id
         items.append(
-            SubjectCandidateV1(
+            _validate_contract(
+                SubjectCandidateV1,
                 candidate_id=primary.anchor_id.removeprefix("anchor-"),
                 label_vi=display_label_vi(primary.normalized_label),
                 source_claim_ids=(),
@@ -89,7 +96,8 @@ def build_subject_candidates(
             continue
         seen.add(ref)
         items.append(
-            SubjectCandidateV1(
+            _validate_contract(
+                SubjectCandidateV1,
                 candidate_id=ref,
                 label_vi=label_vi,
                 source_claim_ids=(ref,),
@@ -105,7 +113,8 @@ def build_subject_candidates(
 
     if not items:
         items.append(
-            SubjectCandidateV1(
+            _validate_contract(
+                SubjectCandidateV1,
                 candidate_id=primary.anchor_id.removeprefix("anchor-"),
                 label_vi=display_label_vi(primary.normalized_label),
                 source_claim_ids=primary.provenance.source_claim_ids[:1],
@@ -117,7 +126,8 @@ def build_subject_candidates(
             )
         )
 
-    return SubjectCandidateSetV1(
+    return _validate_contract(
+        SubjectCandidateSetV1,
         session_id=session_id,
         source_artifact_ref=(
             raw.source_image_ref.artifact_ref if raw is not None else anchor_set.source_artifact_id
@@ -153,7 +163,8 @@ def build_scene_exploration_plan(
     )
     relation_label = display_label_vi(relation.predicate.value) if relation else None
     beats = [
-        SceneExplorationBeatV1(
+        _validate_contract(
+            SceneExplorationBeatV1,
             beat_id="drawing-reveal",
             order=1,
             effect="REVEAL",
@@ -162,7 +173,8 @@ def build_scene_exploration_plan(
             start_seconds=0,
             end_seconds=2.0,
         ),
-        SceneExplorationBeatV1(
+        _validate_contract(
+            SceneExplorationBeatV1,
             beat_id="subject-focus",
             order=2,
             effect="FOCUS",
@@ -183,7 +195,8 @@ def build_scene_exploration_plan(
         other_label = entity_labels.get(other_ref, "chi tiết trong tranh")
         if other_label != "chi tiết trong tranh":
             beats.append(
-                SceneExplorationBeatV1(
+                _validate_contract(
+                    SceneExplorationBeatV1,
                     beat_id="relation-focus",
                     order=3,
                     effect="TRACE_RELATION",
@@ -197,7 +210,8 @@ def build_scene_exploration_plan(
             )
     else:
         beats.append(
-            SceneExplorationBeatV1(
+            _validate_contract(
+                SceneExplorationBeatV1,
                 beat_id="whole-scene-context",
                 order=3,
                 effect="ZOOM_OUT",
@@ -208,7 +222,8 @@ def build_scene_exploration_plan(
             )
         )
     beats.append(
-        SceneExplorationBeatV1(
+        _validate_contract(
+            SceneExplorationBeatV1,
             beat_id="learning-bridge",
             order=len(beats) + 1,
             effect="ZOOM_OUT",
@@ -218,7 +233,8 @@ def build_scene_exploration_plan(
             end_seconds=12.0,
         )
     )
-    return SceneExplorationPlanV1(
+    return _validate_contract(
+        SceneExplorationPlanV1,
         session_id=session_id,
         experience_spec_ref=experience_spec_ref,
         source_artifact_ref=candidates.source_artifact_ref,
@@ -241,7 +257,8 @@ def build_scene_focus_plan(
     """Accept only explicitly localized regions; otherwise expose a safe fallback."""
 
     if not region_hints:
-        return SceneFocusPlanV1(
+        return _validate_contract(
+            SceneFocusPlanV1,
             session_id=session_id,
             experience_spec_ref=experience_spec_ref,
             source_artifact_ref=candidates.source_artifact_ref,
@@ -252,7 +269,8 @@ def build_scene_focus_plan(
 
     candidate_ids = {candidate.candidate_id for candidate in candidates.items}
     if len(region_hints) > 3 or any(ref not in candidate_ids for ref in region_hints):
-        return SceneFocusPlanV1(
+        return _validate_contract(
+            SceneFocusPlanV1,
             session_id=session_id,
             experience_spec_ref=experience_spec_ref,
             source_artifact_ref=candidates.source_artifact_ref,
@@ -269,7 +287,8 @@ def build_scene_focus_plan(
         try:
             region = SourceRegionV1.model_validate(hint)
             targets.append(
-                SceneFocusTargetV1(
+                _validate_contract(
+                    SceneFocusTargetV1,
                     target_ref=candidate.candidate_id,
                     label_vi=candidate.label_vi,
                     source_region=region,
@@ -280,7 +299,8 @@ def build_scene_focus_plan(
                 )
             )
         except ValidationError:
-            return SceneFocusPlanV1(
+            return _validate_contract(
+                SceneFocusPlanV1,
                 session_id=session_id,
                 experience_spec_ref=experience_spec_ref,
                 source_artifact_ref=candidates.source_artifact_ref,
@@ -289,7 +309,8 @@ def build_scene_focus_plan(
                 fallback_reason="REGION_INVALID",
             )
     if not targets:
-        return SceneFocusPlanV1(
+        return _validate_contract(
+            SceneFocusPlanV1,
             session_id=session_id,
             experience_spec_ref=experience_spec_ref,
             source_artifact_ref=candidates.source_artifact_ref,
@@ -297,7 +318,8 @@ def build_scene_focus_plan(
             extraction_status="FALLBACK_REQUIRED",
             fallback_reason="NO_LOCALIZER",
         )
-    return SceneFocusPlanV1(
+    return _validate_contract(
+        SceneFocusPlanV1,
         session_id=session_id,
         experience_spec_ref=experience_spec_ref,
         source_artifact_ref=candidates.source_artifact_ref,

@@ -280,6 +280,7 @@ __all__ = [
     "PixiShowPlanV1",
     "PixiShowPlanV2",
     "PixiShowAssetReadV1",
+    "PixiRendererLaunchV2",
     "PixiRendererShowEnvelopeV1",
     "PixiSubjectHintV1",
 ]

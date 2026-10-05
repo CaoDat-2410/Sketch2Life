@@ -184,11 +184,10 @@ def propose_colored_component_prompt(
         from PIL import Image
 
         with Image.open(BytesIO(image)) as source:
-            small = source.convert("RGB")
-            small.thumbnail((96, 96))
-            width, height = small.size
-            pixel_access = small.load()
-            pixels = [pixel_access[x, y] for y in range(height) for x in range(width)]
+            pixel_grid = _downsample_rgb_pixels(source)
+            if pixel_grid is None:
+                return Sam21PromptProposal(prompt_region=region)
+            width, height, pixels = pixel_grid
     except (ImportError, OSError, ValueError):
         return Sam21PromptProposal(prompt_region=region)
 
@@ -203,10 +202,7 @@ def propose_colored_component_prompt(
     ]
 
     target_ink = [
-        (x, y)
-        for y in range(top, bottom)
-        for x in range(left, right)
-        if ink[y * width + x]
+        (x, y) for y in range(top, bottom) for x in range(left, right) if ink[y * width + x]
     ]
     positive_points: tuple[tuple[float, float], ...] = ()
     if len(target_ink) >= 3:
@@ -223,14 +219,14 @@ def propose_colored_component_prompt(
             )
             if density < 3:
                 continue
-            candidate = (
+            core_candidate = (
                 density,
                 -((x - center_x) ** 2 + (y - center_y) ** 2),
                 -y,
                 -x,
             )
-            if best_core is None or candidate > best_core:
-                best_core = candidate
+            if best_core is None or core_candidate > best_core:
+                best_core = core_candidate
         if best_core is not None:
             x, y = -best_core[3], -best_core[2]
             positive_points = (((x + 0.5) / width, (y + 0.5) / height),)
@@ -261,9 +257,9 @@ def propose_colored_component_prompt(
                 ):
                     continue
                 distance = (x - region_center_x) ** 2 + (y - region_center_y) ** 2
-                candidate = (distance, y, x)
-                if best_negative is None or candidate > best_negative:
-                    best_negative = candidate
+                negative_candidate = (distance, y, x)
+                if best_negative is None or negative_candidate > best_negative:
+                    best_negative = negative_candidate
     negative_points = (
         (((best_negative[2] + 0.5) / width, (best_negative[1] + 0.5) / height),)
         if best_negative is not None
@@ -281,6 +277,30 @@ def _merge_prompt_points(
         if point not in merged and len(merged) < 8:
             merged.append(point)
     return tuple(merged)
+
+
+def _downsample_rgb_pixels(source: object) -> tuple[int, int, list[tuple[int, int, int]]] | None:
+    """Read a bounded RGB pixel grid and reject non-RGB/empty decoder results."""
+
+    from PIL import Image
+
+    if not isinstance(source, Image.Image):
+        return None
+    small = source.convert("RGB")
+    small.thumbnail((96, 96))
+    width, height = small.size
+    pixel_access = small.load()
+    if pixel_access is None:
+        return None
+    pixels: list[tuple[int, int, int]] = []
+    for y in range(height):
+        for x in range(width):
+            pixel = pixel_access[x, y]
+            if not isinstance(pixel, tuple) or len(pixel) != 3:
+                return None
+            red, green, blue = pixel
+            pixels.append((int(red), int(green), int(blue)))
+    return width, height, pixels
 
 
 def propose_colored_component_region(image: bytes) -> SourceRegionV1 | None:
@@ -301,11 +321,10 @@ def propose_colored_component_region(image: bytes) -> SourceRegionV1 | None:
         from io import BytesIO
 
         with Image.open(BytesIO(image)) as source:
-            small = source.convert("RGB")
-            small.thumbnail((96, 96))
-            width, height = small.size
-            pixel_access = small.load()
-            pixels = [pixel_access[x, y] for y in range(height) for x in range(width)]
+            pixel_grid = _downsample_rgb_pixels(source)
+            if pixel_grid is None:
+                return None
+            width, height, pixels = pixel_grid
     except (OSError, ValueError):
         return None
     ink = [
@@ -321,9 +340,7 @@ def propose_colored_component_region(image: bytes) -> SourceRegionV1 | None:
     # subjects do not automatically become one giant prompt.
     radius = max(2, min(4, round(min(width, height) * 0.04)))
     clustered_ink = [False] * (width * height)
-    ink_points = [
-        (index % width, index // width) for index, is_ink in enumerate(ink) if is_ink
-    ]
+    ink_points = [(index % width, index // width) for index, is_ink in enumerate(ink) if is_ink]
     for x, y in ink_points:
         for next_y in range(max(0, y - radius), min(height, y + radius + 1)):
             for next_x in range(max(0, x - radius), min(width, x + radius + 1)):
