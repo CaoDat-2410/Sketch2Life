@@ -9,6 +9,13 @@
 - Scope guard: do not modify the FEAT-026 untracked SRS artifact; do not change FEAT-018 frozen contracts, source artwork, or provider/privacy boundaries without the required review.
 - Validation: 16 selector tests, Ruff, and mypy pass. Catalog loader verifies 144 descriptors, 24 atlas hashes, and frame bounds. Repository harness/security scans remain globally invalid only because of pre-existing untracked FEAT-026 paths and its external SRS PDF; that user-owned folder was preserved unchanged.
 
+## FEAT-035 integration follow-up — 2026-10-03
+
+- The backend now permits a valid source-subject-only Pixi plan when the eligible companion set is
+  empty. FEAT-028's approval, provenance, license, QA, and runtime-eligibility gates are unchanged;
+  this does not activate any of the 144 descriptors or sprite cycles.
+- Evidence and limitations: `../../FEAT-035-branch-review-remediation/evidence/notes/implementation-progress-20261003.md`.
+
 ## Local motion-cycle preview — 2026-10-02
 
 - The dedicated preview allowlist contains only `motion.walker-avian.v1` and `motion.walker-corgi.v2`; source PNG hashes match their approved copies. Other cycles remain excluded, including `motion.flyer-songbird.v2` (centroid-drift QA failure).

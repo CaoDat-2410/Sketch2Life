@@ -11,6 +11,7 @@ import {
   RendererLoadCommandV2Schema,
   RendererLoadCommandV3Schema,
   RendererLoadCommandV4Schema,
+  RendererLoadCommandV5Schema,
   getSpriteCycleFrameIndex,
   getSpriteCycleTransform,
   RiggedArtworkPackageV1Schema,
@@ -23,6 +24,7 @@ import {
   type RendererLoadCommandV2,
   type RendererLoadCommandV3,
   type RendererLoadCommandV4,
+  type RendererLoadCommandV5,
   type PixiSpriteCycleReadV1,
 } from '../src/index';
 
@@ -45,7 +47,7 @@ if (stage === null || status === null || playButton === null || rendererInstance
 const app = new Application();
 let rendererInitialized = false;
 
-type ActiveLaunch = RendererLoadCommand | RendererLoadCommandV2 | RendererLoadCommandV3 | RendererLoadCommandV4;
+type ActiveLaunch = RendererLoadCommand | RendererLoadCommandV2 | RendererLoadCommandV3 | RendererLoadCommandV4 | RendererLoadCommandV5;
 type PlaybackController = Pick<ReturnType<typeof createBrowserArtPlayer>, 'play' | 'pause' | 'replay' | 'seekTo' | 'seekRelative' | 'getPlaybackState' | 'destroy'>;
 
 let launch: ActiveLaunch | null = null;
@@ -62,12 +64,12 @@ let supplementalTextures: Texture[] = [];
 let supplementalSprites = new Map<string, Sprite>();
 let activeSpriteCycle: {cycle: PixiSpriteCycleReadV1; root: Container; sprite: Sprite; textures: Texture[]; frameIndex: number | null; wasVisible: boolean} | null = null;
 
-function isV2Launch(command: ActiveLaunch): command is RendererLoadCommandV2 | RendererLoadCommandV3 | RendererLoadCommandV4 {
-  return command.contractName === 'RendererLoadCommandV2' || command.contractName === 'RendererLoadCommandV3' || command.contractName === 'RendererLoadCommandV4';
+function isV2Launch(command: ActiveLaunch): command is RendererLoadCommandV2 | RendererLoadCommandV3 | RendererLoadCommandV4 | RendererLoadCommandV5 {
+  return command.contractName === 'RendererLoadCommandV2' || command.contractName === 'RendererLoadCommandV3' || command.contractName === 'RendererLoadCommandV4' || command.contractName === 'RendererLoadCommandV5';
 }
 
-function isShowLaunch(command: ActiveLaunch): command is RendererLoadCommandV3 | RendererLoadCommandV4 {
-  return command.contractName === 'RendererLoadCommandV3' || command.contractName === 'RendererLoadCommandV4';
+function isShowLaunch(command: ActiveLaunch): command is RendererLoadCommandV3 | RendererLoadCommandV4 | RendererLoadCommandV5 {
+  return command.contractName === 'RendererLoadCommandV3' || command.contractName === 'RendererLoadCommandV4' || command.contractName === 'RendererLoadCommandV5';
 }
 
 function launchPlanId(command: ActiveLaunch): string {
@@ -244,11 +246,14 @@ async function loadLaunch(serialized: string): Promise<void> {
     status.textContent = 'Launch không phải JSON hợp lệ.';
     return;
   }
+  const parsedV5 = RendererLoadCommandV5Schema.safeParse(parsedJson);
   const parsedV4 = RendererLoadCommandV4Schema.safeParse(parsedJson);
   const parsedV3 = RendererLoadCommandV3Schema.safeParse(parsedJson);
   const parsedV2 = RendererLoadCommandV2Schema.safeParse(parsedJson);
   const parsedV1 = RendererLoadCommandSchema.safeParse(parsedJson);
-  const command = parsedV4.success
+  const command = parsedV5.success
+    ? parsedV5.data
+    : parsedV4.success
     ? parsedV4.data
     : parsedV3.success
     ? parsedV3.data
@@ -263,7 +268,7 @@ async function loadLaunch(serialized: string): Promise<void> {
   }
   lastLoadMessage = serialized;
   launch = command;
-  if (command.contractName === 'RendererLoadCommandV4' && command.spriteCycleStatus === 'BLOCKED') {
+  if ((command.contractName === 'RendererLoadCommandV4' || command.contractName === 'RendererLoadCommandV5') && command.spriteCycleStatus === 'BLOCKED') {
     console.info('[pixi-cycle]', JSON.stringify({
       event: 'blocked',
       behaviorClassId: command.showPlan.behaviorClass,
@@ -398,7 +403,7 @@ async function loadLaunch(serialized: string): Promise<void> {
         if (isShowLaunch(command)) {
           await loadSupplementalShow(command);
         }
-        if (command.contractName === 'RendererLoadCommandV4' && command.spriteCycle !== undefined) {
+        if ((command.contractName === 'RendererLoadCommandV4' || command.contractName === 'RendererLoadCommandV5') && command.spriteCycle !== undefined) {
           await loadSpriteCycle(command);
         }
       } catch (error) {
@@ -475,11 +480,14 @@ function receiveNativeMessage(event: MessageEvent): void {
     }
     return;
   }
+  const parsedV5 = RendererLoadCommandV5Schema.safeParse(parsed);
   const parsedV4 = RendererLoadCommandV4Schema.safeParse(parsed);
   const parsedV3 = RendererLoadCommandV3Schema.safeParse(parsed);
   const parsedV2 = RendererLoadCommandV2Schema.safeParse(parsed);
   const parsedV1 = RendererLoadCommandSchema.safeParse(parsed);
-  const command = parsedV4.success
+  const command = parsedV5.success
+    ? parsedV5.data
+    : parsedV4.success
     ? parsedV4.data
     : parsedV3.success
     ? parsedV3.data
@@ -552,11 +560,14 @@ function reportPixiInitializationFailure(serialized: string): void {
   } catch {
     return;
   }
+  const parsedV5 = RendererLoadCommandV5Schema.safeParse(parsedJson);
   const parsedV4 = RendererLoadCommandV4Schema.safeParse(parsedJson);
   const parsedV3 = RendererLoadCommandV3Schema.safeParse(parsedJson);
   const parsedV2 = RendererLoadCommandV2Schema.safeParse(parsedJson);
   const parsedV1 = RendererLoadCommandSchema.safeParse(parsedJson);
-  const command = parsedV4.success
+  const command = parsedV5.success
+    ? parsedV5.data
+    : parsedV4.success
     ? parsedV4.data
     : parsedV3.success
     ? parsedV3.data
@@ -645,7 +656,7 @@ async function textureFromBlob(
   return {texture: Texture.from(canvas), canvas, sourceWidth, sourceHeight};
 }
 
-async function loadSupplementalShow(command: RendererLoadCommandV3 | RendererLoadCommandV4): Promise<void> {
+async function loadSupplementalShow(command: RendererLoadCommandV3 | RendererLoadCommandV4 | RendererLoadCommandV5): Promise<void> {
   stopSupplementalShow();
   const root = new Container();
   const textures: Texture[] = [];
@@ -701,7 +712,7 @@ async function loadSupplementalShow(command: RendererLoadCommandV3 | RendererLoa
   }
 }
 
-async function loadSpriteCycle(command: RendererLoadCommandV4): Promise<void> {
+async function loadSpriteCycle(command: RendererLoadCommandV4 | RendererLoadCommandV5): Promise<void> {
   const cycle = command.spriteCycle;
   if (cycle === undefined) return;
   stopActiveSpriteCycle();

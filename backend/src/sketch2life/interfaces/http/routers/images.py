@@ -6,6 +6,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, File, Form, Header, Request, UploadFile
 from fastapi.responses import JSONResponse
+from starlette.concurrency import run_in_threadpool
 
 from sketch2life.application.services.ephemeral_sessions import (
     SessionWorkflowError,
@@ -68,7 +69,8 @@ async def upload_image(
     if source_image is not None:
         await source_image.close()
     try:
-        result, replayed = service.upload_image(
+        result, replayed = await run_in_threadpool(
+            service.upload_image,
             session_id=session_id,
             request_id=request_id,
             expected_session_version=expected_session_version,
@@ -125,7 +127,8 @@ async def upload_audio(
     body = await audio.read(_MAX_AUDIO_BYTES + 1)
     await audio.close()
     try:
-        result, replayed = service.upload_audio(
+        result, replayed = await run_in_threadpool(
+            service.upload_audio,
             session_id=session_id,
             request_id=request_id,
             expected_session_version=expected_session_version,

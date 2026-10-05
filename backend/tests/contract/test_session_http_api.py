@@ -6,6 +6,7 @@ from uuid import uuid4
 import pytest
 from fastapi.testclient import TestClient
 
+from sketch2life.application.ports.session_storage import IdempotencyReceipt
 from sketch2life.application.services.ephemeral_sessions import (
     DEMO_ACTOR_REF,
     EphemeralSessionService,
@@ -136,6 +137,21 @@ def test_expired_session_returns_410_and_removes_ephemeral_state() -> None:
     client = TestClient(create_app(session_service=service))
     command = _create_payload()
     client.post("/v1/sessions", json=command)
+    service._idempotency.record(
+        IdempotencyReceipt(
+            scope=f"{command['session_id']}:UPLOAD_IMAGE",
+            key="upload-image-receipt",
+            request_sha256="a" * 64,
+            response_body=b"{}",
+        )
+    )
+    unrelated = IdempotencyReceipt(
+        scope="unrelated-session:UPLOAD_IMAGE",
+        key="unrelated-receipt",
+        request_sha256="b" * 64,
+        response_body=b"{}",
+    )
+    service._idempotency.record(unrelated)
     clock.value += timedelta(seconds=61)
 
     response = client.get(
@@ -149,6 +165,12 @@ def test_expired_session_returns_410_and_removes_ephemeral_state() -> None:
     )
     assert response.status_code == 410
     assert response.json()["failure"]["code"] == "SESSION_EXPIRED"
+    assert service._idempotency.get(
+        scope=f"{command['session_id']}:UPLOAD_IMAGE", key="upload-image-receipt"
+    ) is None
+    assert service._idempotency.get(
+        scope=unrelated.scope, key=unrelated.key
+    ) == unrelated
     with pytest.raises(SessionWorkflowError, match="SESSION_NOT_FOUND"):
         service.read(
             session_id=str(command["session_id"]),

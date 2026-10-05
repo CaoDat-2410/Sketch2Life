@@ -1456,7 +1456,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           throw workflowFailure(rendererResult, 'Chưa chuẩn bị xong sân khấu chuyển động.');
         }
         const payload = asObject(rendererResult.payload);
-        const renderer = payload.renderer_mode === 'PIXI_SHOW_V2'
+        const renderer = payload.renderer_mode === 'PIXI_SHOW_V3'
+          ? payload.renderer_show_envelope_v3
+          : payload.renderer_mode === 'PIXI_SHOW_V2'
           ? payload.renderer_show_envelope_v2
           : payload.renderer_mode === 'PIXI_SHOW_V1'
             ? payload.renderer_show_envelope_v1
@@ -1493,7 +1495,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         throw workflowFailure(rendererResult, 'Bức tranh chuyển động chưa sẵn sàng.');
       }
       const payload = asObject(rendererResult.payload);
-      const renderer = payload.renderer_mode === 'PIXI_SHOW_V2'
+      const renderer = payload.renderer_mode === 'PIXI_SHOW_V3'
+        ? payload.renderer_show_envelope_v3
+        : payload.renderer_mode === 'PIXI_SHOW_V2'
         ? payload.renderer_show_envelope_v2
         : payload.renderer_mode === 'PIXI_SHOW_V1'
           ? payload.renderer_show_envelope_v1

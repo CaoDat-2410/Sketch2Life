@@ -15,7 +15,7 @@ from sketch2life.contracts.schemas.pixi_show import (
     PixiBehaviorClassV1,
     PixiShowActionV1,
     PixiShowIntentV1,
-    PixiShowPlanV1,
+    PixiShowPlanV2,
     PixiSubjectHintV1,
 )
 
@@ -68,7 +68,7 @@ def compile_pixi_show_plan(
     request: PixiShowPlanningRequest,
     intent: PixiShowIntentV1,
     plan_id: str | None = None,
-) -> PixiShowPlanV1:
+) -> PixiShowPlanV2:
     """Reject Gate-A drift, unsupported motion, and any model-invented asset ID."""
     expected_hint = _confirmed_subject_hint(request.confirmed_subject_label, request.subject_tags)
     if intent.visual_subject_hint_id not in {expected_hint, PixiSubjectHintV1.UNKNOWN}:
@@ -84,8 +84,6 @@ def compile_pixi_show_plan(
 
     candidate_ids = {asset.asset_id for asset in request.candidate_assets}
     selected_ids = set(intent.selected_asset_ids)
-    if not selected_ids:
-        raise PixiShowPlannerUnavailable("NO_COMPATIBLE_ASSET")
     if not selected_ids <= candidate_ids:
         raise PixiShowPlannerUnavailable("PLANNER_INVALID_RESULT")
     if request.subject_region is None:
@@ -124,10 +122,10 @@ def compile_pixi_show_plan(
     if referenced_assets != selected_ids:
         raise PixiShowPlannerUnavailable("PLANNER_INVALID_RESULT")
     try:
-        return PixiShowPlanV1.model_validate(
+        return PixiShowPlanV2.model_validate(
             {
-                "contractName": "PixiShowPlanV1",
-                "contractVersion": "1.0",
+                "contractName": "PixiShowPlanV2",
+                "contractVersion": "2.0",
                 "planId": plan_id or f"show-{uuid4().hex}",
                 "sessionId": request.session_id,
                 "packageId": request.package_id,
@@ -153,20 +151,50 @@ def compile_pixi_show_plan(
 def _confirmed_subject_hint(label: str, tags: tuple[str, ...]) -> PixiSubjectHintV1:
     normalized = _normalize(" ".join((label, *tags)))
     aliases: tuple[tuple[PixiSubjectHintV1, tuple[str, ...]], ...] = (
-        (PixiSubjectHintV1.BIRD, ("bird", "chim", "avian")),
-        (PixiSubjectHintV1.INSECT, ("insect", "butterfly", "buom", "butterflies")),
-        (PixiSubjectHintV1.FISH, ("fish", "ca", "fishes")),
-        (PixiSubjectHintV1.QUADRUPED, ("quadruped", "dog", "cho", "cat", "meo", "deer", "huou")),
-        (PixiSubjectHintV1.BIPED, ("biped", "person", "people", "be", "girl", "boy", "nguoi")),
-        (PixiSubjectHintV1.PLANT, ("plant", "flower", "hoa", "tree", "cay", "leaf", "la")),
-        (PixiSubjectHintV1.VEHICLE, ("vehicle", "car", "truck", "xe")),
+        (
+            PixiSubjectHintV1.BIRD,
+            ("bird", "chim", "avian", "chicken", "hen", "rooster", "con ga", "ga"),
+        ),
+        (
+            PixiSubjectHintV1.INSECT,
+            ("insect", "butterfly", "buom", "butterflies", "bee", "ong", "caterpillar"),
+        ),
+        (PixiSubjectHintV1.FISH, ("fish", "ca", "fishes", "ca chep", "ca vang")),
+        (
+            PixiSubjectHintV1.QUADRUPED,
+            (
+                "quadruped", "dog", "cho", "cat", "meo", "deer", "huou", "horse", "ngua",
+                "cow", "bo", "elephant", "voi",
+            ),
+        ),
+        (
+            PixiSubjectHintV1.BIPED,
+            ("biped", "person", "people", "be", "girl", "boy", "nguoi", "child", "tre em"),
+        ),
+        (
+            PixiSubjectHintV1.PLANT,
+            (
+                "plant", "flower", "hoa", "tree", "cay", "leaf", "la", "carrot", "ca rot",
+                "rau cu",
+            ),
+        ),
+        (PixiSubjectHintV1.VEHICLE, ("vehicle", "car", "truck", "xe", "o to", "oto")),
+        (PixiSubjectHintV1.OBJECT, ("object", "fossil", "hoa thach", "do vat", "vat the")),
     )
-    matches = {
-        hint
+    matches = [
+        (len(phrase.split()), hint)
         for hint, words in aliases
-        if any(_contains_token_phrase(normalized, word) for word in words)
-    }
-    return next(iter(matches)) if len(matches) == 1 else PixiSubjectHintV1.UNKNOWN
+        for phrase in words
+        if _contains_token_phrase(normalized, phrase)
+    ]
+    if not matches:
+        return PixiSubjectHintV1.UNKNOWN
+
+    # Prefer the most specific whole-token phrase: "cà rốt" must not be
+    # classified as fish merely because both normalize to the token "ca".
+    longest = max(length for length, _hint in matches)
+    most_specific = {hint for length, hint in matches if length == longest}
+    return next(iter(most_specific)) if len(most_specific) == 1 else PixiSubjectHintV1.UNKNOWN
 
 
 def _normalize(value: str) -> str:

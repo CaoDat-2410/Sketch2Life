@@ -4,3 +4,14 @@ packages:
   - "packages/art-renderer"
 allowBuilds:
   esbuild: true
+patchedDependencies:
+  expo-av@15.0.2: patches/expo-av@15.0.2.patch
+
+# Expo SDK 52 / React Native 0.76 must resolve the Metro 0.81 toolchain from
+# its own package graph. The sibling RN 0.87 app otherwise hoists Metro 0.87
+# into the workspace root, which breaks Expo's internal FileStore import.
+packageExtensions:
+  '@expo/metro-config@0.19.12':
+    dependencies:
+      metro-cache: 0.81.5
+      metro-config: 0.81.5

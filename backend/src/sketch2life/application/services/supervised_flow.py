@@ -8,7 +8,6 @@ from collections.abc import Callable, Mapping
 from dataclasses import replace
 from datetime import UTC, datetime
 from hashlib import sha256
-from threading import RLock
 from typing import Any, Literal, cast
 from uuid import uuid4
 
@@ -66,6 +65,7 @@ from sketch2life.application.services.semantic_activity_resolver import (
     resolve_activity_options,
     resolve_activity_options_v2,
 )
+from sketch2life.application.services.session_lock_pool import SessionLockPool
 from sketch2life.application.services.topic_semantics import (
     claims_from_raw,
     compose_topic_vi,
@@ -117,8 +117,10 @@ from sketch2life.contracts.schemas.p1_experience import (
     VersionedRefV1,
 )
 from sketch2life.contracts.schemas.pixi_motion_cycle import (
-    PixiRendererShowEnvelopeV2,
+    PixiRendererShowEnvelopeV3,
     PixiSpriteCycleReadV1,
+    PixiSpriteCycleReasonCodeV1,
+    PixiSpriteCycleStatusV1,
 )
 from sketch2life.contracts.schemas.pixi_show import PixiShowAssetReadV1
 from sketch2life.contracts.schemas.pixi_topic_asset_selection import (
@@ -443,7 +445,7 @@ class SupervisedFlowService:
         self._pixi_show_asset_issuer = pixi_show_asset_issuer
         self._pixi_motion_cycle_issuer = pixi_motion_cycle_issuer
         self._now = now
-        self._lock = RLock()
+        self._session_locks = SessionLockPool()
         self._media_resolver = LearningMediaResolver(InMemoryLearningMediaStore())
         self._media_fallback = LearningMediaFallback()
 
@@ -454,7 +456,7 @@ class SupervisedFlowService:
         required = {"operation", "user_initiated", "confirmation", "primary_anchor_id"}
         fingerprint = self._validate_command(command, operation, required)
         scope = f"{command.session_id}:{operation}"
-        with self._lock:
+        with self._session_locks.for_session(command.session_id):
             if replay := self._replay(scope, command.idempotency_key, fingerprint):
                 return replay, True
             snapshot = self._sessions.snapshot(command.session_id)
@@ -935,7 +937,7 @@ class SupervisedFlowService:
         operation = "REQUEST_RETAKE"
         fingerprint = self._validate_command(command, operation, {"operation", "user_initiated"})
         scope = f"{command.session_id}:{operation}"
-        with self._lock:
+        with self._session_locks.for_session(command.session_id):
             if replay := self._replay(scope, command.idempotency_key, fingerprint):
                 return replay, True
             snapshot = self._sessions.snapshot(command.session_id)
@@ -994,7 +996,7 @@ class SupervisedFlowService:
         required = {"operation", "user_initiated", "context"}
         fingerprint = self._validate_command(command, operation, required)
         scope = f"{command.session_id}:{operation}"
-        with self._lock:
+        with self._session_locks.for_session(command.session_id):
             if replay := self._replay(scope, command.idempotency_key, fingerprint):
                 return replay, True
             snapshot = self._sessions.snapshot(command.session_id)
@@ -1236,7 +1238,8 @@ class SupervisedFlowService:
                 503,
                 "Danh sách hoạt động đã tải; AI chưa thể xếp hạng lúc này.",
             )
-        assert self._semantic_catalog_v2 is not None
+        if self._semantic_catalog_v2 is None:
+            raise ActivityRankingUnavailable("ACTIVITY_RANKING_UNAVAILABLE", False)
         candidates = tuple(
             ActivityRankingCandidateV1(
                 activity_id=card.activity_id,
@@ -1579,7 +1582,7 @@ class SupervisedFlowService:
         operation = "RUN_P1_FILTER"
         fingerprint = self._validate_command(command, operation, {"operation", "user_initiated"})
         scope = f"{command.session_id}:{operation}"
-        with self._lock:
+        with self._session_locks.for_session(command.session_id):
             if replay := self._replay(scope, command.idempotency_key, fingerprint):
                 return replay, True
             snapshot = self._sessions.snapshot(command.session_id)
@@ -1754,7 +1757,7 @@ class SupervisedFlowService:
         operation = "PREPARE_EXPERIENCE"
         fingerprint = self._validate_command(command, operation, {"operation", "user_initiated"})
         scope = f"{command.session_id}:{operation}"
-        with self._lock:
+        with self._session_locks.for_session(command.session_id):
             if replay := self._replay(scope, command.idempotency_key, fingerprint):
                 return replay, True
             snapshot = self._sessions.snapshot(command.session_id)
@@ -1849,7 +1852,7 @@ class SupervisedFlowService:
         required = {"operation", "user_initiated", "approved"}
         fingerprint = self._validate_command(command, operation, required)
         scope = f"{command.session_id}:{operation}"
-        with self._lock:
+        with self._session_locks.for_session(command.session_id):
             if replay := self._replay(scope, command.idempotency_key, fingerprint):
                 return replay, True
             snapshot = self._sessions.snapshot(command.session_id)
@@ -1934,7 +1937,7 @@ class SupervisedFlowService:
         operation = "COMPLETE_HANDOFF"
         fingerprint = self._validate_command(command, operation, {"operation", "user_initiated"})
         scope = f"{command.session_id}:{operation}"
-        with self._lock:
+        with self._session_locks.for_session(command.session_id):
             if replay := self._replay(scope, command.idempotency_key, fingerprint):
                 return replay, True
             snapshot = self._sessions.snapshot(command.session_id)
@@ -1964,7 +1967,17 @@ class SupervisedFlowService:
                 raise _workflow_error(
                     "HANDOFF_BLOCKED", 409, "The approved activity is not ready for handoff."
                 )
-            assert gate.spec_ref and gate.activity_ref and gate.objective_ref and gate.template_ref
+            if (
+                gate.spec_ref is None
+                or gate.activity_ref is None
+                or gate.objective_ref is None
+                or gate.template_ref is None
+            ):
+                raise _workflow_error(
+                    "HANDOFF_IDENTITY_MISSING",
+                    409,
+                    "The approved activity identity is unavailable.",
+                )
             handoff = ActivityHandoffV1(
                 status="READY",
                 session_id=command.session_id,
@@ -2003,7 +2016,7 @@ class SupervisedFlowService:
         operation = "PREPARE_RENDERER"
         fingerprint = self._validate_command(command, operation, {"operation", "user_initiated"})
         scope = f"{command.session_id}:{operation}"
-        with self._lock:
+        with self._session_locks.for_session(command.session_id):
             if replay := self._replay(scope, command.idempotency_key, fingerprint):
                 return replay, True
             snapshot = self._sessions.snapshot(command.session_id)
@@ -2164,7 +2177,13 @@ class SupervisedFlowService:
             ]
             if focus_plan.extraction_status == "READY":
                 for target in focus_plan.targets:
-                    assert target.source_region is not None
+                    if target.source_region is None:
+                        raise _workflow_error(
+                            "PIXI_SUBJECT_REGION_MISSING",
+                            409,
+                            "A prepared scene target is missing its verified source region.",
+                            domain="PIXI",
+                        )
                     object_id = f"focus-{target.target_ref}"
                     center_x = target.source_region.x + target.source_region.width / 2
                     center_y = target.source_region.y + target.source_region.height / 2
@@ -2348,7 +2367,7 @@ class SupervisedFlowService:
                         "hãy thử lại khi Pixi sẵn sàng.",
                         domain="PIXI",
                     ) from None
-            show_envelope: PixiRendererShowEnvelopeV2 | None = None
+            show_envelope: PixiRendererShowEnvelopeV3 | None = None
             if self._pixi_show_planner_required:
                 try:
                     if launch_v2 is None or package is None:
@@ -2374,14 +2393,13 @@ class SupervisedFlowService:
                         ),
                         assets=self._topic_assets,
                     )
-                    if candidate_context.status != "READY":
-                        miss_reason = candidate_context.miss_reason
-                        code = (
-                            "NO_COMPATIBLE_ASSET"
-                            if miss_reason == "NO_SEMANTIC_MATCH"
-                            else "NO_ELIGIBLE_ASSETS"
+                    if candidate_context.status not in {"READY", "NO_MATCH"}:
+                        raise PixiShowPlannerUnavailable("PLANNER_UNAVAILABLE")
+                    if candidate_context.status == "NO_MATCH":
+                        _LOGGER.info(
+                            "pixi_show_subject_only reason=%s",
+                            candidate_context.miss_reason or "NO_COMPATIBLE_APPROVED_ASSETS",
                         )
-                        raise PixiShowPlannerUnavailable(code)
                     if package.tier.value == "WHOLE_DRAWING_V1":
                         raise PixiShowPlannerUnavailable("BEHAVIOR_CAPABILITY_UNSUPPORTED")
                     if (
@@ -2420,6 +2438,9 @@ class SupervisedFlowService:
                         )
                         for item in candidate_context.candidates
                     )
+                    renderer_duration_seconds = launch_v2.animation_plan.duration_seconds
+                    if not renderer_duration_seconds.is_integer():
+                        raise PixiShowPlannerUnavailable("PLANNER_INVALID_RESULT")
                     planning_request = PixiShowPlanningRequest(
                         request_id=command.request_id,
                         session_id=command.session_id,
@@ -2432,7 +2453,7 @@ class SupervisedFlowService:
                         subject_tags=anchor_set.primary_anchor.semantic_tags,
                         experience_spec_id=spec.spec_id,
                         experience_spec_version=spec.spec_version,
-                        renderer_duration_seconds=launch_v2.animation_plan.duration_seconds,
+                        renderer_duration_seconds=int(renderer_duration_seconds),
                         activity_id=spec.activity_template.activity_ref.id,
                         activity_label=activity,
                         objective_ids=(objective_id,),
@@ -2451,8 +2472,8 @@ class SupervisedFlowService:
                     asset_reads = self._pixi_show_asset_issuer(show_plan.selected_asset_ids)
                     cycle_selection = select_motion_cycle(show_plan)
                     sprite_cycle: PixiSpriteCycleReadV1 | None = None
-                    cycle_status = "NOT_APPLICABLE"
-                    cycle_reason: str | None = None
+                    cycle_status: PixiSpriteCycleStatusV1 = "NOT_APPLICABLE"
+                    cycle_reason: PixiSpriteCycleReasonCodeV1 | None = None
                     if cycle_selection.reason_code is not None:
                         cycle_status = "BLOCKED"
                         cycle_reason = cycle_selection.reason_code
@@ -2474,9 +2495,9 @@ class SupervisedFlowService:
                             else:
                                 sprite_cycle = issue.cycle
                                 cycle_status = "READY"
-                    show_envelope = PixiRendererShowEnvelopeV2(
-                        contractName="PixiRendererShowEnvelopeV2",
-                        contractVersion="2.0",
+                    show_envelope = PixiRendererShowEnvelopeV3(
+                        contractName="PixiRendererShowEnvelopeV3",
+                        contractVersion="3.0",
                         rendererLaunchV2=launch_v2,
                         showPlan=show_plan,
                         assetReads=asset_reads,
@@ -2515,7 +2536,7 @@ class SupervisedFlowService:
                         else None
                     ),
                     "renderer_mode": (
-                        "PIXI_SHOW_V2"
+                        "PIXI_SHOW_V3"
                         if show_envelope is not None
                         else "PIXI_V2"
                         if launch_v2 is not None
@@ -2525,8 +2546,12 @@ class SupervisedFlowService:
                         None
                     ),
                     "renderer_show_envelope_v2": (
+                        None
+                    ),
+                    "renderer_show_envelope_v3": (
                         show_envelope.model_dump(mode="json", by_alias=True, exclude_none=True)
-                        if show_envelope is not None else None
+                        if show_envelope is not None
+                        else None
                     ),
                     "subject_candidates": subject_candidates.model_dump(
                         mode="json", by_alias=True, exclude_none=True
@@ -2577,7 +2602,7 @@ class SupervisedFlowService:
         required = {"operation", "user_initiated", "feedback"}
         fingerprint = self._validate_command(command, operation, required)
         scope = f"{command.session_id}:{operation}"
-        with self._lock:
+        with self._session_locks.for_session(command.session_id):
             if replay := self._replay(scope, command.idempotency_key, fingerprint):
                 return replay, True
             snapshot = self._sessions.snapshot(command.session_id)

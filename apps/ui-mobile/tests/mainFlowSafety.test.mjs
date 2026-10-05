@@ -54,14 +54,16 @@ describe('bounded image intake metadata', () => {
     expect(inspectImagePickerMetadata('loop.apng', 'image/apng').unsupportedAnimation).toBe(true);
   });
 
-  it('computes a bounded output size and rejects source dimensions before native decode', () => {
+  it('normalizes common 12 MP photos within a bounded output and rejects unsafe dimensions', () => {
     const target = targetImageDimensions(6000, 4000);
     expect(target).not.toBeNull();
     expect(target.width * target.height).toBeLessThanOrEqual(4_000_000);
     expect(Math.max(target.width, target.height)).toBeLessThanOrEqual(4096);
-    expect(sourceImageExceedsDecodeBudget(6000, 4000)).toBe(false);
+    expect(sourceImageExceedsDecodeBudget(4032, 3024)).toBe(false);
+    expect(sourceImageExceedsDecodeBudget(6000, 4000)).toBe(true);
     expect(sourceImageExceedsDecodeBudget(12_001, 1000)).toBe(true);
-    expect(sourceImageExceedsDecodeBudget(5000, 3000)).toBe(true);
+    expect(sourceImageExceedsDecodeBudget(5000, 3000)).toBe(false);
+    expect(sourceImageExceedsDecodeBudget(5000, 3500)).toBe(true);
   });
 });
 

@@ -4,9 +4,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from sketch2life.contracts.schemas.pixi_motion_cycle import PixiSpriteCycleReasonCodeV1
 from sketch2life.contracts.schemas.pixi_show import (
     PixiBehaviorClassV1,
     PixiShowPlanV1,
+    PixiShowPlanV2,
     PixiSubjectHintV1,
 )
 
@@ -18,7 +20,7 @@ class PixiMotionCycleSelection:
     end_seconds: float
     x: float | None
     y: float | None
-    reason_code: str | None = None
+    reason_code: PixiSpriteCycleReasonCodeV1 | None = None
 
 
 _CYCLE_BY_SUBJECT_BEHAVIOR: dict[tuple[PixiSubjectHintV1, PixiBehaviorClassV1], str] = {
@@ -34,7 +36,7 @@ _CYCLE_BY_SUBJECT_BEHAVIOR: dict[tuple[PixiSubjectHintV1, PixiBehaviorClassV1], 
 _STAGE_CANDIDATES = ((0.18, 0.18), (0.82, 0.18), (0.18, 0.82), (0.82, 0.82))
 
 
-def select_motion_cycle(plan: PixiShowPlanV1) -> PixiMotionCycleSelection:
+def select_motion_cycle(plan: PixiShowPlanV1 | PixiShowPlanV2) -> PixiMotionCycleSelection:
     """Choose only a reviewed registry cycle; never infer a class from a filename or free text."""
     cycle_id = _CYCLE_BY_SUBJECT_BEHAVIOR.get((plan.visual_subject_hint_id, plan.behavior_class))
     if cycle_id is None:

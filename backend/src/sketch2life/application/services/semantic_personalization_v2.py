@@ -7,12 +7,12 @@ import json
 from typing import Any, Literal, cast
 
 from sketch2life.contracts.schemas.semantic_personalization_v2 import (
+    ActivityBridgeV2,
     AgeAdaptationV2,
     BackendWorkflowResultV2,
     ConfirmedSceneUnderstandingV2,
-    ActivityBridgeV2,
-    ExperienceSpecV2,
     ExperienceContinuityV2,
+    ExperienceSpecV2,
     SceneConceptV2,
     SemanticActivityMatchV2,
     WorkflowBandResultV2,

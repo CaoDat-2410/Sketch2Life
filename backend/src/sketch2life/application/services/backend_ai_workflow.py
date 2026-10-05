@@ -601,8 +601,8 @@ class BackendAiWorkflow:
         ]
         chosen = (non_repeating or strongest)[0]
         _candidate, compilation, anchor_set, semantic_match, semantic_match_v2 = chosen
-        assert compilation.spec is not None
-        assert compilation.handoff is not None
+        if compilation.spec is None or compilation.handoff is None:
+            raise RuntimeError("selected workflow compilation is missing its approved handoff")
         spec = compilation.spec
         activity_id = spec.activity_template.activity_ref.id
         objective_id = spec.learning_focus.objective_ref.id
@@ -885,8 +885,8 @@ class BackendAiWorkflow:
         ]
         chosen = (non_repeating or strongest)[0]
         candidate, compilation, anchor_set, semantic_match = chosen
-        assert compilation.spec is not None
-        assert compilation.handoff is not None
+        if compilation.spec is None or compilation.handoff is None:
+            raise RuntimeError("selected workflow compilation is missing its approved handoff")
         spec = compilation.spec
         activity_id = spec.activity_template.activity_ref.id
         objective_id = spec.learning_focus.objective_ref.id
@@ -1508,11 +1508,18 @@ def _duration_minutes(duration: dict[str, Any] | None) -> dict[str, int] | None:
         return None
     if duration["duration_type"] == "MULTI_DAY":
         initial = duration["initial_session_minutes"]
-        assert isinstance(initial, int)
+        if not isinstance(initial, int) or isinstance(initial, bool):
+            raise ValueError("multi-day duration is missing an integer initial-session value")
         return {"min_minutes": initial, "max_minutes": initial}
     minimum = duration["min_minutes"]
     maximum = duration["max_minutes"]
-    assert isinstance(minimum, int) and isinstance(maximum, int)
+    if (
+        not isinstance(minimum, int)
+        or isinstance(minimum, bool)
+        or not isinstance(maximum, int)
+        or isinstance(maximum, bool)
+    ):
+        raise ValueError("single-session duration must contain integer bounds")
     return {"min_minutes": minimum, "max_minutes": maximum}
 
 

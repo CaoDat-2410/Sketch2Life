@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import base64
 from hashlib import sha256
+from typing import cast
 from uuid import uuid4
 
 from pydantic import TypeAdapter, ValidationError
@@ -14,9 +15,13 @@ from sketch2life.application.ports.pixi_show_planner import (
     PixiShowPlanningRequest,
 )
 from sketch2life.contracts.schemas.pixi_show import (
+    PixiShowAssetRoleV1,
     PixiShowIntentV1,
     PixiShowPlannerAssetCandidateV1,
-    PixiShowPlannerRequestV1,
+    PixiShowPlannerRequestV2,
+    PixiShowRigTierV1,
+    PixiShowSourceContentTypeV1,
+    PixiShowSourceCropV1,
 )
 from sketch2life.infrastructure.ai.lightning_client import (
     JsonTransport,
@@ -24,7 +29,23 @@ from sketch2life.infrastructure.ai.lightning_client import (
 )
 
 _MAX_CROP_BYTES = 1_000_000
+_ALLOWED_ASSET_ROLES = frozenset({"SUBJECT", "ENVIRONMENT", "PROP", "EFFECT"})
+_ALLOWED_RIG_TIERS = frozenset(
+    {"FULL_AUTO_RIG", "CUTOUT_MICRO_MOTION", "BBOX_VISUAL_FOCUS"}
+)
 _RESULT_ADAPTER: TypeAdapter[PixiShowIntentV1] = TypeAdapter(PixiShowIntentV1)
+
+
+def _planner_asset_role(value: str) -> PixiShowAssetRoleV1:
+    if value not in _ALLOWED_ASSET_ROLES:
+        raise PixiShowPlannerUnavailable("PLANNER_INVALID_RESULT")
+    return cast(PixiShowAssetRoleV1, value)
+
+
+def _planner_rig_tier(value: str) -> PixiShowRigTierV1:
+    if value not in _ALLOWED_RIG_TIERS:
+        raise PixiShowPlannerUnavailable("PLANNER_INVALID_RESULT")
+    return cast(PixiShowRigTierV1, value)
 
 
 class LightningPixiShowPlanner(PixiShowPlannerPort):
@@ -34,7 +55,7 @@ class LightningPixiShowPlanner(PixiShowPlannerPort):
         self,
         *,
         transport: JsonTransport,
-        endpoint_path: str = "/v2/pixi/show-plan",
+        endpoint_path: str = "/v3/pixi/show-plan",
     ) -> None:
         if not endpoint_path.startswith("/"):
             raise ValueError("Pixi show planner path must be absolute")
@@ -47,31 +68,35 @@ class LightningPixiShowPlanner(PixiShowPlannerPort):
             raise PixiShowPlannerUnavailable("SUBJECT_CROP_UNAVAILABLE")
         if not _has_matching_signature(crop, request.source_crop_content_type):
             raise PixiShowPlannerUnavailable("SUBJECT_CROP_UNAVAILABLE")
+        if request.subject_region is None:
+            raise PixiShowPlannerUnavailable("SUBJECT_RECONFIRMATION_REQUIRED")
+        if request.source_crop_content_type not in {"image/png", "image/jpeg"}:
+            raise PixiShowPlannerUnavailable("SUBJECT_CROP_UNAVAILABLE")
 
         candidates = tuple(
             PixiShowPlannerAssetCandidateV1(
                 assetId=item.asset_id,
                 label=item.label,
-                role=item.role,
+                role=_planner_asset_role(item.role),
                 visualDescription=item.visual_description,
                 topicTags=item.topic_tags[:12],
             )
             for item in request.candidate_assets[:6]
         )
-        if not candidates:
-            raise PixiShowPlannerUnavailable("NO_ELIGIBLE_ASSETS")
         if len({item.asset_id for item in candidates}) != len(candidates):
             raise PixiShowPlannerUnavailable("PLANNER_INVALID_RESULT")
 
-        body = PixiShowPlannerRequestV1(
-            contractName="PixiShowPlannerRequestV1",
-            contractVersion="1.0",
+        content_type = cast(PixiShowSourceContentTypeV1, request.source_crop_content_type)
+        source_crop = PixiShowSourceCropV1(
+            contentType=content_type,
+            sha256=sha256(crop).hexdigest(),
+            contentBase64=base64.b64encode(crop).decode("ascii"),
+        )
+        body = PixiShowPlannerRequestV2(
+            contractName="PixiShowPlannerRequestV2",
+            contractVersion="2.0",
             requestId=str(uuid4()),
-            sourceCrop={
-                "contentType": request.source_crop_content_type,
-                "sha256": sha256(crop).hexdigest(),
-                "contentBase64": base64.b64encode(crop).decode("ascii"),
-            },
+            sourceCrop=source_crop,
             sourceSubjectRegion=request.subject_region,
             rendererDurationSeconds=request.renderer_duration_seconds,
             confirmedSubjectLabel=request.confirmed_subject_label[:160],
@@ -80,7 +105,7 @@ class LightningPixiShowPlanner(PixiShowPlannerPort):
             activityLabel=request.activity_label[:160],
             objectiveIds=request.objective_ids[:3],
             objectiveLabels=request.objective_labels[:3],
-            rigTier=request.rig_tier,
+            rigTier=_planner_rig_tier(request.rig_tier),
             partRoles=request.part_roles[:8],
             candidateAssets=candidates,
         )

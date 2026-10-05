@@ -13,7 +13,6 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from sketch2life.contracts.schemas.p1_experience import VersionedRefV1
 
-
 PrintRequirement = Literal[
     "NO_PRINTABLE_ASSET",
     "PRINT_RECOMMENDED",
@@ -133,7 +132,10 @@ class ActivityPreparationCatalogV1(BaseModel):
 
     @model_validator(mode="after")
     def validate_catalog(self) -> ActivityPreparationCatalogV1:
-        refs = [(profile.activity_ref.id, profile.activity_ref.version) for profile in self.profiles]
+        refs = [
+            (profile.activity_ref.id, profile.activity_ref.version)
+            for profile in self.profiles
+        ]
         if len(refs) != len(set(refs)):
             raise ValueError("activity preparation catalog contains duplicate activity refs")
         if any(profile.catalog_revision != self.catalog_revision for profile in self.profiles):

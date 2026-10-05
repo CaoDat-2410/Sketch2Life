@@ -9,7 +9,6 @@ from collections.abc import Callable, Mapping
 from datetime import UTC, datetime, timedelta
 from hashlib import sha256
 from pathlib import Path
-from threading import RLock
 from typing import Literal, Protocol, cast
 from uuid import uuid4
 
@@ -43,6 +42,7 @@ from sketch2life.application.services.raw_understanding_mapper import (
     RawUnderstandingMappingError,
     map_vision_result_to_raw,
 )
+from sketch2life.application.services.session_lock_pool import SessionLockPool
 from sketch2life.application.services.topic_semantics import (
     build_topic_directions,
     claims_from_raw,
@@ -148,7 +148,7 @@ class LiveImageDemoService:
         self._asr_profile_id = asr_profile_id
         self._renderer_source_grants = renderer_source_grants
         self._now = now
-        self._lock = RLock()
+        self._session_locks = SessionLockPool()
 
     def upload_image(
         self,
@@ -190,7 +190,7 @@ class LiveImageDemoService:
             + b"\0synthetic-non-child-confirmed"
         ).hexdigest()
         scope = f"{session_id}:UPLOAD_IMAGE"
-        with self._lock:
+        with self._session_locks.for_session(session_id):
             if replay := self._replay(scope, idempotency_key, fingerprint):
                 return replay, True
             snapshot = self._sessions.snapshot(session_id)
@@ -477,7 +477,7 @@ class LiveImageDemoService:
             + content_type.encode("ascii")
         ).hexdigest()
         scope = f"{session_id}:UPLOAD_AUDIO"
-        with self._lock:
+        with self._session_locks.for_session(session_id):
             if replay := self._replay(scope, idempotency_key, fingerprint):
                 return replay, True
             snapshot = self._sessions.snapshot(session_id)
@@ -700,7 +700,7 @@ class LiveImageDemoService:
                 separators=(",", ":"),
             ).encode("utf-8")
         ).hexdigest()
-        with self._lock:
+        with self._session_locks.for_session(command.session_id):
             if replay := self._replay(scope, command.idempotency_key, fingerprint):
                 return replay, True
             if self._vision is None:
@@ -1163,7 +1163,7 @@ class LiveImageDemoService:
             )
         fingerprint = self._validate_command(command, operation, required)
         scope = f"{command.session_id}:{operation}"
-        with self._lock:
+        with self._session_locks.for_session(command.session_id):
             if replay := self._replay(scope, command.idempotency_key, fingerprint):
                 return replay, True
             snapshot = self._sessions.snapshot(command.session_id)

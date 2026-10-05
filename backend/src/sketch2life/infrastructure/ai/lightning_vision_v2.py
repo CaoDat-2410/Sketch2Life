@@ -165,6 +165,17 @@ class LightningVisionV2Adapter:
                 VisionNonPolicyErrorDetailV2.PERMANENT_RUNTIME_FAILURE,
                 retryable=False,
             )
+        except OSError:
+            # Test doubles and socket edge cases may expose a reset/disconnect directly rather
+            # than as the transport's sanitized LightningProviderError.
+            return self._runtime_failure(
+                request,
+                profile,
+                catalog_hash,
+                VisionErrorCode.VISION_PROVIDER_FAILURE,
+                VisionNonPolicyErrorDetailV2.TRANSIENT_RUNTIME_FAILURE,
+                retryable=True,
+            )
 
         try:
             result = _RESULT_ADAPTER.validate_python(raw_result)

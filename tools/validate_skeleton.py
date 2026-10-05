@@ -106,6 +106,54 @@ def main() -> int:
     ):
         errors.append("Android release build must not use the debug signing key")
 
+    # The runnable app is apps/ui-mobile; keep the older apps/mobile skeleton checks above
+    # for the approved architecture scaffold, but validate the app used by the workspace too.
+    active_app = ROOT / "apps/ui-mobile"
+    active_android = active_app / "android"
+    active_root_gradle = active_android / "build.gradle"
+    active_app_gradle = active_android / "app/build.gradle"
+    active_manifest = active_android / "app/src/main/AndroidManifest.xml"
+    active_config = active_app / "app.json"
+    for path in (active_root_gradle, active_app_gradle, active_manifest, active_config):
+        if not path.is_file():
+            errors.append(f"active Android app is missing: {path.relative_to(ROOT)}")
+
+    if all(path.is_file() for path in (active_root_gradle, active_app_gradle, active_manifest, active_config)):
+        active_gradle_text = active_root_gradle.read_text(encoding="utf-8")
+        active_build_text = active_app_gradle.read_text(encoding="utf-8")
+        active_manifest_text = active_manifest.read_text(encoding="utf-8")
+        active_expo = json.loads(active_config.read_text(encoding="utf-8")).get("expo", {})
+        for expected in (
+            "?: '29'",
+            "?: '37'",
+            "?: '36'",
+        ):
+            if expected not in active_gradle_text:
+                errors.append(f"active Android app does not match ADR-0004 SDK baseline: {expected}")
+        if 'applicationId \'com.sketch2life.mobile\'' not in active_build_text:
+            errors.append("active Android app must retain applicationId com.sketch2life.mobile")
+        if 'android.permission.RECORD_AUDIO' not in active_manifest_text:
+            errors.append("active Android manifest must declare RECORD_AUDIO for explicit narration")
+        if re.search(
+            r"release\s*\{[^}]*signingConfig\s+signingConfigs\.debug",
+            active_build_text,
+            re.DOTALL,
+        ):
+            errors.append("active Android release build must not use the debug signing key")
+        if "ANDROID_RELEASE_STORE_FILE" not in active_build_text or "verifyReleaseSigning" not in active_build_text:
+            errors.append("active Android release signing must be injected and fail closed")
+        plugins = active_expo.get("plugins", [])
+        if not any(
+            (plugin == "expo-av")
+            or (isinstance(plugin, list) and plugin and plugin[0] == "expo-av")
+            for plugin in plugins
+        ):
+            errors.append("active Expo config must use the expo-av permission plugin")
+        if "android.permission.RECORD_AUDIO" in active_expo.get("android", {}).get(
+            "blockedPermissions", []
+        ):
+            errors.append("active Expo config must not block RECORD_AUDIO")
+
     ios_files = [path for path in (ROOT / "apps/mobile/ios").rglob("*") if path.is_file()]
     if ios_files:
         errors.append("Android-only project contains active iOS files")

@@ -14,10 +14,14 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from threading import RLock
+from typing import cast
 
 from PIL import Image
 
-from sketch2life.contracts.schemas.pixi_motion_cycle import PixiSpriteCycleReadV1
+from sketch2life.contracts.schemas.pixi_motion_cycle import (
+    PixiSpriteCycleReadV1,
+    PixiSpriteCycleReasonCodeV1,
+)
 from sketch2life.contracts.schemas.pixi_show import PixiShowAssetReadV1
 from sketch2life.contracts.schemas.pixi_topic_asset_selection import TopicAssetDescriptorV1
 
@@ -55,7 +59,10 @@ class PixiShowAssetUnavailable(Exception):
     )
 
     def __init__(self, reason_code: str = "ASSET_UNAVAILABLE") -> None:
-        self.reason_code = reason_code if reason_code in self.CODES else "ASSET_UNAVAILABLE"
+        self.reason_code = cast(
+            PixiSpriteCycleReasonCodeV1,
+            reason_code if reason_code in self.CODES else "ASSET_UNAVAILABLE",
+        )
         super().__init__(self.reason_code)
 
 
@@ -89,7 +96,9 @@ class PixiShowAssetService:
         self._lock = RLock()
 
     def issue_reads(self, asset_ids: tuple[str, ...]) -> tuple[PixiShowAssetReadV1, ...]:
-        if not asset_ids or len(asset_ids) > 3 or len(set(asset_ids)) != len(asset_ids):
+        if not asset_ids:
+            return ()
+        if len(asset_ids) > 3 or len(set(asset_ids)) != len(asset_ids):
             raise PixiShowAssetUnavailable from None
         prepared: list[tuple[str, bytes, str]] = []
         for asset_id in asset_ids:

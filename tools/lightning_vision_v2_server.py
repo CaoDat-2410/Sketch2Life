@@ -8,6 +8,7 @@ and temporary media files are never logged.
 from __future__ import annotations
 
 import base64
+import hmac
 import json
 import logging
 import math
@@ -53,6 +54,7 @@ from sketch2life.contracts.schemas.child_preference_classification import (
 from sketch2life.contracts.schemas.pixi_show import (
     PixiShowIntentV1,
     PixiShowPlannerRequestV1,
+    PixiShowPlannerRequestV2,
 )
 from sketch2life.contracts.schemas.sam21 import (
     Sam21PointV1,
@@ -414,7 +416,7 @@ def vision_v2(
         raise HTTPException(
             status_code=503, detail="provider authentication is not configured"
         )
-    if authorization != f"Bearer {EXPECTED_AUTH}":
+    if not _auth_matches(authorization):
         raise HTTPException(status_code=401, detail="unauthorized")
 
     reference = payload.request.source_image_ref
@@ -645,6 +647,21 @@ def plan_pixi_show_v2(
     payload: PixiShowPlannerRequestV1,
     authorization: str | None = Header(default=None),
 ) -> dict[str, object]:
+    return _plan_pixi_show(payload, authorization)
+
+
+@app.post("/v3/pixi/show-plan", response_model=PixiShowIntentV1)
+def plan_pixi_show_v3(
+    payload: PixiShowPlannerRequestV2,
+    authorization: str | None = Header(default=None),
+) -> dict[str, object]:
+    return _plan_pixi_show(payload, authorization)
+
+
+def _plan_pixi_show(
+    payload: PixiShowPlannerRequestV1 | PixiShowPlannerRequestV2,
+    authorization: str | None,
+) -> dict[str, object]:
     """Make exactly one gated multimodal planner call; never log crop or prompt content."""
     _require_auth(authorization)
     if os.getenv(_PIXI_SHOW_PLANNER_ENABLED_ENV_VAR, "false").strip().lower() != "true":
@@ -697,7 +714,9 @@ def plan_pixi_show_v2(
         "and behavior only as an advisory consistency check; the confirmed label and selected "
         "activity/objectives are authoritative and must not be changed. Beat x/y are normalized "
         "coordinates in the original full frame; keep companion centers outside the supplied "
-        "subject region. Use only listed asset IDs. "
+        "subject region. Use only listed asset IDs. If eligible_static_assets is empty, "
+        "selectedAssetIds must be [] and every beat must target SOURCE_SUBJECT; never invent "
+        "companion assets. "
         "Assets are static poses, not walk/flight cycles. Use their beats only for NOTICE, "
         "APPROACH, INTERACT, or SETTLE. Source-subject WALK_STEP/FLAP/GLIDE/SWIM/SLITHER/ROLL "
         "requires matching verified part roles and full rig capability. Provide 3–6 ordered, "
@@ -1242,8 +1261,14 @@ def _require_auth(authorization: str | None) -> None:
         raise HTTPException(
             status_code=503, detail="provider authentication is not configured"
         )
-    if authorization != f"Bearer {EXPECTED_AUTH}":
+    if not _auth_matches(authorization):
         raise HTTPException(status_code=401, detail="unauthorized")
+
+
+def _auth_matches(authorization: str | None) -> bool:
+    supplied = (authorization or "").encode("utf-8")
+    expected = f"Bearer {EXPECTED_AUTH}".encode()
+    return hmac.compare_digest(supplied, expected)
 
 
 def _decode_audio(source: _SourceAudioV1) -> bytes:

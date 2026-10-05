@@ -112,3 +112,12 @@ Updated: 2026-10-02
 - Global harness validation remains blocked by missing evidence subdirectories in FEAT-026, FEAT-033,
   and FEAT-034; FEAT-028 and FEAT-030 have no missing harness paths. These out-of-scope feature paths
   were left untouched.
+
+## FEAT-035 integration follow-up — 2026-10-03
+
+- Added the additive subject-only Pixi V3 path so an empty rights-cleared companion shortlist no
+  longer invalidates an otherwise valid subject show. Essential subject/rig checks and the sprite
+  cycle/read gates remain intact; no PIXI_V2 downgrade or asset promotion was introduced.
+- Full backend tests and focused Pixi regressions pass; this establishes contract/service behavior,
+  not a successful live drawing or Android visual acceptance. See
+  `../../FEAT-035-branch-review-remediation/evidence/notes/implementation-progress-20261003.md`.

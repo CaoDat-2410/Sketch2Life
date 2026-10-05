@@ -1,0 +1,11 @@
+diff --git a/android/CMakeLists.txt b/android/CMakeLists.txt
+index 6b5f52a52970e41e84ba232a51c978cde1cd2984..cc4fa440c862559e93a092fd910890967f84f1d5 100644
+--- a/android/CMakeLists.txt
++++ b/android/CMakeLists.txt
+@@ -3,2 +3,5 @@
+ project(expo-av)
+-
++# pnpm's content-addressed package paths can make Ninja consider the CMake
++# graph dirty on every regeneration pass on Windows. Gradle owns regeneration
++# when native inputs change, so suppress Ninja's automatic reconfigure loop.
++set(CMAKE_SUPPRESS_REGENERATION ON)

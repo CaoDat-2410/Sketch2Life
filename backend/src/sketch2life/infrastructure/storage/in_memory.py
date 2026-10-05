@@ -158,6 +158,16 @@ class InMemoryIdempotencyStore:
                 del self._receipts[identity]
             return len(identities)
 
+    def delete_session(self, session_id: str) -> int:
+        scope_prefix = f"{session_id}:"
+        with self._lock:
+            identities = [
+                identity for identity in self._receipts if identity[0].startswith(scope_prefix)
+            ]
+            for identity in identities:
+                del self._receipts[identity]
+            return len(identities)
+
 
 def _require_aware(value: datetime) -> None:
     if value.tzinfo is None or value.utcoffset() is None:

@@ -35,6 +35,10 @@ def test_production_accepts_firebase_and_runpod_runtime_references() -> None:
     assert settings.ai_provider == "runpod"
 
 
+def test_default_pixi_planner_path_matches_subject_only_v3_contract() -> None:
+    assert Settings().lightning_pixi_show_path == "/v3/pixi/show-plan"
+
+
 @pytest.mark.parametrize("env", ["local", "test"])
 def test_pixi_sprite_dev_preview_requires_explicit_local_test_flag(env: str) -> None:
     assert Settings(env=env).pixi_sprite_cycle_dev_preview_allowed is False

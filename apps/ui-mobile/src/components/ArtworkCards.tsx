@@ -223,7 +223,7 @@ export const SplashHeroIllustration: React.FC<{ height?: number }> = ({ height =
       }}
     >
       <Image
-        source={require('../../assets/images/splash_hero.png')}
+        source={require('../../assets/images/splash_hero.jpg')}
         style={{ width: '100%', height: '100%', resizeMode: 'contain' }}
       />
     </Animated.View>
@@ -264,7 +264,7 @@ export const OnboardingHeroIllustration: React.FC<{ height?: number }> = ({ heig
       }}
     >
       <Image
-        source={require('../../assets/images/onboarding_hero.png')}
+        source={require('../../assets/images/onboarding_hero.jpg')}
         style={{ width: '100%', height: '100%', resizeMode: 'contain' }}
       />
     </Animated.View>
@@ -306,7 +306,7 @@ export const VoiceGirlMicIllustration: React.FC<{ height?: number }> = ({ height
       }}
     >
       <Image
-        source={require('../../assets/images/voice_girl.png')}
+      source={require('../../assets/images/voice_girl.jpg')}
         style={{ width: height * 1.1, height, resizeMode: 'contain' }}
       />
       {/* Native speech bubble matching Image 1 Screen 6 */}
@@ -324,7 +324,7 @@ export const VoiceGirlMicIllustration: React.FC<{ height?: number }> = ({ height
 export const CatDrawingArtwork: React.FC<{ height?: number }> = ({ height = 180 }) => (
   <View style={[styles.artworkCard, { height, backgroundColor: '#FEF9C3', overflow: 'visible' }]}>
     <Image
-      source={require('../../assets/images/photo_cat_paper.png')}
+      source={require('../../assets/images/photo_cat_paper.jpg')}
       style={{ width: '100%', height: '100%', resizeMode: 'contain', borderRadius: 12 }}
     />
     {/* Speech bubble in top-right corner matching reference mockup */}
@@ -342,7 +342,7 @@ export const CatDrawingArtwork: React.FC<{ height?: number }> = ({ height = 180 
 export const RainbowFishArtwork: React.FC<{ height?: number }> = ({ height = 90 }) => (
   <View style={[styles.artworkCard, { height, backgroundColor: '#38BDF8', overflow: 'hidden' }]}>
     <Image
-      source={require('../../assets/images/photo_rainbow_fish.png')}
+      source={require('../../assets/images/photo_rainbow_fish.jpg')}
       style={{ width: '100%', height: '100%', resizeMode: 'cover' }}
     />
     <View style={styles.miniPlayBtn}>
@@ -357,7 +357,7 @@ export const RainbowFishArtwork: React.FC<{ height?: number }> = ({ height = 90 
 export const StoryRobotArtwork: React.FC<{ height?: number }> = ({ height = 90 }) => (
   <View style={[styles.artworkCard, { height, backgroundColor: '#A7F3D0', overflow: 'hidden' }]}>
     <Image
-      source={require('../../assets/images/story_robot.png')}
+      source={require('../../assets/images/story_robot.jpg')}
       style={{ width: '100%', height: '100%', resizeMode: 'cover' }}
     />
     <View style={styles.miniPlayBtn}>
@@ -372,7 +372,7 @@ export const StoryRobotArtwork: React.FC<{ height?: number }> = ({ height = 90 }
 export const CraftButterflyArtwork: React.FC<{ height?: number }> = ({ height = 150 }) => (
   <View style={[styles.artworkCard, { height, backgroundColor: '#FFFBEB', overflow: 'hidden' }]}>
     <Image
-      source={require('../../assets/images/photo_craft_butterfly.png')}
+      source={require('../../assets/images/photo_craft_butterfly.jpg')}
       style={{ width: '100%', height: '100%', resizeMode: 'cover' }}
     />
   </View>
@@ -412,7 +412,7 @@ export const RobotAiIllustration: React.FC<{ height?: number }> = ({ height = 18
       }}
     >
       <Image
-        source={require('../../assets/images/robot_ai.png')}
+        source={require('../../assets/images/robot_ai.jpg')}
         style={{ width: '100%', height: '100%', resizeMode: 'contain' }}
       />
     </Animated.View>
@@ -439,7 +439,7 @@ export const AnimatedMeadowScene: React.FC<{
       style={[styles.artworkCard, { height, backgroundColor: '#BAE6FD', overflow: 'hidden' }]}
     >
       <Image
-        source={require('../../assets/images/video_scene_only.png')}
+        source={require('../../assets/images/video_scene_only.jpg')}
         style={{ width: '100%', height: '100%', resizeMode: 'cover' }}
       />
       {shouldShowPlay && (

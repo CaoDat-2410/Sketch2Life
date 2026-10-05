@@ -11,6 +11,10 @@ from sketch2life.contracts.schemas.p1_experience import VersionedRefV1
 from sketch2life.contracts.schemas.renderer_v2 import PixiRendererLaunchV2
 from sketch2life.contracts.schemas.scene_exploration import SourceRegionV1
 
+PixiShowAssetRoleV1 = Literal["SUBJECT", "ENVIRONMENT", "PROP", "EFFECT"]
+PixiShowRigTierV1 = Literal["FULL_AUTO_RIG", "CUTOUT_MICRO_MOTION", "BBOX_VISUAL_FOCUS"]
+PixiShowSourceContentTypeV1 = Literal["image/png", "image/jpeg"]
+
 
 class PixiSubjectHintV1(StrEnum):
     BIRD = "BIRD"
@@ -105,7 +109,7 @@ class PixiShowPlannerAssetCandidateV1(BaseModel):
 
     asset_id: str = Field(alias="assetId", min_length=1, max_length=160)
     label: str = Field(min_length=1, max_length=120)
-    role: Literal["SUBJECT", "ENVIRONMENT", "PROP", "EFFECT"]
+    role: PixiShowAssetRoleV1
     visual_description: str = Field(alias="visualDescription", min_length=1, max_length=280)
     topic_tags: tuple[str, ...] = Field(alias="topicTags", max_length=12)
 
@@ -113,7 +117,7 @@ class PixiShowPlannerAssetCandidateV1(BaseModel):
 class PixiShowSourceCropV1(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True, populate_by_name=True)
 
-    content_type: Literal["image/png", "image/jpeg"] = Field(alias="contentType")
+    content_type: PixiShowSourceContentTypeV1 = Field(alias="contentType")
     sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
     content_base64: str = Field(alias="contentBase64", min_length=16, max_length=1_400_000)
 
@@ -137,9 +141,7 @@ class PixiShowPlannerRequestV1(BaseModel):
     activity_label: str = Field(alias="activityLabel", min_length=1, max_length=160)
     objective_ids: tuple[str, ...] = Field(alias="objectiveIds", min_length=1, max_length=3)
     objective_labels: tuple[str, ...] = Field(alias="objectiveLabels", min_length=1, max_length=3)
-    rig_tier: Literal["FULL_AUTO_RIG", "CUTOUT_MICRO_MOTION", "BBOX_VISUAL_FOCUS"] = Field(
-        alias="rigTier"
-    )
+    rig_tier: PixiShowRigTierV1 = Field(alias="rigTier")
     part_roles: tuple[str, ...] = Field(alias="partRoles", max_length=8)
     candidate_assets: tuple[PixiShowPlannerAssetCandidateV1, ...] = Field(
         alias="candidateAssets", min_length=1, max_length=6
@@ -153,6 +155,17 @@ class PixiShowPlannerRequestV1(BaseModel):
         if len(asset_ids) != len(set(asset_ids)):
             raise ValueError("planner candidates must have unique asset IDs")
         return self
+
+
+class PixiShowPlannerRequestV2(PixiShowPlannerRequestV1):
+    """V2 planner request permits an empty approved companion shortlist."""
+
+    # Pydantic enforces each concrete protocol discriminator at runtime.
+    contract_name: Literal["PixiShowPlannerRequestV2"] = Field(alias="contractName")  # type: ignore[assignment]  # noqa: E501
+    contract_version: Literal["2.0"] = Field(alias="contractVersion")  # type: ignore[assignment]  # noqa: E501
+    candidate_assets: tuple[PixiShowPlannerAssetCandidateV1, ...] = Field(
+        alias="candidateAssets", min_length=0, max_length=6
+    )
 
 
 class PixiShowPlanV1(BaseModel):
@@ -198,6 +211,15 @@ class PixiShowPlanV1(BaseModel):
         if referenced_asset_ids != set(self.selected_asset_ids):
             raise ValueError("every selected asset must be used by at least one show beat")
         return self
+
+
+class PixiShowPlanV2(PixiShowPlanV1):
+    """V2 permits a source-only show while retaining exact asset-reference checks."""
+
+    # Pydantic enforces each concrete protocol discriminator at runtime.
+    contract_name: Literal["PixiShowPlanV2"] = Field(alias="contractName")  # type: ignore[assignment]  # noqa: E501
+    contract_version: Literal["2.0"] = Field(alias="contractVersion")  # type: ignore[assignment]  # noqa: E501
+    selected_asset_ids: tuple[str, ...] = Field(alias="selectedAssetIds", max_length=3)
 
 
 class PixiShowAssetReadV1(BaseModel):
@@ -249,9 +271,14 @@ __all__ = [
     "PixiShowBeatV1",
     "PixiShowIntentV1",
     "PixiShowPlannerAssetCandidateV1",
+    "PixiShowAssetRoleV1",
+    "PixiShowRigTierV1",
+    "PixiShowSourceContentTypeV1",
     "PixiShowSourceCropV1",
     "PixiShowPlannerRequestV1",
+    "PixiShowPlannerRequestV2",
     "PixiShowPlanV1",
+    "PixiShowPlanV2",
     "PixiShowAssetReadV1",
     "PixiRendererShowEnvelopeV1",
     "PixiSubjectHintV1",

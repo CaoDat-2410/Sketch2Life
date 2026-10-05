@@ -329,7 +329,8 @@ class P2T5EvaluationHarness:
             rejection_hash = t4_canonical_sha256(outcome)
             result_hash = None
         else:
-            assert isinstance(outcome, P2T4FusedResultV1)
+            if not isinstance(outcome, P2T4FusedResultV1):
+                raise TypeError("validated P2-T4 result adapter returned an unexpected type")
             fusion_state = _stage(
                 StageExecutionState.EXECUTED,
                 identity="P2T4.P2T4FusedResultV1@1.0",

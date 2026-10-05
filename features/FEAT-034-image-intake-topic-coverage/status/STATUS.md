@@ -19,3 +19,5 @@ Publication authorized by the owner's explicit “commit and pussh” instructio
 Backend early mask admission added under explicit “continue”; 65 focused tests, Ruff and repository security passed. Backend restarted and health returned 200; in-memory sessions reset. Emulator/Metro remain connected; app reload not performed because tool policy blocked the restart attempt. External worker deployment and fresh user-flow validation remain pending; no new commit/push. Evidence: `../evidence/notes/MASK_BACKEND_BOUNDARY_20260930.md`.
 
 Three-card preview with “Xem thêm” implemented and mobile types/copy verified. SAM/Pixi area ceiling mismatch corrected; six SAM runtime tests and Ruff passed. External Lightning worker update/restart and fresh-session end-to-end segmentation are pending, not claimed complete. Evidence: `../evidence/notes/THREE_CARD_PREVIEW_MASK_LIMIT_20260930.md`.
+
+Harness structure follow-up — 2026-10-03: Added README-only placeholders for required raw/screenshots/metrics paths. No raw logs or screenshots were fabricated; native picker flow and qualified catalog review remain pending.

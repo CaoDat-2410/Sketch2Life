@@ -100,3 +100,19 @@ def test_idempotency_store_replays_same_fingerprint_and_rejects_key_conflict() -
                 response_body=b"{}",
             )
         )
+
+
+def test_idempotency_store_deletes_every_receipt_for_only_the_expired_session() -> None:
+    store = InMemoryIdempotencyStore()
+    receipts = (
+        IdempotencyReceipt("session-1:CREATE_SESSION", "create", "a" * 64, b"{}"),
+        IdempotencyReceipt("session-1:UPLOAD_IMAGE", "upload", "b" * 64, b"{}"),
+        IdempotencyReceipt("session-10:CREATE_SESSION", "other", "c" * 64, b"{}"),
+    )
+    for receipt in receipts:
+        store.record(receipt)
+
+    assert store.delete_session("session-1") == 2
+    assert store.get(scope="session-1:CREATE_SESSION", key="create") is None
+    assert store.get(scope="session-1:UPLOAD_IMAGE", key="upload") is None
+    assert store.get(scope="session-10:CREATE_SESSION", key="other") == receipts[2]

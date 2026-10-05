@@ -10,7 +10,23 @@ from sketch2life.contracts.schemas.pixi_show import (
     PixiRendererLaunchV2,
     PixiShowAssetReadV1,
     PixiShowPlanV1,
+    PixiShowPlanV2,
 )
+
+PixiSpriteCycleStatusV1 = Literal["READY", "BLOCKED", "NOT_APPLICABLE"]
+PixiSpriteCycleReasonCodeV1 = Literal[
+    "ASSET_UNAVAILABLE",
+    "INVALID_CYCLE_REQUEST",
+    "UNKNOWN_CYCLE",
+    "VISUAL_REVIEW_REQUIRED",
+    "RIGHTS_NOT_CLEARED",
+    "FRAME_QA_REQUIRED",
+    "CATALOG_NOT_REGISTERED",
+    "RENDERER_NOT_VERIFIED",
+    "RUNTIME_NOT_ELIGIBLE",
+    "FRAME_QA_FAILED",
+    "NO_SAFE_PLACEMENT",
+]
 
 _BEHAVIOR_IDS = (
     "walker.biped",
@@ -107,22 +123,10 @@ class PixiRendererShowEnvelopeV2(BaseModel):
     asset_reads: tuple[PixiShowAssetReadV1, ...] = Field(
         alias="assetReads", min_length=1, max_length=3
     )
-    sprite_cycle_status: Literal["READY", "BLOCKED", "NOT_APPLICABLE"] = Field(
-        alias="spriteCycleStatus"
+    sprite_cycle_status: PixiSpriteCycleStatusV1 = Field(alias="spriteCycleStatus")
+    sprite_cycle_reason_code: PixiSpriteCycleReasonCodeV1 | None = Field(
+        default=None, alias="spriteCycleReasonCode"
     )
-    sprite_cycle_reason_code: Literal[
-        "ASSET_UNAVAILABLE",
-        "INVALID_CYCLE_REQUEST",
-        "UNKNOWN_CYCLE",
-        "VISUAL_REVIEW_REQUIRED",
-        "RIGHTS_NOT_CLEARED",
-        "FRAME_QA_REQUIRED",
-        "CATALOG_NOT_REGISTERED",
-        "RENDERER_NOT_VERIFIED",
-        "RUNTIME_NOT_ELIGIBLE",
-        "FRAME_QA_FAILED",
-        "NO_SAFE_PLACEMENT",
-    ] | None = Field(default=None, alias="spriteCycleReasonCode")
     sprite_cycle: PixiSpriteCycleReadV1 | None = Field(default=None, alias="spriteCycle")
 
     @model_validator(mode="after")
@@ -176,4 +180,22 @@ class PixiRendererShowEnvelopeV2(BaseModel):
         return self
 
 
-__all__ = ["PixiRendererShowEnvelopeV2", "PixiSpriteCycleReadV1"]
+class PixiRendererShowEnvelopeV3(PixiRendererShowEnvelopeV2):
+    """V3 adds source-only plans while preserving the V2 cycle sidecar contract."""
+
+    # Pydantic enforces each concrete protocol discriminator at runtime.
+    contract_name: Literal["PixiRendererShowEnvelopeV3"] = Field(alias="contractName")  # type: ignore[assignment]  # noqa: E501
+    contract_version: Literal["3.0"] = Field(alias="contractVersion")  # type: ignore[assignment]  # noqa: E501
+    show_plan: PixiShowPlanV2 = Field(alias="showPlan")
+    asset_reads: tuple[PixiShowAssetReadV1, ...] = Field(
+        alias="assetReads", min_length=0, max_length=3
+    )
+
+
+__all__ = [
+    "PixiRendererShowEnvelopeV2",
+    "PixiRendererShowEnvelopeV3",
+    "PixiSpriteCycleReadV1",
+    "PixiSpriteCycleReasonCodeV1",
+    "PixiSpriteCycleStatusV1",
+]

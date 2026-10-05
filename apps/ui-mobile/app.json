@@ -20,8 +20,13 @@
         "expo-image-picker",
         {
           "photosPermission": "Cho phép chọn một ảnh tổng hợp để kiểm tra Sketch2Life.",
-          "cameraPermission": false,
-          "microphonePermission": false
+          "cameraPermission": false
+        }
+      ],
+      [
+        "expo-av",
+        {
+          "microphonePermission": "Cho phép người lớn ghi lời kể cho hoạt động của trẻ khi chủ động chạm nút ghi âm."
         }
       ],
       "./plugins/withDebugCleartextTraffic"

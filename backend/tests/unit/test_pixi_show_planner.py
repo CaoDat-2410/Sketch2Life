@@ -15,10 +15,21 @@ from sketch2life.application.ports.pixi_show_planner import (
     PixiShowPlanningRequest,
 )
 from sketch2life.application.services.auto_rig.part_masks import derive_part_masks_from_subject_mask
-from sketch2life.application.services.pixi_show_compiler import compile_pixi_show_plan
-from sketch2life.contracts.schemas.auto_rig import RigArchetype
+from sketch2life.application.services.pixi_show_compiler import (
+    _confirmed_subject_hint,
+    compile_pixi_show_plan,
+)
+from sketch2life.contracts.schemas.auto_rig import RigArchetype, RigDeliveryTier
+from sketch2life.contracts.schemas.pixi_motion_cycle import (
+    PixiRendererShowEnvelopeV2,
+    PixiRendererShowEnvelopeV3,
+)
 from sketch2life.contracts.schemas.pixi_show import (
     PixiShowIntentV1,
+)
+from sketch2life.contracts.schemas.renderer_v2 import (
+    PixiRendererLaunchV2,
+    VisualAnimationPlanV2,
 )
 from sketch2life.contracts.schemas.scene_exploration import SourceRegionV1
 from sketch2life.infrastructure.ai.lightning_pixi_show_planner import (
@@ -108,7 +119,7 @@ def test_compiler_emits_versioned_plan_bound_to_gate_a_gate_b_and_rig() -> None:
         request=_planning_request(), intent=_intent(), plan_id="show-synthetic-1"
     )
 
-    assert plan.contract_name == "PixiShowPlanV1"
+    assert plan.contract_name == "PixiShowPlanV2"
     assert plan.plan_id == "show-synthetic-1"
     assert plan.session_id == "internal-session-id"
     assert plan.package_id == "rig-package-test"
@@ -118,11 +129,153 @@ def test_compiler_emits_versioned_plan_bound_to_gate_a_gate_b_and_rig() -> None:
     assert plan.duration_seconds == 20
 
 
+@pytest.mark.parametrize(
+    ("label", "expected"),
+    (
+        ("cà rốt", "PLANT"),
+        ("hóa thạch", "OBJECT"),
+        ("con gà", "BIRD"),
+        ("ô tô", "VEHICLE"),
+        ("chim", "BIRD"),
+        ("bướm", "INSECT"),
+    ),
+)
+def test_vietnamese_subject_hints_use_longest_whole_phrase(label: str, expected: str) -> None:
+    assert _confirmed_subject_hint(label, ()).value == expected
+
+
+def test_conflicting_equal_specificity_subject_hints_remain_unknown() -> None:
+    assert _confirmed_subject_hint("chim xe", ()).value == "UNKNOWN"
+
+
 def test_compiler_rejects_model_subject_disagreement_for_caregiver_reconfirmation() -> None:
     with pytest.raises(PixiShowPlannerUnavailable, match="SUBJECT_RECONFIRMATION_REQUIRED"):
         compile_pixi_show_plan(
             request=_planning_request(),
             intent=_intent(visualSubjectHintId="QUADRUPED"),
+        )
+
+
+def test_compiler_accepts_source_only_show_when_catalog_has_no_eligible_assets() -> None:
+    intent = _intent(
+        selectedAssetIds=[],
+        beats=[
+            {
+                "beatId": "notice",
+                "startSeconds": 0,
+                "endSeconds": 4,
+                "action": "NOTICE",
+                "targetRole": "SOURCE_SUBJECT",
+            },
+            {
+                "beatId": "flap",
+                "startSeconds": 5,
+                "endSeconds": 10,
+                "action": "FLAP",
+                "targetRole": "SOURCE_SUBJECT",
+            },
+            {
+                "beatId": "settle",
+                "startSeconds": 12,
+                "endSeconds": 17,
+                "action": "SETTLE",
+                "targetRole": "SOURCE_SUBJECT",
+            },
+        ],
+    )
+    request = replace(_planning_request(), candidate_assets=())
+
+    plan = compile_pixi_show_plan(request=request, intent=intent)
+
+    assert plan.contract_name == "PixiShowPlanV2"
+    assert plan.selected_asset_ids == ()
+    assert all(beat.target_role == "SOURCE_SUBJECT" for beat in plan.beats)
+
+
+def test_v3_envelope_accepts_empty_companion_reads_without_relaxing_v2() -> None:
+    intent = _intent(
+        selectedAssetIds=[],
+        beats=[
+            {
+                "beatId": "notice",
+                "startSeconds": 0,
+                "endSeconds": 4,
+                "action": "NOTICE",
+                "targetRole": "SOURCE_SUBJECT",
+            },
+            {
+                "beatId": "interact",
+                "startSeconds": 5,
+                "endSeconds": 10,
+                "action": "INTERACT",
+                "targetRole": "SOURCE_SUBJECT",
+            },
+            {
+                "beatId": "settle",
+                "startSeconds": 12,
+                "endSeconds": 17,
+                "action": "SETTLE",
+                "targetRole": "SOURCE_SUBJECT",
+            },
+        ],
+    )
+    plan = compile_pixi_show_plan(
+        request=replace(_planning_request(), candidate_assets=()),
+        intent=intent,
+    )
+    spec_ref = {"id": "spec-bird", "version": 1}
+    animation = VisualAnimationPlanV2(
+        contractName="VisualAnimationPlanV2",
+        contractVersion="2.0",
+        planId="visual-plan-test",
+        sessionId="internal-session-id",
+        experienceSpecRef=spec_ref,
+        packageId="rig-package-test",
+        archetype=RigArchetype.BIRD,
+        tier=RigDeliveryTier.FULL_AUTO_RIG,
+        durationSeconds=20,
+        tracks=(),
+        learningBridgeVi="Cùng khám phá chuyển động.",
+    )
+    launch = PixiRendererLaunchV2(
+        contractName="PixiRendererLaunchV2",
+        contractVersion="2.0",
+        sessionId="internal-session-id",
+        expectedSessionVersion=3,
+        experienceSpecRef=spec_ref,
+        sourceReadEndpoint="/v1/renderer/source",
+        sourceReadCapability="s" * 48,
+        sourceSha256="a" * 64,
+        packageReadEndpoint="/v1/renderer/rig-package",
+        packageReadCapability="p" * 48,
+        packageSha256="b" * 64,
+        packageReadExpiresAt="2026-10-03T00:00:00Z",
+        partMaskReads=(),
+        rigParts=(),
+        animationPlan=animation,
+        fallbackLaunch={},
+    )
+
+    envelope = PixiRendererShowEnvelopeV3(
+        contractName="PixiRendererShowEnvelopeV3",
+        contractVersion="3.0",
+        rendererLaunchV2=launch,
+        showPlan=plan,
+        assetReads=(),
+        spriteCycleStatus="NOT_APPLICABLE",
+    )
+
+    assert envelope.show_plan.selected_asset_ids == ()
+    with pytest.raises(ValidationError):
+        PixiRendererShowEnvelopeV2.model_validate(
+            {
+                "contractName": "PixiRendererShowEnvelopeV2",
+                "contractVersion": "2.0",
+                "rendererLaunchV2": launch,
+                "showPlan": plan,
+                "assetReads": [],
+                "spriteCycleStatus": "NOT_APPLICABLE",
+            }
         )
 
 
@@ -220,7 +373,7 @@ def test_lightning_adapter_sends_only_minimized_crop_and_allowlisted_context_onc
     result = planner.plan(_planning_request())
 
     assert result.visual_subject_hint_id == "BIRD"
-    assert transport.paths == ["/v2/pixi/show-plan"]
+    assert transport.paths == ["/v3/pixi/show-plan"]
     payload = transport.payloads[0]
     assert "session_id" not in payload and "source_artifact_ref" not in payload
     crop = payload["sourceCrop"]
@@ -237,14 +390,54 @@ def test_lightning_adapter_sends_only_minimized_crop_and_allowlisted_context_onc
     }
 
 
-def test_lightning_adapter_makes_no_call_without_runtime_eligible_candidates() -> None:
-    transport = _RecordingTransport(_intent().model_dump(mode="json", by_alias=True))
+def test_lightning_adapter_sends_empty_shortlist_for_subject_only_planning() -> None:
+    subject_only_intent = _intent(
+        selectedAssetIds=[],
+        beats=[
+            {
+                "beatId": "notice",
+                "startSeconds": 0,
+                "endSeconds": 4,
+                "action": "NOTICE",
+                "targetRole": "SOURCE_SUBJECT",
+            },
+            {
+                "beatId": "interact",
+                "startSeconds": 5,
+                "endSeconds": 10,
+                "action": "INTERACT",
+                "targetRole": "SOURCE_SUBJECT",
+            },
+            {
+                "beatId": "settle",
+                "startSeconds": 12,
+                "endSeconds": 17,
+                "action": "SETTLE",
+                "targetRole": "SOURCE_SUBJECT",
+            },
+        ],
+    )
+    transport = _RecordingTransport(subject_only_intent.model_dump(mode="json", by_alias=True))
     planner = LightningPixiShowPlanner(transport=transport)
     request = _planning_request()
     request = replace(request, candidate_assets=())
 
-    with pytest.raises(PixiShowPlannerUnavailable, match="NO_ELIGIBLE_ASSETS"):
+    result = planner.plan(request)
+
+    assert result.selected_asset_ids == ()
+    assert transport.paths == ["/v3/pixi/show-plan"]
+    assert transport.payloads[0]["candidateAssets"] == []
+
+
+def test_lightning_adapter_rejects_missing_subject_region_before_provider_call() -> None:
+    transport = _RecordingTransport(_intent().model_dump(mode="json", by_alias=True))
+    planner = LightningPixiShowPlanner(transport=transport)
+    request = replace(_planning_request(), subject_region=None)
+
+    with pytest.raises(PixiShowPlannerUnavailable) as error:
         planner.plan(request)
+
+    assert error.value.code == "SUBJECT_RECONFIRMATION_REQUIRED"
     assert transport.paths == []
 
 

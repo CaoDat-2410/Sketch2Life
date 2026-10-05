@@ -358,7 +358,7 @@ class EphemeralSessionService:
         self._artifacts.delete_session(session_id)
         if self._workflow_data is not None:
             self._workflow_data.delete(session_id)
-        self._idempotency.delete_scope(f"{session_id}:{SESSION_CREATE_OPERATION}")
+        self._idempotency.delete_session(session_id)
 
     def _purge_expired(self, now: datetime) -> None:
         for session_id in self._sessions.expired_before(now):

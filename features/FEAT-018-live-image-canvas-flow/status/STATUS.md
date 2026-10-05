@@ -3,6 +3,16 @@
 Status: IN_PROGRESS — approved offline implementation verified; live rig/Pixi visual acceptance pending
 Updated: 2026-09-30
 
+## FEAT-035 integration follow-up — 2026-10-03
+
+- Added an additive subject-only Pixi show contract/runtime path for the reviewed empty-companion
+  case; legacy V1/V2 contracts remain intact, the original source remains available, and essential
+  rig/subject failure does not downgrade to PIXI_V2. No asset approval or rights gate was changed.
+- Renderer contract tests (58), renderer typecheck, mobile tests (22), and mobile typecheck pass;
+  complete backend suite passed before final focused Pixi typing refinements. No live drawing or
+  provider result was used, so visual playback acceptance remains pending.
+- Cross-feature evidence: `../../FEAT-035-branch-review-remediation/evidence/notes/implementation-progress-20261003.md`.
+
 - Approved plan: `plan/SUBJECT_RECALL_AND_PIXI_MAIN_FLOW_HARDENING_PLAN_20260930.md`.
 - Approved plan SHA-256 remains
   `6EF237C0117AED6C8A4B513D69F084131FAB5E8B5C6C29DB2157E6607D92F65F`.

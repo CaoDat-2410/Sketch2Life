@@ -87,6 +87,8 @@ class IdempotencyStore(Protocol):
 
     def delete_scope(self, scope: str) -> int: ...
 
+    def delete_session(self, session_id: str) -> int: ...
+
 
 def artifact_sha256(body: bytes) -> str:
     return sha256(body).hexdigest()

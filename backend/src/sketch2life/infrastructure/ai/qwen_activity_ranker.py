@@ -14,8 +14,8 @@ from sketch2life.contracts.schemas.vision_v2 import (
     vision_profile_catalog_v2,
 )
 from sketch2life.infrastructure.ai.qwen_vision import (
-    QwenGenerationRunner,
     KillableSubprocessQwenGenerationRunner,
+    QwenGenerationRunner,
 )
 from sketch2life.infrastructure.ai.qwen_vision_runtime_config import QwenVisionRuntimeConfig
 

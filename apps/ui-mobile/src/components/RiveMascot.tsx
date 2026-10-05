@@ -85,15 +85,15 @@ export const RiveMascot: React.FC<RiveMascotProps> = ({
   const getMascotSource = () => {
     switch (type) {
       case 'robot':
-        return require('../../assets/images/robot_ai.png');
+        return require('../../assets/images/robot_ai.jpg');
       case 'dino':
-        return require('../../assets/images/onboarding_hero.png');
+        return require('../../assets/images/onboarding_hero.jpg');
       case 'girl':
-        return require('../../assets/images/voice_girl.png');
+        return require('../../assets/images/voice_girl.jpg');
       case 'butterfly':
         return require('../../assets/images/detail_hero_butterfly.png');
       default:
-        return require('../../assets/images/robot_ai.png');
+        return require('../../assets/images/robot_ai.jpg');
     }
   };
 

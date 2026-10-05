@@ -286,8 +286,22 @@ class LightningAsrV2Adapter:
             return _asr_v2_failure(
                 request,
                 _asr_v2_error_code(exc.code),
-                _asr_v2_error_detail(exc.code),
+                (
+                    AsrV2ErrorDetail.TRANSIENT_RUNTIME_FAILURE
+                    if exc.retryable
+                    else _asr_v2_error_detail(exc.code)
+                ),
                 retryable=exc.retryable,
+            )
+        except OSError:
+            # urllib normally wraps socket errors as URLError, but injected transports and
+            # some disconnect paths can surface ConnectionResetError/RemoteDisconnected
+            # directly. Return the same stable contract and make only an explicit retry eligible.
+            return _asr_v2_failure(
+                request,
+                AsrV2ErrorCode.ASR_PROVIDER_FAILURE,
+                AsrV2ErrorDetail.TRANSIENT_RUNTIME_FAILURE,
+                retryable=True,
             )
         except (KeyError, TypeError, ValueError):
             return _asr_v2_failure(

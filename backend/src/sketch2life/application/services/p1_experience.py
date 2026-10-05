@@ -301,9 +301,12 @@ class P1ExperienceCompiler:
             )
             return ExperienceCompilation(selected, None, None, gate, None)
 
-        assert selected.activity_ref is not None
-        assert selected.objective_ref is not None
-        assert selected.template_ref is not None
+        if (
+            selected.activity_ref is None
+            or selected.objective_ref is None
+            or selected.template_ref is None
+        ):
+            raise RuntimeError("valid candidate is missing its locked activity identity")
         template = self._by_id[selected.template_ref.id]
         objective = selected.objective_ref
         match_score = self._anchor_match_score(anchor_set, template)
@@ -330,10 +333,13 @@ class P1ExperienceCompiler:
                 update={"status": "NO_ELIGIBLE_ACTIVITY", "reason_codes": gate.reason_codes}
             )
             return ExperienceCompilation(rejected, fit, None, gate, None)
-        assert gate.spec_ref is not None
-        assert gate.activity_ref is not None
-        assert gate.objective_ref is not None
-        assert gate.template_ref is not None
+        if (
+            gate.spec_ref is None
+            or gate.activity_ref is None
+            or gate.objective_ref is None
+            or gate.template_ref is None
+        ):
+            raise RuntimeError("approved gate is missing its locked identity references")
         handoff = ActivityHandoffV1(
             status="READY",
             session_id=context.session_id,
@@ -555,31 +561,41 @@ class P1ExperienceCompiler:
                 caregiver_participating=context.caregiver_participating,
             )
 
-        assert context.age_months is not None
-        assert context.readiness_ids is not None
-        assert context.completed_activity_ids is not None
-        assert context.available_material_option_ids is not None
-        assert context.supervision_level is not None
-        assert context.policy_flags is not None
-        assert context.candidate_status is not None
+        if (
+            context.age_months is None
+            or context.readiness_ids is None
+            or context.completed_activity_ids is None
+            or context.available_material_option_ids is None
+            or context.supervision_level is None
+            or context.policy_flags is None
+            or context.candidate_status is None
+        ):
+            return ("BLOCK_PROFILE_INCOMPLETE",)
+        age_months = context.age_months
+        readiness_ids = context.readiness_ids
+        completed_activity_ids = context.completed_activity_ids
+        available_material_option_ids = context.available_material_option_ids
+        supervision_level = context.supervision_level
+        policy_flags = context.policy_flags
+        candidate_status = context.candidate_status
         failures: list[str] = []
-        if context.candidate_status != "ACTIVE_FIXTURE":
+        if candidate_status != "ACTIVE_FIXTURE":
             failures.append("BLOCK_INACTIVE")
-        if not template.age_months_min <= context.age_months <= template.age_months_max:
+        if not template.age_months_min <= age_months <= template.age_months_max:
             failures.append("BLOCK_AGE")
-        if not set(template.readiness_ids) <= set(context.readiness_ids):
+        if not set(template.readiness_ids) <= set(readiness_ids):
             failures.append("BLOCK_MISSING_READINESS")
-        if not set(template.prerequisite_activity_ids) <= set(context.completed_activity_ids):
+        if not set(template.prerequisite_activity_ids) <= set(completed_activity_ids):
             failures.append("BLOCK_MISSING_PREREQUISITE")
         if (
-            SUPERVISION_RANK[context.supervision_level]
+            SUPERVISION_RANK[supervision_level]
             < SUPERVISION_RANK[template.minimum_supervision]
         ):
             failures.append("BLOCK_INSUFFICIENT_SUPERVISION")
-        if not set(template.policy_constraints) <= set(context.policy_flags):
+        if not set(template.policy_constraints) <= set(policy_flags):
             failures.append("BLOCK_POLICY_CONSTRAINT")
         if not P1ExperienceCompiler.materials_available_for_template(
-            template, context.available_material_option_ids
+            template, available_material_option_ids
         ):
             failures.append("BLOCK_MISSING_MATERIAL")
         return tuple(failures)

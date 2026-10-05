@@ -91,7 +91,8 @@ class Feat018ImageAdmission:
         reason = evaluate_metadata(metadata, self._limits)
         if reason is not None:
             return self._result(reason, digest=digest, metadata=metadata)
-        assert metadata is not None  # evaluate_metadata returned None only if metadata exists
+        if metadata is None:
+            return self._result(AdmissionReason.INTERNAL_ERROR, digest=digest, metadata=None)
 
         try:
             frame_count = self._decoder.probe_frame_count(snapshot)

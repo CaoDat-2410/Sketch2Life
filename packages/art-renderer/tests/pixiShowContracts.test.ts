@@ -2,8 +2,10 @@ import {describe, expect, it} from 'vitest';
 
 import {
   PixiRendererShowEnvelopeV2Schema,
+  PixiRendererShowEnvelopeV3Schema,
   PixiRendererShowEnvelopeV1Schema,
   RendererLoadCommandV4Schema,
+  RendererLoadCommandV5Schema,
   RendererLoadCommandV3Schema,
 } from '../src/contractsPixiShow';
 import {RendererLoadCommandV2Schema} from '../src/contractsV2';
@@ -232,6 +234,65 @@ describe('additive Pixi show contracts', () => {
       ...envelope,
       spriteCycleStatus: 'BLOCKED',
       spriteCycleReasonCode: 'RIGHTS_NOT_CLEARED',
+    }).success).toBe(false);
+  });
+
+  it('accepts a V3 subject-only plan with no asset capabilities and keeps V4 closed', () => {
+    const sourceOnlyPlan = {
+      ...plan,
+      contractName: 'PixiShowPlanV2',
+      contractVersion: '2.0',
+      selectedAssetIds: [],
+      beats: [
+        {beatId: 'notice', startSeconds: 0, endSeconds: 4, action: 'NOTICE', targetRole: 'SOURCE_SUBJECT', x: 0.5, y: 0.5},
+        {beatId: 'interact', startSeconds: 5, endSeconds: 10, action: 'INTERACT', targetRole: 'SOURCE_SUBJECT', x: 0.5, y: 0.5},
+        {beatId: 'settle', startSeconds: 12, endSeconds: 17, action: 'SETTLE', targetRole: 'SOURCE_SUBJECT', x: 0.5, y: 0.5},
+      ],
+    };
+    const command = {
+      ...commandBase,
+      contractName: 'RendererLoadCommandV5',
+      contractVersion: '5.0',
+      protocolVersion: '5',
+      showPlan: sourceOnlyPlan,
+      assetReads: [],
+      spriteCycleStatus: 'NOT_APPLICABLE',
+    };
+    const launch = {
+      contractName: 'PixiRendererLaunchV2',
+      contractVersion: '2.0',
+      sessionId: 'session-1',
+      expectedSessionVersion: 3,
+      experienceSpecRef: {id: 'spec-1', version: 1},
+      sourceReadEndpoint: '/v1/renderer/source',
+      sourceReadCapability: 's'.repeat(48),
+      sourceSha256: 'a'.repeat(64),
+      packageReadEndpoint: '/v1/renderer/rig-package',
+      packageReadCapability: 'p'.repeat(48),
+      packageSha256: 'b'.repeat(64),
+      packageReadExpiresAt: '2026-10-01T00:00:00Z',
+      partMaskReads: [],
+      rigParts: [],
+      animationPlan,
+      fallbackLaunch: {},
+    };
+    const envelope = {
+      contractName: 'PixiRendererShowEnvelopeV3',
+      contractVersion: '3.0',
+      rendererLaunchV2: launch,
+      showPlan: sourceOnlyPlan,
+      assetReads: [],
+      spriteCycleStatus: 'NOT_APPLICABLE',
+    };
+
+    expect(PixiRendererShowEnvelopeV3Schema.safeParse(envelope).success).toBe(true);
+    expect(RendererLoadCommandV5Schema.safeParse(command).success).toBe(true);
+    expect(RendererLoadCommandV4Schema.safeParse(command).success).toBe(false);
+    expect(RendererLoadCommandV5Schema.safeParse({
+      ...command,
+      showPlan: {...sourceOnlyPlan, beats: [...sourceOnlyPlan.beats.slice(0, 2), {
+        beatId: 'supplement', startSeconds: 12, endSeconds: 17, action: 'SETTLE', targetRole: 'SUPPLEMENTAL_ASSET', assetId: 'unapproved', x: 0.15, y: 0.8,
+      }]},
     }).success).toBe(false);
   });
 });

@@ -10,7 +10,10 @@ export type ImagePickerMetadata = {
 };
 
 export const MAX_SOURCE_IMAGE_BYTES = 15_000_000;
-export const MAX_SOURCE_IMAGE_PIXELS = 12_000_000;
+// Leave enough room for common 12 MP phone photos (e.g. 4032 x 3024) to be
+// safely resized to the backend's 4 MP admission limit. Keep the bound explicit:
+// the native manipulator still decodes the original before resizing it.
+export const MAX_SOURCE_IMAGE_PIXELS = 16_000_000;
 export const MAX_SOURCE_IMAGE_EDGE = 6_000;
 export type FeedbackObservationCode =
   | 'STARTED_INDEPENDENTLY'

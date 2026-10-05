@@ -76,7 +76,9 @@ class LearningMediaResultV1(BaseModel):
     renderer_plan_id: str = Field(min_length=1, max_length=120)
     renderer_plan_version: str = Field(pattern=r"^v[0-9]+$")
     asset_ref: str | None = Field(default=None, min_length=1)
-    fallback_type: Literal["STILL_NARRATION", "WHOLE_IMAGE_REVEAL", "SUPERVISED_HANDOFF"] | None = None
+    fallback_type: Literal[
+        "STILL_NARRATION", "WHOLE_IMAGE_REVEAL", "SUPERVISED_HANDOFF"
+    ] | None = None
     generation_called: bool
     provenance: LearningMediaProvenanceV1
     reason_code: Literal[

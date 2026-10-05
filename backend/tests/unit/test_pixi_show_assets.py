@@ -121,6 +121,12 @@ def test_asset_service_requires_approved_cleared_frame_and_issues_bounded_reads(
         service.read(read.read_capability)
 
 
+def test_asset_service_accepts_empty_reads_for_subject_only_show() -> None:
+    service = PixiShowAssetService(feature_root=Path(__file__).parent, assets=())
+
+    assert service.issue_reads(()) == ()
+
+
 def test_asset_service_rejects_unreviewed_or_rights_blocked_assets(monkeypatch) -> None:
     atlas = _png(Image.new("RGBA", (24, 20), (0, 0, 0, 0)))
     feature_root = Path(__file__).parent / "_virtual_pixi_asset_root"

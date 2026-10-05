@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+import hmac
 from typing import cast
 
+import pytest
+import tools.lightning_vision_v2_server as vision_server
+from fastapi import HTTPException
 from tools.lightning_vision_v2_server import (
     _repair_prompt_with_diagnostics,
     _vision_runtime_environment,
@@ -76,3 +80,29 @@ def test_explicit_model_dir_is_not_overridden() -> None:
     )
 
     assert runtime_env["SKETCH2LIFE_VISION_MODEL_DIR"] == "/models/explicit-qwen"
+
+
+def test_provider_auth_uses_constant_time_comparison(monkeypatch) -> None:
+    calls: list[tuple[bytes, bytes]] = []
+    original = hmac.compare_digest
+
+    def record_comparison(left: bytes, right: bytes) -> bool:
+        calls.append((left, right))
+        return original(left, right)
+
+    monkeypatch.setattr(vision_server, "EXPECTED_AUTH", "synthetic-token")
+    monkeypatch.setattr(vision_server.hmac, "compare_digest", record_comparison)
+
+    vision_server._require_auth("Bearer synthetic-token")
+    with pytest.raises(HTTPException) as raised:
+        vision_server._require_auth("Bearer wrong-token")
+    with pytest.raises(HTTPException) as unicode_raised:
+        vision_server._require_auth("Bearer tøkén")
+
+    assert raised.value.status_code == 401
+    assert unicode_raised.value.status_code == 401
+    assert calls == [
+        (b"Bearer synthetic-token", b"Bearer synthetic-token"),
+        (b"Bearer wrong-token", b"Bearer synthetic-token"),
+        ("Bearer tøkén".encode(), b"Bearer synthetic-token"),
+    ]

@@ -10,8 +10,10 @@ from sketch2life.contracts.schemas.learning_media import (
     ReviewedLearningMediaAssetV1,
 )
 
-
-SCENARIOS = Path(__file__).parents[3] / "features/FEAT-018-live-image-canvas-flow/fixtures/cache_fallback_scenarios.json"
+SCENARIOS = (
+    Path(__file__).parents[3]
+    / "features/FEAT-018-live-image-canvas-flow/fixtures/cache_fallback_scenarios.json"
+)
 
 
 def request() -> LearningMediaRequestV1:
