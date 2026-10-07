@@ -9,8 +9,13 @@ import json
 import logging
 import os
 import re
+import wave
 from contextlib import nullcontext
+from pathlib import Path
 from typing import Any
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
+from xml.sax.saxutils import escape as xml_escape
 
 from fastapi import FastAPI, HTTPException
 
@@ -256,10 +261,114 @@ def _story_video_blocked(contract: str, error_code: str) -> dict[str, Any]:
     }
 
 
+def _story_video_artifact_root() -> Path:
+    root = Path(
+        os.getenv("SKETCH2LIFE_STORY_VIDEO_ARTIFACT_DIR", "/tmp/story-video-artifacts")
+    )
+    root.mkdir(parents=True, exist_ok=True)
+    return root
+
+
+def _wav_duration(path: Path) -> float:
+    with wave.open(str(path), "rb") as audio:
+        frames = audio.getnframes()
+        rate = audio.getframerate()
+    if rate <= 0 or frames <= 0:
+        raise ValueError("generated audio has no measurable duration")
+    return frames / rate
+
+
+def _azure_tts(text: str, *, voice: str, key: str, region: str) -> bytes:
+    ssml = (
+        '<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" '
+        'xml:lang="vi-VN">'
+        f'<voice name="{xml_escape(voice)}"><prosody rate="0%">'
+        f"{xml_escape(text)}"
+        "</prosody></voice></speak>"
+    ).encode()
+    request = Request(
+        f"https://{region}.tts.speech.microsoft.com/cognitiveservices/v1",
+        data=ssml,
+        headers={
+            "Ocp-Apim-Subscription-Key": key,
+            "Content-Type": "application/ssml+xml",
+            "X-Microsoft-OutputFormat": "riff-24khz-16bit-mono-pcm",
+            "User-Agent": "Sketch2Life-story-video/1.0",
+        },
+        method="POST",
+    )
+    try:
+        with urlopen(request, timeout=120) as response:
+            data = response.read()
+    except HTTPError as error:
+        retryable = error.code in {408, 429} or error.code >= 500
+        raise RuntimeError(
+            "AZURE_TTS_RETRYABLE" if retryable else "AZURE_TTS_REJECTED"
+        ) from error
+    except (TimeoutError, URLError) as error:
+        raise RuntimeError("AZURE_TTS_UNAVAILABLE") from error
+    if not data.startswith(b"RIFF") or len(data) < 44:
+        raise ValueError("Azure TTS returned invalid WAV")
+    return data
+
+
+def _concat_wavs(paths: list[Path], output: Path) -> None:
+    if not paths:
+        raise ValueError("no audio segments to concatenate")
+    with wave.open(str(paths[0]), "rb") as first:
+        params = first.getparams()
+        frames = [first.readframes(first.getnframes())]
+    for path in paths[1:]:
+        with wave.open(str(path), "rb") as segment:
+            if segment.getparams()[:4] != params[:4]:
+                raise ValueError("TTS segments have incompatible WAV parameters")
+            frames.append(segment.readframes(segment.getnframes()))
+    with wave.open(str(output), "wb") as combined:
+        combined.setparams(params)
+        combined.writeframes(b"".join(frames))
+
+
 @app.post("/v1/story-video/narration")
 def story_video_narration(payload: dict[str, Any]) -> dict[str, Any]:
-    del payload
-    return _story_video_blocked("NarrationAssetV1", "TTS_RUNTIME_NOT_CONFIGURED")
+    request = payload.get("request")
+    texts = payload.get("texts")
+    key = os.getenv("AZURE_SPEECH_KEY", "").strip()
+    region = os.getenv("AZURE_SPEECH_REGION", "").strip()
+    voice = os.getenv("AZURE_TTS_VOICE", "vi-VN-HoaiMyNeural").strip()
+    if not isinstance(request, dict) or not isinstance(texts, list) or not texts:
+        raise HTTPException(status_code=422, detail="NARRATION_REQUEST_INVALID")
+    if not key or not region:
+        return _story_video_blocked("NarrationAssetV1", "TTS_RUNTIME_NOT_CONFIGURED")
+    if not all(isinstance(text, str) and text.strip() for text in texts):
+        raise HTTPException(status_code=422, detail="NARRATION_TEXT_INVALID")
+    root = _story_video_artifact_root()
+    job_name = re.sub(r"[^A-Za-z0-9_-]", "_", str(request.get("package_id", "story")))
+    segment_paths: list[Path] = []
+    timings: list[float] = []
+    try:
+        for index, text in enumerate(texts, 1):
+            path = root / f"{job_name}.segment-{index}.wav"
+            path.write_bytes(_azure_tts(text, voice=voice, key=key, region=region))
+            timings.append(round(_wav_duration(path), 3))
+            segment_paths.append(path)
+        combined = root / f"{job_name}.wav"
+        _concat_wavs(segment_paths, combined)
+        data = combined.read_bytes()
+        return {
+            "contract": "NarrationAssetV1",
+            "version": "1.0",
+            "status": "READY",
+            "audio_ref": str(combined),
+            "audio_sha256": hashlib.sha256(data).hexdigest(),
+            "duration_seconds": round(sum(timings), 3),
+            "locale": str(request.get("locale", "vi-VN")),
+            "voice_model_ref": f"azure-speech:{voice}",
+            "segment_timing_seconds": timings,
+        }
+    except (OSError, RuntimeError, TimeoutError, ValueError) as error:
+        _LOGGER.exception("story_video_narration_failed")
+        code = str(error) if str(error).startswith("AZURE_TTS_") else "TTS_RENDER_FAILED"
+        return _story_video_blocked("NarrationAssetV1", code)
 
 
 @app.post("/v1/story-video/illustration")
