@@ -7,6 +7,9 @@ service; it never turns a missing artifact into a success.
 
 from __future__ import annotations
 
+import base64
+import hashlib
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
@@ -44,6 +47,7 @@ def _validated(model: type[Any], raw: dict[str, Any]) -> Any:
 @dataclass(frozen=True, slots=True)
 class LightningStoryVideoAdapter:
     transport: JsonTransport
+    artifact_loader: Callable[[str], bytes] | None = None
     narration_path: str = "/v1/story-video/narration"
     illustration_path: str = "/v1/story-video/illustration"
     motion_path: str = "/v1/story-video/scene"
@@ -60,10 +64,22 @@ class LightningStoryVideoAdapter:
         return _validated(NarrationAssetV1, raw)
 
     def render_illustration(self, request: IllustrationImageRequestV1) -> IllustrationAssetV1:
+        if self.artifact_loader is None:
+            raise StoryVideoProviderError("SOURCE_ARTIFACT_LOADER_NOT_CONFIGURED", retryable=False)
+        source = self.artifact_loader(request.source_image_ref)
+        if hashlib.sha256(source).hexdigest() != request.source_image_sha256:
+            raise StoryVideoProviderError("SOURCE_HASH_MISMATCH", retryable=False)
         raw = _post(
             self.transport,
             self.illustration_path,
-            {"request": request.model_dump(mode="json")},
+            {
+                "request": request.model_dump(mode="json"),
+                "source_image": {
+                    "artifact_ref": request.source_image_ref,
+                    "sha256": request.source_image_sha256,
+                    "content_base64": base64.b64encode(source).decode("ascii"),
+                },
+            },
         )
         return _validated(IllustrationAssetV1, raw)
 

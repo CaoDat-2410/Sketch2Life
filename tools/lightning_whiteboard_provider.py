@@ -9,6 +9,9 @@ import json
 import logging
 import os
 import re
+import shutil
+import subprocess
+import sys
 import wave
 from contextlib import nullcontext
 from pathlib import Path
@@ -328,6 +331,30 @@ def _concat_wavs(paths: list[Path], output: Path) -> None:
         combined.writeframes(b"".join(frames))
 
 
+def _file_sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _ffprobe_duration(path: Path) -> float:
+    result = subprocess.run(
+        ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=nw=1:nk=1", str(path)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    duration = float(result.stdout.strip())
+    if duration <= 0:
+        raise ValueError("media duration is not positive")
+    return duration
+
+
+def _require_executable(name: str) -> str:
+    executable = shutil.which(name)
+    if executable is None:
+        raise RuntimeError(f"{name.upper()}_NOT_INSTALLED")
+    return executable
+
+
 @app.post("/v1/story-video/narration")
 def story_video_narration(payload: dict[str, Any]) -> dict[str, Any]:
     request = payload.get("request")
@@ -373,20 +400,153 @@ def story_video_narration(payload: dict[str, Any]) -> dict[str, Any]:
 
 @app.post("/v1/story-video/illustration")
 def story_video_illustration(payload: dict[str, Any]) -> dict[str, Any]:
-    del payload
-    return _story_video_blocked("IllustrationAssetV1", "IMAGE_RUNTIME_NOT_CONFIGURED")
+    request = payload.get("request")
+    source = payload.get("source_image")
+    model_id = os.getenv("SKETCH2LIFE_IMAGE_MODEL", "").strip()
+    if not isinstance(request, dict) or not isinstance(source, dict):
+        raise HTTPException(status_code=422, detail="ILLUSTRATION_REQUEST_INVALID")
+    if not model_id:
+        return _story_video_blocked("IllustrationAssetV1", "IMAGE_RUNTIME_NOT_CONFIGURED")
+    encoded = source.get("content_base64")
+    source_hash = source.get("sha256")
+    if not isinstance(encoded, str) or not isinstance(source_hash, str):
+        raise HTTPException(status_code=422, detail="SOURCE_IMAGE_INVALID")
+    root = _story_video_artifact_root()
+    scene_id = str(request.get("scene_id", "scene-1"))
+    source_path = root / f"{scene_id}.source.png"
+    output_path = root / f"{scene_id}.illustration.png"
+    try:
+        source_bytes = base64.b64decode(encoded, validate=True)
+        if hashlib.sha256(source_bytes).hexdigest() != source_hash:
+            raise ValueError("source image hash mismatch")
+        source_path.write_bytes(source_bytes)
+        from PIL import Image
+
+        image = Image.open(io.BytesIO(source_bytes)).convert("RGB")
+        import torch
+        from diffusers import AutoPipelineForImage2Image
+
+        pipe = AutoPipelineForImage2Image.from_pretrained(
+            model_id,
+            torch_dtype=torch.float16,
+            variant=os.getenv("SKETCH2LIFE_IMAGE_VARIANT", "fp16"),
+        )
+        pipe.enable_model_cpu_offload()
+        result = pipe(
+            prompt=str(request.get("visual_prompt", "")),
+            image=image,
+            strength=float(os.getenv("SKETCH2LIFE_IMAGE_STRENGTH", "0.35")),
+            guidance_scale=float(os.getenv("SKETCH2LIFE_IMAGE_GUIDANCE", "6.0")),
+            num_inference_steps=int(os.getenv("SKETCH2LIFE_IMAGE_STEPS", "25")),
+        ).images[0]
+        result.save(output_path, format="PNG")
+        return {
+            "contract": "IllustrationAssetV1",
+            "version": "1.0",
+            "status": "READY",
+            "scene_id": scene_id,
+            "asset_ref": str(output_path),
+            "asset_sha256": _file_sha256(output_path),
+            "content_type": "image/png",
+            "width": result.width,
+            "height": result.height,
+            "source_image_ref": str(request.get("source_image_ref", "")),
+            "source_image_sha256": source_hash,
+            "model_profile_ref": model_id,
+        }
+    except (ImportError, OSError, RuntimeError, ValueError) as error:
+        _LOGGER.exception("story_video_illustration_failed")
+        return _story_video_blocked("IllustrationAssetV1", str(error) or "IMAGE_RENDER_FAILED")
 
 
 @app.post("/v1/story-video/scene")
 def story_video_scene(payload: dict[str, Any]) -> dict[str, Any]:
-    del payload
-    return _story_video_blocked("VideoSceneArtifactV1", "WAN_RUNTIME_NOT_CONFIGURED")
+    request = payload.get("request")
+    if not isinstance(request, dict):
+        raise HTTPException(status_code=422, detail="SCENE_REQUEST_INVALID")
+    repo_dir = Path(os.getenv("WAN_REPO_DIR", "")).expanduser()
+    ckpt_dir = Path(os.getenv("WAN_CKPT_DIR", "")).expanduser()
+    if not repo_dir.is_dir() or not ckpt_dir.is_dir():
+        return _story_video_blocked("VideoSceneArtifactV1", "WAN_RUNTIME_NOT_CONFIGURED")
+    image_path = Path(str(request.get("illustration_ref", "")))
+    if not image_path.is_file():
+        return _story_video_blocked("VideoSceneArtifactV1", "ILLUSTRATION_ARTIFACT_MISSING")
+    root = _story_video_artifact_root()
+    scene_id = str(request.get("scene_id", "scene-1"))
+    output_path = root / f"{scene_id}.mp4"
+    prompt = str(request.get("motion_prompt", ""))
+    command = [
+        os.getenv("WAN_PYTHON", sys.executable),
+        str(repo_dir / "generate.py"),
+        "--task", "ti2v-5B",
+        "--size", os.getenv("WAN_SIZE", "1280*704"),
+        "--ckpt_dir", str(ckpt_dir),
+        "--offload_model", "True",
+        "--convert_model_dtype",
+        "--t5_cpu",
+        "--image", str(image_path),
+        "--prompt", prompt,
+        "--save_file", str(output_path),
+    ]
+    try:
+        subprocess.run(command, cwd=repo_dir, check=True, timeout=1800)
+        duration = _ffprobe_duration(output_path)
+        return {
+            "contract": "VideoSceneArtifactV1",
+            "version": "1.0",
+            "status": "READY",
+            "scene_id": scene_id,
+            "silent_clip_ref": str(output_path),
+            "silent_clip_sha256": _file_sha256(output_path),
+            "duration_seconds": duration,
+            "model_profile_ref": "wan2.2-ti2v-5b",
+        }
+    except (OSError, RuntimeError, subprocess.SubprocessError, ValueError) as error:
+        _LOGGER.exception("story_video_scene_failed")
+        return _story_video_blocked("VideoSceneArtifactV1", str(error) or "WAN_RENDER_FAILED")
 
 
 @app.post("/v1/story-video/assembly")
 def story_video_assembly(payload: dict[str, Any]) -> dict[str, Any]:
-    del payload
-    return _story_video_blocked("VideoArtifactV1", "ASSEMBLY_RUNTIME_NOT_CONFIGURED")
+    request = payload.get("request")
+    if not isinstance(request, dict):
+        raise HTTPException(status_code=422, detail="ASSEMBLY_REQUEST_INVALID")
+    scene_refs = request.get("scene_artifact_refs")
+    narration_ref = request.get("narration_ref")
+    if not isinstance(scene_refs, list) or not scene_refs or not isinstance(narration_ref, str):
+        raise HTTPException(status_code=422, detail="ASSEMBLY_REQUEST_INVALID")
+    try:
+        ffmpeg = _require_executable("ffmpeg")
+        audio_path = Path(narration_ref)
+        scene_paths = [Path(str(ref)) for ref in scene_refs]
+        if not audio_path.is_file() or any(not path.is_file() for path in scene_paths):
+            return _story_video_blocked("VideoArtifactV1", "ASSEMBLY_ARTIFACT_MISSING")
+        root = _story_video_artifact_root()
+        list_path = root / f"{request.get('package_id', 'story')}.concat.txt"
+        output_path = root / f"{request.get('package_id', 'story')}.final.mp4"
+        list_path.write_text("".join(f"file '{path.as_posix()}'\n" for path in scene_paths))
+        subprocess.run(
+            [ffmpeg, "-y", "-f", "concat", "-safe", "0", "-i", str(list_path), "-i", str(audio_path),
+             "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac", "-shortest", "-movflags", "+faststart", str(output_path)],
+            check=True,
+            capture_output=True,
+            timeout=600,
+        )
+        duration = _ffprobe_duration(output_path)
+        return {
+            "contract": "VideoArtifactV1",
+            "version": "1.0",
+            "status": "READY",
+            "video_ref": str(output_path),
+            "video_sha256": _file_sha256(output_path),
+            "duration_seconds": duration,
+            "audio_ref": str(audio_path),
+            "video_codec": "h264",
+            "audio_codec": "aac",
+        }
+    except (OSError, RuntimeError, subprocess.SubprocessError, ValueError) as error:
+        _LOGGER.exception("story_video_assembly_failed")
+        return _story_video_blocked("VideoArtifactV1", str(error) or "ASSEMBLY_FAILED")
 
 
 if __name__ == "__main__":

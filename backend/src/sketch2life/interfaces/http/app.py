@@ -12,6 +12,7 @@ from sketch2life.application.services.live_image_demo import LiveImageDemoServic
 from sketch2life.application.services.p1_experience import P1ExperienceCompiler
 from sketch2life.application.services.pixi_topic_asset_candidates import load_topic_asset_catalog
 from sketch2life.application.services.story_video_job import StoryVideoJobService
+from sketch2life.application.services.story_video_pipeline import StoryVideoPipeline
 from sketch2life.application.services.supervised_flow import SupervisedFlowService
 from sketch2life.application.services.whiteboard_video_job import (
     UnconfiguredWhiteboardVideoPipeline,
@@ -24,6 +25,13 @@ from sketch2life.infrastructure.ai.lightning_client import (
     LightningAsrV2Adapter,
     UrllibJsonTransport,
     read_secret_file,
+)
+from sketch2life.infrastructure.ai.lightning_story_video import (
+    LightningIllustrationProvider,
+    LightningMotionProvider,
+    LightningNarrationProvider,
+    LightningStoryVideoAdapter,
+    LightningVideoAssembler,
 )
 from sketch2life.infrastructure.ai.lightning_vision_v2 import LightningVisionV2Adapter
 from sketch2life.infrastructure.catalog.activity_semantics import load_activity_semantic_catalog
@@ -142,6 +150,9 @@ def create_app(
             whiteboard_video_pipeline = _configured_whiteboard_pipeline(
                 settings, source_artifacts
             )
+        if story_video_job_service is None:
+            story_pipeline = _configured_story_video_pipeline(settings, artifacts)
+            story_video_job_service = StoryVideoJobService(pipeline=story_pipeline)
         if supervised_flow_service is None:
             repo_root = Path(__file__).resolve().parents[5]
             p1_library = load_p1_template_library(
@@ -236,6 +247,42 @@ def _configured_lightning_vision(
         transport=transport,
         artifact_loader=load_artifact,
         endpoint_path=settings.lightning_vision_v2_path,
+    )
+
+
+def _configured_story_video_pipeline(
+    settings: Settings, artifacts: InMemoryArtifactStore
+) -> StoryVideoPipeline | None:
+    if settings.env == "test" or settings.ai_provider != "lightning_dev":
+        return None
+    if not settings.lightning_ai_base_url:
+        return None
+    try:
+        token = (
+            read_secret_file(settings.lightning_ai_token_file)
+            if settings.lightning_ai_token_file is not None
+            else ""
+        )
+        transport = UrllibJsonTransport(
+            base_url=settings.lightning_ai_base_url,
+            token=token,
+            request_timeout_seconds=settings.ai_request_timeout_seconds,
+        )
+    except (OSError, ValueError):
+        return None
+
+    def load_artifact(artifact_ref: str) -> bytes:
+        stored = artifacts.get(artifact_ref)
+        if stored is None:
+            raise KeyError("story video source artifact is unavailable")
+        return stored[1]
+
+    adapter = LightningStoryVideoAdapter(transport=transport, artifact_loader=load_artifact)
+    return StoryVideoPipeline(
+        narration=LightningNarrationProvider(adapter),
+        illustrations=LightningIllustrationProvider(adapter),
+        motion=LightningMotionProvider(adapter),
+        assembler=LightningVideoAssembler(adapter),
     )
 
 
