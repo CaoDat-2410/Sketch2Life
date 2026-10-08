@@ -12,7 +12,7 @@ Updated: 2026-09-30
   illustration → per-scene motion → assembly → duration gate.
 - Idempotent process-local story-video job API with safe public progress.
 - Lightning adapter and provider routes with strict response validation.
-- Runtime hooks for Azure Speech, Diffusers image-to-image, official Wan2.2
+- Runtime hooks for Azure Speech or ElevenLabs, Diffusers image-to-image, official Wan2.2
   TI2V-5B CLI, and FFmpeg assembly; each is lazy-loaded and fails closed when
   its required secret, executable, repository or checkpoint is absent.
 - Honest `BLOCKED` results when a model/runtime is not configured.
@@ -21,7 +21,7 @@ Updated: 2026-09-30
 
 ## Not completed in this environment
 
-- A production TTS provider credential/voice selection.
+- A production TTS provider credential/voice selection on Lightning (`SKETCH2LIFE_TTS_PROVIDER=elevenlabs` plus `ELEVENLABS_API_KEY` and `ELEVENLABS_VOICE_ID`, or Azure equivalents).
 - Image-generation model and weights on Lightning.
 - Wan2.2 TI2V-5B runtime, checkpoint and L4 benchmark.
 - Real scene rendering, FFmpeg assembly and final MP4 validation on GPU.
