@@ -141,7 +141,7 @@ class VideoAssemblyRequestV1(BaseModel):
     scene_artifact_refs: tuple[str, ...] = Field(min_length=1, max_length=12)
     narration_ref: str = Field(min_length=1, max_length=300)
     narration_sha256: Sha256 = Field(pattern=r"^[a-f0-9]{64}$")
-    subtitle_cues: tuple[SubtitleCueV1, ...] = Field(default=(), max_length=12)
+    subtitle_cues: tuple[SubtitleCueV1, ...] = Field(default=(), max_length=48)
     target_duration_min_seconds: int = Field(default=40, ge=40, le=60)
     target_duration_max_seconds: int = Field(default=60, ge=40, le=60)
 
@@ -149,8 +149,15 @@ class VideoAssemblyRequestV1(BaseModel):
     def validate_assembly_inputs(self) -> VideoAssemblyRequestV1:
         if len(self.scene_ids) != len(self.scene_artifact_refs):
             raise ValueError("scene IDs and scene artifacts must have the same length")
-        if self.subtitle_cues and len(self.subtitle_cues) != len(self.scene_ids):
-            raise ValueError("subtitle cues must align one-to-one with scenes")
+        if self.subtitle_cues and not (
+            len(self.scene_ids) <= len(self.subtitle_cues) <= len(self.scene_ids) * 4
+        ):
+            raise ValueError("subtitle cues must contain one to four cues per scene")
+        if any(
+            current.start_seconds < previous.end_seconds - 0.01
+            for previous, current in zip(self.subtitle_cues, self.subtitle_cues[1:], strict=False)
+        ):
+            raise ValueError("subtitle cues must not overlap")
         return self
 
 

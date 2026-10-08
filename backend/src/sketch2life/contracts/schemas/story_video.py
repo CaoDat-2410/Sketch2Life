@@ -70,6 +70,19 @@ class ApprovedStoryPackageV1(BaseModel):
             raise ValueError("target duration minimum must not exceed maximum")
         if (self.source_audio_ref is None) != (self.source_audio_sha256 is None):
             raise ValueError("source audio ref and hash must be supplied together")
+        required_hashes = (
+            self.source_image_sha256,
+            self.confirmed_understanding_sha256,
+            self.experience_spec_sha256,
+            self.story_script_sha256,
+            self.audience_profile_sha256,
+            self.evidence_set_sha256,
+            self.narration_profile_sha256,
+            self.approval_sha256,
+            self.package_hash,
+        )
+        if any(digest == "0" * 64 for digest in required_hashes):
+            raise ValueError("story package contains an unresolved placeholder hash")
         return self
 
 

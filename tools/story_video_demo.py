@@ -1,38 +1,19 @@
-"""Run the local cat story-video demo with a single, checked command.
+"""Submit a reviewed story-video request to running backend/provider services.
 
-The provider and backend must already be running. The preflight stops before
-creating a session if a required local runtime is unavailable.
+The JSON file must contain ``StoryVideoCreateRequestV1`` for an existing
+session and uploaded source image. This tool never fabricates approvals,
+facts, hashes, source media or a child identity.
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 import time
-import uuid
-from datetime import UTC, datetime
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
-
-BACKEND = "http://127.0.0.1:8000"
-PROVIDER = "http://127.0.0.1:8001"
-IMAGE = Path(__file__).resolve().parents[1] / "upload" / "cat.png"
-ZERO = "0" * 64
-TEXTS = (
-    "Mèo có ria dài bên má vì những sợi ria này rất quan trọng đối với cách chúng khám phá "
-    "thế giới xung quanh. Ria không chỉ giúp mèo trông đáng yêu mà còn hoạt động như "
-    "những chiếc cảm biến đặc biệt trên khuôn mặt.",
-    "Ria mèo hoạt động giống như những chiếc cảm biến nhỏ. Chúng giúp mèo biết khoảng "
-    "trống phía trước có đủ rộng để cơ thể đi qua hay không. Nhờ vậy, mèo có thể tránh "
-    "bị mắc kẹt khi chui qua gầm bàn, hộp nhỏ hoặc những lối đi hẹp.",
-    "Khi mèo di chuyển trong bóng tối hoặc nơi chật hẹp, ria còn cảm nhận chuyển động "
-    "của không khí và giúp nó phát hiện vật thể ở gần. Điều này đặc biệt hữu ích khi "
-    "mèo săn mồi, leo trèo hoặc khám phá một căn phòng hoàn toàn mới.",
-    "Nhờ có ria, mèo có thể di chuyển an toàn hơn, săn mồi chính xác hơn và bảo vệ "
-    "khuôn mặt khỏi va chạm. Vì vậy, chúng ta không nên cắt ria của mèo, bởi ria là "
-    "một phần quan trọng giúp mèo hiểu và tương tác với môi trường xung quanh.",
-)
 
 
 def request_json(
@@ -57,125 +38,53 @@ def post_json(url: str, payload: dict) -> dict:
     )
 
 
-def preflight() -> None:
-    request_json(f"{BACKEND}/health")
-    report = request_json(f"{PROVIDER}/v1/story-video/preflight")
+def load_approved_request(path: Path) -> tuple[str, dict]:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict) or payload.get("contract") != "StoryVideoCreateRequestV1":
+        raise ValueError("request file must contain StoryVideoCreateRequestV1")
+    package = payload.get("package")
+    segments = payload.get("segments")
+    if not isinstance(package, dict) or not isinstance(segments, list) or len(segments) < 3:
+        raise ValueError("reviewed package and at least three script segments are required")
+    session_id = package.get("session_id")
+    if not isinstance(session_id, str) or not session_id:
+        raise ValueError("approved package must contain an existing session_id")
+    if package.get("content_validator_result") != "PASSED":
+        raise ValueError("content validation must pass before story rendering")
+    for name in ("source_image_sha256", "approval_sha256", "package_hash"):
+        digest = package.get(name)
+        if not isinstance(digest, str) or len(digest) != 64 or digest == "0" * 64:
+            raise ValueError(f"{name} must be a real, non-placeholder SHA-256")
+    return session_id, payload
+
+
+def preflight(backend: str, provider: str) -> None:
+    request_json(f"{backend}/health")
+    report = request_json(f"{provider}/v1/story-video/preflight")
     for name, check in report["checks"].items():
         print(f"{'OK' if check['ready'] else 'MISSING'} {name}: {check['detail']}", flush=True)
     if not report["ready"]:
-        raise RuntimeError("Provider preflight failed; no session or job was created")
-    if not IMAGE.is_file():
-        raise RuntimeError(f"Image is missing: {IMAGE}")
+        raise RuntimeError("Provider preflight failed; no story job was created")
 
 
-def upload(session_id: str) -> dict:
-    boundary = "----Sketch2Life" + uuid.uuid4().hex
-    body = (
-        f"--{boundary}\r\n"
-        'Content-Disposition: form-data; name="image"; filename="cat.png"\r\n'
-        "Content-Type: image/png\r\n\r\n"
-    ).encode() + IMAGE.read_bytes() + f"\r\n--{boundary}--\r\n".encode()
-    result = request_json(
-        f"{BACKEND}/v1/sessions/{session_id}/media/image",
-        body,
-        {
-            "Content-Type": f"multipart/form-data; boundary={boundary}",
-            "X-Request-ID": "upload-" + session_id,
-            "X-Expected-Session-Version": "0",
-            "Idempotency-Key": "upload-" + session_id,
-            "X-Actor-Ref": "demo:local",
-            "X-Synthetic-Non-Child-Confirmed": "true",
-        },
-    )
-    if result.get("status") != "SUCCEEDED":
-        raise RuntimeError(f"Image upload failed: {result.get('failure')}")
-    return result["payload"]["source_image_ref"]
+def main(argv: list[str] | None = None) -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--request", type=Path, required=True, help="Reviewed request JSON")
+    parser.add_argument("--backend", default="http://127.0.0.1:8000")
+    parser.add_argument("--provider", default="http://127.0.0.1:8001")
+    parser.add_argument("--timeout-seconds", type=int, default=7500)
+    args = parser.parse_args(argv)
 
-
-def create_job(session_id: str, image: dict) -> dict:
-    package_id = "pkg-cat-demo-" + uuid.uuid4().hex[:8]
-    package = {
-        "contract": "ApprovedStoryPackageV1",
-        "version": "1.0",
-        "package_id": package_id,
-        "session_id": session_id,
-        "session_version": 1,
-        "source_image_ref": image["artifact_ref"],
-        "source_image_sha256": image["sha256"],
-        "source_audio_ref": None,
-        "source_audio_sha256": None,
-        "locale": "vi-VN",
-        "narration_profile_ref": "edge-tts:vi-VN-HoaiMyNeural",
-        "target_duration_min_seconds": 40,
-        "target_duration_max_seconds": 60,
-        "story_script_revision": 1,
-        "content_validator_version": "1.0",
-        "content_validator_result": "PASSED",
-        "created_at": datetime.now(UTC).isoformat(),
-        "package_hash": ZERO,
-    }
-    refs = {
-        "confirmed_understanding_ref": "understanding:cat-whiskers",
-        "experience_spec_ref": "experience:story-video",
-        "story_script_ref": "script:cat-whiskers-demo",
-        "audience_profile_ref": "audience:children",
-        "evidence_set_ref": "evidence:cat-whiskers",
-        "narration_profile_sha256": ZERO,
-        "approval_ref": "approval:approved",
-    }
-    package.update(refs)
-    package.update(
-        {name.replace("_ref", "_sha256"): ZERO for name in refs if name.endswith("_ref")}
-    )
-    segments = [
-        {
-            "segment_id": f"segment-{index}",
-            "text": text,
-            "approved_fact_ids": [f"fact-whiskers-{index}"],
-            "confirmed_anchor_ids": [f"anchor-cat-{index}"],
-            "scene_purpose": purpose,
-        }
-        for index, (text, purpose) in enumerate(
-            zip(TEXTS, ("INTRO", "EXPLAIN", "DEMONSTRATE", "RECAP"), strict=True), 1
-        )
-    ]
-    return post_json(
-        f"{BACKEND}/v1/sessions/{session_id}/story-video-jobs",
-        {
-            "contract": "StoryVideoCreateRequestV1",
-            "version": "1.0",
-            "idempotency_key": "job-" + str(uuid.uuid4()),
-            "package": package,
-            "segments": segments,
-        },
-    )
-
-
-def main() -> None:
-    preflight()
-    session_id = str(uuid.uuid4())
-    created = post_json(
-        f"{BACKEND}/v1/sessions",
-        {
-            "contract_name": "MobileWorkflowCommandV1",
-            "contract_version": "1.0",
-            "request_id": "create-" + session_id,
-            "idempotency_key": "create-" + session_id,
-            "session_id": session_id,
-            "expected_session_version": 0,
-            "actor_ref": "demo:local",
-            "payload": {"operation": "CREATE_SESSION"},
-        },
-    )
-    if created.get("status") != "SUCCEEDED":
-        raise RuntimeError(f"Session creation failed: {created.get('failure')}")
-    image = upload(session_id)
-    job = create_job(session_id, image)
-    status_url = f"{BACKEND}/v1/sessions/{session_id}/story-video/{job['job_id']}"
+    session_id, payload = load_approved_request(args.request)
+    backend = args.backend.rstrip("/")
+    provider = args.provider.rstrip("/")
+    preflight(backend, provider)
+    job = post_json(f"{backend}/v1/sessions/{session_id}/story-video-jobs", payload)
+    status_url = f"{backend}/v1/sessions/{session_id}/story-video/{job['job_id']}"
     print(f"Job: {job['job_id']}\nStatus URL: {status_url}", flush=True)
 
     last_stage = None
-    deadline = time.monotonic() + 7500
+    deadline = time.monotonic() + args.timeout_seconds
     while time.monotonic() < deadline:
         status = request_json(status_url)
         if status.get("stage") != last_stage:
@@ -186,6 +95,10 @@ def main() -> None:
         }:
             if status["state"] != "READY":
                 raise RuntimeError(f"Job stopped: {status['public_message']}")
+            artifact = status.get("video_artifact_ref")
+            if not artifact:
+                raise RuntimeError("Job reported READY without a downloadable MP4")
+            print(f"MP4: {artifact}", flush=True)
             return
         time.sleep(10)
     raise RuntimeError("Polling timed out; use the printed Status URL to check later")
@@ -194,6 +107,6 @@ def main() -> None:
 if __name__ == "__main__":
     try:
         main()
-    except (KeyError, RuntimeError, ValueError) as error:
+    except (KeyError, OSError, RuntimeError, ValueError) as error:
         print(f"ERROR: {error}", file=sys.stderr)
         raise SystemExit(1) from error

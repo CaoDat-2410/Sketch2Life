@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from functools import cache
 
 from sketch2life.contracts.schemas.story_video import (
     ApprovedStoryPackageV1,
@@ -38,9 +39,21 @@ class StoryVideoPlanner:
             raise ValueError("measured segment durations must be positive")
 
         basis = "MEASURED_TTS" if measured is not None else "ESTIMATE"
-        scenes = tuple(
-            self._scene(segment, index, measured[index] if measured is not None else None, basis)
+        durations = tuple(
+            measured[index]
+            if measured is not None
+            else max(4.0, min(10.0, len(segment.text) / 14.0))
             for index, segment in enumerate(segments)
+        )
+        groups = self._partition(segments, durations)
+        scenes = tuple(
+            self._scene(
+                segments[start:end],
+                index,
+                round(sum(durations[start:end]), 3),
+                basis,
+            )
+            for index, (start, end) in enumerate(groups)
         )
         total = round(sum(scene.duration_seconds for scene in scenes), 3)
         if basis == "MEASURED_TTS" and not (
@@ -67,40 +80,90 @@ class StoryVideoPlanner:
             raise ValueError("script segments must be ordered and contiguous")
 
     @staticmethod
+    def _partition(
+        segments: tuple[StoryScriptSegmentV1, ...], durations: tuple[float, ...]
+    ) -> tuple[tuple[int, int], ...]:
+        """Choose 3–6 timed scenes without splitting approved narration segments."""
+
+        minimum = 3
+        maximum = 6
+        if len(segments) < minimum:
+            raise ValueError("story requires at least three approved narration segments")
+
+        @cache
+        def solve(start: int, remaining: int):
+            if start == len(segments):
+                return (0.0, ()) if remaining == 0 else None
+            if remaining <= 0:
+                return None
+            best = None
+            for end in range(start + 1, min(len(segments), start + 8) + 1):
+                duration = sum(durations[start:end])
+                if duration > 20.0:
+                    break
+                if duration < 5.0:
+                    continue
+                continuation = solve(end, remaining - 1)
+                if continuation is None:
+                    continue
+                purposes = {segment.scene_purpose for segment in segments[start:end]}
+                score = (duration - 10.0) ** 2
+                if len(purposes) > 1:
+                    score += 4.0 * (len(purposes) - 1)
+                candidate = (score + continuation[0], ((start, end),) + continuation[1])
+                if best is None or candidate < best:
+                    best = candidate
+            return best
+
+        options = [solve(0, count) for count in range(minimum, maximum + 1)]
+        valid = [option for option in options if option is not None]
+        if not valid:
+            raise ValueError("approved narration cannot fit three to six 5–20 second scenes")
+        return min(valid)[1]
+
+    @staticmethod
     def _scene(
-        segment: StoryScriptSegmentV1,
+        segments: tuple[StoryScriptSegmentV1, ...],
         index: int,
-        measured_duration: float | None,
+        duration: float,
         basis: str,
     ) -> StoryboardSceneV1:
-        duration = (
-            measured_duration
-            if measured_duration is not None
-            else max(4.0, min(10.0, len(segment.text) / 14.0))
+        narration = " ".join(segment.text for segment in segments)
+        if len(narration) > 1_600:
+            raise ValueError("scene narration is too long for a visual prompt")
+        facts = tuple(
+            dict.fromkeys(fact for segment in segments for fact in segment.approved_fact_ids)
         )
+        anchors = tuple(
+            dict.fromkeys(anchor for segment in segments for anchor in segment.confirmed_anchor_ids)
+        )
+        if len(facts) > 16 or len(anchors) > 16:
+            raise ValueError("scene references exceed the approved fact/anchor limit")
         visual = (
             "Clean black-ink whiteboard line drawing on a plain white background; "
             "one consistent subject and simple composition across all scenes. "
             "Preserve the source drawing's identity and depict only approved details. "
-            f"Confirmed anchors: {', '.join(segment.confirmed_anchor_ids)}. "
-            f"Narration for this scene: {segment.text}"
+            f"Confirmed anchors: {', '.join(anchors)}. "
+            f"Narration for this scene: {narration}"
         )
+        if len(visual) > 2_000:
+            raise ValueError("scene visual prompt exceeds the provider limit")
         motion = {
             "INTRO": "Reveal the setting and subject with a gentle camera push-in.",
             "EXPLAIN": "Animate the subject action progressively in sync with narration.",
             "DEMONSTRATE": "Show the described action with clear, continuous movement.",
             "RECAP": "Return to the subject and resolve the story with a calm movement.",
-        }[segment.scene_purpose]
+        }[segments[-1].scene_purpose]
         return StoryboardSceneV1(
             scene_id=f"scene-{index + 1}",
             order=index + 1,
-            segment_ids=(segment.segment_id,),
-            narration_text=segment.text,
+            segment_ids=tuple(segment.segment_id for segment in segments),
+            narration_text=narration,
             visual_prompt=visual,
             motion_prompt=motion,
-            approved_fact_ids=segment.approved_fact_ids,
-            confirmed_anchor_ids=segment.confirmed_anchor_ids,
-            duration_seconds=round(duration, 3),
+            approved_fact_ids=facts,
+            confirmed_anchor_ids=anchors,
+            duration_seconds=duration,
             duration_basis=basis,
         )
 

@@ -791,7 +791,13 @@ def story_video_assembly(payload: dict[str, Any]) -> dict[str, Any]:
                 .replace(":", r"\:")
                 .replace("'", r"\'")
             )
-            filter_args = ["-vf", f"subtitles='{escaped}':charenc=UTF-8"]
+            style = (
+                "FontName=DejaVu Sans,FontSize=12,BorderStyle=1,Outline=1,"
+                "Shadow=0,MarginV=24,Alignment=2"
+            )
+            filter_args = [
+                "-vf", f"subtitles='{escaped}':charenc=UTF-8:force_style='{style}'"
+            ]
         subprocess.run(
             [
                 ffmpeg,
