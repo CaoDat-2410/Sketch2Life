@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import hashlib
 import json
+from pathlib import Path
 
 import pytest
+from tools.create_story_video_media_fixture import create_fixture
 from tools.story_video_media_smoke import _local_base_url, load_fixture, run_media_smoke
 
 
@@ -144,3 +146,18 @@ def test_media_smoke_rejects_undecodable_image_before_tts(tmp_path) -> None:
     source.write_bytes(b"not-a-png")
     with pytest.raises(ValueError, match="cannot be decoded"):
         load_fixture(fixture)
+
+
+def test_generated_non_child_fixture_is_valid_and_never_overwrites(tmp_path) -> None:
+    directory = tmp_path / "sample"
+    fixture = create_fixture(directory)
+    image, locale, scenes = load_fixture(fixture)
+    assert image.is_file()
+    assert locale == "vi-VN"
+    assert len(scenes) == 4
+    assert all(len(scene["text"].split()) >= 25 for scene in scenes)
+    with pytest.raises(FileExistsError, match="already exists"):
+        create_fixture(directory)
+    repository_root = Path(__file__).resolve().parents[3]
+    with pytest.raises(ValueError, match="outside the Git repository"):
+        create_fixture(repository_root / "forbidden-smoke-output")
