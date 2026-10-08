@@ -280,6 +280,63 @@ def test_pipeline_reports_invalid_storyboard_before_rendering_images() -> None:
         raise AssertionError("invalid storyboard must be a typed failure")
 
 
+@pytest.mark.parametrize(
+    ("caption", "code"),
+    [("x" * 63, "SUBTITLE_WORD_TOO_LONG"), ("short " * 50, "SUBTITLE_TEXT_TOO_LONG")],
+)
+def test_pipeline_rejects_unusable_captions_before_paid_tts(caption: str, code: str) -> None:
+    class NoNarration:
+        def render(self, request, texts):
+            raise AssertionError("unusable captions must stop before TTS")
+
+    pipeline = StoryVideoPipeline(
+        narration=NoNarration(),
+        illustrations=_Illustrations(),
+        motion=_Motion(),
+        assembler=_Assembler(),
+    )
+    segments = (_segments()[0].model_copy(update={"text": caption}), *_segments()[1:])
+    with pytest.raises(StoryVideoProviderError) as caught:
+        pipeline.run(_package(), segments)
+    assert caught.value.code == code
+
+
+def test_pipeline_rejects_unmeasurably_short_caption_before_images() -> None:
+    class TinyNarration(_Narration):
+        def render(self, request, texts):
+            return super().render(request, texts).model_copy(
+                update={
+                    "duration_seconds": 40.0001,
+                    "segment_timing_seconds": (0.0001, 10.0, 10.0, 10.0, 10.0),
+                }
+            )
+
+    class NoImages:
+        def render(self, request):
+            raise AssertionError("invalid subtitle timing must stop before image rendering")
+
+    purposes = ("INTRO", "INTRO", "EXPLAIN", "DEMONSTRATE", "RECAP")
+    segments = tuple(
+        StoryScriptSegmentV1(
+            segment_id=f"segment-{index}",
+            text=f"Đoạn kể số {index}.",
+            approved_fact_ids=(f"fact-{index}",),
+            confirmed_anchor_ids=("anchor-cat",),
+            scene_purpose=purpose,
+        )
+        for index, purpose in enumerate(purposes, 1)
+    )
+    pipeline = StoryVideoPipeline(
+        narration=TinyNarration(),
+        illustrations=NoImages(),
+        motion=_Motion(),
+        assembler=_Assembler(),
+    )
+    with pytest.raises(StoryVideoProviderError) as caught:
+        pipeline.run(_package(), segments)
+    assert caught.value.code == "SUBTITLE_TIMING_INVALID"
+
+
 def test_pipeline_stops_before_images_when_tts_timing_does_not_match_audio() -> None:
     class BadNarration(_Narration):
         def render(self, request, texts):

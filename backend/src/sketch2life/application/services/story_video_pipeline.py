@@ -99,6 +99,10 @@ class StoryVideoPipeline:
         update_stage: Callable[[str, int], None] | None = None,
     ) -> StoryVideoRun:
         update = update_stage or self._update_stage
+        for segment in segments:
+            chunks = _caption_chunks(segment.text)
+            if not chunks or len(chunks) > 4:
+                raise StoryVideoProviderError("SUBTITLE_TEXT_TOO_LONG", retryable=False)
         update("NARRATION_RENDERING", 10)
         texts = tuple(segment.text for segment in segments)
         narration_request = NarrationRenderRequestV1(
@@ -134,6 +138,9 @@ class StoryVideoPipeline:
             scene.duration_seconds < 5.0 for scene in storyboard.scenes
         ):
             raise StoryVideoProviderError("WHITEBOARD_SCENE_TOO_SHORT", retryable=False)
+        subtitle_cues = _subtitle_cues(
+            storyboard, segments, narration.segment_timing_seconds
+        )
         update("ILLUSTRATIONS_RENDERING", 30)
         illustrations = tuple(
             self._illustrations.render(
@@ -210,9 +217,6 @@ class StoryVideoPipeline:
             raise StoryVideoProviderError("VIDEO_SCENE_DURATION_MISMATCH", retryable=True)
 
         update("ASSEMBLING", 80)
-        subtitle_cues = _subtitle_cues(
-            storyboard, segments, narration.segment_timing_seconds
-        )
         video = self._assembler.assemble(
             VideoAssemblyRequestV1(
                 request_id=f"assembly-{package.package_id}",
