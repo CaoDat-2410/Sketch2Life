@@ -37,3 +37,17 @@ The story-video job must not transition to `READY` until the configured
 provider returns real, schema-valid artifacts and final duration validation
 passes the approved 40–60 second window. The current provider returns typed
 `BLOCKED` responses instead of claiming generated media.
+
+## Lightning development check
+
+After starting the provider on port 8001 with the intended environment variables,
+request `GET http://127.0.0.1:8001/v1/story-video/preflight`. It checks Edge TTS,
+FFmpeg, image imports, CUDA, Wan code, checkpoint directory and Python path.
+`ready: false` means the full story-video job should not be started. The check
+does not download model weights or prove that a GPU render will finish.
+
+With the backend on port 8000 and a local `upload/cat.png`, run
+`python tools/story_video_demo.py`. It checks both services, creates a fresh
+session, uploads the image, creates the job and polls with the exact IDs returned
+by the API. Keep both services running throughout the demo; session and job
+state are process-local.

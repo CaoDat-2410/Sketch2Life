@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import importlib
 import io
 import json
 import logging
@@ -116,6 +117,76 @@ def _cpu_fallback_enabled() -> bool:
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok", "service": "whiteboard-provider"}
+
+
+@app.get("/v1/story-video/preflight")
+def story_video_preflight() -> dict[str, Any]:
+    """Report all local requirements before an expensive story-video run."""
+
+    checks: dict[str, dict[str, str | bool]] = {}
+
+    def record(name: str, ready: bool, detail: str) -> None:
+        checks[name] = {"ready": ready, "detail": detail}
+
+    provider = os.getenv("SKETCH2LIFE_TTS_PROVIDER", "edge_tts").strip().lower()
+    if provider == "edge_tts":
+        try:
+            importlib.import_module("edge_tts")
+            record("tts", True, "Edge TTS is importable")
+        except ImportError:
+            record("tts", False, "Install edge-tts in the provider Python environment")
+    elif provider == "elevenlabs":
+        configured = bool(os.getenv("ELEVENLABS_API_KEY") and os.getenv("ELEVENLABS_VOICE_ID"))
+        tts_detail = (
+            "ElevenLabs credentials configured"
+            if configured else "ElevenLabs API key or voice ID missing"
+        )
+        record(
+            "tts", configured, tts_detail,
+        )
+    else:
+        record("tts", False, "Unsupported TTS provider")
+
+    for executable in ("ffmpeg", "ffprobe"):
+        record(executable, shutil.which(executable) is not None, f"{executable} must be on PATH")
+
+    model_id = os.getenv("SKETCH2LIFE_IMAGE_MODEL", "").strip()
+    record("image_model", bool(model_id), model_id or "Set SKETCH2LIFE_IMAGE_MODEL")
+    try:
+        importlib.import_module("accelerate")
+        from diffusers import AutoPipelineForImage2Image  # noqa: F401
+
+        record("image_libraries", True, "Diffusers and Accelerate import successfully")
+    except Exception as error:  # noqa: BLE001 - report broken optional runtime imports
+        detail = f"Image import failed: {type(error).__name__}: {error}"[:240]
+        record("image_libraries", False, detail)
+
+    try:
+        import torch
+
+        cuda_ready = torch.cuda.is_available()
+        record("cuda", cuda_ready, "CUDA GPU available" if cuda_ready else "CUDA GPU unavailable")
+    except Exception as error:  # noqa: BLE001 - report broken optional runtime imports
+        record("cuda", False, f"PyTorch failed: {type(error).__name__}: {error}"[:240])
+
+    repo_value = os.getenv("WAN_REPO_DIR", "").strip()
+    ckpt_value = os.getenv("WAN_CKPT_DIR", "").strip()
+    repo = Path(repo_value).expanduser() if repo_value else None
+    ckpt = Path(ckpt_value).expanduser() if ckpt_value else None
+    record(
+        "wan_code", bool(repo and (repo / "generate.py").is_file()),
+        "WAN_REPO_DIR must contain generate.py",
+    )
+    checkpoint_ready = bool(ckpt and ckpt.is_dir() and any(ckpt.iterdir()))
+    record("wan_checkpoint", checkpoint_ready, "WAN_CKPT_DIR must contain model files")
+    wan_python = Path(os.getenv("WAN_PYTHON", sys.executable)).expanduser()
+    record("wan_python", wan_python.is_file(), "WAN_PYTHON must point to Python")
+
+    return {
+        "ready": all(item["ready"] for item in checks.values()),
+        "checks": checks,
+        "note": "This checks local dependencies and paths, not model downloads or render quality.",
+    }
 
 
 @app.post("/v1/whiteboard/localize")
@@ -522,9 +593,14 @@ def story_video_scene(payload: dict[str, Any]) -> dict[str, Any]:
     request = payload.get("request")
     if not isinstance(request, dict):
         raise HTTPException(status_code=422, detail="SCENE_REQUEST_INVALID")
-    repo_dir = Path(os.getenv("WAN_REPO_DIR", "")).expanduser()
-    ckpt_dir = Path(os.getenv("WAN_CKPT_DIR", "")).expanduser()
-    if not repo_dir.is_dir() or not ckpt_dir.is_dir():
+    repo_value = os.getenv("WAN_REPO_DIR", "").strip()
+    ckpt_value = os.getenv("WAN_CKPT_DIR", "").strip()
+    repo_dir = Path(repo_value).expanduser() if repo_value else None
+    ckpt_dir = Path(ckpt_value).expanduser() if ckpt_value else None
+    if (
+        not repo_dir or not (repo_dir / "generate.py").is_file()
+        or not ckpt_dir or not ckpt_dir.is_dir()
+    ):
         return _story_video_blocked("VideoSceneArtifactV1", "WAN_RUNTIME_NOT_CONFIGURED")
     image_path = Path(str(request.get("illustration_ref", "")))
     if not image_path.is_file():

@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+import logging
+import re
 from collections.abc import Callable
 from datetime import UTC, datetime
-import logging
 from threading import RLock
 from uuid import uuid4
 
@@ -82,6 +83,8 @@ class StoryVideoJobService:
         try:
             self.run(job_id)
         except StoryVideoProviderError as error:
+            _LOGGER.warning("story_video_job_provider_failed job_id=%s code=%s", job_id, error.code)
+            public_code = error.code if re.fullmatch(r"[A-Z][A-Z0-9_]{1,79}", error.code) else None
             with self._lock:
                 current = self._jobs[job_id]
                 state = (
@@ -95,7 +98,10 @@ class StoryVideoJobService:
                     update={
                         "state": state,
                         "stage": "FAILED",
-                        "public_message": "Story video generation failed.",
+                        "public_message": (
+                            f"Story video generation failed: {public_code}."
+                            if public_code else "Story video generation failed."
+                        ),
                     }
                 )
         except Exception as error:  # noqa: BLE001 - background jobs must not escape

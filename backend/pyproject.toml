@@ -34,6 +34,14 @@ dev = [
 story-video-tts = [
   "edge-tts>=7,<8",
 ]
+story-video-image = [
+  "numpy>=1.26,<2",
+  "Pillow>=11,<13",
+  "diffusers>=0.30,<1",
+  "accelerate>=0.30,<2",
+  "transformers>=4.40,<5",
+  "safetensors>=0.4,<1",
+]
 # P2-T2 Phase B (approved 2026-08-30): exact-pinned, not range-pinned like the rest of this
 # file. CTranslate2's cuDNN version requirement has changed across releases (>=4.0 requires
 # CUDA 12/cuDNN 9), so a range pin risks silently breaking local GPU compatibility between

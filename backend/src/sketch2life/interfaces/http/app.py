@@ -266,7 +266,7 @@ def _configured_story_video_pipeline(
         transport = UrllibJsonTransport(
             base_url=settings.lightning_ai_base_url,
             token=token,
-            request_timeout_seconds=settings.ai_request_timeout_seconds,
+            request_timeout_seconds=settings.story_video_request_timeout_seconds,
         )
     except (OSError, ValueError):
         return None

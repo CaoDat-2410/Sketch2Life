@@ -53,6 +53,7 @@ class Settings(BaseSettings):
     runpod_api_key_file: Path | None = None
     ai_connect_timeout_seconds: float = 5.0
     ai_request_timeout_seconds: float = 120.0
+    story_video_request_timeout_seconds: float = Field(default=2100.0, ge=1800.0)
 
     @model_validator(mode="after")
     def enforce_deployment_provider_policy(self) -> Self:
