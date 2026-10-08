@@ -136,6 +136,18 @@ def stable_model_hash(model: BaseModel, *, exclude: set[str] | None = None) -> s
     return hashlib.sha256(encoded).hexdigest()
 
 
+def story_script_segments_hash(segments: tuple[StoryScriptSegmentV1, ...]) -> str:
+    """Hash the exact approved narration, fact IDs, anchors and scene purposes."""
+
+    encoded = json.dumps(
+        {"segments": [segment.model_dump(mode="json") for segment in segments]},
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode()
+    return hashlib.sha256(encoded).hexdigest()
+
+
 __all__ = [
     "ApprovedStoryPackageV1",
     "Sha256",
@@ -143,4 +155,5 @@ __all__ = [
     "StoryboardPlanV1",
     "StoryboardSceneV1",
     "stable_model_hash",
+    "story_script_segments_hash",
 ]

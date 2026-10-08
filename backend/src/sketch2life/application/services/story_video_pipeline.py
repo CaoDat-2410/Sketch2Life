@@ -6,8 +6,6 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Protocol
 
-from pydantic import BaseModel, ConfigDict
-
 from sketch2life.application.services.story_video_planner import (
     StoryboardCompileInput,
     StoryVideoPlanner,
@@ -17,6 +15,7 @@ from sketch2life.contracts.schemas.story_video import (
     StoryboardPlanV1,
     StoryScriptSegmentV1,
     stable_model_hash,
+    story_script_segments_hash,
 )
 from sketch2life.contracts.schemas.story_video_media import (
     IllustrationAssetV1,
@@ -110,7 +109,7 @@ class StoryVideoPipeline:
             locale=package.locale,
             narration_profile_ref=package.narration_profile_ref,
             segment_ids=tuple(segment.segment_id for segment in segments),
-            approved_text_hash=stable_model_hash_wrapper(segments),
+            approved_text_hash=story_script_segments_hash(segments),
         )
         narration = self._narration.render(narration_request, texts)
         self._require_ready(narration.status, "NARRATION_NOT_READY", narration.error_code)
@@ -252,12 +251,6 @@ class StoryVideoPipeline:
             )
 
 
-def stable_model_hash_wrapper(segments: tuple[StoryScriptSegmentV1, ...]) -> str:
-    """Hash approved text inputs without exposing their content in provider IDs."""
-
-    return stable_model_hash(_SegmentHashPayload(segments=segments))
-
-
 def _subtitle_cues(storyboard: StoryboardPlanV1) -> tuple[SubtitleCueV1, ...]:
     """Build short, ordered cues from approved narration and measured scene timing."""
 
@@ -297,12 +290,6 @@ def _caption_chunks(text: str, max_chars: int = 62) -> tuple[str, ...]:
     if current:
         chunks.append(" ".join(current))
     return tuple(chunks)
-
-
-class _SegmentHashPayload(BaseModel):
-    model_config = ConfigDict(frozen=True, extra="forbid")
-
-    segments: tuple[StoryScriptSegmentV1, ...]
 
 
 __all__ = ["StoryVideoPipeline", "StoryVideoProviderError", "StoryVideoRun"]

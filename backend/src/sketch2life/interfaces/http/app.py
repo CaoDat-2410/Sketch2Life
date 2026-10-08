@@ -152,8 +152,17 @@ def create_app(
                 settings, source_artifacts
             )
         if story_video_job_service is None:
-            story_pipeline = _configured_story_video_pipeline(settings, artifacts)
-            story_video_job_service = StoryVideoJobService(pipeline=story_pipeline)
+            story_source_artifacts = (
+                live_image_demo_service.artifact_store
+                if live_image_demo_service is not None
+                else artifacts
+            )
+            story_pipeline = _configured_story_video_pipeline(settings, story_source_artifacts)
+            story_video_job_service = StoryVideoJobService(
+                pipeline=story_pipeline,
+                session_snapshot=session_service.snapshot,
+                source_artifacts=story_source_artifacts,
+            )
         if supervised_flow_service is None:
             repo_root = Path(__file__).resolve().parents[5]
             p1_library = load_p1_template_library(

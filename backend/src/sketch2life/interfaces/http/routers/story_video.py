@@ -7,7 +7,10 @@ from pathlib import Path
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Request, status
 from fastapi.responses import FileResponse
 
-from sketch2life.application.services.story_video_job import StoryVideoJobService
+from sketch2life.application.services.story_video_job import (
+    StoryVideoInputError,
+    StoryVideoJobService,
+)
 from sketch2life.contracts.schemas.story_video_http import StoryVideoCreateRequestV1
 from sketch2life.contracts.schemas.story_video_media import VideoJobStatusV1
 
@@ -40,6 +43,8 @@ def create_story_video_job(
             package=body.package,
             segments=body.segments,
         )
+    except StoryVideoInputError as error:
+        raise HTTPException(status_code=error.status_code, detail=error.code) from error
     except ValueError as error:
         raise HTTPException(status_code=409, detail="IDEMPOTENCY_KEY_PAYLOAD_MISMATCH") from error
     if not replayed:
