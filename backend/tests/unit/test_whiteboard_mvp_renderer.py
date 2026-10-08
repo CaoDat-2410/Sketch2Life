@@ -85,3 +85,14 @@ def test_stroke_renderer_draws_json_strokes_on_whiteboard(tmp_path) -> None:
     metadata = imageio.get_reader(output_path).get_meta_data()
     assert result.codec == "H264_AVC_HIGH_L4_1"
     assert metadata["size"] == (1280, 720)
+    reader = imageio.get_reader(output_path)
+    middle = reader.get_data(10).astype("int16")
+    final = reader.get_data(24).astype("int16")
+    middle_blue = (middle[:, :, 2] > middle[:, :, 0] + 35) & (
+        middle[:, :, 2] > middle[:, :, 1] + 15
+    )
+    final_blue = (final[:, :, 2] > final[:, :, 0] + 35) & (
+        final[:, :, 2] > final[:, :, 1] + 15
+    )
+    assert middle_blue.any(), "marker hand should follow the active stroke"
+    assert not final_blue.any(), "finished drawing should not retain the marker hand"

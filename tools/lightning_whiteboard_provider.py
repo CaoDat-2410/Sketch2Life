@@ -504,6 +504,43 @@ def _ffprobe_duration(path: Path) -> float:
     return duration
 
 
+def _ffprobe_streams(path: Path) -> list[dict[str, Any]]:
+    result = subprocess.run(
+        [
+            "ffprobe",
+            "-v",
+            "error",
+            "-show_entries",
+            "stream=codec_type,codec_name,width,height",
+            "-of",
+            "json",
+            str(path),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    streams = json.loads(result.stdout).get("streams")
+    if not isinstance(streams, list):
+        raise TypeError("FFPROBE_STREAMS_INVALID")
+    return [item for item in streams if isinstance(item, dict)]
+
+
+def _assembled_streams_ready(streams: list[dict[str, Any]]) -> bool:
+    video = [item for item in streams if item.get("codec_type") == "video"]
+    audio = [item for item in streams if item.get("codec_type") == "audio"]
+    return (
+        len(video) == 1
+        and len(audio) == 1
+        and video[0].get("codec_name") == "h264"
+        and audio[0].get("codec_name") == "aac"
+        and isinstance(video[0].get("width"), int)
+        and video[0]["width"] > 0
+        and isinstance(video[0].get("height"), int)
+        and video[0]["height"] > 0
+    )
+
+
 def _require_executable(name: str) -> str:
     executable = shutil.which(name)
     if executable is None:
@@ -827,6 +864,8 @@ def story_video_assembly(payload: dict[str, Any]) -> dict[str, Any]:
             timeout=600,
         )
         duration = _ffprobe_duration(output_path)
+        if not _assembled_streams_ready(_ffprobe_streams(output_path)):
+            return _story_video_blocked("VideoArtifactV1", "ASSEMBLY_STREAM_MISMATCH")
         expected = (
             float(subtitle_cues[-1]["end_seconds"])
             if isinstance(subtitle_cues, list) and subtitle_cues
@@ -845,7 +884,7 @@ def story_video_assembly(payload: dict[str, Any]) -> dict[str, Any]:
             "video_codec": "h264",
             "audio_codec": "aac",
         }
-    except (OSError, RuntimeError, subprocess.SubprocessError, ValueError):
+    except (OSError, RuntimeError, subprocess.SubprocessError, TypeError, ValueError):
         _LOGGER.exception("story_video_assembly_failed")
         return _story_video_blocked("VideoArtifactV1", "ASSEMBLY_FAILED")
 

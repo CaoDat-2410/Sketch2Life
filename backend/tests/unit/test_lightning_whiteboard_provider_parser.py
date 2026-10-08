@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 from tools.lightning_whiteboard_provider import (
+    _assembled_streams_ready,
     _parse_box,
     _subtitle_srt,
     story_video_assembly,
@@ -41,6 +42,18 @@ def test_subtitle_srt_serializes_utf8_scene_cues() -> None:
         "1\n00:00:00,000 --> 00:00:03,500\nRia mèo giúp mèo cảm nhận vật ở gần.\n\n"
         "2\n00:00:03,500 --> 00:00:06,000\nKhông nên cắt ria của mèo.\n"
     )
+
+
+def test_assembly_requires_real_h264_video_and_aac_audio_streams() -> None:
+    valid = [
+        {"codec_type": "video", "codec_name": "h264", "width": 1280, "height": 720},
+        {"codec_type": "audio", "codec_name": "aac"},
+    ]
+    assert _assembled_streams_ready(valid)
+    assert not _assembled_streams_ready(valid[:1])
+    assert not _assembled_streams_ready(valid[1:])
+    assert not _assembled_streams_ready([{**valid[0], "codec_name": "vp9"}, valid[1]])
+    assert not _assembled_streams_ready([{**valid[0], "width": None}, valid[1]])
 
 
 def test_whiteboard_story_scene_renders_real_mp4(tmp_path, monkeypatch) -> None:
@@ -115,6 +128,14 @@ def test_story_video_assembly_muxes_audio_and_burns_subtitles(tmp_path, monkeypa
         provider,
         "_ffprobe_duration",
         lambda path: float(imageio.get_reader(path).get_meta_data()["duration"]),
+    )
+    monkeypatch.setattr(
+        provider,
+        "_ffprobe_streams",
+        lambda _path: [
+            {"codec_type": "video", "codec_name": "h264", "width": 1280, "height": 720},
+            {"codec_type": "audio", "codec_name": "aac"},
+        ],
     )
     assembled = story_video_assembly(
         {

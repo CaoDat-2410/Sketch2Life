@@ -225,7 +225,7 @@ def render_stroke_animation(
                 draw.line(points[: count + 1], fill=(35, 35, 35, 245), width=4, joint="curve")
                 active_point = points[count]
                 remaining -= count
-            if active_point is not None:
+            if active_point is not None and visible_segments < segment_count:
                 _draw_marker_hand(draw, active_point)
             frame = np.asarray(image)
             if motion_schedule:

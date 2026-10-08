@@ -288,6 +288,7 @@ def test_synthetic_40_second_story_renders_and_assembles_real_mp4(tmp_path, monk
     """Exercise all four media stages without a GPU, network call or child media."""
 
     import hashlib
+    import subprocess
     import wave
 
     import pytest
@@ -306,6 +307,14 @@ def test_synthetic_40_second_story_renders_and_assembles_real_mp4(tmp_path, monk
         provider,
         "_ffprobe_duration",
         lambda path: float(imageio.get_reader(path).get_meta_data()["duration"]),
+    )
+    monkeypatch.setattr(
+        provider,
+        "_ffprobe_streams",
+        lambda _path: [
+            {"codec_type": "video", "codec_name": "h264", "width": 1280, "height": 720},
+            {"codec_type": "audio", "codec_name": "aac"},
+        ],
     )
     audio_path = tmp_path / "narration.wav"
     with wave.open(str(audio_path), "wb") as output:
@@ -371,3 +380,11 @@ def test_synthetic_40_second_story_renders_and_assembles_real_mp4(tmp_path, monk
     assert len(run.scenes) == 4
     assert 39.5 <= run.video.duration_seconds <= 40.5
     assert imageio.get_reader(run.video.video_ref).get_meta_data()["size"] == (1280, 720)
+    inspection = subprocess.run(
+        [imageio_ffmpeg.get_ffmpeg_exe(), "-i", run.video.video_ref],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert "Video: h264" in inspection.stderr
+    assert "Audio: aac" in inspection.stderr
