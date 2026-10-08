@@ -1,0 +1,14 @@
+# FEAT-030 acceptance audit — 2026-10-09
+
+Status: **NOT ACCEPTED AS A FINISHED PRODUCT**. This audit distinguishes local implementation evidence from the owner-requested reference-quality, narrated whiteboard story video. No live Lightning model/TTS render or owner visual acceptance has been observed.
+
+| Requirement | Current evidence | Verdict / missing proof |
+|---|---|---|
+| Controlled Director scene plan | Deterministic compiler groups approved, purpose-bound script segments into 3–6 timed scenes; unit tests cover measured TTS, grouping and refusal to mix purposes. | Local behavior proved. A real approved script and fact/anchor continuity across generated illustrations remain unverified. |
+| Stroke-by-stroke whiteboard drawing | A synthetic house/tree illustration produces an H.264 clip with progressive ink, connected-component ordering, retained dots and a moving stylized marker. Local frames were inspected. | Local behavior proved; original artist stroke order, realistic drawing hand and reference-level quality are **not** proved. |
+| TTS, captions and final MP4 | Synthetic four-scene, 40-second MP4 test verifies scene assembly, H.264/AAC streams and segment-boundary captions. Fake-provider tests cover fail-fast calls, cache hashes and typed errors. | Media plumbing proved with synthetic audio/art. Live voice quality, generated-scene continuity and 40–60 second owner acceptance remain unverified. |
+| SRS and reference boundary | Master SRS v1.4 keeps a separate 5–10 second original-art learning micro-video after Gate B. FEAT-030 adds a distinct 40–60 second narrated story-video path. The [storyboard-ai reference](https://github.com/yogendra-yatnalkar/storyboard-ai) describes autonomous prompt-to-research/script/storyboard generation. | The reference is a visual/workflow inspiration, not proof of feature parity. Autonomous unreviewed story generation must not replace Sketch2Life's adult-approved facts/script and safety gates. |
+| Live provider acceptance | Read-only preflight in the local Windows backend virtualenv: `ready=false`; whiteboard renderer import passed, while CUDA, TTS package, image model/config/libraries and FFmpeg/FFprobe PATH checks failed. | This machine cannot validate the L4 studio. Owner-operated Lightning preflight, one synthetic model/TTS render, final MP4 inspection and full approved-session run are still required. |
+| Mobile handoff | No device playback/READY-to-handoff evidence in FEAT-030. | Not verified. |
+
+Next evidence required: pull the reviewed commit on the L4 studio; save redacted preflight results and provider configuration/model/voice versions; run one non-child media smoke after accepting its cost; inspect the complete MP4 for scene identity, stroke progression, narration/captions and duration; then exercise a genuine approved session and mobile handoff. Keep media and secrets outside Git. A provider-only smoke success does not prove Gate B/Director integration.
