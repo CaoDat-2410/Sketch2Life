@@ -126,7 +126,7 @@ def extract_image_line_art(
     crop_bottom = min(ink.shape[0], bottom + margin_y)
     ink = ink[crop_top:crop_bottom, crop_left:crop_right]
 
-    paths = _connected_ink_paths(ink)
+    paths = _connected_ink_paths(ink, preserve_dots=True)
     if not paths:
         raise ValueError("LINE_ART_EMPTY")
     output = Path(output_path)
@@ -197,8 +197,8 @@ def _thin_ink(mask):
     return ink
 
 
-def _connected_ink_paths(ink) -> list[list[list[int]]]:
-    """Greedily trace adjacent ink pixels, splitting at every pen lift."""
+def _connected_ink_paths(ink, *, preserve_dots: bool = False) -> list[list[list[int]]]:
+    """Trace adjacent pixels, drawing each connected ink component first."""
 
     import numpy as np
 
@@ -207,33 +207,61 @@ def _connected_ink_paths(ink) -> list[list[list[int]]]:
     remaining = set(ordered)
     paths: list[list[list[int]]] = []
     neighbors = ((1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1), (0, -1), (1, -1))
-    for start in ordered:
-        if start not in remaining:
+    unassigned = remaining.copy()
+    components: list[list[tuple[int, int]]] = []
+    for seed in sorted(ordered, key=lambda point: (point[0], point[1])):
+        if seed not in unassigned:
             continue
-        remaining.remove(start)
-        path = [start]
-        while True:
-            x, y = path[-1]
-            candidates = [(x + dx, y + dy) for dx, dy in neighbors if (x + dx, y + dy) in remaining]
-            if not candidates:
-                break
-            if len(path) > 1:
-                prev_x, prev_y = path[-2]
-                dx, dy = x - prev_x, y - prev_y
-                next_point = max(
-                    candidates,
-                    key=lambda point: (
-                        (point[0] - x) * dx + (point[1] - y) * dy,
-                        -point[1],
-                        -point[0],
-                    ),
-                )
-            else:
-                next_point = candidates[0]
-            remaining.remove(next_point)
-            path.append(next_point)
-        if len(path) >= 2:
-            paths.append([[x, y] for x, y in path])
+        unassigned.remove(seed)
+        component = [seed]
+        pending = [seed]
+        while pending:
+            x, y = pending.pop()
+            for dx, dy in neighbors:
+                neighbor = (x + dx, y + dy)
+                if neighbor in unassigned:
+                    unassigned.remove(neighbor)
+                    pending.append(neighbor)
+                    component.append(neighbor)
+        components.append(component)
+
+    for component in components:
+        for start in sorted(component, key=lambda point: (point[1], point[0])):
+            if start not in remaining:
+                continue
+            remaining.remove(start)
+            path = [start]
+            while True:
+                x, y = path[-1]
+                candidates = [
+                    (x + dx, y + dy)
+                    for dx, dy in neighbors
+                    if (x + dx, y + dy) in remaining
+                ]
+                if not candidates:
+                    break
+                if len(path) > 1:
+                    prev_x, prev_y = path[-2]
+                    dx, dy = x - prev_x, y - prev_y
+                    next_point = max(
+                        candidates,
+                        key=lambda point: (
+                            (point[0] - x) * dx + (point[1] - y) * dy,
+                            -point[1],
+                            -point[0],
+                        ),
+                    )
+                else:
+                    next_point = candidates[0]
+                remaining.remove(next_point)
+                path.append(next_point)
+            if len(path) >= 2:
+                paths.append([[x, y] for x, y in path])
+            elif preserve_dots:
+                # A short isolated mark is still visible ink (e.g. an eye or a dot).
+                # Encode it as a zero-length pen stroke so the renderer can reveal it.
+                x, y = path[0]
+                paths.append([[x, y], [x, y]])
     return paths
 
 

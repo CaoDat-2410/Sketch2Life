@@ -238,12 +238,26 @@ def render_stroke_animation(
                     len(points) - 1 - stroke_segment,
                     visible_segments - rendered_segments,
                 )
-                ink_draw.line(
-                    points[stroke_segment : stroke_segment + count + 1],
-                    fill=(35, 35, 35),
-                    width=4 * ink_scale,
-                    joint="curve",
-                )
+                if count == 1 and points[stroke_segment] == points[stroke_segment + 1]:
+                    x, y = points[stroke_segment]
+                    radius = 2 * ink_scale
+                    ink_draw.ellipse(
+                        (x - radius, y - radius, x + radius, y + radius),
+                        fill=(35, 35, 35),
+                    )
+                else:
+                    ink_draw.line(
+                        points[stroke_segment : stroke_segment + count + 1],
+                        fill=(35, 35, 35),
+                        width=4 * ink_scale,
+                        joint="curve",
+                    )
+                    radius = 2 * ink_scale
+                    for x, y in (points[stroke_segment], points[stroke_segment + count]):
+                        ink_draw.ellipse(
+                            (x - radius, y - radius, x + radius, y + radius),
+                            fill=(35, 35, 35),
+                        )
                 stroke_segment += count
                 rendered_segments += count
                 active_point = strokes[stroke_index][stroke_segment]

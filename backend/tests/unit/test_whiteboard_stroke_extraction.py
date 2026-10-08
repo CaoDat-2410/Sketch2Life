@@ -105,3 +105,39 @@ def test_extract_image_line_art_crops_only_blank_outer_margin(tmp_path) -> None:
         for stroke in payload["strokes"]
         for x, y in stroke["points"]
     )
+
+
+def test_connected_ink_paths_preserve_isolated_dot() -> None:
+    np = pytest.importorskip("numpy")
+    from sketch2life.infrastructure.media.whiteboard_stroke_extraction import (
+        _connected_ink_paths,
+    )
+
+    ink = np.zeros((8, 8), dtype=bool)
+    ink[1, 1:4] = True
+    ink[6, 6] = True
+
+    paths = _connected_ink_paths(ink, preserve_dots=True)
+
+    assert [[6, 6], [6, 6]] in paths
+    assert {tuple(point) for path in paths for point in path} == {
+        (1, 1), (2, 1), (3, 1), (6, 6)
+    }
+
+
+def test_connected_ink_paths_finish_left_subject_before_right_subject() -> None:
+    np = pytest.importorskip("numpy")
+    from sketch2life.infrastructure.media.whiteboard_stroke_extraction import (
+        _connected_ink_paths,
+    )
+
+    ink = np.zeros((12, 12), dtype=bool)
+    ink[1:9, 1] = True
+    ink[6, 2:5] = True
+    ink[2:5, 10] = True
+
+    paths = _connected_ink_paths(ink, preserve_dots=True)
+
+    subject_order = ["left" if path[0][0] < 6 else "right" for path in paths]
+    assert subject_order == sorted(subject_order)
+    assert subject_order.count("left") >= 2

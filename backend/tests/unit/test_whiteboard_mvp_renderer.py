@@ -151,3 +151,71 @@ def test_completed_strokes_remain_visible_while_next_stroke_is_drawn(tmp_path) -
     assert (halfway[upper_y - 3 : upper_y + 4, 450:800, :3] < 120).any()
     assert (final[upper_y - 3 : upper_y + 4, 450:800, :3] < 120).any()
     assert (final[lower_y - 3 : lower_y + 4, 450:800, :3] < 120).any()
+
+
+def test_zero_length_pen_stroke_renders_an_isolated_dot(tmp_path) -> None:
+    imageio = pytest.importorskip("imageio.v2")
+    stroke_path = tmp_path / "dot.json"
+    stroke_path.write_text(
+        '{"artifact_type":"whiteboard_strokes_v1","width":100,"height":100,'
+        '"strokes":[{"stroke_id":"dot","points":[[50,50],[50,50]]}]}',
+        encoding="utf-8",
+    )
+    output_path = tmp_path / "dot.mp4"
+    render_stroke_animation(
+        stroke_path,
+        output_path,
+        spec=WhiteboardMvpRenderSpec(width=1280, height=720, fps=5, duration_seconds=5.0),
+    )
+    reader = imageio.get_reader(output_path)
+    final = reader.get_data(24)
+    reader.close()
+    assert (final[357:364, 637:644, :3] < 120).any()
+
+
+def test_adjacent_short_strokes_have_no_white_seam(tmp_path) -> None:
+    imageio = pytest.importorskip("imageio.v2")
+    stroke_path = tmp_path / "adjacent.json"
+    stroke_path.write_text(
+        '{"artifact_type":"whiteboard_strokes_v1","width":400,"height":250,'
+        '"strokes":['
+        '{"stroke_id":"left","points":[[100,100],[150,100]]},'
+        '{"stroke_id":"right","points":[[151,100],[200,100]]}'
+        ']}',
+        encoding="utf-8",
+    )
+    output_path = tmp_path / "adjacent.mp4"
+    render_stroke_animation(
+        stroke_path,
+        output_path,
+        spec=WhiteboardMvpRenderSpec(width=1280, height=720, fps=5, duration_seconds=5.0),
+    )
+    reader = imageio.get_reader(output_path)
+    final = reader.get_data(24)
+    reader.close()
+    scale = min(1280 * 0.78 / 400, 720 * 0.82 / 250)
+    x = round((1280 - 400 * scale) / 2 + 150.5 * scale)
+    y = round((720 - 250 * scale) / 2 + 100 * scale)
+    assert final[y, x, :3].mean() < 120
+
+
+def test_closed_stroke_is_not_reduced_to_a_dot(tmp_path) -> None:
+    imageio = pytest.importorskip("imageio.v2")
+    stroke_path = tmp_path / "loop.json"
+    stroke_path.write_text(
+        '{"artifact_type":"whiteboard_strokes_v1","width":100,"height":100,'
+        '"strokes":[{"stroke_id":"loop","points":'
+        '[[20,20],[80,20],[80,80],[20,80],[20,20]]}]}',
+        encoding="utf-8",
+    )
+    output_path = tmp_path / "loop.mp4"
+    render_stroke_animation(
+        stroke_path,
+        output_path,
+        spec=WhiteboardMvpRenderSpec(width=1280, height=720, fps=5, duration_seconds=5.0),
+    )
+    reader = imageio.get_reader(output_path)
+    final = reader.get_data(24)
+    reader.close()
+    dark = final[:, :, :3].mean(axis=2) < 120
+    assert dark.sum() > 1000
