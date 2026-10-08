@@ -18,7 +18,6 @@ from pathlib import Path
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
-from xml.sax.saxutils import escape as xml_escape
 
 from fastapi import FastAPI, HTTPException
 
@@ -281,40 +280,6 @@ def _wav_duration(path: Path) -> float:
     return frames / rate
 
 
-def _azure_tts(text: str, *, voice: str, key: str, region: str) -> bytes:
-    ssml = (
-        '<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" '
-        'xml:lang="vi-VN">'
-        f'<voice name="{xml_escape(voice)}"><prosody rate="0%">'
-        f"{xml_escape(text)}"
-        "</prosody></voice></speak>"
-    ).encode()
-    request = Request(
-        f"https://{region}.tts.speech.microsoft.com/cognitiveservices/v1",
-        data=ssml,
-        headers={
-            "Ocp-Apim-Subscription-Key": key,
-            "Content-Type": "application/ssml+xml",
-            "X-Microsoft-OutputFormat": "riff-24khz-16bit-mono-pcm",
-            "User-Agent": "Sketch2Life-story-video/1.0",
-        },
-        method="POST",
-    )
-    try:
-        with urlopen(request, timeout=120) as response:
-            data = response.read()
-    except HTTPError as error:
-        retryable = error.code in {408, 429} or error.code >= 500
-        raise RuntimeError(
-            "AZURE_TTS_RETRYABLE" if retryable else "AZURE_TTS_REJECTED"
-        ) from error
-    except (TimeoutError, URLError) as error:
-        raise RuntimeError("AZURE_TTS_UNAVAILABLE") from error
-    if not data.startswith(b"RIFF") or len(data) < 44:
-        raise ValueError("Azure TTS returned invalid WAV")
-    return data
-
-
 def _elevenlabs_tts(text: str, *, voice_id: str, key: str, model_id: str) -> bytes:
     request = Request(
         f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}?output_format=mp3_44100_128",
@@ -396,21 +361,12 @@ def _require_executable(name: str) -> str:
 def story_video_narration(payload: dict[str, Any]) -> dict[str, Any]:
     request = payload.get("request")
     texts = payload.get("texts")
-    provider = os.getenv("SKETCH2LIFE_TTS_PROVIDER", "azure").strip().lower()
-    azure_key = os.getenv("AZURE_SPEECH_KEY", "").strip()
-    azure_region = os.getenv("AZURE_SPEECH_REGION", "").strip()
-    azure_voice = os.getenv("AZURE_TTS_VOICE", "vi-VN-HoaiMyNeural").strip()
     eleven_key = os.getenv("ELEVENLABS_API_KEY", "").strip()
     eleven_voice = os.getenv("ELEVENLABS_VOICE_ID", "").strip()
     eleven_model = os.getenv("ELEVENLABS_MODEL_ID", "eleven_flash_v2_5").strip()
     if not isinstance(request, dict) or not isinstance(texts, list) or not texts:
         raise HTTPException(status_code=422, detail="NARRATION_REQUEST_INVALID")
-    configured = (
-        bool(eleven_key and eleven_voice)
-        if provider == "elevenlabs"
-        else bool(azure_key and azure_region)
-    )
-    if not configured:
+    if not eleven_key or not eleven_voice:
         return _story_video_blocked("NarrationAssetV1", "TTS_RUNTIME_NOT_CONFIGURED")
     if not all(isinstance(text, str) and text.strip() for text in texts):
         raise HTTPException(status_code=422, detail="NARRATION_TEXT_INVALID")
@@ -421,25 +377,15 @@ def story_video_narration(payload: dict[str, Any]) -> dict[str, Any]:
     try:
         for index, text in enumerate(texts, 1):
             path = root / f"{job_name}.segment-{index}.wav"
-            if provider == "elevenlabs":
-                _mp3_to_wav(
-                    _elevenlabs_tts(
-                        text,
-                        voice_id=eleven_voice,
-                        key=eleven_key,
-                        model_id=eleven_model,
-                    ),
-                    path,
-                )
-            else:
-                path.write_bytes(
-                    _azure_tts(
-                        text,
-                        voice=azure_voice,
-                        key=azure_key,
-                        region=azure_region,
-                    )
-                )
+            _mp3_to_wav(
+                _elevenlabs_tts(
+                    text,
+                    voice_id=eleven_voice,
+                    key=eleven_key,
+                    model_id=eleven_model,
+                ),
+                path,
+            )
             timings.append(round(_wav_duration(path), 3))
             segment_paths.append(path)
         combined = root / f"{job_name}.wav"
@@ -453,18 +399,14 @@ def story_video_narration(payload: dict[str, Any]) -> dict[str, Any]:
             "audio_sha256": hashlib.sha256(data).hexdigest(),
             "duration_seconds": round(sum(timings), 3),
             "locale": str(request.get("locale", "vi-VN")),
-            "voice_model_ref": (
-                f"elevenlabs:{eleven_model}:{eleven_voice}"
-                if provider == "elevenlabs"
-                else f"azure-speech:{azure_voice}"
-            ),
+            "voice_model_ref": f"elevenlabs:{eleven_model}:{eleven_voice}",
             "segment_timing_seconds": timings,
         }
     except (OSError, RuntimeError, TimeoutError, ValueError, subprocess.SubprocessError) as error:
         _LOGGER.exception("story_video_narration_failed")
         code = (
             str(error)
-            if str(error).startswith(("AZURE_TTS_", "ELEVENLABS_TTS_"))
+            if str(error).startswith("ELEVENLABS_TTS_")
             else "TTS_RENDER_FAILED"
         )
         return _story_video_blocked("NarrationAssetV1", code)
