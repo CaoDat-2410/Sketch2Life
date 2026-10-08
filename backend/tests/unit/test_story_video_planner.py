@@ -3,6 +3,7 @@ import pytest
 from sketch2life.application.services.story_video_pipeline import (
     StoryVideoPipeline,
     StoryVideoProviderError,
+    _subtitle_cues,
 )
 from sketch2life.application.services.story_video_planner import (
     StoryboardCompileInput,
@@ -116,6 +117,30 @@ def test_director_groups_short_approved_segments_into_timed_scenes() -> None:
     ]
     assert plan.scenes[0].approved_fact_ids == ("fact-1", "fact-2")
     assert all(scene.duration_seconds == 12.0 for scene in plan.scenes)
+
+
+def test_subtitles_follow_measured_segment_boundaries_inside_grouped_scene() -> None:
+    segments = tuple(
+        StoryScriptSegmentV1(
+            segment_id=f"segment-{index}",
+            text=f"Đoạn kể đã duyệt số {index}.",
+            approved_fact_ids=(f"fact-{index}",),
+            confirmed_anchor_ids=("anchor-cat",),
+            scene_purpose=("INTRO", "EXPLAIN", "DEMONSTRATE", "RECAP")[(index - 1) // 2],
+        )
+        for index in range(1, 9)
+    )
+    durations = (3.0, 9.0) * 4
+    plan = StoryVideoPlanner().compile(StoryboardCompileInput(_package(), segments, durations))
+
+    cues = _subtitle_cues(plan, segments, durations)
+
+    assert len(plan.scenes) == 4
+    assert len(cues) == 8
+    assert [(cue.start_seconds, cue.end_seconds) for cue in cues[:4]] == [
+        (0.0, 3.0), (3.0, 12.0), (12.0, 15.0), (15.0, 24.0)
+    ]
+    assert cues[-1].end_seconds == 48.0
 
 
 def test_director_rejects_too_few_approved_segments() -> None:

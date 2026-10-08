@@ -210,7 +210,9 @@ class StoryVideoPipeline:
             raise StoryVideoProviderError("VIDEO_SCENE_DURATION_MISMATCH", retryable=True)
 
         update("ASSEMBLING", 80)
-        subtitle_cues = _subtitle_cues(storyboard)
+        subtitle_cues = _subtitle_cues(
+            storyboard, segments, narration.segment_timing_seconds
+        )
         video = self._assembler.assemble(
             VideoAssemblyRequestV1(
                 request_id=f"assembly-{package.package_id}",
@@ -254,27 +256,49 @@ class StoryVideoPipeline:
             )
 
 
-def _subtitle_cues(storyboard: StoryboardPlanV1) -> tuple[SubtitleCueV1, ...]:
-    """Build short, ordered cues from approved narration and measured scene timing."""
+def _subtitle_cues(
+    storyboard: StoryboardPlanV1,
+    segments: tuple[StoryScriptSegmentV1, ...],
+    segment_durations: tuple[float, ...],
+) -> tuple[SubtitleCueV1, ...]:
+    """Keep caption boundaries aligned to each measured TTS segment."""
 
+    if len(segments) != len(segment_durations):
+        raise StoryVideoProviderError("SUBTITLE_SEGMENT_MISMATCH", retryable=False)
+    timings = {
+        segment.segment_id: duration
+        for segment, duration in zip(segments, segment_durations, strict=True)
+    }
+    texts = {segment.segment_id: segment.text for segment in segments}
     cursor = 0.0
     cues: list[SubtitleCueV1] = []
     for scene in storyboard.scenes:
-        chunks = _caption_chunks(scene.narration_text)
-        if len(chunks) > 4:
-            raise StoryVideoProviderError("SUBTITLE_TEXT_TOO_LONG", retryable=False)
-        weights = [len(chunk.split()) for chunk in chunks]
-        total_weight = sum(weights)
         elapsed = 0.0
-        for index, (chunk, weight) in enumerate(zip(chunks, weights, strict=True)):
-            start = round(cursor + elapsed, 3)
-            elapsed += scene.duration_seconds * weight / total_weight
-            end = (
-                round(cursor + scene.duration_seconds, 3)
-                if index == len(chunks) - 1
-                else round(cursor + elapsed, 3)
-            )
-            cues.append(SubtitleCueV1(text=chunk, start_seconds=start, end_seconds=end))
+        for segment_id in scene.segment_ids:
+            duration = timings.get(segment_id)
+            text = texts.get(segment_id)
+            if duration is None or text is None or duration <= 0:
+                raise StoryVideoProviderError("SUBTITLE_SEGMENT_MISMATCH", retryable=False)
+            chunks = _caption_chunks(text)
+            if not chunks or len(chunks) > 4:
+                raise StoryVideoProviderError("SUBTITLE_TEXT_TOO_LONG", retryable=False)
+            weights = [len(chunk.split()) for chunk in chunks]
+            total_weight = sum(weights)
+            chunk_elapsed = 0.0
+            for index, (chunk, weight) in enumerate(zip(chunks, weights, strict=True)):
+                start = round(cursor + elapsed + chunk_elapsed, 3)
+                chunk_elapsed += duration * weight / total_weight
+                end = (
+                    round(cursor + elapsed + duration, 3)
+                    if index == len(chunks) - 1
+                    else round(cursor + elapsed + chunk_elapsed, 3)
+                )
+                if end <= start:
+                    raise StoryVideoProviderError("SUBTITLE_TIMING_INVALID", retryable=False)
+                cues.append(SubtitleCueV1(text=chunk, start_seconds=start, end_seconds=end))
+            elapsed += duration
+        if abs(elapsed - scene.duration_seconds) > 0.01:
+            raise StoryVideoProviderError("SUBTITLE_SCENE_TIMING_MISMATCH", retryable=False)
         cursor += scene.duration_seconds
     return tuple(cues)
 

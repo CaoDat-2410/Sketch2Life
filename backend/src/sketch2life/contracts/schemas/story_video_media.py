@@ -158,9 +158,9 @@ class VideoAssemblyRequestV1(BaseModel):
         if any(not re.fullmatch(r"[a-f0-9]{64}", digest) for digest in self.scene_artifact_sha256):
             raise ValueError("scene artifact hashes must be SHA-256 digests")
         if self.subtitle_cues and not (
-            len(self.scene_ids) <= len(self.subtitle_cues) <= len(self.scene_ids) * 4
+            len(self.scene_ids) <= len(self.subtitle_cues) <= len(self.scene_ids) * 32
         ):
-            raise ValueError("subtitle cues must contain one to four cues per scene")
+            raise ValueError("subtitle cues must contain one to 32 cues per scene")
         if any(
             current.start_seconds < previous.end_seconds - 0.01
             for previous, current in zip(self.subtitle_cues, self.subtitle_cues[1:], strict=False)
