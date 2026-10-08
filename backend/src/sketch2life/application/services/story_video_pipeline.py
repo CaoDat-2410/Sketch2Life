@@ -114,7 +114,15 @@ class StoryVideoPipeline:
         )
         narration = self._narration.render(narration_request, texts)
         self._require_ready(narration.status, "NARRATION_NOT_READY", narration.error_code)
+        if (
+            not narration.audio_ref
+            or not narration.audio_sha256
+            or narration.duration_seconds is None
+        ):
+            raise StoryVideoProviderError("NARRATION_ARTIFACT_INVALID", retryable=False)
         if len(narration.segment_timing_seconds) != len(segments):
+            raise StoryVideoProviderError("NARRATION_TIMING_MISMATCH", retryable=False)
+        if abs(sum(narration.segment_timing_seconds) - narration.duration_seconds) > 0.25:
             raise StoryVideoProviderError("NARRATION_TIMING_MISMATCH", retryable=False)
 
         try:
@@ -151,6 +159,14 @@ class StoryVideoPipeline:
             scene.scene_id for scene in storyboard.scenes
         ):
             raise StoryVideoProviderError("ILLUSTRATION_SCENE_MISMATCH", retryable=False)
+        if any(
+            not asset.asset_ref
+            or not asset.asset_sha256
+            or asset.source_image_ref != package.source_image_ref
+            or asset.source_image_sha256 != package.source_image_sha256
+            for asset in illustrations
+        ):
+            raise StoryVideoProviderError("ILLUSTRATION_ARTIFACT_INVALID", retryable=False)
 
         update("SCENES_RENDERING", 55)
         scenes = tuple(
@@ -181,6 +197,13 @@ class StoryVideoPipeline:
         ):
             raise StoryVideoProviderError("VIDEO_SCENE_MISMATCH", retryable=False)
         if any(
+            not scene.silent_clip_ref
+            or not scene.silent_clip_sha256
+            or scene.model_profile_ref != self._motion_model_profile_ref
+            for scene in scenes
+        ):
+            raise StoryVideoProviderError("VIDEO_SCENE_ARTIFACT_INVALID", retryable=False)
+        if any(
             rendered.duration_seconds is None
             or abs(rendered.duration_seconds - planned.duration_seconds) > 0.5
             for rendered, planned in zip(scenes, storyboard.scenes, strict=True)
@@ -206,6 +229,12 @@ class StoryVideoPipeline:
             )
         )
         self._require_ready(video.status, "VIDEO_NOT_READY", video.error_code)
+        if (
+            not video.video_ref
+            or not video.video_sha256
+            or video.audio_ref != narration.audio_ref
+        ):
+            raise StoryVideoProviderError("VIDEO_ARTIFACT_INVALID", retryable=False)
         if video.duration_seconds is None or not (
             package.target_duration_min_seconds
             <= video.duration_seconds

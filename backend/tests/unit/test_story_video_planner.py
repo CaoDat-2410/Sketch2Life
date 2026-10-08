@@ -1,3 +1,5 @@
+import pytest
+
 from sketch2life.application.services.story_video_pipeline import (
     StoryVideoPipeline,
     StoryVideoProviderError,
@@ -69,8 +71,6 @@ def test_compile_uses_measured_tts_as_scene_timing_ground_truth() -> None:
 
 
 def test_story_package_rejects_placeholder_approval_hash() -> None:
-    import pytest
-
     with pytest.raises(ValueError, match="placeholder hash"):
         ApprovedStoryPackageV1.model_validate(
             _package().model_dump() | {"approval_sha256": "0" * 64}
@@ -242,6 +242,46 @@ def test_pipeline_reports_invalid_storyboard_before_rendering_images() -> None:
         assert not error.retryable
     else:
         raise AssertionError("invalid storyboard must be a typed failure")
+
+
+def test_pipeline_stops_before_images_when_tts_timing_does_not_match_audio() -> None:
+    class BadNarration(_Narration):
+        def render(self, request, texts):
+            return super().render(request, texts).model_copy(update={"duration_seconds": 42.0})
+
+    class NoImages:
+        def render(self, request):
+            raise AssertionError("inconsistent TTS must stop before image rendering")
+
+    pipeline = StoryVideoPipeline(
+        narration=BadNarration(),
+        illustrations=NoImages(),
+        motion=_Motion(),
+        assembler=_Assembler(),
+    )
+    with pytest.raises(StoryVideoProviderError) as caught:
+        pipeline.run(_package(), _segments())
+    assert caught.value.code == "NARRATION_TIMING_MISMATCH"
+
+
+def test_pipeline_rejects_ready_scene_without_clip_before_assembly() -> None:
+    class MissingClip(_Motion):
+        def render(self, request):
+            return super().render(request).model_copy(update={"silent_clip_ref": None})
+
+    class NoAssembly:
+        def assemble(self, request):
+            raise AssertionError("missing clip must stop before assembly")
+
+    pipeline = StoryVideoPipeline(
+        narration=_Narration(),
+        illustrations=_Illustrations(),
+        motion=MissingClip(),
+        assembler=NoAssembly(),
+    )
+    with pytest.raises(StoryVideoProviderError) as caught:
+        pipeline.run(_package(), _segments())
+    assert caught.value.code == "VIDEO_SCENE_ARTIFACT_INVALID"
 
 
 def test_synthetic_40_second_story_renders_and_assembles_real_mp4(tmp_path, monkeypatch) -> None:
