@@ -59,6 +59,7 @@ class StoryVideoJobService:
         ] = {}
         self._runs: dict[str, StoryVideoRun] = {}
         self._idempotency: dict[tuple[str, str], tuple[str, str]] = {}
+        self._package_jobs: dict[tuple[str, str], str] = {}
 
     @property
     def can_run(self) -> bool:
@@ -108,6 +109,15 @@ class StoryVideoJobService:
                 if prior[1] != fingerprint:
                     raise ValueError("idempotency key payload mismatch")
                 return self._jobs[prior[0]], True
+            package_job_id = self._package_jobs.get((session_id, fingerprint))
+            if package_job_id is not None:
+                package_job = self._jobs[package_job_id]
+                if package_job.state in {
+                    "QUEUED", "PREFLIGHT", "NARRATION_READY", "ILLUSTRATIONS_READY",
+                    "SCENES_RENDERING", "ASSEMBLING", "VALIDATING", "READY",
+                }:
+                    self._idempotency[key] = (package_job_id, fingerprint)
+                    return package_job, True
             job = VideoJobStatusV1(
                 job_id=str(uuid4()),
                 session_id=session_id,
@@ -120,6 +130,7 @@ class StoryVideoJobService:
             self._jobs[job.job_id] = job
             self._inputs[job.job_id] = (package, segments)
             self._idempotency[key] = (job.job_id, fingerprint)
+            self._package_jobs[(session_id, fingerprint)] = job.job_id
             return job, False
 
     def get(self, job_id: str) -> VideoJobStatusV1:

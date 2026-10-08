@@ -92,6 +92,38 @@ def test_story_job_accepts_only_session_bound_source() -> None:
     assert job.state == "QUEUED"
 
 
+def test_same_package_does_not_queue_duplicate_paid_work() -> None:
+    store = InMemoryArtifactStore()
+    source = store.put(session_id="session-test", content_type="image/png", body=b"image")
+    service = _service(store)
+    package = _package(source.artifact_ref, source.sha256)
+    first, replayed = service.create_or_replay(
+        session_id="session-test",
+        idempotency_key="request-1",
+        package=package,
+        segments=_segments(),
+    )
+    second, replayed_second = service.create_or_replay(
+        session_id="session-test",
+        idempotency_key="request-2",
+        package=package,
+        segments=_segments(),
+    )
+    assert not replayed
+    assert replayed_second
+    assert second.job_id == first.job_id
+
+    service.run_safely(first.job_id)  # no provider in this test: BLOCKED is retryable by owner
+    third, replayed_third = service.create_or_replay(
+        session_id="session-test",
+        idempotency_key="request-3",
+        package=package,
+        segments=_segments(),
+    )
+    assert not replayed_third
+    assert third.job_id != first.job_id
+
+
 def test_story_job_rejects_other_session_source() -> None:
     store = InMemoryArtifactStore()
     source = store.put(session_id="another-session", content_type="image/png", body=b"image")
