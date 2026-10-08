@@ -6,6 +6,7 @@ from types import SimpleNamespace
 
 import pytest
 
+from sketch2life.application.services.story_video_admission import StoryGateEvidence
 from sketch2life.application.services.story_video_job import (
     StoryVideoInputError,
     StoryVideoJobService,
@@ -80,6 +81,18 @@ def _service(store: InMemoryArtifactStore, *, state: str = "EXPERIENCE_READY", v
     )
 
 
+def _gate_evidence(source_ref: str, source_hash: str) -> StoryGateEvidence:
+    return StoryGateEvidence(
+        session_id="session-test",
+        session_version=3,
+        source_image_ref=source_ref,
+        source_image_sha256=source_hash,
+        experience_spec_ref="experience:test",
+        experience_spec_sha256="a" * 64,
+        confirmed_anchor_ids=frozenset({"anchor-1"}),
+    )
+
+
 def test_story_job_accepts_only_session_bound_source() -> None:
     store = InMemoryArtifactStore()
     source = store.put(session_id="session-test", content_type="image/png", body=b"image")
@@ -139,6 +152,7 @@ def test_provider_blocked_status_remains_blocked_on_job() -> None:
         session_snapshot=lambda _session_id: SimpleNamespace(
             state="EXPERIENCE_READY", status="ACTIVE", version=3
         ),
+        gate_evidence=lambda _session_id: _gate_evidence(source.artifact_ref, source.sha256),
         source_artifacts=store,
     )
     job, _ = service.create_or_replay(
@@ -219,6 +233,64 @@ def test_story_job_rejects_mutated_script_and_package_hash() -> None:
         )
 
 
+def test_story_job_rejects_unconfirmed_anchor_and_divergent_gate_b_spec() -> None:
+    store = InMemoryArtifactStore()
+    source = store.put(session_id="session-test", content_type="image/png", body=b"image")
+    evidence = _gate_evidence(source.artifact_ref, source.sha256)
+
+    class UnusedPipeline:
+        def run(self, package, segments, *, update_stage):
+            raise AssertionError("admission must reject before the provider")
+
+    service = StoryVideoJobService(
+        pipeline=UnusedPipeline(),
+        session_snapshot=lambda _session_id: SimpleNamespace(
+            state="EXPERIENCE_READY", status="ACTIVE", version=3
+        ),
+        gate_evidence=lambda _session_id: evidence,
+        source_artifacts=store,
+    )
+    package = _package(source.artifact_ref, source.sha256)
+    wrong_spec = _rehash(
+        package.model_copy(update={"experience_spec_ref": "experience:unapproved"})
+    )
+    with pytest.raises(StoryVideoInputError, match="STORY_GATE_IDENTITY_MISMATCH"):
+        service.create_or_replay(
+            session_id="session-test",
+            idempotency_key="wrong-spec",
+            package=wrong_spec,
+            segments=_segments(),
+        )
+
+    changed = list(_segments())
+    changed[0] = changed[0].model_copy(update={"confirmed_anchor_ids": ("anchor-unknown",)})
+    changed_segments = tuple(changed)
+    wrong_anchor = _rehash(
+        package.model_copy(
+            update={"story_script_sha256": story_script_segments_hash(changed_segments)}
+        )
+    )
+    with pytest.raises(StoryVideoInputError, match="STORY_ANCHOR_NOT_CONFIRMED"):
+        service.create_or_replay(
+            session_id="session-test",
+            idempotency_key="wrong-anchor",
+            package=wrong_anchor,
+            segments=changed_segments,
+        )
+
+
+def test_configured_pipeline_requires_gate_evidence() -> None:
+    store = InMemoryArtifactStore()
+    with pytest.raises(ValueError, match="Gate A/B"):
+        StoryVideoJobService(
+            pipeline=object(),
+            session_snapshot=lambda _session_id: SimpleNamespace(
+                state="EXPERIENCE_READY", status="ACTIVE", version=3
+            ),
+            source_artifacts=store,
+        )
+
+
 def test_expired_session_cannot_keep_a_ready_story_job() -> None:
     store = InMemoryArtifactStore()
     source = store.put(session_id="session-test", content_type="image/png", body=b"image")
@@ -260,6 +332,7 @@ def test_ready_is_published_only_after_result_is_stored() -> None:
         session_snapshot=lambda _session_id: SimpleNamespace(
             state="EXPERIENCE_READY", status="ACTIVE", version=3
         ),
+        gate_evidence=lambda _session_id: _gate_evidence(source.artifact_ref, source.sha256),
         source_artifacts=store,
     )
     job, _ = service.create_or_replay(
@@ -293,6 +366,7 @@ def test_late_pipeline_failure_never_publishes_ready() -> None:
         session_snapshot=lambda _session_id: SimpleNamespace(
             state="EXPERIENCE_READY", status="ACTIVE", version=3
         ),
+        gate_evidence=lambda _session_id: _gate_evidence(source.artifact_ref, source.sha256),
         source_artifacts=store,
     )
     job, _ = service.create_or_replay(

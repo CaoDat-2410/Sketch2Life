@@ -12,6 +12,7 @@ from sketch2life.application.services.image_admission import Feat018ImageAdmissi
 from sketch2life.application.services.live_image_demo import LiveImageDemoService
 from sketch2life.application.services.p1_experience import P1ExperienceCompiler
 from sketch2life.application.services.pixi_topic_asset_candidates import load_topic_asset_catalog
+from sketch2life.application.services.story_video_admission import StoryGateEvidence
 from sketch2life.application.services.story_video_job import StoryVideoJobService
 from sketch2life.application.services.story_video_pipeline import StoryVideoPipeline
 from sketch2life.application.services.supervised_flow import SupervisedFlowService
@@ -161,6 +162,9 @@ def create_app(
             story_video_job_service = StoryVideoJobService(
                 pipeline=story_pipeline,
                 session_snapshot=session_service.snapshot,
+                gate_evidence=lambda session_id: StoryGateEvidence.from_workflow(
+                    session_service.workflow_record(session_id)
+                ),
                 source_artifacts=story_source_artifacts,
             )
         if supervised_flow_service is None:

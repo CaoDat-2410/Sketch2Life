@@ -11,6 +11,7 @@ from uuid import uuid4
 
 from sketch2life.application.ports.session_storage import ArtifactStore
 from sketch2life.application.services.ephemeral_sessions import SessionWorkflowError
+from sketch2life.application.services.story_video_admission import StoryGateEvidence
 from sketch2life.application.services.story_video_pipeline import (
     StoryVideoPipeline,
     StoryVideoProviderError,
@@ -41,15 +42,19 @@ class StoryVideoJobService:
         *,
         pipeline: StoryVideoPipeline | None = None,
         session_snapshot: Callable[[str], SessionSnapshotV1] | None = None,
+        gate_evidence: Callable[[str], StoryGateEvidence] | None = None,
         source_artifacts: ArtifactStore | None = None,
         now: Callable[[], datetime] = lambda: datetime.now(UTC),
     ) -> None:
-        if pipeline is not None and (session_snapshot is None or source_artifacts is None):
+        if pipeline is not None and (
+            session_snapshot is None or gate_evidence is None or source_artifacts is None
+        ):
             raise ValueError(
-                "configured story pipeline requires session and source admission gates"
+                "configured story pipeline requires session, Gate A/B and source admission gates"
             )
         self._pipeline = pipeline
         self._session_snapshot = session_snapshot
+        self._gate_evidence = gate_evidence
         self._source_artifacts = source_artifacts
         self._now = now
         self._lock = RLock()
@@ -79,6 +84,7 @@ class StoryVideoJobService:
             raise StoryVideoInputError("STORY_SCRIPT_HASH_MISMATCH")
         if package.package_hash != stable_model_hash(package, exclude={"package_hash"}):
             raise StoryVideoInputError("STORY_PACKAGE_HASH_MISMATCH")
+        snapshot = None
         if self._session_snapshot is not None:
             try:
                 snapshot = self._session_snapshot(session_id)
@@ -90,6 +96,27 @@ class StoryVideoJobService:
                 raise StoryVideoInputError("STORY_SESSION_NOT_APPROVED")
             if snapshot.version != package.session_version:
                 raise StoryVideoInputError("STORY_SESSION_VERSION_MISMATCH")
+        if self._gate_evidence is not None:
+            try:
+                evidence = self._gate_evidence(session_id)
+            except (KeyError, SessionWorkflowError, ValueError) as error:
+                raise StoryVideoInputError("STORY_GATE_EVIDENCE_UNAVAILABLE") from error
+            if evidence.session_id != session_id or (
+                snapshot is not None and evidence.session_version != snapshot.version
+            ):
+                raise StoryVideoInputError("STORY_GATE_EVIDENCE_STALE")
+            if (
+                evidence.source_image_ref != package.source_image_ref
+                or evidence.source_image_sha256 != package.source_image_sha256
+                or evidence.experience_spec_ref != package.experience_spec_ref
+                or evidence.experience_spec_sha256 != package.experience_spec_sha256
+            ):
+                raise StoryVideoInputError("STORY_GATE_IDENTITY_MISMATCH")
+            if any(
+                not set(segment.confirmed_anchor_ids).issubset(evidence.confirmed_anchor_ids)
+                for segment in segments
+            ):
+                raise StoryVideoInputError("STORY_ANCHOR_NOT_CONFIRMED")
         if self._source_artifacts is not None:
             stored = self._source_artifacts.get(package.source_image_ref)
             if stored is None:
