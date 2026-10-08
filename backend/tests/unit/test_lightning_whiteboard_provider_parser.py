@@ -29,6 +29,52 @@ def test_parse_box_rejects_missing_box() -> None:
         _parse_box("no coordinates", 600, 600)
 
 
+def test_preflight_detects_unusable_whiteboard_encoder_before_paid_work(monkeypatch) -> None:
+    import tools.lightning_whiteboard_provider as provider
+
+    monkeypatch.setenv("SKETCH2LIFE_STORY_MOTION_PROVIDER", "whiteboard-stroke-v1")
+
+    def missing_encoder() -> None:
+        raise RuntimeError("libx264 unavailable")
+
+    monkeypatch.setattr(provider, "_probe_whiteboard_encoder", missing_encoder)
+    result = provider.story_video_preflight()
+
+    assert result["checks"]["whiteboard_renderer"]["ready"] is True
+    assert result["checks"]["h264_encoder"]["ready"] is False
+    assert result["ready"] is False
+
+
+def test_preflight_h264_probe_encodes_synthetic_frame() -> None:
+    pytest.importorskip("imageio.v2")
+    pytest.importorskip("imageio_ffmpeg")
+    import tools.lightning_whiteboard_provider as provider
+
+    provider._probe_whiteboard_encoder()
+
+
+@pytest.mark.parametrize(
+    ("filter_output", "available"),
+    [
+        (" T.C subtitles V->V Render text subtitles using libass", True),
+        (" T.C ass V->V Burn ASS subtitles using libass", False),
+        (" T.C scale V->V Scale the input video", False),
+    ],
+)
+def test_preflight_checks_ffmpeg_subtitle_filter(
+    monkeypatch, filter_output: str, available: bool
+) -> None:
+    import tools.lightning_whiteboard_provider as provider
+
+    def fake_run(args, **kwargs):
+        assert args[-1] == "-filters"
+        assert kwargs["timeout"] == 15
+        return subprocess.CompletedProcess(args, 0, stdout=filter_output, stderr="")
+
+    monkeypatch.setattr(provider.subprocess, "run", fake_run)
+    assert provider._ffmpeg_subtitles_available("ffmpeg") is available
+
+
 def test_subtitle_srt_serializes_utf8_scene_cues() -> None:
     assert _subtitle_srt(
         [

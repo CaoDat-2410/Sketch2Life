@@ -123,6 +123,46 @@ def health() -> dict[str, str]:
     return {"status": "ok", "service": "whiteboard-provider"}
 
 
+def _probe_whiteboard_encoder() -> None:
+    """Encode and read one synthetic frame without loading any model or user media."""
+
+    import imageio.v2 as imageio
+    import numpy as np
+
+    with tempfile.TemporaryDirectory(prefix="sketch2life-encoder-probe-") as directory:
+        output = Path(directory) / "probe.mp4"
+        writer = imageio.get_writer(
+            output, fps=1, codec="libx264", pixelformat="yuv420p", quality=8
+        )
+        try:
+            writer.append_data(np.full((16, 16, 3), 255, dtype=np.uint8))
+        finally:
+            writer.close()
+        reader = imageio.get_reader(output)
+        try:
+            if tuple(reader.get_meta_data()["size"]) != (16, 16):
+                raise RuntimeError("H264_PROBE_DIMENSIONS_INVALID")
+            reader.get_data(0)
+        finally:
+            reader.close()
+
+
+def _ffmpeg_subtitles_available(executable: str) -> bool:
+    """The final assembly needs FFmpeg's libass-backed subtitles filter."""
+
+    result = subprocess.run(
+        [executable, "-hide_banner", "-filters"],
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=15,
+    )
+    return result.returncode == 0 and any(
+        len(fields) >= 3 and fields[1] == "subtitles"
+        for fields in (line.split() for line in result.stdout.splitlines())
+    )
+
+
 @app.get("/v1/story-video/preflight")
 def story_video_preflight() -> dict[str, Any]:
     """Report all local requirements before an expensive story-video run."""
@@ -153,6 +193,18 @@ def story_video_preflight() -> dict[str, Any]:
 
     for executable in ("ffmpeg", "ffprobe"):
         record(executable, shutil.which(executable) is not None, f"{executable} must be on PATH")
+    ffmpeg = shutil.which("ffmpeg")
+    if ffmpeg is None:
+        record("subtitle_filter", False, "ffmpeg must be on PATH")
+    else:
+        try:
+            subtitle_ready = _ffmpeg_subtitles_available(ffmpeg)
+            record(
+                "subtitle_filter", subtitle_ready,
+                "FFmpeg subtitles filter available" if subtitle_ready else "FFmpeg needs subtitles/libass",
+            )
+        except (OSError, subprocess.SubprocessError) as error:
+            record("subtitle_filter", False, f"Subtitle filter probe failed: {error}"[:240])
 
     model_id = os.getenv("SKETCH2LIFE_IMAGE_MODEL", "").strip()
     record("image_model", bool(model_id), model_id or "Set SKETCH2LIFE_IMAGE_MODEL")
@@ -182,8 +234,17 @@ def story_video_preflight() -> dict[str, Any]:
             importlib.import_module("sketch2life.infrastructure.media.whiteboard_stroke_extraction")
             importlib.import_module("imageio")
             record("whiteboard_renderer", True, "Stroke renderer and ImageIO are importable")
+            try:
+                _probe_whiteboard_encoder()
+                record("h264_encoder", True, "Synthetic H.264 frame encoded and decoded")
+            except Exception as error:  # noqa: BLE001 - report codec/plugin failures before paid work
+                record(
+                    "h264_encoder", False,
+                    f"H.264 encode probe failed: {type(error).__name__}: {error}"[:240],
+                )
         except ImportError:
             record("whiteboard_renderer", False, "Install the backend whiteboard-renderer extra")
+            record("h264_encoder", False, "Whiteboard renderer dependencies are missing")
     elif motion_profile == "wan2.2-ti2v-5b":
         repo_value = os.getenv("WAN_REPO_DIR", "").strip()
         ckpt_value = os.getenv("WAN_CKPT_DIR", "").strip()
