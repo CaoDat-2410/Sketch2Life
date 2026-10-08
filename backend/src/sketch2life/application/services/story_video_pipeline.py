@@ -33,10 +33,11 @@ from sketch2life.contracts.schemas.story_video_media import (
 class StoryVideoProviderError(RuntimeError):
     """Sanitized provider failure that is safe for job orchestration."""
 
-    def __init__(self, code: str, *, retryable: bool) -> None:
+    def __init__(self, code: str, *, retryable: bool, blocked: bool = False) -> None:
         super().__init__(code)
         self.code = code
         self.retryable = retryable
+        self.blocked = blocked
 
 
 class NarrationProvider(Protocol):
@@ -142,8 +143,9 @@ class StoryVideoPipeline:
             storyboard, segments, narration.segment_timing_seconds
         )
         update("ILLUSTRATIONS_RENDERING", 30)
-        illustrations = tuple(
-            self._illustrations.render(
+        rendered_illustrations: list[IllustrationAssetV1] = []
+        for scene in storyboard.scenes:
+            illustration = self._illustrations.render(
                 IllustrationImageRequestV1(
                     request_id=f"illustration-{package.package_id}-{scene.scene_id}",
                     idempotency_key=f"illustration-{package.package_hash}-{scene.scene_id}",
@@ -157,26 +159,25 @@ class StoryVideoPipeline:
                     safety_policy_version=package.content_validator_version,
                 )
             )
-            for scene in storyboard.scenes
-        )
-        if any(asset.status != "READY" for asset in illustrations):
-            raise StoryVideoProviderError("ILLUSTRATION_NOT_READY", retryable=True)
-        if tuple(asset.scene_id for asset in illustrations) != tuple(
-            scene.scene_id for scene in storyboard.scenes
-        ):
-            raise StoryVideoProviderError("ILLUSTRATION_SCENE_MISMATCH", retryable=False)
-        if any(
-            not asset.asset_ref
-            or not asset.asset_sha256
-            or asset.source_image_ref != package.source_image_ref
-            or asset.source_image_sha256 != package.source_image_sha256
-            for asset in illustrations
-        ):
-            raise StoryVideoProviderError("ILLUSTRATION_ARTIFACT_INVALID", retryable=False)
+            self._require_ready(
+                illustration.status, "ILLUSTRATION_NOT_READY", illustration.error_code
+            )
+            if illustration.scene_id != scene.scene_id:
+                raise StoryVideoProviderError("ILLUSTRATION_SCENE_MISMATCH", retryable=False)
+            if (
+                not illustration.asset_ref
+                or not illustration.asset_sha256
+                or illustration.source_image_ref != package.source_image_ref
+                or illustration.source_image_sha256 != package.source_image_sha256
+            ):
+                raise StoryVideoProviderError("ILLUSTRATION_ARTIFACT_INVALID", retryable=False)
+            rendered_illustrations.append(illustration)
+        illustrations = tuple(rendered_illustrations)
 
         update("SCENES_RENDERING", 55)
-        scenes = tuple(
-            self._motion.render(
+        rendered_scenes: list[VideoSceneArtifactV1] = []
+        for scene, illustration in zip(storyboard.scenes, illustrations, strict=True):
+            rendered = self._motion.render(
                 VideoSceneRenderRequestV1(
                     request_id=f"motion-{package.package_id}-{scene.scene_id}",
                     idempotency_key=f"motion-{package.package_hash}-{scene.scene_id}",
@@ -194,27 +195,24 @@ class StoryVideoPipeline:
                     resource_preflight="PASSED",
                 )
             )
-            for scene, illustration in zip(storyboard.scenes, illustrations, strict=True)
-        )
-        if any(scene.status != "READY" for scene in scenes):
-            raise StoryVideoProviderError("SCENE_RENDER_NOT_READY", retryable=True)
-        if tuple(scene.scene_id for scene in scenes) != tuple(
-            scene.scene_id for scene in storyboard.scenes
-        ):
-            raise StoryVideoProviderError("VIDEO_SCENE_MISMATCH", retryable=False)
-        if any(
-            not scene.silent_clip_ref
-            or not scene.silent_clip_sha256
-            or scene.model_profile_ref != self._motion_model_profile_ref
-            for scene in scenes
-        ):
-            raise StoryVideoProviderError("VIDEO_SCENE_ARTIFACT_INVALID", retryable=False)
-        if any(
-            rendered.duration_seconds is None
-            or abs(rendered.duration_seconds - planned.duration_seconds) > 0.5
-            for rendered, planned in zip(scenes, storyboard.scenes, strict=True)
-        ):
-            raise StoryVideoProviderError("VIDEO_SCENE_DURATION_MISMATCH", retryable=True)
+            self._require_ready(
+                rendered.status, "SCENE_RENDER_NOT_READY", rendered.error_code
+            )
+            if rendered.scene_id != scene.scene_id:
+                raise StoryVideoProviderError("VIDEO_SCENE_MISMATCH", retryable=False)
+            if (
+                not rendered.silent_clip_ref
+                or not rendered.silent_clip_sha256
+                or rendered.model_profile_ref != self._motion_model_profile_ref
+            ):
+                raise StoryVideoProviderError("VIDEO_SCENE_ARTIFACT_INVALID", retryable=False)
+            if (
+                rendered.duration_seconds is None
+                or abs(rendered.duration_seconds - scene.duration_seconds) > 0.5
+            ):
+                raise StoryVideoProviderError("VIDEO_SCENE_DURATION_MISMATCH", retryable=True)
+            rendered_scenes.append(rendered)
+        scenes = tuple(rendered_scenes)
 
         update("ASSEMBLING", 80)
         video = self._assembler.assemble(
@@ -256,7 +254,9 @@ class StoryVideoPipeline:
     def _require_ready(status: str, code: str, provider_code: str | None) -> None:
         if status != "READY":
             raise StoryVideoProviderError(
-                provider_code or code, retryable=status == "RETRYABLE_FAILURE"
+                provider_code or code,
+                retryable=status == "RETRYABLE_FAILURE",
+                blocked=status == "BLOCKED",
             )
 
 

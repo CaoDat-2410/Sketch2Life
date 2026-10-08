@@ -10,6 +10,7 @@ from sketch2life.application.services.story_video_job import (
     StoryVideoInputError,
     StoryVideoJobService,
 )
+from sketch2life.application.services.story_video_pipeline import StoryVideoProviderError
 from sketch2life.contracts.schemas.story_video import (
     ApprovedStoryPackageV1,
     StoryScriptSegmentV1,
@@ -122,6 +123,36 @@ def test_same_package_does_not_queue_duplicate_paid_work() -> None:
     )
     assert not replayed_third
     assert third.job_id != first.job_id
+
+
+def test_provider_blocked_status_remains_blocked_on_job() -> None:
+    class BlockedPipeline:
+        def run(self, package, segments, *, update_stage):
+            raise StoryVideoProviderError(
+                "IMAGE_POLICY_BLOCKED", retryable=False, blocked=True
+            )
+
+    store = InMemoryArtifactStore()
+    source = store.put(session_id="session-test", content_type="image/png", body=b"image")
+    service = StoryVideoJobService(
+        pipeline=BlockedPipeline(),
+        session_snapshot=lambda _session_id: SimpleNamespace(
+            state="EXPERIENCE_READY", status="ACTIVE", version=3
+        ),
+        source_artifacts=store,
+    )
+    job, _ = service.create_or_replay(
+        session_id="session-test",
+        idempotency_key="blocked-case",
+        package=_package(source.artifact_ref, source.sha256),
+        segments=_segments(),
+    )
+
+    service.run_safely(job.job_id)
+
+    blocked = service.get(job.job_id)
+    assert blocked.state == "BLOCKED"
+    assert "IMAGE_POLICY_BLOCKED" in blocked.public_message
 
 
 def test_story_job_rejects_other_session_source() -> None:

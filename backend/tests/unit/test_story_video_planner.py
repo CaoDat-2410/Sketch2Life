@@ -377,6 +377,72 @@ def test_pipeline_rejects_ready_scene_without_clip_before_assembly() -> None:
     assert caught.value.code == "VIDEO_SCENE_ARTIFACT_INVALID"
 
 
+@pytest.mark.parametrize(
+    ("status", "retryable"),
+    [("BLOCKED", False), ("INVALID", False), ("RETRYABLE_FAILURE", True)],
+)
+def test_pipeline_stops_after_first_failed_illustration(
+    status: str, retryable: bool
+) -> None:
+    calls: list[str] = []
+
+    class FirstImageFails(_Illustrations):
+        def render(self, request):
+            calls.append(request.scene_id)
+            return super().render(request).model_copy(
+                update={"status": status, "error_code": "IMAGE_TEST_FAILURE"}
+            )
+
+    class NoMotion:
+        def render(self, request):
+            raise AssertionError("failed illustration must stop before scene rendering")
+
+    pipeline = StoryVideoPipeline(
+        narration=_Narration(),
+        illustrations=FirstImageFails(),
+        motion=NoMotion(),
+        assembler=_Assembler(),
+    )
+    with pytest.raises(StoryVideoProviderError) as caught:
+        pipeline.run(_package(), _segments())
+    assert calls == ["scene-1"]
+    assert caught.value.code == "IMAGE_TEST_FAILURE"
+    assert caught.value.retryable is retryable
+    assert caught.value.blocked is (status == "BLOCKED")
+
+
+@pytest.mark.parametrize(
+    ("status", "retryable"),
+    [("BLOCKED", False), ("INVALID", False), ("RETRYABLE_FAILURE", True)],
+)
+def test_pipeline_stops_after_first_failed_scene(status: str, retryable: bool) -> None:
+    calls: list[str] = []
+
+    class FirstSceneFails(_Motion):
+        def render(self, request):
+            calls.append(request.scene_id)
+            return super().render(request).model_copy(
+                update={"status": status, "error_code": "SCENE_TEST_FAILURE"}
+            )
+
+    class NoAssembly:
+        def assemble(self, request):
+            raise AssertionError("failed scene must stop before assembly")
+
+    pipeline = StoryVideoPipeline(
+        narration=_Narration(),
+        illustrations=_Illustrations(),
+        motion=FirstSceneFails(),
+        assembler=NoAssembly(),
+    )
+    with pytest.raises(StoryVideoProviderError) as caught:
+        pipeline.run(_package(), _segments())
+    assert calls == ["scene-1"]
+    assert caught.value.code == "SCENE_TEST_FAILURE"
+    assert caught.value.retryable is retryable
+    assert caught.value.blocked is (status == "BLOCKED")
+
+
 def test_synthetic_40_second_story_renders_and_assembles_real_mp4(tmp_path, monkeypatch) -> None:
     """Exercise all four media stages without a GPU, network call or child media."""
 

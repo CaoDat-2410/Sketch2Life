@@ -174,7 +174,7 @@ class StoryVideoJobService:
                     "EXPIRED"
                     if error.code == "SESSION_EXPIRED"
                     else "BLOCKED"
-                    if error.code == "PROVIDER_NOT_CONFIGURED"
+                    if error.blocked or error.code == "PROVIDER_NOT_CONFIGURED"
                     else "RETRYABLE_FAILURE"
                     if error.retryable
                     else "FAILED"
