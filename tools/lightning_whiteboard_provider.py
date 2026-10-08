@@ -358,7 +358,9 @@ def _concat_wavs(paths: list[Path], output: Path) -> None:
         frames = [first.readframes(first.getnframes())]
     for path in paths[1:]:
         with wave.open(str(path), "rb") as segment:
-            if segment.getparams()[:4] != params[:4]:
+            # ``nframes`` depends on the sentence duration and is expected to
+            # differ between segments. Compare only the actual WAV format.
+            if segment.getparams()[:3] != params[:3]:
                 raise ValueError("TTS segments have incompatible WAV parameters")
             frames.append(segment.readframes(segment.getnframes()))
     with wave.open(str(output), "wb") as combined:
