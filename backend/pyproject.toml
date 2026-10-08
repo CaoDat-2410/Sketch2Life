@@ -31,6 +31,9 @@ dev = [
   "pytest-asyncio>=1.1,<2",
   "ruff>=0.12,<1",
 ]
+story-video-tts = [
+  "edge-tts>=7,<8",
+]
 # P2-T2 Phase B (approved 2026-08-30): exact-pinned, not range-pinned like the rest of this
 # file. CTranslate2's cuDNN version requirement has changed across releases (>=4.0 requires
 # CUDA 12/cuDNN 9), so a range pin risks silently breaking local GPU compatibility between

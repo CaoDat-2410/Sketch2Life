@@ -12,7 +12,7 @@ Updated: 2026-09-30
   illustration → per-scene motion → assembly → duration gate.
 - Idempotent process-local story-video job API with safe public progress.
 - Lightning adapter and provider routes with strict response validation.
-- Runtime hooks for ElevenLabs, Diffusers image-to-image, official Wan2.2
+- Runtime hooks for Edge TTS or ElevenLabs, Diffusers image-to-image, official Wan2.2
   TI2V-5B CLI, and FFmpeg assembly; each is lazy-loaded and fails closed when
   its required secret, executable, repository or checkpoint is absent.
 - Honest `BLOCKED` results when a model/runtime is not configured.
@@ -21,7 +21,7 @@ Updated: 2026-09-30
 
 ## Not completed in this environment
 
-- A production ElevenLabs credential/voice selection on Lightning (`ELEVENLABS_API_KEY` and `ELEVENLABS_VOICE_ID`).
+- A production TTS selection on Lightning. The default no-key path is Edge TTS (`EDGE_TTS_VOICE=vi-VN-HoaiMyNeural`); ElevenLabs remains optional via `SKETCH2LIFE_TTS_PROVIDER=elevenlabs`.
 - Image-generation model and weights on Lightning.
 - Wan2.2 TI2V-5B runtime, checkpoint and L4 benchmark.
 - Real scene rendering, FFmpeg assembly and final MP4 validation on GPU.

@@ -12,6 +12,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 import wave
 from contextlib import nullcontext
 from pathlib import Path
@@ -306,6 +307,38 @@ def _elevenlabs_tts(text: str, *, voice_id: str, key: str, model_id: str) -> byt
     return data
 
 
+def _edge_tts(text: str, *, voice: str) -> bytes:
+    with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as temporary:
+        output = Path(temporary.name)
+    try:
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "edge_tts",
+                "--voice",
+                voice,
+                "--text",
+                text,
+                "--write-media",
+                str(output),
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            if "No module named edge_tts" in result.stderr:
+                raise RuntimeError("EDGE_TTS_NOT_INSTALLED")
+            raise RuntimeError("EDGE_TTS_FAILED")
+        data = output.read_bytes()
+        if not data:
+            raise ValueError("Edge TTS returned empty MP3")
+        return data
+    finally:
+        output.unlink(missing_ok=True)
+
+
 def _mp3_to_wav(mp3: bytes, output: Path) -> None:
     ffmpeg = _require_executable("ffmpeg")
     source = output.with_suffix(".mp3")
@@ -361,12 +394,16 @@ def _require_executable(name: str) -> str:
 def story_video_narration(payload: dict[str, Any]) -> dict[str, Any]:
     request = payload.get("request")
     texts = payload.get("texts")
+    provider = os.getenv("SKETCH2LIFE_TTS_PROVIDER", "edge_tts").strip().lower()
     eleven_key = os.getenv("ELEVENLABS_API_KEY", "").strip()
     eleven_voice = os.getenv("ELEVENLABS_VOICE_ID", "").strip()
     eleven_model = os.getenv("ELEVENLABS_MODEL_ID", "eleven_flash_v2_5").strip()
+    edge_voice = os.getenv("EDGE_TTS_VOICE", "vi-VN-HoaiMyNeural").strip()
     if not isinstance(request, dict) or not isinstance(texts, list) or not texts:
         raise HTTPException(status_code=422, detail="NARRATION_REQUEST_INVALID")
-    if not eleven_key or not eleven_voice:
+    if provider not in {"edge_tts", "elevenlabs"}:
+        return _story_video_blocked("NarrationAssetV1", "TTS_PROVIDER_UNSUPPORTED")
+    if provider == "elevenlabs" and (not eleven_key or not eleven_voice):
         return _story_video_blocked("NarrationAssetV1", "TTS_RUNTIME_NOT_CONFIGURED")
     if not all(isinstance(text, str) and text.strip() for text in texts):
         raise HTTPException(status_code=422, detail="NARRATION_TEXT_INVALID")
@@ -377,15 +414,16 @@ def story_video_narration(payload: dict[str, Any]) -> dict[str, Any]:
     try:
         for index, text in enumerate(texts, 1):
             path = root / f"{job_name}.segment-{index}.wav"
-            _mp3_to_wav(
-                _elevenlabs_tts(
+            if provider == "edge_tts":
+                audio = _edge_tts(text, voice=edge_voice)
+            else:
+                audio = _elevenlabs_tts(
                     text,
                     voice_id=eleven_voice,
                     key=eleven_key,
                     model_id=eleven_model,
-                ),
-                path,
-            )
+                )
+            _mp3_to_wav(audio, path)
             timings.append(round(_wav_duration(path), 3))
             segment_paths.append(path)
         combined = root / f"{job_name}.wav"
@@ -399,14 +437,18 @@ def story_video_narration(payload: dict[str, Any]) -> dict[str, Any]:
             "audio_sha256": hashlib.sha256(data).hexdigest(),
             "duration_seconds": round(sum(timings), 3),
             "locale": str(request.get("locale", "vi-VN")),
-            "voice_model_ref": f"elevenlabs:{eleven_model}:{eleven_voice}",
+            "voice_model_ref": (
+                f"edge-tts:{edge_voice}"
+                if provider == "edge_tts"
+                else f"elevenlabs:{eleven_model}:{eleven_voice}"
+            ),
             "segment_timing_seconds": timings,
         }
     except (OSError, RuntimeError, TimeoutError, ValueError, subprocess.SubprocessError) as error:
         _LOGGER.exception("story_video_narration_failed")
         code = (
             str(error)
-            if str(error).startswith("ELEVENLABS_TTS_")
+            if str(error).startswith(("ELEVENLABS_TTS_", "EDGE_TTS_"))
             else "TTS_RENDER_FAILED"
         )
         return _story_video_blocked("NarrationAssetV1", code)
