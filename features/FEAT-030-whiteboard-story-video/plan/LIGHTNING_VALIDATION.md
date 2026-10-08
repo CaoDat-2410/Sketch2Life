@@ -2,6 +2,14 @@
 
 This is a validation procedure, not evidence of a successful model run. Use a synthetic/non-child source image and a reviewed `StoryVideoCreateRequestV1` JSON for an existing backend session. The backend's process-local artifact store must still contain the source image named by the package; restarting the backend loses that state.
 
+## Provider media smoke before the full session workflow
+
+On the studio, after starting only the provider at `http://127.0.0.1:8001`, create a local JSON file beside a synthetic PNG/JPEG/WebP. The JSON has `source_image` (path relative to the JSON), `locale` (for example `vi-VN`) and `scenes` (three to six objects, each with `text` and `visual_prompt`). Each scene's approved-for-test narration should last roughly 5–20 seconds; the measured total must be 40–60 seconds. Do not put real child media, names, credentials or an unreviewed story in this fixture, and do not commit the fixture or output MP4.
+
+Run `python tools/story_video_media_smoke.py --input /path/to/synthetic-fixture.json --preflight-only` first. Only if all checks pass and you accept the model/TTS cost, run the same command with `--confirm-synthetic-only` instead of `--preflight-only`. It prints each media stage and the local final MP4 path/hash. It stops before image generation if TTS duration is out of bounds. This is a **provider-only media test**: it bypasses the backend, Director and Gate B, creates no `ApprovedStoryPackageV1`, and cannot be used as product acceptance. Inspect the MP4's line drawing, scene distinctness/continuity, voice, captions and duration. Record the model/voice/config and any failure locally before proceeding to the full workflow below.
+
+## Full approved-session validation
+
 1. Pull the reviewed commit on the studio. Confirm `nvidia-smi`, `ffmpeg -version`, `ffprobe -version`, TTS import, image model access and renderer imports. The provider preflight reports the local checks but does not download or render a model.
 2. Start the provider with `PORT=8001`, `SKETCH2LIFE_STORY_MOTION_PROVIDER=whiteboard-stroke-v1`, a reviewed `SKETCH2LIFE_IMAGE_MODEL`, and a configured `SKETCH2LIFE_TTS_PROVIDER`. Run `python tools/lightning_whiteboard_provider.py` from the repository root with the project Python environment. Wan code/weights are not required for this default whiteboard profile.
 3. Start the backend separately with `SKETCH2LIFE_ENV=local`, `SKETCH2LIFE_AI_PROVIDER=lightning_dev`, `SKETCH2LIFE_LIGHTNING_AI_BASE_URL=http://127.0.0.1:8001`, and `python -m uvicorn sketch2life.main:app --app-dir backend/src --port 8000` from the repository root. Keep credentials only in local secret files or the studio secret manager.
