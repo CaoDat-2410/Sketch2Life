@@ -203,6 +203,11 @@ def render_stroke_animation(
         raise ValueError("stroke artifact has no drawable points")
 
     segment_count = sum(max(0, len(points) - 1) for points in strokes)
+    ink_scale = 2
+    smooth_strokes = [
+        [(x * ink_scale, y * ink_scale) for x, y in points]
+        for points in strokes
+    ]
     frame_count = round(render_spec.fps * render_spec.duration_seconds)
     output = Path(output_path)
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -213,22 +218,43 @@ def render_stroke_animation(
         pixelformat="yuv420p",
         quality=8,
     )
+    ink = Image.new(
+        "RGB",
+        (render_spec.width * ink_scale, render_spec.height * ink_scale),
+        "white",
+    )
+    ink_draw = ImageDraw.Draw(ink)
+    stroke_index = 0
+    stroke_segment = 0
+    rendered_segments = 0
+    active_point = None
     try:
         for frame_index in range(frame_count):
             progress = frame_index / max(1, frame_count - 1)
             visible_segments = round(segment_count * min(1.0, progress * 1.08))
-            image = Image.new("RGB", (render_spec.width, render_spec.height), "white")
-            draw = ImageDraw.Draw(image, "RGBA")
-            remaining = visible_segments
-            active_point = None
-            for points in strokes:
-                if remaining <= 0:
-                    break
-                count = min(len(points) - 1, remaining)
-                draw.line(points[: count + 1], fill=(35, 35, 35, 245), width=4, joint="curve")
-                active_point = points[count]
-                remaining -= count
+            while rendered_segments < visible_segments:
+                points = smooth_strokes[stroke_index]
+                count = min(
+                    len(points) - 1 - stroke_segment,
+                    visible_segments - rendered_segments,
+                )
+                ink_draw.line(
+                    points[stroke_segment : stroke_segment + count + 1],
+                    fill=(35, 35, 35),
+                    width=4 * ink_scale,
+                    joint="curve",
+                )
+                stroke_segment += count
+                rendered_segments += count
+                active_point = strokes[stroke_index][stroke_segment]
+                if stroke_segment == len(points) - 1:
+                    stroke_index += 1
+                    stroke_segment = 0
+            image = ink.resize(
+                (render_spec.width, render_spec.height), Image.Resampling.LANCZOS
+            )
             if active_point is not None and visible_segments < segment_count:
+                draw = ImageDraw.Draw(image, "RGBA")
                 _draw_marker_hand(draw, active_point)
             frame = np.asarray(image)
             if motion_schedule:

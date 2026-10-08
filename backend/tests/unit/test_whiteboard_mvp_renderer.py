@@ -119,3 +119,35 @@ def test_storyboard_strokes_use_most_of_the_video_canvas(tmp_path) -> None:
     dark_y, dark_x = (frame[:, :, :3].mean(axis=2) < 100).nonzero()
     assert dark_x.max() - dark_x.min() > 700
     assert dark_y.max() - dark_y.min() > 400
+
+
+def test_completed_strokes_remain_visible_while_next_stroke_is_drawn(tmp_path) -> None:
+    imageio = pytest.importorskip("imageio.v2")
+    stroke_path = tmp_path / "two-strokes.json"
+    stroke_path.write_text(
+        '{"artifact_type":"whiteboard_strokes_v1","width":100,"height":100,'
+        '"strokes":['
+        '{"stroke_id":"upper","points":[[5,10],[95,10]]},'
+        '{"stroke_id":"lower","points":[[5,90],[95,90]]}'
+        ']}',
+        encoding="utf-8",
+    )
+    output_path = tmp_path / "two-strokes.mp4"
+    render_stroke_animation(
+        stroke_path,
+        output_path,
+        spec=WhiteboardMvpRenderSpec(width=1280, height=720, fps=5, duration_seconds=5.0),
+    )
+    reader = imageio.get_reader(output_path)
+    first = reader.get_data(8)
+    halfway = reader.get_data(12)
+    final = reader.get_data(24)
+    reader.close()
+    scale = min(1280 * 0.78 / 100, 720 * 0.82 / 100)
+    upper_y = round((720 - 100 * scale) / 2 + 10 * scale)
+    lower_y = round((720 - 100 * scale) / 2 + 90 * scale)
+    assert (first[upper_y - 3 : upper_y + 4, 450:800, :3] < 120).any()
+    assert (first[lower_y - 3 : lower_y + 4, 450:800, :3] > 240).all()
+    assert (halfway[upper_y - 3 : upper_y + 4, 450:800, :3] < 120).any()
+    assert (final[upper_y - 3 : upper_y + 4, 450:800, :3] < 120).any()
+    assert (final[lower_y - 3 : lower_y + 4, 450:800, :3] < 120).any()
