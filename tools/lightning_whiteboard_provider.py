@@ -17,6 +17,7 @@ import tempfile
 import wave
 from contextlib import nullcontext
 from pathlib import Path
+from threading import RLock
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -31,6 +32,7 @@ _vlm = None
 _processor = None
 _sam_predictor = None
 _boxes: dict[str, list[float]] = {}
+_story_media_cache_lock = RLock()
 
 
 def _decode_source(payload: dict[str, Any]) -> tuple[bytes, Any, str]:
@@ -482,6 +484,49 @@ def _file_sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def _story_cache_key(kind: str, request: dict[str, Any], config: dict[str, Any]) -> str:
+    payload = {"cache_version": 1, "kind": kind, "request": request, "config": config}
+    return hashlib.sha256(
+        json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
+
+
+def _cached_story_media(
+    manifest_path: Path,
+    *,
+    cache_key: str,
+    output_path: Path,
+    ref_field: str,
+    sha_field: str,
+) -> dict[str, Any] | None:
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        if not isinstance(manifest, dict):
+            return None
+        response = manifest.get("response")
+        if (
+            manifest.get("cache_key") != cache_key
+            or not isinstance(response, dict)
+            or response.get("status") != "READY"
+            or response.get(ref_field) != str(output_path)
+            or not output_path.is_file()
+            or response.get(sha_field) != _file_sha256(output_path)
+        ):
+            return None
+        return response
+    except (OSError, TypeError, ValueError):
+        return None
+
+
+def _record_story_media(manifest_path: Path, cache_key: str, response: dict[str, Any]) -> None:
+    temporary = manifest_path.with_suffix(".json.tmp")
+    temporary.write_text(
+        json.dumps({"cache_key": cache_key, "response": response}, separators=(",", ":")),
+        encoding="utf-8",
+    )
+    temporary.replace(manifest_path)
+
+
 def _ffprobe_duration(path: Path) -> float:
     result = subprocess.run(
         [
@@ -565,43 +610,77 @@ def story_video_narration(payload: dict[str, Any]) -> dict[str, Any]:
         return _story_video_blocked("NarrationAssetV1", "TTS_RUNTIME_NOT_CONFIGURED")
     if not all(isinstance(text, str) and text.strip() for text in texts):
         raise HTTPException(status_code=422, detail="NARRATION_TEXT_INVALID")
-    segment_paths: list[Path] = []
-    timings: list[float] = []
     try:
         root = _story_video_package_root(request)
         job_name = re.sub(r"[^A-Za-z0-9_-]", "_", str(request.get("package_id", "story")))
-        for index, text in enumerate(texts, 1):
-            path = root / f"{job_name}.segment-{index}.wav"
-            if provider == "edge_tts":
-                audio = _edge_tts(text, voice=edge_voice)
-            else:
-                audio = _elevenlabs_tts(
-                    text,
-                    voice_id=eleven_voice,
-                    key=eleven_key,
-                    model_id=eleven_model,
-                )
-            _mp3_to_wav(audio, path)
-            timings.append(round(_wav_duration(path), 3))
-            segment_paths.append(path)
         combined = root / f"{job_name}.wav"
-        _concat_wavs(segment_paths, combined)
-        data = combined.read_bytes()
-        return {
-            "contract": "NarrationAssetV1",
-            "version": "1.0",
-            "status": "READY",
-            "audio_ref": str(combined),
-            "audio_sha256": hashlib.sha256(data).hexdigest(),
-            "duration_seconds": round(sum(timings), 3),
-            "locale": str(request.get("locale", "vi-VN")),
-            "voice_model_ref": (
-                f"edge-tts:{edge_voice}"
-                if provider == "edge_tts"
-                else f"elevenlabs:{eleven_model}:{eleven_voice}"
-            ),
-            "segment_timing_seconds": timings,
-        }
+        manifest = root / f"{job_name}.narration.cache.json"
+        texts_hash = hashlib.sha256(
+            json.dumps(texts, ensure_ascii=False, separators=(",", ":")).encode()
+        ).hexdigest()
+        cache_key = _story_cache_key(
+            "narration",
+            request,
+            {
+                "provider": provider,
+                "voice": edge_voice if provider == "edge_tts" else eleven_voice,
+                "model": eleven_model if provider == "elevenlabs" else "edge-tts",
+                "texts_hash": texts_hash,
+            },
+        )
+        with _story_media_cache_lock:
+            cached = _cached_story_media(
+                manifest,
+                cache_key=cache_key,
+                output_path=combined,
+                ref_field="audio_ref",
+                sha_field="audio_sha256",
+            )
+            if (
+                cached is not None
+                and isinstance(cached.get("duration_seconds"), (int, float))
+                and isinstance(cached.get("segment_timing_seconds"), list)
+                and len(cached["segment_timing_seconds"]) == len(texts)
+            ):
+                try:
+                    if abs(_wav_duration(combined) - cached["duration_seconds"]) <= 0.25:
+                        return cached
+                except (OSError, ValueError):
+                    pass
+            segment_paths: list[Path] = []
+            timings: list[float] = []
+            for index, text in enumerate(texts, 1):
+                path = root / f"{job_name}.segment-{index}.wav"
+                if provider == "edge_tts":
+                    audio = _edge_tts(text, voice=edge_voice)
+                else:
+                    audio = _elevenlabs_tts(
+                        text,
+                        voice_id=eleven_voice,
+                        key=eleven_key,
+                        model_id=eleven_model,
+                    )
+                _mp3_to_wav(audio, path)
+                timings.append(round(_wav_duration(path), 3))
+                segment_paths.append(path)
+            _concat_wavs(segment_paths, combined)
+            response = {
+                "contract": "NarrationAssetV1",
+                "version": "1.0",
+                "status": "READY",
+                "audio_ref": str(combined),
+                "audio_sha256": _file_sha256(combined),
+                "duration_seconds": round(sum(timings), 3),
+                "locale": str(request.get("locale", "vi-VN")),
+                "voice_model_ref": (
+                    f"edge-tts:{edge_voice}"
+                    if provider == "edge_tts"
+                    else f"elevenlabs:{eleven_model}:{eleven_voice}"
+                ),
+                "segment_timing_seconds": timings,
+            }
+            _record_story_media(manifest, cache_key, response)
+            return response
     except (OSError, RuntimeError, TimeoutError, ValueError, subprocess.SubprocessError) as error:
         _LOGGER.exception("story_video_narration_failed")
         code = (
@@ -632,44 +711,76 @@ def story_video_illustration(payload: dict[str, Any]) -> dict[str, Any]:
             raise ValueError("SCENE_ID_INVALID")
         source_path = root / f"{scene_id}.source.png"
         output_path = root / f"{scene_id}.illustration.png"
+        manifest = root / f"{scene_id}.illustration.cache.json"
         source_bytes = base64.b64decode(encoded, validate=True)
-        if hashlib.sha256(source_bytes).hexdigest() != source_hash:
+        if (
+            hashlib.sha256(source_bytes).hexdigest() != source_hash
+            or request.get("source_image_sha256") != source_hash
+        ):
             raise ValueError("source image hash mismatch")
-        source_path.write_bytes(source_bytes)
-        from PIL import Image
-
-        image = Image.open(io.BytesIO(source_bytes)).convert("RGB")
-        import torch
-        from diffusers import AutoPipelineForImage2Image
-
-        pipe = AutoPipelineForImage2Image.from_pretrained(
-            model_id,
-            torch_dtype=torch.float16,
-            variant=os.getenv("SKETCH2LIFE_IMAGE_VARIANT", "fp16"),
+        variant = os.getenv("SKETCH2LIFE_IMAGE_VARIANT", "fp16")
+        strength = float(os.getenv("SKETCH2LIFE_IMAGE_STRENGTH", "0.35"))
+        guidance = float(os.getenv("SKETCH2LIFE_IMAGE_GUIDANCE", "6.0"))
+        steps = int(os.getenv("SKETCH2LIFE_IMAGE_STEPS", "25"))
+        cache_key = _story_cache_key(
+            "illustration",
+            request,
+            {
+                "model": model_id,
+                "variant": variant,
+                "strength": strength,
+                "guidance": guidance,
+                "steps": steps,
+                "source_sha256": source_hash,
+            },
         )
-        pipe.enable_model_cpu_offload()
-        result = pipe(
-            prompt=str(request.get("visual_prompt", "")),
-            image=image,
-            strength=float(os.getenv("SKETCH2LIFE_IMAGE_STRENGTH", "0.35")),
-            guidance_scale=float(os.getenv("SKETCH2LIFE_IMAGE_GUIDANCE", "6.0")),
-            num_inference_steps=int(os.getenv("SKETCH2LIFE_IMAGE_STEPS", "25")),
-        ).images[0]
-        result.save(output_path, format="PNG")
-        return {
-            "contract": "IllustrationAssetV1",
-            "version": "1.0",
-            "status": "READY",
-            "scene_id": scene_id,
-            "asset_ref": str(output_path),
-            "asset_sha256": _file_sha256(output_path),
-            "content_type": "image/png",
-            "width": result.width,
-            "height": result.height,
-            "source_image_ref": str(request.get("source_image_ref", "")),
-            "source_image_sha256": source_hash,
-            "model_profile_ref": model_id,
-        }
+        with _story_media_cache_lock:
+            cached = _cached_story_media(
+                manifest,
+                cache_key=cache_key,
+                output_path=output_path,
+                ref_field="asset_ref",
+                sha_field="asset_sha256",
+            )
+            if cached is not None:
+                return cached
+            source_path.write_bytes(source_bytes)
+            from PIL import Image
+
+            image = Image.open(io.BytesIO(source_bytes)).convert("RGB")
+            import torch
+            from diffusers import AutoPipelineForImage2Image
+
+            pipe = AutoPipelineForImage2Image.from_pretrained(
+                model_id,
+                torch_dtype=torch.float16,
+                variant=variant,
+            )
+            pipe.enable_model_cpu_offload()
+            result = pipe(
+                prompt=str(request.get("visual_prompt", "")),
+                image=image,
+                strength=strength,
+                guidance_scale=guidance,
+                num_inference_steps=steps,
+            ).images[0]
+            result.save(output_path, format="PNG")
+            response = {
+                "contract": "IllustrationAssetV1",
+                "version": "1.0",
+                "status": "READY",
+                "scene_id": scene_id,
+                "asset_ref": str(output_path),
+                "asset_sha256": _file_sha256(output_path),
+                "content_type": "image/png",
+                "width": result.width,
+                "height": result.height,
+                "source_image_ref": str(request.get("source_image_ref", "")),
+                "source_image_sha256": source_hash,
+                "model_profile_ref": model_id,
+            }
+            _record_story_media(manifest, cache_key, response)
+            return response
     except (ImportError, OSError, RuntimeError, ValueError):
         _LOGGER.exception("story_video_illustration_failed")
         return _story_video_blocked("IllustrationAssetV1", "IMAGE_RENDER_FAILED")
