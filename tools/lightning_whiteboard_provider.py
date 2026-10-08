@@ -33,6 +33,8 @@ _processor = None
 _sam_predictor = None
 _boxes: dict[str, list[float]] = {}
 _story_media_cache_lock = RLock()
+_story_image_pipeline: Any = None
+_story_image_pipeline_key: tuple[str, str] | None = None
 
 
 def _decode_source(payload: dict[str, Any]) -> tuple[bytes, Any, str]:
@@ -527,6 +529,23 @@ def _record_story_media(manifest_path: Path, cache_key: str, response: dict[str,
     temporary.replace(manifest_path)
 
 
+def _story_image_pipe(model_id: str, variant: str, torch: Any, pipeline_type: Any) -> Any:
+    """Reuse one image model per provider process while render calls hold the cache lock."""
+
+    global _story_image_pipeline, _story_image_pipeline_key
+    key = (model_id, variant)
+    if _story_image_pipeline is None or _story_image_pipeline_key != key:
+        pipe = pipeline_type.from_pretrained(
+            model_id,
+            torch_dtype=torch.float16,
+            variant=variant,
+        )
+        pipe.enable_model_cpu_offload()
+        _story_image_pipeline = pipe
+        _story_image_pipeline_key = key
+    return _story_image_pipeline
+
+
 def _ffprobe_duration(path: Path) -> float:
     result = subprocess.run(
         [
@@ -751,18 +770,15 @@ def story_video_illustration(payload: dict[str, Any]) -> dict[str, Any]:
             import torch
             from diffusers import AutoPipelineForImage2Image
 
-            pipe = AutoPipelineForImage2Image.from_pretrained(
-                model_id,
-                torch_dtype=torch.float16,
-                variant=variant,
-            )
-            pipe.enable_model_cpu_offload()
+            pipe = _story_image_pipe(model_id, variant, torch, AutoPipelineForImage2Image)
+            seed = int(cache_key[:16], 16) % (2**63 - 1)
             result = pipe(
                 prompt=str(request.get("visual_prompt", "")),
                 image=image,
                 strength=strength,
                 guidance_scale=guidance,
                 num_inference_steps=steps,
+                generator=torch.Generator(device="cpu").manual_seed(seed),
             ).images[0]
             result.save(output_path, format="PNG")
             response = {

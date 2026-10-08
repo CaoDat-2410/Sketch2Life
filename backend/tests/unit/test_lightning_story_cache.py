@@ -87,6 +87,15 @@ def test_illustration_cache_skips_identical_model_and_rejects_tampering(
         },
     }
     model_calls: list[str] = []
+    inference_seeds: list[int] = []
+
+    class FakeGenerator:
+        def __init__(self, *, device: str):
+            assert device == "cpu"
+
+        def manual_seed(self, seed: int):
+            self.seed = seed
+            return self
 
     class FakePipeline:
         @classmethod
@@ -97,33 +106,48 @@ def test_illustration_cache_skips_identical_model_and_rejects_tampering(
         def enable_model_cpu_offload(self):
             pass
 
-        def __call__(self, **_kwargs):
+        def __call__(self, **kwargs):
+            inference_seeds.append(kwargs["generator"].seed)
             return SimpleNamespace(images=[source.copy()])
 
     fake_torch = types.ModuleType("torch")
     fake_torch.float16 = object()
+    fake_torch.Generator = FakeGenerator
     fake_diffusers = types.ModuleType("diffusers")
     fake_diffusers.AutoPipelineForImage2Image = FakePipeline
     monkeypatch.setitem(sys.modules, "torch", fake_torch)
     monkeypatch.setitem(sys.modules, "diffusers", fake_diffusers)
+    monkeypatch.setattr(provider, "_story_image_pipeline", None)
+    monkeypatch.setattr(provider, "_story_image_pipeline_key", None)
 
     first = provider.story_video_illustration(payload)
     second = provider.story_video_illustration(payload)
     assert first == second
     assert first["status"] == "READY"
     assert model_calls == ["synthetic-model"]
+    assert len(inference_seeds) == 1
 
     Path(first["asset_ref"]).write_bytes(b"corrupt")
     restored = provider.story_video_illustration(payload)
     assert restored["status"] == "READY"
-    assert len(model_calls) == 2
+    assert model_calls == ["synthetic-model"]
+    assert len(inference_seeds) == 2
+    assert inference_seeds[0] == inference_seeds[1]
 
     changed = {
         **payload,
         "request": {**payload["request"], "visual_prompt": "different approved drawing"},
     }
     assert provider.story_video_illustration(changed)["status"] == "READY"
-    assert len(model_calls) == 3
+    assert model_calls == ["synthetic-model"]
+    assert len(inference_seeds) == 3
+    assert inference_seeds[2] != inference_seeds[1]
     monkeypatch.setenv("SKETCH2LIFE_IMAGE_STRENGTH", "0.5")
     assert provider.story_video_illustration(changed)["status"] == "READY"
-    assert len(model_calls) == 4
+    assert model_calls == ["synthetic-model"]
+    assert len(inference_seeds) == 4
+    assert inference_seeds[3] != inference_seeds[2]
+
+    monkeypatch.setenv("SKETCH2LIFE_IMAGE_VARIANT", "alternate")
+    assert provider.story_video_illustration(changed)["status"] == "READY"
+    assert model_calls == ["synthetic-model", "synthetic-model"]

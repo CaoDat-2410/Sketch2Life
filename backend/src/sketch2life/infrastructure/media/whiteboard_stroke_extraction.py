@@ -101,8 +101,13 @@ def extract_image_line_art(
     image = Image.open(image_path).convert("RGB")
     image.thumbnail((560, 560), Image.Resampling.LANCZOS)
     gray = ImageOps.grayscale(image)
-    edges = np.asarray(gray.filter(ImageFilter.FIND_EDGES), dtype=np.uint8)
-    ink = edges > 48
+    luminance = np.asarray(gray, dtype=np.uint8)
+    dark_ink = luminance < 170
+    if int(dark_ink.sum()) >= 20 and float(dark_ink.mean()) <= 0.45:
+        ink = _thin_ink(dark_ink)
+    else:
+        edges = np.asarray(gray.filter(ImageFilter.FIND_EDGES), dtype=np.uint8)
+        ink = edges > 48
     ink[[0, -1], :] = False
     ink[:, [0, -1]] = False
     if int(ink.sum()) < 20:
@@ -134,6 +139,48 @@ def extract_image_line_art(
         point_count=sum(len(path) for path in paths),
         stroke_count=len(paths),
     )
+
+
+def _thin_ink(mask):
+    """Reduce thick raster pen marks to one-pixel paths (Zhang-Suen thinning)."""
+
+    import numpy as np
+
+    ink = mask.copy()
+    for _ in range(80):
+        changed = False
+        for first_pass in (True, False):
+            padded = np.pad(ink, 1, mode="constant")
+            p2 = padded[:-2, 1:-1]
+            p3 = padded[:-2, 2:]
+            p4 = padded[1:-1, 2:]
+            p5 = padded[2:, 2:]
+            p6 = padded[2:, 1:-1]
+            p7 = padded[2:, :-2]
+            p8 = padded[1:-1, :-2]
+            p9 = padded[:-2, :-2]
+            neighbors = (p2, p3, p4, p5, p6, p7, p8, p9)
+            count = sum(point.astype(np.uint8) for point in neighbors)
+            transitions = sum(
+                (~point & neighbors[(index + 1) % 8]).astype(np.uint8)
+                for index, point in enumerate(neighbors)
+            )
+            if first_pass:
+                corner_a = ~(p2 & p4 & p6)
+                corner_b = ~(p4 & p6 & p8)
+            else:
+                corner_a = ~(p2 & p4 & p8)
+                corner_b = ~(p2 & p6 & p8)
+            remove = (
+                ink & (count >= 2) & (count <= 6) & (transitions == 1)
+                & corner_a & corner_b
+            )
+            if bool(remove.any()):
+                ink[remove] = False
+                changed = True
+        if not changed:
+            break
+    return ink
 
 
 def _connected_ink_paths(ink) -> list[list[list[int]]]:

@@ -62,3 +62,19 @@ def test_extract_image_line_art_keeps_separate_marks_as_separate_strokes(tmp_pat
         for stroke in payload["strokes"]
         for a, b in zip(stroke["points"], stroke["points"][1:], strict=False)
     )
+
+
+def test_extract_image_line_art_follows_center_of_thick_pen_stroke(tmp_path) -> None:
+    Image = pytest.importorskip("PIL.Image")
+    ImageDraw = pytest.importorskip("PIL.ImageDraw")
+    image = Image.new("RGB", (160, 80), "white")
+    ImageDraw.Draw(image).line((10, 40, 150, 40), fill="black", width=9)
+    source = tmp_path / "thick-line.png"
+    image.save(source)
+
+    result = extract_image_line_art(source, tmp_path / "strokes.json", source_hash="c" * 64)
+    payload = json.loads((tmp_path / "strokes.json").read_text(encoding="utf-8"))
+    ys = [point[1] for stroke in payload["strokes"] for point in stroke["points"]]
+
+    assert result.stroke_count == 1
+    assert max(ys) - min(ys) <= 2, "a thick pen line should not render as two outlines"
