@@ -107,9 +107,9 @@ class StoryVideoPlanner:
                 if continuation is None:
                     continue
                 purposes = {segment.scene_purpose for segment in segments[start:end]}
+                if len(purposes) != 1:
+                    continue
                 score = (duration - 10.0) ** 2
-                if len(purposes) > 1:
-                    score += 4.0 * (len(purposes) - 1)
                 candidate = (score + continuation[0], ((start, end),) + continuation[1])
                 if best is None or candidate < best:
                     best = candidate
@@ -139,12 +139,19 @@ class StoryVideoPlanner:
         )
         if len(facts) > 16 or len(anchors) > 16:
             raise ValueError("scene references exceed the approved fact/anchor limit")
+        purpose = segments[0].scene_purpose
+        visual_beat = {
+            "INTRO": "Introduce the subject from the source drawing.",
+            "EXPLAIN": "Show the single action or idea described in this scene.",
+            "DEMONSTRATE": "Show the described action at its clearest moment.",
+            "RECAP": "Return attention to the same subject for the resolution.",
+        }[purpose]
         visual = (
             "Clean black-ink whiteboard line drawing on a plain white background; "
             "one consistent subject and simple composition across all scenes. "
-            "Preserve the source drawing's identity and depict only approved details. "
-            f"Confirmed anchors: {', '.join(anchors)}. "
-            f"Narration for this scene: {narration}"
+            "Preserve the source drawing's identity. Do not invent extra characters, "
+            "props, labels, or scenery. "
+            f"Scene beat: {visual_beat} Approved narration: {narration}"
         )
         if len(visual) > 2_000:
             raise ValueError("scene visual prompt exceeds the provider limit")
@@ -153,7 +160,7 @@ class StoryVideoPlanner:
             "EXPLAIN": "Animate the subject action progressively in sync with narration.",
             "DEMONSTRATE": "Show the described action with clear, continuous movement.",
             "RECAP": "Return to the subject and resolve the story with a calm movement.",
-        }[segments[-1].scene_purpose]
+        }[purpose]
         return StoryboardSceneV1(
             scene_id=f"scene-{index + 1}",
             order=index + 1,

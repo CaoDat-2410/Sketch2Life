@@ -220,6 +220,9 @@ class StoryVideoPipeline:
                 storyboard_id=storyboard.storyboard_id,
                 scene_ids=tuple(scene.scene_id for scene in storyboard.scenes),
                 scene_artifact_refs=tuple(scene.silent_clip_ref or "" for scene in scenes),
+                scene_artifact_sha256=tuple(
+                    scene.silent_clip_sha256 or "0" * 64 for scene in scenes
+                ),
                 narration_ref=narration.audio_ref or "",
                 narration_sha256=narration.audio_sha256 or "0" * 64,
                 subtitle_cues=subtitle_cues,

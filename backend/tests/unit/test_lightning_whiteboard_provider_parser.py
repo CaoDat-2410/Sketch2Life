@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+
 import pytest
 from tools.lightning_whiteboard_provider import (
     _assembled_streams_ready,
@@ -65,6 +67,7 @@ def test_whiteboard_story_scene_renders_real_mp4(tmp_path, monkeypatch) -> None:
     draw.line((15, 20, 140, 20), fill="black", width=4)
     image_path = tmp_path / "illustration.png"
     image.save(image_path)
+    image_hash = hashlib.sha256(image_path.read_bytes()).hexdigest()
     monkeypatch.setenv("SKETCH2LIFE_STORY_VIDEO_ARTIFACT_DIR", str(tmp_path))
 
     response = story_video_scene(
@@ -72,6 +75,7 @@ def test_whiteboard_story_scene_renders_real_mp4(tmp_path, monkeypatch) -> None:
             "request": {
                 "scene_id": "scene-1",
                 "illustration_ref": str(image_path),
+                "illustration_sha256": image_hash,
                 "duration_seconds": 5.0,
                 "model_profile_ref": "whiteboard-stroke-v1",
                 "package_hash": "a" * 64,
@@ -98,6 +102,7 @@ def test_story_video_assembly_muxes_audio_and_burns_subtitles(tmp_path, monkeypa
     ImageDraw.Draw(image).line((10, 15, 145, 60), fill="black", width=4)
     source = tmp_path / "illustration.png"
     image.save(source)
+    source_hash = hashlib.sha256(source.read_bytes()).hexdigest()
     monkeypatch.setenv("SKETCH2LIFE_STORY_VIDEO_ARTIFACT_DIR", str(tmp_path))
     package_hash = "b" * 64
     scene = story_video_scene(
@@ -105,6 +110,7 @@ def test_story_video_assembly_muxes_audio_and_burns_subtitles(tmp_path, monkeypa
             "request": {
                 "scene_id": "scene-1",
                 "illustration_ref": str(source),
+                "illustration_sha256": source_hash,
                 "duration_seconds": 5.0,
                 "model_profile_ref": "whiteboard-stroke-v1",
                 "package_hash": package_hash,
@@ -143,7 +149,9 @@ def test_story_video_assembly_muxes_audio_and_burns_subtitles(tmp_path, monkeypa
                 "package_id": "pkg-test",
                 "package_hash": package_hash,
                 "scene_artifact_refs": [scene["silent_clip_ref"]],
+                "scene_artifact_sha256": [scene["silent_clip_sha256"]],
                 "narration_ref": str(audio_path),
+                "narration_sha256": hashlib.sha256(audio_path.read_bytes()).hexdigest(),
                 "subtitle_cues": [
                     {"text": "Một nét vẽ xuất hiện.", "start_seconds": 0, "end_seconds": 5}
                 ],
@@ -153,3 +161,43 @@ def test_story_video_assembly_muxes_audio_and_burns_subtitles(tmp_path, monkeypa
     assert assembled["status"] == "READY"
     assert 4.9 <= assembled["duration_seconds"] <= 5.1
     assert imageio.get_reader(assembled["video_ref"]).get_meta_data()["size"] == (1280, 720)
+
+
+def test_story_scene_rejects_changed_illustration_before_render(tmp_path) -> None:
+    image = tmp_path / "scene.png"
+    image.write_bytes(b"changed-art")
+    result = story_video_scene(
+        {"request": {
+            "package_hash": "a" * 64,
+            "scene_id": "scene-1",
+            "illustration_ref": str(image),
+            "illustration_sha256": hashlib.sha256(b"original-art").hexdigest(),
+            "model_profile_ref": "whiteboard-stroke-v1",
+        }}
+    )
+    assert result["status"] == "BLOCKED"
+    assert result["error_code"] == "ILLUSTRATION_HASH_MISMATCH"
+
+
+def test_assembly_rejects_changed_audio_or_scene_before_mux(tmp_path, monkeypatch) -> None:
+    import tools.lightning_whiteboard_provider as provider
+
+    monkeypatch.setattr(provider, "_require_executable", lambda _name: "ffmpeg")
+    monkeypatch.setenv("SKETCH2LIFE_STORY_VIDEO_ARTIFACT_DIR", str(tmp_path))
+    audio = tmp_path / "audio.wav"
+    clip = tmp_path / "scene.mp4"
+    audio.write_bytes(b"changed-audio")
+    clip.write_bytes(b"changed-scene")
+    request = {
+        "package_hash": "b" * 64,
+        "scene_artifact_refs": [str(clip)],
+        "scene_artifact_sha256": [hashlib.sha256(b"original-scene").hexdigest()],
+        "narration_ref": str(audio),
+        "narration_sha256": hashlib.sha256(b"original-audio").hexdigest(),
+    }
+    audio_result = story_video_assembly({"request": request})
+    assert audio_result["error_code"] == "NARRATION_HASH_MISMATCH"
+
+    audio.write_bytes(b"original-audio")
+    scene_result = story_video_assembly({"request": request})
+    assert scene_result["error_code"] == "SCENE_HASH_MISMATCH"

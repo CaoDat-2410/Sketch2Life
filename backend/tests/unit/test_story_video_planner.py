@@ -68,6 +68,9 @@ def test_compile_uses_measured_tts_as_scene_timing_ground_truth() -> None:
     assert plan.duration_basis == "MEASURED_TTS"
     assert plan.duration_seconds == 43.0
     assert [scene.duration_seconds for scene in plan.scenes] == [10.0, 11.0, 12.0, 10.0]
+    assert "anchor-cat-001" not in plan.scenes[0].visual_prompt
+    assert "Introduce the subject" in plan.scenes[0].visual_prompt
+    assert "Show the described action" in plan.scenes[2].visual_prompt
 
 
 def test_story_package_rejects_placeholder_approval_hash() -> None:
@@ -124,6 +127,14 @@ def test_director_rejects_too_few_approved_segments() -> None:
         assert "at least three" in str(error)
     else:
         raise AssertionError("two long clips are not a controlled storyboard")
+
+
+def test_director_rejects_scene_that_would_mix_purposes() -> None:
+    segments = _segments()
+    with pytest.raises(ValueError, match="cannot fit"):
+        StoryVideoPlanner().compile(
+            StoryboardCompileInput(_package(), segments, (10.0, 4.0, 10.0, 16.0))
+        )
 
 
 class _Narration:

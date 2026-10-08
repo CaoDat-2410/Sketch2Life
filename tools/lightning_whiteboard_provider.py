@@ -751,6 +751,7 @@ def story_video_illustration(payload: dict[str, Any]) -> dict[str, Any]:
                 "guidance": guidance,
                 "steps": steps,
                 "source_sha256": source_hash,
+                "seed_policy": "shared-package-v1",
             },
         )
         with _story_media_cache_lock:
@@ -771,7 +772,7 @@ def story_video_illustration(payload: dict[str, Any]) -> dict[str, Any]:
             from diffusers import AutoPipelineForImage2Image
 
             pipe = _story_image_pipe(model_id, variant, torch, AutoPipelineForImage2Image)
-            seed = int(cache_key[:16], 16) % (2**63 - 1)
+            seed = int(str(request["package_hash"])[:16], 16) % (2**63 - 1)
             result = pipe(
                 prompt=str(request.get("visual_prompt", "")),
                 image=image,
@@ -807,6 +808,12 @@ def story_video_scene(payload: dict[str, Any]) -> dict[str, Any]:
     request = payload.get("request")
     if not isinstance(request, dict):
         raise HTTPException(status_code=422, detail="SCENE_REQUEST_INVALID")
+    image_path = Path(str(request.get("illustration_ref", "")))
+    if not image_path.is_file():
+        return _story_video_blocked("VideoSceneArtifactV1", "ILLUSTRATION_ARTIFACT_MISSING")
+    expected_image_hash = request.get("illustration_sha256")
+    if not isinstance(expected_image_hash, str) or _file_sha256(image_path) != expected_image_hash:
+        return _story_video_blocked("VideoSceneArtifactV1", "ILLUSTRATION_HASH_MISMATCH")
     profile = str(request.get("model_profile_ref", "whiteboard-stroke-v1"))
     if profile == "whiteboard-stroke-v1":
         return _render_whiteboard_story_scene(request)
@@ -925,8 +932,15 @@ def story_video_assembly(payload: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(request, dict):
         raise HTTPException(status_code=422, detail="ASSEMBLY_REQUEST_INVALID")
     scene_refs = request.get("scene_artifact_refs")
+    scene_hashes = request.get("scene_artifact_sha256")
     narration_ref = request.get("narration_ref")
-    if not isinstance(scene_refs, list) or not scene_refs or not isinstance(narration_ref, str):
+    if (
+        not isinstance(scene_refs, list)
+        or not scene_refs
+        or not isinstance(scene_hashes, list)
+        or len(scene_hashes) != len(scene_refs)
+        or not isinstance(narration_ref, str)
+    ):
         raise HTTPException(status_code=422, detail="ASSEMBLY_REQUEST_INVALID")
     try:
         ffmpeg = _require_executable("ffmpeg")
@@ -934,6 +948,13 @@ def story_video_assembly(payload: dict[str, Any]) -> dict[str, Any]:
         scene_paths = [Path(str(ref)) for ref in scene_refs]
         if not audio_path.is_file() or any(not path.is_file() for path in scene_paths):
             return _story_video_blocked("VideoArtifactV1", "ASSEMBLY_ARTIFACT_MISSING")
+        if _file_sha256(audio_path) != request.get("narration_sha256"):
+            return _story_video_blocked("VideoArtifactV1", "NARRATION_HASH_MISMATCH")
+        if any(
+            _file_sha256(path) != digest
+            for path, digest in zip(scene_paths, scene_hashes, strict=True)
+        ):
+            return _story_video_blocked("VideoArtifactV1", "SCENE_HASH_MISMATCH")
         root = _story_video_package_root(request)
         list_path = root / "scenes.concat.txt"
         output_path = root / "story.final.mp4"

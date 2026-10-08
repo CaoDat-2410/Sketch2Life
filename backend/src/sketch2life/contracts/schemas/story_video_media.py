@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -139,6 +140,7 @@ class VideoAssemblyRequestV1(BaseModel):
     storyboard_id: str = Field(min_length=1, max_length=120)
     scene_ids: tuple[str, ...] = Field(min_length=1, max_length=12)
     scene_artifact_refs: tuple[str, ...] = Field(min_length=1, max_length=12)
+    scene_artifact_sha256: tuple[Sha256, ...] = Field(min_length=1, max_length=12)
     narration_ref: str = Field(min_length=1, max_length=300)
     narration_sha256: Sha256 = Field(pattern=r"^[a-f0-9]{64}$")
     subtitle_cues: tuple[SubtitleCueV1, ...] = Field(default=(), max_length=48)
@@ -147,8 +149,14 @@ class VideoAssemblyRequestV1(BaseModel):
 
     @model_validator(mode="after")
     def validate_assembly_inputs(self) -> VideoAssemblyRequestV1:
-        if len(self.scene_ids) != len(self.scene_artifact_refs):
-            raise ValueError("scene IDs and scene artifacts must have the same length")
+        if not (
+            len(self.scene_ids)
+            == len(self.scene_artifact_refs)
+            == len(self.scene_artifact_sha256)
+        ):
+            raise ValueError("scene IDs, artifacts and hashes must have the same length")
+        if any(not re.fullmatch(r"[a-f0-9]{64}", digest) for digest in self.scene_artifact_sha256):
+            raise ValueError("scene artifact hashes must be SHA-256 digests")
         if self.subtitle_cues and not (
             len(self.scene_ids) <= len(self.subtitle_cues) <= len(self.scene_ids) * 4
         ):

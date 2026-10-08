@@ -141,13 +141,22 @@ def test_illustration_cache_skips_identical_model_and_rejects_tampering(
     assert provider.story_video_illustration(changed)["status"] == "READY"
     assert model_calls == ["synthetic-model"]
     assert len(inference_seeds) == 3
-    assert inference_seeds[2] != inference_seeds[1]
+    assert inference_seeds[2] == inference_seeds[1]
     monkeypatch.setenv("SKETCH2LIFE_IMAGE_STRENGTH", "0.5")
     assert provider.story_video_illustration(changed)["status"] == "READY"
     assert model_calls == ["synthetic-model"]
     assert len(inference_seeds) == 4
-    assert inference_seeds[3] != inference_seeds[2]
+    assert inference_seeds[3] == inference_seeds[2]
 
     monkeypatch.setenv("SKETCH2LIFE_IMAGE_VARIANT", "alternate")
     assert provider.story_video_illustration(changed)["status"] == "READY"
+    assert model_calls == ["synthetic-model", "synthetic-model"]
+    assert inference_seeds[-1] == inference_seeds[0]
+
+    next_scene = {
+        **changed,
+        "request": {**changed["request"], "scene_id": "scene-2"},
+    }
+    assert provider.story_video_illustration(next_scene)["status"] == "READY"
+    assert inference_seeds[-1] == inference_seeds[0]
     assert model_calls == ["synthetic-model", "synthetic-model"]
