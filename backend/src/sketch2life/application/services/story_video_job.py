@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from datetime import UTC, datetime
+import logging
 from threading import RLock
 from uuid import uuid4
 
@@ -14,6 +15,8 @@ from sketch2life.application.services.story_video_pipeline import (
 )
 from sketch2life.contracts.schemas.story_video import ApprovedStoryPackageV1, StoryScriptSegmentV1
 from sketch2life.contracts.schemas.story_video_media import VideoJobStatusV1
+
+_LOGGER = logging.getLogger("sketch2life.story_video_job")
 
 
 class StoryVideoJobService:
@@ -95,6 +98,22 @@ class StoryVideoJobService:
                         "public_message": "Story video generation failed.",
                     }
                 )
+        except Exception as error:  # noqa: BLE001 - background jobs must not escape
+            # BackgroundTasks otherwise logs the exception and leaves the job
+            # looking queued forever. Keep the job observable and expose a
+            # bounded diagnostic while retaining the full traceback in logs.
+            _LOGGER.exception("story_video_job_failed_unhandled", extra={"job_id": job_id})
+            with self._lock:
+                current = self._jobs.get(job_id)
+                if current is not None:
+                    detail = f"{type(error).__name__}: {error}".strip()
+                    self._jobs[job_id] = current.model_copy(
+                        update={
+                            "state": "FAILED",
+                            "stage": "FAILED",
+                            "public_message": f"Story video generation failed: {detail}"[:240],
+                        }
+                    )
 
     def run(self, job_id: str) -> StoryVideoRun:
         if self._pipeline is None:
