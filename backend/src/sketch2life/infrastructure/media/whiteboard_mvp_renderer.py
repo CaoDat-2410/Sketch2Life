@@ -1,12 +1,8 @@
-"""Dependency-backed MVP renderer for FEAT-018 whiteboard videos.
-
-The renderer intentionally implements the validated Kaggle MVP: a progressive
-reveal of an RGBA cutout on a white 1280x720 canvas. Stroke-order animation is
-kept as a later renderer strategy.
-"""
+"""Dependency-backed renderer for source-preserving whiteboard videos."""
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
@@ -52,6 +48,7 @@ def render_progressive_reveal(
     *,
     spec: WhiteboardMvpRenderSpec | None = None,
     motion_schedule: tuple[WhiteboardMotion, ...] = (),
+    motion_durations_seconds: tuple[float, ...] = (),
 ) -> WhiteboardMvpRenderResult:
     """Render an RGBA cutout to the contract-compatible MVP MP4."""
 
@@ -68,6 +65,7 @@ def render_progressive_reveal(
     render_spec.validate()
     if len(motion_schedule) > 5:
         raise ValueError("whiteboard motion schedule is too long")
+    _validate_motion_durations(motion_schedule, motion_durations_seconds)
 
     source = Image.open(cutout_path).convert("RGBA")
     source.thumbnail((560, 560), Image.Resampling.LANCZOS)
@@ -111,12 +109,9 @@ def render_progressive_reveal(
             ).astype(np.uint8)
             frame = _draw_progressive_strokes(frame, stroke_points, progress)
             if motion_schedule:
-                schedule_position = progress * len(motion_schedule)
-                motion_index = min(
-                    len(motion_schedule) - 1,
-                    int(schedule_position),
+                motion_index, motion_progress = _motion_position(
+                    progress, motion_schedule, motion_durations_seconds
                 )
-                motion_progress = schedule_position - motion_index
                 frame = _apply_motion(
                     frame,
                     motion_schedule[motion_index],
@@ -139,6 +134,150 @@ def render_progressive_reveal(
         codec="H264_AVC_HIGH_L4_1",
         size_bytes=size_bytes,
     )
+
+
+def render_stroke_animation(
+    stroke_path: str | Path,
+    output_path: str | Path,
+    *,
+    spec: WhiteboardMvpRenderSpec | None = None,
+    motion_schedule: tuple[WhiteboardMotion, ...] = (),
+    motion_durations_seconds: tuple[float, ...] = (),
+) -> WhiteboardMvpRenderResult:
+    """Render a stroke artifact as a line-by-line whiteboard animation.
+
+    The renderer intentionally draws only the recovered strokes on a white
+    canvas. This makes the drawing process the primary motion; camera emphasis
+    is applied only after the current stroke frame has been composed.
+    """
+
+    try:
+        import imageio.v2 as imageio
+        import numpy as np
+        from PIL import Image, ImageDraw
+    except ImportError as error:  # pragma: no cover - environment-dependent
+        raise RuntimeError(
+            "whiteboard renderer requires the whiteboard-renderer dependencies"
+        ) from error
+
+    render_spec = spec or WhiteboardMvpRenderSpec()
+    render_spec.validate()
+    if len(motion_schedule) > 5:
+        raise ValueError("whiteboard motion schedule is too long")
+    _validate_motion_durations(motion_schedule, motion_durations_seconds)
+
+    payload = json.loads(Path(stroke_path).read_text(encoding="utf-8"))
+    if payload.get("artifact_type") != "whiteboard_strokes_v1":
+        raise ValueError("invalid whiteboard stroke artifact type")
+    source_width = int(payload.get("width", 0))
+    source_height = int(payload.get("height", 0))
+    if source_width <= 0 or source_height <= 0:
+        raise ValueError("stroke artifact dimensions must be positive")
+
+    raw_strokes = payload.get("strokes")
+    if not isinstance(raw_strokes, list) or not raw_strokes:
+        raise ValueError("stroke artifact has no strokes")
+
+    scale = min(560 / source_width, 560 / source_height)
+    offset_x = (render_spec.width - source_width * scale) / 2
+    offset_y = (render_spec.height - source_height * scale) / 2
+    strokes: list[list[tuple[int, int]]] = []
+    for raw_stroke in raw_strokes:
+        raw_points = raw_stroke.get("points") if isinstance(raw_stroke, dict) else None
+        if not isinstance(raw_points, list):
+            continue
+        points = [
+            (
+                round(offset_x + float(point[0]) * scale),
+                round(offset_y + float(point[1]) * scale),
+            )
+            for point in raw_points
+            if isinstance(point, list) and len(point) >= 2
+        ]
+        if len(points) >= 2:
+            strokes.append(points)
+    if not strokes:
+        raise ValueError("stroke artifact has no drawable points")
+
+    segment_count = sum(max(0, len(points) - 1) for points in strokes)
+    frame_count = round(render_spec.fps * render_spec.duration_seconds)
+    output = Path(output_path)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    writer = imageio.get_writer(
+        output,
+        fps=render_spec.fps,
+        codec="libx264",
+        pixelformat="yuv420p",
+        quality=8,
+    )
+    try:
+        for frame_index in range(frame_count):
+            progress = frame_index / max(1, frame_count - 1)
+            visible_segments = round(segment_count * min(1.0, progress * 1.08))
+            image = Image.new("RGB", (render_spec.width, render_spec.height), "white")
+            draw = ImageDraw.Draw(image, "RGBA")
+            remaining = visible_segments
+            active_point = None
+            for points in strokes:
+                if remaining <= 0:
+                    break
+                count = min(len(points) - 1, remaining)
+                draw.line(points[: count + 1], fill=(35, 35, 35, 245), width=4, joint="curve")
+                active_point = points[count]
+                remaining -= count
+            if active_point is not None:
+                _draw_marker_hand(draw, active_point)
+            frame = np.asarray(image)
+            if motion_schedule:
+                motion_index, motion_progress = _motion_position(
+                    progress, motion_schedule, motion_durations_seconds
+                )
+                frame = _apply_motion(frame, motion_schedule[motion_index], motion_progress)
+            writer.append_data(frame)
+    finally:
+        writer.close()
+
+    size_bytes = output.stat().st_size
+    if size_bytes > render_spec.max_size_bytes:
+        raise ValueError("encoded whiteboard MP4 exceeds the size limit")
+    return WhiteboardMvpRenderResult(
+        output_path=str(output),
+        width=render_spec.width,
+        height=render_spec.height,
+        fps=render_spec.fps,
+        duration_seconds=render_spec.duration_seconds,
+        codec="H264_AVC_HIGH_L4_1",
+        size_bytes=size_bytes,
+    )
+
+
+def _validate_motion_durations(
+    motion_schedule: tuple[WhiteboardMotion, ...],
+    motion_durations_seconds: tuple[float, ...],
+) -> None:
+    if motion_durations_seconds and len(motion_durations_seconds) != len(motion_schedule):
+        raise ValueError("motion durations must align with the motion schedule")
+    if motion_durations_seconds and any(duration <= 0 for duration in motion_durations_seconds):
+        raise ValueError("motion durations must be positive")
+
+
+def _motion_position(
+    progress: float,
+    motion_schedule: tuple[WhiteboardMotion, ...],
+    motion_durations_seconds: tuple[float, ...],
+) -> tuple[int, float]:
+    if not motion_durations_seconds:
+        schedule_position = progress * len(motion_schedule)
+        index = min(len(motion_schedule) - 1, int(schedule_position))
+        return index, schedule_position - index
+    total = sum(motion_durations_seconds)
+    position = min(total, progress * total)
+    cursor = 0.0
+    for index, duration in enumerate(motion_durations_seconds):
+        if position <= cursor + duration or index == len(motion_durations_seconds) - 1:
+            return index, min(1.0, max(0.0, (position - cursor) / duration))
+        cursor += duration
+    return len(motion_schedule) - 1, 1.0
 
 
 def _apply_motion(frame, motion: WhiteboardMotion, progress: float = 0.0):
@@ -286,4 +425,5 @@ __all__ = [
     "WhiteboardMvpRenderSpec",
     "WhiteboardMotion",
     "render_progressive_reveal",
+    "render_stroke_animation",
 ]

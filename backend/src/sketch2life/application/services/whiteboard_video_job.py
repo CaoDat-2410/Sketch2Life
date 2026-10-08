@@ -120,6 +120,7 @@ class WhiteboardVideoJobService:
         narration_vi: str | None = None,
         video_duration_seconds: float = 8.0,
         scene_motions: tuple[str, ...] = (),
+        scene_durations_seconds: tuple[float, ...] = (),
     ) -> WhiteboardVideoJobV1:
         now = self._now()
         job = WhiteboardVideoJobV1(
@@ -132,6 +133,7 @@ class WhiteboardVideoJobService:
             narration_vi=narration_vi,
             video_duration_seconds=video_duration_seconds,
             scene_motions=scene_motions,
+            scene_durations_seconds=scene_durations_seconds,
             status="QUEUED",
             progress=0,
             current_stage="NOT_STARTED",
@@ -157,6 +159,7 @@ class WhiteboardVideoJobService:
         narration_vi: str | None = None,
         video_duration_seconds: float = 8.0,
         scene_motions: tuple[str, ...] = (),
+        scene_durations_seconds: tuple[float, ...] = (),
     ) -> tuple[WhiteboardVideoJobV1, bool]:
         fingerprint = (
             experience_spec_id,
@@ -166,6 +169,7 @@ class WhiteboardVideoJobService:
             narration_vi,
             str(video_duration_seconds),
             *scene_motions,
+            *map(str, scene_durations_seconds),
         )
         key = (session_id, idempotency_key)
         with self._lock:
@@ -184,6 +188,7 @@ class WhiteboardVideoJobService:
                 narration_vi=narration_vi,
                 video_duration_seconds=video_duration_seconds,
                 scene_motions=scene_motions,
+                scene_durations_seconds=scene_durations_seconds,
             )
             self._idempotency[key] = (fingerprint, job.job_id)
             return job, False

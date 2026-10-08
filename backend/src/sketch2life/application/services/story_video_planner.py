@@ -79,8 +79,11 @@ class StoryVideoPlanner:
             else max(4.0, min(10.0, len(segment.text) / 14.0))
         )
         visual = (
-            "Illustrated scene grounded in anchors "
-            f"{', '.join(segment.confirmed_anchor_ids)}; {segment.text}"
+            "Clean black-ink whiteboard line drawing on a plain white background; "
+            "one consistent subject and simple composition across all scenes. "
+            "Preserve the source drawing's identity and depict only approved details. "
+            f"Confirmed anchors: {', '.join(segment.confirmed_anchor_ids)}. "
+            f"Narration for this scene: {segment.text}"
         )
         motion = {
             "INTRO": "Reveal the setting and subject with a gentle camera push-in.",

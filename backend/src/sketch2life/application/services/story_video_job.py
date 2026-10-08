@@ -104,20 +104,18 @@ class StoryVideoJobService:
                         ),
                     }
                 )
-        except Exception as error:  # noqa: BLE001 - background jobs must not escape
+        except Exception:  # noqa: BLE001 - background jobs must not escape
             # BackgroundTasks otherwise logs the exception and leaves the job
-            # looking queued forever. Keep the job observable and expose a
-            # bounded diagnostic while retaining the full traceback in logs.
+            # looking queued forever. Keep provider details in private logs.
             _LOGGER.exception("story_video_job_failed_unhandled", extra={"job_id": job_id})
             with self._lock:
                 current = self._jobs.get(job_id)
                 if current is not None:
-                    detail = f"{type(error).__name__}: {error}".strip()
                     self._jobs[job_id] = current.model_copy(
                         update={
                             "state": "FAILED",
                             "stage": "FAILED",
-                            "public_message": f"Story video generation failed: {detail}"[:240],
+                            "public_message": "Story video generation failed: INTERNAL_ERROR.",
                         }
                     )
 
@@ -149,8 +147,7 @@ class StoryVideoJobService:
                     }
                 )
 
-        self._pipeline._update_stage = update
-        run = self._pipeline.run(package, segments)
+        run = self._pipeline.run(package, segments, update_stage=update)
         with self._lock:
             self._runs[job_id] = run
             self._jobs[job_id] = self._jobs[job_id].model_copy(

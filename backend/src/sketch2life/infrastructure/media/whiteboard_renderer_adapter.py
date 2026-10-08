@@ -1,4 +1,4 @@
-"""Pipeline adapter for the validated whiteboard MVP renderer."""
+"""Pipeline adapter for the source-preserving whiteboard renderer."""
 
 from __future__ import annotations
 
@@ -15,10 +15,7 @@ from sketch2life.application.services.whiteboard_video_pipeline import (
 )
 from sketch2life.contracts.schemas.whiteboard_video import WhiteboardVideoJobV1
 
-from .whiteboard_mvp_renderer import (
-    WhiteboardMvpRenderSpec,
-    render_progressive_reveal,
-)
+from .whiteboard_mvp_renderer import WhiteboardMvpRenderSpec, render_stroke_animation
 
 
 class MvpWhiteboardRendererAdapter:
@@ -31,11 +28,15 @@ class MvpWhiteboardRendererAdapter:
     def __init__(
         self,
         *,
-        cutout_path_for: Callable[[str], str | Path],
         output_path_for: Callable[[str], str | Path],
+        stroke_path_for: Callable[[str], str | Path] | None = None,
+        cutout_path_for: Callable[[str], str | Path] | None = None,
         spec: WhiteboardMvpRenderSpec | None = None,
     ) -> None:
-        self._cutout_path_for = cutout_path_for
+        resolver = stroke_path_for or cutout_path_for
+        if resolver is None:
+            raise ValueError("a stroke artifact resolver is required")
+        self._stroke_path_for = resolver
         self._output_path_for = output_path_for
         self._spec = spec
 
@@ -53,11 +54,12 @@ class MvpWhiteboardRendererAdapter:
                 render_spec,
                 duration_seconds=job.video_duration_seconds,
             )
-            result = render_progressive_reveal(
-                self._cutout_path_for(strokes.stroke_refs[0]),
+            result = render_stroke_animation(
+                self._stroke_path_for(strokes.stroke_refs[0]),
                 self._output_path_for(job.job_id),
                 spec=render_spec,
                 motion_schedule=job.scene_motions,
+                motion_durations_seconds=job.scene_durations_seconds,
             )
         except (OSError, RuntimeError, ValueError) as error:
             raise WhiteboardVideoPipelineError("RENDER_FAILED", retryable=True) from error

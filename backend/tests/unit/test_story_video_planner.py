@@ -121,6 +121,9 @@ class _Motion:
 
 class _Assembler:
     def assemble(self, request):
+        assert len(request.subtitle_cues) == len(request.scene_ids)
+        assert request.subtitle_cues[0].text
+        assert request.subtitle_cues[-1].end_seconds == 43.0
         return VideoArtifactV1(
             status="READY",
             video_ref="video:001",

@@ -21,7 +21,7 @@ def test_factory_builds_all_mvp_stage_adapters() -> None:
         localizer=Localizer(),
         mask_path_for=lambda ref: Path(ref),
         stroke_output_path_for=lambda job_id: f"{job_id}.json",
-        cutout_path_for=lambda ref: Path(ref),
+        stroke_path_for=lambda ref: Path(ref),
         render_output_path_for=lambda job_id: f"{job_id}.render.mp4",
         script_for=lambda _: "script",
         synthesize_tts=lambda _script, _path: None,

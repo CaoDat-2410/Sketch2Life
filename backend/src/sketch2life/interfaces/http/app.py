@@ -1,6 +1,7 @@
 """FastAPI composition root."""
 
 import logging
+import os
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -283,6 +284,9 @@ def _configured_story_video_pipeline(
         illustrations=LightningIllustrationProvider(adapter),
         motion=LightningMotionProvider(adapter),
         assembler=LightningVideoAssembler(adapter),
+        motion_model_profile_ref=os.getenv(
+            "SKETCH2LIFE_STORY_MOTION_PROVIDER", "whiteboard-stroke-v1"
+        ),
     )
 
 

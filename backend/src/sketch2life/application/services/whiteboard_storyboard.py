@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import Literal
 from uuid import uuid4
 
@@ -26,16 +27,26 @@ class WhiteboardStoryboardGenerator:
         *,
         subject_claim: str,
         feature_claim: str = "ria mèo",
+        narration_vi: str | None = None,
         audience_band: AudienceBand = "EARLY_PRIMARY",
     ) -> WhiteboardStoryboardV1:
         subject = subject_claim.strip().casefold()
         feature = feature_claim.strip().casefold()
-        if subject not in {"con mèo", "mèo", "cat"} or feature not in {
+        reviewed_cat = subject in {"con mèo", "mèo", "cat"} and feature in {
             "ria mèo",
             "râu mèo",
             "whiskers",
-        }:
+        }
+        if narration_vi is None and not reviewed_cat:
             raise ValueError("no reviewed whiteboard knowledge template matches these claims")
+
+        if narration_vi is not None:
+            return self._generate_from_narration(
+                narration_vi=narration_vi,
+                audience_band=audience_band,
+                source_claims=("cat", "whiskers") if reviewed_cat else (subject, feature),
+                topic_vi="Ria mèo dùng để làm gì?" if reviewed_cat else subject_claim.strip(),
+            )
 
         if audience_band == "EARLY_PRIMARY":
             age_min, age_max = 6, 8
@@ -162,6 +173,7 @@ class WhiteboardStoryboardGenerator:
         subject_claim: str,
         feature_claim: str,
         age_months: int,
+        narration_vi: str | None = None,
     ) -> WhiteboardStoryboardV1:
         """Resolve an adult-supplied P1 age into a reviewed audience band."""
 
@@ -173,7 +185,72 @@ class WhiteboardStoryboardGenerator:
         return self.generate(
             subject_claim=subject_claim,
             feature_claim=feature_claim,
+            narration_vi=narration_vi,
             audience_band=audience_band,
+        )
+
+    def _generate_from_narration(
+        self,
+        *,
+        narration_vi: str,
+        audience_band: AudienceBand,
+        source_claims: tuple[str, ...],
+        topic_vi: str,
+    ) -> WhiteboardStoryboardV1:
+        """Compile approved narration into bounded scene instructions.
+
+        This is the local Director fallback: it decides scene boundaries and
+        timing without inventing new claims. A provider-backed Director can
+        replace this method later while preserving the same contract.
+        """
+
+        sentences = [
+            item.strip()
+            for item in re.split(r"(?<=[.!?。！？])\s+", narration_vi.strip())
+            if item.strip()
+        ]
+        if len(sentences) == 1:
+            sentences = [part.strip() for part in sentences[0].split(",") if part.strip()]
+        if not 2 <= len(sentences) <= 5:
+            raise ValueError("narration must contain between 2 and 5 scene sentences")
+
+        if audience_band == "EARLY_PRIMARY":
+            age_min, age_max = 6, 8
+        else:
+            age_min, age_max = 9, 12
+        motions = ["INTRO", "FOCUS", "DEMONSTRATE", "RECAP"]
+        durations = [max(1.0, min(12.0, len(text) / 14.0)) for text in sentences]
+        total = sum(durations)
+        if total < 5.0:
+            durations[-1] += 5.0 - total
+        elif total > 45.0:
+            factor = 45.0 / total
+            durations = [duration * factor for duration in durations]
+        durations = [round(duration, 3) for duration in durations]
+        total = round(sum(durations), 3)
+
+        scenes = tuple(
+            WhiteboardStoryboardSceneV1(
+                scene_id=f"scene-{index}",
+                duration_seconds=duration,
+                narration_vi=text,
+                visual_prompt_vi=(
+                    "Nét vẽ line-art whiteboard đen trên nền trắng, giữ đúng chủ thể "
+                    f"và claim đã duyệt; minh họa nội dung: {text}"
+                ),
+                motion=motions[min(index - 1, len(motions) - 1)],
+                source_claims=source_claims,
+            )
+            for index, (text, duration) in enumerate(zip(sentences, durations, strict=True), 1)
+        )
+        return WhiteboardStoryboardV1(
+            storyboard_id=f"storyboard-{uuid4()}",
+            topic_vi=topic_vi,
+            audience_age_min=age_min,
+            audience_age_max=age_max,
+            duration_seconds=total,
+            source_claims=source_claims,
+            scenes=scenes,
         )
 
 

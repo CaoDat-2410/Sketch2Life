@@ -2,7 +2,6 @@ from fastapi.testclient import TestClient
 
 from sketch2life.interfaces.http.app import create_app
 
-
 SOURCE_HASH = "a" * 64
 
 
@@ -26,6 +25,7 @@ def test_create_accepts_storyboard_narration_and_duration() -> None:
             "narration_vi": "Ria mèo giúp mèo cảm nhận vật cản.",
             "video_duration_seconds": 14.0,
             "scene_motions": ["INTRO", "FOCUS", "DEMONSTRATE", "RECAP"],
+            "scene_durations_seconds": [3.0, 4.0, 4.0, 3.0],
         },
     )
 
@@ -38,6 +38,7 @@ def test_create_accepts_storyboard_narration_and_duration() -> None:
         "DEMONSTRATE",
         "RECAP",
     ]
+    assert response.json()["scene_durations_seconds"] == [3.0, 4.0, 4.0, 3.0]
 
 
 def test_create_and_poll_whiteboard_video_job() -> None:

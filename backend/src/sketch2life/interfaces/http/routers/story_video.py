@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Request, status
+from fastapi.responses import FileResponse
 
 from sketch2life.application.services.story_video_job import StoryVideoJobService
 from sketch2life.contracts.schemas.story_video_http import StoryVideoCreateRequestV1
@@ -55,7 +58,39 @@ def get_story_video_status(
         raise HTTPException(status_code=404, detail="STORY_VIDEO_NOT_FOUND") from error
     if job.session_id != session_id:
         raise HTTPException(status_code=404, detail="STORY_VIDEO_NOT_FOUND")
+    if job.state == "READY" and service.result(job_id) is not None:
+        job = job.model_copy(
+            update={
+                "video_artifact_ref": str(
+                    request.url_for(
+                        "stream_story_video", session_id=session_id, job_id=job_id
+                    )
+                )
+            }
+        )
     return job
+
+
+@router.get(
+    "/{session_id}/story-video/{job_id}/file",
+    name="stream_story_video",
+    response_class=FileResponse,
+)
+def stream_story_video(session_id: str, job_id: str, request: Request) -> FileResponse:
+    service = _service(request)
+    try:
+        job = service.get(job_id)
+    except KeyError as error:
+        raise HTTPException(status_code=404, detail="STORY_VIDEO_NOT_FOUND") from error
+    if job.session_id != session_id:
+        raise HTTPException(status_code=404, detail="STORY_VIDEO_NOT_FOUND")
+    run = service.result(job_id)
+    if job.state != "READY" or run is None or run.video.video_ref is None:
+        raise HTTPException(status_code=409, detail="STORY_VIDEO_NOT_READY")
+    path = Path(run.video.video_ref)
+    if not path.is_file() or path.suffix.lower() != ".mp4":
+        raise HTTPException(status_code=404, detail="STORY_VIDEO_FILE_NOT_FOUND")
+    return FileResponse(path, media_type="video/mp4", filename=f"{job_id}.mp4")
 
 
 __all__ = ["router"]

@@ -18,6 +18,7 @@ class WhiteboardStoryboardPreviewRequestV1(BaseModel):
     contract_version: Literal["1.0"] = "1.0"
     subject_claim: str = Field(min_length=1, max_length=120)
     feature_claim: str = Field(default="ria mèo", min_length=1, max_length=120)
+    narration_vi: str | None = Field(default=None, min_length=1, max_length=2_500)
     audience_band: Literal["EARLY_PRIMARY", "PRIMARY"] = "EARLY_PRIMARY"
     age_months: int | None = Field(default=None, ge=0, le=155)
 

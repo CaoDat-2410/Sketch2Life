@@ -519,13 +519,14 @@ def test_audio_is_stored_after_image_and_never_sent_without_configured_asr() -> 
     assert vision.calls == 0
 
 
-def test_openapi_exposes_image_and_optional_narration_routes_but_not_video() -> None:
+def test_openapi_exposes_image_narration_and_separate_story_video_routes() -> None:
     client, _vision = _client()
     paths = client.get("/openapi.json").json()["paths"]
     assert "/v1/sessions/{session_id}/media/image" in paths
     assert "/v1/sessions/{session_id}/media/audio" in paths
     assert "/v1/sessions/{session_id}/understanding" in paths
-    assert not any("video" in path for path in paths)
+    assert "/v1/sessions/{session_id}/story-video-jobs" in paths
+    assert "/v1/sessions/{session_id}/story-video/{job_id}/file" in paths
     assert "/v1/live-understanding" not in paths
 
 

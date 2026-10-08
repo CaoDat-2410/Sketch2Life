@@ -36,11 +36,14 @@ def _job() -> WhiteboardVideoJobV1:
 def test_adapter_resolves_cutout_and_returns_render_reference(monkeypatch, tmp_path) -> None:
     captured: dict[str, object] = {}
 
-    def fake_render(cutout_path, output_path, *, spec, motion_schedule):
-        captured["cutout"] = str(cutout_path)
+    def fake_render(
+        stroke_path, output_path, *, spec, motion_schedule, motion_durations_seconds
+    ):
+        captured["stroke"] = str(stroke_path)
         captured["output"] = str(output_path)
         captured["duration"] = spec.duration_seconds
         captured["motion_schedule"] = motion_schedule
+        captured["motion_durations"] = motion_durations_seconds
         return WhiteboardMvpRenderResult(
             output_path=str(output_path),
             width=1280,
@@ -51,9 +54,9 @@ def test_adapter_resolves_cutout_and_returns_render_reference(monkeypatch, tmp_p
             size_bytes=100,
         )
 
-    monkeypatch.setattr(adapter_module, "render_progressive_reveal", fake_render)
+    monkeypatch.setattr(adapter_module, "render_stroke_animation", fake_render)
     adapter = MvpWhiteboardRendererAdapter(
-        cutout_path_for=lambda ref: tmp_path / f"{ref}.png",
+        stroke_path_for=lambda ref: tmp_path / f"{ref}.json",
         output_path_for=lambda job_id: tmp_path / f"{job_id}.mp4",
     )
 
@@ -62,7 +65,7 @@ def test_adapter_resolves_cutout_and_returns_render_reference(monkeypatch, tmp_p
         StrokeBatch(source_hash="a" * 64, stroke_refs=("cutout-1",)),
     )
 
-    assert captured["cutout"].endswith("cutout-1.png")
+    assert captured["stroke"].endswith("cutout-1.json")
     assert captured["output"].endswith("job-1.mp4")
     assert captured["duration"] == 8.0
     assert captured["motion_schedule"] == ()
@@ -73,8 +76,11 @@ def test_adapter_resolves_cutout_and_returns_render_reference(monkeypatch, tmp_p
 def test_adapter_forwards_storyboard_motion_schedule(monkeypatch, tmp_path) -> None:
     captured: dict[str, object] = {}
 
-    def fake_render(cutout_path, output_path, *, spec, motion_schedule):
+    def fake_render(
+        stroke_path, output_path, *, spec, motion_schedule, motion_durations_seconds
+    ):
         captured["motion_schedule"] = motion_schedule
+        captured["motion_durations"] = motion_durations_seconds
         return WhiteboardMvpRenderResult(
             output_path=str(output_path),
             width=1280,
@@ -85,9 +91,9 @@ def test_adapter_forwards_storyboard_motion_schedule(monkeypatch, tmp_path) -> N
             size_bytes=100,
         )
 
-    monkeypatch.setattr(adapter_module, "render_progressive_reveal", fake_render)
+    monkeypatch.setattr(adapter_module, "render_stroke_animation", fake_render)
     adapter = MvpWhiteboardRendererAdapter(
-        cutout_path_for=lambda ref: tmp_path / f"{ref}.png",
+        stroke_path_for=lambda ref: tmp_path / f"{ref}.json",
         output_path_for=lambda job_id: tmp_path / f"{job_id}.mp4",
     )
     job = _job().model_copy(

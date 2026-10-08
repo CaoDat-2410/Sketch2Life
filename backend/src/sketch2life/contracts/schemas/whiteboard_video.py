@@ -25,6 +25,25 @@ class WhiteboardVideoCreateRequestV1(BaseModel):
     narration_vi: str | None = Field(default=None, min_length=1, max_length=10_000)
     video_duration_seconds: float = Field(default=8.0, ge=5.0, le=45.0)
     scene_motions: tuple[WhiteboardMotionV1, ...] = Field(default=(), max_length=5)
+    scene_durations_seconds: tuple[float, ...] = Field(default=(), max_length=5)
+
+    @model_validator(mode="after")
+    def validate_scene_timing(self) -> WhiteboardVideoCreateRequestV1:
+        if self.scene_durations_seconds and not self.scene_motions:
+            raise ValueError("scene durations require scene motions")
+        if self.scene_durations_seconds and len(self.scene_durations_seconds) != len(
+            self.scene_motions
+        ):
+            raise ValueError("scene durations must align with scene motions")
+        if self.scene_durations_seconds and any(
+            duration <= 0 for duration in self.scene_durations_seconds
+        ):
+            raise ValueError("scene durations must be positive")
+        if self.scene_durations_seconds and abs(
+            sum(self.scene_durations_seconds) - self.video_duration_seconds
+        ) > 0.01:
+            raise ValueError("scene durations must equal the video duration")
+        return self
 
 
 class WhiteboardVideoJobV1(BaseModel):
@@ -44,6 +63,7 @@ class WhiteboardVideoJobV1(BaseModel):
     narration_vi: str | None = Field(default=None, min_length=1, max_length=10_000)
     video_duration_seconds: float = Field(default=8.0, ge=5.0, le=45.0)
     scene_motions: tuple[WhiteboardMotionV1, ...] = Field(default=(), max_length=5)
+    scene_durations_seconds: tuple[float, ...] = Field(default=(), max_length=5)
     status: Literal[
         "QUEUED",
         "RUNNING",
@@ -83,9 +103,12 @@ class WhiteboardVideoJobV1(BaseModel):
             raise ValueError("whiteboard job expiry must follow creation")
         if self.started_at is not None and self.started_at < self.created_at:
             raise ValueError("whiteboard job start cannot precede creation")
-        if self.completed_at is not None and self.started_at is not None:
-            if self.completed_at < self.started_at:
-                raise ValueError("whiteboard job completion cannot precede start")
+        if (
+            self.completed_at is not None
+            and self.started_at is not None
+            and self.completed_at < self.started_at
+        ):
+            raise ValueError("whiteboard job completion cannot precede start")
 
         if self.status == "QUEUED" and self.progress != 0:
             raise ValueError("queued whiteboard job must have zero progress")
@@ -95,6 +118,15 @@ class WhiteboardVideoJobV1(BaseModel):
             raise ValueError("failed whiteboard job requires a typed failure reference")
         if self.status in {"QUEUED", "RUNNING", "READY"} and self.failure_ref is not None:
             raise ValueError("active or ready whiteboard job cannot expose a failure")
+        if self.scene_durations_seconds:
+            if any(duration <= 0 for duration in self.scene_durations_seconds):
+                raise ValueError("scene durations must be positive")
+            if not self.scene_motions or len(self.scene_durations_seconds) != len(
+                self.scene_motions
+            ):
+                raise ValueError("scene durations must align with scene motions")
+            if abs(sum(self.scene_durations_seconds) - self.video_duration_seconds) > 0.01:
+                raise ValueError("scene durations must equal the video duration")
         return self
 
 
@@ -159,4 +191,3 @@ class WhiteboardVideoResultV1(BaseModel):
     codec: Literal["H264_AVC_HIGH_L4_1"]
     size_bytes: int = Field(gt=0, le=12 * 1024 * 1024)
     safety_status: Literal["PASSED"] = "PASSED"
-

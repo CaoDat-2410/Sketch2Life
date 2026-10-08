@@ -5,6 +5,7 @@ import pytest
 from sketch2life.infrastructure.media.whiteboard_mvp_renderer import (
     WhiteboardMvpRenderSpec,
     render_progressive_reveal,
+    render_stroke_animation,
 )
 
 
@@ -63,3 +64,24 @@ def test_mvp_renderer_encodes_h264_artifact(tmp_path) -> None:
     assert result.size_bytes > 0
     assert metadata["size"] == (1280, 720)
     assert metadata["fps"] == 5.0
+
+
+def test_stroke_renderer_draws_json_strokes_on_whiteboard(tmp_path) -> None:
+    imageio = pytest.importorskip("imageio.v2")
+    stroke_path = tmp_path / "strokes.json"
+    stroke_path.write_text(
+        '{"artifact_type":"whiteboard_strokes_v1","width":20,"height":20,'
+        '"strokes":[{"stroke_id":"s-1","points":[[2,2],[18,2],[18,18]]}]}',
+        encoding="utf-8",
+    )
+    output_path = tmp_path / "strokes.mp4"
+
+    result = render_stroke_animation(
+        stroke_path,
+        output_path,
+        spec=WhiteboardMvpRenderSpec(width=1280, height=720, fps=5, duration_seconds=5.0),
+    )
+
+    metadata = imageio.get_reader(output_path).get_meta_data()
+    assert result.codec == "H264_AVC_HIGH_L4_1"
+    assert metadata["size"] == (1280, 720)

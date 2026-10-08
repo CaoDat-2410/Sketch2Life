@@ -9,28 +9,27 @@ from pathlib import Path
 from sketch2life.application.services.whiteboard_video_pipeline import (
     LocalizerPort,
     MaskBatch,
-    Mp4EncoderPort,
     StrokeBatch,
-    WhiteboardVideoPipelineError,
     WhiteboardSafetyValidatorPort,
     WhiteboardVideoPipeline,
+    WhiteboardVideoPipelineError,
 )
 from sketch2life.contracts.schemas.whiteboard_video import WhiteboardVideoJobV1
+from sketch2life.infrastructure.ai.lightning_client import JsonTransport
 from sketch2life.infrastructure.ai.lightning_whiteboard import (
     LightningWhiteboardLocalizationAdapter,
 )
 from sketch2life.infrastructure.ai.lightning_whiteboard_segmentation import (
     LightningWhiteboardSegmentationAdapter,
 )
-from sketch2life.infrastructure.ai.lightning_client import JsonTransport
 from sketch2life.infrastructure.storage.in_memory import InMemoryArtifactStore
 
+from .whiteboard_mp4_encoder import WhiteboardMp4EncoderAdapter
 from .whiteboard_renderer_adapter import MvpWhiteboardRendererAdapter
 from .whiteboard_safety_validator import WhiteboardSafetyValidator
 from .whiteboard_segmenter_adapter import MvpWhiteboardSegmenterAdapter
 from .whiteboard_stroke_adapter import MvpWhiteboardStrokeExtractorAdapter
 from .whiteboard_tts_adapter import WhiteboardTtsAdapter
-from .whiteboard_mp4_encoder import WhiteboardMp4EncoderAdapter
 
 
 def build_whiteboard_mvp_pipeline(
@@ -38,7 +37,6 @@ def build_whiteboard_mvp_pipeline(
     localizer: LocalizerPort,
     mask_path_for: Callable[[str], str | Path],
     stroke_output_path_for: Callable[[str], str | Path],
-    cutout_path_for: Callable[[str], str | Path],
     render_output_path_for: Callable[[str], str | Path],
     script_for: Callable[[str], str],
     synthesize_tts: Callable[[str, str | Path], None],
@@ -47,9 +45,15 @@ def build_whiteboard_mvp_pipeline(
     inspect_mp4: Callable[[str | Path], tuple[float, str, int]],
     mp4_output_path_for: Callable[[str], str | Path],
     artifact_exists: Callable[[str | Path], bool],
+    stroke_path_for: Callable[[str], str | Path] | None = None,
+    cutout_path_for: Callable[[str], str | Path] | None = None,
     safety_validator: WhiteboardSafetyValidatorPort | None = None,
 ) -> WhiteboardVideoPipeline:
     """Build the complete MVP stage graph without leaking provider credentials."""
+
+    resolver = stroke_path_for or cutout_path_for
+    if resolver is None:
+        raise ValueError("a stroke artifact resolver is required")
 
     return WhiteboardVideoPipeline(
         localizer=localizer,
@@ -59,7 +63,7 @@ def build_whiteboard_mvp_pipeline(
             output_path_for=stroke_output_path_for,
         ),
         renderer=MvpWhiteboardRendererAdapter(
-            cutout_path_for=cutout_path_for,
+            stroke_path_for=resolver,
             output_path_for=render_output_path_for,
         ),
         tts=WhiteboardTtsAdapter(
@@ -138,7 +142,6 @@ def build_lightning_whiteboard_mvp_pipeline(
         endpoint_path=segmentation_path,
     )
 
-    cutouts: dict[str, str] = {}
     stroke_extractor = MvpWhiteboardStrokeExtractorAdapter(
         mask_path_for=mask_path_for,
         output_path_for=lambda job_id: job_path(job_id, ".strokes.json"),
@@ -161,27 +164,22 @@ def build_lightning_whiteboard_mvp_pipeline(
                     raise ValueError("mask and source dimensions differ")
                 rgba = np.asarray(source).copy()
                 rgba[:, :, 3] = np.asarray(mask)
+                # Keep the source-bound cutout available for future filled/colour
+                # layers, while the primary renderer consumes the stroke artifact.
                 cutout_path = job_path(job.job_id, ".cutout.png")
                 Image.fromarray(rgba, mode="RGBA").save(cutout_path, format="PNG")
-                cutouts[strokes.stroke_refs[0]] = cutout_path
             except (OSError, RuntimeError, ValueError, ImportError) as error:
                 raise WhiteboardVideoPipelineError(
                     "CUTOUT_FAILED", retryable=False
                 ) from error
             return strokes
 
-    def cutout_path_for(stroke_ref: str) -> str:
-        path = cutouts.get(stroke_ref)
-        if path is None:
-            raise KeyError("cutout artifact is unavailable")
-        return path
-
     return WhiteboardVideoPipeline(
         localizer=localizer,
         segmenter=segmenter,
         stroke_extractor=StrokeAndCutoutAdapter(),
         renderer=MvpWhiteboardRendererAdapter(
-            cutout_path_for=cutout_path_for,
+            stroke_path_for=lambda stroke_ref: stroke_ref,
             output_path_for=lambda job_id: job_path(job_id, ".render.mp4"),
         ),
         tts=WhiteboardTtsAdapter(

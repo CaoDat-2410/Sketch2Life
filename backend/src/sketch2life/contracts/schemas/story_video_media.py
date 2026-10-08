@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from sketch2life.contracts.schemas.story_video import Sha256
 
@@ -111,6 +111,22 @@ class VideoSceneArtifactV1(BaseModel):
     error_code: str | None = Field(default=None, max_length=120)
 
 
+class SubtitleCueV1(BaseModel):
+    """One narration-aligned subtitle cue for the final stitched video."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    text: str = Field(min_length=1, max_length=2_000)
+    start_seconds: float = Field(ge=0, le=120)
+    end_seconds: float = Field(gt=0, le=120)
+
+    @model_validator(mode="after")
+    def validate_order(self) -> SubtitleCueV1:
+        if self.end_seconds <= self.start_seconds:
+            raise ValueError("subtitle cue must end after it starts")
+        return self
+
+
 class VideoAssemblyRequestV1(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
@@ -125,8 +141,17 @@ class VideoAssemblyRequestV1(BaseModel):
     scene_artifact_refs: tuple[str, ...] = Field(min_length=1, max_length=12)
     narration_ref: str = Field(min_length=1, max_length=300)
     narration_sha256: Sha256 = Field(pattern=r"^[a-f0-9]{64}$")
+    subtitle_cues: tuple[SubtitleCueV1, ...] = Field(default=(), max_length=12)
     target_duration_min_seconds: int = Field(default=40, ge=40, le=60)
     target_duration_max_seconds: int = Field(default=60, ge=40, le=60)
+
+    @model_validator(mode="after")
+    def validate_assembly_inputs(self) -> VideoAssemblyRequestV1:
+        if len(self.scene_ids) != len(self.scene_artifact_refs):
+            raise ValueError("scene IDs and scene artifacts must have the same length")
+        if self.subtitle_cues and len(self.subtitle_cues) != len(self.scene_ids):
+            raise ValueError("subtitle cues must align one-to-one with scenes")
+        return self
 
 
 class VideoArtifactV1(BaseModel):
@@ -160,6 +185,7 @@ class VideoJobStatusV1(BaseModel):
     progress_percent: int = Field(ge=0, le=100)
     retry_count: int = Field(ge=0)
     public_message: str = Field(min_length=1, max_length=300)
+    video_artifact_ref: str | None = Field(default=None, max_length=500)
 
 
 __all__ = [name for name in globals() if name.endswith("V1")]

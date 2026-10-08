@@ -39,6 +39,27 @@ def test_storyboard_resolves_p1_age_months_to_primary_band() -> None:
     assert (storyboard.audience_age_min, storyboard.audience_age_max) == (9, 12)
 
 
+def test_storyboard_director_splits_approved_narration_into_scene_plan() -> None:
+    storyboard = WhiteboardStoryboardGenerator().generate(
+        subject_claim="con mèo",
+        feature_claim="ria mèo",
+        narration_vi=(
+            "Mèo dùng ria để khám phá xung quanh. "
+            "Ria giúp mèo cảm nhận vật ở gần. "
+            "Vì vậy không nên cắt ria của mèo."
+        ),
+    )
+
+    assert len(storyboard.scenes) == 3
+    assert [scene.motion for scene in storyboard.scenes] == [
+        "INTRO",
+        "FOCUS",
+        "DEMONSTRATE",
+    ]
+    assert sum(scene.duration_seconds for scene in storyboard.scenes) == storyboard.duration_seconds
+    assert all("line-art whiteboard" in scene.visual_prompt_vi for scene in storyboard.scenes)
+
+
 def test_storyboard_rejects_age_without_reviewed_audience_band() -> None:
     with pytest.raises(ValueError, match="no reviewed whiteboard audience band"):
         WhiteboardStoryboardGenerator().generate_for_age(

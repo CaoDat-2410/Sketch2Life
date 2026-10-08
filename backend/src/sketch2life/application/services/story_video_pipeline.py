@@ -23,6 +23,7 @@ from sketch2life.contracts.schemas.story_video_media import (
     IllustrationImageRequestV1,
     NarrationAssetV1,
     NarrationRenderRequestV1,
+    SubtitleCueV1,
     VideoArtifactV1,
     VideoAssemblyRequestV1,
     VideoSceneArtifactV1,
@@ -78,6 +79,7 @@ class StoryVideoPipeline:
         motion: MotionProvider,
         assembler: VideoAssembler,
         planner: StoryVideoPlanner | None = None,
+        motion_model_profile_ref: str = "whiteboard-stroke-v1",
         update_stage: Callable[[str, int], None] | None = None,
     ) -> None:
         self._narration = narration
@@ -85,14 +87,20 @@ class StoryVideoPipeline:
         self._motion = motion
         self._assembler = assembler
         self._planner = planner or StoryVideoPlanner()
+        if motion_model_profile_ref not in {"whiteboard-stroke-v1", "wan2.2-ti2v-5b"}:
+            raise ValueError("unsupported story motion profile")
+        self._motion_model_profile_ref = motion_model_profile_ref
         self._update_stage = update_stage or (lambda _stage, _progress: None)
 
     def run(
         self,
         package: ApprovedStoryPackageV1,
         segments: tuple[StoryScriptSegmentV1, ...],
+        *,
+        update_stage: Callable[[str, int], None] | None = None,
     ) -> StoryVideoRun:
-        self._update_stage("NARRATION_RENDERING", 10)
+        update = update_stage or self._update_stage
+        update("NARRATION_RENDERING", 10)
         texts = tuple(segment.text for segment in segments)
         narration_request = NarrationRenderRequestV1(
             request_id=f"narration-{package.package_id}",
@@ -112,7 +120,11 @@ class StoryVideoPipeline:
         storyboard = self._planner.compile(
             StoryboardCompileInput(package, segments, narration.segment_timing_seconds)
         )
-        self._update_stage("ILLUSTRATIONS_RENDERING", 30)
+        if self._motion_model_profile_ref == "whiteboard-stroke-v1" and any(
+            scene.duration_seconds < 5.0 for scene in storyboard.scenes
+        ):
+            raise StoryVideoProviderError("WHITEBOARD_SCENE_TOO_SHORT", retryable=False)
+        update("ILLUSTRATIONS_RENDERING", 30)
         illustrations = tuple(
             self._illustrations.render(
                 IllustrationImageRequestV1(
@@ -132,8 +144,12 @@ class StoryVideoPipeline:
         )
         if any(asset.status != "READY" for asset in illustrations):
             raise StoryVideoProviderError("ILLUSTRATION_NOT_READY", retryable=True)
+        if tuple(asset.scene_id for asset in illustrations) != tuple(
+            scene.scene_id for scene in storyboard.scenes
+        ):
+            raise StoryVideoProviderError("ILLUSTRATION_SCENE_MISMATCH", retryable=False)
 
-        self._update_stage("SCENES_RENDERING", 55)
+        update("SCENES_RENDERING", 55)
         scenes = tuple(
             self._motion.render(
                 VideoSceneRenderRequestV1(
@@ -148,6 +164,7 @@ class StoryVideoPipeline:
                     illustration_sha256=illustration.asset_sha256 or "0" * 64,
                     approved_fact_ids=scene.approved_fact_ids,
                     confirmed_anchor_ids=scene.confirmed_anchor_ids,
+                    model_profile_ref=self._motion_model_profile_ref,
                     duration_seconds=scene.duration_seconds,
                     resource_preflight="PASSED",
                 )
@@ -156,8 +173,19 @@ class StoryVideoPipeline:
         )
         if any(scene.status != "READY" for scene in scenes):
             raise StoryVideoProviderError("SCENE_RENDER_NOT_READY", retryable=True)
+        if tuple(scene.scene_id for scene in scenes) != tuple(
+            scene.scene_id for scene in storyboard.scenes
+        ):
+            raise StoryVideoProviderError("VIDEO_SCENE_MISMATCH", retryable=False)
+        if any(
+            rendered.duration_seconds is None
+            or abs(rendered.duration_seconds - planned.duration_seconds) > 0.5
+            for rendered, planned in zip(scenes, storyboard.scenes, strict=True)
+        ):
+            raise StoryVideoProviderError("VIDEO_SCENE_DURATION_MISMATCH", retryable=True)
 
-        self._update_stage("ASSEMBLING", 80)
+        update("ASSEMBLING", 80)
+        subtitle_cues = _subtitle_cues(storyboard)
         video = self._assembler.assemble(
             VideoAssemblyRequestV1(
                 request_id=f"assembly-{package.package_id}",
@@ -169,6 +197,7 @@ class StoryVideoPipeline:
                 scene_artifact_refs=tuple(scene.silent_clip_ref or "" for scene in scenes),
                 narration_ref=narration.audio_ref or "",
                 narration_sha256=narration.audio_sha256 or "0" * 64,
+                subtitle_cues=subtitle_cues,
                 target_duration_min_seconds=package.target_duration_min_seconds,
                 target_duration_max_seconds=package.target_duration_max_seconds,
             )
@@ -180,7 +209,7 @@ class StoryVideoPipeline:
             <= package.target_duration_max_seconds
         ):
             raise StoryVideoProviderError("VIDEO_DURATION_OUT_OF_RANGE", retryable=False)
-        self._update_stage("READY", 100)
+        update("READY", 100)
         return StoryVideoRun(package, storyboard, narration, illustrations, scenes, video)
 
     @staticmethod
@@ -195,6 +224,24 @@ def stable_model_hash_wrapper(segments: tuple[StoryScriptSegmentV1, ...]) -> str
     """Hash approved text inputs without exposing their content in provider IDs."""
 
     return stable_model_hash(_SegmentHashPayload(segments=segments))
+
+
+def _subtitle_cues(storyboard: StoryboardPlanV1) -> tuple[SubtitleCueV1, ...]:
+    """Build deterministic scene-aligned cues from the approved narration."""
+
+    cursor = 0.0
+    cues: list[SubtitleCueV1] = []
+    for scene in storyboard.scenes:
+        end = round(cursor + scene.duration_seconds, 3)
+        cues.append(
+            SubtitleCueV1(
+                text=scene.narration_text,
+                start_seconds=round(cursor, 3),
+                end_seconds=end,
+            )
+        )
+        cursor = end
+    return tuple(cues)
 
 
 class _SegmentHashPayload(BaseModel):

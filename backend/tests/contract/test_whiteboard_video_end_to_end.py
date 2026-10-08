@@ -2,10 +2,9 @@ from __future__ import annotations
 
 from fastapi.testclient import TestClient
 
-from sketch2life.contracts.schemas.whiteboard_video import WhiteboardVideoResultV1
 from sketch2life.application.services.whiteboard_video_job import WhiteboardVideoJobService
+from sketch2life.contracts.schemas.whiteboard_video import WhiteboardVideoResultV1
 from sketch2life.interfaces.http.app import create_app
-
 
 SOURCE_HASH = "a" * 64
 
@@ -59,4 +58,6 @@ def test_whiteboard_video_api_runs_configured_pipeline_to_ready() -> None:
     assert status.status_code == 200
     assert status.json()["status"] == "READY"
     assert status.json()["progress"] == 100
-    assert status.json()["video_artifact_ref"] == "video/whiteboard.mp4"
+    assert status.json()["video_artifact_ref"].endswith(
+        "/v1/sessions/session-001/whiteboard-video/file"
+    )
