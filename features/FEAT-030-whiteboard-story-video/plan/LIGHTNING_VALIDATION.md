@@ -8,6 +8,8 @@ On the studio, after starting only the provider at `http://127.0.0.1:8001`, run 
 
 Run `python tools/story_video_media_smoke.py --input /tmp/sketch2life-media-smoke-01/synthetic-house-story.json --preflight-only` first. Only if all checks pass and you accept the model/TTS cost, run the same command with `--confirm-synthetic-only` instead of `--preflight-only`. It prints each media stage and the local final MP4 path/hash. The example text is not guaranteed to measure 40–60 seconds for every TTS voice: if the duration guard stops after TTS, revise the synthetic text and rerun; no image generation has happened yet. This is a **provider-only media test**: it bypasses the backend, Director and Gate B, creates no `ApprovedStoryPackageV1`, and cannot be used as product acceptance. Inspect the MP4's line drawing, scene distinctness/continuity, voice, captions and duration. Record the model/voice/config and any failure locally before proceeding to the full workflow below.
 
+If TTS times out mid-request, do not blindly rerun. Inspect the private logs and costs first; a retry with the exact same request, voice and package hash can reuse completed WAV segments only when their cache manifests and file hashes still match. Changing the text or voice invalidates that reuse. `BLOCKED`/rejected TTS needs a configuration or input fix rather than the same retry.
+
 ## Full approved-session validation
 
 1. Pull the reviewed commit on the studio. Confirm `nvidia-smi`, `ffmpeg -version`, `ffprobe -version`, TTS import, image model access and renderer imports. The provider preflight reports the local checks but does not download or render a model.

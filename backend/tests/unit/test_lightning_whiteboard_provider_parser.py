@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import subprocess
 
 import pytest
 from tools.lightning_whiteboard_provider import (
@@ -10,6 +11,8 @@ from tools.lightning_whiteboard_provider import (
     story_video_assembly,
     story_video_scene,
 )
+
+from sketch2life.contracts.schemas.story_video_media import NarrationAssetV1
 
 
 def test_parse_box_scales_1024_coordinates_to_image_size() -> None:
@@ -201,3 +204,86 @@ def test_assembly_rejects_changed_audio_or_scene_before_mux(tmp_path, monkeypatc
     audio.write_bytes(b"original-audio")
     scene_result = story_video_assembly({"request": request})
     assert scene_result["error_code"] == "SCENE_HASH_MISMATCH"
+
+
+def test_edge_tts_subprocess_has_a_bounded_timeout(monkeypatch) -> None:
+    import tools.lightning_whiteboard_provider as provider
+
+    def time_out(*args, **kwargs):
+        assert kwargs["timeout"] == 120
+        raise subprocess.TimeoutExpired(cmd=args[0], timeout=120)
+
+    monkeypatch.setattr(provider.subprocess, "run", time_out)
+    with pytest.raises(subprocess.TimeoutExpired):
+        provider._edge_tts("Một câu thử.", voice="vi-VN-HoaiMyNeural")
+
+
+@pytest.mark.parametrize(
+    ("provider_name", "failure", "expected_status", "expected_code"),
+    [
+        (
+            "edge_tts", subprocess.TimeoutExpired(cmd="edge_tts", timeout=120),
+            "RETRYABLE_FAILURE", "TTS_TIMEOUT",
+        ),
+        (
+            "elevenlabs", RuntimeError("ELEVENLABS_TTS_UNAVAILABLE"),
+            "RETRYABLE_FAILURE", "ELEVENLABS_TTS_UNAVAILABLE",
+        ),
+        (
+            "elevenlabs", RuntimeError("ELEVENLABS_TTS_REJECTED"),
+            "BLOCKED", "ELEVENLABS_TTS_REJECTED",
+        ),
+    ],
+)
+def test_story_narration_classifies_network_failures_without_continuing(
+    tmp_path, monkeypatch, provider_name, failure, expected_status, expected_code
+) -> None:
+    import tools.lightning_whiteboard_provider as provider
+
+    monkeypatch.setenv("SKETCH2LIFE_STORY_VIDEO_ARTIFACT_DIR", str(tmp_path))
+    monkeypatch.setenv("SKETCH2LIFE_TTS_PROVIDER", provider_name)
+    monkeypatch.setenv("ELEVENLABS_API_KEY", "test-only-placeholder")
+    monkeypatch.setenv("ELEVENLABS_VOICE_ID", "test-voice")
+
+    def fail_tts(*_args, **_kwargs):
+        raise failure
+
+    monkeypatch.setattr(
+        provider, "_edge_tts" if provider_name == "edge_tts" else "_elevenlabs_tts", fail_tts
+    )
+    response = provider.story_video_narration(
+        {
+            "request": {
+                "package_id": "test-network-failure",
+                "package_hash": "a" * 64,
+                "locale": "vi-VN",
+            },
+            "texts": ["Một câu thử."],
+        }
+    )
+
+    parsed = NarrationAssetV1.model_validate(response)
+    assert parsed.status == expected_status
+    assert parsed.error_code == expected_code
+
+
+def test_story_narration_returns_typed_failure_for_undecodable_audio(
+    tmp_path, monkeypatch
+) -> None:
+    import tools.lightning_whiteboard_provider as provider
+
+    monkeypatch.setenv("SKETCH2LIFE_STORY_VIDEO_ARTIFACT_DIR", str(tmp_path))
+    monkeypatch.setenv("SKETCH2LIFE_TTS_PROVIDER", "edge_tts")
+    monkeypatch.setattr(provider, "_edge_tts", lambda *_args, **_kwargs: b"fake-mp3")
+    monkeypatch.setattr(provider, "_mp3_to_wav", lambda _audio, path: path.write_bytes(b"bad"))
+
+    response = provider.story_video_narration(
+        {
+            "request": {"package_id": "bad-audio", "package_hash": "a" * 64},
+            "texts": ["Một câu thử."],
+        }
+    )
+
+    parsed = NarrationAssetV1.model_validate(response)
+    assert parsed.status == "BLOCKED"
+    assert parsed.error_code == "TTS_RENDER_FAILED"

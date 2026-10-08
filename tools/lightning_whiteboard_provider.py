@@ -367,6 +367,12 @@ def _story_video_blocked(contract: str, error_code: str) -> dict[str, Any]:
     }
 
 
+def _story_video_retryable(contract: str, error_code: str) -> dict[str, Any]:
+    response = _story_video_blocked(contract, error_code)
+    response["status"] = "RETRYABLE_FAILURE"
+    return response
+
+
 def _story_video_artifact_root() -> Path:
     root = Path(
         os.getenv("SKETCH2LIFE_STORY_VIDEO_ARTIFACT_DIR", "/tmp/story-video-artifacts")
@@ -440,6 +446,7 @@ def _edge_tts(text: str, *, voice: str) -> bytes:
             check=False,
             capture_output=True,
             text=True,
+            timeout=120,
         )
         if result.returncode != 0:
             if "No module named edge_tts" in result.stderr:
@@ -461,6 +468,7 @@ def _mp3_to_wav(mp3: bytes, output: Path) -> None:
         [ffmpeg, "-y", "-i", str(source), "-ar", "24000", "-ac", "1", str(output)],
         check=True,
         capture_output=True,
+        timeout=120,
     )
 
 
@@ -664,12 +672,35 @@ def story_video_narration(payload: dict[str, Any]) -> dict[str, Any]:
                 try:
                     if abs(_wav_duration(combined) - cached["duration_seconds"]) <= 0.25:
                         return cached
-                except (OSError, ValueError):
+                except (OSError, ValueError, EOFError, wave.Error):
                     pass
             segment_paths: list[Path] = []
             timings: list[float] = []
             for index, text in enumerate(texts, 1):
                 path = root / f"{job_name}.segment-{index}.wav"
+                segment_manifest = root / f"{job_name}.segment-{index}.cache.json"
+                segment_key = _story_cache_key(
+                    "narration-segment",
+                    request,
+                    {"narration_cache_key": cache_key, "index": index},
+                )
+                cached_segment = _cached_story_media(
+                    segment_manifest,
+                    cache_key=segment_key,
+                    output_path=path,
+                    ref_field="audio_ref",
+                    sha_field="audio_sha256",
+                )
+                if cached_segment is not None and isinstance(
+                    cached_segment.get("duration_seconds"), (int, float)
+                ):
+                    try:
+                        if abs(_wav_duration(path) - cached_segment["duration_seconds"]) <= 0.01:
+                            timings.append(cached_segment["duration_seconds"])
+                            segment_paths.append(path)
+                            continue
+                    except (OSError, ValueError, EOFError, wave.Error):
+                        pass
                 if provider == "edge_tts":
                     audio = _edge_tts(text, voice=edge_voice)
                 else:
@@ -680,7 +711,18 @@ def story_video_narration(payload: dict[str, Any]) -> dict[str, Any]:
                         model_id=eleven_model,
                     )
                 _mp3_to_wav(audio, path)
-                timings.append(round(_wav_duration(path), 3))
+                duration = round(_wav_duration(path), 3)
+                _record_story_media(
+                    segment_manifest,
+                    segment_key,
+                    {
+                        "status": "READY",
+                        "audio_ref": str(path),
+                        "audio_sha256": _file_sha256(path),
+                        "duration_seconds": duration,
+                    },
+                )
+                timings.append(duration)
                 segment_paths.append(path)
             _concat_wavs(segment_paths, combined)
             response = {
@@ -700,13 +742,20 @@ def story_video_narration(payload: dict[str, Any]) -> dict[str, Any]:
             }
             _record_story_media(manifest, cache_key, response)
             return response
-    except (OSError, RuntimeError, TimeoutError, ValueError, subprocess.SubprocessError) as error:
+    except (
+        OSError, RuntimeError, TimeoutError, ValueError, EOFError, wave.Error,
+        subprocess.SubprocessError,
+    ) as error:
         _LOGGER.exception("story_video_narration_failed")
+        if isinstance(error, (TimeoutError, subprocess.TimeoutExpired)):
+            return _story_video_retryable("NarrationAssetV1", "TTS_TIMEOUT")
         code = (
             str(error)
             if str(error).startswith(("ELEVENLABS_TTS_", "EDGE_TTS_"))
             else "TTS_RENDER_FAILED"
         )
+        if code in {"ELEVENLABS_TTS_RETRYABLE", "ELEVENLABS_TTS_UNAVAILABLE"}:
+            return _story_video_retryable("NarrationAssetV1", code)
         return _story_video_blocked("NarrationAssetV1", code)
 
 

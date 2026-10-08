@@ -47,17 +47,64 @@ def test_narration_cache_skips_identical_tts_and_rejects_tampering(tmp_path, mon
     Path(first["audio_ref"]).write_bytes(b"corrupt")
     restored = provider.story_video_narration(payload)
     assert restored["status"] == "READY"
-    assert len(calls) == 4
+    assert len(calls) == 2, "an intact segment should not be synthesized twice"
     assert restored["audio_sha256"] == hashlib.sha256(
         Path(restored["audio_ref"]).read_bytes()
     ).hexdigest()
 
+    segment_one = tmp_path / ("a" * 64) / "pkg.segment-1.wav"
+    segment_one.write_bytes(b"corrupt")
+    Path(restored["audio_ref"]).write_bytes(b"corrupt")
+    repaired = provider.story_video_narration(payload)
+    assert repaired["status"] == "READY"
+    assert calls == ["Câu một.", "Câu hai.", "Câu một."]
+
     changed = {**payload, "texts": ["Câu khác.", "Câu hai."]}
     assert provider.story_video_narration(changed)["status"] == "READY"
-    assert len(calls) == 6
+    assert len(calls) == 5
     monkeypatch.setenv("EDGE_TTS_VOICE", "vi-VN-NamMinhNeural")
     assert provider.story_video_narration(changed)["status"] == "READY"
-    assert len(calls) == 8
+    assert len(calls) == 7
+
+
+def test_narration_retry_reuses_completed_segment_after_network_timeout(
+    tmp_path, monkeypatch
+) -> None:
+    import subprocess
+
+    monkeypatch.setenv("SKETCH2LIFE_STORY_VIDEO_ARTIFACT_DIR", str(tmp_path))
+    monkeypatch.setenv("SKETCH2LIFE_TTS_PROVIDER", "edge_tts")
+    calls: list[str] = []
+    fail_second = True
+
+    def tts(text: str, *, voice: str) -> bytes:
+        nonlocal fail_second
+        calls.append(text)
+        if text == "Câu hai." and fail_second:
+            fail_second = False
+            raise subprocess.TimeoutExpired(cmd="edge_tts", timeout=120)
+        return b"fake-mp3"
+
+    def write_wav(_mp3: bytes, output: Path) -> None:
+        with wave.open(str(output), "wb") as audio:
+            audio.setnchannels(1)
+            audio.setsampwidth(2)
+            audio.setframerate(24_000)
+            audio.writeframes(b"\0\0" * 24_000)
+
+    monkeypatch.setattr(provider, "_edge_tts", tts)
+    monkeypatch.setattr(provider, "_mp3_to_wav", write_wav)
+    payload = {
+        "request": {"package_id": "pkg", "package_hash": "a" * 64, "locale": "vi-VN"},
+        "texts": ["Câu một.", "Câu hai."],
+    }
+
+    first = provider.story_video_narration(payload)
+    assert first["status"] == "RETRYABLE_FAILURE"
+    assert first["error_code"] == "TTS_TIMEOUT"
+    second = provider.story_video_narration(payload)
+    assert second["status"] == "READY"
+    assert calls == ["Câu một.", "Câu hai.", "Câu hai."]
 
 
 def test_illustration_cache_skips_identical_model_and_rejects_tampering(
