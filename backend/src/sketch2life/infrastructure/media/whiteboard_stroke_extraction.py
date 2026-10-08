@@ -115,6 +115,17 @@ def extract_image_line_art(
     if float(ink.mean()) > 0.45:
         raise ValueError("LINE_ART_TOO_DENSE")
 
+    ys, xs = np.where(ink)
+    left, right = int(xs.min()), int(xs.max()) + 1
+    top, bottom = int(ys.min()), int(ys.max()) + 1
+    margin_x = max(6, round((right - left) * 0.08))
+    margin_y = max(6, round((bottom - top) * 0.08))
+    crop_left = max(0, left - margin_x)
+    crop_top = max(0, top - margin_y)
+    crop_right = min(ink.shape[1], right + margin_x)
+    crop_bottom = min(ink.shape[0], bottom + margin_y)
+    ink = ink[crop_top:crop_bottom, crop_left:crop_right]
+
     paths = _connected_ink_paths(ink)
     if not paths:
         raise ValueError("LINE_ART_EMPTY")
@@ -123,8 +134,11 @@ def extract_image_line_art(
     payload = {
         "artifact_type": "whiteboard_strokes_v1",
         "source_hash": source_hash,
-        "width": image.width,
-        "height": image.height,
+        "source_width": image.width,
+        "source_height": image.height,
+        "crop_box": [crop_left, crop_top, crop_right, crop_bottom],
+        "width": ink.shape[1],
+        "height": ink.shape[0],
         "strokes": [
             {"stroke_id": f"line-{index:04}", "points": points}
             for index, points in enumerate(paths, 1)
@@ -134,8 +148,8 @@ def extract_image_line_art(
     return WhiteboardStrokeExtraction(
         source_hash=source_hash,
         stroke_ref=str(output),
-        width=image.width,
-        height=image.height,
+        width=ink.shape[1],
+        height=ink.shape[0],
         point_count=sum(len(path) for path in paths),
         stroke_count=len(paths),
     )

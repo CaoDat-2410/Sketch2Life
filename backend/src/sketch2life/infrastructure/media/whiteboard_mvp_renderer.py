@@ -178,7 +178,10 @@ def render_stroke_animation(
     if not isinstance(raw_strokes, list) or not raw_strokes:
         raise ValueError("stroke artifact has no strokes")
 
-    scale = min(560 / source_width, 560 / source_height)
+    scale = min(
+        render_spec.width * 0.78 / source_width,
+        render_spec.height * 0.82 / source_height,
+    )
     offset_x = (render_spec.width - source_width * scale) / 2
     offset_y = (render_spec.height - source_height * scale) / 2
     strokes: list[list[tuple[int, int]]] = []

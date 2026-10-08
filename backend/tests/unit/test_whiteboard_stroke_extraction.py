@@ -78,3 +78,30 @@ def test_extract_image_line_art_follows_center_of_thick_pen_stroke(tmp_path) -> 
 
     assert result.stroke_count == 1
     assert max(ys) - min(ys) <= 2, "a thick pen line should not render as two outlines"
+
+
+def test_extract_image_line_art_crops_only_blank_outer_margin(tmp_path) -> None:
+    Image = pytest.importorskip("PIL.Image")
+    ImageDraw = pytest.importorskip("PIL.ImageDraw")
+    image = Image.new("RGB", (480, 240), "white")
+    ImageDraw.Draw(image).rectangle((100, 45, 330, 190), outline="black", width=5)
+    source = tmp_path / "framed.png"
+    image.save(source)
+
+    result = extract_image_line_art(source, tmp_path / "strokes.json", source_hash="d" * 64)
+    payload = json.loads((tmp_path / "strokes.json").read_text(encoding="utf-8"))
+
+    assert result.width < image.width
+    assert result.height < image.height
+    assert payload["width"] == result.width
+    assert payload["height"] == result.height
+    assert payload["source_width"] == image.width
+    assert payload["source_height"] == image.height
+    left, top, right, bottom = payload["crop_box"]
+    assert right - left == result.width
+    assert bottom - top == result.height
+    assert all(
+        0 <= x < result.width and 0 <= y < result.height
+        for stroke in payload["strokes"]
+        for x, y in stroke["points"]
+    )

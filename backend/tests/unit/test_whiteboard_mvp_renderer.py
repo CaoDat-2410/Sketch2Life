@@ -96,3 +96,26 @@ def test_stroke_renderer_draws_json_strokes_on_whiteboard(tmp_path) -> None:
     )
     assert middle_blue.any(), "marker hand should follow the active stroke"
     assert not final_blue.any(), "finished drawing should not retain the marker hand"
+
+
+def test_storyboard_strokes_use_most_of_the_video_canvas(tmp_path) -> None:
+    imageio = pytest.importorskip("imageio.v2")
+    stroke_path = tmp_path / "wide-strokes.json"
+    stroke_path.write_text(
+        '{"artifact_type":"whiteboard_strokes_v1","width":400,"height":250,'
+        '"strokes":[{"stroke_id":"frame","points":'
+        '[[20,20],[380,20],[380,230],[20,230],[20,20]]}]}',
+        encoding="utf-8",
+    )
+    output_path = tmp_path / "wide.mp4"
+    render_stroke_animation(
+        stroke_path,
+        output_path,
+        spec=WhiteboardMvpRenderSpec(width=1280, height=720, fps=5, duration_seconds=5.0),
+    )
+    reader = imageio.get_reader(output_path)
+    frame = reader.get_data(24)
+    reader.close()
+    dark_y, dark_x = (frame[:, :, :3].mean(axis=2) < 100).nonzero()
+    assert dark_x.max() - dark_x.min() > 700
+    assert dark_y.max() - dark_y.min() > 400
