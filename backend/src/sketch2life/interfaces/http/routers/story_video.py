@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 from pathlib import Path
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Request, status
@@ -90,11 +91,23 @@ def stream_story_video(session_id: str, job_id: str, request: Request) -> FileRe
     if job.session_id != session_id:
         raise HTTPException(status_code=404, detail="STORY_VIDEO_NOT_FOUND")
     run = service.result(job_id)
-    if job.state != "READY" or run is None or run.video.video_ref is None:
+    if (
+        job.state != "READY"
+        or run is None
+        or run.video.video_ref is None
+        or run.video.video_sha256 is None
+    ):
         raise HTTPException(status_code=409, detail="STORY_VIDEO_NOT_READY")
     path = Path(run.video.video_ref)
     if not path.is_file() or path.suffix.lower() != ".mp4":
         raise HTTPException(status_code=404, detail="STORY_VIDEO_FILE_NOT_FOUND")
+    try:
+        with path.open("rb") as video:
+            actual_sha256 = hashlib.file_digest(video, "sha256").hexdigest()
+    except OSError as error:
+        raise HTTPException(status_code=404, detail="STORY_VIDEO_FILE_NOT_FOUND") from error
+    if actual_sha256 != run.video.video_sha256:
+        raise HTTPException(status_code=409, detail="STORY_VIDEO_FILE_HASH_MISMATCH")
     return FileResponse(path, media_type="video/mp4", filename=f"{job_id}.mp4")
 
 
