@@ -241,3 +241,69 @@ def test_expired_session_cannot_keep_a_ready_story_job() -> None:
     assert service.get(job.job_id).state == "EXPIRED"
     service.run_safely(job.job_id)
     assert service.get(job.job_id).state == "EXPIRED"
+
+
+def test_ready_is_published_only_after_result_is_stored() -> None:
+    store = InMemoryArtifactStore()
+    source = store.put(session_id="session-test", content_type="image/png", body=b"image")
+    observed: list[tuple[str, object | None]] = []
+    service: StoryVideoJobService
+
+    class CompletingPipeline:
+        def run(self, package, segments, *, update_stage):
+            update_stage("READY", 100)
+            observed.append((service.get(job.job_id).state, service.result(job.job_id)))
+            return SimpleNamespace(video=SimpleNamespace(video_ref="synthetic.mp4"))
+
+    service = StoryVideoJobService(
+        pipeline=CompletingPipeline(),
+        session_snapshot=lambda _session_id: SimpleNamespace(
+            state="EXPERIENCE_READY", status="ACTIVE", version=3
+        ),
+        source_artifacts=store,
+    )
+    job, _ = service.create_or_replay(
+        session_id="session-test",
+        idempotency_key="ready-publish",
+        package=_package(source.artifact_ref, source.sha256),
+        segments=_segments(),
+    )
+
+    service.run_safely(job.job_id)
+
+    assert observed == [("VALIDATING", None)]
+    assert service.get(job.job_id).state == "READY"
+    assert service.result(job.job_id) is not None
+
+
+def test_late_pipeline_failure_never_publishes_ready() -> None:
+    store = InMemoryArtifactStore()
+    source = store.put(session_id="session-test", content_type="image/png", body=b"image")
+    observed: list[str] = []
+    service: StoryVideoJobService
+
+    class FailingPipeline:
+        def run(self, package, segments, *, update_stage):
+            update_stage("READY", 100)
+            observed.append(service.get(job.job_id).state)
+            raise StoryVideoProviderError("FINAL_CHECK_FAILED", retryable=False)
+
+    service = StoryVideoJobService(
+        pipeline=FailingPipeline(),
+        session_snapshot=lambda _session_id: SimpleNamespace(
+            state="EXPERIENCE_READY", status="ACTIVE", version=3
+        ),
+        source_artifacts=store,
+    )
+    job, _ = service.create_or_replay(
+        session_id="session-test",
+        idempotency_key="late-failure",
+        package=_package(source.artifact_ref, source.sha256),
+        segments=_segments(),
+    )
+
+    service.run_safely(job.job_id)
+
+    assert observed == ["VALIDATING"]
+    assert service.get(job.job_id).state == "FAILED"
+    assert service.result(job.job_id) is None

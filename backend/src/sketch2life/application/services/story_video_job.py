@@ -224,14 +224,16 @@ class StoryVideoJobService:
         def update(stage: str, progress: int) -> None:
             if self.get(job_id).state == "EXPIRED":
                 raise StoryVideoProviderError("SESSION_EXPIRED", retryable=False)
-            state = "READY" if stage == "READY" else "SCENES_RENDERING"
+            # A provider's completion callback is not a published result. Keep the
+            # job non-READY until the run and its download artifact are stored.
+            published_stage = "VALIDATING" if stage == "READY" else stage
             with self._lock:
                 current = self._jobs[job_id]
                 self._jobs[job_id] = current.model_copy(
                     update={
-                        "state": state,
-                        "stage": stage,
-                        "progress_percent": progress,
+                        "state": "VALIDATING" if stage == "READY" else "SCENES_RENDERING",
+                        "stage": published_stage,
+                        "progress_percent": min(progress, 99),
                         "public_message": "Story video generation in progress.",
                     }
                 )
