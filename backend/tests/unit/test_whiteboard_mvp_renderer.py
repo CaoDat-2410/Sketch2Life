@@ -248,6 +248,7 @@ def test_narration_beats_draw_right_object_before_left_object(tmp_path, use_mask
     )
     reader = imageio.get_reader(video)
     early = reader.get_data(8)
+    between_beats = reader.get_data(11)
     late = reader.get_data(23)
     reader.close()
     right = (slice(230, 270), slice(790, 845))
@@ -255,6 +256,11 @@ def test_narration_beats_draw_right_object_before_left_object(tmp_path, use_mask
     assert (early[right].mean(axis=2) < 150).sum() > 100
     assert (early[left].mean(axis=2) < 150).sum() < 20
     assert (late[left].mean(axis=2) < 150).sum() > 100
+    resting = between_beats.astype("int16")
+    blue_cursor = (resting[:, :, 2] > resting[:, :, 0] + 35) & (
+        resting[:, :, 2] > resting[:, :, 1] + 15
+    )
+    assert not blue_cursor.any(), "the drawing hand must leave during a narration hold"
 
 
 def test_narration_beat_without_matching_strokes_blocks_render(tmp_path) -> None:

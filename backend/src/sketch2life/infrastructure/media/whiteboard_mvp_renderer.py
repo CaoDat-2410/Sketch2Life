@@ -361,7 +361,12 @@ def render_stroke_animation(
                     color_steps[region_index] = desired
             if color_regions:
                 image.paste(colored, (0, 0), colored)
-            if active_point is not None and visible_segments < segment_count:
+            elapsed = progress * render_spec.duration_seconds
+            drawing_active = not drawing_windows or any(
+                start <= elapsed < start + 0.8 * (end - start)
+                for start, end, _, _ in drawing_windows
+            )
+            if active_point is not None and visible_segments < segment_count and drawing_active:
                 draw = ImageDraw.Draw(image, "RGBA")
                 _draw_marker_hand(draw, active_point)
             frame = np.asarray(image)
