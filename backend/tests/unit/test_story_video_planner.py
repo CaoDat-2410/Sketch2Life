@@ -82,6 +82,9 @@ def test_compile_uses_measured_tts_as_scene_timing_ground_truth() -> None:
         "selective color accents only where the source drawing has color"
         in plan.scenes[0].visual_prompt
     )
+    assert "do not redraw an unchanged source composition" in plan.scenes[0].visual_prompt
+    assert "only when explicitly named" in plan.scenes[0].visual_prompt
+    assert "Do not add unsupported characters" in plan.scenes[0].visual_prompt
 
 
 def test_director_binds_script_visual_cues_to_measured_tts_windows() -> None:

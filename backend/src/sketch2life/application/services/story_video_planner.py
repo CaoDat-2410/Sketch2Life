@@ -177,9 +177,12 @@ class StoryVideoPlanner:
             "confident, continuous dark marker contours, clear recognizable shapes, "
             "and selective color accents only where the source drawing has color. "
             "Compose one legible visual beat with space between its elements; keep "
-            "the same subject design across scenes while changing the depicted action. "
-            "Preserve the source drawing's identity and colors. Do not invent extra "
-            "characters, props, labels, scenery, or colors absent from the source. "
+            "the same subject design across scenes while visibly changing the depicted "
+            "action or relationship; do not redraw an unchanged source composition. "
+            "Preserve the source drawing's identity and palette. An added action or "
+            "object is permitted only when explicitly named in this approved scene "
+            "narration or its visual cues. Do not add unsupported characters, props, "
+            "labels, scenery, or colors. "
             f"Scene beat: {visual_beat} Approved narration: {narration}"
         )
         if draw_beats:
