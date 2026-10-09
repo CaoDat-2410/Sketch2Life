@@ -19,7 +19,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import StrEnum
 from hashlib import sha256
-from multiprocessing.connection import Connection, PipeConnection
+from multiprocessing.connection import Connection
 from multiprocessing.process import BaseProcess
 from pathlib import Path
 from threading import Lock as ThreadLock
@@ -759,7 +759,7 @@ class PersistentSubprocessQwenGenerationRunner:
         self._worker_target = worker_target
         self._lock = ThreadLock()
         self._process: BaseProcess | None = None
-        self._connection: Connection | PipeConnection | None = None
+        self._connection: Connection | None = None
         self._signature: tuple[VisionProfileV2, QwenVisionRuntimeConfig] | None = None
 
     def generate(
