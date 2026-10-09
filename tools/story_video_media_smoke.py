@@ -13,6 +13,7 @@ import hashlib
 import json
 import re
 import sys
+import tempfile
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -24,6 +25,50 @@ from urllib.request import Request, urlopen
 def _sha256(path: Path) -> str:
     with path.open("rb") as source:
         return hashlib.file_digest(source, "sha256").hexdigest()
+
+
+def _preview_contact_sheet(
+    source: Path, scenes: tuple[dict[str, Any], ...], illustrations: list[dict[str, Any]]
+) -> Path:
+    """Put the source and all generated scenes side by side for visual review."""
+
+    from PIL import Image, ImageDraw, ImageOps
+
+    tiles = [("SOURCE", source, ())] + [
+        (f"SCENE {index}", Path(str(item["asset_ref"])), scene.get("draw_cues", ()))
+        for index, (scene, item) in enumerate(zip(scenes, illustrations, strict=True), 1)
+    ]
+    tile_width, tile_height = 420, 290
+    image_height = 250
+    columns = 3
+    rows = (len(tiles) + columns - 1) // columns
+    sheet = Image.new("RGB", (columns * tile_width, rows * tile_height), "white")
+    draw = ImageDraw.Draw(sheet)
+    for tile_index, (label, path, cues) in enumerate(tiles):
+        origin_x = (tile_index % columns) * tile_width
+        origin_y = (tile_index // columns) * tile_height
+        with Image.open(path) as opened:
+            if opened.width * opened.height > 20_000_000:
+                raise ValueError(f"{label} image exceeds preview pixel limit")
+            fitted = ImageOps.contain(ImageOps.exif_transpose(opened).convert("RGB"),
+                                      (tile_width - 20, image_height))
+        x = origin_x + (tile_width - fitted.width) // 2
+        y = origin_y + 28 + (image_height - fitted.height) // 2
+        sheet.paste(fitted, (x, y))
+        draw.text((origin_x + 10, origin_y + 8), label, fill=(20, 20, 20))
+        for cue_index, cue in enumerate(cues, 1):
+            left, top, right, bottom = cue["focus_box"]
+            draw.rectangle(
+                (x + left * fitted.width, y + top * fitted.height,
+                 x + right * fitted.width, y + bottom * fitted.height),
+                outline=(230, 70, 25), width=2,
+            )
+            draw.text((x + left * fitted.width + 2, y + top * fitted.height + 2),
+                      str(cue_index), fill=(230, 70, 25))
+    output_dir = Path(tempfile.mkdtemp(prefix="sketch2life-scene-preview-"))
+    output = output_dir / "contact-sheet.png"
+    sheet.save(output)
+    return output
 
 
 def _caption_chunks(text: str) -> tuple[str, ...]:
@@ -236,10 +281,13 @@ def run_media_smoke(
 
     if preview_images:
         illustrations = render_illustrations()
+        sheet = _preview_contact_sheet(source, scenes, illustrations)
         return {
             "preflight": "READY",
             "package_hash": package_hash,
             "cue_sha256": cue_hash,
+            "contact_sheet_ref": str(sheet),
+            "contact_sheet_sha256": _sha256(sheet),
             "illustrations": [
                 {"scene_id": f"scene-{index}", "asset_ref": item["asset_ref"],
                  "asset_sha256": item["asset_sha256"]}

@@ -155,6 +155,7 @@ def test_sam2_media_smoke_requires_cues_before_paid_provider_calls(tmp_path) -> 
 
 
 def test_image_preview_skips_tts_and_reuses_hash_after_cue_edit(tmp_path) -> None:
+    Image = pytest.importorskip("PIL.Image")
     source, scenes, _fixture_path = _fixture(tmp_path)
     seen_hashes = []
     calls = []
@@ -165,7 +166,8 @@ def test_image_preview_skips_tts_and_reuses_hash_after_cue_edit(tmp_path) -> Non
         request = payload["request"]
         seen_hashes.append(request["package_hash"])
         image = tmp_path / f"{request['scene_id']}.png"
-        image.write_bytes(request["scene_id"].encode())
+        number = int(request["scene_id"].split("-")[-1])
+        Image.new("RGB", (80, 60), (number * 40, 60, 140)).save(image)
         return {"status": "READY", "asset_ref": str(image),
                 "asset_sha256": hashlib.sha256(image.read_bytes()).hexdigest()}
 
@@ -184,6 +186,14 @@ def test_image_preview_skips_tts_and_reuses_hash_after_cue_edit(tmp_path) -> Non
     assert first["cue_sha256"] != second["cue_sha256"]
     assert len(first["illustrations"]) == 4
     assert set(seen_hashes) == {first["package_hash"]}
+    assert first["contact_sheet_sha256"] != second["contact_sheet_sha256"]
+    with Image.open(second["contact_sheet_ref"]) as sheet:
+        assert sheet.size == (1260, 580)
+        assert sheet.getpixel((210, 153)) == (255, 255, 255)
+        assert sheet.getpixel((630, 153)) == (40, 60, 140)
+    assert hashlib.sha256(Path(second["contact_sheet_ref"]).read_bytes()).hexdigest() == (
+        second["contact_sheet_sha256"]
+    )
     assert calls == ["/v1/story-video/illustration"] * 8
 
 
