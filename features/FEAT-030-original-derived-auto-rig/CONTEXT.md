@@ -232,3 +232,9 @@ open, so the checked-in manifest still rejects runtime use. Details: `evidence/n
 - The approved fix is limited to the mobile deadline and V4 prompt/closed parser diagnostics. No additional planner call, retry, fallback, contract change, or real-child-data test is authorized.
 - Local implementation is complete: only renderer preparation now waits up to 150 seconds; the V4 prompt follows the closed schema; one optional outer JSON fence is unwrapped; and failures receive sanitized stage-specific log codes. Static Python compilation and `git diff --check` passed; tests and live model inference were not run.
 - Feature-local evidence: `evidence/notes/PIXI_SHOW_TIMEOUT_AND_OUTPUT_VALIDITY_FIX_20261009.md`. The remote Lightning checkout still needs this change and a Uvicorn restart before live acceptance can confirm the new diagnostics.
+
+## Pixi schema-invalid follow-up — 2026-10-09
+
+- Owner confirmed Lightning had pulled and restarted `c74831e`; the next `/v4/pixi/show-plan` request still returned HTTP 502 with `MODEL_SCHEMA_INVALID` after activity ranking succeeded.
+- Source review found the V4 prompt asked for eligible asset IDs and later prohibited all asset IDs. The follow-up plan also makes JSON array/null types explicit and adds a bounded schema-path/error-type summary that excludes values and messages.
+- Local implementation and static verification: `evidence/notes/PIXI_SCHEMA_INVALID_PROMPT_CONTRADICTION_FIX_20261009.md`. The newest patch needs to be deployed and the synthetic request repeated before runtime acceptance.

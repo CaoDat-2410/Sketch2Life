@@ -235,3 +235,12 @@
 - Approved scope: align only the mobile renderer-preparation timeout with the existing 120-second planner deadline; make the V4 prompt satisfy the existing closed schema; optionally unwrap a single JSON fence; add safe stage-specific failure logs.
 - Boundaries: one bounded inference call, no automatic retry/fallback, no contract changes, and no logging of prompts, images, model output, or user content. Remote model inference and deployment are excluded from this local implementation.
 - Approval date: 2026-10-09 (Asia/Saigon).
+
+## Pixi schema-invalid prompt contradiction fix — APPROVED
+
+- Approver: project owner, direct request in this conversation: “bị 502 bad gateway, check log và fix đi”, followed by confirmation that Lightning pulled/restarted `c74831e` and the new `MODEL_SCHEMA_INVALID` log.
+- Approved plan: `plan/PIXI_SCHEMA_INVALID_PROMPT_CONTRADICTION_FIX_20261009.md`, revision 1.
+- Exact pre-approval plan SHA-256: `BA64D2C9798FCA0799B13E2D8DFCA4BFCC722F76911FA46F0F288B399DBD0535`.
+- Approved scope: resolve the V4 asset-ID prompt contradiction, state JSON array/null shapes, and add allowlisted schema field-path/error-type diagnostics without values or user/model content.
+- Boundaries: preserve the single inference, closed schema, generic fail-closed 502, no retry/fallback/repair, no contract changes, no live provider request, and no real child data.
+- Approval date: 2026-10-09 (Asia/Saigon).

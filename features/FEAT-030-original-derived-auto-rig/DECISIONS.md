@@ -112,3 +112,9 @@ Android gates; the expansion manifest remains runtime-ineligible. See
 - Keep the Pixi V4 result schema and fail-closed behavior. Clarify exact schema enums, coordinate/timing bounds, and a three-beat response in the prompt; accept only a single optional outer JSON code fence before the same strict parser and validation.
 - Split invalid-output logs into closed stage codes only. Do not log model output, prompt, image/crop, candidate metadata, or Pydantic input values.
 - No retry or substitute show is added. A still-invalid response remains a visible typed failure.
+
+## 2026-10-09 — Pixi schema-invalid prompt follow-up
+
+- Prompt constraints must not contradict required schema values: require IDs from the supplied allowlist and forbid only invented/unlisted IDs. State JSON array and nullable-field shapes directly.
+- If schema validation still fails, logs may include only a bounded allowlisted schema path and Pydantic error type; never include input values or error messages.
+- Evidence: `evidence/notes/PIXI_SCHEMA_INVALID_PROMPT_CONTRADICTION_FIX_20261009.md`.

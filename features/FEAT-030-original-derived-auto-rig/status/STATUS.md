@@ -145,3 +145,10 @@ Updated: 2026-10-08
 - Evidence received: UI surfaced `REQUEST_TIMEOUT`; Lightning later logged `/v4/pixi/show-plan` as `MODEL_OUTPUT_INVALID` with HTTP 502.
 - Local implementation is complete within the approved scope. Python source compilation and `git diff --check` passed; tests and live model inference were not run. Feature-local evidence: `evidence/notes/PIXI_SHOW_TIMEOUT_AND_OUTPUT_VALIDITY_FIX_20261009.md`.
 - Deployment and live acceptance remain outstanding: update the Lightning checkout, restart Uvicorn, then inspect the next synthetic-image attempt for the new stage-specific failure code or a successful show plan.
+
+## Pixi schema-invalid prompt follow-up — 2026-10-09
+
+- Runtime evidence: owner confirmed commit `c74831e` was pulled and Uvicorn restarted; `/v4/pixi/show-plan` still returned HTTP 502 with `MODEL_SCHEMA_INVALID`.
+- Source review found a prompt contradiction: the model was told to provide allowlisted asset IDs and later told not to output any asset IDs. The follow-up plan was approved by the owner request to check and fix this 502.
+- Local implementation is complete: removed that contradiction, made ID array/null shapes explicit, and added sanitized bounded schema field/type diagnostics. `py_compile` and `git diff --check` passed; tests and live inference were not run.
+- New runtime acceptance requires deploying this patch, restarting Uvicorn, and confirming a successful plan or a safe `schema_issues` field path in the next synthetic request.
