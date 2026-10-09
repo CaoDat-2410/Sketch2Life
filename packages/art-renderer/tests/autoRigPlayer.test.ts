@@ -4,7 +4,11 @@ vi.mock('pixi.js', () => {
   class MockContainer {
     children: MockSprite[] = [];
     sortableChildren = false;
-    addChild(child: MockSprite): void { this.children.push(child); }
+    addChild(child: MockSprite): void {
+      this.children.push(child);
+      if (this.sortableChildren) this.children.sort((left, right) => left.zIndex - right.zIndex);
+    }
+    removeChild(child: MockSprite): void { this.children = this.children.filter((item) => item !== child); }
     removeChildren(): MockSprite[] { const children = this.children; this.children = []; return children; }
     destroy(): void { this.children = []; }
   }
@@ -20,6 +24,7 @@ vi.mock('pixi.js', () => {
     scale = point(1, 1);
     rotation = 0;
     zIndex = 0;
+    visible = true;
     constructor(readonly texture: MockTexture) {}
     destroy(): void {}
   }
@@ -254,6 +259,75 @@ describe('Pixi independent part playback', () => {
 
     expect(stage.children[0].children).toHaveLength(2); // reconstructed paper plus intact subject cutout
     expect(player.getPlaybackState()).toMatchObject({durationSeconds: 20, state: 'READY'});
+    player.destroy();
+  });
+
+  it('places a topic backdrop behind the source cutout and restores the extracted paper layer', () => {
+    vi.stubGlobal('document', {createElement: () => new MemoryCanvas()});
+    const stage = {
+      children: [] as {children: unknown[]}[],
+      addChild(child: {children: unknown[]}): void { this.children.push(child); },
+    };
+    const app = {stage, renderer: {resize: vi.fn()}, ticker: {add: vi.fn(), remove: vi.fn()}};
+    const {source, parent} = makeFixtureCanvases();
+    const player = createAutoRigPlayer({app: app as never});
+    player.load(
+      {
+        ...packageFixture,
+        tier: 'CUTOUT_MICRO_MOTION',
+        parts: [],
+        derivedArtifacts: [packageFixture.derivedArtifacts[0]],
+        validation: {...packageFixture.validation, selectedTier: 'CUTOUT_MICRO_MOTION'},
+      },
+      {...planFixture, tier: 'CUTOUT_MICRO_MOTION', tracks: []},
+      source as never,
+      parent as never,
+    );
+    const scene = stage.children[0] as {children: {zIndex: number; visible: boolean}[]};
+    const background = scene.children[0];
+    const subject = scene.children[1];
+
+    player.setSceneBackdrop({width: 800, height: 600} as never);
+
+    expect(scene.children).toHaveLength(3);
+    expect(scene.children[0].zIndex).toBe(-10);
+    expect(scene.children[0].visible).toBe(true);
+    expect(background.visible).toBe(false);
+    expect(subject.visible).toBe(true);
+    player.setSceneBackdrop(null);
+    expect(background.visible).toBe(true);
+    player.destroy();
+  });
+
+  it('keeps the original cutout still when the adaptive strategy is STATIC_SOURCE', () => {
+    vi.stubGlobal('document', {createElement: () => new MemoryCanvas()});
+    const stage = {
+      children: [] as {children: unknown[]}[],
+      addChild(child: {children: unknown[]}): void { this.children.push(child); },
+    };
+    const app = {stage, renderer: {resize: vi.fn()}, ticker: {add: vi.fn(), remove: vi.fn()}};
+    const {source, parent} = makeFixtureCanvases();
+    const player = createAutoRigPlayer({app: app as never});
+    player.load(
+      {
+        ...packageFixture,
+        tier: 'CUTOUT_MICRO_MOTION',
+        parts: [],
+        derivedArtifacts: [packageFixture.derivedArtifacts[0]],
+        validation: {...packageFixture.validation, selectedTier: 'CUTOUT_MICRO_MOTION'},
+      },
+      {...planFixture, tier: 'CUTOUT_MICRO_MOTION', tracks: []},
+      source as never,
+      parent as never,
+    );
+    const subject = (stage.children[0].children as {position: {x: number; y: number}}[])[1];
+    const initial = {...subject.position};
+    player.setSourceMotionEnabled(false);
+    player.setShowBeat('APPROACH', 0.8);
+    player.seekTo(3);
+
+    expect(subject.position).toEqual(initial);
+    expect(player.getSubjectTranslation()).toEqual({x: 0, y: 0});
     player.destroy();
   });
 

@@ -167,6 +167,42 @@ class PixiShowAssetService:
                 )
         return tuple(issued)
 
+    def preview_candidates(self, asset_ids: tuple[str, ...]) -> dict[str, bytes]:
+        """Return transient, tiny previews for the one bounded visual-planner request."""
+        if len(asset_ids) > 6 or len(set(asset_ids)) != len(asset_ids):
+            raise PixiShowAssetUnavailable from None
+        previews: dict[str, bytes] = {}
+        for asset_id in asset_ids:
+            asset = self._assets.get(asset_id)
+            if (
+                asset is None
+                or asset.render_role not in {"ENVIRONMENT", "PROP", "EFFECT"}
+                or not asset.runtime_eligible
+                or asset.review_status not in {"APPROVED", "APPLIED"}
+                or asset.provenance.license_status != "CLEARED"
+            ):
+                raise PixiShowAssetUnavailable from None
+            try:
+                with Image.open(io.BytesIO(self._extract_frame(asset))) as opened:
+                    frame = opened.convert("RGBA")
+                    frame.thumbnail((144, 108), Image.Resampling.LANCZOS)
+                    background = Image.new("RGBA", (144, 108), (255, 255, 255, 255))
+                    background.alpha_composite(
+                        frame,
+                        ((144 - frame.width) // 2, (108 - frame.height) // 2),
+                    )
+                    output = io.BytesIO()
+                    background.convert("RGB").quantize(colors=96).save(
+                        output, format="PNG", optimize=True
+                    )
+                    content = output.getvalue()
+            except (OSError, ValueError):
+                raise PixiShowAssetUnavailable from None
+            if not content or len(content) > 30_000:
+                raise PixiShowAssetUnavailable from None
+            previews[asset_id] = content
+        return previews
+
     def issue_motion_cycle_read(
         self,
         cycle_id: str,

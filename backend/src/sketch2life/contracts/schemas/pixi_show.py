@@ -14,6 +14,12 @@ from sketch2life.contracts.schemas.scene_exploration import SourceRegionV1
 PixiShowAssetRoleV1 = Literal["SUBJECT", "ENVIRONMENT", "PROP", "EFFECT"]
 PixiShowRigTierV1 = Literal["FULL_AUTO_RIG", "CUTOUT_MICRO_MOTION", "BBOX_VISUAL_FOCUS"]
 PixiShowSourceContentTypeV1 = Literal["image/png", "image/jpeg"]
+PixiShowRenderStrategyV1 = Literal[
+    "FULL_AUTO_RIG",
+    "CUTOUT_TOPIC_SCENE",
+    "CUTOUT_MICRO_MOTION",
+    "STATIC_SOURCE",
+]
 
 
 class PixiSubjectHintV1(StrEnum):
@@ -104,6 +110,15 @@ class PixiShowIntentV1(BaseModel):
         return self
 
 
+class PixiShowIntentV2(PixiShowIntentV1):
+    """Adaptive strategy returned by the single bounded post-Gate-B inference."""
+
+    render_strategy: PixiShowRenderStrategyV1 = Field(alias="renderStrategy")
+    scene_theme_asset_id: str | None = Field(
+        default=None, alias="sceneThemeAssetId", min_length=1, max_length=160
+    )
+
+
 class PixiShowPlannerAssetCandidateV1(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True, populate_by_name=True)
 
@@ -168,6 +183,42 @@ class PixiShowPlannerRequestV2(PixiShowPlannerRequestV1):
     )
 
 
+class PixiShowPlannerAssetCandidateV2(PixiShowPlannerAssetCandidateV1):
+    """Candidate metadata and an ephemeral small preview used only for visual matching."""
+
+    preview_content_type: Literal["image/png"] = Field(alias="previewContentType")
+    preview_sha256: str = Field(alias="previewSha256", pattern=r"^[a-f0-9]{64}$")
+    preview_content_base64: str = Field(
+        alias="previewContentBase64", min_length=16, max_length=40_000
+    )
+
+
+class PixiShowPlannerRequestV3(PixiShowPlannerRequestV2):
+    """V3 carries the confirmed topic and bounded candidate visuals in one request."""
+
+    contract_name: Literal["PixiShowPlannerRequestV3"] = Field(alias="contractName")  # type: ignore[assignment]  # noqa: E501
+    contract_version: Literal["3.0"] = Field(alias="contractVersion")  # type: ignore[assignment]  # noqa: E501
+    chosen_topic_labels: tuple[str, ...] = Field(
+        alias="chosenTopicLabels", min_length=1, max_length=5
+    )
+    candidate_assets: tuple[PixiShowPlannerAssetCandidateV2, ...] = Field(
+        alias="candidateAssets", min_length=0, max_length=6
+    )
+
+    @model_validator(mode="after")
+    def validate_aggregate_preview_budget(self) -> PixiShowPlannerRequestV3:
+        encoded_images = len(self.source_crop.content_base64) + sum(
+            len(candidate.preview_content_base64) for candidate in self.candidate_assets
+        )
+        if encoded_images > 1_600_000:
+            raise ValueError("planner image inputs exceed the aggregate request budget")
+        if any(
+            candidate.role == "SUBJECT" for candidate in self.candidate_assets
+        ):
+            raise ValueError("adaptive scene candidates cannot replace or duplicate the source")
+        return self
+
+
 class PixiShowPlanV1(BaseModel):
     """Server-validated show contract. It carries intent/IDs, never code or arbitrary URLs."""
 
@@ -222,6 +273,34 @@ class PixiShowPlanV2(PixiShowPlanV1):
     selected_asset_ids: tuple[str, ...] = Field(alias="selectedAssetIds", max_length=3)
 
 
+class PixiShowPlanV3(PixiShowPlanV2):
+    """Adaptive strategy plus an optional environment asset used as the scene backdrop."""
+
+    contract_name: Literal["PixiShowPlanV3"] = Field(alias="contractName")  # type: ignore[assignment]  # noqa: E501
+    contract_version: Literal["3.0"] = Field(alias="contractVersion")  # type: ignore[assignment]  # noqa: E501
+    render_strategy: PixiShowRenderStrategyV1 = Field(alias="renderStrategy")
+    chosen_topic_label: str = Field(alias="chosenTopicLabel", min_length=1, max_length=160)
+    scene_theme_asset_id: str | None = Field(
+        default=None, alias="sceneThemeAssetId", min_length=1, max_length=160
+    )
+
+    @model_validator(mode="after")
+    def validate_adaptive_plan(self) -> PixiShowPlanV3:
+        selected_total = len(self.selected_asset_ids) + (
+            1 if self.scene_theme_asset_id is not None else 0
+        )
+        if selected_total > 3:
+            raise ValueError("adaptive show may select at most three total visual assets")
+        if self.scene_theme_asset_id is not None:
+            if self.scene_theme_asset_id in self.selected_asset_ids:
+                raise ValueError("scene theme must be separate from supplemental actor assets")
+            if self.render_strategy != "CUTOUT_TOPIC_SCENE":
+                raise ValueError("only topic-scene strategy may include a scene theme asset")
+        elif self.render_strategy == "CUTOUT_TOPIC_SCENE":
+            raise ValueError("topic-scene strategy requires one selected scene theme")
+        return self
+
+
 class PixiShowAssetReadV1(BaseModel):
     """Short-lived capability to read exactly one rights-cleared, selected PNG frame."""
 
@@ -270,6 +349,7 @@ __all__ = [
     "PixiShowActionV1",
     "PixiShowBeatV1",
     "PixiShowIntentV1",
+    "PixiShowIntentV2",
     "PixiShowPlannerAssetCandidateV1",
     "PixiShowAssetRoleV1",
     "PixiShowRigTierV1",
@@ -277,8 +357,12 @@ __all__ = [
     "PixiShowSourceCropV1",
     "PixiShowPlannerRequestV1",
     "PixiShowPlannerRequestV2",
+    "PixiShowPlannerAssetCandidateV2",
+    "PixiShowPlannerRequestV3",
     "PixiShowPlanV1",
     "PixiShowPlanV2",
+    "PixiShowPlanV3",
+    "PixiShowRenderStrategyV1",
     "PixiShowAssetReadV1",
     "PixiRendererLaunchV2",
     "PixiRendererShowEnvelopeV1",

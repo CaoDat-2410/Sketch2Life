@@ -127,6 +127,49 @@ def test_asset_service_accepts_empty_reads_for_subject_only_show() -> None:
     assert service.issue_reads(()) == ()
 
 
+def test_asset_service_returns_small_ephemeral_previews_for_runtime_eligible_assets(
+    monkeypatch,
+) -> None:
+    atlas_image = Image.new("RGBA", (24, 20), (0, 0, 0, 0))
+    ImageDraw.Draw(atlas_image).rectangle((4, 3, 15, 12), fill=(250, 180, 20, 255))
+    atlas = _png(atlas_image)
+    feature_root = Path(__file__).parent / "_virtual_pixi_asset_root"
+    original_read_bytes = Path.read_bytes
+
+    def read_fixture(path: Path) -> bytes:
+        if path == feature_root / "atlas.png":
+            return atlas
+        return original_read_bytes(path)
+
+    monkeypatch.setattr(Path, "read_bytes", read_fixture)
+    service = PixiShowAssetService(feature_root=feature_root, assets=(_asset(atlas),))
+
+    previews = service.preview_candidates(("flower-yellow-01",))
+
+    assert tuple(previews) == ("flower-yellow-01",)
+    assert len(previews["flower-yellow-01"]) <= 30_000
+    with Image.open(BytesIO(previews["flower-yellow-01"])) as preview:
+        assert preview.size == (144, 108)
+        assert preview.mode == "P"
+
+
+def test_asset_service_does_not_preview_subject_or_rights_blocked_assets(monkeypatch) -> None:
+    atlas = _png(Image.new("RGBA", (24, 20), (0, 0, 0, 0)))
+    feature_root = Path(__file__).parent / "_virtual_pixi_asset_root"
+    original_read_bytes = Path.read_bytes
+
+    def read_fixture(path: Path) -> bytes:
+        if path == feature_root / "atlas.png":
+            return atlas
+        return original_read_bytes(path)
+
+    monkeypatch.setattr(Path, "read_bytes", read_fixture)
+    subject = _asset(atlas).model_copy(update={"render_role": "SUBJECT"})
+    service = PixiShowAssetService(feature_root=feature_root, assets=(subject,))
+    with pytest.raises(PixiShowAssetUnavailable):
+        service.preview_candidates(("flower-yellow-01",))
+
+
 def test_asset_service_rejects_unreviewed_or_rights_blocked_assets(monkeypatch) -> None:
     atlas = _png(Image.new("RGBA", (24, 20), (0, 0, 0, 0)))
     feature_root = Path(__file__).parent / "_virtual_pixi_asset_root"

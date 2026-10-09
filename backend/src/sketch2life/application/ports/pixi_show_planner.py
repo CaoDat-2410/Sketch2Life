@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Protocol
 
-from sketch2life.contracts.schemas.pixi_show import PixiShowIntentV1
+from sketch2life.contracts.schemas.pixi_show import PixiShowIntentV2
 from sketch2life.contracts.schemas.scene_exploration import SourceRegionV1
 
 
@@ -16,6 +16,8 @@ class PixiShowAssetCandidate:
     role: str
     visual_description: str
     topic_tags: tuple[str, ...]
+    preview_content_type: str = "image/png"
+    preview_bytes: bytes | None = field(default=None, repr=False, compare=False)
 
 
 @dataclass(frozen=True, slots=True)
@@ -41,6 +43,7 @@ class PixiShowPlanningRequest:
     candidate_assets: tuple[PixiShowAssetCandidate, ...]
     source_crop_content_type: str
     source_crop_bytes: bytes = field(repr=False, compare=False)
+    chosen_topic_labels: tuple[str, ...] = ()
 
 
 class PixiShowPlannerUnavailable(Exception):
@@ -68,7 +71,7 @@ class PixiShowPlannerUnavailable(Exception):
 
 
 class PixiShowPlannerPort(Protocol):
-    def plan(self, request: PixiShowPlanningRequest) -> PixiShowIntentV1: ...
+    def plan(self, request: PixiShowPlanningRequest) -> PixiShowIntentV2: ...
 
 
 __all__ = [

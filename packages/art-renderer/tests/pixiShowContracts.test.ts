@@ -3,9 +3,11 @@ import {describe, expect, it} from 'vitest';
 import {
   PixiRendererShowEnvelopeV2Schema,
   PixiRendererShowEnvelopeV3Schema,
+  PixiRendererShowEnvelopeV4Schema,
   PixiRendererShowEnvelopeV1Schema,
   RendererLoadCommandV4Schema,
   RendererLoadCommandV5Schema,
+  RendererLoadCommandV6Schema,
   RendererLoadCommandV3Schema,
 } from '../src/contractsPixiShow';
 import {RendererLoadCommandV2Schema} from '../src/contractsV2';
@@ -293,6 +295,64 @@ describe('additive Pixi show contracts', () => {
       showPlan: {...sourceOnlyPlan, beats: [...sourceOnlyPlan.beats.slice(0, 2), {
         beatId: 'supplement', startSeconds: 12, endSeconds: 17, action: 'SETTLE', targetRole: 'SUPPLEMENTAL_ASSET', assetId: 'unapproved', x: 0.15, y: 0.8,
       }]},
+    }).success).toBe(false);
+  });
+
+  it('accepts an adaptive cutout scene only with its separately allowlisted background read', () => {
+    const adaptivePlan = {
+      ...plan,
+      contractName: 'PixiShowPlanV3',
+      contractVersion: '3.0',
+      renderStrategy: 'CUTOUT_TOPIC_SCENE',
+      chosenTopicLabel: 'Chim ở đồng cỏ',
+      sceneThemeAssetId: 'approved-meadow',
+    };
+    const backgroundRead = {...read, assetId: 'approved-meadow', sha256: 'd'.repeat(64)};
+    const command = {
+      ...commandBase,
+      contractName: 'RendererLoadCommandV6',
+      contractVersion: '6.0',
+      protocolVersion: '6',
+      showPlan: adaptivePlan,
+      assetReads: [read, backgroundRead],
+      spriteCycleStatus: 'NOT_APPLICABLE',
+    };
+    const launch = {
+      contractName: 'PixiRendererLaunchV2',
+      contractVersion: '2.0',
+      sessionId: 'session-1',
+      expectedSessionVersion: 3,
+      experienceSpecRef: {id: 'spec-1', version: 1},
+      sourceReadEndpoint: '/v1/renderer/source',
+      sourceReadCapability: 's'.repeat(48),
+      sourceSha256: 'a'.repeat(64),
+      packageReadEndpoint: '/v1/renderer/rig-package',
+      packageReadCapability: 'p'.repeat(48),
+      packageSha256: 'b'.repeat(64),
+      packageReadExpiresAt: '2026-10-01T00:00:00Z',
+      partMaskReads: [],
+      rigParts: [],
+      animationPlan,
+      fallbackLaunch: {},
+    };
+    const envelope = {
+      contractName: 'PixiRendererShowEnvelopeV4',
+      contractVersion: '4.0',
+      rendererLaunchV2: launch,
+      showPlan: adaptivePlan,
+      assetReads: [read, backgroundRead],
+      spriteCycleStatus: 'NOT_APPLICABLE',
+    };
+
+    expect(PixiRendererShowEnvelopeV4Schema.safeParse(envelope).success).toBe(true);
+    expect(RendererLoadCommandV6Schema.safeParse(command).success).toBe(true);
+    expect(RendererLoadCommandV6Schema.safeParse({
+      ...command,
+      assetReads: [read],
+    }).success).toBe(false);
+    expect(RendererLoadCommandV6Schema.safeParse({
+      ...command,
+      showPlan: {...adaptivePlan, renderStrategy: 'FULL_AUTO_RIG'},
     }).success).toBe(false);
   });
 });

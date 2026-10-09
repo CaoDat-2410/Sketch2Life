@@ -50,7 +50,9 @@ from sketch2life.application.services.learning_media_resolver import (
 )
 from sketch2life.application.services.p1_experience import P1ExperienceCompiler
 from sketch2life.application.services.pixi_motion_cycle_compiler import select_motion_cycle
-from sketch2life.application.services.pixi_show_compiler import compile_pixi_show_plan
+from sketch2life.application.services.pixi_show_compiler import (
+    compile_adaptive_pixi_show_plan,
+)
 from sketch2life.application.services.pixi_topic_asset_candidates import (
     build_topic_asset_candidate_context,
 )
@@ -117,7 +119,7 @@ from sketch2life.contracts.schemas.p1_experience import (
     VersionedRefV1,
 )
 from sketch2life.contracts.schemas.pixi_motion_cycle import (
-    PixiRendererShowEnvelopeV3,
+    PixiRendererShowEnvelopeV4,
     PixiSpriteCycleReadV1,
     PixiSpriteCycleReasonCodeV1,
     PixiSpriteCycleStatusV1,
@@ -425,6 +427,9 @@ class SupervisedFlowService:
         pixi_show_asset_issuer: (
             Callable[[tuple[str, ...]], tuple[PixiShowAssetReadV1, ...]] | None
         ) = None,
+        pixi_show_candidate_preview_provider: (
+            Callable[[tuple[str, ...]], Mapping[str, bytes]] | None
+        ) = None,
         pixi_motion_cycle_issuer: Callable[..., PixiMotionCycleIssue] | None = None,
         now: Callable[[], datetime] = lambda: datetime.now(UTC),
     ) -> None:
@@ -443,6 +448,7 @@ class SupervisedFlowService:
         self._pixi_show_planner_required = pixi_show_planner_required
         self._pixi_show_crop_provider = pixi_show_crop_provider
         self._pixi_show_asset_issuer = pixi_show_asset_issuer
+        self._pixi_show_candidate_preview_provider = pixi_show_candidate_preview_provider
         self._pixi_motion_cycle_issuer = pixi_motion_cycle_issuer
         self._now = now
         self._session_locks = SessionLockPool()
@@ -2368,7 +2374,7 @@ class SupervisedFlowService:
                         "hãy thử lại khi Pixi sẵn sàng.",
                         domain="PIXI",
                     ) from None
-            show_envelope: PixiRendererShowEnvelopeV3 | None = None
+            show_envelope: PixiRendererShowEnvelopeV4 | None = None
             if self._pixi_show_planner_required:
                 try:
                     if launch_v2 is None or package is None:
@@ -2376,27 +2382,55 @@ class SupervisedFlowService:
                     activity = spec.activity_plan.presentation_steps_vi[0]
                     objective_id = spec.learning_focus.objective_ref.id
                     objective_label = spec.learning_focus.child_facing_goal_vi
+                    stored_topic_label = workflow.values.get("topic_label_vi")
+                    chosen_topic_label = (
+                        stored_topic_label.strip()
+                        if isinstance(stored_topic_label, str) and stored_topic_label.strip()
+                        else anchor_set.primary_anchor.normalized_label
+                    )
+                    chosen_topic_labels = tuple(
+                        dict.fromkeys(
+                            (
+                                chosen_topic_label,
+                                anchor_set.primary_anchor.normalized_label,
+                                *(item.normalized_label for item in anchor_set.secondary_anchors),
+                            )
+                        )
+                    )[:5]
+                    candidate_topic_labels = tuple(
+                        dict.fromkeys((*chosen_topic_labels, activity, objective_label))
+                    )[:5]
                     candidate_context = build_topic_asset_candidate_context(
                         query=AdultConfirmedTopicV1(
                             gateAConfirmed=True,
-                            topicLabels=tuple(
-                                dict.fromkeys(
-                                    (
-                                        anchor_set.primary_anchor.normalized_label,
-                                        activity,
-                                        objective_label,
-                                    )
-                                )
-                            )[:5],
+                            topicLabels=candidate_topic_labels,
                             topicTags=anchor_set.primary_anchor.semantic_tags[:20],
                             locale="vi",
-                            maxCandidates=6,
+                            requestedRoles=("ENVIRONMENT", "PROP", "EFFECT"),
+                            maxCandidates=5,
                         ),
                         assets=self._topic_assets,
                     )
                     if candidate_context.status not in {"READY", "NO_MATCH"}:
                         raise PixiShowPlannerUnavailable("PLANNER_UNAVAILABLE")
-                    if candidate_context.status == "NO_MATCH":
+                    candidate_by_id = {
+                        item.asset_id: item for item in candidate_context.candidates
+                    }
+                    environment_context = build_topic_asset_candidate_context(
+                        query=AdultConfirmedTopicV1(
+                            gateAConfirmed=True,
+                            topicLabels=candidate_topic_labels,
+                            topicTags=anchor_set.primary_anchor.semantic_tags[:20],
+                            locale="vi",
+                            requestedRoles=("ENVIRONMENT",),
+                            maxCandidates=1,
+                        ),
+                        assets=self._topic_assets,
+                    )
+                    for item in environment_context.candidates:
+                        candidate_by_id.setdefault(item.asset_id, item)
+                    candidate_values = tuple(candidate_by_id.values())[:6]
+                    if candidate_context.status == "NO_MATCH" and not candidate_values:
                         _LOGGER.info(
                             "pixi_show_subject_only reason=%s",
                             candidate_context.miss_reason or "NO_COMPATIBLE_APPROVED_ASSETS",
@@ -2407,6 +2441,10 @@ class SupervisedFlowService:
                         self._pixi_show_planner is None
                         or self._pixi_show_crop_provider is None
                         or self._pixi_show_asset_issuer is None
+                        or (
+                            bool(candidate_values)
+                            and self._pixi_show_candidate_preview_provider is None
+                        )
                     ):
                         raise PixiShowPlannerUnavailable("PLANNER_UNAVAILABLE")
                     parent_mask = next(
@@ -2429,6 +2467,20 @@ class SupervisedFlowService:
                             parent_mask.sha256,
                         )
                     )
+                    preview_map = (
+                        self._pixi_show_candidate_preview_provider(
+                            tuple(item.asset_id for item in candidate_values)
+                        )
+                        if (
+                            candidate_values
+                            and self._pixi_show_candidate_preview_provider is not None
+                        )
+                        else {}
+                    )
+                    if candidate_values and any(
+                        item.asset_id not in preview_map for item in candidate_values
+                    ):
+                        raise PixiShowPlannerUnavailable("PLANNER_UNAVAILABLE")
                     planner_candidates = tuple(
                         PixiShowAssetCandidate(
                             asset_id=item.asset_id,
@@ -2436,8 +2488,10 @@ class SupervisedFlowService:
                             role=item.render_role,
                             visual_description=item.visual_description.vi,
                             topic_tags=item.topic_tags[:12],
+                            preview_content_type="image/png",
+                            preview_bytes=preview_map.get(item.asset_id),
                         )
-                        for item in candidate_context.candidates
+                        for item in candidate_values
                     )
                     renderer_duration_seconds = launch_v2.animation_plan.duration_seconds
                     if not renderer_duration_seconds.is_integer():
@@ -2464,13 +2518,20 @@ class SupervisedFlowService:
                         candidate_assets=planner_candidates,
                         source_crop_content_type=crop_content_type,
                         source_crop_bytes=crop_bytes,
+                        chosen_topic_labels=chosen_topic_labels,
                     )
                     intent = self._pixi_show_planner.plan(planning_request)
-                    show_plan = compile_pixi_show_plan(
+                    show_plan = compile_adaptive_pixi_show_plan(
                         request=planning_request,
                         intent=intent,
                     )
-                    asset_reads = self._pixi_show_asset_issuer(show_plan.selected_asset_ids)
+                    scene_asset_id_values = list(show_plan.selected_asset_ids)
+                    if show_plan.scene_theme_asset_id is not None:
+                        scene_asset_id_values.append(show_plan.scene_theme_asset_id)
+                    scene_asset_ids = tuple(dict.fromkeys(scene_asset_id_values))
+                    if len(scene_asset_ids) > 3:
+                        raise PixiShowPlannerUnavailable("NO_COMPATIBLE_ASSET")
+                    asset_reads = self._pixi_show_asset_issuer(scene_asset_ids)
                     cycle_selection = select_motion_cycle(show_plan)
                     sprite_cycle: PixiSpriteCycleReadV1 | None = None
                     cycle_status: PixiSpriteCycleStatusV1 = "NOT_APPLICABLE"
@@ -2496,9 +2557,9 @@ class SupervisedFlowService:
                             else:
                                 sprite_cycle = issue.cycle
                                 cycle_status = "READY"
-                    show_envelope = PixiRendererShowEnvelopeV3(
-                        contractName="PixiRendererShowEnvelopeV3",
-                        contractVersion="3.0",
+                    show_envelope = PixiRendererShowEnvelopeV4(
+                        contractName="PixiRendererShowEnvelopeV4",
+                        contractVersion="4.0",
                         rendererLaunchV2=launch_v2,
                         showPlan=show_plan,
                         assetReads=asset_reads,

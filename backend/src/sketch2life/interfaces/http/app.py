@@ -389,6 +389,7 @@ def create_app(
                 pixi_show_planner_required=pixi_show_planner_required,
                 pixi_show_crop_provider=load_pixi_subject_crop,
                 pixi_show_asset_issuer=pixi_show_asset_service.issue_reads,
+                pixi_show_candidate_preview_provider=pixi_show_asset_service.preview_candidates,
                 pixi_motion_cycle_issuer=issue_pixi_motion_cycle,
             )
     application.state.session_service = session_service

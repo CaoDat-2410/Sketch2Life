@@ -91,3 +91,17 @@ V1/V2/V3. User visual approval does not clear legal/provenance, technical, catal
 Android gates; the expansion manifest remains runtime-ineligible. See
 `adr/ADR-030-09-sprite-cycle-renderer-sidecar.md` and
 `evidence/notes/SPRITE_CYCLE_PIXI_INTEGRATION_20261002.md`.
+
+## Owner direction — adaptive original-art rendering — 2026-10-08 (plan approved)
+
+- Preserve the source drawing and prefer a validated full part rig. When part masks are incomplete but the subject mask is valid, the desired presentation is a source-derived cutout in a topic-matched scene.
+- Reuse the existing single post-Gate-B planner call. Let it select only among supported strategies and backend-supplied eligible scene candidates; the child-selected topic and Gate-A/Gate-B decisions remain authoritative.
+- The exact plan revision 1 was approved by the owner at 2026-10-08 22:20 Asia/Saigon; its pre-approval hash and scope are recorded in `approvals/TASK_APPROVAL.md`. Implementation is authorized within that scope; live-provider execution and production activation remain gated.
+
+## Adaptive rendering implementation — 2026-10-08
+
+- Keep the approved one-call boundary. The worker packages the source crop and eligible candidate previews into one bounded contact sheet for the existing post-Gate-B planner request; preview bytes are transient and never placed in logs or evidence.
+- Keep strategy and theme selection closed: the planner may select only a strategy supported by the validated rig tier and asset IDs from the backend allowlist. The child-selected topic plus Gate-A subject and Gate-B activity/objective remain authoritative.
+- Preserve the existing part-mask containment/coverage threshold. An incomplete partition cannot be labeled `FULL_AUTO_RIG`; use the validated source cutout/topic-scene strategy when supported, otherwise cutout micro-motion or static source.
+- Keep the source drawing intact as the lead subject. Theme assets render behind it, and `STATIC_SOURCE` disables source translation.
+- Local implementation and verification are recorded in `evidence/notes/ADAPTIVE_ART_AND_TOPIC_SCENE_IMPLEMENTATION_20261008.md`. Live provider, rights/runtime, privacy/L4, and Android acceptance remain separate gates.

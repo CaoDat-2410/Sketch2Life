@@ -1,7 +1,7 @@
 # FEAT-030 status
 
 Status: IN_PROGRESS
-Updated: 2026-10-02
+Updated: 2026-10-08
 
 ## Local sprite-cycle runtime preview — 2026-10-02
 
@@ -121,3 +121,20 @@ Updated: 2026-10-02
 - Full backend tests and focused Pixi regressions pass; this establishes contract/service behavior,
   not a successful live drawing or Android visual acceptance. See
   `../../FEAT-035-branch-review-remediation/evidence/notes/implementation-progress-20261003.md`.
+
+## Adaptive original-art rendering — implementation in progress — 2026-10-08
+
+- Owner choices recorded: attempt both background extraction and part separation; prefer full rig when masks validate; otherwise use a verified subject cutout in a scene matching the child's selected topic; let AI choose among supported strategies; reuse the existing single post-Gate-B planner call.
+- Review found that the current planner chooses behavior/assets/beats but does not return an explicit renderer strategy or scene-theme choice. Candidate descriptors are text-only, so style-fit assessment needs bounded candidate previews or an equivalent reviewed visual signal.
+- Additive plan: `plan/PIXI_ADAPTIVE_ART_AND_TOPIC_SCENE_20261008.md`, revision 1, approved against pre-approval SHA-256 `FC634C8899AB4B4FC618AF8311BDBD9C7391CC0C952C2F24AF60EC33D12428EF`; owner approval recorded 2026-10-08 22:20 Asia/Saigon. Offline implementation and focused verification are complete; external acceptance gates remain open. No live-provider request or asset promotion is included.
+- Existing FEAT-028 rights/runtime, FEAT-030 provider/privacy/L4, and Android visual acceptance gates remain closed.
+
+## Adaptive original-art rendering — local implementation — 2026-10-08
+
+- Implemented the additive planner strategy/theme contract and bounded ephemeral candidate previews in the existing single post-Gate-B request. The planner can choose only a validated full rig, a verified cutout with a topic scene, cutout micro-motion, or static source, with backend-allowlisted asset IDs.
+- Reused the verified source-cutout/background reconstruction path. Pixi now loads an eligible scene theme behind the drawing and freezes subject translation for `STATIC_SOURCE`; the original remains the lead image.
+- Added regression coverage for incomplete part-mask coverage: masks covering only part of the verified subject are rejected before a full rig is emitted. Clean part-mask, same-color silhouette, cutout, contract, planner, and renderer cases are also covered with synthetic data.
+- Local checks: the combined focused planner/catalog/worker/settings/auto-rig/part-mask backend suite passed (108); Ruff, renderer typecheck, renderer Vitest (67), and mobile typecheck passed.
+- The full backend suite had one unrelated FEAT-020 semantic-personalization test failure involving the repository's current age-band policy; five tests were skipped. No change was made to that workstream.
+- No live provider request, real child image, asset promotion, production activation, or Android visual acceptance occurred. FEAT-028 rights/runtime, privacy/retention, L4/ADR, and Android acceptance gates remain open.
+- Detailed record: `evidence/notes/ADAPTIVE_ART_AND_TOPIC_SCENE_IMPLEMENTATION_20261008.md`.

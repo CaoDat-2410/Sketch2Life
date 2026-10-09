@@ -606,8 +606,167 @@ export const RendererLoadCommandV5Schema = z.object({
   }
 });
 
+export const PixiShowPlanV3Schema = z.object({
+  ...PixiShowPlanV2Schema.shape,
+  contractName: z.literal('PixiShowPlanV3'),
+  contractVersion: z.literal('3.0'),
+  renderStrategy: z.enum(['FULL_AUTO_RIG', 'CUTOUT_TOPIC_SCENE', 'CUTOUT_MICRO_MOTION', 'STATIC_SOURCE']),
+  chosenTopicLabel: z.string().min(1).max(160),
+  sceneThemeAssetId: z.string().min(1).max(160).nullable().optional(),
+}).strict().superRefine((plan, context) => {
+  if (new Set(plan.selectedAssetIds).size !== plan.selectedAssetIds.length) {
+    context.addIssue({code: z.ZodIssueCode.custom, message: 'Selected show asset IDs must be unique.'});
+  }
+  if (plan.beats.at(-1)?.action !== 'SETTLE') {
+    context.addIssue({code: z.ZodIssueCode.custom, message: 'The show must settle before its still ending.'});
+  }
+  const lastBeat = plan.beats.at(-1);
+  if (lastBeat && plan.durationSeconds - lastBeat.endSeconds < 2) {
+    context.addIssue({code: z.ZodIssueCode.custom, message: 'The final still must last at least two seconds.'});
+  }
+  let previousEnd = -1;
+  const referenced = new Set<string>();
+  for (const [index, beat] of plan.beats.entries()) {
+    if (beat.startSeconds < previousEnd) {
+      context.addIssue({code: z.ZodIssueCode.custom, path: ['beats', index], message: 'Show beats must be ordered and non-overlapping.'});
+    }
+    previousEnd = beat.endSeconds;
+    if (beat.endSeconds > plan.durationSeconds) {
+      context.addIssue({code: z.ZodIssueCode.custom, path: ['beats', index], message: 'Show beat exceeds total duration.'});
+    }
+    if (beat.assetId !== undefined && !plan.selectedAssetIds.includes(beat.assetId)) {
+      context.addIssue({code: z.ZodIssueCode.custom, path: ['beats', index, 'assetId'], message: 'Show beat references an unselected asset.'});
+    }
+    if (beat.assetId !== undefined) referenced.add(beat.assetId);
+  }
+  if (referenced.size !== plan.selectedAssetIds.length || plan.selectedAssetIds.some((id) => !referenced.has(id))) {
+    context.addIssue({code: z.ZodIssueCode.custom, path: ['selectedAssetIds'], message: 'Every supplemental asset must be used by at least one beat.'});
+  }
+  const themeId = plan.sceneThemeAssetId ?? undefined;
+  if (plan.selectedAssetIds.length + (themeId === undefined ? 0 : 1) > 3) {
+    context.addIssue({code: z.ZodIssueCode.custom, path: ['selectedAssetIds'], message: 'Adaptive show may use at most three visual assets.'});
+  }
+  if (themeId !== undefined && plan.selectedAssetIds.includes(themeId)) {
+    context.addIssue({code: z.ZodIssueCode.custom, path: ['sceneThemeAssetId'], message: 'Scene theme must be separate from supplemental assets.'});
+  }
+  if ((plan.renderStrategy === 'CUTOUT_TOPIC_SCENE') !== (themeId !== undefined)) {
+    context.addIssue({code: z.ZodIssueCode.custom, path: ['sceneThemeAssetId'], message: 'Topic-scene strategy requires exactly one scene theme asset.'});
+  }
+});
+
+export const PixiRendererShowEnvelopeV4Schema = z.object({
+  contractName: z.literal('PixiRendererShowEnvelopeV4'),
+  contractVersion: z.literal('4.0'),
+  rendererLaunchV2: PixiRendererLaunchV2WireSchema,
+  showPlan: PixiShowPlanV3Schema,
+  assetReads: z.array(PixiShowAssetReadV1Schema).max(3),
+  spriteCycleStatus: z.enum(['READY', 'BLOCKED', 'NOT_APPLICABLE']),
+  spriteCycleReasonCode: z.enum([
+    'ASSET_UNAVAILABLE', 'INVALID_CYCLE_REQUEST', 'UNKNOWN_CYCLE', 'VISUAL_REVIEW_REQUIRED',
+    'RIGHTS_NOT_CLEARED', 'FRAME_QA_REQUIRED', 'CATALOG_NOT_REGISTERED', 'RENDERER_NOT_VERIFIED',
+    'RUNTIME_NOT_ELIGIBLE', 'FRAME_QA_FAILED', 'NO_SAFE_PLACEMENT',
+  ]).optional(),
+  spriteCycle: PixiSpriteCycleReadV1Schema.optional(),
+}).strict().superRefine((envelope, context) => {
+  const {rendererLaunchV2: launch, showPlan: plan} = envelope;
+  if (
+    launch.sessionId !== plan.sessionId
+    || launch.sourceSha256 !== plan.sourceSha256
+    || launch.animationPlan.packageId !== plan.packageId
+    || launch.experienceSpecRef.id !== plan.experienceSpecRef.id
+    || launch.experienceSpecRef.version !== plan.experienceSpecRef.version
+  ) {
+    context.addIssue({code: z.ZodIssueCode.custom, message: 'Adaptive show envelope identity differs from its V2 launch.'});
+  }
+  const expectedIds = [...plan.selectedAssetIds, ...(plan.sceneThemeAssetId ? [plan.sceneThemeAssetId] : [])];
+  const readIds = envelope.assetReads.map((read) => read.assetId);
+  if (new Set(readIds).size !== readIds.length || readIds.length !== expectedIds.length || expectedIds.some((id) => !readIds.includes(id))) {
+    context.addIssue({code: z.ZodIssueCode.custom, path: ['assetReads'], message: 'Asset capabilities must exactly match scene and supplemental asset IDs.'});
+  }
+  if (envelope.spriteCycle && envelope.spriteCycle.endSeconds > plan.durationSeconds) {
+    context.addIssue({code: z.ZodIssueCode.custom, path: ['spriteCycle', 'endSeconds'], message: 'Sprite cycle exceeds the show duration.'});
+  }
+  if (envelope.spriteCycleStatus === 'READY' && (envelope.spriteCycle === undefined || envelope.spriteCycleReasonCode !== undefined)) {
+    context.addIssue({code: z.ZodIssueCode.custom, path: ['spriteCycleStatus'], message: 'READY requires cycle data and no reason.'});
+  }
+  if (envelope.spriteCycleStatus === 'BLOCKED' && (envelope.spriteCycle !== undefined || envelope.spriteCycleReasonCode === undefined)) {
+    context.addIssue({code: z.ZodIssueCode.custom, path: ['spriteCycleStatus'], message: 'BLOCKED requires a reason and no cycle data.'});
+  }
+  if (envelope.spriteCycleStatus === 'NOT_APPLICABLE' && (envelope.spriteCycle !== undefined || envelope.spriteCycleReasonCode !== undefined)) {
+    context.addIssue({code: z.ZodIssueCode.custom, path: ['spriteCycleStatus'], message: 'NOT_APPLICABLE cannot contain cycle data or a reason.'});
+  }
+});
+
+export const RendererLoadCommandV6Schema = z.object({
+  ...RendererLoadCommandV5Schema.shape,
+  contractName: z.literal('RendererLoadCommandV6'),
+  contractVersion: z.literal('6.0'),
+  protocolVersion: z.literal('6'),
+  showPlan: PixiShowPlanV3Schema,
+  assetReads: z.array(PixiShowAssetReadV1Schema).max(3),
+}).strict().superRefine((command, context) => {
+  const {sceneThemeAssetId, renderStrategy, chosenTopicLabel, ...basePlanFields} = command.showPlan;
+  const themeId = sceneThemeAssetId ?? undefined;
+  const basePlan = {
+    ...basePlanFields,
+    contractName: 'PixiShowPlanV2',
+    contractVersion: '2.0',
+  };
+  const supplementalReads = command.assetReads.filter((read) => read.assetId !== themeId);
+  const baseCommand = RendererLoadCommandV5Schema.safeParse({
+    ...command,
+    contractName: 'RendererLoadCommandV5',
+    contractVersion: '5.0',
+    protocolVersion: '5',
+    showPlan: basePlan,
+    assetReads: supplementalReads,
+  });
+  if (!baseCommand.success) {
+    context.addIssue({code: z.ZodIssueCode.custom, message: 'V6 base renderer command must satisfy every V5 invariant.'});
+  }
+  const expectedAssetIds = [...command.showPlan.selectedAssetIds, ...(themeId === undefined ? [] : [themeId])];
+  const actualAssetIds = command.assetReads.map((read) => read.assetId);
+  if (
+    new Set(actualAssetIds).size !== actualAssetIds.length
+    || actualAssetIds.length !== expectedAssetIds.length
+    || expectedAssetIds.some((id) => !actualAssetIds.includes(id))
+  ) {
+    context.addIssue({code: z.ZodIssueCode.custom, path: ['assetReads'], message: 'V6 capabilities must exactly match the theme and selected assets.'});
+  }
+  if (
+    renderStrategy === 'CUTOUT_TOPIC_SCENE'
+    && (themeId === undefined || !command.assetReads.some((read) => read.assetId === themeId))
+  ) {
+    context.addIssue({code: z.ZodIssueCode.custom, path: ['showPlan', 'sceneThemeAssetId'], message: 'Topic scene requires a capability for its selected background.'});
+  }
+  if (renderStrategy !== 'CUTOUT_TOPIC_SCENE' && themeId !== undefined) {
+    context.addIssue({code: z.ZodIssueCode.custom, path: ['showPlan', 'sceneThemeAssetId'], message: 'Only topic-scene strategy may include a background.'});
+  }
+  if ((command.animationPlan.tier === 'FULL_AUTO_RIG') !== (renderStrategy === 'FULL_AUTO_RIG')) {
+    context.addIssue({code: z.ZodIssueCode.custom, path: ['showPlan', 'renderStrategy'], message: 'Full-rig strategy requires independently verified part masks.'});
+  }
+  if (renderStrategy === 'CUTOUT_TOPIC_SCENE' && command.animationPlan.tier !== 'CUTOUT_MICRO_MOTION') {
+    context.addIssue({code: z.ZodIssueCode.custom, path: ['showPlan', 'renderStrategy'], message: 'Topic-scene strategy requires the verified source cutout tier.'});
+  }
+  if (renderStrategy === 'CUTOUT_MICRO_MOTION' && command.animationPlan.tier !== 'CUTOUT_MICRO_MOTION') {
+    context.addIssue({code: z.ZodIssueCode.custom, path: ['showPlan', 'renderStrategy'], message: 'Cutout motion requires the verified source cutout tier.'});
+  }
+  if (renderStrategy === 'FULL_AUTO_RIG' && !command.showPlan.beats.some((beat) => (
+    beat.targetRole === 'SOURCE_SUBJECT'
+    && ['WALK_STEP', 'FLAP', 'GLIDE', 'SWIM', 'SLITHER', 'ROLL'].includes(beat.action)
+  ))) {
+    context.addIssue({code: z.ZodIssueCode.custom, path: ['showPlan', 'beats'], message: 'Full-rig strategy requires at least one supported part-motion beat.'});
+  }
+  if (renderStrategy === 'STATIC_SOURCE' && command.showPlan.beats.some((beat) => (
+    beat.targetRole === 'SOURCE_SUBJECT' && !['NOTICE', 'SETTLE'].includes(beat.action)
+  ))) {
+    context.addIssue({code: z.ZodIssueCode.custom, path: ['showPlan', 'beats'], message: 'Static-source strategy cannot contain subject-motion beats.'});
+  }
+});
+
 export type PixiShowPlanV1 = z.infer<typeof PixiShowPlanV1Schema>;
 export type PixiShowPlanV2 = z.infer<typeof PixiShowPlanV2Schema>;
+export type PixiShowPlanV3 = z.infer<typeof PixiShowPlanV3Schema>;
 export type PixiShowAssetReadV1 = z.infer<typeof PixiShowAssetReadV1Schema>;
 export type PixiRendererLaunchV2Wire = z.infer<typeof PixiRendererLaunchV2WireSchema>;
 export type PixiRendererShowEnvelopeV1 = z.infer<typeof PixiRendererShowEnvelopeV1Schema>;
@@ -615,5 +774,7 @@ export type RendererLoadCommandV3 = z.infer<typeof RendererLoadCommandV3Schema>;
 export type PixiSpriteCycleReadV1 = z.infer<typeof PixiSpriteCycleReadV1Schema>;
 export type PixiRendererShowEnvelopeV2 = z.infer<typeof PixiRendererShowEnvelopeV2Schema>;
 export type PixiRendererShowEnvelopeV3 = z.infer<typeof PixiRendererShowEnvelopeV3Schema>;
+export type PixiRendererShowEnvelopeV4 = z.infer<typeof PixiRendererShowEnvelopeV4Schema>;
 export type RendererLoadCommandV4 = z.infer<typeof RendererLoadCommandV4Schema>;
 export type RendererLoadCommandV5 = z.infer<typeof RendererLoadCommandV5Schema>;
+export type RendererLoadCommandV6 = z.infer<typeof RendererLoadCommandV6Schema>;

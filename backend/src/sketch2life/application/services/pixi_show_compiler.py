@@ -15,7 +15,9 @@ from sketch2life.contracts.schemas.pixi_show import (
     PixiBehaviorClassV1,
     PixiShowActionV1,
     PixiShowIntentV1,
+    PixiShowIntentV2,
     PixiShowPlanV2,
+    PixiShowPlanV3,
     PixiSubjectHintV1,
 )
 
@@ -148,6 +150,99 @@ def compile_pixi_show_plan(
         raise PixiShowPlannerUnavailable("PLANNER_INVALID_RESULT") from None
 
 
+def compile_adaptive_pixi_show_plan(
+    *,
+    request: PixiShowPlanningRequest,
+    intent: PixiShowIntentV2,
+    plan_id: str | None = None,
+) -> PixiShowPlanV3:
+    """Validate the selected strategy and exact environment candidate before delivery."""
+    if not request.chosen_topic_labels:
+        raise PixiShowPlannerUnavailable("PLANNER_INVALID_RESULT")
+    if request.rig_tier == "FULL_AUTO_RIG":
+        if intent.render_strategy != "FULL_AUTO_RIG" or intent.scene_theme_asset_id is not None:
+            raise PixiShowPlannerUnavailable("BEHAVIOR_CAPABILITY_UNSUPPORTED")
+        if not any(beat.action in _BEHAVIOR_FOR_ACTION for beat in intent.beats):
+            raise PixiShowPlannerUnavailable("BEHAVIOR_CAPABILITY_UNSUPPORTED")
+    elif intent.render_strategy == "FULL_AUTO_RIG":
+        raise PixiShowPlannerUnavailable("BEHAVIOR_CAPABILITY_UNSUPPORTED")
+    elif intent.render_strategy == "CUTOUT_TOPIC_SCENE":
+        if request.rig_tier != "CUTOUT_MICRO_MOTION":
+            raise PixiShowPlannerUnavailable("BEHAVIOR_CAPABILITY_UNSUPPORTED")
+    elif intent.render_strategy == "CUTOUT_MICRO_MOTION":
+        if request.rig_tier != "CUTOUT_MICRO_MOTION" or intent.scene_theme_asset_id is not None:
+            raise PixiShowPlannerUnavailable("BEHAVIOR_CAPABILITY_UNSUPPORTED")
+    elif intent.scene_theme_asset_id is not None:
+        raise PixiShowPlannerUnavailable("PLANNER_INVALID_RESULT")
+
+    if intent.scene_theme_asset_id is not None:
+        candidate = next(
+            (
+                item
+                for item in request.candidate_assets
+                if item.asset_id == intent.scene_theme_asset_id
+            ),
+            None,
+        )
+        if candidate is None or candidate.role != "ENVIRONMENT":
+            raise PixiShowPlannerUnavailable("PLANNER_INVALID_RESULT")
+    elif intent.render_strategy == "CUTOUT_TOPIC_SCENE":
+        raise PixiShowPlannerUnavailable("NO_COMPATIBLE_ASSET")
+
+    selected_candidates = {
+        item.asset_id: item for item in request.candidate_assets
+    }
+    if any(
+        selected_candidates.get(asset_id) is None
+        or selected_candidates[asset_id].role not in {"PROP", "EFFECT"}
+        for asset_id in intent.selected_asset_ids
+    ):
+        raise PixiShowPlannerUnavailable("PLANNER_INVALID_RESULT")
+    if intent.render_strategy == "STATIC_SOURCE" and any(
+        beat.target_role == "SOURCE_SUBJECT" and beat.action not in {
+            PixiShowActionV1.NOTICE,
+            PixiShowActionV1.SETTLE,
+        }
+        for beat in intent.beats
+    ):
+        raise PixiShowPlannerUnavailable("BEHAVIOR_CAPABILITY_UNSUPPORTED")
+    if intent.scene_theme_asset_id in set(intent.selected_asset_ids):
+        raise PixiShowPlannerUnavailable("PLANNER_INVALID_RESULT")
+    chosen_topic_label = request.chosen_topic_labels[0].strip()
+    if not chosen_topic_label:
+        raise PixiShowPlannerUnavailable("PLANNER_INVALID_RESULT")
+
+    try:
+        base_intent = PixiShowIntentV1.model_validate(
+            intent.model_dump(
+                mode="python",
+                by_alias=True,
+                exclude={"render_strategy", "scene_theme_asset_id"},
+            )
+        )
+    except ValidationError:
+        raise PixiShowPlannerUnavailable("PLANNER_INVALID_RESULT") from None
+    base_plan = compile_pixi_show_plan(request=request, intent=base_intent, plan_id=plan_id)
+    try:
+        selected_total = len(base_plan.selected_asset_ids) + (
+            1 if intent.scene_theme_asset_id is not None else 0
+        )
+        if selected_total > 3:
+            raise PixiShowPlannerUnavailable("NO_COMPATIBLE_ASSET")
+        return PixiShowPlanV3.model_validate(
+            {
+                **base_plan.model_dump(mode="python", by_alias=True),
+                "contractName": "PixiShowPlanV3",
+                "contractVersion": "3.0",
+                "renderStrategy": intent.render_strategy,
+                "chosenTopicLabel": chosen_topic_label,
+                "sceneThemeAssetId": intent.scene_theme_asset_id,
+            }
+        )
+    except ValidationError:
+        raise PixiShowPlannerUnavailable("PLANNER_INVALID_RESULT") from None
+
+
 def _confirmed_subject_hint(label: str, tags: tuple[str, ...]) -> PixiSubjectHintV1:
     normalized = _normalize(" ".join((label, *tags)))
     aliases: tuple[tuple[PixiSubjectHintV1, tuple[str, ...]], ...] = (
@@ -208,4 +303,4 @@ def _contains_token_phrase(value: str, phrase: str) -> bool:
     return f" {phrase} " in f" {value} "
 
 
-__all__ = ["compile_pixi_show_plan"]
+__all__ = ["compile_adaptive_pixi_show_plan", "compile_pixi_show_plan"]

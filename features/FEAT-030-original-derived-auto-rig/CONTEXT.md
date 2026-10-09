@@ -209,3 +209,18 @@ syncs animation to the existing show clock. Backend, renderer, mobile, build, ty
 repository security checks passed. Visual approval is not runtime approval: rights/provenance,
 crop/pivot/loop QA, catalog registration, formal renderer verification, and Android acceptance remain
 open, so the checked-in manifest still rejects runtime use. Details: `evidence/notes/SPRITE_CYCLE_PIXI_INTEGRATION_20261002.md`.
+
+## Owner direction — adaptive original-art rendering — 2026-10-08
+
+- The owner wants both background removal and body-part separation, preferring independent part motion when validated masks support it.
+- If the whole subject cannot be split into reliable parts, use the validated original-subject cutout in a Pixi scene selected to fit the child's chosen topic. The owner allows AI to choose among supported rendering strategies and selected reuse of the existing single post-Gate-B planner request.
+- The planner currently selects behavior/assets/beats but has no explicit rendering-strategy/theme field; current candidate data is text metadata without visual previews. The approved additive contract and candidate-preview approach is recorded in `plan/PIXI_ADAPTIVE_ART_AND_TOPIC_SCENE_20261008.md` (pre-approval SHA-256 recorded in the approval ledger).
+- Gate A/B authority, immutable source/provenance, FEAT-028 asset rights/runtime eligibility, and no-live-provider boundaries remain in force.
+
+## Adaptive original-art rendering — implementation update — 2026-10-08
+
+- The approved additive contract is implemented locally: planner request V3 carries the selected topic and bounded transient candidate previews; plan V3 returns one supported renderer strategy and an optional allowlisted scene-theme asset. The existing post-Gate-B planner request remains the only AI call.
+- Verified part motion remains preferred. The auto-rig validator rejects partial part masks that do not meet the existing parent-containment and coverage bar; the valid subject mask can then use the approved cutout/topic-scene path. The source artwork is immutable and remains the primary subject.
+- Renderer envelope V4 and command V6 are additive; older Pixi contracts remain supported. Theme art is capability/hash checked and rendered behind the cutout. Static-source mode disables subject translation.
+- Candidate previews are generated transiently from approved/applied, runtime-eligible catalog assets and are excluded from logs and evidence. The worker builds one contact sheet for the existing planner inference; no second inference, new dependency/model, or live provider request was made.
+- Local verification and remaining gates are recorded in `evidence/notes/ADAPTIVE_ART_AND_TOPIC_SCENE_IMPLEMENTATION_20261008.md`.

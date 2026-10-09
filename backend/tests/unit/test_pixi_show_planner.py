@@ -17,15 +17,17 @@ from sketch2life.application.ports.pixi_show_planner import (
 from sketch2life.application.services.auto_rig.part_masks import derive_part_masks_from_subject_mask
 from sketch2life.application.services.pixi_show_compiler import (
     _confirmed_subject_hint,
+    compile_adaptive_pixi_show_plan,
     compile_pixi_show_plan,
 )
 from sketch2life.contracts.schemas.auto_rig import RigArchetype, RigDeliveryTier
 from sketch2life.contracts.schemas.pixi_motion_cycle import (
     PixiRendererShowEnvelopeV2,
     PixiRendererShowEnvelopeV3,
+    PixiRendererShowEnvelopeV4,
 )
 from sketch2life.contracts.schemas.pixi_show import (
-    PixiShowIntentV1,
+    PixiShowIntentV2,
 )
 from sketch2life.contracts.schemas.renderer_v2 import (
     PixiRendererLaunchV2,
@@ -68,14 +70,16 @@ def _planning_request(
                 role="PROP",
                 visual_description="Một bông hoa nhỏ màu vàng.",
                 topic_tags=("hoa", "vườn"),
+                preview_bytes=_png(Image.new("RGBA", (8, 8), (240, 180, 40, 255))),
             ),
         ),
         source_crop_content_type="image/png",
         source_crop_bytes=_PNG,
+        chosen_topic_labels=("Cùng khám phá chim",),
     )
 
 
-def _intent(**overrides: object) -> PixiShowIntentV1:
+def _intent(**overrides: object) -> PixiShowIntentV2:
     value: dict[str, object] = {
         "visualSubjectHintId": "BIRD",
         "behaviorClass": "FLYER",
@@ -109,9 +113,11 @@ def _intent(**overrides: object) -> PixiShowIntentV1:
             },
         ],
         "endingStill": True,
+        "renderStrategy": "FULL_AUTO_RIG",
+        "sceneThemeAssetId": None,
     }
     value.update(overrides)
-    return PixiShowIntentV1.model_validate(value)
+    return PixiShowIntentV2.model_validate(value)
 
 
 def test_compiler_emits_versioned_plan_bound_to_gate_a_gate_b_and_rig() -> None:
@@ -279,6 +285,106 @@ def test_v3_envelope_accepts_empty_companion_reads_without_relaxing_v2() -> None
         )
 
 
+def test_adaptive_compiler_binds_topic_scene_to_verified_cutout_and_environment_read() -> None:
+    environment = PixiShowAssetCandidate(
+        asset_id="asset-meadow-bg",
+        label="Đồng cỏ",
+        role="ENVIRONMENT",
+        visual_description="Một đồng cỏ xanh dịu, phong cách nét vẽ trẻ em.",
+        topic_tags=("chim", "đồng cỏ"),
+        preview_bytes=_png(Image.new("RGBA", (12, 8), (90, 180, 90, 255))),
+    )
+    request = replace(
+        _planning_request(rig_tier="CUTOUT_MICRO_MOTION", part_roles=()),
+        candidate_assets=(*_planning_request().candidate_assets, environment),
+    )
+    intent = _intent(
+        renderStrategy="CUTOUT_TOPIC_SCENE",
+        sceneThemeAssetId="asset-meadow-bg",
+    )
+    plan = compile_adaptive_pixi_show_plan(request=request, intent=intent)
+    spec_ref = {"id": "spec-bird", "version": 1}
+    animation = VisualAnimationPlanV2(
+        contractName="VisualAnimationPlanV2",
+        contractVersion="2.0",
+        planId="visual-plan-scene",
+        sessionId="internal-session-id",
+        experienceSpecRef=spec_ref,
+        packageId="rig-package-test",
+        archetype=RigArchetype.BIRD,
+        tier=RigDeliveryTier.CUTOUT_MICRO_MOTION,
+        durationSeconds=20,
+        tracks=(),
+        learningBridgeVi="Cùng khám phá chuyển động.",
+    )
+    launch = PixiRendererLaunchV2(
+        contractName="PixiRendererLaunchV2",
+        contractVersion="2.0",
+        sessionId="internal-session-id",
+        expectedSessionVersion=3,
+        experienceSpecRef=spec_ref,
+        sourceReadEndpoint="/v1/renderer/source",
+        sourceReadCapability="s" * 48,
+        sourceSha256="a" * 64,
+        packageReadEndpoint="/v1/renderer/rig-package",
+        packageReadCapability="p" * 48,
+        packageSha256="b" * 64,
+        packageReadExpiresAt="2026-10-03T00:00:00Z",
+        partMaskReads=(),
+        rigParts=(),
+        animationPlan=animation,
+        fallbackLaunch={},
+    )
+    envelope = PixiRendererShowEnvelopeV4(
+        contractName="PixiRendererShowEnvelopeV4",
+        contractVersion="4.0",
+        rendererLaunchV2=launch,
+        showPlan=plan,
+        assetReads=(
+            {
+                "assetId": "asset-flower-1",
+                "readEndpoint": "/v1/renderer/pixi-asset",
+                "readCapability": "f" * 48,
+                "sha256": "c" * 64,
+                "byteLength": 100,
+            },
+            {
+                "assetId": "asset-meadow-bg",
+                "readEndpoint": "/v1/renderer/pixi-asset",
+                "readCapability": "m" * 48,
+                "sha256": "d" * 64,
+                "byteLength": 100,
+            },
+        ),
+        spriteCycleStatus="NOT_APPLICABLE",
+    )
+
+    assert envelope.show_plan.render_strategy == "CUTOUT_TOPIC_SCENE"
+    assert envelope.show_plan.chosen_topic_label == "Cùng khám phá chim"
+    assert envelope.show_plan.scene_theme_asset_id == "asset-meadow-bg"
+
+
+def test_adaptive_compiler_rejects_environment_as_companion_and_unverified_full_rig() -> None:
+    request = replace(
+        _planning_request(rig_tier="CUTOUT_MICRO_MOTION", part_roles=()),
+        candidate_assets=(
+            replace(_planning_request().candidate_assets[0], role="ENVIRONMENT"),
+        ),
+    )
+    with pytest.raises(PixiShowPlannerUnavailable, match="PLANNER_INVALID_RESULT"):
+        compile_adaptive_pixi_show_plan(
+            request=request,
+            intent=_intent(
+                renderStrategy="CUTOUT_MICRO_MOTION",
+            ),
+        )
+    with pytest.raises(PixiShowPlannerUnavailable, match="BEHAVIOR_CAPABILITY_UNSUPPORTED"):
+        compile_adaptive_pixi_show_plan(
+            request=request,
+            intent=_intent(renderStrategy="FULL_AUTO_RIG"),
+        )
+
+
 def test_compiler_requires_plan_duration_to_match_renderer_timeline() -> None:
     with pytest.raises(PixiShowPlannerUnavailable, match="PLANNER_INVALID_RESULT"):
         compile_pixi_show_plan(
@@ -373,7 +479,7 @@ def test_lightning_adapter_sends_only_minimized_crop_and_allowlisted_context_onc
     result = planner.plan(_planning_request())
 
     assert result.visual_subject_hint_id == "BIRD"
-    assert transport.paths == ["/v3/pixi/show-plan"]
+    assert transport.paths == ["/v4/pixi/show-plan"]
     payload = transport.payloads[0]
     assert "session_id" not in payload and "source_artifact_ref" not in payload
     crop = payload["sourceCrop"]
@@ -381,6 +487,10 @@ def test_lightning_adapter_sends_only_minimized_crop_and_allowlisted_context_onc
     assert crop["sha256"] == sha256(_PNG).hexdigest()
     assert base64.b64decode(crop["contentBase64"]) == _PNG
     assert payload["candidateAssets"][0]["assetId"] == "asset-flower-1"
+    assert payload["candidateAssets"][0]["previewSha256"] == sha256(
+        _png(Image.new("RGBA", (8, 8), (240, 180, 40, 255)))
+    ).hexdigest()
+    assert payload["chosenTopicLabels"] == ["Cùng khám phá chim"]
     assert payload["rendererDurationSeconds"] == 20
     assert payload["sourceSubjectRegion"] == {
         "x": 0.35,
@@ -388,6 +498,37 @@ def test_lightning_adapter_sends_only_minimized_crop_and_allowlisted_context_onc
         "width": 0.3,
         "height": 0.35,
     }
+
+
+def test_lightning_adapter_rejects_hallucinated_scene_theme_id() -> None:
+    response = _intent(
+        renderStrategy="CUTOUT_TOPIC_SCENE",
+        sceneThemeAssetId="invented-meadow",
+    ).model_dump(mode="json", by_alias=True)
+    transport = _RecordingTransport(response)
+    planner = LightningPixiShowPlanner(transport=transport)
+
+    with pytest.raises(PixiShowPlannerUnavailable, match="PLANNER_INVALID_RESULT"):
+        planner.plan(_planning_request())
+
+    assert transport.paths == ["/v4/pixi/show-plan"]
+
+
+def test_lightning_adapter_surfaces_planner_timeout_without_retry() -> None:
+    class TimeoutTransport:
+        paths: list[str] = []
+
+        def post_json(self, path: str, _payload: dict[str, object]) -> dict[str, object]:
+            self.paths.append(path)
+            raise TimeoutError
+
+    transport = TimeoutTransport()
+    planner = LightningPixiShowPlanner(transport=transport)
+
+    with pytest.raises(PixiShowPlannerUnavailable, match="PLANNER_TIMEOUT"):
+        planner.plan(_planning_request())
+
+    assert transport.paths == ["/v4/pixi/show-plan"]
 
 
 def test_lightning_adapter_sends_empty_shortlist_for_subject_only_planning() -> None:
@@ -425,7 +566,7 @@ def test_lightning_adapter_sends_empty_shortlist_for_subject_only_planning() -> 
     result = planner.plan(request)
 
     assert result.selected_asset_ids == ()
-    assert transport.paths == ["/v3/pixi/show-plan"]
+    assert transport.paths == ["/v4/pixi/show-plan"]
     assert transport.payloads[0]["candidateAssets"] == []
 
 

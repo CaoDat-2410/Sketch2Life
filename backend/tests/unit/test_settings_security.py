@@ -35,8 +35,8 @@ def test_production_accepts_firebase_and_runpod_runtime_references() -> None:
     assert settings.ai_provider == "runpod"
 
 
-def test_default_pixi_planner_path_matches_subject_only_v3_contract() -> None:
-    assert Settings().lightning_pixi_show_path == "/v3/pixi/show-plan"
+def test_default_pixi_planner_path_matches_adaptive_v4_contract() -> None:
+    assert Settings().lightning_pixi_show_path == "/v4/pixi/show-plan"
 
 
 @pytest.mark.parametrize("env", ["local", "test"])

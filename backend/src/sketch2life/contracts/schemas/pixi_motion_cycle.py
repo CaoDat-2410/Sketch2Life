@@ -11,6 +11,7 @@ from sketch2life.contracts.schemas.pixi_show import (
     PixiShowAssetReadV1,
     PixiShowPlanV1,
     PixiShowPlanV2,
+    PixiShowPlanV3,
 )
 
 PixiSpriteCycleStatusV1 = Literal["READY", "BLOCKED", "NOT_APPLICABLE"]
@@ -192,9 +193,70 @@ class PixiRendererShowEnvelopeV3(PixiRendererShowEnvelopeV2):
     )
 
 
+class PixiRendererShowEnvelopeV4(BaseModel):
+    """V4 transports adaptive strategy and an optional environment backdrop read."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True, populate_by_name=True)
+
+    contract_name: Literal["PixiRendererShowEnvelopeV4"] = Field(alias="contractName")
+    contract_version: Literal["4.0"] = Field(alias="contractVersion")
+    renderer_launch_v2: PixiRendererLaunchV2 = Field(alias="rendererLaunchV2")
+    show_plan: PixiShowPlanV3 = Field(alias="showPlan")
+    asset_reads: tuple[PixiShowAssetReadV1, ...] = Field(alias="assetReads", max_length=3)
+    sprite_cycle_status: PixiSpriteCycleStatusV1 = Field(alias="spriteCycleStatus")
+    sprite_cycle_reason_code: PixiSpriteCycleReasonCodeV1 | None = Field(
+        default=None, alias="spriteCycleReasonCode"
+    )
+    sprite_cycle: PixiSpriteCycleReadV1 | None = Field(default=None, alias="spriteCycle")
+
+    @model_validator(mode="after")
+    def validate_envelope(self) -> PixiRendererShowEnvelopeV4:
+        launch, plan = self.renderer_launch_v2, self.show_plan
+        if (
+            launch.session_id != plan.session_id
+            or launch.source_sha256 != plan.source_sha256
+            or launch.animation_plan.package_id != plan.package_id
+            or launch.experience_spec_ref != plan.experience_spec_ref
+        ):
+            raise ValueError("adaptive show envelope identity differs from its V2 launch")
+        expected_ids = set(plan.selected_asset_ids)
+        if plan.scene_theme_asset_id is not None:
+            expected_ids.add(plan.scene_theme_asset_id)
+        read_ids = tuple(item.asset_id for item in self.asset_reads)
+        if len(set(read_ids)) != len(read_ids) or set(read_ids) != expected_ids:
+            raise ValueError("asset reads must exactly match scene and supplemental asset IDs")
+        cycle = self.sprite_cycle
+        if cycle is not None and cycle.end_seconds > plan.duration_seconds:
+            raise ValueError("sprite cycle must finish within the show duration")
+        if self.sprite_cycle_status == "READY" and (
+            cycle is None or self.sprite_cycle_reason_code is not None
+        ):
+            raise ValueError("ready cycle status requires cycle data and no failure reason")
+        if self.sprite_cycle_status == "BLOCKED" and (
+            cycle is not None or self.sprite_cycle_reason_code is None
+        ):
+            raise ValueError("blocked cycle status requires a reason and no frame capabilities")
+        if self.sprite_cycle_status == "NOT_APPLICABLE" and (
+            cycle is not None or self.sprite_cycle_reason_code is not None
+        ):
+            raise ValueError("not-applicable cycle status cannot include cycle data or a reason")
+        if cycle is not None:
+            compatible_classes = _CYCLE_CLASSES_BY_HINT[plan.visual_subject_hint_id.value]
+            if cycle.behavior_class_id not in compatible_classes:
+                raise ValueError("sprite cycle is incompatible with the confirmed subject family")
+            region = plan.source_subject_region
+            if (
+                region.x - 0.14 <= cycle.x <= region.x + region.width + 0.14
+                and region.y - 0.14 <= cycle.y <= region.y + region.height + 0.14
+            ):
+                raise ValueError("sprite cycle overlaps the padded source-subject bounds")
+        return self
+
+
 __all__ = [
     "PixiRendererShowEnvelopeV2",
     "PixiRendererShowEnvelopeV3",
+    "PixiRendererShowEnvelopeV4",
     "PixiSpriteCycleReadV1",
     "PixiSpriteCycleReasonCodeV1",
     "PixiSpriteCycleStatusV1",

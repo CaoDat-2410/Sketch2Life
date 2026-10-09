@@ -211,3 +211,18 @@
   selectable cycles for local/test Android preview; keep production rights/runtime gates closed.
 - Scope boundary: no production or public-distribution clearance, no weakening of production gates,
   no unreviewed asset edits, and no commit/push authorization.
+
+## Adaptive original-art rigging and topic-matched Pixi scenes — APPROVED
+
+- State: APPROVED FOR IMPLEMENTATION
+- Plan: `plan/PIXI_ADAPTIVE_ART_AND_TOPIC_SCENE_20261008.md`
+- Plan revision: 1
+- Exact pre-approval plan SHA-256: `FC634C8899AB4B4FC618AF8311BDBD9C7391CC0C952C2F24AF60EC33D12428EF`
+- Approved at: 2026-10-08 22:20 Asia/Saigon (2026-10-08 15:20 UTC)
+- Approver/evidence: project owner replied “duyệt” to the exact plan revision and hash in the current conversation.
+- Owner design choices recorded on 2026-10-08: attempt both background extraction and part separation; prefer part motion when validated; when full part masks are unavailable, compose the verified source cutout into a Pixi scene matching the child's chosen topic; let AI choose among supported strategies; reuse one existing post-Gate-B planner call.
+- Approved scope: implement a versioned strategy/theme/asset plan in the existing single post-Gate-B planner call; provide bounded candidate visual previews so it can assess style fit; prefer validated part rigging and use the verified cutout/topic-scene path when parts are incomplete; preserve source/Gate A/Gate B and deterministic allowlists.
+- Explicit boundaries: no extra SAM/Qwen call, new model/checkpoint/dependency, live provider request, real child images, asset promotion, or production activation. Invalid masks/planner failures remain visible and fail closed; no automatic retry or unrelated substitute.
+- Existing FEAT-028 rights/runtime, FEAT-030 privacy/L4/provider, additive-contract, and Android visual acceptance gates remain mandatory.
+- Post-approval plan SHA-256 (approval-gate metadata only; approved scope unchanged): `CD14106E7BC5B920C1A916D15DAC41F8B143A2ECAA714EB6C6844FE323BC3732`.
+- Implementation status update — 2026-10-08: locally implemented and offline-tested within the approved scope. No live provider request, real child data, asset promotion, or production activation. Feature-local evidence: `evidence/notes/ADAPTIVE_ART_AND_TOPIC_SCENE_IMPLEMENTATION_20261008.md`.

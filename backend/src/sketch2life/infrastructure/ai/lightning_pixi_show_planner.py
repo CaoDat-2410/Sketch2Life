@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import json
 from hashlib import sha256
 from typing import cast
 from uuid import uuid4
@@ -16,9 +17,9 @@ from sketch2life.application.ports.pixi_show_planner import (
 )
 from sketch2life.contracts.schemas.pixi_show import (
     PixiShowAssetRoleV1,
-    PixiShowIntentV1,
-    PixiShowPlannerAssetCandidateV1,
-    PixiShowPlannerRequestV2,
+    PixiShowIntentV2,
+    PixiShowPlannerAssetCandidateV2,
+    PixiShowPlannerRequestV3,
     PixiShowRigTierV1,
     PixiShowSourceContentTypeV1,
     PixiShowSourceCropV1,
@@ -29,11 +30,14 @@ from sketch2life.infrastructure.ai.lightning_client import (
 )
 
 _MAX_CROP_BYTES = 1_000_000
+_MAX_PREVIEW_BYTES = 30_000
+_MAX_AGGREGATE_IMAGE_BYTES = 1_200_000
+_MAX_REQUEST_JSON_BYTES = 1_800_000
 _ALLOWED_ASSET_ROLES = frozenset({"SUBJECT", "ENVIRONMENT", "PROP", "EFFECT"})
 _ALLOWED_RIG_TIERS = frozenset(
     {"FULL_AUTO_RIG", "CUTOUT_MICRO_MOTION", "BBOX_VISUAL_FOCUS"}
 )
-_RESULT_ADAPTER: TypeAdapter[PixiShowIntentV1] = TypeAdapter(PixiShowIntentV1)
+_RESULT_ADAPTER: TypeAdapter[PixiShowIntentV2] = TypeAdapter(PixiShowIntentV2)
 
 
 def _planner_asset_role(value: str) -> PixiShowAssetRoleV1:
@@ -55,14 +59,14 @@ class LightningPixiShowPlanner(PixiShowPlannerPort):
         self,
         *,
         transport: JsonTransport,
-        endpoint_path: str = "/v3/pixi/show-plan",
+        endpoint_path: str = "/v4/pixi/show-plan",
     ) -> None:
         if not endpoint_path.startswith("/"):
             raise ValueError("Pixi show planner path must be absolute")
         self._transport = transport
         self._endpoint_path = endpoint_path
 
-    def plan(self, request: PixiShowPlanningRequest) -> PixiShowIntentV1:
+    def plan(self, request: PixiShowPlanningRequest) -> PixiShowIntentV2:
         crop = request.source_crop_bytes
         if not crop or len(crop) > _MAX_CROP_BYTES:
             raise PixiShowPlannerUnavailable("SUBJECT_CROP_UNAVAILABLE")
@@ -73,16 +77,30 @@ class LightningPixiShowPlanner(PixiShowPlannerPort):
         if request.source_crop_content_type not in {"image/png", "image/jpeg"}:
             raise PixiShowPlannerUnavailable("SUBJECT_CROP_UNAVAILABLE")
 
-        candidates = tuple(
-            PixiShowPlannerAssetCandidateV1(
-                assetId=item.asset_id,
-                label=item.label,
-                role=_planner_asset_role(item.role),
-                visualDescription=item.visual_description,
-                topicTags=item.topic_tags[:12],
+        candidate_values: list[PixiShowPlannerAssetCandidateV2] = []
+        aggregate_image_bytes = len(crop)
+        for item in request.candidate_assets[:6]:
+            preview = item.preview_bytes
+            if preview is None or not preview.startswith(b"\x89PNG\r\n\x1a\n"):
+                raise PixiShowPlannerUnavailable("PLANNER_INVALID_RESULT")
+            if not preview or len(preview) > _MAX_PREVIEW_BYTES:
+                raise PixiShowPlannerUnavailable("PLANNER_INVALID_RESULT")
+            aggregate_image_bytes += len(preview)
+            if aggregate_image_bytes > _MAX_AGGREGATE_IMAGE_BYTES:
+                raise PixiShowPlannerUnavailable("PLANNER_INVALID_RESULT")
+            candidate_values.append(
+                PixiShowPlannerAssetCandidateV2(
+                    assetId=item.asset_id,
+                    label=item.label,
+                    role=_planner_asset_role(item.role),
+                    visualDescription=item.visual_description,
+                    topicTags=item.topic_tags[:12],
+                    previewContentType="image/png",
+                    previewSha256=sha256(preview).hexdigest(),
+                    previewContentBase64=base64.b64encode(preview).decode("ascii"),
+                )
             )
-            for item in request.candidate_assets[:6]
-        )
+        candidates = tuple(candidate_values)
         if len({item.asset_id for item in candidates}) != len(candidates):
             raise PixiShowPlannerUnavailable("PLANNER_INVALID_RESULT")
 
@@ -92,11 +110,15 @@ class LightningPixiShowPlanner(PixiShowPlannerPort):
             sha256=sha256(crop).hexdigest(),
             contentBase64=base64.b64encode(crop).decode("ascii"),
         )
-        body = PixiShowPlannerRequestV2(
-            contractName="PixiShowPlannerRequestV2",
-            contractVersion="2.0",
+        chosen_topic_labels = tuple(
+            label[:160] for label in request.chosen_topic_labels[:5] if label.strip()
+        ) or (request.confirmed_subject_label[:160],)
+        body = PixiShowPlannerRequestV3(
+            contractName="PixiShowPlannerRequestV3",
+            contractVersion="3.0",
             requestId=str(uuid4()),
             sourceCrop=source_crop,
+            chosenTopicLabels=chosen_topic_labels,
             sourceSubjectRegion=request.subject_region,
             rendererDurationSeconds=request.renderer_duration_seconds,
             confirmedSubjectLabel=request.confirmed_subject_label[:160],
@@ -109,10 +131,16 @@ class LightningPixiShowPlanner(PixiShowPlannerPort):
             partRoles=request.part_roles[:8],
             candidateAssets=candidates,
         )
+        serialized_body = body.model_dump(mode="json", by_alias=True)
+        if (
+            len(json.dumps(serialized_body, separators=(",", ":")).encode())
+            > _MAX_REQUEST_JSON_BYTES
+        ):
+            raise PixiShowPlannerUnavailable("PLANNER_INVALID_RESULT")
         try:
             raw = self._transport.post_json(
                 self._endpoint_path,
-                body.model_dump(mode="json", by_alias=True),
+                serialized_body,
             )
         except TimeoutError:
             raise PixiShowPlannerUnavailable("PLANNER_TIMEOUT") from None
@@ -128,7 +156,14 @@ class LightningPixiShowPlanner(PixiShowPlannerPort):
         except ValidationError:
             raise PixiShowPlannerUnavailable("PLANNER_INVALID_RESULT") from None
         allowed_ids = {item.asset_id for item in candidates}
-        if not set(intent.selected_asset_ids) <= allowed_ids:
+        selected_ids = set(intent.selected_asset_ids)
+        if (
+            not selected_ids <= allowed_ids
+            or (
+                intent.scene_theme_asset_id is not None
+                and intent.scene_theme_asset_id not in allowed_ids
+            )
+        ):
             raise PixiShowPlannerUnavailable("PLANNER_INVALID_RESULT")
         return intent
 

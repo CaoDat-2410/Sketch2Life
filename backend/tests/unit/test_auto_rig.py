@@ -23,6 +23,7 @@ from sketch2life.application.services.auto_rig import (
     classify_archetype,
     validate_rig_geometry,
 )
+from sketch2life.application.services.auto_rig.service import _validate_part_masks
 from sketch2life.contracts.schemas.auto_rig import RigArchetype, RigDeliveryTier
 from sketch2life.contracts.schemas.p1_experience import VersionedRefV1
 from sketch2life.contracts.schemas.renderer_v2 import PixiRendererLaunchV2
@@ -379,6 +380,51 @@ def test_subject_only_butterfly_mask_is_partitioned_and_promoted_with_part_capab
         content_type, body, digest = service.read_mask(part_read.read_capability)
         assert content_type == "image/png"
         assert hashlib.sha256(body).hexdigest() == digest == part_read.sha256
+
+
+def test_partial_part_masks_with_incomplete_subject_coverage_are_rejected() -> None:
+    artifacts = InMemoryArtifactStore()
+    parent = Image.new("L", (100, 100), 0)
+    ImageDraw.Draw(parent).rectangle((10, 10, 89, 89), fill=255)
+    left_mask = Image.new("L", (100, 100), 0)
+    ImageDraw.Draw(left_mask).rectangle((10, 10, 49, 59), fill=255)
+    right_mask = Image.new("L", (100, 100), 0)
+    ImageDraw.Draw(right_mask).rectangle((50, 10, 89, 59), fill=255)
+    parent_bytes = _png_bytes(parent)
+    left = artifacts.put(
+        session_id="session-partial", content_type="image/png", body=_png_bytes(left_mask)
+    )
+    right = artifacts.put(
+        session_id="session-partial", content_type="image/png", body=_png_bytes(right_mask)
+    )
+    parts = (
+        SubjectPartSegmentationResult(
+            part_id="left-wing",
+            role="left-wing",
+            source_region=SourceRegionV1(x=0.1, y=0.1, width=0.4, height=0.5),
+            confidence=0.9,
+            mask_artifact_ref=left.artifact_ref,
+            mask_sha256=left.sha256,
+        ),
+        SubjectPartSegmentationResult(
+            part_id="right-wing",
+            role="right-wing",
+            source_region=SourceRegionV1(x=0.5, y=0.1, width=0.4, height=0.5),
+            confidence=0.9,
+            mask_artifact_ref=right.artifact_ref,
+            mask_sha256=right.sha256,
+        ),
+    )
+
+    accepted = _validate_part_masks(
+        artifacts,
+        session_id="session-partial",
+        parent_mask=parent_bytes,
+        parts=parts,
+        archetype=RigArchetype.BUTTERFLY,
+    )
+
+    assert accepted == ()
 
 
 def test_successful_subject_only_mask_gets_separate_bounded_renderer_capability() -> None:

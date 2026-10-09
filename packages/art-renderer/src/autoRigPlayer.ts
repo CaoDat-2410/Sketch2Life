@@ -42,6 +42,8 @@ export interface AutoRigPlayer {
   seekTo(seconds: number): void;
   seekRelative(seconds: number): void;
   setShowBeat(action: AutoRigShowAction | null, progress: number): void;
+  setSourceMotionEnabled(enabled: boolean): void;
+  setSceneBackdrop(texture: Texture | null): void;
   /** Root translation currently applied to the source subject, in stage pixels. */
   getSubjectTranslation(): {x: number; y: number};
   getPlaybackState(): {positionSeconds: number; durationSeconds: number; state: PlaybackState};
@@ -84,9 +86,12 @@ export function createAutoRigPlayer(options: AutoRigPlayerOptions): AutoRigPlaye
   let plan: VisualAnimationPlanV2 | null = null;
   let poses = new Map<string, MutablePose>();
   let ownedTextures: Texture[] = [];
+  let artworkBackground: Sprite | null = null;
+  let sceneBackdropSprite: Sprite | null = null;
   let ticker: (() => void) | null = null;
   let state: PlaybackState = 'READY';
   let showBeat: {action: AutoRigShowAction; progress: number} | null = null;
+  let sourceMotionEnabled = true;
 
   const publish = (): void => options.onProgress?.(timeline?.time() ?? 0, timeline?.duration() ?? 0, state);
   const stopTicker = (): void => {
@@ -95,6 +100,7 @@ export function createAutoRigPlayer(options: AutoRigPlayerOptions): AutoRigPlaye
   };
 
   const getSubjectTranslation = (): {x: number; y: number} => {
+    if (!sourceMotionEnabled) return {x: 0, y: 0};
     const rootPose = poses.get('root') ?? neutralPose();
     const showOffset = cutoutSprite === null
       ? fullRigRootOffset(showBeat)
@@ -111,7 +117,9 @@ export function createAutoRigPlayer(options: AutoRigPlayerOptions): AutoRigPlaye
     if (cutoutSprite !== null) {
       // Whole-subject fallback may breathe/float by a few pixels, but never scales or rotates
       // the drawing. The camera and original artwork framing remain fixed.
-      const subjectTranslation = getSubjectTranslation();
+      const subjectTranslation = sourceMotionEnabled
+        ? getSubjectTranslation()
+        : {x: 0, y: 0};
       cutoutSprite.position.set(
         cutoutPivot.x + subjectTranslation.x,
         cutoutPivot.y + subjectTranslation.y,
@@ -155,6 +163,8 @@ export function createAutoRigPlayer(options: AutoRigPlayerOptions): AutoRigPlaye
     scene.removeChildren().forEach((child) => child.destroy());
     for (const texture of ownedTextures) texture.destroy(true);
     ownedTextures = [];
+    artworkBackground = null;
+    sceneBackdropSprite = null;
     cutoutSprite = null;
     cutoutPivot = {x: 0, y: 0};
     artworkFit = {scale: 1, x: 0, y: 0};
@@ -165,6 +175,7 @@ export function createAutoRigPlayer(options: AutoRigPlayerOptions): AutoRigPlaye
     plan = null;
     poses.clear();
     showBeat = null;
+    sourceMotionEnabled = true;
     state = 'READY';
   };
 
@@ -246,6 +257,7 @@ export function createAutoRigPlayer(options: AutoRigPlayerOptions): AutoRigPlaye
         const background = addCanvasSprite(backgroundCanvas, ownedTextures, artworkFit);
         background.zIndex = 0;
         scene.addChild(background);
+        artworkBackground = background;
 
         if (parsedPackage.tier === 'CUTOUT_MICRO_MOTION') {
           const cutoutCanvas = canvasFromPixels(sourceCanvas.width, sourceCanvas.height, layers.subjectPixels);
@@ -303,6 +315,26 @@ export function createAutoRigPlayer(options: AutoRigPlayerOptions): AutoRigPlaye
       }
     },
 
+    setSceneBackdrop(texture): void {
+      if (sceneBackdropSprite !== null) {
+        scene.removeChild(sceneBackdropSprite);
+        sceneBackdropSprite.destroy();
+        sceneBackdropSprite = null;
+      }
+      if (texture === null) {
+        if (artworkBackground !== null) artworkBackground.visible = true;
+        return;
+      }
+      const backdrop = new Sprite(texture);
+      backdrop.anchor.set(0.5);
+      backdrop.position.set(STAGE_WIDTH / 2, STAGE_HEIGHT / 2);
+      backdrop.scale.set(Math.max(STAGE_WIDTH / texture.width, STAGE_HEIGHT / texture.height));
+      backdrop.zIndex = -10;
+      scene.addChild(backdrop);
+      sceneBackdropSprite = backdrop;
+      if (artworkBackground !== null) artworkBackground.visible = false;
+    },
+
     play(): void {
       if (packageValue?.rig == null || plan === null || timeline === null) {
         throw new Error('Load a valid rig before playback.');
@@ -350,9 +382,15 @@ export function createAutoRigPlayer(options: AutoRigPlayerOptions): AutoRigPlaye
     },
 
     setShowBeat(action, progress): void {
-      showBeat = action === null
+      showBeat = !sourceMotionEnabled || action === null
         ? null
         : {action, progress: Math.min(1, Math.max(0, progress))};
+      deform();
+    },
+
+    setSourceMotionEnabled(enabled): void {
+      sourceMotionEnabled = enabled;
+      if (!enabled) showBeat = null;
       deform();
     },
 

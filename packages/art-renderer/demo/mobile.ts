@@ -13,6 +13,7 @@ import {
   RendererLoadCommandV3Schema,
   RendererLoadCommandV4Schema,
   RendererLoadCommandV5Schema,
+  RendererLoadCommandV6Schema,
   getSpriteCycleFrameIndex,
   getSpriteCycleTransform,
   RiggedArtworkPackageV1Schema,
@@ -26,6 +27,7 @@ import {
   type RendererLoadCommandV3,
   type RendererLoadCommandV4,
   type RendererLoadCommandV5,
+  type RendererLoadCommandV6,
   type PixiSpriteCycleReadV1,
 } from '../src/index';
 
@@ -48,7 +50,7 @@ if (stage === null || status === null || playButton === null || rendererInstance
 const app = new Application();
 let rendererInitialized = false;
 
-type ActiveLaunch = RendererLoadCommand | RendererLoadCommandV2 | RendererLoadCommandV3 | RendererLoadCommandV4 | RendererLoadCommandV5;
+type ActiveLaunch = RendererLoadCommand | RendererLoadCommandV2 | RendererLoadCommandV3 | RendererLoadCommandV4 | RendererLoadCommandV5 | RendererLoadCommandV6;
 type PlaybackController = Pick<ReturnType<typeof createBrowserArtPlayer>, 'play' | 'pause' | 'replay' | 'seekTo' | 'seekRelative' | 'getPlaybackState' | 'destroy'>;
 
 let launch: ActiveLaunch | null = null;
@@ -67,12 +69,12 @@ let supplementalTextures: Texture[] = [];
 let supplementalSprites = new Map<string, Sprite>();
 let activeSpriteCycle: {cycle: PixiSpriteCycleReadV1; root: Container; sprite: Sprite; textures: Texture[]; frameIndex: number | null; wasVisible: boolean} | null = null;
 
-function isV2Launch(command: ActiveLaunch): command is RendererLoadCommandV2 | RendererLoadCommandV3 | RendererLoadCommandV4 | RendererLoadCommandV5 {
-  return command.contractName === 'RendererLoadCommandV2' || command.contractName === 'RendererLoadCommandV3' || command.contractName === 'RendererLoadCommandV4' || command.contractName === 'RendererLoadCommandV5';
+function isV2Launch(command: ActiveLaunch): command is RendererLoadCommandV2 | RendererLoadCommandV3 | RendererLoadCommandV4 | RendererLoadCommandV5 | RendererLoadCommandV6 {
+  return command.contractName === 'RendererLoadCommandV2' || command.contractName === 'RendererLoadCommandV3' || command.contractName === 'RendererLoadCommandV4' || command.contractName === 'RendererLoadCommandV5' || command.contractName === 'RendererLoadCommandV6';
 }
 
-function isShowLaunch(command: ActiveLaunch): command is RendererLoadCommandV3 | RendererLoadCommandV4 | RendererLoadCommandV5 {
-  return command.contractName === 'RendererLoadCommandV3' || command.contractName === 'RendererLoadCommandV4' || command.contractName === 'RendererLoadCommandV5';
+function isShowLaunch(command: ActiveLaunch): command is RendererLoadCommandV3 | RendererLoadCommandV4 | RendererLoadCommandV5 | RendererLoadCommandV6 {
+  return command.contractName === 'RendererLoadCommandV3' || command.contractName === 'RendererLoadCommandV4' || command.contractName === 'RendererLoadCommandV5' || command.contractName === 'RendererLoadCommandV6';
 }
 
 function launchPlanId(command: ActiveLaunch): string {
@@ -81,6 +83,7 @@ function launchPlanId(command: ActiveLaunch): string {
 
 function stopSupplementalShow(): void {
   autoRigPlayer.setShowBeat(null, 0);
+  autoRigPlayer.setSceneBackdrop(null);
   stopActiveSpriteCycle();
   supplementalRoot?.destroy({children: true});
   supplementalRoot = null;
@@ -285,7 +288,7 @@ async function loadLaunch(serialized: string): Promise<void> {
   }
   lastLoadMessage = serialized;
   launch = command;
-  if ((command.contractName === 'RendererLoadCommandV4' || command.contractName === 'RendererLoadCommandV5') && command.spriteCycleStatus === 'BLOCKED') {
+  if ((command.contractName === 'RendererLoadCommandV4' || command.contractName === 'RendererLoadCommandV5' || command.contractName === 'RendererLoadCommandV6') && command.spriteCycleStatus === 'BLOCKED') {
     console.info('[pixi-cycle]', JSON.stringify({
       event: 'blocked',
       behaviorClassId: command.showPlan.behaviorClass,
@@ -415,12 +418,15 @@ async function loadLaunch(serialized: string): Promise<void> {
           maskCanvas,
           partMaskCanvases,
         );
+        if (command.contractName === 'RendererLoadCommandV6') {
+          autoRigPlayer.setSourceMotionEnabled(command.showPlan.renderStrategy !== 'STATIC_SOURCE');
+        }
         activePlayer = autoRigPlayer;
         v2InteractionPhase = 'INTRO_LOADING';
         if (isShowLaunch(command)) {
           await loadSupplementalShow(command);
         }
-        if ((command.contractName === 'RendererLoadCommandV4' || command.contractName === 'RendererLoadCommandV5') && command.spriteCycle !== undefined) {
+        if ((command.contractName === 'RendererLoadCommandV4' || command.contractName === 'RendererLoadCommandV5' || command.contractName === 'RendererLoadCommandV6') && command.spriteCycle !== undefined) {
           await loadSpriteCycle(command);
         }
       } catch (error) {
@@ -506,12 +512,15 @@ function receiveNativeMessage(event: MessageEvent): void {
     }
     return;
   }
+  const parsedV6 = RendererLoadCommandV6Schema.safeParse(parsed);
   const parsedV5 = RendererLoadCommandV5Schema.safeParse(parsed);
   const parsedV4 = RendererLoadCommandV4Schema.safeParse(parsed);
   const parsedV3 = RendererLoadCommandV3Schema.safeParse(parsed);
   const parsedV2 = RendererLoadCommandV2Schema.safeParse(parsed);
   const parsedV1 = RendererLoadCommandSchema.safeParse(parsed);
-  const command = parsedV5.success
+  const command = parsedV6.success
+    ? parsedV6.data
+    : parsedV5.success
     ? parsedV5.data
     : parsedV4.success
     ? parsedV4.data
@@ -586,12 +595,15 @@ function reportPixiInitializationFailure(serialized: string): void {
   } catch {
     return;
   }
+  const parsedV6 = RendererLoadCommandV6Schema.safeParse(parsedJson);
   const parsedV5 = RendererLoadCommandV5Schema.safeParse(parsedJson);
   const parsedV4 = RendererLoadCommandV4Schema.safeParse(parsedJson);
   const parsedV3 = RendererLoadCommandV3Schema.safeParse(parsedJson);
   const parsedV2 = RendererLoadCommandV2Schema.safeParse(parsedJson);
   const parsedV1 = RendererLoadCommandSchema.safeParse(parsedJson);
-  const command = parsedV5.success
+  const command = parsedV6.success
+    ? parsedV6.data
+    : parsedV5.success
     ? parsedV5.data
     : parsedV4.success
     ? parsedV4.data
@@ -683,11 +695,14 @@ async function textureFromBlob(
   return {texture: Texture.from(canvas), canvas, sourceWidth, sourceHeight};
 }
 
-async function loadSupplementalShow(command: RendererLoadCommandV3 | RendererLoadCommandV4 | RendererLoadCommandV5): Promise<void> {
+async function loadSupplementalShow(command: RendererLoadCommandV3 | RendererLoadCommandV4 | RendererLoadCommandV5 | RendererLoadCommandV6): Promise<void> {
   stopSupplementalShow();
   const root = new Container();
   const textures: Texture[] = [];
-    const sprites = new Map<string, Sprite>();
+  const sprites = new Map<string, Sprite>();
+  const sceneThemeAssetId = command.contractName === 'RendererLoadCommandV6'
+    ? command.showPlan.sceneThemeAssetId ?? undefined
+    : undefined;
   try {
     for (const read of command.assetReads) {
       const response = await fetch(new URL(read.readEndpoint, window.location.href), {
@@ -711,6 +726,10 @@ async function loadSupplementalShow(command: RendererLoadCommandV3 | RendererLoa
       const decoded = await textureFromBlob(new Blob([bytes], {type: read.contentType}), false, 360);
       const texture = decoded.texture;
       textures.push(texture);
+      if (read.assetId === sceneThemeAssetId) {
+        autoRigPlayer.setSceneBackdrop(texture);
+        continue;
+      }
       const sprite = new Sprite(texture);
       sprite.anchor.set(0.5);
       const fit = Math.min(160 / Math.max(1, texture.width), 138 / Math.max(1, texture.height));
@@ -723,7 +742,11 @@ async function loadSupplementalShow(command: RendererLoadCommandV3 | RendererLoa
 
     const beats = command.showPlan.beats.filter((beat) => beat.targetRole === 'SUPPLEMENTAL_ASSET');
     const missingAsset = beats.some((beat) => beat.assetId === undefined || !sprites.has(beat.assetId));
-    if (missingAsset || sprites.size !== command.showPlan.selectedAssetIds.length) {
+    if (
+      missingAsset
+      || sprites.size !== command.showPlan.selectedAssetIds.length
+      || (sceneThemeAssetId !== undefined && !command.assetReads.some((read) => read.assetId === sceneThemeAssetId))
+    ) {
       throw new Error('SHOW_ASSET_PLAN_MISMATCH');
     }
 
@@ -739,7 +762,7 @@ async function loadSupplementalShow(command: RendererLoadCommandV3 | RendererLoa
   }
 }
 
-async function loadSpriteCycle(command: RendererLoadCommandV4 | RendererLoadCommandV5): Promise<void> {
+async function loadSpriteCycle(command: RendererLoadCommandV4 | RendererLoadCommandV5 | RendererLoadCommandV6): Promise<void> {
   const cycle = command.spriteCycle;
   if (cycle === undefined) return;
   stopActiveSpriteCycle();
