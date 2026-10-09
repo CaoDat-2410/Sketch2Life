@@ -248,6 +248,19 @@ def story_video_preflight() -> dict[str, Any]:
         except ImportError:
             record("whiteboard_renderer", False, "Install the backend whiteboard-renderer extra")
             record("h264_encoder", False, "Whiteboard renderer dependencies are missing")
+        hand_asset_value = os.getenv("SKETCH2LIFE_WHITEBOARD_HAND_ASSET", "").strip()
+        if hand_asset_value:
+            try:
+                from sketch2life.infrastructure.media.whiteboard_mvp_renderer import (
+                    load_marker_hand_asset,
+                )
+
+                load_marker_hand_asset(hand_asset_value, 1280, 720)
+                record("whiteboard_hand", True, "Configured transparent marker asset is usable")
+            except (ImportError, OSError, ValueError) as error:
+                record("whiteboard_hand", False, f"Hand asset invalid: {type(error).__name__}")
+        else:
+            record("whiteboard_hand", True, "Default stylized marker; no photo asset configured")
         segmenter = os.getenv("SKETCH2LIFE_STORY_SEGMENTER", "bbox").strip().lower()
         if segmenter == "bbox":
             record("story_segmenter", True, "Raster cue boxes; SAM2 not enabled")
@@ -1116,12 +1129,16 @@ def _render_whiteboard_story_scene(request: dict[str, Any]) -> dict[str, Any]:
             raise ValueError("STORY_SEGMENTER_UNSUPPORTED")
         if segmenter == "sam2" and not draw_beats:
             raise ValueError("DRAW_BEATS_REQUIRED_FOR_SAM")
+        hand_asset_value = os.getenv("SKETCH2LIFE_WHITEBOARD_HAND_ASSET", "").strip()
+        hand_asset_path = Path(hand_asset_value) if hand_asset_value else None
+        hand_asset_hash = _file_sha256(hand_asset_path) if hand_asset_path else None
         render_variant = ""
-        if draw_beats:
+        if draw_beats or hand_asset_hash:
             render_key = hashlib.sha256(json.dumps({
                 "draw_beats": [beat.model_dump(mode="json") for beat in draw_beats],
                 "segmenter": segmenter,
                 "illustration_sha256": _file_sha256(image_path),
+                **({"hand_asset_sha256": hand_asset_hash} if hand_asset_hash else {}),
             }, sort_keys=True, separators=(",", ":")).encode()).hexdigest()[:16]
             render_variant = f".{render_key}"
         stroke_path = root / f"{scene_id}{render_variant}.strokes.json"
@@ -1145,6 +1162,7 @@ def _render_whiteboard_story_scene(request: dict[str, Any]) -> dict[str, Any]:
             spec=WhiteboardMvpRenderSpec(duration_seconds=duration),
             draw_beats=draw_beats,
             beat_masks=beat_masks,
+            **({"hand_asset_path": hand_asset_path} if hand_asset_path else {}),
         )
         return {
             "contract": "VideoSceneArtifactV1",

@@ -65,6 +65,16 @@ def test_preflight_blocks_opt_in_sam2_when_runtime_is_missing(monkeypatch) -> No
     assert report["ready"] is False
 
 
+def test_preflight_rejects_missing_optional_hand_before_paid_work(tmp_path, monkeypatch) -> None:
+    import tools.lightning_whiteboard_provider as provider
+
+    monkeypatch.setenv("SKETCH2LIFE_STORY_MOTION_PROVIDER", "whiteboard-stroke-v1")
+    monkeypatch.setenv("SKETCH2LIFE_WHITEBOARD_HAND_ASSET", str(tmp_path / "missing.png"))
+    report = provider.story_video_preflight()
+    assert report["checks"]["whiteboard_hand"]["ready"] is False
+    assert report["ready"] is False
+
+
 def test_preflight_h264_probe_encodes_synthetic_frame() -> None:
     pytest.importorskip("imageio.v2")
     pytest.importorskip("imageio_ffmpeg")
@@ -225,6 +235,42 @@ def test_cue_edit_keeps_prior_scene_mp4_artifact(tmp_path, monkeypatch) -> None:
     assert first["silent_clip_sha256"] != second["silent_clip_sha256"]
     assert Path(first["silent_clip_ref"]).read_bytes() == b"house"
     assert Path(second["silent_clip_ref"]).read_bytes() == b"roof"
+
+
+def test_hand_asset_change_keeps_prior_scene_mp4_artifact(tmp_path, monkeypatch) -> None:
+    Image = pytest.importorskip("PIL.Image")
+    ImageDraw = pytest.importorskip("PIL.ImageDraw")
+    import sketch2life.infrastructure.media.whiteboard_mvp_renderer as renderer
+
+    illustration = tmp_path / "scene.png"
+    image = Image.new("RGB", (100, 100), "white")
+    ImageDraw.Draw(image).line((10, 20, 90, 80), fill="black", width=4)
+    image.save(illustration)
+    monkeypatch.setenv("SKETCH2LIFE_STORY_VIDEO_ARTIFACT_DIR", str(tmp_path / "artifacts"))
+    monkeypatch.setenv("SKETCH2LIFE_STORY_SEGMENTER", "bbox")
+    hand = tmp_path / "hand.png"
+
+    def fake_render(_stroke_path, output_path, *, spec, draw_beats, beat_masks, hand_asset_path):
+        assert spec.duration_seconds == 5 and not draw_beats and beat_masks is None
+        output_path.write_bytes(hand_asset_path.read_bytes())
+        return SimpleNamespace(fps=30)
+
+    monkeypatch.setattr(renderer, "render_stroke_animation", fake_render)
+    request = {
+        "package_hash": "f" * 64, "scene_id": "scene-1",
+        "illustration_ref": str(illustration),
+        "illustration_sha256": hashlib.sha256(illustration.read_bytes()).hexdigest(),
+        "duration_seconds": 5.0, "model_profile_ref": "whiteboard-stroke-v1",
+    }
+    monkeypatch.setenv("SKETCH2LIFE_WHITEBOARD_HAND_ASSET", str(hand))
+    Image.new("RGBA", (30, 30), (255, 0, 0, 255)).save(hand)
+    first = story_video_scene({"request": request})
+    Image.new("RGBA", (30, 30), (0, 0, 255, 255)).save(hand)
+    second = story_video_scene({"request": request})
+    assert first["status"] == second["status"] == "READY"
+    assert first["silent_clip_ref"] != second["silent_clip_ref"]
+    assert first["silent_clip_sha256"] != second["silent_clip_sha256"]
+    assert Path(first["silent_clip_ref"]).is_file()
 
 
 def test_subtitle_srt_serializes_utf8_scene_cues() -> None:

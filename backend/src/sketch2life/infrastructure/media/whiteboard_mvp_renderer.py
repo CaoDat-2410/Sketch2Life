@@ -154,6 +154,7 @@ def render_stroke_animation(
     motion_durations_seconds: tuple[float, ...] = (),
     draw_beats: tuple[StoryboardDrawBeatV1, ...] = (),
     beat_masks: tuple | None = None,
+    hand_asset_path: str | Path | None = None,
 ) -> WhiteboardMvpRenderResult:
     """Render a stroke artifact as a line-by-line whiteboard animation.
 
@@ -173,6 +174,10 @@ def render_stroke_animation(
 
     render_spec = spec or WhiteboardMvpRenderSpec()
     render_spec.validate()
+    hand_asset = (
+        load_marker_hand_asset(hand_asset_path, render_spec.width, render_spec.height)
+        if hand_asset_path is not None else None
+    )
     if len(motion_schedule) > 5:
         raise ValueError("whiteboard motion schedule is too long")
     _validate_motion_durations(motion_schedule, motion_durations_seconds)
@@ -369,8 +374,16 @@ def render_stroke_animation(
                 for start, end, _, _ in drawing_windows
             )
             if active_point is not None and visible_segments < segment_count and drawing_active:
-                draw = ImageDraw.Draw(image, "RGBA")
-                _draw_marker_hand(draw, active_point)
+                if hand_asset is None:
+                    draw = ImageDraw.Draw(image, "RGBA")
+                    _draw_marker_hand(draw, active_point)
+                else:
+                    sprite, tip_x, tip_y = hand_asset
+                    image.paste(
+                        sprite,
+                        (round(active_point[0] - tip_x), round(active_point[1] - tip_y)),
+                        sprite,
+                    )
             frame = np.asarray(image)
             if motion_schedule:
                 motion_index, motion_progress = _motion_position(
@@ -532,6 +545,34 @@ def _draw_progressive_strokes(frame, points, progress: float):
     )
     _draw_marker_hand(draw, points[visible_count - 1])
     return np.asarray(image)
+
+
+def load_marker_hand_asset(path: str | Path, frame_width: int, frame_height: int):
+    """Validate and size an approved RGBA sprite for a bounded marker overlay.
+
+    Asset contract: after transparent-margin cropping, the marker tip is near
+    (5.5%, 7.8%) of the sprite. The on-screen sprite is at most 120 px tall.
+    """
+
+    from PIL import Image
+
+    source = Path(path)
+    if not source.is_file() or not 0 < source.stat().st_size <= 5 * 1024 * 1024:
+        raise ValueError("HAND_ASSET_INVALID")
+    with Image.open(source) as opened:
+        if opened.mode != "RGBA" or max(opened.size) > 2048:
+            raise ValueError("HAND_ASSET_INVALID")
+        alpha_box = opened.getchannel("A").getbbox()
+        if alpha_box is None:
+            raise ValueError("HAND_ASSET_INVALID")
+        cropped = opened.crop(alpha_box)
+    scale = min(120 / cropped.height, frame_height / 6 / cropped.height,
+                frame_width / 5 / cropped.width)
+    resized = cropped.resize(
+        (max(1, round(cropped.width * scale)), max(1, round(cropped.height * scale))),
+        Image.Resampling.LANCZOS,
+    )
+    return resized, 0.055 * resized.width, 0.078 * resized.height
 
 
 def _draw_marker_hand(draw, point):

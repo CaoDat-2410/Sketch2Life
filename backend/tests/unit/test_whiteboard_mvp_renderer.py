@@ -114,6 +114,58 @@ def test_stroke_renderer_draws_json_strokes_on_whiteboard(tmp_path) -> None:
     assert not final_blue.any(), "finished drawing should not retain the marker hand"
 
 
+def test_approved_raster_hand_overlay_is_small_and_disappears_at_finish(tmp_path) -> None:
+    import json
+
+    Image = pytest.importorskip("PIL.Image")
+    ImageDraw = pytest.importorskip("PIL.ImageDraw")
+    imageio = pytest.importorskip("imageio.v2")
+    from sketch2life.infrastructure.media.whiteboard_mvp_renderer import load_marker_hand_asset
+
+    hand = Image.new("RGBA", (180, 140))
+    ImageDraw.Draw(hand).rectangle((20, 10, 160, 125), fill=(230, 20, 20, 255))
+    hand_path = tmp_path / "synthetic-approved-hand.png"
+    hand.save(hand_path)
+    sprite, _, _ = load_marker_hand_asset(hand_path, 1280, 720)
+    assert sprite.height <= 120
+    assert sprite.width <= 256
+
+    strokes = tmp_path / "hand-strokes.json"
+    strokes.write_text(
+        json.dumps({
+            "artifact_type": "whiteboard_strokes_v1", "width": 100, "height": 100,
+            "strokes": [{"stroke_id": "s-1", "points": [[x, x] for x in range(5, 96)]}],
+        }),
+        encoding="utf-8",
+    )
+    output = tmp_path / "hand-overlay.mp4"
+    render_stroke_animation(
+        strokes, output,
+        spec=WhiteboardMvpRenderSpec(width=1280, height=720, fps=5, duration_seconds=5),
+        hand_asset_path=hand_path,
+    )
+    reader = imageio.get_reader(output)
+    middle = reader.get_data(10).astype("int16")
+    final = reader.get_data(24).astype("int16")
+    reader.close()
+    def is_red(frame):
+        return (frame[:, :, 0] > frame[:, :, 1] + 90) & (
+            frame[:, :, 0] > frame[:, :, 2] + 90
+        )
+    assert is_red(middle).any()
+    assert not is_red(final).any()
+
+
+def test_marker_hand_asset_rejects_opaque_image(tmp_path) -> None:
+    Image = pytest.importorskip("PIL.Image")
+    from sketch2life.infrastructure.media.whiteboard_mvp_renderer import load_marker_hand_asset
+
+    path = tmp_path / "opaque.png"
+    Image.new("RGB", (40, 40), "red").save(path)
+    with pytest.raises(ValueError, match="HAND_ASSET_INVALID"):
+        load_marker_hand_asset(path, 1280, 720)
+
+
 def test_stroke_renderer_reveals_source_color_after_drawing(tmp_path) -> None:
     Image = pytest.importorskip("PIL.Image")
     ImageDraw = pytest.importorskip("PIL.ImageDraw")

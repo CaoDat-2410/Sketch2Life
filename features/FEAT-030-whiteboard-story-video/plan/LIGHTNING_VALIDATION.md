@@ -14,6 +14,8 @@ export SKETCH2LIFE_STORY_MOTION_PROVIDER=whiteboard-stroke-v1
 export SKETCH2LIFE_IMAGE_MODEL=stabilityai/stable-diffusion-xl-base-1.0
 export SKETCH2LIFE_TTS_PROVIDER=edge_tts
 export EDGE_TTS_VOICE=vi-VN-HoaiMyNeural
+# Optional only AFTER visual approval: set SKETCH2LIFE_WHITEBOARD_HAND_ASSET
+# to the approved/applied transparent RGBA PNG; leave unset for the old cursor.
 python tools/lightning_whiteboard_provider.py
 ```
 
@@ -30,6 +32,8 @@ python tools/story_video_media_smoke.py --input /tmp/sketch2life-media-smoke-02/
 ```
 
 `edge_tts` is an external network TTS path, not an offline voice model. Do not substitute real child speech/text for this synthetic test. If the fixture output directory already exists, inspect it and choose a new explicit directory instead of overwriting files. A successful import/preflight does not guarantee that the model weights are available or that the final video will look acceptable.
+
+The optional `SKETCH2LIFE_WHITEBOARD_HAND_ASSET` must point to an owner-approved RGBA cutout (under 5 MiB, no edge over 2048 px) with the marker tip near 5.5% from the left and 7.8% from the top **after transparent-margin cropping**. Preflight checks that path/alpha before model/TTS work. The renderer limits the sprite to 120 px high on a 1280×720 frame and hides it when drawing pauses or ends. A change in asset bytes creates a distinct scene-clip path; it does not overwrite an earlier clip. No candidate under `assets/generated/` may be enabled or committed as an applied asset before owner visual approval. This is an overlay on extracted strokes, not a recorded human drawing performance.
 
 On the studio, after starting only the provider at `http://127.0.0.1:8001`, run `python -m tools.create_story_video_media_fixture --output-dir /tmp/sketch2life-media-smoke-02` from the repository root. Use a **new** directory; the previous `-01` fixture was the rejected monochrome/repeated first run and must not be overwritten. This creates a deterministic, non-child colored drawing with house/tree/sun/flower and a four-scene JSON **outside Git**. The JSON has `source_image` (path relative to the JSON), `locale` (`vi-VN`) and `scenes` (four objects with `text`, `visual_prompt` and a normalized `focus_box` selecting a different region of the same source image). You may instead supply your own synthetic PNG/JPEG/WebP and three to six reviewed test scenes. Each scene's narration must measure 5–20 seconds and the total 40–60 seconds. Do not use real child media, names, credentials or an unreviewed story in this fixture, and do not commit the fixture or output MP4.
 
