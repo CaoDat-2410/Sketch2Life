@@ -607,7 +607,7 @@ export class DemoApiClient {
     return this.command(sessionId, version, 'POST', '/renderer/launch', {
       operation: 'PREPARE_RENDERER',
       user_initiated: true,
-    });
+    }, 150_000);
   }
 
   completeHandoff(sessionId: string, version: number) {

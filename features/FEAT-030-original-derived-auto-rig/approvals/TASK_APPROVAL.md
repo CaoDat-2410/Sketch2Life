@@ -226,3 +226,12 @@
 - Existing FEAT-028 rights/runtime, FEAT-030 privacy/L4/provider, additive-contract, and Android visual acceptance gates remain mandatory.
 - Post-approval plan SHA-256 (approval-gate metadata only; approved scope unchanged): `CD14106E7BC5B920C1A916D15DAC41F8B143A2ECAA714EB6C6844FE323BC3732`.
 - Implementation status update — 2026-10-08: locally implemented and offline-tested within the approved scope. No live provider request, real child data, asset promotion, or production activation. Feature-local evidence: `evidence/notes/ADAPTIVE_ART_AND_TOPIC_SCENE_IMPLEMENTATION_20261008.md`.
+
+## Pixi planner timeout and invalid-output fix — APPROVED
+
+- Approver: project owner, direct request in this conversation: “bug như sau, check log và fix”, followed by the Lightning log with `MODEL_OUTPUT_INVALID` and HTTP 502.
+- Approved plan: `plan/PIXI_SHOW_TIMEOUT_AND_OUTPUT_VALIDITY_FIX_20261009.md`, revision 1.
+- Exact plan SHA-256: `30946B6A0F8F4B20C21822BA2B3717C4014109F8DDACD45676AF4BD637A2027F`.
+- Approved scope: align only the mobile renderer-preparation timeout with the existing 120-second planner deadline; make the V4 prompt satisfy the existing closed schema; optionally unwrap a single JSON fence; add safe stage-specific failure logs.
+- Boundaries: one bounded inference call, no automatic retry/fallback, no contract changes, and no logging of prompts, images, model output, or user content. Remote model inference and deployment are excluded from this local implementation.
+- Approval date: 2026-10-09 (Asia/Saigon).

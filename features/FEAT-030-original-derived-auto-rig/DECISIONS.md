@@ -105,3 +105,10 @@ Android gates; the expansion manifest remains runtime-ineligible. See
 - Preserve the existing part-mask containment/coverage threshold. An incomplete partition cannot be labeled `FULL_AUTO_RIG`; use the validated source cutout/topic-scene strategy when supported, otherwise cutout micro-motion or static source.
 - Keep the source drawing intact as the lead subject. Theme assets render behind it, and `STATIC_SOURCE` disables source translation.
 - Local implementation and verification are recorded in `evidence/notes/ADAPTIVE_ART_AND_TOPIC_SCENE_IMPLEMENTATION_20261008.md`. Live provider, rights/runtime, privacy/L4, and Android acceptance remain separate gates.
+
+## 2026-10-09 — bounded Pixi planner responsiveness and output validation
+
+- Keep the planner's single-call 120-second server deadline. Give only the mobile renderer-preparation command 150 seconds so it does not abort while the approved call is still running.
+- Keep the Pixi V4 result schema and fail-closed behavior. Clarify exact schema enums, coordinate/timing bounds, and a three-beat response in the prompt; accept only a single optional outer JSON code fence before the same strict parser and validation.
+- Split invalid-output logs into closed stage codes only. Do not log model output, prompt, image/crop, candidate metadata, or Pydantic input values.
+- No retry or substitute show is added. A still-invalid response remains a visible typed failure.

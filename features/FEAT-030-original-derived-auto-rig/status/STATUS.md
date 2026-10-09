@@ -138,3 +138,10 @@ Updated: 2026-10-08
 - The full backend suite had one unrelated FEAT-020 semantic-personalization test failure involving the repository's current age-band policy; five tests were skipped. No change was made to that workstream.
 - No live provider request, real child image, asset promotion, production activation, or Android visual acceptance occurred. FEAT-028 rights/runtime, privacy/retention, L4/ADR, and Android acceptance gates remain open.
 - Detailed record: `evidence/notes/ADAPTIVE_ART_AND_TOPIC_SCENE_IMPLEMENTATION_20261008.md`.
+
+## Pixi planner timeout and invalid output — 2026-10-09
+
+- Approved follow-up plan: `plan/PIXI_SHOW_TIMEOUT_AND_OUTPUT_VALIDITY_FIX_20261009.md` (revision 1; plan hash and owner approval are recorded in `approvals/TASK_APPROVAL.md`).
+- Evidence received: UI surfaced `REQUEST_TIMEOUT`; Lightning later logged `/v4/pixi/show-plan` as `MODEL_OUTPUT_INVALID` with HTTP 502.
+- Local implementation is complete within the approved scope. Python source compilation and `git diff --check` passed; tests and live model inference were not run. Feature-local evidence: `evidence/notes/PIXI_SHOW_TIMEOUT_AND_OUTPUT_VALIDITY_FIX_20261009.md`.
+- Deployment and live acceptance remain outstanding: update the Lightning checkout, restart Uvicorn, then inspect the next synthetic-image attempt for the new stage-specific failure code or a successful show plan.

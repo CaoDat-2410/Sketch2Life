@@ -224,3 +224,11 @@ open, so the checked-in manifest still rejects runtime use. Details: `evidence/n
 - Renderer envelope V4 and command V6 are additive; older Pixi contracts remain supported. Theme art is capability/hash checked and rendered behind the cutout. Static-source mode disables subject translation.
 - Candidate previews are generated transiently from approved/applied, runtime-eligible catalog assets and are excluded from logs and evidence. The worker builds one contact sheet for the existing planner inference; no second inference, new dependency/model, or live provider request was made.
 - Local verification and remaining gates are recorded in `evidence/notes/ADAPTIVE_ART_AND_TOPIC_SCENE_IMPLEMENTATION_20261008.md`.
+
+## Pixi planner timeout and invalid output — 2026-10-09
+
+- Owner-approved follow-up: `plan/PIXI_SHOW_TIMEOUT_AND_OUTPUT_VALIDITY_FIX_20261009.md`.
+- The mobile renderer-preparation call currently aborts at its generic 30-second deadline while the bounded Lightning/Qwen planner can take up to 120 seconds. Lightning logs also report `MODEL_OUTPUT_INVALID`/HTTP 502; the current server log intentionally does not reveal whether parsing, schema validation, or deterministic asset validation failed.
+- The approved fix is limited to the mobile deadline and V4 prompt/closed parser diagnostics. No additional planner call, retry, fallback, contract change, or real-child-data test is authorized.
+- Local implementation is complete: only renderer preparation now waits up to 150 seconds; the V4 prompt follows the closed schema; one optional outer JSON fence is unwrapped; and failures receive sanitized stage-specific log codes. Static Python compilation and `git diff --check` passed; tests and live model inference were not run.
+- Feature-local evidence: `evidence/notes/PIXI_SHOW_TIMEOUT_AND_OUTPUT_VALIDITY_FIX_20261009.md`. The remote Lightning checkout still needs this change and a Uvicorn restart before live acceptance can confirm the new diagnostics.
