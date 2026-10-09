@@ -10,7 +10,8 @@ from sketch2life.contracts.schemas.story_video import StoryboardDrawBeatV1
 
 
 def order_strokes_for_beats(
-    strokes: list[dict], beats: tuple[StoryboardDrawBeatV1, ...], *, width: int, height: int
+    strokes: list[dict], beats: tuple[StoryboardDrawBeatV1, ...], *, width: int, height: int,
+    beat_masks: tuple | None = None,
 ) -> tuple[list[int], list[tuple[float, float, int, int]]]:
     if not beats:
         return list(range(len(strokes))), []
@@ -19,6 +20,13 @@ def order_strokes_for_beats(
         for previous, current in zip(beats, beats[1:], strict=False)
     ):
         raise ValueError("DRAW_BEATS_NOT_CONTIGUOUS")
+    if beat_masks is not None and (
+        len(beat_masks) != len(beats) or any(
+            not hasattr(mask, "shape") or mask.shape != (height, width) or not mask.any()
+            for mask in beat_masks
+        )
+    ):
+        raise ValueError("DRAW_MASK_INVALID")
 
     groups: list[list[int]] = [[] for _ in beats]
     unassigned: list[tuple[int, float, float]] = []
@@ -26,13 +34,23 @@ def order_strokes_for_beats(
         points = stroke["points"]
         x = sum(float(point[0]) for point in points) / len(points) / width
         y = sum(float(point[1]) for point in points) / len(points) / height
-        owners = [beat_index for beat_index, beat in enumerate(beats)
-                  if beat.focus_box[0] <= x <= beat.focus_box[2]
-                  and beat.focus_box[1] <= y <= beat.focus_box[3]]
-        if owners:
-            groups[owners[0]].append(index)
+        if beat_masks is not None:
+            point_x = [max(0, min(width - 1, round(point[0]))) for point in points]
+            point_y = [max(0, min(height - 1, round(point[1]))) for point in points]
+            scores = [int(mask[point_y, point_x].sum()) for mask in beat_masks]
+            owner = max(range(len(beats)), key=lambda beat_index: scores[beat_index])
+            if scores[owner] >= max(1, round(len(points) * 0.05)):
+                groups[owner].append(index)
+            else:
+                unassigned.append((index, x, y))
         else:
-            unassigned.append((index, x, y))
+            owners = [beat_index for beat_index, beat in enumerate(beats)
+                      if beat.focus_box[0] <= x <= beat.focus_box[2]
+                      and beat.focus_box[1] <= y <= beat.focus_box[3]]
+            if owners:
+                groups[owners[0]].append(index)
+            else:
+                unassigned.append((index, x, y))
     if any(not group for group in groups):
         raise ValueError("DRAW_BEAT_EMPTY")
     for index, x, y in unassigned:

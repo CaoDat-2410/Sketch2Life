@@ -33,6 +33,7 @@ MODEL_ID = os.getenv("SKETCH2LIFE_VLM_MODEL", "Qwen/Qwen3-VL-2B-Instruct")
 _vlm = None
 _processor = None
 _sam_predictor = None
+_story_sam_predictor = None
 _boxes: dict[str, list[float]] = {}
 _story_media_cache_lock = RLock()
 _story_image_pipeline: Any = None
@@ -247,6 +248,17 @@ def story_video_preflight() -> dict[str, Any]:
         except ImportError:
             record("whiteboard_renderer", False, "Install the backend whiteboard-renderer extra")
             record("h264_encoder", False, "Whiteboard renderer dependencies are missing")
+        segmenter = os.getenv("SKETCH2LIFE_STORY_SEGMENTER", "bbox").strip().lower()
+        if segmenter == "bbox":
+            record("story_segmenter", True, "Raster cue boxes; SAM2 not enabled")
+        elif segmenter == "sam2":
+            try:
+                importlib.import_module("sam2.sam2_image_predictor")
+                record("story_segmenter", True, "SAM2 code importable; weights not checked")
+            except Exception as error:  # noqa: BLE001 - optional runtime preflight
+                record("story_segmenter", False, f"SAM2 import failed: {type(error).__name__}"[:240])
+        else:
+            record("story_segmenter", False, "Unsupported story segmenter")
     elif motion_profile == "wan2.2-ti2v-5b":
         repo_value = os.getenv("WAN_REPO_DIR", "").strip()
         ckpt_value = os.getenv("WAN_CKPT_DIR", "").strip()
@@ -266,6 +278,10 @@ def story_video_preflight() -> dict[str, Any]:
     return {
         "ready": all(item["ready"] for item in checks.values()),
         "checks": checks,
+        "story_segmenter": (
+            os.getenv("SKETCH2LIFE_STORY_SEGMENTER", "bbox").strip().lower()
+            if motion_profile == "whiteboard-stroke-v1" else None
+        ),
         "note": "This checks local dependencies and paths, not model downloads or render quality.",
     }
 
@@ -1034,6 +1050,29 @@ def story_video_scene(payload: dict[str, Any]) -> dict[str, Any]:
         return _story_video_blocked("VideoSceneArtifactV1", "WAN_RENDER_FAILED")
 
 
+def _story_scene_sam_masks(image_path: Path, stroke_path: Path, draw_beats: tuple) -> tuple:
+    import torch
+    from sam2.sam2_image_predictor import SAM2ImagePredictor
+    from sketch2life.infrastructure.media.whiteboard_sam_masks import (
+        predict_stroke_space_masks,
+    )
+
+    global _story_sam_predictor
+    with _story_media_cache_lock:
+        if _story_sam_predictor is None:
+            _story_sam_predictor = SAM2ImagePredictor.from_pretrained(
+                "facebook/sam2.1-hiera-small"
+            )
+        autocast_context = (
+            torch.autocast("cuda", dtype=torch.bfloat16)
+            if torch.cuda.is_available() else nullcontext()
+        )
+        with torch.inference_mode(), autocast_context:
+            return predict_stroke_space_masks(
+                image_path, stroke_path, draw_beats, _story_sam_predictor
+            )
+
+
 def _render_whiteboard_story_scene(request: dict[str, Any]) -> dict[str, Any]:
     """Turn one generated scene illustration into a narrated whiteboard clip."""
 
@@ -1065,24 +1104,47 @@ def _render_whiteboard_story_scene(request: dict[str, Any]) -> dict[str, Any]:
         except ValidationError as error:
             raise ValueError("DRAW_BEATS_INVALID") from error
         if draw_beats and (
-            abs(draw_beats[0].start_seconds) > 0.01
+            len({beat.element_id for beat in draw_beats}) != len(draw_beats)
+            or abs(draw_beats[0].start_seconds) > 0.01
             or abs(draw_beats[-1].end_seconds - duration) > 0.01
             or any(abs(previous.end_seconds - current.start_seconds) > 0.01
                    for previous, current in pairwise(draw_beats))
         ):
             raise ValueError("DRAW_BEATS_INVALID")
-        stroke_path = root / f"{scene_id}.strokes.json"
-        output_path = root / f"{scene_id}.whiteboard.mp4"
+        segmenter = os.getenv("SKETCH2LIFE_STORY_SEGMENTER", "bbox").strip().lower()
+        if segmenter not in {"bbox", "sam2"}:
+            raise ValueError("STORY_SEGMENTER_UNSUPPORTED")
+        if segmenter == "sam2" and not draw_beats:
+            raise ValueError("DRAW_BEATS_REQUIRED_FOR_SAM")
+        render_variant = ""
+        if draw_beats:
+            render_key = hashlib.sha256(json.dumps({
+                "draw_beats": [beat.model_dump(mode="json") for beat in draw_beats],
+                "segmenter": segmenter,
+                "illustration_sha256": _file_sha256(image_path),
+            }, sort_keys=True, separators=(",", ":")).encode()).hexdigest()[:16]
+            render_variant = f".{render_key}"
+        stroke_path = root / f"{scene_id}{render_variant}.strokes.json"
+        output_path = root / f"{scene_id}{render_variant}.whiteboard.mp4"
         extract_image_line_art(
             image_path,
             stroke_path,
             source_hash=_file_sha256(image_path),
         )
+        beat_masks = None
+        if segmenter == "sam2":
+            try:
+                beat_masks = _story_scene_sam_masks(image_path, stroke_path, draw_beats)
+            except ValueError:
+                raise
+            except Exception as error:
+                raise ValueError("DRAW_MASK_FAILED") from error
         result = render_stroke_animation(
             stroke_path,
             output_path,
             spec=WhiteboardMvpRenderSpec(duration_seconds=duration),
             draw_beats=draw_beats,
+            beat_masks=beat_masks,
         )
         return {
             "contract": "VideoSceneArtifactV1",
@@ -1097,7 +1159,13 @@ def _render_whiteboard_story_scene(request: dict[str, Any]) -> dict[str, Any]:
             "model_profile_ref": "whiteboard-stroke-v1",
         }
     except ValueError as error:
-        if str(error) in {"DRAW_BEAT_EMPTY", "DRAW_BEATS_INVALID", "DRAW_BEATS_NOT_CONTIGUOUS"}:
+        if str(error) in {
+            "DRAW_BEAT_EMPTY", "DRAW_BEATS_INVALID", "DRAW_BEATS_NOT_CONTIGUOUS",
+            "DRAW_BEATS_REQUIRED_FOR_SAM", "STORY_SEGMENTER_UNSUPPORTED",
+            "DRAW_MASK_INVALID", "DRAW_MASK_COVERAGE_INVALID", "DRAW_MASK_BOX_MISMATCH",
+            "DRAW_MASK_OVERLAP", "DRAW_MASK_EMPTY_AFTER_CROP", "DRAW_MASK_SOURCE_MISMATCH",
+            "DRAW_MASK_CROP_INVALID", "DRAW_MASK_FAILED",
+        }:
             return _story_video_blocked("VideoSceneArtifactV1", str(error))
         _LOGGER.exception("whiteboard_story_scene_failed")
         return _story_video_blocked("VideoSceneArtifactV1", "WHITEBOARD_RENDER_FAILED")
@@ -1136,8 +1204,13 @@ def story_video_assembly(payload: dict[str, Any]) -> dict[str, Any]:
         ):
             return _story_video_blocked("VideoArtifactV1", "SCENE_HASH_MISMATCH")
         root = _story_video_package_root(request)
-        list_path = root / "scenes.concat.txt"
-        output_path = root / "story.final.mp4"
+        assembly_key = hashlib.sha256(json.dumps({
+            "scene_sha256": scene_hashes,
+            "narration_sha256": request.get("narration_sha256"),
+            "subtitle_cues": request.get("subtitle_cues"),
+        }, sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode()).hexdigest()[:16]
+        list_path = root / f"scenes.{assembly_key}.concat.txt"
+        output_path = root / f"story.{assembly_key}.final.mp4"
         list_path.write_text(
             "".join(
                 f"file '{path.as_posix().replace(chr(39), chr(39) + chr(92) + chr(39) + chr(39))}'\n"
@@ -1146,7 +1219,7 @@ def story_video_assembly(payload: dict[str, Any]) -> dict[str, Any]:
             encoding="utf-8",
         )
         subtitle_cues = request.get("subtitle_cues")
-        subtitle_path = root / "story.srt"
+        subtitle_path = root / f"story.{assembly_key}.srt"
         filter_args: list[str] = []
         if isinstance(subtitle_cues, list) and subtitle_cues:
             subtitle_path.write_text(_subtitle_srt(subtitle_cues), encoding="utf-8")

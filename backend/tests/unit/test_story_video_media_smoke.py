@@ -102,11 +102,8 @@ def test_media_smoke_runs_provider_stages_and_verifies_final_file(tmp_path) -> N
     assert result["video_ref"] == str(video)
     assert calls == [
         "/v1/story-video/narration",
-        *(
-            stage
-            for _index in range(4)
-            for stage in ("/v1/story-video/illustration", "/v1/story-video/scene")
-        ),
+        *("/v1/story-video/illustration" for _index in range(4)),
+        *("/v1/story-video/scene" for _index in range(4)),
         "/v1/story-video/assembly",
     ]
 
@@ -143,6 +140,51 @@ def test_media_smoke_preflight_and_duration_fail_without_image_calls(tmp_path) -
             post=post,
         )
     assert calls == ["/v1/story-video/narration"]
+
+
+def test_sam2_media_smoke_requires_cues_before_paid_provider_calls(tmp_path) -> None:
+    source, scenes, _fixture_path = _fixture(tmp_path)
+    calls = []
+    with pytest.raises(ValueError, match="draw_cues in every scene"):
+        run_media_smoke(
+            source, "vi-VN", scenes,
+            get=lambda _path: {"ready": True, "checks": {}, "story_segmenter": "sam2"},
+            post=lambda path, _payload: calls.append(path),
+        )
+    assert calls == []
+
+
+def test_image_preview_skips_tts_and_reuses_hash_after_cue_edit(tmp_path) -> None:
+    source, scenes, _fixture_path = _fixture(tmp_path)
+    seen_hashes = []
+    calls = []
+
+    def post(path, payload):
+        calls.append(path)
+        assert path == "/v1/story-video/illustration"
+        request = payload["request"]
+        seen_hashes.append(request["package_hash"])
+        image = tmp_path / f"{request['scene_id']}.png"
+        image.write_bytes(request["scene_id"].encode())
+        return {"status": "READY", "asset_ref": str(image),
+                "asset_sha256": hashlib.sha256(image.read_bytes()).hexdigest()}
+
+    kwargs = {
+        "get": lambda _path: {"ready": True, "checks": {}, "story_segmenter": "sam2"},
+        "post": post,
+        "preview_images": True,
+    }
+    first = run_media_smoke(source, "vi-VN", scenes, **kwargs)
+    edited = ({**scenes[0], "draw_cues": [
+        {"element_id": "subject", "label": "Chủ thể", "focus_box": [0.1, 0.1, 0.9, 0.9]},
+    ]}, *scenes[1:])
+    second = run_media_smoke(source, "vi-VN", edited, **kwargs)
+
+    assert first["package_hash"] == second["package_hash"]
+    assert first["cue_sha256"] != second["cue_sha256"]
+    assert len(first["illustrations"]) == 4
+    assert set(seen_hashes) == {first["package_hash"]}
+    assert calls == ["/v1/story-video/illustration"] * 8
 
 
 def test_media_smoke_rejects_remote_provider_and_long_caption(tmp_path) -> None:

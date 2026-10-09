@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import hashlib
 import subprocess
+from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from tools.lightning_whiteboard_provider import (
@@ -43,6 +45,24 @@ def test_preflight_detects_unusable_whiteboard_encoder_before_paid_work(monkeypa
     assert result["checks"]["whiteboard_renderer"]["ready"] is True
     assert result["checks"]["h264_encoder"]["ready"] is False
     assert result["ready"] is False
+
+
+def test_preflight_blocks_opt_in_sam2_when_runtime_is_missing(monkeypatch) -> None:
+    import tools.lightning_whiteboard_provider as provider
+
+    monkeypatch.setenv("SKETCH2LIFE_STORY_MOTION_PROVIDER", "whiteboard-stroke-v1")
+    monkeypatch.setenv("SKETCH2LIFE_STORY_SEGMENTER", "sam2")
+    actual_import = provider.importlib.import_module
+
+    def import_with_missing_sam(name, *args, **kwargs):
+        if name == "sam2.sam2_image_predictor":
+            raise ImportError("sam2 unavailable")
+        return actual_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(provider.importlib, "import_module", import_with_missing_sam)
+    report = provider.story_video_preflight()
+    assert report["checks"]["story_segmenter"]["ready"] is False
+    assert report["ready"] is False
 
 
 def test_preflight_h264_probe_encodes_synthetic_frame() -> None:
@@ -95,6 +115,116 @@ def test_story_scene_rejects_unbounded_draw_beats_before_render(tmp_path) -> Non
     }})
     assert result["status"] == "BLOCKED"
     assert result["error_code"] == "DRAW_BEATS_INVALID"
+
+
+def test_story_scene_forwards_opt_in_sam_masks_to_renderer(tmp_path, monkeypatch) -> None:
+    import json
+
+    Image = pytest.importorskip("PIL.Image")
+    ImageDraw = pytest.importorskip("PIL.ImageDraw")
+    np = pytest.importorskip("numpy")
+    import tools.lightning_whiteboard_provider as provider
+
+    import sketch2life.infrastructure.media.whiteboard_mvp_renderer as renderer
+
+    illustration = tmp_path / "scene.png"
+    image = Image.new("RGB", (100, 100), "white")
+    draw = ImageDraw.Draw(image)
+    draw.rectangle((10, 60, 35, 85), outline="black", width=3)
+    draw.rectangle((65, 15, 90, 40), outline="black", width=3)
+    image.save(illustration)
+    monkeypatch.setenv("SKETCH2LIFE_STORY_VIDEO_ARTIFACT_DIR", str(tmp_path / "artifacts"))
+    monkeypatch.setenv("SKETCH2LIFE_STORY_SEGMENTER", "sam2")
+    received = {}
+
+    def fake_masks(_image_path, stroke_path, beats):
+        payload = json.loads(stroke_path.read_text(encoding="utf-8"))
+        assert [beat.element_id for beat in beats] == ["right", "left"]
+        return tuple(np.ones((payload["height"], payload["width"]), dtype=bool) for _ in beats)
+
+    def fake_render(_stroke_path, output_path, *, spec, draw_beats, beat_masks):
+        received["beats"] = draw_beats
+        received["masks"] = beat_masks
+        assert spec.duration_seconds == 5.0
+        output_path.write_bytes(b"synthetic-test-video")
+        return SimpleNamespace(fps=30)
+
+    monkeypatch.setattr(provider, "_story_scene_sam_masks", fake_masks)
+    monkeypatch.setattr(renderer, "render_stroke_animation", fake_render)
+    result = story_video_scene({"request": {
+        "package_id": "synthetic-test", "package_hash": "b" * 64,
+        "scene_id": "scene-1", "illustration_ref": str(illustration),
+        "illustration_sha256": hashlib.sha256(illustration.read_bytes()).hexdigest(),
+        "duration_seconds": 5.0, "model_profile_ref": "whiteboard-stroke-v1",
+        "draw_beats": [
+            {"element_id": "right", "segment_id": "segment-1", "label": "Bên phải",
+             "focus_box": [0.6, 0.1, 0.95, 0.5], "start_seconds": 0, "end_seconds": 2.5},
+            {"element_id": "left", "segment_id": "segment-1", "label": "Bên trái",
+             "focus_box": [0.05, 0.5, 0.4, 0.95], "start_seconds": 2.5, "end_seconds": 5},
+        ],
+    }})
+    assert result["status"] == "READY"
+    assert len(received["masks"]) == 2
+    assert [beat.element_id for beat in received["beats"]] == ["right", "left"]
+
+
+def test_sam_story_scene_requires_visual_cues(tmp_path, monkeypatch) -> None:
+    Image = pytest.importorskip("PIL.Image")
+    ImageDraw = pytest.importorskip("PIL.ImageDraw")
+    illustration = tmp_path / "scene.png"
+    image = Image.new("RGB", (100, 100), "white")
+    ImageDraw.Draw(image).rectangle((20, 20, 80, 80), outline="black", width=4)
+    image.save(illustration)
+    monkeypatch.setenv("SKETCH2LIFE_STORY_VIDEO_ARTIFACT_DIR", str(tmp_path / "artifacts"))
+    monkeypatch.setenv("SKETCH2LIFE_STORY_SEGMENTER", "sam2")
+
+    result = story_video_scene({"request": {
+        "package_id": "synthetic-test", "package_hash": "c" * 64,
+        "scene_id": "scene-1", "illustration_ref": str(illustration),
+        "illustration_sha256": hashlib.sha256(illustration.read_bytes()).hexdigest(),
+        "duration_seconds": 5.0, "model_profile_ref": "whiteboard-stroke-v1",
+    }})
+    assert result["status"] == "BLOCKED"
+    assert result["error_code"] == "DRAW_BEATS_REQUIRED_FOR_SAM"
+
+
+def test_cue_edit_keeps_prior_scene_mp4_artifact(tmp_path, monkeypatch) -> None:
+    Image = pytest.importorskip("PIL.Image")
+    ImageDraw = pytest.importorskip("PIL.ImageDraw")
+    import sketch2life.infrastructure.media.whiteboard_mvp_renderer as renderer
+
+    illustration = tmp_path / "scene.png"
+    image = Image.new("RGB", (100, 100), "white")
+    ImageDraw.Draw(image).rectangle((20, 20, 80, 80), outline="black", width=4)
+    image.save(illustration)
+    monkeypatch.setenv("SKETCH2LIFE_STORY_VIDEO_ARTIFACT_DIR", str(tmp_path / "artifacts"))
+    monkeypatch.setenv("SKETCH2LIFE_STORY_SEGMENTER", "bbox")
+
+    def fake_render(_stroke_path, output_path, *, spec, draw_beats, beat_masks):
+        assert spec.duration_seconds == 5.0 and beat_masks is None
+        output_path.write_bytes(draw_beats[0].element_id.encode())
+        return SimpleNamespace(fps=30)
+
+    monkeypatch.setattr(renderer, "render_stroke_animation", fake_render)
+    request = {
+        "package_hash": "d" * 64, "scene_id": "scene-1",
+        "illustration_ref": str(illustration),
+        "illustration_sha256": hashlib.sha256(illustration.read_bytes()).hexdigest(),
+        "duration_seconds": 5.0, "model_profile_ref": "whiteboard-stroke-v1",
+        "draw_beats": [{
+            "element_id": "house", "segment_id": "segment-1", "label": "Ngôi nhà",
+            "focus_box": [0.1, 0.1, 0.9, 0.9], "start_seconds": 0, "end_seconds": 5,
+        }],
+    }
+    first = story_video_scene({"request": request})
+    request["draw_beats"][0] = {**request["draw_beats"][0], "element_id": "roof"}
+    second = story_video_scene({"request": request})
+
+    assert first["status"] == second["status"] == "READY"
+    assert first["silent_clip_ref"] != second["silent_clip_ref"]
+    assert first["silent_clip_sha256"] != second["silent_clip_sha256"]
+    assert Path(first["silent_clip_ref"]).read_bytes() == b"house"
+    assert Path(second["silent_clip_ref"]).read_bytes() == b"roof"
 
 
 def test_subtitle_srt_serializes_utf8_scene_cues() -> None:

@@ -98,6 +98,8 @@ class VideoSceneRenderRequestV1(BaseModel):
 
     @model_validator(mode="after")
     def validate_draw_beats(self) -> VideoSceneRenderRequestV1:
+        if len({beat.element_id for beat in self.draw_beats}) != len(self.draw_beats):
+            raise ValueError("scene drawing element IDs must be unique")
         if self.draw_beats and (
             abs(self.draw_beats[0].start_seconds) > 0.01
             or abs(self.draw_beats[-1].end_seconds - self.duration_seconds) > 0.01

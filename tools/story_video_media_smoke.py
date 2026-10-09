@@ -173,6 +173,7 @@ def run_media_smoke(
     get: Callable[[str], dict[str, Any]],
     post: Callable[[str, dict[str, Any]], dict[str, Any]],
     preflight_only: bool = False,
+    preview_images: bool = False,
     progress: Callable[[str], None] = lambda _message: None,
 ) -> dict[str, Any]:
     report = get("/v1/story-video/preflight")
@@ -181,17 +182,72 @@ def run_media_smoke(
         raise RuntimeError(f"provider preflight failed: {', '.join(failed) or 'UNKNOWN'}")
     if preflight_only:
         return {"preflight": "READY", "checks": report.get("checks", {})}
+    if not preview_images and report.get("story_segmenter") == "sam2" and any(
+        not scene.get("draw_cues") for scene in scenes
+    ):
+        raise ValueError("SAM2 media smoke needs draw_cues in every scene before TTS or images")
 
     source_bytes = source.read_bytes()
     source_hash = hashlib.sha256(source_bytes).hexdigest()
     canonical = json.dumps(
-        {"source_sha256": source_hash, "locale": locale, "scenes": scenes},
+        {"source_sha256": source_hash, "locale": locale,
+         "scenes": [{key: value for key, value in scene.items() if key != "draw_cues"}
+                    for scene in scenes]},
         sort_keys=True,
         ensure_ascii=False,
         separators=(",", ":"),
     ).encode("utf-8")
     package_hash = hashlib.sha256(canonical).hexdigest()
     package_id = f"media-smoke-{package_hash[:12]}"
+    cue_hash = hashlib.sha256(json.dumps(
+        [scene.get("draw_cues", []) for scene in scenes],
+        sort_keys=True, ensure_ascii=False, separators=(",", ":"),
+    ).encode()).hexdigest()
+    encoded = base64.b64encode(source_bytes).decode("ascii")
+
+    def render_illustrations() -> list[dict[str, Any]]:
+        illustrations = []
+        for index, scene in enumerate(scenes, 1):
+            scene_id = f"scene-{index}"
+            progress(f"{scene_id}: image")
+            illustration = _require_ready(
+                scene_id + " illustration",
+                post(
+                    "/v1/story-video/illustration",
+                    {
+                        "request": {
+                            "package_id": package_id,
+                            "package_hash": package_hash,
+                            "scene_id": scene_id,
+                            "source_image_ref": "synthetic-media-smoke:source",
+                            "source_image_sha256": source_hash,
+                            "visual_prompt": scene["visual_prompt"],
+                            **({"focus_box": scene["focus_box"]} if "focus_box" in scene else {}),
+                        },
+                        "source_image": {"sha256": source_hash, "content_base64": encoded},
+                    },
+                ),
+            )
+            image_path = Path(str(illustration.get("asset_ref", "")))
+            if not image_path.is_file() or _sha256(image_path) != illustration.get("asset_sha256"):
+                raise RuntimeError(f"{scene_id} illustration is missing or changed")
+            illustrations.append(illustration)
+        return illustrations
+
+    if preview_images:
+        illustrations = render_illustrations()
+        return {
+            "preflight": "READY",
+            "package_hash": package_hash,
+            "cue_sha256": cue_hash,
+            "illustrations": [
+                {"scene_id": f"scene-{index}", "asset_ref": item["asset_ref"],
+                 "asset_sha256": item["asset_sha256"]}
+                for index, item in enumerate(illustrations, 1)
+            ],
+            "note": "Images only; no TTS, scene MP4 or approved story job.",
+        }
+
     texts = [scene["text"] for scene in scenes]
     progress("TTS narration")
     narration = _require_ready(
@@ -223,28 +279,11 @@ def run_media_smoke(
     cues = _subtitle_cues(scenes, durations)
 
     clips: list[dict[str, Any]] = []
-    encoded = base64.b64encode(source_bytes).decode("ascii")
-    for index, (scene, duration) in enumerate(zip(scenes, durations, strict=True), 1):
+    illustrations = render_illustrations()
+    for index, (scene, duration, illustration) in enumerate(
+        zip(scenes, durations, illustrations, strict=True), 1
+    ):
         scene_id = f"scene-{index}"
-        progress(f"{scene_id}: image")
-        illustration = _require_ready(
-            scene_id + " illustration",
-            post(
-                "/v1/story-video/illustration",
-                {
-                    "request": {
-                        "package_id": package_id,
-                        "package_hash": package_hash,
-                        "scene_id": scene_id,
-                        "source_image_ref": "synthetic-media-smoke:source",
-                        "source_image_sha256": source_hash,
-                        "visual_prompt": scene["visual_prompt"],
-                        **({"focus_box": scene["focus_box"]} if "focus_box" in scene else {}),
-                    },
-                    "source_image": {"sha256": source_hash, "content_base64": encoded},
-                },
-            ),
-        )
         progress(f"{scene_id}: stroke render")
         draw_beats = _scene_draw_beats(scene, index, duration)
         clip = _require_ready(
@@ -296,6 +335,7 @@ def run_media_smoke(
     return {
         "preflight": "READY",
         "package_hash": package_hash,
+        "cue_sha256": cue_hash,
         "scene_durations_seconds": durations,
         "video_ref": str(output),
         "video_sha256": video["video_sha256"],
@@ -338,6 +378,7 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--input", type=Path, required=True, help="Synthetic media fixture JSON")
     parser.add_argument("--provider", default="http://127.0.0.1:8001")
     parser.add_argument("--preflight-only", action="store_true")
+    parser.add_argument("--preview-images", action="store_true")
     parser.add_argument("--confirm-synthetic-only", action="store_true")
     args = parser.parse_args(argv)
     if not args.preflight_only and not args.confirm_synthetic_only:
@@ -351,6 +392,7 @@ def main(argv: list[str] | None = None) -> None:
         get=lambda path: _request_json(base_url, path),
         post=lambda path, payload: _request_json(base_url, path, payload),
         preflight_only=args.preflight_only,
+        preview_images=args.preview_images,
         progress=lambda message: print(message, file=sys.stderr, flush=True),
     )
     print(json.dumps(result, ensure_ascii=False, indent=2))

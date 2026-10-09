@@ -152,6 +152,7 @@ def render_stroke_animation(
     motion_schedule: tuple[WhiteboardMotion, ...] = (),
     motion_durations_seconds: tuple[float, ...] = (),
     draw_beats: tuple[StoryboardDrawBeatV1, ...] = (),
+    beat_masks: tuple | None = None,
 ) -> WhiteboardMvpRenderResult:
     """Render a stroke artifact as a line-by-line whiteboard animation.
 
@@ -174,6 +175,8 @@ def render_stroke_animation(
     if len(motion_schedule) > 5:
         raise ValueError("whiteboard motion schedule is too long")
     _validate_motion_durations(motion_schedule, motion_durations_seconds)
+    if beat_masks is not None and not draw_beats:
+        raise ValueError("DRAW_MASK_WITHOUT_BEATS")
 
     payload = json.loads(Path(stroke_path).read_text(encoding="utf-8"))
     if payload.get("artifact_type") != "whiteboard_strokes_v1":
@@ -230,7 +233,8 @@ def render_stroke_animation(
         if abs(draw_beats[-1].end_seconds - render_spec.duration_seconds) > 0.01:
             raise ValueError("DRAW_BEATS_DURATION_MISMATCH")
         stroke_order, drawing_windows = order_strokes_for_beats(
-            source_strokes, draw_beats, width=source_width, height=source_height
+            source_strokes, draw_beats, width=source_width, height=source_height,
+            beat_masks=beat_masks,
         )
         source_strokes = [source_strokes[index] for index in stroke_order]
         strokes = [strokes[index] for index in stroke_order]

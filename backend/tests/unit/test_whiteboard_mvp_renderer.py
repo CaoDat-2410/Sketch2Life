@@ -206,7 +206,8 @@ def test_stroke_renderer_colors_each_object_after_its_own_outline(tmp_path) -> N
     assert filled_blue(final[blue_area]) > 1000
 
 
-def test_narration_beats_draw_right_object_before_left_object(tmp_path) -> None:
+@pytest.mark.parametrize("use_mask", [False, True])
+def test_narration_beats_draw_right_object_before_left_object(tmp_path, use_mask) -> None:
     import json
 
     imageio = pytest.importorskip("imageio.v2")
@@ -221,18 +222,29 @@ def test_narration_beats_draw_right_object_before_left_object(tmp_path) -> None:
     beats = (
         StoryboardDrawBeatV1(
             element_id="right", segment_id="segment-1", label="Bên phải",
-            focus_box=(0.6, 0.1, 0.98, 0.5), start_seconds=0, end_seconds=2.5,
+            focus_box=(0, 0, 1, 1) if use_mask else (0.6, 0.1, 0.98, 0.5),
+            start_seconds=0, end_seconds=2.5,
         ),
         StoryboardDrawBeatV1(
             element_id="left", segment_id="segment-1", label="Bên trái",
-            focus_box=(0.02, 0.5, 0.4, 0.9), start_seconds=2.5, end_seconds=5,
+            focus_box=(0, 0, 1, 1) if use_mask else (0.02, 0.5, 0.4, 0.9),
+            start_seconds=2.5, end_seconds=5,
         ),
     )
+    masks = None
+    if use_mask:
+        np = pytest.importorskip("numpy")
+        right_mask = np.zeros((100, 100), dtype=bool)
+        left_mask = np.zeros((100, 100), dtype=bool)
+        right_mask[25:36, 65:96] = True
+        left_mask[65:76, 5:36] = True
+        masks = (right_mask, left_mask)
     video = tmp_path / "beat-order.mp4"
     render_stroke_animation(
         strokes, video,
         spec=WhiteboardMvpRenderSpec(width=1280, height=720, fps=5, duration_seconds=5),
         draw_beats=beats,
+        beat_masks=masks,
     )
     reader = imageio.get_reader(video)
     early = reader.get_data(8)
