@@ -124,3 +124,9 @@ Android gates; the expansion manifest remains runtime-ineligible. See
 - Express the still-tail rule as `lastBeat.endSeconds <= durationSeconds - 2` and require unique selected IDs, with every supplemental beat ID present once in the list.
 - Map only known Pydantic validator messages to fixed diagnostic codes; retain generic `root:value_error` for unknown messages and never log the raw message.
 - Evidence: `evidence/notes/PIXI_ROOT_VALIDATOR_DIAGNOSTICS_AND_CONSTRAINTS_20261009.md`.
+
+## 2026-10-09 — Pixi numeric still-tail prompt bound
+
+- Render duration stays contract-authoritative; include its actual numeric value and `duration - 2` final-beat cutoff in the one planner prompt to avoid symbolic ambiguity.
+- Continue to reject invalid output. Never clamp, rewrite, retry, or replace a planner response.
+- Evidence: `evidence/notes/PIXI_DYNAMIC_STILL_TAIL_BOUND_20261009.md`.

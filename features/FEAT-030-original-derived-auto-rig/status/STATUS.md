@@ -158,3 +158,9 @@ Updated: 2026-10-08
 - Runtime evidence after `b3a7798`: HTTP 502 with `MODEL_SCHEMA_INVALID schema_issues=root:value_error`.
 - Local fix clarifies the final still interval and selected-ID uniqueness; logs map known root validator messages to fixed reason codes without logging those messages. Python compilation and `git diff --check` passed; tests and live inference were not run.
 - Runtime acceptance requires deployment of this commit and one synthetic-image request. Unknown root failures remain safely classified without content.
+
+## Pixi numeric still-tail bound — 2026-10-09
+
+- Runtime evidence after `18762db`: `MODEL_SCHEMA_INVALID schema_issues=root:still_tail_too_short`.
+- The prompt now receives the actual render duration and states the exact last-beat cutoff and final still interval in seconds. Python compilation and `git diff --check` passed; tests and live inference were not run.
+- Deploy this commit and restart Uvicorn before the next synthetic-image acceptance attempt. Invalid timing remains fail-closed.

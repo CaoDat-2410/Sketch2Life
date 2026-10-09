@@ -253,3 +253,12 @@
 - Approved scope: clarify the final still-tail and unique selected-ID constraints; map known root validation rules to safe fixed log codes without logging messages or values.
 - Boundaries: no retry, model-output repair, fallback, contract change, live provider request, or real-child data.
 - Approval date: 2026-10-09 (Asia/Saigon).
+
+## Pixi dynamic still-tail prompt bound — APPROVED
+
+- Approver: project owner, follow-up log in this conversation reports `MODEL_SCHEMA_INVALID schema_issues=root:still_tail_too_short` after deploying `18762db`.
+- Approved plan: `plan/PIXI_DYNAMIC_STILL_TAIL_BOUND_20261009.md`, revision 1.
+- Exact pre-approval plan SHA-256: `0393C62F98D4A6EDBFC61D1BC509227388466B9B32D4472E917C7D583F482189`.
+- Approved scope: insert exact numeric duration, last-beat cutoff, and final still interval into the V4 prompt using the request duration.
+- Boundaries: preserve fail-closed validation and the single inference; no output clamping/rewriting, retry, fallback, contract change, live provider request, or real-child data.
+- Approval date: 2026-10-09 (Asia/Saigon).

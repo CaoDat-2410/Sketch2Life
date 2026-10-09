@@ -244,3 +244,9 @@ open, so the checked-in manifest still rejects runtime use. Details: `evidence/n
 - After deploying and restarting `b3a7798`, the owner reported `MODEL_SCHEMA_INVALID schema_issues=root:value_error`.
 - The root validator can reject duplicate selected IDs, a non-SETTLE final beat, an insufficient still tail, overlapping/out-of-order beats, or supplemental asset references. The prompt did not directly state the final beat's `endSeconds <= durationSeconds - 2` or uniqueness of `selectedAssetIds`.
 - The approved follow-up makes these constraints explicit and maps known validator messages to fixed safe diagnostic codes. Evidence: `evidence/notes/PIXI_ROOT_VALIDATOR_DIAGNOSTICS_AND_CONSTRAINTS_20261009.md`.
+
+## Pixi still-tail numeric-bound follow-up — 2026-10-09
+
+- The owner supplied the next deployed-build log: `MODEL_SCHEMA_INVALID schema_issues=root:still_tail_too_short`, confirming the final beat still crossed the two-second still cutoff.
+- The follow-up injects the request's exact integer duration and final-beat end cutoff into the planner prompt, along with the resulting still interval. Backend validation remains authoritative.
+- Local change and limits are recorded in `evidence/notes/PIXI_DYNAMIC_STILL_TAIL_BOUND_20261009.md`.
