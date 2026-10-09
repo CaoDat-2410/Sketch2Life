@@ -143,3 +143,10 @@ Android gates; the expansion manifest remains runtime-ineligible. See
 - Keep the existing `SETTLE` final-beat invariant and strict fail-closed validator.
 - State the invariant by exact array index and field values after the full V4 request context so the planner receives it as the final instruction; do not normalize a malformed model response.
 - Evidence: `evidence/notes/PIXI_FINAL_SETTLE_PROMPT_FIX_20261009.md`.
+
+## 2026-10-09 — Renderer V6 launch dispatch
+
+- Keep the V6 contract and mobile builder unchanged; add V6 to the renderer's launch parser so the already-accepted command reaches its existing preparation and playback behavior.
+- Preserve V1–V5 parsing, V6 topic-scene/mask handling, and the existing V6 sprite-cycle branches.
+- No model/provider or orientation behavior changes are included.
+- Evidence: `evidence/notes/RENDERER_V6_LAUNCH_DISPATCH_FIX_20261009.md`.

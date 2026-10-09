@@ -266,12 +266,15 @@ async function loadLaunch(serialized: string): Promise<void> {
     status.textContent = 'Launch không phải JSON hợp lệ.';
     return;
   }
+  const parsedV6 = RendererLoadCommandV6Schema.safeParse(parsedJson);
   const parsedV5 = RendererLoadCommandV5Schema.safeParse(parsedJson);
   const parsedV4 = RendererLoadCommandV4Schema.safeParse(parsedJson);
   const parsedV3 = RendererLoadCommandV3Schema.safeParse(parsedJson);
   const parsedV2 = RendererLoadCommandV2Schema.safeParse(parsedJson);
   const parsedV1 = RendererLoadCommandSchema.safeParse(parsedJson);
-  const command = parsedV5.success
+  const command = parsedV6.success
+    ? parsedV6.data
+    : parsedV5.success
     ? parsedV5.data
     : parsedV4.success
     ? parsedV4.data

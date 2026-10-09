@@ -262,3 +262,10 @@ open, so the checked-in manifest still rejects runtime use. Details: `evidence/n
 - The deployed planner still returned an invalid response whose last beat action was not `SETTLE` (`root:final_beat_not_settle`).
 - The V4 prompt now encodes the exact last-beat fields by index and repeats them after the request context. Strict schema rejection remains in place.
 - Implementation and static verification are recorded in `evidence/notes/PIXI_FINAL_SETTLE_PROMPT_FIX_20261009.md`. Runtime retest remains pending.
+
+## Pixi renderer V6 launch dispatch — 2026-10-09
+
+- The current Android preparation-timeout screenshot mapped to a contract dispatch gap: mobile generated `RendererLoadCommandV6`, the WebView receive handler accepted it, but `loadLaunch` only parsed V1–V5 and silently returned.
+- The renderer now parses V6 before V5 and continues through the existing V6 scene/mask/playback path. Existing V6 sprite-cycle handling was already present and is unchanged.
+- Renderer typecheck and demo bundle build pass. The updated served bundle still needs a live Android/Lightning retest; do not claim playback acceptance until that succeeds.
+- Evidence: `evidence/notes/RENDERER_V6_LAUNCH_DISPATCH_FIX_20261009.md`.

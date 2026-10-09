@@ -1,7 +1,14 @@
 # FEAT-030 status
 
 Status: IN_PROGRESS
-Updated: 2026-10-08
+Updated: 2026-10-09
+
+## Pixi V6 launch dispatch fix — implemented locally (2026-10-09)
+
+- Root cause from the new screenshot: the WebView accepted the mobile `RendererLoadCommandV6`, but the launch loader omitted V6 from its schema parse chain and returned without starting artifact reads or reporting a playback result.
+- Added V6 parsing ahead of V5. Renderer typecheck and `build:demo` pass; the generated mobile bundle includes the dispatch fix.
+- No automated tests or live Android/Lightning inference were run. Deployment of the rebuilt bundle and visual playback acceptance remain pending.
+- Evidence: `evidence/notes/RENDERER_V6_LAUNCH_DISPATCH_FIX_20261009.md`.
 
 ## Local sprite-cycle runtime preview — 2026-10-02
 

@@ -284,3 +284,12 @@
 - Approval date: 2026-10-09 (Asia/Saigon).
 - Implementation-status hash (approved scope unchanged): `3EF47B2CE15DDE3C2BD92CC1F12FEB1937DEB66BF1266789811ABB39CD718A9F`.
 - Implementation evidence: `evidence/notes/PIXI_FINAL_SETTLE_PROMPT_FIX_20261009.md`; live runtime retest remains pending.
+
+## Pixi V6 launch dispatch fix — APPROVED
+
+- Approver: project owner, ongoing direct request to fix the Pixi launch failure, with the current screenshot showing the preparation timeout after the prior fixes.
+- Approved plan: `plan/RENDERER_V6_LAUNCH_DISPATCH_FIX_20261009.md`.
+- Exact plan SHA-256: `056C2F1037FF7AE31DA4B62D6C23FDC8BDC8081DACD91AA73CA4F716DAE4B967`.
+- Scope: dispatch V6 commands in the renderer launch parser while preserving V1–V5 and the existing V6 sprite-cycle behavior.
+- Boundaries: preserve V1–V5 compatibility, V6/backend schemas, source art, orientation, planner/provider behavior, and all existing model/runtime gates.
+- Approval date: 2026-10-09 (Asia/Saigon).
