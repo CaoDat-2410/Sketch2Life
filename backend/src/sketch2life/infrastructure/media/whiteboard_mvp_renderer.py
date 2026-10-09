@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from dataclasses import dataclass
 from pathlib import Path
@@ -185,6 +186,7 @@ def render_stroke_animation(
     offset_x = (render_spec.width - source_width * scale) / 2
     offset_y = (render_spec.height - source_height * scale) / 2
     strokes: list[list[tuple[int, int]]] = []
+    stroke_colors: list[tuple[int, int, int]] = []
     for raw_stroke in raw_strokes:
         raw_points = raw_stroke.get("points") if isinstance(raw_stroke, dict) else None
         if not isinstance(raw_points, list):
@@ -199,8 +201,38 @@ def render_stroke_animation(
         ]
         if len(points) >= 2:
             strokes.append(points)
+            raw_color = raw_stroke.get("color", [35, 35, 35])
+            if (
+                not isinstance(raw_color, list)
+                or len(raw_color) != 3
+                or any(
+                    not isinstance(channel, int) or not 0 <= channel <= 255
+                    for channel in raw_color
+                )
+            ):
+                raise ValueError("stroke color must be an RGB triplet")
+            stroke_colors.append(tuple(raw_color))
     if not strokes:
         raise ValueError("stroke artifact has no drawable points")
+
+    color_board = None
+    color_layer_sha256 = payload.get("color_layer_sha256")
+    if color_layer_sha256 is not None:
+        if not isinstance(color_layer_sha256, str) or len(color_layer_sha256) != 64:
+            raise ValueError("invalid color layer hash")
+        color_layer_path = Path(stroke_path).with_suffix(".color.png")
+        with color_layer_path.open("rb") as source:
+            if hashlib.file_digest(source, "sha256").hexdigest() != color_layer_sha256:
+                raise ValueError("color layer hash mismatch")
+        color_layer = Image.open(color_layer_path).convert("RGBA")
+        if color_layer.size != (source_width, source_height):
+            raise ValueError("color layer dimensions do not match strokes")
+        color_board = Image.new("RGBA", (render_spec.width, render_spec.height))
+        fitted_color = color_layer.resize(
+            (max(1, round(source_width * scale)), max(1, round(source_height * scale))),
+            Image.Resampling.LANCZOS,
+        )
+        color_board.alpha_composite(fitted_color, (round(offset_x), round(offset_y)))
 
     segment_count = sum(max(0, len(points) - 1) for points in strokes)
     ink_scale = 2
@@ -231,9 +263,15 @@ def render_stroke_animation(
     try:
         for frame_index in range(frame_count):
             progress = frame_index / max(1, frame_count - 1)
-            visible_segments = round(segment_count * min(1.0, progress * 1.08))
+            drawing_progress = (
+                min(1.0, progress / 0.78)
+                if color_board is not None
+                else min(1.0, progress * 1.08)
+            )
+            visible_segments = round(segment_count * drawing_progress)
             while rendered_segments < visible_segments:
                 points = smooth_strokes[stroke_index]
+                stroke_color = stroke_colors[stroke_index]
                 count = min(
                     len(points) - 1 - stroke_segment,
                     visible_segments - rendered_segments,
@@ -243,12 +281,12 @@ def render_stroke_animation(
                     radius = 2 * ink_scale
                     ink_draw.ellipse(
                         (x - radius, y - radius, x + radius, y + radius),
-                        fill=(35, 35, 35),
+                        fill=stroke_color,
                     )
                 else:
                     ink_draw.line(
                         points[stroke_segment : stroke_segment + count + 1],
-                        fill=(35, 35, 35),
+                        fill=stroke_color,
                         width=4 * ink_scale,
                         joint="curve",
                     )
@@ -256,7 +294,7 @@ def render_stroke_animation(
                     for x, y in (points[stroke_segment], points[stroke_segment + count]):
                         ink_draw.ellipse(
                             (x - radius, y - radius, x + radius, y + radius),
-                            fill=(35, 35, 35),
+                            fill=stroke_color,
                         )
                 stroke_segment += count
                 rendered_segments += count
@@ -267,6 +305,11 @@ def render_stroke_animation(
             image = ink.resize(
                 (render_spec.width, render_spec.height), Image.Resampling.LANCZOS
             )
+            if color_board is not None and progress > 0.78:
+                cutoff = round(render_spec.width * min(1.0, (progress - 0.78) / 0.22))
+                if cutoff > 0:
+                    color_slice = color_board.crop((0, 0, cutoff, render_spec.height))
+                    image.paste(color_slice, (0, 0), color_slice)
             if active_point is not None and visible_segments < segment_count:
                 draw = ImageDraw.Draw(image, "RGBA")
                 _draw_marker_hand(draw, active_point)

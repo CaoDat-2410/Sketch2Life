@@ -865,6 +865,19 @@ def story_video_illustration(payload: dict[str, Any]) -> dict[str, Any]:
             },
         )
         with _story_media_cache_lock:
+            def repeated_scene() -> bool:
+                scene_number = int(scene_id.split("-")[1])
+                if scene_number <= 1 or not output_path.is_file():
+                    return False
+                previous = root / f"scene-{scene_number - 1}.illustration.png"
+                if not previous.is_file():
+                    return False
+                from sketch2life.infrastructure.media.scene_distinctness import (
+                    near_duplicate_scene,
+                )
+
+                return near_duplicate_scene(previous, output_path)
+
             cached = _cached_story_media(
                 manifest,
                 cache_key=cache_key,
@@ -873,11 +886,40 @@ def story_video_illustration(payload: dict[str, Any]) -> dict[str, Any]:
                 sha_field="asset_sha256",
             )
             if cached is not None:
+                if repeated_scene():
+                    return {
+                        **_story_video_blocked("IllustrationAssetV1", "SCENE_VISUAL_DUPLICATE"),
+                        "scene_id": scene_id,
+                    }
                 return cached
             source_path.write_bytes(source_bytes)
             from PIL import Image
 
             image = Image.open(io.BytesIO(source_bytes)).convert("RGB")
+            focus_box = request.get("focus_box")
+            if focus_box is not None:
+                if (
+                    not isinstance(focus_box, list)
+                    or len(focus_box) != 4
+                    or any(
+                        isinstance(value, bool) or not isinstance(value, (int, float))
+                        for value in focus_box
+                    )
+                ):
+                    raise ValueError("FOCUS_BOX_INVALID")
+                left, top, right, bottom = (float(value) for value in focus_box)
+                if not (
+                    0 <= left < right <= 1
+                    and 0 <= top < bottom <= 1
+                    and right - left >= 0.1
+                    and bottom - top >= 0.1
+                ):
+                    raise ValueError("FOCUS_BOX_INVALID")
+                width, height = image.size
+                image = image.crop((
+                    round(left * width), round(top * height),
+                    round(right * width), round(bottom * height),
+                ))
             import torch
             from diffusers import AutoPipelineForImage2Image
 
@@ -907,6 +949,11 @@ def story_video_illustration(payload: dict[str, Any]) -> dict[str, Any]:
                 "model_profile_ref": model_id,
             }
             _record_story_media(manifest, cache_key, response)
+            if repeated_scene():
+                return {
+                    **_story_video_blocked("IllustrationAssetV1", "SCENE_VISUAL_DUPLICATE"),
+                    "scene_id": scene_id,
+                }
             return response
     except (ImportError, OSError, RuntimeError, ValueError):
         _LOGGER.exception("story_video_illustration_failed")

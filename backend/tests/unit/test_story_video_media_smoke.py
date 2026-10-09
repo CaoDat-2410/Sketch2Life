@@ -156,8 +156,19 @@ def test_generated_non_child_fixture_is_valid_and_never_overwrites(tmp_path) -> 
     assert locale == "vi-VN"
     assert len(scenes) == 4
     assert all(len(scene["text"].split()) >= 25 for scene in scenes)
+    assert all(len(scene["focus_box"]) == 4 for scene in scenes)
+    assert len({tuple(scene["focus_box"]) for scene in scenes}) == 4
     with pytest.raises(FileExistsError, match="already exists"):
         create_fixture(directory)
     repository_root = Path(__file__).resolve().parents[3]
     with pytest.raises(ValueError, match="outside the Git repository"):
         create_fixture(repository_root / "forbidden-smoke-output")
+
+
+def test_media_smoke_rejects_invalid_scene_focus_box(tmp_path) -> None:
+    _source, _scenes, fixture = _fixture(tmp_path)
+    raw = json.loads(fixture.read_text(encoding="utf-8"))
+    raw["scenes"][0]["focus_box"] = [0.2, 0.2, 0.1, 0.9]
+    fixture.write_text(json.dumps(raw), encoding="utf-8")
+    with pytest.raises(ValueError, match="focus_box"):
+        load_fixture(fixture)

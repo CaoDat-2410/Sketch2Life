@@ -1,7 +1,7 @@
 # FEAT-030 plan — narrated whiteboard story video
 
 - Status: APPROVED for local implementation and commit by owner instructions in this conversation.
-- Revision: 3.
+- Revision: 4.
 - Scope: local source-derived stroke renderer; bounded scene plan from approved narration; selectable whiteboard/Wan scene adapter; narration-timed scene lengths, subtitles, MP4 assembly, status and download; session-scoped job listing and READY-only playback/handoff in the existing mobile flow; focused tests and honest evidence.
 
 ## Acceptance criteria
@@ -33,3 +33,16 @@ Run focused unit/contract tests, a real local silent-scene render and FFmpeg mux
 4. Only after the real media output is accepted, finish backend/mobile draft-review-render wiring, backend READY handoff enforcement and device end-to-end verification. Do not claim steps 2–4 complete based on synthetic local tests.
 
 Revision 3 authorizes video-owned planning and validation preparation now. Shared mobile/workflow edits are deferred until the media gate and exact script-approval contract have been reviewed; the owner did not authorize unrelated feature changes or an unreviewed paid/GPU run.
+
+## Visual-quality correction (revision 4)
+
+Owner reviewed the first L4 synthetic output: 53.496 seconds and valid MP4, but four near-identical house/tree drawings restarted from white, monochrome ink, tiny marker, and no color reveal. This is a **failed visual acceptance**, not product completion. The owner resumed the paused goal with the explicit target of a richer narrated whiteboard result comparable in *quality and function* to the supplied reference; no reference code/assets are copied.
+
+Implementation sequence stays video-owned before shared backend/mobile work:
+
+1. Preserve approved/generated illustration colors and source hashes in the stroke artifact; draw black/colored line paths and reveal existing color regions after their outlines. Never invent a color from a grayscale source.
+2. Add automated visual guardrails for consecutive near-duplicate scene illustrations, with a bounded failure before further scene rendering or READY. Recap may intentionally resemble the opening, but repeated full redraws are not accepted as distinct story beats.
+3. Move from generic per-scene prompts toward explicit, adult-reviewed scene elements/draw order and narration cues. A reviewable storyboard must identify what new visual appears during each spoken beat; raster strokes alone cannot infer semantic timing.
+4. Re-test a non-child storyboard on Lightning, inspect the actual complete MP4 against the owner reference for scene variety, legible subtitles, natural stroke/color progression and voice-to-visual timing. Only after this visual gate succeeds, resume backend/mobile approval and READY wiring.
+
+Local deterministic media tests prove only renderer mechanics. Live scene generation, semantic alignment and reference-level visual quality require new owner-reviewed evidence and are not implied by this revision.

@@ -98,6 +98,71 @@ def test_stroke_renderer_draws_json_strokes_on_whiteboard(tmp_path) -> None:
     assert not final_blue.any(), "finished drawing should not retain the marker hand"
 
 
+def test_stroke_renderer_reveals_source_color_after_drawing(tmp_path) -> None:
+    Image = pytest.importorskip("PIL.Image")
+    ImageDraw = pytest.importorskip("PIL.ImageDraw")
+    imageio = pytest.importorskip("imageio.v2")
+    from sketch2life.infrastructure.media.whiteboard_stroke_extraction import (
+        extract_image_line_art,
+    )
+
+    source = tmp_path / "colored.png"
+    image = Image.new("RGB", (160, 100), "white")
+    draw = ImageDraw.Draw(image)
+    draw.rectangle((12, 12, 148, 88), outline=(20, 20, 20), width=4)
+    draw.ellipse((55, 22, 105, 72), fill=(30, 100, 225))
+    image.save(source)
+    strokes = tmp_path / "colored.strokes.json"
+    extract_image_line_art(source, strokes, source_hash="f" * 64)
+
+    output = tmp_path / "colored.mp4"
+    render_stroke_animation(
+        strokes,
+        output,
+        spec=WhiteboardMvpRenderSpec(width=1280, height=720, fps=5, duration_seconds=5.0),
+    )
+    reader = imageio.get_reader(output)
+    middle = reader.get_data(14).astype("int16")
+    final = reader.get_data(24).astype("int16")
+    reader.close()
+    def is_blue(frame):
+        return (frame[:, :, 2] > frame[:, :, 0] + 70) & (
+            frame[:, :, 2] > frame[:, :, 1] + 65
+        )
+    assert is_blue(final).sum() > is_blue(middle).sum() * 3
+
+    strokes.with_suffix(".color.png").write_bytes(b"changed")
+    with pytest.raises(ValueError, match="color layer hash mismatch"):
+        render_stroke_animation(strokes, tmp_path / "tampered.mp4")
+
+
+def test_story_fixture_keeps_multiple_approved_colors_in_final_frame(tmp_path) -> None:
+    imageio = pytest.importorskip("imageio.v2")
+    from tools.create_story_video_media_fixture import create_fixture
+    from tools.story_video_media_smoke import load_fixture
+
+    from sketch2life.infrastructure.media.whiteboard_stroke_extraction import (
+        extract_image_line_art,
+    )
+
+    source, _locale, _scenes = load_fixture(create_fixture(tmp_path / "fixture"))
+    strokes = tmp_path / "full.strokes.json"
+    extract_image_line_art(source, strokes, source_hash="a" * 64)
+    video = tmp_path / "full-color.mp4"
+    render_stroke_animation(
+        strokes,
+        video,
+        spec=WhiteboardMvpRenderSpec(width=1280, height=720, fps=5, duration_seconds=5),
+    )
+    reader = imageio.get_reader(video)
+    frame = reader.get_data(24).astype("int16")
+    reader.close()
+    red, green, blue = (frame[:, :, channel] for channel in range(3))
+    assert ((red > 200) & (green > 140) & (blue < 100)).sum() > 1000
+    assert ((green > red + 20) & (green > blue + 10)).sum() > 1000
+    assert ((red > green + 20) & (blue > green + 20)).sum() > 100
+
+
 def test_storyboard_strokes_use_most_of_the_video_canvas(tmp_path) -> None:
     imageio = pytest.importorskip("imageio.v2")
     stroke_path = tmp_path / "wide-strokes.json"

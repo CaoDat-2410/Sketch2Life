@@ -107,6 +107,42 @@ def test_extract_image_line_art_crops_only_blank_outer_margin(tmp_path) -> None:
     )
 
 
+def test_extract_image_line_art_preserves_colored_marks_and_layer(tmp_path) -> None:
+    Image = pytest.importorskip("PIL.Image")
+    ImageDraw = pytest.importorskip("PIL.ImageDraw")
+    image = Image.new("RGB", (160, 80), "white")
+    draw = ImageDraw.Draw(image)
+    draw.line((10, 15, 45, 15), fill=(20, 20, 20), width=4)
+    draw.line((10, 60, 60, 60), fill=(245, 190, 15), width=5)
+    draw.ellipse((85, 15, 135, 65), fill=(30, 110, 220))
+    source = tmp_path / "colored.png"
+    image.save(source)
+
+    stroke_path = tmp_path / "colored.strokes.json"
+    extract_image_line_art(source, stroke_path, source_hash="e" * 64)
+    payload = json.loads(stroke_path.read_text(encoding="utf-8"))
+    color_layer = stroke_path.with_suffix(".color.png")
+
+    assert color_layer.is_file()
+    assert len(payload["color_layer_sha256"]) == 64
+    assert any(color[0] > 180 and color[1] > 130 and color[2] < 90
+               for color in (stroke["color"] for stroke in payload["strokes"]))
+    assert any(color[2] > color[0] + 80
+               for color in (stroke["color"] for stroke in payload["strokes"]))
+    assert Image.open(color_layer).getchannel("A").getextrema() == (0, 255)
+    crop_left, crop_top, _right, _bottom = payload["crop_box"]
+    blue_points = [
+        point
+        for stroke in payload["strokes"]
+        if stroke["color"][2] > stroke["color"][0] + 80
+        for point in stroke["points"]
+    ]
+    assert all(
+        (point[0] + crop_left - 110) ** 2 + (point[1] + crop_top - 40) ** 2 > 64
+        for point in blue_points
+    ), "a filled color area should trace its boundary, not draw a center skeleton"
+
+
 def test_connected_ink_paths_preserve_isolated_dot() -> None:
     np = pytest.importorskip("numpy")
     from sketch2life.infrastructure.media.whiteboard_stroke_extraction import (

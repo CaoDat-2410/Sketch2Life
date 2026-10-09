@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from dataclasses import dataclass
 from pathlib import Path
@@ -100,14 +101,25 @@ def extract_image_line_art(
 
     image = Image.open(image_path).convert("RGB")
     image.thumbnail((560, 560), Image.Resampling.LANCZOS)
+    rgb = np.asarray(image, dtype=np.uint8)
     gray = ImageOps.grayscale(image)
     luminance = np.asarray(gray, dtype=np.uint8)
-    dark_ink = luminance < 170
-    if int(dark_ink.sum()) >= 20 and float(dark_ink.mean()) <= 0.45:
-        ink = _thin_ink(dark_ink)
+    chromatic = (
+        (rgb.max(axis=2).astype("int16") - rgb.min(axis=2).astype("int16") > 35)
+        & (rgb.min(axis=2) < 230)
+    )
+    dark_ink = (luminance < 170) & ~chromatic
+    color_interior = chromatic.copy()
+    color_interior[1:, :] &= chromatic[:-1, :]
+    color_interior[:-1, :] &= chromatic[1:, :]
+    color_interior[:, 1:] &= chromatic[:, :-1]
+    color_interior[:, :-1] &= chromatic[:, 1:]
+    visible_ink = dark_ink | (chromatic & ~color_interior)
+    if int(visible_ink.sum()) >= 20 and float(visible_ink.mean()) <= 0.45:
+        ink = _thin_ink(visible_ink)
     else:
-        edges = np.asarray(gray.filter(ImageFilter.FIND_EDGES), dtype=np.uint8)
-        ink = edges > 48
+        edges = np.asarray(image.filter(ImageFilter.FIND_EDGES), dtype=np.uint8)
+        ink = edges.max(axis=2) > 48
     ink[[0, -1], :] = False
     ink[:, [0, -1]] = False
     if int(ink.sum()) < 20:
@@ -125,12 +137,28 @@ def extract_image_line_art(
     crop_right = min(ink.shape[1], right + margin_x)
     crop_bottom = min(ink.shape[0], bottom + margin_y)
     ink = ink[crop_top:crop_bottom, crop_left:crop_right]
+    cropped_rgb = rgb[crop_top:crop_bottom, crop_left:crop_right]
+    cropped_chromatic = chromatic[crop_top:crop_bottom, crop_left:crop_right]
 
     paths = _connected_ink_paths(ink, preserve_dots=True)
     if not paths:
         raise ValueError("LINE_ART_EMPTY")
     output = Path(output_path)
     output.parent.mkdir(parents=True, exist_ok=True)
+    color_layer_sha256 = None
+    if bool(cropped_chromatic.any()):
+        color_pixels = np.empty((*cropped_rgb.shape[:2], 4), dtype=np.uint8)
+        color_pixels[:, :, :3] = cropped_rgb
+        color_pixels[:, :, 3] = np.where(cropped_chromatic, 255, 0).astype(np.uint8)
+        color_layer_path = output.with_suffix(".color.png")
+        Image.fromarray(color_pixels, "RGBA").save(color_layer_path)
+        with color_layer_path.open("rb") as source:
+            color_layer_sha256 = hashlib.file_digest(source, "sha256").hexdigest()
+
+    def path_color(points: list[list[int]]) -> list[int]:
+        colors = np.asarray([cropped_rgb[y, x] for x, y in points], dtype=np.uint8)
+        return [int(channel) for channel in np.median(colors, axis=0)]
+
     payload = {
         "artifact_type": "whiteboard_strokes_v1",
         "source_hash": source_hash,
@@ -140,10 +168,12 @@ def extract_image_line_art(
         "width": ink.shape[1],
         "height": ink.shape[0],
         "strokes": [
-            {"stroke_id": f"line-{index:04}", "points": points}
+            {"stroke_id": f"line-{index:04}", "points": points, "color": path_color(points)}
             for index, points in enumerate(paths, 1)
         ],
     }
+    if color_layer_sha256 is not None:
+        payload["color_layer_sha256"] = color_layer_sha256
     output.write_text(json.dumps(payload, separators=(",", ":")), encoding="utf-8")
     return WhiteboardStrokeExtraction(
         source_hash=source_hash,

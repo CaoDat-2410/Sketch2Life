@@ -42,7 +42,7 @@ def _caption_chunks(text: str) -> tuple[str, ...]:
     return tuple(chunks)
 
 
-def load_fixture(path: Path) -> tuple[Path, str, tuple[dict[str, str], ...]]:
+def load_fixture(path: Path) -> tuple[Path, str, tuple[dict[str, Any], ...]]:
     raw = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(raw, dict) or set(raw) != {"source_image", "locale", "scenes"}:
         raise ValueError("fixture needs only source_image, locale and scenes")
@@ -67,10 +67,12 @@ def load_fixture(path: Path) -> tuple[Path, str, tuple[dict[str, str], ...]]:
         raise ValueError("locale must be 2-20 characters")
     if not isinstance(scenes, list) or not 3 <= len(scenes) <= 6:
         raise ValueError("fixture needs three to six scenes")
-    parsed: list[dict[str, str]] = []
+    parsed: list[dict[str, Any]] = []
     for index, scene in enumerate(scenes, 1):
-        if not isinstance(scene, dict) or set(scene) != {"text", "visual_prompt"}:
-            raise ValueError(f"scene {index} needs only text and visual_prompt")
+        if not isinstance(scene, dict) or not {"text", "visual_prompt"}.issubset(scene) or (
+            set(scene) - {"text", "visual_prompt", "focus_box"}
+        ):
+            raise ValueError(f"scene {index} needs text, visual_prompt and optional focus_box")
         text = scene["text"]
         prompt = scene["visual_prompt"]
         if not isinstance(text, str) or not text.strip() or len(text) > 1600:
@@ -78,7 +80,25 @@ def load_fixture(path: Path) -> tuple[Path, str, tuple[dict[str, str], ...]]:
         if not isinstance(prompt, str) or not prompt.strip() or len(prompt) > 2000:
             raise ValueError(f"scene {index} visual_prompt is invalid")
         _caption_chunks(text)
-        parsed.append({"text": text.strip(), "visual_prompt": prompt.strip()})
+        parsed_scene: dict[str, Any] = {"text": text.strip(), "visual_prompt": prompt.strip()}
+        if "focus_box" in scene:
+            box = scene["focus_box"]
+            if (
+                not isinstance(box, list)
+                or len(box) != 4
+                or any(isinstance(value, bool) or not isinstance(value, (int, float)) for value in box)
+            ):
+                raise ValueError(f"scene {index} focus_box must have four numbers")
+            left, top, right, bottom = (float(value) for value in box)
+            if not (
+                0 <= left < right <= 1
+                and 0 <= top < bottom <= 1
+                and right - left >= 0.1
+                and bottom - top >= 0.1
+            ):
+                raise ValueError(f"scene {index} focus_box is outside the source image")
+            parsed_scene["focus_box"] = [left, top, right, bottom]
+        parsed.append(parsed_scene)
     return source, locale, tuple(parsed)
 
 
@@ -89,7 +109,7 @@ def _require_ready(stage: str, result: dict[str, Any]) -> dict[str, Any]:
 
 
 def _subtitle_cues(
-    scenes: tuple[dict[str, str], ...], durations: list[float]
+    scenes: tuple[dict[str, Any], ...], durations: list[float]
 ) -> list[dict[str, str | float]]:
     cues: list[dict[str, str | float]] = []
     cursor = 0.0
@@ -112,7 +132,7 @@ def _subtitle_cues(
 def run_media_smoke(
     source: Path,
     locale: str,
-    scenes: tuple[dict[str, str], ...],
+    scenes: tuple[dict[str, Any], ...],
     *,
     get: Callable[[str], dict[str, Any]],
     post: Callable[[str, dict[str, Any]], dict[str, Any]],
@@ -183,6 +203,7 @@ def run_media_smoke(
                         "source_image_ref": "synthetic-media-smoke:source",
                         "source_image_sha256": source_hash,
                         "visual_prompt": scene["visual_prompt"],
+                        **({"focus_box": scene["focus_box"]} if "focus_box" in scene else {}),
                     },
                     "source_image": {"sha256": source_hash, "content_base64": encoded},
                 },

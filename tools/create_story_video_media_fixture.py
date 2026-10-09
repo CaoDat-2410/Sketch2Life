@@ -16,51 +16,56 @@ from tools.story_video_media_smoke import load_fixture
 _SCENES = (
     {
         "text": (
-            "Đây là bức tranh thử nghiệm về một ngôi nhà nhỏ và một cái cây. "
-            "Ngôi nhà nằm bên trái, cái cây ở bên phải. "
-            "Chúng ta sẽ nhìn từng nét mực xuất hiện trên bảng trắng để nhận ra hai hình quen thuộc."
+            "Trước tiên, ta nhìn ngôi nhà nhỏ ở bên trái bức tranh. "
+            "Hai nét mái nghiêng gặp nhau phía trên những bức tường thẳng. "
+            "Cánh cửa, ô cửa sổ và mái vàng hiện ra lần lượt, để hình ngôi nhà trở nên rõ ràng."
         ),
         "visual_prompt": (
-            "Black ink whiteboard line art of the same simple house on the left and "
-            "tree on the right from the source drawing. Introduce their outlines. "
-            "Plain white background; no people, words, new objects, or color."
+            "Clean hand-drawn whiteboard line art of the source house only. "
+            "Draw the black walls, door and window, then retain the source yellow roof. "
+            "White background; no new objects or words."
         ),
+        "focus_box": [0.06, 0.10, 0.49, 0.91],
     },
     {
         "text": (
-            "Trước tiên, nét bút vẽ hai bức tường thẳng và nền của ngôi nhà. "
-            "Hai đường xiên gặp nhau để tạo thành mái. "
-            "Khi thêm cửa ra vào và ô cửa sổ, hình ngôi nhà dần hoàn chỉnh mà không đổi vị trí."
+            "Tiếp theo, ta chuyển sang cái cây ở giữa bức tranh. "
+            "Thân cây màu nâu đi lên rồi chia thành những cành đơn giản. "
+            "Các nét cong bao quanh tán lá xanh, tạo thành một hình mới chứ không vẽ lại ngôi nhà."
         ),
         "visual_prompt": (
-            "Black ink whiteboard line art of the same source house on the left, "
-            "emphasizing its walls, triangular roof, door and window. "
-            "Keep the source tree on the right; no people, words, new objects, or color."
+            "Clean hand-drawn whiteboard line art of the source tree only. "
+            "Retain its brown trunk and green canopy. White background; "
+            "do not redraw the house, add people or add words."
         ),
+        "focus_box": [0.47, 0.10, 0.73, 0.91],
     },
     {
         "text": (
-            "Bây giờ, chúng ta nhìn sang cái cây ở bên phải ngôi nhà. "
-            "Thân cây đi lên từ mặt đất rồi chia thành các cành đơn giản. "
-            "Những nét cong tạo nên tán lá, trong khi ngôi nhà vẫn đứng đúng chỗ cũ."
+            "Ở phía bên phải, mặt trời vàng và bông hoa tím làm bức tranh vui hơn. "
+            "Trước hết các tia nắng xuất hiện quanh hình tròn. "
+            "Sau đó những cánh hoa mở ra quanh nhụy, rồi màu được tô vào đúng hình đã vẽ."
         ),
         "visual_prompt": (
-            "Black ink whiteboard line art of the same source tree on the right, "
-            "emphasizing trunk, branches and round canopy. Keep the same house "
-            "on the left; no people, words, new objects, or color."
+            "Clean hand-drawn whiteboard line art of the source yellow sun and "
+            "purple flower only. Retain their source colors, with simple black "
+            "outlines on white. Do not redraw the house or tree; no words."
         ),
+        "focus_box": [0.73, 0.06, 0.98, 0.93],
     },
     {
         "text": (
-            "Cuối cùng, toàn bộ bức tranh đã hiện ra trên bảng trắng. "
-            "Ngôi nhà ở bên trái và cái cây ở bên phải, giống như lúc bắt đầu. "
-            "Đây chỉ là ví dụ tổng hợp để kiểm tra tiếng kể, phụ đề và cách các nét vẽ nối tiếp nhau."
+            "Cuối cùng, ta nhìn lại toàn bộ bức tranh. "
+            "Ngôi nhà nằm bên trái, cái cây ở giữa, còn mặt trời và bông hoa ở bên phải. "
+            "Đây là tranh thử để kiểm tra bốn cảnh khác nhau, lời kể, nét vẽ và màu sắc đi cùng nhau."
         ),
         "visual_prompt": (
-            "Completed black ink whiteboard line art of the same source house "
-            "on the left and tree on the right. Simple, consistent composition "
-            "on white; no people, words, new objects, or color."
+            "Complete clean hand-drawn whiteboard recap of the source drawing: "
+            "yellow-roof house left, brown-trunk green tree center, yellow sun "
+            "and purple flower right. Preserve all source positions and colors "
+            "on white; no new objects or words."
         ),
+        "focus_box": [0.0, 0.0, 1.0, 1.0],
     },
 )
 
@@ -84,13 +89,23 @@ def create_fixture(directory: Path) -> Path:
     draw = ImageDraw.Draw(image)
     ink = (20, 25, 30)
     draw.rectangle((80, 170, 290, 326), outline=ink, width=6)
+    draw.polygon(((60, 173), (185, 68), (310, 173)), fill=(245, 210, 55))
     draw.line(((60, 173), (185, 68), (310, 173)), fill=ink, width=7, joint="curve")
     draw.rectangle((165, 240, 215, 326), outline=ink, width=5)
-    draw.rectangle((98, 200, 143, 238), outline=ink, width=5)
-    draw.line(((375, 326), (375, 185)), fill=ink, width=12)
-    draw.line(((375, 240), (325, 198)), fill=ink, width=7)
-    draw.line(((375, 215), (425, 166)), fill=ink, width=7)
-    draw.ellipse((310, 66, 445, 205), outline=ink, width=7)
+    draw.rectangle((98, 200, 143, 238), fill=(85, 190, 225), outline=ink, width=5)
+    draw.line(((375, 326), (375, 185)), fill=(135, 85, 45), width=12)
+    draw.line(((375, 240), (325, 198)), fill=(135, 85, 45), width=7)
+    draw.line(((375, 215), (425, 166)), fill=(135, 85, 45), width=7)
+    draw.ellipse((310, 66, 445, 205), fill=(125, 190, 85), outline=ink, width=7)
+    draw.ellipse((515, 55, 575, 115), fill=(250, 205, 45), outline=ink, width=5)
+    for ray in (((545, 30), (545, 47)), ((545, 123), (545, 140)),
+                ((489, 85), (506, 85)), ((584, 85), (601, 85))):
+        draw.line(ray, fill=(245, 185, 35), width=5)
+    for petal in ((532, 245), (555, 234), (578, 245), (578, 270), (555, 281), (532, 270)):
+        draw.ellipse((petal[0] - 14, petal[1] - 14, petal[0] + 14, petal[1] + 14),
+                     fill=(190, 125, 210), outline=ink, width=3)
+    draw.ellipse((543, 247, 567, 269), fill=(250, 205, 45), outline=ink, width=3)
+    draw.line(((555, 280), (555, 330)), fill=(70, 145, 75), width=5)
     image.save(image_path)
     fixture_path.write_text(
         json.dumps(

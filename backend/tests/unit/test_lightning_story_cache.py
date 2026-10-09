@@ -135,6 +135,7 @@ def test_illustration_cache_skips_identical_model_and_rejects_tampering(
     }
     model_calls: list[str] = []
     inference_seeds: list[int] = []
+    inference_image_sizes: list[tuple[int, int]] = []
 
     class FakeGenerator:
         def __init__(self, *, device: str):
@@ -155,6 +156,7 @@ def test_illustration_cache_skips_identical_model_and_rejects_tampering(
 
         def __call__(self, **kwargs):
             inference_seeds.append(kwargs["generator"].seed)
+            inference_image_sizes.append(kwargs["image"].size)
             return SimpleNamespace(images=[source.copy()])
 
     fake_torch = types.ModuleType("torch")
@@ -204,6 +206,17 @@ def test_illustration_cache_skips_identical_model_and_rejects_tampering(
         **changed,
         "request": {**changed["request"], "scene_id": "scene-2"},
     }
-    assert provider.story_video_illustration(next_scene)["status"] == "READY"
+    duplicate = provider.story_video_illustration(next_scene)
+    assert duplicate["status"] == "BLOCKED"
+    assert duplicate["error_code"] == "SCENE_VISUAL_DUPLICATE"
+    assert provider.story_video_illustration(next_scene)["error_code"] == "SCENE_VISUAL_DUPLICATE"
     assert inference_seeds[-1] == inference_seeds[0]
+    assert len(inference_seeds) == 6, "the blocked duplicate should reuse its intact cached image"
     assert model_calls == ["synthetic-model", "synthetic-model"]
+
+    focused = {
+        **payload,
+        "request": {**payload["request"], "focus_box": [0.0, 0.0, 0.5, 1.0]},
+    }
+    assert provider.story_video_illustration(focused)["status"] == "READY"
+    assert inference_image_sizes[-1] == (40, 50)
