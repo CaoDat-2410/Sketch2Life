@@ -201,6 +201,16 @@ _PIXISHOW_SCHEMA_FIELDS = frozenset(
         "y",
     }
 )
+_PIXISHOW_ROOT_VALIDATOR_CODES = {
+    "Value error, selected sprite IDs must be unique": "selected_assets_not_unique",
+    "Value error, the final show beat must settle before the still ending": "final_beat_not_settle",
+    "Value error, show plan must reserve at least two seconds for the still ending": "still_tail_too_short",
+    "Value error, show beats must be ordered and non-overlapping": "beats_not_ordered_or_overlapping",
+    "Value error, show beat references an asset not selected by the plan": "beat_asset_not_selected",
+    "Value error, show beat exceeds total duration": "beat_exceeds_duration",
+    "Value error, show beat must have positive duration": "beat_duration_not_positive",
+    "Value error, supplemental beats require exactly one asset ID": "supplemental_asset_mismatch",
+}
 
 
 def _safe_pixi_schema_issue_summary(error: ValidationError) -> str:
@@ -230,6 +240,10 @@ def _safe_pixi_schema_issue_summary(error: ValidationError) -> str:
                 and re.fullmatch(r"[a-z0-9_]{1,48}", raw_error_type)
                 else "other"
             )
+            if not path and isinstance(item.get("msg"), str):
+                error_type = _PIXISHOW_ROOT_VALIDATOR_CODES.get(
+                    item["msg"], error_type
+                )
             summaries.append(f"{location}:{error_type}")
         return ",".join(summaries) if summaries else "unknown"
     except Exception:
@@ -843,8 +857,9 @@ def _plan_pixi_show(
             "Set durationSeconds to renderer_duration_seconds exactly. Output exactly three "
             "ordered, non-overlapping beats. For every beat use a lowercase beatId matching "
             "^[a-z][a-z0-9_-]*$, numeric startSeconds/endSeconds with 0 <= start < end <= "
-            "durationSeconds, and numeric x/y from 0.05 to 0.95. End the last beat with SETTLE and "
-            "leave at least two seconds still. Set endingStill to true. Use all and only these beat "
+            "durationSeconds, and numeric x/y from 0.05 to 0.95. End the last beat with SETTLE; "
+            "its endSeconds must be no later than durationSeconds minus 2. Put no beats in the "
+            "final two seconds, which remain still. Set endingStill to true. Use all and only these beat "
             "keys: beatId, startSeconds, endSeconds, action, targetRole, assetId, x, y. Use "
             "assetId must be JSON null for SOURCE_SUBJECT; use an exact eligible asset ID also "
             "listed in selectedAssetIds for SUPPLEMENTAL_ASSET. "
@@ -856,8 +871,9 @@ def _plan_pixi_show(
             "For CUTOUT_TOPIC_SCENE, sceneThemeAssetId must be an exact listed ENVIRONMENT ID, must not "
             "appear in selectedAssetIds, and renderStrategy must be CUTOUT_TOPIC_SCENE. For all "
             "other strategies, sceneThemeAssetId must be JSON null. Always encode selectedAssetIds "
-            "as a JSON array and use [] when no companion is selected. It contains only zero to "
-            "two PROP/EFFECT IDs actually referenced by supplemental beats; never include a "
+            "as a JSON array and use [] when no companion is selected. Include each ID at most once; "
+            "include every supplemental beat's asset ID and no others. It contains only zero to two "
+            "PROP/EFFECT IDs actually referenced by supplemental beats; never include a "
             "scene theme or SUBJECT asset. Every ID must exactly match the eligible_scene_assets "
             "list. Static assets can only NOTICE, APPROACH, INTERACT, or SETTLE and must stay "
             "outside the padded source subject bounds. A verified cutout may move only as one whole "

@@ -244,3 +244,12 @@
 - Approved scope: resolve the V4 asset-ID prompt contradiction, state JSON array/null shapes, and add allowlisted schema field-path/error-type diagnostics without values or user/model content.
 - Boundaries: preserve the single inference, closed schema, generic fail-closed 502, no retry/fallback/repair, no contract changes, no live provider request, and no real child data.
 - Approval date: 2026-10-09 (Asia/Saigon).
+
+## Pixi root-validator diagnostics and prompt constraints — APPROVED
+
+- Approver: project owner, direct request in this conversation: “vẫn bị 502, check log và fix”, followed by the deployed-build log `MODEL_SCHEMA_INVALID schema_issues=root:value_error`.
+- Approved plan: `plan/PIXI_ROOT_VALIDATOR_DIAGNOSTICS_AND_CONSTRAINTS_20261009.md`, revision 1.
+- Exact pre-approval plan SHA-256: `3963AA22099CEB713E6440E0EA78D2C5D00A5BB27DFD14340B8BEDDEC464B3A3`.
+- Approved scope: clarify the final still-tail and unique selected-ID constraints; map known root validation rules to safe fixed log codes without logging messages or values.
+- Boundaries: no retry, model-output repair, fallback, contract change, live provider request, or real-child data.
+- Approval date: 2026-10-09 (Asia/Saigon).

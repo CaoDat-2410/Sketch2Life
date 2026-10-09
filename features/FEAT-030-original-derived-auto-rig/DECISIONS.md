@@ -118,3 +118,9 @@ Android gates; the expansion manifest remains runtime-ineligible. See
 - Prompt constraints must not contradict required schema values: require IDs from the supplied allowlist and forbid only invented/unlisted IDs. State JSON array and nullable-field shapes directly.
 - If schema validation still fails, logs may include only a bounded allowlisted schema path and Pydantic error type; never include input values or error messages.
 - Evidence: `evidence/notes/PIXI_SCHEMA_INVALID_PROMPT_CONTRADICTION_FIX_20261009.md`.
+
+## 2026-10-09 — Pixi root-validator failure follow-up
+
+- Express the still-tail rule as `lastBeat.endSeconds <= durationSeconds - 2` and require unique selected IDs, with every supplemental beat ID present once in the list.
+- Map only known Pydantic validator messages to fixed diagnostic codes; retain generic `root:value_error` for unknown messages and never log the raw message.
+- Evidence: `evidence/notes/PIXI_ROOT_VALIDATOR_DIAGNOSTICS_AND_CONSTRAINTS_20261009.md`.

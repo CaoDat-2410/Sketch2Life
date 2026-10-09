@@ -152,3 +152,9 @@ Updated: 2026-10-08
 - Source review found a prompt contradiction: the model was told to provide allowlisted asset IDs and later told not to output any asset IDs. The follow-up plan was approved by the owner request to check and fix this 502.
 - Local implementation is complete: removed that contradiction, made ID array/null shapes explicit, and added sanitized bounded schema field/type diagnostics. `py_compile` and `git diff --check` passed; tests and live inference were not run.
 - New runtime acceptance requires deploying this patch, restarting Uvicorn, and confirming a successful plan or a safe `schema_issues` field path in the next synthetic request.
+
+## Pixi root-validator failure follow-up — 2026-10-09
+
+- Runtime evidence after `b3a7798`: HTTP 502 with `MODEL_SCHEMA_INVALID schema_issues=root:value_error`.
+- Local fix clarifies the final still interval and selected-ID uniqueness; logs map known root validator messages to fixed reason codes without logging those messages. Python compilation and `git diff --check` passed; tests and live inference were not run.
+- Runtime acceptance requires deployment of this commit and one synthetic-image request. Unknown root failures remain safely classified without content.

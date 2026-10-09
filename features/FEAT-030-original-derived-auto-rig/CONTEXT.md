@@ -238,3 +238,9 @@ open, so the checked-in manifest still rejects runtime use. Details: `evidence/n
 - Owner confirmed Lightning had pulled and restarted `c74831e`; the next `/v4/pixi/show-plan` request still returned HTTP 502 with `MODEL_SCHEMA_INVALID` after activity ranking succeeded.
 - Source review found the V4 prompt asked for eligible asset IDs and later prohibited all asset IDs. The follow-up plan also makes JSON array/null types explicit and adds a bounded schema-path/error-type summary that excludes values and messages.
 - Local implementation and static verification: `evidence/notes/PIXI_SCHEMA_INVALID_PROMPT_CONTRADICTION_FIX_20261009.md`. The newest patch needs to be deployed and the synthetic request repeated before runtime acceptance.
+
+## Pixi root-validator failure follow-up — 2026-10-09
+
+- After deploying and restarting `b3a7798`, the owner reported `MODEL_SCHEMA_INVALID schema_issues=root:value_error`.
+- The root validator can reject duplicate selected IDs, a non-SETTLE final beat, an insufficient still tail, overlapping/out-of-order beats, or supplemental asset references. The prompt did not directly state the final beat's `endSeconds <= durationSeconds - 2` or uniqueness of `selectedAssetIds`.
+- The approved follow-up makes these constraints explicit and maps known validator messages to fixed safe diagnostic codes. Evidence: `evidence/notes/PIXI_ROOT_VALIDATOR_DIAGNOSTICS_AND_CONSTRAINTS_20261009.md`.
