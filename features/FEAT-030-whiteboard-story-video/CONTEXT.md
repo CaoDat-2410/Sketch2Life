@@ -7,6 +7,13 @@ drawing is optional, with failed short timing/Visual QA. Setup is mock/inventory
 only; no inference/connection. Actual checkout differs from the private D: evidence
 directory; no relocation. V1 default/V2 OFF, Gates unchanged. See plan/REPOSITORY_STABILIZATION.md.
 
+Environment policy addendum: Windows is code/repository/static-check only; no new
+PyTorch/CUDA/Diffusers/Transformers/Accelerate/model/npm/Docker installation.
+LightningAI is the dependency-installation and GPU execution environment. The
+three scripts under scripts/lightningai use a separate venv, fail closed without
+explicit install opt-in, and separate setup, verification and tests. Missing local
+runtime is `REQUIRES_LIGHTNINGAI_TEST`, not a test pass.
+
 Revision32 (2026-10-10): attached owner storyboard is GOLD VISUAL REFERENCE;high-quality source-derived image generation required. PhaseA BLOCKED_NEEDS_IMAGE_GENERATION:RTX3060/12GB exists but backend lacksTorch/Diffusers/weights,existingadapter single-image only. Built-in tool available,external child-image processing permission pending. Concrete11job prompt pack andA built-in/B localQwenEdit2511 route/resourcebrief prepared outsideGit;no coarse replacement or generation/MP4.345Python/source9masks intact,V1default/V2OFF. See evidence/SKETCH2LIFE_PHASE_A_IMAGE_GENERATION_BRIEF.md. Await route/data permission,notanotherarchitectureplan.
 
 Revision30 (2026-10-10): owner rejects Rev29 simplified illustrated artwork: VISUAL_FIDELITY_NOT_PASSED. Main direction SOURCE-ANCHORED WHITEBOARD STORYTELLING. Static A/B/C/D target uses unchanged decoded original; enhancement is presentation2x only. Characters/house2floors/tree/background preserved;9masks hashes and nativeRGB equality checked. Separate15guide-path PROPOSAL,4framing previews, no new asset without approval. OWNER_VISUAL_REVIEW_PENDING;noMP4. Rev29 code retained, not visual baseline. Rev28 frozen TECHNICAL PROOF / OPTIONAL ORIGINAL-DRAWING MODE,23.259/106.757s,VisualQA notpassed. See evidence/SKETCH2LIFE_SOURCE_ANCHORED_VISUAL_TARGET.md. Stop before story render.

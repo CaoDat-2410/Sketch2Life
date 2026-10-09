@@ -12,6 +12,9 @@ Authority: owner's full repository-cleanup/scoped-commits/LightningAI-setup requ
 4. Prepare no-inference local mock / runtime inventory, model-reference interface and
    instructions. Reuse existing Wan adapter; workspace revision remains unverified.
 5. Validate security before each commit, regression/lint/types, V1 default/V2 OFF.
+6. Treat Windows as code/repository/static-check only. Do not install new
+   dependencies there. LightningAI owns dependency installation and GPU
+   execution through the real scripts/lightningai setup/verify/test workflow.
 
 Acceptance: audit/backup checksums; scoped local commits with test evidence; complete
 remaining-file reasons; setup commands which cannot download models or run inference.

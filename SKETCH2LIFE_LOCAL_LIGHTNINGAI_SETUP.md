@@ -35,6 +35,29 @@ Use `${LOCAL_REPOSITORY_ROOT}` below for the actual checkout.
 models. Mock does not generate artwork, so its success is not an AI quality PASS.
 Inventory queries nvidia-smi and package availability without importing Torch/models.
 
+Windows policy: do not run `pip install`, `npm install`, `conda install`, model
+downloads or GPU setup in the Windows environment. Missing dependencies are
+reported as `REQUIRES_LIGHTNINGAI_TEST` and tested on LightningAI instead.
+
+## One-command LightningAI workflow
+
+From the pulled repository root, use a separate virtualenv. `setup.sh` installs
+declared backend development/media extras only after explicit opt-in and never
+modifies a Wan virtualenv:
+
+```bash
+export SKETCH2LIFE_ALLOW_INSTALL=1
+bash scripts/lightningai/setup.sh
+bash scripts/lightningai/verify.sh
+bash scripts/lightningai/run_tests.sh
+```
+
+`setup.sh` is the only install step. `verify.sh` is read-only and checks GPU,
+Torch CUDA availability, dependency versions and V1/V2 flags. `run_tests.sh`
+runs contract regression, Ruff, Mypy and repository security. These scripts do
+not download model weights or run inference and fail closed when prerequisites
+are missing.
+
 ## LightningAI: owner-run read-only inventory, after connection approval
 
 ```bash
