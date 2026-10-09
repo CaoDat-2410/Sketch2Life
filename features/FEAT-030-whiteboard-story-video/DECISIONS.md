@@ -1,5 +1,72 @@
 # Decisions
 
+## Revision33 — Stabilize, do not replace the product architecture
+
+Preserve verified experimental source in explicitly labeled commits, not as a
+production-ready story feature. Keep child assets, hand drafts and pilot outputs
+outside Git. Runtime preparation has a fail-closed real mode and does not enable
+HTTP V2. Do not relocate the checkout over the private artifact directory.
+
+## Revision32 — Gold style needs real image generation; reject rough substitutes
+
+Owner-supplied image controls aesthetics. Original remains identity/content reference,not obligatoryframe. Use source/reference/consistent image inputs for7asset+4scene candidates inPhaseA. Existing single-imageadapter not verified for multi-reference. Localruntime notready;built-in externalprocessing notauthorized. RecordBLOCKED_NEEDS_IMAGE_GENERATION,concretepromptpack andlocal/external options;do not create more cropped/vector substitutes. Preserve olderexperiments;noPhaseB/C before ownerreview.
+
+## Revision30 — Preserve source identity; control paths do not define final artwork
+
+Owner rejected simplified Rev29 faces/house/context. Preserve full source artwork and compose an independent draw-control layer; final content fidelity must not be traded for fewer paths. Native artwork unchanged; enhanced presentation only2x, disclosed without AI/detail recovery claim. Original-drawing renderer remains optional technical proof with failed short timing/VisualQA. No new production flow or renderer changes. Current approval is static source-anchored target/framing/guide proposal only; story render must wait for visual review. Butterfly artwork remains pending final approval.
+
+## Revision28 — Authored semantics reduce fragmentation, do not solve short natural output
+
+Preserve baseline and use optional version1.0 local hash-bound JSON packs with explicit contour/detail/region brush paths. Coverage failure blocks with NEEDS_AUTHORING_REVIEW, never dot cleanup or snap. Only butterfly/house proofs authorized.37/42 paths render technically,23.259/106.757s miss5/8s targets and are slower than earlier original proofs. No Visual PASS; do not increase speeds/FPS/thresholds or extend refinement automatically. AUTO/REVIEW/FALLBACK is routing policy, not automatic inference or server approval. Require owner playback and a distinct approved drawable representation before claiming short-story readiness.
+
+## Revision27 — Reject automatic brush regression; choose semi-automatic authoring
+
+Keep old proof baselines and production intact. New palette/global-contour semantic adapter and safe LOD evaluator operate locally but automatic PCA hatch/cleanup creates hundreds of paths, defeating timing. One batch correction fixed serialization only;A encoded, B/C/D resource blocked. ENGINEERING_TARGET_FAIL, VISUAL_QA_NOT_PASSED. ChooseA reviewed source-grounded semantic stroke authoring,not more raster/brush thresholds;B unapproved/unproven,C insufficient natural-drawing claim. No Golden55s.
+
+## Revision26 — Faithful compositing does not fix source ink failure
+
+One unchanged house source-path proof at native62.865s drawing plus hold,not forced butterfly duration. Only1.024% source pixels in ink;154paths/153lifts and tiled hatch COLOR cannot form natural house drawing. Rawfinalexact/geometry/order audits pass;VisualQAFAIL. Primary phase/structural reconstruction issue,not encoder or compositing. Propose one reviewed source-structural path/ink and region brush correction;no repair/threshold loop performed.
+
+## Revision25 — Encoded proof does not approve natural drawing
+
+Keep smaller artwork and21paths unchanged; one12.75s clean/debug offline proof using baseline11.399s pacing and1.351s hold.306-frame geometric/order audit passes, rawfinalexact;H.264final has minor loss. Inspect decoded temporal evidence, but naturalness remains owner-review gate. Repetitive contour spirals and83ms lifts are limits, not reasons to tune endlessly. No full story or final artwork acceptance.
+
+## Revision24 — Candidate path coverage is not visual approval
+
+Preserve source and nine masks. New authored textured butterfly uses separate ink and component-clipped contour/spiral brush paths; perimeter traversal resolves 33 antialias fringe holes without final snap or relaxed timing. 100% coverage does not establish natural animation. Await artwork/size/path/time review; full family 15 s feasibility remains blocked.
+
+## Revision23 — Step A measured paths expose render blockers
+
+Keep source dark-ink phase masks distinct from COLOR/source texture, but do not interpret sparse neutral-dark masks as good drawings. Conservative heuristic and raster fragments require source-ink/path review. Fixed reviewable pacing yields ~372.50s for current unsimplified scaled18task sequence,not a measured/inherent product minimum. Butterfly manual local pencil candidate art/time pending review. All source/masks/rig code immutable; no video/threshold loop/production change. See StepA result;await asset/scope/time approval.
+
+## Revision22 — Mandatory new-object drawing, narration first
+
+Current plan `plan/SKETCH2LIFE_WHITEBOARD_STORY_SLICE_PLAN.md` supersedes focus-only revision21. Newly drawn butterfly required after separate art/path review, plus soft camera focus on persistent canvas. Rig optional/unchanged. Draft15s simulated text timeline and private static HTML preview only, no code/MP4/TTS/inference. Pending art or infeasible stroke timing blocks render, never replaced by fade/pop. Exact script/cues and implementation await owner review.
+
+## Revision21 — Narration controls persistent drawing, rigs optional
+
+Prioritize reviewed speech beats→source-bound draw/ink/color/camera timing. Do not require failed walk rig for every whiteboard story. For first slice select existing source objects and garden focus, no pending butterfly dependency. Distinguish SIMULATED_CUES_ONLY from actual measured phrase cues; external TTS not approved. Naturalness still unpassed and sourceRGB ink-phase leakage must be addressed after implementation approval. Preserve old code/media; no code/render change this turn. Plan: `plan/SKETCH2LIFE_WHITEBOARD_STORYTELLING_SLICE_PLAN.md`.
+
+- 2026-10-09 revision20: one bounded local child proof, candidate-only manual parts from actual master silhouette, same source head/torso, source-derived light smoothing, explicit donor-coordinate background patch and per-frame fixed-bone/foot-lock transforms. Do not represent mathematical success as acceptable visual motion: disjoint/static-valid masks are not motion-ready semantic mattes, hidden joint/background art is missing, source-part leftovers expose ghost fragments. Preserve failed candidate/QA NOT_PASSED and stop; no more speed/style/threshold tuning, Option B fallback, parent/butterfly/Golden/audio execution. Diagnostic uint8 color-count overflow corrected independently, preserving initial evidence; no rerender or changed visual QA.
+
+- 2026-10-09 revision 19: prepare final approval, do not start 3B. Recommend bounded manual source-derived 2D rig/key poses with actual limb/posture/contact changes, not root-only sliding. Butterfly needs separate reviewed body/wing art and new-asset draw/motion adapter; no current unsupported-action bypass. Hidden pixels and changed poses are reviewed derived art, not claimed original. CPU/manual route avoids mandatory AI/GPU; optional SDXL inpaint/reference conditioning remains unbenchmarked, costs/data scope need separate approval. TTS is demo narrator, not child's voice; external text processing requires permission. Preserve 3A JSON history; proposed script/action revisions need new hashes after review. No production/Gate/API/default changes or new visual PASS.
+
+- 2026-10-09 revision 18: switch to Golden Story planning, not further threshold tuning. Select revision-15 visual/order baseline on owner feedback; retain later fail-closed schedule safeguards without rollback. Draft 18+14+13+10 seconds with matched-state cuts, one source canvas/registry and explicitly proposed 2D cutout motion (not walking). Actual source-only V2 pilot uses fixed target states/camera throughout clip; WALK/RUN/new assets block. Do not fake production-approved fact/anchor IDs to instantiate drafts. Child release pose and revealed background require new reviewed derived assets; butterfly is pending art, not generated. Private previews are annotated framing proposals, not executed animation. No production endpoints, inference or story implementation before separate approval.
+
+- 2026-10-09 revision 17: fix renderer authority, not extraction thresholds. Reject unscheduled preview, validate complete parent phases and serial source paths; deliberate debug interleave needs a reason that cannot waive ordering. Use one stroke fraction for reveal/cursor and debug actual source-path IDs. Current source-RGB outline/detail need not be monochrome. Clock/geometry correctness does not solve sub-frame raster traversal; keep overall visual QA failed and stop after clean/debug comparison.
+
+- 2026-10-09 revision 16: preserve owner-accepted object-first visual baseline. Test only one optional bounded pencil candidate with mask-contained zigzag turns, explicit pen-up cues, arc-length timing and sparse source-background preparation. Measured color median 9,363 px/s and 914/937 sub-frame color paths show time-compression limits; late blank background worsens. Do not promote candidate or tune further. Propose separate three-scene Golden only with owner narration/style approval, real server binding, motion-ready masks/occlusion assets and actual runtime acceptance.
+
+- 2026-10-09 revision 15: diagnose white diagonal slits as unexecuted queued color passes, not invalid masks. Skip verified white cleared-background delay; add opt-in coherent component filtering, strictly adjacent seam joins and source-only local brush tracks plus object-first schedule. Preserve old defaults/inputs and one before/after pair. The new video still shows block-like progression and incomplete late background, so retain VISUAL_QA_NOT_PASSED and stop rather than tune more thresholds or conceal gaps.
+
+- 2026-10-09 revision 14: replace the refined branch's premature global detail graph with bounded coordinate-preserving clusters and a disclosed persistent-edge/dark-ink texture heuristic. Keep original mask/source hashes, legacy guards, explicit review failures and full source-color coverage. Add cooperative render limits; do not substitute a fade or claim natural drawing/motion. Real static MP4 succeeds but visual quality remains unpassed; stop for owner review, without commit or subsequent milestone.
+
+- 2026-10-09 revision 13: honor provisional permission only for a static local real-family drawing benchmark. Inspect native masks, preserve source pixels and existing mask bindings, and exercise the unchanged engine with all nine regions. When garden exceeds the absolute detail limit, preserve failure evidence rather than raise guards, delete texture, simplify objects or encode an incomplete video. Static target equality does not establish progressive fidelity, coloring naturalness or Gate/product approval. Stop for review before repairing the tracing engine.
+
+- 2026-10-09 revision 12: use the exact owner-reattached original family JPEG for local benchmark preparation. With local SAM/OpenCV unavailable, create manual visible-contour masks and source-preserving region cutouts, not model-generated art or rectangle/ellipse substitutes. Disclose shared-hand priority and garden-as-region semantics. Keep mask/identity approval pending and render only after owner confirmation; no Gate A/B approval is inferred from consent or manifest labels. Private derivatives stay outside Git.
+
+- 2026-10-09 Milestone 2.1 revision 11: preserve exact decoded source pixels in a static V2 scene by layering the original canvas outside verified masks; use a locally sampled placeholder only where moved objects expose unknown pixels, never claim inpainting. Refined paths prefer straight continuation and revert to legacy when that would increase fragments. Texture-rich cutouts may use diagonal source-pixel brush trajectories; flat-color cutouts keep the prior fill because the new hatching looked worse in A/B review. Decoded MP4 sheets and three difference maps are evidence, not aesthetic approval. Complex real art still needs reviewed masks. No V1/Gate/API changes.
+
 - 2026-10-09 Milestone 2 revision 10: implement isolated per-object raster-derived stroke contracts and source-pixel brush reveal, with exact canonical-composer final-frame gate and MP4 decode tests. Keep the V1 tracer/renderer/user edits untouched. Reject dense/untraceable/timing-infeasible cases; do not present recovered paths as original pen history. Family/ocean pilot visual quality remains insufficient, and ocean background outside reviewed masks is omitted by the inherited composer; report `VISUAL_QA_NOT_PASSED` and source-image fidelity partial. No V2 HTTP, real approval or Lightning integration. See `evidence/SKETCH2LIFE_MILESTONE2_RESULT.md`.
 
 - 2026-10-09 Milestone 1.5 revision 9: require a reviewed mask digest in manual source specs to catch accidental identity/mask swaps; this is not a substitute for server-owned adult approval because the prototype caller supplies it. Retain default-OFF V2 and no V2 HTTP endpoint. Add interface-only future contracts for trusted review lookup, segmentation, durable assets, strokes, motion and approved new assets. Two synthetic drawings test mechanics, not reference-level whiteboard quality. See `evidence/SKETCH2LIFE_MILESTONE1_5_RESULT.md`.

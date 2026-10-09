@@ -1,0 +1,67 @@
+# Sketch2Life Milestone 2.1 — visual-quality refinement result
+
+Date: 2026-10-09. Baseline `codex/feat-018-contract-plan` at local HEAD `93668ffdaa7f2890fe9498596c670006a87eba4a`, with an empty index. The remote-tracking `origin/codex/feat-018-contract-plan` also points to `93668ff` following an external update; this Milestone 2.1 task did not fetch, push, merge or change local HEAD. The three pre-existing modified V1 files, four unapproved hand drafts, 15 untracked Milestone-2 pilots and untracked Git commit result were preserved. No commit, push, merge, deploy, paid inference or LightningAI run was performed. This report and all implementation edits remain uncommitted for Architect/owner review.
+
+## Verdict
+
+- **ENGINE_TEST_PASS** for the bounded, offline synthetic pilot and scoped regression tests below.
+- **SOURCE_FIDELITY_PARTIAL** overall. Static synthetic family/ocean PNG/JPEG canonical scenes now exactly match every decoded source pixel after alpha-on-white normalization. A moving object exposes pixels absent from the one input image; the composer uses a visible, locally sampled *placeholder*, not recovered background. H.264 output is lossy.
+- **VISUAL_QA_NOT_PASSED**. Direct review of the actual decoded 0/25/50/75/100 frames still shows schematic art and a mechanical reveal. An attempted diagonal color method looked worse on flat fixture colors, so a conditional legacy fallback was retained. Automated metrics and tests do not establish human-like whiteboard quality.
+- **COMPLEX_ART_BENCHMARK_INCOMPLETE**. The requested `<owner-downloads>/family.jpg` does not exist; the owner-permitted file is `<owner-downloads>/familly.jpg`, inspected locally (594×336 JPEG, SHA-256 `52CAF90A2242D04FC107AFA1F17B8DE738C5F8982200FC504FE725A5607EE3D3`). Exact machine paths remain in private local evidence. It contains detailed people, hair, eyes, clothing, house, tree and flowers, but no reviewed per-object masks/identity manifest is available for that image. The repository's synthetic family fixture and its masks are **not** masks for this real drawing. No V2 object-aware render, before/after video or quality claim was fabricated from a rectangle mask. The image and derivatives were not copied into Git.
+- **LIGHTNINGAI_NOT_TESTED**. **FULL_STORY_VIDEO_NOT_IMPLEMENTED**. These are silent, single-scene, six-second CPU pilots, not narration-synchronized multi-scene video.
+
+## Root causes and changes
+
+1. The Milestone-2 composer started from white and placed only cutouts, losing source pixels outside object masks. The process-local `SourceAssetRegistry` now retains verified original bytes. `source_canvas_layers` decodes/normalizes the source, preserves all unmasked pixels, clears object masks to prevent duplicate figures, and supplies the same static layer to both canonical composer and animated renderer. Static final fidelity is exact on A/B. For motion, the former object region has no known hidden background; a median of nearby visible pixels is marked as a placeholder. This is **not inpainting**. Transparent PNG pixels are compared after white alpha composition.
+2. Previous 8-neighbor edge traversal produced many tiny fragments at junctions. Refined traversal visits source pixels once and prefers straight continuation, with the original method retained when its path count is lower. On synthetic family, outline paths fall from 40 to 14; on ocean PNG, 26 to 9 and detail paths 190 to 36. Source object shape is still taken from the original mask/pixels; the final render reveals original RGBA rather than repainting geometry. Junction fidelity and thin details on real child art remain unvalidated.
+3. Uniform horizontal scanlines made color appear as stripes. An experimental diagonal, slightly bent brush itinerary reveals only original cutout RGBA and spatially interleaves strokes. Visual inspection found its hatching **worse** on the flat synthetic objects. The refined strategy therefore keeps legacy fill when mean per-channel RGB standard deviation inside the cutout is at most 45; textured cutouts use the alternate brush. A high-variance synthetic test exercises that branch. This heuristic and aesthetic quality are **not** validated on the permitted complex drawing.
+4. Prior contact sheets were assembled from raw renderer frames, so they could hide codec artifacts. The CLI now writes a second sheet decoded from the actual MP4 plus three difference maps: original vs canonical, canonical vs raw final, and canonical vs decoded final. Four-times-brighter difference PNGs aid inspection; MAE is computed on unamplified pixels. There is no last-frame substitution: the last raw frame arises from the same progressive brush paths.
+5. The pilot fails `DRAW_TIMING_INFEASIBLE` before encoding if an edge exceeds 2048 pixels or the image exceeds 1920×1080 pixels. Existing stroke-count/timing and untraceable-detail failure paths remain. No detail is silently discarded for speed.
+
+The world model, approved event structures, planner, Gate A/B, V1 renderer and HTTP/job routes were not changed. `story_render_v2_enabled` remains default `False`; V1 `.run()` remains V1.
+
+## Changed files
+
+Implementation: `backend/src/sketch2life/application/services/story_world_model.py` (retain original bytes); `backend/src/sketch2life/contracts/schemas/story_strokes_v2.py` (backward-compatible V2 extraction-method enum); `backend/src/sketch2life/infrastructure/media/scene_state_composer.py` (verified source/background layers); `backend/src/sketch2life/infrastructure/media/object_stroke_engine_v2.py` (refined paths, texture-gated color strategy and legacy fallback); `backend/src/sketch2life/infrastructure/media/whiteboard_renderer_v2.py` (progressive background, decoded evidence, diff maps, size limit); `tools/story_whiteboard_v2_pilot.py` (strategy selection, metrics, CPU timing/traced heap); `backend/tests/unit/test_whiteboard_v2_visual_refinement.py` (new tests).
+
+Governance/evidence: `features/FEAT-030-whiteboard-story-video/plan/PLAN.md`, `approvals/TASK_APPROVAL.md`, `CONTEXT.md`, `DECISIONS.md`, `status/STATUS.md`, `evidence/README.md`, and this report. The three pre-existing V1 modified files are visible in Git status but were **not edited for Milestone 2.1**. No original pilot artifact was overwritten.
+
+## Same-source before/after evidence (outside Git)
+
+All following paths are under `D:/Codex/Sketch2Life/milestone2_1_review_2026-10-09/`. Each pair uses the **same** synthetic source, scene, 6-second duration, 12 FPS and 72 frames. `legacy-final` and `refined-final` were rerendered after the source-canvas fix to isolate stroke differences; the original Milestone-2 MP4s remain separately backed up at `D:/Codex/Sketch2Life/milestone2_artifact_backup_2026-10-09/`. The family/ocean screenshots are generated fixtures, **not** the permitted `familly.jpg`.
+
+| Fixture | Before MP4 / decoded sheet | After MP4 / decoded sheet |
+|---|---|---|
+| Family PNG | `family-legacy-final/family-v2-pilot.mp4` / `family-legacy-final/family-v2-0-25-50-75-100-decoded.png` | `family-refined-final/family-v2-pilot.mp4` / `family-refined-final/family-v2-0-25-50-75-100-decoded.png` |
+| Ocean PNG | `ocean-png-legacy-final/ocean-png-v2-pilot.mp4` / `ocean-png-legacy-final/ocean-png-v2-0-25-50-75-100-decoded.png` | `ocean-png-refined-final/ocean-png-v2-pilot.mp4` / `ocean-png-refined-final/ocean-png-v2-0-25-50-75-100-decoded.png` |
+| Ocean JPEG | original Milestone-2 backup (`ocean-jpeg-v2-pilot.mp4`) | `ocean-jpeg-refined-final/ocean-jpeg-v2-pilot.mp4` / `ocean-jpeg-refined-final/ocean-jpeg-v2-0-25-50-75-100-decoded.png` |
+
+For each final directory, the matching `*-diff-original-canonical.png`, `*-diff-canonical-raw.png`, `*-diff-canonical-decoded.png`, `*-strokes.json`, `*-draw-schedule.json`, and `*-metrics.json` allow detailed review. Contact sheets are composed from decoded MP4 frames, not five independent images. A 0% white canvas becomes outline/detail, then source color; no full-frame opacity fade or end-frame snap is used. The background is revealed by wide diagonal source-pixel strokes early in the clip, but this can still feel like a sweep and is not accepted as reference-quality hand animation.
+
+## Fidelity, quality and performance
+
+| Fixture / strategy | Outline / detail / color paths | Source→canonical MAE | Canonical→raw final MAE | Canonical→decoded final MAE | Extraction / render seconds | Python traced peak |
+|---|---:|---:|---:|---:|---:|---:|
+| Family legacy | 40 / 1 / 248 | 0.000 | 0.000 | 0.837 | 0.173 / 1.502 | 6.83 MB |
+| Family refined | 14 / 1 / 248 | 0.000 | 0.000 | 0.842 | 0.216 / 1.393 | 6.77 MB |
+| Ocean PNG legacy | 26 / 190 / 161 | 0.000 | 0.000 | 1.658 | 0.370 / 1.249 | 5.37 MB |
+| Ocean PNG refined | 9 / 36 / 161 | 0.000 | 0.000 | 1.659 | 0.351 / 1.119 | 4.96 MB |
+| Ocean JPEG refined | 9 / 110 / 161 | 0.000 | 0.000 | 1.725 | 0.395 / 1.265 | 5.13 MB |
+
+Milestone-2 source→canonical MAE for the static ocean scene was 9.154 (PNG) / 9.476 (JPEG), because the blue source background was omitted. The new static target is 0.000. Conversely, decoded-MP4 MAE **increased** from 0.454/0.370 to about 1.659/1.725 as more source content is now encoded; this is not concealed. Raw final equals canonical, while decoded H.264 has edge/color differences. The JPEG fidelity comparison is to **decoded JPEG pixels**, not an unavailable pre-compression original. Peak memory is `tracemalloc` Python allocation only; NumPy/Pillow/FFmpeg native and child-process peak RSS were not measured. Times are single local CPU runs, not an SLA.
+
+Decoded consecutive-frame mean absolute pixel difference peaked at 0.890 (family, frame 66) and 1.523 (ocean PNG, frame 8); last-step values were 0 and 0.014. This rules out a large measured final-frame snap in those pilots, not every possible perceptual pop. The flat fixture coloring still looks mechanical. No claim is made that the 45-point texture threshold or straight-through junction paths retain every hair/eye/leaf on real art.
+
+## Tests and checks
+
+- Focused final command: `backend/.venv/Scripts/python.exe -m pytest -o addopts= -q backend/tests/unit/test_whiteboard_v2_visual_refinement.py backend/tests/unit/test_whiteboard_v2_engine.py backend/tests/unit/test_story_world_v2.py backend/tests/unit/test_story_world_v2_multidrawing.py backend/tests/unit/test_story_video_planner.py backend/tests/unit/test_whiteboard_mvp_renderer.py backend/tests/unit/test_whiteboard_stroke_extraction.py backend/tests/contract/test_story_video_file_api.py` — **111 passed in 86.03 s** after the last two refinement tests were added; independent handoff verification also returned **111 passed in 84.83 s**, exit code 0.
+- Final broad command: `backend/.venv/Scripts/python.exe -m pytest -o addopts= -q backend/tests/unit backend/tests/contract -k 'not vision_v3_quality_fixtures and not vision_v3_mapping_fixtures and not vision_v3_quality_benchmark and not vision_v3_quality_execution'` — **1,709 passed, 5 skipped, 86 deselected in 195.91 s**. The interrupted client session was resumed and returned exit code 0, so this is a verified post-edit result. The earlier pre-edit run was 1,707 passed, 5 skipped, 86 deselected in 186.57 s.
+- Ruff on seven touched Python source/test/tool files: `All checks passed!` (exit 0). Mypy `--follow-imports=silent` on five touched V2 source files: `Success: no issues found` (exit 0). `git diff --check` passed (exit 0). `tools/validate_repository_security.py`: `REPOSITORY_SECURITY_VALID`, 1,654 publishable files scanned (exit 0); this is the repository's configured security check, not a claim of exhaustive security audit.
+- Tests include PNG/JPEG static full-pixel equality, semi-transparent PNG alpha, moving-background known/unknown pixels, missing source/mask failure, old/new stroke contract parsing, fallback selection, complex-texture synthetic branch, MP4 decode/contact sheet/diff maps, no final snap, and oversize rejection. They do not prove aesthetic quality on real art.
+- Vision V3 fixture/mapping/benchmark/execution groups are excluded because `features/FEAT-003-multimodal-understanding/fixtures/vision-v3-quality/images/v3q-fixture-01.png` remains absent; an earlier unfiltered run had nine failures. Do **not** report the whole repository as green.
+
+## What blocks Milestone 3 and LightningAI validation
+
+First obtain **reviewed object masks and stable identities** for the permitted detailed family JPEG; correct overlaps and inspect boundaries at hair, hands, eyes, clothing and flowers. Only then run the same-source legacy/refined V2 pilot on it, review all decoded frames and differences, measure missing details and obtain owner/Architect visual approval. This milestone has not satisfied that gate. Next, specify how motion exposes hidden background (reviewed inpainting or explicit limitation) and improve source-grounded stroke/brush authoring where raster inference remains stiff. These are not solved by MAE alone.
+
+For an owner-operated LightningAI check after review: transfer the code and **consented source plus reviewed masks** through the approved private channel; confirm Python/Pillow/NumPy/imageio-ffmpeg and storage; keep V2 flag OFF and invoke only the offline pilot, not an HTTP job; verify source/mask hashes, inspect decoded MP4 and difference maps, log CPU/GPU/runtime version, then separately review visual quality. Do not test a full V2 story, Gate A/B integration, or product READY path based on this pilot. Stop for Architect and owner review before any Milestone 3 work.
