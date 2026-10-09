@@ -18,6 +18,19 @@ class ObjectStrokeV2(BaseModel):
     pen_up_before: bool = True
 
 
+class StrokeProcessingDiagnosticsV2(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    raw_detail_candidates: int = Field(ge=0)
+    structural_detail_pixels: int = Field(ge=0)
+    texture_candidates_deferred_to_color: int = Field(ge=0)
+    detail_threshold: int = Field(ge=0)
+    trace_clusters: int = Field(ge=0)
+    max_cluster_pixels: int = Field(ge=0, le=1024)
+    retained_structural_fraction: float = Field(ge=0, le=1)
+    texture_heuristic: Literal["PERSISTENT_COLOR_EDGE_OR_DARK_INK_V1", "COHERENT_SOURCE_INK_V2"]
+
+
 class SourceObjectStrokesV2(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
@@ -32,7 +45,14 @@ class SourceObjectStrokesV2(BaseModel):
     width: int = Field(gt=0)
     height: int = Field(gt=0)
     z_index: int = Field(ge=0)
-    extraction_method: Literal["MASK_BOUNDARY_AND_LOCAL_CONTRAST_V1"]
+    extraction_method: Literal[
+        "MASK_BOUNDARY_AND_LOCAL_CONTRAST_V1",
+        "MASK_BOUNDARY_AND_LOCAL_CONTRAST_V2",
+        "MASK_BOUNDARY_AND_STRUCTURAL_TEXTURE_V3",
+        "MASK_BOUNDARY_AND_COHERENT_TEXTURE_V4",
+        "MASK_BOUNDARY_AND_PENCIL_TEXTURE_V5",
+    ]
+    processing_diagnostics: StrokeProcessingDiagnosticsV2 | None = None
     outline_paths: tuple[ObjectStrokeV2, ...] = Field(min_length=1)
     detail_paths: tuple[ObjectStrokeV2, ...] = ()
     color_paths: tuple[ObjectStrokeV2, ...] = Field(min_length=1)
