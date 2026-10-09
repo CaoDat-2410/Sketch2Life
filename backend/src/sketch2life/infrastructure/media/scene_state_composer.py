@@ -5,10 +5,58 @@ from __future__ import annotations
 import hashlib
 import io
 
-from PIL import Image
+from PIL import Image, ImageChops, ImageStat
 
 from sketch2life.application.services.story_world_model import SourceAssetRegistry, StoryWorldError
 from sketch2life.contracts.schemas.story_world_v2 import ScenePlanV2
+
+
+def source_canvas_layers(registry: SourceAssetRegistry) -> tuple[Image.Image, Image.Image]:
+    """Return white-composited source and its object-cleared static background.
+
+    Pixels hidden behind source objects are unknown. White in those regions is a
+    placeholder, not inpainting or a claim that the original background is recovered.
+    """
+    body = registry.source_image_bytes
+    if body is None or hashlib.sha256(body).hexdigest() != registry.world.source_image_sha256:
+        raise StoryWorldError("SOURCE_ASSET_MISMATCH", "original source bytes missing or changed")
+    try:
+        original = Image.open(io.BytesIO(body)).convert("RGBA")
+    except (OSError, ValueError) as error:
+        raise StoryWorldError(
+            "SOURCE_ASSET_MISMATCH", "original image cannot be decoded"
+        ) from error
+    if original.size != (registry.world.source_width, registry.world.source_height):
+        raise StoryWorldError("SOURCE_ASSET_MISMATCH", "original image size changed")
+    white = Image.new("RGBA", original.size, "white")
+    original = Image.alpha_composite(white, original)
+    union = Image.new("L", original.size, 0)
+    masks: list[Image.Image] = []
+    for spec in registry.world.source_objects:
+        encoded = registry.mask_png_by_id.get(spec.object_id)
+        if encoded is None or hashlib.sha256(encoded).hexdigest() != spec.source_mask_sha256:
+            raise StoryWorldError("NEEDS_MASK_REVIEW", "source mask missing or changed")
+        mask = Image.open(io.BytesIO(encoded)).convert("L")
+        if mask.size != original.size:
+            raise StoryWorldError("NEEDS_MASK_REVIEW", "source mask dimensions changed")
+        union = ImageChops.lighter(union, mask)
+        masks.append(mask)
+    background = original.copy()
+    for mask in masks:
+        bounds = mask.getbbox()
+        if bounds is None:
+            raise StoryWorldError("NEEDS_MASK_REVIEW", "source mask is empty")
+        left, top, right, bottom = bounds
+        region = (max(0, left - 8), max(0, top - 8),
+                  min(original.width, right + 8), min(original.height, bottom + 8))
+        outside = ImageChops.invert(union.crop(region))
+        if outside.getbbox() is None:
+            placeholder = (255, 255, 255, 255)
+        else:
+            rgb = ImageStat.Stat(original.crop(region), outside).median[:3]
+            placeholder = (int(rgb[0]), int(rgb[1]), int(rgb[2]), 255)
+        background.paste(placeholder, (0, 0), mask)
+    return original, background
 
 
 class SceneStateComposer:
@@ -32,7 +80,8 @@ class SceneStateComposer:
             raise StoryWorldError("SCENE_STATE_INVALID", "state must cover source IDs exactly")
         if scene.order == 1 and scene.starting_states != world.initial_states:
             raise StoryWorldError("SCENE_STATE_INVALID", "first scene starts from wrong world")
-        board = Image.new("RGBA", (width, height), (255, 255, 255, 255))
+        _original, background = source_canvas_layers(registry)
+        board = background.resize((width, height), Image.Resampling.LANCZOS)
         specs = {obj.object_id: obj for obj in world.source_objects}
         for state in sorted(scene.target_states, key=lambda item: item.z_index):
             if not state.visible:

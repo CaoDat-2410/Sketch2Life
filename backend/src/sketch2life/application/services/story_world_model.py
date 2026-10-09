@@ -37,6 +37,8 @@ class SourceAssetRegistry:
     # Process-local prototype. An asset's bytes are its source pixels + mask, never diffusion.
     asset_png_by_id: dict[str, bytes]
     mask_png_by_id: dict[str, bytes]
+    # Exact original bytes are required for lossless background/canvas reconstruction.
+    source_image_bytes: bytes | None = None
 
 
 def _sha(body: bytes) -> str:
@@ -193,4 +195,7 @@ def build_source_asset_registry(
         events=events,
         initial_states=tuple(initial),
     )
-    return SourceAssetRegistry(world=world, asset_png_by_id=assets, mask_png_by_id=mask_bytes)
+    return SourceAssetRegistry(
+        world=world, asset_png_by_id=assets, mask_png_by_id=mask_bytes,
+        source_image_bytes=source_image_bytes,
+    )
