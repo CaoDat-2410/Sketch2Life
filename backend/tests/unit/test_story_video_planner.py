@@ -72,6 +72,11 @@ def test_compile_uses_measured_tts_as_scene_timing_ground_truth() -> None:
     assert "anchor-cat-001" not in plan.scenes[0].visual_prompt
     assert "Introduce the subject" in plan.scenes[0].visual_prompt
     assert "Show the described action" in plan.scenes[2].visual_prompt
+    assert "Hand-drawn whiteboard illustration" in plan.scenes[0].visual_prompt
+    assert (
+        "selective color accents only where the source drawing has color"
+        in plan.scenes[0].visual_prompt
+    )
 
 
 def test_story_package_rejects_placeholder_approval_hash() -> None:

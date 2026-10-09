@@ -125,6 +125,7 @@ def test_stroke_renderer_reveals_source_color_after_drawing(tmp_path) -> None:
     middle = reader.get_data(14).astype("int16")
     final = reader.get_data(24).astype("int16")
     reader.close()
+
     def is_blue(frame):
         return (frame[:, :, 2] > frame[:, :, 0] + 70) & (
             frame[:, :, 2] > frame[:, :, 1] + 65
@@ -134,6 +135,74 @@ def test_stroke_renderer_reveals_source_color_after_drawing(tmp_path) -> None:
     strokes.with_suffix(".color.png").write_bytes(b"changed")
     with pytest.raises(ValueError, match="color layer hash mismatch"):
         render_stroke_animation(strokes, tmp_path / "tampered.mp4")
+
+
+def test_stroke_renderer_colors_each_object_after_its_own_outline(tmp_path) -> None:
+    import hashlib
+    import json
+
+    Image = pytest.importorskip("PIL.Image")
+    ImageDraw = pytest.importorskip("PIL.ImageDraw")
+    imageio = pytest.importorskip("imageio.v2")
+
+    colored = Image.new("RGBA", (100, 100))
+    draw = ImageDraw.Draw(colored)
+    draw.rectangle((70, 20, 90, 40), fill=(235, 60, 45, 255))
+    draw.rectangle((10, 20, 30, 40), fill=(35, 75, 235, 255))
+    strokes = tmp_path / "objects.strokes.json"
+    layer = strokes.with_suffix(".color.png")
+    colored.save(layer)
+    digest = hashlib.sha256(layer.read_bytes()).hexdigest()
+    strokes.write_text(
+        json.dumps(
+            {
+                "artifact_type": "whiteboard_strokes_v1",
+                "width": 100,
+                "height": 100,
+                "color_layer_sha256": digest,
+                "strokes": [
+                    {
+                        "stroke_id": "right-first",
+                        "color": [235, 60, 45],
+                        "points": [[70, 20], [90, 20], [90, 40], [70, 40], [70, 20]],
+                    },
+                    {
+                        "stroke_id": "left-second",
+                        "color": [35, 75, 235],
+                        "points": [[10, 20], [30, 20], [30, 40], [10, 40], [10, 20]],
+                    },
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    output = tmp_path / "objects.mp4"
+    render_stroke_animation(
+        strokes,
+        output,
+        spec=WhiteboardMvpRenderSpec(width=1280, height=720, fps=5, duration_seconds=5),
+    )
+    reader = imageio.get_reader(output)
+    halfway = reader.get_data(11).astype("int16")
+    final = reader.get_data(24).astype("int16")
+    reader.close()
+
+    def filled_blue(frame):
+        return (
+            (frame[:, :, 2] > frame[:, :, 0] + 100) & (frame[:, :, 2] > frame[:, :, 1] + 100)
+        ).sum()
+
+    def filled_red(frame):
+        return (
+            (frame[:, :, 0] > frame[:, :, 1] + 100) & (frame[:, :, 0] > frame[:, :, 2] + 100)
+        ).sum()
+
+    red_area = (slice(210, 270), slice(790, 845))
+    blue_area = (slice(210, 270), slice(430, 485))
+    assert filled_red(halfway[red_area]) > 100
+    assert filled_blue(halfway[blue_area]) < 100
+    assert filled_red(final[red_area]) > 1000
+    assert filled_blue(final[blue_area]) > 1000
 
 
 def test_story_fixture_keeps_multiple_approved_colors_in_final_frame(tmp_path) -> None:

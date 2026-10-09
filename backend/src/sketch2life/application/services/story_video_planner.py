@@ -147,10 +147,13 @@ class StoryVideoPlanner:
             "RECAP": "Return attention to the same subject for the resolution.",
         }[purpose]
         visual = (
-            "Clean black-ink whiteboard line drawing on a plain white background; "
-            "one consistent subject and simple composition across all scenes. "
-            "Preserve the source drawing's identity. Do not invent extra characters, "
-            "props, labels, or scenery. "
+            "Hand-drawn whiteboard illustration on a clean white background: "
+            "confident, continuous dark marker contours, clear recognizable shapes, "
+            "and selective color accents only where the source drawing has color. "
+            "Compose one legible visual beat with space between its elements; keep "
+            "the same subject design across scenes while changing the depicted action. "
+            "Preserve the source drawing's identity and colors. Do not invent extra "
+            "characters, props, labels, scenery, or colors absent from the source. "
             f"Scene beat: {visual_beat} Approved narration: {narration}"
         )
         if len(visual) > 2_000:

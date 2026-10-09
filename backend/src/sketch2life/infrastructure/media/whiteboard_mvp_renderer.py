@@ -187,6 +187,7 @@ def render_stroke_animation(
     offset_y = (render_spec.height - source_height * scale) / 2
     strokes: list[list[tuple[int, int]]] = []
     stroke_colors: list[tuple[int, int, int]] = []
+    source_strokes: list[dict] = []
     for raw_stroke in raw_strokes:
         raw_points = raw_stroke.get("points") if isinstance(raw_stroke, dict) else None
         if not isinstance(raw_points, list):
@@ -201,6 +202,7 @@ def render_stroke_animation(
         ]
         if len(points) >= 2:
             strokes.append(points)
+            source_strokes.append(raw_stroke)
             raw_color = raw_stroke.get("color", [35, 35, 35])
             if (
                 not isinstance(raw_color, list)
@@ -215,7 +217,7 @@ def render_stroke_animation(
     if not strokes:
         raise ValueError("stroke artifact has no drawable points")
 
-    color_board = None
+    color_regions = []
     color_layer_sha256 = payload.get("color_layer_sha256")
     if color_layer_sha256 is not None:
         if not isinstance(color_layer_sha256, str) or len(color_layer_sha256) != 64:
@@ -227,12 +229,13 @@ def render_stroke_animation(
         color_layer = Image.open(color_layer_path).convert("RGBA")
         if color_layer.size != (source_width, source_height):
             raise ValueError("color layer dimensions do not match strokes")
-        color_board = Image.new("RGBA", (render_spec.width, render_spec.height))
-        fitted_color = color_layer.resize(
-            (max(1, round(source_width * scale)), max(1, round(source_height * scale))),
-            Image.Resampling.LANCZOS,
+        from sketch2life.infrastructure.media.whiteboard_color_regions import (
+            prepare_color_regions,
         )
-        color_board.alpha_composite(fitted_color, (round(offset_x), round(offset_y)))
+
+        color_regions = prepare_color_regions(
+            color_layer, source_strokes, scale=scale, offset_x=offset_x, offset_y=offset_y
+        )
 
     segment_count = sum(max(0, len(points) - 1) for points in strokes)
     ink_scale = 2
@@ -256,6 +259,8 @@ def render_stroke_animation(
         "white",
     )
     ink_draw = ImageDraw.Draw(ink)
+    colored = Image.new("RGBA", (render_spec.width, render_spec.height))
+    color_steps = [0] * len(color_regions)
     stroke_index = 0
     stroke_segment = 0
     rendered_segments = 0
@@ -265,7 +270,7 @@ def render_stroke_animation(
             progress = frame_index / max(1, frame_count - 1)
             drawing_progress = (
                 min(1.0, progress / 0.78)
-                if color_board is not None
+                if color_regions
                 else min(1.0, progress * 1.08)
             )
             visible_segments = round(segment_count * drawing_progress)
@@ -305,11 +310,23 @@ def render_stroke_animation(
             image = ink.resize(
                 (render_spec.width, render_spec.height), Image.Resampling.LANCZOS
             )
-            if color_board is not None and progress > 0.78:
-                cutoff = round(render_spec.width * min(1.0, (progress - 0.78) / 0.22))
-                if cutoff > 0:
-                    color_slice = color_board.crop((0, 0, cutoff, render_spec.height))
-                    image.paste(color_slice, (0, 0), color_slice)
+            for region_index, (region, (region_x, region_y), trigger) in enumerate(color_regions):
+                start = 0.78 * trigger / max(1, segment_count)
+                desired = min(4, max(0, int((progress - start) / 0.12 * 4)))
+                if frame_index == frame_count - 1:
+                    desired = 4
+                previous = color_steps[region_index]
+                if desired > previous:
+                    left = round(region.width * previous / 4)
+                    right = round(region.width * desired / 4)
+                    if right > left:
+                        colored.alpha_composite(
+                            region.crop((left, 0, right, region.height)),
+                            (region_x + left, region_y),
+                        )
+                    color_steps[region_index] = desired
+            if color_regions:
+                image.paste(colored, (0, 0), colored)
             if active_point is not None and visible_segments < segment_count:
                 draw = ImageDraw.Draw(image, "RGBA")
                 _draw_marker_hand(draw, active_point)
