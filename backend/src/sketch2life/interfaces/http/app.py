@@ -300,6 +300,7 @@ def _configured_story_video_pipeline(
         motion_model_profile_ref=os.getenv(
             "SKETCH2LIFE_STORY_MOTION_PROVIDER", "whiteboard-stroke-v1"
         ),
+        story_render_v2_enabled=settings.story_render_v2_enabled,
     )
 
 

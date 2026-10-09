@@ -54,6 +54,7 @@ class Settings(BaseSettings):
     ai_connect_timeout_seconds: float = 5.0
     ai_request_timeout_seconds: float = 120.0
     story_video_request_timeout_seconds: float = Field(default=2100.0, ge=1800.0)
+    story_render_v2_enabled: bool = False  # prototype only; does not replace V1 video jobs
 
     @model_validator(mode="after")
     def enforce_deployment_provider_policy(self) -> Self:

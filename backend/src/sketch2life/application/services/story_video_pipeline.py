@@ -4,12 +4,13 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
 
 from sketch2life.application.services.story_video_planner import (
     StoryboardCompileInput,
     StoryVideoPlanner,
 )
+from sketch2life.application.services.story_world_errors import StoryWorldError
 from sketch2life.contracts.schemas.story_video import (
     ApprovedStoryPackageV1,
     StoryboardPlanV1,
@@ -27,6 +28,17 @@ from sketch2life.contracts.schemas.story_video_media import (
     VideoAssemblyRequestV1,
     VideoSceneArtifactV1,
     VideoSceneRenderRequestV1,
+)
+
+if TYPE_CHECKING:
+    from sketch2life.application.services.story_world_model import (
+        ManualSourceObject,
+        SourceAssetRegistry,
+    )
+from sketch2life.contracts.schemas.story_world_v2 import (
+    NarrationObjectV2,
+    ReviewedEventV2,
+    StoryScenePlanV2,
 )
 
 
@@ -68,6 +80,15 @@ class StoryVideoRun:
     video: VideoArtifactV1
 
 
+@dataclass(frozen=True)
+class StoryV2PrototypeRun:
+    """Plan and original cutouts only: no MP4, provider inference or READY status."""
+
+    registry: SourceAssetRegistry
+    scene_plan: StoryScenePlanV2
+    approval_verification: str = "UNVERIFIED_PROTOTYPE"
+
+
 class StoryVideoPipeline:
     """Run the new flow in dependency order, with no provider SDK imports."""
 
@@ -81,6 +102,7 @@ class StoryVideoPipeline:
         planner: StoryVideoPlanner | None = None,
         motion_model_profile_ref: str = "whiteboard-stroke-v1",
         update_stage: Callable[[str, int], None] | None = None,
+        story_render_v2_enabled: bool = False,
     ) -> None:
         self._narration = narration
         self._illustrations = illustrations
@@ -91,6 +113,37 @@ class StoryVideoPipeline:
             raise ValueError("unsupported story motion profile")
         self._motion_model_profile_ref = motion_model_profile_ref
         self._update_stage = update_stage or (lambda _stage, _progress: None)
+        self._story_render_v2_enabled = story_render_v2_enabled
+
+    def run_v2_prototype(
+        self,
+        package: ApprovedStoryPackageV1,
+        segments: tuple[StoryScriptSegmentV1, ...],
+        *,
+        source_image_bytes: bytes,
+        source_objects: tuple[ManualSourceObject, ...],
+        narration_objects: tuple[NarrationObjectV2, ...],
+        events: tuple[ReviewedEventV2, ...],
+        measured_segment_durations: tuple[float, ...],
+    ) -> StoryV2PrototypeRun:
+        """Explicit Level-1 API; caller must separately enforce live Gate A/B."""
+        from sketch2life.application.services.story_world_model import build_source_asset_registry
+
+        if not self._story_render_v2_enabled:
+            raise StoryWorldError("V2_DISABLED", "prototype feature flag is off")
+        if package.story_script_sha256 != story_script_segments_hash(segments) or (
+            package.package_hash != stable_model_hash(package, exclude={"package_hash"})
+        ):
+            raise StoryWorldError("NEEDS_APPROVAL", "approved package/script hashes mismatch")
+        registry = build_source_asset_registry(
+            package=package, segments=segments, source_image_bytes=source_image_bytes,
+            source_objects=source_objects, narration_objects=narration_objects, events=events,
+        )
+        plan = self._planner.compile_v2(
+            StoryboardCompileInput(package, segments, measured_segment_durations),
+            registry.world,
+        )
+        return StoryV2PrototypeRun(registry=registry, scene_plan=plan)
 
     def run(
         self,

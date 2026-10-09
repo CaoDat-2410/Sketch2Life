@@ -4,13 +4,21 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from functools import cache
+from typing import Literal
 
+from sketch2life.application.services.story_world_errors import StoryWorldError
 from sketch2life.contracts.schemas.story_video import (
     ApprovedStoryPackageV1,
     StoryboardDrawBeatV1,
     StoryboardPlanV1,
     StoryboardSceneV1,
     StoryScriptSegmentV1,
+)
+from sketch2life.contracts.schemas.story_world_v2 import (
+    CameraStateV2,
+    ScenePlanV2,
+    StoryScenePlanV2,
+    WorldModelV2,
 )
 
 
@@ -39,7 +47,9 @@ class StoryVideoPlanner:
         if measured is not None and any(duration <= 0 for duration in measured):
             raise ValueError("measured segment durations must be positive")
 
-        basis = "MEASURED_TTS" if measured is not None else "ESTIMATE"
+        basis: Literal["MEASURED_TTS", "ESTIMATE"] = (
+            "MEASURED_TTS" if measured is not None else "ESTIMATE"
+        )
         durations = tuple(
             measured[index]
             if measured is not None
@@ -72,6 +82,124 @@ class StoryVideoPlanner:
             "duration_basis": basis,
         }
         return StoryboardPlanV1.model_validate(plan_data)
+
+    def compile_v2(
+        self, request: StoryboardCompileInput, world: WorldModelV2
+    ) -> StoryScenePlanV2:
+        """Prototype only: plan explicit reviewed events, never infer approval from prose."""
+        self._validate_segments(request.segments)
+        if world.package_hash != request.package.package_hash:
+            raise StoryWorldError("WORLD_PACKAGE_MISMATCH", "world is for another package")
+        if any(event.approval_status != "APPROVED" for event in world.events):
+            raise StoryWorldError("NEEDS_APPROVAL", "unreviewed event in world")
+        segments = request.segments
+        measured = request.measured_segment_durations
+        if measured is not None and (
+            len(measured) != len(segments) or any(t <= 0 for t in measured)
+        ):
+            raise StoryWorldError("NARRATION_TIMING_INVALID", "timing count or value is invalid")
+        durations = measured or tuple(max(4.0, min(10.0, len(s.text) / 14)) for s in segments)
+        total = round(sum(durations), 3)
+        if not (
+            request.package.target_duration_min_seconds
+            <= total <= request.package.target_duration_max_seconds
+        ):
+            raise StoryWorldError(
+                "DURATION_OUT_OF_RANGE", f"narration is {total}s, requires 40–60s"
+            )
+        event_by_segment = {
+            segment.segment_id: tuple(e for e in world.events if e.segment_id == segment.segment_id)
+            for segment in segments
+        }
+        if any(not group for group in event_by_segment.values()):
+            raise StoryWorldError("NEEDS_APPROVAL", "every segment needs an approved event")
+        if {event.segment_id for event in world.events} != set(event_by_segment):
+            raise StoryWorldError("NEEDS_APPROVAL", "event references unrelated segment")
+        event_keys = tuple(
+            tuple(e.event_id for e in event_by_segment[s.segment_id]) for s in segments
+        )
+
+        @cache
+        def solve(start: int, remaining: int):
+            if start == len(segments):
+                return (0.0, ()) if remaining == 0 else None
+            if remaining <= 0:
+                return None
+            best = None
+            for end in range(start + 1, min(len(segments), start + 8) + 1):
+                seconds = sum(durations[start:end])
+                if seconds > 20:
+                    break
+                if seconds < 5:
+                    continue
+                # Duration alone may not merge distinct approved events or purposes.
+                if len(set(event_keys[start:end])) != 1 or len(
+                    {s.scene_purpose for s in segments[start:end]}
+                ) != 1:
+                    continue
+                continuation = solve(end, remaining - 1)
+                if continuation is None:
+                    continue
+                candidate = (
+                    (seconds - 10) ** 2 + continuation[0],
+                    ((start, end),) + continuation[1],
+                )
+                if best is None or candidate < best:
+                    best = candidate
+            return best
+
+        options = [solve(0, count) for count in range(3, 7)]
+        valid = [option for option in options if option is not None]
+        if not valid:
+            raise StoryWorldError(
+                "SCENE_PARTITION_IMPOSSIBLE",
+                "approved event boundaries cannot form 3–6 scenes of 5–20s each",
+            )
+        states = world.initial_states
+        scenes: list[ScenePlanV2] = []
+        source_ids = {item.object_id for item in world.source_objects}
+        added_ids = {item.object_id for item in world.narration_objects}
+        for index, (start, end) in enumerate(min(valid)[1], 1):
+            events = event_by_segment[segments[start].segment_id]
+            if len(events) != 1:
+                raise StoryWorldError("UNSUPPORTED_ACTION", "multiple actions within one segment")
+            event = events[0]
+            if not set(event.object_ids).issubset(source_ids | added_ids):
+                raise StoryWorldError("NEEDS_APPROVAL", "event references unreviewed object")
+            target_states = tuple(
+                state.model_copy(update={
+                    "x": event.target_positions.get(state.object_id, (state.x, state.y))[0],
+                    "y": event.target_positions.get(state.object_id, (state.x, state.y))[1],
+                    "scale": event.target_scales.get(state.object_id, state.scale),
+                    "rotation_degrees": event.target_rotations.get(
+                        state.object_id, state.rotation_degrees
+                    ),
+                    "action_ref": event.event_id,
+                }) if state.object_id in event.object_ids else state
+                for state in states
+            )
+            if event.camera_intent == "PAN" and event.target_positions:
+                point = next(iter(event.target_positions.values()))
+                camera = CameraStateV2(center_x=point[0], center_y=point[1])
+            elif event.camera_intent == "ZOOM":
+                camera = CameraStateV2(zoom=1.25)
+            else:
+                camera = CameraStateV2()
+            scenes.append(ScenePlanV2(
+                scene_id=f"scene-{index}", order=index,
+                event_ids=(event.event_id,),
+                segment_ids=tuple(segment.segment_id for segment in segments[start:end]),
+                source_object_ids=tuple(item.object_id for item in world.source_objects),
+                new_object_ids=tuple(obj for obj in event.object_ids if obj in added_ids),
+                action=event.action, starting_states=states, target_states=target_states,
+                draw_order=event.object_ids, camera=camera,
+                transition_intent=event.transition_intent,
+                duration_seconds=round(sum(durations[start:end]), 3),
+            ))
+            states = target_states
+        return StoryScenePlanV2(
+            package_hash=world.package_hash, scenes=tuple(scenes), duration_seconds=total
+        )
 
     @staticmethod
     def _validate_segments(segments: tuple[StoryScriptSegmentV1, ...]) -> None:
@@ -128,7 +256,7 @@ class StoryVideoPlanner:
         segments: tuple[StoryScriptSegmentV1, ...],
         index: int,
         duration: float,
-        basis: str,
+        basis: Literal["MEASURED_TTS", "ESTIMATE"],
         segment_durations: tuple[float, ...],
     ) -> StoryboardSceneV1:
         narration = " ".join(segment.text for segment in segments)
