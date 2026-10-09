@@ -1,5 +1,11 @@
 # Task approval — FEAT-030 revision 1
 
+- Revision 10 approval (2026-10-09, Asia/Ho_Chi_Minh): owner supplied the full Milestone-2 implementation brief and requested a local source-preserving whiteboard drawing engine with A/B pilots, fidelity/visual QA, tests and report. Scope/exclusions are in revision-10 plan. No paid/GPU inference, real child media, V2 HTTP exposure, V1 overwrite, commit/push/deploy or Milestone 3. Recorded before Milestone-2 code edits.
+
+- Revision 9 approval (2026-10-09, Asia/Ho_Chi_Minh): owner explicitly requested Milestone 1.5 final-gap fixes, second synthetic drawing, PNG/JPEG and failure-path validation, approval-boundary audit, interface-only Milestone-2 preparation, regression checks and a result report. No commit/push/deploy, paid inference, GPU, Milestone-2 engine implementation or V2 HTTP exposure. This approval and revision-9 plan were recorded before Milestone-1.5 code edits.
+
+- Revision 8 approval (2026-10-09, Asia/Ho_Chi_Minh): owner explicitly approved the four prerequisite corrections and directed Milestone 1 implementation. Approved scope is only the revision-8 world model, manual/fixture source asset registry, event-aware scene-state plan, prototype composer, feature-flagged V2 prototype integration, local synthetic tests/contact sheet and result report. V1/Gate A/B/production defaults stay unchanged. No paid/GPU inference, real child data, unrelated edits, commit, push or deploy. Level 2 Lightning acceptance is deferred. Approval is recorded before this milestone's code edits.
+
 - Status: APPROVED for the scope in `plan/PLAN.md`.
 - Approver: project owner in this conversation, by “duyệt” and “làm 1 lượt hết đi và phần nào cần commit thì commit luôn cho tui”.
 - Recorded: 2026-10-08, Asia/Ho_Chi_Minh.
