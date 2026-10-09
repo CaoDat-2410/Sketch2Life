@@ -7,6 +7,7 @@ from functools import cache
 
 from sketch2life.contracts.schemas.story_video import (
     ApprovedStoryPackageV1,
+    StoryboardDrawBeatV1,
     StoryboardPlanV1,
     StoryboardSceneV1,
     StoryScriptSegmentV1,
@@ -52,6 +53,7 @@ class StoryVideoPlanner:
                 index,
                 round(sum(durations[start:end]), 3),
                 basis,
+                durations[start:end],
             )
             for index, (start, end) in enumerate(groups)
         )
@@ -127,6 +129,7 @@ class StoryVideoPlanner:
         index: int,
         duration: float,
         basis: str,
+        segment_durations: tuple[float, ...],
     ) -> StoryboardSceneV1:
         narration = " ".join(segment.text for segment in segments)
         if len(narration) > 1_600:
@@ -140,6 +143,29 @@ class StoryVideoPlanner:
         if len(facts) > 16 or len(anchors) > 16:
             raise ValueError("scene references exceed the approved fact/anchor limit")
         purpose = segments[0].scene_purpose
+        if any(segment.visual_cues for segment in segments) and not all(
+            segment.visual_cues for segment in segments
+        ):
+            raise ValueError("every narration segment in a cued scene needs visual cues")
+        draw_beats: list[StoryboardDrawBeatV1] = []
+        cursor = 0.0
+        for segment, segment_duration in zip(segments, segment_durations, strict=True):
+            for cue_index, cue in enumerate(segment.visual_cues):
+                start = round(cursor + segment_duration * cue_index / len(segment.visual_cues), 3)
+                end = round(
+                    cursor + segment_duration * (cue_index + 1) / len(segment.visual_cues), 3
+                )
+                draw_beats.append(StoryboardDrawBeatV1(
+                    element_id=cue.element_id,
+                    segment_id=segment.segment_id,
+                    label=cue.label,
+                    focus_box=cue.focus_box,
+                    start_seconds=start,
+                    end_seconds=end,
+                ))
+            cursor += segment_duration
+        if draw_beats:
+            draw_beats[-1] = draw_beats[-1].model_copy(update={"end_seconds": duration})
         visual_beat = {
             "INTRO": "Introduce the subject from the source drawing.",
             "EXPLAIN": "Show the single action or idea described in this scene.",
@@ -156,6 +182,10 @@ class StoryVideoPlanner:
             "characters, props, labels, scenery, or colors absent from the source. "
             f"Scene beat: {visual_beat} Approved narration: {narration}"
         )
+        if draw_beats:
+            visual += " Draw these script-specified elements in order: " + ", ".join(
+                beat.label for beat in draw_beats
+            ) + "."
         if len(visual) > 2_000:
             raise ValueError("scene visual prompt exceeds the provider limit")
         motion = {
@@ -175,6 +205,7 @@ class StoryVideoPlanner:
             confirmed_anchor_ids=anchors,
             duration_seconds=duration,
             duration_basis=basis,
+            draw_beats=tuple(draw_beats),
         )
 
 

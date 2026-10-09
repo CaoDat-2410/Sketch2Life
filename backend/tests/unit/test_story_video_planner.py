@@ -9,7 +9,12 @@ from sketch2life.application.services.story_video_planner import (
     StoryboardCompileInput,
     StoryVideoPlanner,
 )
-from sketch2life.contracts.schemas.story_video import ApprovedStoryPackageV1, StoryScriptSegmentV1
+from sketch2life.contracts.schemas.story_video import (
+    ApprovedStoryPackageV1,
+    StoryScriptSegmentV1,
+    StoryVisualCueV1,
+    story_script_segments_hash,
+)
 from sketch2life.contracts.schemas.story_video_media import (
     IllustrationAssetV1,
     NarrationAssetV1,
@@ -77,6 +82,51 @@ def test_compile_uses_measured_tts_as_scene_timing_ground_truth() -> None:
         "selective color accents only where the source drawing has color"
         in plan.scenes[0].visual_prompt
     )
+
+
+def test_director_binds_script_visual_cues_to_measured_tts_windows() -> None:
+    segments = list(_segments())
+    segments[0] = segments[0].model_copy(update={"visual_cues": (
+        StoryVisualCueV1(element_id="cat", label="Mèo", focus_box=(0.55, 0.1, 0.95, 0.8)),
+        StoryVisualCueV1(element_id="tree", label="Cây", focus_box=(0.05, 0.1, 0.45, 0.9)),
+    )})
+    for index in range(1, 4):
+        segments[index] = segments[index].model_copy(update={"visual_cues": (
+            StoryVisualCueV1(
+                element_id=f"subject-{index}", label=f"Mèo cảnh {index + 1}",
+                focus_box=(0.1, 0.1, 0.9, 0.9),
+            ),
+        )})
+    approved = tuple(segments)
+    plan = StoryVideoPlanner().compile(
+        StoryboardCompileInput(_package(), approved, (10.0, 11.0, 12.0, 10.0))
+    )
+
+    assert [(beat.element_id, beat.start_seconds, beat.end_seconds)
+            for beat in plan.scenes[0].draw_beats] == [
+        ("cat", 0.0, 5.0), ("tree", 5.0, 10.0),
+    ]
+    assert plan.scenes[1].draw_beats[0].end_seconds == 11.0
+    assert "Mèo, Cây" in plan.scenes[0].visual_prompt
+    assert story_script_segments_hash(approved) != story_script_segments_hash(_segments())
+
+
+def test_visual_cue_rejects_invalid_region() -> None:
+    with pytest.raises(ValueError, match="visual cue box"):
+        StoryVisualCueV1(element_id="cat", label="Mèo", focus_box=(0.8, 0.2, 0.4, 0.8))
+
+
+def test_cue_free_script_keeps_its_existing_approval_hash() -> None:
+    import hashlib
+    import json
+
+    legacy = {"segments": [
+        segment.model_dump(mode="json", exclude={"visual_cues"}) for segment in _segments()
+    ]}
+    encoded = json.dumps(
+        legacy, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    ).encode()
+    assert story_script_segments_hash(_segments()) == hashlib.sha256(encoded).hexdigest()
 
 
 def test_story_package_rejects_placeholder_approval_hash() -> None:
@@ -251,6 +301,29 @@ def test_pipeline_runs_tts_before_scenes_and_returns_ready_video() -> None:
         "ASSEMBLING",
         "READY",
     ]
+
+
+def test_pipeline_passes_script_bound_draw_beats_to_motion_provider() -> None:
+    segments = list(_segments())
+    segments[0] = segments[0].model_copy(update={"visual_cues": (
+        StoryVisualCueV1(element_id="cat", label="Mèo", focus_box=(0.1, 0.1, 0.9, 0.9)),
+    )})
+    received = []
+
+    class CapturingMotion(_Motion):
+        def render(self, request):
+            received.append(request)
+            return super().render(request)
+
+    run = StoryVideoPipeline(
+        narration=_Narration(), illustrations=_Illustrations(),
+        motion=CapturingMotion(), assembler=_Assembler(),
+    ).run(_package(), tuple(segments))
+
+    assert run.video.status == "READY"
+    assert received[0].draw_beats == run.storyboard.scenes[0].draw_beats
+    assert received[0].draw_beats[0].segment_id == "segment-1"
+    assert all(not request.draw_beats for request in received[1:])
 
 
 def test_pipeline_reports_invalid_storyboard_before_rendering_images() -> None:

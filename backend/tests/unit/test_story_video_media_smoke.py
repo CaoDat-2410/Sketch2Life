@@ -8,7 +8,12 @@ from pathlib import Path
 
 import pytest
 from tools.create_story_video_media_fixture import create_fixture
-from tools.story_video_media_smoke import _local_base_url, load_fixture, run_media_smoke
+from tools.story_video_media_smoke import (
+    _local_base_url,
+    _scene_draw_beats,
+    load_fixture,
+    run_media_smoke,
+)
 
 
 def _fixture(tmp_path):
@@ -29,6 +34,12 @@ def _fixture(tmp_path):
 
 def test_media_smoke_runs_provider_stages_and_verifies_final_file(tmp_path) -> None:
     source, scenes, fixture = _fixture(tmp_path)
+    scenes = ({**scenes[0], "draw_cues": [
+        {"element_id": "subject", "label": "Chủ thể", "focus_box": [0.1, 0.1, 0.9, 0.9]},
+    ]}, *scenes[1:])
+    fixture.write_text(json.dumps({
+        "source_image": source.name, "locale": "vi-VN", "scenes": scenes,
+    }), encoding="utf-8")
     assert load_fixture(fixture) == (source.resolve(), "vi-VN", scenes)
     audio = tmp_path / "narration.wav"
     audio.write_bytes(b"fake-audio")
@@ -58,6 +69,10 @@ def test_media_smoke_runs_provider_stages_and_verifies_final_file(tmp_path) -> N
             }
         if path.endswith("/scene"):
             scene_id = payload["request"]["scene_id"]
+            if scene_id == "scene-1":
+                assert payload["request"]["draw_beats"][0]["end_seconds"] == 10.0
+            else:
+                assert "draw_beats" not in payload["request"]
             clip = tmp_path / f"{scene_id}.mp4"
             clip.write_bytes(scene_id.encode())
             assert payload["request"]["duration_seconds"] == 10.0
@@ -171,4 +186,25 @@ def test_media_smoke_rejects_invalid_scene_focus_box(tmp_path) -> None:
     raw["scenes"][0]["focus_box"] = [0.2, 0.2, 0.1, 0.9]
     fixture.write_text(json.dumps(raw), encoding="utf-8")
     with pytest.raises(ValueError, match="focus_box"):
+        load_fixture(fixture)
+
+
+def test_media_smoke_cues_bind_draw_order_to_measured_tts(tmp_path) -> None:
+    _source, _scenes, fixture = _fixture(tmp_path)
+    raw = json.loads(fixture.read_text(encoding="utf-8"))
+    raw["scenes"][0]["draw_cues"] = [
+        {"element_id": "right", "label": "Bên phải", "focus_box": [0.55, 0.1, 0.95, 0.5]},
+        {"element_id": "left", "label": "Bên trái", "focus_box": [0.05, 0.5, 0.45, 0.9]},
+    ]
+    fixture.write_text(json.dumps(raw, ensure_ascii=False), encoding="utf-8")
+    scene = load_fixture(fixture)[2][0]
+
+    beats = _scene_draw_beats(scene, 1, 11.0)
+    assert [(beat["element_id"], beat["start_seconds"], beat["end_seconds"])
+            for beat in beats] == [("right", 0.0, 5.5), ("left", 5.5, 11.0)]
+    assert all(beat["segment_id"] == "segment-1" for beat in beats)
+
+    raw["scenes"][0]["draw_cues"][1]["focus_box"] = [0.9, 0.2, 0.1, 0.8]
+    fixture.write_text(json.dumps(raw, ensure_ascii=False), encoding="utf-8")
+    with pytest.raises(ValueError, match="draw cue box"):
         load_fixture(fixture)

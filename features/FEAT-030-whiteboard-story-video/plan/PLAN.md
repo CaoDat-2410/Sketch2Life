@@ -1,7 +1,8 @@
 # FEAT-030 plan — narrated whiteboard story video
 
 - Status: APPROVED for local implementation and commit by owner instructions in this conversation.
-- Revision: 4.
+- Revision: 5 (implementation detail; within owner-approved revision-4 scope).
+- Revision 5 implementation detail within the approved revision-4 visual-quality scope: bind optional, reviewable visual-element cues to approved narration segments, compile them into measured-TTS drawing windows, carry them to the whiteboard renderer, and fail when a requested cue has no drawable strokes. Existing scripts without cues remain legacy and cannot claim object-to-narration alignment. Bounding boxes are an interim placement cue, not SAM masks or semantic recognition. No shared mobile flow or paid model invocation is added by this slice.
 - Scope: local source-derived stroke renderer; bounded scene plan from approved narration; selectable whiteboard/Wan scene adapter; narration-timed scene lengths, subtitles, MP4 assembly, status and download; session-scoped job listing and READY-only playback/handoff in the existing mobile flow; focused tests and honest evidence.
 
 ## Acceptance criteria

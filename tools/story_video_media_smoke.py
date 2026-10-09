@@ -11,6 +11,7 @@ import argparse
 import base64
 import hashlib
 import json
+import re
 import sys
 from collections.abc import Callable
 from pathlib import Path
@@ -70,9 +71,9 @@ def load_fixture(path: Path) -> tuple[Path, str, tuple[dict[str, Any], ...]]:
     parsed: list[dict[str, Any]] = []
     for index, scene in enumerate(scenes, 1):
         if not isinstance(scene, dict) or not {"text", "visual_prompt"}.issubset(scene) or (
-            set(scene) - {"text", "visual_prompt", "focus_box"}
+            set(scene) - {"text", "visual_prompt", "focus_box", "draw_cues"}
         ):
-            raise ValueError(f"scene {index} needs text, visual_prompt and optional focus_box")
+            raise ValueError(f"scene {index} needs text, visual_prompt and optional visual cues")
         text = scene["text"]
         prompt = scene["visual_prompt"]
         if not isinstance(text, str) or not text.strip() or len(text) > 1600:
@@ -98,6 +99,31 @@ def load_fixture(path: Path) -> tuple[Path, str, tuple[dict[str, Any], ...]]:
             ):
                 raise ValueError(f"scene {index} focus_box is outside the source image")
             parsed_scene["focus_box"] = [left, top, right, bottom]
+        if "draw_cues" in scene:
+            cues = scene["draw_cues"]
+            if not isinstance(cues, list) or not 1 <= len(cues) <= 4:
+                raise ValueError(f"scene {index} draw_cues must contain one to four elements")
+            seen_ids: set[str] = set()
+            parsed_cues = []
+            for cue in cues:
+                if not isinstance(cue, dict) or set(cue) != {"element_id", "label", "focus_box"}:
+                    raise ValueError(f"scene {index} draw cue fields are invalid")
+                element_id, label, box = cue["element_id"], cue["label"], cue["focus_box"]
+                if not isinstance(element_id, str) or not re.fullmatch(r"[a-z][a-z0-9-]{0,39}", element_id):
+                    raise ValueError(f"scene {index} draw cue ID is invalid")
+                if element_id in seen_ids or not isinstance(label, str) or not 1 <= len(label) <= 100:
+                    raise ValueError(f"scene {index} draw cue label or ID is invalid")
+                if not isinstance(box, list) or len(box) != 4 or any(
+                    isinstance(value, bool) or not isinstance(value, (int, float)) for value in box
+                ):
+                    raise ValueError(f"scene {index} draw cue box is invalid")
+                left, top, right, bottom = (float(value) for value in box)
+                if not (0 <= left < right <= 1 and 0 <= top < bottom <= 1):
+                    raise ValueError(f"scene {index} draw cue box is invalid")
+                seen_ids.add(element_id)
+                parsed_cues.append({"element_id": element_id, "label": label,
+                                    "focus_box": [left, top, right, bottom]})
+            parsed_scene["draw_cues"] = parsed_cues
         parsed.append(parsed_scene)
     return source, locale, tuple(parsed)
 
@@ -127,6 +153,16 @@ def _subtitle_cues(
             cues.append({"text": chunk, "start_seconds": start, "end_seconds": end})
         cursor += duration
     return cues
+
+
+def _scene_draw_beats(scene: dict[str, Any], scene_index: int, duration: float) -> list[dict]:
+    cues = scene.get("draw_cues", [])
+    return [
+        {**cue, "segment_id": f"segment-{scene_index}",
+         "start_seconds": round(duration * beat_index / len(cues), 3),
+         "end_seconds": round(duration * (beat_index + 1) / len(cues), 3)}
+        for beat_index, cue in enumerate(cues)
+    ]
 
 
 def run_media_smoke(
@@ -210,6 +246,7 @@ def run_media_smoke(
             ),
         )
         progress(f"{scene_id}: stroke render")
+        draw_beats = _scene_draw_beats(scene, index, duration)
         clip = _require_ready(
             scene_id + " stroke render",
             post(
@@ -223,6 +260,7 @@ def run_media_smoke(
                         "illustration_sha256": illustration["asset_sha256"],
                         "duration_seconds": duration,
                         "model_profile_ref": "whiteboard-stroke-v1",
+                        **({"draw_beats": draw_beats} if draw_beats else {}),
                     }
                 },
             ),

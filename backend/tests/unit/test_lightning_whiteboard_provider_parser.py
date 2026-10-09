@@ -75,6 +75,28 @@ def test_preflight_checks_ffmpeg_subtitle_filter(
     assert provider._ffmpeg_subtitles_available("ffmpeg") is available
 
 
+def test_story_scene_rejects_unbounded_draw_beats_before_render(tmp_path) -> None:
+    Image = pytest.importorskip("PIL.Image")
+    image = tmp_path / "synthetic.png"
+    Image.new("RGB", (40, 40), "white").save(image)
+    result = story_video_scene({"request": {
+        "package_id": "synthetic-test",
+        "package_hash": "a" * 64,
+        "scene_id": "scene-1",
+        "illustration_ref": str(image),
+        "illustration_sha256": hashlib.sha256(image.read_bytes()).hexdigest(),
+        "duration_seconds": 10.0,
+        "model_profile_ref": "whiteboard-stroke-v1",
+        "draw_beats": [{
+            "element_id": "cat", "segment_id": "segment-1", "label": "Mèo",
+            "focus_box": [0.8, 0.2, 0.2, 0.8],
+            "start_seconds": 0.0, "end_seconds": 10.0,
+        }],
+    }})
+    assert result["status"] == "BLOCKED"
+    assert result["error_code"] == "DRAW_BEATS_INVALID"
+
+
 def test_subtitle_srt_serializes_utf8_scene_cues() -> None:
     assert _subtitle_srt(
         [

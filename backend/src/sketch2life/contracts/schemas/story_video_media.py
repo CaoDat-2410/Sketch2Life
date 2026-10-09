@@ -7,7 +7,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from sketch2life.contracts.schemas.story_video import Sha256
+from sketch2life.contracts.schemas.story_video import Sha256, StoryboardDrawBeatV1
 
 
 class NarrationRenderRequestV1(BaseModel):
@@ -93,7 +93,21 @@ class VideoSceneRenderRequestV1(BaseModel):
     confirmed_anchor_ids: tuple[str, ...] = Field(min_length=1, max_length=16)
     model_profile_ref: str = Field(default="wan2.2-ti2v-5b", min_length=1, max_length=200)
     duration_seconds: float = Field(gt=0, le=20)
+    draw_beats: tuple[StoryboardDrawBeatV1, ...] = Field(default=(), max_length=16)
     resource_preflight: Literal["PASSED"]
+
+    @model_validator(mode="after")
+    def validate_draw_beats(self) -> VideoSceneRenderRequestV1:
+        if self.draw_beats and (
+            abs(self.draw_beats[0].start_seconds) > 0.01
+            or abs(self.draw_beats[-1].end_seconds - self.duration_seconds) > 0.01
+            or any(
+                abs(previous.end_seconds - current.start_seconds) > 0.01
+                for previous, current in zip(self.draw_beats, self.draw_beats[1:], strict=False)
+            )
+        ):
+            raise ValueError("scene drawing beats must cover its narration duration")
+        return self
 
 
 class VideoSceneArtifactV1(BaseModel):

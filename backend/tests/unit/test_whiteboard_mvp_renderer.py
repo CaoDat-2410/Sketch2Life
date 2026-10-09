@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 
+from sketch2life.contracts.schemas.story_video import StoryboardDrawBeatV1
 from sketch2life.infrastructure.media.whiteboard_mvp_renderer import (
     WhiteboardMvpRenderSpec,
     render_progressive_reveal,
@@ -203,6 +204,71 @@ def test_stroke_renderer_colors_each_object_after_its_own_outline(tmp_path) -> N
     assert filled_blue(halfway[blue_area]) < 100
     assert filled_red(final[red_area]) > 1000
     assert filled_blue(final[blue_area]) > 1000
+
+
+def test_narration_beats_draw_right_object_before_left_object(tmp_path) -> None:
+    import json
+
+    imageio = pytest.importorskip("imageio.v2")
+    strokes = tmp_path / "beat-order.json"
+    strokes.write_text(json.dumps({
+        "artifact_type": "whiteboard_strokes_v1", "width": 100, "height": 100,
+        "strokes": [
+            {"stroke_id": "left-in-file", "points": [[10, 70], [30, 70]]},
+            {"stroke_id": "right-in-file", "points": [[70, 30], [90, 30]]},
+        ],
+    }), encoding="utf-8")
+    beats = (
+        StoryboardDrawBeatV1(
+            element_id="right", segment_id="segment-1", label="Bên phải",
+            focus_box=(0.6, 0.1, 0.98, 0.5), start_seconds=0, end_seconds=2.5,
+        ),
+        StoryboardDrawBeatV1(
+            element_id="left", segment_id="segment-1", label="Bên trái",
+            focus_box=(0.02, 0.5, 0.4, 0.9), start_seconds=2.5, end_seconds=5,
+        ),
+    )
+    video = tmp_path / "beat-order.mp4"
+    render_stroke_animation(
+        strokes, video,
+        spec=WhiteboardMvpRenderSpec(width=1280, height=720, fps=5, duration_seconds=5),
+        draw_beats=beats,
+    )
+    reader = imageio.get_reader(video)
+    early = reader.get_data(8)
+    late = reader.get_data(23)
+    reader.close()
+    right = (slice(230, 270), slice(790, 845))
+    left = (slice(450, 490), slice(430, 485))
+    assert (early[right].mean(axis=2) < 150).sum() > 100
+    assert (early[left].mean(axis=2) < 150).sum() < 20
+    assert (late[left].mean(axis=2) < 150).sum() > 100
+
+
+def test_narration_beat_without_matching_strokes_blocks_render(tmp_path) -> None:
+    import json
+
+    strokes = tmp_path / "missing-beat.json"
+    strokes.write_text(json.dumps({
+        "artifact_type": "whiteboard_strokes_v1", "width": 100, "height": 100,
+        "strokes": [{"stroke_id": "left", "points": [[10, 70], [30, 70]]}],
+    }), encoding="utf-8")
+    beats = (
+        StoryboardDrawBeatV1(
+            element_id="left", segment_id="segment-1", label="Bên trái",
+            focus_box=(0.02, 0.5, 0.4, 0.9), start_seconds=0, end_seconds=2.5,
+        ),
+        StoryboardDrawBeatV1(
+            element_id="right", segment_id="segment-1", label="Bên phải",
+            focus_box=(0.6, 0.1, 0.98, 0.5), start_seconds=2.5, end_seconds=5,
+        ),
+    )
+    with pytest.raises(ValueError, match="DRAW_BEAT_EMPTY"):
+        render_stroke_animation(
+            strokes, tmp_path / "must-not-render.mp4",
+            spec=WhiteboardMvpRenderSpec(width=1280, height=720, fps=5, duration_seconds=5),
+            draw_beats=beats,
+        )
 
 
 def test_story_fixture_keeps_multiple_approved_colors_in_final_frame(tmp_path) -> None:

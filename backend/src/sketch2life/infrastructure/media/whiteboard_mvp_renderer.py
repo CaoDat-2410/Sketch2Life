@@ -8,6 +8,13 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
 
+from sketch2life.contracts.schemas.story_video import StoryboardDrawBeatV1
+from sketch2life.infrastructure.media.whiteboard_draw_schedule import (
+    color_start_at,
+    order_strokes_for_beats,
+    visible_segments_at,
+)
+
 WhiteboardMotion = Literal["INTRO", "FOCUS", "DEMONSTRATE", "RECAP"]
 
 
@@ -144,6 +151,7 @@ def render_stroke_animation(
     spec: WhiteboardMvpRenderSpec | None = None,
     motion_schedule: tuple[WhiteboardMotion, ...] = (),
     motion_durations_seconds: tuple[float, ...] = (),
+    draw_beats: tuple[StoryboardDrawBeatV1, ...] = (),
 ) -> WhiteboardMvpRenderResult:
     """Render a stroke artifact as a line-by-line whiteboard animation.
 
@@ -217,6 +225,17 @@ def render_stroke_animation(
     if not strokes:
         raise ValueError("stroke artifact has no drawable points")
 
+    drawing_windows = []
+    if draw_beats:
+        if abs(draw_beats[-1].end_seconds - render_spec.duration_seconds) > 0.01:
+            raise ValueError("DRAW_BEATS_DURATION_MISMATCH")
+        stroke_order, drawing_windows = order_strokes_for_beats(
+            source_strokes, draw_beats, width=source_width, height=source_height
+        )
+        source_strokes = [source_strokes[index] for index in stroke_order]
+        strokes = [strokes[index] for index in stroke_order]
+        stroke_colors = [stroke_colors[index] for index in stroke_order]
+
     color_regions = []
     color_layer_sha256 = payload.get("color_layer_sha256")
     if color_layer_sha256 is not None:
@@ -273,7 +292,12 @@ def render_stroke_animation(
                 if color_regions
                 else min(1.0, progress * 1.08)
             )
-            visible_segments = round(segment_count * drawing_progress)
+            if drawing_windows:
+                visible_segments = visible_segments_at(
+                    progress * render_spec.duration_seconds, drawing_windows
+                )
+            else:
+                visible_segments = round(segment_count * drawing_progress)
             while rendered_segments < visible_segments:
                 points = smooth_strokes[stroke_index]
                 stroke_color = stroke_colors[stroke_index]
@@ -311,8 +335,14 @@ def render_stroke_animation(
                 (render_spec.width, render_spec.height), Image.Resampling.LANCZOS
             )
             for region_index, (region, (region_x, region_y), trigger) in enumerate(color_regions):
-                start = 0.78 * trigger / max(1, segment_count)
-                desired = min(4, max(0, int((progress - start) / 0.12 * 4)))
+                if drawing_windows:
+                    start_seconds, color_duration = color_start_at(trigger, drawing_windows)
+                    color_progress = (
+                        progress * render_spec.duration_seconds - start_seconds
+                    ) / color_duration
+                else:
+                    color_progress = (progress - 0.78 * trigger / max(1, segment_count)) / 0.12
+                desired = min(4, max(0, int(color_progress * 4)))
                 if frame_index == frame_count - 1:
                     desired = 4
                 previous = color_steps[region_index]

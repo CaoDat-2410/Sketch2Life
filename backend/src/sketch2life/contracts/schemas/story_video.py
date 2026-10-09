@@ -17,6 +17,43 @@ Sha256 = str
 AssetStatus = Literal["READY", "RETRYABLE_FAILURE", "BLOCKED", "INVALID"]
 
 
+class StoryVisualCueV1(BaseModel):
+    """Script-bound placement cue; the source illustration remains authoritative."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    element_id: str = Field(pattern=r"^[a-z][a-z0-9-]{0,39}$")
+    label: str = Field(min_length=1, max_length=100)
+    focus_box: tuple[float, float, float, float]
+
+    @model_validator(mode="after")
+    def validate_box(self) -> StoryVisualCueV1:
+        left, top, right, bottom = self.focus_box
+        if not (0 <= left < right <= 1 and 0 <= top < bottom <= 1):
+            raise ValueError("visual cue box must be normalized and nonempty")
+        return self
+
+
+class StoryboardDrawBeatV1(BaseModel):
+    """One visual cue allocated to a measured narration interval within a scene."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    element_id: str = Field(pattern=r"^[a-z][a-z0-9-]{0,39}$")
+    segment_id: str = Field(pattern=r"^segment-[1-9][0-9]*$")
+    label: str = Field(min_length=1, max_length=100)
+    focus_box: tuple[float, float, float, float]
+    start_seconds: float = Field(ge=0, le=20)
+    end_seconds: float = Field(gt=0, le=20)
+
+    @model_validator(mode="after")
+    def validate_beat(self) -> StoryboardDrawBeatV1:
+        StoryVisualCueV1(element_id=self.element_id, label=self.label, focus_box=self.focus_box)
+        if self.end_seconds <= self.start_seconds:
+            raise ValueError("drawing beat must end after it begins")
+        return self
+
+
 class StoryScriptSegmentV1(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
@@ -25,6 +62,7 @@ class StoryScriptSegmentV1(BaseModel):
     approved_fact_ids: tuple[str, ...] = Field(min_length=1, max_length=16)
     confirmed_anchor_ids: tuple[str, ...] = Field(min_length=1, max_length=16)
     scene_purpose: Literal["INTRO", "EXPLAIN", "DEMONSTRATE", "RECAP"]
+    visual_cues: tuple[StoryVisualCueV1, ...] = Field(default=(), max_length=4)
 
 
 class ApprovedStoryPackageV1(BaseModel):
@@ -99,6 +137,25 @@ class StoryboardSceneV1(BaseModel):
     confirmed_anchor_ids: tuple[str, ...] = Field(min_length=1, max_length=16)
     duration_seconds: float = Field(gt=0, le=20)
     duration_basis: Literal["ESTIMATE", "MEASURED_TTS"]
+    draw_beats: tuple[StoryboardDrawBeatV1, ...] = Field(default=(), max_length=16)
+
+    @model_validator(mode="after")
+    def validate_draw_beats(self) -> StoryboardSceneV1:
+        if self.draw_beats:
+            if len({beat.element_id for beat in self.draw_beats}) != len(self.draw_beats):
+                raise ValueError("scene drawing element IDs must be unique")
+            if abs(self.draw_beats[0].start_seconds) > 0.01:
+                raise ValueError("drawing beats must begin with the scene")
+            if abs(self.draw_beats[-1].end_seconds - self.duration_seconds) > 0.01:
+                raise ValueError("drawing beats must cover the scene duration")
+            if any(
+                abs(previous.end_seconds - current.start_seconds) > 0.01
+                for previous, current in zip(self.draw_beats, self.draw_beats[1:], strict=False)
+            ):
+                raise ValueError("drawing beats must be contiguous")
+            if any(beat.segment_id not in self.segment_ids for beat in self.draw_beats):
+                raise ValueError("drawing beat references an unrelated narration segment")
+        return self
 
 
 class StoryboardPlanV1(BaseModel):
@@ -137,10 +194,15 @@ def stable_model_hash(model: BaseModel, *, exclude: set[str] | None = None) -> s
 
 
 def story_script_segments_hash(segments: tuple[StoryScriptSegmentV1, ...]) -> str:
-    """Hash the exact approved narration, fact IDs, anchors and scene purposes."""
+    """Hash approved script content, preserving hashes of legacy cue-free scripts."""
+
+    payloads = [segment.model_dump(mode="json") for segment in segments]
+    for payload in payloads:
+        if not payload["visual_cues"]:
+            payload.pop("visual_cues")
 
     encoded = json.dumps(
-        {"segments": [segment.model_dump(mode="json") for segment in segments]},
+        {"segments": payloads},
         ensure_ascii=False,
         sort_keys=True,
         separators=(",", ":"),
@@ -151,7 +213,9 @@ def story_script_segments_hash(segments: tuple[StoryScriptSegmentV1, ...]) -> st
 __all__ = [
     "ApprovedStoryPackageV1",
     "Sha256",
+    "StoryVisualCueV1",
     "StoryScriptSegmentV1",
+    "StoryboardDrawBeatV1",
     "StoryboardPlanV1",
     "StoryboardSceneV1",
     "stable_model_hash",

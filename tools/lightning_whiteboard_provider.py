@@ -16,6 +16,7 @@ import sys
 import tempfile
 import wave
 from contextlib import nullcontext
+from itertools import pairwise
 from pathlib import Path
 from threading import RLock
 from typing import Any
@@ -23,6 +24,7 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 from fastapi import FastAPI, HTTPException
+from pydantic import ValidationError
 
 app = FastAPI(title="Sketch2Life Whiteboard Provider", version="1.0.0")
 _LOGGER = logging.getLogger("sketch2life.whiteboard_provider")
@@ -1039,6 +1041,7 @@ def _render_whiteboard_story_scene(request: dict[str, Any]) -> dict[str, Any]:
     if not image_path.is_file():
         return _story_video_blocked("VideoSceneArtifactV1", "ILLUSTRATION_ARTIFACT_MISSING")
     try:
+        from sketch2life.contracts.schemas.story_video import StoryboardDrawBeatV1
         from sketch2life.infrastructure.media.whiteboard_mvp_renderer import (
             WhiteboardMvpRenderSpec,
             render_stroke_animation,
@@ -1054,6 +1057,20 @@ def _render_whiteboard_story_scene(request: dict[str, Any]) -> dict[str, Any]:
         duration = float(request.get("duration_seconds", 0))
         if not 5.0 <= duration <= 20.0:
             raise ValueError("SCENE_DURATION_INVALID")
+        raw_beats = request.get("draw_beats", [])
+        if not isinstance(raw_beats, list) or len(raw_beats) > 16:
+            raise ValueError("DRAW_BEATS_INVALID")
+        try:
+            draw_beats = tuple(StoryboardDrawBeatV1.model_validate(beat) for beat in raw_beats)
+        except ValidationError as error:
+            raise ValueError("DRAW_BEATS_INVALID") from error
+        if draw_beats and (
+            abs(draw_beats[0].start_seconds) > 0.01
+            or abs(draw_beats[-1].end_seconds - duration) > 0.01
+            or any(abs(previous.end_seconds - current.start_seconds) > 0.01
+                   for previous, current in pairwise(draw_beats))
+        ):
+            raise ValueError("DRAW_BEATS_INVALID")
         stroke_path = root / f"{scene_id}.strokes.json"
         output_path = root / f"{scene_id}.whiteboard.mp4"
         extract_image_line_art(
@@ -1065,6 +1082,7 @@ def _render_whiteboard_story_scene(request: dict[str, Any]) -> dict[str, Any]:
             stroke_path,
             output_path,
             spec=WhiteboardMvpRenderSpec(duration_seconds=duration),
+            draw_beats=draw_beats,
         )
         return {
             "contract": "VideoSceneArtifactV1",
@@ -1078,7 +1096,12 @@ def _render_whiteboard_story_scene(request: dict[str, Any]) -> dict[str, Any]:
             "fps": float(result.fps),
             "model_profile_ref": "whiteboard-stroke-v1",
         }
-    except (ImportError, OSError, RuntimeError, ValueError):
+    except ValueError as error:
+        if str(error) in {"DRAW_BEAT_EMPTY", "DRAW_BEATS_INVALID", "DRAW_BEATS_NOT_CONTIGUOUS"}:
+            return _story_video_blocked("VideoSceneArtifactV1", str(error))
+        _LOGGER.exception("whiteboard_story_scene_failed")
+        return _story_video_blocked("VideoSceneArtifactV1", "WHITEBOARD_RENDER_FAILED")
+    except (ImportError, OSError, RuntimeError):
         _LOGGER.exception("whiteboard_story_scene_failed")
         return _story_video_blocked("VideoSceneArtifactV1", "WHITEBOARD_RENDER_FAILED")
 

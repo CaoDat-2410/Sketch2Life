@@ -15,6 +15,7 @@ from sketch2life.application.services.story_video_pipeline import StoryVideoProv
 from sketch2life.contracts.schemas.story_video import (
     ApprovedStoryPackageV1,
     StoryScriptSegmentV1,
+    StoryVisualCueV1,
     stable_model_hash,
     story_script_segments_hash,
 )
@@ -91,6 +92,24 @@ def _gate_evidence(source_ref: str, source_hash: str) -> StoryGateEvidence:
         experience_spec_sha256="a" * 64,
         confirmed_anchor_ids=frozenset({"anchor-1"}),
     )
+
+
+def test_editing_visual_cue_invalidates_existing_script_approval_hash() -> None:
+    store = InMemoryArtifactStore()
+    source = store.put(session_id="session-test", content_type="image/png", body=b"image")
+    package = _package(source.artifact_ref, source.sha256)
+    edited = list(_segments())
+    edited[0] = edited[0].model_copy(update={"visual_cues": (
+        StoryVisualCueV1(
+            element_id="cat", label="Mèo", focus_box=(0.1, 0.1, 0.9, 0.9)
+        ),
+    )})
+
+    with pytest.raises(StoryVideoInputError, match="STORY_SCRIPT_HASH_MISMATCH"):
+        _service(store).create_or_replay(
+            session_id="session-test", idempotency_key="edited-visual-cue",
+            package=package, segments=tuple(edited),
+        )
 
 
 def test_story_job_accepts_only_session_bound_source() -> None:

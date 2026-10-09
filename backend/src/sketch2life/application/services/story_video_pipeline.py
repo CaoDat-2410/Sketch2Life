@@ -192,6 +192,7 @@ class StoryVideoPipeline:
                     confirmed_anchor_ids=scene.confirmed_anchor_ids,
                     model_profile_ref=self._motion_model_profile_ref,
                     duration_seconds=scene.duration_seconds,
+                    draw_beats=scene.draw_beats,
                     resource_preflight="PASSED",
                 )
             )
