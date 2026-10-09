@@ -143,4 +143,3 @@ backend/.venv/Scripts/python.exe -m tools.render_house_video_proof --source-mani
 ```
 
 No source rewrite, full story, TTS, remote inference/upload, paid GPU, commit/stage/push/deploy. Stop after handoff for owner review.
-

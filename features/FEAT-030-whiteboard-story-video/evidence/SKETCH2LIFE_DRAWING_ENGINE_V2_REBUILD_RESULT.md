@@ -189,4 +189,3 @@ Choose **A: semi-automatic semantic stroke authoring**. Retain existing21path bu
 B requires separate permission and model/path-quality evaluation; it is not a proven solution. C can provide directed narrative reveal while retaining source texture, but without reviewed paths it should not be branded natural whiteboard drawing. No additional implementation is authorized or performed in this report.
 
 Stop and review. No further automatic raster threshold/brush tuning in this task.
-

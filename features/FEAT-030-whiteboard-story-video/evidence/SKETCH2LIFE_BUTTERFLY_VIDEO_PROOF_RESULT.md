@@ -101,4 +101,3 @@ backend/.venv/Scripts/python.exe -m tools.render_butterfly_video_proof --candida
 ```
 
 No TTS/API/network/inference/GPU rental, commit/stage/push/deploy or Golden55s render. Stop here for owner video review. Asset/style acceptance and further slice timing remain separate gates.
-
