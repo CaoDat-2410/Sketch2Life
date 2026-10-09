@@ -232,6 +232,27 @@ def test_generated_non_child_fixture_is_valid_and_never_overwrites(tmp_path) -> 
         create_fixture(repository_root / "forbidden-smoke-output")
 
 
+def test_group_fixture_exercises_three_figures_and_distinct_scene_crops(tmp_path) -> None:
+    Image = pytest.importorskip("PIL.Image")
+    directory = tmp_path / "generic-three-people"
+    fixture = create_fixture(directory, preset="group")
+    image_path, locale, scenes = load_fixture(fixture)
+    assert image_path.name == "synthetic-group.png"
+    assert locale == "vi-VN"
+    assert len(scenes) == 4
+    assert len({tuple(scene["focus_box"]) for scene in scenes}) == 4
+    assert all(len(scene["text"].split()) >= 25 for scene in scenes)
+    assert all("mother" not in scene["visual_prompt"].lower() for scene in scenes)
+    with Image.open(image_path) as image:
+        assert image.size == (640, 384)
+        assert image.getpixel((500, 74))[0] > 180  # red roof
+        assert image.getpixel((116, 60))[1] > 100  # green canopy
+    with pytest.raises(FileExistsError, match="already exists"):
+        create_fixture(directory, preset="group")
+    with pytest.raises(ValueError, match="preset must"):
+        create_fixture(tmp_path / "unused", preset="unsupported")
+
+
 def test_media_smoke_rejects_invalid_scene_focus_box(tmp_path) -> None:
     _source, _scenes, fixture = _fixture(tmp_path)
     raw = json.loads(fixture.read_text(encoding="utf-8"))

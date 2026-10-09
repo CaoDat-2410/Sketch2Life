@@ -383,6 +383,44 @@ def test_story_fixture_keeps_multiple_approved_colors_in_final_frame(tmp_path) -
     assert ((red > green + 20) & (blue > green + 20)).sum() > 100
 
 
+def test_three_figure_fixture_reveals_people_before_house_color(tmp_path) -> None:
+    import hashlib
+
+    imageio = pytest.importorskip("imageio.v2")
+    np = pytest.importorskip("numpy")
+    from tools.create_story_video_media_fixture import create_fixture
+    from tools.story_video_media_smoke import load_fixture
+
+    from sketch2life.infrastructure.media.whiteboard_stroke_extraction import (
+        extract_image_line_art,
+    )
+
+    source, _, _ = load_fixture(create_fixture(tmp_path / "group", preset="group"))
+    strokes = tmp_path / "group.strokes.json"
+    extracted = extract_image_line_art(
+        source, strokes, source_hash=hashlib.sha256(source.read_bytes()).hexdigest()
+    )
+    assert extracted.stroke_count > 50
+    video = tmp_path / "group.mp4"
+    render_stroke_animation(
+        strokes, video,
+        spec=WhiteboardMvpRenderSpec(width=1280, height=720, fps=5, duration_seconds=5),
+    )
+    reader = imageio.get_reader(video)
+    middle = reader.get_data(12).astype("int16")
+    final = reader.get_data(24).astype("int16")
+    reader.close()
+
+    def color_count(frame, channel, others):
+        return int(np.logical_and(
+            frame[:, :, channel] > frame[:, :, others[0]] + 60,
+            frame[:, :, channel] > frame[:, :, others[1]] + 60,
+        ).sum())
+
+    assert color_count(middle, 2, (0, 1)) > 100  # central blue shirt
+    assert color_count(final, 0, (1, 2)) > color_count(middle, 0, (1, 2)) + 100
+
+
 def test_storyboard_strokes_use_most_of_the_video_canvas(tmp_path) -> None:
     imageio = pytest.importorskip("imageio.v2")
     stroke_path = tmp_path / "wide-strokes.json"
