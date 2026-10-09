@@ -105,3 +105,10 @@ apps/mobile/android/app/.cxx/
 # Local alternate Gradle caches and UI capture outputs
 apps/ui-mobile/android/.gradle-alt*/
 /artifacts/
+
+# Local benchmark outputs remain outside versioned evidence; originals are preserved.
+/features/FEAT-030-whiteboard-story-video/evidence/milestone2-pilots/
+# Runtime downloads/output only; do not hide source, contracts or approved assets.
+/.runtime/
+/model-cache/
+*.safetensors

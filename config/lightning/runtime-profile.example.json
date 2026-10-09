@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "status": "PREPARATION_ONLY",
+  "real_inference_authorized": false,
+  "image_edit": {
+    "model_id": null,
+    "revision": null,
+    "pipeline_class": null,
+    "multi_reference_verified": false
+  },
+  "video": {
+    "existing_adapter_profile": "wan2.2-ti2v-5b",
+    "workspace_repo_revision": null,
+    "checkpoint_sha256_manifest": null,
+    "cli_compatibility_verified": false
+  },
+  "artifacts": ["inputs-private", "manifests", "candidates", "diagnostics", "metrics"],
+  "approval_required": ["runtime-cost", "input-data-transfer", "model-download", "inference"]
+}
