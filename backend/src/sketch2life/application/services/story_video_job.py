@@ -185,7 +185,11 @@ class StoryVideoJobService:
             return expired
 
     def for_session(self, session_id: str) -> tuple[VideoJobStatusV1, ...]:
-        return tuple(job for job in self._jobs.values() if job.session_id == session_id)
+        with self._lock:
+            job_ids = tuple(
+                job.job_id for job in self._jobs.values() if job.session_id == session_id
+            )
+        return tuple(self.get(job_id) for job_id in job_ids)
 
     def run_safely(self, job_id: str) -> None:
         try:

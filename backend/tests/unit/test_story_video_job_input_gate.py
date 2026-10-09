@@ -311,6 +311,7 @@ def test_expired_session_cannot_keep_a_ready_story_job() -> None:
     active = False
 
     assert service.get(job.job_id).state == "EXPIRED"
+    assert service.for_session("session-test")[0].state == "EXPIRED"
     service.run_safely(job.job_id)
     assert service.get(job.job_id).state == "EXPIRED"
 

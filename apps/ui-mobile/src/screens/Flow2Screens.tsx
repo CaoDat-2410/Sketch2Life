@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import * as Crypto from 'expo-crypto';
 import * as ScreenOrientation from 'expo-screen-orientation';
+import { ResizeMode, Video } from 'expo-av';
 import WebView, { type WebViewMessageEvent } from 'react-native-webview';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, radius, shadows } from '../theme';
@@ -55,7 +56,43 @@ import {
   RendererPlaybackEventEnvelopeSchema,
   RendererPlaybackStateEnvelopeSchema,
 } from '../../../../packages/art-renderer/src/protocol';
-import { API_BASE_URL } from '../demo/api';
+import { API_BASE_URL, createDemoApi, type StoryVideoJobStatus } from '../demo/api';
+
+const storyVideoApi = createDemoApi();
+
+function readyStoryVideoUrl(sessionId: string | null, job: StoryVideoJobStatus | null): string | null {
+  if (!sessionId || !job || job.session_id !== sessionId || job.state !== 'READY'
+    || !job.video_artifact_ref) return null;
+  try {
+    const url = new URL(job.video_artifact_ref);
+    const api = new URL(API_BASE_URL);
+    const expectedPath = `/v1/sessions/${encodeURIComponent(sessionId)}`
+      + `/story-video/${encodeURIComponent(job.job_id)}/file`;
+    return url.origin === api.origin && url.pathname === expectedPath ? url.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
+function storyVideoMessage(
+  job: StoryVideoJobStatus | null,
+  videoUrl: string | null,
+  pollError: boolean,
+  playbackError: boolean,
+): string {
+  if (pollError) return 'Chưa đọc được trạng thái video. Vui lòng kiểm tra kết nối.';
+  if (playbackError) return 'Video đã tạo nhưng chưa phát được. Vui lòng thử lại sau.';
+  if (!job) return 'Phiên này chưa có video câu chuyện. Vui lòng chờ quy trình tạo và kiểm tra hoàn tất.';
+  if (job.state === 'READY') {
+    return videoUrl
+      ? 'Video đã sẵn sàng. Xem xong, người lớn có thể tiếp tục hoạt động.'
+      : 'Liên kết video không hợp lệ. Vui lòng kiểm tra lại trước khi tiếp tục.';
+  }
+  if (['FAILED', 'BLOCKED', 'RETRYABLE_FAILURE', 'EXPIRED', 'CANCELLED', 'STALE_INPUT'].includes(job.state)) {
+    return 'Tạo video chưa thành công. Vui lòng kiểm tra lại trước khi tiếp tục.';
+  }
+  return `Đang tạo video: ${job.progress_percent}%. Vui lòng chờ.`;
+}
 
 interface ScreenProps {
   onNavigate?: (screen: ScreenId) => void;
@@ -1075,20 +1112,56 @@ export const PixiIntroScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
 };
 
 // ==========================================
-// 8. LANDSCAPE VIDEO PLACEHOLDER
+// 8. LANDSCAPE STORY VIDEO
 // ==========================================
 export const VideoPlaceholderScreen: React.FC<ScreenProps> = ({ onNavigate }) => {
-  const { navigate, goBack, sceneData, selectedDrawing, completeActivityHandoff, workflowBusy } = useAppContext();
+  const { navigate, goBack, sceneData, selectedDrawing, sessionId, completeActivityHandoff, workflowBusy } = useAppContext();
   const nav = onNavigate || navigate;
+  const [job, setJob] = useState<StoryVideoJobStatus | null>(null);
+  const [pollError, setPollError] = useState(false);
+  const [playbackReady, setPlaybackReady] = useState(false);
+  const [playbackError, setPlaybackError] = useState(false);
+  const videoUrl = readyStoryVideoUrl(sessionId, job);
   useEffect(() => {
     void ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE).catch(() => undefined);
   }, []);
+  useEffect(() => {
+    let mounted = true;
+    let polling = false;
+    setJob(null);
+    setPlaybackReady(false);
+    setPollError(false);
+    if (!sessionId) return () => { mounted = false; };
+    const refresh = async () => {
+      if (polling) return;
+      polling = true;
+      try {
+        const jobs = await storyVideoApi.listStoryVideoJobs(sessionId);
+        if (mounted) {
+          setJob(jobs.length ? jobs[jobs.length - 1] : null);
+          setPollError(false);
+        }
+      } catch {
+        if (mounted) setPollError(true);
+      } finally {
+        polling = false;
+      }
+    };
+    void refresh();
+    const timer = setInterval(() => { void refresh(); }, 4_000);
+    return () => { mounted = false; clearInterval(timer); };
+  }, [sessionId]);
+  useEffect(() => {
+    setPlaybackReady(false);
+    setPlaybackError(false);
+  }, [videoUrl]);
 
   const returnToIntro = () => {
     goBack();
   };
 
   const continueOutside = async () => {
+    if (!videoUrl || !playbackReady || playbackError || pollError) return;
     if (await completeActivityHandoff()) {
       await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP).catch(() => undefined);
       nav('activity_detail');
@@ -1101,18 +1174,34 @@ export const VideoPlaceholderScreen: React.FC<ScreenProps> = ({ onNavigate }) =>
         <Ionicons name="arrow-back" size={22} color="#FFFFFF" />
       </TouchableOpacity>
       <View style={styles.videoPlaceholderVisual}>
-        {selectedDrawing && <Image source={{ uri: selectedDrawing.uri }} style={styles.videoPlaceholderImage} resizeMode="cover" />}
-        <View style={styles.videoPlaceholderShade} />
-        <View style={styles.videoPlaceholderBadge}><Ionicons name="videocam" size={24} color="#7C3AED" /><Text style={styles.videoPlaceholderBadgeText}>VIDEO CHÍNH</Text></View>
+        {videoUrl ? (
+          <Video
+            source={{ uri: videoUrl }}
+            style={styles.videoPlayback}
+            resizeMode={ResizeMode.CONTAIN}
+            useNativeControls
+            shouldPlay
+            onLoad={() => setPlaybackReady(true)}
+            onError={() => { setPlaybackReady(false); setPlaybackError(true); }}
+          />
+        ) : (
+          <>
+            {selectedDrawing && <Image source={{ uri: selectedDrawing.uri }} style={styles.videoPlaceholderImage} resizeMode="cover" />}
+            <View style={styles.videoPlaceholderShade} />
+            <View style={styles.videoPlaceholderBadge}><Ionicons name="videocam" size={24} color="#7C3AED" /><Text style={styles.videoPlaceholderBadgeText}>VIDEO ĐANG CHỜ</Text></View>
+          </>
+        )}
       </View>
       <View style={styles.videoPlaceholderCopy}>
         <Text style={styles.videoPlaceholderTitle}>{sceneData.storyTitle}</Text>
-        <Text style={styles.videoPlaceholderText}>Video chính sẽ được thêm ở phiên bản sau. Bây giờ mình cùng mang câu chuyện ra ngoài đời nhé!</Text>
+        <Text style={styles.videoPlaceholderText}>
+          {storyVideoMessage(job, videoUrl, pollError, playbackError)}
+        </Text>
         <Kid3DButton
           title={workflowBusy ? 'Đang chuẩn bị...' : 'Tiếp tục hoạt động ngoài trời'}
           color="green"
           size="md"
-          disabled={!!workflowBusy}
+          disabled={!!workflowBusy || !videoUrl || !playbackReady || playbackError || pollError}
           onPress={() => void continueOutside()}
         />
       </View>
@@ -1705,6 +1794,7 @@ const styles = StyleSheet.create({
   videoPlaceholderScreen: { flex: 1, flexDirection: 'row', backgroundColor: '#111827', padding: 18, gap: 20 },
   videoPlaceholderVisual: { flex: 1.35, borderRadius: 22, overflow: 'hidden', backgroundColor: '#1E293B' },
   videoPlaceholderImage: { width: '100%', height: '100%', opacity: 0.72 },
+  videoPlayback: { width: '100%', height: '100%' },
   videoPlaceholderShade: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(15,23,42,0.28)' },
   videoPlaceholderBadge: {
     position: 'absolute', alignSelf: 'center', top: '42%', backgroundColor: 'rgba(255,255,255,0.94)',

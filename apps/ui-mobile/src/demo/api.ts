@@ -34,6 +34,21 @@ export interface WorkflowResult<T = Record<string, unknown>> {
   } | null;
 }
 
+export interface StoryVideoJobStatus {
+  contract: 'VideoJobStatusV1';
+  version: '1.0';
+  job_id: string;
+  session_id: string;
+  state: 'QUEUED' | 'PREFLIGHT' | 'NARRATION_READY' | 'ILLUSTRATIONS_READY'
+    | 'SCENES_RENDERING' | 'ASSEMBLING' | 'VALIDATING' | 'READY'
+    | 'BLOCKED' | 'RETRYABLE_FAILURE' | 'FAILED' | 'CANCELLED'
+    | 'STALE_INPUT' | 'EXPIRED';
+  stage: string;
+  progress_percent: number;
+  public_message: string;
+  video_artifact_ref: string | null;
+}
+
 export interface P1ContextOption {
   contract_name: 'P1ContextOptionV1';
   contract_version: '1.0';
@@ -312,6 +327,14 @@ export class DemoApiClient {
       operation: 'COMPLETE_HANDOFF',
       user_initiated: true,
     });
+  }
+
+  async listStoryVideoJobs(sessionId: string): Promise<StoryVideoJobStatus[]> {
+    return this.request<StoryVideoJobStatus[]>(
+      `/v1/sessions/${encodeURIComponent(sessionId)}/story-video-jobs`,
+      { method: 'GET' },
+      30_000,
+    );
   }
 
   requestRetake(sessionId: string, version: number) {

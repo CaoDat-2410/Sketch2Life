@@ -53,6 +53,31 @@ def create_story_video_job(
     return job
 
 
+def _status_with_download_url(
+    request: Request, service: StoryVideoJobService, job: VideoJobStatusV1
+) -> VideoJobStatusV1:
+    if job.state != "READY" or service.result(job.job_id) is None:
+        return job
+    return job.model_copy(
+        update={
+            "video_artifact_ref": str(
+                request.url_for(
+                    "stream_story_video", session_id=job.session_id, job_id=job.job_id
+                )
+            )
+        }
+    )
+
+
+@router.get("/{session_id}/story-video-jobs", response_model=list[VideoJobStatusV1])
+def list_story_video_jobs(session_id: str, request: Request) -> list[VideoJobStatusV1]:
+    service = _service(request)
+    return [
+        _status_with_download_url(request, service, job)
+        for job in service.for_session(session_id)
+    ]
+
+
 @router.get("/{session_id}/story-video/{job_id}", response_model=VideoJobStatusV1)
 def get_story_video_status(
     session_id: str, job_id: str, request: Request
@@ -64,17 +89,7 @@ def get_story_video_status(
         raise HTTPException(status_code=404, detail="STORY_VIDEO_NOT_FOUND") from error
     if job.session_id != session_id:
         raise HTTPException(status_code=404, detail="STORY_VIDEO_NOT_FOUND")
-    if job.state == "READY" and service.result(job_id) is not None:
-        job = job.model_copy(
-            update={
-                "video_artifact_ref": str(
-                    request.url_for(
-                        "stream_story_video", session_id=session_id, job_id=job_id
-                    )
-                )
-            }
-        )
-    return job
+    return _status_with_download_url(request, service, job)
 
 
 @router.get(

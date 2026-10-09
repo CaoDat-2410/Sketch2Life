@@ -19,6 +19,9 @@ def _app(
     app.include_router(router)
 
     class Service:
+        def for_session(self, session_id: str) -> tuple[VideoJobStatusV1, ...]:
+            return (job,) if session_id == job.session_id else ()
+
         def get(self, job_id: str) -> VideoJobStatusV1:
             if job_id != job.job_id:
                 raise KeyError(job_id)
@@ -62,6 +65,12 @@ def test_ready_story_video_exposes_download_and_other_session_cannot_read(tmp_pa
     assert response.status_code == 200
     assert response.content == b"synthetic-test-mp4"
     assert client.get("/v1/sessions/other/story-video/job-1/file").status_code == 404
+    listed = client.get("/v1/sessions/session-1/story-video-jobs")
+    assert listed.status_code == 200
+    assert listed.json()[0]["video_artifact_ref"].endswith(
+        "/v1/sessions/session-1/story-video/job-1/file"
+    )
+    assert client.get("/v1/sessions/other/story-video-jobs").json() == []
 
 
 def test_unready_story_video_never_exposes_file(tmp_path) -> None:
@@ -71,6 +80,9 @@ def test_unready_story_video_never_exposes_file(tmp_path) -> None:
 
     status = client.get("/v1/sessions/session-1/story-video/job-1")
     assert status.json()["video_artifact_ref"] is None
+    assert client.get("/v1/sessions/session-1/story-video-jobs").json()[0][
+        "video_artifact_ref"
+    ] is None
     assert client.get("/v1/sessions/session-1/story-video/job-1/file").status_code == 409
 
 

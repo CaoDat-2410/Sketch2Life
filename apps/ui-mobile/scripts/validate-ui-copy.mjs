@@ -46,7 +46,7 @@ if (
   || !flow2.includes("nav('video_placeholder')")
   || !flow2.includes("nav('activity_detail')")
 ) {
-  throw new Error('Gate B, Pixi intro, video placeholder and outdoor activity order must remain explicit.');
+  throw new Error('Gate B, Pixi intro, video and outdoor activity order must remain explicit.');
 }
 if (
   !flow2.includes('OrientationLock.LANDSCAPE')
@@ -55,8 +55,17 @@ if (
 ) {
   throw new Error('Landscape lifecycle and bounded Pixi playback controls must remain wired.');
 }
-if (!flow2.includes('Video chính sẽ được thêm ở phiên bản sau')) {
-  throw new Error('The future-video surface must remain an honest placeholder.');
+if (
+  !flow2.includes('storyVideoApi.listStoryVideoJobs(sessionId)')
+  || !flow2.includes('<Video')
+  || !flow2.includes('!videoUrl || !playbackReady || playbackError || pollError')
+  || !flow2.includes('Phiên này chưa có video câu chuyện')
+) {
+  throw new Error('Story video must use the real READY job and keep unavailable media honest.');
+}
+const context = readFileSync(resolve(root, 'src/context/AppContext.tsx'), 'utf8');
+if (!context.includes("latestStoryJob?.state !== 'READY'")) {
+  throw new Error('Activity handoff must stay gated on a READY story video.');
 }
 if (!flow2.includes('Đang tạo các hướng câu chuyện')) {
   throw new Error('Understanding must expose stage-aware loading instead of a frozen percentage.');
