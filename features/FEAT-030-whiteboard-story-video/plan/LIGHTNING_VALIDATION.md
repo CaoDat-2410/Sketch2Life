@@ -1,5 +1,7 @@
 # Lightning validation runbook (owner-operated, synthetic inputs only)
 
+The optional local vector-path pilot is separate from Lightning and does not call an image model or TTS. From the repository root with `PYTHONPATH=backend/src:.` on Linux/macOS (or the equivalent Windows environment), run `python -m tools.story_video_vector_pilot --output-dir /tmp/sketch2life-vector-pilot-01` using a **new** directory. It writes an authored synthetic scene JSON, an 8-second silent MP4 and early/mid/final PNGs outside Git. This is a renderer comparison artifact, not automatic vectorization of a child's drawing, not a production storyboard and not visual acceptance. Review it against the earlier raster sample; if the art still looks schematic, improve the illustration/path-pack source before attempting paid 40–60 second media.
+
 This is a validation procedure, not evidence of a successful model run. Use a synthetic/non-child source image and a reviewed `StoryVideoCreateRequestV1` JSON for an existing backend session. The backend's process-local artifact store must still contain the source image named by the package; restarting the backend loses that state.
 
 ## Provider media smoke before the full session workflow
