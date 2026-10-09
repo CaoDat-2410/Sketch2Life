@@ -8,6 +8,23 @@ Sketch2Life is a capstone product concept that turns a child's drawing and narra
 
 `FOUNDATION_PUBLISHED`
 
+## Environment policy (owner override, 2026-10-10)
+
+- Windows is the code-development, repository-management and lightweight-static-test environment.
+- Do not install new PyTorch, CUDA/cuDNN, Diffusers, Transformers, Accelerate,
+  xFormers, model weights, large datasets, Docker images or GPU-specific packages on Windows.
+- If a required local dependency is missing, record `REQUIRES_LIGHTNINGAI_TEST`;
+  do not call the test passed.
+- LightningAI is the dependency-installation, GPU/inference and integration-test
+  environment. Use a separate Sketch2Life virtualenv and do not modify the existing
+  Wan2.2 environment.
+- The canonical workflow is `scripts/lightningai/setup.sh`, then read-only
+  `verify.sh`, then `run_tests.sh`. Setup requires explicit
+  `SKETCH2LIFE_ALLOW_INSTALL=1`; no script uploads child media or downloads model
+  weights implicitly.
+- `LOCAL_CODE_READY`, `LIGHTNINGAI_ENVIRONMENT_READY`, `LIGHTNINGAI_TEST_PASS` and
+  `VISUAL_QA_PASS` are separate gates and must not be conflated.
+
 The workspace harness and approved architecture skeleton are established and securely published to the project repository. Product feature code must not be started until that feature's plan and relevant task approval are recorded.
 
 ## Confirmed from the user's request
