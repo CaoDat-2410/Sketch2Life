@@ -87,5 +87,5 @@ def color_start_at(
     for start, end, first_segment, last_segment in windows:
         if trigger_segment <= last_segment:
             fraction = (trigger_segment - first_segment) / max(1, last_segment - first_segment)
-            return start + 0.8 * (end - start) * fraction, min(0.5, 0.2 * (end - start))
+            return start + 0.8 * (end - start) * fraction, min(1.25, 0.2 * (end - start))
     return windows[-1][1], 0.01

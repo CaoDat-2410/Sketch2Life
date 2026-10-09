@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Literal
 
 from sketch2life.contracts.schemas.story_video import StoryboardDrawBeatV1
+from sketch2life.infrastructure.media.whiteboard_color_regions import color_reveal_cells
 from sketch2life.infrastructure.media.whiteboard_draw_schedule import (
     color_start_at,
     order_strokes_for_beats,
@@ -284,6 +285,8 @@ def render_stroke_animation(
     ink_draw = ImageDraw.Draw(ink)
     colored = Image.new("RGBA", (render_spec.width, render_spec.height))
     color_steps = [0] * len(color_regions)
+    color_cells = [color_reveal_cells(region.width, region.height)
+                   for region, _, _ in color_regions]
     stroke_index = 0
     stroke_segment = 0
     rendered_segments = 0
@@ -346,17 +349,16 @@ def render_stroke_animation(
                     ) / color_duration
                 else:
                     color_progress = (progress - 0.78 * trigger / max(1, segment_count)) / 0.12
-                desired = min(4, max(0, int(color_progress * 4)))
+                cells = color_cells[region_index]
+                desired = min(len(cells), max(0, int(color_progress * len(cells))))
                 if frame_index == frame_count - 1:
-                    desired = 4
+                    desired = len(cells)
                 previous = color_steps[region_index]
                 if desired > previous:
-                    left = round(region.width * previous / 4)
-                    right = round(region.width * desired / 4)
-                    if right > left:
+                    for left, top, right, bottom in cells[previous:desired]:
                         colored.alpha_composite(
-                            region.crop((left, 0, right, region.height)),
-                            (region_x + left, region_y),
+                            region.crop((left, top, right, bottom)),
+                            (region_x + left, region_y + top),
                         )
                     color_steps[region_index] = desired
             if color_regions:

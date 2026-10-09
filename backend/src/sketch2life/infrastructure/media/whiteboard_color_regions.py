@@ -8,6 +8,25 @@ outline instead of appearing in a scene-wide left-to-right wipe.
 from __future__ import annotations
 
 
+def color_reveal_cells(width: int, height: int) -> tuple[tuple[int, int, int, int], ...]:
+    """Cover a color region in short, alternating marker-like horizontal passes."""
+
+    if width <= 0 or height <= 0:
+        raise ValueError("color region dimensions must be positive")
+    rows = min(12, height)
+    columns = min(8, width)
+    cells = []
+    for row in range(rows):
+        top = round(height * row / rows)
+        bottom = round(height * (row + 1) / rows)
+        for position in range(columns):
+            column = position if row % 2 == 0 else columns - 1 - position
+            left = round(width * column / columns)
+            right = round(width * (column + 1) / columns)
+            cells.append((left, top, right, bottom))
+    return tuple(cells)
+
+
 def prepare_color_regions(
     color_layer, raw_strokes, *, scale: float, offset_x: float, offset_y: float
 ):

@@ -3,6 +3,8 @@ from __future__ import annotations
 import pytest
 
 from sketch2life.contracts.schemas.story_video import StoryboardDrawBeatV1
+from sketch2life.infrastructure.media.whiteboard_color_regions import color_reveal_cells
+from sketch2life.infrastructure.media.whiteboard_draw_schedule import color_start_at
 from sketch2life.infrastructure.media.whiteboard_mvp_renderer import (
     WhiteboardMvpRenderSpec,
     render_progressive_reveal,
@@ -19,6 +21,19 @@ def test_mvp_render_spec_matches_contract_defaults() -> None:
     assert spec.fps == 30
     assert spec.duration_seconds == 8.0
     assert spec.max_size_bytes == 12 * 1024 * 1024
+
+
+def test_color_reveal_uses_short_serpentine_passes_and_covers_region() -> None:
+    cells = color_reveal_cells(8, 2)
+    assert cells[:2] == ((0, 0, 1, 1), (1, 0, 2, 1))
+    assert cells[8:10] == ((7, 1, 8, 2), (6, 1, 7, 2))
+    assert {
+        (x, y)
+        for left, top, right, bottom in cells
+        for y in range(top, bottom)
+        for x in range(left, right)
+    } == {(x, y) for y in range(2) for x in range(8)}
+    assert color_start_at(10, [(0.0, 10.0, 0, 10)])[1] == 1.25
 
 
 def test_mvp_render_spec_accepts_storyboard_duration() -> None:
