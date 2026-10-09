@@ -859,6 +859,15 @@ def _plan_pixi_show(
         context = {
             **context,
             "chosen_topic_labels": list(payload.chosen_topic_labels),
+            "pixi_output_constraints": {
+                "exact_beat_count": 3,
+                "final_beat_index": 2,
+                "final_beat_action": "SETTLE",
+                "final_beat_target_role": "SOURCE_SUBJECT",
+                "final_beat_asset_id": None,
+                "final_beat_end_seconds_max": payload.renderer_duration_seconds - 2,
+                "ending_still": True,
+            },
             "verified_rig": {
                 **context["verified_rig"],
                 "allowed_render_strategies": list(allowed_render_strategies),
@@ -935,6 +944,13 @@ def _plan_pixi_show(
             "behaviorClass, confidence, selectedAssetIds, durationSeconds, beats, endingStill, "
             "renderStrategy, sceneThemeAssetId.\n"
             + json.dumps(context, ensure_ascii=False, separators=(",", ":"))
+            + "\n\nFINAL REQUIRED JSON CHECK: emit exactly 3 beat objects at indexes 0, 1, and 2. "
+            "The object at beats[2] MUST have action exactly \"SETTLE\", targetRole exactly "
+            "\"SOURCE_SUBJECT\", and assetId exactly null. Its endSeconds must be no greater "
+            f"than {payload.renderer_duration_seconds - 2}; keep the remaining two seconds still. "
+            "Do not put a movement action in beats[2]. The first two beats use actions allowed "
+            "for the chosen strategy; this final SETTLE requirement is mandatory for every tier. "
+            "Set endingStill to true. Check these exact indexed fields before returning the JSON."
         )
     else:
         prompt = (

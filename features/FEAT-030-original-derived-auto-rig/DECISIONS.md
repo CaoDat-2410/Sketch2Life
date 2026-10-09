@@ -137,3 +137,9 @@ Android gates; the expansion manifest remains runtime-ineligible. See
 - Whole-cutout tiers may use only whole-subject actions; static source may use only NOTICE/SETTLE; articulated actions require their corresponding verified role and FULL_AUTO_RIG. BBOX_VISUAL_FOCUS supports STATIC_SOURCE only.
 - Continue to fail closed if the planner violates the whitelist and log only a fixed internal reason code.
 - Evidence: `evidence/notes/PIXI_RIG_CAPABILITY_PROMPT_FIX_20261009.md`.
+
+## 2026-10-09 — Pixi final-beat output constraint
+
+- Keep the existing `SETTLE` final-beat invariant and strict fail-closed validator.
+- State the invariant by exact array index and field values after the full V4 request context so the planner receives it as the final instruction; do not normalize a malformed model response.
+- Evidence: `evidence/notes/PIXI_FINAL_SETTLE_PROMPT_FIX_20261009.md`.

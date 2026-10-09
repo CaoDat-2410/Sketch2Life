@@ -273,3 +273,14 @@
 - Approval date: 2026-10-09 (Asia/Saigon).
 - Implementation-status hash (approved scope unchanged): `B6401F505EFE6D918A4498DADF0E1B7F344EAFD0AAC02B9BC6D59DE0F15ABBA9`.
 - Implementation evidence: `evidence/notes/PIXI_RIG_CAPABILITY_PROMPT_FIX_20261009.md`; live runtime retest remains pending.
+
+## Pixi final-beat SETTLE prompt fix — APPROVED
+
+- Approver: project owner, direct follow-up “vẫn bị” with the deployed log `MODEL_SCHEMA_INVALID schema_issues=root:final_beat_not_settle`.
+- Approved plan: `plan/PIXI_FINAL_SETTLE_PROMPT_FIX_20261009.md`, revision 1.
+- Exact approved plan SHA-256: `B2001FD8B8EF0DB19B8951D713052FB9E232C34AFDF8CA50EF621D47D06AADE0`.
+- Scope: add request-derived indexed final-beat constraints and repeat the exact `beats[2].action = SETTLE` requirement at the end of the V4 prompt.
+- Boundaries: keep one inference and strict schema validation; no retry, output repair, fallback, contract change, live provider call, or user-content logging.
+- Approval date: 2026-10-09 (Asia/Saigon).
+- Implementation-status hash (approved scope unchanged): `3EF47B2CE15DDE3C2BD92CC1F12FEB1937DEB66BF1266789811ABB39CD718A9F`.
+- Implementation evidence: `evidence/notes/PIXI_FINAL_SETTLE_PROMPT_FIX_20261009.md`; live runtime retest remains pending.
