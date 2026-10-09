@@ -1,7 +1,7 @@
 # FEAT-030 plan — narrated whiteboard story video
 
 - Status: APPROVED for local implementation and commit by owner instructions in this conversation.
-- Revision: 2.
+- Revision: 3.
 - Scope: local source-derived stroke renderer; bounded scene plan from approved narration; selectable whiteboard/Wan scene adapter; narration-timed scene lengths, subtitles, MP4 assembly, status and download; session-scoped job listing and READY-only playback/handoff in the existing mobile flow; focused tests and honest evidence.
 
 ## Acceptance criteria
@@ -24,3 +24,12 @@
 ## Verification
 
 Run focused unit/contract tests, a real local silent-scene render and FFmpeg mux/subtitle test on synthetic art, Ruff, `git diff --check` and `python tools/validate_repository_security.py`. Live provider validation and human review are follow-up gates before claiming production readiness.
+
+## Owner-approved completion order (revision 3)
+
+1. Product input is the child's drawing and description. The system may propose a story and three to six scenes from confirmed meaning and the approved learning objective; it must distinguish the child's own words from suggested wording and must not invent confirmed facts.
+2. An adult reviews and may edit the **exact narration and scene content**. Render authorization must bind the final text/scene revision and hashes to the current session/source/spec; an edit revokes the old authorization. Gate B alone is not script approval. A server-side content/grounding screen is still required before paid media work.
+3. Validate media independently on Lightning first, using a non-child drawing and reviewed narration/prompts through the provider-only smoke path. Inspect a real 40–60 second MP4 for stroke progression, continuity, voice, captions and source identity. This media test bypasses the backend and cannot prove the adult-approval workflow.
+4. Only after the real media output is accepted, finish backend/mobile draft-review-render wiring, backend READY handoff enforcement and device end-to-end verification. Do not claim steps 2–4 complete based on synthetic local tests.
+
+Revision 3 authorizes video-owned planning and validation preparation now. Shared mobile/workflow edits are deferred until the media gate and exact script-approval contract have been reviewed; the owner did not authorize unrelated feature changes or an unreviewed paid/GPU run.

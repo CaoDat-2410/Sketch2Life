@@ -4,6 +4,30 @@ This is a validation procedure, not evidence of a successful model run. Use a sy
 
 ## Provider media smoke before the full session workflow
 
+From the repository root on the L4 studio, activate the same project Python environment in **both** terminals. Verify `which python` and `python -c 'import torch; print(torch.cuda.is_available())'` before starting; both terminals must use that interpreter. Then:
+
+```bash
+# Terminal 1: provider only; do not start the backend for this first media gate.
+cd ~/Sketch2Life
+export PORT=8001
+export SKETCH2LIFE_STORY_MOTION_PROVIDER=whiteboard-stroke-v1
+export SKETCH2LIFE_IMAGE_MODEL=stabilityai/stable-diffusion-xl-base-1.0
+export SKETCH2LIFE_TTS_PROVIDER=edge_tts
+export EDGE_TTS_VOICE=vi-VN-HoaiMyNeural
+python tools/lightning_whiteboard_provider.py
+```
+
+```bash
+# Terminal 2: inspect preflight before accepting any model/TTS work.
+cd ~/Sketch2Life
+python -m tools.create_story_video_media_fixture --output-dir /tmp/sketch2life-media-smoke-01
+python tools/story_video_media_smoke.py --input /tmp/sketch2life-media-smoke-01/synthetic-house-story.json --preflight-only
+# Only after review of preflight, expected network/model/TTS use and possible cost:
+python tools/story_video_media_smoke.py --input /tmp/sketch2life-media-smoke-01/synthetic-house-story.json --confirm-synthetic-only
+```
+
+`edge_tts` is an external network TTS path, not an offline voice model. Do not substitute real child speech/text for this synthetic test. If the fixture output directory already exists, inspect it and choose a new explicit directory instead of overwriting files. A successful import/preflight does not guarantee that the model weights are available or that the final video will look acceptable.
+
 On the studio, after starting only the provider at `http://127.0.0.1:8001`, run `python -m tools.create_story_video_media_fixture --output-dir /tmp/sketch2life-media-smoke-01` from the repository root. This creates a deterministic, non-child house drawing and four-scene JSON **outside Git**, without overwriting existing files. The JSON has `source_image` (path relative to the JSON), `locale` (`vi-VN`) and `scenes` (four objects with `text` and `visual_prompt`). You may instead supply your own synthetic PNG/JPEG/WebP and three to six test scenes. Each scene's narration must measure 5–20 seconds and the total 40–60 seconds. Do not use real child media, names, credentials or an unreviewed story in this fixture, and do not commit the fixture or output MP4.
 
 Run `python tools/story_video_media_smoke.py --input /tmp/sketch2life-media-smoke-01/synthetic-house-story.json --preflight-only` first. Only if all checks pass and you accept the model/TTS cost, run the same command with `--confirm-synthetic-only` instead of `--preflight-only`. It prints each media stage and the local final MP4 path/hash. The example text is not guaranteed to measure 40–60 seconds for every TTS voice: if the duration guard stops after TTS, revise the synthetic text and rerun; no image generation has happened yet. This is a **provider-only media test**: it bypasses the backend, Director and Gate B, creates no `ApprovedStoryPackageV1`, and cannot be used as product acceptance. Inspect the MP4's line drawing, scene distinctness/continuity, voice, captions and duration. Record the model/voice/config and any failure locally before proceeding to the full workflow below.
