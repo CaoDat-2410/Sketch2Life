@@ -1,5 +1,7 @@
 # Decisions
 
+- 2026-10-09 reference audit: `chalkboard` uses RoughJS vector shapes and an opt-in `--draw` path-length reveal; its raster images and inline SVG fade, so transplanting its renderer wholesale would not make a child's raster drawing appear pen-drawn. Borrow the architecture (stable cached paths, paced object-level reveal and delayed fill), not its autonomous script policy or external CDN dependency. `whiteboard-stroke-v1` remains diagnostic/fallback, not visually accepted product output. The next acceptance artifact is a single short, non-child vector/layer pilot and a side-by-side encoded comparison, not another batch of raster-only unit tests.
+
 - Default story-video motion profile is deterministic whiteboard stroke drawing. Wan 2.2 is optional and must be selected explicitly; an L4 is not required to draw the default scene clip, but image generation still needs a configured model/runtime.
 - A raster illustration is converted to ordered local edge paths. This makes progressive line drawing possible, but cannot reconstruct a human artist's actual pen trajectory.
 - The scene compiler uses approved, ordered script segments and measured TTS timing. It does not infer educational facts from a picture or promise continuity that has not been checked.
