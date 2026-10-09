@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import unicodedata
 from uuid import uuid4
 
@@ -55,6 +56,7 @@ _BEHAVIOR_FOR_ACTION: dict[PixiShowActionV1, PixiBehaviorClassV1] = {
     PixiShowActionV1.SLITHER: PixiBehaviorClassV1.CRAWLER,
     PixiShowActionV1.ROLL: PixiBehaviorClassV1.ROLLER,
 }
+_LOGGER = logging.getLogger("sketch2life.pixi_show_compiler")
 _STATIC_SUPPLEMENT_ACTIONS = frozenset(
     {
         PixiShowActionV1.NOTICE,
@@ -63,6 +65,74 @@ _STATIC_SUPPLEMENT_ACTIONS = frozenset(
         PixiShowActionV1.SETTLE,
     }
 )
+
+
+def supported_source_actions_for_rig(
+    rig_tier: str,
+    part_roles: tuple[str, ...],
+) -> tuple[PixiShowActionV1, ...]:
+    """Return source actions already supported by the verified rig package."""
+    normalized_roles = {role.casefold().replace("_", "-") for role in part_roles}
+    if rig_tier == "FULL_AUTO_RIG":
+        actions = [
+            PixiShowActionV1.NOTICE,
+            PixiShowActionV1.APPROACH,
+            PixiShowActionV1.INTERACT,
+            PixiShowActionV1.SETTLE,
+        ]
+        actions.extend(
+            action
+            for action, required_roles in _REQUIRED_PART_ROLES.items()
+            if normalized_roles & required_roles
+        )
+        return tuple(actions)
+    if rig_tier == "CUTOUT_MICRO_MOTION":
+        return (
+            PixiShowActionV1.NOTICE,
+            PixiShowActionV1.APPROACH,
+            PixiShowActionV1.INTERACT,
+            PixiShowActionV1.SETTLE,
+        )
+    return (PixiShowActionV1.NOTICE, PixiShowActionV1.SETTLE)
+
+
+def supported_render_strategies_for_rig(
+    rig_tier: str,
+    *,
+    has_environment_candidate: bool,
+) -> tuple[str, ...]:
+    """Return strategies accepted by the existing adaptive compiler for this tier."""
+    if rig_tier == "FULL_AUTO_RIG":
+        return ("FULL_AUTO_RIG",)
+    if rig_tier == "CUTOUT_MICRO_MOTION":
+        strategies = ["CUTOUT_MICRO_MOTION", "STATIC_SOURCE"]
+        if has_environment_candidate:
+            strategies.insert(0, "CUTOUT_TOPIC_SCENE")
+        return tuple(strategies)
+    return ("STATIC_SOURCE",)
+
+
+def supported_source_actions_for_strategy(
+    rig_tier: str,
+    part_roles: tuple[str, ...],
+    render_strategy: str,
+) -> tuple[PixiShowActionV1, ...]:
+    """Narrow rig-supported actions further for the selected rendering strategy."""
+    if render_strategy == "STATIC_SOURCE":
+        return (PixiShowActionV1.NOTICE, PixiShowActionV1.SETTLE)
+    if render_strategy == "FULL_AUTO_RIG" and rig_tier == "FULL_AUTO_RIG":
+        return supported_source_actions_for_rig(rig_tier, part_roles)
+    if render_strategy in {"CUTOUT_TOPIC_SCENE", "CUTOUT_MICRO_MOTION"} and (
+        rig_tier == "CUTOUT_MICRO_MOTION"
+    ):
+        return supported_source_actions_for_rig(rig_tier, part_roles)
+    return ()
+
+
+def _reject_capability(reason: str) -> None:
+    """Log only a closed, non-user-derived reason before returning the same safe error."""
+    _LOGGER.warning("pixi_show_capability_rejected reason=%s", reason)
+    raise PixiShowPlannerUnavailable("BEHAVIOR_CAPABILITY_UNSUPPORTED")
 
 
 def compile_pixi_show_plan(
@@ -92,14 +162,16 @@ def compile_pixi_show_plan(
         raise PixiShowPlannerUnavailable("SUBJECT_CROP_UNAVAILABLE")
 
     referenced_assets: set[str] = set()
-    rig_roles = {role.casefold().replace("_", "-") for role in request.part_roles}
+    supported_actions = set(
+        supported_source_actions_for_rig(request.rig_tier, request.part_roles)
+    )
     for beat in intent.beats:
         if beat.target_role == "SUPPLEMENTAL_ASSET":
             if beat.asset_id not in selected_ids:
                 raise PixiShowPlannerUnavailable("PLANNER_INVALID_RESULT")
             if beat.action not in _STATIC_SUPPLEMENT_ACTIONS:
                 # Catalog entries are currently static poses, never walk/flight cycles.
-                raise PixiShowPlannerUnavailable("BEHAVIOR_CAPABILITY_UNSUPPORTED")
+                _reject_capability("supplemental_motion_not_supported")
             region = request.subject_region
             if not 0.12 <= beat.x <= 0.88 or not 0.12 <= beat.y <= 0.88:
                 raise PixiShowPlannerUnavailable("NO_COMPATIBLE_ASSET")
@@ -114,12 +186,14 @@ def compile_pixi_show_plan(
 
         required_behavior = _BEHAVIOR_FOR_ACTION.get(beat.action)
         if required_behavior is not None and required_behavior is not intent.behavior_class:
-            raise PixiShowPlannerUnavailable("BEHAVIOR_CAPABILITY_UNSUPPORTED")
+            _reject_capability("action_behavior_mismatch")
         required_roles = _REQUIRED_PART_ROLES.get(beat.action)
-        if required_roles is not None and not (rig_roles & required_roles):
-            raise PixiShowPlannerUnavailable("BEHAVIOR_CAPABILITY_UNSUPPORTED")
-        if required_roles is not None and request.rig_tier != "FULL_AUTO_RIG":
-            raise PixiShowPlannerUnavailable("BEHAVIOR_CAPABILITY_UNSUPPORTED")
+        if beat.action not in supported_actions:
+            if required_roles is not None and request.rig_tier != "FULL_AUTO_RIG":
+                _reject_capability("articulated_action_requires_full_rig")
+            if required_roles is not None:
+                _reject_capability("required_part_role_missing")
+            _reject_capability("source_action_not_supported_by_rig_tier")
 
     if referenced_assets != selected_ids:
         raise PixiShowPlannerUnavailable("PLANNER_INVALID_RESULT")
@@ -161,17 +235,17 @@ def compile_adaptive_pixi_show_plan(
         raise PixiShowPlannerUnavailable("PLANNER_INVALID_RESULT")
     if request.rig_tier == "FULL_AUTO_RIG":
         if intent.render_strategy != "FULL_AUTO_RIG" or intent.scene_theme_asset_id is not None:
-            raise PixiShowPlannerUnavailable("BEHAVIOR_CAPABILITY_UNSUPPORTED")
+            _reject_capability("full_rig_strategy_mismatch")
         if not any(beat.action in _BEHAVIOR_FOR_ACTION for beat in intent.beats):
-            raise PixiShowPlannerUnavailable("BEHAVIOR_CAPABILITY_UNSUPPORTED")
+            _reject_capability("full_rig_missing_part_motion")
     elif intent.render_strategy == "FULL_AUTO_RIG":
-        raise PixiShowPlannerUnavailable("BEHAVIOR_CAPABILITY_UNSUPPORTED")
+        _reject_capability("unverified_full_rig_strategy")
     elif intent.render_strategy == "CUTOUT_TOPIC_SCENE":
         if request.rig_tier != "CUTOUT_MICRO_MOTION":
-            raise PixiShowPlannerUnavailable("BEHAVIOR_CAPABILITY_UNSUPPORTED")
+            _reject_capability("topic_scene_requires_verified_cutout")
     elif intent.render_strategy == "CUTOUT_MICRO_MOTION":
         if request.rig_tier != "CUTOUT_MICRO_MOTION" or intent.scene_theme_asset_id is not None:
-            raise PixiShowPlannerUnavailable("BEHAVIOR_CAPABILITY_UNSUPPORTED")
+            _reject_capability("cutout_motion_requires_verified_cutout")
     elif intent.scene_theme_asset_id is not None:
         raise PixiShowPlannerUnavailable("PLANNER_INVALID_RESULT")
 
@@ -198,14 +272,18 @@ def compile_adaptive_pixi_show_plan(
         for asset_id in intent.selected_asset_ids
     ):
         raise PixiShowPlannerUnavailable("PLANNER_INVALID_RESULT")
-    if intent.render_strategy == "STATIC_SOURCE" and any(
-        beat.target_role == "SOURCE_SUBJECT" and beat.action not in {
-            PixiShowActionV1.NOTICE,
-            PixiShowActionV1.SETTLE,
-        }
+    allowed_strategy_actions = set(
+        supported_source_actions_for_strategy(
+            request.rig_tier,
+            request.part_roles,
+            intent.render_strategy,
+        )
+    )
+    if any(
+        beat.target_role == "SOURCE_SUBJECT" and beat.action not in allowed_strategy_actions
         for beat in intent.beats
     ):
-        raise PixiShowPlannerUnavailable("BEHAVIOR_CAPABILITY_UNSUPPORTED")
+        _reject_capability("source_action_not_supported_by_render_strategy")
     if intent.scene_theme_asset_id in set(intent.selected_asset_ids):
         raise PixiShowPlannerUnavailable("PLANNER_INVALID_RESULT")
     chosen_topic_label = request.chosen_topic_labels[0].strip()
@@ -303,4 +381,10 @@ def _contains_token_phrase(value: str, phrase: str) -> bool:
     return f" {phrase} " in f" {value} "
 
 
-__all__ = ["compile_adaptive_pixi_show_plan", "compile_pixi_show_plan"]
+__all__ = [
+    "compile_adaptive_pixi_show_plan",
+    "compile_pixi_show_plan",
+    "supported_render_strategies_for_rig",
+    "supported_source_actions_for_rig",
+    "supported_source_actions_for_strategy",
+]

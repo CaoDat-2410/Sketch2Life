@@ -130,3 +130,10 @@ Android gates; the expansion manifest remains runtime-ineligible. See
 - Render duration stays contract-authoritative; include its actual numeric value and `duration - 2` final-beat cutoff in the one planner prompt to avoid symbolic ambiguity.
 - Continue to reject invalid output. Never clamp, rewrite, retry, or replace a planner response.
 - Evidence: `evidence/notes/PIXI_DYNAMIC_STILL_TAIL_BOUND_20261009.md`.
+
+## 2026-10-09 — Pixi planner capability whitelist
+
+- Derive the V4 prompt's render strategy and source-action options from the same deterministic rig-tier/part-role rules used by the backend compiler.
+- Whole-cutout tiers may use only whole-subject actions; static source may use only NOTICE/SETTLE; articulated actions require their corresponding verified role and FULL_AUTO_RIG. BBOX_VISUAL_FOCUS supports STATIC_SOURCE only.
+- Continue to fail closed if the planner violates the whitelist and log only a fixed internal reason code.
+- Evidence: `evidence/notes/PIXI_RIG_CAPABILITY_PROMPT_FIX_20261009.md`.

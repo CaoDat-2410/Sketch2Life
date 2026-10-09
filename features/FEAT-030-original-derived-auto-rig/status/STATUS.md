@@ -164,3 +164,10 @@ Updated: 2026-10-08
 - Runtime evidence after `18762db`: `MODEL_SCHEMA_INVALID schema_issues=root:still_tail_too_short`.
 - The prompt now receives the actual render duration and states the exact last-beat cutoff and final still interval in seconds. Python compilation and `git diff --check` passed; tests and live inference were not run.
 - Deploy this commit and restart Uvicorn before the next synthetic-image acceptance attempt. Invalid timing remains fail-closed.
+
+## Pixi rig-capability prompt correction — 2026-10-09
+
+- Runtime evidence: `/v4/pixi/show-plan` returned 200, but the app showed the safe unsupported-mask-motion message.
+- The single planner prompt now receives the same tier/part-role action allowlist as the backend compiler, plus strategy-specific actions and tier-valid render strategies. Compiler rejection logs identify fixed capability reasons without sensitive values.
+- Python source compilation and `git diff --check` passed. Tests/live inference were not run.
+- Pending: deploy backend and Lightning changes, restart services, then retest with synthetic artwork and capture the new sanitized capability reason if rejection persists.

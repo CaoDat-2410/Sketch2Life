@@ -262,3 +262,14 @@
 - Approved scope: insert exact numeric duration, last-beat cutoff, and final still interval into the V4 prompt using the request duration.
 - Boundaries: preserve fail-closed validation and the single inference; no output clamping/rewriting, retry, fallback, contract change, live provider request, or real-child data.
 - Approval date: 2026-10-09 (Asia/Saigon).
+
+## Pixi rig-capability prompt and diagnostics fix — APPROVED
+
+- Approver: project owner, direct fix request in the current conversation: “fix fix fix đi hiếu 3d”, with the screenshot showing `/v4/pixi/show-plan` HTTP 200 and the app's unsupported-mask-motion message.
+- Approved plan: `plan/PIXI_RIG_CAPABILITY_PROMPT_FIX_20261009.md`, revision 1.
+- Exact approved plan SHA-256: `7E91B1E3E60ADCE003C1C043610331E17053A8657017CDE3D06A7B986BA74E72`.
+- Scope: derive V4 prompt strategy/action choices from the validated rig tier, part roles, and eligible environment candidates; retain compiler/renderer validation; add fixed sanitized compiler rejection reasons.
+- Boundaries: no retries, output repair, substitute show, contract/model/dependency changes, provider calls from this workstation, or user-content logging.
+- Approval date: 2026-10-09 (Asia/Saigon).
+- Implementation-status hash (approved scope unchanged): `B6401F505EFE6D918A4498DADF0E1B7F344EAFD0AAC02B9BC6D59DE0F15ABBA9`.
+- Implementation evidence: `evidence/notes/PIXI_RIG_CAPABILITY_PROMPT_FIX_20261009.md`; live runtime retest remains pending.

@@ -250,3 +250,9 @@ open, so the checked-in manifest still rejects runtime use. Details: `evidence/n
 - The owner supplied the next deployed-build log: `MODEL_SCHEMA_INVALID schema_issues=root:still_tail_too_short`, confirming the final beat still crossed the two-second still cutoff.
 - The follow-up injects the request's exact integer duration and final-beat end cutoff into the planner prompt, along with the resulting still interval. Backend validation remains authoritative.
 - Local change and limits are recorded in `evidence/notes/PIXI_DYNAMIC_STILL_TAIL_BOUND_20261009.md`.
+
+## Pixi rig-capability prompt correction — 2026-10-09
+
+- The owner screenshot shows the planner endpoint succeeded but the backend rejected the selected movement as unsupported by the mask/rig.
+- The prompt now receives strategy/action allowlists derived from the actual rig tier, verified part roles, and presence of eligible environment assets. The compiler shares the same action rules and emits fixed capability-rejection reasons without user or model content.
+- Implementation and static verification are recorded in `evidence/notes/PIXI_RIG_CAPABILITY_PROMPT_FIX_20261009.md`. Live Lightning/backend retest remains pending.
