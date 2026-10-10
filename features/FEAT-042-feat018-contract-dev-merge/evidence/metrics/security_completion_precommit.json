@@ -1,0 +1,11 @@
+{
+  "command": [
+    "python",
+    "tools/validate_repository_security.py"
+  ],
+  "cwd": "<worktree>",
+  "started_at_utc": "2026-10-10T13:32:51.044867+00:00",
+  "finished_at_utc": "2026-10-10T13:32:53.219916+00:00",
+  "exit_code": 0,
+  "status": "PASS"
+}

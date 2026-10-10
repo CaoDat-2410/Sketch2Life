@@ -1,0 +1,20 @@
+{
+  "status": "REMOTE_PUBLICATION_VERIFIED",
+  "verified_at_utc": "2026-10-10T13:32:05.443141+00:00",
+  "remote_dev_sha": "429e9c61f28f2f2ef3b5992c4af9bc358a842f51",
+  "remote_source_sha": "f9594268b22c026f6b8ba837e3f3f9e8831a7280",
+  "prior_dev_sha": "396b4f67ddcb413f1ae72fdc9ca0746419f449a4",
+  "both_source_and_prior_dev_are_ancestors": true,
+  "protected_artifact_hashes": {
+    "features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md": "a95c89589843e3555e967c5e486f3bcaf4bbdf9446cb3bc9c49ed16f672964d9",
+    "features/FEAT-039-collaborative-learning-scope/artifacts/Collaborative_Learning_SRS_v3.1.md": "a95c89589843e3555e967c5e486f3bcaf4bbdf9446cb3bc9c49ed16f672964d9",
+    "features/FEAT-039-collaborative-learning-scope/artifacts/Sketch2Life_Master_SRS_v2.0_preserved_20261010.md": "28eb8b890d8e950fec6aa0df87f9b29851a7e41aa871c3dd6eb4205cd807801e",
+    "features/FEAT-039-collaborative-learning-scope/artifacts/Sketch2Life_Master_SRS_v3.0_preserved_20261010.md": "c69fd96ba9e5cd0ec85fcaa516c67ad73aafa02a45768dc2d93e29b7a756e2cf",
+    "features/FEAT-040-four-person-delivery-plan/artifacts/TEAM_TASK_BREAKDOWN.md": "293fcb8cfca9a603c0ee18e745ae37d61c3c13de80cdaa336ac648ad4f706ca9"
+  },
+  "original_workspace_runtime_hashes_unchanged": 8,
+  "original_workspace_head_unchanged": true,
+  "original_workspace_branch_unchanged": true,
+  "pending_runtime_excluded_from_publication": true,
+  "force_push": false
+}

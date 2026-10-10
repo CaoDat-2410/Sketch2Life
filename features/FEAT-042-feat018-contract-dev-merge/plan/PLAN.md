@@ -2,7 +2,7 @@
 
 - Status: APPROVED
 - Plan revision: 1
-- Implementation status: IN_PROGRESS
+- Implementation status: DONE
 - Date: 2026-10-10, Asia/Saigon
 
 ## Goal
