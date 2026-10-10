@@ -242,3 +242,5 @@ curl -X POST http://localhost:8000/api/activities/act-butterfly-craft/feedback \
 - `src/services/mockData.ts`: Dữ liệu mock đạt chuẩn cho toàn bộ app.
 - `src/context/AppContext.tsx`: State Provider gắn kết dữ liệu người dùng với giao diện.
 - `assets/target_crops/`: Các thành phần hình ảnh cắt lát chuẩn cho canvas tương tác và lộ trình học tập.
+
+- `src/screens/ErrorAndSettingsScreens.tsx`: 5 màn hình xử lý lỗi và cài đặt người dùng.
