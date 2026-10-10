@@ -1055,3 +1055,4 @@ const styles = StyleSheet.create({
 // PreviewResultScreen implementation
 // AdultConfirmScreen Gate B handover prompt
 // ChildTransitionScreen kid mode animation flow
+// ChildGuideScreen visual story walkthrough
