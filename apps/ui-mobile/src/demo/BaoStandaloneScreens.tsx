@@ -1057,3 +1057,4 @@ const styles = StyleSheet.create({
 // ChildTransitionScreen kid mode animation flow
 // ChildGuideScreen visual story walkthrough
 // ChildStepsScreen step-by-step guidance cards
+// CompletionScreen celebration badge and confetti
