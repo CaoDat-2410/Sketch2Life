@@ -24,6 +24,8 @@ P1 owns Android and Teacher/Admin UI, P2 core/classroom/collaboration/data, P3 A
 
 Owner directly requested merging the existing codex/feat-018-contract-plan into dev after the SRS/task publication. FEAT-042 records pinned history, direct approval, conflict/regression reconciliation and offline verification. The incoming branch includes FEAT-030 whiteboard/story-video and UI scaffolds; these remain legacy/experimental and do not override canonical SRSv3.1 or complete its runtime migration. Existing dev guards, Pixi flow and immutable artifacts are preserved. Thirty-four incoming target images/crops remain dormant without verified visual approval. Missing media dependencies and model/GPU/device/visual acceptance remain explicit gates; no live provider or deployment is performed.
 
+FEAT-042 integration completed with merge429e9c6 published to dev and verified retaining both sourcef959426 and prior dev396b4f6. Available offline checks passed: backend2001, mobile22, renderer67 and exact-index web export. Protected SRS/task bytes and original pending runtime work remain unchanged. Actual receipts and environment limits are in FEAT-042 evidence/notes/PUBLICATION.md and VALIDATION.md.
+
 ## Purpose
 
 Sketch2Life is now a Montessori-inspired collaborative creative learning platform: children draw, cooperate, receive teacher-controlled AI assistance, explore knowledge/video, perform off-screen activities and reflect; teachers coordinate classroom/group sessions and observe each child's progress.

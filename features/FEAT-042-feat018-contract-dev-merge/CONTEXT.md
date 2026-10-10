@@ -1,6 +1,6 @@
 # FEAT-018 contract branch integration context
 
-- Status: IN_PROGRESS
+- Status: DONE
 - Owner: project owner, direct merge instruction
 - Goal: merge the existing FEAT-018 contract branch into dev after FEAT-041 publication
 - Scope: pinned committed branch history, conflict reconciliation and necessary offline regression repairs
@@ -17,3 +17,7 @@ Canonical SRS v3.1 and current staffing/architecture decisions remain authoritat
 ## Validated merge candidate
 
 All six conflicts are reconciled and necessary concrete regressions repaired. Available offline checks pass: backend2001, mobile22 and renderer67 tests; exact-index Expo web export succeeds. See evidence/notes/VALIDATION.md for twelve excluded media files, one deselected media test, 24 optional skips and unresolved GPU/device/visual gates. Remote publication remains pending; protected original workspace and five immutable artifacts remain verified.
+
+## Verified publication
+
+Merge429e9c6 was pushed without force to dev and verified on the remote. Both pinned sourcef959426 and prior dev396b4f6 are ancestors; local dev was updated with guarded compare-and-swap. Five immutable artifacts and eight original pending runtime hashes are unchanged. AC01–AC06 integration requirements are satisfied; the documented media/GPU/device/visual gates remain outside achieved acceptance. See evidence/notes/PUBLICATION.md.

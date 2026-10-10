@@ -1,0 +1,13 @@
+{
+  "command": [
+    "git",
+    "push",
+    "origin",
+    "HEAD:refs/heads/dev"
+  ],
+  "cwd": "<worktree>",
+  "started_at_utc": "2026-10-10T13:31:10.467198+00:00",
+  "finished_at_utc": "2026-10-10T13:31:13.959522+00:00",
+  "exit_code": 0,
+  "status": "PASS"
+}
