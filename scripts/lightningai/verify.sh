@@ -10,7 +10,12 @@ fi
 source "${VENV_DIR}/bin/activate"
 command -v nvidia-smi >/dev/null || { echo "GPU_TOOL_MISSING" >&2; exit 2; }
 nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv,noheader
-python "${ROOT_DIR}/tools/verify_lightning_runtime.py" --mode inventory --require-cuda
+[[ -n "${WAN_REPO_DIR:-}" && -n "${WAN_CKPT_DIR:-}" ]] || {
+  echo "REQUIRES_LIGHTNINGAI_WAN: set WAN_REPO_DIR and WAN_CKPT_DIR from the existing Wan workspace" >&2
+  exit 2
+}
+python "${ROOT_DIR}/tools/verify_lightning_runtime.py" \
+  --mode inventory --require-cuda --require-wan --wan-repo "${WAN_REPO_DIR}"
 python - <<'PY'
 from sketch2life.infrastructure.config.settings import Settings
 settings = Settings()

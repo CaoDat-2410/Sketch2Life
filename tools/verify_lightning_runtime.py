@@ -49,6 +49,11 @@ def inventory(wan_repo: Path | None = None) -> dict[str, object]:
             torch_cuda = bool(torch.cuda.is_available())
         except (AttributeError, ImportError, RuntimeError):  # pragma: no cover - remote runtime
             torch_cuda = False
+    checkpoint_dir = os.getenv("WAN_CKPT_DIR", "").strip()
+    checkpoint_path = Path(checkpoint_dir).expanduser() if checkpoint_dir else None
+    checkpoint_present = bool(
+        checkpoint_path and checkpoint_path.is_dir() and any(checkpoint_path.iterdir())
+    )
     return {
         "status": "INVENTORY_ONLY", "inference_executed": False,
         "gpu": gpu, "packages": {name: importlib.util.find_spec(name) is not None
@@ -61,6 +66,7 @@ def inventory(wan_repo: Path | None = None) -> dict[str, object]:
         "wan_generate_present": bool(wan_repo and (wan_repo / "generate.py").is_file()),
         "wan_revision": wan_revision,
         "checkpoint_configured": bool(os.getenv("WAN_CKPT_DIR", "").strip()),
+        "checkpoint_present": checkpoint_present,
         "real_inference_ready": False,
         "note": "Inventory is not CUDA/model/CLI compatibility or visual acceptance",
     }
@@ -71,6 +77,7 @@ def main() -> int:
     parser.add_argument("--mode", choices=("mock", "inventory", "real"), default="mock")
     parser.add_argument("--wan-repo", type=Path)
     parser.add_argument("--require-cuda", action="store_true")
+    parser.add_argument("--require-wan", action="store_true")
     parser.add_argument("--json-out", type=Path)
     args = parser.parse_args()
     if args.mode == "real":
@@ -89,6 +96,17 @@ def main() -> int:
         args.json_out.write_text(rendered + "\n", encoding="utf-8")
     if args.require_cuda and not report["cuda_environment_ready"]:
         print("REQUIRES_LIGHTNINGAI_TEST: CUDA/Torch environment is not ready", file=sys.stderr)
+        return 2
+    if args.require_wan and not (
+        report["wan_generate_present"]
+        and report["checkpoint_configured"]
+        and report["checkpoint_present"]
+    ):
+        print(
+            "REQUIRES_LIGHTNINGAI_WAN: set WAN_REPO_DIR and WAN_CKPT_DIR "
+            "to existing Wan runtime paths",
+            file=sys.stderr,
+        )
         return 2
     return 0
 
