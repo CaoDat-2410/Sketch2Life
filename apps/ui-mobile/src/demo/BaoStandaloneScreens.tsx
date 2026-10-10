@@ -1056,3 +1056,4 @@ const styles = StyleSheet.create({
 // AdultConfirmScreen Gate B handover prompt
 // ChildTransitionScreen kid mode animation flow
 // ChildGuideScreen visual story walkthrough
+// ChildStepsScreen step-by-step guidance cards
