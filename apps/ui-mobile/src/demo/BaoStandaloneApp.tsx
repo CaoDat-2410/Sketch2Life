@@ -34,6 +34,11 @@ import {
   ChildStepsScreen,
   CompletionScreen,
   FeedbackLoopScreen,
+  PixlErrorScreen,
+  AiErrorScreen,
+  MissingStepScreen,
+  NoResultsScreen,
+  SettingsScreen,
 } from './src/screens';
 import { AppProvider, useAppContext } from './src/context/AppContext';
 
@@ -58,6 +63,11 @@ const SCREENS: ScreenMeta[] = [
   { id: 'child_steps',          title: '17. Các bước thực hiện',     subtitle: 'Chuẩn bị chưa nhỏ?',          flow: 'flow2', workflowStep: 7, stepName: 'Bước 7: Steps' },
   { id: 'completion',           title: '18. Hoàn thành',             subtitle: 'Tuyệt vời! 🎉',               flow: 'flow2', workflowStep: 8, stepName: 'Bước 8: Done' },
   { id: 'feedback',             title: '19. Kết quả & Lưu lại',      subtitle: 'Người lớn lưu nhật ký',        flow: 'flow2', workflowStep: 8, stepName: 'Bước 8: Lưu' },
+  { id: 'pixl_error',           title: '21. Lỗi Pixl',                subtitle: 'Có phương án dự phòng',         flow: 'flow2', workflowStep: 5, stepName: 'Lỗi Pixl' },
+  { id: 'ai_error',             title: '22. Lỗi xử lý AI',            subtitle: 'Chụp lại ảnh / Thử lại',       flow: 'flow2', workflowStep: 2, stepName: 'Lỗi AI' },
+  { id: 'missing_step',         title: '23. Thiếu bước',              subtitle: 'Chưa chọn chủ đề',             flow: 'flow2', workflowStep: 2, stepName: 'Thiếu bước' },
+  { id: 'no_results',           title: '24. Không có kết quả',        subtitle: 'Chưa có hoạt động phù hợp',    flow: 'flow2', workflowStep: 3, stepName: 'No Result' },
+  { id: 'settings',             title: '25. Cài đặt & Riêng tư',      subtitle: 'Quyền riêng tư & An toàn',      flow: 'flow1', workflowStep: 1, stepName: 'Cài đặt' },
 ];
 
 function MainAppContent() {
@@ -132,6 +142,11 @@ function MainAppContent() {
       case 'child_steps':          return <ChildStepsScreen />;
       case 'completion':           return <CompletionScreen />;
       case 'feedback':             return <FeedbackLoopScreen />;
+      case 'pixl_error':           return <PixlErrorScreen />;
+      case 'ai_error':             return <AiErrorScreen />;
+      case 'missing_step':         return <MissingStepScreen />;
+      case 'no_results':           return <NoResultsScreen />;
+      case 'settings':             return <SettingsScreen />;
       default:                     return <SplashScreen />;
     }
   };
