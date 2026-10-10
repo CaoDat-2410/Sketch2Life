@@ -29,7 +29,8 @@ export type ScreenId =
   | 'pixl_error'
   | 'ai_error'
   | 'missing_step'
-  | 'no_results';             // Đánh giá & quan sát
+  | 'no_results'
+  | 'settings';             // Đánh giá & quan sát
 
 export interface ScreenMeta {
   id: ScreenId;
