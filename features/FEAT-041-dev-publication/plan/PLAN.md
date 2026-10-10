@@ -2,7 +2,7 @@
 
 - Status: APPROVED
 - Plan revision: 1
-- Implementation status: IN_PROGRESS
+- Implementation status: DONE
 - Date: 2026-10-10, Asia/Saigon
 
 ## Goal
@@ -11,7 +11,7 @@ Publish current codex/pixi-ai-show-20261001 and integrate it into dev as explici
 
 ## Scope
 
-Reviewed SRS/scope/team/governance documentation plus necessary security/harness publishing hygiene. Eight pending historical under-nine runtime paths remain local by default; they are not the replacement 36–155-month migration and have a known existing fixture mismatch. Optional scope clarification is pending; no new product behavior/provider/deployment is authorized. Current context/register, FEAT-039/040, ADR-0014/0015, FEAT-011 publishing policy and read-only runtime/security reviews ground this operation.
+Reviewed SRS/scope/team/governance documentation plus necessary security/harness publishing hygiene. Eight pending historical under-nine runtime paths remain local by default; they are not the replacement 36–155-month migration and have a known existing fixture mismatch. The optional scope question received no answer before publication; the stated documentation default was used after a reasonable opportunity to reply. No new product behavior/provider/deployment is authorized. Current context/register, FEAT-039/040, ADR-0014/0015, FEAT-011 publishing policy and read-only runtime/security reviews ground this operation.
 
 ## Steps
 
@@ -44,3 +44,7 @@ SRS/task static validators, architecture/harness/security/skeleton, exact staged
 Own sanitized raw checks, metrics/PUBLICATION_MANIFEST.json, notes/REVIEW.md and notes/PUBLICATION.md. Record all limitations. Run repository security before every commit/push.
 
 Implementation authorized by direct owner request recorded in approvals/TASK_APPROVAL.md revision 1.
+
+## Completion
+
+Commit 967f643c955332e677facb82a3ec8fe2e65c07d7 was atomically published to source and dev. Remote SHA and unchanged source/artifact/runtime-byte verification PASS. The outcome record is shipped in a follow-up documentation commit under the same approval; see evidence/notes/PUBLICATION.md.

@@ -8,4 +8,4 @@
 - Approval evidence: “push nhánh này, merge lên dev”
 - Source branch: codex/pixi-ai-show-20261001
 - Target: dev, existing origin remote
-- Notes: explicit publishing/dev integration authorization; no repeated permission required. Pending historical runtime excluded under documented default, preserved locally. Optional scope clarification is pending. No new product/provider/deployment or secret publication authorized.
+- Notes: explicit publishing/dev integration authorization; no repeated permission required. Pending historical runtime excluded under documented default, preserved locally. Optional scope clarification received no answer before publication; the stated documentation default was used after a reasonable opportunity to reply. No new product/provider/deployment or secret publication authorized.

@@ -1,0 +1,77 @@
+{
+  "status": "REMOTE_PUBLICATION_VALID",
+  "verified_commit": "967f643c955332e677facb82a3ec8fe2e65c07d7",
+  "source_branch": "codex/pixi-ai-show-20261001",
+  "remote_refs": {
+    "refs/heads/codex/pixi-ai-show-20261001": "967f643c955332e677facb82a3ec8fe2e65c07d7",
+    "refs/heads/dev": "967f643c955332e677facb82a3ec8fe2e65c07d7"
+  },
+  "dev_fast_forward_from": "5959215f8134d179b354abd4a669786c4d09e3ee",
+  "protected_runtime_count": 8,
+  "protected_runtime_bytes_unchanged": true,
+  "protected_runtime_not_committed": true,
+  "source_prose_original_backups_unchanged": true,
+  "published_source_prose_lineage_verified": true,
+  "published_source_prose": {
+    "docs/context/SOURCE_REGISTER.md": {
+      "normalized_snapshot_sha256": "e614419d605c2b26703019337ae109542bf98fa7f8004a3657b9f039c29fd385",
+      "actual_published_sha256": "088232a2e42cecd6b3492019f9d9141a6a9b8bf145e8977be65cd8d16515aa81",
+      "verified_post_snapshot_additions": [
+        "owner-dev-publication-20261010 approval row"
+      ]
+    },
+    "features/FEAT-037-registration-age-genai-payment-alignment/CONTEXT.md": {
+      "normalized_snapshot_sha256": "379a7557627df85a5b7b446eefdae00dc696de1358808974c6f2aeea6cfeb4d9",
+      "actual_published_sha256": "379a7557627df85a5b7b446eefdae00dc696de1358808974c6f2aeea6cfeb4d9",
+      "verified_post_snapshot_additions": []
+    },
+    "features/FEAT-037-registration-age-genai-payment-alignment/approvals/TASK_APPROVAL.md": {
+      "normalized_snapshot_sha256": "a385c6bfcb0d817de1ca013747a6010518621ccc64b2b5707c405923fc8ee8e9",
+      "actual_published_sha256": "a385c6bfcb0d817de1ca013747a6010518621ccc64b2b5707c405923fc8ee8e9",
+      "verified_post_snapshot_additions": []
+    },
+    "features/FEAT-037-registration-age-genai-payment-alignment/plan/PLAN.md": {
+      "normalized_snapshot_sha256": "c1818f1425af094d7117fe0b34546c136702f379f069309cab29a9587ffaa860",
+      "actual_published_sha256": "c1818f1425af094d7117fe0b34546c136702f379f069309cab29a9587ffaa860",
+      "verified_post_snapshot_additions": []
+    },
+    "features/FEAT-037-registration-age-genai-payment-alignment/evidence/notes/FORM_SOURCE_RECEIVED_20261006.md": {
+      "normalized_snapshot_sha256": "707fb1b8ed325f298c4bb7f8239b44257113c16405d8cbc35f8e644f562a70ef",
+      "actual_published_sha256": "707fb1b8ed325f298c4bb7f8239b44257113c16405d8cbc35f8e644f562a70ef",
+      "verified_post_snapshot_additions": []
+    },
+    "features/FEAT-037-registration-age-genai-payment-alignment/evidence/notes/FORM_V1_4_FINALIZATION_20261006.md": {
+      "normalized_snapshot_sha256": "aac62c48e1485c07846eceb757573c2312da58dd7f3772ef375281e517517323",
+      "actual_published_sha256": "aac62c48e1485c07846eceb757573c2312da58dd7f3772ef375281e517517323",
+      "verified_post_snapshot_additions": []
+    },
+    "features/FEAT-037-registration-age-genai-payment-alignment/evidence/notes/FORM_V1_5_STYLE_CORRECTION_20261006.md": {
+      "normalized_snapshot_sha256": "fb959c2ad402a995084ad6bacf8009aeef268dd2b4bcc1789e8db2b005e08f6b",
+      "actual_published_sha256": "fb959c2ad402a995084ad6bacf8009aeef268dd2b4bcc1789e8db2b005e08f6b",
+      "verified_post_snapshot_additions": []
+    },
+    "features/FEAT-037-registration-age-genai-payment-alignment/evidence/notes/FORM_V1_6_SRS_DETAIL_20261006.md": {
+      "normalized_snapshot_sha256": "812ce9a15eb5f29c2c4367fd274f66a6008e5d67affaea0d71f90ec3894239e3",
+      "actual_published_sha256": "812ce9a15eb5f29c2c4367fd274f66a6008e5d67affaea0d71f90ec3894239e3",
+      "verified_post_snapshot_additions": []
+    },
+    "features/FEAT-037-registration-age-genai-payment-alignment/evidence/notes/IMPLEMENTATION_REVIEW_20261006.md": {
+      "normalized_snapshot_sha256": "4ce32a4a0ab1700fa2a4120b975272f9293bf5352516a4e97e938af72cc490c3",
+      "actual_published_sha256": "4ce32a4a0ab1700fa2a4120b975272f9293bf5352516a4e97e938af72cc490c3",
+      "verified_post_snapshot_additions": []
+    },
+    "features/FEAT-037-registration-age-genai-payment-alignment/evidence/notes/SOURCE_AND_SCOPE_20261006.md": {
+      "normalized_snapshot_sha256": "d982c4306862932411a48ae40240962a883364b492e1178e1afbba92a84e94bf",
+      "actual_published_sha256": "d982c4306862932411a48ae40240962a883364b492e1178e1afbba92a84e94bf",
+      "verified_post_snapshot_additions": []
+    }
+  },
+  "protected_published_artifact_hashes": {
+    "features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md": "a95c89589843e3555e967c5e486f3bcaf4bbdf9446cb3bc9c49ed16f672964d9",
+    "features/FEAT-039-collaborative-learning-scope/artifacts/Collaborative_Learning_SRS_v3.1.md": "a95c89589843e3555e967c5e486f3bcaf4bbdf9446cb3bc9c49ed16f672964d9",
+    "features/FEAT-039-collaborative-learning-scope/artifacts/Sketch2Life_Master_SRS_v2.0_preserved_20261010.md": "28eb8b890d8e950fec6aa0df87f9b29851a7e41aa871c3dd6eb4205cd807801e",
+    "features/FEAT-039-collaborative-learning-scope/artifacts/Sketch2Life_Master_SRS_v3.0_preserved_20261010.md": "c69fd96ba9e5cd0ec85fcaa516c67ad73aafa02a45768dc2d93e29b7a756e2cf",
+    "features/FEAT-040-four-person-delivery-plan/artifacts/TEAM_TASK_BREAKDOWN.md": "293fcb8cfca9a603c0ee18e745ae37d61c3c13de80cdaa336ac648ad4f706ca9"
+  },
+  "index_empty": true
+}
