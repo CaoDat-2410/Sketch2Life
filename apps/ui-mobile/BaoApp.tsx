@@ -303,6 +303,7 @@ function MainAppContent() {
   );
 }
 
+// BaoVC expanded screens registered for full 8-step workflow
 export default function App() {
   return (
     <AppProvider>
