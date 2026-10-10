@@ -4,6 +4,7 @@ The files below are reference inputs. Their contents inform context and proposed
 
 | ID | Source | Type | Used for | Authority in this repo |
 |---|---|---|---|---|
+| `owner-feat018-dev-merge-20261010` | `features/FEAT-042-feat018-contract-dev-merge/approvals/TASK_APPROVAL.md` | Direct owner request | Merge pinned existing FEAT-018 contract branch into dev | Integration/conflict/regression verification authorized; canonical SRS v3.1 remains current; no live provider/deploy authorization |
 | `owner-dev-publication-20261010` | `features/FEAT-041-dev-publication/approvals/TASK_APPROVAL.md` | Direct owner push/dev request | Secure current-branch publication and dev integration | Git publication/hygiene authorized; pending historical runtime excluded by documented default, no new product/provider/deploy authorization |
 | `owner-four-person-allocation-20261010` | `features/FEAT-040-four-person-delivery-plan/approvals/TASK_APPROVAL.md` | Direct owner request and two answers | One FE, two BE, one technical integrator; tasks without dates | Staffing/integration planning authorized, supersedes conflicting historical discipline labels; no runtime/provider/deploy authorization |
 | `four-person-task-backlog-v1` | `features/FEAT-040-four-person-delivery-plan/artifacts/TEAM_TASK_BREAKDOWN.md` | Derived current allocation | 57 cards, 14 handoffs; M/FR/CMD/DATA/UI trace and dependencies | Reviewed proposed runtime backlog from SRS v3.1; documented in ADR-0015, component/fixture pass is not product completion |
