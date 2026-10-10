@@ -400,7 +400,10 @@ def test_three_figure_fixture_reveals_people_before_house_color(tmp_path) -> Non
     extracted = extract_image_line_art(
         source, strokes, source_hash=hashlib.sha256(source.read_bytes()).hexdigest()
     )
-    assert extracted.stroke_count > 50
+    # A continuous graph trace intentionally joins fragments; path count is
+    # lower than the old pixel-greedy trace, while ink coverage stays intact.
+    assert extracted.stroke_count > 20
+    assert extracted.point_count > 3_000
     video = tmp_path / "group.mp4"
     render_stroke_animation(
         strokes, video,

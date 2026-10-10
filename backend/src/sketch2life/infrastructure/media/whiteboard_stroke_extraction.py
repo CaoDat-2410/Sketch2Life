@@ -140,7 +140,10 @@ def extract_image_line_art(
     cropped_rgb = rgb[crop_top:crop_bottom, crop_left:crop_right]
     cropped_chromatic = chromatic[crop_top:crop_bottom, crop_left:crop_right]
 
-    paths = _connected_ink_paths(ink, preserve_dots=True)
+    # Traverse edges rather than consuming pixels. Greedy pixel removal leaves
+    # many false isolated dots around curved/junction pixels (the synthetic
+    # three-figure sample produced 125 dots from only 159 paths).
+    paths = _graph_ink_paths(ink, preserve_dots=True)
     if not paths:
         raise ValueError("LINE_ART_EMPTY")
     output = Path(output_path)
@@ -292,6 +295,68 @@ def _connected_ink_paths(ink, *, preserve_dots: bool = False) -> list[list[list[
                 # Encode it as a zero-length pen stroke so the renderer can reveal it.
                 x, y = path[0]
                 paths.append([[x, y], [x, y]])
+    return paths
+
+
+def _graph_ink_paths(ink, *, preserve_dots: bool = False) -> list[list[list[int]]]:
+    """Trace each skeleton edge into a continuous chain without orphaning pixels.
+
+    Diagonal edges are suppressed only when an orthogonal two-step alternative
+    exists. This removes tiny triangle branches around antialiased corners.
+    The result is deterministic and still cannot infer the artist's pen order.
+    """
+
+    import numpy as np
+
+    ys, xs = np.where(ink)
+    pixels = {(int(x), int(y)) for y, x in zip(ys, xs, strict=True)}
+    directions = ((1, 0), (0, 1), (-1, 0), (0, -1),
+                  (1, 1), (-1, 1), (-1, -1), (1, -1))
+    neighbors: dict[tuple[int, int], tuple[tuple[int, int], ...]] = {}
+    for x, y in pixels:
+        adjacent = []
+        for dx, dy in directions:
+            other = (x + dx, y + dy)
+            if other not in pixels:
+                continue
+            if dx and dy and ((x + dx, y) in pixels or (x, y + dy) in pixels):
+                continue
+            adjacent.append(other)
+        neighbors[x, y] = tuple(sorted(adjacent, key=lambda p: (p[1], p[0])))
+
+    def edge(a, b):
+        return (a, b) if a <= b else (b, a)
+
+    used: set[tuple[tuple[int, int], tuple[int, int]]] = set()
+    paths: list[list[list[int]]] = []
+
+    def walk(start, next_point):
+        chain = [start, next_point]
+        used.add(edge(start, next_point))
+        previous, current = start, next_point
+        while len(neighbors[current]) == 2:
+            candidates = [p for p in neighbors[current] if p != previous]
+            if not candidates or edge(current, candidates[0]) in used:
+                break
+            following = candidates[0]
+            used.add(edge(current, following))
+            chain.append(following)
+            previous, current = current, following
+        paths.append([[x, y] for x, y in chain])
+
+    ordered = sorted(pixels, key=lambda p: (p[0], p[1]))
+    for pixel in ordered:
+        if len(neighbors[pixel]) != 2:
+            if not neighbors[pixel] and preserve_dots:
+                paths.append([[pixel[0], pixel[1]], [pixel[0], pixel[1]]])
+            for other in neighbors[pixel]:
+                if edge(pixel, other) not in used:
+                    walk(pixel, other)
+    # Remaining edges belong to closed loops with no endpoint or junction.
+    for pixel in ordered:
+        for other in neighbors[pixel]:
+            if edge(pixel, other) not in used:
+                walk(pixel, other)
     return paths
 
 

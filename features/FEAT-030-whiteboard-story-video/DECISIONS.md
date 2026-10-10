@@ -105,3 +105,12 @@ Prioritize reviewed speech beats→source-bound draw/ink/color/camera timing. Do
 - Owner decision on 2026-10-09: the child supplies the drawing and description; an adult reviews or edits the exact story narration/scene content before video render. Approval of Gate B's objective/activity is not approval of the story script. Future job authorization must bind the reviewed revision, invalidate it on edit, and run a server-side safety/grounding screen before paid media. Validate a provider-only real MP4 on Lightning first; do not confuse that with proof of the subsequent backend/adult-review/device flow.
 - First owner-reviewed L4 media-only MP4 technically completed at 53.496 seconds but failed visual acceptance because nearly identical monochrome house/tree drawings restarted in four scenes. Revision 4 traces source/generated RGB outline colors, writes a hash-verified transparent color layer and reveals those colors after the strokes; it does not invent colors from a grayscale source. Filled colored regions trace their boundaries rather than an unwanted medial skeleton.
 - A conservative adjacent-scene overlap check now returns typed `SCENE_VISUAL_DUPLICATE` before motion rendering when two generated illustrations have almost the same visible marks. The generated image remains hash-cached, so inspecting/retrying identical input does not blindly rerun SDXL. This is a safety/quality guard, not proof that different-looking scenes are narratively good. A new synthetic one-image fixture uses four source-derived focus regions for house/tree/sun-and-flower/full recap; each crop remains bound to the original source hash. The backend's approved storyboard does not yet supply reviewed focus boxes or object-level narration cues.
+## Revision34 handoff snapshot — 2026-10-10
+
+Preserve graph tracing and standalone model/render scripts as experiments.
+The old illustrated slice remains an offline authored-path prototype, not the
+dynamic FLUX pipeline. Keep unapproved hand-marker candidates local. Do not
+switch production defaults or describe Wan as L4-validated: small SDPA smoke
+passes, full native TI2V fails VAE OOM. Stop repeat GPU runs and hand off
+profiling/lightweight-test design before any further inference.
+See `evidence/HANDOFF_20261010.md`.

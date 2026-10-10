@@ -1,5 +1,11 @@
 # FEAT-030 status
 
+Revision34: EXPERIMENTAL_HANDOFF / STORY_VISUAL_QA_NOT_PASSED /
+WAN_L4_RENDER_FAILED_OOM. Focused extractor/renderer regression: 32 passed.
+Standalone scripts versioned; private inputs/checkpoints and unapproved hand
+markers excluded. Full Wan GPU test not successful; no production activation.
+See evidence/HANDOFF_20261010.md for next bounded work and verification details.
+
 Revision33: LOCAL_STABILIZATION_VERIFIED / LIGHTNINGAI_RUNTIME_UNVERIFIED.
 396 selected unit/contract tests passed; per-group candidate-tree checks pass.
 No new inference/video. Rig MOTION_PROOF_NOT_PASSED; drawing VISUAL_QA_NOT_PASSED

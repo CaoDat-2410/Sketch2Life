@@ -64,3 +64,15 @@
 - Revision 2 scope note (2026-10-09): the owner's earlier “làm 1 lượt hết đi” authorizes wiring the already-requested final video into the existing mobile flow. This approval covers read-only session job discovery, READY-only playback and continue gating, not a choice between adult script review and autonomous script approval; that product decision remains pending. The revision was recorded before mobile implementation.
 - Revision 3 approval (2026-10-09, Asia/Ho_Chi_Minh): the owner specified “trẻ đưa tranh ... người lớn phải duyệt hoặc có thay đổi ... rồi mới từ lời kể đó làm ra video” and approved the ordered next steps with “duyệt”. Approved scope is the four steps in `plan/PLAN.md` revision 3: exact adult narration/scene review, video-first Lightning media acceptance, then backend/mobile integration and end-to-end acceptance. This records the product choice; it does not claim the approval UI, live GPU run or finished video exists. No unrelated feature work, child media, credentials, paid run without owner control, or push is authorized.
 - Revision 4 approval (2026-10-09, Asia/Ho_Chi_Minh): after seeing the first L4 MP4 and its repeated monochrome scene, the owner asked why the sample has stronger strokes, visual/narration alignment and color, then asked to resume the paused goal for a result comparable to the referenced repository. This authorizes the FEAT-030 video-owned visual-quality correction in `plan/PLAN.md` revision 4 and local tests/commit. It does not authorize copying reference code/assets, unrelated changes, automatic paid GPU reruns, real child-data use or a product-complete claim without visual review.
+## Revision34 — explicit handoff/commit authorization — 2026-10-10
+
+- Owner requested: review the eight pending files, report all work and commit
+  for the next maintainer.
+- Approved scope: `plan/HANDOFF_20261010.md`; preserve experimental source,
+  document limitations, run offline checks and commit explicit reviewed paths.
+- Unapproved hand-marker PNGs/provenance remain local and are not published.
+- No further Lightning run, dependency install, push, deploy, production
+  activation or visual/Gate A/B approval is authorized by this handoff.
+- Conversation evidence includes owner-operated FLUX, TTS and Wan experiments;
+  those approvals/results are recorded retrospectively in the handoff report,
+  not claimed to have been formally recorded before execution.

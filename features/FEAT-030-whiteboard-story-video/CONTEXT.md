@@ -1,5 +1,14 @@
 # FEAT-030 — narrated whiteboard story video
 
+Revision34 (2026-10-10): owner requested full experimental handoff and commit.
+Standalone FLUX/public Turbo TTS/narrated whiteboard scripts are now versioned.
+Owner-operated Lightning generated a narrated demo, but image/story quality
+failed review. Native Wan TI2V imports and small fused-SDPA probe pass on L4;
+full 73-frame 720-area run fails CUDA OOM in VAE. No lighter configuration is
+implemented yet. Unapproved marker assets remain local. See
+evidence/HANDOFF_20261010.md and plan/HANDOFF_20261010.md.
+This is not feature completion, production/Gate A/B approval or push authority.
+
 Revision33 (2026-10-10): owner-approved repository stabilization only. Verified
 82-file external backup; scoped commits retain tested experiments as non-production.
 Gold-referenced story illustration remains the main direction; source-faithful

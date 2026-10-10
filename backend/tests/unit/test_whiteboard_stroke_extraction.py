@@ -177,3 +177,46 @@ def test_connected_ink_paths_finish_left_subject_before_right_subject() -> None:
     subject_order = ["left" if path[0][0] < 6 else "right" for path in paths]
     assert subject_order == sorted(subject_order)
     assert subject_order.count("left") >= 2
+
+
+def test_graph_ink_paths_trace_branches_without_false_orphan_dots() -> None:
+    np = pytest.importorskip("numpy")
+    from sketch2life.infrastructure.media.whiteboard_stroke_extraction import (
+        _graph_ink_paths,
+    )
+
+    ink = np.zeros((16, 16), dtype=bool)
+    ink[2:12, 7] = True
+    ink[6, 7:13] = True
+    ink[13, 13] = True  # a genuine isolated dot
+
+    paths = _graph_ink_paths(ink, preserve_dots=True)
+
+    assert paths == _graph_ink_paths(ink, preserve_dots=True)
+    assert [[13, 13], [13, 13]] in paths
+    assert sum(points[0] == points[1] for points in paths) == 1
+    assert {tuple(point) for path in paths for point in path} == {
+        (int(x), int(y)) for y, x in zip(*np.where(ink), strict=True)
+    }
+    assert all(
+        abs(a[0] - b[0]) <= 1 and abs(a[1] - b[1]) <= 1
+        for path in paths
+        for a, b in zip(path, path[1:], strict=False)
+    )
+
+
+def test_graph_tracing_reduces_false_dots_in_generic_group_art(tmp_path) -> None:
+    from tools.create_story_video_media_fixture import create_fixture
+    from tools.story_video_media_smoke import load_fixture
+
+    source, _locale, _scenes = load_fixture(
+        create_fixture(tmp_path / "group", preset="group")
+    )
+    result = extract_image_line_art(source, tmp_path / "strokes.json", source_hash="f" * 64)
+    payload = json.loads((tmp_path / "strokes.json").read_text(encoding="utf-8"))
+    lengths = [len(stroke["points"]) for stroke in payload["strokes"]]
+
+    assert result.stroke_count < 70
+    assert sum(length == 2 and stroke["points"][0] == stroke["points"][1]
+               for length, stroke in zip(lengths, payload["strokes"], strict=True)) < 10
+    assert result.point_count > 3_000
