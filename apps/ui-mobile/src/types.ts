@@ -26,7 +26,8 @@ export type ScreenId =
   // Workflow Step 8 (Feedback)
   | 'feedback'
   // Error fallback screens
-  | 'pixl_error';             // Đánh giá & quan sát
+  | 'pixl_error'
+  | 'ai_error';             // Đánh giá & quan sát
 
 export interface ScreenMeta {
   id: ScreenId;
