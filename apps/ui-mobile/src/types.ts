@@ -28,7 +28,8 @@ export type ScreenId =
   // Error fallback screens
   | 'pixl_error'
   | 'ai_error'
-  | 'missing_step';             // Đánh giá & quan sát
+  | 'missing_step'
+  | 'no_results';             // Đánh giá & quan sát
 
 export interface ScreenMeta {
   id: ScreenId;
