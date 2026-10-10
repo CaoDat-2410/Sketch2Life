@@ -1049,3 +1049,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
+
+
+// Flow 2 Screens
+// PreviewResultScreen implementation
