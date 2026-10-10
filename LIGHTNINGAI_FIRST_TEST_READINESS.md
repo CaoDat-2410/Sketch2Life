@@ -2,6 +2,7 @@
 
 **Audit date:** 2026-10-10 (Asia/Saigon)
 **Checkout audited:** this repository checkout
+**Audited HEAD:** `83676ba`
 **Decision:** `CONDITIONAL_READY_FOR_REVIEW`; do not push or run GPU inference yet.
 
 ## 1. Git readiness
@@ -31,8 +32,9 @@ This readiness task added one narrowly scoped local fix:
 |---|---|---|
 | `3cd84bd` | fix(lightningai): verify isolated Wan runtime paths | `scripts/lightningai/verify.sh`, `tools/verify_lightning_runtime.py` |
 
-The report itself is the next documentation-only local change. No push, merge,
-deploy, reset, rebase or force operation was performed.
+The readiness report was committed as `10ece0f`, followed by the whitespace-only
+documentation commit `83676ba`. No push, merge, deploy, reset, rebase or force
+operation was performed.
 
 ### Current uncommitted files
 
