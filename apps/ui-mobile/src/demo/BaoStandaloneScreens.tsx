@@ -1054,3 +1054,4 @@ const styles = StyleSheet.create({
 // Flow 2 Screens
 // PreviewResultScreen implementation
 // AdultConfirmScreen Gate B handover prompt
+// ChildTransitionScreen kid mode animation flow
