@@ -1,5 +1,9 @@
 # Task approval
 
+## Current canonical replacement — 2026-10-10
+
+The owner explicitly authorized replacement with the new collaborative creative learning scope, confirmed Android and retained FastAPI/React Native, then requested a more detailed SRS foundation for the whole system. The canonical v3.1 update is governed by FEAT-039 plan revision 3 and its APPROVED TASK_APPROVAL.md, with school/profile/consent owner answers recorded there. Exact v2.0 and v3.0 were preserved. Prior approvals below remain history; they do not approve new runtime migration, adopted proposed contracts/full stack or override replacement scope proposals/TBD.
+
 - Status: APPROVED
 - Approver: Project owner; direct request and explicit scope answers in the current conversation
 - Approved scope: create one Vietnamese master Markdown SRS based on the current Sketch2Life repository and the supplied workflow/product-flow references, including actor and scope model, business rules, entities/ERD, state machine, functional/non-functional requirements, detailed versioned contract inventory, traceability, and TBD decisions.
@@ -77,3 +81,18 @@
 - **Confirmed target:** 40–60 second illustrated story video; age/readiness-aware educational knowledge; adult editing through quick controls and free text; full script returned and approved before image generation; supported language/voice selection; independent TTS; retain Wan2.2 TI2V-5B baseline; redraw allowed only as derivative while original remains immutable.
 - **Contract treatment:** proposed schemas, endpoint names, error codes and state mappings remain `PROPOSED_UNADOPTED` until registry reconciliation and approval.
 - **Not authorized:** runtime/frontend code, provider/model calls, model downloads, contract migration, cloud changes, deployment, release, commit/push, real-child media collection, or modification of unrelated pre-existing changes. This documentation approval does not approve FEAT-020 implementation.
+
+## Addendum — supported-age SRS amendment v1.9 (2026-10-06)
+
+- Status: approved by the project owner's direct request to narrow the supported product target to `<9` and align SRS/context/GenAI scope.
+- Authorized documentation: update the master SRS, project context, decisions, and status to record 0–107 completed months, preserve 9–12 catalog records as source data, and keep research cohort scope separate.
+- Package/payment values remain proposed and outside the approved SRS baseline pending owner review.
+- Runtime boundary implementation is separately governed by FEAT-037 approval; no V1 contract migration is part of this SRS amendment.
+
+## Addendum — owner-approved capstone-trial package and credit amendment v2.0
+
+- 2026-10-06: The owner approved trying the package/credit proposal in the capstone documents and authorized updating the master SRS, project context, feature records, GenAI/story/video planning, and the derived registration form.
+- Approved trial values: Free 10 monthly credits; Gia đình 99,000 VND/month, 30 pooled credits, up to 3 child profiles; Lớp học 499,000 VND/class/month, 120 pooled credits, one Guide and up to 25 assigned profiles. One-time top-ups: 10 credits/49,000 VND, 30/129,000 VND, 60/239,000 VND.
+- Approved trial credit lifecycle: one credit covers a complete adult-approved drawing/story experience and normal off-screen handoff; reserve at session start, debit at successful handoff, release on failure/cancellation, and do not double-charge same-session retries. Monthly paid plans are manually renewed; backend verification precedes entitlement/credit grant.
+- Documentation scope only. No provider, instrument, live transaction, mobile payment credential storage, or commercial-launch claim is authorized. Provider-specific states, expiry/rollover, refunds/chargebacks and taxes remain implementation decisions.
+- SRS baseline updated to v2.0/B35; age range remains `<9` / 0–107 completed months under the prior v1.9 amendment.

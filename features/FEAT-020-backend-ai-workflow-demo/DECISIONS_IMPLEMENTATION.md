@@ -1,5 +1,7 @@
 # FEAT-020 Implementation Decisions
 
+**Current age-scope amendment (2026-10-06):** The original four-band implementation decision below is historical. Current product and GenAI execution uses only `0-3`, `3-6`, and `6-9`; `9-12` remains catalog-only. See D-020-13 in `DECISIONS_AGE_VARIATION.md`.
+
 ## DEC-020-01 — Application-level orchestration
 
 The workflow is coordinated by `BackendAiWorkflow` in the application layer. Providers are injected through the existing ASR and vision ports; the orchestrator does not import provider SDKs. This keeps domain/application behavior independent from Qwen, faster-whisper, Lightning, and future UI adapters.

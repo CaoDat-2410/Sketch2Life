@@ -1,0 +1,4 @@
+HARNESS_VALID
+root=<workspace>
+approval_gate=enabled
+frontend_asset_gate=enabled

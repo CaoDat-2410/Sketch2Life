@@ -4,6 +4,8 @@
 
 **Feature:** `FEAT-020-backend-ai-workflow-demo`
 
+**Current age-scope amendment (2026-10-06):** This historical plan's references to four supported age bands describe the earlier 0–12 target. Current product and GenAI execution supports only `0-3`, `3-6`, and `6-9` (0–107 completed months). The `9-12` catalog rows remain preserved source data and are not eligible for current product sessions. See FEAT-020 D-020-13 and FEAT-037.
+
 **Purpose:** Replace the current lexical activity selection path with a scalable,
 auditable semantic recommendation system, while improving the activity catalog
 and preventing avoidable `NO_ELIGIBLE_ACTIVITY` failures.

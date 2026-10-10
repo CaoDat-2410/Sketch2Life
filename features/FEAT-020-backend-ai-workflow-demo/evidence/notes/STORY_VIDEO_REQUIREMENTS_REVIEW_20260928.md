@@ -1,5 +1,7 @@
 # Story/video requirements review — 2026-09-28
 
+**Current age-scope amendment (2026-10-06):** The review's 0–12 starting point is superseded for product and GenAI execution by the `<9` target (0–107 completed months). Keep 9–12 source records; do not include them in current profiles, sessions, or generation. Other story/video decisions in this historical review remain as recorded.
+
 ## Review purpose
 
 Record the owner-requested system-design update and the repository pattern review. This note is planning evidence only. No source code, provider, model, cloud resource, child media, or runtime contract was changed or exercised.

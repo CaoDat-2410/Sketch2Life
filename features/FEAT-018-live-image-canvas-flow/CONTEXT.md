@@ -573,3 +573,7 @@ without changing pixels outside the verified mask or allowing automatic V1 recov
 tests), mobile and static-build checks pass. This shell cannot reload Android because `adb` is not
 available, so fresh visual playback remains pending. See the FEAT-018 Pixi diagnostic follow-up and
 FEAT-030 `E-030-FIX-014`.
+
+## Owner supported-age amendment — 2026-10-06
+
+The supported profile/session age is now under 9 years (0–107 completed months). Mobile age selection and supervised-flow/P1 application services reject 108+ months before activity selection, Gate B media resolution, or renderer localization. Existing versioned DTOs continue to represent historical/catalog values. The 9–12 source catalog remains intact, but the current product journey cannot request it. Cross-feature approval and evidence are tracked under FEAT-037; no new visual asset was generated or promoted.

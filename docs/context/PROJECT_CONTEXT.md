@@ -1,14 +1,43 @@
 # Project context ledger
 
+## Current product-scope authority — 2026-10-10
+
+Owner explicitly replaced the prior product scope with Product Scope v1.0 for Montessori-inspired collaborative creative learning. Canonical requirements are now Master SRS v3.0 at `features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md`, governed by FEAT-039 and ADR-0014. The target is ages 3–12, Child/Teacher/Super Admin, Android child clients, classroom/group sessions, personal/collaborative canvas, adaptive sketch, gallery, teacher-approved knowledge video, off-screen, reflection/portfolio and administration/privacy/recovery. Owner confirmed keeping FastAPI and React Native.
+
+The older sections below are retained as dated/history records and implementation context. Conflicting product assumptions (under-9, adult-only roles, Parent portal/payment/credit, one-child session, fixed video duration/model and numeric retention) do not override v3.0. Existing source still follows several old policies and is not migrated by this documentation change. Owner additionally chose per-Sketch review for pilot, active-child selection by turn on shared tablets, and explicit Teacher retry/skip/end after exhausted video failure; generation still waits and never automatically skips. Exact age endpoint, child credentials, consent/retention, tenancy/capacity, retry parameters and other technology selections remain open in SRS B17. Security, provenance, inward dependencies and ADR-0006 planning separation continue. See `features/FEAT-039-collaborative-learning-scope/artifacts/REUSE_AND_ARCHITECTURE.md` for source maturity and proposed architecture. Exact old working-copy SRS v2.0 is preserved under FEAT-039 with its hash.
+
+## Detailed SRS foundation amendment — 2026-10-10
+
+The owner requested a more detailed SRS as the foundation for the entire system. Canonical Master SRS is now v3.1 under FEAT-029, governed by FEAT-039 documentation plan/approval revision 3. B19–B26 add state/policy/concurrency/recovery, 38 detailed use cases with acceptance, logical fields/API contracts, 34 screens, privacy workflows, measurement profiles and per-FR verification. Exact v2.0 and v3.0 are preserved with hashes. Current canonical v3.1 supersedes the v3.0 pointer in the earlier same-day amendment; historical records remain evidence.
+
+Owner additionally chose a one-school pilot with expansion preparation; teacher-managed child profiles and QR/session code, without separate child login accounts; school collection of legal-representative consent with authorized Teacher/Admin recording evidence and purposes. Owner then confirmed inclusive 36–155 completed months, one simultaneous class with at most 40 children as pilot target, and default session/artwork retention 90 days after session end. Organization schema, admission/grant/turn mechanics, verification process, age calculations and device/model/performance parameters remain proposed or open as labelled in SRS B17/B19. Enrollment and role are not consent; capacity is not proven. Portfolio/profile/audit/copy policies remain separate, without silently extending raw-source retention.
+
+Only documentation changed in this task. Existing source is not migrated; Android/FastAPI/React Native remain the confirmed technologies. Other runtime/editor/sync/DB/queue/storage/model/web/deployment choices need the applicable ADR and feature approval. ADR-0006 independent Sprint 1 workstreams and separate integration allocation continue.
+
+## Current four-person task allocation amendment — 2026-10-10
+
+For the replacement SRS v3.1, the owner now requests one FE, two BE and one person who connects all other parts, with ordinary task lists and no calendar/duration estimates. FEAT-040 and ADR-0015 record this explicit staffing amendment. Current planning artifact: `features/FEAT-040-four-person-delivery-plan/artifacts/TEAM_TASK_BREAKDOWN.md`, 57 proposed runtime cards with module/FR/API/data/UI ownership and versioned handoffs.
+
+P1 owns Android and Teacher/Admin UI, P2 core/classroom/collaboration/data, P3 AI/content/media, P4 technical composition/connectors and combined validation coordination. Component owners retain their logic/adapters/tests/fixes. Four independent fixture runners continue under ADR-0006's principle; historical BA/AI/animation/media role labels do not override this newer owner split. Integration allocation is now intentionally recorded, but every runtime feature still needs its own approval. No runtime or SRS bytes are changed by this planning task; task counts are not effort estimates or proof of implementation.
+
 ## Purpose
 
-Sketch2Life is a capstone product concept that turns a child's drawing and narration into a short, personalized learning experience, then hands the child off to a physical Montessori activity and captures adult/guide feedback.
+Sketch2Life is now a Montessori-inspired collaborative creative learning platform: children draw, cooperate, receive teacher-controlled AI assistance, explore knowledge/video, perform off-screen activities and reflect; teachers coordinate classroom/group sessions and observe each child's progress.
 
 ## Current phase
 
 `FOUNDATION_PUBLISHED`
 
 The workspace harness and approved architecture skeleton are established and securely published to the project repository. Product feature code must not be started until that feature's plan and relevant task approval are recorded.
+
+## Owner product-scope amendment — 2026-10-06
+
+- Supported child population is younger than 9 years: 0–107 completed months inclusive, across product bands 0–3, 3–6 and 6–9.
+- At 108 completed months, a child is outside the supported product target; age-sensitive session and GenAI requests are rejected before provider execution.
+- Keep existing 9–12 Montessori catalog rows as source data for future scope; do not return them for current product sessions.
+- Age comes from an adult-confirmed profile/session context. The system must not infer age from drawings, narration, or model output.
+- Owner-approved capstone-trial package assumptions: Free 10 credits/month; Gia đình 99,000 VND/month with 30 pooled credits for up to 3 child profiles; Lớp học 499,000 VND/class/month with 120 pooled credits for one Guide and up to 25 assigned profiles. One-time top-ups: 10/49,000 VND, 30/129,000 VND, 60/239,000 VND.
+- One credit covers a completed adult-approved drawing/story experience through the off-screen handoff; reserve at session start, debit after successful handoff, release on failure/cancellation, and make same-session retries idempotent. Paid monthly plans are manually renewed; backend verifies payment before entitlement/credit grant. No provider or live billing integration is selected; see FEAT-037.
 
 ## Confirmed from the user's request
 
@@ -83,7 +112,7 @@ Android device can reach the server, and device reload evidence requires a conne
 
 ## Master SRS scope closure — 2026-09-19
 
-The owner-approved target baseline is recorded in `features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md` v1.6 and the feature evidence notes `OWNER_SCOPE_CLOSURE_20260919.md`, `OWNER_REQUIREMENTS_CLOSURE_20260923.md` and `SRS_DETAIL_EXPANSION_20260923.md`. It covers the B4–B12 workflow plus complete SRS sections for actors, relationships, schemas, contracts, state, security, observability, retention, Parent Web, verification and implementation-grade test detail. This is a requirements baseline; it does not authorize runtime implementation, provider calls, cloud provisioning, contract migration or deployment.
+The owner-approved target baseline is recorded in `features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md` v1.8 and the feature evidence notes `OWNER_SCOPE_CLOSURE_20260919.md`, `OWNER_REQUIREMENTS_CLOSURE_20260923.md` and `SRS_DETAIL_EXPANSION_20260923.md`. It covers the B4–B12 workflow plus complete SRS sections for actors, relationships, schemas, contracts, state, security, observability, retention, Parent Web, verification and implementation-grade test detail. On 2026-10-06 the owner superseded the earlier 0–12 product age target with `<9` / 0–107 completed months; FEAT-029 v1.9 records that amendment. This is a requirements baseline; it does not authorize unrelated provider calls, cloud provisioning, contract migration or deployment.
 
 ## Cross-workstream review snapshot — 2026-09-05
 

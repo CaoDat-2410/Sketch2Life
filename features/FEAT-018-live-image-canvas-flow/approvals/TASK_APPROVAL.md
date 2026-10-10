@@ -573,3 +573,12 @@ mobile, Gate A, P1 eligibility, P3/P4 and shared integration remain separately g
 - The owner-approved scope remains the plan hash recorded above: `C90438646F8B9AF9F063F31F8EE4F39EAEF1C46AFF21B543AEE5EF67679A367C`.
 - The plan now records the confirmed cutout diagnosis, synthetic regression and offline verification; its current SHA-256 is `58F34C26AFD2AE822677DB5C53E2C082C665F1523FE9AF19960B68680D26747E`.
 - This is an execution-status update only. No scope, exclusions, contracts, provider calls or acceptance criteria changed. Fresh Android visual playback remains pending.
+
+## Addendum — supported-age boundary (2026-10-06)
+
+- Status: APPROVED by the project owner's direct request to change the product age range to `<9` and align GenAI/context.
+- Authorized FEAT-018 boundary: cap mobile age input at 107 completed months and reject 108+ in the supervised-flow/P1/AI request schemas before selection or provider execution; preserve source catalog data.
+- Controlling plan: `features/FEAT-037-registration-age-genai-payment-alignment/plan/PLAN.md`, SHA-256 `7558d4fba751937c823b6923075efd2a621207c51c6c8ef2edcf4f4fadd50a3e`.
+- Exclusions: no payment implementation, catalog deletion, provider execution, deployment, or visual asset change.
+- Implementation clarification (2026-10-06): existing versioned DTOs continue to accept historical 9–12 catalog values. The application service enforces the approved <9 boundary before activity selection, Gate B progression, renderer localization, and age-sensitive AI execution; no V1 contract version or historical manifest interpretation is changed.
+- Current controlling clarification: FEAT-037 Plan revision 2, SHA-256 `B9C4454605146ED5E69241381E4A65C666AF751CBC36B4F8BAA2272897BAECB9`; same approved scope, with wire-contract compatibility made explicit.

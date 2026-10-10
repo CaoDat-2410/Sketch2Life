@@ -1,0 +1,36 @@
+REPOSITORY_SECURITY_INVALID
+- absolute Windows machine path found in: .pytest-tmp-adaptive-20261008/test_env_file_entrypoint_uses_0/.vision.env
+- absolute Windows machine path found in: .tmp/feat036-chrome-profile/Default/Extension Rules/LOG
+- absolute Windows machine path found in: .tmp/feat036-chrome-profile/Default/Extension Scripts/LOG
+- absolute Windows machine path found in: .tmp/feat036-chrome-profile/Default/Extension State/LOG
+- absolute Windows machine path found in: .tmp/feat036-chrome-profile/Default/Local Storage/leveldb/LOG
+- absolute Windows machine path found in: .tmp/feat036-chrome-profile/Default/Service Worker/Database/LOG
+- absolute Windows machine path found in: .tmp/feat036-chrome-profile/Default/Session Storage/LOG
+- absolute Windows machine path found in: .tmp/feat036-chrome-profile/Default/Site Characteristics Database/LOG
+- absolute Windows machine path found in: .tmp/feat036-chrome-profile/Default/Sync Data/LevelDB/LOG
+- absolute Windows machine path found in: .tmp/feat036-chrome-profile/Default/shared_proto_db/LOG
+- absolute Windows machine path found in: .tmp/feat036-chrome-profile/Default/shared_proto_db/metadata/LOG
+- absolute Windows machine path found in: docs/context/SOURCE_REGISTER.md
+- absolute Windows machine path found in: features/FEAT-037-registration-age-genai-payment-alignment/CONTEXT.md
+- absolute Windows machine path found in: features/FEAT-037-registration-age-genai-payment-alignment/approvals/TASK_APPROVAL.md
+- absolute Windows machine path found in: features/FEAT-037-registration-age-genai-payment-alignment/evidence/notes/FORM_SOURCE_RECEIVED_20261006.md
+- absolute Windows machine path found in: features/FEAT-037-registration-age-genai-payment-alignment/evidence/notes/FORM_V1_4_FINALIZATION_20261006.md
+- absolute Windows machine path found in: features/FEAT-037-registration-age-genai-payment-alignment/evidence/notes/FORM_V1_5_STYLE_CORRECTION_20261006.md
+- absolute Windows machine path found in: features/FEAT-037-registration-age-genai-payment-alignment/evidence/notes/FORM_V1_6_SRS_DETAIL_20261006.md
+- absolute Windows machine path found in: features/FEAT-037-registration-age-genai-payment-alignment/plan/PLAN.md
+- credential/external-document suffix is publishable: features/FEAT-037-registration-age-genai-payment-alignment/evidence/rendered/final-v1.4-2/Phieu_FA26SE225_v1.4.pdf
+- credential/external-document suffix is publishable: features/FEAT-037-registration-age-genai-payment-alignment/evidence/rendered/final-v1.4-3/Phieu_FA26SE225_v1.4.pdf
+- credential/external-document suffix is publishable: features/FEAT-037-registration-age-genai-payment-alignment/evidence/rendered/final-v1.4-4/Phieu_FA26SE225_v1.4.pdf
+- credential/external-document suffix is publishable: features/FEAT-037-registration-age-genai-payment-alignment/evidence/rendered/final-v1.4-5/Phieu_FA26SE225_v1.4.pdf
+- credential/external-document suffix is publishable: features/FEAT-037-registration-age-genai-payment-alignment/evidence/rendered/final-v1.4/Phieu_FA26SE225_v1.4.pdf
+- credential/external-document suffix is publishable: features/FEAT-037-registration-age-genai-payment-alignment/evidence/rendered/revised/credit-word/Phieu_FA26SE225_v1.3_review_draft.pdf
+- credential/external-document suffix is publishable: features/FEAT-037-registration-age-genai-payment-alignment/evidence/rendered/revised/final-word/Phieu_FA26SE225_v1.2_review_draft.pdf
+- credential/external-document suffix is publishable: features/FEAT-037-registration-age-genai-payment-alignment/evidence/rendered/revised/word/Phieu_FA26SE225_v1.2_review_draft.pdf
+- credential/external-document suffix is publishable: features/FEAT-037-registration-age-genai-payment-alignment/evidence/rendered/source/original-word.pdf
+- credential/external-document suffix is publishable: features/FEAT-037-registration-age-genai-payment-alignment/evidence/rendered/v1.5-source-retained/word-2/Phieu_FA26SE225_v1.5.pdf
+- credential/external-document suffix is publishable: features/FEAT-037-registration-age-genai-payment-alignment/evidence/rendered/v1.5-source-retained/word-3/Phieu_FA26SE225_v1.5.pdf
+- credential/external-document suffix is publishable: features/FEAT-037-registration-age-genai-payment-alignment/evidence/rendered/v1.5-source-retained/word-4/Phieu_FA26SE225_v1.5.pdf
+- credential/external-document suffix is publishable: features/FEAT-037-registration-age-genai-payment-alignment/evidence/rendered/v1.5-source-retained/word-5/Phieu_FA26SE225_v1.5.pdf
+- credential/external-document suffix is publishable: features/FEAT-037-registration-age-genai-payment-alignment/evidence/rendered/v1.5-source-retained/word-6/Phieu_FA26SE225_v1.5.pdf
+- credential/external-document suffix is publishable: features/FEAT-037-registration-age-genai-payment-alignment/evidence/rendered/v1.5-source-retained/word/Phieu_FA26SE225_v1.5.pdf
+- credential/external-document suffix is publishable: features/FEAT-037-registration-age-genai-payment-alignment/evidence/rendered/v1.6-source-retained/word/Phieu_FA26SE225_v1.6.pdf

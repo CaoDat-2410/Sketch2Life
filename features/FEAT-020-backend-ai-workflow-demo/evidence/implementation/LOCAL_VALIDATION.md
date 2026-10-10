@@ -1,5 +1,7 @@
 # Local Validation Record
 
+**Historical age-matrix notice (2026-10-06):** The four-band smoke below predates the owner amendment to the `<9` product target. It records historical catalog coverage and does not verify the current three-band acceptance path.
+
 ## Static checks
 
 Commands were executed from the repository root:

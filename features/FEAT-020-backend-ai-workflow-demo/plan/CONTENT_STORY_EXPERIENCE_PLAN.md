@@ -5,7 +5,8 @@
 - **Implementation status:** `NOT_AUTHORIZED_BY_THIS_DOCUMENT`
 - **Contract status:** every new contract below is `PROPOSED_UNADOPTED` until cross-feature review and explicit approval.
 - **Related plan:** `VIDEO_STORY_PRODUCTION_PLAN.md`
-- **Product baseline:** target age 0–12; current Gate A/Gate B and `ExperienceSpecV1` semantics remain authoritative.
+- **Product baseline:** target age `<9` / 0–107 completed months; product bands are 0–3, 3–6, and 6–9. Existing Gate A/Gate B and `ExperienceSpecV1` semantics remain authoritative.
+- **Trial credit boundary:** one credit covers the complete adult-approved drawing/story experience through off-screen handoff; it is not charged per AI/provider stage. FEAT-037 owns reservation/settlement behavior; this FEAT-020 plan does not implement billing.
 
 ## 1. Purpose and outcome
 
@@ -25,6 +26,7 @@ This plan is inspired by the separation of director/scene planning in `storyboar
 | Approval boundary | `OWNER_CONFIRMED_2026-09-28` | AI returns a revised complete script; the adult finalizes it before image generation starts. |
 | Voice/language | `OWNER_CONFIRMED_2026-09-28` | Let the adult select language and voice category, with a selector experience similar to translation voice selection. |
 | Original source | `OWNER_CONFIRMED_FROM_PRIOR_SRS` | The original drawing/audio remain immutable source artifacts; any redraw is a separately identified derivative. |
+| Trial credit accounting | `OWNER_CONFIRMED_2026-10-06` | The complete experience consumes at most one credit after successful handoff; provider calls and same-session retries do not create separate charges. |
 | Defaults below | `PROPOSED_UNADOPTED` | Draft scene count, quick-action list, voice dimensions, retry policy, and logical schemas are proposals pending review. |
 
 ## 3. Scope
@@ -35,7 +37,7 @@ These plans define end-to-end product behavior and backend contracts. FEAT-020 r
 
 - Reuse the already validated image/narration admission and provenance flow.
 - Build story context only from adult-confirmed `SemanticAnchorSetV1`, selected activity/objective, and the exact approved `ExperienceSpecV1`.
-- Reuse the existing age-band policy and activity eligibility rules. The catalog’s current bands are 0–3, 3–6, 6–9, and 9–12 years; per-activity readiness, prerequisite, material, supervision, and safety rules remain authoritative.
+- Reuse the existing product-band boundaries and activity eligibility rules. The supported bands are 0–3, 3–6, and 6–9 years (0–107 completed months). Preserve 9–12 source-catalog records, but do not expose them to supported profiles or age-sensitive GenAI requests. Per-activity readiness, prerequisite, material, supervision, and safety rules remain authoritative.
 - Query a reviewed knowledge source using subject, objective, age band/readiness, locale, and optional adult-selected focus.
 - Preserve claim-level source evidence so each educational fact in the script is traceable.
 - Produce a complete script draft with segment/scene narration, claim references, age rationale, target duration, and uncertainty warnings.
@@ -94,7 +96,7 @@ All names/shapes in this section are logical proposals, not canonical runtime co
 | `contract` | const string | yes | `LearningAudienceProfileV1` |
 | `profile_id`, `version` | string, positive integer | yes | Immutable profile revision. |
 | `child_profile_ref` | `VersionedRefV1` | yes | Backend-authorized ChildProfile; no client-supplied age is trusted without authorization. |
-| `age_band` | `AGE_0_3 \| AGE_3_6 \| AGE_6_9 \| AGE_9_12` | yes | Reuse current catalog band boundaries; do not invent different ranges here. |
+| `age_band` | `AGE_0_3 \| AGE_3_6 \| AGE_6_9` | yes | Accept only 0–107 completed months; reject 108+ before knowledge/story provider execution. |
 | `age_band_source` | enum | yes | `CHILD_PROFILE \| ADULT_CONFIRMED_OVERRIDE`; never `MODEL_INFERRED`. |
 | `readiness_ref` | optional `VersionedRefV1` | no | Existing P1 readiness/context record; exact readiness fields remain governed by P1. |
 | `language_locale` | BCP-47 string | yes | Controls query/script locale, not the source language of the child’s audio. |

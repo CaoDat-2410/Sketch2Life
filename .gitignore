@@ -89,6 +89,8 @@ data/seeds/
 Thumbs.db
 
 # Runtime outputs
+/.tmp/
+/.pytest-tmp-*/
 runtime-output/
 tmp/
 output/
@@ -99,6 +101,10 @@ models/
 features/FEAT-000-harness/evidence/handbook-page-*.png
 
 # Local SRS render/source artifacts; originals and machine-specific source registers stay local.
+/features/FEAT-037-registration-age-genai-payment-alignment/evidence/rendered/
+/features/FEAT-037-registration-age-genai-payment-alignment/artifacts/*.docx
+/features/FEAT-036-ui-current-direction-alignment/evidence/screenshots/**/*.png
+/features/FEAT-036-ui-current-direction-alignment/evidence/screenshots/*.zip
 features/FEAT-026-current-system-srs/artifacts/Sketch2Life_SRS_Form_qa.pdf
 features/FEAT-029-master-srs/evidence/notes/SOURCES.md
 

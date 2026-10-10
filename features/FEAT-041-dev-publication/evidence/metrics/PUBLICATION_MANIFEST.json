@@ -1,0 +1,82 @@
+{
+  "source_branch": "codex/pixi-ai-show-20261001",
+  "initial_head": "7be3006341c7e03e2d24f1fa39ecee5936e793a4",
+  "initial_remote_source": "7be3006341c7e03e2d24f1fa39ecee5936e793a4",
+  "initial_remote_dev": "5959215f8134d179b354abd4a669786c4d09e3ee",
+  "committed_ahead_of_dev": 48,
+  "dev_is_ancestor": true,
+  "protected_local_runtime_sha256": {
+    "apps/ui-mobile/src/demo/childAge.mjs": "49559161fdfac9c0a1d456dca2de17e6b82d79704d704ebd530c1d0d44720414",
+    "apps/ui-mobile/src/screens/Flow1Screens.tsx": "3681f5ec5f7fecd7d9286ca71b0159a35807e4337069f0a9592e720d3c833099",
+    "backend/src/sketch2life/application/services/backend_ai_workflow.py": "79ed98f660cd103a19fddc549b08e3174fe1cc214b126c3ff1cf2bd895bedb4d",
+    "backend/src/sketch2life/application/services/supervised_flow.py": "134788187b457cf7d2250c92a9fba1bd9c75bad31b9c9ed60d73a24032d19956",
+    "backend/src/sketch2life/contracts/schemas/workflow_demo.py": "7d90c2d18d4692c0d0151f40e81c92756cbdc69f50f633e1eaf3a1074545944e",
+    "backend/src/sketch2life/interfaces/cli/workflow_demo.py": "965a6fc5b2d6e01b4eed4c0ca78d6247e8c8620a939747d7d129a009795c307e",
+    "backend/tests/e2e/test_lightning_backend_workflow.py": "79150367619069b750046d6beabc93fb3e8be60c6d8d6698f75638994628974f",
+    "backend/src/sketch2life/domain/child_age.py": "c4a1288a41d6ec52087a9bb83f7f8590d1084c367a41bd512d65aca917a2838c"
+  },
+  "source_reference_changes": [
+    {
+      "path": "docs/context/SOURCE_REGISTER.md",
+      "original_prose_sha256": "46fc76a5dd524d9e6adff5f8db6bf1829e46abf53b7836afd4f7b33cde7d9b16",
+      "published_prose_sha256": "e614419d605c2b26703019337ae109542bf98fa7f8004a3657b9f039c29fd385",
+      "backup": ".tmp/feat041-publication/source-reference-originals/docs/context/SOURCE_REGISTER.md"
+    },
+    {
+      "path": "features/FEAT-037-registration-age-genai-payment-alignment/CONTEXT.md",
+      "original_prose_sha256": "4f732a3a7bc2041f543cb2636be18c803257fa460d28fdc9f19c6de847f0a7d7",
+      "published_prose_sha256": "379a7557627df85a5b7b446eefdae00dc696de1358808974c6f2aeea6cfeb4d9",
+      "backup": ".tmp/feat041-publication/source-reference-originals/features/FEAT-037-registration-age-genai-payment-alignment/CONTEXT.md"
+    },
+    {
+      "path": "features/FEAT-037-registration-age-genai-payment-alignment/approvals/TASK_APPROVAL.md",
+      "original_prose_sha256": "3fb2ad3604ca802490e13c22f35f802ca28d6dd608dc4342670f6633b346b265",
+      "published_prose_sha256": "a385c6bfcb0d817de1ca013747a6010518621ccc64b2b5707c405923fc8ee8e9",
+      "backup": ".tmp/feat041-publication/source-reference-originals/features/FEAT-037-registration-age-genai-payment-alignment/approvals/TASK_APPROVAL.md"
+    },
+    {
+      "path": "features/FEAT-037-registration-age-genai-payment-alignment/plan/PLAN.md",
+      "original_prose_sha256": "2f9a1f2e08101e63ee4b356bcd42b3955fd8fb76d9944d3e0ad85435ed569d49",
+      "published_prose_sha256": "c1818f1425af094d7117fe0b34546c136702f379f069309cab29a9587ffaa860",
+      "backup": ".tmp/feat041-publication/source-reference-originals/features/FEAT-037-registration-age-genai-payment-alignment/plan/PLAN.md"
+    },
+    {
+      "path": "features/FEAT-037-registration-age-genai-payment-alignment/evidence/notes/FORM_SOURCE_RECEIVED_20261006.md",
+      "original_prose_sha256": "0b9ae8370a2b195e4c4b6978051b0cae9d9a6f0d8bb242341ab80be0ec3886b0",
+      "published_prose_sha256": "707fb1b8ed325f298c4bb7f8239b44257113c16405d8cbc35f8e644f562a70ef",
+      "backup": ".tmp/feat041-publication/source-reference-originals/features/FEAT-037-registration-age-genai-payment-alignment/evidence/notes/FORM_SOURCE_RECEIVED_20261006.md"
+    },
+    {
+      "path": "features/FEAT-037-registration-age-genai-payment-alignment/evidence/notes/FORM_V1_4_FINALIZATION_20261006.md",
+      "original_prose_sha256": "fbd91cd1c2ecb6632edec49fc47d904f6d788ae20acfae2fa7cf809d1ed5fe30",
+      "published_prose_sha256": "aac62c48e1485c07846eceb757573c2312da58dd7f3772ef375281e517517323",
+      "backup": ".tmp/feat041-publication/source-reference-originals/features/FEAT-037-registration-age-genai-payment-alignment/evidence/notes/FORM_V1_4_FINALIZATION_20261006.md"
+    },
+    {
+      "path": "features/FEAT-037-registration-age-genai-payment-alignment/evidence/notes/FORM_V1_5_STYLE_CORRECTION_20261006.md",
+      "original_prose_sha256": "99fe904d24d1a88abf2c370c30d3f9bf014ec899c7b7ea4251e3cbc26df6bc7c",
+      "published_prose_sha256": "fb959c2ad402a995084ad6bacf8009aeef268dd2b4bcc1789e8db2b005e08f6b",
+      "backup": ".tmp/feat041-publication/source-reference-originals/features/FEAT-037-registration-age-genai-payment-alignment/evidence/notes/FORM_V1_5_STYLE_CORRECTION_20261006.md"
+    },
+    {
+      "path": "features/FEAT-037-registration-age-genai-payment-alignment/evidence/notes/FORM_V1_6_SRS_DETAIL_20261006.md",
+      "original_prose_sha256": "37ddd2bbef43d18cfd6d68ab322ce4d3b2f5d69270d5e76e42d12431775ac438",
+      "published_prose_sha256": "812ce9a15eb5f29c2c4367fd274f66a6008e5d67affaea0d71f90ec3894239e3",
+      "backup": ".tmp/feat041-publication/source-reference-originals/features/FEAT-037-registration-age-genai-payment-alignment/evidence/notes/FORM_V1_6_SRS_DETAIL_20261006.md"
+    },
+    {
+      "path": "features/FEAT-037-registration-age-genai-payment-alignment/evidence/notes/IMPLEMENTATION_REVIEW_20261006.md",
+      "original_prose_sha256": "addb53dd78e576951d45cdc3e3d9e16b813c14e0872d24571027a51fef90c81b",
+      "published_prose_sha256": "4ce32a4a0ab1700fa2a4120b975272f9293bf5352516a4e97e938af72cc490c3",
+      "backup": ".tmp/feat041-publication/source-reference-originals/features/FEAT-037-registration-age-genai-payment-alignment/evidence/notes/IMPLEMENTATION_REVIEW_20261006.md"
+    },
+    {
+      "path": "features/FEAT-037-registration-age-genai-payment-alignment/evidence/notes/SOURCE_AND_SCOPE_20261006.md",
+      "original_prose_sha256": "5196094a53574751af7bd32e964cd1b6938e5a054660e32297d4428008419fca",
+      "published_prose_sha256": "d982c4306862932411a48ae40240962a883364b492e1178e1afbba92a84e94bf",
+      "backup": ".tmp/feat041-publication/source-reference-originals/features/FEAT-037-registration-age-genai-payment-alignment/evidence/notes/SOURCE_AND_SCOPE_20261006.md"
+    }
+  ],
+  "publication_scope": "reviewed documentation and repository hygiene; pending runtime excluded",
+  "canonical_srs_sha256": "a95c89589843e3555e967c5e486f3bcaf4bbdf9446cb3bc9c49ed16f672964d9"
+}

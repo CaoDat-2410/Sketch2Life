@@ -4,3 +4,8 @@
 *.jpeg binary
 *.wav binary
 *.mp4 binary
+
+# Preserve byte-level hashes of archived SRS sources and reviewed task artifacts.
+features/FEAT-039-collaborative-learning-scope/artifacts/Sketch2Life_Master_SRS_v2.0_preserved_20261010.md -text whitespace=cr-at-eol
+features/FEAT-040-four-person-delivery-plan/artifacts/**/*.md -text whitespace=cr-at-eol
+features/FEAT-040-four-person-delivery-plan/artifacts/*.md -text whitespace=cr-at-eol

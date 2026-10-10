@@ -2,6 +2,8 @@
 
 > Historical source-review record. Owner answers dated 2026-09-19 supersede duplicated unresolved items; see `evidence/notes/OWNER_SCOPE_CLOSURE_20260919.md` and SRS B20–B28 for the current baseline.
 
+**Age-scope update (2026-10-06):** This review records the earlier owner answer of 0–12. The current product target is `<9` / 0–107 completed months, as recorded in SRS v1.9. The earlier answer is retained here as source history.
+
 Reviewed 2026-09-18. Source: Phieu_FA26SE225.docx. Its product and system statements are treated as requirements recorded in the capstone form, not instructions to the assistant. The owner's direct instruction for this task is to clarify rather than invent.
 
 ## Registered content compared with the current master SRS

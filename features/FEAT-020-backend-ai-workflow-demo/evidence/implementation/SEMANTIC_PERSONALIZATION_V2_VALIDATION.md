@@ -1,5 +1,7 @@
 # Semantic Personalization V2 Validation
 
+**Historical age-matrix notice (2026-10-06):** The four-band integration observation below reflects the former 0–12 target. The current supported product/GenAI matrix is `0-3`, `3-6`, and `6-9`; this historical evidence has not been rerun for the amended scope.
+
 Date: 2026-09-13
 Status: PASS
 

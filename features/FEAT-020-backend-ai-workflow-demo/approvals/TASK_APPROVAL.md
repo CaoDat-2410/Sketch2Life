@@ -65,3 +65,12 @@ Explicitly deferred: UI, PixiJS runtime, video generation, real caregiver feedba
 - **Authorized documents:** `plan/PLAN.md`, `plan/CONTENT_STORY_EXPERIENCE_PLAN.md`, `plan/VIDEO_STORY_PRODUCTION_PLAN.md`, feature context/decisions/evidence, and the linked FEAT-029 master SRS sections B30–B32.
 - **Owner-confirmed target:** illustrated 40–60 second story video; age/readiness-based educational knowledge; both quick and free-form script edits; adult approval of the full exact script before image generation; selectable supported language/voice; keep Wan2.2 TI2V-5B baseline; redraw is allowed as a derived artifact while the original remains immutable.
 - **Approval boundary:** the earlier 2026-09-13 plan approval does not cover these expanded requirements. Implementation, UI code, provider execution, model downloads, contract migration, cloud changes, release, commit/push, and changes to unrelated/pre-existing user files remain excluded. Keep amendment status `OWNER_CHANGE_DRAFT` until separately reviewed and approved.
+
+## Addendum — owner supported-age implementation update (2026-10-06)
+
+- **Status:** `APPROVED` for the exact cross-feature age-boundary work recorded in FEAT-037 Plan revision 1.
+- **Owner instruction:** limit the product age band to `<9` and align the SRS, context, and GenAI materials.
+- **Authorized FEAT-020 scope:** update the active age matrix and age-sensitive workflow so only 0–3, 3–6, and 6–9 product bands run; reject requests beyond 107 completed months before age-specific activity selection or AI provider execution; preserve the 9–12 source catalog; update FEAT-020 context/decisions/age variation/story plans and the existing E2E acceptance assertion.
+- **Not authorized:** model/provider calls, model downloads, deployment, cloud changes, payment processor selection, live billing, or publishing 9–12 catalog changes.
+- **Controlling plan:** `features/FEAT-037-registration-age-genai-payment-alignment/plan/PLAN.md`, SHA-256 `7558d4fba751937c823b6923075efd2a621207c51c6c8ef2edcf4f4fadd50a3e`.
+- **Current implementation clarification:** FEAT-037 Plan revision 2, SHA-256 `B9C4454605146ED5E69241381E4A65C666AF751CBC36B4F8BAA2272897BAECB9`, preserves the approved age scope and existing versioned DTO compatibility; the application layer rejects unsupported product ages before age-sensitive work.

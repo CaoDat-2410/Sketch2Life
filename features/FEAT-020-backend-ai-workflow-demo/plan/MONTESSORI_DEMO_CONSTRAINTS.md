@@ -3,6 +3,8 @@
 **Status:** confirmed demo baseline; grouped plan milestone
 **Date:** 2026-09-12
 
+**Current age-scope amendment (2026-10-06):** The 9–12 subsection below is retained catalog/reference guidance from the former target. Current product and GenAI sessions support only ages under 9 (0–107 completed months); keep 9–12 source records but do not select or generate for them.
+
 These constraints apply to the demo context only. The selected activity’s catalog safety rules remain authoritative and may make the run stricter. The workflow must never weaken an activity-specific prohibition to force a result.
 
 ## Baseline constraints for every age band

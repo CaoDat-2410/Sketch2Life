@@ -1,5 +1,7 @@
 # Câu hỏi làm rõ SRS Sketch2Life theo phiếu đăng ký
 
+**Thông báo cập nhật (2026-10-06):** Câu trả lời tuổi mục tiêu 0–12 được lưu trong bộ câu hỏi này đã được owner thay bằng phạm vi `<9` trong SRS v1.9. Tệp này vẫn giữ lịch sử vòng làm rõ ban đầu; dùng SRS và quyết định FEAT-029 hiện hành làm chuẩn tuổi.
+
 - Dùng cùng với: `artifacts/Sketch2Life_Master_SRS.md`
 - Nguồn scope cần đối chiếu: `Phieu_FA26SE225.docx`
 - Mục đích: chốt yêu cầu còn thiếu trước khi mở rộng SRS; không phải spec đã được phê duyệt.

@@ -1,0 +1,12 @@
+{
+  "check": "srs",
+  "command": [
+    "python",
+    "-X",
+    "utf8",
+    "features/FEAT-039-collaborative-learning-scope/src/verify_documentation.py"
+  ],
+  "exit_code": 0,
+  "output_lines": 28,
+  "raw": "evidence/raw/srs.txt"
+}

@@ -20,7 +20,7 @@ committed image + committed Vietnamese WAV
   → real ASR + real VLM
   → multimodal fusion
   → Gate A
-  → all Montessori age bands
+  → all supported product age bands (0–3, 3–6, 6–9)
   → Gate B
   → experience context
   → story and scene context
@@ -39,7 +39,7 @@ The command must return a typed manifest explaining every stage. It must not cla
 2. Use both image and WAV in the single E2E so VLM, ASR, and fusion run.
 3. Test assets are replaceable by CLI path or environment variable; changing files does not require code changes.
 4. Pull the full repository into Lightning Studio from GitHub.
-5. Cover every age band currently present in the golden catalog.
+5. Cover every supported product age band; preserve out-of-target catalog bands as source data.
 6. Use golden-catalog readiness criteria as the readiness baseline.
 7. Prefer each record’s primary material; use only that record’s approved household substitute when needed.
 8. Require adult/guide supervision for every activity.
@@ -60,7 +60,7 @@ The command must return a typed manifest explaining every stage. It must not cla
 - structured output validation and prohibited-inference filtering;
 - modality fusion with conflict preservation;
 - explicit Gate A and Gate B decisions;
-- all four age bands in one E2E matrix;
+- all three supported product age bands in one E2E matrix;
 - golden readiness/material/safety/supervision/duration rules;
 - seeded variation and no-immediate-repeat selection;
 - story/scene context;
@@ -204,9 +204,9 @@ Record safe source references, checksums, dimensions/audio metadata and provenan
 | `0-3` | 8–35 months across selected records | 5 |
 | `3-6` | 42–71 months across selected records | 5 |
 | `6-9` | 72–107 months across selected records | 5 |
-| `9-12` | 108–155 months across selected records | 5 |
+| `9-12` | 108–155 months across selected records | 5 — retained in catalog, outside product target |
 
-`--age-mode all` executes all four sub-runs using the same image/WAV. Source identity can remain stable; age-dependent context, candidate, objective, story complexity, material guidance and render intent must be evaluated separately.
+The owner-amended target is `<9` / 0–107 completed months. `--age-mode all` executes only the `0-3`, `3-6`, and `6-9` sub-runs using the same image/WAV. A 108+ month request is rejected before age-specific selection or GenAI provider execution. Source identity can remain stable; in-scope age-dependent context, candidate, objective, story complexity, material guidance and render intent are evaluated separately. Existing 9–12 records remain unchanged and are not requested by this demo.
 
 ### Selection algorithm
 
@@ -244,7 +244,7 @@ age → readiness → prerequisite → safety → supervision → material → a
 - `0-3`: adult within arm’s reach, no loose small/detachable choking-risk parts, large washable materials, one action per step.
 - `3-6`: adult handles restricted tools/substitutes, short concrete instructions, no rapid flashing.
 - `6-9`: adult setup and safety check, ordered multi-step activity only when readiness passes.
-- `9-12`: adult available for safety review/handoff, layered steps only when the record permits.
+- `9-12`: preserved catalog guidance only; outside the current supported product and GenAI target.
 - Accessibility: visual plus spoken/text cue, no color-only meaning, reduced motion, high contrast, readable labels, structured safety/material fields.
 
 Activity-specific catalog rules can make any of these stricter. The demo must return no-result/blocked status rather than weakening a rule.
@@ -277,7 +277,7 @@ Use a production mapper to create `SemanticAnchorSetV1`. In demo mode record `DE
 
 ### 6 — Montessori age matrix
 
-Run four bands, golden readiness and all hard constraints. Select valid activity/objective/material using seeded variation. Produce context evidence.
+Run the three supported product bands, golden readiness and all hard constraints. Select valid activity/objective/material using seeded variation. Produce context evidence.
 
 ### 7 — Gate B and experience
 
@@ -351,13 +351,13 @@ Age render intent changes presentation complexity only; Montessori eligibility r
 
 Tentative file: `backend/tests/e2e/test_lightning_backend_workflow.py`.
 
-Use one public test function that loads real adapters once and runs four sub-runs for `0-3`, `3-6`, `6-9`, and `9-12`.
+Use one public test function that loads real adapters once and runs three sub-runs for `0-3`, `3-6`, and `6-9`. Reject `9-12` before model calls.
 
 Forbidden in this test: fixture IDs, fake adapters, network mocks, precomputed model output, monkeypatched success, video generation, PixiJS runtime loading and checked-in generated video.
 
 Assertions:
 
-1. all four age bands execute;
+1. all three supported product age bands execute;
 2. same image/WAV checksums are used in each sub-run;
 3. real Vietnamese ASR and real VLM run;
 4. schemas, safety and prohibited-inference checks pass;
@@ -422,7 +422,7 @@ Run validators/tests, capture sanitized feature-local evidence, update context/d
 | AC-05 | Real ASR and VLM execute without fixture outputs. |
 | AC-06 | Production mapper creates `SemanticAnchorSetV1`. |
 | AC-07 | Fusion preserves modality conflicts/provenance. |
-| AC-08 | All four catalog age bands execute in one E2E matrix. |
+| AC-08 | The three supported product age bands execute in one E2E matrix; 9–12 is not requested. |
 | AC-09 | Golden readiness and hard rules precede selection. |
 | AC-10 | Material, substitute, safety, adult supervision and catalog duration rules are enforced. |
 | AC-11 | Selection uses fresh seed/no-repeat and is not fixed first-match. |
@@ -438,4 +438,4 @@ Run validators/tests, capture sanitized feature-local evidence, update context/d
 
 ## 16. Definition of Done
 
-The feature is done only when the approved plan is implemented, the four-band E2E passes in Lightning Studio, the result reaches `BACKEND_CONTEXT_READY`, video is honestly deferred, PixiJS remains unimplemented, evidence is sanitized/local, and one grouped milestone commit contains the implementation and governance updates.
+The feature is done only when the approved plan is implemented, the three-band E2E passes in Lightning Studio, the result reaches `BACKEND_CONTEXT_READY`, video is honestly deferred, PixiJS remains unimplemented, evidence is sanitized/local, and one grouped milestone commit contains the implementation and governance updates.

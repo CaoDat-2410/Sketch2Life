@@ -81,3 +81,11 @@ held-out pedagogical/catalog review remain pending. See this feature's
 `evidence/notes/CHILD_PROFILE_REQUEST_SCOPED_IMPLEMENTATION_20260929.md` and
 `docs/adr/ADR-0010-session-scoped-child-learning-context.md` for the backend evidence and accepted
 volatile-state/request boundary.
+
+## Owner supported-age amendment — 2026-10-06
+
+The supported product and GenAI audience is now younger than nine years (0–107 completed months). The age matrix runs only `0-3`, `3-6`, and `6-9`; CLI and application-service requests at 108+ months are rejected before age-specific activity selection or provider execution. Existing `9-12` catalog and asset coverage remains source data and is not selected by the product path. Existing versioned DTOs remain able to read historical/catalog values. The older four-band FEAT-020 plan text is superseded by FEAT-037 and this dated amendment; no 9–12 record is deleted.
+
+## Owner capstone-trial credit amendment — 2026-10-06
+
+The owner approved a trial allowance of 10 / 30 / 120 credits per month for Free / Gia đình / Lớp học, plus one-time packs of 10/49,000 VND, 30/129,000 VND, and 60/239,000 VND. A credit belongs to one complete adult-approved drawing/story experience through its off-screen handoff, not to an individual GenAI provider call. Reserve when the session starts, debit only after successful handoff, release on failure/cancellation, and keep a same-session retry idempotent. This is the product-level accounting boundary for story, illustration, TTS and video; FEAT-020 provider adapters do not independently debit credits. Payment/provider implementation is outside FEAT-020 and has not been claimed. See FEAT-037 and FEAT-029 SRS v2.0/B35.

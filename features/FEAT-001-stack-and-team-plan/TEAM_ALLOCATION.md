@@ -1,5 +1,7 @@
 # Four-person Sprint 1 workstream allocation
 
+Current replacement-scope allocation: [FEAT-040 task breakdown](../FEAT-040-four-person-delivery-plan/artifacts/TEAM_TASK_BREAKDOWN.md), governed by [ADR-0015](../../docs/adr/ADR-0015-four-person-role-and-integration-allocation.md). Owner now chose FE/BE/BE/technical-integrator and tasks without dates. The allocation below is preserved historical evidence; ADR-0006 fixture independence remains, but these discipline labels are not the current staffing assignment.
+
 This allocation is revised by FEAT-012 and governed by `docs/adr/ADR-0006-parallel-sprint-allocation.md`.
 
 Sprint 1 targets four balanced, independently executable component workstreams. It does not assign the integrated application to one person. Every workstream consumes versioned synthetic fixtures, publishes a versioned contract, and must run without another person's live service.

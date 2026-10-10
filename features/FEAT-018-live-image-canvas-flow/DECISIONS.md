@@ -246,3 +246,4 @@
   quality scope, use credible same-image unmasked paper as a seed only when the nearby search has
   none; preserve the verified mask and immutable source, and retain typed failure when no credible
   paper exists. See FEAT-030 `E-030-FIX-014`; this does not add renderer V1 recovery.
+- 2026-10-06: Owner narrowed supported child age to under 9 years / 0–107 completed months. The mobile selector and API/context boundaries reject 108+; existing 9–12 catalog records remain unchanged and outside supported sessions. Cross-feature plan/approval: FEAT-037 revision 1.

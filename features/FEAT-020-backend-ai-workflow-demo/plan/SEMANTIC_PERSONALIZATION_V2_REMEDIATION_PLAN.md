@@ -6,6 +6,8 @@ Feature: FEAT-020-backend-ai-workflow-demo
 Scope: backend-only semantic understanding, activity recommendation, fit evaluation and truthful telemetry
 Contract direction: introduce new V2 contracts; preserve existing V1 contracts for compatibility and comparison
 
+**Current age-scope amendment (2026-10-06):** Age-specific product/GenAI execution now supports only `0-3`, `3-6`, and `6-9` (0–107 completed months). Historical references to a 9–12 regression remain evidence of the former target; 9–12 catalog data is preserved but excluded from current sessions. See FEAT-020 D-020-13 and FEAT-037.
+
 ## 1. Owner decisions recorded
 
 The project owner confirmed:

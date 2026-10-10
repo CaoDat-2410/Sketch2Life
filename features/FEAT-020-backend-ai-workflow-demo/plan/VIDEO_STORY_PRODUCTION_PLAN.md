@@ -13,6 +13,10 @@ Produce a 40–60 second short video that retells the child’s confirmed pictur
 
 The original drawing and child narration remain immutable source artifacts. Illustration redraw is allowed for presentation, but every generated still/clip must be clearly marked as derived, tied to the approved story package, and checked against confirmed anchors and approved fact IDs.
 
+### Credit boundary
+
+The approved capstone-trial accounting treats the video, TTS and illustration stages as parts of one complete drawing/story experience. They do not incur separate product credits. FEAT-037 reserves one credit at session start and settles it after the successful adult-approved off-screen handoff; a failed/cancelled session releases it, and a retry within the same session is idempotent. This plan does not implement billing or provider-specific payment behavior.
+
 ## 2. Inspiration and reuse boundary
 
 - `storyboard-ai`: use the planning pattern `global direction → scene list → per-scene image/video/narration work → assemble`; do not adopt free-form one-prompt output as product truth.

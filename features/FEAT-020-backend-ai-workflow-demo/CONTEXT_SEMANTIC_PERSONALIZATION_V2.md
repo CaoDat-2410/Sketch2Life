@@ -38,3 +38,7 @@ The CLI defaults to --contract-version v2. --contract-version v1 remains availab
 ## Deferred scope
 
 UI, PixiJS runtime animation, video generation, real caregiver/guide confirmation, durable persistence, and production catalog approval remain deferred.
+
+## Owner supported-age amendment — 2026-10-06
+
+The product target is now 0–107 completed months. The supported workflow requests only `0-3`, `3-6`, and `6-9`; 9–12 catalog profiles remain preserved for future scope but are not accepted as product-session audience context. Adult/profile age is never inferred from the shared scene understanding.

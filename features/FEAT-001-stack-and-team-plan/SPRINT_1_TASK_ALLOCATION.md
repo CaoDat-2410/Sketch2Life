@@ -1,5 +1,7 @@
 # Detailed Sprint 1 task allocation
 
+Current replacement-scope allocation: [FEAT-040 task breakdown](../FEAT-040-four-person-delivery-plan/artifacts/TEAM_TASK_BREAKDOWN.md) and [ADR-0015](../../docs/adr/ADR-0015-four-person-role-and-integration-allocation.md). This dated/estimated historical list is preserved; its staffing and estimates do not apply to the owner's newer FE/BE/BE/technical-integrator request without dates.
+
 - Status: PROPOSED - requires approval with FEAT-001 plan revision 3 and each owning feature plan
 - Planning date: 2026-08-26
 - Basis: ADR-0006, current system baseline, source register, and the user-provided P2 task list

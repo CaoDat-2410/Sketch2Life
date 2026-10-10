@@ -1,0 +1,12 @@
+{
+  "check": "security",
+  "command": [
+    "python",
+    "-X",
+    "utf8",
+    "tools/validate_repository_security.py"
+  ],
+  "exit_code": 0,
+  "output_lines": 7,
+  "raw": "evidence/raw/security.txt"
+}

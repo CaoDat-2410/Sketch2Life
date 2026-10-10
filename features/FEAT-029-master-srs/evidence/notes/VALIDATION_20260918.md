@@ -1,5 +1,7 @@
 # FEAT-029 validation record
 
+**Historical baseline notice (2026-10-06):** Age catalog counts and owner-response summaries below were verified against the prior 0–12 product target. Catalog data remains preserved, but only 0–107 completed months are in the current supported product scope.
+
 - Date: 2026-09-18
 - Scope: documentation artifact plus read-only, focused contract/runtime checks. No application code was modified.
 - Artifact: artifacts/Sketch2Life_Master_SRS.md

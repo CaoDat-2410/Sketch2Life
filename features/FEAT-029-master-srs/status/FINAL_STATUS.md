@@ -1,5 +1,9 @@
 # FEAT-029 milestone history
 
+**Current-scope notice (2026-10-10):** Owner replaced the scope with Montessori-inspired collaborative creative learning. Canonical SRS is v3.0; FEAT-039 owns this update and preserves exact v2.0. Everything below is milestone history, including earlier statements labeled current at their original dates; conflicting age/role/portal/payment/media assumptions are superseded for the new product target.
+
+**Historical snapshot notice (2026-10-06):** This file records the earlier SRS v1.2 baseline, including its then-approved 0–12 target. The current requirement is under 9 years / 0–107 completed months in `artifacts/Sketch2Life_Master_SRS.md` v1.9. Prior approvals and evidence remain unchanged as historical records.
+
 ## Initial delivery milestone — 2026-09-18
 
 The first Vietnamese master SRS draft was completed against repository context, the supplied workflow images, and the owner's initial answers.

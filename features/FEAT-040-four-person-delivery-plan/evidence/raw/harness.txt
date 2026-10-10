@@ -1,0 +1,3 @@
+HARNESS_INVALID
+- features\FEAT-037-registration-age-genai-payment-alignment: missing harness paths: features\FEAT-037-registration-age-genai-payment-alignment\evidence\raw, features\FEAT-037-registration-age-genai-payment-alignment\evidence\screenshots, features\FEAT-037-registration-age-genai-payment-alignment\evidence\metrics
+- features\FEAT-038-lightning-vision-startup: missing harness paths: features\FEAT-038-lightning-vision-startup\evidence\raw, features\FEAT-038-lightning-vision-startup\evidence\screenshots, features\FEAT-038-lightning-vision-startup\evidence\metrics, features\FEAT-038-lightning-vision-startup\evidence\notes

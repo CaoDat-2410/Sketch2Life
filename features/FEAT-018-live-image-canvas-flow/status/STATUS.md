@@ -3,6 +3,12 @@
 Status: IN_PROGRESS — approved offline implementation verified; live rig/Pixi visual acceptance pending
 Updated: 2026-09-30
 
+## Supported-age amendment — 2026-10-06
+
+- Current supported product age is `<9` / 0–107 completed months. Mobile selection and supervised-flow/P1 application services reject ages from 108 months onward before selection, Gate B media resolution, or renderer localization. Existing versioned DTOs continue to accept historical/catalog values.
+- Source catalog bands 9–12 remain unchanged; they are not requested by supported sessions.
+- The cross-feature change is approved and tracked under FEAT-037. Automated checks were not run for this amendment.
+
 ## FEAT-035 integration follow-up — 2026-10-03
 
 - Added an additive subject-only Pixi show contract/runtime path for the reviewed empty-companion
@@ -51,3 +57,4 @@ Updated: 2026-09-30
   typecheck/UI-copy checks pass; backend serves the rebuilt renderer assets with HTTP 200. Fresh
   Android visual playback remains unverified because `adb` is unavailable in this shell. Evidence:
   `evidence/notes/PIXI_RENDERER_DIAGNOSTIC_PARTIAL_20260930.md` and FEAT-030 `E-030-FIX-014`.
+- 2026-10-06: Product age boundary aligned to under 9 / 0–107 completed months in mobile input and FEAT-018 application guards. Existing versioned DTOs remain able to represent historical 9–12 catalog/session records; age-sensitive session progression is rejected before selection, Gate B media resolution, or renderer localization. Automated checks were not run for this amendment.

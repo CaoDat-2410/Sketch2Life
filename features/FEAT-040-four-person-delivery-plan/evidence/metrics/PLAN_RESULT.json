@@ -1,0 +1,13 @@
+{
+  "check": "plan",
+  "command": [
+    "python",
+    "-X",
+    "utf8",
+    "features/FEAT-040-four-person-delivery-plan/src/verify_plan.py"
+  ],
+  "exit_code": 0,
+  "output_lines": 25,
+  "raw": "features/FEAT-040-four-person-delivery-plan/evidence/raw/plan.txt",
+  "machine_paths_redacted": true
+}

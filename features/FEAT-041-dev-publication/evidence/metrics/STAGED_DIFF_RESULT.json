@@ -1,0 +1,12 @@
+{
+  "check": "staged_diff",
+  "command": [
+    "git",
+    "diff",
+    "--cached",
+    "--check"
+  ],
+  "exit_code": 0,
+  "output_lines": 0,
+  "raw": "evidence/raw/staged_diff.txt"
+}

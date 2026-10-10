@@ -25,6 +25,14 @@ The Lightning Studio run must provide the real Qwen3-VL and faster-whisper runti
 
 The real model now loads on the L4 and reaches output mapping. The first runtime blocker was an incompatible `huggingface-hub` version; after correction, the remaining typed outcome was `VISION_SCHEMA_INVALID / OUTPUT_MAPPING_FAILED`. Safe mapper diagnostics showed type/constraint failures on entity/action/relation/theme labels and identifiers. The implementation therefore removes the unsupported `enable_thinking` processor argument and strengthens the schema-first Vietnamese prompt. The next Lightning run is required to verify the real output path after this change.
 The latest safe mapping diagnostic narrowed schema invalidity to only `relations.observation_id` and `themes.observation_id`; nested labels and action fields now pass their prior checks. Prompt v3 adds concrete valid relation/theme ID examples without coercing provider output.
+
+## Owner supported-age amendment — 2026-10-06
+
+The workflow's supported target is now `<9` / 0–107 completed months. Product age-matrix runs use only `0-3`, `3-6`, and `6-9`, and age-specific AI requests beyond 107 months are rejected before provider execution. The 9–12 golden catalog records remain intact as source data. The demo still does not claim story-video generation; this amendment does not change provider/model selection.
+
+## Owner capstone-trial credit boundary — 2026-10-06
+
+The product specification charges one credit per complete adult-approved drawing/story experience after successful off-screen handoff, not per AI/provider stage. Reserve at session start; release on failure/cancellation; same-session retries are idempotent. This documents the FEAT-037 trial assumption only; the current GenAI demo does not implement payment or credit accounting.
 ## Semantic activity remediation implementation (2026-09-13)
 
 The workflow now loads the complete 100-activity MVP catalog at runtime and joins it to a versioned, reviewed semantic profile catalog. Eligibility is deterministic after ASR/VLM understanding: exact reviewed phrases and aliases are preferred, negative phrases block false semantic matches, and one explicit SAFE_FALLBACK profile exists for each age band. P1 hard rules still gate age, readiness, prerequisites, materials, supervision, policy and safety.
