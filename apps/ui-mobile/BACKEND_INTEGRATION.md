@@ -241,3 +241,4 @@ curl -X POST http://localhost:8000/api/activities/act-butterfly-craft/feedback \
 - `src/services/api.ts`: API Client sử dụng `fetch` hỗ trợ Timeout, AbortController và Fallback.
 - `src/services/mockData.ts`: Dữ liệu mock đạt chuẩn cho toàn bộ app.
 - `src/context/AppContext.tsx`: State Provider gắn kết dữ liệu người dùng với giao diện.
+- `assets/target_crops/`: Các thành phần hình ảnh cắt lát chuẩn cho canvas tương tác và lộ trình học tập.
