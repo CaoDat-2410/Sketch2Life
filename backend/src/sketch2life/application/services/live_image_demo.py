@@ -150,6 +150,11 @@ class LiveImageDemoService:
         self._now = now
         self._session_locks = SessionLockPool()
 
+    @property
+    def artifact_store(self) -> ArtifactStore:
+        """Expose the store used by image admission to downstream pipelines."""
+        return self._artifacts
+
     def upload_image(
         self,
         *,

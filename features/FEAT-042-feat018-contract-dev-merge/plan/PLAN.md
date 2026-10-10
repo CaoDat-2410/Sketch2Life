@@ -2,7 +2,7 @@
 
 - Status: APPROVED
 - Plan revision: 1
-- Implementation status: NOT_STARTED
+- Implementation status: IN_PROGRESS
 - Date: 2026-10-10, Asia/Saigon
 
 ## Goal
@@ -21,7 +21,7 @@ The exact remote source f959426 includes whiteboard/story-video, experimental of
 4. Run repository security/harness/architecture and offline backend suite, mobile typecheck/tests and renderer regression checks where changes warrant. Repair concrete failures and rerun affected checks. No provider credentials, GPU/model downloads or live requests.
 5. Review exact staged tree and merged history; run security immediately before commit. Commit merge and evidence.
 6. Refresh origin/dev and verify non-forced advancement. Run security before push, push dev, verify source is ancestor of remote dev and final remote SHA.
-7. Record actual publication outcome, preserve protected original workspace bytes, and archive isolated worktree after its committed work is published and local dev is safely advanced.
+7. Record actual publication outcome, preserve protected original workspace bytes, and retain the isolated worktree while its ignored full diagnostic evidence is needed for review; archive later when those local records are no longer needed.
 
 ## Acceptance criteria
 

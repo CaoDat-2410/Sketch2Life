@@ -1,0 +1,2 @@
+HARNESS_INVALID
+- features\FEAT-030-whiteboard-story-video: missing harness paths: features\FEAT-030-whiteboard-story-video\evidence\raw, features\FEAT-030-whiteboard-story-video\evidence\screenshots, features\FEAT-030-whiteboard-story-video\evidence\metrics, features\FEAT-030-whiteboard-story-video\evidence\notes

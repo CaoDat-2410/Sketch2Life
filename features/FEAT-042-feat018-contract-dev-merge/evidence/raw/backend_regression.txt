@@ -1,0 +1,145 @@
+
+=================================== ERRORS ====================================
+_____ ERROR collecting tests/unit/test_butterfly_candidate_refinement.py ______
+ImportError while importing test module '<worktree>\backend\tests\unit\test_butterfly_candidate_refinement.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\..\..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\tests\unit\test_butterfly_candidate_refinement.py:6: in <module>
+    from tools.refine_butterfly_candidate import (
+tools\refine_butterfly_candidate.py:18: in <module>
+    from sketch2life.infrastructure.media.whiteboard_renderer_v2 import _partial_points
+backend\src\sketch2life\infrastructure\media\whiteboard_renderer_v2.py:13: in <module>
+    import imageio.v2 as imageio
+E   ModuleNotFoundError: No module named 'imageio'
+__________ ERROR collecting tests/unit/test_butterfly_video_proof.py __________
+ImportError while importing test module '<worktree>\backend\tests\unit\test_butterfly_video_proof.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\..\..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\tests\unit\test_butterfly_video_proof.py:6: in <module>
+    from tools.refine_butterfly_candidate import build_candidate, progress, schedule_for
+tools\refine_butterfly_candidate.py:18: in <module>
+    from sketch2life.infrastructure.media.whiteboard_renderer_v2 import _partial_points
+backend\src\sketch2life\infrastructure\media\whiteboard_renderer_v2.py:13: in <module>
+    import imageio.v2 as imageio
+E   ModuleNotFoundError: No module named 'imageio'
+____________ ERROR collecting tests/unit/test_house_video_proof.py ____________
+ImportError while importing test module '<worktree>\backend\tests\unit\test_house_video_proof.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\..\..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\tests\unit\test_house_video_proof.py:6: in <module>
+    from tools.render_house_video_proof import SourceProgress, presentation, render
+tools\render_house_video_proof.py:12: in <module>
+    import imageio_ffmpeg  # type: ignore[import-untyped]  # Upstream has no typing stubs.
+    ^^^^^^^^^^^^^^^^^^^^^
+E   ModuleNotFoundError: No module named 'imageio_ffmpeg'
+________ ERROR collecting tests/unit/test_limited_character_rig_v2.py _________
+ImportError while importing test module '<worktree>\backend\tests\unit\test_limited_character_rig_v2.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\..\..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\tests\unit\test_limited_character_rig_v2.py:13: in <module>
+    from tools.story_character_motion_proof import prepare_and_render
+tools\story_character_motion_proof.py:19: in <module>
+    import imageio.v2 as imageio
+E   ModuleNotFoundError: No module named 'imageio'
+__________ ERROR collecting tests/unit/test_semantic_authoring_v1.py __________
+ImportError while importing test module '<worktree>\backend\tests\unit\test_semantic_authoring_v1.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\..\..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\tests\unit\test_semantic_authoring_v1.py:10: in <module>
+    from sketch2life.infrastructure.media.semantic_authoring_v1 import compile_pack, route_authoring
+backend\src\sketch2life\infrastructure\media\semantic_authoring_v1.py:17: in <module>
+    from sketch2life.infrastructure.media.semantic_drawing_engine_v2 import (
+backend\src\sketch2life\infrastructure\media\semantic_drawing_engine_v2.py:24: in <module>
+    from sketch2life.infrastructure.media.whiteboard_renderer_v2 import _partial_points
+backend\src\sketch2life\infrastructure\media\whiteboard_renderer_v2.py:13: in <module>
+    import imageio.v2 as imageio
+E   ModuleNotFoundError: No module named 'imageio'
+_______ ERROR collecting tests/unit/test_semantic_drawing_engine_v2.py ________
+ImportError while importing test module '<worktree>\backend\tests\unit\test_semantic_drawing_engine_v2.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\..\..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\tests\unit\test_semantic_drawing_engine_v2.py:6: in <module>
+    from sketch2life.infrastructure.media.semantic_drawing_engine_v2 import (
+backend\src\sketch2life\infrastructure\media\semantic_drawing_engine_v2.py:24: in <module>
+    from sketch2life.infrastructure.media.whiteboard_renderer_v2 import _partial_points
+backend\src\sketch2life\infrastructure\media\whiteboard_renderer_v2.py:13: in <module>
+    import imageio.v2 as imageio
+E   ModuleNotFoundError: No module named 'imageio'
+________ ERROR collecting tests/unit/test_whiteboard_v2_complexity.py _________
+ImportError while importing test module '<worktree>\backend\tests\unit\test_whiteboard_v2_complexity.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\..\..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\tests\unit\test_whiteboard_v2_complexity.py:24: in <module>
+    from sketch2life.infrastructure.media.whiteboard_renderer_v2 import _draw_path, render_scene_pilot
+backend\src\sketch2life\infrastructure\media\whiteboard_renderer_v2.py:13: in <module>
+    import imageio.v2 as imageio
+E   ModuleNotFoundError: No module named 'imageio'
+________ ERROR collecting tests/unit/test_whiteboard_v2_pencil_pass.py ________
+ImportError while importing test module '<worktree>\backend\tests\unit\test_whiteboard_v2_pencil_pass.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\..\..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\tests\unit\test_whiteboard_v2_pencil_pass.py:20: in <module>
+    from sketch2life.infrastructure.media.whiteboard_renderer_v2 import _draw_path, _frame
+backend\src\sketch2life\infrastructure\media\whiteboard_renderer_v2.py:13: in <module>
+    import imageio.v2 as imageio
+E   ModuleNotFoundError: No module named 'imageio'
+______ ERROR collecting tests/unit/test_whiteboard_v2_schedule_debug.py _______
+ImportError while importing test module '<worktree>\backend\tests\unit\test_whiteboard_v2_schedule_debug.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\..\..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\tests\unit\test_whiteboard_v2_schedule_debug.py:18: in <module>
+    from sketch2life.infrastructure.media.whiteboard_renderer_v2 import (
+backend\src\sketch2life\infrastructure\media\whiteboard_renderer_v2.py:13: in <module>
+    import imageio.v2 as imageio
+E   ModuleNotFoundError: No module named 'imageio'
+________ ERROR collecting tests/unit/test_whiteboard_v2_visual_pass.py ________
+ImportError while importing test module '<worktree>\backend\tests\unit\test_whiteboard_v2_visual_pass.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\..\..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\tests\unit\test_whiteboard_v2_visual_pass.py:25: in <module>
+    from sketch2life.infrastructure.media.whiteboard_renderer_v2 import _draw_path, _frame
+backend\src\sketch2life\infrastructure\media\whiteboard_renderer_v2.py:13: in <module>
+    import imageio.v2 as imageio
+E   ModuleNotFoundError: No module named 'imageio'
+=========================== short test summary info ===========================
+ERROR backend\tests\unit\test_butterfly_candidate_refinement.py
+ERROR backend\tests\unit\test_butterfly_video_proof.py
+ERROR backend\tests\unit\test_house_video_proof.py
+ERROR backend\tests\unit\test_limited_character_rig_v2.py
+ERROR backend\tests\unit\test_semantic_authoring_v1.py
+ERROR backend\tests\unit\test_semantic_drawing_engine_v2.py
+ERROR backend\tests\unit\test_whiteboard_v2_complexity.py
+ERROR backend\tests\unit\test_whiteboard_v2_pencil_pass.py
+ERROR backend\tests\unit\test_whiteboard_v2_schedule_debug.py
+ERROR backend\tests\unit\test_whiteboard_v2_visual_pass.py
+!!!!!!!!!!!!!!!!!! Interrupted: 10 errors during collection !!!!!!!!!!!!!!!!!!!

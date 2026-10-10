@@ -1,0 +1,11 @@
+{
+  "command": [
+    "node",
+    "scripts/validate-ui-copy.mjs"
+  ],
+  "cwd": "<worktree>\\apps\\ui-mobile",
+  "started_at_utc": "2026-10-10T13:09:13.471009+00:00",
+  "finished_at_utc": "2026-10-10T13:09:13.535284+00:00",
+  "exit_code": 0,
+  "status": "PASS"
+}

@@ -1,0 +1,21 @@
+Starting Metro Bundler
+warning: Bundler cache is empty, rebuilding (this may take a minute)
+| (node:35348) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (Use `node --trace-warnings ...` to show where the warning was created)
+● Validation Warning:
+
+  Unknown option "watcher.unstable_workerThreads" with value false was found.
+  This is probably a typing mistake. Fixing it will remove this message.
+
+Invariant Violation: Expected symlink target to be populated.
+Invariant Violation: Expected symlink target to be populated.
+    at invariant (<owner-local>\node_modules\.pnpm\invariant@2.2.4\node_modules\invariant\invariant.js:40:15)
+    at TreeFS._resolveSymlinkTargetToNormalPath (<owner-local>\node_modules\.pnpm\metro-file-map@0.81.5_supports-color@8.1.1\node_modules\metro-file-map\src\lib\TreeFS.js:784:28)
+    at TreeFS._lookupByNormalPath (<owner-local>\node_modules\.pnpm\metro-file-map@0.81.5_supports-color@8.1.1\node_modules\metro-file-map\src\lib\TreeFS.js:422:42)
+    at TreeFS.lookup (<owner-local>\node_modules\.pnpm\metro-file-map@0.81.5_supports-color@8.1.1\node_modules\metro-file-map\src\lib\TreeFS.js:149:25)
+    at Object.fileSystemLookup (<owner-local>\node_modules\.pnpm\metro@0.81.5_supports-color@8.1.1\node_modules\metro\src\node-haste\DependencyGraph.js:103:39)
+    at resolveSourceFileForExt (<owner-local>\node_modules\.pnpm\metro-resolver@0.81.5\node_modules\metro-resolver\src\resolve.js:490:32)
+    at resolveSourceFileForAllExts (<owner-local>\node_modules\.pnpm\metro-resolver@0.81.5\node_modules\metro-resolver\src\resolve.js:476:20)
+    at resolveSourceFile (<owner-local>\node_modules\.pnpm\metro-resolver@0.81.5\node_modules\metro-resolver\src\resolve.js:448:18)
+    at resolveFile (<owner-local>\node_modules\.pnpm\metro-resolver@0.81.5\node_modules\metro-resolver\src\resolve.js:431:32)
+    at resolveModulePath (<owner-local>\node_modules\.pnpm\metro-resolver@0.81.5\node_modules\metro-resolver\src\resolve.js:262:7)

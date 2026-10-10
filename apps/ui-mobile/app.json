@@ -2,6 +2,7 @@
   "expo": {
     "name": "Sketch2Life",
     "slug": "sketch2life",
+    "description": "Sketch2Life AI-powered Montessori learning companion app for children.",
     "version": "1.0.0",
     "orientation": "default",
     "icon": "./assets/images/icon_butterfly.png",

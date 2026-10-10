@@ -1,0 +1,14 @@
+{
+  "command": [
+    "node",
+    "packages/art-renderer/node_modules/vitest/vitest.mjs",
+    "run",
+    "--root",
+    "packages/art-renderer"
+  ],
+  "cwd": "<worktree>",
+  "started_at_utc": "2026-10-10T13:07:54.119460+00:00",
+  "finished_at_utc": "2026-10-10T13:08:00.803742+00:00",
+  "exit_code": 0,
+  "status": "PASS"
+}

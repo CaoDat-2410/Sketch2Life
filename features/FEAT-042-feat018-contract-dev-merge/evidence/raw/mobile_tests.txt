@@ -1,0 +1,71 @@
+
+ RUN  v3.2.7 <worktree>
+
+ ❯ apps/ui-mobile/tests/mainFlowSafety.test.mjs (19 tests | 3 failed) 11ms
+   ✓ main-flow synchronous request guard > allows one in-flight request and releases for a later retry 1ms
+   ✓ drawing upload metadata > normalizes supported image metadata 1ms
+   ✓ drawing upload metadata > normalizes supported image metadata 0ms
+   ✓ drawing upload metadata > normalizes supported image metadata 0ms
+   ✓ drawing upload metadata > normalizes supported image metadata 0ms
+   ✓ drawing upload metadata > fails closed for unsupported or conflicting metadata 0ms
+   ✓ drawing upload metadata > fails closed for unsupported or conflicting metadata 0ms
+   ✓ drawing upload metadata > fails closed for unsupported or conflicting metadata 0ms
+   ✓ drawing upload metadata > fails closed for unsupported or conflicting metadata 0ms
+   ✓ drawing upload metadata > fails closed for unsupported or conflicting metadata 0ms
+   ✓ drawing upload metadata > fails closed for unsupported or conflicting metadata 0ms
+   ✓ bounded image intake metadata > recognizes allowed static formats and treats picker conflicts/animations explicitly 1ms
+   ✓ bounded image intake metadata > normalizes common 12 MP photos within a bounded output and rejects unsafe dimensions 1ms
+   ✓ narration preflight > keeps invalid input outside the request lock and supports a corrected retry 0ms
+   ✓ narration preflight > requires uploaded audio metadata before creating an audio request 0ms
+   ✓ feedback contract mapping and workflow integration > uses exactly the observation values accepted by FeedbackV1 0ms
+   × feedback contract mapping and workflow integration > clears stale session inputs and keeps ordinary gated screens protected 4ms
+     → ENOENT: no such file or directory, open '<owner-local>\.codex\worktrees\apps\ui-mobile\src\context\AppContext.tsx'
+   × feedback contract mapping and workflow integration > serializes each session mutation and validates narration before locking 0ms
+     → ENOENT: no such file or directory, open '<owner-local>\.codex\worktrees\apps\ui-mobile\src\context\AppContext.tsx'
+   × feedback contract mapping and workflow integration > keeps image picking mutually exclusive with uploads and has one recording clock 1ms
+     → ENOENT: no such file or directory, open '<owner-local>\.codex\worktrees\apps\ui-mobile\src\context\AppContext.tsx'
+ ✓ apps/ui-mobile/tests/apiRetryIdentity.test.mjs (3 tests) 8ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  apps/ui-mobile/tests/mainFlowSafety.test.mjs > feedback contract mapping and workflow integration > clears stale session inputs and keeps ordinary gated screens protected
+Error: ENOENT: no such file or directory, open '<owner-local>\.codex\worktrees\apps\ui-mobile\src\context\AppContext.tsx'
+ ❯ apps/ui-mobile/tests/mainFlowSafety.test.mjs:110:33
+    108|   it('clears stale session inputs and keeps ordinary gated screens pro…
+    109|     const root = resolve(process.cwd(), '../../');
+    110|     const context = readFileSync(resolve(root, 'apps/ui-mobile/src/con…
+       |                                 ^
+    111|     const screens = readFileSync(resolve(root, 'apps/ui-mobile/src/scr…
+    112|     const shell = readFileSync(resolve(root, 'apps/ui-mobile/BaoApp.ts…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  apps/ui-mobile/tests/mainFlowSafety.test.mjs > feedback contract mapping and workflow integration > serializes each session mutation and validates narration before locking
+Error: ENOENT: no such file or directory, open '<owner-local>\.codex\worktrees\apps\ui-mobile\src\context\AppContext.tsx'
+ ❯ apps/ui-mobile/tests/mainFlowSafety.test.mjs:128:33
+    126|   it('serializes each session mutation and validates narration before …
+    127|     const root = resolve(process.cwd(), '../../');
+    128|     const context = readFileSync(resolve(root, 'apps/ui-mobile/src/con…
+       |                                 ^
+    129|     const names = [
+    130|       'beginWorkflow',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  apps/ui-mobile/tests/mainFlowSafety.test.mjs > feedback contract mapping and workflow integration > keeps image picking mutually exclusive with uploads and has one recording clock
+Error: ENOENT: no such file or directory, open '<owner-local>\.codex\worktrees\apps\ui-mobile\src\context\AppContext.tsx'
+ ❯ apps/ui-mobile/tests/mainFlowSafety.test.mjs:160:33
+    158|   it('keeps image picking mutually exclusive with uploads and has one …
+    159|     const root = resolve(process.cwd(), '../../');
+    160|     const context = readFileSync(resolve(root, 'apps/ui-mobile/src/con…
+       |                                 ^
+    161|     const voiceScreens = readFileSync(resolve(root, 'apps/ui-mobile/sr…
+    162|     const voiceScreen = voiceScreens.slice(
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  3 failed | 19 passed (22)
+   Start at  20:08:49
+   Duration  626ms (transform 162ms, setup 0ms, collect 219ms, tests 19ms, environment 0ms, prepare 319ms)

@@ -1,6 +1,7 @@
 """FastAPI composition root."""
 
 import logging
+import os
 import re
 from pathlib import Path
 
@@ -21,7 +22,15 @@ from sketch2life.application.services.image_admission import Feat018ImageAdmissi
 from sketch2life.application.services.live_image_demo import LiveImageDemoService
 from sketch2life.application.services.p1_experience import P1ExperienceCompiler
 from sketch2life.application.services.pixi_topic_asset_candidates import load_topic_asset_catalog
+from sketch2life.application.services.story_video_admission import StoryGateEvidence
+from sketch2life.application.services.story_video_job import StoryVideoJobService
+from sketch2life.application.services.story_video_pipeline import StoryVideoPipeline
 from sketch2life.application.services.supervised_flow import SupervisedFlowService
+from sketch2life.application.services.whiteboard_video_job import (
+    UnconfiguredWhiteboardVideoPipeline,
+    WhiteboardVideoJobService,
+)
+from sketch2life.application.services.whiteboard_video_pipeline import WhiteboardVideoPipeline
 from sketch2life.contracts.schemas.asr import AsrProfileId
 from sketch2life.contracts.schemas.mobile_workflow import (
     MobileWorkflowResultV1,
@@ -46,6 +55,13 @@ from sketch2life.infrastructure.ai.lightning_sam21 import LightningSam21Segmenta
 from sketch2life.infrastructure.ai.lightning_scene_localization import (
     LightningSceneLocalizationAdapter,
 )
+from sketch2life.infrastructure.ai.lightning_story_video import (
+    LightningIllustrationProvider,
+    LightningMotionProvider,
+    LightningNarrationProvider,
+    LightningStoryVideoAdapter,
+    LightningVideoAssembler,
+)
 from sketch2life.infrastructure.ai.lightning_vision_v2 import LightningVisionV2Adapter
 from sketch2life.infrastructure.ai.pixi_subject_crop import build_pixi_subject_crop
 from sketch2life.infrastructure.catalog.activity_semantics import load_activity_semantic_catalog
@@ -59,6 +75,14 @@ from sketch2life.infrastructure.catalog.pixi_show_assets import (
 )
 from sketch2life.infrastructure.catalog.workflow_metadata import FileWorkflowCatalogMetadata
 from sketch2life.infrastructure.config.settings import Settings, get_settings
+from sketch2life.infrastructure.media.whiteboard_pipeline_factory import (
+    build_lightning_whiteboard_mvp_pipeline,
+)
+from sketch2life.infrastructure.media.whiteboard_runtime import (
+    EspeakVietnameseTts,
+    FfmpegWhiteboardEncoder,
+    WhiteboardLearningThreadScripts,
+)
 from sketch2life.infrastructure.media_validation.av_image_decoder import AvImageDecoder
 from sketch2life.infrastructure.storage.in_memory import (
     InMemoryArtifactStore,
@@ -84,12 +108,17 @@ from sketch2life.interfaces.http.routers.child_preferences import (
 from sketch2life.interfaces.http.routers.health import router as health_router
 from sketch2life.interfaces.http.routers.images import router as images_router
 from sketch2life.interfaces.http.routers.sessions import router as sessions_router
+from sketch2life.interfaces.http.routers.story_video import router as story_video_router
 from sketch2life.interfaces.http.routers.supervised_flow import (
     renderer_source_router,
 )
 from sketch2life.interfaces.http.routers.supervised_flow import (
     router as supervised_flow_router,
 )
+from sketch2life.interfaces.http.routers.whiteboard_storyboard import (
+    router as whiteboard_storyboard_router,
+)
+from sketch2life.interfaces.http.routers.whiteboard_video import router as whiteboard_video_router
 
 _LOGGER = logging.getLogger("sketch2life.api")
 _SAFE_ID = re.compile(r"^[A-Za-z0-9._:-]{1,120}$")
@@ -130,6 +159,9 @@ def create_app(
     activity_ranker: ActivityRankerPort | None = None,
     pixi_show_planner: PixiShowPlannerPort | None = None,
     pixi_show_asset_service: PixiShowAssetService | None = None,
+    whiteboard_video_job_service: WhiteboardVideoJobService | None = None,
+    whiteboard_video_pipeline: WhiteboardVideoPipeline | None = None,
+    story_video_job_service: StoryVideoJobService | None = None,
 ) -> FastAPI:
     """Create the local image-only API composition root with ephemeral adapters."""
     application = FastAPI(
@@ -281,6 +313,33 @@ def create_app(
                 scene_localizer=scene_localizer,
                 asr_profile_id=AsrProfileId(settings.lightning_asr_profile),
             )
+        if whiteboard_video_pipeline is None:
+            # Use the exact store owned by the upload service.  This keeps the
+            # admitted source image visible to the background video job even
+            # when the service is supplied by an alternate composition path.
+            source_artifacts = (
+                live_image_demo_service.artifact_store
+                if live_image_demo_service is not None
+                else artifacts
+            )
+            whiteboard_video_pipeline = _configured_whiteboard_pipeline(
+                settings, source_artifacts
+            )
+        if story_video_job_service is None:
+            story_source_artifacts = (
+                live_image_demo_service.artifact_store
+                if live_image_demo_service is not None
+                else artifacts
+            )
+            story_pipeline = _configured_story_video_pipeline(settings, story_source_artifacts)
+            story_video_job_service = StoryVideoJobService(
+                pipeline=story_pipeline,
+                session_snapshot=session_service.snapshot,
+                gate_evidence=lambda session_id: StoryGateEvidence.from_workflow(
+                    session_service.workflow_record(session_id)
+                ),
+                source_artifacts=story_source_artifacts,
+            )
         if supervised_flow_service is None:
             repo_root = Path(__file__).resolve().parents[5]
             p1_library = load_p1_template_library(
@@ -400,12 +459,21 @@ def create_app(
     application.state.activity_ranker = activity_ranker
     application.state.pixi_show_planner = pixi_show_planner
     application.state.pixi_show_asset_service = pixi_show_asset_service
+    if whiteboard_video_job_service is None:
+        whiteboard_video_job_service = WhiteboardVideoJobService(
+            pipeline=whiteboard_video_pipeline or UnconfiguredWhiteboardVideoPipeline()
+        )
+    application.state.whiteboard_video_job_service = whiteboard_video_job_service
+    application.state.story_video_job_service = story_video_job_service or StoryVideoJobService()
     application.include_router(health_router)
     application.include_router(child_preferences_router)
     application.include_router(sessions_router)
     application.include_router(images_router)
     application.include_router(supervised_flow_router)
     application.include_router(renderer_source_router)
+    application.include_router(whiteboard_video_router)
+    application.include_router(whiteboard_storyboard_router)
+    application.include_router(story_video_router)
     renderer_dist = Path(__file__).resolve().parents[5] / "packages" / "art-renderer" / "dist-demo"
     if renderer_dist.is_dir():
         application.mount(
@@ -517,6 +585,91 @@ def _configured_lightning_vision(
         artifact_loader=load_artifact,
         endpoint_path=settings.lightning_vision_v2_path,
     )
+
+
+def _configured_story_video_pipeline(
+    settings: Settings, artifacts: InMemoryArtifactStore
+) -> StoryVideoPipeline | None:
+    if settings.env == "test" or settings.ai_provider != "lightning_dev":
+        return None
+    if not settings.lightning_ai_base_url:
+        return None
+    try:
+        token = (
+            read_secret_file(settings.lightning_ai_token_file)
+            if settings.lightning_ai_token_file is not None
+            else ""
+        )
+        transport = UrllibJsonTransport(
+            base_url=settings.lightning_ai_base_url,
+            token=token,
+            request_timeout_seconds=settings.story_video_request_timeout_seconds,
+        )
+    except (OSError, ValueError):
+        return None
+
+    def load_artifact(artifact_ref: str) -> bytes:
+        stored = artifacts.get(artifact_ref)
+        if stored is None:
+            raise KeyError("story video source artifact is unavailable")
+        return stored[1]
+
+    adapter = LightningStoryVideoAdapter(transport=transport, artifact_loader=load_artifact)
+    return StoryVideoPipeline(
+        narration=LightningNarrationProvider(adapter),
+        illustrations=LightningIllustrationProvider(adapter),
+        motion=LightningMotionProvider(adapter),
+        assembler=LightningVideoAssembler(adapter),
+        motion_model_profile_ref=os.getenv(
+            "SKETCH2LIFE_STORY_MOTION_PROVIDER", "whiteboard-stroke-v1"
+        ),
+        story_render_v2_enabled=settings.story_render_v2_enabled,
+    )
+
+
+def _configured_whiteboard_pipeline(
+    settings: Settings, artifacts: InMemoryArtifactStore
+) -> WhiteboardVideoPipeline | None:
+    if (
+        settings.env == "test"
+        or not settings.whiteboard_video_enabled
+        or settings.ai_provider != "lightning_dev"
+        or not settings.lightning_ai_base_url
+        or settings.whiteboard_learning_thread_fixture is None
+    ):
+        return None
+    try:
+        token = (
+            read_secret_file(settings.lightning_ai_token_file)
+            if settings.lightning_ai_token_file is not None
+            else ""
+        )
+        transport = UrllibJsonTransport(
+            base_url=settings.lightning_ai_base_url,
+            token=token,
+            request_timeout_seconds=settings.ai_request_timeout_seconds,
+        )
+        script_path = settings.whiteboard_learning_thread_fixture
+        if not script_path.is_absolute():
+            script_path = Path(__file__).resolve().parents[4] / script_path
+        scripts = WhiteboardLearningThreadScripts(script_path)
+        tts = EspeakVietnameseTts(settings.whiteboard_tts_executable)
+        encoder = FfmpegWhiteboardEncoder(settings.whiteboard_ffmpeg_executable)
+        return build_lightning_whiteboard_mvp_pipeline(
+            transport=transport,
+            artifacts=artifacts,
+            artifact_root=settings.whiteboard_video_artifact_root,
+            script_for=scripts.script_for,
+            synthesize_tts=tts.synthesize,
+            encode_mp4=encoder.encode,
+            inspect_mp4=encoder.inspect,
+            localization_path=settings.lightning_whiteboard_localization_path,
+            segmentation_path=settings.lightning_whiteboard_segmentation_path,
+            max_size_bytes=settings.whiteboard_video_max_size_bytes,
+        )
+    except (OSError, RuntimeError, ValueError):
+        _LOGGER.exception("whiteboard_pipeline_configuration_failed")
+        return None
 
 
 def _configured_lightning_asr(

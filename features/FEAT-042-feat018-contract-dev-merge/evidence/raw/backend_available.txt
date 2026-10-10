@@ -1,0 +1,142 @@
+.....................................................................EEE [  3%]
+EEE...................EEEEE............................................. [  7%]
+.................................EEEEEEEEEEEEEEEEEEEEEE.EE...EEE.E.E.... [ 10%]
+........E.....EEEEEEEEEEEEEEEEEEEEEEE.EEEEEEEEEEEEEEEEEEEE.............. [ 14%]
+............................EEEEE............E.E..........E.......EEEEEE [ 17%]
+EEEEEEE.........EEEEE...E.............................................EE [ 21%]
+E................F.Es...EEEEE..EEEE.EEEE...EEEEEE.EE.EEEEE.............. [ 24%]
+........................................................................ [ 28%]
+........................................................................ [ 31%]
+........................................................................ [ 35%]
+.................................EE............................EEEEEE.EE [ 39%]
+EE.................................................E.EEEEEEEEEEEEEEEEEEE [ 42%]
+EEEEEEEEEEEEEEEEEEEEEEEEEE.EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE...EE..... [ 46%]
+EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE..EEEEEE.....E.E........... [ 49%]
+..............................EEEEE....................EEE............EE [ 53%]
+EEEEEEEE........................E....................................... [ 56%]
+.........................EEEEEEEEEEEEEEEEE..............EEE.EEEEEEEEEEEE [ 60%]
+EEEEEEEEEEEEEEEEEEEEEEEEEEEE...............EEEEEEEEEEEEE.EEEEEE......... [ 63%]
+EEEEEEEEEEEEEE.E.............................EE.EE.E.E.................. [ 67%]
+......................EEEEEEEE..EEEEEEEEEEEEEEEEEEEEEEEEEE.............. [ 71%]
+........................................................................ [ 74%]
+..............................sssss.....................EEEEEEEEEEEEEEEE [ 78%]
+EE.EEEEEEE.EEEEEEEEEEEEEEEEEEEE..EEEEEEEEEEEEE.....................EEEEE [ 81%]
+EEEEEEE...EEE.EEEEE.EEEEEEEEEEEEEEEEEEE......EEEEEEE.EEEEEEEEE......EEEE [ 85%]
+EEEEEEEEEEEE.EEEEEE.EEEE....................EE......EEEEEEE...EEE....... [ 88%]
+E....................................................................... [ 92%]
+........................................................................ [ 95%]
+...................................................................EEE.. [ 99%]
+..........                                                               [100%]
+=================================== ERRORS ====================================
+_ ERROR at setup of test_verify_fixture_payloads_accepts_matching_hashes_and_duration _
+
+fixturedef = <FixtureDef argname='tmp_path' scope='function' baseid=''>
+request = <SubRequest 'tmp_path' for <Function test_verify_fixture_payloads_accepts_matching_hashes_and_duration>>
+
+    @pytest.hookimpl(wrapper=True)
+    def pytest_fixture_setup(fixturedef: FixtureDef, request) -> object | None:
+        if (
+            fixturedef.argname == "event_loop_policy"
+            and fixturedef.func.__module__ != __name__
+        ):
+            warnings.warn(
+                PytestDeprecationWarning(_EVENT_LOOP_POLICY_FIXTURE_DEPRECATION_WARNING),
+            )
+        asyncio_mode = _get_asyncio_mode(request.config)
+        if not _is_asyncio_fixture_function(fixturedef.func):
+            if asyncio_mode == Mode.STRICT:
+                # Ignore async fixtures without explicit asyncio mark in strict mode
+                # This applies to pytest_trio fixtures, for example
+>               return (yield)
+                        ^^^^^
+
+<original-workspace>\backend\.venv\Lib\site-packages\pytest_asyncio\plugin.py:924:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = WindowsPath('<worktree>/.tmp/feat042-pytest-available')
+mode = 448, parents = False, exist_ok = False
+
+    def mkdir(self, mode=0o777, parents=False, exist_ok=False):
+        """
+        Create a new directory at this given path.
+        """
+        try:
+>           os.mkdir(self, mode)
+E           FileNotFoundError: [WinError 3] The system cannot find the path specified: '<worktree>\\.tmp\\feat042-pytest-available'
+
+..\..\..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\pathlib.py:1311: FileNotFoundError
+_ ERROR at setup of test_verify_fixture_payloads_rejects_a_tampered_audio_file _
+
+fixturedef = <FixtureDef argname='tmp_path' scope='function' baseid=''>
+request = <SubRequest 'tmp_path' for <Function test_verify_fixture_payloads_rejects_a_tampered_audio_file>>
+
+    @pytest.hookimpl(wrapper=True)
+    def pytest_fixture_setup(fixturedef: FixtureDef, request) -> object | None:
+        if (
+            fixturedef.argname == "event_loop_policy"
+            and fixturedef.func.__module__ != __name__
+        ):
+            warnings.warn(
+                PytestDeprecationWarning(_EVENT_LOOP_POLICY_FIXTURE_DEPRECATION_WARNING),
+            )
+        asyncio_mode = _get_asyncio_mode(request.config)
+        if not _is_asyncio_fixture_function(fixturedef.func):
+            if asyncio_mode == Mode.STRICT:
+                # Ignore async fixtures without explicit asyncio mark in strict mode
+                # This applies to pytest_trio fixtures, for example
+>               return (yield)
+                        ^^^^^
+
+<original-workspace>\backend\.venv\Lib\site-packages\pytest_asyncio\plugin.py:924:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = WindowsPath('<worktree>/.tmp/feat042-pytest-available')
+mode = 448, parents = False, exist_ok = False
+
+    def mkdir(self, mode=0o777, parents=False, exist_ok=False):
+        """
+        Create a new directory at this given path.
+        """
+        try:
+>           os.mkdir(self, mode)
+E           FileNotFoundError: [WinError 3] The system cannot find the path specified: '<worktree>\\.tmp\\feat042-pytest-available'
+
+..\..\..\..\.cache\codex-runtimes\codex-primary-runtime\dependenc
+[Repeated tmp_path setup errors omitted from published excerpt; full redacted output preserved at feature evidence/local/backend_available_initial_full.txt.]
+================================== FAILURES ===================================
+_____ test_preflight_detects_unusable_whiteboard_encoder_before_paid_work _____
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000020F7F118D10>
+
+    def test_preflight_detects_unusable_whiteboard_encoder_before_paid_work(monkeypatch) -> None:
+        import tools.lightning_whiteboard_provider as provider
+
+        monkeypatch.setenv("SKETCH2LIFE_STORY_MOTION_PROVIDER", "whiteboard-stroke-v1")
+
+        def missing_encoder() -> None:
+            raise RuntimeError("libx264 unavailable")
+
+        monkeypatch.setattr(provider, "_probe_whiteboard_encoder", missing_encoder)
+        result = provider.story_video_preflight()
+
+>       assert result["checks"]["whiteboard_renderer"]["ready"] is True
+E       assert False is True
+
+backend\tests\unit\test_lightning_whiteboard_provider_parser.py:45: AssertionError
+============================== warnings summary ===============================
+tests/unit/test_part_masks.py::test_visible_disjoint_components_can_be_proposed_as_butterfly_parts
+  <worktree>\backend\tests\unit\test_part_masks.py:59: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+    parent_pixels = list(parent.getdata())
+
+tests/unit/test_part_masks.py::test_visible_disjoint_components_can_be_proposed_as_butterfly_parts
+tests/unit/test_part_masks.py::test_visible_disjoint_components_can_be_proposed_as_butterfly_parts
+tests/unit/test_part_masks.py::test_visible_disjoint_components_can_be_proposed_as_butterfly_parts
+  <worktree>\backend\tests\unit\test_part_masks.py:62: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+    for index, is_part in enumerate(part_image.getdata()):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED backend\tests\unit\test_lightning_whiteboard_provider_parser.py::test_preflight_detects_unusable_whiteboard_encoder_before_paid_work
+ERROR backend\tests\unit\test_asr_round1_runner.py::test_verify_fixture_payloads_accepts_matching_hashes_and_duration
+ERROR backend\tests\unit\test_asr_round1_runner.py::test_verify_fixture_payloads_rejects_a_tampered_audio_file
+ERROR backend\tests\unit\test_asr_round1_runner.py::test_verify_fixture_payloads_rejects_a_tampered_tra

@@ -1,0 +1,648 @@
+........................................................................ [  3%]
+........................................................................ [  7%]
+........................................................................ [ 10%]
+........................................................................ [ 14%]
+........................................................................ [ 17%]
+........................................................................ [ 21%]
+....................s..........ss....................................... [ 24%]
+........................................................................ [ 28%]
+........................................................................ [ 31%]
+........................................................................ [ 35%]
+........................................................................ [ 39%]
+........................................................................ [ 42%]
+........................................................................ [ 46%]
+........................................................................ [ 49%]
+........................................................................ [ 53%]
+....FF..........................s....................................... [ 56%]
+........................................................................ [ 60%]
+........................................................................ [ 63%]
+........................................................................ [ 67%]
+........................................................................ [ 71%]
+........................................................................ [ 74%]
+..............................sssss..................................... [ 78%]
+........................................................................ [ 81%]
+..FFFFF...FFF.F.....................................................sss. [ 85%]
+ssssFsssssss..................................................F......... [ 88%]
+s....................................................................... [ 92%]
+........................................................................ [ 95%]
+........................................................................ [ 99%]
+..........                                                               [100%]
+================================== FAILURES ===================================
+_______ test_generated_non_child_fixture_is_valid_and_never_overwrites ________
+
+tmp_path = WindowsPath('<worktree>/.tmp/feat042-pytest-final/test_generated_non_child_fixtu0')
+
+    def test_generated_non_child_fixture_is_valid_and_never_overwrites(tmp_path) -> None:
+        directory = tmp_path / "sample"
+>       fixture = create_fixture(directory)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+backend\tests\unit\test_story_video_media_smoke.py:220:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+directory = WindowsPath('<worktree>/.tmp/feat042-pytest-final/test_generated_non_child_fixtu0/sample')
+
+    def create_fixture(directory: Path, *, preset: str = "house") -> Path:
+        """Write only two new local files and return the fixture JSON path."""
+
+        from PIL import Image, ImageDraw
+
+        directory = directory.resolve()
+        if preset not in {"house", "group"}:
+            raise ValueError("preset must be house or group")
+        repository_root = Path(__file__).resolve().parents[1]
+        if directory.is_relative_to(repository_root):
+>           raise ValueError("output directory must be outside the Git repository")
+E           ValueError: output directory must be outside the Git repository
+
+tools\create_story_video_media_fixture.py:172: ValueError
+_____ test_group_fixture_exercises_three_figures_and_distinct_scene_crops _____
+
+tmp_path = WindowsPath('<worktree>/.tmp/feat042-pytest-final/test_group_fixture_exercises_t0')
+
+    def test_group_fixture_exercises_three_figures_and_distinct_scene_crops(tmp_path) -> None:
+        Image = pytest.importorskip("PIL.Image")
+        directory = tmp_path / "generic-three-people"
+>       fixture = create_fixture(directory, preset="group")
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+backend\tests\unit\test_story_video_media_smoke.py:238:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+directory = WindowsPath('<worktree>/.tmp/feat042-pytest-final/test_group_fixture_exercises_t0/generic-three-people')
+
+    def create_fixture(directory: Path, *, preset: str = "house") -> Path:
+        """Write only two new local files and return the fixture JSON path."""
+
+        from PIL import Image, ImageDraw
+
+        directory = directory.resolve()
+        if preset not in {"house", "group"}:
+            raise ValueError("preset must be house or group")
+        repository_root = Path(__file__).resolve().parents[1]
+        if directory.is_relative_to(repository_root):
+>           raise ValueError("output directory must be outside the Git repository")
+E           ValueError: output directory must be outside the Git repository
+
+tools\create_story_video_media_fixture.py:172: ValueError
+______________ test_schema_failures_cannot_produce_quality_ready ______________
+
+tmp_path = WindowsPath('<worktree>/.tmp/feat042-pytest-final/test_schema_failures_cannot_pr0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001F9024AD220>
+
+    def test_schema_failures_cannot_produce_quality_ready(
+        tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+>       pass_report, _, pass_root = _run_fake_pass(
+            tmp_path / "pass", monkeypatch, success_count=1
+        )
+
+<worktree>\backend\tests\unit\test_vision_v3_quality_benchmark.py:410:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+<worktree>\backend\tests\unit\test_vision_v3_quality_benchmark.py:273: in _run_fake_pass
+    report = run_v3_quality_pass(
+<worktree>\backend\src\sketch2life\benchmark\vision_v3_quality_benchmark.py:1287: in run_v3_quality_pass
+    return _run_verified_v3_quality_pass(
+<worktree>\backend\src\sketch2life\benchmark\vision_v3_quality_benchmark.py:1330: in _run_verified_v3_quality_pass
+    package = load_and_verify_v3_quality_fixture_package(fixture_root)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<worktree>\backend\src\sketch2life\benchmark\vision_v3_quality_benchmark.py:808: in load_and_verify_v3_quality_fixture_package
+    image_path = _require_relative_file(root, item.get("image_ref"), label="fixture.image_ref")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+root = WindowsPath('<worktree>/.tmp/feat042-pytest-final/test_schema_failures_cannot_pr0/pass/vision-v3-quality')
+reference = 'images/v3q-fixture-01.png'
+
+    def _require_relative_file(root: Path, reference: object, *, label: str) -> Path:
+        if (
+            not isinstance(reference, str)
+            or not reference
+            or _is_absolute_machine_path(Path(reference))
+        ):
+            raise V3QualityFixtureIntegrityError(f"Phase 8 {label} must be a relative file reference")
+        root_resolved = root.resolve()
+        resolved = (root / reference).resolve()
+        if resolved == root_resolved or root_resolved not in resolved.parents or not resolved.is_file():
+>           raise V3QualityFixtureIntegrityError(f"Phase 8 {label} must resolve inside the package")
+E           sketch2life.benchmark.vision_v3_quality_benchmark.V3QualityFixtureIntegrityError: Phase 8 fixture.image_ref must resolve inside the package
+
+<worktree>\backend\src\sketch2life\benchmark\vision_v3_quality_benchmark.py:520: V3QualityFixtureIntegrityError
+_____ test_forged_equal_experiment_identity_cannot_produce_quality_ready ______
+
+tmp_path = WindowsPath('<worktree>/.tmp/feat042-pytest-final/test_forged_equal_experiment_i0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001F9023AC8F0>
+
+    def test_forged_equal_experiment_identity_cannot_produce_quality_ready(
+        tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+>       pass_report, _, pass_root = _run_fake_pass(tmp_path / "pass", monkeypatch)
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+<worktree>\backend\tests\unit\test_vision_v3_quality_benchmark.py:447:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+<worktree>\backend\tests\unit\test_vision_v3_quality_benchmark.py:273: in _run_fake_pass
+    report = run_v3_quality_pass(
+<worktree>\backend\src\sketch2life\benchmark\vision_v3_quality_benchmark.py:1287: in run_v3_quality_pass
+    return _run_verified_v3_quality_pass(
+<worktree>\backend\src\sketch2life\benchmark\vision_v3_quality_benchmark.py:1330: in _run_verified_v3_quality_pass
+    package = load_and_verify_v3_quality_fixture_package(fixture_root)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<worktree>\backend\src\sketch2life\benchmark\vision_v3_quality_benchmark.py:808: in load_and_verify_v3_quality_fixture_package
+    image_path = _require_relative_file(root, item.get("image_ref"), label="fixture.image_ref")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+root = WindowsPath('<worktree>/.tmp/feat042-pytest-final/test_forged_equal_experiment_i0/pass/vision-v3-quality')
+reference = 'images/v3q-fixture-01.png'
+
+    def _require_relative_file(root: Path, reference: object, *, label: str) -> Path:
+        if (
+            not isinstance(reference, str)
+            or not reference
+            or _is_absolute_machine_path(Path(reference))
+        ):
+            raise V3QualityFixtureIntegrityError(f"Phase 8 {label} must be a relative file reference")
+        root_resolved = root.resolve()
+        resolved = (root / reference).resolve()
+        if resolved == root_resolved or root_resolved not in resolved.parents or not resolved.is_file():
+>           raise V3QualityFixtureIntegrityError(f"Phase 8 {label} must resolve inside the package")
+E           sketch2life.benchmark.vision_v3_quality_benchmark.V3QualityFixtureIntegrityError: Phase 8 fixture.image_ref must resolve inside the package
+
+<worktree>\backend\src\sketch2life\benchmark\vision_v3_quality_benchmark.py:520: V3QualityFixtureIntegrityError
+_ test_wrong_or_reordered_fixture_identity_cannot_produce_quality_ready[reordered] _
+
+tmp_path = WindowsPath('<worktree>/.tmp/feat042-pytest-final/test_wrong_or_reordered_fixtur0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001F9023ACA10>
+mutation = 'reordered'
+
+    @pytest.mark.parametrize("mutation", ["reordered", "wrong_hash"])
+    def test_wrong_or_reordered_fixture_identity_cannot_produce_quality_ready(
+        tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mutation: str
+    ) -> None:
+>       pass_report, _, pass_root = _run_fake_pass(tmp_path / "pass", monkeypatch)
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+<worktree>\backend\tests\unit\test_vision_v3_quality_benchmark.py:482:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+<worktree>\backend\tests\unit\test_vision_v3_quality_benchmark.py:273: in _run_fake_pass
+    report = run_v3_quality_pass(
+<worktree>\backend\src\sketch2life\benchmark\vision_v3_quality_benchmark.py:1287: in run_v3_quality_pass
+    return _run_verified_v3_quality_pass(
+<worktree>\backend\src\sketch2life\benchmark\vision_v3_quality_benchmark.py:1330: in _run_verified_v3_quality_pass
+    package = load_and_verify_v3_quality_fixture_package(fixture_root)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<worktree>\backend\src\sketch2life\benchmark\vision_v3_quality_benchmark.py:808: in load_and_verify_v3_quality_fixture_package
+    image_path = _require_relative_file(root, item.get("image_ref"), label="fixture.image_ref")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+root = WindowsPath('<worktree>/.tmp/feat042-pytest-final/test_wrong_or_reordered_fixtur0/pass/vision-v3-quality')
+reference = 'images/v3q-fixture-01.png'
+
+    def _require_relative_file(root: Path, reference: object, *, label: str) -> Path:
+        if (
+            not isinstance(reference, str)
+            or not reference
+            or _is_absolute_machine_path(Path(reference))
+        ):
+            raise V3QualityFixtureIntegrityError(f"Phase 8 {label} must be a relative file reference")
+        root_resolved = root.resolve()
+        resolved = (root / reference).resolve()
+        if resolved == root_resolved or root_resolved not in resolved.parents or not resolved.is_file():
+>           raise V3QualityFixtureIntegrityError(f"Phase 8 {label} must resolve inside the package")
+E           sketch2life.benchmark.vision_v3_quality_benchmark.V3QualityFixtureIntegrityError: Phase 8 fixture.image_ref must resolve inside the package
+
+<worktree>\backend\src\sketch2life\benchmark\vision_v3_quality_benchmark.py:520: V3QualityFixtureIntegrityError
+_ test_wrong_or_reordered_fixture_identity_cannot_produce_quality_ready[wrong_hash] _
+
+tmp_path = WindowsPath('<worktree>/.tmp/feat042-pytest-final/test_wrong_or_reordered_fixtur1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001F9024325D0>
+mutation = 'wrong_hash'
+
+    @pytest.mark.parametrize("mutation", ["reordered", "wrong_hash"])
+    def test_wrong_or_reordered_fixture_identity_cannot_produce_quality_ready(
+        tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mutation: str
+    ) -> None:
+>       pass_report, _, pass_root = _run_fake_pass(tmp_path / "pass", monkeypatch)
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+<worktree>\backend\tests\unit\test_vision_v3_quality_benchmark.py:482:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+<worktree>\backend\tests\unit\test_vision_v3_quality_benchmark.py:273: in _run_fake_pass
+    report = run_v3_quality_pass(
+<worktree>\backend\src\sketch2life\benchmark\vision_v3_quality_benchmark.py:1287: in run_v3_quality_pass
+    return _run_verified_v3_quality_pass(
+<worktree>\backend\src\sketch2life\benchmark\vision_v3_quality_benchmark.py:1330: in _run_verified_v3_quality_pass
+    package = load_and_verify_v3_quality_fixture_package(fixture_root)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<worktree>\backend\src\sketch2life\benchmark\vision_v3_quality_benchmark.py:808: in load_and_verify_v3_quality_fixture_package
+    image_path = _require_relative_file(root, item.get("image_ref"), label="fixture.image_ref")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+root = WindowsPath('<worktree>/.tmp/feat042-pytest-final/test_wrong_or_reordered_fixtur1/pass/vision-v3-quality')
+reference = 'images/v3q-fixture-01.png'
+
+    def _require_relative_file(root: Path, reference: object, *, label: str) -> Path:
+        if (
+            not isinstance(reference, str)
+            or not reference
+            or _is_absolute_machine_path(Path(reference))
+        ):
+            raise V3QualityFixtureIntegrityError(f"Phase 8 {label} must be a relative file reference")
+        root_resolved = root.resolve()
+        resolved = (root / reference).resolve()
+        if resolved == root_resolved or root_resolved not in resolved.parents or not resolved.is_file():
+>           raise V3QualityFixtureIntegrityError(f"Phase 8 {label} must resolve inside the package")
+E           sketch2life.benchmark.vision_v3_quality_benchmark.V3QualityFixtureIntegrityError: Phase 8 fixture.image_ref must resolve inside the package
+
+<worktree>\backend\src\sketch2life\benchmark\vision_v3_quality_benchmark.py:520: V3QualityFixtureIntegrityError
+__________ test_ambiguous_overprediction_fails_explicit_upper_bound ___________
+
+tmp_path = WindowsPath('<worktree>/.tmp/feat042-pytest-final/test_ambiguous_overprediction_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001F9026B05F0>
+
+    def test_ambiguous_overprediction_fails_explicit_upper_bound(
+        tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+>       pass_report, _, pass_root = _run_fake_pass(tmp_path / "pass", monkeypatch)
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+<worktree>\backend\tests\unit\test_vision_v3_quality_benchmark.py:511:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+<worktree>\backend\tests\unit\test_vision_v3_quality_benchmark.py:273: in _run_fake_pass
+    report = run_v3_quality_pass(
+<worktree>\backend\src\sketch2life\benchmark\vision_v3_quality_benchmark.py:1287: in run_v3_quality_pass
+    return _run_verified_v3_quality_pass(
+<worktree>\backend\src\sketch2life\benchmark\vision_v3_quality_benchmark.py:1330: in _run_verified_v3_quality_pass
+    package = load_and_verify_v3_quality_fixture_package(fixture_root)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<worktree>\backend\src\sketch2life\benchmark\vision_v3_quality_benchmark.py:808: in load_and_verify_v3_quality_fixture_package
+    image_path = _require_relative_file(root, item.get("image_ref"), label="fixture.image_ref")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+root = WindowsPath('<worktree>/.tmp/feat042-pytest-final/test_ambiguous_overprediction_0/pass/vision-v3-quality')
+reference = 'images/v3q-fixture-01.png'
+
+    def _require_relative_file(root: Path, reference: object, *, label: str) -> Path:
+        if (
+            not isinstance(reference, str)
+            or not reference
+            or _is_absolute_machine_path(Path(reference))
+        ):
+            raise V3QualityFixtureIntegrityError(f"Phase 8 {label} must be a relative file reference")
+        root_resolved = root.resolve()
+        resolved = (root / reference).resolve()
+        if resolved == root_resolved or root_resolved not in resolved.parents or not resolved.is_file():
+>           raise V3QualityFixtureIntegrityError(f"Phase 8 {label} must resolve inside the package")
+E           sketch2life.benchmark.vision_v3_quality_benchmark.V3QualityFixtureIntegrityError: Phase 8 fixture.image_ref must resolve inside the package
+
+<worktree>\backend\src\sketch2life\benchmark\vision_v3_quality_benchmark.py:520: V3QualityFixtureIntegrityError
+______ test_fake_quality_pass_is_cleaned_and_serializes_only_safe_values ______
+
+tmp_path = WindowsPath('<worktree>/.tmp/feat042-pytest-final/test_fake_quality_pass_is_clea0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001F9024B8B90>
+
+    def test_fake_quality_pass_is_cleaned_and_serializes_only_safe_values(
+        tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+>       report, factory, _ = _run_fake_pass(tmp_path, monkeypatch)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+<worktree>\backend\tests\unit\test_vision_v3_quality_benchmark.py:670:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+<worktree>\backend\tests\unit\test_vision_v3_quality_benchmark.py:273: in _run_fake_pass
+    report = run_v3_quality_pass(
+<worktree>\backend\src\sketch2life\benchmark\vision_v3_quality_benchmark.py:1287: in run_v3_quality_pass
+    return _run_verified_v3_quality_pass(
+<worktree>\backend\src\sketch2life\benchmark\vision_v3_quality_benchmark.py:1330: in _run_verified_v3_quality_pass
+    package = load_and_verify_v3_quality_fixture_package(fixture_root)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<worktree>\backend\src\sketch2life\benchmark\vision_v3_quality_benchmark.py:808: in load_and_verify_v3_quality_fixture_package
+    image_path = _require_relative_file(root, item.get("image_ref"), label="fixture.image_ref")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+root = WindowsPath('<worktree>/.tmp/feat042-pytest-final/test_fake_quality_pass_is_clea0/vision-v3-quality')
+reference = 'images/v3q-fixture-01.png'
+
+    def _require_relative_file(root: Path, reference: object, *, label: str) -> Path:
+        if (
+            not isinstance(reference, str)
+            or not reference
+            or _is_absolute_machine_path(Path(reference))
+        ):
+            raise V3QualityFixtureIntegrityError(f"Phase 8 {label} must be a relative file reference")
+        root_resolved = root.resolve()
+        resolved = (root / reference).resolve()
+        if resolved == root_resolved or root_resolved not in resolved.parents or not resolved.is_file():
+>           raise V3QualityFixtureIntegrityError(f"Phase 8 {label} must resolve inside the package")
+E           sketch2life.benchmark.vision_v3_quality_benchmark.V3QualityFixtureIntegrityError: Phase 8 fixture.image_ref must resolve inside the package
+
+<worktree>\backend\src\sketch2life\benchmark\vision_v3_quality_benchmark.py:520: V3QualityFixtureIntegrityError
+___________ test_raw_output_hook_is_required_and_scratch_is_cleaned ___________
+
+tmp_path = WindowsPath('<worktree>/.tmp/feat042-pytest-final/test_raw_output_hook_is_requir0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001F97EC10860>
+
+    def test_raw_output_hook_is_required_and_scratch_is_cleaned(
+        tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.chdir(tmp_path)
+        root = _copy_fixture_package(tmp_path, owner_approved=True)
+        factory = V3QualityLocalFakeAdapterFactory(
+            _static_outcomes(), emit_raw_output=False
+        )
+
+        with pytest.raises(V3QualityRawOutputHookNotWiredError, match="safe raw-output classification"):
+>           run_v3_quality_pass(
+                factory,
+                B3RawOutputCollector(),
+                run_label="V3_QUALITY_PASS_1",
+                decisions=_decisions(),
+                fixture_root=root,
+                runtime_dir=Path("scratch"),
+                validate_media=_validation,
+            )
+
+<worktree>\backend\tests\unit\test_vision_v3_quality_benchmark.py:703:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+<worktree>\backend\src\sketch2life\benchmark\vision_v3_quality_benchmark.py:1287: in run_v3_quality_pass
+    return _run_verified_v3_quality_pass(
+<worktree>\backend\src\sketch2life\benchmark\vision_v3_quality_benchmark.py:1330: in _run_verified_v3_quality_pass
+    package = load_and_verify_v3_quality_fixture_package(fixture_root)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<worktree>\backend\src\sketch2life\benchmark\vision_v3_quality_benchmark.py:808: in load_and_verify_v3_quality_fixture_package
+    image_path = _require_relative_file(root, item.get("image_ref"), label="fixture.image_ref")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+root = WindowsPath('<worktree>/.tmp/feat042-pytest-final/test_raw_output_hook_is_requir0/vision-v3-quality')
+reference = 'images/v3q-fixture-01.png'
+
+    def _require_relative_file(root: Path, reference: object, *, label: str) -> Path:
+        if (
+            not isinstance(reference, str)
+            or not reference
+            or _is_absolute_machine_path(Path(reference))
+        ):
+            raise V3QualityFixtureIntegrityError(f"Phase 8 {label} must be a relative file reference")
+        root_resolved = root.resolve()
+        resolved = (root / reference).resolve()
+        if resolved == root_resolved or root_resolved not in resolved.parents or not resolved.is_file():
+>           raise V3QualityFixtureIntegrityError(f"Phase 8 {label} must resolve inside the package")
+E           sketch2life.benchmark.vision_v3_quality_benchmark.V3QualityFixtureIntegrityError: Phase 8 fixture.image_ref must resolve inside the package
+
+<worktree>\backend\src\sketch2life\benchmark\vision_v3_quality_benchmark.py:520: V3QualityFixtureIntegrityError
+______________ test_two_fake_passes_produce_quality_verdict_only ______________
+
+tmp_path = WindowsPath('<worktree>/.tmp/feat042-pytest-final/test_two_fake_passes_produce_q0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001F9024BAC60>
+
+    def test_two_fake_passes_produce_quality_verdict_only(
+        tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+>       pass_report, _, pass_root = _run_fake_pass(
+            tmp_path / "pass", monkeypatch, start=_EXECUTED_AT
+        )
+
+<worktree>\backend\tests\unit\test_vision_v3_quality_benchmark.py:719:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+<worktree>\backend\tests\unit\test_vision_v3_quality_benchmark.py:273: in _run_fake_pass
+    report = run_v3_quality_pass(
+<worktree>\backend\src\sketch2life\benchmark\vision_v3_quality_benchmark.py:1287: in run_v3_quality_pass
+    return _run_verified_v3_quality_pass(
+<worktree>\backend\src\sketch2life\benchmark\vision_v3_quality_benchmark.py:1330: in _run_verified_v3_quality_pass
+    package = load_and_verify_v3_quality_fixture_package(fixture_root)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<worktree>\backend\src\sketch2life\benchmark\vision_v3_quality_benchmark.py:808: in load_and_verify_v3_quality_fixture_package
+    image_path = _require_relative_file(root, item.get("image_ref"), label="fixture.image_ref")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+root = WindowsPath('<worktree>/.tmp/feat042-pytest-final/test_two_fake_passes_produce_q0/pass/vision-v3-quality')
+reference = 'images/v3q-fixture-01.png'
+
+    def _require_relative_file(root: Path, reference: object, *, label: str) -> Path:
+        if (
+            not isinstance(reference, str)
+            or not reference
+            or _is_absolute_machine_path(Path(reference))
+        ):
+            raise V3QualityFixtureIntegrityError(f"Phase 8 {label} must be a relative file reference")
+        root_resolved = root.resolve()
+        resolved = (root / reference).resolve()
+        if resolved == root_resolved or root_resolved not in resolved.parents or not resolved.is_file():
+>           raise V3QualityFixtureIntegrityError(f"Phase 8 {label} must resolve inside the package")
+E           sketch2life.benchmark.vision_v3_quality_benchmark.V3QualityFixtureIntegrityError: Phase 8 fixture.image_ref must resolve inside the package
+
+<worktree>\backend\src\sketch2life\benchmark\vision_v3_quality_benchmark.py:520: V3QualityFixtureIntegrityError
+_____ test_no_gpu_pair_uses_qwen_mapping_and_returns_safe_quality_report ______
+
+tmp_path = WindowsPath('<worktree>/.tmp/feat042-pytest-final/test_no_gpu_pair_uses_qwen_map0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001F97EC13770>
+
+    def test_no_gpu_pair_uses_qwen_mapping_and_returns_safe_quality_report(
+        tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.chdir(tmp_path)
+        fixture_root = _fixture_copy(tmp_path)
+        runner = _StaticGenerationRunner()
+        budget_now = _STARTED_AT + timedelta(seconds=30)
+
+>       report = run_authorized_v3_quality_pair(
+            _runtime(tmp_path),
+            LexicalRegressionContentPolicy(synthetic_prohibited_lexicon()),
+            authorization=V3QualityD8Authorization(_STARTED_AT),
+            fixture_root=fixture_root,
+            runtime_root=Path("scratch/phase8"),
+            generation_runner=runner,
+            validate_media=_validation,
+            report_clock=_report_clock(),
+            budget_clock=lambda: budget_now,
+        )
+
+<worktree>\backend\tests\unit\test_vision_v3_quality_execution.py:126:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+<worktree>\backend\src\sketch2life\benchmark\vision_v3_quality_execution.py:204: in run_authorized_v3_quality_pair
+    pass_1 = run_pass("V3_QUALITY_PASS_1", runtime_root / "pass-1")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<worktree>\backend\src\sketch2life\benchmark\vision_v3_quality_execution.py:191: in run_pass
+    return _run_verified_v3_quality_pass(
+<worktree>\backend\src\sketch2life\benchmark\vision_v3_quality_benchmark.py:1330: in _run_verified_v3_quality_pass
+    package = load_and_verify_v3_quality_fixture_package(fixture_root)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<worktree>\backend\src\sketch2life\benchmark\vision_v3_quality_benchmark.py:808: in load_and_verify_v3_quality_fixture_package
+    image_path = _require_relative_file(root, item.get("image_ref"), label="fixture.image_ref")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+root = WindowsPath('<worktree>/.tmp/feat042-pytest-final/test_no_gpu_pair_uses_qwen_map0/vision-v3-quality')
+reference = 'images/v3q-fixture-01.png'
+
+    def _require_relative_file(root: Path, reference: object, *, label: str) -> Path:
+        if (
+            not isinstance(reference, str)
+            or not reference
+            or _is_absolute_machine_path(Path(reference))
+        ):
+            raise V3QualityFixtureIntegrityError(f"Phase 8 {label} must be a relative file reference")
+        root_resolved = root.resolve()
+        resolved = (root / reference).resolve()
+        if resolved == root_resolved or root_resolved not in resolved.parents or not resolved.is_file():
+>           raise V3QualityFixtureIntegrityError(f"Phase 8 {label} must resolve inside the package")
+E           sketch2life.benchmark.vision_v3_quality_benchmark.V3QualityFixtureIntegrityError: Phase 8 fixture.image_ref must resolve inside the package
+
+<worktree>\backend\src\sketch2life\benchmark\vision_v3_quality_benchmark.py:520: V3QualityFixtureIntegrityError
+_________ test_narration_beat_without_matching_strokes_blocks_render __________
+
+stroke_path = WindowsPath('<worktree>/.tmp/feat042-pytest-final/test_narration_beat_without_ma0/missing-beat.json')
+output_path = WindowsPath('<worktree>/.tmp/feat042-pytest-final/test_narration_beat_without_ma0/must-not-render.mp4')
+
+    def render_stroke_animation(
+        stroke_path: str | Path,
+        output_path: str | Path,
+        *,
+        spec: WhiteboardMvpRenderSpec | None = None,
+        motion_schedule: tuple[WhiteboardMotion, ...] = (),
+        motion_durations_seconds: tuple[float, ...] = (),
+        draw_beats: tuple[StoryboardDrawBeatV1, ...] = (),
+        beat_masks: tuple | None = None,
+        hand_asset_path: str | Path | None = None,
+    ) -> WhiteboardMvpRenderResult:
+        """Render a stroke artifact as a line-by-line whiteboard animation.
+
+        The renderer intentionally draws only the recovered strokes on a white
+        canvas. This makes the drawing process the primary motion; camera emphasis
+        is applied only after the current stroke frame has been composed.
+        """
+
+        try:
+>           import imageio.v2 as imageio
+E           ModuleNotFoundError: No module named 'imageio'
+
+backend\src\sketch2life\infrastructure\media\whiteboard_mvp_renderer.py:167: ModuleNotFoundError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = WindowsPath('<worktree>/.tmp/feat042-pytest-final/test_narration_beat_without_ma0')
+
+    def test_narration_beat_without_matching_strokes_blocks_render(tmp_path) -> None:
+        import json
+
+        strokes = tmp_path / "missing-beat.json"
+        strokes.write_text(json.dumps({
+            "artifact_type": "whiteboard_strokes_v1", "width": 100, "height": 100,
+            "strokes": [{"stroke_id": "left", "points": [[10, 70], [30, 70]]}],
+        }), encoding="utf-8")
+        beats = (
+            StoryboardDrawBeatV1(
+                element_id="left", segment_id="segment-1", label="B�n tr�i",
+                focus_box=(0.02, 0.5, 0.4, 0.9), start_seconds=0, end_seconds=2.5,
+            ),
+            StoryboardDrawBeatV1(
+                element_id="right", segment_id="segment-1", label="B\xean ph\u1ea3i",
+                focus_box=(0.6, 0.1, 0.98, 0.5), start_seconds=2.5, end_seconds=5,
+            ),
+        )
+        with pytest.raises(ValueError, match="DRAW_BEAT_EMPTY"):
+>           render_stroke_animation(
+                strokes, tmp_path / "must-not-render.mp4",
+                spec=WhiteboardMvpRenderSpec(width=1280, height=720, fps=5, duration_seconds=5),
+                draw_beats=beats,
+            )
+
+backend\tests\unit\test_whiteboard_mvp_renderer.py:352:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+stroke_path = WindowsPath('<worktree>/.tmp/feat042-pytest-final/test_narration_beat_without_ma0/missing-beat.json')
+output_path = WindowsPath('<worktree>/.tmp/feat042-pytest-final/test_narration_beat_without_ma0/must-not-render.mp4')
+
+    def render_stroke_animation(
+        stroke_path: str | Path,
+        output_path: str | Path,
+        *,
+        spec: WhiteboardMvpRenderSpec | None = None,
+        motion_schedule: tuple[WhiteboardMotion, ...] = (),
+        motion_durations_seconds: tuple[float, ...] = (),
+        draw_beats: tuple[StoryboardDrawBeatV1, ...] = (),
+        beat_masks: tuple | None = None,
+        hand_asset_path: str | Path | None = None,
+    ) -> WhiteboardMvpRenderResult:
+        """Render a stroke artifact as a line-by-line whiteboard animation.
+
+        The renderer intentionally draws only the recovered strokes on a white
+        canvas. This makes the drawing process the primary motion; camera emphasis
+        is applied only after the current stroke frame has been composed.
+        """
+
+        try:
+            import imageio.v2 as imageio
+            import numpy as np
+            from PIL import Image, ImageDraw
+        except ImportError as error:  # pragma: no cover - environment-dependent
+>           raise RuntimeError(
+                "whiteboard renderer requires the whiteboard-renderer dependencies"
+            ) from error
+E           RuntimeError: whiteboard renderer requires the whiteboard-renderer dependencies
+
+backend\src\sketch2life\infrastructure\media\whiteboard_mvp_renderer.py:171: RuntimeError
+_________ test_graph_tracing_reduces_false_dots_in_generic_group_art __________
+
+tmp_path = WindowsPath('<worktree>/.tmp/feat042-pytest-final/test_graph_tracing_reduces_fal0')
+
+    def test_graph_tracing_reduces_false_dots_in_generic_group_art(tmp_path) -> None:
+        from tools.create_story_video_media_fixture import create_fixture
+        from tools.story_video_media_smoke import load_fixture
+
+        source, _locale, _scenes = load_fixture(
+>           create_fixture(tmp_path / "group", preset="group")
+        )
+
+backend\tests\unit\test_whiteboard_stroke_extraction.py:213:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+directory = WindowsPath('<worktree>/.tmp/feat042-pytest-final/test_graph_tracing_reduces_fal0/group')
+
+    def create_fixture(directory: Path, *, preset: str = "house") -> Path:
+        """Write only two new local files and return the fixture JSON path."""
+
+        from PIL import Image, ImageDraw
+
+        directory = directory.resolve()
+        if preset not in {"house", "group"}:
+            raise ValueError("preset must be house or group")
+        repository_root = Path(__file__).resolve().parents[1]
+        if directory.is_relative_to(repository_root):
+>           raise ValueError("output directory must be outside the Git repository")
+E           ValueError: output directory must be outside the Git repository
+
+tools\create_story_video_media_fixture.py:172: ValueError
+============================== warnings summary ===============================
+tests/unit/test_part_masks.py::test_visible_disjoint_components_can_be_proposed_as_butterfly_parts
+  <worktree>\backend\tests\unit\test_part_masks.py:59: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+    parent_pixels = list(parent.getdata())
+
+tests/unit/test_part_masks.py::test_visible_disjoint_components_can_be_proposed_as_butterfly_parts
+tests/unit/test_part_masks.py::test_visible_disjoint_components_can_be_proposed_as_butterfly_parts
+tests/unit/test_part_masks.py::test_visible_disjoint_components_can_be_proposed_as_butterfly_parts
+  <worktree>\backend\tests\unit\test_part_masks.py:62: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+    for index, is_part in enumerate(part_image.getdata()):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED backend\tests\unit\test_story_video_media_smoke.py::test_generated_non_child_fixture_is_valid_and_never_overwrites
+FAILED backend\tests\unit\test_story_video_media_smoke.py::test_group_fixture_exercises_three_figures_and_distinct_scene_crops
+FAILED backend\tests\unit\test_vision_v3_quality_benchmark.py::test_schema_failures_cannot_produce_quality_ready
+FAILED backend\tests\unit\test_vision_v3_quality_benchmark.py::test_forged_equal_experiment_identity_cannot_produce_quality_ready
+FAILED backend\tests\unit\test_vision_v3_quality_benchmark.py::test_wrong_or_reordered_fixture_identity_cannot_produce_quality_ready[reordered]
+FAILED backend\tests\unit\test_vision_v3_quality_benchmark.py::test_wrong_or_reordered_fixture_identity_cannot_produce_quality_ready[wrong_hash]
+FAILED backend\tests\unit\test_vision_v3_quality_benchmark.py::test_ambiguous_overprediction_fails_explicit_upper_bound
+FAILED backend\tests\unit\test_vision_v3_quality_benchmark.py::test_fake_quality_pass_is_cleaned_and_serializes_only_safe_values
+FAILED backend\tests\unit\test_vision_v3_quality_benchmark.py::test_raw_output_hook_is_required_and_scratch_is_cleaned
+FAILED backend\tests\unit\test_vision_v3_quality_benchmark.py::test_two_fake_passes_produce_quality_verdict_only
+FAILED backend\tests\unit\test_vision_v3_quality_execution.py::test_no_gpu_pair_uses_qwen_mapping_and_returns_safe_quality_report
+FAILED backend\tests\unit\test_whiteboard_mvp_renderer.py::test_narration_beat_without_matching_strokes_blocks_render
+FAILED backend\tests\unit\test_whiteboard_stroke_extraction.py::test_graph_tracing_reduces_false_dots_in_generic_group_art
