@@ -1,7 +1,7 @@
 # Sketch2Life — LightningAI First Test Readiness
 
-**Audit date:** 2026-10-10 (Asia/Saigon)  
-**Checkout audited:** this repository checkout  
+**Audit date:** 2026-10-10 (Asia/Saigon)
+**Checkout audited:** this repository checkout
 **Decision:** `CONDITIONAL_READY_FOR_REVIEW`; do not push or run GPU inference yet.
 
 ## 1. Git readiness
