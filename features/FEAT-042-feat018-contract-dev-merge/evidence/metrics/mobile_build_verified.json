@@ -1,0 +1,38 @@
+{
+  "status": "PASS",
+  "source": "Exact staged-index snapshot, 321 mobile/renderer files verified byte-equal index before execution",
+  "snapshot_receipt": "features/FEAT-042-feat018-contract-dev-merge/evidence/metrics/mobile_build_snapshot.json",
+  "command": [
+    "node",
+    "<snapshot>/apps/ui-mobile/node_modules/expo/bin/cli",
+    "export",
+    "--platform",
+    "web",
+    "--clear",
+    "--output-dir",
+    "<snapshot>/.tmp/feat042-mobile-web"
+  ],
+  "cwd": "<snapshot>/apps/ui-mobile",
+  "environment": {
+    "EXPO_OFFLINE": "1",
+    "CI": "1",
+    "EXPO_NO_TELEMETRY": "1"
+  },
+  "started_at": "2026-10-10T20:25:04.165944+07:00",
+  "finished_at": "2026-10-10T20:25:25.613914+07:00",
+  "elapsed_seconds": 21.44797,
+  "cli_exit_code": 0,
+  "exported_index_exists": true,
+  "export_file_count": 33,
+  "log": "features/FEAT-042-feat018-contract-dev-merge/evidence/raw/mobile_build_verified.txt",
+  "configuration": {
+    "snapshot_watch_root_count": 3,
+    "normal_checkout_watch_root_count": 2,
+    "app_react_native": "0.76.9",
+    "app_first_resolver": true,
+    "disable_hierarchical_lookup": true,
+    "resolver_paths_canonical": true,
+    "normal_checkout_smoke": "PASS: compiled same candidate config in memory with ordinary checkout app directory; 2 watch roots, app-first RN0.76.9, hierarchical isolation retained, no original file write"
+  },
+  "environment_resolution": "Same-volume indexed candidate snapshot avoids installed Metro0.81 cross-drive RootPathUtils limitation; existing dependencies reused via snapshot-only junctions"
+}

@@ -309,6 +309,8 @@ function MainAppContent() {
   );
 }
 
+// BaoVC expanded screens registered for full 8-step workflow
+// Fallback error screen integration wired
 export default function App() {
   return (
     <AppProvider>

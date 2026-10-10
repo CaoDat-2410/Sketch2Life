@@ -1,7 +1,8 @@
 # FEAT-018 Android demo: UI ↔ backend ↔ Lightning Vision
 
-This guide is for the approved image-only demo on Android Emulator. It does not enable
-authentication, persistent child profiles, video, audio, or generated story media. Sessions,
+This guide covers the historical FEAT-018 Android demo and the additive experimental
+FEAT-030 story-video playback lane. Authentication and persistent child profiles remain
+future seams; generated story media has the separate approvals and limits described below. Sessions,
 uploaded drawings, and renderer grants are process-local and expire; restarting the backend loses
 them. Use synthetic, non-child drawings only.
 
@@ -118,8 +119,10 @@ video, and broad media/storage permissions blocked. Accepted upload formats are 
    supervision/material availability. Approve the exact Gate B spec before continuing.
 4. Try the Pixi “reveal whole drawing” action. If the Pixi route is unavailable, the app still keeps
    the native original-image preview; the reveal is an optional demo enhancement.
-5. Optionally test caregiver handoff, non-identifying feedback, and the session gallery. These are
-   temporary session data, not account history.
+5. For the FEAT-030 story-video lane, wait for a valid READY artifact and successful player load
+   before caregiver handoff. A session without a READY video remains blocked at this step; the
+   current experimental lane has no automatic skip/fallback. Feedback and gallery are temporary
+   session data, not account history.
 
 The main API contract is available at `/docs`. Important routes include `POST /v1/sessions`,
 `POST /v1/sessions/{id}/media/image`, `POST /v1/sessions/{id}/understanding`, Gate A/P1/Gate B
@@ -159,3 +162,26 @@ and release signing remain unchanged. The APK is still an internal debug-signed 
 Only `motion.walker-corgi.v2` and `motion.walker-avian.v1` currently pass the local preview
 allowlist. Other subject/action cycles remain independently gated; enabling the preview flag
 does not make the complete 29-class registry playable. The source artwork remains separate.
+
+## Experimental FEAT-030 story-video playback — merge clarification 2026-10-10
+
+The existing native app keeps its versioned `/v1` API and Pixi workflow. Its video surface
+now polls `GET /v1/sessions/{id}/story-video-jobs` and plays only a READY job's artifact from
+the configured backend origin at `/v1/sessions/{id}/story-video/{job_id}/file`. Job/session
+identity, URL origin/path, player loading, polling errors and playback errors gate continuation;
+`completeActivityHandoff` also checks the latest job is READY. Polling reads status and does
+not create a job or invoke a provider. Exact payloads remain defined by OpenAPI and backend
+contract tests, rather than historical illustrative `/api/*` examples.
+
+Story creation/review/rendering remains owned by FEAT-030 approvals and backend contracts.
+A newly created FEAT-018 session does not automatically have a story job. Provider/device/visual
+acceptance is incomplete: FEAT-030 records EXPERIMENTAL_HANDOFF, STORY_VISUAL_QA_NOT_PASSED
+and WAN_L4_RENDER_FAILED_OOM. The V2 renderer retains its disabled-by-default boundary.
+Do not treat this merge or a passing offline test as approval for a paid run, production use,
+real child media or finished visual quality.
+
+`src/demo/BaoStandaloneApp.tsx` and `src/screens/modules/` are legacy demo/scaffold files;
+`App.tsx` still exports the existing `BaoApp`. Added target PNG/crop assets remain inactive
+and are not visually approved by this merge. The canonical classroom SRS supersedes older
+product assumptions; this merge preserves committed implementation history and does not
+implement that replacement scope.

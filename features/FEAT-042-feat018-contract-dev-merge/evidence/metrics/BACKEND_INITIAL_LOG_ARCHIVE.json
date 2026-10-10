@@ -1,0 +1,7 @@
+{
+  "local_full_log": "features/FEAT-042-feat018-contract-dev-merge/evidence/local/backend_available_initial_full.txt",
+  "sha256": "5f06f647578f25a6277beeff7465abd89294f66bafa48c1f3cd140b2980c49ad",
+  "bytes": 1124502,
+  "published_excerpt": "evidence/raw/backend_available.txt",
+  "reason": "Repeated errors from absent pytest temp parent; full redacted diagnostic preserved locally, excerpt retains first traceback and actual failure."
+}

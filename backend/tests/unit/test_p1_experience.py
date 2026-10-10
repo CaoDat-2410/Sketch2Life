@@ -8,7 +8,10 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
+from sketch2life.application.ports.demo_workflow_storage import DemoWorkflowRecord
 from sketch2life.application.services.p1_experience import P1ExperienceCompiler
+from sketch2life.application.services.story_video_admission import StoryGateEvidence
+from sketch2life.contracts.schemas.gate_a import GateAConfirmationV1
 from sketch2life.contracts.schemas.p1_experience import (
     ActivityTemplateV1,
     AnchorProvenanceV1,
@@ -184,6 +187,54 @@ def test_butterfly_fold_print_compiles_one_spec_and_gate_b_locks_identity() -> N
     assert rechecked.status == "APPROVED"
     assert rechecked.spec_ref is not None
     assert rechecked.spec_ref.id == result.spec.spec_id
+
+
+def test_story_gate_evidence_binds_actual_gate_a_b_and_spec() -> None:
+    fixture = _butterfly_template()
+    result = _fixture_compiler(fixture).compile(
+        _anchor(), _context(fixture), preferred_template_id=fixture.template_id
+    )
+    assert result.spec is not None
+    assert result.gate_b.status == "APPROVED"
+    values = {
+        "gate_a_confirmation": GateAConfirmationV1(
+            session_id="session-fixture-001",
+            expected_session_version=2,
+            actor_ref="adult-fixture",
+            meaning_version=1,
+            confirmed_claim_ids=("claim-001",),
+        ).model_dump(mode="json"),
+        "anchor_set": result.spec.anchor_set.model_dump(mode="json"),
+        "experience_spec": result.spec.model_dump(mode="json"),
+        "gate_b": result.gate_b.model_dump(mode="json"),
+    }
+    record = DemoWorkflowRecord(session_id="session-fixture-001", version=4, values=values)
+
+    evidence = StoryGateEvidence.from_workflow(record)
+
+    assert evidence.session_version == 4
+    assert evidence.experience_spec_ref == result.spec.spec_id
+    assert evidence.experience_spec_sha256 == result.spec.spec_sha256
+    assert evidence.confirmed_anchor_ids == {"anchor-butterfly"}
+    with pytest.raises(ValueError, match="STORY_GATE_EVIDENCE_INVALID"):
+        StoryGateEvidence.from_workflow(
+            DemoWorkflowRecord(
+                session_id=record.session_id,
+                version=record.version,
+                values={
+                    **values,
+                    "experience_spec": {**values["experience_spec"], "spec_sha256": "c" * 64},
+                },
+            )
+        )
+    with pytest.raises(ValueError, match="STORY_GATE_EVIDENCE_INVALID"):
+        StoryGateEvidence.from_workflow(
+            DemoWorkflowRecord(
+                session_id=record.session_id,
+                version=record.version,
+                values={**values, "gate_b": {**values["gate_b"], "status": "BLOCKED"}},
+            )
+        )
 
 
 def test_unsupported_anchor_kind_is_rejected_before_spec_compilation() -> None:

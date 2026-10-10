@@ -1,0 +1,50 @@
+{
+  "status": "VERIFIED_LOCAL_ONLY_COPY",
+  "data_policy": "synthetic-only",
+  "source": "existing owner-local FEAT-003 approved package",
+  "destination": "ignored FEAT-003 fixture images in isolated worktree",
+  "originals_unchanged": true,
+  "published_images": false,
+  "fixtures": [
+    {
+      "image_ref": "images/v3q-fixture-01.png",
+      "sha256": "ebe43a37d54c539dc4b18589551907deba8cadfb4a0aba747e5b0e005aaf2c55",
+      "bytes": 940
+    },
+    {
+      "image_ref": "images/v3q-fixture-02.png",
+      "sha256": "740e38345eefff51abcaf7768a696e09a9a8afbaa20e3ae14c9b689fb2d41e91",
+      "bytes": 760
+    },
+    {
+      "image_ref": "images/v3q-fixture-03.png",
+      "sha256": "60486cce948b4532b50bd53bd314db33fc22634821e444910f118511dc37e0a5",
+      "bytes": 1058
+    },
+    {
+      "image_ref": "images/v3q-fixture-04.png",
+      "sha256": "6d43e4e516cc67ce6f9b382fe79df850710da0e869bca3de7c151df5b41c6cb4",
+      "bytes": 854
+    },
+    {
+      "image_ref": "images/v3q-fixture-05.png",
+      "sha256": "fe1d80f5098596482fe57f830ac15dc4c5360add727fa3dbf4e34f60dca9fc01",
+      "bytes": 831
+    },
+    {
+      "image_ref": "images/v3q-fixture-06.png",
+      "sha256": "ca9fcb2ff25094524a329af642c892267774643345e3fdf5752766b8ced831ee",
+      "bytes": 761
+    },
+    {
+      "image_ref": "images/v3q-fixture-07.png",
+      "sha256": "272394a18633c8bbd20b7ce27dfd46255421691c3e9e5bfb89815840cfcbae8a",
+      "bytes": 977
+    },
+    {
+      "image_ref": "images/v3q-fixture-08.png",
+      "sha256": "0763f8c7fb2afe07fec0e3c629a5eb8d456001d236ebb6053b59f4562d6a999c",
+      "bytes": 1270
+    }
+  ]
+}

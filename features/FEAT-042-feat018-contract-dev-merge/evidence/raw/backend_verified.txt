@@ -1,0 +1,138 @@
+........................................................................ [  3%]
+........................................................................ [  7%]
+........................................................................ [ 10%]
+........................................................................ [ 14%]
+........................................................................ [ 17%]
+........................................................................ [ 21%]
+....................s..........ss....................................... [ 24%]
+........................................................................ [ 28%]
+........................................................................ [ 31%]
+........................................................................ [ 35%]
+........................................................................ [ 39%]
+........................................................................ [ 42%]
+........................................................................ [ 46%]
+........................................................................ [ 49%]
+........................................................................ [ 53%]
+................................s....................................... [ 56%]
+........................................................................ [ 60%]
+........................................................................ [ 63%]
+........................................................................ [ 67%]
+........................................................................ [ 71%]
+........................................................................ [ 74%]
+..............................sssss..................................... [ 78%]
+........................................................................ [ 81%]
+....................................................................sss. [ 85%]
+ssssFsssssss............................................................ [ 88%]
+s....................................................................... [ 92%]
+........................................................................ [ 95%]
+........................................................................ [ 99%]
+..........                                                               [100%]
+================================== FAILURES ===================================
+_________ test_narration_beat_without_matching_strokes_blocks_render __________
+
+stroke_path = WindowsPath('<owner-local>/AppData/Local/Temp/sketch2life-feat042-7a4a13032dcb44af8c4fa08a9dfb5577/test_narration_beat_without_ma0/missing-beat.json')
+output_path = WindowsPath('<owner-local>/AppData/Local/Temp/sketch2life-feat042-7a4a13032dcb44af8c4fa08a9dfb5577/test_narration_beat_without_ma0/must-not-render.mp4')
+
+    def render_stroke_animation(
+        stroke_path: str | Path,
+        output_path: str | Path,
+        *,
+        spec: WhiteboardMvpRenderSpec | None = None,
+        motion_schedule: tuple[WhiteboardMotion, ...] = (),
+        motion_durations_seconds: tuple[float, ...] = (),
+        draw_beats: tuple[StoryboardDrawBeatV1, ...] = (),
+        beat_masks: tuple | None = None,
+        hand_asset_path: str | Path | None = None,
+    ) -> WhiteboardMvpRenderResult:
+        """Render a stroke artifact as a line-by-line whiteboard animation.
+
+        The renderer intentionally draws only the recovered strokes on a white
+        canvas. This makes the drawing process the primary motion; camera emphasis
+        is applied only after the current stroke frame has been composed.
+        """
+
+        try:
+>           import imageio.v2 as imageio
+E           ModuleNotFoundError: No module named 'imageio'
+
+backend\src\sketch2life\infrastructure\media\whiteboard_mvp_renderer.py:167: ModuleNotFoundError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = WindowsPath('<owner-local>/AppData/Local/Temp/sketch2life-feat042-7a4a13032dcb44af8c4fa08a9dfb5577/test_narration_beat_without_ma0')
+
+    def test_narration_beat_without_matching_strokes_blocks_render(tmp_path) -> None:
+        import json
+
+        strokes = tmp_path / "missing-beat.json"
+        strokes.write_text(json.dumps({
+            "artifact_type": "whiteboard_strokes_v1", "width": 100, "height": 100,
+            "strokes": [{"stroke_id": "left", "points": [[10, 70], [30, 70]]}],
+        }), encoding="utf-8")
+        beats = (
+            StoryboardDrawBeatV1(
+                element_id="left", segment_id="segment-1", label="B�n tr�i",
+                focus_box=(0.02, 0.5, 0.4, 0.9), start_seconds=0, end_seconds=2.5,
+            ),
+            StoryboardDrawBeatV1(
+                element_id="right", segment_id="segment-1", label="B\xean ph\u1ea3i",
+                focus_box=(0.6, 0.1, 0.98, 0.5), start_seconds=2.5, end_seconds=5,
+            ),
+        )
+        with pytest.raises(ValueError, match="DRAW_BEAT_EMPTY"):
+>           render_stroke_animation(
+                strokes, tmp_path / "must-not-render.mp4",
+                spec=WhiteboardMvpRenderSpec(width=1280, height=720, fps=5, duration_seconds=5),
+                draw_beats=beats,
+            )
+
+backend\tests\unit\test_whiteboard_mvp_renderer.py:352:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+stroke_path = WindowsPath('<owner-local>/AppData/Local/Temp/sketch2life-feat042-7a4a13032dcb44af8c4fa08a9dfb5577/test_narration_beat_without_ma0/missing-beat.json')
+output_path = WindowsPath('<owner-local>/AppData/Local/Temp/sketch2life-feat042-7a4a13032dcb44af8c4fa08a9dfb5577/test_narration_beat_without_ma0/must-not-render.mp4')
+
+    def render_stroke_animation(
+        stroke_path: str | Path,
+        output_path: str | Path,
+        *,
+        spec: WhiteboardMvpRenderSpec | None = None,
+        motion_schedule: tuple[WhiteboardMotion, ...] = (),
+        motion_durations_seconds: tuple[float, ...] = (),
+        draw_beats: tuple[StoryboardDrawBeatV1, ...] = (),
+        beat_masks: tuple | None = None,
+        hand_asset_path: str | Path | None = None,
+    ) -> WhiteboardMvpRenderResult:
+        """Render a stroke artifact as a line-by-line whiteboard animation.
+
+        The renderer intentionally draws only the recovered strokes on a white
+        canvas. This makes the drawing process the primary motion; camera emphasis
+        is applied only after the current stroke frame has been composed.
+        """
+
+        try:
+            import imageio.v2 as imageio
+            import numpy as np
+            from PIL import Image, ImageDraw
+        except ImportError as error:  # pragma: no cover - environment-dependent
+>           raise RuntimeError(
+                "whiteboard renderer requires the whiteboard-renderer dependencies"
+            ) from error
+E           RuntimeError: whiteboard renderer requires the whiteboard-renderer dependencies
+
+backend\src\sketch2life\infrastructure\media\whiteboard_mvp_renderer.py:171: RuntimeError
+============================== warnings summary ===============================
+tests/unit/test_part_masks.py::test_visible_disjoint_components_can_be_proposed_as_butterfly_parts
+  <worktree>\backend\tests\unit\test_part_masks.py:59: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+    parent_pixels = list(parent.getdata())
+
+tests/unit/test_part_masks.py::test_visible_disjoint_components_can_be_proposed_as_butterfly_parts
+tests/unit/test_part_masks.py::test_visible_disjoint_components_can_be_proposed_as_butterfly_parts
+tests/unit/test_part_masks.py::test_visible_disjoint_components_can_be_proposed_as_butterfly_parts
+  <worktree>\backend\tests\unit\test_part_masks.py:62: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+    for index, is_part in enumerate(part_image.getdata()):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED backend\tests\unit\test_whiteboard_mvp_renderer.py::test_narration_beat_without_matching_strokes_blocks_render
+1 failed, 2001 passed, 24 skipped, 4 warnings in 189.28s (0:03:09)

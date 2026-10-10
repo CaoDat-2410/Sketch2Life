@@ -20,6 +20,10 @@ For the replacement SRS v3.1, the owner now requests one FE, two BE and one pers
 
 P1 owns Android and Teacher/Admin UI, P2 core/classroom/collaboration/data, P3 AI/content/media, P4 technical composition/connectors and combined validation coordination. Component owners retain their logic/adapters/tests/fixes. Four independent fixture runners continue under ADR-0006's principle; historical BA/AI/animation/media role labels do not override this newer owner split. Integration allocation is now intentionally recorded, but every runtime feature still needs its own approval. No runtime or SRS bytes are changed by this planning task; task counts are not effort estimates or proof of implementation.
 
+## FEAT-018 legacy branch integration amendment — 2026-10-10
+
+Owner directly requested merging the existing codex/feat-018-contract-plan into dev after the SRS/task publication. FEAT-042 records pinned history, direct approval, conflict/regression reconciliation and offline verification. The incoming branch includes FEAT-030 whiteboard/story-video and UI scaffolds; these remain legacy/experimental and do not override canonical SRSv3.1 or complete its runtime migration. Existing dev guards, Pixi flow and immutable artifacts are preserved. Thirty-four incoming target images/crops remain dormant without verified visual approval. Missing media dependencies and model/GPU/device/visual acceptance remain explicit gates; no live provider or deployment is performed.
+
 ## Purpose
 
 Sketch2Life is now a Montessori-inspired collaborative creative learning platform: children draw, cooperate, receive teacher-controlled AI assistance, explore knowledge/video, perform off-screen activities and reflect; teachers coordinate classroom/group sessions and observe each child's progress.
@@ -27,6 +31,23 @@ Sketch2Life is now a Montessori-inspired collaborative creative learning platfor
 ## Current phase
 
 `FOUNDATION_PUBLISHED`
+
+## Environment policy (owner override, 2026-10-10)
+
+- Windows is the code-development, repository-management and lightweight-static-test environment.
+- Do not install new PyTorch, CUDA/cuDNN, Diffusers, Transformers, Accelerate,
+  xFormers, model weights, large datasets, Docker images or GPU-specific packages on Windows.
+- If a required local dependency is missing, record `REQUIRES_LIGHTNINGAI_TEST`;
+  do not call the test passed.
+- LightningAI is the dependency-installation, GPU/inference and integration-test
+  environment. Use a separate Sketch2Life virtualenv and do not modify the existing
+  Wan2.2 environment.
+- The canonical workflow is `scripts/lightningai/setup.sh`, then read-only
+  `verify.sh`, then `run_tests.sh`. Setup requires explicit
+  `SKETCH2LIFE_ALLOW_INSTALL=1`; no script uploads child media or downloads model
+  weights implicitly.
+- `LOCAL_CODE_READY`, `LIGHTNINGAI_ENVIRONMENT_READY`, `LIGHTNINGAI_TEST_PASS` and
+  `VISUAL_QA_PASS` are separate gates and must not be conflated.
 
 The workspace harness and approved architecture skeleton are established and securely published to the project repository. Product feature code must not be started until that feature's plan and relevant task approval are recorded.
 

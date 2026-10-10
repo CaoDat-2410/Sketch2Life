@@ -1187,6 +1187,8 @@ export const LivingAudioEqualizer: React.FC<{ isPlaying?: boolean }> = ({ isPlay
   );
 };
 
+export const LiveWaveBars = LivingAudioEqualizer;
+
 // 16-G. JELLY BOUNCE VIEW — springy squish & pop on press
 export const JellyBounceView: React.FC<{
   children: React.ReactNode;
@@ -1252,6 +1254,140 @@ export const JellyBounceView: React.FC<{
     </TouchableOpacity>
   );
 };
+
+// ==========================================
+// 16-H. GOLDEN TROPHY SVG — 3D glossy award for Screen 18 Completion
+// ==========================================
+export const GoldenTrophySvg: React.FC<{ size?: number }> = ({ size = 160 }) => {
+  const bounceAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(bounceAnim, { toValue: -8, duration: 1200, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(bounceAnim, { toValue: 0, duration: 1200, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      ])
+    ).start();
+  }, []);
+
+  return (
+    <Animated.View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center', transform: [{ translateY: bounceAnim }] }}>
+      <Svg width={size} height={size} viewBox="0 0 160 160" fill="none">
+        {/* Glow halo */}
+        <Circle cx={80} cy={70} r={55} fill="#FEF08A" opacity={0.4} />
+
+        {/* Left Handle */}
+        <Path d="M48 44C26 44 26 80 50 82" stroke="#F59E0B" strokeWidth={9} strokeLinecap="round" />
+        <Path d="M48 44C29 44 29 80 50 82" stroke="#FBBF24" strokeWidth={5} strokeLinecap="round" />
+
+        {/* Right Handle */}
+        <Path d="M112 44C134 44 134 80 110 82" stroke="#F59E0B" strokeWidth={9} strokeLinecap="round" />
+        <Path d="M112 44C131 44 131 80 110 82" stroke="#FBBF24" strokeWidth={5} strokeLinecap="round" />
+
+        {/* Cup Body Base */}
+        <Path d="M42 34H118C118 34 116 88 80 94C44 88 42 34 42 34Z" fill="#F59E0B" />
+        <Path d="M46 36H114C114 36 112 85 80 91C48 85 46 36 46 36Z" fill="#FBBF24" />
+        {/* Cup Highlight */}
+        <Path d="M50 38C52 64 64 82 78 87C64 78 54 60 52 38H50Z" fill="#FEF08A" opacity={0.8} />
+
+        {/* Cup Rim */}
+        <Rect x={38} y={30} width={84} height={10} rx={5} fill="#D97706" />
+        <Rect x={40} y={31} width={80} height={7} rx={3.5} fill="#FDE047" />
+
+        {/* Star Badge in center */}
+        <Path
+          d="M80 50L83 58L91 58.5L84.5 63.5L87 71.5L80 66.5L73 71.5L75.5 63.5L69 58.5L77 58L80 50Z"
+          fill="#FFFFFF"
+          stroke="#F59E0B"
+          strokeWidth={1.5}
+        />
+
+        {/* Stem */}
+        <Rect x={73} y={93} width={14} height={20} rx={3} fill="#D97706" />
+        <Rect x={75} y={93} width={10} height={20} rx={2} fill="#FBBF24" />
+        <Path d="M72 103H88" stroke="#F59E0B" strokeWidth={3} strokeLinecap="round" />
+
+        {/* Base Pedestal */}
+        <Rect x={50} y={112} width={60} height={12} rx={4} fill="#92400E" />
+        <Rect x={44} y={122} width={72} height={18} rx={6} fill="#78350F" />
+        <Rect x={46} y={124} width={68} height={14} rx={4} fill="#92400E" />
+        {/* Gold Plaque */}
+        <Rect x={58} y={127} width={44} height={8} rx={2} fill="#FBBF24" />
+        <Circle cx={62} cy={131} r={1} fill="#78350F" />
+        <Circle cx={98} cy={131} r={1} fill="#78350F" />
+
+        {/* Sparkles around trophy */}
+        <Circle cx={36} cy={30} r={3} fill="#FDE047" />
+        <Circle cx={124} cy={32} r={3.5} fill="#FDE047" />
+        <Circle cx={30} cy={72} r={2.5} fill="#FFFFFF" />
+        <Circle cx={130} cy={70} r={2.5} fill="#FFFFFF" />
+      </Svg>
+    </Animated.View>
+  );
+};
+
+// ==========================================
+// 16-I. GIFT BOX 3D SVG — Cute surprise gift box for Screen 14 Child Transition
+// ==========================================
+export const GiftBox3DSvg: React.FC<{ size?: number }> = ({ size = 150 }) => {
+  const wiggleAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(wiggleAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
+        Animated.timing(wiggleAnim, { toValue: -1, duration: 600, useNativeDriver: true }),
+        Animated.timing(wiggleAnim, { toValue: 0.5, duration: 400, useNativeDriver: true }),
+        Animated.timing(wiggleAnim, { toValue: 0, duration: 400, useNativeDriver: true }),
+        Animated.delay(1200),
+      ])
+    ).start();
+  }, []);
+
+  const rotate = wiggleAnim.interpolate({ inputRange: [-1, 1], outputRange: ['-5deg', '5deg'] });
+
+  return (
+    <Animated.View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center', transform: [{ rotate }] }}>
+      <Svg width={size} height={size} viewBox="0 0 150 150" fill="none">
+        {/* Soft Shadow */}
+        <Ellipse cx={75} cy={135} rx={50} ry={8} fill="#E2E8F0" />
+
+        {/* Box Body */}
+        <Rect x={30} y={64} width={90} height={66} rx={12} fill="#3B82F6" />
+        <Rect x={34} y={68} width={82} height={58} rx={9} fill="#60A5FA" />
+
+        {/* Box Body Ribbon (Vertical) */}
+        <Rect x={66} y={64} width={18} height={66} fill="#F59E0B" />
+        <Rect x={69} y={64} width={12} height={66} fill="#FBBF24" />
+
+        {/* Lid */}
+        <Rect x={24} y={50} width={102} height={20} rx={8} fill="#2563EB" />
+        <Rect x={26} y={52} width={98} height={14} rx={6} fill="#3B82F6" />
+        {/* Lid Ribbon (Vertical) */}
+        <Rect x={66} y={50} width={18} height={20} fill="#F59E0B" />
+        <Rect x={69} y={50} width={12} height={20} fill="#FBBF24" />
+
+        {/* Big Fluffy Ribbon Bow on Top */}
+        {/* Left Loop */}
+        <Path d="M72 48C52 24 38 42 66 48Z" fill="#F59E0B" />
+        <Path d="M70 47C56 28 44 42 66 47Z" fill="#FDE047" />
+        {/* Right Loop */}
+        <Path d="M78 48C98 24 112 42 84 48Z" fill="#F59E0B" />
+        <Path d="M80 47C94 28 106 42 84 47Z" fill="#FDE047" />
+        {/* Center Knot */}
+        <Circle cx={75} cy={48} r={9} fill="#D97706" />
+        <Circle cx={75} cy={48} r={7} fill="#FBBF24" />
+
+        {/* Sparkles */}
+        <Circle cx={22} cy={44} r={3.5} fill="#FDE047" />
+        <Circle cx={128} cy={46} r={3} fill="#FDE047" />
+        <Circle cx={120} cy={110} r={3} fill="#38BDF8" />
+        <Circle cx={28} cy={105} r={2.5} fill="#FB7185" />
+      </Svg>
+    </Animated.View>
+  );
+};
+
 
 const styles = StyleSheet.create({
   logoContainer: {

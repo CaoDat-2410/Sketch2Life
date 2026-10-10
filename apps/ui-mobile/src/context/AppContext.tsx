@@ -1524,6 +1524,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setWorkflowBusy('Bàn giao hoạt động');
     setWorkflowError(null);
     try {
+      const storyJobs = await workflowApi.listStoryVideoJobs(sessionId);
+      const latestStoryJob = storyJobs[storyJobs.length - 1];
+      if (latestStoryJob?.state !== 'READY' || !latestStoryJob.video_artifact_ref) {
+        setWorkflowError('Video câu chuyện chưa sẵn sàng. Vui lòng xem trạng thái và thử lại.');
+        return false;
+      }
       const handoffResult = await workflowApi.completeHandoff(sessionId, sessionVersion);
       updateSessionVersion(handoffResult.observed_session_version);
       if (handoffResult.status !== 'SUCCEEDED') throw workflowFailure(handoffResult, 'Chưa thể bàn giao hoạt động.');

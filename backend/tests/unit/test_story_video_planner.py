@@ -1,0 +1,630 @@
+import pytest
+
+from sketch2life.application.services.story_video_pipeline import (
+    StoryVideoPipeline,
+    StoryVideoProviderError,
+    _subtitle_cues,
+)
+from sketch2life.application.services.story_video_planner import (
+    StoryboardCompileInput,
+    StoryVideoPlanner,
+)
+from sketch2life.contracts.schemas.story_video import (
+    ApprovedStoryPackageV1,
+    StoryScriptSegmentV1,
+    StoryVisualCueV1,
+    story_script_segments_hash,
+)
+from sketch2life.contracts.schemas.story_video_media import (
+    IllustrationAssetV1,
+    NarrationAssetV1,
+    VideoArtifactV1,
+    VideoSceneArtifactV1,
+)
+
+
+def _package() -> ApprovedStoryPackageV1:
+    digest = "a" * 64
+    return ApprovedStoryPackageV1(
+        package_id="pkg-cat-001",
+        session_id="session-001",
+        session_version=3,
+        source_image_ref="artifact:image-001",
+        source_image_sha256=digest,
+        confirmed_understanding_ref="understanding:001",
+        confirmed_understanding_sha256=digest,
+        experience_spec_ref="experience:001",
+        experience_spec_sha256=digest,
+        story_script_ref="script:001",
+        story_script_revision=2,
+        story_script_sha256=digest,
+        audience_profile_ref="audience:early-primary",
+        audience_profile_sha256=digest,
+        evidence_set_ref="evidence:001",
+        evidence_set_sha256=digest,
+        locale="vi-VN",
+        narration_profile_ref="voice:child-friendly",
+        narration_profile_sha256=digest,
+        approval_ref="approval:adult-001",
+        approval_sha256=digest,
+        content_validator_version="story-policy-1",
+        content_validator_result="PASSED",
+        created_at="2026-09-30T00:00:00Z",
+        package_hash=digest,
+    )
+
+
+def _segments() -> tuple[StoryScriptSegmentV1, ...]:
+    return tuple(
+        StoryScriptSegmentV1(
+            segment_id=f"segment-{index}",
+            text="Mèo con trèo lên cây để tìm chỗ nghỉ an toàn." * 2,
+            approved_fact_ids=("fact-cat-001",),
+            confirmed_anchor_ids=("anchor-cat-001",),
+            scene_purpose=purpose,
+        )
+        for index, purpose in enumerate(("INTRO", "EXPLAIN", "DEMONSTRATE", "RECAP"), 1)
+    )
+
+
+def test_compile_uses_measured_tts_as_scene_timing_ground_truth() -> None:
+    plan = StoryVideoPlanner().compile(
+        StoryboardCompileInput(_package(), _segments(), (10.0, 11.0, 12.0, 10.0))
+    )
+    assert plan.duration_basis == "MEASURED_TTS"
+    assert plan.duration_seconds == 43.0
+    assert [scene.duration_seconds for scene in plan.scenes] == [10.0, 11.0, 12.0, 10.0]
+    assert "anchor-cat-001" not in plan.scenes[0].visual_prompt
+    assert "Introduce the subject" in plan.scenes[0].visual_prompt
+    assert "Show the described action" in plan.scenes[2].visual_prompt
+    assert "Hand-drawn whiteboard illustration" in plan.scenes[0].visual_prompt
+    assert (
+        "selective color accents only where the source drawing has color"
+        in plan.scenes[0].visual_prompt
+    )
+    assert "do not redraw an unchanged source composition" in plan.scenes[0].visual_prompt
+    assert "only when explicitly named" in plan.scenes[0].visual_prompt
+    assert "Do not add unsupported characters" in plan.scenes[0].visual_prompt
+
+
+def test_director_binds_script_visual_cues_to_measured_tts_windows() -> None:
+    segments = list(_segments())
+    segments[0] = segments[0].model_copy(update={"visual_cues": (
+        StoryVisualCueV1(element_id="cat", label="Mèo", focus_box=(0.55, 0.1, 0.95, 0.8)),
+        StoryVisualCueV1(element_id="tree", label="Cây", focus_box=(0.05, 0.1, 0.45, 0.9)),
+    )})
+    for index in range(1, 4):
+        segments[index] = segments[index].model_copy(update={"visual_cues": (
+            StoryVisualCueV1(
+                element_id=f"subject-{index}", label=f"Mèo cảnh {index + 1}",
+                focus_box=(0.1, 0.1, 0.9, 0.9),
+            ),
+        )})
+    approved = tuple(segments)
+    plan = StoryVideoPlanner().compile(
+        StoryboardCompileInput(_package(), approved, (10.0, 11.0, 12.0, 10.0))
+    )
+
+    assert [(beat.element_id, beat.start_seconds, beat.end_seconds)
+            for beat in plan.scenes[0].draw_beats] == [
+        ("cat", 0.0, 5.0), ("tree", 5.0, 10.0),
+    ]
+    assert plan.scenes[1].draw_beats[0].end_seconds == 11.0
+    assert "Mèo, Cây" in plan.scenes[0].visual_prompt
+    assert story_script_segments_hash(approved) != story_script_segments_hash(_segments())
+
+
+def test_visual_cue_rejects_invalid_region() -> None:
+    with pytest.raises(ValueError, match="visual cue box"):
+        StoryVisualCueV1(element_id="cat", label="Mèo", focus_box=(0.8, 0.2, 0.4, 0.8))
+
+
+def test_cue_free_script_keeps_its_existing_approval_hash() -> None:
+    import hashlib
+    import json
+
+    legacy = {"segments": [
+        segment.model_dump(mode="json", exclude={"visual_cues"}) for segment in _segments()
+    ]}
+    encoded = json.dumps(
+        legacy, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    ).encode()
+    assert story_script_segments_hash(_segments()) == hashlib.sha256(encoded).hexdigest()
+
+
+def test_story_package_rejects_placeholder_approval_hash() -> None:
+    with pytest.raises(ValueError, match="placeholder hash"):
+        ApprovedStoryPackageV1.model_validate(
+            _package().model_dump() | {"approval_sha256": "0" * 64}
+        )
+
+
+def test_compile_rejects_measured_audio_outside_target_instead_of_cutting_words() -> None:
+    try:
+        StoryVideoPlanner().compile(
+            StoryboardCompileInput(_package(), _segments(), (20.0, 20.0, 20.0, 20.0))
+        )
+    except ValueError as error:
+        assert "40-60" in str(error)
+    else:
+        raise AssertionError("out-of-range narration must require script revision")
+
+
+def test_director_groups_short_approved_segments_into_timed_scenes() -> None:
+    segments = tuple(
+        StoryScriptSegmentV1(
+            segment_id=f"segment-{index}",
+            text=f"Đoạn kể đã duyệt số {index}.",
+            approved_fact_ids=(f"fact-{index}",),
+            confirmed_anchor_ids=("anchor-cat",),
+            scene_purpose=("INTRO", "EXPLAIN", "DEMONSTRATE", "RECAP")[(index - 1) // 2],
+        )
+        for index in range(1, 9)
+    )
+    plan = StoryVideoPlanner().compile(
+        StoryboardCompileInput(_package(), segments, (6.0,) * 8)
+    )
+
+    assert plan.duration_seconds == 48.0
+    assert len(plan.scenes) == 4
+    assert [scene.segment_ids for scene in plan.scenes] == [
+        ("segment-1", "segment-2"),
+        ("segment-3", "segment-4"),
+        ("segment-5", "segment-6"),
+        ("segment-7", "segment-8"),
+    ]
+    assert plan.scenes[0].approved_fact_ids == ("fact-1", "fact-2")
+    assert all(scene.duration_seconds == 12.0 for scene in plan.scenes)
+
+
+def test_subtitles_follow_measured_segment_boundaries_inside_grouped_scene() -> None:
+    segments = tuple(
+        StoryScriptSegmentV1(
+            segment_id=f"segment-{index}",
+            text=f"Đoạn kể đã duyệt số {index}.",
+            approved_fact_ids=(f"fact-{index}",),
+            confirmed_anchor_ids=("anchor-cat",),
+            scene_purpose=("INTRO", "EXPLAIN", "DEMONSTRATE", "RECAP")[(index - 1) // 2],
+        )
+        for index in range(1, 9)
+    )
+    durations = (3.0, 9.0) * 4
+    plan = StoryVideoPlanner().compile(StoryboardCompileInput(_package(), segments, durations))
+
+    cues = _subtitle_cues(plan, segments, durations)
+
+    assert len(plan.scenes) == 4
+    assert len(cues) == 8
+    assert [(cue.start_seconds, cue.end_seconds) for cue in cues[:4]] == [
+        (0.0, 3.0), (3.0, 12.0), (12.0, 15.0), (15.0, 24.0)
+    ]
+    assert cues[-1].end_seconds == 48.0
+
+
+def test_director_rejects_too_few_approved_segments() -> None:
+    try:
+        StoryVideoPlanner().compile(
+            StoryboardCompileInput(_package(), _segments()[:2], (20.0, 20.0))
+        )
+    except ValueError as error:
+        assert "at least three" in str(error)
+    else:
+        raise AssertionError("two long clips are not a controlled storyboard")
+
+
+def test_director_rejects_scene_that_would_mix_purposes() -> None:
+    segments = _segments()
+    with pytest.raises(ValueError, match="cannot fit"):
+        StoryVideoPlanner().compile(
+            StoryboardCompileInput(_package(), segments, (10.0, 4.0, 10.0, 16.0))
+        )
+
+
+class _Narration:
+    def render(self, request, texts):
+        return NarrationAssetV1(
+            status="READY",
+            audio_ref="audio:001",
+            audio_sha256="b" * 64,
+            duration_seconds=43.0,
+            locale=request.locale,
+            voice_model_ref="tts:test",
+            segment_timing_seconds=(10.0, 11.0, 12.0, 10.0),
+        )
+
+
+class _Illustrations:
+    def render(self, request):
+        return IllustrationAssetV1(
+            status="READY",
+            scene_id=request.scene_id,
+            asset_ref=f"image:{request.scene_id}",
+            asset_sha256="c" * 64,
+            content_type="image/png",
+            width=1024,
+            height=1024,
+            source_image_ref=request.source_image_ref,
+            source_image_sha256=request.source_image_sha256,
+            model_profile_ref="image:test",
+        )
+
+
+class _Motion:
+    def render(self, request):
+        return VideoSceneArtifactV1(
+            status="READY",
+            scene_id=request.scene_id,
+            silent_clip_ref=f"clip:{request.scene_id}",
+            silent_clip_sha256="d" * 64,
+            duration_seconds=request.duration_seconds,
+            frame_count=240,
+            fps=24.0,
+            model_profile_ref=request.model_profile_ref,
+        )
+
+
+class _Assembler:
+    def assemble(self, request):
+        assert len(request.subtitle_cues) >= len(request.scene_ids)
+        assert request.subtitle_cues[0].text
+        assert request.subtitle_cues[-1].end_seconds == 43.0
+        assert all(len(cue.text) <= 62 for cue in request.subtitle_cues)
+        assert all(
+            current.start_seconds >= previous.end_seconds - 0.01
+            for previous, current in zip(
+                request.subtitle_cues, request.subtitle_cues[1:], strict=False
+            )
+        )
+        return VideoArtifactV1(
+            status="READY",
+            video_ref="video:001",
+            video_sha256="e" * 64,
+            duration_seconds=43.0,
+            audio_ref=request.narration_ref,
+            video_codec="h264",
+            audio_codec="aac",
+        )
+
+
+def test_pipeline_runs_tts_before_scenes_and_returns_ready_video() -> None:
+    stages: list[str] = []
+    run = StoryVideoPipeline(
+        narration=_Narration(),
+        illustrations=_Illustrations(),
+        motion=_Motion(),
+        assembler=_Assembler(),
+        update_stage=lambda stage, _progress: stages.append(stage),
+    ).run(_package(), _segments())
+    assert run.video.status == "READY"
+    assert run.storyboard.duration_basis == "MEASURED_TTS"
+    assert stages == [
+        "NARRATION_RENDERING",
+        "ILLUSTRATIONS_RENDERING",
+        "SCENES_RENDERING",
+        "ASSEMBLING",
+        "READY",
+    ]
+
+
+def test_pipeline_passes_script_bound_draw_beats_to_motion_provider() -> None:
+    segments = list(_segments())
+    segments[0] = segments[0].model_copy(update={"visual_cues": (
+        StoryVisualCueV1(element_id="cat", label="Mèo", focus_box=(0.1, 0.1, 0.9, 0.9)),
+    )})
+    received = []
+
+    class CapturingMotion(_Motion):
+        def render(self, request):
+            received.append(request)
+            return super().render(request)
+
+    run = StoryVideoPipeline(
+        narration=_Narration(), illustrations=_Illustrations(),
+        motion=CapturingMotion(), assembler=_Assembler(),
+    ).run(_package(), tuple(segments))
+
+    assert run.video.status == "READY"
+    assert received[0].draw_beats == run.storyboard.scenes[0].draw_beats
+    assert received[0].draw_beats[0].segment_id == "segment-1"
+    assert all(not request.draw_beats for request in received[1:])
+
+
+def test_pipeline_reports_invalid_storyboard_before_rendering_images() -> None:
+    class ShortNarration(_Narration):
+        def render(self, request, texts):
+            return NarrationAssetV1(
+                status="READY",
+                audio_ref="audio:short",
+                audio_sha256="b" * 64,
+                duration_seconds=40.0,
+                locale=request.locale,
+                voice_model_ref="tts:test",
+                segment_timing_seconds=(20.0, 20.0),
+            )
+
+    class NoImages:
+        def render(self, request):
+            raise AssertionError("invalid storyboard must stop before image rendering")
+
+    pipeline = StoryVideoPipeline(
+        narration=ShortNarration(),
+        illustrations=NoImages(),
+        motion=_Motion(),
+        assembler=_Assembler(),
+    )
+    try:
+        pipeline.run(_package(), _segments()[:2])
+    except StoryVideoProviderError as error:
+        assert error.code == "STORYBOARD_INVALID"
+        assert not error.retryable
+    else:
+        raise AssertionError("invalid storyboard must be a typed failure")
+
+
+@pytest.mark.parametrize(
+    ("caption", "code"),
+    [("x" * 63, "SUBTITLE_WORD_TOO_LONG"), ("short " * 50, "SUBTITLE_TEXT_TOO_LONG")],
+)
+def test_pipeline_rejects_unusable_captions_before_paid_tts(caption: str, code: str) -> None:
+    class NoNarration:
+        def render(self, request, texts):
+            raise AssertionError("unusable captions must stop before TTS")
+
+    pipeline = StoryVideoPipeline(
+        narration=NoNarration(),
+        illustrations=_Illustrations(),
+        motion=_Motion(),
+        assembler=_Assembler(),
+    )
+    segments = (_segments()[0].model_copy(update={"text": caption}), *_segments()[1:])
+    with pytest.raises(StoryVideoProviderError) as caught:
+        pipeline.run(_package(), segments)
+    assert caught.value.code == code
+
+
+def test_pipeline_rejects_unmeasurably_short_caption_before_images() -> None:
+    class TinyNarration(_Narration):
+        def render(self, request, texts):
+            return super().render(request, texts).model_copy(
+                update={
+                    "duration_seconds": 40.0001,
+                    "segment_timing_seconds": (0.0001, 10.0, 10.0, 10.0, 10.0),
+                }
+            )
+
+    class NoImages:
+        def render(self, request):
+            raise AssertionError("invalid subtitle timing must stop before image rendering")
+
+    purposes = ("INTRO", "INTRO", "EXPLAIN", "DEMONSTRATE", "RECAP")
+    segments = tuple(
+        StoryScriptSegmentV1(
+            segment_id=f"segment-{index}",
+            text=f"Đoạn kể số {index}.",
+            approved_fact_ids=(f"fact-{index}",),
+            confirmed_anchor_ids=("anchor-cat",),
+            scene_purpose=purpose,
+        )
+        for index, purpose in enumerate(purposes, 1)
+    )
+    pipeline = StoryVideoPipeline(
+        narration=TinyNarration(),
+        illustrations=NoImages(),
+        motion=_Motion(),
+        assembler=_Assembler(),
+    )
+    with pytest.raises(StoryVideoProviderError) as caught:
+        pipeline.run(_package(), segments)
+    assert caught.value.code == "SUBTITLE_TIMING_INVALID"
+
+
+def test_pipeline_stops_before_images_when_tts_timing_does_not_match_audio() -> None:
+    class BadNarration(_Narration):
+        def render(self, request, texts):
+            return super().render(request, texts).model_copy(update={"duration_seconds": 42.0})
+
+    class NoImages:
+        def render(self, request):
+            raise AssertionError("inconsistent TTS must stop before image rendering")
+
+    pipeline = StoryVideoPipeline(
+        narration=BadNarration(),
+        illustrations=NoImages(),
+        motion=_Motion(),
+        assembler=_Assembler(),
+    )
+    with pytest.raises(StoryVideoProviderError) as caught:
+        pipeline.run(_package(), _segments())
+    assert caught.value.code == "NARRATION_TIMING_MISMATCH"
+
+
+def test_pipeline_rejects_ready_scene_without_clip_before_assembly() -> None:
+    class MissingClip(_Motion):
+        def render(self, request):
+            return super().render(request).model_copy(update={"silent_clip_ref": None})
+
+    class NoAssembly:
+        def assemble(self, request):
+            raise AssertionError("missing clip must stop before assembly")
+
+    pipeline = StoryVideoPipeline(
+        narration=_Narration(),
+        illustrations=_Illustrations(),
+        motion=MissingClip(),
+        assembler=NoAssembly(),
+    )
+    with pytest.raises(StoryVideoProviderError) as caught:
+        pipeline.run(_package(), _segments())
+    assert caught.value.code == "VIDEO_SCENE_ARTIFACT_INVALID"
+
+
+@pytest.mark.parametrize(
+    ("status", "retryable"),
+    [("BLOCKED", False), ("INVALID", False), ("RETRYABLE_FAILURE", True)],
+)
+def test_pipeline_stops_after_first_failed_illustration(
+    status: str, retryable: bool
+) -> None:
+    calls: list[str] = []
+
+    class FirstImageFails(_Illustrations):
+        def render(self, request):
+            calls.append(request.scene_id)
+            return super().render(request).model_copy(
+                update={"status": status, "error_code": "IMAGE_TEST_FAILURE"}
+            )
+
+    class NoMotion:
+        def render(self, request):
+            raise AssertionError("failed illustration must stop before scene rendering")
+
+    pipeline = StoryVideoPipeline(
+        narration=_Narration(),
+        illustrations=FirstImageFails(),
+        motion=NoMotion(),
+        assembler=_Assembler(),
+    )
+    with pytest.raises(StoryVideoProviderError) as caught:
+        pipeline.run(_package(), _segments())
+    assert calls == ["scene-1"]
+    assert caught.value.code == "IMAGE_TEST_FAILURE"
+    assert caught.value.retryable is retryable
+    assert caught.value.blocked is (status == "BLOCKED")
+
+
+@pytest.mark.parametrize(
+    ("status", "retryable"),
+    [("BLOCKED", False), ("INVALID", False), ("RETRYABLE_FAILURE", True)],
+)
+def test_pipeline_stops_after_first_failed_scene(status: str, retryable: bool) -> None:
+    calls: list[str] = []
+
+    class FirstSceneFails(_Motion):
+        def render(self, request):
+            calls.append(request.scene_id)
+            return super().render(request).model_copy(
+                update={"status": status, "error_code": "SCENE_TEST_FAILURE"}
+            )
+
+    class NoAssembly:
+        def assemble(self, request):
+            raise AssertionError("failed scene must stop before assembly")
+
+    pipeline = StoryVideoPipeline(
+        narration=_Narration(),
+        illustrations=_Illustrations(),
+        motion=FirstSceneFails(),
+        assembler=NoAssembly(),
+    )
+    with pytest.raises(StoryVideoProviderError) as caught:
+        pipeline.run(_package(), _segments())
+    assert calls == ["scene-1"]
+    assert caught.value.code == "SCENE_TEST_FAILURE"
+    assert caught.value.retryable is retryable
+    assert caught.value.blocked is (status == "BLOCKED")
+
+
+def test_synthetic_40_second_story_renders_and_assembles_real_mp4(tmp_path, monkeypatch) -> None:
+    """Exercise all four media stages without a GPU, network call or child media."""
+
+    import hashlib
+    import subprocess
+    import wave
+
+    import pytest
+
+    imageio = pytest.importorskip("imageio.v2")
+    imageio_ffmpeg = pytest.importorskip("imageio_ffmpeg")
+    Image = pytest.importorskip("PIL.Image")
+    ImageDraw = pytest.importorskip("PIL.ImageDraw")
+    import tools.lightning_whiteboard_provider as provider
+
+    monkeypatch.setenv("SKETCH2LIFE_STORY_VIDEO_ARTIFACT_DIR", str(tmp_path))
+    monkeypatch.setattr(
+        provider, "_require_executable", lambda _name: imageio_ffmpeg.get_ffmpeg_exe()
+    )
+    monkeypatch.setattr(
+        provider,
+        "_ffprobe_duration",
+        lambda path: float(imageio.get_reader(path).get_meta_data()["duration"]),
+    )
+    monkeypatch.setattr(
+        provider,
+        "_ffprobe_streams",
+        lambda _path: [
+            {"codec_type": "video", "codec_name": "h264", "width": 1280, "height": 720},
+            {"codec_type": "audio", "codec_name": "aac"},
+        ],
+    )
+    audio_path = tmp_path / "narration.wav"
+    with wave.open(str(audio_path), "wb") as output:
+        output.setnchannels(1)
+        output.setsampwidth(2)
+        output.setframerate(24_000)
+        output.writeframes(b"\0\0" * (24_000 * 40))
+
+    class Narration:
+        def render(self, request, texts):
+            assert len(texts) == 4
+            return NarrationAssetV1(
+                status="READY",
+                audio_ref=str(audio_path),
+                audio_sha256=hashlib.sha256(audio_path.read_bytes()).hexdigest(),
+                duration_seconds=40.0,
+                locale=request.locale,
+                voice_model_ref="synthetic-silence:test-only",
+                segment_timing_seconds=(10.0,) * 4,
+            )
+
+    class Illustrations:
+        def render(self, request):
+            image = Image.new("RGB", (160, 80), "white")
+            draw = ImageDraw.Draw(image)
+            draw.line((10, 15, 145, 15), fill="black", width=4)
+            draw.line((25, 20, 25, 65), fill="black", width=4)
+            path = tmp_path / f"{request.scene_id}.png"
+            image.save(path)
+            return IllustrationAssetV1(
+                status="READY",
+                scene_id=request.scene_id,
+                asset_ref=str(path),
+                asset_sha256=hashlib.sha256(path.read_bytes()).hexdigest(),
+                content_type="image/png",
+                width=160,
+                height=80,
+                source_image_ref=request.source_image_ref,
+                source_image_sha256=request.source_image_sha256,
+                model_profile_ref="synthetic-lines:test-only",
+            )
+
+    class Motion:
+        def render(self, request):
+            return VideoSceneArtifactV1.model_validate(
+                provider.story_video_scene({"request": request.model_dump(mode="json")})
+            )
+
+    class Assembler:
+        def assemble(self, request):
+            return VideoArtifactV1.model_validate(
+                provider.story_video_assembly({"request": request.model_dump(mode="json")})
+            )
+
+    run = StoryVideoPipeline(
+        narration=Narration(),
+        illustrations=Illustrations(),
+        motion=Motion(),
+        assembler=Assembler(),
+    ).run(_package(), _segments())
+
+    assert run.video.status == "READY"
+    assert len(run.scenes) == 4
+    assert 39.5 <= run.video.duration_seconds <= 40.5
+    assert imageio.get_reader(run.video.video_ref).get_meta_data()["size"] == (1280, 720)
+    inspection = subprocess.run(
+        [imageio_ffmpeg.get_ffmpeg_exe(), "-i", run.video.video_ref],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert "Video: h264" in inspection.stderr
+    assert "Audio: aac" in inspection.stderr

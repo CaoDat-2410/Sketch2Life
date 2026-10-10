@@ -44,11 +44,22 @@ class Settings(BaseSettings):
     pixi_show_planner_enabled: bool = False
     pixi_sprite_cycle_dev_preview_enabled: bool = False
     lightning_pixi_show_path: str = "/v4/pixi/show-plan"
+    lightning_whiteboard_localization_path: str = "/v1/whiteboard/localize"
+    lightning_whiteboard_segmentation_path: str = "/v1/whiteboard/segment"
+    whiteboard_video_enabled: bool = False
+    whiteboard_video_auto_run: bool = False
+    whiteboard_video_artifact_root: Path = Path(".runtime/whiteboard")
+    whiteboard_video_max_size_bytes: int = Field(default=12 * 1024 * 1024, ge=1)
+    whiteboard_learning_thread_fixture: Path | None = None
+    whiteboard_tts_executable: str = "espeak-ng"
+    whiteboard_ffmpeg_executable: str = "ffmpeg"
     live_fixture_root: Path | None = None
     runpod_endpoint_id: str = ""
     runpod_api_key_file: Path | None = None
     ai_connect_timeout_seconds: float = 5.0
     ai_request_timeout_seconds: float = 120.0
+    story_video_request_timeout_seconds: float = Field(default=2100.0, ge=1800.0)
+    story_render_v2_enabled: bool = False  # prototype only; does not replace V1 video jobs
 
     @property
     def pixi_sprite_cycle_dev_preview_allowed(self) -> bool:

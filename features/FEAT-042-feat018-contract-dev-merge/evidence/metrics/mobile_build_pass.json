@@ -1,0 +1,19 @@
+{
+  "command": [
+    "node",
+    "node_modules/expo/bin/cli",
+    "export",
+    "--platform",
+    "web",
+    "--output-dir",
+    "../../.tmp/feat042-mobile-web-pass",
+    "--max-workers",
+    "2",
+    "--clear"
+  ],
+  "cwd": "<worktree>\\apps\\ui-mobile",
+  "started_at_utc": "2026-10-10T13:17:17.254576+00:00",
+  "finished_at_utc": "2026-10-10T13:17:26.005613+00:00",
+  "exit_code": 1,
+  "status": "FAIL"
+}

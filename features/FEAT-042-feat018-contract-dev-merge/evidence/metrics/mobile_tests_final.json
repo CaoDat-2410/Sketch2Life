@@ -1,0 +1,13 @@
+{
+  "command": [
+    "node",
+    "node_modules/vitest/vitest.mjs",
+    "run",
+    "tests"
+  ],
+  "cwd": "<worktree>\\apps\\ui-mobile",
+  "started_at_utc": "2026-10-10T13:09:12.083156+00:00",
+  "finished_at_utc": "2026-10-10T13:09:13.309819+00:00",
+  "exit_code": 0,
+  "status": "PASS"
+}

@@ -1,0 +1,96 @@
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/backend_available.txt:53: trailing whitespace.
++<original-workspace>\backend\.venv\Lib\site-packages\pytest_asyncio\plugin.py:924:
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/backend_available.txt:90: trailing whitespace.
++<original-workspace>\backend\.venv\Lib\site-packages\pytest_asyncio\plugin.py:924:
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/backend_available.txt:113: trailing whitespace.
++
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/backend_available.txt:115: trailing whitespace.
++
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/backend_available.txt:118: trailing whitespace.
++
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/backend_available.txt:121: trailing whitespace.
++
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/backend_final.txt:40: trailing whitespace.
++backend\tests\unit\test_story_video_media_smoke.py:220:
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/backend_final.txt:47: trailing whitespace.
++
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/backend_final.txt:49: trailing whitespace.
++
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/backend_final.txt:69: trailing whitespace.
++backend\tests\unit\test_story_video_media_smoke.py:238:
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/backend_final.txt:76: trailing whitespace.
++
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/backend_final.txt:78: trailing whitespace.
++
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/backend_final.txt:100: trailing whitespace.
++<worktree>\backend\tests\unit\test_vision_v3_quality_benchmark.py:410:
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/backend_final.txt:142: trailing whitespace.
++<worktree>\backend\tests\unit\test_vision_v3_quality_benchmark.py:447:
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/backend_final.txt:186: trailing whitespace.
++<worktree>\backend\tests\unit\test_vision_v3_quality_benchmark.py:482:
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/backend_final.txt:230: trailing whitespace.
++<worktree>\backend\tests\unit\test_vision_v3_quality_benchmark.py:482:
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/backend_final.txt:272: trailing whitespace.
++<worktree>\backend\tests\unit\test_vision_v3_quality_benchmark.py:511:
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/backend_final.txt:314: trailing whitespace.
++<worktree>\backend\tests\unit\test_vision_v3_quality_benchmark.py:670:
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/backend_final.txt:358: trailing whitespace.
++
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/backend_final.txt:370: trailing whitespace.
++<worktree>\backend\tests\unit\test_vision_v3_quality_benchmark.py:703:
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/backend_final.txt:411: trailing whitespace.
++<worktree>\backend\tests\unit\test_vision_v3_quality_benchmark.py:719:
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/backend_final.txt:454: trailing whitespace.
++
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/backend_final.txt:467: trailing whitespace.
++<worktree>\backend\tests\unit\test_vision_v3_quality_execution.py:126:
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/backend_final.txt:516: trailing whitespace.
++
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/backend_final.txt:521: trailing whitespace.
++
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/backend_final.txt:534: trailing whitespace.
++
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/backend_final.txt:557: trailing whitespace.
++backend\tests\unit\test_whiteboard_mvp_renderer.py:352:
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/backend_final.txt:575: trailing whitespace.
++
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/backend_final.txt:580: trailing whitespace.
++
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/backend_final.txt:599: trailing whitespace.
++
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/backend_final.txt:604: trailing whitespace.
++backend\tests\unit\test_whiteboard_stroke_extraction.py:213:
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/backend_final.txt:611: trailing whitespace.
++
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/backend_final.txt:613: trailing whitespace.
++
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/backend_offline.txt:2: new blank line at EOF.
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/backend_verified.txt:48: trailing whitespace.
++
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/backend_verified.txt:53: trailing whitespace.
++
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/backend_verified.txt:66: trailing whitespace.
++
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/backend_verified.txt:89: trailing whitespace.
++backend\tests\unit\test_whiteboard_mvp_renderer.py:352:
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/backend_verified.txt:107: trailing whitespace.
++
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/backend_verified.txt:112: trailing whitespace.
++
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/mobile_tests.txt:72: new blank line at EOF.
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/mobile_tests_final.txt:11: new blank line at EOF.
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/mobile_web_export.txt:16: trailing whitespace.
++Error: Unable to resolve module ../../assets/images/robot_ai.png from <worktree>\apps\ui-mobile\src\screens\ErrorAndSettingsScreens.tsx:
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/mobile_web_export.txt:28: trailing whitespace.
++Error: Unable to resolve module ../../assets/images/robot_ai.png from <worktree>\apps\ui-mobile\src\screens\ErrorAndSettingsScreens.tsx:
+features/FEAT-042-feat018-contract-dev-merge/evidence/raw/renderer_tests.txt:23: new blank line at EOF.
+Traceback (most recent call last):
+  File "<worktree>\features\FEAT-042-feat018-contract-dev-merge\src\verify_candidate.py", line 43, in <module>
+    main()
+    ~~~~^^
+  File "<worktree>\features\FEAT-042-feat018-contract-dev-merge\src\verify_candidate.py", line 38, in main
+    subprocess.check_call(['git', 'diff', '--cached', '--check'], cwd=ROOT)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<owner-local>\AppData\Local\Python\pythoncore-3.14-64\Lib\subprocess.py", line 420, in check_call
+    raise CalledProcessError(retcode, cmd)
+subprocess.CalledProcessError: Command '['git', 'diff', '--cached', '--check']' returned non-zero exit status 2.

@@ -1,0 +1,49 @@
+● Validation Warning:
+
+  Unknown option "watcher.unstable_workerThreads" with value false was found.
+  This is probably a typing mistake. Fixing it will remove this message.
+
+Starting Metro Bundler
+| (node:28952) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (Use `node --trace-warnings ...` to show where the warning was created)
+| (node:5376) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (Use `node --trace-warnings ...` to show where the warning was created)
+| (node:32212) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (Use `node --trace-warnings ...` to show where the warning was created)
+| (node:34472) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (Use `node --trace-warnings ...` to show where the warning was created)
+Web Bundling failed 14470ms apps\ui-mobile\index.ts (583 modules)
+Error: Unable to resolve module ../../assets/images/robot_ai.png from <worktree>\apps\ui-mobile\src\screens\ErrorAndSettingsScreens.tsx:
+
+None of these files exist:
+  * robot_ai.png
+  * assets\images\robot_ai.png
+[0m [90m 131 |[39m       [33m<[39m[33mView[39m style[33m=[39m{styles[33m.[39mcenterContent}[33m>[39m
+ [90m 132 |[39m         [33m<[39m[33mImage[39m
+[31m[1m>[22m[39m[90m 133 |[39m           source[33m=[39m{require([32m'../../assets/images/robot_ai.png'[39m)}
+ [90m     |[39m                            [31m[1m^[22m[39m
+ [90m 134 |[39m           style[33m=[39m{{ width[33m:[39m [35m140[39m[33m,[39m height[33m:[39m [35m140[39m[33m,[39m resizeMode[33m:[39m [32m'contain'[39m[33m,[39m marginVertical[33m:[39m [35m12[39m }}
+ [90m 135 |[39m         [33m/[39m[33m>[39m
+ [90m 136 |[39m[0m
+Error: Unable to resolve module ../../assets/images/robot_ai.png from <worktree>\apps\ui-mobile\src\screens\ErrorAndSettingsScreens.tsx:
+
+None of these files exist:
+  * robot_ai.png
+  * assets\images\robot_ai.png
+[0m [90m 131 |[39m       [33m<[39m[33mView[39m style[33m=[39m{styles[33m.[39mcenterContent}[33m>[39m
+ [90m 132 |[39m         [33m<[39m[33mImage[39m
+[31m[1m>[22m[39m[90m 133 |[39m           source[33m=[39m{require([32m'../../assets/images/robot_ai.png'[39m)}
+ [90m     |[39m                            [31m[1m^[22m[39m
+ [90m 134 |[39m           style[33m=[39m{{ width[33m:[39m [35m140[39m[33m,[39m height[33m:[39m [35m140[39m[33m,[39m resizeMode[33m:[39m [32m'contain'[39m[33m,[39m marginVertical[33m:[39m [35m12[39m }}
+ [90m 135 |[39m         [33m/[39m[33m>[39m
+ [90m 136 |[39m[0m
+    at ModuleResolver.resolveDependency (<original-workspace>\node_modules\.pnpm\metro@0.81.5_supports-color@8.1.1\node_modules\metro\src\node-haste\DependencyGraph\ModuleResolution.js:114:15)
+    at DependencyGraph.resolveDependency (<original-workspace>\node_modules\.pnpm\metro@0.81.5_supports-color@8.1.1\node_modules\metro\src\node-haste\DependencyGraph.js:248:43)
+    at <original-workspace>\node_modules\.pnpm\metro@0.81.5_supports-color@8.1.1\node_modules\metro\src\lib\transformHelpers.js:165:21
+    at resolveDependencies (<original-workspace>\node_modules\.pnpm\metro@0.81.5_supports-color@8.1.1\node_modules\metro\src\DeltaBundler\buildSubgraph.js:42:25)
+    at visit (<original-workspace>\node_modules\.pnpm\metro@0.81.5_supports-color@8.1.1\node_modules\metro\src\DeltaBundler\buildSubgraph.js:83:30)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async Promise.all (index 2)
+    at visit (<original-workspace>\node_modules\.pnpm\metro@0.81.5_supports-color@8.1.1\node_modules\metro\src\DeltaBundler\buildSubgraph.js:92:5)
+    at async Promise.all (index 14)
+    at visit (<original-workspace>\node_modules\.pnpm\metro@0.81.5_supports-color@8.1.1\node_modules\metro\src\DeltaBundler\buildSubgraph.js:92:5)
