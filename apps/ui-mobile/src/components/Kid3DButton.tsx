@@ -20,7 +20,6 @@ interface Kid3DButtonProps {
   style?: ViewStyle;
   textStyle?: TextStyle;
   size?: 'sm' | 'md' | 'lg';
-  disabled?: boolean;
 }
 
 export const Kid3DButton: React.FC<Kid3DButtonProps> = ({
@@ -32,7 +31,6 @@ export const Kid3DButton: React.FC<Kid3DButtonProps> = ({
   style,
   textStyle,
   size = 'md',
-  disabled = false,
 }) => {
   const pressAnim = useRef(new Animated.Value(0)).current;
 
@@ -91,15 +89,11 @@ export const Kid3DButton: React.FC<Kid3DButtonProps> = ({
   return (
     <Animated.View style={[{ transform: [{ translateY }, { scale }] }, style]}>
       <TouchableOpacity
-        accessibilityRole="button"
-        accessibilityLabel={title}
-        accessibilityState={{ disabled }}
         activeOpacity={0.9}
-        disabled={disabled}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         onPress={onPress}
-        style={[styles.btnOuter, shadowStyles[color], disabled && { opacity: 0.45 }]}
+        style={[styles.btnOuter, shadowStyles[color]]}
       >
         <LinearGradient
           colors={colorGradients[color]}
