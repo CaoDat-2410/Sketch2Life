@@ -81,3 +81,9 @@ Selected P1 catalog and Gate integrity implementation record:
 Selected P1 online-model compatibility implementation record:
 [P1 online-model compatibility tests](notes/P1_ONLINE_MODEL_COMPATIBILITY_IMPLEMENTATION_20260911.md)
 (`EV-018-P1-ONLINE-MODEL-COMPATIBILITY-20260911`; provider-shaped adapter fixtures, P1 handoff coverage and offline validation).
+
+Selected P2-T2 offline WIP checkpoint summary, owner-reviewed 2026-10-11:
+[offline checkpoint public status](notes/P2_T2_PUBLICATION_OFFLINE_STATUS_20261011.md)
+(`EV-018-P2T2-PUBLICATION-OFFLINE-STATUS-20261011`; derived summary of local offline records;
+publication authority and fresh verification in FEAT-043; live, D6 and repository-security gates
+remain open; the summarized acceptance originals stay local).
