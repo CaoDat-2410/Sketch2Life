@@ -23,7 +23,9 @@ import json
 import math
 import multiprocessing
 import os
+import socket
 import stat
+import struct
 import sys
 import threading
 import time
@@ -38,16 +40,30 @@ from typing import Any, Literal, Protocol, TypeVar, cast
 
 from sketch2life.application.ports.vision_content_policy import ObservableContentPolicyV1
 from sketch2life.application.services.raw_understanding_mapper import map_vision_result_to_raw
+from sketch2life.contracts.schemas.feat018_live_binding import (
+    BindingArtifactInventorySummaryV1,
+    BindingTerminalMetadataV1,
+    DevAttemptVerificationV1,
+)
+from sketch2life.contracts.schemas.raw_understanding import (
+    RawUnderstandingFailureV1,
+    RawUnderstandingSuccessV1,
+)
 from sketch2life.contracts.schemas.vision_v2 import (
     VisionProfileV2,
+    VisionUnderstandingFailureV2,
     VisionUnderstandingRequestV2,
     VisionUnderstandingSuccessV2,
+    vision_profile_catalog_hash_v2,
+    vision_profile_catalog_v2,
+    vision_profile_config_hash_v2,
 )
 from sketch2life.infrastructure.ai.qwen_vision import (
     QwenDeviceUnavailableError,
     QwenModelLoadError,
     QwenPermanentRuntimeError,
     QwenTimeoutError,
+    QwenTransientRuntimeError,
     QwenVisionAdapter,
 )
 from sketch2life.infrastructure.ai.qwen_vision_runtime_config import QwenVisionRuntimeConfig
@@ -67,6 +83,63 @@ class Feat018ContainmentError(Exception):
 
 class Feat018CleanupFailedError(Exception):
     """Cleanup could not confirm the containment (and everything in it) is terminated."""
+
+    def __init__(
+        self,
+        message: str = "bounded cleanup failed",
+        *,
+        owned_process: ProcessHandle | None = None,
+        owned_connections: tuple[BoundedConnection | _RawConnection, ...] = (),
+        owned_containments: tuple[ContainmentBackend, ...] = (),
+    ) -> None:
+        super().__init__(message)
+        self.owned_process = owned_process
+        self.owned_connections = owned_connections
+        self.owned_containments = owned_containments
+
+    def retry_cleanup(
+        self,
+        *,
+        grace_seconds: float,
+        kill_join_seconds: float,
+        cleanup_deadline_monotonic: float | None = None,
+        clock: Callable[[], float] = time.monotonic,
+    ) -> bool:
+        """Retain unresolved resources even when a later bounded cleanup also fails."""
+
+        if self.owned_process is not None and _bounded_terminate_kill_join(
+            self.owned_process,
+            grace_seconds=grace_seconds,
+            kill_join_seconds=kill_join_seconds,
+            cleanup_deadline_monotonic=cleanup_deadline_monotonic,
+            clock=clock,
+        ):
+            self.owned_process = None
+        self.owned_connections = tuple(
+            connection
+            for connection in self.owned_connections
+            if not _close_owned_ipc_endpoint(connection)
+        )
+        unresolved_containments: list[ContainmentBackend] = []
+        for containment in self.owned_containments:
+            try:
+                _terminate_owned_containment(
+                    containment,
+                    cleanup_deadline_monotonic=cleanup_deadline_monotonic,
+                    clock=clock,
+                )
+                if not containment.is_empty():
+                    unresolved_containments.append(containment)
+                    continue
+                containment.close()
+            except Exception:  # noqa: BLE001 - retain the handle for a later bounded retry
+                unresolved_containments.append(containment)
+        self.owned_containments = tuple(unresolved_containments)
+        return (
+            self.owned_process is None
+            and not self.owned_connections
+            and not self.owned_containments
+        )
 
 
 class Feat018LauncherError(Exception):
@@ -991,7 +1064,10 @@ class Feat018BoundedRunnerConfig:
             raise ValueError("posix_confirmation_timeout_seconds must be positive")
         if self.posix_confirmation_retry_interval_seconds <= 0:
             raise ValueError("posix_confirmation_retry_interval_seconds must be positive")
-        if self.per_attempt_timeout_seconds <= 0 or self.per_attempt_timeout_seconds > 120.0:
+        if (
+            _positive_finite_float(self.per_attempt_timeout_seconds) is None
+            or self.per_attempt_timeout_seconds > 120.0
+        ):
             raise ValueError("per_attempt_timeout_seconds must be in (0, 120.0]")
         if self.poll_interval_seconds <= 0:
             raise ValueError("poll_interval_seconds must be positive")
@@ -1061,37 +1137,263 @@ class _RawConnection(Protocol):
 
     def poll(self, timeout: float | None = None) -> bool: ...
 
+    def fileno(self) -> int: ...
+
     def close(self) -> None: ...
+
+
+class _WindowsNamedPipeAPI:
+    """Private, correctly typed Kernel32 bindings for bounded named-pipe reads."""
+
+    def __init__(self) -> None:
+        if os.name != "nt":
+            raise OSError("Windows named-pipe APIs are available only on Windows")
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        self._kernel32 = kernel32
+        self._set_named_pipe_handle_state = kernel32.SetNamedPipeHandleState
+        self._set_named_pipe_handle_state.argtypes = [
+            ctypes.c_void_p,
+            ctypes.POINTER(ctypes.c_uint32),
+            ctypes.POINTER(ctypes.c_uint32),
+            ctypes.POINTER(ctypes.c_uint32),
+        ]
+        self._set_named_pipe_handle_state.restype = ctypes.c_int
+        self._peek_named_pipe = kernel32.PeekNamedPipe
+        self._peek_named_pipe.argtypes = [
+            ctypes.c_void_p,
+            ctypes.c_void_p,
+            ctypes.c_uint32,
+            ctypes.POINTER(ctypes.c_uint32),
+            ctypes.POINTER(ctypes.c_uint32),
+            ctypes.POINTER(ctypes.c_uint32),
+        ]
+        self._peek_named_pipe.restype = ctypes.c_int
+
+    def set_byte_read_mode(self, handle: ctypes.c_void_p) -> int | None:
+        mode = ctypes.c_uint32(0)  # PIPE_READMODE_BYTE | PIPE_WAIT
+        if self._set_named_pipe_handle_state(handle, ctypes.byref(mode), None, None):
+            return None
+        error_code = ctypes.get_last_error()
+        return error_code
+
+    def peek_available(self, handle: ctypes.c_void_p) -> tuple[int | None, int | None]:
+        available = ctypes.c_uint32()
+        if self._peek_named_pipe(handle, None, 0, None, ctypes.byref(available), None):
+            return int(available.value), None
+        error_code = ctypes.get_last_error()
+        return None, error_code
+
+
+_WINDOWS_NAMED_PIPE_API = _WindowsNamedPipeAPI() if os.name == "nt" else None
 
 
 @dataclass(slots=True)
 class MultiprocessingBoundedConnection:
-    """Real transport: one :class:`multiprocessing.connection.Connection` end, bounded."""
+    """Length-bounded, deadline-driven transport with no blocking helper reader."""
 
     connection: _RawConnection
     max_envelope_bytes: int
+    clock: Callable[[], float] = field(default=time.monotonic, repr=False)
+    sleep: Callable[[float], None] = field(default=time.sleep, repr=False)
+    frame_probe: Callable[[], str] | None = field(default=None, repr=False)
+    read_chunk: Callable[[int], bytes | None] | None = field(default=None, repr=False)
+    _receive_buffer: bytearray = field(default_factory=bytearray, init=False, repr=False)
+    _socket_reader: socket.socket | None = field(default=None, init=False, repr=False)
+    _windows_byte_mode_initialized: bool = field(default=False, init=False, repr=False)
 
     def send_frame(self, payload: Mapping[str, object]) -> None:
-        self.connection.send_bytes(
-            encode_envelope(payload, max_bytes=self.max_envelope_bytes)
-        )
+        encoded = encode_envelope(payload, max_bytes=self.max_envelope_bytes)
+        # Windows PipeConnection transports one message without Connection's POSIX length
+        # prefix. Add the same bounded frame header there so byte-mode incremental reads retain
+        # an explicit frame boundary even when a large write exceeds the named-pipe buffer.
+        if os.name == "nt":
+            encoded = struct.pack("!i", len(encoded)) + encoded
+        self.connection.send_bytes(encoded)
 
     def recv_frame(self, timeout: float) -> dict[str, object] | None:
-        if timeout < 0 or not self.connection.poll(timeout):
+        if not _is_finite_number(timeout) or timeout < 0:
+            raise ValueError("receive timeout must be finite and non-negative")
+        deadline = self.clock() + timeout
+        if not math.isfinite(deadline):
+            raise ValueError("receive deadline must be finite")
+        if self.frame_probe is not None:
+            return self._recv_using_probe(timeout, deadline)
+        return self._recv_incrementally(timeout, deadline)
+
+    def _recv_using_probe(self, timeout: float, deadline: float) -> dict[str, object] | None:
+        """Deterministic fixture seam for deadline edge tests; production reads incrementally."""
+        assert self.frame_probe is not None
+        first_probe = True
+        while True:
+            state = self.frame_probe()
+            if state == "complete":
+                raw = self.connection.recv_bytes(maxlength=self.max_envelope_bytes)
+                if timeout > 0 and self.clock() >= deadline:
+                    raise Feat018ProtocolViolationError("IPC frame completed after its receive deadline")
+                payload = decode_envelope(raw)
+                if timeout > 0 and self.clock() >= deadline:
+                    raise Feat018ProtocolViolationError("IPC frame decoding exceeded its receive deadline")
+                return payload
+            if state == "eof":
+                return None
+            if state not in {"empty", "incomplete"}:
+                raise Feat018ProtocolViolationError("invalid IPC frame probe state")
+
+            now = self.clock()
+            if not first_probe and now >= deadline:
+                if state == "incomplete":
+                    raise Feat018ProtocolViolationError("IPC frame was truncated at its receive deadline")
+                return None
+            if timeout == 0:
+                if state == "incomplete":
+                    raise Feat018ProtocolViolationError("IPC frame was incomplete at a non-blocking read")
+                return None
+            first_probe = False
+            remaining = deadline - now
+            if remaining <= 0:
+                if state == "incomplete":
+                    raise Feat018ProtocolViolationError("IPC frame was truncated at its receive deadline")
+                return None
+            self.sleep(min(0.005, remaining))
+
+    def _recv_incrementally(self, timeout: float, deadline: float) -> dict[str, object] | None:
+        while True:
+            frame_size = self._expected_frame_size()
+            if frame_size is not None and len(self._receive_buffer) >= frame_size:
+                header_size = 12 if self._receive_buffer[:4] == b"\xff\xff\xff\xff" else 4
+                payload = bytes(self._receive_buffer[header_size:frame_size])
+                del self._receive_buffer[:frame_size]
+                if timeout > 0 and self.clock() >= deadline:
+                    raise Feat018ProtocolViolationError("IPC frame completed after its receive deadline")
+                decoded = decode_envelope(payload)
+                if timeout > 0 and self.clock() >= deadline:
+                    raise Feat018ProtocolViolationError("IPC frame decoding exceeded its receive deadline")
+                return decoded
+
+            if frame_size is None:
+                needed = (12 if self._receive_buffer[:4] == b"\xff\xff\xff\xff" else 4)
+                needed -= len(self._receive_buffer)
+            else:
+                needed = frame_size - len(self._receive_buffer)
+
+            if timeout > 0 and self.clock() >= deadline:
+                if self._receive_buffer:
+                    raise Feat018ProtocolViolationError(
+                        "IPC frame was truncated at its receive deadline"
+                    )
+                return None
+            chunk = self._read_available(needed)
+            if chunk == b"":
+                if self._receive_buffer:
+                    raise Feat018ProtocolViolationError("truncated IPC frame at peer EOF")
+                return None
+            if chunk:
+                self._receive_buffer.extend(chunk)
+                if timeout > 0 and self.clock() >= deadline:
+                    completed_size = self._expected_frame_size()
+                    if completed_size is not None and len(self._receive_buffer) >= completed_size:
+                        raise Feat018ProtocolViolationError(
+                            "IPC frame completed after its receive deadline"
+                        )
+                    raise Feat018ProtocolViolationError(
+                        "IPC frame was truncated at its receive deadline"
+                    )
+                continue
+
+            now = self.clock()
+            if now >= deadline:
+                if self._receive_buffer:
+                    raise Feat018ProtocolViolationError("IPC frame was truncated at its receive deadline")
+                return None
+            if timeout == 0:
+                if self._receive_buffer:
+                    raise Feat018ProtocolViolationError("IPC frame was incomplete at a non-blocking read")
+                return None
+            self.sleep(min(0.005, deadline - now))
+
+    def _expected_frame_size(self) -> int | None:
+        if len(self._receive_buffer) < 4:
             return None
+        payload_size = struct.unpack("!i", self._receive_buffer[:4])[0]
+        header_size = 4
+        if payload_size == -1:
+            if len(self._receive_buffer) < 12:
+                return None
+            payload_size = struct.unpack("!Q", self._receive_buffer[4:12])[0]
+            header_size = 12
+        elif payload_size < 0:
+            raise Feat018ProtocolViolationError("invalid IPC frame length")
+        if payload_size > self.max_envelope_bytes:
+            raise Feat018ProtocolViolationError("declared frame length exceeds the IPC envelope ceiling")
+        return header_size + payload_size
+
+    def _read_available(self, maximum: int) -> bytes | None:
+        if maximum <= 0:
+            raise Feat018ProtocolViolationError("invalid IPC read remainder")
+        if self.read_chunk is not None:
+            return self.read_chunk(maximum)
+        if os.name == "nt":
+            api = _WINDOWS_NAMED_PIPE_API
+            if api is None:
+                raise Feat018ProtocolViolationError("Windows IPC API is unavailable")
+            handle = ctypes.c_void_p(self.connection.fileno())
+            if not self._windows_byte_mode_initialized:
+                error_code = api.set_byte_read_mode(handle)
+                if error_code is not None:
+                    cause = OSError(error_code, "SetNamedPipeHandleState failed")
+                    raise Feat018ProtocolViolationError(
+                        "Windows IPC byte-stream mode could not be established"
+                    ) from cause
+                self._windows_byte_mode_initialized = True
+            available, error_code = api.peek_available(handle)
+            if error_code is not None:
+                if error_code in {109, 232}:
+                    return b""
+                cause = OSError(error_code, "PeekNamedPipe failed")
+                raise Feat018ProtocolViolationError(
+                    "Windows IPC availability probe failed"
+                ) from cause
+            assert available is not None
+            if available == 0:
+                return None
+            try:
+                return self.connection.recv_bytes(maxlength=min(maximum, available))
+            except EOFError:
+                return b""
+            except OSError as exc:
+                raise Feat018ProtocolViolationError("Windows IPC bounded read failed") from exc
+
+        if self._socket_reader is None:
+            try:
+                self._socket_reader = socket.socket(
+                    family=socket.AF_UNIX, type=socket.SOCK_STREAM,
+                    fileno=os.dup(self.connection.fileno()),
+                )
+            except OSError as exc:
+                raise Feat018ProtocolViolationError("IPC endpoint cannot be safely read") from exc
         try:
-            raw = self.connection.recv_bytes(maxlength=self.max_envelope_bytes)
-        except OSError as exc:
-            raise Feat018ProtocolViolationError(
-                "declared frame length exceeds the IPC envelope ceiling"
-            ) from exc
-        except EOFError:
+            return self._socket_reader.recv(maximum, socket.MSG_DONTWAIT)
+        except BlockingIOError:
             return None
-        return decode_envelope(raw)
+        except OSError as exc:
+            raise Feat018ProtocolViolationError("IPC non-blocking read failed") from exc
 
     def close(self) -> None:
-        with contextlib.suppress(OSError):
+        close_error: Exception | None = None
+        socket_reader = self._socket_reader
+        self._socket_reader = None
+        if socket_reader is not None:
+            try:
+                socket_reader.close()
+            except Exception as exc:  # noqa: BLE001 - always attempt the owned raw endpoint too
+                close_error = exc
+        try:
             self.connection.close()
+        except Exception as exc:  # noqa: BLE001 - surface the actual endpoint close failure
+            if close_error is None:
+                close_error = exc
+        if close_error is not None:
+            raise close_error
 
 
 # --------------------------------------------------------------------------------------
@@ -1268,6 +1570,9 @@ class ProcessHandle(Protocol):
     @property
     def pid(self) -> int | None: ...
 
+    @property
+    def exitcode(self) -> int | None: ...
+
     def is_alive(self) -> bool: ...
 
     def terminate(self) -> None: ...
@@ -1275,6 +1580,8 @@ class ProcessHandle(Protocol):
     def kill(self) -> None: ...
 
     def join(self, timeout: float | None = None) -> None: ...
+
+    def close(self) -> None: ...
 
 
 class _LaunchProcess(ProcessHandle, Protocol):
@@ -1330,7 +1637,12 @@ class ContainmentBackend(Protocol):
         normal "could not confirm in time" outcome; the caller fails closed on it.
         """
 
-    def terminate_all(self) -> None:
+    def terminate_all(
+        self,
+        *,
+        cleanup_deadline_monotonic: float | None = None,
+        clock: Callable[[], float] | None = None,
+    ) -> None:
         """Terminate every process in this containment in one action."""
 
     def is_empty(self) -> bool:
@@ -1338,6 +1650,28 @@ class ContainmentBackend(Protocol):
 
     def close(self) -> None:
         """Release the containment primitive itself (not its members)."""
+
+
+def _terminate_owned_containment(
+    containment: ContainmentBackend,
+    *,
+    cleanup_deadline_monotonic: float | None,
+    clock: Callable[[], float],
+) -> None:
+    if cleanup_deadline_monotonic is None:
+        containment.terminate_all()
+    else:
+        containment.terminate_all(
+            cleanup_deadline_monotonic=cleanup_deadline_monotonic, clock=clock
+        )
+
+
+def _close_verified_empty_containment(containment: ContainmentBackend) -> None:
+    """Retain the query/control handle while live membership remains unverified."""
+
+    if not containment.is_empty():
+        raise Feat018ContainmentError('containment release requires observed emptiness')
+    containment.close()
 
 
 def posix_worker_self_contain() -> None:
@@ -1427,7 +1761,12 @@ class PosixProcessGroupContainment:
             return False
         return False
 
-    def terminate_all(self) -> None:
+    def terminate_all(
+        self,
+        *,
+        cleanup_deadline_monotonic: float | None = None,
+        clock: Callable[[], float] | None = None,
+    ) -> None:
         """Bounded SIGTERM-then-SIGKILL escalation against the whole process group.
 
         One SIGTERM is not proof of termination: any member of the group may install a handler
@@ -1445,11 +1784,14 @@ class PosixProcessGroupContainment:
             _posix_killpg(self._group_pid, 15)  # SIGTERM
         if self._group_is_empty():
             return
-        deadline = self._clock() + self.sigkill_grace_seconds
-        while self._clock() < deadline:
+        cleanup_clock = clock or self._clock
+        deadline = cleanup_clock() + self.sigkill_grace_seconds
+        if cleanup_deadline_monotonic is not None:
+            deadline = min(deadline, cleanup_deadline_monotonic)
+        while cleanup_clock() < deadline:
             if self._group_is_empty():
                 return
-            remaining = max(0.0, deadline - self._clock())
+            remaining = max(0.0, deadline - cleanup_clock())
             try:
                 self._sleep(min(self.sigkill_poll_interval_seconds, remaining))
             except Exception:  # noqa: BLE001 - a broken wait still proceeds to SIGKILL
@@ -1650,12 +1992,16 @@ class WindowsJobObjectContainment:
     _job_handle: int | None = field(default=None, init=False)
     _process_handle: int | None = field(default=None, init=False)
     _cleanup_failed: bool = field(default=False, init=False, repr=False)
+    _empty_verified: bool = field(default=False, init=False, repr=False)
     _win32: _Win32JobHandles = field(default_factory=lambda: _Win32JobHandles())
 
     def create(self) -> None:
+        if self._job_handle is not None or self._process_handle is not None:
+            raise Feat018ContainmentError("containment still owns unreleased handles")
         self._cleanup_failed = False
         job_handle = self._win32.create_job_object()
         self._job_handle = job_handle
+        self._empty_verified = True
         try:
             self._win32.set_kill_on_close(job_handle)
         except Exception:  # noqa: BLE001 - rollback must not leak the partial job object
@@ -1680,10 +2026,14 @@ class WindowsJobObjectContainment:
     ) -> bool:
         if self._job_handle is None or worker.pid is None:
             return False
+        if self._process_handle is not None:
+            raise Feat018ContainmentError("containment still owns an unreleased process handle")
         try:
             process_handle = self._win32.open_process(worker.pid)
         except Feat018ContainmentError:
             return False
+        self._process_handle = process_handle
+        self._empty_verified = False
         try:
             assigned = self._win32.assign_process_to_job_object(self._job_handle, process_handle)
             verified = assigned and self._win32.is_process_in_job(
@@ -1692,19 +2042,26 @@ class WindowsJobObjectContainment:
         except Exception:  # noqa: BLE001 - close the unregistered process handle
             try:
                 self._win32.close_handle(process_handle)
+                self._process_handle = None
             except Exception:  # noqa: BLE001 - assignment already failed; fail closed
                 self._cleanup_failed = True
             raise
         if not verified:
             try:
                 self._win32.close_handle(process_handle)
+                self._process_handle = None
             except Exception:  # noqa: BLE001 - verification failed; fail closed
                 self._cleanup_failed = True
             return False
-        self._process_handle = process_handle
         return True
 
-    def terminate_all(self) -> None:
+    def terminate_all(
+        self,
+        *,
+        cleanup_deadline_monotonic: float | None = None,
+        clock: Callable[[], float] | None = None,
+    ) -> None:
+        del cleanup_deadline_monotonic, clock
         if self._job_handle is not None:
             self._win32.terminate_job_object(self._job_handle)
 
@@ -1712,28 +2069,30 @@ class WindowsJobObjectContainment:
         """F1: truthful, queried emptiness. A query failure fails closed (never ``True``)."""
 
         if self._job_handle is None:
-            return not self._cleanup_failed
+            return self._empty_verified
         try:
             active_count = self._win32.query_active_process_count(self._job_handle)
         except Feat018ContainmentError:
             self._cleanup_failed = True
+            self._empty_verified = False
             return False
-        return active_count == 0
+        self._empty_verified = active_count == 0
+        return self._empty_verified
 
     def close(self) -> None:
         process_handle = self._process_handle
         job_handle = self._job_handle
-        self._process_handle = None
-        self._job_handle = None
         close_failed = False
         if process_handle is not None:
             try:
                 self._win32.close_handle(process_handle)
+                self._process_handle = None
             except Exception:  # noqa: BLE001 - always continue to the job handle
                 close_failed = True
         if job_handle is not None:
             try:
                 self._win32.close_handle(job_handle)
+                self._job_handle = None
             except Exception:  # noqa: BLE001 - report after both handles were attempted
                 close_failed = True
         if close_failed:
@@ -1763,6 +2122,48 @@ class ProcessLauncher(Protocol):
 
 
 @dataclass(slots=True)
+class _OwnedProcessHandle:
+    """Own the stdlib handle and preserve launch/exit facts after releasing it."""
+
+    process: _LaunchProcess
+    started_at_monotonic: float | None = None
+    closed: bool = field(default=False, init=False)
+    _closed_pid: int | None = field(default=None, init=False, repr=False)
+    _closed_exitcode: int | None = field(default=None, init=False, repr=False)
+
+    @property
+    def pid(self) -> int | None:
+        return self._closed_pid if self.closed else self.process.pid
+
+    @property
+    def exitcode(self) -> int | None:
+        return self._closed_exitcode if self.closed else self.process.exitcode
+
+    def is_alive(self) -> bool:
+        return False if self.closed else self.process.is_alive()
+
+    def terminate(self) -> None:
+        if not self.closed:
+            self.process.terminate()
+
+    def kill(self) -> None:
+        if not self.closed:
+            self.process.kill()
+
+    def join(self, timeout: float | None = None) -> None:
+        if not self.closed:
+            self.process.join(timeout)
+
+    def close(self) -> None:
+        if self.closed:
+            return
+        self._closed_pid = self.process.pid
+        self._closed_exitcode = self.process.exitcode
+        self.process.close()
+        self.closed = True
+
+
+@dataclass(slots=True)
 class MultiprocessingProcessLauncher:
     """Create one non-daemon bounded process with exception-safe ownership cleanup.
 
@@ -1778,16 +2179,15 @@ class MultiprocessingProcessLauncher:
     connection_factory: Callable[[_RawConnection, int], BoundedConnection] = field(
         default=_default_bounded_connection_factory, repr=False
     )
+    clock: Callable[[], float] = field(default=time.monotonic, repr=False)
+    cleanup_deadline: Callable[[], float | None] | None = field(default=None, repr=False)
 
     def launch(
         self, entry: Callable[..., None], args: tuple[object, ...]
     ) -> tuple[ProcessHandle, BoundedConnection]:
         parent_conn: _RawConnection | None = None
         child_conn: _RawConnection | None = None
-        child_close_attempted = False
-        parent_close_attempted = False
-        process: _LaunchProcess | None = None
-        process_start_attempted = False
+        process: _OwnedProcessHandle | None = None
         cleanup_failed = False
 
         try:
@@ -1796,46 +2196,68 @@ class MultiprocessingProcessLauncher:
             bounded_child_conn = self.connection_factory(
                 child_conn, self.max_envelope_bytes
             )
-            process = context.Process(
-                target=entry,
-                args=(bounded_child_conn, *args),
-                daemon=False,
+            process = _OwnedProcessHandle(
+                context.Process(
+                    target=entry,
+                    args=(bounded_child_conn, *args),
+                    daemon=False,
+                )
             )
-            process_start_attempted = True
-            process.start()
+            process.process.start()
+            process.started_at_monotonic = self.clock()
 
-            child_close_attempted = True
             if not _close_owned_ipc_endpoint(child_conn):
                 cleanup_failed = True
                 raise Feat018CleanupFailedError from None
+            child_conn = None
 
             bounded_parent_conn = self.connection_factory(
                 parent_conn, self.max_envelope_bytes
             )
             return process, bounded_parent_conn
         except Exception:  # noqa: BLE001 - all failures become sanitized typed errors
+            cleanup_deadline_monotonic: float | None = None
+            if self.cleanup_deadline is not None:
+                try:
+                    cleanup_deadline_monotonic = self.cleanup_deadline()
+                except Exception:  # noqa: BLE001 - a missing grant cannot extend cleanup
+                    cleanup_failed = True
+                    cleanup_deadline_monotonic = 0.0
             if (
                 process is not None
-                and process_start_attempted
                 and not _bounded_terminate_kill_join(
-                    process, grace_seconds=1.0, kill_join_seconds=1.0
+                    process,
+                    grace_seconds=1.0,
+                    kill_join_seconds=1.0,
+                    cleanup_deadline_monotonic=cleanup_deadline_monotonic,
+                    clock=self.clock,
                 )
             ):
                 cleanup_failed = True
-            if child_conn is not None and not child_close_attempted:
-                child_close_attempted = True
+            if child_conn is not None:
                 if not _close_owned_ipc_endpoint(child_conn):
                     cleanup_failed = True
-            if parent_conn is not None and not parent_close_attempted:
-                parent_close_attempted = True
+                else:
+                    child_conn = None
+            if parent_conn is not None:
                 if not _close_owned_ipc_endpoint(parent_conn):
                     cleanup_failed = True
+                else:
+                    parent_conn = None
             if cleanup_failed:
-                raise Feat018CleanupFailedError("bounded process launch cleanup failed") from None
+                raise Feat018CleanupFailedError(
+                    "bounded process launch cleanup failed",
+                    owned_process=process if process is not None and not process.closed else None,
+                    owned_connections=tuple(
+                        connection
+                        for connection in (child_conn, parent_conn)
+                        if connection is not None
+                    ),
+                ) from None
             raise Feat018LauncherError("bounded process launch failed") from None
 
 
-def _close_owned_ipc_endpoint(connection: _RawConnection) -> bool:
+def _close_owned_ipc_endpoint(connection: BoundedConnection | _RawConnection) -> bool:
     """Close one locally owned raw endpoint without leaking the original exception."""
 
     try:
@@ -1846,26 +2268,57 @@ def _close_owned_ipc_endpoint(connection: _RawConnection) -> bool:
 
 
 def _bounded_terminate_kill_join(
-    process: ProcessHandle, *, grace_seconds: float, kill_join_seconds: float
+    process: ProcessHandle,
+    *,
+    grace_seconds: float,
+    kill_join_seconds: float,
+    cleanup_deadline_monotonic: float | None = None,
+    clock: Callable[[], float] = time.monotonic,
 ) -> bool:
-    """Attempt bounded process cleanup and verify it is no longer alive."""
+    """Stop and reap the process before releasing its locally owned handle."""
+
+    if isinstance(process, _OwnedProcessHandle) and process.closed:
+        return True
 
     cleanup_succeeded = True
+
+    def join_timeout(phase_limit: float) -> float:
+        nonlocal cleanup_succeeded
+        if cleanup_deadline_monotonic is None:
+            return phase_limit
+        try:
+            remaining = cleanup_deadline_monotonic - clock()
+        except Exception:  # noqa: BLE001 - unavailable clocks cannot permit a blocking wait
+            cleanup_succeeded = False
+            return 0.0
+        if not math.isfinite(remaining):
+            cleanup_succeeded = False
+            return 0.0
+        return min(phase_limit, max(0.0, remaining))
     try:
         initially_alive: bool | None = bool(process.is_alive())
     except Exception:  # noqa: BLE001 - unknown liveness must fail closed
         initially_alive = None
         cleanup_succeeded = False
 
+    try:
+        was_started = process.pid is not None
+    except Exception:  # noqa: BLE001 - unknown launch state cannot authorize handle close
+        was_started = True
+        cleanup_succeeded = False
+
+    reaped = not was_started and initially_alive is False
     if initially_alive is not False:
         try:
             process.terminate()
         except Exception:  # noqa: BLE001 - continue to the bounded join and kill attempt
             cleanup_succeeded = False
         try:
-            process.join(timeout=grace_seconds)
+            process.join(timeout=join_timeout(grace_seconds))
         except Exception:  # noqa: BLE001 - continue to the bounded kill attempt
             cleanup_succeeded = False
+        else:
+            reaped = True
 
         try:
             alive_after_grace: bool | None = bool(process.is_alive())
@@ -1878,9 +2331,19 @@ def _bounded_terminate_kill_join(
             except Exception:  # noqa: BLE001 - report failure without escaping cleanup
                 cleanup_succeeded = False
             try:
-                process.join(timeout=kill_join_seconds)
+                process.join(timeout=join_timeout(kill_join_seconds))
             except Exception:  # noqa: BLE001 - report failure without escaping cleanup
                 cleanup_succeeded = False
+                reaped = False
+            else:
+                reaped = True
+    elif was_started:
+        try:
+            process.join(timeout=join_timeout(grace_seconds))
+        except Exception:  # noqa: BLE001 - a stopped but unreaped handle stays owned
+            cleanup_succeeded = False
+        else:
+            reaped = True
 
     try:
         alive_after_cleanup = bool(process.is_alive())
@@ -1889,7 +2352,43 @@ def _bounded_terminate_kill_join(
         cleanup_succeeded = False
     if alive_after_cleanup:
         cleanup_succeeded = False
+    if was_started:
+        try:
+            reaped = reaped and process.exitcode is not None
+        except Exception:  # noqa: BLE001 - unknown exit status retains handle ownership
+            reaped = False
+    if not alive_after_cleanup and reaped:
+        try:
+            process.close()
+        except Exception:  # noqa: BLE001 - close failure leaves the handle owned
+            cleanup_succeeded = False
+    else:
+        cleanup_succeeded = False
     return cleanup_succeeded
+
+
+def _cleanup_deadline_from_hooks(
+    *,
+    on_cleanup_intent: Callable[[], float] | None,
+    cleanup_deadline: Callable[[], float | None] | None,
+    work_deadline_monotonic: float | None = None,
+) -> float | None:
+    deadline = work_deadline_monotonic
+    if on_cleanup_intent is not None:
+        deadline = on_cleanup_intent()
+        if deadline is None:
+            raise Feat018CleanupFailedError('cleanup deadline grant was absent')
+    supplied = cleanup_deadline() if cleanup_deadline is not None else None
+    for grant in (deadline, supplied):
+        if grant is not None and (
+            isinstance(grant, bool)
+            or not isinstance(grant, (int, float))
+            or not math.isfinite(grant)
+        ):
+            raise Feat018CleanupFailedError('cleanup deadline grant was invalid')
+    if supplied is not None:
+        deadline = supplied if deadline is None else min(deadline, supplied)
+    return deadline
 
 
 # --------------------------------------------------------------------------------------
@@ -1922,6 +2421,21 @@ def _generation_child_entry(
         attempt_number=attempt_number,
     )
 
+
+def _dev_registered_generation_child_entry(
+    connection: BoundedConnection, profile: VisionProfileV2,
+    runtime_config: QwenVisionRuntimeConfig, image_path: str, prompt: str,
+    raw_output_max_bytes: int, ipc_envelope_max_bytes: int,
+    capture_factory: D9CaptureFactory | None, attempt_number: int,
+) -> None:
+    """Install existing D9 capture before waiting for trusted model release."""
+    _generation_child_entry_with_capture(
+        connection, profile, runtime_config, image_path, prompt,
+        raw_output_max_bytes, ipc_envelope_max_bytes,
+        capture_factory=capture_factory or _default_d9_capture_factory,
+        attempt_number=attempt_number, require_registration=True,
+    )
+
 def _generation_child_entry_with_capture(
     connection: BoundedConnection,
     profile: VisionProfileV2,
@@ -1933,6 +2447,7 @@ def _generation_child_entry_with_capture(
     *,
     capture_factory: D9CaptureFactory,
     attempt_number: int,
+    require_registration: bool = False,
 ) -> None:
     # The process launcher applies this ceiling before the endpoint crosses the spawn
     # boundary. Re-wrapping that bounded endpoint would hide its send_frame API behind
@@ -1964,6 +2479,13 @@ def _generation_child_entry_with_capture(
 
     outcome_frame: dict[str, object] = {'kind': 'provider_failure'}
     try:
+        if require_registration:
+            try:
+                release = bounded.recv_frame(min(profile.timeout_seconds, 5.0))
+            except Exception:
+                return
+            if release != {'kind': 'DEV_GENERATION_READY'}:
+                return
         from sketch2life.infrastructure.ai.qwen_vision import (  # noqa: PLC0415
             _default_model_factory,
             _generate_from_bundle,
@@ -2058,8 +2580,21 @@ class Feat018BoundedKillableQwenGenerationRunner:
     clock: Callable[[], float] = time.monotonic
     on_attempt_start: Callable[[], None] | None = None
     on_d9_report: Callable[[D9CaptureReport], None] | None = None
+    on_cleanup_failure: Callable[[Feat018CleanupFailedError], None] | None = None
     capture_factory: D9CaptureFactory = _default_d9_capture_factory
     _attempt_number: int = field(default=0, init=False, repr=False)
+    cleanup_failure: Feat018CleanupFailedError | None = field(
+        default=None, init=False, repr=False
+    )
+    cleanup_deadline: Callable[[], float | None] | None = field(default=None, repr=False)
+    on_cleanup_intent: Callable[[], float] | None = field(default=None, repr=False)
+    register_generation: Callable[[ProcessHandle], None] | None = field(default=None, repr=False)
+
+    def _record_cleanup_failure(self, failure: Feat018CleanupFailedError) -> None:
+        self.cleanup_failure = failure
+        if self.on_cleanup_failure is not None:
+            with contextlib.suppress(Exception):
+                self.on_cleanup_failure(failure)
 
     def generate(
         self,
@@ -2077,6 +2612,8 @@ class Feat018BoundedKillableQwenGenerationRunner:
         image_path: Path,
         prompt: str,
     ) -> str:
+        if self.cleanup_failure is not None:
+            raise QwenPermanentRuntimeError('generation cleanup failed')
         remaining = self.worker_cap_deadline_monotonic - self.clock()
         positive_remaining = _positive_finite_float(remaining)
         if positive_remaining is None:
@@ -2085,19 +2622,37 @@ class Feat018BoundedKillableQwenGenerationRunner:
         attempt_number = self._attempt_number
         if self.on_attempt_start is not None:
             self.on_attempt_start()
-        process, connection = self.launcher.launch(
-            _generation_child_entry,
-            (
-                profile,
-                runtime_config,
-                str(image_path),
-                prompt,
-                self.config.raw_output_max_bytes,
-                self.config.ipc_envelope_max_bytes,
-                self.capture_factory,
-                attempt_number,
-            ),
-        )
+        try:
+            process, connection = self.launcher.launch(
+                _dev_registered_generation_child_entry if self.register_generation is not None
+                else _generation_child_entry,
+                (
+                    profile,
+                    runtime_config,
+                    str(image_path),
+                    prompt,
+                    self.config.raw_output_max_bytes,
+                    self.config.ipc_envelope_max_bytes,
+                    self.capture_factory,
+                    attempt_number,
+                ),
+            )
+        except Feat018CleanupFailedError as error:
+            self._record_cleanup_failure(error)
+            try:
+                cleanup_deadline_monotonic = _cleanup_deadline_from_hooks(
+                    on_cleanup_intent=self.on_cleanup_intent,
+                    cleanup_deadline=self.cleanup_deadline,
+                )
+            except Exception:  # noqa: BLE001 - a missing grant allows only non-blocking cleanup
+                cleanup_deadline_monotonic = 0.0
+            error.retry_cleanup(
+                grace_seconds=1.0,
+                kill_join_seconds=1.0,
+                cleanup_deadline_monotonic=cleanup_deadline_monotonic,
+                clock=self.clock,
+            )
+            raise QwenPermanentRuntimeError('generation cleanup failed') from None
         frame: dict[str, object] | None = None
         observations: list[D9StreamObservation] = []
         failure_codes: list[D9StreamFailureCode] = []
@@ -2105,23 +2660,39 @@ class Feat018BoundedKillableQwenGenerationRunner:
         cleanup_succeeded = True
         outcome_received = False
         post_cleanup_protocol_valid = True
+        deadline_expired = False
+        effective_deadline = self.worker_cap_deadline_monotonic
+        decoded_raw_output: str | None = None
+        decoded_failure: Exception | None = None
         try:
             try:
+                if self.register_generation is not None:
+                    self.register_generation(process)
+                    connection.send_frame({'kind': 'DEV_GENERATION_READY'})
+                attempt_started_at = getattr(process, 'started_at_monotonic', None)
+                if attempt_started_at is None:
+                    # Injected synthetic launchers may use the runner's clock at launch return.
+                    attempt_started_at = self.clock()
+                attempt_deadline = attempt_started_at + self.config.per_attempt_timeout_seconds
+                effective_deadline = min(attempt_deadline, self.worker_cap_deadline_monotonic)
                 while True:
-                    remaining = self.worker_cap_deadline_monotonic - self.clock()
+                    remaining = effective_deadline - self.clock()
                     if _positive_finite_float(remaining) is None:
+                        deadline_expired = True
                         frame = None
                         break
                     frame = connection.recv_frame(remaining)
                     if frame is None:
+                        deadline_expired = self.clock() >= effective_deadline
                         try:
                             worker_died = not process.is_alive()
                         except Exception:  # noqa: BLE001 - unknown liveness fails closed
                             worker_died = True
                         break
                     if _positive_finite_float(
-                        self.worker_cap_deadline_monotonic - self.clock()
+                        effective_deadline - self.clock()
                     ) is None:
+                        deadline_expired = True
                         frame = None
                         break
                     if frame.get('kind') == 'D9_STREAM_OBSERVATION':
@@ -2152,11 +2723,63 @@ class Feat018BoundedKillableQwenGenerationRunner:
                     break
             except (Feat018ProtocolViolationError, EOFError, OSError):
                 raise QwenPermanentRuntimeError from None
+            if frame is not None and not failure_codes:
+                try:
+                    decoded_raw_output = _interpret_generation_child_frame(frame)
+                except Exception as error:  # noqa: BLE001 - retain the typed adapter decision
+                    decoded_failure = error
         finally:
+            owned_process: ProcessHandle | None = None
+            owned_connections: tuple[BoundedConnection, ...] = ()
+            cleanup_deadline_monotonic: float | None = None
+            cleanup_intent_started = False
+
+            def begin_failure_cleanup() -> None:
+                nonlocal cleanup_deadline_monotonic, cleanup_intent_started
+                if cleanup_intent_started or self.on_cleanup_intent is None:
+                    return
+                cleanup_intent_started = True
+                try:
+                    cleanup_deadline_monotonic = _cleanup_deadline_from_hooks(
+                        on_cleanup_intent=self.on_cleanup_intent,
+                        cleanup_deadline=self.cleanup_deadline,
+                    )
+                except Exception:  # noqa: BLE001 - missing grants allow no extra wait
+                    cleanup_deadline_monotonic = 0.0
+
+            if self.on_cleanup_intent is not None or self.cleanup_deadline is not None:
+                terminal_cleanup = (
+                    deadline_expired
+                    or worker_died
+                    or bool(failure_codes)
+                    or frame is None
+                    or (
+                        decoded_failure is not None
+                        and not isinstance(decoded_failure, QwenTransientRuntimeError)
+                    )
+                    or sys.exc_info()[0] is not None
+                )
+                cleanup_intent_started = terminal_cleanup
+                try:
+                    cleanup_deadline_monotonic = _cleanup_deadline_from_hooks(
+                        on_cleanup_intent=self.on_cleanup_intent if terminal_cleanup else None,
+                        cleanup_deadline=self.cleanup_deadline,
+                        work_deadline_monotonic=effective_deadline,
+                    )
+                except Exception:  # noqa: BLE001 - never reset after a missing cleanup handoff
+                    cleanup_deadline_monotonic = 0.0
+                    cleanup_succeeded = False
             if not _bounded_terminate_kill_join(
-                process, grace_seconds=1.0, kill_join_seconds=1.0
+                process,
+                grace_seconds=1.0,
+                kill_join_seconds=1.0,
+                cleanup_deadline_monotonic=cleanup_deadline_monotonic,
+                clock=self.clock,
             ):
                 cleanup_succeeded = False
+                begin_failure_cleanup()
+                if not bool(getattr(process, 'closed', False)):
+                    owned_process = process
             post_cleanup_protocol_valid = self._drain_post_cleanup_d9(
                 connection,
                 observations,
@@ -2164,10 +2787,28 @@ class Feat018BoundedKillableQwenGenerationRunner:
                 attempt_number=attempt_number,
                 outcome_received=outcome_received,
             )
+            if not post_cleanup_protocol_valid:
+                begin_failure_cleanup()
             try:
                 connection.close()
             except Exception:  # noqa: BLE001 - cleanup must not hide the bounded result
                 cleanup_succeeded = False
+                begin_failure_cleanup()
+                owned_connections = (connection,)
+            if (
+                cleanup_deadline_monotonic is not None
+                and self.clock() >= cleanup_deadline_monotonic
+            ):
+                cleanup_succeeded = False
+                begin_failure_cleanup()
+            if not cleanup_succeeded:
+                self._record_cleanup_failure(
+                    Feat018CleanupFailedError(
+                        'generation cleanup failed',
+                        owned_process=owned_process,
+                        owned_connections=owned_connections,
+                    )
+                )
 
         if not post_cleanup_protocol_valid and (
             D9StreamFailureCode.STREAM_FINALIZATION_FAILED not in failure_codes
@@ -2188,19 +2829,24 @@ class Feat018BoundedKillableQwenGenerationRunner:
             )
         else:
             report = D9CaptureReport(tuple(observations), tuple(failure_codes))
+        if self.cleanup_failure is not None:
+            raise QwenPermanentRuntimeError('generation cleanup failed')
         if self.on_d9_report is not None:
             self.on_d9_report(report)
-        if not cleanup_succeeded:
-            raise QwenPermanentRuntimeError('generation cleanup failed')
         if worker_died:
             raise QwenPermanentRuntimeError('generation worker died before stream finalization')
         if frame is None:
+            if deadline_expired:
+                raise QwenTimeoutError
             if report.failed and self.on_d9_report is not None:
                 raise QwenPermanentRuntimeError('D9 stream enforcement failed')
             raise QwenTimeoutError
         if report.failed:
             raise QwenPermanentRuntimeError('D9 stream enforcement failed')
-        return _interpret_generation_child_frame(frame)
+        if decoded_failure is not None:
+            raise decoded_failure
+        assert decoded_raw_output is not None
+        return decoded_raw_output
 
     @staticmethod
     def _drain_post_cleanup_d9(
@@ -2313,6 +2959,10 @@ class SupervisorRunResult:
     raw_status: str | None = None
     d9_observations: tuple[D9StreamObservation, ...] = ()
     d9_failure_codes: tuple[D9StreamFailureCode, ...] = ()
+    cleanup_failure: Feat018CleanupFailedError | None = field(
+        default=None, repr=False, compare=False
+    )
+    verification_summary: DevAttemptVerificationV1 | None = None
 
     @property
     def worker_terminal_outcome(self) -> str | None:
@@ -2328,7 +2978,10 @@ class SupervisorRunResult:
 
     @property
     def is_success(self) -> bool:
-        return self.effective_outcome is EffectiveOutcome.SUCCEEDED
+        return (
+            self.effective_outcome is EffectiveOutcome.SUCCEEDED
+            and self.cleanup_failure is None
+        )
 
 
 @dataclass(slots=True)
@@ -2353,18 +3006,77 @@ class Feat018AdapterCallSupervisor:
     containment_factory: Callable[[], ContainmentBackend]
     clock: Callable[[], float] = time.monotonic
     sleep: Callable[[float], None] = time.sleep
+    cleanup_deadline: Callable[[], float | None] | None = field(default=None, repr=False)
+    on_cleanup_intent: Callable[[], float] | None = field(default=None, repr=False)
+    cancel_requested: Callable[[], bool] | None = field(default=None, repr=False)
+    on_accepted_progress: Callable[[ProgressEvent], None] | None = field(default=None, repr=False)
+    require_verification: bool = False
+    _verification_summary: DevAttemptVerificationV1 | None = field(default=None, init=False, repr=False)
+    register_launch: Callable[[int, str, object | None], object] | None = field(default=None, repr=False)
+    launch_parent_birth: object | None = field(default=None, repr=False)
+    release_guard: Callable[[Callable[[], None]], None] | None = field(default=None, repr=False)
+    _adapter_registration: object | None = field(default=None, init=False, repr=False)
+    _terminal_cleanup_deadline: float | None = field(default=None, init=False, repr=False)
+    _registered_generation_attempts: set[int] = field(default_factory=set, init=False, repr=False)
+    work_deadline_monotonic: float | None = field(default=None, repr=False)
 
     def run(
         self, entry: Callable[..., None], worker_args: tuple[object, ...]
     ) -> SupervisorRunResult:
+        self._verification_summary = None
+        self._adapter_registration = None
+        self._terminal_cleanup_deadline = None
+        self._registered_generation_attempts.clear()
         cap_deadline_monotonic = self.clock() + self.config.total_adapter_cap_seconds
+        if self.work_deadline_monotonic is not None:
+            if type(self.work_deadline_monotonic) not in (int, float) or not math.isfinite(self.work_deadline_monotonic):
+                return SupervisorRunResult(
+                    final_state=ProgressState.NOT_STARTED, attempt_count=None, terminal_outcome=None,
+                    cleanup_status=CleanupStatus.SUCCEEDED, stopped_before_containment=True,
+                    primary_failure_reason='development work deadline invalid',
+                )
+            cap_deadline_monotonic = min(cap_deadline_monotonic, self.work_deadline_monotonic)
+            if _positive_finite_float(cap_deadline_monotonic - self.clock()) is None:
+                return SupervisorRunResult(
+                    final_state=ProgressState.NOT_STARTED, attempt_count=None, terminal_outcome=None,
+                    cleanup_status=CleanupStatus.SUCCEEDED, stopped_before_containment=True,
+                    primary_failure_reason='development work deadline expired',
+                )
+        cleanup_deadline_monotonic: float | None = None
+        cleanup_failures: list[Feat018CleanupFailedError] = []
+
+        def begin_cleanup() -> float:
+            nonlocal cleanup_deadline_monotonic
+            if cleanup_deadline_monotonic is None:
+                try:
+                    cleanup_deadline_monotonic = _cleanup_deadline_from_hooks(
+                        on_cleanup_intent=self.on_cleanup_intent,
+                        cleanup_deadline=self.cleanup_deadline,
+                    )
+                    if cleanup_deadline_monotonic is None:
+                        if self.on_cleanup_intent is not None or self.cleanup_deadline is not None:
+                            raise Feat018CleanupFailedError('cleanup deadline grant was absent')
+                        cleanup_deadline_monotonic = (
+                            self.clock() + self.config.cleanup_deadline_seconds
+                        )
+                except Exception:  # noqa: BLE001 - an absent grant cannot reset the deadline
+                    cleanup_deadline_monotonic = 0.0
+                    cleanup_failures.append(Feat018CleanupFailedError())
+            self._terminal_cleanup_deadline = cleanup_deadline_monotonic
+            return cleanup_deadline_monotonic
 
         containment: ContainmentBackend | None = None
         try:
             containment = self.containment_factory()
             containment.create()
         except Exception:  # noqa: BLE001 - containment creation is fail-closed, never raised
-            cleanup_status = self._cleanup_partial_containment(containment)
+            cleanup_status = self._cleanup_partial_containment(
+                containment,
+                cleanup_deadline_monotonic=begin_cleanup(),
+                cleanup_failures=cleanup_failures,
+            )
+            if cleanup_failures:
+                cleanup_status = CleanupStatus.CLEANUP_FAILED
             return SupervisorRunResult(
                 final_state=ProgressState.NOT_STARTED,
                 attempt_count=None,
@@ -2377,6 +3089,11 @@ class Feat018AdapterCallSupervisor:
                 ),
                 stopped_before_containment=True,
                 primary_failure_reason="containment creation failed",
+                cleanup_failure=(
+                    Feat018CleanupFailedError(owned_containments=(containment,))
+                    if containment is not None and cleanup_status is CleanupStatus.CLEANUP_FAILED
+                    else (cleanup_failures[0] if cleanup_failures else None)
+                ),
             )
         assert containment is not None
 
@@ -2393,6 +3110,16 @@ class Feat018AdapterCallSupervisor:
         try:
             try:
                 process, connection = self.launcher.launch(entry, worker_args)
+            except Feat018CleanupFailedError as failure:
+                stopped_before_containment = True
+                primary_failure_reason = "adapter worker launch cleanup failed"
+                cleanup_failures.append(failure)
+                failure.retry_cleanup(
+                    grace_seconds=1.0,
+                    kill_join_seconds=1.0,
+                    cleanup_deadline_monotonic=begin_cleanup(),
+                    clock=self.clock,
+                )
             except Exception:  # noqa: BLE001 - preserved below, cleanup still runs
                 stopped_before_containment = True
                 primary_failure_reason = "adapter worker launch failed"
@@ -2412,6 +3139,8 @@ class Feat018AdapterCallSupervisor:
                         cap_deadline_monotonic,
                         d9_observations,
                         d9_failure_codes,
+                        cleanup_failures,
+                        begin_cleanup,
                     )
                     primary_failure_reason = primary_failure_reason or progress_failure_reason
                     try:
@@ -2422,16 +3151,39 @@ class Feat018AdapterCallSupervisor:
             primary_failure_reason = primary_failure_reason or "adapter worker lifecycle failure"
             state_machine.force_freeze()
         finally:
-            cleanup_failed = False
+            cleanup_deadline_monotonic = begin_cleanup()
+            cleanup_failed = bool(cleanup_failures)
             if process is not None and not _bounded_terminate_kill_join(
-                process, grace_seconds=1.0, kill_join_seconds=1.0
+                process,
+                grace_seconds=1.0,
+                kill_join_seconds=1.0,
+                cleanup_deadline_monotonic=cleanup_deadline_monotonic,
+                clock=self.clock,
             ):
                 cleanup_failed = True
+                cleanup_failures.append(
+                    Feat018CleanupFailedError(
+                        owned_process=(
+                            process if not bool(getattr(process, 'closed', False)) else None
+                        )
+                    )
+                )
+            containment_cleanup_failed = False
             try:
-                containment.terminate_all()
+                _terminate_owned_containment(
+                    containment,
+                    cleanup_deadline_monotonic=cleanup_deadline_monotonic,
+                    clock=self.clock,
+                )
             except Exception:  # noqa: BLE001 - cleanup must continue and report failure
                 cleanup_failed = True
-            cleanup_status = self._verify_cleanup(containment)
+                containment_cleanup_failed = True
+            cleanup_status = self._verify_cleanup(
+                containment, cleanup_deadline_monotonic=cleanup_deadline_monotonic
+            )
+            containment_cleanup_failed = (
+                containment_cleanup_failed or cleanup_status is CleanupStatus.CLEANUP_FAILED
+            )
             if cleanup_status is CleanupStatus.CLEANUP_FAILED:
                 cleanup_failed = True
             if connection is not None:
@@ -2441,6 +3193,7 @@ class Feat018AdapterCallSupervisor:
                         state_machine,
                         d9_observations,
                         d9_failure_codes,
+                        cleanup_failures,
                     )
                     primary_failure_reason = (
                         primary_failure_reason or post_cleanup_failure
@@ -2449,13 +3202,25 @@ class Feat018AdapterCallSupervisor:
                     connection.close()
                 except Exception:  # noqa: BLE001 - containment close must still run
                     cleanup_failed = True
+                    cleanup_failures.append(
+                        Feat018CleanupFailedError(owned_connections=(connection,))
+                    )
             try:
-                containment.close()
+                _close_verified_empty_containment(containment)
             except Exception:  # noqa: BLE001 - cleanup failure is a result, not an escape
                 cleanup_failed = True
+                containment_cleanup_failed = True
             if bool(getattr(containment, "_cleanup_failed", False)):
                 cleanup_failed = True
-            if cleanup_failed:
+                containment_cleanup_failed = True
+            if self.clock() >= cleanup_deadline_monotonic:
+                cleanup_failed = True
+                cleanup_failures.append(Feat018CleanupFailedError('cleanup deadline expired'))
+            if containment_cleanup_failed:
+                cleanup_failures.append(
+                    Feat018CleanupFailedError(owned_containments=(containment,))
+                )
+            if cleanup_failed or cleanup_failures:
                 cleanup_status = CleanupStatus.CLEANUP_FAILED
 
         if d9_capture_expected:
@@ -2494,8 +3259,33 @@ class Feat018AdapterCallSupervisor:
             stopped_before_containment=stopped_before_containment,
             primary_failure_reason=primary_failure_reason,
             raw_status=state_machine.raw_status,
+            verification_summary=self._verification_summary,
             d9_observations=tuple(d9_observations),
             d9_failure_codes=tuple(d9_failure_codes),
+            cleanup_failure=(
+                Feat018CleanupFailedError(
+                    owned_process=next(
+                        (
+                            failure.owned_process
+                            for failure in cleanup_failures
+                            if failure.owned_process is not None
+                        ),
+                        None,
+                    ),
+                    owned_connections=tuple(
+                        connection
+                        for failure in cleanup_failures
+                        for connection in failure.owned_connections
+                    ),
+                    owned_containments=tuple(
+                        owned_containment
+                        for failure in cleanup_failures
+                        for owned_containment in failure.owned_containments
+                    ),
+                )
+                if cleanup_failures
+                else None
+            ),
         )
 
     def _establish_containment_gate(
@@ -2505,6 +3295,18 @@ class Feat018AdapterCallSupervisor:
         containment: ContainmentBackend,
         cap_deadline_monotonic: float,
     ) -> _ContainmentGateResult:
+        if self.cancel_requested is not None:
+            try:
+                requested = self.cancel_requested()
+                if type(requested) is not bool or requested:
+                    return _ContainmentGateResult(
+                        contained=False, failure_reason="adapter invocation cancelled before gate"
+                    )
+            except Exception:
+                return _ContainmentGateResult(
+                    contained=False, failure_reason="adapter cancellation control failed"
+                )
+
         remaining_for_gate = cap_deadline_monotonic - self.clock()
         if _positive_finite_float(remaining_for_gate) is None:
             return _ContainmentGateResult(
@@ -2528,18 +3330,53 @@ class Feat018AdapterCallSupervisor:
                 contained=False, failure_reason="containment not confirmed"
             )
 
+        if self.register_launch is not None:
+            try:
+                if type(process.pid) is not int or process.pid < 1:
+                    raise ValueError
+                self._adapter_registration = self.register_launch(
+                    process.pid, 'ADAPTER', self.launch_parent_birth,
+                )
+                if getattr(self._adapter_registration, 'birth', None) is None:
+                    raise ValueError
+            except Exception:
+                return _ContainmentGateResult(
+                    contained=False, failure_reason="trusted adapter registration failed"
+                )
+
+        if self.cancel_requested is not None:
+            try:
+                requested = self.cancel_requested()
+                if type(requested) is not bool or requested:
+                    return _ContainmentGateResult(
+                        contained=False, failure_reason="adapter invocation cancelled before release"
+                    )
+            except Exception:
+                return _ContainmentGateResult(
+                    contained=False, failure_reason="adapter cancellation control failed"
+                )
+
         remaining_for_duration = cap_deadline_monotonic - self.clock()
         if _positive_finite_float(remaining_for_duration) is None:
             return _ContainmentGateResult(
                 contained=False, failure_reason="containment gate deadline expired"
             )
         try:
-            connection.send_frame(
-                {
+            def release() -> None:
+                # The guard owns the authoritative START/CANCEL lock. Polling the
+                # control source here could recursively acquire that same lock.
+                remaining = cap_deadline_monotonic - self.clock()
+                if _positive_finite_float(remaining) is None:
+                    raise Feat018ProtocolViolationError('adapter release deadline expired')
+                connection.send_frame({
                     "kind": "CONTAINMENT_READY",
-                    "remaining_seconds_at_spawn": remaining_for_duration,
-                }
-            )
+                    "remaining_seconds_at_spawn": remaining,
+                })
+
+            if self.release_guard is not None:
+                self.release_guard(release)
+            else:
+                release()
         except Exception:  # noqa: BLE001 - failing to release the worker is a gate failure
             return _ContainmentGateResult(
                 contained=False, failure_reason="CONTAINMENT_READY send failed"
@@ -2554,15 +3391,31 @@ class Feat018AdapterCallSupervisor:
         cap_deadline_monotonic: float,
         d9_observations: list[D9StreamObservation],
         d9_failure_codes: list[D9StreamFailureCode],
+        cleanup_failures: list[Feat018CleanupFailedError],
+        begin_cleanup: Callable[[], float] | None = None,
     ) -> str | None:
         while state_machine.state not in (ProgressState.TERMINAL, ProgressState.FROZEN):
-            remaining = cap_deadline_monotonic - self.clock()
+            if self.cancel_requested is not None:
+                try:
+                    requested = self.cancel_requested()
+                except Exception:
+                    state_machine.force_freeze()
+                    return "adapter cancellation control failed"
+                if type(requested) is not bool or requested:
+                    state_machine.force_freeze()
+                    return "adapter invocation cancelled"
+            effective_deadline = min(cap_deadline_monotonic, self._terminal_cleanup_deadline) if (
+                self._terminal_cleanup_deadline is not None
+            ) else cap_deadline_monotonic
+            remaining = effective_deadline - self.clock()
             if _positive_finite_float(remaining) is None:
                 state_machine.force_freeze()
                 return "adapter supervisor deadline exceeded"
-            wait = min(remaining, self.config.poll_interval_seconds)
             try:
-                raw_frame = connection.recv_frame(wait)
+                raw_frame = connection.recv_frame(
+                    min(remaining, self.config.poll_interval_seconds)
+                    if self.cancel_requested is not None else remaining
+                )
             except Feat018FrameTooLargeError:
                 state_machine.force_freeze()
                 return "progress frame exceeded the IPC envelope limit"
@@ -2576,6 +3429,14 @@ class Feat018AdapterCallSupervisor:
                 state_machine.force_freeze()
                 return "progress frame receive failed"
             acceptance_time = self.clock()
+            if self.cancel_requested is not None:
+                try:
+                    requested = self.cancel_requested()
+                except Exception:
+                    requested = True
+                if type(requested) is not bool or requested:
+                    state_machine.force_freeze()
+                    return "adapter invocation cancelled"
             if raw_frame is None:
                 try:
                     worker_alive = process.is_alive()
@@ -2585,10 +3446,93 @@ class Feat018AdapterCallSupervisor:
                 if not worker_alive:
                     state_machine.force_freeze()
                     return "adapter worker exited before terminal event"
+                remaining_after_receive = cap_deadline_monotonic - self.clock()
+                if _positive_finite_float(remaining_after_receive) is None:
+                    state_machine.force_freeze()
+                    return "adapter supervisor deadline exceeded"
+                self.sleep(min(self.config.poll_interval_seconds, remaining_after_receive))
                 continue
-            if _positive_finite_float(cap_deadline_monotonic - acceptance_time) is None:
+            if raw_frame.get('kind') == 'GENERATION_CLEANUP_FAILED':
+                state_machine.force_freeze()
+                if set(raw_frame) != {'kind'}:
+                    return 'malformed generation cleanup frame'
+                cleanup_failures.append(Feat018CleanupFailedError('generation cleanup failed'))
+                return 'generation cleanup failed'
+            if (
+                raw_frame.get('cleanup_failed') is True
+                and _progress_event_from_frame(raw_frame) is not None
+            ):
+                cleanup_failures.append(Feat018CleanupFailedError('generation cleanup failed'))
+            if _positive_finite_float(effective_deadline - acceptance_time) is None:
                 state_machine.force_freeze()
                 return "progress event arrived at or after the supervisor deadline"
+            if raw_frame.get('kind') == 'DEV_REGISTER_GENERATION':
+                if (
+                    not self.require_verification or self.register_launch is None
+                    or self._adapter_registration is None
+                    or set(raw_frame) != {'kind', 'pid', 'attempt_number'}
+                    or type(raw_frame.get('pid')) is not int or raw_frame['pid'] < 1
+                    or type(raw_frame.get('attempt_number')) is not int
+                    or raw_frame['attempt_number'] != state_machine.attempt_count
+                    or raw_frame['attempt_number'] not in (1, 2)
+                    or raw_frame['attempt_number'] in self._registered_generation_attempts
+                    or self._terminal_cleanup_deadline is not None
+                ):
+                    state_machine.force_freeze()
+                    return 'invalid development generation registration'
+                try:
+                    registration = self.register_launch(
+                        raw_frame['pid'], 'GENERATION', getattr(self._adapter_registration, 'birth'),
+                    )
+                    if getattr(registration, 'birth', None) is None:
+                        raise Feat018ProtocolViolationError('generation registration missing birth')
+
+                    def release_generation() -> None:
+                        if _positive_finite_float(cap_deadline_monotonic - self.clock()) is None:
+                            raise Feat018ProtocolViolationError('generation release deadline expired')
+                        connection.send_frame({'kind': 'DEV_REGISTERED'})
+
+                    if self.release_guard is not None:
+                        self.release_guard(release_generation)
+                    else:
+                        release_generation()
+                    self._registered_generation_attempts.add(raw_frame['attempt_number'])
+                except Exception:
+                    state_machine.force_freeze()
+                    return 'trusted generation registration failed'
+                continue
+            if raw_frame.get('kind') == 'DEV_CLEANUP_INTENT':
+                if not self.require_verification or set(raw_frame) != {'kind'} or begin_cleanup is None:
+                    state_machine.force_freeze()
+                    return 'invalid development cleanup intent'
+                deadline = begin_cleanup()
+                try:
+                    connection.send_frame({
+                        'kind': 'DEV_CLEANUP_GRANT',
+                        # These two processes share the bound session's OS monotonic clock;
+                        # no host timestamp crosses the SSH boundary.
+                        'deadline_remote_monotonic': deadline,
+                    })
+                except Exception:
+                    state_machine.force_freeze()
+                    return 'development cleanup grant delivery failed'
+                continue
+            if raw_frame.get('kind') == 'DEV_VERIFICATION':
+                if (
+                    not self.require_verification or self._verification_summary is not None
+                    or set(raw_frame) != {'kind', 'summary'}
+                    or state_machine.state in (ProgressState.NOT_STARTED, ProgressState.FROZEN)
+                ):
+                    state_machine.force_freeze()
+                    return 'invalid development verification sequence'
+                try:
+                    self._verification_summary = DevAttemptVerificationV1.model_validate_json(
+                        json.dumps(raw_frame['summary'], allow_nan=False)
+                    ).revalidated()
+                except Exception:
+                    state_machine.force_freeze()
+                    return 'invalid development verification metadata'
+                continue
             if raw_frame.get('kind') == 'D9_STREAM_OBSERVATION':
                 observation = _d9_observation_from_frame(raw_frame)
                 if (
@@ -2621,6 +3565,23 @@ class Feat018AdapterCallSupervisor:
             if event is None:
                 state_machine.force_freeze()
                 return "malformed progress frame"
+            if self._terminal_cleanup_deadline is not None and event.kind is ProgressEventKind.GENERATION_ATTEMPT_STARTED:
+                state_machine.force_freeze()
+                return 'generation start after terminal cleanup intent'
+            if event.kind is ProgressEventKind.TERMINAL and self.require_verification:
+                if self._verification_summary is None:
+                    state_machine.force_freeze()
+                    return 'development terminal omitted verification'
+                if event.raw_status is not None and event.raw_status != self._verification_summary.raw_status:
+                    state_machine.force_freeze()
+                    return 'development terminal contradicts Raw verification'
+                if event.outcome == 'SUCCEEDED' and (
+                    self._verification_summary.raw_status != 'SUCCEEDED'
+                    or self._verification_summary.failure_codes
+                    or event.raw_status != 'SUCCEEDED'
+                ):
+                    state_machine.force_freeze()
+                    return 'development terminal contradicts verification'
             result = state_machine.accept(event, acceptance_time=acceptance_time)
             if result in (
                 AcceptanceResult.REJECTED_DUPLICATE,
@@ -2639,6 +3600,12 @@ class Feat018AdapterCallSupervisor:
                     ),
                     AcceptanceResult.REJECTED_CLOSED: "progress stream was already closed",
                 }[result]
+            if self.on_accepted_progress is not None:
+                try:
+                    self.on_accepted_progress(event)
+                except Exception:
+                    state_machine.force_freeze()
+                    return 'accepted progress delivery failed'
         return None
 
     @staticmethod
@@ -2647,6 +3614,7 @@ class Feat018AdapterCallSupervisor:
         state_machine: Feat018ProgressStateMachine,
         d9_observations: list[D9StreamObservation],
         d9_failure_codes: list[D9StreamFailureCode],
+        cleanup_failures: list[Feat018CleanupFailedError],
     ) -> str | None:
         failure_reason: str | None = None
         for _ in range(32):
@@ -2656,6 +3624,20 @@ class Feat018AdapterCallSupervisor:
                 return failure_reason or 'post-cleanup D9 frame receive failed'
             if frame is None:
                 return failure_reason
+            if frame.get('kind') == 'GENERATION_CLEANUP_FAILED':
+                if set(frame) != {'kind'}:
+                    failure_reason = failure_reason or 'malformed generation cleanup frame'
+                    continue
+                cleanup_failures.append(Feat018CleanupFailedError('generation cleanup failed'))
+                failure_reason = failure_reason or 'generation cleanup failed'
+                continue
+            if (
+                frame.get('cleanup_failed') is True
+                and _progress_event_from_frame(frame) is not None
+            ):
+                cleanup_failures.append(Feat018CleanupFailedError('generation cleanup failed'))
+                failure_reason = failure_reason or 'generation cleanup failed'
+                continue
             if frame.get('kind') == 'D9_STREAM_OBSERVATION':
                 observation = _d9_observation_from_frame(frame)
                 if (
@@ -2697,38 +3679,73 @@ class Feat018AdapterCallSupervisor:
         return failure_reason
 
     def _cleanup_partial_containment(
-        self, containment: ContainmentBackend | None
+        self,
+        containment: ContainmentBackend | None,
+        *,
+        cleanup_deadline_monotonic: float | None = None,
+        cleanup_failures: list[Feat018CleanupFailedError] | None = None,
     ) -> CleanupStatus:
         """Release a containment object even when its own creation did not finish."""
 
         if containment is None:
             return CleanupStatus.SUCCEEDED
+        if cleanup_deadline_monotonic is None:
+            cleanup_deadline_monotonic = self.clock() + self.config.cleanup_deadline_seconds
         cleanup_failed = bool(getattr(containment, "_cleanup_failed", False))
         try:
-            containment.terminate_all()
+            _terminate_owned_containment(
+                containment,
+                cleanup_deadline_monotonic=cleanup_deadline_monotonic,
+                clock=self.clock,
+            )
         except Exception:  # noqa: BLE001 - close is still mandatory
             cleanup_failed = True
-        if not cleanup_failed and self._verify_cleanup(containment) is CleanupStatus.CLEANUP_FAILED:
+        if self._verify_cleanup(
+            containment, cleanup_deadline_monotonic=cleanup_deadline_monotonic
+        ) is CleanupStatus.CLEANUP_FAILED:
             cleanup_failed = True
         try:
-            containment.close()
+            _close_verified_empty_containment(containment)
         except Exception:  # noqa: BLE001 - report the cleanup failure
             cleanup_failed = True
         if bool(getattr(containment, "_cleanup_failed", False)):
             cleanup_failed = True
+        if self.clock() >= cleanup_deadline_monotonic:
+            cleanup_failed = True
+        if cleanup_failed and cleanup_failures is not None:
+            cleanup_failures.append(Feat018CleanupFailedError(owned_containments=(containment,)))
         return (
             CleanupStatus.CLEANUP_FAILED if cleanup_failed else CleanupStatus.SUCCEEDED
         )
 
-    def _verify_cleanup(self, containment: ContainmentBackend) -> CleanupStatus:
-        deadline = self.clock() + self.config.cleanup_deadline_seconds
+    def _verify_cleanup(
+        self,
+        containment: ContainmentBackend,
+        *,
+        cleanup_deadline_monotonic: float | None = None,
+    ) -> CleanupStatus:
+        deadline = (
+            self.clock() + self.config.cleanup_deadline_seconds
+            if cleanup_deadline_monotonic is None
+            else cleanup_deadline_monotonic
+        )
         interval = min(self.config.poll_interval_seconds, 0.01)
         while True:
+            if (
+                cleanup_deadline_monotonic is not None
+                and self.clock() >= deadline
+            ):
+                return CleanupStatus.CLEANUP_FAILED
             try:
                 empty = containment.is_empty()
             except Exception:  # noqa: BLE001 - a failing query never reports empty
                 return CleanupStatus.CLEANUP_FAILED
             if bool(getattr(containment, "_cleanup_failed", False)):
+                return CleanupStatus.CLEANUP_FAILED
+            if (
+                cleanup_deadline_monotonic is not None
+                and self.clock() >= deadline
+            ):
                 return CleanupStatus.CLEANUP_FAILED
             if empty:
                 return CleanupStatus.SUCCEEDED
@@ -2752,6 +3769,105 @@ class _ContainmentGateResult:
 # --------------------------------------------------------------------------------------
 
 
+def verify_dev_worker_results(
+    result: object, *, request: VisionUnderstandingRequestV2, session_id: str,
+    content_policy: ObservableContentPolicyV1,
+) -> DevAttemptVerificationV1:
+    """Validate actual worker objects and map once; return no observation bodies.
+
+    The expected profile/catalog are the existing V2 catalog. This verifies the
+    result's provenance declaration, not installed packages or GPU capabilities.
+    Failures are fixed codes; upstream validation exceptions remain worker-local.
+    """
+    try:
+        if type(request) is not VisionUnderstandingRequestV2:
+            raise ValueError
+        checked_request = VisionUnderstandingRequestV2.model_validate(
+            request.model_dump(mode='python', warnings='error')
+        )
+        if type(result) not in (VisionUnderstandingSuccessV2, VisionUnderstandingFailureV2):
+            raise ValueError
+        checked = type(result).model_validate(result.model_dump(mode='python', warnings='error'))
+        profile = vision_profile_catalog_v2().resolve(checked_request.requested_profile_id)
+        source_ok = checked.source_image_ref == checked_request.source_image_ref
+        correlation_ok = checked.correlation_id == checked_request.correlation_id
+        provenance_ok = (
+            checked.profile_id == profile.profile_id
+            and checked.profile_catalog_hash == vision_profile_catalog_hash_v2(vision_profile_catalog_v2())
+            and checked.content_policy_version == getattr(content_policy, 'content_policy_version', None)
+            and checked.policy_match_view_version == getattr(content_policy, 'policy_match_view_version', None)
+            and (checked.model_provenance is None or checked.model_provenance == profile.model_provenance)
+        )
+        if type(checked) is VisionUnderstandingSuccessV2:
+            provenance_ok = provenance_ok and (
+                checked.adapter_version == profile.adapter_version
+                and checked.config_hash == vision_profile_config_hash_v2(profile)
+                and checked.model_provenance == profile.model_provenance
+            )
+    except Exception:
+        return DevAttemptVerificationV1(
+            v2_status='INVALID', v2_schema_verified=False, failure_codes=('V2_INVALID',),
+        )
+    v2_fields = dict(
+        v2_status=checked.status, v2_schema_verified=True,
+        source_matched=source_ok, correlation_matched=correlation_ok,
+        provenance_matched=provenance_ok,
+    )
+    if not source_ok or not correlation_ok or not provenance_ok:
+        return DevAttemptVerificationV1(
+            **v2_fields,
+            failure_codes=('IDENTITY_MISMATCH',) if not source_ok or not correlation_ok
+            else ('PROVENANCE_MISMATCH',),
+        )
+    try:
+        if not _is_bounded_opaque_identifier(session_id):
+            raise ValueError
+        mapped = map_vision_result_to_raw(
+            checked, session_id=session_id,
+            expected_source_sha256=checked_request.source_image_ref.sha256,
+            expected_correlation_id=checked_request.correlation_id,
+        )
+        if type(mapped) not in (RawUnderstandingSuccessV1, RawUnderstandingFailureV1):
+            raise ValueError
+        raw = type(mapped).model_validate(mapped.model_dump(mode='python', warnings='error'))
+        if (
+            raw.session_id != session_id or raw.source_image_ref != checked_request.source_image_ref
+            or raw.correlation_id != checked_request.correlation_id
+            or raw.gate_a_required is not True or raw.status != checked.status
+        ):
+            raise ValueError
+        if checked.model_provenance is None:
+            # Pre-load typed failures legitimately have no model provenance.
+            if raw.provenance is not None:
+                raise ValueError
+        elif raw.provenance is None or (
+            raw.provenance.upstream_contract != checked.contract_name
+            or raw.provenance.upstream_contract_version != checked.contract_version
+            or raw.provenance.profile_id != checked.profile_id
+            or raw.provenance.profile_catalog_hash != checked.profile_catalog_hash
+            or raw.provenance.model_provenance != checked.model_provenance
+        ):
+            raise ValueError
+        if type(raw) is RawUnderstandingSuccessV1 and (
+            raw.provenance.adapter_version != checked.adapter_version
+            or raw.provenance.config_hash != checked.config_hash
+            or raw.narration_status.value != 'NOT_SUPPLIED'
+            or raw.asr_claims or raw.asr_failure is not None
+        ):
+            raise ValueError
+    except Exception:
+        return DevAttemptVerificationV1(
+            **v2_fields, raw_status='INVALID', raw_schema_verified=False,
+            failure_codes=('RAW_INVALID',),
+        )
+    return DevAttemptVerificationV1(
+        **v2_fields, raw_status=raw.status, raw_schema_verified=True,
+        gate_a_required=True,
+        narration_status='NOT_SUPPLIED' if type(raw) is RawUnderstandingSuccessV1 else 'NOT_REACHED',
+        failure_codes=() if raw.status == 'SUCCEEDED' else ('ADAPTER_FAILED',),
+    )
+
+
 def adapter_worker_entry(
     connection: BoundedConnection,
     request: VisionUnderstandingRequestV2,
@@ -2760,6 +3876,7 @@ def adapter_worker_entry(
     prompt: str,
     config: Feat018BoundedRunnerConfig,
     session_id: str | None = None,
+    verify_development_results: bool = False,
     *,
     generation_launcher: ProcessLauncher | None = None,
     self_contain: Callable[[], None] = posix_worker_self_contain,
@@ -2784,6 +3901,7 @@ def adapter_worker_entry(
         prompt,
         config,
         session_id,
+        verify_development_results,
         generation_launcher=generation_launcher,
         self_contain=self_contain,
         clock=clock,
@@ -2798,6 +3916,7 @@ def _adapter_worker_entry_with_d9(
     prompt: str,
     config: Feat018BoundedRunnerConfig,
     session_id: str | None,
+    verify_development_results: bool = False,
     *,
     generation_launcher: ProcessLauncher | None,
     self_contain: Callable[[], None],
@@ -2830,6 +3949,9 @@ def _adapter_worker_entry_with_d9(
     protocol_failure = False
     outcome = 'FAILED'
     raw_status: str | None = None
+    verification_summary: DevAttemptVerificationV1 | None = None
+    runner: Feat018BoundedKillableQwenGenerationRunner | None = None
+    cleanup_marker_sent = False
 
     def _publish_d9(report: D9CaptureReport) -> None:
         try:
@@ -2898,6 +4020,12 @@ def _adapter_worker_entry_with_d9(
         def _on_d9_report(report: D9CaptureReport) -> None:
             _send_d9(report)
 
+        def _on_cleanup_failure(failure: Feat018CleanupFailedError) -> None:
+            nonlocal cleanup_marker_sent
+            del failure
+            send_frame({'kind': 'GENERATION_CLEANUP_FAILED'})
+            cleanup_marker_sent = True
+
         runner = Feat018BoundedKillableQwenGenerationRunner(
             config=config,
             worker_cap_deadline_monotonic=worker_cap_deadline_monotonic,
@@ -2906,7 +4034,42 @@ def _adapter_worker_entry_with_d9(
             clock=clock,
             on_attempt_start=_on_attempt_start,
             on_d9_report=_on_d9_report,
+            on_cleanup_failure=_on_cleanup_failure,
         )
+        if verify_development_results:
+            child_cleanup_deadline: float | None = None
+
+            def child_cleanup_intent() -> float:
+                nonlocal child_cleanup_deadline
+                if child_cleanup_deadline is not None:
+                    return child_cleanup_deadline
+                send_frame({'kind': 'DEV_CLEANUP_INTENT'})
+                grant = connection.recv_frame(config.cleanup_deadline_seconds)
+                if not isinstance(grant, Mapping) or set(grant) != {
+                    'kind', 'deadline_remote_monotonic'
+                } or grant.get('kind') != 'DEV_CLEANUP_GRANT':
+                    raise Feat018ProtocolViolationError('development cleanup grant unavailable')
+                deadline = _positive_finite_float(grant.get('deadline_remote_monotonic'))
+                if deadline is None or deadline <= clock():
+                    raise Feat018ProtocolViolationError('development cleanup grant expired')
+                child_cleanup_deadline = deadline
+                return deadline
+
+            runner.on_cleanup_intent = child_cleanup_intent
+            runner.cleanup_deadline = lambda: child_cleanup_deadline
+
+            def register_generation(process: ProcessHandle) -> None:
+                if type(process.pid) is not int or process.pid < 1:
+                    raise Feat018ProtocolViolationError('generation registration unavailable')
+                send_frame({
+                    'kind': 'DEV_REGISTER_GENERATION', 'pid': process.pid,
+                    'attempt_number': attempt_state['count'],
+                })
+                grant = connection.recv_frame(min(config.containment_setup_timeout_seconds, remaining_seconds))
+                if grant != {'kind': 'DEV_REGISTERED'} or clock() >= worker_cap_deadline_monotonic:
+                    raise Feat018ProtocolViolationError('generation registration grant unavailable')
+
+            runner.register_generation = register_generation
         adapter = QwenVisionAdapter(
             runtime_config,
             content_policy=content_policy,
@@ -2917,8 +4080,19 @@ def _adapter_worker_entry_with_d9(
             result = adapter.understand(request)
             if attempt_event_send_failed['value']:
                 raise Feat018ProtocolViolationError('worker attempt event send failed')
+            if runner.cleanup_failure is not None:
+                outcome = 'FAILED'
+                return
             outcome = 'SUCCEEDED' if isinstance(result, VisionUnderstandingSuccessV2) else 'FAILED'
-            if session_id is not None:
+            if verify_development_results:
+                verification_summary = verify_dev_worker_results(
+                    result, request=request, session_id=session_id or '', content_policy=content_policy,
+                )
+                outcome = 'SUCCEEDED' if verification_summary.raw_status == 'SUCCEEDED' else 'FAILED'
+                raw_status = verification_summary.raw_status if verification_summary.raw_status in (
+                    'SUCCEEDED', 'FAILED'
+                ) else None
+            elif session_id is not None:
                 if not _is_bounded_opaque_identifier(session_id):
                     raise ValueError('session_id must be a bounded opaque identifier')
                 mapped = map_vision_result_to_raw(
@@ -2954,10 +4128,23 @@ def _adapter_worker_entry_with_d9(
         if report.failed:
             outcome = 'FAILED'
             raw_status = None
+        generation_cleanup_failed = runner is not None and runner.cleanup_failure is not None
+        if generation_cleanup_failed:
+            outcome = 'FAILED'
+            raw_status = None
+            if not cleanup_marker_sent:
+                with contextlib.suppress(Exception):
+                    send_frame({'kind': 'GENERATION_CLEANUP_FAILED'})
+                    cleanup_marker_sent = True
         if not protocol_failure:
             _publish_d9(report)
         if terminal_ready and not protocol_failure:
-            if raw_status is None:
+            if verify_development_results:
+                verification_summary = verification_summary or DevAttemptVerificationV1()
+                send_frame({'kind': 'DEV_VERIFICATION', 'summary': verification_summary.model_dump(mode='json')})
+            if generation_cleanup_failed:
+                _send('TERMINAL', outcome='FAILED', cleanup_failed=True)
+            elif raw_status is None:
                 _send('TERMINAL', outcome=outcome)
             else:
                 _send('TERMINAL', outcome=outcome, raw_status=raw_status)
@@ -2971,14 +4158,24 @@ def run_bounded_adapter_call(
     config: Feat018BoundedRunnerConfig,
     *,
     session_id: str | None = None,
+    verify_development_results: bool = False,
+    cancel_requested: Callable[[], bool] | None = None,
+    on_accepted_progress: Callable[[ProgressEvent], None] | None = None,
+    on_cleanup_intent: Callable[[], float] | None = None,
+    cleanup_deadline: Callable[[], float | None] | None = None,
+    clock: Callable[[], float] = time.monotonic,
+    sleep: Callable[[float], None] = time.sleep,
+    register_launch: Callable[[int, str, object | None], object] | None = None,
+    launch_parent_birth: object | None = None,
+    release_guard: Callable[[Callable[[], None]], None] | None = None,
+    work_deadline_monotonic: float | None = None,
 ) -> SupervisorRunResult:
     """The one real, production entry point for a live bounded adapter call (F3).
 
-    Always uses :func:`adapter_worker_entry` through :class:`Feat018AdapterCallSupervisor`, so
-    a caller cannot bypass the containment gate by substituting an ungated entry through this
-    function. This function itself is never invoked by the offline test suite (doing so would
-    require a real subprocess); its constituent pieces -- the supervisor, the entry's gate logic,
-    and the generation runner -- are each independently tested through injected fakes.
+    Enforces the exact D1 attempt profile before constructing a launcher, then uses
+    :func:`adapter_worker_entry` through :class:`Feat018AdapterCallSupervisor`, so a caller
+    cannot bypass the containment gate by substituting an ungated entry through this function.
+    Offline tests replace the launcher and supervisor constructors with local fakes.
     ``session_id`` is a bounded opaque bootstrap argument. Spawn multiprocessing may serialize
     it across the worker boundary, but it is never placed in progress/event frames or evidence
     payload bodies.
@@ -2986,15 +4183,58 @@ def run_bounded_adapter_call(
 
     if session_id is not None and not _is_bounded_opaque_identifier(session_id):
         raise ValueError("session_id must be a bounded opaque identifier")
+    if type(verify_development_results) is not bool:
+        raise ValueError('development verification requires an exact boolean')
+    if verify_development_results and (
+        any(not callable(hook) for hook in (
+            register_launch, release_guard, cancel_requested, on_cleanup_intent,
+            cleanup_deadline, on_accepted_progress,
+        )) or launch_parent_birth is None
+        or session_id is None
+    ):
+        return SupervisorRunResult(
+            final_state=ProgressState.NOT_STARTED, attempt_count=None, terminal_outcome=None,
+            cleanup_status=CleanupStatus.SUCCEEDED, stopped_before_containment=True,
+            primary_failure_reason='development invocation binding incomplete',
+        )
+    if not _is_live_attempt_profile_admissible(config):
+        return SupervisorRunResult(
+            final_state=ProgressState.NOT_STARTED,
+            attempt_count=None,
+            terminal_outcome=None,
+            cleanup_status=CleanupStatus.SUCCEEDED,
+            effective_outcome=EffectiveOutcome.FAILED,
+            stopped_before_containment=True,
+            primary_failure_reason="live attempt profile requires exactly 120 seconds",
+        )
     launcher = MultiprocessingProcessLauncher(max_envelope_bytes=config.ipc_envelope_max_bytes)
-    supervisor = Feat018AdapterCallSupervisor(
+    supervisor_options: dict[str, Any] = dict(
         config=config,
         launcher=launcher,
         containment_factory=create_platform_containment,
     )
+    if verify_development_results or any(hook is not None for hook in (
+        cancel_requested, on_accepted_progress, on_cleanup_intent, cleanup_deadline,
+        register_launch, launch_parent_birth, release_guard,
+    )) or clock is not time.monotonic or sleep is not time.sleep or work_deadline_monotonic is not None:
+        supervisor_options.update(
+            require_verification=verify_development_results,
+            cancel_requested=cancel_requested, on_accepted_progress=on_accepted_progress,
+            on_cleanup_intent=on_cleanup_intent, cleanup_deadline=cleanup_deadline,
+            clock=clock, sleep=sleep,
+            register_launch=register_launch, launch_parent_birth=launch_parent_birth,
+            release_guard=release_guard,
+            work_deadline_monotonic=work_deadline_monotonic,
+        )
+    supervisor = Feat018AdapterCallSupervisor(**supervisor_options)
+    worker_args: tuple[object, ...] = (
+        request, runtime_config, content_policy, prompt, config, session_id,
+    )
+    if verify_development_results:
+        worker_args += (True,)
     return supervisor.run(
         adapter_worker_entry,
-        (request, runtime_config, content_policy, prompt, config, session_id),
+        worker_args,
     )
 
 
@@ -3454,8 +4694,12 @@ class Feat018LiveSmokeResult:
     session_identity: str | None = None
     session_ready_at_monotonic: float | None = None
     placement: LightningPlacementFacts | None = None
+    cleanup_failures: tuple[Feat018CleanupFailedError, ...] = field(
+        default=(), repr=False, compare=False
+    )
     preflight_verified: bool = False
     finalization_verified: bool = False
+    d11_report: D11CleanupReport | None = field(default=None, repr=False)
 
     @property
     def is_success(self) -> bool:
@@ -3463,6 +4707,8 @@ class Feat018LiveSmokeResult:
             self.effective_outcome is EffectiveOutcome.SUCCEEDED
             and self.preflight_verified
             and self.finalization_verified
+            and not self.cleanup_failures
+            and (self.d11_report is None or self.d11_report.resources_released)
         )
 
 
@@ -3582,10 +4828,14 @@ class Feat018LifecycleOperationError(Exception):
         failure_code: Feat018LiveSmokeFailureCode,
         *,
         cleanup_status: CleanupStatus = CleanupStatus.SUCCEEDED,
+        cleanup_failure: Feat018CleanupFailedError | None = None,
     ) -> None:
         super().__init__(failure_code.value)
         self.failure_code = failure_code
-        self.cleanup_status = cleanup_status
+        self.cleanup_status = (
+            CleanupStatus.CLEANUP_FAILED if cleanup_failure is not None else cleanup_status
+        )
+        self.cleanup_failure = cleanup_failure
 
 
 class LightningLifecycleBoundary(Protocol):
@@ -3982,6 +5232,17 @@ class Feat018LightningLifecycleProcessBoundary:
     clock: Callable[[], float] = field(default=time.monotonic, repr=False)
     sleep: Callable[[float], None] = field(default=time.sleep, repr=False)
 
+    def invoke_reference(
+        self,
+        operation: LightningOperationRefV1,
+        context: D11OperationContext,
+        *,
+        inputs: D11DispatchInputs | None = None,
+        on_progress: Callable[[Mapping[str, object]], None] | None = None,
+        window: D11CleanupWindow,
+    ) -> D11OperationReceipt | D11ResourceObservation:
+        return _invoke_d11_operation(self, operation, context, inputs, on_progress, window)
+
     def __post_init__(self) -> None:
         if type(self.max_envelope_bytes) is not int or self.max_envelope_bytes <= 0:
             raise ValueError("max_envelope_bytes must be a positive integer")
@@ -4018,6 +5279,7 @@ class Feat018LightningLifecycleProcessBoundary:
         connection: BoundedConnection | None = None
         phase = "call"
         active_deadline = deadline
+        launch_cleanup_failure: Feat018CleanupFailedError | None = None
 
         try:
             started = self.clock()
@@ -4288,6 +5550,14 @@ class Feat018LightningLifecycleProcessBoundary:
                                             )
         except Feat018LifecycleOperationError as exc:
             failure = exc
+        except Feat018CleanupFailedError as exc:
+            launch_cleanup_failure = exc
+            failure = Feat018LifecycleOperationError(
+                Feat018LiveSmokeFailureCode.LIFECYCLE_CLEANUP_FAILED,
+                cleanup_status=CleanupStatus.CLEANUP_FAILED,
+                cleanup_failure=exc,
+            )
+            exc.retry_cleanup(grace_seconds=1.0, kill_join_seconds=1.0)
         except Feat018LauncherError:
             failure = Feat018LifecycleOperationError(
                 Feat018LiveSmokeFailureCode.LIFECYCLE_WORKER_LAUNCH_FAILED
@@ -4297,12 +5567,13 @@ class Feat018LightningLifecycleProcessBoundary:
                 Feat018LiveSmokeFailureCode.LIFECYCLE_PROTOCOL_FAILED
             )
         finally:
-            cleanup_failed = self._cleanup_resources(process, connection, containment)
+            resource_cleanup_failure = self._cleanup_resources(process, connection, containment)
 
-        if cleanup_failed:
+        if resource_cleanup_failure is not None or launch_cleanup_failure is not None:
             raise Feat018LifecycleOperationError(
                 Feat018LiveSmokeFailureCode.LIFECYCLE_CLEANUP_FAILED,
                 cleanup_status=CleanupStatus.CLEANUP_FAILED,
+                cleanup_failure=launch_cleanup_failure or resource_cleanup_failure,
             )
         if failure is not None:
             raise failure
@@ -4318,22 +5589,45 @@ class Feat018LightningLifecycleProcessBoundary:
         process: ProcessHandle | None,
         connection: BoundedConnection | None,
         containment: ContainmentBackend | None,
-    ) -> bool:
-        cleanup_failed = False
+        *,
+        cleanup_deadline_monotonic: float | None = None,
+    ) -> Feat018CleanupFailedError | None:
+        cleanup_failed = (
+            cleanup_deadline_monotonic is not None
+            and self.clock() >= cleanup_deadline_monotonic
+        )
+        owned_process: ProcessHandle | None = None
+        owned_connections: tuple[BoundedConnection | _RawConnection, ...] = ()
+        owned_containments: tuple[ContainmentBackend, ...] = ()
         cleanup_budget = _positive_finite_float(self.cleanup_deadline_seconds) or 0.001
         cleanup_start = self.clock()
-        cleanup_deadline = cleanup_start + cleanup_budget
+        cleanup_deadline = (
+            cleanup_start + cleanup_budget
+            if cleanup_deadline_monotonic is None
+            else cleanup_deadline_monotonic
+        )
         join_budget = max(0.001, min(1.0, cleanup_budget / 3.0))
 
         if containment is not None:
             try:
-                containment.terminate_all()
+                _terminate_owned_containment(
+                    containment,
+                    cleanup_deadline_monotonic=cleanup_deadline,
+                    clock=self.clock,
+                )
             except Exception:  # noqa: BLE001 - process cleanup still proceeds
                 cleanup_failed = True
+                owned_containments = (containment,)
         if process is not None and not _bounded_terminate_kill_join(
-            process, grace_seconds=join_budget, kill_join_seconds=join_budget
+            process,
+            grace_seconds=join_budget,
+            kill_join_seconds=join_budget,
+            cleanup_deadline_monotonic=cleanup_deadline,
+            clock=self.clock,
         ):
             cleanup_failed = True
+            if not bool(getattr(process, 'closed', False)):
+                owned_process = process
 
         if containment is not None:
             interval = min(self.confirmation_retry_interval_seconds, 0.01)
@@ -4342,33 +5636,56 @@ class Feat018LightningLifecycleProcessBoundary:
                     empty = containment.is_empty()
                 except Exception:  # noqa: BLE001 - unknown descendants fail closed
                     cleanup_failed = True
+                    owned_containments = (containment,)
                     break
                 if bool(getattr(containment, "_cleanup_failed", False)):
+                    cleanup_failed = True
+                    owned_containments = (containment,)
+                if (
+                    cleanup_deadline_monotonic is not None
+                    and self.clock() >= cleanup_deadline
+                ):
                     cleanup_failed = True
                 if empty:
                     break
                 remaining = cleanup_deadline - self.clock()
                 if _positive_finite_float(remaining) is None:
                     cleanup_failed = True
+                    owned_containments = (containment,)
                     break
                 try:
                     self.sleep(min(interval, remaining))
                 except Exception:  # noqa: BLE001 - a broken wait is cleanup failure
                     cleanup_failed = True
+                    owned_containments = (containment,)
                     break
             try:
-                containment.close()
+                _close_verified_empty_containment(containment)
             except Exception:  # noqa: BLE001 - close failure is surfaced by the result
                 cleanup_failed = True
+                owned_containments = (containment,)
             if bool(getattr(containment, "_cleanup_failed", False)):
                 cleanup_failed = True
+                owned_containments = (containment,)
 
         if connection is not None:
             try:
                 connection.close()
             except Exception:  # noqa: BLE001 - close failure is surfaced by the result
                 cleanup_failed = True
-        return cleanup_failed
+                owned_connections = (connection,)
+        if (
+            cleanup_deadline_monotonic is not None
+            and self.clock() >= cleanup_deadline
+        ):
+            cleanup_failed = True
+        if cleanup_failed:
+            return Feat018CleanupFailedError(
+                owned_process=owned_process,
+                owned_connections=owned_connections,
+                owned_containments=owned_containments,
+            )
+        return None
 
 
 # --------------------------------------------------------------------------------------
@@ -4478,12 +5795,18 @@ def _supervisor_result_is_valid(value: object) -> bool:
         value.effective_outcome is EffectiveOutcome.SUCCEEDED
     ):
         return False
+    if value.cleanup_failure is not None and (
+        value.cleanup_status is not CleanupStatus.CLEANUP_FAILED
+        or value.effective_outcome is not EffectiveOutcome.CLEANUP_FAILED
+    ):
+        return False
     success_contract = (
         value.final_state is ProgressState.TERMINAL
         and value.terminal_outcome == "SUCCEEDED"
         and value.raw_status == "SUCCEEDED"
         and value.attempt_count in (1, 2)
         and value.cleanup_status is CleanupStatus.SUCCEEDED
+        and value.cleanup_failure is None
         and value.effective_outcome is EffectiveOutcome.SUCCEEDED
         and value.primary_failure_reason is None
         and _d9_success_contract(
@@ -4510,6 +5833,7 @@ def _adapter_result_is_accepted_success(value: SupervisorRunResult) -> bool:
         and value.terminal_outcome == "SUCCEEDED"
         and value.raw_status == "SUCCEEDED"
         and value.cleanup_status is CleanupStatus.SUCCEEDED
+        and value.cleanup_failure is None
         and value.effective_outcome is EffectiveOutcome.SUCCEEDED
         and value.attempt_count in (1, 2)
         and value.primary_failure_reason is None
@@ -4519,7 +5843,7 @@ def _adapter_result_is_accepted_success(value: SupervisorRunResult) -> bool:
     )
 
 
-def run_live_smoke(
+def _run_legacy_offline_smoke(
     request: VisionUnderstandingRequestV2,
     runtime_config: QwenVisionRuntimeConfig,
     content_policy: ObservableContentPolicyV1,
@@ -4534,7 +5858,7 @@ def run_live_smoke(
     lifecycle_boundary: LightningLifecycleBoundary | None = None,
     clock: Callable[[], float] = time.monotonic,
 ) -> Feat018LiveSmokeResult:
-    """Coordinate one preflighted bounded session and one injected adapter call.
+    """Historical NON-LIVE TEST-SEAM ONLY coordinator for pre-D11 regressions.
 
     Every live-capable dependency is injected. Missing preflight, finalization, controller, or
     adapter seams return a typed ``NOT_AUTHORIZED`` result before provisioning, and the adapter
@@ -4646,9 +5970,12 @@ def run_live_smoke(
     session_identity: str | None = None
     session_ready_at: float | None = None
     placement: LightningPlacementFacts | None = None
+    cleanup_failures: list[Feat018CleanupFailedError] = []
 
     def record_lifecycle_error(error: Feat018LifecycleOperationError) -> None:
         nonlocal cleanup_status, effective_outcome, failure_code
+        if error.cleanup_failure is not None:
+            cleanup_failures.append(error.cleanup_failure)
         failure_code = error.failure_code
         if error.cleanup_status is CleanupStatus.CLEANUP_FAILED or error.failure_code in {
             Feat018LiveSmokeFailureCode.OPERATION_CANCELLATION_FAILED,
@@ -4815,6 +6142,12 @@ def run_live_smoke(
                                                             config.bounded_runner_config,
                                                             session_id=session_id,
                                                         )
+                                                    except Feat018CleanupFailedError as error:
+                                                        cleanup_failures.append(error)
+                                                        cleanup_status = CleanupStatus.CLEANUP_FAILED
+                                                        failure_code = (
+                                                            Feat018LiveSmokeFailureCode.ADAPTER_CLEANUP_FAILED
+                                                        )
                                                     except Exception:  # noqa: BLE001 - no adapter detail escapes
                                                             failure_code = (
                                                                 _active_cap_failure_code(
@@ -4827,12 +6160,25 @@ def run_live_smoke(
                                                                 )
                                                             )
                                                     else:
+                                                        if (
+                                                            isinstance(adapter_candidate, SupervisorRunResult)
+                                                            and adapter_candidate.cleanup_failure is not None
+                                                        ):
+                                                            cleanup_failures.append(
+                                                                adapter_candidate.cleanup_failure
+                                                            )
+                                                            cleanup_status = CleanupStatus.CLEANUP_FAILED
+                                                            effective_outcome = EffectiveOutcome.CLEANUP_FAILED
+                                                            failure_code = (
+                                                                Feat018LiveSmokeFailureCode.ADAPTER_CLEANUP_FAILED
+                                                            )
                                                         if not _supervisor_result_is_valid(
                                                             adapter_candidate
                                                         ):
-                                                            failure_code = (
-                                                                Feat018LiveSmokeFailureCode.ADAPTER_RESULT_INVALID
-                                                            )
+                                                            if cleanup_status is not CleanupStatus.CLEANUP_FAILED:
+                                                                failure_code = (
+                                                                    Feat018LiveSmokeFailureCode.ADAPTER_RESULT_INVALID
+                                                                )
                                                         else:
                                                             adapter_result = adapter_candidate
                                                             attempt_count = (
@@ -4914,6 +6260,8 @@ def run_live_smoke(
                     except Feat018LifecycleOperationError as error:
                         cleanup_failed = True
                         cleanup_failure_code = error.failure_code
+                        if error.cleanup_failure is not None:
+                            cleanup_failures.append(error.cleanup_failure)
                     else:
                         if not _termination_matches_session(
                             termination_candidate, session_identity
@@ -4960,6 +6308,7 @@ def run_live_smoke(
         session_identity=session_identity,
         session_ready_at_monotonic=session_ready_at,
         placement=placement,
+        cleanup_failures=tuple(cleanup_failures),
         preflight_verified=True,
     )
 
@@ -4984,7 +6333,7 @@ def run_live_smoke(
 def _progress_event_from_frame(frame: Mapping[str, object]) -> ProgressEvent | None:
     if not isinstance(frame, Mapping):
         return None
-    allowed_keys = {"seq", "kind", "attempt_number", "outcome", "raw_status"}
+    allowed_keys = {"seq", "kind", "attempt_number", "outcome", "raw_status", "cleanup_failed"}
     if any(not isinstance(key, str) for key in frame) or set(frame) - allowed_keys:
         return None
     seq = frame.get("seq")
@@ -5004,6 +6353,12 @@ def _progress_event_from_frame(frame: Mapping[str, object]) -> ProgressEvent | N
     if outcome is not None and not isinstance(outcome, str):
         return None
     if raw_status is not None and not isinstance(raw_status, str):
+        return None
+    if "cleanup_failed" in frame and (
+        frame["cleanup_failed"] is not True
+        or kind_raw != ProgressEventKind.TERMINAL.value
+        or outcome != 'FAILED'
+    ):
         return None
     try:
         kind = ProgressEventKind(kind_raw)
@@ -5272,6 +6627,8 @@ class Feat018EvidenceFinalizer:
         runtime_outcome: EffectiveOutcome,
         cleanup: Callable[[], CleanupStatus],
         postflight: Callable[[Path, Path], bool],
+        terminal_result: Feat018LiveSmokeResult | None = None,
+        binding_metadata: BindingTerminalMetadataV1 | None = None,
     ) -> EvidenceCommitResult:
         try:
             cleanup_status = cleanup()
@@ -5284,6 +6641,17 @@ class Feat018EvidenceFinalizer:
             raise ValueError("runtime_outcome must be an EffectiveOutcome")
         if not callable(postflight):
             raise ValueError("postflight is mandatory")
+
+        if terminal_result is not None:
+            try:
+                _validate_terminal_publication_privacy(terminal_result, (run_id, evidence_id))
+            except Exception:  # noqa: BLE001 - unsafe identities cannot enter public failures
+                return EvidenceCommitResult(
+                    committed=False,
+                    run_id="redacted",
+                    evidence_id="redacted",
+                    failure_reason="evidence identity verification failed",
+                )
 
         # A successful cleanup is the owner-approved quiescent-session invariant: every
         # supervised process and descendant is absent, no runtime writer remains, and this
@@ -5307,18 +6675,49 @@ class Feat018EvidenceFinalizer:
         try:
             if any(self.writer.fs.exists(path) for path in candidates):
                 raise Feat018EvidenceCommitError("evidence destination already exists")
+            terminal_fields: dict[str, object] = (
+                {} if terminal_result is None else _d11_terminal_evidence_fields(
+                    terminal_result, runtime_outcome=runtime_outcome,
+                )
+            )
+            evidence_fields = dict(terminal_fields)
+            if binding_metadata is not None:
+                if terminal_result is None:
+                    raise Feat018EvidenceCommitError("binding metadata requires a typed terminal")
+                evidence_fields.update(_binding_terminal_evidence_fields(
+                    binding_metadata, terminal_result, runtime_outcome=runtime_outcome,
+                    terminal_fields=terminal_fields,
+                    publication_ids=(run_id, evidence_id),
+                ))
+            markdown_body = (
+                f"status: {runtime_outcome.value}\n"
+                f"cleanup_status: {cleanup_status.value}\npostflight_status: SUCCEEDED"
+            )
+            if evidence_fields:
+                markdown_body += "\n\n```json\n" + json.dumps(
+                    evidence_fields, sort_keys=True, indent=2, allow_nan=False,
+                ) + "\n```"
+            json_fields = {
+                "status": runtime_outcome.value,
+                "cleanup_status": cleanup_status.value,
+                "postflight_status": "SUCCEEDED",
+                **evidence_fields,
+            }
+            if terminal_result is not None:
+                _validate_terminal_publication_privacy(terminal_result, {
+                    **json_fields,
+                    "run_id": run_id,
+                    "evidence_id": evidence_id,
+                    "commit_state": "FINAL",
+                    "companion_markdown_sha256": sha256(
+                        _render_markdown(run_id, evidence_id, markdown_body).encode("utf-8")
+                    ).hexdigest(),
+                })
             result = self.writer.commit(
                 run_id=run_id,
                 evidence_id=evidence_id,
-                json_fields={
-                    "status": runtime_outcome.value,
-                    "cleanup_status": cleanup_status.value,
-                    "postflight_status": "SUCCEEDED",
-                },
-                markdown_body=(
-                    f"status: {runtime_outcome.value}\n"
-                    f"cleanup_status: {cleanup_status.value}\npostflight_status: SUCCEEDED"
-                ),
+                json_fields=json_fields,
+                markdown_body=markdown_body,
                 precommit=postflight,
             )
         except Exception:  # noqa: BLE001 - fail closed and expose no filesystem/exception text
@@ -5414,6 +6813,18 @@ class Feat018ArtifactInventory:
     def capture(self) -> None:
         self._baseline = None
         self._baseline = self._scan()
+
+    def binding_summary(self) -> BindingArtifactInventorySummaryV1:
+        """Summarize the captured baseline without publishing paths or future observations."""
+        if self._baseline is None:
+            raise Feat018EvidenceCommitError("inventory baseline has not been captured")
+        files = sum(stat.S_ISREG(fingerprint[0]) for fingerprint in self._baseline.values())
+        directories = sum(stat.S_ISDIR(fingerprint[0]) for fingerprint in self._baseline.values())
+        return BindingArtifactInventorySummaryV1(
+            baseline_entry_count=len(self._baseline), baseline_file_count=files,
+            baseline_directory_count=directories, explicit_root_count=len(self.roots),
+            max_entries=self.max_entries, expected_evidence_file_count=2,
+        )
 
     def verify_provisional(self, json_temp: Path, markdown_temp: Path) -> bool:
         if self._baseline is None:
@@ -5525,7 +6936,7 @@ class SmokeFinalizationResult:
 
 
 def finalize_smoke_run(
-    result: SupervisorRunResult,
+    result: SupervisorRunResult | Feat018LiveSmokeResult,
     *,
     run_id: str,
     evidence_id: str,
@@ -5533,6 +6944,7 @@ def finalize_smoke_run(
     cleanup: Callable[[], CleanupStatus],
     writer: Feat018EvidenceCommitWriter,
     incident: Feat018IncidentWriter,
+    binding_metadata: BindingTerminalMetadataV1 | None = None,
 ) -> SmokeFinalizationResult:
     """Publish only a mapped, cleaned result with a passing real inventory comparison.
 
@@ -5544,33 +6956,66 @@ def finalize_smoke_run(
     worker diagnostics.
     """
 
+    live_result = result if isinstance(result, Feat018LiveSmokeResult) else None
+    adapter_result = result.adapter_result if live_result is not None else result
     outcome = EffectiveOutcome.FAILED
-    if result.cleanup_status is CleanupStatus.CLEANUP_FAILED:
+    owned_failures = (live_result.cleanup_failures if live_result is not None else
+                      (() if result.cleanup_failure is None else (result.cleanup_failure,)))
+    live_cleanup_valid = live_result is None or (
+        live_result.preflight_verified and live_result.d11_report is not None
+        and live_result.d11_report.resources_released
+    )
+    if result.cleanup_status is CleanupStatus.CLEANUP_FAILED or owned_failures or not live_cleanup_valid:
         outcome = EffectiveOutcome.CLEANUP_FAILED
-    elif (
+    elif adapter_result is not None and (
         result.effective_outcome is EffectiveOutcome.SUCCEEDED
-        and result.raw_status == "SUCCEEDED"
-        and result.final_state is ProgressState.TERMINAL
-        and result.terminal_outcome == "SUCCEEDED"
-        and result.primary_failure_reason is None
+        and (_adapter_result_is_accepted_success(adapter_result) if live_result is not None else (
+            adapter_result.raw_status == 'SUCCEEDED'
+            and adapter_result.final_state is ProgressState.TERMINAL
+            and adapter_result.terminal_outcome == 'SUCCEEDED'
+            and adapter_result.primary_failure_reason is None
+        ))
+        and (live_result is None or (
+            live_result.adapter_call_count == 1
+            and live_result.attempt_count == adapter_result.attempt_count
+            and live_result.failure_code is None
+        ))
     ):
         outcome = EffectiveOutcome.SUCCEEDED
+
+    # Metadata describes the captured baseline; the two existing provisional audits
+    # still observe the actual pair. No future postflight count is fabricated here.
+    metadata_matches_inventory = True
+    if binding_metadata is not None:
+        try:
+            checked_metadata = binding_metadata.revalidated()
+            metadata_matches_inventory = (
+                checked_metadata.preflight.artifact_inventory_summary == inventory.binding_summary()
+            )
+        except Exception:  # noqa: BLE001 - a malformed carrier never bypasses cleanup
+            metadata_matches_inventory = False
 
     def cleanup_all() -> CleanupStatus:
         session_status = cleanup()
         if (
             result.cleanup_status is not CleanupStatus.SUCCEEDED
+            or owned_failures or not live_cleanup_valid
             or session_status is not CleanupStatus.SUCCEEDED
         ):
             return CleanupStatus.CLEANUP_FAILED
         return CleanupStatus.SUCCEEDED
+
+    def verify_postflight(json_temp: Path, markdown_temp: Path) -> bool:
+        return metadata_matches_inventory and inventory.verify_provisional(json_temp, markdown_temp)
 
     evidence = Feat018EvidenceFinalizer(writer).finalize(
         run_id=run_id,
         evidence_id=evidence_id,
         runtime_outcome=outcome,
         cleanup=cleanup_all,
-        postflight=inventory.verify_provisional,
+        postflight=verify_postflight,
+        terminal_result=live_result,
+        binding_metadata=binding_metadata,
     )
     return SmokeFinalizationResult(
         evidence=evidence,
@@ -5648,7 +7093,1321 @@ def _extract_markdown_identity(markdown_bytes: bytes) -> tuple[str | None, str |
     return run_id, evidence_id
 
 
+class D11OperationKind(StrEnum):
+    PROVISION = 'provision'
+    WAIT_READY = 'wait_ready'
+    DISPATCH = 'dispatch'
+    CANCEL = 'cancel'
+    RECONCILE = 'reconcile'
+    TERMINATE = 'terminate'
+    OBSERVE = 'observe'
+
+
+@dataclass(frozen=True, slots=True)
+class LightningProvisionRefV1:
+    """Recovery key for a provisioning request, including allocation with a lost response."""
+
+    run_id: str
+    token: str
+
+    def __post_init__(self) -> None:
+        if not all(_is_bounded_opaque_identifier(value) for value in (self.run_id, self.token)):
+            raise ValueError('bounded run/provision references required')
+
+
+@dataclass(frozen=True, slots=True)
+class LightningSessionRefV1:
+    provision: LightningProvisionRefV1
+    resource_identity: str
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.provision, LightningProvisionRefV1) or not (
+            _is_bounded_fact_token(self.resource_identity)
+        ):
+            raise ValueError('typed session reference required')
+
+
+@dataclass(frozen=True, slots=True)
+class LightningOperationRefV1:
+    provision: LightningProvisionRefV1
+    token: str
+    kind: D11OperationKind
+    session: LightningSessionRefV1 | None = None
+    recovery_of: str | None = None
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.provision, LightningProvisionRefV1) or not (
+            _is_bounded_opaque_identifier(self.token) and isinstance(self.kind, D11OperationKind)
+        ):
+            raise ValueError('typed parent-created operation reference required')
+        if self.session is not None and self.session.provision != self.provision:
+            raise ValueError('session belongs to another provision request')
+        if self.recovery_of is not None and not _is_bounded_opaque_identifier(self.recovery_of):
+            raise ValueError('bounded recovery operation reference required')
+        if self.kind in (D11OperationKind.WAIT_READY, D11OperationKind.DISPATCH) and self.session is None:
+            raise ValueError('known session required')
+        if self.kind is D11OperationKind.CANCEL and self.recovery_of is None:
+            raise ValueError('cancel recovery target required')
+
+
+@dataclass(frozen=True, slots=True)
+class D11CleanupGrant:
+    run_id: str
+    generation: int
+    issued_at_host_monotonic: float
+    deadline_host_monotonic: float
+    cancellation_operation: LightningOperationRefV1 | None = None
+
+    def __post_init__(self) -> None:
+        if not _is_bounded_opaque_identifier(self.run_id) or type(self.generation) is not int or self.generation < 1:
+            raise ValueError('invalid cleanup generation')
+        _validate_non_negative_timestamp(self.issued_at_host_monotonic, 'grant issue time')
+        if _positive_finite_float(self.deadline_host_monotonic) is None:
+            raise ValueError('invalid grant deadline')
+
+    def remaining(self, now: float) -> float:
+        return max(0.0, self.deadline_host_monotonic - now)
+
+
+@dataclass(slots=True)
+class D11CleanupWindow:
+    """One parent-owned window; grant refresh never refreshes the absolute deadline.
+
+    The bridge runs on the host. A remote transport must send remaining duration, not interpret
+    host monotonic timestamps in the session's clock domain. Numeric live budgets are unbound.
+    """
+
+    run_id: str
+    budget_seconds: float
+    grant_max_age_seconds: float
+    clock: Callable[[], float] = field(default=time.monotonic, repr=False)
+    deadline: float | None = field(default=None, init=False)
+    started_at: float | None = field(default=None, init=False)
+    generation: int = field(default=1, init=False)
+    operations: list[LightningOperationRefV1] = field(default_factory=list, init=False, repr=False)
+
+    def __post_init__(self) -> None:
+        if not _is_bounded_opaque_identifier(self.run_id):
+            raise ValueError('bounded run identity required')
+        for value in (self.budget_seconds, self.grant_max_age_seconds):
+            if _positive_finite_float(value) is None:
+                raise ValueError('explicit finite positive cleanup parameters required')
+
+    def begin(self, reason: str = 'cleanup_intent') -> float:
+        if self.deadline is None:
+            self.started_at = self.clock()
+            self.deadline = _add_finite_deadline(self.started_at, self.budget_seconds)
+            if self.deadline is None:
+                raise ValueError('invalid cleanup deadline')
+        return self.deadline
+
+    def issue(
+        self, provision: LightningProvisionRefV1, kind: D11OperationKind,
+        session: LightningSessionRefV1 | None = None, recovery_of: str | None = None,
+    ) -> LightningOperationRefV1:
+        if provision.run_id != self.run_id:
+            raise ValueError('run reference mismatch')
+        operation = LightningOperationRefV1(provision, uuid.uuid4().hex, kind, session, recovery_of)
+        self.operations.append(operation)  # retained before any worker launch/provider call
+        return operation
+
+    def grant(self, cancellation_operation: LightningOperationRefV1 | None = None) -> D11CleanupGrant:
+        deadline = self.begin()
+        return D11CleanupGrant(self.run_id, self.generation, self.clock(), deadline, cancellation_operation)
+
+    def validate_grant(self, grant: D11CleanupGrant) -> bool:
+        now = self.clock()
+        return (
+            isinstance(grant, D11CleanupGrant)
+            and grant.run_id == self.run_id and type(grant.generation) is int
+            and grant.generation == self.generation and self.deadline is not None
+            and grant.deadline_host_monotonic == self.deadline
+            and _is_finite_number(grant.issued_at_host_monotonic)
+            and 0 <= now - grant.issued_at_host_monotonic <= self.grant_max_age_seconds
+            and now < self.deadline
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class D11OperationContext:
+    operation: LightningOperationRefV1
+    work_deadline_host_monotonic: float
+    cleanup_budget_seconds: float
+    grant_max_age_seconds: float
+    poll_interval_seconds: float
+    cleanup_grant: D11CleanupGrant | None = None
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.operation, LightningOperationRefV1):
+            raise ValueError('operation reference required')
+        for value in (self.work_deadline_host_monotonic, self.cleanup_budget_seconds,
+                      self.grant_max_age_seconds, self.poll_interval_seconds):
+            if _positive_finite_float(value) is None:
+                raise ValueError('explicit finite positive operation parameters required')
+
+
+@dataclass(frozen=True, slots=True)
+class D11OperationReceipt:
+    operation: LightningOperationRefV1
+    session: LightningSessionRefV1 | None = None
+    facts: object | None = None
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.operation, LightningOperationRefV1) or (
+            self.session is not None and (
+                not isinstance(self.session, LightningSessionRefV1)
+                or self.session.provision != self.operation.provision
+            )
+        ):
+            raise ValueError('receipt reference mismatch')
+
+
+@dataclass(frozen=True, slots=True)
+class D11ResourceObservation:
+    """Independent probe results, not a producer verification label or cancel acknowledgement.
+
+    sealed means the provisioning request can no longer allocate another resource; an empty
+    lookup while the request is pending/unknown proves no release. resources must cover every
+    allocation under this provision key; active_operations includes outstanding remote work.
+    Those capabilities require a concrete observer binding before live use.
+    """
+
+    provision: LightningProvisionRefV1
+    request_state: Literal['sealed', 'pending', 'unknown']
+    resources: tuple[tuple[str, str], ...]
+    active_operations: tuple[str, ...]
+    observed_at_host_monotonic: float
+    source_identity: str
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.provision, LightningProvisionRefV1) or self.request_state not in (
+            'sealed', 'pending', 'unknown'
+        ):
+            raise ValueError('invalid observation target/state')
+        if type(self.resources) is not tuple or any(
+            type(item) is not tuple or len(item) != 2
+            or not isinstance(item[0], str) or not isinstance(item[1], str)
+            for item in self.resources
+        ):
+            raise ValueError('resource observations must be exact identity/state pairs')
+        identities = [identity for identity, _state in self.resources]
+        if len(set(identities)) != len(identities) or len(identities) > 16:
+            raise ValueError('bounded unique resource observations required')
+        if any(not _is_bounded_fact_token(identity) or state not in ('active', 'terminated', 'unknown')
+               for identity, state in self.resources):
+            raise ValueError('invalid resource observation')
+        if (
+            type(self.active_operations) is not tuple
+            or len(self.active_operations) > 32
+            or any(
+                not isinstance(token, str)
+                or not _is_bounded_opaque_identifier(token)
+                for token in self.active_operations
+            )
+            or len(set(self.active_operations)) != len(self.active_operations)
+        ):
+            raise ValueError('invalid operation observations')
+        _validate_non_negative_timestamp(self.observed_at_host_monotonic, 'observation time')
+        if not _is_bounded_fact_token(self.source_identity):
+            raise ValueError('observer identity required')
+
+
+@dataclass(frozen=True, slots=True)
+class D11OfflineConfig:
+    cleanup_total_seconds: float
+    grant_max_age_seconds: float
+    poll_interval_seconds: float
+    observer_identity: str
+
+    def __post_init__(self) -> None:
+        for value in (self.cleanup_total_seconds, self.grant_max_age_seconds, self.poll_interval_seconds):
+            if _positive_finite_float(value) is None:
+                raise ValueError('explicit finite positive offline parameters required')
+        if not _is_bounded_fact_token(self.observer_identity):
+            raise ValueError('explicit independent fixture observer identity required')
+
+
+@dataclass(frozen=True, slots=True)
+class D11DispatchInputs:
+    request: VisionUnderstandingRequestV2
+    runtime_config: QwenVisionRuntimeConfig
+    content_policy: ObservableContentPolicyV1
+    prompt: str
+    config: Feat018BoundedRunnerConfig
+    synthetic_session_id: str
+
+
+class D11SDKOperationHandle(Protocol):
+    """Owned by the worker from start until close returns.
+
+    wait emits accepted supervisor metadata and requests a grant BEFORE terminal cleanup,
+    including inner terminal cleanup. It must not run the session supervisor inside this host
+    bridge. cancel requires a parent-issued reference. Lost handle/response leaves that
+    reference owned by the parent for fresh cancel/reconcile; close alone proves no remote exit.
+    wait/cancel/close belong to the original referenced operation. close releases the SDK
+    handle only; a close failure keeps residual ownership and prevents successful finalization.
+    """
+
+    def wait(self, *, timeout_seconds: float, emit: Callable[[Mapping[str, object]], object]) -> object: ...
+    def cancel(self, *, operation: LightningOperationRefV1, timeout_seconds: float) -> object: ...
+    def close(self) -> None: ...
+
+
+class LightningSessionControllerV1(Protocol):
+    """Executor retains allocation/operation state independently of a disposable SDK worker.
+
+    Provision and dispatch recovery keys must be honored without duplicate side effects.
+    cancel targets recovery_of, reconcile discovers all allocation under the provision key,
+    and terminate accepts a known session or a pending provision key. Sealing pending requests
+    and independent complete observation are provider capabilities, currently UNKNOWN/UNBOUND.
+    A receipt reports facts; it does not independently prove remote cleanup.
+    """
+    def provision(self, *, operation: LightningOperationRefV1, context: D11OperationContext,
+                  inputs: D11DispatchInputs | None) -> D11SDKOperationHandle: ...
+    def wait_ready(self, *, operation: LightningOperationRefV1, context: D11OperationContext,
+                   inputs: D11DispatchInputs | None) -> D11SDKOperationHandle: ...
+    def reconcile(self, *, operation: LightningOperationRefV1, context: D11OperationContext,
+                  inputs: D11DispatchInputs | None) -> D11SDKOperationHandle: ...
+    def terminate(self, *, operation: LightningOperationRefV1, context: D11OperationContext,
+                  inputs: D11DispatchInputs | None) -> D11SDKOperationHandle: ...
+    def cancel(self, *, operation: LightningOperationRefV1, context: D11OperationContext,
+               inputs: D11DispatchInputs | None) -> D11SDKOperationHandle: ...
+
+
+class LightningAdapterDispatchV1(Protocol):
+    """Start one referenced session operation; retries never create another dispatch key."""
+    def start(self, *, operation: LightningOperationRefV1, context: D11OperationContext,
+              inputs: D11DispatchInputs | None) -> D11SDKOperationHandle: ...
+
+
+class LightningResourceObserverV1(Protocol):
+    def observe(self, *, operation: LightningOperationRefV1, context: D11OperationContext,
+                inputs: D11DispatchInputs | None) -> D11SDKOperationHandle: ...
+
+
+@dataclass(frozen=True, slots=True)
+class D11CleanupReport:
+    deadline_host_monotonic: float
+    generation: int
+    operations: tuple[LightningOperationRefV1, ...]
+    unresolved_operations: tuple[LightningOperationRefV1, ...]
+    observation: D11ResourceObservation | None
+    verification: Literal['VERIFIED_OFFLINE', 'UNVERIFIED', 'UNKNOWN']
+    failure_codes: tuple[str, ...]
+    dispatch_invocation_accepted: bool
+    generation_progress_known: bool
+
+    @property
+    def resources_released(self) -> bool:
+        # The observer is a separately injected read seam. A producer receipt, verified label,
+        # cancel ACK or absent session reference cannot satisfy this predicate.
+        return (
+            self.observation is not None
+            and self.verification == 'VERIFIED_OFFLINE'
+            and not self.unresolved_operations and not self.failure_codes
+            and self.observation.request_state == 'sealed'
+            and not self.observation.active_operations
+            and all(state == 'terminated' for _, state in self.observation.resources)
+        )
+
+
+def _d11_ref_payload(operation: LightningOperationRefV1) -> dict[str, object]:
+    return {'run_id': operation.provision.run_id, 'provision_token': operation.provision.token,
+            'operation_token': operation.token, 'operation_kind': operation.kind.value,
+            'resource_identity': operation.session.resource_identity if operation.session else None,
+            'recovery_of': operation.recovery_of}
+
+
+def _d11_ref_from_payload(value: object) -> LightningOperationRefV1:
+    payload = _payload_mapping(value)
+    if payload is None or not _payload_has_exact_keys(payload, {
+        'run_id', 'provision_token', 'operation_token', 'operation_kind', 'resource_identity', 'recovery_of'
+    }):
+        raise ValueError('invalid operation reference')
+    provision = LightningProvisionRefV1(payload['run_id'], payload['provision_token'])
+    session = (None if payload['resource_identity'] is None else
+               LightningSessionRefV1(provision, payload['resource_identity']))
+    return LightningOperationRefV1(provision, payload['operation_token'],
+                                  D11OperationKind(payload['operation_kind']), session, payload['recovery_of'])
+
+
+def _d11_result_payload(value: object) -> dict[str, object]:
+    if isinstance(value, D11ResourceObservation):
+        return {'type': 'observation', 'run_id': value.provision.run_id,
+                'provision_token': value.provision.token, 'request_state': value.request_state,
+                'resources': [list(item) for item in value.resources],
+                'active_operations': list(value.active_operations),
+                'observed_at': value.observed_at_host_monotonic, 'source_identity': value.source_identity}
+    if not isinstance(value, D11OperationReceipt):
+        raise ValueError('typed D11 receipt required')
+    value.__post_init__()  # do not normalize a foreign session target during IPC encoding
+    facts = value.facts
+    if isinstance(facts, SupervisorRunResult):
+        fact_payload = {'fact_type': 'supervisor', 'state': facts.final_state.value,
+                        'attempt_count': facts.attempt_count, 'terminal': facts.terminal_outcome,
+                        'cleanup': facts.cleanup_status.value, 'outcome': facts.effective_outcome.value,
+                        'raw_status': facts.raw_status, 'failed': facts.primary_failure_reason is not None,
+                        'cleanup_failed': facts.cleanup_failure is not None,
+                        'd9_observations': [_d9_observation_frame(item) for item in facts.d9_observations],
+                        'd9_failures': [item.value for item in facts.d9_failure_codes]}
+    else:
+        fact_payload = None if facts is None else _lightning_fact_to_payload(facts)
+        if facts is not None and fact_payload is None:
+            raise ValueError('unsupported receipt facts')
+    return {'type': 'receipt', 'operation': _d11_ref_payload(value.operation),
+            'session': value.session.resource_identity if value.session else None, 'facts': fact_payload}
+
+
+def _d11_result_from_payload(value: object) -> D11OperationReceipt | D11ResourceObservation:
+    payload = _payload_mapping(value)
+    if payload is None:
+        raise ValueError('invalid D11 result')
+    if payload.get('type') == 'observation' and _payload_has_exact_keys(payload, {
+        'type', 'run_id', 'provision_token', 'request_state', 'resources', 'active_operations',
+        'observed_at', 'source_identity'
+    }):
+        if not isinstance(payload['resources'], list) or not isinstance(payload['active_operations'], list):
+            raise ValueError('invalid observation collection')
+        resources = payload['resources']
+        active_operations = payload['active_operations']
+        if any(
+            type(item) is not list or len(item) != 2
+            or not isinstance(item[0], str) or not isinstance(item[1], str)
+            for item in resources
+        ) or any(not isinstance(token, str) for token in active_operations):
+            raise ValueError('invalid observation entry')
+        return D11ResourceObservation(LightningProvisionRefV1(payload['run_id'], payload['provision_token']),
+            payload['request_state'], tuple((item[0], item[1]) for item in resources),
+            tuple(active_operations), payload['observed_at'], payload['source_identity'])
+    if not _payload_has_exact_keys(payload, {'type', 'operation', 'session', 'facts'}) or payload['type'] != 'receipt':
+        raise ValueError('invalid receipt keys')
+    operation = _d11_ref_from_payload(payload['operation'])
+    session = (None if payload['session'] is None else
+               LightningSessionRefV1(operation.provision, payload['session']))
+    facts_payload = payload['facts']
+    facts = None
+    if isinstance(facts_payload, dict) and facts_payload.get('fact_type') == 'supervisor':
+        if not _payload_has_exact_keys(facts_payload, {'fact_type', 'state', 'attempt_count', 'terminal',
+            'cleanup', 'outcome', 'raw_status', 'failed', 'cleanup_failed', 'd9_observations', 'd9_failures'}):
+            raise ValueError('invalid supervisor keys')
+        if type(facts_payload['failed']) is not bool or type(facts_payload['cleanup_failed']) is not bool:
+            raise ValueError('invalid supervisor flags')
+        observations = tuple(_d9_observation_from_frame(item) for item in facts_payload['d9_observations'])
+        if any(item is None for item in observations):
+            raise ValueError('invalid D9 observation')
+        facts = SupervisorRunResult(final_state=ProgressState(facts_payload['state']),
+            attempt_count=facts_payload['attempt_count'], terminal_outcome=facts_payload['terminal'],
+            cleanup_status=CleanupStatus(facts_payload['cleanup']),
+            effective_outcome=EffectiveOutcome(facts_payload['outcome']), raw_status=facts_payload['raw_status'],
+            primary_failure_reason='remote executor failed' if facts_payload['failed'] else None,
+            d9_observations=observations,
+            d9_failure_codes=tuple(D9StreamFailureCode(item) for item in facts_payload['d9_failures']))
+        if facts_payload['cleanup_failed']:
+            facts = replace(facts, cleanup_status=CleanupStatus.CLEANUP_FAILED,
+                            effective_outcome=EffectiveOutcome.CLEANUP_FAILED)
+    elif facts_payload is not None:
+        facts = _lightning_fact_from_payload(facts_payload)
+        if facts is None:
+            raise ValueError('invalid receipt facts')
+    return D11OperationReceipt(operation, session, facts)
+
+
+def _d11_grant_payload(grant: D11CleanupGrant) -> dict[str, object]:
+    return {
+        'run_id': grant.run_id, 'generation': grant.generation,
+        'issued_at': grant.issued_at_host_monotonic, 'deadline': grant.deadline_host_monotonic,
+        'cancel': None if grant.cancellation_operation is None else
+        _d11_ref_payload(grant.cancellation_operation),
+    }
+
+
+def _d11_grant_from_payload(value: object, context: D11OperationContext) -> D11CleanupGrant:
+    payload = _payload_mapping(value)
+    if payload is None or not _payload_has_exact_keys(
+        payload, {'run_id', 'generation', 'issued_at', 'deadline', 'cancel'}
+    ):
+        raise ValueError('invalid cleanup grant')
+    grant = D11CleanupGrant(
+        payload['run_id'], payload['generation'], payload['issued_at'], payload['deadline'],
+        None if payload['cancel'] is None else _d11_ref_from_payload(payload['cancel']),
+    )
+    now = time.monotonic()
+    if (
+        grant.run_id != context.operation.provision.run_id or type(grant.generation) is not int
+        or grant.generation != 1 or not _is_finite_number(grant.issued_at_host_monotonic)
+        or not _is_finite_number(grant.deadline_host_monotonic)
+        or not 0 <= now - grant.issued_at_host_monotonic <= context.grant_max_age_seconds
+        or now >= grant.deadline_host_monotonic
+    ):
+        raise ValueError('stale cleanup grant')
+    if context.cleanup_grant is not None and (
+        grant.deadline_host_monotonic != context.cleanup_grant.deadline_host_monotonic
+        or grant.generation != context.cleanup_grant.generation
+    ):
+        raise ValueError('cleanup grant extends existing window')
+    cancel = grant.cancellation_operation
+    if cancel is not None and (
+        cancel.kind is not D11OperationKind.CANCEL or cancel.provision != context.operation.provision
+        or cancel.recovery_of != context.operation.token
+    ):
+        raise ValueError('cancel grant target mismatch')
+    return grant
+
+
+def _d11_operation_worker_entry(
+    connection: BoundedConnection,
+    seam: object,
+    operation: LightningOperationRefV1,
+    context: D11OperationContext,
+    inputs: D11DispatchInputs | None,
+    gate_timeout: float,
+) -> None:
+    """Contained SDK bridge only. Remote execution owns its own supervisor/containment."""
+    posix_worker_self_contain()
+    handle: D11SDKOperationHandle | None = None
+    result: object | None = None
+    failure = False
+    close_failed = False
+    grant = context.cleanup_grant
+
+    def emit(event: Mapping[str, object]) -> object:
+        nonlocal grant
+        if event.get('kind') == 'progress' and set(event) == {'kind', 'event'}:
+            connection.send_frame({'kind': 'D11_PROGRESS', 'event': event['event']})
+            return None
+        if event.get('kind') != 'cleanup_intent' or set(event) != {'kind'}:
+            raise Feat018ProtocolViolationError('invalid D11 callback event')
+        connection.send_frame({'kind': 'D11_CLEANUP_INTENT'})
+        # This handshake is before SDK/remote terminal cleanup. The host still preempts a
+        # noncooperative wait/cancel. No response means no verified remote release.
+        limit = grant.deadline_host_monotonic if grant else context.work_deadline_host_monotonic
+        remaining = max(0.0, limit - time.monotonic())
+        response = connection.recv_frame(remaining)
+        if not isinstance(response, dict) or set(response) != {'kind', 'grant'} or (
+            response['kind'] != 'D11_CLEANUP_GRANT'
+        ):
+            raise Feat018ProtocolViolationError('missing cleanup grant')
+        candidate = _d11_grant_from_payload(response['grant'], context)
+        if grant is not None and candidate.deadline_host_monotonic != grant.deadline_host_monotonic:
+            raise Feat018ProtocolViolationError('repeated cleanup intent changed deadline')
+        grant = candidate
+        return grant
+
+    try:
+        release = connection.recv_frame(gate_timeout)
+        if not isinstance(release, dict) or set(release) != {'kind'} or release['kind'] != 'CONTAINMENT_READY':
+            return
+        if time.monotonic() >= context.work_deadline_host_monotonic:
+            return
+        if grant is not None:
+            grant = _d11_grant_from_payload(_d11_grant_payload(grant), context)
+        connection.send_frame({'kind': 'D11_CALL_STARTED'})
+        method_name = 'start' if operation.kind is D11OperationKind.DISPATCH else operation.kind.value
+        handle = getattr(seam, method_name)(operation=operation, context=context, inputs=inputs)
+        if handle is not None:
+            connection.send_frame({'kind': 'D11_HANDLE_STARTED'})
+        if not all(callable(getattr(handle, name, None)) for name in ('wait', 'cancel', 'close')):
+            raise Feat018ProtocolViolationError('SDK handle lifecycle missing')
+        result = handle.wait(
+            timeout_seconds=max(0.0, context.work_deadline_host_monotonic - time.monotonic()),
+            emit=emit,
+        )
+    except Exception:
+        failure = True
+        if handle is not None:
+            try:
+                cancellation_grant = cast(D11CleanupGrant, emit({'kind': 'cleanup_intent'}))
+                if cancellation_grant.cancellation_operation is None:
+                    raise ValueError('parent cancel reference missing')
+                handle.cancel(
+                    operation=cancellation_grant.cancellation_operation,
+                    timeout_seconds=cancellation_grant.remaining(time.monotonic()),
+                )
+            except Exception:
+                close_failed = True
+    finally:
+        if handle is not None:
+            try:
+                handle.close()
+            except Exception:
+                close_failed = True
+        try:
+            if failure or close_failed:
+                connection.send_frame({'kind': 'D11_FAILED', 'close_failed': close_failed})
+            elif result is not None:
+                connection.send_frame({'kind': 'D11_RESULT', 'result': _d11_result_payload(result)})
+        except Exception:
+            pass  # parent retains operation reference on EOF/missing/malformed receipt
+
+
+def _invoke_d11_operation(
+    boundary: Feat018LightningLifecycleProcessBoundary,
+    operation: LightningOperationRefV1,
+    context: D11OperationContext,
+    inputs: D11DispatchInputs | None,
+    on_progress: Callable[[Mapping[str, object]], None] | None,
+    window: D11CleanupWindow,
+) -> D11OperationReceipt | D11ResourceObservation:
+    if context.operation != operation or operation not in window.operations:
+        raise Feat018LifecycleOperationError(Feat018LiveSmokeFailureCode.LIFECYCLE_PROTOCOL_FAILED)
+    if window.deadline is not None:
+        context = replace(context, work_deadline_host_monotonic=min(
+            context.work_deadline_host_monotonic, window.deadline,
+        ))
+    containment: ContainmentBackend | None = None
+    process: ProcessHandle | None = None
+    connection: BoundedConnection | None = None
+    result: D11OperationReceipt | D11ResourceObservation | None = None
+    failure_code: Feat018LiveSmokeFailureCode | None = None
+    owned_failure: Feat018CleanupFailedError | None = None
+    cleanup_started_for_operation = context.cleanup_grant is not None
+    try:
+        remaining = context.work_deadline_host_monotonic - boundary.clock()
+        if _positive_finite_float(remaining) is None:
+            raise TimeoutError
+        if context.cleanup_grant is not None and not window.validate_grant(context.cleanup_grant):
+            raise ValueError('stale cleanup context')
+        containment = boundary.containment_factory()
+        containment.create()
+        launcher = boundary.launcher or MultiprocessingProcessLauncher(
+            max_envelope_bytes=boundary.max_envelope_bytes, clock=boundary.clock,
+            cleanup_deadline=lambda: window.begin('launch_failure'),
+        )
+        process, connection = launcher.launch(
+            _d11_operation_worker_entry,
+            (boundary.controller, operation, context, inputs,
+             min(boundary.containment_setup_timeout_seconds, remaining)),
+        )
+        remaining = context.work_deadline_host_monotonic - boundary.clock()
+        if _positive_finite_float(remaining) is None:
+            raise TimeoutError
+        if not containment.confirm_worker_contained(
+            process, timeout=min(boundary.containment_setup_timeout_seconds, remaining),
+            retry_interval=boundary.confirmation_retry_interval_seconds,
+        ):
+            raise Feat018ContainmentError('D11 containment gate failed')
+        connection.send_frame({'kind': 'CONTAINMENT_READY'})
+        active_deadline = min(context.work_deadline_host_monotonic, window.deadline) if (
+            window.deadline is not None
+        ) else context.work_deadline_host_monotonic
+        call_started = False
+        handle_started = False
+        cancel: LightningOperationRefV1 | None = None
+        intent_count = 0
+        while True:
+            remaining = active_deadline - boundary.clock()
+            if _positive_finite_float(remaining) is None:
+                raise TimeoutError
+            frame = connection.recv_frame(remaining)
+            if frame is None:
+                if not process.is_alive():
+                    raise EOFError
+                remaining_after_receive = active_deadline - boundary.clock()
+                if _positive_finite_float(remaining_after_receive) is None:
+                    raise TimeoutError
+                boundary.sleep(min(context.poll_interval_seconds, remaining_after_receive))
+                continue
+            if boundary.clock() >= active_deadline:
+                raise TimeoutError
+            kind = frame.get('kind')
+            if kind == 'D11_CALL_STARTED' and set(frame) == {'kind'} and not call_started:
+                call_started = True
+            elif kind == 'D11_HANDLE_STARTED' and set(frame) == {'kind'} and call_started and not handle_started:
+                handle_started = True
+            elif kind == 'D11_PROGRESS' and set(frame) == {'kind', 'event'} and handle_started:
+                if operation.kind is not D11OperationKind.DISPATCH or on_progress is None:
+                    raise ValueError('unexpected progress')
+                if not isinstance(frame['event'], Mapping):
+                    raise ValueError('invalid progress')
+                on_progress(frame['event'])
+            elif kind == 'D11_CLEANUP_INTENT' and set(frame) == {'kind'} and handle_started:
+                intent_count += 1
+                if intent_count > 16:
+                    raise ValueError('cleanup intent protocol limit exceeded')
+                cleanup_started_for_operation = True
+                deadline = window.begin('worker_cleanup_intent')
+                if cancel is None:
+                    cancel = window.issue(operation.provision, D11OperationKind.CANCEL,
+                                          operation.session, operation.token)
+                grant = window.grant(cancel)
+                connection.send_frame({'kind': 'D11_CLEANUP_GRANT', 'grant': _d11_grant_payload(grant)})
+                # A work-to-cleanup handoff may consume the cleanup window. An operation
+                # already doing cleanup also retains its earlier phase cap.
+                active_deadline = (min(active_deadline, deadline)
+                                   if context.cleanup_grant is not None else deadline)
+            elif kind == 'D11_RESULT' and set(frame) == {'kind', 'result'} and handle_started:
+                if operation.kind is D11OperationKind.DISPATCH and not cleanup_started_for_operation:
+                    raise ValueError('dispatch terminal cleanup handoff missing')
+                result = _d11_result_from_payload(frame['result'])
+                if isinstance(result, D11OperationReceipt) and (
+                    result.operation != operation or (
+                        operation.session is not None and result.session != operation.session
+                    )
+                ):
+                    raise ValueError('receipt reference mismatch')
+                if isinstance(result, D11ResourceObservation) and (
+                    operation.kind is not D11OperationKind.OBSERVE or result.provision != operation.provision
+                ):
+                    raise ValueError('observation reference mismatch')
+                break
+            elif kind == 'D11_FAILED' and set(frame) == {'kind', 'close_failed'} and type(frame['close_failed']) is bool:
+                failure_code = Feat018LiveSmokeFailureCode.LIFECYCLE_RESULT_INVALID
+                if frame['close_failed']:
+                    owned_failure = Feat018CleanupFailedError('SDK handle cleanup failed')
+                break
+            else:
+                raise ValueError('D11 protocol failed')
+    except Feat018CleanupFailedError as error:
+        owned_failure = error
+        failure_code = Feat018LiveSmokeFailureCode.LIFECYCLE_CLEANUP_FAILED
+    except TimeoutError:
+        failure_code = {
+            D11OperationKind.PROVISION: Feat018LiveSmokeFailureCode.PROVISION_TIMEOUT,
+            D11OperationKind.WAIT_READY: Feat018LiveSmokeFailureCode.READY_TIMEOUT,
+            D11OperationKind.DISPATCH: Feat018LiveSmokeFailureCode.ADAPTER_CAP_EXCEEDED,
+        }.get(operation.kind, Feat018LiveSmokeFailureCode.SESSION_TERMINATION_TIMEOUT)
+    except EOFError:
+        failure_code = Feat018LiveSmokeFailureCode.LIFECYCLE_WORKER_DIED
+    except Exception:
+        failure_code = Feat018LiveSmokeFailureCode.LIFECYCLE_PROTOCOL_FAILED
+    finally:
+        if failure_code is not None or owned_failure is not None or cleanup_started_for_operation:
+            cleanup_deadline = window.begin('operation_unwind')
+        else:
+            # Successful intermediate retirement consumes the current work deadline.
+            cleanup_deadline = context.work_deadline_host_monotonic
+        resource_error = boundary._cleanup_resources(
+            process, connection, containment, cleanup_deadline_monotonic=cleanup_deadline,
+        )
+        if resource_error is not None:
+            window.begin('resource_cleanup_failed')
+            if owned_failure is None:
+                owned_failure = resource_error
+            else:
+                owned_failure.owned_connections += resource_error.owned_connections
+                owned_failure.owned_containments += resource_error.owned_containments
+                if owned_failure.owned_process is None:
+                    owned_failure.owned_process = resource_error.owned_process
+        if boundary.clock() >= cleanup_deadline:
+            owned_failure = owned_failure or Feat018CleanupFailedError('cleanup deadline exhausted')
+    if owned_failure is not None:
+        raise Feat018LifecycleOperationError(
+            failure_code or Feat018LiveSmokeFailureCode.LIFECYCLE_CLEANUP_FAILED,
+            cleanup_failure=owned_failure,
+        )
+    if failure_code is not None or result is None:
+        raise Feat018LifecycleOperationError(
+            failure_code or Feat018LiveSmokeFailureCode.LIFECYCLE_RESULT_INVALID
+        )
+    return result
+
+
+def run_offline_live_smoke(
+    request: VisionUnderstandingRequestV2,
+    runtime_config: QwenVisionRuntimeConfig,
+    content_policy: ObservableContentPolicyV1,
+    prompt: str,
+    *,
+    controller: LightningSessionControllerV1 | None = None,
+    config: Feat018LiveSmokeConfig | None = None,
+    session_id: str | None = None,
+    preflight: LightningPreflight | None = None,
+    finalizer: LightningSmokeFinalizer | None = None,
+    adapter_dispatch: LightningAdapterDispatchV1 | None = None,
+    observer: LightningResourceObserverV1 | None = None,
+    d11_config: D11OfflineConfig | None = None,
+    clock: Callable[[], float] = time.monotonic,
+) -> Feat018LiveSmokeResult:
+    """Offline fixture coordinator with explicit references and a contained SDK bridge.
+
+    This implementation binds no provider capability, credentials or live numeric budgets.
+    D11OfflineConfig supplies finite fixture parameters; its observation verdict is offline.
+    There is no legacy synchronous callback fallback. Only bounded metadata leaves SDK workers.
+
+    adapter_call_count accepts 1 when the parent invokes the one dispatch boundary (including
+    launch/input rejection); attempt_count accepts 1/2 only through supervisor progress received
+    before the work deadline and first cleanup intent. None means no accepted progress and is
+    UNKNOWN about actual remote generation. A receipt never fills missing counters.
+    """
+    rejected = Feat018LiveSmokeResult(
+        effective_outcome=EffectiveOutcome.FAILED, adapter_call_count=0, attempt_count=None,
+        cleanup_status=CleanupStatus.SUCCEEDED, failure_code=Feat018LiveSmokeFailureCode.NOT_AUTHORIZED,
+    )
+    if not (
+        _is_bounded_opaque_identifier(session_id) and isinstance(config, Feat018LiveSmokeConfig)
+        and isinstance(d11_config, D11OfflineConfig)
+        and all(callable(getattr(controller, name, None)) for name in (
+            'provision', 'wait_ready', 'cancel', 'reconcile', 'terminate'
+        ))
+        and callable(getattr(adapter_dispatch, 'start', None))
+        and callable(getattr(observer, 'observe', None)) and observer is not controller
+        and observer is not adapter_dispatch
+        and callable(getattr(preflight, 'verify', None)) and callable(getattr(finalizer, 'finalize', None))
+    ):
+        return rejected
+    assert config is not None and d11_config is not None and isinstance(session_id, str)
+    if any(_positive_finite_float(value) is None for value in (
+        config.session_provision_timeout_seconds, config.session_ttl_seconds,
+        config.gpu_minute_cap, config.session_termination_deadline_seconds,
+        config.bounded_runner_config.total_adapter_cap_seconds,
+        config.bounded_runner_config.containment_setup_timeout_seconds,
+        config.bounded_runner_config.posix_confirmation_retry_interval_seconds,
+    )):
+        return rejected
+    try:
+        if not _preflight_was_verified(preflight.verify(synthetic_session_id=session_id), session_id):
+            return replace(rejected, failure_code=Feat018LiveSmokeFailureCode.PREFLIGHT_NOT_AUTHORIZED)
+        window = D11CleanupWindow(session_id, d11_config.cleanup_total_seconds,
+                                  d11_config.grant_max_age_seconds, clock)
+        provision = LightningProvisionRefV1(session_id, uuid.uuid4().hex)
+        # Construction is before the authorized transition; no provider effects here.
+        boundaries = {}
+        for kind, seam in (('controller', controller), ('dispatch', adapter_dispatch), ('observer', observer)):
+            boundaries[kind] = Feat018LightningLifecycleProcessBoundary(
+                controller=cast(Any, seam),
+                max_envelope_bytes=config.bounded_runner_config.ipc_envelope_max_bytes,
+                containment_factory=create_platform_containment,
+                cleanup_deadline_seconds=d11_config.cleanup_total_seconds,
+                containment_setup_timeout_seconds=config.bounded_runner_config.containment_setup_timeout_seconds,
+                confirmation_retry_interval_seconds=config.bounded_runner_config.posix_confirmation_retry_interval_seconds,
+                clock=clock,
+            )
+    except Exception:
+        return replace(rejected, failure_code=Feat018LiveSmokeFailureCode.PREFLIGHT_FAILED)
+
+    cleanup_failures: list[Feat018CleanupFailedError] = []
+    cleanup_codes: list[str] = []
+    completed: set[str] = set()
+    session: LightningSessionRefV1 | None = None
+    placement: LightningPlacementFacts | None = None
+    observation: D11ResourceObservation | None = None
+    adapter_result: SupervisorRunResult | None = None
+    machine: Feat018ProgressStateMachine | None = None
+    adapter_count = 0
+    ready = False
+    ready_at: float | None = None
+    failure_code: Feat018LiveSmokeFailureCode | None = None
+    provision_started = clock()
+    ready_deadline = _add_finite_deadline(provision_started, float(config.session_provision_timeout_seconds))
+    gpu_start: float | None = None
+    gpu_deadline: float | None = None
+    ttl_start: float | None = None
+    ttl_deadline: float | None = None
+    adapter_start: float | None = None
+    adapter_deadline: float | None = None
+    dispatch_ref: LightningOperationRefV1 | None = None
+
+    def invoke(
+        kind: D11OperationKind, deadline: float,
+        target: LightningSessionRefV1 | None = None, recovery_of: str | None = None,
+    ) -> D11OperationReceipt | D11ResourceObservation:
+        operation = window.issue(provision, kind, target, recovery_of)
+        grant = window.grant() if window.deadline is not None else None
+        context = D11OperationContext(operation, deadline, d11_config.cleanup_total_seconds,
+                                      d11_config.grant_max_age_seconds, d11_config.poll_interval_seconds, grant)
+        key = 'observer' if kind is D11OperationKind.OBSERVE else 'controller'
+        result = boundaries[key].invoke_reference(operation, context, window=window)
+        completed.add(operation.token)
+        return result
+
+    def record_error(error: Feat018LifecycleOperationError, *, cleanup: bool) -> None:
+        nonlocal failure_code
+        if failure_code is None:
+            failure_code = error.failure_code
+        if error.cleanup_failure is not None:
+            cleanup_failures.append(error.cleanup_failure)
+        if cleanup or error.cleanup_status is CleanupStatus.CLEANUP_FAILED:
+            cleanup_codes.append(error.failure_code.value)
+
+    def accept_progress(frame: Mapping[str, object]) -> None:
+        assert machine is not None
+        # Cleanup handoff seals cardinality, independently of any remote receipt summary.
+        if window.deadline is not None:
+            return
+        event = _progress_event_from_frame(frame)
+        if event is None or machine.accept(event, acceptance_time=clock()) is not AcceptanceResult.ACCEPTED:
+            raise Feat018ProtocolViolationError('D11 progress transition rejected')
+
+    # AUTHORIZED_RUN_ATTEMPT_BEGINS. All operations below are recorded before launch.
+    try:
+        if ready_deadline is None:
+            raise Feat018LifecycleOperationError(Feat018LiveSmokeFailureCode.PROVISION_TIMEOUT)
+        receipt = invoke(D11OperationKind.PROVISION, ready_deadline)
+        if not isinstance(receipt, D11OperationReceipt) or receipt.session is None:
+            raise Feat018LifecycleOperationError(Feat018LiveSmokeFailureCode.PROVISION_FACTS_MISSING)
+        # Preserve a target for cleanup before placement/billing admission checks.
+        session = receipt.session
+        if window.deadline is not None:
+            raise Feat018LifecycleOperationError(Feat018LiveSmokeFailureCode.PROVISION_FAILED)
+        facts = receipt.facts
+        if not isinstance(facts, LightningProvisionFacts) or not facts.allocation_confirmed or (
+            facts.session_identity != session.resource_identity
+        ):
+            raise Feat018LifecycleOperationError(Feat018LiveSmokeFailureCode.PROVISION_FACTS_MISSING)
+        placement = facts.placement
+        if not _placement_matches_approval(placement, config.placement_approval):
+            raise Feat018LifecycleOperationError(Feat018LiveSmokeFailureCode.PLACEMENT_MISMATCH)
+        gpu_start = facts.gpu_minute_budget_start_monotonic
+        if gpu_start is None or not provision_started <= gpu_start <= clock():
+            raise Feat018LifecycleOperationError(Feat018LiveSmokeFailureCode.PROVISION_FACTS_MISSING)
+        gpu_deadline = _add_finite_deadline(gpu_start, float(config.gpu_minute_cap) * 60)
+        if gpu_deadline is None:
+            raise Feat018LifecycleOperationError(Feat018LiveSmokeFailureCode.PROVISION_FACTS_MISSING)
+        ready_receipt = invoke(D11OperationKind.WAIT_READY, min(ready_deadline, gpu_deadline), session)
+        if window.deadline is not None:
+            raise Feat018LifecycleOperationError(Feat018LiveSmokeFailureCode.READY_FAILED)
+        if not isinstance(ready_receipt, D11OperationReceipt) or not isinstance(ready_receipt.facts, LightningReadyFacts):
+            raise Feat018LifecycleOperationError(Feat018LiveSmokeFailureCode.READY_FACTS_MISSING)
+        ready_facts = ready_receipt.facts
+        if ready_facts.readiness is not LightningSessionReadiness.SESSION_READY:
+            raise Feat018LifecycleOperationError(Feat018LiveSmokeFailureCode.SESSION_NOT_READY)
+        lifecycle_code = _lifecycle_failure_code(
+            ready_facts.lifecycle, provision_facts=facts, provision_start=provision_started,
+            ready_finished=clock(), ready_deadline=ready_deadline,
+            session_ttl_seconds=config.session_ttl_seconds,
+        )
+        if lifecycle_code is not None:
+            raise Feat018LifecycleOperationError(lifecycle_code)
+        assert ready_facts.lifecycle is not None
+        ready = True
+        ready_at = ready_facts.lifecycle.session_ready_at_monotonic
+        ttl_start = ready_facts.lifecycle.session_ttl_start_monotonic
+        ttl_deadline = ready_facts.lifecycle.session_ttl_deadline_monotonic
+        cap_code = _active_cap_failure_code(clock(), ttl_deadline=ttl_deadline, gpu_budget_deadline=gpu_deadline)
+        if cap_code is not None:
+            raise Feat018LifecycleOperationError(cap_code)
+        adapter_start = clock()
+        adapter_deadline = _add_finite_deadline(adapter_start, config.bounded_runner_config.total_adapter_cap_seconds)
+        if adapter_deadline is None:
+            raise Feat018LifecycleOperationError(Feat018LiveSmokeFailureCode.ADAPTER_CAP_EXCEEDED)
+        work_deadline = min(adapter_deadline, ttl_deadline, gpu_deadline)
+        machine = Feat018ProgressStateMachine(cap_deadline_monotonic=work_deadline)
+        dispatch_ref = window.issue(provision, D11OperationKind.DISPATCH, session)
+        context = D11OperationContext(dispatch_ref, work_deadline, d11_config.cleanup_total_seconds,
+                                      d11_config.grant_max_age_seconds, d11_config.poll_interval_seconds)
+        inputs = D11DispatchInputs(request, runtime_config, content_policy, prompt,
+                                   config.bounded_runner_config, session_id)
+        adapter_count = 1  # one dispatch-boundary invocation; no outer retry
+        candidate = boundaries['dispatch'].invoke_reference(
+            dispatch_ref, context, inputs=inputs, on_progress=accept_progress, window=window,
+        )
+        completed.add(dispatch_ref.token)
+        if not isinstance(candidate, D11OperationReceipt) or not _supervisor_result_is_valid(candidate.facts):
+            raise Feat018LifecycleOperationError(Feat018LiveSmokeFailureCode.ADAPTER_RESULT_INVALID)
+        adapter_result = cast(SupervisorRunResult, candidate.facts)
+        if adapter_result.cleanup_status is CleanupStatus.CLEANUP_FAILED:
+            cleanup_codes.append(Feat018LiveSmokeFailureCode.ADAPTER_CLEANUP_FAILED.value)
+            raise Feat018LifecycleOperationError(Feat018LiveSmokeFailureCode.ADAPTER_CLEANUP_FAILED)
+        if (
+            machine.state is not ProgressState.TERMINAL
+            or adapter_result.attempt_count != machine.attempt_count
+            or adapter_result.terminal_outcome != machine.terminal_outcome
+            or adapter_result.raw_status != machine.raw_status
+        ):
+            raise Feat018LifecycleOperationError(Feat018LiveSmokeFailureCode.ADAPTER_RESULT_INVALID)
+        if not _adapter_result_is_accepted_success(adapter_result):
+            raise Feat018LifecycleOperationError(Feat018LiveSmokeFailureCode.ADAPTER_FAILED)
+    except Feat018LifecycleOperationError as error:
+        record_error(error, cleanup=False)
+    except Exception:
+        failure_code = failure_code or Feat018LiveSmokeFailureCode.LIFECYCLE_PROTOCOL_FAILED
+    finally:
+        deadline = window.begin('coordinator_terminal')
+        # Fresh operations use parent references even if SDK start/handle/response was lost.
+        outstanding = tuple(operation for operation in window.operations
+                            if operation.token not in completed and operation.kind in (
+                                D11OperationKind.PROVISION, D11OperationKind.WAIT_READY, D11OperationKind.DISPATCH
+                            ))
+        for operation in outstanding:
+            try:
+                invoke(D11OperationKind.CANCEL, deadline, operation.session, operation.token)
+            except Feat018LifecycleOperationError as error:
+                record_error(error, cleanup=True)
+        try:
+            reconciled = invoke(D11OperationKind.RECONCILE, deadline, session)
+            if isinstance(reconciled, D11OperationReceipt) and reconciled.session is not None:
+                if session is not None and reconciled.session != session:
+                    raise Feat018LifecycleOperationError(Feat018LiveSmokeFailureCode.SESSION_IDENTITY_MISMATCH)
+                session = reconciled.session
+        except Feat018LifecycleOperationError as error:
+            record_error(error, cleanup=True)
+        try:
+            invoke(D11OperationKind.TERMINATE, min(deadline, clock() + config.session_termination_deadline_seconds), session)
+        except Feat018LifecycleOperationError as error:
+            record_error(error, cleanup=True)
+        observation_start = clock()
+        try:
+            observed = invoke(D11OperationKind.OBSERVE, deadline, session)
+            if isinstance(observed, D11ResourceObservation) and (
+                observed.provision == provision and observed.source_identity == d11_config.observer_identity
+                and observation_start <= observed.observed_at_host_monotonic <= clock() < deadline
+            ):
+                observation = observed
+            else:
+                cleanup_codes.append('OBSERVATION_INVALID')
+        except Feat018LifecycleOperationError as error:
+            record_error(error, cleanup=True)
+        for error in cleanup_failures:
+            error.retry_cleanup(grace_seconds=0.1, kill_join_seconds=0.1,
+                                cleanup_deadline_monotonic=deadline, clock=clock)
+
+    released = observation is not None and observation.request_state == 'sealed' and (
+        not observation.active_operations and all(state == 'terminated' for _, state in observation.resources)
+        and (session is None or any(identity == session.resource_identity for identity, _ in observation.resources))
+    )
+    if not released:
+        cleanup_codes.append('REMOTE_RELEASE_UNVERIFIED')
+    if cleanup_failures:
+        cleanup_codes.append('LOCAL_RELEASE_FAILED')
+    if clock() >= deadline:
+        cleanup_codes.append('CLEANUP_DEADLINE_EXHAUSTED')
+    unresolved = () if released and not cleanup_codes and not cleanup_failures else tuple(window.operations)
+    report = D11CleanupReport(deadline, window.generation, tuple(window.operations), unresolved,
+        observation, 'VERIFIED_OFFLINE' if released else ('UNKNOWN' if observation is None else 'UNVERIFIED'),
+        tuple(dict.fromkeys(cleanup_codes)), adapter_count == 1,
+        machine is not None and machine.attempt_count is not None)
+    cleanup_status = CleanupStatus.SUCCEEDED if report.resources_released else CleanupStatus.CLEANUP_FAILED
+    if cleanup_status is CleanupStatus.CLEANUP_FAILED and failure_code is None:
+        failure_code = Feat018LiveSmokeFailureCode.SESSION_TERMINATION_FAILED
+    outcome = (EffectiveOutcome.CLEANUP_FAILED if cleanup_status is CleanupStatus.CLEANUP_FAILED else
+               EffectiveOutcome.SUCCEEDED if failure_code is None else EffectiveOutcome.FAILED)
+    result = Feat018LiveSmokeResult(
+        effective_outcome=outcome, adapter_call_count=adapter_count,
+        attempt_count=machine.attempt_count if machine else None,
+        cleanup_status=cleanup_status, failure_code=failure_code, session_ready=ready,
+        provision_start_monotonic=provision_started, ready_deadline_monotonic=ready_deadline,
+        ready_at_monotonic=ready_at, session_ready_at_monotonic=ready_at,
+        gpu_minute_budget_start_monotonic=gpu_start, session_ttl_start_monotonic=ttl_start,
+        session_ttl_deadline_monotonic=ttl_deadline, adapter_start_monotonic=adapter_start,
+        total_adapter_cap_deadline_monotonic=adapter_deadline, session_termination_deadline_monotonic=deadline,
+        adapter_result=adapter_result, session_identity=session.resource_identity if session else None,
+        placement=placement, cleanup_failures=tuple(cleanup_failures), preflight_verified=True,
+        d11_report=report,
+    )
+    try:
+        finalization = finalizer.finalize(result=result)
+        verified = _finalization_was_verified(finalization)
+    except Exception:
+        verified = False
+    return replace(result, finalization_verified=verified,
+        effective_outcome=outcome if verified or outcome is EffectiveOutcome.CLEANUP_FAILED else EffectiveOutcome.FAILED,
+        failure_code=failure_code if verified else Feat018LiveSmokeFailureCode.FINALIZATION_FAILED)
+
+
+def _is_live_attempt_profile_admissible(config: Feat018BoundedRunnerConfig) -> bool:
+    """The D1 live profile requires the plan's exact 120-second per-attempt value."""
+    return (
+        isinstance(config, Feat018BoundedRunnerConfig)
+        and type(config.per_attempt_timeout_seconds) in (int, float)
+        and math.isfinite(float(config.per_attempt_timeout_seconds))
+        and config.per_attempt_timeout_seconds == 120.0
+    )
+
+
+def run_live_smoke(
+    request: VisionUnderstandingRequestV2,
+    runtime_config: QwenVisionRuntimeConfig,
+    content_policy: ObservableContentPolicyV1,
+    prompt: str,
+    *,
+    controller: LightningSessionControllerV1 | None = None,
+    config: Feat018LiveSmokeConfig | None = None,
+    session_id: str | None = None,
+    preflight: LightningPreflight | None = None,
+    finalizer: LightningSmokeFinalizer | None = None,
+    adapter_dispatch: LightningAdapterDispatchV1 | None = None,
+    observer: LightningResourceObserverV1 | None = None,
+    d11_config: D11OfflineConfig | None = None,
+    clock: Callable[[], float] = time.monotonic,
+) -> Feat018LiveSmokeResult:
+    """Fail-closed live entry until immutable runtime/seam bindings are approved."""
+    del request, runtime_config, content_policy, prompt, controller, session_id
+    del preflight, finalizer, adapter_dispatch, observer, d11_config, clock
+    del config
+    return Feat018LiveSmokeResult(
+        effective_outcome=EffectiveOutcome.FAILED,
+        adapter_call_count=0,
+        attempt_count=None,
+        cleanup_status=CleanupStatus.SUCCEEDED,
+        failure_code=Feat018LiveSmokeFailureCode.NOT_AUTHORIZED,
+    )
+
+
+def _validated_terminal_cleanup_report(result: Feat018LiveSmokeResult) -> D11CleanupReport:
+    report = result.d11_report
+    if type(report) is not D11CleanupReport or (
+        type(report.operations) is not tuple or not report.operations
+        or type(report.unresolved_operations) is not tuple or report.unresolved_operations
+        or type(report.failure_codes) is not tuple or report.failure_codes
+        or type(report.verification) is not str or report.verification != 'VERIFIED_OFFLINE'
+    ):
+        raise ValueError('D11 resource release unverified')
+    deadline = _positive_finite_float(report.deadline_host_monotonic)
+    if deadline is None:
+        raise ValueError('D11 cleanup deadline must be finite and positive')
+
+    provision: LightningProvisionRefV1 | None = None
+    known_sessions: set[str] = set()
+    for operation in report.operations:
+        if type(operation) is not LightningOperationRefV1 or (
+            type(operation.provision) is not LightningProvisionRefV1
+        ):
+            raise ValueError('D11 cleanup operations must contain typed references')
+        LightningProvisionRefV1.__post_init__(operation.provision)
+        if provision is None:
+            provision = operation.provision
+        elif operation.provision != provision:
+            raise ValueError('D11 cleanup operations belong to different provisions')
+        if operation.session is not None:
+            if type(operation.session) is not LightningSessionRefV1 or (
+                type(operation.session.provision) is not LightningProvisionRefV1
+            ):
+                raise ValueError('D11 cleanup session reference must be typed')
+            LightningSessionRefV1.__post_init__(operation.session)
+            known_sessions.add(operation.session.resource_identity)
+        LightningOperationRefV1.__post_init__(operation)
+
+    observation = report.observation
+    if type(observation) is not D11ResourceObservation or (
+        type(observation.provision) is not LightningProvisionRefV1
+    ):
+        raise ValueError('D11 cleanup observation must contain a typed provision')
+    LightningProvisionRefV1.__post_init__(observation.provision)
+    D11ResourceObservation.__post_init__(observation)
+    if observation.provision != provision or (
+        observation.request_state != 'sealed' or observation.active_operations
+        or any(state != 'terminated' for _, state in observation.resources)
+    ):
+        raise ValueError('D11 cleanup observation does not prove release for the provision')
+    if result.session_identity is not None:
+        if not _is_bounded_fact_token(result.session_identity):
+            raise ValueError('terminal session identity must be bounded')
+        known_sessions.add(result.session_identity)
+    if not known_sessions <= {identity for identity, _ in observation.resources}:
+        raise ValueError('D11 cleanup observation omits a known session')
+    observed_at = float(observation.observed_at_host_monotonic)
+    if observed_at >= deadline:
+        raise ValueError('D11 cleanup observation is outside its deadline')
+    terminal_deadline = result.session_termination_deadline_monotonic
+    if terminal_deadline is not None and (
+        _positive_finite_float(terminal_deadline) is None
+        or not _timestamps_match(deadline, terminal_deadline)
+    ):
+        raise ValueError('D11 cleanup deadline contradicts the terminal deadline')
+    for started_at in (
+        result.provision_start_monotonic,
+        result.gpu_minute_budget_start_monotonic,
+        result.session_ttl_start_monotonic,
+        result.adapter_start_monotonic,
+    ):
+        if started_at is not None:
+            _validate_non_negative_timestamp(started_at, 'terminal start')
+            if float(started_at) > observed_at:
+                raise ValueError('D11 cleanup observation precedes a supplied terminal start')
+    return report
+
+
+def _validate_terminal_publication_privacy(result: Feat018LiveSmokeResult, value: object) -> None:
+    private_ids: set[str] = set()
+
+    def add_identifier(identifier: object) -> None:
+        if isinstance(identifier, str) and identifier:
+            private_ids.add(identifier)
+
+    def add_provision(provision: object) -> None:
+        if isinstance(provision, LightningProvisionRefV1):
+            add_identifier(provision.token)
+
+    if isinstance(result, Feat018LiveSmokeResult):
+        add_identifier(result.session_identity)
+        report = result.d11_report
+        if isinstance(report, D11CleanupReport):
+            for operations in (report.operations, report.unresolved_operations):
+                if isinstance(operations, (tuple, list)):
+                    for operation in operations:
+                        if isinstance(operation, LightningOperationRefV1):
+                            add_provision(operation.provision)
+                            add_identifier(operation.token)
+                            add_identifier(operation.recovery_of)
+                            if isinstance(operation.session, LightningSessionRefV1):
+                                add_provision(operation.session.provision)
+                                add_identifier(operation.session.resource_identity)
+            observation = report.observation
+            if isinstance(observation, D11ResourceObservation):
+                add_provision(observation.provision)
+                if isinstance(observation.resources, (tuple, list)):
+                    for resource in observation.resources:
+                        if isinstance(resource, (tuple, list)) and resource:
+                            add_identifier(resource[0])
+                if isinstance(observation.active_operations, (tuple, list)):
+                    for token in observation.active_operations:
+                        add_identifier(token)
+
+    def contains_private_id(candidate: object) -> bool:
+        if isinstance(candidate, str):
+            return any(identifier in candidate for identifier in private_ids)
+        if isinstance(candidate, Mapping):
+            return any(contains_private_id(key) or contains_private_id(item)
+                       for key, item in candidate.items())
+        if isinstance(candidate, (list, tuple)):
+            return any(contains_private_id(item) for item in candidate)
+        return False
+
+    if contains_private_id(value):
+        raise ValueError('private recovery identifiers cannot enter published evidence')
+
+
+def _d11_terminal_evidence_fields(
+    result: Feat018LiveSmokeResult, *, runtime_outcome: EffectiveOutcome,
+) -> dict[str, object]:
+    if (
+        type(result) is not Feat018LiveSmokeResult
+        or result.effective_outcome is not runtime_outcome
+    ):
+        raise ValueError('runtime outcome contradicts the typed terminal')
+    if result.preflight_verified is not True:
+        raise ValueError('terminal preflight remains unverified')
+    if result.cleanup_status is not CleanupStatus.SUCCEEDED or result.cleanup_failures:
+        raise ValueError('terminal cleanup remains unverified')
+    if (
+        type(result.adapter_call_count) is not int or result.adapter_call_count not in (0, 1)
+        or (result.attempt_count is not None and (
+            type(result.attempt_count) is not int or result.attempt_count not in (1, 2)
+        ))
+    ):
+        raise ValueError('invalid terminal cardinality')
+    if result.adapter_call_count == 0 and (result.attempt_count is not None or result.adapter_result is not None):
+        raise ValueError('pre-adapter terminal cannot claim generation')
+    if result.adapter_call_count == 1 and result.session_ready is not True:
+        raise ValueError('dispatch contradicts the accepted session readiness marker')
+    report = _validated_terminal_cleanup_report(result)
+    if (
+        type(report.generation) is not int or report.generation <= 0
+        or type(report.dispatch_invocation_accepted) is not bool
+        or type(report.generation_progress_known) is not bool
+    ):
+        raise ValueError('D11 release generation and acceptance events must be typed')
+    if (report.dispatch_invocation_accepted != (result.adapter_call_count == 1)
+            or report.generation_progress_known != (result.attempt_count is not None)):
+        raise ValueError('terminal acceptance events do not match cardinality')
+    # The harness failure code comes only from the actual terminal's closed enum.
+    if result.failure_code is not None and not isinstance(result.failure_code, Feat018LiveSmokeFailureCode):
+        raise ValueError('terminal failure code must be a typed coordinator code')
+    adapter = result.adapter_result
+    if adapter is not None and (
+        not _supervisor_result_is_valid(adapter)
+        or adapter.cleanup_status is not CleanupStatus.SUCCEEDED or adapter.cleanup_failure is not None
+    ):
+        raise ValueError('terminal adapter result is invalid or retains cleanup ownership')
+    if runtime_outcome is EffectiveOutcome.SUCCEEDED:
+        if (
+            result.failure_code is not None or result.adapter_call_count != 1 or adapter is None
+            or not _adapter_result_is_accepted_success(adapter)
+            or result.attempt_count != adapter.attempt_count
+        ):
+            raise ValueError('terminal cannot promote an unaccepted runtime result')
+    elif runtime_outcome is not EffectiveOutcome.FAILED or result.failure_code is None:
+        raise ValueError('failed terminal requires a typed coordinator failure code')
+    return {
+        'terminal_kind': 'PRE_ADAPTER' if result.adapter_call_count == 0 else 'DISPATCHED',
+        'adapter_call_count': result.adapter_call_count,
+        'attempt_count': result.attempt_count,
+        'run_failure_code': None if result.failure_code is None else result.failure_code.value,
+        'generation_progress': 'ACCEPTED' if report.generation_progress_known else 'UNKNOWN',
+        'cleanup_verification': report.verification,
+        'cleanup_generation': report.generation,
+        'unresolved_operation_count': len(report.unresolved_operations),
+    }
+
+
+def _binding_terminal_evidence_fields(
+    metadata: BindingTerminalMetadataV1,
+    result: Feat018LiveSmokeResult,
+    *,
+    runtime_outcome: EffectiveOutcome,
+    terminal_fields: Mapping[str, object],
+    publication_ids: tuple[str, ...] = (),
+) -> dict[str, object]:
+    """Validate the offline hand-off against the actual terminal before publication.
+
+    Identity equality and synthetic observations are never live authorization or remote
+    cleanup proof. The existing D11 release/quiescence gates remain independently mandatory.
+    """
+    if type(metadata) is not BindingTerminalMetadataV1:
+        raise ValueError('typed offline binding metadata required')
+    checked = metadata.revalidated()
+    checked.validate_for_terminal(
+        adapter_call_count=result.adapter_call_count,
+        attempt_count=result.attempt_count,
+        outcome=runtime_outcome.value,
+        failure_code=None if result.failure_code is None else result.failure_code.value,
+        session_ready=result.session_ready,
+    )
+    received = checked.result
+    adapter = result.adapter_result
+    if adapter is None:
+        if received.v2_state == 'OBSERVED' or received.raw_state == 'OBSERVED':
+            raise ValueError('absent adapter result cannot supply typed result observations')
+    else:
+        if received.raw_state == 'OBSERVED' and received.raw_status != adapter.raw_status:
+            raise ValueError('received Raw status contradicts the accepted adapter result')
+        if (
+            received.v2_state == 'OBSERVED' and adapter.attempt_count is not None
+            and received.v2_attempt_number != adapter.attempt_count
+        ):
+            raise ValueError('received local attempt number contradicts the adapter receipt')
+    runtime = checked.session.runtime
+    runtime_received = runtime.state in ('OBSERVED', 'OBSERVED_MISMATCH')
+    if runtime_received and result.placement is None:
+        raise ValueError('received runtime hardware facts require the actual accepted placement')
+    if runtime_received:
+        placement = result.placement
+        assert placement is not None
+        manifest = runtime.manifest
+        if manifest is None or any(actual != observed for actual, observed in (
+            (placement.gpu_sku, manifest.gpu.sku),
+            (placement.device_index, manifest.gpu.device_index),
+            (placement.device_count, manifest.cuda.device_count),
+            (placement.vram_mib, manifest.gpu.vram_mib),
+            (placement.cuda_available, manifest.cuda.available),
+            (placement.bf16_supported, manifest.gpu.bf16_supported),
+            (placement.single_device_visible, runtime.single_device_visible),
+        )):
+            raise ValueError('received hardware facts contradict accepted placement')
+        if runtime.post_load_model_device_index is not None and (
+            runtime.post_load_model_device_index != placement.model_device_index
+            or runtime.post_load_input_device_index != placement.input_device_index
+        ):
+            raise ValueError('received post-load facts contradict accepted placement')
+    fields = checked.evidence_fields()
+    reserved = {
+        'status', 'cleanup_status', 'postflight_status', 'run_id', 'evidence_id',
+        'companion_markdown_sha256', 'commit_state', 'run_failure_code',
+        *terminal_fields,
+    }
+    if set(fields) & reserved:
+        raise ValueError('binding metadata cannot override terminal or commit facts')
+
+    def contains_key(value: object, key: str) -> bool:
+        if isinstance(value, Mapping):
+            return key in value or any(contains_key(item, key) for item in value.values())
+        if isinstance(value, (list, tuple)):
+            return any(contains_key(item, key) for item in value)
+        return False
+
+    if contains_key(fields, 'observer_ref'):
+        raise ValueError('local observation provenance cannot enter published evidence')
+    _validate_terminal_publication_privacy(result, (fields, publication_ids))
+    return fields
+
+
 __all__ = [
+    'D11CleanupGrant', 'D11CleanupWindow', 'D11OperationContext', 'D11OperationKind',
+    'D11OperationReceipt', 'D11ResourceObservation', 'D11OfflineConfig', 'D11DispatchInputs',
+    'D11SDKOperationHandle', 'D11CleanupReport', 'LightningProvisionRefV1', 'LightningSessionRefV1',
+    'LightningOperationRefV1', 'LightningSessionControllerV1', 'LightningAdapterDispatchV1',
+    'LightningResourceObserverV1',
+    'run_offline_live_smoke',
     'D9_STDERR_MAX_BYTES',
     'D9_STDOUT_MAX_BYTES',
     'D9BoundedByteCapture',

@@ -18,13 +18,16 @@ import json
 import multiprocessing
 import os
 import signal
+import socket
 import stat
+import struct
 import subprocess
 import sys
+import threading
 import time
 from collections import deque
 from collections.abc import Callable, Mapping
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any, cast
 
@@ -67,6 +70,7 @@ from sketch2life.benchmark.feat018_live_lightning_execution import (
     Feat018ProtocolViolationError,
     LightningCancellationFacts,
     LightningFinalizationFacts,
+    LightningLifecycleBoundary,
     LightningLifecycleOperationName,
     LightningOperationHandle,
     LightningPlacementApproval,
@@ -88,9 +92,11 @@ from sketch2life.benchmark.feat018_live_lightning_execution import (
     SupervisorRunResult,
     WindowsJobObjectContainment,
     _adapter_result_is_accepted_success,  # noqa: PLC2701 - proves the D9-aware success contract
+    _bounded_terminate_kill_join,  # noqa: PLC2701 - verifies process resource ownership
     _cancel_lightning_operation,  # noqa: PLC2701 - deterministic inline-boundary test seam
     _cancel_termination_operation,  # noqa: PLC2701 - deterministic inline-boundary test seam
     _generation_child_entry_with_capture,  # noqa: PLC2701 - D9 child IPC seam
+    _progress_event_from_frame,  # noqa: PLC2701 - strict internal cleanup marker contract
     _wait_for_lightning_operation,  # noqa: PLC2701 - deterministic inline-boundary test seam
     _Win32JobHandles,  # noqa: PLC2701 - white-box test of the ctypes binding surface (F4)
     adapter_worker_entry,
@@ -100,8 +106,9 @@ from sketch2life.benchmark.feat018_live_lightning_execution import (
     new_evidence_id,
     new_run_id,
     posix_worker_self_contain,
+    run_bounded_adapter_call,
     read_committed_pair,
-    run_live_smoke,
+    _run_legacy_offline_smoke as run_live_smoke,
 )
 from sketch2life.contracts.schemas.vision import (
     VisionImageReferenceV1,
@@ -182,21 +189,35 @@ class FakeProcessHandle:
 
     _pid: int | None = 4242
     _alive: bool = True
+    started_at_monotonic: float | None = None
+    exit_code: int | None = 0
     terminate_calls: int = field(default=0, init=False)
     kill_calls: int = field(default=0, init=False)
     join_calls: list[float | None] = field(default_factory=list, init=False)
+    close_calls: int = field(default=0, init=False)
+    cleanup_events: list[str] = field(default_factory=list, init=False)
+    joined: bool = field(default=False, init=False)
+    closed: bool = field(default=False, init=False)
     die_on_terminate: bool = False
     die_on_kill: bool = True
     raise_on_terminate: BaseException | None = None
+    raise_on_close: BaseException | None = None
 
     @property
     def pid(self) -> int | None:
         return self._pid
 
+    @property
+    def exitcode(self) -> int | None:
+        self.cleanup_events.append("exitcode")
+        return self.exit_code if not self._alive and self.joined else None
+
     def is_alive(self) -> bool:
+        self.cleanup_events.append("is_alive")
         return self._alive
 
     def terminate(self) -> None:
+        self.cleanup_events.append("terminate")
         self.terminate_calls += 1
         if self.raise_on_terminate is not None:
             raise self.raise_on_terminate
@@ -204,12 +225,26 @@ class FakeProcessHandle:
             self._alive = False
 
     def kill(self) -> None:
+        self.cleanup_events.append("kill")
         self.kill_calls += 1
         if self.die_on_kill:
             self._alive = False
 
     def join(self, timeout: float | None = None) -> None:
+        self.cleanup_events.append("join")
         self.join_calls.append(timeout)
+        if not self._alive:
+            self.joined = True
+
+    def close(self) -> None:
+        assert not self._alive
+        assert self.joined
+        assert self.exit_code is not None
+        self.cleanup_events.append("close")
+        self.close_calls += 1
+        if self.raise_on_close is not None:
+            raise self.raise_on_close
+        self.closed = True
 
     def mark_dead(self) -> None:
         self._alive = False
@@ -377,7 +412,8 @@ class FakeContainmentBackend:
             raise self.confirm_raises
         return self.confirm_result
 
-    def terminate_all(self) -> None:
+    def terminate_all(self, *, cleanup_deadline_monotonic: float | None = None,
+                      clock: Callable[[], float] | None = None) -> None:
         self.terminate_calls += 1
 
     def is_empty(self) -> bool:
@@ -924,6 +960,12 @@ class _FakeMultiprocessingProcess:
     raise_on_kill: BaseException | None = None
     join_errors: dict[int, BaseException] = field(default_factory=dict)
     raise_on_is_alive: BaseException | None = None
+    raise_on_close: BaseException | None = None
+    exit_code: int | None = 0
+    started: bool = field(default=False, init=False)
+    joined: bool = field(default=False, init=False)
+    closed: bool = field(default=False, init=False)
+    close_calls: int = field(default=0, init=False)
     daemon: bool | None = field(default=None, init=False)
     start_calls: int = field(default=0, init=False)
     terminate_calls: int = field(default=0, init=False)
@@ -934,7 +976,12 @@ class _FakeMultiprocessingProcess:
 
     @property
     def pid(self) -> int | None:
-        return self._pid
+        return self._pid if self.started else None
+
+    @property
+    def exitcode(self) -> int | None:
+        self.cleanup_events.append("exitcode")
+        return self.exit_code if self.started and not self.alive and self.joined else None
 
     @property
     def can_spawn_child_processes(self) -> bool:
@@ -943,9 +990,11 @@ class _FakeMultiprocessingProcess:
     def start(self) -> None:
         self.start_calls += 1
         if self.start_marks_live_before_error:
+            self.started = True
             self.alive = True
         if self.start_error is not None:
             raise self.start_error
+        self.started = True
         self.alive = True
 
     def is_alive(self) -> bool:
@@ -977,6 +1026,17 @@ class _FakeMultiprocessingProcess:
         self.join_calls.append(timeout)
         if call_number in self.join_errors:
             raise self.join_errors[call_number]
+        if not self.alive:
+            self.joined = True
+
+    def close(self) -> None:
+        assert not self.alive
+        assert not self.started or (self.joined and self.exit_code is not None)
+        self.cleanup_events.append("close")
+        self.close_calls += 1
+        if self.raise_on_close is not None:
+            raise self.raise_on_close
+        self.closed = True
 
 
 @dataclass(slots=True)
@@ -1027,6 +1087,10 @@ class _NoStartProcess:
     def pid(self) -> int | None:
         return self.actual_process.pid
 
+    @property
+    def exitcode(self) -> int | None:
+        return self.actual_process.exitcode
+
     def is_alive(self) -> bool:
         return bool(self.actual_process.is_alive())
 
@@ -1038,6 +1102,9 @@ class _NoStartProcess:
 
     def join(self, timeout: float | None = None) -> None:
         self.actual_process.join(timeout)
+
+    def close(self) -> None:
+        self.actual_process.close()
 
     def start(self) -> None:
         self.start_calls += 1
@@ -1170,7 +1237,7 @@ class TestMultiprocessingProcessLauncher:
             Feat018CleanupFailedError, match="bounded process launch cleanup failed"
         ):
             self._launcher(context).launch(_no_op_entry, ())
-        assert context.child.close_calls == 1
+        assert context.child.close_calls == 2
         assert context.parent.close_calls == 1
         assert process.terminate_calls == 1
         assert process.alive is False
@@ -1204,9 +1271,9 @@ class TestMultiprocessingProcessLauncher:
         launcher = self._launcher(context)
         process, parent_connection = launcher.launch(_no_op_entry, ("fixture",))
 
-        assert process is context.process
-        assert process.daemon is False
-        assert process.can_spawn_child_processes is True
+        assert getattr(process, "process") is context.process
+        assert context.process.daemon is False
+        assert context.process.can_spawn_child_processes is True
         assert context.process_calls[0][2] is False
         assert context.child.close_calls == 1
         assert context.child.closed is True
@@ -1236,8 +1303,8 @@ class TestMultiprocessingProcessLauncher:
             assert context.actual_process is not None
             assert context.actual_process.daemon is False
             assert getattr(context.actual_process, "_popen", None) is None
-            assert isinstance(process, _NoStartProcess)
-            assert process.start_calls == 1  # launcher invoked only the no-op proxy method
+            assert isinstance(getattr(process, "process"), _NoStartProcess)
+            assert getattr(process, "process").start_calls == 1
         finally:
             if parent_connection is not None:
                 parent_connection.close()
@@ -1278,43 +1345,13 @@ class TestMultiprocessingProcessLauncher:
                 _no_op_entry, ()
             )
 
-        expected_cleanup_events = {
-            "terminate": [
-                "is_alive",
-                "terminate",
-                "join_1",
-                "is_alive",
-                "kill",
-                "join_2",
-                "is_alive",
-            ],
-            "grace_join": [
-                "is_alive",
-                "terminate",
-                "join_1",
-                "is_alive",
-                "is_alive",
-            ],
-            "kill": [
-                "is_alive",
-                "terminate",
-                "join_1",
-                "is_alive",
-                "kill",
-                "join_2",
-                "is_alive",
-            ],
-            "final_join": [
-                "is_alive",
-                "terminate",
-                "join_1",
-                "is_alive",
-                "kill",
-                "join_2",
-                "is_alive",
-            ],
-        }
-        assert process.cleanup_events == expected_cleanup_events[failure_kind]
+        assert process.cleanup_events.index("terminate") < process.cleanup_events.index("join_1")
+        if "kill" in process.cleanup_events:
+            assert process.cleanup_events.index("kill") < process.cleanup_events.index("join_2")
+        if process.closed:
+            assert process.alive is False
+            assert process.joined is True
+            assert process.cleanup_events[-1] == "close"
         assert "SECRET-" not in str(exc_info.value)
         assert context.child.close_calls == 1
         assert context.parent.close_calls == 1
@@ -1368,6 +1405,36 @@ class TestMultiprocessingProcessLauncher:
         assert process.alive is True
         assert context.parent.close_calls == 1
         assert context.child.close_calls == 1
+
+    def test_failed_endpoint_release_stays_owned_until_retry_succeeds(self) -> None:
+        context = _FakeSpawnContext()
+        context.parent.raise_on_close = OSError("parent close failed")
+        wrapper_calls = 0
+
+        def fail_parent_wrapper(connection: Any, max_envelope_bytes: int) -> BoundedConnection:
+            nonlocal wrapper_calls
+            wrapper_calls += 1
+            if wrapper_calls == 2:
+                raise RuntimeError("parent wrapper failed")
+            return MultiprocessingBoundedConnection(connection, max_envelope_bytes)
+
+        with pytest.raises(Feat018CleanupFailedError) as exc_info:
+            self._launcher(context, connection_factory=fail_parent_wrapper).launch(
+                _no_op_entry, ()
+            )
+
+        failure = exc_info.value
+        assert failure.owned_process is None
+        assert failure.owned_connections == (context.parent,)
+        assert context.process.closed is True
+        assert context.parent.closed is False
+
+        context.parent.raise_on_close = None
+        assert failure.retry_cleanup(grace_seconds=0.1, kill_join_seconds=0.1)
+
+        assert context.parent.closed is True
+        assert failure.owned_connections == ()
+        assert context.process.close_calls == 1
 
     def test_liveness_verification_failure_is_a_sanitized_cleanup_failure(self) -> None:
         process = _FakeMultiprocessingProcess(
@@ -1446,6 +1513,127 @@ class TestBoundedConnectionFraming:
         with pytest.raises(Feat018FrameTooLargeError):
             connection.send_frame({"kind": "x", "pad": "a" * 100})
         assert _progress_frames(connection.sent) == []
+
+    def test_real_connection_wrapper_propagates_endpoint_close_failure(self) -> None:
+        endpoint = _FakeRawEndpoint("parent", raise_on_close=OSError("close failed"))
+        connection = MultiprocessingBoundedConnection(endpoint, max_envelope_bytes=1_000)
+
+        with pytest.raises(OSError, match="close failed"):
+            connection.close()
+
+        assert endpoint.close_calls == 1
+        assert endpoint.closed is False
+
+    @pytest.mark.parametrize("flag", [False, 1, "true", None])
+    def test_terminal_cleanup_flag_rejects_every_value_except_true(self, flag: object) -> None:
+        assert _progress_event_from_frame({
+            "seq": 2, "kind": "TERMINAL", "outcome": "FAILED", "cleanup_failed": flag,
+        }) is None
+
+    @pytest.mark.parametrize("kind", ["ADAPTER_STARTED", "GENERATION_ATTEMPT_STARTED"])
+    def test_cleanup_flag_is_rejected_on_nonterminal_progress(self, kind: str) -> None:
+        frame: dict[str, object] = {
+            "seq": 2, "kind": kind, "cleanup_failed": True,
+        }
+        if kind == "GENERATION_ATTEMPT_STARTED":
+            frame["attempt_number"] = 1
+        assert _progress_event_from_frame(frame) is None
+
+    def test_cleanup_flag_rejects_a_success_terminal(self) -> None:
+        assert _progress_event_from_frame({
+            "seq": 2, "kind": "TERMINAL", "outcome": "SUCCEEDED", "cleanup_failed": True,
+        }) is None
+
+    def test_failed_terminal_accepts_the_cleanup_flag(self) -> None:
+        event = _progress_event_from_frame({
+            "seq": 2, "kind": "TERMINAL", "outcome": "FAILED", "cleanup_failed": True,
+        })
+
+        assert event is not None
+        assert event.kind is ProgressEventKind.TERMINAL
+        assert event.outcome == "FAILED"
+
+
+class TestProcessCleanupOwnership:
+    def test_cleanup_joins_share_the_remaining_absolute_deadline(self) -> None:
+        clock = FakeClock(start=10.0)
+        deadline = 10.25
+
+        class _TimedProcess(FakeProcessHandle):
+            def join(self, timeout: float | None = None) -> None:
+                assert timeout is not None
+                clock.advance(timeout)
+                super().join(timeout)
+
+        process = _TimedProcess()
+
+        assert _bounded_terminate_kill_join(
+            process,
+            grace_seconds=1.0,
+            kill_join_seconds=1.0,
+            cleanup_deadline_monotonic=deadline,
+            clock=clock,
+        )
+
+        assert clock() <= deadline
+        assert sum(cast(float, timeout) for timeout in process.join_calls) <= 0.25
+        assert process.closed is True
+
+    def test_retained_cleanup_owner_blocks_an_otherwise_successful_result(self) -> None:
+        successful = _successful_supervisor_result()
+        assert successful.is_success
+        assert _adapter_result_is_accepted_success(successful)
+        inconsistent = replace(
+            successful,
+            cleanup_failure=Feat018CleanupFailedError(owned_process=FakeProcessHandle()),
+        )
+
+        assert not inconsistent.is_success
+        assert not _adapter_result_is_accepted_success(inconsistent)
+
+    @pytest.mark.parametrize("initially_alive", [False, True])
+    def test_process_is_reaped_and_exit_observed_before_handle_release(
+        self, initially_alive: bool
+    ) -> None:
+        process = FakeProcessHandle(_alive=initially_alive)
+
+        assert _bounded_terminate_kill_join(
+            process, grace_seconds=0.1, kill_join_seconds=0.1
+        )
+
+        assert process.joined is True
+        assert process.close_calls == 1
+        assert process.closed is True
+        assert process.cleanup_events.index("join") < process.cleanup_events.index("exitcode")
+        assert process.cleanup_events.index("exitcode") < process.cleanup_events.index("close")
+
+    @pytest.mark.parametrize("failure_kind", ["alive", "unobserved_exit", "close"])
+    def test_unreleased_process_cannot_report_cleanup_success(self, failure_kind: str) -> None:
+        process = FakeProcessHandle()
+        if failure_kind == "alive":
+            process.die_on_kill = False
+        elif failure_kind == "unobserved_exit":
+            process.exit_code = None
+        else:
+            process.raise_on_close = OSError("process close failed")
+
+        assert not _bounded_terminate_kill_join(
+            process, grace_seconds=0.1, kill_join_seconds=0.1
+        )
+
+        assert process.closed is False
+        assert process.close_calls == (1 if failure_kind == "close" else 0)
+
+    def test_unstarted_process_releases_without_invalid_join(self) -> None:
+        process = _FakeMultiprocessingProcess()
+
+        assert _bounded_terminate_kill_join(
+            process, grace_seconds=0.1, kill_join_seconds=0.1
+        )
+
+        assert process.join_calls == []
+        assert process.close_calls == 1
+        assert process.closed is True
 
 
 # ------------------------------------------------------------------------------------------
@@ -2065,6 +2253,7 @@ class _FakeKernel32:
         self.set_information_result = True
         self.terminate_job_result = True
         self.close_handle_result = True
+        self.failed_close_handles: set[int] = set()
 
         def create_job_object_w(attrs: object, name: object) -> int:
             self.calls.append(("CreateJobObjectW", (attrs, name)))
@@ -2106,7 +2295,7 @@ class _FakeKernel32:
 
         def close_handle(handle: int) -> int:
             self.calls.append(("CloseHandle", (handle,)))
-            return 1 if self.close_handle_result else 0
+            return 1 if self.close_handle_result and handle not in self.failed_close_handles else 0
 
         self.CreateJobObjectW = create_job_object_w
         self.SetInformationJobObject = set_information_job_object
@@ -2213,7 +2402,7 @@ class TestWin32JobHandlesBindings:
             ("CloseHandle", (fake.job_handle,))
         ]
 
-    def test_partial_job_cleanup_failure_is_reported_without_retaining_handle(self) -> None:
+    def test_partial_job_cleanup_failure_retains_the_handle_for_retry(self) -> None:
         fake = _FakeKernel32()
         fake.set_information_result = False
         fake.close_handle_result = False
@@ -2222,11 +2411,56 @@ class TestWin32JobHandlesBindings:
         with pytest.raises(Feat018ContainmentError, match="rollback cleanup failed"):
             containment.create()
 
-        assert containment._job_handle is None
-        assert containment.is_empty() is False
+        assert containment._job_handle == fake.job_handle
+        assert containment._cleanup_failed is True
         assert [call for call in fake.calls if call[0] == "CloseHandle"] == [
             ("CloseHandle", (fake.job_handle,))
         ]
+
+        with pytest.raises(Feat018ContainmentError, match="unreleased handles"):
+            containment.create()
+        assert len([call for call in fake.calls if call[0] == "CreateJobObjectW"]) == 1
+
+        fake.close_handle_result = True
+        containment.close()
+
+        assert containment._job_handle is None
+        assert [call for call in fake.calls if call[0] == "CloseHandle"] == [
+            ("CloseHandle", (fake.job_handle,)),
+            ("CloseHandle", (fake.job_handle,)),
+        ]
+
+    @pytest.mark.parametrize("failure_stage", ["assignment", "verification"])
+    def test_unregistered_open_process_handle_is_retained_when_close_fails(
+        self, failure_stage: str
+    ) -> None:
+        fake = _FakeKernel32()
+        if failure_stage == "assignment":
+            fake.assign_result = False
+        else:
+            fake.is_process_in_job_result = False
+        fake.failed_close_handles.add(fake.process_handle)
+        containment = WindowsJobObjectContainment(_win32=_Win32JobHandles(kernel32=fake))
+        containment.create()
+
+        assert not containment.confirm_worker_contained(
+            FakeProcessHandle(), timeout=1.0, retry_interval=0.1
+        )
+        assert [call for call in fake.calls if call[0] == "CloseHandle"] == [
+            ("CloseHandle", (fake.process_handle,))
+        ]
+        with pytest.raises(Feat018ContainmentError, match="unreleased process handle"):
+            containment.confirm_worker_contained(
+                FakeProcessHandle(_pid=100), timeout=1.0, retry_interval=0.1
+            )
+        assert len([call for call in fake.calls if call[0] == "OpenProcess"]) == 1
+
+        fake.failed_close_handles.clear()
+        containment.close()
+
+        released = [call[1][0] for call in fake.calls if call[0] == "CloseHandle"]
+        assert released.count(fake.process_handle) == 2
+        assert released.count(fake.job_handle) == 1
 
 
 # ------------------------------------------------------------------------------------------
@@ -2239,6 +2473,124 @@ class TestWindowsJobObjectContainmentCleanupTruth:
         containment = WindowsJobObjectContainment(_win32=_Win32JobHandles(kernel32=fake))
         containment.create()
         return containment
+
+    @pytest.mark.parametrize("failed_handle", ["process", "job", "both"])
+    def test_close_attempts_both_handles_and_retries_only_unreleased_handles(
+        self, failed_handle: str
+    ) -> None:
+        fake = _FakeKernel32()
+        containment = self._containment(fake)
+        assert containment.confirm_worker_contained(
+            FakeProcessHandle(), timeout=1.0, retry_interval=0.1
+        )
+        assert containment.is_empty() is True
+        if failed_handle in {"process", "both"}:
+            fake.failed_close_handles.add(fake.process_handle)
+        if failed_handle in {"job", "both"}:
+            fake.failed_close_handles.add(fake.job_handle)
+        unreleased = set(fake.failed_close_handles)
+
+        with pytest.raises(Feat018ContainmentError, match="handle cleanup failed"):
+            containment.close()
+
+        assert [call[1][0] for call in fake.calls if call[0] == "CloseHandle"] == [
+            fake.process_handle, fake.job_handle,
+        ]
+        assert containment._process_handle == (
+            fake.process_handle if fake.process_handle in unreleased else None
+        )
+        assert containment._job_handle == (
+            fake.job_handle if fake.job_handle in unreleased else None
+        )
+
+        fake.failed_close_handles.clear()
+        containment.close()
+
+        released = [call[1][0] for call in fake.calls if call[0] == "CloseHandle"]
+        for handle in (fake.process_handle, fake.job_handle):
+            assert released.count(handle) == (2 if handle in unreleased else 1)
+        assert containment._process_handle is None
+        assert containment._job_handle is None
+
+    def test_supervisor_retains_failed_containment_release_until_retry_succeeds(self) -> None:
+        fake = _FakeKernel32()
+        fake.failed_close_handles.add(fake.process_handle)
+        containment = WindowsJobObjectContainment(_win32=_Win32JobHandles(kernel32=fake))
+        clock = FakeClock()
+        launcher = _launcher(clock)
+        launcher.connection.push({"seq": 1, "kind": "ADAPTER_STARTED"})
+        launcher.connection.push(
+            {"seq": 2, "kind": "GENERATION_ATTEMPT_STARTED", "attempt_number": 1}
+        )
+        _push_success_d9_frames(launcher.connection)
+        launcher.connection.push({"seq": 3, "kind": "TERMINAL", "outcome": "SUCCEEDED"})
+        supervisor = Feat018AdapterCallSupervisor(
+            config=_config(),
+            launcher=launcher,
+            containment_factory=lambda: containment,
+            clock=clock,
+            sleep=clock.advance,
+        )
+
+        result = supervisor.run(_no_op_entry, ())
+
+        assert result.effective_outcome is EffectiveOutcome.CLEANUP_FAILED
+        assert result.cleanup_failure is not None
+        assert result.cleanup_failure.owned_containments == (containment,)
+        assert containment._process_handle == fake.process_handle
+        assert not result.cleanup_failure.retry_cleanup(
+            grace_seconds=0.1,
+            kill_join_seconds=0.1,
+            cleanup_deadline_monotonic=clock() + 0.2,
+            clock=clock,
+        )
+        assert result.cleanup_failure.owned_containments == (containment,)
+
+        fake.failed_close_handles.clear()
+        assert result.cleanup_failure.retry_cleanup(
+            grace_seconds=0.1,
+            kill_join_seconds=0.1,
+            cleanup_deadline_monotonic=clock() + 0.2,
+            clock=clock,
+        )
+
+        assert result.cleanup_failure.owned_containments == ()
+        assert containment._process_handle is None
+        assert result.cleanup_status is CleanupStatus.CLEANUP_FAILED
+        assert result.effective_outcome is EffectiveOutcome.CLEANUP_FAILED
+        released = [call[1][0] for call in fake.calls if call[0] == "CloseHandle"]
+        assert released.count(fake.job_handle) == 1
+        assert released.count(fake.process_handle) == 3
+
+    def test_lifecycle_cleanup_retains_containment_with_unreleased_job_handle(self) -> None:
+        fake = _FakeKernel32()
+        fake.failed_close_handles.add(fake.job_handle)
+        containment = self._containment(fake)
+        clock = FakeClock()
+        boundary = Feat018LightningLifecycleProcessBoundary(
+            controller=FakeLightningSessionController(clock),
+            max_envelope_bytes=10_000,
+            containment_factory=lambda: containment,
+            clock=clock,
+            sleep=clock.advance,
+        )
+
+        failure = boundary._cleanup_resources(None, None, containment)
+
+        assert isinstance(failure, Feat018CleanupFailedError)
+        assert failure.owned_containments == (containment,)
+        assert containment._job_handle == fake.job_handle
+
+        fake.failed_close_handles.clear()
+        assert failure.retry_cleanup(
+            grace_seconds=0.1,
+            kill_join_seconds=0.1,
+            cleanup_deadline_monotonic=clock() + 0.2,
+            clock=clock,
+        )
+
+        assert failure.owned_containments == ()
+        assert containment._job_handle is None
 
     def test_is_empty_true_when_zero_active_processes(self) -> None:
         fake = _FakeKernel32()
@@ -2272,7 +2624,7 @@ class TestWindowsJobObjectContainmentCleanupTruth:
     def test_cleanup_failure_overrides_a_previously_successful_terminal_result(self) -> None:
         fake = _FakeKernel32()
         fake.active_process_count = 1  # containment never reports empty
-        containment = self._containment(fake)
+        containment = WindowsJobObjectContainment(_win32=_Win32JobHandles(kernel32=fake))
         launcher = _launcher()
         launcher.connection.push({"seq": 1, "kind": "ADAPTER_STARTED"})
         launcher.connection.push(
@@ -2493,8 +2845,16 @@ class TestBoundedGenerationRunner:
         assert result == "hello world"
 
     def test_no_frame_within_the_attempt_deadline_raises_timeout(self) -> None:
-        launcher = _launcher()  # never pushes a frame
         clock = FakeClock()
+        receive_timeouts: list[float] = []
+
+        class _RecordingConnection(FakeBoundedConnection):
+            def recv_frame(self, timeout: float) -> dict[str, object] | None:
+                receive_timeouts.append(timeout)
+                return super().recv_frame(timeout)
+
+        launcher = _launcher(clock)
+        launcher.connection = _RecordingConnection(clock=clock)
         runner = Feat018BoundedKillableQwenGenerationRunner(
             config=self._config(per_attempt_timeout_seconds=1.0),
             worker_cap_deadline_monotonic=clock() + 300.0,
@@ -2503,6 +2863,185 @@ class TestBoundedGenerationRunner:
         )
         with pytest.raises(QwenTimeoutError):
             runner.generate(cast(object, None), cast(object, None), Path("x.png"), "prompt")
+        assert receive_timeouts[0] == 1.0
+        assert clock() == 1.0
+        assert launcher.handle.kill_calls == 1
+        assert launcher.connection.closed is True
+
+    @pytest.mark.parametrize(
+        ('arrival_seconds', 'accepted'),
+        [(119.999, True), (120.0, False), (120.001, False)],
+    )
+    def test_attempt_boundary_is_checked_after_receive_before_total_cap(
+        self, arrival_seconds: float, accepted: bool
+    ) -> None:
+        clock = FakeClock()
+        receive_timeouts: list[float] = []
+
+        class _ArrivalConnection(FakeBoundedConnection):
+            def recv_frame(self, timeout: float) -> dict[str, object] | None:
+                receive_timeouts.append(timeout)
+                if timeout > 0:
+                    clock.set(arrival_seconds)
+                    return {'kind': 'success', 'raw_output': 'within-attempt'}
+                return None
+
+        launcher = _launcher(clock)
+        launcher.connection = _ArrivalConnection(clock=clock)
+        reports: list[D9CaptureReport] = []
+        runner = Feat018BoundedKillableQwenGenerationRunner(
+            config=self._config(),
+            worker_cap_deadline_monotonic=300.0,
+            launcher=launcher,
+            clock=clock,
+            on_d9_report=reports.append,
+        )
+        if accepted:
+            assert runner.generate(
+                cast(object, None), cast(object, None), Path('x.png'), 'prompt'
+            ) == 'within-attempt'
+        else:
+            with pytest.raises(QwenTimeoutError):
+                runner.generate(cast(object, None), cast(object, None), Path('x.png'), 'prompt')
+        assert receive_timeouts[0] == 120.0
+        assert clock() < runner.worker_cap_deadline_monotonic
+        assert len(reports) == 1
+
+    def test_total_remaining_budget_wins_over_attempt_deadline(self) -> None:
+        clock = FakeClock(start=290.0)
+        launcher = _launcher(clock)
+        runner = Feat018BoundedKillableQwenGenerationRunner(
+            config=self._config(),
+            worker_cap_deadline_monotonic=300.0,
+            launcher=launcher,
+            clock=clock,
+        )
+        with pytest.raises(QwenTimeoutError):
+            runner.generate(cast(object, None), cast(object, None), Path('x.png'), 'prompt')
+        assert clock() == 300.0
+        assert len(launcher.launch_calls) == 1
+
+    def test_attempt_uses_post_start_receipt_before_launcher_returns(self) -> None:
+        clock = FakeClock(start=10.0)
+        handle = FakeProcessHandle(started_at_monotonic=10.0)
+        connection = FakeBoundedConnection(clock=clock)
+
+        class _DelayedReturnLauncher:
+            def launch(
+                self, entry: Callable[..., None], args: tuple[object, ...]
+            ) -> tuple[ProcessHandle, BoundedConnection]:
+                del entry, args
+                clock.advance(30.0)  # post-start endpoint wrapping does not extend the attempt
+                return handle, connection
+
+        runner = Feat018BoundedKillableQwenGenerationRunner(
+            config=self._config(),
+            worker_cap_deadline_monotonic=300.0,
+            launcher=_DelayedReturnLauncher(),
+            clock=clock,
+        )
+        with pytest.raises(QwenTimeoutError):
+            runner.generate(cast(object, None), cast(object, None), Path('x.png'), 'prompt')
+        assert clock() == 130.0
+
+    def test_retry_gets_new_attempt_deadline_without_resetting_total_cap(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        import sketch2life.benchmark.feat018_live_lightning_execution as execution
+
+        clock = FakeClock()
+        receive_timeouts: list[float] = []
+        handles: list[FakeProcessHandle] = []
+
+        class _FirstAttemptConnection(FakeBoundedConnection):
+            def recv_frame(self, timeout: float) -> dict[str, object] | None:
+                if timeout <= 0:
+                    return None
+                receive_timeouts.append(timeout)
+                clock.advance(90.0)
+                return {'kind': 'provider_failure'}
+
+        class _SecondAttemptConnection(FakeBoundedConnection):
+            def recv_frame(self, timeout: float) -> dict[str, object] | None:
+                if timeout > 0:
+                    receive_timeouts.append(timeout)
+                return super().recv_frame(timeout)
+
+        class _RetryLauncher:
+            def launch(
+                self, entry: Callable[..., None], args: tuple[object, ...]
+            ) -> tuple[ProcessHandle, BoundedConnection]:
+                del entry, args
+                handle = FakeProcessHandle(started_at_monotonic=clock())
+                handles.append(handle)
+                connection = (
+                    _FirstAttemptConnection(clock=clock)
+                    if len(handles) == 1
+                    else _SecondAttemptConnection(clock=clock)
+                )
+                return handle, connection
+
+        def explicit_transient(frame: Mapping[str, object]) -> str:
+            assert frame.get('kind') == 'provider_failure'
+            raise QwenTransientRuntimeError
+
+        monkeypatch.setattr(execution, '_interpret_generation_child_frame', explicit_transient)
+        monkeypatch.setattr(
+            QwenVisionAdapter, '_resolve_verified_input_image', lambda self, request: Path('x.png')
+        )
+        runner = Feat018BoundedKillableQwenGenerationRunner(
+            config=self._config(total_adapter_cap_seconds=150.0),
+            worker_cap_deadline_monotonic=150.0,
+            launcher=_RetryLauncher(),
+            clock=clock,
+        )
+        adapter = QwenVisionAdapter(
+            QwenVisionRuntimeConfig(model_dir=Path('fixture-model-dir')),
+            content_policy=_policy(), prompt='fixture prompt', generation_runner=runner,
+        )
+        result = adapter.understand(_request('fixture.bin', 'a' * 64))
+        assert isinstance(result, VisionUnderstandingFailureV2)
+        assert result.attempt_number == 2
+        assert result.error_code.value == 'VISION_TIMEOUT'
+        assert result.retryable is False
+        assert receive_timeouts == [120.0, 60.0]
+        assert clock() == 150.0
+        assert runner.worker_cap_deadline_monotonic == 150.0
+        assert len(handles) == 2
+
+    def test_attempt_timeout_is_terminal_in_the_unchanged_adapter(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setattr(
+            QwenVisionAdapter, '_resolve_verified_input_image', lambda self, request: Path('x.png')
+        )
+        clock = FakeClock()
+        launcher = _launcher(clock)
+        reports: list[D9CaptureReport] = []
+        runner = Feat018BoundedKillableQwenGenerationRunner(
+            config=self._config(per_attempt_timeout_seconds=1.0),
+            worker_cap_deadline_monotonic=300.0,
+            launcher=launcher,
+            clock=clock,
+            on_d9_report=reports.append,
+        )
+        adapter = QwenVisionAdapter(
+            QwenVisionRuntimeConfig(model_dir=Path('fixture-model-dir')),
+            content_policy=_policy(), prompt='fixture prompt', generation_runner=runner,
+        )
+        result = adapter.understand(_request('fixture.bin', 'a' * 64))
+        assert isinstance(result, VisionUnderstandingFailureV2)
+        assert result.error_code.value == 'VISION_TIMEOUT'
+        assert result.attempt_number == 1
+        assert result.retryable is False
+        assert len(launcher.launch_calls) == 1
+        assert clock() == 1.0
+        assert len(reports) == 1
+
+    @pytest.mark.parametrize('timeout', [float('nan'), float('inf'), 0.0, -1.0, 120.001])
+    def test_attempt_timeout_requires_a_finite_positive_bound(self, timeout: float) -> None:
+        with pytest.raises(ValueError):
+            self._config(per_attempt_timeout_seconds=timeout)
 
     def test_total_cap_already_exhausted_is_terminal_not_transient(self) -> None:
         clock = FakeClock(start=100.0)
@@ -3740,6 +4279,7 @@ class TestLiveSmokeIndependentReviewBlockers:
         config: Feat018LiveSmokeConfig | None = None,
         preflight: FakeLightningPreflight | None | object = _UNSET_LIGHTNING_RESULT,
         finalizer: FakeLiveSmokeFinalizer | None | object = _UNSET_LIGHTNING_RESULT,
+        lifecycle_boundary: LightningLifecycleBoundary | None = None,
     ) -> Feat018LiveSmokeResult:
         active_config = config or _live_smoke_config()
         controller.ttl_seconds = active_config.session_ttl_seconds
@@ -3764,7 +4304,8 @@ class TestLiveSmokeIndependentReviewBlockers:
             preflight=active_preflight,
             finalizer=active_finalizer,
             adapter_call=adapter,
-            lifecycle_boundary=FakeInlineLightningLifecycleBoundary(controller, controller.clock),
+            lifecycle_boundary=lifecycle_boundary
+            or FakeInlineLightningLifecycleBoundary(controller, controller.clock),
             clock=controller.clock,
         )
 
@@ -4248,6 +4789,138 @@ class TestLiveSmokeIndependentReviewBlockers:
         assert result.adapter_call_count == 1
         assert len(finalizer.calls) == 1
 
+    @pytest.mark.parametrize(
+        "failed_operations",
+        [("provision",), ("wait_ready",), ("terminate",), ("provision", "terminate")],
+    )
+    @pytest.mark.parametrize("finalizer_fails", [False, True])
+    def test_lifecycle_cleanup_owners_survive_coordinator_finalization(
+        self, failed_operations: tuple[str, ...], finalizer_fails: bool
+    ) -> None:
+        clock = FakeClock()
+        controller = FakeLightningSessionController(clock)
+        adapter = FakeBoundedAdapterCall(clock)
+        owned_failures = {
+            operation: Feat018CleanupFailedError(
+                "unreleased lifecycle process",
+                owned_process=FakeProcessHandle(die_on_kill=False),
+            )
+            for operation in failed_operations
+        }
+
+        class _FailingBoundary(FakeInlineLightningLifecycleBoundary):
+            def invoke(
+                self,
+                operation: LightningLifecycleOperationName,
+                *,
+                deadline: float,
+                cancellation_deadline: float,
+                session_identity: str | None = None,
+            ) -> object:
+                if operation in owned_failures:
+                    raise Feat018LifecycleOperationError(
+                        Feat018LiveSmokeFailureCode.LIFECYCLE_CLEANUP_FAILED,
+                        cleanup_failure=owned_failures[operation],
+                    )
+                return super().invoke(
+                    operation,
+                    deadline=deadline,
+                    cancellation_deadline=cancellation_deadline,
+                    session_identity=session_identity,
+                )
+
+        finalizer = FakeLiveSmokeFinalizer()
+        if finalizer_fails:
+            finalizer.result = RuntimeError("finalizer failed")
+
+        result = self._run(
+            controller,
+            adapter,
+            finalizer=finalizer,
+            lifecycle_boundary=_FailingBoundary(controller, clock),
+        )
+
+        assert result.effective_outcome is EffectiveOutcome.CLEANUP_FAILED
+        assert result.cleanup_status is CleanupStatus.CLEANUP_FAILED
+        assert result.finalization_verified is not finalizer_fails
+        assert len(finalizer.calls) == 1
+        assert result is not finalizer.calls[0]
+        expected_failures = tuple(owned_failures.values())
+        assert result.cleanup_failures == expected_failures
+        assert finalizer.calls[0].cleanup_failures == expected_failures
+        for retained, original in zip(result.cleanup_failures, expected_failures, strict=True):
+            assert retained is original
+            assert retained.owned_process is original.owned_process
+            assert retained.owned_process is not None
+            assert retained.owned_process.is_alive()
+        assert "unreleased lifecycle process" not in repr(result)
+
+    @pytest.mark.parametrize("finalizer_fails", [False, True])
+    @pytest.mark.parametrize("failure_source", ["failed_result", "success_looking_result", "exception"])
+    def test_adapter_cleanup_owner_survives_coordinator_finalization(
+        self, finalizer_fails: bool, failure_source: str
+    ) -> None:
+        clock = FakeClock()
+        controller = FakeLightningSessionController(clock)
+        process = FakeProcessHandle(die_on_kill=False)
+        cleanup_failure = Feat018CleanupFailedError(
+            "unreleased adapter process", owned_process=process
+        )
+        adapter = FakeBoundedAdapterCall(
+            clock,
+            result=SupervisorRunResult(
+                final_state=ProgressState.FROZEN,
+                attempt_count=1,
+                terminal_outcome=None,
+                cleanup_status=CleanupStatus.CLEANUP_FAILED,
+                effective_outcome=EffectiveOutcome.CLEANUP_FAILED,
+                cleanup_failure=cleanup_failure,
+            ),
+        )
+        if failure_source == "success_looking_result":
+            adapter.result = replace(
+                _successful_supervisor_result(), cleanup_failure=cleanup_failure
+            )
+        elif failure_source == "exception":
+            class _CleanupRaisingAdapter(FakeBoundedAdapterCall):
+                def __call__(
+                    self,
+                    request: VisionUnderstandingRequestV2,
+                    runtime_config: QwenVisionRuntimeConfig,
+                    content_policy: object,
+                    prompt: str,
+                    config: Feat018BoundedRunnerConfig,
+                    *,
+                    session_id: str | None = None,
+                ) -> SupervisorRunResult:
+                    super().__call__(
+                        request, runtime_config, content_policy, prompt, config,
+                        session_id=session_id,
+                    )
+                    raise cleanup_failure
+
+            adapter = _CleanupRaisingAdapter(clock)
+        finalizer = FakeLiveSmokeFinalizer()
+        if finalizer_fails:
+            finalizer.result = RuntimeError("finalizer failed")
+
+        result = self._run(controller, adapter, finalizer=finalizer)
+
+        assert result.effective_outcome is EffectiveOutcome.CLEANUP_FAILED
+        assert result.cleanup_status is CleanupStatus.CLEANUP_FAILED
+        assert result.finalization_verified is not finalizer_fails
+        assert result.cleanup_failures == (cleanup_failure,)
+        assert result.cleanup_failures[0] is cleanup_failure
+        assert result.cleanup_failures[0].owned_process is process
+        assert finalizer.calls[0].cleanup_failures[0] is cleanup_failure
+        assert controller.termination_calls == 1
+        assert "unreleased adapter process" not in repr(result)
+        assert not replace(
+            result,
+            effective_outcome=EffectiveOutcome.SUCCEEDED,
+            cleanup_status=CleanupStatus.SUCCEEDED,
+        ).is_success
+
 
 # ------------------------------------------------------------------------------------------
 # B3 -- actual host preemption of the lifecycle boundary
@@ -4447,6 +5120,28 @@ class TestLightningLifecycleProcessBoundaryCleanupFailure:
     while a member remains), and that failure must override an otherwise successfully returned
     lifecycle result (independent-review finding B3-1)."""
 
+    def test_launcher_cleanup_failure_survives_empty_containment(self) -> None:
+        clock = FakeClock()
+        containment = FakeContainmentBackend()
+        cleanup_failure = Feat018CleanupFailedError("launch rollback failed")
+        boundary = Feat018LightningLifecycleProcessBoundary(
+            controller=FakeLightningSessionController(clock=clock),
+            max_envelope_bytes=1_000_000,
+            containment_factory=lambda: containment,
+            launcher=_RaisingLauncher(cleanup_failure),
+            clock=clock,
+            sleep=clock.advance,
+        )
+
+        with pytest.raises(Feat018LifecycleOperationError) as exc_info:
+            boundary.invoke("provision", deadline=5.0, cancellation_deadline=5.0)
+
+        assert exc_info.value.failure_code is Feat018LiveSmokeFailureCode.LIFECYCLE_CLEANUP_FAILED
+        assert exc_info.value.cleanup_status is CleanupStatus.CLEANUP_FAILED
+        assert exc_info.value.cleanup_failure is cleanup_failure
+        assert containment.is_empty() is True
+        assert containment.close_calls == 1
+
     def test_cleanup_resources_fails_closed_when_containment_never_proves_empty(self) -> None:
         clock = FakeClock()
         containment = FakeContainmentBackend(empty_after_terminate=False)
@@ -4462,9 +5157,10 @@ class TestLightningLifecycleProcessBoundaryCleanupFailure:
 
         cleanup_failed = boundary._cleanup_resources(None, None, containment)
 
-        assert cleanup_failed is True
+        assert isinstance(cleanup_failed, Feat018CleanupFailedError)
         assert containment.terminate_calls == 1  # exactly-once cleanup, even on failure
-        assert containment.close_calls == 1
+        assert containment.close_calls == 0  # retain the only query/control handle
+        assert cleanup_failed.owned_containments == (containment,)
 
     def test_cleanup_failure_overrides_a_successfully_returned_lifecycle_result(self) -> None:
         """The lifecycle call itself genuinely succeeds (a real worker replies with a valid
@@ -4494,7 +5190,8 @@ class TestLightningLifecycleProcessBoundaryCleanupFailure:
         assert exc_info.value.cleanup_status is CleanupStatus.CLEANUP_FAILED
         assert events.provision_called.is_set()  # the underlying operation genuinely succeeded
         assert containment.terminate_calls == 1  # exactly-once cleanup
-        assert containment.close_calls == 1
+        assert containment.close_calls == 0
+        assert exc_info.value.cleanup_failure.owned_containments == (containment,)
 
 
 # ------------------------------------------------------------------------------------------
@@ -5151,6 +5848,86 @@ class TestAdapterWorkerEntryGate:
         assert kinds == ["ADAPTER_STARTED", "GENERATION_ATTEMPT_STARTED", "TERMINAL"]
         assert connection.sent[-1]["outcome"] == "FAILED"
 
+    @pytest.mark.parametrize("failure_kind", ["launch", "process_close"])
+    @pytest.mark.parametrize("earlier_stream_failure", [False, True])
+    @pytest.mark.parametrize("marker_send_fails", [False, True])
+    def test_inner_cleanup_failure_reaches_supervisor_through_the_real_adapter(
+        self,
+        image: tuple[str, str],
+        failure_kind: str,
+        earlier_stream_failure: bool,
+        marker_send_fails: bool,
+    ) -> None:
+        clock = FakeClock()
+        worker_connection = FakeBoundedConnection()
+        if marker_send_fails:
+            worker_connection.fail_send_kinds.add("GENERATION_CLEANUP_FAILED")
+        worker_connection.push(
+            {"kind": "CONTAINMENT_READY", "remaining_seconds_at_spawn": 100.0}
+        )
+        generation_launcher: _RaisingLauncher | FakeProcessLauncher
+        if failure_kind == "launch":
+            generation_launcher = _RaisingLauncher(
+                Feat018CleanupFailedError("generation launch rollback failed")
+            )
+        else:
+            generation_launcher = _launcher()
+            generation_launcher.handle.raise_on_close = OSError("process close failed")
+            for stream in D9StreamName:
+                generation_launcher.connection.push(
+                    _d9_observation_frame_for_test(D9ProcessRole.INNER_GENERATION_CHILD, 1, stream)
+                )
+            generation_launcher.connection.push(
+                {"kind": "success", "raw_output": _success_payload()}
+            )
+        artifact_ref, digest = image
+        request, runtime_config, policy, prompt, config = self._args(artifact_ref, digest)
+
+        adapter_worker_entry(
+            worker_connection,
+            request,
+            runtime_config,
+            policy,
+            prompt,
+            config,
+            generation_launcher=generation_launcher,
+            self_contain=lambda: None,
+            clock=clock,
+        )
+
+        cleanup_frames = [
+            frame for frame in worker_connection.sent
+            if frame.get("kind") == "GENERATION_CLEANUP_FAILED"
+        ]
+        assert cleanup_frames == (
+            [] if marker_send_fails else [{"kind": "GENERATION_CLEANUP_FAILED"}]
+        )
+        assert len([
+            frame for frame in worker_connection.sent
+            if frame.get("kind") == "GENERATION_ATTEMPT_STARTED"
+        ]) == 1
+        assert worker_connection.sent[-1]["outcome"] == "FAILED"
+        assert worker_connection.sent[-1]["cleanup_failed"] is True
+
+        outer_launcher = _launcher(clock)
+        if earlier_stream_failure:
+            outer_launcher.connection.push({
+                "kind": "D9_STREAM_FAILURE",
+                "failure_code": D9StreamFailureCode.STDOUT_CAPTURE_READ_FAILED.value,
+            })
+        for frame in worker_connection.sent:
+            outer_launcher.connection.push(frame)
+        result = _supervisor(
+            launcher=outer_launcher,
+            containment=FakeContainmentBackend(),
+            clock=clock,
+            config=config,
+        ).run(_no_op_entry, ())
+
+        assert result.cleanup_status is CleanupStatus.CLEANUP_FAILED
+        assert result.effective_outcome is EffectiveOutcome.CLEANUP_FAILED
+        assert result.cleanup_failure is not None
+
     def test_events_never_carry_raw_output_or_prompt_text(self, image: tuple[str, str]) -> None:
         connection = FakeBoundedConnection()
         connection.push({"kind": "CONTAINMENT_READY", "remaining_seconds_at_spawn": 100.0})
@@ -5648,7 +6425,10 @@ class TestAdapterCallSupervisorContainmentGate:
         assert launcher.connection.sent == []
         assert result.stopped_before_containment is True
         assert result.primary_failure_reason == "containment gate deadline expired"
-        assert result.effective_outcome is EffectiveOutcome.FAILED
+        assert result.effective_outcome is (
+            EffectiveOutcome.FAILED if clock_after_confirmation == 10.0
+            else EffectiveOutcome.CLEANUP_FAILED
+        )
 
 
 class TestAdapterCallSupervisorHangsAndCleanup:
@@ -5747,6 +6527,73 @@ class _RaisingLauncher:
 
 
 class TestSupervisorExceptionSafeLifecycle:
+    def test_launcher_cleanup_failure_survives_empty_containment(self) -> None:
+        containment = FakeContainmentBackend()
+        cleanup_failure = Feat018CleanupFailedError("launch rollback failed")
+        clock = FakeClock()
+        supervisor = Feat018AdapterCallSupervisor(
+            config=_config(),
+            launcher=_RaisingLauncher(cleanup_failure),
+            containment_factory=lambda: containment,
+            clock=clock,
+            sleep=clock.advance,
+        )
+
+        result = supervisor.run(_no_op_entry, ())
+
+        assert result.cleanup_status is CleanupStatus.CLEANUP_FAILED
+        assert result.effective_outcome is EffectiveOutcome.CLEANUP_FAILED
+        assert isinstance(result.cleanup_failure, Feat018CleanupFailedError)
+        assert containment.is_empty() is True
+        assert containment.close_calls == 1
+
+    def test_rollback_survivor_retains_ownership_until_retry_releases_it(self) -> None:
+        process = _FakeMultiprocessingProcess(die_on_terminate=False, die_on_kill=False)
+        context = _FakeSpawnContext(process=process)
+        wrapper_calls = 0
+
+        def fail_parent_wrapper(connection: Any, max_envelope_bytes: int) -> BoundedConnection:
+            nonlocal wrapper_calls
+            wrapper_calls += 1
+            if wrapper_calls == 2:
+                raise RuntimeError("parent wrapper failed")
+            return MultiprocessingBoundedConnection(connection, max_envelope_bytes)
+
+        launcher = MultiprocessingProcessLauncher(
+            max_envelope_bytes=10_000,
+            context_factory=lambda: context,
+            connection_factory=fail_parent_wrapper,
+        )
+        containment = FakeContainmentBackend()
+        clock = FakeClock()
+        supervisor = Feat018AdapterCallSupervisor(
+            config=_config(),
+            launcher=launcher,
+            containment_factory=lambda: containment,
+            clock=clock,
+            sleep=clock.advance,
+        )
+
+        result = supervisor.run(_no_op_entry, ())
+
+        assert result.effective_outcome is EffectiveOutcome.CLEANUP_FAILED
+        assert result.cleanup_failure is not None
+        assert result.cleanup_failure.owned_process is not None
+        assert getattr(result.cleanup_failure.owned_process, "process") is process
+        assert process.alive is True
+        assert process.close_calls == 0
+        assert process.kill_calls >= 2
+        assert context.parent.closed and context.child.closed
+
+        process.die_on_kill = True
+        assert result.cleanup_failure.retry_cleanup(grace_seconds=0.1, kill_join_seconds=0.1)
+
+        assert process.closed is True
+        assert result.cleanup_failure.owned_process is None
+        assert result.cleanup_failure.owned_connections == ()
+        assert result.cleanup_status is CleanupStatus.CLEANUP_FAILED
+        assert result.effective_outcome is EffectiveOutcome.CLEANUP_FAILED
+
     def test_launch_failure_still_runs_cleanup_and_reports_primary_failure(self) -> None:
         containment = FakeContainmentBackend()
         launcher = _RaisingLauncher(RuntimeError("spawn exploded"))
@@ -6424,7 +7271,9 @@ class TestIncidentWriter:
 
 
 class TestSmokeFinalizationIntegration:
-    @pytest.mark.parametrize("mode", ["success", "unmapped", "extra-file", "cleanup-failure"])
+    @pytest.mark.parametrize(
+        "mode", ["success", "unmapped", "extra-file", "cleanup-failure", "owned-cleanup-failure"]
+    )
     def test_real_inventory_controls_publication(self, tmp_path: Path, mode: str) -> None:
         writer = Feat018EvidenceCommitWriter(tmp_path / "evidence.json", tmp_path / "evidence.md")
         incident = Feat018IncidentWriter(
@@ -6443,6 +7292,10 @@ class TestSmokeFinalizationIntegration:
             cleanup_status=CleanupStatus.SUCCEEDED,
             effective_outcome=EffectiveOutcome.SUCCEEDED,
             raw_status=None if mode == "unmapped" else "SUCCEEDED",
+            cleanup_failure=(
+                Feat018CleanupFailedError(owned_process=FakeProcessHandle())
+                if mode == "owned-cleanup-failure" else None
+            ),
         )
         result = finalize_smoke_run(
             supervisor, run_id="run", evidence_id="ev", inventory=inventory,
@@ -6549,3 +7402,1908 @@ def test_module_never_imports_a_live_execution_dependency() -> None:
     forbidden = ("torch", "transformers", "accelerate", "requests", "httpx")
     for name in forbidden:
         assert name not in module.__dict__
+
+
+class TestD11LowlevelCleanupDeadlineRegression:
+    @pytest.mark.parametrize('late_step', ['empty_query', 'ipc_close'])
+    def test_late_local_cleanup_proof_or_release_cannot_restore_supervisor_success(
+        self, late_step: str
+    ) -> None:
+        clock = FakeClock()
+        intents: list[float] = []
+
+        class _DelayedContainment(FakeContainmentBackend):
+            def is_empty(self) -> bool:
+                if late_step == 'empty_query':
+                    clock.advance(0.3)
+                return True
+
+        class _DelayedConnection(FakeBoundedConnection):
+            def close(self) -> None:
+                if late_step == 'ipc_close':
+                    clock.advance(0.3)
+                super().close()
+
+        def cleanup_intent() -> float:
+            intents.append(clock())
+            return 0.2
+
+        containment = _DelayedContainment()
+        launcher = _launcher(clock)
+        launcher.connection = _DelayedConnection(clock=clock)
+        launcher.connection.push({'seq': 1, 'kind': 'ADAPTER_STARTED'})
+        launcher.connection.push(
+            {'seq': 2, 'kind': 'GENERATION_ATTEMPT_STARTED', 'attempt_number': 1}
+        )
+        _push_success_d9_frames(launcher.connection)
+        launcher.connection.push({'seq': 3, 'kind': 'TERMINAL', 'outcome': 'SUCCEEDED'})
+        supervisor = Feat018AdapterCallSupervisor(
+            config=_config(), launcher=launcher, containment_factory=lambda: containment,
+            clock=clock, sleep=clock.advance,
+            on_cleanup_intent=cleanup_intent, cleanup_deadline=lambda: 0.2,
+        )
+
+        result = supervisor.run(_no_op_entry, ())
+
+        assert intents == [0.0]
+        assert result.terminal_outcome == 'SUCCEEDED'
+        assert result.effective_outcome is EffectiveOutcome.CLEANUP_FAILED
+        assert result.cleanup_status is CleanupStatus.CLEANUP_FAILED
+        assert result.cleanup_failure is not None
+        assert launcher.handle.closed and launcher.connection.closed
+        assert containment.close_calls == 1  # safe release remains permitted after expiry
+        assert result.cleanup_failure.retry_cleanup(
+            grace_seconds=0.1, kill_join_seconds=0.1,
+            cleanup_deadline_monotonic=clock() + 1.0, clock=clock,
+        )
+        assert result.cleanup_status is CleanupStatus.CLEANUP_FAILED
+        assert result.effective_outcome is EffectiveOutcome.CLEANUP_FAILED
+        assert intents == [0.0]
+
+    def test_transient_retirement_uses_work_cap_then_timeout_opens_one_cleanup_window(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        import sketch2life.benchmark.feat018_live_lightning_execution as execution
+
+        clock = FakeClock()
+        intents: list[float] = []
+        grants: list[float] = []
+        handles: list[FakeProcessHandle] = []
+        join_limits: list[float | None] = []
+        receive_limits: list[float] = []
+
+        class _AdvancingProcess(FakeProcessHandle):
+            def join(self, timeout: float | None = None) -> None:
+                join_limits.append(timeout)
+                clock.advance(min(0.2, timeout or 0.0))
+                super().join(timeout)
+
+        class _TransientConnection(FakeBoundedConnection):
+            def recv_frame(self, timeout: float) -> dict[str, object] | None:
+                if timeout <= 0:
+                    return None
+                receive_limits.append(timeout)
+                clock.advance(90.0)
+                return {'kind': 'provider_failure'}
+
+        class _TimeoutConnection(FakeBoundedConnection):
+            def recv_frame(self, timeout: float) -> dict[str, object] | None:
+                if timeout > 0:
+                    receive_limits.append(timeout)
+                return super().recv_frame(timeout)
+
+        class _RetryLauncher:
+            def launch(
+                self, entry: Callable[..., None], args: tuple[object, ...]
+            ) -> tuple[ProcessHandle, BoundedConnection]:
+                del entry, args
+                handle = _AdvancingProcess(started_at_monotonic=clock())
+                handles.append(handle)
+                return handle, (
+                    _TransientConnection(clock=clock)
+                    if len(handles) == 1 else _TimeoutConnection(clock=clock)
+                )
+
+        def transient_result(frame: Mapping[str, object]) -> str:
+            assert frame.get('kind') == 'provider_failure'
+            raise QwenTransientRuntimeError
+
+        def cleanup_intent() -> float:
+            intents.append(clock())
+            grants.append(clock() + 1.0)
+            return grants[0]
+
+        monkeypatch.setattr(execution, '_interpret_generation_child_frame', transient_result)
+        runner = Feat018BoundedKillableQwenGenerationRunner(
+            config=_config(total_adapter_cap_seconds=150.0),
+            worker_cap_deadline_monotonic=150.0,
+            launcher=_RetryLauncher(), clock=clock,
+            on_cleanup_intent=cleanup_intent,
+            cleanup_deadline=lambda: grants[0] if grants else None,
+        )
+
+        with pytest.raises(QwenTransientRuntimeError):
+            runner.generate(cast(object, None), cast(object, None), Path('x.png'), 'prompt')
+        assert intents == [] and grants == []
+        assert clock() == pytest.approx(90.4)
+        assert runner.cleanup_failure is None
+
+        with pytest.raises(QwenTimeoutError):
+            runner.generate(cast(object, None), cast(object, None), Path('x.png'), 'prompt')
+
+        assert intents == [150.0]
+        assert grants == [151.0]
+        assert receive_limits == pytest.approx([120.0, 59.6])
+        assert join_limits == pytest.approx([1.0, 1.0, 1.0, 0.8])
+        assert clock() == pytest.approx(150.4)
+        assert runner.worker_cap_deadline_monotonic == 150.0
+        assert runner.cleanup_failure is None
+        assert len(handles) == 2 and all(handle.closed for handle in handles)
+
+
+# D11 fixtures deliberately keep allocation state outside the replaceable SDK worker. A dead
+# worker therefore cannot erase an allocation or manufacture an empty reconciliation result.
+from sketch2life.benchmark.feat018_live_lightning_execution import (  # noqa: E402
+    D11CleanupGrant,
+    D11CleanupReport,
+    D11CleanupWindow,
+    D11OfflineConfig,
+    D11OperationContext,
+    D11OperationKind,
+    D11OperationReceipt,
+    D11ResourceObservation,
+    LightningOperationRefV1,
+    LightningProvisionRefV1,
+    LightningSessionRefV1,
+    run_offline_live_smoke as run_d11_smoke,
+    run_live_smoke as run_unbound_live_smoke,
+    _invoke_d11_operation,
+    _d11_result_from_payload,
+    _d11_result_payload,
+    _is_live_attempt_profile_admissible,
+)
+
+
+@dataclass(slots=True)
+class _D11AllocationState:
+    lock: Any
+    provision_token: Any
+    resource_identity: Any
+    dispatch_token: Any
+    operation_journal: Any
+    alive: Any
+    sealed: Any
+    meter_started: Any
+    counts: Any
+    grant_deadlines: Any
+    grant_generations: Any
+    grant_count: Any
+    close_count: Any
+
+    def text(self, storage: Any) -> str:
+        return storage.value.decode("ascii")
+
+    def count(self, kind: D11OperationKind) -> int:
+        return self.counts[list(D11OperationKind).index(kind)]
+
+    def retain_operation(self, operation: LightningOperationRefV1, context: D11OperationContext) -> None:
+        with self.lock:
+            self.counts[list(D11OperationKind).index(operation.kind)] += 1
+            journal = self.text(self.operation_journal)
+            entry = f"{operation.kind.value}:{operation.token}:{operation.recovery_of or '-'};"
+            self.operation_journal.value = (journal + entry).encode("ascii")
+            if context.cleanup_grant is not None:
+                index = self.grant_count.value
+                self.grant_deadlines[index] = context.cleanup_grant.deadline_host_monotonic
+                self.grant_generations[index] = context.cleanup_grant.generation
+                self.grant_count.value += 1
+
+
+def _d11_allocation_state() -> _D11AllocationState:
+    context = multiprocessing.get_context("spawn")
+    return _D11AllocationState(
+        lock=context.RLock(),
+        provision_token=context.Array("c", 80),
+        resource_identity=context.Array("c", 80),
+        dispatch_token=context.Array("c", 80),
+        operation_journal=context.Array("c", 8192),
+        alive=context.Value("b", False),
+        sealed=context.Value("b", False),
+        meter_started=context.Value("d", 0.0),
+        counts=context.Array("i", len(D11OperationKind)),
+        grant_deadlines=context.Array("d", 64),
+        grant_generations=context.Array("i", 64),
+        grant_count=context.Value("i", 0),
+        close_count=context.Value("i", 0),
+    )
+
+
+@dataclass(slots=True)
+class _D11SyntheticHandle:
+    state: _D11AllocationState
+    operation: LightningOperationRefV1
+    context: D11OperationContext
+    behavior: str = "success"
+    cleanup_step_seconds: float = 0.0
+    observer_identity: str = "fixture-independent-probe"
+
+    def _session(self) -> LightningSessionRefV1 | None:
+        identity = self.state.text(self.state.resource_identity)
+        return LightningSessionRefV1(self.operation.provision, identity) if identity else None
+
+    def _receipt(self, facts: object = None) -> D11OperationReceipt:
+        operation = self.operation
+        session = self._session()
+        if self.behavior == "wrong_token" and operation.kind is D11OperationKind.PROVISION:
+            foreign = LightningProvisionRefV1(operation.provision.run_id, "foreign-token")
+            operation = LightningOperationRefV1(foreign, operation.token, operation.kind)
+            session = LightningSessionRefV1(foreign, session.resource_identity) if session else None
+        if self.behavior == "wrong_session" and operation.kind is D11OperationKind.WAIT_READY:
+            session = LightningSessionRefV1(operation.provision, "another-session")
+        if self.behavior == "foreign_session_ref" and operation.kind is D11OperationKind.PROVISION:
+            foreign = LightningProvisionRefV1(operation.provision.run_id, "foreign-session-provision")
+            session = LightningSessionRefV1(foreign, session.resource_identity) if session else None
+        return D11OperationReceipt(operation, session, facts)
+
+    @staticmethod
+    def _hang() -> None:
+        while True:
+            time.sleep(0.02)
+
+    def wait(self, *, timeout_seconds: float, emit: Callable[[Mapping[str, object]], object]) -> object:
+        kind = self.operation.kind
+        if kind is D11OperationKind.PROVISION:
+            if self.behavior == "provision_cleanup_intent":
+                emit({"kind": "cleanup_intent"})
+            placement = FakeLightningSessionController(FakeClock()).placement
+            if self.behavior == "invalid_placement":
+                placement = replace(placement, gpu_sku="NVIDIA_A10")
+            return self._receipt(LightningProvisionFacts(
+                allocation_confirmed=True,
+                gpu_minute_budget_start_monotonic=self.state.meter_started.value,
+                session_identity=self.state.text(self.state.resource_identity),
+                placement=placement,
+            ))
+        if kind is D11OperationKind.WAIT_READY:
+            if self.behavior == "ready_cleanup_intent":
+                emit({"kind": "cleanup_intent"})
+            assert self.operation.session is not None
+            assert self.operation.session.resource_identity == self.state.text(self.state.resource_identity)
+            now = time.monotonic()
+            return self._receipt(LightningReadyFacts(
+                readiness=LightningSessionReadiness.SESSION_READY,
+                lifecycle=LightningSessionLifecycleFacts(
+                    self.operation.session.resource_identity, now, now, now + 30.0,
+                ),
+            ))
+        if kind is D11OperationKind.DISPATCH:
+            if self.behavior == "hang_without_progress":
+                self._hang()
+            if self.behavior == "progress_after_cleanup_intent":
+                emit({"kind": "progress", "event": {"seq": 1, "kind": "ADAPTER_STARTED"}})
+                emit({"kind": "cleanup_intent"})
+                emit({"kind": "progress", "event": {
+                    "seq": 2, "kind": "GENERATION_ATTEMPT_STARTED", "attempt_number": 1,
+                }})
+                return self._receipt(_successful_supervisor_result())
+            if self.behavior != "success_without_progress":
+                emit({"kind": "progress", "event": {"seq": 1, "kind": "ADAPTER_STARTED"}})
+                emit({"kind": "progress", "event": {
+                    "seq": 2, "kind": "GENERATION_ATTEMPT_STARTED", "attempt_number": 1,
+                }})
+            if self.behavior == "hang_after_generation":
+                self._hang()
+            if self.behavior != "success_without_progress":
+                emit({"kind": "progress", "event": {
+                    "seq": 3, "kind": "TERMINAL", "outcome": "SUCCEEDED", "raw_status": "SUCCEEDED",
+                }})
+            if self.behavior == "missing_cleanup_handoff":
+                with self.state.lock:
+                    self.state.dispatch_token.value = b""
+                return self._receipt(_successful_supervisor_result())
+            first_grant = emit({"kind": "cleanup_intent"})
+            second_grant = emit({"kind": "cleanup_intent"})
+            assert isinstance(first_grant, D11CleanupGrant)
+            assert isinstance(second_grant, D11CleanupGrant)
+            assert first_grant.deadline_host_monotonic == second_grant.deadline_host_monotonic
+            assert first_grant.cancellation_operation == second_grant.cancellation_operation
+            assert first_grant.cancellation_operation is not None
+            assert first_grant.cancellation_operation.recovery_of == self.operation.token
+            with self.state.lock:
+                self.state.dispatch_token.value = b""
+            facts = _successful_supervisor_result()
+            if self.behavior == "contradictory_cardinality":
+                facts = replace(facts, attempt_count=2)
+            return self._receipt(facts)
+        if self.cleanup_step_seconds:
+            time.sleep(self.cleanup_step_seconds)
+        if kind is D11OperationKind.CANCEL:
+            assert self.operation.recovery_of is not None
+            if self.behavior == "cancel_hang":
+                self._hang()
+            if self.behavior != "pending_provision_claims_only":
+                with self.state.lock:
+                    self.state.dispatch_token.value = b""
+                    self.state.sealed.value = True
+            return self._receipt(LightningCancellationFacts(cancellation_verified=True))
+        if kind is D11OperationKind.RECONCILE:
+            return self._receipt()
+        if kind is D11OperationKind.TERMINATE:
+            if self.operation.session is not None:
+                assert self.operation.session.resource_identity == self.state.text(self.state.resource_identity)
+            if self.behavior not in ("claims_only", "pending_provision_claims_only"):
+                with self.state.lock:
+                    self.state.alive.value = False
+                    self.state.sealed.value = True
+                    self.state.dispatch_token.value = b""
+            identity = self.state.text(self.state.resource_identity)
+            if not identity:
+                return self._receipt()
+            return self._receipt(LightningTerminationFacts(
+                termination_verified=True, cleanup_status=CleanupStatus.SUCCEEDED,
+                session_identity=identity, session_cleanup_verified=True,
+            ))
+        if kind is D11OperationKind.OBSERVE:
+            with self.state.lock:
+                session = self.state.text(self.state.resource_identity)
+                dispatch = self.state.text(self.state.dispatch_token)
+                provision = self.operation.provision
+                resources = ((session, "active" if self.state.alive.value else "terminated"),) if session else ()
+                active_operations = (dispatch,) if dispatch else ()
+                observed_at = time.monotonic()
+                if self.behavior == "observation_missing_session":
+                    resources = (("other-terminated-resource", "terminated"),)
+                elif self.behavior == "observation_stale_timestamp":
+                    observed_at = max(0.0, observed_at - 10.0)
+                elif self.behavior == "observation_future_timestamp":
+                    observed_at += 3_600.0
+                elif self.behavior == "observation_foreign_provision":
+                    provision = LightningProvisionRefV1(provision.run_id, "foreign-provision")
+                elif self.behavior == "observation_active_operations":
+                    active_operations = ("still-active-operation",)
+                return D11ResourceObservation(
+                    provision=provision,
+                    request_state="sealed" if self.state.sealed.value else "pending",
+                    resources=resources,
+                    active_operations=active_operations,
+                    observed_at_host_monotonic=observed_at,
+                    source_identity=self.observer_identity,
+                )
+        raise AssertionError("unexpected fixture operation")
+
+    def cancel(self, *, operation: LightningOperationRefV1, timeout_seconds: float) -> D11OperationReceipt:
+        assert operation.kind is D11OperationKind.CANCEL
+        assert operation.recovery_of == self.operation.token
+        if self.behavior == "cancel_hang":
+            self._hang()
+        with self.state.lock:
+            self.state.dispatch_token.value = b""
+            self.state.sealed.value = True
+        return D11OperationReceipt(operation, self._session(), LightningCancellationFacts(True))
+
+    def close(self) -> None:
+        with self.state.lock:
+            self.state.close_count.value += 1
+        if self.behavior == "dispatch_close_failure" and self.operation.kind is D11OperationKind.DISPATCH:
+            raise OSError("synthetic SDK handle close failed")
+
+
+@dataclass(slots=True)
+class _D11SyntheticController:
+    state: _D11AllocationState
+    behavior: str = "success"
+    cleanup_step_seconds: float = 0.0
+
+    def _start(self, *, operation: LightningOperationRefV1, context: D11OperationContext,
+               inputs: object = None) -> _D11SyntheticHandle:
+        self.state.retain_operation(operation, context)
+        if operation.kind is D11OperationKind.PROVISION:
+            with self.state.lock:
+                assert not self.state.text(self.state.provision_token), "duplicate provision was attempted"
+                self.state.provision_token.value = operation.provision.token.encode("ascii")
+                if self.behavior not in ("pending_provision_response", "pending_provision_claims_only"):
+                    self.state.resource_identity.value = f"fixture-session-{os.getpid()}".encode("ascii")
+                    self.state.alive.value = True
+                    self.state.meter_started.value = time.monotonic()
+            if self.behavior in ("lost_provision_response", "pending_provision_response", "pending_provision_claims_only"):
+                os._exit(17)
+        else:
+            assert operation.provision.token == self.state.text(self.state.provision_token)
+        return _D11SyntheticHandle(self.state, operation, context, self.behavior, self.cleanup_step_seconds)
+
+    provision = _start
+    wait_ready = _start
+    cancel = _start
+    reconcile = _start
+    terminate = _start
+
+
+@dataclass(slots=True)
+class _D11SyntheticDispatch:
+    state: _D11AllocationState
+    behavior: str = "success"
+
+    def start(self, *, operation: LightningOperationRefV1, context: D11OperationContext,
+              inputs: object = None) -> _D11SyntheticHandle:
+        self.state.retain_operation(operation, context)
+        assert operation.kind is D11OperationKind.DISPATCH
+        assert operation.provision.token == self.state.text(self.state.provision_token)
+        assert operation.session is not None
+        assert operation.session.resource_identity == self.state.text(self.state.resource_identity)
+        with self.state.lock:
+            assert not self.state.text(self.state.dispatch_token), "duplicate dispatch was attempted"
+            self.state.dispatch_token.value = operation.token.encode("ascii")
+        if self.behavior == "start_hang":
+            _D11SyntheticHandle._hang()
+        return _D11SyntheticHandle(self.state, operation, context, self.behavior)
+
+
+@dataclass(slots=True)
+class _D11SyntheticObserver:
+    state: _D11AllocationState
+    identity: str = "fixture-independent-probe"
+    behavior: str = "success"
+
+    def observe(self, *, operation: LightningOperationRefV1, context: D11OperationContext,
+                inputs: object = None) -> _D11SyntheticHandle:
+        self.state.retain_operation(operation, context)
+        assert operation.kind is D11OperationKind.OBSERVE
+        return _D11SyntheticHandle(
+            self.state, operation, context, self.behavior, observer_identity=self.identity
+        )
+
+
+def _run_d11_fixture(
+    *, controller_behavior: str = "success", dispatch_behavior: str = "success",
+    cleanup_total_seconds: float = 6.0, cleanup_step_seconds: float = 0.0,
+    observer_identity: str = "fixture-independent-probe",
+    observer_behavior: str = "success",
+) -> tuple[Feat018LiveSmokeResult, _D11AllocationState, FakeLiveSmokeFinalizer]:
+    state = _d11_allocation_state()
+    finalizer = FakeLiveSmokeFinalizer()
+    result = run_d11_smoke(
+        _request("fixture.bin", "a" * 64),
+        QwenVisionRuntimeConfig(model_dir=Path("fixture-model-dir")),
+        _policy(), "fixture prompt",
+        controller=_D11SyntheticController(state, controller_behavior, cleanup_step_seconds),
+        config=_live_smoke_config(
+            session_provision_timeout_seconds=3,
+            session_termination_deadline_seconds=2,
+            bounded_runner_config=_config(total_adapter_cap_seconds=1.5,
+                                          containment_setup_timeout_seconds=1.0),
+        ),
+        session_id="synthetic-session",
+        preflight=FakeLightningPreflight(), finalizer=finalizer,
+        adapter_dispatch=_D11SyntheticDispatch(state, dispatch_behavior),
+        observer=_D11SyntheticObserver(state, observer_identity, observer_behavior),
+        d11_config=D11OfflineConfig(cleanup_total_seconds, 1.0, 0.02, "fixture-independent-probe"),
+    )
+    return result, state, finalizer
+
+
+class TestD11CleanupWindow:
+    def test_receipt_cannot_bind_foreign_session_to_correct_operation(self) -> None:
+        provision = LightningProvisionRefV1("run", "provision-token")
+        operation = LightningOperationRefV1(provision, "operation-token", D11OperationKind.PROVISION)
+        foreign = LightningSessionRefV1(LightningProvisionRefV1("run", "another-provision"), "session")
+        with pytest.raises(ValueError):
+            D11OperationReceipt(operation, foreign)
+
+    def test_repeated_intents_and_fresh_grants_preserve_original_deadline(self) -> None:
+        clock = FakeClock(10.0)
+        window = D11CleanupWindow("run", 5.0, 1.0, clock)
+        original = window.grant()
+        clock.advance(0.75)
+        refreshed = window.grant()
+        assert window.begin("second_intent") == 15.0
+        assert original.deadline_host_monotonic == refreshed.deadline_host_monotonic == 15.0
+        assert original.generation == refreshed.generation == 1
+        assert window.validate_grant(refreshed)
+
+    def test_delayed_wrong_generation_and_extended_grants_are_rejected(self) -> None:
+        clock = FakeClock(10.0)
+        window = D11CleanupWindow("run", 5.0, 1.0, clock)
+        grant = window.grant()
+        assert not window.validate_grant(replace(grant, generation=2))
+        assert not window.validate_grant(replace(grant, deadline_host_monotonic=16.0))
+        assert not window.validate_grant(replace(grant, issued_at_host_monotonic=10.1))
+        clock.advance(1.001)
+        assert not window.validate_grant(grant)
+        assert window.begin("delayed_intent") == 15.0
+        clock.set(15.0)
+        assert not window.validate_grant(window.grant())
+
+    @pytest.mark.parametrize("parameter", [0.0, -1.0, float("nan"), float("inf"), True])
+    def test_live_cleanup_budget_is_not_invented(self, parameter: object) -> None:
+        with pytest.raises(ValueError):
+            D11OfflineConfig(parameter, 1.0, 0.02, "fixture-independent-probe")
+
+
+class TestD11SyntheticCoordinator:
+    @staticmethod
+    def _pre_adapter_terminal() -> Feat018LiveSmokeResult:
+        provision = LightningProvisionRefV1("run", "provision-token")
+        operation = LightningOperationRefV1(provision, "operation-token", D11OperationKind.PROVISION)
+        observation = D11ResourceObservation(
+            provision, "sealed", (("fixture-session", "terminated"),), (), 11.0,
+            "fixture-independent-probe",
+        )
+        report = D11CleanupReport(
+            deadline_host_monotonic=20.0, generation=1, operations=(operation,),
+            unresolved_operations=(), observation=observation, verification="VERIFIED_OFFLINE",
+            failure_codes=(), dispatch_invocation_accepted=False, generation_progress_known=False,
+        )
+        return Feat018LiveSmokeResult(
+            effective_outcome=EffectiveOutcome.FAILED, adapter_call_count=0, attempt_count=None,
+            cleanup_status=CleanupStatus.SUCCEEDED, failure_code=Feat018LiveSmokeFailureCode.PROVISION_FAILED,
+            preflight_verified=True, d11_report=report,
+        )
+
+    def test_verified_pre_adapter_terminal_publishes_zero_unknown_without_fake_supervisor(self, tmp_path: Path) -> None:
+        terminal = self._pre_adapter_terminal()
+        inventory = Feat018ArtifactInventory((tmp_path,), max_entries=20)
+        inventory.capture()
+        writer = Feat018EvidenceCommitWriter(tmp_path / "evidence.json", tmp_path / "evidence.md")
+        result = finalize_smoke_run(
+            terminal, run_id="run", evidence_id="ev", inventory=inventory,
+            cleanup=lambda: CleanupStatus.SUCCEEDED, writer=writer,
+            incident=Feat018IncidentWriter(
+                Path("tmp/feat018-live-lightning-incident-run/INCIDENT.md"),
+                repository_root=tmp_path, git_ignored=True,
+            ),
+        )
+        assert terminal.adapter_result is None
+        assert result.evidence.committed
+        payload = json.loads(writer.json_path.read_bytes())
+        assert payload["status"] == "FAILED"
+        assert payload["terminal_kind"] == "PRE_ADAPTER"
+        assert payload["adapter_call_count"] == 0 and payload["attempt_count"] is None
+        assert payload["generation_progress"] == "UNKNOWN"
+        assert payload["cleanup_verification"] == "VERIFIED_OFFLINE"
+        assert "provision-token" not in writer.json_path.read_text(encoding="utf-8")
+        assert "operation-token" not in writer.markdown_path.read_text(encoding="utf-8")
+
+    @pytest.mark.parametrize("mode", [
+        "missing_report", "unverified_report", "verified_label_only", "retained_owner", "cleanup_failed",
+    ])
+    def test_pre_adapter_finalization_rejects_missing_release_proof_or_retained_owner(self, tmp_path: Path,
+                                                                                    mode: str) -> None:
+        terminal = self._pre_adapter_terminal()
+        assert terminal.d11_report is not None
+        if mode == "missing_report":
+            terminal = replace(terminal, d11_report=None)
+        elif mode == "unverified_report":
+            terminal = replace(terminal, d11_report=replace(terminal.d11_report, verification="UNVERIFIED"))
+        elif mode == "verified_label_only":
+            terminal = replace(terminal, d11_report=replace(terminal.d11_report, observation=None))
+        elif mode == "retained_owner":
+            terminal = replace(terminal, cleanup_failures=(Feat018CleanupFailedError(
+                owned_process=FakeProcessHandle(),
+            ),))
+        else:
+            terminal = replace(terminal, cleanup_status=CleanupStatus.CLEANUP_FAILED,
+                               effective_outcome=EffectiveOutcome.CLEANUP_FAILED)
+        inventory = Feat018ArtifactInventory((tmp_path,), max_entries=20)
+        inventory.capture()
+        writer = Feat018EvidenceCommitWriter(tmp_path / "evidence.json", tmp_path / "evidence.md")
+        result = finalize_smoke_run(
+            terminal, run_id="run", evidence_id="ev", inventory=inventory,
+            cleanup=lambda: CleanupStatus.SUCCEEDED, writer=writer,
+            incident=Feat018IncidentWriter(
+                Path("tmp/feat018-live-lightning-incident-run/INCIDENT.md"),
+                repository_root=tmp_path, git_ignored=True,
+            ),
+        )
+        assert not result.evidence.committed
+        assert not writer.json_path.exists()
+
+    @pytest.mark.parametrize("behavior, ready_count", [
+        ("provision_cleanup_intent", 0), ("ready_cleanup_intent", 1),
+    ])
+    def test_early_cleanup_intent_prevents_any_next_ordinary_phase(self, behavior: str, ready_count: int) -> None:
+        result, state, _ = _run_d11_fixture(controller_behavior=behavior)
+        assert result.effective_outcome is not EffectiveOutcome.SUCCEEDED
+        assert result.adapter_call_count == 0 and result.attempt_count is None
+        assert state.count(D11OperationKind.PROVISION) == 1
+        assert state.count(D11OperationKind.WAIT_READY) == ready_count
+        assert state.count(D11OperationKind.DISPATCH) == 0
+        assert not state.alive.value
+        report = result.d11_report
+        assert report is not None
+        deadlines = tuple(state.grant_deadlines[:state.grant_count.value])
+        assert deadlines and set(deadlines) == {report.deadline_host_monotonic}
+
+    def test_repeated_cleanup_intents_keep_one_parent_cancel_reference(self) -> None:
+        result, state, _ = _run_d11_fixture()
+        assert result.is_success and state.count(D11OperationKind.DISPATCH) == 1
+        report = result.d11_report
+        assert report is not None
+        dispatch = next(item for item in report.operations if item.kind is D11OperationKind.DISPATCH)
+        cancellations = [item for item in report.operations
+                         if item.kind is D11OperationKind.CANCEL and item.recovery_of == dispatch.token]
+        assert len(cancellations) == 1
+        deadlines = tuple(state.grant_deadlines[:state.grant_count.value])
+        assert deadlines and set(deadlines) == {report.deadline_host_monotonic}
+
+    def test_dispatch_summary_without_cleanup_handoff_is_rejected(self) -> None:
+        result, state, _ = _run_d11_fixture(dispatch_behavior="missing_cleanup_handoff")
+        assert result.effective_outcome is not EffectiveOutcome.SUCCEEDED
+        assert result.adapter_call_count == 1 and result.attempt_count == 1
+        assert state.count(D11OperationKind.DISPATCH) == 1
+        assert not state.alive.value
+
+    def test_late_generation_progress_after_cleanup_intent_does_not_fill_unknown_count(self) -> None:
+        result, state, _ = _run_d11_fixture(dispatch_behavior="progress_after_cleanup_intent")
+        assert result.effective_outcome is not EffectiveOutcome.SUCCEEDED
+        assert result.adapter_call_count == 1 and result.attempt_count is None
+        assert state.count(D11OperationKind.DISPATCH) == 1
+        assert result.d11_report is not None and not result.d11_report.generation_progress_known
+
+    def test_explicit_session_and_parent_operation_references_survive_fresh_workers(self) -> None:
+        result, state, finalizer = _run_d11_fixture()
+        assert result.is_success
+        assert result.adapter_call_count == 1 and result.attempt_count == 1
+        assert result.session_identity == state.text(state.resource_identity)
+        assert result.session_identity.startswith("fixture-session-")
+        assert state.count(D11OperationKind.PROVISION) == state.count(D11OperationKind.DISPATCH) == 1
+        assert not state.alive.value and state.sealed.value and not state.text(state.dispatch_token)
+        report = result.d11_report
+        assert report is not None and report.verification == "VERIFIED_OFFLINE"
+        assert report.dispatch_invocation_accepted and report.generation_progress_known
+        assert not report.unresolved_operations
+        journal = state.text(state.operation_journal)
+        retained_tokens = {operation.token for operation in report.operations}
+        executed_tokens = {entry.split(":")[1] for entry in journal.split(";") if entry}
+        assert executed_tokens <= retained_tokens
+        assert len(retained_tokens) == len(report.operations)
+        assert finalizer.calls[0].d11_report is report
+
+    def test_allocation_survives_lost_provision_response_and_is_reconciled_without_duplicate(self) -> None:
+        result, state, finalizer = _run_d11_fixture(controller_behavior="lost_provision_response")
+        assert result.effective_outcome is not EffectiveOutcome.SUCCEEDED
+        assert result.adapter_call_count == 0 and result.attempt_count is None
+        assert state.count(D11OperationKind.PROVISION) == 1
+        assert state.count(D11OperationKind.DISPATCH) == 0
+        assert state.meter_started.value > 0 and state.text(state.resource_identity)
+        assert state.count(D11OperationKind.RECONCILE) >= 1
+        assert state.count(D11OperationKind.TERMINATE) >= 1
+        assert not state.alive.value and state.sealed.value
+        report = result.d11_report
+        assert report is not None
+        assert report.observation is not None and report.observation.resources
+        assert report.observation.resources[0][1] == "terminated"
+        assert finalizer.calls and finalizer.calls[0].adapter_result is None
+
+    @pytest.mark.parametrize("behavior, sealed", [
+        ("pending_provision_response", True), ("pending_provision_claims_only", False),
+    ])
+    def test_empty_lookup_requires_sealing_the_pending_provision_request(self, behavior: str, sealed: bool) -> None:
+        result, state, _ = _run_d11_fixture(controller_behavior=behavior)
+        assert state.count(D11OperationKind.PROVISION) == 1
+        assert state.count(D11OperationKind.DISPATCH) == 0
+        assert not state.alive.value and not state.text(state.resource_identity)
+        assert bool(state.sealed.value) is sealed
+        report = result.d11_report
+        assert report is not None and report.observation is not None
+        assert report.observation.resources == ()
+        if not sealed:
+            assert report.observation.request_state == "pending"
+            assert report.verification != "VERIFIED_OFFLINE"
+            assert result.cleanup_status is CleanupStatus.CLEANUP_FAILED
+        else:
+            assert report.observation.request_state == "sealed"
+            assert report.verification == "VERIFIED_OFFLINE"
+
+    def test_rejected_placement_retains_the_allocated_session_for_cleanup(self) -> None:
+        result, state, _ = _run_d11_fixture(controller_behavior="invalid_placement")
+        assert result.adapter_call_count == 0 and result.attempt_count is None
+        assert result.effective_outcome is not EffectiveOutcome.SUCCEEDED
+        assert not state.alive.value
+        report = result.d11_report
+        assert report is not None
+        termination = next(item for item in report.operations if item.kind is D11OperationKind.TERMINATE)
+        assert termination.session is not None
+        assert termination.session.resource_identity == state.text(state.resource_identity)
+
+    @pytest.mark.parametrize("behavior, attempts", [
+        ("start_hang", None), ("hang_without_progress", None), ("hang_after_generation", 1),
+    ])
+    def test_dispatch_hang_returns_control_and_recovers_known_operation(self, behavior: str,
+                                                                     attempts: int | None) -> None:
+        started = time.monotonic()
+        result, state, _ = _run_d11_fixture(dispatch_behavior=behavior)
+        assert time.monotonic() - started < 15.0
+        assert result.effective_outcome is not EffectiveOutcome.SUCCEEDED
+        assert result.adapter_call_count == 1 and result.attempt_count == attempts
+        assert state.count(D11OperationKind.DISPATCH) == 1
+        assert not state.alive.value and not state.text(state.dispatch_token)
+        report = result.d11_report
+        assert report is not None and report.dispatch_invocation_accepted
+        assert report.generation_progress_known is (attempts is not None)
+        dispatch = next(item for item in report.operations if item.kind is D11OperationKind.DISPATCH)
+        assert any(item.kind is D11OperationKind.CANCEL and item.recovery_of == dispatch.token
+                   for item in report.operations)
+
+    @pytest.mark.parametrize("behavior", ["wrong_token", "wrong_session", "foreign_session_ref"])
+    def test_foreign_receipts_do_not_replace_the_parent_recovery_target(self, behavior: str) -> None:
+        result, state, _ = _run_d11_fixture(controller_behavior=behavior)
+        assert result.effective_outcome is not EffectiveOutcome.SUCCEEDED
+        assert result.adapter_call_count == 0 and result.attempt_count is None
+        assert not state.alive.value
+        report = result.d11_report
+        assert report is not None
+        assert all(item.provision.token == state.text(state.provision_token) for item in report.operations)
+        assert all(item.session is None or item.session.resource_identity != "another-session"
+                   for item in report.operations)
+
+    def test_success_receipt_without_progress_does_not_prove_generation_cardinality(self) -> None:
+        result, state, _ = _run_d11_fixture(dispatch_behavior="success_without_progress")
+        assert result.adapter_call_count == 1 and result.attempt_count is None
+        assert result.effective_outcome is not EffectiveOutcome.SUCCEEDED
+        assert state.count(D11OperationKind.DISPATCH) == 1
+        assert result.d11_report is not None and not result.d11_report.generation_progress_known
+
+    def test_terminal_receipt_cannot_override_accepted_attempt_count(self) -> None:
+        result, _, _ = _run_d11_fixture(dispatch_behavior="contradictory_cardinality")
+        assert result.attempt_count == 1
+        assert result.effective_outcome is not EffectiveOutcome.SUCCEEDED
+
+    def test_producer_cleanup_booleans_do_not_overrule_independent_allocation_state(self) -> None:
+        result, state, finalizer = _run_d11_fixture(controller_behavior="claims_only")
+        assert state.alive.value
+        assert result.cleanup_status is CleanupStatus.CLEANUP_FAILED
+        assert result.effective_outcome is EffectiveOutcome.CLEANUP_FAILED
+        report = result.d11_report
+        assert report is not None and report.verification != "VERIFIED_OFFLINE"
+        assert report.observation is not None and report.observation.resources[0][1] == "active"
+        assert report.unresolved_operations
+        assert finalizer.calls[0].cleanup_status is CleanupStatus.CLEANUP_FAILED
+
+    def test_unbound_observer_identity_cannot_verify_remote_cleanup(self) -> None:
+        result, state, _ = _run_d11_fixture(observer_identity="unbound-observer")
+        assert not state.alive.value
+        assert result.cleanup_status is CleanupStatus.CLEANUP_FAILED
+        assert result.d11_report is not None and result.d11_report.verification != "VERIFIED_OFFLINE"
+
+    def test_sdk_close_failure_reaches_finalizer_and_retains_recovery_reference(self) -> None:
+        result, state, finalizer = _run_d11_fixture(dispatch_behavior="dispatch_close_failure")
+        assert state.close_count.value > 0
+        assert not state.alive.value
+        assert result.cleanup_status is CleanupStatus.CLEANUP_FAILED
+        assert result.effective_outcome is EffectiveOutcome.CLEANUP_FAILED
+        assert result.d11_report is not None and result.d11_report.failure_codes
+        assert finalizer.calls[0].cleanup_status is CleanupStatus.CLEANUP_FAILED
+        assert any(item.kind is D11OperationKind.DISPATCH for item in result.d11_report.operations)
+
+    def test_cancel_hang_uses_cleanup_deadline_and_cannot_create_another_window(self) -> None:
+        started = time.monotonic()
+        result, state, _ = _run_d11_fixture(
+            controller_behavior="cancel_hang", dispatch_behavior="hang_without_progress",
+            cleanup_total_seconds=2.0,
+        )
+        assert time.monotonic() - started < 10.0
+        assert result.cleanup_status is CleanupStatus.CLEANUP_FAILED
+        report = result.d11_report
+        assert report is not None and report.unresolved_operations
+        deadlines = tuple(state.grant_deadlines[:state.grant_count.value])
+        assert deadlines and all(value == report.deadline_host_monotonic for value in deadlines)
+
+    def test_cleanup_steps_share_one_absolute_deadline_even_after_timeout(self) -> None:
+        started = time.monotonic()
+        result, state, _ = _run_d11_fixture(cleanup_total_seconds=1.0, cleanup_step_seconds=0.6)
+        assert time.monotonic() - started < 10.0
+        assert result.cleanup_status is CleanupStatus.CLEANUP_FAILED
+        report = result.d11_report
+        assert report is not None and report.unresolved_operations
+        deadlines = tuple(state.grant_deadlines[:state.grant_count.value])
+        generations = tuple(state.grant_generations[:state.grant_count.value])
+        assert deadlines and set(deadlines) == {report.deadline_host_monotonic}
+        assert set(generations) == {report.generation}
+
+
+class TestLiveBindingAndAttemptProfile:
+    def test_exact_plan_attempt_bound_is_admissible_only_for_the_live_profile(self) -> None:
+        assert _is_live_attempt_profile_admissible(_config(per_attempt_timeout_seconds=120.0))
+        assert not _is_live_attempt_profile_admissible(
+            _config(per_attempt_timeout_seconds=119.999)
+        )
+        with pytest.raises(ValueError):
+            _config(per_attempt_timeout_seconds=120.001)
+        for invalid in (float("nan"), float("inf"), 0.0, -1.0, True):
+            with pytest.raises(ValueError):
+                _config(per_attempt_timeout_seconds=invalid)
+
+    def test_production_entry_admits_only_exact_120_seconds_before_launch(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        import sketch2life.benchmark.feat018_live_lightning_execution as module
+
+        events: list[object] = []
+        expected = _successful_supervisor_result()
+
+        class FakeLauncher:
+            def __init__(self, *, max_envelope_bytes: int) -> None:
+                events.append(("launcher", max_envelope_bytes))
+
+        class FakeSupervisor:
+            def __init__(self, *, config: object, launcher: object,
+                         containment_factory: Callable[[], object]) -> None:
+                events.append(("supervisor", config, launcher, containment_factory))
+
+            def run(self, entry: Callable[..., None], args: tuple[object, ...]) -> object:
+                events.append(("run", entry, args))
+                return expected
+
+        monkeypatch.setattr(module, "MultiprocessingProcessLauncher", FakeLauncher)
+        monkeypatch.setattr(module, "Feat018AdapterCallSupervisor", FakeSupervisor)
+        request = _request("fixture.bin", "a" * 64)
+        runtime = QwenVisionRuntimeConfig(model_dir=Path("fixture-model-dir"))
+        policy = _policy()
+
+        rejected = run_bounded_adapter_call(
+            request, runtime, policy, "fixture prompt",
+            _config(per_attempt_timeout_seconds=119.999),
+        )
+
+        assert rejected.final_state is ProgressState.NOT_STARTED
+        assert rejected.attempt_count is None and rejected.terminal_outcome is None
+        assert rejected.stopped_before_containment is True
+        assert rejected.primary_failure_reason == "live attempt profile requires exactly 120 seconds"
+        assert events == []
+
+        config = _config(per_attempt_timeout_seconds=120.0)
+        delegated = run_bounded_adapter_call(
+            request, runtime, policy, "fixture prompt", config, session_id="fixture-session",
+        )
+
+        assert delegated is expected
+        assert [event[0] for event in events] == ["launcher", "supervisor", "run"]
+        run_event = events[-1]
+        assert run_event[1] is module.adapter_worker_entry  # type: ignore[index]
+        assert run_event[2] == (request, runtime, policy, "fixture prompt", config, "fixture-session")  # type: ignore[index]
+
+    def test_public_live_entry_rejects_callable_all_true_unbound_seams_before_effects(self) -> None:
+        state = _d11_allocation_state()
+        preflight = FakeLightningPreflight()
+        finalizer = FakeLiveSmokeFinalizer()
+        result = run_unbound_live_smoke(
+            _request("fixture.bin", "a" * 64),
+            QwenVisionRuntimeConfig(model_dir=Path("fixture-model-dir")),
+            _policy(),
+            "fixture prompt",
+            controller=_D11SyntheticController(state),
+            config=_live_smoke_config(
+                bounded_runner_config=_config(per_attempt_timeout_seconds=120.0),
+            ),
+            session_id="synthetic-session",
+            preflight=preflight,
+            finalizer=finalizer,
+            adapter_dispatch=_D11SyntheticDispatch(state),
+            observer=_D11SyntheticObserver(state),
+            d11_config=D11OfflineConfig(3.0, 1.0, 0.02, "fixture-independent-probe"),
+        )
+
+        assert result.failure_code is Feat018LiveSmokeFailureCode.NOT_AUTHORIZED
+        assert result.adapter_call_count == 0 and result.attempt_count is None
+        assert preflight.calls == [] and finalizer.calls == []
+        assert all(state.count(kind) == 0 for kind in D11OperationKind)
+        assert state.text(state.dispatch_token) == ""
+
+
+class TestD11ObservationShapeValidation:
+    @staticmethod
+    def _payload(resources: object) -> dict[str, object]:
+        return {
+            "type": "observation",
+            "run_id": "run",
+            "provision_token": "provision-token",
+            "request_state": "sealed",
+            "resources": resources,
+            "active_operations": [],
+            "observed_at": 11.0,
+            "source_identity": "fixture-independent-probe",
+        }
+
+    @pytest.mark.parametrize(
+        "resources",
+        [
+            {"fixture-session": "active", "terminated": "unknown"},
+            "fixture-session",
+            [["fixture-session"]],
+            [["fixture-session", "active", "extra"]],
+            [["fixture-session", 1]],
+            [["fixture-session", "released"]],
+        ],
+    )
+    def test_ipc_decoder_rejects_noncanonical_resource_entries(self, resources: object) -> None:
+        with pytest.raises(ValueError):
+            _d11_result_from_payload(self._payload(resources))
+
+    @pytest.mark.parametrize(
+        "resources",
+        [
+            {"fixture-session": "active", "terminated": "unknown"},
+            ("fixture-session", "active"),
+            (("fixture-session",),),
+            (("fixture-session", "active", "extra"),),
+            (("fixture-session", 1),),
+        ],
+    )
+    def test_typed_observation_rejects_noncanonical_resource_entries(
+        self, resources: object
+    ) -> None:
+        provision = LightningProvisionRefV1("run", "provision-token")
+        with pytest.raises((TypeError, ValueError)):
+            D11ResourceObservation(
+                provision, "sealed", resources, (), 11.0, "fixture-independent-probe"
+            )  # type: ignore[arg-type]
+
+    def test_valid_observation_shape_round_trips_without_coercion(self) -> None:
+        parsed = _d11_result_from_payload(
+            self._payload([["fixture-session", "terminated"]])
+        )
+        assert isinstance(parsed, D11ResourceObservation)
+        assert parsed.resources == (("fixture-session", "terminated"),)
+
+    @staticmethod
+    def _typed_observation(**overrides: object) -> D11ResourceObservation:
+        values: dict[str, object] = {
+            "provision": LightningProvisionRefV1("run", "provision-token"),
+            "request_state": "sealed",
+            "resources": (("fixture-session", "terminated"),),
+            "active_operations": (),
+            "observed_at_host_monotonic": 11.0,
+            "source_identity": "fixture-independent-probe",
+        }
+        values.update(overrides)
+        return D11ResourceObservation(**values)  # type: ignore[arg-type]
+
+    @pytest.mark.parametrize(
+        ("field_name", "typed_value", "payload_value"),
+        [
+            ("resources", (("duplicate", "terminated"), ("duplicate", "unknown")),
+             [["duplicate", "terminated"], ["duplicate", "unknown"]]),
+            ("resources", tuple((f"resource-{i}", "terminated") for i in range(17)),
+             [[f"resource-{i}", "terminated"] for i in range(17)]),
+            ("active_operations", tuple(f"operation-{i}" for i in range(33)),
+             [f"operation-{i}" for i in range(33)]),
+            ("active_operations", ("duplicate-operation", "duplicate-operation"),
+             ["duplicate-operation", "duplicate-operation"]),
+            ("resources", (("bad/token", "terminated"),), [["bad/token", "terminated"]]),
+            ("active_operations", ("bad/token",), ["bad/token"]),
+            ("observed_at_host_monotonic", -1.0, -1.0),
+            ("observed_at_host_monotonic", float("nan"), float("nan")),
+            ("observed_at_host_monotonic", float("inf"), float("inf")),
+            ("observed_at_host_monotonic", True, True),
+            ("request_state", "released", "released"),
+            ("source_identity", "bad/source", "bad/source"),
+        ],
+    )
+    def test_typed_and_ipc_observation_validation_rejects_invalid_bounds_and_tokens(
+        self, field_name: str, typed_value: object, payload_value: object
+    ) -> None:
+        with pytest.raises((TypeError, ValueError)):
+            self._typed_observation(**{field_name: typed_value})
+
+        payload = self._payload([["fixture-session", "terminated"]])
+        payload_key = {
+            "observed_at_host_monotonic": "observed_at",
+        }.get(field_name, field_name)
+        payload[payload_key] = payload_value
+        with pytest.raises((TypeError, ValueError)):
+            _d11_result_from_payload(payload)
+
+    def test_resource_and_operation_observation_limits_accept_exact_maximum(self) -> None:
+        resources = tuple((f"resource-{i}", "terminated") for i in range(16))
+        active_operations = tuple(f"operation-{i}" for i in range(32))
+        observation = self._typed_observation(
+            resources=resources, active_operations=active_operations,
+            observed_at_host_monotonic=11.0,
+        )
+
+        decoded = _d11_result_from_payload(_d11_result_payload(observation))
+
+        assert decoded == observation
+
+    def test_malformed_provision_token_is_rejected_by_typed_and_ipc_paths(self) -> None:
+        with pytest.raises(ValueError):
+            LightningProvisionRefV1("run", "bad/token")
+        payload = self._payload([])
+        payload["provision_token"] = "bad/token"
+        with pytest.raises(ValueError):
+            _d11_result_from_payload(payload)
+
+
+@pytest.mark.parametrize(
+    ("observer_behavior", "observer_identity", "expected_code"),
+    [
+        ("observation_missing_session", "fixture-independent-probe", "REMOTE_RELEASE_UNVERIFIED"),
+        ("observation_stale_timestamp", "fixture-independent-probe", "OBSERVATION_INVALID"),
+        ("observation_future_timestamp", "fixture-independent-probe", "OBSERVATION_INVALID"),
+        ("observation_foreign_provision", "fixture-independent-probe", "LIFECYCLE_PROTOCOL_FAILED"),
+        ("success", "foreign-observer", "OBSERVATION_INVALID"),
+        ("observation_active_operations", "fixture-independent-probe", "REMOTE_RELEASE_UNVERIFIED"),
+    ],
+)
+def test_d11_coordinator_withholds_release_for_invalid_or_incomplete_observations(
+    observer_behavior: str, observer_identity: str, expected_code: str
+) -> None:
+    result, _state, finalizer = _run_d11_fixture(
+        observer_behavior=observer_behavior,
+        observer_identity=observer_identity,
+    )
+    assert result.d11_report is not None
+    report = result.d11_report
+
+    assert result.cleanup_status is CleanupStatus.CLEANUP_FAILED
+    assert result.effective_outcome is EffectiveOutcome.CLEANUP_FAILED
+    assert report.resources_released is False
+    assert "REMOTE_RELEASE_UNVERIFIED" in report.failure_codes
+    assert expected_code in report.failure_codes
+    assert report.unresolved_operations == report.operations
+    assert report.unresolved_operations
+    assert len(finalizer.calls) == 1
+    assert finalizer.calls[0].cleanup_status is CleanupStatus.CLEANUP_FAILED
+    assert finalizer.calls[0].d11_report is report
+
+
+class TestCompleteBoundedFrameReceipt:
+    @staticmethod
+    def _send_raw_pipe_bytes(sender_raw: object, data: bytes) -> socket.socket | None:
+        if os.name == "nt":
+            sender_raw.send_bytes(data)  # type: ignore[attr-defined]
+            return None
+        sender_socket = socket.socket(
+            family=socket.AF_UNIX, type=socket.SOCK_STREAM,
+            fileno=os.dup(sender_raw.fileno()),  # type: ignore[attr-defined]
+        )
+        sender_socket.sendall(data)
+        return sender_socket
+
+    def test_complete_large_multiprocessing_frame_is_received(self) -> None:
+        receiver_raw, sender_raw = multiprocessing.Pipe(duplex=True)
+        receiver = MultiprocessingBoundedConnection(receiver_raw, 100_000)
+        sender = MultiprocessingBoundedConnection(sender_raw, 100_000)
+        expected = {"kind": "success", "raw_output": "x" * 32_000}
+        send_failures: list[BaseException] = []
+
+        def send_large_frame() -> None:
+            try:
+                sender.send_frame(expected)
+            except BaseException as exc:
+                send_failures.append(exc)
+
+        sender_thread = threading.Thread(target=send_large_frame, daemon=True)
+        try:
+            sender_thread.start()
+            assert receiver.recv_frame(2.0) == expected
+            sender_thread.join(2.0)
+            assert not sender_thread.is_alive()
+            assert send_failures == []
+        finally:
+            receiver.close()
+            sender.close()
+            if sender_thread.ident is not None:
+                sender_thread.join(0.5)
+
+    def test_oversized_multiprocessing_frame_is_rejected_before_decode(self) -> None:
+        receiver_raw, sender_raw = multiprocessing.Pipe(duplex=True)
+        receiver = MultiprocessingBoundedConnection(receiver_raw, 100)
+        try:
+            oversized_payload = b"x" * 101
+            if os.name == "nt":
+                sender_raw.send_bytes(struct.pack("!i", len(oversized_payload)) + oversized_payload)
+            else:
+                sender_raw.send_bytes(oversized_payload)
+            with pytest.raises(Feat018ProtocolViolationError, match="ceiling"):
+                receiver.recv_frame(0.1)
+        finally:
+            sender_raw.close()
+            receiver.close()
+
+    def test_incomplete_frame_uses_one_absolute_receive_deadline(self) -> None:
+        clock = FakeClock()
+        sleeps: list[float] = []
+
+        def sleep(duration: float) -> None:
+            sleeps.append(duration)
+            clock.advance(duration)
+
+        connection = MultiprocessingBoundedConnection(
+            _FakeRawEndpoint("parent"), 1_000, clock=clock, sleep=sleep,
+            frame_probe=lambda: "incomplete",
+        )
+        with pytest.raises(Feat018ProtocolViolationError, match="deadline"):
+            connection.recv_frame(0.012)
+        assert clock() == pytest.approx(0.012)
+        assert sum(sleeps) == pytest.approx(0.012)
+        assert max(sleeps) <= 0.005
+
+    def test_continuously_available_chunks_stop_at_the_absolute_deadline(self) -> None:
+        clock = FakeClock()
+        payload = {"kind": "success", "raw_output": "x" * 300}
+        encoded = encode_envelope(payload, max_bytes=1_000)
+        wire = struct.pack("!i", len(encoded)) + encoded
+        read_starts: list[float] = []
+        offset = 0
+
+        def read_one_byte(_maximum: int) -> bytes:
+            nonlocal offset
+            read_starts.append(clock())
+            chunk = wire[offset:offset + 1]
+            offset += len(chunk)
+            clock.advance(0.001)
+            return chunk
+
+        connection = MultiprocessingBoundedConnection(
+            _FakeRawEndpoint("parent"), 1_000, clock=clock, read_chunk=read_one_byte,
+        )
+        with pytest.raises(Feat018ProtocolViolationError, match="deadline"):
+            connection.recv_frame(0.01)
+
+        assert len(read_starts) == 10
+        assert all(start < 0.01 for start in read_starts)
+        assert offset == 10
+        assert offset < len(wire)
+        assert wire[offset:]  # the unread payload was not consumed after the deadline
+        assert clock() == pytest.approx(0.01)
+
+    def test_zero_timeout_returns_an_already_available_complete_frame(self) -> None:
+        expected = {"kind": "success", "raw_output": "ready"}
+        encoded = encode_envelope(expected, max_bytes=1_000)
+        wire = struct.pack("!i", len(encoded)) + encoded
+        offset = 0
+
+        def read_chunk(maximum: int) -> bytes | None:
+            nonlocal offset
+            if offset == len(wire):
+                return None
+            chunk = wire[offset:offset + min(maximum, 3)]
+            offset += len(chunk)
+            return chunk
+
+        connection = MultiprocessingBoundedConnection(
+            _FakeRawEndpoint("parent"), 1_000, read_chunk=read_chunk,
+        )
+        assert connection.recv_frame(0) == expected
+        assert offset == len(wire)
+
+    def test_zero_timeout_returns_none_for_an_empty_endpoint(self) -> None:
+        connection = MultiprocessingBoundedConnection(
+            _FakeRawEndpoint("parent"), 1_000, read_chunk=lambda _maximum: None,
+        )
+        assert connection.recv_frame(0) is None
+
+    def test_zero_timeout_rejects_incomplete_framing(self) -> None:
+        partial = struct.pack("!i", 20) + b"short"
+        offset = 0
+
+        def read_chunk(maximum: int) -> bytes | None:
+            nonlocal offset
+            if offset == len(partial):
+                return None
+            chunk = partial[offset:offset + min(maximum, 2)]
+            offset += len(chunk)
+            return chunk
+
+        connection = MultiprocessingBoundedConnection(
+            _FakeRawEndpoint("parent"), 1_000, read_chunk=read_chunk,
+        )
+        with pytest.raises(Feat018ProtocolViolationError):
+            connection.recv_frame(0)
+        assert offset == len(partial)
+
+    @pytest.mark.parametrize("header_bytes", [1, 2, 3])
+    def test_real_transport_stalled_partial_length_header_respects_deadline(
+        self, header_bytes: int
+    ) -> None:
+        receiver_raw, sender_raw = multiprocessing.Pipe(duplex=True)
+        receiver = MultiprocessingBoundedConnection(receiver_raw, 1_000)
+        sender_socket = self._send_raw_pipe_bytes(sender_raw, struct.pack("!i", 20)[:header_bytes])
+        try:
+            started = time.monotonic()
+            with pytest.raises(Feat018ProtocolViolationError, match="deadline"):
+                receiver.recv_frame(0.04)
+            assert time.monotonic() - started < 0.5
+        finally:
+            if sender_socket is not None:
+                sender_socket.close()
+            sender_raw.close()
+            receiver.close()
+
+    def test_extended_length_header_round_trips_over_real_transport(self) -> None:
+        receiver_raw, sender_raw = multiprocessing.Pipe(duplex=True)
+        receiver = MultiprocessingBoundedConnection(receiver_raw, 1_000)
+        expected = {"kind": "extended-header"}
+        payload = encode_envelope(expected, max_bytes=1_000)
+        wire = struct.pack("!i", -1) + struct.pack("!Q", len(payload)) + payload
+        sender_socket = self._send_raw_pipe_bytes(sender_raw, wire)
+        try:
+            assert receiver.recv_frame(0.2) == expected
+        finally:
+            if sender_socket is not None:
+                sender_socket.close()
+            sender_raw.close()
+            receiver.close()
+
+    def test_stalled_incomplete_extended_length_header_respects_deadline(self) -> None:
+        receiver_raw, sender_raw = multiprocessing.Pipe(duplex=True)
+        receiver = MultiprocessingBoundedConnection(receiver_raw, 1_000)
+        partial_header = struct.pack("!i", -1) + b"\x00\x00\x01"
+        sender_socket = self._send_raw_pipe_bytes(sender_raw, partial_header)
+        try:
+            started = time.monotonic()
+            with pytest.raises(Feat018ProtocolViolationError, match="deadline"):
+                receiver.recv_frame(0.04)
+            assert time.monotonic() - started < 0.5
+        finally:
+            if sender_socket is not None:
+                sender_socket.close()
+            sender_raw.close()
+            receiver.close()
+
+    def test_oversized_extended_length_header_is_rejected_before_payload_read(self) -> None:
+        receiver_raw, sender_raw = multiprocessing.Pipe(duplex=True)
+        receiver = MultiprocessingBoundedConnection(receiver_raw, 1_000)
+        extended_header = struct.pack("!i", -1) + struct.pack("!Q", 1_001)
+        sender_socket = self._send_raw_pipe_bytes(sender_raw, extended_header)
+        try:
+            with pytest.raises(Feat018ProtocolViolationError, match="ceiling"):
+                receiver.recv_frame(0.2)
+        finally:
+            if sender_socket is not None:
+                sender_socket.close()
+            sender_raw.close()
+            receiver.close()
+
+    @pytest.mark.skipif(os.name == "nt", reason="raw AF_UNIX partial-frame fixture is POSIX-only")
+    @pytest.mark.parametrize("partial_payload", [False, True])
+    def test_stalled_header_or_partial_payload_never_blocks_past_deadline(
+        self, partial_payload: bool
+    ) -> None:
+        receiver_raw, sender_raw = multiprocessing.Pipe(duplex=True)
+        receiver = MultiprocessingBoundedConnection(receiver_raw, 1_000)
+        sender_socket = socket.socket(
+            family=socket.AF_UNIX, type=socket.SOCK_STREAM,
+            fileno=os.dup(sender_raw.fileno()),
+        )
+        try:
+            body = b"partial" if partial_payload else b""
+            sender_socket.sendall(struct.pack("!i", 100) + body)
+            started = time.monotonic()
+            with pytest.raises(Feat018ProtocolViolationError, match="deadline|incomplete"):
+                receiver.recv_frame(0.05)
+            assert time.monotonic() - started < 0.5
+        finally:
+            sender_socket.close()
+            sender_raw.close()
+            receiver.close()
+
+    @pytest.mark.skipif(os.name == "nt", reason="raw AF_UNIX truncation fixture is POSIX-only")
+    def test_truncated_frame_at_peer_eof_is_rejected(self) -> None:
+        receiver_raw, sender_raw = multiprocessing.Pipe(duplex=True)
+        receiver = MultiprocessingBoundedConnection(receiver_raw, 1_000)
+        sender_socket = socket.socket(
+            family=socket.AF_UNIX, type=socket.SOCK_STREAM,
+            fileno=os.dup(sender_raw.fileno()),
+        )
+        sender_socket.sendall(struct.pack("!i", 100) + b"short")
+        sender_socket.close()
+        sender_raw.close()
+        try:
+            with pytest.raises(
+                Feat018ProtocolViolationError, match="truncated IPC frame at peer EOF"
+            ):
+                receiver.recv_frame(0.05)
+        finally:
+            receiver.close()
+
+    @pytest.mark.skipif(os.name != "nt", reason="Windows named-pipe framing fixture")
+    @pytest.mark.parametrize("partial_payload", [False, True])
+    def test_windows_named_pipe_stalled_header_or_partial_payload_is_bounded(
+        self, partial_payload: bool
+    ) -> None:
+        receiver_raw, sender_raw = multiprocessing.Pipe(duplex=True)
+        receiver = MultiprocessingBoundedConnection(receiver_raw, 1_000)
+        frame = struct.pack("!i", 100) + (b"partial" if partial_payload else b"")
+        try:
+            sender_raw.send_bytes(frame)
+            started = time.monotonic()
+            with pytest.raises(Feat018ProtocolViolationError, match="deadline"):
+                receiver.recv_frame(0.05)
+            assert time.monotonic() - started < 0.5
+        finally:
+            sender_raw.close()
+            receiver.close()
+
+    @pytest.mark.skipif(os.name != "nt", reason="Windows named-pipe EOF fixture")
+    def test_windows_named_pipe_truncated_frame_at_peer_eof_is_rejected(self) -> None:
+        receiver_raw, sender_raw = multiprocessing.Pipe(duplex=True)
+        receiver = MultiprocessingBoundedConnection(receiver_raw, 1_000)
+        sender_raw.send_bytes(struct.pack("!i", 100) + b"short")
+        sender_raw.close()
+        try:
+            with pytest.raises(
+                Feat018ProtocolViolationError, match="truncated IPC frame at peer EOF"
+            ):
+                receiver.recv_frame(0.05)
+        finally:
+            receiver.close()
+
+    @pytest.mark.skipif(os.name != "nt", reason="Windows named-pipe clean EOF fixture")
+    def test_windows_named_pipe_clean_eof_returns_none(self) -> None:
+        receiver_raw, sender_raw = multiprocessing.Pipe(duplex=True)
+        receiver = MultiprocessingBoundedConnection(receiver_raw, 1_000)
+        sender_raw.close()
+        try:
+            assert receiver.recv_frame(0.1) is None
+        finally:
+            receiver.close()
+
+
+class TestBoundedEmptyPollBackoff:
+    def test_supervisor_empty_receives_back_off_and_still_cleanup_at_deadline(self) -> None:
+        class ImmediateNoneConnection:
+            def __init__(self) -> None:
+                self.receive_timeouts: list[float] = []
+                self.sent: list[dict[str, object]] = []
+                self.close_calls = 0
+
+            def send_frame(self, payload: Mapping[str, object]) -> None:
+                self.sent.append(dict(payload))
+
+            def recv_frame(self, timeout: float) -> None:
+                self.receive_timeouts.append(timeout)
+                return None
+
+            def close(self) -> None:
+                self.close_calls += 1
+
+        clock = FakeClock()
+        connection = ImmediateNoneConnection()
+        process = FakeProcessHandle()
+        launcher = FakeProcessLauncher(process, cast(FakeBoundedConnection, connection))
+        containment = FakeContainmentBackend()
+        supervisor = Feat018AdapterCallSupervisor(
+            config=_config(total_adapter_cap_seconds=1.0, poll_interval_seconds=0.2),
+            launcher=launcher,
+            containment_factory=lambda: containment,
+            clock=clock,
+            sleep=clock.advance,
+        )
+
+        result = supervisor.run(lambda: None, ())
+
+        progress_timeouts = [value for value in connection.receive_timeouts if value > 0]
+        assert len(progress_timeouts) == 5
+        assert all(left >= right for left, right in zip(progress_timeouts, progress_timeouts[1:]))
+        assert clock() == pytest.approx(1.0)
+        assert result.final_state is ProgressState.FROZEN
+        assert result.cleanup_status is CleanupStatus.SUCCEEDED
+        assert process.closed and connection.close_calls == 1
+        assert containment.close_calls == 1
+
+    def test_d11_empty_receives_back_off_then_terminate_and_reap_worker(self) -> None:
+        class ImmediateNoneConnection:
+            def __init__(self) -> None:
+                self.receive_timeouts: list[float] = []
+                self.sent: list[dict[str, object]] = []
+                self.close_calls = 0
+
+            def send_frame(self, payload: Mapping[str, object]) -> None:
+                self.sent.append(dict(payload))
+
+            def recv_frame(self, timeout: float) -> dict[str, object] | None:
+                self.receive_timeouts.append(timeout)
+                if len(self.receive_timeouts) == 1:
+                    return {"kind": "D11_CALL_STARTED"}
+                if len(self.receive_timeouts) == 2:
+                    return {"kind": "D11_HANDLE_STARTED"}
+                return None
+
+            def close(self) -> None:
+                self.close_calls += 1
+
+        clock = FakeClock()
+        provision = LightningProvisionRefV1("fixture-run", "fixture-provision")
+        window = D11CleanupWindow("fixture-run", 5.0, 1.0, clock)
+        operation = window.issue(provision, D11OperationKind.PROVISION)
+        context = D11OperationContext(operation, 1.0, 5.0, 1.0, 0.125)
+        connection = ImmediateNoneConnection()
+        process = FakeProcessHandle()
+        launcher = FakeProcessLauncher(process, cast(FakeBoundedConnection, connection))
+        containment = FakeContainmentBackend()
+        boundary = Feat018LightningLifecycleProcessBoundary(
+            controller=cast(object, None),  # the synthetic worker never enters this seam
+            max_envelope_bytes=1_000,
+            containment_factory=lambda: containment,
+            cleanup_deadline_seconds=1.0,
+            containment_setup_timeout_seconds=0.5,
+            launcher=launcher,
+            clock=clock,
+            sleep=clock.advance,
+        )
+
+        with pytest.raises(Feat018LifecycleOperationError) as exc_info:
+            _invoke_d11_operation(boundary, operation, context, None, None, window)
+
+        poll_timeouts = connection.receive_timeouts[2:]
+        assert len(poll_timeouts) == 8
+        assert all(left >= right for left, right in zip(poll_timeouts, poll_timeouts[1:]))
+        assert clock() == pytest.approx(1.0)
+        assert exc_info.value.failure_code is Feat018LiveSmokeFailureCode.PROVISION_TIMEOUT
+        assert process.closed and connection.close_calls == 1
+        assert containment.terminate_calls == 1 and containment.close_calls == 1
+
+
+def _dev_verified_success():
+    from sketch2life.contracts.schemas.feat018_live_binding import DevAttemptVerificationV1
+    return DevAttemptVerificationV1(
+        v2_status="SUCCEEDED", raw_status="SUCCEEDED", v2_schema_verified=True,
+        raw_schema_verified=True, source_matched=True, correlation_matched=True,
+        provenance_matched=True, gate_a_required=True, narration_status="NOT_SUPPLIED",
+    )
+
+
+class TestDevelopmentWorkerVerification:
+    @pytest.fixture()
+    def actual(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        from hashlib import sha256
+        if os.name == "posix":
+            tmp_path.chmod(0o700)
+        fixture = tmp_path / "fixture.bin"
+        fixture.write_bytes(b"finite-private-synthetic-image")
+        monkeypatch.chdir(tmp_path)
+        request = _request(fixture.name, sha256(fixture.read_bytes()).hexdigest())
+        result = _real_adapter(_SingleAttemptFakeRunner(deque([_success_payload()]))).understand(request)
+        assert type(result) is VisionUnderstandingSuccessV2
+        return request, result
+
+    def test_actual_v2_and_mapper_result_are_verified_without_bodies(self, actual) -> None:
+        from sketch2life.benchmark.feat018_live_lightning_execution import verify_dev_worker_results
+        request, result = actual
+        summary = verify_dev_worker_results(result, request=request, session_id="private-session", content_policy=_policy())
+        assert summary == _dev_verified_success()
+        encoded = summary.model_dump_json()
+        for private in (request.correlation_id, request.source_image_ref.artifact_ref, "private-session"):
+            assert private not in encoded
+        assert not {"entities", "labels", "text", "source_image_ref", "model_provenance"} & summary.model_dump().keys()
+
+    @pytest.mark.parametrize("field", [
+        "correlation_id", "source_image_ref", "config_hash", "profile_catalog_hash",
+        "adapter_version", "content_policy_version", "policy_match_view_version", "model_provenance",
+    ])
+    def test_schema_valid_identity_or_provenance_drift_is_not_mapping_success(self, actual, field: str) -> None:
+        from sketch2life.benchmark.feat018_live_lightning_execution import verify_dev_worker_results
+        request, result = actual
+        value = "another-private-value"
+        if field in ("config_hash", "profile_catalog_hash"):
+            value = "b" * 64
+        elif field == "source_image_ref":
+            value = result.source_image_ref.model_copy(update={"sha256": "b" * 64})
+        elif field == "model_provenance":
+            value = result.model_provenance.model_copy(update={"model_revision": "b" * 40})
+        summary = verify_dev_worker_results(result.model_copy(update={field: value}),
+            request=request, session_id="private-session", content_policy=_policy())
+        assert summary.v2_status == "SUCCEEDED" and summary.v2_schema_verified is True
+        assert summary.raw_status == "NOT_REACHED" and summary.raw_schema_verified is None
+        assert summary.failure_codes == (("IDENTITY_MISMATCH",) if field in (
+            "correlation_id", "source_image_ref") else ("PROVENANCE_MISMATCH",))
+        assert "another-private-value" not in summary.model_dump_json()
+
+    @pytest.mark.parametrize("mutation", ["dict", "contract", "nested", "request"])
+    def test_unchecked_objects_are_revalidated(self, actual, mutation: str) -> None:
+        from sketch2life.benchmark.feat018_live_lightning_execution import verify_dev_worker_results
+        request, result = actual
+        if mutation == "dict":
+            result = result.model_dump(mode="python")
+        elif mutation == "contract":
+            result = result.model_copy(update={"contract_version": "private-invalid-version"})
+        elif mutation == "nested":
+            result = result.model_copy(update={"source_image_ref": result.source_image_ref.model_copy(update={"sha256": "private-invalid-hash"})})
+        else:
+            request = request.model_copy(update={"contract_version": "private-invalid-version"})
+        summary = verify_dev_worker_results(result, request=request, session_id="private-session", content_policy=_policy())
+        assert summary.v2_status == "INVALID" and summary.raw_status == "NOT_REACHED"
+        assert summary.v2_schema_verified is False and summary.failure_codes == ("V2_INVALID",)
+        assert "private-invalid" not in summary.model_dump_json()
+
+    @pytest.mark.parametrize("mutation", ["dict", "session", "source", "correlation", "gate", "provenance", "narration"])
+    def test_actual_raw_is_revalidated_and_compared(self, actual, mutation: str, monkeypatch: pytest.MonkeyPatch) -> None:
+        import sketch2life.benchmark.feat018_live_lightning_execution as module
+        request, result = actual
+        mapper = module.map_vision_result_to_raw
+        calls = []
+
+        def changed_mapper(*args, **kwargs):
+            calls.append(kwargs)
+            raw = mapper(*args, **kwargs)
+            if mutation == "dict":
+                return raw.model_dump()
+            changes = {
+                "session": {"session_id": "wrong-session"},
+                "source": {"source_image_ref": raw.source_image_ref.model_copy(update={"sha256": "b" * 64})},
+                "correlation": {"correlation_id": "wrong-correlation"},
+                "gate": {"gate_a_required": False},
+                "provenance": {"provenance": raw.provenance.model_copy(update={"config_hash": "b" * 64})},
+                "narration": {"narration_status": "RECEIVED"},
+            }
+            return raw.model_copy(update=changes[mutation])
+
+        monkeypatch.setattr(module, "map_vision_result_to_raw", changed_mapper)
+        summary = module.verify_dev_worker_results(result, request=request, session_id="private-session", content_policy=_policy())
+        assert len(calls) == 1
+        assert summary.v2_status == "SUCCEEDED" and summary.raw_status == "INVALID"
+        assert summary.raw_schema_verified is False and summary.failure_codes == ("RAW_INVALID",)
+
+    @pytest.mark.parametrize("failure", [QwenModelLoadError(), QwenTimeoutError(), QwenPermanentRuntimeError()])
+    def test_actual_typed_failure_is_verified_as_failure(self, actual, failure: Exception) -> None:
+        from sketch2life.benchmark.feat018_live_lightning_execution import verify_dev_worker_results
+        request, _ = actual
+        result = _real_adapter(_SingleAttemptFakeRunner(deque([failure]))).understand(request)
+        assert type(result) is VisionUnderstandingFailureV2
+        summary = verify_dev_worker_results(result, request=request, session_id="private-session", content_policy=_policy())
+        assert summary.v2_status == summary.raw_status == "FAILED"
+        assert summary.v2_schema_verified is summary.raw_schema_verified is True
+        assert summary.failure_codes == ("ADAPTER_FAILED",)
+
+    def test_worker_opt_in_emits_actual_verification_and_no_result_body(self, actual, monkeypatch: pytest.MonkeyPatch) -> None:
+        import sketch2life.benchmark.feat018_live_lightning_execution as module
+        request, _ = actual
+
+        class Runner:
+            cleanup_failure = None
+
+            def __init__(self, **kwargs):
+                self.callback = kwargs["on_attempt_start"]
+
+            def generate(self, *_args):
+                self.callback()
+                return _success_payload()
+
+        monkeypatch.setattr(module, "Feat018BoundedKillableQwenGenerationRunner", Runner)
+        connection = FakeBoundedConnection()
+        connection.push({"kind": "CONTAINMENT_READY", "remaining_seconds_at_spawn": 300.0})
+        adapter_worker_entry(connection, request, QwenVisionRuntimeConfig(model_dir=Path("fixture-model-dir")),
+            _policy(), "fixture prompt", _config(total_adapter_cap_seconds=300.0), "private-session", True,
+            generation_launcher=_launcher(), self_contain=lambda: None, clock=FakeClock(10.0),
+            capture_factory=_fake_d9_capture_factory)
+        verification = [frame for frame in connection.sent if frame.get("kind") == "DEV_VERIFICATION"]
+        assert len(verification) == 1
+        assert verification[0]["summary"] == _dev_verified_success().model_dump(mode="json")
+        assert connection.sent[-1]["outcome"] == connection.sent[-1]["raw_status"] == "SUCCEEDED"
+        text = json.dumps(connection.sent)
+        assert "private-session" not in text and request.correlation_id not in text
+        assert "source_image_ref" not in text and "entities" not in text
+
+
+class TestDevelopmentSupervisorHooks:
+    @staticmethod
+    def frames(connection, *, verification=True):
+        connection.push({"seq": 1, "kind": "ADAPTER_STARTED"})
+        connection.push({"seq": 2, "kind": "GENERATION_ATTEMPT_STARTED", "attempt_number": 1})
+        _push_success_d9_frames(connection)
+        if verification:
+            connection.push({"kind": "DEV_VERIFICATION", "summary": _dev_verified_success().model_dump(mode="json")})
+        connection.push({"seq": 3, "kind": "TERMINAL", "outcome": "SUCCEEDED", "raw_status": "SUCCEEDED"})
+
+    def test_only_accepted_progress_reaches_callback(self) -> None:
+        clock = FakeClock(10.0)
+        launcher = _launcher(clock)
+        self.frames(launcher.connection)
+        events = []
+        supervisor = _supervisor(launcher=launcher, containment=FakeContainmentBackend(), clock=clock)
+        supervisor.require_verification = True
+        supervisor.on_accepted_progress = events.append
+        result = supervisor.run(_no_op_entry, ())
+        assert result.is_success and result.verification_summary == _dev_verified_success()
+        assert [event.seq for event in events] == [1, 2, 3]
+        assert result.attempt_count == 1
+
+    @pytest.mark.parametrize("case", ["omitted", "duplicate", "before-start", "invalid", "contradiction"])
+    def test_bad_verification_freezes_success(self, case: str) -> None:
+        clock = FakeClock(10.0)
+        launcher = _launcher(clock)
+        value = _dev_verified_success().model_dump(mode="json")
+        if case == "before-start":
+            launcher.connection.push({"kind": "DEV_VERIFICATION", "summary": value})
+        launcher.connection.push({"seq": 1, "kind": "ADAPTER_STARTED"})
+        launcher.connection.push({"seq": 2, "kind": "GENERATION_ATTEMPT_STARTED", "attempt_number": 1})
+        _push_success_d9_frames(launcher.connection)
+        if case != "omitted":
+            if case == "invalid":
+                value["private-body"] = "private-diagnostic"
+            elif case == "contradiction":
+                value = {}
+            launcher.connection.push({"kind": "DEV_VERIFICATION", "summary": value})
+            if case == "duplicate":
+                launcher.connection.push({"kind": "DEV_VERIFICATION", "summary": value})
+        launcher.connection.push({"seq": 3, "kind": "TERMINAL", "outcome": "SUCCEEDED"})
+        supervisor = _supervisor(launcher=launcher, containment=FakeContainmentBackend(), clock=clock)
+        supervisor.require_verification = True
+        result = supervisor.run(_no_op_entry, ())
+        assert not result.is_success and result.final_state is ProgressState.FROZEN
+        assert "private-diagnostic" not in repr(result)
+        assert launcher.handle.closed and launcher.connection.closed
+
+    @pytest.mark.parametrize("value", [True, 0, 1, None, "private-cancel-value"])
+    def test_cancel_or_non_boolean_control_never_releases(self, value: object) -> None:
+        clock = FakeClock(10.0)
+        launcher = _launcher(clock)
+        supervisor = _supervisor(launcher=launcher, containment=FakeContainmentBackend(), clock=clock)
+        supervisor.cancel_requested = lambda: value
+        result = supervisor.run(_no_op_entry, ())
+        assert not result.is_success and result.stopped_before_containment
+        assert not launcher.connection.sent
+        assert "private-cancel-value" not in repr(result)
+
+    def test_cancel_during_confirmation_blocks_release(self) -> None:
+        cancelled = False
+        clock = FakeClock(10.0)
+        launcher = _launcher(clock)
+
+        class Containment(FakeContainmentBackend):
+            def confirm_worker_contained(self, *args, **kwargs):
+                nonlocal cancelled
+                cancelled = True
+                return super().confirm_worker_contained(*args, **kwargs)
+
+        supervisor = _supervisor(launcher=launcher, containment=Containment(), clock=clock)
+        supervisor.cancel_requested = lambda: cancelled
+        result = supervisor.run(_no_op_entry, ())
+        assert result.stopped_before_containment and not launcher.connection.sent
+
+    def test_release_guard_does_not_reenter_cancel_lock_and_rechecks_deadline(self) -> None:
+        clock = FakeClock(10.0)
+        launcher = _launcher(clock)
+        self.frames(launcher.connection)
+        locked = False
+
+        def cancel():
+            assert not locked
+            return False
+
+        def guard(release):
+            nonlocal locked
+            locked = True
+            try:
+                clock.advance(1.0)
+                release()
+            finally:
+                locked = False
+
+        supervisor = _supervisor(launcher=launcher, containment=FakeContainmentBackend(), clock=clock)
+        supervisor.cancel_requested = cancel
+        supervisor.release_guard = guard
+        supervisor.require_verification = True
+        result = supervisor.run(_no_op_entry, ())
+        assert result.is_success
+        assert launcher.connection.sent[0]["remaining_seconds_at_spawn"] == 9.0
+
+    @pytest.mark.parametrize("failure", ["registration", "guard", "callback", "cancel"])
+    def test_private_hook_exception_cleans_up_without_exception_text(self, failure: str) -> None:
+        clock = FakeClock(10.0)
+        launcher = _launcher(clock)
+        self.frames(launcher.connection)
+        containment = FakeContainmentBackend()
+        supervisor = _supervisor(launcher=launcher, containment=containment, clock=clock)
+
+        def explode(*_args):
+            raise RuntimeError("private-hook-exception")
+
+        if failure == "registration":
+            supervisor.register_launch = explode
+        elif failure == "guard":
+            supervisor.release_guard = explode
+        elif failure == "callback":
+            supervisor.on_accepted_progress = explode
+        else:
+            supervisor.cancel_requested = explode
+        result = supervisor.run(_no_op_entry, ())
+        assert not result.is_success
+        assert containment.terminate_calls == 1 and launcher.handle.closed
+        assert "private-hook-exception" not in repr(result)
+
+    def test_trusted_registration_precedes_both_model_release_grants(self) -> None:
+        from types import SimpleNamespace
+        clock = FakeClock(10.0)
+        launcher = _launcher(clock)
+        connection = launcher.connection
+        connection.push({"seq": 1, "kind": "ADAPTER_STARTED"})
+        connection.push({"seq": 2, "kind": "GENERATION_ATTEMPT_STARTED", "attempt_number": 1})
+        connection.push({"kind": "DEV_REGISTER_GENERATION", "pid": 4243, "attempt_number": 1})
+        _push_success_d9_frames(connection)
+        connection.push({"kind": "DEV_VERIFICATION", "summary": _dev_verified_success().model_dump(mode="json")})
+        connection.push({"seq": 3, "kind": "TERMINAL", "outcome": "SUCCEEDED", "raw_status": "SUCCEEDED"})
+        containment = FakeContainmentBackend()
+        events = []
+        parent = object()
+        adapter_birth = object()
+
+        def register(pid, role, parent_birth):
+            assert containment.confirm_calls
+            events.append((role, pid, parent_birth, len(connection.sent)))
+            return SimpleNamespace(birth=adapter_birth if role == "ADAPTER" else object())
+
+        supervisor = _supervisor(launcher=launcher, containment=containment, clock=clock)
+        supervisor.require_verification = True
+        supervisor.register_launch = register
+        supervisor.launch_parent_birth = parent
+        supervisor.cancel_requested = lambda: False
+        supervisor.release_guard = lambda callback: callback()
+        result = supervisor.run(_no_op_entry, ())
+        assert result.is_success
+        assert events == [("ADAPTER", 4242, parent, 0), ("GENERATION", 4243, adapter_birth, 1)]
+        assert [frame["kind"] for frame in connection.sent] == ["CONTAINMENT_READY", "DEV_REGISTERED"]
+
+    @pytest.mark.parametrize("case", ["before-attempt", "wrong-attempt", "duplicate", "bad-pid", "after-cleanup"])
+    def test_unbound_generation_registration_never_releases_child(self, case: str) -> None:
+        from types import SimpleNamespace
+        clock = FakeClock(10.0)
+        launcher = _launcher(clock)
+        connection = launcher.connection
+        connection.push({"seq": 1, "kind": "ADAPTER_STARTED"})
+        if case != "before-attempt":
+            connection.push({"seq": 2, "kind": "GENERATION_ATTEMPT_STARTED", "attempt_number": 1})
+        if case == "after-cleanup":
+            connection.push({"kind": "DEV_CLEANUP_INTENT"})
+        frame = {"kind": "DEV_REGISTER_GENERATION", "pid": True if case == "bad-pid" else 4243,
+                 "attempt_number": 2 if case == "wrong-attempt" else 1}
+        connection.push(frame)
+        if case == "duplicate":
+            connection.push(frame)
+        supervisor = _supervisor(launcher=launcher, containment=FakeContainmentBackend(), clock=clock)
+        supervisor.require_verification = True
+        supervisor.register_launch = lambda *_args: SimpleNamespace(birth=object())
+        supervisor.launch_parent_birth = object()
+        result = supervisor.run(_no_op_entry, ())
+        assert not result.is_success and result.final_state is ProgressState.FROZEN
+        grants = [frame for frame in connection.sent if frame["kind"] == "DEV_REGISTERED"]
+        assert len(grants) == (1 if case == "duplicate" else 0)
+
+    def test_cleanup_grant_has_one_remote_deadline_and_freezes_future_attempts(self) -> None:
+        clock = FakeClock(10.0)
+        launcher = _launcher(clock)
+        connection = launcher.connection
+        connection.push({"seq": 1, "kind": "ADAPTER_STARTED"})
+        connection.push({"kind": "DEV_CLEANUP_INTENT"})
+        connection.push({"kind": "DEV_CLEANUP_INTENT"})
+        connection.push({"seq": 2, "kind": "GENERATION_ATTEMPT_STARTED", "attempt_number": 1})
+        calls = []
+        supervisor = _supervisor(launcher=launcher, containment=FakeContainmentBackend(), clock=clock)
+        supervisor.require_verification = True
+        supervisor.on_cleanup_intent = lambda: calls.append(clock()) or 11.0
+        supervisor.cleanup_deadline = lambda: 11.0
+        result = supervisor.run(_no_op_entry, ())
+        assert calls == [10.0] and not result.is_success
+        grants = [frame["deadline_remote_monotonic"] for frame in connection.sent if frame["kind"] == "DEV_CLEANUP_GRANT"]
+        assert grants == [11.0, 11.0]
+        assert result.attempt_count is None
+
+    def test_development_entry_requires_complete_binding_before_launcher(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        import sketch2life.benchmark.feat018_live_lightning_execution as module
+
+        def forbidden(**_kwargs):
+            pytest.fail("unbound entry constructed a launcher")
+
+        monkeypatch.setattr(module, "MultiprocessingProcessLauncher", forbidden)
+        result = run_bounded_adapter_call(_request("fixture.bin", "a" * 64),
+            QwenVisionRuntimeConfig(model_dir=Path("fixture-model-dir")), _policy(), "fixture prompt", _config(),
+            session_id="private-session", verify_development_results=True)
+        assert result.final_state is ProgressState.NOT_STARTED
+        assert result.primary_failure_reason == "development invocation binding incomplete"
+
+    def test_generation_registration_gate_installs_d9_before_model_import(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        import sketch2life.benchmark.feat018_live_lightning_execution as module
+        import sketch2life.infrastructure.ai.qwen_vision as qwen
+        events = []
+
+        def capture(*args):
+            events.append("capture")
+            return _fake_d9_capture_factory(*args)
+
+        class Connection(FakeBoundedConnection):
+            def recv_frame(self, timeout):
+                assert events == ["capture"]
+                events.append("gate")
+                return None
+
+        monkeypatch.setattr(qwen, "_default_model_factory", lambda *_args: pytest.fail("model reached without registration"))
+        connection = Connection()
+        module._dev_registered_generation_child_entry(connection, vision_profile_catalog_v2().profiles[0],
+            QwenVisionRuntimeConfig(model_dir=Path("fixture-model-dir")), "fixture.bin", "fixture prompt",
+            1000, 2000, capture, 1)
+        assert events == ["capture", "gate"]
+        assert all("private" not in json.dumps(frame) for frame in connection.sent)
+
+    @pytest.mark.parametrize("status", [None, "FAILED"])
+    def test_success_terminal_requires_received_matching_raw_status(self, status) -> None:
+        clock = FakeClock(10.0)
+        launcher = _launcher(clock)
+        self.frames(launcher.connection)
+        terminal = launcher.connection.inbox[-1]
+        if status is None:
+            terminal.pop("raw_status")
+        else:
+            terminal["raw_status"] = status
+        supervisor = _supervisor(launcher=launcher, containment=FakeContainmentBackend(), clock=clock)
+        supervisor.require_verification = True
+        result = supervisor.run(_no_op_entry, ())
+        assert not result.is_success and result.final_state is ProgressState.FROZEN
+
+    def test_original_remote_work_deadline_is_not_reanchored(self) -> None:
+        clock = FakeClock(10.0)
+        launcher = _launcher(clock)
+        self.frames(launcher.connection)
+        supervisor = _supervisor(launcher=launcher, containment=FakeContainmentBackend(), clock=clock)
+        supervisor.work_deadline_monotonic = 12.0
+        supervisor.require_verification = True
+        result = supervisor.run(_no_op_entry, ())
+        assert result.is_success
+        assert launcher.connection.sent[0]["remaining_seconds_at_spawn"] == 2.0
+
+    @pytest.mark.parametrize("deadline", [10.0, 9.0, True, float("nan"), float("inf")])
+    def test_expired_or_invalid_original_deadline_precedes_containment_allocation(self, deadline) -> None:
+        clock = FakeClock(10.0)
+        launcher = _launcher(clock)
+        containment = FakeContainmentBackend()
+        supervisor = _supervisor(launcher=launcher, containment=containment, clock=clock)
+        supervisor.work_deadline_monotonic = deadline
+        result = supervisor.run(_no_op_entry, ())
+        assert result.stopped_before_containment and not result.is_success
+        assert not containment.created and not launcher.launch_calls
+
+    def test_expiry_inside_release_guard_does_not_send_stale_duration(self) -> None:
+        clock = FakeClock(10.0)
+        launcher = _launcher(clock)
+        supervisor = _supervisor(launcher=launcher, containment=FakeContainmentBackend(), clock=clock)
+        supervisor.work_deadline_monotonic = 11.0
+
+        def guard(release):
+            clock.set(11.0)
+            release()
+
+        supervisor.release_guard = guard
+        result = supervisor.run(_no_op_entry, ())
+        assert result.stopped_before_containment and not launcher.connection.sent
+        assert launcher.handle.closed and launcher.connection.closed
+
+    def test_inner_registration_requires_received_birth_before_grant(self) -> None:
+        from types import SimpleNamespace
+        clock = FakeClock(10.0)
+        launcher = _launcher(clock)
+        launcher.connection.push({"seq": 1, "kind": "ADAPTER_STARTED"})
+        launcher.connection.push({"seq": 2, "kind": "GENERATION_ATTEMPT_STARTED", "attempt_number": 1})
+        launcher.connection.push({"kind": "DEV_REGISTER_GENERATION", "pid": 4243, "attempt_number": 1})
+        supervisor = _supervisor(launcher=launcher, containment=FakeContainmentBackend(), clock=clock)
+        supervisor.require_verification = True
+        supervisor.register_launch = lambda pid, role, parent: SimpleNamespace(birth=object()) if role == "ADAPTER" else None
+        result = supervisor.run(_no_op_entry, ())
+        assert not result.is_success
+        assert all(frame["kind"] != "DEV_REGISTERED" for frame in launcher.connection.sent)
+
+    def test_second_attempt_keeps_existing_registration_and_progress_policy(self) -> None:
+        from types import SimpleNamespace
+        clock = FakeClock(10.0)
+        launcher = _launcher(clock)
+        connection = launcher.connection
+        connection.push({"seq": 1, "kind": "ADAPTER_STARTED"})
+        for attempt in (1, 2):
+            connection.push({"seq": attempt + 1, "kind": "GENERATION_ATTEMPT_STARTED", "attempt_number": attempt})
+            connection.push({"kind": "DEV_REGISTER_GENERATION", "pid": 4242 + attempt, "attempt_number": attempt})
+        _push_success_d9_frames(connection, attempt_numbers=(1, 2))
+        connection.push({"kind": "DEV_VERIFICATION", "summary": _dev_verified_success().model_dump(mode="json")})
+        connection.push({"seq": 4, "kind": "TERMINAL", "outcome": "SUCCEEDED", "raw_status": "SUCCEEDED"})
+        supervisor = _supervisor(launcher=launcher, containment=FakeContainmentBackend(), clock=clock)
+        supervisor.require_verification = True
+        registrations = []
+
+        def register(pid, role, parent):
+            registrations.append((pid, role))
+            return SimpleNamespace(birth=object())
+
+        supervisor.register_launch = register
+        result = supervisor.run(_no_op_entry, ())
+        assert result.is_success and result.attempt_count == 2
+        assert registrations == [(4242, "ADAPTER"), (4243, "GENERATION"), (4244, "GENERATION")]
+        assert len([frame for frame in connection.sent if frame["kind"] == "DEV_REGISTERED"]) == 2
