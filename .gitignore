@@ -124,3 +124,29 @@ apps/ui-mobile/android/.gradle-alt*/
 
 # Feature-local complete repeated diagnostics; published excerpts retain lineage.
 /features/FEAT-042-feat018-contract-dev-merge/evidence/local/
+
+# BE2 operator-local inventory and repeated intermediate diagnostics.
+# Selection/provenance: FEAT-044 evidence/notes/PUBLICATION_SELECTION_20261015.md
+/features/FEAT-044-be2-ai-job-foundation/evidence/local/
+/features/FEAT-044-be2-ai-job-foundation/evidence/raw/phase_a_run1_*
+/features/FEAT-044-be2-ai-job-foundation/evidence/raw/phase_a_run2_*
+/features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00a_run2_*
+/features/FEAT-044-be2-ai-job-foundation/evidence/metrics/phase_a_run1_checks.json
+/features/FEAT-044-be2-ai-job-foundation/evidence/metrics/phase_a_run2_checks.json
+/features/FEAT-044-be2-ai-job-foundation/evidence/metrics/q00a_checks.json
+/features/FEAT-044-be2-ai-job-foundation/evidence/metrics/q00a_run2_checks.json
+/features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00a_architecture.txt
+/features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00a_diff_check.txt
+/features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00a_harness.txt
+/features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00a_module_origin.txt
+/features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00a_mypy.txt
+/features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00a_pytest_new.txt
+/features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00a_pytest_regressions.txt
+/features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00a_ruff.txt
+/features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00a_runner_default_python.txt
+/features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00a_runner_report.json
+/features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00a_runner_report_http.json
+/features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00a_runner_venv_with_http.txt
+/features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00a_security.txt
+/features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00a_skeleton.txt
+/features/FEAT-044-be2-ai-job-foundation/evidence/raw/phase_b_review_rq_source.txt
