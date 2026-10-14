@@ -1,5 +1,11 @@
 # Project context ledger
 
+## BE2 execution-roadmap amendment — 2026-10-14
+
+Owner requests a complete BE2 task analysis and one roadmap to follow against scope growth. Current BE2 execution routing is FEAT-044 `plan/BE2_ROADMAP.md` revision2 with `plan/BE2_EXECUTION_TRACKER.md`. This local queue/scope-control view preserves FEAT-040's 14 BE2 cards, contract ownership and source dependencies; it does not replace the team allocation or canonical SRS. One Claude implementation card/checkpoint is active at a time; current slot Q00 waits for Phase A candidate cross-review/task-owner acceptance and the missing live-route test disposition; code corrections are closed. Missing decisions can use only explicit, already-authorized component/library substitutions with remaining obligations and return checkpoints recorded. Enhancement work goes through change control rather than entering the active card.
+
+Only BE2-01 Phase A revision1 is implementation-approved. Phase B and BE2-02–14 keep their own approval/ADR/adoption/runtime evidence gates; full generation and durable/provider-copy obligations remain. Roadmap work changes documentation only; Phase A code review is PASS at fake/contract scope, while overall Phase A acceptance remains pending. Phase B plan revision3 has passed plan review; ADR/ports/environment/approval remain pending and implementation is NOT_STARTED. Current source/implementation evidence is in FEAT-044, not inferred from this context pointer.
+
 ## Current product-scope authority — 2026-10-10
 
 Owner explicitly replaced the prior product scope with Product Scope v1.0 for Montessori-inspired collaborative creative learning. Canonical requirements are now Master SRS v3.0 at `features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md`, governed by FEAT-039 and ADR-0014. The target is ages 3–12, Child/Teacher/Super Admin, Android child clients, classroom/group sessions, personal/collaborative canvas, adaptive sketch, gallery, teacher-approved knowledge video, off-screen, reflection/portfolio and administration/privacy/recovery. Owner confirmed keeping FastAPI and React Native.
