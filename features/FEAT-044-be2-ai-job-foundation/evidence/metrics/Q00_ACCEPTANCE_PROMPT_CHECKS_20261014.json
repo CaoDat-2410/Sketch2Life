@@ -1,0 +1,87 @@
+{
+  "recorded_at": "2026-10-14T23:22:00.000+07:00",
+  "scope": "Q00 documentation/prompt clarification only",
+  "prompt": "plan/CLAUDE_Q00_ACCEPTANCE_PROMPT.md",
+  "checks": [
+    {
+      "check": "harness",
+      "command": [
+        "<existing-backend-venv>/python",
+        "tools/validate_harness.py",
+        "--feature",
+        "features/FEAT-044-be2-ai-job-foundation"
+      ],
+      "started_at": "2026-10-14T23:21:24.194678+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00_acceptance_prompt_harness.txt"
+    },
+    {
+      "check": "security",
+      "command": [
+        "<existing-backend-venv>/python",
+        "tools/validate_repository_security.py"
+      ],
+      "started_at": "2026-10-14T23:21:24.987580+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00_acceptance_prompt_security.txt"
+    },
+    {
+      "check": "diff",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "started_at": "2026-10-14T23:21:25.824334+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00_acceptance_prompt_diff.txt"
+    }
+  ],
+  "document_sha256": {
+    "plan/CLAUDE_Q00_ACCEPTANCE_PROMPT.md": "2f14e1b79cf999f70b36876052b81211779d50db8332f4eab4c16d9128be119a",
+    "plan/BE2_EXECUTION_TRACKER.md": "1b25898acf0fb6b3f38efa881788f9ae6f09fbe826c9fe6e1b30626a9efdae94",
+    "status/STATUS.md": "51297d5a807b4a3a35b13d47c65eeddf0d686a2ea6e35c44923573984dffc014",
+    "CONTEXT.md": "f84948cf0cda69d71c1065c64b50166275e073d46d43768acddd5ca0e52849de",
+    "DECISIONS.md": "989b80d663ab88875475d26b289288c8b5af7bf46aba03c7477fceeb14158eb4",
+    "evidence/README.md": "d6cf05a35152a93ec7ccf2d6ccab13089d5df3656cf44be5a37d2782e30fe153"
+  },
+  "documents_whitespace": "PASS",
+  "reviewed_source_sha256": {
+    "backend/src/sketch2life/application/ports/ai_jobs.py": "de806e0cc19a275dd584e5a6f1250d8d53c2a899597a07b5b5a2f32dc7a6cbcb",
+    "backend/src/sketch2life/application/services/ai_jobs.py": "c6b4f1e1693f4ff87acd933e9b09df1c16100c47734f6890a2b3e931066ef512",
+    "backend/src/sketch2life/application/services/provider_copy_lifecycle.py": "c45ad24934b848ce1f4a6357daec925a2e70543d66d5bb8b85cae75a0201d73e",
+    "backend/src/sketch2life/contracts/schemas/ai_contract_candidates.py": "7bbe68aae583f2bf30b62a94108940aa5374ffe2be4a2dbb1d3500331615426c",
+    "backend/src/sketch2life/contracts/schemas/ai_jobs.py": "15025b1386ba2781204ad41655c1dec135b28672845bac1a3744d1b8ad1e9c5f",
+    "backend/src/sketch2life/domain/ai_jobs/__init__.py": "301c97c4a3a0308350dd857f39f94fd8f1b5cc45820a9fa8b4c6e4caee0b2748",
+    "backend/src/sketch2life/domain/ai_jobs/completion.py": "b3e1a78d2a93227d09e4db3fed4b77bc4d1c3775f54f519f68fd762ceb3ec62b",
+    "backend/src/sketch2life/domain/ai_jobs/model.py": "a60692c2f4deab068471a35dcf58abe777400e8bd4575beb9fbf8c3a7c078c8b",
+    "backend/src/sketch2life/domain/ai_jobs/provider_copy.py": "2c55b67e0a036b4e7786094d5e1bc59a2b3d81ecfc75f24aaaa03a4296ee1ddd",
+    "backend/src/sketch2life/infrastructure/ai_jobs/__init__.py": "22375802e5b6353e0531b8dfcc8034260672783edd3df6b20c55914fbc1cad78",
+    "backend/src/sketch2life/infrastructure/ai_jobs/fakes.py": "af78a5bbdbb3bea3fa2bd57cf6b52ceffce22312fa1a7546319eec4d564a22b1",
+    "backend/src/sketch2life/infrastructure/ai_jobs/harness.py": "f60eb285f39e53906c5123533bd0663dbd2263609e9f0ac0c988cb9a8f5ad90f",
+    "backend/src/sketch2life/interfaces/http/ai_jobs_fixture_app.py": "7ee82e3c80d3ba892b9b532961786832f747cf1a627a245cb20c90d85e6d1d03",
+    "backend/src/sketch2life/interfaces/http/routers/ai_jobs.py": "8f90789fe6bc5abbd5b1f2d489c201dd99def252ad2182d591a2becbbc7641b6",
+    "backend/tests/contract/test_ai_job_contracts.py": "a65c552542fcdc11a3b3340d1873fcc9085de78a533af25e95326f6cf149af79",
+    "backend/tests/contract/test_ai_job_polling.py": "26ba77564276802fd2d4c19958442d6094cf563ea5cb5392760a416e2b95bb25",
+    "backend/tests/unit/test_ai_job_application.py": "3a7760dfa7bc3f6c21a59ae91e69805708372dcafdaffd3152c2a5f650bdc57f",
+    "backend/tests/unit/test_ai_job_lifecycle.py": "d9535a7f109e0889d7c775abd6b25361f97479286286b409e78a3eaadb46ee37",
+    "backend/tests/unit/test_ai_job_review_regressions.py": "dab50ea145eb06e11f35fd8e4966ea567e4a386a05c25b43783409ffad770155",
+    "features/FEAT-044-be2-ai-job-foundation/approvals/TASK_APPROVAL.md": "1ba7f641a7501bffb99c065d137ea4104684e93a95a1bf4a0d7fd785fec71112",
+    "features/FEAT-044-be2-ai-job-foundation/plan/PLAN.md": "c835986f2a7dc15ac0c724e0b0304e44d3811575fabeffb7863e7e9058cfe766",
+    "features/FEAT-044-be2-ai-job-foundation/src/fixture_catalog.py": "272dd88a4d90d55b1f9d81f5665bf6dac8afdd2abd35e1fe96a6da47298e93f2",
+    "features/FEAT-044-be2-ai-job-foundation/src/run_fixture_contracts.py": "34010ffb6b6714e4e5c30949752809fbf1a6f6a90944d2db460fc1b12c0b2975",
+    "backend/tests/unit/test_ai_job_q00_followups.py": "ecc9638cf84d7ea41f6888c6d14bc6fccd075e1174cb722f511d474a74d05269"
+  },
+  "reviewed_sources_unchanged": true,
+  "approved_plan_unchanged": true,
+  "approval_unchanged": true,
+  "backend_changed": false,
+  "live_app_test": "NOT_RUN by this prompt preparation; Pillow environment gate retained",
+  "owner_decisions": "PENDING; no adoption/acceptance inferred",
+  "acceptance_clarification": "A9/A20 candidate cross-review/handoff; explicit checkpoint decision may defer production adoption without changing Phase B prerequisites",
+  "implementation_wip": 1,
+  "active_slot": "Q00",
+  "business_cards": 14,
+  "next_step": "Claude runs bounded Q00 gate work order; Phase B planning is a later separate turn",
+  "read_only_independent_review": "q00_gate_instructions_review confirmed A20 boundary and importorskip hazard"
+}

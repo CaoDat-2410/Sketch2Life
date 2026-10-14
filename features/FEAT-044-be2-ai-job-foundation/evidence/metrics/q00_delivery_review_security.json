@@ -1,0 +1,10 @@
+{
+  "check": "security",
+  "command": [
+    "<existing-backend-venv>/python",
+    "tools/validate_repository_security.py"
+  ],
+  "started_at": "2026-10-14T23:45:02.672562+07:00",
+  "exit_code": 0,
+  "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00_delivery_review_security.txt"
+}
