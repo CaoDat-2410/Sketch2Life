@@ -1,0 +1,63 @@
+{
+  "completion_reason_codes": [
+    "JOB_CANCELLED",
+    "JOB_TERMINAL",
+    "ATTEMPT_SUPERSEDED",
+    "INVALID_STATE",
+    "INPUT_MISMATCH",
+    "STALE_CONTEXT",
+    "UNSAFE_CONTENT",
+    "OUTPUT_MALFORMED",
+    "MALFORMED_CLAIM"
+  ],
+  "contract_version": "0.1-candidate",
+  "http_errors": {
+    "BUDGET_EXCEEDED": 429,
+    "CONSENT_REQUIRED": 403,
+    "CONTENT_RECALLED": 409,
+    "FORBIDDEN_SCOPE": 403,
+    "IDEMPOTENCY_PAYLOAD_MISMATCH": 409,
+    "INVALID_STATE": 409,
+    "MALFORMED_REQUEST": 400,
+    "POLICY_UNRESOLVED": 409,
+    "PRECONDITION_REQUIRED": 428,
+    "RESOURCE_NOT_FOUND": 404,
+    "STALE_AGGREGATE": 412,
+    "STALE_CONTEXT": 409,
+    "UNAUTHENTICATED": 401
+  },
+  "internal_worker_errors": {
+    "COMPLETION_CONFLICT": 409,
+    "WORKER_CAPABILITY_INVALID": 403
+  },
+  "job_failure_codes": {
+    "BUDGET_EXCEEDED": "The AI budget for this request is used up.",
+    "CANCELLED_BY_TEACHER": "The teacher cancelled this request.",
+    "CONSENT_REVOKED": "This request is no longer permitted.",
+    "CONTENT_RECALLED": "The source content was withdrawn.",
+    "KILL_SWITCH": "This AI feature is paused by policy.",
+    "OUTPUT_MALFORMED": "The AI result could not be used.",
+    "PROVIDER_ERROR": "The AI step could not finish.",
+    "PROVIDER_TIMEOUT": "The AI step took too long.",
+    "PROVIDER_UNAVAILABLE": "The AI service is temporarily unavailable.",
+    "SESSION_ENDED": "The session has ended.",
+    "SOURCE_EXPIRED": "The source content has expired.",
+    "UNSAFE_CONTENT": "The AI result was blocked by safety checks."
+  },
+  "non_authoritative_completion_reasons": [
+    "JOB_CANCELLED",
+    "JOB_TERMINAL",
+    "ATTEMPT_SUPERSEDED",
+    "INVALID_STATE",
+    "INPUT_MISMATCH",
+    "MALFORMED_CLAIM"
+  ],
+  "note": "Public messages are safe text; UI localises by code. No diagnostics exposed.",
+  "unknown_worker_failure_code_maps_to": "PROVIDER_ERROR",
+  "worker_failure_codes_kept_verbatim": [
+    "OUTPUT_MALFORMED",
+    "PROVIDER_ERROR",
+    "PROVIDER_TIMEOUT",
+    "PROVIDER_UNAVAILABLE"
+  ]
+}
