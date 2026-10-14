@@ -1,0 +1,187 @@
+{
+  "recorded_at": "2026-10-14T21:09:11.820967+07:00",
+  "scope": "BE2-01 Phase A fixture/contract implementation",
+  "python_default": "3.12.10",
+  "checks": [
+    {
+      "check": "runner_default_python",
+      "command": [
+        "python",
+        "-B",
+        "features/FEAT-044-be2-ai-job-foundation/src/run_fixture_contracts.py",
+        "--report",
+        "features/FEAT-044-be2-ai-job-foundation/evidence/raw/phase_a_run3_runner_report.json"
+      ],
+      "started_at": "2026-10-14T21:09:05.012212+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/phase_a_run3_runner_default_python.txt"
+    },
+    {
+      "check": "runner_venv_with_http",
+      "command": [
+        "<backend-venv>/python",
+        "-B",
+        "features/FEAT-044-be2-ai-job-foundation/src/run_fixture_contracts.py",
+        "--with-http",
+        "--report",
+        "features/FEAT-044-be2-ai-job-foundation/evidence/raw/phase_a_run3_runner_report_http.json"
+      ],
+      "started_at": "2026-10-14T21:09:05.609156+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/phase_a_run3_runner_venv_with_http.txt"
+    },
+    {
+      "check": "module_origin",
+      "command": [
+        "<backend-venv>/python",
+        "-B",
+        "-c",
+        "import sketch2life,pathlib;print(pathlib.Path(sketch2life.__file__).resolve())"
+      ],
+      "started_at": "2026-10-14T21:09:06.110254+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/phase_a_run3_module_origin.txt"
+    },
+    {
+      "check": "pytest_new",
+      "command": [
+        "<backend-venv>/python",
+        "-B",
+        "-m",
+        "pytest",
+        "backend/tests/unit/test_ai_job_lifecycle.py",
+        "backend/tests/unit/test_ai_job_application.py",
+        "backend/tests/contract/test_ai_job_contracts.py",
+        "backend/tests/contract/test_ai_job_polling.py",
+        "-p",
+        "no:cacheprovider",
+        "-rs"
+      ],
+      "started_at": "2026-10-14T21:09:06.181683+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/phase_a_run3_pytest_new.txt"
+    },
+    {
+      "check": "pytest_regressions",
+      "command": [
+        "<backend-venv>/python",
+        "-B",
+        "-m",
+        "pytest",
+        "backend/tests/unit/test_ephemeral_storage_ports.py",
+        "backend/tests/unit/test_whiteboard_video_job.py",
+        "backend/tests/unit/test_story_video_job_input_gate.py",
+        "backend/tests/contract/test_mobile_workflow_contracts.py",
+        "-p",
+        "no:cacheprovider",
+        "-rs"
+      ],
+      "started_at": "2026-10-14T21:09:07.118106+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/phase_a_run3_pytest_regressions.txt"
+    },
+    {
+      "check": "ruff",
+      "command": [
+        "<backend-venv>/ruff",
+        "check",
+        "--config",
+        "backend/pyproject.toml",
+        "--no-cache",
+        "backend/src/sketch2life/domain/ai_jobs",
+        "backend/src/sketch2life/application/ports/ai_jobs.py",
+        "backend/src/sketch2life/application/services/ai_jobs.py",
+        "backend/src/sketch2life/application/services/provider_copy_lifecycle.py",
+        "backend/src/sketch2life/contracts/schemas/ai_jobs.py",
+        "backend/src/sketch2life/contracts/schemas/ai_contract_candidates.py",
+        "backend/src/sketch2life/infrastructure/ai_jobs",
+        "backend/src/sketch2life/interfaces/http/routers/ai_jobs.py",
+        "backend/src/sketch2life/interfaces/http/ai_jobs_fixture_app.py",
+        "backend/tests/unit/test_ai_job_lifecycle.py",
+        "backend/tests/unit/test_ai_job_application.py",
+        "backend/tests/contract/test_ai_job_contracts.py",
+        "backend/tests/contract/test_ai_job_polling.py",
+        "features/FEAT-044-be2-ai-job-foundation/src"
+      ],
+      "started_at": "2026-10-14T21:09:07.775656+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/phase_a_run3_ruff.txt"
+    },
+    {
+      "check": "mypy",
+      "command": [
+        "<backend-venv>/mypy",
+        "--config-file",
+        "backend/pyproject.toml",
+        "--no-incremental",
+        "--cache-dir",
+        "nul",
+        "backend/src/sketch2life/domain/ai_jobs",
+        "backend/src/sketch2life/application/ports/ai_jobs.py",
+        "backend/src/sketch2life/application/services/ai_jobs.py",
+        "backend/src/sketch2life/application/services/provider_copy_lifecycle.py",
+        "backend/src/sketch2life/contracts/schemas/ai_jobs.py",
+        "backend/src/sketch2life/contracts/schemas/ai_contract_candidates.py",
+        "backend/src/sketch2life/infrastructure/ai_jobs",
+        "backend/src/sketch2life/interfaces/http/routers/ai_jobs.py",
+        "backend/src/sketch2life/interfaces/http/ai_jobs_fixture_app.py"
+      ],
+      "started_at": "2026-10-14T21:09:07.814234+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/phase_a_run3_mypy.txt"
+    },
+    {
+      "check": "harness",
+      "command": [
+        "python",
+        "tools/validate_harness.py",
+        "--feature",
+        "features/FEAT-044-be2-ai-job-foundation"
+      ],
+      "started_at": "2026-10-14T21:09:09.726855+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/phase_a_run3_harness.txt"
+    },
+    {
+      "check": "architecture",
+      "command": [
+        "python",
+        "tools/validate_architecture.py"
+      ],
+      "started_at": "2026-10-14T21:09:09.875510+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/phase_a_run3_architecture.txt"
+    },
+    {
+      "check": "security",
+      "command": [
+        "python",
+        "tools/validate_repository_security.py"
+      ],
+      "started_at": "2026-10-14T21:09:09.961230+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/phase_a_run3_security.txt"
+    },
+    {
+      "check": "skeleton",
+      "command": [
+        "python",
+        "tools/validate_skeleton.py"
+      ],
+      "started_at": "2026-10-14T21:09:11.715661+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/phase_a_run3_skeleton.txt"
+    },
+    {
+      "check": "diff_check",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "started_at": "2026-10-14T21:09:11.777836+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/phase_a_run3_diff_check.txt"
+    }
+  ]
+}
