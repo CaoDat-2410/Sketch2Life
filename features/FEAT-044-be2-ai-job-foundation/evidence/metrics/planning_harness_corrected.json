@@ -1,0 +1,13 @@
+{
+  "check": "harness_corrected",
+  "command": [
+    "python",
+    "tools/validate_harness.py",
+    "--feature",
+    "features/FEAT-044-be2-ai-job-foundation"
+  ],
+  "started_at": "2026-10-14T19:56:09.317015+07:00",
+  "exit_code": 0,
+  "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/planning_harness_corrected.txt",
+  "output_lines": 4
+}

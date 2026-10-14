@@ -1,0 +1,11 @@
+{
+  "check": "architecture",
+  "command": [
+    "python",
+    "tools/validate_architecture.py"
+  ],
+  "started_at": "2026-10-14T19:55:10.990899+07:00",
+  "exit_code": 0,
+  "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/planning_architecture.txt",
+  "output_lines": 6
+}
