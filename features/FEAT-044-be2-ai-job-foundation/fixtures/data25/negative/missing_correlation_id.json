@@ -1,0 +1,33 @@
+{
+  "attempt_id": "att_fx0002",
+  "attempt_number": 2,
+  "completed_at": "2026-10-14T13:00:01Z",
+  "created_at": "2026-10-14T13:00:00Z",
+  "failure": null,
+  "job_id": "job_fx0001",
+  "job_revision": 8,
+  "job_type": "sketch_assistance",
+  "organization_id": "org_fx_school_a",
+  "poll_after_ms": null,
+  "progress": {
+    "kind": "unknown",
+    "stage_label": null,
+    "value": null
+  },
+  "request_ref": {
+    "context_revision": 1,
+    "input_hash": "3602b13b16ff108f6a97d10b3ce1cbcae4e716deef0ddd7762f5dc3c99432809",
+    "request_id": "req_fx_001",
+    "request_revision": 1
+  },
+  "result_disposition": "accepted",
+  "result_refs": [
+    {
+      "artifact_ref": "artifact_fx0001",
+      "sha256": "19c2d42280960ece0fc75e0f2ba0b08a5c61f45f981f570d7a76bdf70b37b5ee"
+    }
+  ],
+  "started_at": "2026-10-14T13:00:01Z",
+  "state": "succeeded",
+  "updated_at": "2026-10-14T13:00:01Z"
+}
