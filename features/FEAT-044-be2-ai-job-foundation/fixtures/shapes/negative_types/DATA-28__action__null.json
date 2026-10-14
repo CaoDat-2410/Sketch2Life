@@ -1,0 +1,12 @@
+{
+  "data_id": "DATA-28",
+  "payload": {
+    "action": null,
+    "expected_job_revision": 7,
+    "expected_session_revision": 12,
+    "expected_video_version": 1,
+    "reason": "Class time is over.",
+    "retry_authorization_note": null
+  },
+  "reason": "action as null"
+}
