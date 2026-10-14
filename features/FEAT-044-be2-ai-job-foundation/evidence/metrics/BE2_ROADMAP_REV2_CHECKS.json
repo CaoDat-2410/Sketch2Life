@@ -1,0 +1,74 @@
+{
+  "recorded_at": "2026-10-14T21:49:03.559079+07:00",
+  "roadmap_revision": 2,
+  "scope": "documentation/routing only; no code or approval change",
+  "coverage": {
+    "cards": 14,
+    "queue_slots": 15,
+    "split_reason": "BE2-01 A/B checkpoints, not business cards",
+    "primary_cmd": 14,
+    "primary_data": 10,
+    "source_dependencies_match": true,
+    "queue_topological": true,
+    "open_phase_a_findings": 11
+  },
+  "checks": [
+    {
+      "check": "diff",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "started_at": "2026-10-14T21:47:26.620843+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/roadmap_rev2_diff.txt"
+    },
+    {
+      "check": "harness",
+      "command": [
+        "python",
+        "tools/validate_harness.py",
+        "--feature",
+        "features/FEAT-044-be2-ai-job-foundation"
+      ],
+      "started_at": "2026-10-14T21:47:25.795798+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/roadmap_rev2_harness.txt"
+    },
+    {
+      "check": "security",
+      "command": [
+        "python",
+        "tools/validate_repository_security.py"
+      ],
+      "started_at": "2026-10-14T21:47:24.982515+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/roadmap_rev2_security.txt"
+    }
+  ],
+  "source_freeze": {
+    "backend_tests_runners_approval_snapshot_unchanged": true,
+    "files_compared": 21,
+    "srs_backlog_unchanged": true,
+    "approved_phase_a_plan_sha256": "c835986f2a7dc15ac0c724e0b0304e44d3811575fabeffb7863e7e9058cfe766"
+  },
+  "reference_paths_checked": 8,
+  "new_document_whitespace": "PASS",
+  "independent_review": {
+    "be2_scope_analysis": "PASS",
+    "be2_sequence_review": "PASS; approval wording closed"
+  },
+  "routing": {
+    "active": "Q00",
+    "executor": "Claude",
+    "new_runtime_authorization": false,
+    "implementation_wip": 1
+  },
+  "artifact_sha256": {
+    "plan/BE2_ROADMAP.md": "985a5ff27b9ee07e6b659a08cb2eaedc6f3c62ce37f0677f5bcafe533c87958f",
+    "plan/BE2_EXECUTION_TRACKER.md": "52eea8ed19ccee333f49df5fce9faf804f543c63de9aa56274b68c9bea6f6c7d",
+    "evidence/notes/BE2_ROADMAP_REV1_ARCHIVE_20261014.md": "07f1b997c97ee0aff3a0a9048717ba54dbd9ff53795ce9487232a35d0be08cf9"
+  },
+  "runtime_tests": "NOT_RERUN; documentation-only; existing review NEEDS_REVISION"
+}
