@@ -1,0 +1,108 @@
+command=["<existing-backend-venv>/python", "-B", "-", "<be2-worktree>"]
+started_at=2026-10-14T22:56:31.164084+07:00
+exit_code=0
+{
+  "module_origin_in_worktree": true,
+  "module_origin": "backend/src/sketch2life/__init__.py",
+  "findings": {
+    "R01": {
+      "defect_present": false,
+      "observed": {
+        "reasons": [
+          "INPUT_MISMATCH",
+          "OUTPUT_MALFORMED"
+        ],
+        "quarantined": []
+      }
+    },
+    "R02": {
+      "defect_present": false,
+      "observed": {
+        "a": "job_fx0001",
+        "b": "job_fx0002",
+        "outcome_b": "created"
+      }
+    },
+    "R03": {
+      "defect_present": false,
+      "observed": {
+        "before_start": "INVALID_STATE",
+        "after_start": "accepted",
+        "mismatch": "INPUT_MISMATCH",
+        "corrected": "accepted"
+      }
+    },
+    "R04": {
+      "defect_present": false,
+      "observed": {
+        "http_status": 200,
+        "failure": {
+          "code": "PROVIDER_ERROR",
+          "retryable": false,
+          "public_message": "The AI step could not finish.",
+          "attempts_remaining": 0
+        }
+      }
+    },
+    "R05": {
+      "defect_present": false,
+      "observed": {
+        "adapter_calls": 1,
+        "returned": [
+          "purge_rcpt_fx0001",
+          "purge_rcpt_fx0001"
+        ],
+        "stored": "purge_rcpt_fx0001",
+        "copy": "purge_rcpt_fx0001"
+      }
+    },
+    "R06": {
+      "defect_present": false,
+      "observed": {
+        "first": "pending",
+        "second": "deleted",
+        "replay": {
+          "status": "pending",
+          "receipt": "purge_rcpt_fx0001"
+        },
+        "error": null,
+        "current": "deleted",
+        "adapter_calls": 2
+      }
+    },
+    "R07": {
+      "defect_present": false,
+      "observed": {
+        "problems": []
+      }
+    },
+    "R08": {
+      "defect_present": false,
+      "observed": {
+        "queued_with_refs_accepted": false
+      }
+    },
+    "R09": {
+      "defect_present": false,
+      "observed": {
+        "enqueued": 0,
+        "state": "cancelled"
+      }
+    },
+    "R10": {
+      "defect_present": false,
+      "observed": {
+        "before": 2000,
+        "after": 10000,
+        "same_etag": false,
+        "conditional_304": false
+      }
+    },
+    "R11": {
+      "defect_present": false,
+      "observed": {
+        "accepted_invalid": []
+      }
+    }
+  }
+}

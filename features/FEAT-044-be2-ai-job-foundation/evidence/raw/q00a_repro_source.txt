@@ -1,0 +1,119 @@
+"""Q00 follow-up repro for R03a, R04a, A18a. Prints JSON {id: {defect_present, observed}}."""
+from __future__ import annotations
+
+import json
+import sys
+import threading
+from dataclasses import replace
+from pathlib import Path
+
+ROOT = Path(sys.argv[1]).resolve()
+sys.path.insert(0, str(ROOT / "backend/src"))
+
+import sketch2life  # noqa: E402
+from sketch2life.domain.ai_jobs.provider_copy import CopyKind, ProviderCopy  # noqa: E402
+from sketch2life.infrastructure.ai_jobs.harness import (  # noqa: E402
+    ORG, TEACHER, build_fixture_harness,
+)
+
+out: dict[str, dict[str, object]] = {}
+
+
+def rec(rid: str, defect: bool, **observed: object) -> None:
+    out[rid] = {"defect_present": defect, "observed": observed}
+
+
+def guard(rid: str, fn) -> None:  # type: ignore[no-untyped-def]
+    try:
+        fn()
+    except Exception as exc:  # noqa: BLE001
+        rec(rid, True, exception=f"{type(exc).__name__}: {exc}")
+
+
+def r03a() -> None:
+    cases = {}
+    # temporary INVALID_STATE then accepted
+    h = build_fixture_harness()
+    j = h.service.create_job(h.create()).job_id
+    m = h.next_message()
+    cap = h.capability(j)
+    claim = h.success_claim(m)
+    first = h.service.accept_completion(cap, claim)
+    h.service.start_attempt(cap, j, m.attempt_id)
+    later = h.service.accept_completion(cap, claim)
+    refs = [r["artifact_ref"] for r in h.service.get_job_status(TEACHER, j).view["result_refs"]]  # type: ignore[index, union-attr]
+    cases["invalid_state"] = {"first": first.reason_code, "later": str(later.disposition),
+                              "projected": refs,
+                              "projected_but_quarantined": [r for r in refs
+                                                            if r in h.artifacts.quarantined]}
+    # INPUT_MISMATCH then corrected
+    h = build_fixture_harness()
+    j = h.service.create_job(h.create()).job_id
+    m = h.start_next()
+    cap = h.capability(j)
+    good = h.success_claim(m)
+    bad = h.service.accept_completion(cap, replace(good, input_hash="0" * 64))
+    later = h.service.accept_completion(cap, good)
+    refs = [r["artifact_ref"] for r in h.service.get_job_status(TEACHER, j).view["result_refs"]]  # type: ignore[index, union-attr]
+    cases["input_mismatch"] = {"first": bad.reason_code, "later": str(later.disposition),
+                               "projected": refs,
+                               "projected_but_quarantined": [r for r in refs
+                                                             if r in h.artifacts.quarantined]}
+    rec("R03a", any(c["projected_but_quarantined"] for c in cases.values()), **cases)
+
+
+def r04a() -> None:
+    results = {}
+    for label, value in (("list", []), ("dict", {}), ("list_secret", ["token=sk-fixture-secret"])):
+        h = build_fixture_harness()
+        j = h.service.create_job(h.create()).job_id
+        m = h.start_next()
+        try:
+            r = h.service.accept_completion(
+                h.capability(j), replace(h.failure_claim(m, retryable=False), failure_code=value))
+            results[label] = {"reason": r.reason_code, "authoritative": r.authoritative}
+        except Exception as exc:  # noqa: BLE001
+            results[label] = {"exception": f"{type(exc).__name__}: {exc}"}
+    rec("R04a", any("exception" in v for v in results.values()), **results)
+
+
+def a18a() -> None:
+    h = build_fixture_harness()
+    h.copy_service.register_copy(ProviderCopy("c1", ORG, "s1", CopyKind.OUTPUT, "fixture-deletes"))
+    entered, release = threading.Event(), threading.Event()
+    original = h.copy_adapter.request_cancel
+
+    def paused(copy):  # type: ignore[no-untyped-def]
+        entered.set()
+        release.wait(5)
+        return original(copy)
+
+    h.copy_adapter.request_cancel = paused  # type: ignore[method-assign]
+    purge_result: list[str] = []
+    cancel = threading.Thread(target=lambda: h.copy_service.cancel_scope(ORG, "s1"))
+    purge = threading.Thread(target=lambda: purge_result.append(
+        h.copy_service.purge_scope(ORG, "s1", "p1")[0].status))
+    cancel.start()
+    entered.wait(5)
+    purge.start()
+    purge.join(1.0)
+    purge_finished_while_cancel_paused = not purge.is_alive()
+    release.set()
+    cancel.join(5)
+    purge.join(5)
+    current = h.copy_registry.get("c1")
+    replay = h.copy_service.purge_scope(ORG, "s1", "p1")[0].status
+    rec("A18a", current is None or current.status.value != "deleted" or current.receipt_id is None,
+        purge=purge_result, purge_finished_while_cancel_paused=purge_finished_while_cancel_paused,
+        current=current.status.value if current else None,
+        current_receipt=current.receipt_id if current else None, replay=replay,
+        threads_alive=[cancel.is_alive(), purge.is_alive()])
+
+
+for fn in (r03a, r04a, a18a):
+    guard(fn.__name__.upper().replace("A18A", "A18a").replace("R03A", "R03a")
+          .replace("R04A", "R04a"), fn)
+
+origin = Path(sketch2life.__file__).resolve()
+print(json.dumps({"module_origin_in_worktree": origin.is_relative_to(ROOT),
+                  "findings": out}, indent=2, default=str))
