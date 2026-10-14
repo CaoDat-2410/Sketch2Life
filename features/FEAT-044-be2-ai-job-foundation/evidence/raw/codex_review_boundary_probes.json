@@ -1,0 +1,40 @@
+{
+  "scope": "read-only fresh synthetic probes",
+  "probes": {
+    "malformed_failure_code": {
+      "receipt": "accepted",
+      "http_status": 500,
+      "body": "Internal Server Error"
+    },
+    "shape_list_enum": {
+      "outcome": "TypeError: unhashable type: 'list'"
+    },
+    "queued_with_refs": {
+      "accepted": true,
+      "result_refs": 1
+    },
+    "terminal_child_poll_hint": {
+      "accepted": true,
+      "poll_after_ms": 2000
+    },
+    "revoked_dispatch": {
+      "enqueued": 1,
+      "state": "queued"
+    },
+    "old_purge_replay": {
+      "first": "pending",
+      "second": "deleted",
+      "replay": "InvalidCopyTransition: deleted copy cannot change status",
+      "adapter_calls": 2
+    },
+    "concurrent_purge": {
+      "adapter_calls": 2,
+      "returned_receipts": [
+        "receipt_fx_1",
+        "receipt_fx_2"
+      ],
+      "stored_receipt": "receipt_fx_2",
+      "copy_receipt": "receipt_fx_1"
+    }
+  }
+}

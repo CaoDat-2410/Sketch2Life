@@ -1,0 +1,73 @@
+{
+  "recorded_at": "2026-10-14T21:10:44.448182+07:00",
+  "scope": "BE2-01 Phase A fixture/contract implementation",
+  "python_default": "3.12.10",
+  "checks": [
+    {
+      "check": "runner_default_python",
+      "command": [
+        "python",
+        "-B",
+        "features/FEAT-044-be2-ai-job-foundation/src/run_fixture_contracts.py",
+        "--report",
+        "features/FEAT-044-be2-ai-job-foundation/evidence/raw/phase_a_final_runner_report.json"
+      ],
+      "started_at": "2026-10-14T21:10:42.048336+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/phase_a_final_runner_default_python.txt"
+    },
+    {
+      "check": "harness",
+      "command": [
+        "python",
+        "tools/validate_harness.py",
+        "--feature",
+        "features/FEAT-044-be2-ai-job-foundation"
+      ],
+      "started_at": "2026-10-14T21:10:42.373615+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/phase_a_final_harness.txt"
+    },
+    {
+      "check": "architecture",
+      "command": [
+        "python",
+        "tools/validate_architecture.py"
+      ],
+      "started_at": "2026-10-14T21:10:42.510077+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/phase_a_final_architecture.txt"
+    },
+    {
+      "check": "security",
+      "command": [
+        "python",
+        "tools/validate_repository_security.py"
+      ],
+      "started_at": "2026-10-14T21:10:42.595712+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/phase_a_final_security.txt"
+    },
+    {
+      "check": "skeleton",
+      "command": [
+        "python",
+        "tools/validate_skeleton.py"
+      ],
+      "started_at": "2026-10-14T21:10:44.339227+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/phase_a_final_skeleton.txt"
+    },
+    {
+      "check": "diff_check",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "started_at": "2026-10-14T21:10:44.407491+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/phase_a_final_diff_check.txt"
+    }
+  ]
+}
