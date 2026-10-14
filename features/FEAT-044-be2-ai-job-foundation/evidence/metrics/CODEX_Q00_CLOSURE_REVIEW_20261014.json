@@ -1,0 +1,182 @@
+{
+  "recorded_at": "2026-10-14T22:31:30.368771+07:00",
+  "review_result": "NEEDS_REVISION; original11 resolved; three focused follow-ups open",
+  "active_slot": "Q00",
+  "existing_approval": "Phase A revision1; unchanged",
+  "runtime_source_modified_by_review": false,
+  "approved_plan_unchanged": true,
+  "original_closure": {
+    "R01": "CLOSED_ORIGINAL_CASE",
+    "R02": "CLOSED_ORIGINAL_CASE",
+    "R03": "CLOSED_ORIGINAL_CASE",
+    "R04": "CLOSED_ORIGINAL_CASE",
+    "R05": "CLOSED_ORIGINAL_CASE",
+    "R06": "CLOSED_ORIGINAL_CASE",
+    "R07": "CLOSED_ORIGINAL_CASE",
+    "R08": "CLOSED_ORIGINAL_CASE",
+    "R09": "CLOSED_ORIGINAL_CASE",
+    "R10": "CLOSED_ORIGINAL_CASE",
+    "R11": "CLOSED_ORIGINAL_CASE"
+  },
+  "followups": [
+    {
+      "id": "R03a",
+      "priority": 2,
+      "status": "OPEN",
+      "origin": "directly enabled by Q00 receipt correction"
+    },
+    {
+      "id": "R04a",
+      "priority": 2,
+      "status": "OPEN",
+      "origin": "residual malformed input in new normalizer"
+    },
+    {
+      "id": "A18a",
+      "priority": 2,
+      "status": "OPEN",
+      "origin": "pre-existing; existing A18 invariant"
+    }
+  ],
+  "tests": {
+    "passed": 236,
+    "skipped": 1,
+    "skip_reason": "Pillow unavailable for live app route check"
+  },
+  "runner": {
+    "checks": 217,
+    "failures": 0,
+    "digest": "308b4c93b9ae1b9d8ba7e656aef3dc932ff0e72c457a8ad01592038a20b1f791"
+  },
+  "checks": [
+    {
+      "check": "harness",
+      "command": [
+        "python",
+        "tools/validate_harness.py",
+        "--feature",
+        "features/FEAT-044-be2-ai-job-foundation"
+      ],
+      "started_at": "2026-10-14T22:32:13.843887+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/codex_q00_closure_harness.txt"
+    },
+    {
+      "check": "original_repro",
+      "command": [
+        "<existing-backend-venv>/python",
+        "-B",
+        "-",
+        "<be2-worktree>"
+      ],
+      "stdin_source": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/q00_repro_source.txt",
+      "started_at": "2026-10-14T22:25:32.877131+07:00",
+      "exit_code": 0,
+      "environment": {
+        "PYTHONPATH": "<be2-worktree>/backend/src",
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "original_findings_absent": 11,
+      "module_origin_in_worktree": true,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/codex_q00_closure_original_repro.json"
+    },
+    {
+      "check": "pytest",
+      "command": [
+        "<existing-backend-venv>/python",
+        "-B",
+        "-m",
+        "pytest",
+        "backend/tests/unit/test_ai_job_review_regressions.py",
+        "backend/tests/unit/test_ai_job_lifecycle.py",
+        "backend/tests/unit/test_ai_job_application.py",
+        "backend/tests/contract/test_ai_job_contracts.py",
+        "backend/tests/contract/test_ai_job_polling.py",
+        "backend/tests/unit/test_ephemeral_storage_ports.py",
+        "backend/tests/unit/test_whiteboard_video_job.py",
+        "backend/tests/unit/test_story_video_job_input_gate.py",
+        "backend/tests/contract/test_mobile_workflow_contracts.py",
+        "-p",
+        "no:cacheprovider",
+        "-rs"
+      ],
+      "started_at": "2026-10-14T22:21:54.662262+07:00",
+      "exit_code": 0,
+      "environment": {
+        "PYTHONPATH": "<be2-worktree>/backend/src",
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/codex_q00_closure_pytest.txt"
+    },
+    {
+      "check": "runner",
+      "command": [
+        "<existing-backend-venv>/python",
+        "-B",
+        "features/FEAT-044-be2-ai-job-foundation/src/run_fixture_contracts.py",
+        "--with-http",
+        "--report",
+        "features/FEAT-044-be2-ai-job-foundation/evidence/raw/codex_q00_closure_runner_report.json"
+      ],
+      "started_at": "2026-10-14T22:21:54.918523+07:00",
+      "exit_code": 0,
+      "environment": {
+        "PYTHONPATH": "<be2-worktree>/backend/src",
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/codex_q00_closure_runner.txt"
+    },
+    {
+      "check": "security",
+      "command": [
+        "python",
+        "tools/validate_repository_security.py"
+      ],
+      "started_at": "2026-10-14T22:32:14.642106+07:00",
+      "exit_code": 0,
+      "log": "features/FEAT-044-be2-ai-job-foundation/evidence/raw/codex_q00_closure_security.txt"
+    }
+  ],
+  "reviewers": [
+    "Codex primary",
+    "q00_lifecycle_closure",
+    "q00_copy_closure",
+    "q00_contract_http_closure"
+  ],
+  "reviewed_source_sha256": {
+    "backend/src/sketch2life/application/ports/ai_jobs.py": "1fe5d1687fc428e1e24fac44240cd34ea8ff30076b5538649d7da5269fd0b8a4",
+    "backend/src/sketch2life/application/services/ai_jobs.py": "92df30d1f0f27ef2a97b081bc972de4375adb13d818fe51e275cef523581ff77",
+    "backend/src/sketch2life/application/services/provider_copy_lifecycle.py": "6ffce809767c545e74d4b6b98f936f88efd51782bca908d9a3b620f7b4e85993",
+    "backend/src/sketch2life/contracts/schemas/ai_contract_candidates.py": "7bbe68aae583f2bf30b62a94108940aa5374ffe2be4a2dbb1d3500331615426c",
+    "backend/src/sketch2life/contracts/schemas/ai_jobs.py": "15025b1386ba2781204ad41655c1dec135b28672845bac1a3744d1b8ad1e9c5f",
+    "backend/src/sketch2life/domain/ai_jobs/__init__.py": "301c97c4a3a0308350dd857f39f94fd8f1b5cc45820a9fa8b4c6e4caee0b2748",
+    "backend/src/sketch2life/domain/ai_jobs/completion.py": "22c176e7b6e2bfa63accf1a37db4a43e9b22a57fe04359d113979a68babe4baf",
+    "backend/src/sketch2life/domain/ai_jobs/model.py": "a60692c2f4deab068471a35dcf58abe777400e8bd4575beb9fbf8c3a7c078c8b",
+    "backend/src/sketch2life/domain/ai_jobs/provider_copy.py": "2c55b67e0a036b4e7786094d5e1bc59a2b3d81ecfc75f24aaaa03a4296ee1ddd",
+    "backend/src/sketch2life/infrastructure/ai_jobs/__init__.py": "22375802e5b6353e0531b8dfcc8034260672783edd3df6b20c55914fbc1cad78",
+    "backend/src/sketch2life/infrastructure/ai_jobs/fakes.py": "b89472c7f57d05f7f07e8d17a3d48452c9f402d074a460a83233997f32f15891",
+    "backend/src/sketch2life/infrastructure/ai_jobs/harness.py": "f60eb285f39e53906c5123533bd0663dbd2263609e9f0ac0c988cb9a8f5ad90f",
+    "backend/src/sketch2life/interfaces/http/ai_jobs_fixture_app.py": "7ee82e3c80d3ba892b9b532961786832f747cf1a627a245cb20c90d85e6d1d03",
+    "backend/src/sketch2life/interfaces/http/routers/ai_jobs.py": "8f90789fe6bc5abbd5b1f2d489c201dd99def252ad2182d591a2becbbc7641b6",
+    "backend/tests/contract/test_ai_job_contracts.py": "a65c552542fcdc11a3b3340d1873fcc9085de78a533af25e95326f6cf149af79",
+    "backend/tests/contract/test_ai_job_polling.py": "26ba77564276802fd2d4c19958442d6094cf563ea5cb5392760a416e2b95bb25",
+    "backend/tests/unit/test_ai_job_application.py": "3a7760dfa7bc3f6c21a59ae91e69805708372dcafdaffd3152c2a5f650bdc57f",
+    "backend/tests/unit/test_ai_job_lifecycle.py": "d9535a7f109e0889d7c775abd6b25361f97479286286b409e78a3eaadb46ee37",
+    "backend/tests/unit/test_ai_job_review_regressions.py": "9845697e4efcf2d557c844f8c0178ab710044a9713dff2c112688fc50aec76fd",
+    "features/FEAT-044-be2-ai-job-foundation/approvals/TASK_APPROVAL.md": "1ba7f641a7501bffb99c065d137ea4104684e93a95a1bf4a0d7fd785fec71112",
+    "features/FEAT-044-be2-ai-job-foundation/plan/PLAN.md": "c835986f2a7dc15ac0c724e0b0304e44d3811575fabeffb7863e7e9058cfe766",
+    "features/FEAT-044-be2-ai-job-foundation/src/fixture_catalog.py": "272dd88a4d90d55b1f9d81f5665bf6dac8afdd2abd35e1fe96a6da47298e93f2",
+    "features/FEAT-044-be2-ai-job-foundation/src/run_fixture_contracts.py": "076da3d6de38eecc5453e7643559e31fe6db897e2fbc8b84b6a35e22fda7f32f"
+  },
+  "business_card_count": 14,
+  "new_card_or_runtime_authorization": false,
+  "gates_pending": [
+    "three Q00 corrections",
+    "P1/P2/P4 candidate adoption",
+    "Pillow live app check",
+    "separate Phase B decisions/approval"
+  ],
+  "probe_command": "Existing backend venv python -B -, followup_probe_source.txt as stdin, PYTHONPATH=<be2-worktree>/backend/src, PYTHONDONTWRITEBYTECODE=1, cwd=<be2-worktree>",
+  "reviewed_sources_unchanged_after_documentation": true,
+  "new_review_documents_whitespace": "PASS"
+}

@@ -1,0 +1,7 @@
+Command=python tools/validate_harness.py --feature features/FEAT-044-be2-ai-job-foundation
+started_at=2026-10-14T22:45:25.986528+07:00
+exit_code=0
+HARNESS_VALID
+root=<worktree>
+approval_gate=enabled
+frontend_asset_gate=enabled

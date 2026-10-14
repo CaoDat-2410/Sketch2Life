@@ -1,0 +1,71 @@
+from dataclasses import replace
+import json, threading
+from pathlib import Path
+from sketch2life.infrastructure.ai_jobs.harness import build_fixture_harness, TEACHER, ORG
+from sketch2life.domain.ai_jobs.provider_copy import ProviderCopy, CopyKind
+
+out={}
+for case in ("before_start","input_mismatch"):
+    h=build_fixture_harness()
+    j=h.service.create_job(h.create()).job_id
+    m=h.next_message() if case=="before_start" else h.start_next()
+    cap=h.capability(j)
+    good=h.success_claim(m)
+    bad=good if case=="before_start" else replace(good,input_hash="0"*64)
+    rejected=h.service.accept_completion(cap,bad)
+    if case=="before_start":
+        h.service.start_attempt(cap,j,m.attempt_id)
+    accepted=h.service.accept_completion(cap,good)
+    view=h.service.get_job_status(TEACHER,j).view
+    out["R03a_"+case]={"first_reason":rejected.reason_code,
+        "second_disposition":str(accepted.disposition),
+        "state":str(h.store.snapshot().jobs[j].state),
+        "quarantined":h.artifacts.quarantined,
+        "exposed_refs":view["result_refs"]}
+for label,value in (("list",[]),("dict",{})):
+    h=build_fixture_harness()
+    j=h.service.create_job(h.create()).job_id
+    m=h.start_next()
+    claim=h.failure_claim(m)
+    try:
+        result=h.service.accept_completion(h.capability(j),replace(claim,failure_code=value))
+        observed={"reason":result.reason_code}
+    except Exception as exc:
+        observed={"exception":type(exc).__name__,"message":str(exc)}
+    out["R04a_"+label]={"observed":observed,"state":str(h.store.snapshot().jobs[j].state)}
+
+h=build_fixture_harness()
+h.copy_service.register_copy(ProviderCopy("copy_fx_recheck",ORG,"scope_fx_recheck",CopyKind.OUTPUT,"fixture-deletes"))
+entered,release=threading.Event(),threading.Event()
+original=h.copy_adapter.request_cancel
+def paused(copy):
+    entered.set()
+    if not release.wait(5):
+        raise RuntimeError("repro event timeout")
+    return original(copy)
+h.copy_adapter.request_cancel=paused
+errors=[]
+def cancel():
+    try:
+        h.copy_service.cancel_scope(ORG,"scope_fx_recheck")
+    except Exception as exc:
+        errors.append(type(exc).__name__+":"+str(exc))
+thread=threading.Thread(target=cancel)
+thread.start()
+if not entered.wait(5):
+    release.set()
+    raise RuntimeError("cancel did not enter")
+purged=h.copy_service.purge_scope(ORG,"scope_fx_recheck","key_fx")[0]
+release.set()
+thread.join(5)
+if thread.is_alive():
+    raise RuntimeError("cancel did not finish")
+copy=h.copy_registry.get("copy_fx_recheck")
+replay=h.copy_service.purge_scope(ORG,"scope_fx_recheck","key_fx")[0]
+out["A18_cancel_purge_existing_gap"]={"purge_status":purged.status,
+    "current_status":str(copy.status),"current_receipt":copy.receipt_id,
+    "replay_status":replay.status,"thread_errors":errors,
+    "origin":"pre-existing relative to Q00; not introduced by these fixes"}
+payload=json.dumps({"scope":"targeted read-only review probes; fresh synthetic fakes","observations":out},ensure_ascii=False,indent=2)
+Path("features/FEAT-044-be2-ai-job-foundation/evidence/raw/codex_q00_closure_followup_probes.json").write_text(payload+"\n",encoding="utf-8")
+print(payload)

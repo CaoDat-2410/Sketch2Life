@@ -1,0 +1,55 @@
+{
+  "scope": "targeted read-only review probes; fresh synthetic fakes",
+  "observations": {
+    "R03a_before_start": {
+      "first_reason": "INVALID_STATE",
+      "second_disposition": "accepted",
+      "state": "succeeded",
+      "quarantined": {
+        "artifact_fx0001": "INVALID_STATE"
+      },
+      "exposed_refs": [
+        {
+          "artifact_ref": "artifact_fx0001",
+          "sha256": "27c3a34c9e70f8c7686bec5b2f3ce44ff1a94b1e1eef64f280cadf23f5fbe7d9"
+        }
+      ]
+    },
+    "R03a_input_mismatch": {
+      "first_reason": "INPUT_MISMATCH",
+      "second_disposition": "accepted",
+      "state": "succeeded",
+      "quarantined": {
+        "artifact_fx0001": "INPUT_MISMATCH"
+      },
+      "exposed_refs": [
+        {
+          "artifact_ref": "artifact_fx0001",
+          "sha256": "27c3a34c9e70f8c7686bec5b2f3ce44ff1a94b1e1eef64f280cadf23f5fbe7d9"
+        }
+      ]
+    },
+    "R04a_list": {
+      "observed": {
+        "exception": "TypeError",
+        "message": "unhashable type: 'list'"
+      },
+      "state": "running"
+    },
+    "R04a_dict": {
+      "observed": {
+        "exception": "TypeError",
+        "message": "unhashable type: 'dict'"
+      },
+      "state": "running"
+    },
+    "A18_cancel_purge_existing_gap": {
+      "purge_status": "deleted",
+      "current_status": "cancel_requested",
+      "current_receipt": null,
+      "replay_status": "deleted",
+      "thread_errors": [],
+      "origin": "pre-existing relative to Q00; not introduced by these fixes"
+    }
+  }
+}
