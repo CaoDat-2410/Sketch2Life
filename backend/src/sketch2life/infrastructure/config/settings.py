@@ -6,7 +6,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal, Self
 
-from pydantic import Field, model_validator
+from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -23,6 +23,8 @@ class Settings(BaseSettings):
     api_host: str = "0.0.0.0"
     api_port: int = 8000
     log_level: str = "INFO"
+    database_url: SecretStr | None = None
+    be1_artifact_root: Path = Path(".runtime/be1-artifacts")
     session_idle_ttl_seconds: int = Field(default=1800, ge=60, le=86_400)
 
     auth_provider: Literal["development", "firebase"] = "development"
@@ -82,6 +84,23 @@ class Settings(BaseSettings):
         return self
 
 
+class CoreDatabaseSettings(BaseSettings):
+    """Database-only configuration for adapters and Alembic, independent of providers."""
+
+    model_config = SettingsConfigDict(
+        env_prefix="SKETCH2LIFE_",
+        env_file=(Path(__file__).resolve().parents[4] / ".env", ".env"),
+        extra="ignore",
+    )
+
+    database_url: SecretStr | None = None
+
+
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
+
+
+@lru_cache
+def get_core_database_settings() -> CoreDatabaseSettings:
+    return CoreDatabaseSettings()

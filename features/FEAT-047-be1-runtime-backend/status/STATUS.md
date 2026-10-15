@@ -1,0 +1,11 @@
+# Feature status
+
+- Status: APPROVED
+- Plan revision: 1
+- Implementation status: IMPLEMENTING
+- Last updated: 2026-10-15 (Asia/Saigon).
+- Completed: source/context review, bounded runtime plan, task approval, ADR-0017, PostgreSQL schema and migrations, Firebase adult-token adapter, local persistent artifact adapter, organization/class/consent/session/admission/group/turn/canvas/artifact/gallery/observation/data-request APIs, local retention worker, detailed API contract, and isolated PostgreSQL acceptance tests.
+- Verified: migrations 20261014_0001 through 20261014_0004 applied to Docker PostgreSQL 17; Alembic reports no metadata drift; OpenAPI exposes 42 BE1 paths / 47 operations with bearer security, Be1Error, request-ID parameter/response headers, and artifact 410/413/415 errors; live Uvicorn smoke passes 200/401/422/404; the full backend suite reports 2,173 collected, 2,167 passed, 6 skipped, 0 failures; all 3 focused BE1 PostgreSQL integration tests pass; targeted Ruff and compilation pass; retention worker --once starts and safely finds no additional due sessions after the acceptance purge.
+- Completed this increment: idempotent join responses now keep a stable shape; size/integrity HTTP statuses are present in OpenAPI; the API contract documents every operation, request schema, response shape, authorization boundary, error envelope, and current policy gate. PostgreSQL acceptance proves audit/outbox persistence, stale-command rejection, role enforcement, pending-consent denial, data-request status, filesystem persistence across store instances, one-time retention purge, and external-purge pending status.
+- Active: live Firebase-token verification still requires Firebase project runtime configuration. Child-data success paths remain intentionally blocked until the separately approved consent verifier and purpose catalogue exist. Production object storage and external/provider-purge receipts remain open.
+- Gates: synthetic verified principals were used only at the test dependency boundary; no live Firebase token or real child data was used. Production storage, external copy discovery/purge, and some SRS TBD policy remain open. No claim of production readiness.
