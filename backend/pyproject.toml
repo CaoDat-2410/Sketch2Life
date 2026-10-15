@@ -12,6 +12,7 @@ dependencies = [
   "alembic>=1.16,<2",
   "boto3>=1.39,<2",
   "fastapi>=0.141,<1",
+  "firebase-admin>=6.9,<8",
   "httpx2>=2.10,<3",
   "pydantic>=2.11,<3",
   "pydantic-settings>=2.10,<3",

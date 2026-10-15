@@ -1,8 +1,8 @@
 # Sketch2Life — hiện trạng hệ thống, cấu trúc, luồng hoạt động và contract
 
-> Snapshot kiểm tra ngày **2026-09-11** trên checkout codex/feat-018-contract-plan, commit 3f8d856 (test(feat018): verify online model compatibility at p1 boundary).
+> Baseline sản phẩm bên dưới được lập ngày **2026-09-11**; phần BE1 được cập nhật ngày **2026-10-15** trên nhánh `codex/be1-real-backend`.
 >
-> Đây là snapshot của checkout hiện tại, không phải tuyên bố rằng toàn bộ target architecture đã chạy production. Mỗi phần được phân loại là **Implemented**, **Offline/fixture-only**, **Accepted architecture**, **Planned**, hoặc **Open/blocked**.
+> FEAT-045 cung cấp domain/ports/contracts; FEAT-046 cung cấp durable PostgreSQL adapter; FEAT-047 nối API BE1 v1 và worker thật vào PostgreSQL 17 trong Docker. Contract đầy đủ có 47 operations / 42 paths tại features/FEAT-047-be1-runtime-backend/artifacts/API_CONTRACT.md và OpenAPI 3.1 tương ứng. Live smoke đạt health/auth/validation/404; full backend suite đạt 2,173 tests (6 skipped), cùng 3 acceptance tests trên PostgreSQL thật. Consent vẫn pending theo quyết định owner; Firebase project credentials và object storage production chưa được cấu hình. Đây không phải tuyên bố production-ready.
 
 ## 1. Tóm tắt điều hành
 
@@ -11,13 +11,13 @@ Sketch2Life biến bản vẽ và lời kể của trẻ thành một trải ngh
 | Khu vực | Tình trạng hiện tại | Mức độ |
 |---|---|---|
 | Governance/context/security | Harness và validators đã có | Chạy local |
-| Backend | FastAPI health/live-fixture route, typed contracts, P2 admission, P1 compiler/catalog, AI adapters/provider guard | Từng boundary chạy; chưa production runtime đầy đủ |
+| Backend | FastAPI health/live-fixture route, typed contracts, P2 admission, P1 compiler/catalog, AI adapters/provider guard, BE1 core/PostgreSQL/API/worker | FEAT-047 exposes PostgreSQL-backed BE1 v1 with unified error/request-ID responses; consent remains pending, Firebase runtime config and production object storage are open |
 | Mobile | Android-only React Native fixture flow, optional live-fixture call, auth port, Pixi protocol boundary | Fixture UI chạy; capture/auth/full session chưa có |
 | P1 Montessori | 100 MVP activities, 20 golden activities, deterministic rules, ExperienceSpec, Gate B integrity | Offline; records vẫn production_eligible=false |
 | P2 understanding | Media validation, ASR/VLM contract generations, fixtures, Lightning synthetic route, Qwen/Whisper boundaries | Offline/dev; model chưa freeze production |
 | P3 renderer | PixiJS + GSAP standalone package, closed Motion DSL, provenance, fallback | Package chạy; chưa nối hoàn chỉnh vào mobile bridge |
 | P4 learning media | Cache-first resolver, reviewed identity check, typed fallback/block, replay | Offline/in-memory; chưa có provider worker/S3 |
-| Runtime integration | FEAT-015 fixture flow và FEAT-016 in-memory session/job semantics | Test harness; chưa là API/session persistence |
+| Runtime integration | FEAT-015/016 fixture runtimes; FEAT-045 core boundary; FEAT-046 durable adapter; FEAT-047 BE1 runtime | BE1 API and local retention worker are database-backed; product fixture routes remain separate |
 | Production infra/release | Compose + Android Gradle skeleton | Chưa wire migration/worker/auth/signing/release |
 
 Kết luận: **đây là foundation với nhiều offline/fixture workstream đã harden, chưa phải sản phẩm end-to-end production-ready**.
@@ -47,6 +47,8 @@ External reference không tự cấp quyền implementation. Tài liệu này kh
 - features/FEAT-016-runtime-integration/: fixture-only application/session/job runtime.
 - features/FEAT-017-live-ai-dev-integration/: live AI development evidence/guide.
 - features/FEAT-018-live-image-canvas-flow/: P1 compiler, P2 D2 image admission, P3/P4 offline integration và contract freeze.
+- features/FEAT-045-be1-core-domain-foundation/ và features/FEAT-046-be1-durable-core-adapters/: BE1 core plan, approval, decisions, status and evidence.
+- docs/adr/ADR-0016-be1-02-postgresql-durable-core.md: bounded PostgreSQL decision for FEAT-046.
 
 ### 2.3 Checkout caveat
 
@@ -60,6 +62,8 @@ Tại lúc kiểm tra, git status --short --branch cho thấy:
 ~~~
 
 Ba file trên hiện đã được ghi nhận trong commit 3f8d856 sau lần kiểm tra ban đầu. Tại thời điểm chốt snapshot, working tree chỉ còn các file FEAT-019/report mới.
+
+Đây là checkout caveat lịch sử của snapshot 2026-09-11, không mô tả working tree hiện tại. Trạng thái core mới nhất nằm trên `codex/be1-core-foundation`; FEAT-045/046 còn các thay đổi chưa commit và tình trạng database verification được ghi trong FEAT-046.
 
 ## 3. Product boundary và invariants
 
@@ -150,7 +154,8 @@ backend/src/sketch2life/
 │  ├─ understanding/                 fixture/Whisper/Qwen adapters
 │  ├─ catalog/p1_catalog.py
 │  ├─ media_validation/              file inspector + PyAV adapter
-│  └─ config/settings.py
+│  ├─ config/settings.py
+│  └─ persistence/                   FEAT-046 PostgreSQL core metadata adapter source
 └─ benchmark/                        ASR/VLM readiness and quality studies
 ~~~
 
@@ -186,7 +191,10 @@ Mobile baseline: com.sketch2life.mobile, minSdk 29, targetSdk 36, compileSdk 37,
 | FEAT-016 | Fixture-only application/session/job runtime; context status REVIEW |
 | FEAT-017 | Live AI development integration evidence/guide; không phải production rollout |
 | FEAT-018 | Active branch: P1 complete, P2-T1 D2 accepted, P3/P4 offline integration; downstream live/production pending |
-| FEAT-019 | Report hiện trạng này; documentation-only |
+| FEAT-019 | Report hiện trạng này; documentation-only baseline from 2026-09-11 |
+| FEAT-045 | BE1-01 framework-independent domain/ports/contracts and synthetic fixture boundary |
+| FEAT-046 | BE1-02 PostgreSQL/SQLAlchemy/Alembic adapter; synthetic PostgreSQL 17.11 acceptance passed |
+| FEAT-047 | BE1-03–15 PostgreSQL-backed API/runtime and local worker; consent and production providers remain gated |
 
 ## 5. Kiến trúc và dependency direction
 
@@ -242,7 +250,7 @@ flowchart TD
     Runtime[FEAT-016 SessionAggregate] --> LocalJob[LocalJobStore + LocalTransport]
 ~~~
 
-PostgreSQL, Redis, MinIO, Firebase, S3, RQ, Android capture và production provider chưa nằm trên một đường chạy hoàn chỉnh.
+PostgreSQL, Redis, MinIO, Firebase, S3, RQ, Android capture và production provider chưa nằm trên một đường chạy hoàn chỉnh. FEAT-046 có adapter/migration và đã được verify riêng trên PostgreSQL ephemeral bằng synthetic data, nhưng chưa có kết nối API/worker hoặc production database.
 
 ## 6. Luồng hoạt động
 
@@ -647,7 +655,7 @@ Settings guard không đồng nghĩa route đã có authentication middleware. R
 
 ### 10.1 Compose
 
-compose.yaml định nghĩa PostgreSQL 17 Alpine ở port 5432, Redis 8 Alpine ở port 6379 với append-only persistence và MinIO ở 9000/9001. Đây là disposable local stack với placeholder credentials. Chưa có application adapter/migration/worker wiring đầy đủ.
+compose.yaml định nghĩa PostgreSQL 17 Alpine ở port 5432, Redis 8 Alpine ở port 6379 với append-only persistence và MinIO ở 9000/9001. Đây là disposable local stack với placeholder credentials. FEAT-046 bổ sung application adapter/migration cho BE1 core; adapter đã qua DB acceptance riêng trên PostgreSQL 17.11 ephemeral, nhưng chưa có API/worker wiring.
 
 ### 10.2 Android release path
 
@@ -706,6 +714,9 @@ Evidence tài liệu này nằm tại features/FEAT-019-current-system-documenta
 - Standalone PixiJS/GSAP renderer, Motion DSL, provenance validation, fallback, benchmark.
 - Android React Native skeleton, fixture reducer/UI, backend synthetic client, auth port, bridge message validation.
 - Local Compose definitions cho Postgres/Redis/MinIO.
+- FEAT-045 core domain rules, application ports, closed versioned contracts và synthetic fixture runner.
+- FEAT-046 PostgreSQL core persistence models/repositories, organization-scoped read ports, CAS mutation unit-of-work, audit/outbox, idempotent local consumer receipt, Alembic upgrade/downgrade source, synthetic-only seed fixture, and ephemeral PostgreSQL 17.11 acceptance evidence.
+- FEAT-047 versioned `/api/be1/v1` runtime, Firebase adult-token verification adapter, PostgreSQL-backed organization/class/session/canvas/artifact/gallery/observation/lifecycle endpoints, local persistent artifact storage, retention worker, device grant rotation, group controls, and a common API error/request-ID contract. Consent and child-data operations fail closed while verification policy is pending; live non-mutating API smoke evidence and remaining gates are feature-local.
 
 ### 12.2 Chỉ offline/fixture-only
 
@@ -719,11 +730,12 @@ Evidence tài liệu này nằm tại features/FEAT-019-current-system-documenta
 
 ### 12.3 Chưa implement hoặc chưa wire vào production vertical slice
 
-- Firebase ID-token verification middleware và role/authorization persistence.
+- Live Firebase ID-token acceptance and runtime project credentials; the verification adapter and assignment persistence are implemented, but fail closed until configured.
 - Parent/guide sign-in UI, child supervised session creation.
 - Camera/image picker/microphone capture và consent UX.
-- Backend session repository, DB migrations, PostgreSQL adapter.
-- S3/MinIO object-storage adapter, upload authorization, retention/deletion jobs.
+- Consent verifier and approved purpose catalogue; child-data workflows remain blocked by design.
+- Production S3/MinIO object-storage adapter and external-copy purge receipts; local artifact API and scheduled session-retention worker are implemented.
+- Authenticated end-to-end API acceptance with Firebase credentials and child-data acceptance after consent approval.
 - Redis/RQ queue, worker orchestration, job resource API và polling endpoint.
 - Full multimodal fusion producer migration sang frozen shared registry.
 - Live ASR/VLM production model call, benchmark-based profile freeze, Runpod adapter.

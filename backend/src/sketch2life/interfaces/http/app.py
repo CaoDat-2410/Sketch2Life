@@ -4,11 +4,15 @@ import logging
 import os
 import re
 from pathlib import Path
+from uuid import uuid4
 
 from fastapi import FastAPI, Request
+from fastapi.exception_handlers import http_exception_handler
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.openapi.utils import get_openapi
+from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from sketch2life.application.ports.activity_ranker import ActivityRankerPort
 from sketch2life.application.ports.child_preference_classifier import (
@@ -32,6 +36,7 @@ from sketch2life.application.services.whiteboard_video_job import (
 )
 from sketch2life.application.services.whiteboard_video_pipeline import WhiteboardVideoPipeline
 from sketch2life.contracts.schemas.asr import AsrProfileId
+from sketch2life.contracts.schemas.be1_runtime import Be1Error
 from sketch2life.contracts.schemas.mobile_workflow import (
     MobileWorkflowResultV1,
     WorkflowFailureV1,
@@ -99,9 +104,11 @@ from sketch2life.infrastructure.storage.in_memory_demo_workflow import (
 from sketch2life.infrastructure.storage.in_memory_renderer_source_grants import (
     InMemoryRendererSourceGrantStore,
 )
+from sketch2life.interfaces.http.be1_runtime import build_be1_runtime
 from sketch2life.interfaces.http.middleware.bounded_image_upload import (
     BoundedImageUploadMiddleware,
 )
+from sketch2life.interfaces.http.routers.be1_runtime import router as be1_runtime_router
 from sketch2life.interfaces.http.routers.child_preferences import (
     router as child_preferences_router,
 )
@@ -171,10 +178,73 @@ def create_app(
         redoc_url=None,
     )
 
+    @application.middleware("http")
+    async def be1_request_context(request: Request, call_next):
+        if not request.url.path.startswith("/api/be1/v1"):
+            return await call_next(request)
+        supplied_id = request.headers.get("X-Request-ID", "")
+        request_id = supplied_id if _SAFE_ID.fullmatch(supplied_id) else str(uuid4())
+        request.state.be1_request_id = request_id
+        response = await call_next(request)
+        response.headers["X-Request-ID"] = request_id
+        return response
+
+    @application.exception_handler(StarletteHTTPException)
+    async def handle_http_exception(
+        request: Request, exc: StarletteHTTPException
+    ) -> JSONResponse:
+        if not request.url.path.startswith("/api/be1/v1"):
+            return await http_exception_handler(request, exc)
+        detail = exc.detail if isinstance(exc.detail, dict) else {}
+        status_codes = {
+            401: "AUTHENTICATION_REQUIRED",
+            403: "FORBIDDEN",
+            404: "NOT_FOUND",
+            409: "CONFLICT",
+            422: "REQUEST_VALIDATION_FAILED",
+            503: "SERVICE_UNAVAILABLE",
+        }
+        safe_messages = {
+            "AUTHENTICATION_REQUIRED": "A verified bearer token is required",
+            "INVALID_IDENTITY_TOKEN": "The bearer token could not be verified",
+            "IDENTITY_PROVIDER_UNAVAILABLE": "Identity verification is temporarily unavailable",
+            "DEVICE_AUTHENTICATION_REQUIRED": "A valid device grant and device key are required",
+            "INVALID_DEVICE_CREDENTIAL": "The device credential could not be verified",
+            "FORBIDDEN": "The caller is not authorized for this resource",
+            "NOT_FOUND": "The requested BE1 resource was not found",
+            "CONFLICT": "The request conflicts with current BE1 state",
+            "REQUEST_VALIDATION_FAILED": "The request does not match the BE1 API contract",
+            "SERVICE_UNAVAILABLE": "A required BE1 service is temporarily unavailable",
+            "INTERNAL_SERVER_ERROR": "The server could not complete the request",
+            "HTTP_ERROR": "The request could not be completed",
+        }
+        code = detail.get("code", status_codes.get(exc.status_code, "HTTP_ERROR"))
+        if not isinstance(code, str):
+            code = "HTTP_ERROR"
+        fallback_message = safe_messages.get(code, safe_messages["HTTP_ERROR"])
+        message = detail.get("message", fallback_message)
+        error = Be1Error(
+            code=code,
+            message=message if isinstance(message, str) else fallback_message,
+            request_id=getattr(request.state, "be1_request_id", str(uuid4())),
+        )
+        return JSONResponse(
+            status_code=exc.status_code,
+            content=error.model_dump(mode="json"),
+            headers=exc.headers,
+        )
+
     @application.exception_handler(RequestValidationError)
     async def handle_request_validation_error(
         request: Request, exc: RequestValidationError
     ) -> JSONResponse:
+        if request.url.path.startswith("/api/be1/v1"):
+            error = Be1Error(
+                code="REQUEST_VALIDATION_FAILED",
+                message="The request does not match the BE1 API contract",
+                request_id=getattr(request.state, "be1_request_id", str(uuid4())),
+            )
+            return JSONResponse(status_code=422, content=error.model_dump(mode="json"))
         is_context_options_route = request.url.path.endswith(
             "/p1/context-options"
         ) or request.url.path.endswith("/p1/context-options/finalize")
@@ -252,6 +322,28 @@ def create_app(
         )
         return JSONResponse(status_code=422, content=failure.model_dump(mode="json"))
 
+    @application.exception_handler(Exception)
+    async def handle_unexpected_exception(request: Request, exc: Exception):
+        if not request.url.path.startswith("/api/be1/v1"):
+            del exc
+            return PlainTextResponse("Internal Server Error", status_code=500)
+        request_id = getattr(request.state, "be1_request_id", str(uuid4()))
+        _LOGGER.error(
+            "be1_unhandled_exception request_id=%s exception_type=%s",
+            request_id,
+            type(exc).__name__,
+        )
+        error = Be1Error(
+            code="INTERNAL_SERVER_ERROR",
+            message="The server could not complete the request",
+            request_id=request_id,
+        )
+        return JSONResponse(
+            status_code=500,
+            content=error.model_dump(mode="json"),
+            headers={"X-Request-ID": request_id},
+        )
+
     application.add_middleware(BoundedImageUploadMiddleware)
     scene_localizer = None
     pixi_show_planner_required = False
@@ -322,9 +414,7 @@ def create_app(
                 if live_image_demo_service is not None
                 else artifacts
             )
-            whiteboard_video_pipeline = _configured_whiteboard_pipeline(
-                settings, source_artifacts
-            )
+            whiteboard_video_pipeline = _configured_whiteboard_pipeline(settings, source_artifacts)
         if story_video_job_service is None:
             story_source_artifacts = (
                 live_image_demo_service.artifact_store
@@ -465,7 +555,9 @@ def create_app(
         )
     application.state.whiteboard_video_job_service = whiteboard_video_job_service
     application.state.story_video_job_service = story_video_job_service or StoryVideoJobService()
+    application.state.be1_runtime = build_be1_runtime(get_settings())
     application.include_router(health_router)
+    application.include_router(be1_runtime_router)
     application.include_router(child_preferences_router)
     application.include_router(sessions_router)
     application.include_router(images_router)
@@ -481,6 +573,57 @@ def create_app(
             StaticFiles(directory=renderer_dist, html=True),
             name="pixi-renderer",
         )
+
+    def be1_openapi_schema() -> dict[str, object]:
+        if application.openapi_schema is not None:
+            return application.openapi_schema
+        schema = get_openapi(
+            title=application.title,
+            version=application.version,
+            routes=application.routes,
+        )
+        for path, path_item in schema.get("paths", {}).items():
+            if not path.startswith("/api/be1/v1/") or not isinstance(path_item, dict):
+                continue
+            for operation in path_item.values():
+                if not isinstance(operation, dict) or "responses" not in operation:
+                    continue
+                parameters = operation.setdefault("parameters", [])
+                if not any(
+                    parameter.get("in") == "header"
+                    and parameter.get("name") == "X-Request-ID"
+                    for parameter in parameters
+                ):
+                    parameters.append(
+                        {
+                            "name": "X-Request-ID",
+                            "in": "header",
+                            "required": False,
+                            "description": (
+                                "Optional safe correlation ID; generated when omitted or invalid."
+                            ),
+                            "schema": {
+                                "type": "string",
+                                "maxLength": 120,
+                                "pattern": "^[A-Za-z0-9._:-]{1,120}$",
+                            },
+                        }
+                    )
+                for response in operation["responses"].values():
+                    if not isinstance(response, dict):
+                        continue
+                    response_headers = response.setdefault("headers", {})
+                    response_headers.setdefault(
+                        "X-Request-ID",
+                        {
+                            "description": "Correlation ID for this response.",
+                            "schema": {"type": "string", "maxLength": 120},
+                        },
+                    )
+        application.openapi_schema = schema
+        return schema
+
+    application.openapi = be1_openapi_schema
     return application
 
 
