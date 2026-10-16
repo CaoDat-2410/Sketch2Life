@@ -19,6 +19,9 @@ from typing import Any
 import b3_support as s
 import b4_support as r
 import pytest
+from sqlalchemy import delete, select, update
+from sqlalchemy.engine import URL
+
 from sketch2life.application.ports.ai_jobs import AttemptDispatch, WorkerDispatchEnvelope
 from sketch2life.application.services.ai_jobs import (
     FIXTURE_DISPATCH_POLICY,
@@ -38,8 +41,11 @@ from sketch2life.infrastructure.ai_jobs.rq_queue import RqDispatchQueue
 from sketch2life.infrastructure.ai_jobs.sql import owner_fence_fixture as fx
 from sketch2life.infrastructure.ai_jobs.sql import tables as t
 from sketch2life.infrastructure.ai_jobs.sql.repository import SqlAiJobUnitOfWork
-from sqlalchemy import delete, select, update
-from sqlalchemy.engine import URL
+from sketch2life.infrastructure.ai_jobs.worker_capability import (
+    CapabilityKey,
+    HmacCapabilityIssuer,
+    HmacCapabilityVerifier,
+)
 
 pytestmark = pytest.mark.requires_postgres
 
@@ -108,7 +114,8 @@ def test_stale_lease_holder_mark_and_release_are_no_ops_after_takeover(db: URL) 
 
 
 # ---------------------------------------------------- B-06a enqueue-before-mark, real kill
-def _dispatch_then_die(url: URL, host: str, port: int, queue_name: str) -> None:
+def _dispatch_then_die(url: URL, host: str, port: int, queue_name: str,
+                       key: CapabilityKey) -> None:
     """Child dispatcher: the real RQ enqueue succeeds, then the process dies before the
     fenced acknowledgement commits."""
 
@@ -120,7 +127,9 @@ def _dispatch_then_die(url: URL, host: str, port: int, queue_name: str) -> None:
             os._exit(17)
 
     rig = s.build_rig(url)
-    rig.with_ports(queue=DieAfterEnqueue()).dispatch_outbox(owner="dispatcher_dead")
+    dispatcher = rig.with_ports(queue=DieAfterEnqueue(),
+                                capability_issuer=HmacCapabilityIssuer(key))
+    dispatcher.dispatch_outbox(owner="dispatcher_dead")
 
 
 def test_enqueue_then_crash_before_mark_republishes_same_attempt_and_start_dedups(
@@ -131,8 +140,11 @@ def test_enqueue_then_crash_before_mark_republishes_same_attempt_and_start_dedup
     attempt_id = rig.job(created.job_id).active_attempt.attempt_id
     settings = r.redis_settings()
     assert settings is not None
+    # The child must issue a token the parent can verify after it dies. The process-local
+    # fake registry cannot do that; share one ephemeral HMAC key through spawn's pipe.
+    key = CapabilityKey("b4_crash_test", os.urandom(32))
     child = SPAWN.Process(
-        target=_dispatch_then_die, args=(db, settings[0], settings[1], rq_queue.queue.name)
+        target=_dispatch_then_die, args=(db, settings[0], settings[1], rq_queue.queue.name, key)
     )
     child.start()
     child.join(TIMEOUT)
@@ -144,7 +156,8 @@ def test_enqueue_then_crash_before_mark_republishes_same_attempt_and_start_dedup
     assert row.delivered_at is None and row.lease_owner == "dispatcher_dead"
     assert len(rq_queue.queue.job_ids) == 1  # the effect happened, the mark did not
 
-    live = rig.with_ports(queue=rq_queue)
+    live = rig.with_ports(queue=rq_queue, capability_issuer=HmacCapabilityIssuer(key),
+                          worker_capability=HmacCapabilityVerifier(key, rig.clock))
     assert live.dispatch_outbox(owner="dispatcher_live") == 0  # lease not yet expired
     rig.clock.advance(milliseconds=POLICY.lease_ms)
     assert live.dispatch_outbox(owner="dispatcher_live") == 1
