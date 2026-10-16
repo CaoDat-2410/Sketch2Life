@@ -3,8 +3,13 @@
 The initial `20261014_0001` revision creates only the FEAT-046 core persistence tables. It has no seed rows. Configure `SKETCH2LIFE_DATABASE_URL` in the backend's ignored local `.env` or runtime environment/secret manager using the `postgresql+psycopg` driver, then run Alembic from the repository root:
 
 ```powershell
-python -m alembic -c backend/alembic.ini upgrade head
+python -m alembic -c backend/alembic.ini upgrade be1_core@head
 ```
+
+The environment holds independent module branches: `be1_core` (BE1) and `ai_jobs` (BE2, FEAT-044 Phase B,
+schema `ai_jobs`). Use `upgrade be1_core@head` or `upgrade ai_jobs@head` for one module, or `upgrade heads`
+for all modules. Plain `upgrade head` is ambiguous and fails with "Multiple head revisions" without changing
+the database.
 
 The URL is required at runtime; no credential or default URL is stored in this repository. Do not print it in logs or command transcripts. The migration does not upload media or connect to Redis, Firebase, or an object store.
 
