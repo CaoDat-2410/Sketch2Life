@@ -1,0 +1,97 @@
+{
+  "date": "2026-10-15",
+  "review": "PASS_CODE_AND_PACKAGE_REVIEW",
+  "active": "Q01/B4_FIXED_PENDING_RUNTIME_REVIEW",
+  "b4_r01": "FIXED_PENDING_RUNTIME_REVIEW",
+  "b4": "NOT_CLOSED",
+  "b5": "NOT_STARTED",
+  "backend_executor": "Claude",
+  "review_backend_edits": false,
+  "source": {
+    "base": "993a26cae78c0a4fe983033f03881838c886b176",
+    "last_reported_studio_manifest": "444cfeadd3d7d0d0e1f23663b576270f46692e870fe532071f6cf025ffd9ff01",
+    "current_local_manifest": "f1c6834f41dc798fe4475509b7d4b9c8c578ebfd15f34ff07f72f2d4bf24aeb4",
+    "manifest_files": 32,
+    "changed_files": {
+      "backend/src/sketch2life/application/ports/ai_jobs.py": {
+        "before": "d588e282520f70c0595346d3a2f85849ade7b67ac41a2e616d27ebb9c0ed48b5",
+        "after": "6cd2977be75544223eb18dd553c570220ea332bfa0719fa0d586714db5b933ce"
+      },
+      "backend/src/sketch2life/application/services/ai_jobs.py": {
+        "before": "42d5b6b3ad6953f3ef8f0652de1fbc25cd46474c0ba7085a5dd939b38e7f8d96",
+        "after": "8945b351b69be5450f02e998f82b0dd0f79a248f53c19b33a80c1f7bbe85f489"
+      },
+      "backend/src/sketch2life/infrastructure/ai_jobs/fakes.py": {
+        "before": "6a8984c890d00616447bce18a2fe2514df15ba5fb02bd1bcb9462241683ad996",
+        "after": "8af1865dd6c7ef4d081610a57c3c353a37a0ebe1a8056a5c45ad82d1c269d6d0"
+      },
+      "backend/src/sketch2life/infrastructure/ai_jobs/sql/repository.py": {
+        "before": "575f2b337cfc86505c19c326fcef027090ef94f0468fec64e14c75620ba4104a",
+        "after": "836d513c3ddd51e5da800f078c3fe8f714b53fccd9736dd857c9b26cbe7a5dee"
+      },
+      "backend/tests/integration/ai_jobs/test_dispatch_recovery.py": {
+        "before": "5da26fee279be270353eb66f2fa97047a380e56e43d9489f1844bc8977d02143",
+        "after": "de09fe890c1692f7cf6c2da04f5d4f671d4a047ed623c0ab5b7e71e613d81914"
+      },
+      "backend/tests/unit/test_ai_job_b4_dispatch.py": {
+        "before": "e64101fcd3649559dd5878833f985a15e639dfbec400ec81693ebb1da00600f5",
+        "after": "6c6a6c9d43d44d595579c3ea936c52791093610375fb6bc0598263223087a556"
+      }
+    },
+    "unexpected_protected_source_changes": [],
+    "review_protected_paths": 520
+  },
+  "independent_checks": {
+    "b4_unit_passed": 18,
+    "b4_unit_exit": 0,
+    "tied_service_paging_probe": "PASS",
+    "sql_compile_mapping_checks_passed": 4,
+    "sql_probe_provenance": "DIRECT_LOCAL_OFFLINE_SQL_COMPILE_AND_MAPPING",
+    "fixture": {
+      "pass": 20,
+      "checks": 215,
+      "fail": 0,
+      "not_run": 1,
+      "exit": 0,
+      "not_run_scope": "optional HTTP surface",
+      "results_sha256": "d17f58a3c9c535d45a2fe03ed0c1edad42a565422725aede21b22ba45af41f68"
+    },
+    "source_hashes_verified": 32,
+    "delta_files_verified": 6,
+    "zip_members_verified": 4,
+    "worktree_reverse_check_exit": 0,
+    "collected_b2_b4": 104,
+    "host_proof_cases": 8,
+    "host_proof": "REVIEWED_EXISTING_DOCKER_STUB_RECEIPTS"
+  },
+  "runtime": {
+    "corrected_source": "NOT_RUN_REQUIRES_STUDIO_RUN",
+    "postgres_redis_cases": 64,
+    "new_postgres_cases": 2,
+    "expected_b2_b4_pass": 104,
+    "expected_phase_a_pass": 224,
+    "required_skips": 0,
+    "remote_access_by_codex": false
+  },
+  "documentation_correction": "Phase A local skip is missing Pillow per raw receipt, not POSIX-only; handover/bootstrap current snapshot corrected",
+  "package": {
+    "previous_manifest_sha256": "444cfeadd3d7d0d0e1f23663b576270f46692e870fe532071f6cf025ffd9ff01",
+    "delta_sha256": "56af4fbd78a8dbcdaa4b9c8916fae8626324df775e396776c75dd55f5e28097b",
+    "manifest_sha256": "f1c6834f41dc798fe4475509b7d4b9c8c578ebfd15f34ff07f72f2d4bf24aeb4",
+    "manifest_files": 32,
+    "runner_sha256": "c3ef682ff6ba9926951cdc9420e41cfd2c81b611acd17e09fde8ef3ff6d01813",
+    "zip_sha256": "a7afd57aec808458cf276c8187111ffa7321b0332af8ce7e3ea0764c22085b62",
+    "zip_members": [
+      "b4r01_delta.patch",
+      "b4_previous.sha256",
+      "b4r01_source.sha256",
+      "run_b4r01_on_studio.sh"
+    ]
+  },
+  "approvals_approved_plans_packages_preserved": true,
+  "operator_prompt_and_handover": "GIT_IGNORED",
+  "cards": 14,
+  "wip": 1,
+  "full_cards_done": 0,
+  "validation_receipt": "evidence/local/b4r01-codex-review-20261015/final_checks.json"
+}
