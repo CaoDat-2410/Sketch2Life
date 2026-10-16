@@ -128,6 +128,8 @@ apps/ui-mobile/android/.gradle-alt*/
 # BE2 operator-local inventory and repeated intermediate diagnostics.
 # Selection/provenance: FEAT-044 evidence/notes/PUBLICATION_SELECTION_20261015.md
 /features/FEAT-044-be2-ai-job-foundation/evidence/local/
+# BE2-02 prompts, scratch output and repeated diagnostics stay local.
+/features/FEAT-048-be2-vision-correction/evidence/local/
 # Claude operator prompts/session handovers belong under evidence/local/claude/.
 # Retain the historical handoff explicitly referenced by the Phase A approval.
 /features/FEAT-044-be2-ai-job-foundation/plan/CLAUDE_*.md
