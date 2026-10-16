@@ -2,8 +2,8 @@
 
 Usage (inside the synthetic Studio runner container, from the repository root):
     python features/FEAT-044-be2-ai-job-foundation/src/run_durable_conformance.py \
-        --report PATH [--manifest SOURCE_MANIFEST] [--junit B2_B6.xml] [--junit PHASE_A.xml] \
-        [--fixture-report PHASE_A_RUNNER.json]
+        --report PATH --manifest SOURCE_MANIFEST --manifest-sha256 HEX \
+        --junit B2_B6.xml --phase-a-junit PHASE_A.xml --fixture-report PHASE_A_RUNNER.json
 
 What it proves, and what it does not:
 
@@ -16,6 +16,12 @@ What it proves, and what it does not:
 * B-01..B-12 and the §7.1 crash-window matrix are resolved from the JUnit results of the same
   source-bound run (pytest B2–B6 and Phase A), the Phase A fixture report and this run.
   B-12 is a handoff list, never PASS: real owner/provider/live-route integration is not proven.
+* The runner is a self-sufficient gate (B6-CR01): G-01/G-02 aggregate every JUnit case of the
+  B2–B6 and Phase A suites against the test ids pytest collects from the running tree,
+  parameter ids included (any failure FAILs; a missing or skipped case is NOT_RUN; a case
+  outside the inventory FAILs), G-03 needs
+  the complete Phase A fixture report and G-04 needs a pinned, non-empty source manifest that
+  matches the tree and lists every Phase B surface file.
 
 Exit codes: 0 = every required item PASS; 1 = any FAIL; 2 = no FAIL but a required item
 NOT_RUN (missing service, missing JUnit/report, skipped test). Nothing falls back to fakes.
@@ -28,11 +34,14 @@ from __future__ import annotations
 import argparse
 import contextlib
 import fnmatch
+import functools
 import hashlib
 import json
 import logging
 import os
 import platform
+import re
+import subprocess
 import sys
 import threading
 import uuid
@@ -97,7 +106,7 @@ from sketch2life.infrastructure.ai_jobs.harness import (  # noqa: E402
 )
 
 RUNNER = "BE2-01 Phase B B6 durable conformance"
-RUNNER_VERSION = "b6.1"
+RUNNER_VERSION = "b6.2"
 PLAN = ("plan/PHASE_B_PLAN.md revision 3 (sha256 bb20d5be...) B1-B6, "
         "approvals/PHASE_B_TASK_APPROVAL.md")
 OWNER_FENCE_LABEL = "ASSUMED_CONTRACT OwnerFenceV1/0.1-candidate (owner_fence_fixture)"
@@ -164,13 +173,114 @@ def summarise(results: list[Result]) -> dict[str, Any]:
 # ======================================================================= JUnit evidence
 @dataclass(frozen=True)
 class CaseOutcome:
-    module: str
-    name: str
+    module: str  # test file relative to the pytest rootdir (backend/): tests/unit/test_x.py
+    name: str  # test id within the file: class parts and parameter id included
     status: str  # PASS | FAIL | NOT_RUN
+
+    @property
+    def file(self) -> str:
+        return self.module.rsplit("/", 1)[-1]
+
+
+def nodeid_key(nodeid: str) -> tuple[str, str] | None:
+    """``(file path, test id)`` of a pytest node id such as ``tests/a/test_x.py::C::t[1]``."""
+
+    path, sep, rest = nodeid.strip().partition("::")
+    if not sep or not rest or not path.endswith(".py"):
+        return None
+    return path.replace("\\", "/"), rest
+
+
+def junit_key(classname: str, name: str) -> tuple[str, str]:
+    """The same identity from a pytest JUnit ``testcase``: ``classname`` is the dotted file
+    path (plus class names), ``name`` the function name with its parameter id."""
+
+    parts = classname.split(".") if classname else []
+    module_at = max((i for i, part in enumerate(parts) if part.startswith("test_")), default=None)
+    if module_at is None:
+        return classname, name
+    return ("/".join(parts[: module_at + 1]) + ".py",
+            "::".join([*parts[module_at + 1:], name]))
+
+
+# The suites the package runs; their test inventory is collected by pytest from the running
+# (manifest-verified) tree, never taken from the JUnit under evaluation.
+SUITE_B2_B6: tuple[str, ...] = (
+    "backend/tests/integration/ai_jobs/test_*.py",
+    "backend/tests/unit/test_ai_job_b3_fences.py",
+    "backend/tests/unit/test_ai_job_b4_dispatch.py",
+    "backend/tests/unit/test_ai_job_b5_capability.py",
+    "backend/tests/unit/test_ai_job_b5_effects.py",
+    "backend/tests/unit/test_ai_job_b6_conformance.py",
+)
+SUITE_PHASE_A: tuple[str, ...] = (
+    "backend/tests/unit/test_ai_job_q00_followups.py",
+    "backend/tests/unit/test_ai_job_review_regressions.py",
+    "backend/tests/unit/test_ai_job_lifecycle.py",
+    "backend/tests/unit/test_ai_job_application.py",
+    "backend/tests/contract/test_ai_job_contracts.py",
+    "backend/tests/contract/test_ai_job_polling.py",
+)
+# Every file of the Phase B surface present in the tree must be listed in the source manifest.
+PHASE_B_SURFACE: tuple[str, ...] = (
+    "backend/alembic/versions/20261015_ai_*.py",
+    "backend/src/sketch2life/infrastructure/ai_jobs/sql/*.py",
+    "backend/src/sketch2life/infrastructure/ai_jobs/outbox_dispatcher.py",
+    "backend/src/sketch2life/infrastructure/ai_jobs/reconciler.py",
+    "backend/src/sketch2life/infrastructure/ai_jobs/rq_queue.py",
+    "backend/src/sketch2life/infrastructure/ai_jobs/worker.py",
+    "backend/src/sketch2life/infrastructure/ai_jobs/worker_capability.py",
+    "backend/tests/integration/ai_jobs/*.py",
+    "backend/tests/unit/test_ai_job_b[3-6]_*.py",
+    "features/FEAT-044-be2-ai-job-foundation/src/run_durable_conformance.py",
+)
+FIXTURE_ITEMS: tuple[str, ...] = tuple(f"A-{n:02d}" for n in range(1, 21))
+
+
+Inventory = dict[str, frozenset[str]]
+
+
+@functools.cache
+def suite_inventory(globs: tuple[str, ...], root: Path = ROOT) -> tuple[Inventory, str]:
+    """``({tests/.../test_x.py: {collected test ids}}, detail)`` from ``pytest --collect-only``
+    over the suite files of the running tree, so every parameter variant is expected.
+    All or nothing: a collection error, a count that differs from pytest's own total, a case
+    outside the suite files or a suite file without cases gives an empty inventory, which can
+    never pass a gate."""
+
+    backend = root / "backend"
+    files = sorted({p for pattern in globs for p in root.glob(pattern) if p.is_file()})
+    if not files:
+        return {}, "no suite files in the running tree"
+    done = subprocess.run(
+        [sys.executable, "-m", "pytest", "-c", str(backend / "pyproject.toml"),
+         "--collect-only", "-q", "-o", "addopts=", "-p", "no:cacheprovider",
+         *(str(p) for p in files)],
+        cwd=root, capture_output=True, text=True, timeout=900, check=False,
+    )
+    if done.returncode != 0:
+        tail = (done.stdout + done.stderr).strip().splitlines()[-1:] or [""]
+        return {}, f"pytest collection exit {done.returncode}: {tail[0][:160]}"
+    keys = [key for key in map(nodeid_key, done.stdout.splitlines()) if key is not None]
+    totals = [int(m.group(1)) for m in re.finditer(r"^(\d+) tests? collected", done.stdout, re.M)]
+    if len(totals) != 1 or totals[0] != len(keys) or len(set(keys)) != len(keys):
+        return {}, f"collection incomplete: pytest total {totals}, parsed {len(keys)} node ids"
+    expected_files = {p.relative_to(backend).as_posix() for p in files}
+    found: dict[str, set[str]] = {}
+    for module, name in keys:
+        found.setdefault(module, set()).add(name)
+    if set(found) - expected_files:
+        return {}, f"cases outside the suite files: {sorted(set(found) - expected_files)[:3]}"
+    if expected_files - set(found):
+        return {}, f"no case collected from {sorted(expected_files - set(found))[:3]}"
+    return ({module: frozenset(names) for module, names in found.items()},
+            f"pytest collected {len(keys)} cases in {len(found)} files")
+
 
 
 def read_junit(paths: list[Path]) -> tuple[list[CaseOutcome], list[str]]:
-    """All test cases of the given JUnit files; missing files are reported, never guessed."""
+    """All test cases of the given JUnit files; missing or unreadable files are reported,
+    never guessed."""
 
     outcomes: list[CaseOutcome] = []
     missing: list[str] = []
@@ -178,27 +288,42 @@ def read_junit(paths: list[Path]) -> tuple[list[CaseOutcome], list[str]]:
         if not path.is_file():
             missing.append(path.name)
             continue
-        for case in ElementTree.parse(path).getroot().iter("testcase"):
-            module = (case.get("classname") or "").split(".")[-1]
+        try:
+            root = ElementTree.parse(path).getroot()
+        except ElementTree.ParseError:
+            missing.append(f"{path.name} (unreadable)")
+            continue
+        for case in root.iter("testcase"):
+            module, name = junit_key(case.get("classname") or "", case.get("name") or "")
             status = PASS
             if case.find("failure") is not None or case.find("error") is not None:
                 status = FAIL
             elif case.find("skipped") is not None:
                 status = NOT_RUN
-            outcomes.append(CaseOutcome(f"{module}.py", case.get("name") or "", status))
+            outcomes.append(CaseOutcome(module, name, status))
     return outcomes, missing
 
 
-def resolve_tests(outcomes: list[CaseOutcome], patterns: list[str]) -> tuple[str, list[str]]:
+def resolve_tests(
+    outcomes: list[CaseOutcome],
+    patterns: list[str],
+    inventory: Inventory | None = None,
+) -> tuple[str, list[str]]:
     """Status of the tests matching ``file.py::name`` patterns (fnmatch on the name).
-    Every pattern must match at least one executed case; any FAIL fails, any skip or missing
-    match is NOT_RUN."""
+    Every pattern must match at least one executed case and, given an inventory, every
+    collected case (each parameter variant) of the functions it names must have executed; any
+    FAIL fails, any skip or missing case is NOT_RUN."""
 
     detail: list[str] = []
     status = PASS
     for pattern in patterns:
         module, _, name = pattern.partition("::")
-        matched = [o for o in outcomes if o.module == module and fnmatch.fnmatchcase(o.name, name)]
+        matched = [o for o in outcomes if o.file == module and fnmatch.fnmatchcase(o.name, name)]
+        base = name.split("[", 1)[0]
+        expected = {(path, t) for path, names in (inventory or {}).items()
+                    if path.rsplit("/", 1)[-1] == module for t in names
+                    if fnmatch.fnmatchcase(t.split("[", 1)[0], base)}
+        absent = sorted(f"{t}" for _, t in expected - {(o.module, o.name) for o in outcomes})
         if not matched:
             detail.append(f"{pattern}: no executed case")
             status = FAIL if status == FAIL else NOT_RUN
@@ -207,12 +332,42 @@ def resolve_tests(outcomes: list[CaseOutcome], patterns: list[str]) -> tuple[str
         if FAIL in states:
             status = FAIL
             detail.append(f"{pattern}: FAIL ({sum(o.status == FAIL for o in matched)})")
-        elif NOT_RUN in states:
+        elif NOT_RUN in states or absent:
             status = FAIL if status == FAIL else NOT_RUN
-            detail.append(f"{pattern}: skipped ({sum(o.status == NOT_RUN for o in matched)})")
+            detail.append(f"{pattern}: skipped {sum(o.status == NOT_RUN for o in matched)}, "
+                          f"not executed {len(absent)} {absent[:3]}")
         else:
             detail.append(f"{pattern}: PASS ({len(matched)})")
     return status, detail
+
+
+def suite_gate(item: str, title: str, outcomes: list[CaseOutcome], have: bool,
+               collected: tuple[Inventory, str], source: str) -> Result:
+    """Every JUnit case of one suite against the collected inventory: a failure FAILs, a case
+    outside the inventory FAILs, a missing (also a single parameter variant) or skipped case
+    is NOT_RUN."""
+
+    inventory, detail = collected
+    r = Result(item, title, REQUIRED, evidence=[f"inventory ({source}): {detail}"])
+    if not inventory:
+        r.check("suite inventory collected from the running tree", False, detail)
+        return r
+    if not have:
+        return r.mark(NOT_RUN, "JUnit of this suite not supplied or unreadable")
+    expected = {(module, name) for module, names in inventory.items() for name in names}
+    executed = {(o.module, o.name) for o in outcomes}
+    failed = sorted(f"{o.module}::{o.name}" for o in outcomes if o.status == FAIL)
+    foreign = sorted(f"{m}::{n}" for m, n in executed - expected)
+    skipped = sorted(f"{o.module}::{o.name}" for o in outcomes if o.status == NOT_RUN)
+    absent = sorted(f"{m}::{n}" for m, n in expected - executed)
+    r.evidence.append(f"junit: {len(outcomes)} cases, {len(failed)} failed, {len(skipped)} "
+                      f"skipped, {len(absent)} collected cases not executed, {len(foreign)} "
+                      "outside the inventory")
+    r.check("no failed or errored case", not failed, ", ".join(failed[:5]))
+    r.check("no case outside the suite inventory", not foreign, ", ".join(foreign[:5]))
+    if r.status == PASS and (skipped or absent):
+        return r.mark(NOT_RUN, f"skipped {skipped[:3]}; not executed {absent[:3]}")
+    return r
 
 
 # =============================================== §7.1 crash windows and §8 acceptance map
@@ -346,7 +501,8 @@ B12_HANDOFF: tuple[dict[str, str], ...] = (
 )
 
 
-def resolve_matrix(outcomes: list[CaseOutcome], have_junit: bool) -> list[Result]:
+def resolve_matrix(outcomes: list[CaseOutcome], have_junit: bool,
+                   inventory: Inventory | None = None) -> list[Result]:
     rows = []
     for window in CRASH_WINDOWS:
         r = Result(window.window_id, window.window, REQUIRED,
@@ -355,7 +511,7 @@ def resolve_matrix(outcomes: list[CaseOutcome], have_junit: bool) -> list[Result
         if not have_junit:
             rows.append(r.mark(NOT_RUN, "no JUnit result of the B2-B6 suite supplied"))
             continue
-        status, detail = resolve_tests(outcomes, list(window.tests))
+        status, detail = resolve_tests(outcomes, list(window.tests), inventory)
         r.evidence.extend(detail)
         r.status = status
         if status != PASS:
@@ -371,6 +527,7 @@ def resolve_acceptance(
     scenarios: list[Result],
     phase_a: tuple[str, str],
     fixture: tuple[str, str],
+    inventory: Inventory | None = None,
 ) -> list[Result]:
     rows: list[Result] = []
     for acc in ACCEPTANCE:
@@ -381,7 +538,7 @@ def resolve_acceptance(
                 parts.append(NOT_RUN)
                 r.evidence.append("no JUnit result of the B2-B6 suite supplied")
             else:
-                status, detail = resolve_tests(outcomes, list(acc.tests))
+                status, detail = resolve_tests(outcomes, list(acc.tests), inventory)
                 parts.append(status)
                 r.evidence.extend(detail)
         if acc.item == "B-06":
@@ -409,28 +566,69 @@ def resolve_acceptance(
     return rows
 
 
-def phase_a_status(outcomes: list[CaseOutcome], have: bool) -> tuple[str, str]:
-    if not have:
-        return NOT_RUN, "no Phase A JUnit supplied"
-    states = [o.status for o in outcomes]
-    if not states:
-        return NOT_RUN, "Phase A JUnit has no test cases"
-    if FAIL in states:
-        return FAIL, f"{states.count(FAIL)} failed"
-    if NOT_RUN in states:
-        return NOT_RUN, f"{states.count(NOT_RUN)} skipped"
-    return PASS, f"{len(states)} passed, 0 skipped"
+def fixture_gate(path: Path | None) -> Result:
+    """G-03: the complete Phase A fixture runner report (every A-01..A-20 PASS, checks > 0)."""
 
-
-def fixture_status(path: Path | None) -> tuple[str, str]:
+    r = Result("G-03", "Phase A fixture runner report complete", REQUIRED)
     if path is None or not path.is_file():
-        return NOT_RUN, "no Phase A fixture runner report supplied"
-    report = json.loads(path.read_text(encoding="utf-8"))
-    summary = report.get("summary", {})
-    detail = (f"PASS {summary.get('PASS')}, FAIL {summary.get('FAIL')}, checks "
-              f"{summary.get('checks')}, results_sha256 {str(report.get('results_sha256'))[:8]}")
-    return (PASS if summary.get("FAIL") == 0 and summary.get("checks_failed") == 0 else FAIL,
-            detail)
+        return r.mark(NOT_RUN, "no Phase A fixture runner report supplied")
+    try:
+        report = json.loads(path.read_text(encoding="utf-8"))
+        summary = dict(report["summary"])
+        results = {str(item["criterion"]): str(item["status"]) for item in report["results"]}
+    except (ValueError, KeyError, TypeError) as exc:
+        r.check("report is a readable fixture runner report", False, type(exc).__name__)
+        return r
+    digest = str(report.get("results_sha256", ""))
+    r.evidence.append(f"PASS {summary.get('PASS')}, FAIL {summary.get('FAIL')}, checks "
+                      f"{summary.get('checks')}, results_sha256 {digest[:8]}")
+    checks = summary.get("checks")
+    r.check("checks executed (> 0) and none failed",
+            isinstance(checks, int) and checks > 0 and summary.get("checks_failed") == 0
+            and summary.get("FAIL") == 0, f"checks={checks}")
+    r.check("exactly A-01..A-20, every one PASS",
+            sorted(results) == list(FIXTURE_ITEMS) and set(results.values()) == {PASS}
+            and summary.get("PASS") == len(FIXTURE_ITEMS),
+            ", ".join(f"{k}={v}" for k, v in sorted(results.items()) if v != PASS))
+    r.check("results digest present", bool(re.fullmatch(r"[0-9a-f]{64}", digest)), digest[:16])
+    return r
+
+
+def manifest_gate(manifest: Path | None, pinned: str | None, root: Path = ROOT) -> Result:
+    """G-04: the source manifest is pinned, well formed, non-empty, matches the running tree
+    and lists every Phase B surface file present in it."""
+
+    r = Result("G-04", "Source manifest pinned, complete and matching the tree", REQUIRED)
+    if manifest is None or not manifest.is_file():
+        return r.mark(NOT_RUN, "no source manifest supplied")
+    data = manifest.read_bytes()
+    actual = hashlib.sha256(data).hexdigest()
+    r.evidence.append(f"manifest sha256 {actual}")
+    r.check("manifest hash pinned and equal (--manifest-sha256)",
+            bool(pinned) and pinned == actual, f"pinned={str(pinned)[:12]} actual={actual[:12]}")
+    entries: dict[str, str] = {}
+    malformed: list[str] = []
+    for line in data.decode("utf-8", errors="replace").splitlines():
+        match = re.fullmatch(r"([0-9a-f]{64})  (\S.*)", line)
+        rel = match.group(2) if match else ""
+        if (match is None or rel in entries or rel.startswith("/") or "\\" in rel
+                or ".." in Path(rel).parts):
+            malformed.append(line[:80])
+            continue
+        entries[rel] = match.group(1)
+    r.check("manifest well formed: '<sha256>  <relative path>', no duplicates", not malformed,
+            "; ".join(malformed[:3]))
+    r.check("manifest lists at least one file", bool(entries), f"{len(entries)} files")
+    bad = [rel for rel, digest in entries.items()
+           if not (root / rel).is_file()
+           or hashlib.sha256((root / rel).read_bytes()).hexdigest() != digest]
+    r.check("every listed file exists and matches its hash", not bad, ", ".join(bad[:5]))
+    surface = sorted({p.relative_to(root).as_posix() for pattern in PHASE_B_SURFACE
+                      for p in root.glob(pattern) if p.is_file()})
+    unlisted = [rel for rel in surface if rel not in entries]
+    r.check("every Phase B surface file present in the tree is listed", bool(surface)
+            and not unlisted, ", ".join(unlisted[:5]) or f"{len(surface)} surface files")
+    return r
 
 
 # =========================================================================== services
@@ -818,7 +1016,7 @@ def _code(fn: Callable[[], object]) -> str | None:
 Scenario = Callable[[DurableEnvironment, Result], None]
 
 
-def a01_provenance(env: DurableEnvironment, r: Result, manifest: Path | None) -> None:
+def a01_provenance(env: DurableEnvironment, r: Result, manifest: Result) -> None:
     origin = Path(sketch2life.__file__).resolve()
     r.check("sketch2life imported from this tree (no editable install elsewhere)",
             origin.is_relative_to(BACKEND_SRC.resolve()), origin.as_posix().split("/backend/")[-1])
@@ -835,16 +1033,8 @@ def a01_provenance(env: DurableEnvironment, r: Result, manifest: Path | None) ->
         r.check("owner fence port is the labelled ASSUMED_CONTRACT fixture",
                 isinstance(fence, fx.FixtureFenceHold) and fence.label == fx.ASSUMED_CONTRACT,
                 OWNER_FENCE_LABEL)
-    if manifest is None:
-        r.check("source manifest supplied and verified", False, "no --manifest given")
-        return
-    bad = []
-    for line in manifest.read_text(encoding="utf-8").splitlines():
-        digest, rel = line.split("  ", 1)
-        target = ROOT / rel
-        if not target.is_file() or hashlib.sha256(target.read_bytes()).hexdigest() != digest:
-            bad.append(rel)
-    r.check("every source manifest hash matches the running tree", not bad, ", ".join(bad[:5]))
+    r.check("source manifest gate G-04 PASS (pinned, complete, matching the tree)",
+            manifest.status == PASS, manifest.reason or manifest.status)
 
 
 def a03_semantic_duplicate(env: DurableEnvironment, r: Result) -> None:
@@ -1457,7 +1647,7 @@ NON_DURABLE: tuple[Result, ...] = (
 
 
 def run_scenarios(env: DurableEnvironment | None, missing: list[str],
-                  manifest: Path | None) -> list[Result]:
+                  manifest: Result) -> list[Result]:
     results: list[Result] = []
     a01 = Result("A-01", "Durable runner provenance (source, services, owner-fence label)",
                  REQUIRED)
@@ -1512,6 +1702,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--report", type=Path, required=True)
     parser.add_argument("--manifest", type=Path)
+    parser.add_argument("--manifest-sha256", help="pinned SHA-256 of the --manifest file")
     parser.add_argument("--junit", type=Path, action="append", default=[],
                         help="JUnit of the B2-B6 pytest run")
     parser.add_argument("--phase-a-junit", type=Path)
@@ -1530,8 +1721,9 @@ def main(argv: list[str] | None = None) -> int:
             if env is not None:
                 env.close()
             env = None
+    manifest = manifest_gate(args.manifest, args.manifest_sha256)
     try:
-        scenarios = run_scenarios(env, missing, args.manifest)
+        scenarios = run_scenarios(env, missing, manifest)
         versions = dict(env.versions) if env else {}
     finally:
         if env is not None:
@@ -1541,13 +1733,25 @@ def main(argv: list[str] | None = None) -> int:
     have_junit = bool(args.junit) and not junit_missing
     phase_a_outcomes, phase_a_missing = read_junit(
         [args.phase_a_junit] if args.phase_a_junit else [])
-    matrix = resolve_matrix(outcomes, have_junit)
+    b2_b6_collected = suite_inventory(SUITE_B2_B6)
+    b2_b6_inventory = b2_b6_collected[0]
+    gates = [
+        suite_gate("G-01", "B2-B6 JUnit complete: every collected case ran and passed",
+                   outcomes, have_junit, b2_b6_collected, "SUITE_B2_B6"),
+        suite_gate("G-02", "Phase A JUnit complete: every collected case ran and passed",
+                   phase_a_outcomes, bool(args.phase_a_junit) and not phase_a_missing,
+                   suite_inventory(SUITE_PHASE_A), "SUITE_PHASE_A"),
+        fixture_gate(args.fixture_report),
+        manifest,
+    ]
+    matrix = resolve_matrix(outcomes, have_junit, b2_b6_inventory)
     acceptance = resolve_acceptance(
         outcomes, have_junit, matrix, scenarios,
-        phase_a_status(phase_a_outcomes, bool(args.phase_a_junit) and not phase_a_missing),
-        fixture_status(args.fixture_report),
+        (gates[1].status, "; ".join(gates[1].evidence[-1:]) or gates[1].reason),
+        (gates[2].status, "; ".join(gates[2].evidence[-1:]) or gates[2].reason),
+        b2_b6_inventory,
     )
-    everything = [*scenarios, *matrix, *acceptance]
+    everything = [*scenarios, *gates, *matrix, *acceptance]
     code = exit_code(everything)
     report: dict[str, Any] = {
         "runner": RUNNER,
@@ -1555,6 +1759,7 @@ def main(argv: list[str] | None = None) -> int:
         "authority": PLAN,
         "owner_fence": OWNER_FENCE_LABEL,
         "source_manifest_sha256": _sha(args.manifest),
+        "source_manifest_pinned": args.manifest_sha256,
         "inputs": {
             "junit": [{"name": p.name, "sha256": _sha(p)} for p in args.junit],
             "phase_a_junit": _sha(args.phase_a_junit),
@@ -1565,12 +1770,14 @@ def main(argv: list[str] | None = None) -> int:
         "not_run_reasons": missing,
         "summary": {
             "scenarios": summarise(scenarios),
+            "gates": summarise(gates),
             "crash_matrix": summarise(matrix),
             "acceptance": summarise(acceptance),
             "overall": summarise(everything),
             "exit_code": code,
         },
         "scenarios": [r.__dict__ for r in scenarios],
+        "gates": [r.__dict__ for r in gates],
         "crash_matrix": [r.__dict__ for r in matrix],
         "acceptance": [r.__dict__ for r in acceptance],
         "b12_handoff": list(B12_HANDOFF),
