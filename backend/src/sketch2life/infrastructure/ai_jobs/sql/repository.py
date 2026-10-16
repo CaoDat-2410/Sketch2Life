@@ -14,6 +14,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
+from types import SimpleNamespace
 from typing import Any
 
 from sqlalchemy import Connection, Engine, func, insert, null, select, update
@@ -234,6 +235,17 @@ def _job_from_rows(row: Any, attempt_rows: list[Any]) -> AiJob:
     )
 
 
+_ATTEMPT_PREFIX = "attempt__"
+_ATTEMPT_COLUMNS = tuple(column.label(f"{_ATTEMPT_PREFIX}{column.name}") for column in t.attempt.c)
+
+
+def _joined_attempt(row: Any) -> SimpleNamespace:
+    mapping = row._mapping
+    return SimpleNamespace(
+        **{column.name: mapping[f"{_ATTEMPT_PREFIX}{column.name}"] for column in t.attempt.c}
+    )
+
+
 # --------------------------------------------------------------------------- unit of work
 class SqlAiJobUnitOfWork:
     """``AiJobUnitOfWork`` over one connection inside one open transaction."""
@@ -246,10 +258,28 @@ class SqlAiJobUnitOfWork:
 
     # jobs -----------------------------------------------------------------------------------
     def get_job(self, job_id: str, *, for_update: bool = False) -> AiJob | None:
-        query = select(t.job).where(t.job.c.job_id == job_id)
-        if for_update:
-            query = query.with_for_update()
-        row = self.connection.execute(query).one_or_none()
+        """Return one committed version of the aggregate (B3-R01).
+
+        Unlocked: job and attempts come from a single statement, i.e. one READ COMMITTED
+        snapshot. Locked: the job row lock is taken first; every aggregate writer updates the job
+        row before touching attempts, so the attempts read after the lock sees the same version.
+        """
+
+        if not for_update:
+            rows = self.connection.execute(
+                select(t.job, *_ATTEMPT_COLUMNS)
+                .outerjoin(t.attempt, t.attempt.c.job_id == t.job.c.job_id)
+                .where(t.job.c.job_id == job_id)
+                .order_by(t.attempt.c.attempt_number)
+            ).all()
+            if not rows:
+                return None
+            if rows[0]._mapping[f"{_ATTEMPT_PREFIX}attempt_id"] is None:
+                raise RuntimeError("job row without attempts")
+            return _job_from_rows(rows[0], [_joined_attempt(row) for row in rows])
+        row = self.connection.execute(
+            select(t.job).where(t.job.c.job_id == job_id).with_for_update()
+        ).one_or_none()
         if row is None:
             return None
         attempts = self.connection.execute(
