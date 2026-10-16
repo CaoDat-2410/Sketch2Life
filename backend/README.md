@@ -17,7 +17,7 @@ FEAT-047 exposes the durable BE1 API under `/api/be1/v1`. It requires PostgreSQL
 ```powershell
 cd backend
 $env:SKETCH2LIFE_DATABASE_URL = "postgresql+psycopg://<user>:<password>@<host>:5432/<database>"
-.\.venv\Scripts\alembic.exe upgrade head
+.\.venv\Scripts\alembic.exe upgrade be1_core@head
 .\.venv\Scripts\uvicorn.exe sketch2life.main:app --host 127.0.0.1 --port 8000
 ```
 
