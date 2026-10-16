@@ -1,0 +1,138 @@
+{
+  "generated_utc": "2026-10-16T13:46:55.641284+00:00",
+  "checkpoint": "C1_COMPONENT_OFFLINE",
+  "verdict": "NEEDS_REVISION",
+  "branch": "feature/be2-02-vision-correction",
+  "head": "6dcc57ee0b3d053f071c8c92e72aaaee2e98d899",
+  "staged_paths": 0,
+  "implementation_changed_by_review": false,
+  "approval_sha256": "ebe826ce01a004c6888bc6d2cd4741470beabfdb1f89133d8ebd18f48a691494",
+  "approved_plan_sha256": "f4733c88797edbcce225ecd63700634f929ca75789362c7f3a58a2b57f19df30",
+  "source_sha256": {
+    "backend/src/sketch2life/application/ports/vision_analysis.py": "a6d0ea40c728034138940b1cbef58ed2c28c0ce358128783d19360cc60f1166a",
+    "backend/src/sketch2life/application/services/vision_analysis.py": "3854cb372e1a2af826f324c3a748eac345acd8891542155f23ebd910b4908d8a",
+    "backend/src/sketch2life/contracts/schemas/analysis_results.py": "46c6f47a379832932509f3d29a4a41de7863d28a3fa615d008aef5806f6311ac",
+    "backend/src/sketch2life/domain/vision_analysis.py": "711a06e6fd3ec3e824b09f3851cf5122a2ca262b840686ce3d9ec14952f45588",
+    "backend/src/sketch2life/infrastructure/vision_analysis/__init__.py": "ca7f2429c3309872604b3ab440ac054371086fb0dff82c17704af2148253ec37",
+    "backend/src/sketch2life/infrastructure/vision_analysis/fakes.py": "8e5a2880c5a9951acd2d7a1394520c2ccac9e3df2b7d810538935bc4d1adc3b5",
+    "backend/src/sketch2life/infrastructure/vision_analysis/harness.py": "7aa5a3e518a2b99a51327ee695e0ee17af98ead98817fae7a33e46e6554f13e6",
+    "backend/src/sketch2life/infrastructure/vision_analysis/job_lineage.py": "e472d5a1fed9ca08301028cb456f1ed0e42028929976f7b7266e9c7491007e8d",
+    "backend/src/sketch2life/infrastructure/vision_analysis/legacy_v2.py": "8807631df63e7f8c7515949e65e1085628e60d1fc9deddc2775b1c0555ebda51",
+    "backend/src/sketch2life/interfaces/http/analysis_corrections_fixture_app.py": "7aef60529ebc761a4e2044bd7b437598a49a41c35069f2ab7dae1415b673f661",
+    "backend/src/sketch2life/interfaces/http/routers/analysis_corrections.py": "6b5a6050ab9b64a0a72619f2a8736b0f654d73409c76233e3fa2d7df316fd657",
+    "backend/tests/contract/test_analysis_corrections_api.py": "4c3d3b0d9b81c7a96214eab81e874af4044e326d678eeb431017245a91f3a87b",
+    "backend/tests/contract/test_analysis_result_contracts.py": "24dbf892a06469c678f76c9af471047816930dc33e4d87c49daa5446decf9b67",
+    "backend/tests/contract/test_h_ai_review_handoff_examples.py": "87e83d5e084423006222bbca62b31718e8d454109370bab1a342c33e22baa129",
+    "backend/tests/unit/test_vision_analysis_domain.py": "88d90ad561b735af2b6ca96ee791709dd3ee903ae45c8076628bd3138f944a5e",
+    "backend/tests/unit/test_vision_analysis_job_lineage.py": "98ba03b0ff3ea406dea574440ae5344e62cd7e14af82a79a6b7f237c7a50159e",
+    "backend/tests/unit/test_vision_analysis_legacy_bridge.py": "deb38372b9c0850543d39e84e31b87ffa66159b5316f6384fc33d3884ecfbe5b",
+    "backend/tests/unit/test_vision_analysis_review_fixes.py": "a002070f6c9fbb244b2fa8b409e6d01f83e3aaaefe2ee2bf5515fe68dc38fa68",
+    "backend/tests/unit/test_vision_analysis_service.py": "b6e69e8468268e0b632211b98a12956fa31c361fff0ce19c8bad72f21d8de89d"
+  },
+  "review_note": "evidence/notes/C1_CODEX_REREVIEW_20261016.md",
+  "review_note_sha256": "bc90d361e885053a84426637ab553d870bf0b1d3bf8b9e43c93aaf54ff920ee3",
+  "findings": {
+    "C1-R01": "CLOSED_C1_COMPONENT_SCOPE",
+    "C1-R02": "CLOSED_C1_COMPONENT_SCOPE",
+    "C1-R03": "CLOSED_C1_COMPONENT_SCOPE",
+    "C1-R04": "OPEN_P2",
+    "C1-R05": "CLOSED_C1_COMPONENT_SCOPE",
+    "C1-R06": "CLOSED_C1_COMPONENT_SCOPE"
+  },
+  "tests_independently_run_by_root": {
+    "focused": {
+      "collected": 214,
+      "passed": 213,
+      "failed_or_errored": 0,
+      "skipped": 1,
+      "sha256": "8b0e195296497186c12c6e1abae35b885e1b2dade7ccfaf95cdeb70ff8c64178",
+      "path": "evidence/local/codex-rereview-20261016/focused-junit.xml"
+    },
+    "six_original_promoted_service_probes": {
+      "collected": 6,
+      "passed": 6,
+      "failed_or_errored": 0,
+      "skipped": 0,
+      "sha256": "b6e77cd09de9e7cd9e3592959040810425b2ee20707d626a0165f4c969244f72",
+      "path": "evidence/local/codex-rereview-20261016/old-service-probes-junit.xml"
+    },
+    "two_selected_legacy_modules": {
+      "collected": 56,
+      "passed": 56,
+      "failed_or_errored": 0,
+      "skipped": 0,
+      "sha256": "82e1ed25d5adc2e35e6cfe7bd5dc89e09e3c17c7cf2c5a4eb7c5bcc1b01f86e4",
+      "path": "evidence/local/codex-rereview-20261016/legacy-junit.xml"
+    }
+  },
+  "remaining_R04": [
+    "Python match($) admits final newline while DTO rejects",
+    "truthy filter skips empty optional action refs"
+  ],
+  "scope_notes": [
+    "N01 unchanged nonblocking P3",
+    "legacy F01 contained unchanged",
+    "overlapping invalidation probe unpromoted due read linearization",
+    "C1 closure and full-card DONE not granted"
+  ],
+  "not_run": [
+    "Pillow-dependent app route walk",
+    "full legacy and foundation suites not rerun by root this turn",
+    "real owner/provider/SQL/runtime/live composition"
+  ],
+  "raw_receipts_sha256": {
+    "evidence/local/codex-rereview-20261016/agent-bridge/r04-r06-tests.log": "f564b8cf39604120e3c883cf99aac308ae2a7b7eb484e14dd9cd47e7fef5dfec",
+    "evidence/local/codex-rereview-20261016/agent-bridge/r04-r06-tests.xml": "e6675070a48a789eb6fd44147079e5b744940754edea3338d181386a2e283165",
+    "evidence/local/codex-rereview-20261016/agent-bridge/r06_independent_probes.py": "9a0fdf363ad12547648e9bf61445b6f1571708494a41b4cc7958e9c9988a3470",
+    "evidence/local/codex-rereview-20261016/agent-bridge/r06_independent_results.json": "4d9a1e906d4c37e8b19d12edd8937a3b65cea0c03c1b876d722dde89054f33bb",
+    "evidence/local/codex-rereview-20261016/agent-domain/r03_r04_r05_matrix.py": "cbd4d493d7ebb75be43191c98a9931175519702b67ef3269a111bffe1b4eb466",
+    "evidence/local/codex-rereview-20261016/agent-domain/r03_r04_r05_matrix_result.json": "4705bc056c9fcb445745d6d7398a569c9b311f9b27cb636da2a36a93bc5017ca",
+    "evidence/local/codex-rereview-20261016/agent-domain/r04_final_newline_probe.py": "f302d179875f48ca1384a756e93d8eb71bd1b563571b27a7834dbd748d70e531",
+    "evidence/local/codex-rereview-20261016/agent-domain/r04_final_newline_probe_result.json": "158d1dca1a97cd90bdd9f98548de4745f535ccb021187cda6439b0b0147cf1e9",
+    "evidence/local/codex-rereview-20261016/agent-domain/r04_optional_refs_probe.py": "3bbf034674cdbc621cd716977ae2fc06566409e3e9da11def18ccdf8d4bfd979",
+    "evidence/local/codex-rereview-20261016/agent-domain/r04_optional_refs_probe_result.json": "df974f600396233f13fbc7eaeda87e1fb138666aa516801959c4aa8fd5d4fd82",
+    "evidence/local/codex-rereview-20261016/agent-service/fix_regressions.junit.xml": "5257df5931f93dc015abe52b09769aedd2c88a51176578f4c041494f0b3b24a9",
+    "evidence/local/codex-rereview-20261016/agent-service/fix_regressions.txt": "b23a77c0afe7d4cb0815aa4d495d70e94969218f2fe33ac674fed873025b5cc0",
+    "evidence/local/codex-rereview-20261016/agent-service/original_probes.junit.xml": "3e21b4e917d7e1af706e54208820e42045dbd1150fb920d9e0771a5c70660fe2",
+    "evidence/local/codex-rereview-20261016/agent-service/original_probes.txt": "7a489cda7c764237e08515682e9f8565d61bd042bc72b206ead6a72b632e263c",
+    "evidence/local/codex-rereview-20261016/agent-service/replay_probes.junit.xml": "2fe729da8596b7e436ed0b8fc159241b61577d36c8328fa70a1cc423ae9f8fa1",
+    "evidence/local/codex-rereview-20261016/agent-service/replay_probes.txt": "d271701c0c503fb266242a1afe1cac31f8237a98e9df9bd55fd2d8e6d1c48f8f",
+    "evidence/local/codex-rereview-20261016/agent-service/REREVIEW.md": "6b37765ecce5c4d3968459eaa26664ac8870628c7436ed975a3f026b0ba8cfee",
+    "evidence/local/codex-rereview-20261016/agent-service/test_replay_probes.py": "fbdc5cdbae3d519e2e4d9720ccd1ec07db084520e6bb9fdc70e26130754a5849",
+    "evidence/local/codex-rereview-20261016/architecture.log": "67f1bc538fc90b4f70000a89126dde0aa14c688b8c3dbba796e1a89d6caef80e",
+    "evidence/local/codex-rereview-20261016/diff_check.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "evidence/local/codex-rereview-20261016/focused-junit.xml": "8b0e195296497186c12c6e1abae35b885e1b2dade7ccfaf95cdeb70ff8c64178",
+    "evidence/local/codex-rereview-20261016/focused.log": "c31c67dd37b5d37a03f27e98dace622d40241abe7f43ac507da651f414f2a790",
+    "evidence/local/codex-rereview-20261016/harness.log": "7ebd23d71bdbd03156d1979c05852163fd7ec6e9dac22977f221dffc656186e3",
+    "evidence/local/codex-rereview-20261016/legacy-junit.xml": "82e1ed25d5adc2e35e6cfe7bd5dc89e09e3c17c7cf2c5a4eb7c5bcc1b01f86e4",
+    "evidence/local/codex-rereview-20261016/legacy.log": "0e0764170d5537e6dcdaacc479e88343e2d052efc3713c5d2137129290e959e6",
+    "evidence/local/codex-rereview-20261016/old-service-probes-junit.xml": "b6e77cd09de9e7cd9e3592959040810425b2ee20707d626a0165f4c969244f72",
+    "evidence/local/codex-rereview-20261016/old-service-probes.log": "89eb7adaf4221287e3732d84fad1cd944968472491c052503e05db8a0eee1140",
+    "evidence/local/codex-rereview-20261016/record_rereview.py": "cda2ccc12aeea095de46e2819e31a1a16bf77a20733f45e8e33b166ac9fa927b",
+    "evidence/local/codex-rereview-20261016/root-r04-empty-optional-ref.json": "07acbfe6099b34d9e0a9fbc2c468cef986e99794c6b6a1d1ff110946d56fb5f4",
+    "evidence/local/codex-rereview-20261016/root-r04-final-newline.json": "158d1dca1a97cd90bdd9f98548de4745f535ccb021187cda6439b0b0147cf1e9",
+    "evidence/local/codex-rereview-20261016/security.log": "92c0ffd96413999b706b1194fbbb6c5ba5f94c8d99f1ce5ac6ddbff27d5e5321"
+  },
+  "validators": {
+    "harness": {
+      "exit": 0,
+      "first_line": "HARNESS_VALID",
+      "log_sha256": "7ebd23d71bdbd03156d1979c05852163fd7ec6e9dac22977f221dffc656186e3"
+    },
+    "security": {
+      "exit": 0,
+      "first_line": "REPOSITORY_SECURITY_VALID",
+      "log_sha256": "92c0ffd96413999b706b1194fbbb6c5ba5f94c8d99f1ce5ac6ddbff27d5e5321"
+    },
+    "architecture": {
+      "exit": 0,
+      "first_line": "ARCHITECTURE_VALID",
+      "log_sha256": "67f1bc538fc90b4f70000a89126dde0aa14c688b8c3dbba796e1a89d6caef80e"
+    },
+    "diff_check": {
+      "exit": 0,
+      "first_line": "",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  }
+}

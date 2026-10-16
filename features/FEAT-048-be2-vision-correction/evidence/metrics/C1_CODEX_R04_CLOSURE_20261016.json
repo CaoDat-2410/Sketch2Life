@@ -1,0 +1,140 @@
+{
+  "generated_utc": "2026-10-16T13:59:57.436138+00:00",
+  "checkpoint": "C1_COMPONENT_OFFLINE",
+  "verdict": "CODE_REVIEW_PASS_WITH_NOTES",
+  "branch": "feature/be2-02-vision-correction",
+  "head": "6dcc57ee0b3d053f071c8c92e72aaaee2e98d899",
+  "staged_paths": 0,
+  "implementation_changed_by_review": false,
+  "owner_acceptance": "NOT_RECORDED_BY_REVIEW",
+  "card_status": "IN_PROGRESS_NOT_DONE",
+  "source_sha256": {
+    "backend/src/sketch2life/application/ports/vision_analysis.py": "a6d0ea40c728034138940b1cbef58ed2c28c0ce358128783d19360cc60f1166a",
+    "backend/src/sketch2life/application/services/vision_analysis.py": "3854cb372e1a2af826f324c3a748eac345acd8891542155f23ebd910b4908d8a",
+    "backend/src/sketch2life/contracts/schemas/analysis_results.py": "46c6f47a379832932509f3d29a4a41de7863d28a3fa615d008aef5806f6311ac",
+    "backend/src/sketch2life/domain/vision_analysis.py": "6b488d6a0f1942c10400c6731531a18c61c0aea5d818a4bf108b66e9fef28b9c",
+    "backend/src/sketch2life/infrastructure/vision_analysis/__init__.py": "ca7f2429c3309872604b3ab440ac054371086fb0dff82c17704af2148253ec37",
+    "backend/src/sketch2life/infrastructure/vision_analysis/fakes.py": "8e5a2880c5a9951acd2d7a1394520c2ccac9e3df2b7d810538935bc4d1adc3b5",
+    "backend/src/sketch2life/infrastructure/vision_analysis/harness.py": "7aa5a3e518a2b99a51327ee695e0ee17af98ead98817fae7a33e46e6554f13e6",
+    "backend/src/sketch2life/infrastructure/vision_analysis/job_lineage.py": "e472d5a1fed9ca08301028cb456f1ed0e42028929976f7b7266e9c7491007e8d",
+    "backend/src/sketch2life/infrastructure/vision_analysis/legacy_v2.py": "8807631df63e7f8c7515949e65e1085628e60d1fc9deddc2775b1c0555ebda51",
+    "backend/src/sketch2life/interfaces/http/analysis_corrections_fixture_app.py": "7aef60529ebc761a4e2044bd7b437598a49a41c35069f2ab7dae1415b673f661",
+    "backend/src/sketch2life/interfaces/http/routers/analysis_corrections.py": "6b5a6050ab9b64a0a72619f2a8736b0f654d73409c76233e3fa2d7df316fd657",
+    "backend/tests/contract/test_analysis_corrections_api.py": "4c3d3b0d9b81c7a96214eab81e874af4044e326d678eeb431017245a91f3a87b",
+    "backend/tests/contract/test_analysis_result_contracts.py": "24dbf892a06469c678f76c9af471047816930dc33e4d87c49daa5446decf9b67",
+    "backend/tests/contract/test_h_ai_review_handoff_examples.py": "87e83d5e084423006222bbca62b31718e8d454109370bab1a342c33e22baa129",
+    "backend/tests/unit/test_vision_analysis_domain.py": "88d90ad561b735af2b6ca96ee791709dd3ee903ae45c8076628bd3138f944a5e",
+    "backend/tests/unit/test_vision_analysis_job_lineage.py": "98ba03b0ff3ea406dea574440ae5344e62cd7e14af82a79a6b7f237c7a50159e",
+    "backend/tests/unit/test_vision_analysis_legacy_bridge.py": "deb38372b9c0850543d39e84e31b87ffa66159b5316f6384fc33d3884ecfbe5b",
+    "backend/tests/unit/test_vision_analysis_review_fixes.py": "cc3f777f2c7d48733b9c2444fc0dc3d496fc8d914a0df4469dae2eabb54ebd3d",
+    "backend/tests/unit/test_vision_analysis_service.py": "b6e69e8468268e0b632211b98a12956fa31c361fff0ce19c8bad72f21d8de89d"
+  },
+  "unchanged_since_rereview": 17,
+  "approval_sha256": "ebe826ce01a004c6888bc6d2cd4741470beabfdb1f89133d8ebd18f48a691494",
+  "approved_plan_sha256": "f4733c88797edbcce225ecd63700634f929ca75789362c7f3a58a2b57f19df30",
+  "findings": {
+    "C1-R01": "CLOSED_C1_COMPONENT_SCOPE",
+    "C1-R02": "CLOSED_C1_COMPONENT_SCOPE",
+    "C1-R03": "CLOSED_C1_COMPONENT_SCOPE",
+    "C1-R04": "CLOSED_C1_COMPONENT_SCOPE",
+    "C1-R05": "CLOSED_C1_COMPONENT_SCOPE",
+    "C1-R06": "CLOSED_C1_COMPONENT_SCOPE"
+  },
+  "root_checks": {
+    "focused": {
+      "collected": 233,
+      "passed": 232,
+      "failed_or_errored": 0,
+      "skipped": 1,
+      "sha256": "e7aebe293d571ae9314301e3ce821bb01cc36dce76391d91f0abf2a028937e72",
+      "path": "evidence/local/codex-r04-final-20261016/focused-junit.xml"
+    },
+    "original_service_probes": {
+      "collected": 6,
+      "passed": 6,
+      "failed_or_errored": 0,
+      "skipped": 0,
+      "sha256": "74779869ccdc5d94d4d7a173abcb583544ddea85600494d471685f58add627a5",
+      "path": "evidence/local/codex-r04-final-20261016/old-service-junit.xml"
+    },
+    "ruff": {
+      "exit": 0,
+      "log_sha256": "a4443afdcfb6d7363adb285762515ccf7cf50473b1a05c20c1a50f6bed4d26b0"
+    },
+    "mypy_strict": {
+      "exit": 0,
+      "log_sha256": "0c37c4158c91ef55c724ba017bf6465f26018199badb08e3ff13f98acdf056c2"
+    }
+  },
+  "executor_before_after_receipts_hash_verified": {
+    "before": {
+      "collected": 19,
+      "passed": 7,
+      "failed_or_errored": 12,
+      "skipped": 0,
+      "sha256": "b86a3a1c87bd5831a6852adfffdf88a2c24ae801a5d35ab56fe1b23e1432bc9e",
+      "path": "evidence/local/claude-r04-followup-20261016/before/r04-followup-before.xml"
+    },
+    "after": {
+      "collected": 19,
+      "passed": 19,
+      "failed_or_errored": 0,
+      "skipped": 0,
+      "sha256": "2cbf0ad679aad70b2d269ac8d1368db4de838a2db4daa43906835574d5d6650b",
+      "path": "evidence/local/claude-r04-followup-20261016/after/r04-followup-after.xml"
+    }
+  },
+  "not_run": [
+    "Pillow-dependent production app route walk",
+    "Pillow-dependent V2 server tests",
+    "real owner/provider/SQL/runtime/live composition"
+  ],
+  "not_rerun_this_turn": [
+    "broader legacy suites",
+    "foundation suites"
+  ],
+  "notes": [
+    "N01 nonblocking P3 unchanged",
+    "legacy F01 contained unchanged",
+    "no extra SHA validator batch"
+  ],
+  "review_note": "evidence/notes/C1_CODEX_R04_CLOSURE_20261016.md",
+  "review_note_sha256": "15edd543baaf5ea05088c9113346ca92e03d100a93b0e0b92ee7d56707a57022",
+  "raw_receipts_sha256": {
+    "evidence/local/codex-r04-final-20261016/agent-domain/r04_final_assertions.py": "82d84824ecf0c14b55aa422d8aa72bc8a9d951ec1fce270e4001850f6fb488e7",
+    "evidence/local/codex-r04-final-20261016/agent-domain/r04_final_assertions_result.json": "52e89572dd015dc3c144b1049099426b8d2f71a8ab2181bdf7a265626bd96845",
+    "evidence/local/codex-r04-final-20261016/architecture.log": "67f1bc538fc90b4f70000a89126dde0aa14c688b8c3dbba796e1a89d6caef80e",
+    "evidence/local/codex-r04-final-20261016/diff_check.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "evidence/local/codex-r04-final-20261016/focused-junit.xml": "e7aebe293d571ae9314301e3ce821bb01cc36dce76391d91f0abf2a028937e72",
+    "evidence/local/codex-r04-final-20261016/focused.log": "f7a170ace66f09b9bad61c154fd02bc6787e57964c3e399c041bf5237ff49515",
+    "evidence/local/codex-r04-final-20261016/harness.log": "7ebd23d71bdbd03156d1979c05852163fd7ec6e9dac22977f221dffc656186e3",
+    "evidence/local/codex-r04-final-20261016/mypy.log": "0c37c4158c91ef55c724ba017bf6465f26018199badb08e3ff13f98acdf056c2",
+    "evidence/local/codex-r04-final-20261016/old-service-junit.xml": "74779869ccdc5d94d4d7a173abcb583544ddea85600494d471685f58add627a5",
+    "evidence/local/codex-r04-final-20261016/original_service_probes.log": "9cc6e651b9c5c2cac70d4f32c1dcbd10e0d384072b6f817dd9c86b5419105d68",
+    "evidence/local/codex-r04-final-20261016/record_closure.py": "e5728be2f689d4e8a9d6770cdadbedf2860c8999a8d7bc05269017ec85a8ebc5",
+    "evidence/local/codex-r04-final-20261016/ruff.log": "a4443afdcfb6d7363adb285762515ccf7cf50473b1a05c20c1a50f6bed4d26b0",
+    "evidence/local/codex-r04-final-20261016/security.log": "b7d23a4cdc1d1ac89bcc61542a3ed713ab8d1489ed2d3b751b8ec64234cd7e27"
+  },
+  "validators": {
+    "harness": {
+      "exit": 0,
+      "first_line": "HARNESS_VALID",
+      "log_sha256": "7ebd23d71bdbd03156d1979c05852163fd7ec6e9dac22977f221dffc656186e3"
+    },
+    "security": {
+      "exit": 0,
+      "first_line": "REPOSITORY_SECURITY_VALID",
+      "log_sha256": "b7d23a4cdc1d1ac89bcc61542a3ed713ab8d1489ed2d3b751b8ec64234cd7e27"
+    },
+    "architecture": {
+      "exit": 0,
+      "first_line": "ARCHITECTURE_VALID",
+      "log_sha256": "67f1bc538fc90b4f70000a89126dde0aa14c688b8c3dbba796e1a89d6caef80e"
+    },
+    "diff_check": {
+      "exit": 0,
+      "first_line": "",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  }
+}
