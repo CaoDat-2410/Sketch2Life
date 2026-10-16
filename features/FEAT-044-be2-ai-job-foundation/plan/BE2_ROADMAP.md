@@ -1,5 +1,28 @@
 # Roadmap BE2 — phạm vi và thứ tự thực hiện
 
+## Current routing amendment —2026-10-16
+
+Source scope/DAG of revision2 below is preserved; older Q00 readiness headers are historical.
+Current foundation checkpoint is **Q01/B6_A17FIX01_CLOUD_RECEIPTS_VERIFIED_PENDING_STUDIO**:
+cloud raw evidence verified, Studio A17-fix01 NOT_RUN, BE2-01 IN_PROGRESS, B-12 HANDOFF.
+
+User confirmed a **7/7 executor split**: sender **BE2-01–07**, teammate **BE2-08–14**.
+This does not change the14 business cards or move BE1/FE/P4 ownership. Sender retains07
+knowledge/script; teammate08–10 consumes its versioned H-KNOWLEDGE-VIDEO output.
+
+Teammate priority: **12 → 14 → 08 → 09 → 10 → 11 → 13**. If07 is not ready for08,
+11/13 can advance after01/12 and their own contract/policy gates; do not implement07 twice.
+Begin with12 planning. Existing code WIP1 is unchanged; a second implementation checkpoint
+requires recorded coordination and valid per-card approval. The old single-executor queue
+below remains a dependency/prioritization reference rather than a requirement to code all
+sender cards before teammate planning.
+
+User authorized checkpoint commit/push for teammate access (DECISIONS125). Since dev lacks
+the foundation, a candidate12 planning branch may start from the fetched foundation feature
+checkpoint with its pending gates recorded. This does not change the normal reviewed-card
+merge-to-dev workflow or accept the foundation. Repository handoff:
+../artifacts/BE2_08_14_TEAMMATE_HANDOFF.md. No other-card implementation is approved by this routing.
+
 > Latest progress (2026-10-14, final Q00 code review): original R01–R11 and follow-ups R03a/R04a/A18a CLOSED; code review PASS at fake/contract scope. ACTIVE Q00 waits for adoption/Pillow disposition, with no remaining correction from this review. Tracker and evidence/notes/PHASE_A_Q00_FINAL_CODE_REVIEW_20261014.md hold current status; dated readiness snapshots below retain the state when roadmap revision2 was authored. Queue, 14-card scope and approvals are unchanged.
 
 - Roadmap revision: 2

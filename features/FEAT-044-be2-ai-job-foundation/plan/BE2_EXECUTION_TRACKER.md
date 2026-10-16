@@ -1,5 +1,27 @@
 # BE2 execution tracker
 
+## Published checkpoint handoff and7/7 allocation —2026-10-16
+
+User authorized focused commits/push for teammate access (DECISIONS125); earlier no-publication
+lines below are historical for their review turns. Sender01–07; teammate08–14. Default code
+WIP1 remains; no new implementation card is activated by the handoff. Teammate next step is
+BE2-12 plan on its own candidate branch from the fetched foundation checkpoint if dev still
+lacks it; pin the base and preserve pending Studio/approval/integration gates. Then follow
+12→14→08→09→10→11→13, choosing11/13 before08 only if their dependencies/approvals are ready
+and07 is waiting. Normal reviewed-card dev integration remains; no automatic merge or closure.
+Repository entry: ../artifacts/BE2_08_14_TEAMMATE_HANDOFF.md.
+
+## Current checkpoint: A17-fix01 received cloud evidence —2026-10-16
+
+ACTIVE **Q01/B6_A17FIX01_CLOUD_RECEIPTS_VERIFIED_PENDING_STUDIO**. Received raw archive3bcaa058:
+cloud221 B2–B6 +224 Phase A /0 failure/error/skip, durable43/43 required PASS. Exact two-file
+A17 correction is ported;manifest5b76868d matches46/46 files;local25 B6 units and focused
+ruff/mypy PASS. Next prepare/run the new A17-fix01 package on the named Studio when available,
+then review before CR01/B6 closure. Studio NOT_RUN; BE2-01 IN_PROGRESS; B-12 HANDOFF; OwnerFence
+ASSUMED_CONTRACT; exactly14 cards. No other card is activated, approvals unchanged, no Git
+publication. See ../evidence/notes/PHASE_B_B6_A17FIX01_CLOUD_RECEIPT_REVIEW_20261016.md.
+Older work-order/checkpoint routing below is historical and does not override this entry.
+
 ## Local checkpoint decision —2026-10-16
 
 Current checkpoint remains **Q01/B6_CR01_R2_CODE_PACKAGE_REVIEW_PASS_PENDING_RUNTIME**. Person 2 allowed
