@@ -1,5 +1,13 @@
 # BE2 publication selection — temporary classification
 
+> Current override, 2026-10-15: per user request, 15 operator prompts and one session handover
+> moved to ignored `evidence/local/claude/`. Their old paths are excluded from the live GitHub
+> candidate list; seven tracked prompt paths now show deletions pending a future cleanup commit.
+> The historical `plan/CLAUDE_BE2_HANDOFF.md` remains because the actual Phase A approval
+> references it. Approval/executor evidence, accepted plans, contracts and reviews are retained.
+> Counts below describe the original 426-path snapshot; the current relocation overlay is
+> `evidence/local/publication-triage-20261015/AFTER_PROMPT_LOCALIZATION.json`.
+
 - Date: 2026-10-15, Asia/Saigon.
 - Scope: branch `feature/be2-01-ai-job-foundation`, initial Git status **426 files**.
 - User requests a temporary GitHub-versus-local selection; this is not commit/push or Phase B implementation approval.
@@ -451,12 +459,6 @@ features/FEAT-044-be2-ai-job-foundation/fixtures/shapes/positive/DATA-33.json
 features/FEAT-044-be2-ai-job-foundation/plan/BE2_EXECUTION_TRACKER.md
 features/FEAT-044-be2-ai-job-foundation/plan/BE2_ROADMAP.md
 features/FEAT-044-be2-ai-job-foundation/plan/CLAUDE_BE2_HANDOFF.md
-features/FEAT-044-be2-ai-job-foundation/plan/CLAUDE_PHASE_A_FIX_PROMPT.md
-features/FEAT-044-be2-ai-job-foundation/plan/CLAUDE_PHASE_B_PLANNING_PROMPT.md
-features/FEAT-044-be2-ai-job-foundation/plan/CLAUDE_PHASE_B_PLAN_REVISION_PROMPT.md
-features/FEAT-044-be2-ai-job-foundation/plan/CLAUDE_PHASE_B_REV2_COMPLETION_PROMPT.md
-features/FEAT-044-be2-ai-job-foundation/plan/CLAUDE_Q00_ACCEPTANCE_PROMPT.md
-features/FEAT-044-be2-ai-job-foundation/plan/CLAUDE_Q00_FOLLOWUP_FIX_PROMPT.md
 features/FEAT-044-be2-ai-job-foundation/plan/PHASE_A_CANDIDATE_SPEC.md
 features/FEAT-044-be2-ai-job-foundation/plan/PHASE_B_ADR_PROPOSAL.md
 features/FEAT-044-be2-ai-job-foundation/plan/PHASE_B_PLAN.md
@@ -471,6 +473,12 @@ features/FEAT-044-be2-ai-job-foundation/status/STATUS.md
 </details>
 
 ## Operator outputs and verification
+
+Local prompt entry point: `evidence/local/claude/INDEX.md`; current B3 correction is
+`evidence/local/claude/prompts/CLAUDE_PHASE_B_B3_FIX_PROMPT.md`. Old-to-new mapping and original
+file bytes are preserved under `evidence/local/prompt-relocation-20261015/`. Scoped ignore rules
+also prevent new `plan/CLAUDE_*.md` and session handovers from entering Git status, except the
+explicit historical approval reference. Ignore rules do not erase previously committed history.
 
 Full classification/hash manifest, GITHUB_CANDIDATES.txt, KEEP_LOCAL.txt, HOLD_SEPARATELY.txt, documentation snapshots and actual checks live in `evidence/local/publication-triage-20261015/` (ignored, feature-local).
 
