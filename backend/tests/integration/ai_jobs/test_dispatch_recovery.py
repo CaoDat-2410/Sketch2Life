@@ -317,8 +317,8 @@ def test_dispatch_loss_and_start_have_exactly_one_winner(db: URL, first: str) ->
     job_id, attempt_id, due = _due_at_publish_bound(rig)
     paused, ready, release = _paused_rig(db)
     paused.clock.advance(milliseconds=POLICY.start_timeout_ms)
-    capability = rig.capabilities.issue(job_id)
-    paused_capability = paused.capabilities.issue(job_id)
+    capability = rig.capability(job_id)
+    paused_capability = paused.capability(job_id)
 
     def start(service: AiJobService, token: str) -> Callable[[], Any]:
         return lambda: service.start_attempt(token, job_id, attempt_id)
@@ -441,7 +441,7 @@ def _failed_retryable_jobs(
         rig.owner.set(fx.eligibility_scope(ORG, request), {"eligible": True})
         created = service.create_job(s.command(key=f"{prefix}_{index}", request=request))
         attempt = rig.job(created.job_id).active_attempt
-        capability = rig.capabilities.issue(created.job_id)
+        capability = rig.capability(created.job_id)
         assert service.start_attempt(capability, created.job_id, attempt.attempt_id).started
         pinned = attempt.request_ref
         service.accept_completion(
@@ -502,7 +502,7 @@ def test_overdue_and_unstarted_sweeps_page_through_sql(db: URL) -> None:
         created = rig.service.create_job(s.command(key=f"run_{index}", request=request))
         attempt_id = rig.job(created.job_id).active_attempt.attempt_id
         assert rig.service.start_attempt(
-            rig.capabilities.issue(created.job_id), created.job_id, attempt_id
+            rig.capability(created.job_id), created.job_id, attempt_id
         ).started
         rig.clock.advance(milliseconds=1)
         running.append(created.job_id)

@@ -109,7 +109,7 @@ def test_read_overlapping_start_commit_returns_one_coherent_version(db: URL) -> 
         db,
         created.job_id,
         lambda w: w.service.start_attempt(
-            w.capabilities.issue(created.job_id),
+            w.capability(created.job_id, before.active_attempt.attempt_id),
             created.job_id,
             before.active_attempt.attempt_id,
         ),
@@ -127,7 +127,7 @@ def test_read_overlapping_retry_commit_returns_one_coherent_version(db: URL) -> 
     setup = s.build_rig(db)
     created = setup.service.create_job(s.command())
     attempt = setup.job(created.job_id).active_attempt
-    capability = setup.capabilities.issue(created.job_id)
+    capability = setup.capability(created.job_id)
     assert setup.service.start_attempt(capability, created.job_id, attempt.attempt_id).started
     pinned = attempt.request_ref
     setup.service.accept_completion(

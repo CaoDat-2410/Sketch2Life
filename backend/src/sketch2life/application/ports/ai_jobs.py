@@ -3,7 +3,9 @@ ids, artifacts, audit, worker capability, provider and provider-copy lifecycle.
 
 Phase A ships deterministic fakes. Phase B batch B3 (plan revision 3 §5, Δ1–Δ5) adds owner
 fences on decisions, the unit-of-work fence hold, the canonical semantic key and typed
-unique conflicts; the SQL adapter lives in ``infrastructure/ai_jobs/sql``.
+unique conflicts; the SQL adapter lives in ``infrastructure/ai_jobs/sql``. Batch B5 adds the
+attempt-bound worker capability (Δ8), deterministic audit/quarantine side-effect intents with
+leased delivery (Δ9/Δ15) and atomic cancellation notices (Δ10).
 """
 
 from __future__ import annotations
@@ -269,12 +271,64 @@ class ArtifactDescriptor:
 
 @dataclass(frozen=True, slots=True)
 class AuditEvent:
+    """Audit record. ``event_id`` is deterministic (Δ9): every delivery of the same intent
+    carries the same value, so the sink deduplicates redeliveries."""
+
     event_type: str
     organization_id: str
     job_id: str | None
     correlation_id: str | None
     reason_code: str | None = None
     details: Mapping[str, str] = field(default_factory=dict)
+    event_id: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class QuarantineIntent:
+    """Quarantine of owned outputs (Δ15). ``event_id`` is computed once when the intent is
+    written in the committing transaction; every redelivery sends exactly that value."""
+
+    event_id: str
+    organization_id: str
+    job_id: str
+    attempt_id: str
+    artifact_refs: tuple[str, ...]
+    reason_code: str
+
+
+SideEffect = AuditEvent | QuarantineIntent
+
+
+@dataclass(frozen=True, slots=True)
+class ClaimedSideEffect:
+    """A leased audit/quarantine outbox row (Δ9/Δ15); mark/release need the same lease.
+    ``cursor`` is the row's position in the claim order (B5-R01 keyset traversal)."""
+
+    effect: SideEffect
+    lease: OutboxLease
+    cursor: SweepCursor
+
+
+@dataclass(frozen=True, slots=True)
+class RecordedNotice:
+    """Completed cancellation notice (Δ10): written only after every match was cancelled."""
+
+    notice_id: str
+    organization_id: str
+    reason_code: str
+    applied_count: int
+    recorded_at: datetime
+
+
+@dataclass(frozen=True, slots=True)
+class VerifiedCapability:
+    """Typed result of a successful worker capability verification (Δ8)."""
+
+    job_id: str
+    attempt_id: str
+    issued_at: datetime
+    expires_at: datetime
+    key_id: str
 
 
 class AiJobUnitOfWork(Protocol):
@@ -306,7 +360,38 @@ class AiJobUnitOfWork(Protocol):
         ...
 
     def add_audit_intent(self, event_id: str, event: AuditEvent) -> None:
-        """Durable audit intent committed with the mutation it describes (Δ5 candidate)."""
+        """Durable audit intent committed with the mutation it describes (Δ5, Δ9)."""
+        ...
+
+    def add_quarantine_intent(self, intent: QuarantineIntent) -> None:
+        """Durable quarantine intent committed with the decision that requires it (Δ15)."""
+        ...
+
+    def side_effect_recorded(self, event_id: str) -> bool:
+        """An audit/quarantine intent with this event id is already durable (Δ9 dedup)."""
+        ...
+
+    def pending_side_effects_count(self) -> int:
+        """Count undelivered audit/quarantine rows, including leased rows. Captured once as
+        the finite row budget of one delivery invocation; dispatch rows are excluded."""
+        ...
+
+    def claim_side_effects(
+        self,
+        owner: str,
+        now: datetime,
+        lease: timedelta,
+        limit: int,
+        after: SweepCursor | None = None,
+    ) -> tuple[ClaimedSideEffect, ...]:
+        """Lease up to ``limit`` undelivered audit/quarantine rows whose lease is free or
+        expired, in a stable order strictly after ``after`` when given; each claim increments
+        the row's lease generation (Δ6 fencing, Δ9, B5-R01)."""
+        ...
+
+    def mark_side_effect(self, lease: OutboxLease, now: datetime) -> bool:
+        """Mark a delivered side effect; a stale holder's mark is a no-op. Never touches the
+        attempt dispatch bookkeeping."""
         ...
 
     def add_outbox(self, message: DispatchMessage, *, now: datetime) -> None:
@@ -367,7 +452,17 @@ class AiJobUnitOfWork(Protocol):
 
     def notice_seen(self, notice_id: str) -> bool: ...
 
-    def record_notice(self, notice_id: str) -> None: ...
+    def jobs_for_notice(self, notice: CancellationNotice) -> tuple[AiJob, ...]:
+        """Every non-terminal job of the notice's organization matching its session, job type
+        or subject, locked ``FOR UPDATE`` in job id order (Δ10). No limit, no paging."""
+        ...
+
+    def record_notice(
+        self, notice: CancellationNotice, *, applied_count: int, now: datetime
+    ) -> None:
+        """Record the notice ``COMPLETE`` with its applied count; ``UniqueConflict`` if it is
+        already recorded (Δ10)."""
+        ...
 
 
 class AiJobRepository(Protocol):
@@ -397,12 +492,15 @@ class EligibilityPort(Protocol):
 
 
 class WorkerCapabilityVerifier(Protocol):
-    def verify(self, capability: str, job_id: str) -> bool: ...
+    """Δ8: returns the typed claim of a well-formed, untampered, known-key, unexpired token,
+    else ``None``. The caller compares both ids with the request."""
+
+    def verify(self, capability: str) -> VerifiedCapability | None: ...
 
 
 class WorkerCapabilityIssuer(Protocol):
     """P3 issuer (Δ14), called by the dispatcher right before enqueue, outside any SQL write.
-    Attempt-bound verification is batch B5 (Δ8)."""
+    The token is bound to ``(job_id, attempt_id, issued_at, expires_at, key_id)`` (Δ8)."""
 
     def issue(self, job_id: str, attempt_id: str, now: datetime) -> str: ...
 
@@ -418,11 +516,15 @@ class IdGeneratorPort(Protocol):
 class ArtifactPort(Protocol):
     def describe(self, artifact_ref: str) -> ArtifactDescriptor | None: ...
 
-    def quarantine(self, artifact_refs: tuple[str, ...], reason_code: str) -> None: ...
+    def quarantine(self, intent: QuarantineIntent) -> None:
+        """Apply the intent once; a repeated ``event_id`` is a no-op at the sink (Δ15)."""
+        ...
 
 
 class AuditPort(Protocol):
-    def record(self, event: AuditEvent) -> None: ...
+    def record(self, event: AuditEvent) -> None:
+        """At-least-once delivery; the sink deduplicates by ``event.event_id`` (Δ9)."""
+        ...
 
 
 class DispatchQueuePort(Protocol):
@@ -480,6 +582,7 @@ __all__ = [
     "AuthorizationPort",
     "CancellationNotice",
     "ClaimedDispatch",
+    "ClaimedSideEffect",
     "ClockPort",
     "CommandReceipt",
     "CommandScopeKey",
@@ -497,11 +600,15 @@ __all__ = [
     "OwnerFencePort",
     "Principal",
     "PrincipalRole",
+    "QuarantineIntent",
+    "RecordedNotice",
     "ProviderCopyAdapterPort",
     "ProviderCopyRegistryPort",
     "SemanticRequestKey",
+    "SideEffect",
     "SweepCursor",
     "UniqueConflict",
+    "VerifiedCapability",
     "WorkerCapabilityIssuer",
     "WorkerCapabilityVerifier",
     "WorkerDispatchEnvelope",

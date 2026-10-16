@@ -72,7 +72,7 @@ def test_r03a_quarantined_ref_is_never_admitted(h: FixtureHarness) -> None:
     job_id = h.service.create_job(h.create()).job_id
     message = h.start_next()
     claim = h.success_claim(message)
-    h.artifacts.quarantine((claim.outputs[0].artifact_ref,), "UNSAFE_CONTENT")
+    h.artifacts.owner_quarantine((claim.outputs[0].artifact_ref,), "UNSAFE_CONTENT")
     receipt = h.service.accept_completion(h.capability(job_id), claim)
     assert receipt.reason_code == "OUTPUT_MALFORMED"
     assert projected_refs(h, job_id) == []
@@ -220,4 +220,3 @@ def test_a18a_cancel_after_purge_keeps_deleted_and_receipt(h: FixtureHarness) ->
     assert after == deleted and h.copy_adapter.cancel_requests == []
     current = h.copy_registry.get("c1")
     assert current is not None and current.status is CopyStatus.DELETED
-

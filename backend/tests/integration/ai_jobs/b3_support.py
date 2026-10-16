@@ -23,6 +23,7 @@ from sketch2life.application.ports.ai_jobs import (
     EligibilityDecision,
     FenceResult,
     Principal,
+    QuarantineIntent,
 )
 from sketch2life.application.services.ai_jobs import (
     AiJobDependencies,
@@ -115,8 +116,8 @@ class HookedArtifacts:
         self._after(artifact_ref)
         return descriptor
 
-    def quarantine(self, artifact_refs: tuple[str, ...], reason_code: str) -> None:
-        self._port.quarantine(artifact_refs, reason_code)
+    def quarantine(self, intent: QuarantineIntent) -> None:
+        self._port.quarantine(intent)
 
 
 @dataclass
@@ -142,6 +143,13 @@ class SqlRig:
             found = tx.get_job(job_id)
         assert found is not None
         return found
+
+    def capability(self, job_id: str, attempt_id: str | None = None) -> str:
+        """Fresh attempt-bound capability (B5 Δ8); defaults to the job's active attempt."""
+
+        if attempt_id is None:
+            attempt_id = self.job(job_id).active_attempt.attempt_id
+        return self.capabilities.issue(job_id, attempt_id, self.clock.now())
 
 
 def engine_for(url: URL) -> Engine:

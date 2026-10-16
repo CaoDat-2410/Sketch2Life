@@ -344,6 +344,7 @@ def a11_stale_completion(r: Result) -> None:
             str(receipt.disposition) == "stale" and receipt.reason_code == "ATTEMPT_SUPERSEDED")
     r.check("attempt 2 still running, not overwritten",
             job.state is JobState.RUNNING and job.active_attempt.attempt_id == second.attempt_id)
+    cap = h.capability(job_id)  # B5 Δ8: attempt 2 has its own attempt-bound capability
     tampered = replace(h.success_claim(second), input_hash="0" * 64)
     receipt = h.service.accept_completion(cap, tampered)
     r.check("wrong input hash -> rejected INPUT_MISMATCH",

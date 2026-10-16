@@ -8,7 +8,10 @@ throw-away PostgreSQL schema ``owner_fence_fixture`` on a disposable synthetic d
 * BE2 side: ``FixtureFenceHold`` reads the fence rows ``FOR SHARE`` on the BE2 unit-of-work
   connection, so the hold lasts until the BE2 transaction ends;
 * fixture owner ports (eligibility, authorization, artifacts) return decisions together with
-  the fence epoch they were read at.
+  the fence epoch they were read at;
+* component sinks for B5 side effects (Δ9/Δ15): ``FixtureArtifacts.quarantine`` and
+  ``FixtureAuditSink.record`` apply an intent once per ``event_id`` in one owner transaction,
+  so a redelivery after a crash is a no-op. They stand in for BE1 audit/artifact storage.
 
 This is not a P2 adapter, is never wired into the live app or an Alembic revision, and
 creates its DDL only on databases named like the integration conftest's disposable ones.
@@ -43,12 +46,14 @@ from sqlalchemy.schema import CreateSchema
 from sketch2life.application.ports.ai_jobs import (
     OWNER_FENCE_CONTRACT,
     ArtifactDescriptor,
+    AuditEvent,
     AuthorizationAction,
     AuthorizationDecision,
     EligibilityDecision,
     FenceResult,
     OwnerFence,
     Principal,
+    QuarantineIntent,
 )
 from sketch2life.domain.ai_jobs.model import JobScope, RequestRef
 
@@ -77,6 +82,22 @@ notice = Table(
     Column("epoch", BigInteger, nullable=False),
     Column("payload", JSONB, nullable=False),
     Column("status", String(16), nullable=False, server_default=text("'WITHHELD'")),
+)
+# Component side-effect sinks (B5): one row per applied event id.
+quarantine_applied = Table(
+    "quarantine_applied",
+    FIXTURE_METADATA,
+    Column("event_id", String(64), primary_key=True),
+    Column("reason_code", String(80), nullable=False),
+    Column("artifact_refs", JSONB, nullable=False),
+)
+audit_applied = Table(
+    "audit_applied",
+    FIXTURE_METADATA,
+    Column("event_id", String(64), primary_key=True),
+    Column("event_type", String(80), nullable=False),
+    Column("job_id", String(128), nullable=True),
+    Column("payload", JSONB, nullable=False),
 )
 
 
@@ -139,6 +160,10 @@ class OwnerFixture:
     def __init__(self, engine: Engine) -> None:
         self._engine = engine
 
+    @property
+    def engine(self) -> Engine:
+        return self._engine
+
     def set(self, scope: str, payload: dict[str, Any]) -> int:
         """Create or replace a decision as an owner change; returns the new epoch."""
 
@@ -153,42 +178,60 @@ class OwnerFixture:
         after_lock: Callable[[], None] | None = None,
     ) -> int:
         with self._engine.begin() as connection:
-            connection.execute(
-                pg_insert(fence).values(fence_scope=scope, epoch=0).on_conflict_do_nothing()
+            return self.change_in(connection, scope, payload, notice_id=notice_id,
+                                  after_lock=after_lock)
+
+    @staticmethod
+    def change_in(
+        connection: Connection,
+        scope: str,
+        payload: dict[str, Any],
+        *,
+        notice_id: str | None,
+        after_lock: Callable[[], None] | None = None,
+    ) -> int:
+        """One owner decision change on the caller's owner transaction."""
+
+        connection.execute(
+            pg_insert(fence).values(fence_scope=scope, epoch=0).on_conflict_do_nothing()
+        )
+        epoch = connection.execute(
+            select(fence.c.epoch).where(fence.c.fence_scope == scope).with_for_update()
+        ).scalar_one()
+        if after_lock is not None:
+            after_lock()
+        new_epoch = int(epoch) + 1
+        connection.execute(
+            update(fence).where(fence.c.fence_scope == scope).values(epoch=new_epoch)
+        )
+        connection.execute(
+            pg_insert(decision)
+            .values(fence_scope=scope, payload=payload)
+            .on_conflict_do_update(
+                index_elements=[decision.c.fence_scope], set_={"payload": payload}
             )
-            epoch = connection.execute(
-                select(fence.c.epoch).where(fence.c.fence_scope == scope).with_for_update()
-            ).scalar_one()
-            if after_lock is not None:
-                after_lock()
-            new_epoch = int(epoch) + 1
+        )
+        if notice_id is not None:
             connection.execute(
-                update(fence).where(fence.c.fence_scope == scope).values(epoch=new_epoch)
-            )
-            connection.execute(
-                pg_insert(decision)
-                .values(fence_scope=scope, payload=payload)
-                .on_conflict_do_update(
-                    index_elements=[decision.c.fence_scope], set_={"payload": payload}
+                insert(notice).values(
+                    notice_id=notice_id, fence_scope=scope, epoch=new_epoch, payload=payload
                 )
             )
-            if notice_id is not None:
-                connection.execute(
-                    insert(notice).values(
-                        notice_id=notice_id, fence_scope=scope, epoch=new_epoch, payload=payload
-                    )
-                )
         return new_epoch
 
     def read(self, scope: str) -> tuple[dict[str, Any], OwnerFence] | None:
         """Decision and the epoch it belongs to, read in one statement."""
 
         with self._engine.connect() as connection:
-            row = connection.execute(
-                select(decision.c.payload, fence.c.epoch)
-                .join(fence, fence.c.fence_scope == decision.c.fence_scope)
-                .where(decision.c.fence_scope == scope)
-            ).one_or_none()
+            return self.read_in(connection, scope)
+
+    @staticmethod
+    def read_in(connection: Connection, scope: str) -> tuple[dict[str, Any], OwnerFence] | None:
+        row = connection.execute(
+            select(decision.c.payload, fence.c.epoch)
+            .join(fence, fence.c.fence_scope == decision.c.fence_scope)
+            .where(decision.c.fence_scope == scope)
+        ).one_or_none()
         if row is None:
             return None
         return dict(row.payload), OwnerFence(scope, int(row.epoch))
@@ -272,26 +315,91 @@ class FixtureArtifacts:
             owner_fence,
         )
 
-    def quarantine(self, artifact_refs: tuple[str, ...], reason_code: str) -> None:
-        for ref in artifact_refs:
-            found = self._owner.read(artifact_scope(ref))
+    def quarantine(self, intent: QuarantineIntent) -> None:
+        """Apply a BE2 quarantine intent once per ``event_id`` (Δ15), atomically with its
+        dedup row; a redelivered event id changes nothing."""
+
+        with self._owner.engine.begin() as connection:
+            applied = connection.execute(
+                pg_insert(quarantine_applied)
+                .values(event_id=intent.event_id, reason_code=intent.reason_code,
+                        artifact_refs=list(intent.artifact_refs))
+                .on_conflict_do_nothing()
+                .returning(quarantine_applied.c.event_id)
+            ).first()
+            if applied is None:
+                return
+            self._apply(connection, intent.artifact_refs, intent.reason_code)
+
+    def owner_quarantine(self, artifact_refs: tuple[str, ...], reason_code: str) -> None:
+        """Owner-side quarantine outside BE2 (tests): a plain owner decision change."""
+
+        with self._owner.engine.begin() as connection:
+            self._apply(connection, artifact_refs, reason_code)
+
+    @staticmethod
+    def _apply(connection: Connection, refs: tuple[str, ...], reason_code: str) -> None:
+        for ref in refs:
+            found = OwnerFixture.read_in(connection, artifact_scope(ref))
             if found is None or found[0].get("quarantine_reason") is not None:
                 continue
-            self._owner.change(
-                artifact_scope(ref), {**found[0], "quarantine_reason": reason_code}, notice_id=None
+            OwnerFixture.change_in(
+                connection, artifact_scope(ref), {**found[0], "quarantine_reason": reason_code},
+                notice_id=None,
             )
+
+
+class FixtureAuditSink:
+    """Component audit sink (stand-in for BE1 audit storage): one row per ``event_id``;
+    ``deliveries`` counts every delivery this process attempted."""
+
+    label = ASSUMED_CONTRACT
+
+    def __init__(self, engine: Engine) -> None:
+        self._engine = engine
+        self.deliveries: list[str] = []
+
+    def record(self, event: AuditEvent) -> None:
+        self.deliveries.append(event.event_id)
+        with self._engine.begin() as connection:
+            connection.execute(
+                pg_insert(audit_applied)
+                .values(
+                    event_id=event.event_id,
+                    event_type=event.event_type,
+                    job_id=event.job_id,
+                    payload={
+                        "organization_id": event.organization_id,
+                        "correlation_id": event.correlation_id,
+                        "reason_code": event.reason_code,
+                        "details": dict(event.details),
+                    },
+                )
+                .on_conflict_do_nothing()
+            )
+
+    def applied(self) -> list[tuple[str, str, str | None]]:
+        with self._engine.connect() as connection:
+            rows = connection.execute(
+                select(audit_applied.c.event_id, audit_applied.c.event_type,
+                       audit_applied.c.job_id).order_by(audit_applied.c.event_id)
+            ).all()
+        return [(row.event_id, row.event_type, row.job_id) for row in rows]
 
 
 __all__ = [
     "ASSUMED_CONTRACT",
     "FIXTURE_SCHEMA",
     "FixtureArtifacts",
+    "FixtureAuditSink",
     "FixtureAuthorization",
     "FixtureEligibility",
     "FixtureFenceHold",
     "OwnerFixture",
     "artifact_scope",
+    "audit_applied",
     "create_fixture_schema",
     "eligibility_scope",
     "grant_scope",
+    "quarantine_applied",
 ]

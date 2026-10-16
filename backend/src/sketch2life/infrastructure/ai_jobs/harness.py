@@ -141,8 +141,12 @@ class FixtureHarness:
     def worker(self, provider: FakeProvider) -> FakeWorker:
         return FakeWorker(self.service, self.queue, provider, self.capabilities)
 
-    def capability(self, job_id: str) -> str:
-        return self.capabilities.issue(job_id)
+    def capability(self, job_id: str, attempt_id: str | None = None) -> str:
+        """Fresh attempt-bound capability (Δ8); defaults to the job's active attempt."""
+
+        if attempt_id is None:
+            attempt_id = self.store.snapshot().jobs[job_id].active_attempt.attempt_id
+        return self.capabilities.issue(job_id, attempt_id, self.clock.now())
 
     def next_message(self) -> DispatchMessage:
         self.service.dispatch_outbox()
