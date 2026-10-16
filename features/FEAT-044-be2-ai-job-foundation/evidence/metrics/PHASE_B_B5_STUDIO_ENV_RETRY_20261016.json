@@ -1,0 +1,44 @@
+{
+  "date": "2026-10-16",
+  "timezone": "Asia/Saigon",
+  "provenance": "USER_REPORTED_REMOTE",
+  "state": "Q01/B5_FIXED_PENDING_RUNTIME_REVIEW",
+  "reported_host_source_manifest_sha256": "cf196e845d30179c2aa2b89e09970ccaf83777aa6d90fac7b29f68d091ad60d0",
+  "reported_host_source_verified_files": 43,
+  "reported_source_transition": "b4r01_snapshot to fix02; verified before Docker",
+  "reported_receipt_path": "features/FEAT-044-be2-ai-job-foundation/evidence/local/b5fix02-runtime-20261015/run-20261015T170629Z-2560",
+  "run_utc": "2026-10-15T17:06:29Z",
+  "run_local": "2026-10-16T00:06:29+07:00",
+  "failure": "Docker network sketch2life-be2-net not found",
+  "outer_runner_exit": 125,
+  "runner_result": "FAIL",
+  "studio_command_exit": 125,
+  "container_tests_started": false,
+  "runtime_status": "NOT_RUN_ENVIRONMENT",
+  "previous_passing_runtime": {
+    "manifest_prefix": "f1c6834f",
+    "b2_b4_passed": 104,
+    "phase_a_passed": 224,
+    "skips": 0
+  },
+  "user_recovery_script": "/teamspace/studios/this_studio/rebuild_be2_env.sh",
+  "reviewed_local_recovery_script_sha256": "28950e637d27883bd4df8e5a92a6fc0b6d03284cec0a619a2ca9ce578c4b79d8",
+  "recovery_runtime_status": "NOT_REPORTED",
+  "retry_source_state": "b5fix02_snapshot_verify_only",
+  "raw_report": "evidence/local/studio-env-retry-20261016/user_report.txt",
+  "raw_report_sha256": "6499a97ce2cf9eb1f81d1c87af9abb246434a55540483ba4ce2df20f716a6c05",
+  "source_package_approval_plan_protected_paths_unchanged": 541,
+  "real_index_unchanged": true,
+  "expected_next_runtime": {
+    "b2_b5_passed": 193,
+    "phase_a_passed": 224,
+    "skips": 0,
+    "all_exits": 0
+  },
+  "local_document_checks": {
+    "harness": 0,
+    "security": 0,
+    "diff": 0
+  },
+  "b6": "NOT_STARTED"
+}

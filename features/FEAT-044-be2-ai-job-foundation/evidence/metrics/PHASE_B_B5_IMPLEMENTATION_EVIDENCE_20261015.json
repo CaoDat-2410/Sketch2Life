@@ -1,0 +1,261 @@
+{
+  "record": "PHASE_B_B5_IMPLEMENTATION_EVIDENCE_20261015",
+  "date": "2026-10-15",
+  "status": "B5_CODE_COMPLETE_PENDING_CODEX_REVIEW",
+  "b5_closed": false,
+  "b6": "NOT_STARTED",
+  "executor": "Claude",
+  "authority": "existing Phase B plan rev3 B1-B6 approval; deltas 8/9/10/12/14/15",
+  "provenance": "DIRECT_LOCAL (Windows; fakes/service + static checks); PostgreSQL/Redis NOT_RUN",
+  "files": {
+    "backend/src/sketch2life/application/ports/ai_jobs.py": {
+      "before": "6cd2977be75544223eb18dd553c570220ea332bfa0719fa0d586714db5b933ce",
+      "after": "7ae9772927a0a2fb7fb0370dc85f48e162ad9937557276e9420c5010e74d6fdb"
+    },
+    "backend/src/sketch2life/application/services/ai_jobs.py": {
+      "before": "8945b351b69be5450f02e998f82b0dd0f79a248f53c19b33a80c1f7bbe85f489",
+      "after": "08291990bec28306f0b64fa6de7ce7e1a233d043213b73abd44369fcab2d600d"
+    },
+    "backend/src/sketch2life/infrastructure/ai_jobs/fakes.py": {
+      "before": "8af1865dd6c7ef4d081610a57c3c353a37a0ebe1a8056a5c45ad82d1c269d6d0",
+      "after": "e60720da247a0c39a216d2b9b08bcdb4cb1d87a86cfcba25cb0b79816171f398"
+    },
+    "backend/src/sketch2life/infrastructure/ai_jobs/harness.py": {
+      "before": "ed5767319246917e28cbc953df3fffd3021ae414a6590ac8feaf247340a51038",
+      "after": "8fbc7b4d59bd87827b931e67c5696335426ebbb473cea50678a0b337171f1aa4"
+    },
+    "backend/src/sketch2life/infrastructure/ai_jobs/rq_queue.py": {
+      "before": "19fbb2fa004c7459fc9cb4675bf5b8568ee517c348ba80657f46fbeb615f0953",
+      "after": "3a4ecdcffe55cfc3003e6273a4ba07b1d1b2f36054688449a533b8b0ee9ad1aa"
+    },
+    "backend/src/sketch2life/infrastructure/ai_jobs/sql/owner_fence_fixture.py": {
+      "before": "ad93ea35037b10e808f84787fb55ebbf17b97874df462183d6808a5d8d0b4555",
+      "after": "f12560d8f68ea31c5f76bb10e0452310cff019c3d2df5a90d8970889d052ec92"
+    },
+    "backend/src/sketch2life/infrastructure/ai_jobs/sql/repository.py": {
+      "before": "836d513c3ddd51e5da800f078c3fe8f714b53fccd9736dd857c9b26cbe7a5dee",
+      "after": "4ec3f65b15637cac6d9ef8a039ffc988913f7e6e4e229fe6a3236d5a9319f8af"
+    },
+    "backend/src/sketch2life/infrastructure/ai_jobs/worker.py": {
+      "before": null,
+      "after": "3c47c1bcb4083177cfc552c8ab9fd12fdebf37bd5ed6a447713d99539f79914c"
+    },
+    "backend/src/sketch2life/infrastructure/ai_jobs/worker_capability.py": {
+      "before": null,
+      "after": "995552721acc77c8d32813b0c2e7fe9a4c31250d85b9ab809c6540f84611f7f4"
+    },
+    "backend/tests/integration/ai_jobs/b3_support.py": {
+      "before": "0213acc67099012dc5c3402eaa5b132ca6f58026c2257f2588b4404f71f8c90b",
+      "after": "95a7e1a0b592254404faf8b1970f24c8346ea34e34ae516a377bc0f91b51a60a"
+    },
+    "backend/tests/integration/ai_jobs/b5_support.py": {
+      "before": null,
+      "after": "0e4b5ecd07466b6eae2751ca31e73bf9a3ca3b431b030b47dde2acdc33c51baa"
+    },
+    "backend/tests/integration/ai_jobs/test_aggregate_reads.py": {
+      "before": "474ce2e437aec83fcc672542366331f492d32896cac86a5e429fd878fdfc9961",
+      "after": "f3eadbc5508473bdeba64e267c9feb0eac00156c853d3eac0df17f14d51f5117"
+    },
+    "backend/tests/integration/ai_jobs/test_audit_durability.py": {
+      "before": null,
+      "after": "cec15c7b47dc8bfd495be6154f3793d11b6ef12decd0f01db3fd6f8ed62ffc7f"
+    },
+    "backend/tests/integration/ai_jobs/test_capability.py": {
+      "before": null,
+      "after": "f391cbb0ca63cb01ac07a875c6e1de3791789c67de26451755c2ea91e76b8f2a"
+    },
+    "backend/tests/integration/ai_jobs/test_completion_recovery.py": {
+      "before": null,
+      "after": "4fbc012e07e1050d72996e1e19c89c571e80e877c714afd34e09d33543069837"
+    },
+    "backend/tests/integration/ai_jobs/test_dispatch_recovery.py": {
+      "before": "de09fe890c1692f7cf6c2da04f5d4f671d4a047ed623c0ab5b7e71e613d81914",
+      "after": "1f405ef1a587613919f7c9b7644c71c24b2e66e27cd135b3fb36cc0511c24232"
+    },
+    "backend/tests/integration/ai_jobs/test_notice_coverage.py": {
+      "before": null,
+      "after": "999cef97da6d0b34e8303f8de754c7372184d526138e32b1b72934889857eb9f"
+    },
+    "backend/tests/integration/ai_jobs/test_owner_fence.py": {
+      "before": "81a6bcb3713047932717e122c996d84cc11403371f0d43679f354147cfad3793",
+      "after": "d0e7bcf29fdfdfa3d880822c25a3de01c29792caea9471c11defae8e10428ed2"
+    },
+    "backend/tests/unit/test_ai_job_application.py": {
+      "before": "ddee1b32e7944a590f04a80105c262422a3a78ad7857f87ff22bba1b4e00f315",
+      "after": "615499fff6ddd2efdceceaccbb67c5cd583c5bc1e5437546db4797709e05bdc5"
+    },
+    "backend/tests/unit/test_ai_job_b3_fences.py": {
+      "before": "4a28113a9655111053a4dbe2395261743517ec3d39eda6930f387e3ea55937ad",
+      "after": "4c3ec1bdde04e9eb712ef7f2d62fae5c5a85e71ef35ab007e6e4c8c7b8d58877"
+    },
+    "backend/tests/unit/test_ai_job_b5_capability.py": {
+      "before": null,
+      "after": "e8f717e082c54adac6e36a7f4f18a0f667da013ff68d261a5837cce382fb9011"
+    },
+    "backend/tests/unit/test_ai_job_b5_effects.py": {
+      "before": null,
+      "after": "823e730b1dae93500b2978e996d80bae0a0bca84b27d211061c2c130730f1570"
+    },
+    "backend/tests/unit/test_ai_job_q00_followups.py": {
+      "before": null,
+      "after": "1f2d863b33d62d1c0cd9ba34cef14ec5134c6efa882d535b1202d712084033d5"
+    },
+    "features/FEAT-044-be2-ai-job-foundation/src/fixture_catalog.py": {
+      "before": null,
+      "after": "386fa32e6d5422a51b1b24e95222d35b81b743028d22b15b2da837078df2765e"
+    },
+    "features/FEAT-044-be2-ai-job-foundation/src/run_fixture_contracts.py": {
+      "before": "3279c6413b36f36473f179eccaf57ce6514a462129fb1b02febe6a2a5a78f24a",
+      "after": "cf6379c31696f6e8ac0e47ef8bde03cf500e4456d616c582daca72132917ddf7"
+    }
+  },
+  "local_checks": {
+    "phase_a": "223 passed, 1 skipped",
+    "b2_b5": "89 passed, 94 skipped (PG/Redis NOT_RUN: 64 B2-B4 + 30 B5)",
+    "b5_unit": 49,
+    "fixture_runner": "exit 0; 20 PASS/215 checks; d17f58a3 unchanged; optional HTTP NOT_RUN 1",
+    "ruff_check": "PASS",
+    "mypy_src": "PASS (18 files)",
+    "mypy_tests": "PASS (20 files)",
+    "mypy_preexisting": "test_ai_job_q00_followups.py:136-137 unchanged lines (not a B5 gate)",
+    "validators": {
+      "harness": 0,
+      "repository_security": 0,
+      "architecture": 0,
+      "skeleton": 0
+    },
+    "git_diff_check": 0,
+    "cr_bytes_delta_files": 0
+  },
+  "mutation_probe": {
+    "all_covered": true,
+    "mutations": {
+      "job_only_capability (drop attempt binding)": 2,
+      "no_expiry_check_in_service": 1,
+      "incident_not_persisted": 6,
+      "incident_failure_not_503": 2,
+      "no_dedup_existence_check": 2,
+      "notice_bound_ignored": 1,
+      "notice_not_recorded": 2,
+      "direct_delivery_failure_propagates": 1,
+      "sink_does_not_dedup_quarantine": 2,
+      "stale_side_effect_holder_can_mark": 1
+    }
+  },
+  "pg_redis_tests_new": {
+    "test_capability.py": 6,
+    "test_completion_recovery.py": 8,
+    "test_audit_durability.py": 9,
+    "test_notice_coverage.py": 7,
+    "status": "NOT_RUN locally; statically reviewed"
+  },
+  "package": {
+    "previous_manifest_sha256": "f1c6834f41dc798fe4475509b7d4b9c8c578ebfd15f34ff07f72f2d4bf24aeb4",
+    "delta_sha256": "671a8617e8245b186dc58d83a80f5cf1f97c56cafe2db5ed5cde0833f67f271a",
+    "manifest_sha256": "c74920973da54ccc48bdb0996cb4db2a13dedf6366e2766dae9622a093fee143",
+    "manifest_files": 43,
+    "runner_sha256": "e781341995d74954f55e30034d5d4a9e631b58507170c57e334b41a9734d8c25",
+    "zip_sha256": "9475fe27457818a8890424a92eaf55115dc962fa002e960ae8072fa41a956a5b",
+    "zip_members": [
+      "b5_delta.patch",
+      "b5_previous.sha256",
+      "b5_source.sha256",
+      "run_b5_on_studio.sh"
+    ],
+    "added_paths": [
+      "backend/src/sketch2life/infrastructure/ai_jobs/worker.py",
+      "backend/src/sketch2life/infrastructure/ai_jobs/worker_capability.py",
+      "backend/tests/integration/ai_jobs/b5_support.py",
+      "backend/tests/integration/ai_jobs/test_audit_durability.py",
+      "backend/tests/integration/ai_jobs/test_capability.py",
+      "backend/tests/integration/ai_jobs/test_completion_recovery.py",
+      "backend/tests/integration/ai_jobs/test_notice_coverage.py",
+      "backend/tests/unit/test_ai_job_b5_capability.py",
+      "backend/tests/unit/test_ai_job_b5_effects.py",
+      "backend/tests/unit/test_ai_job_q00_followups.py",
+      "features/FEAT-044-be2-ai-job-foundation/src/fixture_catalog.py"
+    ]
+  },
+  "package_self_check": {
+    "delta_sha256": "671a8617e8245b186dc58d83a80f5cf1f97c56cafe2db5ed5cde0833f67f271a",
+    "manifest_sha256": "c74920973da54ccc48bdb0996cb4db2a13dedf6366e2766dae9622a093fee143",
+    "previous_manifest_sha256": "f1c6834f41dc798fe4475509b7d4b9c8c578ebfd15f34ff07f72f2d4bf24aeb4",
+    "runner_sha256": "e781341995d74954f55e30034d5d4a9e631b58507170c57e334b41a9734d8c25",
+    "zip_sha256": "9475fe27457818a8890424a92eaf55115dc962fa002e960ae8072fa41a956a5b",
+    "delta_files": 25,
+    "manifest_files": 43,
+    "previous_snapshot_rebuilt": "PASS (32 hashes = f1c6834f; 11 added paths at base)",
+    "previous_plus_delta_matches_new_manifest": "PASS",
+    "second_delta_application_refused": true,
+    "worktree_reverse_check_exit": 0,
+    "no_other_packaged_area_change": true,
+    "zip_members_byte_identical": true,
+    "older_packages_unchanged": "PASS (36 files)",
+    "real_index_modified": false,
+    "runtime_executed": false
+  },
+  "host_simulation": {
+    "status": "PASS",
+    "cases": 8,
+    "results": [
+      {
+        "case": "b4r01_to_b5",
+        "exit_code": 0,
+        "docker_mock_called": true
+      },
+      {
+        "case": "corrected_retry",
+        "exit_code": 0,
+        "docker_mock_called": true
+      },
+      {
+        "case": "docker_failure_then_retry",
+        "exit_code": 125,
+        "docker_mock_called": true
+      },
+      {
+        "case": "docker_failure_then_retry_retry",
+        "exit_code": 0,
+        "docker_mock_called": true
+      },
+      {
+        "case": "foreign_tracked",
+        "exit_code": 1,
+        "docker_mock_called": false
+      },
+      {
+        "case": "foreign_untracked",
+        "exit_code": 1,
+        "docker_mock_called": false
+      },
+      {
+        "case": "known_file_edit",
+        "exit_code": 1,
+        "docker_mock_called": false
+      },
+      {
+        "case": "tampered_delta",
+        "exit_code": 1,
+        "docker_mock_called": false
+      }
+    ],
+    "provenance": "DIRECT_LOCAL_HOST_MOCK_ONLY; real scratch Git diff/apply, identity metadata adapted; Docker stub only, no services/network/real secrets; no inner-container test or runtime proof"
+  },
+  "expected_studio": {
+    "b2_b5_passed": 183,
+    "phase_a_passed": 224,
+    "skips": 0,
+    "fixture_runner_exit": 0,
+    "runner_result": "PASS"
+  },
+  "disclosures": [
+    "delta of test_ai_job_q00_followups.py also carries the earlier owner-approved Q00 EOF fix (Studio has base)"
+  ],
+  "not_done": [
+    "Studio runtime",
+    "Codex B5 review",
+    "B5 closure review",
+    "B6",
+    "commit/push/deploy"
+  ]
+}
