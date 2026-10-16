@@ -1,10 +1,29 @@
 # Project context ledger
 
-## BE2 execution-roadmap amendment — 2026-10-14
+## BE2 current execution handoff —2026-10-16
 
-Owner requests a complete BE2 task analysis and one roadmap to follow against scope growth. Current BE2 execution routing is FEAT-044 `plan/BE2_ROADMAP.md` revision2 with `plan/BE2_EXECUTION_TRACKER.md`. This local queue/scope-control view preserves FEAT-040's 14 BE2 cards, contract ownership and source dependencies; it does not replace the team allocation or canonical SRS. One Claude implementation card/checkpoint is active at a time; current slot Q00 waits for Phase A candidate cross-review/task-owner acceptance and the missing live-route test disposition; code corrections are closed. Missing decisions can use only explicit, already-authorized component/library substitutions with remaining obligations and return checkpoints recorded. Enhancement work goes through change control rather than entering the active card.
+- Latest 2026-10-16: BE2-01 stays at **Q01/B6_CR01_R2_CODE_PACKAGE_REVIEW_PASS_PENDING_RUNTIME** (Codex code/package review PASS on manifest cb527d7f; Studio runtime r2 NOT_RUN; B6-CR01 open). Person 2 allowed local checkpoint commits of the reviewed state before the Studio run (FEAT-044 DECISIONS 124); this is not acceptance. Earlier:
 
-Only BE2-01 Phase A revision1 is implementation-approved. Phase B and BE2-02–14 keep their own approval/ADR/adoption/runtime evidence gates; full generation and durable/provider-copy obligations remain. Roadmap work changes documentation only; Phase A code review is PASS at fake/contract scope, while overall Phase A acceptance remains pending. Phase B plan revision3 has passed plan review; ADR/ports/environment/approval remain pending and implementation is NOT_STARTED. Current source/implementation evidence is in FEAT-044, not inferred from this context pointer.
+FEAT-044 B5 closed after exact fix03 reported runtime and independent closure review.
+Existing owner O-09 Phase B revision 3 B1-B6 approval remains in force; candidate directives
+remain PROJECT_OWNER_DIRECTIVE, not P1/P2/P4 role sign-off.
+- Updated 2026-10-16, Asia/Saigon. Phase A ACCEPTED_CANDIDATE_FIXTURE.
+- Latest 2026-10-16: BE2-01 **Q01/B6_CR01_R2_PENDING_CODEX_REVIEW** (Codex P2 on CR01 corrected with pytest-collected identities; package b6cr01r2 from Studio 90724453; runtime NOT_RUN; FEAT-044 PHASE_B_B6_CONFORMANCE_EVIDENCE_20261016.md §12.6). Earlier:
+- Latest 2026-10-16: BE2-01 **Q01/B6_CR01_FIXED_PENDING_RUNTIME_REVIEW** (independent B6 closure CLOSE_WITH_NOTES; Person 2 chose to harden the durable runner for B6-CR01; package b6cr01 from Studio 90724453; runtime NOT_RUN; FEAT-044 PHASE_B_B6_CONFORMANCE_EVIDENCE_20261016.md §12). Earlier:
+- Latest 2026-10-16: BE2-01 **Q01/B6_RUNTIME_PASS — PENDING_INDEPENDENT_CLOSURE_REVIEW** (b6fix01 Studio run USER_REPORTED_REMOTE PASS: 202 B2–B6 + 224 Phase A / 0 skip; durable runner exit 0, 39/39 required; B-12 HANDOFF; source 90724453; Studio stopped afterwards; FEAT-044 PHASE_B_B6_CONFORMANCE_EVIDENCE_20261016.md §11). Earlier:
+- Latest 2026-10-16: BE2-01 **Q01/B6_FIX01_SELF_REVIEWED — READY_FOR_STUDIO_RUN** (Codex unavailable; user-directed author self-review PASS, not independent; b6fix01 runtime NOT_RUN; FEAT-044 PHASE_B_B6_CONFORMANCE_EVIDENCE_20261016.md §10). Earlier:
+- Latest 2026-10-16: BE2-01 **Q01/B6_FIX01_CODE_COMPLETE — PENDING_CODEX_REVIEW** (B6 Studio run 1 USER_REPORTED_REMOTE FAIL: one restart test sent an Attempt object (B6-RT01); one-line test fix; package b6fix01 from the Studio B6 snapshot 3940e529; runtime NOT_RUN; FEAT-044 PHASE_B_B6_CONFORMANCE_EVIDENCE_20261016.md §9). Earlier:
+- Latest 2026-10-16: BE2-01 **Q01/B6_CODE_COMPLETE — PENDING_CODEX_REVIEW** (durable conformance runner, B-01 restart tests, additive package b6 from fix03 3930046b; runtime NOT_RUN; FEAT-044 PHASE_B_B6_CONFORMANCE_EVIDENCE_20261016.md). Earlier:
+- ACTIVE **Q01/B6_READY_FOR_HANDOFF**; **B5_CLOSED_REVIEW_PASS**.
+  **B5-R01/B5-R02/B5-RT01 CLOSED_B5_SCOPE** after source-bound runtime and focused closure.
+- USER_REPORTED_REMOTE fix03 run 2026-10-15T17:37:09Z (2026-10-16 00:37:09 Asia/Saigon): 193 B2-B5 passed / 0 failed / 0 skipped; 224 Phase A passed / 0 skipped; fixture 20 PASS / 215 checks / d17f58a3 unchanged (optional HTTP NOT_RUN 1). All suite/log/outer/Studio exits 0, RUNNER_RESULT=PASS. 43 source files verified as fix03 3930046b; local and reported Studio source match.
+- Current source manifest: 3930046b5f04a67b6ff2a52dc70a4f12d5d7a89c2675e149ab654f00da2ab670; base 993a26cae78c0a4fe983033f03881838c886b176.
+- Closure review: evidence/notes/PHASE_B_B5_CLOSURE_REVIEW_20261016.md; matching evidence/metrics/PHASE_B_B5_CLOSURE_REVIEW_20261016.json. Prior fix02 failure and local NOT_RUN records remain historical.
+- B6 NOT_STARTED: conformance runner, crash-point matrix, Phase A scenarios on SQL, consolidated report and handoff under existing approved Phase B revision 3 B1-B6. Claude first rehydrates read-only from latest handover section AA, reports and stops; B6 implementation follows the agreed separate continuation message, without repeat approval.
+- Parent BE2-01 IN_PROGRESS; exactly 14 business cards / WIP 1 / full-card DONE 0. B1-B5 closed at their recorded component scopes, not whole-product completion. OwnerFence ASSUMED_CONTRACT; real P1/P2/P4 integration/B-12, providers, live router and production adoption remain deferred. No other card, FEAT-018/Wan, install, service recreation, staging, commit, push or deploy. Original approvals/plans/ADR unchanged.
+
+Use the same synthetic Studio sketch2life-backend-test. Raw remote full output is retained
+inside FEAT-044 evidence/local/b5-closure-20261016/; no direct Codex cloud-execution claim.
 
 ## Current product-scope authority — 2026-10-10
 
