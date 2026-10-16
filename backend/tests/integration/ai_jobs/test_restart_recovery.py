@@ -133,7 +133,7 @@ def _commit_then_die(url: URL, key: CapabilityKey, out: Connection) -> None:
                           artifacts=_Down(fx.FixtureArtifacts(rig.owner)))
     receipt = down.accept_completion(token, claim)  # committed; delivery fails
     out.send({"checksum": checksum(rig.engine), "first": first.job_id, "second": second.job_id,
-              "attempt": attempt, "receipt": receipt.receipt_id,
+              "attempt": attempt.attempt_id, "receipt": receipt.receipt_id,
               "fingerprint": receipt.fingerprint, "claim_ref": claim.outputs[0].artifact_ref})
     out.close()
     os._exit(EXIT_AFTER_COMMIT)
