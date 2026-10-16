@@ -1,21 +1,15 @@
 # BE2-01 Phase A — acceptance gate record (Q00)
 
-- Date: 2026-10-14, Asia/Saigon. Prepared by Claude (executor) for owner review; **not** an
-  approval or sign-off. No message was sent to any owner; no decision is inferred from fixture
-  passes or from reviewer agents.
-- Scope: BE2-01 Phase A revision 1 (A1–A9) candidate/fixture checkpoint only. Phase B, production
-  adoption, live registry, FE/BE1/P4 implementation and production retry/poll numbers are out of
-  scope here (A9/A-20 needs cross-review/handoff, not production adoption).
-- Code state: final code review PASS at fake/contract scope; R01–R11 and R03a/R04a/A18a CLOSED
-  (`PHASE_A_Q00_FINAL_CODE_REVIEW_20261014.md`, sha256 `0dd3e3b7…0dc1fd4`). All 24 source files
-  frozen by that review re-hashed unchanged on 2026-10-14 23:25 +07:00.
-- Existing decisions searched: FEAT-044 CONTEXT/DECISIONS/tracker/roadmap, project context and
-  source register. Found only process decisions (DECISIONS 31–32: owner *may* accept the
-  candidate checkpoint with production adoption deferred). **No consumer or owner adoption /
-  acceptance decision exists** → every decision cell below is `PENDING_OWNER_DECISION`.
-- Named owners: FEAT-044 records P1/FE, P2/BE1, P3/BE2, P4/integration as role owners; actual
-  team members are unspecified, so rows name the role. The task owner who approved Phase A
-  (approval record) decides overall checkpoint acceptance.
+- Current disposition (2026-10-15): **ACCEPTED_CANDIDATE_FIXTURE** by actual user directive O-09,
+  preserved verbatim in `approvals/PHASE_B_TASK_APPROVAL.md`. Candidate P1/P2/P4 details were
+  accepted as PROJECT_OWNER_DIRECTIVE; actual role-owner concurrence/production adoption remains
+  deferred. The following evidence anchors and questions originated in the 2026-10-14 prepared
+  gate; that pre-directive record is preserved feature-locally.
+- Scope: Phase A revision1 A1–A9 candidate/fixture checkpoint only; parent BE2-01 remains IN_PROGRESS.
+- Code review: PASS at fake/contract scope; R01–R11 and R03a/R04a/A18a CLOSED. Missing live-route
+  follow-up is PASS_USER_REPORTED (1 passed,0 skipped); no test deviation was used.
+- Source: actual user reply in this Codex chat,2026-10-15; record type PROJECT_OWNER_DIRECTIVE.
+  No P1/P2/P4 role-owner reply/signature is claimed or generated.
 
 ## Evidence anchors (sha256, full values)
 
@@ -40,24 +34,37 @@
 
 | consumer | contract/port + candidate/version | điểm cần review | compatibility delta | evidence path/hash | quyết định + nguồn/ngày | trạng thái |
 |---|---|---|---|---|---|---|
-| P1 / FE | `AsyncJobView` + `AsyncJobChildView` `0.1-candidate` (DATA-25 full / Device projection), `CollaborationError` `1.0-proposed`, CMD-44 `GET {prefix}/jobs/{job_id}` | 7 states incl. `succeeded` ≠ Teacher approval/playback/session complete; progress `unknown` value null; refs only `succeeded`+`accepted` (Teacher, current eligibility), never Device; error codes + shared 404 for missing/forbidden; `poll_after_ms` (min 2000 / max 10000 PROPOSED, null = stop); ETag variant incl. role, exposure and poll hint → 304 only when unchanged | Additive; legacy `WorkflowJobV1` and mobile workflow contracts untouched. New fields/codes only under candidate names | Schemas `15025b13…`; P1 example `540a618b…`; error catalogue `7523377b…`; handoff §3 | PENDING_OWNER_DECISION — P1/FE: “Is the candidate payload/state/progress/poll/ETag/error shape acceptable as the Phase A consumer fixture? (production adoption may be deferred)” | PENDING |
-| P2 / BE1 | `AuthorizationPort`, `EligibilityPort`, `CancellationNotice`, `ArtifactPort`/`ArtifactDescriptor`, `AuditPort` (ports `0.1-candidate`); `AiJobRepository` boundary requirements | Auth on every command/replay/read before ETag; eligibility reasons and recheck points (create/dispatch/start/retry/completion/exposure); notice idempotency; artifact org + producer lineage (`producer_job_id`/`producer_attempt_id`) + `quarantine_reason`; foreign/unowned never mutated; immutable command and authoritative completion receipts (non-authoritative guard rejections not stored); copy registry `scope_lock` for cancel/register/purge; Phase B unit-of-work needs (jobs CAS, receipts, semantic index, outbox, notices) — **requirements only, no adapter** | New descriptor fields are optional on the candidate DTO; require P2 artifact port to supply lineage/quarantine state. No DB coupling; CMD-59/60 remain BE1 | Ports `de806e0c…`; service `c6b4f1e1…`; copy service `c45ad249…`; handoff §4 | PENDING_OWNER_DECISION — P2/BE1: “Accept these port semantics and required lineage/quarantine fields as Phase A candidates? Record missing BE1/runtime capabilities as Phase B port-review questions; no durable implementation commitment is required for this fixture checkpoint.” | PENDING |
-| P4 / integration | Names `AsyncJobView`≙`JobStatusV1`, `CancellationNotice`≙`CancellationNoticeV1`, versions `0.1-candidate`, namespace `/api/collaboration/v1` (B22.1 candidate); `AiJobDependencies` composition pack; runner command | Name/version/namespace compatibility with registry plans; fixture app isolated (`app.py` untouched, AST-checked; live route check pending below); worker path internal, no completion route; one offline runner `run_fixture_contracts.py [--with-http]` | No router mounted in live app; no registry entry written; fakes marked `FIXTURE_ONLY_NOT_DURABLE` | Router `8f90789f…`, fixture app `7ee82e3c…`; runner report `b814eb7a…`; handoff §5–6 | PENDING_OWNER_DECISION — P4: “Accept names/versions/namespace and composition pack as candidates for integration planning; registry adoption deferred?” | PENDING |
+| P1 / FE | `AsyncJobView` + `AsyncJobChildView` `0.1-candidate` (DATA-25 full / Device projection), `CollaborationError` `1.0-proposed`, CMD-44 `GET {prefix}/jobs/{job_id}` | 7 states incl. `succeeded` ≠ Teacher approval/playback/session complete; progress `unknown` value null; refs only `succeeded`+`accepted` (Teacher, current eligibility), never Device; error codes + shared 404 for missing/forbidden; `poll_after_ms` (min 2000 / max 10000 PROPOSED, null = stop); ETag variant incl. role, exposure and poll hint → 304 only when unchanged | Additive; legacy `WorkflowJobV1` and mobile workflow contracts untouched. New fields/codes only under candidate names | Schemas `15025b13…`; P1 example `540a618b…`; error catalogue `7523377b…`; handoff §3 | ACCEPTED by PROJECT_OWNER_DIRECTIVE — O-09,user/project owner,2026-10-15; accepts payload/state/projection candidate fixture via approved rev8 §13. Source: approvals/PHASE_B_TASK_APPROVAL.md. Actual role concurrence and production adoption DEFERRED | ACCEPTED_CANDIDATE_BY_PROJECT_OWNER; ROLE_CONCURRENCE_DEFERRED |
+| P2 / BE1 | `AuthorizationPort`, `EligibilityPort`, `CancellationNotice`, `ArtifactPort`/`ArtifactDescriptor`, `AuditPort` (ports `0.1-candidate`); `AiJobRepository` boundary requirements | Auth on every command/replay/read before ETag; eligibility reasons and recheck points (create/dispatch/start/retry/completion/exposure); notice idempotency; artifact org + producer lineage (`producer_job_id`/`producer_attempt_id`) + `quarantine_reason`; foreign/unowned never mutated; immutable command and authoritative completion receipts (non-authoritative guard rejections not stored); copy registry `scope_lock` for cancel/register/purge; Phase B unit-of-work needs (jobs CAS, receipts, semantic index, outbox, notices) — **requirements only, no adapter** | New descriptor fields are optional on the candidate DTO; require P2 artifact port to supply lineage/quarantine state. No DB coupling; CMD-59/60 remain BE1 | Ports `de806e0c…`; service `c6b4f1e1…`; copy service `c45ad249…`; handoff §4 | ACCEPTED by PROJECT_OWNER_DIRECTIVE — O-09,user/project owner,2026-10-15; accepts candidate port semantics and lineage/quarantine boundary via approved rev8 §13. Source: approvals/PHASE_B_TASK_APPROVAL.md. Actual role concurrence and production adoption DEFERRED | ACCEPTED_CANDIDATE_BY_PROJECT_OWNER; ROLE_CONCURRENCE_DEFERRED |
+| P4 / integration | Names `AsyncJobView`≙`JobStatusV1`, `CancellationNotice`≙`CancellationNoticeV1`, versions `0.1-candidate`, namespace `/api/collaboration/v1` (B22.1 candidate); `AiJobDependencies` composition pack; runner command | Name/version/namespace compatibility with registry plans; fixture app isolated (`app.py` untouched, AST-checked; live route check pending below); worker path internal, no completion route; one offline runner `run_fixture_contracts.py [--with-http]` | No router mounted in live app; no registry entry written; fakes marked `FIXTURE_ONLY_NOT_DURABLE` | Router `8f90789f…`, fixture app `7ee82e3c…`; runner report `b814eb7a…`; handoff §5–6 | ACCEPTED by PROJECT_OWNER_DIRECTIVE — O-09,user/project owner,2026-10-15; accepts candidate names/versions/namespace/composition via approved rev8 §13. Source: approvals/PHASE_B_TASK_APPROVAL.md. Actual role concurrence and production adoption DEFERRED | ACCEPTED_CANDIDATE_BY_PROJECT_OWNER; ROLE_CONCURRENCE_DEFERRED |
 | BE2-05 (DATA-24 owner) | `ExactContentReviewCommandV1`/`RecordV1` `0.1-candidate` shape + fixtures | Discriminated session/library context, reason rules, owner retained | Shape only; no review runtime | Contracts `7bbe68aa…`; `fixtures/data24/*` (manifest `245e8b21…`) | Not a Phase A acceptance prerequisite; owner card decides at its own plan. Recorded so ownership stays with BE2-05 | DEFERRED_TO_OWNING_CARD |
 | BE2-14 (ProviderCopyLifecycle owner) | `ProviderCopyLifecycleReportV1` `0.1-candidate` + fake support | Fixture deletion never actual (`fixture_deleted_not_actual`), Pending/Unsupported/Exception, scope lock, replay | Fake only; no provider hook | Contracts `7bbe68aa…`; copy service `c45ad249…`; `fixtures/provider_copy/*` | Not a Phase A acceptance prerequisite; owner card decides at its own plan | DEFERRED_TO_OWNING_CARD |
-| Live-app route test | `test_live_app_routes_have_no_candidate_job_route` | Must show **1 passed, 0 skipped**, exit 0 | — | `raw/q00_accept_live_route_attempt.txt`; `metrics/q00_accept_live_route_attempt.json`: exit 0, **1 skipped** (Pillow), module origin = worktree, interpreter `<backend-venv>` 3.12.10; no existing interpreter has pytest+FastAPI+Pillow | No owner deviation decision exists → `REQUIRES_LIGHTNINGAI_TEST` (or any existing env with full backend deps). Optional owner question: “Accept a checkpoint deviation (scope: live-route negative check only; risk: candidate route accidentally wired into live app, mitigated by AST check; re-run condition: first env with Pillow)?” | NOT_RUN |
-| Phase A checkpoint (task owner) | BE2-01 Phase A rev 1 candidate/fixture checkpoint | A1–A9 candidate implementation/pack delivered; runner A-01..A-20 fixture checks PASS; actual A9/A-20 consumer cross-review remains PENDING in the rows above; code review PASS | Production adoption DEFERRED allowed by DECISIONS 32 | This record; final review `0dd3e3b7…` | PENDING_OWNER_DECISION — task owner: “Accept Phase A at candidate/fixture checkpoint with production adoption deferred, once P1/P2/P4 rows and the live-route row are resolved (or deviated)?” | PENDING |
+| Live-app route test | `test_live_app_routes_have_no_candidate_job_route` | Must show **1 passed, 0 skipped**, exit 0 | — | metrics/PHASE_B_LIGHTNING_ENVIRONMENT_20261015.json, user-supplied remote output on2026-10-15; published source993a26c, Python3.12.15, Pillow12.3.0, av18.1.0. Exact target: 1 passed,0 skipped in2.72s. Remote receipt: evidence/local/lightning-bootstrap-20261015/live-route.txt | Test requirement satisfied by user-reported real run; no deviation needed. Earlier 1-skipped run remains historical; this supplies no owner checkpoint or role sign-off | PASS_USER_REPORTED |
+| Phase A checkpoint (task owner) | BE2-01 Phase A rev 1 candidate/fixture checkpoint | A1–A9 candidate implementation/pack delivered; independent code review PASS, runner fixture checks PASS; project owner accepts the P1/P2/P4 candidate details as fixture directives; actual role review/adoption stays deferred | Production adoption DEFERRED allowed by DECISIONS 32 | This record; final review `0dd3e3b7…` | ACCEPTED_CANDIDATE_FIXTURE — actual user O-09,2026-10-15; verbatim approval in approvals/PHASE_B_TASK_APPROVAL.md; production adoption deferred | ACCEPTED_CANDIDATE_FIXTURE |
 
-## What is needed to close Q00
+## Q00 closure — actual owner directive,2026-10-15
 
-1. P1/FE, P2/BE1, P4 answers to the three questions above (accept / request change), each with
-   name, date and source location.
-2. Live-route test executed as **1 passed, 0 skipped** in an existing environment that has
-   pytest + FastAPI + Pillow (exact command in `metrics/q00_accept_live_route_attempt.json`), or a
-   genuine owner deviation decision with scope/risk/re-run condition.
-3. Task-owner checkpoint decision. Until then: ACTIVE Q00, Phase A acceptance PENDING, whole
-   BE2-01 IN_PROGRESS.
+Q00 is **ACCEPTED_CANDIDATE_FIXTURE**. O-09 supplies the genuine project-owner checkpoint decision
+and accepts the candidate consumer details under approved rev8 §13; it explicitly supplies no
+P1/P2/P4 sign-off. The missing live-route run is1 passed,0 skipped (USER_REPORTED), with no deviation.
+Production registry/adoption and actual role-owner integration remain deferred. ACTIVE moves to
+Q01/B2 READY_FOR_CLAUDE; whole BE2-01 remains IN_PROGRESS. Earlier entries below retain their dated
+pre-approval state.
 
 ## Codex documentation review clarification — 2026-10-14
 
 Evidence/source hashes independently verified. Candidate consumer review remains pending; the runner's A-20 fixture PASS does not supply an owner sign-off. P2's checkpoint question only asks whether candidate boundary semantics are acceptable; BE1 durable capability/adoption is evaluated separately before Phase B implementation. Handoff wording now distinguishes owned-ref quarantine from stricter output admission (including hash/no-quarantine checks); its evidence hash above was refreshed. No backend source, approval or approved Phase A plan changed; no consumer/owner decision was recorded by this clarification.
+
+## Live-route follow-up — 2026-10-15
+
+User supplies 1 passed in2.72s from the prepared isolated Lightning runner on source993a26c.
+The missing test requirement is now PASS_USER_REPORTED. Current environment inventory and
+authenticated PostgreSQL/Redis connectivity also pass; no Phase B implementation is tested.
+Consumer/task-owner decisions remain pending until genuine responses or an explicit project-owner
+candidate/component directive is recorded. Do not invent role-owner concurrence.
+
+## O-09 acceptance follow-up —2026-10-15
+
+Actual approval is recorded separately in approvals/PHASE_B_TASK_APPROVAL.md, preserving the
+original Phase A approval. Current rows above supersede the historical pending wording; no
+consumer sign-off or production adoption is inferred. Phase B runtime proof is still future.

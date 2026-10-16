@@ -1,0 +1,80 @@
+{
+  "recorded_at": "2026-10-15T11:10:35.524174+07:00",
+  "scope": "Actual project-owner architecture/profile selection and requested read-only local inventory",
+  "decision_record_revision": 4,
+  "actual_owner_replies": [
+    {
+      "id": "O-01",
+      "quote": "Ổn đó",
+      "interpretation": "Accepted preceding preferred D1-D7/fixture-first/current fixture profile and test-first path; not blanket port acceptance or code approval"
+    },
+    {
+      "id": "O-02",
+      "quote": "Chưa rõ; cần kiểm kê môi trường hiện có",
+      "interpretation": "Read-only inventory of existing environment; actual target unknown"
+    }
+  ],
+  "adr": "docs/adr/ADR-0018-be2-durable-ai-job-runtime.md",
+  "adr_status": "ACCEPTED_ARCHITECTURE_FOR_BE2_01_COMPONENT",
+  "remaining": [
+    "Phase A test/checkpoint requirements",
+    "remaining Q1-Q8 contract details/role concurrence",
+    "G5 actual Linux target, connected server versions and secret mechanism",
+    "G2 Phase B implementation approval"
+  ],
+  "inventory": {
+    "scope": "local Windows only",
+    "python": "3.12.10",
+    "postgresql": "Get-Service metadata reports postgresql-x64-18 RUNNING; connected server version NOT_VERIFIED",
+    "redis": "no matching service/client found; server availability NOT_VERIFIED",
+    "docker": "CLI29.5.3 available; both tested local engine pipes unavailable; Desktop service stopped",
+    "wsl_and_port_enumeration": "ACCESS_DENIED_IN_THIS_SESSION; Linux/listeners unknown",
+    "Pillow": "NOT_INSTALLED_IN_EXISTING_BACKEND_VENV",
+    "remote_lightningai_target": "NOT_SUPPLIED_NOT_INSPECTED",
+    "local_receipt": "evidence/local/phase-b-owner-selection-20261015/local_windows_inventory.json"
+  },
+  "selected_document_sha256": {
+    "docs/adr/ADR-0018-be2-durable-ai-job-runtime.md": "d01a8d954fa56af98d7fccc3144508a12d602f703bd82016db07a29577311c36",
+    "features/FEAT-044-be2-ai-job-foundation/plan/PHASE_B_DECISION_RECORD.md": "d25574638fa817e5cce1374da3a893dbbdfbf116bb5b518a1fa4bec54c0d38df",
+    "features/FEAT-044-be2-ai-job-foundation/plan/CLAUDE_PHASE_B_ENVIRONMENT_INVENTORY_PROMPT.md": "fc6af52319e7da1fb832d94c11ce1c25e88da7b761ed253877dedfd8b6902ba4",
+    "features/FEAT-044-be2-ai-job-foundation/evidence/notes/PHASE_B_B1_PROPOSED_SEQUENCES.md": "c16b79de812ba7f02103b61d1c8b639881597cc136494c59928b41092b28acd5"
+  },
+  "phase_a_frozen_count": 24,
+  "head_mismatches": [],
+  "unexpected_working_tree_mismatches": [],
+  "exception": "existing Q00 test EOF disposition only",
+  "rev3_proposals_match_final_review": {
+    "plan/PHASE_B_PLAN.md": true,
+    "plan/PHASE_B_ADR_PROPOSAL.md": true,
+    "plan/PHASE_B_PORT_REVIEW.md": true
+  },
+  "local_diagnostics_preserved": 61,
+  "local_diagnostics_hash_mismatches": [],
+  "gitignore_sha256": "a300f825e7a6e862ab48502b4b7503703410c41db355cbde86982afc9a2f4e4c",
+  "runtime_tests": "NOT_RUN",
+  "phase_b_implementation": "NOT_STARTED_UNAPPROVED",
+  "active_slot": "Q00",
+  "q01_status": "PLAN_REVIEW_PASS_WAITING_REMAINING_GATES",
+  "stage_commit_push": false,
+  "checks": [
+    {
+      "check": "harness",
+      "command": "python -B tools/validate_harness.py --feature features/FEAT-044-be2-ai-job-foundation",
+      "exit_code": 0,
+      "local_receipt": "evidence/local/phase-b-owner-selection-20261015/harness.txt"
+    },
+    {
+      "check": "security",
+      "command": "python -B tools/validate_repository_security.py",
+      "exit_code": 0,
+      "local_receipt": "evidence/local/phase-b-owner-selection-20261015/security.txt"
+    },
+    {
+      "check": "diff",
+      "command": "git diff --check",
+      "exit_code": 0,
+      "local_receipt": "evidence/local/phase-b-owner-selection-20261015/diff.txt"
+    }
+  ],
+  "provenance_review": "PASS; phase_b_persistence_review"
+}
