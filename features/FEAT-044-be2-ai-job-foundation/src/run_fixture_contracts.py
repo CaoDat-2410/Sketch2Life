@@ -446,8 +446,9 @@ def a14_eligibility(r: Result) -> None:
         h = build_fixture_harness()
         job_id = h.service.create_job(h.create()).job_id
         h.service.dispatch_outbox()
-        message = h.queue.receive()
-        assert message is not None
+        envelope = h.queue.receive()
+        assert envelope is not None
+        message = envelope.message
         apply(h)
         started = h.service.start_attempt(h.capability(job_id), job_id, message.attempt_id)
         r.check(f"{name}: dispatch/start denied, job cancelled, no provider call",

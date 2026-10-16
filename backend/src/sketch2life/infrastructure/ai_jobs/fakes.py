@@ -3,7 +3,9 @@
 These adapters simulate one authoritative transaction with a process-local lock. They are
 not durable storage, not database isolation and must never be wired into the live app.
 B3 parity (Δ12 subset): owner fences on decisions, fence hold, canonical semantic key,
-typed ``UniqueConflict`` and durable audit intents.
+typed ``UniqueConflict`` and durable audit intents. B4 parity: leased outbox claim with
+owner+generation fencing, attempt dispatch bookkeeping, targeted sweep queries, transient
+dispatch envelopes and a capability issuer.
 """
 
 from __future__ import annotations
@@ -18,9 +20,11 @@ from threading import RLock
 
 from sketch2life.application.ports.ai_jobs import (
     ArtifactDescriptor,
+    AttemptDispatch,
     AuditEvent,
     AuthorizationAction,
     AuthorizationDecision,
+    ClaimedDispatch,
     CommandReceipt,
     CommandScopeKey,
     CompletionReceipt,
@@ -28,14 +32,22 @@ from sketch2life.application.ports.ai_jobs import (
     EligibilityDecision,
     FenceResult,
     JobRevisionConflict,
+    OutboxLease,
     OwnerFence,
     Principal,
     SemanticRequestKey,
     UniqueConflict,
+    WorkerDispatchEnvelope,
 )
 from sketch2life.application.services.ai_jobs import AiJobService, QueueUnavailable
 from sketch2life.domain.ai_jobs.completion import CompletionClaim, OutputRef
-from sketch2life.domain.ai_jobs.model import AiJob, JobScope, RequestRef, require_aware
+from sketch2life.domain.ai_jobs.model import (
+    AiJob,
+    JobScope,
+    JobState,
+    RequestRef,
+    require_aware,
+)
 from sketch2life.domain.ai_jobs.provider_copy import (
     EvidenceKind,
     ProviderCopy,
@@ -113,16 +125,26 @@ class _StoreState:
     outbox: dict[str, DispatchMessage] = field(default_factory=dict)
     notices: set[str] = field(default_factory=set)
     audit_intents: dict[str, AuditEvent] = field(default_factory=dict)
+    # Pending dispatch rows only live in ``outbox``; these carry their lease/availability.
+    available_at: dict[str, datetime] = field(default_factory=dict)
+    generations: dict[str, int] = field(default_factory=dict)
+    leases: dict[str, tuple[str, int, datetime]] = field(default_factory=dict)
+    # attempt_id -> (dispatched_at, dispatch_count)
+    attempt_dispatch: dict[str, tuple[datetime | None, int]] = field(default_factory=dict)
 
     def copy(self) -> _StoreState:
         return _StoreState(
-            dict(self.jobs),
-            dict(self.command_receipts),
-            dict(self.semantic),
-            dict(self.completion_receipts),
-            dict(self.outbox),
-            set(self.notices),
-            dict(self.audit_intents),
+            jobs=dict(self.jobs),
+            command_receipts=dict(self.command_receipts),
+            semantic=dict(self.semantic),
+            completion_receipts=dict(self.completion_receipts),
+            outbox=dict(self.outbox),
+            notices=set(self.notices),
+            audit_intents=dict(self.audit_intents),
+            available_at=dict(self.available_at),
+            generations=dict(self.generations),
+            leases=dict(self.leases),
+            attempt_dispatch=dict(self.attempt_dispatch),
         )
 
 
@@ -184,14 +206,116 @@ class _UnitOfWork:
             raise UniqueConflict("outbox")
         self.state.audit_intents[event_id] = event
 
-    def add_outbox(self, message: DispatchMessage) -> None:
+    def add_outbox(self, message: DispatchMessage, *, now: datetime) -> None:
+        if message.message_id in self.state.outbox:
+            raise UniqueConflict("outbox")
         self.state.outbox[message.message_id] = message
+        self.state.available_at[message.message_id] = now
+        self.state.generations[message.message_id] = 0
 
-    def pending_outbox(self) -> tuple[DispatchMessage, ...]:
-        return tuple(self.state.outbox[k] for k in sorted(self.state.outbox))
+    def claim_outbox(
+        self, owner: str, now: datetime, lease: timedelta, limit: int
+    ) -> tuple[ClaimedDispatch, ...]:
+        claims: list[ClaimedDispatch] = []
+        for message_id in sorted(self.state.outbox,
+                                 key=lambda m: (self.state.available_at[m], m)):
+            held = self.state.leases.get(message_id)
+            if self.state.available_at[message_id] > now or (held and held[2] > now):
+                continue
+            generation = self.state.generations[message_id] + 1
+            self.state.generations[message_id] = generation
+            self.state.leases[message_id] = (owner, generation, now + lease)
+            claims.append(ClaimedDispatch(self.state.outbox[message_id],
+                                          OutboxLease(message_id, owner, generation)))
+            if len(claims) == limit:
+                break
+        return tuple(claims)
 
-    def mark_dispatched(self, message_id: str) -> None:
-        self.state.outbox.pop(message_id, None)
+    def lease_current(self, lease: OutboxLease) -> bool:
+        held = self.state.leases.get(lease.message_id)
+        return (
+            lease.message_id in self.state.outbox
+            and held is not None
+            and (held[0], held[1]) == (lease.owner, lease.generation)
+        )
+
+    def ack_dispatch(self, lease: OutboxLease, now: datetime) -> bool:
+        if not self.lease_current(lease):
+            return False
+        message = self._settle(lease.message_id)
+        dispatched_at, count = self.state.attempt_dispatch.get(message.attempt_id, (None, 0))
+        self.state.attempt_dispatch[message.attempt_id] = (now, count + 1)
+        return True
+
+    def release_outbox(self, lease: OutboxLease, error_code: str) -> bool:
+        if not self.lease_current(lease):
+            return False
+        del self.state.leases[lease.message_id]
+        return True
+
+    def dispose_outbox(self, lease: OutboxLease, reason_code: str) -> bool:
+        if not self.lease_current(lease):
+            return False
+        self._settle(lease.message_id)
+        return True
+
+    def attempt_dispatch(self, attempt_id: str) -> AttemptDispatch | None:
+        for job in self.state.jobs.values():
+            for attempt in job.attempts:
+                if attempt.attempt_id == attempt_id:
+                    dispatched_at, count = self.state.attempt_dispatch.get(attempt_id, (None, 0))
+                    return AttemptDispatch(job.job_id, attempt_id, job.job_revision,
+                                           dispatched_at, count)
+        return None
+
+    def has_pending_dispatch(self, attempt_id: str) -> bool:
+        return any(m.attempt_id == attempt_id for m in self.state.outbox.values())
+
+    def queued_dispatched_not_started(
+        self, now: datetime, start_timeout: timedelta, limit: int
+    ) -> tuple[AttemptDispatch, ...]:
+        due: list[AttemptDispatch] = []
+        for job in self.list_jobs():
+            attempt = job.active_attempt
+            dispatched_at, count = self.state.attempt_dispatch.get(attempt.attempt_id, (None, 0))
+            if (
+                job.state is JobState.QUEUED
+                and attempt.started_at is None
+                and attempt.finished_at is None
+                and dispatched_at is not None
+                and dispatched_at <= now - start_timeout
+                and not self.has_pending_dispatch(attempt.attempt_id)
+            ):
+                due.append(AttemptDispatch(job.job_id, attempt.attempt_id, job.job_revision,
+                                           dispatched_at, count))
+        due.sort(key=lambda d: (d.dispatched_at, d.attempt_id))
+        return tuple(due[:limit])
+
+    def overdue_running(self, now: datetime, limit: int) -> tuple[str, ...]:
+        overdue = [
+            job.job_id
+            for job in self.list_jobs()
+            if job.state is JobState.RUNNING
+            and job.started_at is not None
+            and now - job.started_at
+            >= timedelta(milliseconds=job.retry_policy.attempt_timeout_ms)
+        ]
+        return tuple(overdue[:limit])
+
+    def due_retries(self, now: datetime, limit: int) -> tuple[tuple[str, int], ...]:
+        due = sorted(
+            (job.retry_not_before, job.job_id, job.active_attempt.attempt_number)
+            for job in self.list_jobs()
+            if job.state is JobState.FAILED_RETRYABLE
+            and job.retry_not_before is not None
+            and job.retry_not_before <= now
+        )
+        return tuple((job_id, number) for _, job_id, number in due[:limit])
+
+    def _settle(self, message_id: str) -> DispatchMessage:
+        self.state.leases.pop(message_id, None)
+        self.state.available_at.pop(message_id, None)
+        return self.state.outbox.pop(message_id)
 
     def notice_seen(self, notice_id: str) -> bool:
         return notice_id in self.state.notices
@@ -227,25 +351,27 @@ class InMemoryAiJobStore:
 
 
 class FakeQueue:
+    """In-memory broker carrying transient ``WorkerDispatchEnvelope`` values (Δ14)."""
+
     def __init__(self) -> None:
-        self.messages: list[DispatchMessage] = []
+        self.messages: list[WorkerDispatchEnvelope] = []
         self.available = True
         self.delivered: list[str] = []
 
-    def enqueue(self, message: DispatchMessage) -> None:
+    def enqueue(self, envelope: WorkerDispatchEnvelope) -> None:
         if not self.available:
             raise QueueUnavailable("fake broker down")
-        self.messages.append(message)
+        self.messages.append(envelope)
 
-    def receive(self) -> DispatchMessage | None:
+    def receive(self) -> WorkerDispatchEnvelope | None:
         if not self.messages:
             return None
-        message = self.messages.pop(0)
-        self.delivered.append(message.message_id)
-        return message
+        envelope = self.messages.pop(0)
+        self.delivered.append(envelope.message.message_id)
+        return envelope
 
-    def redeliver(self, message: DispatchMessage) -> None:
-        self.messages.append(message)
+    def redeliver(self, envelope: WorkerDispatchEnvelope) -> None:
+        self.messages.append(envelope)
 
 
 @dataclass(frozen=True, slots=True)
@@ -388,14 +514,19 @@ class FakeAudit:
 
 
 class FakeWorkerCapability:
-    """Backend-only scoped capability; tokens are synthetic and job-bound."""
+    """Backend-only scoped capability issuer + verifier; tokens are synthetic. Verification is
+    still job-bound here; attempt binding/expiry is batch B5 (Δ8)."""
 
     def __init__(self) -> None:
         self._tokens: dict[str, str] = {}
+        self.issued: list[tuple[str, str | None]] = []
 
-    def issue(self, job_id: str) -> str:
-        token = f"wcap_fx_{sha256(job_id.encode()).hexdigest()[:16]}"
+    def issue(self, job_id: str, attempt_id: str | None = None,
+              now: datetime | None = None) -> str:
+        material = job_id if attempt_id is None else f"{job_id}:{attempt_id}"
+        token = f"wcap_fx_{sha256(material.encode()).hexdigest()[:16]}"
         self._tokens[token] = job_id
+        self.issued.append((job_id, attempt_id))
         return token
 
     def verify(self, capability: str, job_id: str) -> bool:
@@ -427,10 +558,10 @@ class FakeWorker:
     capabilities: FakeWorkerCapability
 
     def run_once(self) -> CompletionReceipt | str | None:
-        message = self.queue.receive()
-        if message is None:
+        envelope = self.queue.receive()
+        if envelope is None:
             return None
-        capability = self.capabilities.issue(message.job_id)
+        message, capability = envelope.message, envelope.capability  # no self-minted token
         started = self.service.start_attempt(capability, message.job_id, message.attempt_id)
         if not started.started:
             return started.reason_code

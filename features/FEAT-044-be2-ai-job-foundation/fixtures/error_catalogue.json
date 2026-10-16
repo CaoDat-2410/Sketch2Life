@@ -35,6 +35,7 @@
     "CANCELLED_BY_TEACHER": "The teacher cancelled this request.",
     "CONSENT_REVOKED": "This request is no longer permitted.",
     "CONTENT_RECALLED": "The source content was withdrawn.",
+    "DISPATCH_LOST": "The AI step did not start in time.",
     "KILL_SWITCH": "This AI feature is paused by policy.",
     "OUTPUT_MALFORMED": "The AI result could not be used.",
     "PROVIDER_ERROR": "The AI step could not finish.",

@@ -11,6 +11,7 @@ from sketch2life.application.ports.ai_jobs import (
     DispatchMessage,
     Principal,
     PrincipalRole,
+    WorkerDispatchEnvelope,
 )
 from sketch2life.application.services.ai_jobs import (
     AiJobDependencies,
@@ -82,6 +83,7 @@ class FixtureHarness:
     copy_service: ProviderCopyLifecycleService
     fences: FakeOwnerFences = field(default_factory=FakeOwnerFences)
     scripted: dict[tuple[str, int], CompletionClaim] = field(default_factory=dict)
+    last_envelope: WorkerDispatchEnvelope | None = None
 
     def create(
         self,
@@ -144,15 +146,17 @@ class FixtureHarness:
 
     def next_message(self) -> DispatchMessage:
         self.service.dispatch_outbox()
-        message = self.queue.receive()
-        if message is None:
+        envelope = self.queue.receive()
+        if envelope is None:
             raise AssertionError("no dispatch message available")
-        return message
+        self.last_envelope = envelope
+        return envelope.message
 
     def start_next(self) -> DispatchMessage:
         message = self.next_message()
+        assert self.last_envelope is not None
         started = self.service.start_attempt(
-            self.capability(message.job_id), message.job_id, message.attempt_id
+            self.last_envelope.capability, message.job_id, message.attempt_id
         )
         if not started.started:
             raise AssertionError(f"attempt did not start: {started.reason_code}")
@@ -181,6 +185,7 @@ def build_fixture_harness(start: datetime = FIXTURE_START) -> FixtureHarness:
             artifacts=artifacts,
             audit=audit,
             queue=queue,
+            capability_issuer=capabilities,
         )
     )
     for principal in (TEACHER, TEACHER_2, ADMIN, OUTSIDER):

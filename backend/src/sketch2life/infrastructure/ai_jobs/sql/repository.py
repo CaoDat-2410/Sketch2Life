@@ -1,4 +1,5 @@
-"""SQL repository / unit of work for BE2-01 Phase B batch B3 (plan revision 3 §5 Δ2/Δ4/Δ5).
+"""SQL repository / unit of work for BE2-01 Phase B (plan revision 3 §5): B3 Δ2/Δ4/Δ5 and
+B4 Δ6/Δ7/Δ11 (leased outbox claim, fenced acknowledgement bundle, targeted sweep queries).
 
 One use-case transaction = one PostgreSQL connection at READ COMMITTED. Writes are plain
 INSERTs: a unique violation raises ``UniqueConflict(kind)`` and the whole transaction rolls
@@ -6,29 +7,48 @@ back (never ``ON CONFLICT DO NOTHING``). ``cas_job`` updates only when ``job_rev
 matches. Owner fences are held through an ``OwnerFencePort`` bound to the same connection, so
 the hold lasts until this transaction commits or rolls back (ADR-0018 D4/D7).
 
-Batch boundary: dispatch/notice methods that B4/B5 replace (lease-fenced outbox claim,
-atomic notices) raise ``NotImplementedError`` here instead of guessing their semantics.
+Lock order is parent job row, then attempt/outbox rows; attempt bookkeeping is only written
+under the job row lock, which the locked aggregate read relies on. Batch boundary: atomic
+notices (B5 Δ10) raise ``NotImplementedError`` instead of guessing their semantics.
 """
 
 from __future__ import annotations
 
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
+from datetime import datetime, timedelta
 from types import SimpleNamespace
 from typing import Any
 
-from sqlalchemy import Connection, Engine, func, insert, null, select, update
+from sqlalchemy import (
+    Connection,
+    Engine,
+    Integer,
+    Interval,
+    and_,
+    exists,
+    func,
+    insert,
+    literal_column,
+    null,
+    or_,
+    select,
+    update,
+)
 from sqlalchemy.exc import IntegrityError
 
 from sketch2life.application.ports.ai_jobs import (
     OWNER_FENCE_CONTRACT,
+    AttemptDispatch,
     AuditEvent,
+    ClaimedDispatch,
     CommandReceipt,
     CommandScopeKey,
     CompletionReceipt,
     DispatchMessage,
     FenceResult,
     JobRevisionConflict,
+    OutboxLease,
     OwnerFence,
     OwnerFencePort,
     SemanticRequestKey,
@@ -246,6 +266,26 @@ def _joined_attempt(row: Any) -> SimpleNamespace:
     )
 
 
+_MILLISECOND = literal_column("INTERVAL '1 millisecond'", type_=Interval())
+
+
+def _held(lease: OutboxLease) -> Any:
+    """The row is still pending and leased by exactly this owner+generation (Δ6)."""
+
+    o = t.outbox.c
+    return and_(
+        o.message_id == lease.message_id,
+        o.lease_owner == lease.owner,
+        o.lease_generation == lease.generation,
+        o.delivered_at.is_(None),
+    )
+
+
+def _pending_dispatch(attempt_id: str) -> Any:
+    o = t.outbox.c
+    return and_(o.kind == "dispatch", o.attempt_id == attempt_id, o.delivered_at.is_(None))
+
+
 # --------------------------------------------------------------------------- unit of work
 class SqlAiJobUnitOfWork:
     """``AiJobUnitOfWork`` over one connection inside one open transaction."""
@@ -457,7 +497,7 @@ class SqlAiJobUnitOfWork:
         return result
 
     # outbox ---------------------------------------------------------------------------------
-    def add_outbox(self, message: DispatchMessage) -> None:
+    def add_outbox(self, message: DispatchMessage, *, now: datetime) -> None:
         organization_id = self.connection.execute(
             select(t.job.c.organization_id).where(t.job.c.job_id == message.job_id)
         ).scalar_one()
@@ -474,8 +514,8 @@ class SqlAiJobUnitOfWork:
                     "job_type": message.job_type,
                     "request_ref": _request_ref_json(message.request_ref),
                 },
-                available_at=func.now(),
-                created_at=func.now(),
+                available_at=now,
+                created_at=now,
             )
         )
 
@@ -499,11 +539,167 @@ class SqlAiJobUnitOfWork:
             )
         )
 
-    def pending_outbox(self) -> tuple[DispatchMessage, ...]:
-        raise NotImplementedError("lease-fenced outbox claim is Phase B batch B4 (Δ6)")
+    def claim_outbox(
+        self, owner: str, now: datetime, lease: timedelta, limit: int
+    ) -> tuple[ClaimedDispatch, ...]:
+        o = t.outbox.c
+        ids = list(
+            self.connection.execute(
+                select(o.message_id)
+                .where(
+                    o.kind == "dispatch",
+                    o.delivered_at.is_(None),
+                    o.available_at <= now,
+                    or_(o.lease_until.is_(None), o.lease_until <= now),
+                )
+                .order_by(o.available_at, o.message_id)
+                .limit(limit)
+                .with_for_update(skip_locked=True)
+            ).scalars()
+        )
+        if not ids:
+            return ()
+        rows = self.connection.execute(
+            update(t.outbox)
+            .where(o.message_id.in_(ids))
+            .values(
+                lease_owner=owner,
+                lease_generation=o.lease_generation + 1,
+                lease_until=now + lease,
+                publish_attempts=o.publish_attempts + 1,
+            )
+            .returning(o.message_id, o.lease_generation, o.job_id, o.attempt_id, o.payload)
+        ).all()
+        self.writes += 1
+        by_id = {row.message_id: row for row in rows}
+        claims = []
+        for message_id in ids:
+            row = by_id[message_id]
+            payload = row.payload
+            message = DispatchMessage(
+                message_id=row.message_id,
+                job_id=row.job_id,
+                attempt_id=row.attempt_id,
+                attempt_number=payload["attempt_number"],
+                job_type=payload["job_type"],
+                request_ref=_request_ref(payload["request_ref"]),
+            )
+            claims.append(
+                ClaimedDispatch(message, OutboxLease(message_id, owner, row.lease_generation))
+            )
+        return tuple(claims)
 
-    def mark_dispatched(self, message_id: str) -> None:
-        raise NotImplementedError("fenced dispatch acknowledgement is Phase B batch B4 (Δ6)")
+    def lease_current(self, lease: OutboxLease) -> bool:
+        return bool(self.connection.execute(select(exists().where(_held(lease)))).scalar())
+
+    def ack_dispatch(self, lease: OutboxLease, now: datetime) -> bool:
+        o = t.outbox.c
+        target = self.connection.execute(
+            select(o.job_id, o.attempt_id).where(_held(lease))
+        ).one_or_none()
+        if target is None:
+            return False
+        # Parent first: attempt bookkeeping is written only under the job row lock.
+        self.connection.execute(
+            select(t.job.c.job_id).where(t.job.c.job_id == target.job_id).with_for_update()
+        )
+        marked = self.connection.execute(
+            update(t.outbox)
+            .where(_held(lease))
+            .values(delivered_at=now, lease_owner=None, lease_until=None)
+        ).rowcount
+        if marked != 1:
+            return False  # taken over between the read and the mark: whole bundle no-op
+        a = t.attempt.c
+        self.connection.execute(
+            update(t.attempt)
+            .where(a.attempt_id == target.attempt_id)
+            .values(dispatched_at=now, dispatch_count=a.dispatch_count + 1)
+        )
+        self.writes += 1
+        return True
+
+    def release_outbox(self, lease: OutboxLease, error_code: str) -> bool:
+        return self._settle_lease(lease, last_error_code=error_code)
+
+    def dispose_outbox(self, lease: OutboxLease, reason_code: str) -> bool:
+        return self._settle_lease(lease, last_error_code=reason_code, delivered_at=func.now())
+
+    def attempt_dispatch(self, attempt_id: str) -> AttemptDispatch | None:
+        a, j = t.attempt.c, t.job.c
+        row = self.connection.execute(
+            select(a.job_id, a.attempt_id, j.job_revision, a.dispatched_at, a.dispatch_count)
+            .join_from(t.attempt, t.job, a.job_id == j.job_id)
+            .where(a.attempt_id == attempt_id)
+        ).one_or_none()
+        if row is None:
+            return None
+        return AttemptDispatch(
+            row.job_id, row.attempt_id, row.job_revision, row.dispatched_at, row.dispatch_count
+        )
+
+    def has_pending_dispatch(self, attempt_id: str) -> bool:
+        return bool(
+            self.connection.execute(select(exists().where(_pending_dispatch(attempt_id)))).scalar()
+        )
+
+    def queued_dispatched_not_started(
+        self, now: datetime, start_timeout: timedelta, limit: int
+    ) -> tuple[AttemptDispatch, ...]:
+        a, j, o = t.attempt.c, t.job.c, t.outbox.c
+        rows = self.connection.execute(
+            select(a.job_id, a.attempt_id, j.job_revision, a.dispatched_at, a.dispatch_count)
+            .join_from(t.attempt, t.job, a.job_id == j.job_id)
+            .where(
+                j.state == "queued",
+                a.started_at.is_(None),
+                a.finished_at.is_(None),
+                a.dispatched_at.is_not(None),
+                a.dispatched_at <= now - start_timeout,
+                ~exists().where(
+                    o.kind == "dispatch", o.attempt_id == a.attempt_id, o.delivered_at.is_(None)
+                ),
+            )
+            .order_by(a.dispatched_at, a.attempt_id)
+            .limit(limit)
+        ).all()
+        return tuple(
+            AttemptDispatch(
+                r.job_id, r.attempt_id, r.job_revision, r.dispatched_at, r.dispatch_count
+            )
+            for r in rows
+        )
+
+    def overdue_running(self, now: datetime, limit: int) -> tuple[str, ...]:
+        a, j = t.attempt.c, t.job.c
+        # Server-side typed interval arithmetic: no bound parameters inside make_interval().
+        timeout = _MILLISECOND * j.policy_snapshot["attempt_timeout_ms"].astext.cast(Integer)
+        rows = self.connection.execute(
+            select(j.job_id)
+            .join_from(t.job, t.attempt, a.job_id == j.job_id)
+            .where(
+                j.state == "running",
+                a.started_at.is_not(None),
+                a.finished_at.is_(None),
+                a.started_at + timeout <= now,
+            )
+            .order_by(a.started_at, j.job_id)
+            .limit(limit)
+        ).scalars()
+        return tuple(rows)
+
+    def due_retries(self, now: datetime, limit: int) -> tuple[tuple[str, int], ...]:
+        a, j = t.attempt.c, t.job.c
+        active_number = (
+            select(func.max(a.attempt_number)).where(a.job_id == j.job_id).scalar_subquery()
+        )
+        rows = self.connection.execute(
+            select(j.job_id, active_number.cast(Integer).label("attempt_number"))
+            .where(j.state == "failed_retryable", j.retry_not_before <= now)
+            .order_by(j.retry_not_before, j.job_id)
+            .limit(limit)
+        ).all()
+        return tuple((row.job_id, row.attempt_number) for row in rows)
 
     def notice_seen(self, notice_id: str) -> bool:
         raise NotImplementedError("atomic cancellation notices are Phase B batch B5 (Δ10)")
@@ -512,6 +708,16 @@ class SqlAiJobUnitOfWork:
         raise NotImplementedError("atomic cancellation notices are Phase B batch B5 (Δ10)")
 
     # helpers --------------------------------------------------------------------------------
+    def _settle_lease(self, lease: OutboxLease, **values: Any) -> bool:
+        changed = self.connection.execute(
+            update(t.outbox)
+            .where(_held(lease))
+            .values(lease_owner=None, lease_until=None, **values)
+        ).rowcount
+        if changed == 1:
+            self.writes += 1
+        return bool(changed == 1)
+
     def _insert(self, statement: Any) -> None:
         try:
             self.connection.execute(statement)

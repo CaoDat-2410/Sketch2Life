@@ -12,22 +12,25 @@ mutation and commits. A stale or missing fence rolls back and re-decides once; a
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field, replace
 from datetime import datetime, timedelta
 from hashlib import sha256
+from typing import TypeVar
 
 from sketch2life.application.ports.ai_jobs import (
     AiJobRepository,
     AiJobUnitOfWork,
     ArtifactDescriptor,
     ArtifactPort,
+    AttemptDispatch,
     AuditEvent,
     AuditPort,
     AuthorizationAction,
     AuthorizationDecision,
     AuthorizationPort,
     CancellationNotice,
+    ClaimedDispatch,
     ClockPort,
     CommandReceipt,
     CommandScopeKey,
@@ -42,7 +45,9 @@ from sketch2life.application.ports.ai_jobs import (
     PrincipalRole,
     SemanticRequestKey,
     UniqueConflict,
+    WorkerCapabilityIssuer,
     WorkerCapabilityVerifier,
+    WorkerDispatchEnvelope,
 )
 from sketch2life.domain.ai_jobs import model as jobs
 from sketch2life.domain.ai_jobs.completion import (
@@ -78,6 +83,35 @@ FIXTURE_RETRY_POLICY = JobRetryPolicy(
     backoff_max_ms=8000,
     attempt_timeout_ms=30000,
 )
+@dataclass(frozen=True, slots=True)
+class DispatchPolicy:
+    """Named dispatch/recovery fixture values (decision record §5.1). PROPOSED, never
+    production policy."""
+
+    policy_id: str
+    start_timeout_ms: int
+    max_publishes: int
+    lease_ms: int
+    claim_limit: int
+    status: str = "PROPOSED"
+
+    @property
+    def start_timeout(self) -> timedelta:
+        return timedelta(milliseconds=self.start_timeout_ms)
+
+    @property
+    def lease(self) -> timedelta:
+        return timedelta(milliseconds=self.lease_ms)
+
+
+FIXTURE_DISPATCH_POLICY = DispatchPolicy(
+    policy_id="fixture.durable_jobs.v0",
+    start_timeout_ms=5000,
+    max_publishes=3,
+    lease_ms=10000,
+    claim_limit=50,
+)
+DEFAULT_DISPATCH_OWNER = "dispatcher_fx"
 FIXTURE_POLL_POLICY = JobPollPolicy(
     policy_id="fixture.job_poll.v0",
     min_interval_ms=2000,
@@ -98,6 +132,7 @@ PUBLIC_MESSAGES: Mapping[str, str] = {
     "SOURCE_EXPIRED": "The source content has expired.",
     "KILL_SWITCH": "This AI feature is paused by policy.",
     "BUDGET_EXCEEDED": "The AI budget for this request is used up.",
+    "DISPATCH_LOST": "The AI step did not start in time.",
 }
 GENERIC_PUBLIC_MESSAGE = "The AI step could not finish."
 # Guard verdicts that leave the active attempt completable: no artifact state change (R03a).
@@ -255,8 +290,10 @@ class AiJobDependencies:
     artifacts: ArtifactPort
     audit: AuditPort
     queue: DispatchQueuePort
+    capability_issuer: WorkerCapabilityIssuer
     retry_policy: JobRetryPolicy = FIXTURE_RETRY_POLICY
     poll_policy: JobPollPolicy = FIXTURE_POLL_POLICY
+    dispatch_policy: DispatchPolicy = FIXTURE_DISPATCH_POLICY
 
 
 class QueueUnavailable(Exception):
@@ -360,7 +397,7 @@ class AiJobService:
                             CommandReceipt(key, fingerprint, job.job_id, "created",
                                            job.job_revision, now)
                         )
-                        tx.add_outbox(self._dispatch_message(job))
+                        tx.add_outbox(self._dispatch_message(job), now=now)
                         event = self._audit_intent(tx, "job.created", job,
                                                    discriminator=job.job_id)
                         result = CommandResult(job.job_id, job.job_revision, "created", False)
@@ -457,40 +494,114 @@ class AiJobService:
         return tuple(job.job_id for job in cancelled)
 
     # ------------------------------------------------------------ dispatch/worker
-    def dispatch_outbox(self) -> int:
-        """Send pending outbox entries; current eligibility is rechecked before enqueue."""
+    def dispatch_outbox(self, *, owner: str = DEFAULT_DISPATCH_OWNER) -> int:
+        """Fenced outbox dispatch (Δ6, Δ14): lease a bounded batch, then per row decide
+        eligibility, hold its fence in a short acceptance transaction, mint the capability and
+        enqueue outside SQL, and acknowledge with the fenced bundle. Returns enqueued count."""
 
-        sent = 0
-        denied: list[AiJob] = []
+        policy = self._d.dispatch_policy
         with self._d.repository.transaction() as tx:
-            for message in tx.pending_outbox():
+            claims = tx.claim_outbox(owner, self._d.clock.now(), policy.lease, policy.claim_limit)
+        return sum(1 for claim in claims if self._dispatch_one(claim))
+
+    def _dispatch_one(self, claim: ClaimedDispatch) -> bool:
+        message, lease = claim.message, claim.lease
+        for _ in range(DECISION_ROUNDS):
+            with self._d.repository.transaction() as tx:
                 job = tx.get_job(message.job_id)
-                if (
-                    job is None
-                    or job.state is not JobState.QUEUED
-                    or job.active_attempt.attempt_id != message.attempt_id
-                ):
-                    tx.mark_dispatched(message.message_id)
-                    continue
-                eligibility = self._check(job)
-                if not eligibility.eligible:
-                    reason = eligibility.reason_code or "CONSENT_REVOKED"
-                    updated = jobs.cancel(job, reason_code=reason,
-                                          public_message=public_message(reason),
-                                          now=self._d.clock.now())
-                    tx.cas_job(expected_revision=job.job_revision, job=updated)
-                    tx.mark_dispatched(message.message_id)
-                    denied.append(updated)
-                    continue
-                try:
-                    self._d.queue.enqueue(message)
-                except QueueUnavailable:
-                    continue
-                tx.mark_dispatched(message.message_id)
-                sent += 1
-        for job in denied:
-            self._audit("job.dispatch_denied", job, job.failure.code if job.failure else None)
-        return sent
+            if job is None or not _dispatchable(job, message):
+                with self._d.repository.transaction() as tx:
+                    tx.dispose_outbox(lease, "ATTEMPT_NOT_DISPATCHABLE")
+                return False
+            eligibility = self._check(job)
+            denied: AiJob | None = None
+            try:
+                with self._d.repository.transaction() as tx:
+                    if not tx.lease_current(lease):
+                        return False  # a newer holder owns this row now
+                    job = self._get(tx, message.job_id, for_update=True)
+                    if not _dispatchable(job, message):
+                        tx.dispose_outbox(lease, "ATTEMPT_NOT_DISPATCHABLE")
+                        return False
+                    self._hold(tx, eligibility.fence)
+                    if not eligibility.eligible:
+                        reason = eligibility.reason_code or "CONSENT_REVOKED"
+                        denied = jobs.cancel(job, reason_code=reason,
+                                             public_message=public_message(reason),
+                                             now=self._d.clock.now())
+                        tx.cas_job(expected_revision=job.job_revision, job=denied)
+                        tx.dispose_outbox(lease, reason)
+            except _StaleOwnerDecision:
+                continue
+            if denied is not None:
+                self._audit("job.dispatch_denied", denied, denied.failure.code
+                            if denied.failure else None)
+                return False
+            return self._publish(claim)
+        with self._d.repository.transaction() as tx:
+            tx.release_outbox(lease, "STALE_CONTEXT")
+        return False
+
+    def _publish(self, claim: ClaimedDispatch) -> bool:
+        """External effect outside SQL; no lock is held across the broker call."""
+
+        message = claim.message
+        capability = self._d.capability_issuer.issue(
+            message.job_id, message.attempt_id, self._d.clock.now()
+        )
+        try:
+            self._d.queue.enqueue(WorkerDispatchEnvelope(message, capability))
+        except QueueUnavailable:
+            with self._d.repository.transaction() as tx:
+                tx.release_outbox(claim.lease, "QUEUE_UNAVAILABLE")
+            return False
+        with self._d.repository.transaction() as tx:
+            # A stale holder's or repeated acknowledgement is a no-op for the whole bundle.
+            tx.ack_dispatch(claim.lease, self._d.clock.now())
+        return True
+
+    def recover_unstarted_dispatches(self) -> tuple[tuple[str, str], ...]:
+        """Reconciler sweep (Δ7/Δ11/Δ13): an active queued attempt published but not durably
+        started within the start timeout is republished as the same attempt until the publish
+        bound, then closed with ``record_dispatch_loss``. Returns ``(job_id, outcome)``."""
+
+        policy = self._d.dispatch_policy
+        return self._sweep(
+            lambda tx, now: tx.queued_dispatched_not_started(now, policy.start_timeout,
+                                                             policy.claim_limit),
+            self._recover_unstarted,
+        )
+
+    def _recover_unstarted(self, due: AttemptDispatch) -> tuple[str, str] | None:
+        policy = self._d.dispatch_policy
+        now = self._d.clock.now()
+        with self._d.repository.transaction() as tx:
+            job = self._get(tx, due.job_id, for_update=True)
+            current = tx.attempt_dispatch(due.attempt_id)
+            if (
+                current is None
+                or job.job_revision != due.job_revision
+                or job.state is not JobState.QUEUED
+                or job.active_attempt.attempt_id != due.attempt_id
+                or job.active_attempt.started_at is not None
+                or current.dispatched_at is None
+                or now - current.dispatched_at < policy.start_timeout
+                or tx.has_pending_dispatch(due.attempt_id)
+            ):
+                return None  # start won, the job settled, or a recovery intent is pending
+            if current.dispatch_count < policy.max_publishes:
+                tx.add_outbox(self._dispatch_message(job), now=now)
+                outcome = "republished"
+            else:
+                updated = jobs.record_dispatch_loss(
+                    job, due.attempt_id, public_message=public_message(jobs.DISPATCH_LOST),
+                    now=now,
+                )
+                tx.cas_job(expected_revision=job.job_revision, job=updated)
+                outcome = "dispatch_lost"
+        if outcome == "dispatch_lost":
+            self._audit("job.dispatch_lost", updated, jobs.DISPATCH_LOST)
+        return (due.job_id, outcome)
 
     def start_attempt(self, capability: str, job_id: str, attempt_id: str) -> StartResult:
         self._require_worker(capability, job_id)
@@ -607,33 +718,55 @@ class AiJobService:
         raise _unresolved("STALE_CONTEXT")
 
     def expire_overdue_attempts(self) -> tuple[str, ...]:
+        """Overdue-running sweep (Δ11): policy-timeout failure, targeted paged query."""
+
+        return self._sweep(
+            lambda tx, now: tx.overdue_running(now, self._d.dispatch_policy.claim_limit),
+            self._expire_overdue,
+        )
+
+    def _expire_overdue(self, job_id: str) -> str | None:
         now = self._d.clock.now()
-        expired: list[str] = []
         with self._d.repository.transaction() as tx:
-            for job in tx.list_jobs():
-                started = job.started_at
-                if job.state is not JobState.RUNNING or started is None:
-                    continue
-                if now - started < _ms(job.retry_policy.attempt_timeout_ms):
-                    continue
-                updated = jobs.record_failure(
-                    job, job.active_attempt.attempt_id, code="PROVIDER_TIMEOUT",
-                    retryable=True, public_message=public_message("PROVIDER_TIMEOUT"), now=now,
-                )
-                tx.cas_job(expected_revision=job.job_revision, job=updated)
-                expired.append(job.job_id)
-        return tuple(expired)
+            job = self._get(tx, job_id, for_update=True)
+            started = job.started_at
+            if (
+                job.state is not JobState.RUNNING
+                or started is None
+                or now - started < _ms(job.retry_policy.attempt_timeout_ms)
+            ):
+                return None
+            updated = jobs.record_failure(
+                job, job.active_attempt.attempt_id, code="PROVIDER_TIMEOUT",
+                retryable=True, public_message=public_message("PROVIDER_TIMEOUT"), now=now,
+            )
+            tx.cas_job(expected_revision=job.job_revision, job=updated)
+        return job_id
 
     def run_due_retries(self) -> tuple[str, ...]:
-        with self._d.repository.transaction() as tx:
-            due = [
-                (job.job_id, job.active_attempt.attempt_number)
-                for job in tx.list_jobs()
-                if job.state is JobState.FAILED_RETRYABLE
-                and job.retry_not_before is not None
-                and job.retry_not_before <= self._d.clock.now()
-            ]
-        return tuple(job_id for job_id, number in due if self.retry_job(job_id, number))
+        """Due-retry sweep (Δ11): targeted paged query, then the fenced ``retry_job``."""
+
+        return self._sweep(
+            lambda tx, now: tx.due_retries(now, self._d.dispatch_policy.claim_limit),
+            lambda due: due[0] if self.retry_job(due[0], due[1]) else None,
+        )
+
+    def _sweep(
+        self,
+        query: Callable[[AiJobUnitOfWork, datetime], tuple[_Due, ...]],
+        handle: Callable[[_Due], _Out | None],
+    ) -> tuple[_Out, ...]:
+        """Repeat a targeted page until it is empty or a page makes no progress; rows that
+        stayed due (lost race, stale fence) are left for the next sweep. No seen-marker."""
+
+        done: list[_Out] = []
+        while True:
+            with self._d.repository.transaction() as tx:
+                page = query(tx, self._d.clock.now())
+            progressed = [out for out in map(handle, page) if out is not None]
+            done.extend(progressed)
+            if not page or not progressed:
+                return tuple(done)
 
     def retry_job(self, job_id: str, scheduled_for_attempt: int) -> bool:
         """Scheduled retry callback; stale callbacks (cancelled/advanced jobs) are no-ops."""
@@ -662,7 +795,7 @@ class AiJobService:
                             job, new_attempt_id=self._d.ids.new_id("att"), now=now
                         )
                         tx.cas_job(expected_revision=job.job_revision, job=updated)
-                        tx.add_outbox(self._dispatch_message(updated))
+                        tx.add_outbox(self._dispatch_message(updated), now=now)
                         requeued = True
             except _StaleOwnerDecision:
                 continue
@@ -1028,6 +1161,14 @@ def _produced_by(descriptor: ArtifactDescriptor, job: AiJob, attempt_id: str) ->
     )
 
 
+_Due = TypeVar("_Due")
+_Out = TypeVar("_Out")
+
+
+def _dispatchable(job: AiJob, message: DispatchMessage) -> bool:
+    return job.state is JobState.QUEUED and job.active_attempt.attempt_id == message.attempt_id
+
+
 def _retry_due(job: AiJob, scheduled_for_attempt: int, now: datetime) -> bool:
     return (
         job.state is JobState.FAILED_RETRYABLE
@@ -1064,6 +1205,8 @@ __all__ = [
     "CANCEL_CONTRACT",
     "CREATE_CONTRACT",
     "DECISION_ROUNDS",
+    "DEFAULT_DISPATCH_OWNER",
+    "FIXTURE_DISPATCH_POLICY",
     "DEVICE_FIELDS",
     "FIXTURE_POLL_POLICY",
     "FIXTURE_RETRY_POLICY",
@@ -1075,6 +1218,7 @@ __all__ = [
     "CancelJobCommand",
     "CommandResult",
     "CreateJobCommand",
+    "DispatchPolicy",
     "JobStatusResult",
     "QueueUnavailable",
     "StartResult",
