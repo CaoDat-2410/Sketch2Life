@@ -1,0 +1,245 @@
+{
+  "record": "PHASE_B_B5_FIX01_EVIDENCE_20261015",
+  "date": "2026-10-15",
+  "status": "B5-R01/B5-R02 FIXED_PENDING_REVIEW",
+  "q01": "B5_NEEDS_REVISION until review + Studio + closure",
+  "b6": "NOT_STARTED",
+  "executor": "Claude",
+  "provenance": "DIRECT_LOCAL (Windows; fakes/service/HMAC/filter + static checks); PostgreSQL/Redis NOT_RUN; local RQ 2.11",
+  "changed_vs_c7492097": {
+    "backend/src/sketch2life/application/ports/ai_jobs.py": {
+      "before": "7ae9772927a0a2fb7fb0370dc85f48e162ad9937557276e9420c5010e74d6fdb",
+      "after": "b402d2477ec87e322d12812646f8b3691198aadb1f01a322e9dec765d368bb0a"
+    },
+    "backend/src/sketch2life/application/services/ai_jobs.py": {
+      "before": "08291990bec28306f0b64fa6de7ce7e1a233d043213b73abd44369fcab2d600d",
+      "after": "f28f8316db4f023341abf1bb710b865a3aa36bcf011cbd6a25ece95781e1efd7"
+    },
+    "backend/src/sketch2life/infrastructure/ai_jobs/fakes.py": {
+      "before": "e60720da247a0c39a216d2b9b08bcdb4cb1d87a86cfcba25cb0b79816171f398",
+      "after": "4d598ac9ec3aafed0cf6985aca199308db792c86c90a8c979da48309212c4a87"
+    },
+    "backend/src/sketch2life/infrastructure/ai_jobs/sql/repository.py": {
+      "before": "4ec3f65b15637cac6d9ef8a039ffc988913f7e6e4e229fe6a3236d5a9319f8af",
+      "after": "cc546d0fbaee426e4fc794bbdd617e0f2f4d4a52772716f298f78e69a6ae7b3d"
+    },
+    "backend/src/sketch2life/infrastructure/ai_jobs/worker.py": {
+      "before": "3c47c1bcb4083177cfc552c8ab9fd12fdebf37bd5ed6a447713d99539f79914c",
+      "after": "c747305620ff2fe7c03fc1619032af38433e604c1cd5d022094f748bd35d82a3"
+    },
+    "backend/src/sketch2life/infrastructure/ai_jobs/worker_capability.py": {
+      "before": "995552721acc77c8d32813b0c2e7fe9a4c31250d85b9ab809c6540f84611f7f4",
+      "after": "f93963ea5997ece8946187a578964bcd83ea531583c7d2c3661dc8e839bb58a1"
+    },
+    "backend/tests/integration/ai_jobs/test_audit_durability.py": {
+      "before": "cec15c7b47dc8bfd495be6154f3793d11b6ef12decd0f01db3fd6f8ed62ffc7f",
+      "after": "5178b98186072455f556a34e1738c6e90e6eb19d4563b0eb882cb43274473410"
+    },
+    "backend/tests/integration/ai_jobs/test_capability.py": {
+      "before": "f391cbb0ca63cb01ac07a875c6e1de3791789c67de26451755c2ea91e76b8f2a",
+      "after": "5d526ae3678299664656246ae4b5622776c9ffcabcbb5924a36ea8b80254c3e9"
+    },
+    "backend/tests/unit/test_ai_job_b5_capability.py": {
+      "before": "e8f717e082c54adac6e36a7f4f18a0f667da013ff68d261a5837cce382fb9011",
+      "after": "3772719167138da29c3f8030d778daf5a0b4dd9b606a12dec31c0b002162a2be"
+    },
+    "backend/tests/unit/test_ai_job_b5_effects.py": {
+      "before": "823e730b1dae93500b2978e996d80bae0a0bca84b27d211061c2c130730f1570",
+      "after": "3004462825890d3015f7c6eca57aeb86064496287419085b697e4b378b9481f8"
+    }
+  },
+  "probes": {
+    "before": {
+      "probe_side_effect_starvation": {
+        "provenance": "DIRECT_LOCAL_ACTUAL_SERVICE_FAKE_REPOSITORY; not PostgreSQL proof",
+        "claim_limit": 50,
+        "older_audit_rows": 50,
+        "quarantine_intents_pending": 1,
+        "passes": [
+          0,
+          0,
+          0
+        ],
+        "audit_calls": 150,
+        "healthy_quarantine_calls": 0,
+        "quarantine_delivered_after_three_passes": false,
+        "direct_same_quarantine_succeeds": true,
+        "failure": "Each released failing audit prefix is reclaimed before the ready quarantine on every pass"
+      },
+      "probe_signature_encoding": {
+        "provenance": "DIRECT_LOCAL_HMAC_FILTER_PROBE; not PostgreSQL/Redis proof",
+        "baseline_verifies": true,
+        "noncanonical_signature_verifies": true,
+        "claims_preserved": true,
+        "noncanonical_token_survives_filter": true,
+        "worker_accepts_noncanonical_token_and_completes": true,
+        "worker_job_state": "succeeded",
+        "secrets_tokens_omitted_from_report": true
+      }
+    },
+    "after": {
+      "probe_side_effect_starvation": {
+        "provenance": "DIRECT_LOCAL_ACTUAL_SERVICE_FAKE_REPOSITORY; not PostgreSQL proof",
+        "claim_limit": 50,
+        "older_audit_rows": 50,
+        "quarantine_intents_pending_before": 1,
+        "passes": [
+          1,
+          0,
+          0
+        ],
+        "audit_calls": 153,
+        "healthy_quarantine_calls": 1,
+        "quarantine_delivered": true,
+        "quarantine_marked": true,
+        "audit_rows_still_pending": 51,
+        "quarantine_applications": 1
+      },
+      "probe_signature_encoding": {
+        "provenance": "DIRECT_LOCAL_HMAC_FILTER_PROBE; not PostgreSQL/Redis proof",
+        "baseline_verifies": true,
+        "noncanonical_signature_verifies": false,
+        "claims_preserved": false,
+        "noncanonical_token_survives_filter": false,
+        "worker_accepts_noncanonical_token_and_completes": false,
+        "worker_outcome": [
+          "rejected",
+          "WORKER_CAPABILITY_INVALID"
+        ],
+        "worker_job_state": "queued",
+        "secrets_tokens_omitted_from_report": true
+      }
+    }
+  },
+  "before_after_unit_regressions": {
+    "on_c7492097": {
+      "exit_code": 1,
+      "summary": "5 failed, 49 deselected in 0.46s",
+      "failed": [
+        "test_all_failing_side_effects_terminate_with_each_row_tried_once",
+        "test_failing_audit_backlog_never_starves_a_healthy_quarantine",
+        "test_malformed_representations_of_a_valid_token_are_denied",
+        "test_redaction_covers_malformed_tokens_in_every_record_field",
+        "test_service_and_worker_reject_a_noncanonical_token"
+      ]
+    },
+    "on_fix": {
+      "exit_code": 0,
+      "summary": "5 passed, 49 deselected in 0.28s",
+      "failed": []
+    }
+  },
+  "new_sql_regression": {
+    "test": "test_audit_durability.py::test_failing_audit_backlog_never_starves_quarantine_on_sql",
+    "status": "NOT_RUN locally"
+  },
+  "local_checks": {
+    "phase_a": "223 passed, 1 skipped (Pillow, test_ai_job_polling.py:180)",
+    "b2_b5": "94 passed, 95 skipped (PG/Redis NOT_RUN)",
+    "b5_unit": 54,
+    "fixture_runner": "exit 0; 20 PASS/215; d17f58a3 unchanged",
+    "ruff": "PASS",
+    "mypy_src": "PASS (18)",
+    "mypy_tests": "PASS (20)",
+    "validators": {
+      "harness": 0,
+      "repository_security": 0,
+      "architecture": 0,
+      "skeleton": 0
+    },
+    "git_diff_check": 0
+  },
+  "package": {
+    "previous_manifest_sha256": "f1c6834f41dc798fe4475509b7d4b9c8c578ebfd15f34ff07f72f2d4bf24aeb4",
+    "delta_sha256": "c7a2d4089d6409902ede40ca3a5629f9ad32e0d53bae5fb101a293bae08caa28",
+    "manifest_sha256": "831147fabe0ceb65f55a10cf128fae2dc143de314ebd7540347671a109e3e6a7",
+    "manifest_files": 43,
+    "runner_sha256": "f5a3cbd6c634f66164a6d2e470dcae4b81c1036a216e3a2d69f10fad96e0a42e",
+    "zip_sha256": "fa06d8794e0ce525c7f9eb1b00fcc3de37457f8b2fcc377f990ab0b55545a266",
+    "zip_members": [
+      "b5fix01_delta.patch",
+      "b5fix01_previous.sha256",
+      "b5fix01_source.sha256",
+      "run_b5fix01_on_studio.sh"
+    ]
+  },
+  "package_self_check": {
+    "delta_sha256": "c7a2d4089d6409902ede40ca3a5629f9ad32e0d53bae5fb101a293bae08caa28",
+    "manifest_sha256": "831147fabe0ceb65f55a10cf128fae2dc143de314ebd7540347671a109e3e6a7",
+    "previous_manifest_sha256": "f1c6834f41dc798fe4475509b7d4b9c8c578ebfd15f34ff07f72f2d4bf24aeb4",
+    "runner_sha256": "f5a3cbd6c634f66164a6d2e470dcae4b81c1036a216e3a2d69f10fad96e0a42e",
+    "zip_sha256": "fa06d8794e0ce525c7f9eb1b00fcc3de37457f8b2fcc377f990ab0b55545a266",
+    "delta_files": 25,
+    "manifest_files": 43,
+    "previous_snapshot_rebuilt": "PASS (32 hashes = f1c6834f; 11 added paths at base)",
+    "previous_plus_delta_matches_new_manifest": "PASS",
+    "second_delta_application_refused": true,
+    "worktree_reverse_check_exit": 0,
+    "no_other_packaged_area_change": true,
+    "zip_members_byte_identical": true,
+    "older_packages_unchanged": "PASS (42 files)",
+    "real_index_modified": false,
+    "runtime_executed": false
+  },
+  "host_simulation": {
+    "status": "PASS",
+    "cases": 9,
+    "results": [
+      {
+        "case": "b4r01_to_b5fix01",
+        "exit_code": 0,
+        "docker_mock_called": true
+      },
+      {
+        "case": "corrected_retry",
+        "exit_code": 0,
+        "docker_mock_called": true
+      },
+      {
+        "case": "docker_failure_then_retry",
+        "exit_code": 125,
+        "docker_mock_called": true
+      },
+      {
+        "case": "docker_failure_then_retry_retry",
+        "exit_code": 0,
+        "docker_mock_called": true
+      },
+      {
+        "case": "foreign_tracked",
+        "exit_code": 1,
+        "docker_mock_called": false
+      },
+      {
+        "case": "foreign_untracked",
+        "exit_code": 1,
+        "docker_mock_called": false
+      },
+      {
+        "case": "known_file_edit",
+        "exit_code": 1,
+        "docker_mock_called": false
+      },
+      {
+        "case": "tampered_delta",
+        "exit_code": 1,
+        "docker_mock_called": false
+      },
+      {
+        "case": "unrun_old_b5",
+        "exit_code": 1,
+        "docker_mock_called": false
+      }
+    ]
+  },
+  "expected_studio": {
+    "b2_b5_passed": 189,
+    "phase_a_passed": 224,
+    "skips": 0,
+    "runner_result": "PASS"
+  },
+  "preserved": [
+    "old B5 ZIP 9475fe27 / delta 671a8617 / manifest c7492097",
+    "B2-B4 packages"
+  ]
+}
