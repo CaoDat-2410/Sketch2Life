@@ -12,7 +12,7 @@ import unicodedata
 from collections.abc import Mapping
 from contextlib import AbstractContextManager
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import StrEnum
 from typing import Protocol
 
@@ -176,6 +176,42 @@ class DispatchMessage:
 
 
 @dataclass(frozen=True, slots=True)
+class WorkerDispatchEnvelope:
+    """Transient broker payload (Δ14): the dispatch message plus a capability minted right
+    before publish. Never persisted; outbox rows, receipts, audit and logs stay token-free."""
+
+    message: DispatchMessage
+    capability: str = field(repr=False)
+
+
+@dataclass(frozen=True, slots=True)
+class OutboxLease:
+    """Lease on one pending outbox row (Δ6). Only the current owner+generation may mark or
+    release it; a stale holder's mark/release is a no-op."""
+
+    message_id: str
+    owner: str
+    generation: int
+
+
+@dataclass(frozen=True, slots=True)
+class ClaimedDispatch:
+    message: DispatchMessage
+    lease: OutboxLease
+
+
+@dataclass(frozen=True, slots=True)
+class AttemptDispatch:
+    """Dispatch bookkeeping of one attempt (Δ7): last fenced publish time and publish count."""
+
+    job_id: str
+    attempt_id: str
+    job_revision: int
+    dispatched_at: datetime | None
+    dispatch_count: int
+
+
+@dataclass(frozen=True, slots=True)
 class CancellationNotice:
     """Owner-port notice (consent revoke, session end, recall, source expiry, kill switch)."""
 
@@ -242,11 +278,50 @@ class AiJobUnitOfWork(Protocol):
         """Durable audit intent committed with the mutation it describes (Δ5 candidate)."""
         ...
 
-    def add_outbox(self, message: DispatchMessage) -> None: ...
+    def add_outbox(self, message: DispatchMessage, *, now: datetime) -> None:
+        """Pending dispatch row, available from ``now`` (service clock)."""
+        ...
 
-    def pending_outbox(self) -> tuple[DispatchMessage, ...]: ...
+    def claim_outbox(
+        self, owner: str, now: datetime, lease: timedelta, limit: int
+    ) -> tuple[ClaimedDispatch, ...]:
+        """Lease up to ``limit`` pending, unleased-or-expired dispatch rows; each claim
+        increments the row's lease generation (Δ6)."""
+        ...
 
-    def mark_dispatched(self, message_id: str) -> None: ...
+    def lease_current(self, lease: OutboxLease) -> bool: ...
+
+    def ack_dispatch(self, lease: OutboxLease, now: datetime) -> bool:
+        """Fenced acknowledgement bundle: mark delivered and set the attempt's
+        ``dispatched_at``/``dispatch_count`` together, only for the current pending lease."""
+        ...
+
+    def release_outbox(self, lease: OutboxLease, error_code: str) -> bool:
+        """Current holder gives the lease back; the row stays pending."""
+        ...
+
+    def dispose_outbox(self, lease: OutboxLease, reason_code: str) -> bool:
+        """Current holder settles a row that must not be published (stale/settled attempt)."""
+        ...
+
+    def attempt_dispatch(self, attempt_id: str) -> AttemptDispatch | None: ...
+
+    def has_pending_dispatch(self, attempt_id: str) -> bool: ...
+
+    def queued_dispatched_not_started(
+        self, now: datetime, start_timeout: timedelta, limit: int
+    ) -> tuple[AttemptDispatch, ...]:
+        """Active queued attempts published at least ``start_timeout`` ago, never durably
+        started, with no pending dispatch row (Δ7/Δ11)."""
+        ...
+
+    def overdue_running(self, now: datetime, limit: int) -> tuple[str, ...]:
+        """Running jobs whose active attempt exceeded its policy attempt timeout (Δ11)."""
+        ...
+
+    def due_retries(self, now: datetime, limit: int) -> tuple[tuple[str, int], ...]:
+        """``(job_id, active attempt_number)`` of failed_retryable jobs due by ``now`` (Δ11)."""
+        ...
 
     def notice_seen(self, notice_id: str) -> bool: ...
 
@@ -283,6 +358,13 @@ class WorkerCapabilityVerifier(Protocol):
     def verify(self, capability: str, job_id: str) -> bool: ...
 
 
+class WorkerCapabilityIssuer(Protocol):
+    """P3 issuer (Δ14), called by the dispatcher right before enqueue, outside any SQL write.
+    Attempt-bound verification is batch B5 (Δ8)."""
+
+    def issue(self, job_id: str, attempt_id: str, now: datetime) -> str: ...
+
+
 class ClockPort(Protocol):
     def now(self) -> datetime: ...
 
@@ -302,7 +384,9 @@ class AuditPort(Protocol):
 
 
 class DispatchQueuePort(Protocol):
-    def enqueue(self, message: DispatchMessage) -> None: ...
+    """Broker adapter. Raises the application ``QueueUnavailable`` when the broker is down."""
+
+    def enqueue(self, envelope: WorkerDispatchEnvelope) -> None: ...
 
 
 class AiProviderPort(Protocol):
@@ -345,6 +429,7 @@ __all__ = [
     "AiJobUnitOfWork",
     "AiProviderPort",
     "ArtifactDescriptor",
+    "AttemptDispatch",
     "ArtifactPort",
     "AuditEvent",
     "AuditPort",
@@ -352,6 +437,7 @@ __all__ = [
     "AuthorizationDecision",
     "AuthorizationPort",
     "CancellationNotice",
+    "ClaimedDispatch",
     "ClockPort",
     "CommandReceipt",
     "CommandScopeKey",
@@ -363,6 +449,7 @@ __all__ = [
     "FenceResult",
     "IdGeneratorPort",
     "JobRevisionConflict",
+    "OutboxLease",
     "OwnerFence",
     "OwnerFencePort",
     "Principal",
@@ -371,5 +458,7 @@ __all__ = [
     "ProviderCopyRegistryPort",
     "SemanticRequestKey",
     "UniqueConflict",
+    "WorkerCapabilityIssuer",
     "WorkerCapabilityVerifier",
+    "WorkerDispatchEnvelope",
 ]

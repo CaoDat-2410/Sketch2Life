@@ -108,9 +108,10 @@ def test_queue_redelivery_and_duplicate_completion_have_one_effect(h: FixtureHar
     job_id = h.service.create_job(h.create()).job_id
     message = h.start_next()
     cap = h.capability(job_id)
-    h.queue.redeliver(message)
+    assert h.last_envelope is not None
+    h.queue.redeliver(h.last_envelope)
     redelivered = h.queue.receive()
-    assert redelivered == message
+    assert redelivered is not None and redelivered.message == message
     assert h.service.start_attempt(cap, job_id, message.attempt_id).reason_code == (
         "DUPLICATE_DELIVERY"
     )
@@ -314,8 +315,9 @@ def test_current_eligibility_gates_create_start_retry_and_completion(reason: str
     h = build_fixture_harness()
     job_id = h.service.create_job(h.create()).job_id
     h.service.dispatch_outbox()
-    message = h.queue.receive()
-    assert message is not None
+    envelope = h.queue.receive()
+    assert envelope is not None
+    message = envelope.message
     ELIGIBILITY[reason](h)
     started = h.service.start_attempt(h.capability(job_id), job_id, message.attempt_id)
     assert (started.started, started.reason_code) == (False, reason)

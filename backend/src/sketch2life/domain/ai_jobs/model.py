@@ -345,6 +345,48 @@ def record_failure(
     )
 
 
+DISPATCH_LOST = "DISPATCH_LOST"
+
+
+def record_dispatch_loss(
+    job: AiJob, attempt_id: str, *, public_message: str, now: datetime
+) -> AiJob:
+    """The active queued attempt was published but never durably started within its bound.
+
+    The attempt closes without inventing a start: ``started_at`` stays ``None`` and the pinned
+    request is kept. Retry budget left gives ``failed_retryable`` with the existing backoff;
+    otherwise ``failed_exhausted``. ``record_failure`` stays RUNNING-only.
+    """
+
+    attempt = _require_active(job, attempt_id)
+    if job.state is not JobState.QUEUED:
+        raise InvalidJobTransition(f"cannot record dispatch loss from {job.state}")
+    if attempt.started_at is not None or attempt.finished_at is not None:
+        raise InvalidJobTransition("dispatch loss needs an unstarted open attempt")
+    remaining = job.retry_policy.attempts_remaining(attempt.attempt_number)
+    closed = replace(attempt, finished_at=now, outcome="dispatch_lost")
+    if remaining > 0:
+        return _advance(
+            job,
+            now,
+            "dispatch_lost",
+            state=JobState.FAILED_RETRYABLE,
+            attempts=_replace_active(job, closed),
+            failure=JobFailure(DISPATCH_LOST, True, public_message, remaining),
+            retry_not_before=now + job.retry_policy.backoff_after(attempt.attempt_number),
+        )
+    return _advance(
+        job,
+        now,
+        "dispatch_lost",
+        state=JobState.FAILED_EXHAUSTED,
+        attempts=_replace_active(job, closed),
+        failure=JobFailure(DISPATCH_LOST, False, public_message, 0),
+        retry_not_before=None,
+        completed_at=now,
+    )
+
+
 def requeue_for_retry(job: AiJob, *, new_attempt_id: str, now: datetime) -> AiJob:
     """Policy retry: same semantic job, next attempt, same pinned request lineage."""
 
@@ -456,6 +498,7 @@ def poll_after_ms(job: AiJob, policy: JobPollPolicy, now: datetime) -> int | Non
 
 __all__ = [
     "CANCELLABLE_STATES",
+    "DISPATCH_LOST",
     "TERMINAL_STATES",
     "UNKNOWN_PROGRESS",
     "AiJob",
@@ -476,6 +519,7 @@ __all__ = [
     "cancel",
     "create_job",
     "poll_after_ms",
+    "record_dispatch_loss",
     "record_failure",
     "report_progress",
     "require_aware",

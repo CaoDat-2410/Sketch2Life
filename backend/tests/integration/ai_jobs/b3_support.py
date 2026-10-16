@@ -182,6 +182,7 @@ def build_rig(
         artifacts=fx.FixtureArtifacts(owner),
         audit=FakeAudit(),
         queue=FakeQueue(),
+        capability_issuer=capabilities,
     )
     return SqlRig(engine, owner, repository, AiJobService(deps), deps, clock, capabilities, holds)
 

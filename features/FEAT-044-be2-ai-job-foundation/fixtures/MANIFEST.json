@@ -47,7 +47,7 @@
     "data25_child/negative/child_with_result_refs.json": "2b08f9524ebd6a3644d98d0271d6fbb30f7dd16daab25b598f66e090a137a3a0",
     "data25_child/positive/failed_exhausted_device_projection.json": "6ddc9c9aae85bc4b7d537487dd5113f9c6ddf5101d19f29aff71d509cdf4ce57",
     "data25_child/positive/succeeded_device_projection.json": "aad3da454cbcb396471871f0e3af1143bba46f77006792f7bbdf34139f72a93c",
-    "error_catalogue.json": "7523377b6f365453de29117bd5594bcb4620193c99e4e13fba9625fdceea057a",
+    "error_catalogue.json": "40b7840ddef0c2a7be7a607a63576583a388a1c35f89b5c08b0b4a89824125a6",
     "policies/fixture.job_poll.v0.json": "a97bfb8f064a6005c8e1a3138282fb069e3434a3f22e798a594f9598c7271d4d",
     "policies/fixture.job_retry.v0.json": "07c48fd036802911355d88f5f0cf012981e096b6bbeb3dc743a8a1f22080204f",
     "provider_copy/negative/deleted_without_receipt.json": "df951a8f41f112e06a03c6976907a4b0395331fa50cee9b3aff3af400a235f0f",
