@@ -1,5 +1,6 @@
-"""SQL repository / unit of work for BE2-01 Phase B (plan revision 3 §5): B3 Δ2/Δ4/Δ5 and
-B4 Δ6/Δ7/Δ11 (leased outbox claim, fenced acknowledgement bundle, targeted sweep queries).
+"""SQL repository / unit of work for BE2-01 Phase B (plan revision 3 §5): B3 Δ2/Δ4/Δ5,
+B4 Δ6/Δ7/Δ11 (leased outbox claim, fenced acknowledgement bundle, targeted sweep queries) and
+B5 Δ9/Δ10/Δ15 (audit/quarantine side-effect rows with their own fenced lease, atomic notices).
 
 One use-case transaction = one PostgreSQL connection at READ COMMITTED. Writes are plain
 INSERTs: a unique violation raises ``UniqueConflict(kind)`` and the whole transaction rolls
@@ -8,8 +9,9 @@ matches. Owner fences are held through an ``OwnerFencePort`` bound to the same c
 the hold lasts until this transaction commits or rolls back (ADR-0018 D4/D7).
 
 Lock order is parent job row, then attempt/outbox rows; attempt bookkeeping is only written
-under the job row lock, which the locked aggregate read relies on. Batch boundary: atomic
-notices (B5 Δ10) raise ``NotImplementedError`` instead of guessing their semantics.
+under the job row lock, which the locked aggregate read relies on. Side-effect rows are leased
+and marked without touching attempt bookkeeping. A notice locks all its matching job rows in
+job id order before changing any of them.
 """
 
 from __future__ import annotations
@@ -45,7 +47,9 @@ from sketch2life.application.ports.ai_jobs import (
     OWNER_FENCE_CONTRACT,
     AttemptDispatch,
     AuditEvent,
+    CancellationNotice,
     ClaimedDispatch,
+    ClaimedSideEffect,
     CommandReceipt,
     CommandScopeKey,
     CompletionReceipt,
@@ -56,11 +60,14 @@ from sketch2life.application.ports.ai_jobs import (
     OutboxLease,
     OwnerFence,
     OwnerFencePort,
+    QuarantineIntent,
     SemanticRequestKey,
+    SideEffect,
     SweepCursor,
     UniqueConflict,
 )
 from sketch2life.domain.ai_jobs.model import (
+    CANCELLABLE_STATES,
     AiJob,
     Attempt,
     JobFailure,
@@ -305,6 +312,31 @@ def _pending_dispatch(attempt_id: str) -> Any:
     return and_(o.kind == "dispatch", o.attempt_id == attempt_id, o.delivered_at.is_(None))
 
 
+_SIDE_EFFECT_KINDS = ("audit", "quarantine")
+
+
+def _side_effect(row: Any) -> SideEffect:
+    payload = row.payload
+    if row.kind == "quarantine":
+        return QuarantineIntent(
+            row.event_id,
+            row.organization_id,
+            row.job_id,
+            row.attempt_id,
+            tuple(payload["artifact_refs"]),
+            payload["reason_code"],
+        )
+    return AuditEvent(
+        payload["event_type"],
+        row.organization_id,
+        row.job_id,
+        payload["correlation_id"],
+        payload["reason_code"],
+        dict(payload["details"]),
+        row.event_id,
+    )
+
+
 # --------------------------------------------------------------------------- unit of work
 class SqlAiJobUnitOfWork:
     """``AiJobUnitOfWork`` over one connection inside one open transaction."""
@@ -539,6 +571,8 @@ class SqlAiJobUnitOfWork:
         )
 
     def add_audit_intent(self, event_id: str, event: AuditEvent) -> None:
+        if event.event_id and event.event_id != event_id:
+            raise ValueError("audit intent id must match its event id")
         self._insert(
             insert(t.outbox).values(
                 message_id=f"aud_{event_id}",
@@ -557,6 +591,105 @@ class SqlAiJobUnitOfWork:
                 created_at=func.now(),
             )
         )
+
+    def add_quarantine_intent(self, intent: QuarantineIntent) -> None:
+        self._insert(
+            insert(t.outbox).values(
+                message_id=f"qtn_{intent.event_id}",
+                kind="quarantine",
+                event_id=intent.event_id,
+                organization_id=intent.organization_id,
+                job_id=intent.job_id,
+                attempt_id=intent.attempt_id,
+                payload={
+                    "artifact_refs": list(intent.artifact_refs),
+                    "reason_code": intent.reason_code,
+                },
+                available_at=func.now(),
+                created_at=func.now(),
+            )
+        )
+
+    def side_effect_recorded(self, event_id: str) -> bool:
+        o = t.outbox.c
+        return bool(
+            self.connection.execute(
+                select(exists().where(o.event_id == event_id, o.kind.in_(_SIDE_EFFECT_KINDS)))
+            ).scalar()
+        )
+
+    def pending_side_effects_count(self) -> int:
+        o = t.outbox.c
+        return int(self.connection.execute(
+            select(func.count()).select_from(t.outbox).where(
+                o.kind.in_(_SIDE_EFFECT_KINDS), o.delivered_at.is_(None)
+            )
+        ).scalar_one())
+
+    def claim_side_effects(
+        self,
+        owner: str,
+        now: datetime,
+        lease: timedelta,
+        limit: int,
+        after: SweepCursor | None = None,
+    ) -> tuple[ClaimedSideEffect, ...]:
+        """Lease undelivered audit/quarantine rows (SKIP LOCKED, generation+1), ordered by
+        (created_at, message_id) and strictly after ``after`` (B5-R01 keyset continuation).
+        Unlike the dispatch claim there is no availability delay: an intent is due once
+        committed."""
+
+        o = t.outbox.c
+        ids = list(
+            self.connection.execute(
+                select(o.message_id)
+                .where(
+                    o.kind.in_(_SIDE_EFFECT_KINDS),
+                    o.delivered_at.is_(None),
+                    or_(o.lease_until.is_(None), o.lease_until <= now),
+                    *_after(o.created_at, o.message_id, after),
+                )
+                .order_by(o.created_at, o.message_id)
+                .limit(limit)
+                .with_for_update(skip_locked=True)
+            ).scalars()
+        )
+        if not ids:
+            return ()
+        rows = self.connection.execute(
+            update(t.outbox)
+            .where(o.message_id.in_(ids))
+            .values(
+                lease_owner=owner,
+                lease_generation=o.lease_generation + 1,
+                lease_until=now + lease,
+                publish_attempts=o.publish_attempts + 1,
+            )
+            .returning(
+                o.message_id, o.kind, o.event_id, o.organization_id, o.job_id, o.attempt_id,
+                o.payload, o.lease_generation, o.created_at,
+            )
+        ).all()
+        self.writes += 1
+        by_id = {row.message_id: row for row in rows}
+        return tuple(
+            ClaimedSideEffect(
+                _side_effect(by_id[message_id]),
+                OutboxLease(message_id, owner, by_id[message_id].lease_generation),
+                SweepCursor(by_id[message_id].created_at, message_id),
+            )
+            for message_id in ids
+        )
+
+    def mark_side_effect(self, lease: OutboxLease, now: datetime) -> bool:
+        changed = self.connection.execute(
+            update(t.outbox)
+            .where(_held(lease), t.outbox.c.kind.in_(_SIDE_EFFECT_KINDS))
+            .values(delivered_at=now, lease_owner=None, lease_until=None)
+        ).rowcount
+        if changed == 1:
+            self.writes += 1
+        return bool(changed == 1)
 
     def claim_outbox(
         self, owner: str, now: datetime, lease: timedelta, limit: int
@@ -740,10 +873,56 @@ class SqlAiJobUnitOfWork:
         return tuple(DueJob(r.job_id, r.attempt_number, r.retry_not_before) for r in rows)
 
     def notice_seen(self, notice_id: str) -> bool:
-        raise NotImplementedError("atomic cancellation notices are Phase B batch B5 (Δ10)")
+        n = t.cancellation_notice.c
+        return bool(
+            self.connection.execute(select(exists().where(n.notice_id == notice_id))).scalar()
+        )
 
-    def record_notice(self, notice_id: str) -> None:
-        raise NotImplementedError("atomic cancellation notices are Phase B batch B5 (Δ10)")
+    def jobs_for_notice(self, notice: CancellationNotice) -> tuple[AiJob, ...]:
+        """Lock every match ``FOR UPDATE`` in job id order, then read each locked aggregate.
+        Same predicate as ``notice_matches``; no LIMIT. A concurrent notice blocks on the
+        locks and, after the first commits, no longer sees the rows it cancelled."""
+
+        j = t.job.c
+        selects = []
+        if notice.session_id is not None:
+            selects.append(j.session_id == notice.session_id)
+        if notice.job_type is not None:
+            selects.append(j.job_type == notice.job_type)
+        if notice.subject_ref is not None:
+            selects.append(j.subject_refs.contains([notice.subject_ref]))
+        if not selects:
+            return ()
+        ids = list(
+            self.connection.execute(
+                select(j.job_id)
+                .where(
+                    j.organization_id == notice.organization_id,
+                    j.state.in_(sorted(str(state) for state in CANCELLABLE_STATES)),
+                    or_(*selects),
+                )
+                .order_by(j.job_id)
+                .with_for_update()
+            ).scalars()
+        )
+        return tuple(job for job_id in ids if (job := self.get_job(job_id, for_update=True)))
+
+    def record_notice(
+        self, notice: CancellationNotice, *, applied_count: int, now: datetime
+    ) -> None:
+        self._insert(
+            insert(t.cancellation_notice).values(
+                notice_id=notice.notice_id,
+                organization_id=notice.organization_id,
+                reason_code=notice.reason_code,
+                session_id=notice.session_id,
+                job_type=notice.job_type,
+                subject_ref=notice.subject_ref,
+                status="COMPLETE",
+                applied_count=applied_count,
+                recorded_at=now,
+            )
+        )
 
     # helpers --------------------------------------------------------------------------------
     def _settle_lease(self, lease: OutboxLease, **values: Any) -> bool:

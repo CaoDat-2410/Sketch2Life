@@ -86,7 +86,8 @@ def job_state_examples() -> dict[str, Json]:
     h.clock.advance(milliseconds=FIXTURE_RETRY_POLICY.backoff_base_ms)
     h.service.run_due_retries()
     message = h.start_next()
-    h.service.accept_completion(cap, h.success_claim(message))
+    # B5 Δ8: the retry attempt needs its own attempt-bound capability.
+    h.service.accept_completion(h.capability(job), h.success_claim(message))
     out["succeeded_accepted"] = _envelope(h, TEACHER, job)
     out["succeeded_admin_projection"] = _envelope(h, ADMIN, job)
     out["succeeded_device_projection"] = _envelope(h, DEVICE, job)

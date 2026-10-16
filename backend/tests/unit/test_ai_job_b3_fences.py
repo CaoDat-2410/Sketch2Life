@@ -19,6 +19,7 @@ from sketch2life.application.ports.ai_jobs import (
     AuthorizationDecision,
     EligibilityDecision,
     Principal,
+    QuarantineIntent,
     SemanticRequestKey,
     UniqueConflict,
 )
@@ -287,11 +288,11 @@ def test_completion_with_output_quarantined_after_precheck_is_not_accepted(
             descriptor = self._port.describe(artifact_ref)
             if not self.done:
                 self.done = True
-                self._port.quarantine((artifact_ref,), "OWNER_QUARANTINE")
+                self._port.owner_quarantine((artifact_ref,), "OWNER_QUARANTINE")
             return descriptor
 
-        def quarantine(self, refs: tuple[str, ...], reason: str) -> None:
-            self._port.quarantine(refs, reason)
+        def quarantine(self, intent: QuarantineIntent) -> None:
+            self._port.quarantine(intent)
 
     service = _service(h, artifacts=QuarantineAfterDescribe(h.artifacts))
     receipt = service.accept_completion(h.capability(created.job_id), claim)

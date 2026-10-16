@@ -199,8 +199,14 @@ def test_progress_reports_keep_unknown_null_and_ignore_stale_attempts(h: Fixture
     }
     assert h.service.report_progress(cap, job_id, message.attempt_id,
                                      JobProgress(ProgressKind.STAGES, None, "outline"))
-    assert not h.service.report_progress(cap, job_id, "att_old",
+    # B5 Δ8: a stale attempt is ignored with its own capability; the active attempt's
+    # capability is refused for any other attempt (no job-only fallback).
+    assert not h.service.report_progress(h.capability(job_id, "att_old"), job_id, "att_old",
                                          JobProgress(ProgressKind.PERCENTAGE, 99.0))
+    with pytest.raises(AiJobError) as denied:
+        h.service.report_progress(cap, job_id, "att_old",
+                                  JobProgress(ProgressKind.PERCENTAGE, 99.0))
+    assert denied.value.code == "WORKER_CAPABILITY_INVALID"
     assert job(h, job_id).progress == JobProgress(ProgressKind.STAGES, None, "outline")
 
 

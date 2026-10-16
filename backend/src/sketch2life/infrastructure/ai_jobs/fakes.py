@@ -5,7 +5,8 @@ not durable storage, not database isolation and must never be wired into the liv
 B3 parity (Δ12 subset): owner fences on decisions, fence hold, canonical semantic key,
 typed ``UniqueConflict`` and durable audit intents. B4 parity: leased outbox claim with
 owner+generation fencing, attempt dispatch bookkeeping, targeted sweep queries, transient
-dispatch envelopes and a capability issuer.
+dispatch envelopes and a capability issuer. B5 parity: attempt-bound capabilities with expiry,
+audit/quarantine intents with leased delivery, event-id deduplicating sinks and atomic notices.
 """
 
 from __future__ import annotations
@@ -14,7 +15,7 @@ from collections import defaultdict
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field, replace
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from hashlib import sha256
 from threading import RLock
 
@@ -24,7 +25,9 @@ from sketch2life.application.ports.ai_jobs import (
     AuditEvent,
     AuthorizationAction,
     AuthorizationDecision,
+    CancellationNotice,
     ClaimedDispatch,
+    ClaimedSideEffect,
     CommandReceipt,
     CommandScopeKey,
     CompletionReceipt,
@@ -36,12 +39,20 @@ from sketch2life.application.ports.ai_jobs import (
     OutboxLease,
     OwnerFence,
     Principal,
+    QuarantineIntent,
+    RecordedNotice,
     SemanticRequestKey,
+    SideEffect,
     SweepCursor,
     UniqueConflict,
+    VerifiedCapability,
     WorkerDispatchEnvelope,
 )
-from sketch2life.application.services.ai_jobs import AiJobService, QueueUnavailable
+from sketch2life.application.services.ai_jobs import (
+    AiJobService,
+    QueueUnavailable,
+    notice_matches,
+)
 from sketch2life.domain.ai_jobs.completion import CompletionClaim, OutputRef
 from sketch2life.domain.ai_jobs.model import (
     AiJob,
@@ -58,6 +69,11 @@ from sketch2life.domain.ai_jobs.provider_copy import (
 )
 
 FIXTURE_MARKER = "FIXTURE_ONLY_NOT_DURABLE"
+_AUDIT_PREFIX = "aud_"
+_QUARANTINE_PREFIX = "qtn_"
+# Fake side-effect claim order (B5-R01): one constant time plus the zero-padded write sequence,
+# the same strict (at, key) keyset contract as the SQL (created_at, message_id) order.
+_SIDE_EFFECT_AT = datetime(1970, 1, 1, tzinfo=UTC)
 
 
 class FakeOwnerFences:
@@ -125,8 +141,14 @@ class _StoreState:
     semantic: dict[str, str] = field(default_factory=dict)
     completion_receipts: dict[tuple[str, str], CompletionReceipt] = field(default_factory=dict)
     outbox: dict[str, DispatchMessage] = field(default_factory=dict)
-    notices: set[str] = field(default_factory=set)
+    notices: dict[str, RecordedNotice] = field(default_factory=dict)
     audit_intents: dict[str, AuditEvent] = field(default_factory=dict)
+    quarantine_intents: dict[str, QuarantineIntent] = field(default_factory=dict)
+    # Side-effect rows (Δ9/Δ15): write order, lease and delivery, keyed by event id.
+    side_effect_order: list[str] = field(default_factory=list)
+    side_effect_generations: dict[str, int] = field(default_factory=dict)
+    side_effect_leases: dict[str, tuple[str, int, datetime]] = field(default_factory=dict)
+    side_effects_delivered: dict[str, datetime] = field(default_factory=dict)
     # Pending dispatch rows only live in ``outbox``; these carry their lease/availability.
     available_at: dict[str, datetime] = field(default_factory=dict)
     generations: dict[str, int] = field(default_factory=dict)
@@ -141,8 +163,13 @@ class _StoreState:
             semantic=dict(self.semantic),
             completion_receipts=dict(self.completion_receipts),
             outbox=dict(self.outbox),
-            notices=set(self.notices),
+            notices=dict(self.notices),
             audit_intents=dict(self.audit_intents),
+            quarantine_intents=dict(self.quarantine_intents),
+            side_effect_order=list(self.side_effect_order),
+            side_effect_generations=dict(self.side_effect_generations),
+            side_effect_leases=dict(self.side_effect_leases),
+            side_effects_delivered=dict(self.side_effects_delivered),
             available_at=dict(self.available_at),
             generations=dict(self.generations),
             leases=dict(self.leases),
@@ -204,9 +231,82 @@ class _UnitOfWork:
         return self._fences.hold(fences)
 
     def add_audit_intent(self, event_id: str, event: AuditEvent) -> None:
-        if event_id in self.state.audit_intents:
+        if event.event_id and event.event_id != event_id:
+            raise ValueError("audit intent id must match its event id")
+        if self.side_effect_recorded(event_id):
             raise UniqueConflict("outbox")
         self.state.audit_intents[event_id] = event
+        self._new_side_effect(event_id)
+
+    def add_quarantine_intent(self, intent: QuarantineIntent) -> None:
+        if self.side_effect_recorded(intent.event_id):
+            raise UniqueConflict("outbox")
+        self.state.quarantine_intents[intent.event_id] = intent
+        self._new_side_effect(intent.event_id)
+
+    def side_effect_recorded(self, event_id: str) -> bool:
+        return event_id in self.state.audit_intents or event_id in self.state.quarantine_intents
+
+    def pending_side_effects_count(self) -> int:
+        return sum(event_id not in self.state.side_effects_delivered
+                   for event_id in self.state.side_effect_order)
+
+    def claim_side_effects(
+        self,
+        owner: str,
+        now: datetime,
+        lease: timedelta,
+        limit: int,
+        after: SweepCursor | None = None,
+    ) -> tuple[ClaimedSideEffect, ...]:
+        claims: list[ClaimedSideEffect] = []
+        for sequence, event_id in enumerate(self.state.side_effect_order):
+            cursor = SweepCursor(_SIDE_EFFECT_AT, f"{sequence:012d}")
+            if after is not None and (cursor.at, cursor.key) <= (after.at, after.key):
+                continue
+            held = self.state.side_effect_leases.get(event_id)
+            if event_id in self.state.side_effects_delivered or (held and held[2] > now):
+                continue
+            generation = self.state.side_effect_generations[event_id] + 1
+            self.state.side_effect_generations[event_id] = generation
+            self.state.side_effect_leases[event_id] = (owner, generation, now + lease)
+            effect: SideEffect
+            if event_id in self.state.quarantine_intents:
+                effect, prefix = self.state.quarantine_intents[event_id], _QUARANTINE_PREFIX
+            else:
+                effect, prefix = self.state.audit_intents[event_id], _AUDIT_PREFIX
+            claims.append(
+                ClaimedSideEffect(effect, OutboxLease(f"{prefix}{event_id}", owner, generation),
+                                  cursor)
+            )
+            if len(claims) == limit:
+                break
+        return tuple(claims)
+
+    def mark_side_effect(self, lease: OutboxLease, now: datetime) -> bool:
+        event_id = self._side_effect_held(lease)
+        if event_id is None:
+            return False
+        del self.state.side_effect_leases[event_id]
+        self.state.side_effects_delivered[event_id] = now
+        return True
+
+    def _new_side_effect(self, event_id: str) -> None:
+        self.state.side_effect_order.append(event_id)
+        self.state.side_effect_generations[event_id] = 0
+
+    def _side_effect_held(self, lease: OutboxLease) -> str | None:
+        for prefix in (_AUDIT_PREFIX, _QUARANTINE_PREFIX):
+            if lease.message_id.startswith(prefix):
+                event_id = lease.message_id.removeprefix(prefix)
+                held = self.state.side_effect_leases.get(event_id)
+                if (
+                    event_id not in self.state.side_effects_delivered
+                    and held is not None
+                    and (held[0], held[1]) == (lease.owner, lease.generation)
+                ):
+                    return event_id
+        return None
 
     def add_outbox(self, message: DispatchMessage, *, now: datetime) -> None:
         if message.message_id in self.state.outbox:
@@ -250,6 +350,10 @@ class _UnitOfWork:
         return True
 
     def release_outbox(self, lease: OutboxLease, error_code: str) -> bool:
+        event_id = self._side_effect_held(lease)
+        if event_id is not None:
+            del self.state.side_effect_leases[event_id]
+            return True
         if not self.lease_current(lease):
             return False
         del self.state.leases[lease.message_id]
@@ -329,8 +433,17 @@ class _UnitOfWork:
     def notice_seen(self, notice_id: str) -> bool:
         return notice_id in self.state.notices
 
-    def record_notice(self, notice_id: str) -> None:
-        self.state.notices.add(notice_id)
+    def jobs_for_notice(self, notice: CancellationNotice) -> tuple[AiJob, ...]:
+        return tuple(job for job in self.list_jobs() if notice_matches(notice, job))
+
+    def record_notice(
+        self, notice: CancellationNotice, *, applied_count: int, now: datetime
+    ) -> None:
+        if notice.notice_id in self.state.notices:
+            raise UniqueConflict("cancellation_notice")
+        self.state.notices[notice.notice_id] = RecordedNotice(
+            notice.notice_id, notice.organization_id, notice.reason_code, applied_count, now
+        )
 
 
 def _keyset_page[Row: (AttemptDispatch, DueJob)](
@@ -488,6 +601,8 @@ class FakeArtifacts:
         self.fences = fences or FakeOwnerFences()
         self._items: dict[str, ArtifactDescriptor] = {}
         self.quarantined: dict[str, str] = {}
+        self.applied_events: list[str] = []
+        self.deliveries: list[str] = []
         self._count = 0
 
     def put(
@@ -516,7 +631,16 @@ class FakeArtifacts:
             fence=self.fences.fence(artifact_fence_scope(artifact_ref)),
         )
 
-    def quarantine(self, artifact_refs: tuple[str, ...], reason_code: str) -> None:
+    def quarantine(self, intent: QuarantineIntent) -> None:
+        """BE2 quarantine intent (Δ15): applied once per ``event_id``; redelivery is a no-op."""
+
+        self.deliveries.append(intent.event_id)
+        if intent.event_id in self.applied_events:
+            return
+        self.applied_events.append(intent.event_id)
+        self.owner_quarantine(intent.artifact_refs, intent.reason_code)
+
+    def owner_quarantine(self, artifact_refs: tuple[str, ...], reason_code: str) -> None:
         """Owner-side artifact state change: the first quarantine bumps the artifact fence."""
 
         for ref in artifact_refs:
@@ -526,31 +650,40 @@ class FakeArtifacts:
 
 
 class FakeAudit:
+    """Audit sink deduplicating by ``event_id`` (Δ9); ``deliveries`` keeps every attempt."""
+
     def __init__(self) -> None:
         self.events: list[AuditEvent] = []
+        self.deliveries: list[str] = []
+        self._seen: set[str] = set()
 
     def record(self, event: AuditEvent) -> None:
+        self.deliveries.append(event.event_id)
+        if event.event_id:
+            if event.event_id in self._seen:
+                return
+            self._seen.add(event.event_id)
         self.events.append(event)
 
 
 class FakeWorkerCapability:
-    """Backend-only scoped capability issuer + verifier; tokens are synthetic. Verification is
-    still job-bound here; attempt binding/expiry is batch B5 (Δ8)."""
+    """Backend-only fake issuer + verifier (Δ8): synthetic opaque tokens bound to one
+    ``(job_id, attempt_id)`` with the fixture expiry; the service checks ids and expiry."""
 
-    def __init__(self) -> None:
-        self._tokens: dict[str, str] = {}
-        self.issued: list[tuple[str, str | None]] = []
+    def __init__(self, ttl: timedelta = timedelta(seconds=40)) -> None:
+        self._claims: dict[str, VerifiedCapability] = {}
+        self._ttl = ttl
+        self.issued: list[tuple[str, str]] = []
 
-    def issue(self, job_id: str, attempt_id: str | None = None,
-              now: datetime | None = None) -> str:
-        material = job_id if attempt_id is None else f"{job_id}:{attempt_id}"
+    def issue(self, job_id: str, attempt_id: str, now: datetime) -> str:
+        material = f"{job_id}:{attempt_id}:{now.isoformat()}:{len(self.issued)}"
         token = f"wcap_fx_{sha256(material.encode()).hexdigest()[:16]}"
-        self._tokens[token] = job_id
+        self._claims[token] = VerifiedCapability(job_id, attempt_id, now, now + self._ttl, "fx")
         self.issued.append((job_id, attempt_id))
         return token
 
-    def verify(self, capability: str, job_id: str) -> bool:
-        return self._tokens.get(capability) == job_id
+    def verify(self, capability: str) -> VerifiedCapability | None:
+        return self._claims.get(capability)
 
 
 ProviderScript = Callable[[DispatchMessage], CompletionClaim]

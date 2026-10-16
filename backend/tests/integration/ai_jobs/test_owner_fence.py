@@ -51,7 +51,7 @@ def _queued(rig: s.SqlRig) -> tuple[str, str]:
 
 def _started(rig: s.SqlRig) -> tuple[str, str]:
     job_id, attempt_id = _queued(rig)
-    started = rig.service.start_attempt(rig.capabilities.issue(job_id), job_id, attempt_id)
+    started = rig.service.start_attempt(rig.capability(job_id), job_id, attempt_id)
     assert started.started
     return job_id, attempt_id
 
@@ -99,7 +99,7 @@ def test_b09a_consent_revoked_before_start_write_is_not_authorised(db: URL) -> N
         eligibility=s.HookedEligibility(fx.FixtureEligibility(rig.owner), revoke)
     )
     rig.holds.clear()
-    result = service.start_attempt(rig.capabilities.issue(job_id), job_id, attempt_id)
+    result = service.start_attempt(rig.capability(job_id), job_id, attempt_id)
     assert result == StartResult(False, "CONSENT_REVOKED")
     assert [hold.current for hold in rig.holds] == [False, True]  # stale, then re-decided
     after = rig.job(job_id)
@@ -123,7 +123,7 @@ def test_b09a_repeatedly_stale_decision_returns_typed_outcome_and_writes_nothing
         eligibility=s.HookedEligibility(fx.FixtureEligibility(rig.owner), bump)
     )
     rig.holds.clear()
-    result = service.start_attempt(rig.capabilities.issue(job_id), job_id, attempt_id)
+    result = service.start_attempt(rig.capability(job_id), job_id, attempt_id)
     assert result == StartResult(False, "STALE_CONTEXT")
     assert [hold.current for hold in rig.holds] == [False, False]
     assert rig.job(job_id) == before
@@ -146,7 +146,7 @@ def test_b09a_consent_revoked_before_completion_write_is_not_accepted(db: URL) -
         eligibility=s.HookedEligibility(fx.FixtureEligibility(rig.owner), revoke)
     )
     rig.holds.clear()
-    receipt = service.accept_completion(rig.capabilities.issue(job_id), claim)
+    receipt = service.accept_completion(rig.capability(job_id), claim)
     assert (receipt.disposition, receipt.reason_code) == (
         ResultDisposition.REJECTED,
         "CONSENT_REVOKED",
@@ -179,7 +179,7 @@ def test_b09b_artifact_quarantined_before_completion_write_is_not_accepted(db: U
         artifacts=s.HookedArtifacts(fx.FixtureArtifacts(rig.owner), quarantine)
     )
     rig.holds.clear()
-    receipt = service.accept_completion(rig.capabilities.issue(job_id), claim)
+    receipt = service.accept_completion(rig.capability(job_id), claim)
     assert [hold.current for hold in rig.holds] == [False, True]
     assert (receipt.disposition, receipt.reason_code) == (
         ResultDisposition.REJECTED,
@@ -239,7 +239,7 @@ def test_b09d_reads_stay_current_authority_and_history_is_unchanged(db: URL) -> 
     rig = s.build_rig(db)
     created = rig.service.create_job(s.command())
     attempt_id = rig.job(created.job_id).active_attempt.attempt_id
-    capability = rig.capabilities.issue(created.job_id)
+    capability = rig.capability(created.job_id)
     assert rig.service.start_attempt(capability, created.job_id, attempt_id).started
     claim = _claim(rig, created.job_id, attempt_id)
     receipt = rig.service.accept_completion(capability, claim)
@@ -275,7 +275,7 @@ def test_be2_hold_first_commits_first_and_owner_change_waits(db: URL) -> None:
     outcome: dict[str, StartResult] = {}
     start = threading.Thread(
         target=lambda: outcome.update(
-            result=rig.service.start_attempt(rig.capabilities.issue(job_id), job_id, attempt_id)
+            result=rig.service.start_attempt(rig.capability(job_id), job_id, attempt_id)
         )
     )
     start.start()
@@ -320,6 +320,6 @@ def test_missing_or_unknown_fence_is_never_treated_as_current(
             return replace(decision, fence=fence)
 
     service = rig.with_ports(eligibility=Unfenced())
-    result = service.start_attempt(rig.capabilities.issue(job_id), job_id, attempt_id)
+    result = service.start_attempt(rig.capability(job_id), job_id, attempt_id)
     assert result == StartResult(False, "STALE_CONTEXT")
     assert rig.job(job_id) == before

@@ -8,11 +8,20 @@ Phase B B3 (plan revision 3 Δ3/Δ5): owner decisions are taken outside the writ
 the write transaction re-reads, holds their owner fences on its own connection before any
 mutation and commits. A stale or missing fence rolls back and re-decides once; a
 ``UniqueConflict`` rolls the whole candidate back and a fresh round re-reads the winner.
+
+Phase B B5 (Δ8/Δ9/Δ10/Δ15): worker calls need a capability bound to both the job and the
+attempt. Every job-changing completion writes its mutation, authoritative receipt, audit intent
+and owned quarantine intents in one transaction; guard verdicts that leave the job unchanged
+commit an audit-only incident (plus owned quarantine intents for committed-final verdicts)
+before answering, and a failed incident commit is a retryable 503. Side-effect intents carry
+deterministic event ids: they are delivered right after commit and redelivered by the leased
+``deliver_side_effects`` pass; sinks deduplicate by event id. Cancellation notices cancel every
+match and record the notice ``COMPLETE`` in one transaction, bounded by ``notice_atomic_max``.
 """
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field, replace
 from datetime import datetime, timedelta
 from hashlib import sha256
@@ -44,7 +53,9 @@ from sketch2life.application.ports.ai_jobs import (
     OwnerFence,
     Principal,
     PrincipalRole,
+    QuarantineIntent,
     SemanticRequestKey,
+    SideEffect,
     SweepCursor,
     UniqueConflict,
     WorkerCapabilityIssuer,
@@ -85,6 +96,8 @@ FIXTURE_RETRY_POLICY = JobRetryPolicy(
     backoff_max_ms=8000,
     attempt_timeout_ms=30000,
 )
+
+
 @dataclass(frozen=True, slots=True)
 class DispatchPolicy:
     """Named dispatch/recovery fixture values (decision record §5.1). PROPOSED, never
@@ -96,6 +109,9 @@ class DispatchPolicy:
     lease_ms: int
     claim_limit: int
     status: str = "PROPOSED"
+    # B5 fixture values (decision record §5.1): worker capability TTL and atomic notice bound.
+    capability_ttl_ms: int = 40000
+    notice_atomic_max: int = 100
 
     @property
     def start_timeout(self) -> timedelta:
@@ -112,8 +128,11 @@ FIXTURE_DISPATCH_POLICY = DispatchPolicy(
     max_publishes=3,
     lease_ms=10000,
     claim_limit=50,
+    capability_ttl_ms=40000,
+    notice_atomic_max=100,
 )
 DEFAULT_DISPATCH_OWNER = "dispatcher_fx"
+DEFAULT_SIDE_EFFECT_OWNER = "side_effects_fx"
 FIXTURE_POLL_POLICY = JobPollPolicy(
     policy_id="fixture.job_poll.v0",
     min_interval_ms=2000,
@@ -179,6 +198,18 @@ def _not_found() -> AiJobError:
     return AiJobError("RESOURCE_NOT_FOUND", 404, "Resource not found.")
 
 
+def _dependency_unavailable() -> AiJobError:
+    """An incident could not be made durable (Δ9): retryable, never the 409/receipt."""
+
+    return AiJobError("DEPENDENCY_UNAVAILABLE", 503, "Please try again shortly.", retryable=True)
+
+
+def _notice_too_large() -> AiJobError:
+    """Δ10: more matches than ``notice_atomic_max``; nothing changed, notice not recorded."""
+
+    return AiJobError("NOTICE_ATOMIC_LIMIT", 409, "The notice matches too many jobs.")
+
+
 def _unresolved(code: str) -> AiJobError:
     """Typed retryable outcome after the bounded rounds (stale fence or unique conflict)."""
 
@@ -202,9 +233,10 @@ class _PriorReceipt(Exception):
 
 @dataclass
 class _CompletionEffects:
-    """Effects decided inside a completion write; applied only after its commit."""
+    """Effects decided inside a completion write. They become durable intents in the same
+    transaction (Δ9/Δ15) and are delivered only after its commit."""
 
-    audits: list[tuple[str, AiJob, str | None]] = field(default_factory=list)
+    audits: list[tuple[str, str | None]] = field(default_factory=list)
     quarantines: list[tuple[tuple[str, ...], str]] = field(default_factory=list)
     artifact_fences: tuple[OwnerFence | None, ...] = ()
 
@@ -409,7 +441,7 @@ class AiJobService:
             except _StaleOwnerDecision:
                 failure = "STALE_CONTEXT"
                 continue
-            self._d.audit.record(event)
+            self._deliver_now((event,))
             return result
         raise _unresolved(failure)
 
@@ -466,34 +498,50 @@ class AiJobService:
             except _StaleOwnerDecision:
                 failure = "STALE_CONTEXT"
                 continue
-            self._d.audit.record(event)
+            self._deliver_now((event,))
             return CommandResult(updated.job_id, updated.job_revision, "cancelled", False)
         raise _unresolved(failure)
 
     def apply_cancellation_notice(self, notice: CancellationNotice) -> tuple[str, ...]:
-        """Owner-port notice; idempotent by ``notice_id``. Invalidates scheduled retries."""
+        """Owner-port notice (Δ10); idempotent by ``notice_id``. One transaction locks every
+        match, cancels it with its durable audit intent and records the notice ``COMPLETE``.
+        More matches than ``notice_atomic_max`` fail typed with nothing changed or recorded;
+        a concurrent duplicate loses on the notice key, rolls back and then sees it recorded."""
 
-        cancelled: list[AiJob] = []
-        with self._d.repository.transaction() as tx:
-            if tx.notice_seen(notice.notice_id):
-                return ()
-            for job in tx.list_jobs():
-                if job.organization_id != notice.organization_id or job.is_terminal:
-                    continue
-                if not _notice_matches(notice, job):
-                    continue
-                updated = jobs.cancel(
-                    job,
-                    reason_code=notice.reason_code,
-                    public_message=public_message(notice.reason_code),
-                    now=self._d.clock.now(),
-                )
-                tx.cas_job(expected_revision=job.job_revision, job=updated)
-                cancelled.append(updated)
-            tx.record_notice(notice.notice_id)
-        for job in cancelled:
-            self._audit("job.cancelled_by_notice", job, notice.reason_code)
-        return tuple(job.job_id for job in cancelled)
+        limit = self._d.dispatch_policy.notice_atomic_max
+        for _ in range(DECISION_ROUNDS):
+            now = self._d.clock.now()
+            cancelled: list[AiJob] = []
+            events: list[AuditEvent] = []
+            try:
+                with self._d.repository.transaction() as tx:
+                    if tx.notice_seen(notice.notice_id):
+                        return ()
+                    matches = tx.jobs_for_notice(notice)
+                    if len(matches) > limit:
+                        raise _notice_too_large()
+                    for job in matches:
+                        updated = jobs.cancel(
+                            job,
+                            reason_code=notice.reason_code,
+                            public_message=public_message(notice.reason_code),
+                            now=now,
+                        )
+                        tx.cas_job(expected_revision=job.job_revision, job=updated)
+                        events.append(
+                            self._audit_intent(tx, "job.cancelled_by_notice", updated,
+                                               notice.reason_code,
+                                               discriminator=notice.notice_id)
+                        )
+                        cancelled.append(updated)
+                    tx.record_notice(notice, applied_count=len(cancelled), now=now)
+            except UniqueConflict as conflict:
+                if conflict.kind != "cancellation_notice":
+                    raise
+                continue  # a concurrent duplicate committed first; the next round sees it
+            self._deliver_now(events)
+            return tuple(job.job_id for job in cancelled)
+        return ()
 
     # ------------------------------------------------------------ dispatch/worker
     def dispatch_outbox(self, *, owner: str = DEFAULT_DISPATCH_OWNER) -> int:
@@ -607,7 +655,7 @@ class AiJobService:
         return (due.job_id, outcome)
 
     def start_attempt(self, capability: str, job_id: str, attempt_id: str) -> StartResult:
-        self._require_worker(capability, job_id)
+        self._require_worker(capability, job_id, attempt_id)
         for _ in range(DECISION_ROUNDS):
             with self._d.repository.transaction() as tx:
                 job = self._get(tx, job_id)
@@ -643,7 +691,7 @@ class AiJobService:
     def report_progress(
         self, capability: str, job_id: str, attempt_id: str, progress: JobProgress
     ) -> bool:
-        self._require_worker(capability, job_id)
+        self._require_worker(capability, job_id, attempt_id)
         with self._d.repository.transaction() as tx:
             job = self._get(tx, job_id, for_update=True)
             if job.active_attempt.attempt_id != attempt_id or job.state is not JobState.RUNNING:
@@ -655,26 +703,31 @@ class AiJobService:
 
     def accept_completion(self, capability: str, claim: CompletionClaim) -> CompletionReceipt:
         """Only a completion that settles the attempt (changes the job) takes the immutable
-        ``(job_id, attempt_id)`` slot. Guard rejections that leave the job unchanged return a
-        non-authoritative receipt, so a later valid claim of the active attempt still lands."""
+        ``(job_id, attempt_id)`` slot. Its mutation, receipt, audit intent and owned quarantine
+        intents commit together (Δ9/Δ15). Guard rejections that leave the job unchanged return a
+        non-authoritative receipt after committing an audit-only incident, so a later valid
+        claim of the active attempt still lands; if that incident cannot commit the worker gets
+        a retryable 503 instead."""
 
         if not isinstance(claim.job_id, str) or not isinstance(claim.attempt_id, str):
             raise AiJobError("MALFORMED_REQUEST", 400, "Malformed completion identity.")
-        self._require_worker(capability, claim.job_id)
+        self._require_worker(capability, claim.job_id, claim.attempt_id)
         fingerprint = claim.fingerprint()
         details = {"attempt_id": claim.attempt_id}
         if claim.diagnostic:
             details["diagnostic_sha256"] = sha256(claim.diagnostic.encode("utf-8")).hexdigest()
+        failure = "STALE_CONTEXT"
         for _ in range(DECISION_ROUNDS):
             with self._d.repository.transaction() as tx:
                 job = self._get(tx, claim.job_id)
                 prior = tx.get_completion_receipt(claim.job_id, claim.attempt_id)
             if prior is not None:
-                return self._completion_replay(prior, fingerprint, job, details)
+                return self._completion_replay(prior, fingerprint, job, claim, details)
             normalised = self._normalise_claim(claim, details)
             eligibility = self._check(job) if normalised is not None else None
             descriptors = self._describe_outputs(normalised) if normalised is not None else {}
             effects = _CompletionEffects()
+            incident = False
             reason: str | None
             try:
                 with self._d.repository.transaction() as tx:
@@ -701,24 +754,78 @@ class AiJobService:
                         recorded_at=self._d.clock.now(),
                         authoritative=authoritative,
                     )
+                    details["disposition"] = str(disposition)
+                    written = self._completion_side_effects(
+                        job, updated, claim.attempt_id, fingerprint, reason, details, effects
+                    )
                     if authoritative:
                         fence = eligibility.fence if eligibility is not None else None
                         self._hold(tx, fence, *effects.artifact_fences)
                         tx.cas_job(expected_revision=job.job_revision, job=updated)
                         tx.put_completion_receipt(receipt)
+                    else:
+                        incident = True  # audit-only incident: the job row stays unchanged
+                    self._write_side_effects(tx, written)
             except _PriorReceipt as race:
-                return self._completion_replay(race.receipt, fingerprint, job, details)
+                return self._completion_replay(race.receipt, fingerprint, job, claim, details)
             except _StaleOwnerDecision:
+                failure = "STALE_CONTEXT"
                 continue
-            for event_type, subject, verdict in effects.audits:
-                self._audit(event_type, subject, verdict)
-            for refs, quarantine_reason in effects.quarantines:
-                self._quarantine(refs, quarantine_reason)
-            details["disposition"] = str(disposition)
-            self._audit("job.completion" if authoritative else "job.completion_rejected",
-                        updated, reason, details)
+            except AiJobError:
+                raise
+            except UniqueConflict as conflict:
+                if not incident or conflict.kind != "outbox":
+                    raise
+                failure = "IDEMPOTENCY_CONFLICT"
+                continue  # an identical concurrent incident committed first; dedup next round
+            except Exception:
+                if incident:
+                    raise _dependency_unavailable() from None
+                raise
+            self._deliver_now(written)
             return receipt
-        raise _unresolved("STALE_CONTEXT")
+        raise _unresolved(failure)
+
+    def deliver_side_effects(self, *, owner: str = DEFAULT_SIDE_EFFECT_OWNER) -> int:
+        """Leased redelivery of committed audit/quarantine intents (Δ9/Δ15): lease a bounded
+        page (generation-fenced, never the dispatch acknowledgement), apply each effect outside
+        SQL with its stored event id, then mark it as the current holder. A failing sink
+        releases the lease; a stale holder's mark is a no-op. Returns the marked count.
+
+        B5-R01: one invocation captures the undelivered row count as a finite budget. Each page
+        continues strictly after the last claimed row, so rows whose sink is down (released)
+        never hide later rows of a healthy sink. Every row is attempted at most once per
+        invocation, and the budget prevents continuously arriving work from keeping it alive.
+        A short page also ends it. Released and remaining rows are retried by the next
+        invocation; the cursor and budget are not persisted."""
+
+        policy = self._d.dispatch_policy
+        with self._d.repository.transaction() as tx:
+            remaining = tx.pending_side_effects_count()
+        after: SweepCursor | None = None
+        marked = 0
+        while remaining > 0:
+            limit = min(policy.claim_limit, remaining)
+            with self._d.repository.transaction() as tx:
+                claims = tx.claim_side_effects(owner, self._d.clock.now(), policy.lease, limit,
+                                              after)
+            if len(claims) > limit:
+                raise RuntimeError("side-effect claim returned more rows than its limit")
+            remaining -= len(claims)
+            for claim in claims:
+                try:
+                    self._apply_side_effect(claim.effect)
+                except Exception:
+                    with self._d.repository.transaction() as tx:
+                        tx.release_outbox(claim.lease, "SINK_UNAVAILABLE")
+                    continue
+                with self._d.repository.transaction() as tx:
+                    if tx.mark_side_effect(claim.lease, self._d.clock.now()):
+                        marked += 1
+            if len(claims) < limit:
+                return marked
+            after = claims[-1].cursor
+        return marked
 
     def expire_overdue_attempts(self) -> tuple[str, ...]:
         """Overdue-running sweep (Δ11): policy-timeout failure, targeted paged query."""
@@ -858,7 +965,7 @@ class AiJobService:
         verdict = check_completion_preconditions(job, claim)
         if verdict is not PreconditionVerdict.PROCEED:
             if verdict is PreconditionVerdict.INPUT_MISMATCH:
-                effects.audits.append(("job.completion_input_mismatch", job, str(verdict)))
+                effects.audits.append(("job.completion_input_mismatch", str(verdict)))
             if verdict not in TEMPORARY_VERDICTS:
                 # The attempt can no longer complete: its own outputs are final rejects.
                 effects.quarantines.append((output_refs, str(verdict)))
@@ -971,8 +1078,6 @@ class AiJobService:
         """Durable audit intent inside the committing transaction; the deterministic
         ``event_id`` lets later delivery deduplicate (sink delivery is batch B5)."""
 
-        event = AuditEvent(event_type, job.organization_id, job.job_id, job.correlation_id,
-                           reason, {})
         event_id = canonical_sha256(
             {
                 "kind": "audit",
@@ -984,6 +1089,8 @@ class AiJobService:
                 "discriminator": discriminator,
             }
         )
+        event = AuditEvent(event_type, job.organization_id, job.job_id, job.correlation_id,
+                           reason, {}, event_id)
         tx.add_audit_intent(event_id, event)
         return event
 
@@ -992,12 +1099,134 @@ class AiJobService:
         prior: CompletionReceipt,
         fingerprint: str,
         job: AiJob,
+        claim: CompletionClaim,
         details: Mapping[str, str],
     ) -> CompletionReceipt:
+        """Stored-receipt replay: identical claim -> same receipt; a conflicting claim never
+        overwrites it and commits a durable ``COMPLETION_CONFLICT`` incident before the 409."""
+
         if prior.fingerprint == fingerprint:
             return prior
-        self._audit("job.completion_conflict", job, "COMPLETION_CONFLICT", details)
+        event = self._completion_event("job.completion_conflict", job, claim.attempt_id,
+                                       fingerprint, "COMPLETION_CONFLICT", details)
+        self._commit_incident((event,))
         raise AiJobError("COMPLETION_CONFLICT", 409, "Conflicting completion.")
+
+    def _commit_incident(self, effects: tuple[SideEffect, ...]) -> None:
+        """Audit-only incident transaction (Δ9): durable before the caller answers. A repeated
+        incident deduplicates by event id; a concurrent identical one makes this round roll
+        back and the next round finds it. Any other failure is a retryable 503."""
+
+        for _ in range(DECISION_ROUNDS):
+            try:
+                with self._d.repository.transaction() as tx:
+                    self._write_side_effects(tx, effects)
+            except UniqueConflict as conflict:
+                if conflict.kind != "outbox":
+                    raise  # unrelated key: never swallowed
+                continue
+            except Exception:
+                raise _dependency_unavailable() from None
+            self._deliver_now(effects)
+            return
+        raise _dependency_unavailable()
+
+    def _completion_side_effects(
+        self,
+        job: AiJob,
+        updated: AiJob,
+        attempt_id: str,
+        fingerprint: str,
+        reason: str | None,
+        details: Mapping[str, str],
+        effects: _CompletionEffects,
+    ) -> tuple[SideEffect, ...]:
+        """Intents of one completion decision, in delivery order: guard audits, owned
+        quarantines, then the completion (or rejection) audit. Identity never depends on the
+        receipt id, the clock or the token."""
+
+        written: list[SideEffect] = [
+            self._completion_event(event_type, job, attempt_id, fingerprint, verdict, {})
+            for event_type, verdict in effects.audits
+        ]
+        written.extend(
+            self._quarantine_intent(job, attempt_id, refs, quarantine_reason, fingerprint)
+            for refs, quarantine_reason in effects.quarantines
+            if refs
+        )
+        event_type = "job.completion" if updated is not job else "job.completion_rejected"
+        written.append(
+            self._completion_event(event_type, updated, attempt_id, fingerprint, reason, details)
+        )
+        return tuple(written)
+
+    def _completion_event(
+        self,
+        event_type: str,
+        job: AiJob,
+        attempt_id: str,
+        fingerprint: str,
+        reason: str | None,
+        details: Mapping[str, str],
+    ) -> AuditEvent:
+        event_id = canonical_sha256(
+            {
+                "kind": "audit",
+                "event_type": event_type,
+                "job_id": job.job_id,
+                "attempt_id": attempt_id,
+                "fingerprint": fingerprint,
+                "reason": reason,
+            }
+        )
+        return AuditEvent(event_type, job.organization_id, job.job_id, job.correlation_id,
+                          reason, dict(details), event_id)
+
+    def _quarantine_intent(
+        self, job: AiJob, attempt_id: str, refs: tuple[str, ...], reason: str, fingerprint: str
+    ) -> QuarantineIntent:
+        """Built only from owned refs inside the committing transaction (Δ15)."""
+
+        ordered = tuple(sorted(refs))
+        event_id = canonical_sha256(
+            {
+                "kind": "quarantine",
+                "job_id": job.job_id,
+                "attempt_id": attempt_id,
+                "artifact_refs": list(ordered),
+                "reason": reason,
+                "fingerprint": fingerprint,
+            }
+        )
+        return QuarantineIntent(event_id, job.organization_id, job.job_id, attempt_id, ordered,
+                                reason)
+
+    def _write_side_effects(self, tx: AiJobUnitOfWork, effects: Sequence[SideEffect]) -> None:
+        """Add each intent unless its event id is already durable (dedup by stored id)."""
+
+        for effect in effects:
+            if tx.side_effect_recorded(effect.event_id):
+                continue
+            if isinstance(effect, QuarantineIntent):
+                tx.add_quarantine_intent(effect)
+            else:
+                tx.add_audit_intent(effect.event_id, effect)
+
+    def _deliver_now(self, effects: Sequence[SideEffect]) -> None:
+        """Best-effort delivery right after commit. A failing sink leaves the durable intent
+        pending for ``deliver_side_effects``, which redelivers the same event id."""
+
+        for effect in effects:
+            try:
+                self._apply_side_effect(effect)
+            except Exception:
+                continue
+
+    def _apply_side_effect(self, effect: SideEffect) -> None:
+        if isinstance(effect, QuarantineIntent):
+            self._d.artifacts.quarantine(effect)
+        else:
+            self._d.audit.record(effect)
 
     def _describe_outputs(
         self, claim: CompletionClaim
@@ -1017,8 +1246,19 @@ class AiJobService:
         return AiJobError(code, status, public_message(decision.reason_code or ""),
                           retryable=code == "BUDGET_EXCEEDED")
 
-    def _require_worker(self, capability: str, job_id: str) -> None:
-        if not self._d.worker_capability.verify(capability, job_id):
+    def _require_worker(self, capability: str, job_id: str, attempt_id: str) -> None:
+        """Δ8: the capability must verify and name exactly this job and attempt, and must not
+        have expired on the service clock. There is no job-only fallback."""
+
+        verified = (
+            self._d.worker_capability.verify(capability) if isinstance(capability, str) else None
+        )
+        if (
+            verified is None
+            or verified.job_id != job_id
+            or verified.attempt_id != attempt_id
+            or self._d.clock.now() >= verified.expires_at
+        ):
             raise AiJobError("WORKER_CAPABILITY_INVALID", 403, "Not permitted.")
 
     def _get(self, tx: AiJobUnitOfWork, job_id: str, *, for_update: bool = False) -> AiJob:
@@ -1082,10 +1322,6 @@ class AiJobService:
             code = "PROVIDER_ERROR"
         return replace(claim, kind=kind, moderation=moderation, failure_code=code)
 
-    def _quarantine(self, refs: tuple[str, ...], reason: str) -> None:
-        if refs:
-            self._d.artifacts.quarantine(refs, reason)
-
     def _audit(
         self,
         event_type: str,
@@ -1093,9 +1329,23 @@ class AiJobService:
         reason: str | None = None,
         details: Mapping[str, str] | None = None,
     ) -> None:
+        """Direct (non-outbox) audit of a committed job change; the deterministic id follows
+        the committed revision, so a repeated delivery is a sink no-op."""
+
+        event_id = canonical_sha256(
+            {
+                "kind": "audit",
+                "event_type": event_type,
+                "job_id": job.job_id,
+                "attempt_id": job.active_attempt.attempt_id,
+                "job_revision": job.job_revision,
+                "reason": reason,
+                "discriminator": "direct",
+            }
+        )
         self._d.audit.record(
             AuditEvent(event_type, job.organization_id, job.job_id, job.correlation_id, reason,
-                       dict(details or {}))
+                       dict(details or {}), event_id)
         )
 
 
@@ -1199,7 +1449,12 @@ def _key_discriminator(key: CommandScopeKey) -> str:
     )
 
 
-def _notice_matches(notice: CancellationNotice, job: AiJob) -> bool:
+def notice_matches(notice: CancellationNotice, job: AiJob) -> bool:
+    """Phase A notice semantics, kept by Δ10: same organization, non-terminal (cancellable),
+    and the notice's session, job type or subject matches. Repositories select exactly this."""
+
+    if job.organization_id != notice.organization_id or job.state not in jobs.CANCELLABLE_STATES:
+        return False
     if notice.session_id is not None and job.scope.session_id == notice.session_id:
         return True
     if notice.job_type is not None and job.job_type == notice.job_type:
@@ -1220,6 +1475,7 @@ __all__ = [
     "CREATE_CONTRACT",
     "DECISION_ROUNDS",
     "DEFAULT_DISPATCH_OWNER",
+    "DEFAULT_SIDE_EFFECT_OWNER",
     "FIXTURE_DISPATCH_POLICY",
     "DEVICE_FIELDS",
     "FIXTURE_POLL_POLICY",
@@ -1236,6 +1492,7 @@ __all__ = [
     "JobStatusResult",
     "QueueUnavailable",
     "StartResult",
+    "notice_matches",
     "project_job",
     "public_message",
 ]

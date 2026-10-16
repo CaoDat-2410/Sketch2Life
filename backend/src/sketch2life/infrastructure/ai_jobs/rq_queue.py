@@ -1,4 +1,5 @@
-"""Redis/RQ ``DispatchQueuePort`` adapter for BE2-01 Phase B batch B4 (ADR-0018 D3, plan Δ14).
+"""Redis/RQ ``DispatchQueuePort`` adapter and worker entry for BE2-01 Phase B (ADR-0018 D3,
+plan Δ14; B4 publish, B5 receive).
 
 The only broker adapter. PostgreSQL owns job state, the dispatch outbox and redelivery, so RQ
 transport retries stay disabled (no ``Retry`` is passed). Each publish carries the transient
@@ -7,28 +8,36 @@ renders the args (and the capability) into its job description, ``result_ttl=0``
 ``failure_ttl`` limit how long the transient payload stays in Redis. A broker connection failure
 raises the application ``QueueUnavailable`` so the outbox row is released and stays pending.
 
-The worker loop that consumes these jobs is batch B5; ``receive_dispatch`` only marks the
-entry point. ``pop_envelope`` is a fixture receiver for B4 recovery tests.
+B5: ``receive_dispatch`` is the RQ job entry point. It rebuilds the envelope and hands it to
+the process's installed ``DispatchWorker``; it never raises, so RQ's failure handler (which
+would put ``job.args`` into a structured log record) is not reached. ``RedactingSimpleWorker``
+additionally replaces that handler and installs the capability redaction filter on RQ's
+loggers. ``pop_envelope`` stays a fixture receiver for B4 recovery tests.
 """
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from redis import Redis
 from redis.exceptions import ConnectionError as RedisConnectionError
 from redis.exceptions import TimeoutError as RedisTimeoutError
-from rq import Queue
+from rq import Queue, SimpleWorker
 from rq.job import Job
 
 from sketch2life.application.ports.ai_jobs import DispatchMessage, WorkerDispatchEnvelope
 from sketch2life.application.services.ai_jobs import QueueUnavailable
 from sketch2life.domain.ai_jobs.model import RequestRef
+from sketch2life.infrastructure.ai_jobs.worker import install_log_redaction, installed_worker
 
 WORKER_ENTRYPOINT = "sketch2life.infrastructure.ai_jobs.rq_queue.receive_dispatch"
 # fixture.durable_jobs.v0 (decision record §5.1): PROPOSED, fixture only.
 FIXTURE_FAILURE_TTL_SECONDS = 60
 FIXTURE_RESULT_TTL_SECONDS = 0
+RQ_LOGGERS = ("rq", "rq.worker", "rq.job", "rq.queue")
+
+_log = logging.getLogger("sketch2life.ai_jobs.rq")
 
 
 def envelope_args(envelope: WorkerDispatchEnvelope) -> tuple[dict[str, Any], str]:
@@ -64,10 +73,43 @@ def envelope_from_args(payload: dict[str, Any], capability: str) -> WorkerDispat
     return WorkerDispatchEnvelope(message, capability)
 
 
-def receive_dispatch(payload: dict[str, Any], capability: str) -> None:
-    """RQ job entry point. The worker loop (start/provider/completion) is batch B5."""
+def receive_dispatch(payload: dict[str, Any], capability: str) -> str:
+    """RQ job entry point (B5). Returns a status code; never raises and never logs the args.
+    Anything it cannot handle stays recoverable by the SQL reconciler."""
 
-    raise NotImplementedError("BE2-01 worker loop is Phase B batch B5")
+    message_id = payload.get("message_id") if isinstance(payload, dict) else None
+    worker = installed_worker()
+    if worker is None:
+        _log.error("dispatch %s not handled: no worker installed", message_id)
+        return "NOT_INSTALLED"
+    try:
+        envelope = envelope_from_args(payload, capability)
+    except (KeyError, TypeError, ValueError, AttributeError):
+        _log.error("dispatch %s not handled: malformed payload", message_id)
+        return "MALFORMED"
+    try:
+        outcome = worker.handle(envelope)
+    except Exception as error:
+        _log.error("dispatch %s failed in worker: %s", message_id, type(error).__name__)
+        return "WORKER_ERROR"
+    _log.info("dispatch %s: %s %s", message_id, outcome.status, outcome.reason_code)
+    return outcome.status
+
+
+class RedactingSimpleWorker(SimpleWorker):
+    """In-process RQ worker whose failure handler logs only the job id and exception type.
+
+    RQ's default ``handle_exception`` attaches ``job.args`` (the capability) to the record as
+    the ``arguments`` extra; this override never does. The redaction filter covers every other
+    RQ record."""
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        install_log_redaction(*RQ_LOGGERS)
+        super().__init__(*args, **kwargs)
+
+    def handle_exception(self, job: Job, *exc_info: Any) -> None:
+        kind = exc_info[0].__name__ if exc_info and exc_info[0] is not None else "unknown"
+        self.log.error("Worker %s: job %s failed (%s)", self.name, job.id, kind)
 
 
 class RqDispatchQueue:
@@ -115,7 +157,9 @@ def pop_envelope(queue: Queue) -> WorkerDispatchEnvelope | None:
 __all__ = [
     "FIXTURE_FAILURE_TTL_SECONDS",
     "FIXTURE_RESULT_TTL_SECONDS",
+    "RQ_LOGGERS",
     "WORKER_ENTRYPOINT",
+    "RedactingSimpleWorker",
     "RqDispatchQueue",
     "envelope_args",
     "envelope_from_args",
