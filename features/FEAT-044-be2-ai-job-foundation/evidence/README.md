@@ -1,5 +1,12 @@
 # BE2 planning evidence index
 
+- Current 2026-10-16: `notes/PHASE_B_B6_A17FIX01_CLOUD_RECEIPT_REVIEW_20261016.md` records
+  received archive3bcaa058, raw cloud221+224 PASS/0 failure/error/skip, durable43/43 required
+  PASS and the exact local A17 runner/test port (manifest5b76868d,46 files;25 local B6 units).
+  Raw ZIP/audits remain ignored under `local/cloud-a17fix01-received-20261016/`.
+  Studio A17-fix01 NOT_RUN, CR01 open, BE2-01 IN_PROGRESS, B-12 HANDOFF. Earlier routing below
+  is historical; use the new A17-fix01 package for the next Studio run.
+
 - 2026-10-16 local checkpoint (DECISIONS 124): Q01/B6_CR01_R2_CODE_PACKAGE_REVIEW_PASS_PENDING_RUNTIME is unchanged and its Codex review is in notes/PHASE_B_B6_CR01_CODEX_PRECOMMIT_REVIEW_20261016.md. The reviewed state is saved by local commits before the Studio run; runtime r2 NOT_RUN, B6-CR01 open. The ACTIVE lines below are historical for their dates.
 
 - Updated 2026-10-16, Asia/Saigon. Phase A ACCEPTED_CANDIDATE_FIXTURE.
