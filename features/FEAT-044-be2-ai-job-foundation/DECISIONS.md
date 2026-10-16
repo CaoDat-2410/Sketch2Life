@@ -681,3 +681,45 @@ The Lightning Studio is not usable now.
   the r2 package pins base `993a26c` and applies its delta from `90724453`, so the local commits do
   not invalidate it. Later runtime and closure results go into follow-up commits, with no amend or
   rebase of the checkpoint chain.
+
+## Codex A17-fix01 received-evidence review and local port —2026-10-16
+
+Technical checkpoint, not an owner closure decision: received archive3bcaa058 passes integrity
+and raw-receipt review (cloud221 B2–B6 +224 Phase A,0 failure/error/skip;43/43 required durable
+PASS). A17-fix01 fixes a scenario message-order premise; no production authorization bypass
+was reproduced. The exact runner/test patch e9234446 is applied locally on HEAD8825e9ff;
+manifest5b76868d matches46/46 source files;local25 B6 units and focusedruff/mypy PASS.
+Scope stays the approved B6 runner correction, with original approvals unchanged. The cloud
+test-role pg_signal_backend adjustment is evidence context, not a Studio/production directive.
+Prepare a new immutable A17-fix01 Studio package; retain old packages and FAIL receipts.
+Studio A17-fix01 NOT_RUN; CR01/B6 closure pending; BE2-01 IN_PROGRESS; B-12 HANDOFF; OwnerFence
+ASSUMED_CONTRACT. No staging/commit/push/merge/deploy. Evidence:
+evidence/notes/PHASE_B_B6_A17FIX01_CLOUD_RECEIPT_REVIEW_20261016.md.
+
+## Publish the A17 checkpoint and hand off the second BE2 lane —2026-10-16
+
+125. **Split focused commits and push the existing BE2 feature branch for teammate access.**
+Direct user request (verbatim): "lên plan tách commit ra đẩy lên github cho tk kia lấy về tạo nhánh mới đi".
+
+- Authorized: prepare a concrete commit split, run the required checks, create focused follow-up
+  commits on `feature/be2-01-ai-job-foundation`, then push that named branch normally to origin.
+  Publish code, sanitized evidence summaries and the repository-facing handoff. Raw ZIPs/logs,
+  private environment data and personal AI prompts remain ignored/local. Do not amend/rebase the
+  earlier21-commit checkpoint chain or force-push.
+- Allocation already confirmed by the user: sender BE2-01–07; second executor BE2-08–14,
+  seven cards each. BE2-07/DATA-26/CMD-38–39 remains sender-owned; the teammate consumes its
+  versioned knowledge/script output for08–10. Implementation WIP stays1 until separately recorded
+  coordination/approval enables another code checkpoint; planning may proceed in parallel.
+- Base for the requested new branch: dev does not yet contain this foundation checkpoint at
+  publication preflight. The teammate may create a candidate BE2-12 planning branch from the
+  fetched foundation feature branch and record that base and unresolved Studio/integration gates.
+  This is an early planning handoff; it does not merge unfinished BE2-01 into dev or automatically
+  authorize BE2-12 code. Subsequent runtime cards still require their own feature plan/approval.
+- Unchanged: Studio A17-fix01 NOT_RUN, B6-CR01 FIXED_PENDING_RUNTIME_REVIEW, BE2-01 IN_PROGRESS,
+  B-12 HANDOFF, OwnerFence ASSUMED_CONTRACT. No owner closure/P1/P2/P4 sign-off, deployment or
+  database privilege changes. Original Phase A/Phase B approval records remain byte-identical.
+- Studio keeps its pinned993a26c base/source state; do not pull these checkpoint commits there.
+  The separately prepared A17 Studio package has its own supported-state checks.
+
+Public entry point: artifacts/BE2_08_14_TEAMMATE_HANDOFF.md. Exact publication commit plan and
+receipts remain feature-local; pushed commit hashes are reported after successful publication.

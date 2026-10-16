@@ -2,9 +2,11 @@
 
 - Scope: plan rev3 §8 B-12. This is a boundary list, **never a PASS**. The durable conformance
   runner prints the same list as its B-12 row (status HANDOFF).
-- Status at writing: B6_CODE_COMPLETE — PENDING_CODEX_REVIEW. Current (2026-10-16):
-  Q01/B6_CR01_R2_CODE_PACKAGE_REVIEW_PASS_PENDING_RUNTIME; runtime r2 NOT_RUN, B6-CR01 open, B-12 still
-  HANDOFF. See notes/PHASE_B_B6_CONFORMANCE_EVIDENCE_20261016.md.
+- Original status at writing: B6_CODE_COMPLETE — PENDING_CODEX_REVIEW. Current (2026-10-16):
+  Q01/B6_A17FIX01_CLOUD_RECEIPTS_VERIFIED_PENDING_STUDIO. Received cloud raw receipts show
+  221 B2–B6 +224 Phase A PASS/0 failure/error/skip and43/43 required durable PASS on manifest5b76868d.
+  Exact two-file correction is ported locally; Studio A17-fix01 NOT_RUN, B6-CR01 open, B-12 still
+  HANDOFF. See PHASE_B_B6_A17FIX01_CLOUD_RECEIPT_REVIEW_20261016.md in this notes directory.
 - Component decisions Q1–Q8 are PROJECT_OWNER_DIRECTIVE (decision record rev9 §13), not role
   sign-off.
 

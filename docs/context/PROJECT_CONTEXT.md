@@ -1,5 +1,23 @@
 # Project context ledger
 
+## BE2 checkpoint publication and 7/7 handoff —2026-10-16
+
+User authorized splitting and pushing the current BE2 checkpoint so the second BE2 executor can
+fetch it and create a separate task branch. This publishes the reviewed A17-fix01 correction and
+received cloud evidence, not a BE2-01 closure or dev merge. Current checkpoint:
+**Q01/B6_A17FIX01_CLOUD_RECEIPTS_VERIFIED_PENDING_STUDIO**; cloud221 B2–B6 +224 Phase A PASS,
+43/43 required durable PASS; Studio A17-fix01 NOT_RUN; BE2-01 IN_PROGRESS; B-12 HANDOFF;
+OwnerFence ASSUMED_CONTRACT. Phase A/Phase B approvals are unchanged.
+
+Allocation: existing executor **BE2-01–07**, second executor **BE2-08–14**. The latter starts
+with BE2-12 planning and receives knowledge/script from sender-owned BE2-07. Default implementation
+WIP remains1; this publication does not activate another implementation card. A candidate BE2-12
+branch may be based on the fetched foundation feature checkpoint while dev lacks it; record that
+base and remaining Studio/integration gates. Normal reviewed-card integration through dev remains.
+Entry point: `features/FEAT-044-be2-ai-job-foundation/artifacts/BE2_08_14_TEAMMATE_HANDOFF.md`.
+Detailed evidence: FEAT-044 `evidence/notes/PHASE_B_B6_A17FIX01_CLOUD_RECEIPT_REVIEW_20261016.md`.
+Older dated execution entries below retain their historical state.
+
 ## BE2 current execution handoff —2026-10-16
 
 - Latest 2026-10-16: BE2-01 stays at **Q01/B6_CR01_R2_CODE_PACKAGE_REVIEW_PASS_PENDING_RUNTIME** (Codex code/package review PASS on manifest cb527d7f; Studio runtime r2 NOT_RUN; B6-CR01 open). Person 2 allowed local checkpoint commits of the reviewed state before the Studio run (FEAT-044 DECISIONS 124); this is not acceptance. Earlier:
