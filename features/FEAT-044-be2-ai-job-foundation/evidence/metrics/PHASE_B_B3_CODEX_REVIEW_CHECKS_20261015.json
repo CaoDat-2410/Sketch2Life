@@ -1,0 +1,128 @@
+{
+  "recorded_at": "2026-10-15",
+  "batch": "B3",
+  "result": "NEEDS_REVISION",
+  "finding": {
+    "id": "B3-R01",
+    "priority": "P2",
+    "status": "OPEN",
+    "file": "backend/src/sketch2life/infrastructure/ai_jobs/sql/repository.py",
+    "line": 248,
+    "problem": "Separate READ COMMITTED job and attempt SELECTs can combine two committed versions",
+    "observable": "Queued revision1 plus started attempt fails existing wire validation; candidate poll can return500"
+  },
+  "reported_studio": {
+    "provenance": "USER_REPORTED_REMOTE",
+    "direct_codex_remote_execution": false,
+    "attributed_package_patch_sha256": "a2e479d5ee8fc59c67568f5089cf981672b76315d7b0796c3bddc1d0d956e312",
+    "source_attribution_basis": "Continuation after instructions for this exact verified local package; pasted tail omits source header",
+    "remote_source_header": "NOT_PASTED",
+    "receipt_directory": "NOT_REPORTED",
+    "run_timestamp": "NOT_REPORTED",
+    "b2_b3": {
+      "passed": 69,
+      "skipped": 0,
+      "failed": 0,
+      "warnings": 58,
+      "seconds": 62.06,
+      "exit_code": 0,
+      "log_exit_code": 0,
+      "coverage_split_matching_local_source": {
+        "b3_offline": 14,
+        "b2_offline": 8,
+        "b3_postgres": 37,
+        "b2_postgres": 10
+      }
+    },
+    "phase_a": {
+      "exit_code": 0,
+      "log_exit_code": 0,
+      "skipped": 0,
+      "skip_gate": "PASS",
+      "passed": null,
+      "passed_count_status": "NOT_REPORTED",
+      "seconds": null
+    },
+    "fixture_runner": {
+      "pass": 20,
+      "fail": 0,
+      "checks": 215,
+      "checks_failed": 0,
+      "not_run": 1,
+      "not_run_scope": "Optional HTTP route surface in default fixture runner; no new live-route integration proof",
+      "results_sha256": "d17f58a3c9c535d45a2fe03ed0c1edad42a565422725aede21b22ba45af41f68",
+      "exit_code": 0,
+      "log_exit_code": 0
+    },
+    "outer_runner_exit": 0,
+    "runner_result": "PASS",
+    "studio_command_exit": 0,
+    "test_execution_pass_preserved": true,
+    "b3_closed": false
+  },
+  "independent_reviewers": [
+    "Codex primary",
+    "b2_schema_migration_review",
+    "b2_studio_test_review",
+    "b2_runner_fix"
+  ],
+  "review_coverage": {
+    "sql_repository_and_fixture": "NEEDS_REVISION_B3_R01_ONLY",
+    "service_ports_fakes": "NO_ADDITIONAL_ACTIONABLE_FINDING",
+    "existing_tests": "MEANINGFUL_BUT_MISSING_TORN_READ_BOUNDARY"
+  },
+  "direct_local_probe": {
+    "result": "REPRODUCED",
+    "postgres_executed": false,
+    "scope": "Actual SQL repository mapping, public projection and wire validation, with simulated per-statement SQL results",
+    "validation_error": "queued attempt cannot have started_at",
+    "evidence": "evidence/local/b3-codex-review-20261015/probe_torn_read_result.json"
+  },
+  "direct_local_regressions": {
+    "provenance": "DIRECT_LOCAL_RUN",
+    "combined_phase_a_b2_b3_exit_code": 0,
+    "postgres_cases_skipped": 47,
+    "local_pillow_http_cases_skipped": 1,
+    "peer_b3_offline_passed": 14,
+    "postgres_executed_by_codex": false
+  },
+  "parent_feature": "IN_PROGRESS",
+  "business_cards": 14,
+  "wip": 1,
+  "full_card_done": 0,
+  "b2": "CLOSED_REVIEW_PASS",
+  "b3": "NEEDS_REVISION",
+  "b4": "NOT_STARTED",
+  "backend_changed_by_review": false,
+  "approved_plans_or_approvals_changed": false,
+  "committed": false,
+  "pushed": false,
+  "deployed": false,
+  "next_prompt": "evidence/local/claude/prompts/CLAUDE_PHASE_B_B3_FIX_PROMPT.md",
+  "final_local_checks": {
+    "harness": {
+      "exit_code": 0,
+      "output": "HARNESS_VALID\r\nroot=<BE2_WORKTREE>\r\napproval_gate=enabled\r\nfrontend_asset_gate=enabled\r\n"
+    },
+    "security": {
+      "exit_code": 0,
+      "output": "REPOSITORY_SECURITY_VALID\r\npublishable_files_scanned=2999\r\nenvironment_files=excluded\r\nseed_accounts=excluded\r\ncredentials_and_signing_keys=excluded\r\nexternal_reference_documents=excluded\r\nabsolute_machine_paths=absent\r\n"
+    },
+    "architecture_and_diff": {
+      "exit_code": 0,
+      "output": "ARCHITECTURE_VALID\r\npython_dependency_direction=valid\r\nmobile_feature_isolation=valid\r\nfrontend_asset_gate=valid\r\nmobile_ai_boundary=valid\r\nfirebase_data_products=absent\r\n"
+    },
+    "source_preservation": {
+      "exit_code": 0,
+      "output": "{\"protected_paths_unchanged\": 490, \"package_source_hashes_match\": 19, \"backend_changed_by_review\": false, \"b3_r01\": \"OPEN\", \"b4_started\": false}\r\n"
+    }
+  },
+  "protected_paths_unchanged_by_review": 490,
+  "local_source_hashes_match_package": 19,
+  "operator_prompt_relocation": {
+    "date": "2026-10-15",
+    "user_requested": true,
+    "previous_path": "plan/CLAUDE_PHASE_B_B3_FIX_PROMPT.md",
+    "results_or_finding_changed": false
+  }
+}
