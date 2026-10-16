@@ -1,0 +1,188 @@
+{
+  "record": "PHASE_B_B4_R01_FIX_EVIDENCE_20261015",
+  "date": "2026-10-15",
+  "status": "B4-R01 FIXED_PENDING_RUNTIME_REVIEW",
+  "q01": "B4_NEEDS_REVISION until source-bound Studio run + focused closure review",
+  "b5": "NOT_STARTED",
+  "executor": "Claude",
+  "authority": "existing Phase B plan rev3 B1-B6 approval; delta 11",
+  "provenance": "DIRECT_LOCAL (Windows, fakes/service + static checks); PostgreSQL/Redis NOT_RUN",
+  "changed_files": {
+    "backend/src/sketch2life/application/ports/ai_jobs.py": {
+      "before": "d588e282520f70c0595346d3a2f85849ade7b67ac41a2e616d27ebb9c0ed48b5",
+      "after": "6cd2977be75544223eb18dd553c570220ea332bfa0719fa0d586714db5b933ce"
+    },
+    "backend/src/sketch2life/application/services/ai_jobs.py": {
+      "before": "42d5b6b3ad6953f3ef8f0652de1fbc25cd46474c0ba7085a5dd939b38e7f8d96",
+      "after": "8945b351b69be5450f02e998f82b0dd0f79a248f53c19b33a80c1f7bbe85f489"
+    },
+    "backend/src/sketch2life/infrastructure/ai_jobs/fakes.py": {
+      "before": "6a8984c890d00616447bce18a2fe2514df15ba5fb02bd1bcb9462241683ad996",
+      "after": "8af1865dd6c7ef4d081610a57c3c353a37a0ebe1a8056a5c45ad82d1c269d6d0"
+    },
+    "backend/src/sketch2life/infrastructure/ai_jobs/sql/repository.py": {
+      "before": "575f2b337cfc86505c19c326fcef027090ef94f0468fec64e14c75620ba4104a",
+      "after": "836d513c3ddd51e5da800f078c3fe8f714b53fccd9736dd857c9b26cbe7a5dee"
+    },
+    "backend/tests/integration/ai_jobs/test_dispatch_recovery.py": {
+      "before": "5da26fee279be270353eb66f2fa97047a380e56e43d9489f1844bc8977d02143",
+      "after": "de09fe890c1692f7cf6c2da04f5d4f671d4a047ed623c0ab5b7e71e613d81914"
+    },
+    "backend/tests/unit/test_ai_job_b4_dispatch.py": {
+      "before": "e64101fcd3649559dd5878833f985a15e639dfbec400ec81693ebb1da00600f5",
+      "after": "6c6a6c9d43d44d595579c3ea936c52791093610375fb6bc0598263223087a556"
+    }
+  },
+  "probe": {
+    "before_pass_results": [
+      [],
+      [],
+      []
+    ],
+    "after_pass_results": [
+      [
+        "job_fx0051"
+      ],
+      [],
+      []
+    ],
+    "after_healthy_state": "queued"
+  },
+  "before_after_service_regressions": {
+    "on_444cfead": {
+      "exit_code": 1,
+      "summary": "2 failed, 3 passed, 13 deselected in 0.36s",
+      "failed": [
+        "test_all_deferred_sweep_terminates_and_visits_each_row_once",
+        "test_deferred_first_page_no_longer_starves_later_due_retries"
+      ]
+    },
+    "on_fix": {
+      "exit_code": 0,
+      "summary": "5 passed, 13 deselected in 0.20s",
+      "failed": []
+    }
+  },
+  "new_regressions": {
+    "unit_fake_service": [
+      "test_deferred_first_page_no_longer_starves_later_due_retries",
+      "test_retry_sweep_crosses_several_healthy_pages",
+      "test_all_deferred_sweep_terminates_and_visits_each_row_once",
+      "test_rows_changing_between_pages_are_not_skipped",
+      "test_overdue_and_unstarted_sweeps_also_page_past_the_limit"
+    ],
+    "postgresql_redis": [
+      "test_deferred_due_retries_do_not_starve_later_sql_pages",
+      "test_overdue_and_unstarted_sweeps_page_through_sql"
+    ],
+    "postgresql_redis_status": "NOT_RUN locally (no PostgreSQL 17); skip is not PASS"
+  },
+  "local_checks": {
+    "phase_a": "223 passed, 1 skipped",
+    "b2_b4": "40 passed, 64 skipped (PG/Redis NOT_RUN)",
+    "fixture_runner": "exit 0; 20 PASS/215 checks; d17f58a3; optional HTTP NOT_RUN 1",
+    "ruff_check": "PASS",
+    "mypy_src": "PASS (16 files)",
+    "mypy_changed_tests": "PASS (11 files)",
+    "validators": {
+      "harness": 0,
+      "repository_security": 0,
+      "architecture": 0,
+      "skeleton": 0
+    },
+    "git_diff_check": 0,
+    "cr_bytes_changed_files": 0,
+    "ruff_format_check": "4 src files unformatted already at HEAD; not a gate; not reformatted"
+  },
+  "package": {
+    "previous_manifest_sha256": "444cfeadd3d7d0d0e1f23663b576270f46692e870fe532071f6cf025ffd9ff01",
+    "delta_sha256": "56af4fbd78a8dbcdaa4b9c8916fae8626324df775e396776c75dd55f5e28097b",
+    "manifest_sha256": "f1c6834f41dc798fe4475509b7d4b9c8c578ebfd15f34ff07f72f2d4bf24aeb4",
+    "manifest_files": 32,
+    "runner_sha256": "c3ef682ff6ba9926951cdc9420e41cfd2c81b611acd17e09fde8ef3ff6d01813",
+    "zip_sha256": "a7afd57aec808458cf276c8187111ffa7321b0332af8ce7e3ea0764c22085b62",
+    "zip_members": [
+      "b4r01_delta.patch",
+      "b4_previous.sha256",
+      "b4r01_source.sha256",
+      "run_b4r01_on_studio.sh"
+    ]
+  },
+  "package_self_check": {
+    "delta_sha256": "56af4fbd78a8dbcdaa4b9c8916fae8626324df775e396776c75dd55f5e28097b",
+    "manifest_sha256": "f1c6834f41dc798fe4475509b7d4b9c8c578ebfd15f34ff07f72f2d4bf24aeb4",
+    "previous_manifest_sha256": "444cfeadd3d7d0d0e1f23663b576270f46692e870fe532071f6cf025ffd9ff01",
+    "runner_sha256": "c3ef682ff6ba9926951cdc9420e41cfd2c81b611acd17e09fde8ef3ff6d01813",
+    "zip_sha256": "a7afd57aec808458cf276c8187111ffa7321b0332af8ce7e3ea0764c22085b62",
+    "delta_files": 6,
+    "manifest_files": 32,
+    "previous_snapshot_rebuilt": "PASS (32 hashes = 444cfead)",
+    "previous_plus_delta_matches_new_manifest": "PASS",
+    "second_delta_application_refused": true,
+    "worktree_reverse_check_exit": 0,
+    "zip_members_byte_identical": true,
+    "older_packages_unchanged": "PASS (30 files)",
+    "real_index_modified": false,
+    "runtime_executed": false
+  },
+  "host_simulation": {
+    "status": "PASS",
+    "cases": 8,
+    "results": [
+      {
+        "case": "rt01_to_r01",
+        "exit_code": 0,
+        "docker_mock_called": true
+      },
+      {
+        "case": "corrected_retry",
+        "exit_code": 0,
+        "docker_mock_called": true
+      },
+      {
+        "case": "docker_failure_then_retry",
+        "exit_code": 125,
+        "docker_mock_called": true
+      },
+      {
+        "case": "docker_failure_then_retry_retry",
+        "exit_code": 0,
+        "docker_mock_called": true
+      },
+      {
+        "case": "foreign_tracked",
+        "exit_code": 1,
+        "docker_mock_called": false
+      },
+      {
+        "case": "foreign_untracked",
+        "exit_code": 1,
+        "docker_mock_called": false
+      },
+      {
+        "case": "known_file_edit",
+        "exit_code": 1,
+        "docker_mock_called": false
+      },
+      {
+        "case": "tampered_delta",
+        "exit_code": 1,
+        "docker_mock_called": false
+      }
+    ],
+    "provenance": "DIRECT_LOCAL_HOST_MOCK_ONLY; real scratch Git diff/apply, identity metadata adapted; Docker stub only, no services/network/real secrets; no inner-container test or runtime proof"
+  },
+  "expected_studio": {
+    "b2_b4_passed": 104,
+    "phase_a_passed": 224,
+    "skips": 0,
+    "fixture_runner_exit": 0,
+    "runner_result": "PASS"
+  },
+  "not_done": [
+    "Studio runtime",
+    "focused Codex closure review",
+    "B5",
+    "commit/push/deploy"
+  ]
+}
