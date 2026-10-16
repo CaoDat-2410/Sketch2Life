@@ -673,7 +673,8 @@ class SqlAiJobUnitOfWork:
     def overdue_running(self, now: datetime, limit: int) -> tuple[str, ...]:
         a, j = t.attempt.c, t.job.c
         # Server-side typed interval arithmetic: no bound parameters inside make_interval().
-        timeout = _MILLISECOND * j.policy_snapshot["attempt_timeout_ms"].astext.cast(Integer)
+        # Integer * Interval: a declared SQLAlchemy operator class (Interval * Integer is not).
+        timeout = j.policy_snapshot["attempt_timeout_ms"].astext.cast(Integer) * _MILLISECOND
         rows = self.connection.execute(
             select(j.job_id)
             .join_from(t.job, t.attempt, a.job_id == j.job_id)
