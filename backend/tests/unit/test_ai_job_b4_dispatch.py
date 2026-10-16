@@ -6,6 +6,8 @@ Fakes only: these are not broker or PostgreSQL evidence (see tests/integration/a
 
 from __future__ import annotations
 
+from collections import Counter
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -19,10 +21,14 @@ from sketch2life.application.ports.ai_jobs import (
 from sketch2life.application.services.ai_jobs import (
     FIXTURE_DISPATCH_POLICY,
     FIXTURE_RETRY_POLICY,
+    AiJobDependencies,
+    AiJobService,
+    CancelJobCommand,
 )
 from sketch2life.domain.ai_jobs import model as jobs
 from sketch2life.domain.ai_jobs.model import InvalidJobTransition, JobScope, JobState
 from sketch2life.infrastructure.ai_jobs.harness import (
+    TEACHER,
     FixtureHarness,
     build_fixture_harness,
     request_ref,
@@ -285,7 +291,7 @@ def test_sweep_queries_are_targeted(h: FixtureHarness) -> None:
         )
     h.clock.advance(milliseconds=FIXTURE_RETRY_POLICY.attempt_timeout_ms)
     with h.store.transaction() as tx:
-        assert tx.overdue_running(h.clock.now(), 10) == (running,)
+        assert [d.job_id for d in tx.overdue_running(h.clock.now(), 10)] == [running]
         due = tx.queued_dispatched_not_started(
             h.clock.now(), FIXTURE_DISPATCH_POLICY.start_timeout, 10
         )
@@ -319,3 +325,134 @@ def test_fixture_receiver_returns_none_on_an_empty_queue() -> None:
         connection = EmptyConnection()
 
     assert pop_envelope(EmptyQueue()) is None  # type: ignore[arg-type]
+
+
+# ------------------------------------------------------ B4-R01 keyset traversal of sweeps
+class _MissingFenceScopes:
+    """Eligibility owner port whose decision rows are unavailable for ``blocked`` requests:
+    the same shape FixtureEligibility returns for a missing row (denied, no fence)."""
+
+    def __init__(self, port: Any, blocked: set[str], on_check: Any = None) -> None:
+        self._port, self.blocked, self._on_check = port, blocked, on_check
+        self.calls: Counter[str] = Counter()
+
+    def check(self, *, scope: JobScope, request_ref: jobs.RequestRef, job_type: str) -> Any:
+        self.calls[request_ref.request_id] += 1
+        if self._on_check is not None:
+            self._on_check(request_ref.request_id)
+        decision = self._port.check(scope=scope, request_ref=request_ref, job_type=job_type)
+        if request_ref.request_id in self.blocked:
+            return replace(decision, eligible=False, reason_code="CONSENT_REVOKED", fence=None)
+        return decision
+
+
+def _due_retry_jobs(h: FixtureHarness, count: int) -> list[tuple[str, str]]:
+    """``count`` failed_retryable jobs with strictly increasing retry_not_before."""
+
+    made = []
+    for index in range(count):
+        request = f"req_r01_{index:03}"
+        result = h.service.create_job(h.create(key=f"r01_{index:03}", ref=request_ref(request)))
+        job = h.store.snapshot().jobs[result.job_id]
+        capability = h.capability(job.job_id)
+        assert h.service.start_attempt(
+            capability, job.job_id, job.active_attempt.attempt_id
+        ).started
+        h.service.accept_completion(capability, h.failure_claim(h.service._dispatch_message(job)))
+        h.clock.advance(milliseconds=1)
+        made.append((job.job_id, request))
+    h.clock.advance(milliseconds=FIXTURE_RETRY_POLICY.backoff_max_ms)
+    return made
+
+
+def _sweeping_service(h: FixtureHarness, claim_limit: int, **ports: Any) -> AiJobService:
+    policy = replace(FIXTURE_DISPATCH_POLICY, claim_limit=claim_limit)
+    return AiJobService(AiJobDependencies(**{**_deps(h), "dispatch_policy": policy, **ports}))
+
+
+def test_deferred_first_page_no_longer_starves_later_due_retries(h: FixtureHarness) -> None:
+    limit = FIXTURE_DISPATCH_POLICY.claim_limit
+    made = _due_retry_jobs(h, limit + 1)
+    blocked = {request for _, request in made[:limit]}
+    eligibility = _MissingFenceScopes(h.eligibility, blocked)
+    service = _sweeping_service(h, limit, eligibility=eligibility)
+    before = {job_id: h.store.snapshot().jobs[job_id] for job_id, _ in made[:limit]}
+    healthy_job, healthy_request = made[-1]
+
+    assert service.run_due_retries() == (healthy_job,)
+    healthy = h.store.snapshot().jobs[healthy_job]
+    assert healthy.state is JobState.QUEUED and len(healthy.attempts) == 2
+    assert eligibility.calls[healthy_request] == 1
+    assert {job_id: h.store.snapshot().jobs[job_id] for job_id in before} == before
+    assert all(eligibility.calls[request] == 2 for request in blocked)  # once per invocation
+
+    assert service.run_due_retries() == ()  # still deferred, safely kept for later sweeps
+    assert {job_id: h.store.snapshot().jobs[job_id] for job_id in before} == before
+    assert all(eligibility.calls[request] == 4 for request in blocked)
+
+
+def test_retry_sweep_crosses_several_healthy_pages(h: FixtureHarness) -> None:
+    made = _due_retry_jobs(h, 9)
+    blocked = {request for _, request in made[:2]}
+    service = _sweeping_service(h, 3, eligibility=_MissingFenceScopes(h.eligibility, blocked))
+    assert service.run_due_retries() == tuple(job_id for job_id, _ in made[2:])
+    for job_id, request in made:
+        state = h.store.snapshot().jobs[job_id].state
+        assert state is (JobState.FAILED_RETRYABLE if request in blocked else JobState.QUEUED)
+
+
+def test_all_deferred_sweep_terminates_and_visits_each_row_once(h: FixtureHarness) -> None:
+    made = _due_retry_jobs(h, 7)
+    blocked = {request for _, request in made}
+    eligibility = _MissingFenceScopes(h.eligibility, blocked)
+    before = h.store.snapshot().jobs
+    assert _sweeping_service(h, 3, eligibility=eligibility).run_due_retries() == ()
+    assert h.store.snapshot().jobs == before
+    assert sorted(eligibility.calls.values()) == [2] * 7  # one bounded retry_job per row
+
+
+def test_rows_changing_between_pages_are_not_skipped(h: FixtureHarness) -> None:
+    made = _due_retry_jobs(h, 7)
+    later_job, later_request = made[5]
+    changed: list[str] = []
+
+    def cancel_a_later_row(request: str) -> None:
+        # Another actor settles a not-yet-visited row while page 1 is being handled.
+        if request == made[0][1] and not changed:
+            current = h.store.snapshot().jobs[later_job]
+            h.service.cancel_job(
+                CancelJobCommand(TEACHER, "r01_cancel", later_job, current.job_revision)
+            )
+            changed.append(later_job)
+
+    eligibility = _MissingFenceScopes(h.eligibility, set(), cancel_a_later_row)
+    done = _sweeping_service(h, 3, eligibility=eligibility).run_due_retries()
+    assert done == tuple(job_id for job_id, _ in made if job_id != later_job)
+    assert h.store.snapshot().jobs[later_job].state is JobState.CANCELLED
+    assert eligibility.calls[later_request] == 0
+
+
+def test_overdue_and_unstarted_sweeps_also_page_past_the_limit(h: FixtureHarness) -> None:
+    running = []
+    for index in range(7):
+        result = h.service.create_job(h.create(key=f"run_{index}", ref=request_ref(f"rr_{index}")))
+        job = h.store.snapshot().jobs[result.job_id]
+        assert h.service.start_attempt(
+            h.capability(job.job_id), job.job_id, job.active_attempt.attempt_id
+        ).started
+        h.clock.advance(milliseconds=1)
+        running.append(job.job_id)
+    unstarted = [
+        h.service.create_job(h.create(key=f"q_{index}", ref=request_ref(f"rq_{index}"))).job_id
+        for index in range(7)
+    ]
+    assert h.service.dispatch_outbox() == 7
+    while h.queue.receive() is not None:  # every worker dies before durable start
+        pass
+    h.clock.advance(milliseconds=FIXTURE_RETRY_POLICY.attempt_timeout_ms)
+    service = _sweeping_service(h, 3)
+    assert service.expire_overdue_attempts() == tuple(running)
+    assert sorted(service.recover_unstarted_dispatches()) == sorted(
+        (job_id, "republished") for job_id in unstarted
+    )
+    assert service.recover_unstarted_dispatches() == ()  # each pending intent excludes its row

@@ -201,6 +201,15 @@ class ClaimedDispatch:
 
 
 @dataclass(frozen=True, slots=True)
+class SweepCursor:
+    """Keyset position inside one sweep invocation (Δ11): the row's sort time and its unique
+    tie-break id. Pages continue strictly after it; nothing is persisted between sweeps."""
+
+    at: datetime
+    key: str
+
+
+@dataclass(frozen=True, slots=True)
 class AttemptDispatch:
     """Dispatch bookkeeping of one attempt (Δ7): last fenced publish time and publish count."""
 
@@ -209,6 +218,28 @@ class AttemptDispatch:
     job_revision: int
     dispatched_at: datetime | None
     dispatch_count: int
+
+    @property
+    def cursor(self) -> SweepCursor:
+        """Position in the ``queued_dispatched_not_started`` order (dispatched_at, attempt_id)."""
+
+        if self.dispatched_at is None:
+            raise ValueError("an unpublished attempt has no sweep position")
+        return SweepCursor(self.dispatched_at, self.attempt_id)
+
+
+@dataclass(frozen=True, slots=True)
+class DueJob:
+    """Row of the overdue-running and due-retry sweeps: job, active attempt number and the
+    time the query orders by (attempt ``started_at`` resp. job ``retry_not_before``)."""
+
+    job_id: str
+    attempt_number: int
+    due_at: datetime
+
+    @property
+    def cursor(self) -> SweepCursor:
+        return SweepCursor(self.due_at, self.job_id)
 
 
 @dataclass(frozen=True, slots=True)
@@ -309,18 +340,29 @@ class AiJobUnitOfWork(Protocol):
     def has_pending_dispatch(self, attempt_id: str) -> bool: ...
 
     def queued_dispatched_not_started(
-        self, now: datetime, start_timeout: timedelta, limit: int
+        self,
+        now: datetime,
+        start_timeout: timedelta,
+        limit: int,
+        after: SweepCursor | None = None,
     ) -> tuple[AttemptDispatch, ...]:
         """Active queued attempts published at least ``start_timeout`` ago, never durably
-        started, with no pending dispatch row (Δ7/Δ11)."""
+        started, with no pending dispatch row (Δ7/Δ11). Ordered by (dispatched_at, attempt_id),
+        strictly after ``after`` when given."""
         ...
 
-    def overdue_running(self, now: datetime, limit: int) -> tuple[str, ...]:
-        """Running jobs whose active attempt exceeded its policy attempt timeout (Δ11)."""
+    def overdue_running(
+        self, now: datetime, limit: int, after: SweepCursor | None = None
+    ) -> tuple[DueJob, ...]:
+        """Running jobs whose active attempt exceeded its policy attempt timeout (Δ11).
+        Ordered by (started_at, job_id), strictly after ``after`` when given."""
         ...
 
-    def due_retries(self, now: datetime, limit: int) -> tuple[tuple[str, int], ...]:
-        """``(job_id, active attempt_number)`` of failed_retryable jobs due by ``now`` (Δ11)."""
+    def due_retries(
+        self, now: datetime, limit: int, after: SweepCursor | None = None
+    ) -> tuple[DueJob, ...]:
+        """failed_retryable jobs due by ``now`` (Δ11). Ordered by (retry_not_before, job_id),
+        strictly after ``after`` when given."""
         ...
 
     def notice_seen(self, notice_id: str) -> bool: ...
@@ -444,6 +486,7 @@ __all__ = [
     "CompletionReceipt",
     "DispatchMessage",
     "DispatchQueuePort",
+    "DueJob",
     "EligibilityDecision",
     "EligibilityPort",
     "FenceResult",
@@ -457,6 +500,7 @@ __all__ = [
     "ProviderCopyAdapterPort",
     "ProviderCopyRegistryPort",
     "SemanticRequestKey",
+    "SweepCursor",
     "UniqueConflict",
     "WorkerCapabilityIssuer",
     "WorkerCapabilityVerifier",

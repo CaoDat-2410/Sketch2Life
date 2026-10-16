@@ -37,6 +37,7 @@ from sketch2life.application.ports.ai_jobs import (
     CompletionReceipt,
     DispatchMessage,
     DispatchQueuePort,
+    DueJob,
     EligibilityDecision,
     EligibilityPort,
     IdGeneratorPort,
@@ -44,6 +45,7 @@ from sketch2life.application.ports.ai_jobs import (
     Principal,
     PrincipalRole,
     SemanticRequestKey,
+    SweepCursor,
     UniqueConflict,
     WorkerCapabilityIssuer,
     WorkerCapabilityVerifier,
@@ -567,8 +569,9 @@ class AiJobService:
 
         policy = self._d.dispatch_policy
         return self._sweep(
-            lambda tx, now: tx.queued_dispatched_not_started(now, policy.start_timeout,
-                                                             policy.claim_limit),
+            lambda tx, now, limit, after: tx.queued_dispatched_not_started(
+                now, policy.start_timeout, limit, after
+            ),
             self._recover_unstarted,
         )
 
@@ -721,8 +724,8 @@ class AiJobService:
         """Overdue-running sweep (Δ11): policy-timeout failure, targeted paged query."""
 
         return self._sweep(
-            lambda tx, now: tx.overdue_running(now, self._d.dispatch_policy.claim_limit),
-            self._expire_overdue,
+            lambda tx, now, limit, after: tx.overdue_running(now, limit, after),
+            lambda due: self._expire_overdue(due.job_id),
         )
 
     def _expire_overdue(self, job_id: str) -> str | None:
@@ -747,26 +750,37 @@ class AiJobService:
         """Due-retry sweep (Δ11): targeted paged query, then the fenced ``retry_job``."""
 
         return self._sweep(
-            lambda tx, now: tx.due_retries(now, self._d.dispatch_policy.claim_limit),
-            lambda due: due[0] if self.retry_job(due[0], due[1]) else None,
+            lambda tx, now, limit, after: tx.due_retries(now, limit, after),
+            lambda due: due.job_id if self.retry_job(due.job_id, due.attempt_number) else None,
         )
 
     def _sweep(
         self,
-        query: Callable[[AiJobUnitOfWork, datetime], tuple[_Due, ...]],
+        query: Callable[[AiJobUnitOfWork, datetime, int, SweepCursor | None], tuple[_Due, ...]],
         handle: Callable[[_Due], _Out | None],
     ) -> tuple[_Out, ...]:
-        """Repeat a targeted page until it is empty or a page makes no progress; rows that
-        stayed due (lost race, stale fence) are left for the next sweep. No seen-marker."""
+        """Keyset traversal of one targeted query (Δ11, B4-R01).
 
+        ``now`` is fixed for the invocation. Each page continues strictly after the last row
+        of the previous page, so deferred rows (stale/missing owner fence, lost race) never hide
+        later work, every row is handled at most once per invocation, rows leaving the due set
+        cannot shift later rows past the cursor, and a page shorter than the limit ends the
+        traversal. Deferred rows stay unchanged for the next sweep; nothing is persisted.
+        """
+
+        now = self._d.clock.now()
+        limit = self._d.dispatch_policy.claim_limit
+        after: SweepCursor | None = None
         done: list[_Out] = []
         while True:
             with self._d.repository.transaction() as tx:
-                page = query(tx, self._d.clock.now())
-            progressed = [out for out in map(handle, page) if out is not None]
-            done.extend(progressed)
-            if not page or not progressed:
+                page = query(tx, now, limit, after)
+            if len(page) > limit:
+                raise RuntimeError("sweep query returned more rows than its limit")
+            done.extend(out for out in map(handle, page) if out is not None)
+            if len(page) < limit:
                 return tuple(done)
+            after = page[-1].cursor
 
     def retry_job(self, job_id: str, scheduled_for_attempt: int) -> bool:
         """Scheduled retry callback; stale callbacks (cancelled/advanced jobs) are no-ops."""
@@ -1161,7 +1175,7 @@ def _produced_by(descriptor: ArtifactDescriptor, job: AiJob, attempt_id: str) ->
     )
 
 
-_Due = TypeVar("_Due")
+_Due = TypeVar("_Due", AttemptDispatch, DueJob)
 _Out = TypeVar("_Out")
 
 
