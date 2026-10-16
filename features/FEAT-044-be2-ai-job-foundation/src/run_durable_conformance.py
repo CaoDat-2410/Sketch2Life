@@ -1536,13 +1536,23 @@ def a17_worker_capability(env: DurableEnvironment, r: Result) -> None:
     )
 
     with env.harness() as h:
+        # C-R2-A17-01: the outbox dispatches in (available_at, message_id) order, and under one
+        # fixed clock a UUID message_id does not follow creation order. The target job is
+        # therefore created AND dispatched before the control job exists: the claim can only
+        # belong to the target, whatever the message ids are.
         job_id = h.service.create_job(h.create()).job_id
-        other = h.service.create_job(h.create(key="k2", ref=request_ref("req_2"))).job_id
         message = h.start_next()
+        r.check("dispatched message belongs to the target job", message.job_id == job_id,
+                "" if message.job_id == job_id else f"{message.job_id} != {job_id}")
+        other = h.service.create_job(h.create(key="k2", ref=request_ref("req_2"))).job_id
+        other_capability = h.capability(other)
+        r.check("control capability is bound to another job and attempt than the claim",
+                other != message.job_id
+                and h.job(other).active_attempt.attempt_id != message.attempt_id)
         claim = h.success_claim(message)
         foreign_key = HmacCapabilityIssuer(CapabilityKey("b6_foreign", os.urandom(32)))
         for label, cap in (("missing", ""), ("forged", "wcap.v1.b6_run.e30.AAAA"),
-                           ("other job", h.capability(other)),
+                           ("other job", other_capability),
                            ("other key", foreign_key.issue(job_id, message.attempt_id,
                                                            h.clock.now()))):
             code = _code(partial(h.service.accept_completion, cap, claim))

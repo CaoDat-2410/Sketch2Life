@@ -8,11 +8,14 @@ durable scenarios themselves only run on the Studio services.
 from __future__ import annotations
 
 import ast
+import contextlib
 import importlib.util
 import json
 import sys
+from collections.abc import Iterator
 from pathlib import Path
 from types import ModuleType
+from typing import Any
 
 import pytest
 
@@ -370,3 +373,98 @@ def test_an_empty_or_unpinned_manifest_fails_the_run(
     empty.write_bytes(b"")
     code, statuses = _run(runner, tmp_path, monkeypatch, manifest=(empty, None))
     assert statuses["G-04"] == "FAIL" and code == 1
+
+
+# ------------------------------------- C-R2-A17-01: A-17 must not depend on message-id order
+# These probes run the runner's real a17_worker_capability on IN-MEMORY FAKES (fake store, fake
+# queue, fake capability issuer). They prove the scenario logic only. They are NOT evidence for
+# PostgreSQL, Redis/RQ or the HMAC verifier; the durable scenario itself runs on the services.
+class _SecondHarnessRequested(Exception):
+    """a17's second half needs a real Redis/RQ queue; the probe stops where it would start."""
+
+
+class _FakeHarness:
+    """FixtureHarness plus the one DurableHarness accessor a17's first half reads."""
+
+    def __init__(self, inner: Any) -> None:
+        self._inner = inner
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self._inner, name)
+
+    def job(self, job_id: str) -> Any:
+        return self._inner.store.snapshot().jobs[job_id]
+
+
+class _FakeEnv:
+    def __init__(self, harness: _FakeHarness) -> None:
+        self._harness = harness
+        self.opened = 0
+
+    @contextlib.contextmanager
+    def harness(self) -> Iterator[_FakeHarness]:
+        self.opened += 1
+        if self.opened > 1:
+            raise _SecondHarnessRequested
+        yield self._harness
+
+
+def _fake_harness(monkeypatch: pytest.MonkeyPatch, order: str) -> Any:
+    """Fixture harness on one fixed clock. ``adverse`` forces message ids to DESCEND with
+    creation order, so the later job's message sorts first in the (available_at, message_id)
+    dispatch order; ``natural`` keeps the ascending sequential ids."""
+
+    from sketch2life.infrastructure.ai_jobs.harness import build_fixture_harness
+
+    harness = build_fixture_harness()
+    if order == "adverse":
+        sequential = harness.ids.new_id
+        descending = iter(range(9000, 0, -1))
+
+        def new_id(prefix: str) -> str:
+            return f"msg_fx{next(descending):04d}" if prefix == "msg" else sequential(prefix)
+
+        monkeypatch.setattr(harness.ids, "new_id", new_id)
+    return harness
+
+
+def test_the_adverse_dispatch_order_is_real_under_one_fixed_clock(
+    monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Premise of the regression: two jobs, one clock reading, the second job dispatches first."""
+
+    from sketch2life.infrastructure.ai_jobs.harness import request_ref
+
+    h = _fake_harness(monkeypatch, "adverse")
+    instant = h.clock.now()
+    first = h.service.create_job(h.create()).job_id
+    second = h.service.create_job(h.create(key="k2", ref=request_ref("req_2"))).job_id
+    assert h.clock.now() == instant  # one fixed clock reading for both outbox rows
+    assert h.next_message().job_id == second != first
+
+
+@pytest.mark.parametrize("order", ["adverse", "natural"])
+def test_a17_negative_capability_checks_do_not_depend_on_message_id_order(
+    runner: ModuleType, monkeypatch: pytest.MonkeyPatch, order: str
+) -> None:
+    env = _FakeEnv(_FakeHarness(_fake_harness(monkeypatch, order)))
+    result = runner.Result("A-17", "probe", runner.REQUIRED)
+    with pytest.raises(_SecondHarnessRequested):  # the real-RQ half is out of scope for fakes
+        runner.a17_worker_capability(env, result)
+    outcome = {check["name"]: check["ok"] for check in result.checks}
+    assert all(outcome.values()), outcome  # on the pre-fix runner: "other job" fails when adverse
+    assert {"missing capability denied", "forged capability denied", "other job capability denied",
+            "other key capability denied"} <= set(outcome)
+
+
+def test_a17_proves_which_job_the_claim_and_the_control_capability_belong_to(
+    runner: ModuleType, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    env = _FakeEnv(_FakeHarness(_fake_harness(monkeypatch, "adverse")))
+    result = runner.Result("A-17", "probe", runner.REQUIRED)
+    with pytest.raises(_SecondHarnessRequested):
+        runner.a17_worker_capability(env, result)
+    outcome = {check["name"]: check["ok"] for check in result.checks}
+    for name in ("dispatched message belongs to the target job",
+                 "control capability is bound to another job and attempt than the claim"):
+        assert outcome.get(name) is True, outcome
