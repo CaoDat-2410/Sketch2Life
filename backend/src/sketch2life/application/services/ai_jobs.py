@@ -1,15 +1,20 @@
-"""BE2-01 Phase A job orchestration: create, dispatch, start, progress, completion, retry,
-cancel, owner notices and CMD-44 status query (candidate; fake-port verified only).
+"""BE2-01 job orchestration: create, dispatch, start, progress, completion, retry, cancel,
+owner notices and CMD-44 status query (candidate).
 
 Guard order follows SRS B19.11/B22.1/B22.3: principal + disclosure authority, receipt lookup,
 then (new mutations only) current eligibility, semantic dedup and one atomic commit.
+
+Phase B B3 (plan revision 3 Δ3/Δ5): owner decisions are taken outside the write transaction;
+the write transaction re-reads, holds their owner fences on its own connection before any
+mutation and commits. A stale or missing fence rolls back and re-decides once; a
+``UniqueConflict`` rolls the whole candidate back and a fresh round re-reads the winner.
 """
 
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import dataclass, replace
-from datetime import timedelta
+from dataclasses import dataclass, field, replace
+from datetime import datetime, timedelta
 from hashlib import sha256
 
 from sketch2life.application.ports.ai_jobs import (
@@ -20,6 +25,7 @@ from sketch2life.application.ports.ai_jobs import (
     AuditEvent,
     AuditPort,
     AuthorizationAction,
+    AuthorizationDecision,
     AuthorizationPort,
     CancellationNotice,
     ClockPort,
@@ -31,9 +37,11 @@ from sketch2life.application.ports.ai_jobs import (
     EligibilityDecision,
     EligibilityPort,
     IdGeneratorPort,
+    OwnerFence,
     Principal,
     PrincipalRole,
     SemanticRequestKey,
+    UniqueConflict,
     WorkerCapabilityVerifier,
 )
 from sketch2life.domain.ai_jobs import model as jobs
@@ -99,6 +107,8 @@ TEMPORARY_VERDICTS = frozenset({PreconditionVerdict.INVALID_STATE,
 WORKER_FAILURE_CODES = frozenset(
     {"PROVIDER_TIMEOUT", "PROVIDER_UNAVAILABLE", "PROVIDER_ERROR", "OUTPUT_MALFORMED"}
 )
+# Write rounds per use case (plan §5.1 step 3, §7.2): the first round plus one re-decision.
+DECISION_ROUNDS = 2
 
 
 def public_message(code: str) -> str:
@@ -130,6 +140,36 @@ ELIGIBILITY_ERRORS: Mapping[str, tuple[int, str]] = {
 
 def _not_found() -> AiJobError:
     return AiJobError("RESOURCE_NOT_FOUND", 404, "Resource not found.")
+
+
+def _unresolved(code: str) -> AiJobError:
+    """Typed retryable outcome after the bounded rounds (stale fence or unique conflict)."""
+
+    if code == "STALE_CONTEXT":
+        return AiJobError(code, 409, "The request context changed; try again.", retryable=True)
+    return AiJobError("IDEMPOTENCY_CONFLICT", 409, "A concurrent request is still settling.",
+                      retryable=True)
+
+
+class _StaleOwnerDecision(Exception):
+    """A decision's owner fence is stale or missing; the write transaction rolls back."""
+
+
+class _PriorReceipt(Exception):
+    """A completion receipt raced in between the read and the write transaction."""
+
+    def __init__(self, receipt: CompletionReceipt) -> None:
+        super().__init__(receipt.receipt_id)
+        self.receipt = receipt
+
+
+@dataclass
+class _CompletionEffects:
+    """Effects decided inside a completion write; applied only after its commit."""
+
+    audits: list[tuple[str, AiJob, str | None]] = field(default_factory=list)
+    quarantines: list[tuple[tuple[str, ...], str]] = field(default_factory=list)
+    artifact_fences: tuple[OwnerFence | None, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -239,7 +279,8 @@ class AiJobService:
             purpose_code=command.purpose_code,
             target_id=command.target_id,
         )
-        if not self._allowed(principal, AuthorizationAction.CREATE_JOB, scope):
+        authorization = self._decide(principal, AuthorizationAction.CREATE_JOB, scope)
+        if not authorization.allowed:
             raise AiJobError("FORBIDDEN_SCOPE", 403, "Not permitted for this scope.")
         key = CommandScopeKey(
             principal.organization_id,
@@ -249,59 +290,89 @@ class AiJobService:
             command.idempotency_key,
         )
         fingerprint = command.fingerprint()
-        now = self._d.clock.now()
-        with self._d.repository.transaction() as tx:
-            replay = self._replay(tx, principal, key, fingerprint)
-            if replay is not None:
-                return replay
+        semantic = SemanticRequestKey(
+            principal.organization_id,
+            command.job_type,
+            command.request_ref.request_id,
+            command.request_ref.request_revision,
+            command.request_ref.input_hash,
+            command.request_ref.context_revision,
+            scope.target_id,
+            scope.purpose_code,
+            scope.session_id,
+            scope.subject_refs,
+        )
+        failure = "IDEMPOTENCY_CONFLICT"
+        for round_number in range(DECISION_ROUNDS):
+            if round_number:
+                authorization = self._decide(principal, AuthorizationAction.CREATE_JOB, scope)
+                if not authorization.allowed:
+                    raise AiJobError("FORBIDDEN_SCOPE", 403, "Not permitted for this scope.")
+            now = self._d.clock.now()
+            with self._d.repository.transaction() as tx:
+                replay = self._replay(tx, principal, key, fingerprint)
+                if replay is not None:
+                    return replay
+                winner_id = tx.find_semantic(semantic)
+                winner = tx.get_job(winner_id) if winner_id is not None else None
             eligibility = self._d.eligibility.check(
                 scope=scope, request_ref=command.request_ref, job_type=command.job_type
             )
             if not eligibility.eligible:
                 raise self._eligibility_error(eligibility)
-            semantic = SemanticRequestKey(
-                principal.organization_id,
-                command.job_type,
-                command.request_ref.request_id,
-                command.request_ref.request_revision,
-                command.request_ref.input_hash,
-                command.request_ref.context_revision,
-                scope.target_id,
-                scope.purpose_code,
-                scope.session_id,
-                scope.subject_refs,
-            )
-            existing_id = tx.find_semantic(semantic)
-            if existing_id is not None:
-                existing = tx.get_job(existing_id)
-                if existing is None or not self._allowed(
-                    principal, AuthorizationAction.READ_JOB, existing.scope
-                ):
-                    raise _not_found()
-                tx.put_command_receipt(
-                    CommandReceipt(key, fingerprint, existing.job_id, "deduplicated",
-                                   existing.job_revision, now)
-                )
-                self._audit("job.create.deduplicated", existing)
-                return CommandResult(existing.job_id, existing.job_revision, "deduplicated", False)
-            job = jobs.create_job(
-                job_id=self._d.ids.new_id("job"),
-                attempt_id=self._d.ids.new_id("att"),
-                job_type=command.job_type,
-                scope=scope,
-                request_ref=command.request_ref,
-                correlation_id=command.correlation_id,
-                retry_policy=self._d.retry_policy,
-                now=now,
-            )
-            tx.insert_job(job)
-            tx.put_semantic(semantic, job.job_id)
-            tx.put_command_receipt(
-                CommandReceipt(key, fingerprint, job.job_id, "created", job.job_revision, now)
-            )
-            tx.add_outbox(self._dispatch_message(job))
-        self._audit("job.created", job)
-        return CommandResult(job.job_id, job.job_revision, "created", False)
+            if winner_id is not None and (
+                winner is None
+                or not self._allowed(principal, AuthorizationAction.READ_JOB, winner.scope)
+            ):
+                raise _not_found()
+            try:
+                with self._d.repository.transaction() as tx:
+                    replay = self._replay(tx, principal, key, fingerprint)
+                    if replay is not None:
+                        return replay
+                    if tx.find_semantic(semantic) != winner_id:
+                        raise UniqueConflict("semantic_request")
+                    self._hold(tx, authorization.fence, eligibility.fence)
+                    if winner_id is not None:
+                        current = self._get(tx, winner_id)
+                        tx.put_command_receipt(
+                            CommandReceipt(key, fingerprint, current.job_id, "deduplicated",
+                                           current.job_revision, now)
+                        )
+                        event = self._audit_intent(tx, "job.create.deduplicated", current,
+                                                   discriminator=_key_discriminator(key))
+                        result = CommandResult(current.job_id, current.job_revision,
+                                               "deduplicated", False)
+                    else:
+                        job = jobs.create_job(
+                            job_id=self._d.ids.new_id("job"),
+                            attempt_id=self._d.ids.new_id("att"),
+                            job_type=command.job_type,
+                            scope=scope,
+                            request_ref=command.request_ref,
+                            correlation_id=command.correlation_id,
+                            retry_policy=self._d.retry_policy,
+                            now=now,
+                        )
+                        tx.insert_job(job)
+                        tx.put_semantic(semantic, job.job_id)
+                        tx.put_command_receipt(
+                            CommandReceipt(key, fingerprint, job.job_id, "created",
+                                           job.job_revision, now)
+                        )
+                        tx.add_outbox(self._dispatch_message(job))
+                        event = self._audit_intent(tx, "job.created", job,
+                                                   discriminator=job.job_id)
+                        result = CommandResult(job.job_id, job.job_revision, "created", False)
+            except UniqueConflict:
+                failure = "IDEMPOTENCY_CONFLICT"
+                continue
+            except _StaleOwnerDecision:
+                failure = "STALE_CONTEXT"
+                continue
+            self._d.audit.record(event)
+            return result
+        raise _unresolved(failure)
 
     def cancel_job(self, command: CancelJobCommand) -> CommandResult:
         principal = command.principal
@@ -313,34 +384,52 @@ class AiJobService:
             command.idempotency_key,
         )
         fingerprint = command.fingerprint()
-        with self._d.repository.transaction() as tx:
-            job = tx.get_job(command.job_id)
+        failure = "IDEMPOTENCY_CONFLICT"
+        for _ in range(DECISION_ROUNDS):
+            with self._d.repository.transaction() as tx:
+                job = tx.get_job(command.job_id)
             if job is None or not self._readable(principal, job):
                 raise _not_found()
-            if not self._allowed(principal, AuthorizationAction.CANCEL_JOB, job.scope):
+            decision = self._decide(principal, AuthorizationAction.CANCEL_JOB, job.scope)
+            if not decision.allowed:
                 raise AiJobError("FORBIDDEN_SCOPE", 403, "Not permitted for this scope.")
-            replay = self._replay(tx, principal, key, fingerprint)
-            if replay is not None:
-                return replay
-            if command.expected_job_revision is None:
-                raise AiJobError("PRECONDITION_REQUIRED", 428, "If-Match is required.")
-            if command.expected_job_revision != job.job_revision:
-                raise AiJobError("STALE_AGGREGATE", 412, "The job has changed; reload it.")
-            if job.state not in jobs.CANCELLABLE_STATES:
-                raise AiJobError("INVALID_STATE", 409, "The job can no longer be cancelled.")
-            updated = jobs.cancel(
-                job,
-                reason_code=command.reason_code,
-                public_message=public_message(command.reason_code),
-                now=self._d.clock.now(),
-            )
-            tx.cas_job(expected_revision=job.job_revision, job=updated)
-            tx.put_command_receipt(
-                CommandReceipt(key, fingerprint, job.job_id, "cancelled",
-                               updated.job_revision, updated.updated_at)
-            )
-        self._audit("job.cancelled", updated, command.reason_code)
-        return CommandResult(updated.job_id, updated.job_revision, "cancelled", False)
+            try:
+                with self._d.repository.transaction() as tx:
+                    job = self._get(tx, command.job_id, for_update=True)
+                    replay = self._replay(tx, principal, key, fingerprint)
+                    if replay is not None:
+                        return replay
+                    if command.expected_job_revision is None:
+                        raise AiJobError("PRECONDITION_REQUIRED", 428, "If-Match is required.")
+                    if command.expected_job_revision != job.job_revision:
+                        raise AiJobError("STALE_AGGREGATE", 412,
+                                         "The job has changed; reload it.")
+                    if job.state not in jobs.CANCELLABLE_STATES:
+                        raise AiJobError("INVALID_STATE", 409,
+                                         "The job can no longer be cancelled.")
+                    self._hold(tx, decision.fence)
+                    updated = jobs.cancel(
+                        job,
+                        reason_code=command.reason_code,
+                        public_message=public_message(command.reason_code),
+                        now=self._d.clock.now(),
+                    )
+                    tx.cas_job(expected_revision=job.job_revision, job=updated)
+                    tx.put_command_receipt(
+                        CommandReceipt(key, fingerprint, job.job_id, "cancelled",
+                                       updated.job_revision, updated.updated_at)
+                    )
+                    event = self._audit_intent(tx, "job.cancelled", updated, command.reason_code,
+                                               discriminator=_key_discriminator(key))
+            except UniqueConflict:
+                failure = "IDEMPOTENCY_CONFLICT"
+                continue
+            except _StaleOwnerDecision:
+                failure = "STALE_CONTEXT"
+                continue
+            self._d.audit.record(event)
+            return CommandResult(updated.job_id, updated.job_revision, "cancelled", False)
+        raise _unresolved(failure)
 
     def apply_cancellation_notice(self, notice: CancellationNotice) -> tuple[str, ...]:
         """Owner-port notice; idempotent by ``notice_id``. Invalidates scheduled retries."""
@@ -405,37 +494,44 @@ class AiJobService:
 
     def start_attempt(self, capability: str, job_id: str, attempt_id: str) -> StartResult:
         self._require_worker(capability, job_id)
-        with self._d.repository.transaction() as tx:
-            job = self._get(tx, job_id)
-            if job.active_attempt.attempt_id != attempt_id:
-                return StartResult(False, "ATTEMPT_NOT_ACTIVE")
-            if job.state is JobState.RUNNING:
-                return StartResult(False, "DUPLICATE_DELIVERY")
-            if job.state is not JobState.QUEUED:
-                return StartResult(False, "JOB_NOT_QUEUED")
+        for _ in range(DECISION_ROUNDS):
+            with self._d.repository.transaction() as tx:
+                job = self._get(tx, job_id)
             eligibility = self._check(job)
-            if not eligibility.eligible:
-                reason = eligibility.reason_code or "CONSENT_REVOKED"
-                updated = jobs.cancel(
-                    job, reason_code=reason, public_message=public_message(reason),
-                    now=self._d.clock.now(),
-                )
-                tx.cas_job(expected_revision=job.job_revision, job=updated)
-                result = StartResult(False, reason)
-            else:
-                updated = jobs.start_attempt(job, attempt_id, self._d.clock.now())
-                tx.cas_job(expected_revision=job.job_revision, job=updated)
-                result = StartResult(True, None)
-        self._audit("job.start" if result.started else "job.start_denied", updated,
-                    result.reason_code)
-        return result
+            try:
+                with self._d.repository.transaction() as tx:
+                    job = self._get(tx, job_id, for_update=True)
+                    if job.active_attempt.attempt_id != attempt_id:
+                        return StartResult(False, "ATTEMPT_NOT_ACTIVE")
+                    if job.state is JobState.RUNNING:
+                        return StartResult(False, "DUPLICATE_DELIVERY")
+                    if job.state is not JobState.QUEUED:
+                        return StartResult(False, "JOB_NOT_QUEUED")
+                    self._hold(tx, eligibility.fence)
+                    if not eligibility.eligible:
+                        reason = eligibility.reason_code or "CONSENT_REVOKED"
+                        updated = jobs.cancel(
+                            job, reason_code=reason, public_message=public_message(reason),
+                            now=self._d.clock.now(),
+                        )
+                        result = StartResult(False, reason)
+                    else:
+                        updated = jobs.start_attempt(job, attempt_id, self._d.clock.now())
+                        result = StartResult(True, None)
+                    tx.cas_job(expected_revision=job.job_revision, job=updated)
+            except _StaleOwnerDecision:
+                continue
+            self._audit("job.start" if result.started else "job.start_denied", updated,
+                        result.reason_code)
+            return result
+        return StartResult(False, "STALE_CONTEXT")
 
     def report_progress(
         self, capability: str, job_id: str, attempt_id: str, progress: JobProgress
     ) -> bool:
         self._require_worker(capability, job_id)
         with self._d.repository.transaction() as tx:
-            job = self._get(tx, job_id)
+            job = self._get(tx, job_id, for_update=True)
             if job.active_attempt.attempt_id != attempt_id or job.state is not JobState.RUNNING:
                 return False
             updated = jobs.report_progress(job, attempt_id, progress, self._d.clock.now())
@@ -455,39 +551,60 @@ class AiJobService:
         details = {"attempt_id": claim.attempt_id}
         if claim.diagnostic:
             details["diagnostic_sha256"] = sha256(claim.diagnostic.encode("utf-8")).hexdigest()
-        with self._d.repository.transaction() as tx:
-            job = self._get(tx, claim.job_id)
-            prior = tx.get_completion_receipt(claim.job_id, claim.attempt_id)
+        for _ in range(DECISION_ROUNDS):
+            with self._d.repository.transaction() as tx:
+                job = self._get(tx, claim.job_id)
+                prior = tx.get_completion_receipt(claim.job_id, claim.attempt_id)
             if prior is not None:
-                if prior.fingerprint == fingerprint:
-                    return prior
-                self._audit("job.completion_conflict", job, "COMPLETION_CONFLICT", details)
-                raise AiJobError("COMPLETION_CONFLICT", 409, "Conflicting completion.")
+                return self._completion_replay(prior, fingerprint, job, details)
             normalised = self._normalise_claim(claim, details)
+            eligibility = self._check(job) if normalised is not None else None
+            descriptors = self._describe_outputs(normalised) if normalised is not None else {}
+            effects = _CompletionEffects()
             reason: str | None
-            if normalised is None:
-                updated, disposition, reason = job, ResultDisposition.REJECTED, "MALFORMED_CLAIM"
-            else:
-                updated, disposition, reason = self._decide_completion(job, normalised)
-            authoritative = updated is not job
-            receipt = CompletionReceipt(
-                receipt_id=self._d.ids.new_id("rcpt"),
-                job_id=job.job_id,
-                attempt_id=claim.attempt_id,
-                fingerprint=fingerprint,
-                disposition=disposition,
-                reason_code=reason,
-                job_revision_after=updated.job_revision,
-                recorded_at=self._d.clock.now(),
-                authoritative=authoritative,
-            )
-            if authoritative:
-                tx.cas_job(expected_revision=job.job_revision, job=updated)
-                tx.put_completion_receipt(receipt)
-        details["disposition"] = str(disposition)
-        self._audit("job.completion" if authoritative else "job.completion_rejected", updated,
-                    reason, details)
-        return receipt
+            try:
+                with self._d.repository.transaction() as tx:
+                    job = self._get(tx, claim.job_id, for_update=True)
+                    raced = tx.get_completion_receipt(claim.job_id, claim.attempt_id)
+                    if raced is not None:
+                        raise _PriorReceipt(raced)
+                    if normalised is None or eligibility is None:
+                        updated, disposition, reason = (job, ResultDisposition.REJECTED,
+                                                        "MALFORMED_CLAIM")
+                    else:
+                        updated, disposition, reason = self._decide_completion(
+                            job, normalised, eligibility, descriptors, effects
+                        )
+                    authoritative = updated is not job
+                    receipt = CompletionReceipt(
+                        receipt_id=self._d.ids.new_id("rcpt"),
+                        job_id=job.job_id,
+                        attempt_id=claim.attempt_id,
+                        fingerprint=fingerprint,
+                        disposition=disposition,
+                        reason_code=reason,
+                        job_revision_after=updated.job_revision,
+                        recorded_at=self._d.clock.now(),
+                        authoritative=authoritative,
+                    )
+                    if authoritative:
+                        fence = eligibility.fence if eligibility is not None else None
+                        self._hold(tx, fence, *effects.artifact_fences)
+                        tx.cas_job(expected_revision=job.job_revision, job=updated)
+                        tx.put_completion_receipt(receipt)
+            except _PriorReceipt as race:
+                return self._completion_replay(race.receipt, fingerprint, job, details)
+            except _StaleOwnerDecision:
+                continue
+            for event_type, subject, verdict in effects.audits:
+                self._audit(event_type, subject, verdict)
+            for refs, quarantine_reason in effects.quarantines:
+                self._quarantine(refs, quarantine_reason)
+            details["disposition"] = str(disposition)
+            self._audit("job.completion" if authoritative else "job.completion_rejected",
+                        updated, reason, details)
+            return receipt
+        raise _unresolved("STALE_CONTEXT")
 
     def expire_overdue_attempts(self) -> tuple[str, ...]:
         now = self._d.clock.now()
@@ -521,31 +638,37 @@ class AiJobService:
     def retry_job(self, job_id: str, scheduled_for_attempt: int) -> bool:
         """Scheduled retry callback; stale callbacks (cancelled/advanced jobs) are no-ops."""
 
-        now = self._d.clock.now()
-        with self._d.repository.transaction() as tx:
-            job = self._get(tx, job_id)
-            if (
-                job.state is not JobState.FAILED_RETRYABLE
-                or job.active_attempt.attempt_number != scheduled_for_attempt
-                or job.retry_not_before is None
-                or now < job.retry_not_before
-            ):
+        for _ in range(DECISION_ROUNDS):
+            now = self._d.clock.now()
+            with self._d.repository.transaction() as tx:
+                job = self._get(tx, job_id)
+            if not _retry_due(job, scheduled_for_attempt, now):
                 return False
             eligibility = self._check(job)
-            if not eligibility.eligible:
-                reason = eligibility.reason_code or "CONSENT_REVOKED"
-                updated = jobs.cancel(job, reason_code=reason,
-                                      public_message=public_message(reason), now=now)
-                tx.cas_job(expected_revision=job.job_revision, job=updated)
-                requeued = False
-            else:
-                updated = jobs.requeue_for_retry(job, new_attempt_id=self._d.ids.new_id("att"),
-                                                 now=now)
-                tx.cas_job(expected_revision=job.job_revision, job=updated)
-                tx.add_outbox(self._dispatch_message(updated))
-                requeued = True
-        self._audit("job.requeued" if requeued else "job.retry_denied", updated)
-        return requeued
+            try:
+                with self._d.repository.transaction() as tx:
+                    job = self._get(tx, job_id, for_update=True)
+                    if not _retry_due(job, scheduled_for_attempt, now):
+                        return False
+                    self._hold(tx, eligibility.fence)
+                    if not eligibility.eligible:
+                        reason = eligibility.reason_code or "CONSENT_REVOKED"
+                        updated = jobs.cancel(job, reason_code=reason,
+                                              public_message=public_message(reason), now=now)
+                        tx.cas_job(expected_revision=job.job_revision, job=updated)
+                        requeued = False
+                    else:
+                        updated = jobs.requeue_for_retry(
+                            job, new_attempt_id=self._d.ids.new_id("att"), now=now
+                        )
+                        tx.cas_job(expected_revision=job.job_revision, job=updated)
+                        tx.add_outbox(self._dispatch_message(updated))
+                        requeued = True
+            except _StaleOwnerDecision:
+                continue
+            self._audit("job.requeued" if requeued else "job.retry_denied", updated)
+            return requeued
+        return False
 
     # -------------------------------------------------------------------- query
     def get_job_status(
@@ -573,23 +696,30 @@ class AiJobService:
 
     # ------------------------------------------------------------------ helpers
     def _decide_completion(
-        self, job: AiJob, claim: CompletionClaim
+        self,
+        job: AiJob,
+        claim: CompletionClaim,
+        eligibility: EligibilityDecision,
+        descriptors: Mapping[str, ArtifactDescriptor | None],
+        effects: _CompletionEffects,
     ) -> tuple[AiJob, ResultDisposition, str | None]:
+        """Pure decision over pre-fetched owner decisions; side effects go to ``effects``."""
+
         now = self._d.clock.now()
-        output_refs = self._owned_refs(job, claim)
+        owned = self._owned_descriptors(job, claim, descriptors)
+        output_refs = tuple(descriptor.artifact_ref for descriptor in owned)
         verdict = check_completion_preconditions(job, claim)
         if verdict is not PreconditionVerdict.PROCEED:
             if verdict is PreconditionVerdict.INPUT_MISMATCH:
-                self._audit("job.completion_input_mismatch", job, str(verdict))
+                effects.audits.append(("job.completion_input_mismatch", job, str(verdict)))
             if verdict not in TEMPORARY_VERDICTS:
                 # The attempt can no longer complete: its own outputs are final rejects.
-                self._quarantine(output_refs, str(verdict))
+                effects.quarantines.append((output_refs, str(verdict)))
             return job, VERDICT_DISPOSITION[verdict], str(verdict)
         attempt_id = claim.attempt_id
-        eligibility = self._check(job)
         if not eligibility.eligible:
             reason = eligibility.reason_code or "CONSENT_REVOKED"
-            self._quarantine(output_refs, reason)
+            effects.quarantines.append((output_refs, reason))
             updated = jobs.cancel(job, reason_code=reason, public_message=public_message(reason),
                                   now=now)
             return updated, ResultDisposition.REJECTED, reason
@@ -599,13 +729,15 @@ class AiJobService:
                                           public_message=public_message(code), now=now)
             return updated, ResultDisposition.ACCEPTED, code
         if claim.moderation is Moderation.UNSAFE:
-            self._quarantine(output_refs, "UNSAFE_CONTENT")
+            effects.quarantines.append((output_refs, "UNSAFE_CONTENT"))
             updated = jobs.block_unsafe(job, attempt_id,
                                         public_message=public_message("UNSAFE_CONTENT"), now=now)
             return updated, ResultDisposition.REJECTED, "UNSAFE_CONTENT"
-        results = self._validated_outputs(job, claim)
+        # Admission depends on the owned outputs' artifact state: hold their fences too.
+        effects.artifact_fences = tuple(descriptor.fence for descriptor in owned)
+        results = self._validated_outputs(job, claim, descriptors)
         if results is None:
-            self._quarantine(output_refs, "OUTPUT_MALFORMED")
+            effects.quarantines.append((output_refs, "OUTPUT_MALFORMED"))
             updated = jobs.record_failure(job, attempt_id, code="OUTPUT_MALFORMED",
                                           retryable=False,
                                           public_message=public_message("OUTPUT_MALFORMED"),
@@ -622,13 +754,16 @@ class AiJobService:
         return updated, ResultDisposition.ACCEPTED, None
 
     def _validated_outputs(
-        self, job: AiJob, claim: CompletionClaim
+        self,
+        job: AiJob,
+        claim: CompletionClaim,
+        descriptors: Mapping[str, ArtifactDescriptor | None],
     ) -> tuple[ResultRef, ...] | None:
         if not claim.outputs:
             return None
         refs: list[ResultRef] = []
         for output in claim.outputs:
-            descriptor = self._d.artifacts.describe(output.artifact_ref)
+            descriptor = descriptors.get(output.artifact_ref)
             if (
                 descriptor is None
                 or not _produced_by(descriptor, job, claim.attempt_id)
@@ -659,10 +794,71 @@ class AiJobService:
             principal, AuthorizationAction.READ_JOB, job.scope
         )
 
-    def _allowed(self, principal: Principal, action: AuthorizationAction, scope: JobScope) -> bool:
+    def _decide(
+        self, principal: Principal, action: AuthorizationAction, scope: JobScope
+    ) -> AuthorizationDecision:
         if principal.organization_id != scope.organization_id:
-            return False
-        return self._d.authorization.decide(principal, action, scope).allowed
+            return AuthorizationDecision(False, "FORBIDDEN_SCOPE")
+        return self._d.authorization.decide(principal, action, scope)
+
+    def _allowed(self, principal: Principal, action: AuthorizationAction, scope: JobScope) -> bool:
+        return self._decide(principal, action, scope).allowed
+
+    def _hold(self, tx: AiJobUnitOfWork, *fences: OwnerFence | None) -> None:
+        """Hold the decisions' owner fences before any mutation (Δ3). A missing fence is
+        never treated as current."""
+
+        held = tuple(fence for fence in fences if fence is not None)
+        if len(held) != len(fences) or not tx.hold_owner_fences(held).current:
+            raise _StaleOwnerDecision()
+
+    def _audit_intent(
+        self,
+        tx: AiJobUnitOfWork,
+        event_type: str,
+        job: AiJob,
+        reason: str | None = None,
+        *,
+        discriminator: str,
+    ) -> AuditEvent:
+        """Durable audit intent inside the committing transaction; the deterministic
+        ``event_id`` lets later delivery deduplicate (sink delivery is batch B5)."""
+
+        event = AuditEvent(event_type, job.organization_id, job.job_id, job.correlation_id,
+                           reason, {})
+        event_id = canonical_sha256(
+            {
+                "kind": "audit",
+                "event_type": event_type,
+                "job_id": job.job_id,
+                "attempt_id": job.active_attempt.attempt_id,
+                "job_revision": job.job_revision,
+                "reason": reason,
+                "discriminator": discriminator,
+            }
+        )
+        tx.add_audit_intent(event_id, event)
+        return event
+
+    def _completion_replay(
+        self,
+        prior: CompletionReceipt,
+        fingerprint: str,
+        job: AiJob,
+        details: Mapping[str, str],
+    ) -> CompletionReceipt:
+        if prior.fingerprint == fingerprint:
+            return prior
+        self._audit("job.completion_conflict", job, "COMPLETION_CONFLICT", details)
+        raise AiJobError("COMPLETION_CONFLICT", 409, "Conflicting completion.")
+
+    def _describe_outputs(
+        self, claim: CompletionClaim
+    ) -> dict[str, ArtifactDescriptor | None]:
+        return {
+            output.artifact_ref: self._d.artifacts.describe(output.artifact_ref)
+            for output in claim.outputs
+        }
 
     def _check(self, job: AiJob) -> EligibilityDecision:
         return self._d.eligibility.check(
@@ -678,8 +874,8 @@ class AiJobService:
         if not self._d.worker_capability.verify(capability, job_id):
             raise AiJobError("WORKER_CAPABILITY_INVALID", 403, "Not permitted.")
 
-    def _get(self, tx: AiJobUnitOfWork, job_id: str) -> AiJob:
-        job = tx.get_job(job_id)
+    def _get(self, tx: AiJobUnitOfWork, job_id: str, *, for_update: bool = False) -> AiJob:
+        job = tx.get_job(job_id, for_update=for_update)
         if job is None:
             raise _not_found()
         return job
@@ -695,15 +891,20 @@ class AiJobService:
             request_ref=attempt.request_ref,
         )
 
-    def _owned_refs(self, job: AiJob, claim: CompletionClaim) -> tuple[str, ...]:
-        """Refs this worker may affect: same organization and produced by this job/attempt.
+    def _owned_descriptors(
+        self,
+        job: AiJob,
+        claim: CompletionClaim,
+        descriptors: Mapping[str, ArtifactDescriptor | None],
+    ) -> tuple[ArtifactDescriptor, ...]:
+        """Outputs this worker may affect: same organization and produced by this job/attempt.
         Unknown or foreign refs are never mutated, even on rejection paths."""
 
-        owned: list[str] = []
+        owned: list[ArtifactDescriptor] = []
         for output in claim.outputs:
-            descriptor = self._d.artifacts.describe(output.artifact_ref)
+            descriptor = descriptors.get(output.artifact_ref)
             if descriptor is not None and _produced_by(descriptor, job, claim.attempt_id):
-                owned.append(output.artifact_ref)
+                owned.append(descriptor)
         return tuple(owned)
 
     def _normalise_claim(
@@ -827,6 +1028,22 @@ def _produced_by(descriptor: ArtifactDescriptor, job: AiJob, attempt_id: str) ->
     )
 
 
+def _retry_due(job: AiJob, scheduled_for_attempt: int, now: datetime) -> bool:
+    return (
+        job.state is JobState.FAILED_RETRYABLE
+        and job.active_attempt.attempt_number == scheduled_for_attempt
+        and job.retry_not_before is not None
+        and now >= job.retry_not_before
+    )
+
+
+def _key_discriminator(key: CommandScopeKey) -> str:
+    return canonical_sha256(
+        [key.organization_id, key.principal_id, key.contract_name, key.target_id,
+         key.idempotency_key]
+    )
+
+
 def _notice_matches(notice: CancellationNotice, job: AiJob) -> bool:
     if notice.session_id is not None and job.scope.session_id == notice.session_id:
         return True
@@ -846,6 +1063,7 @@ def _ms(value: int) -> timedelta:
 __all__ = [
     "CANCEL_CONTRACT",
     "CREATE_CONTRACT",
+    "DECISION_ROUNDS",
     "DEVICE_FIELDS",
     "FIXTURE_POLL_POLICY",
     "FIXTURE_RETRY_POLICY",

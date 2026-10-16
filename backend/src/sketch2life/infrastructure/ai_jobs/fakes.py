@@ -1,7 +1,9 @@
-"""Deterministic BE2-01 Phase A fakes with fault injection (fixture use only).
+"""Deterministic BE2-01 fakes with fault injection (fixture use only).
 
 These adapters simulate one authoritative transaction with a process-local lock. They are
 not durable storage, not database isolation and must never be wired into the live app.
+B3 parity (Δ12 subset): owner fences on decisions, fence hold, canonical semantic key,
+typed ``UniqueConflict`` and durable audit intents.
 """
 
 from __future__ import annotations
@@ -24,8 +26,12 @@ from sketch2life.application.ports.ai_jobs import (
     CompletionReceipt,
     DispatchMessage,
     EligibilityDecision,
+    FenceResult,
+    JobRevisionConflict,
+    OwnerFence,
     Principal,
     SemanticRequestKey,
+    UniqueConflict,
 )
 from sketch2life.application.services.ai_jobs import AiJobService, QueueUnavailable
 from sketch2life.domain.ai_jobs.completion import CompletionClaim, OutputRef
@@ -40,8 +46,38 @@ from sketch2life.domain.ai_jobs.provider_copy import (
 FIXTURE_MARKER = "FIXTURE_ONLY_NOT_DURABLE"
 
 
-class JobRevisionConflict(ValueError):
-    """Fake CAS rejected a write because the stored revision moved."""
+class FakeOwnerFences:
+    """In-memory owner fence epochs shared by the fake owner ports and the fake store.
+    Tests call ``bump`` to model an owner decision change whose notice is withheld."""
+
+    def __init__(self) -> None:
+        self.epochs: dict[str, int] = defaultdict(int)
+        self.holds: list[FenceResult] = []
+
+    def fence(self, scope: str) -> OwnerFence:
+        return OwnerFence(scope, self.epochs[scope])
+
+    def bump(self, scope: str) -> int:
+        self.epochs[scope] += 1
+        return self.epochs[scope]
+
+    def hold(self, fences: tuple[OwnerFence, ...]) -> FenceResult:
+        stale = tuple(f for f in fences if self.epochs[f.fence_scope] != f.epoch)
+        result = FenceResult(not stale, stale)
+        self.holds.append(result)
+        return result
+
+
+def eligibility_fence_scope(organization_id: str) -> str:
+    return f"eligibility:{organization_id}"
+
+
+def grant_fence_scope(organization_id: str, principal_id: str) -> str:
+    return f"grant:{organization_id}:{principal_id}"
+
+
+def artifact_fence_scope(artifact_ref: str) -> str:
+    return f"artifact:{artifact_ref}"
 
 
 class FakeClock:
@@ -72,10 +108,11 @@ class SequentialIds:
 class _StoreState:
     jobs: dict[str, AiJob] = field(default_factory=dict)
     command_receipts: dict[CommandScopeKey, CommandReceipt] = field(default_factory=dict)
-    semantic: dict[SemanticRequestKey, str] = field(default_factory=dict)
+    semantic: dict[str, str] = field(default_factory=dict)
     completion_receipts: dict[tuple[str, str], CompletionReceipt] = field(default_factory=dict)
     outbox: dict[str, DispatchMessage] = field(default_factory=dict)
     notices: set[str] = field(default_factory=set)
+    audit_intents: dict[str, AuditEvent] = field(default_factory=dict)
 
     def copy(self) -> _StoreState:
         return _StoreState(
@@ -85,19 +122,21 @@ class _StoreState:
             dict(self.completion_receipts),
             dict(self.outbox),
             set(self.notices),
+            dict(self.audit_intents),
         )
 
 
 class _UnitOfWork:
-    def __init__(self, state: _StoreState) -> None:
+    def __init__(self, state: _StoreState, fences: FakeOwnerFences) -> None:
         self.state = state
+        self._fences = fences
 
-    def get_job(self, job_id: str) -> AiJob | None:
+    def get_job(self, job_id: str, *, for_update: bool = False) -> AiJob | None:
         return self.state.jobs.get(job_id)
 
     def insert_job(self, job: AiJob) -> None:
         if job.job_id in self.state.jobs:
-            raise JobRevisionConflict("job already exists")
+            raise UniqueConflict("job")
         self.state.jobs[job.job_id] = job
 
     def cas_job(self, *, expected_revision: int, job: AiJob) -> None:
@@ -116,14 +155,17 @@ class _UnitOfWork:
 
     def put_command_receipt(self, receipt: CommandReceipt) -> None:
         if receipt.scope_key in self.state.command_receipts:
-            raise JobRevisionConflict("command receipt is immutable")
+            raise UniqueConflict("command_receipt")
         self.state.command_receipts[receipt.scope_key] = receipt
 
     def find_semantic(self, key: SemanticRequestKey) -> str | None:
-        return self.state.semantic.get(key)
+        return self.state.semantic.get(key.sha256())
 
     def put_semantic(self, key: SemanticRequestKey, job_id: str) -> None:
-        self.state.semantic.setdefault(key, job_id)
+        digest = key.sha256()
+        if digest in self.state.semantic:
+            raise UniqueConflict("semantic_request")
+        self.state.semantic[digest] = job_id
 
     def get_completion_receipt(self, job_id: str, attempt_id: str) -> CompletionReceipt | None:
         return self.state.completion_receipts.get((job_id, attempt_id))
@@ -131,8 +173,16 @@ class _UnitOfWork:
     def put_completion_receipt(self, receipt: CompletionReceipt) -> None:
         identity = (receipt.job_id, receipt.attempt_id)
         if identity in self.state.completion_receipts:
-            raise JobRevisionConflict("completion receipt is immutable")
+            raise UniqueConflict("completion_receipt")
         self.state.completion_receipts[identity] = receipt
+
+    def hold_owner_fences(self, fences: tuple[OwnerFence, ...]) -> FenceResult:
+        return self._fences.hold(fences)
+
+    def add_audit_intent(self, event_id: str, event: AuditEvent) -> None:
+        if event_id in self.state.audit_intents:
+            raise UniqueConflict("outbox")
+        self.state.audit_intents[event_id] = event
 
     def add_outbox(self, message: DispatchMessage) -> None:
         self.state.outbox[message.message_id] = message
@@ -155,16 +205,17 @@ class InMemoryAiJobStore:
 
     marker = FIXTURE_MARKER
 
-    def __init__(self) -> None:
+    def __init__(self, fences: FakeOwnerFences | None = None) -> None:
         self._state = _StoreState()
         self._lock = RLock()
+        self.fences = fences or FakeOwnerFences()
         self.fail_next_commit = False
 
     @contextmanager
     def transaction(self) -> Iterator[_UnitOfWork]:
         with self._lock:
             staged = self._state.copy()
-            yield _UnitOfWork(staged)
+            yield _UnitOfWork(staged, self.fences)
             if self.fail_next_commit:
                 self.fail_next_commit = False
                 raise RuntimeError("injected commit failure")
@@ -205,9 +256,10 @@ class _Grant:
 
 
 class FakeAuthorization:
-    def __init__(self) -> None:
+    def __init__(self, fences: FakeOwnerFences | None = None) -> None:
         self._grants: dict[str, list[_Grant]] = defaultdict(list)
         self._revoked: set[str] = set()
+        self.fences = fences or FakeOwnerFences()
         self.calls = 0
 
     def grant(
@@ -234,8 +286,11 @@ class FakeAuthorization:
         self, principal: Principal, action: AuthorizationAction, scope: JobScope
     ) -> AuthorizationDecision:
         self.calls += 1
+        fence = self.fences.fence(
+            grant_fence_scope(principal.organization_id, principal.principal_id)
+        )
         if principal.principal_id in self._revoked:
-            return AuthorizationDecision(False, "GRANT_REVOKED")
+            return AuthorizationDecision(False, "GRANT_REVOKED", fence)
         for grant in self._grants.get(principal.principal_id, []):
             if action not in grant.actions:
                 continue
@@ -243,14 +298,16 @@ class FakeAuthorization:
                 continue
             if grant.session_ids is not None and scope.session_id not in grant.session_ids:
                 continue
-            return AuthorizationDecision(True)
-        return AuthorizationDecision(False, "FORBIDDEN_SCOPE")
+            return AuthorizationDecision(True, None, fence)
+        return AuthorizationDecision(False, "FORBIDDEN_SCOPE", fence)
 
 
 class FakeEligibility:
-    """Owner-port fake for consent/session/recall/source/kill-switch/budget/context."""
+    """Owner-port fake for consent/session/recall/source/kill-switch/budget/context. Its
+    decisions carry the organization eligibility fence; mutating the sets does not bump it."""
 
-    def __init__(self) -> None:
+    def __init__(self, fences: FakeOwnerFences | None = None) -> None:
+        self.fences = fences or FakeOwnerFences()
         self.revoked_subjects: set[str] = set()
         self.ended_sessions: set[str] = set()
         self.recalled_requests: set[str] = set()
@@ -276,11 +333,13 @@ class FakeEligibility:
             reason = "KILL_SWITCH"
         elif scope.target_id in self.budget_exhausted_targets:
             reason = "BUDGET_EXCEEDED"
-        return EligibilityDecision(reason is None, reason, current)
+        fence = self.fences.fence(eligibility_fence_scope(scope.organization_id))
+        return EligibilityDecision(reason is None, reason, current, fence)
 
 
 class FakeArtifacts:
-    def __init__(self) -> None:
+    def __init__(self, fences: FakeOwnerFences | None = None) -> None:
+        self.fences = fences or FakeOwnerFences()
         self._items: dict[str, ArtifactDescriptor] = {}
         self.quarantined: dict[str, str] = {}
         self._count = 0
@@ -305,11 +364,19 @@ class FakeArtifacts:
         descriptor = self._items.get(artifact_ref)
         if descriptor is None:
             return None
-        return replace(descriptor, quarantine_reason=self.quarantined.get(artifact_ref))
+        return replace(
+            descriptor,
+            quarantine_reason=self.quarantined.get(artifact_ref),
+            fence=self.fences.fence(artifact_fence_scope(artifact_ref)),
+        )
 
     def quarantine(self, artifact_refs: tuple[str, ...], reason_code: str) -> None:
+        """Owner-side artifact state change: the first quarantine bumps the artifact fence."""
+
         for ref in artifact_refs:
-            self.quarantined.setdefault(ref, reason_code)
+            if ref not in self.quarantined:
+                self.quarantined[ref] = reason_code
+                self.fences.bump(artifact_fence_scope(ref))
 
 
 class FakeAudit:
@@ -458,6 +525,7 @@ __all__ = [
     "FakeAuthorization",
     "FakeClock",
     "FakeEligibility",
+    "FakeOwnerFences",
     "FakeProvider",
     "FakeProviderCopyAdapter",
     "FakeQueue",
@@ -467,4 +535,7 @@ __all__ = [
     "InMemoryProviderCopyRegistry",
     "JobRevisionConflict",
     "SequentialIds",
+    "artifact_fence_scope",
+    "eligibility_fence_scope",
+    "grant_fence_scope",
 ]

@@ -28,6 +28,7 @@ from sketch2life.infrastructure.ai_jobs.fakes import (
     FakeAuthorization,
     FakeClock,
     FakeEligibility,
+    FakeOwnerFences,
     FakeProvider,
     FakeProviderCopyAdapter,
     FakeQueue,
@@ -79,6 +80,7 @@ class FixtureHarness:
     copy_registry: InMemoryProviderCopyRegistry
     copy_adapter: FakeProviderCopyAdapter
     copy_service: ProviderCopyLifecycleService
+    fences: FakeOwnerFences = field(default_factory=FakeOwnerFences)
     scripted: dict[tuple[str, int], CompletionClaim] = field(default_factory=dict)
 
     def create(
@@ -160,10 +162,11 @@ class FixtureHarness:
 def build_fixture_harness(start: datetime = FIXTURE_START) -> FixtureHarness:
     clock = FakeClock(start)
     ids = SequentialIds()
-    store = InMemoryAiJobStore()
-    authorization = FakeAuthorization()
-    eligibility = FakeEligibility()
-    artifacts = FakeArtifacts()
+    fences = FakeOwnerFences()
+    store = InMemoryAiJobStore(fences)
+    authorization = FakeAuthorization(fences)
+    eligibility = FakeEligibility(fences)
+    artifacts = FakeArtifacts(fences)
     audit = FakeAudit()
     queue = FakeQueue()
     capabilities = FakeWorkerCapability()
@@ -200,6 +203,7 @@ def build_fixture_harness(start: datetime = FIXTURE_START) -> FixtureHarness:
         copy_registry=registry,
         copy_adapter=adapter,
         copy_service=ProviderCopyLifecycleService(registry, adapter),
+        fences=fences,
     )
 
 

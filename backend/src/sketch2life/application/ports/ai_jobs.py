@@ -1,12 +1,14 @@
-"""BE2-01 Phase A ports: job repository/unit of work, context/authorization, queue, clock,
+"""BE2-01 ports: job repository/unit of work, context/authorization, queue, clock,
 ids, artifacts, audit, worker capability, provider and provider-copy lifecycle.
 
-Phase A ships deterministic fakes only. Durable implementations (transactions, outbox,
-broker) belong to Phase B and need their own approval.
+Phase A ships deterministic fakes. Phase B batch B3 (plan revision 3 §5, Δ1–Δ5) adds owner
+fences on decisions, the unit-of-work fence hold, the canonical semantic key and typed
+unique conflicts; the SQL adapter lives in ``infrastructure/ai_jobs/sql``.
 """
 
 from __future__ import annotations
 
+import unicodedata
 from collections.abc import Mapping
 from contextlib import AbstractContextManager
 from dataclasses import dataclass, field
@@ -14,9 +16,40 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Protocol
 
-from sketch2life.domain.ai_jobs.completion import CompletionClaim
+from sketch2life.domain.ai_jobs.completion import CompletionClaim, canonical_sha256
 from sketch2life.domain.ai_jobs.model import AiJob, JobScope, RequestRef, ResultDisposition
 from sketch2life.domain.ai_jobs.provider_copy import ProviderCopy, PurgeReceipt
+
+OWNER_FENCE_CONTRACT = "OwnerFenceV1/0.1-candidate"
+
+
+class JobRevisionConflict(ValueError):
+    """CAS rejected a write because the stored job revision moved."""
+
+
+class UniqueConflict(Exception):
+    """A plain insert hit an existing key (Δ5). The whole unit of work must roll back before
+    the caller re-reads the committed winner in a fresh transaction."""
+
+    def __init__(self, kind: str) -> None:
+        super().__init__(kind)
+        self.kind = kind
+
+
+@dataclass(frozen=True, slots=True)
+class OwnerFence:
+    """Owner decision version (Δ1): the owner bumps ``epoch`` with every decision change."""
+
+    fence_scope: str
+    epoch: int
+
+
+@dataclass(frozen=True, slots=True)
+class FenceResult:
+    """Outcome of holding fences on the unit-of-work connection (Δ2)."""
+
+    current: bool
+    stale: tuple[OwnerFence, ...] = ()
 
 
 class PrincipalRole(StrEnum):
@@ -42,17 +75,22 @@ class AuthorizationAction(StrEnum):
 
 @dataclass(frozen=True, slots=True)
 class AuthorizationDecision:
+    """``fence`` is the grant version (Δ1); a missing fence is never treated as current."""
+
     allowed: bool
     reason_code: str | None = None
+    fence: OwnerFence | None = None
 
 
 @dataclass(frozen=True, slots=True)
 class EligibilityDecision:
-    """Current purpose/consent/session/recall/source/kill-switch/budget decision."""
+    """Current purpose/consent/session/recall/source/kill-switch/budget decision plus the
+    owner fence version it was decided at (Δ1)."""
 
     eligible: bool
     reason_code: str | None
     current_context_revision: int
+    fence: OwnerFence | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -88,6 +126,28 @@ class SemanticRequestKey:
     purpose_code: str
     session_id: str | None
     subject_refs: tuple[str, ...]
+
+    def sha256(self) -> str:
+        """Canonical semantic identity (Δ4): NFC strings, explicit ``null`` for a missing
+        session, subject refs sorted after normalisation with duplicates kept."""
+
+        def nfc(value: str) -> str:
+            return unicodedata.normalize("NFC", value)
+
+        return canonical_sha256(
+            {
+                "organization_id": nfc(self.organization_id),
+                "job_type": nfc(self.job_type),
+                "request_id": nfc(self.request_id),
+                "request_revision": self.request_revision,
+                "input_hash": nfc(self.input_hash),
+                "context_revision": self.context_revision,
+                "target_id": nfc(self.target_id),
+                "purpose_code": nfc(self.purpose_code),
+                "session_id": None if self.session_id is None else nfc(self.session_id),
+                "subject_refs": sorted(nfc(ref) for ref in self.subject_refs),
+            }
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -137,6 +197,7 @@ class ArtifactDescriptor:
     producer_job_id: str | None = None
     producer_attempt_id: str | None = None
     quarantine_reason: str | None = None
+    fence: OwnerFence | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -150,7 +211,10 @@ class AuditEvent:
 
 
 class AiJobUnitOfWork(Protocol):
-    def get_job(self, job_id: str) -> AiJob | None: ...
+    """One READ COMMITTED transaction. ``insert_job``/``put_*``/``add_*`` raise
+    ``UniqueConflict`` on an existing key; ``cas_job`` raises ``JobRevisionConflict``."""
+
+    def get_job(self, job_id: str, *, for_update: bool = False) -> AiJob | None: ...
 
     def insert_job(self, job: AiJob) -> None: ...
 
@@ -170,6 +234,14 @@ class AiJobUnitOfWork(Protocol):
 
     def put_completion_receipt(self, receipt: CompletionReceipt) -> None: ...
 
+    def hold_owner_fences(self, fences: tuple[OwnerFence, ...]) -> FenceResult:
+        """Hold owner fences on this unit of work's connection until commit (Δ2)."""
+        ...
+
+    def add_audit_intent(self, event_id: str, event: AuditEvent) -> None:
+        """Durable audit intent committed with the mutation it describes (Δ5 candidate)."""
+        ...
+
     def add_outbox(self, message: DispatchMessage) -> None: ...
 
     def pending_outbox(self) -> tuple[DispatchMessage, ...]: ...
@@ -183,6 +255,16 @@ class AiJobUnitOfWork(Protocol):
 
 class AiJobRepository(Protocol):
     def transaction(self) -> AbstractContextManager[AiJobUnitOfWork]: ...
+
+
+class OwnerFencePort(Protocol):
+    """Versioned owner fence read (D7/Q8). The owner implementation reads its fence rows
+    ``FOR SHARE`` on the caller's connection and reports epochs that moved; a fence it does
+    not know is stale, never current. BE2 never writes owner rows."""
+
+    contract_version: str
+
+    def hold(self, fences: tuple[OwnerFence, ...]) -> FenceResult: ...
 
 
 class AuthorizationPort(Protocol):
@@ -258,6 +340,7 @@ class ProviderCopyAdapterPort(Protocol):
 
 
 __all__ = [
+    "OWNER_FENCE_CONTRACT",
     "AiJobRepository",
     "AiJobUnitOfWork",
     "AiProviderPort",
@@ -277,11 +360,16 @@ __all__ = [
     "DispatchQueuePort",
     "EligibilityDecision",
     "EligibilityPort",
+    "FenceResult",
     "IdGeneratorPort",
+    "JobRevisionConflict",
+    "OwnerFence",
+    "OwnerFencePort",
     "Principal",
     "PrincipalRole",
     "ProviderCopyAdapterPort",
     "ProviderCopyRegistryPort",
     "SemanticRequestKey",
+    "UniqueConflict",
     "WorkerCapabilityVerifier",
 ]
