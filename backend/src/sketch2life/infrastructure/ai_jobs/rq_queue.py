@@ -100,9 +100,12 @@ def pop_envelope(queue: Queue) -> WorkerDispatchEnvelope | None:
     """Fixture receiver: take the next job off the queue without running a worker, rebuild its
     envelope and delete the RQ job (B4 tests only; never a production consumer)."""
 
-    job_id = queue.pop_job_id()
-    if job_id is None:
+    # LPOP directly: RQ 2.12 ``Queue.pop_job_id`` raises on an empty queue instead of
+    # returning None (B4-RT01).
+    raw = queue.connection.lpop(queue.key)
+    if raw is None:
         return None
+    job_id = raw.decode("utf-8") if isinstance(raw, bytes) else str(raw)
     job = Job.fetch(job_id, connection=queue.connection)
     payload, capability = job.args
     job.delete()

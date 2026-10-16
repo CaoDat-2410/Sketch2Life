@@ -10,7 +10,12 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import pytest
-from sketch2life.application.ports.ai_jobs import AttemptDispatch, OutboxLease
+from sketch2life.application.ports.ai_jobs import (
+    AttemptDispatch,
+    DispatchMessage,
+    OutboxLease,
+    WorkerDispatchEnvelope,
+)
 from sketch2life.application.services.ai_jobs import (
     FIXTURE_DISPATCH_POLICY,
     FIXTURE_RETRY_POLICY,
@@ -21,6 +26,11 @@ from sketch2life.infrastructure.ai_jobs.harness import (
     FixtureHarness,
     build_fixture_harness,
     request_ref,
+)
+from sketch2life.infrastructure.ai_jobs.rq_queue import (
+    envelope_args,
+    envelope_from_args,
+    pop_envelope,
 )
 
 NOW = datetime(2026, 10, 15, 9, 0, tzinfo=UTC)
@@ -286,3 +296,26 @@ def test_sweep_queries_are_targeted(h: FixtureHarness) -> None:
 def _deps(h: FixtureHarness) -> dict[str, Any]:
     d = h.service._d
     return {name: getattr(d, name) for name in d.__dataclass_fields__}
+
+
+# ------------------------------------------------------------------- RQ adapter (no Redis)
+def test_rq_envelope_args_round_trip_and_hide_nothing_but_the_capability() -> None:
+    message = DispatchMessage("msg_1", "job_1", "att_1", 1, "sketch_assistance", request_ref())
+    envelope = WorkerDispatchEnvelope(message, "wcap_synthetic")
+    payload, capability = envelope_args(envelope)
+    assert "wcap_synthetic" not in repr(payload) and capability == "wcap_synthetic"
+    assert envelope_from_args(payload, capability) == envelope
+
+
+def test_fixture_receiver_returns_none_on_an_empty_queue() -> None:
+    """B4-RT01: RQ 2.12 ``Queue.pop_job_id`` raises on an empty queue; the receiver must not."""
+
+    class EmptyConnection:
+        def lpop(self, key: str) -> None:
+            return None
+
+    class EmptyQueue:
+        key = "rq:queue:be2_b4_empty"
+        connection = EmptyConnection()
+
+    assert pop_envelope(EmptyQueue()) is None  # type: ignore[arg-type]
