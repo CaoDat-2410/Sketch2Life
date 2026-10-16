@@ -4,7 +4,8 @@
 - Plan revision: 1 (approved bytes plan/PLAN_REV1_APPROVED.md, SHA256 f4733c88797edbcce225ecd63700634f929ca75789362c7f3a58a2b57f19df30)
 - Implementation status: IN_PROGRESS (card); C1 component checkpoint ACCEPTED by owner
 - Checkpoint: C1_COMPONENT_OFFLINE ACCEPTED 2026-10-16 21:26 +07:00 (verbatim: approvals/C1_COMPONENT_ACCEPTANCE.md) — all six findings closed, focused 233/233 + server 7/7 + separate foundation route 1/1 PASS, 0 skips; full BE2-02 NOT_DONE.
-- Branch/base: feature/be2-02-vision-correction /6dcc57ee0b3d053f071c8c92e72aaaee2e98d899; all work uncommitted.
+- Branch/base: feature/be2-02-vision-correction /6dcc57ee0b3d053f071c8c92e72aaaee2e98d899.
+- Publication: 7 local commits 0f75fa5..af47ecc (68 files, per evidence/notes/C1_PUBLICATION_PLAN_20261016.md) plus one status-sync docs commit; not pushed, merged or deployed.
 - Approval: actual user approval recorded 2026-10-16 19:18 +07:00 in approvals/TASK_APPROVAL.md.
 - Evidence: evidence/notes/C1_IMPLEMENTATION_EVIDENCE.md (V01–V17 mapping, findings, NOT_RUN),
   evidence/notes/H_AI_REVIEW_HANDOFF.md, evidence/metrics/C1_COMPONENT_CHECKS_20261016.json.
@@ -12,9 +13,9 @@
   BE2-01 337 passed/1 NOT_RUN (Pillow); ruff + strict mypy PASS on 18 paths; validators PASS.
 - Findings: F-01 legacy V2 adapter OSError-branch defect contained, not fixed; F-02 Pillow absent.
 - BE2-01: WAITING_STUDIO, IN_PROGRESS, CR01 open, B-12 HANDOFF; separate worktree unchanged.
-- WIP: 02 C1 verification complete, awaiting owner disposition; 01 WAITING_STUDIO; no new implementation batch/card opened.
+- WIP: 02 C1 accepted and committed locally, card IN_PROGRESS; 01 WAITING_STUDIO; no new implementation batch/card opened.
 - Real owner integration: ASSUMED_CONTRACT/NOT_RUN. Real model quality/provider: NOT_RUN.
-- Next: owner reviews the commit plan (evidence/notes/C1_PUBLICATION_PLAN_20261016.md); no stage/commit/push/merge yet. No C2 or other card opened. N01, F-01 and out-of-C1 integration stay open.
+- Next: push only on a separate owner instruction; no merge/deploy. No C2 or other card opened. N01, F-01 and out-of-C1 integration stay open.
 - After R04 follow-up: focused 232 passed/1 NOT_RUN (Pillow); six original probes 6 passed;
   legacy Vision 233/5 skips; ruff + strict mypy PASS on changed paths; validators PASS.
 - After fixes: focused 213 passed/1 NOT_RUN (Pillow); legacy Vision 233/5 skips; BE2-01 337/1 skip;
@@ -73,5 +74,5 @@ Evidence: evidence/notes/C1_FINAL_VERIFICATION_20261016.md and matching metrics 
 ## Owner acceptance —2026-10-16 21:26 +07:00
 
 C1_COMPONENT_OFFLINE ACCEPTED by the user (verbatim in approvals/C1_COMPONENT_ACCEPTANCE.md),
-component scope only. Full BE2-02 IN_PROGRESS; N01/F-01/out-of-C1 integration open; publication
-not yet performed (commit plan under review).
+component scope only. Full BE2-02 IN_PROGRESS; N01/F-01/out-of-C1 integration open. Publication:
+see the header (local commits only, not pushed).

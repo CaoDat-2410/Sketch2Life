@@ -3,13 +3,13 @@
 ## BE2-02 current state —2026-10-16
 
 FEAT-048 maps BE2-02 Vision and meaning correction on feature/be2-02-vision-correction
-(candidate base 6dcc57e, all work uncommitted). Planrev1 C1_COMPONENT_OFFLINE was approved
+(candidate base 6dcc57e). Planrev1 C1_COMPONENT_OFFLINE was approved
 19:18 +07:00 and accepted by the owner 21:26 +07:00 after Codex review (C1-R01–R06 closed,
 PASS_WITH_NOTES) and final verification (focused 233 + V2 server 7 + foundation route 1 passed,
 0 skips). Component scope only: BE2-02 IN_PROGRESS/NOT_DONE; N01, legacy F-01, typed provider
 context, real model/quality, BE1/BE2-03 adapters, persistence/delivery and live integration
 remain open. BE2-01 stays WAITING_STUDIO (CR01 open, B-12 HANDOFF); no C2 or other card opened.
-Publication: commit plan awaiting owner review; nothing staged or pushed.
+Publication: 7 local commits 0f75fa5..af47ecc (68 files) plus a status-sync docs commit; not pushed.
 Links (features/FEAT-048-be2-vision-correction/): status/STATUS.md, approvals/TASK_APPROVAL.md,
 approvals/C1_COMPONENT_ACCEPTANCE.md, evidence/notes/C1_FINAL_VERIFICATION_20261016.md,
 evidence/notes/C1_CODEX_R04_CLOSURE_20261016.md, evidence/notes/H_AI_REVIEW_HANDOFF.md,
