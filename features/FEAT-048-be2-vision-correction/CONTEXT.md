@@ -6,6 +6,7 @@
 - Plan: plan/PLAN.md revision1 (approved bytes plan/PLAN_REV1_APPROVED.md), C1 only.
 - Implementation status: IN_PROGRESS (card); C1_COMPONENT_OFFLINE ACCEPTED by owner 2026-10-16 21:26 +07:00 (approvals/C1_COMPONENT_ACCEPTANCE.md)
 - Branch/base: feature/be2-02-vision-correction /6dcc57ee0b3d053f071c8c92e72aaaee2e98d899.
+- Publication: 7 local commits 0f75fa5..af47ecc (68 files, per evidence/notes/C1_PUBLICATION_PLAN_20261016.md) plus one status-sync docs commit; not pushed, merged or deployed.
 - Goal: source-bound observations and separate attributable corrections under current scope.
 - Scope: strict candidate contracts, pure domain/application, narrow ports/fakes, offline V2
   reuse bridge, isolated CMD-34 fixture handler and focused evidence.
@@ -110,4 +111,5 @@ full BE2-02 IN_PROGRESS, BE2-01 WAITING_STUDIO, no C2/publication action.
 User accepted C1_COMPONENT_OFFLINE on the Codex reviews and C1_FINAL_VERIFICATION_20261016.md
 (verbatim: approvals/C1_COMPONENT_ACCEPTANCE.md). Component scope only; BE2-02 stays IN_PROGRESS;
 N01, F-01 and out-of-C1 dependencies/integration stay open. TASK_APPROVAL.md and the approved plan
-are unchanged. Next: review the commit plan in evidence/notes/C1_PUBLICATION_PLAN_20261016.md.
+are unchanged. The approved commit plan was executed locally (see Publication above); push needs a
+separate owner instruction. BE2-01 stays WAITING_STUDIO.

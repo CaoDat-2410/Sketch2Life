@@ -2,13 +2,14 @@
 
 ## BE2-02 current state —2026-10-16
 
-Branch feature/be2-02-vision-correction (FEAT-048, candidate base 6dcc57e, uncommitted).
+Branch feature/be2-02-vision-correction (FEAT-048, candidate base 6dcc57e).
 Work order: 02 C1_COMPONENT_OFFLINE approved 19:18 +07:00, implemented, Codex-reviewed
 (C1-R01–R06 closed, PASS_WITH_NOTES), fully verified and accepted by the owner 21:26 +07:00;
 card BE2-02 stays IN_PROGRESS/NOT_DONE. 01 remains WAITING_STUDIO (CR01 open, B-12 HANDOFF),
 worktree unchanged. WIP limit 1 kept; teammate 08–14 unchanged; no C2 or other card opened.
 Open beyond C1: N01, legacy F-01, typed provider context, real model/quality, BE1/BE2-03
-adapters, persistence/delivery, live integration. Publication: commit plan under review.
+adapters, persistence/delivery, live integration. Publication: 7 local commits
+0f75fa5..af47ecc (68 files) plus a status-sync docs commit; not pushed, merged or deployed.
 Links (features/FEAT-048-be2-vision-correction/): status/STATUS.md, approvals/TASK_APPROVAL.md,
 approvals/C1_COMPONENT_ACCEPTANCE.md, evidence/notes/C1_FINAL_VERIFICATION_20261016.md,
 evidence/notes/C1_CODEX_R04_CLOSURE_20261016.md, evidence/notes/H_AI_REVIEW_HANDOFF.md,
