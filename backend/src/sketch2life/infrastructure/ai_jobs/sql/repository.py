@@ -22,17 +22,21 @@ from typing import Any
 
 from sqlalchemy import (
     Connection,
+    DateTime,
     Engine,
     Integer,
     Interval,
+    String,
     and_,
     exists,
     func,
     insert,
+    literal,
     literal_column,
     null,
     or_,
     select,
+    tuple_,
     update,
 )
 from sqlalchemy.exc import IntegrityError
@@ -46,12 +50,14 @@ from sketch2life.application.ports.ai_jobs import (
     CommandScopeKey,
     CompletionReceipt,
     DispatchMessage,
+    DueJob,
     FenceResult,
     JobRevisionConflict,
     OutboxLease,
     OwnerFence,
     OwnerFencePort,
     SemanticRequestKey,
+    SweepCursor,
     UniqueConflict,
 )
 from sketch2life.domain.ai_jobs.model import (
@@ -278,6 +284,19 @@ def _held(lease: OutboxLease) -> Any:
         o.lease_owner == lease.owner,
         o.lease_generation == lease.generation,
         o.delivered_at.is_(None),
+    )
+
+
+def _after(at: Any, key: Any, cursor: SweepCursor | None) -> tuple[Any, ...]:
+    """Strict keyset continuation ``(at, key) > cursor`` matching the query's ORDER BY."""
+
+    if cursor is None:
+        return ()
+    return (
+        tuple_(at, key)
+        > tuple_(
+            literal(cursor.at, type_=DateTime(timezone=True)), literal(cursor.key, type_=String())
+        ),
     )
 
 
@@ -644,7 +663,11 @@ class SqlAiJobUnitOfWork:
         )
 
     def queued_dispatched_not_started(
-        self, now: datetime, start_timeout: timedelta, limit: int
+        self,
+        now: datetime,
+        start_timeout: timedelta,
+        limit: int,
+        after: SweepCursor | None = None,
     ) -> tuple[AttemptDispatch, ...]:
         a, j, o = t.attempt.c, t.job.c, t.outbox.c
         rows = self.connection.execute(
@@ -659,6 +682,7 @@ class SqlAiJobUnitOfWork:
                 ~exists().where(
                     o.kind == "dispatch", o.attempt_id == a.attempt_id, o.delivered_at.is_(None)
                 ),
+                *_after(a.dispatched_at, a.attempt_id, after),
             )
             .order_by(a.dispatched_at, a.attempt_id)
             .limit(limit)
@@ -670,37 +694,50 @@ class SqlAiJobUnitOfWork:
             for r in rows
         )
 
-    def overdue_running(self, now: datetime, limit: int) -> tuple[str, ...]:
+    def overdue_running(
+        self, now: datetime, limit: int, after: SweepCursor | None = None
+    ) -> tuple[DueJob, ...]:
         a, j = t.attempt.c, t.job.c
         # Server-side typed interval arithmetic: no bound parameters inside make_interval().
         # Integer * Interval: a declared SQLAlchemy operator class (Interval * Integer is not).
         timeout = j.policy_snapshot["attempt_timeout_ms"].astext.cast(Integer) * _MILLISECOND
         rows = self.connection.execute(
-            select(j.job_id)
+            select(j.job_id, a.attempt_number, a.started_at)
             .join_from(t.job, t.attempt, a.job_id == j.job_id)
             .where(
                 j.state == "running",
                 a.started_at.is_not(None),
                 a.finished_at.is_(None),
                 a.started_at + timeout <= now,
+                *_after(a.started_at, j.job_id, after),
             )
             .order_by(a.started_at, j.job_id)
             .limit(limit)
-        ).scalars()
-        return tuple(rows)
+        ).all()
+        return tuple(DueJob(r.job_id, r.attempt_number, r.started_at) for r in rows)
 
-    def due_retries(self, now: datetime, limit: int) -> tuple[tuple[str, int], ...]:
+    def due_retries(
+        self, now: datetime, limit: int, after: SweepCursor | None = None
+    ) -> tuple[DueJob, ...]:
         a, j = t.attempt.c, t.job.c
         active_number = (
             select(func.max(a.attempt_number)).where(a.job_id == j.job_id).scalar_subquery()
         )
         rows = self.connection.execute(
-            select(j.job_id, active_number.cast(Integer).label("attempt_number"))
-            .where(j.state == "failed_retryable", j.retry_not_before <= now)
+            select(
+                j.job_id,
+                active_number.cast(Integer).label("attempt_number"),
+                j.retry_not_before,
+            )
+            .where(
+                j.state == "failed_retryable",
+                j.retry_not_before <= now,
+                *_after(j.retry_not_before, j.job_id, after),
+            )
             .order_by(j.retry_not_before, j.job_id)
             .limit(limit)
         ).all()
-        return tuple((row.job_id, row.attempt_number) for row in rows)
+        return tuple(DueJob(r.job_id, r.attempt_number, r.retry_not_before) for r in rows)
 
     def notice_seen(self, notice_id: str) -> bool:
         raise NotImplementedError("atomic cancellation notices are Phase B batch B5 (Δ10)")

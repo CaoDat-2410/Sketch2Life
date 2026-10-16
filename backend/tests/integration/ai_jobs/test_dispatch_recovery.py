@@ -38,7 +38,7 @@ from sketch2life.infrastructure.ai_jobs.rq_queue import RqDispatchQueue
 from sketch2life.infrastructure.ai_jobs.sql import owner_fence_fixture as fx
 from sketch2life.infrastructure.ai_jobs.sql import tables as t
 from sketch2life.infrastructure.ai_jobs.sql.repository import SqlAiJobUnitOfWork
-from sqlalchemy import select, update
+from sqlalchemy import delete, select, update
 from sqlalchemy.engine import URL
 
 pytestmark = pytest.mark.requires_postgres
@@ -417,8 +417,8 @@ def test_overdue_running_and_due_retry_sweeps_are_targeted(db: URL) -> None:
     rig.clock.advance(milliseconds=FIXTURE_RETRY_POLICY.attempt_timeout_ms)
     with rig.repository.transaction() as tx:
         now = rig.clock.now()
-        assert tx.overdue_running(now, 10) == (running,)
-        assert tx.due_retries(now, 10) == ((failing, 1),)
+        assert [(d.job_id, d.attempt_number) for d in tx.overdue_running(now, 10)] == [(running, 1)]
+        assert [(d.job_id, d.attempt_number) for d in tx.due_retries(now, 10)] == [(failing, 1)]
         due = tx.queued_dispatched_not_started(now, POLICY.start_timeout, 10)
         assert [d.job_id for d in due] == [queued]
     assert rig.service.expire_overdue_attempts() == (running,)
@@ -427,3 +427,101 @@ def test_overdue_running_and_due_retry_sweeps_are_targeted(db: URL) -> None:
     assert expired.failure.code == "PROVIDER_TIMEOUT"
     assert rig.service.run_due_retries() == (failing,)  # running's backoff is not yet due
     assert len(rig.job(failing).attempts) == 2 and rig.job(queued).state is JobState.QUEUED
+
+
+# ------------------------------------------------- B4-R01 keyset traversal on real SQL
+def _failed_retryable_jobs(
+    rig: s.SqlRig, service: AiJobService, count: int, prefix: str
+) -> list[tuple[str, str]]:
+    """``count`` failed_retryable jobs with strictly increasing retry_not_before."""
+
+    made = []
+    for index in range(count):
+        request = f"req_{prefix}_{index}"
+        rig.owner.set(fx.eligibility_scope(ORG, request), {"eligible": True})
+        created = service.create_job(s.command(key=f"{prefix}_{index}", request=request))
+        attempt = rig.job(created.job_id).active_attempt
+        capability = rig.capabilities.issue(created.job_id)
+        assert service.start_attempt(capability, created.job_id, attempt.attempt_id).started
+        pinned = attempt.request_ref
+        service.accept_completion(
+            capability,
+            CompletionClaim(
+                created.job_id,
+                attempt.attempt_id,
+                pinned.request_revision,
+                pinned.input_hash,
+                pinned.context_revision,
+                OutcomeKind.FAILURE,
+                failure_code="PROVIDER_UNAVAILABLE",
+                retryable=True,
+            ),
+        )
+        rig.clock.advance(milliseconds=1)
+        made.append((created.job_id, request))
+    return made
+
+
+def test_deferred_due_retries_do_not_starve_later_sql_pages(db: URL) -> None:
+    rig = s.build_rig(db)
+    service = rig.with_ports(dispatch_policy=replace(POLICY, claim_limit=2))
+    made = _failed_retryable_jobs(rig, service, 6, "r01")
+    blocked, healthy = made[:3], made[3:]
+    # The oldest three lose their owner decision rows: FixtureEligibility then returns a denied
+    # decision without a fence, so retry_job must keep them unchanged (fail closed).
+    with rig.engine.begin() as connection:
+        connection.execute(
+            delete(fx.decision).where(
+                fx.decision.c.fence_scope.in_(
+                    [fx.eligibility_scope(ORG, request) for _, request in blocked]
+                )
+            )
+        )
+    rig.clock.advance(milliseconds=FIXTURE_RETRY_POLICY.backoff_max_ms)
+    with rig.repository.transaction() as tx:  # keyset continuation of the real query
+        first = tx.due_retries(rig.clock.now(), 2)
+        second = tx.due_retries(rig.clock.now(), 2, first[-1].cursor)
+    assert [d.job_id for d in first + second] == [job_id for job_id, _ in made[:4]]
+    before = {job_id: rig.job(job_id) for job_id, _ in blocked}
+
+    assert service.run_due_retries() == tuple(job_id for job_id, _ in healthy)
+    for job_id, _ in healthy:  # pages 2 and 3, behind a fully deferred first page
+        retried = rig.job(job_id)
+        assert retried.state is JobState.QUEUED and len(retried.attempts) == 2
+    assert {job_id: rig.job(job_id) for job_id in before} == before
+    assert service.run_due_retries() == ()  # all-deferred remainder terminates
+    assert {job_id: rig.job(job_id) for job_id in before} == before
+
+
+def test_overdue_and_unstarted_sweeps_page_through_sql(db: URL) -> None:
+    rig = s.build_rig(db)
+    running = []
+    for index in range(5):
+        request = f"req_run_{index}"
+        rig.owner.set(fx.eligibility_scope(ORG, request), {"eligible": True})
+        created = rig.service.create_job(s.command(key=f"run_{index}", request=request))
+        attempt_id = rig.job(created.job_id).active_attempt.attempt_id
+        assert rig.service.start_attempt(
+            rig.capabilities.issue(created.job_id), created.job_id, attempt_id
+        ).started
+        rig.clock.advance(milliseconds=1)
+        running.append(created.job_id)
+    unstarted = []
+    for index in range(5):
+        request = f"req_unstarted_{index}"
+        rig.owner.set(fx.eligibility_scope(ORG, request), {"eligible": True})
+        created = rig.service.create_job(s.command(key=f"q_{index}", request=request))
+        unstarted.append(created.job_id)
+    assert rig.service.dispatch_outbox() == 5
+    queue = rig.deps.queue
+    while queue.receive() is not None:  # type: ignore[attr-defined]
+        pass  # every worker dies before durable start
+    rig.clock.advance(milliseconds=FIXTURE_RETRY_POLICY.attempt_timeout_ms)
+    service = rig.with_ports(dispatch_policy=replace(POLICY, claim_limit=2))
+    assert service.expire_overdue_attempts() == tuple(running)
+    assert sorted(service.recover_unstarted_dispatches()) == sorted(
+        (job_id, "republished") for job_id in unstarted
+    )
+    assert service.recover_unstarted_dispatches() == ()
+    for job_id in running:
+        assert rig.job(job_id).state is JobState.FAILED_RETRYABLE

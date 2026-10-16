@@ -29,6 +29,7 @@ from sketch2life.application.ports.ai_jobs import (
     CommandScopeKey,
     CompletionReceipt,
     DispatchMessage,
+    DueJob,
     EligibilityDecision,
     FenceResult,
     JobRevisionConflict,
@@ -36,6 +37,7 @@ from sketch2life.application.ports.ai_jobs import (
     OwnerFence,
     Principal,
     SemanticRequestKey,
+    SweepCursor,
     UniqueConflict,
     WorkerDispatchEnvelope,
 )
@@ -272,7 +274,11 @@ class _UnitOfWork:
         return any(m.attempt_id == attempt_id for m in self.state.outbox.values())
 
     def queued_dispatched_not_started(
-        self, now: datetime, start_timeout: timedelta, limit: int
+        self,
+        now: datetime,
+        start_timeout: timedelta,
+        limit: int,
+        after: SweepCursor | None = None,
     ) -> tuple[AttemptDispatch, ...]:
         due: list[AttemptDispatch] = []
         for job in self.list_jobs():
@@ -288,29 +294,32 @@ class _UnitOfWork:
             ):
                 due.append(AttemptDispatch(job.job_id, attempt.attempt_id, job.job_revision,
                                            dispatched_at, count))
-        due.sort(key=lambda d: (d.dispatched_at, d.attempt_id))
-        return tuple(due[:limit])
+        return _keyset_page(due, limit, after)
 
-    def overdue_running(self, now: datetime, limit: int) -> tuple[str, ...]:
+    def overdue_running(
+        self, now: datetime, limit: int, after: SweepCursor | None = None
+    ) -> tuple[DueJob, ...]:
         overdue = [
-            job.job_id
+            DueJob(job.job_id, job.active_attempt.attempt_number, job.started_at)
             for job in self.list_jobs()
             if job.state is JobState.RUNNING
             and job.started_at is not None
             and now - job.started_at
             >= timedelta(milliseconds=job.retry_policy.attempt_timeout_ms)
         ]
-        return tuple(overdue[:limit])
+        return _keyset_page(overdue, limit, after)
 
-    def due_retries(self, now: datetime, limit: int) -> tuple[tuple[str, int], ...]:
-        due = sorted(
-            (job.retry_not_before, job.job_id, job.active_attempt.attempt_number)
+    def due_retries(
+        self, now: datetime, limit: int, after: SweepCursor | None = None
+    ) -> tuple[DueJob, ...]:
+        due = [
+            DueJob(job.job_id, job.active_attempt.attempt_number, job.retry_not_before)
             for job in self.list_jobs()
             if job.state is JobState.FAILED_RETRYABLE
             and job.retry_not_before is not None
             and job.retry_not_before <= now
-        )
-        return tuple((job_id, number) for _, job_id, number in due[:limit])
+        ]
+        return _keyset_page(due, limit, after)
 
     def _settle(self, message_id: str) -> DispatchMessage:
         self.state.leases.pop(message_id, None)
@@ -322,6 +331,17 @@ class _UnitOfWork:
 
     def record_notice(self, notice_id: str) -> None:
         self.state.notices.add(notice_id)
+
+
+def _keyset_page[Row: (AttemptDispatch, DueJob)](
+    rows: list[Row], limit: int, after: SweepCursor | None
+) -> tuple[Row, ...]:
+    """Same order and strict keyset continuation as the SQL sweep queries."""
+
+    ordered = sorted(rows, key=lambda row: (row.cursor.at, row.cursor.key))
+    if after is not None:
+        ordered = [r for r in ordered if (r.cursor.at, r.cursor.key) > (after.at, after.key)]
+    return tuple(ordered[:limit])
 
 
 class InMemoryAiJobStore:
