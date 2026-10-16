@@ -1,5 +1,25 @@
 # BE2 AI/job foundation context
 
+## Publication for the second BE2 executor —2026-10-16
+
+User now authorizes focused commits and push on the existing foundation feature branch to hand
+off the checkpoint. DECISIONS125 records the instruction. Earlier "no commit/push" observations
+below describe the review turn and are superseded for this publication only. Runtime/closure
+remain pending on Studio; no dev merge or other-card implementation is implied. Sender01–07,
+teammate08–14; repository handoff: artifacts/BE2_08_14_TEAMMATE_HANDOFF.md.
+
+## Current checkpoint: A17-fix01 received cloud evidence —2026-10-16
+
+**Q01/B6_A17FIX01_CLOUD_RECEIPTS_VERIFIED_PENDING_STUDIO**. Codex received archive3bcaa058
+and verified raw cloud receipts:221 B2–B6 +224 Phase A /0 failure/error/skip;43/43 required
+durable PASS. Exact two-file A17 scenario correction is ported locally;46/46 source hashes
+match manifest5b76868d;25 local B6 units, focused ruff/mypy PASS. This is received remote
+evidence, not direct local runtime or Studio proof. New A17-fix01 Studio execution NOT_RUN;
+B6-CR01 open, BE2-01 IN_PROGRESS, B-12 HANDOFF, OwnerFence ASSUMED_CONTRACT. No approval/Git
+publication change. See evidence/notes/PHASE_B_B6_A17FIX01_CLOUD_RECEIPT_REVIEW_20261016.md.
+Earlier checkpoint and next-run instructions below are historical; use the A17-fix01 package
+for the next Studio run, preserving all older packages.
+
 ## Local checkpoint decision —2026-10-16
 
 Checkpoint **Q01/B6_CR01_R2_CODE_PACKAGE_REVIEW_PASS_PENDING_RUNTIME** is unchanged. Person 2 allowed

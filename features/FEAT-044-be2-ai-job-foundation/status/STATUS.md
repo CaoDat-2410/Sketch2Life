@@ -1,5 +1,24 @@
 # Feature status
 
+## Publication instruction —2026-10-16
+
+User authorized committing/pushing the reviewed A17 checkpoint on this feature branch for the
+teammate to fetch. This supersedes earlier no-publication instructions only for this checkpoint;
+BE2-01 remains IN_PROGRESS, Studio A17-fix01 NOT_RUN, CR01 open, B-12 HANDOFF. No dev merge.
+DECISIONS125 and artifacts/BE2_08_14_TEAMMATE_HANDOFF.md record the7/7 allocation and candidate
+BE2-12 planning-branch workflow. No additional implementation card is activated.
+
+## Current checkpoint: A17-fix01 received cloud evidence —2026-10-16
+
+**Q01/B6_A17FIX01_CLOUD_RECEIPTS_VERIFIED_PENDING_STUDIO**. Raw cloud archive3bcaa058 is
+received/verified:221 B2–B6 +224 Phase A /0 failure/error/skip;43/43 required durable PASS.
+Exact runner/test patch applied locally;46/46 files match manifest5b76868d;25 local B6 units,
+focused ruff/mypy PASS. Cloud-native proof remains separate from Studio A17-fix01 NOT_RUN.
+B6-CR01 FIXED_PENDING_RUNTIME_REVIEW; owner closure pending; BE2-01 IN_PROGRESS; B-12 HANDOFF;
+OwnerFence ASSUMED_CONTRACT. Original approvals unchanged; no staging/commit/push/merge/deploy.
+Evidence: notes/PHASE_B_B6_A17FIX01_CLOUD_RECEIPT_REVIEW_20261016.md. Older checkpoint routing
+below is historical; the next Studio run uses the new A17-fix01 package, not the old R2-only ZIP.
+
 ## Local checkpoint decision —2026-10-16
 
 **Q01/B6_CR01_R2_CODE_PACKAGE_REVIEW_PASS_PENDING_RUNTIME (unchanged).** Person 2 allowed local
