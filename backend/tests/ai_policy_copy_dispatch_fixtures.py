@@ -8,7 +8,7 @@ from sketch2life.contracts.schemas.ai_policy_copy_delivery import (
     CopyDeliveryAuthority,
     CopyHookResponse,
 )
-from tests.ai_policy_copy_operation_fixtures import AssumedOperationBoundary, command, schedule
+from tests.ai_policy_copy_operation_fixtures import AssumedOperationBoundary, schedule
 from tests.ai_policy_copy_operation_fixtures import setup as operation_setup
 from tests.unit.test_ai_policy_domain import NOW
 
@@ -64,9 +64,9 @@ class SyntheticHook:
         ).model_copy(update=self.changes)
 
 
-def setup():
+def setup(operation="purge"):
     scheduler, operation_boundary, store = operation_setup()
-    envelope = schedule(scheduler)
+    envelope = schedule(scheduler, operation=operation)
     store.clock = lambda: NOW
     boundary = AssumedDispatchBoundary(operation_boundary.inventory)
     hook = SyntheticHook(boundary)
@@ -76,5 +76,5 @@ def setup():
 
 def dispatch(dispatcher, envelope, *, revision=0):
     return dispatcher.dispatch(
-        "operator", "school", command(), envelope.operation_key, expected_revision=revision
+        "operator", "school", envelope.command, envelope.operation_key, expected_revision=revision
     )

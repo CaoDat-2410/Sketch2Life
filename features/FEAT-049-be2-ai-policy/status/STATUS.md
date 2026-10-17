@@ -2,17 +2,17 @@
 
 - Status: IN_PROGRESS
 - Plan revision: 1
-- Implementation status: IN_PROGRESS — C4c5 bounded candidate discovery component PASS; SQL NOT_RUN
+- Implementation status: IN_PROGRESS — C4c6 exact operation receipt lease component PASS; SQL NOT_RUN
 - Branch: feature/be2-08-14
 - Baseline: f0ff7a840d1910f1f80df327c3fd0239db5ea8e1
-- Current: parent c99384a; pinned-time scoped candidate discovery added, no schema change.
-- BE2-14 component: 846 PASS /0 skip (78 policy contract +34 accounting contract
+- Current: parent 6f2e2c0; exact original operation/delivery receipt verification lease added.
+- BE2-14 component: 875 PASS /0 skip (78 policy contract +34 accounting contract
   +47 accounting domain +46 policy domain +26 persistence
   shape/offline +15 runner +59 registry +29 command service +3 activation shape
   +31 emergency-stop +53 current-use +20 ledger shape/codec +49 accounting service
   +44 copy verification +27 copy inventory shape/codec +56 inventory service +28 history
   +44 exact operation +19 intent discovery +56 delivery domain/contract +22 delivery storage
-  +23 dispatcher +19 phase evidence +18 candidate query/cursor checks).
+  +23 dispatcher +19 phase evidence +18 candidate query/cursor +29 receipt lease checks).
 - Focused Ruff/Mypy PASS; registry/auth fixtures are assumed, not real adoption.
 - Existing BE2-12/foundation selected regression pack: 477 PASS, source unchanged.
 - Additional targeted foundation application/review-regression/q00 suites: 114 PASS;
@@ -24,8 +24,8 @@
   BE2-14 server started. C2 pins original migration; C3b upgrades new branch head.
   Owner asked asynchronously for isolated PG17 setup/test/cleanup approval, no
   approval fabricated from silence or prior BE2-12 provisioning authority.
-- Next: C4c verified receipt/acknowledgment/current
-  lifecycle/verified receipt application and remaining C5
+- Next: C4c persistent verified receipt/cancel acknowledgment/current-copy
+  composition and remaining C5
   safe bindings/projections, plus
   actual SQL proof once authorized. Guarded accounting application composition now
   exists, but actual current-owner/terminal-evidence adapters remain unbound;
@@ -136,3 +136,12 @@
   or deletion/coverage proof. 18 new offline tests, two SQL cases prepared NOT_RUN.
   846 own +477 regression +114 foundation PASS. Evidence/consumer obligations:
   evidence/notes/C4C5_CANDIDATE_DISCOVERY_20261018.md. No worker/live hook mounted.
+
+- C4c6 (2026-10-18): held current-authorized receipt lease binds exact original
+  operation/profile, receipt-bearing delivery revision, stored reference/hash and
+  authority revision. Native malformed/op-mismatched/expired proof denied. Reuses
+  foundation purge transitions, separate verified cancel ack, fixture never actual.
+  Closed leases unusable; confirm current rights/proof before caller commit.
+  29 new local cases, 875 own +477 regression +114 foundation PASS. PG93 unchanged
+  NOT_RUN. No copy/proof persistence or actual provider evidence/adoption yet.
+  Handoff evidence/notes/C4C6_OPERATION_RECEIPT_LEASE_20261018.md.

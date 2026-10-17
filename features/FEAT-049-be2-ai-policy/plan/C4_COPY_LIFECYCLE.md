@@ -210,3 +210,17 @@ Own scope SHARE/revision CAS prevents mixed-revision pages, empty missing-scope
 stays revision0. Bounded keyset SQL join/filter/limit+1, no unbounded Python scan
 or caller expression. Existing dispatcher still rechecks actual clock/current
 rights/retry/profile and CAS. Synthetic query/PG cases; no worker/live provider.
+
+## C4c6 exact operation receipt/cancel verification lease
+
+Add reference-only current-authorized verification against exact immutable envelope,
+receipt-bearing delivery revision and recorded reference/hash. Trusted backend
+verifier authenticates bytes/issuer/original profile/operation including separate
+cancel_confirmed vs purge deleted. Do not reinterpret transport success or receipt
+availability as verified result. Strict native output/expiry/current grant check.
+Held verification lease reuses existing foundation request_purge/apply_receipt for
+purge; unverified deletion remains pending and fixture deletion never actual.
+Cancel acknowledgment distinct from deletion and never alters job tables. Confirm
+current authority/proof before caller commit and forbid lease use after guard exit.
+No source/receipt network under DB lock. Persisted current-copy/verification-history
+composition remains next C4c checkpoint; lease alone neither writes nor closes BE1.

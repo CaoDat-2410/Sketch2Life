@@ -1,5 +1,20 @@
 # Feature decisions
 
+## D23 — exact operation proof lease, not a transport-success acknowledgment
+
+2026-10-18 approved C4/P4. Receipt reference/hash derives from stored
+receipt_available delivery at exact expected revision, not caller proof fields.
+Current read authority before inventory; immutable command/actor/org/copy/profile
+must match. Trusted proof binds full operation/delivery/reference/current authority
+revision; native DTO, expiry and cancel-vs-purge outcome checks before yielding.
+Frozen lease exposes binding/current grant/proof and confirms rights/deadlines
+through context exit; no use after guard closes. Existing foundation purge rules
+retain unverified pending and fixture-only deletion labels. Cancel acknowledgment
+separate, no job mutation or false copy deletion. Synthetic provider-kind tests
+exercise classification only, not actual provider evidence. Persistence/CAS/proof
+history remains next; caller holds guard, re-reads states and confirms before
+commit. Guard exit after successful commit is uncertainty, never fake rollback.
+
 ## D22 — pinned cutoff candidate queries never authorize retry or expired takeover
 
 2026-10-18 approved C4/P4/P5. Internal CopyCandidateRequest supplies explicit
