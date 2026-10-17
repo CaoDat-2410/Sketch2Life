@@ -2,30 +2,30 @@
 
 - Status: IN_PROGRESS
 - Plan revision: 1
-- Implementation status: IN_PROGRESS — C4c6 exact operation receipt lease component PASS; SQL NOT_RUN
+- Implementation status: IN_PROGRESS — C4c7 atomic receipt resolution component PASS; SQL NOT_RUN
 - Branch: feature/be2-08-14
 - Baseline: f0ff7a840d1910f1f80df327c3fd0239db5ea8e1
-- Current: parent 6f2e2c0; exact original operation/delivery receipt verification lease added.
-- BE2-14 component: 875 PASS /0 skip (78 policy contract +34 accounting contract
+- Current: parent 544f499; atomic current-copy/proof/cancel resolution persistence added.
+- BE2-14 component: 895 PASS /0 skip (78 policy contract +34 accounting contract
   +47 accounting domain +46 policy domain +26 persistence
   shape/offline +15 runner +59 registry +29 command service +3 activation shape
   +31 emergency-stop +53 current-use +20 ledger shape/codec +49 accounting service
   +44 copy verification +27 copy inventory shape/codec +56 inventory service +28 history
   +44 exact operation +19 intent discovery +56 delivery domain/contract +22 delivery storage
-  +23 dispatcher +19 phase evidence +18 candidate query/cursor +29 receipt lease checks).
+  +23 dispatcher +19 phase evidence +18 candidate query/cursor +29 receipt lease
+  +20 atomic resolution checks).
 - Focused Ruff/Mypy PASS; registry/auth fixtures are assumed, not real adoption.
 - Existing BE2-12/foundation selected regression pack: 477 PASS, source unchanged.
 - Additional targeted foundation application/review-regression/q00 suites: 114 PASS;
   existing copy fake scope/replay/cancel-vs-purge cases retained, no source rewrite.
 - PostgreSQL / real integration / runtime policy activation: NOT_RUN for BE2-14.
 - BE2-12 477/33 PASS belongs to that card, not carried as BE2-14 acceptance.
-- SQL: 15 lifecycle +10 activation/stop/use +19 ledger +49 copy inventory actual PG
-  cases prepared/collected, 93 total NOT_RUN, no authorized
+- SQL: 15 lifecycle +10 activation/stop/use +19 ledger +55 copy inventory actual PG
+  cases prepared/collected, 99 total NOT_RUN, no authorized
   BE2-14 server started. C2 pins original migration; C3b upgrades new branch head.
   Owner asked asynchronously for isolated PG17 setup/test/cleanup approval, no
   approval fabricated from silence or prior BE2-12 provisioning authority.
-- Next: C4c persistent verified receipt/cancel acknowledgment/current-copy
-  composition and remaining C5
+- Next: remaining kill-delivery/current-copy conformance and C5
   safe bindings/projections, plus
   actual SQL proof once authorized. Guarded accounting application composition now
   exists, but actual current-owner/terminal-evidence adapters remain unbound;
@@ -145,3 +145,13 @@
   29 new local cases, 875 own +477 regression +114 foundation PASS. PG93 unchanged
   NOT_RUN. No copy/proof persistence or actual provider evidence/adoption yet.
   Handoff evidence/notes/C4C6_OPERATION_RECEIPT_LEASE_20261018.md.
+
+- C4c7 (2026-10-18): held receipt lease composes exact operation/delivery re-read,
+  current-copy revision CAS and immutable proof/grant/result/history/outbox in one
+  own UoW. Authorized exact retry avoids duplicate writes; native proof/transition
+  revalidation on storage reads. Forward ap_0009 preserves original registration,
+  terminal deletion and monotonic cancel acknowledgment. Fixture is never actual.
+  20 new local cases; 895 own +477 regression +114 foundation PASS. Six new PG
+  cases prepared, total99 NOT_RUN. Evidence/consumer handoff:
+  evidence/notes/C4C7_ATOMIC_RESOLUTION_20261018.md. Owner prefers batched external
+  tests; no new server/provider authority inferred. C5/C6 and real adoption open.

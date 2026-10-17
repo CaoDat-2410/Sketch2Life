@@ -1,5 +1,22 @@
 # Feature decisions
 
+## D24 — atomic receipt resolution is historical evidence, not current authority
+
+2026-10-18 approved C4/P4/P5. Hold exact receipt lease around own scope UPDATE
+transaction, re-read immutable operation/delivery revision/reference and current
+copy. Stable resolution key binds original envelope/delivery/reference/outcome/
+verification/evidence-kind/reason, excluding renewed grant/time/proof expiry.
+Exact retry still reauthorizes but returns current copy without new mutation.
+Different verification semantics require copy CAS and immutable new observation.
+Current snapshot, full before/after proof+grant and outbox commit together.
+Strict read validation recomputes transition/binding against original operation;
+history never grants execution. Forward ap_0009 prevents deleted provenance or
+confirmed provider-cancel downgrade. Cancellation is distinct from purge/job
+closure; foundation lifecycle remains unchanged. Fixture proof never becomes
+actual deletion. Current rights/proof confirmed before commit; guard exit after
+commit remains uncertainty, not rollback. Actual PG/provider/deadline fencing
+requires separate external evidence; owner requests batched testing.
+
 ## D23 — exact operation proof lease, not a transport-success acknowledgment
 
 2026-10-18 approved C4/P4. Receipt reference/hash derives from stored

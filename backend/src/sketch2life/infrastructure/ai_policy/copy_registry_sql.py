@@ -20,6 +20,7 @@ from sketch2life.application.ai_policy_copy_operations import (
     validate_operation,
     validate_operation_authorization,
 )
+from sketch2life.application.ai_policy_copy_resolution import resolution_key, validate_resolution
 from sketch2life.application.ports.ai_policy_copy_registry import (
     CopyCandidatePage,
     CopyOperationPage,
@@ -34,6 +35,10 @@ from sketch2life.contracts.schemas.ai_policy_copy_candidates import (
 )
 from sketch2life.contracts.schemas.ai_policy_copy_delivery import CopyDeliveryAuthorityEvidence
 from sketch2life.contracts.schemas.ai_policy_copy_history import CopyInventoryEvidence
+from sketch2life.contracts.schemas.ai_policy_copy_lifecycle import (
+    CopyLifecycleRecord,
+    CopyResolutionObservation,
+)
 from sketch2life.contracts.schemas.ai_policy_copy_operation import (
     CopyOperationAuthorization,
     CopyOperationEnvelope,
@@ -60,9 +65,11 @@ from sketch2life.infrastructure.ai_policy.copy_registry_tables import (
     COPY_DELIVERY_HISTORY,
     COPY_EVENT,
     COPY_EVIDENCE,
+    COPY_LIFECYCLE,
     COPY_OPERATION,
     COPY_OPERATION_AUTHORITY,
     COPY_REGISTRATION,
+    COPY_RESOLUTION,
     COPY_SCOPE,
 )
 
@@ -176,6 +183,187 @@ class SqlProviderCopyRegistryTransaction:
     def _write(self) -> None:
         if not self.writable:
             raise PolicyError("AI_POLICY_COPY_REGISTRY_READ_ONLY")
+
+    def get_copy_lifecycle(self, copy_id: str) -> CopyLifecycleRecord:
+        original = self.get(copy_id)
+        if original is None:
+            raise PolicyError("AI_POLICY_COPY_NOT_FOUND")
+        row = (
+            self.connection.execute(
+                select(COPY_LIFECYCLE).where(
+                    COPY_LIFECYCLE.c.organization_id == self.organization_id,
+                    COPY_LIFECYCLE.c.scope_ref == self.scope_ref,
+                    COPY_LIFECYCLE.c.copy_id == copy_id,
+                )
+            )
+            .mappings()
+            .one_or_none()
+        )
+        if row is None:
+            return CopyLifecycleRecord(
+                registration=original.registration,
+                revision=0,
+                status="purge_requested"
+                if self.purging or original.initially_quarantined
+                else "discovered",
+            )
+        try:
+            record = CopyLifecycleRecord.model_validate_json(
+                json.dumps(row["snapshot"]), strict=True
+            )
+            if (
+                record.registration != original.registration
+                or record.revision != row["revision"]
+                or record.revision == 0
+            ):
+                raise ValueError("lifecycle storage mismatch")
+            history = (
+                self.connection.execute(
+                    select(COPY_RESOLUTION.c.resolution_key, COPY_RESOLUTION.c.after_state).where(
+                        COPY_RESOLUTION.c.organization_id == self.organization_id,
+                        COPY_RESOLUTION.c.scope_ref == self.scope_ref,
+                        COPY_RESOLUTION.c.copy_id == copy_id,
+                        COPY_RESOLUTION.c.revision == record.revision,
+                    )
+                )
+                .mappings()
+                .one_or_none()
+            )
+            if history is None or history["after_state"] != record.model_dump(mode="json"):
+                raise ValueError("lifecycle lacks matching immutable history")
+            if self.get_resolution(history["resolution_key"]) is None:
+                raise ValueError("missing validated resolution")
+            return record
+        except (TypeError, ValueError):
+            raise PolicyError("AI_POLICY_INVALID_COPY_LIFECYCLE_STORAGE") from None
+
+    def get_resolution(self, key: str) -> CopyResolutionObservation | None:
+        if (
+            not isinstance(key, str)
+            or len(key) != 64
+            or any(c not in "0123456789abcdef" for c in key)
+        ):
+            raise PolicyError("AI_POLICY_INVALID_COPY_RESOLUTION")
+        row = (
+            self.connection.execute(
+                select(COPY_RESOLUTION).where(
+                    COPY_RESOLUTION.c.organization_id == self.organization_id,
+                    COPY_RESOLUTION.c.scope_ref == self.scope_ref,
+                    COPY_RESOLUTION.c.resolution_key == key,
+                )
+            )
+            .mappings()
+            .one_or_none()
+        )
+        if row is None:
+            return None
+        try:
+            before = CopyLifecycleRecord.model_validate_json(
+                json.dumps(row["before_state"]), strict=True
+            )
+            after = CopyLifecycleRecord.model_validate_json(
+                json.dumps(row["after_state"]), strict=True
+            )
+            observation = CopyResolutionObservation.model_validate_json(
+                json.dumps(row["observation"]), strict=True
+            )
+            validate_resolution(before, after, observation)
+            if (
+                self.get_operation(observation.binding.envelope.operation_key)
+                != observation.binding.envelope
+            ):
+                raise ValueError("resolution differs from original operation")
+            if resolution_key(observation) != key or (
+                after.registration.organization_id,
+                after.registration.scope_ref,
+                after.registration.copy_id,
+                after.revision,
+                observation.binding.envelope.operation_key,
+            ) != (
+                self.organization_id,
+                self.scope_ref,
+                row["copy_id"],
+                row["revision"],
+                row["operation_key"],
+            ):
+                raise ValueError("resolution storage mismatch")
+            return observation
+        except (TypeError, ValueError, PolicyError):
+            raise PolicyError("AI_POLICY_INVALID_COPY_RESOLUTION_STORAGE") from None
+
+    def save_resolution(
+        self,
+        before: CopyLifecycleRecord,
+        after: CopyLifecycleRecord,
+        observation: CopyResolutionObservation,
+    ) -> None:
+        self._write()
+        observation = validate_resolution(before, after, observation)
+        envelope = observation.binding.envelope
+        item = after.registration
+        if (item.organization_id, item.scope_ref, envelope.principal_id) != (
+            self.organization_id,
+            self.scope_ref,
+            self.principal_id,
+        ):
+            raise PolicyError("AI_POLICY_COPY_SCOPE_MISMATCH")
+        if (
+            self.get_operation(envelope.operation_key) != envelope
+            or self.get_copy_lifecycle(item.copy_id) != before
+        ):
+            raise PolicyError("AI_POLICY_COPY_LIFECYCLE_STALE")
+        delivery = self.get_delivery(envelope.operation_key)
+        if (
+            delivery.revision != observation.binding.delivery_revision
+            or delivery.last_response is None
+            or (
+                delivery.status.value != "receipt_available"
+                or delivery.last_response.reference != observation.binding.reference.ref
+                or delivery.last_response.reference_hash != observation.binding.reference.hash
+            )
+        ):
+            raise PolicyError("AI_POLICY_COPY_DELIVERY_STALE")
+        scope = dict(
+            organization_id=self.organization_id, scope_ref=self.scope_ref, copy_id=item.copy_id
+        )
+        if before.revision == 0:
+            self.connection.execute(
+                insert(COPY_LIFECYCLE).values(
+                    **scope, revision=after.revision, snapshot=after.model_dump(mode="json")
+                )
+            )
+        else:
+            result = self.connection.execute(
+                update(COPY_LIFECYCLE)
+                .where(
+                    COPY_LIFECYCLE.c.organization_id == self.organization_id,
+                    COPY_LIFECYCLE.c.scope_ref == self.scope_ref,
+                    COPY_LIFECYCLE.c.copy_id == item.copy_id,
+                    COPY_LIFECYCLE.c.revision == before.revision,
+                )
+                .values(revision=after.revision, snapshot=after.model_dump(mode="json"))
+            )
+            if result.rowcount != 1:
+                raise PolicyError("AI_POLICY_COPY_LIFECYCLE_STALE")
+        self.connection.execute(
+            insert(COPY_RESOLUTION).values(
+                **scope,
+                resolution_key=resolution_key(observation),
+                operation_key=envelope.operation_key,
+                revision=after.revision,
+                before_state=before.model_dump(mode="json"),
+                after_state=after.model_dump(mode="json"),
+                observation=observation.model_dump(mode="json"),
+            )
+        )
+        self._advance(
+            "ai_policy.copy_receipt_resolved",
+            {
+                "copy_id": item.copy_id,
+                "operation_key": envelope.operation_key,
+                "copy_revision": after.revision,
+            },
+        )
 
     def record_delivery_authority(self, evidence: CopyDeliveryAuthorityEvidence) -> None:
         self._write()

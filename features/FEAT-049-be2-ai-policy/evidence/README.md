@@ -1,5 +1,10 @@
 # Evidence index — BE2-14
 
+- C4C7_ATOMIC_RESOLUTION_20261018: atomic current-copy/proof/history/outbox
+  reconciliation, 20 new local cases; 895 own +477 regression +114 foundation
+  PASS. PostgreSQL99 prepared/collected NOT_RUN. Consumer handoff in note; no
+  actual provider/cancel/deletion or full-card acceptance claim.
+
 - PREPARATION_20261017: source/code inventory and planning validation only.
 - C1_DOMAIN_CONTRACTS_20261017: 124 BE2-14 component cases PASS, 477 existing
   selected regression cases PASS; focused checks PASS. Not runtime/activation proof.
