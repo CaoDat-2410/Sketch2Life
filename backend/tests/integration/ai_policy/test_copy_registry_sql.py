@@ -240,6 +240,73 @@ def scheduled_delivery(store):
     return schedule(service)
 
 
+def test_guarded_dispatch_sql_claim_committed_before_synthetic_hook(inventory_store):
+    from sketch2life.application.ai_policy_copy_dispatch import ProviderCopyDispatcher
+    from sketch2life.contracts.schemas.ai_policy_copy_delivery import CopyHookResponse
+    from sketch2life.domain.ai_policy.copy_delivery import DeliveryStatus
+    from tests.ai_policy_copy_dispatch_fixtures import AssumedDispatchBoundary, dispatch
+    from tests.ai_policy_copy_inventory_fixtures import AssumedInventoryBoundary
+    from tests.unit.test_ai_policy_domain import NOW
+
+    op = scheduled_delivery(inventory_store)
+    boundary = AssumedDispatchBoundary(AssumedInventoryBoundary())
+    observed = []
+
+    class Hook:
+        def dispatch(self, envelope):
+            # Separate DB connection sees committed claim; scope UPDATE would
+            # block if dispatcher still held its SHARE/UPDATE transaction.
+            from sketch2life.infrastructure.ai_policy.copy_registry_sql import (
+                SqlProviderCopyRegistryTransaction,
+            )
+
+            with inventory_store.engine.begin() as connection:
+                connection.execute(text("SET LOCAL lock_timeout = '2s'"))
+                tx = SqlProviderCopyRegistryTransaction(
+                    connection,
+                    "school",
+                    "scope",
+                    principal_id="worker",
+                    for_update=True,
+                    clock=lambda: NOW,
+                )
+                observed.append(tx.get_delivery(envelope.operation_key).status)
+            return CopyHookResponse(
+                operation_key=envelope.operation_key,
+                binding_digest=envelope.binding_digest,
+                outcome="pending",
+                reason_code="WAITING",
+            )
+
+    dispatcher = ProviderCopyDispatcher(inventory_store, boundary, Hook(), clock=lambda: NOW)
+    assert dispatch(dispatcher, op).status is DeliveryStatus.PENDING
+    assert observed == [DeliveryStatus.IN_FLIGHT]
+    assert count(inventory_store, COPY_DELIVERY_HISTORY) == 2
+
+
+def test_guarded_dispatch_sql_completion_denial_keeps_committed_claim(inventory_store):
+    from sketch2life.application.ai_policy_copy_dispatch import ProviderCopyDispatcher
+    from sketch2life.domain.ai_policy.copy_delivery import DeliveryStatus
+    from tests.ai_policy_copy_dispatch_fixtures import (
+        AssumedDispatchBoundary,
+        SyntheticHook,
+        dispatch,
+    )
+    from tests.ai_policy_copy_inventory_fixtures import AssumedInventoryBoundary
+    from tests.unit.test_ai_policy_domain import NOW
+
+    op = scheduled_delivery(inventory_store)
+    boundary = AssumedDispatchBoundary(AssumedInventoryBoundary())
+    boundary.denied_phase = "completion"
+    hook = SyntheticHook(boundary)
+    dispatcher = ProviderCopyDispatcher(inventory_store, boundary, hook, clock=lambda: NOW)
+    with pytest.raises(PolicyError, match="AI_POLICY_FORBIDDEN"):
+        dispatch(dispatcher, op)
+    with transaction(inventory_store) as tx:
+        assert tx.get_delivery(op.operation_key).status is DeliveryStatus.IN_FLIGHT
+    assert len(hook.calls) == 1 and count(inventory_store, COPY_DELIVERY_HISTORY) == 1
+
+
 def test_delivery_claim_reconnect_finish_and_replay_are_atomic_metadata(inventory_store):
     from datetime import timedelta
 

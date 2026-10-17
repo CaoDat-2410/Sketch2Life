@@ -21,6 +21,11 @@ from sketch2life.contracts.schemas.ai_policy_copy_registry import (
     CopyCoverageObservation,
     CopyRegistryRegistration,
 )
+from sketch2life.domain.ai_policy.copy_delivery import (
+    DeliveryState,
+    claim_delivery,
+    finish_delivery,
+)
 from sketch2life.domain.ai_policy.model import PolicyError
 from tests.unit.test_ai_policy_domain import NOW
 
@@ -177,6 +182,38 @@ class MemoryInventory:
 
     def get_operation(self, key):
         return self.state["operations"].get(key)
+
+    def get_delivery(self, key):
+        operation = self.get_operation(key)
+        if operation is None:
+            raise PolicyError("AI_POLICY_COPY_OPERATION_NOT_FOUND")
+        return self.state.get("deliveries", {}).get(
+            key, DeliveryState(key, operation.binding_digest)
+        )
+
+    def claim_delivery(self, key, *, expected_revision, token, expires_at):
+        assert self.write
+        result = claim_delivery(
+            self.get_delivery(key),
+            expected_revision=expected_revision,
+            token=token,
+            expires_at=expires_at,
+            now=self.clock(),
+        )
+        self.state.setdefault("deliveries", {})[key] = result
+        self._advance("delivery")
+        return result
+
+    def finish_delivery(self, response, *, expected_revision, token):
+        assert self.write
+        old = self.get_delivery(response.operation_key)
+        result = finish_delivery(
+            old, response, expected_revision=expected_revision, token=token, now=self.clock()
+        )
+        self.state.setdefault("deliveries", {})[response.operation_key] = result
+        if result != old:
+            self._advance("delivery")
+        return result
 
     def enqueue_operation(self, envelope, authorization):
         from sketch2life.application.ai_policy_copy_operations import (

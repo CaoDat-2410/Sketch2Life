@@ -90,6 +90,8 @@ COPIES_EXPECTED = {
     "test_delivery_expired_takeover_rejects_old_response_without_duplicate_operation": 1,
     "test_delivery_history_failure_rolls_back_claim_current_state_and_event": 1,
     "test_delivery_history_cannot_be_rewritten_by_raw_sql": 2,
+    "test_guarded_dispatch_sql_claim_committed_before_synthetic_hook": 1,
+    "test_guarded_dispatch_sql_completion_denial_keeps_committed_claim": 1,
 }
 
 
@@ -102,6 +104,7 @@ def source_hashes() -> dict[str, str]:
         "backend/tests/ai_policy_accounting_fixtures.py",
         "backend/tests/ai_policy_copy_inventory_fixtures.py",
         "backend/tests/ai_policy_copy_operation_fixtures.py",
+        "backend/tests/ai_policy_copy_dispatch_fixtures.py",
         "backend/tests/ai_policy_fixtures.py", "backend/tests/unit/test_ai_policy_compatibility.py",
         "backend/tests/contract/test_ai_policy_contracts.py",
         "backend/tests/unit/test_ai_policy_use.py",

@@ -1,5 +1,24 @@
 # Feature decisions
 
+## D20 — each delivery phase needs current authority, never an old envelope grant
+
+2026-10-18 approved C4/P4/P5. New explicit delivery authority port binds exact
+original envelope/full state/phase to current actor/org, retry/worker policy and
+approved claim deadline bounded by current grant expiry. No default adapter or
+caller-supplied deadline. Existing command guard authorizes before inventory read;
+exact actor/org/data-request and original profile must match intent. Claim and
+completion re-confirm unchanged authority inside own UoW. Dispatch rechecks claimed
+state and current authority, exits DB transaction, then calls hook under owner
+guard. Real remote-start/deadline-at-commit enforcement remains adoption work.
+
+Missing hook -> Unsupported; private hook failure or malformed output -> safe
+Exception metadata, never deleted/cancelled. Revoked/expired/late completion does
+not rewrite state or fabricate rollback of already-sent effect; persisted claim
+remains recoverable. Same original envelope/key on explicit authorized retry.
+No provider/default live hook invoked. Current phase grants are verified but not
+yet retained in durable phase-specific evidence history; that acceptance remains
+open with verified receipt/current-copy/cancel reconciliation and pending filter.
+
 ## D19 — delivery ownership is distinct from authority and verified copy lifecycle
 
 2026-10-18, approved P4/P5 C4c2. Add separate own pure delivery state, not a
