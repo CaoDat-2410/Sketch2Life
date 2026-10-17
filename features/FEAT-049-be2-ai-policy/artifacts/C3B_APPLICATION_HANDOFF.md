@@ -57,9 +57,9 @@ commit nested work under adopted guard; never use a returned pin as a bearer tok
 
 ## Verification status
 
-Latest 417 own component cases PASS +477 existing selected regression PASS. Components use
+Latest 439 own component cases PASS +477 existing selected regression PASS. Components use
 assumed boundary and transactional MEMORY store; not durable SQL/fence proof.
-Actual PostgreSQL 15 lifecycle +10 activation/stop/use cases prepared/collected, NOT_RUN.
+Actual PostgreSQL 15 lifecycle +10 activation/stop/use +17 ledger cases prepared, NOT_RUN.
 Runtime command pack: artifacts/C2_SQL_RUNTIME.md. No real provider/owner integration,
 cost/load/purge/cancellation proof. Full-card BE2-14 remains IN_PROGRESS.
 
@@ -79,3 +79,20 @@ No automatic expiry/cancellation refund, numeric production default or provider
 receipt verifier supplied. C3c3b must still implement own atomic SQL ledger/UoW,
 services/receipt+outbox and actual concurrent/restart/rollback verification. Do not
 dispatch work using the pure transition or treat fixture evidence as actual cost.
+
+## Ledger persistence checkpoint (C3c3b)
+
+SqlResourceLedgerStore now supplies own UoW with global org/feature serialization,
+per-budget-bucket counters, exact reservation/attempt identity and scoped command
+receipts. Reserve and settle compute domain transitions and persist counters,
+reservation and pending resource_event in the same database transaction; add_receipt
+joins that UoW. Replays produce no delta/event. Forward ap_0003 protects immutable
+terms/terminal states/history; no old migration changed. Resource events are both
+audit and pending outbox intent, not completed delivery/provider receipts.
+
+This completes persistence code, NOT actual SQL verification or C3c application
+composition. C3c3c must bind current-use leases and authoritative quote/proof guards
+before ledger lock/through commit, implement safe command replay, and compose
+consume/release/reconcile after stop without reauthorizing AI. Never acquire owner
+policy locks from inside ledger lock or run provider network work under that lock.
+No route/default adapter mounted. AC06 and full BE2-14 remain open.

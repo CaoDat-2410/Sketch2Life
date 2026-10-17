@@ -74,3 +74,25 @@ def test_activation_inventory_is_separate_and_pins_its_test_dependencies(runner)
     assert "backend/tests/unit/test_ai_policy_compatibility.py" in hashes
     assert "backend/tests/unit/test_ai_policy_use.py" in hashes
     assert "backend/alembic/versions/20261017_ap_0002_effective_scope.py" in hashes
+
+
+def test_accounting_inventory_and_source_are_separate_from_older_sql_packs(runner):
+    nodes = tuple(runner.ACCOUNTING_SUITE + "::" + name + (f"[{i}]" if count > 1 else "")
+                  for name, count in runner.ACCOUNTING_EXPECTED.items() for i in range(count))
+    assert len(nodes) == 17
+    assert runner.inventory("\n".join(nodes), runner.ACCOUNTING_SUITE) == nodes
+    assert runner.valid_inventory(nodes, runner.ACCOUNTING_EXPECTED)
+    assert not runner.valid_inventory(nodes[:-1], runner.ACCOUNTING_EXPECTED)
+    assert not runner.valid_inventory(nodes, runner.ACTIVATION_EXPECTED)
+    hashes = runner.source_hashes()
+    assert "backend/tests/integration/ai_policy/test_accounting_sql.py" in hashes
+    assert "backend/src/sketch2life/infrastructure/ai_policy/accounting_sql.py" in hashes
+    assert "backend/alembic/versions/20261017_ap_0003_resource_ledger.py" in hashes
+
+
+def test_accounting_runner_also_requires_explicit_card_opt_in(runner, monkeypatch):
+    monkeypatch.delenv("AP_TEST_ALLOW_CREATE", raising=False)
+    monkeypatch.delenv("AP_TEST_PG_HOST", raising=False)
+    assert runner.main(accounting=True) == 2
+    with pytest.raises(ValueError, match="exactly one"):
+        runner.main(activation=True, accounting=True)

@@ -40,6 +40,21 @@ ACTIVATION_EXPECTED = {
     "test_current_use_sql_stop_history_cannot_be_bypassed_after_reactivation": 1,
     "test_current_use_sql_scope_share_fence_blocks_stop_until_lease_exit": 1,
 }
+ACCOUNTING_SUITE = "tests/integration/ai_policy/test_accounting_sql.py"
+ACCOUNTING_EXPECTED = {
+    "test_ledger_commit_reconnect_preserves_original_terms_and_terminal_proof": 1,
+    "test_ledger_exception_rolls_back_counters_reservation_receipt_and_audit": 1,
+    "test_ledger_duplicate_receipt_rolls_back_entire_second_reservation": 1,
+    "test_ledger_concurrent_reserves_have_exactly_one_capacity_winner": 2,
+    "test_ledger_new_window_does_not_reset_global_slots": 1,
+    "test_ledger_same_attempt_cannot_reserve_again_in_another_window": 1,
+    "test_ledger_live_and_terminal_replay_have_no_counter_or_audit_delta": 1,
+    "test_ledger_verified_release_frees_original_bucket_and_slot": 1,
+    "test_ledger_failed_settlement_audit_rolls_back_terminal_state_and_counters": 1,
+    "test_ledger_verified_overrun_recorded_truthfully_then_blocks_new_reserve": 1,
+    "test_ledger_raw_sql_cannot_rewrite_terminal_or_provenance": 5,
+    "test_ledger_wrong_scope_cannot_read_or_settle_other_reservation": 1,
+}
 
 
 def source_hashes() -> dict[str, str]:
@@ -95,7 +110,9 @@ def run(args: list[str], out: Path) -> subprocess.CompletedProcess[str]:
     return result
 
 
-def main(*, activation: bool = False) -> int:
+def main(*, activation: bool = False, accounting: bool = False) -> int:
+    if activation and accounting:
+        raise ValueError("select exactly one SQL pack")
     if os.environ.get("AP_TEST_ALLOW_CREATE") != "1" or not os.environ.get("AP_TEST_PG_HOST"):
         print("NOT_RUN: explicit authorized BE2-14 disposable PostgreSQL profile required")
         return 2
@@ -104,6 +121,8 @@ def main(*, activation: bool = False) -> int:
     before = source_hashes()
     suite = ACTIVATION_SUITE if activation else SUITE
     expected = ACTIVATION_EXPECTED if activation else EXPECTED
+    if accounting:
+        suite, expected = ACCOUNTING_SUITE, ACCOUNTING_EXPECTED
     command = [sys.executable, "-m", "pytest", "-o", "addopts=", suite]
     collected = run([*command, "--collect-only", "-q"], out / "collection.log")
     nodes = inventory(collected.stdout, suite)
@@ -119,6 +138,8 @@ def main(*, activation: bool = False) -> int:
                    status=status, expected_cases=sum(expected.values()), cases=len(nodes),
                    source_sha256=before, source_unchanged=unchanged,
                    real_owner_integration="NOT_RUN", full_goal_complete=False)
+    if accounting:
+        summary["scope"] = "BE2_14_C3C3B_LEDGER_SQL_ONLY"
     (out / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     print(f"{status}: {out}")
     return exit_code
@@ -126,5 +147,8 @@ def main(*, activation: bool = False) -> int:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--activation", action="store_true")
-    raise SystemExit(main(activation=parser.parse_args().activation))
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--activation", action="store_true")
+    group.add_argument("--accounting", action="store_true")
+    args = parser.parse_args()
+    raise SystemExit(main(activation=args.activation, accounting=args.accounting))

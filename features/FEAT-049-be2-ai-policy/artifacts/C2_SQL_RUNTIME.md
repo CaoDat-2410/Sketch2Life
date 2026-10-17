@@ -33,9 +33,12 @@ $env:AP_TEST_ALLOW_CREATE = '1'
 if ($LASTEXITCODE -ne 0) { throw 'BE2-14 PostgreSQL evidence incomplete or failed' }
 ./backend/.venv/Scripts/python.exe features/FEAT-049-be2-ai-policy/src/run_c2_sql_checks.py --activation
 if ($LASTEXITCODE -ne 0) { throw 'BE2-14 activation SQL evidence incomplete or failed' }
+./backend/.venv/Scripts/python.exe features/FEAT-049-be2-ai-policy/src/run_c2_sql_checks.py --accounting
+if ($LASTEXITCODE -ne 0) { throw 'BE2-14 ledger SQL evidence incomplete or failed' }
 ```
 
-Expected: exact 15 lifecycle +10 activation/stop/current-use full JUnit test identities in separate
+Expected: exact 15 lifecycle +10 activation/stop/current-use +17 ledger SQL JUnit
+test identities (42 total) in three separate
 receipts, no fail/error/skip/extra/duplicate,
 unchanged current transitive source/config/test/runner hashes, runner exit 0.
 Missing explicit AP opt-in -> exit 2/NOT_RUN, even if LC opt-in exists. Missing or
@@ -70,6 +73,20 @@ only cleans test DBs. No production migration, new server or install inferred.
   stop history and forged later epoch deny resurrection after reactivation;
   real feature SHARE lease blocks stop's update until consumer exits. Lock test
   checks actual pg_stat_activity wait_event_type, not a sleep/future alone.
+- Ledger additions: ap_0003 upgrade through current head, committed reservation
+  and terminal proof survive connection disposal/reconnect (not a process restart
+  claim); atomic reserve rollback; duplicate receipt rolls back counters/audit;
+  concurrent budget and global slot caps admit one winner; new window retains
+  old occupied slots; same attempt cannot reserve again under a different window;
+  exact live/terminal replay does not duplicate audit or counters; verified fixture
+  release frees original bucket/slot; audit failure rolls back terminal settlement;
+  fixture overrun retained and blocks new reserve; five raw-SQL immutable-history
+  cases; wrong org/feature denied. All numeric values/evidence synthetic, not
+  production definitions/provider cost. No service/current-use composition proven.
+
+Prepared ledger cases: tests/integration/ai_policy/test_accounting_sql.py. They
+remain NOT_RUN until authorized PostgreSQL execution; offline compilation, codec
+tests and inventory validation do not prove transaction/race behavior.
 
 Actual owner rights/policy activation/current-source fencing and providers are
 outside C2 SQL proof. They remain explicit separate integration gates.

@@ -1,5 +1,24 @@
 # Feature decisions
 
+## D11 — global scope serialization and atomic ledger intent, not direct dispatch
+
+Approved P3/P5 C3c3b adds own resource_scope, budget_bucket, resource_reservation,
+resource_receipt and resource_event with forward ap_0003. Scope UPDATE precedes
+bucket/reservation access; global occupied slots do not reset across windows or
+definitions. Unique original request-digest/attempt prevents second allocation
+using a different reservation key/window. Counter transitions, immutable terminal
+reservation, scoped receipt and pending audit/outbox intent share one own UoW.
+Foreign keys for receipt/event include org/feature/reservation. No foreign owner
+table touched or old migration rewritten. Event delivery marker is mutable, not
+its audit payload; intent is not evidence of delivery or provider action.
+
+Persistence is never a quote/current-use/terminal-proof authority. Following
+application service must hold real use/accounting guards before ledger lock and
+through commit, verify exact returned quote/proof and idempotent request identity.
+No provider work while holding ledger lock. Current DDL/codec tests and 17 prepared
+actual SQL cases do not prove runtime transactions/races; separate authorized
+PostgreSQL execution still NOT_RUN. AC06 and full BE2-14 remain open.
+
 ## D10 — accounting transition is not a grant or an atomic ledger
 
 Approved P3 C3c3a separates pure immutable resource accounting from authoritative
