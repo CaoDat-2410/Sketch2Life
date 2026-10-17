@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from threading import Barrier
@@ -309,3 +310,66 @@ def test_retired_head_edit_requires_fresh_review_without_restoring_old_version(h
         assert old.hash == retired.hash and old.recall_reason == "withdraw old version"
         assert len(old.reviews) == 2
     assert counts(store) == (2, 4, 11, 11, 11)
+
+
+def test_consumer_contracts_from_actual_http_sql_and_outbox(harness):
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+
+    from sketch2life.application.content_consumer_queries import (
+        ContentConsumerQueries,
+        notice_from_outbox,
+    )
+    from sketch2life.application.governance_dispatcher import GovernanceDispatcher
+    from sketch2life.contracts.schemas.content_consumers import ContentReferenceQueryV1
+    from sketch2life.contracts.schemas.learning_content import ContentCommandResult
+    from sketch2life.interfaces.http.routers.learning_content import (
+        GovernanceIdentity,
+        build_governance_commands_router,
+    )
+
+    service, boundary, store = harness
+    identity = [GovernanceIdentity("author", "school")]
+    app = FastAPI()
+    app.include_router(build_governance_commands_router(
+        GovernanceDispatcher(service), lambda request: identity[0], max_body_bytes=8192))
+    client = TestClient(app)
+
+    def post(actor, cmd, revision=None):
+        identity[0] = GovernanceIdentity(actor, "school")
+        response = client.post("/api/collaboration/v1/governance/records",
+                               content=cmd.model_dump_json(), headers={
+                                   "content-type": "application/json",
+                                   **({"if-match": f'"{revision}"'} if revision else {})})
+        assert response.status_code == 200, response.text
+        return ContentCommandResult.model_validate_json(json.dumps(response.json()["data"]))
+
+    record = post("author", command("create", "create", content=BODY)).record
+    record = post("author", command("submit_review", "submit", record), record.revision).record
+    refs = {"review_policy_version": "policy-v1"}
+    for dimension in ("safety", "pedagogical"):
+        result = post("reviewer", review_command(record, dimension, dimension), record.revision)
+        record = result.record
+        refs[dimension + "_review_id"] = result.review_record.review_id
+    record = post("publisher", command("publish", "publish", record, review_ref=refs),
+                  record.revision).record
+    queries = ContentConsumerQueries(ContentEligibility(store, boundary))
+    query = ContentReferenceQueryV1(record_id=record.record_id, age_months=48,
+                                     purpose_code="classroom")
+    pinned = queries.resolve_reference("consumer", "school", query)
+    assert pinned.version == 1 and pinned.publication_review_ref == record.publication_review_ref
+    post("recaller", command("recall", "recall", record, reason="withdrawn"), record.revision)
+    with pytest.raises(ContentError, match="CONTENT_NOT_ELIGIBLE"):
+        queries.resolve_reference("consumer", "school", query)
+    with store.engine.connect() as connection:
+        rows = connection.execute(select(OUTBOX)).mappings().all()
+    notices = [notice_from_outbox(row["event_id"], row["organization_id"],
+                                   json.dumps(row["payload"])) for row in rows]
+    assert len(notices) == 6 and len({n.event_id for n in notices}) == 6
+    assert {n.payload.kind for n in notices} == {
+        "content.create", "content.submit_review", "content.record_review",
+        "content.publish", "content.recall"}
+    recall = next(n for n in notices if n.payload.kind == "content.recall")
+    assert (recall.payload.record_id, recall.payload.version, recall.payload.hash) == (
+        pinned.record_id, pinned.version, pinned.hash)
+    assert all(row["delivered_at"] is None for row in rows)  # No delivery claim.

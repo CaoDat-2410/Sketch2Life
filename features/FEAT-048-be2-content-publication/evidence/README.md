@@ -15,6 +15,7 @@
 | F03 | Derived immutable review history | notes/F03_REVIEW_HISTORY_20261017.md; metrics/F03_REVIEW_HISTORY_20261017.json | Local F03 closed: 24 new / 350 selected local PASS; 21 owned SQL PASS; real owner causes/adoption still open |
 | P3-fix | New-version reintroduction, old version terminal | notes/P3_REINTRODUCTION_20261017.md | 354 local PASS; 23 owned SQL PASS; existing approval enforced, not a restore capability or integrated closure |
 | C4b | Fixed dispatch / strict owner binding / single HTTP factory | notes/C4B_DISPATCH_20261017.md; artifacts/GOVERNANCE_BINDING_HANDOFF.md | 59 new / 413 selected local PASS; synthetic owner models, actual semantic schema/adapters not adopted |
+| C4c | Typed consumer references/notices and HTTP/SQL producer conformance | notes/C4C_CONSUMERS_20261017.md; artifacts/CONTENT_CONSUMER_HANDOFF.md | 25 new / 438 selected local PASS; 24 actual SQL PASS, owner guard assumed; no delivered event/real sink claim |
 
 No real child media, credentials, model outputs or external source documents
 are published. No runtime fixtures/tests are manufactured to claim completion.

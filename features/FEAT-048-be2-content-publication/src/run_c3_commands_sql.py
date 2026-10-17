@@ -24,10 +24,17 @@ EXPECTED = {
     "test_derived_history_preserves_original_sql_proofs_across_resubmit": 1,
     "test_history_sql_edit_and_recall_do_not_rewrite_old_approval": 2,
     "test_retired_head_edit_requires_fresh_review_without_restoring_old_version": 2,
+    "test_consumer_contracts_from_actual_http_sql_and_outbox": 1,
 }
 SOURCES = (
     "backend/src/sketch2life/application/learning_content_commands.py",
     "backend/src/sketch2life/application/learning_content_history.py",
+    "backend/src/sketch2life/application/content_consumer_queries.py",
+    "backend/src/sketch2life/application/ports/content_consumers.py",
+    "backend/src/sketch2life/contracts/schemas/content_consumers.py",
+    "backend/src/sketch2life/application/governance_dispatcher.py",
+    "backend/src/sketch2life/contracts/schemas/governance.py",
+    "backend/src/sketch2life/interfaces/http/routers/learning_content.py",
     "backend/src/sketch2life/application/learning_content_eligibility.py",
     "backend/src/sketch2life/application/ports/learning_content.py",
     "backend/src/sketch2life/contracts/schemas/learning_content.py",

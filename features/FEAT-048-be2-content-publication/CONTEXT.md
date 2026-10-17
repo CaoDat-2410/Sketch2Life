@@ -1,5 +1,17 @@
 # FEAT-048 — BE2-12 content authoring, publication and recall
 
+## C4c consumer pack — 2026-10-17
+
+Receiver-owned H-CONTENT-PRESET query/reference/notice/ack candidate contracts and
+ports now exist, backed by current ContentEligibility and a pure existing-outbox
+payload adapter. No new delivery gateway, foreign write or auto active-copy policy.
+25 new component cases / 438 selected local PASS; actual HTTP -> PostgreSQL ->
+outbox contract test passes with assumed owner guard. Consolidated 24 SQL PASS,
+all source hashes unchanged during run; portable runtime cleaned. Notice is not
+a usage grant; duplicate fixture is not durable consumer/transport proof. Real
+BE1/P4 sink, audit/recall handling and session-start consistency remain adoption
+gates. CONTENT_CONSUMER_HANDOFF.md distinguishes receiver/sender responsibilities.
+
 ## C4b receiver-scope correction and dispatch — 2026-10-17
 
 User clarified receiver owns 08–14; do not block all BE2-12 candidate work on
