@@ -183,6 +183,40 @@ class MemoryInventory:
     def get_operation(self, key):
         return self.state["operations"].get(key)
 
+    def get_copy_lifecycle(self, copy_id):
+        from sketch2life.contracts.schemas.ai_policy_copy_lifecycle import CopyLifecycleRecord
+
+        original = self.get(copy_id)
+        if original is None:
+            raise PolicyError("AI_POLICY_COPY_NOT_FOUND")
+        return self.state.get("lifecycle", {}).get(
+            copy_id,
+            CopyLifecycleRecord(
+                registration=original.registration,
+                revision=0,
+                status="purge_requested"
+                if self.state["purging"] or original.initially_quarantined
+                else "discovered",
+            ),
+        )
+
+    def get_resolution(self, key):
+        return self.state.get("resolutions", {}).get(key)
+
+    def save_resolution(self, before, after, observation):
+        from sketch2life.application.ai_policy_copy_resolution import (
+            resolution_key,
+            validate_resolution,
+        )
+
+        assert self.write
+        validate_resolution(before, after, observation)
+        if self.get_copy_lifecycle(before.registration.copy_id) != before:
+            raise PolicyError("AI_POLICY_COPY_LIFECYCLE_STALE")
+        self.state.setdefault("lifecycle", {})[after.registration.copy_id] = after
+        self.state.setdefault("resolutions", {})[resolution_key(observation)] = observation
+        self._advance("resolution")
+
     def get_delivery(self, key):
         operation = self.get_operation(key)
         if operation is None:

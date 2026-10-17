@@ -26,9 +26,11 @@ from sketch2life.infrastructure.ai_policy.copy_registry_tables import (
     COPY_DELIVERY_HISTORY,
     COPY_EVENT,
     COPY_EVIDENCE,
+    COPY_LIFECYCLE,
     COPY_OPERATION,
     COPY_OPERATION_AUTHORITY,
     COPY_REGISTRATION,
+    COPY_RESOLUTION,
     COPY_SCOPE,
 )
 
@@ -239,6 +241,145 @@ def scheduled_delivery(store):
     record_guarded_registration(store)
     service, _ = operation_service(store)
     return schedule(service)
+
+
+def resolution_service(store, operation="purge"):
+    from datetime import timedelta
+
+    from sketch2life.application.ai_policy_copy_reconciliation import (
+        ProviderCopyOperationReceiptVerifier,
+    )
+    from sketch2life.application.ai_policy_copy_resolution import ProviderCopyReconciliationService
+    from sketch2life.domain.ai_policy.copy_delivery import DeliveryResponse, HookOutcome
+    from tests.ai_policy_copy_inventory_fixtures import AssumedInventoryBoundary
+    from tests.ai_policy_copy_operation_fixtures import schedule
+    from tests.unit.test_ai_policy_copy_reconciliation import AssumedReceiptBoundary
+    from tests.unit.test_ai_policy_domain import NOW
+
+    store.clock = lambda: NOW
+    if count(store, COPY_REGISTRATION) == 0:
+        record_guarded_registration(store)
+    scheduler, _ = operation_service(store)
+    op = schedule(scheduler, operation=operation)
+    with transaction(store, write=True) as tx:
+        if tx.get_delivery(op.operation_key).revision == 0:
+            tx.claim_delivery(
+                op.operation_key,
+                expected_revision=0,
+                token="worker-receipt",
+                expires_at=NOW + timedelta(minutes=1),
+            )
+            tx.finish_delivery(
+                DeliveryResponse(
+                    op.operation_key,
+                    op.binding_digest,
+                    HookOutcome.RECEIPT_AVAILABLE,
+                    reference="fixture-receipt",
+                    reference_hash="c" * 64,
+                ),
+                expected_revision=1,
+                token="worker-receipt",
+            )
+    boundary = AssumedReceiptBoundary(AssumedInventoryBoundary())
+    verifier = ProviderCopyOperationReceiptVerifier(store, boundary, clock=lambda: NOW)
+    return ProviderCopyReconciliationService(store, verifier, clock=lambda: NOW), op
+
+
+def resolve_operation(service, op):
+    return service.reconcile(
+        "operator",
+        "school",
+        op.command,
+        op.operation_key,
+        expected_delivery_revision=2,
+        expected_copy_revision=0,
+    )
+
+
+def test_resolution_sql_restart_and_exact_retry_keep_fixture_proof_not_actual_deletion(
+    inventory_store,
+):
+    from sketch2life.application.ai_policy_copy_resolution import foundation_copy
+    from sketch2life.domain.ai_jobs.provider_copy import report_label
+
+    service, op = resolution_service(inventory_store)
+    first = resolve_operation(service, op)
+    assert report_label(foundation_copy(first)) == "fixture_deleted_not_actual"
+    inventory_store.engine.dispose()
+    with transaction(inventory_store) as tx:
+        assert tx.get_copy_lifecycle("copy") == first
+    assert resolve_operation(service, op) == first
+    assert count(inventory_store, COPY_LIFECYCLE) == count(inventory_store, COPY_RESOLUTION) == 1
+
+
+def test_resolution_sql_cancel_ack_is_not_purge_deletion(inventory_store):
+    service, op = resolution_service(inventory_store, "cancel")
+    result = resolve_operation(service, op)
+    assert result.status == "cancel_requested" and result.cancel_confirmed
+    assert result.cancel_evidence_kind == "fixture" and result.purge_reference is None
+
+
+@pytest.mark.parametrize("mutation", ["update", "delete"])
+def test_resolution_sql_proof_history_cannot_be_rewritten(inventory_store, mutation):
+    service, op = resolution_service(inventory_store)
+    resolve_operation(service, op)
+    statement = (
+        update(COPY_RESOLUTION).values(observation={})
+        if mutation == "update"
+        else delete(COPY_RESOLUTION)
+    )
+    with pytest.raises(DBAPIError), inventory_store.engine.begin() as connection:
+        connection.execute(statement)
+    assert count(inventory_store, COPY_RESOLUTION) == 1
+
+
+def test_resolution_sql_history_failure_rolls_back_current_copy_and_event(inventory_store):
+    service, op = resolution_service(inventory_store)
+    before = count(inventory_store, COPY_EVENT)
+    with inventory_store.engine.begin() as connection:
+        connection.execute(
+            text("""
+          CREATE FUNCTION ai_policy.synthetic_resolution_failure() RETURNS trigger
+          LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'SYNTHETIC_RESOLUTION_FAILURE'; END; $$
+        """)
+        )
+        connection.execute(
+            text("""
+          CREATE TRIGGER synthetic_resolution_failure BEFORE INSERT ON ai_policy.copy_resolution
+          FOR EACH ROW EXECUTE FUNCTION ai_policy.synthetic_resolution_failure()
+        """)
+        )
+    with pytest.raises(PolicyError, match="AI_POLICY_COPY_REGISTRY_STORAGE_UNAVAILABLE"):
+        resolve_operation(service, op)
+    assert count(inventory_store, COPY_LIFECYCLE) == count(inventory_store, COPY_RESOLUTION) == 0
+    assert count(inventory_store, COPY_EVENT) == before
+
+
+def test_resolution_sql_concurrent_duplicate_has_one_copy_revision_and_proof(inventory_store):
+    from sketch2life.application.ai_policy_copy_reconciliation import (
+        ProviderCopyOperationReceiptVerifier,
+    )
+    from sketch2life.application.ai_policy_copy_resolution import ProviderCopyReconciliationService
+    from tests.ai_policy_copy_inventory_fixtures import AssumedInventoryBoundary
+    from tests.unit.test_ai_policy_copy_reconciliation import AssumedReceiptBoundary
+    from tests.unit.test_ai_policy_domain import NOW
+
+    _, op = resolution_service(inventory_store)
+    barrier = Barrier(2)
+
+    def resolve():
+        verifier = ProviderCopyOperationReceiptVerifier(
+            inventory_store, AssumedReceiptBoundary(AssumedInventoryBoundary()), clock=lambda: NOW
+        )
+        service = ProviderCopyReconciliationService(inventory_store, verifier, clock=lambda: NOW)
+        barrier.wait(timeout=10)
+        return resolve_operation(service, op)
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        futures = [pool.submit(resolve), pool.submit(resolve)]
+        results = [f.result(timeout=30) for f in futures]
+    assert results[0] == results[1] and results[0].revision == 1
+    assert count(inventory_store, COPY_RESOLUTION) == 1
 
 
 def test_delivery_candidates_filter_states_and_expired_claims_at_pinned_time(inventory_store):

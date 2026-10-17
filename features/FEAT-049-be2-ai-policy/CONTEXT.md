@@ -1,6 +1,14 @@
 # FEAT-049 — BE2-14 AI policy / limits / kill switch
 
 - Goal: full BE2-14 card, including ProviderCopyLifecycle and redacted projections.
+- Latest C4c7 (2026-10-18): atomic receipt reconciliation/current-copy CAS,
+  immutable proof/grant/binding/result history and outbox, forward ap_0009.
+  Current rights checked even on exact replay; fixture deletion/cancel never actual
+  provider proof. Terminal deletion/cancel acknowledgments cannot downgrade.
+  895 own +477 regression +114 foundation PASS; PG99 prepared/collected NOT_RUN.
+  Owner batches external tests separately; no provisioning/provider activation.
+  Next remaining kill delivery/conformance, C5 safe bindings/projections and C6.
+  Full card and original goal not DONE; real BE1/P4 adoption remains deferred.
 - Latest C4c6 (2026-10-18): exact original-operation/delivery/reference receipt
   verification lease, held current guard, foundation purge reuse and distinct
   cancellation acknowledgment; fixture never actual. Closed lease unusable,

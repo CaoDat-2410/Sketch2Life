@@ -96,6 +96,11 @@ COPIES_EXPECTED = {
     "test_delivery_authority_insert_failure_rolls_back_claim_before_hook": 1,
     "test_delivery_candidates_filter_states_and_expired_claims_at_pinned_time": 1,
     "test_delivery_candidates_scope_isolation_and_no_phantom_after_absence": 1,
+    "test_resolution_sql_restart_and_exact_retry_keep_fixture_proof_not_actual_deletion": 1,
+    "test_resolution_sql_cancel_ack_is_not_purge_deletion": 1,
+    "test_resolution_sql_proof_history_cannot_be_rewritten": 2,
+    "test_resolution_sql_history_failure_rolls_back_current_copy_and_event": 1,
+    "test_resolution_sql_concurrent_duplicate_has_one_copy_revision_and_proof": 1,
 }
 
 
@@ -103,30 +108,41 @@ def source_hashes() -> dict[str, str]:
     paths = set((ROOT / "backend/src").rglob("*.py"))
     paths.update((ROOT / "backend/alembic").rglob("*.py"))
     paths.update((ROOT / "backend/tests/integration/ai_policy").rglob("*.py"))
-    paths.update(ROOT / name for name in (
-        "backend/tests/conftest.py", "backend/tests/unit/test_ai_policy_domain.py",
-        "backend/tests/ai_policy_accounting_fixtures.py",
-        "backend/tests/ai_policy_copy_inventory_fixtures.py",
-        "backend/tests/ai_policy_copy_operation_fixtures.py",
-        "backend/tests/ai_policy_copy_dispatch_fixtures.py",
-        "backend/tests/ai_policy_fixtures.py", "backend/tests/unit/test_ai_policy_compatibility.py",
-        "backend/tests/contract/test_ai_policy_contracts.py",
-        "backend/tests/unit/test_ai_policy_use.py",
-        "backend/pyproject.toml", "backend/alembic.ini",
-        "features/FEAT-049-be2-ai-policy/src/run_c2_sql_checks.py"))
-    return {path.relative_to(ROOT).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
-            for path in sorted(paths)}
+    paths.update(
+        ROOT / name
+        for name in (
+            "backend/tests/conftest.py",
+            "backend/tests/unit/test_ai_policy_domain.py",
+            "backend/tests/ai_policy_accounting_fixtures.py",
+            "backend/tests/ai_policy_copy_inventory_fixtures.py",
+            "backend/tests/ai_policy_copy_operation_fixtures.py",
+            "backend/tests/ai_policy_copy_dispatch_fixtures.py",
+            "backend/tests/unit/test_ai_policy_copy_reconciliation.py",
+            "backend/tests/ai_policy_fixtures.py",
+            "backend/tests/unit/test_ai_policy_compatibility.py",
+            "backend/tests/contract/test_ai_policy_contracts.py",
+            "backend/tests/unit/test_ai_policy_use.py",
+            "backend/pyproject.toml",
+            "backend/alembic.ini",
+            "features/FEAT-049-be2-ai-policy/src/run_c2_sql_checks.py",
+        )
+    )
+    return {
+        path.relative_to(ROOT).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
+        for path in sorted(paths)
+    }
 
 
 def inventory(output: str, suite: str = SUITE) -> tuple[str, ...]:
-    return tuple(line.strip() for line in output.splitlines()
-                 if line.strip().startswith(suite + "::"))
+    return tuple(
+        line.strip() for line in output.splitlines() if line.strip().startswith(suite + "::")
+    )
 
 
 def valid_inventory(nodes: tuple[str, ...], expected: dict[str, int] | None = None) -> bool:
-    return (len(nodes) == len(set(nodes))
-            and Counter(node.split("::", 1)[1].split("[", 1)[0] for node in nodes)
-            == (EXPECTED if expected is None else expected))
+    return len(nodes) == len(set(nodes)) and Counter(
+        node.split("::", 1)[1].split("[", 1)[0] for node in nodes
+    ) == (EXPECTED if expected is None else expected)
 
 
 def classify(nodes: tuple[str, ...], junit: Path, process_exit: int) -> tuple[str, int]:
@@ -140,8 +156,10 @@ def classify(nodes: tuple[str, ...], junit: Path, process_exit: int) -> tuple[st
         return "FAIL", 1
     if list(tree.iter("failure")) or list(tree.iter("error")):
         return "FAIL", 1
-    names = tuple(case.get("classname", "").replace(".", "/") + ".py::"
-                  + case.get("name", "") for case in tree.iter("testcase"))
+    names = tuple(
+        case.get("classname", "").replace(".", "/") + ".py::" + case.get("name", "")
+        for case in tree.iter("testcase")
+    )
     if len(names) != len(set(names)) or set(names) - set(nodes):
         return "FAIL", 1
     if list(tree.iter("skipped")) or set(names) != set(nodes):
@@ -150,8 +168,7 @@ def classify(nodes: tuple[str, ...], junit: Path, process_exit: int) -> tuple[st
 
 
 def run(args: list[str], out: Path) -> subprocess.CompletedProcess[str]:
-    result = subprocess.run(args, cwd=ROOT / "backend", text=True,
-                            capture_output=True, check=False)
+    result = subprocess.run(args, cwd=ROOT / "backend", text=True, capture_output=True, check=False)
     out.write_text(result.stdout + result.stderr, encoding="utf-8")
     return result
 
@@ -182,10 +199,16 @@ def main(*, activation: bool = False, accounting: bool = False, copies: bool = F
     unchanged = before == source_hashes()
     if not unchanged:
         status, exit_code = "FAIL", 1
-    summary = dict(scope="BE2_14_C3B_ACTIVATION_SQL" if activation else "BE2_14_OWNED_C2_SQL_ONLY",
-                   status=status, expected_cases=sum(expected.values()), cases=len(nodes),
-                   source_sha256=before, source_unchanged=unchanged,
-                   real_owner_integration="NOT_RUN", full_goal_complete=False)
+    summary = dict(
+        scope="BE2_14_C3B_ACTIVATION_SQL" if activation else "BE2_14_OWNED_C2_SQL_ONLY",
+        status=status,
+        expected_cases=sum(expected.values()),
+        cases=len(nodes),
+        source_sha256=before,
+        source_unchanged=unchanged,
+        real_owner_integration="NOT_RUN",
+        full_goal_complete=False,
+    )
     if accounting:
         summary["scope"] = "BE2_14_C3C3B_LEDGER_SQL_ONLY"
     if copies:
@@ -202,4 +225,6 @@ if __name__ == "__main__":
     group.add_argument("--accounting", action="store_true")
     group.add_argument("--copies", action="store_true")
     args = parser.parse_args()
-    raise SystemExit(main(activation=args.activation, accounting=args.accounting, copies=args.copies))
+    raise SystemExit(
+        main(activation=args.activation, accounting=args.accounting, copies=args.copies)
+    )

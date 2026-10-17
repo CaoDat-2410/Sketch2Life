@@ -186,3 +186,55 @@ COPY_DELIVERY_AUTHORITY = Table(
         ],
     ),
 )
+
+COPY_LIFECYCLE = Table(
+    "copy_lifecycle",
+    COPY_METADATA,
+    Column("organization_id", String(120), primary_key=True),
+    Column("scope_ref", String(120), primary_key=True),
+    Column("copy_id", String(120), primary_key=True),
+    Column("revision", BigInteger, nullable=False),
+    Column("snapshot", JSONB, nullable=False),
+    ForeignKeyConstraint(
+        ["organization_id", "scope_ref", "copy_id"],
+        [
+            f"{SCHEMA}.copy_registration.organization_id",
+            f"{SCHEMA}.copy_registration.scope_ref",
+            f"{SCHEMA}.copy_registration.copy_id",
+        ],
+    ),
+    CheckConstraint("revision > 0", name="copy_lifecycle_revision"),
+)
+COPY_RESOLUTION = Table(
+    "copy_resolution",
+    COPY_METADATA,
+    Column("organization_id", String(120), primary_key=True),
+    Column("scope_ref", String(120), primary_key=True),
+    Column("resolution_key", String(64), primary_key=True),
+    Column("copy_id", String(120), nullable=False),
+    Column("operation_key", String(64), nullable=False),
+    Column("revision", BigInteger, nullable=False),
+    Column("before_state", JSONB, nullable=False),
+    Column("after_state", JSONB, nullable=False),
+    Column("observation", JSONB, nullable=False),
+    ForeignKeyConstraint(
+        ["organization_id", "scope_ref", "copy_id"],
+        [
+            f"{SCHEMA}.copy_registration.organization_id",
+            f"{SCHEMA}.copy_registration.scope_ref",
+            f"{SCHEMA}.copy_registration.copy_id",
+        ],
+    ),
+    ForeignKeyConstraint(
+        ["organization_id", "scope_ref", "operation_key"],
+        [
+            f"{SCHEMA}.copy_operation.organization_id",
+            f"{SCHEMA}.copy_operation.scope_ref",
+            f"{SCHEMA}.copy_operation.operation_key",
+        ],
+    ),
+    UniqueConstraint(
+        "organization_id", "scope_ref", "copy_id", "revision", name="copy_resolution_copy_revision"
+    ),
+    CheckConstraint("revision > 0", name="copy_resolution_revision"),
+)

@@ -224,3 +224,17 @@ Cancel acknowledgment distinct from deletion and never alters job tables. Confir
 current authority/proof before caller commit and forbid lease use after guard exit.
 No source/receipt network under DB lock. Persisted current-copy/verification-history
 composition remains next C4c checkpoint; lease alone neither writes nor closes BE1.
+
+## C4c7 atomic receipt resolution persistence
+
+Compose held exact receipt lease with own scope UPDATE UoW. Re-read original intent,
+delivery revision/reference and copy lifecycle; apply foundation purge transition or
+separate monotonic cancel acknowledgment. Persist strict original-profile current
+copy snapshot/CAS and immutable full proof+grant+binding/history/outbox atomically.
+Same receipt verification semantics (excluding renewed authority/time/expiry) has
+stable idempotency key; exact authorized retry no duplicate mutation. Never replace
+same receipt ID with changed hash or downgrade terminal deletion/provider cancel
+ack to fixture/pending. Actual-only remains classifier of adopted proof, no real
+provider call or BE1 closure. Forward ap_0009 own tables; current-source guards and
+proof deadline confirmed before commit. Test local positive/negative/rollback/replay
+and prepare PG composition/race/immutability cases for deferred runtime pack.

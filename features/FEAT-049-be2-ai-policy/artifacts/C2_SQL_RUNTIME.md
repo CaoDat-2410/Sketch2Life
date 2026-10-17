@@ -39,10 +39,21 @@ if ($LASTEXITCODE -ne 0) { throw 'BE2-14 ledger SQL evidence incomplete or faile
 if ($LASTEXITCODE -ne 0) { throw 'BE2-14 copy inventory SQL evidence incomplete or failed' }
 ```
 
-Expected: exact 15 lifecycle +10 activation/stop/current-use +19 ledger +49 copy
-inventory SQL JUnit test identities (93 total) in four separate
+Expected: exact 15 lifecycle +10 activation/stop/current-use +19 ledger +55 copy
+inventory SQL JUnit test identities (99 total) in four separate
 receipts, no fail/error/skip/extra/duplicate,
 unchanged current transitive source/config/test/runner hashes, runner exit 0.
+
+Latest C4c7 (parent544f499, use commit containing C4C7_ATOMIC_RESOLUTION evidence):
+ap_0009 adds own current lifecycle/CAS and immutable resolution history. Six new
+SQL cases cover reconnect/authorized exact retry, cancel acknowledgment separate
+from deletion, two immutable proof update/delete negatives, forced history-insert
+rollback of copy/event, and concurrent duplicate one-winner proof. Copy pack55,
+all four packs99 prepared/collected, NOT_RUN. Later counts below are historical.
+Owner batches external verification; this is not provisioning approval. Return
+all four source-pinned runner directories (redacted receipt/JUnit/check logs),
+not just a screenshot or a generic pytest PASS. Fixture/provider-kind classifiers
+are not actual provider integration, GPU behavior or production deletion proof.
 
 C4b2b1 adds five copy SQL cases: evidence reconnect/retry; two raw SQL immutable
 update/delete negatives; evidence-insert failure rolling back registration/event;

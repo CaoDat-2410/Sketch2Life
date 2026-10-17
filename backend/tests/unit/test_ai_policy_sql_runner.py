@@ -7,7 +7,8 @@ from pathlib import Path
 import pytest
 
 PATH = Path(__file__).resolve().parents[3] / (
-    "features/FEAT-049-be2-ai-policy/src/run_c2_sql_checks.py")
+    "features/FEAT-049-be2-ai-policy/src/run_c2_sql_checks.py"
+)
 
 
 @pytest.fixture
@@ -19,11 +20,19 @@ def runner():
     return module
 
 
-@pytest.mark.parametrize("mode,expected", [
-    ("pass", ("PASS", 0)), ("failure", ("FAIL", 1)), ("error", ("FAIL", 1)),
-    ("skipped", ("NOT_RUN", 2)), ("missing", ("NOT_RUN", 2)),
-    ("duplicate", ("FAIL", 1)), ("extra", ("FAIL", 1)), ("nonzero", ("FAIL", 1)),
-])
+@pytest.mark.parametrize(
+    "mode,expected",
+    [
+        ("pass", ("PASS", 0)),
+        ("failure", ("FAIL", 1)),
+        ("error", ("FAIL", 1)),
+        ("skipped", ("NOT_RUN", 2)),
+        ("missing", ("NOT_RUN", 2)),
+        ("duplicate", ("FAIL", 1)),
+        ("extra", ("FAIL", 1)),
+        ("nonzero", ("FAIL", 1)),
+    ],
+)
 def test_exact_cases_and_outcomes_required(runner, tmp_path, mode, expected):
     nodes = (runner.SUITE + "::test_first", runner.SUITE + "::test_second")
     path = tmp_path / "junit.xml"
@@ -32,13 +41,18 @@ def test_exact_cases_and_outcomes_required(runner, tmp_path, mode, expected):
     for name in ("test_first", "test_second"):
         if mode == "missing" and name == "test_second":
             continue
-        case = ET.SubElement(suite, "testcase",
-                              classname="tests.integration.ai_policy.test_policy_sql", name=name)
+        case = ET.SubElement(
+            suite, "testcase", classname="tests.integration.ai_policy.test_policy_sql", name=name
+        )
         if name == "test_first" and mode in {"failure", "error", "skipped"}:
             ET.SubElement(case, mode)
     if mode in {"duplicate", "extra"}:
-        ET.SubElement(suite, "testcase", classname="tests.integration.ai_policy.test_policy_sql",
-                      name="test_first" if mode == "duplicate" else "test_extra")
+        ET.SubElement(
+            suite,
+            "testcase",
+            classname="tests.integration.ai_policy.test_policy_sql",
+            name="test_first" if mode == "duplicate" else "test_extra",
+        )
     ET.ElementTree(root).write(path, encoding="utf-8")
     assert runner.classify(nodes, path, 1 if mode == "nonzero" else 0) == expected
 
@@ -52,8 +66,11 @@ def test_runner_requires_card_specific_explicit_opt_in(runner, monkeypatch):
 
 def test_runner_inventory_and_transitive_source_pin(runner):
     assert sum(runner.EXPECTED.values()) == 15
-    nodes = tuple(runner.SUITE + "::" + name + (f"[{index}]" if count > 1 else "")
-                  for name, count in runner.EXPECTED.items() for index in range(count))
+    nodes = tuple(
+        runner.SUITE + "::" + name + (f"[{index}]" if count > 1 else "")
+        for name, count in runner.EXPECTED.items()
+        for index in range(count)
+    )
     assert runner.valid_inventory(nodes)
     assert not runner.valid_inventory(nodes[:-1])
     assert not runner.valid_inventory((*nodes, nodes[0]))
@@ -77,8 +94,11 @@ def test_activation_inventory_is_separate_and_pins_its_test_dependencies(runner)
 
 
 def test_accounting_inventory_and_source_are_separate_from_older_sql_packs(runner):
-    nodes = tuple(runner.ACCOUNTING_SUITE + "::" + name + (f"[{i}]" if count > 1 else "")
-                  for name, count in runner.ACCOUNTING_EXPECTED.items() for i in range(count))
+    nodes = tuple(
+        runner.ACCOUNTING_SUITE + "::" + name + (f"[{i}]" if count > 1 else "")
+        for name, count in runner.ACCOUNTING_EXPECTED.items()
+        for i in range(count)
+    )
     assert len(nodes) == 19
     assert runner.inventory("\n".join(nodes), runner.ACCOUNTING_SUITE) == nodes
     assert runner.valid_inventory(nodes, runner.ACCOUNTING_EXPECTED)
@@ -100,9 +120,12 @@ def test_accounting_runner_also_requires_explicit_card_opt_in(runner, monkeypatc
 
 
 def test_copy_inventory_pack_exact_inventory_and_sources(runner):
-    nodes = tuple(runner.COPIES_SUITE + "::" + name + (f"[{i}]" if count > 1 else "")
-                  for name, count in runner.COPIES_EXPECTED.items() for i in range(count))
-    assert len(nodes) == 49
+    nodes = tuple(
+        runner.COPIES_SUITE + "::" + name + (f"[{i}]" if count > 1 else "")
+        for name, count in runner.COPIES_EXPECTED.items()
+        for i in range(count)
+    )
+    assert len(nodes) == 55
     assert runner.inventory("\n".join(nodes), runner.COPIES_SUITE) == nodes
     assert runner.valid_inventory(nodes, runner.COPIES_EXPECTED)
     assert not runner.valid_inventory(nodes[:-1], runner.COPIES_EXPECTED)

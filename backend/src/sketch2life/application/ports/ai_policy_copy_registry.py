@@ -11,6 +11,10 @@ from sketch2life.contracts.schemas.ai_policy_copy_candidates import (
 )
 from sketch2life.contracts.schemas.ai_policy_copy_delivery import CopyDeliveryAuthorityEvidence
 from sketch2life.contracts.schemas.ai_policy_copy_history import CopyInventoryEvidence
+from sketch2life.contracts.schemas.ai_policy_copy_lifecycle import (
+    CopyLifecycleRecord,
+    CopyResolutionObservation,
+)
 from sketch2life.contracts.schemas.ai_policy_copy_operation import (
     CopyOperationAuthorization,
     CopyOperationEnvelope,
@@ -78,6 +82,19 @@ class CopyCandidatePage:
 
 
 class ProviderCopyRegistryTransaction(Protocol):
+    def get_copy_lifecycle(self, copy_id: str) -> CopyLifecycleRecord: ...
+
+    def get_resolution(self, key: str) -> CopyResolutionObservation | None: ...
+
+    def save_resolution(
+        self,
+        before: CopyLifecycleRecord,
+        after: CopyLifecycleRecord,
+        observation: CopyResolutionObservation,
+    ) -> None:
+        """Atomic copy CAS/proof/history/outbox; caller holds current proof/owner guard."""
+        ...
+
     def delivery_candidates(self, request: CopyCandidateRequest) -> CopyCandidatePage:
         """Internal metadata under current owner read guard, never claim/retry authority."""
         ...
