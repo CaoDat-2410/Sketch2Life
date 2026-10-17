@@ -4,10 +4,11 @@ from __future__ import annotations
 
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, model_validator
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, TypeAdapter, model_validator
 
 from sketch2life.contracts.schemas.ai_contract_candidates import (
     ExactContentReviewCommandV1,
+    ExactContentReviewRecordV1,
     OpaqueId,
     Sha256Hex,
     ShortText,
@@ -140,3 +141,36 @@ ContentCommand = Annotated[
     Field(discriminator="action"),
 ]
 CONTENT_COMMAND_ADAPTER: TypeAdapter[ContentCommand] = TypeAdapter(ContentCommand)
+
+ContentStatus = Literal[
+    "draft", "submitted", "changes_requested", "published", "recalled", "archived"]
+
+
+class ContentRecord(StrictContentModel):
+    """DATA-33 server metadata, never raw authored content in a command receipt."""
+
+    contract_version: Literal["0.1-candidate"] = "0.1-candidate"
+    record_kind: Literal["learning_content"] = "learning_content"
+    record_id: OpaqueId
+    organization_id: OpaqueId
+    version: int = Field(ge=1)
+    revision: int = Field(ge=1)
+    hash: Sha256Hex
+    state: ContentStatus
+    authored_by: OpaqueId
+    created_at: AwareDatetime
+    context_revision: int = Field(ge=0)
+    review_revision: int = Field(ge=0)
+    publication_review_ref: PublicationReviewSet | None
+    recalled_at: AwareDatetime | None
+    recall_reason: ShortText | None
+
+
+class ContentCommandResult(StrictContentModel):
+    """Recorded result plus current exact-version state on an authorized replay."""
+
+    record: ContentRecord
+    review_record: ExactContentReviewRecordV1 | None = None
+    replayed: bool = False
+    current_revision: int = Field(ge=1)
+    current_state: ContentStatus

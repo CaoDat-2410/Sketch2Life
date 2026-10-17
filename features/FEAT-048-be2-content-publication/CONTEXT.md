@@ -1,5 +1,20 @@
 # FEAT-048 — BE2-12 content authoring, publication and recall
 
+## C3b application result — 2026-10-17
+
+All eight learning_content actions now use the application command service with
+current scoped capability checks, exact review context/audience/hash/version,
+record/review CAS, shared DATA-24 response and atomic receipt/history/outbox.
+Duplicates never reapply stale CAS or resurrect recalled/archived content;
+current publication/review eligibility is checked again on replay. Recall can
+remove content after its source/policy becomes ineligible. No shared owner source
+changed. 47 new component cases; selected local suite 293 PASS / no skip.
+Actual PostgreSQL: C2 9 + C3a 1 + C3b 8 PASS, including unique create-winner
+recovery, duplicate submit, rollback and application CAS races. Portable runtime
+stopped and removed. Owner guard/source/review adapters remain ASSUMED in tests;
+HTTP/delegates/consumer pack and real owner integration are not completed.
+See plan/C3_COMMAND_SEMANTICS.md and evidence/notes/C3B_COMMANDS_20261017.md.
+
 ## C3a eligibility result — 2026-10-17
 
 Published-content projection now checks scoped READ capability, exact current

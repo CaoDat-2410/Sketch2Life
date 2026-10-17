@@ -1,5 +1,23 @@
 # Feature decisions
 
+## D07 — C3b atomic commands and current replay — 2026-10-17
+
+Implement approved lifecycle application orchestration over existing storage and
+candidate outer owner guard. Shared DATA-24 source remains unchanged; its review
+record is preserved in the atomic receipt with DATA-33 response metadata. Stable
+server IDs derive from organization/principal/request; request fingerprint also
+binds full command and If-Match. Non-create receipt lookup is repeated after
+parent UPDATE; unique create conflicts recover the winner only after rollback,
+not by retrying arbitrary writes. Replays check current authority and effective
+content/review context, never authorize new usage from a cached success.
+
+Moderation is required for approval/publication, not a prerequisite for entering
+review or writing a negative review. Negative remediation and recall/archive do
+not require unsafe source content to pass publication eligibility. Current
+capability, exact target and CAS still apply. This follows P1–P3, not a new
+moderation/provider choice. SQL application tests use explicit ASSUMED owner
+ports; they prove content transactions/races, not real cross-owner fencing.
+
 ## D06 — C3a current eligibility before command orchestration — 2026-10-17
 
 Split C3 into cohesive application checkpoints, not function-level commits.
