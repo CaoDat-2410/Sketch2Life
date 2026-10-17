@@ -15,6 +15,7 @@ from sqlalchemy.pool import NullPool
 
 from alembic import context
 from sketch2life.infrastructure.ai_jobs.sql.tables import AI_JOBS_METADATA, AI_JOBS_SCHEMA
+from sketch2life.infrastructure.ai_policy.activation_tables import ACTIVATION_METADATA
 from sketch2life.infrastructure.ai_policy.tables import METADATA as POLICY_METADATA
 from sketch2life.infrastructure.ai_policy.tables import SCHEMA as POLICY_SCHEMA
 from sketch2life.infrastructure.config.settings import get_core_database_settings
@@ -30,6 +31,7 @@ if config.config_file_name is not None:
 target_metadata = [CorePersistenceBase.metadata, AI_JOBS_METADATA, CONTENT_METADATA]
 _MANAGED_SCHEMAS = {None, AI_JOBS_SCHEMA, CONTENT_SCHEMA}
 target_metadata.append(POLICY_METADATA)
+target_metadata.append(ACTIVATION_METADATA)
 _MANAGED_SCHEMAS.add(POLICY_SCHEMA)
 
 

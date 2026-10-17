@@ -10,5 +10,8 @@
 - C3A_REGISTRY_20261017: 59 new current/exact-ref validation fixture cases, 219
   own component +477 existing selected regression PASS. Registry adoption, durable
   authorization/revocation fencing, activation/limits/kill and SQL still NOT_RUN.
+- C3B_COMMANDS_20261017: 252 own component +477 existing regression PASS; eight
+  commands/effective pin/replay/rollback memory checks and forward DDL shape.
+  19 actual SQL cases prepared, NOT_RUN; no actual cancellation/production claims.
 - Keep raw outputs synthetic/redacted; secrets/runtime archives remain ignored.
 - After implementation, link exact source hashes/commands/results per acceptance.

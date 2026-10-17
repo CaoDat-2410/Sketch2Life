@@ -1,5 +1,20 @@
 # Feature decisions
 
+## D07 — commands and effective pin share one UoW, not a post-commit callback
+
+Approved P1/P2/P5 C3b adds eight command handlers and forward ap_0002 scope/epoch
+transition. Scope lock precedes parent record; target feature is revalidated after
+locks. New version cannot move an existing record to another feature, preventing
+ambiguous stale active pin routing; use separate independently governed record.
+Publication/disable/receipt/outbox atomic; replay never repeats effective changes.
+Withdrawn definitions do not prevent negative review or recall/archive remediation.
+Newly proposed proofs require current owner decisions, not assumed remote existence.
+Scope epoch0/null pin is not permission. No wildcard job cancellation or actual
+provider effect inferred from pending scope intent. C3c limits/emergency kill and
+C5 HTTP error catalogue/composition remain pending. C2 runtime tests now pin original
+ap_0001; new --activation pack covers current head separately, both NOT_RUN until
+environment authority exists. No previously published migration bytes modified.
+
 ## D06 — resolve exact adopted definitions, do not promote observations to grants
 
 C3a under approved P2 adds side-effect-free author validation via candidate

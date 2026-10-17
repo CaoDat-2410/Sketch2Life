@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Literal, Protocol
 
 from sketch2life.contracts.schemas.ai_policy import PolicyDefinitionRef
-from sketch2life.domain.ai_policy.model import Authority
+from sketch2life.domain.ai_policy.model import Authority, PolicyVersion, Review
 
 DefinitionKind = Literal["model_profile", "moderation", "retry", "budget", "concurrency"]
 
@@ -48,3 +48,21 @@ class PolicyRegistryBoundary(Protocol):
         No real adapter supplied by the local component/fixture checkpoint.
         """
         ...
+
+
+class PolicyCommandAccess(PolicyRegistryAccess, Protocol):
+    review_policy_version: str
+
+    def review_effective(self, policy: PolicyVersion, proof: Review) -> bool:
+        """Current exact reviewer/policy/safety approval check, including proposed proof.
+
+        Must support proofs just created in this transaction, not assume a separate
+        remote review service already persisted them. Hold real decisions through
+        commit. Unknown/revoked decisions are false; no permissive default adapter.
+        """
+        ...
+
+
+class PolicyCommandBoundary(Protocol):
+    def guard(self, principal_id: str,
+              organization_id: str) -> AbstractContextManager[PolicyCommandAccess]: ...
