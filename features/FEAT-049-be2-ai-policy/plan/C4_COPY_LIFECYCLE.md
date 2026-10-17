@@ -198,3 +198,15 @@ current state. Claim/completion evidence shares mutation UoW; dispatch evidence
 commits before hook in own UPDATE UoW. Evidence of preparing to send is not proof
 of send, ack or deletion. Forward ap_0008 own table/trigger; preserve frozen history.
 Test atomic rollback/proof binding/reconnect/immutability, PG remains NOT_RUN.
+
+## C4c5 bounded candidate discovery
+
+Internal query selects unclaimed intents, pending/exception and in-flight claims
+expired at explicit pinned as_of. Exclude unsupported/receipt-available and active
+claims; candidate is NOT a permission/retry decision or provider completeness.
+Closed typed request: first page supplies as_of, continuation only scoped cursor
+(org/scope/inventory revision/as_of/key), never independent replacement cutoff.
+Own scope SHARE/revision CAS prevents mixed-revision pages, empty missing-scope
+stays revision0. Bounded keyset SQL join/filter/limit+1, no unbounded Python scan
+or caller expression. Existing dispatcher still rechecks actual clock/current
+rights/retry/profile and CAS. Synthetic query/PG cases; no worker/live provider.

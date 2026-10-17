@@ -102,7 +102,7 @@ def test_accounting_runner_also_requires_explicit_card_opt_in(runner, monkeypatc
 def test_copy_inventory_pack_exact_inventory_and_sources(runner):
     nodes = tuple(runner.COPIES_SUITE + "::" + name + (f"[{i}]" if count > 1 else "")
                   for name, count in runner.COPIES_EXPECTED.items() for i in range(count))
-    assert len(nodes) == 47
+    assert len(nodes) == 49
     assert runner.inventory("\n".join(nodes), runner.COPIES_SUITE) == nodes
     assert runner.valid_inventory(nodes, runner.COPIES_EXPECTED)
     assert not runner.valid_inventory(nodes[:-1], runner.COPIES_EXPECTED)

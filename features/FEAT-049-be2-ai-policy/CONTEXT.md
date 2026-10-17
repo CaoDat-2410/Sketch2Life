@@ -1,6 +1,12 @@
 # FEAT-049 — BE2-14 AI policy / limits / kill switch
 
 - Goal: full BE2-14 card, including ProviderCopyLifecycle and redacted projections.
+- Latest C4c5 (2026-10-18): bounded scoped candidate SQL join/filter with typed
+  cutoff/revision cursor. Includes queued, pending/exception and expired claims;
+  excludes unsupported/receipt and active claims. Metadata only, dispatcher still
+  reauthorizes current actual time/retry policy and claim CAS. 846 own +477 selected
+  regression +114 foundation PASS; PG93 NOT_RUN. Next verified lifecycle/ack,
+  C5/C6 and real owner/provider adoption, no live worker/hook invoked.
 - Latest C4c4 (2026-10-18): immutable phase authority ap_0008, exact before-state
   history reconstruction/grant binding/transition checks in own UoW. Claim and
   completion proofs atomic with mutation; dispatch proof durable before hook,

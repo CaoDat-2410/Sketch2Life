@@ -5,6 +5,10 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Literal, Protocol
 
+from sketch2life.contracts.schemas.ai_policy_copy_candidates import (
+    CopyCandidateCursor,
+    CopyCandidateRequest,
+)
 from sketch2life.contracts.schemas.ai_policy_copy_delivery import CopyDeliveryAuthorityEvidence
 from sketch2life.contracts.schemas.ai_policy_copy_history import CopyInventoryEvidence
 from sketch2life.contracts.schemas.ai_policy_copy_operation import (
@@ -65,7 +69,19 @@ class CopyOperationPage:
     next_after: str | None
 
 
+@dataclass(frozen=True, slots=True)
+class CopyCandidatePage:
+    revision: int
+    as_of: datetime
+    operation_keys: tuple[str, ...]
+    next_cursor: CopyCandidateCursor | None
+
+
 class ProviderCopyRegistryTransaction(Protocol):
+    def delivery_candidates(self, request: CopyCandidateRequest) -> CopyCandidatePage:
+        """Internal metadata under current owner read guard, never claim/retry authority."""
+        ...
+
     def record_delivery_authority(self, evidence: CopyDeliveryAuthorityEvidence) -> None:
         """Historical phase grant in mutation/pre-dispatch UoW, never a live grant."""
         ...
