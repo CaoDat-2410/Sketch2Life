@@ -10,6 +10,7 @@
 | C2-RT | Direct local PostgreSQL, supersedes prior NOT_RUN | notes/C2_LOCAL_POSTGRES_20261017.md; metrics/C2_LOCAL_POSTGRES_20261017.json | 9 SQL PASS / 211 selected combined PASS; isolated runtime removed; not C3/C4 acceptance |
 | C3a | Guarded eligibility and published SQL projection | notes/C3A_ELIGIBILITY_20261017.md; metrics/C3A_ELIGIBILITY_20261017.json | 44 new / 136 selected component PASS; 9 C2 SQL + 1 projection SQL PASS; not mutation/HTTP/cross-owner acceptance |
 | C3b | Application lifecycle, exact review, atomic receipts and SQL races | notes/C3B_COMMANDS_20261017.md; metrics/C3B_COMMANDS_20261017.json | 47 new / 293 selected local PASS; 8 new SQL PASS plus 10 SQL regressions; assumed owner ports, not HTTP/production integration |
+| C4a | Content-only HTTP integration seam | notes/C4A_HTTP_20261017.md | 33 new / 326 selected local PASS; injected synthetic identity; not full typed governance dispatcher or real owner integration |
 
 No real child media, credentials, model outputs or external source documents
 are published. No runtime fixtures/tests are manufactured to claim completion.

@@ -23,15 +23,23 @@
 - Current selected local suite: 293 PASS / 0 skip (183 content, 110 foundation).
 - Current PostgreSQL: 9 C2 + 1 C3a + 8 C3b PASS; C3b includes actual SQL unique
   winner recovery, rollback and edit/review/publish/recall CAS cases.
-- HTTP/cross-owner integration: NOT_RUN, not yet wired. SQL owner ports remain ASSUMED.
+- C4a: candidate content-only HTTP seam 33 tests PASS; 326 selected local cases
+  PASS / 0 skip. All eight content actions, safe errors, strict If-Match/body
+  admission and inline OpenAPI verified with injected synthetic identity.
+- Full closed CMD-48 dispatcher/delegates and real cross-owner integration:
+  INCOMPLETE / NOT_RUN. Candidate content router is not mounted in default app.
+- SQL owner ports remain ASSUMED; C4a does not supersede C3 runtime source evidence.
 - Planning checks: harness, architecture, security and static AC/action inventory
   PASS; these are not implementation acceptance tests.
 - Approval: actual owner accepted revision 1/P1–P4 and continued implementation.
-- Remaining: C4 HTTP/dispatcher/consumer contract pack, C5 audit/handoff,
+- Remaining: C4 full typed dispatcher/owner delegates/real consumer adoption, C5 audit/handoff,
   and external authority/review/source adapter adoption/runtime gates.
-- Next: C4 sole typed CMD-48 dispatcher with owner delegates and safe HTTP integration seam.
+- Next: C5 traceability/handoff audit and owner contract review; do not invent
+  preset/AI/core-policy payloads to conceal CR-C4-01.
 - Evidence: evidence/notes/C2_LOCAL_POSTGRES_20261017.md; first runtime FAIL
   retained separately from final PASS and does not override it.
 - C3a evidence: evidence/notes/C3A_ELIGIBILITY_20261017.md and matching metrics.
 - C3b evidence: evidence/notes/C3B_COMMANDS_20261017.md and matching metrics.
+- C4a evidence: evidence/notes/C4A_HTTP_20261017.md; artifacts/CONTENT_HTTP_CANDIDATE.md;
+  artifacts/CR_C4_OWNER_DELEGATES.md (OPEN, no owner sign-off inferred).
 - Git: planning commit allowed by active goal; no push/merge/deploy.

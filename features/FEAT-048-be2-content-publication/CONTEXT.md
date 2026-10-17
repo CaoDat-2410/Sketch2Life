@@ -1,5 +1,19 @@
 # FEAT-048 — BE2-12 content authoring, publication and recall
 
+## C4a HTTP seam and owner contract gap — 2026-10-17
+
+Candidate content command router supports all eight actions on one POST path,
+with mandatory injected verified scope resolver, application guard checks,
+bounded JSON parsing, exact quoted If-Match, safe shared errors and complete
+inline content OpenAPI. No default app mount, identity bypass, delivery gateway
+or foreign-table write introduced. 33 new ASGI tests / 326 selected local PASS.
+This is NOT the full closed CMD-48 dispatcher. Current preset/policy owner schemas
+do not exist beyond lightweight DATA-33 shape checks; complete stage/notification
+and allowlisted policy shapes cannot be invented by BE2-12. CR-C4-01 records exact
+owner deliverables/adoption tests. API and runnable synthetic consumer examples
+are documented. Full dispatcher/real integration remain incomplete; C5 audit and
+handoff can proceed while awaiting contracts. See artifacts/CR_C4_OWNER_DELEGATES.md.
+
 ## C3b application result — 2026-10-17
 
 All eight learning_content actions now use the application command service with

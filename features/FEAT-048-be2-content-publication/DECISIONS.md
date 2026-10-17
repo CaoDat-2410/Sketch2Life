@@ -1,5 +1,22 @@
 # Feature decisions
 
+## D08 — C4a transport without inventing owner payloads — 2026-10-17
+
+Provide the planned content HTTP integration seam and all-eight-action consumer
+examples using injected verified server scope; do not mount candidate code in the
+default application before owner adoption. Use existing shared error envelope,
+bounded streaming admission supplied by composition, strong quoted record
+If-Match and no raw validation/adapter error echo. Keep BE1 CMD-59/60 as delivery
+gateway rather than adding a competing content GET route.
+
+Inspected schema/application source contains only DATA-33 lightweight ShapeSpec
+for preset/policy. SRS names fields but does not supply complete stage/notification
+rule or allowlisted AI/core-policy payloads. Do not invent them, pass untyped
+dicts or substitute arbitrary reference payloads. C4 remains incomplete with
+explicit CR-C4-01 owner schemas/typed port and real authority adoption request.
+Non-content bodies currently fail 422 in the candidate content seam, NOT final
+delegate-unavailable behavior. Do not claim full action/branch union acceptance.
+
 ## D07 — C3b atomic commands and current replay — 2026-10-17
 
 Implement approved lifecycle application orchestration over existing storage and
