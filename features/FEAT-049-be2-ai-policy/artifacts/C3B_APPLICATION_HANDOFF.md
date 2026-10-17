@@ -57,9 +57,9 @@ commit nested work under adopted guard; never use a returned pin as a bearer tok
 
 ## Verification status
 
-Latest 439 own component cases PASS +477 existing selected regression PASS. Components use
+Latest 488 own component cases PASS +477 existing selected regression PASS. Components use
 assumed boundary and transactional MEMORY store; not durable SQL/fence proof.
-Actual PostgreSQL 15 lifecycle +10 activation/stop/use +17 ledger cases prepared, NOT_RUN.
+Actual PostgreSQL 15 lifecycle +10 activation/stop/use +19 ledger cases prepared, NOT_RUN.
 Runtime command pack: artifacts/C2_SQL_RUNTIME.md. No real provider/owner integration,
 cost/load/purge/cancellation proof. Full-card BE2-14 remains IN_PROGRESS.
 
@@ -90,9 +90,9 @@ joins that UoW. Replays produce no delta/event. Forward ap_0003 protects immutab
 terms/terminal states/history; no old migration changed. Resource events are both
 audit and pending outbox intent, not completed delivery/provider receipts.
 
-This completes persistence code, NOT actual SQL verification or C3c application
-composition. C3c3c must bind current-use leases and authoritative quote/proof guards
-before ledger lock/through commit, implement safe command replay, and compose
-consume/release/reconcile after stop without reauthorizing AI. Never acquire owner
+This completes persistence code, NOT actual SQL verification. C3c3c now supplies
+ResourceAccountingService with held current-use/quote/proof guards, safe command
+replay and after-stop cleanup without reauthorizing AI. Real owner/evidence guard
+adapters remain unbound; see artifacts/C3C3_ACCOUNTING_HANDOFF.md. Never acquire owner
 policy locks from inside ledger lock or run provider network work under that lock.
 No route/default adapter mounted. AC06 and full BE2-14 remain open.

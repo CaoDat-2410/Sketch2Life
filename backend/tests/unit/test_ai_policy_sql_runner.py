@@ -79,7 +79,7 @@ def test_activation_inventory_is_separate_and_pins_its_test_dependencies(runner)
 def test_accounting_inventory_and_source_are_separate_from_older_sql_packs(runner):
     nodes = tuple(runner.ACCOUNTING_SUITE + "::" + name + (f"[{i}]" if count > 1 else "")
                   for name, count in runner.ACCOUNTING_EXPECTED.items() for i in range(count))
-    assert len(nodes) == 17
+    assert len(nodes) == 19
     assert runner.inventory("\n".join(nodes), runner.ACCOUNTING_SUITE) == nodes
     assert runner.valid_inventory(nodes, runner.ACCOUNTING_EXPECTED)
     assert not runner.valid_inventory(nodes[:-1], runner.ACCOUNTING_EXPECTED)
@@ -87,6 +87,7 @@ def test_accounting_inventory_and_source_are_separate_from_older_sql_packs(runne
     hashes = runner.source_hashes()
     assert "backend/tests/integration/ai_policy/test_accounting_sql.py" in hashes
     assert "backend/src/sketch2life/infrastructure/ai_policy/accounting_sql.py" in hashes
+    assert "backend/tests/ai_policy_accounting_fixtures.py" in hashes
     assert "backend/alembic/versions/20261017_ap_0003_resource_ledger.py" in hashes
 
 

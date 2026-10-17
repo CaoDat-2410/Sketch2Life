@@ -1,6 +1,12 @@
 # FEAT-049 — BE2-14 AI policy / limits / kill switch
 
 - Goal: full BE2-14 card, including ProviderCopyLifecycle and redacted projections.
+- Latest C3c3c: ResourceAccountingService composes held current-use lease,
+  authoritative quote/evidence guard and own ledger UoW. Stable original-pin/attempt
+  reservation id, native proof revalidation, current-rights/evidence replay and
+  cleanup after stop without new use permission. 49 new tests, 488 own component
+  PASS; actual PG inventory 44 (19 ledger), NOT_RUN. No actual owner/evidence adapter
+  mounted; snapshots are not dispatch grants. C4/C5/full-card acceptance still open.
 - Latest C3c3b: own five-table resource ledger, serialized org/feature lock,
   reservation/counters/receipt/audit intent UoW and forward ap_0003. Composite
   feature-scoped FKs, immutable terminal provenance and pending audit/outbox.
@@ -54,7 +60,8 @@
   160 BE2-14 component cases total; 15 actual PostgreSQL cases prepared/collected,
   NOT_RUN pending separately authorized environment. No server started/downloaded.
   Effective scope/epoch/reservation tables deferred to C3 when their behavior exists.
-- Next: C3c3c accounting application/current-use/quote/proof integration, then runtime races;
+- Next: C4 ProviderCopyLifecycle and remaining C5 safe binding/projections;
+  actual SQL/accounting race proof and real owner/provider adoption still separate;
   existing actual SQL pack still pending authority/proof;
   real production
   activation/provisioning and external adoption remain separate gates.

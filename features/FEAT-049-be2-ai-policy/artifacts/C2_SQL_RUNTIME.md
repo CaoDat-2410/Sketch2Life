@@ -37,8 +37,8 @@ if ($LASTEXITCODE -ne 0) { throw 'BE2-14 activation SQL evidence incomplete or f
 if ($LASTEXITCODE -ne 0) { throw 'BE2-14 ledger SQL evidence incomplete or failed' }
 ```
 
-Expected: exact 15 lifecycle +10 activation/stop/current-use +17 ledger SQL JUnit
-test identities (42 total) in three separate
+Expected: exact 15 lifecycle +10 activation/stop/current-use +19 ledger SQL JUnit
+test identities (44 total) in three separate
 receipts, no fail/error/skip/extra/duplicate,
 unchanged current transitive source/config/test/runner hashes, runner exit 0.
 Missing explicit AP opt-in -> exit 2/NOT_RUN, even if LC opt-in exists. Missing or
@@ -82,7 +82,10 @@ only cleans test DBs. No production migration, new server or install inferred.
   release frees original bucket/slot; audit failure rolls back terminal settlement;
   fixture overrun retained and blocks new reserve; five raw-SQL immutable-history
   cases; wrong org/feature denied. All numeric values/evidence synthetic, not
-  production definitions/provider cost. No service/current-use composition proven.
+  production definitions/provider cost. Two added SQL component cases compose
+  actual policy/ledger transactions with guarded reserve/settle and after-stop
+  reconcile (still ASSUMED external owner/quote/evidence). Real current-owner
+  fencing and actual provider verification are not proven by those fixtures.
 
 Prepared ledger cases: tests/integration/ai_policy/test_accounting_sql.py. They
 remain NOT_RUN until authorized PostgreSQL execution; offline compilation, codec
