@@ -5,7 +5,7 @@
 - Implementation status: IN_PROGRESS — C6b safe health/queue projection component; actual source/runtime gates open
 - Branch: feature/be2-08-14
 - Baseline: f0ff7a840d1910f1f80df327c3fd0239db5ea8e1
-- Current: parent a561128; typed scoped health/queue source and freshness-aware operations projection.
+- Current: code c43d258, handoff parent c43d258; consolidated receiver workflow/remaining-gate map.
 - BE2-14 component: 1061 PASS /0 skip (78 policy contract +34 accounting contract
   +47 accounting domain +46 policy domain +26 persistence
   shape/offline +15 runner +59 registry +29 command service +3 activation shape
@@ -26,7 +26,7 @@
   BE2-14 server started. C2 pins original migration; C3b upgrades new branch head.
   Owner asked asynchronously for isolated PG17 setup/test/cleanup approval, no
   approval fabricated from silence or prior BE2-12 provisioning authority.
-- Next: refresh full conformance/receiver handoff against current component and real adoption gates;
+- Next: authorized actual PG execution and adopted owner/kill/provider/telemetry integration;
   actual kill delivery gated by original policy-generation owner contract, plus
   actual SQL proof once authorized. Guarded accounting application composition now
   exists, but actual current-owner/terminal-evidence adapters remain unbound;
@@ -213,3 +213,13 @@
   C6a finding3 CLOSED_COMPONENT only, not actual live monitoring or full-card DONE.
   Evidence/consumer adoption: evidence/notes/C6B_HEALTH_QUEUE_20261018.md and
   artifacts/H_OPERATIONS_TELEMETRY_HANDOFF.md. Next full conformance/receiver audit.
+
+- C6c (2026-10-18): component receiver entrypoint now consolidates actual port
+  names/workflows, immutable provenance/lock boundaries and five unfinished groups:
+  actual SQL104, authority/registry/consumer adapters, generation-safe kill delivery,
+  provider/telemetry implementations and real conformance/acceptance. Explicitly
+  code gaps plus test gates, not only tests left. No new adapter or owner adoption.
+  ACCEPTANCE_AUDIT wording updated for C6b telemetry; local exact1061 pack rerun
+  against final source/docs,114 foundation/477 regression/64 source checks.
+  PG104 NOT_RUN and original BE2-12 real integration deferral unchanged.
+  Entrypoint artifacts/RECEIVER_CHECKPOINT.md; evidence/notes/C6C_RECEIVER_HANDOFF_20261018.md.

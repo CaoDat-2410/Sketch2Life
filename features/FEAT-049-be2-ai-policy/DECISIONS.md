@@ -1,5 +1,17 @@
 # Feature decisions
 
+## D30 — receiver handoff distinguishes missing implementation from missing tests
+
+2026-10-18 approved P5/AC12. Current component entrypoint maps actual inspected
+application/port/store names and responsibilities without fabricating adapters,
+teammate sign-off or live composition. Explicitly retain five unfinished groups,
+including generation-safe cancellation delivery and real authority/provider/
+telemetry implementations, not merely a future test run. Correct superseded
+AC12/health-queue local-gap wording without rewriting historical evidence/frozen
+plan. Original BE2-12 integration is independently deferred and not complete.
+No external provisioning/wiring from status request or automatic continuation;
+new runtime authority/owner contract choices still require actual approval/adoption.
+
 ## D29 — health/queue observations need source binding, expiry and truthful absence
 
 2026-10-18 approved P5/AC11/C6b. Explicit telemetry reader+exact source profile

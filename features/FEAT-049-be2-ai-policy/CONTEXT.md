@@ -1,6 +1,12 @@
 # FEAT-049 — BE2-14 AI policy / limits / kill switch
 
 - Goal: full BE2-14 card, including ProviderCopyLifecycle and redacted projections.
+- Latest C6c (2026-10-18): receiver entrypoint consolidates component workflows/
+  actual ports and unfinished SQL/authority/kill/provider/telemetry/conformance
+  work. Code c43d258; real adapter implementations not claimed complete. Exact1061
+  local pack/114 foundation/477 regression/64 source checks retained; PG104 NOT_RUN.
+  Next authorized runtime/adopted owner implementation, not arbitrary extra card
+  or production choice. BE1/P4 wiring still deferred; original goal not DONE.
 - Latest C6b (2026-10-18): own health/queue projection gap now component-addressed:
   explicitly bound source profile, scoped typed aggregate, fixture/runtime labels,
   unavailable/null, stale suppression and post-transaction freshness/rights checks.
