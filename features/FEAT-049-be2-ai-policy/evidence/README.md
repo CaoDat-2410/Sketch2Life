@@ -1,5 +1,10 @@
 # Evidence index — BE2-14
 
+- C5B_SAFE_OPERATIONS_20261018: allowlisted current-authorized policy/resource
+  projection, read-only own SQL adapter; 34 new local cases, 980 own +477 regression
+  +114 foundation PASS. SQL101 prepared/collected NOT_RUN. Recorded counters are
+  not actual provider cost; unknown null distinct from stored0. No live adoption.
+
 - C5A_POLICY_TRANSPORT_20261018: sole CMD-48 actual policy service/strict binding
   and closed safe HTTP errors, 51 new composition cases; 946 own +477 regression
   +114 foundation PASS. SQL99 NOT_RUN; no real auth/provider activation. Stop

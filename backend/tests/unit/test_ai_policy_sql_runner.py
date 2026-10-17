@@ -99,7 +99,7 @@ def test_accounting_inventory_and_source_are_separate_from_older_sql_packs(runne
         for name, count in runner.ACCOUNTING_EXPECTED.items()
         for i in range(count)
     )
-    assert len(nodes) == 19
+    assert len(nodes) == 21
     assert runner.inventory("\n".join(nodes), runner.ACCOUNTING_SUITE) == nodes
     assert runner.valid_inventory(nodes, runner.ACCOUNTING_EXPECTED)
     assert not runner.valid_inventory(nodes[:-1], runner.ACCOUNTING_EXPECTED)

@@ -1,6 +1,12 @@
 # FEAT-049 — BE2-14 AI policy / limits / kill switch
 
 - Goal: full BE2-14 card, including ProviderCopyLifecycle and redacted projections.
+- Latest C5b (2026-10-18): current-authorized policy/resource operations query,
+  allowlisted exact pin/epoch/state and optional historical window counters.
+  Null unknown vs stored0, fixture-inclusive ledger not actual cost. Read-only own
+  SQL adapter, no migration/route/default activation. 980 own +477 regression
+  +114 foundation PASS; PG101 prepared/collected NOT_RUN. Next safe copy projection/
+  conformance/C6; stop-generation contract and real owner/provider adoption open.
 - Latest C5a (2026-10-18): sole CMD-48 explicit actual policy service binding and
   closed safe policy HTTP errors; all8 actions exercised via existing factory.
   946 own +477 selected regression +114 foundation PASS; PG99 NOT_RUN unchanged.

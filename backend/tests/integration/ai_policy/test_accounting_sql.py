@@ -80,6 +80,67 @@ def count(store, table):
         return connection.scalar(select(func.count()).select_from(table))
 
 
+def test_operations_empty_read_does_not_create_ledger_scope_or_bucket(ledger_store):
+    from sketch2life.contracts.schemas.ai_policy_operations import PolicyOperationsRequest
+    from sketch2life.infrastructure.ai_policy.operations_sql import SqlResourceOperationsReader
+
+    before = count(ledger_store, RESOURCE_SCOPE), count(ledger_store, BUCKET)
+    snapshot = SqlResourceOperationsReader(ledger_store.engine).snapshot(
+        "school", PolicyOperationsRequest(feature_scope="fixture.feature")
+    )
+    assert snapshot.occupied_slots is None and not snapshot.bucket_available
+    assert snapshot.recorded_spent_units is None
+    assert before == (count(ledger_store, RESOURCE_SCOPE), count(ledger_store, BUCKET)) == (0, 0)
+
+
+def test_operations_reads_fixture_counters_not_actual_cost_and_scope_isolated(ledger_store):
+    from sketch2life.contracts.schemas.ai_policy_operations import (
+        BudgetWindowRef,
+        PolicyOperationsRequest,
+    )
+    from sketch2life.infrastructure.ai_policy.operations_sql import SqlResourceOperationsReader
+
+    key = TERMS.key
+    request = PolicyOperationsRequest(
+        feature_scope=key.feature_scope,
+        budget_window=BudgetWindowRef(
+            definition=dict(
+                ref=key.definition.ref, version=key.definition.version, hash=key.definition.hash
+            ),
+            unit=key.unit,
+            window_id=key.window_id,
+        ),
+    )
+    with ledger_store.transaction("school", "fixture.feature") as tx:
+        reserved = reserve(tx)
+        tx.settle("one", proof(reserved.reservation), event=event("operations-fixture-settle"))
+    ledger_store.engine.dispose()
+    reader = SqlResourceOperationsReader(ledger_store.engine)
+    before = tuple(
+        count(ledger_store, table) for table in (RESOURCE_SCOPE, BUCKET, RESERVATION, LEDGER_EVENT)
+    )
+    snapshot = reader.snapshot("school", request)
+    assert snapshot.bucket_available
+    assert (
+        snapshot.occupied_slots,
+        snapshot.recorded_held_units,
+        snapshot.recorded_spent_units,
+    ) == (0, 0, 3)
+    assert reader.snapshot("other-school", request).occupied_slots is None
+    wrong_feature = request.model_copy(update={"feature_scope": "other-feature"})
+    assert reader.snapshot("school", wrong_feature).recorded_spent_units is None
+    wrong_window = request.model_copy(
+        update={
+            "budget_window": request.budget_window.model_copy(update={"window_id": "other-window"})
+        }
+    )
+    missing = reader.snapshot("school", wrong_window)
+    assert missing.occupied_slots == 0 and missing.recorded_spent_units is None
+    assert before == tuple(
+        count(ledger_store, table) for table in (RESOURCE_SCOPE, BUCKET, RESERVATION, LEDGER_EVENT)
+    )
+
+
 def test_ledger_commit_reconnect_preserves_original_terms_and_terminal_proof(ledger_store):
     store = ledger_store
     with store.transaction("school", "fixture.feature") as tx:

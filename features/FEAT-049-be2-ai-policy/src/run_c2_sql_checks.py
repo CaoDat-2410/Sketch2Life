@@ -42,6 +42,8 @@ ACTIVATION_EXPECTED = {
 }
 ACCOUNTING_SUITE = "tests/integration/ai_policy/test_accounting_sql.py"
 ACCOUNTING_EXPECTED = {
+    "test_operations_empty_read_does_not_create_ledger_scope_or_bucket": 1,
+    "test_operations_reads_fixture_counters_not_actual_cost_and_scope_isolated": 1,
     "test_ledger_commit_reconnect_preserves_original_terms_and_terminal_proof": 1,
     "test_ledger_exception_rolls_back_counters_reservation_receipt_and_audit": 1,
     "test_ledger_duplicate_receipt_rolls_back_entire_second_reservation": 1,
