@@ -1,5 +1,19 @@
 # Feature decisions
 
+## D05 — C2 schema isolation and honest pending runtime — 2026-10-17
+
+Approved P5 gives own ai_policy lifecycle tables and independent frozen migration;
+register metadata/schema additively in existing Alembic environment. Existing
+published migration bytes and other modules' tests/logic unchanged. Record/review
+CAS, append-only proofs/receipts/events, atomic outbox and scoped FKs owned here.
+Store latest dimension proofs ordered by their own review revision so replacement
+roundtrip matches domain ordering while all originals remain queryable. No unused
+effective policy/kill epoch/reservation fields until C3 implementation uses them.
+Offline compiled DDL/actual Alembic render is not runtime proof. AP opt-in is
+separate from LC: BE2-12 isolated-server authorization is not reusable for BE2-14.
+15 PG cases prepared; no server install/start. Runtime approval requested; no
+claim that component regression proves actual migration or real current authority.
+
 ## D04 — strict policy review target and action round trips — 2026-10-17
 
 C1 uses own ai_policy review DTO under approved P1, never learning_content target

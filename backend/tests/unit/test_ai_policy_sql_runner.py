@@ -1,0 +1,63 @@
+"""Receipt classification, not a substitute for actual SQL execution."""
+
+import importlib.util
+import xml.etree.ElementTree as ET
+from pathlib import Path
+
+import pytest
+
+PATH = Path(__file__).resolve().parents[3] / (
+    "features/FEAT-049-be2-ai-policy/src/run_c2_sql_checks.py")
+
+
+@pytest.fixture
+def runner():
+    spec = importlib.util.spec_from_file_location("ai_policy_c2_runner", PATH)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+@pytest.mark.parametrize("mode,expected", [
+    ("pass", ("PASS", 0)), ("failure", ("FAIL", 1)), ("error", ("FAIL", 1)),
+    ("skipped", ("NOT_RUN", 2)), ("missing", ("NOT_RUN", 2)),
+    ("duplicate", ("FAIL", 1)), ("extra", ("FAIL", 1)), ("nonzero", ("FAIL", 1)),
+])
+def test_exact_cases_and_outcomes_required(runner, tmp_path, mode, expected):
+    nodes = (runner.SUITE + "::test_first", runner.SUITE + "::test_second")
+    path = tmp_path / "junit.xml"
+    root = ET.Element("testsuites")
+    suite = ET.SubElement(root, "testsuite")
+    for name in ("test_first", "test_second"):
+        if mode == "missing" and name == "test_second":
+            continue
+        case = ET.SubElement(suite, "testcase",
+                              classname="tests.integration.ai_policy.test_policy_sql", name=name)
+        if name == "test_first" and mode in {"failure", "error", "skipped"}:
+            ET.SubElement(case, mode)
+    if mode in {"duplicate", "extra"}:
+        ET.SubElement(suite, "testcase", classname="tests.integration.ai_policy.test_policy_sql",
+                      name="test_first" if mode == "duplicate" else "test_extra")
+    ET.ElementTree(root).write(path, encoding="utf-8")
+    assert runner.classify(nodes, path, 1 if mode == "nonzero" else 0) == expected
+
+
+def test_runner_requires_card_specific_explicit_opt_in(runner, monkeypatch):
+    monkeypatch.delenv("AP_TEST_ALLOW_CREATE", raising=False)
+    monkeypatch.delenv("AP_TEST_PG_HOST", raising=False)
+    monkeypatch.setenv("LC_TEST_ALLOW_CREATE", "1")
+    assert runner.main() == 2
+
+
+def test_runner_inventory_and_transitive_source_pin(runner):
+    assert sum(runner.EXPECTED.values()) == 15
+    nodes = tuple(runner.SUITE + "::" + name + (f"[{index}]" if count > 1 else "")
+                  for name, count in runner.EXPECTED.items() for index in range(count))
+    assert runner.valid_inventory(nodes)
+    assert not runner.valid_inventory(nodes[:-1])
+    assert not runner.valid_inventory((*nodes, nodes[0]))
+    hashes = runner.source_hashes()
+    assert "backend/tests/unit/test_ai_policy_domain.py" in hashes
+    assert "backend/src/sketch2life/infrastructure/ai_policy/sql.py" in hashes
+    assert "backend/alembic/versions/20261017_ap_0001_policy_lifecycle.py" in hashes

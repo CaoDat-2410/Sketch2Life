@@ -1,7 +1,7 @@
-"""Alembic environment for independently owned core, ai_jobs and learning_content schemas.
+"""Alembic environment for independently owned core, jobs, content and AI policy.
 
 One environment, one ``alembic_version`` table, independent module branches (``be1_core``,
-``ai_jobs``, ``learning_content``). Autogenerate compares only these managed schemas;
+``ai_jobs``, ``learning_content``, ``ai_policy``). Compare only these managed schemas;
 it never reflects or drops objects in other schemas.
 """
 
@@ -15,6 +15,8 @@ from sqlalchemy.pool import NullPool
 
 from alembic import context
 from sketch2life.infrastructure.ai_jobs.sql.tables import AI_JOBS_METADATA, AI_JOBS_SCHEMA
+from sketch2life.infrastructure.ai_policy.tables import METADATA as POLICY_METADATA
+from sketch2life.infrastructure.ai_policy.tables import SCHEMA as POLICY_SCHEMA
 from sketch2life.infrastructure.config.settings import get_core_database_settings
 from sketch2life.infrastructure.learning_content.tables import METADATA as CONTENT_METADATA
 from sketch2life.infrastructure.learning_content.tables import SCHEMA as CONTENT_SCHEMA
@@ -27,6 +29,8 @@ if config.config_file_name is not None:
 
 target_metadata = [CorePersistenceBase.metadata, AI_JOBS_METADATA, CONTENT_METADATA]
 _MANAGED_SCHEMAS = {None, AI_JOBS_SCHEMA, CONTENT_SCHEMA}
+target_metadata.append(POLICY_METADATA)
+_MANAGED_SCHEMAS.add(POLICY_SCHEMA)
 
 
 def _include_name(name: str | None, type_: str, parent_names: object) -> bool:
