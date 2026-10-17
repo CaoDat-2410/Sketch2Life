@@ -2,6 +2,13 @@
 
 ## Receiver next-card planning — 2026-10-17
 
+Latest: owner approved BE2-14 revision 1/P1–P5 by direct reply "duyệt"; approval
+commit da38618, FEAT049 now IN_PROGRESS. C1 strict policy contracts/pure lifecycle
+has 124 own component PASS and 477 existing selected regression PASS. SQL/runtime
+activation and real owner/provider integration NOT_RUN. Production values/provider
+choices/provisioning are not inferred. Earlier pending-plan statements below are
+historical. Reviewed plan bytes/hash remain unchanged.
+
 Receiver branch is now feature/be2-08-14 (owner-requested local rename). BE2-12
 component/owned SQL checkpoint 6931daa and integration-deferral handoff f0ff7a8
 are available; owner leaves real BE1/P4 wiring to teammates. This is not full

@@ -1,5 +1,18 @@
 # Feature decisions
 
+## D04 — strict policy review target and action round trips — 2026-10-17
+
+C1 uses own ai_policy review DTO under approved P1, never learning_content target
+or a modified DATA-24 schema. Strict action-specific presence rejects spare/null
+fields; wrap serializer omits absent fields to retain valid receipt/binding round
+trips. First run exposed default serialization adding spare nulls (8 FAIL/108 PASS);
+fixed serializer without permitting client null spare fields. Existing dispatcher
+binding remains unchanged. Literal[True] gates additionally require actual bool,
+not coercible 1. Profile/definition refs are shape only until trusted registry
+validation in application, not proof of compatible/adopted runtime settings.
+Pure domain is separately owned and framework-free; services will retain original
+proof history, own global CAS and external current-proof eligibility through commit.
+
 ## D03 — actual revision-1 implementation approval — 2026-10-17
 
 Owner replied "duyệt" to the immediately preceding explicit request to approve
