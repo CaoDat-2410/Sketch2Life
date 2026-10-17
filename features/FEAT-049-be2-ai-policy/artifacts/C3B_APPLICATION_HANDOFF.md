@@ -43,13 +43,16 @@ adapter mapping and bounded operations policy remain to implement/adopt.
 
 Epoch0/null pin is unusable even with disabled=false. Runtime code must never treat
 that boolean alone, a validation receipt or a cached event as permission to run AI.
-Emergency kill before publication, atomic budget/concurrency reservations and actual
-current-work eligibility are still C3c, not a fabricated CMD-48 ninth action here.
+Emergency stop before publication is now supplied separately by AiPolicyEmergencyStop
+with strict backend-only EmergencyStopCommand. It requires current DISABLE, exact
+scope epoch and reason, atomically records stop intent/receipt, and rejects stale
+replay after reactivation. No endpoint or CMD-48 ninth action is added. Atomic
+budget/concurrency and actual current-work eligibility remain later C3c work.
 
 ## Verification status
 
-252 own component cases PASS +477 existing selected regression PASS. New C3b uses
+Latest 283 own component cases PASS +477 existing selected regression PASS. C3b/C3c1 use
 assumed boundary and transactional MEMORY store; not durable SQL/fence proof.
-Actual PostgreSQL 15 lifecycle +4 activation cases are prepared/collected, NOT_RUN.
+Actual PostgreSQL 15 lifecycle +7 activation/stop cases prepared/collected, NOT_RUN.
 Runtime command pack: artifacts/C2_SQL_RUNTIME.md. No real provider/owner integration,
 cost/load/purge/cancellation proof. Full-card BE2-14 remains IN_PROGRESS.

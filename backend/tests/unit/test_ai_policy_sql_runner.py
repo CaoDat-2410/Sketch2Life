@@ -65,7 +65,7 @@ def test_runner_inventory_and_transitive_source_pin(runner):
 
 def test_activation_inventory_is_separate_and_pins_its_test_dependencies(runner):
     nodes = tuple(runner.ACTIVATION_SUITE + "::" + name for name in runner.ACTIVATION_EXPECTED)
-    assert len(nodes) == 4
+    assert len(nodes) == 7
     assert runner.inventory("\n".join(nodes), runner.ACTIVATION_SUITE) == nodes
     assert runner.valid_inventory(nodes, runner.ACTIVATION_EXPECTED)
     assert not runner.valid_inventory(nodes)
