@@ -1,5 +1,25 @@
 # BE2-12 receiver checkpoint — candidate handoff, NOT integrated DONE
 
+## Owner instruction: teammates wire later
+
+On 2026-10-17 owner explicitly replied that BE1/P4 wiring is not needed now and
+teammates will do it later. Actual quote: approvals/TASK_APPROVAL.md. Component
+code/evidence checkpoint: 6931daa, local feature/be2-08-14. Integration is deferred,
+not waived or reported PASS; do not block handing over this code on adapter
+availability or infer another card's implementation approval.
+
+| Receiving work | Required later, before integrated acceptance |
+|---|---|
+| BE1/P4 verified scope and access | Bind real identity and ContentBoundary; prove current authority/source/review revocation through commit, not role-name grants |
+| BE1/P4 recall/audit consumer | Adopt fixed logical sink, authenticated bounded transport and durable dedup; preserve pinned history; refs/notices never grant usage |
+| BE2-13/14 and BE1-15 | Define/adopt concrete preset/AI/core policy models and handlers, bind to existing CMD-48 slots; no second command route |
+| Integration composition | Mount exactly one router with real dependencies, wire session-start consistency, run actual owner conformance and closure review |
+
+Producer delivery service, consumer contracts, exact reference queries, examples
+and component/SQL commands below are already available. No credentials, running
+DB or media/model stack is needed simply to pull/read this checkpoint. Existing
+local commands verify components, not the missing real integrations above.
+
 Current handoff entrypoint, 2026-10-17. Receiver owns BE2-08–14; sender owns 01–07.
 Work branch feature/be2-08-14 (user-requested local rename; scope still BE2-12).
 No push/merge/deploy authorized
