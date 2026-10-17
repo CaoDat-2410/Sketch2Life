@@ -1,8 +1,8 @@
-"""Alembic environment for the BE1-02 core relational schema and the BE2 ``ai_jobs`` branch.
+"""Alembic environment for independently owned core, ai_jobs and learning_content schemas.
 
 One environment, one ``alembic_version`` table, independent module branches (``be1_core``,
-``ai_jobs``). Autogenerate compares only the default schema and ``ai_jobs``; it never reflects
-or drops objects in other schemas.
+``ai_jobs``, ``learning_content``). Autogenerate compares only these managed schemas;
+it never reflects or drops objects in other schemas.
 """
 
 from __future__ import annotations
@@ -16,6 +16,8 @@ from sqlalchemy.pool import NullPool
 from alembic import context
 from sketch2life.infrastructure.ai_jobs.sql.tables import AI_JOBS_METADATA, AI_JOBS_SCHEMA
 from sketch2life.infrastructure.config.settings import get_core_database_settings
+from sketch2life.infrastructure.learning_content.tables import METADATA as CONTENT_METADATA
+from sketch2life.infrastructure.learning_content.tables import SCHEMA as CONTENT_SCHEMA
 from sketch2life.infrastructure.persistence import be1_models as _be1_models  # noqa: F401
 from sketch2life.infrastructure.persistence.core_models import CorePersistenceBase
 
@@ -23,8 +25,8 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-target_metadata = [CorePersistenceBase.metadata, AI_JOBS_METADATA]
-_MANAGED_SCHEMAS = {None, AI_JOBS_SCHEMA}
+target_metadata = [CorePersistenceBase.metadata, AI_JOBS_METADATA, CONTENT_METADATA]
+_MANAGED_SCHEMAS = {None, AI_JOBS_SCHEMA, CONTENT_SCHEMA}
 
 
 def _include_name(name: str | None, type_: str, parent_names: object) -> bool:
