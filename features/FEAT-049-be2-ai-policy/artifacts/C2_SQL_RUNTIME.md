@@ -39,8 +39,8 @@ if ($LASTEXITCODE -ne 0) { throw 'BE2-14 ledger SQL evidence incomplete or faile
 if ($LASTEXITCODE -ne 0) { throw 'BE2-14 copy inventory SQL evidence incomplete or failed' }
 ```
 
-Expected: exact 15 lifecycle +10 activation/stop/current-use +19 ledger +19 copy
-inventory SQL JUnit test identities (63 total) in four separate
+Expected: exact 15 lifecycle +10 activation/stop/current-use +19 ledger +21 copy
+inventory SQL JUnit test identities (65 total) in four separate
 receipts, no fail/error/skip/extra/duplicate,
 unchanged current transitive source/config/test/runner hashes, runner exit 0.
 Missing explicit AP opt-in -> exit 2/NOT_RUN, even if LC opt-in exists. Missing or
@@ -105,6 +105,9 @@ and stale scan rejection; coverage report invalidation/CAS/cross-scope rejection
 registration vs purge scope race and late initial quarantine; concurrent duplicate
 register; five raw-SQL immutable-original/coverage/audit/unpurge cases; read-only/
 org/scope isolation; missing-scope reader cannot mix a later insert into revision0.
-19 prepared actual SQL cases, NOT_RUN until authorized profile executes this pack.
+21 prepared actual SQL cases, NOT_RUN until authorized profile executes this pack.
+Two added service cases authenticate ASSUMED source/owner proofs over actual own
+SQL register/coverage/fence/late registration and roll back on precommit revocation.
+They are not genuine BE1 owner-fence/actual provider-source authentication proof.
 Inventory/coverage code is not current-copy lifecycle, actual discovery/deletion,
 provider dispatch/cancellation or BE1 overall request closure proof.

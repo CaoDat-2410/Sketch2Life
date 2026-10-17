@@ -57,9 +57,9 @@ commit nested work under adopted guard; never use a returned pin as a bearer tok
 
 ## Verification status
 
-Latest 561 own component cases PASS +477 existing selected regression PASS. Components use
+Latest 617 own component cases PASS +477 existing selected regression PASS. Components use
 assumed boundary and transactional MEMORY store; not durable SQL/fence proof.
-Actual PostgreSQL 15 lifecycle +10 activation/stop/use +19 ledger +19 copy inventory
+Actual PostgreSQL 15 lifecycle +10 activation/stop/use +19 ledger +21 copy inventory
 cases prepared, NOT_RUN.
 Runtime command pack: artifacts/C2_SQL_RUNTIME.md. No real provider/owner integration,
 cost/load/purge/cancellation proof. Full-card BE2-14 remains IN_PROGRESS.
@@ -112,3 +112,8 @@ monotonic scope purge fence, late initial quarantine, revision-bound pages and
 scoped coverage reports. See artifacts/C4B1_COPY_INVENTORY_HANDOFF.md. These are
 inventory/initial metadata, NOT current lifecycle/dispatch or provider completeness.
 Current-owner service/operation intent orchestration remains C4b2; CR remains OPEN.
+
+C4b2a now supplies ProviderCopyInventoryService with current action-specific
+authority/source proof validation and precommit confirmation over own registry.
+See artifacts/C4B2A_INVENTORY_SERVICE_HANDOFF.md. No production owner/source adapter
+or durable operation/evidence history supplied yet; CR remains OPEN, C4b2b/C4c open.

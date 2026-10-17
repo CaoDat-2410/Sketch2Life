@@ -7,6 +7,7 @@ from datetime import UTC, datetime
 from pydantic import TypeAdapter
 
 from sketch2life.application.ai_policy_commands import _digest
+from sketch2life.application.ai_policy_copy_authority import validate_copy_grant
 from sketch2life.application.ports.ai_policy_copy import ProviderCopyVerificationBoundary
 from sketch2life.contracts.schemas.ai_contract_candidates import OpaqueId
 from sketch2life.contracts.schemas.ai_policy import PolicyDefinitionRef
@@ -43,24 +44,7 @@ class ProviderCopyReceiptVerifier:
     def _grant(
         self, grant: CopyAuthorityGrant, principal: str, org: str, digest: str
     ) -> CopyAuthorityGrant:
-        try:
-            grant = CopyAuthorityGrant.model_validate(grant.model_dump(mode="python"), strict=True)
-            now = self.clock()
-            if now.utcoffset() is None:
-                raise ValueError("naive clock")
-        except (TypeError, ValueError, AttributeError):
-            raise PolicyError("AI_POLICY_COPY_AUTHORITY_MISMATCH") from None
-        if (grant.principal_id, grant.organization_id, grant.command_digest) != (
-            principal,
-            org,
-            digest,
-        ):
-            raise PolicyError("AI_POLICY_COPY_AUTHORITY_MISMATCH")
-        if grant.allowed is not True:
-            raise PolicyError("AI_POLICY_FORBIDDEN")
-        if grant.expires_at <= now:
-            raise PolicyError("AI_POLICY_COPY_AUTHORITY_EXPIRED")
-        return grant
+        return validate_copy_grant(grant, principal, org, digest, self.clock())
 
     @contextmanager
     def purge_receipt(

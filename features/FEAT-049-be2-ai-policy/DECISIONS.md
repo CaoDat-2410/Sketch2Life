@@ -1,5 +1,29 @@
 # Feature decisions
 
+## D15 — source assertions come from guarded backend, not inventory caller
+
+Approved P4 C4b2a adds reference-only context/read calls and guarded inventory
+service. Register includes exact source ref/hash; coverage accepts only revision
+and attestation ref. Backend source resolver authenticates original provenance/
+explicit scoped observation; strict proof/native output validation rejects caller
+booleans and substituted org/scope/digest/revision/reference. Separate action tags
+in canonical digest preserve independent register/read/coverage/fence authority.
+Replay still verifies current source/rights. Own current grant validation shared
+with C4a without changing foundation/shared owner code.
+
+Owner/source guard precedes registry UoW and stays held to commit; confirmation
+checks unchanged current authority/deadline and source expiry before UoW exit.
+Confirmation must use pre-acquired fences, not new outer locks/network under DB
+lock. Actual owner deadline-at-commit adoption is not proven by prechecks/mutex.
+An error after own DB commit is uncertain response, not fabricated rollback;
+exact registration/fence retry rechecks authority and cannot duplicate mutation.
+
+Read returns stored coverage as reported metadata, not newly authenticated global
+provider completeness. Source-proof validation is guarded but not durable source
+evidence history yet; registration persists original profile/id only. Next operation
+envelope/evidence persistence remains C4b2b; dispatch/typed acknowledgments/current
+copy lifecycle/receipt application C4c. Real authority/provider/PG65 NOT_RUN, not DONE.
+
 ## D14 — durable original inventory, not inferred provider-wide completion
 
 Approved P4/P5 C4b1 adds own ai_policy copy_scope/registration/coverage/registry_event
