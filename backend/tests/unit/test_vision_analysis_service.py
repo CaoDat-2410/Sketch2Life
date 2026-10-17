@@ -571,13 +571,26 @@ def test_v15_provider_never_receives_age_or_child_content() -> None:
     h.service.submit_correction(h.correction(DEVICE_A, analysis_id, explanation="stripes"))
     (request,) = _provider(h).requests
     assert request.typed_context is not None
-    # The typed envelope carries a policy reference, never ages, names or child statements.
-    assert {f.name for f in fields(request.typed_context)} == {
-        "context_revision", "purpose_code", "topic_ref", "age_policy_ref"}
+    # C2 supersedes the C1 fake-only envelope (context_revision/purpose_code/topic_ref/
+    # age_policy_ref) with the pinned minimized projection + opaque binding. The guard stays
+    # an exact allowlist: anonymous age bands only, never exact ages, ids or child statements.
+    # Actual serialized provider bytes are checked in test_vision_context_adapter.py.
+    assert {f.name for f in fields(request.typed_context)} == {"projection", "binding"}
+    assert {f.name for f in fields(request.typed_context.projection)} == {
+        "context_revision", "teacher_topic", "audience_age_bands", "age_band_policy_ref",
+        "age_band_policy_version", "request_reason", "target_kind", "requested_level",
+        "source_image_sha256"}
+    assert {f.name for f in fields(request.typed_context.binding)} == {
+        "context_contract", "context_contract_version", "canonical_rules_version",
+        "context_revision", "payload_digest", "context_digest", "age_band_policy_ref",
+        "age_band_policy_version"}
     assert {f.name for f in fields(request)} == {
         "correlation_id", "organization_id", "render", "admission", "context_mode",
         "typed_context", "processing_image_ref"}
+    projected = repr(request.typed_context)
     assert "stripes" not in repr(request) and "tiger" not in repr(request)
+    assert CHILD_A not in projected and "60" not in str(
+        request.typed_context.projection.canonical()["audience_age_bands"])
 
 
 # ---------------------------------------------------------------------- V14

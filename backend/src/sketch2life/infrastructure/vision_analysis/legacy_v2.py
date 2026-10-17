@@ -9,6 +9,11 @@ correlation/image/profile check it verifies the canonical catalog and config has
 version, model provenance, policy versions and the raw confidence types, and it maps the whole
 original typed result and returns its canonical document for retention. There is no retry: at
 most one transport call per observation.
+
+C2 reuses the pure pre-call checks, V2 request construction, outcome mapping, result
+verification and observation mapping below (``precheck_image_request``, ``v2_request_for``,
+``failure_for``, ``verify_v2_success``, ``map_v2_observation``) from the typed-context adapter;
+the bridge's own behaviour is unchanged.
 """
 
 from __future__ import annotations
@@ -32,7 +37,9 @@ from sketch2life.contracts.schemas.vision import (
     VisionMediaValidationProvenanceV1,
 )
 from sketch2life.contracts.schemas.vision_v2 import (
+    VisionProfileCatalogV2,
     VisionProfileIdV2,
+    VisionProfileV2,
     VisionUnderstandingFailureV2,
     VisionUnderstandingRequestV2,
     VisionUnderstandingSuccessV2,
@@ -44,6 +51,7 @@ from sketch2life.domain.ai_jobs.completion import canonical_json
 from sketch2life.domain.vision_analysis import (
     SUPPORTED_RENDER_MEDIA_TYPES,
     ActionObservation,
+    AdmissionReceipt,
     AmbiguousRegionObservation,
     AnalysisRuleViolation,
     EntityObservation,
@@ -55,11 +63,13 @@ from sketch2life.domain.vision_analysis import (
     OriginalObservation,
     ProviderContextMode,
     RelationObservation,
+    RenderBinding,
     ThemeObservation,
     document_sha256,
     observation_bounds_violation,
     require_confidence,
 )
+from sketch2life.domain.vision_context import ContextCapability
 from sketch2life.infrastructure.ai.lightning_client import JsonTransport, UrllibJsonTransport
 from sketch2life.infrastructure.ai.lightning_vision_v2 import LightningVisionV2Adapter
 from sketch2life.infrastructure.ai.vision_lexical_policy import (
@@ -126,38 +136,20 @@ class LegacyVisionV2Bridge:
     def supported_context_modes(self) -> frozenset[ProviderContextMode]:
         return frozenset({ProviderContextMode.IMAGE_ONLY})
 
+    @property
+    def context_capability(self) -> ContextCapability | None:
+        return None
+
     def observe(self, request: ObservationRequest) -> ObservationOutcome:
         if (
             request.context_mode is not ProviderContextMode.IMAGE_ONLY
             or request.typed_context is not None
         ):
             return ObservationFailed(ObservationFailureCode.CONTEXT_MODE_UNSUPPORTED, False)
-        if request.processing_image_ref is not None:
-            return ObservationFailed(ObservationFailureCode.DERIVED_INPUT_UNSUPPORTED, False)
-        render, admission = request.render, request.admission
-        if render.media_type not in SUPPORTED_RENDER_MEDIA_TYPES:
-            return ObservationFailed(ObservationFailureCode.MEDIA_TYPE_UNSUPPORTED, False)
-        if (
-            admission.render_ref != render.render_ref
-            or admission.render_sha256 != render.render_sha256
-            or admission.decision != "PASS"
-        ):
-            return ObservationFailed(ObservationFailureCode.ADMISSION_NOT_BOUND, False)
-
-        v2_request = VisionUnderstandingRequestV2(
-            correlation_id=request.correlation_id,
-            source_image_ref=VisionImageReferenceV1(
-                artifact_ref=render.render_ref, sha256=render.render_sha256
-            ),
-            # Legacy field filled only from the trusted receipt already bound to this render.
-            media_validation=VisionMediaValidationProvenanceV1(
-                validation_artifact_ref=admission.receipt_id,
-                validation_artifact_sha256=admission.receipt_sha256,
-                decision="PASS",
-                validator_policy_version=admission.policy_version,
-            ),
-            requested_profile_id=self._profile.profile_id,
-        )
+        refused = precheck_image_request(request)
+        if refused is not None:
+            return refused
+        v2_request = v2_request_for(request, self._profile.profile_id)
         recorder = _RecordingTransport(self._transport)
         adapter = LightningVisionV2Adapter(
             transport=recorder,
@@ -174,17 +166,13 @@ class LegacyVisionV2Bridge:
                                      detail="LEGACY_ADAPTER_CONTRACT_ERROR")
         invoked = recorder.calls > 0
         if isinstance(result, VisionUnderstandingFailureV2):
-            return ObservationFailed(
-                _FAILURE_CODES[result.error_code],
-                invoked,
-                retryable=result.retryable,
-                detail=str(result.error_detail),
-            )
-        mismatch = self._verify(result, v2_request, recorder.raw)
+            return failure_for(result, invoked)
+        mismatch = verify_v2_success(result, v2_request, recorder.raw, catalog=self._catalog,
+                                     profile=self._profile, policy=self._policy)
         if mismatch is not None:
             return ObservationFailed(ObservationFailureCode.OUTPUT_MALFORMED, invoked,
                                      detail=mismatch)
-        observation = _map_observation(result)
+        observation = map_v2_observation(result)
         # Every mapped bound the DATA-22 contracts enforce is checked before acceptance, so an
         # accepted analysis always projects (C1-R04); the original is never truncated.
         violation = observation_bounds_violation(observation)
@@ -215,34 +203,91 @@ class LegacyVisionV2Bridge:
         )
         return ObservationSucceeded(observation, evidence, moderation, result_document=document)
 
-    def _verify(
-        self,
-        result: VisionUnderstandingSuccessV2,
-        request: VisionUnderstandingRequestV2,
-        raw: Mapping[str, object] | None,
-    ) -> str | None:
-        if (
-            result.correlation_id != request.correlation_id
-            or result.source_image_ref != request.source_image_ref
-            or result.profile_id is not request.requested_profile_id
-        ):
-            return "IDENTITY_MISMATCH"
-        if result.profile_catalog_hash != vision_profile_catalog_hash_v2(self._catalog):
-            return "CATALOG_HASH_MISMATCH"
-        if result.config_hash != vision_profile_config_hash_v2(self._profile):
-            return "CONFIG_HASH_MISMATCH"
-        if result.adapter_version != self._profile.adapter_version:
-            return "ADAPTER_VERSION_MISMATCH"
-        if result.model_provenance != self._profile.model_provenance:
-            return "MODEL_PROVENANCE_MISMATCH"
-        if (
-            result.content_policy_version != self._policy.content_policy_version
-            or result.policy_match_view_version != self._policy.policy_match_view_version
-        ):
-            return "POLICY_VERSION_MISMATCH"
-        if raw is None or not _raw_confidences_strict(raw):
-            return "CONFIDENCE_NOT_STRICT"
-        return None
+
+# ------------------------------------------------- pure helpers shared with the C2 adapter
+def precheck_image_request(request: ObservationRequest) -> ObservationFailed | None:
+    """Refusals before any image load or call: derived input, media type, admission binding."""
+
+    if request.processing_image_ref is not None:
+        return ObservationFailed(ObservationFailureCode.DERIVED_INPUT_UNSUPPORTED, False)
+    render, admission = request.render, request.admission
+    if render.media_type not in SUPPORTED_RENDER_MEDIA_TYPES:
+        return ObservationFailed(ObservationFailureCode.MEDIA_TYPE_UNSUPPORTED, False)
+    if not _admission_bound(render, admission):
+        return ObservationFailed(ObservationFailureCode.ADMISSION_NOT_BOUND, False)
+    return None
+
+
+def _admission_bound(render: RenderBinding, admission: AdmissionReceipt) -> bool:
+    return (
+        admission.render_ref == render.render_ref
+        and admission.render_sha256 == render.render_sha256
+        and admission.decision == "PASS"
+    )
+
+
+def v2_request_for(
+    request: ObservationRequest, profile_id: VisionProfileIdV2
+) -> VisionUnderstandingRequestV2:
+    render, admission = request.render, request.admission
+    return VisionUnderstandingRequestV2(
+        correlation_id=request.correlation_id,
+        source_image_ref=VisionImageReferenceV1(
+            artifact_ref=render.render_ref, sha256=render.render_sha256
+        ),
+        # Legacy field filled only from the trusted receipt already bound to this render.
+        media_validation=VisionMediaValidationProvenanceV1(
+            validation_artifact_ref=admission.receipt_id,
+            validation_artifact_sha256=admission.receipt_sha256,
+            decision="PASS",
+            validator_policy_version=admission.policy_version,
+        ),
+        requested_profile_id=profile_id,
+    )
+
+
+def failure_for(result: VisionUnderstandingFailureV2, invoked: bool) -> ObservationFailed:
+    return ObservationFailed(
+        _FAILURE_CODES[result.error_code],
+        invoked,
+        retryable=result.retryable,
+        detail=str(result.error_detail),
+    )
+
+
+def verify_v2_success(
+    result: VisionUnderstandingSuccessV2,
+    request: VisionUnderstandingRequestV2,
+    raw: Mapping[str, object] | None,
+    *,
+    catalog: VisionProfileCatalogV2,
+    profile: VisionProfileV2,
+    policy: LexicalRegressionContentPolicy,
+) -> str | None:
+    """Closed mismatch token for a V2 success beyond the adapter's own identity check."""
+
+    if (
+        result.correlation_id != request.correlation_id
+        or result.source_image_ref != request.source_image_ref
+        or result.profile_id is not request.requested_profile_id
+    ):
+        return "IDENTITY_MISMATCH"
+    if result.profile_catalog_hash != vision_profile_catalog_hash_v2(catalog):
+        return "CATALOG_HASH_MISMATCH"
+    if result.config_hash != vision_profile_config_hash_v2(profile):
+        return "CONFIG_HASH_MISMATCH"
+    if result.adapter_version != profile.adapter_version:
+        return "ADAPTER_VERSION_MISMATCH"
+    if result.model_provenance != profile.model_provenance:
+        return "MODEL_PROVENANCE_MISMATCH"
+    if (
+        result.content_policy_version != policy.content_policy_version
+        or result.policy_match_view_version != policy.policy_match_view_version
+    ):
+        return "POLICY_VERSION_MISMATCH"
+    if raw is None or not _raw_confidences_strict(raw):
+        return "CONFIDENCE_NOT_STRICT"
+    return None
 
 
 def _raw_confidences_strict(raw: Mapping[str, object]) -> bool:
@@ -266,7 +311,7 @@ def _label(text: ObservedTextV1) -> ObservedLabel:
     return ObservedLabel(text.value, text.language.status, text.language.tags)
 
 
-def _map_observation(result: VisionUnderstandingSuccessV2) -> OriginalObservation:
+def map_v2_observation(result: VisionUnderstandingSuccessV2) -> OriginalObservation:
     return OriginalObservation(
         entities=tuple(
             EntityObservation(e.observation_id, _label(e.label), e.confidence)
@@ -298,4 +343,9 @@ __all__ = [
     "RESULT_CONTRACT",
     "LegacyVisionV2Bridge",
     "LiveTransportForbidden",
+    "failure_for",
+    "map_v2_observation",
+    "precheck_image_request",
+    "v2_request_for",
+    "verify_v2_success",
 ]

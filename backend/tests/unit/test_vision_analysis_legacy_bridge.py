@@ -14,7 +14,6 @@ from typing import Any
 import pytest
 
 from sketch2life.application.ports.vision_analysis import (
-    ObservationContext,
     ObservationFailed,
     ObservationFailureCode,
     ObservationRequest,
@@ -37,6 +36,7 @@ from sketch2life.contracts.schemas.vision_v2 import (
     vision_profile_config_hash_v2,
 )
 from sketch2life.domain.vision_analysis import ProviderContextMode
+from sketch2life.domain.vision_context import FIXTURE_AGE_BAND_POLICY, pin_context
 from sketch2life.infrastructure.ai.lightning_client import (
     LightningProviderError,
     UrllibJsonTransport,
@@ -278,9 +278,12 @@ def test_v14_typed_context_is_refused_before_any_call() -> None:
     transport = FakeTransport(v2_success())
     h = _harness(transport)
     assert h.provider.supported_context_modes == frozenset({ProviderContextMode.IMAGE_ONLY})
+    # C2 superseded the C1 fake-only ObservationContext with the pinned ProviderTypedContext;
+    # the refusal (no call, no fallback) asserted below is unchanged.
+    snapshot = h.context_sources.resolve(h.pin, h.snapshot)
+    assert snapshot is not None
     typed = _request(h, context_mode=ProviderContextMode.TYPED_CONTEXT,
-                     typed_context=ObservationContext(3, "ai_drawing_assistance",
-                                                      "topic_fx_animals", "age-policy"))
+                     typed_context=pin_context(snapshot, FIXTURE_AGE_BAND_POLICY))
     outcome = h.provider.observe(typed)
     assert isinstance(outcome, ObservationFailed)
     assert outcome.code is ObservationFailureCode.CONTEXT_MODE_UNSUPPORTED

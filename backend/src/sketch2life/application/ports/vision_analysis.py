@@ -1,5 +1,6 @@
-"""BE2-02 C1 ports: source, admission, authority, context, request/job lineage, observation
-provider and the analysis repository/unit of work (0.1-candidate, ASSUMED_CONTRACT).
+"""BE2-02 C1/C2 ports: source, admission, authority, context, typed-context source,
+request/job lineage, observation provider and the analysis repository/unit of work
+(0.1/0.2-candidate, ASSUMED_CONTRACT).
 
 Every port is correction-specific and narrow. Fakes prove the proposed protocol only; real BE1
 snapshot/authority/turn/consent/admission adapters, BE2-03 request lifecycle, durable storage
@@ -34,6 +35,11 @@ from sketch2life.domain.vision_analysis import (
     RenderBinding,
     SourceSnapshot,
     VisionObservation,
+)
+from sketch2life.domain.vision_context import (
+    ContextCapability,
+    ProviderTypedContext,
+    VisionContextSnapshot,
 )
 
 
@@ -104,6 +110,19 @@ class AnalysisContextPort(Protocol):
     def current(self, scope: AnalysisScope) -> ContextDecision: ...
 
 
+class VisionContextSourcePort(Protocol):
+    """C2 trusted typed-context owner port (BE1/BE2-03 facts, ASSUMED_CONTRACT).
+
+    Given the trusted assistance pin and the already resolved source, returns one coherent
+    internal snapshot of the current facts, or ``None`` when they are unavailable. The pin's
+    context revision is the pinned value, not an input that selects facts. Malformed facts
+    raise ``ContextRuleViolation``; nothing is inferred or defaulted."""
+
+    def resolve(
+        self, pin: AssistancePin, source: SourceSnapshot
+    ) -> VisionContextSnapshot | None: ...
+
+
 # ------------------------------------------------------------ source / admission / lineage
 class AnalysisSourcePort(Protocol):
     """Resolves an opaque ``input_snapshot_ref`` to exact checkpoint + render metadata."""
@@ -133,24 +152,17 @@ class JobLineagePort(Protocol):
 
 # ----------------------------------------------------------------- observation provider
 @dataclass(frozen=True, slots=True)
-class ObservationContext:
-    """Typed context envelope. Only a provider that declares ``typed_context`` consumes it;
-    the legacy V2 bridge cannot and refuses it."""
-
-    context_revision: int
-    purpose_code: str
-    topic_ref: str | None
-    age_policy_ref: str | None
-
-
-@dataclass(frozen=True, slots=True)
 class ObservationRequest:
+    """``typed_context`` (C2) is the minimized ``ProviderTypedContext`` projection plus its
+    pinned binding; only a provider whose static capability matches consumes it, and the
+    legacy V2 bridge refuses it. It supersedes the C1 fake-only ``ObservationContext``."""
+
     correlation_id: str
     organization_id: str
     render: RenderBinding
     admission: AdmissionReceipt
     context_mode: ProviderContextMode
-    typed_context: ObservationContext | None = None
+    typed_context: ProviderTypedContext | None = None
     processing_image_ref: str | None = None
 
     def __post_init__(self) -> None:
@@ -201,6 +213,11 @@ ObservationOutcome = ObservationSucceeded | ObservationFailed
 class VisionObservationPort(Protocol):
     @property
     def supported_context_modes(self) -> frozenset[ProviderContextMode]: ...
+
+    @property
+    def context_capability(self) -> ContextCapability | None:
+        """Static reviewed typed-context capability, or ``None`` (image_only providers)."""
+        ...
 
     def observe(self, request: ObservationRequest) -> ObservationOutcome: ...
 
@@ -289,11 +306,11 @@ __all__ = [
     "CorrectionReceipt",
     "CorrectionScopeKey",
     "JobLineagePort",
-    "ObservationContext",
     "ObservationFailed",
     "ObservationFailureCode",
     "ObservationOutcome",
     "ObservationRequest",
     "ObservationSucceeded",
+    "VisionContextSourcePort",
     "VisionObservationPort",
 ]
