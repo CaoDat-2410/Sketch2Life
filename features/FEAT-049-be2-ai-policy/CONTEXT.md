@@ -1,7 +1,7 @@
 # FEAT-049 — BE2-14 AI policy / limits / kill switch
 
 - Goal: full BE2-14 card, including ProviderCopyLifecycle and redacted projections.
-- Status: AWAITING_APPROVAL; implementation NOT_STARTED.
+- Status: IN_PROGRESS; owner approved revision 1/P1–P5 by direct reply "duyệt".
 - Owner: receiver BE2-08–14, same branch feature/be2-08-14.
 - Baseline: f0ff7a840d1910f1f80df327c3fd0239db5ea8e1; working tree clean before planning.
 - User request: "tiếp tục task tiếp", following explicit BE2-14 next-task proposal.
@@ -17,4 +17,5 @@
 - Risks: published foundation compatibility, policy review target not learning
   content, budget-window semantics and trusted receipt verification. Proposed
   decisions P1–P5 in plan, not adopted policy or real integration proof.
-- Next gate: owner approval plan revision 1; no production code/test changes yet.
+- Next: C1 domain/contracts and tests under existing approved plan; real production
+  activation/provisioning and external adoption remain separate gates.

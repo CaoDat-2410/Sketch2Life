@@ -1,5 +1,13 @@
 # Feature decisions
 
+## D03 — actual revision-1 implementation approval — 2026-10-17
+
+Owner replied "duyệt" to the immediately preceding explicit request to approve
+plan revision 1/P1–P5. Pinned SHA256 is unchanged. Begin C1 and scoped checkpoint
+commits; no inferred permission for provider use, production values, PostgreSQL
+provisioning or external owner sign-off. Historical proposed status is superseded
+for these card-local decisions, not rewritten in reviewed plan bytes.
+
 ## D01 — new card, existing branch, separate approval — 2026-10-17
 
 User requests next task after explicit BE2-14 proposal. Use free FEAT-049 and
