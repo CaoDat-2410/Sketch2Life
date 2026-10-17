@@ -1,4 +1,4 @@
-"""Deterministic BE2-02 C1 fakes with fault injection (fixture use only).
+"""Deterministic BE2-02 C1/C2 fakes with fault injection (fixture use only).
 
 The store simulates one authoritative transaction with a process-local lock and a staged copy:
 everything written inside a failed or conflicting unit of work is discarded. It is not durable
@@ -51,6 +51,21 @@ from sketch2life.domain.vision_analysis import (
     ProviderResultRecord,
     SourceSnapshot,
     VisionObservation,
+)
+from sketch2life.domain.vision_context import (
+    C2_CONTEXT_CAPABILITY,
+    CANONICAL_RULES_VERSION,
+    FIXTURE_AGE_BAND_POLICY,
+    PROVIDER_CONTEXT_FIELDS,
+    AgeBandPolicy,
+    ContextCapability,
+    MemberContextFact,
+    RequestContextFact,
+    RequestedLevel,
+    RequestReason,
+    TargetKind,
+    TeacherTopicFact,
+    VisionContextSnapshot,
 )
 
 FIXTURE_MARKER = "FIXTURE_ONLY_NOT_DURABLE"
@@ -113,6 +128,8 @@ class _UnitOfWork:
             raise AnalysisRevisionConflict("replacement must advance the revision by one")
         if current.observation_sha256 != head.observation_sha256:
             raise AnalysisRevisionConflict("the original observation is immutable")
+        if current.typed_binding != head.typed_binding:
+            raise AnalysisRevisionConflict("the pinned typed-context binding is immutable")
         self.state.heads[head.analysis_id] = head
 
     def insert_observation(self, observation: VisionObservation) -> None:
@@ -415,6 +432,99 @@ class FakeAnalysisContext:
         )
 
 
+class FakeVisionContextSource:
+    """C2 trusted typed-context owner fake (ASSUMED_CONTRACT, synthetic facts only).
+
+    Ages, consent, purpose, session and revision are read from the same ``FakeAnalysisContext``
+    facts, so the old and new ports agree unless a test injects a disagreement
+    (``age_overrides``/``revision_override``). Transfer permission, field use, revisions,
+    Teacher topic and request enums are this port's own facts. ``mutate`` rewrites every
+    snapshot (persistent) to model a misbehaving owner port."""
+
+    def __init__(self, context: FakeAnalysisContext,
+                 policy: AgeBandPolicy = FIXTURE_AGE_BAND_POLICY) -> None:
+        self._context = context
+        self.policy_ref = policy.policy_ref
+        self.policy_version = policy.version
+        self.transfer: dict[str, bool] = {}
+        self.fields: dict[str, frozenset[str]] = {}
+        self.permission_revisions: dict[str, int] = {}
+        self.age_revisions: dict[str, int] = {}
+        self.age_overrides: dict[str, int | None] = {}
+        self.revision_override: int | None = None
+        self.field_policy_revision = 1
+        self.topic: TeacherTopicFact | None = TeacherTopicFact(
+            "topic_fx_animals", 1, "Animals at the zoo", "teacher", "teacher_fx_001"
+        )
+        self.request = RequestContextFact(
+            RequestReason.DESCRIBE_DRAWING, TargetKind.WHOLE_CANVAS, RequestedLevel.STANDARD
+        )
+        self.mutate: Callable[[VisionContextSnapshot], VisionContextSnapshot] | None = None
+        self.unavailable = False
+        self.calls = 0
+
+    def revoke_transfer(self, participant_id: str) -> None:
+        self.transfer[participant_id] = False
+        self.permission_revisions[participant_id] = (
+            self.permission_revisions.get(participant_id, 1) + 1
+        )
+
+    def _member(self, participant_id: str, purpose_code: str) -> MemberContextFact:
+        context = self._context
+        age = (self.age_overrides[participant_id] if participant_id in self.age_overrides
+               else context.ages.get(participant_id))
+        return MemberContextFact(
+            participant_id=participant_id,
+            completed_age_months=age,
+            age_provenance_ref=f"profile-age:{participant_id}",
+            age_revision=self.age_revisions.get(participant_id, 1),
+            consent_effective=context.consent.get(participant_id, False),
+            consent_record_ref=f"consent-record:{participant_id}",
+            purpose_granted=purpose_code in context.purposes.get(participant_id, frozenset()),
+            provider_transfer_permitted=self.transfer.get(participant_id, True),
+            permitted_fields=self.fields.get(participant_id, frozenset(PROVIDER_CONTEXT_FIELDS)),
+            permission_revision=self.permission_revisions.get(participant_id, 1),
+        )
+
+    def resolve(
+        self, pin: AssistancePin, source: SourceSnapshot
+    ) -> VisionContextSnapshot | None:
+        self.calls += 1
+        if self.unavailable:
+            return None
+        scope = pin.scope
+        row = self._context.rows[(scope.session_id, scope.canvas_id)]
+        snapshot = VisionContextSnapshot(
+            organization_id=scope.organization_id,
+            class_id=scope.class_id,
+            session_id=scope.session_id,
+            canvas_id=scope.canvas_id,
+            group_id=scope.group_id,
+            contributor_participant_id=scope.contributor_participant_id,
+            audience_participant_ids=scope.audience_participant_ids,
+            purpose_code=scope.purpose_code,
+            assistance_id=pin.assistance_id,
+            request_revision=pin.request_revision,
+            snapshot_ref=source.snapshot_ref,
+            checkpoint_id=source.checkpoint.checkpoint_id,
+            checkpoint_checksum=source.checkpoint.checksum_sha256,
+            render_ref=source.render.render_ref,
+            render_sha256=source.render.render_sha256,
+            context_revision=(row.revision if self.revision_override is None
+                              else self.revision_override),
+            session_active=row.session_active,
+            members=tuple(self._member(p, scope.purpose_code)
+                          for p in scope.audience_participant_ids),
+            topic=self.topic,
+            request=self.request,
+            age_band_policy_ref=self.policy_ref,
+            age_band_policy_version=self.policy_version,
+            field_policy_revision=self.field_policy_revision,
+            canonical_rules_version=CANONICAL_RULES_VERSION,
+        )
+        return snapshot if self.mutate is None else self.mutate(snapshot)
+
+
 class FakeAssistanceRequests:
     def __init__(self) -> None:
         self.pins: dict[str, AssistancePin] = {}
@@ -459,9 +569,11 @@ def synthetic_success(
     *,
     executed_at: datetime,
 ) -> ObservationSucceeded:
-    """Synthetic-fake evidence: no model, no profile, explicit ``synthetic_fake`` kind."""
+    """Synthetic-fake evidence: no model, no profile, explicit ``synthetic_fake`` kind. A typed
+    request's pinned binding is echoed as the evidence copy (C2)."""
 
     observed = observation or synthetic_observation()
+    typed = request.typed_context
     return ObservationSucceeded(
         observation=observed,
         evidence=ObservationEvidence(
@@ -472,6 +584,7 @@ def synthetic_success(
             result_sha256=canonical_sha256(observed.canonical()),
             executed_at=executed_at,
             transport_attempts=0,
+            context_binding=None if typed is None else typed.binding,
         ),
         moderation=ModerationOutcome(LexicalOutcome.NOT_EXECUTED, None, None),
         result_document=canonical_json(observed.canonical()),
@@ -499,6 +612,14 @@ class FakeVisionObservationProvider:
     def supported_context_modes(self) -> frozenset[ProviderContextMode]:
         return self._supported
 
+    @property
+    def context_capability(self) -> ContextCapability | None:
+        if ProviderContextMode.TYPED_CONTEXT not in self._supported:
+            return None
+        return self.capability
+
+    capability: ContextCapability | None = C2_CONTEXT_CAPABILITY
+
     def observe(self, request: ObservationRequest) -> ObservationOutcome:
         self.requests.append(request)
         hook, self.on_observe = self.on_observe, None
@@ -518,6 +639,7 @@ __all__ = [
     "FakeAnalysisSource",
     "FakeAssistanceRequests",
     "FakeJobLineage",
+    "FakeVisionContextSource",
     "FakeVisionObservationProvider",
     "InMemoryAnalysisStore",
     "TeacherGrant",

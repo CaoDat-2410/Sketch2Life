@@ -1,13 +1,16 @@
-"""Synthetic fixture world for BE2-02 C1 tests and the consumer handoff (never live).
+"""Synthetic fixture world for BE2-02 C1/C2 tests and the consumer handoff (never live).
 
 One school, class, session and canvas; two child participants (60 and 120 completed months,
 the latter outside the legacy under-nine helper but inside the authoritative 36–155 range);
 one admitted PNG render derived from one JSON checkpoint; one assistance request pin and one
 running vision-analysis job attempt. No real child data, credentials or provider endpoints.
+C2 adds a typed-context owner fake over the same facts, the injected FIXTURE-ONLY age-band
+policy and an offline echo transport for the context adapter (no server exists).
 """
 
 from __future__ import annotations
 
+import json
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
@@ -47,8 +50,12 @@ from sketch2life.domain.vision_analysis import (
     analysis_etag,
     provider_result_ref,
 )
+from sketch2life.domain.vision_context import FIXTURE_AGE_BAND_POLICY
 from sketch2life.infrastructure.ai.vision_lexical_policy import synthetic_prohibited_lexicon
 from sketch2life.infrastructure.ai_jobs.fakes import FakeClock, SequentialIds
+from sketch2life.infrastructure.vision_analysis.context_adapter import (
+    OfflineVisionContextAdapter,
+)
 from sketch2life.infrastructure.vision_analysis.fakes import (
     DeviceBinding,
     FakeAdmission,
@@ -57,6 +64,7 @@ from sketch2life.infrastructure.vision_analysis.fakes import (
     FakeAnalysisSource,
     FakeAssistanceRequests,
     FakeJobLineage,
+    FakeVisionContextSource,
     FakeVisionObservationProvider,
     InMemoryAnalysisStore,
     TeacherGrant,
@@ -157,6 +165,7 @@ class AnalysisHarness:
     snapshot: SourceSnapshot
     receipt: AdmissionReceipt
     pin: AssistancePin
+    context_sources: FakeVisionContextSource
     keys: list[str] = field(default_factory=list)
 
     def claim(self, *, job_id: str = JOB, attempt_id: str = ATTEMPT,
@@ -251,6 +260,7 @@ def build_analysis_harness(
     context = FakeAnalysisContext()
     requests = FakeAssistanceRequests()
     job_lineage = FakeJobLineage()
+    context_sources = FakeVisionContextSource(context)
 
     snapshot = synthetic_snapshot()
     sources.add(snapshot, SYNTHETIC_RENDER)
@@ -297,6 +307,8 @@ def build_analysis_harness(
             clock=clock,
             ids=ids,
             required_context_mode=required_context_mode,
+            context_sources=context_sources,
+            age_band_policy=FIXTURE_AGE_BAND_POLICY,
         )
     )
     harness = AnalysisHarness(
@@ -314,6 +326,7 @@ def build_analysis_harness(
         snapshot=snapshot,
         receipt=receipt,
         pin=pin,
+        context_sources=context_sources,
     )
     harness.set_job()
     return harness
@@ -369,6 +382,72 @@ def synthetic_v2_response() -> dict[str, object]:
         "adapter_version": profile.adapter_version,
         "config_hash": vision_profile_config_hash_v2(profile),
         "model_provenance": profile.model_provenance.model_dump(mode="json"),
+    }
+
+
+class EchoContextTransport:
+    """Offline stand-in for the not-yet-existing context endpoint: records every posted
+    (path, body) and answers with a wrapper echoing the request around the synthetic V2
+    result. ``tamper`` rewrites the response to model a wrong/missing echo."""
+
+    def __init__(self, v2_response: Mapping[str, object] | None = None) -> None:
+        self.v2_response = dict(v2_response or synthetic_v2_response())
+        self.posted: list[tuple[str, Mapping[str, object]]] = []
+        self.tamper: Callable[[dict[str, object]], dict[str, object]] | None = None
+
+    def post_json(self, path: str, payload: Mapping[str, object]) -> Mapping[str, object]:
+        self.posted.append((path, payload))
+        request = payload["request"]
+        typed = payload["typed_context"]
+        assert isinstance(request, Mapping) and isinstance(typed, Mapping)
+        response: dict[str, object] = {
+            "contract_name": "LightningVisionContextResultV1",
+            "contract_version": "0.1-candidate",
+            "correlation_id": request["correlation_id"],
+            "source_image_ref": request["source_image_ref"],
+            "context_contract": typed["contract_name"],
+            "context_contract_version": typed["contract_version"],
+            "context_revision": typed["context_revision"],
+            "payload_digest": payload["payload_digest"],
+            "context_digest": payload["context_digest"],
+            "result": dict(self.v2_response),
+        }
+        return response if self.tamper is None else self.tamper(response)
+
+
+def build_context_harness(transport: EchoContextTransport | None = None) -> AnalysisHarness:
+    """Typed-context harness wired to the offline context adapter over an echo transport."""
+
+    echo = transport or EchoContextTransport()
+    return build_analysis_harness(
+        provider_factory=lambda sources, clock: OfflineVisionContextAdapter(
+            transport=echo, render_loader=sources.read_render, clock=clock.now
+        ),
+        required_context_mode=ProviderContextMode.TYPED_CONTEXT,
+    )
+
+
+def build_typed_context_example() -> dict[str, object]:
+    """Deterministic typed-context consumer example (0.2-candidate): the exact posted context
+    request (image bytes elided to their hash), the retained whole response and the record."""
+
+    transport = EchoContextTransport()
+    h = build_context_harness(transport)
+    analysis_id = h.accepted_analysis()
+    ((path, body),) = transport.posted
+    posted = json.loads(canonical_json(body))
+    posted["source_image"]["content_base64"] = "<elided: synthetic render bytes>"
+    provider_result = h.service.resolve_provider_result(TEACHER, provider_result_ref(analysis_id))
+    return {
+        "endpoint_path": path,
+        "provider_context_request": posted,
+        "provider_result_record": {
+            "result_ref": provider_result.result_ref,
+            "result_contract": provider_result.result_contract,
+            "result_sha256": provider_result.result_sha256,
+            "canonical_json": provider_result.canonical_json,
+        },
+        "analysis_record": h.service.analysis_record(TEACHER, analysis_id),
     }
 
 
@@ -464,8 +543,11 @@ __all__ = [
     "SYNTHETIC_RENDER",
     "TEACHER",
     "AnalysisHarness",
+    "EchoContextTransport",
     "build_analysis_harness",
+    "build_context_harness",
     "build_handoff_examples",
+    "build_typed_context_example",
     "synthetic_admission",
     "synthetic_snapshot",
     "synthetic_v2_response",

@@ -73,10 +73,13 @@ class ProviderContextMode(StrEnum):
 
 
 class EvidenceKind(StrEnum):
-    """How an observation was produced. There is no live member: C1 has no real inference."""
+    """How an observation was produced. There is no live member: neither C1 nor C2 has real
+    inference. ``offline_context_adapter`` is the C2 typed-context client over an injected
+    offline transport; it never means the model used the context."""
 
     SYNTHETIC_FAKE = "synthetic_fake"
     OFFLINE_LEGACY_BRIDGE = "offline_legacy_bridge"
+    OFFLINE_CONTEXT_ADAPTER = "offline_context_adapter"
 
 
 class LexicalOutcome(StrEnum):
@@ -642,9 +645,49 @@ def derive_uncertainty(observation: OriginalObservation) -> Uncertainty:
 
 
 @dataclass(frozen=True, slots=True)
+class TypedContextBinding:
+    """C2 immutable typed-context binding pinned before the provider call (0.2-candidate).
+
+    ``payload_digest`` hashes the permitted provider projection only; ``context_digest`` hashes
+    the internal scope/source/request binding, owner facts, permission/policy revisions and the
+    payload digest. Both are opaque bindings, not proof of anonymity, consent or model use."""
+
+    context_contract: str
+    context_contract_version: str
+    canonical_rules_version: str
+    context_revision: int
+    payload_digest: str
+    context_digest: str
+    age_band_policy_ref: str
+    age_band_policy_version: str
+
+    def __post_init__(self) -> None:
+        for name in ("context_contract", "context_contract_version", "canonical_rules_version",
+                     "age_band_policy_ref", "age_band_policy_version"):
+            _require_id(getattr(self, name), name)
+        _require_int(self.context_revision, "context_revision", 0)
+        _require_sha(self.payload_digest, "payload_digest")
+        _require_sha(self.context_digest, "context_digest")
+        if self.payload_digest == self.context_digest:
+            raise AnalysisRuleViolation("payload and context digests are distinct bindings")
+
+    def canonical(self) -> dict[str, object]:
+        return {
+            "context_contract": self.context_contract,
+            "context_contract_version": self.context_contract_version,
+            "canonical_rules_version": self.canonical_rules_version,
+            "context_revision": self.context_revision,
+            "payload_digest": self.payload_digest,
+            "context_digest": self.context_digest,
+            "age_band_policy_ref": self.age_band_policy_ref,
+            "age_band_policy_version": self.age_band_policy_version,
+        }
+
+
+@dataclass(frozen=True, slots=True)
 class ObservationEvidence:
-    """Provenance of one observation. A legacy bridge result is always image-only; a typed
-    context envelope is only ever consumed by the synthetic fake."""
+    """Provenance of one observation. A legacy bridge result is always image-only; typed
+    context evidence always carries the pinned binding copy (C2)."""
 
     evidence_kind: EvidenceKind
     provider_context_mode: ProviderContextMode
@@ -661,22 +704,29 @@ class ObservationEvidence:
     model_revision: str | None = None
     content_policy_version: str | None = None
     policy_match_view_version: str | None = None
+    context_binding: TypedContextBinding | None = None
 
     def __post_init__(self) -> None:
         require_aware(self.executed_at, "executed_at")
         _require_sha(self.result_sha256, "result_sha256")
         if self.transport_attempts not in {0, 1}:
             raise AnalysisRuleViolation("an observation uses at most one provider attempt")
-        if self.evidence_kind is EvidenceKind.OFFLINE_LEGACY_BRIDGE:
-            if self.provider_context_mode is not ProviderContextMode.IMAGE_ONLY:
-                raise AnalysisRuleViolation("the legacy bridge is image_only")
+        typed = self.provider_context_mode is ProviderContextMode.TYPED_CONTEXT
+        if self.evidence_kind is EvidenceKind.OFFLINE_LEGACY_BRIDGE and typed:
+            raise AnalysisRuleViolation("the legacy bridge is image_only")
+        if self.evidence_kind is EvidenceKind.OFFLINE_CONTEXT_ADAPTER and not typed:
+            raise AnalysisRuleViolation("the context adapter is typed_context only")
+        if typed != (self.context_binding is not None):
+            raise AnalysisRuleViolation("typed context evidence carries its binding, and only it")
+        if self.evidence_kind in {EvidenceKind.OFFLINE_LEGACY_BRIDGE,
+                                  EvidenceKind.OFFLINE_CONTEXT_ADAPTER}:
             required = (self.profile_id, self.profile_catalog_hash, self.config_hash,
                         self.adapter_version, self.model_identifier, self.model_revision,
                         self.content_policy_version, self.policy_match_view_version)
             if any(value is None for value in required):
-                raise AnalysisRuleViolation("legacy bridge evidence needs full model provenance")
+                raise AnalysisRuleViolation("adapter evidence needs full model provenance")
             if self.transport_attempts != 1:
-                raise AnalysisRuleViolation("legacy bridge evidence records exactly one call")
+                raise AnalysisRuleViolation("adapter evidence records exactly one call")
 
 
 @dataclass(frozen=True, slots=True)
@@ -709,14 +759,16 @@ class VisionObservation:
 
 
 def observation_hash(observation: OriginalObservation, evidence: ObservationEvidence) -> str:
-    return canonical_sha256(
-        {
-            "observation": observation.canonical(),
-            "result_sha256": evidence.result_sha256,
-            "evidence_kind": str(evidence.evidence_kind),
-            "provider_context_mode": str(evidence.provider_context_mode),
-        }
-    )
+    body: dict[str, object] = {
+        "observation": observation.canonical(),
+        "result_sha256": evidence.result_sha256,
+        "evidence_kind": str(evidence.evidence_kind),
+        "provider_context_mode": str(evidence.provider_context_mode),
+    }
+    # Typed records also bind the pinned context; image_only hashes keep their C1 bytes.
+    if evidence.context_binding is not None:
+        body["context_binding"] = evidence.context_binding.canonical()
+    return canonical_sha256(body)
 
 
 def new_observation(
@@ -832,6 +884,8 @@ class AnalysisHead:
     current_meaning_ref: str | None
     created_at: datetime
     updated_at: datetime
+    # C2: immutable typed-context binding pinned before the call; ``None`` for image_only.
+    typed_binding: TypedContextBinding | None = None
 
     def __post_init__(self) -> None:
         _require_int(self.analysis_revision, "analysis_revision", 1)
@@ -864,6 +918,7 @@ def new_head(
     observation_sha256: str,
     stale_reason: InvalidationReason | None,
     now: datetime,
+    typed_binding: TypedContextBinding | None = None,
 ) -> AnalysisHead:
     if stale_reason is not None and stale_reason not in OWNER_INVALIDATION_REASONS:
         raise AnalysisRuleViolation("a new analysis is only stale for an owner change")
@@ -882,6 +937,7 @@ def new_head(
         current_meaning_ref=None,
         created_at=now,
         updated_at=now,
+        typed_binding=typed_binding,
     )
 
 
@@ -1019,6 +1075,7 @@ __all__ = [
     "SourceSnapshot",
     "SourceVerdict",
     "ThemeObservation",
+    "TypedContextBinding",
     "Uncertainty",
     "VisionObservation",
     "analysis_etag",

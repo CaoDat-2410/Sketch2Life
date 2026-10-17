@@ -7,6 +7,15 @@ lineage/eligibility/context/source re-check before anything is stored. Pre-provi
 call nothing; provider failures store nothing; a cancelled/superseded job or revoked consent
 after the call discards the result; a moved context/source stores it ``stale``.
 
+C2 typed context (``required_context_mode=typed_context``): the static provider capability,
+then one coherent trusted snapshot verified member by member against the pin, source and the
+existing context port, then the minimized projection and both digests are pinned before the
+single call. The provider must echo the binding; after the call the current typed facts are
+re-verified (any refusal discards the result) and a moved revision or context digest stores
+the original ``stale`` with its original binding. Replay, current reads, downstream meaning
+and new corrections compare the current typed digest too; accepted CMD-34 receipts still
+replay as history after the current disclosure check.
+
 CMD-34 guard order follows the SRS accepted-receipt rule: verified principal and permission to
 disclose, then the immutable receipt (identical payload replays the original body even with an
 old If-Match or a closed turn), and only an unseen mutation checks the bound turn, eligibility,
@@ -21,6 +30,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import StrEnum
+from typing import cast
 
 from sketch2life.application.ports.ai_jobs import (
     ClockPort,
@@ -44,10 +54,10 @@ from sketch2life.application.ports.vision_analysis import (
     CorrectionReceipt,
     CorrectionScopeKey,
     JobLineagePort,
-    ObservationContext,
     ObservationFailed,
     ObservationFailureCode,
     ObservationRequest,
+    VisionContextSourcePort,
     VisionObservationPort,
 )
 from sketch2life.domain.ai_jobs.completion import canonical_sha256
@@ -62,6 +72,7 @@ from sketch2life.domain.vision_analysis import (
     AnalysisLineage,
     AnalysisRuleViolation,
     AnalysisScope,
+    AssistancePin,
     CorrectionKind,
     InvalidationIntent,
     InvalidationReason,
@@ -72,6 +83,7 @@ from sketch2life.domain.vision_analysis import (
     ObservedLabel,
     ProviderContextMode,
     ProviderResultRecord,
+    SourceSnapshot,
     SourceVerdict,
     VisionObservation,
     analysis_etag,
@@ -94,8 +106,19 @@ from sketch2life.domain.vision_analysis import (
     provider_result_ref,
     verify_source,
 )
+from sketch2life.domain.vision_context import (
+    C2_CONTEXT_CAPABILITY,
+    AgeBandPolicy,
+    ContextCode,
+    ContextPortFacts,
+    ContextRuleViolation,
+    ProviderTypedContext,
+    pin_context,
+    verify_context_snapshot,
+)
 
 CORRECTION_CONTRACT = "AnalysisCorrection"
+TYPED_RECORD_VERSION = "0.2-candidate"
 # Bounded write rounds: the first attempt plus one re-read after a same-key unique conflict.
 WRITE_ROUNDS = 2
 _KEY = re.compile(r"^[A-Za-z0-9_.:-]{1,120}$")
@@ -241,16 +264,25 @@ class VisionAnalysisDependencies:
     clock: ClockPort
     ids: IdGeneratorPort
     required_context_mode: ProviderContextMode = ProviderContextMode.IMAGE_ONLY
+    # C2 typed context: trusted owner snapshot port and the injected age-band policy. Both are
+    # required for typed_context mode; their absence refuses before any call.
+    context_sources: VisionContextSourcePort | None = None
+    age_band_policy: AgeBandPolicy | None = None
 
 
 def eligibility_code(context: ContextDecision, scope: AnalysisScope) -> str | None:
     """Purpose/consent/session/age gate. Ages are authoritative 36–155 completed months for
-    every audience participant; an unknown or out-of-range age fails closed."""
+    every audience participant; an unknown or out-of-range age fails closed. Duplicate
+    participants (audience or age facts) are refused before any dict/set conversion (C2)."""
 
     if not context.consent_effective or not context.purpose_granted:
         return "CONSENT_REQUIRED"
     if not context.session_active:
         return "INVALID_STATE"
+    reported = [participant for participant, _ in context.audience_age_months]
+    audience = list(scope.audience_participant_ids)
+    if len(reported) != len(set(reported)) or len(audience) != len(set(audience)):
+        return "AGE_NOT_SUPPORTED"
     ages = dict(context.audience_age_months)
     if set(ages) != set(scope.audience_participant_ids):
         return "AGE_NOT_SUPPORTED"
@@ -312,22 +344,23 @@ class VisionAnalysisService:
         if gate is not None:
             return ObservationResult(ObservationDisposition.REFUSED, gate, False)
         mode = self._d.required_context_mode
-        if mode not in self._d.provider.supported_context_modes:
-            return ObservationResult(
-                ObservationDisposition.REFUSED,
-                str(ObservationFailureCode.CONTEXT_MODE_UNSUPPORTED),
-                False,
-            )
-        typed = (
-            ObservationContext(
-                context_revision=context.context_revision,
-                purpose_code=scope.purpose_code,
-                topic_ref=context.topic_ref,
-                age_policy_ref=context.age_policy_ref,
-            )
-            if mode is ProviderContextMode.TYPED_CONTEXT
-            else None
+        unsupported = ObservationResult(
+            ObservationDisposition.REFUSED,
+            str(ObservationFailureCode.CONTEXT_MODE_UNSUPPORTED),
+            False,
         )
+        if mode not in self._d.provider.supported_context_modes:
+            return unsupported
+        typed: ProviderTypedContext | None = None
+        if mode is ProviderContextMode.TYPED_CONTEXT:
+            # Static reviewed capability first: no snapshot, image load or call otherwise.
+            if self._d.provider.context_capability != C2_CONTEXT_CAPABILITY:
+                return unsupported
+            typed, refusal = self._typed_current(
+                pin, snapshot, context, expected_revision=pin.context_revision
+            )
+            if typed is None:
+                return ObservationResult(ObservationDisposition.REFUSED, refusal, False)
         outcome = self._d.provider.observe(
             ObservationRequest(
                 correlation_id=correlation_id,
@@ -346,6 +379,7 @@ class VisionAnalysisService:
         # retained full-result document whose hash is the reported evidence hash (C1-R04/R06).
         if (
             outcome.evidence.provider_context_mode is not mode
+            or outcome.evidence.context_binding != (None if typed is None else typed.binding)
             or observation_bounds_violation(outcome.observation) is not None
             or document_sha256(outcome.result_document) != outcome.evidence.result_sha256
         ):
@@ -364,8 +398,22 @@ class VisionAnalysisService:
         gate_after = eligibility_code(context_after, scope)
         if gate_after is not None:
             return ObservationResult(ObservationDisposition.REJECTED, gate_after, True)
+        typed_after: ProviderTypedContext | None = None
+        if typed is not None:
+            # Current per-member typed facts (transfer/field-use/consent/age) — C2. Any refusal
+            # now means the output may not be kept: discard, store nothing.
+            typed_after, refusal_after = self._typed_current(
+                pin, snapshot, context_after, expected_revision=None
+            )
+            if typed_after is None:
+                return ObservationResult(ObservationDisposition.REJECTED, refusal_after, True)
         stale_reason: InvalidationReason | None = None
         if context_after.context_revision != claim.context_revision:
+            stale_reason = InvalidationReason.CONTEXT_CHANGED
+        elif typed is not None and typed_after is not None and (
+            typed_after.binding.context_digest != typed.binding.context_digest
+        ):
+            # Same revision, different facts: never rebind the output to the new context.
             stale_reason = InvalidationReason.CONTEXT_CHANGED
         else:
             current = self._d.sources.resolve(
@@ -400,6 +448,7 @@ class VisionAnalysisService:
             observation_sha256=observation.observation_sha256,
             stale_reason=stale_reason,
             now=now,
+            typed_binding=None if typed is None else typed.binding,
         )
         result_record = ProviderResultRecord(
             result_ref=provider_result_ref(analysis_id),
@@ -444,12 +493,17 @@ class VisionAnalysisService:
 
         context = self._d.context.current(head.scope)
         gate = eligibility_code(context, head.scope)
+        typed_refusal, typed_moved = None, False
+        if gate is None and head.typed_binding is not None:
+            typed_refusal, typed_moved = self._typed_status(head, context)
         disposition, code = ObservationDisposition.ACCEPTED, None
         if gate is not None:
             disposition, code = ObservationDisposition.REJECTED, gate
+        elif typed_refusal is not None:
+            disposition, code = ObservationDisposition.REJECTED, typed_refusal
         elif head.accepted_status is AcceptedStatus.STALE:
             disposition, code = ObservationDisposition.STALE, head.status_reason
-        elif context.context_revision != head.context_revision:
+        elif context.context_revision != head.context_revision or typed_moved:
             disposition = ObservationDisposition.STALE
             code = str(InvalidationReason.CONTEXT_CHANGED)
         elif not self._applicable(head, context):
@@ -658,11 +712,75 @@ class VisionAnalysisService:
         current = self._d.sources.resolve(
             head.source.snapshot_ref, organization_id=head.organization_id
         )
-        return is_applicable(
+        if not is_applicable(
             head,
             current_context_revision=context.context_revision,
             current_input_hash=None if current is None else current.input_hash(),
+        ):
+            return False
+        if head.typed_binding is None:
+            return True
+        # C2: same-revision digest movement or a refused current typed context also ends
+        # applicability; the stored binding is never rebound to the new facts.
+        refusal, moved = self._typed_status(head, context)
+        return refusal is None and not moved
+
+    # ------------------------------------------------------------- typed context
+    def _typed_current(
+        self,
+        pin: AssistancePin,
+        source: SourceSnapshot,
+        context: ContextDecision,
+        *,
+        expected_revision: int | None,
+    ) -> tuple[ProviderTypedContext | None, str]:
+        """The verified, pinned current typed context, or a closed refusal token."""
+
+        port, policy = self._d.context_sources, self._d.age_band_policy
+        if port is None or policy is None:
+            return None, str(ContextCode.CONTEXT_UNAVAILABLE)
+        try:
+            snapshot = port.resolve(pin, source)
+            if snapshot is None:
+                return None, str(ContextCode.CONTEXT_UNAVAILABLE)
+            refusal = verify_context_snapshot(
+                snapshot,
+                pin=pin,
+                source=source,
+                policy=policy,
+                port=ContextPortFacts(
+                    context_revision=context.context_revision,
+                    consent_effective=context.consent_effective,
+                    purpose_granted=context.purpose_granted,
+                    session_active=context.session_active,
+                    audience_age_months=context.audience_age_months,
+                ),
+                expected_context_revision=expected_revision,
+            )
+            if refusal is not None:
+                return None, str(refusal)
+            return pin_context(snapshot, policy), ""
+        except ContextRuleViolation:
+            return None, str(ContextCode.CONTEXT_MALFORMED)
+
+    def _typed_status(
+        self, head: AnalysisHead, context: ContextDecision
+    ) -> tuple[str | None, bool]:
+        """(refusal token, digest moved) of the current typed facts against the pin."""
+
+        binding = head.typed_binding
+        assert binding is not None
+        pin = AssistancePin(
+            assistance_id=head.lineage.assistance_id,
+            request_revision=head.lineage.request_revision,
+            input_snapshot_ref=head.source.snapshot_ref,
+            context_revision=head.context_revision,
+            scope=head.scope,
         )
+        current, refusal = self._typed_current(pin, head.source, context, expected_revision=None)
+        if current is None:
+            return refusal, True
+        return None, current.binding.context_digest != binding.context_digest
 
     def _current_revision(self, analysis_id: str) -> int | None:
         with self._d.repository.transaction() as tx:
@@ -880,8 +998,22 @@ def child_correction_view(result: CorrectionResult) -> dict[str, object]:
 
 
 def worker_candidate_view(head: AnalysisHead, observation: VisionObservation) -> dict[str, object]:
-    """DATA-22 worker candidate projection of a stored analysis (exact source field set)."""
+    """DATA-22 worker candidate projection of a stored analysis (exact source field set).
 
+    image_only records keep the exact 0.1-candidate shape; a typed-context record is the
+    sibling 0.2-candidate shape whose provenance carries the pinned binding copy (C2)."""
+
+    view = _worker_candidate_v1(head, observation)
+    binding = observation.evidence.context_binding
+    if binding is not None:
+        provenance = {**cast("dict[str, object]", view["provenance"])}
+        provenance["context_binding"] = binding.canonical()
+        view["contract_version"] = TYPED_RECORD_VERSION
+        view["provenance"] = provenance
+    return view
+
+
+def _worker_candidate_v1(head: AnalysisHead, observation: VisionObservation) -> dict[str, object]:
     evidence, moderation = observation.evidence, observation.moderation
     uncertainty = derive_uncertainty(observation.observation)
     checkpoint, render = head.source.checkpoint, head.source.render
@@ -949,7 +1081,16 @@ def analysis_record_view(
 ) -> dict[str, object]:
     original = observation.observation
     checkpoint, render = head.source.checkpoint, head.source.render
+    typed: dict[str, object] = {}
+    if head.typed_binding is not None:
+        # Sibling 0.2-candidate record: the head binding is reachable from the read path.
+        typed = {
+            "contract_name": "AnalysisResultAndCorrection",
+            "contract_version": TYPED_RECORD_VERSION,
+            "context_binding": head.typed_binding.canonical(),
+        }
     return {
+        **typed,
         "analysis_id": head.analysis_id,
         "analysis_revision": head.analysis_revision,
         "accepted_status": str(head.accepted_status),
@@ -995,6 +1136,7 @@ def analysis_record_view(
 
 __all__ = [
     "CORRECTION_CONTRACT",
+    "TYPED_RECORD_VERSION",
     "CorrectionCommand",
     "CorrectionResult",
     "DownstreamMeaning",
