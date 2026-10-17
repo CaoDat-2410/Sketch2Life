@@ -94,6 +94,8 @@ COPIES_EXPECTED = {
     "test_guarded_dispatch_sql_completion_denial_keeps_committed_claim": 1,
     "test_delivery_authority_sql_history_is_immutable": 2,
     "test_delivery_authority_insert_failure_rolls_back_claim_before_hook": 1,
+    "test_delivery_candidates_filter_states_and_expired_claims_at_pinned_time": 1,
+    "test_delivery_candidates_scope_isolation_and_no_phantom_after_absence": 1,
 }
 
 

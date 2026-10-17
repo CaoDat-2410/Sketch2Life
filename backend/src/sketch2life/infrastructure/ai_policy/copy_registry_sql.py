@@ -10,7 +10,7 @@ from typing import Any
 from uuid import uuid4
 
 from pydantic import TypeAdapter
-from sqlalchemy import Connection, Engine, insert, select, update
+from sqlalchemy import Connection, DateTime, Engine, and_, insert, or_, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import DBAPIError, IntegrityError
 
@@ -21,12 +21,17 @@ from sketch2life.application.ai_policy_copy_operations import (
     validate_operation_authorization,
 )
 from sketch2life.application.ports.ai_policy_copy_registry import (
+    CopyCandidatePage,
     CopyOperationPage,
     CopyRegistryPage,
     ProviderCopyRegistryTransaction,
     RegisteredProviderCopy,
 )
 from sketch2life.contracts.schemas.ai_contract_candidates import OpaqueId
+from sketch2life.contracts.schemas.ai_policy_copy_candidates import (
+    CopyCandidateCursor,
+    CopyCandidateRequest,
+)
 from sketch2life.contracts.schemas.ai_policy_copy_delivery import CopyDeliveryAuthorityEvidence
 from sketch2life.contracts.schemas.ai_policy_copy_history import CopyInventoryEvidence
 from sketch2life.contracts.schemas.ai_policy_copy_operation import (
@@ -352,6 +357,84 @@ class SqlProviderCopyRegistryTransaction:
         return CopyOperationPage(
             self.revision, keys[:limit], keys[limit - 1] if len(keys) > limit else None
         )
+
+    def delivery_candidates(self, request: CopyCandidateRequest) -> CopyCandidatePage:
+        try:
+            request = CopyCandidateRequest.model_validate(
+                request.model_dump(mode="python"), strict=True
+            )
+        except (ValueError, TypeError, AttributeError):
+            raise PolicyError("AI_POLICY_INVALID_COPY_CANDIDATE_REQUEST") from None
+        cursor = request.cursor
+        if cursor is not None and (cursor.organization_id, cursor.scope_ref) != (
+            self.organization_id,
+            self.scope_ref,
+        ):
+            raise PolicyError("AI_POLICY_COPY_SCOPE_MISMATCH")
+        if cursor is not None and cursor.revision != self.revision:
+            raise PolicyError("AI_POLICY_COPY_REGISTRY_STALE")
+        as_of = cursor.as_of if cursor is not None else request.as_of
+        assert as_of is not None
+        after = cursor.after if cursor is not None else None
+        if not self.exists:
+            return CopyCandidatePage(0, as_of, (), None)
+        join = COPY_OPERATION.outerjoin(
+            COPY_DELIVERY,
+            and_(
+                COPY_OPERATION.c.organization_id == COPY_DELIVERY.c.organization_id,
+                COPY_OPERATION.c.scope_ref == COPY_DELIVERY.c.scope_ref,
+                COPY_OPERATION.c.operation_key == COPY_DELIVERY.c.operation_key,
+            ),
+        )
+        query = (
+            select(COPY_OPERATION.c.operation_key)
+            .select_from(join)
+            .where(
+                COPY_OPERATION.c.organization_id == self.organization_id,
+                COPY_OPERATION.c.scope_ref == self.scope_ref,
+                or_(
+                    COPY_DELIVERY.c.operation_key.is_(None),
+                    COPY_DELIVERY.c.status.in_(("pending", "exception")),
+                    and_(
+                        COPY_DELIVERY.c.status == "in_flight",
+                        COPY_DELIVERY.c.snapshot["claim_expires_at"].astext.cast(
+                            DateTime(timezone=True)
+                        )
+                        <= as_of,
+                    ),
+                ),
+            )
+        )
+        if after is not None:
+            query = query.where(COPY_OPERATION.c.operation_key > after)
+        keys: tuple[str, ...] = tuple(
+            self.connection.execute(
+                query.order_by(COPY_OPERATION.c.operation_key).limit(request.limit + 1)
+            ).scalars()
+        )
+        if (
+            any(
+                not isinstance(key, str)
+                or len(key) != 64
+                or any(char not in "0123456789abcdef" for char in key)
+                for key in keys
+            )
+            or keys != tuple(sorted(set(keys)))
+            or (after is not None and any(k <= after for k in keys))
+        ):
+            raise PolicyError("AI_POLICY_INVALID_COPY_OPERATION_STORAGE")
+        continuation = (
+            CopyCandidateCursor(
+                organization_id=self.organization_id,
+                scope_ref=self.scope_ref,
+                revision=self.revision,
+                as_of=as_of,
+                after=keys[request.limit - 1],
+            )
+            if len(keys) > request.limit
+            else None
+        )
+        return CopyCandidatePage(self.revision, as_of, keys[: request.limit], continuation)
 
     def get_operation(self, operation_key: str) -> CopyOperationEnvelope | None:
         # Digest syntax, not an arbitrary DB selector or provider operation alias.

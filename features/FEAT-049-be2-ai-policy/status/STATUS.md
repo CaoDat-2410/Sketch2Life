@@ -2,29 +2,29 @@
 
 - Status: IN_PROGRESS
 - Plan revision: 1
-- Implementation status: IN_PROGRESS — C4c4 durable phase authority component PASS; SQL NOT_RUN
+- Implementation status: IN_PROGRESS — C4c5 bounded candidate discovery component PASS; SQL NOT_RUN
 - Branch: feature/be2-08-14
 - Baseline: f0ff7a840d1910f1f80df327c3fd0239db5ea8e1
-- Current: parent 48282b0; immutable phase evidence and same-UoW history added.
-- BE2-14 component: 828 PASS /0 skip (78 policy contract +34 accounting contract
+- Current: parent c99384a; pinned-time scoped candidate discovery added, no schema change.
+- BE2-14 component: 846 PASS /0 skip (78 policy contract +34 accounting contract
   +47 accounting domain +46 policy domain +26 persistence
   shape/offline +15 runner +59 registry +29 command service +3 activation shape
   +31 emergency-stop +53 current-use +20 ledger shape/codec +49 accounting service
   +44 copy verification +27 copy inventory shape/codec +56 inventory service +28 history
   +44 exact operation +19 intent discovery +56 delivery domain/contract +22 delivery storage
-  +23 dispatcher +19 phase evidence checks).
+  +23 dispatcher +19 phase evidence +18 candidate query/cursor checks).
 - Focused Ruff/Mypy PASS; registry/auth fixtures are assumed, not real adoption.
 - Existing BE2-12/foundation selected regression pack: 477 PASS, source unchanged.
 - Additional targeted foundation application/review-regression/q00 suites: 114 PASS;
   existing copy fake scope/replay/cancel-vs-purge cases retained, no source rewrite.
 - PostgreSQL / real integration / runtime policy activation: NOT_RUN for BE2-14.
 - BE2-12 477/33 PASS belongs to that card, not carried as BE2-14 acceptance.
-- SQL: 15 lifecycle +10 activation/stop/use +19 ledger +47 copy inventory actual PG
-  cases prepared/collected, 91 total NOT_RUN, no authorized
+- SQL: 15 lifecycle +10 activation/stop/use +19 ledger +49 copy inventory actual PG
+  cases prepared/collected, 93 total NOT_RUN, no authorized
   BE2-14 server started. C2 pins original migration; C3b upgrades new branch head.
   Owner asked asynchronously for isolated PG17 setup/test/cleanup approval, no
   approval fabricated from silence or prior BE2-12 provisioning authority.
-- Next: C4c pending query filter, verified receipt/acknowledgment/current
+- Next: C4c verified receipt/acknowledgment/current
   lifecycle/verified receipt application and remaining C5
   safe bindings/projections, plus
   actual SQL proof once authorized. Guarded accounting application composition now
@@ -128,3 +128,11 @@
   cases; three new PG cases prepared NOT_RUN. 828 own +477 regression +114 foundation
   PASS. Evidence/handoff evidence/notes/C4C4_PHASE_AUTHORITY_20261018.md. Real owner/
   provider, SQL atomicity/races and full-card acceptance still open.
+
+- C4c5 (2026-10-18): internal candidate query uses scoped bounded SQL join/keyset,
+  explicit cutoff and typed cursor pinning org/scope/revision/time/key. Queued,
+  pending/exception and cutoff-expired in-flight only; exclude unsupported/receipt
+  and active claims. Metadata is NOT actual dispatch/retry permission, eligibility
+  or deletion/coverage proof. 18 new offline tests, two SQL cases prepared NOT_RUN.
+  846 own +477 regression +114 foundation PASS. Evidence/consumer obligations:
+  evidence/notes/C4C5_CANDIDATE_DISCOVERY_20261018.md. No worker/live hook mounted.

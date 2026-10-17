@@ -241,6 +241,81 @@ def scheduled_delivery(store):
     return schedule(service)
 
 
+def test_delivery_candidates_filter_states_and_expired_claims_at_pinned_time(inventory_store):
+    from datetime import timedelta
+
+    from sketch2life.contracts.schemas.ai_policy_copy_candidates import CopyCandidateRequest
+    from sketch2life.domain.ai_policy.copy_delivery import DeliveryResponse, HookOutcome
+    from tests.ai_policy_copy_operation_fixtures import schedule
+    from tests.unit.test_ai_policy_domain import NOW
+
+    inventory_store.clock = lambda: NOW
+    record_guarded_registration(inventory_store)
+    service, _ = operation_service(inventory_store)
+    ops = [schedule(service, client_request_id=f"fixture-state-{i}") for i in range(7)]
+    outcomes = [
+        None,
+        HookOutcome.PENDING,
+        HookOutcome.EXCEPTION,
+        HookOutcome.UNSUPPORTED,
+        HookOutcome.RECEIPT_AVAILABLE,
+        None,
+        None,
+    ]
+    for index, op in enumerate(ops[1:], start=1):
+        with transaction(inventory_store, write=True) as tx:
+            tx.claim_delivery(
+                op.operation_key,
+                expected_revision=0,
+                token=f"worker-{index}",
+                expires_at=NOW + timedelta(seconds=1 if index == 6 else 60),
+            )
+            outcome = outcomes[index]
+            if outcome is not None:
+                response = DeliveryResponse(
+                    op.operation_key,
+                    op.binding_digest,
+                    outcome,
+                    reference="fixture-proof" if index == 4 else None,
+                    reference_hash="c" * 64 if index == 4 else None,
+                    reason_code=None if index == 4 else "WAITING",
+                )
+                tx.finish_delivery(response, expected_revision=1, token=f"worker-{index}")
+    inventory_store.engine.dispose()
+    with transaction(inventory_store) as tx:
+        first = tx.delivery_candidates(
+            CopyCandidateRequest(limit=2, as_of=NOW + timedelta(seconds=2))
+        )
+        second = tx.delivery_candidates(CopyCandidateRequest(limit=2, cursor=first.next_cursor))
+        assert list(first.operation_keys + second.operation_keys) == sorted(
+            ops[i].operation_key for i in (0, 1, 2, 6)
+        )
+        assert second.next_cursor is None and second.as_of == first.as_of
+        earlier = tx.delivery_candidates(CopyCandidateRequest(limit=256, as_of=NOW))
+        assert earlier.operation_keys == tuple(sorted(ops[i].operation_key for i in (0, 1, 2)))
+    schedule(service, client_request_id="fixture-later")
+    with (
+        pytest.raises(PolicyError, match="AI_POLICY_COPY_REGISTRY_STALE"),
+        transaction(inventory_store) as tx,
+    ):
+        tx.delivery_candidates(CopyCandidateRequest(limit=2, cursor=first.next_cursor))
+
+
+def test_delivery_candidates_scope_isolation_and_no_phantom_after_absence(inventory_store):
+    from sketch2life.contracts.schemas.ai_policy_copy_candidates import CopyCandidateRequest
+    from tests.unit.test_ai_policy_domain import NOW
+
+    request = CopyCandidateRequest(limit=2, as_of=NOW)
+    with transaction(inventory_store) as reader:
+        op = scheduled_delivery(inventory_store)
+        assert not reader.delivery_candidates(request).operation_keys
+    with transaction(inventory_store) as reader:
+        assert reader.delivery_candidates(request).operation_keys == (op.operation_key,)
+    for values in ({"org": "other"}, {"scope": "other"}):
+        with transaction(inventory_store, **values) as reader:
+            assert not reader.delivery_candidates(request).operation_keys
+
+
 def test_guarded_dispatch_sql_claim_committed_before_synthetic_hook(inventory_store):
     from sketch2life.application.ai_policy_copy_dispatch import ProviderCopyDispatcher
     from sketch2life.contracts.schemas.ai_policy_copy_delivery import CopyHookResponse

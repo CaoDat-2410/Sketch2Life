@@ -1,5 +1,18 @@
 # Feature decisions
 
+## D22 — pinned cutoff candidate queries never authorize retry or expired takeover
+
+2026-10-18 approved C4/P4/P5. Internal CopyCandidateRequest supplies explicit
+as_of for first page OR typed scoped cursor for continuation, not both. Cursor
+retains org/scope/inventory revision/cutoff/key; fresh mutation rejects stale scan.
+Own scoped SQL join filters missing delivery row (queued), pending/exception and
+in-flight expiry <=cutoff, limit+1 keyset. Unsupported/receipt and active claims
+excluded. No numeric retry/TTL policy chosen, schema changed or route mounted.
+Cutoff is a scan timestamp, not wall-clock authority: even future-cutoff candidates
+must pass actual current dispatcher retry/deadline/profile checks and claim CAS.
+Internal cursor is metadata, not signed bearer permission; never expose directly
+as a trusted public auth token. Scope absence read stays rev0/empty/no later query.
+
 ## D21 — phase history references immutable source states, not current permission
 
 2026-10-18, approved P4/P5 C4c4. Own append-only ap_0008 evidence stores actor/org/

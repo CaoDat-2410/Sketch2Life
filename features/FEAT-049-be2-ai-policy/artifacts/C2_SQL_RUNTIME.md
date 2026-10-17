@@ -39,8 +39,8 @@ if ($LASTEXITCODE -ne 0) { throw 'BE2-14 ledger SQL evidence incomplete or faile
 if ($LASTEXITCODE -ne 0) { throw 'BE2-14 copy inventory SQL evidence incomplete or failed' }
 ```
 
-Expected: exact 15 lifecycle +10 activation/stop/current-use +19 ledger +47 copy
-inventory SQL JUnit test identities (91 total) in four separate
+Expected: exact 15 lifecycle +10 activation/stop/current-use +19 ledger +49 copy
+inventory SQL JUnit test identities (93 total) in four separate
 receipts, no fail/error/skip/extra/duplicate,
 unchanged current transitive source/config/test/runner hashes, runner exit 0.
 
@@ -83,6 +83,11 @@ and evidence-insert failure rolling back claim/state/history before hook. Total9
 prepared NOT_RUN; all earlier phase-history absence statements above historical.
 No server/provisioning or actual provider invocation; phase evidence is historical
 preparation/decision metadata, not actual transmission/ack/deletion proof.
+
+C4c5 adds two SQL cases: candidate membership across seven delivery states,
+expiry cutoff/continuation/reconnect/stale cursor; and scoped/absence no-phantom
+discovery. Total93 prepared NOT_RUN, no migration added. Selection metadata is not
+current permission or provider lifecycle proof; no actual worker/provider invoked.
 Missing explicit AP opt-in -> exit 2/NOT_RUN, even if LC opt-in exists. Missing or
 skipped execution case -> NOT_RUN; collection mismatch or test error/nonzero
 outcome -> FAIL. No fabricated SQL
