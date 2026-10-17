@@ -188,3 +188,13 @@ invent rollback of external effects. No hook resend from completed metadata; fut
 retry needs explicit current authorized state/revision and stable original key.
 Use ASSUMED/MEMORY tests, plus prepare SQL composition/restart tests. Real owner/
 hook deadline enforcement and cross-process provider dedup still integration gates.
+
+## C4c4 durable phase evidence
+
+Append immutable phase authority referencing original operation and BEFORE delivery
+revision, reconstructed from immutable history (rev0 queued only). Recompute exact
+phase binding, validate observed grant/deadline/actor/org and allowed transition to
+current state. Claim/completion evidence shares mutation UoW; dispatch evidence
+commits before hook in own UPDATE UoW. Evidence of preparing to send is not proof
+of send, ack or deletion. Forward ap_0008 own table/trigger; preserve frozen history.
+Test atomic rollback/proof binding/reconnect/immutability, PG remains NOT_RUN.

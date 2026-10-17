@@ -39,8 +39,8 @@ if ($LASTEXITCODE -ne 0) { throw 'BE2-14 ledger SQL evidence incomplete or faile
 if ($LASTEXITCODE -ne 0) { throw 'BE2-14 copy inventory SQL evidence incomplete or failed' }
 ```
 
-Expected: exact 15 lifecycle +10 activation/stop/current-use +19 ledger +44 copy
-inventory SQL JUnit test identities (88 total) in four separate
+Expected: exact 15 lifecycle +10 activation/stop/current-use +19 ledger +47 copy
+inventory SQL JUnit test identities (91 total) in four separate
 receipts, no fail/error/skip/extra/duplicate,
 unchanged current transitive source/config/test/runner hashes, runner exit 0.
 
@@ -75,6 +75,14 @@ hook: another connection observes committed claim before hook completion; denied
 completion preserves committed in-flight state. Total88 NOT_RUN. No schema change
 or real provider invocation; phase authority verification is not durable evidence
 history yet. Runner pins the new dispatch fixture and its transitive dependencies.
+
+C4c4 adds own ap_0008 immutable phase authority table; existing dispatcher SQL
+case now checks three proofs survive reconnect and denied completion retains only
+claim/dispatch evidence. Three new SQL cases: two raw-SQL update/delete negatives
+and evidence-insert failure rolling back claim/state/history before hook. Total91
+prepared NOT_RUN; all earlier phase-history absence statements above historical.
+No server/provisioning or actual provider invocation; phase evidence is historical
+preparation/decision metadata, not actual transmission/ack/deletion proof.
 Missing explicit AP opt-in -> exit 2/NOT_RUN, even if LC opt-in exists. Missing or
 skipped execution case -> NOT_RUN; collection mismatch or test error/nonzero
 outcome -> FAIL. No fabricated SQL

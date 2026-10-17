@@ -168,3 +168,21 @@ COPY_DELIVERY_HISTORY = Table(
     ),
     CheckConstraint("revision > 0", name="copy_delivery_history_revision"),
 )
+
+COPY_DELIVERY_AUTHORITY = Table(
+    "copy_delivery_authority",
+    COPY_METADATA,
+    Column("organization_id", String(120), primary_key=True),
+    Column("evidence_id", String(120), primary_key=True),
+    Column("scope_ref", String(120), nullable=False),
+    Column("operation_key", String(64), nullable=False),
+    Column("evidence", JSONB, nullable=False),
+    ForeignKeyConstraint(
+        ["organization_id", "scope_ref", "operation_key"],
+        [
+            f"{SCHEMA}.copy_operation.organization_id",
+            f"{SCHEMA}.copy_operation.scope_ref",
+            f"{SCHEMA}.copy_operation.operation_key",
+        ],
+    ),
+)

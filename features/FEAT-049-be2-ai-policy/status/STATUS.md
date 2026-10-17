@@ -2,29 +2,29 @@
 
 - Status: IN_PROGRESS
 - Plan revision: 1
-- Implementation status: IN_PROGRESS — C4c3 guarded dispatcher component PASS; SQL NOT_RUN
+- Implementation status: IN_PROGRESS — C4c4 durable phase authority component PASS; SQL NOT_RUN
 - Branch: feature/be2-08-14
 - Baseline: f0ff7a840d1910f1f80df327c3fd0239db5ea8e1
-- Current: parent 2ac80d4; current-phase claim/dispatch/completion composition added.
-- BE2-14 component: 809 PASS /0 skip (78 policy contract +34 accounting contract
+- Current: parent 48282b0; immutable phase evidence and same-UoW history added.
+- BE2-14 component: 828 PASS /0 skip (78 policy contract +34 accounting contract
   +47 accounting domain +46 policy domain +26 persistence
   shape/offline +15 runner +59 registry +29 command service +3 activation shape
   +31 emergency-stop +53 current-use +20 ledger shape/codec +49 accounting service
   +44 copy verification +27 copy inventory shape/codec +56 inventory service +28 history
   +44 exact operation +19 intent discovery +56 delivery domain/contract +22 delivery storage
-  +23 dispatcher checks).
+  +23 dispatcher +19 phase evidence checks).
 - Focused Ruff/Mypy PASS; registry/auth fixtures are assumed, not real adoption.
 - Existing BE2-12/foundation selected regression pack: 477 PASS, source unchanged.
 - Additional targeted foundation application/review-regression/q00 suites: 114 PASS;
   existing copy fake scope/replay/cancel-vs-purge cases retained, no source rewrite.
 - PostgreSQL / real integration / runtime policy activation: NOT_RUN for BE2-14.
 - BE2-12 477/33 PASS belongs to that card, not carried as BE2-14 acceptance.
-- SQL: 15 lifecycle +10 activation/stop/use +19 ledger +44 copy inventory actual PG
-  cases prepared/collected, 88 total NOT_RUN, no authorized
+- SQL: 15 lifecycle +10 activation/stop/use +19 ledger +47 copy inventory actual PG
+  cases prepared/collected, 91 total NOT_RUN, no authorized
   BE2-14 server started. C2 pins original migration; C3b upgrades new branch head.
   Owner asked asynchronously for isolated PG17 setup/test/cleanup approval, no
   approval fabricated from silence or prior BE2-12 provisioning authority.
-- Next: C4c durable per-phase authority evidence, pending query filter, acknowledgment/current
+- Next: C4c pending query filter, verified receipt/acknowledgment/current
   lifecycle/verified receipt application and remaining C5
   safe bindings/projections, plus
   actual SQL proof once authorized. Guarded accounting application composition now
@@ -119,3 +119,12 @@
   23 new local tests PASS; two SQL composition cases prepared NOT_RUN. No actual
   provider/owner adoption; per-phase authority proof history still needs persistence.
   Evidence and consumer obligations: evidence/notes/C4C3_GUARDED_DISPATCH_20261018.md.
+
+- C4c4 (2026-10-18): own ap_0008 append-only phase authority evidence. Reconstruct
+  before-state from immutable delivery history, recompute exact grant binding and
+  verify permitted transition to current snapshot. Claim/completion evidence shares
+  mutation UoW; dispatch evidence commits before hook in UPDATE UoW. Preparation
+  evidence is NOT proof of send/receipt/deletion or future authority. 19 new local
+  cases; three new PG cases prepared NOT_RUN. 828 own +477 regression +114 foundation
+  PASS. Evidence/handoff evidence/notes/C4C4_PHASE_AUTHORITY_20261018.md. Real owner/
+  provider, SQL atomicity/races and full-card acceptance still open.

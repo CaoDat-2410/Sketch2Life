@@ -86,6 +86,7 @@ def test_frozen_inventory_ddl_matches_owned_metadata_and_extends_branch():
                 "copy_operation_authority",
                 "copy_delivery",
                 "copy_delivery_history",
+                "copy_delivery_authority",
             }
         )
         + ";"
@@ -93,7 +94,7 @@ def test_frozen_inventory_ddl_matches_owned_metadata_and_extends_branch():
     assert re.sub(r"\s+", "", ddl) == re.sub(r"\s+", "", migration().DDL)
     assert migration().down_revision == "20261017_ap_0003"
     assert migration().branch_labels is None
-    assert len(COPY_METADATA.tables) == 9
+    assert len(COPY_METADATA.tables) == 10
     assert "infrastructure" not in PATH.read_text()
     for table in COPY_METADATA.tables.values():
         assert table.schema == "ai_policy"

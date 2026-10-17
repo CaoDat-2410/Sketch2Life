@@ -57,3 +57,14 @@ class CopyDeliveryAuthority(StrictPolicyModel):
         if self.claim_deadline > self.grant.expires_at:
             raise ValueError("claim exceeds current authority")
         return self
+
+
+class CopyDeliveryAuthorityEvidence(StrictPolicyModel):
+    organization_id: OpaqueId
+    principal_id: OpaqueId
+    scope_ref: OpaqueId
+    operation_key: Sha256Hex
+    phase: Literal["claim", "dispatch", "completion"]
+    state_revision: int = Field(ge=0)
+    authority: CopyDeliveryAuthority
+    observed_at: AwareDatetime

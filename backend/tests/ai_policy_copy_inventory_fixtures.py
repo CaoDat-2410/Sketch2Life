@@ -201,6 +201,7 @@ class MemoryInventory:
             now=self.clock(),
         )
         self.state.setdefault("deliveries", {})[key] = result
+        self.state.setdefault("delivery_history", {})[key, result.revision] = result
         self._advance("delivery")
         return result
 
@@ -211,9 +212,30 @@ class MemoryInventory:
             old, response, expected_revision=expected_revision, token=token, now=self.clock()
         )
         self.state.setdefault("deliveries", {})[response.operation_key] = result
+        self.state.setdefault("delivery_history", {})[response.operation_key, result.revision] = (
+            result
+        )
         if result != old:
             self._advance("delivery")
         return result
+
+    def record_delivery_authority(self, evidence):
+        from sketch2life.application.ai_policy_copy_delivery_evidence import (
+            validate_delivery_evidence,
+        )
+
+        assert self.write
+        envelope = self.get_operation(evidence.operation_key)
+        before = (
+            DeliveryState(envelope.operation_key, envelope.binding_digest)
+            if evidence.state_revision == 0
+            else self.state["delivery_history"][evidence.operation_key, evidence.state_revision]
+        )
+        validate_delivery_evidence(
+            evidence, envelope, before, self.get_delivery(evidence.operation_key)
+        )
+        self.state.setdefault("delivery_authority", []).append(evidence)
+        self._advance("delivery_authority")
 
     def enqueue_operation(self, envelope, authorization):
         from sketch2life.application.ai_policy_copy_operations import (

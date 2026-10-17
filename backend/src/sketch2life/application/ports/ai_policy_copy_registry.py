@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Literal, Protocol
 
+from sketch2life.contracts.schemas.ai_policy_copy_delivery import CopyDeliveryAuthorityEvidence
 from sketch2life.contracts.schemas.ai_policy_copy_history import CopyInventoryEvidence
 from sketch2life.contracts.schemas.ai_policy_copy_operation import (
     CopyOperationAuthorization,
@@ -65,6 +66,10 @@ class CopyOperationPage:
 
 
 class ProviderCopyRegistryTransaction(Protocol):
+    def record_delivery_authority(self, evidence: CopyDeliveryAuthorityEvidence) -> None:
+        """Historical phase grant in mutation/pre-dispatch UoW, never a live grant."""
+        ...
+
     def get_delivery(self, operation_key: str) -> DeliveryState:
         """Historical state only; lazy queued state requires an existing exact intent."""
         ...
