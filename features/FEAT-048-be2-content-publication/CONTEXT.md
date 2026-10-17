@@ -1,5 +1,16 @@
 # FEAT-048 — BE2-12 content authoring, publication and recall
 
+## C5b source-pinned reproducible handoff — 2026-10-17
+
+One selected-component command now collects exact inventory/JUnit identities,
+rejects missing/skip/extra/duplicate/failure and pins 330 source/config/fixture
+files before/after. Final actual run: 454 PASS, Ruff owned source/tests, Mypy 14
+production files, architecture/harness/security/whitespace all PASS. Earlier
+runner root/lint-scope configuration failures retained, no foundation edits.
+SQL 24-case proof remains separate; no services/installs/network triggered by
+component runner. RECEIVER_CHECKPOINT.md is the concise current entrypoint.
+Candidate component handoff available, real owner integration/full goal incomplete.
+
 ## C4c consumer pack — 2026-10-17
 
 Receiver-owned H-CONTENT-PRESET query/reference/notice/ack candidate contracts and
