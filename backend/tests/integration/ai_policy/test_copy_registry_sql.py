@@ -21,6 +21,8 @@ from sketch2life.domain.ai_policy.model import PolicyError
 from sketch2life.infrastructure.ai_policy.copy_registry_sql import SqlProviderCopyInventoryStore
 from sketch2life.infrastructure.ai_policy.copy_registry_tables import (
     COPY_COVERAGE,
+    COPY_DELIVERY,
+    COPY_DELIVERY_HISTORY,
     COPY_EVENT,
     COPY_EVIDENCE,
     COPY_OPERATION,
@@ -226,6 +228,172 @@ def operation_service(store):
 
     boundary = AssumedOperationBoundary(AssumedInventoryBoundary())
     return ProviderCopyOperationService(store, boundary, clock=lambda: NOW), boundary
+
+
+def scheduled_delivery(store):
+    from tests.ai_policy_copy_operation_fixtures import schedule
+    from tests.unit.test_ai_policy_domain import NOW
+
+    store.clock = lambda: NOW
+    record_guarded_registration(store)
+    service, _ = operation_service(store)
+    return schedule(service)
+
+
+def test_delivery_claim_reconnect_finish_and_replay_are_atomic_metadata(inventory_store):
+    from datetime import timedelta
+
+    from sketch2life.domain.ai_policy.copy_delivery import DeliveryResponse, HookOutcome
+    from tests.unit.test_ai_policy_domain import NOW
+
+    op = scheduled_delivery(inventory_store)
+    with transaction(inventory_store, write=True) as tx:
+        claimed = tx.claim_delivery(
+            op.operation_key,
+            expected_revision=0,
+            token="worker-1",
+            expires_at=NOW + timedelta(minutes=1),
+        )
+    inventory_store.engine.dispose()
+    with transaction(inventory_store) as tx:
+        assert tx.get_delivery(op.operation_key) == claimed
+    response = DeliveryResponse(
+        op.operation_key, op.binding_digest, HookOutcome.PENDING, reason_code="WAITING"
+    )
+    with transaction(inventory_store, write=True) as tx:
+        done = tx.finish_delivery(response, expected_revision=1, token="worker-1")
+    assert count(inventory_store, COPY_DELIVERY_HISTORY) == 2
+    with transaction(inventory_store, write=True) as tx:
+        assert tx.finish_delivery(response, expected_revision=1, token="worker-1") == done
+    assert count(inventory_store, COPY_DELIVERY_HISTORY) == 2
+
+
+def test_delivery_concurrent_claims_admit_one_revision_winner(inventory_store):
+    from datetime import timedelta
+
+    from tests.unit.test_ai_policy_domain import NOW
+
+    op = scheduled_delivery(inventory_store)
+    barrier = Barrier(2)
+
+    def attempt(token):
+        barrier.wait(timeout=10)
+        try:
+            with transaction(inventory_store, write=True) as tx:
+                tx.claim_delivery(
+                    op.operation_key,
+                    expected_revision=0,
+                    token=token,
+                    expires_at=NOW + timedelta(minutes=1),
+                )
+            return "won"
+        except PolicyError as error:
+            assert str(error) == "AI_POLICY_COPY_DELIVERY_STALE"
+            return "lost"
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        futures = [pool.submit(attempt, token) for token in ("worker-1", "worker-2")]
+        assert sorted(f.result(timeout=30) for f in futures) == ["lost", "won"]
+    assert count(inventory_store, COPY_DELIVERY) == 1
+    assert count(inventory_store, COPY_DELIVERY_HISTORY) == 1
+
+
+def test_delivery_expired_takeover_rejects_old_response_without_duplicate_operation(
+    inventory_store,
+):
+    from datetime import timedelta
+
+    from sketch2life.domain.ai_policy.copy_delivery import DeliveryResponse, HookOutcome
+    from tests.unit.test_ai_policy_domain import NOW
+
+    op = scheduled_delivery(inventory_store)
+    with transaction(inventory_store, write=True) as tx:
+        tx.claim_delivery(
+            op.operation_key,
+            expected_revision=0,
+            token="worker-1",
+            expires_at=NOW + timedelta(seconds=1),
+        )
+    inventory_store.clock = lambda: NOW + timedelta(seconds=1)
+    with transaction(inventory_store, write=True) as tx:
+        tx.claim_delivery(
+            op.operation_key,
+            expected_revision=1,
+            token="worker-2",
+            expires_at=NOW + timedelta(minutes=1),
+        )
+    response = DeliveryResponse(
+        op.operation_key, op.binding_digest, HookOutcome.PENDING, reason_code="WAITING"
+    )
+    with (
+        pytest.raises(PolicyError, match="AI_POLICY_COPY_DELIVERY_STALE"),
+        transaction(inventory_store, write=True) as tx,
+    ):
+        tx.finish_delivery(response, expected_revision=1, token="worker-1")
+    with transaction(inventory_store, write=True) as tx:
+        tx.finish_delivery(response, expected_revision=2, token="worker-2")
+    assert count(inventory_store, COPY_OPERATION) == 1
+    assert count(inventory_store, COPY_DELIVERY_HISTORY) == 3
+
+
+def test_delivery_history_failure_rolls_back_claim_current_state_and_event(inventory_store):
+    from datetime import timedelta
+
+    from tests.unit.test_ai_policy_domain import NOW
+
+    op = scheduled_delivery(inventory_store)
+    before = count(inventory_store, COPY_EVENT)
+    with inventory_store.engine.begin() as connection:
+        connection.execute(
+            text("""
+          CREATE FUNCTION ai_policy.synthetic_delivery_failure() RETURNS trigger
+          LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'SYNTHETIC_DELIVERY_FAILURE'; END; $$
+        """)
+        )
+        connection.execute(
+            text("""
+          CREATE TRIGGER synthetic_delivery_failure BEFORE INSERT
+          ON ai_policy.copy_delivery_history FOR EACH ROW
+          EXECUTE FUNCTION ai_policy.synthetic_delivery_failure()
+        """)
+        )
+    with (
+        pytest.raises(PolicyError, match="AI_POLICY_COPY_REGISTRY_STORAGE_UNAVAILABLE"),
+        transaction(inventory_store, write=True) as tx,
+    ):
+        tx.claim_delivery(
+            op.operation_key,
+            expected_revision=0,
+            token="worker-1",
+            expires_at=NOW + timedelta(minutes=1),
+        )
+    assert count(inventory_store, COPY_DELIVERY) == 0
+    assert count(inventory_store, COPY_DELIVERY_HISTORY) == 0
+    assert count(inventory_store, COPY_EVENT) == before
+
+
+@pytest.mark.parametrize("mutation", ["update", "delete"])
+def test_delivery_history_cannot_be_rewritten_by_raw_sql(inventory_store, mutation):
+    from datetime import timedelta
+
+    from tests.unit.test_ai_policy_domain import NOW
+
+    op = scheduled_delivery(inventory_store)
+    with transaction(inventory_store, write=True) as tx:
+        tx.claim_delivery(
+            op.operation_key,
+            expected_revision=0,
+            token="worker-1",
+            expires_at=NOW + timedelta(minutes=1),
+        )
+    statement = (
+        update(COPY_DELIVERY_HISTORY).values(snapshot={})
+        if mutation == "update"
+        else delete(COPY_DELIVERY_HISTORY)
+    )
+    with pytest.raises(DBAPIError), inventory_store.engine.begin() as connection:
+        connection.execute(statement)
+    assert count(inventory_store, COPY_DELIVERY_HISTORY) == 1
 
 
 def test_copy_operation_pages_reconnect_scope_and_revision_cursor(inventory_store):

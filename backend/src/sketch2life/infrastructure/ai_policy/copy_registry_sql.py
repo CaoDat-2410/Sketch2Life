@@ -35,9 +35,21 @@ from sketch2life.contracts.schemas.ai_policy_copy_registry import (
     CopyCoverageObservation,
     CopyRegistryRegistration,
 )
+from sketch2life.domain.ai_policy.copy_delivery import (
+    DeliveryResponse,
+    DeliveryState,
+    claim_delivery,
+    finish_delivery,
+)
 from sketch2life.domain.ai_policy.model import PolicyError
+from sketch2life.infrastructure.ai_policy.copy_delivery_codec import (
+    decode_delivery,
+    encode_delivery,
+)
 from sketch2life.infrastructure.ai_policy.copy_registry_tables import (
     COPY_COVERAGE,
+    COPY_DELIVERY,
+    COPY_DELIVERY_HISTORY,
     COPY_EVENT,
     COPY_EVIDENCE,
     COPY_OPERATION,
@@ -156,6 +168,99 @@ class SqlProviderCopyRegistryTransaction:
     def _write(self) -> None:
         if not self.writable:
             raise PolicyError("AI_POLICY_COPY_REGISTRY_READ_ONLY")
+
+    def get_delivery(self, operation_key: str) -> DeliveryState:
+        operation = self.get_operation(operation_key)
+        if operation is None:
+            raise PolicyError("AI_POLICY_COPY_OPERATION_NOT_FOUND")
+        row = (
+            self.connection.execute(
+                select(COPY_DELIVERY).where(
+                    COPY_DELIVERY.c.organization_id == self.organization_id,
+                    COPY_DELIVERY.c.scope_ref == self.scope_ref,
+                    COPY_DELIVERY.c.operation_key == operation_key,
+                )
+            )
+            .mappings()
+            .one_or_none()
+        )
+        if row is None:
+            return DeliveryState(operation_key, operation.binding_digest)
+        state = decode_delivery(row["snapshot"])
+        if (state.operation_key, state.binding_digest, state.revision, state.status.value) != (
+            operation_key,
+            operation.binding_digest,
+            row["revision"],
+            row["status"],
+        ) or state.revision == 0:
+            raise PolicyError("AI_POLICY_INVALID_COPY_DELIVERY_STORAGE")
+        return state
+
+    def _store_delivery(self, old: DeliveryState, new: DeliveryState) -> DeliveryState:
+        self._write()
+        if old == new:
+            return old
+        values = dict(revision=new.revision, status=new.status.value, snapshot=encode_delivery(new))
+        scope = dict(
+            organization_id=self.organization_id,
+            scope_ref=self.scope_ref,
+            operation_key=new.operation_key,
+        )
+        if old.revision == 0:
+            self.connection.execute(insert(COPY_DELIVERY).values(**scope, **values))
+        else:
+            result = self.connection.execute(
+                update(COPY_DELIVERY)
+                .where(
+                    COPY_DELIVERY.c.organization_id == self.organization_id,
+                    COPY_DELIVERY.c.scope_ref == self.scope_ref,
+                    COPY_DELIVERY.c.operation_key == new.operation_key,
+                    COPY_DELIVERY.c.revision == old.revision,
+                )
+                .values(**values)
+            )
+            if result.rowcount != 1:
+                raise PolicyError("AI_POLICY_COPY_DELIVERY_STALE")
+        self.connection.execute(
+            insert(COPY_DELIVERY_HISTORY).values(
+                **scope, revision=new.revision, snapshot=values["snapshot"]
+            )
+        )
+        self._advance(
+            "ai_policy.copy_delivery_changed",
+            {
+                "operation_key": new.operation_key,
+                "delivery_revision": new.revision,
+                "delivery_status": new.status.value,
+            },
+        )
+        return new
+
+    def claim_delivery(
+        self, operation_key: str, *, expected_revision: int, token: str, expires_at: datetime
+    ) -> DeliveryState:
+        self._write()
+        old = self.get_delivery(operation_key)
+        new = claim_delivery(
+            old,
+            expected_revision=expected_revision,
+            token=token,
+            now=self.clock(),
+            expires_at=expires_at,
+        )
+        return self._store_delivery(old, new)
+
+    def finish_delivery(
+        self, response: DeliveryResponse, *, expected_revision: int, token: str
+    ) -> DeliveryState:
+        self._write()
+        if not isinstance(response, DeliveryResponse):
+            raise PolicyError("AI_POLICY_INVALID_COPY_DELIVERY")
+        old = self.get_delivery(response.operation_key)
+        new = finish_delivery(
+            old, response, expected_revision=expected_revision, token=token, now=self.clock()
+        )
+        return self._store_delivery(old, new)
 
     def operation_page(
         self, *, limit: int, after: str | None = None, expected_revision: int | None = None

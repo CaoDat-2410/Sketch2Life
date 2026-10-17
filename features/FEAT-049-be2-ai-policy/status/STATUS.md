@@ -2,28 +2,28 @@
 
 - Status: IN_PROGRESS
 - Plan revision: 1
-- Implementation status: IN_PROGRESS — C4c1 internal intent discovery component PASS; SQL NOT_RUN
+- Implementation status: IN_PROGRESS — C4c2 delivery claim/state component PASS; SQL NOT_RUN
 - Branch: feature/be2-08-14
 - Baseline: f0ff7a840d1910f1f80df327c3fd0239db5ea8e1
-- Current: parent c3a1423; revision-bound scoped operation-key discovery added.
-- BE2-14 component: 708 PASS /0 skip (78 policy contract +34 accounting contract
+- Current: parent f2afc7e; pure delivery fencing, typed hook response and own SQL state/history added.
+- BE2-14 component: 786 PASS /0 skip (78 policy contract +34 accounting contract
   +47 accounting domain +46 policy domain +26 persistence
   shape/offline +15 runner +59 registry +29 command service +3 activation shape
   +31 emergency-stop +53 current-use +20 ledger shape/codec +49 accounting service
   +44 copy verification +27 copy inventory shape/codec +56 inventory service +28 history
-  +44 exact operation +19 intent discovery checks).
+  +44 exact operation +19 intent discovery +56 delivery domain/contract +22 delivery storage checks).
 - Focused Ruff/Mypy PASS; registry/auth fixtures are assumed, not real adoption.
 - Existing BE2-12/foundation selected regression pack: 477 PASS, source unchanged.
 - Additional targeted foundation application/review-regression/q00 suites: 114 PASS;
   existing copy fake scope/replay/cancel-vs-purge cases retained, no source rewrite.
 - PostgreSQL / real integration / runtime policy activation: NOT_RUN for BE2-14.
 - BE2-12 477/33 PASS belongs to that card, not carried as BE2-14 acceptance.
-- SQL: 15 lifecycle +10 activation/stop/use +19 ledger +36 copy inventory actual PG
-  cases prepared/collected, 80 total NOT_RUN, no authorized
+- SQL: 15 lifecycle +10 activation/stop/use +19 ledger +42 copy inventory actual PG
+  cases prepared/collected, 86 total NOT_RUN, no authorized
   BE2-14 server started. C2 pins original migration; C3b upgrades new branch head.
   Owner asked asynchronously for isolated PG17 setup/test/cleanup approval, no
   approval fabricated from silence or prior BE2-12 provisioning authority.
-- Next: C4c pending status/claim, typed dispatch/acknowledgment/current
+- Next: C4c guarded claim/dispatch composition, pending query filter, acknowledgment/current
   lifecycle/verified receipt application and remaining C5
   safe bindings/projections, plus
   actual SQL proof once authorized. Guarded accounting application composition now
@@ -99,3 +99,13 @@
   No public route or provider side effect. 19 new offline tests; two PG cases
   prepared, NOT_RUN. 708 own +477 regression +114 foundation PASS. Evidence and
   consumer boundary: evidence/notes/C4C1_INTENT_DISCOVERY_20261018.md.
+
+- C4c2 (2026-10-18): pure queued/in-flight/pending/unsupported/exception/receipt-available
+  delivery states, explicit-deadline token/revision fencing and replay metadata.
+  Own ap_0007 current snapshot/history/outbox UoW code; strict codec binds state
+  to original envelope. Receipt reference is NOT verified deletion/cancel ack.
+  78 new local cases PASS; six actual PG cases prepared NOT_RUN. No persisted
+  claim is an authorization grant. Authoritative worker composition/current-rights
+  fencing, hook invocation and receipt reconciliation still unimplemented.
+  Evidence evidence/notes/C4C2_DELIVERY_STATE_20261018.md; consumer handoff
+  artifacts/C4C2_DELIVERY_STATE_HANDOFF.md. Full card IN_PROGRESS, not runtime PASS.
