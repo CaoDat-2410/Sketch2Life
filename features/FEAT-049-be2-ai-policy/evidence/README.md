@@ -7,5 +7,8 @@
 - C2_PERSISTENCE_20261017: 160 own component cases including 36 new offline/runner
   checks; 15 PG cases collected, runtime NOT_RUN. Own C2 UoW code is not validated
   durable runtime until that exact pack executes in a separately approved profile.
+- C3A_REGISTRY_20261017: 59 new current/exact-ref validation fixture cases, 219
+  own component +477 existing selected regression PASS. Registry adoption, durable
+  authorization/revocation fencing, activation/limits/kill and SQL still NOT_RUN.
 - Keep raw outputs synthetic/redacted; secrets/runtime archives remain ignored.
 - After implementation, link exact source hashes/commands/results per acceptance.

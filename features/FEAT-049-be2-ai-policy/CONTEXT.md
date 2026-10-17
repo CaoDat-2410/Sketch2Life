@@ -1,6 +1,10 @@
 # FEAT-049 — BE2-14 AI policy / limits / kill switch
 
 - Goal: full BE2-14 card, including ProviderCopyLifecycle and redacted projections.
+- Current C3a: server-side exact-definition compatibility validator and candidate
+  authoritative registry guard implemented. 59 new fixture cases, 219 own component
+  PASS plus 477 existing regression PASS. No activation/usage grant from validation,
+  no production registry/current-authority adapter or durable fence proof supplied.
 - Status: IN_PROGRESS; owner approved revision 1/P1–P5 by direct reply "duyệt".
 - Owner: receiver BE2-08–14, same branch feature/be2-08-14.
 - Baseline: f0ff7a840d1910f1f80df327c3fd0239db5ea8e1; working tree clean before planning.
@@ -25,6 +29,6 @@
   160 BE2-14 component cases total; 15 actual PostgreSQL cases prepared/collected,
   NOT_RUN pending separately authorized environment. No server started/downloaded.
   Effective scope/epoch/reservation tables deferred to C3 when their behavior exists.
-- Next: C2 runtime pack authorization/proof and C3 registry/activation/accounting;
+- Next: C2 runtime pack authorization/proof and C3 command/activation/accounting/kill;
   real production
   activation/provisioning and external adoption remain separate gates.
