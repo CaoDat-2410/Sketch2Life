@@ -1,6 +1,13 @@
 # FEAT-049 — BE2-14 AI policy / limits / kill switch
 
 - Goal: full BE2-14 card, including ProviderCopyLifecycle and redacted projections.
+- Latest C6b (2026-10-18): own health/queue projection gap now component-addressed:
+  explicitly bound source profile, scoped typed aggregate, fixture/runtime labels,
+  unavailable/null, stale suppression and post-transaction freshness/rights checks.
+  Collector outside own SQL lock, no job-table scan or live source configured.
+  1061 own +114 foundation +477 regression; all64 source lint/typecheck. PG104
+  unchanged NOT_RUN. Actual producer/privacy/expiry meanings and stop-generation/
+  provider/current-owner adoption remain open; refresh conformance/handoff next.
 - Latest C6a (2026-10-18): exact-node/source-pinned whole local pack1028 own,
   foundation114/selected477 regression/all61 source lint+typecheck PASS. AC01–12
   and original-goal audit explicitly NOT full acceptance: own health/queue safe

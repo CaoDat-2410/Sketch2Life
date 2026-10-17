@@ -6,6 +6,7 @@ from pydantic import Field, model_validator
 
 from sketch2life.contracts.schemas.ai_contract_candidates import OpaqueId
 from sketch2life.contracts.schemas.ai_policy import PolicyDefinitionRef, StrictPolicyModel
+from sketch2life.contracts.schemas.ai_policy_telemetry import OperationsTelemetryView
 
 
 class BudgetWindowRef(StrictPolicyModel):
@@ -66,6 +67,7 @@ class PolicyOperationsView(StrictPolicyModel):
     request: PolicyOperationsRequest
     scope: PolicyScopeMetadata | None
     ledger: LedgerOperationsSnapshot
+    telemetry: OperationsTelemetryView = Field(default_factory=OperationsTelemetryView)
     accounting_semantics: Literal["recorded_ledger_not_actual_cost"] = (
         "recorded_ledger_not_actual_cost"
     )

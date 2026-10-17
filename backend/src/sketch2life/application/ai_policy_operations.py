@@ -1,9 +1,14 @@
 """Current-authorized allowlisted metadata only; no use/dispatch permission."""
 
+from collections.abc import Callable
+from datetime import UTC, datetime
+
 from sketch2life.application.ai_policy_commands import _body
+from sketch2life.application.ai_policy_telemetry import telemetry_view
 from sketch2life.application.ports.ai_policy import PolicyStore
 from sketch2life.application.ports.ai_policy_operations import ResourceOperationsReader
 from sketch2life.application.ports.ai_policy_registry import PolicyRegistryBoundary
+from sketch2life.application.ports.ai_policy_telemetry import OperationsTelemetryReader
 from sketch2life.contracts.schemas.ai_policy import PolicyDefinitionRef
 from sketch2life.contracts.schemas.ai_policy_operations import (
     LedgerOperationsSnapshot,
@@ -20,8 +25,23 @@ class AiPolicyOperations:
         store: PolicyStore,
         boundary: PolicyRegistryBoundary,
         ledger: ResourceOperationsReader | None = None,
+        *,
+        telemetry: OperationsTelemetryReader | None = None,
+        telemetry_source: PolicyDefinitionRef | None = None,
+        clock: Callable[[], datetime] | None = None,
     ) -> None:
+        if (telemetry is None) != (telemetry_source is None):
+            raise ValueError("telemetry reader and source profile must be bound together")
+        if telemetry_source is not None:
+            try:
+                telemetry_source = PolicyDefinitionRef.model_validate(
+                    telemetry_source.model_dump(mode="python"), strict=True
+                )
+            except (ValueError, TypeError, AttributeError):
+                raise ValueError("invalid telemetry source profile") from None
         self.store, self.boundary, self.ledger = store, boundary, ledger
+        self.telemetry, self.telemetry_source = telemetry, telemetry_source
+        self.clock = clock or (lambda: datetime.now(UTC))
 
     def read(
         self, principal_id: str, organization_id: str, request: PolicyOperationsRequest
@@ -34,6 +54,21 @@ class AiPolicyOperations:
             raise PolicyError("AI_POLICY_INVALID_OPERATIONS_QUERY") from None
         try:
             with self.boundary.guard(principal_id, organization_id) as access:
+                if access.authority.principal_id != principal_id:
+                    raise PolicyError("AI_POLICY_FORBIDDEN")
+                authorize(access.authority, organization_id, Capability.OPERATIONS_READ)
+                observation = None
+                bound_source = self.telemetry_source
+                if self.telemetry is not None:
+                    observation = self.telemetry.snapshot(organization_id, request.feature_scope)
+                # Validate outside own DB locks; later re-evaluate freshness at response.
+                telemetry_view(
+                    observation,
+                    organization_id,
+                    request.feature_scope,
+                    bound_source,
+                    self.clock(),
+                )
                 if access.authority.principal_id != principal_id:
                     raise PolicyError("AI_POLICY_FORBIDDEN")
                 authorize(access.authority, organization_id, Capability.OPERATIONS_READ)
@@ -89,12 +124,22 @@ class AiPolicyOperations:
                         ledger = LedgerOperationsSnapshot.model_validate(
                             raw.model_dump(mode="python"), strict=True
                         )
-                    result = PolicyOperationsView(
-                        organization_id=organization_id, request=request, scope=scope, ledger=ledger
-                    )
-                    if access.authority.principal_id != principal_id:
-                        raise PolicyError("AI_POLICY_FORBIDDEN")
-                    authorize(access.authority, organization_id, Capability.OPERATIONS_READ)
+                result = PolicyOperationsView(
+                    organization_id=organization_id,
+                    request=request,
+                    scope=scope,
+                    ledger=ledger,
+                    telemetry=telemetry_view(
+                        observation,
+                        organization_id,
+                        request.feature_scope,
+                        bound_source,
+                        self.clock(),
+                    ),
+                )
+                if access.authority.principal_id != principal_id:
+                    raise PolicyError("AI_POLICY_FORBIDDEN")
+                authorize(access.authority, organization_id, Capability.OPERATIONS_READ)
             return result
         except PolicyError as error:
             if str(error) in {

@@ -12,8 +12,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 FEATURE = ROOT / "features/FEAT-049-be2-ai-policy"
-EXPECTED_CASES = 1028
-EXPECTED_NODE_SHA256 = "21dc838bc6f9dbfeea59360a22ef465be4a603168b40586bd375138f069ea075"
+EXPECTED_CASES = 1061
+EXPECTED_NODE_SHA256 = "a045b0e24ddeb250a5358ef3d1ef29ef98bbe61e000078bd60c9d11b0c4d068f"
 FOUNDATION_NODE_SHA256 = "858bcea4b0723c0c34250415be51611a385d0658d1d97e094f6b86c294b6a60b"
 FOUNDATION = (
     "tests/unit/test_ai_job_application.py",

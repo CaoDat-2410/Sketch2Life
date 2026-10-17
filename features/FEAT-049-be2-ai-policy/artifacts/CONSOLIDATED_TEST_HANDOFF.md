@@ -1,15 +1,16 @@
-# Consolidated test handoff — C6a candidate, runtime NOT_RUN
+# Consolidated test handoff — C6b candidate, runtime NOT_RUN
 
-Use the commit introducing C6a and this document, or a reviewed later checkpoint
+Use the commit introducing C6b telemetry and this updated document, or a reviewed later checkpoint
 with matching runner hashes. Earlier e792512 is parent only and lacks local runner.
 Record `git rev-parse HEAD` and `git status --short` before executing; don't change
 source mid-pack. Final checkpoint hash is reported in chat/Git history, source
 maps in each receipt bind actual code/tests/tooling/config/feature records.
 Missing/changed source/inventory or skipped test is not acceptance.
 
-This is a consolidated entrypoint, not approval to provision or a declaration
-that all local work is finished: health/queue projection remains local work per
-ACCEPTANCE_AUDIT_20261018.md. Owner need not test each intermediate increment.
+This is a consolidated entrypoint, not approval to provision or whole-card closure.
+Health/queue projection component now exists; actual producer/source/privacy/expiry
+adoption remains open per ACCEPTANCE_AUDIT_20261018.md. Owner need not test each
+intermediate increment.
 
 ## 1. Local component check (no external service/GPU)
 
@@ -21,8 +22,8 @@ run from repo root (same command Windows/Linux):
 python features/FEAT-049-be2-ai-policy/src/run_component_checks.py
 ```
 
-Expected1028 exact own cases (node SHA25621dc838b...), zero fail/error/skip; targeted
-foundation114, selected regression477, full61 own source Ruff/Mypy, governance/
+Expected1061 exact own cases (node SHA256a045b0e2...), zero fail/error/skip; targeted
+foundation114, selected regression477, full64 own source Ruff/Mypy, governance/
 security/whitespace PASS and source_unchanged=true. Exit0 only for whole local pack.
 Writes ignored .runtime/ai-policy-component/<timestamp>/collection.log/component.xml/
 foundation.xml/check logs/summary.json. Selected regression creates its own ignored
@@ -61,6 +62,11 @@ install packages/change source/target a different DB to force PASS.
 ## 3. Provider/owner integration is a separate gate, not a GPU requirement here
 
 PG/local code tests do not need GPU or infer actual WAN/TTS/provider behavior.
+Telemetry requires an adopted OperationsTelemetryReader and exact backend source
+profile; absent source is unavailable/null, fixture evidence never live health.
+Queued/running job counts must come from that scoped source, not outbox counters.
+Producer must adopt safe aggregate disclosure, observation expiry and health
+classification; no production thresholds, TTLs, queue topology or source chosen.
 Actual providers need separately approved configuration, credentials/profile refs
 and real owner adapters; none selected/activated by these commands. Test on
 Lightning only after that gate, preferably using adopted owner conformance harness.
