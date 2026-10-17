@@ -1,5 +1,16 @@
 # Project context ledger
 
+## Receiver next-card planning — 2026-10-17
+
+Receiver branch is now feature/be2-08-14 (owner-requested local rename). BE2-12
+component/owned SQL checkpoint 6931daa and integration-deferral handoff f0ff7a8
+are available; owner leaves real BE1/P4 wiring to teammates. This is not full
+integrated acceptance. Owner now requests the next task: FEAT-049 BE2-14 plan
+revision 1 is AWAITING_APPROVAL, implementation NOT_STARTED. Existing BE2-12 or
+foundation approvals do not authorize new policy/provisioning/provider choices.
+Sender 01–07 allocation and foundation's unresolved integration gates unchanged.
+Entry: features/FEAT-049-be2-ai-policy/plan/PLAN.md.
+
 ## BE2 checkpoint publication and 7/7 handoff —2026-10-16
 
 User authorized splitting and pushing the current BE2 checkpoint so the second BE2 executor can
