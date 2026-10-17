@@ -1,5 +1,18 @@
 # Project context ledger
 
+## Receiver BE2-14 C6b health/queue component — 2026-10-18
+
+Current feature/be2-08-14, parent a561128. Own health/queue projection gap found by
+C6a now component-addressed: scoped typed producer/source binding, freshness/expiry,
+fixture/runtime labels, null unknown vs actual0, no raw logs or foreign table scan.
+Collector outside own transaction, expiry after transaction exit/current rights
+rechecked. Local pack1061 own +114 foundation +477 regression/all64 source checks;
+actual source/privacy/health/TTL adoption and stop-generation/provider/current-owner
+integration still open. PG104 NOT_RUN, no provisioning/provider/production defaults.
+BE2-12 real BE1/P4 integration remains owner-deferred and original goal not DONE.
+Current handoff: FEAT-049 artifacts/H_OPERATIONS_TELEMETRY_HANDOFF.md and updated
+ACCEPTANCE_AUDIT_20261018.md/CONSOLIDATED_TEST_HANDOFF.md. Earlier counts historical.
+
 ## Receiver BE2-14 C6a audit — 2026-10-18
 
 Current receiver feature/be2-08-14, C6a parent e792512. BE2-14 revision1 approval

@@ -2,11 +2,11 @@
 
 - Status: IN_PROGRESS
 - Plan revision: 1
-- Implementation status: IN_PROGRESS — C6a consolidated local runner/acceptance audit; own health/queue gap open
+- Implementation status: IN_PROGRESS — C6b safe health/queue projection component; actual source/runtime gates open
 - Branch: feature/be2-08-14
 - Baseline: f0ff7a840d1910f1f80df327c3fd0239db5ea8e1
-- Current: parent e792512; exact-node/source-pinned consolidated local pack and AC01–12 audit.
-- BE2-14 component: 1028 PASS /0 skip (78 policy contract +34 accounting contract
+- Current: parent a561128; typed scoped health/queue source and freshness-aware operations projection.
+- BE2-14 component: 1061 PASS /0 skip (78 policy contract +34 accounting contract
   +47 accounting domain +46 policy domain +26 persistence
   shape/offline +15 runner +59 registry +29 command service +3 activation shape
   +31 emergency-stop +53 current-use +20 ledger shape/codec +49 accounting service
@@ -14,7 +14,7 @@
   +44 exact operation +19 intent discovery +56 delivery domain/contract +22 delivery storage
   +23 dispatcher +19 phase evidence +18 candidate query/cursor +29 receipt lease
   +20 atomic resolution +51 actual policy HTTP composition +34 operations
-  +30 copy report +18 consolidated runner checks).
+  +30 copy report +18 consolidated runner +33 health/queue telemetry checks).
 - Focused Ruff/Mypy PASS; registry/auth fixtures are assumed, not real adoption.
 - Existing BE2-12/foundation source-pinned selected regression pack: 477 PASS.
 - Additional targeted foundation application/review-regression/q00 suites: 114 PASS;
@@ -26,7 +26,7 @@
   BE2-14 server started. C2 pins original migration; C3b upgrades new branch head.
   Owner asked asynchronously for isolated PG17 setup/test/cleanup approval, no
   approval fabricated from silence or prior BE2-12 provisioning authority.
-- Next: complete remaining own health/queue projection/conformance identified by C6 audit;
+- Next: refresh full conformance/receiver handoff against current component and real adoption gates;
   actual kill delivery gated by original policy-generation owner contract, plus
   actual SQL proof once authorized. Guarded accounting application composition now
   exists, but actual current-owner/terminal-evidence adapters remain unbound;
@@ -201,3 +201,15 @@
   SQL104 unchanged NOT_RUN, stop-generation CR/adapters still open. Entrypoints:
   artifacts/ACCEPTANCE_AUDIT_20261018.md and CONSOLIDATED_TEST_HANDOFF.md;
   evidence/notes/C6A_AUDIT_LOCAL_PACK_20261018.md. No full local/card DONE claim.
+
+- C6b (2026-10-18): own typed health/queue producer contract and guarded operations
+  projection now supplied; source/profile pair explicit, no live adapter/defaults.
+  Collector outside own transaction; validate exact scope/profile/native fields,
+  suppress expired values, refresh expiry after own transaction exit and recheck
+  rights. Missing data null, measured0 preserved, fixture/runtime labels explicit.
+  33 new cases;1061 own +114 foundation +477 regression, all64 source lint/typecheck.
+  Actual producer/source/privacy/health/expiry adoption remains NOT_RUN, SQL104
+  unchanged NOT_RUN; no migration/foreign tables/provider/network provisioning.
+  C6a finding3 CLOSED_COMPONENT only, not actual live monitoring or full-card DONE.
+  Evidence/consumer adoption: evidence/notes/C6B_HEALTH_QUEUE_20261018.md and
+  artifacts/H_OPERATIONS_TELEMETRY_HANDOFF.md. Next full conformance/receiver audit.

@@ -91,7 +91,7 @@ def test_collection_normalization_and_source_closure(runner):
         "features/FEAT-049-be2-ai-policy/src/run_component_checks.py",
     ):
         assert name in paths and len(paths[name]) == 64
-    assert len(runner.owned_sources()) == 61
+    assert len(runner.owned_sources()) == 64
 
 
 @pytest.mark.parametrize("mode", ["empty-selection", "wrong-root", "wrong-total"])

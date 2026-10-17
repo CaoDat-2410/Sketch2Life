@@ -1,5 +1,10 @@
 # Evidence index — BE2-14
 
+- C6B_HEALTH_QUEUE_20261018: source-bound typed health/queue observation and safe
+  current-authorized projection, unavailable/stale/null vs0,33 new local cases;
+  1061 own +114 foundation +477 regression/all64 source checks. PG104 NOT_RUN,
+  actual telemetry/provider/current-owner adoption absent; no live-health claim.
+
 - C6A_AUDIT_LOCAL_PACK_20261018: exact1028-node/source-pinned consolidated local
   runner, foundation114/selected477 and all61 source lint/typecheck PASS. AC01–12/
   original BE2-12 goal audit retains own health/queue projection gap and external

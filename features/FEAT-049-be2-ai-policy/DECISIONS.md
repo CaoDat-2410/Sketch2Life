@@ -1,5 +1,24 @@
 # Feature decisions
 
+## D29 — health/queue observations need source binding, expiry and truthful absence
+
+2026-10-18 approved P5/AC11/C6b. Explicit telemetry reader+exact source profile
+pair in server composition; no caller source/TTL/threshold override. Current
+operations-read guard before collection and again before storage/result. Collector
+outside own policy SQL transaction; strict native scope/source/time/enum/counter
+validation. Re-evaluate expiry after transaction EXIT, not only last query, to
+avoid presenting values as fresh after a delayed read-only commit. Bound source
+captured locally for consistent request interpretation; never automatic repinning.
+Expired observations retain provenance but suppress all health/queue values. No
+source/None observation means unavailable/null, while actual recorded0 preserved.
+Failures/corrupt/future data fail closed, not successful empty report. Fixture/
+runtime classification explicit; synthetic runtime-kind test is not live proof.
+No arbitrary logs/labels/source endpoints; queue counts refer to scoped queued/
+running jobs, never outbox side effects, capacity, cost or execution authority.
+Actual producer must adopt safe aggregate disclosure/health/expiry semantics;
+no production TTL/numeric defaults/provider/queue stack chosen. Local projection
+finding3 component addressed, actual source/adoption/PG gates remain separate.
+
 ## D28 — exact local proof does not shrink backlog or substitute original goal
 
 2026-10-18 approved C6/P5. Add consolidated local runner with frozen exact own

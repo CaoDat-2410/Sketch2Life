@@ -72,6 +72,7 @@ def test_exact_pin_and_stopped_metadata_redacted_even_if_registry_withdrawn():
         "request",
         "scope",
         "ledger",
+        "telemetry",
         "accounting_semantics",
         "actual_cost",
     }
