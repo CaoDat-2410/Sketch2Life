@@ -83,6 +83,8 @@ COPIES_EXPECTED = {
     "test_copy_operation_authority_insert_failure_rolls_back_intent_fence_and_event": 1,
     "test_copy_operation_concurrent_duplicate_has_one_intent_and_queued_event": 1,
     "test_copy_operation_final_owner_denial_rolls_back_all_new_writes": 1,
+    "test_copy_operation_pages_reconnect_scope_and_revision_cursor": 1,
+    "test_copy_operation_page_missing_scope_does_not_mix_later_intent": 1,
 }
 
 

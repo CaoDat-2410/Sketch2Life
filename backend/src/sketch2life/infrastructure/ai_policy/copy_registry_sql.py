@@ -20,6 +20,7 @@ from sketch2life.application.ai_policy_copy_operations import (
     validate_operation_authorization,
 )
 from sketch2life.application.ports.ai_policy_copy_registry import (
+    CopyOperationPage,
     CopyRegistryPage,
     ProviderCopyRegistryTransaction,
     RegisteredProviderCopy,
@@ -155,6 +156,42 @@ class SqlProviderCopyRegistryTransaction:
     def _write(self) -> None:
         if not self.writable:
             raise PolicyError("AI_POLICY_COPY_REGISTRY_READ_ONLY")
+
+    def operation_page(
+        self, *, limit: int, after: str | None = None, expected_revision: int | None = None
+    ) -> CopyOperationPage:
+        validate_page(limit=limit, after=after, expected_revision=expected_revision)
+        if after is not None and (
+            len(after) != 64 or any(char not in "0123456789abcdef" for char in after)
+        ):
+            raise PolicyError("AI_POLICY_INVALID_COPY_OPERATION")
+        if expected_revision is not None and expected_revision != self.revision:
+            raise PolicyError("AI_POLICY_COPY_REGISTRY_STALE")
+        if not self.exists:
+            return CopyOperationPage(0, (), None)
+        query = select(COPY_OPERATION.c.operation_key).where(
+            COPY_OPERATION.c.organization_id == self.organization_id,
+            COPY_OPERATION.c.scope_ref == self.scope_ref,
+        )
+        if after is not None:
+            query = query.where(COPY_OPERATION.c.operation_key > after)
+        keys: tuple[str, ...] = tuple(
+            self.connection.execute(
+                query.order_by(COPY_OPERATION.c.operation_key).limit(limit + 1)
+            ).scalars()
+        )
+        if any(
+            not isinstance(key, str)
+            or len(key) != 64
+            or any(char not in "0123456789abcdef" for char in key)
+            for key in keys
+        ) or keys != tuple(sorted(set(keys))):
+            raise PolicyError("AI_POLICY_INVALID_COPY_OPERATION_STORAGE")
+        if after is not None and any(key <= after for key in keys):
+            raise PolicyError("AI_POLICY_INVALID_COPY_OPERATION_STORAGE")
+        return CopyOperationPage(
+            self.revision, keys[:limit], keys[limit - 1] if len(keys) > limit else None
+        )
 
     def get_operation(self, operation_key: str) -> CopyOperationEnvelope | None:
         # Digest syntax, not an arbitrary DB selector or provider operation alias.

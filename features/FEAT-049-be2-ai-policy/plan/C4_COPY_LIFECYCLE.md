@@ -129,3 +129,15 @@ Test idempotency, forged/native models, scope/profile mismatch, expiry/revocatio
 atomic intent/fence/event rollback and replay after reconnect; prepare PG cases
 without provisioning. C4c delivery, provider acknowledgment/current lifecycle and
 verified receipt handling remain required, not inferred from stored intent.
+
+## C4c1 revision-bound intent discovery
+
+Provide internal scoped keyset pages of immutable scheduled operation keys under
+the existing scope SHARE lock. Limit1..256, SHA256 after-key and exact inventory
+revision required on continuation; reject intervening writes. Missing-scope read
+stays revision0/empty without a later phantom query. This enumerates ALL intents,
+not only pending/eligible work: current delivery/ack state does not yet exist.
+Never expose a public endpoint, call provider or treat enumeration as claim or
+current authority. Worker must hold adopted owner read guard outside this UoW;
+actual dispatch separately revalidates original command/current rights/profile.
+No schema change; add SQL isolation/reconnect/stale-page cases to existing pack.
