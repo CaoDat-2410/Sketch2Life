@@ -92,3 +92,47 @@ C1_FINAL_VERIFICATION_20261016.md and the corresponding metrics under ../metrics
 This replaces earlier missing-dependency statuses only; all full-card gates and
 synthetic/ASSUMED_CONTRACT consumer limitations above remain. Owner acceptance
 and production/runtime integration are not implied by passing local checks.
+
+## C2 typed-context candidate —2026-10-17
+
+Current status (2026-10-17 11:59 +07:00): Codex CODE_REVIEW_PASS_WITH_NOTES
+(C2_CODEX_REVIEW_20261017.md) and owner ACCEPTED as an offline component
+(../../approvals/C2_COMPONENT_ACCEPTANCE.md). This section was first written at
+C2_CODE_COMPLETE_PENDING_CODEX_REVIEW; the acceptance does not mean full BE2-02, production
+adoption, BE1/P1/P4 sign-off or real provider/model/runtime evidence, and the review's notes stay
+open. Everything is synthetic and ASSUMED_CONTRACT; B-12 HANDOFF and OwnerFence ASSUMED_CONTRACT
+labels are unchanged.
+
+| Artifact | Contract | Example |
+|---|---|---|
+| Provider typed context (client, not deployed) | `VisionTypedContextV1` 0.1-candidate | typed_context_example.json `provider_context_request.typed_context` |
+| Context request/response wrapper, path `/v1/vision/context` | `LightningVisionContextRequestV1` / `LightningVisionContextResultV1` 0.1-candidate | same file (image bytes elided) |
+| Typed worker candidate / record / binding | `AnalysisWorkerCandidateV2`, `AnalysisRecordV2`, `TypedContextBindingV2`, `TypedProvenanceV2` 0.2-candidate | same file `analysis_record` |
+| Retained whole wrapper | `ProviderResultRecord` (`result_contract` `LightningVisionContextResultV1/0.1-candidate`) | same file `provider_result_record` |
+
+Example: ../../fixtures/h_ai_review/typed_context_example.json, pinned by
+`tests/contract/test_vision_context_contracts.py`. image_only 0.1 examples above are unchanged.
+
+Consumer semantics:
+
+- `provider_context_mode=typed_context` + `evidence_kind=offline_context_adapter` means an
+  injected offline transport echoed the pinned binding. It does NOT mean a model used the context.
+- The provider sees only: Teacher topic (or null), one anonymous age-band label per audience
+  member (FIXTURE_ONLY policy `fixture-completed-years-v1`, not pedagogically adopted), request
+  enums and the source image hash. No ids, exact months, consent records, Child text, Teacher
+  feedback, confirmed meaning or action summaries.
+- `payload_digest` binds that projection; `context_digest` is an opaque internal binding of scope,
+  source, request, exact owner facts and permission/policy revisions. Same-revision exact-age or
+  permission movement makes an analysis `stale`/not applicable; consumers must not rebind.
+- Current transfer/field-use/consent/eligibility refusal discards an in-flight result and makes a
+  stored one non-authoritative; accepted CMD-34 receipts still replay as history after the current
+  disclosure check (consent revoke blocks it; transfer revoke does not). Replay never revives
+  meaning. CMD-34 receipts and the Child projection stay 0.1 and carry no typed context.
+- Old strict 0.1 DTOs reject typed records; consumers that cannot read 0.2 must refuse them.
+
+Still missing before BE2-02 can close (in addition to items 2–8 above): a real provider/server
+consuming the context and evidence that it is used; an adopted band policy; BE1/BE2-03 adapters
+for context revision, transfer and field-use permission, topic provenance and request enums;
+FR022/UC-018 deferred inputs (Child statement, Teacher feedback/confirmed meaning, actions).
+Evidence: C2_IMPLEMENTATION_EVIDENCE_20261017.md and ../metrics/C2_IMPLEMENTATION_CHECKS_20261017.json;
+review C2_CODEX_REVIEW_20261017.md; acceptance ../../approvals/C2_COMPONENT_ACCEPTANCE.md.

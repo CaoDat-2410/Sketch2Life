@@ -1,5 +1,14 @@
 # BE2-02 component decisions —2026-10-16
 
+## Current publication re-review —2026-10-17
+
+PUBLICATION_PLAN_REVIEW_PASS, pending explicit owner execution instruction. Root independently
+verified37-path coverage, groups6/17/11/3, byte-preserving Git filters/negative controls and all
+reviewed source/authorization/golden anchors. The earlier CRLF/hash and current-routing issues
+are resolved; detailed result is the current entry in evidence/notes/C2_PUBLICATION_PLAN_20261017.md.
+No stage/commit/push, code change, new checkpoint or full-card closure by this review. Earlier
+dated review/disposition entries below are historical. BE2-01 remains WAITING_STUDIO.
+
 All choices below are **PROPOSED_FOR_C1_APPROVAL**, not production adoption or role-owner sign-off.
 
 | ID | Proposed choice | Reason / boundary |
@@ -228,3 +237,140 @@ Result: focused233/233, V2 server7/7, separate foundation route1/1 PASS,0 skips.
 C1_VERIFICATION_COMPLETE_PENDING_OWNER_ACCEPTANCE. No owner acceptance, production
 adoption, full-card closure, new card or Git publication inferred. Evidence:
 evidence/notes/C1_FINAL_VERIFICATION_20261016.md and its metrics.
+
+## User resume order —2026-10-16
+
+Direct user instruction: “Xong cái này note lại đi mai lighing bth làm xong task 1
+xong làm tiếp task 2 này”. Prioritize pending BE2-01 Studio verification and review
+when Lightning becomes usable; return to BE2-02 C2 planning after that. No new C2
+approval, Q1–Q5 decision, implementation or runtime PASS inferred. C2 draft retained
+unchanged locally; C1 accepted/pushed checkpoint remains98876fe. No Git publication
+or provider/service action authorized/performed by this note.
+
+## C2 preparation —2026-10-17
+
+User: “th chuẩn bị c2 đi lên plan cho tôi sau đó lấy prompt cho claude làm”. Authorized
+scope is plan/prompt preparation while Lightning is unavailable, not C2 implementation.
+Plan/C2_TYPED_CONTEXT_PLAN.md revision2 is DRAFT / AWAITING_OWNER_APPROVAL. Q1–Q5 remain
+recommendations: anonymous synthetic per-member bands; no Child text; defer feedback/action
+inputs explicitly; offline new client contract; coherent fixture revision/digest checks.
+Source/code review added the internal/provider boundary, distinct digests, typed0.2 contracts,
+revocation versus stale behavior, immutable authorized receipt replay and qualified concurrent
+deduplication. Review note: evidence/notes/C2_PLAN_REVIEW_20261017.md. Templates are local,
+not approvals. Original C1 approvals/plan preserved; no backend/test/service/Git changes.
+
+## C2 approval —2026-10-17 11:20 +07:00
+
+User approved C2_TYPED_CONTEXT_OFFLINE (plan revision2, C2.1–C2.5, C2-A01–A14, SHA256
+4b339514…) verbatim in approvals/C2_TASK_APPROVAL.md; approved bytes
+plan/C2_TYPED_CONTEXT_PLAN_REV2_APPROVED.md. Owner selected Q1–Q5 exactly as recommended:
+Q1 anonymous per-member bands (exact months internal; fixture-completed-years-v1 test-only,
+NOT_PEDAGOGICALLY_ADOPTED); Q2 no Child text, Teacher topic + trusted request enums only; Q3
+feedback/confirmed meaning/action summaries deferred as provider inputs; Q4 new client contract +
+injected offline transport, no server/prompt/endpoint call; Q5 coherent fixture snapshot/revision/
+digest, real owner adapter is handoff. Component candidate only; C1 approval/plan/acceptance kept.
+
+## C2 candidate technical choices —2026-10-17 (within plan rev2; PROPOSED, not adopted)
+
+- **Modules.** `domain/vision_context.py` (snapshot, gate, projection, digests, band policy,
+  capability); additive `TypedContextBinding`, `EvidenceKind.offline_context_adapter`,
+  `ObservationEvidence.context_binding` and `AnalysisHead.typed_binding` in `domain/vision_analysis.py`;
+  `VisionContextSourcePort` in ports; `contracts/schemas/vision_context.py` (client 0.1-candidate)
+  and `analysis_context_results.py` (records 0.2-candidate); `infrastructure/vision_analysis/
+  context_adapter.py`. Pure pre-checks/request build/outcome map/verification/mapping were
+  extracted from `legacy_v2.py` as shared functions; bridge behaviour unchanged.
+- **Contract versions.** `VisionTypedContextV1`, `LightningVisionContextRequestV1/ResultV1` are
+  `0.1-candidate` (new client contracts, path `/v1/vision/context`, no server). Typed DATA-22
+  records are sibling `0.2-candidate` (`AnalysisWorkerCandidateV2`, `TypedProvenanceV2`,
+  `AnalysisRecordV2`, `TypedContextBindingV2`) reusing unchanged 0.1 sub-models. Canonical rules
+  version `vision-context-canonical-v1`.
+- **Request enums (source-undefined, candidate).** reason ∈ {describe_drawing,
+  support_meaning_check}; target_kind ∈ {whole_canvas, contributor_strokes}; requested_level ∈
+  {brief, standard}. From the trusted owner port only.
+- **Field use.** Provider fields `teacher_topic`, `audience_age_bands`, `request_enums`; every
+  member must permit all three plus provider transfer, consent and purpose; one denial refuses the
+  whole call (no partial payload). Child text, feedback, confirmed meaning, actions, identities,
+  exact ages and consent records are not contract fields (extra=forbid).
+- **Null/absent.** Every typed-context key is required; `teacher_topic` is null only when the
+  owner reports no topic, never "". Bands are sorted lexicographically, one per member,
+  duplicates kept, 1–64 members (technical bound).
+- **Digests.** payload_digest = canonical SHA256 of the exact `VisionTypedContextV1` document.
+  context_digest = canonical SHA256 of rules version, full scope/request/source binding, context
+  revision, session state, members sorted by id (exact months, provenance/permission revisions,
+  consent record ref, transfer, sorted fields), topic provenance, request enums, policy ref/version,
+  field-policy revision and payload_digest. No self/time/correlation fields. A strict type walk
+  refuses floats/NaN/non-string keys/unknown types before the foundation canonical JSON.
+- **Gate order.** C1 lineage/replay/source/admission/input hash/eligibility → static capability
+  (equality with the C2 capability; mismatch = CONTEXT_MODE_UNSUPPORTED before any snapshot read,
+  image load or call) → owner snapshot → duplicates (snapshot, members, pin, old port) → audience
+  bound/match → scope → request → source → policy/rules → pinned revision → session → each member
+  (age 36–155 + band, consent/purpose, transfer, fields) → old/new port agreement.
+- **Post-call.** Any typed refusal (including port disagreement/unavailable/malformed) rejects and
+  stores nothing; revision movement or same-revision context-digest movement stores the original
+  `stale` (`context_changed`) with its original binding; source movement stays C1 `source_changed`.
+- **Reads.** Replay rejects on a current typed refusal, else stale on revision/digest movement;
+  `_applicable` (downstream meaning, new corrections → STALE_CONTEXT) requires the current digest to
+  equal the pinned one. Accepted CMD-34 receipts replay after the unchanged disclosure check; a
+  transfer-permission revoke is not a disclosure revoke.
+- **Shared C1 hardening.** `eligibility_code` now refuses duplicate participants in the audience or
+  the old port's age facts before `dict()` (`AGE_NOT_SUPPORTED`), closing a last-duplicate-wins
+  path; it applies to image_only too. Fake CAS treats the binding as immutable.
+- **Adapter.** Reuses `LightningVisionV2Adapter` unchanged through an intercepting transport: the
+  V2 body (no narration hint) is wrapped, validated, posted once; the wrapper is validated in
+  strict JSON mode and every echo compared; the nested V2 result goes through the C1 verification.
+  The WHOLE wrapper JSON (after a JSON-native check) is retained/hashed. Real HTTP transport refused.
+- **Seam supersession.** C1 fake-only `ObservationContext` is replaced by `ProviderTypedContext`.
+  `test_v15_provider_never_receives_age_or_child_content` now asserts the new exact allowlist
+  (projection/binding field sets, no ids/ages/Child text); actual wire bytes are checked in
+  `test_vision_context_adapter.py`. The bridge's typed-refusal test builds the new type; its
+  assertions are unchanged. No other C1 test or golden changed.
+- Evidence: evidence/notes/C2_IMPLEMENTATION_EVIDENCE_20261017.md.
+
+## C2 Codex review —2026-10-17
+
+CODE_REVIEW_PASS_WITH_NOTES, no actionable new finding in the approved offline component.
+Root independently reproduced657 collected/652 passed/5 pre-existing legacy skips; ruff and
+strict mypy PASS on16 paths. Three same-family delegated area reviews and9 additional adapter
+negative probes found no blocker. Review: evidence/notes/C2_CODEX_REVIEW_20261017.md and matching
+metrics. Historical stored accepted_status/receipt is distinct from current downstream authority;
+fake concurrency and nested legacy DTO behavior do not imply real owner/DB/model guarantees.
+Owner C2 component acceptance remains pending; no publication, new batch or full-card closure.
+Source/tests/approvals/approved plans unchanged by review; BE2-01 remains WAITING_STUDIO.
+
+## C2 owner acceptance —2026-10-17 11:59 +07:00
+
+User accepted C2_TYPED_CONTEXT_OFFLINE in offline component scope on plan revision2 and
+CODE_REVIEW_PASS_WITH_NOTES (verbatim approvals/C2_COMPONENT_ACCEPTANCE.md). The C2 candidate
+technical choices above are now ACCEPTED_FOR_C2_COMPONENT, still not production adoption,
+pedagogical band adoption or BE1/P1/P4 sign-off. Codex review notes remain open limits. The same
+message requested only an inventory and commit plan (evidence/notes/C2_PUBLICATION_PLAN_20261017.md);
+no stage/commit/push/merge/deploy or next checkpoint. Approvals and approved plans unchanged.
+
+## C2 publication plan Codex review —2026-10-17
+
+Four-commit grouping accepted as a coherent whole-file split; exact36-path coverage and all
+reviewed code/approval/golden hashes independently match. Execution NEEDS_DOCUMENT_REVISION:
+three metrics are CRLF and LF normalization would break the review's implementation-receipt
+hash. Proposed exact-path .gitattributes preservation makes37 paths, still four commits.
+Current handoff/index status also needs acceptance routing. Details at the top of
+evidence/notes/C2_PUBLICATION_PLAN_20261017.md. No code/index/HEAD/approval change, stage,
+commit or push. C2 component acceptance stands; full card NOT_DONE, BE2-01 WAITING_STUDIO.
+
+## C2 publication-plan review resolution —2026-10-17
+
+Codex publication review: NEEDS_DOCUMENT_REVISION (CRLF in three C2 metrics would be normalized
+and break the pinned 68aa985f… receipt hash; stale current-state routing). Resolution, on the
+user's direct instruction: keep the reviewed bytes and add three exact-path
+`-text whitespace=cr-at-eol` rules to `.gitattributes` (existing hash-preservation convention, no
+broad rule, no regeneration); route handoff/evidence index to the review and owner acceptance and
+mark older checkpoint headings historical. Plan now 4 commits / 37 files with `.gitattributes` in
+commit 1. Details and checks: evidence/notes/C2_PUBLICATION_PLAN_20261017.md "Review resolution".
+No stage/commit/push; acceptance and approvals unchanged.
+
+## C2 local publication —2026-10-17 12:38 +07:00
+
+Owner approved executing the re-reviewed plan (4 commits / 37 files) with local staging/commits.
+Current publication lines in CONTEXT/STATUS/evidence README and the two shared ledgers were synced
+inside their approved commit groups (no extra status commit); dated history and the reviewed plan
+note, approvals, approved/working plans and pinned metrics keep their bytes. Commits 52bf84f, 164575c,
+then records and routing commits; not pushed.
