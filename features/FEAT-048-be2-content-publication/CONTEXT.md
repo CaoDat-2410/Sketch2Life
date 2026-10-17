@@ -1,5 +1,16 @@
 # FEAT-048 — BE2-12 content authoring, publication and recall
 
+## P3 reintroduction correction — 2026-10-17
+
+Verified the unchanged approved plan explicitly allows reintroduction as a new
+version with fresh review. Earlier implementation over-restricted edit from a
+retired head. Corrected domain edit to create only the next new draft; old
+recalled/archived version stays terminal/immutable and exact resolution/old
+publication receipts stay denied. Current author/source/policy/CAS still apply.
+354 selected local tests PASS; consolidated real PostgreSQL 23 PASS (9 + 1 + 13).
+Portable runtime cleaned. F05 local ambiguity corrected against existing approval,
+not a new permission. External dispatcher/adapters/consumer integration still open.
+
 ## F03 local review-history correction — 2026-10-17
 
 Added authorized read-only application history with bounded pagination and global

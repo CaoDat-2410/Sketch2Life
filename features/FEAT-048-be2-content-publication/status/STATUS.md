@@ -41,11 +41,12 @@
 - F03 local projection CLOSED_COMPONENT_AND_OWNED_SQL: current READ-authorized,
   paginated immutable-proof history with explicit derived stale reasons; owner
   revocation-cause/fencing/adoption remains F02, not fabricated by a boolean port.
-- Latest selected local suite: 350 PASS / 0 skip (240 content, 110 foundation).
-- Latest PostgreSQL: 9 C2 + 1 projection + 11 command/history PASS; source-pinned
+- Latest selected local suite: 354 PASS / 0 skip (244 content, 110 foundation).
+- Latest PostgreSQL: 9 C2 + 1 projection + 13 command/history PASS; source-pinned
   history/resubmit/edit/recall/pagination tests; temporary runtime cleaned.
 - Next: resolve/review remaining F01/F02/F04/F05 gates, including full dispatcher,
-  real owner adapters/consumers and approved terminal-version reintroduction semantics.
+  real owner adapters/consumers and integrated acceptance. P3 reintroduction now
+  matches approval: new draft version/fresh review, never restore retired version.
 - Revalidation: 326 selected local PASS / 0 skip (5.42s), Mypy 8 source files
   PASS, focused Ruff PASS, all 15 latest C3b runtime dependency hashes still match.
 - Evidence: evidence/notes/C2_LOCAL_POSTGRES_20261017.md; first runtime FAIL
@@ -58,4 +59,6 @@
   are not five new backlog cards, and handoff is not acceptance closure.
 - F03 evidence: evidence/notes/F03_REVIEW_HISTORY_20261017.md and matching metrics;
   artifacts/REVIEW_HISTORY_CANDIDATE.md documents projection semantics/limits.
+- P3 correction: evidence/notes/P3_REINTRODUCTION_20261017.md; all current guards
+  retained, old exact refs/receipts denied after new version publishes.
 - Git: planning commit allowed by active goal; no push/merge/deploy.

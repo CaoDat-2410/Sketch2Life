@@ -13,6 +13,7 @@
 | C4a | Content-only HTTP integration seam | notes/C4A_HTTP_20261017.md | 33 new / 326 selected local PASS; injected synthetic identity; not full typed governance dispatcher or real owner integration |
 | C5a | Original-goal requirement audit / handoff | artifacts/ACCEPTANCE_AUDIT_20261017.md; artifacts/BE2_12_HANDOFF_20261017.md | 326 local revalidation PASS; F01–05 open, local F03 work available; full-card NOT COMPLETE |
 | F03 | Derived immutable review history | notes/F03_REVIEW_HISTORY_20261017.md; metrics/F03_REVIEW_HISTORY_20261017.json | Local F03 closed: 24 new / 350 selected local PASS; 21 owned SQL PASS; real owner causes/adoption still open |
+| P3-fix | New-version reintroduction, old version terminal | notes/P3_REINTRODUCTION_20261017.md | 354 local PASS; 23 owned SQL PASS; existing approval enforced, not a restore capability or integrated closure |
 
 No real child media, credentials, model outputs or external source documents
 are published. No runtime fixtures/tests are manufactured to claim completion.

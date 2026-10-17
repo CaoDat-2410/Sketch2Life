@@ -23,6 +23,9 @@ removal operations, not content usage, and must not be blocked by a source/polic
 that has since become ineligible for publication.
 
 Edits create head+1 draft with fresh author/time and no approval carry-over.
+This also applies to a retired head under approved P3: old version remains
+terminal; only the new version starts in draft and needs fresh review. See
+artifacts/REINTRODUCTION_RULE.md for correction of the earlier over-restriction.
 Superseded unpublished versions cannot mutate except exact recall/archive.
 Previously published older versions remain addressable unless removed or denied
 by current eligibility. Exact target hash, record If-Match and named review CAS
