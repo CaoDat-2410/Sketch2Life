@@ -1,5 +1,17 @@
 # Evidence index
 
+- Current C2 state (2026-10-17 11:59 +07:00): CODE_REVIEW_PASS_WITH_NOTES in
+  notes/C2_CODEX_REVIEW_20261017.md and metrics/C2_CODEX_REVIEW_20261017.json (root652 passed/5
+  pre-existing skips, additional adapter9/9, no actionable finding); owner ACCEPTED the offline
+  component, verbatim ../approvals/C2_COMPONENT_ACCEPTANCE.md. Commit plan, executed locally as four commits (not pushed):
+  notes/C2_PUBLICATION_PLAN_20261017.md. Full card IN_PROGRESS/NOT_DONE.
+
+- History (planning stage, superseded by the approval/acceptance above):
+  notes/C2_PLAN_REVIEW_20261017.md and metrics/C2_PLANNING_CHECKS_20261017.json: C2 revision2
+  source/code planning review and actual document checks; DRAFT / NOT_APPROVED at that time.
+- ../plan/C2_TYPED_CONTEXT_PLAN.md: C2.1–C2.5 / C2-A01–A14 and Q1–Q5 (approved since; see above).
+  Claude prompt and approval template stay ignored under local/claude/prompts/; templates grant no authority.
+
 - notes/SOURCE_AUDIT.md: SRS/card mapping, legacy reuse and gaps; planning evidence only.
 - notes/PLAN_REVIEW.md: independent plan/prompt review when complete.
 - metrics/PLANNING_CHECKS.json: actual validators, plan hash and approval state.
@@ -76,3 +88,27 @@ Earlier missing-check reports remain historical; C1 is ready for owner acceptanc
 
 - ../approvals/C1_COMPONENT_ACCEPTANCE.md: verbatim owner acceptance of C1 (component scope only).
 - notes/C1_PUBLICATION_PLAN_20261016.md: proposed GitHub file set, local-only set and commit split.
+
+## C2 approval and implementation —2026-10-17
+
+- ../approvals/C2_TASK_APPROVAL.md: verbatim owner approval (plan rev2, Q1–Q5); approved bytes
+  ../plan/C2_TYPED_CONTEXT_PLAN_REV2_APPROVED.md.
+- notes/C2_IMPLEMENTATION_EVIDENCE_20261017.md: changes, actual checks, C2-A01–A14 mapping,
+  seam-test changes, review points; C2_CODE_COMPLETE_PENDING_CODEX_REVIEW.
+- metrics/C2_IMPLEMENTATION_CHECKS_20261017.json: results, JUnit/source/fixture/approval hashes.
+- ../fixtures/h_ai_review/typed_context_example.json: deterministic typed example (pinned by a test).
+- local/c2-typed-context-20261017/: ignored C2 wrapper, raw logs/JUnit, attempt-1 receipts.
+
+The C2 planning entries above are history (plan now approved).
+
+## C2 Codex review, owner acceptance and commit plan —2026-10-17
+
+- notes/C2_CODEX_REVIEW_20261017.md + metrics/C2_CODEX_REVIEW_20261017.json: CODE_REVIEW_PASS_WITH_NOTES.
+- local/codex-c2-review-20261017/: ignored Codex root/delegated receipts and probes.
+- ../approvals/C2_COMPONENT_ACCEPTANCE.md: verbatim owner acceptance (component scope only).
+- notes/C2_PUBLICATION_PLAN_20261017.md: uncommitted-change inventory and proposed commit split.
+
+## C2 local publication —2026-10-17
+
+- notes/C2_PUBLICATION_PLAN_20261017.md: the executed plan (unchanged after its re-review).
+- local/c2-publication-exec-20261017/: ignored executor, pinned-hash list, per-commit receipts.
