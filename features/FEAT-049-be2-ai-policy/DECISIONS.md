@@ -1,5 +1,23 @@
 # Feature decisions
 
+## D26 — operational counters are recorded metadata, never actual provider cost
+
+2026-10-18 approved P2/P5/AC11. Internal AiPolicyOperations requires independent
+current OPERATIONS_READ under held guard before any storage and rechecks rights
+before return. Registry feature withdrawal does not hide remediation metadata.
+Read own exact effective scope/policy pin/hash/state, never raw body/author/reason/
+reviews. Caller-specified exact historical budget definition/unit/window is a
+query filter, not adopted limit/current pin or permission. Reader uses existing
+own SQL scope then bucket SHARE locks; no creating rows for monitoring. Missing
+scope ends read immediately; missing bucket remains null, not false zero. Stored
+zeros preserved. Optional reader absence remains unavailable, while failures/
+corruption fail closed rather than become null success. Projection DTO revalidates
+native bindings/booleans/counters; unknown private PolicyError sanitized.
+Ledger counters include fixture settlements, so label recorded_ledger_not_actual_cost
+and actual_cost=null. Never convert arbitrary units to money, fabricate provider
+usage, or claim distributed snapshot/execution authority. No HTTP route, migration
+or default app adopted; safe copy-report projection and C6 remain next.
+
 ## D25 — policy transport uses sole CMD-48; delayed stop needs generation fencing
 
 2026-10-18 approved P1/P3/P5. Explicit bind_ai_policy(AiPolicyCommands) composes

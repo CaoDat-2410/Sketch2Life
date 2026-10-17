@@ -2,30 +2,30 @@
 
 - Status: IN_PROGRESS
 - Plan revision: 1
-- Implementation status: IN_PROGRESS — C5a sole CMD-48 policy transport component PASS; SQL NOT_RUN
+- Implementation status: IN_PROGRESS — C5b safe policy/resource operations component PASS; SQL NOT_RUN
 - Branch: feature/be2-08-14
 - Baseline: f0ff7a840d1910f1f80df327c3fd0239db5ea8e1
-- Current: parent 0ecff26; explicit policy binding/safe HTTP errors and stop-generation CR.
-- BE2-14 component: 946 PASS /0 skip (78 policy contract +34 accounting contract
+- Current: parent f00f515; current-authorized allowlisted policy/resource operations query.
+- BE2-14 component: 980 PASS /0 skip (78 policy contract +34 accounting contract
   +47 accounting domain +46 policy domain +26 persistence
   shape/offline +15 runner +59 registry +29 command service +3 activation shape
   +31 emergency-stop +53 current-use +20 ledger shape/codec +49 accounting service
   +44 copy verification +27 copy inventory shape/codec +56 inventory service +28 history
   +44 exact operation +19 intent discovery +56 delivery domain/contract +22 delivery storage
   +23 dispatcher +19 phase evidence +18 candidate query/cursor +29 receipt lease
-  +20 atomic resolution +51 actual policy HTTP composition checks).
+  +20 atomic resolution +51 actual policy HTTP composition +34 operations checks).
 - Focused Ruff/Mypy PASS; registry/auth fixtures are assumed, not real adoption.
 - Existing BE2-12/foundation source-pinned selected regression pack: 477 PASS.
 - Additional targeted foundation application/review-regression/q00 suites: 114 PASS;
   existing copy fake scope/replay/cancel-vs-purge cases retained, no source rewrite.
 - PostgreSQL / real integration / runtime policy activation: NOT_RUN for BE2-14.
 - BE2-12 477/33 PASS belongs to that card, not carried as BE2-14 acceptance.
-- SQL: 15 lifecycle +10 activation/stop/use +19 ledger +55 copy inventory actual PG
-  cases prepared/collected, 99 total NOT_RUN, no authorized
+- SQL: 15 lifecycle +10 activation/stop/use +21 ledger +55 copy inventory actual PG
+  cases prepared/collected, 101 total NOT_RUN, no authorized
   BE2-14 server started. C2 pins original migration; C3b upgrades new branch head.
   Owner asked asynchronously for isolated PG17 setup/test/cleanup approval, no
   approval fabricated from silence or prior BE2-12 provisioning authority.
-- Next: C5 safe operational projections, remaining copy conformance/C6 review;
+- Next: remaining safe copy projections/conformance and C6 review;
   actual kill delivery gated by original policy-generation owner contract, plus
   actual SQL proof once authorized. Guarded accounting application composition now
   exists, but actual current-owner/terminal-evidence adapters remain unbound;
@@ -33,7 +33,7 @@
   lease checks are NOT budget reservation or final provider/worker authorization.
   Emergency stop now has
   internal epoch-CAS/pending-intent component, not actual worker/provider stop.
-  Real provider verification/dispatch/current-owner adapter adoption and projections
+  Real provider verification/dispatch/current-owner adapter adoption and copy projections
   remain to implement. Not full-card acceptance or real activation/provider use.
 - Evidence: evidence/notes/C1_DOMAIN_CONTRACTS_20261017.md; initial serialization
   failure and correction retained in narrative, not counted as a passing run.
@@ -167,3 +167,14 @@
   artifacts/CR_KILL_NOTICE_PIN_FENCE.md, no foundation rewrite or delivered claim.
   C5 operational projections and C6 remain local next. Evidence/consumer handoff:
   evidence/notes/C5A_POLICY_TRANSPORT_20261018.md.
+
+- C5b (2026-10-18): current OPERATIONS_READ guard before storage and recheck before
+  response; exact own policy pin/state/epoch and optional scoped ledger counters.
+  No raw author/reason/policy/source/child/provider fields; unknown counters null,
+  stored zero stays0. Recorded fixture-inclusive ledger units are never actual
+  provider usage/cost; actual_cost null. SQL reader SHARE locks own scope/bucket,
+  no lazy writes or fallback from corruption/denial to zero. 34 new local cases;
+  980 own +477 regression +114 foundation PASS. Two new actual PG reader cases
+  prepared, total101 NOT_RUN. No migration/route/default app/provider activation.
+  Evidence/handoff evidence/notes/C5B_SAFE_OPERATIONS_20261018.md. Kill-generation
+  owner contract and real authority/SQL/provider adoption remain external gates.

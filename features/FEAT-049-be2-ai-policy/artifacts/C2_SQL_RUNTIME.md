@@ -39,10 +39,18 @@ if ($LASTEXITCODE -ne 0) { throw 'BE2-14 ledger SQL evidence incomplete or faile
 if ($LASTEXITCODE -ne 0) { throw 'BE2-14 copy inventory SQL evidence incomplete or failed' }
 ```
 
-Expected: exact 15 lifecycle +10 activation/stop/current-use +19 ledger +55 copy
-inventory SQL JUnit test identities (99 total) in four separate
+Expected: exact 15 lifecycle +10 activation/stop/current-use +21 ledger +55 copy
+inventory SQL JUnit test identities (101 total) in four separate
 receipts, no fail/error/skip/extra/duplicate,
 unchanged current transitive source/config/test/runner hashes, runner exit 0.
+
+Latest C5b (parentf00f515, use commit containing C5B_SAFE_OPERATIONS evidence):
+two actual SQL reader cases added to --accounting, now21 accounting/101 total.
+Proves empty read creates no ledger rows; stored fixture counters survive reconnect,
+remain scoped by organization/feature/exact window and reading adds no records.
+Not actual provider cost or real authority adoption. No migration or provisioning.
+All101 remain NOT_RUN pending authorized disposable test profile. Earlier counts
+below are historical, not latest expected runner inventory.
 
 Latest C4c7 (parent544f499, use commit containing C4C7_ATOMIC_RESOLUTION evidence):
 ap_0009 adds own current lifecycle/CAS and immutable resolution history. Six new
