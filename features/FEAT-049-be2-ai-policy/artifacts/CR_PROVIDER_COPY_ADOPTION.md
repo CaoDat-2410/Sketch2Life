@@ -46,3 +46,9 @@ No existing foundation/shared bytes changed by C4a. CR remains OPEN; do not pres
 it as adopted provider protocol, actual deletion proof or blocked whole-card work.
 BE2-14 can continue own validation/registry/projection code; real owner/provider
 adoption is separately gated, with BE1/P4 wiring deferred per user instruction.
+
+C4b1 implements independent own scoped inventory SQL/port with original profile,
+revision-bound pages, scope fence and coverage reports. This is NOT adoption or
+rewrite of the published foundation interface, authenticated provider completeness,
+current-owner commit fence or durable external operation acknowledgments. Remaining
+envelope/hook/receipt authority and lifecycle integration items above stay OPEN.

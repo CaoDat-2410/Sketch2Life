@@ -97,3 +97,27 @@ def test_accounting_runner_also_requires_explicit_card_opt_in(runner, monkeypatc
     assert runner.main(accounting=True) == 2
     with pytest.raises(ValueError, match="exactly one"):
         runner.main(activation=True, accounting=True)
+
+
+def test_copy_inventory_pack_exact_inventory_and_sources(runner):
+    nodes = tuple(runner.COPIES_SUITE + "::" + name + (f"[{i}]" if count > 1 else "")
+                  for name, count in runner.COPIES_EXPECTED.items() for i in range(count))
+    assert len(nodes) == 19
+    assert runner.inventory("\n".join(nodes), runner.COPIES_SUITE) == nodes
+    assert runner.valid_inventory(nodes, runner.COPIES_EXPECTED)
+    assert not runner.valid_inventory(nodes[:-1], runner.COPIES_EXPECTED)
+    assert not runner.valid_inventory(nodes, runner.ACCOUNTING_EXPECTED)
+    hashes = runner.source_hashes()
+    assert "backend/tests/integration/ai_policy/test_copy_registry_sql.py" in hashes
+    assert "backend/src/sketch2life/infrastructure/ai_policy/copy_registry_sql.py" in hashes
+    assert "backend/alembic/versions/20261017_ap_0004_copy_inventory.py" in hashes
+
+
+def test_copy_inventory_pack_requires_opt_in_and_only_one_mode(runner, monkeypatch):
+    monkeypatch.delenv("AP_TEST_ALLOW_CREATE", raising=False)
+    monkeypatch.delenv("AP_TEST_PG_HOST", raising=False)
+    assert runner.main(copies=True) == 2
+    with pytest.raises(ValueError, match="exactly one"):
+        runner.main(copies=True, activation=True)
+    with pytest.raises(ValueError, match="exactly one"):
+        runner.main(copies=True, accounting=True)
