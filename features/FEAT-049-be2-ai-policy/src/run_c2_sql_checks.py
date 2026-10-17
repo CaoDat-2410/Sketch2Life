@@ -85,6 +85,11 @@ COPIES_EXPECTED = {
     "test_copy_operation_final_owner_denial_rolls_back_all_new_writes": 1,
     "test_copy_operation_pages_reconnect_scope_and_revision_cursor": 1,
     "test_copy_operation_page_missing_scope_does_not_mix_later_intent": 1,
+    "test_delivery_claim_reconnect_finish_and_replay_are_atomic_metadata": 1,
+    "test_delivery_concurrent_claims_admit_one_revision_winner": 1,
+    "test_delivery_expired_takeover_rejects_old_response_without_duplicate_operation": 1,
+    "test_delivery_history_failure_rolls_back_claim_current_state_and_event": 1,
+    "test_delivery_history_cannot_be_rewritten_by_raw_sql": 2,
 }
 
 

@@ -126,3 +126,45 @@ COPY_OPERATION_AUTHORITY = Table(
         ],
     ),
 )
+
+COPY_DELIVERY = Table(
+    "copy_delivery",
+    COPY_METADATA,
+    Column("organization_id", String(120), primary_key=True),
+    Column("scope_ref", String(120), primary_key=True),
+    Column("operation_key", String(64), primary_key=True),
+    Column("revision", BigInteger, nullable=False),
+    Column("status", String(24), nullable=False),
+    Column("snapshot", JSONB, nullable=False),
+    ForeignKeyConstraint(
+        ["organization_id", "scope_ref", "operation_key"],
+        [
+            f"{SCHEMA}.copy_operation.organization_id",
+            f"{SCHEMA}.copy_operation.scope_ref",
+            f"{SCHEMA}.copy_operation.operation_key",
+        ],
+    ),
+    CheckConstraint("revision > 0", name="copy_delivery_revision"),
+    CheckConstraint(
+        "status IN ('in_flight','pending','unsupported','exception','receipt_available')",
+        name="copy_delivery_status",
+    ),
+)
+COPY_DELIVERY_HISTORY = Table(
+    "copy_delivery_history",
+    COPY_METADATA,
+    Column("organization_id", String(120), primary_key=True),
+    Column("scope_ref", String(120), primary_key=True),
+    Column("operation_key", String(64), primary_key=True),
+    Column("revision", BigInteger, primary_key=True),
+    Column("snapshot", JSONB, nullable=False),
+    ForeignKeyConstraint(
+        ["organization_id", "scope_ref", "operation_key"],
+        [
+            f"{SCHEMA}.copy_operation.organization_id",
+            f"{SCHEMA}.copy_operation.scope_ref",
+            f"{SCHEMA}.copy_operation.operation_key",
+        ],
+    ),
+    CheckConstraint("revision > 0", name="copy_delivery_history_revision"),
+)

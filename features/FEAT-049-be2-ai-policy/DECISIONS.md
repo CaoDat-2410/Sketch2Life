@@ -1,5 +1,27 @@
 # Feature decisions
 
+## D19 — delivery ownership is distinct from authority and verified copy lifecycle
+
+2026-10-18, approved P4/P5 C4c2. Add separate own pure delivery state, not a
+replacement of foundation copy lifecycle. Explicit token/deadline (no TTL default),
+revision CAS, busy unexpired claims, expired takeover with new token and retained
+used-token history fence ABA/stale responses. No response earlier than claim start
+or at/after deadline. Completion records reference-only hook metadata; identical
+last-response replay returns unchanged history, not a new dispatch grant.
+
+Unsupported/receipt-available do not automatically redispatch; pending/exception
+are mechanically retryable only after future current authorization/retry policy
+checks, NOT unlimited-retry permission. Receiving a reference/hash does not verify
+provider evidence or confirm cancellation/deletion. Exact hook key/digest checked
+by strict native response bridge; no raw verified/deleted/cancelled fields.
+
+Own forward ap_0007 stores current snapshot/CAS plus immutable history in same
+scope-serialized UoW as outbox event. Queued rev0 is lazy metadata only for an
+existing immutable operation. No mutation of original envelope/foundation.
+Production current-owner commit/deadline fences, approved claim/retry values and
+guarded dispatcher/pending query remain unbound. Do not invoke hook under DB
+transaction or treat persisted claim as permission. SQL86 NOT_RUN; no actual hook.
+
 ## D18 — discovery pages enumerate intent metadata, not pending execution grants
 
 2026-10-18, approved C4/P4/P5. operation_page is an internal transaction method,

@@ -2,6 +2,7 @@
 
 from contextlib import AbstractContextManager
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Literal, Protocol
 
 from sketch2life.contracts.schemas.ai_policy_copy_history import CopyInventoryEvidence
@@ -14,6 +15,7 @@ from sketch2life.contracts.schemas.ai_policy_copy_registry import (
     CopyRegistryRegistration,
 )
 from sketch2life.domain.ai_jobs.provider_copy import CopyKind, ProviderCopy, request_purge
+from sketch2life.domain.ai_policy.copy_delivery import DeliveryResponse, DeliveryState
 
 
 @dataclass(frozen=True, slots=True)
@@ -63,6 +65,22 @@ class CopyOperationPage:
 
 
 class ProviderCopyRegistryTransaction(Protocol):
+    def get_delivery(self, operation_key: str) -> DeliveryState:
+        """Historical state only; lazy queued state requires an existing exact intent."""
+        ...
+
+    def claim_delivery(
+        self, operation_key: str, *, expected_revision: int, token: str, expires_at: datetime
+    ) -> DeliveryState:
+        """Caller owns current authority and approved deadline, no implicit TTL or permission."""
+        ...
+
+    def finish_delivery(
+        self, response: DeliveryResponse, *, expected_revision: int, token: str
+    ) -> DeliveryState:
+        """Record hook metadata atomically, never verified deletion/cancel confirmation."""
+        ...
+
     def operation_page(
         self, *, limit: int, after: str | None = None, expected_revision: int | None = None
     ) -> CopyOperationPage:

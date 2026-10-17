@@ -1,6 +1,12 @@
 # FEAT-049 — BE2-14 AI policy / limits / kill switch
 
 - Goal: full BE2-14 card, including ProviderCopyLifecycle and redacted projections.
+- Latest C4c2 (2026-10-18): pure delivery token/revision/deadline fencing, typed
+  reference-only hook responses and own SQL current/history/outbox ap_0007 code.
+  No automatic retry of unsupported/receipt states, no false deletion/cancel ack.
+  786 own +477 selected regression +114 foundation PASS; PG86 NOT_RUN. Guarded
+  claim/dispatch composition and pending filter still next, then current lifecycle/
+  verified receipt reconciliation, C5/C6. No hook implementation/provider call.
 - Latest C4c1 (2026-10-18): scoped revision-bound internal operation-key pages
   with strict cursor/limit and missing-scope no-phantom read. ALL stored intents,
   not pending/eligible status or claims. 708 own +477 regression +114 foundation

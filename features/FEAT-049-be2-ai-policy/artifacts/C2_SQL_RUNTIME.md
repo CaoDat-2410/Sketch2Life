@@ -39,8 +39,8 @@ if ($LASTEXITCODE -ne 0) { throw 'BE2-14 ledger SQL evidence incomplete or faile
 if ($LASTEXITCODE -ne 0) { throw 'BE2-14 copy inventory SQL evidence incomplete or failed' }
 ```
 
-Expected: exact 15 lifecycle +10 activation/stop/current-use +19 ledger +36 copy
-inventory SQL JUnit test identities (80 total) in four separate
+Expected: exact 15 lifecycle +10 activation/stop/current-use +19 ledger +42 copy
+inventory SQL JUnit test identities (86 total) in four separate
 receipts, no fail/error/skip/extra/duplicate,
 unchanged current transitive source/config/test/runner hashes, runner exit 0.
 
@@ -61,6 +61,14 @@ All cases remain NOT_RUN until authorized execution.
 C4c1 adds two actual SQL discovery cases: scoped pagination/reconnect/stale
 revision cursor and missing-scope reader excluding later inserted intents. Total
 80 prepared NOT_RUN; enumeration is ALL historical intents, not pending/claims.
+
+C4c2 adds six actual SQL cases: delivery claim reconnect/finish/idempotent replay;
+concurrent revision one-winner claim; expired takeover rejecting late response;
+forced history insert failure rolls back current state and event; two raw-SQL
+immutable history update/delete negatives. Branch head ap_0007 creates own current
+delivery/history tables, monotonic revision and immutable history triggers. Total
+86 prepared NOT_RUN. Pure state/codec tests are not actual SQL atomicity/race proof,
+and persistence is not current authority or actual provider/cancellation evidence.
 Missing explicit AP opt-in -> exit 2/NOT_RUN, even if LC opt-in exists. Missing or
 skipped execution case -> NOT_RUN; collection mismatch or test error/nonzero
 outcome -> FAIL. No fabricated SQL

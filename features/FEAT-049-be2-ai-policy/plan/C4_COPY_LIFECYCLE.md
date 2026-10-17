@@ -141,3 +141,32 @@ Never expose a public endpoint, call provider or treat enumeration as claim or
 current authority. Worker must hold adopted owner read guard outside this UoW;
 actual dispatch separately revalidates original command/current rights/profile.
 No schema change; add SQL isolation/reconnect/stale-page cases to existing pack.
+
+## C4c2 delivery claim and truthful response semantics
+
+Define a pure delivery state machine separate from existing copy lifecycle.
+Queued/pending/exception may be claimed by exact expected revision, explicit token
+and explicit deadline supplied by current authorized application (no default TTL).
+An unexpired in-flight claim is busy; expired claim may be replaced with a new
+token/revision but old response must then fail, with same provider operation key.
+Preserve used token history so a released/expired token is never reused (ABA).
+Outcome completion requires current token/revision and unexpired claim; duplicate
+identical recorded response is idempotent metadata, changed response conflicts.
+Typed hook response carries exact operation key+binding digest, Pending/Unsupported/
+Exception or receipt reference/hash. ReceiptAvailable is NOT verified/deleted or
+cancel-confirmed. Unsupported and receipt-bearing states do not auto-retry;
+subsequent verified lifecycle reconciliation remains distinct C4c work. Pure domain
+cannot authorize execution; own SQL CAS/claim persistence, authoritative composition
+and typed hook invocation still required before dispatch. Publish internal hook
+port requiring exact original immutable envelope, stable provider idempotency key,
+and no call under DB lock. No real hook/default implementation or provider call.
+
+Persist delivery state/CAS and immutable state history in own forward ap_0007,
+same existing inventory UoW/scope lock and outbox event. Lazy queued state derives
+only from an existing exact operation, never from an arbitrary key. Fresh claim
+and completion each advance delivery revision; duplicate recorded completion does
+not write twice. Internal SQL transitions are not authority; guarded dispatch
+composition remains subsequent C4c work. Strict persisted codec binds snapshot
+operation/hash/revision/status back to immutable envelope. Prepare SQL rollback,
+concurrent claim, expired takeover/late response, reconnect and immutability cases;
+actual SQL NOT_RUN until separate environment approval.
