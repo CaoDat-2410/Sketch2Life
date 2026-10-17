@@ -35,7 +35,7 @@ if ($LASTEXITCODE -ne 0) { throw 'BE2-14 PostgreSQL evidence incomplete or faile
 if ($LASTEXITCODE -ne 0) { throw 'BE2-14 activation SQL evidence incomplete or failed' }
 ```
 
-Expected: exact 15 lifecycle +4 activation full JUnit test identities in separate
+Expected: exact 15 lifecycle +7 activation/emergency-stop full JUnit test identities in separate
 receipts, no fail/error/skip/extra/duplicate,
 unchanged current transitive source/config/test/runner hashes, runner exit 0.
 Missing explicit AP opt-in -> exit 2/NOT_RUN, even if LC opt-in exists. Missing or
@@ -63,6 +63,9 @@ only cleans test DBs. No production migration, new server or install inferred.
 - Activation pack: actual commands publish/disable/restart pin, receipt-failure
   rollback of lifecycle+scope intent, concurrent publications linearize to one pin,
   recall of old pin racing replacement cannot disable the new pin.
+- Emergency-stop additions: before-publication stop persists and replays after
+  restart; receipt failure rolls back lazy scope/epoch/intent; stale-epoch stop
+  racing reviewed activation cannot disable replacement.
 
 Actual owner rights/policy activation/current-source fencing and providers are
 outside C2 SQL proof. They remain explicit separate integration gates.

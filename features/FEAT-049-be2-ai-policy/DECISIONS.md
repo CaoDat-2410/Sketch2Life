@@ -1,5 +1,18 @@
 # Feature decisions
 
+## D08 — emergency stop uses epoch CAS, not stale wildcard cancellation
+
+Approved P3 internal stop contract requires feature/key/expected_epoch/reason;
+verified actor/org outside payload, current DISABLE only. Existing known scope
+can always be blocked for remediation even if registry definitions withdrawn;
+uninitialized scope requires known available feature. Null-pin epoch0 is unusable.
+Stop increments epoch once with intent/receipt in same own UoW; already disabled
+exact epoch/new key records receipt without duplicate intent. Replay rechecks
+current rights and exact stopped snapshot; after reviewed replacement/reactivation
+old receipt fails, never stops newer pin. No ninth CMD-48 action, migration,
+production timeout/budget/window or actual cancellation acknowledgment supplied.
+Atomic budget/concurrency and current usage fencing remain subsequent work.
+
 ## D07 — commands and effective pin share one UoW, not a post-commit callback
 
 Approved P1/P2/P5 C3b adds eight command handlers and forward ap_0002 scope/epoch

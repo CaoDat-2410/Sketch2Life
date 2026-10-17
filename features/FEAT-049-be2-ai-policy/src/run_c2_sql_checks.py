@@ -33,6 +33,9 @@ ACTIVATION_EXPECTED = {
     "test_actual_scope_and_lifecycle_rollback_if_receipt_insert_fails": 1,
     "test_concurrent_publications_serialize_to_one_effective_pin": 1,
     "test_recall_of_old_pin_racing_replacement_does_not_disable_new_pin": 1,
+    "test_emergency_stop_before_publication_is_durable_and_idempotent": 1,
+    "test_emergency_stop_sql_failure_rolls_back_scope_and_intent": 1,
+    "test_old_epoch_emergency_stop_cannot_disable_racing_replacement": 1,
 }
 
 

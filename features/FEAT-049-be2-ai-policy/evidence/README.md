@@ -13,5 +13,8 @@
 - C3B_COMMANDS_20261017: 252 own component +477 existing regression PASS; eight
   commands/effective pin/replay/rollback memory checks and forward DDL shape.
   19 actual SQL cases prepared, NOT_RUN; no actual cancellation/production claims.
+- C3C1_EMERGENCY_STOP_20261017: 31 additional component cases, 283 own total;
+  exact epoch stop/replay/current authority and rollback with memory UoW. Runtime
+  pack now 22 SQL cases prepared, all NOT_RUN pending separately authorized profile.
 - Keep raw outputs synthetic/redacted; secrets/runtime archives remain ignored.
 - After implementation, link exact source hashes/commands/results per acceptance.
