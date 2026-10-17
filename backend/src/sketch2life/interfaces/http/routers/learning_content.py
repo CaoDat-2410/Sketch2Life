@@ -21,7 +21,9 @@ from pydantic import ValidationError
 from sketch2life.application.governance_dispatcher import GovernanceDispatcher
 from sketch2life.application.learning_content_commands import ContentCommands
 from sketch2life.contracts.schemas.ai_jobs import CollaborationErrorV1, ErrorBodyV1
+from sketch2life.domain.ai_policy.model import PolicyError
 from sketch2life.domain.learning_content.model import ContentError
+from sketch2life.interfaces.http.ai_policy_errors import policy_command_error
 
 _ID = re.compile(r"[A-Za-z0-9_.:-]{1,120}\Z")
 _MATCH = re.compile(r'"([1-9][0-9]{0,18})"\Z')
@@ -182,6 +184,9 @@ def build_governance_commands_router(
             return JSONResponse(
                 {"correlation_id": correlation, "data": result.model_dump(mode="json")},
                 headers={**_HEADERS, "ETag": f'"{result.current_revision}"'})
+        except PolicyError as error:
+            status, code = policy_command_error(error)
+            return _error(correlation, status, code)
         except ContentError as error:
             code = str(error)
             if code not in _ERROR_STATUS:

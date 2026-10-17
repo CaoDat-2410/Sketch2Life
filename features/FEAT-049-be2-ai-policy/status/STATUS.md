@@ -2,20 +2,20 @@
 
 - Status: IN_PROGRESS
 - Plan revision: 1
-- Implementation status: IN_PROGRESS — C4c7 atomic receipt resolution component PASS; SQL NOT_RUN
+- Implementation status: IN_PROGRESS — C5a sole CMD-48 policy transport component PASS; SQL NOT_RUN
 - Branch: feature/be2-08-14
 - Baseline: f0ff7a840d1910f1f80df327c3fd0239db5ea8e1
-- Current: parent 544f499; atomic current-copy/proof/cancel resolution persistence added.
-- BE2-14 component: 895 PASS /0 skip (78 policy contract +34 accounting contract
+- Current: parent 0ecff26; explicit policy binding/safe HTTP errors and stop-generation CR.
+- BE2-14 component: 946 PASS /0 skip (78 policy contract +34 accounting contract
   +47 accounting domain +46 policy domain +26 persistence
   shape/offline +15 runner +59 registry +29 command service +3 activation shape
   +31 emergency-stop +53 current-use +20 ledger shape/codec +49 accounting service
   +44 copy verification +27 copy inventory shape/codec +56 inventory service +28 history
   +44 exact operation +19 intent discovery +56 delivery domain/contract +22 delivery storage
   +23 dispatcher +19 phase evidence +18 candidate query/cursor +29 receipt lease
-  +20 atomic resolution checks).
+  +20 atomic resolution +51 actual policy HTTP composition checks).
 - Focused Ruff/Mypy PASS; registry/auth fixtures are assumed, not real adoption.
-- Existing BE2-12/foundation selected regression pack: 477 PASS, source unchanged.
+- Existing BE2-12/foundation source-pinned selected regression pack: 477 PASS.
 - Additional targeted foundation application/review-regression/q00 suites: 114 PASS;
   existing copy fake scope/replay/cancel-vs-purge cases retained, no source rewrite.
 - PostgreSQL / real integration / runtime policy activation: NOT_RUN for BE2-14.
@@ -25,15 +25,15 @@
   BE2-14 server started. C2 pins original migration; C3b upgrades new branch head.
   Owner asked asynchronously for isolated PG17 setup/test/cleanup approval, no
   approval fabricated from silence or prior BE2-12 provisioning authority.
-- Next: remaining kill-delivery/current-copy conformance and C5
-  safe bindings/projections, plus
+- Next: C5 safe operational projections, remaining copy conformance/C6 review;
+  actual kill delivery gated by original policy-generation owner contract, plus
   actual SQL proof once authorized. Guarded accounting application composition now
   exists, but actual current-owner/terminal-evidence adapters remain unbound;
   no runtime atomic budget/concurrency claim. Current-use policy
   lease checks are NOT budget reservation or final provider/worker authorization.
   Emergency stop now has
   internal epoch-CAS/pending-intent component, not actual worker/provider stop.
-  Real provider verification/dispatch/current-owner adapter adoption, projections and C5 wiring
+  Real provider verification/dispatch/current-owner adapter adoption and projections
   remain to implement. Not full-card acceptance or real activation/provider use.
 - Evidence: evidence/notes/C1_DOMAIN_CONTRACTS_20261017.md; initial serialization
   failure and correction retained in narrative, not counted as a passing run.
@@ -155,3 +155,15 @@
   cases prepared, total99 NOT_RUN. Evidence/consumer handoff:
   evidence/notes/C4C7_ATOMIC_RESOLUTION_20261018.md. Owner prefers batched external
   tests; no new server/provider authority inferred. C5/C6 and real adoption open.
+
+- C5a (2026-10-18): explicit bind_ai_policy uses existing strict owner binding,
+  typed AiPolicyCommand/actual service and sole CMD-48 factory; no default app or
+  fake identity activation. Known command errors map to closed safe HTTP statuses;
+  unknown/internal metadata errors become generic503, private exceptions remain
+  sanitized500. 51 new HTTP cases with MEMORY/ASSUMED guards; 946 own +477 selected
+  regression +114 foundation PASS. PostgreSQL99 unchanged NOT_RUN.
+  Stop delivery cannot safely map feature to broad CancellationNotice job_type:
+  delayed old intent could cancel newly reactivated jobs. Proposed owner contract
+  artifacts/CR_KILL_NOTICE_PIN_FENCE.md, no foundation rewrite or delivered claim.
+  C5 operational projections and C6 remain local next. Evidence/consumer handoff:
+  evidence/notes/C5A_POLICY_TRANSPORT_20261018.md.

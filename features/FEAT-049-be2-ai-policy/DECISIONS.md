@@ -1,5 +1,22 @@
 # Feature decisions
 
+## D25 — policy transport uses sole CMD-48; delayed stop needs generation fencing
+
+2026-10-18 approved P1/P3/P5. Explicit bind_ai_policy(AiPolicyCommands) composes
+existing strict AiPolicyCommand binding. Extend existing HTTP route's error seam,
+not shared command/response fields or another endpoint. Closed known policy codes
+retain safe statuses; unknown scope/definition/time/private messages generic503.
+Uncaught private exceptions remain sanitized500; auth/preconditions/no-store/ETag
+behavior retained. Never mount default app or choose permissive owner adapter.
+
+Read foundation CancellationNotice/notice_matches/apply_cancellation_notice before
+kill-delivery implementation. Current OR job_type/session/subject matching lacks
+original policy-generation cutoff. Delayed stop after reactivation can hit new
+work; do not guess feature-to-job mapping, mark delivered or rewrite published
+foundation. Record explicit owner CR/payload semantics/tests and leave intent
+pending. This is a genuine adoption gate, not task completion; continue approved
+operational projection/review work while real wiring stays with teammates.
+
 ## D24 — atomic receipt resolution is historical evidence, not current authority
 
 2026-10-18 approved C4/P4/P5. Hold exact receipt lease around own scope UPDATE
