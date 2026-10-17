@@ -2,16 +2,19 @@
 
 - Status: IN_PROGRESS
 - Plan revision: 1
-- Implementation status: IN_PROGRESS — C3c3c guarded accounting component PASS; SQL NOT_RUN
+- Implementation status: IN_PROGRESS — C4a exact copy verification bridge PASS; SQL NOT_RUN
 - Branch: feature/be2-08-14
 - Baseline: f0ff7a840d1910f1f80df327c3fd0239db5ea8e1
-- Current: C3c3b 74c89fa; guarded reserve/settle/reconcile composition added.
-- BE2-14 component: 488 PASS /0 skip (78 policy contract +34 accounting contract
+- Current: C3c3c e0f77b1; exact copy receipt verifier/guard and open adoption CR added.
+- BE2-14 component: 532 PASS /0 skip (78 policy contract +34 accounting contract
   +47 accounting domain +46 policy domain +26 persistence
   shape/offline +13 runner +59 registry +29 command service +3 activation shape
-  +31 emergency-stop +53 current-use +20 ledger shape/codec +49 accounting service checks).
+  +31 emergency-stop +53 current-use +20 ledger shape/codec +49 accounting service
+  +44 copy verification checks).
 - Focused Ruff/Mypy PASS; registry/auth fixtures are assumed, not real adoption.
 - Existing BE2-12/foundation selected regression pack: 477 PASS, source unchanged.
+- Additional targeted foundation application/review-regression/q00 suites: 114 PASS;
+  existing copy fake scope/replay/cancel-vs-purge cases retained, no source rewrite.
 - PostgreSQL / real integration / runtime policy activation: NOT_RUN for BE2-14.
 - BE2-12 477/33 PASS belongs to that card, not carried as BE2-14 acceptance.
 - SQL: 15 lifecycle +10 activation/stop/use +19 ledger actual PG cases prepared/collected,
@@ -19,14 +22,15 @@
   BE2-14 server started. C2 pins original migration; C3b upgrades new branch head.
   Owner asked asynchronously for isolated PG17 setup/test/cleanup approval, no
   approval fabricated from silence or prior BE2-12 provisioning authority.
-- Next: C4 ProviderCopyLifecycle and remaining C5 safe bindings/projections, plus
+- Next: C4b durable registry/coverage/pagination/intent execution and remaining C5
+  safe bindings/projections, plus
   actual SQL proof once authorized. Guarded accounting application composition now
   exists, but actual current-owner/terminal-evidence adapters remain unbound;
   no runtime atomic budget/concurrency claim. Current-use policy
   lease checks are NOT budget reservation or final provider/worker authorization.
   Emergency stop now has
   internal epoch-CAS/pending-intent component, not actual worker/provider stop.
-  Provider-copy verification, operational projections and C5 wiring also
+  Real provider verification/dispatch, durable copy registry, operations projections and C5 wiring
   remain to implement. Not full-card acceptance or real activation/provider use.
 - Evidence: evidence/notes/C1_DOMAIN_CONTRACTS_20261017.md; initial serialization
   failure and correction retained in narrative, not counted as a passing run.
@@ -55,3 +59,6 @@
 - C3c3c evidence: evidence/notes/C3C3C_GUARDED_ACCOUNTING_20261017.md; API/handoff
   artifacts/C3C3_ACCOUNTING_HANDOFF.md. Fixture provider evidence is never actual
   cost. Full-card status remains IN_PROGRESS; no default permissive adapter/route.
+- C4a evidence: evidence/notes/C4A_COPY_VERIFICATION_20261017.md; handoff
+  artifacts/C4_COPY_VERIFICATION_HANDOFF.md; CR_PROVIDER_COPY_ADOPTION.md OPEN.
+  No actual provider call, deletion, cancel acknowledgment or overall BE1 closure.

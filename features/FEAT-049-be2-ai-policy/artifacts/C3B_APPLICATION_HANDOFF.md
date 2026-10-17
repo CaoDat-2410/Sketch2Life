@@ -57,7 +57,7 @@ commit nested work under adopted guard; never use a returned pin as a bearer tok
 
 ## Verification status
 
-Latest 488 own component cases PASS +477 existing selected regression PASS. Components use
+Latest 532 own component cases PASS +477 existing selected regression PASS. Components use
 assumed boundary and transactional MEMORY store; not durable SQL/fence proof.
 Actual PostgreSQL 15 lifecycle +10 activation/stop/use +19 ledger cases prepared, NOT_RUN.
 Runtime command pack: artifacts/C2_SQL_RUNTIME.md. No real provider/owner integration,
@@ -96,3 +96,12 @@ replay and after-stop cleanup without reauthorizing AI. Real owner/evidence guar
 adapters remain unbound; see artifacts/C3C3_ACCOUNTING_HANDOFF.md. Never acquire owner
 policy locks from inside ledger lock or run provider network work under that lock.
 No route/default adapter mounted. AC06 and full BE2-14 remain open.
+
+## Copy verification checkpoint (C4a)
+
+ProviderCopyReceiptVerifier now supplies held current owner/profile/evidence
+verification bridge to existing foundation PurgeReceipt; foundation lifecycle
+and shared models unchanged. It does not dispatch, persist registry results or
+prove actual deletion. See artifacts/C4_COPY_VERIFICATION_HANDOFF.md and open
+artifacts/CR_PROVIDER_COPY_ADOPTION.md for missing coverage/registry/acknowledgment
+and exact immutable profile/operation/commit-fence requirements. C4b remains open.

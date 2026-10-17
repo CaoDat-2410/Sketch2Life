@@ -1,5 +1,27 @@
 # Feature decisions
 
+## D13 — exact copy verification bridge, no implicit foundation amendment
+
+Approved P4 C4a reuses foundation copy state machine and PurgeReceipt. Own strict
+reference-only command binds exact data request/scope/action/key; verified actor/org
+outside body. Current owner guard must resolve subject/purpose/source expiry and
+original adopted profile version/hash, not latest alias. Exact canonical binding
+also includes copy id/kind, profile and authority revision; trusted backend verifier
+authenticates bytes/hash/issuer/operation/outcome and echoes exact binding/reference.
+Revalidate native grant/proof types (no allowed=1/verified=1) and current unchanged
+authority/expiry after verification. Guard retained through yielded caller work,
+but mutex alone cannot enforce wall-clock expiry at registry commit: real owner
+commit-fence adoption remains required.
+
+Only foundation PurgeReceipt returned; no provider side effect or registry mutation.
+Unverified deletion remains pending, fixture deletion not actual. Synthetic test of
+provider-kind mapping is not real provider verification. Published foundation/shared
+bytes unchanged. CR_PROVIDER_COPY_ADOPTION documents missing durable registry pages/
+coverage, immutable original profile ref, operation-key dispatch deduplication,
+typed cancel acknowledgment/missing-hook outcomes and current commit fence. CR is
+OPEN, not adopted schema or blocked whole-card work. Continue own registry/intent
+code; real owner/provider wiring still deferred to teammates as instructed.
+
 ## D12 — service replay rechecks authority; cleanup never resurrects stopped work
 
 Approved P3 C3c3c composes current-use lease -> accounting guard -> own ledger UoW
