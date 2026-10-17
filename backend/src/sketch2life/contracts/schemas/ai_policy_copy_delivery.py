@@ -6,7 +6,11 @@ from pydantic import AwareDatetime, Field, model_validator
 
 from sketch2life.contracts.schemas.ai_contract_candidates import OpaqueId, Sha256Hex
 from sketch2life.contracts.schemas.ai_policy import StrictPolicyModel
-from sketch2life.contracts.schemas.ai_policy_copy import CopyReceiptReference, ReasonCode
+from sketch2life.contracts.schemas.ai_policy_copy import (
+    CopyAuthorityGrant,
+    CopyReceiptReference,
+    ReasonCode,
+)
 
 
 class CopyHookResponse(StrictPolicyModel):
@@ -40,3 +44,16 @@ class CopyDeliveryRecord(StrictPolicyModel):
     claim_expires_at: AwareDatetime | None
     used_tokens: tuple[OpaqueId, ...]
     last_response: CopyHookResponse | None
+
+
+class CopyDeliveryAuthority(StrictPolicyModel):
+    """Trusted current delivery policy output, never a request field or cached grant."""
+
+    grant: CopyAuthorityGrant
+    claim_deadline: AwareDatetime
+
+    @model_validator(mode="after")
+    def bounded_deadline(self) -> "CopyDeliveryAuthority":
+        if self.claim_deadline > self.grant.expires_at:
+            raise ValueError("claim exceeds current authority")
+        return self

@@ -170,3 +170,21 @@ composition remains subsequent C4c work. Strict persisted codec binds snapshot
 operation/hash/revision/status back to immutable envelope. Prepare SQL rollback,
 concurrent claim, expired takeover/late response, reconnect and immutability cases;
 actual SQL NOT_RUN until separate environment approval.
+
+## C4c3 guarded dispatcher composition
+
+New explicit delivery authority boundary extends current copy owner/profile guard;
+trusted authorize_delivery binds original envelope + current snapshot + phase
+(claim/dispatch/completion), current worker/retry policy and explicit approved claim
+deadline bounded by grant expiry. No caller deadline/default TTL/retry grant.
+Authorize scoped read first, require exact actor/org/command/key binding and original
+profile, claim in own UoW with authority confirmation, exit DB transaction before
+hook. Re-read claimed token/state under SHARE and reauthorize dispatch immediately
+before hook, while owner/profile guard held. Hook absence -> Unsupported; exception
+or malformed output -> safe Exception metadata, not deletion/confirmed cancellation.
+Completion reauthorizes and compares unchanged claim under UPDATE before recording
+response; revoked/expired/late responses leave committed claim recoverable, never
+invent rollback of external effects. No hook resend from completed metadata; future
+retry needs explicit current authorized state/revision and stable original key.
+Use ASSUMED/MEMORY tests, plus prepare SQL composition/restart tests. Real owner/
+hook deadline enforcement and cross-process provider dedup still integration gates.
