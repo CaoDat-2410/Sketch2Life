@@ -1,6 +1,12 @@
 # FEAT-049 — BE2-14 AI policy / limits / kill switch
 
 - Goal: full BE2-14 card, including ProviderCopyLifecycle and redacted projections.
+- Latest C3c3b: own five-table resource ledger, serialized org/feature lock,
+  reservation/counters/receipt/audit intent UoW and forward ap_0003. Composite
+  feature-scoped FKs, immutable terminal provenance and pending audit/outbox.
+  439 own component PASS; 17 new actual PG ledger cases prepared NOT_RUN
+  (42 total PG). Current-use/quote/proof application composition still pending;
+  persistence code is not runtime capacity enforcement proof or execution authority.
 - Latest C3c3a: pure accounting transitions and exact trusted quote/evidence
   contracts/ports. Per-budget-bucket held/spent and global org/feature slots;
   idempotent settlement preserves original terms, verified actual overrun retained.
@@ -48,7 +54,7 @@
   160 BE2-14 component cases total; 15 actual PostgreSQL cases prepared/collected,
   NOT_RUN pending separately authorized environment. No server started/downloaded.
   Effective scope/epoch/reservation tables deferred to C3 when their behavior exists.
-- Next: C3c3b atomic accounting SQL/application integration, then runtime races;
+- Next: C3c3c accounting application/current-use/quote/proof integration, then runtime races;
   existing actual SQL pack still pending authority/proof;
   real production
   activation/provisioning and external adoption remain separate gates.

@@ -39,3 +39,22 @@ receipt+audit/outbox, current guarded reserve/settle/reconcile services, migrati
 runtime races/restart/rollback/stop-window tests. Pure transition tests are NOT
 atomic/concurrent-runtime proof and do not close AC06. No SQL service provision
 or other owner's job/session writes authorized by this checkpoint.
+
+## C3c3b persistence implementation order
+
+One own resource_scope UPDATE lock serializes counters for org/feature, including
+across budget windows and definitions. Lock/create scope before bucket/reservation;
+never acquire policy/owner locks from inside ledger transaction. Caller retains
+current-use and accounting guards before entry and through commit. No provider
+network work under ledger lock. Same ledger UoW stores reservation transition,
+bucket held/spent, global slots, immutable audit/outbox intent and scoped command
+receipt. All rollback together on any failure. Exact attempt unique across windows;
+no new bucket or client request key can allocate the same attempt twice.
+
+Forward ap_0003 adds only own ai_policy tables. Terminal reservation/provenance,
+command receipts and audit payloads protected against rewrite; outbox delivery
+marker alone may change. Current-use service composition remains a following
+step, not implied by a directly callable persistence adapter. Offline DDL/shape
+and controlled connection tests prove code paths only. Prepare actual PG race,
+rollback, restart, window rollover and immutable-history tests separately; until
+executed those remain NOT_RUN and AC06 remains open.
