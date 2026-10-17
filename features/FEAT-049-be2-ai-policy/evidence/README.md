@@ -20,4 +20,7 @@
   regression PASS. Current-use/request pin/origin+stop history component; SQL pack
   25 cases prepared, NOT_RUN. Not actual current owner/worker/budget authorization.
 - Keep raw outputs synthetic/redacted; secrets/runtime archives remain ignored.
+- C3C3A_ACCOUNTING_20261017: 81 new cases (47 domain +34 strict quote/contract),
+  417 own component +477 existing selected regression PASS. Pure accounting only;
+  no atomic ledger or actual cost/concurrency proof. Existing 25 PG cases NOT_RUN.
 - After implementation, link exact source hashes/commands/results per acceptance.
