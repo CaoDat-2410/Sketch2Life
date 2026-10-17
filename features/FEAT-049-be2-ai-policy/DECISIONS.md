@@ -1,5 +1,26 @@
 # Feature decisions
 
+## D10 — accounting transition is not a grant or an atomic ledger
+
+Approved P3 C3c3a separates pure immutable resource accounting from authoritative
+quote/terminal-evidence resolution and future atomic storage. Budget buckets bind
+org/feature/exact definition/unit/window, while occupied slots remain global to
+org/feature across window/definition changes. Explicit zero ceiling denies;
+zero estimate still holds a slot. No adopted numeric defaults, expiry or refund
+on assumed cancellation. Duplicate exact live reservation and same terminal proof
+produce no delta; conflicting or terminal re-reservation denied. Actual verified
+spend above estimate/ceiling remains truthful overrun, never clipped to conceal it.
+Settlement uses original terms after policy/window changes; this does not grant
+execution after stop. Fixture proof remains fixture, not actual provider cost.
+
+Trusted quote binds actor/org/current held observation/attempt; reservation request
+digest retains original pin across current-phase/epoch/registry rechecks. Caller
+cannot set numeric terms or verified proof. Ports require held authoritative
+guards; no permissive adapter or independently cacheable permission is supplied.
+This checkpoint has no atomic ledger SQL, service or actual concurrency proof and
+does not close AC06. Next implementation must persist own counters/reservation/
+receipt/audit intent atomically and verify races, rollback and restart separately.
+
 ## D09 — original pin continuity, no resurrection across stopped epochs
 
 Approved P2/P3 C3c2 gives backend-held current-use leases, not cacheable permission.

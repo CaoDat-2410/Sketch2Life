@@ -57,8 +57,25 @@ commit nested work under adopted guard; never use a returned pin as a bearer tok
 
 ## Verification status
 
-Latest 336 own component cases PASS +477 existing selected regression PASS. Components use
+Latest 417 own component cases PASS +477 existing selected regression PASS. Components use
 assumed boundary and transactional MEMORY store; not durable SQL/fence proof.
 Actual PostgreSQL 15 lifecycle +10 activation/stop/use cases prepared/collected, NOT_RUN.
 Runtime command pack: artifacts/C2_SQL_RUNTIME.md. No real provider/owner integration,
 cost/load/purge/cancellation proof. Full-card BE2-14 remains IN_PROGRESS.
+
+## Accounting contract checkpoint (C3c3a)
+
+ResourceReservationRequest binds exact original request/pin/attempt and phase.
+ResourceSettlementRequest accepts an evidence reference, not actual units or a
+client verified flag. ResourceAccountingBoundary must resolve current adopted
+quote values and authenticate terminal evidence while retaining guards to commit.
+bind_resource_quote checks exact current observation/actor/org/attempt and maps
+original policy/request provenance to immutable domain accounting terms. A bound
+quote is not an authorization token and this mapper does not reserve anything.
+
+Pure domain reserve/settle transitions cover per-bucket held/spent, global scope
+slots, exact replay, verified release, actual overrun and original-window cleanup.
+No automatic expiry/cancellation refund, numeric production default or provider
+receipt verifier supplied. C3c3b must still implement own atomic SQL ledger/UoW,
+services/receipt+outbox and actual concurrent/restart/rollback verification. Do not
+dispatch work using the pure transition or treat fixture evidence as actual cost.

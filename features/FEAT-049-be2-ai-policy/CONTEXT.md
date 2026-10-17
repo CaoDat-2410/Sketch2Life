@@ -1,6 +1,11 @@
 # FEAT-049 — BE2-14 AI policy / limits / kill switch
 
 - Goal: full BE2-14 card, including ProviderCopyLifecycle and redacted projections.
+- Latest C3c3a: pure accounting transitions and exact trusted quote/evidence
+  contracts/ports. Per-budget-bucket held/spent and global org/feature slots;
+  idempotent settlement preserves original terms, verified actual overrun retained.
+  81 new cases, 417 own component +477 existing regression PASS. No atomic ledger
+  SQL/service or real quote/evidence adapter yet; AC06 remains open.
 - Latest C3c2: exact request/policy/profile pin and held current-use leases at
   create/dispatch/retry/completion/exposure. Verified origin activation history
   prevents pin epoch forgery; stop history denies old pin even after reactivation.
@@ -43,6 +48,7 @@
   160 BE2-14 component cases total; 15 actual PostgreSQL cases prepared/collected,
   NOT_RUN pending separately authorized environment. No server started/downloaded.
   Effective scope/epoch/reservation tables deferred to C3 when their behavior exists.
-- Next: actual SQL pack authority/proof and C3c3 atomic accounting/reservations;
+- Next: C3c3b atomic accounting SQL/application integration, then runtime races;
+  existing actual SQL pack still pending authority/proof;
   real production
   activation/provisioning and external adoption remain separate gates.

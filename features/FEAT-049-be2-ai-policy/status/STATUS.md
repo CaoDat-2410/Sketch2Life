@@ -2,11 +2,12 @@
 
 - Status: IN_PROGRESS
 - Plan revision: 1
-- Implementation status: IN_PROGRESS — C3c2 current-use lease component PASS; SQL NOT_RUN
+- Implementation status: IN_PROGRESS — C3c3a accounting domain/contracts PASS; SQL NOT_RUN
 - Branch: feature/be2-08-14
 - Baseline: f0ff7a840d1910f1f80df327c3fd0239db5ea8e1
-- Current: C3b 3838d72, C3c1 f66ec54; C3c2 current-use leases/exact request pins added.
-- BE2-14 component: 336 PASS /0 skip (78 contract +46 domain +26 persistence
+- Current: C3c2 0f47893; C3c3a accounting transitions/trusted quote/evidence shape added.
+- BE2-14 component: 417 PASS /0 skip (78 policy contract +34 accounting contract
+  +47 accounting domain +46 policy domain +26 persistence
   shape/offline +11 runner +59 registry +29 command service +3 activation shape
   +31 emergency-stop +53 current-use checks).
 - Focused Ruff/Mypy PASS; registry/auth fixtures are assumed, not real adoption.
@@ -17,8 +18,9 @@
   BE2-14 server started. C2 pins original migration; C3b upgrades new branch head.
   Owner asked asynchronously for isolated PG17 setup/test/cleanup approval, no
   approval fabricated from silence or prior BE2-12 provisioning authority.
-- Next: actual SQL proof once authorized; C3c3 atomic budget/concurrency and
-  consumption/release/reconcile still require implementation. Current-use policy
+- Next: C3c3b own atomic ledger SQL/application service, followed by actual SQL
+  proof once authorized. Accounting pure transitions/contracts exist, but atomic
+  budget/concurrency, consume/release/reconcile integration still pending. Current-use policy
   lease checks are NOT budget reservation or final provider/worker authorization.
   Emergency stop now has
   internal epoch-CAS/pending-intent component, not actual worker/provider stop.
@@ -41,3 +43,6 @@
   pin/registry/reviews/stop-history checks exist. Original activation epoch verified;
   ordinary replacement keeps old provenance; any intervening stop revokes old pin.
   Assumed use-authority fixture is not actual BE1 session/consent/terminal fencing.
+- C3c3a evidence: evidence/notes/C3C3A_ACCOUNTING_20261017.md. Quote/proof ports
+  have no production adapter. No actual reservation, provider cost or concurrent
+  budget acceptance claim. Full BE2-14 remains IN_PROGRESS.
