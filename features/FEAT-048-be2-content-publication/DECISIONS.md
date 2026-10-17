@@ -1,5 +1,17 @@
 # Feature decisions
 
+## D12 — do available receiver-owned contract work now — 2026-10-17
+
+Direct user clarification: this receiver handles 08–14, teammate handles 01–07
+then consumes this branch. Correct prior interpretation that 13/14 must arrive
+from another person before all dispatch work. Approved plan already covers
+candidate typed delegate seams: implement fixed routing, strict concrete-model
+binding, explicit unavailable behavior and conformance now. Do not invent final
+stage/policy payload semantics or implement other business cards without their
+plans/approval. Routing selection is not semantic payload validation; only a
+bound extra-forbid strict frozen model may reach an owner handler. Real authority
+and consumer readiness remain distinct from fixture/component readiness.
+
 ## D11 — enforce approved P3 new-version reintroduction — 2026-10-17
 
 The reviewed plan already explicitly permits reintroduction by a new version

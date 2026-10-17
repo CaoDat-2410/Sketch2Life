@@ -1,7 +1,7 @@
-"""CMD-48 content transport seam, not production composition or full dispatcher.
+"""One CMD-48 candidate transport factory with fixed governance dispatcher.
 
 Identity/scope resolution is mandatory and server-injected, never a demo header.
-Preset/policy schemas/delegates remain an explicit C4 gate. No read/delivery route
+Owner schemas/delegates bind explicitly. No read/delivery route
 is added: BE1 CMD-59/60 consumes the application eligibility projection instead.
 """
 
@@ -18,9 +18,9 @@ from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 
+from sketch2life.application.governance_dispatcher import GovernanceDispatcher
 from sketch2life.application.learning_content_commands import ContentCommands
 from sketch2life.contracts.schemas.ai_jobs import CollaborationErrorV1, ErrorBodyV1
-from sketch2life.contracts.schemas.learning_content import CONTENT_COMMAND_ADAPTER
 from sketch2life.domain.learning_content.model import ContentError
 
 _ID = re.compile(r"[A-Za-z0-9_.:-]{1,120}\Z")
@@ -39,6 +39,9 @@ class GovernanceIdentity:
 IdentityResolver = Callable[[Request], GovernanceIdentity | None]
 
 _ERROR_STATUS = {
+    "INVALID_GOVERNANCE_COMMAND": 422,
+    "GOVERNANCE_DELEGATE_UNAVAILABLE": 503,
+    "GOVERNANCE_DELEGATE_INVALID_RESPONSE": 503,
     "CONTENT_FORBIDDEN": 403,
     "CONTENT_SEPARATION_REQUIRED": 403,
     "CONTENT_NOT_FOUND": 404,
@@ -84,11 +87,11 @@ def _invalid_constant(value: str) -> None:
     raise ValueError("non-JSON number")
 
 
-def _request_schema() -> dict[str, object]:
+def _request_schema(schema: dict[str, object]) -> dict[str, object]:
     # Inline this finite, non-recursive DTO graph so the manually parsed body
     # still has a complete OpenAPI contract without unresolved $defs references.
-    schema = CONTENT_COMMAND_ADAPTER.json_schema()
     definitions = schema.pop("$defs", {})
+    assert isinstance(definitions, dict)
 
     def expand(value: object) -> object:
         if isinstance(value, dict):
@@ -111,6 +114,16 @@ def build_content_commands_router(
     service: ContentCommands, resolve_identity: IdentityResolver, *,
     max_body_bytes: int, prefix: str = "/api/collaboration/v1",
 ) -> APIRouter:
+    """Compatibility entrypoint; delegates to the SAME governance route factory."""
+    return build_governance_commands_router(
+        GovernanceDispatcher(service), resolve_identity,
+        max_body_bytes=max_body_bytes, prefix=prefix)
+
+
+def build_governance_commands_router(
+    dispatcher: GovernanceDispatcher, resolve_identity: IdentityResolver, *,
+    max_body_bytes: int, prefix: str = "/api/collaboration/v1",
+) -> APIRouter:
     """One candidate command route. Caller supplies transport admission limit.
 
     No default identity, no default production policy, no registration in the
@@ -118,12 +131,14 @@ def build_content_commands_router(
     """
     if type(max_body_bytes) is not int or max_body_bytes < 1:
         raise ValueError("positive transport admission limit required")
-    router = APIRouter(prefix=prefix, tags=["governance-content-candidate"])
+    router = APIRouter(prefix=prefix, tags=["governance-candidate"])
+    schemas = [_request_schema(schema) for schema in dispatcher.request_schemas()]
+    request_schema = schemas[0] if len(schemas) == 1 else {"anyOf": schemas}
 
     @router.post("/governance/records", response_model=None, openapi_extra={
         "requestBody": {"required": True, "content": {
-            "application/json": {"schema": _request_schema()}}},
-        "description": "Candidate content branch only; owner delegates not adopted.",
+            "application/json": {"schema": request_schema}}},
+        "description": "Candidate governance; unbound owner branches return unavailable.",
         "parameters": [{"name": "If-Match", "in": "header", "required": False,
                         "schema": {"type": "string"},
                         "description": 'Strong quoted record revision; omit for create.'}],
@@ -159,12 +174,11 @@ def build_content_commands_router(
                 # validation. Never return Pydantic input/errors containing body.
                 json.loads(raw.decode("utf-8"), object_pairs_hook=_unique_object,
                            parse_constant=_invalid_constant)
-                payload = CONTENT_COMMAND_ADAPTER.validate_json(raw)
             except (ValueError, UnicodeError, ValidationError, RecursionError):
                 return _error(correlation, 422, "INVALID_GOVERNANCE_COMMAND")
             result = await run_in_threadpool(
-                service.execute, identity.principal_id, identity.organization_id,
-                payload, expected_revision=expected)
+                dispatcher.execute_json, identity.principal_id, identity.organization_id,
+                bytes(raw), expected_revision=expected)
             return JSONResponse(
                 {"correlation_id": correlation, "data": result.model_dump(mode="json")},
                 headers={**_HEADERS, "ETag": f'"{result.current_revision}"'})

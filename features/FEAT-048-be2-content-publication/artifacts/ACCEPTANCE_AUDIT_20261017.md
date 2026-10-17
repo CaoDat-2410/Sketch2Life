@@ -1,5 +1,15 @@
 # BE2-12 acceptance audit — NOT COMPLETE
 
+## C4b follow-up — fixed dispatcher component available
+
+Following receiver ownership clarification, implemented fixed four-branch
+routing, strict concrete owner-model binding and single HTTP factory with typed
+unavailable slots. 59 new component cases / 413 selected local PASS. Local F01
+dispatch/spy/unavailable omission is addressed; the routing selector is not the
+final complete preset/policy semantic schema union, and actual owner model/
+authority/consumer adoption remains pending. Original C4a absence statements
+below are historical. See GOVERNANCE_BINDING_HANDOFF.md and C4B_DISPATCH evidence.
+
 ## P3 follow-up — reintroduction corrected
 
 The reviewed plan already authorizes a new version after a retired head, with

@@ -130,11 +130,11 @@ def test_exactly_one_command_path_and_no_new_delivery_gateway(harness):
     assert "#/$defs/" not in json.dumps(schema)
 
 
-@pytest.mark.parametrize("kind", ["preset", "policy", "unknown"])
-def test_missing_owner_contracts_are_not_treated_as_content(harness, kind):
+@pytest.mark.parametrize("kind,status", [("preset", 503), ("policy", 422), ("unknown", 422)])
+def test_missing_owner_contracts_are_not_treated_as_content(harness, kind, status):
     client, store, _, _ = harness
     response = client.post(URL, json={**create_payload(), "record_kind": kind})
-    assert response.status_code == 422 and not store.events
+    assert response.status_code == status and not store.events
 
 
 @pytest.mark.parametrize("action", ["create", "edit", "submit_review", "record_review",

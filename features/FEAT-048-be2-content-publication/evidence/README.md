@@ -14,6 +14,7 @@
 | C5a | Original-goal requirement audit / handoff | artifacts/ACCEPTANCE_AUDIT_20261017.md; artifacts/BE2_12_HANDOFF_20261017.md | 326 local revalidation PASS; F01–05 open, local F03 work available; full-card NOT COMPLETE |
 | F03 | Derived immutable review history | notes/F03_REVIEW_HISTORY_20261017.md; metrics/F03_REVIEW_HISTORY_20261017.json | Local F03 closed: 24 new / 350 selected local PASS; 21 owned SQL PASS; real owner causes/adoption still open |
 | P3-fix | New-version reintroduction, old version terminal | notes/P3_REINTRODUCTION_20261017.md | 354 local PASS; 23 owned SQL PASS; existing approval enforced, not a restore capability or integrated closure |
+| C4b | Fixed dispatch / strict owner binding / single HTTP factory | notes/C4B_DISPATCH_20261017.md; artifacts/GOVERNANCE_BINDING_HANDOFF.md | 59 new / 413 selected local PASS; synthetic owner models, actual semantic schema/adapters not adopted |
 
 No real child media, credentials, model outputs or external source documents
 are published. No runtime fixtures/tests are manufactured to claim completion.
