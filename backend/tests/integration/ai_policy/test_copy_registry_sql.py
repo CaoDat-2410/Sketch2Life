@@ -274,3 +274,49 @@ def test_inventory_missing_scope_reader_does_not_mix_later_insert_into_revision_
         assert page.revision == 0 and not page.records and page.coverage_status == "unknown"
     with transaction(inventory_store) as reader:
         assert reader.page(limit=1).revision == 1 and len(reader.page(limit=1).records) == 1
+
+
+def test_guarded_inventory_service_sql_source_coverage_and_late_fence(inventory_store):
+    from sketch2life.application.ai_policy_copy_inventory import ProviderCopyInventoryService
+    from tests.ai_policy_copy_inventory_fixtures import (
+        COVERAGE,
+        SOURCE,
+        AssumedInventoryBoundary,
+        context,
+        read_request,
+    )
+    from tests.unit.test_ai_policy_domain import NOW
+
+    service = ProviderCopyInventoryService(
+        inventory_store, AssumedInventoryBoundary(), clock=lambda: NOW
+    )
+    original = service.register("operator", "school", context(), registration(), SOURCE)
+    service.coverage("operator", "school", context(), expected_revision=1, reference=COVERAGE)
+    assert service.page("operator", "school", read_request()).coverage_status == "reported_complete"
+    assert not original.initial_copy().actual_deletion_proven
+    assert service.fence("operator", "school", context()) == 3
+    late = service.register("operator", "school", context(), registration("late"), SOURCE)
+    assert late.initially_quarantined
+    assert service.page("operator", "school", read_request()).coverage_status == "unknown"
+    assert count(inventory_store, COPY_EVENT) == 4
+
+
+def test_guarded_inventory_service_sql_revocation_before_commit_rolls_back(inventory_store):
+    from sketch2life.application.ai_policy_copy_inventory import ProviderCopyInventoryService
+    from tests.ai_policy_copy_inventory_fixtures import SOURCE, AssumedInventoryBoundary, context
+    from tests.unit.test_ai_policy_domain import NOW
+
+    boundary = AssumedInventoryBoundary()
+    authorize, calls = boundary.authorize, []
+
+    def current_owner(ctx, action, digest):
+        calls.append(action)
+        grant = authorize(ctx, action, digest)
+        return grant.model_copy(update={"allowed": False}) if len(calls) == 2 else grant
+
+    boundary.authorize = current_owner
+    service = ProviderCopyInventoryService(inventory_store, boundary, clock=lambda: NOW)
+    with pytest.raises(PolicyError, match="AI_POLICY_FORBIDDEN"):
+        service.register("operator", "school", context(), registration(), SOURCE)
+    for table in (COPY_SCOPE, COPY_REGISTRATION, COPY_EVENT):
+        assert count(inventory_store, table) == 0

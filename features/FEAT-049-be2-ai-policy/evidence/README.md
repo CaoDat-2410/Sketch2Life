@@ -20,6 +20,10 @@
   regression PASS. Current-use/request pin/origin+stop history component; SQL pack
   25 cases prepared, NOT_RUN. Not actual current owner/worker/budget authorization.
 - Keep raw outputs synthetic/redacted; secrets/runtime archives remain ignored.
+- C4B2A_INVENTORY_SERVICE_20261017: 56 new current-owner/source service cases,
+  617 own component +477 selected regression +114 targeted foundation PASS.
+  MEMORY/ASSUMED boundary, not real source/owner/PG/provider proof. Two added
+  copy SQL cases prepared; all 65 PG NOT_RUN. Durable intents/evidence still open.
 - C4B1_COPY_INVENTORY_20261017: 27 new offline/codec/shape +2 runner cases,
   561 own component PASS; 19 copy SQL cases prepared NOT_RUN (63 all PG).
   Original inventory/fence/coverage metadata only, no current lifecycle/dispatch/

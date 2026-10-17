@@ -48,3 +48,8 @@ Component: 561 own cases PASS (27 new inventory checks +2 runner); 19 copy PG ca
 prepared NOT_RUN, 63 all PG cases. Commands, environment/impact and logs to return:
 artifacts/C2_SQL_RUNTIME.md. No provider API call, server install/start or actual
 deletion. Full BE2-14 remains IN_PROGRESS.
+
+Successor C4b2a adds guarded backend service (not real adapter adoption); see
+artifacts/C4B2A_INVENTORY_SERVICE_HANDOFF.md. Current totals are 617 component
+PASS and 65 actual PG cases prepared NOT_RUN, with copy pack expanded to 21.
+Durable operation/source-evidence history and C4c dispatch/receipt still open.

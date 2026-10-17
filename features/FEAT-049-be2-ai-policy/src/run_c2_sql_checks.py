@@ -72,6 +72,8 @@ COPIES_EXPECTED = {
     "test_inventory_raw_sql_cannot_rewrite_originals_or_unpurge_scope": 5,
     "test_inventory_scope_isolation_and_read_only_mutation_denial": 1,
     "test_inventory_missing_scope_reader_does_not_mix_later_insert_into_revision_zero": 1,
+    "test_guarded_inventory_service_sql_source_coverage_and_late_fence": 1,
+    "test_guarded_inventory_service_sql_revocation_before_commit_rolls_back": 1,
 }
 
 
@@ -82,6 +84,7 @@ def source_hashes() -> dict[str, str]:
     paths.update(ROOT / name for name in (
         "backend/tests/conftest.py", "backend/tests/unit/test_ai_policy_domain.py",
         "backend/tests/ai_policy_accounting_fixtures.py",
+        "backend/tests/ai_policy_copy_inventory_fixtures.py",
         "backend/tests/ai_policy_fixtures.py", "backend/tests/unit/test_ai_policy_compatibility.py",
         "backend/tests/contract/test_ai_policy_contracts.py",
         "backend/tests/unit/test_ai_policy_use.py",

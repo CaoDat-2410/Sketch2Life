@@ -70,3 +70,28 @@ Keep explicit own scoped port and CR OPEN. Follow with durable operation intents
 typed provider hook acknowledgment/verified receipt application and current-owner
 registry commit fencing. Own SQL pack must test CAS/pages, late registration,
 rollback/reconnect and immutable provenance; NOT_RUN until authorized PG17 profile.
+
+## C4b2a current-owner inventory service
+
+Compose own inventory port with held authoritative data-request/source/profile
+guard, not fake default auth. Separate register/read/coverage/fence actions in
+canonical binding; no new CMD-48 action or mounted endpoint. Context exact
+data-request ref/scope, verified actor/org outside body. Registration also needs
+reference-only source evidence; backend verifier authenticates original copy and
+profile provenance and echoes exact digest/reference/expiry. Client never submits
+verified/allowed flags or observed/required coverage assertions.
+
+Coverage API accepts only expected revision and attestation reference; trusted
+resolver returns strict scoped observation/proof. Verify exact org/scope/revision/
+attestation binding, source proof/current owner expiry and unchanged authority.
+Then enter own registry UoW, write, and confirm current owner/proof deadline again
+before leaving commit context. Same registration/fence replay rechecks current
+rights/evidence. Read page uses current owner and typed revision cursor; cached
+coverage stays reported metadata, not fresh provider completeness authority.
+
+Guard pre-acquires owner/source fences before registry lock; confirmation under
+lock must not acquire outer locks or call provider network. Actual expiry-at-commit
+fence adoption remains explicit, not inferred from mutex/application clock checks.
+No provider side effect, actual deletion, closure or dispatch grant from result.
+Durable exact operation intents remain next C4b2b; current state/typed dispatch/
+acknowledgment/verified receipt application remain C4c, not replaced by service.
