@@ -1,5 +1,15 @@
 # BE2-12 acceptance audit — NOT COMPLETE
 
+## C4c follow-up — local consumer pack and actual producer path
+
+Typed consumer query/reference/notice/sink-ack contracts, current resolution
+projection and pure owned outbox adapter now have 25 new component cases and
+actual HTTP/SQL/outbox conformance. 438 selected local / 24 owned SQL PASS.
+The local F04/AC13 pack omission is addressed; this is NOT real delivery/durable
+consumer dedup/session-start fencing or owner adoption. Delivered_at remains NULL
+in SQL proof. Full integrated acceptance remains unachieved. See consumer handoff
+and C4C_CONSUMERS evidence; prior source audit statements remain historical.
+
 ## C4b follow-up — fixed dispatcher component available
 
 Following receiver ownership clarification, implemented fixed four-branch

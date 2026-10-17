@@ -43,8 +43,8 @@
 - F03 local projection CLOSED_COMPONENT_AND_OWNED_SQL: current READ-authorized,
   paginated immutable-proof history with explicit derived stale reasons; owner
   revocation-cause/fencing/adoption remains F02, not fabricated by a boolean port.
-- Latest selected local suite: 413 PASS / 0 skip (303 feature, 110 foundation).
-- Latest PostgreSQL: 9 C2 + 1 projection + 13 command/history PASS; source-pinned
+- Latest selected local suite: 438 PASS / 0 skip (328 feature, 110 foundation).
+- Latest PostgreSQL: 9 C2 + 1 projection + 14 command/history/HTTP-consumer PASS; source-pinned
   history/resubmit/edit/recall/pagination tests; temporary runtime cleaned.
 - Next: resolve/review remaining F01/F02/F04/F05 gates, including full dispatcher,
   real owner adapters/consumers and integrated acceptance. P3 reintroduction now
@@ -68,4 +68,11 @@
   remain source-bound evidence, not real owner integration or business readiness.
 - Next: finish receiver-owned handoff/consumer conformance while final owner
   payload models/adapters are adopted separately; no blanket wait on 13/14 work.
+- C4c consumer pack now available: versioned published-reference/lifecycle notice/
+  sink-ack contracts, current eligibility query projection, pure outbox adapter,
+  25 new local tests and actual HTTP/SQL/outbox conformance case PASS.
+- Real durable delivery/consumer dedup/session-start fence/BE1 authority adoption
+  remain NOT_RUN; outbox delivered_at stays NULL in tests. No delivery claim.
+- Handoff: artifacts/CONTENT_CONSUMER_HANDOFF.md; next consolidate reproducible
+  receiver component acceptance/handoff without reporting full integrated DONE.
 - Git: planning commit allowed by active goal; no push/merge/deploy.

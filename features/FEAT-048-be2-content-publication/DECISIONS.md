@@ -1,5 +1,17 @@
 # Feature decisions
 
+## D13 — typed consumer metadata, not fake delivery — 2026-10-17
+
+Complete the planned receiver-owned consumer pack now: current query projection,
+published exact ref/review set, lifecycle notice matching existing owned outbox,
+candidate sink/ack obligations and executable conformance. No source/body/media
+or caller scope assertion in refs/queries; metadata is not a grant/reservation.
+Each new usage rechecks eligibility; BE1 session-start commit needs its adopted
+cross-transaction fence. Notices do not authorize use or delete/replace pinned
+history. Memory duplicate/conflict sink is fixture-only; no ack/delivered_at is
+fabricated in SQL evidence. Actual consumer delivery/dedup/authentication belongs
+to bound real adapters, not this pure projection or another owner's table writes.
+
 ## D12 — do available receiver-owned contract work now — 2026-10-17
 
 Direct user clarification: this receiver handles 08–14, teammate handles 01–07
