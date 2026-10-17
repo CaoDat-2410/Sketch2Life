@@ -20,6 +20,10 @@
   regression PASS. Current-use/request pin/origin+stop history component; SQL pack
   25 cases prepared, NOT_RUN. Not actual current owner/worker/budget authorization.
 - Keep raw outputs synthetic/redacted; secrets/runtime archives remain ignored.
+- C3C3C_GUARDED_ACCOUNTING_20261017: 49 new service cases, 488 own component
+  PASS; 477 existing selected regression rerun. Held current-use/quote/proof and
+  ledger composition with MEMORY/ASSUMED boundaries only. Two additional actual
+  SQL composition cases prepared; all 44 PG cases NOT_RUN. Not full-card DONE.
 - C3C3B_LEDGER_20261017: own resource ledger SQL/UoW/forward ap_0003; 20 new
   DDL/codec +2 runner cases, 439 own component PASS. Actual ledger PG 17 cases
   prepared NOT_RUN, all PG inventory now 42. Application guards/service still open.

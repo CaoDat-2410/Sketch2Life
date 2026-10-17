@@ -1,5 +1,31 @@
 # Feature decisions
 
+## D12 — service replay rechecks authority; cleanup never resurrects stopped work
+
+Approved P3 C3c3c composes current-use lease -> accounting guard -> own ledger UoW
+for reserve. Exact original supplied pin retained; stable original-pin/attempt id
+across client keys prevents double holds. Every replay obtains a current exact
+quote and use decision; changed numeric terms/window conflict rather than migrate
+old held funds. Terminal reservation cannot resume. No provider call or permission
+from a returned reservation/snapshot; dispatch remains separately fenced.
+
+Settlement has explicit backend target feature (not client authorization), current
+accounting guard, original reservation and authenticated reference-only terminal
+evidence. Rebuild native proof/nested keys to reject bool-coercion or constructed
+invalid values. Consume/release must match disposition; reconcile permits either.
+Exact command fingerprint/receipt and terminal proof replay have no double delta;
+receipt claiming a never-committed settlement is corruption, not permission to
+complete it silently. Rights/evidence rechecked even after previous success.
+Cleanup can finish after stop without invoking current-use grant. Real guard must
+acquire owner fences before ledger lock; verifier cannot lock outer owner/policy
+state or perform provider network work under ledger lock.
+
+Ledger commit is not distributed 2PC. If an outer guard reports an error after
+ledger commit, do not invent rollback/refund; report safe dependency failure and
+allow exact current-authorized retry to inspect committed receipt without a new
+hold. Tests label MEMORY/ASSUMED truthfully. Current real-owner/evidence fencing,
+actual provider cost and 44 actual PostgreSQL cases remain NOT_RUN; not full DONE.
+
 ## D11 — global scope serialization and atomic ledger intent, not direct dispatch
 
 Approved P3/P5 C3c3b adds own resource_scope, budget_bucket, resource_reservation,

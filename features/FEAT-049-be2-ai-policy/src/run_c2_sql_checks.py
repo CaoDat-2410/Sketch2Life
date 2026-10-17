@@ -54,6 +54,8 @@ ACCOUNTING_EXPECTED = {
     "test_ledger_verified_overrun_recorded_truthfully_then_blocks_new_reserve": 1,
     "test_ledger_raw_sql_cannot_rewrite_terminal_or_provenance": 5,
     "test_ledger_wrong_scope_cannot_read_or_settle_other_reservation": 1,
+    "test_guarded_accounting_service_actual_sql_reserve_and_settle": 1,
+    "test_guarded_accounting_sql_stop_blocks_reserve_but_allows_verified_reconcile": 1,
 }
 
 
@@ -63,6 +65,7 @@ def source_hashes() -> dict[str, str]:
     paths.update((ROOT / "backend/tests/integration/ai_policy").rglob("*.py"))
     paths.update(ROOT / name for name in (
         "backend/tests/conftest.py", "backend/tests/unit/test_ai_policy_domain.py",
+        "backend/tests/ai_policy_accounting_fixtures.py",
         "backend/tests/ai_policy_fixtures.py", "backend/tests/unit/test_ai_policy_compatibility.py",
         "backend/tests/contract/test_ai_policy_contracts.py",
         "backend/tests/unit/test_ai_policy_use.py",

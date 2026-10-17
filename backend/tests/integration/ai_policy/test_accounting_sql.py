@@ -272,3 +272,106 @@ def test_ledger_wrong_scope_cannot_read_or_settle_other_reservation(ledger_store
         ledger_store.transaction("school", "other-feature") as tx,
     ):
         tx.reservation("one")
+
+
+def _guarded_service(store):
+    # Actual SQL/UoW composition, still ASSUMED owner/registry/evidence boundaries.
+    from sketch2life.application.ai_policy_accounting import ResourceAccountingService
+    from sketch2life.application.ai_policy_commands import AiPolicyCommands
+    from sketch2life.application.ai_policy_use import PolicyUseLeases
+    from sketch2life.infrastructure.ai_policy.sql import SqlPolicyStore
+    from tests.ai_policy_accounting_fixtures import AssumedAccountingBoundary
+    from tests.ai_policy_fixtures import published
+    from tests.unit.test_ai_policy_use import AssumedUseBoundary, pin_once
+
+    use = AssumedUseBoundary()
+    policy_store = SqlPolicyStore(store.engine)
+    published(AiPolicyCommands(policy_store, use, clock=lambda: NOW), policy_store)
+    leases = PolicyUseLeases(policy_store, use)
+    boundary = AssumedAccountingBoundary()
+    return (
+        ResourceAccountingService(store, boundary, leases, clock=lambda: NOW),
+        pin_once(leases),
+        boundary,
+        use,
+        policy_store,
+    )
+
+
+def test_guarded_accounting_service_actual_sql_reserve_and_settle(ledger_store):
+    from sketch2life.contracts.schemas.ai_policy_accounting import (
+        ResourceReservationRequest,
+        ResourceSettlementRequest,
+    )
+    from tests.ai_policy_accounting_fixtures import EVIDENCE
+
+    service, pin, _, _, _ = _guarded_service(ledger_store)
+    command = ResourceReservationRequest(
+        client_request_id="reserve",
+        request=pin.request,
+        pin=pin,
+        attempt_id="attempt",
+        phase="dispatch",
+    )
+    reserved = service.reserve("worker", "school", command)
+    assert service.reserve("worker", "school", command).replayed
+    result = service.settle(
+        "worker",
+        "school",
+        "fixture.feature",
+        ResourceSettlementRequest(
+            client_request_id="settle",
+            reservation_id=reserved.reservation.reservation_id,
+            operation="consume",
+            evidence_ref=EVIDENCE,
+        ),
+    )
+    assert result.snapshot.spent_units == 3 and result.snapshot.scope_occupied_slots == 0
+    assert not result.reservation.actual_usage_proven
+    assert count(ledger_store, LEDGER_RECEIPT) == count(ledger_store, LEDGER_EVENT) == 2
+
+
+def test_guarded_accounting_sql_stop_blocks_reserve_but_allows_verified_reconcile(ledger_store):
+    from sketch2life.application.ai_policy_control import AiPolicyEmergencyStop
+    from sketch2life.contracts.schemas.ai_policy_accounting import (
+        ResourceReservationRequest,
+        ResourceSettlementRequest,
+    )
+    from sketch2life.contracts.schemas.ai_policy_control import EmergencyStopCommand
+    from tests.ai_policy_accounting_fixtures import EVIDENCE
+
+    service, pin, _, use, policy_store = _guarded_service(ledger_store)
+    command = ResourceReservationRequest(
+        client_request_id="reserve",
+        request=pin.request,
+        pin=pin,
+        attempt_id="attempt",
+        phase="dispatch",
+    )
+    reserved = service.reserve("worker", "school", command)
+    AiPolicyEmergencyStop(policy_store, use, clock=lambda: NOW).execute(
+        "operator",
+        "school",
+        EmergencyStopCommand(
+            client_request_id="stop",
+            feature_scope="fixture.feature",
+            expected_epoch=1,
+            reason="fixture-stop",
+        ),
+    )
+    with pytest.raises(PolicyError):
+        service.reserve("worker", "school", command)
+    result = service.settle(
+        "worker",
+        "school",
+        "fixture.feature",
+        ResourceSettlementRequest(
+            client_request_id="reconcile",
+            reservation_id=reserved.reservation.reservation_id,
+            operation="reconcile",
+            evidence_ref=EVIDENCE,
+        ),
+    )
+    assert result.reservation.terms == reserved.reservation.terms
+    assert result.snapshot.spent_units == 3 and result.snapshot.scope_occupied_slots == 0
+    assert count(ledger_store, LEDGER_EVENT) == 2

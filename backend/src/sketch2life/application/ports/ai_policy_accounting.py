@@ -40,6 +40,9 @@ class ResourceAccountingAccess(Protocol):
         Reconcile translates only a verified terminal outcome to consume/release.
         Cleanup may remain permitted after AI eligibility withdrawal, NEVER grants
         another attempt. Original bucket/unit/window retained; no invented expiry.
+        Called under own ledger lock: applicable owner fences must already be held
+        by guard. No outer policy/owner lock acquisition or provider network call
+        here; unknown or unverified cached receipt is not a terminal proof.
         """
         ...
 

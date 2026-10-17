@@ -58,3 +58,30 @@ step, not implied by a directly callable persistence adapter. Offline DDL/shape
 and controlled connection tests prove code paths only. Prepare actual PG race,
 rollback, restart, window rollover and immutable-history tests separately; until
 executed those remain NOT_RUN and AC06 remains open.
+
+## C3c3c guarded application composition
+
+Reserve validates native strict command and trusted actor/org, retains exact
+original supplied pin under begin/continue_use, obtains current exact quote under
+accounting guard, then enters ledger UoW. Deterministic org/original-pin/attempt
+reservation identity prevents new client keys allocating twice. Receipt fingerprint
+includes actor/org/feature/full command; exact replay rechecks current lease and
+quote and cannot resume terminal reservations or silently replace original terms.
+Scope/pin/phase/registry/quote observations are metadata, not bearer authorization.
+
+Settlement takes explicit backend feature scope plus strict reference-only command.
+Under current accounting guard and ledger UoW, load exact original reservation,
+verify terminal evidence, revalidate native proof including nested definition/key,
+enforce consume/release disposition (reconcile accepts either), then settle and
+record scoped command receipt in same transaction. All receipt replay paths still
+verify current accounting rights and evidence; conflict never blindly retried.
+No current-use lease on cleanup, so verified resource accounting can finish after
+stop without dispatch permission. Guard must pre-acquire applicable owner fences;
+verify_settlement must not acquire outer policy/owner locks or call a provider
+while ledger lock is held. No default/assumed adapter mounted in production.
+
+Tests use actual application/use-lease components plus transactional MEMORY ledger
+and explicitly assumed accounting adapter. Cover positive/negative identity,
+changed quote, stale/revoked use, malformed native proof, spoofed client values,
+same/different-key replay, terminal conflicts, rollback and after-stop reconciliation.
+These are component proof, not PostgreSQL/current-owner/provider integration proof.
