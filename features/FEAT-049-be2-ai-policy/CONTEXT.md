@@ -1,6 +1,12 @@
 # FEAT-049 — BE2-14 AI policy / limits / kill switch
 
 - Goal: full BE2-14 card, including ProviderCopyLifecycle and redacted projections.
+- Latest C4c6 (2026-10-18): exact original-operation/delivery/reference receipt
+  verification lease, held current guard, foundation purge reuse and distinct
+  cancellation acknowledgment; fixture never actual. Closed lease unusable,
+  precommit confirm required. 875 own +477 regression +114 foundation PASS;
+  PG93 unchanged NOT_RUN. Next persist current-copy/proof/cancel result atomically,
+  then kill delivery/C5/C6; no real provider/authority adoption or DB execution.
 - Latest C4c5 (2026-10-18): bounded scoped candidate SQL join/filter with typed
   cutoff/revision cursor. Includes queued, pending/exception and expired claims;
   excludes unsupported/receipt and active claims. Metadata only, dispatcher still
