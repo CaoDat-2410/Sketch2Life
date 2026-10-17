@@ -1,5 +1,16 @@
 # Feature decisions
 
+## D14 — reproducible component proof is not goal closure — 2026-10-17
+
+Supply one source-pinned selected component command with exact collection/JUnit
+identities and static checks, plus 16 runner-classification negative tests.
+Keep existing 110 foundation regression tests without changing/linting that
+owner's source under this card. Ruff uses the backend cwd/config; initial runner
+configuration FAIL receipts are retained, never counted as PASS. Component
+summary explicitly keeps PostgreSQL and real owner integration NOT_RUN and
+full_goal_complete=false. Approved isolated SQL pack and actual 24-case receipt
+are separate. No broader card activation or shrinking original acceptance scope.
+
 ## D13 — typed consumer metadata, not fake delivery — 2026-10-17
 
 Complete the planned receiver-owned consumer pack now: current query projection,

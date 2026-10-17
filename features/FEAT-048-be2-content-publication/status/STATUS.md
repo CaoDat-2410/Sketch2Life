@@ -43,7 +43,7 @@
 - F03 local projection CLOSED_COMPONENT_AND_OWNED_SQL: current READ-authorized,
   paginated immutable-proof history with explicit derived stale reasons; owner
   revocation-cause/fencing/adoption remains F02, not fabricated by a boolean port.
-- Latest selected local suite: 438 PASS / 0 skip (328 feature, 110 foundation).
+- Latest selected local suite: 454 PASS / 0 skip (344 feature, 110 foundation).
 - Latest PostgreSQL: 9 C2 + 1 projection + 14 command/history/HTTP-consumer PASS; source-pinned
   history/resubmit/edit/recall/pagination tests; temporary runtime cleaned.
 - Next: resolve/review remaining F01/F02/F04/F05 gates, including full dispatcher,
@@ -75,4 +75,8 @@
   remain NOT_RUN; outbox delivered_at stays NULL in tests. No delivery claim.
 - Handoff: artifacts/CONTENT_CONSUMER_HANDOFF.md; next consolidate reproducible
   receiver component acceptance/handoff without reporting full integrated DONE.
+- C5b reproducible component pack PASS: exact 454-case/JUnit inventory, 330-file
+  source pin, owned Ruff/Mypy and architecture/harness/security/whitespace all 0.
+- Current concise handoff entrypoint: artifacts/RECEIVER_CHECKPOINT.md. SQL remains
+  separately proven 24 cases; real owner integration and full goal NOT COMPLETE.
 - Git: planning commit allowed by active goal; no push/merge/deploy.
