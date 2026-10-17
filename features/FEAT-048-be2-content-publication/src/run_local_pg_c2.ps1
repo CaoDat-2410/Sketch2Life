@@ -7,7 +7,8 @@ Secrets remain in the isolated runtime directory, never command arguments/logs.
 param(
     [Parameter(Mandatory=$true)][string]$RuntimeParent,
     [Parameter(Mandatory=$true)][string]$Python,
-    [switch]$IncludeC3Projection
+    [switch]$IncludeC3Projection,
+    [switch]$IncludeC3Commands
 )
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
@@ -119,10 +120,17 @@ try {
             } else { $projectionResult = 'FAIL'; $result = 1 }
         } else { $projectionResult = 'FAIL'; $result = 1 }
     }
+    $commandsResult = 'NOT_RUN'
+    if ($IncludeC3Commands -and $result -eq 0) {
+        Write-Output 'Running C3b application lifecycle/receipt/race SQL suite...'
+        & $Python (Join-Path $PSScriptRoot 'run_c3_commands_sql.py')
+        if ($LASTEXITCODE -eq 0) { $commandsResult = 'PASS' }
+        else { $commandsResult = 'FAIL'; $result = 1 }
+    }
     [IO.File]::WriteAllText((Join-Path $preserved 'environment.json'), (
         @{source=$source; archive_sha256=$archiveHash; version='17.11';
           bind='127.0.0.1'; port=$port; combined_runner_exit=$result;
-          c3_projection=$projectionResult} | ConvertTo-Json))
+          c3_projection=$projectionResult; c3_commands=$commandsResult} | ConvertTo-Json))
 } finally {
     if ($pgctl -and (Test-Path -LiteralPath (Join-Path $clusterPath 'postmaster.pid'))) {
         Invoke-HiddenNative $pgctl @('-D', $clusterPath, '-m', 'fast', '-w', '-t', '30', 'stop') 'stop'

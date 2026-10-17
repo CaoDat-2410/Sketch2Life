@@ -36,19 +36,25 @@ def audience_hash(body: ContentWrite) -> str:
     }))
 
 
-def eligible_body(content: ContentVersion, access: ContentAccess) -> ContentWrite:
+def stored_body(content: ContentVersion) -> ContentWrite:
+    """Validate owned bytes without asserting present publication eligibility."""
+    if content_hash(content.body_json) != content.hash:
+        raise ContentError("CONTENT_HASH_MISMATCH")
+    try:
+        return ContentWrite.model_validate_json(content.body_json)
+    except ValidationError:
+        raise ContentError("CONTENT_INVALID_STORED_PAYLOAD") from None
+
+
+def eligible_body(content: ContentVersion, access: ContentAccess, *,
+                  require_moderation: bool = True) -> ContentWrite:
     """Exact policy/source eligibility shared by publication and resolution.
 
     Owner calls must raise safe ContentError codes on dependency failure; no
     cached or caller-declared source classification can supply this decision.
     Child-derived content remains closed pending a separately adopted contract.
     """
-    if content_hash(content.body_json) != content.hash:
-        raise ContentError("CONTENT_HASH_MISMATCH")
-    try:
-        body = ContentWrite.model_validate_json(content.body_json)
-    except ValidationError:
-        raise ContentError("CONTENT_INVALID_STORED_PAYLOAD") from None
+    body = stored_body(content)
     policy = access.policy
     if (not policy.version or body.content_policy_ref != policy.content_policy_ref
             or body.age_eligibility.age_policy_ref != policy.age_policy_ref
@@ -63,7 +69,8 @@ def eligible_body(content: ContentVersion, access: ContentAccess) -> ContentWrit
         raise ContentError("CONTENT_SOURCE_MISMATCH")
     if assessment.classification != "generic_authored":
         raise ContentError("CONTENT_SOURCE_AUTHORITY_REQUIRED")
-    if assessment.usage_allowed is not True or assessment.moderation_passed is not True:
+    if (assessment.usage_allowed is not True
+            or (require_moderation and assessment.moderation_passed is not True)):
         raise ContentError("CONTENT_SOURCE_DENIED")
     return body
 
