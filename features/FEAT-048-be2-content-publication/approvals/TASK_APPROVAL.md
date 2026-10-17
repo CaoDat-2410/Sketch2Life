@@ -1,14 +1,28 @@
 # Task approval
 
-- Status: AWAITING_APPROVAL
-- Approver: project owner; no implementation approval received for this plan.
-- Approved scope: preparation and documentation checkpoint only.
+- Status: APPROVED
+- Approver: project owner, direct reply in this conversation.
+- Approved scope: BE2-12 plan revision 1, including P1–P4; autonomous local implementation/checks and scoped commits.
 - Plan revision: 1 — plan/PLAN.md
 - Plan SHA-256: b7406837014f5d855e766ba0f0ba15a588c193f8df1fd977b4c9879ff6b77faf
-- Approved at: NOT_APPROVED_FOR_IMPLEMENTATION
+- Approved at: 2026-10-17 (Asia/Saigon), after planning commit aa7543f.
 - Recorded: 2026-10-17 (Asia/Saigon).
 
-## Current direct instruction
+## Actual approval
+
+Owner replied verbatim:
+
+> Duyệt plan BE2-12 revision 1, gồm P1–P4, tiếp tục triển khai.
+
+This approves the pinned plan and its card-specific policy/architecture proposals,
+and continuation of this executor on the dedicated BE2-12 branch. It is not
+P1/P2/P4 contract sign-off, BE2-01 closure, service provisioning, push/merge or
+deployment authority. External adapter/runtime gates remain explicit.
+
+Plan bytes/hash above are preserved as reviewed; its original pending-status
+header is historical and superseded by this approval and status/STATUS.md.
+
+## Earlier preparation instruction (historical)
 
 The active goal requests BE2-12, allows autonomous scoped commits, and explicitly
 says to present the concrete plan and stop before code if approval is absent.
@@ -26,5 +40,5 @@ before code; coordinate second implementation WIP with the foundation owner.
 No invented P1/P2/P4 sign-off, no repeated approval request for unchanged scope.
 
 No push, merge, deployment, package install, cloud/service start or model run is
-authorized by this planning checkpoint. Existing environments may be inventoried
+authorized by this implementation approval. Existing environments may be inventoried
 read-only; test execution authority must match the actual environment/scope.

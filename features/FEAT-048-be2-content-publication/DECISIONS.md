@@ -1,5 +1,12 @@
 # Feature decisions
 
+## D05 — actual implementation approval — 2026-10-17
+
+Owner explicitly approved plan revision 1 including P1–P4 and instructed
+continuation. Preserve reviewed plan hash; earlier D02 is historical, no longer
+the active gate. Execute BE2-12 independently on its branch; other owners'
+approvals/foundation closure are not changed. P1–P4 adopted only for this card.
+
 ## D01 — mapping and baseline — 2026-10-17
 
 BE2-12 maps to unused FEAT-048, not FEAT-012. Work on a dedicated branch from the
