@@ -74,6 +74,15 @@ class MemoryPolicyStore:
         item = self.load(organization_id, record_id)
         return None if item is None else json.loads(item.body_json)["feature_scope"]
 
+    def stopped_since(self, organization_id, feature_scope, *, after_epoch):
+        return any(scope.organization_id == organization_id
+                   and scope.feature_scope == feature_scope and scope.epoch > after_epoch
+                   and scope.disabled for scope, event in self.scope_events)
+
+    def was_activated(self, expected):
+        return any(scope == expected and scope.disabled is False
+                   for scope, event in self.scope_events)
+
     def effective_scope(self, organization_id, feature_scope, *, for_update=False):
         key = organization_id, feature_scope
         if key not in self.scopes and for_update:

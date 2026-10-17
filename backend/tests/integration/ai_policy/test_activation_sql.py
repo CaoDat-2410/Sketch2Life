@@ -219,3 +219,115 @@ def test_old_epoch_emergency_stop_cannot_disable_racing_replacement(activation_h
         scope = connection.execute(select(SCOPE)).mappings().one()
         assert scope["record_id"] == replacement.record_id and not scope["disabled"]
         assert scope["epoch"] in {2, 3}
+
+
+def test_current_use_sql_keeps_prior_pin_across_ordinary_replacement(activation_harness):
+    from sketch2life.application.ai_policy_use import PolicyUseLeases
+    from tests.unit.test_ai_policy_use import AssumedUseBoundary, request
+
+    service, _, store = activation_harness
+    old = published(service, store, "use-old").record
+    leases = PolicyUseLeases(store, AssumedUseBoundary())
+    with leases.begin("worker", "school", request()) as initial:
+        pin = initial.pin
+    new = published(service, store, "use-new").record
+    with leases.continue_use("worker", "school", request(), pin, "completion") as result:
+        assert result.pin.policy_ref.ref == old.record_id
+        assert result.current_scope_epoch == 2 and result.pin.activation_epoch == 1
+    with leases.begin("worker", "school", request()) as latest:
+        assert latest.pin.policy_ref.ref == new.record_id
+
+
+def test_current_use_sql_stop_history_cannot_be_bypassed_after_reactivation(activation_harness):
+    from sketch2life.application.ai_policy_control import AiPolicyEmergencyStop
+    from sketch2life.application.ai_policy_use import PolicyUseLeases
+    from sketch2life.contracts.schemas.ai_policy_control import EmergencyStopCommand
+    from tests.unit.test_ai_policy_use import AssumedUseBoundary, request
+
+    service, _, store = activation_harness
+    published(service, store, "use-stop-old")
+    leases = PolicyUseLeases(store, AssumedUseBoundary())
+    with leases.begin("worker", "school", request()) as initial:
+        pin = initial.pin
+    AiPolicyEmergencyStop(store, AssumedCommandBoundary(), clock=lambda: NOW).execute(
+        "operator",
+        "school",
+        EmergencyStopCommand(
+            client_request_id="use-stop",
+            feature_scope="fixture.feature",
+            expected_epoch=1,
+            reason="synthetic emergency",
+        ),
+    )
+    published(service, store, "use-after-stop")
+    with (
+        pytest.raises(PolicyError, match="AI_POLICY_PIN_REVOKED"),
+        leases.continue_use("worker", "school", request(), pin, "exposure"),
+    ):
+        pytest.fail("pre-stop pin resurrected")
+    forged = pin.model_copy(update={"activation_epoch": 3})
+    with (
+        pytest.raises(PolicyError, match="AI_POLICY_PIN_MISMATCH"),
+        leases.continue_use("worker", "school", request(), forged, "exposure"),
+    ):
+        pytest.fail("old policy not active at new epoch")
+
+
+def test_current_use_sql_scope_share_fence_blocks_stop_until_lease_exit(activation_harness):
+    import time
+    from threading import Event
+
+    from sqlalchemy import text
+
+    from sketch2life.application.ai_policy_control import AiPolicyEmergencyStop
+    from sketch2life.application.ai_policy_use import PolicyUseLeases
+    from sketch2life.contracts.schemas.ai_policy_control import EmergencyStopCommand
+    from tests.unit.test_ai_policy_use import AssumedUseBoundary, request
+
+    service, _, store = activation_harness
+    published(service, store, "lease-lock")
+    leases = PolicyUseLeases(store, AssumedUseBoundary())
+    started = Event()
+
+    def stop():
+        local = AiPolicyEmergencyStop(store, AssumedCommandBoundary(), clock=lambda: NOW)
+        started.set()
+        return local.execute(
+            "operator",
+            "school",
+            EmergencyStopCommand(
+                client_request_id="blocked-stop",
+                feature_scope="fixture.feature",
+                expected_epoch=1,
+                reason="synthetic emergency",
+            ),
+        )
+
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        with leases.begin("worker", "school", request()) as observation:
+            pending = pool.submit(stop)
+            assert started.wait(timeout=10)
+            deadline = time.monotonic() + 5
+            lock_wait = False
+            with store.engine.connect().execution_options(
+                isolation_level="AUTOCOMMIT"
+            ) as connection:
+                while time.monotonic() < deadline:
+                    lock_wait = connection.scalar(
+                        text("""
+                        SELECT EXISTS (SELECT 1 FROM pg_stat_activity
+                        WHERE datname=current_database() AND pid<>pg_backend_pid()
+                        AND wait_event_type='Lock' AND query LIKE '%effective_scope%')
+                    """)
+                    )
+                    if lock_wait:
+                        break
+                    Event().wait(timeout=0.01)
+            assert lock_wait and not pending.done()
+            assert observation.current_scope_epoch == 1
+        assert pending.result(timeout=15).disabled
+    with (
+        pytest.raises(PolicyError, match="AI_POLICY_NOT_ELIGIBLE"),
+        leases.begin("worker", "school", request()),
+    ):
+        pytest.fail("new work after stop")

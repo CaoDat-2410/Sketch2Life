@@ -47,6 +47,11 @@ class ScopeTransition:
 
 
 class PolicyTransaction(Protocol):
+    def was_activated(self, scope: EffectivePolicyScope) -> bool: ...
+
+    def stopped_since(self, organization_id: str, feature_scope: str, *,
+                      after_epoch: int) -> bool: ...
+
     def feature_scope(self, organization_id: str, record_id: str) -> str | None: ...
 
     def effective_scope(self, organization_id: str, feature_scope: str, *,

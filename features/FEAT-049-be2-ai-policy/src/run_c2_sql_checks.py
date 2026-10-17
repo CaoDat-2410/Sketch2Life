@@ -36,6 +36,9 @@ ACTIVATION_EXPECTED = {
     "test_emergency_stop_before_publication_is_durable_and_idempotent": 1,
     "test_emergency_stop_sql_failure_rolls_back_scope_and_intent": 1,
     "test_old_epoch_emergency_stop_cannot_disable_racing_replacement": 1,
+    "test_current_use_sql_keeps_prior_pin_across_ordinary_replacement": 1,
+    "test_current_use_sql_stop_history_cannot_be_bypassed_after_reactivation": 1,
+    "test_current_use_sql_scope_share_fence_blocks_stop_until_lease_exit": 1,
 }
 
 
@@ -47,6 +50,7 @@ def source_hashes() -> dict[str, str]:
         "backend/tests/conftest.py", "backend/tests/unit/test_ai_policy_domain.py",
         "backend/tests/ai_policy_fixtures.py", "backend/tests/unit/test_ai_policy_compatibility.py",
         "backend/tests/contract/test_ai_policy_contracts.py",
+        "backend/tests/unit/test_ai_policy_use.py",
         "backend/pyproject.toml", "backend/alembic.ini",
         "features/FEAT-049-be2-ai-policy/src/run_c2_sql_checks.py"))
     return {path.relative_to(ROOT).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()

@@ -1,6 +1,11 @@
 # FEAT-049 — BE2-14 AI policy / limits / kill switch
 
 - Goal: full BE2-14 card, including ProviderCopyLifecycle and redacted projections.
+- Latest C3c2: exact request/policy/profile pin and held current-use leases at
+  create/dispatch/retry/completion/exposure. Verified origin activation history
+  prevents pin epoch forgery; stop history denies old pin even after reactivation.
+  53 new tests, 336 own component PASS; 15+10 SQL cases prepared, NOT_RUN.
+  No numeric budget/concurrency or provider permission implied by a lease snapshot.
 - Latest C3c1: internal emergency stop with current DISABLE, scope epoch CAS and
   atomic intent/receipt, including known feature before first policy publication.
   31 new tests, 283 own component PASS; old replay cannot disable a newer pin.
@@ -38,6 +43,6 @@
   160 BE2-14 component cases total; 15 actual PostgreSQL cases prepared/collected,
   NOT_RUN pending separately authorized environment. No server started/downloaded.
   Effective scope/epoch/reservation tables deferred to C3 when their behavior exists.
-- Next: actual SQL pack authority/proof and C3c2 accounting/current-use eligibility;
+- Next: actual SQL pack authority/proof and C3c3 atomic accounting/reservations;
   real production
   activation/provisioning and external adoption remain separate gates.

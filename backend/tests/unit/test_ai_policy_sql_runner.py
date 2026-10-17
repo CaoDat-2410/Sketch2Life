@@ -65,11 +65,12 @@ def test_runner_inventory_and_transitive_source_pin(runner):
 
 def test_activation_inventory_is_separate_and_pins_its_test_dependencies(runner):
     nodes = tuple(runner.ACTIVATION_SUITE + "::" + name for name in runner.ACTIVATION_EXPECTED)
-    assert len(nodes) == 7
+    assert len(nodes) == 10
     assert runner.inventory("\n".join(nodes), runner.ACTIVATION_SUITE) == nodes
     assert runner.valid_inventory(nodes, runner.ACTIVATION_EXPECTED)
     assert not runner.valid_inventory(nodes)
     hashes = runner.source_hashes()
     assert "backend/tests/ai_policy_fixtures.py" in hashes
     assert "backend/tests/unit/test_ai_policy_compatibility.py" in hashes
+    assert "backend/tests/unit/test_ai_policy_use.py" in hashes
     assert "backend/alembic/versions/20261017_ap_0002_effective_scope.py" in hashes
