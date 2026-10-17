@@ -1,6 +1,13 @@
 # FEAT-049 — BE2-14 AI policy / limits / kill switch
 
 - Goal: full BE2-14 card, including ProviderCopyLifecycle and redacted projections.
+- Latest C6d (2026-10-18): owner separately approved local isolated PG17/test/
+  cleanup; actual PostgreSQL17.11 four packs15/10/21/58 =104 PASS, zero skip/error/
+  fail and source unchanged. Initial copy56 PASS/2 FAIL fixed wrong helper unpack,
+  all104 rerun on new source. No app/migration rewrite. Cluster/binaries/archive/
+  secrets stopped/removed, private logs retained. Own SQL gate now PASS; earlier
+  NOT_RUN statements historical. Actual authority/provider/telemetry/kill-generation
+  implementation and real integration remain open; BE2-14/original goal not DONE.
 - Latest C6c (2026-10-18): receiver entrypoint consolidates component workflows/
   actual ports and unfinished SQL/authority/kill/provider/telemetry/conformance
   work. Code c43d258; real adapter implementations not claimed complete. Exact1061

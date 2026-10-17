@@ -104,7 +104,7 @@ def test_copy_report_reconnect_fixture_result_redacted_no_extra_event(inventory_
     from tests.ai_policy_copy_inventory_fixtures import AssumedInventoryBoundary, read_request
     from tests.unit.test_ai_policy_domain import NOW
 
-    service, _, op = resolution_service(inventory_store, operation)
+    service, op = resolution_service(inventory_store, operation)
     resolve_operation(service, op)
     inventory_store.engine.dispose()
     reporter = ProviderCopyInventoryService(

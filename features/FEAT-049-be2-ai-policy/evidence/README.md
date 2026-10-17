@@ -1,5 +1,10 @@
 # Evidence index — BE2-14
 
+- C6D_LOCAL_POSTGRES_20261018: actual owner-approved isolated PostgreSQL17.11,
+ 104 PASS15/10/21/58, zero fail/error/skip; initial report helper unpack failure
+ fixed/full104 rerun. Source unchanged; private runtime removed/logs retained.
+ Real owner/provider/telemetry/kill-generation implementation still open.
+
 - C6C_RECEIVER_HANDOFF_20261018: consolidated component receiver workflow/port map,
   five unfinished code/integration/runtime groups, corrected current acceptance
   wording. Exact1061 local pack/114 foundation/477 regression/64 source checks;
