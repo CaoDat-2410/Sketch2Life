@@ -61,6 +61,8 @@ ACCOUNTING_EXPECTED = {
 }
 COPIES_SUITE = "tests/integration/ai_policy/test_copy_registry_sql.py"
 COPIES_EXPECTED = {
+    "test_copy_report_empty_authorized_read_has_no_deletion_or_mutation": 1,
+    "test_copy_report_reconnect_fixture_result_redacted_no_extra_event": 2,
     "test_inventory_empty_read_is_unknown_and_does_not_create_scope": 1,
     "test_inventory_registration_reconnect_preserves_exact_original_profile": 1,
     "test_inventory_duplicate_cannot_replace_original_provenance": 3,

@@ -8,6 +8,7 @@ from pydantic import TypeAdapter
 
 from sketch2life.application.ai_policy_commands import _digest
 from sketch2life.application.ai_policy_copy_authority import validate_copy_grant
+from sketch2life.application.ai_policy_copy_report import project_copy_report
 from sketch2life.application.ports.ai_policy_copy_inventory import (
     CopyInventoryAccess,
     CopyInventoryAction,
@@ -32,6 +33,7 @@ from sketch2life.contracts.schemas.ai_policy_copy_registry import (
     CopyCoverageObservation,
     CopyRegistryRegistration,
 )
+from sketch2life.contracts.schemas.ai_policy_copy_report import CopyReportPage
 from sketch2life.domain.ai_policy.model import PolicyError
 
 _ID = TypeAdapter(OpaqueId)
@@ -206,6 +208,38 @@ class ProviderCopyInventoryService:
                     after=request.after,
                     expected_revision=request.expected_revision,
                 )
+                self._confirm(access, grant, principal_id, organization_id, context, "read", digest)
+            return result
+
+    def report(
+        self, principal_id: str, organization_id: str, request: CopyInventoryReadRequest
+    ) -> CopyReportPage:
+        """Current data-request authority, not operations-role access or request closure."""
+        request = _native(CopyInventoryReadRequest, request)
+        context = CopyInventoryContext(
+            data_request_ref=request.data_request_ref, scope_ref=request.scope_ref
+        )
+        with self._hold(
+            principal_id,
+            organization_id,
+            context,
+            "read",
+            dict(projection="copy_report", request=request.model_dump(mode="json")),
+        ) as (access, grant, digest):
+            with self.store.transaction(
+                organization_id, context.scope_ref, principal_id=principal_id
+            ) as tx:
+                page = tx.page(
+                    limit=request.limit,
+                    after=request.after,
+                    expected_revision=request.expected_revision,
+                )
+                if len(page.records) > request.limit:
+                    raise PolicyError("AI_POLICY_INVALID_COPY_REPORT_STORAGE")
+                states = tuple(
+                    tx.get_copy_lifecycle(item.registration.copy_id) for item in page.records
+                )
+                result = project_copy_report(organization_id, request, page, states)
                 self._confirm(access, grant, principal_id, organization_id, context, "read", digest)
             return result
 
