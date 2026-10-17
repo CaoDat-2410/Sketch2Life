@@ -1,6 +1,13 @@
 # FEAT-049 — BE2-14 AI policy / limits / kill switch
 
 - Goal: full BE2-14 card, including ProviderCopyLifecycle and redacted projections.
+- Latest C6a (2026-10-18): exact-node/source-pinned whole local pack1028 own,
+  foundation114/selected477 regression/all61 source lint+typecheck PASS. AC01–12
+  and original-goal audit explicitly NOT full acceptance: own health/queue safe
+  projection still missing beyond current policy/ledger/copy reports. Implement
+  that next; no unsafe job-table scan or invented queue metrics. PG104 NOT_RUN,
+  stop-generation/actual authority/provider/BE1/P4 gates unchanged. Consolidated
+  commands and return artifacts documented, no piecemeal user test needed now.
 - Latest C5c (2026-10-18): redacted current-copy report under existing exact
   data-request read guard, revision-pinned bounded scope snapshot. Foundation
   fixture/provider purge labels and distinct cancel ack retained; stored coverage

@@ -1,5 +1,19 @@
 # Project context ledger
 
+## Receiver BE2-14 C6a audit — 2026-10-18
+
+Current receiver feature/be2-08-14, C6a parent e792512. BE2-14 revision1 approval
+unchanged, full local pack1028 own +114 targeted foundation +477 selected regression,
+all61 policy source Ruff/Mypy PASS. PostgreSQL104 prepared NOT_RUN, no card-local
+server/provider activation or inferred provisioning authority. Acceptance audit
+found remaining own safe health/queue projection work; policy/resource/copy reports
+do not complete that backlog requirement. Next implement that own typed surface,
+then conformance/audit. Stop-generation foundation CR and real owner/provider/BE1/P4
+adoption remain open. BE2-12 component handoff/prior33 SQL evidence unchanged, real
+integration owner-deferred and original goal NOT DONE. Current evidence/commands:
+features/FEAT-049-be2-ai-policy/artifacts/ACCEPTANCE_AUDIT_20261018.md and
+CONSOLIDATED_TEST_HANDOFF.md. Earlier snapshot counts below are historical.
+
 ## Receiver next-card planning — 2026-10-17
 
 Latest: owner approved BE2-14 revision 1/P1–P5 by direct reply "duyệt"; approval

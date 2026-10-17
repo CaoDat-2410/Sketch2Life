@@ -2,11 +2,11 @@
 
 - Status: IN_PROGRESS
 - Plan revision: 1
-- Implementation status: IN_PROGRESS — C5c guarded copy report component PASS; SQL NOT_RUN
+- Implementation status: IN_PROGRESS — C6a consolidated local runner/acceptance audit; own health/queue gap open
 - Branch: feature/be2-08-14
 - Baseline: f0ff7a840d1910f1f80df327c3fd0239db5ea8e1
-- Current: parent 1d4d185; guarded redacted current-copy report with honest coverage/receipt labels.
-- BE2-14 component: 1010 PASS /0 skip (78 policy contract +34 accounting contract
+- Current: parent e792512; exact-node/source-pinned consolidated local pack and AC01–12 audit.
+- BE2-14 component: 1028 PASS /0 skip (78 policy contract +34 accounting contract
   +47 accounting domain +46 policy domain +26 persistence
   shape/offline +15 runner +59 registry +29 command service +3 activation shape
   +31 emergency-stop +53 current-use +20 ledger shape/codec +49 accounting service
@@ -14,7 +14,7 @@
   +44 exact operation +19 intent discovery +56 delivery domain/contract +22 delivery storage
   +23 dispatcher +19 phase evidence +18 candidate query/cursor +29 receipt lease
   +20 atomic resolution +51 actual policy HTTP composition +34 operations
-  +30 copy report checks).
+  +30 copy report +18 consolidated runner checks).
 - Focused Ruff/Mypy PASS; registry/auth fixtures are assumed, not real adoption.
 - Existing BE2-12/foundation source-pinned selected regression pack: 477 PASS.
 - Additional targeted foundation application/review-regression/q00 suites: 114 PASS;
@@ -26,7 +26,7 @@
   BE2-14 server started. C2 pins original migration; C3b upgrades new branch head.
   Owner asked asynchronously for isolated PG17 setup/test/cleanup approval, no
   approval fabricated from silence or prior BE2-12 provisioning authority.
-- Next: C6 full acceptance/conformance review and consolidated external test handoff;
+- Next: complete remaining own health/queue projection/conformance identified by C6 audit;
   actual kill delivery gated by original policy-generation owner contract, plus
   actual SQL proof once authorized. Guarded accounting application composition now
   exists, but actual current-owner/terminal-evidence adapters remain unbound;
@@ -189,3 +189,15 @@
   +477 regression +114 foundation PASS. Three new PG report cases prepared,
   total104 NOT_RUN. No route/schema mutation/provider call/shared foundation change.
   Evidence/consumer handoff evidence/notes/C5C_SAFE_COPY_REPORT_20261018.md.
+
+- C6a (2026-10-18): full own1028 exact node-ID digest/source-pinned local runner,
+  foundation114 and selected477 regression, all61 own policy source Ruff/Mypy,
+  strict JUnit/no-skip/inconsistent-count/empty-selection checks. Local consolidated
+  PASS, not PG/provider/current-owner integration. Audit AC01–12 against approved
+  plan/SRS/backlog and original BE2-12 goal; discovered own health/queue safe
+  projection still missing (AC11 not fully complete). No queue depth from side-
+  effect count or direct job-table scan. Next implement that own typed projection,
+  then revisit audit. Original BE2-12 real integration remains owner-deferred.
+  SQL104 unchanged NOT_RUN, stop-generation CR/adapters still open. Entrypoints:
+  artifacts/ACCEPTANCE_AUDIT_20261018.md and CONSOLIDATED_TEST_HANDOFF.md;
+  evidence/notes/C6A_AUDIT_LOCAL_PACK_20261018.md. No full local/card DONE claim.

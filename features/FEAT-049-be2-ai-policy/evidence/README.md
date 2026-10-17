@@ -1,5 +1,10 @@
 # Evidence index — BE2-14
 
+- C6A_AUDIT_LOCAL_PACK_20261018: exact1028-node/source-pinned consolidated local
+  runner, foundation114/selected477 and all61 source lint/typecheck PASS. AC01–12/
+  original BE2-12 goal audit retains own health/queue projection gap and external
+  adoption/runtime gates. PG104 NOT_RUN; no full-card/local-complete declaration.
+
 - C5C_SAFE_COPY_REPORT_20261018: guarded redacted current-copy page, truthful
   stored coverage/fixture/cancel labels; 30 new local cases, 1010 own +477 regression
   +114 foundation PASS. SQL104 prepared/collected NOT_RUN. No overall deletion/BE1

@@ -1,5 +1,25 @@
 # Feature decisions
 
+## D28 — exact local proof does not shrink backlog or substitute original goal
+
+2026-10-18 approved C6/P5. Add consolidated local runner with frozen exact own
+1028-node digest, foundation114 identity digest, source closure (all backend src/
+tests/migrations/config plus feature tooling/records), JUnit outcomes/identity/
+declared counts and no vacuous/skip PASS. Full61 policy source Ruff/Mypy, existing
+selected477 regression and governance/security/diff checked. Runtime records stay
+ignored; actual PG104 and real owner/provider adoption independent. Initial run
+caught Ruff cwd/config inconsistency; fixed tool execution context without source
+rewrites or rule suppression. Later run PASS; final docs source-pinned rerun too.
+
+Audit original BE2-12 goal independently; its deferred real BE1/P4 integration
+still means not DONE, not silently replaced by BE2-14 success. Current BE2-14
+backlog explicitly includes health/queue projections; ledger counters/copy status
+alone cannot satisfy that requirement. Record missing own typed safe observation/
+unavailable projection as local work, not just an external gate. Do not derive
+queue depth from unrelated pending-side-effect count or invent provider health.
+Continue that code/conformance under approved P5, keeping actual source adapters
+and generation-safe kill owner contract separate; no completion claim yet.
+
 ## D27 — per-copy historical receipts never establish overall deletion
 
 2026-10-18 approved P4/P5/AC08/09/11. Existing inventory report uses independent
