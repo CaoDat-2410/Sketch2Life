@@ -1,5 +1,16 @@
 # Feature decisions
 
+## D09 — audit preserves unfinished requirements — 2026-10-17
+
+C5a is a self-review/handoff checkpoint, not permission to mark BE2-12 complete.
+Audit every approved AC01–14 and preserve missing proof as unachieved. F03
+stale-history projection is local actionable work: immutable proof retention
+and current-context filtering do not alone expose derived stale state/reason.
+Implement an owned read projection without rewriting original review evidence
+or shared owner schemas. Full dispatcher/real owner integration remain F01/F02/
+F04/F05 gates; do not redefine the task to avoid them or manufacture sign-off.
+No blocked status while meaningful scoped F03 implementation remains available.
+
 ## D08 — C4a transport without inventing owner payloads — 2026-10-17
 
 Provide the planned content HTTP integration seam and all-eight-action consumer

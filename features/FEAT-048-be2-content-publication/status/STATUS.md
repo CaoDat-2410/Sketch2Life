@@ -36,10 +36,20 @@
   and external authority/review/source adapter adoption/runtime gates.
 - Next: C5 traceability/handoff audit and owner contract review; do not invent
   preset/AI/core-policy payloads to conceal CR-C4-01.
+- C5a audit/handoff prepared against 89426fd: AC01–14 reviewed; full-card NOT
+  COMPLETE. Open findings F01–05 tracked in artifacts/ACCEPTANCE_AUDIT_20261017.md.
+- Local actionable finding F03: derived authorized stale-review history/reason
+  projection absent; preserved SQL rows alone do not satisfy that full requirement.
+- Next implementation: F03 history projection/tests; external owner contracts
+  remain open but do not block this safe local work. No goal completion asserted.
+- Revalidation: 326 selected local PASS / 0 skip (5.42s), Mypy 8 source files
+  PASS, focused Ruff PASS, all 15 latest C3b runtime dependency hashes still match.
 - Evidence: evidence/notes/C2_LOCAL_POSTGRES_20261017.md; first runtime FAIL
   retained separately from final PASS and does not override it.
 - C3a evidence: evidence/notes/C3A_ELIGIBILITY_20261017.md and matching metrics.
 - C3b evidence: evidence/notes/C3B_COMMANDS_20261017.md and matching metrics.
 - C4a evidence: evidence/notes/C4A_HTTP_20261017.md; artifacts/CONTENT_HTTP_CANDIDATE.md;
   artifacts/CR_C4_OWNER_DELEGATES.md (OPEN, no owner sign-off inferred).
+- C5a handoff: artifacts/BE2_12_HANDOFF_20261017.md; five remaining work packages
+  are not five new backlog cards, and handoff is not acceptance closure.
 - Git: planning commit allowed by active goal; no push/merge/deploy.
