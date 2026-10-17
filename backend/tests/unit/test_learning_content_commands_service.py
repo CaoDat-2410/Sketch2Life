@@ -294,16 +294,21 @@ def test_review_capability_is_independent_from_author_and_publisher(harness):
 
 
 def test_archive_is_terminal_and_idempotent(harness):
-    service, _, _ = harness
+    service, _, store = harness
     record = submitted(service)
     cmd = command("archive", "archive", record, reason="withdraw draft")
     archived = service.execute("recaller", "school", cmd, expected_revision=record.revision)
     assert archived.record.state == "archived"
     assert service.execute("recaller", "school", cmd,
                            expected_revision=record.revision).replayed
-    with pytest.raises(ContentError, match="CONTENT_TRANSITION_DENIED"):
-        service.execute("author", "school", command("edit", "edit", archived.record, content=BODY),
-                        expected_revision=archived.record.revision)
+    new = service.execute(
+        "author", "school", command("edit", "edit", archived.record, content=BODY),
+        expected_revision=archived.record.revision)
+    assert new.record.version == 2 and new.record.state == "draft"
+    assert new.record.publication_review_ref is None and new.record.review_revision == 0
+    assert store.load("school", record.record_id, version=1).state == ContentState.ARCHIVED
+    assert service.execute("recaller", "school", cmd,
+                           expected_revision=record.revision).replayed
 
 
 def test_component_concurrent_identical_create_has_one_effect(harness):
@@ -396,3 +401,27 @@ def test_review_authority_does_not_include_other_dimension(harness):
         service.execute(
             "reviewer", "school", review_command(record, "pedagogical", "wrong-dimension"),
             expected_revision=record.revision)
+
+
+@pytest.mark.parametrize("denial", ["authority", "source", "policy", "stale_revision"])
+def test_retired_head_reintroduction_keeps_all_current_guards(harness, denial):
+    service, boundary, store = harness
+    record = submitted(service)
+    record = service.execute("recaller", "school", command(
+        "archive", "archive", record, reason="withdrawn"),
+        expected_revision=record.revision).record
+    expected = record.revision
+    if denial == "authority":
+        boundary.capabilities["author"] = frozenset()
+    elif denial == "source":
+        boundary.usage = False
+    elif denial == "policy":
+        boundary.policy = replace(boundary.policy, content_kinds=frozenset())
+    else:
+        expected -= 1
+    with pytest.raises(ContentError):
+        service.execute("author", "school", command("edit", "new-version", record, content=BODY),
+                        expected_revision=expected)
+    assert store.load("school", record.record_id).version == 1
+    assert store.load("school", record.record_id).state == ContentState.ARCHIVED
+    assert len(store.events) == 3

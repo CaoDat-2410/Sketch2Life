@@ -1,5 +1,17 @@
 # Feature decisions
 
+## D11 — enforce approved P3 new-version reintroduction — 2026-10-17
+
+The reviewed plan already explicitly permits reintroduction by a new version
+with fresh review. No additional owner decision is needed to correct code that
+rejected all editing from a retired head. Terminal applies to the old version,
+not a permanent ban on new versions under that record. Keep current head/CAS/
+source/policy/author checks; clear all new-version review/publication/recall
+metadata. Never transition old version back to active or reuse its approvals.
+Correct earlier restrictive tests rather than treating them as product policy.
+Exact old refs and original publish receipts remain ineffective even after v2
+legitimately publishes. No new restore action, route, migration or shared schema.
+
 ## D10 — immutable original vs derived review-history status — 2026-10-17
 
 Resolve local F03 with a BE2-12 read-only projection, not a new review authority

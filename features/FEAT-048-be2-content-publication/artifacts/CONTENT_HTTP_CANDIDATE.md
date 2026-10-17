@@ -84,6 +84,10 @@ treat retryable as permission to weaken a command or fabricate policy.
 6. Recall targets exact version with current global record If-Match/reason. New
    resolution denies it; immutable provenance remains. Outbox notifications are
    intents requiring the owning idempotent delivery adapter, not proof of delivery.
+7. To reintroduce after a retired head, an authorized edit creates the next draft
+   version with no approvals. Never restore the old version. Submit/review/publish
+   the new exact version afresh; old publication refs/receipts do not authorize it.
+   See REINTRODUCTION_RULE.md for the approved P3 boundary.
 
 Runnable synthetic consumer/action examples are the eight-action parametrized
 test in backend/tests/contract/test_learning_content_http.py and the SQL lifecycle

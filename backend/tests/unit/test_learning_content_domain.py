@@ -176,8 +176,19 @@ def test_retire_preserves_bytes_reviews_and_is_terminal(archive: bool) -> None:
     assert retired.hash == content.hash and retired.reviews == content.reviews
     assert retired.recalled_at == NOW
     assert retired.state == (ContentState.ARCHIVED if archive else ContentState.RECALLED)
+    new_draft = domain.edit(retired, AUTHOR, {}, NOW,
+                            expected_revision=retired.revision, next_version=2)
+    assert new_draft.version == 2 and new_draft.state == ContentState.DRAFT
+    assert new_draft.record_id == retired.record_id and new_draft.reviews == ()
+    assert new_draft.publication_review_ids == () and new_draft.recalled_at is None
+    assert new_draft.recall_reason is None and new_draft.context_revision == 0
+    assert new_draft.review_revision == 0
     with pytest.raises(ContentError, match="CONTENT_TRANSITION_DENIED"):
-        domain.edit(retired, AUTHOR, {}, NOW, expected_revision=retired.revision, next_version=2)
+        domain.submit(retired, AUTHOR, expected_revision=retired.revision)
+    with pytest.raises(ContentError, match="CONTENT_INVALID_VERSION"):
+        domain.edit(retired, AUTHOR, {}, NOW,
+                    expected_revision=retired.revision, next_version=retired.version)
+    assert retired.state == (ContentState.ARCHIVED if archive else ContentState.RECALLED)
 
 
 @pytest.mark.parametrize("reason", ["", "  ", "x" * 201])

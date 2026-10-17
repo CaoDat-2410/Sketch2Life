@@ -256,3 +256,56 @@ def test_history_sql_edit_and_recall_do_not_rewrite_old_approval(harness, publis
         page = history.read("consumer", "school", record.record_id, version=1, page_size=10)
         assert all(e.stale_reason == "content_recalled" for e in page.entries)
         assert all(e.original_proof.state == "effective" for e in page.entries)
+
+
+@pytest.mark.parametrize("retirement", ["recall", "archive"])
+def test_retired_head_edit_requires_fresh_review_without_restoring_old_version(harness, retirement):
+    service, boundary, store = harness
+    record, refs = approved(service)
+    original_publish = command("publish", "publish", record, review_ref=refs)
+    record = service.execute("publisher", "school", original_publish,
+                              expected_revision=record.revision).record
+    retired = service.execute("recaller", "school", command(
+        retirement, "retire", record, reason="withdraw old version"),
+        expected_revision=record.revision).record
+    replacement = command("edit", "replacement", retired, content=BODY)
+    new = service.execute("author", "school", replacement,
+                           expected_revision=retired.revision).record
+    assert new.record_id == retired.record_id and new.version == 2
+    assert new.state == "draft" and new.review_revision == new.context_revision == 0
+    assert new.publication_review_ref is None and new.recalled_at is None
+    assert service.execute("author", "school", replacement,
+                           expected_revision=retired.revision).replayed
+    with pytest.raises(ContentError, match="CONTENT_TRANSITION_DENIED"):
+        service.execute("publisher", "school", command("publish", "bad-publish", new,
+                                                        review_ref=refs),
+                        expected_revision=new.revision)
+    new = service.execute("author", "school", command("submit_review", "new-submit", new),
+                           expected_revision=new.revision).record
+    new_refs = {"review_policy_version": "policy-v1"}
+    for dimension in ("safety", "pedagogical"):
+        reviewed = service.execute("reviewer", "school", review_command(
+            new, dimension, "new-" + dimension), expected_revision=new.revision)
+        new = reviewed.record
+        new_refs[dimension + "_review_id"] = reviewed.review_record.review_id
+    with pytest.raises(ContentError, match="CONTENT_REVIEW_REQUIRED"):
+        service.execute("publisher", "school", command("publish", "old-proofs", new,
+                                                        review_ref=refs),
+                        expected_revision=new.revision)
+    new = service.execute("publisher", "school", command("publish", "new-publish", new,
+                                                          review_ref=new_refs),
+                           expected_revision=new.revision).record
+    resolver = ContentEligibility(store, boundary)
+    assert resolver.resolve("consumer", "school", new.record_id,
+                            age_months=48, purpose_code="classroom").version == 2
+    with pytest.raises(ContentError, match="CONTENT_NOT_PUBLISHED"):
+        resolver.resolve("consumer", "school", new.record_id, version=1,
+                         age_months=48, purpose_code="classroom")
+    with pytest.raises(ContentError, match="CONTENT_RECEIPT_INEFFECTIVE"):
+        service.execute("publisher", "school", original_publish, expected_revision=4)
+    with store.transaction() as tx:
+        old = tx.load("school", new.record_id, version=1)
+        assert old.state.value == ("recalled" if retirement == "recall" else "archived")
+        assert old.hash == retired.hash and old.recall_reason == "withdraw old version"
+        assert len(old.reviews) == 2
+    assert counts(store) == (2, 4, 11, 11, 11)

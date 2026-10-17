@@ -130,8 +130,8 @@ def edit(content: ContentVersion, actor: Authority, body: object, now: datetime,
          *, expected_revision: int, next_version: int) -> ContentVersion:
     authorize(actor, content.organization_id, Capability.AUTHOR)
     check_revision(content, expected_revision)
-    if content.state in {ContentState.RECALLED, ContentState.ARCHIVED}:
-        raise ContentError("CONTENT_TRANSITION_DENIED")
+    # P3: a retired VERSION stays terminal; editing authors a different version,
+    # never restores the old one or carries its review/publication metadata.
     if next_version <= content.version:
         raise ContentError("CONTENT_INVALID_VERSION")
     return create(content.record_id, actor, body, now, version=next_version,

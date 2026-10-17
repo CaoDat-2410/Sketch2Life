@@ -1,5 +1,14 @@
 # BE2-12 acceptance audit — NOT COMPLETE
 
+## P3 follow-up — reintroduction corrected
+
+The reviewed plan already authorizes a new version after a retired head, with
+fresh review; the earlier implementation was too restrictive. This local F05
+subfinding is corrected (not a new policy approval): old version remains terminal,
+new version starts draft and cannot borrow approvals. 354 selected local / 23
+owned SQL tests PASS. See REINTRODUCTION_RULE.md and P3_REINTRODUCTION evidence.
+F05 integrated closure, F01/F02/F04 remain OPEN; whole-card NOT COMPLETE.
+
 ## F03 follow-up — 2026-10-17, after audited source
 
 F03 local projection omission is now CLOSED_COMPONENT_AND_OWNED_SQL. Added
