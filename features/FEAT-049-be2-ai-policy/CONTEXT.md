@@ -20,5 +20,11 @@
 - C1: exact AI-policy review target, strict action fields, reference-only allowlist,
   mandatory true gates and stdlib immutable lifecycle. 124 component PASS; existing
   regression pack 477 PASS; no SQL/runtime activation or complete services yet.
-- Next: C2 persistence under existing approved plan; real production
+- C2 code now includes own lifecycle SQL UoW/six-table metadata/frozen independent
+  migration and additive Alembic registration. 36 new offline/runner tests PASS,
+  160 BE2-14 component cases total; 15 actual PostgreSQL cases prepared/collected,
+  NOT_RUN pending separately authorized environment. No server started/downloaded.
+  Effective scope/epoch/reservation tables deferred to C3 when their behavior exists.
+- Next: C2 runtime pack authorization/proof and C3 registry/activation/accounting;
+  real production
   activation/provisioning and external adoption remain separate gates.
