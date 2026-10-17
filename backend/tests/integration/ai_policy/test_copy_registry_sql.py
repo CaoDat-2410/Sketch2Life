@@ -23,6 +23,8 @@ from sketch2life.infrastructure.ai_policy.copy_registry_tables import (
     COPY_COVERAGE,
     COPY_EVENT,
     COPY_EVIDENCE,
+    COPY_OPERATION,
+    COPY_OPERATION_AUTHORITY,
     COPY_REGISTRATION,
     COPY_SCOPE,
 )
@@ -214,6 +216,131 @@ def test_inventory_evidence_forward_branch_roundtrip_preserves_inventory(
     record_guarded_registration(inventory_store)
     assert count(inventory_store, COPY_EVIDENCE) == 1
     assert count(inventory_store, COPY_EVENT) == 1
+
+
+def operation_service(store):
+    from sketch2life.application.ai_policy_copy_operations import ProviderCopyOperationService
+    from tests.ai_policy_copy_inventory_fixtures import AssumedInventoryBoundary
+    from tests.ai_policy_copy_operation_fixtures import AssumedOperationBoundary
+    from tests.unit.test_ai_policy_domain import NOW
+
+    boundary = AssumedOperationBoundary(AssumedInventoryBoundary())
+    return ProviderCopyOperationService(store, boundary, clock=lambda: NOW), boundary
+
+
+def test_copy_operation_reconnect_replay_and_scope_isolation(inventory_store):
+    from tests.ai_policy_copy_operation_fixtures import schedule
+
+    record_guarded_registration(inventory_store)
+    service, _ = operation_service(inventory_store)
+    original = schedule(service)
+    inventory_store.engine.dispose()
+    with transaction(inventory_store) as tx:
+        assert tx.get_operation(original.operation_key) == original
+        revision = tx.page(limit=1).revision
+        assert tx.page(limit=1).scope_purging
+    assert schedule(service) == original
+    assert count(inventory_store, COPY_OPERATION) == 1
+    assert count(inventory_store, COPY_OPERATION_AUTHORITY) == 2
+    with transaction(inventory_store) as tx:
+        assert tx.page(limit=1).revision == revision
+    for values in ({"org": "other-school"}, {"scope": "other-scope"}):
+        with transaction(inventory_store, **values) as tx:
+            assert tx.get_operation(original.operation_key) is None
+
+
+@pytest.mark.parametrize(
+    "table,mutation",
+    [
+        (COPY_OPERATION, "update"),
+        (COPY_OPERATION, "delete"),
+        (COPY_OPERATION_AUTHORITY, "update"),
+        (COPY_OPERATION_AUTHORITY, "delete"),
+    ],
+    ids=["envelope-update", "envelope-delete", "authority-update", "authority-delete"],
+)
+def test_copy_operation_raw_sql_history_is_immutable(inventory_store, table, mutation):
+    from tests.ai_policy_copy_operation_fixtures import schedule
+
+    record_guarded_registration(inventory_store)
+    service, _ = operation_service(inventory_store)
+    schedule(service)
+    payload = "envelope" if table is COPY_OPERATION else "observation"
+    statement = update(table).values(**{payload: {}}) if mutation == "update" else delete(table)
+    with pytest.raises(DBAPIError), inventory_store.engine.begin() as connection:
+        connection.execute(statement)
+    assert count(inventory_store, table) == 1
+
+
+def test_copy_operation_authority_insert_failure_rolls_back_intent_fence_and_event(inventory_store):
+    from tests.ai_policy_copy_operation_fixtures import schedule
+
+    record_guarded_registration(inventory_store)
+    with inventory_store.engine.begin() as connection:
+        connection.execute(
+            text("""
+          CREATE FUNCTION ai_policy.synthetic_operation_failure() RETURNS trigger
+          LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'SYNTHETIC_OPERATION_FAILURE'; END; $$
+        """)
+        )
+        connection.execute(
+            text("""
+          CREATE TRIGGER synthetic_operation_failure BEFORE INSERT
+          ON ai_policy.copy_operation_authority FOR EACH ROW
+          EXECUTE FUNCTION ai_policy.synthetic_operation_failure()
+        """)
+        )
+    service, _ = operation_service(inventory_store)
+    with pytest.raises(PolicyError, match="AI_POLICY_COPY_REGISTRY_STORAGE_UNAVAILABLE"):
+        schedule(service)
+    assert count(inventory_store, COPY_OPERATION) == 0
+    assert count(inventory_store, COPY_OPERATION_AUTHORITY) == 0
+    assert count(inventory_store, COPY_EVENT) == 1
+    with transaction(inventory_store) as tx:
+        assert not tx.page(limit=1).scope_purging and tx.page(limit=1).revision == 1
+
+
+def test_copy_operation_concurrent_duplicate_has_one_intent_and_queued_event(inventory_store):
+    from tests.ai_policy_copy_operation_fixtures import schedule
+
+    record_guarded_registration(inventory_store)
+    barrier = Barrier(2)
+
+    def submit():
+        service, _ = operation_service(inventory_store)
+        barrier.wait(timeout=10)
+        return schedule(service)
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        first, second = [
+            future.result(timeout=30) for future in (pool.submit(submit), pool.submit(submit))
+        ]
+    assert first == second
+    assert count(inventory_store, COPY_OPERATION) == 1
+    assert count(inventory_store, COPY_OPERATION_AUTHORITY) == 2
+    # register, purge fence and exactly one queued event.
+    assert count(inventory_store, COPY_EVENT) == 3
+
+
+def test_copy_operation_final_owner_denial_rolls_back_all_new_writes(inventory_store):
+    from tests.ai_policy_copy_operation_fixtures import schedule
+
+    record_guarded_registration(inventory_store)
+    service, boundary = operation_service(inventory_store)
+    original, calls = boundary.authorize, []
+
+    def revoke(command, digest):
+        calls.append(digest)
+        grant = original(command, digest)
+        return grant.model_copy(update={"allowed": False}) if len(calls) == 3 else grant
+
+    boundary.authorize = revoke
+    with pytest.raises(PolicyError, match="AI_POLICY_FORBIDDEN"):
+        schedule(service)
+    assert count(inventory_store, COPY_OPERATION) == 0
+    assert count(inventory_store, COPY_OPERATION_AUTHORITY) == 0
+    with transaction(inventory_store) as tx:
+        assert not tx.page(limit=1).scope_purging and tx.page(limit=1).revision == 1
 
 
 def test_inventory_keyset_pages_stable_revision_and_reject_intervening_registration(

@@ -15,6 +15,10 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import DBAPIError, IntegrityError
 
 from sketch2life.application.ai_policy_commands import _digest
+from sketch2life.application.ai_policy_copy_operations import (
+    validate_operation,
+    validate_operation_authorization,
+)
 from sketch2life.application.ports.ai_policy_copy_registry import (
     CopyRegistryPage,
     ProviderCopyRegistryTransaction,
@@ -22,6 +26,10 @@ from sketch2life.application.ports.ai_policy_copy_registry import (
 )
 from sketch2life.contracts.schemas.ai_contract_candidates import OpaqueId
 from sketch2life.contracts.schemas.ai_policy_copy_history import CopyInventoryEvidence
+from sketch2life.contracts.schemas.ai_policy_copy_operation import (
+    CopyOperationAuthorization,
+    CopyOperationEnvelope,
+)
 from sketch2life.contracts.schemas.ai_policy_copy_registry import (
     CopyCoverageObservation,
     CopyRegistryRegistration,
@@ -31,6 +39,8 @@ from sketch2life.infrastructure.ai_policy.copy_registry_tables import (
     COPY_COVERAGE,
     COPY_EVENT,
     COPY_EVIDENCE,
+    COPY_OPERATION,
+    COPY_OPERATION_AUTHORITY,
     COPY_REGISTRATION,
     COPY_SCOPE,
 )
@@ -145,6 +155,93 @@ class SqlProviderCopyRegistryTransaction:
     def _write(self) -> None:
         if not self.writable:
             raise PolicyError("AI_POLICY_COPY_REGISTRY_READ_ONLY")
+
+    def get_operation(self, operation_key: str) -> CopyOperationEnvelope | None:
+        # Digest syntax, not an arbitrary DB selector or provider operation alias.
+        if (
+            not isinstance(operation_key, str)
+            or len(operation_key) != 64
+            or any(char not in "0123456789abcdef" for char in operation_key)
+        ):
+            raise PolicyError("AI_POLICY_INVALID_COPY_OPERATION")
+        if not self.exists:
+            return None
+        row = (
+            self.connection.execute(
+                select(COPY_OPERATION).where(
+                    COPY_OPERATION.c.organization_id == self.organization_id,
+                    COPY_OPERATION.c.scope_ref == self.scope_ref,
+                    COPY_OPERATION.c.operation_key == operation_key,
+                )
+            )
+            .mappings()
+            .one_or_none()
+        )
+        if row is None:
+            return None
+        try:
+            envelope = validate_operation(
+                CopyOperationEnvelope.model_validate_json(json.dumps(row["envelope"]), strict=True)
+            )
+            if (
+                envelope.organization_id,
+                envelope.command.scope_ref,
+                envelope.operation_key,
+                envelope.target.copy_id,
+            ) != (row["organization_id"], row["scope_ref"], row["operation_key"], row["copy_id"]):
+                raise ValueError("stored operation binding mismatch")
+            return envelope
+        except (ValueError, TypeError, KeyError, PolicyError):
+            raise PolicyError("AI_POLICY_INVALID_COPY_OPERATION_STORAGE") from None
+
+    def enqueue_operation(
+        self, envelope: CopyOperationEnvelope, authorization: CopyOperationAuthorization
+    ) -> CopyOperationEnvelope:
+        self._write()
+        envelope = validate_operation(envelope)
+        authorization = validate_operation_authorization(envelope, authorization)
+        if (envelope.organization_id, envelope.command.scope_ref, envelope.principal_id) != (
+            self.organization_id,
+            self.scope_ref,
+            self.principal_id,
+        ):
+            raise PolicyError("AI_POLICY_COPY_SCOPE_MISMATCH")
+        original_copy = self.get(envelope.target.copy_id)
+        if original_copy is None or original_copy.registration != envelope.target:
+            raise PolicyError("AI_POLICY_COPY_REGISTRATION_CONFLICT")
+        original = self.get_operation(envelope.operation_key)
+        if original is not None and original.binding_digest != envelope.binding_digest:
+            raise PolicyError("AI_POLICY_COPY_OPERATION_CONFLICT")
+        if original is None:
+            if envelope.command.operation == "purge":
+                self.mark_purging()
+            self._advance(
+                "ai_policy.copy_operation_queued",
+                {
+                    "operation_key": envelope.operation_key,
+                    "copy_id": envelope.target.copy_id,
+                    "operation": envelope.command.operation,
+                },
+            )
+            self.connection.execute(
+                insert(COPY_OPERATION).values(
+                    organization_id=self.organization_id,
+                    scope_ref=self.scope_ref,
+                    operation_key=envelope.operation_key,
+                    copy_id=envelope.target.copy_id,
+                    envelope=envelope.model_dump(mode="json"),
+                )
+            )
+        self.connection.execute(
+            insert(COPY_OPERATION_AUTHORITY).values(
+                organization_id=self.organization_id,
+                observation_id="copy-op-proof." + uuid4().hex,
+                scope_ref=self.scope_ref,
+                operation_key=envelope.operation_key,
+                observation=authorization.model_dump(mode="json"),
+            )
+        )
+        return original or envelope
 
     def _advance(self, kind: str, detail: dict[str, Any], *, purging: bool | None = None) -> int:
         self._write()

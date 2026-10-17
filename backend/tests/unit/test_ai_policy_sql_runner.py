@@ -102,7 +102,7 @@ def test_accounting_runner_also_requires_explicit_card_opt_in(runner, monkeypatc
 def test_copy_inventory_pack_exact_inventory_and_sources(runner):
     nodes = tuple(runner.COPIES_SUITE + "::" + name + (f"[{i}]" if count > 1 else "")
                   for name, count in runner.COPIES_EXPECTED.items() for i in range(count))
-    assert len(nodes) == 26
+    assert len(nodes) == 34
     assert runner.inventory("\n".join(nodes), runner.COPIES_SUITE) == nodes
     assert runner.valid_inventory(nodes, runner.COPIES_EXPECTED)
     assert not runner.valid_inventory(nodes[:-1], runner.COPIES_EXPECTED)
@@ -111,6 +111,8 @@ def test_copy_inventory_pack_exact_inventory_and_sources(runner):
     assert "backend/tests/integration/ai_policy/test_copy_registry_sql.py" in hashes
     assert "backend/src/sketch2life/infrastructure/ai_policy/copy_registry_sql.py" in hashes
     assert "backend/tests/ai_policy_copy_inventory_fixtures.py" in hashes
+    assert "backend/tests/ai_policy_copy_operation_fixtures.py" in hashes
+    assert "backend/alembic/versions/20261018_ap_0006_copy_operations.py" in hashes
     assert "backend/alembic/versions/20261017_ap_0004_copy_inventory.py" in hashes
 
 
