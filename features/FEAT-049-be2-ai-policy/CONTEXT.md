@@ -1,6 +1,13 @@
 # FEAT-049 — BE2-14 AI policy / limits / kill switch
 
 - Goal: full BE2-14 card, including ProviderCopyLifecycle and redacted projections.
+- Latest C5a (2026-10-18): sole CMD-48 explicit actual policy service binding and
+  closed safe policy HTTP errors; all8 actions exercised via existing factory.
+  946 own +477 selected regression +114 foundation PASS; PG99 NOT_RUN unchanged.
+  Stop-generation gap documented in CR_KILL_NOTICE_PIN_FENCE: existing broad
+  notice cannot exclude later reactivated jobs. No foundation rewrite or unsafe
+  stop consumption. Next operational projections/C6; real owner/provider wiring
+  remains deferred, full card/goal not DONE. No default app/identity activation.
 - Latest C4c7 (2026-10-18): atomic receipt reconciliation/current-copy CAS,
   immutable proof/grant/binding/result history and outbox, forward ap_0009.
   Current rights checked even on exact replay; fixture deletion/cancel never actual

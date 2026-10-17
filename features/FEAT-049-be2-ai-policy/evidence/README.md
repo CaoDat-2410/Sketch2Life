@@ -1,5 +1,10 @@
 # Evidence index — BE2-14
 
+- C5A_POLICY_TRANSPORT_20261018: sole CMD-48 actual policy service/strict binding
+  and closed safe HTTP errors, 51 new composition cases; 946 own +477 regression
+  +114 foundation PASS. SQL99 NOT_RUN; no real auth/provider activation. Stop
+  generation gap CR recorded, delayed stop not unsafely mapped or marked delivered.
+
 - C4C7_ATOMIC_RESOLUTION_20261018: atomic current-copy/proof/history/outbox
   reconciliation, 20 new local cases; 895 own +477 regression +114 foundation
   PASS. PostgreSQL99 prepared/collected NOT_RUN. Consumer handoff in note; no
