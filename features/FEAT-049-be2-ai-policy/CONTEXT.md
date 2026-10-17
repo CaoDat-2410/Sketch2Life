@@ -1,6 +1,11 @@
 # FEAT-049 — BE2-14 AI policy / limits / kill switch
 
 - Goal: full BE2-14 card, including ProviderCopyLifecycle and redacted projections.
+- Latest C4c1 (2026-10-18): scoped revision-bound internal operation-key pages
+  with strict cursor/limit and missing-scope no-phantom read. ALL stored intents,
+  not pending/eligible status or claims. 708 own +477 regression +114 foundation
+  PASS; PG80 NOT_RUN. No schema or provider invocation. Next pending state/claim,
+  dispatch/ack/current lifecycle/receipt, C5/C6 and real owner/provider adoption.
 - Latest C4b2b2 (2026-10-18): exact cancel/purge schedule service, immutable
   original envelope/stable key and authority observations, forward ap_0006.
   Same-UoW purge fence/intent/queued event, replay checks current rights/profile

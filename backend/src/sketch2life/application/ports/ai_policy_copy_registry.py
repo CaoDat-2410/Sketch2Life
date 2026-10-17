@@ -53,7 +53,22 @@ class CopyRegistryPage:
         )
 
 
+@dataclass(frozen=True, slots=True)
+class CopyOperationPage:
+    """Historical intent keys, NOT pending status, a claim or current permission."""
+
+    revision: int
+    operation_keys: tuple[str, ...]
+    next_after: str | None
+
+
 class ProviderCopyRegistryTransaction(Protocol):
+    def operation_page(
+        self, *, limit: int, after: str | None = None, expected_revision: int | None = None
+    ) -> CopyOperationPage:
+        """Scoped internal discovery under adopted current read guard; never a dispatch grant."""
+        ...
+
     def get_operation(self, operation_key: str) -> CopyOperationEnvelope | None:
         """Recover immutable metadata only; never a dispatch/authorization grant."""
         ...

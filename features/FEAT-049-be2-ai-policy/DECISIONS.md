@@ -1,5 +1,17 @@
 # Feature decisions
 
+## D18 — discovery pages enumerate intent metadata, not pending execution grants
+
+2026-10-18, approved C4/P4/P5. operation_page is an internal transaction method,
+requiring adopted current read guard before opening own scope SHARE transaction.
+No mounted route/default auth. SHA256 keyset cursor, limit1..256 and exact scope
+revision on continuation prevent mixed-revision scans. A new intent/fence/copy/
+coverage mutation invalidates old cursor; proof-only replay does not. Missing
+scope read linearizes at absence, no later query mixing future intents into rev0.
+Enumeration returns keys of ALL intents; pending/claim/ack state is not yet built.
+It grants neither dispatch authority nor actual deletion/overall BE1 closure.
+Worker revalidates original command/profile/rights before future claim/dispatch.
+
 ## D17 — stable operation identity separates original intent from renewed authority
 
 2026-10-18, approved P4/P5 C4b2b2. Internal schedule accepts existing strict

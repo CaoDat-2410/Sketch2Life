@@ -228,6 +228,45 @@ def operation_service(store):
     return ProviderCopyOperationService(store, boundary, clock=lambda: NOW), boundary
 
 
+def test_copy_operation_pages_reconnect_scope_and_revision_cursor(inventory_store):
+    from tests.ai_policy_copy_operation_fixtures import schedule
+
+    record_guarded_registration(inventory_store)
+    service, _ = operation_service(inventory_store)
+    keys = sorted(
+        schedule(service, client_request_id=f"fixture-{i}").operation_key for i in range(3)
+    )
+    inventory_store.engine.dispose()
+    with transaction(inventory_store) as tx:
+        first = tx.operation_page(limit=2)
+        assert first.operation_keys == tuple(keys[:2]) and first.next_after == keys[1]
+        last = tx.operation_page(limit=2, after=first.next_after, expected_revision=first.revision)
+        assert last.operation_keys == (keys[2],) and last.next_after is None
+    for values in ({"org": "other"}, {"scope": "other"}):
+        with transaction(inventory_store, **values) as tx:
+            empty = tx.operation_page(limit=2)
+            assert empty.revision == 0 and not empty.operation_keys
+    schedule(service, client_request_id="fixture-new")
+    with (
+        transaction(inventory_store) as tx,
+        pytest.raises(PolicyError, match="AI_POLICY_COPY_REGISTRY_STALE"),
+    ):
+        tx.operation_page(limit=2, after=first.next_after, expected_revision=first.revision)
+
+
+def test_copy_operation_page_missing_scope_does_not_mix_later_intent(inventory_store):
+    from tests.ai_policy_copy_operation_fixtures import schedule
+
+    with transaction(inventory_store) as reader:
+        record_guarded_registration(inventory_store)
+        service, _ = operation_service(inventory_store)
+        schedule(service)
+        page = reader.operation_page(limit=1)
+        assert page.revision == 0 and not page.operation_keys
+    with transaction(inventory_store) as reader:
+        assert len(reader.operation_page(limit=1).operation_keys) == 1
+
+
 def test_copy_operation_reconnect_replay_and_scope_isolation(inventory_store):
     from tests.ai_policy_copy_operation_fixtures import schedule
 
