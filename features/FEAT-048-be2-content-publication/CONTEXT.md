@@ -1,5 +1,20 @@
 # FEAT-048 — BE2-12 content authoring, publication and recall
 
+## C5a requirement audit and handoff — 2026-10-17
+
+Reviewed all 14 original acceptance rows against source and direct evidence,
+without replacing the full task with content-only success. Full-card completion
+unproven: dispatcher/delegates, real owner fencing/source/review adapters and
+consumer adoption remain. New local finding F03: SQL retains original reviews
+and excludes stale contexts from effective use, but an authorized derived history
+view with explicit stale reason is missing. Continue that scoped implementation
+while external contracts wait; this is not a blocked/complete goal decision.
+326 selected local tests PASS / no skip, strict Mypy 8 source files PASS; all
+15 latest C3b runtime dependency hashes still match. No unnecessary SQL rerun for
+docs; previous 18 real SQL passes stay scoped to owned data/assumed owner ports.
+Audit/handoff artifacts include five concrete remaining packages, reproducible
+test/cleanup commands and consolidated owner requests. Not production sign-off.
+
 ## C4a HTTP seam and owner contract gap — 2026-10-17
 
 Candidate content command router supports all eight actions on one POST path,
