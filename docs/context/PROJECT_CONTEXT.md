@@ -1,6 +1,23 @@
 # Project context ledger
 
-## BE2-02 current state —2026-10-16
+## BE2-02 current state —2026-10-17
+
+Owner accepted C2_TYPED_CONTEXT_OFFLINE (offline component scope) on 2026-10-17 11:59 +07:00,
+verbatim FEAT-048 approvals/C2_COMPONENT_ACCEPTANCE.md, on CODE_REVIEW_PASS_WITH_NOTES
+(evidence/notes/C2_CODEX_REVIEW_20261017.md: root652 pass/5 pre-existing legacy skips, no actionable
+finding). Not full BE2-02/production/BE1-P1-P4 sign-off/real runtime. The re-reviewed plan
+evidence/notes/C2_PUBLICATION_PLAN_20261017.md (37 files) was executed locally 2026-10-17 as four
+commits 52bf84f, 164575c, c601658 and this routing commit; not pushed. The implementation
+checkpoint below is historical to this acceptance.
+
+User approved C2_TYPED_CONTEXT_OFFLINE on 2026-10-17 11:20 +07:00 (plan revision2 SHA256
+4b339514…, Q1–Q5 as recommended; verbatim FEAT-048 approvals/C2_TASK_APPROVAL.md). Claude
+implemented C2.1–C2.5 offline; state C2_CODE_COMPLETE_PENDING_CODEX_REVIEW, uncommitted. Fresh
+checks: C2 179/179, C1 + V2 server 240/240, legacy Vision 233/5 pre-existing skips, BE2-01
+338/338; validators pass. Card IN_PROGRESS/NOT_DONE; no owner acceptance, runtime/model claim or
+Git action. BE2-01 WAITING_STUDIO; Lightning recovery unconfirmed. C1 was pushed at98876fe.
+Earlier dated routing/publication statements below are history. Current sources: FEAT-048
+CONTEXT/status and evidence/notes/C2_IMPLEMENTATION_EVIDENCE_20261017.md.
 
 FEAT-048 maps BE2-02 Vision and meaning correction on feature/be2-02-vision-correction
 (candidate base 6dcc57e). Planrev1 C1_COMPONENT_OFFLINE was approved
