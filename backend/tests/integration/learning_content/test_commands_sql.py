@@ -10,10 +10,12 @@ from threading import Barrier
 import pytest
 from sqlalchemy import func, select
 
+from sketch2life.application.content_notice_delivery import ContentNoticeDelivery
 from sketch2life.application.learning_content_commands import ContentCommands
 from sketch2life.application.learning_content_eligibility import ContentEligibility
 from sketch2life.application.learning_content_history import ContentReviewHistory
 from sketch2life.domain.learning_content.model import ContentError, ContentState
+from sketch2life.infrastructure.learning_content.outbox_delivery import SqlContentDeliveryStore
 from sketch2life.infrastructure.learning_content.sql import SqlContentStore
 from sketch2life.infrastructure.learning_content.tables import (
     EVENT,
@@ -373,3 +375,169 @@ def test_consumer_contracts_from_actual_http_sql_and_outbox(harness):
     assert (recall.payload.record_id, recall.payload.version, recall.payload.hash) == (
         pinned.record_id, pinned.version, pinned.hash)
     assert all(row["delivered_at"] is None for row in rows)  # No delivery claim.
+
+
+class SyntheticDeliverySink:
+    """Not a BE1 sink; used only to observe actual producer commit behavior."""
+
+    def __init__(self, mode="accepted"):
+        self.mode = mode
+        self.calls = []
+
+    def accept(self, notice):
+        from sketch2life.contracts.schemas.content_consumers import ContentNoticeAckV1
+
+        self.calls.append(notice)
+        if self.mode == "exception":
+            raise RuntimeError("private receiver failure")
+        return ContentNoticeAckV1.model_construct(
+            event_id=notice.event_id, organization_id=notice.payload.organization_id,
+            consumer_id="wrong" if self.mode == "mismatch" else "gateway",
+            outcome="pending" if self.mode == "malformed" else "accepted")
+
+
+def delivery_event(harness):
+    service, _, store = harness
+    service.execute("author", "school", command("create", "delivery-create", content=BODY))
+    with store.engine.connect() as connection:
+        return connection.scalar(select(OUTBOX.c.event_id))
+
+
+def delivery_pump(store, sink):
+    return ContentNoticeDelivery(SqlContentDeliveryStore(store.engine), sink,
+                                 consumer_id="gateway", clock=lambda: NOW)
+
+
+def test_delivery_sql_ack_survives_restart_without_resending(harness):
+    event_id = delivery_event(harness)
+    store, sink = harness[2], SyntheticDeliverySink()
+    assert delivery_pump(store, sink).deliver("school", event_id) == "delivered"
+    store.engine.dispose()
+    assert delivery_pump(store, sink).deliver("school", event_id) == "already_delivered"
+    assert len(sink.calls) == 1
+    with store.engine.connect() as connection:
+        assert connection.scalar(select(OUTBOX.c.delivered_at)) == NOW
+    assert counts(store) == (1, 0, 1, 1, 1)
+
+
+@pytest.mark.parametrize("mode", ["exception", "mismatch", "malformed"])
+def test_delivery_sql_invalid_ack_leaves_pending(harness, mode):
+    event_id = delivery_event(harness)
+    store, sink = harness[2], SyntheticDeliverySink(mode)
+    with pytest.raises(ContentError, match="CONTENT_DELIVERY_(UNAVAILABLE|INVALID_ACK)"):
+        delivery_pump(store, sink).deliver("school", event_id)
+    with store.engine.connect() as connection:
+        assert connection.scalar(select(OUTBOX.c.delivered_at)) is None
+    assert delivery_pump(store, SyntheticDeliverySink()).deliver("school", event_id) == "delivered"
+
+
+def test_delivery_sql_row_lock_prevents_simultaneous_sends(harness):
+    from threading import Event
+
+    event_id, store = delivery_event(harness), harness[2]
+    entered, release = Event(), Event()
+
+    class HoldingSink(SyntheticDeliverySink):
+        def accept(self, notice):
+            entered.set()
+            assert release.wait(timeout=10)
+            return super().accept(notice)
+
+    sink, contender = HoldingSink(), SyntheticDeliverySink()
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        first = pool.submit(delivery_pump(store, sink).deliver, "school", event_id)
+        try:
+            assert entered.wait(timeout=10)
+            with pytest.raises(ContentError, match="CONTENT_DELIVERY_BUSY"):
+                delivery_pump(store, contender).deliver("school", event_id)
+            assert not contender.calls
+        finally:
+            release.set()
+        assert first.result(timeout=10) == "delivered"
+    assert delivery_pump(store, contender).deliver("school", event_id) == "already_delivered"
+
+
+def test_delivery_sql_lost_ack_replays_to_restarted_durable_fixture(harness, tmp_path):
+    import sqlite3
+
+    from sketch2life.contracts.schemas.content_consumers import ContentNoticeAckV1
+
+    event_id, store = delivery_event(harness), harness[2]
+    path = tmp_path / "synthetic-receiver.sqlite"
+    with sqlite3.connect(path) as receiver:
+        receiver.execute("CREATE TABLE seen (event_id TEXT PRIMARY KEY, payload TEXT NOT NULL)")
+
+    class DurableSyntheticSink:
+        """Separate durable fixture, NOT a production BE1 adapter."""
+
+        def __init__(self, lose_ack):
+            self.lose_ack = lose_ack
+
+        def accept(self, notice):
+            with sqlite3.connect(path) as receiver:
+                prior = receiver.execute("SELECT payload FROM seen WHERE event_id = ?",
+                                         (notice.event_id,)).fetchone()
+                payload = notice.model_dump_json()
+                if prior is None:
+                    receiver.execute("INSERT INTO seen VALUES (?, ?)",
+                                     (notice.event_id, payload))
+                else:
+                    assert prior[0] == payload
+            if self.lose_ack:
+                raise TimeoutError("synthetic lost ack after durable receiver commit")
+            return ContentNoticeAckV1(event_id=notice.event_id, organization_id="school",
+                                      consumer_id="gateway",
+                                      outcome="accepted" if prior is None else "duplicate")
+
+    with pytest.raises(ContentError, match="CONTENT_DELIVERY_UNAVAILABLE"):
+        delivery_pump(store, DurableSyntheticSink(True)).deliver("school", event_id)
+    store.engine.dispose()
+    with store.engine.connect() as connection:
+        assert connection.scalar(select(OUTBOX.c.delivered_at)) is None
+    assert delivery_pump(store, DurableSyntheticSink(False)).deliver(
+        "school", event_id) == "delivered"
+    with sqlite3.connect(path) as receiver:
+        assert receiver.execute("SELECT count(*) FROM seen").fetchone()[0] == 1
+
+
+def test_delivery_sql_marker_failure_rolls_back_after_sink_acceptance(harness, monkeypatch):
+    from sqlalchemy import text
+
+    from sketch2life.infrastructure.learning_content.outbox_delivery import _SqlDeliveryTransaction
+
+    event_id, store = delivery_event(harness), harness[2]
+    sink = SyntheticDeliverySink()
+    original = _SqlDeliveryTransaction.mark_delivered
+
+    def fail_after_mark(self, at):
+        original(self, at)
+        self.connection.execute(text("SELECT 1/0"))
+
+    monkeypatch.setattr(_SqlDeliveryTransaction, "mark_delivered", fail_after_mark)
+    with pytest.raises(ContentError, match="CONTENT_DELIVERY_STORAGE_UNAVAILABLE"):
+        delivery_pump(store, sink).deliver("school", event_id)
+    assert len(sink.calls) == 1
+    with store.engine.connect() as connection:
+        assert connection.scalar(select(OUTBOX.c.delivered_at)) is None
+
+
+def test_delivery_sql_wrong_scope_never_calls_sink(harness):
+    event_id, store = delivery_event(harness), harness[2]
+    sink = SyntheticDeliverySink()
+    with pytest.raises(ContentError, match="CONTENT_NOTICE_NOT_FOUND"):
+        delivery_pump(store, sink).deliver("other-school", event_id)
+    assert not sink.calls
+
+
+def test_delivery_sql_corrupt_notice_never_calls_sink(harness):
+    from sqlalchemy import update
+
+    event_id, store = delivery_event(harness), harness[2]
+    with store.engine.begin() as connection:
+        payload = connection.scalar(select(OUTBOX.c.payload))
+        payload["organization_id"] = "other-school"
+        connection.execute(update(OUTBOX).values(payload=payload))
+    sink = SyntheticDeliverySink()
+    with pytest.raises(ContentError, match="CONTENT_NOTICE_SCOPE_MISMATCH"):
+        delivery_pump(store, sink).deliver("school", event_id)
+    assert not sink.calls

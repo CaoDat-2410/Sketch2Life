@@ -1,7 +1,8 @@
 # BE2-12 receiver checkpoint — candidate handoff, NOT integrated DONE
 
 Current handoff entrypoint, 2026-10-17. Receiver owns BE2-08–14; sender owns 01–07.
-Work branch feature/be2-12-content-publication. No push/merge/deploy authorized
+Work branch feature/be2-08-14 (user-requested local rename; scope still BE2-12).
+No push/merge/deploy authorized
 or performed. This checkpoint is usable for teammate integration, not a claim
 that all original BE2-12 acceptance or external adoption is complete.
 
@@ -17,6 +18,9 @@ that all original BE2-12 acceptance or external adoption is complete.
   final complete preset/policy semantic payload schema union.
 - Typed published-reference/query/notice/ack ports, outbox metadata projection,
   consumer conformance and actual HTTP/SQL producer test. No fake delivery ack.
+- Owned one-event send/ACK service with exact PostgreSQL NOWAIT outbox lock,
+  strict matched ACK, pending on failure, restart/no-op and lost-ACK replay proof.
+  See OUTBOX_DELIVERY.md; real fixed logical sink/transport adoption remains open.
 - API/schema/authority rationale, original AC01–14 audit and explicit remaining gates.
 
 ## One command: selected component handoff checks
@@ -28,13 +32,13 @@ From repository root with the existing backend virtualenv:
 if ($LASTEXITCODE -ne 0) { throw 'Component handoff pack did not pass' }
 ```
 
-The runner collects an exact 15-file/454-case selected inventory (344 feature +
+The runner collects an exact 16-file/477-case selected inventory (367 feature +
 110 foundation regressions), compares full JUnit identities, rejects missing,
 skipped, duplicate, unexpected or failed cases, and pins source before/after.
 It then runs focused BE2-12 Ruff/Mypy plus architecture/harness/security/whitespace.
 Ruff uses backend working directory/config, not another root's import ordering.
 Foundation regression tests run but their source is NOT changed/linted under this
-card. Mypy covers 14 owned production files. Source pin covers 330 files at this
+card. Mypy covers 16 owned production files. Source pin covers 333 files at this
 checkpoint, including transitive backend Python source, migrations and fixtures.
 
 Exit 0 = selected component pack PASS; 1 = FAIL; 2 = NOT_RUN. Missing existing
@@ -46,7 +50,7 @@ Do not replace those fields with DONE based on a green component receipt.
 ## PostgreSQL pack: separate authority and evidence
 
 Existing approved portable controller runs C2 9 + projection 1 + command/history/
-HTTP-consumer 14 = 24 SQL cases. The component runner does NOT start a service,
+HTTP-consumer/delivery 23 = 33 SQL cases. The component runner does NOT start a service,
 download PostgreSQL, use network, install anything or merge/push.
 
 ```powershell
@@ -61,9 +65,10 @@ if ($LASTEXITCODE -ne 0) { throw 'Authorized SQL pack incomplete or failed' }
 Only use an explicitly authorized isolated synthetic profile; do not migrate a
 shared/production DB or reuse deleted passwords. Portable controller downloads
 official archive, binds loopback, uses disposable DBs, stops/removes its runtime.
-Latest SQL receipt remains C4c's 24 PASS, ASSUMED owner ports, no skip; no repeat
-SQL run was necessary for this runner/document-only checkpoint. Compare pinned
-runtime dependency hashes before carrying that evidence forward.
+Latest actual SQL receipt is C4d's 33 PASS, ASSUMED authority ports, no skip.
+New producer delivery SQL covers actual acknowledgement, invalid/lost ACK, NOWAIT
+concurrency and transactional rollback. Durable synthetic receiver is NOT a real
+BE1/P4 implementation. Compare pinned dependency hashes before carrying proof forward.
 
 ## Teammate reads/wires next
 

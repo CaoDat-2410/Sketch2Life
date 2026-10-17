@@ -1,5 +1,21 @@
 # Feature decisions
 
+## D15 — finish owned producer delivery without faking owner adoption — 2026-10-17
+
+Owner explicitly requested continuing BE2-12 ("bạn làm luôn đi") after asking to
+close remaining work before switching cards. Existing P4 already authorizes own
+at-least-once delivery, so implement the missing exact-event send/ack operation,
+not another candidate-only projection. Existing single delivered_at marker has
+one fixed logical destination; trusted composition must adopt it, never run
+independent fanout consumers against one global marker. No invented destination,
+schedule, retry budget or timeout value. Sink bounds its call; PostgreSQL holds
+only exact owned outbox row NOWAIT lock through ACK/commit. Failure remains pending.
+After receiver commit/producer failure, same notice may replay; durable dedup is
+receiver responsibility, not producer exactly-once. Synthetic durable receiver
+test does not claim real owner integration. Authority/delegate gates persist.
+Owner also authorized renaming the existing local branch feature/be2-08-14;
+preserve history, no push/merge or approval for the six other cards inferred.
+
 ## D14 — reproducible component proof is not goal closure — 2026-10-17
 
 Supply one source-pinned selected component command with exact collection/JUnit

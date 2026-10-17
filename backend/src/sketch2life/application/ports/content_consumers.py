@@ -1,5 +1,7 @@
 """Candidate versioned ports; BE1/P4 own effects, real authority and adoption."""
 
+from contextlib import AbstractContextManager
+from datetime import datetime
 from typing import Protocol
 
 from sketch2life.contracts.schemas.content_consumers import (
@@ -26,3 +28,16 @@ class ContentNoticeSink(Protocol):
     """
 
     def accept(self, notice: ContentLifecycleNoticeV1) -> ContentNoticeAckV1: ...
+
+
+class ContentDeliveryTransaction(Protocol):
+    """Exact row locked through acknowledgement/commit; None means delivered."""
+
+    notice: ContentLifecycleNoticeV1 | None
+
+    def mark_delivered(self, at: datetime) -> None: ...
+
+
+class ContentDeliveryStore(Protocol):
+    def delivery(self, organization_id: str,
+                 event_id: str) -> AbstractContextManager[ContentDeliveryTransaction]: ...

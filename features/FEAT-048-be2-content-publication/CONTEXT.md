@@ -1,5 +1,20 @@
 # FEAT-048 — BE2-12 content authoring, publication and recall
 
+## C4d owned outbox delivery — 2026-10-17
+
+User requested finishing remaining BE2-12 work before another card. Implemented
+approved P4 one-event producer delivery, exact scoped PostgreSQL NOWAIT row lock,
+strict matching ACK and transactional delivered_at update. Sink/SQL failure keeps
+pending; already delivered is a no-op; lost ACK replay retains the same notice.
+23 new unit cases; selected local 477 PASS; actual SQL 9+1+23=33 PASS, no skips.
+SQL includes restart, concurrent send exclusion, wrong ACK, actual rollback and
+a separate durable synthetic receiver/lost-ACK case, not real BE1/P4 adoption.
+No schema/migration changes, scheduler/retry policy, HTTP bypass or foreign writes.
+Portable PG runtime cleaned. One fixed logical sink/transport timeout/adoption
+still required; no per-consumer fanout promise from a single delivered_at marker.
+Current branch renamed by user request to feature/be2-08-14; implementation
+approval remains BE2-12 only. See OUTBOX_DELIVERY.md and C4D_OUTBOX_DELIVERY evidence.
+
 ## C5b source-pinned reproducible handoff — 2026-10-17
 
 One selected-component command now collects exact inventory/JUnit identities,

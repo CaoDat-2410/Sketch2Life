@@ -1,5 +1,17 @@
 # BE2-12 acceptance audit — NOT COMPLETE
 
+## C4d follow-up — owned producer delivery implemented
+
+F04's local producer send/ack gap is addressed: exact organization/event delivery,
+PostgreSQL NOWAIT lock, matching strict ACK, mark only through successful commit,
+failure pending and lost-ACK replay. 23 new unit cases; 477 component / 33 SQL PASS.
+Actual delivery tests now set delivered_at only after accepted/duplicate ACK.
+Older "all rows remain NULL/no delivery" statements apply to their earlier pure
+projection test/checkpoint, not this new implementation. No production receiver
+is bound; durable synthetic receiver is NOT BE1/P4 conformance. Fixed logical
+destination/transport timeout, real authority, final delegate semantics and full
+integrated closure remain unachieved. See OUTBOX_DELIVERY.md and C4D evidence.
+
 ## C4c follow-up — local consumer pack and actual producer path
 
 Typed consumer query/reference/notice/sink-ack contracts, current resolution

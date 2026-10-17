@@ -4,8 +4,24 @@
 - Plan revision: 1
 - Implementation status: IN_PROGRESS — C1/C2/C3 component + owned PostgreSQL checks PASS
 - Updated: 2026-10-17 (Asia/Saigon).
-- Branch: feature/be2-12-content-publication
+- Branch: feature/be2-08-14 (user-authorized local rename; scope still BE2-12)
 - Base: 6dcc57ee0b3d053f071c8c92e72aaaee2e98d899
+## Current checkpoint: C4d owned producer delivery
+
+- One-event send/ack service and PostgreSQL outbox transaction implemented.
+- 23 new unit cases; current selected component pack 477 PASS, no skip.
+- Focused Ruff, Mypy 16 production files, architecture/harness/security/diff PASS.
+- Actual PostgreSQL 17.11: C2 9 + projection 1 + command/history/delivery 23 = 33
+  PASS, no skip. Sink failures, wrong ACK, busy lock, restart/lost ACK and actual
+  SQL rollback verified. Separate SQLite receiver is a durable synthetic fixture,
+  not real BE1/P4 acceptance. Portable runtime/server/passwords cleaned.
+- Real authority/source/review adapters, complete preset/policy models and
+  trusted fixed consumer/transport adoption remain open; full integration NOT_RUN.
+- No new migration, scheduler, production retry policy, app mounting or other card.
+- Evidence: evidence/notes/C4D_OUTBOX_DELIVERY_20261017.md.
+
+## Earlier checkpoints (historical counts and limits)
+
 - Completed: owner-goal/source inspection, clean-checkout/base verification,
   feature mapping, revision-1 scope/contract/field/API/persistence/test plan.
 - Component checks: 79 new domain/contract tests PASS; selected combined
