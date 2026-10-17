@@ -1,5 +1,22 @@
 # Feature decisions
 
+## D06 — C3a current eligibility before command orchestration — 2026-10-17
+
+Split C3 into cohesive application checkpoints, not function-level commits.
+C3a provides guarded eligible published-content resolution and SQL enumeration;
+C3b still owns mutation orchestration and receipts. Both remain within approved
+revision 1. Source assessments bind organization/id/version/hash/policy; current
+source/review decisions cannot be supplied by callers or permissive defaults.
+Keep the outer owner guard through storage commit. Real adapter/fencing is a
+candidate integration gate, not proven by in-process component fixtures.
+
+Default resolution can skip an audience-ineligible published version but fails
+closed on policy/source/review/dependency denial. Never mask such denial by
+silently falling back. Explicit version/hash never substitutes another version.
+This conservative implementation of P2/P3 does not invent owner policy.
+Portable PostgreSQL setup/test/cleanup authorization is reused for a consolidated
+C2 + C3a SQL regression run; no GPU/service install/push/merge is inferred.
+
 ## D05 — actual implementation approval — 2026-10-17
 
 Owner explicitly approved plan revision 1 including P1–P4 and instructed

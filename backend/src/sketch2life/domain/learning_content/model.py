@@ -190,6 +190,18 @@ def publish(content: ContentVersion, actor: Authority, *, expected_revision: int
     check_revision(content, expected_revision)
     if content.state != ContentState.SUBMITTED:
         raise ContentError("CONTENT_TRANSITION_DENIED")
+    check_publication_reviews(content, safety_review_id=safety_review_id,
+                              pedagogical_review_id=pedagogical_review_id,
+                              policy_version=policy_version, audience_hash=audience_hash)
+    return replace(content, revision=content.revision + 1, state=ContentState.PUBLISHED,
+                   publication_review_ids=(safety_review_id, pedagogical_review_id),
+                   publication_policy_version=policy_version)
+
+
+def check_publication_reviews(content: ContentVersion, *, safety_review_id: str,
+                              pedagogical_review_id: str, policy_version: str,
+                              audience_hash: str) -> None:
+    """Validate immutable exact bindings; current effectiveness is an owner port."""
     references = {"safety": safety_review_id, "pedagogical": pedagogical_review_id}
     if safety_review_id == pedagogical_review_id:
         raise ContentError("CONTENT_REVIEW_REQUIRED")
@@ -206,9 +218,6 @@ def publish(content: ContentVersion, actor: Authority, *, expected_revision: int
                     content.record_id, content.version, content.hash,
                     content.context_revision, policy_version, audience_hash)):
             raise ContentError("CONTENT_REVIEW_MISMATCH")
-    return replace(content, revision=content.revision + 1, state=ContentState.PUBLISHED,
-                   publication_review_ids=(safety_review_id, pedagogical_review_id),
-                   publication_policy_version=policy_version)
 
 
 def retire(content: ContentVersion, actor: Authority, now: datetime, *,

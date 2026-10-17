@@ -1,0 +1,29 @@
+{
+  "scope": "BE2-12_C3a_ELIGIBILITY_ONLY",
+  "date": "2026-10-17",
+  "parent_commit": "8478b36",
+  "component": {"passed": 136, "new_cases": 44, "skipped": 0, "seconds": 8.88},
+  "postgresql": {
+    "version": "17.11",
+    "c2_passed": 9,
+    "projection_passed": 1,
+    "skipped": 0,
+    "wrapper_exit": 0,
+    "c2_raw": ".runtime/learning-content-c2/20261017-061933-584064",
+    "projection_raw": ".runtime/local-pg-c2/lc-pg-7873cae85bc94d778bdcda1f8c0d6aad/c3-projection-junit.xml",
+    "temporary_root_removed": true,
+    "server_port_closed": true
+  },
+  "source_sha256": {
+    "backend/src/sketch2life/application/learning_content_eligibility.py": "6659fd765abcf3e1ecec430160b912875cec6cfeb79580bb62a7aa22210fdf38",
+    "backend/src/sketch2life/application/ports/learning_content.py": "b808f5abae98c394af47935dd14f395aa1b80d1c6697a6fd2848ef8fff8c7c35",
+    "backend/src/sketch2life/domain/learning_content/model.py": "34d0e7ca949092c66aeefb4b8363a4267a29ee40e4aee727a720d6552af87e03",
+    "backend/src/sketch2life/infrastructure/learning_content/sql.py": "57e344555b1b9889838123a7cd465a3d33ce242c0d6bfbc2e6d5997d01061544",
+    "backend/tests/unit/test_learning_content_eligibility.py": "098b458ef3dc5bd11128f8ee874e00c0ff94b1583e0be6946f8aa29947b1db70",
+    "backend/tests/integration/learning_content/test_published_projection_sql.py": "351b4eedecb147682662b584f896bfc975f2750d023ca7aad88b0bcfb868f5b1",
+    "features/FEAT-048-be2-content-publication/src/run_local_pg_c2.ps1": "0bb93a1824db678e48a5a719addea5c718772a85abeded6497d94bd568b5eeac"
+  },
+  "real_owner_adapters": "NOT_ADOPTED",
+  "mutation_service_http_integration": "NOT_RUN",
+  "be2_12_complete": false
+}
