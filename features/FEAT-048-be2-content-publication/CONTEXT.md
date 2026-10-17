@@ -1,6 +1,6 @@
 # FEAT-048 — BE2-12 content authoring, publication and recall
 
-- Status: AWAITING_APPROVAL
+- Status: IN_PROGRESS
 - Owner: second BE2 executor, BE2-12 only.
 - Goal: versioned learning-library content with exact safety/pedagogical review,
   explicit publication, recall/archive and immutable provenance.
@@ -10,7 +10,15 @@
   policy selection, provider provisioning, deployment or direct BE1/job DB writes.
 - Base: 6dcc57ee0b3d053f071c8c92e72aaaee2e98d899 on foundation branch.
 - Work branch: feature/be2-12-content-publication, created 2026-10-17.
-- Implementation status: NOT_STARTED. No BE2-12 implementation approval found.
+- Implementation status: IN_PROGRESS. Owner approved revision 1/P1–P4 on 2026-10-17.
+
+## Approval continuation — 2026-10-17
+
+Actual owner reply approves plan revision 1 including P1–P4 and continued
+implementation. The reviewed plan hash is preserved. Begin C1 domain/contracts
+on this branch; no service/cloud/package activation, push/merge/deploy or
+cross-owner sign-off is inferred. Approval record is authoritative over older
+planning-state wording below.
 
 ## Authority and source context
 
