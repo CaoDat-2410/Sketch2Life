@@ -125,7 +125,7 @@ def test_copy_inventory_pack_exact_inventory_and_sources(runner):
         for name, count in runner.COPIES_EXPECTED.items()
         for i in range(count)
     )
-    assert len(nodes) == 55
+    assert len(nodes) == 58
     assert runner.inventory("\n".join(nodes), runner.COPIES_SUITE) == nodes
     assert runner.valid_inventory(nodes, runner.COPIES_EXPECTED)
     assert not runner.valid_inventory(nodes[:-1], runner.COPIES_EXPECTED)

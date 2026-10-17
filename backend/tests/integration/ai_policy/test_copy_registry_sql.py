@@ -84,6 +84,49 @@ def count(store, table):
         return connection.scalar(select(func.count()).select_from(table))
 
 
+def test_copy_report_empty_authorized_read_has_no_deletion_or_mutation(inventory_store):
+    from sketch2life.application.ai_policy_copy_inventory import ProviderCopyInventoryService
+    from tests.ai_policy_copy_inventory_fixtures import AssumedInventoryBoundary, read_request
+    from tests.unit.test_ai_policy_domain import NOW
+
+    reporter = ProviderCopyInventoryService(
+        inventory_store, AssumedInventoryBoundary(), clock=lambda: NOW
+    )
+    result = reporter.report("operator", "school", read_request())
+    assert not result.records and result.inventory_coverage == "unknown"
+    assert result.overall_deletion == "not_established" and result.revision == 0
+    assert count(inventory_store, COPY_SCOPE) == count(inventory_store, COPY_EVENT) == 0
+
+
+@pytest.mark.parametrize("operation", ["purge", "cancel"])
+def test_copy_report_reconnect_fixture_result_redacted_no_extra_event(inventory_store, operation):
+    from sketch2life.application.ai_policy_copy_inventory import ProviderCopyInventoryService
+    from tests.ai_policy_copy_inventory_fixtures import AssumedInventoryBoundary, read_request
+    from tests.unit.test_ai_policy_domain import NOW
+
+    service, _, op = resolution_service(inventory_store, operation)
+    resolve_operation(service, op)
+    inventory_store.engine.dispose()
+    reporter = ProviderCopyInventoryService(
+        inventory_store, AssumedInventoryBoundary(), clock=lambda: NOW
+    )
+    before = count(inventory_store, COPY_EVENT), count(inventory_store, COPY_RESOLUTION)
+    result = reporter.report("operator", "school", read_request())
+    assert result.overall_deletion == "not_established" and len(result.records) == 1
+    item = result.records[0]
+    assert not item.actual_deletion_proven
+    if operation == "purge":
+        assert item.label == "fixture_deleted_not_actual" and item.purge_evidence_kind == "fixture"
+    else:
+        assert (
+            item.cancel_acknowledgment == "fixture_confirmed_not_actual"
+            and item.purge_receipt is None
+        )
+    assert "original_profile_ref" not in result.model_dump_json()
+    assert "data_request_ref" not in result.model_dump_json()
+    assert before == (count(inventory_store, COPY_EVENT), count(inventory_store, COPY_RESOLUTION))
+
+
 def test_inventory_empty_read_is_unknown_and_does_not_create_scope(inventory_store):
     with transaction(inventory_store) as tx:
         page = tx.page(limit=1)

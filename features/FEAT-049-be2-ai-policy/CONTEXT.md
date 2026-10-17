@@ -1,6 +1,12 @@
 # FEAT-049 — BE2-14 AI policy / limits / kill switch
 
 - Goal: full BE2-14 card, including ProviderCopyLifecycle and redacted projections.
+- Latest C5c (2026-10-18): redacted current-copy report under existing exact
+  data-request read guard, revision-pinned bounded scope snapshot. Foundation
+  fixture/provider purge labels and distinct cancel ack retained; stored coverage
+  never current completeness or overall request closure. 1010 own +477 regression
+  +114 foundation PASS; PG104 prepared/collected NOT_RUN. Next C6 acceptance audit/
+  conformance/consolidated handoff. Stop-generation/real adapter/runtime gates open.
 - Latest C5b (2026-10-18): current-authorized policy/resource operations query,
   allowlisted exact pin/epoch/state and optional historical window counters.
   Null unknown vs stored0, fixture-inclusive ledger not actual cost. Read-only own

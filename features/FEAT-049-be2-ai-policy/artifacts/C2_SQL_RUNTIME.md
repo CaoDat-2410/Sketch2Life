@@ -39,10 +39,18 @@ if ($LASTEXITCODE -ne 0) { throw 'BE2-14 ledger SQL evidence incomplete or faile
 if ($LASTEXITCODE -ne 0) { throw 'BE2-14 copy inventory SQL evidence incomplete or failed' }
 ```
 
-Expected: exact 15 lifecycle +10 activation/stop/current-use +21 ledger +55 copy
-inventory SQL JUnit test identities (101 total) in four separate
+Expected: exact 15 lifecycle +10 activation/stop/current-use +21 ledger +58 copy
+inventory SQL JUnit test identities (104 total) in four separate
 receipts, no fail/error/skip/extra/duplicate,
 unchanged current transitive source/config/test/runner hashes, runner exit 0.
+
+Latest C5c (parent1d4d185, use commit containing C5C_SAFE_COPY_REPORT evidence):
+three actual SQL copy-report cases added to --copies, now58 copies/104 total.
+Empty report creates no scope/event and never claims completeness/deletion;
+reconnect purge/cancel fixture states remain redacted/distinct and add no event or
+resolution. Own source already source-pinned by runner. All104 NOT_RUN until
+authorized disposable profile executes; no new migration or provider invocation.
+Counts in earlier increment notes below are historical.
 
 Latest C5b (parentf00f515, use commit containing C5B_SAFE_OPERATIONS evidence):
 two actual SQL reader cases added to --accounting, now21 accounting/101 total.

@@ -1,5 +1,10 @@
 # Evidence index — BE2-14
 
+- C5C_SAFE_COPY_REPORT_20261018: guarded redacted current-copy page, truthful
+  stored coverage/fixture/cancel labels; 30 new local cases, 1010 own +477 regression
+  +114 foundation PASS. SQL104 prepared/collected NOT_RUN. No overall deletion/BE1
+  closure or actual provider proof from synthetic classification.
+
 - C5B_SAFE_OPERATIONS_20261018: allowlisted current-authorized policy/resource
   projection, read-only own SQL adapter; 34 new local cases, 980 own +477 regression
   +114 foundation PASS. SQL101 prepared/collected NOT_RUN. Recorded counters are

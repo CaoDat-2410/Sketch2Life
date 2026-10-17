@@ -1,5 +1,21 @@
 # Feature decisions
 
+## D27 — per-copy historical receipts never establish overall deletion
+
+2026-10-18 approved P4/P5/AC08/09/11. Existing inventory report uses independent
+exact current data-request read authority, not general operations capability.
+Hold same scope SHARE/revision for bounded page and current lifecycle snapshots;
+final grant/deadline confirmation before response. Pure projector validates native
+source/current/scope/coverage/cursor bindings and emits only strict allowlist.
+Reuse foundation_copy/report_label/actual_deletion_proven semantics; fixture deletion
+and cancellation remain explicit not-actual labels. Opaque purge reference/hash/kind
+are receipt backreferences, never raw bytes/provider URLs or execution authority.
+Cancel confirmation not purge. Stored coverage remains historical attestation,
+not fresh expiry/completeness proof. No global scan or vacuous all-deleted boolean:
+overall_deletion fixed not_established even on empty/final/full-coverage page.
+BE1 retains request closure; actual provider evidence/adoption remains separate.
+No SQL migration/shared foundation/route/default app change. C6 audit next.
+
 ## D26 — operational counters are recorded metadata, never actual provider cost
 
 2026-10-18 approved P2/P5/AC11. Internal AiPolicyOperations requires independent
