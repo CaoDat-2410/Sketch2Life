@@ -1,5 +1,18 @@
 # Feature decisions
 
+## D06 — resolve exact adopted definitions, do not promote observations to grants
+
+C3a under approved P2 adds side-effect-free author validation via candidate
+current registry guard. Check exact org/feature/kind/id/version/hash/revision for
+every reference, no fallback or raw settings. Registry adapter must validate actual
+approved values, safety and foundation compatibility before resolving; fixture
+does not prove that adapter exists. Mutation callers retain guard through commit;
+earlier observations cannot authorize later activation/use. No production values
+or authority invented. Native Python strict revalidation is necessary: serializer
+may convert model_construct(version=True) into JSON integer 1 before validation,
+so validate native dumps to preserve type rejection. One first-test FAIL exposed
+this, then corrected with regression on body and returned binding instances.
+
 ## D05 — C2 schema isolation and honest pending runtime — 2026-10-17
 
 Approved P5 gives own ai_policy lifecycle tables and independent frozen migration;

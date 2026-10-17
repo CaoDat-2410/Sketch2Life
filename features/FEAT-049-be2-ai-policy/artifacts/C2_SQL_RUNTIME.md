@@ -33,7 +33,7 @@ if ($LASTEXITCODE -ne 0) { throw 'BE2-14 PostgreSQL evidence incomplete or faile
 ```
 
 Expected: exact 15 full JUnit test identities, no fail/error/skip/extra/duplicate,
-unchanged 325 current transitive source/config/test/runner hashes, runner exit 0.
+unchanged current transitive source/config/test/runner hashes, runner exit 0.
 Missing explicit AP opt-in -> exit 2/NOT_RUN, even if LC opt-in exists. Missing or
 skipped case -> NOT_RUN; a test error/nonzero outcome -> FAIL. No fabricated SQL
 PASS from static schema checks or SQLite. Read root error before rerun.
