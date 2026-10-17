@@ -1,5 +1,16 @@
 # Feature decisions
 
+## D16 — owner defers real wiring to teammates, not a fake closure — 2026-10-17
+
+Actual owner reply preserved in approvals/TASK_APPROVAL.md. Hand off component
+6931daa and its contracts/evidence without requesting BE1/P4 integration now.
+Teammates later supply verified identity/current authority/source/review fencing,
+trusted durable consumer/transport and composition, then prove integrated paths.
+Receiver's separately approved 13/14 and BE1-15 still own final delegate semantics.
+No requirement or missing runtime proof is rewritten as passed; original full
+BE2-12 goal remains unachieved. This deferral neither activates another card nor
+authorizes push/merge/deployment. No redundant PostgreSQL run for docs-only update.
+
 ## D15 — finish owned producer delivery without faking owner adoption — 2026-10-17
 
 Owner explicitly requested continuing BE2-12 ("bạn làm luôn đi") after asking to

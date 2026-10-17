@@ -1,5 +1,14 @@
 # FEAT-048 — BE2-12 content authoring, publication and recall
 
+## Owner-directed teammate integration handoff — 2026-10-17
+
+After C4d commit 6931daa, owner explicitly deferred BE1/P4 wiring to teammates:
+"chưa cần nối đâu để cho mấy đứa sao làm rồi tự nối". Preserve real integration
+NOT_RUN; do not repeatedly ask for unavailable adapter branches or supply fake
+production adapters. RECEIVER_CHECKPOINT.md now records the receiving work and
+the existing executable verification commands. Component handoff is available;
+full-card acceptance is still open. No BE2-14 implementation authorized here.
+
 ## C4d owned outbox delivery — 2026-10-17
 
 User requested finishing remaining BE2-12 work before another card. Implemented

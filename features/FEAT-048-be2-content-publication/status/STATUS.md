@@ -2,10 +2,22 @@
 
 - Status: IN_PROGRESS
 - Plan revision: 1
-- Implementation status: IN_PROGRESS — C1/C2/C3 component + owned PostgreSQL checks PASS
+- Implementation status: COMPONENT_HANDOFF_AVAILABLE — through C4d; full acceptance open
 - Updated: 2026-10-17 (Asia/Saigon).
 - Branch: feature/be2-08-14 (user-authorized local rename; scope still BE2-12)
 - Base: 6dcc57ee0b3d053f071c8c92e72aaaee2e98d899
+
+## Owner-directed integration deferral
+
+- Owner explicitly defers BE1/P4 wiring to teammates; actual reply recorded in
+  approvals/TASK_APPROVAL.md. Code handoff commit: 6931daa.
+- Existing 477 component / 33 owned SQL PASS receipts are unchanged; this is a
+  documentation-only handoff update, no new runtime PASS claimed.
+- Real owner integration remains NOT_RUN, full BE2-12 not DONE. Do not request
+  unavailable adapter branches repeatedly or fabricate production acceptance.
+- Teammate checklist and executable commands: artifacts/RECEIVER_CHECKPOINT.md.
+- No BE2-14 or other business card activated by this instruction.
+
 ## Current checkpoint: C4d owned producer delivery
 
 - One-event send/ack service and PostgreSQL outbox transaction implemented.

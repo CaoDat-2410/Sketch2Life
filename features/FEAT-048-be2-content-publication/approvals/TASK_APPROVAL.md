@@ -1,5 +1,19 @@
 # Task approval
 
+## Owner integration deferral — 2026-10-17
+
+In response to the executor asking where real BE1/P4 authority/policy/consumer
+adapters exist, the owner replied verbatim:
+
+> chưa cần nối đâu để cho mấy đứa sao làm rồi tự nối
+
+Record as explicit deferral of BE1/P4 wiring to teammates, with component handoff
+at 6931daa. Do not keep requiring that integration before handing over existing
+code. This is not real adapter adoption, integrated acceptance PASS, approval to
+invent policy/permissions, or permission to implement another card. Original
+full-card requirements remain tracked as open, not silently waived. No push,
+merge or deployment authority is inferred.
+
 ## Local PostgreSQL test environment approval — 2026-10-17
 
 After a read-only inventory found no PostgreSQL/Docker runtime, the owner replied
