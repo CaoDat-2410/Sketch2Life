@@ -13,7 +13,8 @@ existing private password file through process environment. No password argument
 Runner does NOT download/start a service or choose/provision an environment.
 Owner approval of P5 is not the separate isolated-server setup approval.
 
-Fixture creates random ap49_<uuid> DB per case, migrates only ai_policy@head,
+Fixture creates random ap49_<uuid> DB per case, migrates lifecycle tests to pinned
+20261017_ap_0001 and activation tests to ai_policy@head,
 performs state/immutability/rollback/race/restart checks and drops only that exact
 generated DB in finally. One downgrade test operates only on its disposable DB.
 No provider/queue/GPU/network service is started. Child-process test receives
@@ -30,12 +31,16 @@ From repo root, existing virtualenv, process variables supplied by trusted setup
 $env:AP_TEST_ALLOW_CREATE = '1'
 ./backend/.venv/Scripts/python.exe features/FEAT-049-be2-ai-policy/src/run_c2_sql_checks.py
 if ($LASTEXITCODE -ne 0) { throw 'BE2-14 PostgreSQL evidence incomplete or failed' }
+./backend/.venv/Scripts/python.exe features/FEAT-049-be2-ai-policy/src/run_c2_sql_checks.py --activation
+if ($LASTEXITCODE -ne 0) { throw 'BE2-14 activation SQL evidence incomplete or failed' }
 ```
 
-Expected: exact 15 full JUnit test identities, no fail/error/skip/extra/duplicate,
+Expected: exact 15 lifecycle +4 activation full JUnit test identities in separate
+receipts, no fail/error/skip/extra/duplicate,
 unchanged current transitive source/config/test/runner hashes, runner exit 0.
 Missing explicit AP opt-in -> exit 2/NOT_RUN, even if LC opt-in exists. Missing or
-skipped case -> NOT_RUN; a test error/nonzero outcome -> FAIL. No fabricated SQL
+skipped execution case -> NOT_RUN; collection mismatch or test error/nonzero
+outcome -> FAIL. No fabricated SQL
 PASS from static schema checks or SQLite. Read root error before rerun.
 
 Return ignored .runtime/ai-policy-c2/<timestamp>/summary.json, junit.xml and safe
@@ -55,6 +60,9 @@ only cleans test DBs. No production migration, new server or install inferred.
 - Negative-review resubmission retains old proof but not effective approval.
 - Old-version recall with new draft head does not replace that head.
 - Repository rejects immutable-body rewrite with transaction rollback.
+- Activation pack: actual commands publish/disable/restart pin, receipt-failure
+  rollback of lifecycle+scope intent, concurrent publications linearize to one pin,
+  recall of old pin racing replacement cannot disable the new pin.
 
 Actual owner rights/policy activation/current-source fencing and providers are
 outside C2 SQL proof. They remain explicit separate integration gates.

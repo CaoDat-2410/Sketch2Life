@@ -30,7 +30,7 @@ def harness(policy_engine, monkeypatch):
                        policy_engine.url.render_as_string(hide_password=False))
     config = Config(str(BACKEND / "alembic.ini"))
     config.set_main_option("script_location", str(BACKEND / "alembic"))
-    command.upgrade(config, "ai_policy@head")
+    command.upgrade(config, "20261017_ap_0001")
     return SqlPolicyStore(policy_engine), config
 
 
@@ -75,7 +75,7 @@ def test_module_upgrade_downgrade_isolated(harness):
     assert len(inspect(store.engine).get_table_names(schema="ai_policy")) == 6
     command.downgrade(config, "ai_policy@base")
     assert "ai_policy" not in inspect(store.engine).get_schema_names()
-    command.upgrade(config, "ai_policy@head")
+    command.upgrade(config, "20261017_ap_0001")
 
 
 def test_child_process_restart_reads_committed_policy_and_scoped_outbox(harness):

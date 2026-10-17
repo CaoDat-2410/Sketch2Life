@@ -14,6 +14,7 @@ from sqlalchemy.exc import DBAPIError, IntegrityError
 
 from sketch2life.application.ports.ai_policy import PolicyEvent, PolicyReceipt, PolicyTransaction
 from sketch2life.domain.ai_policy.model import PolicyError, PolicyVersion, Review, State
+from sketch2life.infrastructure.ai_policy.activation_sql import SqlActivationQueries
 from sketch2life.infrastructure.ai_policy.tables import (
     EVENT,
     OUTBOX,
@@ -54,9 +55,10 @@ def validate_fresh(policy: PolicyVersion) -> None:
         raise PolicyError("AI_POLICY_FRESH_VERSION_REQUIRED")
 
 
-class SqlPolicyTransaction:
+class SqlPolicyTransaction(SqlActivationQueries):
     def __init__(self, connection: Connection) -> None:
         self.connection = connection
+        self._scope_locks: set[tuple[str, str]] = set()
 
     def load(self, organization_id: str, record_id: str, *, version: int | None = None,
              for_update: bool = False) -> PolicyVersion | None:

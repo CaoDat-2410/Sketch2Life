@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import os
@@ -26,6 +27,13 @@ EXPECTED = {
     "test_old_published_version_recall_does_not_replace_new_head": 1,
     "test_repository_rejects_rewritten_body_and_rolls_back": 1,
 }
+ACTIVATION_SUITE = "tests/integration/ai_policy/test_activation_sql.py"
+ACTIVATION_EXPECTED = {
+    "test_actual_commands_publish_disable_and_restart_effective_pin": 1,
+    "test_actual_scope_and_lifecycle_rollback_if_receipt_insert_fails": 1,
+    "test_concurrent_publications_serialize_to_one_effective_pin": 1,
+    "test_recall_of_old_pin_racing_replacement_does_not_disable_new_pin": 1,
+}
 
 
 def source_hashes() -> dict[str, str]:
@@ -34,20 +42,23 @@ def source_hashes() -> dict[str, str]:
     paths.update((ROOT / "backend/tests/integration/ai_policy").rglob("*.py"))
     paths.update(ROOT / name for name in (
         "backend/tests/conftest.py", "backend/tests/unit/test_ai_policy_domain.py",
+        "backend/tests/ai_policy_fixtures.py", "backend/tests/unit/test_ai_policy_compatibility.py",
+        "backend/tests/contract/test_ai_policy_contracts.py",
         "backend/pyproject.toml", "backend/alembic.ini",
         "features/FEAT-049-be2-ai-policy/src/run_c2_sql_checks.py"))
     return {path.relative_to(ROOT).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
             for path in sorted(paths)}
 
 
-def inventory(output: str) -> tuple[str, ...]:
+def inventory(output: str, suite: str = SUITE) -> tuple[str, ...]:
     return tuple(line.strip() for line in output.splitlines()
-                 if line.strip().startswith(SUITE + "::"))
+                 if line.strip().startswith(suite + "::"))
 
 
-def valid_inventory(nodes: tuple[str, ...]) -> bool:
+def valid_inventory(nodes: tuple[str, ...], expected: dict[str, int] | None = None) -> bool:
     return (len(nodes) == len(set(nodes))
-            and Counter(node.split("::", 1)[1].split("[", 1)[0] for node in nodes) == EXPECTED)
+            and Counter(node.split("::", 1)[1].split("[", 1)[0] for node in nodes)
+            == (EXPECTED if expected is None else expected))
 
 
 def classify(nodes: tuple[str, ...], junit: Path, process_exit: int) -> tuple[str, int]:
@@ -77,26 +88,28 @@ def run(args: list[str], out: Path) -> subprocess.CompletedProcess[str]:
     return result
 
 
-def main() -> int:
+def main(*, activation: bool = False) -> int:
     if os.environ.get("AP_TEST_ALLOW_CREATE") != "1" or not os.environ.get("AP_TEST_PG_HOST"):
         print("NOT_RUN: explicit authorized BE2-14 disposable PostgreSQL profile required")
         return 2
     out = ROOT / ".runtime/ai-policy-c2" / datetime.now(UTC).strftime("%Y%m%d-%H%M%S-%f")
     out.mkdir(parents=True, exist_ok=False)
     before = source_hashes()
-    command = [sys.executable, "-m", "pytest", "-o", "addopts=", SUITE]
+    suite = ACTIVATION_SUITE if activation else SUITE
+    expected = ACTIVATION_EXPECTED if activation else EXPECTED
+    command = [sys.executable, "-m", "pytest", "-o", "addopts=", suite]
     collected = run([*command, "--collect-only", "-q"], out / "collection.log")
-    nodes = inventory(collected.stdout)
+    nodes = inventory(collected.stdout, suite)
     status, exit_code = "FAIL", 1
-    if collected.returncode == 0 and valid_inventory(nodes):
+    if collected.returncode == 0 and valid_inventory(nodes, expected):
         junit = out / "junit.xml"
         tested = run([*command, "-q", "--tb=short", f"--junitxml={junit}"], out / "pytest.log")
         status, exit_code = classify(nodes, junit, tested.returncode)
     unchanged = before == source_hashes()
     if not unchanged:
         status, exit_code = "FAIL", 1
-    summary = dict(scope="BE2_14_OWNED_C2_SQL_ONLY", status=status,
-                   expected_cases=sum(EXPECTED.values()), cases=len(nodes),
+    summary = dict(scope="BE2_14_C3B_ACTIVATION_SQL" if activation else "BE2_14_OWNED_C2_SQL_ONLY",
+                   status=status, expected_cases=sum(expected.values()), cases=len(nodes),
                    source_sha256=before, source_unchanged=unchanged,
                    real_owner_integration="NOT_RUN", full_goal_complete=False)
     (out / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
@@ -105,4 +118,6 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--activation", action="store_true")
+    raise SystemExit(main(activation=parser.parse_args().activation))

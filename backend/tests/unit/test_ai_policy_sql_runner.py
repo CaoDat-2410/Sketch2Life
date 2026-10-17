@@ -61,3 +61,15 @@ def test_runner_inventory_and_transitive_source_pin(runner):
     assert "backend/tests/unit/test_ai_policy_domain.py" in hashes
     assert "backend/src/sketch2life/infrastructure/ai_policy/sql.py" in hashes
     assert "backend/alembic/versions/20261017_ap_0001_policy_lifecycle.py" in hashes
+
+
+def test_activation_inventory_is_separate_and_pins_its_test_dependencies(runner):
+    nodes = tuple(runner.ACTIVATION_SUITE + "::" + name for name in runner.ACTIVATION_EXPECTED)
+    assert len(nodes) == 4
+    assert runner.inventory("\n".join(nodes), runner.ACTIVATION_SUITE) == nodes
+    assert runner.valid_inventory(nodes, runner.ACTIVATION_EXPECTED)
+    assert not runner.valid_inventory(nodes)
+    hashes = runner.source_hashes()
+    assert "backend/tests/ai_policy_fixtures.py" in hashes
+    assert "backend/tests/unit/test_ai_policy_compatibility.py" in hashes
+    assert "backend/alembic/versions/20261017_ap_0002_effective_scope.py" in hashes
