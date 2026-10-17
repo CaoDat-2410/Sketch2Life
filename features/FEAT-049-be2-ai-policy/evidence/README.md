@@ -20,6 +20,10 @@
   regression PASS. Current-use/request pin/origin+stop history component; SQL pack
   25 cases prepared, NOT_RUN. Not actual current owner/worker/budget authorization.
 - Keep raw outputs synthetic/redacted; secrets/runtime archives remain ignored.
+- C4A_COPY_VERIFICATION_20261017: 44 new strict guard/receipt binding cases,
+  532 own component +477 existing selected regression +114 targeted foundation
+  suites PASS. ASSUMED verifier, not actual deletion or registry/dispatch proof.
+  Published foundation unchanged; actual PG remains 44 cases NOT_RUN, CR OPEN.
 - C3C3C_GUARDED_ACCOUNTING_20261017: 49 new service cases, 488 own component
   PASS; 477 existing selected regression rerun. Held current-use/quote/proof and
   ledger composition with MEMORY/ASSUMED boundaries only. Two additional actual
