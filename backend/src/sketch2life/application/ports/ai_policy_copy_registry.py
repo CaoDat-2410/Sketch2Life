@@ -4,6 +4,7 @@ from contextlib import AbstractContextManager
 from dataclasses import dataclass
 from typing import Literal, Protocol
 
+from sketch2life.contracts.schemas.ai_policy_copy_history import CopyInventoryEvidence
 from sketch2life.contracts.schemas.ai_policy_copy_registry import (
     CopyCoverageObservation,
     CopyRegistryRegistration,
@@ -49,6 +50,10 @@ class CopyRegistryPage:
 
 
 class ProviderCopyRegistryTransaction(Protocol):
+    def record_evidence(self, evidence: CopyInventoryEvidence) -> None:
+        """Append immutable historical verification in this UoW; not a live grant."""
+        ...
+
     def get(self, copy_id: str) -> RegisteredProviderCopy | None: ...
 
     def register(self, registration: CopyRegistryRegistration) -> RegisteredProviderCopy: ...

@@ -74,3 +74,20 @@ COPY_EVENT = Table(
     ),
     CheckConstraint("revision > 0", name="copy_event_revision"),
 )
+
+COPY_EVIDENCE = Table(
+    "copy_inventory_evidence",
+    COPY_METADATA,
+    Column("organization_id", String(120), primary_key=True),
+    Column("evidence_id", String(120), primary_key=True),
+    Column("scope_ref", String(120), nullable=False),
+    Column("principal_id", String(120), nullable=False),
+    Column("inventory_revision", BigInteger, nullable=False),
+    Column("observed_at", DateTime(timezone=True), nullable=False),
+    Column("record", JSONB, nullable=False),
+    ForeignKeyConstraint(
+        ["organization_id", "scope_ref"],
+        [f"{SCHEMA}.copy_scope.organization_id", f"{SCHEMA}.copy_scope.scope_ref"],
+    ),
+    CheckConstraint("inventory_revision >= 0", name="copy_evidence_revision"),
+)

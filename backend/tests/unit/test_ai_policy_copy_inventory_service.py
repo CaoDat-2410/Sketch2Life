@@ -207,8 +207,8 @@ def test_coverage_requires_current_strict_source_proof(change, code):
 
 def test_expired_source_at_precommit_check_rolls_back_new_registration():
     service, boundary, store = setup()
-    # Entry grant, source, final grant, final source deadline.
-    ticks = iter((NOW, NOW, NOW, NOW + timedelta(minutes=31)))
+    # Entry grant, source, evidence observation, final grant, final source deadline.
+    ticks = iter((NOW, NOW, NOW, NOW, NOW + timedelta(minutes=31)))
     service.clock = lambda: next(ticks)
     with pytest.raises(PolicyError, match="AI_POLICY_COPY_SOURCE_EXPIRED"):
         register(service)

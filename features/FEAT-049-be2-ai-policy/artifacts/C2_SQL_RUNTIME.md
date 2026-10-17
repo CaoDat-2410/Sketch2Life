@@ -39,10 +39,17 @@ if ($LASTEXITCODE -ne 0) { throw 'BE2-14 ledger SQL evidence incomplete or faile
 if ($LASTEXITCODE -ne 0) { throw 'BE2-14 copy inventory SQL evidence incomplete or failed' }
 ```
 
-Expected: exact 15 lifecycle +10 activation/stop/current-use +19 ledger +21 copy
-inventory SQL JUnit test identities (65 total) in four separate
+Expected: exact 15 lifecycle +10 activation/stop/current-use +19 ledger +26 copy
+inventory SQL JUnit test identities (70 total) in four separate
 receipts, no fail/error/skip/extra/duplicate,
 unchanged current transitive source/config/test/runner hashes, runner exit 0.
+
+C4b2b1 adds five copy SQL cases: evidence reconnect/retry; two raw SQL immutable
+update/delete negatives; evidence-insert failure rolling back registration/event;
+and ap_0005 downgrade/re-upgrade ONLY in disposable DB preserving existing copy
+inventory. That destructive downgrade discards test evidence intentionally and is
+NOT a production rollback recommendation. Historical verification is not authority
+for external operations. All 70 cases remain NOT_RUN until authorized execution.
 Missing explicit AP opt-in -> exit 2/NOT_RUN, even if LC opt-in exists. Missing or
 skipped execution case -> NOT_RUN; collection mismatch or test error/nonzero
 outcome -> FAIL. No fabricated SQL

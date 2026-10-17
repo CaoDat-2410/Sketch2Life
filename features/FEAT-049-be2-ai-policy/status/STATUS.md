@@ -2,27 +2,27 @@
 
 - Status: IN_PROGRESS
 - Plan revision: 1
-- Implementation status: IN_PROGRESS — C4b2a guarded inventory service PASS; SQL NOT_RUN
+- Implementation status: IN_PROGRESS — C4b2b1 durable verification history component PASS; SQL NOT_RUN
 - Branch: feature/be2-08-14
 - Baseline: f0ff7a840d1910f1f80df327c3fd0239db5ea8e1
-- Current: C4b1 87b3863; current-owner/source inventory service added.
-- BE2-14 component: 617 PASS /0 skip (78 policy contract +34 accounting contract
+- Current: parent c3710e8; inventory authority/source evidence history added.
+- BE2-14 component: 645 PASS /0 skip (78 policy contract +34 accounting contract
   +47 accounting domain +46 policy domain +26 persistence
   shape/offline +15 runner +59 registry +29 command service +3 activation shape
   +31 emergency-stop +53 current-use +20 ledger shape/codec +49 accounting service
-  +44 copy verification +27 copy inventory shape/codec +56 inventory service checks).
+  +44 copy verification +27 copy inventory shape/codec +56 inventory service +28 history checks).
 - Focused Ruff/Mypy PASS; registry/auth fixtures are assumed, not real adoption.
 - Existing BE2-12/foundation selected regression pack: 477 PASS, source unchanged.
 - Additional targeted foundation application/review-regression/q00 suites: 114 PASS;
   existing copy fake scope/replay/cancel-vs-purge cases retained, no source rewrite.
 - PostgreSQL / real integration / runtime policy activation: NOT_RUN for BE2-14.
 - BE2-12 477/33 PASS belongs to that card, not carried as BE2-14 acceptance.
-- SQL: 15 lifecycle +10 activation/stop/use +19 ledger +21 copy inventory actual PG
-  cases prepared/collected, 65 total NOT_RUN, no authorized
+- SQL: 15 lifecycle +10 activation/stop/use +19 ledger +26 copy inventory actual PG
+  cases prepared/collected, 70 total NOT_RUN, no authorized
   BE2-14 server started. C2 pins original migration; C3b upgrades new branch head.
   Owner asked asynchronously for isolated PG17 setup/test/cleanup approval, no
   approval fabricated from silence or prior BE2-12 provisioning authority.
-- Next: C4b2b durable exact operation intents/envelopes + immutable authority/evidence history,
+- Next: C4b2b2 durable exact cancel/purge operation intents/envelopes and recovery,
   C4c typed dispatch/acknowledgment/verified receipt application and remaining C5
   safe bindings/projections, plus
   actual SQL proof once authorized. Guarded accounting application composition now
@@ -70,3 +70,14 @@
   inventory handoff artifacts/C4B2A_INVENTORY_SERVICE_HANDOFF.md. Copy pack now
   21 cases including two service-composition cases, NOT_RUN. No production adapter,
   source evidence history or provider dispatch/deletion claim.
+
+- C4b2b1 (2026-10-18): append-only own ap_0005 evidence table and strict historical
+  actor/org/action/data-request/source/profile/authority binding. Successful mutations
+  retain verification in the SAME inventory UoW. Exact registration/fence replay
+  appends fresh evidence without duplicate mutation/revision; reads do not write.
+  Historical evidence is NOT current permission or dispatch/ack/deletion proof.
+  28 new component cases; five new SQL cases prepared NOT_RUN. 645 own, 477 selected
+  regression and 114 targeted foundation PASS. Handoff/evidence:
+  artifacts/C4B2B1_VERIFICATION_HISTORY_HANDOFF.md and
+  evidence/notes/C4B2B1_VERIFICATION_HISTORY_20261018.md. Exact operation envelope,
+  delivery, acknowledgment, current lifecycle and C5/C6 still incomplete.

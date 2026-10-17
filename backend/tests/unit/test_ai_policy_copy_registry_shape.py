@@ -79,13 +79,14 @@ def test_frozen_inventory_ddl_matches_owned_metadata_and_extends_branch():
         ";".join(
             str(CreateTable(t).compile(dialect=dialect())).strip()
             for t in COPY_METADATA.sorted_tables
+            if t.name != "copy_inventory_evidence"
         )
         + ";"
     )
     assert re.sub(r"\s+", "", ddl) == re.sub(r"\s+", "", migration().DDL)
     assert migration().down_revision == "20261017_ap_0003"
     assert migration().branch_labels is None
-    assert len(COPY_METADATA.tables) == 4
+    assert len(COPY_METADATA.tables) == 5
     assert "infrastructure" not in PATH.read_text()
     for table in COPY_METADATA.tables.values():
         assert table.schema == "ai_policy"

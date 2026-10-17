@@ -21,6 +21,7 @@ from sketch2life.application.ports.ai_policy_copy_registry import (
 from sketch2life.contracts.schemas.ai_contract_candidates import OpaqueId
 from sketch2life.contracts.schemas.ai_policy import StrictPolicyModel
 from sketch2life.contracts.schemas.ai_policy_copy import CopyAuthorityGrant, CopyReceiptReference
+from sketch2life.contracts.schemas.ai_policy_copy_history import CopyInventoryEvidence
 from sketch2life.contracts.schemas.ai_policy_copy_inventory import (
     CopyInventoryContext,
     CopyInventoryCoverageProof,
@@ -161,6 +162,19 @@ class ProviderCopyInventoryService:
                 organization_id, context.scope_ref, principal_id=principal_id, for_update=True
             ) as tx:
                 result = tx.register(registration)
+                tx.record_evidence(
+                    CopyInventoryEvidence(
+                        principal_id=principal_id,
+                        organization_id=organization_id,
+                        context=context,
+                        action="register",
+                        command_digest=digest,
+                        authority=grant,
+                        observed_at=self.clock(),
+                        source=proof,
+                        registration=registration,
+                    )
+                )
                 self._confirm(
                     access,
                     grant,
@@ -207,6 +221,17 @@ class ProviderCopyInventoryService:
                 organization_id, context.scope_ref, principal_id=principal_id, for_update=True
             ) as tx:
                 revision = tx.mark_purging()
+                tx.record_evidence(
+                    CopyInventoryEvidence(
+                        principal_id=principal_id,
+                        organization_id=organization_id,
+                        context=context,
+                        action="fence",
+                        command_digest=digest,
+                        authority=grant,
+                        observed_at=self.clock(),
+                    )
+                )
                 self._confirm(
                     access, grant, principal_id, organization_id, context, "fence", digest
                 )
@@ -263,6 +288,25 @@ class ProviderCopyInventoryService:
                 organization_id, context.scope_ref, principal_id=principal_id, for_update=True
             ) as tx:
                 revision = tx.record_coverage(observation)
+                tx.record_evidence(
+                    CopyInventoryEvidence(
+                        principal_id=principal_id,
+                        organization_id=organization_id,
+                        context=context,
+                        action="coverage",
+                        command_digest=digest,
+                        authority=grant,
+                        observed_at=self.clock(),
+                        source=CopyInventorySourceProof.model_validate(
+                            {
+                                name: getattr(proof, name)
+                                for name in CopyInventorySourceProof.model_fields
+                            },
+                            strict=True,
+                        ),
+                        coverage=observation,
+                    )
+                )
                 self._confirm(
                     access,
                     grant,

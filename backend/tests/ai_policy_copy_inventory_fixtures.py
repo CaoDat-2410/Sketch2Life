@@ -136,7 +136,8 @@ class MemoryInventory:
         self.org, self.scope, self.write = org, scope, for_update
         self.boundary.in_transaction = True
         self.state = self.scopes.get(
-            (org, scope), dict(revision=0, purging=False, rows={}, events=[], coverage=None)
+            (org, scope),
+            dict(revision=0, purging=False, rows={}, events=[], coverage=None, evidence=[]),
         )
         if for_update:
             self.scopes[org, scope] = self.state
@@ -160,6 +161,10 @@ class MemoryInventory:
 
     def get(self, copy_id):
         return self.state["rows"].get(copy_id)
+
+    def record_evidence(self, evidence):
+        assert self.write and self.boundary.held
+        self.state["evidence"].append(evidence)
 
     def register(self, proposed):
         assert self.write
