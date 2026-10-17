@@ -38,3 +38,35 @@ Then implement scoped execution with current guard/source expiry, durable exact
 copy/profile/operation idempotency, cancellation/purge intents, verified receipts
 and safe report to BE1. Preserve existing lifecycle semantics and all foundation
 regressions. SQL/runtime/actual-provider verification are separate proof gates.
+
+## C4b1 durable inventory checkpoint
+
+Own copy scope/registration/coverage/audit metadata under ai_policy, forward ap_0004.
+Registry is inventory/provenance, not a duplicate lifecycle or job table. Backend
+registration requires exact original profile id/version/hash and copy kind/id/scope;
+no state/verified/deleted input. Immutable registration includes whether observed
+after scope purge fence; reuse foundation request_purge only to derive initial copy
+metadata, never actual dispatch. Purging flag monotonic; no unpurge/resurrection.
+Existing copies are fenced by scope flag even if originally registered earlier.
+
+Scope UPDATE serializes registration/fence/coverage/audit. Duplicate exact copy is
+no-op; changed original kind/profile conflicts, never silently overwrites history.
+All mutation and audit/outbox intent share own UoW. No external calls under lock.
+Read holds scope SHARE; sorted keyset page limit1..256 and expected scope revision
+are required for continuation. Any intervening mutation invalidates old cursor;
+no mixed-revision scan passed off as a stable snapshot.
+
+Coverage observations are backend reports with exact attestation ref/hash, registry
+revision, explicit nonempty required sources and observed subset. CAS expected
+scope revision; store observation at next scope revision with audit, without any
+copy mutation in between. New registration/fence invalidates old coverage. Empty
+registry defaults unknown. reported_complete refers ONLY to declared-source report,
+not authenticated provider-wide completeness, deletion or BE1 request closure.
+Actual discovery authority/fence adoption remains C4b2/C4c, not client booleans.
+
+No existing foundation interface changed/implicitly implemented: old unscoped get
+and profile-string-only register cannot safely reconstruct original exact metadata.
+Keep explicit own scoped port and CR OPEN. Follow with durable operation intents,
+typed provider hook acknowledgment/verified receipt application and current-owner
+registry commit fencing. Own SQL pack must test CAS/pages, late registration,
+rollback/reconnect and immutable provenance; NOT_RUN until authorized PG17 profile.

@@ -57,6 +57,22 @@ ACCOUNTING_EXPECTED = {
     "test_guarded_accounting_service_actual_sql_reserve_and_settle": 1,
     "test_guarded_accounting_sql_stop_blocks_reserve_but_allows_verified_reconcile": 1,
 }
+COPIES_SUITE = "tests/integration/ai_policy/test_copy_registry_sql.py"
+COPIES_EXPECTED = {
+    "test_inventory_empty_read_is_unknown_and_does_not_create_scope": 1,
+    "test_inventory_registration_reconnect_preserves_exact_original_profile": 1,
+    "test_inventory_duplicate_cannot_replace_original_provenance": 3,
+    "test_inventory_failure_rolls_back_registration_scope_and_event": 1,
+    "test_inventory_keyset_pages_stable_revision_and_reject_intervening_registration": 1,
+    "test_inventory_coverage_report_invalidated_by_new_registration": 1,
+    "test_inventory_stale_coverage_cas_has_no_partial_audit": 1,
+    "test_inventory_other_scope_coverage_cannot_be_reused_at_same_revision": 1,
+    "test_inventory_registration_racing_purge_is_fenced_and_later_copy_quarantined": 1,
+    "test_inventory_concurrent_duplicate_register_has_one_audit_event": 1,
+    "test_inventory_raw_sql_cannot_rewrite_originals_or_unpurge_scope": 5,
+    "test_inventory_scope_isolation_and_read_only_mutation_denial": 1,
+    "test_inventory_missing_scope_reader_does_not_mix_later_insert_into_revision_zero": 1,
+}
 
 
 def source_hashes() -> dict[str, str]:
@@ -113,8 +129,8 @@ def run(args: list[str], out: Path) -> subprocess.CompletedProcess[str]:
     return result
 
 
-def main(*, activation: bool = False, accounting: bool = False) -> int:
-    if activation and accounting:
+def main(*, activation: bool = False, accounting: bool = False, copies: bool = False) -> int:
+    if sum((activation, accounting, copies)) > 1:
         raise ValueError("select exactly one SQL pack")
     if os.environ.get("AP_TEST_ALLOW_CREATE") != "1" or not os.environ.get("AP_TEST_PG_HOST"):
         print("NOT_RUN: explicit authorized BE2-14 disposable PostgreSQL profile required")
@@ -126,6 +142,8 @@ def main(*, activation: bool = False, accounting: bool = False) -> int:
     expected = ACTIVATION_EXPECTED if activation else EXPECTED
     if accounting:
         suite, expected = ACCOUNTING_SUITE, ACCOUNTING_EXPECTED
+    if copies:
+        suite, expected = COPIES_SUITE, COPIES_EXPECTED
     command = [sys.executable, "-m", "pytest", "-o", "addopts=", suite]
     collected = run([*command, "--collect-only", "-q"], out / "collection.log")
     nodes = inventory(collected.stdout, suite)
@@ -143,6 +161,8 @@ def main(*, activation: bool = False, accounting: bool = False) -> int:
                    real_owner_integration="NOT_RUN", full_goal_complete=False)
     if accounting:
         summary["scope"] = "BE2_14_C3C3B_LEDGER_SQL_ONLY"
+    if copies:
+        summary["scope"] = "BE2_14_C4B1_COPY_INVENTORY_SQL_ONLY"
     (out / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     print(f"{status}: {out}")
     return exit_code
@@ -153,5 +173,6 @@ if __name__ == "__main__":
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--activation", action="store_true")
     group.add_argument("--accounting", action="store_true")
+    group.add_argument("--copies", action="store_true")
     args = parser.parse_args()
-    raise SystemExit(main(activation=args.activation, accounting=args.accounting))
+    raise SystemExit(main(activation=args.activation, accounting=args.accounting, copies=args.copies))

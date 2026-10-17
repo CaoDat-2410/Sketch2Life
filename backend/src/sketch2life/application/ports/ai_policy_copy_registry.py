@@ -1,0 +1,76 @@
+"""Scoped original copy inventory; current owner authorization belongs outside persistence."""
+
+from contextlib import AbstractContextManager
+from dataclasses import dataclass
+from typing import Literal, Protocol
+
+from sketch2life.contracts.schemas.ai_policy_copy_registry import (
+    CopyCoverageObservation,
+    CopyRegistryRegistration,
+)
+from sketch2life.domain.ai_jobs.provider_copy import CopyKind, ProviderCopy, request_purge
+
+
+@dataclass(frozen=True, slots=True)
+class RegisteredProviderCopy:
+    registration: CopyRegistryRegistration
+    initially_quarantined: bool
+
+    def initial_copy(self) -> ProviderCopy:
+        """Initial metadata only; later lifecycle/authorization must load current state."""
+        item = self.registration
+        copy = ProviderCopy(
+            item.copy_id,
+            item.organization_id,
+            item.scope_ref,
+            CopyKind(item.kind),
+            item.original_profile_ref.ref,
+        )
+        return request_purge(copy) if self.initially_quarantined else copy
+
+
+@dataclass(frozen=True, slots=True)
+class CopyRegistryPage:
+    revision: int
+    scope_purging: bool
+    records: tuple[RegisteredProviderCopy, ...]
+    next_after: str | None
+    coverage: CopyCoverageObservation | None
+
+    @property
+    def coverage_status(self) -> Literal["unknown", "partial", "reported_complete"]:
+        if self.coverage is None:
+            return "unknown"
+        return (
+            "reported_complete"
+            if set(self.coverage.observed_sources) == set(self.coverage.required_sources)
+            else "partial"
+        )
+
+
+class ProviderCopyRegistryTransaction(Protocol):
+    def get(self, copy_id: str) -> RegisteredProviderCopy | None: ...
+
+    def register(self, registration: CopyRegistryRegistration) -> RegisteredProviderCopy: ...
+
+    def mark_purging(self) -> int: ...
+
+    def record_coverage(self, observation: CopyCoverageObservation) -> int: ...
+
+    def page(
+        self, *, limit: int, after: str | None = None, expected_revision: int | None = None
+    ) -> CopyRegistryPage: ...
+
+
+class ProviderCopyInventoryStore(Protocol):
+    def transaction(
+        self, organization_id: str, scope_ref: str, *, principal_id: str, for_update: bool = False
+    ) -> AbstractContextManager[ProviderCopyRegistryTransaction]:
+        """Hold current owner/profile/discovery guard BEFORE own registry scope lock.
+
+        Persistence is not authorization or source completeness proof. Write UoW
+        shares registration/fence/coverage/audit commit; read UoW holds scope SHARE.
+        No provider call under registry lock. Pages are inventory, never deletion
+        proof or permission for late results to expose in a purging scope.
+        """
+        ...

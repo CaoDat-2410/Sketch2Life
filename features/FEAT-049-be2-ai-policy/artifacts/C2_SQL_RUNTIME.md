@@ -35,10 +35,12 @@ if ($LASTEXITCODE -ne 0) { throw 'BE2-14 PostgreSQL evidence incomplete or faile
 if ($LASTEXITCODE -ne 0) { throw 'BE2-14 activation SQL evidence incomplete or failed' }
 ./backend/.venv/Scripts/python.exe features/FEAT-049-be2-ai-policy/src/run_c2_sql_checks.py --accounting
 if ($LASTEXITCODE -ne 0) { throw 'BE2-14 ledger SQL evidence incomplete or failed' }
+./backend/.venv/Scripts/python.exe features/FEAT-049-be2-ai-policy/src/run_c2_sql_checks.py --copies
+if ($LASTEXITCODE -ne 0) { throw 'BE2-14 copy inventory SQL evidence incomplete or failed' }
 ```
 
-Expected: exact 15 lifecycle +10 activation/stop/current-use +19 ledger SQL JUnit
-test identities (44 total) in three separate
+Expected: exact 15 lifecycle +10 activation/stop/current-use +19 ledger +19 copy
+inventory SQL JUnit test identities (63 total) in four separate
 receipts, no fail/error/skip/extra/duplicate,
 unchanged current transitive source/config/test/runner hashes, runner exit 0.
 Missing explicit AP opt-in -> exit 2/NOT_RUN, even if LC opt-in exists. Missing or
@@ -93,3 +95,16 @@ tests and inventory validation do not prove transaction/race behavior.
 
 Actual owner rights/policy activation/current-source fencing and providers are
 outside C2 SQL proof. They remain explicit separate integration gates.
+
+## Copy inventory pack (`--copies`)
+
+Own ap_0004 original registrations/profile refs; unknown empty read without writes;
+duplicate exact no-op, three provenance-conflict cases; atomic scope/register/event
+rollback; reconnect (not separate process restart); revision-pinned keyset paging
+and stale scan rejection; coverage report invalidation/CAS/cross-scope rejection;
+registration vs purge scope race and late initial quarantine; concurrent duplicate
+register; five raw-SQL immutable-original/coverage/audit/unpurge cases; read-only/
+org/scope isolation; missing-scope reader cannot mix a later insert into revision0.
+19 prepared actual SQL cases, NOT_RUN until authorized profile executes this pack.
+Inventory/coverage code is not current-copy lifecycle, actual discovery/deletion,
+provider dispatch/cancellation or BE1 overall request closure proof.

@@ -1,6 +1,13 @@
 # FEAT-049 — BE2-14 AI policy / limits / kill switch
 
 - Goal: full BE2-14 card, including ProviderCopyLifecycle and redacted projections.
+- Latest C4b1: own copy inventory SQL/UoW/forward ap_0004; immutable original
+  profile registration, monotonic purge fence/late quarantine, revision-bound pages,
+  scoped source coverage reports and audit/outbox. 27 new offline/codec/shape +2
+  runner cases, 561 own component PASS. 19 copy PG cases prepared NOT_RUN (63 total).
+  Inventory/initial metadata and reported_complete are not current lifecycle,
+  verified provider completeness, dispatch/deletion or BE1 closure. Guard/intent/
+  acknowledgment/receipt orchestration remain C4b2/C4c; old foundation unchanged.
 - Latest C4a: exact current-authority/profile/operation/receipt verification bridge
   to existing foundation PurgeReceipt/state machine; no duplicate lifecycle or
   published foundation changes. 44 new tests, 532 own component +477 regression
@@ -66,7 +73,8 @@
   160 BE2-14 component cases total; 15 actual PostgreSQL cases prepared/collected,
   NOT_RUN pending separately authorized environment. No server started/downloaded.
   Effective scope/epoch/reservation tables deferred to C3 when their behavior exists.
-- Next: C4b own durable copy registry/coverage/intent orchestration and remaining C5
+- Next: C4b2 current-owner registry/coverage service and durable exact operation
+  intents, then C4c dispatch/acknowledgment/verified receipt and remaining C5
   safe binding/projections; real foundation/provider CR adoption separate;
   actual SQL/accounting race proof and real owner/provider adoption still separate;
   existing actual SQL pack still pending authority/proof;

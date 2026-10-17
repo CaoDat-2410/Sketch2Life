@@ -1,5 +1,30 @@
 # Feature decisions
 
+## D14 — durable original inventory, not inferred provider-wide completion
+
+Approved P4/P5 C4b1 adds own ai_policy copy_scope/registration/coverage/registry_event
+and forward ap_0004. Store explicit exact original profile ref/version/hash, kind,
+copy/org/scope and initial quarantine; immutable records, duplicate exact registration
+no-op, changed provenance conflicts. Purging flag monotonic and revision-CAS; late
+registration is initially quarantined using foundation request_purge for initial
+metadata, not a provider call. Earlier copies remain fenced by scope flag, not by
+rewriting original registration. initial_copy is explicitly NOT current lifecycle.
+
+Scope UPDATE serializes writes and audit/outbox; scope SHARE freezes keyset pages.
+Continuation requires revision, any intervening mutation rejects stale scan. Missing
+scope read returns its observed empty revision0 snapshot without querying later
+phantom rows, not provider-wide absence. Scope-bound coverage report carries source
+attestation ref/hash, registry revision and explicit required/observed source sets.
+CAS applies report to next scope revision, later registration/fence invalidates it.
+reported_complete means declared-source report only; no deletion or BE1 closure.
+Actual discovery authority/current-owner/expiry fence remains unbound.
+
+Own scoped get/register/page port intentionally does not silently implement the
+published foundation unscoped/profile-string-only interface. CR still OPEN, no
+foundation/shared bytes modified. No current lifecycle/operation acknowledgment
+or provider purge proof supplied by registration/coverage. Continue own intent/
+authority services and verified receipt application; actual PG63 NOT_RUN, not DONE.
+
 ## D13 — exact copy verification bridge, no implicit foundation amendment
 
 Approved P4 C4a reuses foundation copy state machine and PurgeReceipt. Own strict

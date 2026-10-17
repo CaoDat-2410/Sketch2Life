@@ -2,27 +2,28 @@
 
 - Status: IN_PROGRESS
 - Plan revision: 1
-- Implementation status: IN_PROGRESS — C4a exact copy verification bridge PASS; SQL NOT_RUN
+- Implementation status: IN_PROGRESS — C4b1 copy inventory persistence code; SQL NOT_RUN
 - Branch: feature/be2-08-14
 - Baseline: f0ff7a840d1910f1f80df327c3fd0239db5ea8e1
-- Current: C3c3c e0f77b1; exact copy receipt verifier/guard and open adoption CR added.
-- BE2-14 component: 532 PASS /0 skip (78 policy contract +34 accounting contract
+- Current: C4a 7f38760; scoped copy inventory SQL/UoW/ap_0004 added.
+- BE2-14 component: 561 PASS /0 skip (78 policy contract +34 accounting contract
   +47 accounting domain +46 policy domain +26 persistence
-  shape/offline +13 runner +59 registry +29 command service +3 activation shape
+  shape/offline +15 runner +59 registry +29 command service +3 activation shape
   +31 emergency-stop +53 current-use +20 ledger shape/codec +49 accounting service
-  +44 copy verification checks).
+  +44 copy verification +27 copy inventory shape/codec checks).
 - Focused Ruff/Mypy PASS; registry/auth fixtures are assumed, not real adoption.
 - Existing BE2-12/foundation selected regression pack: 477 PASS, source unchanged.
 - Additional targeted foundation application/review-regression/q00 suites: 114 PASS;
   existing copy fake scope/replay/cancel-vs-purge cases retained, no source rewrite.
 - PostgreSQL / real integration / runtime policy activation: NOT_RUN for BE2-14.
 - BE2-12 477/33 PASS belongs to that card, not carried as BE2-14 acceptance.
-- SQL: 15 lifecycle +10 activation/stop/use +19 ledger actual PG cases prepared/collected,
-  44 total NOT_RUN, no authorized
+- SQL: 15 lifecycle +10 activation/stop/use +19 ledger +19 copy inventory actual PG
+  cases prepared/collected, 63 total NOT_RUN, no authorized
   BE2-14 server started. C2 pins original migration; C3b upgrades new branch head.
   Owner asked asynchronously for isolated PG17 setup/test/cleanup approval, no
   approval fabricated from silence or prior BE2-12 provisioning authority.
-- Next: C4b durable registry/coverage/pagination/intent execution and remaining C5
+- Next: C4b2 current-owner registry/coverage service + durable operation intents,
+  C4c typed dispatch/acknowledgment/verified receipt application and remaining C5
   safe bindings/projections, plus
   actual SQL proof once authorized. Guarded accounting application composition now
   exists, but actual current-owner/terminal-evidence adapters remain unbound;
@@ -30,7 +31,7 @@
   lease checks are NOT budget reservation or final provider/worker authorization.
   Emergency stop now has
   internal epoch-CAS/pending-intent component, not actual worker/provider stop.
-  Real provider verification/dispatch, durable copy registry, operations projections and C5 wiring
+  Real provider verification/dispatch, current-owner copy services, projections and C5 wiring
   remain to implement. Not full-card acceptance or real activation/provider use.
 - Evidence: evidence/notes/C1_DOMAIN_CONTRACTS_20261017.md; initial serialization
   failure and correction retained in narrative, not counted as a passing run.
@@ -62,3 +63,6 @@
 - C4a evidence: evidence/notes/C4A_COPY_VERIFICATION_20261017.md; handoff
   artifacts/C4_COPY_VERIFICATION_HANDOFF.md; CR_PROVIDER_COPY_ADOPTION.md OPEN.
   No actual provider call, deletion, cancel acknowledgment or overall BE1 closure.
+- C4b1 evidence: evidence/notes/C4B1_COPY_INVENTORY_20261017.md; API/gates in
+  artifacts/C4B1_COPY_INVENTORY_HANDOFF.md. Inventory persistence is not current
+  lifecycle or authority. COPY PG pack `--copies` checks exact 19-case inventory.

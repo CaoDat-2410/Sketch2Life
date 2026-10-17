@@ -20,6 +20,10 @@
   regression PASS. Current-use/request pin/origin+stop history component; SQL pack
   25 cases prepared, NOT_RUN. Not actual current owner/worker/budget authorization.
 - Keep raw outputs synthetic/redacted; secrets/runtime archives remain ignored.
+- C4B1_COPY_INVENTORY_20261017: 27 new offline/codec/shape +2 runner cases,
+  561 own component PASS; 19 copy SQL cases prepared NOT_RUN (63 all PG).
+  Original inventory/fence/coverage metadata only, no current lifecycle/dispatch/
+  actual deletion. Foundation and real owner/provider CR adoption remain separate.
 - C4A_COPY_VERIFICATION_20261017: 44 new strict guard/receipt binding cases,
   532 own component +477 existing selected regression +114 targeted foundation
   suites PASS. ASSUMED verifier, not actual deletion or registry/dispatch proof.
