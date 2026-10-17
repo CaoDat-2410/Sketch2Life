@@ -1,5 +1,17 @@
 # Project context ledger
 
+## Receiver BE2-14 actual PostgreSQL104 PASS —2026-10-18
+
+Separate direct owner approval now permits local isolated PG17/test/cleanup for
+BE2-14 only. Parent0e192da plus report-test helper unpack correction. Actual
+PostgreSQL17.11 four packs15/10/21/58 all PASS,104 total zero failure/error/skip,
+source unchanged. Initial copy56 PASS/2 FAIL retained, wrong helper unpack fixed,
+all104 rerun. Cluster/data/binary/archive/secrets removed, private logs preserved.
+Own SQL gate completed; earlier BE2-14 PG NOT_RUN counts below historical. Real
+authority/registry/provider/telemetry/kill-generation adapter and consumer acceptance
+still open, no full-card/original-goal DONE. BE1/P4 integration still deferred.
+Evidence: FEAT-049 evidence/notes/C6D_LOCAL_POSTGRES_20261018.md.
+
 ## Receiver BE2-14 C6b health/queue component — 2026-10-18
 
 Current feature/be2-08-14, parent a561128. Own health/queue projection gap found by

@@ -2,10 +2,10 @@
 
 - Status: IN_PROGRESS
 - Plan revision: 1
-- Implementation status: IN_PROGRESS — C6b safe health/queue projection component; actual source/runtime gates open
+- Implementation status: IN_PROGRESS — C6d owned PostgreSQL104 PASS; actual owner/provider integration open
 - Branch: feature/be2-08-14
 - Baseline: f0ff7a840d1910f1f80df327c3fd0239db5ea8e1
-- Current: code c43d258, handoff parent c43d258; consolidated receiver workflow/remaining-gate map.
+- Current: parent 0e192da; owner-approved isolated PG17 execution and copy-report SQL fixture correction.
 - BE2-14 component: 1061 PASS /0 skip (78 policy contract +34 accounting contract
   +47 accounting domain +46 policy domain +26 persistence
   shape/offline +15 runner +59 registry +29 command service +3 activation shape
@@ -19,16 +19,17 @@
 - Existing BE2-12/foundation source-pinned selected regression pack: 477 PASS.
 - Additional targeted foundation application/review-regression/q00 suites: 114 PASS;
   existing copy fake scope/replay/cancel-vs-purge cases retained, no source rewrite.
-- PostgreSQL / real integration / runtime policy activation: NOT_RUN for BE2-14.
+- Owned PostgreSQL:104 PASS, no failures/errors/skips. Real owner/provider/runtime activation NOT_RUN.
 - BE2-12 477/33 PASS belongs to that card, not carried as BE2-14 acceptance.
-- SQL: 15 lifecycle +10 activation/stop/use +21 ledger +58 copy inventory actual PG
-  cases prepared/collected, 104 total NOT_RUN, no authorized
-  BE2-14 server started. C2 pins original migration; C3b upgrades new branch head.
-  Owner asked asynchronously for isolated PG17 setup/test/cleanup approval, no
-  approval fabricated from silence or prior BE2-12 provisioning authority.
-- Next: authorized actual PG execution and adopted owner/kill/provider/telemetry integration;
-  actual kill delivery gated by original policy-generation owner contract, plus
-  actual SQL proof once authorized. Guarded accounting application composition now
+- SQL:15 lifecycle +10 activation/stop/use +21 ledger +58 copy inventory actual PG
+  cases executed/PASS on owner-approved local PostgreSQL17.11, restricted CREATEDB
+  role and loopback only. Four source-pinned receipts, source unchanged. Initial
+  copy suite56 PASS/2 FAIL from wrong helper unpack fixed, all104 rerun PASS.
+  Cluster/data/binaries/archive/secrets removed, logs preserved. C2 pins original
+  migration; later packs upgrade own branch head. Evidence C6D_LOCAL_POSTGRES_20261018.md.
+- Next: adopted owner/kill/provider/telemetry implementation and real conformance;
+  actual kill delivery gated by original policy-generation owner contract.
+  Guarded accounting application composition now
   exists, but actual current-owner/terminal-evidence adapters remain unbound;
   no runtime atomic budget/concurrency claim. Current-use policy
   lease checks are NOT budget reservation or final provider/worker authorization.
@@ -223,3 +224,14 @@
   against final source/docs,114 foundation/477 regression/64 source checks.
   PG104 NOT_RUN and original BE2-12 real integration deferral unchanged.
   Entrypoint artifacts/RECEIVER_CHECKPOINT.md; evidence/notes/C6C_RECEIVER_HANDOFF_20261018.md.
+
+- C6d (2026-10-18): direct owner approval for isolated local PG17/test/cleanup.
+  Actual four packs15/10/21/58 all PASS,104 total0 fail/error/skip, exact inventories
+  and source hashes unchanged. One integration-test helper unpack line corrected;
+  no application/migration/foundation changes or weakened checks. Initial FAIL
+  receipts retained. Fresh cluster uses restricted runner, SCRAM/loopback, no
+  Windows service/PATH/Python stack changes. All three temporary environments
+  gracefully stopped and data/binary/archive/secret cleanup verified; ignored logs
+  remain. Full local1061/114/477/64-source pack rerun before scoped commit.
+  This closes owned SQL NOT_RUN gate only, not real authority/provider/adoption.
+  Evidence/notes/C6D_LOCAL_POSTGRES_20261018.md; other earlier SQL NOT_RUN entries historical.

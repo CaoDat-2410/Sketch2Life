@@ -1,5 +1,24 @@
 # Feature decisions
 
+## D31 — separate actual SQL approval and evidence, not inherited runtime authority
+
+2026-10-18 owner replied "duyệt" to specific local isolated PostgreSQL17 synthetic
+test+cleanup request. Official EDB17.11 archive bytes matched recorded SHA256;
+fresh own loopback cluster/SCRAM/current-user private ACL, nonsuperuser CREATEDB
+runner, no Windows service/global PATH or Python/provider/GPU dependency change.
+Bootstrap only owns this new cluster. Actual tests create/drop exact own random
+DBs; all environments stopped and data/binaries/ZIP/secrets removed after runs,
+redacted receipt metadata/logs retained. No touching production/shared DB.
+
+First bootstrap probe used inet::text representation, corrected to host(inet) for
+loopback assertion; no SQL tests claimed for that failed prep. First SQL copy pack
+56 passed/2 failed because report test unpacked three values from two-value helper.
+Fix exactly caller unpack, retain fail evidence, rerun all four packs on corrected
+source. Final104 PASS15/10/21/58, source unchanged and no skips; no check relaxation
+or application/migration/foundation edit. SQL proves own durable behavior using
+assumed external guards/hooks, not actual BE1/provider/telemetry/adoption. Separate
+owner approval does not authorize other-card integration, cloud/push/merge/deploy.
+
 ## D30 — receiver handoff distinguishes missing implementation from missing tests
 
 2026-10-18 approved P5/AC12. Current component entrypoint maps actual inspected

@@ -1,5 +1,17 @@
 # BE2-14 acceptance audit — C6a, NOT full-card acceptance
 
+## C6d follow-up — owned PostgreSQL gate now PASS
+
+2026-10-18 owner-approved local PG17.11. Final104 cases15 lifecycle/10 activation/
+21 accounting/58 copies PASS, zero failures/errors/skips, four exact inventories
+and unchanged source hashes. Initial56/2 copy result corrected at test helper
+unpack, all104 rerun. No application/migration change. Evidence:
+evidence/notes/C6D_LOCAL_POSTGRES_20261018.md. Tables' SQL NOT_RUN below are historical
+where superseded here: AC05/06/08/09/10 own durable PG portions now PASS, not real
+consumer/provider/authority integration. Isolated runtime and secrets cleaned.
+Remaining actual adapter/generation-safe kill implementation and real conformance
+remain OPEN, original BE2-12 integration still deferred. Whole card not DONE.
+
 ## C6b follow-up — own health/queue projection component available
 
 Parenta561128, 2026-10-18. Finding3's local contract/projection gap addressed by

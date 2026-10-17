@@ -1,4 +1,12 @@
-# BE2-14 C2 PostgreSQL pack — prepared, runtime NOT_RUN
+# BE2-14 owned PostgreSQL pack —104 PASS at C6d
+
+Latest2026-10-18, parent0e192da plus one copy-report fixture unpack correction:
+owner explicitly approved isolated local PG17/test/cleanup. Actual PostgreSQL17.11
+four source-pinned packs15+10+21+58=104 PASS, zero failure/error/skip. Environments
+stopped/data/binaries/archive/secrets removed, logs retained. Full receipts and
+initial failure/correction: evidence/notes/C6D_LOCAL_POSTGRES_20261018.md.
+Real owner/provider/activation integration remains NOT_RUN. Earlier NOT_RUN and
+approval-pending statements below describe historical preparation, not latest result.
 
 Source checkpoint: C2 commit containing this document (parent 611968d). Compare
 working source with this commit and runner's before/after hashes; do not borrow

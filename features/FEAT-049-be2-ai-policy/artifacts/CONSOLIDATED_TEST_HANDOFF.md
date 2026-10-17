@@ -1,5 +1,12 @@
 # Consolidated test handoff — C6b candidate, runtime NOT_RUN
 
+Latest C6d2026-10-18: owned PostgreSQL104 now actual PASS under separately approved
+local isolated PG17.11; evidence/notes/C6D_LOCAL_POSTGRES_20261018.md. Containing C6d
+commit supersedes earlier checkpoint for the corrected report integration test.
+Earlier PG NOT_RUN below is historical preparation; commands remain reproducible
+only on authorized disposable environment. Real owner/provider integration still
+NOT_RUN. Cluster/data/binaries/archive/secrets removed; no running DB handed off.
+
 Receiver workflow/port/remaining-implementation map: RECEIVER_CHECKPOINT.md
 (code c43d258 plus containing C6c handoff commit). This does not mark adapters
 implemented or infer that only tests remain.

@@ -1,5 +1,16 @@
 # BE2-14 receiver entrypoint — component handoff, full acceptance OPEN
 
+## C6d current override — own SQL gate completed
+
+Owner approved isolated local PG17/test/cleanup on2026-10-18. Actual104 PostgreSQL
+cases PASS15/10/21/58, zero fail/error/skip, unchanged source; initial helper unpack
+test failure fixed and full pack rerun. Evidence C6D_LOCAL_POSTGRES_20261018.md.
+Source checkpoint is containing C6d commit, parent0e192da; code c43d258 below is
+historical application baseline. SQL group1 below now evidence-complete at this
+checkpoint; rerun if source changes. Other four groups remain actual implementation/
+integration gates. All temporary cluster/data/binaries/ZIP/secrets cleaned.
+No real provider/current-owner/telemetry/BE1-P4 acceptance inferred from own SQL.
+
 2026-10-18. Code checkpoint c43d258 on feature/be2-08-14; use that code plus the
 commit introducing this C6c handoff, or a reviewed later checkpoint. Check
 `git rev-parse HEAD` and `git status --short`; no fetch/push/merge performed here.
