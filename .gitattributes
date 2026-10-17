@@ -14,3 +14,9 @@ features/FEAT-040-four-person-delivery-plan/artifacts/*.md -text whitespace=cr-a
 features/FEAT-048-be2-vision-correction/evidence/metrics/C2_PLANNING_CHECKS_20261017.json -text whitespace=cr-at-eol
 features/FEAT-048-be2-vision-correction/evidence/metrics/C2_IMPLEMENTATION_CHECKS_20261017.json -text whitespace=cr-at-eol
 features/FEAT-048-be2-vision-correction/evidence/metrics/C2_CODEX_REVIEW_20261017.json -text whitespace=cr-at-eol
+
+# Preserve byte-level hashes of BE2-03 A1 Codex review metrics cross-referenced by SHA256 (reviewed CRLF bytes).
+features/FEAT-049-be2-assistance-orchestration/evidence/metrics/PLAN_CODEX_REVIEW_20261017.json -text whitespace=cr-at-eol
+features/FEAT-049-be2-assistance-orchestration/evidence/metrics/PLAN_CODEX_REREVIEW_20261017.json -text whitespace=cr-at-eol
+features/FEAT-049-be2-assistance-orchestration/evidence/metrics/PLAN_CODEX_FINAL_REVIEW_20261017.json -text whitespace=cr-at-eol
+features/FEAT-049-be2-assistance-orchestration/evidence/metrics/A1_CODEX_REVIEW_20261017.json -text whitespace=cr-at-eol
