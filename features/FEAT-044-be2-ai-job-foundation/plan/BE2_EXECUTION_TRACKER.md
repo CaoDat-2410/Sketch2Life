@@ -1,5 +1,74 @@
 # BE2 execution tracker
 
+Latest BE2-03 publication 2026-10-17: Owner approved the corrected publication plan (FEAT-049 evidence/notes/A1_PUBLICATION_PLAN_20261017.md, SHA256 1065fa3f…; amended by owner instruction to a01e8527… to keep 4 reviewed CRLF metrics byte-exact via .gitattributes, 64 paths) on 2026-10-17 23:42 +07:00 for four local commits C1–C4, with the repository security validator run before each commit; not pushed (push needs a separate instruction after re-checking the actual remote tip).
+
+Latest 2026-10-17 23:24 +07:00: owner **ACCEPTED BE2-03 A1 ASSISTANCE_COMPONENT_OFFLINE**
+(component scope; FEAT-049 approvals/A1_COMPONENT_ACCEPTANCE.md). Q05 component checkpoint
+accepted; runtime/integration NOT_STARTED; BE2-03 IN_PROGRESS / NOT_DONE. No implementation
+slot active; BE2-02 PARKED, BE2-01 WAITING_STUDIO. Uncommitted; commit plan awaits review.
+
+Latest BE2-03 final code review 2026-10-17: **A1_CODE_REVIEW_PASS_PENDING_OWNER_ACCEPTANCE**,
+0 P1 / 0 P2; all CR01–CR05 and CR03-F1/F2 closed at A1 offline scope. Root 878/878 pass,
+0 skip; FEAT-049 evidence/notes/A1_CODEX_FINAL_REVIEW_20261017.md and metrics. Owner
+component acceptance/publication disposition remains separate; no new card or runtime
+closure. BE2-03 NOT_DONE, BE2-02 PARKED, BE2-01 WAITING_STUDIO. Earlier entries are history.
+
+Latest BE2-03 A1 CR03 follow-up 2026-10-17: A1-CR03-F1/F2 fixed within the A1 approval
+(regressions first); A1 128/128, BE2-01 338/338, BE2-02 412/412, 0 skips; pending Codex
+re-review (FEAT-049 evidence/notes/A1_CR03_FOLLOWUP_EVIDENCE_20261017.md). No acceptance or
+publication; BE2-02 parked, BE2-01 WAITING_STUDIO.
+
+Latest BE2-03 Codex fix re-review 2026-10-17: **A1_NEEDS_REVISION_AFTER_FIXES** (0 P1 / 2 P2),
+root 868/868 offline regressions pass, 0 skip. CR03-F1 assistance reentrancy and CR03-F2
+Vision invalidation outside the decision epoch remain; see FEAT-049
+evidence/notes/A1_CODEX_REREVIEW_20261017.md and metrics. Next: bounded fixes/re-review,
+not acceptance/publication. BE2-03 NOT_DONE, BE2-02 PARKED, BE2-01 WAITING_STUDIO. Earlier
+checkpoints below are history.
+
+Latest BE2-03 A1 fixes 2026-10-17: A1_FIXES_COMPLETE_PENDING_CODEX_REREVIEW — A1-CR01–CR05
+fixed within the existing A1 approval (regressions first); A1 118/118, BE2-01 338/338, BE2-02
+412/412, 0 skips (FEAT-049 evidence/notes/A1_REVIEW_FIX_EVIDENCE_20261017.md). No acceptance or
+publication; BE2-02 parked, BE2-01 WAITING_STUDIO.
+
+Latest BE2-03 A1 code review 2026-10-17: A1_NEEDS_REVISION (0 P1 / 5 P2), root851/851
+offline regressions pass but targeted violation probes fail the intended guarantees.
+See FEAT-049 evidence/notes/A1_CODEX_REVIEW_20261017.md. Next: fixes/regressions/re-review
+within existing A1 approval; no acceptance/publication. BE2-02 parked, BE2-01 WAITING_STUDIO.
+
+## BE2-03 A1 implementation —2026-10-17
+
+ACTIVE implementation slot: **Q05 BE2-03 A1 ASSISTANCE_COMPONENT_OFFLINE**, owner-approved
+2026-10-17 19:58 +07:00 on plan revision 3 (SHA256 e1fce645…, D1–D11 as recommended;
+FEAT-049 approvals/TASK_APPROVAL.md). State **A1_CODE_COMPLETE_PENDING_CODEX_REVIEW**: A1.1–A1.5
+done; A1 101/101, BE2-01 regression 338/338, BE2-02 regression 412/412, 0 skips; ruff, strict
+mypy and validators pass (FEAT-049 evidence/notes/A1_IMPLEMENTATION_EVIDENCE_20261017.md).
+BE2-02 PARKED at accepted C2 (return: next C-checkpoint/real-provider gate); BE2-01
+WAITING_STUDIO (return: Studio A17-fix01 run/review has priority). Q05 component checkpoint
+NOT accepted; runtime/integration NOT_STARTED; no card DONE; no Git action.
+
+Latest final review: plan revision 3 SHA256 e1fce645, PLAN_REVIEW_PASS, all plan
+findings closed. See FEAT-049 evidence/notes/PLAN_CODEX_FINAL_REVIEW_20261017.md.
+Actual owner approval of exact revision/hash and D1–D11 is still pending; no
+implementation slot opened. A1.1–A1.5 may follow that approval. Earlier entries are history.
+
+Latest: plan revision 3 SHA256 e1fce645… adds the shared fake commit coordinator for
+A1-PR01-F1; PLAN_READY_FOR_CODEX_REREVIEW / AWAITING_APPROVAL; no implementation slot.
+
+Latest re-review: plan revision 2 SHA256 0894c39b, NEEDS_REVISION (0 P1 / 1 P2);
+only A1-PR01-F1 shared fake commit-boundary coordination remains. See FEAT-049
+evidence/notes/PLAN_CODEX_REREVIEW_20261017.md. Next: small planning revision 3 and
+re-review; no implementation slot/approval. Earlier checkpoints below are history.
+
+Q05 BE2-03 component plan prepared on candidate branch feature/be2-03-assistance-orchestration
+(FEAT-049, stacked on f120c4f; dev lacks BE2-01/02): plan revision 1, checkpoint
+ASSISTANCE_COMPONENT_OFFLINE, PLAN_NEEDS_REVISION / AWAITING_APPROVAL after Codex review
+(1 P1 / 4 P2; FEAT-049 evidence/notes/PLAN_CODEX_REVIEW_20261017.md). Revision 2 (SHA256
+0894c39b…) now addresses A1-PR01–PR05: PLAN_READY_FOR_CODEX_REREVIEW, no implementation
+approval; D1–D11 pending. Planning opens
+no implementation slot; Q05 component/runtime/integration remain NOT_STARTED. BE2-01 stays
+WAITING_STUDIO; BE2-02 IN_PROGRESS/NOT_DONE. Substitution note: roadmap §3.1 candidate-only
+planning while 01 waits; an approval must park 02 explicitly. See FEAT-049 status/STATUS.md.
+
 ## BE2-02 current state —2026-10-17
 
 Owner accepted C2_TYPED_CONTEXT_OFFLINE (offline component scope) on 2026-10-17 11:59 +07:00,

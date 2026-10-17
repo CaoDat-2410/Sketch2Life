@@ -1,5 +1,71 @@
 # Project context ledger
 
+## BE2-03 A1 component acceptance —2026-10-17
+
+Latest: Owner approved the corrected publication plan (FEAT-049 evidence/notes/A1_PUBLICATION_PLAN_20261017.md, SHA256 1065fa3f…; amended by owner instruction to a01e8527… to keep 4 reviewed CRLF metrics byte-exact via .gitattributes, 64 paths) on 2026-10-17 23:42 +07:00 for four local commits C1–C4, with the repository security validator run before each commit; not pushed (push needs a separate instruction after re-checking the actual remote tip).
+
+Owner accepted BE2-03 A1 ASSISTANCE_COMPONENT_OFFLINE at 23:24 +07:00 on the final Codex review
+(FEAT-049 approvals/A1_COMPONENT_ACCEPTANCE.md). Offline component scope only: not full-card,
+production adoption or other owners' sign-off. BE2-03 IN_PROGRESS / NOT_DONE; BE2-02 PARKED;
+BE2-01 WAITING_STUDIO. Work is uncommitted; publication plan FEAT-049
+evidence/notes/A1_PUBLICATION_PLAN_20261017.md awaits owner review. Earlier entries are history.
+
+## BE2-03 A1 final code review —2026-10-17
+
+Latest: **A1_CODE_REVIEW_PASS_PENDING_OWNER_ACCEPTANCE**. CODE_REVIEW_PASS, 0 P1 / 0 P2;
+original CR01–CR05 and residual CR03-F1/F2 closed at A1 offline scope. Root 878/878 pass,
+0 skip (128 A1 + 338 foundation + 412 Vision). FEAT-049
+evidence/notes/A1_CODEX_FINAL_REVIEW_20261017.md and metrics bind the result to source hashes.
+No owner acceptance/publication/runtime closure recorded; BE2-03 IN_PROGRESS / NOT_DONE,
+BE2-02 PARKED, BE2-01 WAITING_STUDIO. Earlier entries below are history.
+
+## BE2-03 A1 Codex fix re-review —2026-10-17
+
+Latest: **A1_NEEDS_REVISION_AFTER_FIXES** (0 P1 / 2 P2). Root 868/868 offline tests pass,
+0 skip; two residual CR03 cases reproduce: same-thread publication inside assistance commit
+and Vision invalidation outside the decision epoch. FEAT-049
+evidence/notes/A1_CODEX_REREVIEW_20261017.md and metrics hold the review. Next: fixes and
+re-review within existing A1 approval. No component acceptance/publication; BE2-03 NOT_DONE,
+BE2-02 PARKED, BE2-01 WAITING_STUDIO. Earlier checkpoints below are history.
+
+## BE2-03 A1 implementation —2026-10-17
+
+Latest: A1-CR03-F1/F2 (re-review 0 P1 / 2 P2) fixed under the existing A1 approval; A1 128/128,
+BE2-01 338/338, BE2-02 412/412, 0 skips; pending Codex re-review (FEAT-049
+evidence/notes/A1_CR03_FOLLOWUP_EVIDENCE_20261017.md). Uncommitted; not accepted.
+
+Latest: A1-CR01–CR05 fixed under the existing A1 approval (regressions first); A1 118/118,
+BE2-01 338/338, BE2-02 412/412, 0 skips; A1_FIXES_COMPLETE_PENDING_CODEX_REREVIEW (FEAT-049
+evidence/notes/A1_REVIEW_FIX_EVIDENCE_20261017.md). Uncommitted; not accepted.
+
+Latest Codex review: A1_NEEDS_REVISION (0 P1 / 5 P2; FEAT-049
+evidence/notes/A1_CODEX_REVIEW_20261017.md). Root851/851 offline regressions pass;
+targeted probes reproduce five code issues. Next: fixes within existing approval,
+regressions and re-review. No component acceptance or Git publication. Earlier
+implementation checkpoint below is history.
+
+Owner approved BE2-03 A1 ASSISTANCE_COMPONENT_OFFLINE on plan revision 3 (SHA256 e1fce645…,
+D1–D11 as recommended) at 19:58 +07:00; verbatim FEAT-049 approvals/TASK_APPROVAL.md. Claude
+implemented A1.1–A1.5 offline (new modules only; no foundation/Vision edits): state
+A1_CODE_COMPLETE_PENDING_CODEX_REVIEW, A1 101/101, BE2-01 338/338, BE2-02 412/412, 0 skips.
+Not component acceptance, runtime, real provider or full-card DONE; uncommitted. BE2-02 parked
+at accepted C2; BE2-01 WAITING_STUDIO. Evidence: FEAT-049
+evidence/notes/A1_IMPLEMENTATION_EVIDENCE_20261017.md. The planning entry below is history.
+
+## BE2-03 planning —2026-10-17
+
+FEAT-049 maps BE2-03 assistance request/cancel/dedup/cache/budget orchestration on candidate
+branch feature/be2-03-assistance-orchestration, stacked on the pushed BE2-02 C2 checkpoint
+f120c4f (not dev). Plan revision 1 (ASSISTANCE_COMPONENT_OFFLINE) is AWAITING_APPROVAL;
+Codex review NEEDS_REVISION (1 P1 / 4 P2; FEAT-049 evidence/notes/PLAN_CODEX_REVIEW_20261017.md).
+Revision 2 (SHA256 0894c39b…) re-review NEEDS_REVISION (0 P1 / 1 P2): only explicit fake
+commit-boundary coordination remains (FEAT-049 PLAN_CODEX_REREVIEW_20261017.md).
+Revision 3 (SHA256 e1fce645…) final review PLAN_REVIEW_PASS; all plan findings closed
+(FEAT-049 evidence/notes/PLAN_CODEX_FINAL_REVIEW_20261017.md). Next: real owner approval
+of this revision/hash and D1–D11 before A1.1–A1.5 implementation. No choice selected here.
+No code or Git publication; BE2-01 WAITING_STUDIO
+and BE2-02 IN_PROGRESS/NOT_DONE unchanged. Links: features/FEAT-049-be2-assistance-orchestration/.
+
 ## BE2-02 current state —2026-10-17
 
 Owner accepted C2_TYPED_CONTEXT_OFFLINE (offline component scope) on 2026-10-17 11:59 +07:00,
