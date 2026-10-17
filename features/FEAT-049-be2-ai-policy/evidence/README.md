@@ -1,5 +1,10 @@
 # Evidence index — BE2-14
 
+- C6C_RECEIVER_HANDOFF_20261018: consolidated component receiver workflow/port map,
+  five unfinished code/integration/runtime groups, corrected current acceptance
+  wording. Exact1061 local pack/114 foundation/477 regression/64 source checks;
+  SQL104 NOT_RUN, no adapter/full-card/original-goal completion claim.
+
 - C6B_HEALTH_QUEUE_20261018: source-bound typed health/queue observation and safe
   current-authorized projection, unavailable/stale/null vs0,33 new local cases;
   1061 own +114 foundation +477 regression/all64 source checks. PG104 NOT_RUN,

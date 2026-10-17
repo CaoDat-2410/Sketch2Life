@@ -1,5 +1,9 @@
 # Consolidated test handoff — C6b candidate, runtime NOT_RUN
 
+Receiver workflow/port/remaining-implementation map: RECEIVER_CHECKPOINT.md
+(code c43d258 plus containing C6c handoff commit). This does not mark adapters
+implemented or infer that only tests remain.
+
 Use the commit introducing C6b telemetry and this updated document, or a reviewed later checkpoint
 with matching runner hashes. Earlier e792512 is parent only and lacks local runner.
 Record `git rev-parse HEAD` and `git status --short` before executing; don't change

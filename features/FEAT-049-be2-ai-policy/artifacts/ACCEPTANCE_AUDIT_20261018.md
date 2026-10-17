@@ -18,8 +18,9 @@ Canonical SRS v3.1 UC-036/037/038 and current TEAM_TASK_BREAKDOWN BE2-14 inspect
 Original BE2-12 goal remains independently open; later card approval does not
 redefine or finish it. No production adoption from references/fixtures.
 
-Source locations below are repository-relative. Local proof uses exact1028 own
-node IDs plus114 targeted foundation and selected477 regression; not real runtime.
+Source locations below are repository-relative. Current C6b local proof uses
+exact1061 own node IDs plus114 targeted foundation and selected477 regression;
+not real runtime. C6a1028/61-source counts in historical findings remain historical.
 
 | AC | Inspected implementation and test anchor | Current proof / missing requirement |
 |---|---|---|
@@ -34,7 +35,7 @@ node IDs plus114 targeted foundation and selected477 regression; not real runtim
 | 09 truthful receipt/no resurrection | ai_policy_copy_reconciliation.py/resolution.py/report.py, forward ap_0009; receipt/resolution/report tests | Local malformed/fixture/pending/cancel/CAS/rollback PASS; actual authenticated provider receipts and durable authority/deadline adoption NOT_RUN |
 | 10 own persistence | own ai_policy schema ap_0001–0009, lifecycle/effective/resource/copy SQL; offline schema + prepared PG suites | Offline/local shape PASS, not SQL syntax/transaction proof; all104 actual PG cases NOT_RUN. Frozen foundation migrations unchanged |
 | 11 safe projections | ai_policy_operations.py, ai_policy_telemetry.py, infrastructure/ai_policy/operations_sql.py, ai_policy_copy_report.py; operations/report/telemetry tests | Local policy/resource/copy/health/queue redaction and unavailable/stale-vs0 PASS. Actual source adapters, safe aggregate/privacy/expiry/health meaning adoption and runtime conformance NOT_RUN. No raw child/provider data or live-health claim from fixtures |
-| 12 reproducible handoff | src/run_component_checks.py exact node count/hash, strict JUnit/source closure and SQL runner104; runner tests | Local consolidated pack PASS; all runtime/adoption gates retained. This matrix records remaining own health/queue work, not only external blockers |
+| 12 reproducible handoff | src/run_component_checks.py exact1061 node count/hash, strict JUnit/source closure and SQL runner104; runner tests; RECEIVER_CHECKPOINT.md | Local consolidated pack PASS; actual adapter/generation-safe kill implementation and runtime/adoption gates remain OPEN. Health/queue projection component gap addressed, actual producer not adopted |
 
 Paths without prefix above are under backend/src/sketch2life; test names under
 backend/tests/unit unless marked contract/integration. No inference of real
