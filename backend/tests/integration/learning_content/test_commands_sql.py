@@ -11,6 +11,7 @@ from sqlalchemy import func, select
 
 from sketch2life.application.learning_content_commands import ContentCommands
 from sketch2life.application.learning_content_eligibility import ContentEligibility
+from sketch2life.application.learning_content_history import ContentReviewHistory
 from sketch2life.domain.learning_content.model import ContentError, ContentState
 from sketch2life.infrastructure.learning_content.sql import SqlContentStore
 from sketch2life.infrastructure.learning_content.tables import (
@@ -196,3 +197,62 @@ def test_negative_review_resubmit_preserves_sql_proof_history(harness):
     with pytest.raises(ContentError, match="CONTENT_REVIEW_INEFFECTIVE"):
         service.execute("reviewer", "school", cmd, expected_revision=record.revision)
     assert counts(store) == (1, 1, 4, 4, 4)
+
+
+def test_derived_history_preserves_original_sql_proofs_across_resubmit(harness):
+    service, boundary, store = harness
+    history = ContentReviewHistory(store, boundary)
+    record, _ = approved(service)
+    with store.engine.connect() as connection:
+        original = list(connection.execute(select(REVIEW.c.proof).order_by(
+            REVIEW.c.review_revision)).scalars())
+    page = history.read("consumer", "school", record.record_id, version=1, page_size=1)
+    assert page.entries[0].state == "effective" and page.next_after_revision == 2
+    record = service.execute("reviewer", "school", review_command(
+        record, "safety", "replacement"), expected_revision=record.revision).record
+    with pytest.raises(ContentError, match="CONTENT_STALE_REVISION"):
+        history.read("consumer", "school", record.record_id, version=1, page_size=1,
+                     after_revision=2, snapshot_revision=page.record_revision)
+    replaced = history.read("consumer", "school", record.record_id, version=1, page_size=10)
+    assert replaced.entries[0].stale_reason == "dimension_replaced"
+    record = service.execute("reviewer", "school", review_command(
+        record, "safety", "negative", decision="request_changes", action="request_changes"),
+        expected_revision=record.revision).record
+    record = service.execute("author", "school", command("submit_review", "resubmit", record),
+                              expected_revision=record.revision).record
+    store.engine.dispose()
+    page = ContentReviewHistory(SqlContentStore(store.engine), boundary).read(
+        "consumer", "school", record.record_id, version=1, page_size=100)
+    assert len(page.entries) == 4 and all(e.stale_reason == "context_changed" for e in page.entries)
+    with store.engine.connect() as connection:
+        current = list(connection.execute(select(REVIEW.c.proof).order_by(
+            REVIEW.c.review_revision)).scalars())
+    assert current[:2] == original
+    assert all(proof["state"] == "effective" for proof in current)
+    with store.transaction() as tx:
+        assert tx.review_history("other-school", record.record_id, version=1,
+                                 after_revision=0, limit=10) == ()
+
+
+@pytest.mark.parametrize("published_first", [False, True])
+def test_history_sql_edit_and_recall_do_not_rewrite_old_approval(harness, published_first):
+    service, boundary, store = harness
+    record, refs = approved(service)
+    if published_first:
+        record = service.execute("publisher", "school", command(
+            "publish", "publish", record, review_ref=refs),
+            expected_revision=record.revision).record
+    edited = service.execute("author", "school", command("edit", "edit", record, content=BODY),
+                              expected_revision=record.revision).record
+    history = ContentReviewHistory(store, boundary)
+    page = history.read("consumer", "school", record.record_id, version=1, page_size=10)
+    assert all(e.state == ("effective" if published_first else "stale") for e in page.entries)
+    assert history.read("consumer", "school", record.record_id, version=2,
+                         page_size=10).entries == ()
+    if published_first:
+        service.execute("recaller", "school", command("recall", "recall", record, reason="retire"),
+                        expected_revision=edited.revision)
+        boundary.usage = False
+        page = history.read("consumer", "school", record.record_id, version=1, page_size=10)
+        assert all(e.stale_reason == "content_recalled" for e in page.entries)
+        assert all(e.original_proof.state == "effective" for e in page.entries)

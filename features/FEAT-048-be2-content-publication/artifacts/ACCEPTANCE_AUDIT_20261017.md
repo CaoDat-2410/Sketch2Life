@@ -1,5 +1,16 @@
 # BE2-12 acceptance audit — NOT COMPLETE
 
+## F03 follow-up — 2026-10-17, after audited source
+
+F03 local projection omission is now CLOSED_COMPONENT_AND_OWNED_SQL. Added
+ContentReviewHistory, parent-fenced all-context SQL history and pagination with
+record-revision snapshot checks; original proof JSON unchanged. 24 new component
+cases / 350 selected local PASS; expanded 21 SQL cases PASS. See
+evidence/notes/F03_REVIEW_HISTORY_20261017.md. AC04's local history gap is addressed;
+real owner conformance/revocation causes (F02), other findings and whole-card
+acceptance remain OPEN. The original source audit below is historical, not a
+claim that the gap is still absent at newer source.
+
 Audit source: 89426fd, feature/be2-12-content-publication, 2026-10-17.
 Type: executor self-review of current source/evidence, not independent owner sign-off.
 Original plan revision 1/P1–P4 and full goal retained; no reduced success criterion.

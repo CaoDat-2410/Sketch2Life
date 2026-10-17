@@ -1,5 +1,18 @@
 # FEAT-048 — BE2-12 content authoring, publication and recall
 
+## F03 local review-history correction — 2026-10-17
+
+Added authorized read-only application history with bounded pagination and global
+record-revision snapshot checks. Original review proofs/reasons stay immutable;
+derived stale states explain context/dimension/version/policy/retirement changes.
+Old published v1 is not invalidated just by new draft v2. Owner false is labelled
+owner_ineffective, not fabricated revoked/cause. No raw body/media, new HTTP route,
+shared DATA-24 change or migration. SQL enumerates all exact-version contexts under
+parent SHARE fence. 24 new component cases / 350 selected local PASS; expanded real
+PostgreSQL 21 PASS (9 C2 + 1 projection + 11 command/history). Portable runtime
+stopped/removed. F03 locally closed; real owner F02 and other audit findings remain.
+This supersedes the absence finding below, not full-card acceptance criteria.
+
 ## C5a requirement audit and handoff — 2026-10-17
 
 Reviewed all 14 original acceptance rows against source and direct evidence,

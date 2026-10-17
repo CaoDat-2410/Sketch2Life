@@ -21,9 +21,12 @@ EXPECTED = {
     "test_conflicting_application_commands_have_one_sql_cas_winner": 3,
     "test_concurrent_duplicate_submit_replays_without_extra_event": 1,
     "test_negative_review_resubmit_preserves_sql_proof_history": 1,
+    "test_derived_history_preserves_original_sql_proofs_across_resubmit": 1,
+    "test_history_sql_edit_and_recall_do_not_rewrite_old_approval": 2,
 }
 SOURCES = (
     "backend/src/sketch2life/application/learning_content_commands.py",
+    "backend/src/sketch2life/application/learning_content_history.py",
     "backend/src/sketch2life/application/learning_content_eligibility.py",
     "backend/src/sketch2life/application/ports/learning_content.py",
     "backend/src/sketch2life/contracts/schemas/learning_content.py",
