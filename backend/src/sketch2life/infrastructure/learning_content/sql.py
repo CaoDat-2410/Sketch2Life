@@ -37,6 +37,24 @@ class SqlContentTransaction:
     def __init__(self, connection: Connection) -> None:
         self.connection = connection
 
+    def published_versions(self, organization_id: str,
+                           record_id: str) -> tuple[ContentVersion, ...]:
+        # Hold the parent SHARE boundary before enumerating versions. Recall/edit
+        # takes UPDATE on that same row, so resolution cannot mix snapshots.
+        if self.load(organization_id, record_id) is None:
+            return ()
+        versions: list[int] = list(self.connection.execute(select(VERSION.c.version).where(
+            VERSION.c.organization_id == organization_id,
+            VERSION.c.record_id == record_id,
+            VERSION.c.state == ContentState.PUBLISHED.value,
+        ).order_by(VERSION.c.version.desc())).scalars())
+        result: list[ContentVersion] = []
+        for version in versions:
+            content = self.load(organization_id, record_id, version=version)
+            if content is not None:
+                result.append(content)
+        return tuple(result)
+
     def load(self, organization_id: str, record_id: str, *, version: int | None = None,
              for_update: bool = False) -> ContentVersion | None:
         query = select(RECORD).where(

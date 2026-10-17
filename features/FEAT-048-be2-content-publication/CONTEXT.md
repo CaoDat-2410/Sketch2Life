@@ -1,5 +1,16 @@
 # FEAT-048 — BE2-12 content authoring, publication and recall
 
+## C3a eligibility result — 2026-10-17
+
+Published-content projection now checks scoped READ capability, exact current
+policy/source/moderation and both current exact reviews. Explicit version/hash
+never falls back; head drafts cannot hide published versions. Typed owner guard
+is held outside storage through commit; its real BE1/BE2-05 adapter is NOT adopted.
+44 new component cases / 136 selected component cases PASS. Real PostgreSQL 17.11:
+9 C2 regressions + 1 new publication/draft/recall projection test PASS. Portable
+setup completed end-to-end and was cleaned. C3 mutation service, C4 and C5 remain.
+See evidence/notes/C3A_ELIGIBILITY_20261017.md and plan/C3_BOUNDARY_CANDIDATE.md.
+
 ## C2 runtime result — 2026-10-17
 
 Owner separately approved isolated local PostgreSQL 17 setup/test/cleanup.

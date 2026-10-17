@@ -6,7 +6,8 @@ Secrets remain in the isolated runtime directory, never command arguments/logs.
 [CmdletBinding()]
 param(
     [Parameter(Mandatory=$true)][string]$RuntimeParent,
-    [Parameter(Mandatory=$true)][string]$Python
+    [Parameter(Mandatory=$true)][string]$Python,
+    [switch]$IncludeC3Projection
 )
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
@@ -98,9 +99,30 @@ try {
     Write-Output 'Running actual C2 migration/storage/race suite...'
     & $Python (Join-Path $PSScriptRoot 'run_c2_sql_checks.py')
     $result = $LASTEXITCODE
+    $projectionResult = 'NOT_RUN'
+    if ($IncludeC3Projection -and $result -eq 0) {
+        Write-Output 'Running C3a published-version SQL projection regression...'
+        $projectionXml = Join-Path $preserved 'c3-projection-junit.xml'
+        Push-Location (Join-Path $repoRoot 'backend')
+        try {
+            & $Python -m pytest -o 'addopts=' -q --tb=short "--junitxml=$projectionXml" `
+                tests/integration/learning_content/test_published_projection_sql.py
+            $projectionExit = $LASTEXITCODE
+        } finally { Pop-Location }
+        if (Test-Path -LiteralPath $projectionXml) {
+            [xml]$projectionReport = Get-Content -LiteralPath $projectionXml -Raw
+            $projectionCases = @($projectionReport.SelectNodes('//testcase'))
+            if ($projectionExit -eq 0 -and $projectionCases.Count -eq 1 -and
+                $projectionCases[0].name -eq 'test_published_projection_survives_new_draft_and_removes_recalled_version' -and
+                $projectionReport.SelectNodes('//failure|//error|//skipped').Count -eq 0) {
+                $projectionResult = 'PASS'
+            } else { $projectionResult = 'FAIL'; $result = 1 }
+        } else { $projectionResult = 'FAIL'; $result = 1 }
+    }
     [IO.File]::WriteAllText((Join-Path $preserved 'environment.json'), (
         @{source=$source; archive_sha256=$archiveHash; version='17.11';
-          bind='127.0.0.1'; port=$port; c2_runner_exit=$result} | ConvertTo-Json))
+          bind='127.0.0.1'; port=$port; combined_runner_exit=$result;
+          c3_projection=$projectionResult} | ConvertTo-Json))
 } finally {
     if ($pgctl -and (Test-Path -LiteralPath (Join-Path $clusterPath 'postmaster.pid'))) {
         Invoke-HiddenNative $pgctl @('-D', $clusterPath, '-m', 'fast', '-w', '-t', '30', 'stop') 'stop'
