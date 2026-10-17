@@ -37,6 +37,18 @@ class SqlContentTransaction:
     def __init__(self, connection: Connection) -> None:
         self.connection = connection
 
+    def review_history(self, organization_id: str, record_id: str, *, version: int,
+                       after_revision: int, limit: int) -> tuple[ReviewProof, ...]:
+        # Same parent SHARE fence as resolution: writers cannot change effective
+        # context/state during history projection. Never filter old contexts out.
+        if self.load(organization_id, record_id, version=version) is None:
+            return ()
+        rows: list[dict[str, Any]] = list(self.connection.execute(select(REVIEW.c.proof).where(
+            REVIEW.c.organization_id == organization_id, REVIEW.c.record_id == record_id,
+            REVIEW.c.version == version, REVIEW.c.review_revision > after_revision,
+        ).order_by(REVIEW.c.review_revision).limit(limit)).scalars())
+        return tuple(ReviewProof(**row) for row in rows)
+
     def published_versions(self, organization_id: str,
                            record_id: str) -> tuple[ContentVersion, ...]:
         # Hold the parent SHARE boundary before enumerating versions. Recall/edit

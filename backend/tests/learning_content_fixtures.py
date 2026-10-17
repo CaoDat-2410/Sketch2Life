@@ -110,6 +110,7 @@ class ComponentStore:
         self.heads: dict[tuple[str, str], tuple[int, int]] = {}
         self.receipts: dict[tuple[str, str, str], ContentReceipt] = {}
         self.events: list[ContentEvent] = []
+        self.proofs: dict[tuple[str, str], ReviewProof] = {}
         self.fail_receipt = False
         self.commits = 0
 
@@ -117,13 +118,13 @@ class ComponentStore:
     def transaction(self) -> Iterator[ContentTransaction]:
         assert self.boundary.held
         with self.lock:
-            before = deepcopy((self.versions, self.heads, self.receipts, self.events))
+            before = deepcopy((self.versions, self.heads, self.receipts, self.events, self.proofs))
             try:
                 yield cast(ContentTransaction, self)
                 assert self.boundary.held
                 self.commits += 1
             except Exception:
-                self.versions, self.heads, self.receipts, self.events = before
+                self.versions, self.heads, self.receipts, self.events, self.proofs = before
                 assert self.boundary.held
                 raise
 
@@ -153,7 +154,17 @@ class ComponentStore:
             raise ContentError("CONTENT_STALE_REVISION")
         self.heads[key] = (max(head[0] if head else 0, content.version), content.revision)
         self.versions[(*key, content.version)] = content
+        for proof in content.reviews:
+            self.proofs.setdefault((content.organization_id, proof.review_id), proof)
         self.events.append(event)
+
+    def review_history(self, organization_id: str, record_id: str, *, version: int,
+                       after_revision: int, limit: int) -> tuple[ReviewProof, ...]:
+        return tuple(sorted((p for (org, _), p in self.proofs.items()
+                             if org == organization_id and p.target_id == record_id
+                             and p.target_version == version
+                             and p.review_revision > after_revision),
+                            key=lambda p: p.review_revision))[:limit]
 
     def receipt(self, organization_id: str, principal_id: str,
                 request_id: str) -> ContentReceipt | None:

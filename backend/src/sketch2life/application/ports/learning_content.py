@@ -30,6 +30,9 @@ class ContentReceipt:
 
 
 class ContentTransaction(Protocol):
+    def review_history(self, organization_id: str, record_id: str, *, version: int,
+                       after_revision: int, limit: int) -> tuple[ReviewProof, ...]: ...
+
     def published_versions(self, organization_id: str,
                            record_id: str) -> tuple[ContentVersion, ...]: ...
 

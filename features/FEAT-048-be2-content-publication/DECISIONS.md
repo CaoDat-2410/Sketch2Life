@@ -1,5 +1,19 @@
 # Feature decisions
 
+## D10 — immutable original vs derived review-history status — 2026-10-17
+
+Resolve local F03 with a BE2-12 read-only projection, not a new review authority
+or mutation of shared DATA-24/original proofs. Current scoped READ and outer guard
+remain mandatory through transaction. History can remain readable after unsafe
+source/recall because it contains review metadata, not permission/media for usage.
+Bound pages to 100 as technical admission and require unchanged global record
+revision for continuation. Do not mix snapshot-derived statuses across pages.
+Use explicit stale reason priority documented in REVIEW_HISTORY_CANDIDATE.md;
+an older published version stays effective unless a separate current condition
+invalidates it. Boolean owner effectiveness cannot identify external revocation
+cause, so label owner_ineffective and keep real cause/adoption as F02. No schema
+migration, shared-contract rewrite, default route mount or consumer shortcut.
+
 ## D09 — audit preserves unfinished requirements — 2026-10-17
 
 C5a is a self-review/handoff checkpoint, not permission to mark BE2-12 complete.

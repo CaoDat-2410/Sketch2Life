@@ -20,8 +20,8 @@
   from new resolution, and immutable history remains. Runtime removed afterwards.
 - C3b: all eight content actions wired in application; shared DATA-24 response,
   record/review CAS, guarded duplicate replay and atomic receipts/events/outbox.
-- Current selected local suite: 293 PASS / 0 skip (183 content, 110 foundation).
-- Current PostgreSQL: 9 C2 + 1 C3a + 8 C3b PASS; C3b includes actual SQL unique
+- Historical C3b local suite: 293 PASS / 0 skip (183 content, 110 foundation).
+- Historical C3b PostgreSQL: 9 C2 + 1 C3a + 8 C3b PASS; C3b includes actual SQL unique
   winner recovery, rollback and edit/review/publish/recall CAS cases.
 - C4a: candidate content-only HTTP seam 33 tests PASS; 326 selected local cases
   PASS / 0 skip. All eight content actions, safe errors, strict If-Match/body
@@ -38,10 +38,14 @@
   preset/AI/core-policy payloads to conceal CR-C4-01.
 - C5a audit/handoff prepared against 89426fd: AC01–14 reviewed; full-card NOT
   COMPLETE. Open findings F01–05 tracked in artifacts/ACCEPTANCE_AUDIT_20261017.md.
-- Local actionable finding F03: derived authorized stale-review history/reason
-  projection absent; preserved SQL rows alone do not satisfy that full requirement.
-- Next implementation: F03 history projection/tests; external owner contracts
-  remain open but do not block this safe local work. No goal completion asserted.
+- F03 local projection CLOSED_COMPONENT_AND_OWNED_SQL: current READ-authorized,
+  paginated immutable-proof history with explicit derived stale reasons; owner
+  revocation-cause/fencing/adoption remains F02, not fabricated by a boolean port.
+- Latest selected local suite: 350 PASS / 0 skip (240 content, 110 foundation).
+- Latest PostgreSQL: 9 C2 + 1 projection + 11 command/history PASS; source-pinned
+  history/resubmit/edit/recall/pagination tests; temporary runtime cleaned.
+- Next: resolve/review remaining F01/F02/F04/F05 gates, including full dispatcher,
+  real owner adapters/consumers and approved terminal-version reintroduction semantics.
 - Revalidation: 326 selected local PASS / 0 skip (5.42s), Mypy 8 source files
   PASS, focused Ruff PASS, all 15 latest C3b runtime dependency hashes still match.
 - Evidence: evidence/notes/C2_LOCAL_POSTGRES_20261017.md; first runtime FAIL
@@ -52,4 +56,6 @@
   artifacts/CR_C4_OWNER_DELEGATES.md (OPEN, no owner sign-off inferred).
 - C5a handoff: artifacts/BE2_12_HANDOFF_20261017.md; five remaining work packages
   are not five new backlog cards, and handoff is not acceptance closure.
+- F03 evidence: evidence/notes/F03_REVIEW_HISTORY_20261017.md and matching metrics;
+  artifacts/REVIEW_HISTORY_CANDIDATE.md documents projection semantics/limits.
 - Git: planning commit allowed by active goal; no push/merge/deploy.
