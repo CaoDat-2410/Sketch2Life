@@ -20,6 +20,14 @@ on this branch; no service/cloud/package activation, push/merge/deploy or
 cross-owner sign-off is inferred. Approval record is authoritative over older
 planning-state wording below.
 
+## C1 result — 2026-10-17
+
+Domain/content-command implementation and 79 new tests pass; combined focused
+foundation regressions 189 pass. Focused Ruff/Mypy pass. No shared foundation
+source changed. See evidence/notes/C1_DOMAIN_CONTRACTS_20261017.md. Authority
+objects are internal verified-input contracts, not live authentication.
+SQL/runtime/integration and complete CMD-48 routing remain future checkpoints.
+
 ## Authority and source context
 
 The active owner goal authorizes preparation, a separate branch, autonomous local
