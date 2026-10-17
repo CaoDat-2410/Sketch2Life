@@ -21,7 +21,10 @@ from sketch2life.application.ports.ai_policy_copy_registry import ProviderCopyIn
 from sketch2life.contracts.schemas.ai_contract_candidates import OpaqueId, Sha256Hex
 from sketch2life.contracts.schemas.ai_policy import PolicyDefinitionRef
 from sketch2life.contracts.schemas.ai_policy_copy import ProviderCopyCommand
-from sketch2life.contracts.schemas.ai_policy_copy_delivery import CopyDeliveryAuthority
+from sketch2life.contracts.schemas.ai_policy_copy_delivery import (
+    CopyDeliveryAuthority,
+    CopyDeliveryAuthorityEvidence,
+)
 from sketch2life.contracts.schemas.ai_policy_copy_operation import CopyOperationEnvelope
 from sketch2life.domain.ai_policy.copy_delivery import DeliveryResponse, DeliveryState, HookOutcome
 from sketch2life.domain.ai_policy.model import PolicyError
@@ -159,15 +162,39 @@ class ProviderCopyDispatcher:
                     )
                     if self._authority(access, envelope, state, "claim") != authority:
                         raise PolicyError("AI_POLICY_COPY_AUTHORITY_MISMATCH")
+                    tx.record_delivery_authority(
+                        CopyDeliveryAuthorityEvidence(
+                            organization_id=organization_id,
+                            principal_id=principal_id,
+                            scope_ref=command.scope_ref,
+                            operation_key=operation_key,
+                            phase="claim",
+                            state_revision=state.revision,
+                            authority=authority,
+                            observed_at=self.clock(),
+                        )
+                    )
                 # Own claim committed; subsequent failure MUST NOT pretend to roll it back.
                 dispatch_auth = self._authority(access, envelope, claimed, "dispatch")
                 with self.store.transaction(
-                    organization_id, command.scope_ref, principal_id=principal_id
+                    organization_id, command.scope_ref, principal_id=principal_id, for_update=True
                 ) as tx:
                     if tx.get_delivery(operation_key) != claimed:
                         raise PolicyError("AI_POLICY_COPY_DELIVERY_STALE")
                     if self._authority(access, envelope, claimed, "dispatch") != dispatch_auth:
                         raise PolicyError("AI_POLICY_COPY_AUTHORITY_MISMATCH")
+                    tx.record_delivery_authority(
+                        CopyDeliveryAuthorityEvidence(
+                            organization_id=organization_id,
+                            principal_id=principal_id,
+                            scope_ref=command.scope_ref,
+                            operation_key=operation_key,
+                            phase="dispatch",
+                            state_revision=claimed.revision,
+                            authority=dispatch_auth,
+                            observed_at=self.clock(),
+                        )
+                    )
                 if self._authority(access, envelope, claimed, "dispatch") != dispatch_auth:
                     raise PolicyError("AI_POLICY_COPY_AUTHORITY_MISMATCH")
                 if claimed.claim_expires_at is None or claimed.claim_expires_at <= self.clock():
@@ -210,6 +237,18 @@ class ProviderCopyDispatcher:
                     )
                     if self._authority(access, envelope, claimed, "completion") != completion:
                         raise PolicyError("AI_POLICY_COPY_AUTHORITY_MISMATCH")
+                    tx.record_delivery_authority(
+                        CopyDeliveryAuthorityEvidence(
+                            organization_id=organization_id,
+                            principal_id=principal_id,
+                            scope_ref=command.scope_ref,
+                            operation_key=operation_key,
+                            phase="completion",
+                            state_revision=claimed.revision,
+                            authority=completion,
+                            observed_at=self.clock(),
+                        )
+                    )
                 return result
         except PolicyError:
             raise

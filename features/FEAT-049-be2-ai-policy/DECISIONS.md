@@ -1,5 +1,19 @@
 # Feature decisions
 
+## D21 — phase history references immutable source states, not current permission
+
+2026-10-18, approved P4/P5 C4c4. Own append-only ap_0008 evidence stores actor/org/
+scope/key, phase, BEFORE delivery revision, observed grant/deadline/time. Original
+immutable operation binds data-request/profile. Reconstruct source snapshot from
+immutable delivery history (rev0 queued only for existing operation), recompute
+full phase digest and validate authorized transition against current snapshot.
+Claim and completion evidence share mutation rollback. Dispatch now uses UPDATE
+UoW to durably record preparation evidence/outbox before hook; still no DB lock
+during hook. This history does not prove send, provider ack/deletion or authority
+for later execution. Missing/failure proof never silently falls back to no-op.
+Actual owner/source commit/deadline fences and provider dedup remain unadopted;
+SQL91 NOT_RUN, not completed acceptance from memory/offline checks.
+
 ## D20 — each delivery phase needs current authority, never an old envelope grant
 
 2026-10-18 approved C4/P4/P5. New explicit delivery authority port binds exact

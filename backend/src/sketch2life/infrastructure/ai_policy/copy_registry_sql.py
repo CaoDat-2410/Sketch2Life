@@ -15,6 +15,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import DBAPIError, IntegrityError
 
 from sketch2life.application.ai_policy_commands import _digest
+from sketch2life.application.ai_policy_copy_delivery_evidence import validate_delivery_evidence
 from sketch2life.application.ai_policy_copy_operations import (
     validate_operation,
     validate_operation_authorization,
@@ -26,6 +27,7 @@ from sketch2life.application.ports.ai_policy_copy_registry import (
     RegisteredProviderCopy,
 )
 from sketch2life.contracts.schemas.ai_contract_candidates import OpaqueId
+from sketch2life.contracts.schemas.ai_policy_copy_delivery import CopyDeliveryAuthorityEvidence
 from sketch2life.contracts.schemas.ai_policy_copy_history import CopyInventoryEvidence
 from sketch2life.contracts.schemas.ai_policy_copy_operation import (
     CopyOperationAuthorization,
@@ -49,6 +51,7 @@ from sketch2life.infrastructure.ai_policy.copy_delivery_codec import (
 from sketch2life.infrastructure.ai_policy.copy_registry_tables import (
     COPY_COVERAGE,
     COPY_DELIVERY,
+    COPY_DELIVERY_AUTHORITY,
     COPY_DELIVERY_HISTORY,
     COPY_EVENT,
     COPY_EVIDENCE,
@@ -168,6 +171,58 @@ class SqlProviderCopyRegistryTransaction:
     def _write(self) -> None:
         if not self.writable:
             raise PolicyError("AI_POLICY_COPY_REGISTRY_READ_ONLY")
+
+    def record_delivery_authority(self, evidence: CopyDeliveryAuthorityEvidence) -> None:
+        self._write()
+        try:
+            evidence = CopyDeliveryAuthorityEvidence.model_validate(
+                evidence.model_dump(mode="python"), strict=True
+            )
+        except (ValueError, TypeError, AttributeError):
+            raise PolicyError("AI_POLICY_INVALID_DELIVERY_AUTHORITY_EVIDENCE") from None
+        if (evidence.organization_id, evidence.scope_ref, evidence.principal_id) != (
+            self.organization_id,
+            self.scope_ref,
+            self.principal_id,
+        ):
+            raise PolicyError("AI_POLICY_COPY_SCOPE_MISMATCH")
+        envelope = self.get_operation(evidence.operation_key)
+        if envelope is None:
+            raise PolicyError("AI_POLICY_COPY_OPERATION_NOT_FOUND")
+        if evidence.state_revision == 0:
+            before = DeliveryState(envelope.operation_key, envelope.binding_digest)
+        else:
+            snapshot = self.connection.execute(
+                select(COPY_DELIVERY_HISTORY.c.snapshot).where(
+                    COPY_DELIVERY_HISTORY.c.organization_id == self.organization_id,
+                    COPY_DELIVERY_HISTORY.c.scope_ref == self.scope_ref,
+                    COPY_DELIVERY_HISTORY.c.operation_key == evidence.operation_key,
+                    COPY_DELIVERY_HISTORY.c.revision == evidence.state_revision,
+                )
+            ).scalar_one_or_none()
+            if snapshot is None:
+                raise PolicyError("AI_POLICY_INVALID_DELIVERY_AUTHORITY_EVIDENCE")
+            before = decode_delivery(snapshot)
+        evidence = validate_delivery_evidence(
+            evidence, envelope, before, self.get_delivery(evidence.operation_key)
+        )
+        self.connection.execute(
+            insert(COPY_DELIVERY_AUTHORITY).values(
+                organization_id=self.organization_id,
+                scope_ref=self.scope_ref,
+                operation_key=evidence.operation_key,
+                evidence_id="delivery-proof." + uuid4().hex,
+                evidence=evidence.model_dump(mode="json"),
+            )
+        )
+        self._advance(
+            "ai_policy.copy_delivery_authorized",
+            {
+                "operation_key": evidence.operation_key,
+                "phase": evidence.phase,
+                "delivery_revision": self.get_delivery(evidence.operation_key).revision,
+            },
+        )
 
     def get_delivery(self, operation_key: str) -> DeliveryState:
         operation = self.get_operation(operation_key)

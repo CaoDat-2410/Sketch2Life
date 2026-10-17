@@ -92,6 +92,8 @@ COPIES_EXPECTED = {
     "test_delivery_history_cannot_be_rewritten_by_raw_sql": 2,
     "test_guarded_dispatch_sql_claim_committed_before_synthetic_hook": 1,
     "test_guarded_dispatch_sql_completion_denial_keeps_committed_claim": 1,
+    "test_delivery_authority_sql_history_is_immutable": 2,
+    "test_delivery_authority_insert_failure_rolls_back_claim_before_hook": 1,
 }
 
 

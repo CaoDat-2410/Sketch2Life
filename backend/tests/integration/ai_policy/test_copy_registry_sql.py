@@ -22,6 +22,7 @@ from sketch2life.infrastructure.ai_policy.copy_registry_sql import SqlProviderCo
 from sketch2life.infrastructure.ai_policy.copy_registry_tables import (
     COPY_COVERAGE,
     COPY_DELIVERY,
+    COPY_DELIVERY_AUTHORITY,
     COPY_DELIVERY_HISTORY,
     COPY_EVENT,
     COPY_EVIDENCE,
@@ -282,6 +283,10 @@ def test_guarded_dispatch_sql_claim_committed_before_synthetic_hook(inventory_st
     assert dispatch(dispatcher, op).status is DeliveryStatus.PENDING
     assert observed == [DeliveryStatus.IN_FLIGHT]
     assert count(inventory_store, COPY_DELIVERY_HISTORY) == 2
+    inventory_store.engine.dispose()
+    with inventory_store.engine.connect() as connection:
+        proofs = connection.execute(select(COPY_DELIVERY_AUTHORITY.c.evidence)).scalars().all()
+    assert sorted(p["phase"] for p in proofs) == ["claim", "completion", "dispatch"]
 
 
 def test_guarded_dispatch_sql_completion_denial_keeps_committed_claim(inventory_store):
@@ -305,6 +310,55 @@ def test_guarded_dispatch_sql_completion_denial_keeps_committed_claim(inventory_
     with transaction(inventory_store) as tx:
         assert tx.get_delivery(op.operation_key).status is DeliveryStatus.IN_FLIGHT
     assert len(hook.calls) == 1 and count(inventory_store, COPY_DELIVERY_HISTORY) == 1
+    assert count(inventory_store, COPY_DELIVERY_AUTHORITY) == 2
+
+
+@pytest.mark.parametrize("mutation", ["update", "delete"])
+def test_delivery_authority_sql_history_is_immutable(inventory_store, mutation):
+    test_guarded_dispatch_sql_claim_committed_before_synthetic_hook(inventory_store)
+    statement = (
+        update(COPY_DELIVERY_AUTHORITY).values(evidence={})
+        if mutation == "update"
+        else delete(COPY_DELIVERY_AUTHORITY)
+    )
+    with pytest.raises(DBAPIError), inventory_store.engine.begin() as connection:
+        connection.execute(statement)
+    assert count(inventory_store, COPY_DELIVERY_AUTHORITY) == 3
+
+
+def test_delivery_authority_insert_failure_rolls_back_claim_before_hook(inventory_store):
+    from sketch2life.application.ai_policy_copy_dispatch import ProviderCopyDispatcher
+    from tests.ai_policy_copy_dispatch_fixtures import (
+        AssumedDispatchBoundary,
+        SyntheticHook,
+        dispatch,
+    )
+    from tests.ai_policy_copy_inventory_fixtures import AssumedInventoryBoundary
+    from tests.unit.test_ai_policy_domain import NOW
+
+    op = scheduled_delivery(inventory_store)
+    with inventory_store.engine.begin() as connection:
+        connection.execute(
+            text("""
+          CREATE FUNCTION ai_policy.synthetic_phase_failure() RETURNS trigger
+          LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'SYNTHETIC_PHASE_FAILURE'; END; $$
+        """)
+        )
+        connection.execute(
+            text("""
+          CREATE TRIGGER synthetic_phase_failure BEFORE INSERT ON ai_policy.copy_delivery_authority
+          FOR EACH ROW EXECUTE FUNCTION ai_policy.synthetic_phase_failure()
+        """)
+        )
+    boundary = AssumedDispatchBoundary(AssumedInventoryBoundary())
+    hook = SyntheticHook(boundary)
+    dispatcher = ProviderCopyDispatcher(inventory_store, boundary, hook, clock=lambda: NOW)
+    with pytest.raises(PolicyError, match="AI_POLICY_COPY_REGISTRY_STORAGE_UNAVAILABLE"):
+        dispatch(dispatcher, op)
+    assert not hook.calls and count(inventory_store, COPY_DELIVERY_AUTHORITY) == 0
+    assert (
+        count(inventory_store, COPY_DELIVERY) == count(inventory_store, COPY_DELIVERY_HISTORY) == 0
+    )
 
 
 def test_delivery_claim_reconnect_finish_and_replay_are_atomic_metadata(inventory_store):

@@ -1,6 +1,12 @@
 # FEAT-049 — BE2-14 AI policy / limits / kill switch
 
 - Goal: full BE2-14 card, including ProviderCopyLifecycle and redacted projections.
+- Latest C4c4 (2026-10-18): immutable phase authority ap_0008, exact before-state
+  history reconstruction/grant binding/transition checks in own UoW. Claim and
+  completion proofs atomic with mutation; dispatch proof durable before hook,
+  not evidence of actual send or deletion. 828 own +477 regression +114 foundation
+  PASS; PG91 NOT_RUN. Next pending filter, verified lifecycle/ack, C5/C6. Real
+  current-authority/provider/deadline adoption separate; no live hook invocation.
 - Latest C4c3 (2026-10-18): current-phase delivery/retry authority and dispatcher
   compose durable claim -> hook outside DB -> guarded completion. Missing hook/
   exception/malformed reply remain truthful non-deletion metadata. Revocation/
