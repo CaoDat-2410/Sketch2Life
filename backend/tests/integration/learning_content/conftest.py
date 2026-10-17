@@ -11,6 +11,18 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.engine import URL, Engine
 
+from sketch2life.infrastructure.config.settings import get_core_database_settings
+
+
+@pytest.fixture(autouse=True)
+def isolated_database_config() -> Iterator[None]:
+    """Every disposable DB has its own URL; never retain a dropped DB in cache."""
+    get_core_database_settings.cache_clear()
+    try:
+        yield
+    finally:
+        get_core_database_settings.cache_clear()
+
 
 @pytest.fixture
 def content_engine() -> Iterator[Engine]:

@@ -1,5 +1,14 @@
 # FEAT-048 — BE2-12 content authoring, publication and recall
 
+## C2 runtime result — 2026-10-17
+
+Owner separately approved isolated local PostgreSQL 17 setup/test/cleanup.
+Direct PostgreSQL 17.11 restricted-role tests: 9/9 PASS; selected combined suite
+211 PASS / no skip. Fixed per-test database-settings cache isolation; strengthened
+restart proof with a separate Python process. Cluster/binaries/secrets stopped
+and removed, raw FAIL/PASS receipts retained privately. C3/C4/C5 incomplete.
+See evidence/notes/C2_LOCAL_POSTGRES_20261017.md for source-bound limits.
+
 - Status: IN_PROGRESS
 - Owner: second BE2 executor, BE2-12 only.
 - Goal: versioned learning-library content with exact safety/pedagogical review,

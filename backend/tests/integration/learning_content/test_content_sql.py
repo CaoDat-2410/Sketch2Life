@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+import json
+import os
+import subprocess
+import sys
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 from pathlib import Path
@@ -65,6 +69,35 @@ def test_restart_reads_bytes_and_atomic_event_outbox(content_engine, monkeypatch
     with content_engine.connect() as connection:
         assert connection.scalar(select(func.count()).select_from(EVENT)) == 1
         assert connection.scalar(select(func.count()).select_from(OUTBOX)) == 1
+    # A second Python process and new engine must recover committed bytes.
+    # Merely reconstructing a repository over the same pool is not restart proof.
+    content_engine.dispose()
+    environment = os.environ.copy()
+    environment["LC_CHILD_DATABASE_URL"] = content_engine.url.render_as_string(hide_password=False)
+    environment["PYTHONPATH"] = (
+        str(BACKEND / "src") + os.pathsep + environment.get("PYTHONPATH", ""))
+    child = subprocess.run(
+        [sys.executable, "-c", """
+import json, os
+from sqlalchemy import create_engine, select, func
+from sketch2life.infrastructure.learning_content.sql import SqlContentStore
+from sketch2life.infrastructure.learning_content.tables import EVENT, OUTBOX
+engine = create_engine(os.environ["LC_CHILD_DATABASE_URL"], hide_parameters=True)
+with SqlContentStore(engine).transaction() as tx:
+    content = tx.load("school", "record")
+    assert content is not None
+    snapshot = {"hash": content.hash, "revision": content.revision, "pid": os.getpid()}
+with engine.connect() as connection:
+    snapshot["events"] = connection.scalar(select(func.count()).select_from(EVENT))
+    snapshot["outbox"] = connection.scalar(select(func.count()).select_from(OUTBOX))
+engine.dispose()
+print(json.dumps(snapshot))
+"""],
+        env=environment, cwd=BACKEND, capture_output=True, text=True, timeout=30, check=True)
+    snapshot = json.loads(child.stdout)
+    assert snapshot["pid"] != os.getpid()
+    assert snapshot["hash"] == original.hash
+    assert (snapshot["revision"], snapshot["events"], snapshot["outbox"]) == (1, 1, 1)
 
 
 def test_exception_rolls_back_state_receipt_and_events(content_engine, monkeypatch) -> None:

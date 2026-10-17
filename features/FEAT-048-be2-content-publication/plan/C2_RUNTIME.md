@@ -1,6 +1,10 @@
 # C2 runtime test instructions — no GPU needed
 
-Status: READY_FOR_OWNER_ENVIRONMENT, SQL tests NOT_RUN locally.
+Status: direct local PostgreSQL 17.11 run PASS on 2026-10-17 under separate
+owner approval, with 9/9 SQL cases and 211 selected combined cases passing.
+Environment was stopped/removed. See evidence/notes/C2_LOCAL_POSTGRES_20261017.md.
+Instructions below remain the external-profile reproduction path, not a claim
+that a local database/service is still running.
 Use the committed BE2-12 checkpoint and a separate existing approved Python
 environment, not the sender's pinned BE2-01 Studio checkout. No git pull into
 that checkout. Record git branch/HEAD before running.

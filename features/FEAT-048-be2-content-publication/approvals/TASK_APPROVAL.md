@@ -1,5 +1,16 @@
 # Task approval
 
+## Local PostgreSQL test environment approval — 2026-10-17
+
+After a read-only inventory found no PostgreSQL/Docker runtime, the owner replied
+"duyệt" to the explicit proposal to set up isolated PostgreSQL 17 locally,
+run the tests autonomously and clean the temporary environment.
+This overrides the earlier no-install/start boundary only for the isolated
+BE2-12 synthetic PostgreSQL test environment. Use official portable binaries,
+loopback binding, random private credentials, disposable DBs and stop/cleanup.
+No Docker/GPU/model installation, system service, production DB, remote server,
+push/merge/deployment or other business card is authorized.
+
 - Status: APPROVED
 - Approver: project owner, direct reply in this conversation.
 - Approved scope: BE2-12 plan revision 1, including P1–P4; autonomous local implementation/checks and scoped commits.
