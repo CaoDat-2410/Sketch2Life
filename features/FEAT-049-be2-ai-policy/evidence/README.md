@@ -16,5 +16,8 @@
 - C3C1_EMERGENCY_STOP_20261017: 31 additional component cases, 283 own total;
   exact epoch stop/replay/current authority and rollback with memory UoW. Runtime
   pack now 22 SQL cases prepared, all NOT_RUN pending separately authorized profile.
+- C3C2_USE_ELIGIBILITY_20261017: 53 additional cases, 336 own +477 existing selected
+  regression PASS. Current-use/request pin/origin+stop history component; SQL pack
+  25 cases prepared, NOT_RUN. Not actual current owner/worker/budget authorization.
 - Keep raw outputs synthetic/redacted; secrets/runtime archives remain ignored.
 - After implementation, link exact source hashes/commands/results per acceptance.

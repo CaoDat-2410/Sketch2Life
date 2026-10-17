@@ -26,6 +26,51 @@ class SqlActivationQueries:
     connection: Connection
     _scope_locks: set[tuple[str, str]]
 
+    def was_activated(self, scope: EffectivePolicyScope) -> bool:
+        if (
+            type(scope.epoch) is not int
+            or scope.epoch < 1
+            or scope.disabled is not False
+            or scope.record_id is None
+            or scope.version is None
+            or scope.hash is None
+        ):
+            raise PolicyError("AI_POLICY_PIN_MISMATCH")
+        return (
+            self.connection.execute(
+                select(SCOPE_EVENT.c.epoch).where(
+                    SCOPE_EVENT.c.organization_id == scope.organization_id,
+                    SCOPE_EVENT.c.feature_scope == scope.feature_scope,
+                    SCOPE_EVENT.c.epoch == scope.epoch,
+                    SCOPE_EVENT.c.payload["kind"].as_string() == "ai_policy.activated",
+                    SCOPE_EVENT.c.payload["disabled"].as_boolean().is_(False),
+                    SCOPE_EVENT.c.payload["record_id"].as_string() == scope.record_id,
+                    SCOPE_EVENT.c.payload["version"].as_integer() == scope.version,
+                    SCOPE_EVENT.c.payload["hash"].as_string() == scope.hash,
+                )
+            ).scalar_one_or_none()
+            is not None
+        )
+
+    def stopped_since(self, organization_id: str, feature_scope: str, *, after_epoch: int) -> bool:
+        if type(after_epoch) is not int or after_epoch < 1:
+            raise PolicyError("AI_POLICY_INVALID_EPOCH")
+        # Caller first holds feature SHARE/UPDATE lock through this read and use.
+        # Immutable stop history prevents old pins reviving after later activation.
+        return (
+            self.connection.execute(
+                select(SCOPE_EVENT.c.epoch)
+                .where(
+                    SCOPE_EVENT.c.organization_id == organization_id,
+                    SCOPE_EVENT.c.feature_scope == feature_scope,
+                    SCOPE_EVENT.c.epoch > after_epoch,
+                    SCOPE_EVENT.c.payload["disabled"].as_boolean().is_(True),
+                )
+                .limit(1)
+            ).scalar_one_or_none()
+            is not None
+        )
+
     def feature_scope(self, organization_id: str, record_id: str) -> str | None:
         # Discovery only, no parent SHARE lock before scope UPDATE. Caller must
         # reload exact target and verify feature after acquiring scope/record locks.

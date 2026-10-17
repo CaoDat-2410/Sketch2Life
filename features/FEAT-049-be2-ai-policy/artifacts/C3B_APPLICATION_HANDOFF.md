@@ -47,12 +47,18 @@ Emergency stop before publication is now supplied separately by AiPolicyEmergenc
 with strict backend-only EmergencyStopCommand. It requires current DISABLE, exact
 scope epoch and reason, atomically records stop intent/receipt, and rejects stale
 replay after reactivation. No endpoint or CMD-48 ninth action is added. Atomic
-budget/concurrency and actual current-work eligibility remain later C3c work.
+budget/concurrency remain later C3c work. Current-work policy eligibility now has
+PolicyUseLeases.begin / continue_use: exact selected profile, immutable request
+context and original policy pin; held current owner guard plus feature SHARE lock.
+Continuation checks exact activation history and any intervening stop. A snapshot
+outside lease is metadata, not permission. No real owner adapter or atomic budget
+reservation is supplied by this check. Consumer must persist original pin and
+commit nested work under adopted guard; never use a returned pin as a bearer token.
 
 ## Verification status
 
-Latest 283 own component cases PASS +477 existing selected regression PASS. C3b/C3c1 use
+Latest 336 own component cases PASS +477 existing selected regression PASS. Components use
 assumed boundary and transactional MEMORY store; not durable SQL/fence proof.
-Actual PostgreSQL 15 lifecycle +7 activation/stop cases prepared/collected, NOT_RUN.
+Actual PostgreSQL 15 lifecycle +10 activation/stop/use cases prepared/collected, NOT_RUN.
 Runtime command pack: artifacts/C2_SQL_RUNTIME.md. No real provider/owner integration,
 cost/load/purge/cancellation proof. Full-card BE2-14 remains IN_PROGRESS.

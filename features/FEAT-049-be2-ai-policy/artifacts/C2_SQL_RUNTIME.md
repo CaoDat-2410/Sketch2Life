@@ -35,7 +35,7 @@ if ($LASTEXITCODE -ne 0) { throw 'BE2-14 PostgreSQL evidence incomplete or faile
 if ($LASTEXITCODE -ne 0) { throw 'BE2-14 activation SQL evidence incomplete or failed' }
 ```
 
-Expected: exact 15 lifecycle +7 activation/emergency-stop full JUnit test identities in separate
+Expected: exact 15 lifecycle +10 activation/stop/current-use full JUnit test identities in separate
 receipts, no fail/error/skip/extra/duplicate,
 unchanged current transitive source/config/test/runner hashes, runner exit 0.
 Missing explicit AP opt-in -> exit 2/NOT_RUN, even if LC opt-in exists. Missing or
@@ -66,6 +66,10 @@ only cleans test DBs. No production migration, new server or install inferred.
 - Emergency-stop additions: before-publication stop persists and replays after
   restart; receipt failure rolls back lazy scope/epoch/intent; stale-epoch stop
   racing reviewed activation cannot disable replacement.
+- Current-use additions: old exact request pin survives ordinary replacement;
+  stop history and forged later epoch deny resurrection after reactivation;
+  real feature SHARE lease blocks stop's update until consumer exits. Lock test
+  checks actual pg_stat_activity wait_event_type, not a sleep/future alone.
 
 Actual owner rights/policy activation/current-source fencing and providers are
 outside C2 SQL proof. They remain explicit separate integration gates.

@@ -1,5 +1,19 @@
 # Feature decisions
 
+## D09 — original pin continuity, no resurrection across stopped epochs
+
+Approved P2/P3 C3c2 gives backend-held current-use leases, not cacheable permission.
+Explicit selected profile, exact request id/revision/input/purpose and original
+policy/version/hash/epoch preserved. Every phase checks current use-authority,
+registry/proofs/governance and scope. Ordinary replacement can preserve old pin
+only while its old exact policy and current eligibility remain valid. Any stop
+after original activation revokes that pin even after new reviewed activation.
+Immutable activation history must match origin pin, so changing epoch cannot
+skip a stop. Scope SHARE lock/current guard held through nested consumer work;
+real owner fence and cross-owner composition remain separate integration proof.
+No new migration, job/session writes, provider/profile values or extra CMD action.
+Actual budget accounting/reservation and phase permission at provider remain open.
+
 ## D08 — emergency stop uses epoch CAS, not stale wildcard cancellation
 
 Approved P3 internal stop contract requires feature/key/expected_epoch/reason;
