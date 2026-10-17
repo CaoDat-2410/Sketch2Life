@@ -14,12 +14,14 @@ from sqlalchemy import Connection, Engine, insert, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import DBAPIError, IntegrityError
 
+from sketch2life.application.ai_policy_commands import _digest
 from sketch2life.application.ports.ai_policy_copy_registry import (
     CopyRegistryPage,
     ProviderCopyRegistryTransaction,
     RegisteredProviderCopy,
 )
 from sketch2life.contracts.schemas.ai_contract_candidates import OpaqueId
+from sketch2life.contracts.schemas.ai_policy_copy_history import CopyInventoryEvidence
 from sketch2life.contracts.schemas.ai_policy_copy_registry import (
     CopyCoverageObservation,
     CopyRegistryRegistration,
@@ -28,6 +30,7 @@ from sketch2life.domain.ai_policy.model import PolicyError
 from sketch2life.infrastructure.ai_policy.copy_registry_tables import (
     COPY_COVERAGE,
     COPY_EVENT,
+    COPY_EVIDENCE,
     COPY_REGISTRATION,
     COPY_SCOPE,
 )
@@ -68,6 +71,29 @@ def validate_page(*, limit: int, after: str | None, expected_revision: int | Non
         raise PolicyError("AI_POLICY_INVALID_COPY_REGISTRY_PAGE")
     if after is not None:
         _id(after)
+
+
+def decode_inventory_evidence(row: Mapping[Any, Any]) -> CopyInventoryEvidence:
+    """Strict historical decode only; callers still need current read authority."""
+    try:
+        value = CopyInventoryEvidence.model_validate_json(json.dumps(row["record"]), strict=True)
+        if (
+            value.command_digest != _digest(value.command_binding())
+            or (
+                value.organization_id,
+                value.context.scope_ref,
+                value.principal_id,
+                value.observed_at,
+            )
+            != (row["organization_id"], row["scope_ref"], row["principal_id"], row["observed_at"])
+            or type(row["inventory_revision"]) is not int
+            or row["inventory_revision"] < 0
+        ):
+            raise ValueError("invalid historical binding")
+        _id(row["evidence_id"])
+        return value
+    except (ValueError, TypeError, KeyError):
+        raise PolicyError("AI_POLICY_INVALID_COPY_EVIDENCE_STORAGE") from None
 
 
 class SqlProviderCopyRegistryTransaction:
@@ -167,6 +193,34 @@ class SqlProviderCopyRegistryTransaction:
             .one_or_none()
         )
         return None if row is None else decode_registration(row)
+
+    def record_evidence(self, evidence: CopyInventoryEvidence) -> None:
+        self._write()
+        try:
+            evidence = CopyInventoryEvidence.model_validate(
+                evidence.model_dump(mode="python"), strict=True
+            )
+            if evidence.command_digest != _digest(evidence.command_binding()):
+                raise ValueError("evidence command digest mismatch")
+        except (TypeError, ValueError, AttributeError):
+            raise PolicyError("AI_POLICY_INVALID_COPY_EVIDENCE") from None
+        if (evidence.organization_id, evidence.context.scope_ref, evidence.principal_id) != (
+            self.organization_id,
+            self.scope_ref,
+            self.principal_id,
+        ):
+            raise PolicyError("AI_POLICY_COPY_SCOPE_MISMATCH")
+        self.connection.execute(
+            insert(COPY_EVIDENCE).values(
+                organization_id=self.organization_id,
+                evidence_id="copy-proof." + uuid4().hex,
+                scope_ref=self.scope_ref,
+                principal_id=self.principal_id,
+                inventory_revision=self.revision,
+                observed_at=evidence.observed_at,
+                record=evidence.model_dump(mode="json"),
+            )
+        )
 
     def register(self, registration: CopyRegistryRegistration) -> RegisteredProviderCopy:
         self._write()

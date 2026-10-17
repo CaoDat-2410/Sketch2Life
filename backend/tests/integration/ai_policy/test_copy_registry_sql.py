@@ -6,7 +6,7 @@ from threading import Barrier
 
 import pytest
 from alembic.config import Config
-from sqlalchemy import func, select, update
+from sqlalchemy import delete, func, select, text, update
 from sqlalchemy.exc import DBAPIError
 
 from alembic import command
@@ -22,6 +22,7 @@ from sketch2life.infrastructure.ai_policy.copy_registry_sql import SqlProviderCo
 from sketch2life.infrastructure.ai_policy.copy_registry_tables import (
     COPY_COVERAGE,
     COPY_EVENT,
+    COPY_EVIDENCE,
     COPY_REGISTRATION,
     COPY_SCOPE,
 )
@@ -132,8 +133,87 @@ def test_inventory_failure_rolls_back_registration_scope_and_event(inventory_sto
         tx.register(registration())
         tx.mark_purging()
         raise PolicyError("SYNTHETIC_FAILURE")
-    for table in (COPY_SCOPE, COPY_REGISTRATION, COPY_EVENT):
+    for table in (COPY_SCOPE, COPY_REGISTRATION, COPY_EVENT, COPY_EVIDENCE):
         assert count(inventory_store, table) == 0
+
+
+def record_guarded_registration(store):
+    from sketch2life.application.ai_policy_copy_inventory import ProviderCopyInventoryService
+    from tests.ai_policy_copy_inventory_fixtures import SOURCE, AssumedInventoryBoundary, context
+    from tests.unit.test_ai_policy_domain import NOW
+
+    service = ProviderCopyInventoryService(store, AssumedInventoryBoundary(), clock=lambda: NOW)
+    service.register("operator", "school", context(), registration(), SOURCE)
+    return service
+
+
+def test_inventory_evidence_reconnect_and_retry_preserve_original_proof(inventory_store):
+    from sketch2life.infrastructure.ai_policy.copy_registry_sql import decode_inventory_evidence
+    from tests.ai_policy_copy_inventory_fixtures import SOURCE, context
+
+    service = record_guarded_registration(inventory_store)
+    inventory_store.engine.dispose()
+    with inventory_store.engine.connect() as connection:
+        original = decode_inventory_evidence(
+            connection.execute(select(COPY_EVIDENCE)).mappings().one()
+        )
+    assert original.source.reference == SOURCE
+    assert original.registration == registration()
+    service.register("operator", "school", context(), registration(), SOURCE)
+    assert count(inventory_store, COPY_EVIDENCE) == 2
+    assert count(inventory_store, COPY_EVENT) == 1
+    with transaction(inventory_store) as tx:
+        assert tx.page(limit=1).revision == 1
+
+
+@pytest.mark.parametrize("mutation", ["update", "delete"])
+def test_inventory_evidence_is_immutable_even_through_raw_sql(inventory_store, mutation):
+    record_guarded_registration(inventory_store)
+    statement = (
+        update(COPY_EVIDENCE).values(record={}) if mutation == "update" else delete(COPY_EVIDENCE)
+    )
+    with pytest.raises(DBAPIError), inventory_store.engine.begin() as connection:
+        connection.execute(statement)
+    assert count(inventory_store, COPY_EVIDENCE) == 1
+
+
+def test_inventory_evidence_insert_failure_rolls_back_registration_and_event(inventory_store):
+    with inventory_store.engine.begin() as connection:
+        connection.execute(
+            text("""
+          CREATE FUNCTION ai_policy.synthetic_evidence_failure() RETURNS trigger
+          LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'SYNTHETIC_EVIDENCE_FAILURE'; END; $$
+        """)
+        )
+        connection.execute(
+            text("""
+          CREATE TRIGGER synthetic_evidence_failure BEFORE INSERT
+          ON ai_policy.copy_inventory_evidence FOR EACH ROW
+          EXECUTE FUNCTION ai_policy.synthetic_evidence_failure()
+        """)
+        )
+    with pytest.raises(PolicyError, match="AI_POLICY_COPY_REGISTRY_STORAGE_UNAVAILABLE"):
+        record_guarded_registration(inventory_store)
+    for table in (COPY_SCOPE, COPY_REGISTRATION, COPY_EVENT, COPY_EVIDENCE):
+        assert count(inventory_store, table) == 0
+
+
+def test_inventory_evidence_forward_branch_roundtrip_preserves_inventory(
+    inventory_store, monkeypatch
+):
+    record_guarded_registration(inventory_store)
+    monkeypatch.setenv(
+        "SKETCH2LIFE_DATABASE_URL", inventory_store.engine.url.render_as_string(hide_password=False)
+    )
+    config = Config(str(BACKEND / "alembic.ini"))
+    config.set_main_option("script_location", str(BACKEND / "alembic"))
+    command.downgrade(config, "20261017_ap_0004")
+    assert count(inventory_store, COPY_REGISTRATION) == 1
+    command.upgrade(config, "ai_policy@head")
+    assert count(inventory_store, COPY_EVIDENCE) == 0
+    record_guarded_registration(inventory_store)
+    assert count(inventory_store, COPY_EVIDENCE) == 1
+    assert count(inventory_store, COPY_EVENT) == 1
 
 
 def test_inventory_keyset_pages_stable_revision_and_reject_intervening_registration(

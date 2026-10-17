@@ -74,6 +74,10 @@ COPIES_EXPECTED = {
     "test_inventory_missing_scope_reader_does_not_mix_later_insert_into_revision_zero": 1,
     "test_guarded_inventory_service_sql_source_coverage_and_late_fence": 1,
     "test_guarded_inventory_service_sql_revocation_before_commit_rolls_back": 1,
+    "test_inventory_evidence_reconnect_and_retry_preserve_original_proof": 1,
+    "test_inventory_evidence_is_immutable_even_through_raw_sql": 2,
+    "test_inventory_evidence_insert_failure_rolls_back_registration_and_event": 1,
+    "test_inventory_evidence_forward_branch_roundtrip_preserves_inventory": 1,
 }
 
 

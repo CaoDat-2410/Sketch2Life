@@ -95,3 +95,17 @@ fence adoption remains explicit, not inferred from mutex/application clock check
 No provider side effect, actual deletion, closure or dispatch grant from result.
 Durable exact operation intents remain next C4b2b; current state/typed dispatch/
 acknowledgment/verified receipt application remain C4c, not replaced by service.
+
+## C4b2b1 durable inventory verification history
+
+Before operation scheduling, retain append-only verification records for successful
+register/coverage/fence calls in the same inventory UoW. Store exact actor/org/context,
+action and canonical command digest, current authority grant, verified source reference/
+deadline, original registration or scoped coverage observation, and observation time.
+Exact registration/fence retries retain a fresh verification record without advancing
+inventory revision or duplicating mutation events. History is historical evidence,
+never current permission or a dispatch envelope. Reads do not create scopes/history.
+Own forward ap_0005 adds the table and immutable trigger; ap_0004 stays frozen.
+Rollback must remove both inventory changes and evidence. Actual SQL proof remains
+NOT_RUN pending separately authorized environment. Exact cancel/purge intents and
+their recovery/dispatch remain the following checkpoint, not replaced by this history.

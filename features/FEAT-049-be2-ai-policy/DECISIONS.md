@@ -1,5 +1,23 @@
 # Feature decisions
 
+## D16 — historical verification is retained atomically, not reused as authority
+
+2026-10-18, approved P4/P5 C4b2b1. Append-only own inventory evidence contains
+exact action/body binding, actor/org/data-request, current authority revision/
+deadline, source reference/hash/deadline and original registration/coverage.
+Keep evidence and inventory writes in one UoW with rollback; immutable ap_0005
+trigger rejects raw SQL update/delete. Frozen ap_0004 is unchanged. Retain a new
+verification observation on exact registration/fence retry without advancing
+inventory revision or duplicating mutation events. Scope revision pages are not
+invalidated by proof-only history. Internal decode recomputes canonical binding
+and checks scope/actor/time columns; no raw provider bytes or endpoint fields.
+
+History proves only which backend checks were observed, not actual current
+authority, provider completeness, dispatch, cancellation or deletion. Actual
+owner/source adapters remain ASSUMED. Cancel/purge exact operation envelopes,
+delivery/recovery and typed acknowledgment are still next, not replaced here.
+PG70 NOT_RUN; no server/provisioning or real provider invocation authorized.
+
 ## D15 — source assertions come from guarded backend, not inventory caller
 
 Approved P4 C4b2a adds reference-only context/read calls and guarded inventory
