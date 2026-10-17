@@ -33,6 +33,7 @@ SUITES = {
     "tests/unit/test_learning_content_history.py": 24,
     "tests/unit/test_learning_content_persistence_shape.py": 5,
     "tests/unit/test_learning_content_component_runner.py": 16,
+    "tests/unit/test_content_notice_delivery.py": 23,
 }
 FOUNDATION_SUITES = frozenset({
     "tests/contract/test_ai_job_contracts.py", "tests/contract/test_ai_job_polling.py",
@@ -40,6 +41,8 @@ FOUNDATION_SUITES = frozenset({
 })
 SOURCE_FILES = (
     "application/content_consumer_queries.py", "application/governance_dispatcher.py",
+    "application/content_notice_delivery.py",
+    "infrastructure/learning_content/outbox_delivery.py",
     "application/learning_content_commands.py", "application/learning_content_eligibility.py",
     "application/learning_content_history.py", "application/ports/content_consumers.py",
     "application/ports/learning_content.py", "contracts/schemas/content_consumers.py",

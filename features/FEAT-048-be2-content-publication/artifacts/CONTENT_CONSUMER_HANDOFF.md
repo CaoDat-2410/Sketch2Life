@@ -1,5 +1,16 @@
 # H-CONTENT-PRESET consumer pack — 0.1-candidate
 
+## C4d producer delivery follow-up
+
+Owned one-event send/ack now exists: ContentNoticeDelivery with
+SqlContentDeliveryStore. See OUTBOX_DELIVERY.md for preconditions and limits.
+This is separate from the pure notice parser below. Real consumer/authenticated
+transport/durable dedup/fixed logical destination adoption remain required.
+One delivered_at marker cannot track multiple independent consumers; no fanout
+or production scheduling/retry policy is invented. 477 component / 33 SQL PASS;
+new SQL delivery cases commit delivered_at after matching ACK, while the older
+projection-only case intentionally still leaves its rows pending.
+
 Producer: BE2-12 (receiver owns 08–14). Consumers: receiver's later 08/11/13
 cards, sender's 01–07 integration points where applicable, and BE1/P4 gateway/
 audit/notification composition. This is a proposed typed boundary and executable
