@@ -1,5 +1,14 @@
 # CR-C4-01 — full CMD-48 owner delegate contracts
 
+## Receiver-scope correction / C4b follow-up
+
+User clarified BE2-13/14 also belong to this receiver (08–14); waiting for them as
+another person's prerequisite was too broad. Fixed dispatcher and strict typed
+binding/HTTP seam now exist with conformance fixtures and explicit unavailable
+slots. See GOVERNANCE_BINDING_HANDOFF.md. Complete owner payload semantics and
+real adapter adoption remain open, but do not block candidate dispatch work.
+Original absence assessment below is historical, not current code inventory.
+
 Status: OPEN / not cross-owner approved. Prepared by BE2-12 under approved plan;
 not an instruction or approval for implementing BE2-13/14/BE1 policy business logic.
 

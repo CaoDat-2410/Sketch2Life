@@ -1,5 +1,14 @@
 # CMD-48 content HTTP candidate — C4a
 
+## C4b follow-up
+
+The former content factory now wraps the same fixed governance dispatcher/router
+factory. Known unbound preset/policy-ai/policy-core branches return typed 503;
+unknown routing remains 422. Bound strict owner models/handlers can be injected
+and their schemas appear in OpenAPI. See GOVERNANCE_BINDING_HANDOFF.md for current
+composition. Content DTOs/actions/safe transport behavior below remain; older
+content-only/non-content-422 limitations describe the C4a checkpoint, not C4b.
+
 Contract version: 0.1-candidate. Status: component verified; NOT production
 composition, NOT complete closed governance dispatcher. All eight content actions
 are supported; preset/policy branches require owner schemas/delegates (CR-C4-01).

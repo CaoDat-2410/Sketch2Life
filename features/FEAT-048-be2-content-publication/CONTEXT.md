@@ -1,5 +1,16 @@
 # FEAT-048 — BE2-12 content authoring, publication and recall
 
+## C4b receiver-scope correction and dispatch — 2026-10-17
+
+User clarified receiver owns 08–14; do not block all BE2-12 candidate work on
+future receiver-owned cards. Added fixed content/preset/AI/core dispatcher,
+strict generic owner-model/typed-handler binding and shared target/response
+checks, explicit unavailable slots, single existing HTTP factory integration.
+59 new component cases / 413 selected local PASS. Concrete owner fixture models
+are synthetic, not invented final stage/policy semantics. Default app not mounted,
+real owner authority/consumer adoption still pending. No other card implementation
+activated; goal remains full BE2-12, not reduced to content-only success.
+
 ## P3 reintroduction correction — 2026-10-17
 
 Verified the unchanged approved plan explicitly allows reintroduction as a new

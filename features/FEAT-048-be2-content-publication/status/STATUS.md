@@ -26,8 +26,10 @@
 - C4a: candidate content-only HTTP seam 33 tests PASS; 326 selected local cases
   PASS / 0 skip. All eight content actions, safe errors, strict If-Match/body
   admission and inline OpenAPI verified with injected synthetic identity.
-- Full closed CMD-48 dispatcher/delegates and real cross-owner integration:
-  INCOMPLETE / NOT_RUN. Candidate content router is not mounted in default app.
+- C4b fixed CMD-48 branch routing/strict concrete owner binding and single HTTP
+  factory now component-tested. Recognized unbound owners return typed 503.
+- Complete owner-specific payload schema adoption/real implementations and
+  cross-owner integration remain INCOMPLETE / NOT_RUN. Default app not mounted.
 - SQL owner ports remain ASSUMED; C4a does not supersede C3 runtime source evidence.
 - Planning checks: harness, architecture, security and static AC/action inventory
   PASS; these are not implementation acceptance tests.
@@ -41,7 +43,7 @@
 - F03 local projection CLOSED_COMPONENT_AND_OWNED_SQL: current READ-authorized,
   paginated immutable-proof history with explicit derived stale reasons; owner
   revocation-cause/fencing/adoption remains F02, not fabricated by a boolean port.
-- Latest selected local suite: 354 PASS / 0 skip (244 content, 110 foundation).
+- Latest selected local suite: 413 PASS / 0 skip (303 feature, 110 foundation).
 - Latest PostgreSQL: 9 C2 + 1 projection + 13 command/history PASS; source-pinned
   history/resubmit/edit/recall/pagination tests; temporary runtime cleaned.
 - Next: resolve/review remaining F01/F02/F04/F05 gates, including full dispatcher,
@@ -61,4 +63,9 @@
   artifacts/REVIEW_HISTORY_CANDIDATE.md documents projection semantics/limits.
 - P3 correction: evidence/notes/P3_REINTRODUCTION_20261017.md; all current guards
   retained, old exact refs/receipts denied after new version publishes.
+- C4b: 59 new routing/binding/HTTP component tests PASS; receiver 08–14 clarified.
+  No new SQL run claimed for this adapter-only checkpoint; prior 23 SQL passes
+  remain source-bound evidence, not real owner integration or business readiness.
+- Next: finish receiver-owned handoff/consumer conformance while final owner
+  payload models/adapters are adopted separately; no blanket wait on 13/14 work.
 - Git: planning commit allowed by active goal; no push/merge/deploy.
