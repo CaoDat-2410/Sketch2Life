@@ -9,3 +9,8 @@
 features/FEAT-039-collaborative-learning-scope/artifacts/Sketch2Life_Master_SRS_v2.0_preserved_20261010.md -text whitespace=cr-at-eol
 features/FEAT-040-four-person-delivery-plan/artifacts/**/*.md -text whitespace=cr-at-eol
 features/FEAT-040-four-person-delivery-plan/artifacts/*.md -text whitespace=cr-at-eol
+
+# Preserve byte-level hashes of BE2-02 C2 metrics cross-referenced by SHA256 (reviewed CRLF bytes).
+features/FEAT-048-be2-vision-correction/evidence/metrics/C2_PLANNING_CHECKS_20261017.json -text whitespace=cr-at-eol
+features/FEAT-048-be2-vision-correction/evidence/metrics/C2_IMPLEMENTATION_CHECKS_20261017.json -text whitespace=cr-at-eol
+features/FEAT-048-be2-vision-correction/evidence/metrics/C2_CODEX_REVIEW_20261017.json -text whitespace=cr-at-eol
