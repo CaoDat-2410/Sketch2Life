@@ -1,5 +1,25 @@
 # Feature decisions
 
+## D17 — stable operation identity separates original intent from renewed authority
+
+2026-10-18, approved P4/P5 C4b2b2. Internal schedule accepts existing strict
+ProviderCopyCommand plus exact copy ID, actor/org outside payload. Current copy
+verification guard authorizes before inventory read, resolves original exact
+profile outside own DB lock, then authorizes complete target binding. Re-read
+immutable registration under UPDATE scope lock and confirm unchanged current
+authority before commit. Guard owns real source/request expiry/revocation fencing;
+fixtures do not prove production adoption. No published foundation changes.
+
+Key hashes actor/org/scope/client-request/copy/action, independent of renewed
+authority/time. Body digest includes exact data-request and original registration/
+profile; same key/different body conflicts, no silent repinning. Owned ap_0006
+stores original envelope and append-only authority observations. Exact retry adds
+fresh authority history but no new queued event/revision; preserve original grant
+as history, never current permission. Purge also fences scope atomically; cancel
+is only an intent, not actual stopped acknowledgment. Recovery by exact known key
+is historical read only; pending discovery/claims/delivery and verified outcomes
+still belong to C4c. PG78 prepared NOT_RUN, real provider/owner adoption separate.
+
 ## D16 — historical verification is retained atomically, not reused as authority
 
 2026-10-18, approved P4/P5 C4b2b1. Append-only own inventory evidence contains

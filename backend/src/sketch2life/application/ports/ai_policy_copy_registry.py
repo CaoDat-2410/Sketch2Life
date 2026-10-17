@@ -5,6 +5,10 @@ from dataclasses import dataclass
 from typing import Literal, Protocol
 
 from sketch2life.contracts.schemas.ai_policy_copy_history import CopyInventoryEvidence
+from sketch2life.contracts.schemas.ai_policy_copy_operation import (
+    CopyOperationAuthorization,
+    CopyOperationEnvelope,
+)
 from sketch2life.contracts.schemas.ai_policy_copy_registry import (
     CopyCoverageObservation,
     CopyRegistryRegistration,
@@ -50,6 +54,16 @@ class CopyRegistryPage:
 
 
 class ProviderCopyRegistryTransaction(Protocol):
+    def get_operation(self, operation_key: str) -> CopyOperationEnvelope | None:
+        """Recover immutable metadata only; never a dispatch/authorization grant."""
+        ...
+
+    def enqueue_operation(
+        self, envelope: CopyOperationEnvelope, authorization: CopyOperationAuthorization
+    ) -> CopyOperationEnvelope:
+        """Atomic exact intent/event/fence/history; caller holds current owner/profile guard."""
+        ...
+
     def record_evidence(self, evidence: CopyInventoryEvidence) -> None:
         """Append immutable historical verification in this UoW; not a live grant."""
         ...

@@ -137,7 +137,16 @@ class MemoryInventory:
         self.boundary.in_transaction = True
         self.state = self.scopes.get(
             (org, scope),
-            dict(revision=0, purging=False, rows={}, events=[], coverage=None, evidence=[]),
+            dict(
+                revision=0,
+                purging=False,
+                rows={},
+                events=[],
+                coverage=None,
+                evidence=[],
+                operations={},
+                operation_authority=[],
+            ),
         )
         if for_update:
             self.scopes[org, scope] = self.state
@@ -165,6 +174,29 @@ class MemoryInventory:
     def record_evidence(self, evidence):
         assert self.write and self.boundary.held
         self.state["evidence"].append(evidence)
+
+    def get_operation(self, key):
+        return self.state["operations"].get(key)
+
+    def enqueue_operation(self, envelope, authorization):
+        from sketch2life.application.ai_policy_copy_operations import (
+            validate_operation,
+            validate_operation_authorization,
+        )
+
+        assert self.write and self.boundary.held
+        envelope = validate_operation(envelope)
+        validate_operation_authorization(envelope, authorization)
+        original = self.get_operation(envelope.operation_key)
+        if original and original.binding_digest != envelope.binding_digest:
+            raise PolicyError("AI_POLICY_COPY_OPERATION_CONFLICT")
+        if original is None:
+            if envelope.command.operation == "purge":
+                self.mark_purging()
+            self._advance("operation")
+            self.state["operations"][envelope.operation_key] = envelope
+        self.state["operation_authority"].append(authorization)
+        return original or envelope
 
     def register(self, proposed):
         assert self.write

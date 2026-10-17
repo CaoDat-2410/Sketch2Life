@@ -109,3 +109,23 @@ Own forward ap_0005 adds the table and immutable trigger; ap_0004 stays frozen.
 Rollback must remove both inventory changes and evidence. Actual SQL proof remains
 NOT_RUN pending separately authorized environment. Exact cancel/purge intents and
 their recovery/dispatch remain the following checkpoint, not replaced by this history.
+
+## C4b2b2 exact durable cancel/purge scheduling
+
+Internal schedule(actor, org, command, copy_id) reuses held current copy verification
+boundary: authorize scoped request before reading, resolve exact original profile
+outside DB lock, authorize full target binding, then re-read immutable registration
+under UPDATE scope lock. Own UoW stores immutable reference-only operation envelope,
+authorization observations and queued event atomically. Purge also fences scope in
+that transaction; cancel is only an intent, not a confirmed lifecycle transition.
+Derive stable operation key from actor/org/scope/client request/copy/action. Bind
+full data-request version/hash and original registration in command digest. Same key
+with changed body conflicts; renewed authority/time never silently changes original
+envelope or key. Exact retry still checks current rights/profile and stores a fresh
+authority observation without another queued event. Read recovered envelope is
+historical metadata, never a permission/claim to dispatch; no provider network under
+DB lock. Forward ap_0006 adds owned operation/history tables and immutable triggers.
+Test idempotency, forged/native models, scope/profile mismatch, expiry/revocation,
+atomic intent/fence/event rollback and replay after reconnect; prepare PG cases
+without provisioning. C4c delivery, provider acknowledgment/current lifecycle and
+verified receipt handling remain required, not inferred from stored intent.

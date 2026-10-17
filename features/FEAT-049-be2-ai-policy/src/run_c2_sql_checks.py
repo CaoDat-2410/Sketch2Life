@@ -78,6 +78,11 @@ COPIES_EXPECTED = {
     "test_inventory_evidence_is_immutable_even_through_raw_sql": 2,
     "test_inventory_evidence_insert_failure_rolls_back_registration_and_event": 1,
     "test_inventory_evidence_forward_branch_roundtrip_preserves_inventory": 1,
+    "test_copy_operation_reconnect_replay_and_scope_isolation": 1,
+    "test_copy_operation_raw_sql_history_is_immutable": 4,
+    "test_copy_operation_authority_insert_failure_rolls_back_intent_fence_and_event": 1,
+    "test_copy_operation_concurrent_duplicate_has_one_intent_and_queued_event": 1,
+    "test_copy_operation_final_owner_denial_rolls_back_all_new_writes": 1,
 }
 
 
@@ -89,6 +94,7 @@ def source_hashes() -> dict[str, str]:
         "backend/tests/conftest.py", "backend/tests/unit/test_ai_policy_domain.py",
         "backend/tests/ai_policy_accounting_fixtures.py",
         "backend/tests/ai_policy_copy_inventory_fixtures.py",
+        "backend/tests/ai_policy_copy_operation_fixtures.py",
         "backend/tests/ai_policy_fixtures.py", "backend/tests/unit/test_ai_policy_compatibility.py",
         "backend/tests/contract/test_ai_policy_contracts.py",
         "backend/tests/unit/test_ai_policy_use.py",

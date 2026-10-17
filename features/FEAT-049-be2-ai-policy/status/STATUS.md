@@ -2,28 +2,29 @@
 
 - Status: IN_PROGRESS
 - Plan revision: 1
-- Implementation status: IN_PROGRESS — C4b2b1 durable verification history component PASS; SQL NOT_RUN
+- Implementation status: IN_PROGRESS — C4b2b2 exact operation scheduling component PASS; SQL NOT_RUN
 - Branch: feature/be2-08-14
 - Baseline: f0ff7a840d1910f1f80df327c3fd0239db5ea8e1
-- Current: parent c3710e8; inventory authority/source evidence history added.
-- BE2-14 component: 645 PASS /0 skip (78 policy contract +34 accounting contract
+- Current: parent edc1d40; exact cancel/purge scheduling and immutable envelopes added.
+- BE2-14 component: 689 PASS /0 skip (78 policy contract +34 accounting contract
   +47 accounting domain +46 policy domain +26 persistence
   shape/offline +15 runner +59 registry +29 command service +3 activation shape
   +31 emergency-stop +53 current-use +20 ledger shape/codec +49 accounting service
-  +44 copy verification +27 copy inventory shape/codec +56 inventory service +28 history checks).
+  +44 copy verification +27 copy inventory shape/codec +56 inventory service +28 history
+  +44 exact operation checks).
 - Focused Ruff/Mypy PASS; registry/auth fixtures are assumed, not real adoption.
 - Existing BE2-12/foundation selected regression pack: 477 PASS, source unchanged.
 - Additional targeted foundation application/review-regression/q00 suites: 114 PASS;
   existing copy fake scope/replay/cancel-vs-purge cases retained, no source rewrite.
 - PostgreSQL / real integration / runtime policy activation: NOT_RUN for BE2-14.
 - BE2-12 477/33 PASS belongs to that card, not carried as BE2-14 acceptance.
-- SQL: 15 lifecycle +10 activation/stop/use +19 ledger +26 copy inventory actual PG
-  cases prepared/collected, 70 total NOT_RUN, no authorized
+- SQL: 15 lifecycle +10 activation/stop/use +19 ledger +34 copy inventory actual PG
+  cases prepared/collected, 78 total NOT_RUN, no authorized
   BE2-14 server started. C2 pins original migration; C3b upgrades new branch head.
   Owner asked asynchronously for isolated PG17 setup/test/cleanup approval, no
   approval fabricated from silence or prior BE2-12 provisioning authority.
-- Next: C4b2b2 durable exact cancel/purge operation intents/envelopes and recovery,
-  C4c typed dispatch/acknowledgment/verified receipt application and remaining C5
+- Next: C4c pending operation discovery/claim, typed dispatch/acknowledgment/current
+  lifecycle/verified receipt application and remaining C5
   safe bindings/projections, plus
   actual SQL proof once authorized. Guarded accounting application composition now
   exists, but actual current-owner/terminal-evidence adapters remain unbound;
@@ -81,3 +82,13 @@
   artifacts/C4B2B1_VERIFICATION_HISTORY_HANDOFF.md and
   evidence/notes/C4B2B1_VERIFICATION_HISTORY_20261018.md. Exact operation envelope,
   delivery, acknowledgment, current lifecycle and C5/C6 still incomplete.
+
+- C4b2b2 (2026-10-18): guarded exact cancel/purge schedule service, immutable
+  operation envelope/key and fresh authority history in own inventory UoW, ap_0006.
+  Recheck original profile outside lock then registration/current rights before
+  commit. Purge scope fence/event/intent/history atomic in prepared SQL adapter;
+  exact retry preserves original envelope and emits no duplicate queued event.
+  Known-key metadata recovery exists, not pending dispatcher/recovery worker or
+  current permission. 44 new local tests; eight new PG cases prepared NOT_RUN.
+  Evidence evidence/notes/C4B2B2_OPERATION_INTENTS_20261018.md and handoff
+  artifacts/C4B2B2_OPERATION_INTENTS_HANDOFF.md. No external effect or actual ack.

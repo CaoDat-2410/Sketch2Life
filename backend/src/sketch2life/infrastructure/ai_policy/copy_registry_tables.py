@@ -91,3 +91,38 @@ COPY_EVIDENCE = Table(
     ),
     CheckConstraint("inventory_revision >= 0", name="copy_evidence_revision"),
 )
+
+COPY_OPERATION = Table(
+    "copy_operation",
+    COPY_METADATA,
+    Column("organization_id", String(120), primary_key=True),
+    Column("scope_ref", String(120), primary_key=True),
+    Column("operation_key", String(64), primary_key=True),
+    Column("copy_id", String(120), nullable=False),
+    Column("envelope", JSONB, nullable=False),
+    ForeignKeyConstraint(
+        ["organization_id", "scope_ref", "copy_id"],
+        [
+            f"{SCHEMA}.copy_registration.organization_id",
+            f"{SCHEMA}.copy_registration.scope_ref",
+            f"{SCHEMA}.copy_registration.copy_id",
+        ],
+    ),
+)
+COPY_OPERATION_AUTHORITY = Table(
+    "copy_operation_authority",
+    COPY_METADATA,
+    Column("organization_id", String(120), primary_key=True),
+    Column("observation_id", String(120), primary_key=True),
+    Column("scope_ref", String(120), nullable=False),
+    Column("operation_key", String(64), nullable=False),
+    Column("observation", JSONB, nullable=False),
+    ForeignKeyConstraint(
+        ["organization_id", "scope_ref", "operation_key"],
+        [
+            f"{SCHEMA}.copy_operation.organization_id",
+            f"{SCHEMA}.copy_operation.scope_ref",
+            f"{SCHEMA}.copy_operation.operation_key",
+        ],
+    ),
+)
