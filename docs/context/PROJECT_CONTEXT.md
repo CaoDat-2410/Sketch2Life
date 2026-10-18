@@ -1,5 +1,13 @@
 # Project context ledger
 
+## Receiver BE2-09 planning / delayed runtime batch —2026-10-18
+
+Owner approves moving to next-card planning and batching Lightning later; baseline
+07159ce. FEAT-051 revision1 P1–P4 prepared AWAITING_APPROVAL/NOT_STARTED. Shared24
+reused; canonical09 review head/projection CR09-01 and BE1 session/access receipts
+CR09-02 OPEN. No implementation/runtime activation.08 local/SQL PASS retained,
+actual08/09 adoption/runtime not waived or marked DONE. Exact plan approval next.
+
 ## BE2-08 C4b actual own PostgreSQL11 PASS —2026-10-18
 
 Parent c7b17ac; separate direct08 environment approval recorded before setup.

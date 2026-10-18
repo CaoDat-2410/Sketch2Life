@@ -4,6 +4,8 @@
 - Plan revision: 1
 - Implementation status: IN_PROGRESS — C4b actual own SQL PASS; integration/runtime gates open
 - Branch: feature/be2-08-14
+- Owner routing update: proceed to09 planning; group remaining Lightning/runtime
+  checks in later approved batch.08 stays IN_PROGRESS, actual gaps not waived.
 - Baseline: be64b99
 - Current: strict owned schemas/domain, candidate owner lease/submission ports,
   guarded create service, native validated HTTP snapshot, caller-transaction row
