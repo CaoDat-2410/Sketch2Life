@@ -1,5 +1,14 @@
 # Project context ledger
 
+## Original BE2-12 goal revalidation —2026-10-18
+
+At16712de, owner objective attachment reread: original goal remains12, separate
+08/14 work not credited to it. Current source-pinned477 component PASS and51
+AI-policy HTTP binder PASS; source unchanged, full_goal_complete false. AI-policy
+delegate now exists from14; actual preset/core/BE1 authority/consumer adoption and
+integrated closure remain open, BE1/P4 deferred. No new SQL/app mount/08 work.
+See FEAT-048 evidence/notes/C5B_CURRENT_GOAL_AUDIT_20261018.md.
+
 ## Receiver BE2-08 C2b HTTP/storage component —2026-10-18
 
 FEAT-050 approved revision1 unchanged; parent9292bad. Injected candidate CMD-40

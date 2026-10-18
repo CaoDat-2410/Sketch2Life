@@ -1,5 +1,13 @@
 # FEAT-048 — BE2-12 content authoring, publication and recall
 
+## C5b original-goal revalidation —2026-10-18
+
+At16712de:477 component PASS/source unchanged and51 AI-policy binder PASS;
+actual owner adoption NOT_RUN/full_goal_complete false. Policy slot now has14
+implementation; preset/core and real authority/consumer gates remain open.
+Owner deferral unchanged; no permissive runtime composition or other-card work.
+Evidence: evidence/notes/C5B_CURRENT_GOAL_AUDIT_20261018.md.
+
 ## Owner-directed teammate integration handoff — 2026-10-17
 
 After C4d commit 6931daa, owner explicitly deferred BE1/P4 wiring to teammates:

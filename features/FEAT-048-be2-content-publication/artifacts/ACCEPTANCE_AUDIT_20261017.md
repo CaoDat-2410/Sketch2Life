@@ -1,5 +1,14 @@
 # BE2-12 acceptance audit — NOT COMPLETE
 
+## Current-source follow-up —2026-10-18 at16712de
+
+Fresh original-goal audit:477 selected component PASS/source unchanged,51 AI-policy
+HTTP binding checks PASS. F01 now has typed policy model/service and bind_ai_policy
+through sole CMD-48 (supplied separately by14); historical no-AI-policy-delegate
+statement superseded, not a reason to implement twice. Preset/core-policy/actual
+owner adoption open. F02/F04 actual integration owner-deferred; F05 not achieved.
+No new local defect or fresh SQL PASS. See C5B_CURRENT_GOAL_AUDIT_20261018.md.
+
 ## C4d follow-up — owned producer delivery implemented
 
 F04's local producer send/ack gap is addressed: exact organization/event delivery,

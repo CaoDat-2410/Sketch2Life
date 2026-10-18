@@ -1,5 +1,10 @@
 # BE2-12 receiver checkpoint — candidate handoff, NOT integrated DONE
 
+2026-10-18 revalidation at16712de: component477 PASS/source unchanged; AI-policy
+binder51 PASS with fixture dependencies. Policy slot implemented by separately
+approved14; preset/core/current-owner/actual consumer adoption remain pending.
+No fresh SQL or app mount. Evidence: C5B_CURRENT_GOAL_AUDIT_20261018.md.
+
 ## Owner instruction: teammates wire later
 
 On 2026-10-17 owner explicitly replied that BE1/P4 wiring is not needed now and
