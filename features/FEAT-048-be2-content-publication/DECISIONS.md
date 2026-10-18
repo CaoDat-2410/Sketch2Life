@@ -1,5 +1,12 @@
 # Feature decisions
 
+## D17 — current original-goal audit, no artificial closure —2026-10-18
+
+At16712de, rerun477 selected component and51 policy HTTP binder checks PASS.
+Correct stale F01 AI-policy absence, retain actual owner/preset/core/consumer
+gates and full-goal NOT_DONE. BE1/P4 owner deferral is not integration acceptance.
+Separate08 progress not credited to12. No new implementation authority inferred.
+
 ## D16 — owner defers real wiring to teammates, not a fake closure — 2026-10-17
 
 Actual owner reply preserved in approvals/TASK_APPROVAL.md. Hand off component

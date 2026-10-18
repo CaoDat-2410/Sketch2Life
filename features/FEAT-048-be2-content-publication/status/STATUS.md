@@ -3,11 +3,18 @@
 - Status: IN_PROGRESS
 - Plan revision: 1
 - Implementation status: COMPONENT_HANDOFF_AVAILABLE — through C4d; full acceptance open
-- Updated: 2026-10-17 (Asia/Saigon).
+- Updated: 2026-10-18 (Asia/Saigon).
 - Branch: feature/be2-08-14 (user-authorized local rename; scope still BE2-12)
 - Base: 6dcc57ee0b3d053f071c8c92e72aaaee2e98d899
 
 ## Owner-directed integration deferral
+
+Fresh original-goal audit at16712de:477 selected component PASS/source unchanged,
+all runner checks0;51 AI-policy HTTP binder checks PASS. AI-policy delegate now
+exists via separately approved14, unlike historical F01 text. Actual preset/core
+policy adoption, BE1 current authority/source/review and fixed consumer integration
+remain open/deferred. Full_goal_complete=false. No fresh SQL/app mount. Evidence:
+evidence/notes/C5B_CURRENT_GOAL_AUDIT_20261018.md.
 
 - Owner explicitly defers BE1/P4 wiring to teammates; actual reply recorded in
   approvals/TASK_APPROVAL.md. Code handoff commit: 6931daa.

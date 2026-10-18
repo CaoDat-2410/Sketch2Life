@@ -1,5 +1,8 @@
 # BE2-12 evidence index
 
+Latest original-goal audit: notes/C5B_CURRENT_GOAL_AUDIT_20261018.md;
+477 selected component +51 policy binder PASS, real integration NOT_RUN.
+
 | ID | Scope | Record | Interpretation |
 |---|---|---|---|
 | P-01 | Preparation and approval | notes/PREPARATION_20261017.md | Read-only current-state/source review; implementation approval absent |
