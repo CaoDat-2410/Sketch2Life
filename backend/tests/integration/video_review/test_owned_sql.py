@@ -11,7 +11,7 @@ from dataclasses import replace
 import pytest
 from alembic.migration import MigrationContext
 from alembic.operations import Operations
-from sqlalchemy import create_engine, inspect, select, text, update
+from sqlalchemy import create_engine, delete, inspect, select, text, update
 from sqlalchemy.engine import make_url
 from sqlalchemy.exc import DBAPIError
 
@@ -19,7 +19,15 @@ from sketch2life.application.ports.video_review_lifecycle import ReviewChangeRec
 from sketch2life.domain.knowledge_video.model import VideoError
 from sketch2life.domain.video_review.model import ReviewHead
 from sketch2life.infrastructure.video_review.sql import SqlVideoPlaybackStore, SqlVideoReviewStore
-from sketch2life.infrastructure.video_review.tables import EVENT, HEAD, HISTORY, METADATA, PLAYBACK
+from sketch2life.infrastructure.video_review.tables import (
+    EVENT,
+    HEAD,
+    HISTORY,
+    METADATA,
+    PLAYBACK,
+    PLAYBACK_HISTORY,
+    RECEIPT,
+)
 from tests.unit.test_video_playback import receipt as play_receipt
 from tests.unit.test_video_review_lifecycle import change, invalidate, rebind
 from tests.unit.test_video_review_persistence import migration, pending, write_receipt
@@ -124,11 +132,14 @@ def test_first_write_race_one_winner(engine):
         assert len(conn.execute(select(HISTORY)).all()) == 1
 
 
-@pytest.mark.parametrize("table", [HISTORY, EVENT])
-def test_raw_history_and_event_mutation_refused(engine, table):
+@pytest.mark.parametrize("table", [HISTORY, EVENT, RECEIPT, PLAYBACK_HISTORY])
+@pytest.mark.parametrize("operation", ["update", "delete"])
+def test_raw_immutable_rows_mutation_refused(engine, table, operation):
     save_first(engine)
+    with SqlVideoPlaybackStore(engine).transaction("school", "session") as rows:
+        rows.insert(pending())
     with pytest.raises(DBAPIError), engine.begin() as conn:
-        conn.execute(update(table).values(revision=99))
+        conn.execute(update(table).values(revision=99) if operation == "update" else delete(table))
 
 
 def test_raw_head_revision_skip_refused(engine):
@@ -169,3 +180,70 @@ def test_playback_commit_reconnect_terminal_and_raw_overwrite_refused(engine):
             rows.save(intent.settle(play_receipt(intent)), expected_revision=1)
     with pytest.raises(DBAPIError), engine.begin() as conn:
         conn.execute(update(PLAYBACK).values(state="pending", revision=1))
+
+
+def test_new_connections_after_pool_dispose_preserve_original_pending_key(engine):
+    intent = pending()
+    with SqlVideoPlaybackStore(engine).transaction("school", "session") as rows:
+        rows.insert(intent)
+    engine.dispose()  # Reopen connections; not a simulated external service restart.
+    with SqlVideoPlaybackStore(engine).transaction("school", "session") as rows:
+        assert rows.get("teacher", "key") == intent
+        assert rows.get("foreign", "key") is None
+
+
+def test_lifecycle_cas_race_no_second_history_or_receipt(engine):
+    rec, head = save_first(engine)
+
+    def attempt(index):
+        event = replace(change(invalidate(), head), event_id="event." + str(index))
+        ctx = replace(
+            rec.context, client_key="change." + str(index), expected_review_revision=head.revision
+        )
+        try:
+            with SqlVideoReviewStore(engine).transaction("school", "session", "video") as rows:
+                rows.change(ReviewChangeReceipt(ctx, event.request, event))
+            return "saved"
+        except VideoError as exc:
+            return str(exc)
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        outcomes = list(pool.map(attempt, (1, 2)))
+    assert sorted(outcomes) == ["VIDEO_REVIEW_STALE_REVISION", "saved"]
+    with engine.begin() as conn:
+        assert len(conn.execute(select(HISTORY)).all()) == 2
+        assert len(conn.execute(select(RECEIPT)).all()) == 2
+
+
+def test_duplicate_playback_insert_aborts_whole_transaction(engine):
+    store = SqlVideoPlaybackStore(engine)
+    intent = pending()
+    with store.transaction("school", "session") as rows:
+        rows.insert(intent)
+    with (
+        pytest.raises(VideoError, match="WRITE_CONFLICT"),
+        store.transaction("school", "session") as rows,
+    ):
+        rows.insert(replace(intent, request=replace(intent.request, review_id="different")))
+    with store.transaction("school", "session") as rows:
+        assert rows.get("teacher", "key") == intent
+    with engine.begin() as conn:
+        assert len(conn.execute(select(PLAYBACK_HISTORY)).all()) == 1
+
+
+def test_pending_intent_and_event_rollback_together(engine):
+    store = SqlVideoPlaybackStore(engine)
+    with pytest.raises(RuntimeError), store.transaction("school", "session") as rows:
+        rows.insert(pending())
+        raise RuntimeError("synthetic rollback")
+    with store.transaction("school", "session") as rows:
+        assert rows.get("teacher", "key") is None
+    with engine.begin() as conn:
+        assert not conn.execute(select(PLAYBACK_HISTORY)).all()
+        assert not conn.execute(select(EVENT)).all()
+
+
+def test_changed_subject_cannot_copy_raw_approval(engine):
+    save_first(engine)
+    with pytest.raises(DBAPIError), engine.begin() as conn:
+        conn.execute(update(HEAD).values(revision=3, subject_digest="f" * 64))

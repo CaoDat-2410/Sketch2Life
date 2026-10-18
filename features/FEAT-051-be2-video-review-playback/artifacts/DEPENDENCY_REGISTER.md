@@ -33,3 +33,10 @@ strict closed codec +new schema/migration. Local70 new mock/offline PASS; prepar
 10 own PG17 cases collected only NOT_RUN. These are not actual serialization or
 cross-owner adoption evidence. CR09-01/02 and all real gateway/session/authority
 fences remain OPEN. No D03/D04/D05 integration or delayed-runtime gate waived.
+
+C4 internal P1–P4 component/local verification/handoff COMPLETE_LOCAL_VERIFIED.
+HTTP contract, exact pinned local pack and acceptance audit delivered. Actual SQL
+suite expanded21 collected NOT_RUN. Real D02/03/04/05 adoption still OPEN. Playback
+resolver must authenticate original historical subject, services hold current owner
+fences; confirmed response not a live grant. Full-card status IN_PROGRESS; external
+remaining groups and batching in LOCAL_VERIFICATION_HANDOFF.md/ACCEPTANCE_AUDIT.md.

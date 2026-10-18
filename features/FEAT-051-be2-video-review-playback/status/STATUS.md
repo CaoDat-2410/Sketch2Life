@@ -3,6 +3,7 @@
 - Status: IN_PROGRESS
 - Plan revision: 1
 - Implementation status: IN_PROGRESS
+- Internal scope: COMPLETE_LOCAL_VERIFIED; external verification/adoption pending.
 - Branch: feature/be2-08-14
 - Baseline:07159ce
 - Current: C1a shared24 video-session refinement and pure exact review/head/
@@ -17,16 +18,20 @@
 - C3a: owned video_review schema/closed JSON codec/SQL adapters/new independent
   migration available. One UoW for head/history/receipt/event; session-scoped own
   advisory serialization, review/change shared key namespace, playback terminal CAS.
-- Local:319 own PASS; broad2213 PASS (319 own +1894 existing),669 backend source
-  inventory unchanged; Ruff/Mypy15 sources PASS.70 new mock/codec/offline cases.
-- Prepared actual PostgreSQL:10 cases collected, NOT_RUN; separate VR09 isolated
+- C3b/C4: injected CMD-41/42 HTTP +strict owned playback/result candidates;
+  shared24 reused; no production registration. Internal P1–P4 delivered and audited.
+- Local:458 own PASS; broad2352 PASS (458 own +1894 existing),731 transitive source
+  inventory unchanged; Ruff/Mypy17 sources PASS.139 new HTTP/runner cases.
+- Prepared actual PostgreSQL:21 cases collected, NOT_RUN; separate VR09 isolated
   environment approval required, no provisioning or existing08 permission reuse.
-- Next: P3 injected safe CMD-41/42 HTTP and
-  P4 consolidated verification. Actual start/fetch/range/receipt/storage adoption
-  CR09-01/02 OPEN. Confirmed result is historical receipt only, not current access.
+- Next external gates: actual own09 SQL; adopted owner/session/access conformance
+  CR09-01/02; selected08 runtime/quality +owner acceptance. No remaining internal
+  checkpoint awaiting another continuation approval. No automatic BE2-10 start.
+- Confirmed result is historical receipt only, not current access.
 - Actual SQL/provider/Lightning/BE1/P4 integration: NOT_RUN by this card.
 - BE2-08 local/SQL component evidence retained, full runtime/adoption remains open.
 - No actual authority/gateway/receipt/HTTP/SQL effects; existing shared/08/BE1
   schema/migrations untouched. Pure permits_intent is NOT current authorization.
-- Current handoff/evidence: notes/C3A_OWN_STORAGE_20261018.md; actual P2 canonical
-  head/source notice/dispatch-access revocation adoption still open, not full DONE.
+- Current: artifacts/LOCAL_VERIFICATION_HANDOFF.md, HTTP_CONTRACT_HANDOFF.md,
+  ACCEPTANCE_AUDIT.md; evidence/notes/C4_LOCAL_COMPLETION_20261018.md. Actual P2
+  canonical head/source notice/dispatch-access revocation adoption OPEN; not full DONE.

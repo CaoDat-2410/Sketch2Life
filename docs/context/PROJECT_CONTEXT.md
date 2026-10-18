@@ -1,5 +1,18 @@
 # Project context ledger
 
+## BE2-09 C4 internal completion —2026-10-18
+
+Parent b0983a0; owner explicitly approves finishing remaining INTERNAL P3/P4 in one
+run. HTTP CMD-41/42 candidates,117 HTTP +22 runner new tests and consolidated
+handoff/audit delivered.458 own +1894 existing=2352 PASS, no skips;731 transitive
+source closure unchanged/exact pinned nodes+JUnit; Ruff/Mypy17/governance/security
+PASS. Internal COMPLETE_LOCAL_VERIFIED, full09 IN_PROGRESS.21 PG tests prepared/
+collected only NOT_RUN. Actual canonical08/09 head +BE1 current session/access/
+gateway adoption CR09-01/02 OPEN, selected08 runtime/quality/consumer acceptance
+pending. No internal checkpoint needs another "tiếp"; no automatic10 implementation,
+SQL/provider/Lightning activation or push/merge/deploy. Current FEAT-051 E06 and
+artifacts/LOCAL_VERIFICATION_HANDOFF.md, HTTP_CONTRACT_HANDOFF.md, ACCEPTANCE_AUDIT.md.
+
 ## BE2-09 C3a owned persistence component —2026-10-18
 
 Parent09a707b, approved FEAT-051 revision1 unchanged. Own video_review closed codec/

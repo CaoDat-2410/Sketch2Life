@@ -17,6 +17,24 @@ from sketch2life.domain.knowledge_video.model import (
 from sketch2life.domain.video_review.model import ReviewSubject
 
 
+def playback_operation_key(principal_id: str, client_key: str, subject: ReviewSubject) -> str:
+    """Scoped identity is independent of request body, for durable dedup/projection."""
+    require_id(principal_id)
+    require_id(client_key)
+    if type(subject) is not ReviewSubject:
+        raise VideoError("VIDEO_PLAYBACK_INVALID_TARGET")
+    subject = replace(subject)
+    return canonical_digest(
+        {
+            "schema": "BE2-09.PlaybackOperation/0.1-candidate",
+            "org": subject.organization_id,
+            "session": subject.audience.session_id,
+            "principal": principal_id,
+            "key": client_key,
+        }
+    )
+
+
 @dataclass(frozen=True, slots=True)
 class PlaybackRequest:
     """Internal exact resolved target; not an HTTP client authority assertion."""
@@ -115,16 +133,7 @@ class PlaybackIntent:
     def operation_key(self) -> str:
         # Key scope and request body digest deliberately separate: changed body
         # under same key conflicts instead of creating a second external request.
-        subject = self.request.subject
-        return canonical_digest(
-            {
-                "schema": "BE2-09.PlaybackOperation/0.1-candidate",
-                "org": subject.organization_id,
-                "session": subject.audience.session_id,
-                "principal": self.principal_id,
-                "key": self.client_key,
-            }
-        )
+        return playback_operation_key(self.principal_id, self.client_key, self.request.subject)
 
     def _bind(self, receipt: PlaybackReceipt) -> None:
         if (

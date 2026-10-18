@@ -9,3 +9,10 @@
 - Notes: supersedes prior planning-only approval. Actual runtime/provider/SQL
   environment and teammate integration remain separately gated; no push/merge/deploy.
   Reviewed plan bytes/hash remain unchanged.
+
+## Execution continuity —2026-10-18
+
+Owner "duyệt" approves completing the remaining INTERNAL09 work in one run:
+P3 injected review/playback HTTP +tests, P4 consolidated audit/handoff/checkpoint
+commits. No stop/reapproval after each internal checkpoint. Scope/plan unchanged;
+actual SQL environment/BE1/P4 wiring/provider/Lightning/push/merge remain excluded.
