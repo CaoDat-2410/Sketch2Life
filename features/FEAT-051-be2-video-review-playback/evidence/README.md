@@ -1,6 +1,10 @@
 # BE2-09 evidence index
 
-Latest E06: notes/C4_LOCAL_COMPLETION_20261018.md, internal09 P1–P4 complete/local
+Latest E07: notes/C4B_ACTUAL_POSTGRES_20261018.md, separately approved isolated
+PG17.11 actual21 PASS,733 source files unchanged, no skips. Exact temporary
+cluster/binaries/archive/secrets cleaned. Own SQL gate PASS; actual owner/session/
+access/gateway/runtime acceptance still OPEN. Local pack remains collection-only.
+E06: notes/C4_LOCAL_COMPLETION_20261018.md, internal09 P1–P4 complete/local
 verified.139 new/458 own +1894 existing=2352 PASS, no skips;731 transitive sources
 unchanged, exact node/JUnit/source-pinned runner, Ruff/Mypy17 and governance PASS.
 21 actual PG tests collected NOT_RUN. Actual CR09-01/02/gateway/runtime acceptance

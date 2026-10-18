@@ -40,3 +40,8 @@ suite expanded21 collected NOT_RUN. Real D02/03/04/05 adoption still OPEN. Playb
 resolver must authenticate original historical subject, services hold current owner
 fences; confirmed response not a live grant. Full-card status IN_PROGRESS; external
 remaining groups and batching in LOCAL_VERIFICATION_HANDOFF.md/ACCEPTANCE_AUDIT.md.
+
+C4b separate environment approval: own09 PG21 actual PASS, source unchanged and
+exact temporary environment cleaned (E07). Own SQL execution gate closed; real
+D02/03/04/05/07 acceptance not implied. CR09-01/02 and actual each-use access/session/
+source authority still OPEN. Two remaining adoption/runtime acceptance groups.

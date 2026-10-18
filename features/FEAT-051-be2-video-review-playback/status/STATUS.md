@@ -22,16 +22,17 @@
   shared24 reused; no production registration. Internal P1–P4 delivered and audited.
 - Local:458 own PASS; broad2352 PASS (458 own +1894 existing),731 transitive source
   inventory unchanged; Ruff/Mypy17 sources PASS.139 new HTTP/runner cases.
-- Prepared actual PostgreSQL:21 cases collected, NOT_RUN; separate VR09 isolated
-  environment approval required, no provisioning or existing08 permission reuse.
-- Next external gates: actual own09 SQL; adopted owner/session/access conformance
-  CR09-01/02; selected08 runtime/quality +owner acceptance. No remaining internal
+- Actual own PostgreSQL:21 PASS,0 failure/error/skip, PG17.11, separately approved
+  isolated nonsuperuser/loopback environment;733 source files unchanged. Cluster,
+  binaries/archive/secrets cleaned. E07 supersedes earlier actual SQL NOT_RUN.
+- Next external gates: adopted owner/session/access conformance CR09-01/02;
+  selected08 runtime/quality +owner acceptance. No remaining internal
   checkpoint awaiting another continuation approval. No automatic BE2-10 start.
 - Confirmed result is historical receipt only, not current access.
-- Actual SQL/provider/Lightning/BE1/P4 integration: NOT_RUN by this card.
+- Actual provider/Lightning/BE1/P4 integration: NOT_RUN by this card.
 - BE2-08 local/SQL component evidence retained, full runtime/adoption remains open.
-- No actual authority/gateway/receipt/HTTP/SQL effects; existing shared/08/BE1
+- No actual authority/gateway/session bridge/production HTTP effects; existing shared/08/BE1
   schema/migrations untouched. Pure permits_intent is NOT current authorization.
 - Current: artifacts/LOCAL_VERIFICATION_HANDOFF.md, HTTP_CONTRACT_HANDOFF.md,
-  ACCEPTANCE_AUDIT.md; evidence/notes/C4_LOCAL_COMPLETION_20261018.md. Actual P2
+  ACCEPTANCE_AUDIT.md; evidence/notes/C4B_ACTUAL_POSTGRES_20261018.md. Actual P2
   canonical head/source notice/dispatch-access revocation adoption OPEN; not full DONE.

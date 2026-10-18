@@ -10,6 +10,14 @@
 
 ## Context snapshot
 
+C4b parent1ce8d07, separate owner "duyệt" approves disposable local PG17/SQL21/
+scoped fixes/cleanup/report/checkpoint. Recorded own approval/plan before setup.
+Actual21 PASS,0 fail/error/skip,4.338s, PG17.11 loopback limited-role;733 source
+files unchanged, no code fixes/suppressed cases. Exact cluster/binaries/archive/
+secrets removed, no remaining PG process. Current E07 supersedes actual SQL NOT_RUN;
+local runner stays deliberately collection-only. Full09 IN_PROGRESS, actual
+CR09-01/02/BE1 gateway/runtime/quality/owner acceptance still OPEN.
+
 C4 parent b0983a0, explicit owner "duyệt" to finish remaining INTERNAL09 without
 stopping at each checkpoint. P3 HTTP +P4 local runner/audit/handoff complete.
 139 new (117 HTTP +22 runner),458 own/2352 broad PASS;731 transitive source files
