@@ -5,5 +5,7 @@ Inventory: evidence/notes/BASELINE_20261018.md.
 Validation: evidence/notes/PLAN_VALIDATION_20261018.md (harness/security/diff PASS).
 C1: evidence/notes/C1_CONTRACT_DOMAIN_20261018.md (143 own +205 regression PASS).
 C2a: evidence/notes/C2A_GUARDED_CREATE_20261018.md (164 cumulative own +205 regression PASS).
+C2b: evidence/notes/C2B_HTTP_STORAGE_20261018.md (256 cumulative own, broad1691 PASS;
+actual PostgreSQL11 prepared/NOT_RUN). Earlier counts are historical checkpoints.
 Store sanitized raw logs, screenshots and metrics in own subdirectories. Private
 runtime media/credentials/child data do not belong in tracked evidence.

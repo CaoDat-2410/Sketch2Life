@@ -1,5 +1,17 @@
 # BE2-08 decisions
 
+## C2b — closed snapshot and caller-bound own SQL participant
+
+HTTP never guesses job history: adapter supplies a strict complete snapshot,
+revalidated against run/current lease and normalized before serialization. Router
+requires explicit verified session identity and body-size config; not registered
+in production. No model/provider/server selection added.
+
+Own knowledge_video branch stores only opaque run lineage/receipts; no cross-owner
+FK or actual job creation. Connection-bound participant cannot commit itself.
+CR08-01 remains open; actual atomic bridge and current owner bindings not inferred.
+SQL tests are prepared11/NOT_RUN; no previous card provisioning approval reused.
+
 ## C2a — actual submission adapter intentionally not invented
 
 Guarded create depends on candidate context-bound held owner lease and atomic

@@ -1,5 +1,16 @@
 # Project context ledger
 
+## Receiver BE2-08 C2b HTTP/storage component —2026-10-18
+
+FEAT-050 approved revision1 unchanged; parent9292bad. Injected candidate CMD-40
+HTTP with closed native DATA-27 snapshot, own transaction-bound row participant,
+strict codec and independent frozen knowledge_video migration. No production
+registration/default auth/actual foundation job bridge/provider activation.
+256 own +1435 existing=1691 PASS (48 suites,23 existing warnings); Ruff/Mypy11 PASS.
+Actual PostgreSQL11 prepared/collected NOT_RUN, no provisioning/DB writes.
+P2 remains partial (strategy surfaces/use cases, actual bridge adoption/evidence);
+P3/P4 and P5 runtime remain. FEAT-050 C2B_HTTP_STORAGE_HANDOFF.md has current gates.
+
 ## Receiver BE2-08 C1/C2a component —2026-10-18
 
 Approved FEAT-050 revision1 plan retained. Approval1ea7b53, C1 a3946e7;

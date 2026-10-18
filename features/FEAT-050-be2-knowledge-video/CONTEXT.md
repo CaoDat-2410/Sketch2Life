@@ -21,5 +21,10 @@ C2a adds typed guarded create/submission composition and clearly fixture-only
 intent staging. Now164 own +205 regression=369 PASS; Mypy7 source/Ruff PASS.
 P2 partial: HTTP/own persistence and actual foundation bridge still outstanding;
 CR08-01 records same-transaction adoption requirement without altering foundation.
+C2b adds candidate POST /knowledge-videos via injected identity, closed validated
+DATA-27 snapshots and own transaction-bound SQL participant/codec/migration.
+256 cumulative own +1435 broader existing=1691 PASS; Ruff/Mypy11 PASS. Actual
+PG11 collected only NOT_RUN. P2 still partial (strategy surfaces/use cases and
+actual bridge pending); P3/P4 and real P5 not done. Production app remains unwired.
 P1–P4 implementation and P5 preparation now approved. No packages/provider/DB/GPU
 activation inferred. Historical planning evidence remains unchanged.

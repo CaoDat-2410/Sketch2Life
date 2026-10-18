@@ -21,6 +21,8 @@ from sketch2life.infrastructure.ai_policy.copy_registry_tables import COPY_METAD
 from sketch2life.infrastructure.ai_policy.tables import METADATA as POLICY_METADATA
 from sketch2life.infrastructure.ai_policy.tables import SCHEMA as POLICY_SCHEMA
 from sketch2life.infrastructure.config.settings import get_core_database_settings
+from sketch2life.infrastructure.knowledge_video.tables import METADATA as VIDEO_METADATA
+from sketch2life.infrastructure.knowledge_video.tables import SCHEMA as VIDEO_SCHEMA
 from sketch2life.infrastructure.learning_content.tables import METADATA as CONTENT_METADATA
 from sketch2life.infrastructure.learning_content.tables import SCHEMA as CONTENT_SCHEMA
 from sketch2life.infrastructure.persistence import be1_models as _be1_models  # noqa: F401
@@ -37,6 +39,8 @@ target_metadata.append(ACTIVATION_METADATA)
 target_metadata.append(ACCOUNTING_METADATA)
 target_metadata.append(COPY_METADATA)
 _MANAGED_SCHEMAS.add(POLICY_SCHEMA)
+target_metadata.append(VIDEO_METADATA)
+_MANAGED_SCHEMAS.add(VIDEO_SCHEMA)
 
 
 def _include_name(name: str | None, type_: str, parent_names: object) -> bool:

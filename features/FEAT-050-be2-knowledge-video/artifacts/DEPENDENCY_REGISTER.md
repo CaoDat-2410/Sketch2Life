@@ -14,6 +14,12 @@ contract adoption. No foundation/shared contract or migration modified.
 
 ## Owned candidate choices
 
+C2b update: own VideoRunRows participant/codec/migration and candidate HTTP exist,
+but D03 actual authorized foundation bridge remains OPEN. HTTP snapshot is bound
+and normalized inside current creation lease; no default identity/session binding
+or production registration. Details: C2B_HTTP_STORAGE_HANDOFF.md. Other pending
+owner adoptions below are not changed by passing local tests.
+
 - CMD-40 body follows DATA-27; optional exact library/profile refs are candidate
   refinements, not proof that upstream registry adopted their shape. Server context
   owns principal/org/session; route composition must resolve those explicitly.
