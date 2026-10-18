@@ -1,5 +1,12 @@
 # BE2-08 decisions
 
+## C1 — owned candidate only
+
+Typed DATA-27 pre-review subset, pin canonicalization and pure run transitions
+implemented under approved P1. No upstream DATA-26 schema altered. Dependency
+register captures owner/session/foundation bridge/kill/consumer/provider adoption.
+Actual P2/P3 authority and decoder/job effects are not inferred from pure tests.
+
 ## 2026-10-18 — D01 planning only
 
 Follow receiver handoff order12 →14 →08 →09 →10 →11 →13. Feature050 is card08,
