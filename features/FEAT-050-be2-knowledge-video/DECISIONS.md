@@ -1,5 +1,15 @@
 # BE2-08 decisions
 
+## C3a — ambiguous ACK is pending, not permission to repeat or delete
+
+Owned worker outcomes are not job mutations/ACKs. Stage recovery queries original
+journal; finalization recovery queries actual authenticated original-scope receipt
+before current teaching eligibility. Prior accepted receipt is historical fact,
+not current playback permission. No guessed cleanup after ambiguous commit.
+Quarantine stays pending and actual processing must atomically fence accepted
+references against concurrent finalization. Fixture validation cannot establish
+durable atomicity, copy deletion or current authority. CR08-01 remains open.
+
 ## C2c — preparation is not completion
 
 Explicit strategy ports/pure media profile/byte and decoded-report checks under

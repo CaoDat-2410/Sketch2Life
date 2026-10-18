@@ -1,5 +1,16 @@
 # Project context ledger
 
+## BE2-08 C3a worker/finalization component —2026-10-18
+
+Owner says continue08; parent9d2677d, FEAT-050 revision1 unchanged. Worker admission,
+private stage/finalization ports, scoped receipt checks and lost-ACK recovery now
+component-implemented.45 new/374 cumulative own; broad1809 PASS,639 backend source
+files unchanged; Ruff/Mypy16 PASS. Actual atomic start/completion/staging/cleanup
+adapters remain open CR08-01; cleanup only pending, accepted references must be
+protected atomically by actual adopter. No provider/SQL/runtime activation or
+production registration. P3 partial, provider-copy/adoption and P4 runner remain;
+whole08 IN_PROGRESS. Current FEAT-050 C3A_WORKER_FINALIZATION_HANDOFF.md.
+
 ## BE2-08 direct continuation / C2c —2026-10-18
 
 Owner says continue08 in same chat; existing FEAT-050 revision1 applies. No new

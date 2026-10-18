@@ -39,6 +39,14 @@ adapter must validate binding before commit, not only after returning a result.
 
 ## Current implementation limit
 
+C3a extension within approved P3: VideoWorkerAdmission and AtomicVideoFinalizer
+candidate ports now require actual foundation-authorized start/completion with own
+run rows in adopted same-UoW/recovery protocol. Private staging/receipt recovery
+does not implement this bridge. Actual finalizer/cleanup processor must atomically
+fence accepted references; test concurrent accept vs quarantine and lost stage/
+final ACK/restart against real persistence before claiming durable conformance.
+Foundation fingerprint and08 completion key remain separate namespaces.
+
 Application guarded-create composition exists, plus explicitly fixture-only
 run/job-intent/outbox/receipt staging. No actual BE2-01 job insertion, durable
 submission bridge or production factory is supplied by that fixture. The CR does

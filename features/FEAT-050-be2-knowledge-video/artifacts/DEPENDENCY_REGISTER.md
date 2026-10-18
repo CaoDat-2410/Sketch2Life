@@ -14,6 +14,12 @@ contract adoption. No foundation/shared contract or migration modified.
 
 ## Owned candidate choices
 
+C3a update: worker admission/private stage/finalization/recovery candidate ports
+and owned orchestration exist. D03 includes actual atomic start and completion,
+not only submission. Actual staging registry/authenticated recovery/adoption open;
+cleanup must atomically protect accepted references from concurrent finalization.
+See C3A_WORKER_FINALIZATION_HANDOFF.md; no durable effect proof from fixture tests.
+
 C2c update: explicit strategy/source/profile/decoder/authority ports and media
 preparation component now exist. No actual07/rights/authority/provider/decoder
 adopter supplied; catalog version hash is distinct from media-byte hash. See
