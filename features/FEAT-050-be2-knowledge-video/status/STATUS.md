@@ -2,20 +2,24 @@
 
 - Status: IN_PROGRESS
 - Plan revision: 1
-- Implementation status: IN_PROGRESS — C2b HTTP/owned storage component; P2 partial
+- Implementation status: IN_PROGRESS — C2c media-strategy component; actual integration open
 - Branch: feature/be2-08-14
 - Baseline: be64b99
 - Current: strict owned schemas/domain, candidate owner lease/submission ports,
   guarded create service, native validated HTTP snapshot, caller-transaction row
   participant/strict codec/frozen own migration; fixture intents and dependency register/CR.
-- Local component tests:256 own PASS; broad1691 PASS (own256 +1435 existing
-  policy/content/foundation cases); Ruff PASS, Mypy11 source files PASS.
+  Library/generator/composer/source/profile/decoder ports, strategy preparation and
+  bounded byte/hash/decoded-profile validation now component-implemented.
+- Local component tests:329 own PASS; broad1764 PASS (own329 +1435 existing
+  policy/content/foundation cases); Ruff PASS, Mypy14 source files PASS.
 - PostgreSQL/runtime/provider/Lightning: NOT_RUN, separately gated.
-- Next: P2 explicit library/generator/media-validation strategy surfaces/use cases;
-  actual foundation submission bridge conformance (CR08-01), then P3/P4.
+- Next: P3 worker/finalization/failure/copy integration, adopted atomic completion
+  bridge (CR08-01), actual07/authority/library/provider/decoder bindings; P4 runner.
 - Owned SQL:11 prepared actual cases collected only, NOT_RUN. No DB environment
   provisioned, schema migrated or new runtime opt-in inferred from previous card.
-- P1 component available; P2 partial; P3/P4 NOT_STARTED; P5 actual render gated.
-- No live route/default auth/actual foundation jobs/durable atomicity claimed by C2b.
+- P1 component available; P2 local surfaces available, actual adoption/bridge still
+  open. P3 durable completion/worker NOT_IMPLEMENTED; P4 pending; P5 actual render gated.
+- ffmpeg/ffprobe not found in PATH; actual full-decode/generation NOT_RUN, mocks explicit.
+- No live route/default auth/actual foundation jobs/durable atomicity claimed by C2c.
 - Full completion requires actual generation and adopted integration evidence;
   component handoff is not full card DONE.

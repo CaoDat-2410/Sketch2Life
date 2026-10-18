@@ -1,5 +1,8 @@
 # BE2-08 evidence
 
+Latest C2c: notes/C2C_MEDIA_STRATEGIES_20261018.md,73 new/329 cumulative own,
+broad1764 PASS with backend source unchanged. Actual decoder/generation/SQL NOT_RUN.
+
 Planning baseline be64b99; approval commit1ea7b53. C1 own component evidence only.
 Inventory: evidence/notes/BASELINE_20261018.md.
 Validation: evidence/notes/PLAN_VALIDATION_20261018.md (harness/security/diff PASS).

@@ -14,6 +14,11 @@ contract adoption. No foundation/shared contract or migration modified.
 
 ## Owned candidate choices
 
+C2c update: explicit strategy/source/profile/decoder/authority ports and media
+preparation component now exist. No actual07/rights/authority/provider/decoder
+adopter supplied; catalog version hash is distinct from media-byte hash. See
+C2C_MEDIA_STRATEGY_HANDOFF.md for current duties and no-durable-completion boundary.
+
 C2b update: own VideoRunRows participant/codec/migration and candidate HTTP exist,
 but D03 actual authorized foundation bridge remains OPEN. HTTP snapshot is bound
 and normalized inside current creation lease; no default identity/session binding

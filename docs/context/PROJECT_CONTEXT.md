@@ -1,5 +1,15 @@
 # Project context ledger
 
+## BE2-08 direct continuation / C2c —2026-10-18
+
+Owner says continue08 in same chat; existing FEAT-050 revision1 applies. No new
+goal/thread or original12 scope mutation. At parent b06b8a8, own explicit media
+strategy/source/profile/decoder ports + validation and preparation implemented:
+73 new/329 own, broad1764 PASS;636 backend source inventory unchanged, Ruff/Mypy14
+PASS. No PATH ffmpeg/ffprobe; actual decoder/provider/SQL NOT_RUN. No production
+defaults, completion/approval/artifact exposure or P5 activation inferred. Next P3
+worker/finalization/copy and actual bridge/adoption; FEAT-050 C2C handoff is current.
+
 ## Original BE2-12 goal revalidation —2026-10-18
 
 At16712de, owner objective attachment reread: original goal remains12, separate
