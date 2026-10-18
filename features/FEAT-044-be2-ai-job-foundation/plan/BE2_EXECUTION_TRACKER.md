@@ -1,5 +1,12 @@
 # BE2 execution tracker
 
+Latest 2026-10-18 23:15 +07:00: owner **ACCEPTED BE2-04 SK1 SKETCH_COMPONENT_OFFLINE** (component
+scope with recorded dispositions; FEAT-050 approvals/SK1_COMPONENT_ACCEPTANCE.md). Q06 component
+checkpoint SK1 accepted offline; runtime/integration NOT_STARTED; BE2-04 IN_PROGRESS / NOT_DONE.
+No implementation slot active; WIP1 kept. Uncommitted; publication plan FEAT-050
+evidence/notes/SK1_PUBLICATION_PLAN_20261018.md awaits review. Shared branch feature/be2-01-07
+(from the committed SK1 tip) not created. BE2-02 PARKED, BE2-01 WAITING_STUDIO.
+
 Latest BE2-03 publication 2026-10-17: Owner approved the corrected publication plan (FEAT-049 evidence/notes/A1_PUBLICATION_PLAN_20261017.md, SHA256 1065fa3f…; amended by owner instruction to a01e8527… to keep 4 reviewed CRLF metrics byte-exact via .gitattributes, 64 paths) on 2026-10-17 23:42 +07:00 for four local commits C1–C4, with the repository security validator run before each commit; not pushed (push needs a separate instruction after re-checking the actual remote tip).
 
 Latest 2026-10-17 23:24 +07:00: owner **ACCEPTED BE2-03 A1 ASSISTANCE_COMPONENT_OFFLINE**
@@ -214,7 +221,7 @@ Component/runtime/integration refer to roadmap definitions. NOT_STARTED means no
 | Q03 | BE2-14 | NOT_STARTED | NOT_STARTED | NOT_STARTED | Own plan/approval; DATA-33/CMD-48; Admin/policy/copy lifecycle decisions |
 | Q04 | BE2-02 | NOT_STARTED | NOT_STARTED | NOT_STARTED | Own plan/approval; accepted foundation; snapshot/context; real profile gate |
 | Q05 | BE2-03 | NOT_STARTED | NOT_STARTED | NOT_STARTED | Own plan/approval; 01/02, turn/scope/budget contracts |
-| Q06 | BE2-04 | NOT_STARTED | NOT_STARTED | NOT_STARTED | Own plan/approval; 01/02/03; selected Sketch profile and actual generation |
+| Q06 | BE2-04 | SK1 ACCEPTED offline 2026-10-18 (FEAT-050; partial rows/dispositions in approvals/SK1_COMPONENT_ACCEPTANCE.md) | NOT_STARTED | NOT_STARTED | Selected Sketch profile and actual generation; A1 callback end-to-end and partial rows before integration claims |
 | Q07 | BE2-05 | NOT_STARTED (shared shape exists) | NOT_STARTED | NOT_STARTED | Own plan/approval; 04 runtime, teaching/moderation/access contracts |
 | Q08 | BE2-06 | NOT_STARTED | NOT_STARTED | NOT_STARTED | Own plan/approval; 05 + current turn/grant |
 | Q09 | BE2-07 | NOT_STARTED | NOT_STARTED | NOT_STARTED | Own plan/approval; source/content/confirmed-context contracts |
