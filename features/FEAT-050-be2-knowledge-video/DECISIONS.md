@@ -1,5 +1,14 @@
 # BE2-08 decisions
 
+## C3b — video consumes14 hook protocol, not deletion authority
+
+Script maps to existing input copy kind; scope/provider profile explicit, not
+guessed session/model refs. Original lineage producer is not source/coverage proof.
+Guarded hook requires actual source/current claim/authority adoption; effect errors
+remain pending without retry loop. Receipt availability is not verified deletion.
+No generation inventory bootstrap with fabricated data-request context. Existing
+shared14/foundation contracts unchanged. Update checkpoint docs together after test.
+
 ## C3a — ambiguous ACK is pending, not permission to repeat or delete
 
 Owned worker outcomes are not job mutations/ACKs. Stage recovery queries original

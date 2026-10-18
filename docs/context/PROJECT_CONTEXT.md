@@ -1,5 +1,14 @@
 # Project context ledger
 
+## BE2-08 C3b provider-copy component —2026-10-18
+
+Parent e21c7dd, FEAT-050 approved revision1 unchanged. Original-copy metadata and
+guarded video hook consume14 exact envelope; no deletion authority/provider choice.
+48 new/422 own, broad1857 PASS; Ruff/Mypy19 PASS,643 backend source files unchanged.
+Actual journal/registration/source/authority/provider adoption OPEN; no actual
+generation/SQL/deletion run. Next owned P4 runner/decoder pack/audit; whole08 still
+IN_PROGRESS. Current handoff/evidence: FEAT-050 evidence/notes/C3B_PROVIDER_COPY_20261018.md.
+
 ## BE2-08 C3a worker/finalization component —2026-10-18
 
 Owner says continue08; parent9d2677d, FEAT-050 revision1 unchanged. Worker admission,
