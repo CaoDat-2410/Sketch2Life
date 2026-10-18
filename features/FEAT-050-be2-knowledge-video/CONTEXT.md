@@ -1,5 +1,14 @@
 # BE2-08 planning context
 
+## C4b actual own SQL —2026-10-18
+
+Parent c7b17ac; owner approved separate08 PostgreSQL environment, recorded before
+setup. Actual PG17.11 own11 PASS, zero failures/errors/skips;702-file source closure
+unchanged, no code fix. Loopback restricted role/no CREATEDB, unique cluster stopped
+and data/binaries/archive/secrets removed, receipts retained. Own SQL gate complete;
+actual foundation/owner/copy/provider/selected-decoder integration open, whole08
+IN_PROGRESS. E09 and updated ACCEPTANCE_AUDIT.md are current.
+
 ## C4 continuation —2026-10-18
 
 Owner requested continue; parent d55e9ca. P4 one-command source/node-pinned local

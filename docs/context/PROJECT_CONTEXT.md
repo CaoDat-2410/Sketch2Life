@@ -1,5 +1,14 @@
 # Project context ledger
 
+## BE2-08 C4b actual own PostgreSQL11 PASS —2026-10-18
+
+Parent c7b17ac; separate direct08 environment approval recorded before setup.
+Actual PG17.11 own11 PASS, zero failure/error/skip;702-file source closure unchanged.
+Loopback restricted runner, unique cluster/data/binaries/archive/secrets removed,
+private receipts retained. No source fixes/provider/actual bridge activation.
+FEAT-050 E09 and ACCEPTANCE_AUDIT.md: own SQL gate complete, actual foundation/
+BE1/07/14/copy/runtime adoption open; whole08 IN_PROGRESS.
+
 ## BE2-08 C4 local verification/handoff —2026-10-18
 
 Parent d55e9ca, FEAT-050 approved revision1 unchanged. One-command exact-node/
