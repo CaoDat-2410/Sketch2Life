@@ -1,5 +1,15 @@
 # Project context ledger
 
+## Receiver BE2-08 C1/C2a component —2026-10-18
+
+Approved FEAT-050 revision1 plan retained. Approval1ea7b53, C1 a3946e7;
+owned strict CMD-40/DATA-27/domain plus C2a guarded create/lease/submission ports
+and explicit fixture intents:164 own +205 selected regression=369 PASS,
+Ruff/Mypy7 PASS. P2 partial; own persistence/HTTP and actual atomic foundation
+bridge outstanding (CR08-01); P3/P4 not yet implemented, actual P5 separately
+gated. No real07/BE1/policy/provider/SQL adoption or live route inferred. See
+FEAT-050 status/STATUS.md and artifacts/CR_ATOMIC_VIDEO_SUBMISSION.md.
+
 ## Receiver BE2-08 approval —2026-10-18
 
 Owner direct reply "duyệt làm task 08" approves FEAT-050 revision1, SHA256
