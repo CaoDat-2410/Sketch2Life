@@ -1,5 +1,15 @@
 # BE2-08 planning context
 
+## C3b continuation —2026-10-18
+
+Owner requested continue and batch documentation at functional checkpoints.
+Parent e21c7dd; original-copy metadata and14 hook component now available,48 new/
+422 own; broad1857 PASS,643 backend source files unchanged; Ruff/Mypy19 PASS.
+Actual copy journal/bootstrap registration/source/current authority/provider
+dedup/deletion verification still open, no generation-side registration inferred.
+Next owned P4 runner/decoder pack/audit; whole08 IN_PROGRESS. Current handoff and
+evidence consolidated in evidence/notes/C3B_PROVIDER_COPY_20261018.md.
+
 ## C3a continuation —2026-10-18
 
 Owner requested "tiếp"; parent9d2677d, revision1 scope unchanged. Owned worker,

@@ -1,7 +1,8 @@
 # BE2-08 evidence
 
-Latest C3a: notes/C3A_WORKER_FINALIZATION_20261018.md,45 new/374 cumulative own,
-broad1809 PASS with backend source unchanged. Actual decoder/generation/SQL NOT_RUN.
+Latest C3b: notes/C3B_PROVIDER_COPY_20261018.md,48 new/422 cumulative own,
+broad1857 PASS with backend source unchanged. Actual decoder/generation/SQL NOT_RUN.
+C3a: notes/C3A_WORKER_FINALIZATION_20261018.md,45 new/374 cumulative own at checkpoint.
 C2c: notes/C2C_MEDIA_STRATEGIES_20261018.md,73 new/329 cumulative own at that checkpoint.
 
 Planning baseline be64b99; approval commit1ea7b53. C1 own component evidence only.
