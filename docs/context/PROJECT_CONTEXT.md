@@ -1,5 +1,14 @@
 # Project context ledger
 
+## BE2-09 C2a guarded review-write component —2026-10-18
+
+Parent cd942dd; FEAT-051 approved revision1 unchanged. Review-write/current snapshot/
+atomic own UoW candidate ports/service with current replay applicability.53 new/
+189 own +1894 existing=2083 PASS;658 backend source files unchanged, Ruff/Mypy8 PASS.
+Actual owner/canonical head/version rebind/SQL/HTTP/access adoption still open,
+no automatic playback or2083-as-integration claim. P3/P4 pending; current FEAT-051
+E03. Full09 IN_PROGRESS, no provider/SQL/Lightning activation.
+
 ## BE2-09 C1b playback intent/recovery component —2026-10-18
 
 Parent aa10fe5, approved FEAT-051 revision1 unchanged.52 new/136 own +1894 existing

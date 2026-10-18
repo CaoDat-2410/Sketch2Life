@@ -10,6 +10,12 @@
 
 ## Context snapshot
 
+C2a parent cd942dd, owner continue: review-write/current-snapshot/atomic own UoW
+component,53 new/189 own +1894 existing=2083 PASS;658 backend source files unchanged,
+Ruff/Mypy8 PASS. Shared-record replay applicability refreshed; lost ACK recovers
+original receipt/no duplicate history. Actual canonical head/version rebind and
+owner/SQL/HTTP effects not supplied. P3/P4 next, CR09-01/02 OPEN, current E03.
+
 C1b parent aa10fe5, owner "tiếp": playback terms and guarded original-key intent/
 receipt recovery component,52 new/136 own, broad2030 PASS;655 backend source files
 unchanged, Ruff/Mypy6 PASS. Actual authority/store/BE1 bridge still candidate ports,

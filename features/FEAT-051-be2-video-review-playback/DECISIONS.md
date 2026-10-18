@@ -1,5 +1,14 @@
 # BE2-09 planning decisions
 
+## C2a — immutable receipt is historical, replay response is current applicability
+
+Own review CAS/head/history/shared-record/receipt/audit/outbox is one transaction
+port, current action fences held through commit. Lost commit ACK is unavailable,
+not rollback; replay original key under current authority. Original stored record
+is immutable, response state derives from current head so a superseded approval
+doesn't appear effective. Canonical head mismatch/external history not silently
+imported; version-rebind protocol CR09-01 still required. No08 row rewrite.
+
 ## C1b — original-key receipt recovery is not current playback permission
 
 Persist intent before external effect, do not keep own DB transaction across BE1
