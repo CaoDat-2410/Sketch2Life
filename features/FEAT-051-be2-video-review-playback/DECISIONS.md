@@ -1,5 +1,17 @@
 # BE2-09 planning decisions
 
+## C3a — owned storage is neither current authority nor cross-owner atomicity
+
+Independent video_review schema; six tables and new branch migration, no08/BE1
+writes/FKs or published migration edits. Closed JSON type graph rechecks native
+domain invariants and relational scope. Review/change share actor/key namespace;
+playback namespace org/session/actor/key excludes video to catch changed-target
+reuse. Own session advisory lock serializes first insert/CAS, not BE1 revocation.
+History/receipts/events append-only, playback pending1->terminal2 only. Audit event
+is minimal committed intent, not a delivered notice or actual session receipt.
+Prepared10 PG cases need separate VR09 disposable loopback PG17 opt-in/approval;
+local mock/offline70 PASS does not prove actual durable transactions/races.
+
 ## C2b — invalidation archives; rebind never copies approval
 
 One monotonic canonical review revision across subject changes; immutable old

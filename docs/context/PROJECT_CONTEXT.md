@@ -1,5 +1,15 @@
 # Project context ledger
 
+## BE2-09 C3a owned persistence component —2026-10-18
+
+Parent09a707b, approved FEAT-051 revision1 unchanged. Own video_review closed codec/
+six-table schema/SQL UoW adapters/new branch migration, no08/BE1 shared-row writes.
+70 new mock/offline cases,319 own +1894 existing=2213 PASS,669 backend source files
+unchanged; Ruff/Mypy15 PASS.10 actual PG17 tests prepared/collected only NOT_RUN,
+separate VR09 environment authorization required. P3 injected HTTP/P4 next, actual
+canonical head/access/session/revocation adoption CR09-01/02 OPEN. Full09 remains
+IN_PROGRESS. Current E05; no DB/provider/Lightning activation or push/merge.
+
 ## BE2-09 C2b lifecycle/rebind component —2026-10-18
 
 Parent01b4be9, approved FEAT-051 revision1.60 new/249 own +1894 existing=2143 PASS,
