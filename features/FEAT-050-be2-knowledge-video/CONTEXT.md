@@ -1,5 +1,15 @@
 # BE2-08 planning context
 
+## C2c continuation —2026-10-18
+
+Owner directly requested continuing08 in same chat. Parent b06b8a8, 08 checkpoint
+16712de; revision1 approval retained, no goal lifecycle mutation inferred. C2c adds
+owned media profile/decoder rules and strategy preparation via explicit ports,
+not provider activation or actual completion.73 new/329 cumulative own PASS;
+broad1764 PASS,636 backend source inventory unchanged, Ruff/Mypy14 PASS. Actual
+decoder/provider/SQL NOT_RUN, ffmpeg/ffprobe absent from PATH. P3 atomic accept/
+quarantine/worker/copy and real owner/bridge adoption still open, no full08 DONE.
+
 2026-10-18; branch feature/be2-08-14; baseline be64b99, initial worktree clean.
 Owner asked next task then "tiếp" after proposal to inspect07 and prepare08 plan.
 Owner subsequently approved exact revision1 with "duyệt làm task 08" after scope

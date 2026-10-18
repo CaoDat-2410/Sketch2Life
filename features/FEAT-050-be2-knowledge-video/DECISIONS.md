@@ -1,5 +1,14 @@
 # BE2-08 decisions
 
+## C2c — preparation is not completion
+
+Explicit strategy ports/pure media profile/byte and decoded-report checks under
+existing P2/P3 plan. reviewed_library independent of generation model; no silent
+fallback/TTS. Original operation key binds pin/job/attempt, not progress revision.
+PreparedVideoMedia uncommitted only; P3 owes actual current completion fences and
+accept/quarantine bridge. Test decoder/provider/authority fixtures not actual
+generation/decode evidence. No profile/codec/duration production defaults selected.
+
 ## C2b — closed snapshot and caller-bound own SQL participant
 
 HTTP never guesses job history: adapter supplies a strict complete snapshot,
