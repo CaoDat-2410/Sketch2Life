@@ -10,6 +10,13 @@
 
 ## Context snapshot
 
+C2b parent01b4be9: owner approves remaining internal work. Lifecycle invalidation/
+version rebind component +preserved archives/new empty head,60 new/249 own and
+2143 broad PASS,662 backend source files unchanged, Ruff/Mypy11 PASS. Exact-content
+restoration requires fresh review, opaque policy pin not guessed media edit. Real
+source-owner/canonical head/access revocation adoption remains OPEN; P3/P4 next.
+Current E04, no SQL/provider/Lightning activation or actual stop-player claim.
+
 C2a parent cd942dd, owner continue: review-write/current-snapshot/atomic own UoW
 component,53 new/189 own +1894 existing=2083 PASS;658 backend source files unchanged,
 Ruff/Mypy8 PASS. Shared-record replay applicability refreshed; lost ACK recovers

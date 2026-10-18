@@ -17,3 +17,12 @@ for08→09 projections without mutating immutable08 lineage. CR09-02 requires ac
 authorized atomic or explicitly recoverable session/access intent/receipt protocol,
 and current access authorization through use. Both OPEN_CANDIDATE, no shared-owner
 sign-off. Typed fixtures can unblock owned tests, not integrated acceptance.
+
+C2b own lifecycle component exists: exact notice invalidate/rebind, preserved old
+entry/archive and new empty head under monotonic revision, guarded own change UoW.
+This is NOT actual CR09-01 adoption or event source authentication. Same-content
+eligibility restoration requires explicit new-target current guards and new review;
+does not restore historical approval. P3 must enforce shared review/change key
+namespace and CAS/head/archive/receipt/audit/outbox atomicity. Real source/current
+dispatch/fetch/range/resume invalidation fence and canonical08/09 projection still
+need owner agreement; outbox does not itself prove stopped/blocked access. E04.
