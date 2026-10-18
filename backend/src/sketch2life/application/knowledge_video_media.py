@@ -94,6 +94,18 @@ def _check_library(attempt: RenderAttempt, library: LibraryMedia) -> None:
         raise VideoError("VIDEO_LIBRARY_MISMATCH")
 
 
+def media_operation_key(attempt: RenderAttempt) -> str:
+    return canonical_digest(
+        {
+            "schema": "BE2-08.MediaOperation/0.1-candidate",
+            "pin": attempt.run.pin.digest(),
+            "job_id": attempt.run.job_id,
+            "attempt_id": attempt.run.attempt_id,
+            "strategy": attempt.run.pin.strategy.value,
+        }
+    )
+
+
 class VideoMediaPipeline:
     def __init__(
         self,
@@ -124,15 +136,7 @@ class VideoMediaPipeline:
             or pin.strategy not in profile.strategies
         ):
             raise VideoError("VIDEO_PROFILE_UNAVAILABLE")
-        operation_key = canonical_digest(
-            {
-                "schema": "BE2-08.MediaOperation/0.1-candidate",
-                "pin": pin.digest(),
-                "job_id": attempt.run.job_id,
-                "attempt_id": attempt.run.attempt_id,
-                "strategy": pin.strategy.value,
-            }
-        )
+        operation_key = media_operation_key(attempt)
         if pin.strategy is Strategy.REVIEWED_LIBRARY:
             blob = self._resolve_library(attempt).blob
         else:

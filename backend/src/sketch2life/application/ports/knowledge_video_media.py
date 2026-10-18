@@ -25,6 +25,9 @@ RenderPhase = Literal[
     "generation_returned",
     "validation",
     "validation_returned",
+    "before_stage",
+    "after_stage",
+    "before_finalize",
 ]
 
 

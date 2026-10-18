@@ -1,5 +1,16 @@
 # BE2-08 planning context
 
+## C3a continuation —2026-10-18
+
+Owner requested "tiếp"; parent9d2677d, revision1 scope unchanged. Owned worker,
+private staging/completion ports and original-key lost-ACK receipt recovery now
+component-implemented.45 new/374 cumulative own; broad1809 PASS,639 backend source
+inventory unchanged; Ruff/Mypy16 PASS. No actual authority/storage/foundation
+bridge implementation. Cleanup is pending intent, never verified deletion; actual
+adopter must atomically protect accepted references from quarantine races.
+P3 provider-copy hooks/adoption and P4 runner/audit remain. SQL11 and actual
+decoder/provider/generation NOT_RUN. Whole08 still IN_PROGRESS; handoff C3A current.
+
 ## C2c continuation —2026-10-18
 
 Owner directly requested continuing08 in same chat. Parent b06b8a8, 08 checkpoint
