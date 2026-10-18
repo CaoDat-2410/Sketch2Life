@@ -1,8 +1,9 @@
 # Feature context
 
 - Status: APPROVED (plan revision 5); SK1 component ACCEPTED offline 2026-10-18 with owner
-  dispositions (approvals/SK1_COMPONENT_ACCEPTANCE.md); publication plan awaiting review; card
-  BE2-04 IN_PROGRESS / NOT_DONE
+  dispositions (approvals/SK1_COMPONENT_ACCEPTANCE.md), published on milestone branch 04 at
+  6ab7abf. Canonical working branch is feature/be2-01-07; six-document routing publication
+  authorized 2026-10-19 (DECISIONS). BE2-04 IN_PROGRESS / NOT_DONE; no next ACTIVE card selected.
 - Owner: Person 2 executor lane BE2-01–07 (card BE2-04); BE2-08–14 belong to the second executor.
 - Goal: BE2-04 real Sketch pipeline (FEAT-040 card), first as the offline component checkpoint
   SKETCH_COMPONENT_OFFLINE (SK1): DATA-23 SketchProposal producer over fakes.
@@ -16,9 +17,9 @@
   (accepted component, card IN_PROGRESS); BE1 owner facts ASSUMED_CONTRACT; BE2-14 policy/copy
   seams not merged (user wires later).
 - Risks: rebuilt A1 composition can drift (guarded by SK-C11); fake coordination proves no DB
-  behaviour; feature number FEAT-050 may collide with a future feature number on the second
-  executor's branch (both lines currently end at FEAT-049; duplicate 048/049 already exist) —
-  resolve when the branches are joined.
+  behaviour. The last recorded inventory of the second lane already duplicates FEAT numbers
+  048/049/050 and includes FEAT-051. Shared feature-number allocation and cross-lane mapping
+  remain undecided; do not allocate max+1 or rename approved historical evidence.
 
 ## Context snapshot
 
@@ -56,3 +57,4 @@
   accepted as fixture residual. Verbatim in approvals/SK1_COMPONENT_ACCEPTANCE.md. Uncommitted;
   commit plan evidence/notes/SK1_PUBLICATION_PLAN_20261018.md awaits review. Next after an
   authorized commit: the shared branch feature/be2-01-07 from that commit (not created).
+- 2026-10-19 00:15 +07:00: SK1 (offline component) accepted 2026-10-18 and published: 7 commits ba93c20..6ab7abf pushed to `origin/feature/be2-04-sketch-generation` (no force; receipt in ignored `evidence/local/sk1-publication-20261018/push.json`). Shared working branch `feature/be2-01-07` created 2026-10-19 00:15 +07:00 from exactly 6ab7abf in worktree `.worktrees/be2-01-07` (local only, no upstream, not pushed). Workflow recorded in DECISIONS; WIP1; no next ACTIVE card chosen.

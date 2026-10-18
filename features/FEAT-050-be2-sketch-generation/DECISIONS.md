@@ -128,3 +128,40 @@ Adopted as written in plan §11 for this component, with these clarifications:
 - Not full-card acceptance; no runtime claim; stage/commit/push/merge/deploy and branch creation
   need separate instructions. The shared branch `feature/be2-01-07` is to be cut from the accepted,
   committed SK1 tip later.
+
+## 2026-10-19 00:15 +07:00 — shared BE2-01–07 working branch (owner direction, Person 2)
+
+- Workflow: `feature/be2-01-07` is the shared working branch for the sender lane BE2-01–07, created
+  from the accepted, committed and pushed SK1 tip `6ab7abf1c52d4e263448fc50236b461f6b5db6c4`. It already contains the
+  BE2-01–04 history; nothing was merged or cherry-picked again. The older card branches
+  (`feature/be2-01-ai-job-foundation` 6dcc57e, `feature/be2-02-vision-correction` f120c4f,
+  `feature/be2-03-assistance-orchestration` 113cdf9, `feature/be2-04-sketch-generation` 6ab7abf)
+  remain as historical milestones. The 02-04 milestone branches are not updated; 01 may receive
+  reviewed successor fixes through the A17 track described below.
+- Next work and fixes for BE2-02–07 happen on the shared branch, each change in its owning
+  feature. WIP1: one card in active code scope; every card keeps its own plan, approval, evidence,
+  review, component acceptance and commit group.
+- BE2-01 fixes follow the A17 track (`feature/be2-01-ai-job-foundation`); a reviewed successor is
+  received into the shared branch by pinned SHA with new regression receipts. The A17 package and
+  its historical receipts stay frozen; newer source does not inherit the old runtime claim.
+- SK1 is accepted offline only; no card becomes DONE through this decision. No next ACTIVE card is
+  chosen, no new FEAT number is allocated, and no integration/composition checkpoint is approved.
+- Basis: consolidation proposal Rev3 (FEAT-049 ignored local planning, SHA256 e02ffafb…; Codex
+  PLAN_REVIEW_PASS, SHA256 4eabc970…) and the SK1 acceptance/publication records.
+
+## 2026-10-19 - Shared-branch routing publication (owner instruction to Codex)
+
+- Direct user instruction: "Bạn làm lun sau đó viết bản cập nhật bàn giao lại cho claude bạn đã làm gì đc k ?"
+- Context of that instruction: publish the six pending routing documents as one documentation
+  commit on `feature/be2-01-07`, push that branch with upstream, then write a local Claude handover.
+  This is separate authorization from the earlier branch-creation instruction; it does not
+  change the original SK1 task approval or acceptance bytes.
+- Scope: PROJECT_CONTEXT, SOURCE_REGISTER, BE2_EXECUTION_TRACKER, and FEAT-050 CONTEXT,
+  DECISIONS and STATUS only. No source/test changes, new ACTIVE card, FEAT allocation, merge,
+  integration checkpoint or runtime execution is included. WIP1 and the A17 boundaries stand.
+- Baseline: `6ab7abf1c52d4e263448fc50236b461f6b5db6c4`. Verify the exact staged list and pinned
+  snapshot; run repository security immediately before commit and again immediately before push.
+  Use a normal push; preserve any unexpected remote work.
+- Execution results and final tip belong to ignored
+  `evidence/local/shared-routing-publication-20261019/receipt.json`; the Claude update belongs
+  to `evidence/local/handover/CODEX_SHARED_ROUTING_PUBLICATION_UPDATE_20261019.md`.
