@@ -1,5 +1,16 @@
 # Project context ledger
 
+## BE2-04 SK1 component acceptance —2026-10-18
+
+Owner accepted BE2-04 SKETCH_COMPONENT_OFFLINE (SK1) at 23:15 +07:00 on the snapshot matching the
+final Codex focused review (FEAT-050 approvals/SK1_COMPONENT_ACCEPTANCE.md). Dispositions: F-5
+fixture-composition deviation accepted; N04/N08/N11 chain and C03/C03b contract column PARTIAL;
+A1 callback end to end NOT_RUN (future integration gate); N16 fixture residual accepted. Offline
+component scope only: BE2-04 IN_PROGRESS / NOT_DONE; no runtime claim. Uncommitted; publication
+plan FEAT-050 evidence/notes/SK1_PUBLICATION_PLAN_20261018.md awaits owner review. BE2-01
+WAITING_STUDIO; BE2-02 PARKED; BE2-03 A1 accepted offline / card IN_PROGRESS. Earlier entries are
+history.
+
 ## BE2-03 A1 component acceptance —2026-10-17
 
 Latest: Owner approved the corrected publication plan (FEAT-049 evidence/notes/A1_PUBLICATION_PLAN_20261017.md, SHA256 1065fa3f…; amended by owner instruction to a01e8527… to keep 4 reviewed CRLF metrics byte-exact via .gitattributes, 64 paths) on 2026-10-17 23:42 +07:00 for four local commits C1–C4, with the repository security validator run before each commit; not pushed (push needs a separate instruction after re-checking the actual remote tip).
