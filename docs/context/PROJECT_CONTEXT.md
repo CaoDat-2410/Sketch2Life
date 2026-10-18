@@ -1,5 +1,24 @@
 # Project context ledger
 
+## Receiver BE2-08 approval —2026-10-18
+
+Owner direct reply "duyệt làm task 08" approves FEAT-050 revision1, SHA256
+370c6c04573a684c0e51c0ef1c276224d8e1f01ecd701624b2d925751cfa0b04,
+P1–P4/P5 preparation and local checkpoint commits. Implementation IN_PROGRESS;
+actual provider/profile/provisioning/SQL environment activation separately gated.
+No push/merge/deploy. Reviewed plan bytes retained; earlier pending entries historical.
+
+## Receiver BE2-08 planning —2026-10-18
+
+Owner asked next task then "tiếp" after next-card planning proposal. Baseline
+be64b99, feature/be2-08-14; FEAT-050 revision1 AWAITING_APPROVAL, implementation
+NOT_STARTED. Follows12→14→08 receiver handoff order. Dedicated07 implementation
+not located in current checkout; DATA-26/27 ShapeSpec candidates do not prove
+adopted upstream runtime. Proposed P1–P4 owned component and P5 runtime preparation;
+actual provider/profile/rights/provisioning/SQL environment separately gated.
+No historical Wan/L4/duration/TTS selection inferred. Real BE1/P4 wiring remains
+teammate-owned/deferred,12/14 not full integrated DONE. Entry: FEAT-050 plan/PLAN.md.
+
 ## Receiver BE2-14 actual PostgreSQL104 PASS —2026-10-18
 
 Separate direct owner approval now permits local isolated PG17/test/cleanup for
