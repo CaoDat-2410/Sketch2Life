@@ -132,6 +132,8 @@ apps/ui-mobile/android/.gradle-alt*/
 /features/FEAT-048-be2-vision-correction/evidence/local/
 # BE2-03 prompts, scratch output and raw validator logs stay local.
 /features/FEAT-049-be2-assistance-orchestration/evidence/local/
+# BE2-04 prompts, scratch output and raw validator/test logs stay local.
+/features/FEAT-050-be2-sketch-generation/evidence/local/
 # Claude operator prompts/session handovers belong under evidence/local/claude/.
 # Retain the historical handoff explicitly referenced by the Phase A approval.
 /features/FEAT-044-be2-ai-job-foundation/plan/CLAUDE_*.md
