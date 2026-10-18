@@ -10,6 +10,12 @@
 
 ## Context snapshot
 
+C1b parent aa10fe5, owner "tiếp": playback terms and guarded original-key intent/
+receipt recovery component,52 new/136 own, broad2030 PASS;655 backend source files
+unchanged, Ruff/Mypy6 PASS. Actual authority/store/BE1 bridge still candidate ports,
+no real playing/access/provisioning effects. P2 review-write/P3/P4 still pending.
+Current handoff/evidence E02, CR09-01/02 not adopted; no full09 completion.
+
 Owner subsequently replied "duyệt" after exact revision1 P1–P4 presentation.
 Approval recorded before code, frozen plan unchanged. C1a parent1ab9498 implements
 shared24 video-session binding and pure exact review/head/invalidation rules.

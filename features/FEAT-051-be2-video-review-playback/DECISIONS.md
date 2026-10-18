@@ -1,5 +1,14 @@
 # BE2-09 planning decisions
 
+## C1b — original-key receipt recovery is not current playback permission
+
+Persist intent before external effect, do not keep own DB transaction across BE1
+start. Use explicit recoverable protocol; no two-commit atomicity claim. Missing/
+ambiguous receipt never triggers implicit resend or false rollback. Confirmed
+response is historical reference only, not current player status/access URL. Actual
+BE1 current session CAS/review/consent/deadline/access-use fencing remains CR09-02;
+MEMORY transactions/synthetic receipts don't prove durable races or authentication.
+
 ## C1a approved implementation —2026-10-18
 
 Actual owner approves exact revision1 P1–P4. Reuse shared24, owned native binding

@@ -1,5 +1,14 @@
 # Project context ledger
 
+## BE2-09 C1b playback intent/recovery component —2026-10-18
+
+Parent aa10fe5, approved FEAT-051 revision1 unchanged.52 new/136 own +1894 existing
+=2030 PASS,655 backend source files unchanged, Ruff/Mypy6 PASS. Intent-first
+guarded start/original-key receipt recovery component, no resend/URL/fake current
+playing grant. Actual authority/store/BE1 session/access/receipt/fetch adoption
+CR09-01/02 OPEN. P2 review-write/P3 persistence-HTTP/P4 verification next, full09
+IN_PROGRESS. Current FEAT-051 E02; no provider/SQL/Lightning activation.
+
 ## BE2-09 approved revision1 / C1a —2026-10-18
 
 Owner "duyệt" approves FEAT-051 P1–P4 exact revision1 after presentation. Parent
