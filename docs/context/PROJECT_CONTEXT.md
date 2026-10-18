@@ -1,5 +1,14 @@
 # Project context ledger
 
+## BE2-09 C2b lifecycle/rebind component —2026-10-18
+
+Parent01b4be9, approved FEAT-051 revision1.60 new/249 own +1894 existing=2143 PASS,
+662 backend source files unchanged, Ruff/Mypy11 PASS. Invalidation/archive +new
+empty review head across version/context/audience changes; same-content restoration
+requires fresh review, no approval revival. Actual source-owner/canonical head/
+access revocation CR09-01/02 adoption OPEN. P3 storage/HTTP and P4 next; current
+FEAT-051 E04. Full09 IN_PROGRESS, no SQL/provider/Lightning activation.
+
 ## BE2-09 C2a guarded review-write component —2026-10-18
 
 Parent cd942dd; FEAT-051 approved revision1 unchanged. Review-write/current snapshot/

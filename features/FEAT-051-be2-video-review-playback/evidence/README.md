@@ -1,7 +1,8 @@
 # BE2-09 evidence index
 
-Latest E03: notes/C2A_REVIEW_WRITE_20261018.md,53 new/189 own, broad2083 PASS,
-Ruff/Mypy8 PASS, source unchanged. Actual authority/playback/SQL NOT_RUN.
+Latest E04: notes/C2B_REVIEW_LIFECYCLE_20261018.md,60 new/249 own, broad2143 PASS,
+Ruff/Mypy11 PASS, source unchanged. Actual authority/playback/SQL NOT_RUN.
+E03: notes/C2A_REVIEW_WRITE_20261018.md,53 new/189 own at checkpoint.
 E02: notes/C1B_PLAYBACK_INTENT_20261018.md,52 new/136 own at checkpoint.
 E01: notes/C1A_REVIEW_DOMAIN_20261018.md,84 own/1978 broad PASS at checkpoint.
 Planning baseline07159ce; planning statements below historical.

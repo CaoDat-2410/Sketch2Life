@@ -1,5 +1,15 @@
 # BE2-09 planning decisions
 
+## C2b — invalidation archives; rebind never copies approval
+
+One monotonic canonical review revision across subject changes; immutable old
+entry/history retained. Revocation strengthens stale state. Authorized restoration
+of same exact subject opens empty head and needs NEW review, not revival of old
+approval. Pin hash can change for policy epoch; require authenticated owner cause,
+not inferred script edit. Key namespace conflicts across review/change writes.
+Historical event result not current permission; real source-owner/access/dispatch
+fences CR09-01/02 still mandatory, outbox or local mock not actual playback stop.
+
 ## C2a — immutable receipt is historical, replay response is current applicability
 
 Own review CAS/head/history/shared-record/receipt/audit/outbox is one transaction
