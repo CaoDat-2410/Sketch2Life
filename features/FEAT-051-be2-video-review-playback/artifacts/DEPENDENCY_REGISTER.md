@@ -26,3 +26,10 @@ does not restore historical approval. P3 must enforce shared review/change key
 namespace and CAS/head/archive/receipt/audit/outbox atomicity. Real source/current
 dispatch/fetch/range/resume invalidation fence and canonical08/09 projection still
 need owner agreement; outbox does not itself prove stopped/blocked access. E04.
+
+C3a implements the owned P3 store component: shared review/change receipt PK,
+scoped head CAS and own transaction history/event, session-scoped playback key,
+strict closed codec +new schema/migration. Local70 new mock/offline PASS; prepared
+10 own PG17 cases collected only NOT_RUN. These are not actual serialization or
+cross-owner adoption evidence. CR09-01/02 and all real gateway/session/authority
+fences remain OPEN. No D03/D04/D05 integration or delayed-runtime gate waived.

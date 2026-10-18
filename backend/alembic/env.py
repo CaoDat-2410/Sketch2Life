@@ -27,6 +27,8 @@ from sketch2life.infrastructure.learning_content.tables import METADATA as CONTE
 from sketch2life.infrastructure.learning_content.tables import SCHEMA as CONTENT_SCHEMA
 from sketch2life.infrastructure.persistence import be1_models as _be1_models  # noqa: F401
 from sketch2life.infrastructure.persistence.core_models import CorePersistenceBase
+from sketch2life.infrastructure.video_review.tables import METADATA as REVIEW_METADATA
+from sketch2life.infrastructure.video_review.tables import SCHEMA as REVIEW_SCHEMA
 
 config = context.config
 if config.config_file_name is not None:
@@ -41,6 +43,9 @@ target_metadata.append(COPY_METADATA)
 _MANAGED_SCHEMAS.add(POLICY_SCHEMA)
 target_metadata.append(VIDEO_METADATA)
 _MANAGED_SCHEMAS.add(VIDEO_SCHEMA)
+
+target_metadata.append(REVIEW_METADATA)
+_MANAGED_SCHEMAS.add(REVIEW_SCHEMA)
 
 
 def _include_name(name: str | None, type_: str, parent_names: object) -> bool:

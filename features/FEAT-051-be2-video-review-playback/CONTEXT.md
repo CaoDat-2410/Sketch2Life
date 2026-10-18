@@ -10,6 +10,13 @@
 
 ## Context snapshot
 
+C3a parent09a707b, owner "tiếp": owned schema/strict JSON codec/scoped SQL adapters/
+forward migration +70 mock/offline tests.319 own/2213 broad PASS,669 backend source
+files unchanged, Ruff/Mypy15 PASS.10 actual PG17 cases collected only NOT_RUN,
+separate VR09 environment authorization required. No DB/provider/Lightning effect.
+P3 safe injected HTTP/P4 next; actual canonical head/authority/bridge adoption still
+CR09-01/02 OPEN. Current handoff/evidence E05; full09 IN_PROGRESS.
+
 C2b parent01b4be9: owner approves remaining internal work. Lifecycle invalidation/
 version rebind component +preserved archives/new empty head,60 new/249 own and
 2143 broad PASS,662 backend source files unchanged, Ruff/Mypy11 PASS. Exact-content
