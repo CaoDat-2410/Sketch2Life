@@ -1,5 +1,12 @@
 # BE2-08 decisions
 
+## C4b — approved actual own SQL, not integrated completion
+
+Direct08 environment approval permits disposable loopbackPG17/own11 SQL tests and
+cleanup. Portable archive identity verified, existing Python reused, nonsuperuser
+runner has no CREATEDB/CREATEROLE. All11 PASS without source fixes; temp cluster/
+data/binaries/archive/secrets removed. Own SQL is not foundation/BE1 atomicity.
+
 ## C4 — one local receipt, separate actual gates
 
 Own runner reuses14 strict JUnit classifier but keeps correct own node parser:

@@ -1,8 +1,11 @@
 # BE2-08 evidence
 
-Latest C4: notes/C4_LOCAL_VERIFICATION_20261018.md,37 new/459 cumulative own,
+Latest C4b: notes/C4B_ACTUAL_POSTGRES_20261018.md, actual isolated PostgreSQL11 PASS,
+source unchanged; temporary environment removed. Actual runtime/adoption open.
+C4: notes/C4_LOCAL_VERIFICATION_20261018.md,37 new/459 cumulative own,
 broad1894 PASS, source closure unchanged. Synthetic GIF full-frame fixture PASS;
-production selected decoder/generation/SQL NOT_RUN. Local one-batch runner available.
+production selected decoder/generation NOT_RUN. Earlier SQL NOT_RUN superseded by
+separate E09 above; local runner intentionally remains SQL collection-only.
 C3b: notes/C3B_PROVIDER_COPY_20261018.md,48 new/422 own at checkpoint.
 C3a: notes/C3A_WORKER_FINALIZATION_20261018.md,45 new/374 cumulative own at checkpoint.
 C2c: notes/C2C_MEDIA_STRATEGIES_20261018.md,73 new/329 cumulative own at that checkpoint.

@@ -46,6 +46,11 @@ production codec/duration/decoder, executable sandbox/deadline or audio coverage
 
 ## Separately authorized SQL/runtime work
 
+Update C4b: separate owner approval obtained, actual isolated PostgreSQL17.11 own11
+cases PASS, zero skips; source unchanged and environment cleaned up. E09 records
+receipts. Local runner remains collection-only. Preconditions below apply to any
+NEW SQL rerun, not blanket authorization of another environment or bridge work.
+
 - SQL: actual11 own-row cases prepared under
   backend/tests/integration/knowledge_video/test_run_rows_sql.py. Need owner-approved
   isolated PostgreSQL17 database, explicit schema-DDL opt-in and private loopback
