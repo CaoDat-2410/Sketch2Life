@@ -18,10 +18,30 @@ from sketch2life.application.ports.knowledge_video import (
     VideoRequestContext,
     VideoSubmission,
 )
-from sketch2life.contracts.schemas.knowledge_video import CreateKnowledgeVideo
+from sketch2life.contracts.schemas.knowledge_video import CreateKnowledgeVideo, KnowledgeVideoView
 from sketch2life.domain.knowledge_video.model import VideoError, VideoPin, VideoRun, require_hash
 
 FIXTURE_MARKER = "FIXTURE_ONLY_NO_FOUNDATION_OR_SQL_ADOPTION"
+
+
+def _submission(run: VideoRun, outcome: str) -> VideoSubmission:
+    """Only the initial queued synthetic intent is implemented by this fixture."""
+    attempt_id = "fixture.attempt." + run.video_id
+    view = KnowledgeVideoView.model_validate({
+        "video_id": run.video_id, "video_version": run.video_version,
+        "video_run_revision": run.run_revision, "video_review_revision": run.review_revision,
+        "organization_id": run.pin.organization_id, "session_id": run.pin.session_id,
+        "job_id": run.job_id, "job_revision": 1, "generation_state": "queued",
+        "review_state": run.review_state.value,
+        "retry_policy_version": run.pin.retry_policy.material(),
+        "attempt_history": ({"attempt_id": attempt_id, "attempt_number": 1, "state": "queued"},),
+        "created_at": run.created_at,
+    })
+    if outcome not in {"created", "replayed", "deduplicated"}:
+        raise VideoError("VIDEO_SUBMISSION_MISMATCH")
+    return VideoSubmission(run, 1, attempt_id,
+                           "created" if outcome == "created" else (
+                               "replayed" if outcome == "replayed" else "deduplicated"), view)
 
 
 @dataclass(frozen=True, slots=True)
@@ -102,7 +122,7 @@ class FixtureAtomicVideoSubmission:
                 run = self.runs[video_id]
                 if run.pin.digest() != pin.digest():
                     raise VideoError("VIDEO_STALE_CONTEXT")
-                return VideoSubmission(run, 1, "fixture.attempt." + video_id, "replayed")
+                return _submission(run, "replayed")
             semantic = pin.digest()
             winner_id = self.semantic.get(semantic)
             if winner_id is None:
@@ -121,13 +141,13 @@ class FixtureAtomicVideoSubmission:
             jobs = {**self.job_intents, run.job_id: run.video_id}
             dispatch = {**self.dispatch_intents, run.job_id: run.video_id}
             audits = (*self.audit_intents, (run.video_id, outcome))
+            result = _submission(run, outcome)
             if self.before_commit is not None:
                 self.before_commit()
             lease.assert_current()
             self.runs, self.semantic, self.receipts = runs, semantics, receipts
             self.job_intents, self.dispatch_intents, self.audit_intents = jobs, dispatch, audits
-            return VideoSubmission(run, 1, "fixture.attempt." + run.video_id,
-                                   "created" if outcome == "created" else "deduplicated")
+            return result
 
     def revoke_for_test(self, owner: FixtureVideoOwner) -> None:
         """Same-thread fault injection only. Cross-thread writes need actual owner APIs."""

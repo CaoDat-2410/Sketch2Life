@@ -8,15 +8,18 @@ from __future__ import annotations
 
 from contextlib import AbstractContextManager
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Literal, Protocol
 
-from sketch2life.contracts.schemas.knowledge_video import CreateKnowledgeVideo
+from sketch2life.contracts.schemas.knowledge_video import CreateKnowledgeVideo, KnowledgeVideoView
 from sketch2life.domain.knowledge_video.model import (
     VideoError,
     VideoPin,
     VideoRun,
+    require_hash,
     require_id,
     require_revision,
+    require_time,
 )
 
 
@@ -72,6 +75,7 @@ class VideoSubmission:
     job_revision: int
     attempt_id: str
     outcome: Literal["created", "replayed", "deduplicated"]
+    view: KnowledgeVideoView | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.run, VideoRun):
@@ -96,3 +100,45 @@ class AtomicVideoSubmission(Protocol):
         conformance. No runtime adapter is supplied by the fixture implementation.
         """
         ...
+
+
+@dataclass(frozen=True, slots=True)
+class VideoCommandReceipt:
+    organization_id: str
+    session_id: str
+    principal_id: str
+    idempotency_key: str
+    command_hash: str
+    pin_digest: str
+    video_id: str
+    created_at: datetime
+
+    def __post_init__(self) -> None:
+        for value in (self.organization_id, self.session_id, self.principal_id,
+                      self.idempotency_key, self.video_id):
+            require_id(value)
+        require_hash(self.command_hash)
+        require_hash(self.pin_digest)
+        require_time(self.created_at)
+
+
+class VideoRunParticipant(Protocol):
+    """Owned row operations bound by outer composition to ONE caller transaction.
+
+    No commit/begin operation here. This port is not durable submission by itself;
+    adopted foundation bridge must coordinate jobs/outbox and held owner guards.
+    Scope is fixed at construction by server composition, not client body.
+    """
+
+    def get(self, video_id: str, *, for_update: bool = False) -> VideoRun | None: ...
+
+    def find_semantic(self, session_id: str, pin_digest: str) -> VideoRun | None: ...
+
+    def insert(self, run: VideoRun) -> None: ...
+
+    def save(self, run: VideoRun, *, expected_revision: int) -> None: ...
+
+    def get_receipt(self, session_id: str, principal_id: str,
+                    key: str) -> VideoCommandReceipt | None: ...
+
+    def put_receipt(self, receipt: VideoCommandReceipt) -> None: ...
