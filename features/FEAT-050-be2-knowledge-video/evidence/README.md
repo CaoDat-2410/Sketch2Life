@@ -1,7 +1,9 @@
 # BE2-08 evidence
 
-Latest C3b: notes/C3B_PROVIDER_COPY_20261018.md,48 new/422 cumulative own,
-broad1857 PASS with backend source unchanged. Actual decoder/generation/SQL NOT_RUN.
+Latest C4: notes/C4_LOCAL_VERIFICATION_20261018.md,37 new/459 cumulative own,
+broad1894 PASS, source closure unchanged. Synthetic GIF full-frame fixture PASS;
+production selected decoder/generation/SQL NOT_RUN. Local one-batch runner available.
+C3b: notes/C3B_PROVIDER_COPY_20261018.md,48 new/422 own at checkpoint.
 C3a: notes/C3A_WORKER_FINALIZATION_20261018.md,45 new/374 cumulative own at checkpoint.
 C2c: notes/C2C_MEDIA_STRATEGIES_20261018.md,73 new/329 cumulative own at that checkpoint.
 

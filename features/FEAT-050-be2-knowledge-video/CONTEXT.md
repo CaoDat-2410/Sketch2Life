@@ -1,5 +1,15 @@
 # BE2-08 planning context
 
+## C4 continuation —2026-10-18
+
+Owner requested continue; parent d55e9ca. P4 one-command source/node-pinned local
+runner,13 real synthetic GIF frame-decode fixtures/rights +24 runner checks and
+A1–A8 audit/runtime handoff prepared.459 own +1435 existing=1894 PASS;702-file
+source closure unchanged; Ruff/Mypy19/governance PASS. Initial evidence parser/
+Ruff-cwd findings retained then fixed and all rerun. SQL11 collection only;
+production decoder/provider/owner adoption NOT_RUN. P4 local component available,
+actual gates open, whole08 IN_PROGRESS. E08/current LOCAL_VERIFICATION_HANDOFF.md.
+
 ## C3b continuation —2026-10-18
 
 Owner requested continue and batch documentation at functional checkpoints.
