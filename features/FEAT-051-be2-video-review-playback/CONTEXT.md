@@ -1,6 +1,6 @@
 # BE2-09 planning context
 
-- Status: AWAITING_APPROVAL
+- Status: IN_PROGRESS
 - Owner: receiver08–14, existing feature/be2-08-14
 - Goal: exact final Teacher session review and explicit authorized playback.
 - Scope: proposed revision1 P1–P4 component/verification/handoff.
@@ -9,6 +9,13 @@
 - Risks: canonical09 review head/projection and cross-owner playback receipt adoption.
 
 ## Context snapshot
+
+Owner subsequently replied "duyệt" after exact revision1 P1–P4 presentation.
+Approval recorded before code, frozen plan unchanged. C1a parent1ab9498 implements
+shared24 video-session binding and pure exact review/head/invalidation rules.
+84 own/1978 broad PASS,651 backend source files unchanged, Ruff/Mypy3 PASS.
+No actual current owner/access/HTTP/SQL effects. P1 playback/P2–P4 remain;
+CR09-01/02 OPEN. Evidence E01 is current; planning statements below historical.
 
 2026-10-18, baseline07159ce, worktree initially clean. Owner approves batching
 Lightning later and moving to09 planning; exact new revision not yet presented.

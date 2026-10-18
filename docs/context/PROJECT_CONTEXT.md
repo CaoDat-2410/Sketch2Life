@@ -1,5 +1,14 @@
 # Project context ledger
 
+## BE2-09 approved revision1 / C1a —2026-10-18
+
+Owner "duyệt" approves FEAT-051 P1–P4 exact revision1 after presentation. Parent
+1ab9498; frozen plan unchanged. Shared24 video/session consumer +pure exact review
+head/audience/invalidation component:84 own/1978 broad PASS,651 backend source
+files unchanged; Ruff/Mypy3 PASS. No authority/access/HTTP/SQL effects, actual
+CR09-01/02 remain open. P1 playback/P2–P4 next. Full09 IN_PROGRESS;08 runtime and
+teammate integrations still deferred, no provider/Lightning activation.
+
 ## Receiver BE2-09 planning / delayed runtime batch —2026-10-18
 
 Owner approves moving to next-card planning and batching Lightning later; baseline
