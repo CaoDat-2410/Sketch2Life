@@ -1,5 +1,16 @@
 # BE2-04 status
 
+- Latest 2026-10-19: owner authorized Codex to publish the six shared-branch routing documents
+  as one commit on `feature/be2-01-07`, establish its upstream, and write a Claude handover.
+  SK1 remains accepted offline and published on milestone branch 04 at 6ab7abf. BE2-04 remains
+  **IN_PROGRESS / NOT_DONE**; no new ACTIVE card, FEAT allocation or integration approval.
+  Execution result/final tip: ignored `evidence/local/shared-routing-publication-20261019/receipt.json`;
+  handover: ignored `evidence/local/handover/CODEX_SHARED_ROUTING_PUBLICATION_UPDATE_20261019.md`.
+  Previous dated entries are historical snapshots.
+
+- Latest 2026-10-19 00:15 +07:00: SK1 (offline component) accepted 2026-10-18 and published: 7 commits ba93c20..6ab7abf pushed to `origin/feature/be2-04-sketch-generation` (no force; receipt in ignored `evidence/local/sk1-publication-20261018/push.json`). Shared working branch `feature/be2-01-07` created 2026-10-19 00:15 +07:00 from exactly 6ab7abf in worktree `.worktrees/be2-01-07` (local only, no upstream, not pushed). BE2-04 remains **IN_PROGRESS / NOT_DONE**. Next ACTIVE card, FEAT
+  allocation and integration checkpoint are not decided. Earlier entries are history.
+
 - Latest 2026-10-18 23:15 +07:00: owner **ACCEPTED BE2-04 SKETCH_COMPONENT_OFFLINE (SK1)** on the
   snapshot matching the final Codex focused review (PASS), with recorded dispositions: F-5 accepted
   as a fixture-composition deviation; N04/N08/N11 chain and C03/C03b contract column stay PARTIAL;

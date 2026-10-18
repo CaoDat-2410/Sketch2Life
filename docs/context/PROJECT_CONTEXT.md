@@ -1,5 +1,26 @@
 # Project context ledger
 
+## Shared BE2 branch routing publication - 2026-10-19
+
+Person 2 authorized Codex to publish the six routing documents as one documentation commit on
+`feature/be2-01-07` and push that branch with upstream, then write a local Claude handover.
+Baseline is the accepted/pushed SK1 tip 6ab7abf. Authorization and scope are recorded in FEAT-050
+DECISIONS and SOURCE_REGISTER; execution receipt/final tip in FEAT-050 ignored
+`evidence/local/shared-routing-publication-20261019/receipt.json`. WIP1 remains; the next ACTIVE
+card, feature-number allocation and integration checkpoint are undecided. BE2-01 WAITING_STUDIO,
+BE2-02 PARKED, BE2-03/04 IN_PROGRESS with their recorded offline component acceptances.
+
+## BE2-01–07 shared working branch —2026-10-19
+
+Owner direction (Person 2): shared working branch `feature/be2-01-07` created 2026-10-19 00:15 +07:00 from the
+accepted and pushed BE2-04 SK1 tip 6ab7abf (worktree `.worktrees/be2-01-07`; local, not
+pushed). It inherits BE2-01–04; older card branches stay as milestones. Next work and fixes for
+02–07 go on this branch in their owning features; WIP1 with per-card plan/approval/evidence/
+review/acceptance/commit groups; BE2-01 fixes arrive from the frozen A17 track by reviewed SHA.
+SK1 accepted offline and pushed (ba93c20..6ab7abf); no card DONE; next ACTIVE card, FEAT
+allocation and integration checkpoint undecided (FEAT-050 DECISIONS). BE2-01 WAITING_STUDIO;
+BE2-02 PARKED; BE2-03/BE2-04 IN_PROGRESS. Earlier entries are history.
+
 ## BE2-04 SK1 component acceptance —2026-10-18
 
 Owner accepted BE2-04 SKETCH_COMPONENT_OFFLINE (SK1) at 23:15 +07:00 on the snapshot matching the
