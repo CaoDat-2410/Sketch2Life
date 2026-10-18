@@ -1,5 +1,14 @@
 # BE2-09 planning decisions
 
+## C4b — actual own SQL evidence is separate from integration acceptance
+
+Owner separately approves own temporary PG17 environment, exact21 tests/cleanup
+and checkpoint. Actual21 PASS under loopback limited nonsuperuser; source unchanged,
+no code change. Temporary cluster/binary/archive/secrets removed. Local pack remains
+SQL collection-only, its NOT_RUN label does not overwrite separate E07 actual PASS.
+Own durable transaction/CAS/trigger/reconnect evidence does not prove actual BE1/
+source authority, cross-owner session receipt or each-use gateway; CR09-01/02 OPEN.
+
 ## C4 — finish internal scope without micro-checkpoint approval stops
 
 Owner explicitly approves continuous remaining P3/P4 implementation, tests and

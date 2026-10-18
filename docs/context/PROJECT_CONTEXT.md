@@ -1,5 +1,16 @@
 # Project context ledger
 
+## BE2-09 C4b actual own PostgreSQL —2026-10-18
+
+Parent1ce8d07; separate direct owner "duyệt" approves temporary local PG17, exact21
+SQL cases/scoped fixes/cleanup/checkpoint. Recorded FEAT-051 local approval/plan
+before setup. Actual21 PASS,0 failure/error/skip, PG17.11 loopback nonsuperuser,
+733 source files unchanged, no code fixes. Exact cluster/binaries/archive/secrets
+removed; no remaining PG process. Own SQL gate now PASS; local pack stays deliberate
+collection-only, not a retraction of separate E07 actual evidence. Internal complete,
+full09 IN_PROGRESS pending actual CR09-01/02/BE1 access/session/owner/runtime quality
+acceptance. No shared/prod DB, global service/install, provider/Lightning, push/merge.
+
 ## BE2-09 C4 internal completion —2026-10-18
 
 Parent b0983a0; owner explicitly approves finishing remaining INTERNAL P3/P4 in one

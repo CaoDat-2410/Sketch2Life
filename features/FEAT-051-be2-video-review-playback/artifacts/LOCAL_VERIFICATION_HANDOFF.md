@@ -5,6 +5,11 @@ complete; actual external verification/adoption pending. No push/merge/deploy an
 no requirement to create a new chat. Current implementation is additive and does
 not modify08/BE1/shared05 tables/migrations or production app registration.
 
+C4b: actual own SQL21 now PASS under separate environment approval, PG17.11,
+source unchanged and cleanup verified. Current evidence E07
+notes/C4B_ACTUAL_POSTGRES_20261018.md. Local pack intentionally still SQL-disabled;
+its collection-only status is not a retraction of separate actual SQL evidence.
+
 ## What successor gets
 
 - Domain exact subject/head/audience/decision, deterministic invalidate/rebind/
@@ -19,7 +24,7 @@ not modify08/BE1/shared05 tables/migrations or production app registration.
   payload/precondition/identity/resolver/error guide.
 - One-batch local runner with exact inventory/source closure/JUnit classifier,
   acceptance audit and explicit dependency owner register. Full status is in
-  status/STATUS.md; current measured evidence in evidence/notes/C4_LOCAL_COMPLETION_20261018.md.
+  status/STATUS.md; current measured SQL evidence E07 and local component evidence E06.
 
 ## Run all local checks once
 
@@ -43,7 +48,11 @@ and new exact inventory/evidence. Source inventory covers backend/transitive fix
 files, feature runner helpers/manifests and governance scripts; mutable evidence/
 status prose excluded. Summary is LOCAL_COMPONENT_ONLY/full_card_complete=false.
 
-## Own PostgreSQL batch — separate authorization required
+## Own PostgreSQL batch — current completed; isolated rerun procedure
+
+Current21 actual cases PASS under approvals/LOCAL_POSTGRES_APPROVAL.md. Temporary
+environment removed, no live DB retained. Instructions below are for reproducing
+in an explicitly authorized isolated environment; not auto-provisioning authority.
 
 Do not start or create a database from the local pack. After owner approves a new
 dedicated disposable loopback PG17 vr09_* database (length>=12), supply credentials
@@ -76,7 +85,8 @@ especially PG trigger/transaction behavior; collection is not proof they pass.
 | Gateway each-use |BE1 access/P4 | Unauthorized/old ref/fetch/range/resume denied after current revoke/consent/grant change; late dispatch/start race blocked; no stale URL bypass |
 | Recovery |BE1 bridge +own SQL | Lost intent/commit/start ACK, lookup outage, known absence, late/foreign/malformed receipt, reconnect/restart, changed-body conflict, no new key/repeat effect/false playing |
 
-Actual bridge.start must be outside09 DB transaction and current checks valid at
+Own SQL PASS is not adoption of any row in this owner matrix. Actual bridge.start
+must be outside09 DB transaction and current checks valid at
 effect. Guard acquisition order is owner fences ->own store lock. Recover original
 historical subject under original backend recovery authority, not by substituting
 current content or reviving old approval. A receipt remains historical; new access
