@@ -1,5 +1,14 @@
 # BE2-08 decisions
 
+## C4 — one local receipt, separate actual gates
+
+Own runner reuses14 strict JUnit classifier but keeps correct own node parser:
+normalize Windows path only, not backslashes in parameter data. Re-enumerate
+source closure, pin exact inventory, reject skips/identity changes. Never run SQL
+fixtures through this pack, even with inherited opt-in. Existing Pillow fully
+decodes authored synthetic GIF fixtures only, no production decoder/codec decision.
+Local pass/audit/runtime sheet do not complete actual SQL/generation/adoption.
+
 ## C3b — video consumes14 hook protocol, not deletion authority
 
 Script maps to existing input copy kind; scope/provider profile explicit, not

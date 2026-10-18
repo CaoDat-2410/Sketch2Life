@@ -1,5 +1,15 @@
 # Project context ledger
 
+## BE2-08 C4 local verification/handoff —2026-10-18
+
+Parent d55e9ca, FEAT-050 approved revision1 unchanged. One-command exact-node/
+source-pinned runner, real authored GIF full-frame fixtures/rights, acceptance audit
+and undecided runtime sheet available.459 own +1435 existing=1894 PASS;702-file
+source closure unchanged; Ruff/Mypy19/governance PASS. SQL11 collected NOT_RUN;
+production decoder/generation/actual adapters still open, whole08 IN_PROGRESS.
+Current FEAT-050 artifacts/LOCAL_VERIFICATION_HANDOFF.md and ACCEPTANCE_AUDIT.md,
+evidence/notes/C4_LOCAL_VERIFICATION_20261018.md. No activation/push/deploy.
+
 ## BE2-08 C3b provider-copy component —2026-10-18
 
 Parent e21c7dd, FEAT-050 approved revision1 unchanged. Original-copy metadata and
