@@ -1,5 +1,23 @@
 # BE2-09 planning decisions
 
+## C4 — finish internal scope without micro-checkpoint approval stops
+
+Owner explicitly approves continuous remaining P3/P4 implementation, tests and
+handoff. Internal COMPLETE_LOCAL_VERIFIED does not relabel full09 DONE. Next gates
+are actual SQL, actual owner/session/access adoption and selected08 runtime/consumer
+acceptance; not another internally authorized code checkpoint/new-card approval.
+
+CMD-41 reuses shared24 +strong quoted own review If-Match. CMD-42 uses strict own
+target/hash/subject digest/review refs +body expected_session_revision; rejects
+If-Match rather than confusing axes. Exact subject resolved server-side, including
+historical originals for recovery; application rechecks actual current fences.
+Responses revalidate exact native outputs, contain historical receipt status only,
+no URL/access grant/current playing. No default auth/production mounting.
+
+Local one-batch source/node-pinned runner reuses existing exact JUnit classifier,
+drops09/08 SQL opt-ins, SQL collection-only. Broader21 prepared PG cases not run;
+458 own +1894 regression PASS does not stand for real DB/identity/gateway effects.
+
 ## C3a — owned storage is neither current authority nor cross-owner atomicity
 
 Independent video_review schema; six tables and new branch migration, no08/BE1
