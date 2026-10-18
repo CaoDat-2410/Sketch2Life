@@ -1,5 +1,13 @@
 # BE2-08 decisions
 
+## C2a — actual submission adapter intentionally not invented
+
+Guarded create depends on candidate context-bound held owner lease and atomic
+submission port. Process-local fixture maps stage only job/dispatch INTENTS.
+No production adapter calls domain.create_job to bypass foundation ownership,
+and no sequential pair of commits is labeled atomic. CR08-01 captures the gap.
+P2 remains partial; no live HTTP route or owned SQL migration yet.
+
 ## C1 — owned candidate only
 
 Typed DATA-27 pre-review subset, pin canonicalization and pure run transitions
