@@ -1,5 +1,15 @@
 # Project context ledger
 
+## BE2-10 next-card planning —2026-10-19
+
+Owner "tiếp" after total report routes planning only. Baseline76959ab, clean
+feature/be2-08-14. FEAT-052 revision1 P1–P4 prepared AWAITING_APPROVAL/NOT_STARTED:
+exact exhausted target +bounded Teacher retry/new lifecycle, skip, early-end with
+checkpoint, guarded recoverable intent/receipts, own SQL/HTTP and consolidated
+verification/handoff. CR10-01/02/03 candidate adoption OPEN. No code/runtime/SQL
+provisioning or new numeric policy; plan presentation/exact approval next.09 own
+SQL21/local458 evidence retained separately; actual integration still deferred.
+
 ## BE2-09 C4b actual own PostgreSQL —2026-10-18
 
 Parent1ce8d07; separate direct owner "duyệt" approves temporary local PG17, exact21
