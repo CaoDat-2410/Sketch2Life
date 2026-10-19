@@ -1,0 +1,36 @@
+{
+  "scope": "BE2_11_OWN_SQL_ONLY",
+  "status": "PASS",
+  "cases": 17,
+  "failed": 0,
+  "errors": 0,
+  "skipped": 0,
+  "seconds": 3.509,
+  "process_exit": 0,
+  "node_sha256": "142aa09c3095b99eb4915f98aa29d0650aa2e345ebca3c67886c384c259b6305",
+  "junit_sha256": "4fde32230cf17f0515ae27b167895d95461890e5903815e29967fa3097dd00a7",
+  "source_files": 837,
+  "source_unchanged": true,
+  "pg_version": "17.11",
+  "limited_owner": true,
+  "loopback_only": true,
+  "run": "pg-dd5b6596ebef4ad0968286cf65bad802",
+  "combined_actual_sql_pass": 42,
+  "summary_sha256": "f1ac2a86d68bba41d06b76ed452d1125a35eab342b1594057d405cec9b40610d",
+  "cleanup": {
+    "stopped": true,
+    "own_processes": 0,
+    "old_port_listeners": 0,
+    "private_targets_removed": true
+  },
+  "post_local": {
+    "owned": 194,
+    "regression": 2849,
+    "total_pass": 3043,
+    "source_files": 830,
+    "source_unchanged": true,
+    "summary_sha256": "67aa41d85af6182a5127801bccde0d6275bbfb1205be47adb36882d5b7f0e1da"
+  },
+  "actual_be1_p4_integration": "NOT_RUN",
+  "full_card_complete": false
+}

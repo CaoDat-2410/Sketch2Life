@@ -1,5 +1,24 @@
 # Project context ledger
 
+## BE2-10/11/13 actual own PostgreSQL —2026-10-19
+
+Parent2d5d925; actual owner "duyêjt" approves proposed42 tests/isolated temporary
+environment/scoped fixes/cleanup/report/commit. Separate approvals +environment
+plans recorded in FEAT-052/053/054 BEFORE setup; frozen main plans unchanged.
+Fresh portable PG17.11/SCRAM/loopback only, three NEW prefixed databases owned by
+separate nonsuperuser/nocreatedb/nocreaterole/noreplication roles. Exact actual native
+version/address/data_directory/role checked; no shared URL/service/PATH or provider.
+Actual10 SQL14/14,11 SQL17/17,13 SQL11/11 =>42 PASS,0 fail/error/skip; exact node/
+JUnit and837 source closure unchanged. First actual run passed; no application/
+migration/test fixes or SQL pin changes needed. Exact own cluster/binaries/archive/
+secrets/private server log removed,0 own processes/old-port listeners. Retained
+sanitized receipts only. Post-cleanup194+2849=3043 local PASS,830 sources unchanged,
+Ruff/Mypy11/architecture/harness/security/diff PASS. E02 +ACTUAL_POSTGRES metrics
+in each feature. Local runners' SQL COLLECTED_NOT_RUN remains their intentionally
+SQL-disabled receipt, NOT current actual gate status. Own SQL complete for these
+cards, full cards still pending actual source/policy/BE1/P4/native owner adoption/
+combined acceptance. No actual model/Lightning/provider/production mount/push/merge.
+
 ## BE2-13 approved internal completion —2026-10-19
 
 Implementation parent448e41f; owner direct "duyệt" approves FEAT-054 revision1

@@ -9,8 +9,11 @@
 - Current: approved internal P1–P4 implemented/verified; implementation parent448e41f.
 - Local:194 owned +2849 regression=3043 PASS, no skips/failures/errors.
 - Ruff/Mypy11/architecture/harness/security/diff PASS;829 sources unchanged.
-- Own11 PostgreSQL cases prepared/collected only NOT_RUN; no provisioning authorized.
-- Next: separate own SQL authorization; actual CR13-01/02/03 source/policy/BE1/P4/
+- Own PostgreSQL:11/11 actual PASS under separate "duyêjt" approval, fresh
+  isolated PG17.11/limited owner, exact cleanup verified; E02.
+- Next: actual CR13-01/02/03 source/policy/BE1/P4/
   scheduler adoption and combined conformance deferred to owning teammates.
-- No actual provider/SQL/BE1 effects, production mount, push/merge/deploy.
-- Prior11 internal complete; actual17 SQL NOT_RUN and actual owners still open.
+- No actual provider/BE1 effects, production mount, push/merge/deploy.
+-10/11/13 combined actual SQL42 PASS; actual owner adoption still OPEN.
+- Post-cleanup194 own+2849 regression=3043 PASS,830 sources unchanged;
+  Ruff/Mypy11/architecture/harness/security/diff PASS. No shared DB/global service.

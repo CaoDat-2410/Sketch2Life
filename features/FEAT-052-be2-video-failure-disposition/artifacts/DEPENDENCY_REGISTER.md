@@ -10,7 +10,7 @@ branches or missing work in other teams. Sources inform scope, not implementatio
 | D03 / CR10-03 |14/current retry+budget authority /01/08 |14 policy/accounting components +own104 SQL evidence exist, no automatic adoption into10; bounded manual retry authorization and deduplicated consumption with submission must be explicit; free text not authorization |
 | D04 |BE1/07/08/14 current source/Teacher/session/audience | candidate guards/ports in08/09 exist; actual adapters deferred. Failed-exhausted and role booleans alone not sufficient new-effect eligibility |
 | D05 |09 new review/playback applicability |09 own458/SQL21 evidence available; no inherited human approval or late-result autoplay after10; no direct09 row mutation |
-| D06 |Actual own SQL /external runtime | Prepare own tests after exact plan approval; new disposable environment needs separate10 approval, no inherited09 permission. Later batch keeps owner/generation/SQL effects distinct |
+| D06 |Actual own SQL /external runtime | E02 own14 actual PG17.11 PASS under separate combined42 approval, isolated limited owner and cleanup verified. Actual owner/generation integration remains separate |
 
 CR10-01 includes new lifecycle identity/dedup and old failed provenance under08
 current immutable row rules. CR10-02 includes exact skip transition destination
@@ -23,7 +23,7 @@ only after plan approval, not full-card acceptance.
 
 Owner explicitly approved exact revision1; internal253 tests/2352 regressions and
 own10 intent/service/store/HTTP/runner/handoff now available. Actual14 SQL cases
-prepared/collected only, no execution. Real owner adoption not inferred.
+now actual14/14 PASS in E02 under separate approval. Real owner adoption not inferred.
 
 Concrete CR10-01 obstacle:08 run_one_semantic UNIQUE(org,session,pin_digest) prevents
 plain new video row for unchanged pin. Owner retry-aware identity/semantic dedup

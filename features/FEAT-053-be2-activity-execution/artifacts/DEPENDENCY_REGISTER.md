@@ -10,7 +10,7 @@ implementation verified; no claim about unseen branches or adopted owner contrac
 |D03 /CR11-02|BE1/current policy +12 safety/adaptation review|DATA-29 per-child audience/age/preparation execution, proposed FR042/043 workflow. No adopted full11 mixed-age/material/prerequisite/adaptation review binding in inspected scope; explicit injected rules, missing authority fail closed before execution|
 |D04 /CR11-03|BE1 session/CMD-59/outcome/reflection/portfolio +P4|BE1 owns gateways/observations/reflection;11 provides catalog and immutable assignment/result-reference events +ACK. Actual scope/current membership, consumer dedup/delivery/save ACK and locks require adoption, no direct DB/competing routes|
 |D05|01 job/14 policy if recommendations use actual provider|Component job/policy machinery exists; provider/profile/budget not chosen. Discovery may use deterministic fixture adapter, never fake AI recommendation/hidden provider fallback|
-|D06|Own SQL and actual integrated acceptance|17 own PG tests prepared/collected, NOT_RUN; separate isolated environment permission.10 SQL14 NOT_RUN and09 SQL21 evidence not inherited. Actual mixed-age/current recall/outcome save/consumer conformance remains external|
+|D06|Own SQL and actual integrated acceptance|E02 own17 actual PG17.11 PASS under separate combined42 approval, isolation/cleanup verified.10 SQL14 also separately PASS; actual mixed-age/current recall/outcome save/consumer conformance remains external|
 
 CR11-01/02/03 all OPEN_CANDIDATE, no teammate/owner sign-off. Distinguish schema
 candidate from adopted policy, own immutable snapshot from current source eligibility,

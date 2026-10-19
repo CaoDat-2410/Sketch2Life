@@ -1,8 +1,9 @@
 # BE2-10 internal completion / full acceptance audit
 
 Internal P1–P4: COMPLETE_LOCAL_VERIFIED. Full10: IN_PROGRESS_PENDING_EXTERNAL.
-253 owned +2352 existing regression PASS, no skips;14 actual PG cases PREPARED/
-COLLECTED_NOT_RUN. Evidence E01, not actual owner/session/budget/checkpoint acceptance.
+253 owned +2352 original regression PASS; E02 now supplies14 actual own PG PASS,
+0 fail/error/skip; post-cleanup3043 local PASS. Not actual owner/session/budget/
+checkpoint acceptance. Current actual SQL environment has been removed.
 
 | Plan / AC | Delivered local component | Required external proof / remaining boundary |
 |---|---|---|
@@ -10,15 +11,15 @@ COLLECTED_NOT_RUN. Evidence E01, not actual owner/session/budget/checkpoint acce
 |P1 /A2|Failure/pin/history/context/policy snapshot, independent run/job/content/session revisions, immutable prior/new identity checks|Actual owner projection coherence, actual policies not derived from IDs/digests alone|
 |P2 /A3|Bounded authorization required, exact consumption receipt +new lifecycle, no grant from note/copied approval/reset|Real14/01/08 authorization+dedup budget consumption and NEW lifecycle mapping CR10-01/03|
 |P2 /A4|Skip not success; end only confirms complete checkpoint receipt; no guessed stage increment|Actual permitted BE1 transition/EndedEarly+checkpoint transaction CR10-02|
-|P2/P3 /A5|Original pending1->receipt2, original-key lookup/no repeat, one unique failed claim across actors/actions, SQL/mock CAS/UoW/history/event|Actual own PG14 execution; actual durable cross-owner races/receipt recovery/reconciliation|
+|P2/P3 /A5|Original pending1->receipt2, original-key lookup/no repeat, one unique failed claim across actors/actions, SQL/mock CAS/UoW/history/event|Own PG14 PASS E02; actual durable cross-owner races/receipt recovery/reconciliation|
 |P3 /A6|Injected safe CMD-43, strict JSON/headers/size/ETag/scalars, pending vs confirmed transport, native result recheck, no default route/auth|Production BE1/P4 verified composition, no Child/public diagnostic access|
-|P4 /A7|253 own fixtures/tests +2352 regressions exact node/JUnit/source-pinned; runner/governance/HTTP/SQL/adoption handoff|Actual own SQL/owner/runtime conformance and sign-off, never fixtures-as-integration|
+|P4 /A7|253 own fixtures/tests +2352 regressions exact node/JUnit/source-pinned; runner/governance/HTTP/SQL/adoption handoff|Own SQL PASS E02; actual owner/runtime conformance and sign-off, never fixtures-as-integration|
 
 ## Known adopter gaps are implementation work, not only tests
 
-1. **Actual own SQL verification:**14 prepared PG17 cases need separate10 isolated
-   environment approval and execution. Mocks/offline DDL not actual locks/triggers.
-   Earlier08/09 SQL PASS cannot be reused as10 evidence or provisioning authority.
+1. **Actual own SQL verification COMPLETE:**14/14 actual PG17.11 PASS in E02 under
+   separate approval. Fresh limited-owner DB and clean exact removal verified.
+   This is own transactions/CAS/triggers, not actual crossowner integration.
 2. **CR10-01/03 retry/failure mapping:** existing08 row terminal immutable and
    run_one_semantic(org,session,pin_digest) prevents simply rerunning create with
    same pin/new video ID. Actual owner must adopt retry-aware new lifecycle identity/
@@ -47,4 +48,5 @@ rules, not actual school roles/consent/budget consumption/EndedEarly outcome. Sy
 not actual worker completion/session gateway fencing. Own event is committed minimal
 intent (IDs/revision/digests), not dispatch/acknowledgement. Pending/projection does
 not promise scheduler/reconciliation adoption or grant current authority. Runtime/
-generation/SQL installation/production mounting/push/merge were not performed.
+generation/production mounting/push/merge were not performed. Portable own SQL
+was separately approved/run/cleaned in E02, not an installed service/global stack.

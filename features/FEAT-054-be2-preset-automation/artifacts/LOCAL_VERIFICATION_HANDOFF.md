@@ -5,6 +5,13 @@ frozen plan601afab84123ee5dd48aa04cf643ea7cd904f53675a0b16a9c007684660e1548.
 CONTRACT_HANDOFF.md and ACCEPTANCE_AUDIT.md define delivered interfaces and actual
 unfinished work. No default service/router/scheduler/provider registration.
 
+Current E02:11/11 actual own PostgreSQL PASS, combined10/11/13 SQL42 PASS; separate
+approval recorded and isolated PG17.11 fully cleaned. Post-cleanup3043 local PASS.
+Actual BE1/current policy/scheduler adoption still OPEN; SQL steps below reproduce
+the now-executed gate. Combined environment command from repo root (Windows):
+features/FEAT-054-be2-preset-automation/src/run_local_pg.ps1. It requires approved
+LOCAL_POSTGRES_APPROVAL/PLAN in all three features and provisions NEW own DBs only.
+
 ## One local command
 
 ```powershell
