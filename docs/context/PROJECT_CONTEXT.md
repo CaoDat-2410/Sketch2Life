@@ -1,5 +1,16 @@
 # Project context ledger
 
+## BE2-13 next-card planning —2026-10-19
+
+Owner "task tiếp theo" after11 internal checkpoint f821cc2: inspect/plan only.
+FEAT-054 revision1 P1–P4 AWAITING_APPROVAL/NOT_STARTED: typed versioned preset
+delegate via sole12 CMD-48; immutable pin references and bounded automation intents;
+Teacher override/disable through BE1 atomic command/receipt/recovery port; own SQL
+preparation and complete local audit/handoff. FR053/054 detail/priority remain
+candidate, no hidden policy adoption. CR13-01/02/03 actual preset/current session/
+scheduler contracts OPEN; no actual SQL/provider/BE1/P4/production effects. Present
+exact approval next.11 own17 SQL NOT_RUN/actual integration gates not waived.
+
 ## BE2-11 approved internal completion —2026-10-19
 
 Parent261d00a; owner direct "duyệt" approves FEAT-053 revision1 P1–P4. Frozen
