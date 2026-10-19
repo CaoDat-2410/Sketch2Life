@@ -1,5 +1,19 @@
 # BE2 execution tracker
 
+Latest 2026-10-19: Q07 BE2-05 (FEAT-052) `SKETCH_REVIEW_COMPONENT_OFFLINE` accepted by Person 2
+on Codex re-review PASS_WITH_NOTES; RV-CR01..05 closed, 0 P1/P2. Card remains IN_PROGRESS /
+NOT_DONE. Runtime/production/SQL, BE1 authority/ticket, BE2-14 policy and integration remain open.
+Evidence: FEAT-052 approvals/COMPONENT_ACCEPTANCE.md and evidence/notes/BE205_CODEX_REREVIEW_20261019.md.
+Person 2 authorized the 20-commit task publication and fast-forward push to `feature/be2-01-07`;
+resulting SHAs are in the ignored FEAT-052 receipt. BE2-07 PARKED; BE2-06 planning follows only.
+
+Prior handoff status (2026-10-19): **ACTIVE = Q07 BE2-05** (FEAT-052-be2-sketch-review, owner-allocated) by
+recorded substitution; plan candidate R2 approved (SHA256 ab295305…). Task branch
+`feature/be2-05-sketch-review` from shared tip 58293f1; Codex implementation review
+NEEDS_CHANGES (FEAT-052 review RV-CR01–05,1P1/4P2); same-scope fixes/re-review next, not accepted.
+One branch per task; checkpoints merge into `feature/be2-01-07` only by separate owner decision.
+WIP1; BE2-07 PARKED; BE2-06 backlog. BE2-01 WAITING_STUDIO; BE2-02 PARKED.
+
 Latest 2026-10-19: Person 2 authorized Codex to commit/push the six shared-branch routing
 documents on **feature/be2-01-07** and prepare a local Claude handover (FEAT-050 DECISIONS).
 WIP1; **no ACTIVE implementation slot**. Execution result and final tip are in FEAT-050 ignored
@@ -236,7 +250,7 @@ Component/runtime/integration refer to roadmap definitions. NOT_STARTED means no
 | Q04 | BE2-02 | NOT_STARTED | NOT_STARTED | NOT_STARTED | Own plan/approval; accepted foundation; snapshot/context; real profile gate |
 | Q05 | BE2-03 | NOT_STARTED | NOT_STARTED | NOT_STARTED | Own plan/approval; 01/02, turn/scope/budget contracts |
 | Q06 | BE2-04 | SK1 ACCEPTED offline 2026-10-18 (FEAT-050; partial rows/dispositions in approvals/SK1_COMPONENT_ACCEPTANCE.md) | NOT_STARTED | NOT_STARTED | Selected Sketch profile and actual generation; A1 callback end-to-end and partial rows before integration claims |
-| Q07 | BE2-05 | NOT_STARTED (shared shape exists) | NOT_STARTED | NOT_STARTED | Own plan/approval; 04 runtime, teaching/moderation/access contracts |
+| Q07 | BE2-05 | ACTIVE — `SKETCH_REVIEW_COMPONENT_OFFLINE` ACCEPTED on CODEX_REREVIEW_PASS_WITH_NOTES (FEAT-052; RV-CR01–05 closed, 0P1/0P2) | NOT_STARTED | NOT_STARTED | Runtime 01/04, BE1 authority/ticket, BE2-14 policy, DB fencing and integration remain open |
 | Q08 | BE2-06 | NOT_STARTED | NOT_STARTED | NOT_STARTED | Own plan/approval; 05 + current turn/grant |
 | Q09 | BE2-07 | NOT_STARTED | NOT_STARTED | NOT_STARTED | Own plan/approval; source/content/confirmed-context contracts |
 | Q10 | BE2-08 | NOT_STARTED | NOT_STARTED; library/generation separately tracked when opened | NOT_STARTED | Own plan/approval; 01/07; library rights/profile; selected real generation gate |

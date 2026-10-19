@@ -1,5 +1,34 @@
 # Project context ledger
 
+## BE2-05 offline component accepted — 2026-10-19
+
+Person 2 accepted `SKETCH_REVIEW_COMPONENT_OFFLINE` on Codex re-review
+`CODEX_REREVIEW_PASS_WITH_NOTES` (0 P1/P2; RV-CR01–05 closed). BE2-05 remains IN_PROGRESS / NOT_DONE.
+Runtime, production, SQL/durable persistence, BE1 authority/ticket, BE2-14 policy and integration
+gates remain open. Acceptance: FEAT-052 `approvals/COMPONENT_ACCEPTANCE.md`. Person 2 separately
+authorized the 20-group publication plan, the task-branch commits, and a fast-forward push to
+`feature/be2-01-07`; see FEAT-052 `DECISIONS.md` and its local receipt for resulting SHAs. BE2-06
+planning only follows publication; no BE2-06 implementation is authorized.
+
+## BE2-05 Codex re-review - 2026-10-19
+
+Independent re-review closed RV-CR01–05 with 0 P1/P2 remaining and passed the focused offline
+checks. The component remains NOT_ACCEPTED pending owner acceptance; BE2-05 stays IN_PROGRESS /
+NOT_DONE. Report: FEAT-052 evidence/notes/BE205_CODEX_REREVIEW_20261019.md. No commit, push or
+merge; BE2-07 PARKED; WIP1.
+
+## BE2-05 ACTIVE on its own task branch - 2026-10-19
+
+Person 2 approved BE2-05 plan candidate R2 (SHA256 ab295305…) and allocated
+**FEAT-052-be2-sketch-review** as the owner's own number decision (fresh inventory after fetch
+found no FEAT-052; lane 08–14 confirmation waived, not claimed; collisions mapped at
+integration). BE2-05 is the single ACTIVE slot (WIP1) by substitution while BE2-01 is
+WAITING_STUDIO and BE2-04 live is unavailable; scope is the offline component only. Workflow is
+now one branch per task (`feature/be2-05-sketch-review`, worktree `.worktrees/be2-05-sketch-review`,
+from shared tip 58293f1); accepted checkpoints enter `feature/be2-01-07` only by a separate owner
+Git decision. This supersedes coding 02–07 directly on the shared branch. BE2-07 PARKED; BE2-06
+backlog. Records: FEAT-052 approvals/TASK_APPROVAL.md and DECISIONS.
+
 ## Shared BE2 branch routing publication - 2026-10-19
 
 Person 2 authorized Codex to publish the six routing documents as one documentation commit on
