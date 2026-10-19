@@ -1,5 +1,22 @@
 # Source register and authority boundary
 
+## BE2-06 owner offline acceptance — 2026-10-19
+
+`owner-be206-offline-acceptance-20261019`: direct user instruction quoted verbatim in
+FEAT-055 `approvals/COMPONENT_ACCEPTANCE.md`; accepts CHILD_RESPONSE_COMPONENT_OFFLINE on
+Codex PASS_WITH_NOTES. Authority is offline component acceptance and preparation of a
+publication plan for review. Card remains IN_PROGRESS / NOT_DONE; runtime/integration remain
+open. No stage/commit/push/shared-branch update/merge/deploy or next-card approval inferred.
+The earlier implementation review and metrics remain byte-identical historical evidence.
+
+## BE2-06 implementation evidence — 2026-10-19
+
+`codex-be206-offline-review-20261019`: FEAT-055 implementation evidence, metrics, independent review and35case assertion audit bind15506passingtests and the1322pass/3skip final01–06snapshot. B6-CR01P2 found and closed. Authority is verification of the approved offline scope only; not owneracceptance, Git publication or runtime/integration approval. Deferredruntimechecklist is a future gate inventory, not an executed result.
+
+## BE2-06 execution authority — 2026-10-19
+
+`owner-be206-execution-20261019`: direct user instruction quoted in FEAT-055 approvals/TASK_APPROVAL.md; use the prepared Rev5 prompt to implement/test offline, with deferred Lightning batch. Scope and interpretation are explicit there; no publication/runtime acceptance inferred. FEAT055 is an administrative collision adjustment after fresh054 inventory; no teammate confirmation claimed.
+
 The files below are reference inputs. Their contents inform context and proposed architecture, but they do not override direct user instructions or grant permission to implement unapproved work.
 
 | ID | Source | Type | Used for | Authority in this repo |
