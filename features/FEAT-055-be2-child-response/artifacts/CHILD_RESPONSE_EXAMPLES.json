@@ -1,0 +1,333 @@
+{
+  "fixture_id": "FEAT-055-BE206-H-AI-REVIEW",
+  "synthetic_only": true,
+  "contract_version": "0.1-candidate",
+  "examples": {
+    "initial_read": {
+      "contract_name": "ChildResponseRead",
+      "contract_version": "0.1-candidate",
+      "projection": {
+        "contract_name": "ChildResponseProjection",
+        "contract_version": "0.1-candidate",
+        "access": {
+          "organization_id": "org_fx_school_a",
+          "class_id": "class_fx_a",
+          "session_id": "session_fx_001",
+          "canvas_id": "canvas_fx_001",
+          "proposal_id": "sketch_fx0001",
+          "proposal_version": 1,
+          "content_sha256": "ce0fef28f7e13dbe30ab2861d8bd48b9279cde9e4e465f6e25093b0febc702e6",
+          "participant_id": "participant_fx_a",
+          "review_ref": "skrev_fx0001"
+        },
+        "visibility": "available",
+        "response_revision": 1,
+        "etag": "\"child-response:7574a130fbf9e4bf59f47fb748413862bc0861db94ea0834901f47af512eb297:1\"",
+        "turn_id": "turn_fx_a1",
+        "child_response": null
+      },
+      "payload": {
+        "contract_name": "SketchChildPayload",
+        "contract_version": "0.1-candidate",
+        "proposal_id": "sketch_fx0001",
+        "status": "available",
+        "display_mode": "overlay",
+        "text_or_question": "Fixture prompt for level_fx_2?",
+        "overlay_asset_ref": "artifact_fx0002",
+        "review_ref": "skrev_fx0001"
+      }
+    },
+    "viewed_receipt": {
+      "contract_name": "ChildResponseOutcome",
+      "contract_version": "0.1-candidate",
+      "applied": true,
+      "response_id": "response_fx0001",
+      "response_revision": 2,
+      "etag": "\"child-response:a5e65a51c9c1bda42763c49f544e60d38aa35d3d7f7b7798b2049cd8e338d503:2\"",
+      "proposal_id": "sketch_fx0001",
+      "proposal_version": 1,
+      "content_sha256": "ce0fef28f7e13dbe30ab2861d8bd48b9279cde9e4e465f6e25093b0febc702e6",
+      "review_ref": "skrev_fx0001",
+      "participant_id": "participant_fx_a",
+      "child_response": {
+        "action": "viewed",
+        "participant_id": "participant_fx_a",
+        "turn_id": "turn_fx_a1",
+        "responded_at": "2026-10-17T13:00:06Z"
+      }
+    },
+    "hidden_receipt": {
+      "contract_name": "ChildResponseOutcome",
+      "contract_version": "0.1-candidate",
+      "applied": true,
+      "response_id": "response_fx0002",
+      "response_revision": 3,
+      "etag": "\"child-response:4070980b6583e0a2d7ddc17981a670922575cd9abb8deaad855677076bbc3d34:3\"",
+      "proposal_id": "sketch_fx0001",
+      "proposal_version": 1,
+      "content_sha256": "ce0fef28f7e13dbe30ab2861d8bd48b9279cde9e4e465f6e25093b0febc702e6",
+      "review_ref": "skrev_fx0001",
+      "participant_id": "participant_fx_a",
+      "child_response": {
+        "action": "hidden",
+        "participant_id": "participant_fx_a",
+        "turn_id": "turn_fx_a1",
+        "responded_at": "2026-10-17T13:00:06Z"
+      }
+    },
+    "hidden_passive_read": {
+      "contract_name": "ChildResponseRead",
+      "contract_version": "0.1-candidate",
+      "projection": {
+        "contract_name": "ChildResponseProjection",
+        "contract_version": "0.1-candidate",
+        "access": {
+          "organization_id": "org_fx_school_a",
+          "class_id": "class_fx_a",
+          "session_id": "session_fx_001",
+          "canvas_id": "canvas_fx_001",
+          "proposal_id": "sketch_fx0001",
+          "proposal_version": 1,
+          "content_sha256": "ce0fef28f7e13dbe30ab2861d8bd48b9279cde9e4e465f6e25093b0febc702e6",
+          "participant_id": "participant_fx_a",
+          "review_ref": "skrev_fx0001"
+        },
+        "visibility": "hidden",
+        "response_revision": 3,
+        "etag": "\"child-response:4070980b6583e0a2d7ddc17981a670922575cd9abb8deaad855677076bbc3d34:3\"",
+        "turn_id": "turn_fx_a1",
+        "child_response": {
+          "action": "hidden",
+          "participant_id": "participant_fx_a",
+          "turn_id": "turn_fx_a1",
+          "responded_at": "2026-10-17T13:00:06Z"
+        }
+      },
+      "payload": null
+    },
+    "hidden_explicit_reveal": {
+      "contract_name": "ChildResponseRead",
+      "contract_version": "0.1-candidate",
+      "projection": {
+        "contract_name": "ChildResponseProjection",
+        "contract_version": "0.1-candidate",
+        "access": {
+          "organization_id": "org_fx_school_a",
+          "class_id": "class_fx_a",
+          "session_id": "session_fx_001",
+          "canvas_id": "canvas_fx_001",
+          "proposal_id": "sketch_fx0001",
+          "proposal_version": 1,
+          "content_sha256": "ce0fef28f7e13dbe30ab2861d8bd48b9279cde9e4e465f6e25093b0febc702e6",
+          "participant_id": "participant_fx_a",
+          "review_ref": "skrev_fx0001"
+        },
+        "visibility": "hidden",
+        "response_revision": 3,
+        "etag": "\"child-response:4070980b6583e0a2d7ddc17981a670922575cd9abb8deaad855677076bbc3d34:3\"",
+        "turn_id": "turn_fx_a1",
+        "child_response": {
+          "action": "hidden",
+          "participant_id": "participant_fx_a",
+          "turn_id": "turn_fx_a1",
+          "responded_at": "2026-10-17T13:00:06Z"
+        }
+      },
+      "payload": {
+        "contract_name": "SketchChildPayload",
+        "contract_version": "0.1-candidate",
+        "proposal_id": "sketch_fx0001",
+        "status": "available",
+        "display_mode": "overlay",
+        "text_or_question": "Fixture prompt for level_fx_2?",
+        "overlay_asset_ref": "artifact_fx0002",
+        "review_ref": "skrev_fx0001"
+      }
+    },
+    "restored_receipt": {
+      "contract_name": "ChildResponseOutcome",
+      "contract_version": "0.1-candidate",
+      "applied": true,
+      "response_id": "response_fx0003",
+      "response_revision": 4,
+      "etag": "\"child-response:6d49c2770145c134ceeb745dafa9c8dbe078e34bcc38a30c4b787b88e0872548:4\"",
+      "proposal_id": "sketch_fx0001",
+      "proposal_version": 1,
+      "content_sha256": "ce0fef28f7e13dbe30ab2861d8bd48b9279cde9e4e465f6e25093b0febc702e6",
+      "review_ref": "skrev_fx0001",
+      "participant_id": "participant_fx_a",
+      "child_response": {
+        "action": "viewed",
+        "participant_id": "participant_fx_a",
+        "turn_id": "turn_fx_a1",
+        "responded_at": "2026-10-17T13:00:06Z"
+      }
+    },
+    "declined_receipt": {
+      "contract_name": "ChildResponseOutcome",
+      "contract_version": "0.1-candidate",
+      "applied": true,
+      "response_id": "response_fx0004",
+      "response_revision": 5,
+      "etag": "\"child-response:99ffcbc445667b7f2482e0f344e0ea43f96f89d6594d388ff5006e154989b04b:5\"",
+      "proposal_id": "sketch_fx0001",
+      "proposal_version": 1,
+      "content_sha256": "ce0fef28f7e13dbe30ab2861d8bd48b9279cde9e4e465f6e25093b0febc702e6",
+      "review_ref": "skrev_fx0001",
+      "participant_id": "participant_fx_a",
+      "child_response": {
+        "action": "declined",
+        "participant_id": "participant_fx_a",
+        "turn_id": "turn_fx_a1",
+        "responded_at": "2026-10-17T13:00:06Z"
+      }
+    },
+    "declined_read": {
+      "contract_name": "ChildResponseRead",
+      "contract_version": "0.1-candidate",
+      "projection": {
+        "contract_name": "ChildResponseProjection",
+        "contract_version": "0.1-candidate",
+        "access": {
+          "organization_id": "org_fx_school_a",
+          "class_id": "class_fx_a",
+          "session_id": "session_fx_001",
+          "canvas_id": "canvas_fx_001",
+          "proposal_id": "sketch_fx0001",
+          "proposal_version": 1,
+          "content_sha256": "ce0fef28f7e13dbe30ab2861d8bd48b9279cde9e4e465f6e25093b0febc702e6",
+          "participant_id": "participant_fx_a",
+          "review_ref": "skrev_fx0001"
+        },
+        "visibility": "declined",
+        "response_revision": 5,
+        "etag": "\"child-response:99ffcbc445667b7f2482e0f344e0ea43f96f89d6594d388ff5006e154989b04b:5\"",
+        "turn_id": "turn_fx_a1",
+        "child_response": {
+          "action": "declined",
+          "participant_id": "participant_fx_a",
+          "turn_id": "turn_fx_a1",
+          "responded_at": "2026-10-17T13:00:06Z"
+        }
+      },
+      "payload": null
+    },
+    "closed_turn_replay": {
+      "replayed": true,
+      "data": {
+        "contract_name": "ChildResponseOutcome",
+        "contract_version": "0.1-candidate",
+        "applied": true,
+        "response_id": "response_fx0004",
+        "response_revision": 5,
+        "etag": "\"child-response:99ffcbc445667b7f2482e0f344e0ea43f96f89d6594d388ff5006e154989b04b:5\"",
+        "proposal_id": "sketch_fx0001",
+        "proposal_version": 1,
+        "content_sha256": "ce0fef28f7e13dbe30ab2861d8bd48b9279cde9e4e465f6e25093b0febc702e6",
+        "review_ref": "skrev_fx0001",
+        "participant_id": "participant_fx_a",
+        "child_response": {
+          "action": "declined",
+          "participant_id": "participant_fx_a",
+          "turn_id": "turn_fx_a1",
+          "responded_at": "2026-10-17T13:00:06Z"
+        }
+      }
+    },
+    "teacher_events": [
+      {
+        "contract_name": "TeacherResponseEvent",
+        "contract_version": "0.1-candidate",
+        "event_id": "response_event_fx0001",
+        "response_id": "response_fx0001",
+        "operation_key": "key_fx_be206_0001",
+        "access": {
+          "organization_id": "org_fx_school_a",
+          "class_id": "class_fx_a",
+          "session_id": "session_fx_001",
+          "canvas_id": "canvas_fx_001",
+          "proposal_id": "sketch_fx0001",
+          "proposal_version": 1,
+          "content_sha256": "ce0fef28f7e13dbe30ab2861d8bd48b9279cde9e4e465f6e25093b0febc702e6",
+          "participant_id": "participant_fx_a",
+          "review_ref": "skrev_fx0001"
+        },
+        "response_revision": 2,
+        "turn_id": "turn_fx_a1",
+        "turn_revision": 1,
+        "action": "viewed",
+        "responded_at": "2026-10-17T13:00:06Z"
+      },
+      {
+        "contract_name": "TeacherResponseEvent",
+        "contract_version": "0.1-candidate",
+        "event_id": "response_event_fx0002",
+        "response_id": "response_fx0002",
+        "operation_key": "key_fx_be206_0002",
+        "access": {
+          "organization_id": "org_fx_school_a",
+          "class_id": "class_fx_a",
+          "session_id": "session_fx_001",
+          "canvas_id": "canvas_fx_001",
+          "proposal_id": "sketch_fx0001",
+          "proposal_version": 1,
+          "content_sha256": "ce0fef28f7e13dbe30ab2861d8bd48b9279cde9e4e465f6e25093b0febc702e6",
+          "participant_id": "participant_fx_a",
+          "review_ref": "skrev_fx0001"
+        },
+        "response_revision": 3,
+        "turn_id": "turn_fx_a1",
+        "turn_revision": 1,
+        "action": "hidden",
+        "responded_at": "2026-10-17T13:00:06Z"
+      },
+      {
+        "contract_name": "TeacherResponseEvent",
+        "contract_version": "0.1-candidate",
+        "event_id": "response_event_fx0003",
+        "response_id": "response_fx0003",
+        "operation_key": "key_fx_be206_0003",
+        "access": {
+          "organization_id": "org_fx_school_a",
+          "class_id": "class_fx_a",
+          "session_id": "session_fx_001",
+          "canvas_id": "canvas_fx_001",
+          "proposal_id": "sketch_fx0001",
+          "proposal_version": 1,
+          "content_sha256": "ce0fef28f7e13dbe30ab2861d8bd48b9279cde9e4e465f6e25093b0febc702e6",
+          "participant_id": "participant_fx_a",
+          "review_ref": "skrev_fx0001"
+        },
+        "response_revision": 4,
+        "turn_id": "turn_fx_a1",
+        "turn_revision": 1,
+        "action": "viewed",
+        "responded_at": "2026-10-17T13:00:06Z"
+      },
+      {
+        "contract_name": "TeacherResponseEvent",
+        "contract_version": "0.1-candidate",
+        "event_id": "response_event_fx0004",
+        "response_id": "response_fx0004",
+        "operation_key": "key_fx_be206_0004",
+        "access": {
+          "organization_id": "org_fx_school_a",
+          "class_id": "class_fx_a",
+          "session_id": "session_fx_001",
+          "canvas_id": "canvas_fx_001",
+          "proposal_id": "sketch_fx0001",
+          "proposal_version": 1,
+          "content_sha256": "ce0fef28f7e13dbe30ab2861d8bd48b9279cde9e4e465f6e25093b0febc702e6",
+          "participant_id": "participant_fx_a",
+          "review_ref": "skrev_fx0001"
+        },
+        "response_revision": 5,
+        "turn_id": "turn_fx_a1",
+        "turn_revision": 1,
+        "action": "declined",
+        "responded_at": "2026-10-17T13:00:06Z"
+      }
+    ]
+  },
+  "runtime_status": "NOT_RUN"
+}
