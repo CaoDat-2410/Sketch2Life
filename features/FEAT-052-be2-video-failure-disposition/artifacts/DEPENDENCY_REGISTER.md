@@ -18,3 +18,18 @@ and end evidence/checkpoint ACK, not locally guessed session revision. CR10-03
 must bind current limits/authorization and effect-count consumption under races.
 All OPEN_CANDIDATE/no owner sign-off; synthetic fixtures unblock component work
 only after plan approval, not full-card acceptance.
+
+## Approved implementation checkpoint
+
+Owner explicitly approved exact revision1; internal253 tests/2352 regressions and
+own10 intent/service/store/HTTP/runner/handoff now available. Actual14 SQL cases
+prepared/collected only, no execution. Real owner adoption not inferred.
+
+Concrete CR10-01 obstacle:08 run_one_semantic UNIQUE(org,session,pin_digest) prevents
+plain new video row for unchanged pin. Owner retry-aware identity/semantic dedup
+needs adopted forward contract/migration if required;10 doesn't alter08 uniqueness,
+fabricate policy/pin/content change, reset terminal row or use create as hidden retry.
+Current candidate retry receipt uses new video+job IDs, same content version and
+queued/pending_media initial snapshot, exact auth/budget proof. CR10-02 exact skip/
+end checkpoint and CR10-03 budget consume/submission still OPEN. See three handoff/
+HTTP/audit artifacts for original-key unresolved pending claim reconciliation limits.

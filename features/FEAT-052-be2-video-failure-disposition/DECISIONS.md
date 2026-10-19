@@ -1,5 +1,24 @@
 # BE2-10 planning decisions
 
+## Approved revision1 implementation / local completion
+
+Owner explicitly "duyệt" approves P1–P4; frozen plan bytes unchanged. Retry candidate
+uses new video/job IDs and initial queued/pending_media receipt with same content
+version. Existing08 semantic uniqueness prohibits naive same-pin create; CR10-01
+must adopt new retry identity/dedup/forward owner evolution.10 never weakens08.
+
+One failed lifecycle claim across actors/actions/revisions, not actor-key dedup
+alone. Pending denial/unknown effect retains claim; no silent release/new action.
+Actual authenticated reconciliation/owner-budget-session protocol remains deferred.
+End requires exact checkpoint receipt, not partial session boolean. Confirmed record
+is historical; pending transport extension not upstream success outcome.
+
+Reuse existing09 strict HTTP transport-only admission/error helpers (translate
+codes); no new default auth/app mounting. Source pin covers transitive helpers.
+Own SQL event is minimal committed intent, not actual delivery/atomic cross-owner
+effect. Internal verification253+2352 PASS;14 PG collected only. No internal pause
+left, full10 acceptance still actual SQL/owner/runtime gates, not only Lightning.
+
 2026-10-19 D01: "tiếp" means inspect/plan next card, not approve unseen revision.
 D02: DATA-28 and CMD-43 run-revision If-Match remain distinct from09 review ETag.
 D03: terminal08 row/01 job never resurrected; retry new lifecycle mapping is CR10-01.
