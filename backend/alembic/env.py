@@ -14,6 +14,8 @@ from sqlalchemy.engine import make_url
 from sqlalchemy.pool import NullPool
 
 from alembic import context
+from sketch2life.infrastructure.activity_execution.tables import METADATA as ACTIVITY_METADATA
+from sketch2life.infrastructure.activity_execution.tables import SCHEMA as ACTIVITY_SCHEMA
 from sketch2life.infrastructure.ai_jobs.sql.tables import AI_JOBS_METADATA, AI_JOBS_SCHEMA
 from sketch2life.infrastructure.ai_policy.accounting_tables import ACCOUNTING_METADATA
 from sketch2life.infrastructure.ai_policy.activation_tables import ACTIVATION_METADATA
@@ -51,6 +53,9 @@ _MANAGED_SCHEMAS.add(REVIEW_SCHEMA)
 
 target_metadata.append(FAILURE_METADATA)
 _MANAGED_SCHEMAS.add(FAILURE_SCHEMA)
+
+target_metadata.append(ACTIVITY_METADATA)
+_MANAGED_SCHEMAS.add(ACTIVITY_SCHEMA)
 
 
 def _include_name(name: str | None, type_: str, parent_names: object) -> bool:
