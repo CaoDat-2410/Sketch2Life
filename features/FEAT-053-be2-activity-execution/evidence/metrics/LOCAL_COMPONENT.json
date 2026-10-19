@@ -1,0 +1,29 @@
+{
+  "scope": "BE2_11_LOCAL_COMPONENT_ONLY",
+  "status": "PASS",
+  "run": "20261019-130135-650221",
+  "implementation_parent": "261d00a",
+  "cases": {"owned": 219, "regression": 2605, "legacy_catalog": 25, "local_pass_total": 2849, "sql_collection_only": 17},
+  "sql_status": "COLLECTED_NOT_RUN",
+  "checks_exit": {"ruff": 0, "mypy": 0, "architecture": 0, "harness": 0, "security": 0, "whitespace": 0},
+  "mypy_owned_modules": 12,
+  "source_files": 806,
+  "source_unchanged": true,
+  "summary_sha256": "373ea0876ab287db94f63ac3d2c80588498855cfe3d4a776372ff034c9b0a4ac",
+  "node_sha256": {
+    "owned": "0acf17876478672d0de461613aa8a504a289f178fd0006010995506a2e2dc2c5",
+    "regression": "cd44e11620d062b99ce542d0f720de229be3a9632fa7ab0ab678d314f18cc14a",
+    "legacy_catalog": "990eb896f3cc02f926bd4e54d8ff5283ce38d531e5b0e6ac003f0a783e1e6cfe",
+    "sql_collection_only": "142aa09c3095b99eb4915f98aa29d0650aa2e345ebca3c67886c384c259b6305"
+  },
+  "junit_sha256": {
+    "owned.xml": "6e1df5cdf98954a0666fdeb58928f03f0af6902759186bd99aef0bf9cf5e7e41",
+    "regression.xml": "abedd5cda185e8be8a099440fbbd3666a5086db0b0c5853b96033f53c3484197",
+    "legacy_catalog.xml": "0d5961c9900d5a69ebe13f40278da8448ca7a348eda60a19133a8e79326b4d7b"
+  },
+  "postgresql": "NOT_RUN",
+  "actual_owner_integration": "NOT_RUN",
+  "actual_outcome_save": "NOT_RUN",
+  "actual_recommendation_provider": "NOT_RUN",
+  "full_card_complete": false
+}

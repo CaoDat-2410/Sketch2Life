@@ -1,0 +1,6 @@
+{
+  "owned": {"cases": 219, "node_sha256": "0acf17876478672d0de461613aa8a504a289f178fd0006010995506a2e2dc2c5"},
+  "regression": {"cases": 2605, "node_sha256": "cd44e11620d062b99ce542d0f720de229be3a9632fa7ab0ab678d314f18cc14a"},
+  "legacy_catalog": {"cases": 25, "node_sha256": "990eb896f3cc02f926bd4e54d8ff5283ce38d531e5b0e6ac003f0a783e1e6cfe"},
+  "sql_collection_only": {"cases": 17, "node_sha256": "142aa09c3095b99eb4915f98aa29d0650aa2e345ebca3c67886c384c259b6305"}
+}
