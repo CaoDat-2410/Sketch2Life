@@ -1,5 +1,22 @@
 # Project context ledger
 
+## BE2-13 approved internal completion —2026-10-19
+
+Implementation parent448e41f; owner direct "duyệt" approves FEAT-054 revision1
+P1–P4, frozen601afab8 plan unchanged. Immutable preset versions/strict12 delegate/
+old-version recall and exact pin/control intents, bounded evaluator/decisions/pure
+admission, Teacher override/disable/native receipt/no-new-effect reconcile ports,
+own CAS/history/codec/frozen migration, narrow existing CMD-48 safe error mapping,
+local runner and three receiver handoffs complete.194 own +2849 prior=3043 PASS,
+0 skipped/errors/failures;829 sources unchanged; Ruff/Mypy11/architecture/harness/
+security/diff PASS. Own11 PG COLLECTED_NOT_RUN; separate environment approval.
+Internal COMPLETE_LOCAL_VERIFIED; full13 IN_PROGRESS_PENDING_EXTERNAL. Actual
+CR13-01/02/03 preset/current policy/BE1 atomic effects/epochs/dedup/native reconcile/
+scheduler/P4 and combined acceptance OPEN; teammates wire later per owner. No actual
+provider/Lightning/SQL provisioning/production mounting/push/merge/deploy. Last
+internally unstarted receiver card implemented; earlier external gates and10 SQL14/
+11 SQL17 NOT_RUN not waived. FEAT-054 E01 and artifacts current, planning below historical.
+
 ## BE2-13 next-card planning —2026-10-19
 
 Owner "task tiếp theo" after11 internal checkpoint f821cc2: inspect/plan only.

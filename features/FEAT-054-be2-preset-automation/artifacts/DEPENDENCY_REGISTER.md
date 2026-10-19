@@ -12,3 +12,9 @@
 All CRs OPEN_CANDIDATE. Internal fake conformance can progress after plan approval;
 actual Teacher priority/current revoke/consent/final review/overflow guarantees need
 real owner authority/receipts, not locks or a successful in-process fake.
+
+Current checkpoint after direct approval: internal strict delegate/body/version/
+review/pin/intent/evaluator/decision/admission/receipt recovery/SQL/error adapter
+delivered, not still missing internal work.11 SQL tests prepared/collected NOT_RUN.
+Actual preset policy/current authority and BE1 compare/apply/native reconcile barrier/
+receipt dedup/scheduler operations adoption still OPEN for teammates to compose.

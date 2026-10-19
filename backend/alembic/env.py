@@ -29,6 +29,8 @@ from sketch2life.infrastructure.learning_content.tables import METADATA as CONTE
 from sketch2life.infrastructure.learning_content.tables import SCHEMA as CONTENT_SCHEMA
 from sketch2life.infrastructure.persistence import be1_models as _be1_models  # noqa: F401
 from sketch2life.infrastructure.persistence.core_models import CorePersistenceBase
+from sketch2life.infrastructure.preset_automation.tables import METADATA as PRESET_METADATA
+from sketch2life.infrastructure.preset_automation.tables import SCHEMA as PRESET_SCHEMA
 from sketch2life.infrastructure.video_failure.tables import METADATA as FAILURE_METADATA
 from sketch2life.infrastructure.video_failure.tables import SCHEMA as FAILURE_SCHEMA
 from sketch2life.infrastructure.video_review.tables import METADATA as REVIEW_METADATA
@@ -56,6 +58,9 @@ _MANAGED_SCHEMAS.add(FAILURE_SCHEMA)
 
 target_metadata.append(ACTIVITY_METADATA)
 _MANAGED_SCHEMAS.add(ACTIVITY_SCHEMA)
+
+target_metadata.append(PRESET_METADATA)
+_MANAGED_SCHEMAS.add(PRESET_SCHEMA)
 
 
 def _include_name(name: str | None, type_: str, parent_names: object) -> bool:
