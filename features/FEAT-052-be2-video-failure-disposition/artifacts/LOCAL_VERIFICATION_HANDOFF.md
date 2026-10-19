@@ -3,6 +3,9 @@
 2026-10-19, feature/be2-08-14, approved revision1 SHA256
 8d0162c6f78b019406910927952c3d85b435a81d50de80874b023fa3a9cfb420.
 Internal implementation/local verification complete; full10 acceptance pending.
+Current E02:14/14 actual own PostgreSQL PASS, new isolated PG17.11 cleaned; see
+evidence/notes/C4B_ACTUAL_POSTGRES_20261019.md. Post-cleanup3043 local PASS.
+SQL environment steps below are reproducibility instructions, not remaining test debt.
 See HTTP_CONTRACT_HANDOFF.md (payloads/errors/effect protocol), ACCEPTANCE_AUDIT.md
 (A1–A7 and real remaining gaps), DEPENDENCY_REGISTER.md (owners/CRs).
 

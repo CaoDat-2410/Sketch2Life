@@ -1,5 +1,15 @@
 # BE2-11 decisions
 
+2026-10-19 E02: separate actual owner "duyêjt" approves combined42 own SQL cases
+with scoped temporary environment/fixes/cleanup/report/commit. Recorded own approval
+and additional plan before setup, main revision1 unchanged. Own17 actual PG17.11
+PASS, exact node/JUnit and837 source closure unchanged; fresh limited-owner database
+and exact cluster/private cleanup verified. No application/migration/test fix or
+SQL pin change needed. Post-cleanup3043 local PASS. Current actual source/policy/
+BE1/P4/provider adoption remains OPEN; SQL success is not full-card DONE or push.
+
+## Prior decisions
+
 2026-10-19 D01: next-card request authorizes plan, not unseen implementation.
 D02: distinguish broad discovery warnings from execution age/safety/preparation gates;
 no copied legacy readiness/history/material hardfilter or ranking weights/defaults.

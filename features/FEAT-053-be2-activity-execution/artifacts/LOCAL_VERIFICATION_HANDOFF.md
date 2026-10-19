@@ -2,7 +2,9 @@
 
 Branch feature/be2-08-14; approved revision1 P1–P4, frozen SHA256
 09348e0fcafb96370c3c58e99ae5b8a8eaee16d416694066985086ecde09ac1d.
-Internal implementation complete; full acceptance pending actual SQL/source/policy/
+Internal implementation complete; own17 actual SQL PASS in E02 under separate
+approval, isolated PG17.11 removed; post-cleanup3043 local PASS. Reproduction steps
+below do not mean current SQL is unexecuted. Full acceptance pending actual source/policy/
 BE1/P4 proof. HTTP_CONTRACT_HANDOFF.md and ACCEPTANCE_AUDIT.md are current entrypoints.
 
 ## Delivered surfaces

@@ -14,10 +14,12 @@ Implementation parent261d00a; frozen plan09348e0f unchanged. Typed discovery/leg
 ranking bridge, immutable group adaptations, six guarded Teacher actions, per-child
 preparation gates, own CAS/history/idempotency/event/ACK SQL and injected CMD-45
 complete. Outcome delivery distinct from own completion; no fabricated achievement.
-Final219 own +2605 regression +25 legacy=2849 PASS.17 own SQL COLLECTED_NOT_RUN;
+Original219 own +2605 regression +25 legacy=2849 PASS. E02 own17 actual SQL now PASS;
 806 source closure unchanged; Ruff/Mypy12/governance/security/diff PASS. Current
-E01 evidence and artifacts handoffs enumerate remaining actual owner/SQL gates.
-No teammate composition/actual provider/production mount/provisioning or push.
+E01/E02 evidence and artifacts enumerate remaining actual owner gates.
+Separate "duyêjt" approved fresh isolated PG17.11, limited DB owner and exact cleanup.
+Post-cleanup3043 local PASS,830 sources unchanged. No teammate composition/actual
+provider/production mount/shared DB/global service or push. Main plan unchanged.
 
 Historical planning baseline7b49a1b: owner "task tiếp" =>plan then approval.
 10 internal253+2352 regression PASS, own14 actual SQL NOT_RUN and adapters OPEN.
