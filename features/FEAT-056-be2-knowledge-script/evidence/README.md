@@ -5,9 +5,14 @@ published on `feature/be2-07-knowledge-script`. Codex reran the six BE2-07 modul
 and the approved 56-module profile (1,682 passed, 3 Pillow skips recorded as NOT_RUN, 0 failures
 or errors). See `notes/CODEX_POST_CLOUD_REREVIEW_20261020.md` for scope and receipts.
 The prior review archive (83/83 outputs) and re-review archive (78/78) are saved and index-verified
-under local `evidence/local/cloud-p3-followup-20261020/received/`. `cloud-review/` remains intact;
-cleanup stays held. Cloud product pins refer to published f0359c4f and intentionally reject later
-corrected product bytes. Older exports and metrics retain their historical scope.
+under local `evidence/local/cloud-p3-followup-20261020/received/`. The tracked `cloud-review/`
+export was removed after that verification; its final PASS report is pinned to immutable commit
+[0d07386](https://github.com/CaoDat-2410/Sketch2Life/blob/0d07386eb7b6a17755eaa5ed03a127466194debf/features/FEAT-056-be2-knowledge-script/evidence/cloud-review/final-review-20261020/REVIEW.md).
+Cloud product pins refer to published f0359c4f and intentionally reject later corrected product
+bytes. Older exports and metrics retain their historical scope.
+
+The cleanup receipt is `notes/CLOUD_REVIEW_CLEANUP_20261020.md`. Raw cloud archives remain in
+ignored local evidence and are not part of the cleanup commit.
 
 | Latest audit record | Meaning |
 |---|---|
@@ -25,15 +30,19 @@ corrected product bytes. Older exports and metrics retain their historical scope
 The following dated checkpoint and tables describe preceding publication evidence.
 
 Git publication and Claude cloud review were authorized separately on 2026-10-20. The portable
-bundle and its provenance are in `cloud-review/`; launch instructions are in
-`cloud-review/CLOUD_REVIEW_PROMPT.md`. Published historical receipts retain their old scope;
-new cloud results must use a new local evidence directory and cannot overwrite prior records.
+bundle and launch prompt were removed from the current tree in the separate cleanup commit after
+their archived reports and indexed output sets passed hash verification. The full published
+snapshot remains reachable from commit
+[0d07386](https://github.com/CaoDat-2410/Sketch2Life/tree/0d07386eb7b6a17755eaa5ed03a127466194debf/features/FEAT-056-be2-knowledge-script/evidence/cloud-review).
+Published historical receipts retain their old scope; new cloud results must use a new local
+evidence directory and cannot overwrite prior records.
 
 This feature records the approved offline implementation and review. Passing fixture tests do
 not mean component acceptance, runtime adoption or completion of the BE2-07 card.
 
-Current checkpoint: READY_FOR_OWNER_COMPONENT_REVIEW after post-Claude product fixes, refreshed
-final batch and independent final evidence audit. The initial map/checks/handoff are historical.
+Current component checkpoint: KNOWLEDGE_SCRIPT_COMPONENT_OFFLINE ACCEPTED under
+`../approvals/COMPONENT_ACCEPTANCE.md`; the card remains IN_PROGRESS / NOT_DONE and runtime gates
+remain open. The earlier READY_FOR_OWNER_COMPONENT_REVIEW map/checks/handoff are historical.
 `notes/CLAUDE_REMEDIATION_20261020.md` tracks the superseding review–fix–retest cycle. Frozen
 plan and approval remain unchanged; P3-4 and the P3-6 approval whitespace exception are explicit.
 

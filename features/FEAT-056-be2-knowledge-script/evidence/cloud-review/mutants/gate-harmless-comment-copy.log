@@ -1,9 +1,0 @@
-Executing actual evidence runner's backend assignment/assertion only.
-Copied root: <WORKTREE>/features\FEAT-056-be2-knowledge-script\evidence\local\service-mutants-independent-20261020-878d82f4\harmless-comment-copy
-Traceback (most recent call last):
-  File "<WORKTREE>/features\FEAT-056-be2-knowledge-script\evidence\local\service-mutants-independent-20261020-878d82f4\run_isolated_gate.py", line 21, in <module>
-    exec(compile(ast.Module(body=nodes,type_ignores=[]),str(OUT/"evidence-runner-input.py"),"exec"),
-  File "<WORKTREE>/features\FEAT-056-be2-knowledge-script\evidence\local\service-mutants-independent-20261020-878d82f4\evidence-runner-input.py", line 106, in <module>
-    assert len(backend)==572 and all(sha(ROOT/p)==v['sha256'] for p,v in backend.items())
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError
