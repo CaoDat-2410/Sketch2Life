@@ -80,6 +80,35 @@ def test_claim_command_forbids_server_verification_and_duplicate_sources() -> No
         ClaimEditV1.model_validate({**payload, "text": "x" * 401})
 
 
+@pytest.mark.parametrize("code_point", [0x00, 0x1F, 0x7F, 0x80, 0x85, 0x9F])
+@pytest.mark.parametrize("field", ["text", "attestation_reason"])
+def test_claim_text_controls_include_del_and_c1(code_point: int, field: str) -> None:
+    payload = {
+        "claim_id": "claim",
+        "revision": 1,
+        "text": "Mèo có lông.",
+        "source_refs": ({"source_id": "source", "revision": 1, "sha256": "a" * 64},),
+        "attestation_reason": "Teacher reason",
+        field: f"Mèo{chr(code_point)} có lông.",
+    }
+    with pytest.raises(ValidationError, match="without control characters"):
+        ClaimEditV1.model_validate(payload)
+
+
+def test_claim_text_allows_line_feed_tab_and_vietnamese_combining_marks() -> None:
+    original = "Me\u0300o\nco\u0301\tlo\u0302ng."
+    claim = ClaimEditV1.model_validate(
+        {
+            "claim_id": "claim",
+            "revision": 1,
+            "text": original,
+            "source_refs": ({"source_id": "source", "revision": 1, "sha256": "a" * 64},),
+            "attestation_reason": original,
+        }
+    )
+    assert claim.text == claim.attestation_reason == original
+
+
 def test_create_duplicate_claims_and_fixture_limits_reject() -> None:
     for refs in (("claim", "claim"), tuple(f"claim-{i}" for i in range(25))):
         with pytest.raises(ValidationError):
@@ -342,9 +371,19 @@ def test_record_full_basis_literal_and_hidden_imagined_metadata_rejected() -> No
         "Mèo có c\u200bánh.",
         "Ｍèo có cánh.",
         "Mèo có",
+        "Mèo có c\u034fánh.",
+        "Mèo có c\ufe0fánh.",
+        "Mèo có c\u180bánh.",
+        "Mèo có c\u3164ánh.",
+        "Me\u034f\u0300o có cánh.",
     ],
 )
 def test_full_basis_record_rejects_tiny_imagined_literal_variants(claim_text: str) -> None:
+    for obfuscate_basis in (False, True):
+        _assert_full_basis_literal_rejected(claim_text, obfuscate_basis)
+
+
+def _assert_full_basis_literal_rejected(claim_text: str, obfuscate_basis: bool) -> None:
     from sketch2life.domain.knowledge_bundle import ContributorV1, ImaginedElementV1
 
     original = produced_version()
@@ -357,7 +396,7 @@ def test_full_basis_record_rejects_tiny_imagined_literal_variants(claim_text: st
         "cats",
         ("snapshot",),
         (ContributorV1("child", "knowledge_media", "snapshot"),),
-        (ImaginedElementV1("wings", 1, "Mèo có cánh."),),
+        (ImaginedElementV1("wings", 1, claim_text if obfuscate_basis else "Mèo có cánh."),),
         confirmation_ref="confirmation",
     )
     child = build_version(
@@ -372,6 +411,7 @@ def test_full_basis_record_rejects_tiny_imagined_literal_variants(claim_text: st
         created_at=original.created_at,
     )
     payload = record_from_version(child).model_dump()
+    claim_text = "Mèo có cánh." if obfuscate_basis else claim_text
     payload["knowledge_claims"] = (
         {
             **payload["knowledge_claims"][0],
