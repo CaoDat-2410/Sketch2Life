@@ -9,6 +9,13 @@
 - Run offline checks only. Live Lightning/provider work remains deferred until the user confirms Lightning is operating normally and separately requests that campaign.
 - Do not merge to `dev`/`main` or claim a PR to `feature/be2-01-07`: that target already contains the source task-7 commit and the PR diff is empty.
 
+## Integration branch name — 2026-10-20
+
+- Following the owner's instruction, rename the local candidate branch from
+  `feature/be2-01-14-integration` to `feature/be2-backend-ai-integration`.
+- This is a naming-only change: preserve the same commit history, integration
+  scope, evidence, and open acceptance/runtime gates.
+
 ## Administrative FEAT number collisions — 2026-10-20
 
 - Preserve the existing feature directory names and all references pinned to them. The independent BE2 allocations reused four administrative FEAT numbers; the exact BE2-to-directory mapping is in `artifacts/FEATURE_ID_COLLISION_MAP.md`.

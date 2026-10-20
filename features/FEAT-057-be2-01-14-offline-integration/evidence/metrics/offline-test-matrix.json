@@ -1,9 +1,10 @@
 {
   "scope": "BE2_01_14_OFFLINE_INTEGRATION_CANDIDATE",
-  "candidate_branch": "feature/be2-01-14-integration",
+  "candidate_branch": "feature/be2-backend-ai-integration",
   "publication": {
     "state": "LOCAL_ONLY",
     "push": "BLOCKED_AUTHENTICATION",
+    "push_attempted_branch_before_rename": "feature/be2-01-14-integration",
     "push_error": "Git Credential Manager could not persist credentials; no interactive terminal was available.",
     "pr": "NOT_CREATED",
     "requested_task7_pr": {
