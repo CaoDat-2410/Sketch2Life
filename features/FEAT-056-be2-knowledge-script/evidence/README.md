@@ -4,6 +4,8 @@ Latest: POST_CLOUD_P3 corrects the two P3 findings reported in the user-supplied
 Current map/checks/handoff use POST_CLOUD_P3 paths: 1,660 local passes / 3 Pillow skips, all42
 IDs and506 exact passed-node references. Product and tooling review notes are in `notes/`.
 The actual cloud report/index/83-output archive is pending transfer; keep `cloud-review/`.
+Later cloud re-review: `notes/CLOUD_REREVIEW_20261020.md` (fix b3f7573, 360 focused passes;
+its 56-module batch is NOT_RUN on cloud, so the POST_CLOUD_P3 batch does not cover that fix).
 Its product pins refer to published f0359c4f and intentionally reject later corrected product
 bytes. Use the new handoff for current review; old exports/metrics retain historical scope.
 

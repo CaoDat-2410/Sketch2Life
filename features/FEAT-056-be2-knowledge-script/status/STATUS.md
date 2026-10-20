@@ -1,6 +1,11 @@
 # BE2-07 status
 
-- Current: READY_FOR_OWNER_COMPONENT_REVIEW — POST_CLOUD_P3.
+- Current: READY_FOR_OWNER_COMPONENT_REVIEW — POST_CLOUD_P3; cloud re-review fix b3f7573 awaits
+  Codex independent post-push review.
+- Cloud re-review (2026-10-20, from 1d731c5): NO_BLOCKING_FINDINGS after one in-scope P3 fix.
+  Default-ignorable characters used as word separators (e.g. Hangul filler) no longer bypass the
+  imagined-to-fact check; 360 focused passes. 56-module batch NOT_RUN on cloud (missing deps).
+  See evidence/notes/CLOUD_REREVIEW_20261020.md; evidence/cloud-review cleanup stays held.
 - Latest: cloud reviewer reports NO_BLOCKING_FINDINGS on published f0359c4f with two new P3.
   User approved fixes, local validation, independent review and conditional archive/cleanup;
   see plan/P3_CLOUD_FOLLOWUP_PLAN_20261020.md. Full raw cloud archive is pending receipt.

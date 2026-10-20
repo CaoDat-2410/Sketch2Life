@@ -93,3 +93,10 @@ approval bytes and documents its EOF whitespace exception. Original review/metri
 files stay historical; post-Claude outputs use new paths and refuse overwrite. X01/X02 expose
 evidence gates separately from their supporting product assertions. No architecture, runtime,
 publication, owner acceptance or source01–06 scope expansion is authorized or performed.
+
+## Cloud re-review remediation — 2026-10-20
+
+Default-ignorable/Cf characters are compared both removed and as word separators, because
+fillers such as U+3164 render as a blank gap. Comparison policy only: stored text, canonical
+bytes and control validation are unchanged. Approved by
+`approvals/CLOUD_REREVIEW_REMEDIATION_APPROVAL_20261020.md`; no scope expansion.
