@@ -577,3 +577,12 @@ FEAT-030 `E-030-FIX-014`.
 ## Owner supported-age amendment — 2026-10-06
 
 The supported profile/session age is now under 9 years (0–107 completed months). Mobile age selection and supervised-flow/P1 application services reject 108+ months before activity selection, Gate B media resolution, or renderer localization. Existing versioned DTOs continue to represent historical/catalog values. The 9–12 source catalog remains intact, but the current product journey cannot request it. Cross-feature approval and evidence are tracked under FEAT-037; no new visual asset was generated or promoted.
+
+## P2-T3 status reconciliation — 2026-10-20
+
+The 2026-09-21 owner-approved full-workflow/narration addendum and its implementation-closure
+record supersede the earlier 2026-09-12 progress statement that P2-T3 remained separately gated.
+P2-T3's offline implementation is complete; owner-only live Lightning/ASR smoke remains pending.
+The current-branch scope mapping and verification outcomes, including checks blocked by this
+Windows environment, are recorded in
+[`evidence/notes/P2_T3_OPTIONAL_NARRATION_STATUS_20261020.md`](evidence/notes/P2_T3_OPTIONAL_NARRATION_STATUS_20261020.md).

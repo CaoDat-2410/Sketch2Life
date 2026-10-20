@@ -21,6 +21,15 @@ validators and `git diff --check`. No model, GPU, Lightning, provider or network
 The next step requires a separate live-execution approval with an explicit fixture, budget, redaction
 and evidence plan.
 
+### Current status reconciliation — 2026-10-20
+
+P2-T3's optional narration implementation was subsequently approved and completed under the
+2026-09-21 full-workflow/narration addendum. The dated 2026-09-12 statement above that P2-T3
+remained separately gated is historical and is superseded for the offline implementation scope.
+The current reconciliation and fresh check results are in
+[`evidence/notes/P2_T3_OPTIONAL_NARRATION_STATUS_20261020.md`](../evidence/notes/P2_T3_OPTIONAL_NARRATION_STATUS_20261020.md).
+No live Lightning/ASR call was made; any owner-only live smoke remains pending.
+
 ## Mission
 
 Research update (2026-09-09): [P2 offline-first proposal](P2_OFFLINE_FIRST_PLAN.md)
@@ -57,6 +66,10 @@ Return `PASS` or `RECAPTURE` with stable reason codes. A failed input must not c
 - Reject free text, prohibited psychological/personality fields, missing provenance, schema drift, oversized output, and stale source/session versions.
 
 ### P2-T3 — Optional narration path
+
+**Status:** `IMPLEMENTED — OFFLINE VERIFIED; OWNER LIVE SMOKE PENDING` under the
+2026-09-21 owner-approved full-workflow/narration addendum. See the current status record linked
+above. This does not authorize Codex to make provider calls.
 
 - If narration is supplied, use `large-v3-turbo` through `faster-whisper`.
 - If narration is absent, emit explicit missing-source provenance; never fabricate a transcript.
