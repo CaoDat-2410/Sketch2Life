@@ -56,3 +56,8 @@ gates remain open.
 ## Final offline baseline — 2026-10-20
 
 All seven task 08–14 runners passed under the isolated pinned environment. Final result: metrics/GOAL_OFFLINE_BASELINE_FINAL_20261020.json; per-task receipts are in each owning feature evidence folder. SQL execution, PostgreSQL, runtime and Lightning remain NOT_RUN. Current handoff: notes/PRIMARY_SESSION_HANDOFF_20261020.md.
+
+
+## Publication
+
+PR #16 merge and unchanged card/runtime gates are recorded in notes/PUBLICATION_PR16_20261020.md.
