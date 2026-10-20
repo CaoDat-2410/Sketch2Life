@@ -1,0 +1,2 @@
+pytest=8.4.2,ruff=0.16.4,mypy=1.20.2,Pillow=12.3.0,python-multipart=0.0.32,av=18.1.0,pydantic=2.13.4,SQLAlchemy=2.0.52,alembic=1.19.1
+No broken requirements found.
