@@ -92,3 +92,9 @@ Current handoff/map/checks use POST_CLAUDE paths, source manifest601 entries SHA
 P3-4 recall/new-bundle semantics and P3-6 frozen authorization whitespace exception remain
 explicit. Owner acceptance and all runtime/integration gates remain separate; no staging,
 commit, push, PR, merge, deployment or Lightning execution.
+
+## Cloud re-review — 2026-10-20
+
+Re-review of 1d731c5 found one in-scope P3 (default-ignorable word separators bypassed the
+imagined-to-fact check), fixed in b3f7573 with domain/DTO/handler regressions. Codex performs
+the independent post-push review. Component NOT_ACCEPTED; card IN_PROGRESS / NOT_DONE.
