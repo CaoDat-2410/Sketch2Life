@@ -8,15 +8,16 @@ Updated: 2026-10-20
 - State: `PARTIAL — APPROVED DIAGNOSTIC SLICE IMPLEMENTED; TASK 4 OPEN`.
 - Person 2 approved Revision 3 at source commit `b39a9f2f56509b0543184876eb538fc9faf0e1aa`.
   Approval and exact scope are recorded in `approvals/TASK_APPROVAL.md`.
-- The synthetic manifest has 120 primary and 43 separately counted supplemental cases. B1 passed
-  for all 120 primary cases. B2/B3 are NOT_RUN for all primary cases because Gate A import stops at
-  missing `PIL`; 9 Gate-A supplemental cases are likewise NOT_RUN. Primary requirements remain
-  UNRESOLVED. The other executed supplemental rows include an accepted Raw narration/status gap and
-  two observed V2 matcher deviations; see the metrics report for row-level sanitized evidence.
-- Focused offline tests: 231 passed, 129 skipped with the explicit missing-`PIL` prerequisite.
-  Ruff passed. Mypy terminated with `OperationalError: unable to open database file`; this does not
-  constitute a type-check result. Repository-wide validation results are recorded in the evidence
-  note below.
+- The synthetic manifest has 120 primary and 43 separately counted supplemental cases. B1 completed
+  for all 120 primary cases. B2/B3 are NOT_RUN because the active test environment is missing the
+  required backend dependency `Pillow>=11,<13` (module `PIL`); a dedicated dependency preflight keeps
+  this from being reported as a clean test run. Nine Gate-A supplemental cases are likewise NOT_RUN.
+  Primary requirements remain UNRESOLVED. Executed supplemental rows include a Raw narration/status
+  gap and two V2 matcher deviations; see the metrics report for sanitized row-level evidence.
+- Ruff passed. The latest mypy invocation terminated with generic `INTERNAL ERROR`; an earlier
+  invocation reported `OperationalError: unable to open database file`. Neither constitutes a
+  type-check result. The latest focused test result and repository-wide validation are recorded in
+  the evidence note below.
 - No runtime/schema/catalog edits or Lightning/model calls were made. Independent implementation
   review and owner disposition for unresolved behavior remain open; Task 4 is not complete.
 - Plans: `plan/P2_T4_MAPPING_DIAGNOSTICS_PLAN_DRAFT_20261020.md` and

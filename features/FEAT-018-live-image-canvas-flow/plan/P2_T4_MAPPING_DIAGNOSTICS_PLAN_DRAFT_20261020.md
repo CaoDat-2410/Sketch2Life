@@ -173,12 +173,14 @@ checks, evidence creation, and implementation review. It does not authorize runt
 changes or Lightning/model calls.
 
 The approved manifest and tests are present. The current metrics report records 120 primary rows:
-B1 completed for all 120; B2 and B3 were NOT_RUN for all 120 because importing the existing Gate A
-service fails on the unavailable `PIL` import. All 120 primary requirements therefore remain
-UNRESOLVED. Of 43 supplemental rows, 34 executed and 9 Gate-A cases are NOT_RUN for the same
-prerequisite. Twelve supplemental requirements remain UNRESOLVED: nine unexecuted Gate-A cases, a
-Raw narration source/status consistency gap, and two observed V2 matcher deviations. The report
-keeps the 120 primary and 43 supplemental counts separate and records `full_p2_t4_acceptance=OPEN`.
+B1 completed for all 120; B2 and B3 were NOT_RUN for all 120 because the active test environment is
+missing the required project dependency `Pillow>=11,<13` (import module `PIL`). The dependency is
+required by the backend project, not an optional Gate A/live dependency. All 120 primary requirements
+therefore remain UNRESOLVED. Of 43 supplemental rows, 34 executed and 9 Gate-A cases are NOT_RUN for
+the same environment prerequisite. Twelve supplemental requirements remain UNRESOLVED: nine
+unexecuted Gate-A cases, a Raw narration source/status consistency gap, and two observed V2 matcher
+deviations. The report keeps the 120 primary and 43 supplemental counts separate and records
+`full_p2_t4_acceptance=OPEN`.
 
 Evidence and the offline check results are in
 `evidence/notes/P2_T4_MAPPING_DIAGNOSTICS_20261020.md` and

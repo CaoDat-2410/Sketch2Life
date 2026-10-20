@@ -1,7 +1,8 @@
 """Approved FEAT-018 P2-T4 synthetic diagnostics; never a provider/model run.
 
-Only the explicit CLI writes evidence. Missing optional Gate A imports leave the
-primary B2/B3 observations unexecuted; standalone matcher probes are supplemental.
+Only the explicit CLI writes evidence. A missing required Pillow dependency leaves
+the primary B2/B3 observations unexecuted and fails the dependency preflight;
+standalone matcher probes are supplemental.
 """
 
 from __future__ import annotations
@@ -106,15 +107,29 @@ def _b1(raw: RawUnderstandingSuccessV1, case: dict[str, Any]) -> dict[str, Any]:
     assert raw.source_image_ref.model_dump(mode="json") == case["source_image_ref"]
     assert raw.session_id == case["session_id"]
     assert raw.correlation_id == case["correlation_id"]
-    assert {claim.observation_id for claim in claims} == {
-        entity["observation_id"] for entity in case["entities"]
-    }
+    assert [
+        {
+            "observation_id": item.observation_id,
+            "label": item.label.value,
+            "confidence": item.confidence,
+            "source": item.source,
+        }
+        for item in raw.entities
+    ] == [
+        {**entity, "source": "VISION"} for entity in case["entities"]
+    ]
+    assert [item.model_dump(mode="json") for item in raw.asr_claims] == case["asr_claims"]
+    assert [item.model_dump(mode="json") for item in raw.conflicts] == case["conflicts"]
+    expected_claim_ids = {entity["observation_id"] for entity in case["entities"]}
+    assert {claim.observation_id for claim in claims} == expected_claim_ids
     assert RawUnderstandingSuccessV1.model_validate_json(raw.model_dump_json()) == raw
     if case["family"] == "CONFLICT":
         assert case["narration_text"] == raw.asr_claims[0].text
         assert case["narration_text"]
-        assert raw.entities[0].observation_id != raw.asr_claims[0].claim_id
-        assert raw.asr_claims[0].source == "ASR"
+        assert raw.entities[0].observation_id in raw.conflicts[0].claim_refs
+        assert raw.asr_claims[0].claim_id in raw.conflicts[0].claim_refs
+        assert raw.asr_claims[0].source == case["asr_claims"][0]["source"] == "ASR"
+        assert raw.narration_status == case["narration_status"]
     return {
         "execution_status": "COMPLETE", "requirement_status": "SATISFIED",
         "raw_contract": [raw.contract_name, raw.contract_version],
@@ -145,7 +160,11 @@ def gate_a_prerequisite() -> tuple[Any, dict[str, str] | None]:
     except ModuleNotFoundError as exc:
         if exc.name != "PIL":
             raise
-        return None, {"code": "IMPORT_PREREQUISITE_MISSING", "module": exc.name}
+        return None, {
+            "code": "REQUIRED_DEPENDENCY_MISSING",
+            "distribution": "Pillow>=11,<13",
+            "module": exc.name,
+        }
     return SupervisedFlowService, None
 
 
@@ -348,7 +367,11 @@ def _b3(anchors: SemanticAnchorSetV1, narration_text: str) -> tuple[Any, dict[st
         "narration_text_sha256": _text_digest(scene.asr_transcript_vi),
         "asr_vlm_resolution": scene.asr_vlm_resolution,
         "supported_modalities": list(scene.supported_modalities),
-        "conflict_preserved_flag": scene.conflict_preserved,
+        "conflict_preserved_projection": {
+            "value": scene.conflict_preserved,
+            "explicitly_set_by_projection": "conflict_preserved" in scene.model_fields_set,
+            "interpretation": "schema field value; not an observation that Raw conflicts survived",
+        },
         "concepts": [{
             "concept_id": c.concept_id, "label_sha256": _text_digest(c.label_vi),
             "confidence": c.confidence, "source_kinds": list(c.source_kinds),
@@ -358,7 +381,16 @@ def _b3(anchors: SemanticAnchorSetV1, narration_text: str) -> tuple[Any, dict[st
     }
 
 
-def run_case(case: dict[str, Any], gate_a_available: bool | None = None) -> dict[str, Any]:
+def _target_match_mode(matches: list[dict[str, Any]], boundary: str,
+                       activity_id: str) -> str:
+    match = next((item for item in matches
+                  if item["boundary"] == boundary and item["activity_id"] == activity_id), None)
+    if match is None or match["fallback_observed"]:
+        return "NO_PERSONALIZED_MATCH"
+    return match["match_mode"]
+
+
+def run_case(case: dict[str, Any]) -> dict[str, Any]:
     raw = build_raw(case)
     row = {
         "case_id": case["case_id"], "family": case["family"],
@@ -366,18 +398,24 @@ def run_case(case: dict[str, Any], gate_a_available: bool | None = None) -> dict
         "fixture_sha256": _digest(case), "profile": {
             key: value for key, value in case["profile"].items() if key != "exact_phrase"
         },
-        "intended": {"target_v1_mode": case["expected"]["target_v1_mode"]},
-        "test_reference": TEST_REF + "::test_primary_b1",
+        "intended": {
+            "target_v1_mode": case["expected"]["target_v1_mode"],
+            "target_v2_mode": case["expected"]["target_v2_mode"],
+        },
+        "test_references": {
+            "B1": TEST_REF + "::test_primary_b1",
+            "B2_B3": TEST_REF + "::test_primary_gate_a_and_matcher",
+        },
         "B1": _b1(raw, case), "boundary_findings": [],
+        "static_review_hypotheses": [],
     }
     service_type, missing = gate_a_prerequisite()
-    if missing is not None or gate_a_available is False:
-        reason = missing or {"code": "GATE_A_NOT_REQUESTED"}
+    if missing is not None:
         row.update({
-            "execution_status": "ERROR", "requirement_status": "UNRESOLVED",
-            "B2": {"execution_status": "NOT_RUN", "prerequisite": reason},
+            "execution_status": "NOT_RUN", "requirement_status": "UNRESOLVED",
+            "B2": {"execution_status": "NOT_RUN", "prerequisite": missing},
             "B3": {"execution_status": "NOT_RUN", "code": "B2_ANCHOR_UNAVAILABLE"},
-            "boundary_findings": [reason["code"], "DOWNSTREAM_REQUIREMENTS_UNMEASURED"],
+            "boundary_findings": [missing["code"], "DOWNSTREAM_REQUIREMENTS_UNMEASURED"],
         })
         return row
     assert service_type is not None
@@ -390,11 +428,13 @@ def run_case(case: dict[str, Any], gate_a_available: bool | None = None) -> dict
     matches = row["B3"]["p1_matches"]
     target_modes = {m["boundary"]: m["match_mode"] for m in matches
                     if m["activity_id"] == case["activity_id"]}
-    if family in {"EXACT", "AMBIGUOUS", "CONFLICT", "LOW"}:
-        if target_modes.get("V1_MATCH") != "EXACT":
-            findings.append("TARGET_V1_EXACT_NOT_OBSERVED")
-        if target_modes.get("V2_MATCH_SCENE") != "PERSONALIZED_EXACT":
-            findings.append("TARGET_V2_EXACT_NOT_OBSERVED")
+    expected_v1 = case["expected"]["target_v1_mode"]
+    if expected_v1 != "OBSERVE" and target_modes.get("V1_MATCH", "NONE") != expected_v1:
+        findings.append("TARGET_V1_EXPECTATION_MISMATCH")
+    expected_v2 = case["expected"]["target_v2_mode"]
+    observed_v2 = _target_match_mode(matches, "V2_MATCH_SCENE", case["activity_id"])
+    if expected_v2 != "OBSERVE_ONLY" and observed_v2 != expected_v2:
+        findings.append("TARGET_V2_EXPECTATION_MISMATCH")
     if (family != "ADULT_CORRECTION"
             and (primary.original_label != raw.entities[0].label.value
                  or target_id not in primary.provenance.source_claim_ids)):
@@ -404,7 +444,11 @@ def run_case(case: dict[str, Any], gate_a_available: bool | None = None) -> dict
             entity.observation_id for entity in raw.entities[1:]
         }:
             findings.append("AMBIGUOUS_SECONDARY_PRESERVATION_FAILED")
-        findings.append("AMBIGUITY_DECISION_PROVENANCE_NOT_PROJECTED")
+        scene_fields = set(scene.model_dump(mode="json"))
+        if not {"gate_a_confirmation", "meaning_version"} <= scene_fields:
+            row["static_review_hypotheses"].append(
+                "AMBIGUITY_DECISION_PROVENANCE_NOT_PROJECTED"
+            )
     elif family == "NO_MATCH":
         if primary.semantic_tags:
             findings.append("NO_MATCH_EMPTY_TAG_PRECONDITION_FAILED")
@@ -413,7 +457,9 @@ def run_case(case: dict[str, Any], gate_a_available: bool | None = None) -> dict
         if not findings:
             row["p2_diagnostic"] = "NO_REVIEWED_VOCABULARY_MATCH"
     elif family == "CONFLICT":
-        findings.append("RAW_CONFLICT_REFERENCES_NOT_PROJECTED")
+        scene_fields = set(scene.model_dump(mode="json"))
+        if not scene_fields.intersection({"conflicts", "raw_conflicts", "source_conflicts"}):
+            row["static_review_hypotheses"].append("RAW_CONFLICT_REFERENCES_NOT_PROJECTED")
         if scene.asr_vlm_resolution == "ASR_AND_VLM_AGREE":
             findings.append("SOURCE_DISAGREEMENT_PROJECTED_AS_AGREEMENT")
         if scene.source_audio_artifact_ref == "none:narration":
@@ -428,13 +474,22 @@ def run_case(case: dict[str, Any], gate_a_available: bool | None = None) -> dict
             findings.append("ADULT_ASSERTION_PROVENANCE_FAILED")
         if not any(target_id in a.provenance.source_claim_ids for a in anchors.secondary_anchors):
             findings.append("RETAINED_VISION_SECONDARY_MISSING")
-        findings.extend([
-            "ADULT_CONFIDENCE_CONVENTION_REQUIRES_REVIEW",
-            "PROVENANCE_CONTRACT_REGISTRATION_NOT_ESTABLISHED",
-            "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW",
-        ])
+        if primary.confidence == 1.0:
+            row["static_review_hypotheses"].append(
+                "ADULT_CONFIDENCE_CONVENTION_REQUIRES_REVIEW"
+            )
+        if "source_adult_assertion_id" in primary.provenance.model_fields_set:
+            row["static_review_hypotheses"].append(
+                "PROVENANCE_CONTRACT_REGISTRATION_NOT_ESTABLISHED"
+            )
+        if not {"meaning_version", "actor_ref"} <= set(scene.model_dump(mode="json")):
+            row["static_review_hypotheses"].append(
+                "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+            )
     row.update({"execution_status": "COMPLETE",
-                "requirement_status": "UNRESOLVED" if findings else "SATISFIED"})
+                "requirement_status": (
+                    "UNRESOLVED" if findings or row["static_review_hypotheses"] else "SATISFIED"
+                )})
     return row
 
 
@@ -483,6 +538,16 @@ def _standalone_anchors(case: dict[str, Any], label: str) -> SemanticAnchorSetV1
             },
         },
     })
+
+
+def _apply_supplemental_expectation(item: dict[str, Any], row: dict[str, Any]) -> dict[str, Any]:
+    if row["execution_status"] != "COMPLETE":
+        return row
+    expected_status = item["expected"]["requirement_status"]
+    if row["requirement_status"] != expected_status:
+        row["requirement_status"] = "UNRESOLVED"
+        row["boundary_findings"].append("MANIFEST_REQUIREMENT_EXPECTATION_MISMATCH")
+    return row
 
 
 def run_supplemental(item: dict[str, Any], manifest: dict[str, Any]) -> dict[str, Any]:
@@ -577,27 +642,34 @@ def run_supplemental(item: dict[str, Any], manifest: dict[str, Any]) -> dict[str
         phrase = base["profile"]["exact_phrase"]
         label = (item["label"] if scenario == "REVIEWED_ALIAS" else
                  f"x{phrase}x" if scenario == "V2_WORD_BOUNDARY" else
-                 "  ".join(phrase.split()))
+                 "fixture-anchor-without-reviewed-phrase")
         anchors = _standalone_anchors(base, label)
-        _, observation = _b3(anchors, "")
+        narration = "  ".join(phrase.split()) if scenario == "V2_WHITESPACE" else ""
+        _, observation = _b3(anchors, narration)
         observed.update(observation)
-        observed["input_origin"] = "EXPLICIT_SUPPLEMENTAL_ANCHOR_NOT_B2_OUTPUT"
+        observed["input_origin"] = (
+            "SUPPLEMENTAL_NARRATION_TEXT_NOT_B2_OUTPUT" if narration else
+            "EXPLICIT_SUPPLEMENTAL_ANCHOR_NOT_B2_OUTPUT"
+        )
         modes = {m["boundary"]: m["match_mode"] for m in observation["p1_matches"]
                  if m["activity_id"] == activity_id}
         observed["target_modes"] = modes
-        wanted = "PERSONALIZED_ALIAS" if scenario == "REVIEWED_ALIAS" else "PERSONALIZED_EXACT"
+        expected_modes = item["expected"]["target_modes"]
+        mismatched = {
+            boundary: mode for boundary, allowed in expected_modes.items()
+            if (mode := modes.get(boundary, "NO_PERSONALIZED_MATCH")) not in allowed
+        }
         if scenario == "V2_WORD_BOUNDARY":
-            gap = modes.get("V2_MATCH_SCENE") == "PERSONALIZED_EXACT"
-        else:
-            gap = modes.get("V2_MATCH_SCENE") != wanted
-        if scenario == "REVIEWED_ALIAS" and modes.get("V1_MATCH") != "ALIAS":
-            gap = True
-        if gap:
+            # V1 substring behavior is recorded; B3 V2 must not accept a phrase
+            # embedded inside a larger token as a reviewed exact phrase.
+            observed["v1_substring_behavior_is_design"] = modes.get("V1_MATCH") == "EXACT"
+        if mismatched:
             row["requirement_status"] = "UNRESOLVED"
-            row["boundary_findings"] = [scenario + "_MATCHER_DEVIATION"]
+            row["boundary_findings"] = [scenario + "_MATCHER_EXPECTATION_MISMATCH"]
+            observed["expectation_mismatches"] = mismatched
     else:
         return _run_gate_supplemental(item, manifest, base, row)
-    return row
+    return _apply_supplemental_expectation(item, row)
 
 
 def _run_gate_supplemental(item: dict[str, Any], manifest: dict[str, Any],
@@ -689,7 +761,7 @@ def _run_gate_supplemental(item: dict[str, Any], manifest: dict[str, Any],
             row["boundary_findings"] = ["V1_CORRECTION_REUSES_VISION_PROVENANCE"]
     assert compiler.calls == 0
     row["observed"]["compiler_calls"] = compiler.calls
-    return row
+    return _apply_supplemental_expectation(item, row)
 
 
 def build_report(manifest: dict[str, Any]) -> dict[str, Any]:
@@ -731,25 +803,99 @@ def test_primary_b1(case: dict[str, Any]) -> None:
     )
 
 
+def test_no_match_recipe_has_no_personalized_match() -> None:
+    manifest = load_manifest()
+    _, v2 = _catalogs()
+    cases = [case for case in manifest["primary_cases"] if case["family"] == "NO_MATCH"]
+    assert len(cases) == 20
+    for case in cases:
+        anchors = _standalone_anchors(case, case["entities"][0]["label"])
+        scene, _ = _b3(anchors, case["narration_text"])
+        personalized = [
+            profile.activity_id for profile in v2.profiles
+            if (match := v2.match_scene(scene, profile)) is not None
+            and match.match_mode != "AGE_BASELINE_FALLBACK"
+        ]
+        assert not personalized, (
+            f"{case['case_id']} unexpectedly matched reviewed profiles: {personalized}"
+        )
+
+
 def test_primary_gate_a_and_matcher(case: dict[str, Any]) -> None:
     _, missing = gate_a_prerequisite()
     if missing is not None:
-        pytest.skip(f"B2/B3 NOT_RUN: missing import prerequisite {missing['module']}")
+        pytest.skip(
+            "B2/B3 NOT_RUN: required project dependency "
+            f"{missing['distribution']} is missing ({missing['module']})"
+        )
     row = run_case(case)
     assert row["execution_status"] == "COMPLETE"
     assert row["B2"]["raw_sha256_before"] == row["B2"]["raw_sha256_after"]
     assert row["B2"]["compiler_calls"] == 0
     assert row["B3"]["base_profile_count"] == 100
-    assert row["requirement_status"] != "SATISFIED" or not row["boundary_findings"]
+    primary_modes = {
+        item["boundary"]: item["match_mode"] for item in row["B3"]["p1_matches"]
+        if item["activity_id"] == case["activity_id"]
+    }
+    actual_modes = {
+        "V1_MATCH": primary_modes.get("V1_MATCH", "NONE"),
+        "V2_MATCH_SCENE": _target_match_mode(
+            row["B3"]["p1_matches"], "V2_MATCH_SCENE", case["activity_id"]
+        ),
+    }
+    expectations = {
+        "V1_MATCH": case["expected"]["target_v1_mode"],
+        "V2_MATCH_SCENE": case["expected"]["target_v2_mode"],
+    }
+    for boundary, expected in expectations.items():
+        if expected in {"OBSERVE", "OBSERVE_ONLY"}:
+            continue
+        mismatch_code = {
+            "V1_MATCH": "TARGET_V1_EXPECTATION_MISMATCH",
+            "V2_MATCH_SCENE": "TARGET_V2_EXPECTATION_MISMATCH",
+        }[boundary]
+        assert (mismatch_code in row["boundary_findings"]) == (
+            actual_modes[boundary] != expected
+        )
+    if case["family"] == "NO_MATCH":
+        _, v2 = _catalogs()
+        non_fallback = []
+        anchors = _standalone_anchors(case, case["entities"][0]["label"])
+        scene, _ = _b3(anchors, case["narration_text"])
+        for profile in v2.profiles:
+            match = v2.match_scene(scene, profile)
+            if match is not None and match.match_mode != "AGE_BASELINE_FALLBACK":
+                non_fallback.append(profile.activity_id)
+        assert not non_fallback, "NO_MATCH recipe must not match any of the 100 reviewed profiles"
 
 
 def test_supplemental_observation(supplemental: dict[str, Any]) -> None:
     row = run_supplemental(supplemental, load_manifest())
     if row["execution_status"] == "NOT_RUN":
-        pytest.skip("B2 NOT_RUN: missing import prerequisite "
-                    + row["observed"]["prerequisite"]["module"])
+        prerequisite = row["observed"]["prerequisite"]
+        pytest.skip(
+            "B2 NOT_RUN: required project dependency "
+            f"{prerequisite['distribution']} is missing ({prerequisite['module']})"
+        )
     assert row["execution_status"] == "COMPLETE"
-    assert row["requirement_status"] != "SATISFIED" or not row["boundary_findings"]
+    if supplemental["expected"]["boundary"] == "B3":
+        actual_modes = row["observed"]["target_modes"]
+        expected_modes = supplemental["expected"]["target_modes"]
+        expected_mismatches = {
+            boundary: mode for boundary, allowed in expected_modes.items()
+            if (mode := actual_modes.get(boundary, "NO_PERSONALIZED_MATCH")) not in allowed
+        }
+        mismatch_code = supplemental["scenario"] + "_MATCHER_EXPECTATION_MISMATCH"
+        assert row["observed"].get("expectation_mismatches", {}) == expected_mismatches
+        assert (mismatch_code in row["boundary_findings"]) == bool(expected_mismatches)
+
+
+def test_gate_a_required_dependency_preflight() -> None:
+    _, missing = gate_a_prerequisite()
+    assert missing is None, (
+        "B2/B3 require the declared backend dependency Pillow>=11,<13; "
+        f"active test environment cannot import {missing['module'] if missing else ''}"
+    )
 
 
 def pytest_generate_tests(metafunc: Any) -> None:
@@ -772,14 +918,21 @@ def test_report_integrity_and_sanitization() -> None:
         assert row["fixture_sha256"] == _digest(case)
         assert row["B1"]["raw_sha256"] == _digest(build_raw(case).model_dump(mode="json"))
         if row["B2"]["execution_status"] == "NOT_RUN":
-            assert row["execution_status"] == "ERROR"
+            assert row["execution_status"] == "NOT_RUN"
             assert row["requirement_status"] == "UNRESOLVED"
             assert row["B3"]["execution_status"] == "NOT_RUN"
+            assert row["B2"]["prerequisite"]["distribution"] == "Pillow>=11,<13"
+        if row["requirement_status"] == "SATISFIED":
+            assert not row["boundary_findings"]
+            assert not row["static_review_hypotheses"]
     serialized = json.dumps(report, ensure_ascii=False)
-    for case in manifest["primary_cases"]:
-        assert case["entities"][0]["label"] not in serialized
-        if case["narration_text"]:
-            assert case["narration_text"] not in serialized
+    for case in (*manifest["primary_cases"], *manifest["supplemental_cases"]):
+        for secret_field in ("label", "narration_text"):
+            secret = case.get(secret_field)
+            if secret:
+                assert secret not in serialized
+        for entity in case.get("entities", []):
+            assert entity["label"] not in serialized
     assert "raw_understanding" not in serialized
 
 

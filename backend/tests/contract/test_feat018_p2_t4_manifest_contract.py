@@ -170,18 +170,89 @@ def _assert_primary_recipe(case: dict[str, Any], profiles: dict[str, Any]) -> No
     expected_mode = "EXACT"
     if family == "ADULT_CORRECTION":
         expected_mode = "OBSERVE"
+        expected_v2_mode = "OBSERVE_ONLY"
     elif family == "NO_MATCH":
         expected_mode = "SAFE_FALLBACK" if profile["fallback_tier"] != "NONE" else "NONE"
+        expected_v2_mode = "NO_PERSONALIZED_MATCH"
+    else:
+        expected_v2_mode = "PERSONALIZED_EXACT"
     assert case["expected"]["target_v1_mode"] == expected_mode, "boundary-specific expectation"
+    assert case["expected"]["target_v2_mode"] == expected_v2_mode, (
+        "V2 matcher boundary-specific expectation"
+    )
     assert isinstance(case["expected"]["notes"], str) and case["expected"]["notes"].strip()
 
 
 def _assert_supplemental_inventory(manifest: dict[str, Any], profiles: dict[str, Any]) -> None:
     supplemental = manifest["supplemental_cases"]
     assert len(supplemental) == 43, "supplemental inventory count"
+    b1_outcomes = {
+        "VISION_NULL_CONFIDENCE": "REJECT_INVALID_VISION_CONFIDENCE",
+        "ASR_NULL_CONFIDENCE": "ACCEPT_NULL_ASR_CONFIDENCE",
+        "UNCERTAINTY_NOT_PROVIDED": "ACCEPT_NOT_PROVIDED_UNCERTAINTY",
+        "UNCERTAINTY_UPSTREAM_PROVIDED": "PRESERVE_UPSTREAM_UNCERTAINTY",
+        "UNCERTAINTY_STATUS_MISMATCH": "REJECT_INCONSISTENT_UNCERTAINTY",
+        "AMBIGUOUS_REGION_ONLY": "PRESERVE_NON_SELECTABLE_AMBIGUITY",
+        "TEXT_TYPED_CONFLICT": "PRESERVE_TYPED_TEXT_CONFLICT",
+        "NARRATION_SOURCE_STATUS_MISMATCH": "OBSERVE_ACCEPTED_SOURCE_STATUS_GAP",
+        "DUPLICATE_CLAIM_ID": "REJECT_DUPLICATE_CLAIM_ID",
+        "DANGLING_CONFLICT_REF": "REJECT_DANGLING_CONFLICT_REFERENCE",
+        "SOURCE_HASH_MISMATCH": "REJECT_SOURCE_HASH_MISMATCH",
+        "CORRELATION_MISMATCH": "REJECT_CORRELATION_MISMATCH",
+    }
+    b2_outcomes = {
+        "UNKNOWN_CONFIRMED_CLAIM": "REJECT_UNKNOWN_CONFIRMED_CLAIM",
+        "STALE_SESSION_VERSION": "REJECT_STALE_SESSION_VERSION",
+        "V1_ADULT_CORRECTION": "OBSERVE_CORRECTION_PROVENANCE",
+        "SUCCESSIVE_MEANING_VERSIONS": "OBSERVE_MEANING_AND_ANCHOR_VERSIONS",
+        "V2_MISSING_ADULT_LABEL": "REJECT_MISSING_ADULT_LABEL",
+        "NON_DEMO_ACTOR": "REJECT_NON_DEMO_ACTOR",
+        "AMBIGUOUS_TARGET_ONLY": "OBSERVE_AMBIGUOUS_TARGET_ONLY_CONFIRMATION",
+        "ADULT_EMPTY_CONFIRMED": "OBSERVE_EMPTY_ADULT_CONFIRMATION",
+        "SWALLOWED_AUTORIG_CALL": "OBSERVE_INJECTED_AUTORIG_CALL_COUNT",
+    }
+    expected_requirement_status = {
+        "VISION_NULL_CONFIDENCE": "EXPECTED_BLOCKED",
+        "ASR_NULL_CONFIDENCE": "SATISFIED",
+        "UNCERTAINTY_NOT_PROVIDED": "SATISFIED",
+        "UNCERTAINTY_UPSTREAM_PROVIDED": "SATISFIED",
+        "UNCERTAINTY_STATUS_MISMATCH": "EXPECTED_BLOCKED",
+        "AMBIGUOUS_REGION_ONLY": "SATISFIED",
+        "TEXT_TYPED_CONFLICT": "SATISFIED",
+        "NARRATION_SOURCE_STATUS_MISMATCH": "UNRESOLVED",
+        "DUPLICATE_CLAIM_ID": "EXPECTED_BLOCKED",
+        "DANGLING_CONFLICT_REF": "EXPECTED_BLOCKED",
+        "SOURCE_HASH_MISMATCH": "EXPECTED_BLOCKED",
+        "CORRELATION_MISMATCH": "EXPECTED_BLOCKED",
+        "UNKNOWN_CONFIRMED_CLAIM": "EXPECTED_BLOCKED",
+        "STALE_SESSION_VERSION": "EXPECTED_BLOCKED",
+        "V1_ADULT_CORRECTION": "UNRESOLVED",
+        "SUCCESSIVE_MEANING_VERSIONS": "UNRESOLVED",
+        "V2_MISSING_ADULT_LABEL": "EXPECTED_BLOCKED",
+        "NON_DEMO_ACTOR": "EXPECTED_BLOCKED",
+        "AMBIGUOUS_TARGET_ONLY": "SATISFIED",
+        "ADULT_EMPTY_CONFIRMED": "SATISFIED",
+        "SWALLOWED_AUTORIG_CALL": "SATISFIED",
+        "V2_WORD_BOUNDARY": "SATISFIED",
+        "V2_WHITESPACE": "SATISFIED",
+        "REVIEWED_ALIAS": "SATISFIED",
+    }
     expected = {
         f"feat018-p2-t4-supp-{scenario.lower().replace('_', '-')}": {
             "scenario": scenario, "activity_id": "ACT-0004",
+            "expected": {
+                **({"boundary": "B1", "outcome": b1_outcomes[scenario]}
+                         if scenario in b1_outcomes else
+                         {"boundary": "B2", "outcome": b2_outcomes[scenario]}
+                         if scenario in b2_outcomes else
+                         {"boundary": "B3", "target_modes": {
+                             "V1_MATCH": ["EXACT"],
+                             "V2_MATCH_SCENE": ["NO_PERSONALIZED_MATCH"],
+                         }} if scenario == "V2_WORD_BOUNDARY" else
+                         {"boundary": "B3", "input_channel": "NARRATION",
+                          "target_modes": {"V2_MATCH_SCENE": ["PERSONALIZED_EXACT"]}}),
+                "requirement_status": expected_requirement_status[scenario],
+            },
         }
         for scenario in SUPPLEMENTAL_SCENARIOS
     }
@@ -189,6 +260,11 @@ def _assert_supplemental_inventory(manifest: dict[str, Any], profiles: dict[str,
         expected[f"feat018-p2-t4-{activity_id.lower()}-alias"] = {
             "scenario": "REVIEWED_ALIAS", "activity_id": activity_id,
             "label": profiles[activity_id]["aliases_vi"][0],
+            "expected": {"boundary": "B3", "requirement_status": "SATISFIED",
+                          "target_modes": {
+                              "V1_MATCH": ["ALIAS"],
+                              "V2_MATCH_SCENE": ["PERSONALIZED_ALIAS"],
+                          }},
         }
     observed = {}
     for case in supplemental:
@@ -248,7 +324,7 @@ def test_synthetic_execution_marker_is_separate_from_required_model_enum(
     "missing-pilot", "duplicate-pilot", "extra-pilot", "missing-family", "duplicate-family",
     "extra-family", "missing-source", "duplicate-source", "wrong-source-digest",
     "duplicate-session", "missing-supplemental", "duplicate-supplemental",
-    "primary-as-supplemental",
+    "primary-as-supplemental", "missing-supplemental-expectation",
 ])
 def test_manifest_rejects_broken_inventories(manifest: dict[str, Any], mutation: str) -> None:
     broken = deepcopy(manifest)
@@ -276,6 +352,8 @@ def test_manifest_rejects_broken_inventories(manifest: dict[str, Any], mutation:
         broken["supplemental_cases"].pop()
     elif mutation == "duplicate-supplemental":
         broken["supplemental_cases"][-1] = deepcopy(broken["supplemental_cases"][0])
+    elif mutation == "missing-supplemental-expectation":
+        del broken["supplemental_cases"][0]["expected"]
     else:
         broken["supplemental_cases"][-1]["case_id"] = broken["primary_cases"][0]["case_id"]
     with pytest.raises(AssertionError):
@@ -346,6 +424,7 @@ def test_manifest_rejects_unapproved_identity(
     ("ADULT_CORRECTION", ("confirmation", "meaning_version"), 1, "confirmation recipe"),
     ("NO_MATCH", ("entities", 0, "label"), "English seed", "Vision recipe"),
     ("NO_MATCH", ("expected", "target_v1_mode"), "EXACT", "boundary-specific expectation"),
+    ("EXACT", ("expected", "target_v2_mode"), "OBSERVE_ONLY", "V2 matcher boundary-specific"),
 ])
 def test_manifest_rejects_invalid_primary_recipes(
     manifest: dict[str, Any], family: str, path: tuple[str | int, ...],

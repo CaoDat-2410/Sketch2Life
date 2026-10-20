@@ -618,9 +618,10 @@ separate supplemental counts, and diagnostic-only report labels. The implementat
 synthetic manifest and test-only diagnostics; it does not change runtime contracts, schemas,
 catalogs, or provider behavior.
 
-The current run completed B1 for all 120 primary rows. Gate A import requires unavailable `PIL`,
-so B2/B3 remain NOT_RUN and all primary requirements remain UNRESOLVED. Of 43 supplemental rows,
-34 executed and 9 Gate-A rows are NOT_RUN. The executed observations include one Raw narration
-source/status mismatch and two V2 matcher deviations. Task 4 remains open pending B2/B3 evidence,
-owner disposition of unresolved behavior, and independent implementation review. Details:
+The current run completed B1 for all 120 primary rows. The active test environment is missing the
+required project dependency `Pillow>=11,<13` (import module `PIL`), so B2/B3 remain NOT_RUN and all
+primary requirements remain UNRESOLVED. Of 43 supplemental rows, 34 executed and 9 Gate-A rows are
+NOT_RUN. The executed observations include one Raw narration source/status mismatch and two V2
+matcher deviations. Task 4 remains open pending B2/B3 evidence, owner disposition of unresolved
+behavior, and independent implementation review. Details:
 `evidence/notes/P2_T4_MAPPING_DIAGNOSTICS_20261020.md`.

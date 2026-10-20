@@ -2,29 +2,26 @@
 
 Evidence belongs under this feature only.
 
-## P2-T4 diagnostic slice — 2026-10-20
+## P2-T4 branch-only review artifacts — 2026-10-20
 
-Partial, sanitized working evidence from the Person 2-approved Revision 3 diagnostic scope:
-
-- [Implementation and offline result](notes/P2_T4_MAPPING_DIAGNOSTICS_20261020.md) records the
-  exact scope, checks, missing-`PIL` limitation, observed gaps, and open Task 4 status.
-- [Machine-readable diagnostics](metrics/P2_T4_MAPPING_DIAGNOSTICS_20261020.json) contains sanitized
-  IDs, hashes, match modes, codes, counts, and execution statuses. It contains no raw labels,
-  narration, media, session dumps, or provider output.
-
-This evidence is partial and does not assert Task 4 acceptance or completion.
+By the owner's request, the partial diagnostic note and metrics
+([note](notes/P2_T4_MAPPING_DIAGNOSTICS_20261020.md),
+[metrics](metrics/P2_T4_MAPPING_DIAGNOSTICS_20261020.json)) are present on the dedicated Task 4
+feature branch for review. This is a scoped review-distribution exception, not canonical evidence
+publication or owner acceptance. The artifacts record incomplete B2/B3 execution and keep Task 4
+open; they must not be cited as completed P2 evidence.
 
 P2 publication policy: working research, review briefs and handoff drafts remain
 local and are not canonical public evidence. Publish only selected completed P2
 records after owner review, then add them to this index. Completing a research
 round alone does not promote its working note to a public record.
 
-P2-T4 draft-review distribution — 2026-10-20: the owner requested that the two sanitized documents
+P2-T4 draft-review distribution — 2026-10-20: the owner requested that the two reviewed documents
 `plan/P2_T4_MAPPING_DIAGNOSTICS_PLAN_DRAFT_20261020.md` and
 `plan/P2_T4_MAPPING_INPUT_REVIEW_DRAFT_20261020.md` be pushed on the Task 4 branch for Claude Cloud
-review. They remain draft plan/input proposals, not completed canonical evidence or implementation
-approval. The raw relayed review remains local. This scoped distribution does not change the policy
-for other working research, review attachments or handoff drafts.
+review. They remain plan/input records, not completed canonical evidence. The raw relayed review
+remains local. This scoped branch-only distribution covers the P2-T4 review artifacts above and does
+not change the policy for other working research, review attachments or handoff drafts.
 
 Selected completed P2 design record:
 [isolated image admission and decoding](P2_IMAGE_DECODE_DESIGN_20260910.md)

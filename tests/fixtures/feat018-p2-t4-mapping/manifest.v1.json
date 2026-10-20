@@ -90,7 +90,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -151,7 +152,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -197,7 +199,8 @@
       },
       "expected": {
         "target_v1_mode": "NONE",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "NO_PERSONALIZED_MATCH"
       }
     },
     {
@@ -259,7 +262,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -305,7 +309,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -351,7 +356,8 @@
       },
       "expected": {
         "target_v1_mode": "OBSERVE",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "OBSERVE_ONLY"
       }
     },
     {
@@ -397,7 +403,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -458,7 +465,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -504,7 +512,8 @@
       },
       "expected": {
         "target_v1_mode": "NONE",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "NO_PERSONALIZED_MATCH"
       }
     },
     {
@@ -566,7 +575,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -612,7 +622,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -658,7 +669,8 @@
       },
       "expected": {
         "target_v1_mode": "OBSERVE",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "OBSERVE_ONLY"
       }
     },
     {
@@ -704,7 +716,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -765,7 +778,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -811,7 +825,8 @@
       },
       "expected": {
         "target_v1_mode": "NONE",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "NO_PERSONALIZED_MATCH"
       }
     },
     {
@@ -873,7 +888,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -919,7 +935,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -965,7 +982,8 @@
       },
       "expected": {
         "target_v1_mode": "OBSERVE",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "OBSERVE_ONLY"
       }
     },
     {
@@ -1011,7 +1029,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -1072,7 +1091,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -1118,7 +1138,8 @@
       },
       "expected": {
         "target_v1_mode": "NONE",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "NO_PERSONALIZED_MATCH"
       }
     },
     {
@@ -1180,7 +1201,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -1226,7 +1248,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -1272,7 +1295,8 @@
       },
       "expected": {
         "target_v1_mode": "OBSERVE",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "OBSERVE_ONLY"
       }
     },
     {
@@ -1318,7 +1342,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -1379,7 +1404,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -1425,7 +1451,8 @@
       },
       "expected": {
         "target_v1_mode": "NONE",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "NO_PERSONALIZED_MATCH"
       }
     },
     {
@@ -1487,7 +1514,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -1533,7 +1561,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -1579,7 +1608,8 @@
       },
       "expected": {
         "target_v1_mode": "OBSERVE",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "OBSERVE_ONLY"
       }
     },
     {
@@ -1625,7 +1655,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -1686,7 +1717,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -1732,7 +1764,8 @@
       },
       "expected": {
         "target_v1_mode": "SAFE_FALLBACK",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "NO_PERSONALIZED_MATCH"
       }
     },
     {
@@ -1794,7 +1827,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -1840,7 +1874,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -1886,7 +1921,8 @@
       },
       "expected": {
         "target_v1_mode": "OBSERVE",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "OBSERVE_ONLY"
       }
     },
     {
@@ -1932,7 +1968,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -1993,7 +2030,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -2039,7 +2077,8 @@
       },
       "expected": {
         "target_v1_mode": "NONE",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "NO_PERSONALIZED_MATCH"
       }
     },
     {
@@ -2101,7 +2140,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -2147,7 +2187,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -2193,7 +2234,8 @@
       },
       "expected": {
         "target_v1_mode": "OBSERVE",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "OBSERVE_ONLY"
       }
     },
     {
@@ -2239,7 +2281,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -2300,7 +2343,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -2346,7 +2390,8 @@
       },
       "expected": {
         "target_v1_mode": "NONE",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "NO_PERSONALIZED_MATCH"
       }
     },
     {
@@ -2408,7 +2453,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -2454,7 +2500,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -2500,7 +2547,8 @@
       },
       "expected": {
         "target_v1_mode": "OBSERVE",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "OBSERVE_ONLY"
       }
     },
     {
@@ -2546,7 +2594,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -2607,7 +2656,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -2653,7 +2703,8 @@
       },
       "expected": {
         "target_v1_mode": "NONE",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "NO_PERSONALIZED_MATCH"
       }
     },
     {
@@ -2715,7 +2766,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -2761,7 +2813,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -2807,7 +2860,8 @@
       },
       "expected": {
         "target_v1_mode": "OBSERVE",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "OBSERVE_ONLY"
       }
     },
     {
@@ -2853,7 +2907,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -2914,7 +2969,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -2960,7 +3016,8 @@
       },
       "expected": {
         "target_v1_mode": "NONE",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "NO_PERSONALIZED_MATCH"
       }
     },
     {
@@ -3022,7 +3079,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -3068,7 +3126,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -3114,7 +3173,8 @@
       },
       "expected": {
         "target_v1_mode": "OBSERVE",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "OBSERVE_ONLY"
       }
     },
     {
@@ -3160,7 +3220,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -3221,7 +3282,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -3267,7 +3329,8 @@
       },
       "expected": {
         "target_v1_mode": "SAFE_FALLBACK",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "NO_PERSONALIZED_MATCH"
       }
     },
     {
@@ -3329,7 +3392,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -3375,7 +3439,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -3421,7 +3486,8 @@
       },
       "expected": {
         "target_v1_mode": "OBSERVE",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "OBSERVE_ONLY"
       }
     },
     {
@@ -3467,7 +3533,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -3528,7 +3595,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -3574,7 +3642,8 @@
       },
       "expected": {
         "target_v1_mode": "NONE",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "NO_PERSONALIZED_MATCH"
       }
     },
     {
@@ -3636,7 +3705,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -3682,7 +3752,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -3728,7 +3799,8 @@
       },
       "expected": {
         "target_v1_mode": "OBSERVE",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "OBSERVE_ONLY"
       }
     },
     {
@@ -3774,7 +3846,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -3835,7 +3908,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -3881,7 +3955,8 @@
       },
       "expected": {
         "target_v1_mode": "NONE",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "NO_PERSONALIZED_MATCH"
       }
     },
     {
@@ -3943,7 +4018,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -3989,7 +4065,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -4035,7 +4112,8 @@
       },
       "expected": {
         "target_v1_mode": "OBSERVE",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "OBSERVE_ONLY"
       }
     },
     {
@@ -4081,7 +4159,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -4142,7 +4221,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -4188,7 +4268,8 @@
       },
       "expected": {
         "target_v1_mode": "NONE",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "NO_PERSONALIZED_MATCH"
       }
     },
     {
@@ -4250,7 +4331,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -4296,7 +4378,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -4342,7 +4425,8 @@
       },
       "expected": {
         "target_v1_mode": "OBSERVE",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "OBSERVE_ONLY"
       }
     },
     {
@@ -4388,7 +4472,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -4449,7 +4534,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -4495,7 +4581,8 @@
       },
       "expected": {
         "target_v1_mode": "NONE",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "NO_PERSONALIZED_MATCH"
       }
     },
     {
@@ -4557,7 +4644,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -4603,7 +4691,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -4649,7 +4738,8 @@
       },
       "expected": {
         "target_v1_mode": "OBSERVE",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "OBSERVE_ONLY"
       }
     },
     {
@@ -4695,7 +4785,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -4756,7 +4847,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -4802,7 +4894,8 @@
       },
       "expected": {
         "target_v1_mode": "SAFE_FALLBACK",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "NO_PERSONALIZED_MATCH"
       }
     },
     {
@@ -4864,7 +4957,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -4910,7 +5004,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -4956,7 +5051,8 @@
       },
       "expected": {
         "target_v1_mode": "OBSERVE",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "OBSERVE_ONLY"
       }
     },
     {
@@ -5002,7 +5098,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -5063,7 +5160,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -5109,7 +5207,8 @@
       },
       "expected": {
         "target_v1_mode": "NONE",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "NO_PERSONALIZED_MATCH"
       }
     },
     {
@@ -5171,7 +5270,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -5217,7 +5317,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -5263,7 +5364,8 @@
       },
       "expected": {
         "target_v1_mode": "OBSERVE",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "OBSERVE_ONLY"
       }
     },
     {
@@ -5309,7 +5411,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -5370,7 +5473,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -5416,7 +5520,8 @@
       },
       "expected": {
         "target_v1_mode": "NONE",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "NO_PERSONALIZED_MATCH"
       }
     },
     {
@@ -5478,7 +5583,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -5524,7 +5630,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -5570,7 +5677,8 @@
       },
       "expected": {
         "target_v1_mode": "OBSERVE",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "OBSERVE_ONLY"
       }
     },
     {
@@ -5616,7 +5724,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -5677,7 +5786,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -5723,7 +5833,8 @@
       },
       "expected": {
         "target_v1_mode": "NONE",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "NO_PERSONALIZED_MATCH"
       }
     },
     {
@@ -5785,7 +5896,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -5831,7 +5943,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -5877,7 +5990,8 @@
       },
       "expected": {
         "target_v1_mode": "OBSERVE",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "OBSERVE_ONLY"
       }
     },
     {
@@ -5923,7 +6037,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -5984,7 +6099,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -6030,7 +6146,8 @@
       },
       "expected": {
         "target_v1_mode": "NONE",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "NO_PERSONALIZED_MATCH"
       }
     },
     {
@@ -6092,7 +6209,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -6138,7 +6256,8 @@
       },
       "expected": {
         "target_v1_mode": "EXACT",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "PERSONALIZED_EXACT"
       }
     },
     {
@@ -6184,7 +6303,8 @@
       },
       "expected": {
         "target_v1_mode": "OBSERVE",
-        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match."
+        "notes": "Observe actual B1/B2/B3 evidence; preserve unresolved provenance gaps and distinguish fallback from vocabulary match.",
+        "target_v2_mode": "OBSERVE_ONLY"
       }
     }
   ],
@@ -6192,237 +6312,604 @@
     {
       "case_id": "feat018-p2-t4-supp-vision-null-confidence",
       "scenario": "VISION_NULL_CONFIDENCE",
-      "activity_id": "ACT-0004"
+      "activity_id": "ACT-0004",
+      "expected": {
+        "boundary": "B1",
+        "outcome": "REJECT_INVALID_VISION_CONFIDENCE",
+        "requirement_status": "EXPECTED_BLOCKED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-supp-asr-null-confidence",
       "scenario": "ASR_NULL_CONFIDENCE",
-      "activity_id": "ACT-0004"
+      "activity_id": "ACT-0004",
+      "expected": {
+        "boundary": "B1",
+        "outcome": "ACCEPT_NULL_ASR_CONFIDENCE",
+        "requirement_status": "SATISFIED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-supp-uncertainty-not-provided",
       "scenario": "UNCERTAINTY_NOT_PROVIDED",
-      "activity_id": "ACT-0004"
+      "activity_id": "ACT-0004",
+      "expected": {
+        "boundary": "B1",
+        "outcome": "ACCEPT_NOT_PROVIDED_UNCERTAINTY",
+        "requirement_status": "SATISFIED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-supp-uncertainty-upstream-provided",
       "scenario": "UNCERTAINTY_UPSTREAM_PROVIDED",
-      "activity_id": "ACT-0004"
+      "activity_id": "ACT-0004",
+      "expected": {
+        "boundary": "B1",
+        "outcome": "PRESERVE_UPSTREAM_UNCERTAINTY",
+        "requirement_status": "SATISFIED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-supp-uncertainty-status-mismatch",
       "scenario": "UNCERTAINTY_STATUS_MISMATCH",
-      "activity_id": "ACT-0004"
+      "activity_id": "ACT-0004",
+      "expected": {
+        "boundary": "B1",
+        "outcome": "REJECT_INCONSISTENT_UNCERTAINTY",
+        "requirement_status": "EXPECTED_BLOCKED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-supp-ambiguous-region-only",
       "scenario": "AMBIGUOUS_REGION_ONLY",
-      "activity_id": "ACT-0004"
+      "activity_id": "ACT-0004",
+      "expected": {
+        "boundary": "B1",
+        "outcome": "PRESERVE_NON_SELECTABLE_AMBIGUITY",
+        "requirement_status": "SATISFIED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-supp-text-typed-conflict",
       "scenario": "TEXT_TYPED_CONFLICT",
-      "activity_id": "ACT-0004"
+      "activity_id": "ACT-0004",
+      "expected": {
+        "boundary": "B1",
+        "outcome": "PRESERVE_TYPED_TEXT_CONFLICT",
+        "requirement_status": "SATISFIED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-supp-narration-source-status-mismatch",
       "scenario": "NARRATION_SOURCE_STATUS_MISMATCH",
-      "activity_id": "ACT-0004"
+      "activity_id": "ACT-0004",
+      "expected": {
+        "boundary": "B1",
+        "outcome": "OBSERVE_ACCEPTED_SOURCE_STATUS_GAP",
+        "requirement_status": "UNRESOLVED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-supp-duplicate-claim-id",
       "scenario": "DUPLICATE_CLAIM_ID",
-      "activity_id": "ACT-0004"
+      "activity_id": "ACT-0004",
+      "expected": {
+        "boundary": "B1",
+        "outcome": "REJECT_DUPLICATE_CLAIM_ID",
+        "requirement_status": "EXPECTED_BLOCKED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-supp-dangling-conflict-ref",
       "scenario": "DANGLING_CONFLICT_REF",
-      "activity_id": "ACT-0004"
+      "activity_id": "ACT-0004",
+      "expected": {
+        "boundary": "B1",
+        "outcome": "REJECT_DANGLING_CONFLICT_REFERENCE",
+        "requirement_status": "EXPECTED_BLOCKED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-supp-source-hash-mismatch",
       "scenario": "SOURCE_HASH_MISMATCH",
-      "activity_id": "ACT-0004"
+      "activity_id": "ACT-0004",
+      "expected": {
+        "boundary": "B1",
+        "outcome": "REJECT_SOURCE_HASH_MISMATCH",
+        "requirement_status": "EXPECTED_BLOCKED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-supp-correlation-mismatch",
       "scenario": "CORRELATION_MISMATCH",
-      "activity_id": "ACT-0004"
+      "activity_id": "ACT-0004",
+      "expected": {
+        "boundary": "B1",
+        "outcome": "REJECT_CORRELATION_MISMATCH",
+        "requirement_status": "EXPECTED_BLOCKED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-supp-unknown-confirmed-claim",
       "scenario": "UNKNOWN_CONFIRMED_CLAIM",
-      "activity_id": "ACT-0004"
+      "activity_id": "ACT-0004",
+      "expected": {
+        "boundary": "B2",
+        "outcome": "REJECT_UNKNOWN_CONFIRMED_CLAIM",
+        "requirement_status": "EXPECTED_BLOCKED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-supp-stale-session-version",
       "scenario": "STALE_SESSION_VERSION",
-      "activity_id": "ACT-0004"
+      "activity_id": "ACT-0004",
+      "expected": {
+        "boundary": "B2",
+        "outcome": "REJECT_STALE_SESSION_VERSION",
+        "requirement_status": "EXPECTED_BLOCKED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-supp-v1-adult-correction",
       "scenario": "V1_ADULT_CORRECTION",
-      "activity_id": "ACT-0004"
+      "activity_id": "ACT-0004",
+      "expected": {
+        "boundary": "B2",
+        "outcome": "OBSERVE_CORRECTION_PROVENANCE",
+        "requirement_status": "UNRESOLVED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-supp-successive-meaning-versions",
       "scenario": "SUCCESSIVE_MEANING_VERSIONS",
-      "activity_id": "ACT-0004"
+      "activity_id": "ACT-0004",
+      "expected": {
+        "boundary": "B2",
+        "outcome": "OBSERVE_MEANING_AND_ANCHOR_VERSIONS",
+        "requirement_status": "UNRESOLVED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-supp-v2-missing-adult-label",
       "scenario": "V2_MISSING_ADULT_LABEL",
-      "activity_id": "ACT-0004"
+      "activity_id": "ACT-0004",
+      "expected": {
+        "boundary": "B2",
+        "outcome": "REJECT_MISSING_ADULT_LABEL",
+        "requirement_status": "EXPECTED_BLOCKED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-supp-non-demo-actor",
       "scenario": "NON_DEMO_ACTOR",
-      "activity_id": "ACT-0004"
+      "activity_id": "ACT-0004",
+      "expected": {
+        "boundary": "B2",
+        "outcome": "REJECT_NON_DEMO_ACTOR",
+        "requirement_status": "EXPECTED_BLOCKED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-supp-ambiguous-target-only",
       "scenario": "AMBIGUOUS_TARGET_ONLY",
-      "activity_id": "ACT-0004"
+      "activity_id": "ACT-0004",
+      "expected": {
+        "boundary": "B2",
+        "outcome": "OBSERVE_AMBIGUOUS_TARGET_ONLY_CONFIRMATION",
+        "requirement_status": "SATISFIED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-supp-adult-empty-confirmed",
       "scenario": "ADULT_EMPTY_CONFIRMED",
-      "activity_id": "ACT-0004"
+      "activity_id": "ACT-0004",
+      "expected": {
+        "boundary": "B2",
+        "outcome": "OBSERVE_EMPTY_ADULT_CONFIRMATION",
+        "requirement_status": "SATISFIED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-supp-swallowed-autorig-call",
       "scenario": "SWALLOWED_AUTORIG_CALL",
-      "activity_id": "ACT-0004"
+      "activity_id": "ACT-0004",
+      "expected": {
+        "boundary": "B2",
+        "outcome": "OBSERVE_INJECTED_AUTORIG_CALL_COUNT",
+        "requirement_status": "SATISFIED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-supp-v2-word-boundary",
       "scenario": "V2_WORD_BOUNDARY",
-      "activity_id": "ACT-0004"
+      "activity_id": "ACT-0004",
+      "expected": {
+        "boundary": "B3",
+        "target_modes": {
+          "V1_MATCH": [
+            "EXACT"
+          ],
+          "V2_MATCH_SCENE": [
+            "NO_PERSONALIZED_MATCH"
+          ]
+        },
+        "requirement_status": "SATISFIED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-supp-v2-whitespace",
       "scenario": "V2_WHITESPACE",
-      "activity_id": "ACT-0004"
+      "activity_id": "ACT-0004",
+      "expected": {
+        "boundary": "B3",
+        "input_channel": "NARRATION",
+        "target_modes": {
+          "V2_MATCH_SCENE": [
+            "PERSONALIZED_EXACT"
+          ]
+        },
+        "requirement_status": "SATISFIED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-act-0004-alias",
       "scenario": "REVIEWED_ALIAS",
       "activity_id": "ACT-0004",
-      "label": "tìm vật dưới khăn"
+      "label": "tìm vật dưới khăn",
+      "expected": {
+        "boundary": "B3",
+        "target_modes": {
+          "V1_MATCH": [
+            "ALIAS"
+          ],
+          "V2_MATCH_SCENE": [
+            "PERSONALIZED_ALIAS"
+          ]
+        },
+        "requirement_status": "SATISFIED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-act-0016-alias",
       "scenario": "REVIEWED_ALIAS",
       "activity_id": "ACT-0016",
-      "label": "chuyển vật giữa bát"
+      "label": "chuyển vật giữa bát",
+      "expected": {
+        "boundary": "B3",
+        "target_modes": {
+          "V1_MATCH": [
+            "ALIAS"
+          ],
+          "V2_MATCH_SCENE": [
+            "PERSONALIZED_ALIAS"
+          ]
+        },
+        "requirement_status": "SATISFIED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-act-0019-alias",
       "scenario": "REVIEWED_ALIAS",
       "activity_id": "ACT-0019",
-      "label": "rửa tay theo chuỗi"
+      "label": "rửa tay theo chuỗi",
+      "expected": {
+        "boundary": "B3",
+        "target_modes": {
+          "V1_MATCH": [
+            "ALIAS"
+          ],
+          "V2_MATCH_SCENE": [
+            "PERSONALIZED_ALIAS"
+          ]
+        },
+        "requirement_status": "SATISFIED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-act-0020-alias",
       "scenario": "REVIEWED_ALIAS",
       "activity_id": "ACT-0020",
-      "label": "lau vết đổ"
+      "label": "lau vết đổ",
+      "expected": {
+        "boundary": "B3",
+        "target_modes": {
+          "V1_MATCH": [
+            "ALIAS"
+          ],
+          "V2_MATCH_SCENE": [
+            "PERSONALIZED_ALIAS"
+          ]
+        },
+        "requirement_status": "SATISFIED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-act-0023-alias",
       "scenario": "REVIEWED_ALIAS",
       "activity_id": "ACT-0023",
-      "label": "tưới cây"
+      "label": "tưới cây",
+      "expected": {
+        "boundary": "B3",
+        "target_modes": {
+          "V1_MATCH": [
+            "ALIAS"
+          ],
+          "V2_MATCH_SCENE": [
+            "PERSONALIZED_ALIAS"
+          ]
+        },
+        "requirement_status": "SATISFIED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-act-0026-alias",
       "scenario": "REVIEWED_ALIAS",
       "activity_id": "ACT-0026",
-      "label": "rót hạt"
+      "label": "rót hạt",
+      "expected": {
+        "boundary": "B3",
+        "target_modes": {
+          "V1_MATCH": [
+            "ALIAS"
+          ],
+          "V2_MATCH_SCENE": [
+            "PERSONALIZED_ALIAS"
+          ]
+        },
+        "requirement_status": "SATISFIED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-act-0030-alias",
       "scenario": "REVIEWED_ALIAS",
       "activity_id": "ACT-0030",
-      "label": "cài nút"
+      "label": "cài nút",
+      "expected": {
+        "boundary": "B3",
+        "target_modes": {
+          "V1_MATCH": [
+            "ALIAS"
+          ],
+          "V2_MATCH_SCENE": [
+            "PERSONALIZED_ALIAS"
+          ]
+        },
+        "requirement_status": "SATISFIED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-act-0033-alias",
       "scenario": "REVIEWED_ALIAS",
       "activity_id": "ACT-0033",
-      "label": "bày bàn"
+      "label": "bày bàn",
+      "expected": {
+        "boundary": "B3",
+        "target_modes": {
+          "V1_MATCH": [
+            "ALIAS"
+          ],
+          "V2_MATCH_SCENE": [
+            "PERSONALIZED_ALIAS"
+          ]
+        },
+        "requirement_status": "SATISFIED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-act-0039-alias",
       "scenario": "REVIEWED_ALIAS",
       "activity_id": "ACT-0039",
-      "label": "xếp màu đậm nhạt"
+      "label": "xếp màu đậm nhạt",
+      "expected": {
+        "boundary": "B3",
+        "target_modes": {
+          "V1_MATCH": [
+            "ALIAS"
+          ],
+          "V2_MATCH_SCENE": [
+            "PERSONALIZED_ALIAS"
+          ]
+        },
+        "requirement_status": "SATISFIED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-act-0046-alias",
       "scenario": "REVIEWED_ALIAS",
       "activity_id": "ACT-0046",
-      "label": "luyện nét trong khung"
+      "label": "luyện nét trong khung",
+      "expected": {
+        "boundary": "B3",
+        "target_modes": {
+          "V1_MATCH": [
+            "ALIAS"
+          ],
+          "V2_MATCH_SCENE": [
+            "PERSONALIZED_ALIAS"
+          ]
+        },
+        "requirement_status": "SATISFIED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-act-0055-alias",
       "scenario": "REVIEWED_ALIAS",
       "activity_id": "ACT-0055",
-      "label": "quan sát cây"
+      "label": "quan sát cây",
+      "expected": {
+        "boundary": "B3",
+        "target_modes": {
+          "V1_MATCH": [
+            "ALIAS"
+          ],
+          "V2_MATCH_SCENE": [
+            "PERSONALIZED_ALIAS"
+          ]
+        },
+        "requirement_status": "SATISFIED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-act-0058-alias",
       "scenario": "REVIEWED_ALIAS",
       "activity_id": "ACT-0058",
-      "label": "vòng tuần hoàn nước"
+      "label": "vòng tuần hoàn nước",
+      "expected": {
+        "boundary": "B3",
+        "target_modes": {
+          "V1_MATCH": [
+            "ALIAS"
+          ],
+          "V2_MATCH_SCENE": [
+            "PERSONALIZED_ALIAS"
+          ]
+        },
+        "requirement_status": "SATISFIED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-act-0061-alias",
       "scenario": "REVIEWED_ALIAS",
       "activity_id": "ACT-0061",
-      "label": "phép nhân bằng tem"
+      "label": "phép nhân bằng tem",
+      "expected": {
+        "boundary": "B3",
+        "target_modes": {
+          "V1_MATCH": [
+            "ALIAS"
+          ],
+          "V2_MATCH_SCENE": [
+            "PERSONALIZED_ALIAS"
+          ]
+        },
+        "requirement_status": "SATISFIED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-act-0067-alias",
       "scenario": "REVIEWED_ALIAS",
       "activity_id": "ACT-0067",
-      "label": "phân tích từ loại"
+      "label": "phân tích từ loại",
+      "expected": {
+        "boundary": "B3",
+        "target_modes": {
+          "V1_MATCH": [
+            "ALIAS"
+          ],
+          "V2_MATCH_SCENE": [
+            "PERSONALIZED_ALIAS"
+          ]
+        },
+        "requirement_status": "SATISFIED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-act-0074-alias",
       "scenario": "REVIEWED_ALIAS",
       "activity_id": "ACT-0074",
-      "label": "kế hoạch tuần"
+      "label": "kế hoạch tuần",
+      "expected": {
+        "boundary": "B3",
+        "target_modes": {
+          "V1_MATCH": [
+            "ALIAS"
+          ],
+          "V2_MATCH_SCENE": [
+            "PERSONALIZED_ALIAS"
+          ]
+        },
+        "requirement_status": "SATISFIED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-act-0085-alias",
       "scenario": "REVIEWED_ALIAS",
       "activity_id": "ACT-0085",
-      "label": "khảo sát dữ liệu"
+      "label": "khảo sát dữ liệu",
+      "expected": {
+        "boundary": "B3",
+        "target_modes": {
+          "V1_MATCH": [
+            "ALIAS"
+          ],
+          "V2_MATCH_SCENE": [
+            "PERSONALIZED_ALIAS"
+          ]
+        },
+        "requirement_status": "SATISFIED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-act-0087-alias",
       "scenario": "REVIEWED_ALIAS",
       "activity_id": "ACT-0087",
-      "label": "khóa phân loại"
+      "label": "khóa phân loại",
+      "expected": {
+        "boundary": "B3",
+        "target_modes": {
+          "V1_MATCH": [
+            "ALIAS"
+          ],
+          "V2_MATCH_SCENE": [
+            "PERSONALIZED_ALIAS"
+          ]
+        },
+        "requirement_status": "SATISFIED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-act-0091-alias",
       "scenario": "REVIEWED_ALIAS",
       "activity_id": "ACT-0091",
-      "label": "pha mặt trăng"
+      "label": "pha mặt trăng",
+      "expected": {
+        "boundary": "B3",
+        "target_modes": {
+          "V1_MATCH": [
+            "ALIAS"
+          ],
+          "V2_MATCH_SCENE": [
+            "PERSONALIZED_ALIAS"
+          ]
+        },
+        "requirement_status": "SATISFIED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-act-0097-alias",
       "scenario": "REVIEWED_ALIAS",
       "activity_id": "ACT-0097",
-      "label": "lập luận bằng chứng"
+      "label": "lập luận bằng chứng",
+      "expected": {
+        "boundary": "B3",
+        "target_modes": {
+          "V1_MATCH": [
+            "ALIAS"
+          ],
+          "V2_MATCH_SCENE": [
+            "PERSONALIZED_ALIAS"
+          ]
+        },
+        "requirement_status": "SATISFIED"
+      }
     },
     {
       "case_id": "feat018-p2-t4-act-0099-alias",
       "scenario": "REVIEWED_ALIAS",
       "activity_id": "ACT-0099",
-      "label": "nghiên cứu độc lập"
+      "label": "nghiên cứu độc lập",
+      "expected": {
+        "boundary": "B3",
+        "target_modes": {
+          "V1_MATCH": [
+            "ALIAS"
+          ],
+          "V2_MATCH_SCENE": [
+            "PERSONALIZED_ALIAS"
+          ]
+        },
+        "requirement_status": "SATISFIED"
+      }
     }
   ]
 }
