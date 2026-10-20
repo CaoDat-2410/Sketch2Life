@@ -654,6 +654,41 @@ def test_default_ignorable_literal_obfuscation_is_not_a_fact(
         )
 
 
+@pytest.mark.parametrize("code_point", [0x115F, 0x1160, 0x3164, 0xFFA0, 0x200B, 0x034F])
+@pytest.mark.parametrize("imagined_obfuscated", [False, True])
+def test_default_ignorable_word_separator_is_not_a_fact(
+    code_point: int, imagined_obfuscated: bool
+) -> None:
+    plain = "Mèo có cánh."
+    separated = f"Mèo{chr(code_point)}có{chr(code_point)}cánh."
+    claim_text, imagined_text = (plain, separated) if imagined_obfuscated else (separated, plain)
+    assert imagined_literal_overlap(claim_text, imagined_text)
+    assert imagined_literal_overlap(imagined_text, claim_text)
+    claim = replace(catalog_claim(reviewed_claim()), text=claim_text)
+    with pytest.raises(KnowledgeRuleViolation, match="IMAGINED_AS_FACT"):
+        project_script(
+            (FactSection("fact", ("claim",)),),
+            (claim,),
+            (),
+            forbidden_imagined=(ImaginedElementV1("wings", 1, imagined_text),),
+        )
+
+
+@pytest.mark.parametrize(
+    ("claim", "imagined"),
+    [
+        ("Mèo cóㅤcánh.", "Mèo có cánh."),
+        ("Mèo làㅤđộng vật có vú.", "Mèo có cánh."),
+        ("Mèo cóㅤcánhcụt.", "Mèo có cánh."),
+        ("ㅤㅤ", "Mèo có cánh."),
+    ],
+)
+def test_default_ignorable_separator_keeps_token_boundaries(claim: str, imagined: str) -> None:
+    expected = claim == "Mèo cóㅤcánh."
+    assert imagined_literal_overlap(claim, imagined) is expected
+    assert imagined_literal_overlap(imagined, claim) is expected
+
+
 @pytest.mark.parametrize("code_point", [0x00, 0x1F, 0x7F, 0x80, 0x85, 0x9F])
 def test_text_controls_include_del_and_c1(code_point: int) -> None:
     with pytest.raises(KnowledgeRuleViolation, match="TEXT_CONTROL"):
