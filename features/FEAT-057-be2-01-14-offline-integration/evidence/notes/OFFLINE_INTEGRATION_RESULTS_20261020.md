@@ -2,8 +2,10 @@
 
 ## Candidate and merge
 
-- Candidate branch: `feature/be2-01-14-integration`, based on
+- Branch used during merge: `feature/be2-01-14-integration`, based on
   `feature/be2-01-07` at `9d1ed184f31ab6b1f18337a1e29bb04fd59aa1b5`.
+- Current local branch name: `feature/be2-backend-ai-integration` (renamed
+  after the merge; HEAD and evidence are unchanged).
 - Merge commit: `abe3c357e2c40c694317ead6cf9a1b7c479e3f6e` with parents
   `8e569598f9c58bfbcfb2e54bc13e6077d7158d50` and
   `42a6d3122259e6b33133673a2e444deefa45d387`.

@@ -14,3 +14,9 @@
 Clarification for the task-7 PR target:
 
 > task 7 → feature/be2-01-07
+
+## Branch rename addendum — 2026-10-20
+
+The owner instructed: “Đổi tên nhánh này đi nó là be gộp r thì bỏ từ 1 tới 14 đi”.
+The approved local candidate branch is now `feature/be2-backend-ai-integration`;
+the rename does not expand the integration or acceptance scope.

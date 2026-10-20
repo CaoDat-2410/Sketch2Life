@@ -15,7 +15,8 @@ combined source using offline checks.
 
 - Base: `feature/be2-01-07` at `9d1ed184f31ab6b1f18337a1e29bb04fd59aa1b5`.
 - Source: `origin/feature/be2-08-14` at `42a6d3122259e6b33133673a2e444deefa45d387`.
-- Candidate: `feature/be2-01-14-integration`.
+- Candidate: `feature/be2-backend-ai-integration` (renamed from the original
+  task-range label on 2026-10-20; the commit and integration scope are unchanged).
 - Preserve both histories and all per-card approvals, evidence, statuses, and explicit deferrals.
 - Resolve only conflicts required to obtain a coherent combined checkout; validate shared contracts, dependency/migration composition, architecture, repository security, and offline tests.
 - Save the merge receipt, conflict dispositions, commands, outputs, and test results under this feature's `evidence/` directory.
