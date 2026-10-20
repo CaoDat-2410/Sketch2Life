@@ -1,8 +1,9 @@
 # Project context ledger
 
-## BE2-01–14 offline integration candidate — 2026-10-20
+## BE2-01–14 offline integration and runtime-readiness candidate — 2026-10-20
 
-feature/be2-01-14-integration is locally merged at
+`feature/be2-backend-ai-integration` is the renamed local candidate branch; it
+contains the merge at
 `abe3c357e2c40c694317ead6cf9a1b7c479e3f6e`, combining task-7 tip
 9d1ed184f31ab6b1f18337a1e29bb04fd59aa1b5 with receiver tip
 42a6d3122259e6b33133673a2e444deefa45d387, preserving both histories. The task-7
@@ -14,6 +15,14 @@ pass. All seven card statuses remain IN_PROGRESS or IN_PROGRESS_PENDING_EXTERNAL
 real owner/runtime/provider and Lightning gates remain open. The reviewable
 receipts are in FEAT-057 evidence. No live test has run. This is an offline
 integration candidate, not card acceptance or a dev/main merge.
+
+The owner then requested a cross-card BE2-01–14 runtime-readiness analysis for a
+future Lightning recovery. FEAT-057's approved runbook maps each task's current
+runtime gate and exact existing command. There is no safe one-shot 01–14 runtime
+runner: only the frozen BE2-01 A17-fix01 Studio checkpoint has a prepared remote
+procedure; real adapters/adoption remain missing across the shared workflow. The
+branch has not been published, and Lightning/provider/database execution was not
+performed during this analysis.
 
 ## BE2-07 offline component accepted — 2026-10-20
 

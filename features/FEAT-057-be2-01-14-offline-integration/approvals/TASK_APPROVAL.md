@@ -20,3 +20,20 @@ Clarification for the task-7 PR target:
 The owner instructed: “Đổi tên nhánh này đi nó là be gộp r thì bỏ từ 1 tới 14 đi”.
 The approved local candidate branch is now `feature/be2-backend-ai-integration`;
 the rename does not expand the integration or acceptance scope.
+
+## Runtime-readiness analysis addendum — 2026-10-20
+
+- Status: APPROVED
+- Approver: repository owner, direct instruction in this Codex conversation
+- Approved scope: analyze BE2 tasks 01–14 and prepare a source-traced, staged
+  command/readiness runbook for use after Lightning is operating normally again.
+- Plan: `plan/BE2_01_14_RUNTIME_READINESS_PLAN.md`, revision 1.
+- This authorizes analysis and documentation only in this step. It does not
+  authorize starting Lightning now, installing packages, provisioning/migrating
+  a database, calling providers, implementing missing adapters, or accepting any
+  card. Future commands remain gated by the owning feature approvals and the
+  actual environment/source prerequisites.
+
+## Verbatim user instruction
+
+> Ok gộp r thì bây giờ đầu tiên cần phân tích toàn bộ từ task 1 tới task 14 để sau khi phần lighing hoạt động trở lại thì đưa lệnh vào mà chạy lun á
