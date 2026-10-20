@@ -1,0 +1,148 @@
+{
+ "environment": {
+  "python": "3.13.16",
+  "unicodedata": "15.1.0",
+  "pydantic": "2.13.5",
+  "pytest": "pytest 9.1.1",
+  "ruff": "ruff 0.16.9",
+  "mypy": "mypy 2.3.1 (compiled: yes)",
+  "notes": "pytest from an existing uv tool venv appended to PYTHONPATH; pytest 9.1.1 and mypy 2.3.1 are outside the pyproject dev ranges; nothing installed"
+ },
+ "fresh": [
+  {
+   "check": "six BE2-07 modules",
+   "cwd": "backend",
+   "command": "PYTHONPATH=src:<pytest-site-packages> python -m pytest -p no:cacheprovider -q -rs <6 modules> --junitxml=... --basetemp=...",
+   "exit": 0,
+   "collected": 360,
+   "passed": 360,
+   "failed": 0,
+   "errors": 0,
+   "skipped": 0,
+   "junit": "evidence/local/claude-final-review-20261020/focused07-junit.xml",
+   "junit_sha256": "c4dc65ac3aa986e42fb2e9496c350a7746e566c5473930b9ecc3f7f783ff3bd7"
+  },
+  {
+   "check": "42-ID acceptance matrix vs fresh JUnit",
+   "rows": 42,
+   "references": 506,
+   "unique_nodes": 286,
+   "all_passed": true,
+   "artifact": "acceptance-matrix.json"
+  },
+  {
+   "check": "mutants on copies of 763a17c",
+   "baseline": "360/360 pass",
+   "killed_by_assertion": 26,
+   "survived": [
+    "S06_drop_pre_nfkc_filter (equivalent; exhaustive probe 50,472 comparisons identical)"
+   ],
+   "collection_errors": 0,
+   "artifact": "mutants-summary.json",
+   "mutants": 27
+  },
+  {
+   "check": "ruff check + format --check (16 task07 files) + ruff check verifier",
+   "cwd": "backend",
+   "exit": [
+    0,
+    0,
+    0
+   ],
+   "log_sha256": "c2e93a1b5323a45d0cc99ccbc303ca0c2d9eeca06ec29ac22ec97735d1cea060"
+  },
+  {
+   "check": "mypy --strict --no-incremental (10 task07 source files)",
+   "cwd": "backend",
+   "exit": 0,
+   "log_sha256": "002dc7a1a0a02a4e4356b7d98e381e88c5592201975e7ab1246faa8e00cc7f09"
+  },
+  {
+   "check": "tools/validate_harness.py",
+   "exit": 0
+  },
+  {
+   "check": "tools/validate_architecture.py",
+   "exit": 0
+  },
+  {
+   "check": "tools/validate_skeleton.py",
+   "exit": 0
+  },
+  {
+   "check": "tools/validate_repository_security.py",
+   "exit": 0
+  },
+  {
+   "check": "git diff --check (worktree)",
+   "exit": 0
+  },
+  {
+   "check": "git diff --check 23acf9e..763a17c",
+   "exit": 2,
+   "only_item": "approvals/TASK_APPROVAL.md:46 new blank line at EOF (frozen, documented P3-6 exception, SHA256 0010271d...2078)",
+   "excluding_frozen_approval_exit": 0
+  },
+  {
+   "check": "whitespace audit of 168 changed files (non-log)",
+   "issues": {
+    "approvals/TASK_APPROVAL.md": [
+     "EOF_BLANK"
+    ]
+   }
+  },
+  {
+   "check": "portable verifier at 763a17c",
+   "command": "python .../verify_evidence.py --expected-commit 763a17c...",
+   "exit": 1,
+   "reason": "historical f0359c4 product pins reject the 5 files changed by approved fixes f2c59b4/b3f7573; all 14 other pins match (documented)",
+   "detail": "evidence/local/claude-final-review-20261020/pin-delta.txt"
+  },
+  {
+   "check": "portable verifier on historical f0359c4 snapshot + current verifier/provenance",
+   "normal": {
+    "valid": "exit 0, 1 PORTABLE_EVIDENCE_VALID",
+    "wrong_commit": "exit 1",
+    "tampered": "exit 1"
+   },
+   "-O": "exit 2 for valid/wrong/tampered, no success token",
+   "-OO": "exit 2 for valid/wrong/tampered, no success token"
+  },
+  {
+   "check": "X02 git invariants base..source",
+   "backend_added_files": 16,
+   "existing_files_modified": [
+    ".gitignore",
+    "docs/context/PROJECT_CONTEXT.md",
+    "docs/context/SOURCE_REGISTER.md",
+    "features/FEAT-044-be2-ai-job-foundation/plan/BE2_EXECUTION_TRACKER.md"
+   ],
+   "lines_removed_from_existing": 0,
+   "historical_files_rewritten": [
+    "cloud-review/verify_evidence.py and EXPORT_PROVENANCE.json by approved N2 commit 9b7a6bc only"
+   ],
+   "detail": "evidence/local/claude-final-review-20261020/x02-git-invariants.txt"
+  }
+ ],
+ "not_run": [
+  {
+   "check": "approved 56-module offline profile (OFFLINE_BATCH_PROFILE_POST_CLOUD_P3.json, 50+6)",
+   "status": "NOT_RUN (environment)",
+   "cause": "fastapi, sqlalchemy, structlog, boto3, redis, rq, alembic, psycopg, firebase_admin, pydantic_settings, httpx missing; installs forbidden",
+   "diagnostic_attempt_not_a_result": "1,469 collected cases: 1,444 passed, 17 failed, 8 collection errors; all 25 non-passes are missing-module (fastapi 5, sqlalchemy 13, redis 5) or FEAT-044 nested-collection failures caused by the same missing modules; no BE2-07 module failed",
+   "latest_execution_elsewhere": "Codex independent run on f6db0d5 (backend/config byte-identical to 763a17c; f6db0d5..763a17c changes 4 BE2-07 docs only): 1,685 collected / 1,682 passed / 3 Pillow skips / 0 failures-errors (CODEX_POST_CLOUD_REREVIEW_20261020.md); receipts are Codex-local and not re-verified here"
+  },
+  {
+   "check": "3 Pillow-dependent live-app checks; excluded test_lightning_vision_v2_server.py",
+   "status": "NOT_RUN"
+  },
+  {
+   "check": "runtime, provider, HTTP, DB, Lightning, actual08 adoption/fence",
+   "status": "NOT_RUN (out of scope)"
+  },
+  {
+   "check": "external/foreign checkout invariants (356/1,243/6,112), 572-file baseline manifest",
+   "status": "NOT_VERIFIABLE_ON_CLOUD"
+  }
+ ]
+}
