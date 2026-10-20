@@ -1,0 +1,3 @@
+PASS: <INTEGRATION_WORKTREE>\.runtime\preset-automation-component\20261020-124159-661218
+Cases: {'owned': 194, 'regression': 2849, 'sql_collection_only': 11}; source_unchanged=True
+LOCAL ONLY: SQL/actual preset policy/BE1 effect/scheduler NOT_RUN.
