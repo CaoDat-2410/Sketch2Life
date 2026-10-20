@@ -376,6 +376,8 @@ def test_record_full_basis_literal_and_hidden_imagined_metadata_rejected() -> No
         "Mèo có c\u180bánh.",
         "Mèo có c\u3164ánh.",
         "Me\u034f\u0300o có cánh.",
+        "Mèo\u3164có\u3164cánh.",
+        "Mèo\uffa0có\uffa0cánh.",
     ],
 )
 def test_full_basis_record_rejects_tiny_imagined_literal_variants(claim_text: str) -> None:

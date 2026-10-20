@@ -254,12 +254,14 @@ def _literal_ignorable(char: str) -> bool:
     )
 
 
-def _literal_signatures(value: str) -> tuple[tuple[str, ...], tuple[str, ...]]:
-    # Remove CGJ before normalization so it cannot inhibit Vietnamese mark composition.
-    filtered = "".join(char for char in value if not _literal_ignorable(char))
+def _literal_signatures(value: str, separator: str = "") -> tuple[tuple[str, ...], tuple[str, ...]]:
+    # Replace ignorables before normalization so CGJ cannot inhibit Vietnamese mark composition.
+    # An empty separator removes them; a space treats them as a blank word separator.
+    filtered = "".join(separator if _literal_ignorable(char) else char for char in value)
     normalized = unicodedata.normalize("NFKC", filtered).casefold()
     visible = unicodedata.normalize(
-        "NFKC", "".join(char for char in normalized if not _literal_ignorable(char))
+        "NFKC",
+        "".join(separator if _literal_ignorable(char) else char for char in normalized),
     )
     boundaries = "".join(
         " " if unicodedata.category(char).startswith("P") else char for char in visible
@@ -282,10 +284,17 @@ def imagined_literal_overlap(claim_text: str, imagined_text: str) -> bool:
             for index in range(len(haystack) - len(needle) + 1)
         )
 
+    # Default-ignorables may hide inside a word or stand in for a space (Hangul fillers render
+    # as a blank gap), so compare every pairing of the removed and separator variants.
+    separators = ("", " ")
     return any(
         contains(claim, imagined) or contains(imagined, claim)
+        for claim_separator in separators
+        for imagined_separator in separators
         for claim, imagined in zip(
-            _literal_signatures(claim_text), _literal_signatures(imagined_text), strict=True
+            _literal_signatures(claim_text, claim_separator),
+            _literal_signatures(imagined_text, imagined_separator),
+            strict=True,
         )
     )
 

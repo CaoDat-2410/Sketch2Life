@@ -567,6 +567,9 @@ def test_child_imagined_removed_keeps_provenance_and_cannot_become_fact() -> Non
         "Mèo có c\u180bánh.",
         "Mèo có c\u3164ánh.",
         "Me\u034f\u0300o có cánh.",
+        "Mèo\u3164có\u3164cánh.",
+        "Mèo có\u115fcánh.",
+        "Mèo\uffa0có cánh.",
     ],
 )
 def test_imagined_fact_tiny_variants_reject_after_selection_removed(claim_text: str) -> None:
@@ -600,6 +603,7 @@ def test_imagined_fact_tiny_variants_reject_after_selection_removed(claim_text: 
         "Mèo có c\u180bánh.",
         "Mèo có c\u3164ánh.",
         "Me\u034f\u0300o có cánh.",
+        "Mèo\u3164có\u3164cánh.",
     ],
 )
 def test_obfuscated_trusted_imagined_text_cannot_become_fact(imagined_text: str) -> None:
