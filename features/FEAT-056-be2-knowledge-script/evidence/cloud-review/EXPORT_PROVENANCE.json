@@ -940,15 +940,17 @@
       "historical_receipt": false
     },
     "verify_evidence.py": {
-      "source_path": null,
-      "source_sha256": null,
-      "source_bytes": null,
-      "export_sha256": "23441b5847dd5c21765831e5cd3a3227baba6e471b3d87c2469ccc8f6f665920",
-      "export_bytes": 9064,
+      "source_path": "features/FEAT-056-be2-knowledge-script/evidence/cloud-review/verify_evidence.py",
+      "source_sha256": "23441b5847dd5c21765831e5cd3a3227baba6e471b3d87c2469ccc8f6f665920",
+      "source_bytes": 9064,
+      "export_sha256": "7101f4c742748b58e4fdb3adf260ee7e57c7b0f66f7b9c8254cddabe9b553c66",
+      "export_bytes": 9181,
       "transforms": [
-        "new stdlib portable verifier; no product imports, execution, installation or source mutation"
+        "new stdlib portable verifier; no product imports, execution, installation or source mutation",
+        "derive the published f0359c4f verifier by rejecting assertion-disabling Python optimization with an explicit parser error before any evidence validation or success output; retain historical product pins and every other payload unchanged"
       ],
-      "historical_receipt": false
+      "historical_receipt": false,
+      "source_git_commit": "f0359c4fbb7c3f4a35dd3f2265559779a17951e9"
     },
     ".gitattributes": {
       "source_path": null,

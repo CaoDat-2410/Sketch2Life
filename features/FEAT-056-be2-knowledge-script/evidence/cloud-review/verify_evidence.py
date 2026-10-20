@@ -56,6 +56,8 @@ def main() -> int:
         "--expected-commit", help="Also require the current Git HEAD to equal this commit."
     )
     args = parser.parse_args()
+    if not __debug__:
+        parser.error("Python optimization disables required checks; rerun without -O or -OO.")
     provenance = read_json(HERE / "EXPORT_PROVENANCE.json")
     entries = provenance["exported_files"]
     for relative, expected in entries.items():
