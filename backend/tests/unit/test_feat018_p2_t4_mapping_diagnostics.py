@@ -406,7 +406,7 @@ def _static_review_hypotheses(family: str) -> list[str]:
     if family == "ADULT_CORRECTION":
         hypotheses.append("ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED")
         if not {"meaning_version", "actor_ref"} <= scene_fields:
-            hypotheses.append("ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW")
+            hypotheses.append("ACTOR_OR_MEANING_VERSION_PROJECTION_REQUIRES_REVIEW")
     return hypotheses
 
 
@@ -581,9 +581,16 @@ def _supplemental_outcome_matches(outcome: str, observed: dict[str, Any]) -> boo
         return (observed.get("source") == "TEXT_TYPED"
                 and observed.get("narration_status") != "TEXT_SUPPLIED")
     if outcome == "OBSERVE_CORRECTION_PROVENANCE":
-        provenance = observed.get("primary_anchor", {}).get("provenance", {})
-        return bool(provenance.get("source_adult_assertion_id")
-                    or provenance.get("source_claim_ids"))
+        primary_provenance = observed.get("primary_anchor", {}).get("provenance", {})
+        vision_claim_ids = set(observed.get("vision_claim_ids", []))
+        retained_vision_ids = {
+            claim_id
+            for anchor in observed.get("secondary_anchors", [])
+            for claim_id in anchor.get("provenance", {}).get("source_claim_ids", [])
+        }
+        return (bool(primary_provenance.get("source_adult_assertion_id"))
+                and not primary_provenance.get("source_claim_ids")
+                and bool(vision_claim_ids & retained_vision_ids))
     if outcome == "OBSERVE_MEANING_AND_ANCHOR_VERSIONS":
         return (observed.get("meaning_version") == 1
                 and observed.get("second_meaning_version") == 2
@@ -600,8 +607,13 @@ def _supplemental_outcome_matches(outcome: str, observed: dict[str, Any]) -> boo
         return (observed.get("confirmation_claim_count") == 1
                 and primary_claim_ids == confirmed_claim_ids)
     if outcome == "OBSERVE_EMPTY_ADULT_CONFIRMATION":
+        primary_provenance = observed.get("primary_anchor", {}).get("provenance", {})
         return (observed.get("confirmation_claim_count") == 0
-                and observed.get("raw_preserved") is True)
+                and observed.get("confirmed_claim_ids") == []
+                and observed.get("raw_preserved") is True
+                and bool(primary_provenance.get("source_adult_assertion_id"))
+                and not primary_provenance.get("source_claim_ids")
+                and observed.get("secondary_anchors") == [])
     if outcome == "OBSERVE_INJECTED_AUTORIG_CALL_COUNT":
         return observed.get("auto_rig_stub_calls") == 1
     raise AssertionError(f"unimplemented manifest supplemental outcome: {outcome}")
@@ -622,6 +634,38 @@ def _apply_supplemental_expectation(item: dict[str, Any], row: dict[str, Any]) -
         row["requirement_status"] = "UNRESOLVED"
         row["boundary_findings"].append("MANIFEST_REQUIREMENT_EXPECTATION_MISMATCH")
     return row
+
+
+def test_supplemental_provenance_outcomes_require_observed_anchor_shape() -> None:
+    correction = {
+        "vision_claim_ids": ["vision-1"],
+        "primary_anchor": {"provenance": {
+            "source_adult_assertion_id": "adult-1", "source_claim_ids": [],
+        }},
+        "secondary_anchors": [{"provenance": {"source_claim_ids": ["vision-1"]}}],
+    }
+    assert _supplemental_outcome_matches("OBSERVE_CORRECTION_PROVENANCE", correction)
+    wrong_vision_link = {
+        **correction,
+        "secondary_anchors": [{"provenance": {"source_claim_ids": ["other-claim"]}}],
+    }
+    assert not _supplemental_outcome_matches("OBSERVE_CORRECTION_PROVENANCE", wrong_vision_link)
+
+    empty_confirmation = {
+        "confirmation_claim_count": 0, "confirmed_claim_ids": [], "raw_preserved": True,
+        "primary_anchor": {"provenance": {
+            "source_adult_assertion_id": "adult-1", "source_claim_ids": [],
+        }},
+        "secondary_anchors": [],
+    }
+    assert _supplemental_outcome_matches("OBSERVE_EMPTY_ADULT_CONFIRMATION", empty_confirmation)
+    malformed_empty_confirmation = {
+        **empty_confirmation,
+        "secondary_anchors": [{"provenance": {"source_claim_ids": ["vision-1"]}}],
+    }
+    assert not _supplemental_outcome_matches(
+        "OBSERVE_EMPTY_ADULT_CONFIRMATION", malformed_empty_confirmation
+    )
 
 
 def run_supplemental(item: dict[str, Any], manifest: dict[str, Any]) -> dict[str, Any]:
@@ -751,13 +795,13 @@ def _run_gate_supplemental(item: dict[str, Any], manifest: dict[str, Any],
                            base: dict[str, Any], row: dict[str, Any]) -> dict[str, Any]:
     scenario = item["scenario"]
     if scenario == "SUCCESSIVE_MEANING_VERSIONS":
-        row["input_origin"] = "TEST_ONLY_SESSION_REWIND"
+        row["recipe_input_origin"] = "TEST_ONLY_SESSION_REWIND"
         row["static_review_hypotheses"].append(
             "MEANING_AND_ANCHOR_VERSION_FLOW_NOT_REPRESENTED_BY_SERVICE_TRANSITION"
         )
     elif scenario == "V1_ADULT_CORRECTION":
         row["static_review_hypotheses"].append(
-            "V1_ADULT_CORRECTION_POLICY_REQUIRES_OWNER_DISPOSITION"
+            "V1_CORRECTION_REQUIRES_OWNER_DISPOSITION"
         )
     allowed = {"UNKNOWN_CONFIRMED_CLAIM", "STALE_SESSION_VERSION", "V1_ADULT_CORRECTION",
                "SUCCESSIVE_MEANING_VERSIONS", "V2_MISSING_ADULT_LABEL", "NON_DEMO_ACTOR",
@@ -806,16 +850,19 @@ def _run_gate_supplemental(item: dict[str, Any], manifest: dict[str, Any],
         assert expected_error is None, f"expected typed failure {expected_error}"
         assert not replay and result.status == "SUCCEEDED"
         anchors = SemanticAnchorSetV1.model_validate(result.payload["anchor_set"])
+        gate_a_confirmation = result.payload["gate_a_confirmation"]
+        confirmed_claim_ids = list(gate_a_confirmation["confirmed_claim_ids"])
         row["observed"] = {
             "primary_anchor": _anchor_observation(anchors.primary_anchor),
             "secondary_anchors": [_anchor_observation(a) for a in anchors.secondary_anchors],
-            "meaning_version": result.payload["gate_a_confirmation"]["meaning_version"],
+            "meaning_version": gate_a_confirmation["meaning_version"],
             "anchor_set_version": anchors.anchor_set_version,
             "anchor_set_id": anchors.anchor_set_id,
-            "actor_ref": result.payload["gate_a_confirmation"]["actor_ref"],
+            "actor_ref": gate_a_confirmation["actor_ref"],
             "adult_confirmation_actor": anchors.adult_confirmation_actor,
-            "confirmation_claim_count": len(base["confirmation"]["confirmed_claim_ids"]),
-            "confirmed_claim_ids": list(base["confirmation"]["confirmed_claim_ids"]),
+            "confirmation_claim_count": len(confirmed_claim_ids),
+            "confirmed_claim_ids": confirmed_claim_ids,
+            "vision_claim_ids": sorted(entity.observation_id for entity in raw.entities),
             "raw_preserved": sessions.workflow_record(base["session_id"]).values[
                 "raw_understanding"] == raw.model_dump(mode="json"),
         }

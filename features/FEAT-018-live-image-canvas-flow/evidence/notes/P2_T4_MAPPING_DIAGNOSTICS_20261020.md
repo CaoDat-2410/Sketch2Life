@@ -20,15 +20,15 @@ Artifact tuples:
 | Artifact | Bytes | SHA-256 |
 | --- | ---: | --- |
 | `tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json` | 228,305 | `1ba728ca3b02646bafd6b75d27b6c70461957ceb8628ec8e75f11e3aea62bd5a` |
-| `backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py` | 55,297 | `3da61ddd4e6d408c4a0ca0da53a67e710f52c73a1d4d75a39a0086c200f5b355` |
+| `backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py` | 57,510 | `43a0fd40d6caea07460cd7827b89be67a92acf2e14815c6deeba49e46716d3a8` |
 | `backend/tests/contract/test_feat018_p2_t4_manifest_contract.py` | 22,000 | `6dedf9f04346db6094978218a849ac9d63b4ee01fc9632971fcf42a0bd5dfb89` |
 
 ## Result
 
 The regenerated metrics report is
 [`P2_T4_MAPPING_DIAGNOSTICS_20261020.json`](../metrics/P2_T4_MAPPING_DIAGNOSTICS_20261020.json),
-614,743 bytes, SHA-256
-`9c4a3e76fbc67456daae895229f89136f1389432c09b8cfa0350a3fd8932a795`.
+614,556 bytes, SHA-256
+`2bbbcf3230f74f65435f0bed076533775e5e89d3926b9f4cfd5d6e2d5dedf7b0`.
 
 | Boundary / group | Result |
 | --- | --- |
@@ -56,17 +56,28 @@ observations are:
   `MANIFEST_REQUIREMENT_EXPECTATION_MISMATCH`; the fixtures do not encode the known defects as expected.
 
 The `static_review_hypotheses` field is separate from runtime `boundary_findings`; it records schema
-shape or contract-registration limits and is counted separately in the report summary. This report
-contains 60 primary rows with 80 hypothesis instances (20 each for ambiguity-decision projection,
-Raw conflict projection, adult-provenance registration not assessed, and actor/meaning/version
-projection), plus 2 supplemental rows with 2 instances (V1 correction policy and the synthetic
-meaning-version transition). These static observations are available even though Gate A did not
-run; they are not runtime measurements.
+shape and provenance-registration limits, owner-disposition markers, and synthetic test-route
+limitations, and is counted separately in the report summary. This report contains 60 primary rows
+with 80 hypothesis instances (20 each for ambiguity-decision projection, Raw conflict projection,
+adult-provenance registration not assessed, and actor/meaning-version projection), plus 2
+supplemental rows with 2 instances (the V1 correction owner-disposition marker and the synthetic
+meaning-version transition). The actor/meaning-version hypothesis checks the `actor_ref` and
+`meaning_version` fields; it does not assert that an anchor-version field is missing. These static
+observations are available even though Gate A did not run; they are not runtime measurements.
+
+Every primary row with a static-review hypothesis remains `UNRESOLVED` even if B2/B3 later execute,
+until the corresponding schema/provenance-registration limitation is resolved or the required owner
+disposition is recorded. This applies to the 60 ambiguity, conflict, and adult-correction rows in
+this report; it is separate from their current `NOT_RUN` execution status. The supplemental V1
+correction row also remains `UNRESOLVED` until its owner-disposition marker is dispositioned.
 
 Supplemental `expected.outcome`, `expected.requirement_status`, and matcher target modes are read by
 the diagnostics path. Outcome predicates inspect the observed rejection code or observed fields;
-the B2 expected error code is derived from the manifest outcome. A mismatch is recorded rather than
-reported as a pass. The primary target V1/V2 expectations are compared with observed target modes
+the B2 expected error code is derived from the manifest outcome. Correction provenance checks the
+returned primary adult-assertion provenance and retained secondary Vision claim IDs against IDs in
+the synthetic Raw input. Empty adult confirmation uses the returned Gate A confirmation IDs and
+requires a primary adult-assertion anchor with no secondary anchors. A mismatch is recorded rather
+than reported as a pass. The primary target V1/V2 expectations are compared with observed target modes
 when B2/B3 execute, and the test independently recomputes the target mode from the observation list
 to check the row's mismatch disposition. The no-match recipe is checked against all 100 base V2
 profiles, and the primary row must report any non-fallback match it observes. A passing diagnostics
@@ -75,11 +86,13 @@ underlying requirement is satisfied or Task 4 is accepted. The schema-default-ba
 `conflict_preserved` value is reported with projection metadata and is not called proof that Raw
 conflicts survived.
 
-`SUCCESSIVE_MEANING_VERSIONS` is explicitly marked `input_origin=TEST_ONLY_SESSION_REWIND`. This
-field identifies the test recipe; it does not imply the case executed in this report. When run, the
-test directly advances a synthetic session from `UNDERSTANDING_PROPOSED` to `GATE_A_PENDING` because
-the service has no product transition for that route. It is a test setup, not evidence of a
-production user flow; the report keeps its meaning/anchor-version observation unresolved.
+`SUCCESSIVE_MEANING_VERSIONS` is explicitly marked
+`recipe_input_origin=TEST_ONLY_SESSION_REWIND`; the observed setup uses a separate
+`observed.input_origin` field if execution completes. The recipe field does not imply the case
+executed in this report. When run, the test directly advances a synthetic session from
+`UNDERSTANDING_PROPOSED` to `GATE_A_PENDING` because the service has no product transition for that
+route. It is a test setup, not evidence of a production user flow; the report keeps its
+meaning/anchor-version observation unresolved.
 
 The report does not turn missing B2/B3 execution into a pass. B3 did not run on primary Gate-A
 outputs, so no primary matcher or end-to-end mapping claim follows from the completed B1 checks.
@@ -96,7 +109,7 @@ From `backend/`, the focused command was:
 & '.venv/Scripts/python.exe' -B -m pytest -p no:cacheprovider tests/unit/test_feat018_p2_t4_mapping_diagnostics.py tests/contract/test_feat018_p2_t4_manifest_contract.py tests/unit/test_raw_understanding.py tests/unit/test_activity_semantics.py -ra
 ```
 
-After review remediation: **237 passed, 129 skipped, 1 failed**. The sole failure is the explicit
+After this review remediation: **238 passed, 129 skipped, 1 failed**. The sole failure is the explicit
 required-dependency preflight for missing `Pillow>=11,<13`; this is intentionally not reported as a
 clean run. The skip summary identifies 120 primary B2/B3 cases and 9 supplemental Gate-A cases as
 NOT_RUN. This environment does not establish B2/B3 results.

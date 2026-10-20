@@ -486,7 +486,7 @@
       "requirement_status": "UNRESOLVED",
       "static_review_hypotheses": [
         "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED",
-        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+        "ACTOR_OR_MEANING_VERSION_PROJECTION_REQUIRES_REVIEW"
       ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
@@ -969,7 +969,7 @@
       "requirement_status": "UNRESOLVED",
       "static_review_hypotheses": [
         "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED",
-        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+        "ACTOR_OR_MEANING_VERSION_PROJECTION_REQUIRES_REVIEW"
       ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
@@ -1452,7 +1452,7 @@
       "requirement_status": "UNRESOLVED",
       "static_review_hypotheses": [
         "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED",
-        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+        "ACTOR_OR_MEANING_VERSION_PROJECTION_REQUIRES_REVIEW"
       ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
@@ -1935,7 +1935,7 @@
       "requirement_status": "UNRESOLVED",
       "static_review_hypotheses": [
         "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED",
-        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+        "ACTOR_OR_MEANING_VERSION_PROJECTION_REQUIRES_REVIEW"
       ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
@@ -2418,7 +2418,7 @@
       "requirement_status": "UNRESOLVED",
       "static_review_hypotheses": [
         "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED",
-        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+        "ACTOR_OR_MEANING_VERSION_PROJECTION_REQUIRES_REVIEW"
       ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
@@ -2901,7 +2901,7 @@
       "requirement_status": "UNRESOLVED",
       "static_review_hypotheses": [
         "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED",
-        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+        "ACTOR_OR_MEANING_VERSION_PROJECTION_REQUIRES_REVIEW"
       ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
@@ -3384,7 +3384,7 @@
       "requirement_status": "UNRESOLVED",
       "static_review_hypotheses": [
         "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED",
-        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+        "ACTOR_OR_MEANING_VERSION_PROJECTION_REQUIRES_REVIEW"
       ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
@@ -3867,7 +3867,7 @@
       "requirement_status": "UNRESOLVED",
       "static_review_hypotheses": [
         "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED",
-        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+        "ACTOR_OR_MEANING_VERSION_PROJECTION_REQUIRES_REVIEW"
       ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
@@ -4350,7 +4350,7 @@
       "requirement_status": "UNRESOLVED",
       "static_review_hypotheses": [
         "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED",
-        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+        "ACTOR_OR_MEANING_VERSION_PROJECTION_REQUIRES_REVIEW"
       ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
@@ -4833,7 +4833,7 @@
       "requirement_status": "UNRESOLVED",
       "static_review_hypotheses": [
         "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED",
-        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+        "ACTOR_OR_MEANING_VERSION_PROJECTION_REQUIRES_REVIEW"
       ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
@@ -5316,7 +5316,7 @@
       "requirement_status": "UNRESOLVED",
       "static_review_hypotheses": [
         "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED",
-        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+        "ACTOR_OR_MEANING_VERSION_PROJECTION_REQUIRES_REVIEW"
       ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
@@ -5799,7 +5799,7 @@
       "requirement_status": "UNRESOLVED",
       "static_review_hypotheses": [
         "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED",
-        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+        "ACTOR_OR_MEANING_VERSION_PROJECTION_REQUIRES_REVIEW"
       ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
@@ -6282,7 +6282,7 @@
       "requirement_status": "UNRESOLVED",
       "static_review_hypotheses": [
         "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED",
-        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+        "ACTOR_OR_MEANING_VERSION_PROJECTION_REQUIRES_REVIEW"
       ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
@@ -6765,7 +6765,7 @@
       "requirement_status": "UNRESOLVED",
       "static_review_hypotheses": [
         "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED",
-        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+        "ACTOR_OR_MEANING_VERSION_PROJECTION_REQUIRES_REVIEW"
       ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
@@ -7248,7 +7248,7 @@
       "requirement_status": "UNRESOLVED",
       "static_review_hypotheses": [
         "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED",
-        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+        "ACTOR_OR_MEANING_VERSION_PROJECTION_REQUIRES_REVIEW"
       ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
@@ -7731,7 +7731,7 @@
       "requirement_status": "UNRESOLVED",
       "static_review_hypotheses": [
         "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED",
-        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+        "ACTOR_OR_MEANING_VERSION_PROJECTION_REQUIRES_REVIEW"
       ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
@@ -8214,7 +8214,7 @@
       "requirement_status": "UNRESOLVED",
       "static_review_hypotheses": [
         "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED",
-        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+        "ACTOR_OR_MEANING_VERSION_PROJECTION_REQUIRES_REVIEW"
       ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
@@ -8697,7 +8697,7 @@
       "requirement_status": "UNRESOLVED",
       "static_review_hypotheses": [
         "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED",
-        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+        "ACTOR_OR_MEANING_VERSION_PROJECTION_REQUIRES_REVIEW"
       ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
@@ -9180,7 +9180,7 @@
       "requirement_status": "UNRESOLVED",
       "static_review_hypotheses": [
         "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED",
-        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+        "ACTOR_OR_MEANING_VERSION_PROJECTION_REQUIRES_REVIEW"
       ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
@@ -9663,7 +9663,7 @@
       "requirement_status": "UNRESOLVED",
       "static_review_hypotheses": [
         "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED",
-        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+        "ACTOR_OR_MEANING_VERSION_PROJECTION_REQUIRES_REVIEW"
       ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
@@ -9710,14 +9710,14 @@
     },
     "static_review_hypothesis_counts": {
       "primary": {
-        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW": 20,
+        "ACTOR_OR_MEANING_VERSION_PROJECTION_REQUIRES_REVIEW": 20,
         "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED": 20,
         "AMBIGUITY_DECISION_PROVENANCE_NOT_PROJECTED": 20,
         "RAW_CONFLICT_REFERENCES_NOT_PROJECTED": 20
       },
       "supplemental": {
         "MEANING_AND_ANCHOR_VERSION_FLOW_NOT_REPRESENTED_BY_SERVICE_TRANSITION": 1,
-        "V1_ADULT_CORRECTION_POLICY_REQUIRES_OWNER_DISPOSITION": 1
+        "V1_CORRECTION_REQUIRES_OWNER_DISPOSITION": 1
       }
     },
     "static_review_hypothesis_row_counts": {
@@ -10023,7 +10023,7 @@
       "requirement_status": "UNRESOLVED",
       "scenario": "V1_ADULT_CORRECTION",
       "static_review_hypotheses": [
-        "V1_ADULT_CORRECTION_POLICY_REQUIRES_OWNER_DISPOSITION"
+        "V1_CORRECTION_REQUIRES_OWNER_DISPOSITION"
       ],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
@@ -10035,7 +10035,6 @@
       "case_id": "feat018-p2-t4-supp-successive-meaning-versions",
       "execution_status": "NOT_RUN",
       "fixture_sha256": "2cb5a53ad0cfd1bb3c2ca535e86cd4acded65f8cd07d1b76442abe3606e4f3fd",
-      "input_origin": "TEST_ONLY_SESSION_REWIND",
       "observed": {
         "prerequisite": {
           "code": "REQUIRED_DEPENDENCY_MISSING",
@@ -10043,6 +10042,7 @@
           "module": "PIL"
         }
       },
+      "recipe_input_origin": "TEST_ONLY_SESSION_REWIND",
       "requirement_status": "UNRESOLVED",
       "scenario": "SUCCESSIVE_MEANING_VERSIONS",
       "static_review_hypotheses": [
