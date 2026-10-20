@@ -1,0 +1,30 @@
+{
+  "files": {
+    "architecture.log": "67f1bc538fc90b4f70000a89126dde0aa14c688b8c3dbba796e1a89d6caef80e",
+    "collection.log": "efb218e088f7755d448143d22fd57b3a75d685a5ad6a2c3bf17b98e9ee6d4880",
+    "component.xml": "27034bea241b5ee42769e7f445c909262861c03f6e8b37a6fd16776effa0d16b",
+    "delegated-be2-12-regression-477/architecture.log": "67f1bc538fc90b4f70000a89126dde0aa14c688b8c3dbba796e1a89d6caef80e",
+    "delegated-be2-12-regression-477/collection.log": "d9a277f45a1f2a15559d521ffdac2cf7025b0553facdf0683b4e995f717f9821",
+    "delegated-be2-12-regression-477/harness.log": "f9fe12c27f5c402ad822c90f7d896e9bd4ca6c03094ed537f3bd957a65c9c9b8",
+    "delegated-be2-12-regression-477/junit.xml": "73f6e786466e74ed5b28057e063665175811ce9ebab2e10cfeda3120beb3b349",
+    "delegated-be2-12-regression-477/mypy.log": "2ea17864b2fae3692d354a40d996a3e5e904fbb9b766aa2ba1f83ab52a36747d",
+    "delegated-be2-12-regression-477/pytest.log": "bc1fed5c56bba96389c600f91675d0301c839b8311656ef64cdd5e6ec9dd129b",
+    "delegated-be2-12-regression-477/ruff.log": "a4443afdcfb6d7363adb285762515ccf7cf50473b1a05c20c1a50f6bed4d26b0",
+    "delegated-be2-12-regression-477/security.log": "86120adf346771c71bdc708a15eb4cceb8e7c4f773c67488a27f49cb94785647",
+    "delegated-be2-12-regression-477/summary.json": "727b8c976612670d4836b83d2a1ec7b51f27629e158e82909f7eeb91543fbf9d",
+    "delegated-be2-12-regression-477/whitespace.log": "561493b69c8d03d2c64163cff54d9b5898dc6d8338ecec4e9361dc01ec47ca2c",
+    "foundation-collection.log": "48e1df8044a62f29d324176ef97d458cca397b428e45bba9e125b5e326400d85",
+    "foundation.log": "7a7ae8f9837c89f87ff686d53d99b5382e7864f4ff93c5a886a09d153ef60c74",
+    "foundation.xml": "02ef8778eef20c311d4cad88b9bd467a75932cd0afc771f817d2af94d3a59ba4",
+    "harness.log": "f9fe12c27f5c402ad822c90f7d896e9bd4ca6c03094ed537f3bd957a65c9c9b8",
+    "mypy.log": "e42868ca66d44a78e229cf5adfa84c8b8320d27a452bcb412de249679c74a14f",
+    "pytest.log": "b20ff7690fb2d6f8ecf08ba2e9952310451cadadc61dc9acf6737da0d2645647",
+    "regression477.log": "0d58a9e742f28aa867c0f9aedc8bf50c185972b78b44e016f6aa59eb9dbf3af1",
+    "ruff.log": "a4443afdcfb6d7363adb285762515ccf7cf50473b1a05c20c1a50f6bed4d26b0",
+    "runner-14-postdocs-console.log": "f505c65448e7b4d5fe0307721139144ca1098a7f1242a3207419327c65fd2147",
+    "runner-14-postdocs-console.log.exit": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354",
+    "security.log": "86120adf346771c71bdc708a15eb4cceb8e7c4f773c67488a27f49cb94785647",
+    "summary.json": "b005cb9a837f06bedf499b59f7e74805cf3029c36eb3a88cc4555b6d726b7de6",
+    "whitespace.log": "561493b69c8d03d2c64163cff54d9b5898dc6d8338ecec4e9361dc01ec47ca2c"
+  }
+}

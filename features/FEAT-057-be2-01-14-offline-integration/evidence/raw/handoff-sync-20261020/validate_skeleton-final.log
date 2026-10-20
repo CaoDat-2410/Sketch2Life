@@ -1,0 +1,8 @@
+SKELETON_VALID
+backend=python-fastapi
+frontend=react-native
+mobile_target=android-only
+android_sdk=min29-target36-compile37
+auth=firebase-auth-only
+ai=lightning-dev-runpod-production
+workspace=pnpm
