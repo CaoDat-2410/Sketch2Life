@@ -1,0 +1,2406 @@
+{
+  "backend/pyproject.toml": {
+    "sha256": "6309cb833d81fb512503926cf0ba5181012eedf4830f6ce969326102ee8d5376",
+    "bytes": 3266
+  },
+  "backend/src/sketch2life/__init__.py": {
+    "sha256": "0c34d1364aac564dff44a914a7071e5958e6b901b374ea9cfe97c28796da62f0",
+    "bytes": 58
+  },
+  "backend/src/sketch2life/application/.gitkeep": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "backend/src/sketch2life/application/__init__.py": {
+    "sha256": "963cdb872a3f9a65383213656d375c28d13cb105aeec35bd40bbb1c328b3ff72",
+    "bytes": 39
+  },
+  "backend/src/sketch2life/application/commands/.gitkeep": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "backend/src/sketch2life/application/commands/__init__.py": {
+    "sha256": "bd3823e4ccb32ef8decbe8b2a0e717461b245b01cd6341aeb6b4d58db9c8dedb",
+    "bytes": 43
+  },
+  "backend/src/sketch2life/application/ports/.gitkeep": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "backend/src/sketch2life/application/ports/__init__.py": {
+    "sha256": "d2d8ca6d469947c81dcc49339b428fa2590297aeb586bebab65861c6a92f4693",
+    "bytes": 71
+  },
+  "backend/src/sketch2life/application/ports/activity_ranker.py": {
+    "sha256": "f907108abe4f1318c967bbe455d9919b93c5943ba376ca1aef2f291a3c262f56",
+    "bytes": 716
+  },
+  "backend/src/sketch2life/application/ports/ai_gateway.py": {
+    "sha256": "4b01cdbf6f21ec9841e5699ca0cbbc9f910e9098decaa379a42c95d7e3d59d91",
+    "bytes": 999
+  },
+  "backend/src/sketch2life/application/ports/ai_jobs.py": {
+    "sha256": "6c6967070d5042b5a6db33e7d28d856e03fe1bd6dc1302e55d73eacc047b33df",
+    "bytes": 19567
+  },
+  "backend/src/sketch2life/application/ports/asr.py": {
+    "sha256": "92e9e68aa7c428a72cc366ff540f4d5f1bf3bfa2605aec059b9dc20e9e84f9d6",
+    "bytes": 406
+  },
+  "backend/src/sketch2life/application/ports/assistance.py": {
+    "sha256": "5e205659f2abbe3f3ad5e5459f05a64139d51dce8a7db19b60fd3426bd90e338",
+    "bytes": 9718
+  },
+  "backend/src/sketch2life/application/ports/auto_rig_storage.py": {
+    "sha256": "caa0f6e049e6db4a30c71dedca05064d785d4b5414bdb0ea364a99db1028eea1",
+    "bytes": 945
+  },
+  "backend/src/sketch2life/application/ports/child_preference_classifier.py": {
+    "sha256": "eb74fb6c1e943b54a6119d911df5376508e389b0d1f67d20fb234e213f00df92",
+    "bytes": 524
+  },
+  "backend/src/sketch2life/application/ports/child_response.py": {
+    "sha256": "fed1a73e9e11176265e817a55ccaba993968ceebdf068703bfe46972a4ec5c6e",
+    "bytes": 3199
+  },
+  "backend/src/sketch2life/application/ports/core_foundation.py": {
+    "sha256": "2f6f55a0c576af78dcb24219254de6de3c9063c4a868d0b27f2d91356268fb13",
+    "bytes": 5512
+  },
+  "backend/src/sketch2life/application/ports/demo_workflow_storage.py": {
+    "sha256": "d625f84a08d5bc1d6a69640e6525f4a4720c1063e0400a58eb5e31021083b9ce",
+    "bytes": 695
+  },
+  "backend/src/sketch2life/application/ports/identity.py": {
+    "sha256": "1065a42d44766be16103aa463e2243dc2ff4ef8aa2a793fdf3f3a8944ba80e47",
+    "bytes": 680
+  },
+  "backend/src/sketch2life/application/ports/illustration_edit.py": {
+    "sha256": "637e4098680f564b8cf83abe5da2f383de8ca8ae83621c079661a196a18a0afe",
+    "bytes": 1867
+  },
+  "backend/src/sketch2life/application/ports/image_decoder.py": {
+    "sha256": "6ff48559c1a98953ec0e844d10323940106559282921d7ba60a64727997f30dc",
+    "bytes": 3004
+  },
+  "backend/src/sketch2life/application/ports/knowledge_bundle.py": {
+    "sha256": "310c373ceb84cfcd30821bbd7fa909a9797cb76515e591c75fdaa7825795c0b5",
+    "bytes": 3168
+  },
+  "backend/src/sketch2life/application/ports/pixi_motion_cycle.py": {
+    "sha256": "3036ffb32574ea30f3cb0b720308c023bfeb43888a39228ccc6046a7b5b26d70",
+    "bytes": 472
+  },
+  "backend/src/sketch2life/application/ports/pixi_show_planner.py": {
+    "sha256": "9b4c98901dad8918d6407313b2200370eb47339d140a5f349ed733054652c0cd",
+    "bytes": 2374
+  },
+  "backend/src/sketch2life/application/ports/raw_understanding.py": {
+    "sha256": "80b35b9b9f1990bd4c4c773126c8abb074a464ecde3ab7a221d24349eb985739",
+    "bytes": 738
+  },
+  "backend/src/sketch2life/application/ports/renderer_source_storage.py": {
+    "sha256": "238966940e2db014eac68e6eda66c95940d2f4781a545873cebbfe7154ea2795",
+    "bytes": 744
+  },
+  "backend/src/sketch2life/application/ports/scene_localization.py": {
+    "sha256": "44da6b1d15d4ec622b9a11a50490afa1e3c503af4d9e82f8c0a6ad1b217833a7",
+    "bytes": 1246
+  },
+  "backend/src/sketch2life/application/ports/segmentation.py": {
+    "sha256": "22eb373fc9dc5c163a325c8b550c3c4c77ce59ef51e9d349ecf55cef749f1e4b",
+    "bytes": 1922
+  },
+  "backend/src/sketch2life/application/ports/session_storage.py": {
+    "sha256": "d6685b255d6f8f8ae6f5ea830223df3145b2bb54a690eb4d589cbd1dad6095bb",
+    "bytes": 2728
+  },
+  "backend/src/sketch2life/application/ports/sketch_generation.py": {
+    "sha256": "94d06cbd53dc5600ce21b06301d126c5afa2b8cd37981d7581fbf37324accf60",
+    "bytes": 11682
+  },
+  "backend/src/sketch2life/application/ports/sketch_review.py": {
+    "sha256": "75396a9f82d21b87707d9cdaa040ed78b00d760f85d596a497140fa32a2a06fa",
+    "bytes": 7999
+  },
+  "backend/src/sketch2life/application/ports/story_world_v2_ports.py": {
+    "sha256": "d82f8def65d0a116df544cde5c94b3fe542de16549a39e9f9ea4f4e9028b10dc",
+    "bytes": 3356
+  },
+  "backend/src/sketch2life/application/ports/understanding.py": {
+    "sha256": "096c2bd3a02fc83cbbaf57896c4df41b4a73d81edd13926fa9a27a1fb1840a97",
+    "bytes": 511
+  },
+  "backend/src/sketch2life/application/ports/vision_analysis.py": {
+    "sha256": "2f36d096127930a25b60057b48f47df726eb77e132808a20b2e5b15e7e5584ae",
+    "bytes": 10487
+  },
+  "backend/src/sketch2life/application/ports/vision_content_policy.py": {
+    "sha256": "d927f56b91a758fabb9734dc34c7a1cd69f8b5213bf6e96ea79213677a102ff8",
+    "bytes": 748
+  },
+  "backend/src/sketch2life/application/ports/vision_understanding.py": {
+    "sha256": "cdf2f64e5985c8b1c8db913485a165b7460c269a0150450167ddaff189c52069",
+    "bytes": 506
+  },
+  "backend/src/sketch2life/application/ports/vision_understanding_v2.py": {
+    "sha256": "0d21de16c869c1777cf0ca0924dffb6081f4addf9fce221c2d7952a177221bd4",
+    "bytes": 497
+  },
+  "backend/src/sketch2life/application/ports/workflow_dependencies.py": {
+    "sha256": "441df54641c451a8a1302532da94d28769a44234d24130f7d3065888e9c402f1",
+    "bytes": 3461
+  },
+  "backend/src/sketch2life/application/queries/.gitkeep": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "backend/src/sketch2life/application/queries/__init__.py": {
+    "sha256": "63f2ae83d165f4b5aae9e4c87dd209c4c51dcdef1695bc8892c5bf95345b123f",
+    "bytes": 37
+  },
+  "backend/src/sketch2life/application/services/.gitkeep": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "backend/src/sketch2life/application/services/__init__.py": {
+    "sha256": "5781d7d2ff602ff93af7ec8d3c362835c5ed867b71656bfecdf3649d73ae9877",
+    "bytes": 46
+  },
+  "backend/src/sketch2life/application/services/activity_supervision.py": {
+    "sha256": "4b4c7d5221536f9b3cbad8038e068531710011ccf0e68e5ee6690614f7349bdc",
+    "bytes": 806
+  },
+  "backend/src/sketch2life/application/services/ai_jobs.py": {
+    "sha256": "df6ac4fd47bd9fdcd7d5eaf7dfca5e4cf9541870f40e0dc4a81150dffd936704",
+    "bytes": 65407
+  },
+  "backend/src/sketch2life/application/services/assistance.py": {
+    "sha256": "5bfff0481f7d30158d7f67f57c07edd576a4af3499856213cd39065c31e56d34",
+    "bytes": 55833
+  },
+  "backend/src/sketch2life/application/services/auto_rig/__init__.py": {
+    "sha256": "236db32565fc4a8fed2602df14e7eae152e1f5b5aaa71cba84d94b313d44e3ed",
+    "bytes": 419
+  },
+  "backend/src/sketch2life/application/services/auto_rig/mask_validation.py": {
+    "sha256": "aa67f177407027e6ce0e0c4169fe8a01e1aeec5b14774c37558fdf352ac5023f",
+    "bytes": 1889
+  },
+  "backend/src/sketch2life/application/services/auto_rig/part_masks.py": {
+    "sha256": "c03758028ef77382b8d055933d210b3c08cbbe2edf50cfe5360ccf05cac90262",
+    "bytes": 10958
+  },
+  "backend/src/sketch2life/application/services/auto_rig/rig_builder.py": {
+    "sha256": "6a06c47e4f9d3d17d78f18b9563bf749be50bb4a2cba1472ec77899258cff8a0",
+    "bytes": 16017
+  },
+  "backend/src/sketch2life/application/services/auto_rig/service.py": {
+    "sha256": "149da34cfd53af71d0e28ba7f707121e8d29495d4c842ca7169ec03743385579",
+    "bytes": 27754
+  },
+  "backend/src/sketch2life/application/services/backend_ai_workflow.py": {
+    "sha256": "042bd0c395860a6d2c0a394bc078f39824b5a3d2f8eead1b6d68fc1a5adadd0f",
+    "bytes": 72635
+  },
+  "backend/src/sketch2life/application/services/be1_runtime.py": {
+    "sha256": "bd1d57b2e69abb71f6fb933bf66cc499f36ca8f79d1fe03f6ce99ffd6aebc3e4",
+    "bytes": 3325
+  },
+  "backend/src/sketch2life/application/services/child_response.py": {
+    "sha256": "60011163336ddfad72feba7134d167e46b0ba301cb086d6dbb20358513479f2d",
+    "bytes": 11824
+  },
+  "backend/src/sketch2life/application/services/contract_version_adapter.py": {
+    "sha256": "aa2b93e2cedc6ab7018289f4cb639e610d8b5303e5f8fea032f02d8d6bc7b304",
+    "bytes": 1386
+  },
+  "backend/src/sketch2life/application/services/core_foundation.py": {
+    "sha256": "fb1b6b0466aef9eeede0803daad9b118a51619be3f6d5d75850af10a9f584e7e",
+    "bytes": 7843
+  },
+  "backend/src/sketch2life/application/services/ephemeral_sessions.py": {
+    "sha256": "b7137f7d160bfab07321ad709d7407a8ce2b44fbcca875c8e4f4ba58d12bca58",
+    "bytes": 16937
+  },
+  "backend/src/sketch2life/application/services/image_admission.py": {
+    "sha256": "6eb7c081df8d738aa03f5ff4ba284647f3c89606bad81758df9bf45ac193bd91",
+    "bytes": 7410
+  },
+  "backend/src/sketch2life/application/services/knowledge_bundle.py": {
+    "sha256": "af6c3c55e3cf0fedf155b8c0ebbf720ef7e6aec121b5b1871f94191a1e2f6c9f",
+    "bytes": 23872
+  },
+  "backend/src/sketch2life/application/services/learning_media_fallback.py": {
+    "sha256": "3cd7fd30ef9d76db625a7ad85c412ec0d6fdaad499d19ab80043132010b1d0ed",
+    "bytes": 3055
+  },
+  "backend/src/sketch2life/application/services/learning_media_resolver.py": {
+    "sha256": "feb15360c64eca53a4d09e33aca854d50d0cd9fe9c4a3f489e7cb1d1d94101c6",
+    "bytes": 3946
+  },
+  "backend/src/sketch2life/application/services/live_image_demo.py": {
+    "sha256": "9d76844d465efb9a7e9d200e679cf0b29e288e594f8dc511ba60618d19579c35",
+    "bytes": 81647
+  },
+  "backend/src/sketch2life/application/services/media_validation.py": {
+    "sha256": "baa00b4d72f05ffcd1aafdf934726ea967d49ac16a6801c37bcf8aece7e94264",
+    "bytes": 2596
+  },
+  "backend/src/sketch2life/application/services/mobile_command_adapter.py": {
+    "sha256": "0e614cbef48187ff93420f8b7840959444f9fb3ae825bf80af64e0bad93f862e",
+    "bytes": 1232
+  },
+  "backend/src/sketch2life/application/services/p1_experience.py": {
+    "sha256": "350f78fe5d6054e962d9551458daaa5891190628f455fefba4da874ce971dd3b",
+    "bytes": 33503
+  },
+  "backend/src/sketch2life/application/services/p2_t4_fusion.py": {
+    "sha256": "6daa1b1eb49b665251e0e708454afc1449479437afe058effcfe22adf34ca823",
+    "bytes": 30602
+  },
+  "backend/src/sketch2life/application/services/p2_t5_evaluation.py": {
+    "sha256": "45c9edf909b0d15d5e0c9a2a547fd74a82d8e5c9230b51f7c1ec678d9233ceaa",
+    "bytes": 15953
+  },
+  "backend/src/sketch2life/application/services/p2_t5_scoring.py": {
+    "sha256": "235f390bf9c9beb03012040c925a01cfe794fabc3ccaaa0ed990e766f9454474",
+    "bytes": 5322
+  },
+  "backend/src/sketch2life/application/services/pixi_motion_cycle_compiler.py": {
+    "sha256": "58d6107e2d4e23bbb3747d9fcde55846182491e39645ace5a646b2b89e2194cc",
+    "bytes": 2954
+  },
+  "backend/src/sketch2life/application/services/pixi_show_compiler.py": {
+    "sha256": "60e38bce849056feb22153145dcc6bf560fdcf268daf28d8050cc43c03f8c38f",
+    "bytes": 16358
+  },
+  "backend/src/sketch2life/application/services/pixi_topic_asset_candidates.py": {
+    "sha256": "062edd581ae9cd0ae956c56d19bacda3e4a3ed895e3a3b8357235115947c4338",
+    "bytes": 9071
+  },
+  "backend/src/sketch2life/application/services/provider_copy_lifecycle.py": {
+    "sha256": "c45ad24934b848ce1f4a6357daec925a2e70543d66d5bb8b85cae75a0201d73e",
+    "bytes": 5225
+  },
+  "backend/src/sketch2life/application/services/raw_understanding_mapper.py": {
+    "sha256": "e603082be2d648eb7957e087b607a55e25d3f2692590e6c163903ad41bbf1aaf",
+    "bytes": 13027
+  },
+  "backend/src/sketch2life/application/services/scene_exploration.py": {
+    "sha256": "ddc041d3d9b21f0e52a49168dfe88ca7246fc083e3c8a4d0df3176373d84e1de",
+    "bytes": 12108
+  },
+  "backend/src/sketch2life/application/services/scene_understanding.py": {
+    "sha256": "1b406292871824ff3312ca83429776409a873d70af53c362180620a3a7950677",
+    "bytes": 13901
+  },
+  "backend/src/sketch2life/application/services/semantic_activity_resolver.py": {
+    "sha256": "f0973218eaf21379e138fe971ec97e0b90fd1b4aa16f8211e2c5c64991e5957c",
+    "bytes": 25323
+  },
+  "backend/src/sketch2life/application/services/semantic_personalization_v2.py": {
+    "sha256": "c2380184778c84e1b0b16e484ce2b2cbbe4e5363616399cc05683a33e49ac91d",
+    "bytes": 15982
+  },
+  "backend/src/sketch2life/application/services/session_lock_pool.py": {
+    "sha256": "03ef284f9bee42f3df6e361302941f8e308ea08662facf753496b805fdca64d4",
+    "bytes": 900
+  },
+  "backend/src/sketch2life/application/services/sketch_generation.py": {
+    "sha256": "47cfbebefc44e6257d7d7b34e6bd45a13ee6d7d437be86d5fd0533f57ae8c24f",
+    "bytes": 51815
+  },
+  "backend/src/sketch2life/application/services/sketch_review.py": {
+    "sha256": "e3e7bbaff0656d83b882d8aebf030374350bb489d18097369422bff17bc4d724",
+    "bytes": 38835
+  },
+  "backend/src/sketch2life/application/services/story_draw_schedule_v2.py": {
+    "sha256": "926b80da6c8665ca7d5635e8ae38117d774cd5a384aacd1d60187b3e22d39590",
+    "bytes": 7263
+  },
+  "backend/src/sketch2life/application/services/story_video_admission.py": {
+    "sha256": "c68e41d169c87073842ade9ce32f16099a318afd9e5c339b6af0b477ccd1347b",
+    "bytes": 3338
+  },
+  "backend/src/sketch2life/application/services/story_video_job.py": {
+    "sha256": "91b295706313d4e55334fa39ecf9a2277ab64bedffc347fffa6813eeffe15cf1",
+    "bytes": 12632
+  },
+  "backend/src/sketch2life/application/services/story_video_pipeline.py": {
+    "sha256": "61637f8ab9a0311a890378459437d9f9432c9a337b55d4913baa9ec141bbd943",
+    "bytes": 16495
+  },
+  "backend/src/sketch2life/application/services/story_video_planner.py": {
+    "sha256": "cce875e0f1c474893d1e671d1231c73b05c9fc6196d1bb812a5d0b008c0ac668",
+    "bytes": 15867
+  },
+  "backend/src/sketch2life/application/services/story_world_errors.py": {
+    "sha256": "a6cb225b38b98ba33096286e84e3e6e9abfe01063244b45e443c4c4a066c118a",
+    "bytes": 280
+  },
+  "backend/src/sketch2life/application/services/story_world_model.py": {
+    "sha256": "497e12eae22680ae737a724135e0f6baf9ff449a2871dcfe0737973bcc3d432b",
+    "bytes": 9613
+  },
+  "backend/src/sketch2life/application/services/supervised_flow.py": {
+    "sha256": "1ef2ccbb27ae055dba9c308769f7c2c93f837c67ffb16e9d4c7000813fffe3d0",
+    "bytes": 140963
+  },
+  "backend/src/sketch2life/application/services/topic_semantics.py": {
+    "sha256": "df0ab684681de51b54e40deaa185f3d17db5868e893ce6c25cacb77d130a10ab",
+    "bytes": 14810
+  },
+  "backend/src/sketch2life/application/services/vision_analysis.py": {
+    "sha256": "f30ccbbb5be5af360d042ea3dc1d3fb1ad00e8175f60f7d65dac11d1d7ea9212",
+    "bytes": 51053
+  },
+  "backend/src/sketch2life/application/services/whiteboard_storyboard.py": {
+    "sha256": "42c1356df8d0df18543f1ed20863282d0fb4cb636537acbfe3036ff1bd982ee0",
+    "bytes": 10541
+  },
+  "backend/src/sketch2life/application/services/whiteboard_video_job.py": {
+    "sha256": "5d177dc454228838e41f77b92587e80e4eb58985c41dffe59f40714e6ae74ae6",
+    "bytes": 10132
+  },
+  "backend/src/sketch2life/application/services/whiteboard_video_pipeline.py": {
+    "sha256": "fdcfc976c9d40e5230dc4289768e3f1ef86ef6b9a0da4c4d59770f3bfc4f36ff",
+    "bytes": 5628
+  },
+  "backend/src/sketch2life/benchmark/__init__.py": {
+    "sha256": "87205633ee3166d596a7460617a17a26cf0f70eef0e32f2f3757cfc2fb18d45d",
+    "bytes": 218
+  },
+  "backend/src/sketch2life/benchmark/asr_readiness.py": {
+    "sha256": "a2d60eeea2581d46c928b36a4cd4efb00cf7b66f8cec222e522c22858becc849",
+    "bytes": 20326
+  },
+  "backend/src/sketch2life/benchmark/asr_round1_runner.py": {
+    "sha256": "927fa39cc93f73c7f9ccbb2d6aba0f5bfca2fe117c7f36c9524559cf471cb70f",
+    "bytes": 27348
+  },
+  "backend/src/sketch2life/benchmark/asr_scoring.py": {
+    "sha256": "955be57f55ea917f4ed1e6ed58bc2744d8b4a5218183e2bcd186900aea8e470c",
+    "bytes": 4156
+  },
+  "backend/src/sketch2life/benchmark/catalog_offline.py": {
+    "sha256": "2c7b50b17e434b65cd34b14e32b34b14547196ebc5061fe5ba41d2e10c9f4397",
+    "bytes": 8542
+  },
+  "backend/src/sketch2life/benchmark/feat018_live_lightning_execution.py": {
+    "sha256": "22555f23cbedd719d28e04a8ae3f00ad307a30f5e26ff1f1c785e1967fc0cde3",
+    "bytes": 60074
+  },
+  "backend/src/sketch2life/benchmark/image_admission_evaluation.py": {
+    "sha256": "e4d915988f3cf90a382a4239ebb84345650aff2bd48efb8dd37354c459a8efcb",
+    "bytes": 74564
+  },
+  "backend/src/sketch2life/benchmark/sam21_synthetic_masks.py": {
+    "sha256": "c9903fed96445a7d2e3f8bf0132299f1ad600a07abc40c0f80496adcfdeba41b",
+    "bytes": 4023
+  },
+  "backend/src/sketch2life/benchmark/vision_b2_preflight.py": {
+    "sha256": "dc2b94532f19cfea9e2136f346ac4a982814c66ffe1182a8864bb17289921b71",
+    "bytes": 18939
+  },
+  "backend/src/sketch2life/benchmark/vision_b3_mapping_study.py": {
+    "sha256": "53fc38b3a65d0400add71648db07f0f86b825163afc0b89f0e38988d92b4e40c",
+    "bytes": 34633
+  },
+  "backend/src/sketch2life/benchmark/vision_b4_quality_benchmark.py": {
+    "sha256": "0be3a5868d8c6022d179f862fdde348564a018b06744fad0e330b8f02eae984c",
+    "bytes": 37689
+  },
+  "backend/src/sketch2life/benchmark/vision_b4_step2_diagnostic.py": {
+    "sha256": "87216ea83a9bfc67c409e44f8355aaf011de2df08ac428e240b5be7ec1bde00a",
+    "bytes": 23051
+  },
+  "backend/src/sketch2life/benchmark/vision_c1_prompt_mapping_study.py": {
+    "sha256": "b1c32404ae9da9c6fb930154b43c844a5b28994eee0e69bc0790e306b21338a6",
+    "bytes": 43787
+  },
+  "backend/src/sketch2life/benchmark/vision_v3_mapping_fixtures.py": {
+    "sha256": "0e68f27ee4ec50ad6a683baea6c187a6c76422c7d53f60b1b4b69a845a5bade2",
+    "bytes": 25393
+  },
+  "backend/src/sketch2life/benchmark/vision_v3_mapping_validation_study.py": {
+    "sha256": "37628b9b19821545e67188422e3c5d3ea16479f00554d66c2a16335284f3d536",
+    "bytes": 43917
+  },
+  "backend/src/sketch2life/benchmark/vision_v3_quality_benchmark.py": {
+    "sha256": "4a8793bda6c656556fc509b8fee8c1b6c2e3a39806f2ce5dcc5134f613f4286f",
+    "bytes": 75074
+  },
+  "backend/src/sketch2life/benchmark/vision_v3_quality_execution.py": {
+    "sha256": "5b970e97ed4c819cd0201751b8abf8a9b0c2ad049c0637a7cfa335bd9cf04087",
+    "bytes": 12379
+  },
+  "backend/src/sketch2life/benchmark/vision_v3_quality_fixtures.py": {
+    "sha256": "de86865ad55b602712e1eee95293025c5a464f68761409b0652b3642fc13e3b1",
+    "bytes": 34936
+  },
+  "backend/src/sketch2life/contracts/.gitkeep": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "backend/src/sketch2life/contracts/__init__.py": {
+    "sha256": "7cf1b25017c51d873ec0df29df3fefe985f59a86440270f0b43c087d048ee181",
+    "bytes": 47
+  },
+  "backend/src/sketch2life/contracts/events/.gitkeep": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "backend/src/sketch2life/contracts/http/.gitkeep": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "backend/src/sketch2life/contracts/schemas/.gitkeep": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "backend/src/sketch2life/contracts/schemas/activity_preparation.py": {
+    "sha256": "d9d951a865a4881831a054e977f7bd726005b39937d3a9fd474ef935dea8520e",
+    "bytes": 5626
+  },
+  "backend/src/sketch2life/contracts/schemas/activity_ranking.py": {
+    "sha256": "cfd00ba190cecfd9548c8a89c785b906bb4700ce103ae8f3d3cabe246d81245e",
+    "bytes": 2636
+  },
+  "backend/src/sketch2life/contracts/schemas/activity_semantics.py": {
+    "sha256": "17d03197efa5dcdd00e3c86f81160b0d026efc62b723141c46b6f45c19dcfd2f",
+    "bytes": 2519
+  },
+  "backend/src/sketch2life/contracts/schemas/ai_contract_candidates.py": {
+    "sha256": "7bbe68aae583f2bf30b62a94108940aa5374ffe2be4a2dbb1d3500331615426c",
+    "bytes": 12841
+  },
+  "backend/src/sketch2life/contracts/schemas/ai_jobs.py": {
+    "sha256": "15025b1386ba2781204ad41655c1dec135b28672845bac1a3744d1b8ad1e9c5f",
+    "bytes": 9500
+  },
+  "backend/src/sketch2life/contracts/schemas/analysis_context_results.py": {
+    "sha256": "3844377f4fa114fdd5c48f051bdcdb2562340bbbcead89d9418b3be4239a2e5d",
+    "bytes": 7349
+  },
+  "backend/src/sketch2life/contracts/schemas/analysis_results.py": {
+    "sha256": "46c6f47a379832932509f3d29a4a41de7863d28a3fa615d008aef5806f6311ac",
+    "bytes": 16125
+  },
+  "backend/src/sketch2life/contracts/schemas/asr.py": {
+    "sha256": "1dcf8db144ebfd080266f05b8e75ae404ec230edc7983937a0e598e48c0b9b22",
+    "bytes": 16820
+  },
+  "backend/src/sketch2life/contracts/schemas/asr_benchmark.py": {
+    "sha256": "f803327b245799dfa08e39e6c95c018bdbcfdcf2e4d25c8ec5a5ef6bc1a068b1",
+    "bytes": 13207
+  },
+  "backend/src/sketch2life/contracts/schemas/assistance_requests.py": {
+    "sha256": "2c2df0b574e2c5bb846c8e3c6688f1291966357f94f02ae83356886f7a5b62a2",
+    "bytes": 6592
+  },
+  "backend/src/sketch2life/contracts/schemas/auto_rig.py": {
+    "sha256": "b193bf740a594fdb7b255f77c48d131cf1be9ff55eee567b7c81330b9675ac54",
+    "bytes": 13272
+  },
+  "backend/src/sketch2life/contracts/schemas/be1_runtime.py": {
+    "sha256": "3dba07f5593a82b7d53ed359f62cbaed6f4db61863fbb108c4e8be6283b1d3e2",
+    "bytes": 5340
+  },
+  "backend/src/sketch2life/contracts/schemas/child_learning_profile.py": {
+    "sha256": "bb91c4c9294213e567fb6e4e596cbd38e6dbee4edfc7fc7a718cecf514ebcc2a",
+    "bytes": 13354
+  },
+  "backend/src/sketch2life/contracts/schemas/child_preference_classification.py": {
+    "sha256": "20d610b7cdf4d5709ab020abdca5ecbfcf34e8dd4a3e1f32679e600d55820c9e",
+    "bytes": 3456
+  },
+  "backend/src/sketch2life/contracts/schemas/child_responses.py": {
+    "sha256": "fbebe17fd46b0fd2ac1ed96b56e596093108a401f3898bfa5b3e852e63761993",
+    "bytes": 5715
+  },
+  "backend/src/sketch2life/contracts/schemas/core_foundation.py": {
+    "sha256": "4e732cddf731cb750322f8f353f3771ec7aba0d279f9c084f9202850870b0a56",
+    "bytes": 12910
+  },
+  "backend/src/sketch2life/contracts/schemas/gate_a.py": {
+    "sha256": "913e93d913cea3daf186cd88aa3871168a5a54e9d1a137cfdc518252faa31768",
+    "bytes": 2076
+  },
+  "backend/src/sketch2life/contracts/schemas/image_demo.py": {
+    "sha256": "578e079a248b0ac6afa58f37917023eb37e83065d782de1a3aaa192905759e47",
+    "bytes": 2603
+  },
+  "backend/src/sketch2life/contracts/schemas/knowledge_bundles.py": {
+    "sha256": "25e3486a3a6557eadc03c1b6db4ed4f95ef325db347d38f9dfa1f1e5a88927c1",
+    "bytes": 19561
+  },
+  "backend/src/sketch2life/contracts/schemas/learning_media.py": {
+    "sha256": "bcdcbc9cbc0c0e3bee321aabacef3b98aa413203d43f053b47aaba506474d3d2",
+    "bytes": 4616
+  },
+  "backend/src/sketch2life/contracts/schemas/media_validation.py": {
+    "sha256": "2e247d60c729e900979fa5a0b5f44efe641701481b1129d2bced2fb8c66394f9",
+    "bytes": 6951
+  },
+  "backend/src/sketch2life/contracts/schemas/mobile_workflow.py": {
+    "sha256": "5f2625b25eda21cf38ec9e2011762423e989e0a17e9d289fc26d3335d5ab28b2",
+    "bytes": 9591
+  },
+  "backend/src/sketch2life/contracts/schemas/narration.py": {
+    "sha256": "cd34e9540425d1964bc291aea0ddac25cadbfd75e240bb0113134e79bb9492a3",
+    "bytes": 2071
+  },
+  "backend/src/sketch2life/contracts/schemas/p1_experience.py": {
+    "sha256": "5fb33f3da3776c7484b1f70a7c2ed74fb399821c895d6d802c948d267ef937ae",
+    "bytes": 22371
+  },
+  "backend/src/sketch2life/contracts/schemas/p2_t4_fusion.py": {
+    "sha256": "71d2ea0598f7667cb7dcbdcbc929d9d01a8475f47e3e1665168e7b2efd47513a",
+    "bytes": 29342
+  },
+  "backend/src/sketch2life/contracts/schemas/p2_t5_evaluation.py": {
+    "sha256": "82330aa9494934451030aac2a5236153193aeaf9c3f6865ebde6a7a9b767291a",
+    "bytes": 17474
+  },
+  "backend/src/sketch2life/contracts/schemas/pixi_motion_cycle.py": {
+    "sha256": "e911abbcf76c71fdf4d5a600af7da647958e8cf4b63321ec022bf4e8bb388c41",
+    "bytes": 11759
+  },
+  "backend/src/sketch2life/contracts/schemas/pixi_show.py": {
+    "sha256": "f86accb495555385e91fcdeeac418c28cb752408027aadbabcdc37b8040bd861",
+    "bytes": 17469
+  },
+  "backend/src/sketch2life/contracts/schemas/pixi_topic_asset_selection.py": {
+    "sha256": "4003a68e3af3ae0ce7bb4ee4322095a621e8268f7ec5935228fd61b5e76548e1",
+    "bytes": 9292
+  },
+  "backend/src/sketch2life/contracts/schemas/raw_understanding.py": {
+    "sha256": "9a5350a7a6913c2fc4f9f3008aa3bceba652d90cd25f3cfe76f598b053a57e0b",
+    "bytes": 11195
+  },
+  "backend/src/sketch2life/contracts/schemas/renderer.py": {
+    "sha256": "f10302d94250700f00974bd859ece121a0d9bf7f491c3459441a7bd3ac97bb18",
+    "bytes": 17494
+  },
+  "backend/src/sketch2life/contracts/schemas/renderer_v2.py": {
+    "sha256": "3d5c087f01d81ffc8d54ed8cee07e188ca9cf174b70b37f401fdf5d2f51aa18b",
+    "bytes": 9810
+  },
+  "backend/src/sketch2life/contracts/schemas/sam21.py": {
+    "sha256": "4d60f97e1e33ed6970e05ae226f5443b291b5d05b53883b3d2661bd15d992add",
+    "bytes": 3132
+  },
+  "backend/src/sketch2life/contracts/schemas/scene_exploration.py": {
+    "sha256": "34d09f06d7e3467c130a5c73bb6488b8733482dbf0affe849916a6677a2597e3",
+    "bytes": 8275
+  },
+  "backend/src/sketch2life/contracts/schemas/semantic_authoring_v1.py": {
+    "sha256": "57fdf99a9e62733493d306939f6ecb96e0c72b8129c8e5923eb508600f22d889",
+    "bytes": 3571
+  },
+  "backend/src/sketch2life/contracts/schemas/semantic_drawing_v2.py": {
+    "sha256": "49ff5a935e075a74f602a5967b094282cc38520414076832cb53b598d8dd4ade",
+    "bytes": 907
+  },
+  "backend/src/sketch2life/contracts/schemas/semantic_personalization_v2.py": {
+    "sha256": "3cc8a431809046c0f0eb8eb9bedc3d263a6a0a9b5d263b2de69e91f81374148b",
+    "bytes": 24212
+  },
+  "backend/src/sketch2life/contracts/schemas/sketch_proposals.py": {
+    "sha256": "c31f6b83a08de912dfaf5eae76fb66ee837156ee1618489fedf7d92937dee029",
+    "bytes": 5806
+  },
+  "backend/src/sketch2life/contracts/schemas/sketch_reviews.py": {
+    "sha256": "5e24fa034d231bd275a682b1afec5b169417ba443e5f133ed9fffcbe3e321f18",
+    "bytes": 8807
+  },
+  "backend/src/sketch2life/contracts/schemas/story_strokes_v2.py": {
+    "sha256": "3a8461c9a7cef26312ba552024898558a75be38f048951da384a5ff54b744bee",
+    "bytes": 4234
+  },
+  "backend/src/sketch2life/contracts/schemas/story_video.py": {
+    "sha256": "52170d16a75b5a24b05e499f87b3f33eb876b669febc1d58319516c6e69c64ad",
+    "bytes": 10118
+  },
+  "backend/src/sketch2life/contracts/schemas/story_video_http.py": {
+    "sha256": "f1b661061964656e3619aeac50f10d201456587c407d06c1a85b261f752202eb",
+    "bytes": 726
+  },
+  "backend/src/sketch2life/contracts/schemas/story_video_media.py": {
+    "sha256": "b1a011fd9facc9cc4aba183df8965ed089a5ac552d611c59cceb7d7bffd10e85",
+    "bytes": 10656
+  },
+  "backend/src/sketch2life/contracts/schemas/story_world_v2.py": {
+    "sha256": "4d6b3526a4e273229c1be094cd67aec1b8b89f8953d4ec96221fe0c61d5eccdb",
+    "bytes": 8386
+  },
+  "backend/src/sketch2life/contracts/schemas/understanding.py": {
+    "sha256": "c386e313b7cfd313d7f064c9ec66707b287d4a803d4092d7255a4cb0493bd2bd",
+    "bytes": 6234
+  },
+  "backend/src/sketch2life/contracts/schemas/vision.py": {
+    "sha256": "c3f2719c593d443404b90e22013dcaec4cd8befed9dc6a985c0214766c3a90f4",
+    "bytes": 23069
+  },
+  "backend/src/sketch2life/contracts/schemas/vision_context.py": {
+    "sha256": "24e2df5131ee27c0699171984ae20c63da529cb5acf4fecd824d5f7414a5e3fa",
+    "bytes": 5789
+  },
+  "backend/src/sketch2life/contracts/schemas/vision_v2.py": {
+    "sha256": "bea0511c400b452b86ff32a90cb5f65df4c191a72a857b1024c30a65628cd0d8",
+    "bytes": 23328
+  },
+  "backend/src/sketch2life/contracts/schemas/whiteboard_storyboard.py": {
+    "sha256": "45af76bc5d1fe50f9ba0ab5791813f36cf87e1fb78c262ff0faaf20500376e54",
+    "bytes": 3178
+  },
+  "backend/src/sketch2life/contracts/schemas/whiteboard_video.py": {
+    "sha256": "ab79849225cf9174baa439719e560f10f89b991e5b844423a82906aaf7acd842",
+    "bytes": 8734
+  },
+  "backend/src/sketch2life/contracts/schemas/workflow_demo.py": {
+    "sha256": "6615d65f201bc76f5b6ce2c20f81a7f1da4b5399aebedc367e492db91ec5d864",
+    "bytes": 9457
+  },
+  "backend/src/sketch2life/contracts/schemas/workflow_records.py": {
+    "sha256": "3c61ff63cfa2634c44f13e8378de40ae9a82be93599136d1454e4165f79ae266",
+    "bytes": 6370
+  },
+  "backend/src/sketch2life/domain/.gitkeep": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "backend/src/sketch2life/domain/__init__.py": {
+    "sha256": "0e3e8b018753cf959c3f07f510c21ae15ecff64e1f56a9656bc21f0d80dab02f",
+    "bytes": 42
+  },
+  "backend/src/sketch2life/domain/ai_jobs/__init__.py": {
+    "sha256": "301c97c4a3a0308350dd857f39f94fd8f1b5cc45820a9fa8b4c6e4caee0b2748",
+    "bytes": 79
+  },
+  "backend/src/sketch2life/domain/ai_jobs/completion.py": {
+    "sha256": "b3e1a78d2a93227d09e4db3fed4b77bc4d1c3775f54f519f68fd762ceb3ec62b",
+    "bytes": 4640
+  },
+  "backend/src/sketch2life/domain/ai_jobs/model.py": {
+    "sha256": "512b604636c1a22e231ac3276d3e537ae0deae4d9bb6652ccb064fab7314db99",
+    "bytes": 17113
+  },
+  "backend/src/sketch2life/domain/ai_jobs/provider_copy.py": {
+    "sha256": "2c55b67e0a036b4e7786094d5e1bc59a2b3d81ecfc75f24aaaa03a4296ee1ddd",
+    "bytes": 3882
+  },
+  "backend/src/sketch2life/domain/assistance.py": {
+    "sha256": "ab4df2971bd403c209810fc958ac249e8b4cb5d74ebc21b2a5b82c28fb455e1c",
+    "bytes": 20926
+  },
+  "backend/src/sketch2life/domain/child_age.py": {
+    "sha256": "c4a1288a41d6ec52087a9bb83f7f8590d1084c367a41bd512d65aca917a2838c",
+    "bytes": 834
+  },
+  "backend/src/sketch2life/domain/child_response.py": {
+    "sha256": "6844320c7e75f300f77f4f8317d9cb87fd1a6f7afd7d0052959fd94b7ad5a6be",
+    "bytes": 4875
+  },
+  "backend/src/sketch2life/domain/core_foundation.py": {
+    "sha256": "e5ae89b8aeb3471c1dde10788f91995623949ef7701fab672ee1a32a89fb8f3c",
+    "bytes": 14741
+  },
+  "backend/src/sketch2life/domain/experience/.gitkeep": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "backend/src/sketch2life/domain/experience/__init__.py": {
+    "sha256": "170387c6c5d169da525b49a1a1c7b50075952ef82b45d4616040e02121d578f3",
+    "bytes": 42
+  },
+  "backend/src/sketch2life/domain/experience/pixi_behavior_registry.py": {
+    "sha256": "9d4f8b3bc10cd2a3921eb54277c28f52028747c4d02c0c433317c6b746d96eb0",
+    "bytes": 33061
+  },
+  "backend/src/sketch2life/domain/knowledge_bundle.py": {
+    "sha256": "7d8a6ab8b802917e22abc146fab34cb78c7d6152b7425a42ff88778b5ada4e3a",
+    "bytes": 29971
+  },
+  "backend/src/sketch2life/domain/recommendation/.gitkeep": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "backend/src/sketch2life/domain/recommendation/__init__.py": {
+    "sha256": "e2e767b0bb4f68237f9048525ee0da6bda4019e150a6dd44e09764f54be53b71",
+    "bytes": 49
+  },
+  "backend/src/sketch2life/domain/session/.gitkeep": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "backend/src/sketch2life/domain/session/__init__.py": {
+    "sha256": "719ac59612a7768333c6b630d6e76f3df633809961b1fc817c02801d49e2dab2",
+    "bytes": 41
+  },
+  "backend/src/sketch2life/domain/sketch_proposal.py": {
+    "sha256": "09203d4b8a0e808c2df056093b2d2391bc21dab835e3a9912a0eb5ad6aac6cde",
+    "bytes": 33161
+  },
+  "backend/src/sketch2life/domain/sketch_review.py": {
+    "sha256": "124619be5443f56746100c7c4430a8c183a6766496e022dfa05c88e5e70d0e6c",
+    "bytes": 20587
+  },
+  "backend/src/sketch2life/domain/understanding/.gitkeep": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "backend/src/sketch2life/domain/understanding/__init__.py": {
+    "sha256": "a44c6d274ad18bd24bfcc520bf290edb9d09f3c8e0b65cbc4f03f2b98927235e",
+    "bytes": 46
+  },
+  "backend/src/sketch2life/domain/understanding/image_admission.py": {
+    "sha256": "34480da59fd2436db6a4fc92380fc0ad9284e8f4eb4c46b61cd2578aab349df5",
+    "bytes": 8601
+  },
+  "backend/src/sketch2life/domain/understanding/media_quality.py": {
+    "sha256": "b6e61211c9baacca1e10927fb3e16461edc8b04938d0014d1781f501edc4a44c",
+    "bytes": 5165
+  },
+  "backend/src/sketch2life/domain/vision_analysis.py": {
+    "sha256": "cb36b2917ec0e9061c21dca4b1ac27316f57e329fc3caafbd78ad1fa41f3dfa5",
+    "bytes": 41483
+  },
+  "backend/src/sketch2life/domain/vision_context.py": {
+    "sha256": "9501f2194a2896df121c50af2a1df29b7003c7f2029af0febd461664886e04eb",
+    "bytes": 28530
+  },
+  "backend/src/sketch2life/infrastructure/__init__.py": {
+    "sha256": "4f73be91577bd895239ef8942261a85284598ab599f5627af86b999522f01ee4",
+    "bytes": 34
+  },
+  "backend/src/sketch2life/infrastructure/ai/.gitkeep": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "backend/src/sketch2life/infrastructure/ai/__init__.py": {
+    "sha256": "f1f31ad1e044ad248bad04f3fe2b73edeca97bf739fbac63877db09b2780b4d7",
+    "bytes": 76
+  },
+  "backend/src/sketch2life/infrastructure/ai/fake_asr.py": {
+    "sha256": "57e382c2a470e6c72af0835755d70f803ecaff45e852d72dcb627f11fa728dd0",
+    "bytes": 7709
+  },
+  "backend/src/sketch2life/infrastructure/ai/fake_vision.py": {
+    "sha256": "7d140f06fb50cc15d736292a66741c92b48637a57c2cbb24597d816d2e8c5501",
+    "bytes": 13526
+  },
+  "backend/src/sketch2life/infrastructure/ai/faster_whisper_asr.py": {
+    "sha256": "e795fc68444f45482640c4305f05bde68d6cae45d2416eea75996fd86920c771",
+    "bytes": 18339
+  },
+  "backend/src/sketch2life/infrastructure/ai/faster_whisper_runtime_config.py": {
+    "sha256": "929f4f92bb99f3444fe18284309f49ae52906f425760c08cd50b38106e6b6759",
+    "bytes": 5157
+  },
+  "backend/src/sketch2life/infrastructure/ai/fixture_inputs.py": {
+    "sha256": "16186b826c116c949327731eaadc461b922abc949e6d62011330dc5ee3516380",
+    "bytes": 2508
+  },
+  "backend/src/sketch2life/infrastructure/ai/lightning_activity_ranker.py": {
+    "sha256": "ef6417ba45aaf5b73b7d3baa257b0f803eeff12277fed118da948ca2b9a6bde2",
+    "bytes": 2495
+  },
+  "backend/src/sketch2life/infrastructure/ai/lightning_child_preference_classifier.py": {
+    "sha256": "d08c810d7aee4bf67882c3acd74d8ec781701ce1f37a39e9a0b2a8ffe2fffab0",
+    "bytes": 3376
+  },
+  "backend/src/sketch2life/infrastructure/ai/lightning_client.py": {
+    "sha256": "a8f0fe7bfc0b5770d5ab335b787353c42633c639db6e0a0a9600df3707aa4da1",
+    "bytes": 17236
+  },
+  "backend/src/sketch2life/infrastructure/ai/lightning_pixi_show_planner.py": {
+    "sha256": "5cfd0d7f4d5f6b7cb0b0f39a5a6d94ebb4d99f7b73c640e1c4ef316b294ae66f",
+    "bytes": 7361
+  },
+  "backend/src/sketch2life/infrastructure/ai/lightning_sam21.py": {
+    "sha256": "6b5672c1a5be9518af49b26bef2a3071f782856465d258e075e51c35e17820d2",
+    "bytes": 18214
+  },
+  "backend/src/sketch2life/infrastructure/ai/lightning_scene_localization.py": {
+    "sha256": "298431a2380032eabc854bf3968cb7a661b4ecf40dad35fd15ba370d6046bf88",
+    "bytes": 4831
+  },
+  "backend/src/sketch2life/infrastructure/ai/lightning_story_video.py": {
+    "sha256": "52c1d42a1c906708ac2b589ead6a9f9a9d1a8d995ad5e550af3f2e9824b72873",
+    "bytes": 4948
+  },
+  "backend/src/sketch2life/infrastructure/ai/lightning_vision_v2.py": {
+    "sha256": "d231c6eea73b47a41a2d5c8758c1ceb0ef951fb4cb746a4d06d344b4c4f1f19f",
+    "bytes": 11387
+  },
+  "backend/src/sketch2life/infrastructure/ai/lightning_whiteboard.py": {
+    "sha256": "a1b8ae5adde5233ddd9fcf7346a96bc261ea44318ffd1606ecd8a565722f9e5d",
+    "bytes": 5628
+  },
+  "backend/src/sketch2life/infrastructure/ai/lightning_whiteboard_segmentation.py": {
+    "sha256": "f9f09ff8a58e1359622b2c444fd7694496326c007bf95fa1f0597ba536e109ff",
+    "bytes": 4745
+  },
+  "backend/src/sketch2life/infrastructure/ai/p2_t5_fixture_loader.py": {
+    "sha256": "6e852bab734953f8fc4dce9e557779f1d314709e9952c42f811de0b616fff30d",
+    "bytes": 5655
+  },
+  "backend/src/sketch2life/infrastructure/ai/pixi_subject_crop.py": {
+    "sha256": "15dfb4882cbce7b1e3bcfebd66dd04e0b9f2afa22cd176b528fef5dff879f45b",
+    "bytes": 2877
+  },
+  "backend/src/sketch2life/infrastructure/ai/pixi_topic_asset_prompt.py": {
+    "sha256": "e7796ad9025b3171e6bc17a53b5a2735f9b34dc443bd28affbc650bf3e6b6239",
+    "bytes": 2163
+  },
+  "backend/src/sketch2life/infrastructure/ai/qwen_activity_ranker.py": {
+    "sha256": "ac50c8c2cd178ef2ecff588286fd521271f4136556cd4a92677113bbd5ea0943",
+    "bytes": 4239
+  },
+  "backend/src/sketch2life/infrastructure/ai/qwen_child_preference_classifier.py": {
+    "sha256": "f10f2314ae27328b46a0f79b885f3cb0a4ab8232a90a6ca4e0baee4e560b8f23",
+    "bytes": 5872
+  },
+  "backend/src/sketch2life/infrastructure/ai/qwen_vision.py": {
+    "sha256": "d54a629f3cca384be8858e9497c45e5ecccf17a534d16235b0d71563a5ee32b8",
+    "bytes": 64523
+  },
+  "backend/src/sketch2life/infrastructure/ai/qwen_vision_environment_readiness.py": {
+    "sha256": "8652d72be48d6671011e78e08bd73053943ac3eacf408abfcbbd99432f57c26a",
+    "bytes": 13771
+  },
+  "backend/src/sketch2life/infrastructure/ai/qwen_vision_runtime_config.py": {
+    "sha256": "6c790946bd27b079b1441b02b9e5bc13b419acf1652add350bbcbf1891445870",
+    "bytes": 5382
+  },
+  "backend/src/sketch2life/infrastructure/ai/README.md": {
+    "sha256": "dedb8727a27e94a379d0856500d849b6d694490458f02fca73e47c8332f315f6",
+    "bytes": 1088
+  },
+  "backend/src/sketch2life/infrastructure/ai/sam21_quality.py": {
+    "sha256": "ae66044301b884bbd68ea41f6e5a49eb65a64529dfe70fd9681b814d352e98f5",
+    "bytes": 5303
+  },
+  "backend/src/sketch2life/infrastructure/ai/sam21_runtime.py": {
+    "sha256": "21383312a3a01f9383e871543d7eb6202aaafbda2239b4b4547b15ed454ec47b",
+    "bytes": 30286
+  },
+  "backend/src/sketch2life/infrastructure/ai/vision_lexical_policy.py": {
+    "sha256": "3d05a370042573b23aeb43b5db1bdc69c11c206c55d6a896df57ecdff0647382",
+    "bytes": 3962
+  },
+  "backend/src/sketch2life/infrastructure/ai/vision_payload_normalizer.py": {
+    "sha256": "65e57a29f3cee8b5fdd346a6d535a37271464269fcd5b1206e88c2b9d63f898a",
+    "bytes": 17735
+  },
+  "backend/src/sketch2life/infrastructure/ai/workflow_prompt.py": {
+    "sha256": "91302d4e719c269596b908ec685336f0ab0723306d0a41a8084a1e3114608ee2",
+    "bytes": 3359
+  },
+  "backend/src/sketch2life/infrastructure/ai_jobs/__init__.py": {
+    "sha256": "22375802e5b6353e0531b8dfcc8034260672783edd3df6b20c55914fbc1cad78",
+    "bytes": 76
+  },
+  "backend/src/sketch2life/infrastructure/ai_jobs/fakes.py": {
+    "sha256": "f1318e236694002be238fd8cf73bd54d5c27b952a085c8eb9a798ec8e65957e0",
+    "bytes": 32728
+  },
+  "backend/src/sketch2life/infrastructure/ai_jobs/harness.py": {
+    "sha256": "8fbc7b4d59bd87827b931e67c5696335426ebbb473cea50678a0b337171f1aa4",
+    "bytes": 8093
+  },
+  "backend/src/sketch2life/infrastructure/ai_jobs/outbox_dispatcher.py": {
+    "sha256": "7b2dc13ccfa94c5bd09ba7679ab4dfab194aee6b32d8ab651aab92fbcecb6115",
+    "bytes": 707
+  },
+  "backend/src/sketch2life/infrastructure/ai_jobs/reconciler.py": {
+    "sha256": "2b36facbb1c08560be258f1ff69b07354bccb45d7672a33a86317e9d5e02ee5e",
+    "bytes": 1084
+  },
+  "backend/src/sketch2life/infrastructure/ai_jobs/rq_queue.py": {
+    "sha256": "3a4ecdcffe55cfc3003e6273a4ba07b1d1b2f36054688449a533b8b0ee9ad1aa",
+    "bytes": 6884
+  },
+  "backend/src/sketch2life/infrastructure/ai_jobs/sql/__init__.py": {
+    "sha256": "389d10a2447bc9d48d9f116095601b90da46c4d46fa581ebd9b6e6dec09f501b",
+    "bytes": 87
+  },
+  "backend/src/sketch2life/infrastructure/ai_jobs/sql/owner_fence_fixture.py": {
+    "sha256": "f12560d8f68ea31c5f76bb10e0452310cff019c3d2df5a90d8970889d052ec92",
+    "bytes": 14835
+  },
+  "backend/src/sketch2life/infrastructure/ai_jobs/sql/repository.py": {
+    "sha256": "911829a90dd67dddbdc758ec05930038c9415d92a837ea26bbe7e1f6d3a5ad76",
+    "bytes": 36947
+  },
+  "backend/src/sketch2life/infrastructure/ai_jobs/sql/tables.py": {
+    "sha256": "12f6ce1edab047efdd81d495b44df08dc6f990692860621f37fc73778006f888",
+    "bytes": 12426
+  },
+  "backend/src/sketch2life/infrastructure/ai_jobs/worker.py": {
+    "sha256": "241b4ae77164fdc3fcf01952473d726f74fcf381b683e6583f307448046a1b40",
+    "bytes": 6219
+  },
+  "backend/src/sketch2life/infrastructure/ai_jobs/worker_capability.py": {
+    "sha256": "f93963ea5997ece8946187a578964bcd83ea531583c7d2c3661dc8e839bb58a1",
+    "bytes": 7304
+  },
+  "backend/src/sketch2life/infrastructure/assistance/__init__.py": {
+    "sha256": "00af247f07037e7feac9d2ec1f7170ce9dde7d7a8a5ef01c3bbde09b7a9b8799",
+    "bytes": 91
+  },
+  "backend/src/sketch2life/infrastructure/assistance/adapters.py": {
+    "sha256": "a3f4f721423d589733700da292f429a9caf94090bcc94f0137f32d8a997a9614",
+    "bytes": 15364
+  },
+  "backend/src/sketch2life/infrastructure/assistance/fakes.py": {
+    "sha256": "bdbb4317cfa2dc2143602cc3172b400504d7e907c0ca8aae51ae516ce2c8b517",
+    "bytes": 21847
+  },
+  "backend/src/sketch2life/infrastructure/assistance/harness.py": {
+    "sha256": "ffc688b437f45b9572a0ce4f3ea8a3c5d7d668774c5e233b96741407398b231c",
+    "bytes": 24089
+  },
+  "backend/src/sketch2life/infrastructure/catalog/__init__.py": {
+    "sha256": "6ad8e5b36cee7db9586d9457e6a4baee7b7d5576958ef2d6bfc5cb91d2be4f07",
+    "bytes": 54
+  },
+  "backend/src/sketch2life/infrastructure/catalog/activity_catalog_quality.py": {
+    "sha256": "0c5aef9e5cd417b1b1e602dcef296795715e180249d486b624a2439504b6ba3d",
+    "bytes": 17387
+  },
+  "backend/src/sketch2life/infrastructure/catalog/activity_coverage.py": {
+    "sha256": "47a132e5253c8e74e29485d4721abd0672b3f311ff7f03971bc20e20b708e6e1",
+    "bytes": 3988
+  },
+  "backend/src/sketch2life/infrastructure/catalog/activity_preparation.py": {
+    "sha256": "2e22efd2e7c70261d5ca9ed0cb920acdbbcbf7700eea0f29060af2aae6cecab8",
+    "bytes": 4064
+  },
+  "backend/src/sketch2life/infrastructure/catalog/activity_semantics.py": {
+    "sha256": "b323c53ec6cdfb35fd732747614c83f7c1c3e8b6adb32a2b2a194d0d3246bdc9",
+    "bytes": 7051
+  },
+  "backend/src/sketch2life/infrastructure/catalog/activity_semantics_v2.py": {
+    "sha256": "a475188a0e6792ee9c6efa5d28c41655ab914c54f2cc61838a755c537c5d8669",
+    "bytes": 26270
+  },
+  "backend/src/sketch2life/infrastructure/catalog/curated_catalog.py": {
+    "sha256": "d0e7246132fa0bf457f93b45be12b7edf6eacf53ae2649cb76db9d0737cf6d26",
+    "bytes": 28975
+  },
+  "backend/src/sketch2life/infrastructure/catalog/p1_catalog.py": {
+    "sha256": "ad46dce83eb164e1ead595898d5349a5f0e599de360c6eedffc8166847f74835",
+    "bytes": 15335
+  },
+  "backend/src/sketch2life/infrastructure/catalog/pixi_assets.py": {
+    "sha256": "ba61c016371b23fa535a26bdf9519644d1eba1c219e8bfe27267cba4efa113b8",
+    "bytes": 4709
+  },
+  "backend/src/sketch2life/infrastructure/catalog/pixi_show_assets.py": {
+    "sha256": "d3f706658f5002215f79c653be6a9ecc77f7c04bc59dcccf7adfaab4bca43151",
+    "bytes": 23625
+  },
+  "backend/src/sketch2life/infrastructure/catalog/workflow_metadata.py": {
+    "sha256": "405f7ccea08fb22ce127099eebd3ac9c9823167d5b0938159ec7f88a3c4c1258",
+    "bytes": 13114
+  },
+  "backend/src/sketch2life/infrastructure/child_response/adapters.py": {
+    "sha256": "19be6084256fdecbf919388a9ef7fd3c3cf38f22eb8fad0d77c783783e411882",
+    "bytes": 7968
+  },
+  "backend/src/sketch2life/infrastructure/child_response/examples.py": {
+    "sha256": "1eefe98e0c238af6e4d2b5e017cc14158538b4e09ed06f3d6c2ed34d7dd3aa2f",
+    "bytes": 1963
+  },
+  "backend/src/sketch2life/infrastructure/child_response/fakes.py": {
+    "sha256": "643379e7d0681c695f902088f152148be1a31c2ffcc8989d207aeb40e7872bc9",
+    "bytes": 6193
+  },
+  "backend/src/sketch2life/infrastructure/child_response/harness.py": {
+    "sha256": "b903dafbcef48aadce890d2cfc35b363fcc5f8a34db307314f6df9ee8a4cd9ef",
+    "bytes": 7510
+  },
+  "backend/src/sketch2life/infrastructure/config/.gitkeep": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "backend/src/sketch2life/infrastructure/config/__init__.py": {
+    "sha256": "7ab40093ba16e6ad5f3d7e9d1f7a4819f4aedb37ec380cafa3a214f5cc2dcdf1",
+    "bytes": 38
+  },
+  "backend/src/sketch2life/infrastructure/config/settings.py": {
+    "sha256": "984829f23439b05a5bbdbf093e780e79d7c7630082b6e6c629a4783fe55ca1ac",
+    "bytes": 4383
+  },
+  "backend/src/sketch2life/infrastructure/db/.gitkeep": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "backend/src/sketch2life/infrastructure/identity/__init__.py": {
+    "sha256": "b273bdc775cec6579d65c2112c6df09569e3e9b3907d919ef59754a238d77e45",
+    "bytes": 34
+  },
+  "backend/src/sketch2life/infrastructure/identity/firebase_token_verifier.py": {
+    "sha256": "0b2def14f43f80c311f4d0dbc71dd29f90c2e1fc0ba6032db20b999cae8287fd",
+    "bytes": 3282
+  },
+  "backend/src/sketch2life/infrastructure/knowledge_bundle/__init__.py": {
+    "sha256": "5f7ad8ca16cef20d5ba5d74db5c10ca2355a34dcfdf0f1d09ac0fb7d8c97f058",
+    "bytes": 88
+  },
+  "backend/src/sketch2life/infrastructure/knowledge_bundle/adapters.py": {
+    "sha256": "521dfd642d2aed5c47a4e27904d2aabb672c0c4b3d2df1a58b0f6b8c8792b2ff",
+    "bytes": 11779
+  },
+  "backend/src/sketch2life/infrastructure/knowledge_bundle/coordination.py": {
+    "sha256": "cbe5467f2463197307eef7f3ba0616392272ca032a7fdce1716752e318ac6c53",
+    "bytes": 2129
+  },
+  "backend/src/sketch2life/infrastructure/knowledge_bundle/examples.py": {
+    "sha256": "6d7531d639582834b32e0df4837bb2907b7b88b16820f3cf66c37249d4af6164",
+    "bytes": 7976
+  },
+  "backend/src/sketch2life/infrastructure/knowledge_bundle/fakes.py": {
+    "sha256": "edeb15a8e25027d8167fa5f9d75c23fb8160318cae037cdc8476ad41e3cd95fa",
+    "bytes": 7302
+  },
+  "backend/src/sketch2life/infrastructure/knowledge_bundle/harness.py": {
+    "sha256": "34e6f8fed3d4d14efe94ce49f725966ff4ce0b38939d156daaec76e66a026eca",
+    "bytes": 4970
+  },
+  "backend/src/sketch2life/infrastructure/media/__init__.py": {
+    "sha256": "f249cefaef94d1a2b1266426121826de2164924efeabf13667952536d28657f0",
+    "bytes": 60
+  },
+  "backend/src/sketch2life/infrastructure/media/illustrated_story_slice.py": {
+    "sha256": "3fc91998c5c4a23406bcfa9cec12e222415621eefff3adb65d824a5067c73f49",
+    "bytes": 11328
+  },
+  "backend/src/sketch2life/infrastructure/media/limited_character_rig_v2.py": {
+    "sha256": "d009cd97e32ab021a09451bae2022c25fb080e9991aaf52bdc6a07e861eff916",
+    "bytes": 8767
+  },
+  "backend/src/sketch2life/infrastructure/media/object_stroke_engine_v2.py": {
+    "sha256": "bef67d325b397adc53610ed6d342023f9651b4551951e0e727fef6e010d43ee6",
+    "bytes": 25689
+  },
+  "backend/src/sketch2life/infrastructure/media/scene_distinctness.py": {
+    "sha256": "9c598ff239e39961a28e3a24b971d0b2044234d0801eedd7905f6efbff8d79c1",
+    "bytes": 1730
+  },
+  "backend/src/sketch2life/infrastructure/media/scene_state_composer.py": {
+    "sha256": "befd36a50f4d9a7409e15f6850d5abed739fb5c564ece3215562a4206713d703",
+    "bytes": 6363
+  },
+  "backend/src/sketch2life/infrastructure/media/semantic_authoring_v1.py": {
+    "sha256": "37225c99ad4b6f09863b43d9bef140944e897552b43967648e4861cdd2ede220",
+    "bytes": 9792
+  },
+  "backend/src/sketch2life/infrastructure/media/semantic_drawing_engine_v2.py": {
+    "sha256": "a32a1027e56ccd82ffa55ee6b60aebaa22a9919adb0764cb34a71e952f26919c",
+    "bytes": 18803
+  },
+  "backend/src/sketch2life/infrastructure/media/whiteboard_artifact_paths.py": {
+    "sha256": "5d54c31dd6af5aed347c1cf6d97bd52c6d97d1ff6d8afd8e62a7f92510bf007a",
+    "bytes": 1469
+  },
+  "backend/src/sketch2life/infrastructure/media/whiteboard_color_regions.py": {
+    "sha256": "40ab770389ebc412560d3d88ab2a8e4b389b00d290a45940fcbbf60e5d143dd8",
+    "bytes": 4242
+  },
+  "backend/src/sketch2life/infrastructure/media/whiteboard_draw_schedule.py": {
+    "sha256": "4402fcb6e9b46f17e320961be3b9b3bc5ad52baf0a4e3ca105fffa7f4fd0e04e",
+    "bytes": 4093
+  },
+  "backend/src/sketch2life/infrastructure/media/whiteboard_mask_validation.py": {
+    "sha256": "f348be927cbdaf60cdba4020c51e31f955ab48088dbdd03c0036a823a0f5d8e9",
+    "bytes": 1838
+  },
+  "backend/src/sketch2life/infrastructure/media/whiteboard_mp4_encoder.py": {
+    "sha256": "2c1fdf48da36fe031cd610d76bad9f63744fbaef7fd45d4c139049222bd81d72",
+    "bytes": 2482
+  },
+  "backend/src/sketch2life/infrastructure/media/whiteboard_mvp_renderer.py": {
+    "sha256": "fe272b3213db02afa2085e5c88e61dfb853c21fb74fb5ef4fa9e160430d86407",
+    "bytes": 23572
+  },
+  "backend/src/sketch2life/infrastructure/media/whiteboard_pipeline_factory.py": {
+    "sha256": "65ae33842f13a7763ab97e4bd83789fbfcf21dfbfddb2bb9682d7d3ce45c09fb",
+    "bytes": 8016
+  },
+  "backend/src/sketch2life/infrastructure/media/whiteboard_renderer_adapter.py": {
+    "sha256": "dd2bbba761d5d44c4b24132dd70efc56b3fbcf78ba3e52af87d20514d5af83c6",
+    "bytes": 2543
+  },
+  "backend/src/sketch2life/infrastructure/media/whiteboard_renderer_v2.py": {
+    "sha256": "9b76ba00ab0f874c6411bc20abd0de2a100dc4217d439ff2c28c47f9afb38a21",
+    "bytes": 20134
+  },
+  "backend/src/sketch2life/infrastructure/media/whiteboard_runtime.py": {
+    "sha256": "c67e37dbf8514d16330c95a4821d5af4fd8c8baae5d303b9a78173b8ed986f38",
+    "bytes": 5568
+  },
+  "backend/src/sketch2life/infrastructure/media/whiteboard_safety_validator.py": {
+    "sha256": "97b554c3cb275b59783952bccd9edefde23499367f866fbaf6d62b38d4018ed7",
+    "bytes": 2401
+  },
+  "backend/src/sketch2life/infrastructure/media/whiteboard_sam_masks.py": {
+    "sha256": "ed27b4a951cc554fdb60646b90d6ed13fb55737f474b37b9b0fbbc0b44af3b2b",
+    "bytes": 4615
+  },
+  "backend/src/sketch2life/infrastructure/media/whiteboard_segmenter_adapter.py": {
+    "sha256": "546ab053beaa940ef877a096c23843e5ac593db0cecdbdc00bdc298039fb9447",
+    "bytes": 1652
+  },
+  "backend/src/sketch2life/infrastructure/media/whiteboard_slice_feasibility.py": {
+    "sha256": "e2a9bfc8f3cbcc52c06196eed851e92c672bad39026343bc2dfe4480a53419b5",
+    "bytes": 5674
+  },
+  "backend/src/sketch2life/infrastructure/media/whiteboard_stroke_adapter.py": {
+    "sha256": "23aae0f237332c77a0da5311928943d691c829278fb1f4ef155a513582b35a77",
+    "bytes": 1900
+  },
+  "backend/src/sketch2life/infrastructure/media/whiteboard_stroke_extraction.py": {
+    "sha256": "a1d4f24c26487426c299c3bcad6d92fbfb6a960f725d0c3b7ecaf8000001ba1d",
+    "bytes": 13781
+  },
+  "backend/src/sketch2life/infrastructure/media/whiteboard_tts_adapter.py": {
+    "sha256": "8fc48b4351707d83740a2537c6795f6147111a50d45db2071c9f31de50c4f03e",
+    "bytes": 1926
+  },
+  "backend/src/sketch2life/infrastructure/media/whiteboard_vector_pilot.py": {
+    "sha256": "7498a473aed8d04183c855b692978a02275212f1e31d6ecc5e2d431d69e8b514",
+    "bytes": 10307
+  },
+  "backend/src/sketch2life/infrastructure/media_validation/__init__.py": {
+    "sha256": "e01846c407bb29fd127649dc9c54639dc7e7c23b25b6842f0419268f2a49fc11",
+    "bytes": 75
+  },
+  "backend/src/sketch2life/infrastructure/media_validation/av_image_decoder.py": {
+    "sha256": "08beafb474e9cc0c7a4a00878129894ded3335e4bfbceaae8caf572b79378769",
+    "bytes": 3728
+  },
+  "backend/src/sketch2life/infrastructure/media_validation/file_inspector.py": {
+    "sha256": "3f8ef6d85a272b64c5770721fe9cc3e3741f073feea89042db44e0a781602238",
+    "bytes": 11265
+  },
+  "backend/src/sketch2life/infrastructure/object_storage/.gitkeep": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "backend/src/sketch2life/infrastructure/persistence/.gitkeep": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "backend/src/sketch2life/infrastructure/persistence/__init__.py": {
+    "sha256": "75c26d9cc4ee7f6427f9775f203f44238022bd8b20b013fd2ead7f1979731ad7",
+    "bytes": 64
+  },
+  "backend/src/sketch2life/infrastructure/persistence/be1_bootstrap.py": {
+    "sha256": "7ca7217cd623eeb4436b6d25d2bc8627802ce7562ba3cfed0d33d12ffd1c66a0",
+    "bytes": 3433
+  },
+  "backend/src/sketch2life/infrastructure/persistence/be1_models.py": {
+    "sha256": "d9b2910bf04e3deb9b42f7bbdf7db82a0724377ec2b2043b94be005124d2427f",
+    "bytes": 17380
+  },
+  "backend/src/sketch2life/infrastructure/persistence/be1_worker.py": {
+    "sha256": "f6c908b45b2099bf9b93debb7baa87a64582ee1aeb7adabc2325a581d99c1dd5",
+    "bytes": 8475
+  },
+  "backend/src/sketch2life/infrastructure/persistence/core_models.py": {
+    "sha256": "61418a3f7015862b7a8b2037c9422113df1e73311124e227dde4197d12ac6ec3",
+    "bytes": 10526
+  },
+  "backend/src/sketch2life/infrastructure/persistence/core_store.py": {
+    "sha256": "d32af10e0fdd76ebe2739e2dfe6386750bec590d631a3f614e23cffebf9c72a3",
+    "bytes": 17377
+  },
+  "backend/src/sketch2life/infrastructure/persistence/database.py": {
+    "sha256": "c37f51ce9be25c66f98065a68516e549e94b99219ff24cf846be1755616194ff",
+    "bytes": 1703
+  },
+  "backend/src/sketch2life/infrastructure/persistence/outbox.py": {
+    "sha256": "0c09ba3b69b1c2ec0d71133c6307bcbfc2902287b287daf11e1af8ba9dc9281b",
+    "bytes": 6653
+  },
+  "backend/src/sketch2life/infrastructure/queue/.gitkeep": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "backend/src/sketch2life/infrastructure/sketch_generation/__init__.py": {
+    "sha256": "62b01e7232b952e6bd04b4652ece5d4caab4f30382b3eb06e53d30762f8f7ed0",
+    "bytes": 86
+  },
+  "backend/src/sketch2life/infrastructure/sketch_generation/adapters.py": {
+    "sha256": "7b45ffe72559e34269c1798009b98dcdbe08096f41298dd4e0e64f67003d99f0",
+    "bytes": 27337
+  },
+  "backend/src/sketch2life/infrastructure/sketch_generation/fakes.py": {
+    "sha256": "de94d1a336c61b38816ca9b890dd41851fe4974d8501521b79c7377692d554e2",
+    "bytes": 19022
+  },
+  "backend/src/sketch2life/infrastructure/sketch_generation/harness.py": {
+    "sha256": "63c1eed9b71daef8e50ec8c7459588b5c88660a446921d49ed45650443cfdf68",
+    "bytes": 35470
+  },
+  "backend/src/sketch2life/infrastructure/sketch_review/__init__.py": {
+    "sha256": "b5d6dbd574c882db7b5a42b354906b30f34c963f44b50199b920b78fe2197462",
+    "bytes": 73
+  },
+  "backend/src/sketch2life/infrastructure/sketch_review/adapters.py": {
+    "sha256": "b454de10c6a8c617663c4155aa8388437c400993453037b130b14ed4429008a3",
+    "bytes": 5176
+  },
+  "backend/src/sketch2life/infrastructure/sketch_review/coordination.py": {
+    "sha256": "7b912e66ac5955271b5b0fbeae94985c53e6dfada8371b76d0a73f79a880d7dd",
+    "bytes": 11725
+  },
+  "backend/src/sketch2life/infrastructure/sketch_review/fakes.py": {
+    "sha256": "e3ac43cb4380c99359120a6cc99ef6284b4561122da8d1f73a1554dafbb0c237",
+    "bytes": 10106
+  },
+  "backend/src/sketch2life/infrastructure/sketch_review/harness.py": {
+    "sha256": "d4da138b1204939b69c22769740cd5958e1bbb252eb1b67978e68a5a515ac5b0",
+    "bytes": 12727
+  },
+  "backend/src/sketch2life/infrastructure/storage/__init__.py": {
+    "sha256": "bbbef133eb44251c675a437f1b326b0472335f0b1553bfc604f8c647d7e3360a",
+    "bytes": 49
+  },
+  "backend/src/sketch2life/infrastructure/storage/in_memory.py": {
+    "sha256": "81b0676d17bb60d057f01f148e3e47362ea63e50c82708dec23b162c0cf663ac",
+    "bytes": 6556
+  },
+  "backend/src/sketch2life/infrastructure/storage/in_memory_auto_rig_grants.py": {
+    "sha256": "6acdc2fc688fbe3bb304bbf61e9cf90a0c58f15e0935656ad30f28191b64c5a5",
+    "bytes": 1632
+  },
+  "backend/src/sketch2life/infrastructure/storage/in_memory_demo_workflow.py": {
+    "sha256": "2c0b3082965e9b5514b192a4bf8398fd9fe0eceb2bdffd7ab5768f34c2d1e2f1",
+    "bytes": 1822
+  },
+  "backend/src/sketch2life/infrastructure/storage/in_memory_renderer_source_grants.py": {
+    "sha256": "c9d7b1d82db820e738b9d349dc573825ae1943c4f8b663255a55aee37be5cdb6",
+    "bytes": 1588
+  },
+  "backend/src/sketch2life/infrastructure/storage/persistent_local_artifacts.py": {
+    "sha256": "d093b2d080b26d898fe03188c6879cb4fc80eea02047af16d4466468d2b308cc",
+    "bytes": 2279
+  },
+  "backend/src/sketch2life/infrastructure/telemetry/.gitkeep": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "backend/src/sketch2life/infrastructure/understanding/__init__.py": {
+    "sha256": "9d76a57dff8e7e4f4396af6afdb324b2e95a09f47a61e2209ce5fc4ae0aa754e",
+    "bytes": 83
+  },
+  "backend/src/sketch2life/infrastructure/understanding/fixture_adapters.py": {
+    "sha256": "58d9c397b23dac523b4dd1491efaa41e68e9be2f652c99442728cb4d6eaa8504",
+    "bytes": 3600
+  },
+  "backend/src/sketch2life/infrastructure/understanding/qwen3_vl_adapter.py": {
+    "sha256": "68989f6b9257a8ad63270105ae0a6029e52fb65bc028445d7e60a03d8ab1d783",
+    "bytes": 4471
+  },
+  "backend/src/sketch2life/infrastructure/understanding/README.md": {
+    "sha256": "1c4f3cbd7ab3f132dbb1a90a5c29cfa5ee7e489ced8b4de5bd2c56355edc0716",
+    "bytes": 704
+  },
+  "backend/src/sketch2life/infrastructure/understanding/whisper_adapter.py": {
+    "sha256": "bd8e1d2ac48fac047589223abf887f5b854111490117717b30fe2e0d4297e1ca",
+    "bytes": 3888
+  },
+  "backend/src/sketch2life/infrastructure/vision_analysis/__init__.py": {
+    "sha256": "ca7f2429c3309872604b3ab440ac054371086fb0dff82c17704af2148253ec37",
+    "bytes": 91
+  },
+  "backend/src/sketch2life/infrastructure/vision_analysis/context_adapter.py": {
+    "sha256": "d01cf98fc5a18233b112c4ed8e8d77efd4e46377718aba0a1d5523d6331f683a",
+    "bytes": 12964
+  },
+  "backend/src/sketch2life/infrastructure/vision_analysis/fakes.py": {
+    "sha256": "743a46897914c0457b64d77567cdb188db94e39f9498e6a0e3cc3c3c8b0414fa",
+    "bytes": 26098
+  },
+  "backend/src/sketch2life/infrastructure/vision_analysis/harness.py": {
+    "sha256": "bcae980736ecca23881f93dd5c679065b5ca798c0068af9a399022bf543ce957",
+    "bytes": 21596
+  },
+  "backend/src/sketch2life/infrastructure/vision_analysis/job_lineage.py": {
+    "sha256": "e472d5a1fed9ca08301028cb456f1ed0e42028929976f7b7266e9c7491007e8d",
+    "bytes": 1594
+  },
+  "backend/src/sketch2life/infrastructure/vision_analysis/legacy_v2.py": {
+    "sha256": "b4d3f41836d8f62c2e2c8bd01d2d4149ab7b61cacee844f42c1da8a030da5ade",
+    "bytes": 14498
+  },
+  "backend/src/sketch2life/interfaces/__init__.py": {
+    "sha256": "d1e234a9218259daa174aaf0d25703a1b8fa557cd582f5592e81f7a660f5fbfa",
+    "bytes": 34
+  },
+  "backend/src/sketch2life/interfaces/cli/__init__.py": {
+    "sha256": "12ee7c979ce57637e84bf9dc8748518bfee55df797933deb6a676be80a092cdc",
+    "bytes": 38
+  },
+  "backend/src/sketch2life/interfaces/cli/p2_t5_evaluation.py": {
+    "sha256": "0c7429312ca26e2703ec190b8d9a67133046043a08cde6f7345bef982100c706",
+    "bytes": 6093
+  },
+  "backend/src/sketch2life/interfaces/cli/workflow_demo.py": {
+    "sha256": "9054b63c87f46456a34d9a17ee93a8e78f34d7a7824c52ff4fb9edda4ecbc0be",
+    "bytes": 13977
+  },
+  "backend/src/sketch2life/interfaces/events/.gitkeep": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "backend/src/sketch2life/interfaces/events/__init__.py": {
+    "sha256": "b1465054012c7ebb841f274de9064b43aa4fb86c3ebe4a00df28adc1231afc64",
+    "bytes": 41
+  },
+  "backend/src/sketch2life/interfaces/http/.gitkeep": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "backend/src/sketch2life/interfaces/http/__init__.py": {
+    "sha256": "ca1498bbdd9025b039ef876858c68f68fcd626c97b7bfe7939d57bb0a8348b91",
+    "bytes": 28
+  },
+  "backend/src/sketch2life/interfaces/http/ai_jobs_fixture_app.py": {
+    "sha256": "7ee82e3c80d3ba892b9b532961786832f747cf1a627a245cb20c90d85e6d1d03",
+    "bytes": 2140
+  },
+  "backend/src/sketch2life/interfaces/http/analysis_corrections_fixture_app.py": {
+    "sha256": "7aef60529ebc761a4e2044bd7b437598a49a41c35069f2ab7dae1415b673f661",
+    "bytes": 1540
+  },
+  "backend/src/sketch2life/interfaces/http/app.py": {
+    "sha256": "bf1258b20a0086c14612d6a1c358751d2e8ee151676b28fc7c352096ad834a18",
+    "bytes": 39231
+  },
+  "backend/src/sketch2life/interfaces/http/assistance_requests_fixture_app.py": {
+    "sha256": "3cdf6e04b8540168d0bd5da4318a0e8135040e12f3761cf98fb0e00d1cc6f30d",
+    "bytes": 1525
+  },
+  "backend/src/sketch2life/interfaces/http/be1_runtime.py": {
+    "sha256": "e7a990f325fecd79672e4751c287f58914feb499276312be6bbc0a7190372a85",
+    "bytes": 10936
+  },
+  "backend/src/sketch2life/interfaces/http/dependencies/.gitkeep": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "backend/src/sketch2life/interfaces/http/middleware/bounded_image_upload.py": {
+    "sha256": "1472f6e74e648e124456a21c553f0c5a08549d2ab5a869f4d0a57f53fbaed662",
+    "bytes": 2994
+  },
+  "backend/src/sketch2life/interfaces/http/routers/.gitkeep": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "backend/src/sketch2life/interfaces/http/routers/__init__.py": {
+    "sha256": "663faccd87b766e640d0d2c0b5db112a5c1c34e8d03b24699426c2eab183dbe0",
+    "bytes": 37
+  },
+  "backend/src/sketch2life/interfaces/http/routers/ai_jobs.py": {
+    "sha256": "8f90789fe6bc5abbd5b1f2d489c201dd99def252ad2182d591a2becbbc7641b6",
+    "bytes": 3872
+  },
+  "backend/src/sketch2life/interfaces/http/routers/analysis_corrections.py": {
+    "sha256": "6b5a6050ab9b64a0a72619f2a8736b0f654d73409c76233e3fa2d7df316fd657",
+    "bytes": 7022
+  },
+  "backend/src/sketch2life/interfaces/http/routers/assistance_requests.py": {
+    "sha256": "2bc20104a480155bdccbcb200e9b71cd49d2d1e44394b14928ad643e8e2c958e",
+    "bytes": 9323
+  },
+  "backend/src/sketch2life/interfaces/http/routers/be1_artifacts.py": {
+    "sha256": "cc844d9b3c1afcdf0b09cb68af0d0f9fdc600f72b94e0c96efb3204222134ca9",
+    "bytes": 9171
+  },
+  "backend/src/sketch2life/interfaces/http/routers/be1_canvas.py": {
+    "sha256": "26059a866b78620afb235f740e04e486df96c2b204ac015dcbce1cef380c2b6c",
+    "bytes": 22663
+  },
+  "backend/src/sketch2life/interfaces/http/routers/be1_common.py": {
+    "sha256": "d8566315c84af31a480033a595060d64a9ea94cbcdf23e1586952bd4fd8a7a7a",
+    "bytes": 8864
+  },
+  "backend/src/sketch2life/interfaces/http/routers/be1_records.py": {
+    "sha256": "05a9eb9a1c1e732eb3801213798a3dee74b96e52517545513b42886da392d9cf",
+    "bytes": 16381
+  },
+  "backend/src/sketch2life/interfaces/http/routers/be1_registry.py": {
+    "sha256": "285cbeedefdef30ccf9c0a35dd7014824cbc7d87f66c5c3a03bb9a58bb302b68",
+    "bytes": 17727
+  },
+  "backend/src/sketch2life/interfaces/http/routers/be1_runtime.py": {
+    "sha256": "89c54ac8edb63fd2dc9a92910be817645d9429b8a54e0485f86a826ba6a863a7",
+    "bytes": 1014
+  },
+  "backend/src/sketch2life/interfaces/http/routers/be1_sessions.py": {
+    "sha256": "728433a50c120b26944e6121fac2bf5e3e5c95fac8446fba67772826beaf3aef",
+    "bytes": 38897
+  },
+  "backend/src/sketch2life/interfaces/http/routers/child_preferences.py": {
+    "sha256": "7c64daf5c6eee47082e2a087878fd8b35786210367f0c222817501739a90b37f",
+    "bytes": 4472
+  },
+  "backend/src/sketch2life/interfaces/http/routers/health.py": {
+    "sha256": "5d0339a18b38b670b71aff6b8607fced42eabd9c3f44e2f1d9b59fcfe57ced38",
+    "bytes": 375
+  },
+  "backend/src/sketch2life/interfaces/http/routers/images.py": {
+    "sha256": "af4538e19660ac93cd995e212860d360acc943a2fd90b52fe44fd228c02885d2",
+    "bytes": 9595
+  },
+  "backend/src/sketch2life/interfaces/http/routers/live_understanding.py": {
+    "sha256": "f5a45f4bf85d30abb9bc0ad5f2df81e3008af8afdec5e7bf9da4e89c1ff1a0a0",
+    "bytes": 4184
+  },
+  "backend/src/sketch2life/interfaces/http/routers/sessions.py": {
+    "sha256": "121f14f35c93e95f6588b8e31e84fb8647e6b3cda16b265e55fd77823e015ed4",
+    "bytes": 3431
+  },
+  "backend/src/sketch2life/interfaces/http/routers/story_video.py": {
+    "sha256": "c7feffead0393444bc9cb8a518e471c0d6f64f3d33d3b540002ca1dc51f48f31",
+    "bytes": 4576
+  },
+  "backend/src/sketch2life/interfaces/http/routers/supervised_flow.py": {
+    "sha256": "644465b07f025b0c1bbb7b25cb31a0667219866c30318eb4382823010391d8c3",
+    "bytes": 21573
+  },
+  "backend/src/sketch2life/interfaces/http/routers/whiteboard_storyboard.py": {
+    "sha256": "cc9871b0648fd2affa034b60fa7ff1e980c0db30bab62f49b9ec2e084748ea0f",
+    "bytes": 1611
+  },
+  "backend/src/sketch2life/interfaces/http/routers/whiteboard_video.py": {
+    "sha256": "a989301e62b29cbea5db4cc56a7740057c4650586b7a599c18f26f77815c5bc7",
+    "bytes": 4425
+  },
+  "backend/src/sketch2life/main.py": {
+    "sha256": "d58e35d09af177f0a2fac7b8597f88fe9385d5964e0914e3b0bdaefd6c8f90c6",
+    "bytes": 138
+  },
+  "backend/src/sketch2life/README.md": {
+    "sha256": "92f7585f34ac16aa130c3b14260418a1feff2aa167e39e4f118e5806eaa309ad",
+    "bytes": 516
+  },
+  "backend/src/sketch2life/workflow_demo.py": {
+    "sha256": "81ed3e97fcde6360524bbd3c91a5275ed13fe7430d9af2b27c11c0c19a32ab9a",
+    "bytes": 360
+  },
+  "backend/tests/conftest.py": {
+    "sha256": "d4d18732d1c4f5518a1aaa36a9facd98926f13bf8c10504fc0c866dabfc1a7e5",
+    "bytes": 36
+  },
+  "backend/tests/contract/test_activity_preparation_catalog.py": {
+    "sha256": "b00b8a704d7a011e730b133159b83afbb54fee389d48e20146b44206a34c3446",
+    "bytes": 3155
+  },
+  "backend/tests/contract/test_ai_job_contracts.py": {
+    "sha256": "a65c552542fcdc11a3b3340d1873fcc9085de78a533af25e95326f6cf149af79",
+    "bytes": 8901
+  },
+  "backend/tests/contract/test_ai_job_polling.py": {
+    "sha256": "26ba77564276802fd2d4c19958442d6094cf563ea5cb5392760a416e2b95bb25",
+    "bytes": 7778
+  },
+  "backend/tests/contract/test_analysis_corrections_api.py": {
+    "sha256": "4c3d3b0d9b81c7a96214eab81e874af4044e326d678eeb431017245a91f3a87b",
+    "bytes": 10226
+  },
+  "backend/tests/contract/test_analysis_result_contracts.py": {
+    "sha256": "24dbf892a06469c678f76c9af471047816930dc33e4d87c49daa5446decf9b67",
+    "bytes": 9120
+  },
+  "backend/tests/contract/test_assistance_request_contracts.py": {
+    "sha256": "30b6eedc5ad11d7b26746782e59794614bf9feedc440e5894ec694f0d2c05ffc",
+    "bytes": 6345
+  },
+  "backend/tests/contract/test_assistance_requests_api.py": {
+    "sha256": "7dd80544c9fd6f142c2510108d669298de6e0d87d94b61b373bd7c5901d3df8a",
+    "bytes": 8306
+  },
+  "backend/tests/contract/test_child_responses.py": {
+    "sha256": "629c329c8ddd02bcd8d4002564cb4876efb62c1a55b85d6c71eab4444aa4db91",
+    "bytes": 7400
+  },
+  "backend/tests/contract/test_h_ai_review_handoff_examples.py": {
+    "sha256": "87e83d5e084423006222bbca62b31718e8d454109370bab1a342c33e22baa129",
+    "bytes": 3628
+  },
+  "backend/tests/contract/test_health.py": {
+    "sha256": "e7ef278badb86c0c7fde27cb07e3555b32e6a0ff4807bcadf5cecace315618f7",
+    "bytes": 308
+  },
+  "backend/tests/contract/test_knowledge_bundles.py": {
+    "sha256": "9592444b4e8551b540be9fb904ba3cb96b4c0f67012b61226a1bc631f6999448",
+    "bytes": 17453
+  },
+  "backend/tests/contract/test_live_image_demo_api.py": {
+    "sha256": "596ed44c5d369442e39f3b73e31fc1124bb7478b9a3fa9db49fdaa5b8947cec5",
+    "bytes": 83044
+  },
+  "backend/tests/contract/test_mobile_workflow_contracts.py": {
+    "sha256": "9e5a3d9b3a3db362d58c1b5234a6949b5fe43cf7687abdd9321364e8d61bcdac",
+    "bytes": 8570
+  },
+  "backend/tests/contract/test_p2_t4_contract.py": {
+    "sha256": "46156b4576dfb9f4f9c500ee0d6fb110ba593627dddec9f1b72f0e9972fe7759",
+    "bytes": 42821
+  },
+  "backend/tests/contract/test_p2_t5_evaluation_contract.py": {
+    "sha256": "998c0c3bccaaf832213ee774a7ad75e53747dee4ac7a7005bffb5a3994c6c109",
+    "bytes": 963
+  },
+  "backend/tests/contract/test_raw_understanding_contract.py": {
+    "sha256": "2fa8241d245fa4d1b2c8fef371069d4551ee1b8c5c1e666e4b6fbf69d56e181b",
+    "bytes": 905
+  },
+  "backend/tests/contract/test_renderer_contracts.py": {
+    "sha256": "d78be480d6d82758cf85810921dfbb8108432aac1a97d0621a35a56d76d59cf2",
+    "bytes": 7707
+  },
+  "backend/tests/contract/test_session_http_api.py": {
+    "sha256": "bfa9bd98ed9ba3571408cec6dd0360f7cb322f80b16211039de83dc0b0f2f436",
+    "bytes": 6818
+  },
+  "backend/tests/contract/test_sketch_proposal_contracts.py": {
+    "sha256": "6c3a1be1bd02a46ae9a7dfcb8f69dbfdef28a6f584df0c7847b0350ddc7491ad",
+    "bytes": 7044
+  },
+  "backend/tests/contract/test_sketch_review_contracts.py": {
+    "sha256": "b13a5c05c1b6e41c8f88ce6fba21c8b1e1c7248fcc70e92fc3ad29b289243767",
+    "bytes": 6533
+  },
+  "backend/tests/contract/test_story_video_file_api.py": {
+    "sha256": "a095dcf9fd3f64effa559f6cbfd6dc4395da2e127de6df7e8a02cfa885ce8e32",
+    "bytes": 3596
+  },
+  "backend/tests/contract/test_vision_context_contracts.py": {
+    "sha256": "60a02a99f17561fdc5d785d77ba4582df2103c93d4c3110cbbdbc8baac8ff728",
+    "bytes": 10067
+  },
+  "backend/tests/contract/test_whiteboard_storyboard_api.py": {
+    "sha256": "872d9b3c2b594167df19f5c0624c6ca15c4f94c8a41f3501f76c0cbda88b6d1e",
+    "bytes": 3157
+  },
+  "backend/tests/contract/test_whiteboard_video_api.py": {
+    "sha256": "91c4da7d57b4346993c9c4667592ad22bcacf34755f647edb411e3ccfe146538",
+    "bytes": 2919
+  },
+  "backend/tests/contract/test_whiteboard_video_app_wiring.py": {
+    "sha256": "2a18e93a0a324046267298e5215e7ceeb212fbca7a3c978cd98c52de57f14552",
+    "bytes": 436
+  },
+  "backend/tests/contract/test_whiteboard_video_end_to_end.py": {
+    "sha256": "9aaf7c789d7cd612d20e0e050f681e43aca60eb0a2e0c29f485f687268e849c9",
+    "bytes": 2199
+  },
+  "backend/tests/e2e/test_lightning_backend_workflow.py": {
+    "sha256": "8d930d3acb3d0e574bac85045adb240d968f2cfc3c6d6afce93b2e10e47a9c1a",
+    "bytes": 2899
+  },
+  "backend/tests/integration/ai_jobs/b3_support.py": {
+    "sha256": "95a7e1a0b592254404faf8b1970f24c8346ea34e34ae516a377bc0f91b51a60a",
+    "bytes": 9911
+  },
+  "backend/tests/integration/ai_jobs/b4_support.py": {
+    "sha256": "c8122ca21698d82d3223aff8db46cbcf93377b66a8e31ca8c185c91b6a2c386b",
+    "bytes": 2353
+  },
+  "backend/tests/integration/ai_jobs/b5_support.py": {
+    "sha256": "0e4b5ecd07466b6eae2751ca31e73bf9a3ca3b431b030b47dde2acdc33c51baa",
+    "bytes": 12404
+  },
+  "backend/tests/integration/ai_jobs/conftest.py": {
+    "sha256": "c44c3abd75a1f3d3a035dedb5cc2994c72f04ef1c2804ff61637ccee9b4172a4",
+    "bytes": 2565
+  },
+  "backend/tests/integration/ai_jobs/test_aggregate_reads.py": {
+    "sha256": "f3eadbc5508473bdeba64e267c9feb0eac00156c853d3eac0df17f14d51f5117",
+    "bytes": 6595
+  },
+  "backend/tests/integration/ai_jobs/test_audit_durability.py": {
+    "sha256": "155754de8daca843a8923fde511b1f8eceb97c78e30906e904c19162a6e81530",
+    "bytes": 16753
+  },
+  "backend/tests/integration/ai_jobs/test_capability.py": {
+    "sha256": "5d526ae3678299664656246ae4b5622776c9ffcabcbb5924a36ea8b80254c3e9",
+    "bytes": 11248
+  },
+  "backend/tests/integration/ai_jobs/test_completion_recovery.py": {
+    "sha256": "4fbc012e07e1050d72996e1e19c89c571e80e877c714afd34e09d33543069837",
+    "bytes": 7289
+  },
+  "backend/tests/integration/ai_jobs/test_create_races.py": {
+    "sha256": "9ab9a765c01e0ebb3b8c0159b8d868bf6b2a8888b66181b8dcd1a13755da020a",
+    "bytes": 8715
+  },
+  "backend/tests/integration/ai_jobs/test_dispatch_recovery.py": {
+    "sha256": "0f775939eefeb5e58a831b223cc4e6280a34ec8befe7b3d0757468615281115d",
+    "bytes": 23973
+  },
+  "backend/tests/integration/ai_jobs/test_migrations.py": {
+    "sha256": "f3e907442ee228ac45c25834ddc91ee7f27678b2178487062b6d4e331df15d22",
+    "bytes": 27641
+  },
+  "backend/tests/integration/ai_jobs/test_notice_coverage.py": {
+    "sha256": "999cef97da6d0b34e8303f8de754c7372184d526138e32b1b72934889857eb9f",
+    "bytes": 9526
+  },
+  "backend/tests/integration/ai_jobs/test_outbox_dispatch.py": {
+    "sha256": "9cabaa7bc6c3a095ce7553fbe630d092c4cf7d756838f1cf3622b6d1837a9134",
+    "bytes": 6393
+  },
+  "backend/tests/integration/ai_jobs/test_owner_fence.py": {
+    "sha256": "d0e7bcf29fdfdfa3d880822c25a3de01c29792caea9471c11defae8e10428ed2",
+    "bytes": 12477
+  },
+  "backend/tests/integration/ai_jobs/test_restart_recovery.py": {
+    "sha256": "6e616cb65c1082549fce3f290ebb288919e8c7ca514da891903e046e7f4e35b0",
+    "bytes": 9934
+  },
+  "backend/tests/integration/ai_jobs/test_sql_repository.py": {
+    "sha256": "58c478765bb0a4385a50d8f03530c6689aa8ba5e9f895ef7220b672e5a336088",
+    "bytes": 14576
+  },
+  "backend/tests/integration/test_be1_postgres_api.py": {
+    "sha256": "eab377ee35db144cbd0ec6b7013a7b00368e029e0bd65b8ec2dd99d68a5fc40b",
+    "bytes": 20040
+  },
+  "backend/tests/unit/feat018_admission_manifest.py": {
+    "sha256": "8a95201f800079e8df2831cb370df5a890aee6379306424059bf960e74039ad2",
+    "bytes": 3732
+  },
+  "backend/tests/unit/test_activity_semantics.py": {
+    "sha256": "38b18afda8d35fb9710e56bf9479527de8b63efccae5dc8652d1139d7cbfa3d0",
+    "bytes": 4708
+  },
+  "backend/tests/unit/test_ai_job_application.py": {
+    "sha256": "615499fff6ddd2efdceceaccbb67c5cd583c5bc1e5437546db4797709e05bdc5",
+    "bytes": 22320
+  },
+  "backend/tests/unit/test_ai_job_b3_fences.py": {
+    "sha256": "4c3ec1bdde04e9eb712ef7f2d62fae5c5a85e71ef35ab007e6e4c8c7b8d58877",
+    "bytes": 12385
+  },
+  "backend/tests/unit/test_ai_job_b4_dispatch.py": {
+    "sha256": "6c6a6c9d43d44d595579c3ea936c52791093610375fb6bc0598263223087a556",
+    "bytes": 20240
+  },
+  "backend/tests/unit/test_ai_job_b5_capability.py": {
+    "sha256": "e9496b833bbb63765a527c40897efaf203682f517fa986ddcb6c13078ad8cd63",
+    "bytes": 22425
+  },
+  "backend/tests/unit/test_ai_job_b5_effects.py": {
+    "sha256": "26d7b18360585aa0b5cd7a2239ed1863524d6d66d286882ce6fe9273d64e794f",
+    "bytes": 27242
+  },
+  "backend/tests/unit/test_ai_job_b6_conformance.py": {
+    "sha256": "12a06de8a080da94609f3a879ed1a8ffeca120a114925c463acaefab7a1270a9",
+    "bytes": 22698
+  },
+  "backend/tests/unit/test_ai_job_lifecycle.py": {
+    "sha256": "d9535a7f109e0889d7c775abd6b25361f97479286286b409e78a3eaadb46ee37",
+    "bytes": 12262
+  },
+  "backend/tests/unit/test_ai_job_q00_followups.py": {
+    "sha256": "1f2d863b33d62d1c0cd9ba34cef14ec5134c6efa882d535b1202d712084033d5",
+    "bytes": 9708
+  },
+  "backend/tests/unit/test_ai_job_review_regressions.py": {
+    "sha256": "dab50ea145eb06e11f35fd8e4966ea567e4a386a05c25b43783409ffad770155",
+    "bytes": 14295
+  },
+  "backend/tests/unit/test_asr_benchmark_readiness.py": {
+    "sha256": "9eff39c7b054ef823878fb0b332e2710254319dd67d0817ad29acac6da8ede9c",
+    "bytes": 15807
+  },
+  "backend/tests/unit/test_asr_phase_a.py": {
+    "sha256": "e0c39a3682c3f8bec146cf1a0b84675aed1872a392df8f3a67f1ecb6eb47ff1b",
+    "bytes": 10171
+  },
+  "backend/tests/unit/test_asr_phase_b_contract.py": {
+    "sha256": "e56617f3ce65104ff444f3e1fbf9e54c57ccafb5d685a9115f7d27ee11357dce",
+    "bytes": 5481
+  },
+  "backend/tests/unit/test_asr_round1_report_contract.py": {
+    "sha256": "b8d9535a220ce8f4613630c3b869efc6450cdc026aeb9994c52ca4cf53262d99",
+    "bytes": 6038
+  },
+  "backend/tests/unit/test_asr_round1_runner.py": {
+    "sha256": "994aa748f37ac24a09fa3ef3cb493be0b3e2adac41bee4bd0fe55c01ce8e7ceb",
+    "bytes": 15789
+  },
+  "backend/tests/unit/test_asr_round1_runner_warmup_failure.py": {
+    "sha256": "7806d5dbed9dcafe8bcf946c26393abc9f067336e62d00d3255db498606c5da0",
+    "bytes": 12262
+  },
+  "backend/tests/unit/test_asr_scoring.py": {
+    "sha256": "b29fb897029af44e9d3282987b7f566b27d0e81dd61ee81ca5f9ce23f565709f",
+    "bytes": 3028
+  },
+  "backend/tests/unit/test_assistance_chain.py": {
+    "sha256": "f27c887f4c4d78afb89dc79b275ba4ef84c51e717ab6636b28cb47c07d9b608b",
+    "bytes": 13617
+  },
+  "backend/tests/unit/test_assistance_cr03_followup.py": {
+    "sha256": "361867f6a9e8de8d8484e9ebd649a7dcf94dbaf590463fa844fb5234c2097c2f",
+    "bytes": 11327
+  },
+  "backend/tests/unit/test_assistance_domain.py": {
+    "sha256": "afabe3545e47eab5101551b1642855143d71e9fd910da0ba8f213a9b78a89dc8",
+    "bytes": 7975
+  },
+  "backend/tests/unit/test_assistance_races.py": {
+    "sha256": "c874ce32de889cbdf2abd6066a789bfd831e895cf68106d3698e84c100dbb371",
+    "bytes": 16347
+  },
+  "backend/tests/unit/test_assistance_review_fixes.py": {
+    "sha256": "df2f7d39b058b20b6ac2eee151319600be8a9f262e85c0bddb5cdf1e1784a690",
+    "bytes": 10272
+  },
+  "backend/tests/unit/test_assistance_service.py": {
+    "sha256": "a40bf516bd7232f7e641ef0168764f7b61ade0e0a895c0a7b03a74b60abfdaac",
+    "bytes": 16774
+  },
+  "backend/tests/unit/test_auto_rig.py": {
+    "sha256": "9600ad8b588bb0dfacac5480a85dad841291eeaecbd64ed884d7058068c6f149",
+    "bytes": 20004
+  },
+  "backend/tests/unit/test_butterfly_candidate_refinement.py": {
+    "sha256": "01a0e08aa7bda1a336dd6996c498f3c718365623b89142ac0b07b1b5183fac6c",
+    "bytes": 5495
+  },
+  "backend/tests/unit/test_butterfly_video_proof.py": {
+    "sha256": "8ed08e0d6679e7b25aca09a9b5e99ae17ed6c31cdb95eaec9c7bf94326b4b17e",
+    "bytes": 2661
+  },
+  "backend/tests/unit/test_catalog_expansion.py": {
+    "sha256": "5c7112f41e4adaa151bf629821948107b81a8476b562189c4730a1cd6daa2d20",
+    "bytes": 7566
+  },
+  "backend/tests/unit/test_child_learning_profile_contract.py": {
+    "sha256": "3759b732bfed6ff6ae79bd7e78e2fac2e66fdb1c1a7143d78561afb55d079893",
+    "bytes": 8066
+  },
+  "backend/tests/unit/test_child_preference_classifier.py": {
+    "sha256": "7f750575968d0ae4a93afa0d0fe8d404748e884f535f3fc40487345100cb0361",
+    "bytes": 2382
+  },
+  "backend/tests/unit/test_child_profile_catalog_audit.py": {
+    "sha256": "943c395f94727c96e67622b8ac60bf6d6a41bd0988c0a60472a03133a6a0af20",
+    "bytes": 3153
+  },
+  "backend/tests/unit/test_child_response_adapters.py": {
+    "sha256": "2a31665345c975c7571674845712c7da87ec7ef3a46179ad1ce9013d8264a683",
+    "bytes": 8148
+  },
+  "backend/tests/unit/test_child_response_chain.py": {
+    "sha256": "731f3eb44ba799ec8db315f5c3f2f20cf48ca4717e3ca5d8704b6376fa6f3eaa",
+    "bytes": 8875
+  },
+  "backend/tests/unit/test_child_response_domain.py": {
+    "sha256": "f54cca673c9386aa04fc9c0c137c7ed56a023bb2028fcfb04638da58f3dddba2",
+    "bytes": 5018
+  },
+  "backend/tests/unit/test_child_response_races.py": {
+    "sha256": "3f45a0354b54050acc698376e5eddbfa65edff2894080edb354bcaa0c8dea999",
+    "bytes": 9482
+  },
+  "backend/tests/unit/test_child_response_service.py": {
+    "sha256": "7217e9246f40ab0209cc906c0d1bf385e71c211415040732c18493b405d27cb2",
+    "bytes": 17749
+  },
+  "backend/tests/unit/test_ephemeral_storage_ports.py": {
+    "sha256": "e17e118e1ed8ae4824330d1ae038536826ed95bd85d1c2eb0d0035b39323c8c3",
+    "bytes": 4486
+  },
+  "backend/tests/unit/test_faster_whisper_asr_adapter.py": {
+    "sha256": "7e5d17f658cea8737667f9a701825c508e529338b9f81cec0e54bf2b8cafacfb",
+    "bytes": 17368
+  },
+  "backend/tests/unit/test_faster_whisper_runtime_config.py": {
+    "sha256": "023414dc6d9081c31f07820a66dd14c982dc27e5a68cdc9bfbe6528fe38416e2",
+    "bytes": 2804
+  },
+  "backend/tests/unit/test_feat018_live_lightning_execution.py": {
+    "sha256": "9a86074014ec4cd0420f29c71fcd11cd0bc01ea0edc83a9e282f1dd8f60cd599",
+    "bytes": 33829
+  },
+  "backend/tests/unit/test_house_video_proof.py": {
+    "sha256": "d97220dc54b0533e6ef20b169ab59397072896b4c90e7b9c018e512f5d2a58c4",
+    "bytes": 4136
+  },
+  "backend/tests/unit/test_image_admission.py": {
+    "sha256": "82a20c3439c462d384b3e345d9986e448b21c791179a3330e2f1ad42af32ef04",
+    "bytes": 46897
+  },
+  "backend/tests/unit/test_image_admission_evaluation.py": {
+    "sha256": "c9586db0943fca0e1b7e31481c23ef55b5e4243b07c5f3d08f2f643083166ad4",
+    "bytes": 46202
+  },
+  "backend/tests/unit/test_knowledge_bundle_adapters.py": {
+    "sha256": "e9ed452a0cdea915f016d05e1e54c440c8ff5d3ec1169f2ac37d900d3537e61d",
+    "bytes": 25350
+  },
+  "backend/tests/unit/test_knowledge_bundle_chain.py": {
+    "sha256": "ad446875823596879cd8d8237b3d02c1589ca633b3c182c17c7b5a8208a200d7",
+    "bytes": 14004
+  },
+  "backend/tests/unit/test_knowledge_bundle_domain.py": {
+    "sha256": "db52a05f463c886e92b9669ef7f31d746bc38da2002b4e4b190e966bea304812",
+    "bytes": 25306
+  },
+  "backend/tests/unit/test_knowledge_bundle_races.py": {
+    "sha256": "0f4979d39d13489959a40db10d9c2c2032af9e82b533f6c3736c94f9d6324e43",
+    "bytes": 32954
+  },
+  "backend/tests/unit/test_knowledge_bundle_service.py": {
+    "sha256": "97dafef9de0aba207ae7487e727b38ef4a9dfe415b5a5d232f6a100805d3a2e3",
+    "bytes": 34958
+  },
+  "backend/tests/unit/test_learning_media_contracts.py": {
+    "sha256": "b2ec389c4f91eb7e57cc6759eb1f7959d94eedb1399edc254ab6afee7d1900c5",
+    "bytes": 3276
+  },
+  "backend/tests/unit/test_learning_media_fallback.py": {
+    "sha256": "c9a0269db42827791efcbd61b00d71be59a0b6530ae67bcfde95717a1a33fd27",
+    "bytes": 1716
+  },
+  "backend/tests/unit/test_learning_media_resolver.py": {
+    "sha256": "b23144dd57735614f6b69410ec84397a32a3c6bbedbcdb57b4d8fea77f554c95",
+    "bytes": 2814
+  },
+  "backend/tests/unit/test_learning_media_scenario_matrix.py": {
+    "sha256": "3bceb66b69a191dd18da5ec1b9734076d00fa8824a2d17b512813aeb9c519dd5",
+    "bytes": 2352
+  },
+  "backend/tests/unit/test_lightning_activity_ranker.py": {
+    "sha256": "3490df4f2bfb95db99a7cbbacb193019e1a78ccdeb0a01f7713d7aeb6443371b",
+    "bytes": 3452
+  },
+  "backend/tests/unit/test_lightning_child_preference_classifier.py": {
+    "sha256": "d1491e5a0ebee3595df2f688cbfd13ce4373db8164d1e85b15b684131f08ac68",
+    "bytes": 2314
+  },
+  "backend/tests/unit/test_lightning_client.py": {
+    "sha256": "25bd329c6cf22707bbd513b8c7c0b66232c17777f5b496330daa5dfc0b67e70f",
+    "bytes": 5714
+  },
+  "backend/tests/unit/test_lightning_runtime_setup.py": {
+    "sha256": "18113e9abedf44080d7cf5bbea7c55caf14c9f2880caacf592fafbada42a37e1",
+    "bytes": 1857
+  },
+  "backend/tests/unit/test_lightning_sam21.py": {
+    "sha256": "651eee1fb2ff71437eacb99cab608145db179c52c816286c57c4ba8203df207e",
+    "bytes": 7088
+  },
+  "backend/tests/unit/test_lightning_scene_localization.py": {
+    "sha256": "8ad2aa6e469ed477e7ad6b47f6a2d11bc18fa8db53050ed8b675de40c6c86e28",
+    "bytes": 6167
+  },
+  "backend/tests/unit/test_lightning_story_cache.py": {
+    "sha256": "9aa8d5894d381438916d4729ad6ef18def8689233765502ad78a02c4e0e45920",
+    "bytes": 8435
+  },
+  "backend/tests/unit/test_lightning_v2_asr_adapter.py": {
+    "sha256": "c394e529a96506e7d8bb677714bd07311a717035912b0ffb99715edaf91d0e5e",
+    "bytes": 1905
+  },
+  "backend/tests/unit/test_lightning_vision_v2_adapter.py": {
+    "sha256": "76fae9f366c1ddcb85d2c778815281a08d0538e47d4e2c192332e8a31566d68f",
+    "bytes": 5357
+  },
+  "backend/tests/unit/test_lightning_vision_v2_server.py": {
+    "sha256": "f0c03a31c39698e30e6dd635f2a765285d5ee18f42813517dc3ba644db2e39fa",
+    "bytes": 7735
+  },
+  "backend/tests/unit/test_lightning_whiteboard.py": {
+    "sha256": "24af6104183dce7f8d48ad3343cface9bb90ca2c3cfd1162bd84f6365d8cfa3f",
+    "bytes": 2549
+  },
+  "backend/tests/unit/test_lightning_whiteboard_provider_parser.py": {
+    "sha256": "7a82ec425a99814732487e8ddea391a2ccd0099380df7111374dea088e9b8e8a",
+    "bytes": 22488
+  },
+  "backend/tests/unit/test_lightning_whiteboard_segmentation.py": {
+    "sha256": "2755581ec8e23f2f1a7769ff2a099484e5cd1540f1c32fd0c855f520cd0619b2",
+    "bytes": 2110
+  },
+  "backend/tests/unit/test_limited_character_rig_v2.py": {
+    "sha256": "839e15bdeda7a00ba2ce6ba37caf65158085f7f79f0228f92c17ca449f60bea6",
+    "bytes": 7450
+  },
+  "backend/tests/unit/test_live_understanding_route.py": {
+    "sha256": "dba603cef9a7f085cca098f7d13ec0dfeec977cfb981d70aa717149da17cb69f",
+    "bytes": 2872
+  },
+  "backend/tests/unit/test_media_validation.py": {
+    "sha256": "0f8d8342d1d8adc113f12eca0df90b6a6a57bea19dc2b36151da8b912342337b",
+    "bytes": 13611
+  },
+  "backend/tests/unit/test_p1_experience.py": {
+    "sha256": "4ce567f41d6741403729968fc80eb30249815546f0bedd52bcc16cdf73bd082b",
+    "bytes": 39639
+  },
+  "backend/tests/unit/test_p1_online_model_compatibility.py": {
+    "sha256": "89889363baa7ab49a7939e3b211f244d5103525392a951cbbcfd07659eaa6b63",
+    "bytes": 16382
+  },
+  "backend/tests/unit/test_p2_t4_fusion.py": {
+    "sha256": "423e722a4e2f4f8c0f19cdee3275bf469e74b8afbeeaef4dcc14466e935a3097",
+    "bytes": 46535
+  },
+  "backend/tests/unit/test_p2_t5_cli.py": {
+    "sha256": "352ab84a893f303cb616002f20a216c2fa137d3349cb80f48ac49e7d673d19e3",
+    "bytes": 1282
+  },
+  "backend/tests/unit/test_p2_t5_evaluation.py": {
+    "sha256": "585743b86c58a28db9943a3daf17c244b405d587c77435c821c6a2b340968e0b",
+    "bytes": 1351
+  },
+  "backend/tests/unit/test_p2_t5_privacy.py": {
+    "sha256": "b27b79b68341dd3d1bb9c5d6e414288f0e08c7d48e0e6c72b128e882f86ea917",
+    "bytes": 560
+  },
+  "backend/tests/unit/test_p2_t5_scoring.py": {
+    "sha256": "09d9e1d8d086985831cf1090f764860877fbea1b83fb8354979eb72e9811dccc",
+    "bytes": 798
+  },
+  "backend/tests/unit/test_package_import.py": {
+    "sha256": "f8a33f63ffc176d632e15d8ae48c0c8d836296436acf0c4366ec0db6cf02eb9b",
+    "bytes": 114
+  },
+  "backend/tests/unit/test_part_masks.py": {
+    "sha256": "d4a5d7780f09726abb84364b801dd3f2397d1562af36806999e62bf11b498e79",
+    "bytes": 2784
+  },
+  "backend/tests/unit/test_persistent_qwen_runner.py": {
+    "sha256": "6d0c113a118c616211c57a65df91a4bb8454bb7616c4977af6a23bfaa09d052f",
+    "bytes": 2843
+  },
+  "backend/tests/unit/test_pixi_behavior_registry.py": {
+    "sha256": "311ffbfb9867f1c191790bf0abad01776e401b0e8c1c0d9b5254e0ad556fc324",
+    "bytes": 5986
+  },
+  "backend/tests/unit/test_pixi_motion_cycle_compiler.py": {
+    "sha256": "cf664e34898d4a08a4448e6174bd0e0f71ace3c16543ef1a0a7e303921f6273e",
+    "bytes": 2869
+  },
+  "backend/tests/unit/test_pixi_motion_cycles.py": {
+    "sha256": "e412f6b6af0b18851944a1d0b136fec040aa5dd2f38b0dce0bd70f22fc50cd01",
+    "bytes": 13675
+  },
+  "backend/tests/unit/test_pixi_show_assets.py": {
+    "sha256": "135e5832fd701051e3acfaa2a3c2b847040513eb6b99e1588abee5e319a0e15d",
+    "bytes": 7490
+  },
+  "backend/tests/unit/test_pixi_show_planner.py": {
+    "sha256": "035a7ce724b8304b514487f5edc7965766adee487f3b6e963382c808267c4ad6",
+    "bytes": 21944
+  },
+  "backend/tests/unit/test_pixi_topic_asset_candidates.py": {
+    "sha256": "5d513c02085e18d86f91ae70e6c190cda66b1d2102bd52faf0ad5da350be1678",
+    "bytes": 8879
+  },
+  "backend/tests/unit/test_qwen_vision_adapter.py": {
+    "sha256": "03d54b48e6b48e905f29f093ecc9ddb3b818d5921beaab3a4bcd3ebbe24224c5",
+    "bytes": 43150
+  },
+  "backend/tests/unit/test_qwen_vision_environment_readiness.py": {
+    "sha256": "a27d3c5b730739424e1f8a8b8c11897235abbb57020120d690e80f86b3b67741",
+    "bytes": 15715
+  },
+  "backend/tests/unit/test_qwen_vision_runtime_config.py": {
+    "sha256": "7e20e21fd5d0bee4e6fa359c5a962364d108da41e339e66feab9404ec2af5c57",
+    "bytes": 3865
+  },
+  "backend/tests/unit/test_qwen_vision_schema_path_diagnostic.py": {
+    "sha256": "a38f4b46030a086ea81dd7b141056717746ba2b6764447d30f2c5110d963c157",
+    "bytes": 26118
+  },
+  "backend/tests/unit/test_raw_understanding.py": {
+    "sha256": "1666b7411012e11fce90ea585f47912af0f2003511c1f343c7a42cc94818e8d2",
+    "bytes": 14004
+  },
+  "backend/tests/unit/test_sam21_prompt_refinement.py": {
+    "sha256": "e35a37c69f1788584fce3ed139572f19b155546dca740c4dd847e151e446ecd4",
+    "bytes": 9432
+  },
+  "backend/tests/unit/test_sam21_quality_metrics.py": {
+    "sha256": "782d4a0ca2353bf54d1f64a3cc164003475f9e0e525589a0fc5d463630bd4af7",
+    "bytes": 2094
+  },
+  "backend/tests/unit/test_sam21_runtime.py": {
+    "sha256": "98ca05124f649335995fdf53a9f9c186b57cbf4d5579ed0e33d335db0c892696",
+    "bytes": 7404
+  },
+  "backend/tests/unit/test_sam21_runtime_config.py": {
+    "sha256": "3c9c301f71ed9e9e8bc2fcf1406b1530805245ba910cf46c80d73628740ca76c",
+    "bytes": 2357
+  },
+  "backend/tests/unit/test_scene_distinctness.py": {
+    "sha256": "03b166190985e28f4494cb85fff0a132e819ddcc8fe1559ee3b81c34ac92bcd9",
+    "bytes": 1318
+  },
+  "backend/tests/unit/test_semantic_authoring_v1.py": {
+    "sha256": "7243a77c06e4dad3fa8e206d9916d04a08c12ff680ef0124f6324bed1b7266a6",
+    "bytes": 5979
+  },
+  "backend/tests/unit/test_semantic_drawing_engine_v2.py": {
+    "sha256": "a09789176a221d1a34f1d5448ddf3a3c08ef5be8688b68f6517ff0466535ba21",
+    "bytes": 5973
+  },
+  "backend/tests/unit/test_semantic_personalization_v2.py": {
+    "sha256": "7615a7af7633882e61a0e19db87b7888d6751d1c9a6405e330b63e44b7bdfb9e",
+    "bytes": 13067
+  },
+  "backend/tests/unit/test_session_lock_pool.py": {
+    "sha256": "7495749289817156f66b10bf78a9db6f7a8d79dde7eaaae17273207eebef716d",
+    "bytes": 962
+  },
+  "backend/tests/unit/test_settings_security.py": {
+    "sha256": "d6a30de7a8e05862daa48b3f17326518450692b50f080ac687a26e628c18da54",
+    "bytes": 2254
+  },
+  "backend/tests/unit/test_sketch_generation_adapters.py": {
+    "sha256": "03e46038873bc94c69091ce17b0ed24a133a6d83032b4177f1360451e6da7dfe",
+    "bytes": 16963
+  },
+  "backend/tests/unit/test_sketch_generation_chain.py": {
+    "sha256": "2071924f070e23052b0684a8e9cae84864d0667896e2ab7ac5ed26d0925f0a65",
+    "bytes": 30936
+  },
+  "backend/tests/unit/test_sketch_generation_races.py": {
+    "sha256": "964cb21c67ca0c34e658f3d5601da3eb607f2c372a87a7a1d83a00db05ec615f",
+    "bytes": 70668
+  },
+  "backend/tests/unit/test_sketch_generation_service.py": {
+    "sha256": "50db6c216e8e6980dbd43cd09a428b6b16512bee2af3aa5cb3bcc0d91157e2bc",
+    "bytes": 26431
+  },
+  "backend/tests/unit/test_sketch_proposal_domain.py": {
+    "sha256": "c29251e5d51be4e6f06e3cc92bdc3e327795fabe5e11065c8ac4fe26f76e1635",
+    "bytes": 15908
+  },
+  "backend/tests/unit/test_sketch_review_chain.py": {
+    "sha256": "e350e1419cc7b46d27736692b7f7e51657890da5c38212252fd7988f493dc6d6",
+    "bytes": 7186
+  },
+  "backend/tests/unit/test_sketch_review_domain.py": {
+    "sha256": "4a1970f8bc3f3912f858af9ae5f0ec4c867214c97560a54f99f31fa99d049304",
+    "bytes": 9696
+  },
+  "backend/tests/unit/test_sketch_review_eligibility.py": {
+    "sha256": "6c49181060cb55fdf76ac9f30f9f67166b5e30dce0ac8eda218021f33a1bdf32",
+    "bytes": 7205
+  },
+  "backend/tests/unit/test_sketch_review_races.py": {
+    "sha256": "49ec8e90c35088efb41ea484a25864fc1d26f0c6b8184b3c614031f6bfd63e2d",
+    "bytes": 19217
+  },
+  "backend/tests/unit/test_sketch_review_review_fixes.py": {
+    "sha256": "1d405caf61c64b1fdcfe73b2f229e2578ecf1cbf22145c5325a22f7303865cf0",
+    "bytes": 11734
+  },
+  "backend/tests/unit/test_sketch_review_service.py": {
+    "sha256": "9d40253d54673e436233c2f751f203b04f93410a2ed787194e72ed72a12c935a",
+    "bytes": 18283
+  },
+  "backend/tests/unit/test_story_video_demo.py": {
+    "sha256": "5c0734b85930b14b7a41111530fb7487abcf1371651f2b236b3658985dc1bd51",
+    "bytes": 1548
+  },
+  "backend/tests/unit/test_story_video_job_input_gate.py": {
+    "sha256": "e606bacef44e3b9c8128e9c8b2c9914429a0ac8d4a3569c571e07a4f93e5c9dd",
+    "bytes": 15206
+  },
+  "backend/tests/unit/test_story_video_media_smoke.py": {
+    "sha256": "dd328bd87fb6c1ce0fcdd760df84277099cdcb211925715e5ab7fcec4e543069",
+    "bytes": 11420
+  },
+  "backend/tests/unit/test_story_video_planner.py": {
+    "sha256": "2d7fdf647d39961cb8b05e620e733ec275712fae549a9a877dbf4b6a8f1ee569",
+    "bytes": 22687
+  },
+  "backend/tests/unit/test_story_world_v2.py": {
+    "sha256": "b12448cdf4784a9d246d63c2bd537b4ccf9f3dd8eba23a3acc9a09b591623894",
+    "bytes": 9174
+  },
+  "backend/tests/unit/test_story_world_v2_multidrawing.py": {
+    "sha256": "9b2056fb7a46aa2dab50522b48b6a64dbc9a291aab32658ceef65f9e6f212a80",
+    "bytes": 7149
+  },
+  "backend/tests/unit/test_subject_mask_validation.py": {
+    "sha256": "36a3b4319c3eb491249bd1536518012bab0529a7989119eb570a371cec63ec79",
+    "bytes": 2125
+  },
+  "backend/tests/unit/test_topic_activity_matching.py": {
+    "sha256": "49c458ad740cd0e1c5cab26788e06476b7c3efea2fc4546db852596d527ae3f0",
+    "bytes": 22920
+  },
+  "backend/tests/unit/test_understanding_adapters.py": {
+    "sha256": "a4c4f9d3e92dbe138aed78f3b5127f3d4ac0f10cf503326a4f98d107646b65c6",
+    "bytes": 5725
+  },
+  "backend/tests/unit/test_verify_story_sam2.py": {
+    "sha256": "8fe4b4d141b17e1f4ca48bddf359da8cd4e9bc10cadae58cfff714fe90255b2a",
+    "bytes": 1406
+  },
+  "backend/tests/unit/test_vision_analysis_domain.py": {
+    "sha256": "88d90ad561b735af2b6ca96ee791709dd3ee903ae45c8076628bd3138f944a5e",
+    "bytes": 13408
+  },
+  "backend/tests/unit/test_vision_analysis_job_lineage.py": {
+    "sha256": "98ba03b0ff3ea406dea574440ae5344e62cd7e14af82a79a6b7f237c7a50159e",
+    "bytes": 3484
+  },
+  "backend/tests/unit/test_vision_analysis_legacy_bridge.py": {
+    "sha256": "992d1a28c77f52963ed7edfe5ba0466a35deca8f053d9e6fad5b938c32386e65",
+    "bytes": 15900
+  },
+  "backend/tests/unit/test_vision_analysis_review_fixes.py": {
+    "sha256": "cc3f777f2c7d48733b9c2444fc0dc3d496fc8d914a0df4469dae2eabb54ebd3d",
+    "bytes": 25459
+  },
+  "backend/tests/unit/test_vision_analysis_service.py": {
+    "sha256": "d5b5a3f23a69b6cfd8079ebf57a6bde85ac0cbb7699a586c03b14789fc8c8cdd",
+    "bytes": 29424
+  },
+  "backend/tests/unit/test_vision_b2_preflight.py": {
+    "sha256": "2da06d9badd7ce2214ae1bb5d32e1f1254054d529a7332f7c593a80d45efd891",
+    "bytes": 16304
+  },
+  "backend/tests/unit/test_vision_b3_mapping_study.py": {
+    "sha256": "d902ba2c0236644b266d4b604eb063c7af390396276e8dfde882fe313c1b42c0",
+    "bytes": 34180
+  },
+  "backend/tests/unit/test_vision_b4_quality_benchmark.py": {
+    "sha256": "e4769c084a2fdf7ec289845864a563f97f6d4903e1f11397b038a501945c3357",
+    "bytes": 40435
+  },
+  "backend/tests/unit/test_vision_b4_step2_diagnostic.py": {
+    "sha256": "e2372a20c2f17be3bc79e4edb73ee2bd128e2523f0860df91a95265d8c06837a",
+    "bytes": 34210
+  },
+  "backend/tests/unit/test_vision_c1_prompt_mapping_study.py": {
+    "sha256": "772fee37d8cad6df4e4c0dcc24ea0005bcfaed5c9dcc98003bf95debe22c159b",
+    "bytes": 58215
+  },
+  "backend/tests/unit/test_vision_content_policy.py": {
+    "sha256": "c6607b1c16965128a33a002a6e036fcc7248c963683ea31c676688e7dd3270ca",
+    "bytes": 7840
+  },
+  "backend/tests/unit/test_vision_context_adapter.py": {
+    "sha256": "0e7058756fbcfc79e01b8bf14ce5cc703a4ca7fa9d7217f75dc71ad96eb87a60",
+    "bytes": 15367
+  },
+  "backend/tests/unit/test_vision_context_domain.py": {
+    "sha256": "4a457f16a74c0ceea9c2c53bb85174c7d2067c2113e80558e79266f234e43f96",
+    "bytes": 18924
+  },
+  "backend/tests/unit/test_vision_context_service.py": {
+    "sha256": "e7e9baac7d54c42f45f7f56e9d8a99942290eeab7f15620de1b3911666d78348",
+    "bytes": 18540
+  },
+  "backend/tests/unit/test_vision_fixture_manifest.py": {
+    "sha256": "37b8ea8a4ded4bf42e8d3f8866032390204064e063d25d7ea5b5ad7db0d99d80",
+    "bytes": 1003
+  },
+  "backend/tests/unit/test_vision_phase_a_adapter.py": {
+    "sha256": "56494ad17f8e2151bea6a7099e8b87589adfcc5c35636f17576e8ff3156a0f20",
+    "bytes": 27041
+  },
+  "backend/tests/unit/test_vision_phase_a_contracts.py": {
+    "sha256": "55f6401a2b351b08fe4a86c691298ca98d31cc890f46b3e5846b1332a69e707f",
+    "bytes": 29887
+  },
+  "backend/tests/unit/test_vision_phase_b_b1_contracts.py": {
+    "sha256": "03e2317656b9d2ba2702df5748ba83529fe8b2e17a0035751478da8fc8e4900d",
+    "bytes": 19923
+  },
+  "backend/tests/unit/test_vision_v3_mapping_fixtures.py": {
+    "sha256": "2c0aecfb96122dfda576cf34692dfa3b278ac1b15db4b65fd19b2b2056abfcd0",
+    "bytes": 14739
+  },
+  "backend/tests/unit/test_vision_v3_mapping_validation_study.py": {
+    "sha256": "c1ccb3d78e167a2bd17e8d3436dc70a31c12fd797d4eaebb0af143e09c3c9e5c",
+    "bytes": 53850
+  },
+  "backend/tests/unit/test_vision_v3_quality_benchmark.py": {
+    "sha256": "ace0afac06ffc2c4aad2a3416967261d2364da9fd664cca6e071e1995a53ee5e",
+    "bytes": 25520
+  },
+  "backend/tests/unit/test_vision_v3_quality_execution.py": {
+    "sha256": "4cd019eac09df6bdc7925cebfa93bb6531c66258429e2f473a44adce6158802e",
+    "bytes": 7379
+  },
+  "backend/tests/unit/test_vision_v3_quality_fixtures.py": {
+    "sha256": "e959de394a9ddfbbda1877320e8ae87226cf0532d930f3034dd8115b969cb80a",
+    "bytes": 18291
+  },
+  "backend/tests/unit/test_whiteboard_artifact_paths.py": {
+    "sha256": "3ea7edd841011a845c664a771c04212a3d2eccf5271d316258c10d997105f864",
+    "bytes": 728
+  },
+  "backend/tests/unit/test_whiteboard_mask_validation.py": {
+    "sha256": "418a94793db75f2bdf2bcd0f72e5484fb245c58e57993cd3bca8d310ab8dcb5f",
+    "bytes": 1329
+  },
+  "backend/tests/unit/test_whiteboard_mp4_encoder.py": {
+    "sha256": "dee717119cc72b17c74720366501030ab9ff0beaba9c1edef77af38a4d785436",
+    "bytes": 1831
+  },
+  "backend/tests/unit/test_whiteboard_mvp_renderer.py": {
+    "sha256": "8f14351d722b7968b0682913469273dfe8571d65380b533a00d2f5252ee742a7",
+    "bytes": 20606
+  },
+  "backend/tests/unit/test_whiteboard_pipeline_factory.py": {
+    "sha256": "a901671c9e0266a5e89818718da6a5d32b4b2c0da916c508f8527aec26ae6af6",
+    "bytes": 1950
+  },
+  "backend/tests/unit/test_whiteboard_renderer_adapter.py": {
+    "sha256": "f337bbc7ab1e4f2a15434e97da3ab4bd84d982a2a085156d09dadeb3f95f9118",
+    "bytes": 3908
+  },
+  "backend/tests/unit/test_whiteboard_runtime.py": {
+    "sha256": "648e324c24d3bd4e66aa306a554cfe1bf1050c66e17aab6de528427d18a8abef",
+    "bytes": 815
+  },
+  "backend/tests/unit/test_whiteboard_safety_validator.py": {
+    "sha256": "6f6a7efc7724add7b7e6b6454471a6d6ef232afde6c8f621d8711492de51739c",
+    "bytes": 2646
+  },
+  "backend/tests/unit/test_whiteboard_sam_masks.py": {
+    "sha256": "7626fa565b6c5c2d2f977e6e02b6a6378921c433cfcee20ce92ad6b5f2838c05",
+    "bytes": 3889
+  },
+  "backend/tests/unit/test_whiteboard_segmenter_adapter.py": {
+    "sha256": "c75ea2f860c8f31edf3ae74138466c450d713eb0af97cf6294bb05d43e99a7dd",
+    "bytes": 1606
+  },
+  "backend/tests/unit/test_whiteboard_slice_feasibility.py": {
+    "sha256": "5e1af82e084cb8a42ecb97244054f341443a655cd0e20a0d771a13faca446684",
+    "bytes": 5767
+  },
+  "backend/tests/unit/test_whiteboard_storyboard.py": {
+    "sha256": "50b370b4e3f087ce36c44fc074280361a5f460c45bee6caa2c6ed915c4604b1c",
+    "bytes": 2453
+  },
+  "backend/tests/unit/test_whiteboard_stroke_adapter.py": {
+    "sha256": "844a0922559cd2475500210e07b142e9367c0c9d11a9d1214c683588ca396728",
+    "bytes": 1691
+  },
+  "backend/tests/unit/test_whiteboard_stroke_extraction.py": {
+    "sha256": "d994f3fbe6a5ae9a16acb79af6aff8f666632f9668482c239e93d00446aa7d3a",
+    "bytes": 8446
+  },
+  "backend/tests/unit/test_whiteboard_tts_adapter.py": {
+    "sha256": "9af13a4fb5ca33059061c1e542ab59f755f8189195ac2e26b125bd6eccb691a3",
+    "bytes": 2198
+  },
+  "backend/tests/unit/test_whiteboard_v2_complexity.py": {
+    "sha256": "1eff5811b70d023de8a1e008f9b9b43dbf71ff3afd55f738357466b99e2068d2",
+    "bytes": 7385
+  },
+  "backend/tests/unit/test_whiteboard_v2_engine.py": {
+    "sha256": "38f2438d9e0315b27eac5f24867c58b75e9d6f87aa2c39611815d0abd67a5a77",
+    "bytes": 7972
+  },
+  "backend/tests/unit/test_whiteboard_v2_pencil_pass.py": {
+    "sha256": "7d8232e55592be2f98fe2f511e00c898c30b9b71ee548c0051aaceb00ce02af8",
+    "bytes": 4295
+  },
+  "backend/tests/unit/test_whiteboard_v2_schedule_debug.py": {
+    "sha256": "b7a751d5bf82e973d212a8ad222690175c2864ed4a7f7314d80256d201d69057",
+    "bytes": 4014
+  },
+  "backend/tests/unit/test_whiteboard_v2_visual_pass.py": {
+    "sha256": "7ae70af3de4517cfbed2011cf3066a439da1988d1acede36adb1ef3e082b39d1",
+    "bytes": 4950
+  },
+  "backend/tests/unit/test_whiteboard_v2_visual_refinement.py": {
+    "sha256": "6fa15c410a59a70d2a0b3da438d74389be438a945a4b6b85dbdc50d5bc352fc3",
+    "bytes": 8325
+  },
+  "backend/tests/unit/test_whiteboard_vector_pilot.py": {
+    "sha256": "a668bb21c4cef858d78ffa7533b783a7697b08881c796ef69f2e62a7dcf45214",
+    "bytes": 3117
+  },
+  "backend/tests/unit/test_whiteboard_video_background_worker.py": {
+    "sha256": "7cf32915b0d978055217afd6f40b85b1a7d58a401d31f5a271f6fe5cf8897593",
+    "bytes": 852
+  },
+  "backend/tests/unit/test_whiteboard_video_contracts.py": {
+    "sha256": "ab7a4e6f60ce3e9b2f356f8f4294395017cc6e5a8047fde6cc3157a8c4488f22",
+    "bytes": 3372
+  },
+  "backend/tests/unit/test_whiteboard_video_job.py": {
+    "sha256": "1a9093b7a9909560962770c5175771b9ad584c42dc77bf1fff42f57171322d74",
+    "bytes": 3676
+  },
+  "backend/tests/unit/test_whiteboard_video_pipeline.py": {
+    "sha256": "60797ebf7a2e422f6a531b8461ee351e05f1cc476f16e0df7347244897c06f4b",
+    "bytes": 3277
+  },
+  "backend/tests/unit/test_workflow_dependencies.py": {
+    "sha256": "21187e2103fe66edf3ac16e8060514e8a8278ee9e8518096ad5b0188b11b1bf1",
+    "bytes": 2656
+  },
+  "features/FEAT-056-be2-knowledge-script/artifacts/BASELINE_BACKEND_FILES.json": {
+    "sha256": "d029b463d0658f129b7cc1a5c4b733a3464b614eea73b11b9cb4df0148f6d794",
+    "bytes": 102185
+  },
+  "features/FEAT-056-be2-knowledge-script/artifacts/KNOWLEDGE_BUNDLE_EXAMPLES.json": {
+    "sha256": "0f06aeace8bd0dd50e53096c2f0782a83001e47963c0383e180f117501b90f2c",
+    "bytes": 33930
+  },
+  "features/FEAT-056-be2-knowledge-script/artifacts/OFFLINE_BATCH_PROFILE.json": {
+    "sha256": "b2be18585c72a71fb0cadfa69c2d4528aed50541107e84a43904f52e705b0580",
+    "bytes": 4001
+  },
+  "features/FEAT-056-be2-knowledge-script/evidence/local/claude-remediation-20261020/before-files.json": {
+    "sha256": "24bf4d51c0736e6ae10b5a3abd31b8adc88ecdca5ab05a05eab6941e05ff4304",
+    "bytes": 108656
+  },
+  "features/FEAT-056-be2-knowledge-script/evidence/local/claude-remediation-20261020/historical-review-note-move.json": {
+    "sha256": "3d8e108579076ee0b5d7c70a66dea3f9229514264c9b636b75c835f615e6dc73",
+    "bytes": 661
+  },
+  "features/FEAT-056-be2-knowledge-script/evidence/local/execution-baseline/backend-before.json": {
+    "sha256": "43fd305ea3c6c05a648129ef2f013b244a3ab7afeaeae4808f59eb6ff02c5c8e",
+    "bytes": 97537
+  },
+  "features/FEAT-056-be2-knowledge-script/evidence/local/execution-baseline/external-before.json": {
+    "sha256": "dea79e2656412d627e27562fa22904e66ac777fcd7074b419da4e5b26192376e",
+    "bytes": 1393599
+  },
+  "features/FEAT-056-be2-knowledge-script/evidence/local/execution-baseline/required-01-06-files.json": {
+    "sha256": "09b25261a8b6dea6c9dba63db0df30e23982d4ec62f7f0d41984d1a300f132db",
+    "bytes": 2776
+  },
+  "features/FEAT-056-be2-knowledge-script/evidence/local/execution-baseline/tracked-before.json": {
+    "sha256": "2bb7ff816308d76b2764a9723dbea46c7c6cc3eeca98606de211c66f5861b318",
+    "bytes": 601414
+  },
+  "features/FEAT-056-be2-knowledge-script/evidence/local/finalize_acceptance_map.py": {
+    "sha256": "234c857fa071c09a9c4e03bf6ad976c0581583c3d8a6ab8eb93eeb681742810d",
+    "bytes": 25023
+  },
+  "features/FEAT-056-be2-knowledge-script/evidence/local/run_execution_checks.py": {
+    "sha256": "4761c957f3c666380061e9930c5ba327b0adeb916a690dd028daee369ec0f893",
+    "bytes": 15441
+  },
+  "features/FEAT-056-be2-knowledge-script/plan/PLAN_REV1_APPROVED.md": {
+    "sha256": "6de3ed6de3ef6008128d064ae28d3bf2b5fe78f91686afaa28eb63b4231aab36",
+    "bytes": 22840
+  }
+}

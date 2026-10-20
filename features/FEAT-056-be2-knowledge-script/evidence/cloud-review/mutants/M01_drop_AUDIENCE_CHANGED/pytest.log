@@ -1,0 +1,14 @@
+........................................................................ [ 27%]
+...................................F.................................... [ 54%]
+........................................................................ [ 82%]
+..............................................                           [100%]
+================================== FAILURES ===================================
+_ test_same_revision_fact_changes_deny_current_read_and_edit_without_writes[audience] _
+backend\tests\unit\test_knowledge_bundle_service.py:821: in test_same_revision_fact_changes_deny_current_read_and_edit_without_writes
+    assert not resolution.ready and resolution.export is None and resolution.reason == code
+E   assert (not True)
+E    +  where True = KnowledgeResolution(ready=True, reason=None, export=KnowledgeBundleExportV1(knowledge_claims=(KnowledgeClaimRecordV1(c...topic":"Mèo"}],"source_snapshot_refs":[],"teacher_corrections":[]}', canonical_rules_version='knowledge-canonical-v1')).ready
+- generated xml file: <WORKTREE>/features\FEAT-056-be2-knowledge-script\evidence\local\service-mutants-independent-20261020-878d82f4\M01_drop_AUDIENCE_CHANGED\junit.xml -
+=========================== short test summary info ===========================
+FAILED backend/tests/unit/test_knowledge_bundle_service.py::test_same_revision_fact_changes_deny_current_read_and_edit_without_writes[audience]
+1 failed, 261 passed in 1.90s

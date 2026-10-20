@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "git",
+    "diff",
+    "--check"
+  ],
+  "cwd": "<WORKTREE>",
+  "PYTHONPATH": "<WORKTREE>/backend\\src",
+  "MYPYPATH": "<WORKTREE>/backend\\src",
+  "exit": 0,
+  "seconds": 0.062,
+  "started_utc": "2026-10-20T05:28:51.732708+00:00",
+  "ended_utc": "2026-10-20T05:28:51.791770+00:00",
+  "interpreter": "<PYTHON_EXECUTABLE>",
+  "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

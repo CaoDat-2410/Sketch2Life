@@ -1,0 +1,20 @@
+........................................................................ [ 27%]
+.....................................................F.F................ [ 54%]
+........................................................................ [ 82%]
+..............................................                           [100%]
+================================== FAILURES ===================================
+_ test_actual_exact_resolver_rejects_mismatched_requested_pins_without_writes[hash-EXACT_BUNDLE_MISMATCH] _
+backend\tests\unit\test_knowledge_bundle_adapters.py:451: in test_actual_exact_resolver_rejects_mismatched_requested_pins_without_writes
+    assert not denied.ready and denied.reason == expected_reason and denied.export is None
+E   assert (not True)
+E    +  where True = KnowledgeResolution(ready=True, reason=None, export=KnowledgeBundleExportV1(knowledge_claims=(KnowledgeClaimRecordV1(c...topic":"Mèo"}],"source_snapshot_refs":[],"teacher_corrections":[]}', canonical_rules_version='knowledge-canonical-v1')).ready
+_ test_actual_exact_resolver_rejects_mismatched_requested_pins_without_writes[other-bundle-id-EXACT_BUNDLE_MISMATCH] _
+backend\tests\unit\test_knowledge_bundle_adapters.py:451: in test_actual_exact_resolver_rejects_mismatched_requested_pins_without_writes
+    assert not denied.ready and denied.reason == expected_reason and denied.export is None
+E   assert (not True)
+E    +  where True = KnowledgeResolution(ready=True, reason=None, export=KnowledgeBundleExportV1(knowledge_claims=(KnowledgeClaimRecordV1(c...topic":"Mèo"}],"source_snapshot_refs":[],"teacher_corrections":[]}', canonical_rules_version='knowledge-canonical-v1')).ready
+- generated xml file: <WORKTREE>/features\FEAT-056-be2-knowledge-script\evidence\local\service-mutants-independent-20261020-878d82f4\M07_drop_requested_hash_compare\junit.xml -
+=========================== short test summary info ===========================
+FAILED backend/tests/unit/test_knowledge_bundle_adapters.py::test_actual_exact_resolver_rejects_mismatched_requested_pins_without_writes[hash-EXACT_BUNDLE_MISMATCH]
+FAILED backend/tests/unit/test_knowledge_bundle_adapters.py::test_actual_exact_resolver_rejects_mismatched_requested_pins_without_writes[other-bundle-id-EXACT_BUNDLE_MISMATCH]
+2 failed, 260 passed in 1.88s

@@ -1,5 +1,31 @@
 # Project context ledger
 
+## BE2-07 Git publication and Claude cloud review — 2026-10-20
+
+The user authorizes a 12-commit publication of the reviewed task07 snapshot and a Claude cloud
+review session on `feature/be2-07-knowledge-script`. FEAT-056 publication approval records the
+superseding Git authority; frozen offline approval and plan remain unchanged. Portable review
+evidence is published with provenance; local-only checks remain explicit. Component NOT_ACCEPTED,
+card IN_PROGRESS / NOT_DONE; runtime/Lightning, owner acceptance and actual08 adoption stay open.
+
+## BE2-07 approved offline execution — 2026-10-19
+
+User approved FEAT-056 plan revision 1 and OD01–08. ACTIVE07/WIP1 on own task branch; 06 offline accepted, 01 WAITING_STUDIO. Execute eight parts and42 assertions to owner review-ready. Component NOT_ACCEPTED, card IN_PROGRESS/NOT_DONE. Runtime/integration and Git publication remain separate gates.
+
+
+## BE2-07 offline planning after task06 merge — 2026-10-19
+
+User requested the final lane task07 plan, offline first, and a later coordinated Lightning
+runtime campaign01–07. Task06 PR15 is merged at23acf9e; its14commits/45files are preserved.
+Ownbranch feature/be2-07-knowledge-script starts there; administrative FEAT-056 was unused
+after freshfetch/48ref inventory. FEAT-056 plan revision 1 and OD01–08 await owner plan approval;
+source/tests07 NOT_STARTED, no new implementation ACTIVE slot. Scope is sourced knowledge/
+script/correction/current eligibility fixture component. Runtime missing adapters remain
+NOT_IMPLEMENTED, A17Studio NOT_RUN; later campaign preserves exact frozenA17 profile.
+No task07publication/runtime authorization or offlineacceptance inferred. Earlier entries
+retain their dated checkpoint state. Source: FEAT-056 approvals/TASK_APPROVAL.md and plan/PLAN.md.
+
+
 ## BE2-06 offline component accepted — 2026-10-19
 
 Person 2 accepted FEAT-055 CHILD_RESPONSE_COMPONENT_OFFLINE on Codex PASS_WITH_NOTES;

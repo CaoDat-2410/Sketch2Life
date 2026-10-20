@@ -1,0 +1,7 @@
+{
+  "after_sha256": "6ffc06fd32cd998640a417e103d51e04035d2619a3f1569d90107dd563c9aade",
+  "before_sha256": "af6c3c55e3cf0fedf155b8c0ebbf720ef7e6aec121b5b1871f94191a1e2f6c9f",
+  "changed_file": "backend/src/sketch2life/application/services/knowledge_bundle.py",
+  "new": "                pass\n",
+  "old": "                require(\n                    body.expected_audience_revision == old.audience.audience_revision,\n                    \"AUDIENCE_REVISION_MISMATCH\",\n                )\n"
+}

@@ -1,0 +1,30 @@
+{
+  "argv": [
+    "<PYTHON_EXECUTABLE>",
+    "-m",
+    "mypy",
+    "--strict",
+    "--follow-imports=silent",
+    "--config-file",
+    "backend/pyproject.toml",
+    "backend\\src\\sketch2life\\application\\ports\\knowledge_bundle.py",
+    "backend\\src\\sketch2life\\application\\services\\knowledge_bundle.py",
+    "backend\\src\\sketch2life\\contracts\\schemas\\knowledge_bundles.py",
+    "backend\\src\\sketch2life\\domain\\knowledge_bundle.py",
+    "backend\\src\\sketch2life\\infrastructure\\knowledge_bundle\\__init__.py",
+    "backend\\src\\sketch2life\\infrastructure\\knowledge_bundle\\adapters.py",
+    "backend\\src\\sketch2life\\infrastructure\\knowledge_bundle\\coordination.py",
+    "backend\\src\\sketch2life\\infrastructure\\knowledge_bundle\\examples.py",
+    "backend\\src\\sketch2life\\infrastructure\\knowledge_bundle\\fakes.py",
+    "backend\\src\\sketch2life\\infrastructure\\knowledge_bundle\\harness.py"
+  ],
+  "cwd": "<WORKTREE>",
+  "PYTHONPATH": "<WORKTREE>/backend\\src",
+  "MYPYPATH": "<WORKTREE>/backend\\src",
+  "exit": 0,
+  "seconds": 0.219,
+  "started_utc": "2026-10-20T05:28:47.293863+00:00",
+  "ended_utc": "2026-10-20T05:28:47.516250+00:00",
+  "interpreter": "<PYTHON_EXECUTABLE>",
+  "log_sha256": "e522fa370334927ac2ccb7106100045b572938dd238093267de825336e6704f2"
+}

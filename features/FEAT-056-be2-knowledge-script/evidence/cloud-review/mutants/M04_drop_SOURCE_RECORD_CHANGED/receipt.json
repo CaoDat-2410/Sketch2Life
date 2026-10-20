@@ -1,0 +1,46 @@
+{
+  "MYPYPATH": "<WORKTREE>/features\\FEAT-056-be2-knowledge-script\\evidence\\local\\service-mutants-independent-20261020-878d82f4\\M04_drop_SOURCE_RECORD_CHANGED-copy\\backend\\src",
+  "PYTHONPATH": "<WORKTREE>/features\\FEAT-056-be2-knowledge-script\\evidence\\local\\service-mutants-independent-20261020-878d82f4\\M04_drop_SOURCE_RECORD_CHANGED-copy\\backend\\src",
+  "argv": [
+    "<PYTHON_EXECUTABLE>",
+    "-B",
+    "-m",
+    "pytest",
+    "-c",
+    "<WORKTREE>/features\\FEAT-056-be2-knowledge-script\\evidence\\local\\service-mutants-independent-20261020-878d82f4\\M04_drop_SOURCE_RECORD_CHANGED-copy\\backend\\pyproject.toml",
+    "--rootdir",
+    "<WORKTREE>/features\\FEAT-056-be2-knowledge-script\\evidence\\local\\service-mutants-independent-20261020-878d82f4\\M04_drop_SOURCE_RECORD_CHANGED-copy",
+    "-p",
+    "no:cacheprovider",
+    "--basetemp",
+    "<WORKTREE>/features\\FEAT-056-be2-knowledge-script\\evidence\\local\\service-mutants-independent-20261020-878d82f4\\M04_drop_SOURCE_RECORD_CHANGED\\tmp",
+    "--tb=short",
+    "<WORKTREE>/features\\FEAT-056-be2-knowledge-script\\evidence\\local\\service-mutants-independent-20261020-878d82f4\\M04_drop_SOURCE_RECORD_CHANGED-copy\\backend\\tests\\unit\\test_knowledge_bundle_domain.py",
+    "<WORKTREE>/features\\FEAT-056-be2-knowledge-script\\evidence\\local\\service-mutants-independent-20261020-878d82f4\\M04_drop_SOURCE_RECORD_CHANGED-copy\\backend\\tests\\unit\\test_knowledge_bundle_service.py",
+    "<WORKTREE>/features\\FEAT-056-be2-knowledge-script\\evidence\\local\\service-mutants-independent-20261020-878d82f4\\M04_drop_SOURCE_RECORD_CHANGED-copy\\backend\\tests\\unit\\test_knowledge_bundle_adapters.py",
+    "<WORKTREE>/features\\FEAT-056-be2-knowledge-script\\evidence\\local\\service-mutants-independent-20261020-878d82f4\\M04_drop_SOURCE_RECORD_CHANGED-copy\\backend\\tests\\unit\\test_knowledge_bundle_races.py",
+    "<WORKTREE>/features\\FEAT-056-be2-knowledge-script\\evidence\\local\\service-mutants-independent-20261020-878d82f4\\M04_drop_SOURCE_RECORD_CHANGED-copy\\backend\\tests\\unit\\test_knowledge_bundle_chain.py",
+    "<WORKTREE>/features\\FEAT-056-be2-knowledge-script\\evidence\\local\\service-mutants-independent-20261020-878d82f4\\M04_drop_SOURCE_RECORD_CHANGED-copy\\backend\\tests\\contract\\test_knowledge_bundles.py",
+    "--junitxml=<WORKTREE>/features\\FEAT-056-be2-knowledge-script\\evidence\\local\\service-mutants-independent-20261020-878d82f4\\M04_drop_SOURCE_RECORD_CHANGED\\junit.xml"
+  ],
+  "cases": 262,
+  "changed_source_sha256": "94534225678a6155343b2a04fd2b196351d07afd3c74e4af6a2d5ff450d1033c",
+  "collection_or_import_failure": false,
+  "cwd": "<WORKTREE>/features\\FEAT-056-be2-knowledge-script\\evidence\\local\\service-mutants-independent-20261020-878d82f4\\M04_drop_SOURCE_RECORD_CHANGED-copy",
+  "errors": 0,
+  "exit": 1,
+  "failed": 1,
+  "failures": [
+    {
+      "detail": "backend\\tests\\unit\\test_knowledge_bundle_service.py:821: in test_same_revision_fact_changes_deny_current_read_and_edit_without_writes\n    assert not resolution.ready and resolution.export is None and resolution.reason == code\nE   assert (not True)\nE    +  where True = KnowledgeResolution(ready=True, reason=None, export=KnowledgeBundleExportV1(knowledge_claims=(KnowledgeClaimRecordV1(c...topic\":\"Mèo\"}],\"source_snapshot_refs\":[],\"teacher_corrections\":[]}', canonical_rules_version='knowledge-canonical-v1')).ready",
+      "message": "assert (not True)\n +  where True = KnowledgeResolution(ready=True, reason=None, export=KnowledgeBundleExportV1(knowledge_claims=(KnowledgeClaimRecordV1(c...topic\":\"Mèo\"}],\"source_snapshot_refs\":[],\"teacher_corrections\":[]}', canonical_rules_version='knowledge-canonical-v1')).ready",
+      "node": "backend/tests/unit/test_knowledge_bundle_service.py::test_same_revision_fact_changes_deny_current_read_and_edit_without_writes[source_record]",
+      "type": null
+    }
+  ],
+  "junit_sha256": "90bf4ac9d5d34db92d73fb56346df2501bf35d2ba827c4ef2ba5140a61ce534a",
+  "killed_by_assertion": true,
+  "log_sha256": "1dd30a2efb0a444f0822b3822060e280f9f7c832a0fa41057fef0ba5c5c4b635",
+  "seconds": 2.359,
+  "skipped": 0
+}

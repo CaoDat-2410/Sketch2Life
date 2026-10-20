@@ -1,0 +1,4 @@
+HARNESS_VALID
+root=<WORKTREE>
+approval_gate=enabled
+frontend_asset_gate=enabled

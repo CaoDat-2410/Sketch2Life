@@ -1,0 +1,15 @@
+{
+  "argv": [
+    "<PYTHON_EXECUTABLE>",
+    "tools/validate_harness.py"
+  ],
+  "cwd": "<WORKTREE>",
+  "PYTHONPATH": "<WORKTREE>/backend\\src",
+  "MYPYPATH": "<WORKTREE>/backend\\src",
+  "exit": 0,
+  "seconds": 0.235,
+  "started_utc": "2026-10-20T05:28:48.917534+00:00",
+  "ended_utc": "2026-10-20T05:28:49.166520+00:00",
+  "interpreter": "<PYTHON_EXECUTABLE>",
+  "log_sha256": "bcb49c3e0135849d66743bca1c2dc53dd0b4de175f3146e80f8b5ea38c611636"
+}
