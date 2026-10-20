@@ -2,7 +2,8 @@
 
 ## BE2-01–14 offline integration candidate — 2026-10-20
 
-feature/be2-01-14-integration combines task-7 tip
+feature/be2-01-14-integration is locally merged at
+`abe3c357e2c40c694317ead6cf9a1b7c479e3f6e`, combining task-7 tip
 9d1ed184f31ab6b1f18337a1e29bb04fd59aa1b5 with receiver tip
 42a6d3122259e6b33133673a2e444deefa45d387, preserving both histories. The task-7
 PR target feature/be2-01-07 already points to the same task-7 commit, so that PR
@@ -11,7 +12,8 @@ remain blocked by the backend environment's missing python-multipart dependency;
 476/477 BE2-12 cases pass, and BE2-14's 1,061 owned plus 114 foundation cases
 pass. All seven card statuses remain IN_PROGRESS or IN_PROGRESS_PENDING_EXTERNAL;
 real owner/runtime/provider and Lightning gates remain open. The reviewable
-receipts are in FEAT-057 evidence. No live test has run.
+receipts are in FEAT-057 evidence. No live test has run. This is an offline
+integration candidate, not card acceptance or a dev/main merge.
 
 ## BE2-07 offline component accepted — 2026-10-20
 

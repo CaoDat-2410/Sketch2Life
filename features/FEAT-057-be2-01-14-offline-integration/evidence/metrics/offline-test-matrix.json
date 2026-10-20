@@ -342,5 +342,10 @@
   "environment_blockers": [
     "python-multipart is declared but absent from available backend venv; BE2-12 route test fails, and BE2-14 delegated regression check inherits the failure.",
     "Full backend suite was not completed because optional dependencies used by unrelated legacy tests are also absent."
+  ],
+  "merge_commit": "abe3c357e2c40c694317ead6cf9a1b7c479e3f6e",
+  "merge_parents": [
+    "8e569598f9c58bfbcfb2e54bc13e6077d7158d50",
+    "42a6d3122259e6b33133673a2e444deefa45d387"
   ]
 }
