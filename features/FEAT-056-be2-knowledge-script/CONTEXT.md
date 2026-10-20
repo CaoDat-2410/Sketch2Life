@@ -110,3 +110,11 @@ cloud archives are now received and hash/index verified. See
 `evidence/notes/CODEX_POST_CLOUD_REREVIEW_20261020.md` and the latest status. Component
 NOT_ACCEPTED, card IN_PROGRESS / NOT_DONE; owner acceptance and runtime gates remain separate.
 No PR, merge to dev, deployment, or Lightning execution is authorized.
+
+## Offline component accepted — 2026-10-20
+
+The final review of 763a17c passed (evidence/cloud-review/final-review-20261020/REVIEW.md). Under the
+owner's conditional instruction, KNOWLEDGE_SCRIPT_COMPONENT_OFFLINE is accepted
+(approvals/COMPONENT_ACCEPTANCE.md) and the reviewed snapshot is integrated into feature/be2-01-07
+by fast-forward. Card IN_PROGRESS / NOT_DONE; runtime, Lightning, real adapters, actual08 adoption
+and cross-card integration remain open. Historical evidence and evidence/cloud-review are unchanged.

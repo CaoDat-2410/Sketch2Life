@@ -1,7 +1,17 @@
 # BE2-07 status
 
-- Current: READY_FOR_OWNER_COMPONENT_REVIEW — POST_CLOUD_P3. The cloud P3-R1 fix, Codex
-  independent review, and local verification are recorded; owner component acceptance remains open.
+- Current 2026-10-20: **KNOWLEDGE_SCRIPT_COMPONENT_OFFLINE ACCEPTED** by Person 2 on the final
+  review PASS of 763a17c (evidence/cloud-review/final-review-20261020/REVIEW.md). Authority:
+  ../approvals/COMPONENT_ACCEPTANCE.md (verbatim conditional owner instruction). Card stays
+  **IN_PROGRESS / NOT_DONE**; Lightning/runtime, real adapters, HTTP/DB, production policy,
+  actual08 adoption/fence and integration gates remain open.
+- Integration: the owner authorized a normal fast-forward of `feature/be2-01-07` from 23acf9e to the
+  reviewed BE2-07 snapshot plus these acceptance records. The pushed remote SHA cannot be written
+  inside the commit it identifies; verify it with `git ls-remote`.
+- Final review (fresh, 763a17c): 360 BE2-07 tests pass; 42 IDs / 506 references map to fresh
+  passing nodes; 26/27 mutants killed (one equivalent); Ruff, strict mypy, four validators pass.
+  The 56-module batch is NOT_RUN on cloud (missing dependencies); its latest run is Codex's on
+  f6db0d5 (identical product tree).
 - Cloud re-review (2026-10-20, from 1d731c5): NO_BLOCKING_FINDINGS after one in-scope P3 fix.
   Default-ignorable characters used as word separators no longer bypass the imagined-to-fact
   check. The two focused commits are published on `feature/be2-07-knowledge-script`.
@@ -16,9 +26,9 @@
 - N1: default-ignorable/CGJ and shared DEL/C1 validation corrected; 338 focused passes and
   independent product review. N2: explicit optimization guard, independently checked 9 cases.
 - Plan: revision 1 frozen, OD01–08 approved; all eight A/B/C parts, the required 01–07 offline batch, and the 42-ID assertion map are recorded.
-- Card: IN_PROGRESS / NOT_DONE; component NOT_ACCEPTED.
+- Card: IN_PROGRESS / NOT_DONE; component KNOWLEDGE_SCRIPT_COMPONENT_OFFLINE ACCEPTED (2026-10-20).
 - 06 offline acceptance retained; 01 WAITING_STUDIO; runtime/integration gates remain open.
-- Goal: the offline revision-1/OD01–08 work, both cloud P3 corrections, independent product/evidence audits, and archive transfer are complete. Owner acceptance and runtime/integration gates remain open; cleanup stays held.
+- Goal: the offline revision-1/OD01–08 work, both cloud P3 corrections, independent product/evidence audits, archive transfer and offline owner acceptance are complete. Runtime/integration gates remain open; cleanup stays held.
 - Git: 12-commit branch publication and Claude cloud review are authorized on 2026-10-20;
   see approvals/GIT_PUBLICATION_APPROVAL_20261020.md and plan/GIT_PUBLICATION_PLAN_20261020.md.
   Publication does not change owner acceptance or runtime gates. No PR/merge/deploy/Lightning authority.

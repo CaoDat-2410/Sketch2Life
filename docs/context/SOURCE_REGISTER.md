@@ -1,5 +1,13 @@
 # Source register and authority boundary
 
+## BE2-07 owner offline acceptance and integration — 2026-10-20
+
+`owner-be207-offline-acceptance-20261020`: direct conditional user instruction quoted verbatim in
+FEAT-056 `approvals/COMPONENT_ACCEPTANCE.md`. Once the final review passed, it authorized accepting
+KNOWLEDGE_SCRIPT_COMPONENT_OFFLINE and a normal update/push of `feature/be2-01-07` with the reviewed
+BE2-07 snapshot. It does not authorize dev/main, other branches, BE2-08–14, runtime/Lightning,
+deployment or full-card completion.
+
 ## BE2-07 cloud P3 follow-up authority — 2026-10-20
 
 `owner-be207-cloud-p3-20261020`: direct "Ok làm đi" after the five-step follow-up proposal;

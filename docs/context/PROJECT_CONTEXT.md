@@ -1,5 +1,14 @@
 # Project context ledger
 
+## BE2-07 offline component accepted — 2026-10-20
+
+Person 2's conditional instruction ("Viết prompt cho claude review lần cuối đi nếu ok thì chấp nhận
+đẩy lên nhánh gộp") applied after the final review PASS of FEAT-056 at 763a17c. Accepted:
+KNOWLEDGE_SCRIPT_COMPONENT_OFFLINE only (FEAT-056 approvals/COMPONENT_ACCEPTANCE.md). The reviewed
+snapshot is fast-forwarded onto feature/be2-01-07. Card IN_PROGRESS / NOT_DONE; Lightning/runtime,
+real adapters, HTTP/DB, actual08 adoption/fence and cross-card integration remain open. 56-module
+batch NOT_RUN on cloud; latest run is Codex's on the identical product tree.
+
 ## BE2-07 cloud P3 corrections — 2026-10-20
 
 Approved follow-up closes invisible-character/CGJ and optimized-verifier P3 findings. Fresh

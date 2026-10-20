@@ -100,3 +100,11 @@ Default-ignorable/Cf characters are compared both removed and as word separators
 fillers such as U+3164 render as a blank gap. Comparison policy only: stored text, canonical
 bytes and control validation are unchanged. Approved by
 `approvals/CLOUD_REREVIEW_REMEDIATION_APPROVAL_20261020.md`; no scope expansion.
+
+## Offline acceptance and integration — 2026-10-20
+
+The owner's conditional instruction ("nếu ok thì chấp nhận đẩy lên nhánh gộp") is applied after a
+PASS final review. Acceptance covers KNOWLEDGE_SCRIPT_COMPONENT_OFFLINE only. Integration is a normal
+fast-forward of feature/be2-01-07, which still pointed at the BE2-07 base 23acf9e. The 56-module batch
+could not run on cloud; acceptance relies on Codex's run on the byte-identical product tree and
+records that limit explicitly.
