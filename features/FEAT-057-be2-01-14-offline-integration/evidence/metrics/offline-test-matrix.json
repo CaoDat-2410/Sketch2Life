@@ -1,6 +1,18 @@
 {
   "scope": "BE2_01_14_OFFLINE_INTEGRATION_CANDIDATE",
   "candidate_branch": "feature/be2-01-14-integration",
+  "publication": {
+    "state": "LOCAL_ONLY",
+    "push": "BLOCKED_AUTHENTICATION",
+    "push_error": "Git Credential Manager could not persist credentials; no interactive terminal was available.",
+    "pr": "NOT_CREATED",
+    "requested_task7_pr": {
+      "head": "feature/be2-07-knowledge-script",
+      "base": "feature/be2-01-07",
+      "state": "EMPTY_DIFF",
+      "reason": "Both refs point at the same task-7 commit."
+    }
+  },
   "base_commit": "9d1ed184f31ab6b1f18337a1e29bb04fd59aa1b5",
   "receiver_commit": "42a6d3122259e6b33133673a2e444deefa45d387",
   "runtime": {

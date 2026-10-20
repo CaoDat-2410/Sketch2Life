@@ -10,9 +10,12 @@
 - Integration branch: `feature/be2-01-14-integration`
 - Updated: 2026-10-20 (Asia/Saigon)
 
-The task-7 PR target `feature/be2-01-07` already points at the task-7 source tip,
-so that PR has no commits to review. GitHub CLI authentication also needs refresh
-before any PR can be created. The receiver branch is merged locally; the merge
+The requested task-7 PR target `feature/be2-01-07` already points at the task-7
+source tip, so task 7 → `feature/be2-01-07` has no commits to review. The offline
+integration branch is local only: pushing `feature/be2-01-14-integration` failed
+because Git Credential Manager could not persist credentials and no interactive
+terminal was available. No PR has been created. GitHub CLI authentication also
+reports an invalid token. The receiver branch is merged locally; the merge
 has two documented context-ledger conflict resolutions and no unresolved
 conflicts. Component runners pass for BE2-08, 09, 10, 11 and 13. BE2-12 has
 476/477 tests pass; its remaining route test fails at collection/runtime because
