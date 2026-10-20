@@ -618,6 +618,57 @@ def test_tiny_imagined_literal_variants_cannot_become_facts(claim_text: str) -> 
 
 
 @pytest.mark.parametrize(
+    "code_point",
+    [
+        0x034F,
+        0x115F,
+        0x1160,
+        0x17B4,
+        0x17B5,
+        0x180B,
+        0x180F,
+        0x3164,
+        0xFE0F,
+        0xFFA0,
+        0xFFF0,
+        0xFFF8,
+        0xE0000,
+        0xE01EF,
+        0xE0FFF,
+    ],
+)
+@pytest.mark.parametrize("imagined_obfuscated", [False, True])
+def test_default_ignorable_literal_obfuscation_is_not_a_fact(
+    code_point: int, imagined_obfuscated: bool
+) -> None:
+    plain = "Mèo có cánh."
+    obfuscated = f"Mèo có c{chr(code_point)}ánh."
+    claim_text, imagined_text = (plain, obfuscated) if imagined_obfuscated else (obfuscated, plain)
+    claim = replace(catalog_claim(reviewed_claim()), text=claim_text)
+    with pytest.raises(KnowledgeRuleViolation, match="IMAGINED_AS_FACT"):
+        project_script(
+            (FactSection("fact", ("claim",)),),
+            (claim,),
+            (),
+            forbidden_imagined=(ImaginedElementV1("wings", 1, imagined_text),),
+        )
+
+
+@pytest.mark.parametrize("code_point", [0x00, 0x1F, 0x7F, 0x80, 0x85, 0x9F])
+def test_text_controls_include_del_and_c1(code_point: int) -> None:
+    with pytest.raises(KnowledgeRuleViolation, match="TEXT_CONTROL"):
+        replace(catalog_claim(reviewed_claim()), text=f"Mèo{chr(code_point)} có lông.")
+
+
+def test_text_controls_allow_line_feed_tab_and_vietnamese_combining_marks() -> None:
+    original = "Me\u0300o\nco\u0301\tlo\u0302ng."
+    claim = replace(catalog_claim(reviewed_claim()), text=original)
+    assert claim.text == original
+    assert project_script((FactSection("fact", ("claim",)),), (claim,), ())[1] == original
+    assert canonical_bytes({"text": original}) == '{"text":"Mèo\\ncó\\tlông."}'.encode()
+
+
+@pytest.mark.parametrize(
     ("claim", "imagined", "overlap"),
     [
         ("A cat is a mammal.", "cat", True),
@@ -630,6 +681,12 @@ def test_tiny_imagined_literal_variants_cannot_become_facts(claim_text: str) -> 
         ("Mèo có cánh", "Mèo, có, cánh.", True),
         ("Mèo có cánh", "Mèo có c-ánh.", True),
         ("Meo co canh", "Mèo có cánh.", False),
+        ("Me\u034f\u0300o có cánh.", "Mèo có cánh.", True),
+        ("Mèo có cánh.", "Me\u034f\u0300o có cánh.", True),
+        ("Mèo có cánh.", "\u034f\u180b\u3164\ufe0f", False),
+        ("\u034f\u180b\u3164\ufe0f", "Mèo có cánh.", False),
+        ("cánh", "canh", False),
+        ("canh", "cánh", False),
     ],
 )
 def test_literal_overlap_token_boundaries_empty_signatures_and_diacritics(
@@ -647,6 +704,17 @@ def test_literal_comparison_does_not_rewrite_stored_text_or_canonical_nfc() -> N
     claim = replace(catalog_claim(reviewed_claim()), text=text)
     assert project_script((FactSection("fact", ("claim",)),), (claim,), ())[1] == text
     assert claim.text == text
+
+
+def test_default_ignorable_comparison_does_not_rewrite_text_or_canonical_bytes() -> None:
+    original = "Mèo có c\u034f\u180b\u3164\ufe0fánh."
+    assert imagined_literal_overlap(original, "Mèo có cánh.")
+    claim = replace(catalog_claim(reviewed_claim()), text=original)
+    assert claim.text == original
+    assert project_script((FactSection("fact", ("claim",)),), (claim,), ())[1] == original
+    assert canonical_bytes({"text": original}) == (
+        '{"text":"Mèo có c\u034f\u180b\u3164\ufe0fánh."}'.encode()
+    )
 
 
 @pytest.mark.parametrize(

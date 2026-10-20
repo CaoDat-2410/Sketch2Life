@@ -31,6 +31,27 @@ FIXTURE_POLICY = "knowledge-offline-policy-v1"
 CONTRACT_VERSION = "0.1-candidate"
 CANONICAL_RULES_VERSION = "knowledge-canonical-v1"
 _ID = re.compile(r"[A-Za-z0-9_.:-]{1,120}")
+# Unicode 15.0 Default_Ignorable_Code_Point, with contiguous property ranges merged.
+# https://www.unicode.org/Public/15.0.0/ucd/DerivedCoreProperties.txt
+_DEFAULT_IGNORABLE_RANGES = (
+    (0x00AD, 0x00AD),
+    (0x034F, 0x034F),
+    (0x061C, 0x061C),
+    (0x115F, 0x1160),
+    (0x17B4, 0x17B5),
+    (0x180B, 0x180F),
+    (0x200B, 0x200F),
+    (0x202A, 0x202E),
+    (0x2060, 0x206F),
+    (0x3164, 0x3164),
+    (0xFE00, 0xFE0F),
+    (0xFEFF, 0xFEFF),
+    (0xFFA0, 0xFFA0),
+    (0xFFF0, 0xFFF8),
+    (0x1BCA0, 0x1BCA3),
+    (0x1D173, 0x1D17A),
+    (0xE0000, 0xE0FFF),
+)
 
 
 class KnowledgeRuleViolation(ValueError):
@@ -50,9 +71,13 @@ def opaque(value: str) -> None:
     require(type(value) is str and _ID.fullmatch(value) is not None, "INVALID_REFERENCE")
 
 
+def has_forbidden_text_controls(value: str) -> bool:
+    return any(unicodedata.category(char) == "Cc" and char not in "\n\t" for char in value)
+
+
 def text(value: str, limit: int = SHORT_MAX) -> None:
     require(type(value) is str and 0 < len(value) <= limit and bool(value.strip()), "TEXT_BOUNDS")
-    require(not any(ord(char) < 32 and char not in "\n\t" for char in value), "TEXT_CONTROL")
+    require(not has_forbidden_text_controls(value), "TEXT_CONTROL")
 
 
 def revision(value: int, minimum: int = 1) -> None:
@@ -222,9 +247,20 @@ def validate_basis(
         require(contributor_allowed(contributor), "CONSENT_REQUIRED")
 
 
+def _literal_ignorable(char: str) -> bool:
+    code_point = ord(char)
+    return unicodedata.category(char) == "Cf" or any(
+        lower <= code_point <= upper for lower, upper in _DEFAULT_IGNORABLE_RANGES
+    )
+
+
 def _literal_signatures(value: str) -> tuple[tuple[str, ...], tuple[str, ...]]:
-    normalized = unicodedata.normalize("NFKC", value).casefold()
-    visible = "".join(char for char in normalized if unicodedata.category(char) != "Cf")
+    # Remove CGJ before normalization so it cannot inhibit Vietnamese mark composition.
+    filtered = "".join(char for char in value if not _literal_ignorable(char))
+    normalized = unicodedata.normalize("NFKC", filtered).casefold()
+    visible = unicodedata.normalize(
+        "NFKC", "".join(char for char in normalized if not _literal_ignorable(char))
+    )
     boundaries = "".join(
         " " if unicodedata.category(char).startswith("P") else char for char in visible
     )

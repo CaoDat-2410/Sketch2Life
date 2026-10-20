@@ -562,6 +562,11 @@ def test_child_imagined_removed_keeps_provenance_and_cannot_become_fact() -> Non
         "Ｍèo có cánh.",
         "Mèo,có cánh.",
         "Mèo có cá.nh.",
+        "Mèo có c\u034fánh.",
+        "Mèo có c\ufe0fánh.",
+        "Mèo có c\u180bánh.",
+        "Mèo có c\u3164ánh.",
+        "Me\u034f\u0300o có cánh.",
     ],
 )
 def test_imagined_fact_tiny_variants_reject_after_selection_removed(claim_text: str) -> None:
@@ -584,6 +589,69 @@ def test_imagined_fact_tiny_variants_reject_after_selection_removed(claim_text: 
             )
         )
     assert failure.value.code == "IMAGINED_AS_FACT"
+    assert harness.repository.snapshot() == before and harness.repository.commits == commits
+
+
+@pytest.mark.parametrize(
+    "imagined_text",
+    [
+        "Mèo có c\u034fánh.",
+        "Mèo có c\ufe0fánh.",
+        "Mèo có c\u180bánh.",
+        "Mèo có c\u3164ánh.",
+        "Me\u034f\u0300o có cánh.",
+    ],
+)
+def test_obfuscated_trusted_imagined_text_cannot_become_fact(imagined_text: str) -> None:
+    harness = build_knowledge_harness()
+    harness.facts.publish_basis(
+        replace(
+            harness.child_basis,
+            imagined_elements=(
+                replace(harness.child_basis.imagined_elements[0], text=imagined_text),
+            ),
+        )
+    )
+    first = harness.service.create(
+        CreateKnowledgeCommand(
+            TEACHER_A, "obfuscated-basis-create", harness.create_body(child=True, imagined_refs=())
+        )
+    )
+    before = harness.repository.snapshot()
+    commits = harness.repository.commits
+    with pytest.raises(KnowledgeBundleError) as failure:
+        harness.service.edit(
+            EditKnowledgeCommand(
+                TEACHER_A,
+                first.record.bundle_id,
+                "obfuscated-basis-edit",
+                etag(harness, first.record.bundle_id),
+                correction(harness, "Mèo có cánh."),
+            )
+        )
+    assert failure.value.code == "IMAGINED_AS_FACT"
+    assert harness.repository.snapshot() == before and harness.repository.commits == commits
+
+
+@pytest.mark.parametrize("code_point", [0x7F, 0x80, 0x85, 0x9F])
+def test_edit_handler_rejects_del_and_c1_without_writes(code_point: int) -> None:
+    harness = build_knowledge_harness()
+    first = create(harness)
+    payload = json.loads(correction(harness).model_dump_json())
+    payload["claims"][0]["text"] = f"Mèo có c{chr(code_point)}ánh."
+    before = harness.repository.snapshot()
+    commits = harness.repository.commits
+    with pytest.raises(KnowledgeBundleError) as failure:
+        harness.service.edit(
+            EditKnowledgeCommand(
+                TEACHER_A,
+                first.record.bundle_id,
+                "control-edit",
+                etag(harness, first.record.bundle_id),
+                json.dumps(payload, ensure_ascii=False),
+            )
+        )
+    assert failure.value.status == 400 and failure.value.code == "FIELD_VALIDATION_FAILED"
     assert harness.repository.snapshot() == before and harness.repository.commits == commits
 
 

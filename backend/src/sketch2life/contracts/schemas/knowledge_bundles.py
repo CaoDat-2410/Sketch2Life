@@ -12,7 +12,9 @@ OpaqueId = Annotated[str, Field(min_length=1, max_length=120, pattern=r"^[A-Za-z
 
 
 def _text(value: str) -> str:
-    if not value.strip() or any(ord(char) < 32 and char not in "\n\t" for char in value):
+    from sketch2life.domain.knowledge_bundle import has_forbidden_text_controls
+
+    if not value.strip() or has_forbidden_text_controls(value):
         raise ValueError("text must be nonblank without control characters")
     return value
 
