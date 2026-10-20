@@ -25,7 +25,7 @@ from sketch2life.application.services.raw_understanding_mapper import (
     map_vision_result_to_raw,
 )
 from sketch2life.application.services.semantic_activity_resolver import confirmed_topic_scene
-from sketch2life.application.services.topic_semantics import claims_from_raw
+from sketch2life.application.services.topic_semantics import claims_from_raw, display_label_vi
 from sketch2life.contracts.schemas.gate_a import GateAConfirmationV1, GateAConfirmationV2
 from sketch2life.contracts.schemas.mobile_workflow import MobileWorkflowCommandV1
 from sketch2life.contracts.schemas.p1_experience import SemanticAnchorSetV1
@@ -33,6 +33,7 @@ from sketch2life.contracts.schemas.raw_understanding import RawUnderstandingSucc
 from sketch2life.contracts.schemas.semantic_personalization_v2 import (
     ConfirmedSceneUnderstandingV2,
 )
+from sketch2life.contracts.schemas.vision import vision_label_normalize
 from sketch2life.contracts.schemas.vision_v2 import (
     VisionUnderstandingSuccessV2,
     vision_profile_catalog_hash_v2,
@@ -556,7 +557,10 @@ _SUPPLEMENTAL_OUTCOME_CODES = {
 }
 
 
-def _supplemental_outcome_matches(outcome: str, observed: dict[str, Any]) -> bool:
+def _supplemental_outcome_matches(
+    outcome: str, observed: dict[str, Any], references: dict[str, Any] | None = None
+) -> bool:
+    references = references or {}
     expected_code = _SUPPLEMENTAL_OUTCOME_CODES.get(outcome)
     if expected_code is not None:
         return observed.get("code") == expected_code
@@ -582,15 +586,17 @@ def _supplemental_outcome_matches(outcome: str, observed: dict[str, Any]) -> boo
                 and observed.get("narration_status") != "TEXT_SUPPLIED")
     if outcome == "OBSERVE_CORRECTION_PROVENANCE":
         primary_provenance = observed.get("primary_anchor", {}).get("provenance", {})
-        vision_claim_ids = set(observed.get("vision_claim_ids", []))
-        retained_vision_ids = {
-            claim_id
-            for anchor in observed.get("secondary_anchors", [])
-            for claim_id in anchor.get("provenance", {}).get("source_claim_ids", [])
-        }
-        return (bool(primary_provenance.get("source_adult_assertion_id"))
-                and not primary_provenance.get("source_claim_ids")
-                and bool(vision_claim_ids & retained_vision_ids))
+        primary_claim_ids = primary_provenance.get("source_claim_ids", [])
+        vision_claim_ids = set(references.get("vision_claim_ids", []))
+        return (
+            bool(primary_claim_ids)
+            and primary_claim_ids == observed.get("confirmed_claim_ids")
+            and set(primary_claim_ids).issubset(vision_claim_ids)
+            and observed.get("primary_anchor", {}).get("original_label_sha256")
+            == references.get("primary_raw_label_sha256")
+            and observed.get("primary_anchor", {}).get("normalized_label_sha256")
+            == references.get("correction_normalized_label_sha256")
+        )
     if outcome == "OBSERVE_MEANING_AND_ANCHOR_VERSIONS":
         return (observed.get("meaning_version") == 1
                 and observed.get("second_meaning_version") == 2
@@ -624,7 +630,9 @@ def _apply_supplemental_expectation(item: dict[str, Any], row: dict[str, Any]) -
         return row
     expected_outcome = item["expected"].get("outcome")
     if expected_outcome is not None:
-        matches_outcome = _supplemental_outcome_matches(expected_outcome, row["observed"])
+        matches_outcome = _supplemental_outcome_matches(
+            expected_outcome, row["observed"], row.get("references", {})
+        )
         row["observed"]["outcome_expectation_matches"] = matches_outcome
         if not matches_outcome:
             row["requirement_status"] = "UNRESOLVED"
@@ -636,20 +644,54 @@ def _apply_supplemental_expectation(item: dict[str, Any], row: dict[str, Any]) -
     return row
 
 
-def test_supplemental_provenance_outcomes_require_observed_anchor_shape() -> None:
+def test_supplemental_correction_provenance_matches_v1_observation() -> None:
     correction = {
-        "vision_claim_ids": ["vision-1"],
-        "primary_anchor": {"provenance": {
-            "source_adult_assertion_id": "adult-1", "source_claim_ids": [],
-        }},
-        "secondary_anchors": [{"provenance": {"source_claim_ids": ["vision-1"]}}],
+        "confirmed_claim_ids": ["vision-1"],
+        "primary_anchor": {"original_label_sha256": "raw-label-hash",
+                            "normalized_label_sha256": "correction-label-hash",
+                            "provenance": {
+                                "source_adult_assertion_id": None,
+                                "source_claim_ids": ["vision-1"],
+                            }},
+        "secondary_anchors": [],
     }
-    assert _supplemental_outcome_matches("OBSERVE_CORRECTION_PROVENANCE", correction)
+    references = {
+        "vision_claim_ids": ["vision-1", "vision-2"],
+        "primary_raw_label_sha256": "raw-label-hash",
+        "correction_normalized_label_sha256": "correction-label-hash",
+    }
+    assert _supplemental_outcome_matches(
+        "OBSERVE_CORRECTION_PROVENANCE", correction, references
+    )
+
     wrong_vision_link = {
         **correction,
-        "secondary_anchors": [{"provenance": {"source_claim_ids": ["other-claim"]}}],
+        "primary_anchor": {
+            **correction["primary_anchor"],
+            "provenance": {"source_claim_ids": ["unrelated-claim"]},
+        },
     }
-    assert not _supplemental_outcome_matches("OBSERVE_CORRECTION_PROVENANCE", wrong_vision_link)
+    assert not _supplemental_outcome_matches(
+        "OBSERVE_CORRECTION_PROVENANCE", wrong_vision_link, references
+    )
+    wrong_correction_label = {
+        **correction,
+        "primary_anchor": {
+            **correction["primary_anchor"], "normalized_label_sha256": "wrong-label-hash",
+        },
+    }
+    assert not _supplemental_outcome_matches(
+        "OBSERVE_CORRECTION_PROVENANCE", wrong_correction_label, references
+    )
+    wrong_raw_label = {
+        **correction,
+        "primary_anchor": {
+            **correction["primary_anchor"], "original_label_sha256": "wrong-raw-hash",
+        },
+    }
+    assert not _supplemental_outcome_matches(
+        "OBSERVE_CORRECTION_PROVENANCE", wrong_raw_label, references
+    )
 
     empty_confirmation = {
         "confirmation_claim_count": 0, "confirmed_claim_ids": [], "raw_preserved": True,
@@ -852,6 +894,19 @@ def _run_gate_supplemental(item: dict[str, Any], manifest: dict[str, Any],
         anchors = SemanticAnchorSetV1.model_validate(result.payload["anchor_set"])
         gate_a_confirmation = result.payload["gate_a_confirmation"]
         confirmed_claim_ids = list(gate_a_confirmation["confirmed_claim_ids"])
+        if scenario == "V1_ADULT_CORRECTION":
+            primary_id = base["confirmation"]["primary_anchor_id"]
+            primary_raw = next(
+                entity for entity in raw.entities if entity.observation_id == primary_id
+            )
+            correction_label = base["confirmation"]["correction"].strip()
+            row["references"] = {
+                "vision_claim_ids": sorted(entity.observation_id for entity in raw.entities),
+                "primary_raw_label_sha256": _text_digest(primary_raw.label.value),
+                "correction_normalized_label_sha256": _text_digest(
+                    vision_label_normalize(display_label_vi(correction_label))
+                ),
+            }
         row["observed"] = {
             "primary_anchor": _anchor_observation(anchors.primary_anchor),
             "secondary_anchors": [_anchor_observation(a) for a in anchors.secondary_anchors],
@@ -862,7 +917,6 @@ def _run_gate_supplemental(item: dict[str, Any], manifest: dict[str, Any],
             "adult_confirmation_actor": anchors.adult_confirmation_actor,
             "confirmation_claim_count": len(confirmed_claim_ids),
             "confirmed_claim_ids": confirmed_claim_ids,
-            "vision_claim_ids": sorted(entity.observation_id for entity in raw.entities),
             "raw_preserved": sessions.workflow_record(base["session_id"]).values[
                 "raw_understanding"] == raw.model_dump(mode="json"),
         }

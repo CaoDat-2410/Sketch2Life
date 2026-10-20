@@ -20,7 +20,7 @@ Artifact tuples:
 | Artifact | Bytes | SHA-256 |
 | --- | ---: | --- |
 | `tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json` | 228,305 | `1ba728ca3b02646bafd6b75d27b6c70461957ceb8628ec8e75f11e3aea62bd5a` |
-| `backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py` | 57,510 | `43a0fd40d6caea07460cd7827b89be67a92acf2e14815c6deeba49e46716d3a8` |
+| `backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py` | 59,617 | `06defb68ff97456bbd9d1dc37375a0b023a2d8a4d2ff0ecd2790d2a3ebf655d9` |
 | `backend/tests/contract/test_feat018_p2_t4_manifest_contract.py` | 22,000 | `6dedf9f04346db6094978218a849ac9d63b4ee01fc9632971fcf42a0bd5dfb89` |
 
 ## Result
@@ -73,11 +73,15 @@ correction row also remains `UNRESOLVED` until its owner-disposition marker is d
 
 Supplemental `expected.outcome`, `expected.requirement_status`, and matcher target modes are read by
 the diagnostics path. Outcome predicates inspect the observed rejection code or observed fields;
-the B2 expected error code is derived from the manifest outcome. Correction provenance checks the
-returned primary adult-assertion provenance and retained secondary Vision claim IDs against IDs in
-the synthetic Raw input. Empty adult confirmation uses the returned Gate A confirmation IDs and
-requires a primary adult-assertion anchor with no secondary anchors. A mismatch is recorded rather
-than reported as a pass. The primary target V1/V2 expectations are compared with observed target modes
+the B2 expected error code is derived from the manifest outcome. The V1 correction predicate
+checks the returned primary `source_claim_ids` against the returned confirmation IDs and reference
+Vision IDs, checks the original-label hash against Raw input, and checks the normalized-label hash
+against the correction input. These input IDs and hashes are recorded separately under `references`,
+not described as observations. The known V1 provenance reuse remains a separate
+`V1_CORRECTION_REUSES_VISION_PROVENANCE` boundary finding; it does not become a manifest expectation
+mismatch. Empty adult confirmation uses the returned Gate A confirmation IDs and requires a primary
+adult-assertion anchor with no secondary anchors. A mismatch is recorded rather than reported as a
+pass. The primary target V1/V2 expectations are compared with observed target modes
 when B2/B3 execute, and the test independently recomputes the target mode from the observation list
 to check the row's mismatch disposition. The no-match recipe is checked against all 100 base V2
 profiles, and the primary row must report any non-fallback match it observes. A passing diagnostics
