@@ -609,3 +609,18 @@ the in-memory session preconditions, counter-versus-disabled-dependency reportin
 versus matcher defaults, manifest-level synthetic provenance and the separate narration fixture
 shape. The reported V2 phrase-regex issue is recorded for diagnosis, not silently fixed here.
 These remain draft proposals awaiting owner approval; this update does not start implementation.
+
+## P2-T4 approved diagnostic slice — 2026-10-20
+
+Person 2 later approved Revision 3 at source commit `b39a9f2f56509b0543184876eb538fc9faf0e1aa`.
+The approved scope is B1/B2/B3 with B3 used only to observe existing matchers, 120 primary cases,
+separate supplemental counts, and diagnostic-only report labels. The implementation adds a
+synthetic manifest and test-only diagnostics; it does not change runtime contracts, schemas,
+catalogs, or provider behavior.
+
+The current run completed B1 for all 120 primary rows. Gate A import requires unavailable `PIL`,
+so B2/B3 remain NOT_RUN and all primary requirements remain UNRESOLVED. Of 43 supplemental rows,
+34 executed and 9 Gate-A rows are NOT_RUN. The executed observations include one Raw narration
+source/status mismatch and two V2 matcher deviations. Task 4 remains open pending B2/B3 evidence,
+owner disposition of unresolved behavior, and independent implementation review. Details:
+`evidence/notes/P2_T4_MAPPING_DIAGNOSTICS_20261020.md`.

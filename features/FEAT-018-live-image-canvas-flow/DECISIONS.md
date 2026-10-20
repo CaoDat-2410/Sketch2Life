@@ -1,5 +1,12 @@
 # FEAT-018 decisions
 
+- 2026-10-20 owner approval: implement the P2-T4 Revision 3 diagnostic slice at source commit
+  `b39a9f2f56509b0543184876eb538fc9faf0e1aa`. Use B1/B2/B3, with B3 as matcher observation only;
+  keep 120 primary cases and supplemental cases separately counted; report labels remain diagnostics
+  and do not introduce a contract. The approval does not authorize runtime/schema/catalog changes or
+  Lightning/model calls. Execution gaps and unresolved requirements keep Task 4 open. The measured
+  partial result is recorded in `evidence/notes/P2_T4_MAPPING_DIAGNOSTICS_20261020.md`.
+
 - 2026-09-09 research record: user requested one P2 research round and proposals;
   any FEAT-003 change or connection requires user review first. Proposed offline
   slices and contract decisions are recorded in `plan/P2_OFFLINE_FIRST_PLAN.md`

@@ -3,20 +3,26 @@
 Status: IN_PROGRESS — approved offline implementation verified; live rig/Pixi visual acceptance pending
 Updated: 2026-10-20
 
-## P2-T4 planning checkpoint — 2026-10-20
+## P2-T4 implementation checkpoint — 2026-10-20
 
-- State: `DRAFT — NOT APPROVED FOR IMPLEMENTATION`; no full P2-T4 completion claim.
-- The owner-relayed Claude Cloud review of draft commit `9663ba4` requested revisions before input
-  approval. Revised plan/input documents specify B1 Raw, B2 Gate A and B3 matcher observations,
-  reviewed Vietnamese labels, fallback separation, confidence preservation and known provenance gaps.
-- Revision 3 responds to Cloud delta-review of `fc1f987`: both remaining confirmation recipes are
-  explicit, with B2 seed, counter reporting, synthetic provenance and matcher-score distinctions.
-  A reported V2 phrase-regex defect is recorded outside the current runtime-change scope.
-- Current work is source review and documentation only. No P2-T4 fixture/test implementation,
-  application test run, runtime fix, model or Lightning call has occurred.
+- State: `PARTIAL — APPROVED DIAGNOSTIC SLICE IMPLEMENTED; TASK 4 OPEN`.
+- Person 2 approved Revision 3 at source commit `b39a9f2f56509b0543184876eb538fc9faf0e1aa`.
+  Approval and exact scope are recorded in `approvals/TASK_APPROVAL.md`.
+- The synthetic manifest has 120 primary and 43 separately counted supplemental cases. B1 passed
+  for all 120 primary cases. B2/B3 are NOT_RUN for all primary cases because Gate A import stops at
+  missing `PIL`; 9 Gate-A supplemental cases are likewise NOT_RUN. Primary requirements remain
+  UNRESOLVED. The other executed supplemental rows include an accepted Raw narration/status gap and
+  two observed V2 matcher deviations; see the metrics report for row-level sanitized evidence.
+- Focused offline tests: 231 passed, 129 skipped with the explicit missing-`PIL` prerequisite.
+  Ruff passed. Mypy terminated with `OperationalError: unable to open database file`; this does not
+  constitute a type-check result. Repository-wide validation results are recorded in the evidence
+  note below.
+- No runtime/schema/catalog edits or Lightning/model calls were made. Independent implementation
+  review and owner disposition for unresolved behavior remain open; Task 4 is not complete.
 - Plans: `plan/P2_T4_MAPPING_DIAGNOSTICS_PLAN_DRAFT_20261020.md` and
-  `plan/P2_T4_MAPPING_INPUT_REVIEW_DRAFT_20261020.md`. Owner scope acceptance/approval and independent
-  implementation review remain prerequisites for the corresponding later work.
+  `plan/P2_T4_MAPPING_INPUT_REVIEW_DRAFT_20261020.md`. Evidence:
+  `evidence/notes/P2_T4_MAPPING_DIAGNOSTICS_20261020.md` and
+  `evidence/metrics/P2_T4_MAPPING_DIAGNOSTICS_20261020.json`.
 
 ## Supported-age amendment — 2026-10-06
 

@@ -1,13 +1,14 @@
 # FEAT-018 P2-T4 — Input Fixture Specification for Review
 
-- Status: `DRAFT — REVIEW INPUT DESIGN ONLY`.
+- Status: `APPROVED INPUT DESIGN — DIAGNOSTIC SLICE ONLY`.
 - Revision: 3, 2026-10-20; responds to Claude Cloud delta-review of commit `fc1f987`.
 - Branch: `feature/feat018-p2t4-mapping-diagnostics`.
 - Related plan: [mapping diagnostics plan](P2_T4_MAPPING_DIAGNOSTICS_PLAN_DRAFT_20261020.md).
 
-This is a proposed test-input specification, not an executable manifest, runtime contract or owner
-approval. Only documentation/source inspection has occurred. Future tests require implementation
-approval for the exact file scope in the related plan.
+Person 2 approved this test-input specification and the related revision-3 implementation scope
+at source commit `b39a9f2f56509b0543184876eb538fc9faf0e1aa` on 2026-10-20. The exact issuance and
+source digests are in `approvals/TASK_APPROVAL.md`. This document is not a runtime contract; its
+criteria remain as reviewed. Execution results and limitations belong in the separate evidence.
 
 ## 1. Boundaries and source identity
 

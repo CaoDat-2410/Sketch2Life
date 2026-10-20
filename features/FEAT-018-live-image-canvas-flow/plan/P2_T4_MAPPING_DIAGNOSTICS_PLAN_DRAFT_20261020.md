@@ -1,10 +1,14 @@
 # FEAT-018 P2-T4 — Pilot Mapping Diagnostics Plan
 
-- Status: `DRAFT — NOT APPROVED FOR IMPLEMENTATION`
+- Status: `APPROVED — DIAGNOSTIC IMPLEMENTATION ONLY`
 - Revision: 3, 2026-10-20; response to the owner-relayed Claude Cloud delta-review of `fc1f987`.
 - Owner: Person 2.
 - Branch: `feature/feat018-p2t4-mapping-diagnostics`.
 - Parent: P2-T3 status commit `fd474b12bb50a603e67fce5c25f889a95e968734`.
+
+Person 2 approved revision 3 at source commit `b39a9f2f56509b0543184876eb538fc9faf0e1aa` on
+2026-10-20. The original source digests, exact issuance, allowed files and exclusions are recorded
+in `approvals/TASK_APPROVAL.md`. This status update does not change the approved criteria below.
 
 ## Outcome and limits
 
@@ -160,15 +164,25 @@ No change to `raw_understanding.py`, `gate_a.py`, `p1_experience.py`, `supervise
 `semantic_activity_resolver.py`, `semantic_personalization_v2.py`, mapper/scene/catalog runtime,
 catalog JSON, FEAT-003 fusion, P4 fixtures, mobile, provider code or shared governance tools.
 
-## Proposed decisions and next work
+## Owner-approved scope and implementation checkpoint — 2026-10-20
 
-Recommend B1+B2 with B3 used only as a matcher observation; exact Vietnamese phrases for the primary
-exact cases, aliases separately; common validated no-match recipe; unknown confidence supplemental;
-numeric preservation without adopting a threshold; and honest gap reporting without widening runtime
-scope. These are recommendations for owner acceptance, not adopted decisions.
+Person 2 approved B1/B2/B3 with B3 as matcher observation only, 120 primary cases, separately
+counted supplemental cases, and report labels restricted to diagnostics. The approval is recorded
+verbatim in `approvals/TASK_APPROVAL.md`. It authorizes the exact files listed above, focused offline
+checks, evidence creation, and implementation review. It does not authorize runtime/schema/catalog
+changes or Lightning/model calls.
 
-The user-authorized preparation work is documentation/review. Obtain owner acceptance of this scope
-and record it in `approvals/TASK_APPROVAL.md` before creating the manifest or implementing tests.
-Then implement the exact files, execute focused offline tests and repository checks, publish only
-approved sanitized results, and obtain independent review. Lightning/GPU/model/network execution
-and a new runtime-candidate contract are not prerequisites for this diagnostic slice.
+The approved manifest and tests are present. The current metrics report records 120 primary rows:
+B1 completed for all 120; B2 and B3 were NOT_RUN for all 120 because importing the existing Gate A
+service fails on the unavailable `PIL` import. All 120 primary requirements therefore remain
+UNRESOLVED. Of 43 supplemental rows, 34 executed and 9 Gate-A cases are NOT_RUN for the same
+prerequisite. Twelve supplemental requirements remain UNRESOLVED: nine unexecuted Gate-A cases, a
+Raw narration source/status consistency gap, and two observed V2 matcher deviations. The report
+keeps the 120 primary and 43 supplemental counts separate and records `full_p2_t4_acceptance=OPEN`.
+
+Evidence and the offline check results are in
+`evidence/notes/P2_T4_MAPPING_DIAGNOSTICS_20261020.md` and
+`evidence/metrics/P2_T4_MAPPING_DIAGNOSTICS_20261020.json`. This is a partial diagnostic result,
+not Task 4 completion. B2/B3 evidence, owner disposition for unresolved behavior, and the required
+independent implementation review remain open. No runtime fix, provider/model call, or contract
+was added.

@@ -2,6 +2,18 @@
 
 Evidence belongs under this feature only.
 
+## P2-T4 diagnostic slice — 2026-10-20
+
+Partial, sanitized working evidence from the Person 2-approved Revision 3 diagnostic scope:
+
+- [Implementation and offline result](notes/P2_T4_MAPPING_DIAGNOSTICS_20261020.md) records the
+  exact scope, checks, missing-`PIL` limitation, observed gaps, and open Task 4 status.
+- [Machine-readable diagnostics](metrics/P2_T4_MAPPING_DIAGNOSTICS_20261020.json) contains sanitized
+  IDs, hashes, match modes, codes, counts, and execution statuses. It contains no raw labels,
+  narration, media, session dumps, or provider output.
+
+This evidence is partial and does not assert Task 4 acceptance or completion.
+
 P2 publication policy: working research, review briefs and handoff drafts remain
 local and are not canonical public evidence. Publish only selected completed P2
 records after owner review, then add them to this index. Completing a research
