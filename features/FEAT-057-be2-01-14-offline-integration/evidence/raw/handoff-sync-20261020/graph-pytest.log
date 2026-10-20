@@ -1,0 +1,25 @@
+F                                                                        [100%]
+================================== FAILURES ===================================
+___ test_script_graph_keeps_be1_history_and_adds_independent_ai_jobs_branch ___
+backend\tests\integration\ai_jobs\test_migrations.py:112: in test_script_graph_keeps_be1_history_and_adds_independent_ai_jobs_branch
+    assert set(script.get_heads()) == {BE1_CHAIN[0], AI_HEAD}
+E   AssertionError: assert {'20261014_00...vr_0001', ...} == {'20261014_00...1015_ai_0001'}
+E
+E     Extra items in the left set:
+E     '20261019_pa_0001'
+E     '20261018_kv_0001'
+E     '20261019_ae_0001'
+E     '20261017_lc_0001'
+E     '20261018_ap_0009'...
+E
+E     ...Full output truncated (3 lines hidden), use '-vv' to show
+============================== warnings summary ===============================
+tests/integration/ai_jobs/test_migrations.py::test_script_graph_keeps_be1_history_and_adds_independent_ai_jobs_branch
+  <workspace>\backend\.venv\Lib\site-packages\alembic\config.py:604: DeprecationWarning: No path_separator found in configuration; falling back to legacy splitting on spaces, commas, and colons for prepend_sys_path.  Consider adding path_separator=os to Alembic config.
+    util.warn_deprecated(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: <integration-worktree-or-existing-env>\features\FEAT-057-be2-01-14-offline-integration\evidence\local\handoff-sync-20261020\graph-junit-original.xml -
+=========================== short test summary info ===========================
+FAILED backend\tests\integration\ai_jobs\test_migrations.py::test_script_graph_keeps_be1_history_and_adds_independent_ai_jobs_branch
+1 failed, 1 warning in 0.37s
