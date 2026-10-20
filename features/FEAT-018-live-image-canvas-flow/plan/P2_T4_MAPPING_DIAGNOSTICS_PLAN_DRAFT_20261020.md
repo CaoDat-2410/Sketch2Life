@@ -1,146 +1,161 @@
 # FEAT-018 P2-T4 — Pilot Mapping Diagnostics Plan
 
-**Status:** `DRAFT — NOT APPROVED FOR IMPLEMENTATION`
-**Owner:** Person 2
-**Branch:** `feature/feat018-p2t4-mapping-diagnostics`
-**Parent baseline:** P2-T3 status/evidence commit `fd474b12bb50a603e67fce5c25f889a95e968734`
+- Status: `DRAFT — NOT APPROVED FOR IMPLEMENTATION`
+- Revision: 2, 2026-10-20; response to the owner-relayed Claude Cloud review of `9663ba4`.
+- Owner: Person 2.
+- Branch: `feature/feat018-p2t4-mapping-diagnostics`.
+- Parent: P2-T3 status commit `fd474b12bb50a603e67fce5c25f889a95e968734`.
 
-The separate [input-fixture review brief](P2_T4_MAPPING_INPUT_REVIEW_DRAFT_20261020.md) proposes
-synthetic case inputs and lists the contract questions that must be resolved before the fixture
-manifest is finalized.
+## Outcome and limits
 
-This draft scopes FEAT-018 Person 2's pilot mapping diagnostics task. It is distinct from the
-FEAT-003 P2-T4 multimodal-fusion task and its `P2T4*` schemas/tests. It authorizes no code, contract,
-provider, mobile, FEAT-003, or live-runtime change. FEAT-018's O4 remains unapproved in
-`P2_OFFLINE_FIRST_PLAN.md`; implementation requires a separate explicit owner approval recorded in
-`approvals/TASK_APPROVAL.md`.
+Prepare an offline diagnostic matrix for the 20 golden pilot activity/version pairs in
+`ACTIVITY_PILOT_MATRIX.md`. Each has six primary cases: exact, ambiguous, no-match, conflicting
+image/narration, low numeric confidence, and adult correction: 120 uniquely identified rows.
+The [input specification](P2_T4_MAPPING_INPUT_REVIEW_DRAFT_20261020.md) defines the proposed inputs.
 
-## Goal
+The runtime has a P2 Raw proposal and a Gate-A-confirmed anchor handoff; no separate P2-owned
+activity-candidate/no-match API was established by this inspection. This slice therefore proposes
+fixtures, tests and a diagnostic report using existing contracts, with no new runtime envelope.
+Report vocabulary is not a new public contract or an eligibility decision.
 
-Produce deterministic, offline diagnostics showing how the approved FEAT-018 observation-to-
-candidate mapping behaves across the 20 version-2 golden pilot activities. The result is an
-auditable proposal/blocked diagnostic, never an activity eligibility decision or Gate B approval.
+This diagnostic slice alone cannot close full P2-T4 if required behavior remains unresolved. Passing
+tests that accurately reproduce a defect do not mean the product requirement is satisfied.
 
-## Source and authority basis
+## Source basis and review response
 
-- `docs/context/SOURCE_REGISTER.md` defines source-register materials as references, not authority
-  to implement unapproved work.
-- `plan/PERSON_2_AI.md`, P2-T4, requires exact-observation, ambiguous, no-match,
-  image/narration-conflict, low-confidence, and adult Gate A correction cases for every pilot; its
-  output must remain a proposal/candidate envelope.
-- `plan/P2_OFFLINE_FIRST_PLAN.md`, O3/O4, supplies the proposed candidate/handoff and offline
-  acceptance boundaries, while explicitly marking O1/O2–O5 unapproved.
-- `plan/CONTRACT_FREEZE.md` is the contract authority. Preserve `RawUnderstandingResultV1`, source
-  references/provenance, separate ASR and Vision claims, and `gate_a_required=true`; do not modify
-  FEAT-003's `VisionUnderstandingResultV2` schema or runtime.
-- `plan/ACTIVITY_PILOT_MATRIX.md` defines the selected 20 golden activity/version pairs. Its 100-MVP
-  catalog expansion and device/cache/renderer cases are outside this P2-T4 slice.
-- `approvals/TASK_APPROVAL.md` has no explicit implementation approval for this FEAT-018 O4/P2-T4
-  slice as of this draft.
+- `PERSON_2_AI.md` specifies the six cases and P2/P1 ownership. `ACTIVITY_PILOT_MATRIX.md` supplies
+  the activity v2 identity set, not executable English matching labels.
+- `P2_OFFLINE_FIRST_PLAN.md` O3/O4 and C0 are proposed design requirements, not adopted authority
+  for unapproved work. Later approvals of P2-T2, narration, T2 matching and subject recovery remain
+  applicable to their own scopes; their existence does not approve this matrix or every C0 clause.
+- `CONTRACT_FREEZE.md`, `ENGINE_REFINEMENT_PLAN.md`, `approvals/TASK_APPROVAL.md` and the current
+  contract/service sources define the existing handoff. FEAT-018 P2-T4 has no dedicated approval
+  for this implementation slice in the inspected approval file.
+- `data/activity-catalog/golden/v1/semantic-anchor-profiles.v1.json` contains reviewed Vietnamese
+  phrases and 100 legacy profiles. Profile versions and golden activity versions differ; retain
+  both identities rather than rewriting catalog versions.
+- The 2026-09-22 T2 matching work supplies existing catalog/matcher behavior and selected tests.
+  FEAT-003/027 payload-mapping diagnostics and FEAT-003 `p2_t4_fusion*` are different deliverables.
+- `docs/context/SOURCE_REGISTER.md` treats reference inputs as context, not implementation grants.
 
-## Read-only gap inspection so far
+The Cloud review is external reviewer-reported static analysis. Coordinator source inspection
+confirmed the key design gaps below; a Codex subagent separately checked the Gate A/projection
+claims. Neither activity is a runtime test or acceptance verdict for this revision.
 
-The current codebase already contains activity semantic catalogs and focused tests, so this task
-must extend verified FEAT-018 behavior rather than duplicate the FEAT-003 fusion contract. The
-read-only inspection found:
-
-- `ACTIVITY_PILOT_MATRIX.md` is the canonical FEAT-018 set of 20 golden activity/version-2 rows.
-- `backend/src/sketch2life/infrastructure/catalog/activity_semantics_v2.py` and
-  `backend/tests/unit/test_semantic_personalization_v2.py` provide catalog and selected semantic
-  matching coverage; `backend/tests/unit/test_activity_semantics.py` covers selected exact,
-  ambiguous, fallback and no-match behaviors. The current inspected tests do not demonstrate the
-  required six-case matrix for every FEAT-018 golden row.
-- `fixtures/pilot_20_activity_template.json` is a P4 template with 20 `NOT_ASSIGNED` rows, not a
-  P2-T4 mapping-diagnostics manifest. `fixtures/smoke_subset_3_activity.json` also belongs to the
-  P4 cache/fallback/handoff smoke slice and is not the P2-T4 golden set.
-- `backend/src/sketch2life/application/services/p2_t4_fusion.py`,
-  `backend/src/sketch2life/contracts/schemas/p2_t4_fusion.py`, and
-  `backend/tests/contract/test_p2_t4_contract.py` are FEAT-003 P2-T4 fusion artifacts. Their name
-  overlap does not make them the FEAT-018 Person 2 mapping-diagnostics task; leave them untouched.
-- `plan/LIVE_VISION_SCHEMA_REMEDIATION_PLAN.md` uses “mapping diagnostics” for closed diagnostics
-  about mapping/validating provider payload shapes at the FEAT-003/FEAT-027 vision boundary. That
-  work is distinct from these FEAT-018 observation-to-activity pilot cases and does not satisfy
-  their coverage requirement.
-- The approved 2026-09-22 `TOPIC_AND_T2_ACTIVITY_MATCHING_FIX_PLAN.md` implementation already wires
-  the reviewed semantic catalog into P1/T2 and preserves Gate A/provenance. Its recorded tests cover
-  selected exact, ambiguous/fallback, and no-match examples, not the required six-case matrix for
-  all 20 P2 golden activities.
-- FEAT-018 `P2_OFFLINE_FIRST_PLAN.md` marks O4 and the remainder of the plan unapproved, and the
-  feature's `approvals/TASK_APPROVAL.md` contains no specific O4/P2-T4 implementation approval.
-  `plan/ENGINE_REFINEMENT_PLAN.md` also states P2-T4/T5 require their own approval when work goes
-  beyond already approved P2 scope.
-- `ACTIVITY_PILOT_MATRIX.md` also lists P4 cache-hit, cache-miss and renderer-fallback cases. Those
-  are not part of the six P2-T4 mapping cases below; keep P4 execution out of this task.
-
-This is a targeted read-only gap review, not a complete file-level implementation plan. Before
-implementation, bind the exact paths to change and confirm the fixture/output contract. Do not
-broaden scope because a nearby file appears convenient.
-
-## In-scope proposal
-
-- Use only synthetic, contract-valid fixtures for the offline mapping diagnostics.
-- Cover exactly these version-2 golden activity IDs from `ACTIVITY_PILOT_MATRIX.md`:
-  `ACT-0004`, `ACT-0016`, `ACT-0019`, `ACT-0020`, `ACT-0023`, `ACT-0026`, `ACT-0030`,
-  `ACT-0033`, `ACT-0039`, `ACT-0046`, `ACT-0055`, `ACT-0058`, `ACT-0061`, `ACT-0067`,
-  `ACT-0074`, `ACT-0085`, `ACT-0087`, `ACT-0091`, `ACT-0097`, and `ACT-0099`.
-- For each activity, include six independently identified diagnostic cases:
-
-| Case | Required behavior to verify |
+| Review topic | Revision-2 response |
 |---|---|
-| Exact observation | Supported evidence may produce a traceable candidate proposal with its source claim references. |
-| Ambiguous observation | Preserve ambiguity; do not promote it to an exact activity match. |
-| No matching candidate | Return a typed no-match/blocked diagnostic; do not invent a label or force a match. |
-| Image/narration conflict | Preserve both modality claims and their references; expose conflict for review; do not silently choose a modality. |
-| Low or unknown confidence | Preserve the measured value or `NOT_MEASURED`; block unsupported certainty and do not default confidence. |
-| Adult Gate A correction | Preserve the original observation and record the adult correction separately with provenance; correction is not eligibility approval. |
+| No established P2 candidate/no-match operation | Report-only diagnostic classification; preserve Raw proposal and gate evidence. Do not add a contract. |
+| English seeds are not reviewed matching labels | Use the Vietnamese `exact_phrases_vi` values listed in the input specification; record the seed as context only. |
+| Profile v1 versus activity v2 | Bind catalog/profile ID, profile version, source digest, effective activity/version, and observed variant ID separately. |
+| Ambiguous-region versus competing claims | Use two explicit entity claims plus `UNRESOLVED_AMBIGUITY`; test ambiguous-region-only as a supplemental case. |
+| Unknown Vision confidence is invalid in Raw | Test V2-null rejection separately; numeric low confidence tests preservation, without inventing a threshold. |
+| Conflict after Gate A | Keep Raw plus confirmation plus anchor; record unsupported conflict/decision propagation as `UNRESOLVED`. |
+| Adult correction provenance | Observe both V1/V2 branches, preserving their confirmation/session records; no blanket assertion that all provenance is lost. |
+| Working brief publication policy | The two sanitized draft documents were pushed for Cloud review at the user's request; this is not completed evidence publication or an exception for unrelated research. |
 
-- Produce a feature-local coverage manifest and compatibility report with per-case `PASS`, expected
-  `BLOCKED`, or `UNRESOLVED` disposition, fixture identity, contract/version, and test reference.
-- Use injected fixtures only: no model, network, Lightning, GPU, real child data, or real media.
+Two qualifications to the review are retained. `_FUSION_ALIASES` does include plant/flower-related
+terms, so it is too broad to claim that it covers none of the pilot vocabulary. Explicit fixture
+conflicts are still needed to test all pilots deterministically. Also, adult confidence `1.0` is an
+observed implementation convention and a policy/calibration question, not a proven violation of an
+adopted C0 threshold: C0 in the offline-first plan is still a proposal.
 
-## Invariants and non-goals
+## Three observation boundaries
 
-- AI observations and mapping diagnostics do not infer age, readiness, materials, supervision,
-  psychological traits, safety, or eligibility.
-- P2 emits evidence/candidates only. P1 owns activity/objective eligibility, and Gate A remains
-  required before any compatible handoff.
-- Unknown vocabulary, ambiguous evidence, stale/wrong-source input, missing provenance, duplicate
-  or dangling claim references, and unsupported confidence must remain typed and fail closed.
-- No automatic semantic-contradiction detector, new model prompt, provider retry behavior, FEAT-003
-  contract/runtime modification, P1 policy change, mobile/UI change, catalog expansion beyond the
-  20 golden rows, or live evaluation is included.
-- Do not alter or reinterpret the separate FEAT-003 P2-T4 fusion implementation or tests.
+| Boundary | Exercise | Evidence and limits |
+|---|---|---|
+| B1: P2 proposal | Validate `RawUnderstandingSuccessV1`, refs, narration state and `claims_from_raw`; exercise the existing mapper for applicable supplemental cases. | Raw/proposal and claim identities remain distinct from confirmed anchors. Fixture-injected conflicts do not prove automatic contradiction detection. |
+| B2: Gate A handoff | Call existing `SupervisedFlowService.confirm_gate_a` with explicit V1/V2 confirmation, a fresh synthetic in-memory session and injected dependencies. | Retain original Raw, confirmation/actor/meaning and session versions, returned anchor, and relevant post-confirmation session facts. No provider/backend server or real state. |
+| B3: P1 matcher observation | Use existing per-profile `match` and, when valid scene input exists, `match_scene` without changing either implementation. | Observe match modes/fallbacks across the fixed base 100 profiles (`include_expansion=False`). No eligibility resolver, age fit, P1 compiler, Gate B or activity selection. |
 
-## Acceptance criteria for the proposed offline slice
+`ConfirmedSceneUnderstandingV2` is a downstream projection for B3, not a replacement P2 contract.
+If `confirmed_topic_scene` is exercised, its inferred modality/agreement and absent-audio markers
+are implementation observations, not proof of source audio or genuine agreement. Retain B1/B2
+evidence and record any disagreement. Never invent scene confidence or audio provenance to run B3.
 
-1. The coverage manifest contains exactly the 20 listed activity/version pairs and all 120
-   activity/case combinations; no duplicate, missing, or silently extra case is accepted.
-2. Every case's expected result is reviewed and tied to the fixture's source claim IDs and
-   contract/version. Image and narration provenance remain distinct in conflict cases.
-3. Exact cases produce only proposal/candidate diagnostics; the other five cases preserve their
-   ambiguity, no-match, conflict, uncertainty, or correction state without inventing evidence.
-4. No output adds P1 eligibility, Gate B approval, inferred profile facts, or a direct activity
-   selection authority.
-5. Fixture execution is deterministic and offline. Rejected or blocked fixtures make zero provider
-   calls; no raw media, transcript, prompt, model output, token, or personal data is added to evidence.
-6. Relevant contract/unit tests, schema compatibility checks, repository validators, and independent
-   review pass before this offline slice is marked complete. Any out-of-scope schema or FEAT-003
-   change stops for separate owner review.
+The 9–12 rows stay in the historical golden catalog diagnostics. This does not enable unsupported
+ages in the current product flow, change the supported-age boundary, or start sessions for those ages.
 
-## Proposed work order
+## Known gaps requiring observation, not an automatic repair
 
-1. Complete the read-only gap review against current FEAT-018 code/tests and bind exact paths,
-   contracts, and existing coverage; distinguish current behavior from missing coverage.
-2. Resolve any contract/vocabulary ambiguity using the existing freeze or submit a narrowly scoped
-   contract amendment for owner review. Do not introduce a parallel schema.
-3. Obtain explicit Person 2 implementation approval for this plan revision and exact file scope in
-   `approvals/TASK_APPROVAL.md`.
-4. Only after approval, implement the smallest additive fixture/test/report slice; stop on any
-   required FEAT-003, P1, mobile, or provider change.
-5. Run the approved offline checks, record limitations honestly, update feature context/evidence,
-   and obtain independent review before declaring this slice complete.
+- V1 correction preserves the original label and the full confirmation in session state, but the
+  corrected anchor still carries Vision claim IDs/confidence without a separate adult assertion.
+- V2 adult-subject confirmation adds an assertion ID and does not fabricate Vision claim IDs;
+  it assigns confidence `1.0` and a provenance contract-name string that must be checked against
+  registered contracts. Do not infer that a string alone defines a contract.
+- Both branches project `PROJECT_OWNER` into the anchor role and default anchor-set version to 1;
+  confirmation keeps the actual actor, and session-derived anchor IDs change. Different meaning,
+  session and anchor versions must not be conflated.
+- Anchor-to-scene projection can infer agreement from non-empty narration without carrying Raw
+  conflicts. An adult's explicit claim selection must not be reported as automatic source agreement.
 
-## Current gate
+List these as static hypotheses until exercised after approval. No runtime fix to the Gate A,
+mapper, resolver, catalog or schema is authorized by this plan. If diagnostic results expose a
+required repair, propose the exact repair and approval separately; full-task status stays open.
 
-`NOT APPROVED FOR IMPLEMENTATION`. The next allowed work is the read-only gap review and plan
-refinement. No implementation or provider execution is authorized by this draft.
+## Expected outcomes and completion rules
+
+Each row records `case_id`, activity v2 identity, boundary, fixture digest, source/claim references,
+profile identity/version/digest when applicable, intended behavior, observed behavior, and a test
+reference. Report-only `requirement_status` is one of `SATISFIED`, `EXPECTED_BLOCKED`, `UNRESOLVED`
+or `FAILED`; execution completion/error is recorded separately.
+
+`NO_REVIEWED_VOCABULARY_MATCH` is a diagnostic report label. Record P1 fallback observations and
+match modes separately; fallback cannot satisfy an exact/alias/concept-match expectation. Validate
+the common no-match recipe against all 100 base profiles, not only the golden 20.
+
+1. The primary matrix is exactly 20 activities × six families with no duplicates or missing rows.
+   Supplemental null-confidence, uncertainty, alias, invalid-reference and V1-correction cases have
+   their own IDs/counts and do not inflate the 120-row coverage figure.
+2. Source labels, all raw observations, modality references and original fixture digests survive
+   every applicable boundary. A normal adult selection can be recorded as such; no automatic
+   conflict-resolution or model-certainty claim follows from it.
+3. Low confidence `0.05` is a fixture value, not an adopted cutoff. Preserve it through applicable
+   paths; no blocking threshold is asserted. Use `NOT_PROVIDED` only for Raw uncertainty status,
+   not for a required numeric Vision claim field.
+4. Tests independently validate input integrity, application observations and report dispositions.
+   No unexplained skips/xfails, hardcoded all-pass summary, or missing B2/B3 evidence can close a row.
+5. Inject fake dependencies that fail on provider use and count invocation at the callable provider
+   boundaries. `RawUnderstandingMapperPort` alone is a mapping port, not proof of zero model calls.
+   Report zero counts only when the relevant fake was actually installed and observed.
+6. Evidence contains sanitized IDs, hashes, codes, counts and observations. Synthetic label/text
+   lives only in declared fixtures; raw session dumps, real transcripts, media or provider output
+   do not become published evidence.
+7. A complete diagnostic run may still report unresolved behavior. Full P2-T4 completion additionally
+   requires that each required acceptance item is satisfied or explicitly dispositioned by its
+   owner without silently waiving the original requirement, plus independent implementation review.
+
+## Exact proposed file scope after approval
+
+New implementation/fixture files, names deliberately qualified as FEAT-018:
+
+- `tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json`.
+- `backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py`.
+- `backend/tests/contract/test_feat018_p2_t4_manifest_contract.py`.
+
+Feature records (relative to this feature), created or updated only under the corresponding scope:
+
+- `evidence/notes/P2_T4_MAPPING_DIAGNOSTICS_20261020.md`.
+- `evidence/metrics/P2_T4_MAPPING_DIAGNOSTICS_20261020.json`.
+- The two draft plan documents, `CONTEXT.md`, `DECISIONS.md`, `status/STATUS.md`, and
+  `evidence/README.md`; `approvals/TASK_APPROVAL.md` records only actual owner approval.
+
+Reuse contract constructors and fixture patterns from `test_raw_understanding.py`, existing
+in-memory service fixtures, catalog loaders and matchers. Do not import private HTTP application
+setup or a composition root that eagerly imports optional live/media libraries just for B2.
+
+No change to `raw_understanding.py`, `gate_a.py`, `p1_experience.py`, `supervised_flow.py`,
+`semantic_activity_resolver.py`, `semantic_personalization_v2.py`, mapper/scene/catalog runtime,
+catalog JSON, FEAT-003 fusion, P4 fixtures, mobile, provider code or shared governance tools.
+
+## Proposed decisions and next work
+
+Recommend B1+B2 with B3 used only as a matcher observation; exact Vietnamese phrases for the primary
+exact cases, aliases separately; common validated no-match recipe; unknown confidence supplemental;
+numeric preservation without adopting a threshold; and honest gap reporting without widening runtime
+scope. These are recommendations for owner acceptance, not adopted decisions.
+
+The user-authorized preparation work is documentation/review. Obtain owner acceptance of this scope
+and record it in `approvals/TASK_APPROVAL.md` before creating the manifest or implementing tests.
+Then implement the exact files, execute focused offline tests and repository checks, publish only
+approved sanitized results, and obtain independent review. Lightning/GPU/model/network execution
+and a new runtime-candidate contract are not prerequisites for this diagnostic slice.

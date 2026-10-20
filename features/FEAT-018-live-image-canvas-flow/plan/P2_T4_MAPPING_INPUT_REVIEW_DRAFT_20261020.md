@@ -1,94 +1,175 @@
-# FEAT-018 P2-T4 — Input Fixture Review Brief
+# FEAT-018 P2-T4 — Input Fixture Specification for Review
 
-**Status:** `DRAFT — REVIEW INPUT DESIGN ONLY`
-**Branch:** `feature/feat018-p2t4-mapping-diagnostics`
-**Related plan:** `P2_T4_MAPPING_DIAGNOSTICS_PLAN_DRAFT_20261020.md`
+- Status: `DRAFT — REVIEW INPUT DESIGN ONLY`.
+- Revision: 2, 2026-10-20; responds to Claude Cloud static review of commit `9663ba4`.
+- Branch: `feature/feat018-p2t4-mapping-diagnostics`.
+- Related plan: [mapping diagnostics plan](P2_T4_MAPPING_DIAGNOSTICS_PLAN_DRAFT_20261020.md).
 
-## Review request
+This is a proposed test-input specification, not an executable manifest, runtime contract or owner
+approval. Only documentation/source inspection has occurred. Future tests require implementation
+approval for the exact file scope in the related plan.
 
-Review whether the proposed synthetic inputs and expected outcomes below correctly exercise
-FEAT-018 P2-T4 mapping diagnostics across the 20 golden pilots. Identify contract mismatches,
-ambiguous scope, or missing provenance before any fixture manifest or implementation is approved.
-This brief grants no implementation, schema-change, test-execution, provider, Lightning, or live
-authority.
+## 1. Boundaries and source identity
 
-## Proposed source cases
+Use B1 for Raw proposal/ref/narration validation, B2 for existing Gate A conversion with explicit
+synthetic confirmation and in-memory dependencies, and B3 for unmodified per-profile P1 matching.
+B3 is an observation oracle, not an eligibility resolver. No P1 context/age fit, compiler, Gate B,
+model or provider execution is included.
 
-The exact-observation seed for each activity comes from the canonical `plan/ACTIVITY_PILOT_MATRIX.md`
-row. Fixtures should use synthetic claims and stable fake source/claim IDs; they must not contain
-real images, child data, provider output, prompts, or secrets.
+The input manifest must identify fixture schema revision, case ID/family, target activity/version,
+source artifact/claim IDs and synthetic source hash, upstream contract/profile/config identities,
+Raw contract version, applicable gate-confirmation version/actor/meaning version, and boundary-specific
+expectations. Keep original Raw and actual confirmation alongside derived anchor/scene projections;
+do not add report metadata as extra fields to frozen contracts.
 
-| Activity | Canonical pilot observation seed |
-|---|---|
-| ACT-0004 v2 | partly covered familiar object / cloth |
-| ACT-0016 v2 | large objects and two bowls |
-| ACT-0019 v2 | handwashing materials / sink |
-| ACT-0020 v2 | small water spill and cloth |
-| ACT-0023 v2 | small plant and watering can |
-| ACT-0026 v2 | dry grains and pouring vessels |
-| ACT-0030 v2 | button frame |
-| ACT-0033 v2 | table setting objects |
-| ACT-0039 v2 | graded color boards |
-| ACT-0046 v2 | metal insets / tracing frame |
-| ACT-0055 v2 | plant parts |
-| ACT-0058 v2 | water cycle model |
-| ACT-0061 v2 | stamp game / multiplication material |
-| ACT-0067 v2 | word-class symbols and text |
-| ACT-0074 v2 | weekly planning materials |
-| ACT-0085 v2 | data table or chart |
-| ACT-0087 v2 | classification key materials |
-| ACT-0091 v2 | moon phase model |
-| ACT-0097 v2 | source packet and argument organizer |
-| ACT-0099 v2 | project planner and source log |
+Fixture provenance must be clearly synthetic and derived from the declared fixture construction.
+Reuse the existing typed fixture-construction patterns, including all required provenance fields;
+do not report a successful fake response as a model execution or measured quality result.
 
-## Proposed six input families
+For matcher checks record these independently:
 
-These are input recipes for review, not finalized fixtures. Apply each family to every pilot seed
-only if the reviewer confirms that the resulting input has a meaningful, contract-valid expected
-outcome for that activity.
+- Golden target activity version: 2.
+- Legacy catalog profile: `SAP-ACT-xxxx-V1`, `profile_version=1`, `activity_version=1` in the source
+  profile JSON; this is not the golden template version.
+- Effective V2 profile/version/digest as returned by the base catalog loader; source inspection
+  shows `SAP2-ACT-xxxx-V2` for these templates. Confirm after approval instead of manufacturing a
+  V2 profile or changing source JSON to match an expectation.
+- Source file digest, profile `provenance_sha256`, effective activity version and observed variant
+  ID. The current loader may retain `-V1` in a variant ID; report that lineage, not a silent rewrite.
 
-| Case | Proposed synthetic input | Intended diagnostic boundary |
+## 2. Proposed exact-label inventory
+
+The English pilot seeds remain contextual descriptions in `ACTIVITY_PILOT_MATRIX.md`. They are not
+matcher inputs or a translation rule. The following proposed primary labels are copied from
+`data/activity-catalog/golden/v1/semantic-anchor-profiles.v1.json`, `exact_phrases_vi[0]` for each
+target. Bind the actual source/profile digest during fixture preparation; these strings alone
+do not establish an observed match.
+
+| Activity v2 | Proposed exact label | Legacy profile | Pilot fallback tier |
+|---|---|---|---|
+| ACT-0004 | tìm đồ vật dưới khăn | SAP-ACT-0004-V1 | NONE |
+| ACT-0016 | chuyển đồ vật lớn giữa hai bát | SAP-ACT-0016-V1 | NONE |
+| ACT-0019 | chuỗi rửa tay | SAP-ACT-0019-V1 | NONE |
+| ACT-0020 | lau vết nước nhỏ | SAP-ACT-0020-V1 | NONE |
+| ACT-0023 | tưới cây nhỏ | SAP-ACT-0023-V1 | NONE |
+| ACT-0026 | rót hạt khô | SAP-ACT-0026-V1 | AGE_BASELINE |
+| ACT-0030 | khung cài nút | SAP-ACT-0030-V1 | NONE |
+| ACT-0033 | sắp bàn cho một người | SAP-ACT-0033-V1 | NONE |
+| ACT-0039 | phân cấp bảng màu | SAP-ACT-0039-V1 | NONE |
+| ACT-0046 | khung kim loại luyện nét | SAP-ACT-0046-V1 | NONE |
+| ACT-0055 | quan sát các bộ phận của cây | SAP-ACT-0055-V1 | AGE_BASELINE |
+| ACT-0058 | mô hình vòng tuần hoàn nước | SAP-ACT-0058-V1 | NONE |
+| ACT-0061 | nhân với trò chơi tem | SAP-ACT-0061-V1 | NONE |
+| ACT-0067 | phân tích từ loại bằng ký hiệu | SAP-ACT-0067-V1 | NONE |
+| ACT-0074 | lập kế hoạch công việc tuần | SAP-ACT-0074-V1 | NONE |
+| ACT-0085 | khảo sát và mô tả dữ liệu | SAP-ACT-0085-V1 | AGE_BASELINE |
+| ACT-0087 | xây khóa phân loại | SAP-ACT-0087-V1 | NONE |
+| ACT-0091 | mô hình pha mặt trăng | SAP-ACT-0091-V1 | NONE |
+| ACT-0097 | viết lập luận dựa trên bằng chứng | SAP-ACT-0097-V1 | NONE |
+| ACT-0099 | dự án nghiên cứu độc lập | SAP-ACT-0099-V1 | NONE |
+
+Alias coverage is supplemental with its own `ALIAS` expectation. Do not relabel an alias result
+as `EXACT`. The existing catalog contains 100 profiles and shared concept families, so the exact
+target need not be the only profile matched. Report other matches, including non-pilot activities,
+without changing labels until a unique result appears. Base V2 matching uses `include_expansion=False`.
+
+## 3. Six primary families: concrete construction and expectations
+
+IDs use `feat018-p2-t4-<activity-id-lowercase>-<family>`. Claim/conflict IDs must meet the existing
+lowercase reference grammar and be unique within each Raw record. Source/session/correlation refs
+are explicit synthetic fixture values. Use confidence `0.90` except where the family specifies
+another value; `0.90` is test data, not a production policy threshold.
+
+| Family | Construction | Expected observation and limits |
 |---|---|---|
-| Exact observation | One grounded VLM entity/action claim derived from that row's pilot observation, with unique claim IDs and source provenance. | A traceable candidate/proposal may be emitted; it grants no eligibility. |
-| Ambiguous observation | A valid ambiguous-region observation or two competing supported interpretations, retaining both references. | Preserve ambiguity; do not promote either interpretation to an exact mapping. |
-| No matching candidate | A contract-valid synthetic observation outside the reviewed labels/concepts for the pilot set. | Return a typed no-match/blocked diagnostic at the P2 proposal boundary; do not treat a P1 age fallback as an exact match. |
-| Image/narration conflict | A VLM claim grounded in the pilot seed and a distinct ASR/text-typed claim naming an incompatible synthetic observation, linked by a `SOURCE_DISAGREEMENT` conflict. | Retain both modality claims and references; expose conflict without silently selecting a source. |
-| Low or unknown confidence | Low numeric claim confidence for one case; separately, a case with uncertainty not supplied by the upstream result. | Preserve the supplied number or the explicit not-provided state; block unsupported certainty. No numeric low-confidence threshold is assumed here. |
-| Adult Gate A correction | Preserve the original synthetic observation and add a distinct adult assertion/correction with its own identifier and provenance. | Keep original and correction distinguishable; correction is not activity eligibility or Gate B approval. |
+| EXACT | One Vision entity labelled with the exact phrase in section 2; narration `NOT_SUPPLIED`. Confirm its claim explicitly with Gate A V1, no correction. | B1 validates/selects the claim. B2 retains source hash, original label and claim ID. B3 should observe EXACT for the target V1 profile and PERSONALIZED_EXACT for a valid V2 projection; separately record all other matches and identity differences. Any deviation remains a finding. |
+| AMBIGUOUS | Two Vision entities, one for the target and one for the next pilot in section 2 (last wraps to first), with distinct IDs, plus `UNRESOLVED_AMBIGUITY` referencing both. | B1 preserves both claims and explicit ambiguity. B2 may exercise an explicit adult selection, but selection is not proof the model resolved ambiguity. Keep Raw plus confirmation; unsupported propagation/decision provenance is UNRESOLVED. Do not force a global exact-match result or treat a bare ambiguous region as two claims. |
+| NO_MATCH | One Vision entity with reserved synthetic label `zzfixture-no-reviewed-match-018`, no narration, and explicit no-correction gate confirmation for B2/B3. | Assert empty tags on the actual B2 anchor output; Raw has no semantic-tags field. Check that unmodified projection against all base 100-profile vocabulary/matchers, including aliases, negatives and concept routes. No non-fallback match may exist. If the recipe fails its precondition, report invalid input and revise the specification through review rather than searching for a passing string. No-match is report vocabulary only; fallback is observed separately. |
+| CONFLICT | Target Vision claim plus an ASR claim containing the next pilot's exact phrase. Set `narration_status=ASR_SUCCEEDED`, ASR source `ASR`, and inject `SOURCE_DISAGREEMENT` referencing those two IDs. Explicitly confirm the target Vision claim as primary in B2; bind session narration and the B3 narration argument as described below. | B1 asserts the two references are distinct and from different modalities. This is an explicitly supplied synthetic disagreement, not detected contradiction. B2/B3 cannot claim the sources agree merely because narration is nonempty; record missing propagation or unsupported agreement as UNRESOLVED. |
+| LOW | The EXACT Raw recipe with Vision confidence `0.05`; use the same explicit no-correction confirmation. | Check numeric preservation through Raw and the selected anchor; observe matcher output without requiring a policy block. No invented cutoff, default certainty, or single-claim LOW_CONFIDENCE conflict is permitted. |
+| ADULT_CORRECTION | Preserve an EXACT Raw record; add a V2 confirmation with an adult-authored, explicitly synthetic label, unique actor ref and meaning version at least 2. Keep V1 correction as a supplemental comparison. | Compare original Raw digests before/after; retain confirmation and original observation. Observe distinct adult assertion IDs and model-claim attribution. Record projected confidence 1.0, role/meaning/anchor-version differences or unregistered provenance names as review items, not automatic source-model certainty. |
 
-## Contract and policy questions for review
+The deterministic partner rule supplies two different candidate labels; it does not claim every pair
+shares a concept family or is logically contradictory. Explicit ambiguity/disagreement is part of the
+fixture input. These cases verify representation and provenance, not automatic semantic judgment.
 
-1. **Case boundary:** Should the fixture harness test `RawUnderstandingResultV1` before Gate A, the
-   confirmed-scene/anchor mapping after Gate A, or both? P2-T4 describes mapping diagnostics while
-   the adult-correction case necessarily crosses the Gate A boundary.
-2. **No-match:** Which existing P2-owned operation is the intended proposal boundary? The existing
-   semantic activity resolver may produce an age-baseline fallback; confirm how a true P2 no-match
-   is represented without testing P1 eligibility or relabeling a fallback as exact.
-3. **Low confidence:** No approved threshold was identified in the reviewed contract sources.
-   Confirm whether the case should assert only preservation/typed uncertainty, or whether an owner-
-   approved threshold already exists. Do not invent one in the fixture.
-4. **Adult correction:** `SemanticAnchorSetV1` has `adult_correction_label`, and anchor provenance can
-   carry `source_adult_assertion_id`; confirm this is enough to retain both the original observation
-   and correction. If not, stop for a separately reviewed/approved contract change rather than
-   silently widening a contract in P2-T4.
-5. **Per-pilot applicability:** Confirm that all six families are meaningful for every pilot ID and
-   that expected blocked outcomes count as successful diagnostics. Do not force a candidate for
-   every case.
-6. **Conflicting-modality input:** Confirm that the fixture uses distinct VLM and ASR/text-typed
-   claims and a closed conflict reference, without putting raw transcript-like content into evidence.
+The conflict's ASR text is one declared synthetic fixture string. Bind that same text and its UTF-8
+digest to the Raw ASR claim, the test-created session's typed fake `narration_result`, and the
+explicit `narration_text` argument if `confirmed_topic_scene` is called in B3. Assert equality and
+non-empty text before B3. A Raw ASR claim alone does not supply this separate argument. Retain
+explicit synthetic source/correlation identities and count zero provider invocations; empty-text
+or absent-session-narration variants are supplemental cases, not the primary conflict test.
 
-## Relevant existing contracts
+In no-match cases consume the actual B2 anchor and its derived scene without overwriting tags,
+labels or concepts. Empty tags are an output precondition to check, not an input extra field or
+permission to repair a returned anchor. Any unexpected derived tags or matcher hit is an input/
+behavior finding; no 100-profile exclusion claim follows until these checks complete.
 
-- `contracts/schemas/raw_understanding.py`: `RawUnderstandingSuccessV1`, typed narration status,
-  source-specific claim records, uncertainty status, and `RawConflictV1` claim references.
-- `contracts/schemas/semantic_personalization_v2.py`: `SceneConceptV2` confidence and evidence IDs;
-  `ConfirmedSceneUnderstandingV2` modality/conflict state.
-- `contracts/schemas/p1_experience.py`: `SemanticAnchorSetV1`, Gate-A confirmation, adult correction
-  label, and `AnchorProvenanceV1.source_adult_assertion_id`.
-- `plan/CONTRACT_FREEZE.md`: frozen cross-feature contracts and Gate-A/Gate-B ownership boundaries.
+The same no-match observation may be reused, but every activity has its own case ID and target
+profile observation. Record all base-catalog fallbacks independently: the three golden fallback rows
+are ACT-0026, ACT-0055 and ACT-0085, not necessarily the full set of fallbacks among all 100 profiles.
 
-## Reviewer boundary
+Proposed adult label recipe: `nhãn người lớn thử nghiệm <activity-id>`. It represents adult input,
+not catalog vocabulary or an additional model claim. Do not assign confidence to the adult input
+in the fixture to conceal the service's observed confidence convention.
 
-This is a static review request. Do not run tests or application code, edit files, alter contracts,
-or infer implementation approval. Return findings and exact proposed changes to the input recipes;
-leave unresolved policy decisions explicit for Person 2.
+## 4. Supplemental contract cases
+
+These have separate IDs and counts and do not replace or increase the 120 primary combinations:
+
+- Missing Vision confidence at the upstream V2-to-Raw mapper must reject without defaulting;
+  `test_rejects_missing_v2_confidence_without_defaulting` is an existing regression to reuse.
+- Nullable ASR confidence remains `None`; Raw uncertainty `NOT_PROVIDED` requires a null value,
+  whereas `UPSTREAM_PROVIDED` requires an explicit value. These are separate quantities.
+- A bare `RawAmbiguousObservationV1` has note/ID/source, no confidence or selectable label.
+  Verify its B1 representation and that `claims_from_raw` does not invent an entity from it.
+- Repeat the conflict with `TEXT_TYPED` and `TEXT_SUPPLIED`. Explicitly test source/status
+  consistency because reference-valid Raw records alone do not enforce all modality semantics.
+- Duplicate/dangling conflict refs, source/correlation mismatch, unknown selected claims, and stale
+  confirmation/session versions must produce their existing typed failures or a documented gap.
+- V1 correction, non-owner actor, successive meaning versions and uncorrected V2 confirmation
+  compare the session record with the anchor projection; none may be summarized as loss of all
+  session attribution merely because the projection differs.
+- Reviewed aliases are distinct supplemental cases; family-related matches are observed without
+  asserting uniqueness or treating them as P1 eligibility.
+
+## 5. Diagnostic result design
+
+Report-only fields distinguish intended requirements from actual observations:
+
+- `execution_status`: `NOT_RUN`, `COMPLETE` or `ERROR`.
+- `requirement_status`: `SATISFIED`, `EXPECTED_BLOCKED`, `UNRESOLVED` or `FAILED`.
+- `p2_diagnostic`: optional descriptive code such as `NO_REVIEWED_VOCABULARY_MATCH`, not a runtime
+  error code, schema field or assertion that the product has a P2 no-match endpoint.
+- `p1_matches`: observed profile IDs/versions/modes and relevant digests; `p1_fallback_observed`
+  records fallback separately. No pedagogical fit, eligibility or Gate-B result is produced.
+- `boundary_findings`: ref/modality/actor/version/correction issues and the corresponding evidence
+  IDs/hashes, retaining the full synthetic Raw/confirmation inputs in the declared test fixture.
+
+Do not count an accepted synthetic input as a satisfied downstream preservation requirement.
+Do not convert a known characterization gap to EXPECTED_BLOCKED or mark P2-T4 complete merely
+because the tests accurately detect it. Missing optional dependencies yield an honest execution
+limitation, not a successful B2 observation. Fake provider boundaries must record actual zero-call
+counts for paths exercised; the mapper port alone does not establish that fact.
+
+## 6. Recommended owner choices
+
+Propose one bounded diagnostics scope: B1+B2 with B3 observation, exact phrases for the primary
+matrix, aliases/unknown-confidence as supplemental cases, shared validated no-match recipe,
+preservation-only low confidence, and an explicit gap list without runtime/schema fixes. There is
+no need to adopt a low-confidence production threshold or create a P2 candidate API for this slice.
+
+The two sanitized draft documents were published at the user's request for Cloud review. No raw
+review attachment or general working-research publication is proposed. No owner adoption or test
+implementation approval is implied by relaying a review or by writing these recommendations.
+
+## 7. Re-review request
+
+Review the revised plan and this specification against current source at the review commit.
+Check whether recipe expectations are testable without changing product code, whether every
+profile/version/ref is attributable, and whether gaps/completion are reported honestly. Identify
+any remaining input ambiguity and propose the smallest correction with file/line evidence.
+
+Only static review is requested: no edits, app/test/model/provider execution, approval adoption or
+runtime assurance. The Gate A/projection subagent verification was coordinator-directed read-only
+analysis; it was not external review of this revised specification and did not run the recipes.

@@ -1,7 +1,19 @@
 # FEAT-018 status — subject recall and Pixi main-flow hardening
 
 Status: IN_PROGRESS — approved offline implementation verified; live rig/Pixi visual acceptance pending
-Updated: 2026-09-30
+Updated: 2026-10-20
+
+## P2-T4 planning checkpoint — 2026-10-20
+
+- State: `DRAFT — NOT APPROVED FOR IMPLEMENTATION`; no full P2-T4 completion claim.
+- The owner-relayed Claude Cloud review of draft commit `9663ba4` requested revisions before input
+  approval. Revised plan/input documents specify B1 Raw, B2 Gate A and B3 matcher observations,
+  reviewed Vietnamese labels, fallback separation, confidence preservation and known provenance gaps.
+- Current work is source review and documentation only. No P2-T4 fixture/test implementation,
+  application test run, runtime fix, model or Lightning call has occurred.
+- Plans: `plan/P2_T4_MAPPING_DIAGNOSTICS_PLAN_DRAFT_20261020.md` and
+  `plan/P2_T4_MAPPING_INPUT_REVIEW_DRAFT_20261020.md`. Owner scope acceptance/approval and independent
+  implementation review remain prerequisites for the corresponding later work.
 
 ## Supported-age amendment — 2026-10-06
 

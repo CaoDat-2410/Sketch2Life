@@ -7,6 +7,13 @@ local and are not canonical public evidence. Publish only selected completed P2
 records after owner review, then add them to this index. Completing a research
 round alone does not promote its working note to a public record.
 
+P2-T4 draft-review distribution — 2026-10-20: the owner requested that the two sanitized documents
+`plan/P2_T4_MAPPING_DIAGNOSTICS_PLAN_DRAFT_20261020.md` and
+`plan/P2_T4_MAPPING_INPUT_REVIEW_DRAFT_20261020.md` be pushed on the Task 4 branch for Claude Cloud
+review. They remain draft plan/input proposals, not completed canonical evidence or implementation
+approval. The raw relayed review remains local. This scoped distribution does not change the policy
+for other working research, review attachments or handoff drafts.
+
 Selected completed P2 design record:
 [isolated image admission and decoding](P2_IMAGE_DECODE_DESIGN_20260910.md)
 (`EV-018-P2-DECODE-DESIGN-01`, owner-accepted design; implementation not started).

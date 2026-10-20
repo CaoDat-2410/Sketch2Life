@@ -586,3 +586,19 @@ P2-T3's offline implementation is complete; owner-only live Lightning/ASR smoke 
 The current-branch scope mapping and verification outcomes, including checks blocked by this
 Windows environment, are recorded in
 [`evidence/notes/P2_T3_OPTIONAL_NARRATION_STATUS_20261020.md`](evidence/notes/P2_T3_OPTIONAL_NARRATION_STATUS_20261020.md).
+
+## P2-T4 input design and external review — 2026-10-20
+
+Branch `feature/feat018-p2t4-mapping-diagnostics` contains a draft diagnostics plan and synthetic
+input specification, published for the owner's Claude Cloud review at commit `9663ba4`. The owner
+relayed that review as not ready for approval. Revision 2 addresses label/version identity,
+Raw/Gate-A/matcher boundaries, no-match versus P1 fallback, confidence preservation and explicit
+correction/conflict projection gaps. A coordinator-directed Codex subagent checked source claims;
+it did not run the matrix or provide external acceptance of revision 2.
+
+The proposed diagnostic matrix remains 20 golden activities × six primary cases, with supplemental
+contract cases counted separately. It adds no candidate API or low-confidence policy. Known gaps
+remain open; complete test execution alone cannot close P2-T4 while required behavior is unresolved.
+See `plan/P2_T4_MAPPING_DIAGNOSTICS_PLAN_DRAFT_20261020.md` and
+`plan/P2_T4_MAPPING_INPUT_REVIEW_DRAFT_20261020.md`. This is documentation-only preparation: no
+P2-T4 implementation approval, fixtures, application tests, provider calls or runtime edits occurred.
