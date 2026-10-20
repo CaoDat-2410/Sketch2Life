@@ -1,0 +1,3 @@
+Python 3.12.10
+{'pytest': {'importable': True, 'version': '8.4.2'}, 'ruff': {'importable': True, 'version': '0.16.4'}, 'mypy': {'importable': True, 'version': '1.20.2'}, 'PIL': {'importable': False, 'version': None}, 'multipart': {'importable': False, 'version': None}, 'av': {'importable': True, 'version': '18.1.0'}, 'alembic': {'importable': True, 'version': '1.19.1'}}
+No broken requirements found.
