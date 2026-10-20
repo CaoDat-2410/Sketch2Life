@@ -20,7 +20,7 @@ Artifact tuples:
 | Artifact | Bytes | SHA-256 |
 | --- | ---: | --- |
 | `tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json` | 228,305 | `1ba728ca3b02646bafd6b75d27b6c70461957ceb8628ec8e75f11e3aea62bd5a` |
-| `backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py` | 59,617 | `06defb68ff97456bbd9d1dc37375a0b023a2d8a4d2ff0ecd2790d2a3ebf655d9` |
+| `backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py` | 60,003 | `dbfe424bd14a8ddefec7d3fd077903e67abb537e8e2ba409941acf44ae3ef105` |
 | `backend/tests/contract/test_feat018_p2_t4_manifest_contract.py` | 22,000 | `6dedf9f04346db6094978218a849ac9d63b4ee01fc9632971fcf42a0bd5dfb89` |
 
 ## Result
@@ -113,10 +113,11 @@ From `backend/`, the focused command was:
 & '.venv/Scripts/python.exe' -B -m pytest -p no:cacheprovider tests/unit/test_feat018_p2_t4_mapping_diagnostics.py tests/contract/test_feat018_p2_t4_manifest_contract.py tests/unit/test_raw_understanding.py tests/unit/test_activity_semantics.py -ra
 ```
 
-After this review remediation: **238 passed, 129 skipped, 1 failed**. The sole failure is the explicit
-required-dependency preflight for missing `Pillow>=11,<13`; this is intentionally not reported as a
-clean run. The skip summary identifies 120 primary B2/B3 cases and 9 supplemental Gate-A cases as
-NOT_RUN. This environment does not establish B2/B3 results.
+For the follow-up delta based on parent `fe5bcde`, the focused command was run on the candidate
+working tree before commit and produced **238 passed, 129 skipped, 1 failed**. The sole failure is
+the explicit required-dependency preflight for missing `Pillow>=11,<13`; this is intentionally not
+reported as a clean run. The skip summary identifies 120 primary B2/B3 cases and 9 supplemental
+Gate-A cases as NOT_RUN. This environment does not establish B2/B3 results.
 
 Ruff command:
 

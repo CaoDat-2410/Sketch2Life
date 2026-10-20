@@ -674,6 +674,17 @@ def test_supplemental_correction_provenance_matches_v1_observation() -> None:
     assert not _supplemental_outcome_matches(
         "OBSERVE_CORRECTION_PROVENANCE", wrong_vision_link, references
     )
+    unreferenced_confirmed_claim = {
+        **correction,
+        "confirmed_claim_ids": ["unrelated-claim"],
+        "primary_anchor": {
+            **correction["primary_anchor"],
+            "provenance": {"source_claim_ids": ["unrelated-claim"]},
+        },
+    }
+    assert not _supplemental_outcome_matches(
+        "OBSERVE_CORRECTION_PROVENANCE", unreferenced_confirmed_claim, references
+    )
     wrong_correction_label = {
         **correction,
         "primary_anchor": {
@@ -873,6 +884,7 @@ def _run_gate_supplemental(item: dict[str, Any], manifest: dict[str, Any],
         base["confirmation"]["confirmed_claim_ids"] = ["missing-claim"]
         base["confirmation"]["primary_anchor_id"] = "missing-claim"
     raw = build_raw(base)
+    reference_vision_claim_ids = {entity.observation_id for entity in raw.entities}
     stub = CountingAutoRigStub() if scenario == "SWALLOWED_AUTORIG_CALL" else None
     service, sessions, compiler = _seed_gate_a(base, raw, auto_rig=stub)
     version = sessions.snapshot(base["session_id"]).version
@@ -901,7 +913,7 @@ def _run_gate_supplemental(item: dict[str, Any], manifest: dict[str, Any],
             )
             correction_label = base["confirmation"]["correction"].strip()
             row["references"] = {
-                "vision_claim_ids": sorted(entity.observation_id for entity in raw.entities),
+                "vision_claim_ids": sorted(reference_vision_claim_ids),
                 "primary_raw_label_sha256": _text_digest(primary_raw.label.value),
                 "correction_normalized_label_sha256": _text_digest(
                     vision_label_normalize(display_label_vi(correction_label))
@@ -940,9 +952,8 @@ def _run_gate_supplemental(item: dict[str, Any], manifest: dict[str, Any],
                                    second_meaning_version=2)
             row["requirement_status"] = "UNRESOLVED"
         elif scenario == "V1_ADULT_CORRECTION":
-            vision_claim_ids = {entity["observation_id"] for entity in base["entities"]}
             projected_claim_ids = set(anchors.primary_anchor.provenance.source_claim_ids)
-            if vision_claim_ids & projected_claim_ids:
+            if reference_vision_claim_ids & projected_claim_ids:
                 row["requirement_status"] = "UNRESOLVED"
                 row["boundary_findings"].append("V1_CORRECTION_REUSES_VISION_PROVENANCE")
     assert compiler.calls == 0
