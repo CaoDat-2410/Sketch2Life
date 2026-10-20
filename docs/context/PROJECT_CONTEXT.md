@@ -1,5 +1,18 @@
 # Project context ledger
 
+## BE2-01–14 offline integration candidate — 2026-10-20
+
+feature/be2-01-14-integration combines task-7 tip
+9d1ed184f31ab6b1f18337a1e29bb04fd59aa1b5 with receiver tip
+42a6d3122259e6b33133673a2e444deefa45d387, preserving both histories. The task-7
+PR target feature/be2-01-07 already points to the same task-7 commit, so that PR
+is empty. Offline card runners pass for BE2-08, 09, 10, 11 and 13. BE2-12 and 14
+remain blocked by the backend environment's missing python-multipart dependency;
+476/477 BE2-12 cases pass, and BE2-14's 1,061 owned plus 114 foundation cases
+pass. All seven card statuses remain IN_PROGRESS or IN_PROGRESS_PENDING_EXTERNAL;
+real owner/runtime/provider and Lightning gates remain open. The reviewable
+receipts are in FEAT-057 evidence. No live test has run.
+
 ## BE2-07 offline component accepted — 2026-10-20
 
 Person 2's conditional instruction ("Viết prompt cho claude review lần cuối đi nếu ok thì chấp nhận
@@ -220,6 +233,337 @@ Links (features/FEAT-048-be2-vision-correction/): status/STATUS.md, approvals/TA
 approvals/C1_COMPONENT_ACCEPTANCE.md, evidence/notes/C1_FINAL_VERIFICATION_20261016.md,
 evidence/notes/C1_CODEX_R04_CLOSURE_20261016.md, evidence/notes/H_AI_REVIEW_HANDOFF.md,
 evidence/notes/C1_PUBLICATION_PLAN_20261016.md; full step history in evidence/README.md.
+
+## BE2-10/11/13 actual own PostgreSQL —2026-10-19
+
+Parent2d5d925; actual owner "duyêjt" approves proposed42 tests/isolated temporary
+environment/scoped fixes/cleanup/report/commit. Separate approvals +environment
+plans recorded in FEAT-052/053/054 BEFORE setup; frozen main plans unchanged.
+Fresh portable PG17.11/SCRAM/loopback only, three NEW prefixed databases owned by
+separate nonsuperuser/nocreatedb/nocreaterole/noreplication roles. Exact actual native
+version/address/data_directory/role checked; no shared URL/service/PATH or provider.
+Actual10 SQL14/14,11 SQL17/17,13 SQL11/11 =>42 PASS,0 fail/error/skip; exact node/
+JUnit and837 source closure unchanged. First actual run passed; no application/
+migration/test fixes or SQL pin changes needed. Exact own cluster/binaries/archive/
+secrets/private server log removed,0 own processes/old-port listeners. Retained
+sanitized receipts only. Post-cleanup194+2849=3043 local PASS,830 sources unchanged,
+Ruff/Mypy11/architecture/harness/security/diff PASS. E02 +ACTUAL_POSTGRES metrics
+in each feature. Local runners' SQL COLLECTED_NOT_RUN remains their intentionally
+SQL-disabled receipt, NOT current actual gate status. Own SQL complete for these
+cards, full cards still pending actual source/policy/BE1/P4/native owner adoption/
+combined acceptance. No actual model/Lightning/provider/production mount/push/merge.
+
+## BE2-13 approved internal completion —2026-10-19
+
+Implementation parent448e41f; owner direct "duyệt" approves FEAT-054 revision1
+P1–P4, frozen601afab8 plan unchanged. Immutable preset versions/strict12 delegate/
+old-version recall and exact pin/control intents, bounded evaluator/decisions/pure
+admission, Teacher override/disable/native receipt/no-new-effect reconcile ports,
+own CAS/history/codec/frozen migration, narrow existing CMD-48 safe error mapping,
+local runner and three receiver handoffs complete.194 own +2849 prior=3043 PASS,
+0 skipped/errors/failures;829 sources unchanged; Ruff/Mypy11/architecture/harness/
+security/diff PASS. Own11 PG COLLECTED_NOT_RUN; separate environment approval.
+Internal COMPLETE_LOCAL_VERIFIED; full13 IN_PROGRESS_PENDING_EXTERNAL. Actual
+CR13-01/02/03 preset/current policy/BE1 atomic effects/epochs/dedup/native reconcile/
+scheduler/P4 and combined acceptance OPEN; teammates wire later per owner. No actual
+provider/Lightning/SQL provisioning/production mounting/push/merge/deploy. Last
+internally unstarted receiver card implemented; earlier external gates and10 SQL14/
+11 SQL17 NOT_RUN not waived. FEAT-054 E01 and artifacts current, planning below historical.
+
+## BE2-13 next-card planning —2026-10-19
+
+Owner "task tiếp theo" after11 internal checkpoint f821cc2: inspect/plan only.
+FEAT-054 revision1 P1–P4 AWAITING_APPROVAL/NOT_STARTED: typed versioned preset
+delegate via sole12 CMD-48; immutable pin references and bounded automation intents;
+Teacher override/disable through BE1 atomic command/receipt/recovery port; own SQL
+preparation and complete local audit/handoff. FR053/054 detail/priority remain
+candidate, no hidden policy adoption. CR13-01/02/03 actual preset/current session/
+scheduler contracts OPEN; no actual SQL/provider/BE1/P4/production effects. Present
+exact approval next.11 own17 SQL NOT_RUN/actual integration gates not waived.
+
+## BE2-11 approved internal completion —2026-10-19
+
+Parent261d00a; owner direct "duyệt" approves FEAT-053 revision1 P1–P4. Frozen
+09348e0f plan unchanged. Reviewed definition/publication join +broad topic/exact-age
+discovery/optional ranker bridge; immutable local group adaptations; six guarded
+Teacher actions/per-child preparation/current policy ports; own CAS/history/receipts/
+terminal outcome attribution+ACK/codec/frozen migration; injected CMD-45/CMD-59
+source provider and full receiver handoff delivered. Final219 own +2605 regression
++25 legacy=2849 PASS,0 skips;806 sources unchanged, Ruff/Mypy12/governance/security/
+diff PASS. Own17 PG COLLECTED_NOT_RUN, separate environment approval needed.
+Internal COMPLETE_LOCAL_VERIFIED; full11 IN_PROGRESS_PENDING_EXTERNAL. CR11-01/02/03
+actual source assets/current policy/fences/BE1/P4 composition/result dedup/save/ACK
+and actual integrated acceptance OPEN; teammates wire later. No provider/Lightning/
+SQL provisioning/production mount/push/merge/deploy or13 activation. FEAT-053 E01
+and three artifacts are current handoff; older planning checkpoint below historical.
+
+## BE2-11 next-card planning —2026-10-19
+
+Owner "task tiếp" after10 internal checkpoint7b49a1b authorizes inspect/plan only.
+FEAT-053 revision1 P1–P4 AWAITING_APPROVAL/NOT_STARTED: broad reviewed discovery,
+local immutable Teacher/group adaptation, per-child policy/preparation execution,
+six actions/CAS, own storage/CMD-45 +BE1 catalog/outcome consumer handoff and audit.
+No copied legacy readiness/material hardfilter; FR042/043/reflection refinements
+still candidate. CR11-01/02/03 actual definition/policy/BE1 adapters OPEN. No code/
+SQL/provider/production mount or13 activation. Present exact plan approval next;
+10 SQL14 still NOT_RUN, no evidence/adoption/provisioning authority inherited.
+
+## BE2-10 approved internal completion —2026-10-19
+
+Parent b8910dc; direct owner "duyệt" approves exact FEAT-052 revision1 P1–P4. Recorded
+approval before code, frozen8d0162c6 plan unchanged. Exact exhaustion/three choices,
+bounded retry proof, unique claim/intent-first service/receipt recovery, own SQL/
+codec/migration, injected CMD-43 and consolidated local runner/handoff/audit complete.
+253 own +2352 existing=2605 PASS,0 skipped,753 source closure unchanged, Ruff/Mypy10/
+architecture/harness/security/diff PASS.14 actual PG prepared/collected only NOT_RUN.
+Internal COMPLETE_LOCAL_VERIFIED, full10 IN_PROGRESS. Actual failure/new lifecycle/
+budget consume/session-checkpoint/late-result/reconciliation CR10-01/02/03 and owner
+acceptance OPEN.08 same-pin semantic uniqueness requires adopted retry-aware path,
+not terminal reset/create reuse. No SQL provisioning/provider/Lightning/production
+mount/push/merge/11/13 activation. Current FEAT-052 E01 +three artifacts/metrics.
+
+## BE2-10 next-card planning —2026-10-19
+
+Owner "tiếp" after total report routes planning only. Baseline76959ab, clean
+feature/be2-08-14. FEAT-052 revision1 P1–P4 prepared AWAITING_APPROVAL/NOT_STARTED:
+exact exhausted target +bounded Teacher retry/new lifecycle, skip, early-end with
+checkpoint, guarded recoverable intent/receipts, own SQL/HTTP and consolidated
+verification/handoff. CR10-01/02/03 candidate adoption OPEN. No code/runtime/SQL
+provisioning or new numeric policy; plan presentation/exact approval next.09 own
+SQL21/local458 evidence retained separately; actual integration still deferred.
+
+## BE2-09 C4b actual own PostgreSQL —2026-10-18
+
+Parent1ce8d07; separate direct owner "duyệt" approves temporary local PG17, exact21
+SQL cases/scoped fixes/cleanup/checkpoint. Recorded FEAT-051 local approval/plan
+before setup. Actual21 PASS,0 failure/error/skip, PG17.11 loopback nonsuperuser,
+733 source files unchanged, no code fixes. Exact cluster/binaries/archive/secrets
+removed; no remaining PG process. Own SQL gate now PASS; local pack stays deliberate
+collection-only, not a retraction of separate E07 actual evidence. Internal complete,
+full09 IN_PROGRESS pending actual CR09-01/02/BE1 access/session/owner/runtime quality
+acceptance. No shared/prod DB, global service/install, provider/Lightning, push/merge.
+
+## BE2-09 C4 internal completion —2026-10-18
+
+Parent b0983a0; owner explicitly approves finishing remaining INTERNAL P3/P4 in one
+run. HTTP CMD-41/42 candidates,117 HTTP +22 runner new tests and consolidated
+handoff/audit delivered.458 own +1894 existing=2352 PASS, no skips;731 transitive
+source closure unchanged/exact pinned nodes+JUnit; Ruff/Mypy17/governance/security
+PASS. Internal COMPLETE_LOCAL_VERIFIED, full09 IN_PROGRESS.21 PG tests prepared/
+collected only NOT_RUN. Actual canonical08/09 head +BE1 current session/access/
+gateway adoption CR09-01/02 OPEN, selected08 runtime/quality/consumer acceptance
+pending. No internal checkpoint needs another "tiếp"; no automatic10 implementation,
+SQL/provider/Lightning activation or push/merge/deploy. Current FEAT-051 E06 and
+artifacts/LOCAL_VERIFICATION_HANDOFF.md, HTTP_CONTRACT_HANDOFF.md, ACCEPTANCE_AUDIT.md.
+
+## BE2-09 C3a owned persistence component —2026-10-18
+
+Parent09a707b, approved FEAT-051 revision1 unchanged. Own video_review closed codec/
+six-table schema/SQL UoW adapters/new branch migration, no08/BE1 shared-row writes.
+70 new mock/offline cases,319 own +1894 existing=2213 PASS,669 backend source files
+unchanged; Ruff/Mypy15 PASS.10 actual PG17 tests prepared/collected only NOT_RUN,
+separate VR09 environment authorization required. P3 injected HTTP/P4 next, actual
+canonical head/access/session/revocation adoption CR09-01/02 OPEN. Full09 remains
+IN_PROGRESS. Current E05; no DB/provider/Lightning activation or push/merge.
+
+## BE2-09 C2b lifecycle/rebind component —2026-10-18
+
+Parent01b4be9, approved FEAT-051 revision1.60 new/249 own +1894 existing=2143 PASS,
+662 backend source files unchanged, Ruff/Mypy11 PASS. Invalidation/archive +new
+empty review head across version/context/audience changes; same-content restoration
+requires fresh review, no approval revival. Actual source-owner/canonical head/
+access revocation CR09-01/02 adoption OPEN. P3 storage/HTTP and P4 next; current
+FEAT-051 E04. Full09 IN_PROGRESS, no SQL/provider/Lightning activation.
+
+## BE2-09 C2a guarded review-write component —2026-10-18
+
+Parent cd942dd; FEAT-051 approved revision1 unchanged. Review-write/current snapshot/
+atomic own UoW candidate ports/service with current replay applicability.53 new/
+189 own +1894 existing=2083 PASS;658 backend source files unchanged, Ruff/Mypy8 PASS.
+Actual owner/canonical head/version rebind/SQL/HTTP/access adoption still open,
+no automatic playback or2083-as-integration claim. P3/P4 pending; current FEAT-051
+E03. Full09 IN_PROGRESS, no provider/SQL/Lightning activation.
+
+## BE2-09 C1b playback intent/recovery component —2026-10-18
+
+Parent aa10fe5, approved FEAT-051 revision1 unchanged.52 new/136 own +1894 existing
+=2030 PASS,655 backend source files unchanged, Ruff/Mypy6 PASS. Intent-first
+guarded start/original-key receipt recovery component, no resend/URL/fake current
+playing grant. Actual authority/store/BE1 session/access/receipt/fetch adoption
+CR09-01/02 OPEN. P2 review-write/P3 persistence-HTTP/P4 verification next, full09
+IN_PROGRESS. Current FEAT-051 E02; no provider/SQL/Lightning activation.
+
+## BE2-09 approved revision1 / C1a —2026-10-18
+
+Owner "duyệt" approves FEAT-051 P1–P4 exact revision1 after presentation. Parent
+1ab9498; frozen plan unchanged. Shared24 video/session consumer +pure exact review
+head/audience/invalidation component:84 own/1978 broad PASS,651 backend source
+files unchanged; Ruff/Mypy3 PASS. No authority/access/HTTP/SQL effects, actual
+CR09-01/02 remain open. P1 playback/P2–P4 next. Full09 IN_PROGRESS;08 runtime and
+teammate integrations still deferred, no provider/Lightning activation.
+
+## Receiver BE2-09 planning / delayed runtime batch —2026-10-18
+
+Owner approves moving to next-card planning and batching Lightning later; baseline
+07159ce. FEAT-051 revision1 P1–P4 prepared AWAITING_APPROVAL/NOT_STARTED. Shared24
+reused; canonical09 review head/projection CR09-01 and BE1 session/access receipts
+CR09-02 OPEN. No implementation/runtime activation.08 local/SQL PASS retained,
+actual08/09 adoption/runtime not waived or marked DONE. Exact plan approval next.
+
+## BE2-08 C4b actual own PostgreSQL11 PASS —2026-10-18
+
+Parent c7b17ac; separate direct08 environment approval recorded before setup.
+Actual PG17.11 own11 PASS, zero failure/error/skip;702-file source closure unchanged.
+Loopback restricted runner, unique cluster/data/binaries/archive/secrets removed,
+private receipts retained. No source fixes/provider/actual bridge activation.
+FEAT-050 E09 and ACCEPTANCE_AUDIT.md: own SQL gate complete, actual foundation/
+BE1/07/14/copy/runtime adoption open; whole08 IN_PROGRESS.
+
+## BE2-08 C4 local verification/handoff —2026-10-18
+
+Parent d55e9ca, FEAT-050 approved revision1 unchanged. One-command exact-node/
+source-pinned runner, real authored GIF full-frame fixtures/rights, acceptance audit
+and undecided runtime sheet available.459 own +1435 existing=1894 PASS;702-file
+source closure unchanged; Ruff/Mypy19/governance PASS. SQL11 collected NOT_RUN;
+production decoder/generation/actual adapters still open, whole08 IN_PROGRESS.
+Current FEAT-050 artifacts/LOCAL_VERIFICATION_HANDOFF.md and ACCEPTANCE_AUDIT.md,
+evidence/notes/C4_LOCAL_VERIFICATION_20261018.md. No activation/push/deploy.
+
+## BE2-08 C3b provider-copy component —2026-10-18
+
+Parent e21c7dd, FEAT-050 approved revision1 unchanged. Original-copy metadata and
+guarded video hook consume14 exact envelope; no deletion authority/provider choice.
+48 new/422 own, broad1857 PASS; Ruff/Mypy19 PASS,643 backend source files unchanged.
+Actual journal/registration/source/authority/provider adoption OPEN; no actual
+generation/SQL/deletion run. Next owned P4 runner/decoder pack/audit; whole08 still
+IN_PROGRESS. Current handoff/evidence: FEAT-050 evidence/notes/C3B_PROVIDER_COPY_20261018.md.
+
+## BE2-08 C3a worker/finalization component —2026-10-18
+
+Owner says continue08; parent9d2677d, FEAT-050 revision1 unchanged. Worker admission,
+private stage/finalization ports, scoped receipt checks and lost-ACK recovery now
+component-implemented.45 new/374 cumulative own; broad1809 PASS,639 backend source
+files unchanged; Ruff/Mypy16 PASS. Actual atomic start/completion/staging/cleanup
+adapters remain open CR08-01; cleanup only pending, accepted references must be
+protected atomically by actual adopter. No provider/SQL/runtime activation or
+production registration. P3 partial, provider-copy/adoption and P4 runner remain;
+whole08 IN_PROGRESS. Current FEAT-050 C3A_WORKER_FINALIZATION_HANDOFF.md.
+
+## BE2-08 direct continuation / C2c —2026-10-18
+
+Owner says continue08 in same chat; existing FEAT-050 revision1 applies. No new
+goal/thread or original12 scope mutation. At parent b06b8a8, own explicit media
+strategy/source/profile/decoder ports + validation and preparation implemented:
+73 new/329 own, broad1764 PASS;636 backend source inventory unchanged, Ruff/Mypy14
+PASS. No PATH ffmpeg/ffprobe; actual decoder/provider/SQL NOT_RUN. No production
+defaults, completion/approval/artifact exposure or P5 activation inferred. Next P3
+worker/finalization/copy and actual bridge/adoption; FEAT-050 C2C handoff is current.
+
+## Original BE2-12 goal revalidation —2026-10-18
+
+At16712de, owner objective attachment reread: original goal remains12, separate
+08/14 work not credited to it. Current source-pinned477 component PASS and51
+AI-policy HTTP binder PASS; source unchanged, full_goal_complete false. AI-policy
+delegate now exists from14; actual preset/core/BE1 authority/consumer adoption and
+integrated closure remain open, BE1/P4 deferred. No new SQL/app mount/08 work.
+See FEAT-048 evidence/notes/C5B_CURRENT_GOAL_AUDIT_20261018.md.
+
+## Receiver BE2-08 C2b HTTP/storage component —2026-10-18
+
+FEAT-050 approved revision1 unchanged; parent9292bad. Injected candidate CMD-40
+HTTP with closed native DATA-27 snapshot, own transaction-bound row participant,
+strict codec and independent frozen knowledge_video migration. No production
+registration/default auth/actual foundation job bridge/provider activation.
+256 own +1435 existing=1691 PASS (48 suites,23 existing warnings); Ruff/Mypy11 PASS.
+Actual PostgreSQL11 prepared/collected NOT_RUN, no provisioning/DB writes.
+P2 remains partial (strategy surfaces/use cases, actual bridge adoption/evidence);
+P3/P4 and P5 runtime remain. FEAT-050 C2B_HTTP_STORAGE_HANDOFF.md has current gates.
+
+## Receiver BE2-08 C1/C2a component —2026-10-18
+
+Approved FEAT-050 revision1 plan retained. Approval1ea7b53, C1 a3946e7;
+owned strict CMD-40/DATA-27/domain plus C2a guarded create/lease/submission ports
+and explicit fixture intents:164 own +205 selected regression=369 PASS,
+Ruff/Mypy7 PASS. P2 partial; own persistence/HTTP and actual atomic foundation
+bridge outstanding (CR08-01); P3/P4 not yet implemented, actual P5 separately
+gated. No real07/BE1/policy/provider/SQL adoption or live route inferred. See
+FEAT-050 status/STATUS.md and artifacts/CR_ATOMIC_VIDEO_SUBMISSION.md.
+
+## Receiver BE2-08 approval —2026-10-18
+
+Owner direct reply "duyệt làm task 08" approves FEAT-050 revision1, SHA256
+370c6c04573a684c0e51c0ef1c276224d8e1f01ecd701624b2d925751cfa0b04,
+P1–P4/P5 preparation and local checkpoint commits. Implementation IN_PROGRESS;
+actual provider/profile/provisioning/SQL environment activation separately gated.
+No push/merge/deploy. Reviewed plan bytes retained; earlier pending entries historical.
+
+## Receiver BE2-08 planning —2026-10-18
+
+Owner asked next task then "tiếp" after next-card planning proposal. Baseline
+be64b99, feature/be2-08-14; FEAT-050 revision1 AWAITING_APPROVAL, implementation
+NOT_STARTED. Follows12→14→08 receiver handoff order. Dedicated07 implementation
+not located in current checkout; DATA-26/27 ShapeSpec candidates do not prove
+adopted upstream runtime. Proposed P1–P4 owned component and P5 runtime preparation;
+actual provider/profile/rights/provisioning/SQL environment separately gated.
+No historical Wan/L4/duration/TTS selection inferred. Real BE1/P4 wiring remains
+teammate-owned/deferred,12/14 not full integrated DONE. Entry: FEAT-050 plan/PLAN.md.
+
+## Receiver BE2-14 actual PostgreSQL104 PASS —2026-10-18
+
+Separate direct owner approval now permits local isolated PG17/test/cleanup for
+BE2-14 only. Parent0e192da plus report-test helper unpack correction. Actual
+PostgreSQL17.11 four packs15/10/21/58 all PASS,104 total zero failure/error/skip,
+source unchanged. Initial copy56 PASS/2 FAIL retained, wrong helper unpack fixed,
+all104 rerun. Cluster/data/binary/archive/secrets removed, private logs preserved.
+Own SQL gate completed; earlier BE2-14 PG NOT_RUN counts below historical. Real
+authority/registry/provider/telemetry/kill-generation adapter and consumer acceptance
+still open, no full-card/original-goal DONE. BE1/P4 integration still deferred.
+Evidence: FEAT-049 evidence/notes/C6D_LOCAL_POSTGRES_20261018.md.
+
+## Receiver BE2-14 C6b health/queue component — 2026-10-18
+
+Current feature/be2-08-14, parent a561128. Own health/queue projection gap found by
+C6a now component-addressed: scoped typed producer/source binding, freshness/expiry,
+fixture/runtime labels, null unknown vs actual0, no raw logs or foreign table scan.
+Collector outside own transaction, expiry after transaction exit/current rights
+rechecked. Local pack1061 own +114 foundation +477 regression/all64 source checks;
+actual source/privacy/health/TTL adoption and stop-generation/provider/current-owner
+integration still open. PG104 NOT_RUN, no provisioning/provider/production defaults.
+BE2-12 real BE1/P4 integration remains owner-deferred and original goal not DONE.
+Current handoff: FEAT-049 artifacts/H_OPERATIONS_TELEMETRY_HANDOFF.md and updated
+ACCEPTANCE_AUDIT_20261018.md/CONSOLIDATED_TEST_HANDOFF.md. Earlier counts historical.
+
+## Receiver BE2-14 C6a audit — 2026-10-18
+
+Current receiver feature/be2-08-14, C6a parent e792512. BE2-14 revision1 approval
+unchanged, full local pack1028 own +114 targeted foundation +477 selected regression,
+all61 policy source Ruff/Mypy PASS. PostgreSQL104 prepared NOT_RUN, no card-local
+server/provider activation or inferred provisioning authority. Acceptance audit
+found remaining own safe health/queue projection work; policy/resource/copy reports
+do not complete that backlog requirement. Next implement that own typed surface,
+then conformance/audit. Stop-generation foundation CR and real owner/provider/BE1/P4
+adoption remain open. BE2-12 component handoff/prior33 SQL evidence unchanged, real
+integration owner-deferred and original goal NOT DONE. Current evidence/commands:
+features/FEAT-049-be2-ai-policy/artifacts/ACCEPTANCE_AUDIT_20261018.md and
+CONSOLIDATED_TEST_HANDOFF.md. Earlier snapshot counts below are historical.
+
+## Receiver next-card planning — 2026-10-17
+
+Latest: owner approved BE2-14 revision 1/P1–P5 by direct reply "duyệt"; approval
+commit da38618, FEAT049 now IN_PROGRESS. C1 strict policy contracts/pure lifecycle
+has 124 own component PASS and 477 existing selected regression PASS. SQL/runtime
+activation and real owner/provider integration NOT_RUN. Production values/provider
+choices/provisioning are not inferred. Earlier pending-plan statements below are
+historical. Reviewed plan bytes/hash remain unchanged.
+
+Receiver branch is now feature/be2-08-14 (owner-requested local rename). BE2-12
+component/owned SQL checkpoint 6931daa and integration-deferral handoff f0ff7a8
+are available; owner leaves real BE1/P4 wiring to teammates. This is not full
+integrated acceptance. Owner now requests the next task: FEAT-049 BE2-14 plan
+revision 1 is AWAITING_APPROVAL, implementation NOT_STARTED. Existing BE2-12 or
+foundation approvals do not authorize new policy/provisioning/provider choices.
+Sender 01–07 allocation and foundation's unresolved integration gates unchanged.
+Entry: features/FEAT-049-be2-ai-policy/plan/PLAN.md.
 
 ## BE2 checkpoint publication and 7/7 handoff —2026-10-16
 
