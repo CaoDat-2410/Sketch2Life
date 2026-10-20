@@ -202,3 +202,7 @@ The files below are reference inputs. Their contents inform context and proposed
 - Montessori curriculum references inform topic-family coverage and age sequencing; each new or materially revised activity still needs qualified pedagogical review and project-owner approval.
 
 - 2026-10-12 owner source correction: FA26 v1.8 uses the user-selected, extant v1.2 DOCX as its base, preserves v1.2 table shapes and form structure, and follows SRS v3.1 plus FEAT-039 owner answers. v1.7 remains preserved as a historical derivative from v1.5; v1.8 is current. See FEAT-037 plan revision 1 and evidence/notes/FORM_V1_8_ALIGNMENT_20261012.md.
+
+## Owner-directed BE2 evidence publication — 2026-10-20
+
+The prior environment approval excluded Git publication within its own scope. A later direct user instruction authorized publishing the BE2-08–14 offline evidence by PR and merging it into the BE2 integration branch. PR #16: https://github.com/CaoDat-2410/Sketch2Life/pull/16; merge commit 4014b11a867d8030190a0789a6b03e1602fd522d; source tip 964944c93edf89e531a0895f6248d7f1ee632c20. The publication contains 35 commits and 567 paths. No force push, project dev/main merge, deployment, or task acceptance change was authorized or performed. Original card approvals remain authoritative.

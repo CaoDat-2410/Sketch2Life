@@ -2,7 +2,7 @@
 
 ## Current primary-session handoff — 2026-10-20
 
-HEAD d35f035f87fddfc87b0d72d8929f5b1b843fce0e; branch feature/be2-backend-ai-integration. The FEAT-057 BE2-08–14 offline baseline PASSed all seven runners under one isolated pinned environment. Source hashes/manifests match checkout; JUnit has zero fail/error/skip. See evidence/notes/PRIMARY_SESSION_HANDOFF_20261020.md and evidence/metrics/GOAL_OFFLINE_BASELINE_FINAL_20261020.json. SQL execution, PostgreSQL, provider/HTTP, server/runtime, Lightning/Studio and owner integration remain NOT_RUN. Per-card status/approval/acceptance are unchanged; no card DONE. The venv is ignored and shared environment untouched.
+PR #16 (https://github.com/CaoDat-2410/Sketch2Life/pull/16) merged by merge commit 4014b11a867d8030190a0789a6b03e1602fd522d into feature/be2-backend-ai-integration on 2026-10-20. Source branch feature/be2-08-14-offline-baseline-split is 964944c93edf89e531a0895f6248d7f1ee632c20; 35 commits publish 567 paths (521 evidence/raw, zero evidence/local). The tree matches the reviewed source snapshot. Seven BE2-08–14 runners pass on the merged snapshot; the separate migration graph test has 6 passed and 10 skipped because SQL integration prerequisites are unavailable. Harness, security, architecture, skeleton and diff checks pass. SQL execution, PostgreSQL, provider/HTTP, server/runtime, Lightning/Studio and owner integration remain NOT_RUN. Per-card approval/status/acceptance did not change; no card is DONE. No force push or dev/main merge occurred.
 
 ## Previously recorded context/status — retained below
 
