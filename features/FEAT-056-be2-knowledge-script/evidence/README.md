@@ -1,5 +1,22 @@
 # BE2-07 evidence index
 
+Latest: POST_CLOUD_P3 corrects the two P3 findings reported in the user-supplied cloud summary.
+Current map/checks/handoff use POST_CLOUD_P3 paths: 1,660 local passes / 3 Pillow skips, all42
+IDs and506 exact passed-node references. Product and tooling review notes are in `notes/`.
+The actual cloud report/index/83-output archive is pending transfer; keep `cloud-review/`.
+Its product pins refer to published f0359c4f and intentionally reject later corrected product
+bytes. Use the new handoff for current review; old exports/metrics retain historical scope.
+
+| Current record | Meaning |
+|---|---|
+| `metrics/OFFLINE_HANDOFF_BE207_20261020_POST_CLOUD_P3.md` | Current corrected component, limits and pending archive/cleanup |
+| `metrics/ACCEPTANCE_MAP_BE207_20261020_POST_CLOUD_P3.json` | Current42-ID map and506 passed references |
+| `metrics/BE207_FINAL_OFFLINE_CHECKS_20261020_POST_CLOUD_P3.json` | Fresh local56-module batch and all11 command receipts |
+| `notes/INDEPENDENT_CLOUD_P3_PRODUCT_REVIEW_20261020.md` | Independent N1 tests/probes and final formatting rebind |
+| `notes/INDEPENDENT_CLOUD_P3_EVIDENCE_REVIEW_20261020.md` | Independent N2, tooling and final evidence audit |
+
+The following dated checkpoint and older table describe the preceding publication evidence.
+
 Git publication and Claude cloud review were authorized separately on 2026-10-20. The portable
 bundle and its provenance are in `cloud-review/`; launch instructions are in
 `cloud-review/CLOUD_REVIEW_PROMPT.md`. Published historical receipts retain their old scope;

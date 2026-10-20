@@ -1,5 +1,13 @@
 # Project context ledger
 
+## BE2-07 cloud P3 corrections — 2026-10-20
+
+Approved follow-up closes invisible-character/CGJ and optimized-verifier P3 findings. Fresh
+local56-module batch has1,660pass/3Pillow skip and42mapped IDs/506 passed references; independent
+product/tooling reviews are recorded by FEAT-056. New current handoff uses POST_CLOUD_P3.
+Raw cloud archive/conditional export cleanup are still pending; component NOT_ACCEPTED/card
+IN_PROGRESS / NOT_DONE. Frozen plan/approval and runtime/Lightning boundaries remain intact.
+
 ## BE2-07 Git publication and Claude cloud review — 2026-10-20
 
 The user authorizes a 12-commit publication of the reviewed task07 snapshot and a Claude cloud

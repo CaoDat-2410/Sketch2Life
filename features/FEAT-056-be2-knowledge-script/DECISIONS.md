@@ -1,5 +1,16 @@
 # BE2-07 decisions
 
+## 2026-10-20 — Cloud P3 corrections and conditional retirement
+
+The user approved fixing the two P3 findings, fresh local56-module validation, independent
+review and focused publication. Use comparison-only pinned Unicode15 default-ignorable/Cf
+filtering before normalization, preserve meaningful combining accents/original bytes, and
+share domain/DTO Cc rejection except LF/TAB. The historical verifier explicitly rejects
+optimized Python. Keep old product pins/metrics/plan/approval immutable; new POST_CLOUD_P3
+receipts supersede their current-result claims. Archive the actual cloud report/index and83
+outputs before deleting the export in a separate cleanup commit. A pasted summary does not
+meet that prerequisite. Owner acceptance and runtime/Lightning remain separate.
+
 ## 2026-10-20 — Authorized Git publication and cloud review
 
 Use 12 dependency-ordered publication groups of the final reviewed snapshot, followed by a

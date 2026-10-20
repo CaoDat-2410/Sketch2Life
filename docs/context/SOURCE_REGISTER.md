@@ -1,5 +1,13 @@
 # Source register and authority boundary
 
+## BE2-07 cloud P3 follow-up authority — 2026-10-20
+
+`owner-be207-cloud-p3-20261020`: direct "Ok làm đi" after the five-step follow-up proposal;
+recorded in FEAT-056 approvals/P3_CLOUD_FOLLOWUP_APPROVAL_20261020.md. Authorizes the two P3
+corrections, local checks/review and focused publication; export cleanup is conditional on
+archiving actual cloud files. User-pasted cloud summary is an input; actual raw report/index
+are pending receipt. Component acceptance and runtime/Lightning are not granted.
+
 ## BE2-07 publication authority — 2026-10-20
 
 `owner-be207-publication-20261020`: direct user instruction quoted in FEAT-056

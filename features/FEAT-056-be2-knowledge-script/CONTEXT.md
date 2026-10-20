@@ -1,5 +1,16 @@
 # BE2-07 context
 
+## Current post-cloud P3 checkpoint — 2026-10-20
+
+The user approved the cloud follow-up plan. Invisible-character/CGJ matching and DEL/C1
+validation are corrected without rewriting original text/canonical bytes; optimized Python
+now fails closed in the portable verifier. Fresh local56-module batch: 1,660 pass/3 Pillow
+skip, 0 fail-error;42 mapped IDs/506 exact passing references. Independent N1 review passed338
+focused tests; independent N2 review passed9 controls. Final evidence audit is recorded in the
+new POST_CLOUD_P3 handoff. Component remains NOT_ACCEPTED and card IN_PROGRESS / NOT_DONE.
+Actual cloud REVIEW.md/index/83 outputs are pending transfer, so keep the export folder until
+archive verification. Earlier entries retain their dated product/Git checkpoints.
+
 ## Current publication checkpoint — 2026-10-20
 
 The user now authorizes the proposed 12 commits, pushing this task branch, and creating a
