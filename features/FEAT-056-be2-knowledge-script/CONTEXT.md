@@ -96,5 +96,17 @@ commit, push, PR, merge, deployment or Lightning execution.
 ## Cloud re-review — 2026-10-20
 
 Re-review of 1d731c5 found one in-scope P3 (default-ignorable word separators bypassed the
-imagined-to-fact check), fixed in b3f7573 with domain/DTO/handler regressions. Codex performs
-the independent post-push review. Component NOT_ACCEPTED; card IN_PROGRESS / NOT_DONE.
+imagined-to-fact check), fixed in b3f7573 with domain/DTO/handler regressions. Codex
+independent review is recorded in evidence/notes/CODEX_POST_CLOUD_REREVIEW_20261020.md.
+Component NOT_ACCEPTED; card IN_PROGRESS / NOT_DONE.
+
+## Codex post-cloud verification and publication — 2026-10-20
+
+The separately approved follow-up found and fixed P3-R1, then published Claude commits b3f7573
+and f6db0d5 as a normal fast-forward after Claude's cloud push was denied. Codex fetched the
+branch and confirmed the remote matched f6db0d5 before recording this audit. Independent review
+and the 56-module offline profile passed; three Pillow-dependent cases remain NOT_RUN. The full
+cloud archives are now received and hash/index verified. See
+`evidence/notes/CODEX_POST_CLOUD_REREVIEW_20261020.md` and the latest status. Component
+NOT_ACCEPTED, card IN_PROGRESS / NOT_DONE; owner acceptance and runtime gates remain separate.
+No PR, merge to dev, deployment, or Lightning execution is authorized.
