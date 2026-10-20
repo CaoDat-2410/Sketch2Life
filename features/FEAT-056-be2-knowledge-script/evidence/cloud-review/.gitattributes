@@ -1,4 +1,0 @@
-# Preserve evidence bytes across Git checkouts, including historical CRLF log receipts.
-* -text
-# Logs remain readable on disk; provenance binds their exact original and exported bytes.
-*.log -diff
