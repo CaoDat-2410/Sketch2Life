@@ -582,3 +582,45 @@ mobile, Gate A, P1 eligibility, P3/P4 and shared integration remain separately g
 - Exclusions: no payment implementation, catalog deletion, provider execution, deployment, or visual asset change.
 - Implementation clarification (2026-10-06): existing versioned DTOs continue to accept historical 9–12 catalog values. The application service enforces the approved <9 boundary before activity selection, Gate B progression, renderer localization, and age-sensitive AI execution; no V1 contract version or historical manifest interpretation is changed.
 - Current controlling clarification: FEAT-037 Plan revision 2, SHA-256 `B9C4454605146ED5E69241381E4A65C666AF751CBC36B4F8BAA2272897BAECB9`; same approved scope, with wire-contract compatibility made explicit.
+
+## Owner approval — FEAT-018 P2-T4 diagnostic slice — 2026-10-20
+
+- Approver: Person 2, direct approval message in the coordinator conversation on 2026-10-20.
+- Approved source commit: `b39a9f2f56509b0543184876eb538fc9faf0e1aa`.
+- Approved plan: `plan/P2_T4_MAPPING_DIAGNOSTICS_PLAN_DRAFT_20261020.md`, revision 3,
+  source SHA-256 `1482c047476049e44ecd515178d64b2d4c9e60d13511c92aa8112fd5269d2d66`.
+- Approved inputs: `plan/P2_T4_MAPPING_INPUT_REVIEW_DRAFT_20261020.md`, revision 3,
+  source SHA-256 `98dade81e57045efd8f6a38101e4d80e01a8518e505c1f44e7d33a0acf1575a2`.
+- State: `APPROVED — DIAGNOSTIC IMPLEMENTATION ONLY`; full P2-T4 acceptance remains open.
+- Scope: B1 Raw, B2 existing Gate A handoff and B3 matcher observation; exactly 120 primary
+  synthetic cases with supplemental cases counted separately. Report labels are diagnostic-only
+  and introduce no public/runtime contract.
+- Approved files: repository `tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json`,
+  `backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py`,
+  `backend/tests/contract/test_feat018_p2_t4_manifest_contract.py`; feature-local
+  `evidence/notes/P2_T4_MAPPING_DIAGNOSTICS_20261020.md` and
+  `evidence/metrics/P2_T4_MAPPING_DIAGNOSTICS_20261020.json`; the two plan/input documents,
+  `CONTEXT.md`, `DECISIONS.md`, `status/STATUS.md`, `evidence/README.md` and this approval record.
+- Authorized: record this approval, create the declared fixtures/tests/evidence, run offline checks
+  and implementation review. Production runtime/schema/catalog changes and Lightning/model calls
+  remain excluded. Required behavior recorded `UNRESOLVED` keeps Task 4 open.
+- No earlier execution attempt/grant is revived by this approval.
+
+Actual owner issuance:
+
+```text
+Person 2 duyệt triển khai FEAT-018 P2-T4 diagnostic slice
+theo plan và input specification Revision 3 tại commit:
+b39a9f2f56509b0543184876eb538fc9faf0e1aa.
+
+Chấp nhận B1/B2/B3 với B3 chỉ quan sát matcher;
+120 ca chính và các ca bổ sung được đếm riêng.
+Các nhãn report chỉ dùng cho diagnostics, không tạo contract mới.
+
+Cho ghi approval thực tế, tạo fixture/tests và evidence
+đúng danh sách file trong plan; chạy kiểm tra offline
+và review implementation.
+
+Chưa cho sửa runtime/schema/catalog hoặc gọi Lightning/model.
+Các yêu cầu còn UNRESOLVED giữ Task 4 mở, không tự coi hoàn tất.
+```
