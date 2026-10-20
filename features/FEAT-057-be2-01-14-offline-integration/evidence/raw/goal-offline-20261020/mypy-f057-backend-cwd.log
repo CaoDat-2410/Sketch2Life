@@ -1,6 +1,0 @@
-tests\integration\ai_jobs\test_migrations.py:334: error: Need type annotation for "ai_tables" (hint: "ai_tables: set[<type>] = ...")  [var-annotated]
-tests\integration\ai_jobs\test_migrations.py:340: error: Need type annotation for "public_tables" (hint: "public_tables: set[<type>] = ...")  [var-annotated]
-tests\integration\ai_jobs\test_migrations.py:418: error: Need type annotation for "checks" (hint: "checks: set[<type>] = ...")  [var-annotated]
-tests\integration\ai_jobs\test_migrations.py:460: error: Need type annotation for "unique_defs"  [var-annotated]
-tests\integration\ai_jobs\test_migrations.py:478: error: Need type annotation for "foreign_targets" (hint: "foreign_targets: set[<type>] = ...")  [var-annotated]
-Found 5 errors in 1 file (checked 1 source file)

@@ -1,11 +1,5 @@
 # BE2-12 evidence index
 
-2026-10-20 integration-candidate recheck: see
-notes/LOCAL_OFFLINE_RECHECK_20261020.md and
-raw/LOCAL_OFFLINE_RECHECK_20261020.summary.json. The runner returned NOT_RUN
-with 476 passed and one Pillow-dependent skip. This is not card acceptance or
-runtime evidence.
-
 Latest original-goal audit: notes/C5B_CURRENT_GOAL_AUDIT_20261018.md;
 477 selected component +51 policy binder PASS, real integration NOT_RUN.
 
@@ -29,11 +23,3 @@ Latest original-goal audit: notes/C5B_CURRENT_GOAL_AUDIT_20261018.md;
 
 No real child media, credentials, model outputs or external source documents
 are published. No runtime fixtures/tests are manufactured to claim completion.
-
-
-## FEAT-057 approved offline baseline — 2026-10-20
-
-Final note: `notes/GOAL_OFFLINE_BASELINE_20261020.md`. Authoritative source-bound receipt: `evidence/raw/GOAL_OFFLINE_BASELINE_20261020_FINAL_PINNED_ENV/summary.json`, with JUnit, collection logs, static check logs, source hashes, and `evidence-manifest.json` in that directory.
-This is local offline evidence only. The feature card remains open; no acceptance or status was changed.
-
-The initial Pydantic mismatch and intermediate corrected run remain preserved in `evidence/raw/GOAL_OFFLINE_BASELINE_20261020/` and `evidence/raw/GOAL_OFFLINE_BASELINE_20261020_RETRY1/`.

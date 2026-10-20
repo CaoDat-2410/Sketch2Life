@@ -1,4 +1,0 @@
-HARNESS_VALID
-root=<integration-worktree>
-approval_gate=enabled
-frontend_asset_gate=enabled

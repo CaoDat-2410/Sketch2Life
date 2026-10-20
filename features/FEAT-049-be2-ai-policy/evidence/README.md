@@ -1,12 +1,5 @@
 # Evidence index — BE2-14
 
-2026-10-20 integration-candidate recheck: see
-notes/LOCAL_OFFLINE_RECHECK_20261020.md and
-raw/LOCAL_OFFLINE_RECHECK_20261020.summary.json. Owned 1,061 and foundation
-114 passed; the delegated regression did not complete because task 12 reported
-NOT_RUN with one Pillow-dependent skip. This is not card acceptance or runtime
-evidence.
-
 - C6D_LOCAL_POSTGRES_20261018: actual owner-approved isolated PostgreSQL17.11,
  104 PASS15/10/21/58, zero fail/error/skip; initial report helper unpack failure
  fixed/full104 rerun. Source unchanged; private runtime removed/logs retained.
@@ -90,13 +83,3 @@ evidence.
   417 own component +477 existing selected regression PASS. Pure accounting only;
   no atomic ledger or actual cost/concurrency proof. Existing 25 PG cases NOT_RUN.
 - After implementation, link exact source hashes/commands/results per acceptance.
-
-
-## FEAT-057 approved offline baseline — 2026-10-20
-
-Final note: `notes/GOAL_OFFLINE_BASELINE_20261020.md`. The final task-14
-source-bound receipt will be stored at
-`evidence/raw/GOAL_OFFLINE_BASELINE_20261020_POSTDOCS/summary.json`, with JUnit,
-collection logs, static check logs, source hashes, delegated BE2-12 evidence,
-and an evidence manifest in that directory. This local offline evidence does
-not complete or change card acceptance/status.

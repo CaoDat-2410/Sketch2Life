@@ -1,23 +1,5 @@
 # Source register and authority boundary
 
-## Isolated offline test environment approval — 2026-10-20
-
-The owner separately authorized an ignored Python 3.12 venv in the FEAT-057 integration worktree using the backend [dev,image-admission] profile. Record: features/FEAT-057-be2-01-14-offline-integration/approvals/LOCAL_ENVIRONMENT_APPROVAL_20261020.md. This covered local dependencies for the BE2-08–14 offline baseline only. SQL/PostgreSQL execution, provider/HTTP, runtime, Lightning/Studio and Git publication remain outside that approval. Final result: features/FEAT-057-be2-01-14-offline-integration/evidence/metrics/GOAL_OFFLINE_BASELINE_FINAL_20261020.json.
-
-
-## BE2 primary-session handoff continuation authority — 2026-10-20
-
-owner-be20114-handoff-sync-20261020: direct user request continuing approved
-FEAT-057 offline integration. Authorizes current-versus-historical handoff
-synchronization, remaining dependency-available offline checks and bounded
-reproducible offline integration fixes. Request SHA256:
-`8383f77304e2b4186ce602ce21cdc2990181f74dbb0803a0fb41e5bc54f1b21b`.
-No Lightning/Studio/provider/app/service/HTTP/DB/Redis execution, installations,
-credentials, acceptance change or Git publication. See FEAT-057's primary
-session handoff and F057-H01 follow-up evidence; original card approvals remain
-authoritative and unchanged.
-
-
 ## BE2-01–14 runtime-readiness analysis authority — 2026-10-20
 
 owner-be20114-runtime-readiness-20261020: direct user instruction recorded in

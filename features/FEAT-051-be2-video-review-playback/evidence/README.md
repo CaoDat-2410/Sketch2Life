@@ -1,11 +1,5 @@
 # BE2-09 evidence index
 
-2026-10-20 integration-candidate recheck: see
-notes/LOCAL_OFFLINE_RECHECK_20261020.md and
-raw/LOCAL_OFFLINE_RECHECK_20261020.summary.json. Owned 458 passed; regression
-collection was blocked because Pillow was unavailable. This is not card
-acceptance or runtime evidence.
-
 Latest E07: notes/C4B_ACTUAL_POSTGRES_20261018.md, separately approved isolated
 PG17.11 actual21 PASS,733 source files unchanged, no skips. Exact temporary
 cluster/binaries/archive/secrets cleaned. Own SQL gate PASS; actual owner/session/
@@ -26,11 +20,3 @@ E01: notes/C1A_REVIEW_DOMAIN_20261018.md,84 own/1978 broad PASS at checkpoint.
 Planning baseline07159ce; planning statements below historical.
 notes/PLAN_VALIDATION_20261018.md records sources/inventory/governance validation.
 Actual08 prior evidence is external prerequisite evidence, not09 test PASS.
-
-
-## FEAT-057 approved offline baseline — 2026-10-20
-
-Final note: `notes/GOAL_OFFLINE_BASELINE_20261020.md`. Authoritative source-bound receipt: `evidence/raw/GOAL_OFFLINE_BASELINE_20261020_FINAL_PINNED_ENV/summary.json`, with JUnit, collection logs, static check logs, source hashes, and `evidence-manifest.json` in that directory.
-This is local offline evidence only. The feature card remains open; no acceptance or status was changed.
-
-Earlier attempts remain in the sibling baseline evidence directories and are historical; the final pinned receipt is authoritative.

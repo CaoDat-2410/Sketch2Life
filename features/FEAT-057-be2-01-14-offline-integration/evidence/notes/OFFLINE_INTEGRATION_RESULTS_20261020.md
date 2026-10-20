@@ -1,34 +1,5 @@
 # BE2-01–14 offline integration results — 2026-10-20
 
-## Final offline baseline — 2026-10-20
-
-All seven component runners PASS on one isolated Python 3.12.10 environment and the current checkout at d35f035f87fddfc87b0d72d8929f5b1b843fce0e. Pinned source hashes and evidence manifests match checkout. Every recorded JUnit has zero failures, errors and skips. Regression suites overlap, so their counts are not summed.
-
-| Task | Runner | Counts | JUnit |
-|---|---|---|---|
-| BE2-08 | PASS | 459 owned; 1,435 regression; 11 SQL collect-only | 0 failures, errors, skips |
-| BE2-09 | PASS | 458 owned; 1,894 regression; 21 SQL collect-only | 0 failures, errors, skips |
-| BE2-10 | PASS | 253 owned; 2,352 regression; 14 SQL collect-only | 0 failures, errors, skips |
-| BE2-11 | PASS | 219 owned; 2,605 regression; 25 legacy; 17 SQL collect-only | 0 failures, errors, skips |
-| BE2-12 | PASS | 477/477 pass | 0 failures, errors, skips |
-| BE2-13 | PASS | 194 owned; 2,849 regression; 11 SQL collect-only | 0 failures, errors, skips |
-| BE2-14 | PASS | 1061/1061 pass | 0 failures, errors, skips |
-
-Package profile: backend editable install + [dev,image-admission]; versions: pytest 8.4.2, ruff 0.16.4, mypy 1.20.2, Pillow 12.3.0, python-multipart 0.0.32, av 18.1.0, pydantic 2.13.4, SQLAlchemy 2.0.52, alembic 1.19.1. pip check, harness, security, architecture, skeleton, Ruff, mypy and git diff --check PASS. The initial task-12 mypy failure under Pydantic 2.14.1 was reproduced and resolved by matching baseline pins; no product source changed. BE2-14 recorded 23 nonfatal warnings.
-
-SQL suites were collection-only. PostgreSQL, provider/HTTP, server/runtime, Lightning/Studio and real-owner integration were NOT_RUN. Card status, acceptance and runtime gates remain open. Final receipt: ../metrics/GOAL_OFFLINE_BASELINE_FINAL_20261020.json.
-
-## Historical pre-install and merge-time receipts
-
-Earlier environment-blocked and merge-time results remain preserved below and under ../raw/handoff-sync-20261020/. The exact pre-baseline handoff and matrix are archived there; the final pinned baseline above is authoritative for current offline runner results.
-
-## Historical merge-time receipt — preserved verbatim below
-
-All counts, environment/publication statements and conclusions below belong to
-the earlier merge-time run; they are not current recheck results. The exact
-original document and matrix are archived in `../raw/handoff-sync-20261020/`.
-
-
 ## Candidate and merge
 
 - Branch used during merge: `feature/be2-01-14-integration`, based on

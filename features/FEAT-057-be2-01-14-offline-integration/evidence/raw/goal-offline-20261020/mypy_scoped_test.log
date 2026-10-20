@@ -1,7 +1,0 @@
-tests\integration\ai_jobs\test_migrations.py:34: error: Cannot find implementation or library stub for module named "sketch2life.contracts.schemas.ai_jobs"  [import-not-found]
-tests\integration\ai_jobs\test_migrations.py:34: note: See https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports
-tests\integration\ai_jobs\test_migrations.py:35: error: Cannot find implementation or library stub for module named "sketch2life.infrastructure.ai_jobs.harness"  [import-not-found]
-tests\integration\ai_jobs\test_migrations.py:36: error: Cannot find implementation or library stub for module named "sketch2life.infrastructure.ai_jobs.sql"  [import-not-found]
-tests\integration\ai_jobs\test_migrations.py:159: error: Unused "type: ignore" comment  [unused-ignore]
-Found 4 errors in 1 file (checked 1 source file)
-exit_code=1

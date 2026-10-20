@@ -1,3 +1,0 @@
-PASS: <INTEGRATION_WORKTREE>\.runtime\video-failure-component\20261020-123742-775349
-Cases: {'owned': 253, 'regression': 2352, 'sql_collection_only': 14}; source_unchanged=True
-LOCAL COMPONENT ONLY. Actual SQL/owners/budget/checkpoint/provider NOT_RUN.

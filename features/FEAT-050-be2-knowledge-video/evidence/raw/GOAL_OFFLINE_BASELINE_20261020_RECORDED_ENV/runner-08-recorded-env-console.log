@@ -1,3 +1,0 @@
-PASS: <INTEGRATION_WORKTREE>\.runtime\knowledge-video-component\20261020-124432-905907
-Cases: {'owned': 459, 'regression': 1435, 'sql_collection_only': 11}; source_unchanged=True
-LOCAL COMPONENT ONLY; SQL/provider/selected decoder/adoption NOT_RUN.
