@@ -1,0 +1,95 @@
+{
+  "scope": "BE2_08_14_APPROVED_LOCAL_COMPONENT_RECHECK",
+  "date": "2026-10-20",
+  "integration_branch": "feature/be2-backend-ai-integration",
+  "source_head": "d35f035f87fddfc87b0d72d8929f5b1b843fce0e",
+  "environment": {
+    "interpreter": "existing backend Python environment",
+    "pillow_available": false,
+    "multipart_module_available": false,
+    "packages_installed": false,
+    "source_unchanged": true
+  },
+  "external_execution": {
+    "lightning": "NOT_RUN",
+    "provider": "NOT_RUN",
+    "database": "NOT_RUN",
+    "application_startup": "NOT_RUN"
+  },
+  "tasks": {
+    "08": {
+      "feature": "FEAT-050-be2-knowledge-video",
+      "runner_status": "FAIL_ENVIRONMENT_BLOCKED",
+      "owned": "collection blocked importing PIL; 446-case inventory; pass count unavailable",
+      "regression": "1435 PASS",
+      "sql": "11 collected only; NOT_RUN",
+      "static_checks": "ruff, mypy, architecture, harness, security, whitespace PASS",
+      "run_id": "20261020-093152-986611",
+      "summary_sha256": "9ee46484564620296207681248ccd2d99d5ffe3d01a76eb21f40ace42438f68a"
+    },
+    "09": {
+      "feature": "FEAT-051-be2-video-review-playback",
+      "runner_status": "FAIL_ENVIRONMENT_BLOCKED",
+      "owned": "458 PASS",
+      "regression": "collection blocked importing PIL; 1881-case inventory; pass count unavailable",
+      "sql": "21 collected only; NOT_RUN",
+      "static_checks": "ruff, mypy, architecture, harness, security, whitespace PASS",
+      "run_id": "20261020-093242-890169",
+      "summary_sha256": "8def19967e9c466073f41ef29838bf4e8eb6dea50a544c590de2058141f53b6f"
+    },
+    "10": {
+      "feature": "FEAT-052-be2-video-failure-disposition",
+      "runner_status": "FAIL_ENVIRONMENT_BLOCKED",
+      "owned": "253 PASS",
+      "regression": "collection blocked importing PIL; 2339-case inventory; pass count unavailable",
+      "sql": "14 collected only; NOT_RUN",
+      "static_checks": "ruff, mypy, architecture, harness, security, whitespace PASS",
+      "run_id": "20261020-093321-247533",
+      "summary_sha256": "7d1ad25927db0def2653bab8bcf2451905a2168d25aeaa21514805a04f46e4de"
+    },
+    "11": {
+      "feature": "FEAT-053-be2-activity-execution",
+      "runner_status": "FAIL_ENVIRONMENT_BLOCKED",
+      "owned": "219 PASS",
+      "legacy_catalog": "25 PASS",
+      "regression": "collection blocked importing PIL; 2592-case inventory; pass count unavailable",
+      "sql": "17 collected only; NOT_RUN",
+      "static_checks": "ruff, mypy, architecture, harness, security, whitespace PASS",
+      "run_id": "20261020-093337-939417",
+      "summary_sha256": "f35ce66ef306d19b9acbdf78efe1ba6ac03bdf7c006e6a92db4ed4b1cee06d99"
+    },
+    "12": {
+      "feature": "FEAT-048-be2-content-publication",
+      "runner_status": "NOT_RUN",
+      "expected_cases": 477,
+      "passed": 476,
+      "skipped": 1,
+      "skip_reason": "live-app route test requires Pillow; the current environment lacks PIL",
+      "run_id": "20261020-093411-946386",
+      "summary_sha256": "d61e9d7e06bf44c134730b4f7fddeb59407a9ee1fff585f9cc8b18d658ff5773"
+    },
+    "13": {
+      "feature": "FEAT-054-be2-preset-automation",
+      "runner_status": "FAIL_ENVIRONMENT_BLOCKED",
+      "owned": "194 PASS",
+      "regression": "collection blocked importing PIL; 2836-case inventory; pass count unavailable",
+      "sql": "11 collected only; NOT_RUN",
+      "static_checks": "ruff, mypy, architecture, harness, security, whitespace PASS",
+      "run_id": "20261020-093421-885241",
+      "summary_sha256": "bfb3a5cd06f6bd4376bf5ec41a8c361716f0253d12ee168004dc203803e50a5f"
+    },
+    "14": {
+      "feature": "FEAT-049-be2-ai-policy",
+      "runner_status": "FAIL_DEPENDENT_REGRESSION_NOT_RUN",
+      "owned": "1061 PASS",
+      "foundation": "114 PASS",
+      "delegated_regression": "NOT_RUN; task 12 had one Pillow-dependent skip",
+      "static_checks": "ruff, mypy, architecture, harness, security, whitespace PASS",
+      "run_id": "20261020-093442-268488",
+      "delegated_task_12_run_id": "20261020-093456-931480",
+      "summary_sha256": "26c50721cde67dc1ed3e933b36d7f33098dae7a7cea2bb7dfd3a59ff7918292e"
+    }
+  },
+  "card_statuses_changed": false,
+  "acceptance_claimed": false
+}
