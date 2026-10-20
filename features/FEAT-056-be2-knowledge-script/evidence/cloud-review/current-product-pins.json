@@ -1,0 +1,89 @@
+{
+  "source_manifest_ref": "batch/source-before.json",
+  "source_manifest_sha256": "eee3e905f008ce65fad341fc34aa47c28d28f5cdf1ecc7c68ba8c98023b792a3",
+  "product_source_and_tests": {
+    "backend/src/sketch2life/application/ports/knowledge_bundle.py": {
+      "sha256": "310c373ceb84cfcd30821bbd7fa909a9797cb76515e591c75fdaa7825795c0b5",
+      "bytes": 3168
+    },
+    "backend/src/sketch2life/application/services/knowledge_bundle.py": {
+      "sha256": "af6c3c55e3cf0fedf155b8c0ebbf720ef7e6aec121b5b1871f94191a1e2f6c9f",
+      "bytes": 23872
+    },
+    "backend/src/sketch2life/contracts/schemas/knowledge_bundles.py": {
+      "sha256": "25e3486a3a6557eadc03c1b6db4ed4f95ef325db347d38f9dfa1f1e5a88927c1",
+      "bytes": 19561
+    },
+    "backend/src/sketch2life/domain/knowledge_bundle.py": {
+      "sha256": "7d8a6ab8b802917e22abc146fab34cb78c7d6152b7425a42ff88778b5ada4e3a",
+      "bytes": 29971
+    },
+    "backend/src/sketch2life/infrastructure/knowledge_bundle/__init__.py": {
+      "sha256": "5f7ad8ca16cef20d5ba5d74db5c10ca2355a34dcfdf0f1d09ac0fb7d8c97f058",
+      "bytes": 88
+    },
+    "backend/src/sketch2life/infrastructure/knowledge_bundle/adapters.py": {
+      "sha256": "521dfd642d2aed5c47a4e27904d2aabb672c0c4b3d2df1a58b0f6b8c8792b2ff",
+      "bytes": 11779
+    },
+    "backend/src/sketch2life/infrastructure/knowledge_bundle/coordination.py": {
+      "sha256": "cbe5467f2463197307eef7f3ba0616392272ca032a7fdce1716752e318ac6c53",
+      "bytes": 2129
+    },
+    "backend/src/sketch2life/infrastructure/knowledge_bundle/examples.py": {
+      "sha256": "6d7531d639582834b32e0df4837bb2907b7b88b16820f3cf66c37249d4af6164",
+      "bytes": 7976
+    },
+    "backend/src/sketch2life/infrastructure/knowledge_bundle/fakes.py": {
+      "sha256": "edeb15a8e25027d8167fa5f9d75c23fb8160318cae037cdc8476ad41e3cd95fa",
+      "bytes": 7302
+    },
+    "backend/src/sketch2life/infrastructure/knowledge_bundle/harness.py": {
+      "sha256": "34e6f8fed3d4d14efe94ce49f725966ff4ce0b38939d156daaec76e66a026eca",
+      "bytes": 4970
+    },
+    "backend/tests/contract/test_knowledge_bundles.py": {
+      "sha256": "9592444b4e8551b540be9fb904ba3cb96b4c0f67012b61226a1bc631f6999448",
+      "bytes": 17453
+    },
+    "backend/tests/unit/test_knowledge_bundle_adapters.py": {
+      "sha256": "e9ed452a0cdea915f016d05e1e54c440c8ff5d3ec1169f2ac37d900d3537e61d",
+      "bytes": 25350
+    },
+    "backend/tests/unit/test_knowledge_bundle_chain.py": {
+      "sha256": "ad446875823596879cd8d8237b3d02c1589ca633b3c182c17c7b5a8208a200d7",
+      "bytes": 14004
+    },
+    "backend/tests/unit/test_knowledge_bundle_domain.py": {
+      "sha256": "db52a05f463c886e92b9669ef7f31d746bc38da2002b4e4b190e966bea304812",
+      "bytes": 25306
+    },
+    "backend/tests/unit/test_knowledge_bundle_races.py": {
+      "sha256": "0f4979d39d13489959a40db10d9c2c2032af9e82b533f6c3736c94f9d6324e43",
+      "bytes": 32954
+    },
+    "backend/tests/unit/test_knowledge_bundle_service.py": {
+      "sha256": "97dafef9de0aba207ae7487e727b38ef4a9dfe415b5a5d232f6a100805d3a2e3",
+      "bytes": 34958
+    }
+  },
+  "example_and_frozen_authorization": {
+    "features/FEAT-056-be2-knowledge-script/artifacts/KNOWLEDGE_BUNDLE_EXAMPLES.json": {
+      "sha256": "0f06aeace8bd0dd50e53096c2f0782a83001e47963c0383e180f117501b90f2c",
+      "bytes": 33930
+    },
+    "features/FEAT-056-be2-knowledge-script/plan/PLAN_REV1_APPROVED.md": {
+      "sha256": "6de3ed6de3ef6008128d064ae28d3bf2b5fe78f91686afaa28eb63b4231aab36",
+      "bytes": 22840
+    },
+    "features/FEAT-056-be2-knowledge-script/approvals/TASK_APPROVAL.md": {
+      "sha256": "0010271d9db68dbbe8b9675021540df3e2cd420f636c0f7a8113ea9b91da2078",
+      "bytes": 2886
+    }
+  },
+  "approval_pin_source": "frozen original TASK_APPROVAL bytes, separately verified during local execution; approval is outside the historical 601-file manifest",
+  "excluded_current_pins": [
+    "routing/status/context/progress/publication documentation, updated after the historical execution",
+    "foreign checkout snapshots and local-only execution baselines"
+  ]
+}

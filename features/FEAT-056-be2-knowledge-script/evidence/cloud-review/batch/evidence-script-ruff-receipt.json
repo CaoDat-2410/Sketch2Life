@@ -1,0 +1,20 @@
+{
+  "argv": [
+    "<PYTHON_EXECUTABLE>",
+    "-m",
+    "ruff",
+    "check",
+    "--config",
+    "backend/pyproject.toml",
+    "features\\FEAT-056-be2-knowledge-script\\evidence\\local\\finalize_acceptance_map.py"
+  ],
+  "cwd": "<WORKTREE>",
+  "PYTHONPATH": "<WORKTREE>/backend\\src",
+  "MYPYPATH": "<WORKTREE>/backend\\src",
+  "exit": 0,
+  "seconds": 0.109,
+  "started_utc": "2026-10-20T05:28:47.193082+00:00",
+  "ended_utc": "2026-10-20T05:28:47.292862+00:00",
+  "interpreter": "<PYTHON_EXECUTABLE>",
+  "log_sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+}

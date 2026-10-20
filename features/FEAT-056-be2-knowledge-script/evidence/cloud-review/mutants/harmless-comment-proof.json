@@ -1,0 +1,13 @@
+{
+  "actual_evidence_runner_backend_assertion_detected": true,
+  "after_sha256": "2250d4266f7365432afe7878f633126f2af97440fc15968b7e251f3bf845119e",
+  "baseline_manifest_count": 572,
+  "before_sha256": "ab4df2971bd403c209810fc958ac249e8b4cb5d74ebc21b2a5b82c28fb455e1c",
+  "copied_source": "backend/src/sketch2life/domain/assistance.py",
+  "detected_difference_paths": [
+    "backend/src/sketch2life/domain/assistance.py"
+  ],
+  "product_cases_passed": 262,
+  "runner_gate_scope": "actual invariants() backend assignment/assertion AST only, with copied ROOT and real read-only baseline LOCAL",
+  "runner_sha256": "4761c957f3c666380061e9930c5ba327b0adeb916a690dd028daee369ec0f893"
+}

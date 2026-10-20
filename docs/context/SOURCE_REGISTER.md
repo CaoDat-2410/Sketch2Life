@@ -1,5 +1,28 @@
 # Source register and authority boundary
 
+## BE2-07 publication authority — 2026-10-20
+
+`owner-be207-publication-20261020`: direct user instruction quoted in FEAT-056
+`approvals/GIT_PUBLICATION_APPROVAL_20261020.md`. Authorizes the proposed 12 commits, task branch
+push and Claude cloud review session/prompt. Supersedes the previous Git restriction for this
+task; does not grant component acceptance, runtime/Lightning, PR/merge or deployment authority.
+
+## BE2-07 execution authority — 2026-10-19
+
+owner-be207-execution-20261019: direct user instruction quoted in FEAT-056 approvals/TASK_APPROVAL.md; approved plan revision 1 SHA2566de3ed6d… and OD01–08. Scope: complete offline eight-part implementation/review/tests; no owner acceptance, publication or Lightning execution.
+
+
+## BE2-07 offline-first planning — 2026-10-19
+
+owner-be207-planning-20261019: direct user request quoted in FEAT-056 approvals/TASK_APPROVAL.md.
+Authority is planning the sourced knowledge/script offline component and later01–07Lightning
+campaign. Planrev1/OD choices await owner; no test/code/publication/runtime acceptance. Fresh
+identifier inventory/ownbranch creation follow existing per-task workflow;056 is administrative,
+not an explicit owner number or lane08–14 confirmation. Task06merge receipt records actual
+mergedPR15 at23acf9e. Source artifacts and independent code/contract audits inform proposals,
+not implementation authority. Preserve oldparked07draft e64d25b7 and existing01–06 evidence.
+
+
 ## BE2-06 owner offline acceptance — 2026-10-19
 
 `owner-be206-offline-acceptance-20261019`: direct user instruction quoted verbatim in

@@ -1,0 +1,52 @@
+{
+  "MYPYPATH": "<WORKTREE>/features\\FEAT-056-be2-knowledge-script\\evidence\\local\\service-mutants-independent-20261020-878d82f4\\M07_drop_requested_hash_compare-copy\\backend\\src",
+  "PYTHONPATH": "<WORKTREE>/features\\FEAT-056-be2-knowledge-script\\evidence\\local\\service-mutants-independent-20261020-878d82f4\\M07_drop_requested_hash_compare-copy\\backend\\src",
+  "argv": [
+    "<PYTHON_EXECUTABLE>",
+    "-B",
+    "-m",
+    "pytest",
+    "-c",
+    "<WORKTREE>/features\\FEAT-056-be2-knowledge-script\\evidence\\local\\service-mutants-independent-20261020-878d82f4\\M07_drop_requested_hash_compare-copy\\backend\\pyproject.toml",
+    "--rootdir",
+    "<WORKTREE>/features\\FEAT-056-be2-knowledge-script\\evidence\\local\\service-mutants-independent-20261020-878d82f4\\M07_drop_requested_hash_compare-copy",
+    "-p",
+    "no:cacheprovider",
+    "--basetemp",
+    "<WORKTREE>/features\\FEAT-056-be2-knowledge-script\\evidence\\local\\service-mutants-independent-20261020-878d82f4\\M07_drop_requested_hash_compare\\tmp",
+    "--tb=short",
+    "<WORKTREE>/features\\FEAT-056-be2-knowledge-script\\evidence\\local\\service-mutants-independent-20261020-878d82f4\\M07_drop_requested_hash_compare-copy\\backend\\tests\\unit\\test_knowledge_bundle_domain.py",
+    "<WORKTREE>/features\\FEAT-056-be2-knowledge-script\\evidence\\local\\service-mutants-independent-20261020-878d82f4\\M07_drop_requested_hash_compare-copy\\backend\\tests\\unit\\test_knowledge_bundle_service.py",
+    "<WORKTREE>/features\\FEAT-056-be2-knowledge-script\\evidence\\local\\service-mutants-independent-20261020-878d82f4\\M07_drop_requested_hash_compare-copy\\backend\\tests\\unit\\test_knowledge_bundle_adapters.py",
+    "<WORKTREE>/features\\FEAT-056-be2-knowledge-script\\evidence\\local\\service-mutants-independent-20261020-878d82f4\\M07_drop_requested_hash_compare-copy\\backend\\tests\\unit\\test_knowledge_bundle_races.py",
+    "<WORKTREE>/features\\FEAT-056-be2-knowledge-script\\evidence\\local\\service-mutants-independent-20261020-878d82f4\\M07_drop_requested_hash_compare-copy\\backend\\tests\\unit\\test_knowledge_bundle_chain.py",
+    "<WORKTREE>/features\\FEAT-056-be2-knowledge-script\\evidence\\local\\service-mutants-independent-20261020-878d82f4\\M07_drop_requested_hash_compare-copy\\backend\\tests\\contract\\test_knowledge_bundles.py",
+    "--junitxml=<WORKTREE>/features\\FEAT-056-be2-knowledge-script\\evidence\\local\\service-mutants-independent-20261020-878d82f4\\M07_drop_requested_hash_compare\\junit.xml"
+  ],
+  "cases": 262,
+  "changed_source_sha256": "4a819e43a6c698c66e634115624bb7d2d3f5700c646279cd3412816bf13e701b",
+  "collection_or_import_failure": false,
+  "cwd": "<WORKTREE>/features\\FEAT-056-be2-knowledge-script\\evidence\\local\\service-mutants-independent-20261020-878d82f4\\M07_drop_requested_hash_compare-copy",
+  "errors": 0,
+  "exit": 1,
+  "failed": 2,
+  "failures": [
+    {
+      "detail": "backend\\tests\\unit\\test_knowledge_bundle_adapters.py:451: in test_actual_exact_resolver_rejects_mismatched_requested_pins_without_writes\n    assert not denied.ready and denied.reason == expected_reason and denied.export is None\nE   assert (not True)\nE    +  where True = KnowledgeResolution(ready=True, reason=None, export=KnowledgeBundleExportV1(knowledge_claims=(KnowledgeClaimRecordV1(c...topic\":\"Mèo\"}],\"source_snapshot_refs\":[],\"teacher_corrections\":[]}', canonical_rules_version='knowledge-canonical-v1')).ready",
+      "message": "assert (not True)\n +  where True = KnowledgeResolution(ready=True, reason=None, export=KnowledgeBundleExportV1(knowledge_claims=(KnowledgeClaimRecordV1(c...topic\":\"Mèo\"}],\"source_snapshot_refs\":[],\"teacher_corrections\":[]}', canonical_rules_version='knowledge-canonical-v1')).ready",
+      "node": "backend/tests/unit/test_knowledge_bundle_adapters.py::test_actual_exact_resolver_rejects_mismatched_requested_pins_without_writes[hash-EXACT_BUNDLE_MISMATCH]",
+      "type": null
+    },
+    {
+      "detail": "backend\\tests\\unit\\test_knowledge_bundle_adapters.py:451: in test_actual_exact_resolver_rejects_mismatched_requested_pins_without_writes\n    assert not denied.ready and denied.reason == expected_reason and denied.export is None\nE   assert (not True)\nE    +  where True = KnowledgeResolution(ready=True, reason=None, export=KnowledgeBundleExportV1(knowledge_claims=(KnowledgeClaimRecordV1(c...topic\":\"Mèo\"}],\"source_snapshot_refs\":[],\"teacher_corrections\":[]}', canonical_rules_version='knowledge-canonical-v1')).ready",
+      "message": "assert (not True)\n +  where True = KnowledgeResolution(ready=True, reason=None, export=KnowledgeBundleExportV1(knowledge_claims=(KnowledgeClaimRecordV1(c...topic\":\"Mèo\"}],\"source_snapshot_refs\":[],\"teacher_corrections\":[]}', canonical_rules_version='knowledge-canonical-v1')).ready",
+      "node": "backend/tests/unit/test_knowledge_bundle_adapters.py::test_actual_exact_resolver_rejects_mismatched_requested_pins_without_writes[other-bundle-id-EXACT_BUNDLE_MISMATCH]",
+      "type": null
+    }
+  ],
+  "junit_sha256": "913a2f3805517208815d32d1ea320ddf63b434cff7be0f4f07a4e1725883a46d",
+  "killed_by_assertion": true,
+  "log_sha256": "ce649398768131b9196b6b4582d2d842cff16a79e48068b18dc6af80111bdac4",
+  "seconds": 2.328,
+  "skipped": 0
+}

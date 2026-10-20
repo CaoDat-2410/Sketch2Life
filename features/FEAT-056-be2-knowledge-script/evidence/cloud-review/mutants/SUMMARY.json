@@ -1,0 +1,88 @@
+{
+  "baseline_cases": 262,
+  "baseline_exit": 0,
+  "harmless_comment": {
+    "actual_evidence_runner_backend_assertion_detected": true,
+    "after_sha256": "2250d4266f7365432afe7878f633126f2af97440fc15968b7e251f3bf845119e",
+    "baseline_manifest_count": 572,
+    "before_sha256": "ab4df2971bd403c209810fc958ac249e8b4cb5d74ebc21b2a5b82c28fb455e1c",
+    "copied_source": "backend/src/sketch2life/domain/assistance.py",
+    "detected_difference_paths": [
+      "backend/src/sketch2life/domain/assistance.py"
+    ],
+    "product_cases_passed": 262,
+    "runner_gate_scope": "actual invariants() backend assignment/assertion AST only, with copied ROOT and real read-only baseline LOCAL",
+    "runner_sha256": "4761c957f3c666380061e9930c5ba327b0adeb916a690dd028daee369ec0f893"
+  },
+  "isolated_evidence_gate_exits": {
+    "commented_copy": 1,
+    "unmodified_copy": 0
+  },
+  "isolated_evidence_gate_logs": {
+    "gate-base.log": "5fd798cd433c3bd5b69e1600fd4de202405450c1c7aabd0e315a51903303e4d2",
+    "gate-harmless-comment-copy.log": "f433e9ea2908ed0bbc5727b5550b45fa9a831a9e0f67ab91ce0182ee9c7171d4"
+  },
+  "mutants": {
+    "M01_drop_AUDIENCE_CHANGED": {
+      "cases": 262,
+      "errors": 0,
+      "exit": 1,
+      "failed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_same_revision_fact_changes_deny_current_read_and_edit_without_writes[audience]"
+      ],
+      "killed_by_assertion": true
+    },
+    "M04_drop_SOURCE_RECORD_CHANGED": {
+      "cases": 262,
+      "errors": 0,
+      "exit": 1,
+      "failed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_same_revision_fact_changes_deny_current_read_and_edit_without_writes[source_record]"
+      ],
+      "killed_by_assertion": true
+    },
+    "M06_drop_receipt_content_guard": {
+      "cases": 262,
+      "errors": 0,
+      "exit": 1,
+      "failed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_corrupt_accepted_receipt_is_rejected_without_writes[body]",
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_corrupt_accepted_receipt_is_rejected_without_writes[readiness]",
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_corrupt_accepted_receipt_is_rejected_without_writes[status]"
+      ],
+      "killed_by_assertion": true
+    },
+    "M07_drop_requested_hash_compare": {
+      "cases": 262,
+      "errors": 0,
+      "exit": 1,
+      "failed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_adapters.py::test_actual_exact_resolver_rejects_mismatched_requested_pins_without_writes[hash-EXACT_BUNDLE_MISMATCH]",
+        "backend/tests/unit/test_knowledge_bundle_adapters.py::test_actual_exact_resolver_rejects_mismatched_requested_pins_without_writes[other-bundle-id-EXACT_BUNDLE_MISMATCH]"
+      ],
+      "killed_by_assertion": true
+    },
+    "M09_drop_expected_context": {
+      "cases": 262,
+      "errors": 0,
+      "exit": 1,
+      "failed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_edit_expected_revision_mismatch_rejects_atomically[expected_context_revision-CONTEXT_REVISION_MISMATCH]"
+      ],
+      "killed_by_assertion": true
+    },
+    "M10_drop_expected_audience": {
+      "cases": 262,
+      "errors": 0,
+      "exit": 1,
+      "failed_nodes": [
+        "backend/tests/unit/test_knowledge_bundle_service.py::test_edit_expected_revision_mismatch_rejects_atomically[expected_audience_revision-AUDIENCE_REVISION_MISMATCH]"
+      ],
+      "killed_by_assertion": true
+    }
+  },
+  "real_source_test_files_unchanged": 588,
+  "reviewed_utc": "2026-10-20T05:25:33.815352+00:00",
+  "source_manifest_sha256": "7bdb557e411d222442af25e5eb4e9d20315163698704c6da4aed53cab65fcd50",
+  "source_manifests_byte_equal": true
+}

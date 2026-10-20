@@ -1,0 +1,15 @@
+{
+  "argv": [
+    "<PYTHON_EXECUTABLE>",
+    "tools/validate_repository_security.py"
+  ],
+  "cwd": "<WORKTREE>",
+  "PYTHONPATH": "<WORKTREE>/backend\\src",
+  "MYPYPATH": "<WORKTREE>/backend\\src",
+  "exit": 0,
+  "seconds": 2.375,
+  "started_utc": "2026-10-20T05:28:49.166520+00:00",
+  "ended_utc": "2026-10-20T05:28:51.536294+00:00",
+  "interpreter": "<PYTHON_EXECUTABLE>",
+  "log_sha256": "382badabf5e28256577d4da9f3dae3f86d01bd8f0b93542bf8c48dea7b6e8f1e"
+}

@@ -1,0 +1,82 @@
+{
+  "passed": true,
+  "scanned_files": 51,
+  "scanned_paths": [
+    "backend/src/sketch2life/application/ports/knowledge_bundle.py",
+    "backend/src/sketch2life/application/services/knowledge_bundle.py",
+    "backend/src/sketch2life/contracts/schemas/knowledge_bundles.py",
+    "backend/src/sketch2life/domain/knowledge_bundle.py",
+    "backend/src/sketch2life/infrastructure/knowledge_bundle/__init__.py",
+    "backend/src/sketch2life/infrastructure/knowledge_bundle/adapters.py",
+    "backend/src/sketch2life/infrastructure/knowledge_bundle/coordination.py",
+    "backend/src/sketch2life/infrastructure/knowledge_bundle/examples.py",
+    "backend/src/sketch2life/infrastructure/knowledge_bundle/fakes.py",
+    "backend/src/sketch2life/infrastructure/knowledge_bundle/harness.py",
+    "backend/tests/contract/test_knowledge_bundles.py",
+    "backend/tests/unit/test_knowledge_bundle_adapters.py",
+    "backend/tests/unit/test_knowledge_bundle_chain.py",
+    "backend/tests/unit/test_knowledge_bundle_domain.py",
+    "backend/tests/unit/test_knowledge_bundle_races.py",
+    "backend/tests/unit/test_knowledge_bundle_service.py",
+    "features/FEAT-056-be2-knowledge-script/approvals/TASK_APPROVAL.md",
+    "features/FEAT-056-be2-knowledge-script/artifacts/BASELINE_BACKEND_FILES.json",
+    "features/FEAT-056-be2-knowledge-script/artifacts/KNOWLEDGE_BUNDLE_EXAMPLES.json",
+    "features/FEAT-056-be2-knowledge-script/artifacts/OFFLINE_BATCH_PROFILE.json",
+    "features/FEAT-056-be2-knowledge-script/assets/REVIEW.md",
+    "features/FEAT-056-be2-knowledge-script/CONTEXT.md",
+    "features/FEAT-056-be2-knowledge-script/DECISIONS.md",
+    "features/FEAT-056-be2-knowledge-script/evidence/metrics/ACCEPTANCE_MAP_BE207_20261020.json",
+    "features/FEAT-056-be2-knowledge-script/evidence/metrics/BE207_FINAL_OFFLINE_CHECKS_20261020.json",
+    "features/FEAT-056-be2-knowledge-script/evidence/metrics/OFFLINE_HANDOFF_BE207_20261020.md",
+    "features/FEAT-056-be2-knowledge-script/evidence/metrics/PLAN_CHECKS_20261019.json",
+    "features/FEAT-056-be2-knowledge-script/evidence/notes/ACCEPTANCE_REVIEW.md",
+    "features/FEAT-056-be2-knowledge-script/evidence/notes/CLAUDE_REMEDIATION_20261020.md",
+    "features/FEAT-056-be2-knowledge-script/evidence/notes/CLAUDE_RESOLVER_REGRESSION_20261020.md",
+    "features/FEAT-056-be2-knowledge-script/evidence/notes/INDEPENDENT_ATOMIC_REVIEW.md",
+    "features/FEAT-056-be2-knowledge-script/evidence/notes/INDEPENDENT_PARTS_1_4_REVIEW.md",
+    "features/FEAT-056-be2-knowledge-script/evidence/notes/INDEPENDENT_POST_CLAUDE_REVIEW_20261020.md",
+    "features/FEAT-056-be2-knowledge-script/evidence/notes/PART5_HARNESS_TESTS.md",
+    "features/FEAT-056-be2-knowledge-script/evidence/notes/PART6_ADAPTERS.md",
+    "features/FEAT-056-be2-knowledge-script/evidence/notes/PART7_CONSUMER.md",
+    "features/FEAT-056-be2-knowledge-script/evidence/notes/PART8_EXAMPLES.md",
+    "features/FEAT-056-be2-knowledge-script/evidence/notes/PART_5.md",
+    "features/FEAT-056-be2-knowledge-script/evidence/notes/PART_6.md",
+    "features/FEAT-056-be2-knowledge-script/evidence/notes/PART_7.md",
+    "features/FEAT-056-be2-knowledge-script/evidence/notes/PART_8.md",
+    "features/FEAT-056-be2-knowledge-script/evidence/notes/PARTS_1_4.md",
+    "features/FEAT-056-be2-knowledge-script/evidence/notes/PLAN_REVIEW_20261019.md",
+    "features/FEAT-056-be2-knowledge-script/evidence/notes/PROGRESS.md",
+    "features/FEAT-056-be2-knowledge-script/evidence/notes/SOURCE_AUDIT_20261019.md",
+    "features/FEAT-056-be2-knowledge-script/evidence/README.md",
+    "features/FEAT-056-be2-knowledge-script/plan/BE2_01_07_RUNTIME_CAMPAIGN_PLAN.md",
+    "features/FEAT-056-be2-knowledge-script/plan/OWNER_DECISION_PACKAGE.md",
+    "features/FEAT-056-be2-knowledge-script/plan/PLAN.md",
+    "features/FEAT-056-be2-knowledge-script/plan/PLAN_REV1_APPROVED.md",
+    "features/FEAT-056-be2-knowledge-script/status/STATUS.md"
+  ],
+  "frozen_exceptions": [
+    {
+      "path": "features/FEAT-056-be2-knowledge-script/approvals/TASK_APPROVAL.md",
+      "sha256": "0010271d9db68dbbe8b9675021540df3e2cd420f636c0f7a8113ea9b91da2078",
+      "issue": "frozen approval has a trailing blank line",
+      "disposition": "PRESERVED_AUTHORIZATION_RECORD; no approval bytes edited"
+    }
+  ],
+  "routing_h1_first": [
+    "docs/context/PROJECT_CONTEXT.md",
+    "docs/context/SOURCE_REGISTER.md",
+    "features/FEAT-044-be2-ai-job-foundation/plan/BE2_EXECUTION_TRACKER.md"
+  ],
+  "explicit_eol_normalizations": [
+    {
+      "path": "features/FEAT-056-be2-knowledge-script/evidence/notes/PART6_ADAPTERS.md",
+      "before_sha256": "2c7831f34cb007fb550df691b7db7e08a63c6c0c80eea4ac8aaf865fb44f40c3",
+      "after_sha256": "e270c6434f512887a008ee76674144ee87b89a95eb94072bb161e6e045979a98"
+    },
+    {
+      "path": "features/FEAT-056-be2-knowledge-script/evidence/notes/PART8_EXAMPLES.md",
+      "before_sha256": "87dfaab755262a94512e2a153678b0edca8a0aeff1743453c5b58e161e8935ed",
+      "after_sha256": "7a3da138218bf74ef7eb46b4f750df877e928743fe00030af0477e7e072c92d5"
+    }
+  ]
+}
