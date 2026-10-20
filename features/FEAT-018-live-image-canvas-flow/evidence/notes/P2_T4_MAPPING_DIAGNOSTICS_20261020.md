@@ -20,15 +20,15 @@ Artifact tuples:
 | Artifact | Bytes | SHA-256 |
 | --- | ---: | --- |
 | `tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json` | 228,305 | `1ba728ca3b02646bafd6b75d27b6c70461957ceb8628ec8e75f11e3aea62bd5a` |
-| `backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py` | 47,451 | `90aebc08896aac64f6d92f68bf7ee7f057318236c5093ade440f07c65099d013` |
-| `backend/tests/contract/test_feat018_p2_t4_manifest_contract.py` | 21,604 | `0e0ef533a8281b526bfd648d4ccea664cff3553780f3f4668db715bdfdfb70f7` |
+| `backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py` | 55,297 | `3da61ddd4e6d408c4a0ca0da53a67e710f52c73a1d4d75a39a0086c200f5b355` |
+| `backend/tests/contract/test_feat018_p2_t4_manifest_contract.py` | 22,000 | `6dedf9f04346db6094978218a849ac9d63b4ee01fc9632971fcf42a0bd5dfb89` |
 
 ## Result
 
 The regenerated metrics report is
 [`P2_T4_MAPPING_DIAGNOSTICS_20261020.json`](../metrics/P2_T4_MAPPING_DIAGNOSTICS_20261020.json),
-606,574 bytes, SHA-256
-`d94c5051514497edf1dd3bce8d062f868b43b2d558dc0a09895ec8052c023367`.
+614,743 bytes, SHA-256
+`9c4a3e76fbc67456daae895229f89136f1389432c09b8cfa0350a3fd8932a795`.
 
 | Boundary / group | Result |
 | --- | --- |
@@ -51,15 +51,35 @@ observations are:
   matcher-only inputs expose two different inputs: the word-boundary probe is an explicit synthetic
   anchor, while the whitespace probe travels through narration text because Gate A normalizes anchor
   labels first. They are matcher observations, not fixes or new public error codes. V1 substring
-  behavior for the word-boundary fixture is recorded as existing design behavior.
+  behavior for the word-boundary fixture is recorded as existing design behavior. The manifest marks
+  the desired matcher outcomes SATISFIED, so the observed deviations also receive
+  `MANIFEST_REQUIREMENT_EXPECTATION_MISMATCH`; the fixtures do not encode the known defects as expected.
 
-The `static_review_hypotheses` field is separate from runtime `boundary_findings`; it labels schema
-shape/source-inspection limits that are not claimed as measured runtime observations. Supplemental
-boundary expectations are stored in the manifest and consumed by the matcher-observation path. The
-primary target V1/V2 expectations are checked against observed target modes when B2/B3 execute. The
-no-match recipe is checked against all 100 base V2 profiles. The schema-default-backed scene
-`conflict_preserved` value is reported with its projection metadata and is not called proof that Raw
+The `static_review_hypotheses` field is separate from runtime `boundary_findings`; it records schema
+shape or contract-registration limits and is counted separately in the report summary. This report
+contains 60 primary rows with 80 hypothesis instances (20 each for ambiguity-decision projection,
+Raw conflict projection, adult-provenance registration not assessed, and actor/meaning/version
+projection), plus 2 supplemental rows with 2 instances (V1 correction policy and the synthetic
+meaning-version transition). These static observations are available even though Gate A did not
+run; they are not runtime measurements.
+
+Supplemental `expected.outcome`, `expected.requirement_status`, and matcher target modes are read by
+the diagnostics path. Outcome predicates inspect the observed rejection code or observed fields;
+the B2 expected error code is derived from the manifest outcome. A mismatch is recorded rather than
+reported as a pass. The primary target V1/V2 expectations are compared with observed target modes
+when B2/B3 execute, and the test independently recomputes the target mode from the observation list
+to check the row's mismatch disposition. The no-match recipe is checked against all 100 base V2
+profiles, and the primary row must report any non-fallback match it observes. A passing diagnostics
+test means the observation and its disposition were recorded consistently; it does not mean the
+underlying requirement is satisfied or Task 4 is accepted. The schema-default-backed scene
+`conflict_preserved` value is reported with projection metadata and is not called proof that Raw
 conflicts survived.
+
+`SUCCESSIVE_MEANING_VERSIONS` is explicitly marked `input_origin=TEST_ONLY_SESSION_REWIND`. This
+field identifies the test recipe; it does not imply the case executed in this report. When run, the
+test directly advances a synthetic session from `UNDERSTANDING_PROPOSED` to `GATE_A_PENDING` because
+the service has no product transition for that route. It is a test setup, not evidence of a
+production user flow; the report keeps its meaning/anchor-version observation unresolved.
 
 The report does not turn missing B2/B3 execution into a pass. B3 did not run on primary Gate-A
 outputs, so no primary matcher or end-to-end mapping claim follows from the completed B1 checks.
@@ -76,7 +96,7 @@ From `backend/`, the focused command was:
 & '.venv/Scripts/python.exe' -B -m pytest -p no:cacheprovider tests/unit/test_feat018_p2_t4_mapping_diagnostics.py tests/contract/test_feat018_p2_t4_manifest_contract.py tests/unit/test_raw_understanding.py tests/unit/test_activity_semantics.py -ra
 ```
 
-After review remediation: **234 passed, 129 skipped, 1 failed**. The sole failure is the explicit
+After review remediation: **237 passed, 129 skipped, 1 failed**. The sole failure is the explicit
 required-dependency preflight for missing `Pillow>=11,<13`; this is intentionally not reported as a
 clean run. The skip summary identifies 120 primary B2/B3 cases and 9 supplemental Gate-A cases as
 NOT_RUN. This environment does not establish B2/B3 results.
@@ -103,7 +123,8 @@ module's explicit `--write-report` option and writes only the metrics path above
 
 The result was **SKELETON_VALID**, **ARCHITECTURE_VALID**, and **REPOSITORY_SECURITY_VALID** (2,588
 publishable files scanned; the validator's path checks are pattern-based and are not a general
-absolute-path detector). The commands above are repository-relative. `git diff --check` passed. The
+absolute-path detector). The commands above are relative to the `backend/` working directory.
+`git diff --check` passed. The
 repository harness validator returned `HARNESS_INVALID` because pre-existing `evidence/screenshots` and
 `evidence/metrics` paths are missing under FEAT-045, FEAT-046 and FEAT-047. Those unrelated feature
 directories were left unchanged.

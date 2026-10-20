@@ -2,26 +2,28 @@
 
 Evidence belongs under this feature only.
 
-## P2-T4 branch-only review artifacts — 2026-10-20
-
-By the owner's request, the partial diagnostic note and metrics
-([note](notes/P2_T4_MAPPING_DIAGNOSTICS_20261020.md),
-[metrics](metrics/P2_T4_MAPPING_DIAGNOSTICS_20261020.json)) are present on the dedicated Task 4
-feature branch for review. This is a scoped review-distribution exception, not canonical evidence
-publication or owner acceptance. The artifacts record incomplete B2/B3 execution and keep Task 4
-open; they must not be cited as completed P2 evidence.
-
 P2 publication policy: working research, review briefs and handoff drafts remain
 local and are not canonical public evidence. Publish only selected completed P2
 records after owner review, then add them to this index. Completing a research
 round alone does not promote its working note to a public record.
 
-P2-T4 draft-review distribution — 2026-10-20: the owner requested that the two reviewed documents
+P2-T4 draft-review distribution — 2026-10-20: the owner requested that the two sanitized documents
 `plan/P2_T4_MAPPING_DIAGNOSTICS_PLAN_DRAFT_20261020.md` and
 `plan/P2_T4_MAPPING_INPUT_REVIEW_DRAFT_20261020.md` be pushed on the Task 4 branch for Claude Cloud
-review. They remain plan/input records, not completed canonical evidence. The raw relayed review
-remains local. This scoped branch-only distribution covers the P2-T4 review artifacts above and does
-not change the policy for other working research, review attachments or handoff drafts.
+review. They remain draft plan/input proposals, not completed canonical evidence or implementation
+approval. The raw relayed review remains local. This scoped distribution does not change the policy
+for other working research, review attachments or handoff drafts.
+
+## P2-T4 diagnostic branch review distribution — 2026-10-20
+
+Person 2's coordinator-chat instruction on 2026-10-20 was “OK đẩy lên đi sau đó cập nhật và viết lại
+prompt review cho tôi”, in response to the proposal to push the Task 4 branch for Claude Cloud review.
+This one-time branch distribution covers only the partial diagnostic note
+([note](notes/P2_T4_MAPPING_DIAGNOSTICS_20261020.md)) and metrics
+([report](metrics/P2_T4_MAPPING_DIAGNOSTICS_20261020.json)) linked here. It is not canonical evidence
+publication or owner acceptance. B2/B3 remain NOT_RUN and Task 4 remains OPEN; these artifacts must
+not be cited as completed P2 evidence. This record does not broaden the earlier plan/input review
+distribution or the general P2 publication policy.
 
 Selected completed P2 design record:
 [isolated image admission and decoding](P2_IMAGE_DECODE_DESIGN_20260910.md)

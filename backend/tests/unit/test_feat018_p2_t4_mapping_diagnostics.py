@@ -30,6 +30,9 @@ from sketch2life.contracts.schemas.gate_a import GateAConfirmationV1, GateAConfi
 from sketch2life.contracts.schemas.mobile_workflow import MobileWorkflowCommandV1
 from sketch2life.contracts.schemas.p1_experience import SemanticAnchorSetV1
 from sketch2life.contracts.schemas.raw_understanding import RawUnderstandingSuccessV1
+from sketch2life.contracts.schemas.semantic_personalization_v2 import (
+    ConfirmedSceneUnderstandingV2,
+)
 from sketch2life.contracts.schemas.vision_v2 import (
     VisionUnderstandingSuccessV2,
     vision_profile_catalog_hash_v2,
@@ -390,6 +393,23 @@ def _target_match_mode(matches: list[dict[str, Any]], boundary: str,
     return match["match_mode"]
 
 
+def _static_review_hypotheses(family: str) -> list[str]:
+    """Report schema/source limits without presenting them as runtime observations."""
+    scene_fields = set(ConfirmedSceneUnderstandingV2.model_fields)
+    hypotheses: list[str] = []
+    if family == "AMBIGUOUS" and not {"gate_a_confirmation", "meaning_version"} <= scene_fields:
+        hypotheses.append("AMBIGUITY_DECISION_PROVENANCE_NOT_PROJECTED")
+    if family == "CONFLICT" and not scene_fields.intersection(
+        {"conflicts", "raw_conflicts", "source_conflicts"}
+    ):
+        hypotheses.append("RAW_CONFLICT_REFERENCES_NOT_PROJECTED")
+    if family == "ADULT_CORRECTION":
+        hypotheses.append("ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED")
+        if not {"meaning_version", "actor_ref"} <= scene_fields:
+            hypotheses.append("ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW")
+    return hypotheses
+
+
 def run_case(case: dict[str, Any]) -> dict[str, Any]:
     raw = build_raw(case)
     row = {
@@ -407,7 +427,7 @@ def run_case(case: dict[str, Any]) -> dict[str, Any]:
             "B2_B3": TEST_REF + "::test_primary_gate_a_and_matcher",
         },
         "B1": _b1(raw, case), "boundary_findings": [],
-        "static_review_hypotheses": [],
+        "static_review_hypotheses": _static_review_hypotheses(case["family"]),
     }
     service_type, missing = gate_a_prerequisite()
     if missing is not None:
@@ -444,11 +464,6 @@ def run_case(case: dict[str, Any]) -> dict[str, Any]:
             entity.observation_id for entity in raw.entities[1:]
         }:
             findings.append("AMBIGUOUS_SECONDARY_PRESERVATION_FAILED")
-        scene_fields = set(scene.model_dump(mode="json"))
-        if not {"gate_a_confirmation", "meaning_version"} <= scene_fields:
-            row["static_review_hypotheses"].append(
-                "AMBIGUITY_DECISION_PROVENANCE_NOT_PROJECTED"
-            )
     elif family == "NO_MATCH":
         if primary.semantic_tags:
             findings.append("NO_MATCH_EMPTY_TAG_PRECONDITION_FAILED")
@@ -457,9 +472,6 @@ def run_case(case: dict[str, Any]) -> dict[str, Any]:
         if not findings:
             row["p2_diagnostic"] = "NO_REVIEWED_VOCABULARY_MATCH"
     elif family == "CONFLICT":
-        scene_fields = set(scene.model_dump(mode="json"))
-        if not scene_fields.intersection({"conflicts", "raw_conflicts", "source_conflicts"}):
-            row["static_review_hypotheses"].append("RAW_CONFLICT_REFERENCES_NOT_PROJECTED")
         if scene.asr_vlm_resolution == "ASR_AND_VLM_AGREE":
             findings.append("SOURCE_DISAGREEMENT_PROJECTED_AS_AGREEMENT")
         if scene.source_audio_artifact_ref == "none:narration":
@@ -475,17 +487,7 @@ def run_case(case: dict[str, Any]) -> dict[str, Any]:
         if not any(target_id in a.provenance.source_claim_ids for a in anchors.secondary_anchors):
             findings.append("RETAINED_VISION_SECONDARY_MISSING")
         if primary.confidence == 1.0:
-            row["static_review_hypotheses"].append(
-                "ADULT_CONFIDENCE_CONVENTION_REQUIRES_REVIEW"
-            )
-        if "source_adult_assertion_id" in primary.provenance.model_fields_set:
-            row["static_review_hypotheses"].append(
-                "PROVENANCE_CONTRACT_REGISTRATION_NOT_ESTABLISHED"
-            )
-        if not {"meaning_version", "actor_ref"} <= set(scene.model_dump(mode="json")):
-            row["static_review_hypotheses"].append(
-                "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
-            )
+            findings.append("ADULT_CONFIDENCE_CONVENTION_REQUIRES_REVIEW")
     row.update({"execution_status": "COMPLETE",
                 "requirement_status": (
                     "UNRESOLVED" if findings or row["static_review_hypotheses"] else "SATISFIED"
@@ -540,9 +542,81 @@ def _standalone_anchors(case: dict[str, Any], label: str) -> SemanticAnchorSetV1
     })
 
 
+_SUPPLEMENTAL_OUTCOME_CODES = {
+    "REJECT_INVALID_VISION_CONFIDENCE": "VISION_NULL_CONFIDENCE_REJECTED",
+    "REJECT_INCONSISTENT_UNCERTAINTY": "UNCERTAINTY_STATUS_MISMATCH_REJECTED",
+    "REJECT_DUPLICATE_CLAIM_ID": "DUPLICATE_CLAIM_ID_REJECTED",
+    "REJECT_DANGLING_CONFLICT_REFERENCE": "DANGLING_CONFLICT_REF_REJECTED",
+    "REJECT_SOURCE_HASH_MISMATCH": "SOURCE_HASH_MISMATCH_REJECTED",
+    "REJECT_CORRELATION_MISMATCH": "CORRELATION_MISMATCH_REJECTED",
+    "REJECT_UNKNOWN_CONFIRMED_CLAIM": "GATE_A_CLAIM_NOT_FOUND",
+    "REJECT_STALE_SESSION_VERSION": "STALE_SESSION_VERSION",
+    "REJECT_MISSING_ADULT_LABEL": "GATE_A_CORRECTION_EMPTY",
+    "REJECT_NON_DEMO_ACTOR": "DEMO_ACTOR_INVALID",
+}
+
+
+def _supplemental_outcome_matches(outcome: str, observed: dict[str, Any]) -> bool:
+    expected_code = _SUPPLEMENTAL_OUTCOME_CODES.get(outcome)
+    if expected_code is not None:
+        return observed.get("code") == expected_code
+    if outcome == "ACCEPT_NULL_ASR_CONFIDENCE":
+        return observed.get("asr_confidence") is None
+    if outcome == "ACCEPT_NOT_PROVIDED_UNCERTAINTY":
+        return (observed.get("uncertainty_status") == "NOT_PROVIDED"
+                and observed.get("uncertainty") is None)
+    if outcome == "PRESERVE_UPSTREAM_UNCERTAINTY":
+        return (observed.get("uncertainty_status") == "UPSTREAM_PROVIDED"
+                and observed.get("uncertainty") == 0.05)
+    if outcome == "PRESERVE_NON_SELECTABLE_AMBIGUITY":
+        return (observed.get("selectable_claim_ids") == []
+                and observed.get("ambiguous_region_count", 0) > 0)
+    if outcome == "PRESERVE_TYPED_TEXT_CONFLICT":
+        conflicts = observed.get("conflicts", [])
+        claim_refs = conflicts[0].get("claim_refs", []) if conflicts else []
+        return (observed.get("source") == "TEXT_TYPED"
+                and observed.get("narration_status") == "TEXT_SUPPLIED"
+                and len(set(claim_refs)) >= 2)
+    if outcome == "OBSERVE_ACCEPTED_SOURCE_STATUS_GAP":
+        return (observed.get("source") == "TEXT_TYPED"
+                and observed.get("narration_status") != "TEXT_SUPPLIED")
+    if outcome == "OBSERVE_CORRECTION_PROVENANCE":
+        provenance = observed.get("primary_anchor", {}).get("provenance", {})
+        return bool(provenance.get("source_adult_assertion_id")
+                    or provenance.get("source_claim_ids"))
+    if outcome == "OBSERVE_MEANING_AND_ANCHOR_VERSIONS":
+        return (observed.get("meaning_version") == 1
+                and observed.get("second_meaning_version") == 2
+                and isinstance(observed.get("anchor_set_version"), int)
+                and isinstance(observed.get("second_anchor_set_version"), int)
+                and observed.get("anchor_set_version", 0) >= 1
+                and observed.get("second_anchor_set_version", 0) >= 1
+                and observed.get("second_anchor_set_id") != observed.get("anchor_set_id"))
+    if outcome == "OBSERVE_AMBIGUOUS_TARGET_ONLY_CONFIRMATION":
+        confirmed_claim_ids = observed.get("confirmed_claim_ids", [])
+        primary_claim_ids = observed.get("primary_anchor", {}).get("provenance", {}).get(
+            "source_claim_ids", []
+        )
+        return (observed.get("confirmation_claim_count") == 1
+                and primary_claim_ids == confirmed_claim_ids)
+    if outcome == "OBSERVE_EMPTY_ADULT_CONFIRMATION":
+        return (observed.get("confirmation_claim_count") == 0
+                and observed.get("raw_preserved") is True)
+    if outcome == "OBSERVE_INJECTED_AUTORIG_CALL_COUNT":
+        return observed.get("auto_rig_stub_calls") == 1
+    raise AssertionError(f"unimplemented manifest supplemental outcome: {outcome}")
+
+
 def _apply_supplemental_expectation(item: dict[str, Any], row: dict[str, Any]) -> dict[str, Any]:
     if row["execution_status"] != "COMPLETE":
         return row
+    expected_outcome = item["expected"].get("outcome")
+    if expected_outcome is not None:
+        matches_outcome = _supplemental_outcome_matches(expected_outcome, row["observed"])
+        row["observed"]["outcome_expectation_matches"] = matches_outcome
+        if not matches_outcome:
+            row["requirement_status"] = "UNRESOLVED"
+            row["boundary_findings"].append("MANIFEST_OUTCOME_EXPECTATION_MISMATCH")
     expected_status = item["expected"]["requirement_status"]
     if row["requirement_status"] != expected_status:
         row["requirement_status"] = "UNRESOLVED"
@@ -562,7 +636,7 @@ def run_supplemental(item: dict[str, Any], manifest: dict[str, Any]) -> dict[str
         "fixture_sha256": _digest(item), "base_case_id": base["case_id"],
         "execution_status": "COMPLETE", "requirement_status": "SATISFIED",
         "test_reference": TEST_REF + "::test_supplemental_observation",
-        "observed": {}, "boundary_findings": [],
+        "observed": {}, "boundary_findings": [], "static_review_hypotheses": [],
     }
     observed = row["observed"]
     if scenario in {"VISION_NULL_CONFIDENCE", "SOURCE_HASH_MISMATCH", "CORRELATION_MISMATCH"}:
@@ -638,6 +712,7 @@ def run_supplemental(item: dict[str, Any], manifest: dict[str, Any]) -> dict[str
             if scenario == "AMBIGUOUS_REGION_ONLY":
                 assert not claims_from_raw(value)
                 assert "confidence" not in type(value.ambiguous_regions[0]).model_fields
+                observed["ambiguous_region_count"] = len(value.ambiguous_regions)
     elif scenario in {"REVIEWED_ALIAS", "V2_WORD_BOUNDARY", "V2_WHITESPACE"}:
         phrase = base["profile"]["exact_phrase"]
         label = (item["label"] if scenario == "REVIEWED_ALIAS" else
@@ -675,6 +750,15 @@ def run_supplemental(item: dict[str, Any], manifest: dict[str, Any]) -> dict[str
 def _run_gate_supplemental(item: dict[str, Any], manifest: dict[str, Any],
                            base: dict[str, Any], row: dict[str, Any]) -> dict[str, Any]:
     scenario = item["scenario"]
+    if scenario == "SUCCESSIVE_MEANING_VERSIONS":
+        row["input_origin"] = "TEST_ONLY_SESSION_REWIND"
+        row["static_review_hypotheses"].append(
+            "MEANING_AND_ANCHOR_VERSION_FLOW_NOT_REPRESENTED_BY_SERVICE_TRANSITION"
+        )
+    elif scenario == "V1_ADULT_CORRECTION":
+        row["static_review_hypotheses"].append(
+            "V1_ADULT_CORRECTION_POLICY_REQUIRES_OWNER_DISPOSITION"
+        )
     allowed = {"UNKNOWN_CONFIRMED_CLAIM", "STALE_SESSION_VERSION", "V1_ADULT_CORRECTION",
                "SUCCESSIVE_MEANING_VERSIONS", "V2_MISSING_ADULT_LABEL", "NON_DEMO_ACTOR",
                "AMBIGUOUS_TARGET_ONLY", "ADULT_EMPTY_CONFIRMED", "SWALLOWED_AUTORIG_CALL"}
@@ -711,12 +795,7 @@ def _run_gate_supplemental(item: dict[str, Any], manifest: dict[str, Any],
         command = command.model_copy(update={"expected_session_version": version + 1})
     elif scenario == "NON_DEMO_ACTOR":
         command = command.model_copy(update={"actor_ref": "fixture:other-adult"})
-    expected_error = {
-        "UNKNOWN_CONFIRMED_CLAIM": "GATE_A_CLAIM_NOT_FOUND",
-        "STALE_SESSION_VERSION": "STALE_SESSION_VERSION",
-        "V2_MISSING_ADULT_LABEL": "GATE_A_CORRECTION_EMPTY",
-        "NON_DEMO_ACTOR": "DEMO_ACTOR_INVALID",
-    }.get(scenario)
+    expected_error = _SUPPLEMENTAL_OUTCOME_CODES.get(item["expected"]["outcome"])
     try:
         result, replay = service.confirm_gate_a(command)
     except SessionWorkflowError as exc:
@@ -732,8 +811,11 @@ def _run_gate_supplemental(item: dict[str, Any], manifest: dict[str, Any],
             "secondary_anchors": [_anchor_observation(a) for a in anchors.secondary_anchors],
             "meaning_version": result.payload["gate_a_confirmation"]["meaning_version"],
             "anchor_set_version": anchors.anchor_set_version,
+            "anchor_set_id": anchors.anchor_set_id,
             "actor_ref": result.payload["gate_a_confirmation"]["actor_ref"],
             "adult_confirmation_actor": anchors.adult_confirmation_actor,
+            "confirmation_claim_count": len(base["confirmation"]["confirmed_claim_ids"]),
+            "confirmed_claim_ids": list(base["confirmation"]["confirmed_claim_ids"]),
             "raw_preserved": sessions.workflow_record(base["session_id"]).values[
                 "raw_understanding"] == raw.model_dump(mode="json"),
         }
@@ -742,6 +824,7 @@ def _run_gate_supplemental(item: dict[str, Any], manifest: dict[str, Any],
             assert stub is not None and stub.calls == 1
             row["observed"]["auto_rig_stub_calls"] = stub.calls
         elif scenario == "SUCCESSIVE_MEANING_VERSIONS":
+            row["observed"]["input_origin"] = "TEST_ONLY_SESSION_REWIND"
             first_version = sessions.snapshot(base["session_id"]).version
             sessions.advance(session_id=base["session_id"], expected_version=first_version,
                              allowed_states=("UNDERSTANDING_PROPOSED",),
@@ -755,12 +838,16 @@ def _run_gate_supplemental(item: dict[str, Any], manifest: dict[str, Any],
                                    second_anchor_set_version=newer.anchor_set_version,
                                    second_meaning_version=2)
             row["requirement_status"] = "UNRESOLVED"
-            row["boundary_findings"] = ["MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"]
         elif scenario == "V1_ADULT_CORRECTION":
-            row["requirement_status"] = "UNRESOLVED"
-            row["boundary_findings"] = ["V1_CORRECTION_REUSES_VISION_PROVENANCE"]
+            vision_claim_ids = {entity["observation_id"] for entity in base["entities"]}
+            projected_claim_ids = set(anchors.primary_anchor.provenance.source_claim_ids)
+            if vision_claim_ids & projected_claim_ids:
+                row["requirement_status"] = "UNRESOLVED"
+                row["boundary_findings"].append("V1_CORRECTION_REUSES_VISION_PROVENANCE")
     assert compiler.calls == 0
     row["observed"]["compiler_calls"] = compiler.calls
+    if row["static_review_hypotheses"]:
+        row["requirement_status"] = "UNRESOLVED"
     return _apply_supplemental_expectation(item, row)
 
 
@@ -786,6 +873,19 @@ def build_report(manifest: dict[str, Any]) -> dict[str, Any]:
             "supplemental_requirements": dict(Counter(
                 r["requirement_status"] for r in supplemental
             )),
+            "static_review_hypothesis_row_counts": {
+                "primary": sum(bool(r["static_review_hypotheses"]) for r in primary),
+                "supplemental": sum(bool(r["static_review_hypotheses"]) for r in supplemental),
+            },
+            "static_review_hypothesis_counts": {
+                "primary": dict(Counter(
+                    hypothesis for r in primary for hypothesis in r["static_review_hypotheses"]
+                )),
+                "supplemental": dict(Counter(
+                    hypothesis for r in supplemental
+                    for hypothesis in r["static_review_hypotheses"]
+                )),
+            },
             "boundary_execution": {
                 boundary: dict(Counter(r[boundary]["execution_status"] for r in primary))
                 for boundary in ("B1", "B2", "B3")
@@ -821,6 +921,18 @@ def test_no_match_recipe_has_no_personalized_match() -> None:
         )
 
 
+def test_manifest_outcomes_have_diagnostic_observers() -> None:
+    manifest = load_manifest()
+    for item in manifest["supplemental_cases"]:
+        outcome = item["expected"].get("outcome")
+        if outcome is None:
+            continue
+        try:
+            _supplemental_outcome_matches(outcome, {})
+        except AssertionError as exc:
+            pytest.fail(f"manifest outcome {outcome!r} has no diagnostic observer: {exc}")
+
+
 def test_primary_gate_a_and_matcher(case: dict[str, Any]) -> None:
     _, missing = gate_a_prerequisite()
     if missing is not None:
@@ -837,10 +949,14 @@ def test_primary_gate_a_and_matcher(case: dict[str, Any]) -> None:
         item["boundary"]: item["match_mode"] for item in row["B3"]["p1_matches"]
         if item["activity_id"] == case["activity_id"]
     }
+    observed_v2_target = next((item for item in row["B3"]["p1_matches"]
+                               if item["boundary"] == "V2_MATCH_SCENE"
+                               and item["activity_id"] == case["activity_id"]), None)
     actual_modes = {
         "V1_MATCH": primary_modes.get("V1_MATCH", "NONE"),
-        "V2_MATCH_SCENE": _target_match_mode(
-            row["B3"]["p1_matches"], "V2_MATCH_SCENE", case["activity_id"]
+        "V2_MATCH_SCENE": (
+            "NO_PERSONALIZED_MATCH" if observed_v2_target is None
+            or observed_v2_target["fallback_observed"] else observed_v2_target["match_mode"]
         ),
     }
     expectations = {
@@ -857,6 +973,10 @@ def test_primary_gate_a_and_matcher(case: dict[str, Any]) -> None:
         assert (mismatch_code in row["boundary_findings"]) == (
             actual_modes[boundary] != expected
         )
+    if row["boundary_findings"] or row["static_review_hypotheses"]:
+        assert row["requirement_status"] == "UNRESOLVED"
+    if row["requirement_status"] == "SATISFIED":
+        assert not row["boundary_findings"] and not row["static_review_hypotheses"]
     if case["family"] == "NO_MATCH":
         _, v2 = _catalogs()
         non_fallback = []
@@ -867,6 +987,11 @@ def test_primary_gate_a_and_matcher(case: dict[str, Any]) -> None:
             if match is not None and match.match_mode != "AGE_BASELINE_FALLBACK":
                 non_fallback.append(profile.activity_id)
         assert not non_fallback, "NO_MATCH recipe must not match any of the 100 reviewed profiles"
+        observed_non_fallback = any(
+            not item["fallback_observed"] for item in row["B3"]["p1_matches"]
+        )
+        assert ("NO_MATCH_RECIPE_HAS_NON_FALLBACK_MATCH" in row["boundary_findings"]
+                ) == observed_non_fallback
 
 
 def test_supplemental_observation(supplemental: dict[str, Any]) -> None:
@@ -878,6 +1003,11 @@ def test_supplemental_observation(supplemental: dict[str, Any]) -> None:
             f"{prerequisite['distribution']} is missing ({prerequisite['module']})"
         )
     assert row["execution_status"] == "COMPLETE"
+    if "outcome" in supplemental["expected"]:
+        outcome_matches = row["observed"].get("outcome_expectation_matches")
+        assert isinstance(outcome_matches, bool)
+        assert ("MANIFEST_OUTCOME_EXPECTATION_MISMATCH" in row["boundary_findings"]
+                ) == (not outcome_matches)
     if supplemental["expected"]["boundary"] == "B3":
         actual_modes = row["observed"]["target_modes"]
         expected_modes = supplemental["expected"]["target_modes"]
@@ -910,6 +1040,17 @@ def pytest_generate_tests(metafunc: Any) -> None:
 def test_report_integrity_and_sanitization() -> None:
     manifest = load_manifest()
     report = build_report(manifest)
+    for boundary in ("primary", "supplemental"):
+        rows = report["primary_cases"] if boundary == "primary" else report["supplemental_cases"]
+        assert report["summary"]["static_review_hypothesis_row_counts"][boundary] == sum(
+            bool(row["static_review_hypotheses"]) for row in rows
+        )
+        expected_hypothesis_counts = dict(Counter(
+            hypothesis for row in rows for hypothesis in row["static_review_hypotheses"]
+        ))
+        assert report["summary"]["static_review_hypothesis_counts"][boundary] == (
+            expected_hypothesis_counts
+        )
     assert report["summary"]["primary_count"] == 120
     assert report["summary"]["supplemental_count"] == len(manifest["supplemental_cases"])
     assert len({row["case_id"] for row in report["primary_cases"]}) == 120

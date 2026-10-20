@@ -325,6 +325,7 @@ def test_synthetic_execution_marker_is_separate_from_required_model_enum(
     "extra-family", "missing-source", "duplicate-source", "wrong-source-digest",
     "duplicate-session", "missing-supplemental", "duplicate-supplemental",
     "primary-as-supplemental", "missing-supplemental-expectation",
+    "wrong-supplemental-outcome", "wrong-target-v1-mode",
 ])
 def test_manifest_rejects_broken_inventories(manifest: dict[str, Any], mutation: str) -> None:
     broken = deepcopy(manifest)
@@ -354,6 +355,12 @@ def test_manifest_rejects_broken_inventories(manifest: dict[str, Any], mutation:
         broken["supplemental_cases"][-1] = deepcopy(broken["supplemental_cases"][0])
     elif mutation == "missing-supplemental-expectation":
         del broken["supplemental_cases"][0]["expected"]
+    elif mutation == "wrong-supplemental-outcome":
+        broken["supplemental_cases"][0]["expected"]["outcome"] = "ACCEPT_NULL_ASR_CONFIDENCE"
+    elif mutation == "wrong-target-v1-mode":
+        next(case for case in broken["primary_cases"] if case["family"] == "EXACT")[
+            "expected"]["target_v1_mode"
+        ] = "OBSERVE"
     else:
         broken["supplemental_cases"][-1]["case_id"] = broken["primary_cases"][0]["case_id"]
     with pytest.raises(AssertionError):

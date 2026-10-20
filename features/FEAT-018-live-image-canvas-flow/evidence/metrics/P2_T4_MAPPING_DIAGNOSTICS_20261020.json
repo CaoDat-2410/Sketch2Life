@@ -168,7 +168,9 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "AMBIGUITY_DECISION_PROVENANCE_NOT_PROJECTED"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -332,7 +334,9 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "RAW_CONFLICT_REFERENCES_NOT_PROJECTED"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -480,7 +484,10 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED",
+        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -644,7 +651,9 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "AMBIGUITY_DECISION_PROVENANCE_NOT_PROJECTED"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -808,7 +817,9 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "RAW_CONFLICT_REFERENCES_NOT_PROJECTED"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -956,7 +967,10 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED",
+        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -1120,7 +1134,9 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "AMBIGUITY_DECISION_PROVENANCE_NOT_PROJECTED"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -1284,7 +1300,9 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "RAW_CONFLICT_REFERENCES_NOT_PROJECTED"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -1432,7 +1450,10 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED",
+        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -1596,7 +1617,9 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "AMBIGUITY_DECISION_PROVENANCE_NOT_PROJECTED"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -1760,7 +1783,9 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "RAW_CONFLICT_REFERENCES_NOT_PROJECTED"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -1908,7 +1933,10 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED",
+        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -2072,7 +2100,9 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "AMBIGUITY_DECISION_PROVENANCE_NOT_PROJECTED"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -2236,7 +2266,9 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "RAW_CONFLICT_REFERENCES_NOT_PROJECTED"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -2384,7 +2416,10 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED",
+        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -2548,7 +2583,9 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "AMBIGUITY_DECISION_PROVENANCE_NOT_PROJECTED"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -2712,7 +2749,9 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "RAW_CONFLICT_REFERENCES_NOT_PROJECTED"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -2860,7 +2899,10 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED",
+        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -3024,7 +3066,9 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "AMBIGUITY_DECISION_PROVENANCE_NOT_PROJECTED"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -3188,7 +3232,9 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "RAW_CONFLICT_REFERENCES_NOT_PROJECTED"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -3336,7 +3382,10 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED",
+        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -3500,7 +3549,9 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "AMBIGUITY_DECISION_PROVENANCE_NOT_PROJECTED"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -3664,7 +3715,9 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "RAW_CONFLICT_REFERENCES_NOT_PROJECTED"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -3812,7 +3865,10 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED",
+        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -3976,7 +4032,9 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "AMBIGUITY_DECISION_PROVENANCE_NOT_PROJECTED"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -4140,7 +4198,9 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "RAW_CONFLICT_REFERENCES_NOT_PROJECTED"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -4288,7 +4348,10 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED",
+        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -4452,7 +4515,9 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "AMBIGUITY_DECISION_PROVENANCE_NOT_PROJECTED"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -4616,7 +4681,9 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "RAW_CONFLICT_REFERENCES_NOT_PROJECTED"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -4764,7 +4831,10 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED",
+        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -4928,7 +4998,9 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "AMBIGUITY_DECISION_PROVENANCE_NOT_PROJECTED"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -5092,7 +5164,9 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "RAW_CONFLICT_REFERENCES_NOT_PROJECTED"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -5240,7 +5314,10 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED",
+        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -5404,7 +5481,9 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "AMBIGUITY_DECISION_PROVENANCE_NOT_PROJECTED"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -5568,7 +5647,9 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "RAW_CONFLICT_REFERENCES_NOT_PROJECTED"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -5716,7 +5797,10 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED",
+        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -5880,7 +5964,9 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "AMBIGUITY_DECISION_PROVENANCE_NOT_PROJECTED"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -6044,7 +6130,9 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "RAW_CONFLICT_REFERENCES_NOT_PROJECTED"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -6192,7 +6280,10 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED",
+        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -6356,7 +6447,9 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "AMBIGUITY_DECISION_PROVENANCE_NOT_PROJECTED"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -6520,7 +6613,9 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "RAW_CONFLICT_REFERENCES_NOT_PROJECTED"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -6668,7 +6763,10 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED",
+        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -6832,7 +6930,9 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "AMBIGUITY_DECISION_PROVENANCE_NOT_PROJECTED"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -6996,7 +7096,9 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "RAW_CONFLICT_REFERENCES_NOT_PROJECTED"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -7144,7 +7246,10 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED",
+        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -7308,7 +7413,9 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "AMBIGUITY_DECISION_PROVENANCE_NOT_PROJECTED"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -7472,7 +7579,9 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "RAW_CONFLICT_REFERENCES_NOT_PROJECTED"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -7620,7 +7729,10 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED",
+        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -7784,7 +7896,9 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "AMBIGUITY_DECISION_PROVENANCE_NOT_PROJECTED"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -7948,7 +8062,9 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "RAW_CONFLICT_REFERENCES_NOT_PROJECTED"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -8096,7 +8212,10 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED",
+        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -8260,7 +8379,9 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "AMBIGUITY_DECISION_PROVENANCE_NOT_PROJECTED"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -8424,7 +8545,9 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "RAW_CONFLICT_REFERENCES_NOT_PROJECTED"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -8572,7 +8695,10 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED",
+        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -8736,7 +8862,9 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "AMBIGUITY_DECISION_PROVENANCE_NOT_PROJECTED"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -8900,7 +9028,9 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "RAW_CONFLICT_REFERENCES_NOT_PROJECTED"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -9048,7 +9178,10 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED",
+        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -9212,7 +9345,9 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "AMBIGUITY_DECISION_PROVENANCE_NOT_PROJECTED"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -9376,7 +9511,9 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "RAW_CONFLICT_REFERENCES_NOT_PROJECTED"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -9524,7 +9661,10 @@
         "version": 1
       },
       "requirement_status": "UNRESOLVED",
-      "static_review_hypotheses": [],
+      "static_review_hypotheses": [
+        "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED",
+        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW"
+      ],
       "test_references": {
         "B1": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_b1",
         "B2_B3": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_primary_gate_a_and_matcher"
@@ -9568,6 +9708,22 @@
     "primary_requirements": {
       "UNRESOLVED": 120
     },
+    "static_review_hypothesis_counts": {
+      "primary": {
+        "ACTOR_MEANING_AND_ANCHOR_VERSION_PROJECTION_REQUIRES_REVIEW": 20,
+        "ADULT_ASSERTION_PROVENANCE_REGISTRATION_NOT_ASSESSED": 20,
+        "AMBIGUITY_DECISION_PROVENANCE_NOT_PROJECTED": 20,
+        "RAW_CONFLICT_REFERENCES_NOT_PROJECTED": 20
+      },
+      "supplemental": {
+        "MEANING_AND_ANCHOR_VERSION_FLOW_NOT_REPRESENTED_BY_SERVICE_TRANSITION": 1,
+        "V1_ADULT_CORRECTION_POLICY_REQUIRES_OWNER_DISPOSITION": 1
+      }
+    },
+    "static_review_hypothesis_row_counts": {
+      "primary": 60,
+      "supplemental": 2
+    },
     "supplemental_count": 43,
     "supplemental_execution": {
       "COMPLETE": 34,
@@ -9587,10 +9743,12 @@
       "execution_status": "COMPLETE",
       "fixture_sha256": "9b879fcbe4689367cc8e11ea250dc92c9f58427295eeb2d53a9c15bfd33923ec",
       "observed": {
-        "code": "VISION_NULL_CONFIDENCE_REJECTED"
+        "code": "VISION_NULL_CONFIDENCE_REJECTED",
+        "outcome_expectation_matches": true
       },
       "requirement_status": "EXPECTED_BLOCKED",
       "scenario": "VISION_NULL_CONFIDENCE",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -9612,10 +9770,12 @@
           }
         ],
         "narration_status": "ASR_SUCCEEDED",
+        "outcome_expectation_matches": true,
         "source": "ASR"
       },
       "requirement_status": "SATISFIED",
       "scenario": "ASR_NULL_CONFIDENCE",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -9625,6 +9785,7 @@
       "execution_status": "COMPLETE",
       "fixture_sha256": "5f11d948d4cf6e3ea22a052ee93ce4a32b43b0ada99ae6426198411573eae252",
       "observed": {
+        "outcome_expectation_matches": true,
         "selectable_claim_ids": [
           "vision-target"
         ],
@@ -9633,6 +9794,7 @@
       },
       "requirement_status": "SATISFIED",
       "scenario": "UNCERTAINTY_NOT_PROVIDED",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -9642,6 +9804,7 @@
       "execution_status": "COMPLETE",
       "fixture_sha256": "2695e5804c79ae45afcc50535f27c4c2b0664033a53b0a1b54524ec8e6cba876",
       "observed": {
+        "outcome_expectation_matches": true,
         "selectable_claim_ids": [
           "vision-target"
         ],
@@ -9650,6 +9813,7 @@
       },
       "requirement_status": "SATISFIED",
       "scenario": "UNCERTAINTY_UPSTREAM_PROVIDED",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -9659,10 +9823,12 @@
       "execution_status": "COMPLETE",
       "fixture_sha256": "77ce8e8b14d958c6665d6bdbacaa20911aecf2991a59919d4cde39d16a425509",
       "observed": {
-        "code": "UNCERTAINTY_STATUS_MISMATCH_REJECTED"
+        "code": "UNCERTAINTY_STATUS_MISMATCH_REJECTED",
+        "outcome_expectation_matches": true
       },
       "requirement_status": "EXPECTED_BLOCKED",
       "scenario": "UNCERTAINTY_STATUS_MISMATCH",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -9672,12 +9838,15 @@
       "execution_status": "COMPLETE",
       "fixture_sha256": "eb5e8ca2027626a5a963adaa49ec99718ce312ac4ad3858377c2e58dd2f1d473",
       "observed": {
+        "ambiguous_region_count": 1,
+        "outcome_expectation_matches": true,
         "selectable_claim_ids": [],
         "uncertainty": null,
         "uncertainty_status": "NOT_PROVIDED"
       },
       "requirement_status": "SATISFIED",
       "scenario": "AMBIGUOUS_REGION_ONLY",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -9699,10 +9868,12 @@
           }
         ],
         "narration_status": "TEXT_SUPPLIED",
+        "outcome_expectation_matches": true,
         "source": "TEXT_TYPED"
       },
       "requirement_status": "SATISFIED",
       "scenario": "TEXT_TYPED_CONFLICT",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -9726,10 +9897,12 @@
           }
         ],
         "narration_status": "ASR_SUCCEEDED",
+        "outcome_expectation_matches": true,
         "source": "TEXT_TYPED"
       },
       "requirement_status": "UNRESOLVED",
       "scenario": "NARRATION_SOURCE_STATUS_MISMATCH",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -9739,10 +9912,12 @@
       "execution_status": "COMPLETE",
       "fixture_sha256": "61c2523afa7e04fdaed37d96181b535beef7d247966043eaacf307d6be648864",
       "observed": {
-        "code": "DUPLICATE_CLAIM_ID_REJECTED"
+        "code": "DUPLICATE_CLAIM_ID_REJECTED",
+        "outcome_expectation_matches": true
       },
       "requirement_status": "EXPECTED_BLOCKED",
       "scenario": "DUPLICATE_CLAIM_ID",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -9752,10 +9927,12 @@
       "execution_status": "COMPLETE",
       "fixture_sha256": "7df28e85c0e52522be3413cb98d47a030c62a2aaaf957f951414ec146f0b1a08",
       "observed": {
-        "code": "DANGLING_CONFLICT_REF_REJECTED"
+        "code": "DANGLING_CONFLICT_REF_REJECTED",
+        "outcome_expectation_matches": true
       },
       "requirement_status": "EXPECTED_BLOCKED",
       "scenario": "DANGLING_CONFLICT_REF",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -9765,10 +9942,12 @@
       "execution_status": "COMPLETE",
       "fixture_sha256": "76d1f006ec85a70fb87a38ecaf1de7e54528270664bca213aefc268ba588023f",
       "observed": {
-        "code": "SOURCE_HASH_MISMATCH_REJECTED"
+        "code": "SOURCE_HASH_MISMATCH_REJECTED",
+        "outcome_expectation_matches": true
       },
       "requirement_status": "EXPECTED_BLOCKED",
       "scenario": "SOURCE_HASH_MISMATCH",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -9778,10 +9957,12 @@
       "execution_status": "COMPLETE",
       "fixture_sha256": "3ead4ec456362052471c93ccd6c03f91059f5e670be3d1faeebde36d6b620972",
       "observed": {
-        "code": "CORRELATION_MISMATCH_REJECTED"
+        "code": "CORRELATION_MISMATCH_REJECTED",
+        "outcome_expectation_matches": true
       },
       "requirement_status": "EXPECTED_BLOCKED",
       "scenario": "CORRELATION_MISMATCH",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -9801,6 +9982,7 @@
       },
       "requirement_status": "UNRESOLVED",
       "scenario": "UNKNOWN_CONFIRMED_CLAIM",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -9820,6 +10002,7 @@
       },
       "requirement_status": "UNRESOLVED",
       "scenario": "STALE_SESSION_VERSION",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -9839,6 +10022,9 @@
       },
       "requirement_status": "UNRESOLVED",
       "scenario": "V1_ADULT_CORRECTION",
+      "static_review_hypotheses": [
+        "V1_ADULT_CORRECTION_POLICY_REQUIRES_OWNER_DISPOSITION"
+      ],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -9849,6 +10035,7 @@
       "case_id": "feat018-p2-t4-supp-successive-meaning-versions",
       "execution_status": "NOT_RUN",
       "fixture_sha256": "2cb5a53ad0cfd1bb3c2ca535e86cd4acded65f8cd07d1b76442abe3606e4f3fd",
+      "input_origin": "TEST_ONLY_SESSION_REWIND",
       "observed": {
         "prerequisite": {
           "code": "REQUIRED_DEPENDENCY_MISSING",
@@ -9858,6 +10045,9 @@
       },
       "requirement_status": "UNRESOLVED",
       "scenario": "SUCCESSIVE_MEANING_VERSIONS",
+      "static_review_hypotheses": [
+        "MEANING_AND_ANCHOR_VERSION_FLOW_NOT_REPRESENTED_BY_SERVICE_TRANSITION"
+      ],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -9877,6 +10067,7 @@
       },
       "requirement_status": "UNRESOLVED",
       "scenario": "V2_MISSING_ADULT_LABEL",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -9896,6 +10087,7 @@
       },
       "requirement_status": "UNRESOLVED",
       "scenario": "NON_DEMO_ACTOR",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -9915,6 +10107,7 @@
       },
       "requirement_status": "UNRESOLVED",
       "scenario": "AMBIGUOUS_TARGET_ONLY",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -9934,6 +10127,7 @@
       },
       "requirement_status": "UNRESOLVED",
       "scenario": "ADULT_EMPTY_CONFIRMED",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -9953,6 +10147,7 @@
       },
       "requirement_status": "UNRESOLVED",
       "scenario": "SWALLOWED_AUTORIG_CALL",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -10232,6 +10427,7 @@
       },
       "requirement_status": "UNRESOLVED",
       "scenario": "V2_WORD_BOUNDARY",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -10462,6 +10658,7 @@
       },
       "requirement_status": "UNRESOLVED",
       "scenario": "V2_WHITESPACE",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -10734,6 +10931,7 @@
       },
       "requirement_status": "SATISFIED",
       "scenario": "REVIEWED_ALIAS",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -11006,6 +11204,7 @@
       },
       "requirement_status": "SATISFIED",
       "scenario": "REVIEWED_ALIAS",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -11278,6 +11477,7 @@
       },
       "requirement_status": "SATISFIED",
       "scenario": "REVIEWED_ALIAS",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -11550,6 +11750,7 @@
       },
       "requirement_status": "SATISFIED",
       "scenario": "REVIEWED_ALIAS",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -11938,6 +12139,7 @@
       },
       "requirement_status": "SATISFIED",
       "scenario": "REVIEWED_ALIAS",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -12166,6 +12368,7 @@
       },
       "requirement_status": "SATISFIED",
       "scenario": "REVIEWED_ALIAS",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -12438,6 +12641,7 @@
       },
       "requirement_status": "SATISFIED",
       "scenario": "REVIEWED_ALIAS",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -12710,6 +12914,7 @@
       },
       "requirement_status": "SATISFIED",
       "scenario": "REVIEWED_ALIAS",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -12982,6 +13187,7 @@
       },
       "requirement_status": "SATISFIED",
       "scenario": "REVIEWED_ALIAS",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -13254,6 +13460,7 @@
       },
       "requirement_status": "SATISFIED",
       "scenario": "REVIEWED_ALIAS",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -13620,6 +13827,7 @@
       },
       "requirement_status": "SATISFIED",
       "scenario": "REVIEWED_ALIAS",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -13892,6 +14100,7 @@
       },
       "requirement_status": "SATISFIED",
       "scenario": "REVIEWED_ALIAS",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -14164,6 +14373,7 @@
       },
       "requirement_status": "SATISFIED",
       "scenario": "REVIEWED_ALIAS",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -14436,6 +14646,7 @@
       },
       "requirement_status": "SATISFIED",
       "scenario": "REVIEWED_ALIAS",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -14708,6 +14919,7 @@
       },
       "requirement_status": "SATISFIED",
       "scenario": "REVIEWED_ALIAS",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -14936,6 +15148,7 @@
       },
       "requirement_status": "SATISFIED",
       "scenario": "REVIEWED_ALIAS",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -15208,6 +15421,7 @@
       },
       "requirement_status": "SATISFIED",
       "scenario": "REVIEWED_ALIAS",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -15480,6 +15694,7 @@
       },
       "requirement_status": "SATISFIED",
       "scenario": "REVIEWED_ALIAS",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -15752,6 +15967,7 @@
       },
       "requirement_status": "SATISFIED",
       "scenario": "REVIEWED_ALIAS",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     },
     {
@@ -16024,6 +16240,7 @@
       },
       "requirement_status": "SATISFIED",
       "scenario": "REVIEWED_ALIAS",
+      "static_review_hypotheses": [],
       "test_reference": "backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py::test_supplemental_observation"
     }
   ]
