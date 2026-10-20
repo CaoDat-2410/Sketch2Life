@@ -34,6 +34,9 @@ cases pass before its dependent regression pack. See the FEAT-057 test matrix an
 JUnit receipts. No aggregate PostgreSQL, provider, or Lightning runtime was run.
 Four reused administrative FEAT numbers are mapped by BE2 card and full directory
 name in `artifacts/FEATURE_ID_COLLISION_MAP.md`; reviewed paths remain unchanged.
+The merge commit is `abe3c357e2c40c694317ead6cf9a1b7c479e3f6e` with parents
+`8e569598f9c58bfbcfb2e54bc13e6077d7158d50` and
+`42a6d3122259e6b33133673a2e444deefa45d387`.
 
 ## Source register references
 

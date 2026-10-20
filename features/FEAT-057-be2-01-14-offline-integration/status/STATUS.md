@@ -2,9 +2,11 @@
 
 - Status: IN_PROGRESS
 - Plan revision: 1 (approved)
-- Implementation status: local merge prepared; offline card checks complete with environment blockers
+- Implementation status: merge committed locally; offline candidate reviewable with environment blockers
 - Base branch tip: `9d1ed184f31ab6b1f18337a1e29bb04fd59aa1b5`
 - Receiver branch tip: `42a6d3122259e6b33133673a2e444deefa45d387`
+- Merge commit: `abe3c357e2c40c694317ead6cf9a1b7c479e3f6e`
+- Merge parents: `8e569598f9c58bfbcfb2e54bc13e6077d7158d50` + `42a6d3122259e6b33133673a2e444deefa45d387`
 - Integration branch: `feature/be2-01-14-integration`
 - Updated: 2026-10-20 (Asia/Saigon)
 
