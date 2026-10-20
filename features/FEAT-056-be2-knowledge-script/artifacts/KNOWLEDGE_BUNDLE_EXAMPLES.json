@@ -1,0 +1,1024 @@
+{
+  "candidate_video_pin": {
+    "digest": "26abeeb251562aaa60e94d39163886f035da9928d9d8acd267bc182c69c09374",
+    "material": {
+      "audience_revision": 2,
+      "bundle": {
+        "hash": "4e049569ef2c27bd25288e6b75502f2fd3bbe6e1cc522de6cde810c1d13279af",
+        "ref": "kb-52bd5c34706b56668d438e3e40f2e9c300957a38f1e1207b43fda447aea510fb",
+        "version": 2
+      },
+      "content_profile": {
+        "hash": "75592235771ff4c44ce1fd6e23ba31d5dfa11e520f5812b491c267f46b3139ab",
+        "ref": "fixture-video-content-profile",
+        "version": 1
+      },
+      "context_revision": 0,
+      "editorial_revision": 2,
+      "encoding": {
+        "hash": "2eba25fb85a9248bbe11cab581ca076fa9ef4bac79d6737acd72a3f1e738ab8c",
+        "ref": "fixture-video-encoding",
+        "version": 1
+      },
+      "library_asset": {
+        "hash": "11c3b05a1e9b60e8af7e60afe26bbfb0430559651365cd40fc00dae9cafda1f2",
+        "ref": "fixture-video-library-asset",
+        "version": 1
+      },
+      "model_profile": null,
+      "organization_id": "org",
+      "policy": {
+        "hash": "cc9b294dbc977222554393718500e2cae5b0da074ff869307c56a189932f8856",
+        "ref": "fixture-video-policy",
+        "version": 1
+      },
+      "policy_epoch": 1,
+      "retry_policy": {
+        "hash": "6e37737aff8f661dc292638745ea2572af155cfa05116fa1d1f7dd63ab53d06f",
+        "ref": "fixture-video-retry-policy",
+        "version": 1
+      },
+      "rights": {
+        "hash": "8d6802d8c172c89dc85d33baf2e8b69eff704605abc76164dfbd00de8aa83928",
+        "ref": "fixture-video-rights",
+        "version": 1
+      },
+      "schema": "BE2-08.VideoPin/0.1-candidate",
+      "session_id": "session",
+      "sources": [
+        {
+          "hash": "98d21d4f24f4d0bc5610fddeab9229d86d07c63a978f0f273200c3b7545c0360",
+          "ref": "source-cats",
+          "version": 1
+        }
+      ],
+      "strategy": "reviewed_library"
+    }
+  },
+  "child_imagined_removed": {
+    "code": null,
+    "no_content_change": false,
+    "record": {
+      "action_code": null,
+      "audience_context_ref": "audience-cats",
+      "audience_members": [
+        {
+          "age_band": "age-4",
+          "participant_id": "child-a"
+        },
+        {
+          "age_band": "age-8",
+          "participant_id": "child-b"
+        }
+      ],
+      "audience_revision": 2,
+      "basis_ref": {
+        "kind": "confirmed_meaning",
+        "ref": "meaning-cats",
+        "revision": 1
+      },
+      "basis_snapshot": {
+        "confirmation_ref": "teacher-confirmation-1",
+        "contributors": [
+          {
+            "participant_id": "child-a",
+            "purpose_code": "knowledge_media",
+            "snapshot_ref": "snapshot-a"
+          },
+          {
+            "participant_id": "child-b",
+            "purpose_code": "knowledge_media",
+            "snapshot_ref": "snapshot-b"
+          }
+        ],
+        "imagined_elements": [
+          {
+            "ref": "cat-wings",
+            "revision": 1,
+            "text": "Mèo có cánh."
+          }
+        ],
+        "kind": "confirmed_meaning",
+        "organization_id": "org",
+        "ref": "meaning-cats",
+        "revision": 1,
+        "session_id": "session",
+        "source_snapshot_refs": [
+          "snapshot-a",
+          "snapshot-b"
+        ],
+        "topic": "Mèo"
+      },
+      "bundle_hash": "a478b7783d13794fc6009ab62c03e5d4fa9f08d720236fbcb09fff93b1a7fe5a",
+      "bundle_id": "kb-9d3f16dd72cf775be9cf3b9fa8b887baa163563826eacaafa39e6eb32473d752",
+      "bundle_version": 2,
+      "child_imagined_elements": [],
+      "confirmation_ref": "teacher-confirmation-1",
+      "confirmed_topic": "Mèo",
+      "content_origin": "child_derived",
+      "context_revision": 0,
+      "contract_name": "KnowledgeBundle",
+      "contract_version": "0.1-candidate",
+      "contributors": [
+        {
+          "participant_id": "child-a",
+          "purpose_code": "knowledge_media",
+          "snapshot_ref": "snapshot-a"
+        },
+        {
+          "participant_id": "child-b",
+          "purpose_code": "knowledge_media",
+          "snapshot_ref": "snapshot-b"
+        }
+      ],
+      "created_at": "2026-10-19T00:00:00+00:00",
+      "created_by": "teacher-a",
+      "editorial_revision": 2,
+      "editorial_state": "draft",
+      "knowledge_claims": [
+        {
+          "attestation_reason": null,
+          "attested_by": null,
+          "claim_id": "cats-mammal",
+          "revision": 1,
+          "source_refs": [
+            {
+              "revision": 1,
+              "sha256": "98d21d4f24f4d0bc5610fddeab9229d86d07c63a978f0f273200c3b7545c0360",
+              "source_id": "source-cats"
+            }
+          ],
+          "text": "Mèo là động vật có vú.",
+          "verification_state": "catalog_reviewed"
+        }
+      ],
+      "organization_id": "org",
+      "policy_ref": "knowledge-offline-policy-v1",
+      "readiness": "generation_ready",
+      "script_sections": [
+        {
+          "kind": "fact",
+          "refs": [
+            "cats-mammal"
+          ],
+          "section_id": "facts",
+          "text": "Mèo là động vật có vú."
+        }
+      ],
+      "script_text": "Mèo là động vật có vú.",
+      "session_id": "session",
+      "source_records": [
+        {
+          "age_bands": [
+            "age-4",
+            "age-8"
+          ],
+          "locator": "fixture:reviewed-cats-v1",
+          "recalled": false,
+          "ref": {
+            "revision": 1,
+            "sha256": "98d21d4f24f4d0bc5610fddeab9229d86d07c63a978f0f273200c3b7545c0360",
+            "source_id": "source-cats"
+          },
+          "reviewed_at": "2026-10-19",
+          "state": "reviewed",
+          "title": "Synthetic reviewed cat source",
+          "topic": "Mèo"
+        }
+      ],
+      "source_snapshot_refs": [
+        "snapshot-a",
+        "snapshot-b"
+      ],
+      "teacher_corrections": [
+        {
+          "author_principal_id": "teacher-a",
+          "correction_ref": "kc-e82b46ef7a28fbb08f065681acc4f5d92bb7d4ac2e4d73179405eadc4e657fa5",
+          "from_version": 1,
+          "reason": "Remove selected imagined story while retaining child provenance",
+          "to_version": 2
+        }
+      ]
+    },
+    "replayed": false,
+    "status": 200
+  },
+  "child_story_create": {
+    "code": null,
+    "no_content_change": false,
+    "record": {
+      "action_code": null,
+      "audience_context_ref": "audience-cats",
+      "audience_members": [
+        {
+          "age_band": "age-4",
+          "participant_id": "child-a"
+        },
+        {
+          "age_band": "age-8",
+          "participant_id": "child-b"
+        }
+      ],
+      "audience_revision": 2,
+      "basis_ref": {
+        "kind": "confirmed_meaning",
+        "ref": "meaning-cats",
+        "revision": 1
+      },
+      "basis_snapshot": {
+        "confirmation_ref": "teacher-confirmation-1",
+        "contributors": [
+          {
+            "participant_id": "child-a",
+            "purpose_code": "knowledge_media",
+            "snapshot_ref": "snapshot-a"
+          },
+          {
+            "participant_id": "child-b",
+            "purpose_code": "knowledge_media",
+            "snapshot_ref": "snapshot-b"
+          }
+        ],
+        "imagined_elements": [
+          {
+            "ref": "cat-wings",
+            "revision": 1,
+            "text": "Mèo có cánh."
+          }
+        ],
+        "kind": "confirmed_meaning",
+        "organization_id": "org",
+        "ref": "meaning-cats",
+        "revision": 1,
+        "session_id": "session",
+        "source_snapshot_refs": [
+          "snapshot-a",
+          "snapshot-b"
+        ],
+        "topic": "Mèo"
+      },
+      "bundle_hash": "5da6ebeb51941df1a0d55c888d17d3b23a3e3a43f802eb0ce2de9305fd2c453c",
+      "bundle_id": "kb-9d3f16dd72cf775be9cf3b9fa8b887baa163563826eacaafa39e6eb32473d752",
+      "bundle_version": 1,
+      "child_imagined_elements": [
+        {
+          "ref": "cat-wings",
+          "revision": 1,
+          "text": "Mèo có cánh."
+        }
+      ],
+      "confirmation_ref": "teacher-confirmation-1",
+      "confirmed_topic": "Mèo",
+      "content_origin": "child_derived",
+      "context_revision": 0,
+      "contract_name": "KnowledgeBundle",
+      "contract_version": "0.1-candidate",
+      "contributors": [
+        {
+          "participant_id": "child-a",
+          "purpose_code": "knowledge_media",
+          "snapshot_ref": "snapshot-a"
+        },
+        {
+          "participant_id": "child-b",
+          "purpose_code": "knowledge_media",
+          "snapshot_ref": "snapshot-b"
+        }
+      ],
+      "created_at": "2026-10-19T00:00:00+00:00",
+      "created_by": "teacher-a",
+      "editorial_revision": 1,
+      "editorial_state": "draft",
+      "knowledge_claims": [
+        {
+          "attestation_reason": null,
+          "attested_by": null,
+          "claim_id": "cats-mammal",
+          "revision": 1,
+          "source_refs": [
+            {
+              "revision": 1,
+              "sha256": "98d21d4f24f4d0bc5610fddeab9229d86d07c63a978f0f273200c3b7545c0360",
+              "source_id": "source-cats"
+            }
+          ],
+          "text": "Mèo là động vật có vú.",
+          "verification_state": "catalog_reviewed"
+        }
+      ],
+      "organization_id": "org",
+      "policy_ref": "knowledge-offline-policy-v1",
+      "readiness": "generation_ready",
+      "script_sections": [
+        {
+          "kind": "fact",
+          "refs": [
+            "cats-mammal"
+          ],
+          "section_id": "facts",
+          "text": "Mèo là động vật có vú."
+        },
+        {
+          "kind": "story",
+          "refs": [
+            "cat-wings"
+          ],
+          "section_id": "story",
+          "text": "Mèo có cánh."
+        }
+      ],
+      "script_text": "Mèo là động vật có vú.\nMèo có cánh.",
+      "session_id": "session",
+      "source_records": [
+        {
+          "age_bands": [
+            "age-4",
+            "age-8"
+          ],
+          "locator": "fixture:reviewed-cats-v1",
+          "recalled": false,
+          "ref": {
+            "revision": 1,
+            "sha256": "98d21d4f24f4d0bc5610fddeab9229d86d07c63a978f0f273200c3b7545c0360",
+            "source_id": "source-cats"
+          },
+          "reviewed_at": "2026-10-19",
+          "state": "reviewed",
+          "title": "Synthetic reviewed cat source",
+          "topic": "Mèo"
+        }
+      ],
+      "source_snapshot_refs": [
+        "snapshot-a",
+        "snapshot-b"
+      ],
+      "teacher_corrections": []
+    },
+    "replayed": false,
+    "status": 201
+  },
+  "current_exact_after_source_recall": {
+    "export": null,
+    "ready": false,
+    "reason": "SOURCE_RECALLED"
+  },
+  "current_exact_export_before_recall": {
+    "export": {
+      "action_code": null,
+      "audience_context_ref": "audience-cats",
+      "audience_members": [
+        {
+          "age_band": "age-4",
+          "participant_id": "child-a"
+        },
+        {
+          "age_band": "age-8",
+          "participant_id": "child-b"
+        }
+      ],
+      "audience_revision": 2,
+      "basis_ref": {
+        "kind": "teacher_topic",
+        "ref": "topic-cats",
+        "revision": 1
+      },
+      "basis_snapshot": {
+        "confirmation_ref": null,
+        "contributors": [],
+        "imagined_elements": [],
+        "kind": "teacher_topic",
+        "organization_id": "org",
+        "ref": "topic-cats",
+        "revision": 1,
+        "session_id": "session",
+        "source_snapshot_refs": [],
+        "topic": "Mèo"
+      },
+      "bundle_hash": "4e049569ef2c27bd25288e6b75502f2fd3bbe6e1cc522de6cde810c1d13279af",
+      "bundle_id": "kb-52bd5c34706b56668d438e3e40f2e9c300957a38f1e1207b43fda447aea510fb",
+      "bundle_version": 2,
+      "canonical_json": "{\"audience_context_ref\":\"audience-cats\",\"audience_members\":[{\"age_band\":\"age-4\",\"participant_id\":\"child-a\"},{\"age_band\":\"age-8\",\"participant_id\":\"child-b\"}],\"audience_revision\":2,\"basis_ref\":{\"kind\":\"teacher_topic\",\"ref\":\"topic-cats\",\"revision\":1},\"basis_snapshot\":{\"confirmation_ref\":null,\"contributors\":[],\"imagined_elements\":[],\"kind\":\"teacher_topic\",\"organization_id\":\"org\",\"ref\":\"topic-cats\",\"revision\":1,\"session_id\":\"session\",\"source_snapshot_refs\":[],\"topic\":\"Mèo\"},\"bundle_id\":\"kb-52bd5c34706b56668d438e3e40f2e9c300957a38f1e1207b43fda447aea510fb\",\"bundle_version\":2,\"canonical_rules_version\":\"knowledge-canonical-v1\",\"child_imagined_elements\":[],\"confirmation_ref\":null,\"confirmed_topic\":\"Mèo\",\"content_origin\":\"generic\",\"context_revision\":0,\"contract_name\":\"KnowledgeBundle\",\"contract_version\":\"0.1-candidate\",\"contributors\":[],\"created_at\":\"2026-10-19T00:00:00+00:00\",\"created_by\":\"teacher-a\",\"editorial_revision\":2,\"editorial_state\":\"draft\",\"knowledge_claims\":[{\"attestation_reason\":\"Teacher accepts responsibility for this explicitly sourced wording.\",\"attested_by\":\"teacher-b\",\"claim_id\":\"cats-mammal\",\"revision\":2,\"source_refs\":[{\"revision\":1,\"sha256\":\"98d21d4f24f4d0bc5610fddeab9229d86d07c63a978f0f273200c3b7545c0360\",\"source_id\":\"source-cats\"}],\"text\":\"Mèo thuộc nhóm động vật có vú.\",\"verification_state\":\"teacher_attested\"}],\"organization_id\":\"org\",\"policy_ref\":\"knowledge-offline-policy-v1\",\"script_sections\":[{\"kind\":\"fact\",\"refs\":[\"cats-mammal\"],\"section_id\":\"facts\",\"text\":\"Mèo thuộc nhóm động vật có vú.\"}],\"script_text\":\"Mèo thuộc nhóm động vật có vú.\",\"session_id\":\"session\",\"source_records\":[{\"age_bands\":[\"age-4\",\"age-8\"],\"locator\":\"fixture:reviewed-cats-v1\",\"recalled\":false,\"ref\":{\"revision\":1,\"sha256\":\"98d21d4f24f4d0bc5610fddeab9229d86d07c63a978f0f273200c3b7545c0360\",\"source_id\":\"source-cats\"},\"reviewed_at\":\"2026-10-19\",\"state\":\"reviewed\",\"title\":\"Synthetic reviewed cat source\",\"topic\":\"Mèo\"}],\"source_snapshot_refs\":[],\"teacher_corrections\":[{\"author_principal_id\":\"teacher-b\",\"correction_ref\":\"kc-ec286f1099e3b3716a61dfa9767949b46faa81577a8aabdabc12b6fd078069a1\",\"from_version\":1,\"reason\":\"Teacher-sourced scientific wording\",\"to_version\":2}]}",
+      "canonical_rules_version": "knowledge-canonical-v1",
+      "child_imagined_elements": [],
+      "confirmation_ref": null,
+      "confirmed_topic": "Mèo",
+      "content_origin": "generic",
+      "context_revision": 0,
+      "contract_name": "KnowledgeBundle",
+      "contract_version": "0.1-candidate",
+      "contributors": [],
+      "created_at": "2026-10-19T00:00:00+00:00",
+      "created_by": "teacher-a",
+      "editorial_revision": 2,
+      "editorial_state": "draft",
+      "knowledge_claims": [
+        {
+          "attestation_reason": "Teacher accepts responsibility for this explicitly sourced wording.",
+          "attested_by": "teacher-b",
+          "claim_id": "cats-mammal",
+          "revision": 2,
+          "source_refs": [
+            {
+              "revision": 1,
+              "sha256": "98d21d4f24f4d0bc5610fddeab9229d86d07c63a978f0f273200c3b7545c0360",
+              "source_id": "source-cats"
+            }
+          ],
+          "text": "Mèo thuộc nhóm động vật có vú.",
+          "verification_state": "teacher_attested"
+        }
+      ],
+      "organization_id": "org",
+      "policy_ref": "knowledge-offline-policy-v1",
+      "readiness": "generation_ready",
+      "script_sections": [
+        {
+          "kind": "fact",
+          "refs": [
+            "cats-mammal"
+          ],
+          "section_id": "facts",
+          "text": "Mèo thuộc nhóm động vật có vú."
+        }
+      ],
+      "script_text": "Mèo thuộc nhóm động vật có vú.",
+      "session_id": "session",
+      "source_records": [
+        {
+          "age_bands": [
+            "age-4",
+            "age-8"
+          ],
+          "locator": "fixture:reviewed-cats-v1",
+          "recalled": false,
+          "ref": {
+            "revision": 1,
+            "sha256": "98d21d4f24f4d0bc5610fddeab9229d86d07c63a978f0f273200c3b7545c0360",
+            "source_id": "source-cats"
+          },
+          "reviewed_at": "2026-10-19",
+          "state": "reviewed",
+          "title": "Synthetic reviewed cat source",
+          "topic": "Mèo"
+        }
+      ],
+      "source_snapshot_refs": [],
+      "teacher_corrections": [
+        {
+          "author_principal_id": "teacher-b",
+          "correction_ref": "kc-ec286f1099e3b3716a61dfa9767949b46faa81577a8aabdabc12b6fd078069a1",
+          "from_version": 1,
+          "reason": "Teacher-sourced scientific wording",
+          "to_version": 2
+        }
+      ]
+    },
+    "ready": true,
+    "reason": null
+  },
+  "generic_create": {
+    "code": null,
+    "no_content_change": false,
+    "record": {
+      "action_code": null,
+      "audience_context_ref": "audience-cats",
+      "audience_members": [
+        {
+          "age_band": "age-4",
+          "participant_id": "child-a"
+        },
+        {
+          "age_band": "age-8",
+          "participant_id": "child-b"
+        }
+      ],
+      "audience_revision": 2,
+      "basis_ref": {
+        "kind": "teacher_topic",
+        "ref": "topic-cats",
+        "revision": 1
+      },
+      "basis_snapshot": {
+        "confirmation_ref": null,
+        "contributors": [],
+        "imagined_elements": [],
+        "kind": "teacher_topic",
+        "organization_id": "org",
+        "ref": "topic-cats",
+        "revision": 1,
+        "session_id": "session",
+        "source_snapshot_refs": [],
+        "topic": "Mèo"
+      },
+      "bundle_hash": "00669a33187130165a23fd9bbca480a6b625a7f0228957aebfd26ce7182a1bf5",
+      "bundle_id": "kb-52bd5c34706b56668d438e3e40f2e9c300957a38f1e1207b43fda447aea510fb",
+      "bundle_version": 1,
+      "child_imagined_elements": [],
+      "confirmation_ref": null,
+      "confirmed_topic": "Mèo",
+      "content_origin": "generic",
+      "context_revision": 0,
+      "contract_name": "KnowledgeBundle",
+      "contract_version": "0.1-candidate",
+      "contributors": [],
+      "created_at": "2026-10-19T00:00:00+00:00",
+      "created_by": "teacher-a",
+      "editorial_revision": 1,
+      "editorial_state": "draft",
+      "knowledge_claims": [
+        {
+          "attestation_reason": null,
+          "attested_by": null,
+          "claim_id": "cats-mammal",
+          "revision": 1,
+          "source_refs": [
+            {
+              "revision": 1,
+              "sha256": "98d21d4f24f4d0bc5610fddeab9229d86d07c63a978f0f273200c3b7545c0360",
+              "source_id": "source-cats"
+            }
+          ],
+          "text": "Mèo là động vật có vú.",
+          "verification_state": "catalog_reviewed"
+        }
+      ],
+      "organization_id": "org",
+      "policy_ref": "knowledge-offline-policy-v1",
+      "readiness": "generation_ready",
+      "script_sections": [
+        {
+          "kind": "fact",
+          "refs": [
+            "cats-mammal"
+          ],
+          "section_id": "facts",
+          "text": "Mèo là động vật có vú."
+        }
+      ],
+      "script_text": "Mèo là động vật có vú.",
+      "session_id": "session",
+      "source_records": [
+        {
+          "age_bands": [
+            "age-4",
+            "age-8"
+          ],
+          "locator": "fixture:reviewed-cats-v1",
+          "recalled": false,
+          "ref": {
+            "revision": 1,
+            "sha256": "98d21d4f24f4d0bc5610fddeab9229d86d07c63a978f0f273200c3b7545c0360",
+            "source_id": "source-cats"
+          },
+          "reviewed_at": "2026-10-19",
+          "state": "reviewed",
+          "title": "Synthetic reviewed cat source",
+          "topic": "Mèo"
+        }
+      ],
+      "source_snapshot_refs": [],
+      "teacher_corrections": []
+    },
+    "replayed": false,
+    "status": 201
+  },
+  "historical_accepted_create_replay": {
+    "code": null,
+    "no_content_change": false,
+    "record": {
+      "action_code": null,
+      "audience_context_ref": "audience-cats",
+      "audience_members": [
+        {
+          "age_band": "age-4",
+          "participant_id": "child-a"
+        },
+        {
+          "age_band": "age-8",
+          "participant_id": "child-b"
+        }
+      ],
+      "audience_revision": 2,
+      "basis_ref": {
+        "kind": "teacher_topic",
+        "ref": "topic-cats",
+        "revision": 1
+      },
+      "basis_snapshot": {
+        "confirmation_ref": null,
+        "contributors": [],
+        "imagined_elements": [],
+        "kind": "teacher_topic",
+        "organization_id": "org",
+        "ref": "topic-cats",
+        "revision": 1,
+        "session_id": "session",
+        "source_snapshot_refs": [],
+        "topic": "Mèo"
+      },
+      "bundle_hash": "00669a33187130165a23fd9bbca480a6b625a7f0228957aebfd26ce7182a1bf5",
+      "bundle_id": "kb-52bd5c34706b56668d438e3e40f2e9c300957a38f1e1207b43fda447aea510fb",
+      "bundle_version": 1,
+      "child_imagined_elements": [],
+      "confirmation_ref": null,
+      "confirmed_topic": "Mèo",
+      "content_origin": "generic",
+      "context_revision": 0,
+      "contract_name": "KnowledgeBundle",
+      "contract_version": "0.1-candidate",
+      "contributors": [],
+      "created_at": "2026-10-19T00:00:00+00:00",
+      "created_by": "teacher-a",
+      "editorial_revision": 1,
+      "editorial_state": "draft",
+      "knowledge_claims": [
+        {
+          "attestation_reason": null,
+          "attested_by": null,
+          "claim_id": "cats-mammal",
+          "revision": 1,
+          "source_refs": [
+            {
+              "revision": 1,
+              "sha256": "98d21d4f24f4d0bc5610fddeab9229d86d07c63a978f0f273200c3b7545c0360",
+              "source_id": "source-cats"
+            }
+          ],
+          "text": "Mèo là động vật có vú.",
+          "verification_state": "catalog_reviewed"
+        }
+      ],
+      "organization_id": "org",
+      "policy_ref": "knowledge-offline-policy-v1",
+      "readiness": "generation_ready",
+      "script_sections": [
+        {
+          "kind": "fact",
+          "refs": [
+            "cats-mammal"
+          ],
+          "section_id": "facts",
+          "text": "Mèo là động vật có vú."
+        }
+      ],
+      "script_text": "Mèo là động vật có vú.",
+      "session_id": "session",
+      "source_records": [
+        {
+          "age_bands": [
+            "age-4",
+            "age-8"
+          ],
+          "locator": "fixture:reviewed-cats-v1",
+          "recalled": false,
+          "ref": {
+            "revision": 1,
+            "sha256": "98d21d4f24f4d0bc5610fddeab9229d86d07c63a978f0f273200c3b7545c0360",
+            "source_id": "source-cats"
+          },
+          "reviewed_at": "2026-10-19",
+          "state": "reviewed",
+          "title": "Synthetic reviewed cat source",
+          "topic": "Mèo"
+        }
+      ],
+      "source_snapshot_refs": [],
+      "teacher_corrections": []
+    },
+    "replayed": true,
+    "status": 201
+  },
+  "limitations": [
+    "Receipt readiness is historical; every current use requires authorized resolve_exact.",
+    "Teacher is accountable for explicitly sourced attestation; no semantic machine verification.",
+    "Sources, identities, policy and consumer profiles are synthetic fixtures, not production adoption.",
+    "Recording consumer proves exact event projection only; actual08 held lease/fence and delivery remain open."
+  ],
+  "missing_source_draft": {
+    "code": null,
+    "no_content_change": false,
+    "record": {
+      "action_code": "NO_ELIGIBLE_SOURCE",
+      "audience_context_ref": "audience-cats",
+      "audience_members": [
+        {
+          "age_band": "age-4",
+          "participant_id": "child-a"
+        },
+        {
+          "age_band": "age-8",
+          "participant_id": "child-b"
+        }
+      ],
+      "audience_revision": 2,
+      "basis_ref": {
+        "kind": "teacher_topic",
+        "ref": "topic-cats",
+        "revision": 1
+      },
+      "basis_snapshot": {
+        "confirmation_ref": null,
+        "contributors": [],
+        "imagined_elements": [],
+        "kind": "teacher_topic",
+        "organization_id": "org",
+        "ref": "topic-cats",
+        "revision": 1,
+        "session_id": "session",
+        "source_snapshot_refs": [],
+        "topic": "Mèo"
+      },
+      "bundle_hash": "479ca14861c167ebf7315d3a0690e4da57fa177c43deb4f4dc1f9c493a9bd14c",
+      "bundle_id": "kb-b94c1a47263135c36ce01883771aee2d0f49f0b703eb5fc7e28b316590f31a5c",
+      "bundle_version": 1,
+      "child_imagined_elements": [],
+      "confirmation_ref": null,
+      "confirmed_topic": "Mèo",
+      "content_origin": "generic",
+      "context_revision": 0,
+      "contract_name": "KnowledgeBundle",
+      "contract_version": "0.1-candidate",
+      "contributors": [],
+      "created_at": "2026-10-19T00:00:00+00:00",
+      "created_by": "teacher-a",
+      "editorial_revision": 1,
+      "editorial_state": "draft",
+      "knowledge_claims": [],
+      "organization_id": "org",
+      "policy_ref": "knowledge-offline-policy-v1",
+      "readiness": "needs_content_action",
+      "script_sections": [],
+      "script_text": "",
+      "session_id": "session",
+      "source_records": [],
+      "source_snapshot_refs": [],
+      "teacher_corrections": []
+    },
+    "replayed": false,
+    "status": 201
+  },
+  "no_content_change": {
+    "result": {
+      "code": "NO_CONTENT_CHANGE",
+      "no_content_change": true,
+      "record": {
+        "action_code": null,
+        "audience_context_ref": "audience-cats",
+        "audience_members": [
+          {
+            "age_band": "age-4",
+            "participant_id": "child-a"
+          },
+          {
+            "age_band": "age-8",
+            "participant_id": "child-b"
+          }
+        ],
+        "audience_revision": 2,
+        "basis_ref": {
+          "kind": "teacher_topic",
+          "ref": "topic-cats",
+          "revision": 1
+        },
+        "basis_snapshot": {
+          "confirmation_ref": null,
+          "contributors": [],
+          "imagined_elements": [],
+          "kind": "teacher_topic",
+          "organization_id": "org",
+          "ref": "topic-cats",
+          "revision": 1,
+          "session_id": "session",
+          "source_snapshot_refs": [],
+          "topic": "Mèo"
+        },
+        "bundle_hash": "4e049569ef2c27bd25288e6b75502f2fd3bbe6e1cc522de6cde810c1d13279af",
+        "bundle_id": "kb-52bd5c34706b56668d438e3e40f2e9c300957a38f1e1207b43fda447aea510fb",
+        "bundle_version": 2,
+        "child_imagined_elements": [],
+        "confirmation_ref": null,
+        "confirmed_topic": "Mèo",
+        "content_origin": "generic",
+        "context_revision": 0,
+        "contract_name": "KnowledgeBundle",
+        "contract_version": "0.1-candidate",
+        "contributors": [],
+        "created_at": "2026-10-19T00:00:00+00:00",
+        "created_by": "teacher-a",
+        "editorial_revision": 2,
+        "editorial_state": "draft",
+        "knowledge_claims": [
+          {
+            "attestation_reason": "Teacher accepts responsibility for this explicitly sourced wording.",
+            "attested_by": "teacher-b",
+            "claim_id": "cats-mammal",
+            "revision": 2,
+            "source_refs": [
+              {
+                "revision": 1,
+                "sha256": "98d21d4f24f4d0bc5610fddeab9229d86d07c63a978f0f273200c3b7545c0360",
+                "source_id": "source-cats"
+              }
+            ],
+            "text": "Mèo thuộc nhóm động vật có vú.",
+            "verification_state": "teacher_attested"
+          }
+        ],
+        "organization_id": "org",
+        "policy_ref": "knowledge-offline-policy-v1",
+        "readiness": "generation_ready",
+        "script_sections": [
+          {
+            "kind": "fact",
+            "refs": [
+              "cats-mammal"
+            ],
+            "section_id": "facts",
+            "text": "Mèo thuộc nhóm động vật có vú."
+          }
+        ],
+        "script_text": "Mèo thuộc nhóm động vật có vú.",
+        "session_id": "session",
+        "source_records": [
+          {
+            "age_bands": [
+              "age-4",
+              "age-8"
+            ],
+            "locator": "fixture:reviewed-cats-v1",
+            "recalled": false,
+            "ref": {
+              "revision": 1,
+              "sha256": "98d21d4f24f4d0bc5610fddeab9229d86d07c63a978f0f273200c3b7545c0360",
+              "source_id": "source-cats"
+            },
+            "reviewed_at": "2026-10-19",
+            "state": "reviewed",
+            "title": "Synthetic reviewed cat source",
+            "topic": "Mèo"
+          }
+        ],
+        "source_snapshot_refs": [],
+        "teacher_corrections": [
+          {
+            "author_principal_id": "teacher-b",
+            "correction_ref": "kc-ec286f1099e3b3716a61dfa9767949b46faa81577a8aabdabc12b6fd078069a1",
+            "from_version": 1,
+            "reason": "Teacher-sourced scientific wording",
+            "to_version": 2
+          }
+        ]
+      },
+      "replayed": false,
+      "status": 200
+    },
+    "store_unchanged": true
+  },
+  "recording_consumer": {
+    "first_apply": true,
+    "new_after_delivery": true,
+    "old_after_delivery": false,
+    "old_before_delivery": true,
+    "replayed_apply": false,
+    "unrelated_after_delivery": true
+  },
+  "scope": "FIXTURE_ONLY / 0.1-candidate",
+  "superseded_event": {
+    "contract_name": "KnowledgeSupersededV1",
+    "contract_version": "0.1-candidate",
+    "correction_ref": "kc-ec286f1099e3b3716a61dfa9767949b46faa81577a8aabdabc12b6fd078069a1",
+    "event_id": "ke-ec286f1099e3b3716a61dfa9767949b46faa81577a8aabdabc12b6fd078069a1",
+    "new_bundle": {
+      "bundle_hash": "4e049569ef2c27bd25288e6b75502f2fd3bbe6e1cc522de6cde810c1d13279af",
+      "bundle_id": "kb-52bd5c34706b56668d438e3e40f2e9c300957a38f1e1207b43fda447aea510fb",
+      "bundle_version": 2
+    },
+    "old_bundle": {
+      "bundle_hash": "00669a33187130165a23fd9bbca480a6b625a7f0228957aebfd26ce7182a1bf5",
+      "bundle_id": "kb-52bd5c34706b56668d438e3e40f2e9c300957a38f1e1207b43fda447aea510fb",
+      "bundle_version": 1
+    },
+    "operation_id": "ko-ec286f1099e3b3716a61dfa9767949b46faa81577a8aabdabc12b6fd078069a1",
+    "organization_id": "org",
+    "session_id": "session"
+  },
+  "superseded_exact_without_delivery": {
+    "export": null,
+    "ready": false,
+    "reason": "BUNDLE_SUPERSEDED"
+  },
+  "teacher_attested_edit": {
+    "code": null,
+    "no_content_change": false,
+    "record": {
+      "action_code": null,
+      "audience_context_ref": "audience-cats",
+      "audience_members": [
+        {
+          "age_band": "age-4",
+          "participant_id": "child-a"
+        },
+        {
+          "age_band": "age-8",
+          "participant_id": "child-b"
+        }
+      ],
+      "audience_revision": 2,
+      "basis_ref": {
+        "kind": "teacher_topic",
+        "ref": "topic-cats",
+        "revision": 1
+      },
+      "basis_snapshot": {
+        "confirmation_ref": null,
+        "contributors": [],
+        "imagined_elements": [],
+        "kind": "teacher_topic",
+        "organization_id": "org",
+        "ref": "topic-cats",
+        "revision": 1,
+        "session_id": "session",
+        "source_snapshot_refs": [],
+        "topic": "Mèo"
+      },
+      "bundle_hash": "4e049569ef2c27bd25288e6b75502f2fd3bbe6e1cc522de6cde810c1d13279af",
+      "bundle_id": "kb-52bd5c34706b56668d438e3e40f2e9c300957a38f1e1207b43fda447aea510fb",
+      "bundle_version": 2,
+      "child_imagined_elements": [],
+      "confirmation_ref": null,
+      "confirmed_topic": "Mèo",
+      "content_origin": "generic",
+      "context_revision": 0,
+      "contract_name": "KnowledgeBundle",
+      "contract_version": "0.1-candidate",
+      "contributors": [],
+      "created_at": "2026-10-19T00:00:00+00:00",
+      "created_by": "teacher-a",
+      "editorial_revision": 2,
+      "editorial_state": "draft",
+      "knowledge_claims": [
+        {
+          "attestation_reason": "Teacher accepts responsibility for this explicitly sourced wording.",
+          "attested_by": "teacher-b",
+          "claim_id": "cats-mammal",
+          "revision": 2,
+          "source_refs": [
+            {
+              "revision": 1,
+              "sha256": "98d21d4f24f4d0bc5610fddeab9229d86d07c63a978f0f273200c3b7545c0360",
+              "source_id": "source-cats"
+            }
+          ],
+          "text": "Mèo thuộc nhóm động vật có vú.",
+          "verification_state": "teacher_attested"
+        }
+      ],
+      "organization_id": "org",
+      "policy_ref": "knowledge-offline-policy-v1",
+      "readiness": "generation_ready",
+      "script_sections": [
+        {
+          "kind": "fact",
+          "refs": [
+            "cats-mammal"
+          ],
+          "section_id": "facts",
+          "text": "Mèo thuộc nhóm động vật có vú."
+        }
+      ],
+      "script_text": "Mèo thuộc nhóm động vật có vú.",
+      "session_id": "session",
+      "source_records": [
+        {
+          "age_bands": [
+            "age-4",
+            "age-8"
+          ],
+          "locator": "fixture:reviewed-cats-v1",
+          "recalled": false,
+          "ref": {
+            "revision": 1,
+            "sha256": "98d21d4f24f4d0bc5610fddeab9229d86d07c63a978f0f273200c3b7545c0360",
+            "source_id": "source-cats"
+          },
+          "reviewed_at": "2026-10-19",
+          "state": "reviewed",
+          "title": "Synthetic reviewed cat source",
+          "topic": "Mèo"
+        }
+      ],
+      "source_snapshot_refs": [],
+      "teacher_corrections": [
+        {
+          "author_principal_id": "teacher-b",
+          "correction_ref": "kc-ec286f1099e3b3716a61dfa9767949b46faa81577a8aabdabc12b6fd078069a1",
+          "from_version": 1,
+          "reason": "Teacher-sourced scientific wording",
+          "to_version": 2
+        }
+      ]
+    },
+    "replayed": false,
+    "status": 200
+  }
+}
