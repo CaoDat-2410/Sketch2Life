@@ -113,11 +113,11 @@ From `backend/`, the focused command was:
 & '.venv/Scripts/python.exe' -B -m pytest -p no:cacheprovider tests/unit/test_feat018_p2_t4_mapping_diagnostics.py tests/contract/test_feat018_p2_t4_manifest_contract.py tests/unit/test_raw_understanding.py tests/unit/test_activity_semantics.py -ra
 ```
 
-For the follow-up delta based on parent `fe5bcde`, the focused command was run on the candidate
-working tree before commit and produced **238 passed, 129 skipped, 1 failed**. The sole failure is
-the explicit required-dependency preflight for missing `Pillow>=11,<13`; this is intentionally not
-reported as a clean run. The skip summary identifies 120 primary B2/B3 cases and 9 supplemental
-Gate-A cases as NOT_RUN. This environment does not establish B2/B3 results.
+For delta `fe5bcde..988fc91`, the focused command was run on the candidate working tree before
+commit and produced **238 passed, 129 skipped, 1 failed**. The sole failure is the explicit
+required-dependency preflight for missing `Pillow>=11,<13`; this is intentionally not reported as a
+clean run. The skip summary identifies 120 primary B2/B3 cases and 9 supplemental Gate-A cases as
+NOT_RUN. This environment does not establish B2/B3 results.
 
 Ruff command:
 
@@ -125,27 +125,39 @@ Ruff command:
 & '.venv/Scripts/ruff.exe' check --no-cache tests/unit/test_feat018_p2_t4_mapping_diagnostics.py tests/contract/test_feat018_p2_t4_manifest_contract.py
 ```
 
-Result: **All checks passed.** The scoped mypy command was
-`& '.venv/Scripts/mypy.exe' --no-incremental --config-file pyproject.toml tests/unit/test_feat018_p2_t4_mapping_diagnostics.py tests/contract/test_feat018_p2_t4_manifest_contract.py`.
-The latest invocation terminated inside mypy 1.20.2 with its generic `INTERNAL ERROR`; an earlier
-invocation reported `OperationalError: unable to open database file`. Neither produced a type-check
-result. No cache path, settings, dependency, or application code was changed to work around the tool
-error.
+For delta `fe5bcde..988fc91`, Ruff was run on the candidate working tree before commit. Result:
+**All checks passed.** Scoped mypy was **not rerun for this delta**. The recorded mypy outcomes below
+are from earlier invocations and are historical only.
 
-The metrics report was generated from `backend/` with this command, which runs the approved test
+```powershell
+& '.venv/Scripts/mypy.exe' --no-incremental --config-file pyproject.toml tests/unit/test_feat018_p2_t4_mapping_diagnostics.py tests/contract/test_feat018_p2_t4_manifest_contract.py
+```
+
+The latest earlier invocation terminated inside mypy 1.20.2 with its generic `INTERNAL ERROR`; an
+earlier invocation reported `OperationalError: unable to open database file`. Neither produced a
+type-check result. No cache path, settings, dependency, or application code was changed to work around
+the tool error.
+
+For delta `fe5bcde..988fc91`, `python tools/validate_repository_security.py` was run before commit and
+returned **REPOSITORY_SECURITY_VALID** (2,588 publishable files scanned; the validator's path checks
+are pattern-based and are not a general absolute-path detector). `git diff --check` also passed for
+the candidate delta. `validate_skeleton.py`, `validate_architecture.py`, and the repository harness
+validator were not rerun for this delta.
+
+The following validator results are historical and are not evidence for delta `fe5bcde..988fc91`:
+**SKELETON_VALID**, **ARCHITECTURE_VALID**, and **HARNESS_INVALID**. The harness validator had reported
+pre-existing `evidence/screenshots` and `evidence/metrics` paths missing under FEAT-045, FEAT-046 and
+FEAT-047; those unrelated feature directories were left unchanged.
+
+The metrics report artifact and its generation command below are recorded as prior report provenance;
+the report was not regenerated for delta `fe5bcde..988fc91`. This command runs the approved test
 module's explicit `--write-report` option and writes only the metrics path above:
 
 ```powershell
 & '.venv/Scripts/python.exe' -B -c "import sys,runpy; sys.path.insert(0,'src'); sys.argv=['test_feat018_p2_t4_mapping_diagnostics.py','--write-report']; runpy.run_path('tests/unit/test_feat018_p2_t4_mapping_diagnostics.py',run_name='__main__')"
 ```
 
-The result was **SKELETON_VALID**, **ARCHITECTURE_VALID**, and **REPOSITORY_SECURITY_VALID** (2,588
-publishable files scanned; the validator's path checks are pattern-based and are not a general
-absolute-path detector). The commands above are relative to the `backend/` working directory.
-`git diff --check` passed. The
-repository harness validator returned `HARNESS_INVALID` because pre-existing `evidence/screenshots` and
-`evidence/metrics` paths are missing under FEAT-045, FEAT-046 and FEAT-047. Those unrelated feature
-directories were left unchanged.
+The commands above are relative to the `backend/` working directory.
 
 The report integrity test checks that primary labels, supplemental aliases and narration text are
 absent from the JSON. No model/provider/Lightning request or live media was used.
