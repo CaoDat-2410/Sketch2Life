@@ -25,7 +25,7 @@ Artifact tuples:
 
 ## Result
 
-The regenerated metrics report is
+The metrics report last regenerated in commit `87599013` is
 [`P2_T4_MAPPING_DIAGNOSTICS_20261020.json`](../metrics/P2_T4_MAPPING_DIAGNOSTICS_20261020.json),
 614,556 bytes, SHA-256
 `2bbbcf3230f74f65435f0bed076533775e5e89d3926b9f4cfd5d6e2d5dedf7b0`.
@@ -157,7 +157,8 @@ module's explicit `--write-report` option and writes only the metrics path above
 & '.venv/Scripts/python.exe' -B -c "import sys,runpy; sys.path.insert(0,'src'); sys.argv=['test_feat018_p2_t4_mapping_diagnostics.py','--write-report']; runpy.run_path('tests/unit/test_feat018_p2_t4_mapping_diagnostics.py',run_name='__main__')"
 ```
 
-The commands above are relative to the `backend/` working directory.
+The pytest, Ruff, scoped mypy, and `--write-report` commands above are relative to the `backend/`
+working directory. `python tools/validate_repository_security.py` runs from the repository root.
 
 The report integrity test checks that primary labels, supplemental aliases and narration text are
 absent from the JSON. No model/provider/Lightning request or live media was used.
