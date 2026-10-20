@@ -1,7 +1,7 @@
 # FEAT-018 P2-T4 — Pilot Mapping Diagnostics Plan
 
 - Status: `DRAFT — NOT APPROVED FOR IMPLEMENTATION`
-- Revision: 2, 2026-10-20; response to the owner-relayed Claude Cloud review of `9663ba4`.
+- Revision: 3, 2026-10-20; response to the owner-relayed Claude Cloud delta-review of `fc1f987`.
 - Owner: Person 2.
 - Branch: `feature/feat018-p2t4-mapping-diagnostics`.
 - Parent: P2-T3 status commit `fd474b12bb50a603e67fce5c25f889a95e968734`.
@@ -42,15 +42,15 @@ The Cloud review is external reviewer-reported static analysis. Coordinator sour
 confirmed the key design gaps below; a Codex subagent separately checked the Gate A/projection
 claims. Neither activity is a runtime test or acceptance verdict for this revision.
 
-| Review topic | Revision-2 response |
+| Review topic | Current response |
 |---|---|
 | No established P2 candidate/no-match operation | Report-only diagnostic classification; preserve Raw proposal and gate evidence. Do not add a contract. |
 | English seeds are not reviewed matching labels | Use the Vietnamese `exact_phrases_vi` values listed in the input specification; record the seed as context only. |
 | Profile v1 versus activity v2 | Bind catalog/profile ID, profile version, source digest, effective activity/version, and observed variant ID separately. |
-| Ambiguous-region versus competing claims | Use two explicit entity claims plus `UNRESOLVED_AMBIGUITY`; test ambiguous-region-only as a supplemental case. |
+| Ambiguous-region versus competing claims | Two entity claims plus `UNRESOLVED_AMBIGUITY`; V1 confirms both with target primary. Bare region and target-only confirmation are supplemental. |
 | Unknown Vision confidence is invalid in Raw | Test V2-null rejection separately; numeric low confidence tests preservation, without inventing a threshold. |
 | Conflict after Gate A | Keep Raw plus confirmation plus anchor; record unsupported conflict/decision propagation as `UNRESOLVED`. |
-| Adult correction provenance | Observe both V1/V2 branches, preserving their confirmation/session records; no blanket assertion that all provenance is lost. |
+| Adult correction provenance | Primary V2 recipe retains the target claim and has `primary_anchor_id=null`; empty-list V2 and V1 correction are supplemental. Preserve session/confirmation facts. |
 | Working brief publication policy | The two sanitized draft documents were pushed for Cloud review at the user's request; this is not completed evidence publication or an exception for unrelated research. |
 
 Two qualifications to the review are retained. `_FUSION_ALIASES` does include plant/flower-related
@@ -72,6 +72,10 @@ If `confirmed_topic_scene` is exercised, its inferred modality/agreement and abs
 are implementation observations, not proof of source audio or genuine agreement. Retain B1/B2
 evidence and record any disagreement. Never invent scene confidence or audio provenance to run B3.
 
+Input specification section 4A binds B2 setup to a test-created ephemeral session/workflow store,
+`create` followed by explicit `advance` to `GATE_A_PENDING`, fixture source/Raw dumps, and exact
+pre-confirmation version. This establishes fixture state only, not understanding/admission evidence.
+
 The 9–12 rows stay in the historical golden catalog diagnostics. This does not enable unsupported
 ages in the current product flow, change the supported-age boundary, or start sessions for those ages.
 
@@ -84,9 +88,16 @@ ages in the current product flow, change the supported-age boundary, or start se
   registered contracts. Do not infer that a string alone defines a contract.
 - Both branches project `PROJECT_OWNER` into the anchor role and default anchor-set version to 1;
   confirmation keeps the actual actor, and session-derived anchor IDs change. Different meaning,
-  session and anchor versions must not be conflated.
+  session and anchor versions must not be conflated. Positive calls in this local-demo service
+  accept only `demo:local`; other command actors are rejected. This audit does not demonstrate an
+  authenticated non-owner actor being silently assigned an owner role.
 - Anchor-to-scene projection can infer agreement from non-empty narration without carrying Raw
   conflicts. An adult's explicit claim selection must not be reported as automatic source agreement.
+- Matcher V2 `_phrase_match` uses escaped `\\s`/`\\w` patterns rather than whitespace/word classes.
+  Cloud review reports a pure-regex reproduction; coordinator source inspection confirms the
+  double-escaped expressions. Boundary/spacing cross-matches must be recorded as observed matcher
+  behavior, not corrected by changing fixtures or product code in this slice. Runtime impact on
+  the matrix is not yet measured.
 
 List these as static hypotheses until exercised after approval. No runtime fix to the Gate A,
 mapper, resolver, catalog or schema is authorized by this plan. If diagnostic results expose a
@@ -109,14 +120,16 @@ the common no-match recipe against all 100 base profiles, not only the golden 20
 2. Source labels, all raw observations, modality references and original fixture digests survive
    every applicable boundary. A normal adult selection can be recorded as such; no automatic
    conflict-resolution or model-certainty claim follows from it.
-3. Low confidence `0.05` is a fixture value, not an adopted cutoff. Preserve it through applicable
-   paths; no blocking threshold is asserted. Use `NOT_PROVIDED` only for Raw uncertainty status,
-   not for a required numeric Vision claim field.
+3. Low confidence `0.05` is a fixture value, not an adopted cutoff. Check preservation through Raw,
+   anchor and the relevant scene concept. Observe matcher score/default 0.5 separately; it is not
+   the source-confidence preservation verdict. Use `NOT_PROVIDED` only for Raw uncertainty status,
+   not for a required numeric Vision claim field. No blocking threshold is asserted.
 4. Tests independently validate input integrity, application observations and report dispositions.
    No unexplained skips/xfails, hardcoded all-pass summary, or missing B2/B3 evidence can close a row.
-5. Inject fake dependencies that fail on provider use and count invocation at the callable provider
-   boundaries. `RawUnderstandingMapperPort` alone is a mapping port, not proof of zero model calls.
-   Report zero counts only when the relevant fake was actually installed and observed.
+5. Bind construction and call instrumentation as input section 4A. Optional live/media dependencies
+   are disabled and reported `NOT_INSTALLED`, not counted as measured zeros. Assert the installed
+   compiler sentinel's zero count. A supplemental counting AutoRig stub must report its observed
+   invocation even though the service catches its exception. No real provider is constructed.
 6. Evidence contains sanitized IDs, hashes, codes, counts and observations. Synthetic label/text
    lives only in declared fixtures; raw session dumps, real transcripts, media or provider output
    do not become published evidence.

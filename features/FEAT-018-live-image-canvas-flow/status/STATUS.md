@@ -9,6 +9,9 @@ Updated: 2026-10-20
 - The owner-relayed Claude Cloud review of draft commit `9663ba4` requested revisions before input
   approval. Revised plan/input documents specify B1 Raw, B2 Gate A and B3 matcher observations,
   reviewed Vietnamese labels, fallback separation, confidence preservation and known provenance gaps.
+- Revision 3 responds to Cloud delta-review of `fc1f987`: both remaining confirmation recipes are
+  explicit, with B2 seed, counter reporting, synthetic provenance and matcher-score distinctions.
+  A reported V2 phrase-regex defect is recorded outside the current runtime-change scope.
 - Current work is source review and documentation only. No P2-T4 fixture/test implementation,
   application test run, runtime fix, model or Lightning call has occurred.
 - Plans: `plan/P2_T4_MAPPING_DIAGNOSTICS_PLAN_DRAFT_20261020.md` and

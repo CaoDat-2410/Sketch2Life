@@ -602,3 +602,10 @@ remain open; complete test execution alone cannot close P2-T4 while required beh
 See `plan/P2_T4_MAPPING_DIAGNOSTICS_PLAN_DRAFT_20261020.md` and
 `plan/P2_T4_MAPPING_INPUT_REVIEW_DRAFT_20261020.md`. This is documentation-only preparation: no
 P2-T4 implementation approval, fixtures, application tests, provider calls or runtime edits occurred.
+
+The subsequent Claude Cloud delta-review of `fc1f987` accepted the structural revisions but required
+explicit claim/primary choices for ambiguity and adult correction. Revision 3 binds both recipes,
+the in-memory session preconditions, counter-versus-disabled-dependency reporting, source confidence
+versus matcher defaults, manifest-level synthetic provenance and the separate narration fixture
+shape. The reported V2 phrase-regex issue is recorded for diagnosis, not silently fixed here.
+These remain draft proposals awaiting owner approval; this update does not start implementation.

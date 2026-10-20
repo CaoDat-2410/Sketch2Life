@@ -1,7 +1,7 @@
 # FEAT-018 P2-T4 — Input Fixture Specification for Review
 
 - Status: `DRAFT — REVIEW INPUT DESIGN ONLY`.
-- Revision: 2, 2026-10-20; responds to Claude Cloud static review of commit `9663ba4`.
+- Revision: 3, 2026-10-20; responds to Claude Cloud delta-review of commit `fc1f987`.
 - Branch: `feature/feat018-p2t4-mapping-diagnostics`.
 - Related plan: [mapping diagnostics plan](P2_T4_MAPPING_DIAGNOSTICS_PLAN_DRAFT_20261020.md).
 
@@ -22,9 +22,12 @@ Raw contract version, applicable gate-confirmation version/actor/meaning version
 expectations. Keep original Raw and actual confirmation alongside derived anchor/scene projections;
 do not add report metadata as extra fields to frozen contracts.
 
-Fixture provenance must be clearly synthetic and derived from the declared fixture construction.
-Reuse the existing typed fixture-construction patterns, including all required provenance fields;
-do not report a successful fake response as a model execution or measured quality result.
+Fixture provenance is identified at manifest level by `provenance_kind=SYNTHETIC_FIXTURE` and
+`provider_execution=NOT_EXECUTED`; include the fixture construction revision and input digest.
+`RawProvenanceV1.profile_id` still uses the contract-required `QWEN3_VL_8B_INSTRUCT_BF16_V1` enum and
+a successful Raw result still requires complete, contract-valid `model_provenance`. Reuse existing
+typed fixture patterns; do not invent a synthetic enum, widen schemas or describe those required
+model-identity fields as evidence of actual model execution/measurement.
 
 For matcher checks record these independently:
 
@@ -79,26 +82,30 @@ IDs use `feat018-p2-t4-<activity-id-lowercase>-<family>`. Claim/conflict IDs mus
 lowercase reference grammar and be unique within each Raw record. Source/session/correlation refs
 are explicit synthetic fixture values. Use confidence `0.90` except where the family specifies
 another value; `0.90` is test data, not a production policy threshold.
+Primary V1 confirmations use `meaning_version=1`; primary V2 confirmations use `meaning_version=2`.
+Other version values belong to supplemental versioning cases, each with its own explicit expectation.
 
 | Family | Construction | Expected observation and limits |
 |---|---|---|
 | EXACT | One Vision entity labelled with the exact phrase in section 2; narration `NOT_SUPPLIED`. Confirm its claim explicitly with Gate A V1, no correction. | B1 validates/selects the claim. B2 retains source hash, original label and claim ID. B3 should observe EXACT for the target V1 profile and PERSONALIZED_EXACT for a valid V2 projection; separately record all other matches and identity differences. Any deviation remains a finding. |
-| AMBIGUOUS | Two Vision entities, one for the target and one for the next pilot in section 2 (last wraps to first), with distinct IDs, plus `UNRESOLVED_AMBIGUITY` referencing both. | B1 preserves both claims and explicit ambiguity. B2 may exercise an explicit adult selection, but selection is not proof the model resolved ambiguity. Keep Raw plus confirmation; unsupported propagation/decision provenance is UNRESOLVED. Do not force a global exact-match result or treat a bare ambiguous region as two claims. |
+| AMBIGUOUS | Two Vision entities, one for the target and one for the next pilot in section 2 (last wraps to first), with distinct IDs, plus `UNRESOLVED_AMBIGUITY` referencing both. In B2 use V1, `confirmed_claim_ids=[target_claim_id, partner_claim_id]`, `primary_anchor_id=target_claim_id`, no correction. | B1 preserves both claims and explicit ambiguity. B2 must retain the target as primary and the partner as secondary; record tags merged from all confirmed claims. B3 V2 may match both labels as exact: observe both without claiming unique selection or model resolution of ambiguity. Keep Raw/confirmation; unsupported decision provenance remains UNRESOLVED. |
 | NO_MATCH | One Vision entity with reserved synthetic label `zzfixture-no-reviewed-match-018`, no narration, and explicit no-correction gate confirmation for B2/B3. | Assert empty tags on the actual B2 anchor output; Raw has no semantic-tags field. Check that unmodified projection against all base 100-profile vocabulary/matchers, including aliases, negatives and concept routes. No non-fallback match may exist. If the recipe fails its precondition, report invalid input and revise the specification through review rather than searching for a passing string. No-match is report vocabulary only; fallback is observed separately. |
 | CONFLICT | Target Vision claim plus an ASR claim containing the next pilot's exact phrase. Set `narration_status=ASR_SUCCEEDED`, ASR source `ASR`, and inject `SOURCE_DISAGREEMENT` referencing those two IDs. Explicitly confirm the target Vision claim as primary in B2; bind session narration and the B3 narration argument as described below. | B1 asserts the two references are distinct and from different modalities. This is an explicitly supplied synthetic disagreement, not detected contradiction. B2/B3 cannot claim the sources agree merely because narration is nonempty; record missing propagation or unsupported agreement as UNRESOLVED. |
-| LOW | The EXACT Raw recipe with Vision confidence `0.05`; use the same explicit no-correction confirmation. | Check numeric preservation through Raw and the selected anchor; observe matcher output without requiring a policy block. No invented cutoff, default certainty, or single-claim LOW_CONFIDENCE conflict is permitted. |
-| ADULT_CORRECTION | Preserve an EXACT Raw record; add a V2 confirmation with an adult-authored, explicitly synthetic label, unique actor ref and meaning version at least 2. Keep V1 correction as a supplemental comparison. | Compare original Raw digests before/after; retain confirmation and original observation. Observe distinct adult assertion IDs and model-claim attribution. Record projected confidence 1.0, role/meaning/anchor-version differences or unregistered provenance names as review items, not automatic source-model certainty. |
+| LOW | The EXACT Raw recipe with Vision confidence `0.05`; use the same explicit no-correction confirmation. | Check numeric preservation through Raw, selected anchor and the corresponding `SceneConceptV2` in B3. Observe matcher `concept_match_confidence` separately: its fallback default 0.5 is a finding about a derived score, not a pass/fail substitute for source-confidence preservation. No invented cutoff or single-claim LOW_CONFIDENCE conflict. |
+| ADULT_CORRECTION | Preserve an EXACT Raw record; add a V2 confirmation with `confirmed_claim_ids=[target_claim_id]`, adult-authored synthetic label, actor `demo:local` and `meaning_version=2`. The workflow payload must include `primary_anchor_id=null`. | B2 should project the adult assertion as primary and the retained target claim as a secondary anchor; B3 V2 may still match the target via that secondary label. Compare Raw digests before/after and retain confirmation. Record confidence 1.0, role/meaning/anchor-version differences or unregistered provenance names as review items, not source-model certainty. |
 
 The deterministic partner rule supplies two different candidate labels; it does not claim every pair
 shares a concept family or is logically contradictory. Explicit ambiguity/disagreement is part of the
 fixture input. These cases verify representation and provenance, not automatic semantic judgment.
 
 The conflict's ASR text is one declared synthetic fixture string. Bind that same text and its UTF-8
-digest to the Raw ASR claim, the test-created session's typed fake `narration_result`, and the
-explicit `narration_text` argument if `confirmed_topic_scene` is called in B3. Assert equality and
-non-empty text before B3. A Raw ASR claim alone does not supply this separate argument. Retain
-explicit synthetic source/correlation identities and count zero provider invocations; empty-text
-or absent-session-narration variants are supplemental cases, not the primary conflict test.
+digest to the Raw ASR claim, a session fixture value `narration_result={"transcript": <same text>}`,
+and the explicit `narration_text` argument if `confirmed_topic_scene` is called in B3. This dict is
+session fixture data, not a new ASR wire contract. `confirm_gate_a` does not read `narration_result`;
+checking it is fixture consistency only. Later P1 operations read its `transcript` key, but those
+operations are not executed here. Assert text equality and non-empty B3 input. A Raw ASR claim alone
+does not supply B3 narration. Empty/absent-text variants are supplemental; retain explicit synthetic
+source/correlation identities and use the instrumentation rules below for any call-count claims.
 
 In no-match cases consume the actual B2 anchor and its derived scene without overwriting tags,
 labels or concepts. Empty tags are an output precondition to check, not an input extra field or
@@ -127,11 +134,56 @@ These have separate IDs and counts and do not replace or increase the 120 primar
   consistency because reference-valid Raw records alone do not enforce all modality semantics.
 - Duplicate/dangling conflict refs, source/correlation mismatch, unknown selected claims, and stale
   confirmation/session versions must produce their existing typed failures or a documented gap.
-- V1 correction, non-owner actor, successive meaning versions and uncorrected V2 confirmation
+- V1 correction, successive meaning versions and uncorrected V2 confirmation
   compare the session record with the anchor projection; none may be summarized as loss of all
   session attribution merely because the projection differs.
+- A command actor other than `demo:local` is a negative test expecting `DEMO_ACTOR_INVALID`, not
+  a successful confirmation with a different role. V2 without a nonblank adult label is likewise a
+  negative test of the current service, even if the schema accepts claim IDs alone.
+- Ambiguity with only the target confirmed and adult V2 correction with `confirmed_claim_ids=[]`
+  are supplemental comparisons, each with explicit `primary_anchor_id` (target or null respectively).
+  Their changed secondary-anchor/matcher outputs do not redefine the primary recipes.
 - Reviewed aliases are distinct supplemental cases; family-related matches are observed without
   asserting uniqueness or treating them as P1 eligibility.
+
+## 4A. B2 fixture preconditions and dependency instrumentation
+
+Use test-created `InMemorySessionRepository`, `InMemoryIdempotencyStore`, `InMemoryArtifactStore`
+and `InMemoryDemoWorkflowStore` with `EphemeralSessionService`. Create a fresh synthetic session
+using a valid `CREATE_SESSION` command (fresh UUIDv4 session ID, create actor `demo:local`, expected
+version 0, payload exactly `{"operation":"CREATE_SESSION"}`, and fixed test clock). Then call
+`advance` with the returned expected version, `allowed_states=("CREATED",)`,
+`next_state="GATE_A_PENDING"`, and workflow updates containing validated fixture `source_image_ref`
+and `raw_understanding` dumps with matching source identity/hash. Add the declared narration dict
+for a conflict case. Read back the
+seeded state/version before confirmation; use that version in both the workflow command and
+confirmation. Bind session ID, request/idempotency IDs and meaning version explicitly. All positive
+confirmation commands use actor `demo:local`, payload keys exactly `operation`, `user_initiated`,
+`confirmation`, `primary_anchor_id`, with `operation="CONFIRM_GATE_A"` and `user_initiated=true`.
+The service overwrites confirmation actor with the command actor. Distinct case/session/assertion
+IDs identify synthetic adult actions; varying the accepted command actor is not supported here.
+
+This is a test precondition, not observed image admission or a completed understanding/provider
+request. Do not invoke admission/understanding, `create_app`, live composition roots or a provider
+to establish it. Missing optional imports remain an execution limitation, not permission to alter
+runtime imports or fake a successful boundary result.
+
+Primary B2 construction uses `auto_rig_service=None`, `scene_localizer=None`, `activity_ranker=None`,
+`pixi_show_planner=None`, all crop/asset/preview/motion issuers `None`, and no renderer capability
+issuer. Supply a test-owned counting sentinel for the required `p1_compiler` dependency; any compile
+attempt increments its counter before raising, and the test asserts the final count equals zero.
+The compiler sentinel is not a provider and cannot establish a global provider-call count.
+
+Record disabled dependencies as `NOT_INSTALLED`, not a measured zero. Provider/model execution is
+excluded by this declared test construction; do not claim instrumentation on a boundary that was
+not installed. For any installed counting fake, increment before returning/raising and assert its
+counter after the operation, even when the application reports success.
+
+One supplemental instrumentation case uses a test-only `CountingAutoRigStub` at the actual
+`start_gate_a_preparation` method: increment then raise a controlled local test exception. The
+service catches that exception, so the test must observe one attempted stub invocation, not infer
+zero from success or from the absence of an outward error. The stub makes no provider call. This
+checks reporting of a swallowed call; it does not test real AutoRig or grant runtime/model execution.
 
 ## 5. Diagnostic result design
 
@@ -149,8 +201,9 @@ Report-only fields distinguish intended requirements from actual observations:
 Do not count an accepted synthetic input as a satisfied downstream preservation requirement.
 Do not convert a known characterization gap to EXPECTED_BLOCKED or mark P2-T4 complete merely
 because the tests accurately detect it. Missing optional dependencies yield an honest execution
-limitation, not a successful B2 observation. Fake provider boundaries must record actual zero-call
-counts for paths exercised; the mapper port alone does not establish that fact.
+limitation, not a successful B2 observation. Apply section 4A: counter claims require installed
+fakes and explicit post-operation assertions; disabled dependencies are `NOT_INSTALLED` and the
+mapper port alone cannot establish a provider-call count.
 
 ## 6. Recommended owner choices
 
