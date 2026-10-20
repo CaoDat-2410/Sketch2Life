@@ -1,11 +1,5 @@
 # BE2-08 evidence
 
-2026-10-20 integration-candidate recheck: see
-notes/LOCAL_OFFLINE_RECHECK_20261020.md and
-raw/LOCAL_OFFLINE_RECHECK_20261020.summary.json. The owned runner stopped at
-collection because Pillow was unavailable; the regression suite passed 1,435.
-This is not card acceptance or runtime evidence.
-
 Latest C4b: notes/C4B_ACTUAL_POSTGRES_20261018.md, actual isolated PostgreSQL11 PASS,
 source unchanged; temporary environment removed. Actual runtime/adoption open.
 C4: notes/C4_LOCAL_VERIFICATION_20261018.md,37 new/459 cumulative own,
@@ -25,11 +19,3 @@ C2b: evidence/notes/C2B_HTTP_STORAGE_20261018.md (256 cumulative own, broad1691 
 actual PostgreSQL11 prepared/NOT_RUN). Earlier counts are historical checkpoints.
 Store sanitized raw logs, screenshots and metrics in own subdirectories. Private
 runtime media/credentials/child data do not belong in tracked evidence.
-
-
-## FEAT-057 approved offline baseline — 2026-10-20
-
-Final note: `notes/GOAL_OFFLINE_BASELINE_20261020.md`. Authoritative source-bound receipt: `evidence/raw/GOAL_OFFLINE_BASELINE_20261020_FINAL_PINNED_ENV/summary.json`, with JUnit, collection logs, static check logs, source hashes, and `evidence-manifest.json` in that directory.
-This is local offline evidence only. The feature card remains open; no acceptance or status was changed.
-
-Earlier attempts remain in the sibling baseline evidence directories and are historical; the final pinned receipt is authoritative.

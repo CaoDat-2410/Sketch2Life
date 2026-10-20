@@ -1,4 +1,0 @@
-Python 3.12.10 {'pytest': False, 'ruff': False, 'mypy': False, 'PIL': True, 'multipart': False, 'av': False}
-candidate_worktree_venv=absent
-shared_backend_venv=unchanged
-pip_cache_Pillow_and_python_multipart=no_matching_wheels

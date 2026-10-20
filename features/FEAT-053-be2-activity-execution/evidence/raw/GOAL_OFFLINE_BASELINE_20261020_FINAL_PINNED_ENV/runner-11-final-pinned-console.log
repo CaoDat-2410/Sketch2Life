@@ -1,3 +1,0 @@
-PASS: <INTEGRATION_WORKTREE>\.runtime\activity-execution-component\20261020-125248-816152
-Cases: {'owned': 219, 'regression': 2605, 'legacy_catalog': 25, 'sql_collection_only': 17}; source_unchanged=True
-LOCAL ONLY: SQL/actual publication/policy/BE1 outcome/provider NOT_RUN.

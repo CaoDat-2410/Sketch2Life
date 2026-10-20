@@ -1,10 +1,6 @@
 # Project context ledger
 
-## BE2 primary-session current evidence — 2026-10-20
-
-At d35f035f87fddfc87b0d72d8929f5b1b843fce0e on feature/be2-backend-ai-integration, the FEAT-057 BE2-08–14 offline baseline passed all seven runners under one isolated pinned environment. Source maps and evidence manifests match checkout; JUnit has zero failures/errors/skips. SQL was collection-only; PostgreSQL, Lightning/Studio, provider/HTTP and owner integration remain NOT_RUN. Card acceptance/status and runtime gates remain open. Details: features/FEAT-057-be2-01-14-offline-integration/evidence/notes/PRIMARY_SESSION_HANDOFF_20261020.md.
-
-## Historical initial integration and runtime-readiness summary — 2026-10-20 (pre-install)
+## BE2-01–14 offline integration and runtime-readiness candidate — 2026-10-20
 
 `feature/be2-backend-ai-integration` is the renamed local candidate branch; it
 contains the merge at

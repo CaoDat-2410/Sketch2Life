@@ -18,23 +18,22 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from alembic import command
 from alembic.autogenerate import compare_metadata
 from alembic.config import Config
 from alembic.runtime.migration import MigrationContext
 from alembic.script import Script, ScriptDirectory
 from alembic.util.exc import CommandError
+from sketch2life.contracts.schemas.ai_jobs import CreateAiJobCommandV1
+from sketch2life.infrastructure.ai_jobs.harness import build_fixture_harness
+from sketch2life.infrastructure.ai_jobs.sql import tables as t
+from sketch2life.infrastructure.config.settings import get_core_database_settings
 from sqlalchemy import Connection, String, create_engine, insert, select, text
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.engine import URL
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.pool import NullPool
 from sqlalchemy.schema import CreateTable
-
-from alembic import command
-from sketch2life.contracts.schemas.ai_jobs import CreateAiJobCommandV1
-from sketch2life.infrastructure.ai_jobs.harness import build_fixture_harness
-from sketch2life.infrastructure.ai_jobs.sql import tables as t
-from sketch2life.infrastructure.config.settings import get_core_database_settings
 
 BACKEND = Path(__file__).resolve().parents[3]
 AI_HEAD = "20261015_ai_0001"
@@ -110,15 +109,7 @@ def test_script_graph_keeps_be1_history_and_adds_independent_ai_jobs_branch(
     offline_config: tuple[Config, io.StringIO],
 ) -> None:
     script = ScriptDirectory.from_config(offline_config[0])
-    # This suite owns these two branches; independently integrated schemas may add heads.
-    heads = {revision: script.get_revision(revision) for revision in script.get_heads()}
-    for branch, expected_head in {"be1_core": BE1_CHAIN[0], "ai_jobs": AI_HEAD}.items():
-        owned_heads = {
-            revision
-            for revision, candidate in heads.items()
-            if candidate is not None and branch in candidate.branch_labels
-        }
-        assert owned_heads == {expected_head}, f"unexpected heads for {branch}: {owned_heads}"
+    assert set(script.get_heads()) == {BE1_CHAIN[0], AI_HEAD}
 
     ai = script.get_revision(AI_HEAD)
     assert ai is not None

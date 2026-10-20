@@ -1,3 +1,0 @@
-PASS: <INTEGRATION_WORKTREE>\.runtime\video-review-component\20261020-124508-012371
-Cases: {'owned': 458, 'regression': 1894, 'sql_collection_only': 21}; source_unchanged=True
-LOCAL ONLY; SQL/adoption/fetch/range/resume/provider NOT_RUN.

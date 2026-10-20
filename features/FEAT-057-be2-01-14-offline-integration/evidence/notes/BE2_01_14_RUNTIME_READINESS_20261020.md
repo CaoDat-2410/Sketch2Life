@@ -1,74 +1,5 @@
 # BE2-01–14 runtime readiness and command runbook — 2026-10-20
 
-## Current offline baseline — 2026-10-20
-
-BE2-08–14 final approved local component batch PASSed all seven runners on one isolated pinned Python 3.12.10 environment, with source hashes/manifests matching checkout and zero JUnit failures/errors/skips.
-
-| Task | Runner | Counts | JUnit |
-|---|---|---|---|
-| BE2-08 | PASS | 459 owned; 1,435 regression; 11 SQL collect-only | 0 failures, errors, skips |
-| BE2-09 | PASS | 458 owned; 1,894 regression; 21 SQL collect-only | 0 failures, errors, skips |
-| BE2-10 | PASS | 253 owned; 2,352 regression; 14 SQL collect-only | 0 failures, errors, skips |
-| BE2-11 | PASS | 219 owned; 2,605 regression; 25 legacy; 17 SQL collect-only | 0 failures, errors, skips |
-| BE2-12 | PASS | 477/477 pass | 0 failures, errors, skips |
-| BE2-13 | PASS | 194 owned; 2,849 regression; 11 SQL collect-only | 0 failures, errors, skips |
-| BE2-14 | PASS | 1061/1061 pass | 0 failures, errors, skips |
-
-Package profile backend editable install + [dev,image-admission]; exact versions and receipts are in metrics/GOAL_OFFLINE_BASELINE_FINAL_20261020.json and metrics/offline-test-matrix.json. SQL remains collection-only. PostgreSQL, Lightning/Studio, provider/runtime and owner integration were NOT_RUN; runtime gates and per-card status remain unchanged. Older dependency-blocked attempts are historical.
-
-
-## Historical pre-install offline evidence annotation — 2026-10-20
-
-The runtime gates and approved entrypoint audit below remain open. Offline counts
-in the original card-by-card table are historical merge-time results. Current
-recorded recheck results and the single subsequent test delta are as follows.
-Publication/authentication was not rechecked in this follow-up.
-
-Source HEAD: `d35f035f87fddfc87b0d72d8929f5b1b843fce0e`, branch
-`feature/be2-backend-ai-integration`. The 08–14 recheck receipts describe
-the source **before** the uncommitted F057-H01 integration-test fix. No product
-module changed. Only `backend/tests/integration/ai_jobs/test_migrations.py` changed after those runs
-(`f3e907442ee228ac45c25834ddc91ee7f27678b2178487062b6d4e331df15d22` → `9b507b7f342a8c863062ed4ff6865a6e5012a804c41b360199f7cadaf3c03d46`).
-The recorded `source_unchanged=true` applies during each recorded run; its full
-source hash map is historical after this single-file change. Those suites were
-not rerun on the new test snapshot. Fresh evidence covers the three affected
-offline migration nodes and four guard-probe scenarios only.
-
-| Task | Latest recorded owned result | Regression | SQL in that recheck | Runner state |
-|---|---|---|---|---|
-| 08 | PIL collection blocked; 446 inventory, no pass count | 1,435 PASS | 11 collection-only | FAIL_ENVIRONMENT_BLOCKED |
-| 09 | 458 PASS | PIL collection blocked; 1,881 inventory | 21 collection-only | FAIL_ENVIRONMENT_BLOCKED |
-| 10 | 253 PASS | PIL collection blocked; 2,339 inventory | 14 collection-only | FAIL_ENVIRONMENT_BLOCKED |
-| 11 | 219 PASS + 25 legacy PASS | PIL collection blocked; 2,592 inventory | 17 collection-only | FAIL_ENVIRONMENT_BLOCKED |
-| 12 | 476 PASS, 1 SKIP of 477; skip requires Pillow | Incomplete | NOT_RUN | NOT_RUN |
-| 13 | 194 PASS | PIL collection blocked; 2,836 inventory | 11 collection-only | FAIL_ENVIRONMENT_BLOCKED |
-| 14 | 1,061 PASS + 114 foundation PASS | Delegated task 12 NOT_RUN | NOT_RUN_BY_THIS_PACK | FAIL_DEPENDENT_REGRESSION_NOT_RUN |
-
-Pillow/PIL and multipart are absent from the existing backend environment.
-The latest observed collection failures and task-12 skip specifically concern
-Pillow; do not relabel that skip as the older multipart startup failure. No
-dependency was installed or copied in this follow-up. Available alternative
-environments do not supply an equivalent complete test environment. Collection
-inventories are not executed PASS counts; overlapping regressions are not summed.
-
-Separate historical card-owned PostgreSQL receipts report 08=11, 09=21, 10=14,
-11=17, 12=33, 13=11, 14=104 actual cases PASS. They remain separate evidence;
-this recheck and follow-up did not run PostgreSQL or a shared 01–14 schema.
-
-The fresh follow-up has 3 migration-graph nodes PASS, 0 SKIP, four guard scenarios
-PASS, and Ruff/strict mypy PASS. It is an offline integration-test correction,
-not runtime proof or a rerun of the component packs. The frozen foundation
-worktree/package are unchanged. Current handoff:
-`PRIMARY_SESSION_HANDOFF_20261020.md`.
-
-The older fresh-install suggestion below is historical, not a current
-instruction or installation approval. The next executable pack check requires
-an authorized existing environment with both Pillow and multipart; while those
-dependencies remain unavailable, keep the blocked states and do not install.
-
-## Historical runtime-readiness analysis body — preserved below
-
-
 ## Result
 
 There is **no safe, executable one-shot runtime command for all 14 cards** in the
@@ -81,12 +12,6 @@ not the merged BE2-01–14 branch.
 
 This document prepares future commands and gates. Nothing in this analysis
 started a Studio, service, database, model, or provider.
-
-The per-card approval and entrypoint audit is also in
-`evidence/metrics/BE2_01_14_RUNTIME_READINESS_20261020.json` under
-`approved_runtime_entrypoints`: only task 01 has an approved Lightning/Studio
-entrypoint; tasks 02–07 have none approved, and tasks 08–14 have approved offline
-component runners only. The latter must not be reported as Lightning acceptance.
 
 ## Source and authority snapshot
 
@@ -166,8 +91,7 @@ against that README on 2026-10-20:
 After opening the exact Studio, run only the README's read-only inventory first:
 
 ```bash
-printf 'studio_home=%s
-' "$HOME"
+printf 'studio_home=%s\n' "$HOME"
 git -C "$HOME/Sketch2Life" branch --show-current
 git -C "$HOME/Sketch2Life" log -1 --oneline
 docker ps -a --filter name=sketch2life-be2- --format '{{.Names}} {{.Status}}'
@@ -189,10 +113,7 @@ bash "$HOME/be2-a17fix01-package/run_a17fix01_on_studio.sh" 2>&1 | tee "$HOME/be
 be2_a17_status=("${PIPESTATUS[@]}")
 be2_a17_command_exit=${be2_a17_status[0]}
 if (( be2_a17_status[1] != 0 )); then be2_a17_command_exit=${be2_a17_status[1]}; fi
-printf 'studio_runner_exit=%s
-studio_log_exit=%s
-studio_command_exit=%s
-' "${be2_a17_status[0]}" "${be2_a17_status[1]}" "$be2_a17_command_exit"
+printf 'studio_runner_exit=%s\nstudio_log_exit=%s\nstudio_command_exit=%s\n' "${be2_a17_status[0]}" "${be2_a17_status[1]}" "$be2_a17_command_exit"
 ```
 
 This modifies the frozen Studio source according to its allowlist and runs its

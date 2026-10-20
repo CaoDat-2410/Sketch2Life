@@ -1,2 +1,0 @@
-backend\src\sketch2life\contracts\schemas\learning_content.py:143: error: Argument 1 to "TypeAdapter" has incompatible type "UnionType[CreateContent, EditContent, SubmitContent, RecordContentReview, RequestContentChanges, PublishContent, RetireContent]"; expected "type[CreateContent] | type[EditContent] | type[SubmitContent] | type[RecordContentReview] | type[RequestContentChanges] | type[PublishContent] | type[RetireContent]"  [arg-type]
-Found 1 error in 1 file (checked 16 source files)

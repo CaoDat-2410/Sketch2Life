@@ -1,146 +1,156 @@
 {
-  "scope": "FEAT-057 approved offline BE2-08–14 component baseline",
-  "state": "PASS_OFFLINE_LOCAL_ONLY",
-  "candidate": {
-    "branch": "feature/be2-backend-ai-integration",
-    "head": "d35f035f87fddfc87b0d72d8929f5b1b843fce0e",
-    "index_empty": true,
-    "isolated_venv_ignored": true
+  "scope": "BE2_01_14_OFFLINE_INTEGRATION_CANDIDATE",
+  "candidate_branch": "feature/be2-backend-ai-integration",
+  "publication": {
+    "state": "LOCAL_ONLY",
+    "push": "BLOCKED_AUTHENTICATION",
+    "push_attempted_branch_before_rename": "feature/be2-01-14-integration",
+    "push_error": "Git Credential Manager could not persist credentials; no interactive terminal was available.",
+    "pr": "NOT_CREATED",
+    "requested_task7_pr": {
+      "head": "feature/be2-07-knowledge-script",
+      "base": "feature/be2-01-07",
+      "state": "EMPTY_DIFF",
+      "reason": "Both refs point at the same task-7 commit."
+    }
   },
-  "environment": {
+  "base_commit": "9d1ed184f31ab6b1f18337a1e29bb04fd59aa1b5",
+  "receiver_commit": "42a6d3122259e6b33133673a2e444deefa45d387",
+  "runtime": {
     "python": "3.12.10",
-    "profile": "backend editable install + [dev,image-admission]",
-    "versions": {
-      "pytest": "8.4.2",
-      "ruff": "0.16.4",
-      "mypy": "1.20.2",
-      "Pillow": "12.3.0",
-      "python-multipart": "0.0.32",
-      "av": "18.1.0",
-      "pydantic": "2.13.4",
-      "SQLAlchemy": "2.0.52",
-      "alembic": "1.19.1"
-    },
-    "pip_check": "PASS",
-    "shared_environment_package_install": "NONE"
+    "pytest": "8.4.2",
+    "pillow": "12.1.0 (isolated local package path; no install)"
   },
-  "all_source_hash_maps_match_current_checkout": true,
-  "all_evidence_manifests_verify": true,
-  "all_junit_counts_match_zero_failures_errors_skips": true,
   "cards": {
     "BE2-08": {
-      "feature": "FEAT-050-be2-knowledge-video",
       "status": "PASS",
       "cases": {
         "owned": 459,
         "regression": 1435,
         "sql_collection_only": 11
       },
-      "expected_cases": null,
-      "summary_path": "features/FEAT-050-be2-knowledge-video/evidence/raw/GOAL_OFFLINE_BASELINE_20261020_FINAL_PINNED_ENV/summary.json",
-      "summary_sha256": "cd15d636dd4dde039adad5294ded630a98572385c765999f891dda23db5902ec",
-      "evidence_manifest_path": "features/FEAT-050-be2-knowledge-video/evidence/raw/GOAL_OFFLINE_BASELINE_20261020_FINAL_PINNED_ENV/evidence-manifest.json",
-      "evidence_manifest_sha256": "01f8b8c5e30583cb74f64755ed8221d9aab0854a7d8b466b5a50f49d6fe0d96f",
+      "statuses": {
+        "owned": "PASS",
+        "regression": "PASS",
+        "sql_collection_only": "COLLECTED_NOT_RUN"
+      },
+      "checks": {
+        "plan_approval": true,
+        "ruff": 0,
+        "mypy": 0,
+        "architecture": 0,
+        "harness": 0,
+        "security": 0,
+        "whitespace": 0
+      },
       "source_unchanged": true,
-      "source_hash_count": 897,
-      "all_source_hashes_match_current_checkout": true,
-      "junit": [
-        {
-          "file": "owned.xml",
+      "summary_file": "be208-summary.json",
+      "summary_sha256": "a2cc34cf8b543a922547601fc4ae8e8da4a1ef261dd3fd9b22018fe9890aa71b",
+      "junit": {
+        "be208-owned.xml": {
+          "sha256": "17b5ea0eea569a09d10002749c67e4e3f7e3933c0e9af9c28d1e1a9be5b4d789",
           "cases": 459,
           "failures": 0,
           "errors": 0,
           "skips": 0,
-          "sha256": "50a61f0813fd97f1d5cbb8133b65f6065b9193b633a666ae85c1531e2fdfd963"
+          "bytes": 67336
         },
-        {
-          "file": "regression.xml",
+        "be208-regression.xml": {
+          "sha256": "0dcd0525d7455acfd7c3d1cc969f654cf5a2ddae1472136f7c9938f7e31bd9fd",
           "cases": 1435,
           "failures": 0,
           "errors": 0,
           "skips": 0,
-          "sha256": "0b916b187d12877fb5f14e8b9afdd99cf27767038c525169316f97f97e9bbdd3"
+          "bytes": 220036
         }
-      ],
-      "sql": "COLLECTED_NOT_RUN",
-      "full_card_complete": false
+      }
     },
     "BE2-09": {
-      "feature": "FEAT-051-be2-video-review-playback",
       "status": "PASS",
       "cases": {
         "owned": 458,
         "regression": 1894,
         "sql_collection_only": 21
       },
-      "expected_cases": null,
-      "summary_path": "features/FEAT-051-be2-video-review-playback/evidence/raw/GOAL_OFFLINE_BASELINE_20261020_FINAL_PINNED_ENV/summary.json",
-      "summary_sha256": "ec8cd4502063fcf6e03f75322610b44a29201e25f3a21cafa2a17c6b8d240557",
-      "evidence_manifest_path": "features/FEAT-051-be2-video-review-playback/evidence/raw/GOAL_OFFLINE_BASELINE_20261020_FINAL_PINNED_ENV/evidence-manifest.json",
-      "evidence_manifest_sha256": "af96c27f39fa005aa748b6fda2e5bad95c1cdd1c1c63eb1758d34980f9177933",
+      "statuses": {
+        "owned": "PASS",
+        "regression": "PASS",
+        "sql_collection_only": "COLLECTED_NOT_RUN"
+      },
+      "checks": {
+        "plan_approval": true,
+        "ruff": 0,
+        "mypy": 0,
+        "architecture": 0,
+        "harness": 0,
+        "security": 0,
+        "whitespace": 0
+      },
       "source_unchanged": true,
-      "source_hash_count": 901,
-      "all_source_hashes_match_current_checkout": true,
-      "junit": [
-        {
-          "file": "owned.xml",
+      "summary_file": "be209-summary.json",
+      "summary_sha256": "6ca67c2ad8d68957662ad0429c7bc88af900b0be536beb83254b262468127251",
+      "junit": {
+        "be209-owned.xml": {
+          "sha256": "e92f2997e44f843e9de524067bb6b517440257874ab373c196b2390bed7c5a63",
           "cases": 458,
           "failures": 0,
           "errors": 0,
           "skips": 0,
-          "sha256": "496cd68eae40540cfed0185c10342508c24c53c1ae23977efd4886a51ee01a5b"
+          "bytes": 68977
         },
-        {
-          "file": "regression.xml",
+        "be209-regression.xml": {
+          "sha256": "076e42688889b4eb98382044cdf56832bfb09d8246d3b339cef037356e7a6f4d",
           "cases": 1894,
           "failures": 0,
           "errors": 0,
           "skips": 0,
-          "sha256": "c21e3a3f3c5bed329515800b33468ed545ffac68e3337f2a862c3b95dfeaab99"
+          "bytes": 287118
         }
-      ],
-      "sql": "COLLECTED_NOT_RUN",
-      "full_card_complete": false
+      }
     },
     "BE2-10": {
-      "feature": "FEAT-052-be2-video-failure-disposition",
       "status": "PASS",
       "cases": {
         "owned": 253,
         "regression": 2352,
         "sql_collection_only": 14
       },
-      "expected_cases": null,
-      "summary_path": "features/FEAT-052-be2-video-failure-disposition/evidence/raw/GOAL_OFFLINE_BASELINE_20261020_FINAL_PINNED_ENV/summary.json",
-      "summary_sha256": "7dd100a75e8d599d61dffac92737a7ca81c4fad88204ad9752d79e8ab7d4d510",
-      "evidence_manifest_path": "features/FEAT-052-be2-video-failure-disposition/evidence/raw/GOAL_OFFLINE_BASELINE_20261020_FINAL_PINNED_ENV/evidence-manifest.json",
-      "evidence_manifest_sha256": "8abdf77d5dac9429da64066642e4d376c8de3efc4eb20f730eaf8b27ccf8ae46",
+      "statuses": {
+        "owned": "PASS",
+        "regression": "PASS",
+        "sql_collection_only": "COLLECTED_NOT_RUN"
+      },
+      "checks": {
+        "ruff": 0,
+        "mypy": 0,
+        "architecture": 0,
+        "harness": 0,
+        "security": 0,
+        "whitespace": 0
+      },
       "source_unchanged": true,
-      "source_hash_count": 903,
-      "all_source_hashes_match_current_checkout": true,
-      "junit": [
-        {
-          "file": "owned.xml",
+      "summary_file": "be210-summary.json",
+      "summary_sha256": "9bcb0f462758a75e152b8d706d3d2f3f24e2c439b093d8b199ee7553930a1a21",
+      "junit": {
+        "be210-owned.xml": {
+          "sha256": "30ae430deabbf9178ba3d7def860757b8f103683444c37247f9014a26c7614ce",
           "cases": 253,
           "failures": 0,
           "errors": 0,
           "skips": 0,
-          "sha256": "4c9b86ebf504c020311ff5acecfc61a10329a3deb5f1efd1b8711cdd701a52c9"
+          "bytes": 37762
         },
-        {
-          "file": "regression.xml",
+        "be210-regression.xml": {
+          "sha256": "ac34db9678f5c1109580880d71fde0037dbf86c7d1c550ce82b6052e5a12d9b8",
           "cases": 2352,
           "failures": 0,
           "errors": 0,
           "skips": 0,
-          "sha256": "f3a39ac724fb365a7d459f286afa296e156eeab63f99f6a7b48128f461b98ad6"
+          "bytes": 355842
         }
-      ],
-      "sql": "COLLECTED_NOT_RUN",
-      "full_card_complete": false
+      }
     },
     "BE2-11": {
-      "feature": "FEAT-053-be2-activity-execution",
       "status": "PASS",
       "cases": {
         "owned": 219,
@@ -148,448 +158,207 @@
         "legacy_catalog": 25,
         "sql_collection_only": 17
       },
-      "expected_cases": null,
-      "summary_path": "features/FEAT-053-be2-activity-execution/evidence/raw/GOAL_OFFLINE_BASELINE_20261020_FINAL_PINNED_ENV/summary.json",
-      "summary_sha256": "091fd05dfe0df776fea7e865b1584dcd69b0a01296835c78fd4e0d52da2fc36e",
-      "evidence_manifest_path": "features/FEAT-053-be2-activity-execution/evidence/raw/GOAL_OFFLINE_BASELINE_20261020_FINAL_PINNED_ENV/evidence-manifest.json",
-      "evidence_manifest_sha256": "eaa35d0125f0873cbce791726dceef0de859ebf5894f59c745bee50bcaacbd72",
+      "statuses": {
+        "owned": "PASS",
+        "regression": "PASS",
+        "legacy_catalog": "PASS",
+        "sql_collection_only": "COLLECTED_NOT_RUN"
+      },
+      "checks": {
+        "ruff": 0,
+        "mypy": 0,
+        "architecture": 0,
+        "harness": 0,
+        "security": 0,
+        "whitespace": 0
+      },
       "source_unchanged": true,
-      "source_hash_count": 933,
-      "all_source_hashes_match_current_checkout": true,
-      "junit": [
-        {
-          "file": "legacy_catalog.xml",
+      "summary_file": "be211-summary.json",
+      "summary_sha256": "8a083496187dfad44120c6b5a223ff870d893e611cd10a2ac877b6660cdd663c",
+      "junit": {
+        "be211-legacy_catalog.xml": {
+          "sha256": "ee8755206928e583d25950185f0f62d634d75655cd167f3150d54c1eeeb1ed6a",
           "cases": 25,
           "failures": 0,
           "errors": 0,
           "skips": 0,
-          "sha256": "6cd48740d24be44540ed62af77b3f1d60da072474dca826badd2b562b7d190e8"
+          "bytes": 3811
         },
-        {
-          "file": "owned.xml",
+        "be211-owned.xml": {
+          "sha256": "def20d1d851738889dfd33dccf5b935ec3e25957d1a40d80e202167ca527d02b",
           "cases": 219,
           "failures": 0,
           "errors": 0,
           "skips": 0,
-          "sha256": "cfdb71e9a1a81a9b649492211db8fdca4835d3433f5a5ede1aad98c79b96d045"
+          "bytes": 34915
         },
-        {
-          "file": "regression.xml",
+        "be211-regression.xml": {
+          "sha256": "cd15c6f42059272b212db94edfc7a49aff6454f7351ec39ae01f567a53ea17cc",
           "cases": 2605,
           "failures": 0,
           "errors": 0,
           "skips": 0,
-          "sha256": "841a7a9b45c7837be62db42a7017559ecbe3b841f41e241decfd5d62db7aa7ca"
+          "bytes": 393350
         }
-      ],
-      "sql": "COLLECTED_NOT_RUN",
-      "full_card_complete": false
+      }
     },
     "BE2-12": {
-      "feature": "FEAT-048-be2-content-publication",
-      "status": "PASS",
+      "status": "FAIL",
       "cases": 477,
-      "expected_cases": 477,
-      "summary_path": "features/FEAT-048-be2-content-publication/evidence/raw/GOAL_OFFLINE_BASELINE_20261020_FINAL_PINNED_ENV/summary.json",
-      "summary_sha256": "727b8c976612670d4836b83d2a1ec7b51f27629e158e82909f7eeb91543fbf9d",
-      "evidence_manifest_path": "features/FEAT-048-be2-content-publication/evidence/raw/GOAL_OFFLINE_BASELINE_20261020_FINAL_PINNED_ENV/evidence-manifest.json",
-      "evidence_manifest_sha256": "0a1897bd622a0898a367456fe8f31f5889e9e41df42d026a80f3565fa4a4805d",
+      "statuses": null,
+      "checks": {
+        "collection": 0,
+        "pytest": 1
+      },
       "source_unchanged": true,
-      "source_hash_count": 540,
-      "all_source_hashes_match_current_checkout": true,
-      "junit": [
-        {
-          "file": "junit.xml",
+      "summary_file": "be212-summary.json",
+      "summary_sha256": "1884191d41667064444f717c6c17dcfc0e0c6eaf123be95eb667b6a045de80ff",
+      "junit": {
+        "be212-junit.xml": {
+          "sha256": "4e3aeca620151cb8be40aba3fef9a0fca3afbbbb3ec910530f8fd77b2fd2955c",
           "cases": 477,
-          "failures": 0,
+          "failures": 1,
           "errors": 0,
           "skips": 0,
-          "sha256": "e3c5363c178e35bfd033eaf4072421f18dcb8e7571f6c90c58106e4a3155e4c6"
+          "bytes": 76850
         }
-      ],
-      "sql": "NOT_RUN",
-      "full_card_complete": false
+      }
     },
     "BE2-13": {
-      "feature": "FEAT-054-be2-preset-automation",
       "status": "PASS",
       "cases": {
         "owned": 194,
         "regression": 2849,
         "sql_collection_only": 11
       },
-      "expected_cases": null,
-      "summary_path": "features/FEAT-054-be2-preset-automation/evidence/raw/GOAL_OFFLINE_BASELINE_20261020_FINAL_PINNED_ENV/summary.json",
-      "summary_sha256": "4d5fe71520a7fa5bd217c761071a501f4fd5ea3b9896af77fd895f809a4d56b6",
-      "evidence_manifest_path": "features/FEAT-054-be2-preset-automation/evidence/raw/GOAL_OFFLINE_BASELINE_20261020_FINAL_PINNED_ENV/evidence-manifest.json",
-      "evidence_manifest_sha256": "861e0db7ceff2e0d6a64a6a18ee3c2244433bc5c11f1bda413374fd4d8b067b4",
+      "statuses": {
+        "owned": "PASS",
+        "regression": "PASS",
+        "sql_collection_only": "COLLECTED_NOT_RUN"
+      },
+      "checks": {
+        "ruff": 0,
+        "mypy": 0,
+        "architecture": 0,
+        "harness": 0,
+        "security": 0,
+        "whitespace": 0
+      },
       "source_unchanged": true,
-      "source_hash_count": 935,
-      "all_source_hashes_match_current_checkout": true,
-      "junit": [
-        {
-          "file": "owned.xml",
+      "summary_file": "be213-summary.json",
+      "summary_sha256": "0e6f7a8323f47ffc09b17567f4334dbf1b7c5d48a101d0f26a1e151c328b9b25",
+      "junit": {
+        "be213-owned.xml": {
+          "sha256": "1268d82a975e1ee651db6fabf3126059edb176ff17f45c95f1df868c7935e371",
           "cases": 194,
           "failures": 0,
           "errors": 0,
           "skips": 0,
-          "sha256": "4015ba8ae71c9c5651abf506d44a796f9fb1ab633156e42a50e44e0ba2942e01"
+          "bytes": 27835
         },
-        {
-          "file": "regression.xml",
+        "be213-regression.xml": {
+          "sha256": "2a85d026f5d9b954f4653a976dc415434defad527a9b31a0a9dd311a6586c912",
           "cases": 2849,
           "failures": 0,
           "errors": 0,
           "skips": 0,
-          "sha256": "4254a239ed6d446a92b849837d92f2168216d2aba4d05b744b7db8b179dc3b54"
+          "bytes": 431569
         }
-      ],
-      "sql": "COLLECTED_NOT_RUN",
-      "full_card_complete": false
+      }
     },
     "BE2-14": {
-      "feature": "FEAT-049-be2-ai-policy",
-      "status": "PASS",
+      "status": "FAIL",
       "cases": 1061,
-      "expected_cases": 1061,
-      "summary_path": "features/FEAT-049-be2-ai-policy/evidence/raw/GOAL_OFFLINE_BASELINE_20261020_POSTDOCS/summary.json",
-      "summary_sha256": "b005cb9a837f06bedf499b59f7e74805cf3029c36eb3a88cc4555b6d726b7de6",
-      "evidence_manifest_path": "features/FEAT-049-be2-ai-policy/evidence/raw/GOAL_OFFLINE_BASELINE_20261020_POSTDOCS/evidence-manifest.json",
-      "evidence_manifest_sha256": "740ccbeaade5c36910e9e6f5b7bef54f2d07bfe3387d8f63b0b4e3537149255f",
+      "statuses": null,
+      "checks": {
+        "collection": 0,
+        "pytest": 0,
+        "foundation_collection": 0,
+        "foundation": 0,
+        "ruff": 0,
+        "mypy": 0,
+        "regression477": 1,
+        "architecture": 0,
+        "harness": 0,
+        "security": 0,
+        "whitespace": 0
+      },
       "source_unchanged": true,
-      "source_hash_count": 909,
-      "all_source_hashes_match_current_checkout": true,
-      "junit": [
-        {
-          "file": "component.xml",
+      "summary_file": "be214-summary.json",
+      "summary_sha256": "5c12e59b5f6693d0ad450f774a56ee169a09e4234592cfae99c4a987df64b3d5",
+      "junit": {
+        "be214-component.xml": {
+          "sha256": "2e7b4c288221e51d76832159491613232a06f4a81625d774a85756471b615828",
           "cases": 1061,
           "failures": 0,
           "errors": 0,
           "skips": 0,
-          "sha256": "27034bea241b5ee42769e7f445c909262861c03f6e8b37a6fd16776effa0d16b"
+          "bytes": 163655
         },
-        {
-          "file": "foundation.xml",
+        "be214-foundation.xml": {
+          "sha256": "3cdeffd7ed3dc6c20de96c69169fab9371c066a918569f7c882e9ce9d92a7ef4",
           "cases": 114,
           "failures": 0,
           "errors": 0,
           "skips": 0,
-          "sha256": "02ef8778eef20c311d4cad88b9bd467a75932cd0afc771f817d2af94d3a59ba4"
+          "bytes": 17154
         }
-      ],
-      "sql": "NOT_RUN",
-      "full_card_complete": false,
-      "foundation_cases": 114,
-      "delegated_be2_12": {
-        "status": "PASS",
-        "cases": 477,
-        "expected_cases": 477,
-        "summary_sha256": "727b8c976612670d4836b83d2a1ec7b51f27629e158e82909f7eeb91543fbf9d"
-      },
-      "nonfatal_warnings": 23
+      }
     }
   },
-  "sql_execution": "NOT_RUN; component SQL suites were collection-only",
-  "database": "NOT_RUN",
-  "provider_http_server_runtime": "NOT_RUN",
-  "lightning_studio": "NOT_RUN",
-  "validators": {
+  "database": "NOT_RUN_BY_COMPONENT_RUNNERS",
+  "lightning_live": "NOT_RUN_DEFERRED",
+  "full_backend_suite": "NOT_COMPLETED; existing environment lacks python-multipart and optional backend test dependencies",
+  "alembic": {
+    "head_count": 9,
+    "heads": [
+      "20261014_0004:be1_core",
+      "20261015_ai_0001:ai_jobs",
+      "20261017_lc_0001:learning_content",
+      "20261018_ap_0009:ai_policy",
+      "20261018_kv_0001:knowledge_video",
+      "20261018_vr_0001:video_review",
+      "20261019_ae_0001:activity_execution",
+      "20261019_pa_0001:preset_automation",
+      "20261019_vf_0001:video_failure"
+    ],
+    "upgrade_heads_sql": "PASS",
+    "generated_bytes": 79021,
+    "database_connection": "NOT_RUN"
+  },
+  "repository_validators": {
     "harness": "PASS",
     "repository_security": "PASS",
     "architecture": "PASS",
     "skeleton": "PASS",
-    "git_diff_check": "PASS",
-    "ruff_migration_test": "PASS",
-    "mypy_migration_test": "PASS",
-    "environment_preflight": "PASS"
+    "diff_check": "PASS"
   },
-  "historical_pre_install_matrix": {
-    "scope": "BE2_01_14_OFFLINE_INTEGRATION_CANDIDATE",
-    "state": "IN_PROGRESS_WITH_ENVIRONMENT_LIMITS",
-    "candidate_branch": "feature/be2-backend-ai-integration",
-    "source_head": "d35f035f87fddfc87b0d72d8929f5b1b843fce0e",
-    "snapshot": {
-      "uncommitted_test_delta": {
-        "finding": "F057-H01",
-        "state": "FIXED_OFFLINE_TEST_EXPECTATION",
-        "file": "backend/tests/integration/ai_jobs/test_migrations.py",
-        "before_sha256": "f3e907442ee228ac45c25834ddc91ee7f27678b2178487062b6d4e331df15d22",
-        "after_sha256": "9b507b7f342a8c863062ed4ff6865a6e5012a804c41b360199f7cadaf3c03d46",
-        "before_test_failed": 1,
-        "after_tests_passed": 3,
-        "after_tests_skipped": 0,
-        "guard_probe_scenarios": 4,
-        "test_ids_and_expected_case_counts_changed": false,
-        "product_source_changed": false,
-        "other_protected_files_unchanged": 1078,
-        "external_access": "NONE",
-        "checks": [
-          {
-            "check": "fixed-graph-focused",
-            "exit": 0,
-            "started_utc": "2026-10-20T10:19:09.987570+00:00",
-            "finished_utc": "2026-10-20T10:19:10.902326+00:00",
-            "log": "fixed-graph-focused.log",
-            "log_sha256": "6f79a85401a459334e0ab7017c6d35546dce18834374e1295f5dae11daa0103a"
-          },
-          {
-            "check": "owned-head-guard-probes",
-            "exit": 0,
-            "started_utc": "2026-10-20T10:19:10.918735+00:00",
-            "finished_utc": "2026-10-20T10:19:11.592427+00:00",
-            "log": "owned-head-guard-probes.log",
-            "log_sha256": "5aa514e3388bde5bd777949263062f343826ed675d92ce6cab9fbfadaf153331"
-          },
-          {
-            "check": "ruff-scoped-test",
-            "exit": 0,
-            "started_utc": "2026-10-20T10:19:11.592427+00:00",
-            "finished_utc": "2026-10-20T10:19:11.693524+00:00",
-            "log": "ruff-scoped-test.log",
-            "log_sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
-          },
-          {
-            "check": "mypy-scoped-test",
-            "exit": 0,
-            "started_utc": "2026-10-20T10:19:11.693524+00:00",
-            "finished_utc": "2026-10-20T10:19:12.375010+00:00",
-            "log": "mypy-scoped-test.log",
-            "log_sha256": "5d4b6d285b77932e3d08212c3b4974d0a803f98ec60408ac6ccf6a063fa6c19e"
-          }
-        ]
-      },
-      "card_recheck_binding": "PRE_F057_H01; source maps retained unchanged",
-      "product_modules_changed": false
-    },
-    "current_recorded_recheck": {
-      "file": "features/FEAT-057-be2-01-14-offline-integration/evidence/metrics/LOCAL_OFFLINE_RECHECK_20261020.json",
-      "sha256": "322b715b8c9906402692d586f0c04e2c5305c541e31741eeacb060e5da989b71"
-    },
-    "runtime": {
-      "interpreter": "existing backend Python environment",
-      "pillow_available": false,
-      "multipart_module_available": false,
-      "packages_installed": false,
-      "source_unchanged": true
-    },
-    "cards": {
-      "BE2-08": {
-        "feature": "FEAT-050-be2-knowledge-video",
-        "runner_status": "FAIL_ENVIRONMENT_BLOCKED",
-        "owned": "collection blocked importing PIL; 446-case inventory; pass count unavailable",
-        "regression": "1435 PASS",
-        "sql": "11 collected only; NOT_RUN",
-        "static_checks": "ruff, mypy, architecture, harness, security, whitespace PASS",
-        "run_id": "20261020-093152-986611",
-        "summary_sha256": "9ee46484564620296207681248ccd2d99d5ffe3d01a76eb21f40ace42438f68a",
-        "status": "FAIL_ENVIRONMENT_BLOCKED",
-        "summary_file": "features/FEAT-050-be2-knowledge-video/evidence/raw/LOCAL_OFFLINE_RECHECK_20261020.summary.json",
-        "source_unchanged_during_recorded_run": true,
-        "rerun_after_F057_H01": false
-      },
-      "BE2-09": {
-        "feature": "FEAT-051-be2-video-review-playback",
-        "runner_status": "FAIL_ENVIRONMENT_BLOCKED",
-        "owned": "458 PASS",
-        "regression": "collection blocked importing PIL; 1881-case inventory; pass count unavailable",
-        "sql": "21 collected only; NOT_RUN",
-        "static_checks": "ruff, mypy, architecture, harness, security, whitespace PASS",
-        "run_id": "20261020-093242-890169",
-        "summary_sha256": "8def19967e9c466073f41ef29838bf4e8eb6dea50a544c590de2058141f53b6f",
-        "status": "FAIL_ENVIRONMENT_BLOCKED",
-        "summary_file": "features/FEAT-051-be2-video-review-playback/evidence/raw/LOCAL_OFFLINE_RECHECK_20261020.summary.json",
-        "source_unchanged_during_recorded_run": true,
-        "rerun_after_F057_H01": false
-      },
-      "BE2-10": {
-        "feature": "FEAT-052-be2-video-failure-disposition",
-        "runner_status": "FAIL_ENVIRONMENT_BLOCKED",
-        "owned": "253 PASS",
-        "regression": "collection blocked importing PIL; 2339-case inventory; pass count unavailable",
-        "sql": "14 collected only; NOT_RUN",
-        "static_checks": "ruff, mypy, architecture, harness, security, whitespace PASS",
-        "run_id": "20261020-093321-247533",
-        "summary_sha256": "7d1ad25927db0def2653bab8bcf2451905a2168d25aeaa21514805a04f46e4de",
-        "status": "FAIL_ENVIRONMENT_BLOCKED",
-        "summary_file": "features/FEAT-052-be2-video-failure-disposition/evidence/raw/LOCAL_OFFLINE_RECHECK_20261020.summary.json",
-        "source_unchanged_during_recorded_run": true,
-        "rerun_after_F057_H01": false
-      },
-      "BE2-11": {
-        "feature": "FEAT-053-be2-activity-execution",
-        "runner_status": "FAIL_ENVIRONMENT_BLOCKED",
-        "owned": "219 PASS",
-        "legacy_catalog": "25 PASS",
-        "regression": "collection blocked importing PIL; 2592-case inventory; pass count unavailable",
-        "sql": "17 collected only; NOT_RUN",
-        "static_checks": "ruff, mypy, architecture, harness, security, whitespace PASS",
-        "run_id": "20261020-093337-939417",
-        "summary_sha256": "f35ce66ef306d19b9acbdf78efe1ba6ac03bdf7c006e6a92db4ed4b1cee06d99",
-        "status": "FAIL_ENVIRONMENT_BLOCKED",
-        "summary_file": "features/FEAT-053-be2-activity-execution/evidence/raw/LOCAL_OFFLINE_RECHECK_20261020.summary.json",
-        "source_unchanged_during_recorded_run": true,
-        "rerun_after_F057_H01": false
-      },
-      "BE2-12": {
-        "feature": "FEAT-048-be2-content-publication",
-        "runner_status": "NOT_RUN",
-        "expected_cases": 477,
-        "passed": 476,
-        "skipped": 1,
-        "skip_reason": "live-app route test requires Pillow; the current environment lacks PIL",
-        "run_id": "20261020-093411-946386",
-        "summary_sha256": "d61e9d7e06bf44c134730b4f7fddeb59407a9ee1fff585f9cc8b18d658ff5773",
-        "status": "NOT_RUN",
-        "summary_file": "features/FEAT-048-be2-content-publication/evidence/raw/LOCAL_OFFLINE_RECHECK_20261020.summary.json",
-        "source_unchanged_during_recorded_run": true,
-        "rerun_after_F057_H01": false
-      },
-      "BE2-13": {
-        "feature": "FEAT-054-be2-preset-automation",
-        "runner_status": "FAIL_ENVIRONMENT_BLOCKED",
-        "owned": "194 PASS",
-        "regression": "collection blocked importing PIL; 2836-case inventory; pass count unavailable",
-        "sql": "11 collected only; NOT_RUN",
-        "static_checks": "ruff, mypy, architecture, harness, security, whitespace PASS",
-        "run_id": "20261020-093421-885241",
-        "summary_sha256": "bfb3a5cd06f6bd4376bf5ec41a8c361716f0253d12ee168004dc203803e50a5f",
-        "status": "FAIL_ENVIRONMENT_BLOCKED",
-        "summary_file": "features/FEAT-054-be2-preset-automation/evidence/raw/LOCAL_OFFLINE_RECHECK_20261020.summary.json",
-        "source_unchanged_during_recorded_run": true,
-        "rerun_after_F057_H01": false
-      },
-      "BE2-14": {
-        "feature": "FEAT-049-be2-ai-policy",
-        "runner_status": "FAIL_DEPENDENT_REGRESSION_NOT_RUN",
-        "owned": "1061 PASS",
-        "foundation": "114 PASS",
-        "delegated_regression": "NOT_RUN; task 12 had one Pillow-dependent skip",
-        "static_checks": "ruff, mypy, architecture, harness, security, whitespace PASS",
-        "run_id": "20261020-093442-268488",
-        "delegated_task_12_run_id": "20261020-093456-931480",
-        "summary_sha256": "26c50721cde67dc1ed3e933b36d7f33098dae7a7cea2bb7dfd3a59ff7918292e",
-        "status": "FAIL_DEPENDENT_REGRESSION_NOT_RUN",
-        "summary_file": "features/FEAT-049-be2-ai-policy/evidence/raw/LOCAL_OFFLINE_RECHECK_20261020.summary.json",
-        "source_unchanged_during_recorded_run": true,
-        "rerun_after_F057_H01": false
-      }
-    },
-    "database": "NOT_RUN; collection-only inventory is not SQL execution",
-    "historical_owned_postgres_cases_passed": {
-      "08": 11,
-      "09": 21,
-      "10": 14,
-      "11": 17,
-      "12": 33,
-      "13": 11,
-      "14": 104
-    },
-    "lightning_live": "NOT_RUN; only BE2-01 frozen A17 entrypoint approved",
-    "full_backend_suite": "NOT_COMPLETED_ENVIRONMENT_BLOCKED",
-    "publication": {
-      "current_session": "NOT_ATTEMPTED_OR_REMOTE_RECHECKED",
-      "historical_record": {
-        "file": "features/FEAT-057-be2-01-14-offline-integration/evidence/raw/handoff-sync-20261020/MERGE_TIME_offline-test-matrix.json",
-        "sha256": "0a348391e0562aa4f2a38a4586611a2020ccb2ec4324ec230d583686904ea1c4"
-      },
-      "scope": "Earlier authentication failure is history, not a new credential check."
-    },
-    "historical_merge_time": {
-      "offline-test-matrix.json": {
-        "file": "features/FEAT-057-be2-01-14-offline-integration/evidence/raw/handoff-sync-20261020/MERGE_TIME_offline-test-matrix.json",
-        "sha256": "0a348391e0562aa4f2a38a4586611a2020ccb2ec4324ec230d583686904ea1c4"
-      },
-      "OFFLINE_INTEGRATION_RESULTS_20261020.md": {
-        "file": "features/FEAT-057-be2-01-14-offline-integration/evidence/raw/handoff-sync-20261020/MERGE_TIME_OFFLINE_INTEGRATION_RESULTS_20261020.md",
-        "sha256": "343eb26c72efb2f2146ea2f8321079af74a588da2fbb266065c19063f6e5b2b8"
-      }
-    },
-    "alembic": {
-      "historical_graph_and_offline_sql": {
-        "head_count": 9,
-        "heads": [
-          "20261014_0004:be1_core",
-          "20261015_ai_0001:ai_jobs",
-          "20261017_lc_0001:learning_content",
-          "20261018_ap_0009:ai_policy",
-          "20261018_kv_0001:knowledge_video",
-          "20261018_vr_0001:video_review",
-          "20261019_ae_0001:activity_execution",
-          "20261019_pa_0001:preset_automation",
-          "20261019_vf_0001:video_failure"
-        ],
-        "upgrade_heads_sql": "PASS",
-        "generated_bytes": 79021,
-        "database_connection": "NOT_RUN"
-      },
-      "fresh_scoped_followup": "F057-H01: 3 passed, 0 skipped; four guard scenarios passed; no database"
-    },
-    "repository_validators": {
-      "validate_harness": {
-        "state": "PASS",
-        "exit": 0,
-        "log": "features/FEAT-057-be2-01-14-offline-integration/evidence/raw/handoff-sync-20261020/validate_harness-final.log",
-        "sha256": "f9b8b4622a4e69492c5173211fa6ab3988bb38ac303c35856dcac3a264f5b680"
-      },
-      "validate_repository_security": {
-        "state": "PASS",
-        "exit": 0,
-        "log": "features/FEAT-057-be2-01-14-offline-integration/evidence/raw/handoff-sync-20261020/validate_repository_security-final.log",
-        "sha256": "91714589eab33efccc13bc8b41c7c881433c28d850a5ffe7050241ac6e18b544"
-      },
-      "validate_architecture": {
-        "state": "PASS",
-        "exit": 0,
-        "log": "features/FEAT-057-be2-01-14-offline-integration/evidence/raw/handoff-sync-20261020/validate_architecture-final.log",
-        "sha256": "fa02308d81518f8db014a47ac4e9d26bcd2986c1ac8066868fd97e0fee2a5fd4"
-      },
-      "validate_skeleton": {
-        "state": "PASS",
-        "exit": 0,
-        "log": "features/FEAT-057-be2-01-14-offline-integration/evidence/raw/handoff-sync-20261020/validate_skeleton-final.log",
-        "sha256": "a0d55ec08b5d079817600d915f0c8060fc8872efdc32318ff4a7e0f4a3ac93d7"
-      },
-      "git_diff_check": {
-        "state": "PASS",
-        "exit": 0
-      }
-    },
-    "environment_blockers": [
-      "Pillow/PIL missing: latest collection blockers and task12 skip",
-      "multipart also missing; not the latest observed skip reason",
-      "No existing equivalent dependency-complete environment found; no installs authorized"
+  "administrative_feature_id_collisions": {
+    "FEAT-048": [
+      "BE2-02 FEAT-048-be2-vision-correction",
+      "BE2-12 FEAT-048-be2-content-publication"
     ],
-    "administrative_feature_id_collisions": {
-      "FEAT-048": [
-        "BE2-02 FEAT-048-be2-vision-correction",
-        "BE2-12 FEAT-048-be2-content-publication"
-      ],
-      "FEAT-049": [
-        "BE2-03 FEAT-049-be2-assistance-orchestration",
-        "BE2-14 FEAT-049-be2-ai-policy"
-      ],
-      "FEAT-050": [
-        "BE2-04 FEAT-050-be2-sketch-generation",
-        "BE2-08 FEAT-050-be2-knowledge-video"
-      ],
-      "FEAT-052": [
-        "BE2-05 FEAT-052-be2-sketch-review",
-        "BE2-10 FEAT-052-be2-video-failure-disposition"
-      ],
-      "resolution": "Preserve frozen paths; use BE2 card number plus full directory name."
-    },
-    "base_commit": "9d1ed184f31ab6b1f18337a1e29bb04fd59aa1b5",
-    "receiver_commit": "42a6d3122259e6b33133673a2e444deefa45d387",
-    "merge_commit": "abe3c357e2c40c694317ead6cf9a1b7c479e3f6e",
-    "merge_parents": [
-      "8e569598f9c58bfbcfb2e54bc13e6077d7158d50",
-      "42a6d3122259e6b33133673a2e444deefa45d387"
+    "FEAT-049": [
+      "BE2-03 FEAT-049-be2-assistance-orchestration",
+      "BE2-14 FEAT-049-be2-ai-policy"
     ],
-    "card_statuses_changed": false,
-    "acceptance_claimed": false
+    "FEAT-050": [
+      "BE2-04 FEAT-050-be2-sketch-generation",
+      "BE2-08 FEAT-050-be2-knowledge-video"
+    ],
+    "FEAT-052": [
+      "BE2-05 FEAT-052-be2-sketch-review",
+      "BE2-10 FEAT-052-be2-video-failure-disposition"
+    ],
+    "resolution": "Preserve frozen paths; use BE2 card number plus full directory name."
   },
-  "card_approval_status_acceptance_changed": false,
-  "full_card_completion_claimed": false,
-  "final_receipt": "features/FEAT-057-be2-01-14-offline-integration/evidence/metrics/GOAL_OFFLINE_BASELINE_FINAL_20261020.json",
-  "final_receipt_sha256": "1ad88fc752ffc62b66f438fe891ba12fb84d63a3f79cd9a80e97d20de34cd76e"
+  "environment_blockers": [
+    "python-multipart is declared but absent from available backend venv; BE2-12 route test fails, and BE2-14 delegated regression check inherits the failure.",
+    "Full backend suite was not completed because optional dependencies used by unrelated legacy tests are also absent."
+  ],
+  "merge_commit": "abe3c357e2c40c694317ead6cf9a1b7c479e3f6e",
+  "merge_parents": [
+    "8e569598f9c58bfbcfb2e54bc13e6077d7158d50",
+    "42a6d3122259e6b33133673a2e444deefa45d387"
+  ]
 }
