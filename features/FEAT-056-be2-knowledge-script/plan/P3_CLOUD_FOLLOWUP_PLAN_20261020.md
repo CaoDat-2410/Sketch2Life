@@ -1,6 +1,6 @@
 # BE2-07 cloud P3 follow-up plan
 
-- Status: APPROVED / IN_PROGRESS.
+- Status: APPROVED / COMPLETED (2026-10-20).
 - Authority: `../approvals/P3_CLOUD_FOLLOWUP_APPROVAL_20261020.md`.
 - Starting published snapshot: `f0359c4fbb7c3f4a35dd3f2265559779a17951e9`.
 - Input: user-pasted Claude cloud summary; session and raw-file provenance are recorded locally.
@@ -70,3 +70,13 @@ corrections and publication, report the pending archive/cleanup step and keep th
 - Fresh focused/full local checks and independent product/evidence reviews pass with honest limits.
 - Old immutable records retain their exact hashes; new handoff stays NOT_ACCEPTED / NOT_DONE.
 - Branch push is verified. Conditional cleanup happens only after full raw archive verification.
+
+## Completion record — 2026-10-20
+
+Both supplied cloud archives were re-hashed locally and every indexed output matched its recorded
+byte count and SHA256: 83/83 for the original review and 78/78 for the re-review. The exact
+published `evidence/cloud-review/` export was removed in a separate cleanup commit on
+`feature/be2-07-knowledge-script`; its unchanged Git snapshot and final PASS report remain
+available at immutable commit `0d07386eb7b6a17755eaa5ed03a127466194debf`. Raw archives remain in
+ignored local evidence. This cleanup does not change owner acceptance, card status, runtime gates
+or the frozen task approval/revision-1 records.

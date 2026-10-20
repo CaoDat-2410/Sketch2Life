@@ -1,6 +1,6 @@
 # BE2-07 context
 
-## Current post-cloud P3 checkpoint — 2026-10-20
+## Earlier post-cloud P3 checkpoint (superseded) — 2026-10-20
 
 The user approved the cloud follow-up plan. Invisible-character/CGJ matching and DEL/C1
 validation are corrected without rewriting original text/canonical bytes; optimized Python
@@ -11,13 +11,13 @@ new POST_CLOUD_P3 handoff. Component remains NOT_ACCEPTED and card IN_PROGRESS /
 Actual cloud REVIEW.md/index/83 outputs are pending transfer, so keep the export folder until
 archive verification. Earlier entries retain their dated product/Git checkpoints.
 
-## Current publication checkpoint — 2026-10-20
+## Earlier publication checkpoint — 2026-10-20
 
 The user now authorizes the proposed 12 commits, pushing this task branch, and creating a
 Claude cloud review session. The separate publication approval supersedes the earlier Git
 restriction only. Source/tests/examples and frozen plan/approval remain the reviewed bytes;
 historical entries below retain their original checkpoint states. Portable review evidence
-and its limitations are indexed in `evidence/cloud-review/`. Component NOT_ACCEPTED; card
+and its limitations were indexed in the published cloud-review snapshot. Component NOT_ACCEPTED; card
 IN_PROGRESS / NOT_DONE. No runtime/Lightning or owner acceptance is inferred from publication.
 
 2026-10-19: READY_FOR_OWNER_PLAN_APPROVAL / AWAITING_PLAN_APPROVAL, source07 NOT_STARTED.
@@ -113,8 +113,16 @@ No PR, merge to dev, deployment, or Lightning execution is authorized.
 
 ## Offline component accepted — 2026-10-20
 
-The final review of 763a17c passed (evidence/cloud-review/final-review-20261020/REVIEW.md). Under the
+The final review of 763a17c passed ([immutable report at commit 0d07386](https://github.com/CaoDat-2410/Sketch2Life/blob/0d07386eb7b6a17755eaa5ed03a127466194debf/features/FEAT-056-be2-knowledge-script/evidence/cloud-review/final-review-20261020/REVIEW.md)). Under the
 owner's conditional instruction, KNOWLEDGE_SCRIPT_COMPONENT_OFFLINE is accepted
 (approvals/COMPONENT_ACCEPTANCE.md) and the reviewed snapshot is integrated into feature/be2-01-07
 by fast-forward. Card IN_PROGRESS / NOT_DONE; runtime, Lightning, real adapters, actual08 adoption
-and cross-card integration remain open. Historical evidence and evidence/cloud-review are unchanged.
+and cross-card integration remain open. The cloud-review export was removed from the current tree
+after its raw archives were verified; its published snapshot remains at commit 0d07386.
+
+## Cloud-review export cleanup — 2026-10-20
+
+The exact tracked `evidence/cloud-review/` export was removed in a separate cleanup commit after
+the two original cloud archives and every indexed output were hash-verified. The final PASS report
+remains reachable at the immutable link above. Archive receipts and raw files are retained only in
+ignored local evidence; component/card/runtime status and frozen approvals are unchanged.
