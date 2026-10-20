@@ -1,5 +1,15 @@
 # Source register and authority boundary
 
+## BE2-01–14 runtime-readiness analysis authority — 2026-10-20
+
+owner-be20114-runtime-readiness-20261020: direct user instruction recorded in
+FEAT-057 `approvals/TASK_APPROVAL.md`. Authorizes reading the 14 task records and
+preparing a staged command/readiness runbook for use after Lightning is operating
+normally. This step is analysis/documentation only: no Lightning/provider/service
+execution, installation, database provisioning/migration, adapter implementation,
+or card acceptance. Actual execution remains subject to the exact source,
+environment, feature approval, and owner-adoption gates documented by each card.
+
 ## BE2-01–14 offline integration authority — 2026-10-20
 
 owner-be20114-offline-integration-20261020: direct user instruction in this

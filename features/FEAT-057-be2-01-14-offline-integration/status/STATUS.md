@@ -2,6 +2,7 @@
 
 - Status: IN_PROGRESS
 - Plan revision: 1 (approved)
+- Runtime-readiness sub-plan: revision 1 (approved); analysis/runbook prepared, no live run
 - Implementation status: merge committed locally; offline candidate reviewable with environment blockers
 - Base branch tip: `9d1ed184f31ab6b1f18337a1e29bb04fd59aa1b5`
 - Receiver branch tip: `42a6d3122259e6b33133673a2e444deefa45d387`
@@ -32,3 +33,13 @@ placeholder URL; no database was contacted. Full backend pytest was not complete
 because the available environment also lacks optional dependencies used by
 unrelated legacy suites. No Lightning/live check has run. This candidate is ready
 for review with the stated environment blocker; it is not component/card acceptance.
+
+Runtime-readiness analysis for BE2-01–14 is recorded in
+`evidence/notes/BE2_01_14_RUNTIME_READINESS_20261020.md` and its task matrix in
+`evidence/metrics/BE2_01_14_RUNTIME_READINESS_20261020.json`. There is no
+source-traced one-shot runtime command for all 14: the frozen BE2-01 A17-fix01
+Studio checkpoint is prepared separately, while shared runtime adapters and
+owner adoptions remain missing across the workflow. Generic
+`scripts/lightningai/run_tests.sh` is a FEAT-018 suite, not a BE2 runner. This
+analysis did not execute Lightning, install packages, run services/DBs/providers,
+or change any per-card acceptance status.
