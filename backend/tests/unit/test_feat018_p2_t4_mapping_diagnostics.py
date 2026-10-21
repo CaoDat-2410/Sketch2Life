@@ -15,7 +15,7 @@ from datetime import UTC, datetime
 from functools import lru_cache
 from hashlib import sha256
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import pytest
 from pydantic import ValidationError
@@ -74,7 +74,7 @@ def _text_digest(value: str) -> str:
 
 
 def load_manifest() -> dict[str, Any]:
-    return json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
+    return cast(dict[str, Any], json.loads(MANIFEST_PATH.read_text(encoding="utf-8")))
 
 
 def build_raw(case: dict[str, Any]) -> RawUnderstandingSuccessV1:
@@ -208,13 +208,14 @@ def _confirmation(case: dict[str, Any], version: int) -> dict[str, Any]:
         "meaning_version": recipe["meaning_version"],
         "confirmed_claim_ids": recipe["confirmed_claim_ids"],
     }
+    confirmation: GateAConfirmationV1 | GateAConfirmationV2
     if recipe["version"] == 2:
-        result = GateAConfirmationV2(
+        confirmation = GateAConfirmationV2(
             **common, adult_subject_label=recipe["adult_subject_label"]
         )
     else:
-        result = GateAConfirmationV1(**common, correction=recipe["correction"])
-    return result.model_dump(mode="json")
+        confirmation = GateAConfirmationV1(**common, correction=recipe["correction"])
+    return confirmation.model_dump(mode="json")
 
 
 def _seed_gate_a(case: dict[str, Any], raw: RawUnderstandingSuccessV1,
@@ -241,7 +242,7 @@ def _seed_gate_a(case: dict[str, Any], raw: RawUnderstandingSuccessV1,
         case, 0, "CREATE_SESSION", {"operation": "CREATE_SESSION"}
     ))
     assert not replay
-    updates = {
+    updates: dict[str, object] = {
         "source_image_ref": raw.source_image_ref.model_dump(mode="json"),
         "raw_understanding": raw.model_dump(mode="json"),
     }
@@ -391,7 +392,7 @@ def _target_match_mode(matches: list[dict[str, Any]], boundary: str,
                   if item["boundary"] == boundary and item["activity_id"] == activity_id), None)
     if match is None or match["fallback_observed"]:
         return "NO_PERSONALIZED_MATCH"
-    return match["match_mode"]
+    return cast(str, match["match_mode"])
 
 
 def _static_review_hypotheses(family: str) -> list[str]:
@@ -496,7 +497,9 @@ def run_case(case: dict[str, Any]) -> dict[str, Any]:
     return row
 
 
-def _upstream(raw: RawUnderstandingSuccessV1, *, null_confidence: bool = False) -> Any:
+def _upstream(
+    raw: RawUnderstandingSuccessV1, *, null_confidence: bool = False
+) -> VisionUnderstandingSuccessV2:
     values = raw.model_dump(mode="json")
     provenance = values["provenance"]
     entities = [
@@ -645,7 +648,7 @@ def _apply_supplemental_expectation(item: dict[str, Any], row: dict[str, Any]) -
 
 
 def test_supplemental_correction_provenance_matches_v1_observation() -> None:
-    correction = {
+    correction: dict[str, Any] = {
         "confirmed_claim_ids": ["vision-1"],
         "primary_anchor": {"original_label_sha256": "raw-label-hash",
                             "normalized_label_sha256": "correction-label-hash",
@@ -737,20 +740,21 @@ def run_supplemental(item: dict[str, Any], manifest: dict[str, Any]) -> dict[str
     }
     observed = row["observed"]
     if scenario in {"VISION_NULL_CONFIDENCE", "SOURCE_HASH_MISMATCH", "CORRELATION_MISMATCH"}:
-        kwargs = {
-            "session_id": raw.session_id, "expected_source_sha256": raw.source_image_ref.sha256,
-            "expected_correlation_id": raw.correlation_id,
-        }
+        expected_source_sha256 = raw.source_image_ref.sha256
+        expected_correlation_id = raw.correlation_id
         expected = {"VISION_NULL_CONFIDENCE": "missing confidence",
                     "SOURCE_HASH_MISMATCH": "source image hash mismatch",
                     "CORRELATION_MISMATCH": "stale correlation id"}[scenario]
         if scenario == "SOURCE_HASH_MISMATCH":
-            kwargs["expected_source_sha256"] = "f" * 64
+            expected_source_sha256 = "f" * 64
         elif scenario == "CORRELATION_MISMATCH":
-            kwargs["expected_correlation_id"] = "stale-fixture-correlation"
+            expected_correlation_id = "stale-fixture-correlation"
         try:
             map_vision_result_to_raw(
-                _upstream(raw, null_confidence=scenario == "VISION_NULL_CONFIDENCE"), **kwargs
+                _upstream(raw, null_confidence=scenario == "VISION_NULL_CONFIDENCE"),
+                session_id=raw.session_id,
+                expected_source_sha256=expected_source_sha256,
+                expected_correlation_id=expected_correlation_id,
             )
         except RawUnderstandingMappingError as exc:
             assert expected in str(exc)

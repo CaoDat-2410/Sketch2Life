@@ -8,7 +8,7 @@ import re
 from collections import Counter
 from copy import deepcopy
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 from uuid import RFC_4122, UUID
 
 import pytest
@@ -61,7 +61,7 @@ APPROVAL = {
 
 @pytest.fixture
 def manifest() -> dict[str, Any]:
-    return json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
+    return cast(dict[str, Any], json.loads(MANIFEST_PATH.read_text(encoding="utf-8")))
 
 
 def _assert_source_bindings(manifest: dict[str, Any]) -> dict[str, Any]:
