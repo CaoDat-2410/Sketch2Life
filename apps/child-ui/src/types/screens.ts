@@ -1,0 +1,16 @@
+export type Screen =
+  | 'join'
+  | 'lobby'
+  | 'draw'
+  | 'advanced'
+  | 'ideas'
+  | 'review'
+  | 'group'
+  | 'gallery'
+  | 'learn'
+  | 'video'
+  | 'offline'
+  | 'feeling'
+  | 'reconnect'
+
+export type Kid = 'Mây' | 'Lá'
