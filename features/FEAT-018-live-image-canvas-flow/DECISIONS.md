@@ -1,5 +1,29 @@
 # FEAT-018 decisions
 
+- 2026-10-21 Person 2 issued `W2_FEAT018_P2_T4_GATE3_HARNESS_DISPOSITION_01` in the
+  coordinator conversation: `HARNESS_INVALID` remains the actual repository-wide result, not a
+  pass or waiver, and is outside the seven P2-T4-specific gates. Gate 3 requires valid passing
+  results bound to the final handoff commit. This is relayed, not recorded in TASK_APPROVAL.md,
+  because the APP write hold remains in force; FEAT-045/046/047 are not changed.
+
+- 2026-10-21 Person 2 issued the complete
+  `W2_FEAT018_P2_T4_CONTINUATION_AND_FINAL_GATE_SCOPE_01` in the coordinator conversation.
+  It permits one new candidate Ruff invocation with `--no-cache --no-fix --no-fix-only`, candidate
+  synchronization in the seven named documentation/evidence files, and a bounded post-edit validator
+  mini-cycle. The C/D amendment permits candidate synchronization before the final commit and accepts
+  `W2_FEAT018_P2_T4_POST_COMMIT_GATE_RECORD_01` in chat, bound to the full commit SHA, as the final
+  seven-gate evidence. One final gate cycle is conditional on a separate local-commit authorization;
+  this scope grants no stage, commit or push. This is relayed, not recorded in TASK_APPROVAL.md,
+  while APP hold is in force. Task 4 remains OPEN, Security PENDING, and product follow-ups unchanged.
+
+- 2026-10-21 coordinator record (not a Person 2 decision): the newly authorized candidate Ruff
+  invocation completed with exit 0 and `All checks passed!`. The earlier cache-denied invocation
+  remains exit 1 with no lint verdict. HEAD was `4310fcbfafa48a14e5fce31f38a2089e24079e52`;
+  tested source/config had no Git diff, the two test-file tuples matched the note, and CPython
+  3.12.10, pytest 8.4.2, Pillow 12.3.0, Ruff 0.16.4 and mypy 1.20.2 matched the earlier checks.
+  The other six valid candidate results are reused under the issued scope. Candidate evidence does
+  not establish Gate 3 MET; the post-commit record and independent final review remain outstanding.
+
 - 2026-10-21 owner amendment `W2_FEAT018_P2_T4_DIAGNOSTIC_ACCEPTANCE_REBASE_01`: P2-T4 may
   accept the approved diagnostic deliverable (120 primary, 43 supplemental, B1/B2/B3 within scope,
   metrics report and evidence) without treating the 60 primary or 5 supplemental `UNRESOLVED`

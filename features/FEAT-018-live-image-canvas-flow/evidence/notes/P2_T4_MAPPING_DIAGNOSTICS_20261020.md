@@ -20,8 +20,13 @@ Artifact tuples:
 | Artifact | Bytes | SHA-256 |
 | --- | ---: | --- |
 | `tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json` | 228,305 | `1ba728ca3b02646bafd6b75d27b6c70461957ceb8628ec8e75f11e3aea62bd5a` |
-| `backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py` | 60,003 | `dbfe424bd14a8ddefec7d3fd077903e67abb537e8e2ba409941acf44ae3ef105` |
-| `backend/tests/contract/test_feat018_p2_t4_manifest_contract.py` | 22,000 | `6dedf9f04346db6094978218a849ac9d63b4ee01fc9632971fcf42a0bd5dfb89` |
+| `backend/tests/unit/test_feat018_p2_t4_mapping_diagnostics.py` | 60,257 | `72e6080bea0e1ae444e0e55a273fd6333e57564a26a5bd03af762209cddc4636` |
+| `backend/tests/contract/test_feat018_p2_t4_manifest_contract.py` | 22,028 | `30fd2e6e94961ab2e30abde9c722992d3b2af5892bafbde1448dea33719b146f` |
+
+Historical pre-typing-fix tuples, superseded by the current values above: the unit test was 60,003
+bytes / `dbfe424bd14a8ddefec7d3fd077903e67abb537e8e2ba409941acf44ae3ef105`, and the contract test
+was 22,000 bytes / `6dedf9f04346db6094978218a849ac9d63b4ee01fc9632971fcf42a0bd5dfb89`. These historical
+tuples must not be used to identify the current test files.
 
 ## Latest Modal Notebook run — 2026-10-20
 
@@ -389,13 +394,13 @@ issue outside P2-T4; FEAT-045/046/047 are not changed under Task 4.
 
 The unmodified Modal-generated JSON is **2,162,088 bytes**, SHA-256
 `15d4c5dfaecb2212205e1e705a85ef64493f37a3f54800579b051250227233a0`. The current coordinator-
-annotated JSON is **2,163,728 bytes**, SHA-256
-`3e882fe75c1f8449b34d1af1717379765ee6e97dff2eefd4f01a28fb28abadec`; it is a distinct artifact.
+annotated JSON is **2,163,861 bytes**, SHA-256
+`06d467a2629f5d03511cc4ef41997a5c9d84480a2dc7aa3433b3e8ed18e691b0`; it is a distinct artifact.
 The owner-approved Revision 3 plan source digest is
 `1482c047476049e44ecd515178d64b2d4c9e60d13511c92aa8112fd5269d2d66`; the current derived plan
-record after status, acceptance, review-limit, final-check, and Person 2 disposition updates is
-18,795 bytes, SHA-256
-`52988d70083a8473bce252f1767c6c7d137b7f98cb4323af11518423dc9505f5`. This derived tuple is
+record after status, acceptance, review-limit, final-check, Person 2 disposition and continuation
+updates is 20,324 bytes, SHA-256
+`1417e71a46271f605d72521468223b3c5c33287f761a142894a9922a0bde6807`. This derived tuple is
 computed from the current plan file; it does not replace the approved Revision 3 source digest.
 
 ### Person 2 disposition — 2026-10-21
@@ -416,3 +421,117 @@ bound to the final commit (the gate results above are bound to the uncommitted w
 gates confirmed on that commit, and an independent final review of the exact handoff commit. Security
 remains PENDING. This note does not claim that any product gap has been fixed or that Task 4 is
 closed.
+
+## Closure Gate 3 disposition and pre-continuation attempt — 2026-10-21
+
+Person 2 issued `W2_FEAT018_P2_T4_GATE3_HARNESS_DISPOSITION_01` in the coordinator conversation.
+The disposition keeps the repository-wide result `HARNESS_INVALID`, not a pass or waiver, and places
+that unrelated result outside the P2-T4-specific closure gate. Gate 3 is met only when every listed
+P2-T4 gate has a valid passing result bound to the final handoff commit. Task 4 remains OPEN.
+
+At this pre-continuation stage, checkout was HEAD `4310fcbfafa48a14e5fce31f38a2089e24079e52`;
+the test files had the current tuples listed above. On 2026-10-21 the listed gates were run against
+the uncommitted working tree based on that HEAD. This historical candidate run is not bound to a
+final handoff commit:
+
+| Gate | Command/result | Working directory and limitation |
+| --- | --- | --- |
+| Focused pytest | `& '.venv/Scripts/python.exe' -B -m pytest -p no:cacheprovider tests/unit/test_feat018_p2_t4_mapping_diagnostics.py tests/contract/test_feat018_p2_t4_manifest_contract.py tests/unit/test_raw_understanding.py tests/unit/test_activity_semantics.py -ra` — **368 passed in 2.62s** | `backend/`; CPython 3.12.10, pytest 8.4.2, Pillow 12.3.0. |
+| Ruff 0.16.4 | `& '.venv/Scripts/ruff.exe' check tests/unit/test_feat018_p2_t4_mapping_diagnostics.py tests/contract/test_feat018_p2_t4_manifest_contract.py` — **NOT RUN / no lint verdict**; command exited 1 before lint because it could not create a temporary file under `backend/.ruff_cache` (`Access is denied`, OS error 5). | `backend/`; not retried with another cache path, shell, or split command. |
+| Scoped mypy 1.20.2 | **Success: no issues found in 2 source files**; command used `--no-incremental --cache-dir $cacheDir --config-file pyproject.toml` for the two test paths, with `$cacheDir = Join-Path $env:TEMP 'feat018-p2t4-mypy-cache-20261021-gate3'`. | `backend/`; per-command cache under `%TEMP%`. |
+| Architecture validator | **ARCHITECTURE_VALID** | Repository root; `python tools/validate_architecture.py`. |
+| Skeleton validator | **SKELETON_VALID** | Repository root; `python tools/validate_skeleton.py`. |
+| Repository security validator | **REPOSITORY_SECURITY_VALID**; 2,588 publishable files scanned; no absolute machine paths. | Repository root; `python tools/validate_repository_security.py`. |
+| `git diff --check` | **PASS**, exit 0. | Repository root. |
+
+The last recorded repository-harness result is `HARNESS_INVALID`: FEAT-045, FEAT-046 and FEAT-047
+each lack `evidence/screenshots` and `evidence/metrics`. The harness validator is not among the seven
+P2-T4 gates listed for this disposition, so it was not rerun; the missing paths remain an unrelated
+repository-wide issue and those feature directories were not changed.
+
+That Ruff attempt produced no lint verdict, so Gate 3 was **NOT MET**. Ruff was recorded as NOT RUN
+and no further invocation was made at that stage. The issued rule requires stopping and reporting a
+gate without a verdict, and prohibits bypassing that rule by changing shell or splitting commands.
+The other six checks passed on
+the uncommitted candidate but do not substitute for a valid Ruff result or final-commit binding. No
+commit or push was authorized, so the final-commit gate has not been completed.
+
+Earlier coordinator wording extended the restriction to cache paths. That extension was the
+coordinator's interpretation, not an explicit owner-issued cache restriction. That wording correction
+authorized no new Ruff attempt and did not change the failed invocation's missing-verdict status.
+
+After the documentation updates, architecture and skeleton validators were rerun and returned
+`ARCHITECTURE_VALID` and `SKELETON_VALID`; repository security returned
+`REPOSITORY_SECURITY_VALID` (2,588 publishable files scanned; no absolute machine paths); and
+`git diff --check` exited 0. The focused test files and their current tuples did not change after the
+pytest, mypy, and Ruff attempts above.
+
+Before the continuation issuance, step C had not been applied because the successful final-gate
+condition was not established. The then-existing JSON tuple was 2,163,728 bytes / SHA-256
+`3e882fe75c1f8449b34d1af1717379765ee6e97dff2eefd4f01a28fb28abadec`; its old `NOT_MET` explanation
+predated this disposition and was not authority for treating `HARNESS_INVALID` as a P2-T4 blocker. The
+original Modal tuple remains 2,162,088 bytes / `15d4c5dfaecb2212205e1e705a85ef64493f37a3f54800579b051250227233a0`.
+
+The owner disposition does not close Task 4, resolve product gaps, change Security `PENDING`, or
+authorize runtime/provider work. Independent final review and valid gates bound to a final handoff
+commit remain outstanding.
+
+## Issued continuation and candidate synchronization — 2026-10-21
+
+Person 2 issued the entire `W2_FEAT018_P2_T4_CONTINUATION_AND_FINAL_GATE_SCOPE_01` in the
+coordinator conversation. The issuance and Gate 3 disposition are relayed in `DECISIONS.md`, not
+recorded in `approvals/TASK_APPROVAL.md`, because the APP write hold remains in force. This permits
+one new candidate Ruff invocation and the seven named documentation/evidence updates; it does not
+retroactively turn the failed invocation above into a pass.
+
+The coordinator verified HEAD `4310fcbfafa48a14e5fce31f38a2089e24079e52`, no Git diff in tested
+source/config, and matching current test tuples. Tool versions remained CPython 3.12.10, pytest
+8.4.2, Pillow 12.3.0, Ruff 0.16.4 and mypy 1.20.2. The six earlier valid candidate results therefore
+remain applicable under the issued continuation: focused pytest 368 passed, scoped mypy success in
+two files, architecture/skeleton/security valid, and `git diff --check` exit 0. The post-edit
+validator mini-cycle is a separate check after this synchronization.
+
+Exactly one new candidate Ruff command was dispatched from `backend/`:
+
+```powershell
+& '.venv/Scripts/ruff.exe' check --no-cache --no-fix --no-fix-only tests/unit/test_feat018_p2_t4_mapping_diagnostics.py tests/contract/test_feat018_p2_t4_manifest_contract.py
+```
+
+Requested tool parameters were `exec_command`, `shell=powershell`, `login=false`, `tty=false`,
+`max_output_tokens=4000`, and `yield_time_ms=10000`, without escalation. The result completed with
+exit 0, tool chunk `0d8e49`, and the complete output:
+
+```text
+All checks passed!
+```
+
+No running-session identifier or clipping was returned for this invocation. Installed CLI help
+describes `--no-cache` as disabling cache reads; this record does not claim runtime attestation that
+every possible filesystem write was absent. Test/runtime/config changes and fixes were not made.
+
+The candidate now has passing evidence for the seven listed checks. JSON changes are confined to
+`coordinator_acceptance_annotation.closure_gates.artifact_consistency` and `valid_final_gates`.
+Byte comparison with HEAD confirms that everything outside the annotation is identical; comparison
+within it confirms only those two strings changed. The 120 primary and 43 supplemental rows,
+summary, original Modal tuple, `provider_execution=NOT_EXECUTED`, and acceptance `OPEN` are preserved.
+
+The explicit C/D amendment permits this candidate synchronization before commit. The candidate
+annotation records `CANDIDATE_CHECKS_PASS` and references
+`W2_FEAT018_P2_T4_POST_COMMIT_GATE_RECORD_01`. It does not establish final Gate 3 MET. The committed
+note/report need not embed their own future commit SHA; the final chat record will contain the full
+handoff SHA, exact commands/cwd, tool versions, completion/exit/verdicts, working-tree observations
+and limitations. Final Gate 3 MET requires all seven valid passing results in that record.
+
+After these edits, the scope permits one sequential mini-cycle from the repository root:
+`python tools/validate_architecture.py`, `python tools/validate_skeleton.py`,
+`python tools/validate_repository_security.py`, then `git diff --check`, each once. Its actual
+results are supplied in the accompanying coordinator chat; this note does not pre-claim a pass for
+an unexecuted cycle. Any failed or missing verdict ends the scope without further gate dispatches.
+
+No stage, commit or push is authorized yet. After separate local-commit approval, the scope permits
+one sequential final seven-gate cycle, including one final Ruff invocation with the same literal.
+That final verification allowance remains unused. Final chat evidence will not be copied into
+tracked files merely to insert its SHA or output. Task 4 remains OPEN pending final verification,
+independent final review and owner closure. `HARNESS_INVALID` stays separately invalid/out of
+P2-T4 scope; FU-01..FU-10 remain OPEN/unassigned, product requirement statuses are unchanged,
+APP hold is in force and Security remains PENDING.

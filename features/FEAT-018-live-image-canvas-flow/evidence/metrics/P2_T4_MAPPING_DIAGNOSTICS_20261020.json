@@ -16,8 +16,8 @@
     "task_4_status": "OPEN",
     "closure_gates": {
       "provenance_contract_name": "FOLLOW_UP_RECORDED: P2T4-FU-01 OPEN and unassigned",
-      "artifact_consistency": "UPDATED; final review verification pending",
-      "valid_final_gates": "NOT_MET: scoped pytest, Ruff, mypy, architecture, skeleton and security checks pass; repository harness remains HARNESS_INVALID for unrelated FEAT-045/046/047 evidence paths",
+      "artifact_consistency": "CANDIDATE_SYNCHRONIZED under W2_FEAT018_P2_T4_CONTINUATION_AND_FINAL_GATE_SCOPE_01; post-edit validator results in coordinator chat; independent final review pending",
+      "valid_final_gates": "CANDIDATE_CHECKS_PASS; final Gate 3 verdict is defined by W2_FEAT018_P2_T4_POST_COMMIT_GATE_RECORD_01 bound to the full handoff commit SHA; candidate checks alone do not establish MET",
       "independent_final_review": "PENDING: prior re-review used the same Claude reviewer; current test typing fixes and evidence updates await a separate review"
     },
     "source_report": {

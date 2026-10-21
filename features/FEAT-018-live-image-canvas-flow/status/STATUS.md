@@ -3,6 +3,23 @@
 Status: IN_PROGRESS — approved offline implementation verified; live rig/Pixi visual acceptance pending
 Updated: 2026-10-21
 
+## Latest P2-T4 Gate 3 update — 2026-10-21
+
+Person 2 issued `W2_FEAT018_P2_T4_GATE3_HARNESS_DISPOSITION_01`: `HARNESS_INVALID` remains the
+repository-wide result, not a pass or waiver, and is outside the P2-T4-specific closure gate. Person 2
+then issued `W2_FEAT018_P2_T4_CONTINUATION_AND_FINAL_GATE_SCOPE_01`. Its new candidate Ruff run
+with `--no-cache --no-fix --no-fix-only` passed (exit 0, `All checks passed!`); the earlier cache-denied
+run is preserved as a separate no-verdict attempt. The other six passing candidate results remain
+applicable to unchanged source/config/tools based on HEAD `4310fcbf`.
+
+State: `CANDIDATE_CHECKS_PASS; TASK 4 OPEN; FINAL COMMIT VERIFICATION AND INDEPENDENT REVIEW PENDING`.
+The JSON candidate annotation now references `W2_FEAT018_P2_T4_POST_COMMIT_GATE_RECORD_01`; the
+final Gate 3 verdict must come from that chat record bound to the full handoff commit SHA. The C/D
+amendment permits this candidate synchronization before commit. No stage/commit/push is currently
+authorized. Product gaps and FU-01..FU-10 remain OPEN and unassigned, APP hold remains in force, and
+Security remains PENDING. See the diagnostics note for commands, provenance and limitations. This
+latest update supersedes earlier candidate gate summaries below.
+
 ## P2-T4 diagnostic acceptance rebase — 2026-10-21
 
 - State: `DIAGNOSTIC RUN COMPLETE; TASK 4 OPEN — FINAL GATES AND INDEPENDENT REVIEW PENDING`.

@@ -632,12 +632,21 @@ product gaps and are tracked as separate unassigned follow-ups; Task 4 still awa
 and independent final review. Details and report provenance are in
 `evidence/notes/P2_T4_MAPPING_DIAGNOSTICS_20261020.md`.
 
-The current local candidate's focused suite passes 368 tests after installing the backend-declared
-Pillow 12.3.0 into the ignored virtual environment. Ruff and scoped mypy pass; mypy required a
-per-command cache under `%TEMP%`, and ten typing-only issues were fixed in the two approved test files.
-Architecture, skeleton and repository security checks pass. The repository-wide harness still
-reports missing evidence directories for unrelated FEAT-045/046/047, so Task 4 remains open pending
-that result's disposition or repair and independent review of the final handoff.
+The focused suite's 368-pass result and scoped mypy success remain applicable to the unchanged
+candidate source; the earlier typing-only fixes and installation of the declared Pillow dependency
+are historical, not new work under the continuation. Person 2 issued the Gate 3 disposition and
+`W2_FEAT018_P2_T4_CONTINUATION_AND_FINAL_GATE_SCOPE_01` on 2026-10-21. The newly authorized Ruff
+invocation with `--no-cache --no-fix --no-fix-only` completed with exit 0 and `All checks passed!`.
+The earlier cache-denied invocation remains recorded as exit 1 with no lint verdict.
+
+At HEAD `4310fcbf`, source/config and the tested tool versions were verified unchanged, so the other
+six valid candidate results are reused. The seven candidate checks now have passing evidence;
+candidate synchronization and its post-edit validator record do not establish final Gate 3 MET.
+The C/D amendment accepts `W2_FEAT018_P2_T4_POST_COMMIT_GATE_RECORD_01` in chat, bound to the full
+handoff commit SHA, as the final seven-gate proof. Commit/push still requires separate user authorization.
+`HARNESS_INVALID` stays a separate repository-wide result outside P2-T4, not a pass or waiver;
+FEAT-045/046/047 were not changed. Task 4 remains OPEN pending the final record and independent
+final review. APP hold remains in force and Security remains PENDING.
 
 All 60 primary `UNRESOLVED` rows have static-review hypotheses; 40 of them (the conflict and adult-
 correction families) also have runtime boundary findings, while the 20 ambiguous rows have only the

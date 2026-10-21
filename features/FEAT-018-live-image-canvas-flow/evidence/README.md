@@ -57,8 +57,8 @@ are synchronized, validation evidence is bound to the final commit, valid gates 
 the final handoff commit receives independent review.
 
 The checked-in JSON is a coordinator-annotated derivative, not the original Modal file. Its current
-tuple is 2,163,728 bytes, SHA-256
-`3e882fe75c1f8449b34d1af1717379765ee6e97dff2eefd4f01a28fb28abadec`. The JSON annotation retains
+tuple is 2,163,861 bytes, SHA-256
+`06d467a2629f5d03511cc4ef41997a5c9d84480a2dc7aa3433b3e8ed18e691b0`. The JSON annotation retains
 the original Modal tuple and links to the note's review/gate record. The diagnostics note keeps both
 tuples distinct.
 
@@ -205,3 +205,22 @@ editor, recommender and SAM/renderer plan is
 is approved. The implementation record is
 [indexed here](notes/INTEGRATED_CHILD_PROFILE_AND_RIG_QUALITY_IMPLEMENTATION_20260929.md); it
 distinguishes passing offline evidence from pending Android/L4/live-mask acceptance.
+
+## Closure Gate 3 disposition and latest candidate — 2026-10-21
+
+Person 2 issued `W2_FEAT018_P2_T4_GATE3_HARNESS_DISPOSITION_01`. `HARNESS_INVALID` remains the
+repository-wide result, not a pass or waiver, and is outside the P2-T4-specific gate set. Gate 3 is
+met only when every listed P2-T4 gate passes with a valid result bound to the final handoff commit.
+
+Person 2 subsequently issued `W2_FEAT018_P2_T4_CONTINUATION_AND_FINAL_GATE_SCOPE_01`. Its fresh
+candidate Ruff command with `--no-cache --no-fix --no-fix-only` passed with exit 0 and
+`All checks passed!`. The prior cache-denied run remains a distinct no-verdict record in the note.
+The other six valid candidate results remain applicable because source/config/tool versions were
+verified unchanged at HEAD `4310fcbf`.
+
+The amended C/D order permits candidate synchronization now. The JSON annotation records
+`CANDIDATE_CHECKS_PASS` and points to `W2_FEAT018_P2_T4_POST_COMMIT_GATE_RECORD_01`; it does not
+claim Gate 3 MET. That final proof will be a chat record bound to the full handoff commit SHA after
+separate commit permission and a final seven-gate cycle. Task 4 remains OPEN pending that proof and
+independent final review; current stage/commit/push authority is absent. See the
+[diagnostics note](notes/P2_T4_MAPPING_DIAGNOSTICS_20261020.md) for commands, provenance and limits.

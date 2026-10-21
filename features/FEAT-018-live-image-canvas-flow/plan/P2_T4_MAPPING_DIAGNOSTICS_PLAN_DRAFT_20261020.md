@@ -237,3 +237,23 @@ files (call forms and types only; no change to behavior, fixtures, runtime, sche
 keeps `P2T4-FU-01` OPEN. Task 4 remains open until artifacts are synchronized, validation evidence is
 bound to the final commit, valid gates are confirmed, and an independent final review covers the
 handoff commit. Full results are in the evidence note.
+
+## Closure Gate 3 disposition and latest candidate check — 2026-10-21
+
+Person 2 issued `W2_FEAT018_P2_T4_GATE3_HARNESS_DISPOSITION_01`. The repository harness remains
+`HARNESS_INVALID`, not a pass or waiver, and is outside the P2-T4-specific closure gate. Gate 3 is
+met only after every listed P2-T4 gate has a valid passing result bound to the final handoff commit.
+
+Person 2 also issued `W2_FEAT018_P2_T4_CONTINUATION_AND_FINAL_GATE_SCOPE_01`. Its newly authorized
+candidate Ruff invocation with `--no-cache --no-fix --no-fix-only` passed with exit 0 and
+`All checks passed!`; the earlier cache-denied attempt remains a separate no-verdict record. Source,
+config, test tuples and tool versions were verified unchanged at HEAD `4310fcbf`, so the earlier
+focused pytest (368), scoped mypy, architecture, skeleton, security and diff-check results remain
+applicable. The candidate status is `CANDIDATE_CHECKS_PASS`, not final Gate 3 MET.
+
+The scope amends C/D ordering to allow candidate JSON/document synchronization before commit. The
+committed note/report references `W2_FEAT018_P2_T4_POST_COMMIT_GATE_RECORD_01`; the final record
+will be emitted in chat with the full handoff commit SHA after a separately authorized local commit
+and one final seven-gate cycle. Final output need not be copied back into tracked files merely to
+insert the SHA. Stage/commit/push is not authorized yet. Task 4 remains OPEN pending valid final
+gates, independent final review and owner closure; product gaps and FU-01..FU-10 remain unchanged.
