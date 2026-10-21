@@ -1,0 +1,1 @@
+export const mockObservationNotes = { tags: ["Tập trung cao"], notes: "Bé rất hào hứng" };
