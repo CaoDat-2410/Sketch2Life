@@ -36,9 +36,12 @@ Person 2 accepted the chronology in chat. Product gaps and FU-01..FU-10 remain O
 APP hold remains IN FORCE, and Security remains PENDING. See the diagnostics note for gate and review
 provenance, dispositions and limitations.
 
-## P2-T4 diagnostic acceptance rebase — 2026-10-21
+## P2-T4 diagnostic acceptance rebase — 2026-10-21 (historical snapshot)
 
-- State: `DIAGNOSTIC RUN COMPLETE; TASK 4 OPEN — FINAL GATES AND INDEPENDENT REVIEW PENDING`.
+This section records the state at the acceptance-rebase stage, before the later handoff update
+above. It is retained as chronology and does not describe the current Task 4 status.
+
+- State at that stage: `DIAGNOSTIC RUN COMPLETE; TASK 4 OPEN — FINAL GATES AND INDEPENDENT REVIEW PENDING`.
 - Person 2 approved Revision 3 at source commit `b39a9f2f56509b0543184876eb538fc9faf0e1aa`.
   The 2026-10-21 acceptance rebase is also recorded in `approvals/TASK_APPROVAL.md`.
 - The synthetic manifest has 120 primary and 43 separately counted supplemental cases. The initial
