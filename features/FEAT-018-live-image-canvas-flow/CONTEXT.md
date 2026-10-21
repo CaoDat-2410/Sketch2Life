@@ -631,3 +631,19 @@ requirements closure clause for diagnostic-deliverable acceptance. The UNRESOLVE
 product gaps and are tracked as separate unassigned follow-ups; Task 4 still awaits valid final gates
 and independent final review. Details and report provenance are in
 `evidence/notes/P2_T4_MAPPING_DIAGNOSTICS_20261020.md`.
+
+The current local candidate's focused suite passes 368 tests after installing the backend-declared
+Pillow 12.3.0 into the ignored virtual environment. Ruff and scoped mypy pass; mypy required a
+per-command cache under `%TEMP%`, and ten typing-only issues were fixed in the two approved test files.
+Architecture, skeleton and repository security checks pass. The repository-wide harness still
+reports missing evidence directories for unrelated FEAT-045/046/047, so Task 4 remains open pending
+that result's disposition or repair and independent review of the final handoff.
+
+All 60 primary `UNRESOLVED` rows have static-review hypotheses; 40 of them (the conflict and adult-
+correction families) also have runtime boundary findings, while the 20 ambiguous rows have only the
+static hypothesis. Of the five supplemental `UNRESOLVED` rows, two carry static hypotheses and four
+carry runtime findings (six finding entries), with one row in both groups. Preserve the owner-designated labels without
+describing every row as an independently measured runtime defect. The evidence note records both
+local Claude review rounds and their limits: the later re-review verified the diff and tuples but
+came from the same reviewer session and is not the required independent final review. Task 4 remains
+OPEN.

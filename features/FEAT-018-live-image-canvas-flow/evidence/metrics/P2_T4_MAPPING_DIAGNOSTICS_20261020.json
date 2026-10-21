@@ -14,11 +14,19 @@
     },
     "follow_ups_assigned_to_task_5": false,
     "task_4_status": "OPEN",
-    "closure_gates_pending": [
-      "valid final gates; mypy INTERNAL ERROR is not PASS and the repository harness currently reports missing evidence paths in unrelated features",
-      "independent final review of the final handoff"
-    ],
-    "provenance": "Coordinator annotation added after owner issuance; execution rows and measured counts are unchanged and were not regenerated."
+    "closure_gates": {
+      "provenance_contract_name": "FOLLOW_UP_RECORDED: P2T4-FU-01 OPEN and unassigned",
+      "artifact_consistency": "UPDATED; final review verification pending",
+      "valid_final_gates": "NOT_MET: scoped pytest, Ruff, mypy, architecture, skeleton and security checks pass; repository harness remains HARNESS_INVALID for unrelated FEAT-045/046/047 evidence paths",
+      "independent_final_review": "PENDING: prior re-review used the same Claude reviewer; current test typing fixes and evidence updates await a separate review"
+    },
+    "source_report": {
+      "bytes": 2162088,
+      "sha256": "15d4c5dfaecb2212205e1e705a85ef64493f37a3f54800579b051250227233a0",
+      "execution_checkout": "5c79741f9e3806626c1dc5c586fe409b2e9370a1"
+    },
+    "review_record": "See evidence/notes/P2_T4_MAPPING_DIAGNOSTICS_20261020.md, sections Review and remaining work and Final handoff gate results.",
+    "provenance": "Coordinator annotation added after owner issuance; source_report preserves the original Modal tuple. Execution rows and measured counts were not regenerated or changed by this annotation."
   },
   "gate_a_prerequisite": {
     "code": "AVAILABLE"

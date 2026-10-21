@@ -14,19 +14,40 @@ Updated: 2026-10-21
   COMPLETE for all 120 primary cases and all 43 supplemental cases COMPLETE. Requirements remain
   60 primary UNRESOLVED, 5 supplemental UNRESOLVED and 10 supplemental EXPECTED_BLOCKED; see the
   sanitized metrics report for row-level evidence.
-- Scoped Ruff 0.16.4 passed. Local mypy 1.20.2 still terminates with `INTERNAL ERROR`; the default
-  cache reports `OperationalError: unable to open database file`, and a separate ignored cache path
-  reports `PermissionError: [WinError 5]`. Neither constitutes a type-check result. The latest
-  focused test result and current final gate results are recorded in the evidence note below. Do not
-  count mypy `INTERNAL ERROR` as a pass.
-- Architecture, repository security, and skeleton validators pass. The repository harness validator
-  remains `HARNESS_INVALID` due to missing evidence paths under FEAT-045, FEAT-046, and FEAT-047;
-  those unrelated feature directories were not changed.
+- The Modal run is attributed to checkout `5c79741f9e3806626c1dc5c586fe409b2e9370a1`. The diff from
+  that checkout to HEAD `54d482d55b570e17b224a3a3506970b0970759f7` contains only governance/evidence
+  files and does not change the Task 4 manifest, tests, or runtime source. The current uncommitted
+  candidate contains typing-only fixes in the two approved test files. After installing the declared
+  `Pillow>=11,<13` dependency (12.3.0) into the ignored local `.venv`, the focused suite passed
+  368 tests; the earlier 238 passed / 129 skipped / 1 failed result was the pre-install environment.
+- Scoped Ruff 0.16.4 and mypy 1.20.2 pass on the current candidate. Mypy used a per-command cache
+  under `%TEMP%`; it first exposed ten typing issues in the approved tests, which were fixed without
+  changing test behavior. Architecture, skeleton, and repository security validators pass. The
+  repository harness validator remains `HARNESS_INVALID` due to missing evidence paths under FEAT-045,
+  FEAT-046, and FEAT-047; those unrelated feature directories were not changed. Exact commands and
+  outcomes are recorded in the evidence note.
 - The amendment allows acceptance of the diagnostic deliverable while preserving all 60 primary
-  and 5 supplemental `UNRESOLVED` results as product gaps. Follow-ups are recorded separately and
-  are not assigned to Task 5. No runtime/schema/catalog edits or Lightning/model calls were made.
-- The provenance contract-name check is documented with a follow-up. Task 4 is not complete until
-  all final gates have valid results and an independent reviewer reviews the final handoff state.
+  and 5 supplemental `UNRESOLVED` results as owner-designated product gaps. All 60 primary rows have
+  static hypotheses; 40 also have runtime findings. Of the five supplemental rows, two have static
+  hypotheses and four have runtime findings (six finding entries), with one row in both groups. Do not describe every row as a
+  separately measured runtime defect. Follow-ups are recorded separately and are not assigned to
+  Task 5. No runtime/schema/catalog edits or Lightning/model calls were made.
+- The provenance contract-name check is documented with follow-up `P2T4-FU-01`, which remains OPEN;
+  the contract-name gap is not resolved. Task 4 is not complete until artifacts are synchronized,
+  validation evidence is bound to the final commit, all final gates have valid results and an
+  independent reviewer reviews the final handoff commit.
+- Person 2 disposition of the independent working-tree review (2026-10-21, recorded in
+  `DECISIONS.md`, not in `approvals/TASK_APPROVAL.md` while the APP write hold is in force): the
+  typing-only edits in the two approved test files are authorized and limited to call forms and
+  types, with no change to test behavior, fixtures, runtime, schema or manifest. `HARNESS_INVALID`
+  stays the recorded result and is not a pass; the missing FEAT-045/046/047 evidence paths are a
+  separate repository-wide issue outside P2-T4, and those features are not changed under Task 4.
+  Security remains PENDING.
+- The initial local Claude `PASS WITH NOTES` did not verify the diff, exact file tuples, or all JSON
+  rows. A later re-review by the same Claude reviewer checked the prior candidate but did not rerun
+  gates and is not independent; the coordinator then applied its findings. Neither review covers the
+  current working tree or satisfies the independent final-review gate. The evidence note records
+  both reviews, their limits, gate provenance, and remaining blockers.
 - Plans: `plan/P2_T4_MAPPING_DIAGNOSTICS_PLAN_DRAFT_20261020.md` and
   `plan/P2_T4_MAPPING_INPUT_REVIEW_DRAFT_20261020.md`. Evidence:
   `evidence/notes/P2_T4_MAPPING_DIAGNOSTICS_20261020.md` and

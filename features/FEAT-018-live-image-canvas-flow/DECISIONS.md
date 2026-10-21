@@ -9,6 +9,32 @@
   runtime/schema/catalog/provider/contract work is authorized. Task 4 remains open until the four
   amendment closure gates and independent final review pass; issuance alone does not close it.
 
+- 2026-10-21 coordinator record (not a Person 2 decision): row-basis counts and local validation for
+  the P2-T4 handoff candidate. All 60 primary `UNRESOLVED` rows carry static-review hypotheses, and
+  40 also carry runtime boundary findings (20 conflict and 20 adult-correction rows); the 20 ambiguous
+  rows have only the static hypothesis. Of the five supplemental `UNRESOLVED` rows, two carry static
+  hypotheses and four carry runtime findings (six finding entries in total); one row carries both.
+  Do not describe every unresolved row as a separately measured runtime defect, and do not read these
+  counts as satisfied product behavior. Local validation on the uncommitted candidate: focused pytest
+  368 passed, Ruff and scoped mypy passed after typing-only fixes in the approved test files, and
+  architecture/skeleton/security checks passed. The repository harness is `HARNESS_INVALID` due to
+  missing evidence paths in FEAT-045/046/047. These results are bound to the working tree, not to a
+  final commit.
+
+- 2026-10-21 Person 2 disposition of the independent working-tree review (relayed in the coordinator
+  conversation; not recorded in `approvals/TASK_APPROVAL.md` because the APP write hold is in force):
+  M-1 accepted (supplemental counts stated as four rows with runtime findings, six finding entries,
+  one row with both a static hypothesis and a runtime finding; `UNRESOLVED` results unchanged and
+  not read as satisfied behavior). M-2 accepted (coordinator validation text kept separate from the
+  owner amendment above). L-1 authorized: the typing-only edits stay in the two approved P2-T4 test
+  files, limited to call forms and types needed for mypy, with no change to test behavior, fixtures,
+  runtime, schema or manifest. `HARNESS_INVALID` stays the recorded result and is not called a pass;
+  the missing paths belong to FEAT-045/046/047, are outside P2-T4, are a separate repository-wide
+  issue, and those features are not changed under Task 4. `P2T4-FU-01` remains an OPEN follow-up and
+  the contract-name gap is not resolved. Task 4 stays OPEN until artifacts are synchronized, validation
+  evidence is bound to the final commit, valid gates are confirmed, and an independent final review
+  covers the handoff commit. Security remains PENDING.
+
 - 2026-10-20 owner approval: implement the P2-T4 Revision 3 diagnostic slice at source commit
   `b39a9f2f56509b0543184876eb538fc9faf0e1aa`. Use B1/B2/B3, with B3 as matcher observation only;
   keep 120 primary cases and supplemental cases separately counted; report labels remain diagnostics

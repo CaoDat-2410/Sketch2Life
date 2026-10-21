@@ -209,3 +209,31 @@ does not change the approved implementation scope. Person 2's 2026-10-21 amendme
 the original unresolved-requirements closure clause for diagnostic-deliverable acceptance; it did
 not change any row status or assign follow-ups to Task 5. Task 4 remains open pending the four final
 gates, including valid final checks and independent review of the final handoff.
+
+For the latest execution, the report records 10 supplemental `EXPECTED_BLOCKED` rows and
+`provider_execution=NOT_EXECUTED`; neither label is a runtime/provider pass. All 60 primary
+`UNRESOLVED` rows carry static hypotheses; 40 also carry runtime findings, while the 20 ambiguous
+rows have only static hypotheses. Among the five supplemental unresolved rows, two carry static
+hypotheses and four carry runtime findings (six finding entries), with one row in both groups. The
+final gate table, exact
+Modal-versus-annotated report provenance, and local Claude review limitations are maintained in the
+evidence note. The initial local Claude review was `PASS WITH NOTES` but did not bind its inspection
+to a verified diff/hash or audit all report rows. A later re-review by the same reviewer checked the
+prior candidate's diff, tuples and rows, but it did not rerun gates and is not independent. The
+coordinator applied its findings afterward, so neither review covers the current working tree. Task 4
+remains OPEN pending a separate final reviewer and valid final gates.
+
+## Final-check update — 2026-10-21
+
+On the current uncommitted candidate, focused pytest passed 368 tests after the declared Pillow 12.3.0
+dependency was installed into the ignored local virtual environment. Ruff and scoped mypy passed;
+mypy used a per-command cache under `%TEMP%` and ten typing-only issues were corrected in the two
+approved test files. Architecture, skeleton and repository security checks passed. The repository
+harness remains `HARNESS_INVALID` because FEAT-045/046/047 lack unrelated evidence directories.
+Person 2 dispositioned that result on 2026-10-21: it stays recorded as `HARNESS_INVALID`, is not a
+pass, belongs to a separate repository-wide issue outside P2-T4, and those features are not changed
+under Task 4. The same disposition authorizes keeping the typing-only edits in the two approved test
+files (call forms and types only; no change to behavior, fixtures, runtime, schema or manifest) and
+keeps `P2T4-FU-01` OPEN. Task 4 remains open until artifacts are synchronized, validation evidence is
+bound to the final commit, valid gates are confirmed, and an independent final review covers the
+handoff commit. Full results are in the evidence note.

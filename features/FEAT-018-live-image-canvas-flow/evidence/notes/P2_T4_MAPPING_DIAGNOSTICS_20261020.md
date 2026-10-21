@@ -163,9 +163,14 @@ observations are not runtime measurements and do not establish the underlying sc
 policy.
 
 The 60 primary rows with static-review hypotheses remain `UNRESOLVED` after B2/B3 execution until
-their product limitation is resolved or later dispositioned. The same applies to the supplemental
-V1 correction and meaning/anchor-version rows. Under the 2026-10-21 rebase, these unresolved labels
-remain product gaps but no longer block acceptance of the diagnostic deliverable itself.
+their requirement basis is resolved or later dispositioned. The same applies to the supplemental
+V1 correction and meaning/anchor-version rows. The owner amendment preserves the 60 primary and 5
+supplemental `UNRESOLVED` rows as product gaps for diagnostic-deliverable acceptance. All 60 primary
+unresolved rows carry static-review hypotheses; 40 (the conflict and adult-correction families) also
+carry runtime boundary findings, while the 20 ambiguous rows have static hypotheses only. Among the
+five supplemental unresolved rows, two carry static hypotheses and four carry runtime findings (six
+finding entries), with one row in both groups. Do not describe every unresolved row as a separately measured runtime defect.
+The rebase permits acceptance of the diagnostic deliverable without changing any row label.
 
 Supplemental `expected.outcome`, `expected.requirement_status`, and matcher target modes are read by
 the diagnostics path. Outcome predicates inspect the observed rejection code or observed fields;
@@ -261,7 +266,8 @@ absent from the JSON. No model/provider/Lightning request or live media was used
 
 ## Review and remaining work
 
-The owner-relayed Claude review attachment `Pasted text.txt` was 10,978 bytes, SHA-256
+The owner-relayed Claude pre-rebase review attachment named `Pasted text.txt` (received 2026-10-20)
+was 10,978 bytes, SHA-256
 `fdcdd2aeb77afb3812ef998ee1fb39c5965d42d232516e1e81d0ff2ba58fe7ad`. It reported PASS WITH NOTES
 for the pre-rebase diagnostic slice and identified review gaps around observed runtime findings,
 candidate-envelope ownership, provenance contract-name registration, final gates, finding counts,
@@ -281,11 +287,70 @@ The earlier review's issue mapping for this handoff is:
 | Missing observed findings/counts | The three repeated primary boundary findings and five supplemental unresolved case IDs are listed above; row-level facts remain in the JSON. |
 | Candidate-envelope ownership | `P2T4-FU-10`, OPEN and unassigned. |
 | Provenance contract-name | `P2T4-FU-01`; searched paths and exact matching references are listed above. |
-| Final gates | Results are tabulated below. `INTERNAL ERROR` and `HARNESS_INVALID` are not passes. |
+| Final gates | The earlier default-cache `INTERNAL ERROR` is not a pass; the current scoped mypy result is tabulated below. `HARNESS_INVALID` remains a failing repository-wide result. |
 | Evidence sanitization coverage | The prior reviewer said its static inspection did not find checks for every adult/correction label field. No disclosure was established; final review must check whether existing sanitizer coverage is sufficient before any future publication. |
 | Synthetic stub/log distinction | The sentinel `FEAT018_T4_CONTROLLED_LOCAL_STUB_FAILURE` came from the intentional local stub; it is not a real provider execution. |
 | Approved source versus execution checkout | `approved_source_commit` is `b39a9f2f56509b0543184876eb538fc9faf0e1aa`; owner-reported Modal execution used checkout `5c79741f9e3806626c1dc5c586fe409b2e9370a1`. |
 | Plan digest provenance | Original Revision 3 digest remains the approval source; current post-amendment plan digest is recorded below as a derived record. |
+
+### Local Claude handoff review — 2026-10-21
+
+The owner supplied a local Claude preliminary-handoff review attachment named `Pasted text.txt`
+(received 2026-10-21; 9,303 bytes, SHA-256
+`8aea9063f2fc35b19af315a8597d44fa50907da8ab94a16477bbf2609231b5e4`). It reported
+`PASS WITH NOTES` after reading the plan, evidence note, approval, decisions, README, status, context,
+and portions of the JSON. The reviewer used Read/Grep only. It explicitly did not inspect the Git
+diff, compute hashes/byte counts, or audit all report rows, and therefore did not establish that its
+working-tree view matched HEAD `54d482d5`. This is a preliminary static review, not the required
+independent final review. It does not verify execution results or close Task 4.
+
+Coordinator verification after receiving that review established that the repository was clean at
+HEAD `54d482d55b570e17b224a3a3506970b0970759f7`. The commit-to-Modal-checkout diff
+`5c79741f9e3806626c1dc5c586fe409b2e9370a1..54d482d55b570e17b224a3a3506970b0970759f7` changes
+only eight governance/evidence files; it does not change the Task 4 manifest, test files, or runtime
+source. This supports reusing the owner-supplied Modal test result as evidence for unchanged tests
+and inputs, but the Modal execution remains attributed to checkout `5c79741f`, not relabeled as a
+run at `54d482d5`.
+
+The review findings are handled as follows:
+
+| Finding | Handoff update / disposition |
+| --- | --- |
+| M1: gate provenance | Local pytest was rerun on clean HEAD `54d482d5`. Ruff, mypy, and repository validators were run by the coordinator against the current uncommitted candidate working tree based on that HEAD; they are not bound to an immutable handoff commit. |
+| M2: original versus annotated report | The JSON annotation now records the original Modal tuple; README and this note distinguish it from the current annotated file tuple. |
+| M3: review findings/limits discoverability | This note is the detailed review record; plan, status, context, README and JSON annotation link to it and preserve the review limitations and observed findings. |
+| L1: local pytest wording | The pre-install local rerun at `54d482d5` produced 238 passed, 129 skipped and 1 failed because `Pillow>=11,<13`/`PIL` was missing. The owner-supplied Modal run at `5c79741f` passed 368 tests; a later current-candidate local run also passed 368 after installing the declared dependency in the ignored `.venv`. |
+| L2: plan digest provenance | The derived plan tuple below is tied to the exact plan content at the amended handoff candidate; the original Revision 3 digest remains the approval source. |
+| L3: unresolved-row wording | Corrected with exact overlap counts: all 60 primary unresolved rows have static hypotheses; 40 also have runtime findings, and 20 have static hypotheses only. Supplemental unresolved rows: two carry static hypotheses and four carry runtime findings (six finding entries), with one row in both groups. Further corrected by Person 2 disposition M-1 (2026-10-21). |
+| L4: original approval clause | The original approval text remains historical. The later acceptance rebase in `TASK_APPROVAL.md` explicitly supersedes only the unresolved-requirements closure clause. |
+| L5: JSON closure gates | The report annotation records all four amendment gates and their current state rather than presenting only two pending items. |
+
+### Local Claude re-review of the prior candidate — 2026-10-21
+
+The owner relayed a second `PASS WITH NOTES` report in chat from the same local Claude reviewer that
+produced the preliminary review above. It checked HEAD, the seven-file diff, JSON rows/counts, and
+the JSON and plan tuples at that time (JSON 2,163,571 bytes / `eca5cf3b…`, plan 17,192 bytes /
+`723a05e3…`). It did not rerun tests or validators. Because it is the same reviewer session, it
+explicitly does not count as the independent final review required for Task 4. Its six Low findings
+identified the needed exact row-basis wording, candidate-versus-commit gate provenance, need to
+distinguish coordinator-run gates from reviewer-run checks, exact STATUS commit-range wording, LF
+line endings, and disambiguation of the two same-named attachments.
+
+The coordinator applied those documentary corrections after receiving the re-review. A subsequent
+scoped mypy run using a per-command cache under `%TEMP%` exposed ten typing errors in the two already-
+approved test files. The coordinator made typing-only fixes in those files; no test expectations,
+diagnostic behavior, fixture, runtime, schema, or catalog changed. After installing the declared
+`Pillow>=11,<13` dependency (Pillow 12.3.0) into the ignored local virtual environment, the focused
+suite passed. The current working tree therefore differs from the candidate Claude re-reviewed; its
+verdict and tuple checks do not cover the current state. A distinct local reviewer must inspect the
+current candidate and the final gate evidence.
+
+Gate execution provenance: on 2026-10-21 the coordinator reran the focused pytest, Ruff, scoped mypy,
+repository harness, architecture, skeleton, and repository security checks against the current
+uncommitted working tree based on HEAD `54d482d55b570e17b224a3a3506970b0970759f7`. The Claude
+reviewer did not run these checks, and no standalone raw-log files were created. These results are
+bound to the current working tree, not an immutable commit. Before Task 4 closure, preserve or rerun
+the applicable final gates against the exact committed handoff state.
 
 The original owner-approved plan digest remains the source approval provenance. The current plan is
 a derived status/acceptance update that records the 2026-10-21 amendment. The report's
@@ -296,28 +361,58 @@ separately recorded as `5c79741f9e3806626c1dc5c586fe409b2e9370a1`.
 
 | Gate | Result | Scope/limitation |
 | --- | --- | --- |
-| Focused pytest | **368 passed, 1 Pydantic deprecation warning** (owner-supplied Modal output) | Ran at the reported pinned checkout; not rerun in this Windows workspace. |
-| Ruff 0.16.4 | **PASS** | Local scoped command for the two diagnostic test modules. |
-| mypy 1.20.2 | **NO VALID RESULT — INTERNAL ERROR** | Default cache ended at `OperationalError: unable to open database file`; a separate ignored cache path failed with `PermissionError: [WinError 5]`. Neither is a type-check pass. |
-| Repository harness validator | **HARNESS_INVALID** | Reports pre-existing missing `evidence/screenshots` and `evidence/metrics` paths for FEAT-045, FEAT-046 and FEAT-047; no unrelated paths were created. |
-| Architecture validator | **ARCHITECTURE_VALID** | Current workspace result. |
-| Repository security validator | **REPOSITORY_SECURITY_VALID** | Rerun after replacing the absolute attachment locator with the attachment name and tuple. |
-| Skeleton validator | **SKELETON_VALID** | Current workspace result. |
-| `git diff --check` | **PASS** | Rerun after the final documentation edits recorded in this handoff. |
+| Focused pytest — Modal | **368 passed, 1 Pydantic deprecation warning** (owner-supplied output) | Ran at pinned checkout `5c79741f9e3806626c1dc5c586fe409b2e9370a1`. The diff from that checkout to `54d482d5` does not change the Task 4 manifest, tests, or runtime source. |
+| Focused pytest — local | **368 passed** | Rerun on the current uncommitted candidate after installing declared Pillow 12.3.0 into the ignored `.venv`; includes the approved test files after typing-only fixes. |
+| Ruff 0.16.4 | **PASS** | Scoped command rerun on the current uncommitted candidate for both approved diagnostic test modules. |
+| mypy 1.20.2 | **PASS — no issues in 2 source files** | The exact PowerShell command and its output are recorded immediately below. It used a per-command cache directory under `%TEMP%`; no project config or persistent settings changed. The default cache path previously failed to open its database; the valid temporary-cache run exposed ten test typing errors, which were fixed in the two approved test files before this passing run. |
+| Repository harness validator | **HARNESS_INVALID** | Rerun on the current candidate; reports missing `evidence/screenshots` and `evidence/metrics` paths for FEAT-045, FEAT-046 and FEAT-047. These unrelated feature paths were not changed. |
+| Architecture validator | **ARCHITECTURE_VALID** | Rerun on the current uncommitted candidate based on HEAD `54d482d55b570e17b224a3a3506970b0970759f7`. |
+| Repository security validator | **REPOSITORY_SECURITY_VALID** | Rerun on the current candidate; 2,588 publishable files scanned and no absolute machine paths found. |
+| Skeleton validator | **SKELETON_VALID** | Rerun on the current uncommitted candidate based on HEAD `54d482d55b570e17b224a3a3506970b0970759f7`. |
+| `git diff --check` | **PASS** | Rerun against HEAD after the latest edits; exit 0 with no whitespace or line-ending warnings. |
 
-The focused pytest result is valid owner-provided execution evidence, but it does not override the
-failed/unavailable local mypy result or the unrelated harness invalidity. Task 4 cannot close until
-the final gates have valid outcomes and the independent final review is complete.
+The current-candidate scoped mypy command was run from `backend/` in PowerShell:
 
-The current annotated metrics JSON is **2,162,989 bytes**, SHA-256
-`35be57cb029d6f18a96a82dd95390a9de183245b76d05bfa173e874b5d8bf68e`. The unmodified Modal-generated
-JSON remains separately identified above as 2,162,088 bytes / `15d4c5dfaecb2212205e1e705a85ef64493f37a3f54800579b051250227233a0`.
+```powershell
+$cacheDir = Join-Path $env:TEMP 'feat018-p2t4-mypy-cache-20261021'
+& '.venv/Scripts/mypy.exe' --no-incremental --cache-dir $cacheDir --config-file pyproject.toml tests/unit/test_feat018_p2_t4_mapping_diagnostics.py tests/contract/test_feat018_p2_t4_manifest_contract.py
+```
+
+Output: `Success: no issues found in 2 source files` (mypy 1.20.2). The command uses a temporary
+cache path and does not change persistent settings or repository configuration.
+
+The focused local suite and scoped mypy result are valid checks of the current uncommitted candidate.
+The repository harness remains invalid because of missing paths in unrelated features; no unrelated
+feature directories were created or modified. Person 2 dispositioned the harness result on
+2026-10-21: it stays recorded as `HARNESS_INVALID`, is not a pass, and is a separate repository-wide
+issue outside P2-T4; FEAT-045/046/047 are not changed under Task 4.
+
+The unmodified Modal-generated JSON is **2,162,088 bytes**, SHA-256
+`15d4c5dfaecb2212205e1e705a85ef64493f37a3f54800579b051250227233a0`. The current coordinator-
+annotated JSON is **2,163,728 bytes**, SHA-256
+`3e882fe75c1f8449b34d1af1717379765ee6e97dff2eefd4f01a28fb28abadec`; it is a distinct artifact.
 The owner-approved Revision 3 plan source digest is
 `1482c047476049e44ecd515178d64b2d4c9e60d13511c92aa8112fd5269d2d66`; the current derived plan
-record after status and acceptance updates is 16,540 bytes, SHA-256
-`ef14640c5a2f6ee80c1ec840994b7e8f3f5d6a8332ad6ce5ef604e3e156b7b48`.
+record after status, acceptance, review-limit, final-check, and Person 2 disposition updates is
+18,795 bytes, SHA-256
+`52988d70083a8473bce252f1767c6c7d137b7f98cb4323af11518423dc9505f5`. This derived tuple is
+computed from the current plan file; it does not replace the approved Revision 3 source digest.
 
-Task 4 is still OPEN. Remaining closure conditions are: valid final gates (mypy `INTERNAL ERROR` is
-not PASS), the provenance contract-name check or an explicitly recorded follow-up, consistent
-handoff artifacts, and independent final review. This note does not claim that any product gap has
-been fixed or that Task 4 is closed.
+### Person 2 disposition — 2026-10-21
+
+Person 2 dispositioned the independent working-tree review in the coordinator conversation (recorded
+in `DECISIONS.md`; `approvals/TASK_APPROVAL.md` is untouched because the APP write hold is in force):
+
+| Item | Disposition |
+| --- | --- |
+| M-1 supplemental counts | Accepted. Four supplemental rows carry runtime findings (six finding entries); one row carries both a static hypothesis and a runtime finding. `UNRESOLVED` results are unchanged and are not satisfied behavior. Wording updated in CONTEXT, DECISIONS, STATUS, the plan and this note. |
+| M-2 attribution | Accepted. Coordinator validation text is a separate coordinator-attributed `DECISIONS.md` entry, not part of the owner amendment. |
+| L-1 test edits | Authorized. The typing-only edits stay in the two approved test files, limited to call forms and types needed for mypy; no change to test behavior, fixtures, runtime, schema or manifest. |
+| `HARNESS_INVALID` | Recorded as the actual result, not a pass; outside P2-T4 scope; separate repository-wide issue; FEAT-045/046/047 not changed under Task 4. |
+| `P2T4-FU-01` | Remains an OPEN follow-up; the contract-name gap is not resolved. |
+
+Task 4 is still OPEN. Remaining closure conditions are: synchronized artifacts, validation evidence
+bound to the final commit (the gate results above are bound to the uncommitted working tree), valid
+gates confirmed on that commit, and an independent final review of the exact handoff commit. Security
+remains PENDING. This note does not claim that any product gap has been fixed or that Task 4 is
+closed.

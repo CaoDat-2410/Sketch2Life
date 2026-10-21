@@ -48,6 +48,39 @@ open pending valid final gates and independent final review. See
 [`P2-T4 diagnostics note`](notes/P2_T4_MAPPING_DIAGNOSTICS_20261020.md) for gate results, review
 limits and follow-up IDs.
 
+The latest local focused run passed 368 tests after installing the declared Pillow dependency into
+the ignored virtual environment. Ruff, scoped mypy, architecture, skeleton and security checks pass.
+The repository-wide harness remains `HARNESS_INVALID` because FEAT-045/046/047 lack unrelated
+evidence directories. Person 2 dispositioned this on 2026-10-21: it stays `HARNESS_INVALID`, is not
+a pass, and is a separate repository-wide issue outside P2-T4. Task 4 remains open until artifacts
+are synchronized, validation evidence is bound to the final commit, valid gates are confirmed and
+the final handoff commit receives independent review.
+
+The checked-in JSON is a coordinator-annotated derivative, not the original Modal file. Its current
+tuple is 2,163,728 bytes, SHA-256
+`3e882fe75c1f8449b34d1af1717379765ee6e97dff2eefd4f01a28fb28abadec`. The JSON annotation retains
+the original Modal tuple and links to the note's review/gate record. The diagnostics note keeps both
+tuples distinct.
+
+## P2-T4 local Claude handoff review — 2026-10-21
+
+The owner supplied an initial local Claude preliminary-handoff review (attachment named `Pasted text.txt`,
+received 2026-10-21; 9,303 bytes,
+SHA-256 `8aea9063f2fc35b19af315a8597d44fa50907da8ab94a16477bbf2609231b5e4`). It reported
+`PASS WITH NOTES` for a static read of the amended handoff. This was performed in local Claude, not a
+GitHub Cloud session. The reviewer used Read/Grep only, but explicitly did not review the Git diff,
+verify file hashes/byte counts, or audit every JSON row; it could not establish that the files it read
+matched HEAD `54d482d5`. A later re-review by the same Claude reviewer checked the prior candidate's
+diff, tuples and JSON rows, but did not rerun gates and is not an independent final review. The
+coordinator applied the re-review findings afterward; neither review covers the current working tree
+or satisfies the independent final review required by the owner amendment.
+
+The review's substantive notes are tracked in the diagnostics note: bind gate evidence to the
+handoff state; distinguish the original Modal JSON from the current annotated JSON; make review
+limitations and observed findings discoverable from plan/status/report; label the local
+Pillow-blocked pytest result accurately; and state the exact overlap between static hypotheses and
+runtime findings. No acceptance status is inferred from this review.
+
 Selected completed P2 design record:
 [isolated image admission and decoding](P2_IMAGE_DECODE_DESIGN_20260910.md)
 (`EV-018-P2-DECODE-DESIGN-01`, owner-accepted design; implementation not started).
