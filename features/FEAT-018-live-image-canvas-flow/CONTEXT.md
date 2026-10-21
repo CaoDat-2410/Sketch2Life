@@ -649,8 +649,9 @@ recorded in the diagnostics note.
 
 `HARNESS_INVALID` remains a separate repository-wide result outside P2-T4, not a pass or waiver;
 FEAT-045/046/047 were not changed. The candidate-time “commit/push not authorized” statements below
-are historical snapshots; Person 2 accepted their chronology in chat. Task 4 remains OPEN pending
-Person 2's closure disposition. APP hold remains IN FORCE and Security remains PENDING.
+are historical snapshots; Person 2 accepted their chronology in chat. At the time of this handoff
+update, Task 4 remained OPEN pending Person 2's closure disposition. APP hold remained IN FORCE and
+Security remained PENDING.
 
 All 60 primary `UNRESOLVED` rows have static-review hypotheses; 40 of them (the conflict and adult-
 correction families) also have runtime boundary findings, while the 20 ambiguous rows have only the
@@ -659,4 +660,17 @@ carry runtime findings (six finding entries), with one row in both groups. Prese
 describing every row as an independently measured runtime defect. The evidence note records the
 earlier local Claude review rounds and their limits, plus the fresh-session final review of the
 handoff commit. The final reviewer is from the same Claude model family; Person 2 accepted session-
-level independence while that caveat remains disclosed. Task 4 remains OPEN pending owner closure.
+level independence while that caveat remains disclosed. At that review stage, Task 4 remained OPEN
+pending owner closure; the later owner decision is recorded below.
+
+## P2-T4 diagnostic deliverable closure — 2026-10-21
+
+Person 2 confirmed closure of the approved P2-T4 diagnostic deliverable at handoff commit
+`8ed2e8bbc7509eb236691bb8196eecb1e4f7e14f`, accepting the four closure gates: the missing
+provenance contract-name is recorded as `P2T4-FU-01 OPEN`; artifacts are consistent; final gates
+PASS on that commit; and the independent final review is PASS with no findings. This is diagnostic-
+deliverable closure only. The 60 primary and 5 supplemental `UNRESOLVED` results remain product
+gaps, and `P2T4-FU-01` through `P2T4-FU-10` remain OPEN, unassigned, and not automatically assigned
+to Task 5. No runtime, schema, catalog, contract, or provider authority is granted. APP hold remains
+IN FORCE; Security remains PENDING. The decision is recorded in `DECISIONS.md` and the diagnostics
+note; `TASK_APPROVAL.md` remains untouched under APP hold.

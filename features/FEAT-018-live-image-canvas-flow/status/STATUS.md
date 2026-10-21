@@ -20,7 +20,7 @@ authorized. Product gaps and FU-01..FU-10 remain OPEN and unassigned, APP hold r
 Security remains PENDING. See the diagnostics note for commands, provenance and limitations. This
 candidate snapshot superseded earlier candidate gate summaries at that time.
 
-## Latest P2-T4 handoff update — 2026-10-21
+## Latest P2-T4 handoff update — 2026-10-21 (state before owner closure)
 
 Person 2 subsequently authorized the handoff commit and push. Commit
 `c54b5a5a4a0dfe8f5c494cd47cd9f432e115f61b` (parent
@@ -35,6 +35,20 @@ P2-T4 gate set. The earlier “commit/push not authorized” text above is an is
 Person 2 accepted the chronology in chat. Product gaps and FU-01..FU-10 remain OPEN and unassigned,
 APP hold remains IN FORCE, and Security remains PENDING. See the diagnostics note for gate and review
 provenance, dispositions and limitations.
+
+## P2-T4 diagnostic deliverable closure — 2026-10-21
+
+Person 2 confirmed closure of the approved diagnostic deliverable at handoff commit
+`8ed2e8bbc7509eb236691bb8196eecb1e4f7e14f`. The four accepted gates are: provenance contract-name
+recorded as `P2T4-FU-01 OPEN`; artifacts consistent; final gates PASS on this commit; and independent
+final review PASS with no findings.
+
+State: `CLOSED — DIAGNOSTIC DELIVERABLE ONLY`. The 60 primary and 5 supplemental `UNRESOLVED`
+results remain product gaps. `P2T4-FU-01` through `P2T4-FU-10` remain OPEN and unassigned; none is
+implicitly assigned to Task 5. This closure grants no runtime, schema, catalog, contract, or provider
+authority. APP hold remains IN FORCE; Security remains PENDING. The owner decision is recorded in
+`DECISIONS.md`; `approvals/TASK_APPROVAL.md` remains untouched under APP hold. See the diagnostics
+note for review provenance and limitations.
 
 ## P2-T4 diagnostic acceptance rebase — 2026-10-21 (historical snapshot)
 

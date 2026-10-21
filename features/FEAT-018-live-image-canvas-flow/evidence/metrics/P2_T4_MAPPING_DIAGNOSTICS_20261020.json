@@ -2,7 +2,7 @@
   "approved_source_commit": "b39a9f2f56509b0543184876eb538fc9faf0e1aa",
   "construction_revision": "feat018-p2-t4-r3-v1",
   "diagnostic_only": true,
-  "full_p2_t4_acceptance": "OPEN",
+  "full_p2_t4_acceptance": "CLOSED — DIAGNOSTIC DELIVERABLE ONLY",
   "coordinator_acceptance_annotation": {
     "amendment": "W2_FEAT018_P2_T4_DIAGNOSTIC_ACCEPTANCE_REBASE_01",
     "issued_by": "Person 2",
@@ -13,12 +13,12 @@
       "supplemental": 5
     },
     "follow_ups_assigned_to_task_5": false,
-    "task_4_status": "OPEN",
+    "task_4_status": "CLOSED — DIAGNOSTIC DELIVERABLE ONLY",
     "closure_gates": {
-      "provenance_contract_name": "FOLLOW_UP_RECORDED: P2T4-FU-01 OPEN and unassigned",
-      "artifact_consistency": "Final handoff artifacts were reviewed at commit c54b5a5a4a0dfe8f5c494cd47cd9f432e115f61b; review/status synchronization is a documentation-only follow-on to that handoff; diagnostic rows and execution summary are unchanged",
-      "valid_final_gates": "PASS on handoff commit c54b5a5a4a0dfe8f5c494cd47cd9f432e115f61b per coordinator post-commit chat record; fresh-session reviewer separately reports the same seven P2-T4 gates PASS; repository-wide HARNESS_INVALID remains outside P2-T4 and is not a pass or waiver",
-      "independent_final_review": "PASS WITH NOTES at session-isolation level, accepted by Person 2; reviewer is from the same Claude model family, so model-family or organizational independence is not established; Task 4 remains OPEN pending owner closure"
+      "provenance_contract_name": "PASS — missing provenance contract-name recorded as P2T4-FU-01 OPEN and unassigned",
+      "artifact_consistency": "PASS — accepted by Person 2 for diagnostic deliverable closure at handoff commit 8ed2e8bbc7509eb236691bb8196eecb1e4f7e14f",
+      "valid_final_gates": "PASS on handoff commit 8ed2e8bbc7509eb236691bb8196eecb1e4f7e14f per Person 2 closure decision; repository-wide HARNESS_INVALID remains outside P2-T4 and is not a pass or waiver",
+      "independent_final_review": "PASS, no findings, accepted by Person 2 for closure; review limitations remain disclosed in the evidence note"
     },
     "source_report": {
       "bytes": 2162088,
@@ -26,7 +26,39 @@
       "execution_checkout": "5c79741f9e3806626c1dc5c586fe409b2e9370a1"
     },
     "review_record": "See evidence/notes/P2_T4_MAPPING_DIAGNOSTICS_20261020.md, sections Review and remaining work, Historical candidate gate snapshot, and Post-commit handoff verification and final review.",
-    "provenance": "Coordinator annotation added after owner issuance; source_report preserves the original Modal tuple. Execution rows and measured counts were not regenerated or changed by this annotation."
+    "provenance": "Coordinator acceptance annotation updated after direct Person 2 closure decision; execution rows, measured counts, original Modal source tuple, and provider_execution were not changed.",
+    "owner_closure_decision": {
+      "issued_by": "Person 2",
+      "issued_on": "2026-10-21",
+      "handoff_commit": "8ed2e8bbc7509eb236691bb8196eecb1e4f7e14f",
+      "scope": "diagnostic deliverable only",
+      "accepted_closure_gates": [
+        "provenance contract-name recorded as P2T4-FU-01 OPEN",
+        "artifacts consistent",
+        "final gates PASS on the handoff commit",
+        "independent final review PASS with no findings"
+      ],
+      "unresolved_product_gaps_unchanged": {
+        "primary": 60,
+        "supplemental": 5
+      },
+      "follow_ups_open_unassigned": [
+        "P2T4-FU-01",
+        "P2T4-FU-02",
+        "P2T4-FU-03",
+        "P2T4-FU-04",
+        "P2T4-FU-05",
+        "P2T4-FU-06",
+        "P2T4-FU-07",
+        "P2T4-FU-08",
+        "P2T4-FU-09",
+        "P2T4-FU-10"
+      ],
+      "follow_ups_assigned_to_task_5": false,
+      "runtime_schema_catalog_contract_provider_authority": "NOT_GRANTED",
+      "app_hold": "IN FORCE",
+      "security": "PENDING"
+    }
   },
   "gate_a_prerequisite": {
     "code": "AVAILABLE"

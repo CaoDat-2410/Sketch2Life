@@ -1,6 +1,6 @@
 # FEAT-018 P2-T4 mapping diagnostics — 2026-10-20
 
-**Current state: final handoff gates reported PASS; fresh-session review PASS WITH NOTES and accepted at session level; Task 4 remains OPEN pending Person 2's closure disposition.**
+**Current state: P2-T4 diagnostic deliverable CLOSED by Person 2 at handoff commit `8ed2e8bbc7509eb236691bb8196eecb1e4f7e14f`. The 60 primary and 5 supplemental `UNRESOLVED` results remain product gaps; FU-01..FU-10 remain OPEN and unassigned.**
 
 ## Approved scope
 
@@ -72,14 +72,15 @@ approval clause that `UNRESOLVED` behavior keeps Task 4 open, and only for accep
 diagnostic deliverable. It does not convert any result to `SATISFIED`, claim product behavior is
 acceptable, or authorize runtime/schema/catalog/provider/contract changes. The amended deliverable
 is the approved 120 primary cases, 43 separately counted supplemental cases, B1/B2/B3 within the
-approved limits, metrics report and evidence. Task 4 itself remains `OPEN` until the four closure
-gates in the approval record pass.
+approved limits, metrics report and evidence. At this stage, Task 4 itself remained `OPEN` until the
+four closure gates in the approval record passed.
 
 The Modal-generated execution report was received as 2,162,088 bytes with SHA-256
 `15d4c5dfaecb2212205e1e705a85ef64493f37a3f54800579b051250227233a0`. After the owner amendment, a
-coordinator-authored `coordinator_acceptance_annotation` was added to the JSON report; it does not
-change run rows, measured counts or `full_p2_t4_acceptance=OPEN`. The current annotated JSON tuple is
-recorded below after verification. Do not describe the annotated file as an unmodified Modal output.
+coordinator-authored `coordinator_acceptance_annotation` was added to the JSON report; at that
+pre-closure snapshot it did not change run rows, measured counts or `full_p2_t4_acceptance=OPEN`.
+The annotated JSON tuple from that snapshot is recorded below. Do not describe the annotated file as
+an unmodified Modal output.
 
 Observed primary boundary findings (20 rows per applicable finding):
 
@@ -420,7 +421,8 @@ in `DECISIONS.md`; `approvals/TASK_APPROVAL.md` is untouched because the APP wri
 | `HARNESS_INVALID` | Recorded as the actual result, not a pass; outside P2-T4 scope; separate repository-wide issue; FEAT-045/046/047 not changed under Task 4. |
 | `P2T4-FU-01` | Remains an OPEN follow-up; the contract-name gap is not resolved. |
 
-Task 4 is still OPEN. Remaining closure conditions are: synchronized artifacts, validation evidence
+At that pre-handoff candidate review, Task 4 was still OPEN. Remaining closure conditions were:
+synchronized artifacts, validation evidence
 bound to the final commit (the gate results above are bound to the uncommitted working tree), valid
 gates confirmed on that commit, and an independent final review of the exact handoff commit. Security
 remains PENDING. This note does not claim that any product gap has been fixed or that Task 4 is
@@ -431,7 +433,8 @@ closed.
 Person 2 issued `W2_FEAT018_P2_T4_GATE3_HARNESS_DISPOSITION_01` in the coordinator conversation.
 The disposition keeps the repository-wide result `HARNESS_INVALID`, not a pass or waiver, and places
 that unrelated result outside the P2-T4-specific closure gate. Gate 3 is met only when every listed
-P2-T4 gate has a valid passing result bound to the final handoff commit. Task 4 remains OPEN.
+P2-T4 gate has a valid passing result bound to the final handoff commit. At this pre-continuation
+stage, Task 4 remained OPEN.
 
 At this pre-continuation stage, checkout was HEAD `4310fcbfafa48a14e5fce31f38a2089e24079e52`;
 the test files had the current tuples listed above. On 2026-10-21 the listed gates were run against
@@ -537,7 +540,7 @@ issued. Person 2 later accepted the chat chronology for the separate commit and 
 wording is an issuance-time snapshot and does not require retrospective rewriting solely to repeat
 those later facts. This chronology disposition does not itself close Task 4.
 
-## Post-commit handoff verification and final review — 2026-10-21
+## Post-commit handoff verification and final review — 2026-10-21 (state before owner closure)
 
 The handoff is commit `c54b5a5a4a0dfe8f5c494cd47cd9f432e115f61b` (parent
 `4310fcbfafa48a14e5fce31f38a2089e24079e52`), pushed to the matching feature branch. Person 2's
@@ -580,7 +583,25 @@ After the document synchronization, `validate_architecture.py` returned `ARCHITE
 `git diff --check` exited 0. At the time of that synchronization check, no code tests had been rerun
 because the changes were limited to governance/evidence documents and the coordinator annotation;
 the follow-on final cycle is recorded separately. The diagnostic handoff was reviewed
-at the commit above, but Task 4 remains OPEN pending Person 2's closure disposition.
+at the commit above; at that stage Task 4 remained OPEN pending Person 2's closure disposition.
 `P2T4-FU-01` through `P2T4-FU-10` remain OPEN and unassigned; the 60 primary and 5 supplemental
 `UNRESOLVED` results remain product gaps, not passing behavior. `provider_execution=NOT_EXECUTED`,
-APP hold is IN FORCE, and Security remains PENDING.
+APP hold was IN FORCE, and Security was PENDING.
+
+## Owner closure disposition — 2026-10-21
+
+Person 2 directly confirmed closure of FEAT-018 P2-T4 at handoff commit
+`8ed2e8bbc7509eb236691bb8196eecb1e4f7e14f`, solely as the approved diagnostic deliverable. The owner
+accepted all four closure gates: the missing provenance contract-name is recorded as
+`P2T4-FU-01 OPEN`; artifacts are consistent; final gates PASS on this exact commit; and the
+independent final review is PASS with no findings. The review history and its disclosed limitations
+remain recorded above.
+
+The 60 primary and 5 supplemental `UNRESOLVED` results remain product gaps. `P2T4-FU-01` through
+`P2T4-FU-10` remain OPEN and unassigned; none is automatically assigned to Task 5. No runtime,
+schema, catalog, contract, or provider authority is granted. `provider_execution=NOT_EXECUTED`; APP
+hold remains IN FORCE and Security remains PENDING. `TASK_APPROVAL.md` was not modified under the
+APP hold. The coordinator annotation records this closure; diagnostic execution rows and their
+summary remain untouched. The post-closure annotated JSON is 2,164,965 bytes, SHA-256
+`3cad584c5b560c165d8d052c6e1c42346e6d465d04952e4626f7a8e1a076f4cf`. The synchronized plan is
+21,950 bytes, SHA-256 `bb076e50c5036ec77792a3c545339afbd99f3064473c88aff5d688c714ffa414`.

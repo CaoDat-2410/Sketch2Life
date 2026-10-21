@@ -209,7 +209,7 @@ is approved. The implementation record is
 [indexed here](notes/INTEGRATED_CHILD_PROFILE_AND_RIG_QUALITY_IMPLEMENTATION_20260929.md); it
 distinguishes passing offline evidence from pending Android/L4/live-mask acceptance.
 
-## P2-T4 final handoff record — 2026-10-21
+## P2-T4 final handoff record — 2026-10-21 (state before owner closure)
 
 Person 2 issued `W2_FEAT018_P2_T4_GATE3_HARNESS_DISPOSITION_01`. `HARNESS_INVALID` remains the
 repository-wide result, not a pass or waiver, and is outside the P2-T4-specific gate set. Gate 3 is
@@ -225,6 +225,18 @@ Claude model family, so model-family or organizational independence is not estab
 The earlier candidate Ruff table is identified as historical. Person 2 accepted the chronology of
 the old pre-commit authorization wording and did not require retroactive edits solely to restate the
 later commit/push and final-gate facts. `TASK_APPROVAL.md` remains untouched while APP hold is IN
-FORCE. Task 4 remains OPEN pending Person 2's closure disposition; the review's detailed results,
-three Low-note dispositions and limitations are in the
+FORCE. At that stage, Task 4 remained OPEN pending Person 2's closure disposition; the review's
+detailed results, three Low-note dispositions and limitations are in the
 [diagnostics note](notes/P2_T4_MAPPING_DIAGNOSTICS_20261020.md).
+
+## P2-T4 diagnostic deliverable closure — 2026-10-21
+
+Person 2 confirmed closure of the diagnostic deliverable at handoff commit
+`8ed2e8bbc7509eb236691bb8196eecb1e4f7e14f`, accepting all four closure gates: provenance
+contract-name recorded as `P2T4-FU-01 OPEN`; artifacts consistent; final gates PASS on this commit;
+and independent final review PASS with no findings. This does not claim product behavior is
+complete: the 60 primary and 5 supplemental `UNRESOLVED` results remain product gaps. Follow-ups
+`P2T4-FU-01` through `P2T4-FU-10` remain OPEN and unassigned, with no automatic Task 5 assignment.
+No runtime, schema, catalog, contract, or provider authority is granted. APP hold remains IN FORCE;
+Security remains PENDING. `TASK_APPROVAL.md` remains unchanged under APP hold. Review provenance and
+limitations are recorded in the [diagnostics note](notes/P2_T4_MAPPING_DIAGNOSTICS_20261020.md).

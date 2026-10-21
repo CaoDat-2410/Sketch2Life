@@ -1,5 +1,15 @@
 # FEAT-018 decisions
 
+- 2026-10-21 Person 2 directly confirmed closure of FEAT-018 P2-T4 as a diagnostic deliverable
+  at handoff commit `8ed2e8bbc7509eb236691bb8196eecb1e4f7e14f`. Person 2 accepts the four closure
+  gates: `P2T4-FU-01` records the missing provenance contract-name as OPEN; artifacts are consistent;
+  final gates PASS on that commit; and the independent final review is PASS with no findings. This
+  closes only the approved diagnostic deliverable. The 60 primary and 5 supplemental `UNRESOLVED`
+  results remain product gaps; `P2T4-FU-01` through `P2T4-FU-10` remain OPEN and unassigned, with no
+  automatic assignment to Task 5. No runtime, schema, catalog, contract, or provider authority is
+  granted. APP hold remains IN FORCE and Security remains PENDING. This direct owner decision is
+  recorded here; `approvals/TASK_APPROVAL.md` is not changed while APP hold remains active.
+
 - 2026-10-21 coordinator record (not a new Person 2 product decision): the handoff was committed
   and pushed as `c54b5a5a4a0dfe8f5c494cd47cd9f432e115f61b` (parent
   `4310fcbfafa48a14e5fce31f38a2089e24079e52`). The coordinator's post-commit chat record reports

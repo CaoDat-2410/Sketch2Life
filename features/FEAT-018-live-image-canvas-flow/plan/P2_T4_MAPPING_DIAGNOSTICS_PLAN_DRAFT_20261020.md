@@ -235,11 +235,11 @@ Person 2 dispositioned that result on 2026-10-21: it stays recorded as `HARNESS_
 pass, belongs to a separate repository-wide issue outside P2-T4, and those features are not changed
 under Task 4. The same disposition authorizes keeping the typing-only edits in the two approved test
 files (call forms and types only; no change to behavior, fixtures, runtime, schema or manifest) and
-keeps `P2T4-FU-01` OPEN. Task 4 remains open until artifacts are synchronized, validation evidence is
-bound to the final commit, valid gates are confirmed, and an independent final review covers the
-handoff commit. Full results are in the evidence note.
+keeps `P2T4-FU-01` OPEN. At that pre-handoff candidate stage, Task 4 remained open until artifacts
+were synchronized, validation evidence was bound to the final commit, valid gates were confirmed,
+and an independent final review covered the handoff commit. Full results are in the evidence note.
 
-## Final handoff and review status — 2026-10-21
+## Final handoff and review status — 2026-10-21 (state before owner closure)
 
 Person 2 issued `W2_FEAT018_P2_T4_GATE3_HARNESS_DISPOSITION_01`. The repository harness remains
 `HARNESS_INVALID`, not a pass or waiver, and is outside the P2-T4-specific closure gate. Gate 3 is
@@ -264,5 +264,18 @@ note for gate provenance, review findings, accepted chronology and limitations.
 The earlier candidate-stage Ruff result is explicitly historical; the final result is bound to the
 handoff commit. Person 2 accepted the chronology of older pre-commit authorization wording and did
 not require edits solely to restate the later commit/push. `TASK_APPROVAL.md` remains untouched while
-APP hold is IN FORCE. Task 4 remains OPEN pending Person 2's closure disposition; product gaps and
-FU-01..FU-10 remain OPEN and unassigned.
+APP hold is IN FORCE. At that stage, Task 4 remained OPEN pending Person 2's closure disposition;
+product gaps and FU-01..FU-10 remained OPEN and unassigned.
+
+## Owner closure disposition — 2026-10-21
+
+Person 2 confirmed closure of FEAT-018 P2-T4 as the approved diagnostic deliverable at handoff commit
+`8ed2e8bbc7509eb236691bb8196eecb1e4f7e14f`. The owner accepts all four closure gates: the missing
+provenance contract-name is recorded as `P2T4-FU-01 OPEN`; artifacts are consistent; final gates
+PASS on this commit; and the independent final review is PASS with no findings.
+
+This closes only the diagnostic deliverable. The 60 primary and 5 supplemental `UNRESOLVED` results
+remain product gaps. `P2T4-FU-01` through `P2T4-FU-10` remain OPEN and unassigned and are not
+automatically assigned to Task 5. No runtime, schema, catalog, contract, or provider work is
+authorized. APP hold remains IN FORCE; Security remains PENDING. `TASK_APPROVAL.md` is unchanged
+under APP hold; the direct owner decision is recorded in `DECISIONS.md` and the diagnostics note.
