@@ -8,7 +8,9 @@
 
 Person 2 approved revision 3 at source commit `b39a9f2f56509b0543184876eb538fc9faf0e1aa` on
 2026-10-20. The original source digests, exact issuance, allowed files and exclusions are recorded
-in `approvals/TASK_APPROVAL.md`. This status update does not change the approved criteria below.
+in `approvals/TASK_APPROVAL.md`. The 2026-10-21 acceptance rebase supersedes only the original
+unresolved-requirements closure clause for diagnostic-deliverable acceptance; it does not change
+implementation scope or any observed requirement status.
 
 ## Outcome and limits
 
@@ -22,8 +24,9 @@ activity-candidate/no-match API was established by this inspection. This slice t
 fixtures, tests and a diagnostic report using existing contracts, with no new runtime envelope.
 Report vocabulary is not a new public contract or an eligibility decision.
 
-This diagnostic slice alone cannot close full P2-T4 if required behavior remains unresolved. Passing
-tests that accurately reproduce a defect do not mean the product requirement is satisfied.
+The 2026-10-21 owner amendment permits acceptance of the diagnostic deliverable while the product
+requirements remain unresolved. Passing tests that accurately reproduce a defect do not mean the
+product requirement is satisfied. Task 4 closure still requires the amendment's four final gates.
 
 ## Source basis and review response
 
@@ -33,8 +36,8 @@ tests that accurately reproduce a defect do not mean the product requirement is 
   for unapproved work. Later approvals of P2-T2, narration, T2 matching and subject recovery remain
   applicable to their own scopes; their existence does not approve this matrix or every C0 clause.
 - `CONTRACT_FREEZE.md`, `ENGINE_REFINEMENT_PLAN.md`, `approvals/TASK_APPROVAL.md` and the current
-  contract/service sources define the existing handoff. FEAT-018 P2-T4 has no dedicated approval
-  for this implementation slice in the inspected approval file.
+  contract/service sources define the existing handoff. Person 2's dedicated approval for this
+  diagnostic implementation slice and the later acceptance rebase are recorded in the approval file.
 - `data/activity-catalog/golden/v1/semantic-anchor-profiles.v1.json` contains reviewed Vietnamese
   phrases and 100 legacy profiles. Profile versions and golden activity versions differ; retain
   both identities rather than rewriting catalog versions.
@@ -101,11 +104,14 @@ ages in the current product flow, change the supported-age boundary, or start se
   Cloud review reports a pure-regex reproduction; coordinator source inspection confirms the
   double-escaped expressions. Boundary/spacing cross-matches must be recorded as observed matcher
   behavior, not corrected by changing fixtures or product code in this slice. Runtime impact on
-  the matrix is not yet measured.
+  the matrix has since been observed in the Modal run: the supplemental word-boundary and
+  whitespace matcher expectations were recorded as mismatches. See the evidence note for row-level
+  findings. No runtime repair is authorized.
 
-List these as static hypotheses until exercised after approval. No runtime fix to the Gate A,
+At plan approval, these were static hypotheses pending execution. The Modal run has since exercised
+the approved boundaries and recorded observations in the metrics report. No runtime fix to Gate A,
 mapper, resolver, catalog or schema is authorized by this plan. If diagnostic results expose a
-required repair, propose the exact repair and approval separately; full-task status stays open.
+required repair, propose the exact repair and approval separately; product gaps remain open.
 
 ## Expected outcomes and completion rules
 
@@ -137,9 +143,13 @@ the common no-match recipe against all 100 base profiles, not only the golden 20
 6. Evidence contains sanitized IDs, hashes, codes, counts and observations. Synthetic label/text
    lives only in declared fixtures; raw session dumps, real transcripts, media or provider output
    do not become published evidence.
-7. A complete diagnostic run may still report unresolved behavior. Full P2-T4 completion additionally
-   requires that each required acceptance item is satisfied or explicitly dispositioned by its
-   owner without silently waiving the original requirement, plus independent implementation review.
+7. Under `W2_FEAT018_P2_T4_DIAGNOSTIC_ACCEPTANCE_REBASE_01`, diagnostic-deliverable acceptance covers
+   the approved 120 primary cases, 43 separately counted supplemental cases, B1/B2/B3 within scope,
+   the metrics report and evidence. The 60 primary and 5 supplemental `UNRESOLVED` results remain
+   product gaps; they are not SATISFIED and are recorded as separate, unassigned follow-ups. Task 4
+   closes only after: the provenance contract-name is checked or followed up; plan, evidence note,
+   status and report are consistent with observed findings and review limits; final gates have valid
+   results (mypy `INTERNAL ERROR` is not PASS); and an independent final review covers the handoff.
 
 ## Exact proposed file scope after approval
 
@@ -172,19 +182,30 @@ verbatim in `approvals/TASK_APPROVAL.md`. It authorizes the exact files listed a
 checks, evidence creation, and implementation review. It does not authorize runtime/schema/catalog
 changes or Lightning/model calls.
 
-The approved manifest and tests are present. The current metrics report records 120 primary rows:
-B1 completed for all 120; B2 and B3 were NOT_RUN for all 120 because the active test environment is
-missing the required project dependency `Pillow>=11,<13` (import module `PIL`). The dependency is
-required by the backend project, not an optional Gate A/live dependency. All 120 primary requirements
-therefore remain UNRESOLVED. Of 43 supplemental rows, 34 executed and 9 Gate-A cases are NOT_RUN for
-the same environment prerequisite. Twelve supplemental requirements remain UNRESOLVED: nine
-unexecuted Gate-A cases, a Raw narration source/status consistency gap, and two observed V2 matcher
-deviations. The report keeps the 120 primary and 43 supplemental counts separate and records
-`full_p2_t4_acceptance=OPEN`.
+The initial local preflight report recorded 120 primary rows: B1 completed for all 120; B2 and B3
+were NOT_RUN for all 120 because the active test environment lacked the required project dependency
+`Pillow>=11,<13` (import module `PIL`). The dependency is required by the backend project, not an
+optional Gate A/live dependency. At that point all 120 primary requirements remained UNRESOLVED. Of
+43 supplemental rows, 34 executed and 9 Gate-A cases were NOT_RUN for the same environment
+prerequisite. Twelve supplemental requirements remained UNRESOLVED in that report. The report kept
+the 120 primary and 43 supplemental counts separate and recorded `full_p2_t4_acceptance=OPEN`.
 
 Evidence and the offline check results are in
 `evidence/notes/P2_T4_MAPPING_DIAGNOSTICS_20261020.md` and
-`evidence/metrics/P2_T4_MAPPING_DIAGNOSTICS_20261020.json`. This is a partial diagnostic result,
-not Task 4 completion. B2/B3 evidence, owner disposition for unresolved behavior, and the required
-independent implementation review remain open. No runtime fix, provider/model call, or contract
-was added.
+`evidence/metrics/P2_T4_MAPPING_DIAGNOSTICS_20261020.json`. The initial result was partial, not Task 4
+completion. B2/B3 evidence has since been added by the follow-up below. The 2026-10-21 amendment
+allows diagnostic-deliverable acceptance without changing unresolved row statuses; separate
+follow-ups and the required final gates remain. No runtime fix, provider/model call, or contract was
+added.
+
+## Follow-up execution evidence — 2026-10-20
+
+The initial status above records the local preflight before Pillow was available. A later owner-run
+Modal Notebook focused check at checkout `5c79741f9e3806626c1dc5c586fe409b2e9370a1` completed with
+368 passed and one Pydantic deprecation warning. The regenerated metrics report records B1/B2/B3
+COMPLETE for all 120 primary cases and execution COMPLETE for all 43 supplemental cases. The report
+tuple and remaining unresolved requirements are recorded in the feature evidence note. This update
+does not change the approved implementation scope. Person 2's 2026-10-21 amendment superseded only
+the original unresolved-requirements closure clause for diagnostic-deliverable acceptance; it did
+not change any row status or assign follow-ups to Task 5. Task 4 remains open pending the four final
+gates, including valid final checks and independent review of the final handoff.

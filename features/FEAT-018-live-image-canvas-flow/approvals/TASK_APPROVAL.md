@@ -624,3 +624,62 @@ và review implementation.
 Chưa cho sửa runtime/schema/catalog hoặc gọi Lightning/model.
 Các yêu cầu còn UNRESOLVED giữ Task 4 mở, không tự coi hoàn tất.
 ```
+
+## Owner acceptance rebase — FEAT-018 P2-T4 — 2026-10-21
+
+- Approver: Person 2, direct issuance in the coordinator conversation on 2026-10-21.
+- Amendment: `W2_FEAT018_P2_T4_DIAGNOSTIC_ACCEPTANCE_REBASE_01`.
+- Scope: redefine P2-T4 diagnostic-deliverable acceptance as the approved 120 primary cases,
+  43 separately counted supplemental cases, B1/B2/B3 within their approved limits, the metrics
+  report, and evidence.
+- Supersession: this amendment replaces only the original approval clause that kept Task 4 open
+  because required behavior was `UNRESOLVED`, and only to permit closure of the diagnostic
+  deliverable. It does not change any result label. The 60 primary and 5 supplemental
+  `UNRESOLVED` requirements remain product gaps and are not `SATISFIED`.
+- Follow-up: ambiguity/provenance, source conflict, adult assertion/confidence, narration mismatch,
+  version transitions, V2 matcher and candidate-envelope gaps must be tracked separately. This
+  amendment does not assign them to Task 5.
+- Exclusions remain: no runtime/schema/catalog change, Lightning/model/provider call, or contract
+  change. Those require a separate plan and approval.
+- Task 4 closure still requires: (1) check the missing provenance contract-name or record a
+  follow-up; (2) keep plan, evidence note, status and report consistent, including observed
+  findings and review limits; (3) valid final gates, with mypy `INTERNAL ERROR` not counting as
+  `PASS`; and (4) an independent final review of the handoff state.
+- This issuance does not itself close Task 4 or claim that product gaps were fixed.
+
+Actual owner issuance:
+
+```text
+Person 2 ban hành
+W2_FEAT018_P2_T4_DIAGNOSTIC_ACCEPTANCE_REBASE_01.
+
+Phạm vi: định nghĩa lại nghiệm thu P2-T4 là hoàn tất diagnostic
+deliverable đã được duyệt: 120 ca chính, 43 ca supplemental,
+B1/B2/B3 theo đúng giới hạn đã duyệt, metrics report và evidence.
+
+Amendment này thay điều kiện “Required behavior recorded UNRESOLVED
+keeps Task 4 open” trong approval P2-T4, chỉ để cho phép đóng
+diagnostic deliverable. Nó không đổi trạng thái kết quả:
+60 primary và 5 supplemental UNRESOLVED vẫn là gap chưa được giải quyết,
+không được tính là SATISFIED hay là hành vi sản phẩm đạt yêu cầu.
+
+Các gap về ambiguity/provenance, source conflict, adult assertion/
+confidence, narration mismatch, version transitions, V2 matcher và
+candidate envelope phải được ghi thành follow-up riêng. Không tự gán
+chúng sang Task 5 nếu chưa có disposition.
+
+Không cấp quyền sửa runtime/schema/catalog, gọi Lightning/model/provider,
+hay thay đổi contract. Các việc đó cần plan và approval riêng.
+
+Task 4 chỉ được đóng sau khi:
+1. provenance contract-name còn thiếu được kiểm tra hoặc được ghi thành
+   follow-up theo amendment này;
+2. plan, evidence note, status và report được cập nhật nhất quán, gồm
+   findings đã quan sát và giới hạn review;
+3. các gate cuối có kết quả hợp lệ; mypy INTERNAL ERROR không được tính
+   là PASS;
+4. có independent review cuối trên đúng trạng thái bàn giao.
+
+Việc ban hành amendment không tự đóng Task 4 và không tuyên bố các gap
+sản phẩm đã được sửa.
+```

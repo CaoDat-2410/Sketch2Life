@@ -18,12 +18,35 @@ for other working research, review attachments or handoff drafts.
 
 Person 2's coordinator-chat instruction on 2026-10-20 was “OK đẩy lên đi sau đó cập nhật và viết lại
 prompt review cho tôi”, in response to the proposal to push the Task 4 branch for Claude Cloud review.
-This one-time branch distribution covers only the partial diagnostic note
+At the time of this one-time branch distribution, the diagnostic note
 ([note](notes/P2_T4_MAPPING_DIAGNOSTICS_20261020.md)) and metrics
-([report](metrics/P2_T4_MAPPING_DIAGNOSTICS_20261020.json)) linked here. It is not canonical evidence
-publication or owner acceptance. B2/B3 remain NOT_RUN and Task 4 remains OPEN; these artifacts must
-not be cited as completed P2 evidence. This record does not broaden the earlier plan/input review
-distribution or the general P2 publication policy.
+([report](metrics/P2_T4_MAPPING_DIAGNOSTICS_20261020.json)) recorded the initial partial result. It
+is not canonical evidence publication or owner acceptance. B2/B3 were then NOT_RUN and Task 4
+remained OPEN. A later Modal Notebook execution updated the report and completed B1/B2/B3. The
+2026-10-21 owner amendment later permitted diagnostic-deliverable acceptance without changing the
+row-level product gaps; independent final review and valid final gates remain open. This record does
+not broaden the earlier plan/input review distribution or the general P2 publication policy.
+
+## P2-T4 Modal execution evidence update — 2026-10-20
+
+The owner supplied the Modal Notebook test result (368 passed, one Pydantic deprecation warning) and
+generated report. The report tuple is 2,162,088 bytes, SHA-256
+`15d4c5dfaecb2212205e1e705a85ef64493f37a3f54800579b051250227233a0`. It records B1/B2/B3 COMPLETE
+for 120 primary cases and execution COMPLETE for 43 supplemental cases, with 60 primary and 5
+supplemental requirements still UNRESOLVED. The report remains diagnostic evidence only, not owner
+acceptance or Task 4 completion.
+
+## P2-T4 diagnostic acceptance rebase — 2026-10-21
+
+Person 2 issued `W2_FEAT018_P2_T4_DIAGNOSTIC_ACCEPTANCE_REBASE_01`; the exact issuance is in
+`../approvals/TASK_APPROVAL.md`. It permits acceptance of the approved 120-primary/43-supplemental
+diagnostic deliverable while preserving the report's 60 primary and 5 supplemental
+`UNRESOLVED` results as product gaps. Follow-ups remain unassigned and are not implicitly moved to
+Task 5. The Modal report's execution measurements and row-level findings are retained. Any
+acceptance annotation is separately attributed and does not alter those measurements. Task 4 remains
+open pending valid final gates and independent final review. See
+[`P2-T4 diagnostics note`](notes/P2_T4_MAPPING_DIAGNOSTICS_20261020.md) for gate results, review
+limits and follow-up IDs.
 
 Selected completed P2 design record:
 [isolated image admission and decoding](P2_IMAGE_DECODE_DESIGN_20260910.md)

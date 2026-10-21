@@ -1,11 +1,23 @@
 # FEAT-018 decisions
 
+- 2026-10-21 owner amendment `W2_FEAT018_P2_T4_DIAGNOSTIC_ACCEPTANCE_REBASE_01`: P2-T4 may
+  accept the approved diagnostic deliverable (120 primary, 43 supplemental, B1/B2/B3 within scope,
+  metrics report and evidence) without treating the 60 primary or 5 supplemental `UNRESOLVED`
+  results as satisfied product behavior. Track ambiguity/provenance, source conflict, adult
+  assertion/confidence, narration mismatch, version-transition, V2 matcher and candidate-envelope
+  gaps as separate unassigned follow-ups; do not assign them to Task 5 without disposition. No
+  runtime/schema/catalog/provider/contract work is authorized. Task 4 remains open until the four
+  amendment closure gates and independent final review pass; issuance alone does not close it.
+
 - 2026-10-20 owner approval: implement the P2-T4 Revision 3 diagnostic slice at source commit
   `b39a9f2f56509b0543184876eb538fc9faf0e1aa`. Use B1/B2/B3, with B3 as matcher observation only;
   keep 120 primary cases and supplemental cases separately counted; report labels remain diagnostics
   and do not introduce a contract. The approval does not authorize runtime/schema/catalog changes or
-  Lightning/model calls. Execution gaps and unresolved requirements keep Task 4 open. The measured
-  partial result is recorded in `evidence/notes/P2_T4_MAPPING_DIAGNOSTICS_20261020.md`.
+  Lightning/model calls. The later Modal Notebook run completed B1/B2/B3 and the supplemental
+  execution rows. The 2026-10-21 amendment supersedes only the original unresolved-requirements
+  closure clause for diagnostic-deliverable acceptance; the unresolved product gaps remain open.
+  Task 4 still awaits valid final gates and independent final review. The measured result is
+  recorded in `evidence/notes/P2_T4_MAPPING_DIAGNOSTICS_20261020.md`.
 
 - 2026-09-09 research record: user requested one P2 research round and proposals;
   any FEAT-003 change or connection requires user review first. Proposed offline

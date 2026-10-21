@@ -1,25 +1,32 @@
 # FEAT-018 status — subject recall and Pixi main-flow hardening
 
 Status: IN_PROGRESS — approved offline implementation verified; live rig/Pixi visual acceptance pending
-Updated: 2026-10-20
+Updated: 2026-10-21
 
-## P2-T4 implementation checkpoint — 2026-10-20
+## P2-T4 diagnostic acceptance rebase — 2026-10-21
 
-- State: `PARTIAL — APPROVED DIAGNOSTIC SLICE IMPLEMENTED; TASK 4 OPEN`.
+- State: `DIAGNOSTIC RUN COMPLETE; TASK 4 OPEN — FINAL GATES AND INDEPENDENT REVIEW PENDING`.
 - Person 2 approved Revision 3 at source commit `b39a9f2f56509b0543184876eb538fc9faf0e1aa`.
-  Approval and exact scope are recorded in `approvals/TASK_APPROVAL.md`.
-- The synthetic manifest has 120 primary and 43 separately counted supplemental cases. B1 completed
-  for all 120 primary cases. B2/B3 are NOT_RUN because the active test environment is missing the
-  required backend dependency `Pillow>=11,<13` (module `PIL`); a dedicated dependency preflight keeps
-  this from being reported as a clean test run. Nine Gate-A supplemental cases are likewise NOT_RUN.
-  Primary requirements remain UNRESOLVED. Executed supplemental rows include a Raw narration/status
-  gap and two V2 matcher deviations; see the metrics report for sanitized row-level evidence.
-- Ruff passed. The latest mypy invocation terminated with generic `INTERNAL ERROR`; an earlier
-  invocation reported `OperationalError: unable to open database file`. Neither constitutes a
-  type-check result. The latest focused test result and repository-wide validation are recorded in
-  the evidence note below.
-- No runtime/schema/catalog edits or Lightning/model calls were made. Independent implementation
-  review and owner disposition for unresolved behavior remain open; Task 4 is not complete.
+  The 2026-10-21 acceptance rebase is also recorded in `approvals/TASK_APPROVAL.md`.
+- The synthetic manifest has 120 primary and 43 separately counted supplemental cases. The initial
+  local preflight lacked `Pillow>=11,<13`; the later owner-run Modal Notebook focused suite completed
+  with 368 passed and one Pydantic deprecation warning. The regenerated report records B1/B2/B3
+  COMPLETE for all 120 primary cases and all 43 supplemental cases COMPLETE. Requirements remain
+  60 primary UNRESOLVED, 5 supplemental UNRESOLVED and 10 supplemental EXPECTED_BLOCKED; see the
+  sanitized metrics report for row-level evidence.
+- Scoped Ruff 0.16.4 passed. Local mypy 1.20.2 still terminates with `INTERNAL ERROR`; the default
+  cache reports `OperationalError: unable to open database file`, and a separate ignored cache path
+  reports `PermissionError: [WinError 5]`. Neither constitutes a type-check result. The latest
+  focused test result and current final gate results are recorded in the evidence note below. Do not
+  count mypy `INTERNAL ERROR` as a pass.
+- Architecture, repository security, and skeleton validators pass. The repository harness validator
+  remains `HARNESS_INVALID` due to missing evidence paths under FEAT-045, FEAT-046, and FEAT-047;
+  those unrelated feature directories were not changed.
+- The amendment allows acceptance of the diagnostic deliverable while preserving all 60 primary
+  and 5 supplemental `UNRESOLVED` results as product gaps. Follow-ups are recorded separately and
+  are not assigned to Task 5. No runtime/schema/catalog edits or Lightning/model calls were made.
+- The provenance contract-name check is documented with a follow-up. Task 4 is not complete until
+  all final gates have valid results and an independent reviewer reviews the final handoff state.
 - Plans: `plan/P2_T4_MAPPING_DIAGNOSTICS_PLAN_DRAFT_20261020.md` and
   `plan/P2_T4_MAPPING_INPUT_REVIEW_DRAFT_20261020.md`. Evidence:
   `evidence/notes/P2_T4_MAPPING_DIAGNOSTICS_20261020.md` and

@@ -618,10 +618,16 @@ separate supplemental counts, and diagnostic-only report labels. The implementat
 synthetic manifest and test-only diagnostics; it does not change runtime contracts, schemas,
 catalogs, or provider behavior.
 
-The current run completed B1 for all 120 primary rows. The active test environment is missing the
-required project dependency `Pillow>=11,<13` (import module `PIL`), so B2/B3 remain NOT_RUN and all
-primary requirements remain UNRESOLVED. Of 43 supplemental rows, 34 executed and 9 Gate-A rows are
-NOT_RUN. The executed observations include one Raw narration source/status mismatch and two V2
-matcher deviations. Task 4 remains open pending B2/B3 evidence, owner disposition of unresolved
-behavior, and independent implementation review. Details:
+The initial local preflight completed B1 for all 120 primary rows but lacked `Pillow>=11,<13`, so
+B2/B3 and nine Gate-A supplemental rows were initially NOT_RUN. A subsequent owner-run Modal
+Notebook check at pinned checkout `5c79741f9e3806626c1dc5c586fe409b2e9370a1` completed the focused
+suite (368 passed, one Pydantic deprecation warning) and regenerated the report: B1/B2/B3 COMPLETE
+for all 120 primary rows and all 43 supplemental rows COMPLETE. Requirements remain 60 primary and
+5 supplemental UNRESOLVED; 10 supplemental requirements are EXPECTED_BLOCKED. The report records
+`provider_execution=NOT_EXECUTED`; no model/provider/Lightning call was made. At the time of this
+2026-10-20 entry, the original approval still required owner disposition and independent review.
+The 2026-10-21 `W2_FEAT018_P2_T4_DIAGNOSTIC_ACCEPTANCE_REBASE_01` supersedes only the unresolved-
+requirements closure clause for diagnostic-deliverable acceptance. The UNRESOLVED results remain
+product gaps and are tracked as separate unassigned follow-ups; Task 4 still awaits valid final gates
+and independent final review. Details and report provenance are in
 `evidence/notes/P2_T4_MAPPING_DIAGNOSTICS_20261020.md`.
