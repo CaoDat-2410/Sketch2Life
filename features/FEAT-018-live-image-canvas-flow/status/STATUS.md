@@ -3,7 +3,7 @@
 Status: IN_PROGRESS — approved offline implementation verified; live rig/Pixi visual acceptance pending
 Updated: 2026-10-21
 
-## Latest P2-T4 Gate 3 update — 2026-10-21
+## Candidate-stage Gate 3 snapshot — 2026-10-21 (historical)
 
 Person 2 issued `W2_FEAT018_P2_T4_GATE3_HARNESS_DISPOSITION_01`: `HARNESS_INVALID` remains the
 repository-wide result, not a pass or waiver, and is outside the P2-T4-specific closure gate. Person 2
@@ -18,7 +18,23 @@ final Gate 3 verdict must come from that chat record bound to the full handoff c
 amendment permits this candidate synchronization before commit. No stage/commit/push is currently
 authorized. Product gaps and FU-01..FU-10 remain OPEN and unassigned, APP hold remains in force, and
 Security remains PENDING. See the diagnostics note for commands, provenance and limitations. This
-latest update supersedes earlier candidate gate summaries below.
+candidate snapshot superseded earlier candidate gate summaries at that time.
+
+## Latest P2-T4 handoff update — 2026-10-21
+
+Person 2 subsequently authorized the handoff commit and push. Commit
+`c54b5a5a4a0dfe8f5c494cd47cd9f432e115f61b` (parent
+`4310fcbfafa48a14e5fce31f38a2089e24079e52`) is the pushed handoff. The coordinator's post-commit
+chat record reports all seven P2-T4 gates passing on that exact commit. A fresh-session Claude review
+reports `PASS WITH NOTES` and independently reran the same seven gates in Linux. Person 2 accepts
+session-level independence while the same-Claude-model-family limitation remains explicit.
+
+State: `FINAL GATES PASS; REVIEW PASS WITH NOTES; TASK 4 OPEN — OWNER CLOSURE PENDING`.
+`HARNESS_INVALID` remains a separate repository-wide result, not a pass or waiver, and outside the
+P2-T4 gate set. The earlier “commit/push not authorized” text above is an issuance-time snapshot;
+Person 2 accepted the chronology in chat. Product gaps and FU-01..FU-10 remain OPEN and unassigned,
+APP hold remains IN FORCE, and Security remains PENDING. See the diagnostics note for gate and review
+provenance, dispositions and limitations.
 
 ## P2-T4 diagnostic acceptance rebase — 2026-10-21
 

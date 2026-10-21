@@ -207,8 +207,8 @@ COMPLETE for all 120 primary cases and execution COMPLETE for all 43 supplementa
 tuple and remaining unresolved requirements are recorded in the feature evidence note. This update
 does not change the approved implementation scope. Person 2's 2026-10-21 amendment superseded only
 the original unresolved-requirements closure clause for diagnostic-deliverable acceptance; it did
-not change any row status or assign follow-ups to Task 5. Task 4 remains open pending the four final
-gates, including valid final checks and independent review of the final handoff.
+not change any row status or assign follow-ups to Task 5. At that stage Task 4 remained open pending
+the four final gates, including valid final checks and independent review of the final handoff.
 
 For the latest execution, the report records 10 supplemental `EXPECTED_BLOCKED` rows and
 `provider_execution=NOT_EXECUTED`; neither label is a runtime/provider pass. All 60 primary
@@ -217,11 +217,12 @@ rows have only static hypotheses. Among the five supplemental unresolved rows, t
 hypotheses and four carry runtime findings (six finding entries), with one row in both groups. The
 final gate table, exact
 Modal-versus-annotated report provenance, and local Claude review limitations are maintained in the
-evidence note. The initial local Claude review was `PASS WITH NOTES` but did not bind its inspection
-to a verified diff/hash or audit all report rows. A later re-review by the same reviewer checked the
-prior candidate's diff, tuples and rows, but it did not rerun gates and is not independent. The
-coordinator applied its findings afterward, so neither review covers the current working tree. Task 4
-remains OPEN pending a separate final reviewer and valid final gates.
+evidence note. At that review stage, the initial local Claude review was `PASS WITH NOTES` but did
+not bind its inspection to a verified diff/hash or audit all report rows. A later re-review by the
+same reviewer checked the prior candidate's diff, tuples and rows, but it did not rerun gates and is
+not independent. The coordinator applied its findings afterward, so neither review covered the
+then-current working tree. Task 4 remained OPEN pending a separate final reviewer and valid final
+gates; the later post-commit outcome is recorded in the final section below.
 
 ## Final-check update — 2026-10-21
 
@@ -238,11 +239,13 @@ keeps `P2T4-FU-01` OPEN. Task 4 remains open until artifacts are synchronized, v
 bound to the final commit, valid gates are confirmed, and an independent final review covers the
 handoff commit. Full results are in the evidence note.
 
-## Closure Gate 3 disposition and latest candidate check — 2026-10-21
+## Final handoff and review status — 2026-10-21
 
 Person 2 issued `W2_FEAT018_P2_T4_GATE3_HARNESS_DISPOSITION_01`. The repository harness remains
 `HARNESS_INVALID`, not a pass or waiver, and is outside the P2-T4-specific closure gate. Gate 3 is
 met only after every listed P2-T4 gate has a valid passing result bound to the final handoff commit.
+The candidate-check details in the next paragraph are an earlier issuance-time snapshot, not the
+current handoff status.
 
 Person 2 also issued `W2_FEAT018_P2_T4_CONTINUATION_AND_FINAL_GATE_SCOPE_01`. Its newly authorized
 candidate Ruff invocation with `--no-cache --no-fix --no-fix-only` passed with exit 0 and
@@ -251,9 +254,15 @@ config, test tuples and tool versions were verified unchanged at HEAD `4310fcbf`
 focused pytest (368), scoped mypy, architecture, skeleton, security and diff-check results remain
 applicable. The candidate status is `CANDIDATE_CHECKS_PASS`, not final Gate 3 MET.
 
-The scope amends C/D ordering to allow candidate JSON/document synchronization before commit. The
-committed note/report references `W2_FEAT018_P2_T4_POST_COMMIT_GATE_RECORD_01`; the final record
-will be emitted in chat with the full handoff commit SHA after a separately authorized local commit
-and one final seven-gate cycle. Final output need not be copied back into tracked files merely to
-insert the SHA. Stage/commit/push is not authorized yet. Task 4 remains OPEN pending valid final
-gates, independent final review and owner closure; product gaps and FU-01..FU-10 remain unchanged.
+The handoff was committed and pushed as `c54b5a5a4a0dfe8f5c494cd47cd9f432e115f61b` (parent
+`4310fcbfafa48a14e5fce31f38a2089e24079e52`). The coordinator's post-commit chat record reports all
+seven P2-T4 gates passing on that commit. A fresh-session Claude review also reports `PASS WITH
+NOTES` and reran the seven gates in a separate Linux environment. Person 2 accepts this review as
+independent at the session level; the same-model-family caveat remains disclosed. See the diagnostics
+note for gate provenance, review findings, accepted chronology and limitations.
+
+The earlier candidate-stage Ruff result is explicitly historical; the final result is bound to the
+handoff commit. Person 2 accepted the chronology of older pre-commit authorization wording and did
+not require edits solely to restate the later commit/push. `TASK_APPROVAL.md` remains untouched while
+APP hold is IN FORCE. Task 4 remains OPEN pending Person 2's closure disposition; product gaps and
+FU-01..FU-10 remain OPEN and unassigned.

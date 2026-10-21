@@ -1,5 +1,16 @@
 # FEAT-018 decisions
 
+- 2026-10-21 coordinator record (not a new Person 2 product decision): the handoff was committed
+  and pushed as `c54b5a5a4a0dfe8f5c494cd47cd9f432e115f61b` (parent
+  `4310fcbfafa48a14e5fce31f38a2089e24079e52`). The coordinator's post-commit chat record reports
+  all seven P2-T4 gates passing on that exact commit. A fresh-session Claude review attachment
+  reports `PASS WITH NOTES`, independently reruns the seven gates in Linux, and identifies three
+  Low notes. Person 2 accepted session-level independence in the current conversation; the review's
+  same-Claude-model-family caveat remains disclosed. The evidence note labels the prior Ruff
+  candidate table historical, records Person 2's acceptance of the pre-commit chronology, and
+  defers updating `approvals/TASK_APPROVAL.md` while APP hold is IN FORCE. This record does not close
+  Task 4.
+
 - 2026-10-21 Person 2 issued `W2_FEAT018_P2_T4_GATE3_HARNESS_DISPOSITION_01` in the
   coordinator conversation: `HARNESS_INVALID` remains the actual repository-wide result, not a
   pass or waiver, and is outside the seven P2-T4-specific gates. Gate 3 requires valid passing

@@ -639,20 +639,24 @@ are historical, not new work under the continuation. Person 2 issued the Gate 3 
 invocation with `--no-cache --no-fix --no-fix-only` completed with exit 0 and `All checks passed!`.
 The earlier cache-denied invocation remains recorded as exit 1 with no lint verdict.
 
-At HEAD `4310fcbf`, source/config and the tested tool versions were verified unchanged, so the other
-six valid candidate results are reused. The seven candidate checks now have passing evidence;
-candidate synchronization and its post-edit validator record do not establish final Gate 3 MET.
-The C/D amendment accepts `W2_FEAT018_P2_T4_POST_COMMIT_GATE_RECORD_01` in chat, bound to the full
-handoff commit SHA, as the final seven-gate proof. Commit/push still requires separate user authorization.
-`HARNESS_INVALID` stays a separate repository-wide result outside P2-T4, not a pass or waiver;
-FEAT-045/046/047 were not changed. Task 4 remains OPEN pending the final record and independent
-final review. APP hold remains in force and Security remains PENDING.
+The handoff was committed and pushed as `c54b5a5a4a0dfe8f5c494cd47cd9f432e115f61b` (parent
+`4310fcbfafa48a14e5fce31f38a2089e24079e52`). The coordinator's post-commit chat record reports all
+seven P2-T4 gates passing on that commit. A fresh-session Claude review also reports `PASS WITH
+NOTES` and reran those seven gates in a separate Linux environment; Person 2 accepts it as session-
+independent while the same-model-family limitation remains explicit. The review attachment, its
+three Low-note dispositions, and the distinction between coordinator and reviewer evidence are
+recorded in the diagnostics note.
+
+`HARNESS_INVALID` remains a separate repository-wide result outside P2-T4, not a pass or waiver;
+FEAT-045/046/047 were not changed. The candidate-time “commit/push not authorized” statements below
+are historical snapshots; Person 2 accepted their chronology in chat. Task 4 remains OPEN pending
+Person 2's closure disposition. APP hold remains IN FORCE and Security remains PENDING.
 
 All 60 primary `UNRESOLVED` rows have static-review hypotheses; 40 of them (the conflict and adult-
 correction families) also have runtime boundary findings, while the 20 ambiguous rows have only the
 static hypothesis. Of the five supplemental `UNRESOLVED` rows, two carry static hypotheses and four
 carry runtime findings (six finding entries), with one row in both groups. Preserve the owner-designated labels without
-describing every row as an independently measured runtime defect. The evidence note records both
-local Claude review rounds and their limits: the later re-review verified the diff and tuples but
-came from the same reviewer session and is not the required independent final review. Task 4 remains
-OPEN.
+describing every row as an independently measured runtime defect. The evidence note records the
+earlier local Claude review rounds and their limits, plus the fresh-session final review of the
+handoff commit. The final reviewer is from the same Claude model family; Person 2 accepted session-
+level independence while that caveat remains disclosed. Task 4 remains OPEN pending owner closure.

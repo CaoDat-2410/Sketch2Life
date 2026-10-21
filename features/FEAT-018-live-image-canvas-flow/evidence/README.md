@@ -24,7 +24,8 @@ At the time of this one-time branch distribution, the diagnostic note
 is not canonical evidence publication or owner acceptance. B2/B3 were then NOT_RUN and Task 4
 remained OPEN. A later Modal Notebook execution updated the report and completed B1/B2/B3. The
 2026-10-21 owner amendment later permitted diagnostic-deliverable acceptance without changing the
-row-level product gaps; independent final review and valid final gates remain open. This record does
+row-level product gaps. At the time of that amendment, independent final review and valid final gates
+were still open; the later handoff outcome is recorded in the final section below. This record does
 not broaden the earlier plan/input review distribution or the general P2 publication policy.
 
 ## P2-T4 Modal execution evidence update — 2026-10-20
@@ -43,26 +44,28 @@ Person 2 issued `W2_FEAT018_P2_T4_DIAGNOSTIC_ACCEPTANCE_REBASE_01`; the exact is
 diagnostic deliverable while preserving the report's 60 primary and 5 supplemental
 `UNRESOLVED` results as product gaps. Follow-ups remain unassigned and are not implicitly moved to
 Task 5. The Modal report's execution measurements and row-level findings are retained. Any
-acceptance annotation is separately attributed and does not alter those measurements. Task 4 remains
-open pending valid final gates and independent final review. See
+acceptance annotation is separately attributed and does not alter those measurements. At that stage,
+Task 4 remained open pending valid final gates and independent final review. See
 [`P2-T4 diagnostics note`](notes/P2_T4_MAPPING_DIAGNOSTICS_20261020.md) for gate results, review
 limits and follow-up IDs.
 
-The latest local focused run passed 368 tests after installing the declared Pillow dependency into
+The candidate-stage local focused run passed 368 tests after installing the declared Pillow dependency into
 the ignored virtual environment. Ruff, scoped mypy, architecture, skeleton and security checks pass.
 The repository-wide harness remains `HARNESS_INVALID` because FEAT-045/046/047 lack unrelated
 evidence directories. Person 2 dispositioned this on 2026-10-21: it stays `HARNESS_INVALID`, is not
-a pass, and is a separate repository-wide issue outside P2-T4. Task 4 remains open until artifacts
-are synchronized, validation evidence is bound to the final commit, valid gates are confirmed and
-the final handoff commit receives independent review.
+a pass, and is a separate repository-wide issue outside P2-T4. At the candidate stage, Task 4 remained
+open until artifacts were synchronized, validation evidence was bound to the final commit, valid
+gates were confirmed and the final handoff commit received independent review. The later handoff
+status is recorded below.
 
-The checked-in JSON is a coordinator-annotated derivative, not the original Modal file. Its current
-tuple is 2,163,861 bytes, SHA-256
+At handoff commit `c54b5a5a4a0dfe8f5c494cd47cd9f432e115f61b`, the checked-in JSON was a coordinator-
+annotated derivative, not the original Modal file. Its tuple at that commit was 2,163,861 bytes,
+SHA-256
 `06d467a2629f5d03511cc4ef41997a5c9d84480a2dc7aa3433b3e8ed18e691b0`. The JSON annotation retains
 the original Modal tuple and links to the note's review/gate record. The diagnostics note keeps both
 tuples distinct.
 
-## P2-T4 local Claude handoff review — 2026-10-21
+## Earlier local Claude handoff reviews — 2026-10-21 (historical)
 
 The owner supplied an initial local Claude preliminary-handoff review (attachment named `Pasted text.txt`,
 received 2026-10-21; 9,303 bytes,
@@ -206,21 +209,22 @@ is approved. The implementation record is
 [indexed here](notes/INTEGRATED_CHILD_PROFILE_AND_RIG_QUALITY_IMPLEMENTATION_20260929.md); it
 distinguishes passing offline evidence from pending Android/L4/live-mask acceptance.
 
-## Closure Gate 3 disposition and latest candidate — 2026-10-21
+## P2-T4 final handoff record — 2026-10-21
 
 Person 2 issued `W2_FEAT018_P2_T4_GATE3_HARNESS_DISPOSITION_01`. `HARNESS_INVALID` remains the
 repository-wide result, not a pass or waiver, and is outside the P2-T4-specific gate set. Gate 3 is
 met only when every listed P2-T4 gate passes with a valid result bound to the final handoff commit.
 
-Person 2 subsequently issued `W2_FEAT018_P2_T4_CONTINUATION_AND_FINAL_GATE_SCOPE_01`. Its fresh
-candidate Ruff command with `--no-cache --no-fix --no-fix-only` passed with exit 0 and
-`All checks passed!`. The prior cache-denied run remains a distinct no-verdict record in the note.
-The other six valid candidate results remain applicable because source/config/tool versions were
-verified unchanged at HEAD `4310fcbf`.
+The handoff is commit `c54b5a5a4a0dfe8f5c494cd47cd9f432e115f61b` (parent
+`4310fcbfafa48a14e5fce31f38a2089e24079e52`), pushed to the matching feature branch. The coordinator's
+post-commit chat record reports all seven P2-T4 gates passing on this exact commit. A fresh-session
+Claude reviewer reports `PASS WITH NOTES` and independently reran the same seven gates on the commit
+in Linux. Person 2 accepts session-level independence; the reviewer disclosed that it is the same
+Claude model family, so model-family or organizational independence is not established.
 
-The amended C/D order permits candidate synchronization now. The JSON annotation records
-`CANDIDATE_CHECKS_PASS` and points to `W2_FEAT018_P2_T4_POST_COMMIT_GATE_RECORD_01`; it does not
-claim Gate 3 MET. That final proof will be a chat record bound to the full handoff commit SHA after
-separate commit permission and a final seven-gate cycle. Task 4 remains OPEN pending that proof and
-independent final review; current stage/commit/push authority is absent. See the
-[diagnostics note](notes/P2_T4_MAPPING_DIAGNOSTICS_20261020.md) for commands, provenance and limits.
+The earlier candidate Ruff table is identified as historical. Person 2 accepted the chronology of
+the old pre-commit authorization wording and did not require retroactive edits solely to restate the
+later commit/push and final-gate facts. `TASK_APPROVAL.md` remains untouched while APP hold is IN
+FORCE. Task 4 remains OPEN pending Person 2's closure disposition; the review's detailed results,
+three Low-note dispositions and limitations are in the
+[diagnostics note](notes/P2_T4_MAPPING_DIAGNOSTICS_20261020.md).

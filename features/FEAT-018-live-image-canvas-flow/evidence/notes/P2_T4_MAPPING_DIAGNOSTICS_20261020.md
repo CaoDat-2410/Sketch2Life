@@ -1,6 +1,6 @@
 # FEAT-018 P2-T4 mapping diagnostics — 2026-10-20
 
-**State: DIAGNOSTIC RUN COMPLETE; ACCEPTANCE REBASE RECORDED; TASK 4 REMAINS OPEN pending valid final gates and independent final review.**
+**Current state: final handoff gates reported PASS; fresh-session review PASS WITH NOTES and accepted at session level; Task 4 remains OPEN pending Person 2's closure disposition.**
 
 ## Approved scope
 
@@ -62,7 +62,8 @@ request was made.
 This Modal result supersedes the initial local preflight counts and report tuple below for current
 execution status. It does not resolve the 60 primary and 5 supplemental requirement gaps. Person 2's
 2026-10-21 amendment allows acceptance of the diagnostic deliverable without changing those row
-statuses; Task 4 remains open pending valid final gates and independent final review.
+statuses. At this point in the chronology, valid final gates and independent final review were still
+pending; the later handoff record is documented below.
 
 ## Acceptance rebase and observed findings — 2026-10-21
 
@@ -362,13 +363,17 @@ a derived status/acceptance update that records the 2026-10-21 amendment. The re
 `approved_source_commit` identifies the approved source, while the Modal execution checkout is
 separately recorded as `5c79741f9e3806626c1dc5c586fe409b2e9370a1`.
 
-## Final handoff gate results — 2026-10-21
+## Historical candidate gate snapshot — 2026-10-21
+
+This table records a candidate-stage snapshot, not the final handoff verification. In particular,
+its Ruff row is a result from a distinct candidate invocation and must not be read as the final
+commit-bound result. The later post-commit record below is the applicable final handoff evidence.
 
 | Gate | Result | Scope/limitation |
 | --- | --- | --- |
 | Focused pytest — Modal | **368 passed, 1 Pydantic deprecation warning** (owner-supplied output) | Ran at pinned checkout `5c79741f9e3806626c1dc5c586fe409b2e9370a1`. The diff from that checkout to `54d482d5` does not change the Task 4 manifest, tests, or runtime source. |
 | Focused pytest — local | **368 passed** | Rerun on the current uncommitted candidate after installing declared Pillow 12.3.0 into the ignored `.venv`; includes the approved test files after typing-only fixes. |
-| Ruff 0.16.4 | **PASS** | Scoped command rerun on the current uncommitted candidate for both approved diagnostic test modules. |
+| Ruff 0.16.4 | **PASS — historical candidate run** | Scoped command on an uncommitted candidate for both approved diagnostic test modules; superseded for final handoff by the separate commit-bound record below. |
 | mypy 1.20.2 | **PASS — no issues in 2 source files** | The exact PowerShell command and its output are recorded immediately below. It used a per-command cache directory under `%TEMP%`; no project config or persistent settings changed. The default cache path previously failed to open its database; the valid temporary-cache run exposed ten test typing errors, which were fixed in the two approved test files before this passing run. |
 | Repository harness validator | **HARNESS_INVALID** | Rerun on the current candidate; reports missing `evidence/screenshots` and `evidence/metrics` paths for FEAT-045, FEAT-046 and FEAT-047. These unrelated feature paths were not changed. |
 | Architecture validator | **ARCHITECTURE_VALID** | Rerun on the current uncommitted candidate based on HEAD `54d482d55b570e17b224a3a3506970b0970759f7`. |
@@ -393,15 +398,14 @@ feature directories were created or modified. Person 2 dispositioned the harness
 issue outside P2-T4; FEAT-045/046/047 are not changed under Task 4.
 
 The unmodified Modal-generated JSON is **2,162,088 bytes**, SHA-256
-`15d4c5dfaecb2212205e1e705a85ef64493f37a3f54800579b051250227233a0`. The current coordinator-
-annotated JSON is **2,163,861 bytes**, SHA-256
-`06d467a2629f5d03511cc4ef41997a5c9d84480a2dc7aa3433b3e8ed18e691b0`; it is a distinct artifact.
-The owner-approved Revision 3 plan source digest is
-`1482c047476049e44ecd515178d64b2d4c9e60d13511c92aa8112fd5269d2d66`; the current derived plan
-record after status, acceptance, review-limit, final-check, Person 2 disposition and continuation
-updates is 20,324 bytes, SHA-256
-`1417e71a46271f605d72521468223b3c5c33287f761a142894a9922a0bde6807`. This derived tuple is
-computed from the current plan file; it does not replace the approved Revision 3 source digest.
+`15d4c5dfaecb2212205e1e705a85ef64493f37a3f54800579b051250227233a0`. At handoff commit
+`c54b5a5a4a0dfe8f5c494cd47cd9f432e115f61b`, the coordinator-annotated JSON was **2,163,861 bytes**,
+SHA-256 `06d467a2629f5d03511cc4ef41997a5c9d84480a2dc7aa3433b3e8ed18e691b0`; it is distinct from the
+Modal artifact. The owner-approved Revision 3 plan source digest is
+`1482c047476049e44ecd515178d64b2d4c9e60d13511c92aa8112fd5269d2d66`. At that same handoff commit,
+the derived plan was 20,324 bytes, SHA-256
+`1417e71a46271f605d72521468223b3c5c33287f761a142894a9922a0bde6807`. These are commit-bound
+provenance tuples, not the current working-tree tuples after the review synchronization below.
 
 ### Person 2 disposition — 2026-10-21
 
@@ -472,9 +476,9 @@ condition was not established. The then-existing JSON tuple was 2,163,728 bytes 
 predated this disposition and was not authority for treating `HARNESS_INVALID` as a P2-T4 blocker. The
 original Modal tuple remains 2,162,088 bytes / `15d4c5dfaecb2212205e1e705a85ef64493f37a3f54800579b051250227233a0`.
 
-The owner disposition does not close Task 4, resolve product gaps, change Security `PENDING`, or
-authorize runtime/provider work. Independent final review and valid gates bound to a final handoff
-commit remain outstanding.
+At that pre-continuation point, the owner disposition did not close Task 4, resolve product gaps,
+change Security `PENDING`, or authorize runtime/provider work; independent final review and valid
+gates bound to a final handoff commit remained outstanding. The later outcome is recorded below.
 
 ## Issued continuation and candidate synchronization — 2026-10-21
 
@@ -528,10 +532,55 @@ After these edits, the scope permits one sequential mini-cycle from the reposito
 results are supplied in the accompanying coordinator chat; this note does not pre-claim a pass for
 an unexecuted cycle. Any failed or missing verdict ends the scope without further gate dispatches.
 
-No stage, commit or push is authorized yet. After separate local-commit approval, the scope permits
-one sequential final seven-gate cycle, including one final Ruff invocation with the same literal.
-That final verification allowance remains unused. Final chat evidence will not be copied into
-tracked files merely to insert its SHA or output. Task 4 remains OPEN pending final verification,
-independent final review and owner closure. `HARNESS_INVALID` stays separately invalid/out of
-P2-T4 scope; FU-01..FU-10 remain OPEN/unassigned, product requirement statuses are unchanged,
-APP hold is in force and Security remains PENDING.
+The preceding authorization language was accurate when that candidate-synchronization scope was
+issued. Person 2 later accepted the chat chronology for the separate commit and push; the earlier
+wording is an issuance-time snapshot and does not require retrospective rewriting solely to repeat
+those later facts. This chronology disposition does not itself close Task 4.
+
+## Post-commit handoff verification and final review — 2026-10-21
+
+The handoff is commit `c54b5a5a4a0dfe8f5c494cd47cd9f432e115f61b` (parent
+`4310fcbfafa48a14e5fce31f38a2089e24079e52`), pushed to the matching feature branch. Person 2's
+post-commit gate record in the coordinator conversation reports all seven P2-T4 gates passing on
+that exact commit: focused pytest (368 passed), Ruff, scoped mypy, architecture, skeleton, repository
+security, and `git diff --check`. The repository-wide harness remains `HARNESS_INVALID` for missing
+evidence paths in FEAT-045/046/047; the owner disposition keeps that separate from P2-T4 and does not
+call it a pass or waiver.
+
+The owner supplied a fresh-session Claude review attachment on 2026-10-21 (7,027 bytes, 57 LF,
+SHA-256 `ae37d9847c25798cdb2001797aacad22ea5912187e50cddabf87267ff62b6d3a`). It reports `PASS WITH
+NOTES` after checking the exact commit, seven-file scope, report/plan tuples, JSON rows, and rerunning
+the same seven gates in a separate Linux environment (CPython 3.12.3, pytest 8.4.2, Pillow 12.3.0,
+Ruff 0.16.4, mypy 1.20.2). The review reports 368 tests passed, Ruff passed, mypy succeeded for two
+source files, architecture/skeleton/security valid, and diff-check passed. These are reviewer-
+reported results; raw logs and a complete command transcript were not added to the repository.
+
+Person 2 accepted this fresh session as independent at the session-isolation level for this review.
+The reviewer disclosed that it is the same Claude model family as earlier local reviews; organization-
+level or model-family independence is not established. The review's three Low notes are dispositioned
+as follows:
+
+| Review note | Disposition |
+| --- | --- |
+| Earlier Ruff table could be confused with a later distinct attempt | The table above is now labeled as a historical candidate snapshot; the final commit-bound record is identified separately. |
+| Pre-commit “not authorized” wording remains in older candidate text | Person 2 accepted the chronology in chat and did not require retrospective edits solely to repeat commit/push and final-gate facts. |
+| `TASK_APPROVAL.md` does not contain later chat decisions | Deferred while APP hold is IN FORCE; that file remains untouched. |
+
+This evidence-note update and the matching status/plan/report annotation are a documentation-only
+follow-on to handoff commit `c54b5a5a4a0dfe8f5c494cd47cd9f432e115f61b`; execution rows and summary are
+unchanged. The synchronized JSON is 2,164,151 bytes, SHA-256
+`c6d094d5512596ad055d51e30a4595283c266bcb2ec8f56c34e01ce14119cff2`; the derived plan is 20,955
+bytes, SHA-256 `b37f1d51b7a6602069e854133e19819a617e010f41704d48cc29010a24312be8`. The JSON row data
+and summary remain unchanged from the handoff commit; only the coordinator acceptance annotation
+changed.
+
+After the document synchronization, `validate_architecture.py` returned `ARCHITECTURE_VALID`,
+`validate_skeleton.py` returned `SKELETON_VALID`, `validate_repository_security.py` returned
+`REPOSITORY_SECURITY_VALID` (2,599 publishable files scanned; no absolute machine paths), and
+`git diff --check` exited 0. At the time of that synchronization check, no code tests had been rerun
+because the changes were limited to governance/evidence documents and the coordinator annotation;
+the follow-on final cycle is recorded separately. The diagnostic handoff was reviewed
+at the commit above, but Task 4 remains OPEN pending Person 2's closure disposition.
+`P2T4-FU-01` through `P2T4-FU-10` remain OPEN and unassigned; the 60 primary and 5 supplemental
+`UNRESOLVED` results remain product gaps, not passing behavior. `provider_execution=NOT_EXECUTED`,
+APP hold is IN FORCE, and Security remains PENDING.

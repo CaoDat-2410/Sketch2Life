@@ -16,16 +16,16 @@
     "task_4_status": "OPEN",
     "closure_gates": {
       "provenance_contract_name": "FOLLOW_UP_RECORDED: P2T4-FU-01 OPEN and unassigned",
-      "artifact_consistency": "CANDIDATE_SYNCHRONIZED under W2_FEAT018_P2_T4_CONTINUATION_AND_FINAL_GATE_SCOPE_01; post-edit validator results in coordinator chat; independent final review pending",
-      "valid_final_gates": "CANDIDATE_CHECKS_PASS; final Gate 3 verdict is defined by W2_FEAT018_P2_T4_POST_COMMIT_GATE_RECORD_01 bound to the full handoff commit SHA; candidate checks alone do not establish MET",
-      "independent_final_review": "PENDING: prior re-review used the same Claude reviewer; current test typing fixes and evidence updates await a separate review"
+      "artifact_consistency": "Final handoff artifacts were reviewed at commit c54b5a5a4a0dfe8f5c494cd47cd9f432e115f61b; review/status synchronization is a documentation-only follow-on to that handoff; diagnostic rows and execution summary are unchanged",
+      "valid_final_gates": "PASS on handoff commit c54b5a5a4a0dfe8f5c494cd47cd9f432e115f61b per coordinator post-commit chat record; fresh-session reviewer separately reports the same seven P2-T4 gates PASS; repository-wide HARNESS_INVALID remains outside P2-T4 and is not a pass or waiver",
+      "independent_final_review": "PASS WITH NOTES at session-isolation level, accepted by Person 2; reviewer is from the same Claude model family, so model-family or organizational independence is not established; Task 4 remains OPEN pending owner closure"
     },
     "source_report": {
       "bytes": 2162088,
       "sha256": "15d4c5dfaecb2212205e1e705a85ef64493f37a3f54800579b051250227233a0",
       "execution_checkout": "5c79741f9e3806626c1dc5c586fe409b2e9370a1"
     },
-    "review_record": "See evidence/notes/P2_T4_MAPPING_DIAGNOSTICS_20261020.md, sections Review and remaining work and Final handoff gate results.",
+    "review_record": "See evidence/notes/P2_T4_MAPPING_DIAGNOSTICS_20261020.md, sections Review and remaining work, Historical candidate gate snapshot, and Post-commit handoff verification and final review.",
     "provenance": "Coordinator annotation added after owner issuance; source_report preserves the original Modal tuple. Execution rows and measured counts were not regenerated or changed by this annotation."
   },
   "gate_a_prerequisite": {
