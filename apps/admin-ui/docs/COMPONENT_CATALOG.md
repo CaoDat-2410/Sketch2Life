@@ -1,6 +1,3 @@
-# Admin Component Library & Design System Catalog
-
-- Design System: Tailwind CSS v4
-- Iconography: Lucide React icons
-- Component Total: 34 Presentation Components + 12 Pages
-- Form Validation: Oxlint type-safe rules
+# Admin Component Catalog (v2)
+Updated with 7 new graphic assets (class-flower, class-sprout, leaf-explore, login-bg, login-logo-icon, seed-sprout, sidebar-logo), revised layout shell, and 12 enhanced admin pages.
+Status: VERIFIED
