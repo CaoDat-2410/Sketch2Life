@@ -1,208 +1,322 @@
 import { useState } from 'react'
-import { Plus, Search, CheckCircle, AlertCircle, Edit, Trash2 } from 'lucide-react'
+import {
+  Search,
+  Plus,
+  Edit2,
+  Trash2,
+  Layout,
+  User,
+  Shield,
+  Check,
+} from 'lucide-react'
+import classSprout from '../assets/class-sprout.png'
+import classFlower from '../assets/class-flower.png'
 
-const CLASSES = [
-  { id: 1, name: 'Lớp Lá', ageGroup: '6 – 8 tuổi', teacher: 'GV An', profiles: 24, ready: true, readyLabel: 'Đủ điều kiện', status: 'Hoạt động', iconBg: 'bg-emerald-100 text-emerald-600', icon: '🌱' },
-  { id: 2, name: 'Lớp Hoa', ageGroup: '3 – 5 tuổi', teacher: 'GV Bình', profiles: 16, ready: false, readyLabel: 'Cần kiểm tra chính sách', status: 'Hoạt động', iconBg: 'bg-red-100 text-red-500', icon: '🌸' },
+interface ClassItem {
+  id: string
+  thumb: string
+  name: string
+  ageGroup: string
+  teacher: string
+  profiles: number
+  readyStatus: string
+  readyColor: string
+  dotColor: string
+}
+
+const CLASSES: ClassItem[] = [
+  {
+    id: 'lop-la',
+    thumb: classSprout,
+    name: 'Lớp Lá',
+    ageGroup: '6 – 8 tuổi',
+    teacher: 'GV An',
+    profiles: 24,
+    readyStatus: 'Đủ điều kiện',
+    readyColor: 'text-[#059669] bg-[#E2F7EB]',
+    dotColor: 'bg-[#10B981]',
+  },
+  {
+    id: 'lop-hoa',
+    thumb: classFlower,
+    name: 'Lớp Hoa',
+    ageGroup: '3 – 5 tuổi',
+    teacher: 'GV Bình',
+    profiles: 16,
+    readyStatus: 'Cần kiểm tra chính sách',
+    readyColor: 'text-[#D97706] bg-[#FEF3C7]',
+    dotColor: 'bg-[#F59E0B]',
+  },
+]
+
+const CHECKLIST = [
+  {
+    status: 'ok',
+    title: 'Phân công giáo viên',
+    desc: 'Đã phân công giáo viên phụ trách lớp.',
+  },
+  {
+    status: 'ok',
+    title: 'Chính sách nhóm tuổi',
+    desc: 'Đã áp dụng phiên bản chính sách phù hợp.',
+  },
+  {
+    status: 'warn',
+    title: 'Consent: kiểm tra theo mục đích',
+    desc: 'Kiểm tra và xác nhận consent theo mục đích sử dụng nội dung trong lớp.',
+  },
 ]
 
 export function ClassesPage() {
+  const [selected, setSelected] = useState<string>('lop-la')
   const [search, setSearch] = useState('')
-  const [selected, setSelected] = useState<number>(1)
-  const sel = CLASSES.find((c) => c.id === selected)
+  const selectedClass = CLASSES.find((c) => c.id === selected)
 
   return (
-    <div className="flex h-full overflow-hidden">
-      {/* LEFT */}
-      <div className="flex-1 overflow-auto p-6 flex flex-col justify-between">
+    <div className="px-6 py-3 space-y-2.5 max-w-[1440px] mx-auto">
+      {/* Full-width Header */}
+      <div className="flex items-start justify-between">
         <div>
-          <div className="flex items-start justify-between mb-5">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Lớp học &amp; phân công</h1>
-              <p className="text-sm text-gray-500 mt-0.5">Quản lý lớp học, phân công giáo viên và kiểm tra điều kiện vận hành</p>
+          <h1 className="text-[24px] font-extrabold text-[#0F1F38] tracking-tight leading-tight">
+            Lớp học &amp; phân công
+          </h1>
+          <p className="text-[13px] text-slate-500 mt-0.5 font-medium">
+            Quản lý lớp học, phân công giáo viên và kiểm tra điều kiện vận hành
+          </p>
+        </div>
+        <button className="inline-flex items-center justify-center gap-2 bg-[#1565F9] hover:bg-blue-700 text-white text-[13px] font-semibold px-4 py-2 rounded-xl transition shadow-sm cursor-pointer whitespace-nowrap shrink-0">
+          <Plus size={15} className="shrink-0" />
+          <span>Tạo lớp</span>
+        </button>
+      </div>
+
+      {/* 2-Column Grid */}
+      <div className="grid grid-cols-12 gap-4 items-stretch">
+        {/* LEFT CARD — Danh sách lớp học (6 cols) */}
+        <div className="col-span-6 bg-white rounded-2xl border border-slate-200/70 p-4 shadow-[0_1px_3px_rgba(15,23,42,0.02)] flex flex-col min-w-0">
+          <div className="flex items-center gap-2.5 mb-2.5">
+            <div className="w-7 h-7 bg-[#E6F0FF] text-[#1565F9] rounded-lg flex items-center justify-center">
+              <Layout size={15} strokeWidth={2.2} />
             </div>
-            <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2.5 rounded-lg transition shadow-sm">
-              <Plus size={16} />
-              Tạo lớp
-            </button>
+            <h2 className="text-[15.5px] font-bold text-slate-900">Danh sách lớp học</h2>
           </div>
 
-          <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-7 h-7 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600">
-                <span className="text-sm">📋</span>
-              </div>
-              <h2 className="text-sm font-semibold text-gray-800">Danh sách lớp học</h2>
-            </div>
+          <div className="relative mb-2.5">
+            <Search
+              size={15}
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+            />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Tìm theo tên lớp hoặc giáo viên..."
+              className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-[13px] text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-[#FAFBFD]"
+            />
+          </div>
 
-            <div className="relative mb-4">
-              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Tìm theo tên lớp hoặc giáo viên..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-              />
-            </div>
-
+          <div className="border border-slate-100 rounded-xl overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-left py-2.5 px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Lớp</th>
-                  <th className="text-left py-2.5 px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Nhóm tuổi</th>
-                  <th className="text-left py-2.5 px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Giáo viên</th>
-                  <th className="text-left py-2.5 px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Hồ sơ</th>
-                  <th className="text-left py-2.5 px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Sẵn sàng</th>
+                <tr className="bg-[#F4F7FB] border-b border-slate-100">
+                  {['Lớp', 'Nhóm tuổi', 'Giáo viên', 'Hồ sơ', 'Sẵn sàng'].map((h) => (
+                    <th
+                      key={h}
+                      className="text-left py-2.5 px-2 first:pl-3 last:pr-3 text-[11.5px] font-semibold text-slate-600 whitespace-nowrap"
+                    >
+                      {h}
+                    </th>
+                  ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
-                {CLASSES.filter((c) => c.name.includes(search) || c.teacher.includes(search)).map((cls) => (
-                  <tr
-                    key={cls.id}
-                    onClick={() => setSelected(cls.id)}
-                    className={`cursor-pointer transition ${selected === cls.id ? 'bg-blue-50/80 ring-2 ring-blue-500/80 rounded-xl' : 'hover:bg-gray-50'}`}
-                  >
-                    <td className="py-3 px-3">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-9 h-9 rounded-xl ${cls.iconBg} flex items-center justify-center text-lg flex-shrink-0`}>
-                          {cls.icon}
+              <tbody className="divide-y divide-slate-100">
+                {CLASSES.filter(
+                  (c) =>
+                    c.name.toLowerCase().includes(search.toLowerCase()) ||
+                    c.teacher.toLowerCase().includes(search.toLowerCase())
+                ).map((c) => {
+                  const isSel = selected === c.id
+                  return (
+                    <tr
+                      key={c.id}
+                      onClick={() => setSelected(c.id)}
+                      className={`cursor-pointer transition ${
+                        isSel
+                          ? 'bg-[#EBF3FF]/80 ring-1 ring-inset ring-blue-300'
+                          : 'hover:bg-slate-50'
+                      }`}
+                    >
+                      <td className="py-3 pl-3 pr-2 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <img
+                            src={c.thumb}
+                            alt={c.name}
+                            className="w-8 h-8 rounded-lg object-cover shrink-0"
+                          />
+                          <span className="font-bold text-slate-900 text-[13px] whitespace-nowrap">
+                            {c.name}
+                          </span>
                         </div>
-                        <span className="font-semibold text-gray-900">{cls.name}</span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-3 text-gray-600">{cls.ageGroup}</td>
-                    <td className="py-3 px-3 text-gray-600">{cls.teacher}</td>
-                    <td className="py-3 px-3 text-gray-600">{cls.profiles}</td>
-                    <td className="py-3 px-3">
-                      {cls.ready ? (
-                        <span className="inline-flex items-center gap-1.5 text-green-700 bg-green-50 px-2.5 py-1 rounded-full text-xs font-semibold">
-                          <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
-                          {cls.readyLabel}
+                      </td>
+                      <td className="py-3 px-2 text-slate-600 text-[12px] whitespace-nowrap">
+                        {c.ageGroup}
+                      </td>
+                      <td className="py-3 px-2 text-slate-800 font-semibold text-[12.5px] whitespace-nowrap">
+                        {c.teacher}
+                      </td>
+                      <td className="py-3 px-2 text-slate-800 font-semibold text-[12.5px] whitespace-nowrap">
+                        {c.profiles}
+                      </td>
+                      <td className="py-3 pl-2 pr-3 whitespace-nowrap">
+                        <span
+                          className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full whitespace-nowrap shrink-0 ${c.readyColor}`}
+                        >
+                          <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${c.dotColor}`} />
+                          {c.readyStatus}
                         </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full text-xs font-semibold">
-                          <span className="w-1.5 h-1.5 bg-amber-400 rounded-full"></span>
-                          {cls.readyLabel}
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
         </div>
 
-        {/* Watermark */}
-        <div className="text-right text-xs text-gray-400 pt-4">
-          Dữ liệu minh họa • Bản thiết kế UI.
-        </div>
-      </div>
-
-      {/* RIGHT panel */}
-      {sel && (
-        <div className="w-96 flex-shrink-0 border-l border-gray-100 bg-white overflow-auto">
-          <div className="p-5">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className={`w-12 h-12 ${sel.iconBg} rounded-2xl flex items-center justify-center text-2xl flex-shrink-0`}>
-                  {sel.icon}
+        {/* RIGHT CARD — Class detail (6 cols) */}
+        {selectedClass && (
+          <div className="col-span-6 bg-white rounded-2xl border border-slate-200/70 p-4 px-5 shadow-[0_1px_3px_rgba(15,23,42,0.02)] flex flex-col justify-between min-w-0">
+            <div className="space-y-2.5">
+              {/* Top header */}
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <img
+                    src={selectedClass.thumb}
+                    alt={selectedClass.name}
+                    className="w-12 h-12 rounded-2xl object-cover shrink-0"
+                  />
+                  <div>
+                    <h2 className="text-[18px] font-extrabold text-slate-900 leading-tight">
+                      {selectedClass.name}
+                    </h2>
+                    <p className="text-[12.5px] text-slate-500 mt-0.5">
+                      Thông tin lớp học và điều kiện vận hành
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-bold text-gray-900 text-lg">{sel.name}</p>
-                  <p className="text-xs text-gray-500">Thông tin lớp học và điều kiện vận hành</p>
+                <span className="inline-flex items-center gap-1.5 text-[11.5px] font-semibold text-[#059669] bg-[#E2F7EB] px-2.5 py-1 rounded-full shrink-0">
+                  <span className="w-2 h-2 rounded-full bg-[#10B981]" />
+                  Hoạt động
+                </span>
+              </div>
+
+              {/* Thông tin chung card */}
+              <div className="border border-slate-200/70 rounded-2xl p-3 px-3.5">
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-2">
+                    <div className="w-5.5 h-5.5 bg-[#E6F0FF] text-[#1565F9] rounded-md flex items-center justify-center">
+                      <Layout size={12.5} strokeWidth={2.2} />
+                    </div>
+                    <p className="text-[13.5px] font-bold text-slate-900">Thông tin chung</p>
+                  </div>
+                  <button className="flex items-center gap-1.5 text-[11.5px] text-[#1565F9] bg-[#EAF2FF] hover:bg-blue-100 font-semibold px-2.5 py-1 rounded-lg transition">
+                    <Edit2 size={11.5} />
+                    <span>Chỉnh sửa</span>
+                  </button>
+                </div>
+
+                <div className="divide-y divide-slate-100 text-[12.5px]">
+                  <div className="flex items-center py-1.5">
+                    <span className="text-slate-500 w-44 shrink-0">Tên lớp</span>
+                    <span className="font-bold text-slate-900">{selectedClass.name}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-1.5">
+                    <span className="text-slate-500 w-44 shrink-0">Giáo viên phụ trách</span>
+                    <div className="flex-1 flex items-center justify-between">
+                      <span className="flex items-center gap-2 font-bold text-slate-900">
+                        <User size={13.5} className="text-slate-500" />
+                        {selectedClass.teacher}
+                      </span>
+                      <button className="text-[11.5px] text-[#1565F9] bg-[#EAF2FF] border border-blue-200/70 font-semibold px-2.5 py-0.5 rounded-lg hover:bg-blue-100">
+                        Thay đổi
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between py-1.5">
+                    <span className="text-slate-500 w-44 shrink-0">Chính sách nhóm tuổi</span>
+                    <div className="flex-1 flex items-center justify-between">
+                      <span className="font-bold text-slate-900">v1</span>
+                      <button className="text-[11.5px] text-[#1565F9] bg-[#EAF2FF] border border-blue-200/70 font-semibold px-2.5 py-0.5 rounded-lg hover:bg-blue-100">
+                        Thay đổi
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex items-center py-1.5">
+                    <span className="text-slate-500 w-44 shrink-0">Số lượng hồ sơ</span>
+                    <span className="font-bold text-slate-900">
+                      {selectedClass.profiles} hồ sơ
+                    </span>
+                  </div>
+                  <div className="flex items-center py-1.5">
+                    <span className="text-slate-500 w-44 shrink-0">Trạng thái</span>
+                    <span className="flex items-center gap-2 text-[#059669] font-semibold">
+                      <span className="w-2 h-2 rounded-full bg-[#10B981]" />
+                      Hoạt động
+                    </span>
+                  </div>
                 </div>
               </div>
-              <span className="flex items-center gap-1.5 text-xs font-semibold text-green-700 bg-green-50 px-2.5 py-1 rounded-full border border-green-100">
-                <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
-                {sel.status}
-              </span>
-            </div>
 
-            {/* General info */}
-            <div className="bg-white border border-gray-100 rounded-xl p-4 mb-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm">📋</span>
-                  <h3 className="text-sm font-semibold text-gray-800">Thông tin chung</h3>
+              {/* Kiểm tra điều kiện sẵn sàng */}
+              <div className="border border-slate-200/70 rounded-2xl p-3 px-3.5">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <div className="w-5.5 h-5.5 bg-[#E6F0FF] text-[#1565F9] rounded-md flex items-center justify-center">
+                    <Shield size={12.5} strokeWidth={2.2} />
+                  </div>
+                  <p className="text-[13.5px] font-bold text-slate-900">
+                    Kiểm tra điều kiện sẵn sàng
+                  </p>
                 </div>
-                <button className="flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 text-xs font-semibold px-2.5 py-1 rounded-lg transition">
-                  <Edit size={12} />
-                  Chỉnh sửa
-                </button>
-              </div>
-              <div className="space-y-2.5 text-sm">
-                {[
-                  { label: 'Tên lớp', value: sel.name },
-                  { label: 'Giáo viên phụ trách', value: `👤 ${sel.teacher}`, hasAction: true },
-                  { label: 'Chính sách nhóm tuổi', value: 'v1', hasAction: true },
-                  { label: 'Số lượng hồ sơ', value: `${sel.profiles} hồ sơ` },
-                  { label: 'Trạng thái', value: sel.status, isStatus: true },
-                ].map((row) => (
-                  <div key={row.label} className="flex items-center justify-between">
-                    <span className="text-gray-500">{row.label}</span>
-                    <div className="flex items-center gap-2">
-                      {row.isStatus ? (
-                        <span className="flex items-center gap-1.5 text-green-600 font-semibold text-xs">
-                          <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                          {row.value}
+                <div className="divide-y divide-slate-100">
+                  {CHECKLIST.map((item) => (
+                    <div key={item.title} className="flex items-start gap-2.5 py-1.5">
+                      {item.status === 'ok' ? (
+                        <span className="w-4.5 h-4.5 rounded-full bg-[#10B981] text-white flex items-center justify-center shrink-0 mt-0.5">
+                          <Check size={11} strokeWidth={3} />
                         </span>
                       ) : (
-                        <span className="font-medium text-gray-800 text-xs">{row.value}</span>
+                        <span className="w-4.5 h-4.5 rounded-full bg-[#F59E0B] text-white flex items-center justify-center text-[10.5px] font-extrabold shrink-0 mt-0.5">
+                          !
+                        </span>
                       )}
-                      {row.hasAction && (
-                        <button className="text-xs text-blue-600 bg-blue-50 hover:bg-blue-100 px-2.5 py-0.5 rounded-lg font-semibold transition">
-                          Thay đổi
-                        </button>
-                      )}
+                      <div>
+                        <p className="text-[12.5px] font-bold text-slate-900">{item.title}</p>
+                        <p className="text-[11.5px] text-slate-500 mt-0.5">{item.desc}</p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
 
-            {/* Readiness checks */}
-            <div className="bg-white border border-gray-100 rounded-xl p-4 mb-5">
-              <div className="flex items-center gap-2 mb-3">
-                <span>🛡️</span>
-                <h3 className="text-sm font-semibold text-gray-800">Kiểm tra điều kiện sẵn sàng</h3>
+            {/* Bottom actions */}
+            <div className="pt-2.5">
+              <div className="flex gap-3">
+                <button className="flex-1 bg-[#1565F9] hover:bg-blue-700 text-white text-[13px] font-bold py-2 rounded-xl transition shadow-sm cursor-pointer">
+                  Lưu thay đổi
+                </button>
+                <button className="flex-1 flex items-center justify-center gap-2 border border-rose-200 bg-[#FEE2E2]/60 text-[#DC2626] text-[13px] font-bold py-2 rounded-xl hover:bg-rose-100 transition cursor-pointer">
+                  <Trash2 size={14} />
+                  <span>Lưu trữ lớp</span>
+                </button>
               </div>
-              <div className="space-y-3">
-                {[
-                  { ok: true, title: 'Phân công giáo viên', desc: 'Đã phân công giáo viên phụ trách lớp.' },
-                  { ok: true, title: 'Chính sách nhóm tuổi', desc: 'Đã áp dụng phiên bản chính sách phù hợp.' },
-                  { ok: false, title: 'Consent: kiểm tra theo mục đích', desc: 'Kiểm tra và xác nhận consent theo mục đích sử dụng nội dung trong lớp.' },
-                ].map((item) => (
-                  <div key={item.title} className="flex items-start gap-2.5">
-                    {item.ok ? (
-                      <CheckCircle size={17} className="text-green-500 flex-shrink-0 mt-0.5" />
-                    ) : (
-                      <AlertCircle size={17} className="text-amber-500 flex-shrink-0 mt-0.5" />
-                    )}
-                    <div>
-                      <p className="text-sm font-semibold text-gray-800">{item.title}</p>
-                      <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{item.desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <p className="text-[11px] text-slate-400 text-center mt-1.5">
+                Lưu trữ lớp không xóa hồ sơ hay lịch sử đóng góp.
+              </p>
             </div>
-
-            {/* Action buttons */}
-            <div className="flex gap-2 mb-2">
-              <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-3 rounded-xl transition shadow-sm">
-                Lưu thay đổi
-              </button>
-              <button className="flex-1 flex items-center justify-center gap-2 bg-red-50 border border-red-100 text-red-500 text-sm font-semibold py-3 rounded-xl hover:bg-red-100 transition">
-                <Trash2 size={14} />
-                Lưu trữ lớp
-              </button>
-            </div>
-            <p className="text-xs text-gray-400 text-center">Lưu trữ lớp không xóa hồ sơ hay lịch sử đóng góp.</p>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }
