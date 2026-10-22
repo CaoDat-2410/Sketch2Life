@@ -1,224 +1,393 @@
 import { useState } from 'react'
-import { UserPlus, Search, ChevronRight, X, Info, Edit, Ban, BookOpen } from 'lucide-react'
+import {
+  Search,
+  UserPlus,
+  ChevronRight,
+  ChevronDown,
+  X,
+  Edit2,
+  Ban,
+  Info,
+  Users,
+  List,
+  BookOpen,
+} from 'lucide-react'
 
-const USERS = [
-  { id: 1, initials: 'GA', color: 'bg-blue-100 text-blue-700', name: 'GV An', sub: 'Giáo viên', role: 'Giáo viên', roleColor: 'bg-blue-50 text-blue-700', scope: 'Lớp Lá', status: 'Đang hoạt động', statusColor: 'text-green-600', statusDot: 'bg-green-500', updated: '10/10/2026' },
-  { id: 2, initials: 'GB', color: 'bg-emerald-100 text-emerald-700', name: 'GV Bình', sub: 'Giáo viên', role: 'Giáo viên', roleColor: 'bg-blue-50 text-blue-700', scope: 'Lớp Hoa', status: 'Chờ nhận lời mời', statusColor: 'text-amber-600', statusDot: 'bg-amber-400', updated: '09/10/2026' },
-  { id: 3, initials: 'QM', color: 'bg-purple-100 text-purple-700', name: 'QT Minh', sub: 'Quản trị hệ thống', role: 'Quản trị viên', roleColor: 'bg-purple-50 text-purple-700', scope: 'Trường Mầm Xanh', status: 'Đang hoạt động', statusColor: 'text-green-600', statusDot: 'bg-green-500', updated: '08/10/2026' },
+interface UserItem {
+  id: string
+  initials: string
+  avatarBg: string
+  avatarText: string
+  name: string
+  subtitle: string
+  role: string
+  roleColor: string
+  scope: string
+  status: string
+  statusColor: string
+  dotColor: string
+  updated: string
+}
+
+const USERS: UserItem[] = [
+  {
+    id: 'gv-an',
+    initials: 'GA',
+    avatarBg: 'bg-[#DCEBFF]',
+    avatarText: 'text-[#1565F9]',
+    name: 'GV An',
+    subtitle: 'Giáo viên',
+    role: 'Giáo viên',
+    roleColor: 'text-[#1565F9] bg-[#E8F1FF]',
+    scope: 'Lớp Lá',
+    status: 'Đang hoạt động',
+    statusColor: 'text-[#059669] bg-[#E2F7EB]',
+    dotColor: 'bg-[#10B981]',
+    updated: '10/10/2026',
+  },
+  {
+    id: 'gv-binh',
+    initials: 'GB',
+    avatarBg: 'bg-[#E2F7EB]',
+    avatarText: 'text-[#059669]',
+    name: 'GV Bình',
+    subtitle: 'Giáo viên',
+    role: 'Giáo viên',
+    roleColor: 'text-[#1565F9] bg-[#E8F1FF]',
+    scope: 'Lớp Hoa',
+    status: 'Chờ nhận lời mời',
+    statusColor: 'text-[#D97706] bg-[#FEF3C7]',
+    dotColor: 'bg-[#F59E0B]',
+    updated: '09/10/2026',
+  },
+  {
+    id: 'qt-minh',
+    initials: 'QM',
+    avatarBg: 'bg-[#F3E8FF]',
+    avatarText: 'text-[#7C3AED]',
+    name: 'QT Minh',
+    subtitle: 'Quản trị hệ thống',
+    role: 'Quản trị viên',
+    roleColor: 'text-[#7C3AED] bg-[#F3E8FF]',
+    scope: 'Trường Mầm Xanh',
+    status: 'Đang hoạt động',
+    statusColor: 'text-[#059669] bg-[#E2F7EB]',
+    dotColor: 'bg-[#10B981]',
+    updated: '08/10/2026',
+  },
 ]
 
 export function UsersPage() {
+  const [selected, setSelected] = useState<string>('gv-an')
+  const [activeTab, setActiveTab] = useState<'permissions' | 'history'>('permissions')
+  const [reason, setReason] = useState('')
   const [search, setSearch] = useState('')
-  const [selected, setSelected] = useState<number>(1)
 
-  const sel = USERS.find((u) => u.id === selected)
+  const selectedUser = USERS.find((u) => u.id === selected)
 
   return (
-    <div className="flex h-full overflow-hidden">
-      {/* ── LEFT ── */}
-      <div className="flex-1 overflow-auto p-6">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-5">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Người dùng &amp; vai trò</h1>
-            <p className="text-sm text-gray-500 mt-0.5">Quản lý tài khoản người lớn và quyền theo lớp.</p>
+    <div className="px-6 py-4 max-w-[1440px] mx-auto">
+      <div className="grid grid-cols-12 gap-4 items-stretch">
+        {/* LEFT COLUMN (7 cols) */}
+        <div className="col-span-7 flex flex-col gap-3.5 min-w-0">
+          {/* Header */}
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h1 className="text-[25px] font-extrabold text-[#0F1F38] tracking-tight leading-tight">
+                Người dùng &amp; vai trò
+              </h1>
+              <p className="text-[13.5px] text-slate-500 mt-1 font-medium">
+                Quản lý tài khoản người lớn và quyền theo lớp.
+              </p>
+            </div>
+            <button className="inline-flex items-center justify-center gap-2 bg-[#1565F9] hover:bg-blue-700 text-white text-[13px] font-semibold px-4 py-2.5 rounded-xl transition shadow-sm cursor-pointer whitespace-nowrap shrink-0">
+              <UserPlus size={15} className="shrink-0" />
+              <span>Mời người dùng</span>
+            </button>
           </div>
-          <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2.5 rounded-lg transition">
-            <UserPlus size={15} />
-            Mời người dùng
-          </button>
+
+          {/* Search & Filters Card */}
+          <div className="bg-white rounded-2xl border border-slate-200/70 p-3.5 shadow-[0_1px_3px_rgba(15,23,42,0.02)] grid grid-cols-12 gap-3 items-end">
+            <div className="col-span-6 min-w-0">
+              <label className="block text-[11.5px] font-semibold text-slate-500 mb-1">
+                Tìm kiếm
+              </label>
+              <div className="relative">
+                <Search
+                  size={15}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Tìm tài khoản (tên hiển thị)..."
+                  className="w-full h-[38px] pl-9 pr-3 border border-slate-200 rounded-xl text-[13px] text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-[#FAFBFD]"
+                />
+              </div>
+            </div>
+
+            <div className="col-span-3 min-w-0">
+              <label className="block text-[11.5px] font-semibold text-slate-500 mb-1">
+                Vai trò
+              </label>
+              <button className="w-full h-[38px] flex items-center justify-between border border-slate-200 rounded-xl px-3 text-[13px] font-medium text-slate-700 bg-white hover:bg-slate-50 whitespace-nowrap">
+                <span>Tất cả</span>
+                <ChevronDown size={14} className="text-slate-400 shrink-0" />
+              </button>
+            </div>
+
+            <div className="col-span-3 min-w-0">
+              <label className="block text-[11.5px] font-semibold text-slate-500 mb-1">
+                Trạng thái
+              </label>
+              <button className="w-full h-[38px] flex items-center justify-between border border-slate-200 rounded-xl px-3 text-[13px] font-medium text-slate-700 bg-white hover:bg-slate-50 whitespace-nowrap">
+                <span>Tất cả</span>
+                <ChevronDown size={14} className="text-slate-400 shrink-0" />
+              </button>
+            </div>
+          </div>
+
+          {/* Table Card */}
+          <div className="bg-white rounded-2xl border border-slate-200/70 p-3.5 shadow-[0_1px_3px_rgba(15,23,42,0.02)] flex-1">
+            <div className="border border-slate-100 rounded-xl overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-[#F4F7FB] border-b border-slate-100 text-slate-600">
+                    <th className="text-left py-2.5 pl-3 pr-2 text-[12px] font-semibold whitespace-nowrap">
+                      Tài khoản
+                    </th>
+                    <th className="text-left py-2.5 px-2 text-[12px] font-semibold whitespace-nowrap">
+                      Vai trò
+                    </th>
+                    <th className="text-left py-2.5 px-2 text-[12px] font-semibold whitespace-nowrap">
+                      Phạm vi lớp
+                    </th>
+                    <th className="text-left py-2.5 px-2 text-[12px] font-semibold whitespace-nowrap">
+                      Trạng thái
+                    </th>
+                    <th className="text-left py-2.5 pl-2 pr-3 text-[12px] font-semibold whitespace-nowrap">
+                      Cập nhật
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {USERS.filter((u) =>
+                    u.name.toLowerCase().includes(search.toLowerCase())
+                  ).map((u) => {
+                    const isSelected = selected === u.id
+                    return (
+                      <tr
+                        key={u.id}
+                        onClick={() => setSelected(u.id)}
+                        className={`cursor-pointer transition ${
+                          isSelected ? 'bg-[#EBF3FF]/80' : 'hover:bg-slate-50'
+                        }`}
+                      >
+                        <td className="py-3 pl-3 pr-2 whitespace-nowrap">
+                          <div className="flex items-center gap-2.5">
+                            <div
+                              className={`w-8 h-8 rounded-full ${u.avatarBg} ${u.avatarText} text-[11.5px] font-bold flex items-center justify-center flex-shrink-0`}
+                            >
+                              {u.initials}
+                            </div>
+                            <div>
+                              <p className="font-bold text-slate-900 text-[13px] leading-tight">
+                                {u.name}
+                              </p>
+                              <p className="text-[11px] text-slate-500 mt-0.5">{u.subtitle}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-3 px-2 whitespace-nowrap">
+                          <span
+                            className={`inline-flex items-center justify-center text-[11px] font-semibold px-2 py-0.5 rounded-lg whitespace-nowrap shrink-0 ${u.roleColor}`}
+                          >
+                            {u.role}
+                          </span>
+                        </td>
+                        <td className="py-3 px-2 text-slate-700 text-[12.5px] font-medium whitespace-nowrap">
+                          {u.scope}
+                        </td>
+                        <td className="py-3 px-2 whitespace-nowrap">
+                          <span
+                            className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 ${u.statusColor}`}
+                          >
+                            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${u.dotColor}`} />
+                            {u.status}
+                          </span>
+                        </td>
+                        <td className="py-3 pl-2 pr-3 text-slate-600 text-[12px] whitespace-nowrap">
+                          <div className="flex items-center justify-between gap-2">
+                            <span>{u.updated}</span>
+                            <ChevronRight size={14} className="text-slate-400 shrink-0" />
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
 
-        {/* Filters */}
-        <div className="flex gap-3 mb-4 items-end">
-          <div className="relative flex-1">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Tìm tài khoản (tên hiển thị)..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-            />
-          </div>
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-gray-500">Vai trò</label>
-            <select className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-600 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[130px]">
-              <option>Tất cả</option>
-              <option>Giáo viên</option>
-              <option>Quản trị viên</option>
-            </select>
-          </div>
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-gray-500">Trạng thái</label>
-            <select className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-600 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[150px]">
-              <option>Tất cả</option>
-              <option>Đang hoạt động</option>
-              <option>Chờ nhận lời mời</option>
-            </select>
-          </div>
-        </div>
+        {/* RIGHT COLUMN — Floating detail card (5 cols) */}
+        {selectedUser && (
+          <div className="col-span-5 bg-white rounded-2xl border border-slate-200/70 p-4 px-5 shadow-[0_1px_3px_rgba(15,23,42,0.02)] flex flex-col justify-between min-w-0">
+            <div>
+              {/* Panel header */}
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-11 h-11 rounded-full ${selectedUser.avatarBg} ${selectedUser.avatarText} font-bold text-[14px] flex items-center justify-center`}
+                  >
+                    {selectedUser.initials}
+                  </div>
+                  <div>
+                    <p className="font-extrabold text-slate-900 text-[17px]">
+                      {selectedUser.name}
+                    </p>
+                    <p className="text-[12.5px] text-slate-500">{selectedUser.subtitle}</p>
+                  </div>
+                </div>
+                <button className="text-slate-400 hover:text-slate-600 p-1">
+                  <X size={18} />
+                </button>
+              </div>
 
-        {/* Table */}
-        <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-100 bg-gray-50">
-                <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Tài khoản</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Vai trò</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Phạm vi lớp</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Trạng thái</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Cập nhật</th>
-                <th className="px-4 py-3"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {USERS.filter((u) => u.name.toLowerCase().includes(search.toLowerCase())).map((user) => (
-                <tr
-                  key={user.id}
-                  onClick={() => setSelected(user.id)}
-                  className={`border-b border-gray-50 last:border-0 cursor-pointer transition ${selected === user.id ? 'bg-blue-50' : 'hover:bg-gray-50'}`}
-                >
-                  <td className="px-5 py-3.5">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-9 h-9 rounded-full ${user.color} flex items-center justify-center text-xs font-bold flex-shrink-0`}>
-                        {user.initials}
+              {/* Tabs */}
+              <div className="flex border-b border-slate-200 mb-3.5">
+                {(['permissions', 'history'] as const).map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`px-4 py-2 text-[13px] font-semibold border-b-2 transition -mb-px ${
+                      activeTab === tab
+                        ? 'border-[#1565F9] text-[#1565F9]'
+                        : 'border-transparent text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    {tab === 'permissions' ? 'Quyền' : 'Lịch sử'}
+                  </button>
+                ))}
+              </div>
+
+              {activeTab === 'permissions' ? (
+                <div className="space-y-3.5">
+                  {/* Thông tin chung */}
+                  <div>
+                    <p className="text-[13px] font-bold text-slate-900 mb-2">
+                      Thông tin chung
+                    </p>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-500 text-[13px]">Vai trò</span>
+                        <span
+                          className={`text-[11.5px] font-semibold px-2.5 py-0.5 rounded-lg ${selectedUser.roleColor}`}
+                        >
+                          {selectedUser.role}
+                        </span>
                       </div>
-                      <div>
-                        <p className="font-semibold text-gray-800">{user.name}</p>
-                        <p className="text-xs text-gray-400">{user.sub}</p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-500 text-[13px]">Phạm vi lớp</span>
+                        <span className="flex items-center gap-2 text-[12.5px] font-semibold text-slate-800 border border-slate-200 rounded-xl px-3 py-1 w-40">
+                          <BookOpen size={13.5} className="text-[#1565F9] shrink-0" />
+                          <span className="truncate">{selectedUser.scope}</span>
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-500 text-[13px]">Trạng thái</span>
+                        <span
+                          className={`inline-flex items-center gap-1.5 text-[11.5px] font-semibold px-2.5 py-0.5 rounded-full ${selectedUser.statusColor}`}
+                        >
+                          <span className={`w-2 h-2 rounded-full ${selectedUser.dotColor}`} />
+                          {selectedUser.status}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-500 text-[13px]">Cập nhật gần nhất</span>
+                        <span className="text-slate-700 font-medium text-[13px]">
+                          {selectedUser.updated}
+                        </span>
                       </div>
                     </div>
-                  </td>
-                  <td className="px-4 py-3.5">
-                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-lg ${user.roleColor}`}>{user.role}</span>
-                  </td>
-                  <td className="px-4 py-3.5 text-gray-600">{user.scope}</td>
-                  <td className="px-4 py-3.5">
-                    <span className={`flex items-center gap-1.5 text-sm font-medium ${user.statusColor}`}>
-                      <span className={`w-2 h-2 rounded-full ${user.statusDot} inline-block`}></span>
-                      {user.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3.5 text-gray-500 text-xs">{user.updated}</td>
-                  <td className="px-4 py-3.5">
-                    <ChevronRight size={16} className="text-gray-300" />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                  </div>
 
-      {/* ── RIGHT panel ── */}
-      {sel && (
-        <div className="w-80 flex-shrink-0 border-l border-gray-100 bg-white overflow-auto">
-          <div className="p-5">
-            {/* Header */}
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className={`w-11 h-11 rounded-full ${sel.color} flex items-center justify-center text-sm font-bold flex-shrink-0`}>
-                  {sel.initials}
+                  {/* Quyền được cấp */}
+                  <div className="pt-3 border-t border-slate-100">
+                    <div className="flex items-center gap-1.5 mb-2.5">
+                      <p className="text-[13px] font-bold text-slate-900">Quyền được cấp</p>
+                      <Info size={13.5} className="text-slate-400" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2.5 mb-2.5">
+                      <div className="border border-slate-200/80 rounded-xl p-2.5 flex items-start gap-2">
+                        <div className="w-7 h-7 rounded-lg bg-[#E2F7EB] text-[#10B981] flex items-center justify-center shrink-0 mt-0.5">
+                          <Users size={15} />
+                        </div>
+                        <div>
+                          <p className="text-[12.5px] font-bold text-slate-900">Quản lý lớp</p>
+                          <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                            Xem và quản lý hoạt động của lớp được phân công
+                          </p>
+                        </div>
+                      </div>
+                      <div className="border border-slate-200/80 rounded-xl p-2.5 flex items-start gap-2">
+                        <div className="w-7 h-7 rounded-lg bg-[#FEF3C7] text-[#F59E0B] flex items-center justify-center shrink-0 mt-0.5">
+                          <List size={15} />
+                        </div>
+                        <div>
+                          <p className="text-[12.5px] font-bold text-slate-900">Điều phối phiên</p>
+                          <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                            Tạo và điều phối phiên hoạt động
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 bg-[#EAF3FF] rounded-xl px-3 py-2 text-[11.5px] text-slate-700 font-medium">
+                      <span className="w-4 h-4 rounded-full bg-[#1565F9] text-white flex items-center justify-center text-[10px] font-bold shrink-0">
+                        i
+                      </span>
+                      <span>Không có quyền nội dung trẻ ngoài phạm vi được cấp.</span>
+                    </div>
+                  </div>
+
+                  {/* Lý do thay đổi */}
+                  <div className="pt-2.5 border-t border-slate-100">
+                    <label className="block text-[13px] font-bold text-slate-900 mb-1.5">
+                      Lý do thay đổi
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={reason}
+                      onChange={(e) => setReason(e.target.value)}
+                      placeholder="Nhập lý do thay đổi (bắt buộc)"
+                      className="w-full border border-slate-200 rounded-xl p-2.5 text-[12.5px] text-slate-700 placeholder-slate-400 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 bg-[#FAFBFD]"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <p className="font-bold text-gray-900">{sel.name}</p>
-                  <p className="text-sm text-gray-500">{sel.sub}</p>
+              ) : (
+                <div className="text-[13px] text-slate-400 text-center py-8">
+                  Chưa có lịch sử thay đổi.
                 </div>
-              </div>
-              <button onClick={() => setSelected(0)} className="text-gray-400 hover:text-gray-600">
-                <X size={18} />
+              )}
+            </div>
+
+            {/* Action buttons */}
+            <div className="flex gap-3 pt-3">
+              <button className="flex-1 flex items-center justify-center gap-2 border border-blue-200 bg-[#EAF2FF] text-[#1565F9] text-[13px] font-semibold py-2 rounded-xl hover:bg-blue-100 transition cursor-pointer whitespace-nowrap">
+                <Edit2 size={14} />
+                <span>Sửa phân công</span>
               </button>
-            </div>
-
-            {/* Tabs */}
-            <div className="flex border-b border-gray-100 mb-5">
-              <button className="px-4 py-2.5 text-sm font-semibold text-blue-600 border-b-2 border-blue-600">Quyền</button>
-              <button className="px-4 py-2.5 text-sm text-gray-500 hover:text-gray-700">Lịch sử</button>
-            </div>
-
-            {/* Info */}
-            <div className="mb-5">
-              <p className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-3">Thông tin chung</p>
-              <div className="space-y-2.5 text-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-500">Vai trò</span>
-                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-lg ${sel.roleColor}`}>{sel.role}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-500">Phạm vi lớp</span>
-                  <div className="border border-gray-200 rounded-lg px-3 py-1 flex items-center gap-2 font-medium text-gray-800 bg-white">
-                    <BookOpen size={14} className="text-blue-600" />
-                    <span>{sel.scope}</span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-500">Trạng thái</span>
-                  <span className={`flex items-center gap-1.5 text-sm font-semibold ${sel.statusColor}`}>
-                    <span className={`w-2 h-2 rounded-full ${sel.statusDot} inline-block`}></span>
-                    {sel.status}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-500">Cập nhật gần nhất</span>
-                  <span className="text-gray-700">{sel.updated}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Permissions */}
-            <div className="mb-5">
-              <div className="flex items-center gap-1.5 mb-3">
-                <p className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Quyền được cấp</p>
-                <Info size={13} className="text-gray-400" />
-              </div>
-              <div className="grid grid-cols-2 gap-2 mb-3">
-                <div className="bg-green-50 border border-green-100 rounded-xl p-3">
-                  <div className="w-7 h-7 bg-green-100 rounded-lg flex items-center justify-center mb-2">
-                    <span className="text-sm">👥</span>
-                  </div>
-                  <p className="text-xs font-semibold text-gray-800">Quản lý lớp</p>
-                  <p className="text-[11px] text-gray-500 mt-0.5 leading-tight">Xem và quản lý hoạt động của lớp được phân công</p>
-                </div>
-                <div className="bg-amber-50 border border-amber-100 rounded-xl p-3">
-                  <div className="w-7 h-7 bg-amber-100 rounded-lg flex items-center justify-center mb-2">
-                    <span className="text-sm">📋</span>
-                  </div>
-                  <p className="text-xs font-semibold text-gray-800">Điều phối phiên</p>
-                  <p className="text-[11px] text-gray-500 mt-0.5 leading-tight">Tạo và điều phối phiên hoạt động</p>
-                </div>
-              </div>
-              <div className="bg-blue-50 rounded-xl p-3">
-                <p className="text-xs text-blue-700">
-                  <span className="font-semibold">ℹ</span> Không có quyền nội dung trẻ ngoài phạm vi được cấp.
-                </p>
-              </div>
-            </div>
-
-            {/* Reason */}
-            <div className="mb-5">
-              <p className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">Lý do thay đổi</p>
-              <textarea
-                placeholder="Nhập lý do thay đổi (bắt buộc)"
-                rows={3}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            {/* Actions */}
-            <div className="flex gap-2">
-              <button className="flex-1 flex items-center justify-center gap-2 bg-blue-50 border border-blue-200 text-blue-600 text-sm font-semibold py-2.5 rounded-xl hover:bg-blue-100 transition">
-                <Edit size={14} />
-                Sửa phân công
-              </button>
-              <button className="flex-1 flex items-center justify-center gap-2 bg-red-50 border border-red-200 text-red-500 text-sm font-semibold py-2.5 rounded-xl hover:bg-red-100 transition">
+              <button className="flex-1 flex items-center justify-center gap-2 border border-rose-200 bg-[#FEE2E2]/70 text-[#DC2626] text-[13px] font-semibold py-2 rounded-xl hover:bg-rose-100 transition cursor-pointer whitespace-nowrap">
                 <Ban size={14} />
-                Đình chỉ
+                <span>Đình chỉ</span>
               </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }
