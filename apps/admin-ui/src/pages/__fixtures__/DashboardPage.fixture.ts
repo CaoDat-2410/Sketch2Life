@@ -1,6 +1,1 @@
-export const mockDashboardKpis = {
-  totalActiveChildren: 1240,
-  sessionsToday: 318,
-  aiGenerationRate: 98.4,
-  pendingErasureRequests: 2,
-};
+export const mockDashboardKpis = { totalActiveChildren: 1350, sessionsToday: 420, aiGenerationRate: 99.1, pendingErasureRequests: 1 };
