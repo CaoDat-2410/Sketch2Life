@@ -25,3 +25,4 @@
 - Source: `features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md`, especially B3, B7, B8, B19, B21, and B22; source-register ID `collaborative-srs-v3-20261010`.
 - Drive folder supplied by the user: ID `18K0jfiBfl1nfG3-9HvfQXzVMoQcjTZF0`; file ID `1j-_R792jh-I1nC5B7FHwGDm3-yixPB6x` was updated in place with the four-page artifact and 20 embedded icons on v2. Final metadata/raw readback on 2026-10-23 verified the same ID and parent, 130,669 bytes, four pages, and 20 v2 image cells; see `raw/DRIVE_READBACK_SYSTEM_ARCHITECTURE_V2_ICONS_20261023.txt`.
 - Latest icon repair readback: same Drive file ID and folder, 134,056 bytes, modified `2026-10-22T17:14:24.595Z`; four pages and 20 decoded, valid SVG data URIs on v2. See `raw/DRIVE_READBACK_SYSTEM_ARCHITECTURE_V2_ICON_RENDER_FIX_20261023.txt`.
+- notes/HANDOFF_REFRESH_20261023.md: this handoff update, the unresolved Mermaid/Draw.io ERD relationship-count discrepancy, and current validation/open work.

@@ -20,7 +20,7 @@ The user assigned Khoa ERD, System Architecture Diagram, and Package Diagram, re
 
 ## Mermaid source update — 2026-10-22
 
-Khoa directly requested Mermaid counterparts and a careful review of all three assigned diagrams. The current approved deliverable now includes `src/diagrams/logical-erd.mmd`, `system-overview.mmd`, and `package-diagram.mmd`, alongside the existing Draw.io artifact. Review is limited to the three assigned diagrams; state-machine and activity diagrams are not added without a team allocation change. FEAT-048 is local-only per the owner's explicit no-push instruction.
+Khoa directly requested Mermaid counterparts and a careful review of all three assigned diagrams. The current approved deliverable now includes `src/diagrams/logical-erd.mmd`, `system-overview.mmd`, and `package-diagram.mmd`, alongside the existing Draw.io artifact. Review is limited to the three assigned diagrams; state-machine and activity diagrams are not added without a team allocation change. At this 2026-10-22 checkpoint the owner had asked not to push; approval revision 17 later superseded that restriction for the FEAT-048 branch.
 
 ## System Architecture icon demo — 2026-10-22
 
@@ -104,3 +104,8 @@ Khoa shared a screenshot showing broken-image placeholders. The SVG data URI had
 ## Cross-machine continuation — 2026-10-23
 
 Khoa authorized committing and pushing `feature/feat048-srs-diagram-pack` so work can continue on another machine, superseding the earlier no-push instruction for FEAT-048. The branch remains separate from `dev` and FEAT-018. Plan revision 16 / approval revision 17 record this publication scope. `HANDOFF_FOR_NEW_SESSION.md` contains checkout steps, artifact/Drive links, icon fix evidence, and the remaining diagrams.net visual-QA step. No `dev` merge was requested.
+
+
+## Cross-machine handoff update — 2026-10-23
+
+The expanded standalone handoff is HANDOFF_FOR_NEW_SESSION.md. Khoa explicitly authorized publishing FEAT-048 on feature/feat048-srs-diagram-pack; the branch is pushed and remains separate from dev and FEAT-018. The main checkout may be on FEAT-018, so continue in the FEAT-048 worktree/branch. The handoff records all four Draw.io pages, Mermaid sources, current Drive state, icon URI repair, validation results, pending rendered QA, and an ERD Mermaid/Draw.io relationship-count discrepancy that must be reconciled.
