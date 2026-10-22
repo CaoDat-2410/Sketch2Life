@@ -1,11 +1,25 @@
 # BE2-07 decisions
 
+## FEAT-057 owner direction: check source fence in BE2-08 finalizer UoW — 2026-10-21
+
+The owner direction, recorded in `features/FEAT-057-be2-01-14-offline-integration/evidence/notes/OWNER_DESIGN_DISPOSITION_FOUNDATION_UOW_20261021.md`, is:
+
+The following is a verbatim excerpt from item (1):
+
+> “BE2-07/BE2-08 dùng kiểm tra source fence trong cùng UoW của finalizer; nếu không cùng store thì X01 giữ PARTIAL.”
+
+Engineering acceptance criterion (recorder clarification, not an additional owner quote): a same-store read by itself does not establish serialization with concurrent invalidation. Before claiming race safety, adopt and demonstrate the exact lock/CAS or producer-published mechanism and its serialization guarantee. The owner has not selected the store or mechanism.
+
+An earlier local, unpublished wording of this entry is not preserved. The quoted excerpt above is verbatim; the serialization requirement in the preceding paragraph is a recorder-added engineering acceptance criterion, not an additional owner statement. This records existing owner direction; it does not change the decision, the FEAT-056 scope and hash recorded below, `features/FEAT-056-be2-knowledge-script/approvals/TASK_APPROVAL.md`, implementation authority, or BE2-07 status.
+
+The separate owner D1 lifecycle direction is recorded in `features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_UOW_OWNER_DECISION_D1_20261021.md`: BE2-01 owns the UoW, BE2-08 is a non-committing participant, and the selected lock order is job → run → source-fence rows by stable key. The current approved `BE2-VIDEO-LIFECYCLE/1` scope is A/S/B only; F still requires review and supplemental approval. This decision entry records existing owner direction only: it does not expand the FEAT-056 scope and hash recorded below, amend `features/FEAT-056-be2-knowledge-script/approvals/TASK_APPROVAL.md`, authorize a durable store/schema/migration or implementation, or change BE2-07 status/acceptance. X01 remains `PARTIAL` until a producer-owned fence checked in the finalizer UoW has an adopted serialization mechanism and is proven against invalidation races.
+
 ## FEAT-057 implementation-scope addendum — 2026-10-21
 
-- Approved addendum: plan/CROSS_LANE_BE2_07_SCOPE_DRAFT_20261021.md
-- Approval record: approvals/TASK_APPROVAL.md
+- Scope artifact: `features/FEAT-056-be2-knowledge-script/plan/CROSS_LANE_BE2_07_SCOPE_DRAFT_20261021.md` (its header remains DRAFT/AWAITING_OWNER_APPROVAL; approval applies to the exact SHA below).
+- Approval record: `features/FEAT-056-be2-knowledge-script/approvals/TASK_APPROVAL.md`
 - Proposed scope is limited to producer-owned exact source identity/currentness. The existing process-local coordinator is not accepted as a durable fence through BE2-08 finalization.
-- Owner approved the exact scope SHA256 CA531682CCB0ABD12BB8B270F0258D9B3EBBCE4DBF917805FBC7A770BBF6EB24. The verbatim approval is in approvals/TASK_APPROVAL.md. The minimal execution file subset must be recorded before edits.
+- Owner approved the exact scope SHA256 `CA531682CCB0ABD12BB8B270F0258D9B3EBBCE4DBF917805FBC7A770BBF6EB24`; the approval is recorded in `features/FEAT-056-be2-knowledge-script/approvals/TASK_APPROVAL.md`. The minimal execution file subset must be recorded before edits.
 - X01 remains PARTIAL unless both cards adopt and prove the held-through-finalization boundary. This approval-recording step does not change BE2-07 source/tests or card status.
 
 ## FEAT-057 cross-card owner response — 2026-10-21
@@ -136,8 +150,9 @@ records that limit explicitly.
 
 The owner directed that BE2-07 source validity be checked/held within the same
 UoW as BE2-08 finalization only when source data and the finalizer can participate
-in the same transactional store. If they cannot, X01 remains PARTIAL. A same-store
-read is not by itself proof of a held fence; implementation evidence must show a
+in the same transactional store. If they cannot, X01 remains PARTIAL. The
+engineering acceptance criterion recorded above is not an additional owner quote:
+a same-store read is not by itself proof of a held fence; evidence must show a
 lock/CAS or equivalent serialization shared with invalidation writes through the
 final commit. The existing process-local coordinator is not that proof.
 
@@ -146,5 +161,5 @@ cross-service lock or other paths excluded by the approved BE2-07 scope. If the
 same-store fence needs those changes, prepare and approve a revised BE2-07 scope
 before editing source. X05d remains BLOCKED because no already-adopted resolver/
 fence has thereby been created. FEAT-057 evidence note:
-../FEAT-057-be2-01-14-offline-integration/evidence/notes/OWNER_DESIGN_DISPOSITION_FOUNDATION_UOW_20261021.md.
+`features/FEAT-057-be2-01-14-offline-integration/evidence/notes/OWNER_DESIGN_DISPOSITION_FOUNDATION_UOW_20261021.md`.
 No source/test, status or acceptance changed.
