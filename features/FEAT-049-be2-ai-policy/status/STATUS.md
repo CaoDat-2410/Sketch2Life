@@ -1,5 +1,25 @@
 # BE2-14 status
 
+## Current checkpoint: Claude D3 rereview follow-up - 2026-10-21
+
+Claude verified all 81 D3 review-manifest entries, closed the two prior P2 findings in draft, and found one new P2 (completion-time BUDGET_EXCEEDED) plus four P3 items. Report: FEAT-057 evidence/notes/CROSS_LANE_UOW_CLAUDE_D3_REREVIEW_REPORT_20261021.md, SHA256 92BE229378A2DE06BAEED1FC6F675EA15FED338892A002A833F81F6972B44C12.
+
+Successor drafts: FEAT-044 foundation Rev7, budget CR Rev2 and stale CR Rev2; FEAT-050 BE2-08 Rev3; FEAT-049 BE2-14 Rev3; FEAT-057 slice plan Rev8. NEW-2 through NEW-5 are clarified in draft. Completion-time resource denial remains a separate D4 owner choice, pending at evidence/notes/CROSS_LANE_UOW_OWNER_D4_COMPLETION_BUDGET_BALLOT_DRAFT_20261021.md.
+
+D3 C1-A/C2-A remain selected. No code, schema, tests, official approval or acceptance changed. D4 must be settled before implementation scope is finalized. X01 PARTIAL; X05d BLOCKED; X05c/CR09-02 OPEN; X09-08 NOT_IMPLEMENTED; Modal/Lightning/runtime deferred. Earlier checkpoints below remain historical.
+
+
+## Current checkpoint: owner D3 recorded, successor review pending - 2026-10-21
+
+The owner explicitly selected C1-A and C2-A with the conditions preserved in FEAT-057 evidence/notes/CROSS_LANE_UOW_OWNER_DECISION_D3_20261021.md (SHA256 C1799417AFD2DDB989D6C888A8B3F9702D4A6B4DC2A8B90637DBD6E11C3AE54C). This supersedes the earlier ballot's PENDING design response; it does not rewrite the historical report or ballot.
+
+Latest candidates: FEAT-044 foundation UoW scope Rev6 plus joint BE2-01/14 budget CR, separate BE2-01 schema CR and stale-finalization CR; BE2-08 scope Rev2; BE2-14 scope Rev2; FEAT-057 slice plan Rev7. They are DRAFT / pending independent review and supplemental S/F/schema approvals, not implementation approval.
+
+C1 holds both job and run QUEUED in durable BE2-01 metadata, excludes budget-wait time from dispatch-loss/retry recovery and rechecks eligibility/reservation before execution. C2 commits SUCCEEDED/STALE, the paired terminal stale run without artifact/ready state, receipt and verified-owned-ref cleanup intent together. BE1 descriptor/quarantine/accepted-reference adoption remains pending; accepted output must be protected.
+
+X01 PARTIAL; X05d BLOCKED; X05c/CR09-02 OPEN; X09-08 NOT_IMPLEMENTED. Budget unit/limit, maximum defer duration and deadline action remain PENDING. No source/test/schema/migration/official approval, card acceptance or runtime change follows. Earlier dated entries below are historical checkpoints.
+
+
 - Status: IN_PROGRESS
 - Plan revision: 1
 - Implementation status: IN_PROGRESS — C6d owned PostgreSQL104 PASS; actual owner/provider integration open
