@@ -5,6 +5,7 @@ from datetime import UTC, datetime, timedelta
 import pytest
 from pydantic import ValidationError
 
+from sketch2life.application.ports.knowledge_video import VIDEO_LIFECYCLE_CONTRACT
 from sketch2life.contracts.schemas.knowledge_video import (
     CreateKnowledgeVideo,
     KnowledgeVideoView,
@@ -13,6 +14,10 @@ from sketch2life.contracts.schemas.knowledge_video import (
 )
 
 NOW = datetime(2026, 10, 18, tzinfo=UTC)
+
+
+def test_adopted_video_lifecycle_contract_is_versioned():
+    assert VIDEO_LIFECYCLE_CONTRACT == "BE2-VIDEO-LIFECYCLE/1"
 
 
 def ref():
