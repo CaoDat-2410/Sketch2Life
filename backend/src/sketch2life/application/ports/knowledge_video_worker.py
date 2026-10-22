@@ -90,7 +90,11 @@ class VideoPrivateStaging(Protocol):
 
 class AtomicVideoFinalizer(Protocol):
     def lookup(
-        self, attempt: RenderAttempt, completion_key: str
+        self,
+        attempt: RenderAttempt,
+        media: PreparedVideoMedia,
+        staged: StagedVideo,
+        completion_key: str,
     ) -> VideoFinalizationReceipt | None:
         """Authenticated original-scope authoritative receipt query for recovery.
         None must mean known absent, NOT timeout/unavailable. Missing/unavailable

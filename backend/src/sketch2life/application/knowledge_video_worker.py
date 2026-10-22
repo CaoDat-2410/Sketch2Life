@@ -227,7 +227,7 @@ class VideoCompletionService:
         # historical fact, not current exposure permission. Query MUST authenticate
         # original backend recovery scope. Unavailable is NOT "known absent".
         try:
-            previous = self._finalizer.lookup(attempt, key)
+            previous = self._finalizer.lookup(attempt, media, stage, key)
         except Exception:
             return VideoWorkerOutcome("pending", "VIDEO_WORK_PENDING", completion_key=key)
         if previous is not None:

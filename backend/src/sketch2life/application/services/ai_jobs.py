@@ -62,6 +62,10 @@ from sketch2life.application.ports.ai_jobs import (
     WorkerCapabilityVerifier,
     WorkerDispatchEnvelope,
 )
+from sketch2life.application.ports.knowledge_video import (
+    VideoLifecycleCreateV1,
+    VideoLifecycleTransaction,
+)
 from sketch2life.domain.ai_jobs import model as jobs
 from sketch2life.domain.ai_jobs.completion import (
     VERDICT_DISPOSITION,
@@ -83,6 +87,7 @@ from sketch2life.domain.ai_jobs.model import (
     ResultDisposition,
     ResultRef,
 )
+from sketch2life.domain.knowledge_video.model import FinalArtifact, VideoRun
 
 CREATE_CONTRACT = "CreateAiJob"
 CANCEL_CONTRACT = "CancelAiJob"
@@ -252,24 +257,31 @@ class CreateJobCommand:
     subject_refs: tuple[str, ...]
     request_ref: RequestRef
     correlation_id: str
+    video_lifecycle: VideoLifecycleCreateV1 | None = None
 
     def fingerprint(self) -> str:
-        return canonical_sha256(
-            {
-                "contract_name": CREATE_CONTRACT,
-                "job_type": self.job_type,
-                "target_id": self.target_id,
-                "purpose_code": self.purpose_code,
-                "session_id": self.session_id,
-                "subject_refs": sorted(self.subject_refs),
-                "request_ref": {
-                    "request_id": self.request_ref.request_id,
-                    "request_revision": self.request_ref.request_revision,
-                    "input_hash": self.request_ref.input_hash,
-                    "context_revision": self.request_ref.context_revision,
-                },
+        material: dict[str, object] = {
+            "contract_name": CREATE_CONTRACT,
+            "job_type": self.job_type,
+            "target_id": self.target_id,
+            "purpose_code": self.purpose_code,
+            "session_id": self.session_id,
+            "subject_refs": sorted(self.subject_refs),
+            "request_ref": {
+                "request_id": self.request_ref.request_id,
+                "request_revision": self.request_ref.request_revision,
+                "input_hash": self.request_ref.input_hash,
+                "context_revision": self.request_ref.context_revision,
+            },
+        }
+        if self.video_lifecycle is not None:
+            material["video_lifecycle"] = {
+                "contract": "BE2-VIDEO-LIFECYCLE/1",
+                "job_type": self.video_lifecycle.job_type,
+                "command_hash": self.video_lifecycle.command_hash,
+                "pin_digest": self.video_lifecycle.pin.digest(),
             }
-        )
+        return canonical_sha256(material)
 
 
 @dataclass(frozen=True, slots=True)
@@ -303,6 +315,8 @@ class CommandResult:
 class StartResult:
     started: bool
     reason_code: str | None
+    video_run: VideoRun | None = None
+    job_revision: int | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -328,6 +342,7 @@ class AiJobDependencies:
     retry_policy: JobRetryPolicy = FIXTURE_RETRY_POLICY
     poll_policy: JobPollPolicy = FIXTURE_POLL_POLICY
     dispatch_policy: DispatchPolicy = FIXTURE_DISPATCH_POLICY
+    video_job_type: str | None = None
 
 
 class QueueUnavailable(Exception):
@@ -341,6 +356,23 @@ class AiJobService:
     # ----------------------------------------------------------------- commands
     def create_job(self, command: CreateJobCommand) -> CommandResult:
         principal = command.principal
+        if (command.job_type == self._d.video_job_type
+                and command.video_lifecycle is None):
+            raise AiJobError("VIDEO_LIFECYCLE_REQUIRED", 503,
+                             "The video job requires the adopted lifecycle participant.")
+        if (command.video_lifecycle is not None
+                and command.job_type != command.video_lifecycle.job_type):
+            raise AiJobError("VIDEO_JOB_TYPE_MISMATCH", 400,
+                             "The video lifecycle binding does not match the job type.")
+        if command.video_lifecycle is not None:
+            context = command.video_lifecycle.context
+            if (context.principal_id != principal.principal_id
+                    or context.organization_id != principal.organization_id
+                    or context.session_id != command.session_id
+                    or context.idempotency_key != command.idempotency_key
+                    or context.correlation_id != command.correlation_id):
+                raise AiJobError("VIDEO_IDENTITY_MISMATCH", 400,
+                                 "The video lifecycle binding does not match the command identity.")
         if not command.idempotency_key or len(command.idempotency_key) > 120:
             raise AiJobError("MALFORMED_REQUEST", 400, "Idempotency-Key is required.")
         scope = JobScope(
@@ -383,6 +415,7 @@ class AiJobService:
             with self._d.repository.transaction() as tx:
                 replay = self._replay(tx, principal, key, fingerprint)
                 if replay is not None:
+                    self._verify_video_replay(tx, command, replay)
                     return replay
                 winner_id = tx.find_semantic(semantic)
                 winner = tx.get_job(winner_id) if winner_id is not None else None
@@ -400,12 +433,16 @@ class AiJobService:
                 with self._d.repository.transaction() as tx:
                     replay = self._replay(tx, principal, key, fingerprint)
                     if replay is not None:
+                        self._verify_video_replay(tx, command, replay)
                         return replay
                     if tx.find_semantic(semantic) != winner_id:
                         raise UniqueConflict("semantic_request")
                     self._hold(tx, authorization.fence, eligibility.fence)
                     if winner_id is not None:
                         current = self._get(tx, winner_id)
+                        self._submit_video_lifecycle(
+                            tx, command, current, now, replayed=False
+                        )
                         tx.put_command_receipt(
                             CommandReceipt(key, fingerprint, current.job_id, "deduplicated",
                                            current.job_revision, now)
@@ -427,6 +464,9 @@ class AiJobService:
                         )
                         tx.insert_job(job)
                         tx.put_semantic(semantic, job.job_id)
+                        self._submit_video_lifecycle(
+                            tx, command, job, now, replayed=False
+                        )
                         tx.put_command_receipt(
                             CommandReceipt(key, fingerprint, job.job_id, "created",
                                            job.job_revision, now)
@@ -659,6 +699,8 @@ class AiJobService:
         for _ in range(DECISION_ROUNDS):
             with self._d.repository.transaction() as tx:
                 job = self._get(tx, job_id)
+            if self._d.video_job_type is not None and job.job_type == self._d.video_job_type:
+                return StartResult(False, "VIDEO_LIFECYCLE_REQUIRED")
             eligibility = self._check(job)
             try:
                 with self._d.repository.transaction() as tx:
@@ -688,6 +730,59 @@ class AiJobService:
             return result
         return StartResult(False, "STALE_CONTEXT")
 
+    def start_video_attempt(
+        self, envelope: WorkerDispatchEnvelope, *, expected_job_type: str
+    ) -> StartResult:
+        """Start the paired job/run only after the persisted identity matches the envelope."""
+
+        message = envelope.message
+        self._require_worker(envelope.capability, message.job_id, message.attempt_id)
+        if (message.job_type != expected_job_type
+                or self._d.video_job_type != expected_job_type):
+            return StartResult(False, "VIDEO_JOB_TYPE_MISMATCH")
+
+        for _ in range(DECISION_ROUNDS):
+            with self._d.repository.transaction() as tx:
+                job = self._get(tx, message.job_id)
+            if not self._video_envelope_matches(job, envelope, expected_job_type):
+                return StartResult(False, "VIDEO_IDENTITY_MISMATCH")
+            eligibility = self._check(job)
+            if not eligibility.eligible:
+                return StartResult(False, eligibility.reason_code or "VIDEO_NOT_ELIGIBLE")
+            try:
+                with self._d.repository.transaction() as tx:
+                    job = self._get(tx, message.job_id, for_update=True)
+                    if not self._video_envelope_matches(job, envelope, expected_job_type):
+                        return StartResult(False, "VIDEO_IDENTITY_MISMATCH")
+                    if job.state is JobState.RUNNING:
+                        return StartResult(False, "DUPLICATE_DELIVERY")
+                    if job.state is not JobState.QUEUED:
+                        return StartResult(False, "JOB_NOT_QUEUED")
+                    self._hold(tx, eligibility.fence)
+                    updated = jobs.start_attempt(job, message.attempt_id, self._d.clock.now())
+                    run = tx.video_lifecycle(job.organization_id).start(
+                        job, updated, attempt_id=message.attempt_id
+                    )
+                    tx.cas_job(expected_revision=job.job_revision, job=updated)
+            except _StaleOwnerDecision:
+                continue
+            self._audit("job.start", updated, None)
+            return StartResult(True, None, run, updated.job_revision)
+        return StartResult(False, "STALE_CONTEXT")
+
+    @staticmethod
+    def _video_envelope_matches(
+        job: AiJob, envelope: WorkerDispatchEnvelope, expected_job_type: str
+    ) -> bool:
+        message = envelope.message
+        return (
+            job.job_type == expected_job_type == message.job_type
+            and job.job_id == message.job_id
+            and job.active_attempt.attempt_id == message.attempt_id
+            and job.active_attempt.attempt_number == message.attempt_number
+            and job.request_ref == message.request_ref
+        )
+
     def report_progress(
         self, capability: str, job_id: str, attempt_id: str, progress: JobProgress
     ) -> bool:
@@ -701,7 +796,13 @@ class AiJobService:
                 tx.cas_job(expected_revision=job.job_revision, job=updated)
         return True
 
-    def accept_completion(self, capability: str, claim: CompletionClaim) -> CompletionReceipt:
+    def accept_completion(
+        self,
+        capability: str,
+        claim: CompletionClaim,
+        *,
+        video_artifact: FinalArtifact | None = None,
+    ) -> CompletionReceipt:
         """Only a completion that settles the attempt (changes the job) takes the immutable
         ``(job_id, attempt_id)`` slot. Its mutation, receipt, audit intent and owned quarantine
         intents commit together (Δ9/Δ15). Guard rejections that leave the job unchanged return a
@@ -721,6 +822,15 @@ class AiJobService:
             with self._d.repository.transaction() as tx:
                 job = self._get(tx, claim.job_id)
                 prior = tx.get_completion_receipt(claim.job_id, claim.attempt_id)
+            if (self._d.video_job_type is not None
+                    and job.job_type == self._d.video_job_type and video_artifact is None):
+                raise AiJobError("VIDEO_LIFECYCLE_REQUIRED", 503,
+                                 "The video result requires the adopted lifecycle participant.")
+            if (video_artifact is not None
+                    and (self._d.video_job_type is None
+                         or job.job_type != self._d.video_job_type)):
+                raise AiJobError("VIDEO_JOB_TYPE_MISMATCH", 400,
+                                 "A video result cannot settle a non-video job.")
             if prior is not None:
                 return self._completion_replay(prior, fingerprint, job, claim, details)
             normalised = self._normalise_claim(claim, details)
@@ -761,6 +871,12 @@ class AiJobService:
                     if authoritative:
                         fence = eligibility.fence if eligibility is not None else None
                         self._hold(tx, fence, *effects.artifact_fences)
+                        if (video_artifact is not None
+                                and disposition is ResultDisposition.ACCEPTED
+                                and updated.state is JobState.SUCCEEDED):
+                            tx.video_lifecycle(job.organization_id).accept(
+                                job, updated, claim, video_artifact
+                            )
                         tx.cas_job(expected_revision=job.job_revision, job=updated)
                         tx.put_completion_receipt(receipt)
                     else:
@@ -1042,6 +1158,45 @@ class AiJobService:
         if job is None or not self._readable(principal, job):
             raise _not_found()
         return CommandResult(receipt.job_id, receipt.job_revision_at_commit, receipt.outcome, True)
+
+    def _video_lifecycle(
+        self, tx: AiJobUnitOfWork, binding: VideoLifecycleCreateV1
+    ) -> VideoLifecycleTransaction:
+        participant = tx.video_lifecycle(binding.context.organization_id)
+        if participant.contract_version != "BE2-VIDEO-LIFECYCLE/1":
+            raise RuntimeError("unsupported video lifecycle contract version")
+        return participant
+
+    def _submit_video_lifecycle(
+        self,
+        tx: AiJobUnitOfWork,
+        command: CreateJobCommand,
+        job: AiJob,
+        now: datetime,
+        *,
+        replayed: bool,
+    ) -> VideoRun | None:
+        binding = command.video_lifecycle
+        if binding is None:
+            return None
+        return self._video_lifecycle(tx, binding).submit(
+            job,
+            binding,
+            video_id=self._d.ids.new_id("video"),
+            now=now,
+            replayed=replayed,
+        )
+
+    def _verify_video_replay(
+        self, tx: AiJobUnitOfWork, command: CreateJobCommand, result: CommandResult
+    ) -> None:
+        binding = command.video_lifecycle
+        if binding is None:
+            return
+        job = tx.get_job(result.job_id)
+        if job is None:
+            raise _not_found()
+        self._submit_video_lifecycle(tx, command, job, self._d.clock.now(), replayed=True)
 
     def _readable(self, principal: Principal, job: AiJob) -> bool:
         return principal.organization_id == job.organization_id and self._allowed(

@@ -18,6 +18,7 @@ from datetime import datetime, timedelta
 from enum import StrEnum
 from typing import Protocol
 
+from sketch2life.application.ports.knowledge_video import VideoLifecycleTransaction
 from sketch2life.domain.ai_jobs.completion import CompletionClaim, canonical_sha256
 from sketch2life.domain.ai_jobs.model import AiJob, JobScope, RequestRef, ResultDisposition
 from sketch2life.domain.ai_jobs.provider_copy import ProviderCopy, PurgeReceipt
@@ -354,6 +355,13 @@ class AiJobUnitOfWork(Protocol):
     def get_completion_receipt(self, job_id: str, attempt_id: str) -> CompletionReceipt | None: ...
 
     def put_completion_receipt(self, receipt: CompletionReceipt) -> None: ...
+
+    def video_lifecycle(self, organization_id: str) -> VideoLifecycleTransaction:
+        """Return the BE2-08-owned participant bound to this transaction.
+
+        The public contract exposes only A/S/B operations; SQL remains in infrastructure.
+        """
+        ...
 
     def hold_owner_fences(self, fences: tuple[OwnerFence, ...]) -> FenceResult:
         """Hold owner fences on this unit of work's connection until commit (Δ2)."""
