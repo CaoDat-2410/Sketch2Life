@@ -1,8 +1,133 @@
 # Project context ledger
 
+## FEAT-057 Rev5 review and offline BE2 internal regression — 2026-10-21
+
+The owner supplied a separate-session Rev5 result of PASS_WITH_NOTES (no P1/P2, seven P3 notes) and chose not to create Rev6. The review is documentation-only and its report remains in the session transcript. A bounded offline run passed 330/330 selected X01 fixture/registry, BE2-01 typed-dispatch and BE2-07/08 regression tests; receipt is in FEAT-057 evidence/notes/BE2_INTERNAL_OFFLINE_TEST_RUN_20261021.md. This does not establish a full BE2-01–14 behavioral graph: X01 remains PARTIAL due to the process-local-only source coordinator; X09-08 remains NOT_IMPLEMENTED because persisted job/run/pin-to-VideoWorker composition is not proven; X02–X09 remain NOT_IMPLEMENTED in the registry. Per-card execution manifests and the durable source fence, lifecycle UoW, BE2-08 artifact-read adoption, and BE2-14 execution/reservation gates remain open. No implementation approval, card acceptance, BE1 handoff readiness, or runtime authorization follows.
+
+## FEAT-057 full BE2 graph execution frame revision 5 — 2026-10-21
+
+The separate-session re-review of revision 4 returned `PASS_WITH_NOTES` with four P3 notes. Revision 5 (`features/FEAT-057-be2-01-14-offline-integration/plan/CROSS_LANE_END_TO_END_EXECUTION_FRAME_REV5_DRAFT_20261021.md`, SHA256 `30DDE6A3738B885917AAB7541D898D62A939CD37259693E6C833409A899251C4`) addresses them in draft text; it is planning-only and ready for re-review. `PASS_WITH_NOTES` approves no code. No supplemental approval exists on the BE2-01 side for any lifecycle boundary; CR08-01 stays open. X01 PARTIAL, X05d BLOCKED, X05c/CR09-02 OPEN, X09-08 NOT_IMPLEMENTED; D4, budget unit/limit/max-hold/deadline, phase S and reservation expiry/renewal pending; BE1 packet NOT_SENT; Modal/Lightning/provider/server/database/runtime deferred. No source, test, approval or card status changed.
+
+## FEAT-057 full BE2 graph execution frame revision 4 — 2026-10-21
+
+The same-session re-review of revision 3 returned `PASS_WITH_NOTES` with three P3 notes. Revision 4 (`features/FEAT-057-be2-01-14-offline-integration/plan/CROSS_LANE_END_TO_END_EXECUTION_FRAME_REV4_DRAFT_20261021.md`, SHA256 `6E5147209C01750E65E6E26BC6D8D237BAD625AFF0087AD1F88FBDE0D6F0DB3F`) addresses them in draft text; it is planning-only and ready for re-review. `PASS_WITH_NOTES` approves no code. A and the foundation side of B-accepted have no approval; CR08-01 stays open. X01 PARTIAL, X05d BLOCKED, X05c/CR09-02 OPEN, X09-08 NOT_IMPLEMENTED; D4, budget unit/limit/max-hold/deadline, phase S and reservation expiry/renewal pending; BE1 packet NOT_SENT; Modal/Lightning/provider/server/database/runtime deferred. No source, test, approval or card status changed.
+
+## FEAT-057 full BE2 graph execution frame revision 3 — 2026-10-21
+
+The re-review of revision 2 returned `PASS_WITH_NOTES` with nine P3 notes. Revision 3 (`features/FEAT-057-be2-01-14-offline-integration/plan/CROSS_LANE_END_TO_END_EXECUTION_FRAME_REV3_DRAFT_20261021.md`, SHA256 `6F8703F09D98171171447C9592C3CAB137B7DB142E877CA152ACD61E2B3DC653`) addresses them in draft text and adds a status ladder and a boundary scope table; it is planning-only and ready for re-review. `PASS_WITH_NOTES` approves no code. A and the foundation side of B-accepted have no approval; CR08-01 stays open. X01 PARTIAL, X05d BLOCKED, X05c/CR09-02 OPEN, X09-08 NOT_IMPLEMENTED; D4, budget unit/limit/max-hold/deadline, phase S and reservation expiry/renewal pending; BE1 packet NOT_SENT; Modal/Lightning/provider/server/database/runtime deferred. No source, test, approval or card status changed.
+
+## FEAT-057 full BE2 graph execution frame revision 2 — 2026-10-21
+
+Independent review 1 returned CHANGES_REQUIRED for the full-graph frame. Revision 2 (`features/FEAT-057-be2-01-14-offline-integration/plan/CROSS_LANE_END_TO_END_EXECUTION_FRAME_REV2_DRAFT_20261021.md`, SHA256 `E0AE164BF8F6193E331B3F6965A7200E10069A1B05FA568FD40838C3E2A19A5F`) addresses all findings in draft text and is ready for re-review. It is planning-only: lock order stays a candidate pending lock-path review; A is blocked on retry-policy and request mapping; A-time and status-read budget behavior, D4, budget terms and BE1 adoption remain owner gates. X01 PARTIAL, X05 NOT_IMPLEMENTED, X05d BLOCKED, X05c/CR09-02 OPEN, X09-08 NOT_IMPLEMENTED. No source, test, approval or card status changed.
+
+## FEAT-057 full BE2 graph execution frame — 2026-10-21
+
+A draft plan now lays out all cross-lane edges X01–X09 and the job/video lifecycle boundaries required for a complete BE2-01–14 offline composition. It is planning-only and does not expand the approved FEAT-057 Rev2 scope or any card-owned approval. The candidate was branch `feature/be2-backend-ai-integration` at `1649b729`; 145 paths were dirty and staged was 0 when planning began. X01 remains PARTIAL, X05 remains NOT_IMPLEMENTED, X05d BLOCKED, X05c/CR09-02 OPEN, and X09-08 NOT_IMPLEMENTED. D4 and the source-fence/artifact/policy adoption gates remain open. See `features/FEAT-057-be2-01-14-offline-integration/plan/CROSS_LANE_END_TO_END_EXECUTION_FRAME_DRAFT_20261021.md`.
+
+## Current checkpoint: preliminary BE1 status handoff prepared — 2026-10-21
+
+FEAT-057 now has a local, NOT_SENT preliminary handoff note and exact-input manifest for BE1. It describes X01 as PARTIAL and does not claim end-to-end BE2-01–14 connection. The worktree snapshot at preparation was branch `feature/be2-backend-ai-integration`, HEAD `1649b729`; 143 paths were dirty and staged was 0, so the worktree changes are not available from the branch tip. BE1 may review the artifact-adoption request; its owner response, D4 completion-time budget decision, BE2 supplemental contracts/approvals, durable source fence and persisted job/run/pin/worker composition remain open.
+
+
+## Current checkpoint: Claude D3 rereview follow-up - 2026-10-21
+
+Claude verified all 81 D3 review-manifest entries, closed the two prior P2 findings in draft, and found one new P2 (completion-time BUDGET_EXCEEDED) plus four P3 items. Report: FEAT-057 evidence/notes/CROSS_LANE_UOW_CLAUDE_D3_REREVIEW_REPORT_20261021.md, SHA256 92BE229378A2DE06BAEED1FC6F675EA15FED338892A002A833F81F6972B44C12.
+
+Successor drafts: FEAT-044 foundation Rev7, budget CR Rev2 and stale CR Rev2; FEAT-050 BE2-08 Rev3; FEAT-049 BE2-14 Rev3; FEAT-057 slice plan Rev8. NEW-2 through NEW-5 are clarified in draft. Completion-time resource denial remains a separate D4 owner choice, pending at evidence/notes/CROSS_LANE_UOW_OWNER_D4_COMPLETION_BUDGET_BALLOT_DRAFT_20261021.md.
+
+D3 C1-A/C2-A remain selected. No code, schema, tests, official approval or acceptance changed. D4 must be settled before implementation scope is finalized. X01 PARTIAL; X05d BLOCKED; X05c/CR09-02 OPEN; X09-08 NOT_IMPLEMENTED; Modal/Lightning/runtime deferred. Earlier checkpoints below remain historical.
+
+
+## Current checkpoint: owner D3 recorded, successor review pending - 2026-10-21
+
+The owner explicitly selected C1-A and C2-A with the conditions preserved in FEAT-057 evidence/notes/CROSS_LANE_UOW_OWNER_DECISION_D3_20261021.md (SHA256 C1799417AFD2DDB989D6C888A8B3F9702D4A6B4DC2A8B90637DBD6E11C3AE54C). This supersedes the earlier ballot's PENDING design response; it does not rewrite the historical report or ballot.
+
+Latest candidates: FEAT-044 foundation UoW scope Rev6 plus joint BE2-01/14 budget CR, separate BE2-01 schema CR and stale-finalization CR; BE2-08 scope Rev2; BE2-14 scope Rev2; FEAT-057 slice plan Rev7. They are DRAFT / pending independent review and supplemental S/F/schema approvals, not implementation approval.
+
+C1 holds both job and run QUEUED in durable BE2-01 metadata, excludes budget-wait time from dispatch-loss/retry recovery and rechecks eligibility/reservation before execution. C2 commits SUCCEEDED/STALE, the paired terminal stale run without artifact/ready state, receipt and verified-owned-ref cleanup intent together. BE1 descriptor/quarantine/accepted-reference adoption remains pending; accepted output must be protected.
+
+X01 PARTIAL; X05d BLOCKED; X05c/CR09-02 OPEN; X09-08 NOT_IMPLEMENTED. Budget unit/limit, maximum defer duration and deadline action remain PENDING. No source/test/schema/migration/official approval, card acceptance or runtime change follows. Earlier dated entries below are historical checkpoints.
+
+
+## Current checkpoint: Claude rereview 3 — 2026-10-21
+
+Claude reviewed FEAT-044 scope Rev5 and FEAT-057 plan Rev6 and returned CHANGES_REQUIRED. The correction specification and D3 ballot are prepared under FEAT-057; C1 budget-deferral design and C2 durable stale cleanup are still awaiting the owner. D1/D2 are preserved. No new scope/implementation approval is inferred. S/F are not ready for supplemental approval.
+
+X01 PARTIAL; X05d BLOCKED; X05c/CR09-02 OPEN; X09-08 NOT_IMPLEMENTED. Budget unit/limit remain unprovided. No source/test/official approval, acceptance, runtime, or Git publication change is authorized by these drafts.
+
+Earlier dated entries below are historical checkpoints; this entry records the current review state.
+
+
+## FEAT-057 shared lifecycle UoW direction D1 — 2026-10-21
+
+The owner selected model A: BE2-01 owns the UoW for paired job/run A/S/B/F
+transitions, BE2-08 joins only for its video rows, reconciler/outbox job changes
+must not bypass the participant, and rejected finalization persists quarantine
+intent through a separate foundation reject commit. The selected scope lock order is
+job → video run → source-fence rows by stable key. This is design direction;
+S/F still need independent review and separate supplemental approvals. FEAT-057
+slice-plan revision 4 is not yet aligned. X01 remains PARTIAL; X05d BLOCKED;
+X05c/CR09-02 open; BE2-14 budget unit/limit remain unprovided. No implementation,
+acceptance, or runtime authorization follows. See FEAT-057's D1 owner receipt.
+
+## FEAT-057 approved offline implementation scopes — 2026-10-21
+
+The owner approved the exact BE2-01/07/08/09/14 scope addenda recorded in each
+owning card's official approval file. Execution is offline only. BE2-01's typed
+dispatch route is implemented and passes its 79-test offline batch; its minimal
+file subset and receipt are recorded in FEAT-044 and FEAT-057 evidence. The other
+four card implementations remain gated on the durable source fence, CR08-01
+foundation UoW/recovery contract, CR09-01 public artifact-read mapping, and
+BE2-14 worker-execution/reservation expiry contract respectively. Unit routing
+does not prove X09-08 composition. This does not change card acceptance/status or
+authorize runtime/provider/Modal/Lightning. X01 remains `PARTIAL`, X05d
+`BLOCKED`, and X05c/CR09-02 open. See FEAT-057's
+`evidence/notes/APPROVED_SCOPE_EXECUTION_MANIFEST_20261021.md`.
+
+## FEAT-057 G0 owner response — 2026-10-21
+
+The user confirmed ownership of the affected BE2 cards and adopted the
+FEAT-057 contract directions: B1–B5/B7 `ADOPT_WITH_CHANGES`; B6 `BLOCKED`
+because no already-adopted current-source resolver/fence was identified. This
+supersedes the earlier preference-only ballot record below. It is not
+implementation approval or card acceptance; card-owned source/schema/test
+changes require explicit approved scope. X05c/CR09-02 remains open, Modal stays
+deferred, and card statuses are unchanged. See FEAT-057's
+`evidence/notes/G0_CARD_OWNER_DECISION_BALLOT_20261021.md`.
+
+## Historical FEAT-057 G0 ballot-preparation state — superseded 2026-10-21
+
+This entry records ballot preparation before the user clarified direct ownership
+and gave the response recorded above. It was not routed externally; its pending
+card-owner wording is historical and superseded. Per-card implementation
+approval remains open. X05c/CR09-02 remains open, Modal stays deferred, and
+FEAT-057/card acceptance states are unchanged. See FEAT-057's
+`evidence/notes/G0_CARD_OWNER_DECISION_BALLOT_20261021.md`.
+
 ## BE2 primary-session current evidence — 2026-10-20
 
 PR #16 merged BE2-08–14 offline baseline evidence into feature/be2-backend-ai-integration at 4014b11a867d8030190a0789a6b03e1602fd522d on 2026-10-20. Source branch 964944c93edf89e531a0895f6248d7f1ee632c20 contributes 35 commits and 567 paths (521 evidence/raw, zero evidence/local); the final tree matches the reviewed source snapshot. All seven component runners pass; the separate migration graph test reports 6 passed and 10 skipped for unavailable SQL prerequisites. Harness/security/architecture/skeleton/diff checks pass. SQL, PostgreSQL, provider/HTTP, Lightning/Studio, runtime and owner integration remain NOT_RUN; card statuses and acceptance remain unchanged. See features/FEAT-057-be2-01-14-offline-integration/evidence/notes/PUBLICATION_PR16_20261020.md.
+
+The scoped X01 plus adjacent BE2-07/08 suite also passed on the hosted Modal
+Notebook using the exact pinned source ZIP: 296 passed, 0 failed, 0 skipped;
+the source archive, receipt, JUnit, and pytest log hashes match the preserved
+artifacts. This is offline test evidence only. X01 remains PARTIAL because no
+BE2-01 foundation job/artifact commit or cross-owner fence is established;
+X02–X09 remain NOT_IMPLEMENTED, and no card acceptance/runtime status changed.
+Details: `features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_X01_MODAL_RUN_20261020.md`.
+
+X02 source review confirms that BE2-07 emits an exact candidate supersession
+event, while BE2-09 has no adopted idempotent receiver/current-source resolver
+holding the source fence through review commit and playback dispatch. X02 stays
+NOT_IMPLEMENTED pending the card-owned adoption described in
+`features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_X02_REVIEW_20261020.md`;
+no card status or acceptance changed.
+
+The residual source review keeps X04–X09 NOT_IMPLEMENTED: publication consumer
+bindings, the atomic video finalizer, failure delivery, preset-to-job dispatch,
+policy adopter bindings, and a typed 08/13 worker registry are absent or open.
+The recommended owner-adoption sequence and source receipts are in
+`features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_RESIDUAL_REVIEW_20261020.md`.
 
 ## Historical initial integration and runtime-readiness summary — 2026-10-20 (pre-install)
 
@@ -773,3 +898,15 @@ volatile/session-only, with no new durable backend record or storage-provider de
 mobile, renderer and security evidence is indexed under the owning FEAT-018/020/030 records. Real
 SAM/L4 performance, held-out mask quality and Android emulator visual acceptance remain open; a
 synthetic selector score is not a real-model quality claim.
+
+## FEAT-057 shared-UoW scope review — 2026-10-21
+
+The independent review of the first shared foundation-UoW draft returned CHANGES_REQUIRED. Documentation successors separate lifecycle boundaries, correct G2/G3 source-fence and mapping claims, and place the finalized-artifact read model under a BE2-08 supplement. Exact source file hashes are recorded because the candidate worktree is dirty. At the time this checkpoint was written, D1 was pending; the owner's later selection A and conditions are recorded in FEAT-057 `evidence/notes/CROSS_LANE_UOW_OWNER_DECISION_D1_20261021.md` and supersede that state. No implementation approval or card acceptance was inferred. X01 remains PARTIAL, X05d BLOCKED, X05c/CR09-02 OPEN, and X09-08 NOT_IMPLEMENTED until persisted composition evidence exists. See FEAT-057 evidence/notes/CROSS_LANE_UOW_REVIEW_DISPOSITION_20261021.md.
+
+## FEAT-057 UoW scope rereview 2 — 2026-10-21
+
+Owner-pasted Claude rereview of FEAT-044 scope Rev3 returned CHANGES_REQUIRED. Documentation successors are FEAT-044 scope Rev4 and FEAT-057 slice plan Rev5; exact report, disposition, source manifest and next review prompt are indexed in FEAT-057 evidence. These drafts preserve D1 direction but do not grant implementation approval. X01 remains PARTIAL; X05d BLOCKED; X05c/CR09-02 OPEN; X09-08 NOT_IMPLEMENTED; Modal and runtime deferred. Existing card approvals/status/acceptance remain unchanged.
+
+## FEAT-057 UoW rereview 2 and D2 — 2026-10-21
+
+Claude rereview 2 returned CHANGES_REQUIRED. Owner D2 settled the stale VideoRun terminal representation and retry attempt_id timing. Successor FEAT-044 scope Rev5 and FEAT-057 plan Rev6 are pending independent rereview, not implementation approvals. X01 PARTIAL; X05d BLOCKED; X05c/CR09-02 OPEN; X09-08 NOT_IMPLEMENTED. No tests or runtime were run.

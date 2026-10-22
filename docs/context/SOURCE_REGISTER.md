@@ -1,5 +1,75 @@
 # Source register and authority boundary
 
+## Owner-supplied Rev5 review result and FEAT-057 offline test request — 2026-10-21
+
+Sources: (1) the owner-pasted separate-session Rev5 review report, PASS_WITH_NOTES with no P1/P2 and seven P3 notes; the report remains in the reviewer transcript and is not hash-pinned; (2) the owner's request to test the BE2-01–07 to BE2-08–14 offline connection. Record: FEAT-057 evidence/notes/BE2_INTERNAL_OFFLINE_TEST_RUN_20261021.md and raw JUnit under evidence/raw/be2_internal_offline_test_20261021/. Authority boundary: run existing offline tests and record their result only. The test run does not extend any card-owned execution manifest or approve new source/test/schema edits. X01 stays PARTIAL; X05d BLOCKED; X05c/CR09-02 OPEN; X09-08 NOT_IMPLEMENTED. No provider, database, server, Modal, Lightning or runtime action was taken.
+
+## FEAT-057 re-review of revision 4 and owner request for revision 5 — 2026-10-21
+
+Sources: (1) a read-only re-review of the revision-4 frame run in a separate session, verdict `PASS_WITH_NOTES` with four P3 notes (the report is in that session's transcript, not a repository file); (2) the owner's direct instruction in this conversation to create a successor from the exact Rev4 bytes that handles those notes, changing FEAT-057 plan and evidence only. Record: `features/FEAT-057-be2-01-14-offline-integration/plan/CROSS_LANE_END_TO_END_EXECUTION_FRAME_REV5_DRAFT_20261021.md` and its manifest `features/FEAT-057-be2-01-14-offline-integration/evidence/metrics/CROSS_LANE_END_TO_END_FRAME_INPUTS_REV5_20261021.json`. Authority boundary: FEAT-057 documentation only. A note addressed in draft text does not close an owner gate, and `PASS_WITH_NOTES` approves no code. No production source, test, approval, other-card record, card status/acceptance, runtime action or Git operation is authorized; no implementation may start from this revision.
+
+## FEAT-057 re-review of revision 3 and owner request for revision 4 — 2026-10-21
+
+Sources: (1) a read-only re-review of the revision-3 frame, verdict `PASS_WITH_NOTES` with three P3 notes, run in the session that wrote revision 3 and reported in chat (no report file); (2) the owner's direct instruction in this conversation to create a successor from the exact Rev3 bytes that handles those notes, changing FEAT-057 plan and evidence only. Record: `features/FEAT-057-be2-01-14-offline-integration/plan/CROSS_LANE_END_TO_END_EXECUTION_FRAME_REV4_DRAFT_20261021.md` and its manifest `features/FEAT-057-be2-01-14-offline-integration/evidence/metrics/CROSS_LANE_END_TO_END_FRAME_INPUTS_REV4_20261021.json`. Authority boundary: FEAT-057 documentation only. A note addressed in draft text does not close an owner gate, and `PASS_WITH_NOTES` approves no code. No production source, test, approval, other-card record, card status/acceptance, runtime action or Git operation is authorized; no implementation may start from this revision.
+
+## FEAT-057 re-review of revision 2 and owner request for revision 3 — 2026-10-21
+
+Sources: (1) an independent re-review of the revision-2 frame, verdict `PASS_WITH_NOTES` with nine P3 notes, as relayed in the owner's instruction (the report file is not in this worktree); (2) the owner's direct instruction in this conversation to handle those notes and prepare an approvable implementation scope table, changing FEAT-057 plan and evidence only. Record: `features/FEAT-057-be2-01-14-offline-integration/plan/CROSS_LANE_END_TO_END_EXECUTION_FRAME_REV3_DRAFT_20261021.md` and its manifest `features/FEAT-057-be2-01-14-offline-integration/evidence/metrics/CROSS_LANE_END_TO_END_FRAME_INPUTS_REV3_20261021.json`. Authority boundary: FEAT-057 documentation only. A note addressed in draft text does not close an owner gate or turn into an owner decision, and `PASS_WITH_NOTES` approves no code. No production source, test, approval, other-card record, card status/acceptance, runtime action or Git operation is authorized; no implementation may start from this revision.
+
+## FEAT-057 review 1 of the full BE2 graph plan and owner correction request — 2026-10-21
+
+Sources: (1) an independent read-only Claude review of the revision-1 frame, verdict CHANGES_REQUIRED, preserved at `features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_END_TO_END_FRAME_REVIEW1_REPORT_20261021.md`; (2) the owner's direct instruction in this conversation to resolve all 5 P2 and 8 P3 findings in a successor plan and update the FEAT-057 manifest and ledgers. Record: `features/FEAT-057-be2-01-14-offline-integration/plan/CROSS_LANE_END_TO_END_EXECUTION_FRAME_REV2_DRAFT_20261021.md` and its manifest `features/FEAT-057-be2-01-14-offline-integration/evidence/metrics/CROSS_LANE_END_TO_END_FRAME_INPUTS_REV2_20261021.json`. Authority boundary: FEAT-057 documentation only. A review finding addressed in draft text does not close an owner gate. No production source, test, approval, other-card record, card status/acceptance, runtime action or Git operation is authorized; no implementation may start from this revision.
+
+## FEAT-057 owner request: full BE2 graph plan — 2026-10-21
+
+Source: the owner's direct request in this conversation to check the current state and prepare a complete integration frame for BE2-01–07 and BE2-08–14. Record: `features/FEAT-057-be2-01-14-offline-integration/plan/CROSS_LANE_END_TO_END_EXECUTION_FRAME_DRAFT_20261021.md`. Authority boundary: planning only; the approved FEAT-057 Rev2 offline composition scope remains governing, missing/unadopted card contracts remain blocked, no per-card scope/approval/status is changed, and no source/test/runtime or Git publication is authorized by this request.
+
+## FEAT-057 preliminary BE1 handoff package — 2026-10-21
+
+The owner asked Codex to prepare a preliminary handoff with current evidence and blockers. The local note `features/FEAT-057-be2-01-14-offline-integration/evidence/notes/BE1_PRELIMINARY_HANDOFF_20261021.md` is `NOT_SENT`; exact input bytes are pinned by `features/FEAT-057-be2-01-14-offline-integration/evidence/metrics/BE1_PRELIMINARY_HANDOFF_INPUTS_20261021.json`. It permits factual status/adoption review only, not external contact, implementation approval or a claim of connected flow. X01 remains PARTIAL; X05 is NOT_IMPLEMENTED, X05d BLOCKED, X05c/CR09-02 OPEN and X09-08 NOT_IMPLEMENTED. The 296/296 Modal result is a selected offline CPU package only. Current branch tip is `1649b729`; its 143 dirty paths were not published.
+
+
+## Claude D3 rereview 4 and D4 authority gate - 2026-10-21
+
+The owner-provided independent Claude report is preserved in FEAT-057 evidence/notes/CROSS_LANE_UOW_CLAUDE_D3_REREVIEW_REPORT_20261021.md, SHA256 92BE229378A2DE06BAEED1FC6F675EA15FED338892A002A833F81F6972B44C12. It verified all 81 manifest hashes, closed the previous P2 findings in draft, and raised one new P2 plus four P3 corrections.
+
+D3 C1-A/C2-A remain direct owner design decisions. Latest candidates are FEAT-044 foundation Rev7, budget CR Rev2 and stale CR Rev2; BE2-08/14 scopes Rev3; FEAT-057 slice Rev8. NEW-1 at completion-time BUDGET_EXCEEDED remains pending in the D4 ballot. The other P3s are clarified in drafts; hashes do not establish adoption or implementation.
+
+No implementation approval, tests, acceptance or runtime authority is inferred. Earlier checkpoints and source entries remain historical.
+
+
+## Owner D3 source and authority - 2026-10-21
+
+owner-be20114-uow-d3-20261021 is the direct owner message selecting C1-A/C2-A with conditions preserved in FEAT-057 evidence/notes/CROSS_LANE_UOW_OWNER_DECISION_D3_20261021.md, SHA256 C1799417AFD2DDB989D6C888A8B3F9702D4A6B4DC2A8B90637DBD6E11C3AE54C. It authorizes design disposition and scope/CR preparation, not source/schema/test implementation, supplemental approval, BE1 artifacts adoption, acceptance or runtime.
+
+Latest candidates are FEAT-044 foundation Rev6 plus joint BE2-01/14 budget CR, separate BE2-01 schema CR and stale CR; BE2-08/14 scopes Rev2; FEAT-057 slice Rev7. Independent rereview is pending. Per-file hashes identify dirty checkout bytes, not integration/adoption. The BE1 packet is prepared and NOT_SENT. Budget values/max duration/deadline action remain pending.
+
+Earlier entries below retain historical authority boundaries; only the ballot's PENDING C1/C2 design response is superseded.
+
+
+## Current checkpoint: Claude rereview 3 — 2026-10-21
+
+Source: user-pasted Claude rereview 3 preserved in FEAT-057 evidence/notes/CROSS_LANE_UOW_CLAUDE_REREVIEW3_REPORT_20261021.md, SHA256 80EB2B425A790BC4B9E8958C9ADB0576B639162458BD0153592749DEE5C5ADC0. Verdict CHANGES_REQUIRED, no P1. Source manifest Rev4 pins 30 source files and one contract-test source read, not run. The correction specification and D3 ballot are design proposals awaiting owner C1/C2 responses; they are not direct owner authority or implementation approval. D1/D2 remain authoritative within their recorded design scope.
+
+Earlier source entries retain their original historical authority boundaries.
+
+
+## FEAT-057 shared lifecycle UoW owner decision — 2026-10-21
+
+`owner-be20114-shared-uow-d1-20261021`: direct owner decision in this
+conversation, recorded in FEAT-057
+`evidence/notes/CROSS_LANE_UOW_OWNER_DECISION_D1_20261021.md`. Selects paired
+A/S/B/F boundaries with BE2-01 owning each UoW and BE2-08 as a non-committing
+participant on its rows; reconciliation/outbox job mutations cannot bypass the
+participant; rejected finalization writes quarantine/cleanup intent in a
+separate foundation reject commit; infrastructure-only rollback needs recovery;
+proposed lock order is job → run → source-fence rows by stable key. Authority is
+design direction and documentation/review only. S/F need independent review and
+separate supplemental approvals before source changes; no implementation,
+acceptance, publication, database, Modal, Lightning, provider or runtime action
+is granted. X01 PARTIAL, X05d BLOCKED, X05c/CR09-02 open; budget unit/limit not
+provided. Current slice-plan revision 4 has not been amended.
+
 ## Isolated offline test environment approval — 2026-10-20
 
 The owner separately authorized an ignored Python 3.12 venv in the FEAT-057 integration worktree using the backend [dev,image-admission] profile. Record: features/FEAT-057-be2-01-14-offline-integration/approvals/LOCAL_ENVIRONMENT_APPROVAL_20261020.md. This covered local dependencies for the BE2-08–14 offline baseline only. SQL/PostgreSQL execution, provider/HTTP, runtime, Lightning/Studio and Git publication remain outside that approval. Final result: features/FEAT-057-be2-01-14-offline-integration/evidence/metrics/GOAL_OFFLINE_BASELINE_FINAL_20261020.json.
@@ -205,4 +275,150 @@ The files below are reference inputs. Their contents inform context and proposed
 
 ## Owner-directed BE2 evidence publication — 2026-10-20
 
+## BE2-01–14 cross-lane scaffold authority — 2026-10-20
+
+`owner-be20114-cross-lane-scaffold-20261020`: direct owner instruction recorded
+in FEAT-057 `approvals/TASK_APPROVAL.md`. Authorizes only the test-side X01–X09
+edge registry, scaffold documentation, and registry-integrity tests defined in
+FEAT-057 `plan/CROSS_LANE_INTEGRATION_PLAN_DRAFT_20261020.md` §11. It does not
+authorize producer/consumer wiring, card-owned contract/source changes, shared
+SQL/migration work, runtime/provider/Lightning, route mounting, acceptance
+changes, publication, or merge. Original card approvals remain authoritative.
+
+## BE2-01–14 offline cross-lane implementation authority — 2026-10-20
+
+`owner-be20114-cross-lane-implementation-20261020`: direct owner instruction
+recorded in FEAT-057 `approvals/TASK_APPROVAL.md`. Authorizes only FEAT-057-owned
+offline composition/adapters and behavior tests under the existing
+`feature/be2-backend-ai-integration` candidate, using current public candidate
+contracts and actual BE2 producer/consumer services. Card-owned source/contracts,
+migrations, shared SQL/database provisioning, HTTP routes, live services,
+provider/Lightning, acceptance changes, publication, and deployment remain
+excluded. Missing/adoption-gated edges remain `NOT_IMPLEMENTED`; see FEAT-057
+`plan/CROSS_LANE_INTEGRATION_PLAN_REV2_20261020.md`.
+
+## FEAT-057 G0 owner response — 2026-10-21
+
+`owner-be20114-g0-contract-direction-20261021`: direct user response in the
+current Codex conversation: `Chốt theo đề xuất`, with clarification that the
+user owns the affected BE2 cards. Records B1–B5/B7 as `ADOPT_WITH_CHANGES` and
+B6 as `BLOCKED` because no already-adopted current-source resolver/fence was
+identified. This adopts contract direction only, not implementation approval,
+source/test/schema authorization, acceptance, or runtime authorization. See the
+FEAT-057 ballot and owning-card DECISIONS records. X05c/CR09-02 remains open and
+Modal remains deferred.
+
+## Historical FEAT-057 G0 ballot-preference state — superseded 2026-10-21
+
+`owner-be20114-g0-ballot-preference-20261021`: direct repository-owner
+response in the current Codex conversation: `Chốt theo đề xuất`. It records the
+preference-only state before the user clarified direct ownership of the affected
+cards. The current owner response above supersedes the pending-owner wording in
+this historical entry. Per-card implementation approval, source/test change,
+acceptance, or runtime authorization remain separate. X05c/CR09-02 stays open
+and Modal remains deferred.
+
+X01 implementation evidence is currently `PARTIAL` and recorded in FEAT-057
+`evidence/notes/CROSS_LANE_X01_REVIEW_20261020.md` with source hashes in
+`evidence/metrics/CROSS_LANE_X01_20261020.json`. It connects an exact BE2-07
+export to BE2-08 media preparation only; it does not prove foundation job,
+artifact, or cross-owner commit lineage.
+
+The 2026-10-20 Modal rerun instructions use Modal's official hosted Notebook
+guide (https://modal.com/docs/guide/notebooks) for uploading `.ipynb`/source
+files, CPU kernel configuration, optional persistent Volumes, and the
+ephemeral filesystem boundary. The FEAT-057 notebook is a scoped offline
+pytest rerun only; it does not deploy or invoke a Modal Function, provider,
+GPU, Lightning, or database.
+
 The prior environment approval excluded Git publication within its own scope. A later direct user instruction authorized publishing the BE2-08–14 offline evidence by PR and merging it into the BE2 integration branch. PR #16: https://github.com/CaoDat-2410/Sketch2Life/pull/16; merge commit 4014b11a867d8030190a0789a6b03e1602fd522d; source tip 964944c93edf89e531a0895f6248d7f1ee632c20. The publication contains 35 commits and 567 paths. No force push, project dev/main merge, deployment, or task acceptance change was authorized or performed. Original card approvals remain authoritative.
+
+`owner-provided-modal-x01-run-20261020`: Modal execution receipt, JUnit, and
+pytest log supplied by the owner after running the FEAT-057 X01 notebook.
+Their hashes and counts are recorded in
+`features/FEAT-057-be2-01-14-offline-integration/evidence/metrics/CROSS_LANE_X01_MODAL_20261020.json`;
+the artifacts are preserved in that feature's `evidence/raw/modal-x01-20261020/`.
+This verifies the exact source ZIP's bounded offline test run only; it does not
+establish full BE2-01–14 integration or change any card acceptance.
+
+`owner-x02-source-review-20261020`: FEAT-057 source-contract review of the
+BE2-07 `KnowledgeSupersededV1` event and BE2-09 review/playback boundaries.
+Evidence is in
+`features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_X02_REVIEW_20261020.md`
+and `features/FEAT-057-be2-01-14-offline-integration/evidence/metrics/CROSS_LANE_X02_20261020.json`.
+The finding is `NOT_IMPLEMENTED`: no adopted BE2-09 invalidation receiver or
+held validity fence exists in the candidate. No tests or card-owned changes
+were made.
+
+`owner-x04-x09-source-review-20261020`: FEAT-057 source-contract review of
+cross-lane edges X04–X09. Findings and source hashes are recorded in
+`features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_RESIDUAL_REVIEW_20261020.md`
+and `features/FEAT-057-be2-01-14-offline-integration/evidence/metrics/CROSS_LANE_RESIDUAL_REVIEW_20261020.json`.
+All six edges remain `NOT_IMPLEMENTED` pending card-owned adoption; no behavior
+tests or card-owned source changes were made.
+
+## FEAT-057 cross-lane scope approval — 2026-10-21
+
+`owner-be20114-cross-lane-scopes-20261021`: the owner approved the exact offline
+scope hashes for BE2-01/07/08/09/14 in their official approval records. The
+BE2-01 typed route is implemented and unit-verified; see
+`features/FEAT-057-be2-01-14-offline-integration/evidence/notes/APPROVED_SCOPE_EXECUTION_MANIFEST_20261021.md`.
+Remaining work is gated by the specific missing durable-source-fence,
+foundation-UoW/recovery, public artifact-read, and worker-execution/accounting
+contracts recorded there. The typed unit route alone does not prove X09-08
+persisted-job composition. This supersedes only the earlier claim that those
+scopes were awaiting owner approval; it does not make any edge PASS or change
+card status. X01 remains PARTIAL, X05d BLOCKED, X05c/CR09-02 open, and
+Modal/Lightning/provider/runtime remain unauthorized.
+
+## FEAT-057 owner-directed shared UoW design — 2026-10-21
+
+owner-be20114-shared-uow-design-20261021: direct owner instruction recorded in
+the owning-card DECISIONS files and
+features/FEAT-057-be2-01-14-offline-integration/evidence/notes/OWNER_DESIGN_DISPOSITION_FOUNDATION_UOW_20261021.md.
+The proposed foundation-owned transaction boundary is captured in
+features/FEAT-044-be2-ai-job-foundation/plan/CROSS_LANE_FOUNDATION_UOW_SCOPE_DRAFT_20261021.md
+(SHA256 B456DEEDF5F892F328E7AEEFF442BC82281400A994EB5A74D791C13856FAB9B0).
+The scope remains DRAFT and requires independent review, an exact minimal manifest
+and supplemental implementation approval before source edits. Budget unit/limit,
+reservation timing, late-result semantics, same-store source-fence feasibility,
+and exact artifact read fields remain open. X01 remains PARTIAL, X05d BLOCKED,
+X05c/CR09-02 OPEN, and X09-08 NOT_IMPLEMENTED; this record changes no card
+acceptance or runtime gate.
+
+## FEAT-057 shared-UoW independent review and successor drafts — 2026-10-21
+
+Source: owner-pasted independent Claude review of the FEAT-044 foundation-UoW draft, verdict CHANGES_REQUIRED. Source review snapshot SHA manifest:
+features/FEAT-057-be2-01-14-offline-integration/evidence/metrics/CROSS_LANE_UOW_SOURCE_HASHES_20261021.json.
+Disposition: features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_UOW_REVIEW_DISPOSITION_20261021.md.
+Successor planning documents: FEAT-044/plan/CROSS_LANE_FOUNDATION_UOW_SCOPE_REV2_DRAFT_20261021.md; FEAT-057/plan/CROSS_LANE_X01_X05_PLAN_ERRATUM_20261021.md; FEAT-050/plan/CROSS_LANE_BE2_08_ARTIFACT_READ_MODEL_SCOPE_DRAFT_20261021.md. These are documentation drafts only. No implementation, test, SQL/database, provider, Modal, Lightning, runtime, approval or card acceptance is implied.
+
+## FEAT-057 UoW rereview 2 source — 2026-10-21
+
+Source: owner-pasted Claude rereview report, preserved at features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_UOW_CLAUDE_REREVIEW_REPORT_20261021.md (SHA256 0507A53D569B34ACF9EB44549D6BE794851335F3DBB88FD89E48D17E4AA649F0). Source identity: features/FEAT-057-be2-01-14-offline-integration/evidence/metrics/CROSS_LANE_UOW_SOURCE_HASHES_REV2_20261021.json (18 files, SHA256 01160A4876ABB97CC33AC17108ADAE6F95E876DB86A24DF84B9832EC2B4F74FC). Disposition and successor drafts are in FEAT-057 evidence; review and implementation gates remain open.
+
+## FEAT-057 cross-lane owner D2 — 2026-10-21
+
+owner-be20114-uow-d2-20261021: direct owner response “Chốt theo đề xuất cả 2”, recorded in FEAT-057 evidence/notes/CROSS_LANE_UOW_OWNER_DECISION_D2_20261021.md. It selects a versioned BE2-08 stale terminal representation without artifact and binds VideoRun attempt_id only at S, clearing it on retry. Authority is design direction only; no source/schema/test or implementation approval. See FEAT-044 scope Rev5 and FEAT-057 plan Rev6 drafts for rereview.
+## FEAT-057 persisted-job to VideoWorker seam review — 2026-10-22
+
+Source: the owner's current goal to verify the offline BE2-07 to BE2-01 persisted job/run dispatch to BE2-08 VideoWorker path. Read-only review and status evidence are recorded at features/FEAT-057-be2-01-14-offline-integration/evidence/notes/BE2_01_07_TO_08_SEAM_BLOCKER_20261022.md and the factual local handoff at evidence/notes/BE1_HANDOFF_BE2_SEAM_20261022.md. The existing 330-test JUnit was verified against its recorded hash and counts. Authority boundary: documentation/evidence only while the required CR08-01 UoW/recovery and BE2-07 durable source fence remain unadopted. No source, test, schema, migration, owner approval, card status/acceptance, runtime, or Git publication was changed. No FEAT-057 PASS or BE1 integration readiness is claimed.
+
+## FEAT-057 persisted VideoWorker seam scope proposal — 2026-10-22
+
+Candidate contract and per-owner path manifest are recorded at `features/FEAT-057-be2-01-14-offline-integration/plan/BE2_01_07_08_PERSISTED_VIDEO_SEAM_SCOPE_DRAFT_20261022.md` (SHA256 `6C8A0B365B3A768FE3AC400A263714E67170530C08575091248A999D0F319733`). The owner asked for a scope/contract draft to review. It remains documentation-only and grants no source/test permission. Existing owner decisions D3 C1-A/C2-A are treated as design direction only. Open gates: CR08-01 adoption, BE2-07 durable source-fence adoption, FEAT-050 lifecycle/receipt adoption, D4 completion-time budget disposition, BE1-owned artifact adoption where needed, exact owning-card manifests/approvals, and the conflict between the no-database boundary and durable persistence acceptance. No test ran; X01 remains PARTIAL and X09-08 NOT_IMPLEMENTED.
+
+## FEAT-057 revised persisted VideoWorker scope — 2026-10-22
+
+Owner-directed scope Rev2 is recorded at `features/FEAT-057-be2-01-14-offline-integration/plan/BE2_01_07_08_PERSISTED_VIDEO_SEAM_SCOPE_REV2_DRAFT_20261022.md`. The owner allows only a dedicated local isolated database with synthetic data for later transaction/persistence tests after approval updates. Scope excludes BE2-09/14, D4 and BE1 implementation; durable source fence is separate and X01 remains PARTIAL. CR08-01 and exact FEAT-044/050/057 approvals are still missing. No source/test/schema/migration, database or runtime work occurred.
+- Scope Rev2 SHA256: `F170809FCBB71D1B588960466350D6086568EFB6384232AB0F178DF7D350C052`. The owner-authorized publication edit removes only the machine-specific Worktree locator; contract terms and §4 manifests are unchanged (previous bytes: `1C199CF6CD1E7C2F2D5981D253256278079D840197CB1B05D304E2620FD2E90D`).
+
+## FEAT-057 adopted persisted VideoWorker flow — 2026-10-22
+
+The owner adopted `BE2-VIDEO-LIFECYCLE/1` for A/S/B and identity-failure under the same Rev2 hash. Supplemental approval records are:
+`features/FEAT-044-be2-ai-job-foundation/approvals/PHASE_B_TASK_APPROVAL.md`,
+`features/FEAT-050-be2-knowledge-video/approvals/TASK_APPROVAL.md`, and
+`features/FEAT-057-be2-01-14-offline-integration/approvals/TASK_APPROVAL.md`;
+their exact §4 path lists were verified (7/7, 14/14, and 1/1).
+
+The implementation is limited to those approved source/test manifests. The focused unit/contract batch passed 325 tests. PostgreSQL 17 persistence verification remains unrun because its required isolated loopback endpoint and external test-only credential file are unavailable; no database was created or contacted. Evidence is indexed at `features/FEAT-057-be2-01-14-offline-integration/evidence/README.md`. Durable BE2-07 source fencing is separately gated, X01 remains PARTIAL, and no BE1 integration readiness is claimed.

@@ -48,3 +48,15 @@ features/FEAT-057-be2-01-14-offline-integration/evidence/notes/** -text whitespa
 features/FEAT-049-be2-ai-policy/evidence/README.md -text whitespace=cr-at-eol
 features/FEAT-057-be2-01-14-offline-integration/evidence/metrics/GOAL_BASELINE_20261020.json -text whitespace=cr-at-eol
 features/FEAT-057-be2-01-14-offline-integration/evidence/metrics/GOAL_OFFLINE_BASELINE_FINAL_20261020.json -text whitespace=cr-at-eol
+
+# Preserve the reviewed CRLF bytes of hash-pinned cross-lane review metrics.
+features/FEAT-057-be2-01-14-offline-integration/evidence/metrics/CROSS_LANE_UOW_SOURCE_HASHES_REV2_20261021.json -text whitespace=cr-at-eol
+features/FEAT-057-be2-01-14-offline-integration/evidence/metrics/CROSS_LANE_UOW_REREVIEW2_VALIDATION_20261021.json -text whitespace=cr-at-eol
+
+# Preserve exact reviewed bytes while allowing the known whitespace in these artifacts.
+backend/tests/integration/be2_cross_lane/test_persisted_video_worker_flow.py whitespace=-blank-at-eof
+features/FEAT-044-be2-ai-job-foundation/plan/CROSS_LANE_FOUNDATION_UOW_SCOPE_REV4_DRAFT_20261021.md whitespace=-blank-at-eof
+features/FEAT-057-be2-01-14-offline-integration/plan/CROSS_LANE_X01_X05_SLICE_PLAN_DRAFT_20261021.md whitespace=-blank-at-eof
+features/FEAT-057-be2-01-14-offline-integration/plan/CROSS_LANE_X01_X05_SLICE_PLAN_REV3_20261021.md whitespace=-blank-at-eof
+features/FEAT-057-be2-01-14-offline-integration/plan/CROSS_LANE_X01_X05_SLICE_PLAN_REV5_DRAFT_20261021.md whitespace=-blank-at-eof
+features/FEAT-057-be2-01-14-offline-integration/evidence/notes/BE2_07_01_08_PERSISTED_FLOW_HANDOFF_DRAFT_20261022.md whitespace=cr-at-eol,-blank-at-eof,-blank-at-eol
