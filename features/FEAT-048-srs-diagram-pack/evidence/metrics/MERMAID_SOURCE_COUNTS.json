@@ -1,0 +1,30 @@
+{
+  "reviewed_at": "2026-10-22",
+  "branch": "feature/feat048-srs-diagram-pack",
+  "diagram_sources": {
+    "logical-erd.mmd": {
+      "entities": 17,
+      "relationships": 22,
+      "b7_1_relationships_exact": 16,
+      "enrollment_cardinality": "TBD, visibly qualified on both relationship labels",
+      "selected_b21_5_relationships": 6,
+      "unresolved_endpoints": 0
+    },
+    "system-overview.mmd": {
+      "b8_proposed_contexts": 9,
+      "confirmed_client_and_backend_choices": [
+        "Android / React Native / TypeScript",
+        "FastAPI / Python"
+      ],
+      "provider_names": "TBD"
+    },
+    "package-diagram.mmd": {
+      "package_namespaces": 5,
+      "domain_contexts": 9,
+      "application_ports": 6,
+      "adapter_realizations": 6,
+      "direct_application_to_infrastructure_dependencies": 0
+    }
+  },
+  "rendered_qa": "pending; no Mermaid or PlantUML renderer installed"
+}

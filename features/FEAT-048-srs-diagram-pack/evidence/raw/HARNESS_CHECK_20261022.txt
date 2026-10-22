@@ -1,0 +1,7 @@
+Command: python tools/validate_harness.py --feature features/FEAT-048-srs-diagram-pack
+
+Result after creating FEAT-048 evidence/raw, evidence/screenshots, and evidence/metrics:
+HARNESS_INVALID due to missing evidence/screenshots and evidence/metrics paths in FEAT-045, FEAT-046, and FEAT-047.
+FEAT-048 is no longer listed as missing harness paths.
+
+Those other feature folders are outside this approved task and were not changed.

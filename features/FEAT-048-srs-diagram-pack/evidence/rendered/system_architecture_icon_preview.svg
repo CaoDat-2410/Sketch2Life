@@ -1,0 +1,171 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1840" height="1210" viewBox="0 0 1840 1210" role="img" aria-labelledby="title desc">
+  <title id="title">Sketch2Life system architecture — revised preview</title>
+  <desc id="desc">A conventional software architecture diagram with actors and clients, a Sketch2Life backend boundary, application and domain components, outbound ports, proposed adapters, and external capabilities.</desc>
+  <defs>
+    <marker id="arr" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0 0L10 4L0 8Z" fill="#42566b"/></marker>
+    <marker id="arrProposed" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0 0L10 4L0 8Z" fill="#9a7837"/></marker>
+    <style>
+      text{font-family:'Segoe UI',Arial,sans-serif;fill:#263544}
+      .title{font-size:27px;font-weight:650}
+      .subtitle{font-size:13px;fill:#667482}
+      .boundary{fill:none;stroke:#526578;stroke-width:1.6;stroke-dasharray:7 5}
+      .external-boundary{fill:none;stroke:#8c8064;stroke-width:1.4;stroke-dasharray:6 5}
+      .box{fill:#fff;stroke:#536577;stroke-width:1.35}
+      .confirmed-box{fill:#fff;stroke:#4d8266;stroke-width:1.6}
+      .soft-box{fill:#fff;stroke:#9aa5af;stroke-width:1.1}
+      .candidate-box{fill:#fff;stroke:#8c8064;stroke-width:1.15}
+      .section{font-size:12px;font-weight:700;letter-spacing:.75px;fill:#526273}
+      .heading{font-size:16px;font-weight:650}
+      .body{font-size:12px;fill:#465564}
+      .small{font-size:11px;fill:#667482}
+      .tiny{font-size:10px;fill:#78838d}
+      .confirmed{font-size:10px;font-weight:700;letter-spacing:.45px;fill:#347253}
+      .proposed{font-size:10px;font-weight:700;letter-spacing:.4px;fill:#8d6c2b}
+      .tbd{font-size:10px;font-weight:700;letter-spacing:.4px;fill:#6f7c87}
+      .flow{fill:none;stroke:#42566b;stroke-width:1.6;marker-end:url(#arr)}
+      .flow-proposed{fill:none;stroke:#9a7837;stroke-width:1.4;stroke-dasharray:6 4;marker-end:url(#arrProposed)}
+      .divider{stroke:#d6dce1;stroke-width:1}
+      .icon{fill:none;stroke:#42566b;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+      .icon-green{fill:none;stroke:#347253;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+      .icon-candidate{fill:none;stroke:#8d6c2b;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+      .list{font-size:11.5px;fill:#465564}
+    </style>
+    <symbol id="person" viewBox="0 0 40 48"><circle class="icon" cx="20" cy="11" r="6"/><path class="icon" d="M8 42c0-11 4-18 12-18s12 7 12 18M20 24v18M11 31l-5 8M29 31l5 8"/></symbol>
+    <symbol id="phone" viewBox="0 0 40 48"><rect class="icon-green" x="8" y="3" width="24" height="42" rx="3"/><path class="icon-green" d="M15 8h10M17 39h6"/></symbol>
+    <symbol id="monitor" viewBox="0 0 48 40"><rect class="icon" x="3" y="3" width="42" height="27" rx="1"/><path class="icon" d="M18 37h12M24 30v7"/></symbol>
+    <symbol id="server" viewBox="0 0 48 48"><rect class="icon-green" x="6" y="6" width="36" height="14" rx="1"/><rect class="icon-green" x="6" y="27" width="36" height="14" rx="1"/><circle cx="13" cy="13" r="1.5" fill="#347253"/><circle cx="13" cy="34" r="1.5" fill="#347253"/><path class="icon-green" d="M19 13h16M19 34h16"/></symbol>
+    <symbol id="ports" viewBox="0 0 48 48"><path class="icon" d="M16 6v13M32 6v13M12 19h24v7a12 12 0 0 1-24 0zM24 38v5M18 43h12"/></symbol>
+    <symbol id="adapter" viewBox="0 0 48 48"><rect class="icon" x="4" y="7" width="15" height="13"/><rect class="icon" x="29" y="28" width="15" height="13"/><path class="icon" d="M19 13h9v21M24 29l4 5 5-5"/></symbol>
+    <symbol id="database" viewBox="0 0 40 40"><ellipse class="icon-candidate" cx="20" cy="7" rx="14" ry="5"/><path class="icon-candidate" d="M6 7v25c0 3 6 5 14 5s14-2 14-5V7M6 16c0 3 6 5 14 5s14-2 14-5M6 25c0 3 6 5 14 5s14-2 14-5"/></symbol>
+    <symbol id="object" viewBox="0 0 40 40"><path class="icon-candidate" d="M5 12l15-8 15 8-15 9zM5 12v17l15 8 15-8V12M20 21v16"/></symbol>
+    <symbol id="queue" viewBox="0 0 40 40"><path class="icon-candidate" d="M6 9h28M6 20h28M6 31h28"/><circle class="icon-candidate" cx="12" cy="9" r="2.5"/><circle class="icon-candidate" cx="28" cy="20" r="2.5"/><circle class="icon-candidate" cx="17" cy="31" r="2.5"/></symbol>
+    <symbol id="identity" viewBox="0 0 40 40"><path class="icon-candidate" d="M20 3l14 5v11c0 9-6 14-14 18C12 33 6 28 6 19V8z"/><circle class="icon-candidate" cx="20" cy="15" r="4"/><path class="icon-candidate" d="M12 28c1.5-4 4-6 8-6s6.5 2 8 6"/></symbol>
+    <symbol id="ai" viewBox="0 0 40 40"><path class="icon-candidate" d="M20 3l4 12 12 5-12 4-4 12-4-12-12-4 12-5z"/></symbol>
+    <symbol id="realtime" viewBox="0 0 40 40"><circle class="icon-candidate" cx="20" cy="20" r="4"/><circle class="icon-candidate" cx="7" cy="7" r="2.5"/><circle class="icon-candidate" cx="33" cy="7" r="2.5"/><circle class="icon-candidate" cx="7" cy="33" r="2.5"/><circle class="icon-candidate" cx="33" cy="33" r="2.5"/><path class="icon-candidate" d="M17 17L9 9M23 17l8-8M17 23l-8 8M23 23l8 8"/></symbol>
+  </defs>
+
+  <rect width="1840" height="1210" fill="#fff"/>
+  <text x="38" y="49" class="title">Sketch2Life — System Architecture</text>
+  <text x="39" y="74" class="subtitle">System overview · SRS v3.1 · B8 / B19 / B21</text>
+  <path d="M38 96H1802" class="divider"/>
+  <text x="1320" y="75" class="small">── primary request / data flow</text>
+  <path d="M1510 71h37" class="flow-proposed"/><text x="1558" y="75" class="small">proposed integration</text>
+
+  <!-- actor and client surfaces -->
+  <text x="40" y="139" class="section">ACTORS AND CLIENT SURFACES</text>
+  <use href="#person" x="54" y="260" width="40" height="48"/><text x="44" y="324" class="small">Child</text>
+  <rect x="132" y="250" width="310" height="104" class="confirmed-box"/>
+  <use href="#phone" x="148" y="277" width="34" height="42"/>
+  <text x="196" y="284" class="heading">Android app</text>
+  <text x="196" y="307" class="body">React Native / TypeScript</text>
+  <text x="196" y="331" class="confirmed">CONFIRMED</text>
+  <path d="M95 298H132" class="flow"/>
+
+  <use href="#person" x="54" y="410" width="40" height="48"/><text x="40" y="474" class="small">Teacher</text>
+  <rect x="132" y="400" width="310" height="104" class="soft-box"/>
+  <use href="#monitor" x="145" y="430" width="42" height="36"/>
+  <text x="196" y="434" class="heading">Teacher Desktop</text>
+  <text x="196" y="458" class="body">Class and session controls</text>
+  <text x="196" y="481" class="tbd">UI FRAMEWORK TBD</text>
+  <path d="M95 448H132" class="flow"/>
+
+  <use href="#person" x="54" y="560" width="40" height="48"/><text x="36" y="624" class="small">Super Admin</text>
+  <rect x="132" y="550" width="310" height="104" class="soft-box"/>
+  <use href="#monitor" x="145" y="580" width="42" height="36"/>
+  <text x="196" y="584" class="heading">Admin surface</text>
+  <text x="196" y="608" class="body">Administration and governance</text>
+  <text x="196" y="631" class="tbd">UI FRAMEWORK TBD</text>
+  <path d="M95 598H132" class="flow"/>
+
+  <!-- backend system boundary -->
+  <rect x="490" y="128" width="914" height="976" class="boundary"/>
+  <rect x="506" y="116" width="250" height="24" fill="#fff"/>
+  <text x="512" y="134" class="section">SKETCH2LIFE BACKEND</text>
+
+  <!-- three client paths enter the same API boundary -->
+  <path d="M442 302H470V342H520" class="flow"/>
+  <path d="M442 452H520" class="flow"/>
+  <path d="M442 602H478V562H520" class="flow"/>
+  <text x="454" y="440" class="tiny">HTTPS</text>
+
+  <rect x="520" y="276" width="180" height="352" class="confirmed-box"/>
+  <use href="#server" x="581" y="300" width="48" height="48"/>
+  <text x="610" y="374" text-anchor="middle" class="heading">API</text>
+  <text x="610" y="397" text-anchor="middle" class="body">FastAPI / Python</text>
+  <text x="610" y="419" text-anchor="middle" class="confirmed">CONFIRMED</text>
+  <path d="M536 438H684" class="divider"/>
+  <text x="538" y="466" class="small">Session commands</text>
+  <text x="538" y="507" class="small">Canvas operations</text>
+  <text x="538" y="548" class="small">Teacher decisions</text>
+  <text x="538" y="589" class="small">Scoped projections</text>
+
+  <path d="M700 452H756" class="flow"/>
+  <rect x="756" y="382" width="206" height="140" class="box"/>
+  <text x="774" y="415" class="heading">Application</text>
+  <text x="774" y="441" class="body">Use cases and orchestration</text>
+  <text x="774" y="465" class="body">Authorization boundary</text>
+  <text x="774" y="495" class="small">Framework-independent rules</text>
+
+  <path d="M962 452H1000" class="flow"/>
+  <rect x="1000" y="250" width="374" height="334" class="box"/>
+  <text x="1020" y="283" class="heading">Domain</text>
+  <text x="1080" y="283" class="proposed">9 B8 CONTEXT GROUPINGS · PROPOSED</text>
+  <path d="M1192 302V548" class="divider"/>
+  <text x="1020" y="326" class="list">Identity / Consent</text>
+  <text x="1020" y="368" class="list">Drawing / Collaboration</text>
+  <text x="1020" y="410" class="list">Activities</text>
+  <text x="1020" y="452" class="list">Classroom</text>
+  <text x="1020" y="494" class="list">AI Assistance</text>
+  <text x="1208" y="326" class="list">Session / Groups</text>
+  <text x="1208" y="368" class="list">Knowledge / Media</text>
+  <text x="1208" y="410" class="list">Governance / Audit</text>
+  <text x="1208" y="452" class="list">Portfolio / Assessment</text>
+  <text x="1020" y="565" class="tiny">Logical boundaries; not a frozen deployment topology.</text>
+
+  <path d="M859 522V590" class="flow"/>
+  <rect x="756" y="590" width="618" height="108" class="soft-box"/>
+  <use href="#ports" x="773" y="620" width="43" height="43"/>
+  <text x="831" y="626" class="heading">Outbound ports</text>
+  <text x="831" y="652" class="body">Repository · Artifact · Job · Identity · Model · Realtime</text>
+  <text x="831" y="677" class="small">Contracts used by application flows</text>
+
+  <!-- infrastructure adapters and service boundaries -->
+  <rect x="1430" y="730" width="372" height="374" class="external-boundary"/>
+  <rect x="1446" y="718" width="230" height="24" fill="#fff"/>
+  <text x="1452" y="736" class="section">EXTERNAL CAPABILITIES</text>
+  <text x="1452" y="766" class="small">Vendor/provider undecided.</text>
+
+  <rect x="520" y="745" width="854" height="346" class="soft-box"/>
+  <use href="#adapter" x="538" y="756" width="31" height="31"/>
+  <text x="578" y="777" class="section">INFRASTRUCTURE ADAPTERS · PROPOSED</text>
+  <path d="M1038 698V745" class="flow"/>
+  <text x="1050" y="724" class="tiny">runtime call</text>
+  <path d="M1340 745V720H1390V650H1374" class="flow-proposed"/>
+  <text x="1224" y="714" class="tiny">adapter implements port contract</text>
+
+  <rect x="538" y="795" width="818" height="42" class="soft-box"/>
+  <text x="554" y="821" class="body">Persistence adapter</text><text x="1310" y="821" text-anchor="end" class="proposed">PROPOSED</text>
+  <rect x="538" y="844" width="818" height="42" class="soft-box"/>
+  <text x="554" y="870" class="body">Artifact adapter</text><text x="1310" y="870" text-anchor="end" class="proposed">PROPOSED</text>
+  <rect x="538" y="893" width="818" height="42" class="soft-box"/>
+  <text x="554" y="919" class="body">Job / queue adapter</text><text x="1310" y="919" text-anchor="end" class="proposed">PROPOSED</text>
+  <rect x="538" y="942" width="818" height="42" class="soft-box"/>
+  <text x="554" y="968" class="body">Adult identity adapter</text><text x="1310" y="968" text-anchor="end" class="proposed">PROPOSED</text>
+  <rect x="538" y="991" width="818" height="42" class="soft-box"/>
+  <text x="554" y="1017" class="body">AI provider adapter</text><text x="1310" y="1017" text-anchor="end" class="proposed">PROPOSED</text>
+  <rect x="538" y="1040" width="818" height="42" class="soft-box"/>
+  <text x="554" y="1066" class="body">Realtime / presence adapter</text><text x="1310" y="1066" text-anchor="end" class="proposed">PROPOSED</text>
+
+  <rect x="1450" y="795" width="332" height="42" class="candidate-box"/><use href="#database" x="1458" y="798" width="36" height="36"/><text x="1502" y="813" class="body">Relational database</text><text x="1502" y="829" class="tiny">vendor TBD</text>
+  <rect x="1450" y="844" width="332" height="42" class="candidate-box"/><use href="#object" x="1458" y="847" width="36" height="36"/><text x="1502" y="862" class="body">Object storage</text><text x="1502" y="878" class="tiny">vendor TBD</text>
+  <rect x="1450" y="893" width="332" height="42" class="candidate-box"/><use href="#queue" x="1458" y="896" width="36" height="36"/><text x="1502" y="911" class="body">Async job queue</text><text x="1502" y="927" class="tiny">candidate</text>
+  <rect x="1450" y="942" width="332" height="42" class="candidate-box"/><use href="#identity" x="1458" y="945" width="36" height="36"/><text x="1502" y="960" class="body">Adult identity service</text><text x="1502" y="976" class="tiny">provider TBD</text>
+  <rect x="1450" y="991" width="332" height="42" class="candidate-box"/><use href="#ai" x="1458" y="994" width="36" height="36"/><text x="1502" y="1009" class="body">AI API</text><text x="1502" y="1025" class="tiny">provider / payload TBD</text>
+  <rect x="1450" y="1040" width="332" height="42" class="candidate-box"/><use href="#realtime" x="1458" y="1043" width="36" height="36"/><text x="1502" y="1058" class="body">Realtime transport</text><text x="1502" y="1074" class="tiny">proposed · TBD</text>
+
+  <!-- proposed adapter integrations, one row per capability -->
+  <path d="M1356 816H1450M1356 865H1450M1356 914H1450M1356 963H1450M1356 1012H1450M1356 1061H1450" class="flow-proposed"/>
+
+  <text x="39" y="1160" class="small">Async candidate path: queue → worker → AI adapter → AI API → job result/status.</text>
+  <text x="39" y="1184" class="tiny">Clients never call external providers directly. Exact provider payloads and full production infrastructure remain unresolved in SRS v3.1.</text>
+</svg>

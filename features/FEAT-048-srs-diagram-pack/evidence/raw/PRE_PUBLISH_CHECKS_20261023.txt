@@ -1,0 +1,31 @@
+FEAT-048 pre-publication checks
+Date: 2026-10-23 (Asia/Saigon)
+Branch: feature/feat048-srs-diagram-pack
+
+python tools/validate_repository_security.py
+PASS — REPOSITORY_SECURITY_VALID
+publishable_files_scanned=2645
+environment_files=excluded
+seed_accounts=excluded
+credentials_and_signing_keys=excluded
+external_reference_documents=excluded
+absolute_machine_paths=absent
+
+python tools/validate_architecture.py
+PASS — ARCHITECTURE_VALID
+python_dependency_direction=valid
+mobile_feature_isolation=valid
+frontend_asset_gate=valid
+mobile_ai_boundary=valid
+firebase_data_products=absent
+
+git diff --cached --check
+PASS — exit code 0 (Git emitted only a warning that the user-level ignore file could not be read; no whitespace errors were reported)
+
+python tools/validate_harness.py
+BLOCKED by existing missing evidence paths in other features; FEAT-048 was not listed as invalid:
+- FEAT-045-be1-core-domain-foundation: missing evidence/screenshots and evidence/metrics
+- FEAT-046-be1-durable-core-adapters: missing evidence/screenshots and evidence/metrics
+- FEAT-047-be1-runtime-backend: missing evidence/screenshots and evidence/metrics
+
+No commit/push validation modifies those unrelated features. The harness failure is preserved here for handoff rather than masked by creating unrelated directories.

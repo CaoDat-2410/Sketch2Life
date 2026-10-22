@@ -1,0 +1,27 @@
+Drive readback — System Architecture v2 icon revision
+Date of readback: 2026-10-23
+
+File: Khoa_Sketch2Life_SRS_v3.1_Diagrams.drawio
+File ID: 1j-_R792jh-I1nC5B7FHwGDm3-yixPB6x
+Parent folder ID: 18K0jfiBfl1nfG3-9HvfQXzVMoQcjTZF0
+MIME type: application/vnd.jgraph.mxfile
+Metadata size: 130669 bytes
+Metadata modified time: 2026-10-22T17:05:18.037Z
+Raw fetched payload size: 130669 bytes
+Raw mxfile modified attribute: 2026-10-22T17:04:10.532Z
+
+Page names:
+1. ERD
+2. System Architecture
+3. Package Diagram
+4. System Architecture v2
+
+System Architecture v2 raw XML counts:
+- 107 mxCell elements total
+- 81 vertices (including the 20 embedded SVG image cells)
+- 24 edges
+- 2 root cells
+- 20 SVG image cells, using the 16 icon types listed in assets/icons/lucide-v1.61.0/manifest.json
+- 0 edges missing a source or target attribute
+
+The Draw.io builder's pre-sync preservation check reported unchanged fingerprints for the original ERD, System Architecture, and Package Diagram pages. This text records the returned Drive metadata and extracted raw XML structure; it is not a pixel-level diagram export or visual render QA.

@@ -1,0 +1,23 @@
+# FEAT-048 status
+
+- Status: IN_PROGRESS
+- Working branch: `feature/feat048-srs-diagram-pack` from `origin/dev` commit `f220781876472950093856e97bbdaaec5170a7c1`; worktree `.worktrees/feat048-srs-diagram-pack`
+- Handoff: `features/FEAT-048-srs-diagram-pack/HANDOFF.md` and `HANDOFF_FOR_NEW_SESSION.md`; the FEAT-018 main checkout remains untouched
+- Plan revision: 16 — APPROVED for the cross-machine handoff and feature-branch publication
+- Current step: diagrams and SVG URI corrections are synced; handoff is written; two focused commits and branch push are in progress; rendered diagrams.net visual QA remains pending
+- Drive file: `1j-_R792jh-I1nC5B7FHwGDm3-yixPB6x` — 134,056 bytes; final raw/metadata readback verified modified time `2026-10-22T17:14:24.595Z`, four pages, and parent folder `18K0jfiBfl1nfG3-9HvfQXzVMoQcjTZF0`
+- Acceptance: AC-01 through AC-06, AC-09 through AC-27 pass content/structural review; AC-07 Draw.io render style and AC-08 Draw.io normal-zoom readability remain pending official diagrams.net QA; AC-26/AC-27 rendered icon QA is also pending
+- ERD check: 17 entities (16 B7.1 plus OrganizationScope), 21 named relationship diamonds plus one legend diamond; all named relations connect to two endpoints, zero dangling edges, corrected `authorizes` cardinality, and zero accidental vertex-box overlaps
+- Legend check: Entity rectangle, Relationship diamond, Attribute oval, underlined Key oval, and `1 — ◇ — 0..N` sample are present; scope/TBD/proposal caveats are separate
+- `owns` routing: explicit 2-point and 3-point waypoint routes pass below SessionGroup and around GroupMembership; confirmed in Drive raw readback
+- Open SRS caveats: Enrollment cardinality remains TBD; `membershipId*` is a proposed episode key; selected B21.5 links supplement B7.1 without changing the canonical SRS
+- System Architecture layout: PASS — 9 proposed contexts in a 3×3 grid, 3 HTTPS connectors anchored to separate client columns, all 10 edge endpoints resolve, zero accidental vertex overlaps; custom preview stored at `evidence/rendered/system_architecture_revision8_preview.png`
+- Icon demo: PASS — revised SVG source and 1840×1210 PNG preview stored in `evidence/rendered/`; rendered through headless Chrome and visually inspected. It uses square technical boundaries, few neutral inline SVG pictograms, grouped B8 text, and confirmed/proposed/TBD labels. Runtime calls go ports → adapters; the dashed implementation dependency points adapters → ports. No Draw.io/Mermaid/Drive content changed.
+- Lucide catalog: PASS — 16 individually labeled icon tiles are stored in `evidence/rendered/lucide_icon_catalog_preview.svg` and `.png`; SVG parsed as XML, PNG dimensions are 1648×1000, and the full sheet was visually inspected. The mapping is a review aid; no diagram source or Drive file changed.
+- AWS-style preview: PASS — SRS B8 architecture concept is stored in `evidence/rendered/system_architecture_aws_style_srs_preview.svg` and `.png`; SVG parsed as XML, PNG dimensions are 1920×1260, and rendered layout/labels/flows were visually inspected. It uses a vendor-neutral AWS-inspired layout and leaves Draw.io, Mermaid, SRS, and Drive unchanged.
+- System Architecture v2: PASS for AC-25–AC-27 content/structure/sync — 4 Draw.io pages; 107 cells on v2 including 2 roots, 81 vertices (20 embedded Lucide SVG cells), 24 edges, zero dangling edge endpoints; 16 distinct icon types. All 20 image data URIs decode to SVG XML and contain no `;base64` style delimiter. Original three page fingerprints are preserved. Mermaid source, icon mapping comments, and drawing-rules guide are in `src/diagrams/system-architecture-v2.mmd` and `ARCHITECTURE_DRAWING_RULES.md`. Drive raw readback confirms page 4, the corrected icon URIs, and the same file ID/folder. Actual diagrams.net visual QA remains pending.
+- Mermaid source review: PASS textually — 17 ERD entities, 22 relationships (16 B7.1 + 6 selected B21.5), nine B8 contexts, and six adapter-to-port realizations; no unresolved ERD endpoints or direct application-to-infrastructure dependency
+- Mermaid/Draw.io rendered comparison: PENDING — no Mermaid renderer is installed; the current Draw.io page also still needs official normal-zoom visual QA
+- Harness validator: BLOCKED by missing evidence paths in FEAT-045–047; FEAT-048 now has its required raw/screenshots/metrics paths. See `evidence/raw/HARNESS_CHECK_20261022.txt`.
+- Git publication: PROHIBITED by owner instruction; the FEAT-048 branch remains local and no push was made
+- Last updated: 2026-10-23, Asia/Saigon

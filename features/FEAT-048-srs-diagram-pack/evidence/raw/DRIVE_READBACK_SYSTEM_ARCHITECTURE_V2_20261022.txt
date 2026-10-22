@@ -1,0 +1,9 @@
+Action: update existing Draw.io file in place, then read back metadata and raw contents.
+File ID: 1j-_R792jh-I1nC5B7FHwGDm3-yixPB6x
+Name: Khoa_Sketch2Life_SRS_v3.1_Diagrams.drawio
+MIME type: application/vnd.jgraph.mxfile
+Parent folder ID: 18K0jfiBfl1nfG3-9HvfQXzVMoQcjTZF0
+Size: 113485 bytes
+Modified: 2026-10-22T16:53:42.570Z
+Raw content: mxfile declares pages="4"; page names include ERD, System Architecture, Package Diagram, and System Architecture v2. Raw content also contains the final mixed-status surface/framework labels.
+Result: existing Drive ID and parent preserved; final v2 present in same file.
