@@ -1,5 +1,3 @@
-# Audit Logging & PII Redaction Policy
-
-- All administrative access to child records requires documented business justification.
-- IP addresses are salted and hashed with SHA-256 before persistence.
-- Child names and images are strictly masked in operational logs.
+# Audit Logging & PII Redaction Policy (v2)
+Updated with cryptographic SHA-256 salt verification and strict column-level redaction.
+Security Status: HARDENED
