@@ -1,5 +1,46 @@
 # BE2-08 planning context
 
+## Current checkpoint: Claude D3 rereview follow-up - 2026-10-21
+
+Claude verified all 81 D3 review-manifest entries, closed the two prior P2 findings in draft, and found one new P2 (completion-time BUDGET_EXCEEDED) plus four P3 items. Report: FEAT-057 evidence/notes/CROSS_LANE_UOW_CLAUDE_D3_REREVIEW_REPORT_20261021.md, SHA256 92BE229378A2DE06BAEED1FC6F675EA15FED338892A002A833F81F6972B44C12.
+
+Successor drafts: FEAT-044 foundation Rev7, budget CR Rev2 and stale CR Rev2; FEAT-050 BE2-08 Rev3; FEAT-049 BE2-14 Rev3; FEAT-057 slice plan Rev8. NEW-2 through NEW-5 are clarified in draft. Completion-time resource denial remains a separate D4 owner choice, pending at evidence/notes/CROSS_LANE_UOW_OWNER_D4_COMPLETION_BUDGET_BALLOT_DRAFT_20261021.md.
+
+D3 C1-A/C2-A remain selected. No code, schema, tests, official approval or acceptance changed. D4 must be settled before implementation scope is finalized. X01 PARTIAL; X05d BLOCKED; X05c/CR09-02 OPEN; X09-08 NOT_IMPLEMENTED; Modal/Lightning/runtime deferred. Earlier checkpoints below remain historical.
+
+
+## Current checkpoint: owner D3 recorded, successor review pending - 2026-10-21
+
+The owner explicitly selected C1-A and C2-A with the conditions preserved in FEAT-057 evidence/notes/CROSS_LANE_UOW_OWNER_DECISION_D3_20261021.md (SHA256 C1799417AFD2DDB989D6C888A8B3F9702D4A6B4DC2A8B90637DBD6E11C3AE54C). This supersedes the earlier ballot's PENDING design response; it does not rewrite the historical report or ballot.
+
+Latest candidates: FEAT-044 foundation UoW scope Rev6 plus joint BE2-01/14 budget CR, separate BE2-01 schema CR and stale-finalization CR; BE2-08 scope Rev2; BE2-14 scope Rev2; FEAT-057 slice plan Rev7. They are DRAFT / pending independent review and supplemental S/F/schema approvals, not implementation approval.
+
+C1 holds both job and run QUEUED in durable BE2-01 metadata, excludes budget-wait time from dispatch-loss/retry recovery and rechecks eligibility/reservation before execution. C2 commits SUCCEEDED/STALE, the paired terminal stale run without artifact/ready state, receipt and verified-owned-ref cleanup intent together. BE1 descriptor/quarantine/accepted-reference adoption remains pending; accepted output must be protected.
+
+X01 PARTIAL; X05d BLOCKED; X05c/CR09-02 OPEN; X09-08 NOT_IMPLEMENTED. Budget unit/limit, maximum defer duration and deadline action remain PENDING. No source/test/schema/migration/official approval, card acceptance or runtime change follows. Earlier dated entries below are historical checkpoints.
+
+
+## Current checkpoint: Claude rereview 3 — 2026-10-21
+
+Claude reviewed FEAT-044 scope Rev5 and FEAT-057 plan Rev6 and returned CHANGES_REQUIRED. The correction specification and D3 ballot are prepared under FEAT-057; C1 budget-deferral design and C2 durable stale cleanup are still awaiting the owner. D1/D2 are preserved. No new scope/implementation approval is inferred. S/F are not ready for supplemental approval.
+
+X01 PARTIAL; X05d BLOCKED; X05c/CR09-02 OPEN; X09-08 NOT_IMPLEMENTED. Budget unit/limit remain unprovided. No source/test/official approval, acceptance, runtime, or Git publication change is authorized by these drafts.
+
+Earlier dated entries below are historical checkpoints; this entry records the current review state.
+
+
+## Cross-lane lifecycle participant direction D1 — 2026-10-21
+
+The owner selected paired job/run A/S/B/F boundaries owned by BE2-01's UoW.
+BE2-08's participant is limited to BE2-08 video rows and cannot begin, commit,
+or roll back the UoW. Reconciler and outbox-driven transitions must include the
+participant. Rejected finalization writes quarantine/cleanup intent through a
+separate foundation reject commit; rollback is reserved for infrastructure
+failure with recovery. This is design direction only: independent review and
+separate supplemental approval remain required, CR08-01 is open, and the
+existing BE2-08 approval is unchanged. FEAT-057 slice-plan revision 4 alignment
+remains open. No test or runtime status changed.
+
 ## C4b actual own SQL —2026-10-18
 
 Parent c7b17ac; owner approved separate08 PostgreSQL environment, recorded before
@@ -78,3 +119,25 @@ PG11 collected only NOT_RUN. P2 still partial (strategy surfaces/use cases and
 actual bridge pending); P3/P4 and real P5 not done. Production app remains unwired.
 P1–P4 implementation and P5 preparation now approved. No packages/provider/DB/GPU
 activation inferred. Historical planning evidence remains unchanged.
+## Read-only artifact model supplement — 2026-10-21
+
+Owner direction requires a public read-only finalized-artifact model for BE2-09.
+A separate scope draft is
+plan/CROSS_LANE_BE2_08_ARTIFACT_READ_MODEL_SCOPE_DRAFT_20261021.md, SHA256
+F24823A192A90F11649871348AC0C539C3E63501AAA3A75C21DBC36EB7F15FA1.
+Exact identity fields, visibility, read-after-commit and supersession rules remain
+pending review/approval. Existing BE2-08 approval and status are unchanged; no
+implementation is authorized by the draft.
+
+## Cross-lane artifact-model review update — 2026-10-21
+
+Claude rereview identified that the supplement's foundation-scope reference is stale and that foundation receipt identity cannot be read directly from BE2-08 storage. Do not update the supplement until FEAT-044 scope revision 4 passes review. A versioned public receipt route or opaque reference, exact artifact identity, and stale/superseded semantics remain open. Existing approval, status and source are unchanged.
+
+## FEAT-057 stale-run and attempt identity direction — 2026-10-21
+
+Owner D2 requires a versioned BE2-08 contract for terminal stale runs and binds VideoRun attempt_id only at S; retry clears the prior id. The current model/codec/receipt behavior does not implement this direction. FEAT-044 scope Rev5 is pending independent rereview; no code or schema approval follows.
+
+
+## Adopted FEAT-057 persisted-flow implementation — 2026-10-22
+
+The owner adopted `BE2-VIDEO-LIFECYCLE/1` under FEAT-057 scope Rev2 SHA256 `F170809FCBB71D1B588960466350D6086568EFB6384232AB0F178DF7D350C052` after owner-authorized metadata-only path redaction (prior approved bytes `1C199CF6CD1E7C2F2D5981D253256278079D840197CB1B05D304E2620FD2E90D`); the FEAT-050 supplemental manifest was verified 14/14 against §4. The approved BE2-08 port and SQL-owned row participant now support paired A/S/B transitions on the BE2-01-owned connection. Focused unit/contract verification passed 325 tests. The cross-lane PostgreSQL 17 persistence cases skipped because the dedicated loopback test endpoint and external test-only password file are unavailable. No BE2-08 acceptance/status change is claimed. See FEAT-057 evidence note `BE2_01_07_08_PERSISTED_VIDEO_FLOW_IMPLEMENTATION_20261022.md`.
