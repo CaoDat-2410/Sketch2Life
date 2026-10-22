@@ -1,7 +1,23 @@
 import { useState } from 'react'
-import { Search, ChevronDown, FileText, Send, X, CheckCircle, Clock, Lock } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import {
+  Search,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  FilePlus,
+  FileText,
+  Send,
+  X,
+  Check,
+  Clock,
+  Lock,
+  GraduationCap,
+  User,
+  AlertTriangle,
+  MoreVertical,
+} from 'lucide-react'
 
-// ── Types ────────────────────────────────────────────────────────────────────
 type Tab = 'consent' | 'export' | 'delete'
 
 const CONSENT_ROWS = [
@@ -30,6 +46,7 @@ const CONSENT_ROWS = [
 export function DataRequestsPage() {
   const [activeTab, setActiveTab] = useState<Tab>('consent')
   const [selectedRow, setSelectedRow] = useState<string | null>('HS-022')
+  const navigate = useNavigate()
 
   const TABS: { key: Tab; label: string }[] = [
     { key: 'consent', label: 'Consent' },
@@ -38,235 +55,328 @@ export function DataRequestsPage() {
   ]
 
   return (
-    <div className="flex h-full overflow-hidden">
-      {/* LEFT — main list */}
-      <div className="flex-1 flex flex-col overflow-auto p-6 space-y-4">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-4">
+    <div className="px-6 py-4 max-w-[1440px] mx-auto">
+      <div className="grid grid-cols-12 gap-4 items-start">
+        {/* LEFT — main list (8 cols when detail open, 12 cols otherwise) */}
+        <div className={`${selectedRow ? 'col-span-8' : 'col-span-12'} flex flex-col space-y-4 min-w-0`}>
+          {/* Header */}
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Consent & yêu cầu dữ liệu</h1>
-            <p className="text-sm text-gray-500 mt-0.5">Quản lý consent và các yêu cầu liên quan đến dữ liệu của học sinh</p>
+            <h1 className="text-[25px] font-extrabold text-[#0F1F38] tracking-tight leading-tight">
+              Consent &amp; yêu cầu dữ liệu
+            </h1>
+            <p className="text-[13.5px] text-slate-500 mt-1 font-medium">
+              Quản lý consent và các yêu cầu liên quan đến dữ liệu của học sinh
+            </p>
           </div>
-          <div className="flex items-center gap-2.5 shrink-0">
-            <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl shadow-sm transition">
-              <FileText size={16} />
-              Ghi nhận consent
-            </button>
-            <button className="flex items-center gap-2 bg-blue-50 border border-blue-200 hover:bg-blue-100 text-blue-600 text-sm font-semibold px-4 py-2.5 rounded-xl transition">
-              <Send size={15} />
-              Tiếp nhận yêu cầu
-            </button>
-          </div>
-        </div>
 
-        {/* Tabs */}
-        <div className="flex items-center gap-2 pb-1">
-          {TABS.map((t) => (
-            <button
-              key={t.key}
-              onClick={() => setActiveTab(t.key)}
-              className={`px-4 py-2 text-sm font-medium rounded-xl transition ${
-                activeTab === t.key
-                  ? 'bg-white text-blue-600 border border-blue-400 font-semibold shadow-sm'
-                  : 'text-gray-500 hover:text-gray-800 bg-transparent'
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
+          {/* Tabs + Action Buttons on same row */}
+          <div className="flex items-center justify-between gap-2 border-b border-slate-200/80 pb-0">
+            <div className="flex items-center gap-1.5">
+              {TABS.map((t) => {
+                const isActive = activeTab === t.key
+                return (
+                  <button
+                    key={t.key}
+                    onClick={() => {
+                      if (t.key === 'delete') {
+                        navigate('/data-requests/DR-024')
+                      } else {
+                        setActiveTab(t.key)
+                      }
+                    }}
+                    className={`px-4 py-2 text-[13.5px] rounded-t-xl border-b-2 transition -mb-px cursor-pointer whitespace-nowrap shrink-0 ${
+                      isActive
+                        ? 'bg-white border-[#1565F9] text-[#1565F9] font-bold shadow-[0_-1px_3px_rgba(15,23,42,0.03)]'
+                        : 'bg-slate-200/60 border-transparent text-slate-600 font-medium hover:text-slate-900'
+                    }`}
+                  >
+                    {t.label}
+                  </button>
+                )
+              })}
+            </div>
 
-        {/* Filters */}
-        <div className="flex items-center gap-3">
-          <div className="relative flex-1 max-w-xs">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              className="w-full pl-8 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Tìm theo mã học sinh..."
-            />
-          </div>
-          {[
-            { label: 'Lớp học', value: 'Tất cả' },
-            { label: 'Trạng thái', value: 'Tất cả' },
-          ].map((f) => (
-            <div key={f.label} className="flex items-center gap-2 text-sm text-gray-600">
-              <span className="font-medium">{f.label}</span>
-              <button className="flex items-center gap-2 border border-gray-300 bg-white px-3 py-2 rounded-lg hover:bg-gray-50">
-                {f.value}
-                <ChevronDown size={13} className="text-gray-400" />
+            <div className="flex items-center gap-2 pb-1.5 shrink-0">
+              <button className="flex items-center gap-1.5 bg-[#1565F9] hover:bg-blue-700 text-white text-[13px] font-semibold px-3.5 py-2 rounded-xl shadow-sm transition cursor-pointer whitespace-nowrap shrink-0">
+                <FilePlus size={15} className="shrink-0" />
+                <span>Ghi nhận consent</span>
+              </button>
+              <button className="flex items-center gap-1.5 bg-[#EAF2FF] border border-blue-300/90 hover:bg-blue-100 text-[#1565F9] text-[13px] font-semibold px-3.5 py-2 rounded-xl transition cursor-pointer whitespace-nowrap shrink-0">
+                <Send size={14} className="shrink-0" />
+                <span>Tiếp nhận yêu cầu</span>
               </button>
             </div>
-          ))}
-        </div>
+          </div>
 
-        {/* Table */}
-        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-100">
-                {['Mã học sinh', 'Lớp học', 'Mục đích', 'Trạng thái', 'Phiên bản', 'Bằng chứng', 'Cập nhật gần nhất', ''].map((h) => (
-                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500">
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {CONSENT_ROWS.map((row) => (
-                <tr
-                  key={row.id}
-                  onClick={() => setSelectedRow(row.id)}
-                  className={`border-b border-gray-50 cursor-pointer ${
-                    selectedRow === row.id ? 'bg-blue-50' : 'hover:bg-gray-50'
-                  }`}
+          {/* Unified Filter + Table + Pagination Card */}
+          <div className="bg-white border border-slate-200/70 rounded-2xl p-4 shadow-[0_1px_3px_rgba(15,23,42,0.02)] space-y-3.5">
+            {/* Filters */}
+            <div className="flex items-center gap-3">
+              <div className="relative flex-1 min-w-[180px]">
+                <Search
+                  size={15}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                />
+                <input
+                  className="w-full pl-9 pr-3 py-2 text-[13px] border border-slate-200 rounded-xl bg-[#FAFBFD] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Tìm theo mã học sinh..."
+                />
+              </div>
+              {[
+                { label: 'Lớp học', value: 'Tất cả' },
+                { label: 'Trạng thái', value: 'Tất cả' },
+              ].map((f) => (
+                <div
+                  key={f.label}
+                  className="flex items-center gap-2 text-[13px] text-slate-600 shrink-0 whitespace-nowrap"
                 >
-                  <td className="px-4 py-3.5 font-semibold text-gray-900">{row.id}</td>
-                  <td className="px-4 py-3.5 text-gray-600">{row.class}</td>
-                  <td className="px-4 py-3.5 text-gray-600">{row.purposes}</td>
-                  <td className="px-4 py-3.5">
-                    <span
-                      className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full ${
-                        row.statusColor === 'green'
-                          ? 'bg-green-50 text-green-700'
-                          : 'bg-amber-50 text-amber-700'
+                  <span className="font-medium">{f.label}</span>
+                  <button className="flex items-center justify-between gap-3 border border-slate-200 bg-white px-3 py-2 rounded-xl hover:bg-slate-50 font-medium text-slate-700 min-w-[96px] whitespace-nowrap">
+                    <span>{f.value}</span>
+                    <ChevronDown size={14} className="text-slate-400 shrink-0" />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Table */}
+            <div className="border border-slate-100 rounded-xl overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-[#F4F7FB] border-b border-slate-100">
+                    {[
+                      'Mã học sinh',
+                      'Lớp học',
+                      'Mục đích',
+                      'Trạng thái',
+                      'Phiên bản',
+                      'Bằng chứng',
+                      'Cập nhật gần nhất',
+                      '',
+                    ].map((h) => (
+                      <th
+                        key={h}
+                        className="px-2.5 py-2.5 first:pl-3 last:pr-2 text-left text-[11.5px] font-semibold text-slate-600 whitespace-nowrap"
+                      >
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {CONSENT_ROWS.map((row) => (
+                    <tr
+                      key={row.id}
+                      onClick={() => setSelectedRow(row.id)}
+                      className={`cursor-pointer transition ${
+                        selectedRow === row.id ? 'bg-[#EBF3FF]/80' : 'hover:bg-slate-50'
                       }`}
                     >
-                      <span className={`w-1.5 h-1.5 rounded-full ${row.statusColor === 'green' ? 'bg-green-500' : 'bg-amber-500'}`} />
-                      {row.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3.5 text-gray-600">{row.version}</td>
-                  <td className="px-4 py-3.5 text-blue-600 font-medium">{row.evidence}</td>
-                  <td className="px-4 py-3.5 text-gray-600">{row.updated}</td>
-                  <td className="px-4 py-3.5 text-gray-400">
-                    <button className="hover:text-gray-600">···</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {/* Pagination */}
-          <div className="flex items-center justify-between px-4 py-3 text-sm text-gray-500 border-t border-gray-100">
-            <span>Hiển thị 1 - 2 của 2 bản ghi</span>
-            <div className="flex items-center gap-1">
-              <button className="w-7 h-7 border border-gray-200 rounded flex items-center justify-center hover:bg-gray-100 text-gray-400">&lsaquo;</button>
-              <button className="w-7 h-7 border border-blue-500 bg-blue-500 text-white rounded flex items-center justify-center text-xs font-semibold">1</button>
-              <button className="w-7 h-7 border border-gray-200 rounded flex items-center justify-center hover:bg-gray-100 text-gray-400">&rsaquo;</button>
+                      <td className="pl-3 pr-2.5 py-3.5 font-bold text-slate-900 text-[13px] whitespace-nowrap">
+                        {row.id}
+                      </td>
+                      <td className="px-2.5 py-3.5 text-slate-700 text-[13px] whitespace-nowrap">
+                        {row.class}
+                      </td>
+                      <td className="px-2.5 py-3.5 text-slate-700 text-[12.5px] leading-snug w-[105px]">
+                        {row.purposes}
+                      </td>
+                      <td className="px-2.5 py-3.5 whitespace-nowrap">
+                        <span
+                          className={`inline-flex items-center gap-1.5 text-[11.5px] font-semibold px-2.5 py-0.5 rounded-full whitespace-nowrap shrink-0 ${
+                            row.statusColor === 'green'
+                              ? 'bg-[#E2F7EB] text-[#059669]'
+                              : 'bg-[#FEF3C7] text-[#D97706]'
+                          }`}
+                        >
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                              row.statusColor === 'green' ? 'bg-[#10B981]' : 'bg-[#F59E0B]'
+                            }`}
+                          />
+                          {row.status}
+                        </span>
+                      </td>
+                      <td className="px-2.5 py-3.5 text-slate-700 text-[13px] whitespace-nowrap">
+                        {row.version}
+                      </td>
+                      <td className="px-2.5 py-3.5 text-slate-800 font-medium text-[13px] whitespace-nowrap">
+                        {row.evidence}
+                      </td>
+                      <td className="px-2.5 py-3.5 text-slate-700 text-[13px] whitespace-nowrap">
+                        {row.updated}
+                      </td>
+                      <td className="pl-1 pr-2 py-3.5 text-slate-500">
+                        <button className="hover:text-slate-700 p-1">
+                          <MoreVertical size={15} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
+            <div className="flex items-center justify-between pt-1 text-[12.5px] text-slate-500">
+              <span>Hiển thị 1 - 2 của 2 bản ghi</span>
+              <div className="flex items-center gap-1.5">
+                <button className="w-8 h-8 border border-slate-200 rounded-lg flex items-center justify-center hover:bg-slate-50 text-slate-500">
+                  <ChevronLeft size={14} />
+                </button>
+                <button className="w-8 h-8 border border-[#3B82F6] bg-[#EFF6FF] text-[#1565F9] rounded-lg flex items-center justify-center text-[13px] font-bold">
+                  1
+                </button>
+                <button className="w-8 h-8 border border-slate-200 rounded-lg flex items-center justify-center hover:bg-slate-50 text-slate-500">
+                  <ChevronRight size={14} />
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* RIGHT — Detail panel */}
-      {selectedRow && (
-        <div className="w-96 shrink-0 border-l border-gray-200 bg-white overflow-auto">
-          <div className="flex items-start justify-between p-5 border-b border-gray-100">
-            <div>
-              <h2 className="text-base font-semibold text-gray-900">Chi tiết consent</h2>
-              <p className="text-xs text-gray-500 mt-0.5">Thông tin consent và trạng thái xác minh</p>
-            </div>
-            <button onClick={() => setSelectedRow(null)} className="text-gray-400 hover:text-gray-600">
-              <X size={16} />
-            </button>
-          </div>
-
-          <div className="p-5 space-y-5">
-            {/* Student header */}
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 text-lg">🎓</div>
-              <div className="flex-1">
-                <p className="text-base font-bold text-gray-900">HS-022</p>
-                <p className="text-xs text-gray-500">Lớp Lá</p>
-              </div>
-              <span className="inline-flex items-center gap-1.5 text-xs font-medium bg-amber-50 text-amber-700 px-2.5 py-1 rounded-full">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                Chờ xác minh
-              </span>
-            </div>
-
-            {/* Thông tin chung */}
-            <div>
-              <h3 className="text-xs font-semibold text-gray-700 mb-3">Thông tin chung</h3>
-              <div className="space-y-2.5">
-                {[
-                  { icon: '🏫', label: 'Nguồn', value: 'Nhà trường thu thập' },
-                  { icon: '📄', label: 'Phiên bản thông báo', value: 'v1' },
-                  { icon: '📄', label: 'Bằng chứng (mã)', value: 'EV-022' },
-                  { icon: '👤', label: 'Người ghi', value: 'GV An' },
-                  { icon: '🕐', label: 'Cập nhật gần nhất', value: '10/10/2026' },
-                ].map((item) => (
-                  <div key={item.label} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-gray-500 text-sm">
-                      <span>{item.icon}</span>
-                      {item.label}
-                    </div>
-                    <span className="text-sm font-medium text-gray-800">{item.value}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Mục đích được consent */}
-            <div>
-              <h3 className="text-xs font-semibold text-gray-700 mb-3">Mục đích được consent</h3>
-              <div className="space-y-3">
-                <div className="flex items-start gap-3 p-3 rounded-lg border border-gray-100">
-                  <CheckCircle size={16} className="text-green-500 mt-0.5 shrink-0" />
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium text-gray-800">Vẽ trong lớp</p>
-                      <span className="text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded-full font-medium">● Có hiệu lực</span>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-0.5">Sử dụng tác phẩm vẽ trong các hoạt động học tập tại lớp.</p>
-                  </div>
+        {/* RIGHT — Detail panel (4 cols) */}
+        {selectedRow && (
+          <div className="col-span-4 rounded-2xl border border-slate-200/80 bg-white overflow-hidden flex flex-col justify-between shadow-[0_1px_3px_rgba(15,23,42,0.02)] min-w-0">
+            <div className="p-4 space-y-2.5">
+              {/* Header */}
+              <div className="flex items-start justify-between">
+                <div>
+                  <h2 className="text-[17px] font-extrabold text-slate-900">Chi tiết consent</h2>
+                  <p className="text-[12px] text-slate-500 mt-0.5">
+                    Thông tin consent và trạng thái xác minh
+                  </p>
                 </div>
-                <div className="flex items-start gap-3 p-3 rounded-lg border border-gray-100">
-                  <Clock size={16} className="text-amber-500 mt-0.5 shrink-0" />
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium text-gray-800">Gợi ý AI</p>
-                      <span className="text-xs bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full font-medium">● Chờ xác minh</span>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-0.5">Sử dụng tác phẩm vẽ để gợi ý ý tưởng bằng AI trong lớp.</p>
-                  </div>
-                </div>
+                <button
+                  onClick={() => setSelectedRow(null)}
+                  className="text-slate-400 hover:text-slate-600 p-1"
+                >
+                  <X size={18} />
+                </button>
               </div>
-            </div>
 
-            {/* Red alert */}
-            <div className="flex items-start gap-3 p-3 bg-red-50 rounded-lg border border-red-100">
-              <span className="text-red-500 text-base mt-0.5">⚠️</span>
+              {/* Student header card */}
+              <div className="border border-slate-200/70 rounded-2xl p-2.5 px-3 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-[#E6F0FF] flex items-center justify-center text-[#1565F9] shrink-0">
+                  <GraduationCap size={20} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[16px] font-extrabold text-slate-900 leading-tight">HS-022</p>
+                  <p className="text-[12px] text-slate-500 mt-0.5">Lớp Lá</p>
+                </div>
+                <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold bg-[#FEF3C7] text-[#D97706] px-2.5 py-0.5 rounded-full whitespace-nowrap shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#F59E0B] shrink-0" />
+                  Chờ xác minh
+                </span>
+              </div>
+
+              {/* Thông tin chung */}
               <div>
-                <p className="text-sm font-semibold text-red-700">Chưa xác minh không kích hoạt mục đích bị hạn chế.</p>
-                <p className="text-xs text-red-600 mt-0.5">Chỉ sử dụng dữ liệu cho các mục đích đã được xác minh và có hiệu lực.</p>
+                <h3 className="text-[13.5px] font-bold text-slate-900 mb-1">Thông tin chung</h3>
+                <div className="divide-y divide-slate-100 text-[12.5px]">
+                  {[
+                    { icon: GraduationCap, label: 'Nguồn', value: 'Nhà trường thu thập' },
+                    { icon: FileText, label: 'Phiên bản thông báo', value: 'v1' },
+                    { icon: FileText, label: 'Bằng chứng (mã)', value: 'EV-022' },
+                    { icon: User, label: 'Người ghi', value: 'GV An' },
+                    { icon: Clock, label: 'Cập nhật gần nhất', value: '10/10/2026' },
+                  ].map((item) => {
+                    const Icon = item.icon
+                    return (
+                      <div key={item.label} className="flex items-center py-1.5">
+                        <div className="flex items-center gap-2 text-slate-500 w-40 shrink-0">
+                          <Icon size={14} className="text-slate-500 shrink-0" />
+                          <span>{item.label}</span>
+                        </div>
+                        <span className="font-bold text-slate-900">{item.value}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Mục đích được consent */}
+              <div>
+                <h3 className="text-[13.5px] font-bold text-slate-900 mb-1.5">
+                  Mục đích được consent
+                </h3>
+                <div className="space-y-2">
+                  <div className="flex items-start gap-2.5 p-2.5 rounded-2xl border border-slate-200/70">
+                    <div className="w-7 h-7 rounded-xl bg-[#E2F7EB] flex items-center justify-center shrink-0">
+                      <span className="w-4 h-4 rounded-full bg-[#10B981] text-white flex items-center justify-center">
+                        <Check size={10} strokeWidth={3} />
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-[13px] font-bold text-slate-900">Vẽ trong lớp</p>
+                        <span className="inline-flex items-center gap-1 text-[10.5px] bg-[#E2F7EB] text-[#059669] px-2 py-0.5 rounded-full font-semibold whitespace-nowrap shrink-0">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] shrink-0" />
+                          Có hiệu lực
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                        Sử dụng tác phẩm vẽ trong các hoạt động học tập tại lớp.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-2.5 p-2.5 rounded-2xl border border-slate-200/70">
+                    <div className="w-7 h-7 rounded-xl bg-[#FEF3C7] text-[#F59E0B] flex items-center justify-center shrink-0">
+                      <Clock size={16} strokeWidth={2.2} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-[13px] font-bold text-slate-900">Gợi ý AI</p>
+                        <span className="inline-flex items-center gap-1 text-[10.5px] bg-[#FEF3C7] text-[#D97706] px-2 py-0.5 rounded-full font-semibold whitespace-nowrap shrink-0">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#F59E0B] shrink-0" />
+                          Chờ xác minh
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                        Sử dụng tác phẩm vẽ để gợi ý ý tưởng bằng AI trong lớp.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Red alert */}
+              <div className="flex items-start gap-2 p-2.5 bg-[#FEE2E2]/60 rounded-2xl border border-rose-200/80">
+                <AlertTriangle size={16} className="text-[#EF4444] mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-[12px] font-bold text-[#DC2626] leading-snug">
+                    Chưa xác minh không kích hoạt mục đích bị hạn chế.
+                  </p>
+                  <p className="text-[11px] text-slate-600 mt-0.5 leading-snug">
+                    Chỉ sử dụng dữ liệu cho các mục đích đã được xác minh và có hiệu lực.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom actions */}
+            <div className="px-4 pb-3 pt-1">
+              <div className="flex items-center gap-1.5">
+                <button className="inline-flex items-center justify-center gap-1 bg-[#1565F9] hover:bg-blue-700 text-white text-[11px] font-semibold py-2 px-2.5 rounded-xl transition shadow-sm cursor-pointer whitespace-nowrap shrink-0">
+                  <FileText size={12} className="shrink-0" />
+                  <span>Yêu cầu bổ sung</span>
+                </button>
+                <button className="inline-flex items-center justify-center gap-1 bg-[#EAF2FF] border border-blue-200 hover:bg-blue-100 text-[#1565F9] text-[11px] font-semibold py-2 px-2.5 rounded-xl transition cursor-pointer whitespace-nowrap shrink-0">
+                  <Clock size={12} className="shrink-0" />
+                  <span>Xem lịch sử</span>
+                </button>
+                <button
+                  disabled
+                  className="flex-1 inline-flex items-center justify-center gap-1 border border-slate-200 bg-slate-100 text-slate-400 text-[10.5px] font-medium py-2 px-2 rounded-xl cursor-not-allowed whitespace-nowrap shrink-0"
+                >
+                  <Lock size={11} className="shrink-0" />
+                  <span>Chưa có quyền xem</span>
+                </button>
               </div>
             </div>
           </div>
-
-          {/* Action buttons */}
-          <div className="p-5 border-t border-gray-100 flex items-center gap-2">
-            <button className="flex-1 flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-2.5 rounded-xl transition shadow-sm">
-              <FileText size={14} />
-              Yêu cầu bổ sung
-            </button>
-            <button className="flex-1 flex items-center justify-center gap-1.5 bg-blue-50 border border-blue-200 hover:bg-blue-100 text-blue-600 text-xs font-semibold py-2.5 rounded-xl transition">
-              <Clock size={14} />
-              Xem lịch sử
-            </button>
-            <button
-              disabled
-              className="flex-1 flex items-center justify-center gap-1.5 border border-gray-200 bg-gray-50 text-gray-400 text-xs font-medium py-2.5 rounded-xl cursor-not-allowed"
-            >
-              <Lock size={13} />
-              <span className="text-[11px] leading-tight">Chưa có quyền xem bằng chứng</span>
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Watermark */}
-      <div className="fixed bottom-3 right-6 text-xs text-gray-400 pointer-events-none">
-        Dữ liệu minh họa • Bản thiết kế UI.
+        )}
       </div>
     </div>
   )
