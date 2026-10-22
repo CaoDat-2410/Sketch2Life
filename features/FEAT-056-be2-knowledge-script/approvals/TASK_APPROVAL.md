@@ -44,3 +44,19 @@ Interpretation: prepare a reviewable plan and offline-first workflow. The new Te
 readiness and candidate-contract decisions have not yet been presented for approval. Record later
 owner plan approval verbatim and freeze exact plan bytes before implementation.
 
+## Supplemental cross-lane source-currentness approval — 2026-10-21
+
+- Status: APPROVED — supplemental offline scope only.
+- Card: FEAT-056 / BE2-07.
+- Approved addendum: plan/CROSS_LANE_BE2_07_SCOPE_DRAFT_20261021.md
+- Approved addendum SHA256: CA531682CCB0ABD12BB8B270F0258D9B3EBBCE4DBF917805FBC7A770BBF6EB24
+- Scope: producer-owned exact source identity/currentness boundary and tests. The source validity/fence protocol through BE2-08 finalization remains an explicit adoption and proof gate. The process-local coordinator is not accepted as a durable fence.
+- Existing task approval and component acceptance remain unchanged. Exact execution file subset must be recorded before editing; any new schema, migration, consumer-owned path, or unlisted file requires a revised scope and approval.
+- X01 remains PARTIAL until the producer and consumer boundary is adopted and proven. X05d remains BLOCKED. Excludes X02, CR09-02, Modal/Lightning/runtime/provider, publication, and card status/acceptance changes.
+- Approver: project owner, direct instruction in Codex chat.
+- Recorded: 2026-10-21, Asia/Saigon; exact message timestamp not independently asserted.
+
+### Verbatim owner approval
+
+> Duyệt scope BE2-01, BE2-07, BE2-08, BE2-09 và BE2-14 theo đúng nội dung và SHA trong hồ sơ. Chỉ làm offline. Giữ X05d BLOCKED, X05c/CR09-02 mở; không chạy Modal, Lightning, provider hay runtime.
+

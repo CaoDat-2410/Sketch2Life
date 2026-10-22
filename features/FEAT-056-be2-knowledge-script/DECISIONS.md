@@ -1,5 +1,28 @@
 # BE2-07 decisions
 
+## FEAT-057 implementation-scope addendum — 2026-10-21
+
+- Approved addendum: plan/CROSS_LANE_BE2_07_SCOPE_DRAFT_20261021.md
+- Approval record: approvals/TASK_APPROVAL.md
+- Proposed scope is limited to producer-owned exact source identity/currentness. The existing process-local coordinator is not accepted as a durable fence through BE2-08 finalization.
+- Owner approved the exact scope SHA256 CA531682CCB0ABD12BB8B270F0258D9B3EBBCE4DBF917805FBC7A770BBF6EB24. The verbatim approval is in approvals/TASK_APPROVAL.md. The minimal execution file subset must be recorded before edits.
+- X01 remains PARTIAL unless both cards adopt and prove the held-through-finalization boundary. This approval-recording step does not change BE2-07 source/tests or card status.
+
+## FEAT-057 cross-card owner response — 2026-10-21
+
+The user confirmed they own the affected cards and approved the G0 proposal
+with `Chốt theo đề xuất`. For BE2-07, B1 is `ADOPT_WITH_CHANGES`: preserve the
+exact bundle/version/hash and audience/context identity, with a named validity
+fence held or atomically checked through BE2-08 finalization, including
+revoke/invalidation races. B6/X05d is `BLOCKED`: no already-adopted
+current-source resolver/fence covering review commit and playback intent was
+identified. Keep X02 outside this slice. See FEAT-057's
+`evidence/notes/G0_CARD_OWNER_DECISION_BALLOT_20261021.md`.
+
+This adopts contract direction only, not implementation scope/approval.
+BE2-07 remains `IN_PROGRESS / NOT_DONE`; component acceptance and runtime gates
+are unchanged.
+
 ## 2026-10-20 — Cloud P3 corrections and conditional retirement
 
 The user approved fixing the two P3 findings, fresh local56-module validation, independent
@@ -108,3 +131,20 @@ PASS final review. Acceptance covers KNOWLEDGE_SCRIPT_COMPONENT_OFFLINE only. In
 fast-forward of feature/be2-01-07, which still pointed at the BE2-07 base 23acf9e. The 56-module batch
 could not run on cloud; acceptance relies on Codex's run on the byte-identical product tree and
 records that limit explicitly.
+
+## Owner-directed source-fence disposition for BE2-08 finalization — 2026-10-21
+
+The owner directed that BE2-07 source validity be checked/held within the same
+UoW as BE2-08 finalization only when source data and the finalizer can participate
+in the same transactional store. If they cannot, X01 remains PARTIAL. A same-store
+read is not by itself proof of a held fence; implementation evidence must show a
+lock/CAS or equivalent serialization shared with invalidation writes through the
+final commit. The existing process-local coordinator is not that proof.
+
+This direction does not authorize new BE2-07 schema, migrations, a real
+cross-service lock or other paths excluded by the approved BE2-07 scope. If the
+same-store fence needs those changes, prepare and approve a revised BE2-07 scope
+before editing source. X05d remains BLOCKED because no already-adopted resolver/
+fence has thereby been created. FEAT-057 evidence note:
+../FEAT-057-be2-01-14-offline-integration/evidence/notes/OWNER_DESIGN_DISPOSITION_FOUNDATION_UOW_20261021.md.
+No source/test, status or acceptance changed.
