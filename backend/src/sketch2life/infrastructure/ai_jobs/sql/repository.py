@@ -65,6 +65,7 @@ from sketch2life.application.ports.ai_jobs import (
     SideEffect,
     SweepCursor,
     UniqueConflict,
+    VideoLifecycleTransaction,
 )
 from sketch2life.domain.ai_jobs.model import (
     CANCELLABLE_STATES,
@@ -98,6 +99,7 @@ _CONFLICT_KINDS = {
 }
 
 OwnerFenceFactory = Callable[[Connection], OwnerFencePort]
+VideoLifecycleFactory = Callable[[Connection, str], VideoLifecycleTransaction]
 
 
 def _conflict_kind(error: IntegrityError) -> str | None:
@@ -341,11 +343,22 @@ def _side_effect(row: Any) -> SideEffect:
 class SqlAiJobUnitOfWork:
     """``AiJobUnitOfWork`` over one connection inside one open transaction."""
 
-    def __init__(self, connection: Connection, owner_fences: OwnerFencePort) -> None:
+    def __init__(
+        self,
+        connection: Connection,
+        owner_fences: OwnerFencePort,
+        video_lifecycle_factory: VideoLifecycleFactory | None = None,
+    ) -> None:
         self.connection = connection
         self._owner_fences = owner_fences
+        self._video_lifecycle_factory = video_lifecycle_factory
         self._held: dict[str, int] = {}
         self.writes = 0
+
+    def video_lifecycle(self, organization_id: str) -> VideoLifecycleTransaction:
+        if self._video_lifecycle_factory is None:
+            raise RuntimeError("BE2-VIDEO-LIFECYCLE/1 participant is not configured")
+        return self._video_lifecycle_factory(self.connection, organization_id)
 
     # jobs -----------------------------------------------------------------------------------
     def get_job(self, job_id: str, *, for_update: bool = False) -> AiJob | None:
@@ -961,11 +974,13 @@ class SqlAiJobRepository:
         *,
         on_transaction: Callable[[int], None] | None = None,
         before_commit: Callable[[SqlAiJobUnitOfWork], None] | None = None,
+        video_lifecycle_factory: VideoLifecycleFactory | None = None,
     ) -> None:
         self._engine = engine
         self._owner_fences = owner_fences
         self._on_transaction = on_transaction
         self._before_commit = before_commit
+        self._video_lifecycle_factory = video_lifecycle_factory
         self.transactions = 0
 
     @contextmanager
@@ -979,7 +994,9 @@ class SqlAiJobRepository:
                 fences = self._owner_fences(connection)
                 if fences.contract_version != OWNER_FENCE_CONTRACT:
                     raise RuntimeError("unsupported owner fence contract version")
-                uow = SqlAiJobUnitOfWork(connection, fences)
+                uow = SqlAiJobUnitOfWork(
+                    connection, fences, self._video_lifecycle_factory
+                )
                 yield uow
                 if self._before_commit is not None:
                     self._before_commit(uow)

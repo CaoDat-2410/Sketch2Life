@@ -11,8 +11,11 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Literal, Protocol
 
+from sketch2life.domain.ai_jobs.completion import CompletionClaim
+from sketch2life.domain.ai_jobs.model import AiJob
 from sketch2life.contracts.schemas.knowledge_video import CreateKnowledgeVideo, KnowledgeVideoView
 from sketch2life.domain.knowledge_video.model import (
+    FinalArtifact,
     VideoError,
     VideoPin,
     VideoRun,
@@ -21,6 +24,8 @@ from sketch2life.domain.knowledge_video.model import (
     require_revision,
     require_time,
 )
+
+VIDEO_LIFECYCLE_CONTRACT = "BE2-VIDEO-LIFECYCLE/1"
 
 
 @dataclass(frozen=True, slots=True)
@@ -134,6 +139,8 @@ class VideoRunParticipant(Protocol):
 
     def find_semantic(self, session_id: str, pin_digest: str) -> VideoRun | None: ...
 
+    def find_job(self, job_id: str, *, for_update: bool = False) -> VideoRun | None: ...
+
     def insert(self, run: VideoRun) -> None: ...
 
     def save(self, run: VideoRun, *, expected_revision: int) -> None: ...
@@ -142,3 +149,44 @@ class VideoRunParticipant(Protocol):
                     key: str) -> VideoCommandReceipt | None: ...
 
     def put_receipt(self, receipt: VideoCommandReceipt) -> None: ...
+
+
+@dataclass(frozen=True, slots=True)
+class VideoLifecycleCreateV1:
+    """Versioned A-operation binding supplied by the BE2-08 create flow."""
+
+    job_type: str
+    context: VideoRequestContext
+    command_hash: str
+    pin: VideoPin
+
+    def __post_init__(self) -> None:
+        require_id(self.job_type)
+        require_hash(self.command_hash)
+        if (self.pin.organization_id != self.context.organization_id
+                or self.pin.session_id != self.context.session_id):
+            raise VideoError("VIDEO_RESOLUTION_MISMATCH")
+
+
+class VideoLifecycleTransaction(Protocol):
+    """BE2-08-owned A/S/B row participant bound to the BE2-01 transaction.
+
+    It exposes domain operations only. BE2-01 owns the transaction and invokes these
+    operations before commit; this contract never exposes a SQL connection.
+    """
+
+    contract_version: str
+
+    def submit(
+        self, job: AiJob, binding: VideoLifecycleCreateV1, *, video_id: str,
+        now: datetime, replayed: bool = False,
+    ) -> VideoRun: ...
+
+    def start(self, before: AiJob, after: AiJob, *, attempt_id: str) -> VideoRun: ...
+
+    def accept(
+        self, before: AiJob, after: AiJob, claim: CompletionClaim,
+        artifact: FinalArtifact,
+    ) -> VideoRun: ...
+
+    def find_job(self, job_id: str, *, for_update: bool = False) -> VideoRun | None: ...

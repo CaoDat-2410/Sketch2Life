@@ -75,6 +75,18 @@ class VideoRunRows:
         row = self._connection.execute(query).mappings().one_or_none()
         return None if row is None else _decode_row(row, self._organization_id)
 
+    def find_job(self, job_id: str, *, for_update: bool = False) -> VideoRun | None:
+        self._transaction()
+        require_id(job_id)
+        query = select(RUN).where(
+            RUN.c.organization_id == self._organization_id,
+            RUN.c.job_id == job_id,
+        )
+        if for_update:
+            query = query.with_for_update()
+        row = self._connection.execute(query).mappings().one_or_none()
+        return None if row is None else _decode_row(row, self._organization_id)
+
     def insert(self, run: VideoRun) -> None:
         self._transaction()
         if (run.pin.organization_id != self._organization_id or run.run_revision != 1

@@ -27,6 +27,11 @@ from sketch2life.application.ports.ai_jobs import (
 )
 from sketch2life.application.services.ai_jobs import AiJobError, AiJobService
 from sketch2life.domain.ai_jobs.model import JobProgress, ProgressKind
+from sketch2life.infrastructure.ai_jobs.typed_dispatch import (
+    TypedDispatchRouter,
+    VideoDispatchOutcome,
+    VideoDispatchTarget,
+)
 from sketch2life.infrastructure.ai_jobs.worker_capability import CAPABILITY_PATTERN
 
 STARTED_PROGRESS = JobProgress(ProgressKind.STAGES, None, "provider_running")
@@ -49,12 +54,32 @@ class WorkerOutcome:
 
 
 class DispatchWorker:
-    def __init__(self, service: AiJobService, provider: AiProviderPort) -> None:
+    def __init__(
+        self,
+        service: AiJobService,
+        provider: AiProviderPort,
+        *,
+        video_job_type: str | None = None,
+        video_worker: VideoDispatchTarget | None = None,
+        provider_job_types: frozenset[str] = frozenset({"sketch_assistance"}),
+    ) -> None:
         self._service = service
         self._provider = provider
+        self._router = TypedDispatchRouter(
+            provider_job_types=provider_job_types,
+            video_job_type=video_job_type,
+            video_target=video_worker,
+        )
 
-    def handle(self, envelope: WorkerDispatchEnvelope) -> WorkerOutcome:
+    def handle(self, envelope: WorkerDispatchEnvelope) -> WorkerOutcome | VideoDispatchOutcome:
         message, capability = envelope.message, envelope.capability
+        route = self._router.resolve(message.job_type)
+        if route.kind == "video":
+            if route.video_target is None:
+                return WorkerOutcome("rejected", "VIDEO_ROUTE_UNAVAILABLE")
+            return route.video_target.handle(envelope)
+        if route.kind == "unsupported":
+            return WorkerOutcome("rejected", "UNSUPPORTED_JOB_TYPE")
         try:
             started = self._service.start_attempt(capability, message.job_id, message.attempt_id)
         except AiJobError as error:
