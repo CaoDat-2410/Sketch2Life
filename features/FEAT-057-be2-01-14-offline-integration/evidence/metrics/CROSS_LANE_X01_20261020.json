@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "feature": "FEAT-057-be2-01-14-offline-integration",
+  "result": "CROSS_LANE_PARTIAL",
+  "branch": "feature/be2-backend-ai-integration",
+  "head": "1649b72978877d82b4d7662040ff3555dee0a3a7",
+  "scope": "offline_x01_source_to_video_preparation",
+  "edges": {
+    "X01": {
+      "status": "PARTIAL",
+      "producer": "BE2-07 KnowledgeBundleService.resolve_exact",
+      "consumer": "BE2-08 VideoMediaPipeline.prepare",
+      "behavior_test_module": "backend/tests/integration/be2_cross_lane/test_source_generation.py",
+      "evidence_ref": "metrics/CROSS_LANE_X01_20261020.json#source_sha256=0a22e50557b3ac57b9913b80b273d0a672423946277af3e7cfa9a0829e7f6f42",
+      "limitations": [
+        "No BE2-08 run/artifact is committed through the BE2-01 foundation.",
+        "No producer validity fence is held across a cross-feature commit.",
+        "Generator and decoder are deterministic external-system fakes."
+      ]
+    },
+    "X02": {"status": "NOT_IMPLEMENTED", "reason": "No BE2-07 invalidation delivery to BE2-09 was composed or tested."},
+    "X03": {"status": "NOT_IMPLEMENTED", "reason": "BE2-12 published-content eligibility is not adopted by a BE2-08 resolver."},
+    "X04": {"status": "NOT_IMPLEMENTED", "reason": "No BE2-12 consumer binding was behavior-tested for BE2-09 and BE2-11."},
+    "X05": {"status": "NOT_IMPLEMENTED", "reason": "BE2-08 preparation has no committed artifact/foundation completion for BE2-09 review."},
+    "X06": {"status": "NOT_IMPLEMENTED", "reason": "No adopted BE2-08/foundation failure bridge to BE2-10."},
+    "X07": {"status": "NOT_IMPLEMENTED", "reason": "No approved BE2-13-to-BE2-01 dispatch adapter."},
+    "X08": {"status": "NOT_IMPLEMENTED", "reason": "BE2-14 policy adoption by BE2-03/04/08/13 remains absent or gated."},
+    "X09": {"status": "NOT_IMPLEMENTED", "reason": "No router is composed for BE2-08/13 foundation job types."}
+  },
+  "environment": {"python": "3.12.10", "venv": "existing ignored backend/.venv", "packages_installed": false},
+  "checks": {
+    "cross_lane_pytest": {
+      "command": "python -m pytest backend/tests/integration/be2_cross_lane -q -rA --junitxml=features/FEAT-057-be2-01-14-offline-integration/evidence/raw/cross-lane-x01-20261020/junit.xml",
+      "exit_code": 0,
+      "tests": 14,
+      "passed": 14,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "junit": {
+        "path": "evidence/raw/cross-lane-x01-20261020/junit.xml",
+        "sha256": "3b2b1b6212468157e4a2a3571037015b61debced8dcda4d1b4145135b41fc8a2"
+      }
+    },
+    "adjacent_be2_07_08_pytest": {
+      "command": "python -m pytest backend/tests/unit/test_knowledge_bundle_service.py backend/tests/unit/test_knowledge_bundle_races.py backend/tests/unit/test_knowledge_bundle_chain.py backend/tests/unit/test_knowledge_bundle_adapters.py backend/tests/unit/test_knowledge_video_media.py backend/tests/unit/test_knowledge_video_create.py -q -rA --junitxml=features/FEAT-057-be2-01-14-offline-integration/evidence/raw/cross-lane-x01-20261020/adjacent-junit.xml",
+      "exit_code": 0,
+      "tests": 282,
+      "passed": 282,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "junit": {
+        "path": "evidence/raw/cross-lane-x01-20261020/adjacent-junit.xml",
+        "sha256": "7bf49d49c26b4fce658dd9ede29191cf13670780e80ad71e5385e2c86f04cf29"
+      }
+    },
+    "ruff": {"exit_code": 0, "result": "PASS"},
+    "mypy_strict": {"exit_code": 0, "result": "PASS"},
+    "validate_harness": {"exit_code": 0, "result": "PASS"},
+    "validate_repository_security": {"exit_code": 0, "result": "PASS"},
+    "validate_architecture": {"exit_code": 0, "result": "PASS"},
+    "validate_skeleton": {"exit_code": 0, "result": "PASS"},
+    "git_diff_check": {"exit_code": 0, "result": "PASS"}
+  },
+  "source_hashes": {
+    "backend/src/sketch2life/infrastructure/cross_lane/__init__.py": "ee1695238ab5d1b8e187010082ce1d0946a473fb4810c2ebdf0bde0659810203",
+    "backend/src/sketch2life/infrastructure/cross_lane/knowledge_script_video.py": "0a22e50557b3ac57b9913b80b273d0a672423946277af3e7cfa9a0829e7f6f42",
+    "backend/src/sketch2life/application/services/knowledge_bundle.py": "af6c3c55e3cf0fedf155b8c0ebbf720ef7e6aec121b5b1871f94191a1e2f6c9f",
+    "backend/src/sketch2life/contracts/schemas/knowledge_bundles.py": "1733c4dfad2f5108f9ec508d7874efefe4a414eb0346f25eeb493a9a7671f771",
+    "backend/src/sketch2life/application/knowledge_video_media.py": "a5b569bfc0c83079a066719324a446ac0566a9a171b2192aad7c795064c6bafb",
+    "backend/src/sketch2life/application/ports/knowledge_video_media.py": "7b92b2f8466f810d2d1f5ce2b2a839a852c15d0b508f1a9a689fd729addc2dda",
+    "backend/tests/integration/be2_cross_lane/edge_registry.py": "6c7b2afa1617b049d991d9a2654aa31b89045c8b1f34244312134a018a6c8a1a",
+    "backend/tests/integration/be2_cross_lane/README.md": "ae64d8749d0ad43b5161b242fd6032a44bd2f1296106a8861c863b40a44d8780",
+    "backend/tests/integration/be2_cross_lane/test_edge_registry.py": "fd9ba487b10bba1e20e07722f24a59665816e815d59f8aff7d179f14ef0f94aa",
+    "backend/tests/integration/be2_cross_lane/test_source_generation.py": "02cdef8bb3493bd5c1f9e6cc591da1793082a82957720f3644777532e08e4751",
+    "features/FEAT-057-be2-01-14-offline-integration/plan/CROSS_LANE_INTEGRATION_PLAN_REV2_20261020.md": "2015173c1fdadebbe5d01add8844160f24f10e2b495250f67a927529b44c570b",
+    "features/FEAT-057-be2-01-14-offline-integration/approvals/TASK_APPROVAL.md": "66bfd26ad0cf8646fbc0d8097c2b957939a43f74e42739e50bf83cabd9936557"
+  },
+  "limitations": [
+    "This is one partial source-to-preparation edge, not end-to-end BE2-01–14 integration.",
+    "No SQL/PostgreSQL, HTTP server, real provider/decoder, Lightning/Studio, live worker, or deployment was run.",
+    "No BE2 card acceptance, approval, status, or DONE state changed.",
+    "No staging, commit, push, merge, or deployment occurred."
+  ]
+}

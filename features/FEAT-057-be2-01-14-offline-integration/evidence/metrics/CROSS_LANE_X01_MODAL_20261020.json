@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "feature": "FEAT-057-be2-01-14-offline-integration",
+  "run_id": "modal-x01-20261020",
+  "result": "PASS_SCOPED_OFFLINE_RERUN",
+  "started_at_utc": "2026-10-20T16:39:50.031778+00:00",
+  "source_archive": {
+    "filename": "be2-cross-lane-x01-source.zip",
+    "sha256": "5e7d3e10c8ef5439efc6a39dd6a17774ec40e746b054153b004215f6479ca9e8",
+    "matches_local_package": true,
+    "local_copy": "evidence/local/modal-notebook-x01-20261020/be2-cross-lane-x01-source.zip"
+  },
+  "environment": {
+    "platform": "Modal hosted Notebook",
+    "python": "3.12.6",
+    "cpu_cores": 2,
+    "memory_gib": 4,
+    "gpu": null,
+    "image": "Default",
+    "secrets_attached": false,
+    "dependency_install": "PASS",
+    "pip_check": "PASS"
+  },
+  "command": [
+    "python",
+    "-m",
+    "pytest",
+    "tests/integration/be2_cross_lane",
+    "tests/unit/test_knowledge_bundle_service.py",
+    "tests/unit/test_knowledge_bundle_races.py",
+    "tests/unit/test_knowledge_bundle_chain.py",
+    "tests/unit/test_knowledge_bundle_adapters.py",
+    "tests/unit/test_knowledge_video_media.py",
+    "tests/unit/test_knowledge_video_create.py",
+    "-q",
+    "-rs",
+    "--junitxml=modal-results/junit.xml"
+  ],
+  "pytest_exit": 0,
+  "test_selection": {
+    "cross_lane_tests": 14,
+    "adjacent_be2_07_08_regression_tests": 282,
+    "total": 296
+  },
+  "summary": {
+    "tests": 296,
+    "passed": 296,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "raw_artifacts": {
+    "modal_run.json": {
+      "path": "evidence/raw/modal-x01-20261020/modal_run.json",
+      "bytes": 971,
+      "sha256": "2ea3406d19622f963bbf600b95e7821fdb564e7fb71bc2cdfbcc51a64824e5f7"
+    },
+    "junit.xml": {
+      "path": "evidence/raw/modal-x01-20261020/junit.xml",
+      "bytes": 48166,
+      "sha256": "552cf4ead2dd17f409676dc77dbfccf0822a450779c1de4e25cfd25b6b31e4a3"
+    },
+    "pytest.log": {
+      "path": "evidence/raw/modal-x01-20261020/pytest.log",
+      "bytes": 3140,
+      "sha256": "3b990a3e0c35976fcb0e82f8c6483cf7748b1ba00e15df5acb05fc1eee871d3d"
+    }
+  },
+  "limitations": [
+    "This verifies X01 plus selected adjacent BE2-07/08 offline tests only.",
+    "X01 remains PARTIAL because no BE2-01 foundation job/artifact commit or cross-owner fence was exercised.",
+    "X02-X09 remain NOT_IMPLEMENTED.",
+    "No PostgreSQL/SQL, HTTP server, provider, Lightning/Studio, live worker, deployment, or full BE2-01-14 runtime campaign was run.",
+    "No card acceptance, approval, or DONE state changed."
+  ]
+}

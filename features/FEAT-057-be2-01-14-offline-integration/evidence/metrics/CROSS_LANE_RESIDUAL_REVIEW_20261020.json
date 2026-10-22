@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "feature": "FEAT-057-be2-01-14-offline-integration",
+  "branch": "feature/be2-backend-ai-integration",
+  "head": "1649b72978877d82b4d7662040ff3555dee0a3a7",
+  "scope": "source_contract_review_x04_x09",
+  "result": "PARTIAL",
+  "edges": {
+    "X04": "NOT_IMPLEMENTED",
+    "X05": "NOT_IMPLEMENTED",
+    "X06": "NOT_IMPLEMENTED",
+    "X07": "NOT_IMPLEMENTED",
+    "X08": "NOT_IMPLEMENTED",
+    "X09": "NOT_IMPLEMENTED"
+  },
+  "source_sha256": {
+    "backend/src/sketch2life/application/content_consumer_queries.py": "20e91f351490d2ca55b7ad2930df3fc257a937bff7457fab2f88380a45b55338",
+    "backend/src/sketch2life/application/ports/content_consumers.py": "cbc28a10f52f9f576ca6e74d0d8767675689be0a9d6a5148c39f8d0b17b467eb",
+    "backend/src/sketch2life/application/ports/activity_execution.py": "35d6c48b71890f064f1829eaafa5640ed39ff1319beff8eaa6ab39a9027f83eb",
+    "backend/src/sketch2life/application/ports/video_review_write.py": "c6d627598e42651e499a104aa71d5ee529349aa166bc602a2b8d467e575d864f",
+    "backend/src/sketch2life/application/knowledge_video_create.py": "fe330d4d4ce642515158f36de9dec60cadbd9eb8c56f02834c5fbc2ac1f8b347",
+    "backend/src/sketch2life/application/ports/knowledge_video_worker.py": "8b5a3175717db3411c4a6b80b8fbef2e5865dc3530598a2f35919d6954cc1d36",
+    "backend/src/sketch2life/application/ports/video_failure.py": "3ce0b63e527eacb6601b02786ee161f99c1a3fccc86cddac5bd6bdae45330f80",
+    "backend/src/sketch2life/application/preset_automation.py": "12d581d80c7a9233897989a3a9801a14819521213cb72812268fc335ecf3e978",
+    "backend/src/sketch2life/application/ports/preset_automation.py": "2ff7482c91e511764a0d5cbdbbc0cd2ffe5466da65f8aeece0a1d6f0f529fc3a",
+    "backend/src/sketch2life/application/ai_policy_use.py": "cc20da8afede4601d6aa1e330232463ad7e12e3b017d47a5551c311c5fb94d01",
+    "backend/src/sketch2life/application/ports/ai_policy_use.py": "5ef8b7370dc4e644eae5ae885a38dc1c928596ee5096c790d9721abe92c00155",
+    "backend/src/sketch2life/application/services/ai_jobs.py": "df6ac4fd47bd9fdcd7d5eaf7dfca5e4cf9541870f40e0dc4a81150dffd936704",
+    "backend/src/sketch2life/infrastructure/ai_jobs/worker.py": "241b4ae77164fdc3fcf01952473d726f74fcf381b683e6583f307448046a1b40"
+  },
+  "tests": "NOT_RUN_SOURCE_REVIEW_ONLY",
+  "card_status_or_acceptance_changed": false,
+  "git_publication": "NOT_PERFORMED"
+}
