@@ -1,21 +1,35 @@
+import { useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
-  Home, Users, GraduationCap, Folder, Shield, BarChart2,
-  FileText, Database, Clock, Settings, LogOut,
-  Bell, ChevronRight, School,
+  Home,
+  User,
+  GraduationCap,
+  Folder,
+  Shield,
+  BarChart2,
+  FileText,
+  Database,
+  Clock,
+  Settings,
+  Bell,
+  ChevronDown,
+  ChevronRight,
+  LogOut,
+  School,
 } from 'lucide-react'
+import sidebarLogo from '../assets/sidebar-logo.png'
 
 const NAV_ITEMS = [
-  { to: '/',              label: 'Tổng quan',         icon: Home,          end: true },
-  { to: '/users',         label: 'Người dùng',        icon: Users },
-  { to: '/classes',       label: 'Lớp học',           icon: GraduationCap },
-  { to: '/content',       label: 'Nội dung',          icon: Folder },
-  { to: '/ai-policy',     label: 'Chính sách AI',     icon: Shield },
-  { to: '/monitoring',    label: 'Giám sát',          icon: BarChart2 },
-  { to: '/reports',       label: 'Báo cáo',           icon: FileText },
+  { to: '/', label: 'Tổng quan', icon: Home, end: true },
+  { to: '/users', label: 'Người dùng', icon: User },
+  { to: '/classes', label: 'Lớp học', icon: GraduationCap },
+  { to: '/content', label: 'Nội dung', icon: Folder },
+  { to: '/ai-policy', label: 'Chính sách AI', icon: Shield },
+  { to: '/monitoring', label: 'Giám sát', icon: BarChart2 },
+  { to: '/reports', label: 'Báo cáo', icon: FileText },
   { to: '/data-requests', label: 'Consent & dữ liệu', icon: Database },
-  { to: '/logs',          label: 'Nhật ký',           icon: Clock },
-  { to: '/settings',      label: 'Cấu hình',          icon: Settings },
+  { to: '/logs', label: 'Nhật ký', icon: Clock },
+  { to: '/settings', label: 'Cấu hình', icon: Settings },
 ]
 
 const PAGE_TITLES: Record<string, string> = {
@@ -31,112 +45,187 @@ const PAGE_TITLES: Record<string, string> = {
   '/settings': 'Cấu hình',
 }
 
+const QUICK_SCREENS = [
+  { code: 'A00', label: 'Đăng nhập quản trị', to: '/login' },
+  { code: 'A01', label: 'Tổng quan', to: '/' },
+  { code: 'A02', label: 'Người dùng & vai trò', to: '/users' },
+  { code: 'A03', label: 'Lớp học & phân công', to: '/classes' },
+  { code: 'A04', label: 'Quản trị nội dung', to: '/content' },
+  { code: 'A05', label: 'Chính sách AI', to: '/ai-policy' },
+  { code: 'A06', label: 'Giám sát & sự cố', to: '/monitoring' },
+  { code: 'A07', label: 'Báo cáo theo phạm vi', to: '/reports' },
+  { code: 'A08', label: 'Consent & yêu cầu dữ liệu', to: '/data-requests' },
+  { code: 'A08b', label: 'Yêu cầu xóa dữ liệu (DR-024)', to: '/data-requests/DR-024' },
+  { code: 'A09', label: 'Nhật ký kiểm toán', to: '/logs' },
+  { code: 'A10', label: 'Cấu hình & vòng đời dữ liệu', to: '/settings' },
+]
+
 export function AdminLayout() {
   const location = useLocation()
   const navigate = useNavigate()
+  const [showQuickNav, setShowQuickNav] = useState(false)
+
+  const isDeleteDetail = location.pathname.startsWith('/data-requests/')
+  const detailId = isDeleteDetail ? location.pathname.split('/')[2] : null
   const pageTitle = PAGE_TITLES[location.pathname] ?? 'Tổng quan'
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
-      {/* ── Sidebar ── */}
-      <aside className="w-60 flex-shrink-0 bg-white border-r border-gray-100 flex flex-col">
-        {/* Logo */}
-        <div className="flex items-center gap-2.5 px-5 pt-5 pb-4">
-          {/* Sketch2Life logo icon — rocket + leaf matching design */}
-          <div className="w-8 h-8 flex items-center justify-center">
-            <svg viewBox="0 0 36 36" width="36" height="36" fill="none">
-              {/* Leaf / wing shape */}
-              <ellipse cx="12" cy="22" rx="9" ry="5" fill="#22C55E" transform="rotate(-30 12 22)"/>
-              {/* Rocket body */}
-              <path d="M18 6 C18 6 26 10 26 20 L18 28 L10 20 C10 10 18 6 18 6Z" fill="#2563EB"/>
-              {/* Rocket window */}
-              <circle cx="18" cy="17" r="3" fill="white" opacity="0.9"/>
-              {/* Rocket flame */}
-              <path d="M15 28 Q18 34 21 28" fill="#F59E0B"/>
-            </svg>
+    <div className="flex h-screen bg-[#F4F7FB] overflow-hidden select-none">
+      {/* ── Sidebar ─────────────────────────────────── */}
+      <aside className="w-[224px] flex-shrink-0 bg-[#F8FBFF] border-r border-slate-200/70 flex flex-col justify-between">
+        <div>
+          {/* Logo */}
+          <div
+            onClick={() => navigate('/')}
+            className="flex items-center px-6 h-[68px] cursor-pointer"
+          >
+            <img
+              src={sidebarLogo}
+              alt="Sketch2Life"
+              className="h-[42px] w-auto object-contain"
+            />
           </div>
-          <span className="text-[17px] font-bold text-blue-900 tracking-tight">Sketch2Life</span>
+
+          {/* Section label */}
+          <p className="px-6 pt-3 pb-2 text-[11px] font-bold tracking-[0.08em] text-slate-400 uppercase">
+            QUẢN TRỊ
+          </p>
+
+          {/* Nav items */}
+          <nav className="px-3 space-y-1">
+            {NAV_ITEMS.map(({ to, label, icon: Icon, end }) => (
+              <NavLink
+                key={to}
+                to={to}
+                end={end}
+                className={({ isActive }) =>
+                  `flex items-center gap-3.5 px-4 py-2.5 rounded-xl text-[14px] transition-colors ${
+                    isActive
+                      ? 'bg-[#E2EEFF] text-[#1D63F2] font-semibold'
+                      : 'text-[#334155] font-medium hover:bg-slate-100/80 hover:text-slate-900'
+                  }`
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    <Icon
+                      size={18}
+                      strokeWidth={isActive ? 2.2 : 1.9}
+                      className={isActive ? 'text-[#1D63F2]' : 'text-[#475569]'}
+                    />
+                    <span>{label}</span>
+                  </>
+                )}
+              </NavLink>
+            ))}
+          </nav>
         </div>
 
-        {/* Nav */}
-        <nav className="flex-1 overflow-y-auto px-3 pb-3">
-          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest px-2 mb-2 mt-1">
-            Quản trị
-          </p>
-          {NAV_ITEMS.map(({ to, label, icon: Icon, end }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={end}
-              className={({ isActive }) =>
-                `flex items-center gap-2.5 px-3 py-2.5 rounded-xl mb-0.5 text-sm font-medium transition-colors ${
-                  isActive
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                }`
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  <Icon size={17} className={isActive ? 'text-blue-600' : 'text-gray-400'} />
-                  {label}
-                </>
-              )}
-            </NavLink>
-          ))}
-        </nav>
-
-        {/* User footer */}
-        <div className="border-t border-gray-100 p-3">
-          <button className="flex items-center gap-2.5 w-full px-2 py-2 rounded-xl hover:bg-gray-50 transition-colors">
-            <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold flex-shrink-0">
-              QT
+        {/* User footer card */}
+        <div className="m-3 p-2 bg-[#F4F8FD] border border-slate-200/80 rounded-2xl space-y-0.5">
+          <div className="flex items-center justify-between px-2.5 py-2 rounded-xl hover:bg-white/70 cursor-pointer transition">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-[#DCEBFF] text-[#1D63F2] text-xs font-bold flex items-center justify-center">
+                QT
+              </div>
+              <span className="text-[14px] font-bold text-slate-800">Quản trị viên</span>
             </div>
-            <div className="flex-1 text-left min-w-0">
-              <p className="text-sm font-semibold text-gray-800 leading-tight truncate">Quản trị viên</p>
-            </div>
-            <ChevronRight size={14} className="text-gray-400 flex-shrink-0" />
-          </button>
+            <ChevronRight size={15} className="text-slate-400" />
+          </div>
           <button
             onClick={() => navigate('/login')}
-            className="flex items-center gap-2.5 w-full px-2 py-2 mt-1 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors text-sm"
+            className="flex items-center gap-3 w-full px-3 py-2 text-[14px] font-medium text-slate-600 hover:text-red-600 hover:bg-red-50/60 rounded-xl transition-colors"
           >
-            <LogOut size={16} className="text-gray-400" />
-            Đăng xuất
+            <LogOut size={17} className="text-slate-500" />
+            <span>Đăng xuất</span>
           </button>
         </div>
       </aside>
 
-      {/* ── Main ── */}
+      {/* ── Right: Topbar + Content ──────────────────── */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Topbar */}
-        <header className="h-14 bg-white border-b border-gray-100 flex items-center justify-between px-6 flex-shrink-0">
+        <header className="h-[58px] flex-shrink-0 bg-white border-b border-slate-200/70 px-6 flex items-center justify-between relative z-30">
           {/* Breadcrumb */}
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            <Home size={15} className="text-gray-500" />
-            <span className="text-gray-300">/</span>
-            <span className="text-gray-800 font-medium">{pageTitle}</span>
+          <div className="flex items-center gap-2.5 text-[14px] text-slate-500">
+            <Home
+              size={17}
+              className="text-slate-600 cursor-pointer hover:text-blue-600"
+              onClick={() => navigate('/')}
+            />
+            <span className="text-slate-300">/</span>
+            {isDeleteDetail ? (
+              <>
+                <span
+                  onClick={() => navigate('/data-requests')}
+                  className="text-slate-600 font-medium cursor-pointer hover:text-blue-600"
+                >
+                  Consent &amp; dữ liệu
+                </span>
+                <span className="text-slate-300">/</span>
+                <span className="text-slate-700 font-medium">{detailId}</span>
+              </>
+            ) : (
+              <span className="text-slate-600 font-medium">{pageTitle}</span>
+            )}
           </div>
 
-          {/* Right */}
-          <div className="flex items-center gap-3">
+          {/* Right controls */}
+          <div className="flex items-center gap-3.5">
             {/* School selector */}
-            <button className="flex items-center gap-2 text-sm text-gray-700 bg-gray-50/80 border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-100 transition-colors font-medium">
-              <School size={15} className="text-gray-500" />
-              Trường Mầm Xanh
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                <path d="M3 4.5L6 7.5L9 4.5" stroke="#6B7280" strokeWidth="1.5" strokeLinecap="round"/>
-              </svg>
+            <button className="flex items-center gap-2.5 bg-[#F1F5F9] hover:bg-slate-200/70 text-slate-700 text-[13px] font-semibold px-3.5 py-2 rounded-xl transition-colors">
+              <School size={16} className="text-slate-600" />
+              <span>Trường Mầm Xanh</span>
+              <ChevronDown size={14} className="text-slate-500 ml-0.5" />
             </button>
 
-            {/* Bell */}
-            <button className="relative w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-50 transition-colors">
-              <Bell size={18} className="text-gray-500" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
-            </button>
+            {/* Notification bell + Quick Screen Switcher */}
+            <div className="relative">
+              <button
+                onClick={() => setShowQuickNav((v) => !v)}
+                title="Chuyển nhanh màn hình (A00 - A10)"
+                className="relative p-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+              >
+                <Bell size={19} />
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-white" />
+              </button>
+
+              {showQuickNav && (
+                <div className="absolute right-0 mt-2 w-72 bg-white border border-slate-200 rounded-2xl shadow-xl py-2 z-50">
+                  <div className="px-3.5 py-1.5 border-b border-slate-100 flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-700">Danh sách 12 màn hình Admin</span>
+                    <button
+                      onClick={() => setShowQuickNav(false)}
+                      className="text-xs text-slate-400 hover:text-slate-600"
+                    >
+                      Đóng
+                    </button>
+                  </div>
+                  <div className="max-h-80 overflow-y-auto py-1">
+                    {QUICK_SCREENS.map((sc) => (
+                      <button
+                        key={sc.code}
+                        onClick={() => {
+                          setShowQuickNav(false)
+                          navigate(sc.to)
+                        }}
+                        className={`w-full px-3.5 py-2 text-left text-xs flex items-center justify-between hover:bg-blue-50/70 transition ${
+                          location.pathname === sc.to ? 'bg-blue-50 text-blue-600 font-bold' : 'text-slate-700'
+                        }`}
+                      >
+                        <span>{sc.label}</span>
+                        <span className="font-mono text-[11px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
+                          {sc.code}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Avatar */}
-            <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">
+            <div className="w-9 h-9 rounded-full bg-[#DCEBFF] text-[#1D63F2] text-[13px] font-bold flex items-center justify-center">
               QT
             </div>
           </div>
