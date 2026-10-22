@@ -1,13 +1,30 @@
 @import "tailwindcss";
 
+:root {
+  --app-zoom: 1;
+}
+
 * { box-sizing: border-box; }
 
 body {
   margin: 0;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background-color: #F9FAFB;
+  background-color: #F4F7FB;
   color: #111827;
   font-size: 14px;
+  zoom: var(--app-zoom);
+}
+
+.h-screen {
+  height: calc(100vh / var(--app-zoom)) !important;
+}
+
+.w-screen {
+  width: calc(100vw / var(--app-zoom)) !important;
+}
+
+.min-h-screen {
+  min-height: calc(100vh / var(--app-zoom)) !important;
 }
 
 /* Scrollbar */
