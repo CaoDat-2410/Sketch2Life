@@ -33,3 +33,19 @@ Actual preparation request: "tiếp tục task tiếp" after assistant proposed
 planning BE2-14. This is not approval of a plan the user has not yet reviewed.
 No implementation, runtime provisioning, push/merge/deploy or provider use is
 authorized by this record. Record actual revision/hash and reply when approved.
+
+## Supplemental cross-lane BE2-08 policy approval — 2026-10-21
+
+- Status: APPROVED — supplemental offline scope only.
+- Card: FEAT-049 / BE2-14.
+- Approved addendum: plan/CROSS_LANE_BE2_14_SCOPE_DRAFT_20261021.md
+- Approved addendum SHA256: 417A740BA60E624BE2AA78D861E8DAEF80094AAF9992C3E65E782EB7EA78C9D8
+- Scope: exact BE2-08 request/phase mapping, current-use fences, separate worker/provider execution authorization, and budget/concurrency reservation and settlement contracts. Existing policy and accounting schemas are used for this slice; a schema change requires a new scope and approval.
+- Existing task and isolated PostgreSQL approvals remain unchanged. Exact execution file subset must be recorded before editing.
+- No provider activation, credentials, runtime/Lightning/Modal, BE2-08 call-site changes, publication, or card status/acceptance changes are included.
+- Approver: project owner, direct instruction in Codex chat.
+- Recorded: 2026-10-21, Asia/Saigon; exact message timestamp not independently asserted.
+
+### Verbatim owner approval
+
+> Duyệt scope BE2-01, BE2-07, BE2-08, BE2-09 và BE2-14 theo đúng nội dung và SHA trong hồ sơ. Chỉ làm offline. Giữ X05d BLOCKED, X05c/CR09-02 mở; không chạy Modal, Lightning, provider hay runtime.

@@ -1,5 +1,43 @@
 # Feature decisions
 
+## Claude D3 rereview 4 — align deny/defer contract paths — 2026-10-21
+
+The independent rereview report is FEAT-057 evidence/notes/CROSS_LANE_UOW_CLAUDE_D3_REREVIEW_REPORT_20261021.md (SHA256 92BE229378A2DE06BAEED1FC6F675EA15FED338892A002A833F81F6972B44C12). D3 C1-A/C2-A remain selected. A new D4 gate covers BUDGET_EXCEEDED after provider completion; no result is chosen.
+
+BE2-14 scope Rev3 now matches the BE2-01/14 budget CR path candidates: ai_policy_use schema/port/service are primary deny/defer paths; accounting schema/port are conditional only under a separately adopted reservation/phase contract. No budget values, settlement behavior or execution authority are inferred. No source/test/approval/card acceptance changed.
+
+
+## Owner D3: deny/defer contract, foundation-owned QUEUED hold - 2026-10-21
+
+The owner selected C1-A/C2-A; exact direction is in FEAT-057 evidence/notes/CROSS_LANE_UOW_OWNER_DECISION_D3_20261021.md, SHA256 C1799417AFD2DDB989D6C888A8B3F9702D4A6B4DC2A8B90637DBD6E11C3AE54C. For this slice BE2-14 supplies only an adopted deny/defer contract. It must not issue budget or worker/provider execution authority by assumption.
+
+The joint BE2-01/14 budget CR makes BE2-01 persist hold metadata and keep job/run QUEUED, change all three cancellation-on-budget branches, and protect dispatch/ack/watchdog/retry recovery. Consent/kill denial still cancels. No provider runs during hold; current eligibility, execution and exact-attempt reservation must be valid before S. Reservation/accounting work stays outside lifecycle locks under a separately adopted handoff. Endpoints are RESUMED or legitimately CLOSED.
+
+Latest policy candidate: plan/CROSS_LANE_BE2_14_SCOPE_REV2_DRAFT_20261021.md. It and FEAT-044's joint budget/schema CRs require independent review and supplemental approvals. Units, limits, maximum defer duration/deadline action and reservation expiry/renewal remain pending; no values, automatic deadline action or new authority are chosen. Existing exact-hash approval is not expanded. No policy source/test/schema/official approval or acceptance change occurs.
+
+
+## FEAT-057 implementation-scope addendum — 2026-10-21
+
+- Approved addendum: plan/CROSS_LANE_BE2_14_SCOPE_DRAFT_20261021.md
+- Approval record: approvals/TASK_APPROVAL.md
+- Proposed scope defines BE2-08 phase mapping and keeps current-use eligibility, worker/provider authorization, and budget/concurrency reservation/accounting as separate decisions.
+- Owner approved the exact scope SHA256 417A740BA60E624BE2AA78D861E8DAEF80094AAF9992C3E65E782EB7EA78C9D8. The verbatim approval is in approvals/TASK_APPROVAL.md. The minimal execution file subset must be recorded before edits.
+- Existing provider/runtime gates and card status remain unchanged; the approval-recording step does not change BE2-14 source/tests.
+
+## FEAT-057 cross-card owner response — 2026-10-21
+
+The user confirmed they own the affected cards and approved the G0 proposal
+with `Chốt theo đề xuất`. For BE2-14, B7/POLICY-08 is `ADOPT_WITH_CHANGES`:
+fail-closed phase-specific checks through BE2-08 finalization; keep current-use
+eligibility separate from worker/provider execution authorization and
+budget/concurrency reservation, settlement, and release, with explicit owners,
+keys, and retry/replay behavior. See FEAT-057's
+`evidence/notes/G0_CARD_OWNER_DECISION_BALLOT_20261021.md`.
+
+This adopts contract direction only. It does not approve new BE2-14 source,
+schema, or test changes, and does not alter BE2-14 status/acceptance or its
+runtime/provider gates.
+
 ## D31 — separate actual SQL approval and evidence, not inherited runtime authority
 
 2026-10-18 owner replied "duyệt" to specific local isolated PostgreSQL17 synthetic
@@ -512,3 +550,17 @@ foundation support is reuse input, not full BE2-14 completion. Profile/limit
 definitions reference approved values; no secrets or arbitrary fields. Keep
 real provider verification, current auth and integration distinct from fixtures.
 P1–P5 are proposals pending approval, not approved schema/security policy.
+
+## Owner-directed BE2-14 phase and reservation disposition — 2026-10-21
+
+The owner directed that current-use eligibility, worker execution authorization,
+and budget/concurrency reservation/accounting remain separate decisions. The
+owner will provide the budget unit and limit separately; do not infer or invent
+either value. Reservation expiry/renewal must use a versioned CR. Until the
+required authority, budget inputs and adopted contract are available, unknown or
+unavailable gates fail closed and no provider generation is enabled.
+
+Reservation timing (before dispatch or at worker admission), settlement,
+lost-ack/winner semantics, and any schema/file manifest remain open for the
+versioned CR and later approval. The new shared-UoW draft does not authorize
+BE2-14 source/schema changes. No source/test/status/acceptance changed.

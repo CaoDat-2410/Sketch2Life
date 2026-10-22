@@ -1,5 +1,17 @@
 # Evidence index — BE2-14
 
+## Current checkpoint: Claude D3 rereview follow-up - 2026-10-21
+
+See FEAT-057 report notes/CROSS_LANE_UOW_CLAUDE_D3_REREVIEW_REPORT_20261021.md and this card's DECISIONS/current-state. Successor scope is draft; completion-time resource decision D4 remains pending. No implementation approval or card acceptance follows.
+
+
+## Current checkpoint: D3 owning-card candidates - 2026-10-21
+
+Owner C1-A/C2-A conditions are preserved in FEAT-057 evidence/notes/CROSS_LANE_UOW_OWNER_DECISION_D3_20261021.md. This card's DECISIONS/current-state and successor scope/CR reflect the conditions. FEAT-057 evidence/README.md indexes the full next-review package and its exact hashes and documentation-validation receipt.
+
+Independent review, missing contract adoption, exact file manifests and supplemental S/F/schema approvals remain pending. Earlier dated entries are historical. No source/test/runtime, official approval or acceptance change is claimed.
+
+
 2026-10-20 integration-candidate recheck: see
 notes/LOCAL_OFFLINE_RECHECK_20261020.md and
 raw/LOCAL_OFFLINE_RECHECK_20261020.summary.json. Owned 1,061 and foundation
