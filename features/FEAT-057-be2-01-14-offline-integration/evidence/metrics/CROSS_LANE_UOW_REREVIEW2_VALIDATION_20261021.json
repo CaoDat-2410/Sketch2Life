@@ -1,0 +1,56 @@
+{
+  "scope": "FEAT-044 shared lifecycle UoW scope Rev4 and FEAT-057 slice plan Rev5 documentation successor",
+  "observed_at": "2026-10-21 13:58:49 +07:00",
+  "branch": "feature/be2-backend-ai-integration",
+  "head": "1649b72978877d82b4d7662040ff3555dee0a3a7",
+  "worktree_dirty_before": true,
+  "staged_before": 0,
+  "source_manifest": "features/FEAT-057-be2-01-14-offline-integration/evidence/metrics/CROSS_LANE_UOW_SOURCE_HASHES_REV2_20261021.json",
+  "source_manifest_sha256": "01160A4876ABB97CC33AC17108ADAE6F95E876DB86A24DF84B9832EC2B4F74FC",
+  "pinned_source_files": 18,
+  "pinned_source_hashes_matched": 18,
+  "review_report_sha256": "0507A53D569B34ACF9EB44549D6BE794851335F3DBB88FD89E48D17E4AA649F0",
+  "artifacts": [
+    {
+      "sha256": "9B96CA79FDA1DB8DFCBD2DFED6550ECA0645AD0C86CCEEAAF79793B0B7200381",
+      "path": "features/FEAT-044-be2-ai-job-foundation/plan/CROSS_LANE_FOUNDATION_UOW_SCOPE_REV4_DRAFT_20261021.md"
+    },
+    {
+      "sha256": "423E1058317B63F7354E1DAC398D0B1D9AEDE7FAD0C3DCB786C41AB5FD263BE3",
+      "path": "features/FEAT-057-be2-01-14-offline-integration/plan/CROSS_LANE_X01_X05_SLICE_PLAN_REV5_DRAFT_20261021.md"
+    },
+    {
+      "sha256": "0507A53D569B34ACF9EB44549D6BE794851335F3DBB88FD89E48D17E4AA649F0",
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_UOW_CLAUDE_REREVIEW_REPORT_20261021.md"
+    },
+    {
+      "sha256": "15139BD8E017A10C758D979E92E1DFE7759D72BD981163386D595EE83E9A6E1A",
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_UOW_CLAUDE_REREVIEW2_DISPOSITION_20261021.md"
+    },
+    {
+      "sha256": "51C90446F0EC32DA916BFF1E6A8402F426282082A647F875924D68F0E4EB2854",
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_UOW_CLAUDE_REREVIEW2_PROMPT_20261021.md"
+    }
+  ],
+  "checks": {
+    "validate_harness": "PASS",
+    "validate_repository_security": "PASS (4587 files scanned)",
+    "validate_architecture": "PASS",
+    "validate_skeleton": "PASS",
+    "git_diff_check": "PASS",
+    "source_hashes": "PASS (18/18)",
+    "json_parse": "PASS",
+    "changed_doc_whitespace": "PASS (no trailing whitespace/tabs; final newline except preserved raw report and byte-pinned manifest)"
+  },
+  "pytest": "NOT_RUN",
+  "postgresql": "NOT_RUN",
+  "modal": "NOT_RUN",
+  "lightning": "NOT_RUN",
+  "provider": "NOT_RUN",
+  "server_runtime": "NOT_RUN",
+  "production_source_changed_this_turn": false,
+  "tests_changed_this_turn": false,
+  "approval_files_changed_this_turn": false,
+  "staged_after": 0,
+  "commit_push_merge_branch_worktree_changes": false
+}

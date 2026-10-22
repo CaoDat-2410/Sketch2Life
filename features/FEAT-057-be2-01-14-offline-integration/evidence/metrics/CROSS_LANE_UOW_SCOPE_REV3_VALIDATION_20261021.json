@@ -1,0 +1,66 @@
+{
+  "scope": "FEAT-044 shared lifecycle UoW scope revision 3 pre-review validation",
+  "recorded_at": "2026-10-21T13:13:18+07:00",
+  "worktree": ".worktrees/be2-01-14-integration-linked",
+  "branch": "feature/be2-backend-ai-integration",
+  "head": "1649b72978877d82b4d7662040ff3555dee0a3a7",
+  "worktree_initially_dirty": true,
+  "staged_files": 0,
+  "review_target": {
+    "path": "features/FEAT-044-be2-ai-job-foundation/plan/CROSS_LANE_FOUNDATION_UOW_SCOPE_REV3_DRAFT_20261021.md",
+    "sha256": "507EF55787A36EAE2E75E1BBACD8EBDD8DA8A5ED68DB190974289D88C7666C56"
+  },
+  "owner_decision": {
+    "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_UOW_OWNER_DECISION_D1_20261021.md",
+    "sha256": "3EECF89A488F7B2539AF41BE5CEF830D4C2509D6E93D478F624DF46B4F32A16D",
+    "selection": "A",
+    "implementation_approval": false
+  },
+  "claude_review_prompt": {
+    "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_UOW_CLAUDE_REREVIEW_PROMPT_20261021.md",
+    "sha256": "CF91BAF03AA8891ACCE4069A0346B39F7C2A1B5DFBF328B719E5FF6EF4F2DAD3"
+  },
+  "source_hash_manifest": {
+    "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/metrics/CROSS_LANE_UOW_SOURCE_HASHES_20261021.json",
+    "sha256": "88368265E8EE262F7DA6DEC23F3DAB6C749F482016EC79AA69F40B186DD5B92F",
+    "files_verified": 14,
+    "mismatches": 0
+  },
+  "slice_plan_revision_4": {
+    "path": "features/FEAT-057-be2-01-14-offline-integration/plan/CROSS_LANE_X01_X05_SLICE_PLAN_DRAFT_20261021.md",
+    "sha256": "6AF69E07E7FC51BD6AAA992A703FBE97AC2BC8E588FEC9F8735FBF74E88C6601",
+    "amended": false,
+    "alignment_review_pending": true
+  },
+  "dispositions": {
+    "X01": "PARTIAL",
+    "X05d": "BLOCKED",
+    "X05c_CR09_02": "OPEN",
+    "BE2_14_budget_unit_limit": "OWNER_INPUT_PENDING",
+    "modal_lightning_provider_runtime": "DEFERRED"
+  },
+  "checks": {
+    "validate_harness": "PASS",
+    "validate_repository_security": "PASS",
+    "security_scanned_files": 4580,
+    "validate_architecture": "PASS",
+    "validate_skeleton": "PASS",
+    "git_diff_check": "PASS",
+    "edited_document_eol_whitespace": "PASS",
+    "edited_documents_checked": 20
+  },
+  "tests_and_runtime": {
+    "pytest": "NOT_RUN",
+    "postgresql_sql": "NOT_RUN",
+    "modal": "NOT_RUN",
+    "lightning": "NOT_RUN",
+    "provider_server_runtime": "NOT_RUN"
+  },
+  "change_boundary": {
+    "production_source_edited_this_update": false,
+    "test_source_edited_this_update": false,
+    "approval_records_edited_this_update": false,
+    "preexisting_dirty_changes_preserved": true,
+    "staged_commit_push_merge_branch_change": false
+  }
+}

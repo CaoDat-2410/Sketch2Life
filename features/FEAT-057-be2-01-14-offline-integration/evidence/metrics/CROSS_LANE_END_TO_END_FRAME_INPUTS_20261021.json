@@ -1,0 +1,260 @@
+{
+  "purpose": "Exact-source manifest for the FEAT-057 full BE2 cross-lane execution-frame draft. This pins planning inputs, not implementation readiness or adoption.",
+  "date": "2026-10-21",
+  "status": "DRAFT_PLAN_INPUT_SNAPSHOT",
+  "branch": "feature/be2-backend-ai-integration",
+  "head": "1649b72978877d82b4d7662040ff3555dee0a3a7",
+  "worktree_at_plan_start": {
+    "dirty_paths": 145,
+    "staged_empty": true,
+    "note": "Snapshot taken before this plan and ledger updates; existing changes were preserved."
+  },
+  "plan": {
+    "path": "features/FEAT-057-be2-01-14-offline-integration/plan/CROSS_LANE_END_TO_END_EXECUTION_FRAME_DRAFT_20261021.md",
+    "sha256": "1B17056637542C78342076C050E46C55666DE21F2AC562CCCBD2D7F48406C2FD",
+    "bytes": 21759
+  },
+  "inputs": [
+    {
+      "path": "AGENTS.md",
+      "role": "repository operating rules",
+      "sha256": "854BE13B68A6F45F18995522229C9D75C27702B0F8637B827FBF9BA1AE3DA313",
+      "bytes": 2459
+    },
+    {
+      "path": "docs/context/PROJECT_CONTEXT.md",
+      "role": "project context and current checkpoints",
+      "sha256": "E05399CDD1340127D835694AAF93DBEB25223860B6D125BE0D5EAF5304D7B5CD",
+      "bytes": 74589
+    },
+    {
+      "path": "docs/context/SOURCE_REGISTER.md",
+      "role": "authority and source register",
+      "sha256": "E9EB7F9DF27CE0C2641222E471394936AB4F7264D1D68ADDB841FF60A4A9BC19",
+      "bytes": 56271
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/approvals/TASK_APPROVAL.md",
+      "role": "FEAT-057 authorized boundary",
+      "sha256": "66BFD26AD0CF8646FBC0D8097C2B957939A43F74E42739E50BF83CABD9936557",
+      "bytes": 5020
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/plan/PLAN.md",
+      "role": "integration candidate plan",
+      "sha256": "DD61CB8CAEBD96C2A4B790C4F02FA810B4677A108DCF66E4A277AAC4F4127806",
+      "bytes": 4388
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/plan/CROSS_LANE_INTEGRATION_PLAN_REV2_20261020.md",
+      "role": "approved X01-X09 integration plan",
+      "sha256": "2015173C1FDADEBBE5D01ADD8844160F24F10E2B495250F67A927529B44C570B",
+      "bytes": 25810
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/plan/CROSS_LANE_X01_X05_SLICE_PLAN_REV8_DRAFT_20261021.md",
+      "role": "latest X01/X05 lifecycle draft",
+      "sha256": "7EC0CF0C8E29366E580CF59C27CF64BDA0A580E3442F5002ACF1B2048CB74FC3",
+      "bytes": 16743
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/plan/CARD_IMPLEMENTATION_SCOPE_INDEX_DRAFT_20261021.md",
+      "role": "card scope inventory",
+      "sha256": "4850054A76DC733AC2F1FE6EC95AD25EE5A6164762C83EA62FE283B61081E48B",
+      "bytes": 12706
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/artifacts/FEATURE_ID_COLLISION_MAP.md",
+      "role": "task-to-feature identity mapping",
+      "sha256": "862A576ACBDBD2AC0C930F213547B33722598B9FA3E5ECC132214F74205EC9EA",
+      "bytes": 1049
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/CONTEXT.md",
+      "role": "FEAT-057 current context",
+      "sha256": "9A1741F8AA07299793A2BE9A51B04B42DC928E097917F9E0CD67CA1D9F55C131",
+      "bytes": 25356
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/DECISIONS.md",
+      "role": "FEAT-057 owner decisions",
+      "sha256": "CCAFECD177EBBD49CC03D912C01BB6A1263FF624CC4A5A287780E38EF9EBD1DA",
+      "bytes": 25659
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/status/STATUS.md",
+      "role": "FEAT-057 status",
+      "sha256": "503DDB4459724C4745727E124B6A95793B2D9AD408F1B782ED5D2A6562EEF5E9",
+      "bytes": 24166
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/README.md",
+      "role": "FEAT-057 evidence index",
+      "sha256": "0318D3570E1CF6BCD7C49C5123E036A474BA6392FE58E2AAF9C1EF787D79148D",
+      "bytes": 19586
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_UOW_OWNER_DECISION_D1_20261021.md",
+      "role": "D1 lifecycle owner direction",
+      "sha256": "3EECF89A488F7B2539AF41BE5CEF830D4C2509D6E93D478F624DF46B4F32A16D",
+      "bytes": 4909
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_UOW_OWNER_DECISION_D2_20261021.md",
+      "role": "D2 stale state and attempt binding",
+      "sha256": "641A2239C6C1064C543D16A1DB24E73AC771AA4758889EC3A19C8458E1720103",
+      "bytes": 1926
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_UOW_OWNER_DECISION_D3_20261021.md",
+      "role": "D3 budget hold and B-stale owner direction",
+      "sha256": "C1799417AFD2DDB989D6C888A8B3F9702D4A6B4DC2A8B90637DBD6E11C3AE54C",
+      "bytes": 5373
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_UOW_OWNER_D4_COMPLETION_BUDGET_BALLOT_DRAFT_20261021.md",
+      "role": "pending D4 decision",
+      "sha256": "DE50DBD11641E2FD20A8DF0D8F62091D4DBC89FCC332CBE2F60FC222A9AF2D96",
+      "bytes": 1958
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_UOW_CLAUDE_D3_REREVIEW_REPORT_20261021.md",
+      "role": "independent lifecycle rereview findings",
+      "sha256": "92BE229378A2DE06BAEED1FC6F675EA15FED338892A002A833F81F6972B44C12",
+      "bytes": 12137
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/APPROVED_SCOPE_EXECUTION_MANIFEST_20261021.md",
+      "role": "exact approved-scope execution state",
+      "sha256": "E6CB0578DFCA0BA37BBA303CCB1846D18616DC9C6B4027B18162156EB28F2407",
+      "bytes": 3806
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_X01_REVIEW_20261020.md",
+      "role": "X01 source and fence findings",
+      "sha256": "A6FFB34EBC829EA45E32C3DB65CFC929D437DB230805C46AA3E15560C110E041",
+      "bytes": 5471
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_X02_REVIEW_20261020.md",
+      "role": "X02 invalidation findings",
+      "sha256": "C533E626091BC7F6100A1D9FA61EC57B2E23D46C14D80C8A4CF8BCDD96E3AF4C",
+      "bytes": 3001
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_RESIDUAL_REVIEW_20261020.md",
+      "role": "X04-X09 residual findings",
+      "sha256": "8DC660F15E6BEFF46DEA499396CD3696F22C5AC35BEC52F91E1B30CD5211DA36",
+      "bytes": 4172
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_BE1_ARTIFACTS_ADOPTION_PACKET_DRAFT_20261021.md",
+      "role": "pending BE1 artifact adoption",
+      "sha256": "51D994324DD9DC09F37BF867974FCA3529C60E57C638E5BE294905867584B54C",
+      "bytes": 9883
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/notes/BE1_PRELIMINARY_HANDOFF_20261021.md",
+      "role": "latest preliminary BE1 handoff",
+      "sha256": "384CE291B13000CA99858DC64B34A228F3FF6310282C61D32D9DE0744DF00D18",
+      "bytes": 6809
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/metrics/CROSS_LANE_X01_20261020.json",
+      "role": "X01 scoped test evidence",
+      "sha256": "16916B00817A60D465098B5A970200A64421988E164768C7B544460CEF0BA1F3",
+      "bytes": 5900
+    },
+    {
+      "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/metrics/CROSS_LANE_X01_MODAL_20261020.json",
+      "role": "Modal scoped receipt",
+      "sha256": "48BEFA6C91128A835FD27375012A009B58D74F13A2933B84401F643F1A9CE50D",
+      "bytes": 2516
+    },
+    {
+      "path": "features/FEAT-044-be2-ai-job-foundation/plan/CROSS_LANE_FOUNDATION_UOW_SCOPE_REV7_DRAFT_20261021.md",
+      "role": "BE2-01 lifecycle scope candidate",
+      "sha256": "BD119A05F72D311BAC299F3E940927DCE80D67DC1CD38EBE87B7D5ACC1B6EAE9",
+      "bytes": 29826
+    },
+    {
+      "path": "features/FEAT-044-be2-ai-job-foundation/plan/CROSS_LANE_BUDGET_DEFERRAL_CR_REV2_DRAFT_20261021.md",
+      "role": "joint BE2-01/14 budget CR",
+      "sha256": "55CB59BE00C5A2F40AE8D635FA07F44DDA3FEE000B21C2EBD3414C0EB9D93376",
+      "bytes": 17097
+    },
+    {
+      "path": "features/FEAT-044-be2-ai-job-foundation/plan/CROSS_LANE_STALE_FINALIZATION_CR_REV2_DRAFT_20261021.md",
+      "role": "B-stale CR candidate",
+      "sha256": "A4E48C46221C995276F88D678DCD62AC2E3C9B321B1CBA972346293AB63C993B",
+      "bytes": 18234
+    },
+    {
+      "path": "features/FEAT-050-be2-knowledge-video/plan/CROSS_LANE_BE2_08_SCOPE_REV3_DRAFT_20261021.md",
+      "role": "BE2-08 lifecycle scope candidate",
+      "sha256": "66C614FF268E418F27FA4923FB7272A845F7BC7DA8BB225B8CD10032D364F801",
+      "bytes": 26749
+    },
+    {
+      "path": "features/FEAT-050-be2-knowledge-video/plan/CROSS_LANE_BE2_08_ARTIFACT_READ_MODEL_SCOPE_DRAFT_20261021.md",
+      "role": "BE2-08 read model supplement",
+      "sha256": "F24823A192A90F11649871348AC0C539C3E63501AAA3A75C21DBC36EB7F15FA1",
+      "bytes": 6408
+    },
+    {
+      "path": "features/FEAT-049-be2-ai-policy/plan/CROSS_LANE_BE2_14_SCOPE_REV3_DRAFT_20261021.md",
+      "role": "BE2-14 policy scope candidate",
+      "sha256": "02526017042AC56224D2FF63119B0E927EFBC38DE839879632B3831B9ABDABAE",
+      "bytes": 8662
+    },
+    {
+      "path": "features/FEAT-056-be2-knowledge-script/plan/CROSS_LANE_BE2_07_SCOPE_DRAFT_20261021.md",
+      "role": "BE2-07 approved-scope candidate",
+      "sha256": "CA531682CCB0ABD12BB8B270F0258D9B3EBBCE4DBF917805FBC7A770BBF6EB24",
+      "bytes": 5942
+    },
+    {
+      "path": "features/FEAT-051-be2-video-review-playback/plan/CROSS_LANE_BE2_09_SCOPE_DRAFT_20261021.md",
+      "role": "BE2-09 scope candidate",
+      "sha256": "121699BE6A3134C65EF16917941FA75F00401EA18462BA929C2E897BCAB46285",
+      "bytes": 5474
+    },
+    {
+      "path": "features/FEAT-048-be2-content-publication/plan/PLAN.md",
+      "role": "BE2-12 publication contract",
+      "sha256": "B7406837014F5D855E766BA0F0BA15A588C193F8DF1FD977B4C9879FF6B77FAF",
+      "bytes": 17774
+    },
+    {
+      "path": "features/FEAT-052-be2-video-failure-disposition/plan/PLAN.md",
+      "role": "BE2-10 failure disposition contract",
+      "sha256": "8D0162C6F78B019406910927952C3D85B435A81D50DE80874B023FA3A9CFB420",
+      "bytes": 10660
+    },
+    {
+      "path": "features/FEAT-053-be2-activity-execution/plan/PLAN.md",
+      "role": "BE2-11 activity consumer contract",
+      "sha256": "09348E0FCAFB96370C3C58E99AE5B8A8EAEE16D416694066985086ECDE09AC1D",
+      "bytes": 13019
+    },
+    {
+      "path": "features/FEAT-054-be2-preset-automation/plan/PLAN.md",
+      "role": "BE2-13 preset contract",
+      "sha256": "601AFAB84123EE5DD48AA04CF643EA7CD904F53675A0B16A9C007684660E1548",
+      "bytes": 10806
+    },
+    {
+      "path": "features/FEAT-048-be2-vision-correction/plan/C2_TYPED_CONTEXT_PLAN_REV2_APPROVED.md",
+      "role": "BE2-02 typed-context approved plan",
+      "sha256": "4B339514D3D5BF01B9A8C23F0A15EA5E71B4D2F1389DB9E141E31AA322CD57C2",
+      "bytes": 19655
+    }
+  ],
+  "claims_not_made": [
+    "No full cross-lane PASS",
+    "No BE1 adoption",
+    "No card acceptance/status change",
+    "No implementation or runtime approval",
+    "No Modal/Lightning/provider/database run"
+  ]
+}
