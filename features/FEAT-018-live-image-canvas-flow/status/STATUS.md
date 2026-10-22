@@ -1,7 +1,51 @@
 # FEAT-018 status — subject recall and Pixi main-flow hardening
 
-Status: IN_PROGRESS — approved offline implementation verified; live rig/Pixi visual acceptance pending
-Updated: 2026-10-21
+Status: IN_PROGRESS — P2-T5 bounded offline candidate checks recorded; live rig/Pixi visual acceptance pending
+Updated: 2026-10-22
+
+## P2-T5 bounded offline issuance - 2026-10-22
+
+Status: APPROVED - BOUNDED OFFLINE SLICE ONLY; FULL TASK 5 OPEN.
+Person 2 issued FEAT018_P2T5_BOUNDED_OFFLINE_APPROVAL_01 and approved a one-append exception to the
+APP hold for the current coordinator's canonical append. The append is recorded and read back before any
+implementation; APP hold continues outside it. Plan revision 1.0 synchronized the approved source
+revision 0.9/hash and D1-D4; revision 1.1 records the subsequent remaining-gates disposition without
+changing that bounded scope. Offline implementation/checks were authorized only in the 13-file list.
+Candidate implementation and runner execution are recorded in
+`evidence/notes/P2_T5_OFFLINE_EVALUATION_20261022.md`. Final unit/manifest subset: 49 passed;
+existing regressions: 162 passed, 5 skipped (not PASS credit). After the test-only socketpair guard
+correction, focused pytest passes 56 tests and a subsequent run of the full
+`test_live_image_demo_api.py` module passes 30 tests. HTTP counter scope is test-specific:
+invalid-media cases assert Vision/ASR/localizer zero; the admitted-upload and rejected-implicit flow
+asserts Vision zero, then one injected Vision fake call after explicit understanding (localizer zero;
+ASR is not injected there). This does not establish live-provider behavior.
+Ruff and scoped mypy were rerun after the correction and pass; their earlier 18 Ruff and 13 mypy
+findings are recorded as historical. Earlier missing-python-multipart collection and r3
+socketpair-guard failures remain in the evidence chronology; python-multipart 0.0.32 was installed
+offline in the local venv only, with no dependency-file change. The declared range is
+`python-multipart>=0.0.20,<1`. After the r4 guard correction and latest documentation synchronization,
+architecture, skeleton and repository-security validators returned VALID; security scanned 2,596
+publishable files and is not Security owner approval. Repository harness remains HARNESS_INVALID
+for unrelated FEAT-045/046/047 missing evidence directories; no pass or waiver is inferred.
+Overall verification remains INCOMPLETE.
+Runner primary slots: 100 SUCCEEDED / 20 NOT_EXECUTED; supplemental: 21 SUCCEEDED / 5 NOT_EXECUTED.
+These are diagnostic execution counts, not acceptance coverage. All T5-A1..A9 remain OPEN.
+OSError proof and task-level rate-limit/provider-error acceptance remain HELD; quality reference
+and HTTP proof remain separate. Full Task 5 and
+P2T4-FU-01..FU-10 remain OPEN, with no FU assignment. Security PENDING; all live gates unchanged.
+
+## P2-T5 remaining-gates disposition — 2026-10-22
+
+Person 2 issued `W2_FEAT018_P2T5_REMAINING_GATES_DISPOSITION_01` in the coordinator chat; this is
+a chat-relayed issuance, not an entry in `approvals/TASK_APPROVAL.md`, which was not changed under
+the continuing APP hold. It preserves the bounded offline approval without expanding its scope.
+Orientation remains HELD (no A1 coverage; full A1 OPEN); A7
+and A8 remain HELD (no bundle build/scan or live smoke/provider/Modal); stale-session remains
+HELD/UNMAPPED; rate-limit/provider-error characterization is allowed only for the existing mapping
+while task acceptance remains HELD/UNMAPPED; OSError/attempt-number proof remains HELD with no
+adapter fix; and A9 remains OPEN without waiver. No gate is marked PASS. No P2T4-FU is transferred
+or assigned, and no new owner/follow-up is created. New scope requires separate disposition and
+approval. Full Task 5 remains OPEN; APP hold IN FORCE; Security PENDING.
 
 ## Candidate-stage Gate 3 snapshot — 2026-10-21 (historical)
 

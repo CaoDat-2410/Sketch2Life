@@ -2,6 +2,42 @@
 
 Evidence belongs under this feature only.
 
+## P2-T5 bounded offline candidate - 2026-10-22
+
+Under Person 2 issuance `FEAT018_P2T5_BOUNDED_OFFLINE_APPROVAL_01`, local candidate evidence is
+recorded in the [offline note](notes/P2_T5_OFFLINE_EVALUATION_20261022.md),
+[runner metrics](metrics/P2_T5_OFFLINE_EVALUATION_20261022.json) and
+[status](notes/P2_T5_OFFLINE_STATUS_20261022.txt). This index does not publish/promote the candidate
+as accepted evidence. The note binds source rev 0.9/hash, the canonical issuance, baseline HEAD,
+actual candidate digests, exact commands, failed attempts and remaining holds.
+
+Runner execution succeeds for 100 primary and 21 supplemental cases; 20 primary and 5 supplemental
+cases are NOT_EXECUTED/HELD. Execution is separate from requirements; no HELD coverage is credited.
+Unit/manifest subset: 49 passed. Regressions: 162 passed, 5 skipped (not PASS credit). After the
+test-only socketpair guard correction, focused pytest passes 56 tests and a subsequent run of the
+full `test_live_image_demo_api.py` module passes 30 tests. HTTP counter scope is test-specific:
+invalid-media cases assert Vision/ASR/localizer zero; the admitted-upload and rejected-implicit flow
+asserts Vision zero, then one injected Vision fake call after explicit understanding (localizer zero;
+ASR is not injected there). This does not establish live-provider behavior. Ruff and scoped mypy pass after the correction;
+their earlier 18 Ruff and 13 mypy findings are historical and recorded in the evidence note. The declared
+`python-multipart` range is `>=0.0.20,<1`; version 0.0.32 was installed in the local venv only.
+After the r4 guard correction and latest documentation synchronization, architecture, skeleton and
+repository-security checks returned VALID (security scanned 2,596 publishable files; not Security owner
+approval). Repository harness is HARNESS_INVALID for unrelated FEAT-045/046/047 missing evidence
+directories, not PASS or a waiver. Overall verification remains INCOMPLETE.
+Earlier missing-python-multipart collection and r3 guard failures remain in the evidence note's chronology.
+Quality-reference evidence does not prove HTTP admission. All full acceptance rows, Task 5 and
+FU-01..FU-10 remain OPEN; unresolved portions HELD/UNMAPPED; Security PENDING; no live authority.
+
+Person 2 issued `W2_FEAT018_P2T5_REMAINING_GATES_DISPOSITION_01` in the coordinator chat; this is
+a chat-relayed issuance, not an entry in `approvals/TASK_APPROVAL.md`, which was not changed under
+the continuing APP hold. It preserves the bounded offline scope:
+orientation, A7, A8, stale-session, rate-limit/provider-error acceptance, and OSError/attempt-number
+proof remain HELD/UNMAPPED as specified; A9 remains OPEN. Characterization of existing rate-limit/
+provider-error mappings is not acceptance. No follow-up is assigned or transferred, and no live,
+bundle, or adapter work is authorized. See the disposition record in the plan, status, and offline
+evidence note.
+
 P2 publication policy: working research, review briefs and handoff drafts remain
 local and are not canonical public evidence. Publish only selected completed P2
 records after owner review, then add them to this index. Completing a research

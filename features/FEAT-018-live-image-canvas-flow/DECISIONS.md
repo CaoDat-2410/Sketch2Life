@@ -1,5 +1,38 @@
 # FEAT-018 decisions
 
+- 2026-10-22 coordinator execution record under FEAT018_P2T5_BOUNDED_OFFLINE_APPROVAL_01:
+  the candidate runner reports 100/120 primary and 21/26 supplemental diagnostic executions
+  SUCCEEDED; remaining 20+5 are NOT_EXECUTED/HELD. No full acceptance is marked satisfied.
+  The final unit/manifest subset passes 49 tests; regressions pass 162 with 5 intentional skips;
+  after the test-only socketpair guard correction, focused pytest passes 56 tests and a subsequent
+  run of the full `test_live_image_demo_api.py` module passes 30 tests. HTTP counter scope is
+  test-specific: invalid-media cases assert Vision/ASR/localizer zero; the admitted-upload and
+  rejected-implicit flow asserts Vision zero, then one injected Vision fake call after explicit
+  understanding (localizer zero; ASR is not injected there). This does not establish live-provider
+  behavior. Ruff and scoped mypy pass
+  again after the guard correction. The earlier missing-python-multipart collection error and r3
+  socketpair-guard failure remain historical events; the project-declared range is
+  `python-multipart>=0.0.20,<1`, and the verified 0.0.32 wheel was installed offline in the local
+  venv without changing project dependencies. After the r4 guard correction and latest
+  documentation synchronization, architecture, skeleton and repository-security checks returned
+  VALID (security scanned 2,596 publishable files; not Security owner approval). The repository-
+  harness check remains HARNESS_INVALID for FEAT-045/046/047 missing evidence directories; it is a
+  failure, not a pass or waiver. Overall verification remains INCOMPLETE.
+  This is an observed candidate record, not a new Person 2 disposition, Task 5 acceptance,
+  live grant, final handoff review or FU assignment. See the P2-T5 offline evidence note.
+
+- 2026-10-22 Person 2 issued FEAT018_P2T5_BOUNDED_OFFLINE_APPROVAL_01, adopting source plan
+  rev 0.9 (SHA-256 6E9550A045D9FC382F83FEACC0ACAF9B55A4423A5DE99C30E437C48071A1951E),
+  baseline b11bc7b870f615e493afb1bc723b888befdb58c9 and the exact C0/D5 13-file scope,
+  contract locks, 120-slot matrix, commands and write effects. Person 2 explicitly confirms APP
+  authority and permits only the current coordinator's one canonical append; that append is
+  recorded and its original prefix preserved. APP hold continues outside it. D1-D4 authorize
+  independent unaffected offline implementation, current-mapping characterization only, separate
+  execution/requirement status, and separate quality-reference/HTTP evidence. Plan rev 1.0 and
+  offline status are APPROVED before implementation. No adapter/runtime/schema/dependency changes,
+  provider/model/Modal calls, Git publication or Task 5 closure. OSError proof, unresolved semantics
+  and live gates remain HELD; Task 5 and FU-01..FU-10 remain OPEN/unassigned; Security PENDING.
+
 - 2026-10-21 Person 2 directly confirmed closure of FEAT-018 P2-T4 as a diagnostic deliverable
   at handoff commit `8ed2e8bbc7509eb236691bb8196eecb1e4f7e14f`. Person 2 accepts the four closure
   gates: `P2T4-FU-01` records the missing provenance contract-name as OPEN; artifacts are consistent;

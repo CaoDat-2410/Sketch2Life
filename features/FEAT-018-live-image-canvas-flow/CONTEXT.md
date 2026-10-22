@@ -8,6 +8,8 @@
   verification pass, while fresh backend-rig Pixi playback acceptance remains pending; integrated
   child-profile UI, Montessori personalization and SAM/renderer quality plan is APPROVED and in progress
 - Plan revision: 2 with approved P2-T1 D2/D3-R2 and P2-T2 offline addenda
+- P2-T5 plan revision: 1.0; approved for the bounded offline candidate only. Full P2-T5 remains OPEN;
+  live execution and Task 5 closure are not authorized by that slice.
 - Owner: shared integration allocation pending contract freeze approval
 - Goal: run a synthetic/non-child JPG/PNG through backend admission and the owner-triggered Lightning
   Vision V2 path, Gate A, adult-entered one-anchor/one-objective ExperienceSpec/P1/Gate B, whole-image
@@ -18,6 +20,34 @@
 - Pilot: 20 golden activities for full device/integration flow; 100 MVP activities for offline catalog/reference validation.
 
 ## Current state
+
+P2-T5 bounded offline slice is APPROVED under Person 2 issuance
+FEAT018_P2T5_BOUNDED_OFFLINE_APPROVAL_01 (2026-10-22). The canonical approval append is recorded
+under an explicit one-append APP exception; APP hold continues outside it. The approved source is
+plan rev 0.9/hash 6E9550A045D9FC382F83FEACC0ACAF9B55A4423A5DE99C30E437C48071A1951E;
+rev 1.0 synchronizes that issuance. Only the 13 named files and offline commands are authorized.
+The bounded candidate harness and 120-slot manifest are implemented. Unit/manifest subset: 49
+passed; existing regressions: 162 passed, 5 skipped (no PASS credit). After the test-only
+socketpair guard correction, the focused command completed on a fresh in-backend basetemp: 56
+passed. A subsequent run of the full `test_live_image_demo_api.py` module on a fresh in-backend
+basetemp passed 30 tests. HTTP counter scope is test-specific: invalid-media cases assert
+Vision/ASR/localizer zero; the admitted-upload and rejected-implicit flow asserts Vision zero, then
+one injected Vision fake call after explicit understanding (localizer zero; ASR is not injected
+there). This does not establish live-provider behavior. Ruff and scoped mypy passed
+again after the guard correction. The project-declared `python-multipart` range is `>=0.0.20,<1`;
+the 0.0.32 wheel was verified
+against official PyPI metadata and installed offline into the local venv only; no dependency file
+changed. Earlier collection and r3 guard failures remain in the evidence chronology. After the r4
+guard correction and latest documentation synchronization, architecture, skeleton and
+repository-security checks returned VALID; security scanned 2,596 publishable files and is not
+Security owner approval. Repository harness remains HARNESS_INVALID for unrelated FEAT-045/046/047
+directories, not a pass or waiver. Overall verification remains INCOMPLETE.
+Runner execution: primary 100 SUCCEEDED / 20 NOT_EXECUTED, supplemental 21 SUCCEEDED / 5 NOT_EXECUTED;
+all full acceptance rows remain OPEN and HELD receives zero coverage. See
+`evidence/notes/P2_T5_OFFLINE_EVALUATION_20261022.md` for exact commands, source attribution and limits.
+Full Task 5 and P2T4-FU-01..10
+remain OPEN/unassigned. OSError proof and unresolved failure/semantic acceptance remain HELD;
+quality-reference and HTTP-admission evidence stay separate; Security PENDING and live gates intact.
 
 The owner approved `plan/PIXI_RENDERER_PLAYBACK_FAILURE_DIAGNOSIS_AND_FIX_PLAN_20260930.md`.
 Safe allowlisted renderer failure codes now reach development diagnostics instead of being hidden
