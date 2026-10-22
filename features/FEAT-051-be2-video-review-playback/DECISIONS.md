@@ -1,5 +1,27 @@
 # BE2-09 planning decisions
 
+## FEAT-057 implementation-scope addendum — 2026-10-21
+
+- Approved addendum: plan/CROSS_LANE_BE2_09_SCOPE_DRAFT_20261021.md
+- Approval record: approvals/TASK_APPROVAL.md
+- Proposed scope is CR09-01 only: review-owned canonical head and projection bound to the exact BE2-08 artifact. It does not edit BE2-08/BE1 rows or close CR09-02.
+- Owner approved the exact scope SHA256 121699BE6A3134C65EF16917941FA75F00401EA18462BA929C2E897BCAB46285. The verbatim approval is in approvals/TASK_APPROVAL.md. The minimal execution file subset must be recorded before edits.
+- X05d remains BLOCKED until an already-adopted current-source resolver/fence exists. The approval does not authorize X02, session/access integration, or playback runtime.
+
+## FEAT-057 cross-card owner response — 2026-10-21
+
+The user confirmed they own the affected cards and approved the G0 proposal
+with `Chốt theo đề xuất`. For BE2-09, B5/CR09-01 is `ADOPT_WITH_CHANGES`:
+BE2-09 owns the canonical review head and DATA-27 projection bound to the exact
+committed BE2-08 artifact hash/version; do not rewrite BE2-08 rows or migrations.
+B6/X05d is `BLOCKED` because no already-adopted current-source resolver/fence
+covering review commit and playback intent was identified; do not pull X02 into
+this slice. CR09-02 remains open. See FEAT-057's
+`evidence/notes/G0_CARD_OWNER_DECISION_BALLOT_20261021.md`.
+
+This adopts contract direction only; implementation approval, actual
+session/access adoption, card status, and acceptance are unchanged.
+
 ## C4b — actual own SQL evidence is separate from integration acceptance
 
 Owner separately approves own temporary PG17 environment, exact21 tests/cleanup
@@ -85,3 +107,16 @@ D05: actual session/access outcome requires adopted receipt protocol CR09-02;
 timeout/fixtures not actual playing. Real owner wiring remains teammate-deferred.
 D06: local/source-pinned component first, delayed actual runtime batch. No waiver
 of full acceptance or actual provider/budget/provisioning approval implied.
+
+## Owner-directed BE2-08 artifact read-model disposition — 2026-10-21
+
+The owner directed BE2-08 to publish a public, read-only finalized-artifact model
+for BE2-09. BE2-09 must bind its own review head/projection to the exact artifact
+identity and must not update BE2-08 rows or migrations. Exact fields, terminal
+visibility and adoption remain to be agreed with BE2-08 before the CR09-01
+manifest is frozen.
+
+X05d remains BLOCKED; this direction does not create an already-adopted
+current-source resolver/fence or authorize a bypass. X05c/CR09-02 remains OPEN;
+no session-start, current access or playable-media claim follows from the
+read-only artifact model. No source/test/status/acceptance changed.
