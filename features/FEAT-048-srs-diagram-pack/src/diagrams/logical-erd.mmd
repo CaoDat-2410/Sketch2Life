@@ -1,0 +1,179 @@
+%% Sketch2Life Master SRS v3.1 — proposed logical ERD source.
+%% Scope mirrors the Draw.io ERD: 16 B7.1 entities + OrganizationScope and selected B21.5 references.
+%% B7/B21 fields and relationships are proposed; this is not an adopted physical schema or SQL migration.
+%% B7.1 cardinality labels are retained; Enrollment cardinality remains TBD and is not final.
+%% membership_id is a proposed GroupMembership episode key.
+%% CanvasDocument must have one owner mode: shared group XOR personal participant; the two refs are not both active.
+%% consent.purposes is multi-valued in B7; its normalized storage representation remains TBD.
+%% Only overview fields are listed; consult the full B7/B21 dictionary for complete field definitions.
+
+erDiagram
+    ORGANIZATION_SCOPE ||--o{ CLASS : governs
+    ADULT_ACCOUNT ||--o{ TEACHER_ASSIGNMENT : receives
+    CLASS ||--o{ TEACHER_ASSIGNMENT : authorizes
+    CLASS ||--o{ ENROLLMENT : contains — cardinality TBD
+    STUDENT_PROFILE ||--o{ ENROLLMENT : joins — cardinality TBD
+    STUDENT_PROFILE ||--o{ PORTFOLIO_ENTRY : collects
+    STUDENT_PROFILE ||--o{ CONSENT_RECORD : protected
+    CLASS ||--o{ CLASSROOM_SESSION : hosts
+    CLASSROOM_SESSION ||--o{ SESSION_GROUP : contains
+    CLASSROOM_SESSION ||--o{ CHILD_PARTICIPANT : admits
+    SESSION_GROUP ||--o{ GROUP_MEMBERSHIP : has
+    CHILD_PARTICIPANT ||--o{ GROUP_MEMBERSHIP : belongs
+    CLASSROOM_SESSION ||--o{ CANVAS_DOCUMENT : owns
+    CANVAS_DOCUMENT ||--o{ CANVAS_OPERATION : records
+    CANVAS_DOCUMENT ||--o{ CANVAS_SNAPSHOT : checkpoints
+    CANVAS_SNAPSHOT ||--o{ SKETCH_PROPOSAL : grounds
+    SKETCH_PROPOSAL ||--o{ TEACHER_REVIEW : reviewed
+
+    %% Selected B21.5 references and ownership constraints, supplemental to B7.1.
+    STUDENT_PROFILE ||--o{ CHILD_PARTICIPANT : participates
+    SESSION_GROUP o{--o| CANVAS_DOCUMENT : shared canvas
+    CHILD_PARTICIPANT o{--o| CANVAS_DOCUMENT : personal canvas
+    CHILD_PARTICIPANT o{--o| CANVAS_OPERATION : attributed to
+    ADULT_ACCOUNT ||--o{ TEACHER_REVIEW : reviewer_ref
+
+    ORGANIZATION_SCOPE {
+        string id PK
+        string name
+        string policyRef
+        string status
+    }
+    ADULT_ACCOUNT {
+        string id PK
+        string identityRef
+        string role
+        string status
+    }
+    TEACHER_ASSIGNMENT {
+        string id PK
+        string teacherRef FK
+        string classRef FK
+        string scope
+        string validFrom
+        string validUntil
+        string status
+    }
+    CLASS {
+        string id PK
+        string organizationRef FK
+        string name
+        string agePolicyRef
+        string status
+    }
+    ENROLLMENT {
+        string id PK
+        string classRef FK
+        string studentRef FK
+        string status
+        string validity
+    }
+    STUDENT_PROFILE {
+        string id PK
+        string alias
+        int adultConfirmedAge
+        string agePolicyRef
+        string status
+    }
+    PORTFOLIO_ENTRY {
+        string id PK
+        string studentRef FK
+        string evidenceRefs
+        string attributionQuality
+        string teacherApprovedSummary
+        string date
+    }
+    CONSENT_RECORD {
+        string id PK
+        string subjectRef FK
+        string representativeRef
+        string purposes "multi-valued; storage normalization TBD"
+        string policyVersion
+        string evidenceRef
+        string status
+        string timestamps
+    }
+    CLASSROOM_SESSION {
+        string id PK
+        string classRef FK
+        string topicRef
+        string presetVersion
+        int version
+        string lifecycle
+        string sharedStage
+        string times
+    }
+    SESSION_GROUP {
+        string id PK
+        string sessionRef FK
+        string name
+        int version
+        string canvasMode
+        string progress
+    }
+    GROUP_MEMBERSHIP {
+        string membershipId PK "proposed episode key"
+        string participantRef FK
+        string groupRef FK
+        string validity
+    }
+    CHILD_PARTICIPANT {
+        string id PK
+        string studentRef FK
+        string sessionRef FK
+        string alias
+        string admissionState
+    }
+    CANVAS_DOCUMENT {
+        string id PK
+        string sessionRef FK
+        string groupRef FK "optional; exclusive with participantRef"
+        string participantRef FK "optional; exclusive with groupRef"
+        string ownerScope
+        int revision
+        string policyVersion
+        string snapshotRef FK "current snapshot pointer candidate"
+    }
+    CANVAS_OPERATION {
+        string id PK
+        string documentRef FK
+        string verifiedPrincipalRef
+        string capabilityRef
+        string contributorRef FK "optional attribution"
+        string deviceRef
+        string attribution
+        string targetRef
+        string operationType
+        string payload
+        int serverSeq
+    }
+    CANVAS_SNAPSHOT {
+        string id PK
+        string documentRef FK
+        int revision
+        string hash
+        int operationWatermark
+        string artifactRef
+        string provenance
+    }
+    SKETCH_PROPOSAL {
+        string id PK
+        string sourceSnapshotRef FK
+        string targetRegion
+        string supportLevel
+        string sketchArtifactRef
+        string safetyResult
+        int version
+    }
+    TEACHER_REVIEW {
+        string id PK
+        string contentRef
+        int contentVersion
+        string contentHash
+        string reviewerRef FK
+        string decision
+        string editedVersion
+        string time
+        string policyRef
+        string targetKind "generic review target per DATA-24"
+    }

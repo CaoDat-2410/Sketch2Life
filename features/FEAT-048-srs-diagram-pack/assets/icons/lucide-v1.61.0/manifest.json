@@ -1,0 +1,27 @@
+{
+  "library": "Lucide",
+  "package": "lucide-static",
+  "version": "1.61.0",
+  "source": "https://cdn.jsdelivr.net/npm/lucide-static@1.61.0/icons/",
+  "upstream_release": "https://github.com/lucide-icons/lucide/releases/tag/1.61.0",
+  "license_notice": "NOTICE.md",
+  "license_text": "LICENSES.txt",
+  "icons": {
+    "user-round.svg": "b3f1fe08a81b799a16bcbcf344b48412d2c3a9e609368f1782827ec832bf10e2",
+    "smartphone.svg": "c0b5a779ea4d8fc5eb0062671690270cd7b547ff67d5b27c1487ecd08712a067",
+    "monitor.svg": "0d77be3ea68ffd82ada70d752f7986194a49ed5137d4f9fd7ae74c2e8d680e5b",
+    "server.svg": "91feaa119e863973e4be3a2beab09e7b21944bbe508d12b5268d903b757177f8",
+    "list-checks.svg": "6d63ec59374a72d8723f7423ae121818b7b6d83f3e9b99f0d323c4c06ce2f08c",
+    "layers.svg": "13f4094d328912b62ac21df6d423295178ab92d7120f975e9875c7078b13a132",
+    "plug.svg": "500e34d1b165a82dfd4fe9b58db78f84296a88ae093ccdc4f22690cb089a9790",
+    "database.svg": "8f4cfe4259518e162d0bc3fbd817178fb0c455f45b3159789845ca925a119710",
+    "hard-drive.svg": "86c8c22e2e65cb913348935228c857de676f658cae3eb9acda7b79de53168bc6",
+    "list-ordered.svg": "173f07d6c5e9911cf4f56c02f6404e02b6548469398507eae09c3f96bb084b14",
+    "cpu.svg": "5eb864994312ce7600b63080fc2117c9a04a9b74a8d4aa233f75d83c4bd2ab8a",
+    "shield-check.svg": "999d49aefa7f0cab77de2853e167feb3d6b6424b4bd30a3090513c71813fd7fe",
+    "sparkles.svg": "5ff7dc6557dbe5068a18feb080df81e090eb0a495fa1a05e3abd8179ba53c52d",
+    "radio-tower.svg": "f00e8f47b8dbd013ab302e628a799e01bef5afa6d247a83ee7384b5ddc6d21c1",
+    "package.svg": "0824af2143a6f747f9829b92bb25fcdcd6bbbdfdea50d3834d099cad16272d25",
+    "workflow.svg": "a170ca857151e8e86f2f08dce358d0c43ee8a709b4dc6f414796a688a50d18f8"
+  }
+}
