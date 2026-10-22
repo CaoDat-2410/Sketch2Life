@@ -1,5 +1,50 @@
 # Feature status
 
+## Current checkpoint: Claude D3 rereview follow-up - 2026-10-21
+
+Claude verified all 81 D3 review-manifest entries, closed the two prior P2 findings in draft, and found one new P2 (completion-time BUDGET_EXCEEDED) plus four P3 items. Report: FEAT-057 evidence/notes/CROSS_LANE_UOW_CLAUDE_D3_REREVIEW_REPORT_20261021.md, SHA256 92BE229378A2DE06BAEED1FC6F675EA15FED338892A002A833F81F6972B44C12.
+
+Successor drafts: FEAT-044 foundation Rev7, budget CR Rev2 and stale CR Rev2; FEAT-050 BE2-08 Rev3; FEAT-049 BE2-14 Rev3; FEAT-057 slice plan Rev8. NEW-2 through NEW-5 are clarified in draft. Completion-time resource denial remains a separate D4 owner choice, pending at evidence/notes/CROSS_LANE_UOW_OWNER_D4_COMPLETION_BUDGET_BALLOT_DRAFT_20261021.md.
+
+D3 C1-A/C2-A remain selected. No code, schema, tests, official approval or acceptance changed. D4 must be settled before implementation scope is finalized. X01 PARTIAL; X05d BLOCKED; X05c/CR09-02 OPEN; X09-08 NOT_IMPLEMENTED; Modal/Lightning/runtime deferred. Earlier checkpoints below remain historical.
+
+
+## Current checkpoint: owner D3 recorded, successor review pending - 2026-10-21
+
+The owner explicitly selected C1-A and C2-A with the conditions preserved in FEAT-057 evidence/notes/CROSS_LANE_UOW_OWNER_DECISION_D3_20261021.md (SHA256 C1799417AFD2DDB989D6C888A8B3F9702D4A6B4DC2A8B90637DBD6E11C3AE54C). This supersedes the earlier ballot's PENDING design response; it does not rewrite the historical report or ballot.
+
+Latest candidates: FEAT-044 foundation UoW scope Rev6 plus joint BE2-01/14 budget CR, separate BE2-01 schema CR and stale-finalization CR; BE2-08 scope Rev2; BE2-14 scope Rev2; FEAT-057 slice plan Rev7. They are DRAFT / pending independent review and supplemental S/F/schema approvals, not implementation approval.
+
+C1 holds both job and run QUEUED in durable BE2-01 metadata, excludes budget-wait time from dispatch-loss/retry recovery and rechecks eligibility/reservation before execution. C2 commits SUCCEEDED/STALE, the paired terminal stale run without artifact/ready state, receipt and verified-owned-ref cleanup intent together. BE1 descriptor/quarantine/accepted-reference adoption remains pending; accepted output must be protected.
+
+X01 PARTIAL; X05d BLOCKED; X05c/CR09-02 OPEN; X09-08 NOT_IMPLEMENTED. Budget unit/limit, maximum defer duration and deadline action remain PENDING. No source/test/schema/migration/official approval, card acceptance or runtime change follows. Earlier dated entries below are historical checkpoints.
+
+
+## Current checkpoint: Claude rereview 3 — 2026-10-21
+
+Claude reviewed FEAT-044 scope Rev5 and FEAT-057 plan Rev6 and returned CHANGES_REQUIRED. The correction specification and D3 ballot are prepared under FEAT-057; C1 budget-deferral design and C2 durable stale cleanup are still awaiting the owner. D1/D2 are preserved. No new scope/implementation approval is inferred. S/F are not ready for supplemental approval.
+
+X01 PARTIAL; X05d BLOCKED; X05c/CR09-02 OPEN; X09-08 NOT_IMPLEMENTED. Budget unit/limit remain unprovided. No source/test/official approval, acceptance, runtime, or Git publication change is authorized by these drafts.
+
+Earlier dated entries below are historical checkpoints; this entry records the current review state.
+
+
+## Cross-lane lifecycle direction D1 — 2026-10-21
+
+- Owner selected model A for paired A/S/B/F lifecycle updates; scope revision 3 is ready for independent review.
+- No implementation approval or execution manifest exists for this UoW scope. Existing Phase B / typed-dispatch approval does not cover it.
+- BE2-01 remains IN_PROGRESS; card acceptance and runtime gates are unchanged. No source/test/approval file was changed for D1.
+- FEAT-057 slice-plan revision 4 alignment is pending review. X01 PARTIAL, X05d BLOCKED, X05c/CR09-02 open; no Modal/Lightning/provider/runtime action.
+
+## Supplemental typed cross-lane dispatch — 2026-10-21
+
+- Approved BE2-01 dispatch addendum implemented within its frozen file manifest.
+- Offline dispatch + B5 + BE2-08 worker tests: 79 passed, 0 failed/error/skipped;
+  Ruff and strict mypy pass. Receipts: `evidence/notes/CROSS_LANE_TYPED_DISPATCH_IMPLEMENTATION_20261021.md`.
+- This is a scoped implementation checkpoint only. BE2-01 remains IN_PROGRESS;
+  X09-08 is not yet proven end-to-end; Phase B Studio/runtime, B-12, and full-card
+  acceptance remain open. No card status/acceptance or Phase B scope changed.
+
 ## Publication instruction —2026-10-16
 
 User authorized committing/pushing the reviewed A17 checkpoint on this feature branch for the
@@ -200,3 +245,23 @@ Review of runner 87f0961f / B6 unit f07a1f4c: NEEDS_REVISION for the CR01 harden
 ## Codex focused CR01 re-review —2026-10-16
 
 PASS_LOCAL_PENDING_FINAL_PACKAGE_AND_RUNTIME on runner d42d697c and B6 unit b1d3bced. The earlier parameter-variant P2 is resolved: heldout B2-B6 and Phase A missing variants produce NOT_RUN; unmapped failure plus a missing variant produces FAIL/exit1; collection error fails closed. Direct local21 B6 units PASS, ruff/mypy PASS. Source hashes stayed stable through the probes. See evidence/notes/PHASE_B_B6_CR01_CODEX_PRECOMMIT_REVIEW_20261016.md (latest addendum) and ignored evidence/local/b6-cr01-codex-rereview-20261016/. Earlier ZIP d0b9f27b/a75841e0 package audit PASS applies to its immutable bytes; author edits advanced source beyond it. Final source-bound package/Studio result and refreshed publication dry run remain required. Runtime NOT_RUN locally; same approved B6 scope, BE2-01 IN_PROGRESS, B-12 HANDOFF. No code/approval/Git operation by this review.
+## Shared-UoW scope review — 2026-10-21
+
+- The initial cross-lane UoW scope was reviewed as CHANGES_REQUIRED.
+- A documentation-only successor is available at
+  ../plan/CROSS_LANE_FOUNDATION_UOW_SCOPE_REV2_DRAFT_20261021.md
+  (SHA256 39B0FD5958D2C298460F7605A7F73E8BDC7BC9D269B6399822FD2A2EAAC4DDC4).
+- At the time this review checkpoint was recorded, owner decision D1 was pending;
+  the later selection A is recorded above and in FEAT-057's D1 receipt. Existing
+  approvals do not authorize this UoW. No source/test/approval or card status
+  changed.
+- FEAT-057 X01 remains PARTIAL by default due to the absent adopted shared-store
+  source fence. Runtime/Studio gates remain unchanged.
+
+## Shared-UoW rereview 2 — 2026-10-21
+
+State: scope revision 4 DRAFT / READY_FOR_INDEPENDENT_REREVIEW. Claude's Rev3 verdict was CHANGES_REQUIRED; the successor and finding disposition are indexed in FEAT-057. No implementation, test, database or runtime authorization was created. S/F require independent review and separate supplemental approvals. X01 remains PARTIAL; existing card status/acceptance and approvals remain unchanged.
+
+## Cross-lane UoW scope review state — 2026-10-21
+
+FEAT-044 UoW scope Rev5 is a draft pending independent rereview. D2 is recorded as design direction only. No source, test, schema, migration, approval, acceptance, or card-status change is inferred.

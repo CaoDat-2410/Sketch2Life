@@ -1,5 +1,78 @@
 # BE2 planning decisions — 2026-10-14
 
+## Claude D3 rereview 4 — completion-time resource gate — 2026-10-21
+
+D3 remains the direct owner direction. Claude closed the original rereview-3 P2 findings in draft and found NEW-1: completion-time BUDGET_EXCEEDED falls through the generic _decide_completion cancel/quarantine branch after provider work. D3 only resolved dispatch/start/retry. See FEAT-057 report SHA256 92BE229378A2DE06BAEED1FC6F675EA15FED338892A002A833F81F6972B44C12.
+
+Foundation scope Rev7, budget CR Rev2 and stale CR Rev2 record completion-time resource denial as an unresolved owner/card-contract gate; they do not treat it as consent/kill cancellation or silently extend C1-A. A D4 ballot is prepared. Its recommended option is not owner-approved. The drafts clarify validation order, typed descriptor availability, stable journal operation identity and temporary/audit interpretation.
+
+No source/test/schema/approval changed. D3 remains selected; implementation, supplemental S/F/schema approval, budget parameters, BE1 adoption and D4 remain open.
+
+
+## Owner D3: durable QUEUED hold and atomic B-stale - 2026-10-21
+
+Direct owner C1-A/C2-A conditions are recorded in FEAT-057 evidence/notes/CROSS_LANE_UOW_OWNER_DECISION_D3_20261021.md, SHA256 C1799417AFD2DDB989D6C888A8B3F9702D4A6B4DC2A8B90637DBD6E11C3AE54C. D1/D2 remain applicable.
+
+BE2-01 owns durable hold metadata with both job/run QUEUED, no budget lifecycle state. Change all three budget-denial branches (_dispatch_one, start_attempt, retry_job) through the joint BE2-01/14 CR; consent/kill still cancel. Exclude hold from claim/ack/dispatch-loss/watchdog/retry allowance; resume rechecks eligibility and reservation. A due/otherwise eligible retry creating exactly one normal next attempt plus queued participant/hold is a review candidate, not a newly adopted implementation contract. Endpoints are RESUMED or legitimately CLOSED. Numeric bounds/deadline action and budget terms stay pending; schema/new-migration CR is separate and published migrations stay unchanged.
+
+B-stale is BE2-01's authoritative SUCCEEDED/STALE receipt/result-refs commit, paired with video terminal stale/no artifact/no ready state and descriptor-proven cleanup intent in the same transaction. BE1 artifacts-owner adoption for owned job/attempt refs, a fixed reason, deterministic identity and accepted-reference protection remains pending. Unmappable descriptors fail closed. All completion classes/state pairs and residual P3 obligations are specified in scope Rev6 and the CRs.
+
+Latest drafts: plan/CROSS_LANE_FOUNDATION_UOW_SCOPE_REV6_DRAFT_20261021.md; plan/CROSS_LANE_BUDGET_DEFERRAL_CR_DRAFT_20261021.md; plan/CROSS_LANE_BUDGET_DEFERRAL_SCHEMA_CR_DRAFT_20261021.md; plan/CROSS_LANE_STALE_FINALIZATION_CR_DRAFT_20261021.md. D3 is design authority only; independent review and separate supplemental S/F/schema approvals are still required. Existing exact-hash approvals do not cover these expanded paths. No code, tests, migrations or official approvals changed.
+
+
+## Owner D1: paired lifecycle UoW direction — 2026-10-21
+
+The owner selected model A for the cross-lane BE2-01/08 lifecycle. BE2-01 owns
+and opens the foundation UoW for A/S/B/F, including reconciler timeout/retry/
+cancel and outbox-driven job transitions; BE2-08 is a non-committing participant
+limited to its own video rows. Rejected finalization writes quarantine/cleanup
+intent through the existing foundation path in a separate reject commit. A
+finalization rollback is only for infrastructure error and requires recovery.
+The selected scope lock order is job → video run → fence rows by stable key;
+Claude must verify feasibility against the actual lock paths.
+
+This is design direction only. It does not expand the existing Phase B or typed-
+dispatch approval, and is not approval to change source, schema, tests, status or
+acceptance. S/F require independent review and separate supplemental approval.
+The scope successor is
+`plan/CROSS_LANE_FOUNDATION_UOW_SCOPE_REV3_DRAFT_20261021.md`; owner receipt is
+in FEAT-057 `evidence/notes/CROSS_LANE_UOW_OWNER_DECISION_D1_20261021.md`.
+The current FEAT-057 slice plan revision 4 still needs an explicit successor or
+erratum disposition. No runtime, provider, Modal, Lightning or database work is
+authorized.
+
+## Supplemental typed dispatch implementation — 2026-10-21
+
+Implemented the owner-approved BE2-01 route within the frozen execution
+manifest: explicitly configured BE2-08 type to registered worker; original
+envelope forwarded unchanged; existing `sketch_assistance` provider route
+preserved; unknown types rejected before provider/start. Focused offline tests
+79/79, Ruff and strict mypy pass. This does not prove X09-08 composition, change
+Phase B scope, or close BE2-01 acceptance/runtime gates. Evidence:
+`evidence/notes/CROSS_LANE_TYPED_DISPATCH_IMPLEMENTATION_20261021.md`.
+
+## FEAT-057 implementation-scope addendum — 2026-10-21
+
+- Approved addendum: plan/CROSS_LANE_BE2_01_SCOPE_DRAFT_20261021.md
+- Approval record: approvals/PHASE_B_TASK_APPROVAL.md
+- Proposed scope is only a typed route for the adopted BE2-08 job type at the existing foundation dispatch boundary. It does not change the approved Phase B scope, envelope/schema, or provider behavior.
+- Owner approved the exact scope SHA256 AD1BA2706655CD040ACBBBF508577F79A41F5D5B3EF57D1437DA4C7F7F185DBD. The verbatim approval is recorded in approvals/PHASE_B_TASK_APPROVAL.md.
+- The minimal execution file subset was recorded before edits in the official approval. The bounded dispatch change is separately documented above; card status/acceptance are unchanged.
+
+## FEAT-057 cross-card owner response — 2026-10-21
+
+The user confirmed they own the affected cards and approved the G0 proposal
+with `Chốt theo đề xuất`. For BE2-01, B2–B4 are `ADOPT_WITH_CHANGES`: separate
+submission/finalizer atomic boundaries; authoritative replay/lost-ack and
+late-attempt winner semantics; and a typed BE2-08 route with explicit immutable
+subject/session/source-pin/idempotency mapping. Provider work remains between
+the two transactions; unknown job types fail closed. See FEAT-057's
+`evidence/notes/G0_CARD_OWNER_DECISION_BALLOT_20261021.md`.
+
+This adopts contract direction only; it does not approve new foundation
+source/schema changes or expand the existing Phase B approval. BE2-01 status and
+acceptance are unchanged.
+
 1. **Planning authority only.** The direct user request authorizes a concrete plan. Runtime remains NOT_STARTED; approval is the generated AWAITING_APPROVAL placeholder, unchanged. No authority is inferred from branch name or FEAT-040 documentation DONE.
 2. **Preserve worktree boundaries.** Plan is authored in the existing BE2 worktree. Root branch and its unrelated changes stay intact; pre-existing Android Gradle wrapper edit in this worktree is outside scope.
 3. **Two BE2-01 delivery gates.** Phase A is independent fake/contract code; Phase B owns actual durable jobs/outbox/queue/CAS after separate decisions/approval. Both remain P3 responsibility, as FEAT-040 requires.
@@ -723,3 +796,38 @@ Direct user request (verbatim): "lên plan tách commit ra đẩy lên github ch
 
 Public entry point: artifacts/BE2_08_14_TEAMMATE_HANDOFF.md. Exact publication commit plan and
 receipts remain feature-local; pushed commit hashes are reported after successful publication.
+
+## Owner-directed cross-lane shared UoW disposition — 2026-10-21
+
+The owner directed that BE2-01 own the shared foundation UoW/authorized transaction
+boundary for the separate video submission and finalization commits, with BE2-08
+participating only in its own rows and never committing the foundation UoW. Resolve
+job → run → source pin from authoritative persisted foundation job/request/attempt
+data; keep WorkerDispatchEnvelope unchanged. This does not authorize adding
+unapproved envelope fields or direct writes to foundation tables.
+
+The new draft scope is
+plan/CROSS_LANE_FOUNDATION_UOW_SCOPE_DRAFT_20261021.md, SHA256
+B456DEEDF5F892F328E7AEEFF442BC82281400A994EB5A74D791C13856FAB9B0.
+It is a new draft requiring independent review, exact final SHA and supplemental
+implementation approval. The already-approved typed-route scope does not include
+this UoW. No source/test/schema edit or card acceptance is authorized by this
+decision entry. Preserve the separate-transaction boundary: no UoW remains open
+during generation.
+
+## Shared foundation UoW scope review follow-up — 2026-10-21
+
+The first shared-UoW scope draft received an independent CHANGES_REQUIRED review. Its revision-2 response remains preserved at plan/CROSS_LANE_FOUNDATION_UOW_SCOPE_REV2_DRAFT_20261021.md (SHA256 39B0FD5958D2C298460F7605A7F73E8BDC7BC9D269B6399822FD2A2EAAC4DDC4); the later owner D1 selection A and its conditions are recorded in the current section above and FEAT-057's D1 receipt. Revision 3 is the current review target. X01 remains PARTIAL by default. The owner direction is not implementation approval and does not alter the typed-route approval or BE2-01 status.
+
+## UoW scope rereview 2 — 2026-10-21
+
+Claude returned CHANGES_REQUIRED on scope revision 3. The owner-pasted report is preserved in FEAT-057 evidence. Documentation successor: plan/CROSS_LANE_FOUNDATION_UOW_SCOPE_REV4_DRAFT_20261021.md (SHA256 9B96CA79FDA1DB8DFCBD2DFED6550ECA0645AD0C86CCEEAAF79793B0B7200381). It adds the complete writer inventory, existing-state mapping with BE2-10 exhaustion ownership still gated, corrected A/S/B/F rows and recovery, reject-only commit, lock/lease distinctions, receipt/run_json facts, full candidate fence inputs, get-by-job and participant API requirements, and adapter error handling. S/F still need independent review and separate supplemental approval. The draft changes no source, tests, approvals, card status or acceptance.
+
+## Cross-lane UoW owner D2 — 2026-10-21
+
+The owner selected the FEAT-057 D2 design: foundation SUCCEEDED with ResultDisposition.STALE maps to a distinct terminal stale representation on the BE2-08 video-run lifecycle axis, without artifact or ready-for-review state, through a versioned BE2-08 CR; do not add STALE to foundation JobState. VideoRun attempt_id is bound only at S; retry returns the video run to QUEUED and clears its prior attempt_id; attempt number remains foundation-owned. This is design direction, not implementation approval or card acceptance. See FEAT-057 evidence/notes/CROSS_LANE_UOW_OWNER_DECISION_D2_20261021.md and scope Rev5 draft.
+
+
+## Owner adoption of BE2-VIDEO-LIFECYCLE/1 — 2026-10-22
+
+The owner adopted the versioned A/S/B participant contract and identity-failure behavior under the hash-pinned FEAT-057 scope Rev2. BE2-01 owns transaction begin/commit/rollback, and BE2-08 participates through a typed transaction-bound contract without receiving a SQL connection through an application port. The unchanged envelope is consumed by the existing dispatch path. The three owner approval manifests were recorded and verified before source/test edits. This does not change FEAT-044 card acceptance/status. PostgreSQL 17 persistence evidence remains pending; see the FEAT-057 implementation checkpoint note.

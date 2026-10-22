@@ -1,5 +1,39 @@
 # BE2 planning evidence index
 
+## Current checkpoint: Claude D3 rereview follow-up - 2026-10-21
+
+See FEAT-057 report notes/CROSS_LANE_UOW_CLAUDE_D3_REREVIEW_REPORT_20261021.md and this card's DECISIONS/current-state. Successor scope is draft; completion-time resource decision D4 remains pending. No implementation approval or card acceptance follows.
+
+
+## Current checkpoint: D3 owning-card candidates - 2026-10-21
+
+Owner C1-A/C2-A conditions are recorded in FEAT-057 evidence/notes/CROSS_LANE_UOW_OWNER_DECISION_D3_20261021.md. See this card's DECISIONS/current-state and the latest successor scope/CR drafts. The complete D3 review packet, exact input manifest and documentation validation/preservation receipt are indexed in FEAT-057 evidence/README.md.
+
+These records supersede only the earlier PENDING owner design response. Independent review, missing contract adoption, exact implementation manifests and supplemental S/F/schema approvals remain pending. Historical scope/approval/evidence bytes are retained. No new code/test/runtime or card acceptance evidence is claimed.
+
+
+## Current checkpoint: Claude rereview 3 — 2026-10-21
+
+FEAT-044 scope Rev5 / FEAT-057 plan Rev6 received CHANGES_REQUIRED. See FEAT-057 evidence/notes/CROSS_LANE_UOW_CLAUDE_REREVIEW3_DISPOSITION_20261021.md and its pending D3 ballot. No new implementation approval, card acceptance, or test/runtime evidence follows. Earlier evidence entries remain historical.
+
+
+- 2026-10-21: FEAT-057 `notes/CROSS_LANE_UOW_OWNER_DECISION_D1_20261021.md`
+  records the owner's A selection and conditions for paired BE2-01/08 A/S/B/F
+  transitions. Scope revision 3 is
+  `plan/CROSS_LANE_FOUNDATION_UOW_SCOPE_REV3_DRAFT_20261021.md`. This is design
+  direction only; S/F need independent review and separate supplemental
+  approval. Existing approvals, source, tests, acceptance and runtime status are
+  unchanged. FEAT-057 slice-plan revision 4 alignment remains open.
+
+- 2026-10-21: `notes/CROSS_LANE_TYPED_DISPATCH_IMPLEMENTATION_20261021.md`
+  records the owner-approved supplemental typed route from the foundation
+  dispatch boundary to an explicitly configured BE2-08 worker. The bounded
+  offline dispatch/B5/video-worker batch passed 79/79 with no skips; Ruff and
+  strict mypy passed. Machine receipt:
+  `metrics/CROSS_LANE_TYPED_DISPATCH_20261021.json`; JUnit:
+  `raw/cross-lane-typed-dispatch-20261021/junit.xml`. X09-08 composition,
+  durable recovery, runtime, and card acceptance remain open.
+
 - Current 2026-10-16: `notes/PHASE_B_B6_A17FIX01_CLOUD_RECEIPT_REVIEW_20261016.md` records
   received archive3bcaa058, raw cloud221+224 PASS/0 failure/error/skip, durable43/43 required
   PASS and the exact local A17 runner/test port (manifest5b76868d,46 files;25 local B6 units).
@@ -408,3 +442,31 @@ This is the latest review; preceding pending/revision entries describe earlier c
 
 
 - Codex R2 code/package pre-run review —2026-10-16: [review](notes/PHASE_B_B6_CR01_CODEX_PRECOMMIT_REVIEW_20261016.md) PASS_CODE_AND_R2_PACKAGE_PENDING_RUNTIME; use ZIP3a9d6ef2/sourcecb527d7f only; CR01 not closed.
+
+## Cross-lane shared UoW scope — 2026-10-21
+
+The independent review returned CHANGES_REQUIRED. Current successor draft:
+../plan/CROSS_LANE_FOUNDATION_UOW_SCOPE_REV2_DRAFT_20261021.md, SHA256
+39B0FD5958D2C298460F7605A7F73E8BDC7BC9D269B6399822FD2A2EAAC4DDC4.
+Review disposition and source file hashes are recorded in
+../../FEAT-057-be2-01-14-offline-integration/evidence/notes/CROSS_LANE_UOW_REVIEW_DISPOSITION_20261021.md
+and ../../FEAT-057-be2-01-14-offline-integration/evidence/metrics/CROSS_LANE_UOW_SOURCE_HASHES_20261021.json.
+At the time this checkpoint was recorded, owner decision D1 remained pending;
+the later selection A is recorded in FEAT-057's D1 receipt and supersedes that
+state. The current scope revision 3 still has no implementation approval; the
+BE2-01 typed-route result and status are unchanged.
+
+## Shared-UoW rereview 2 — 2026-10-21
+
+- Current review candidate: ../plan/CROSS_LANE_FOUNDATION_UOW_SCOPE_REV4_DRAFT_20261021.md (SHA256 9B96CA79FDA1DB8DFCBD2DFED6550ECA0645AD0C86CCEEAAF79793B0B7200381).
+- Claude report, finding disposition, prompt and source manifest revision 2 are indexed under FEAT-057 evidence/notes and evidence/metrics.
+- Rev4 is documentation only and awaits independent review; S/F supplemental approvals and all implementation gates remain open.
+
+## FEAT-057 cross-lane UoW D2 — 2026-10-21
+
+Owner decision receipt: FEAT-057/evidence/notes/CROSS_LANE_UOW_OWNER_DECISION_D2_20261021.md (SHA256 641A2239C6C1064C543D16A1DB24E73AC771AA4758889EC3A19C8458E1720103). Successor scope: plan/CROSS_LANE_FOUNDATION_UOW_SCOPE_REV5_DRAFT_20261021.md (SHA256 8BCAD75E2E505053465349E1B93800626B494B6D1076561B437298A1E60A4EF4), pending independent rereview.
+
+
+## FEAT-057 persisted VideoWorker flow — 2026-10-22
+
+Cross-lane implementation and verification limits are recorded in `../../FEAT-057-be2-01-14-offline-integration/evidence/notes/BE2_01_07_08_PERSISTED_VIDEO_FLOW_IMPLEMENTATION_20261022.md`; machine-readable results and raw test logs are indexed by that feature's `evidence/README.md`. Focused unit/contract suite passed 325 tests. PostgreSQL 17 integration remains unrun because the dedicated test connection is unavailable. No FEAT-044 acceptance/status change is implied.
