@@ -1,4 +1,1 @@
-export const mockAdminLayoutProps = {
-  currentPath: '/',
-  unreadNotifications: 3,
-};
+export const mockAdminLayoutProps = { currentPath: "/", unreadNotifications: 5, user: { name: "Bảo Vũ (Admin)" } };
