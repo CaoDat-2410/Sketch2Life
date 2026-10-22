@@ -9,6 +9,10 @@ from dataclasses import asdict, replace
 
 import pytest
 from sketch2life.application.ports.ai_jobs import CancellationNotice
+from sketch2life.application.ports.knowledge_video import (
+    VideoLifecycleCreateV1,
+    VideoRequestContext,
+)
 from sketch2life.application.services.ai_jobs import (
     FIXTURE_RETRY_POLICY,
     AiJobError,
@@ -23,6 +27,7 @@ from sketch2life.domain.ai_jobs.model import (
     ResultDisposition,
 )
 from sketch2life.domain.ai_jobs.provider_copy import CopyKind, CopyStatus, ProviderCopy
+from sketch2life.domain.knowledge_video.model import ExactRef, Strategy, VideoPin
 from sketch2life.infrastructure.ai_jobs.fakes import FakeProvider, JobRevisionConflict
 from sketch2life.infrastructure.ai_jobs.harness import (
     DEVICE,
@@ -79,6 +84,45 @@ def test_same_key_changed_payload_conflicts_and_keeps_original(h: FixtureHarness
     assert (exc.code, exc.http_status) == ("IDEMPOTENCY_PAYLOAD_MISMATCH", 409)
     assert job(h, first.job_id).request_ref == request_ref()
     assert len(h.store.snapshot().jobs) == 1
+
+
+def test_video_lifecycle_binding_must_match_command_identity(h: FixtureHarness) -> None:
+    command = h.create()
+    request = command.request_ref
+    pin = VideoPin(
+        command.principal.organization_id,
+        command.session_id or "session_fx_001",
+        ExactRef(request.request_id, request.request_revision, request.input_hash),
+        0,
+        request.context_revision,
+        request.context_revision,
+        (ExactRef("source_fx_001", 1, "b" * 64),),
+        Strategy.GENERATE,
+        ExactRef("profile_fx_001", 1, "c" * 64),
+        ExactRef("encoding_fx_001", 1, "d" * 64),
+        ExactRef("rights_fx_001", 1, "e" * 64),
+        ExactRef("retry_fx_001", 1, "f" * 64),
+        ExactRef("policy_fx_001", 1, "0" * 64),
+        1,
+        ExactRef("model_fx_001", 1, "1" * 64),
+    )
+    binding = VideoLifecycleCreateV1(
+        command.job_type,
+        VideoRequestContext(
+            "different_principal",
+            command.principal.organization_id,
+            command.session_id or "session_fx_001",
+            command.idempotency_key,
+            command.correlation_id,
+        ),
+        "2" * 64,
+        pin,
+    )
+
+    with pytest.raises(AiJobError, match="VIDEO_IDENTITY_MISMATCH"):
+        h.service.create_job(replace(command, video_lifecycle=binding))
+
+    assert not h.store.snapshot().jobs
 
 
 def test_command_scope_includes_principal_and_organization(h: FixtureHarness) -> None:
