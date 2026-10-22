@@ -1,0 +1,67 @@
+{
+  "schema": "BE2-01.CrossLaneTypedDispatch/1",
+  "status": "PASS_BOUNDED_OFFLINE_UNIT_SCOPE",
+  "scope_sha256": "AD1BA2706655CD040ACBBBF508577F79A41F5D5B3EF57D1437DA4C7F7F185DBD",
+  "execution_manifest": "approvals/PHASE_B_TASK_APPROVAL.md#Supplemental-BE2-01-execution-manifest",
+  "candidate": {
+    "branch": "feature/be2-backend-ai-integration",
+    "head": "1649b72978877d82b4d7662040ff3555dee0a3a7"
+  },
+  "environment": {
+    "python": "3.12.10",
+    "virtualenv": "backend/.venv",
+    "dependencies_installed": false
+  },
+  "changed_source_sha256": {
+    "backend/src/sketch2life/infrastructure/ai_jobs/worker.py": "A54725329F8643FB0AF9D821F9861BE34980C3DA3E28E201203630EA691785F6",
+    "backend/src/sketch2life/infrastructure/ai_jobs/typed_dispatch.py": "979516A29B17A7FC155C6396500AAE82D0D8D66C0CBD7C1EF0437BFA8C728196",
+    "backend/tests/unit/test_ai_job_video_dispatch.py": "E48ADF74FD47B9BE89C12D6FEC6CCA3CD1F89CD4CCBEACF909856EA5395E960E"
+  },
+  "pytest": {
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "backend/tests/unit/test_ai_job_video_dispatch.py",
+      "backend/tests/unit/test_ai_job_b5_capability.py",
+      "backend/tests/unit/test_knowledge_video_worker.py",
+      "-q",
+      "--junitxml=features/FEAT-044-be2-ai-job-foundation/evidence/raw/cross-lane-typed-dispatch-20261021/junit.xml"
+    ],
+    "exit_code": 0,
+    "tests": 79,
+    "passed": 79,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "junit_sha256": "542169BB23CA32DF2010460FAB9480B3A48A03BFDA7346A65ABB4A245C85191C"
+  },
+  "ruff": {
+    "command": "ruff check on the three changed source/test files",
+    "exit_code": 0
+  },
+  "mypy": {
+    "command": "MYPYPATH=src mypy --strict on the three changed source/test files",
+    "exit_code": 0
+  },
+  "repository_validation": {
+    "harness": {"command": "python tools/validate_harness.py", "exit_code": 0, "result": "HARNESS_VALID"},
+    "security": {"command": "python tools/validate_repository_security.py", "exit_code": 0, "result": "REPOSITORY_SECURITY_VALID"},
+    "architecture": {"command": "python tools/validate_architecture.py", "exit_code": 0, "result": "ARCHITECTURE_VALID"},
+    "skeleton": {"command": "python tools/validate_skeleton.py", "exit_code": 0, "result": "SKELETON_VALID"},
+    "git_diff_check": {"command": "git diff --check", "exit_code": 0}
+  },
+  "unverified_or_out_of_scope": [
+    "X09-08 persisted foundation-job to actual VideoWorker composition",
+    "CR08-01 atomic submission/finalization across card-owned UoWs",
+    "BE2-07 durable current-source fence through BE2-08 finalization; X01 remains PARTIAL",
+    "BE2-14 worker execution authorization and reservation expiry/renewal",
+    "BE2-09 CR09-01 exact artifact read mapping",
+    "X05d remains BLOCKED",
+    "X05c/CR09-02 remains OPEN",
+    "Modal, Lightning, provider, server, database, and runtime"
+  ],
+  "card_acceptance_changed": false,
+  "card_status_changed": false,
+  "git_publication_performed": false
+}
