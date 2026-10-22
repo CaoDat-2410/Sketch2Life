@@ -1,0 +1,4788 @@
+{
+  "schema_name": "FEAT018P2T5OfflineEvaluationManifest",
+  "schema_version": "1.0",
+  "construction_revision": "feat018-p2-t5-offline-v1",
+  "approval_id": "FEAT018_P2T5_BOUNDED_OFFLINE_APPROVAL_01",
+  "approved_source_plan_revision": "0.9",
+  "approved_source_plan_sha256": "6E9550A045D9FC382F83FEACC0ACAF9B55A4423A5DE99C30E437C48071A1951E",
+  "baseline_head": "b11bc7b870f615e493afb1bc723b888befdb58c9",
+  "provenance_kind": "SYNTHETIC_FIXTURE",
+  "provider_execution": "NOT_EXECUTED",
+  "live_metrics": "NOT_MEASURED",
+  "full_task_status": "OPEN",
+  "diagnostic_only": true,
+  "boundaries": [
+    "This is an internal manifest, not a new public contract.",
+    "IDs are qualified by this manifest path; other manifests have independent ID namespaces.",
+    "Only source recipes are reused from Task 4; no Task 4 result is Task 5 evidence.",
+    "Execution success is separate from requirement satisfaction; HELD/UNMAPPED is never coverage.",
+    "No Gate B creation, eligibility decision, Gate A bypass, provider/model execution or harness retry.",
+    "Quality-validator reference evidence is separate from HTTP-admission proof.",
+    "All P2T4-FU-01 through P2T4-FU-10 remain OPEN/unassigned."
+  ],
+  "contract_locks": [
+    {
+      "contract": "VisionUnderstandingResultV2",
+      "version": "2.0",
+      "path": "backend/src/sketch2life/contracts/schemas/vision_v2.py",
+      "sha256": "BEA0511C400B452B86FF32A90CB5F65DF4C191A72A857B1024C30A65628CD0D8"
+    },
+    {
+      "contract": "RawUnderstandingResultV1",
+      "version": "1.0",
+      "path": "backend/src/sketch2life/contracts/schemas/raw_understanding.py",
+      "sha256": "9A5350A7A6913C2FC4F9F3008AA3BCEBA652D90CD25F3CFE76F598B053A57E0B"
+    },
+    {
+      "contract": "AsrResultV1",
+      "version": "1.0",
+      "path": "backend/src/sketch2life/contracts/schemas/asr.py",
+      "sha256": "1DCF8DB144EBFD080266F05B8E75AE404EC230EDC7983937A0E598E48C0B9B22"
+    }
+  ],
+  "source_locks": [
+    {
+      "path": "backend/src/sketch2life/application/ports/asr.py",
+      "sha256": "92E9E68AA7C428A72CC366FF540F4D5F1BF3BFA2605AEC059B9DC20E9E84F9D6"
+    },
+    {
+      "path": "features/FEAT-018-live-image-canvas-flow/plan/ACTIVITY_PILOT_MATRIX.md",
+      "sha256": "85562043A694D72A6AA1F8510618EBF4548B05308F9AD1457F8321199895EF12"
+    },
+    {
+      "path": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json",
+      "sha256": "1BA728CA3B02646BAFD6B75D27B6C70461957CEB8628EC8E75F11E3AEA62BD5A"
+    }
+  ],
+  "pilots": [
+    {
+      "activity_id": "ACT-0004",
+      "activity_version": 2,
+      "activity_name": "Tìm đồ vật dưới khăn",
+      "exact_phrase": "tìm đồ vật dưới khăn"
+    },
+    {
+      "activity_id": "ACT-0016",
+      "activity_version": 2,
+      "activity_name": "Chuyển đồ vật lớn giữa hai bát",
+      "exact_phrase": "chuyển đồ vật lớn giữa hai bát"
+    },
+    {
+      "activity_id": "ACT-0019",
+      "activity_version": 2,
+      "activity_name": "Chuỗi rửa tay",
+      "exact_phrase": "chuỗi rửa tay"
+    },
+    {
+      "activity_id": "ACT-0020",
+      "activity_version": 2,
+      "activity_name": "Lau vết nước nhỏ",
+      "exact_phrase": "lau vết nước nhỏ"
+    },
+    {
+      "activity_id": "ACT-0023",
+      "activity_version": 2,
+      "activity_name": "Tưới cây nhỏ",
+      "exact_phrase": "tưới cây nhỏ"
+    },
+    {
+      "activity_id": "ACT-0026",
+      "activity_version": 2,
+      "activity_name": "Rót hạt khô",
+      "exact_phrase": "rót hạt khô"
+    },
+    {
+      "activity_id": "ACT-0030",
+      "activity_version": 2,
+      "activity_name": "Khung cài nút",
+      "exact_phrase": "khung cài nút"
+    },
+    {
+      "activity_id": "ACT-0033",
+      "activity_version": 2,
+      "activity_name": "Sắp bàn cho một người",
+      "exact_phrase": "sắp bàn cho một người"
+    },
+    {
+      "activity_id": "ACT-0039",
+      "activity_version": 2,
+      "activity_name": "Phân cấp bảng màu",
+      "exact_phrase": "phân cấp bảng màu"
+    },
+    {
+      "activity_id": "ACT-0046",
+      "activity_version": 2,
+      "activity_name": "Khung kim loại luyện nét",
+      "exact_phrase": "khung kim loại luyện nét"
+    },
+    {
+      "activity_id": "ACT-0055",
+      "activity_version": 2,
+      "activity_name": "Quan sát các bộ phận của cây",
+      "exact_phrase": "quan sát các bộ phận của cây"
+    },
+    {
+      "activity_id": "ACT-0058",
+      "activity_version": 2,
+      "activity_name": "Mô hình vòng tuần hoàn nước",
+      "exact_phrase": "mô hình vòng tuần hoàn nước"
+    },
+    {
+      "activity_id": "ACT-0061",
+      "activity_version": 2,
+      "activity_name": "Nhân với trò chơi tem",
+      "exact_phrase": "nhân với trò chơi tem"
+    },
+    {
+      "activity_id": "ACT-0067",
+      "activity_version": 2,
+      "activity_name": "Phân tích từ loại bằng ký hiệu",
+      "exact_phrase": "phân tích từ loại bằng ký hiệu"
+    },
+    {
+      "activity_id": "ACT-0074",
+      "activity_version": 2,
+      "activity_name": "Lập kế hoạch công việc tuần",
+      "exact_phrase": "lập kế hoạch công việc tuần"
+    },
+    {
+      "activity_id": "ACT-0085",
+      "activity_version": 2,
+      "activity_name": "Khảo sát và mô tả dữ liệu",
+      "exact_phrase": "khảo sát và mô tả dữ liệu"
+    },
+    {
+      "activity_id": "ACT-0087",
+      "activity_version": 2,
+      "activity_name": "Xây khóa phân loại",
+      "exact_phrase": "xây khóa phân loại"
+    },
+    {
+      "activity_id": "ACT-0091",
+      "activity_version": 2,
+      "activity_name": "Mô hình pha Mặt Trăng",
+      "exact_phrase": "mô hình pha mặt trăng"
+    },
+    {
+      "activity_id": "ACT-0097",
+      "activity_version": 2,
+      "activity_name": "Viết lập luận dựa trên bằng chứng",
+      "exact_phrase": "viết lập luận dựa trên bằng chứng"
+    },
+    {
+      "activity_id": "ACT-0099",
+      "activity_version": 2,
+      "activity_name": "Dự án nghiên cứu độc lập",
+      "exact_phrase": "dự án nghiên cứu độc lập"
+    }
+  ],
+  "families": [
+    "exact",
+    "ambiguous",
+    "no-match",
+    "conflict",
+    "low",
+    "adult-correction"
+  ],
+  "profiles": [
+    {
+      "fixture_id": "feat018-p2-t5-act-0004-exact",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0004-exact",
+      "activity_id": "ACT-0004",
+      "activity_version": 2,
+      "family": "exact",
+      "recipe": {
+        "exact_phrase": "tìm đồ vật dưới khăn",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0004-exact",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "OPEN",
+      "held_reasons": [],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0004-exact:map_exact",
+          "kind": "map_exact",
+          "expected_outcome": "MAP_EXACT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0004-ambiguous",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0004-ambiguous",
+      "activity_id": "ACT-0004",
+      "activity_version": 2,
+      "family": "ambiguous",
+      "recipe": {
+        "exact_phrase": "tìm đồ vật dưới khăn",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0004-ambiguous",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Ambiguity selection and downstream projection are outside the selected mapper proof."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0004-ambiguous:map_ambiguous",
+          "kind": "map_ambiguous",
+          "expected_outcome": "MAP_AMBIGUOUS",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0004-no-match",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0004-no-match",
+      "activity_id": "ACT-0004",
+      "activity_version": 2,
+      "family": "no-match",
+      "recipe": {
+        "exact_phrase": "tìm đồ vật dưới khăn",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0004-no-match",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Unknown-label preservation does not prove no matching candidate in downstream matching."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0004-no-match:map_unknown_label",
+          "kind": "map_unknown_label",
+          "expected_outcome": "MAP_UNKNOWN_LABEL",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0004-conflict",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0004-conflict",
+      "activity_id": "ACT-0004",
+      "activity_version": 2,
+      "family": "conflict",
+      "recipe": {
+        "exact_phrase": "tìm đồ vật dưới khăn",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0004-conflict",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A3",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Per-pilot semantic conflict and Gate A/P1 integration remain HELD; ASR provenance and explicit Raw conflict schema are separate subprobes."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0004-conflict:map_asr_present",
+          "kind": "map_asr_present",
+          "expected_outcome": "MAP_ASR_PRESENT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        },
+        {
+          "probe_id": "feat018-p2-t5-act-0004-conflict:raw_conflict_schema",
+          "kind": "raw_conflict_schema",
+          "expected_outcome": "RAW_CONFLICT_SCHEMA",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0004-low",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0004-low",
+      "activity_id": "ACT-0004",
+      "activity_version": 2,
+      "family": "low",
+      "recipe": {
+        "exact_phrase": "tìm đồ vật dưới khăn",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0004-low",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Numeric-low preservation and null-confidence rejection do not establish support for unknown confidence or downstream policy."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0004-low:map_low_confidence",
+          "kind": "map_low_confidence",
+          "expected_outcome": "MAP_LOW_CONFIDENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        },
+        {
+          "probe_id": "feat018-p2-t5-act-0004-low:reject_null_confidence",
+          "kind": "reject_null_confidence",
+          "expected_outcome": "REJECT_NULL_CONFIDENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0004-adult-correction",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0004-adult-correction",
+      "activity_id": "ACT-0004",
+      "activity_version": 2,
+      "family": "adult-correction",
+      "recipe": {
+        "exact_phrase": "tìm đồ vật dưới khăn",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0004-adult-correction",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "NOT_EXECUTED",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Adult correction is UNMAPPED at the selected three-contract input boundary; no adult fields or integration are added."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0004-adult-correction:adult_correction_held",
+          "kind": "adult_correction_held",
+          "expected_outcome": "NOT_EXECUTED",
+          "requirement_status": "HELD",
+          "held_reason": "Adult correction is UNMAPPED at the selected three-contract input boundary; no adult fields or integration are added."
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0016-exact",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0016-exact",
+      "activity_id": "ACT-0016",
+      "activity_version": 2,
+      "family": "exact",
+      "recipe": {
+        "exact_phrase": "chuyển đồ vật lớn giữa hai bát",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0016-exact",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "OPEN",
+      "held_reasons": [],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0016-exact:map_exact",
+          "kind": "map_exact",
+          "expected_outcome": "MAP_EXACT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0016-ambiguous",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0016-ambiguous",
+      "activity_id": "ACT-0016",
+      "activity_version": 2,
+      "family": "ambiguous",
+      "recipe": {
+        "exact_phrase": "chuyển đồ vật lớn giữa hai bát",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0016-ambiguous",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Ambiguity selection and downstream projection are outside the selected mapper proof."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0016-ambiguous:map_ambiguous",
+          "kind": "map_ambiguous",
+          "expected_outcome": "MAP_AMBIGUOUS",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0016-no-match",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0016-no-match",
+      "activity_id": "ACT-0016",
+      "activity_version": 2,
+      "family": "no-match",
+      "recipe": {
+        "exact_phrase": "chuyển đồ vật lớn giữa hai bát",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0016-no-match",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Unknown-label preservation does not prove no matching candidate in downstream matching."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0016-no-match:map_unknown_label",
+          "kind": "map_unknown_label",
+          "expected_outcome": "MAP_UNKNOWN_LABEL",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0016-conflict",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0016-conflict",
+      "activity_id": "ACT-0016",
+      "activity_version": 2,
+      "family": "conflict",
+      "recipe": {
+        "exact_phrase": "chuyển đồ vật lớn giữa hai bát",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0016-conflict",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A3",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Per-pilot semantic conflict and Gate A/P1 integration remain HELD; ASR provenance and explicit Raw conflict schema are separate subprobes."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0016-conflict:map_asr_present",
+          "kind": "map_asr_present",
+          "expected_outcome": "MAP_ASR_PRESENT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        },
+        {
+          "probe_id": "feat018-p2-t5-act-0016-conflict:raw_conflict_schema",
+          "kind": "raw_conflict_schema",
+          "expected_outcome": "RAW_CONFLICT_SCHEMA",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0016-low",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0016-low",
+      "activity_id": "ACT-0016",
+      "activity_version": 2,
+      "family": "low",
+      "recipe": {
+        "exact_phrase": "chuyển đồ vật lớn giữa hai bát",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0016-low",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Numeric-low preservation and null-confidence rejection do not establish support for unknown confidence or downstream policy."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0016-low:map_low_confidence",
+          "kind": "map_low_confidence",
+          "expected_outcome": "MAP_LOW_CONFIDENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        },
+        {
+          "probe_id": "feat018-p2-t5-act-0016-low:reject_null_confidence",
+          "kind": "reject_null_confidence",
+          "expected_outcome": "REJECT_NULL_CONFIDENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0016-adult-correction",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0016-adult-correction",
+      "activity_id": "ACT-0016",
+      "activity_version": 2,
+      "family": "adult-correction",
+      "recipe": {
+        "exact_phrase": "chuyển đồ vật lớn giữa hai bát",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0016-adult-correction",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "NOT_EXECUTED",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Adult correction is UNMAPPED at the selected three-contract input boundary; no adult fields or integration are added."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0016-adult-correction:adult_correction_held",
+          "kind": "adult_correction_held",
+          "expected_outcome": "NOT_EXECUTED",
+          "requirement_status": "HELD",
+          "held_reason": "Adult correction is UNMAPPED at the selected three-contract input boundary; no adult fields or integration are added."
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0019-exact",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0019-exact",
+      "activity_id": "ACT-0019",
+      "activity_version": 2,
+      "family": "exact",
+      "recipe": {
+        "exact_phrase": "chuỗi rửa tay",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0019-exact",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "OPEN",
+      "held_reasons": [],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0019-exact:map_exact",
+          "kind": "map_exact",
+          "expected_outcome": "MAP_EXACT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0019-ambiguous",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0019-ambiguous",
+      "activity_id": "ACT-0019",
+      "activity_version": 2,
+      "family": "ambiguous",
+      "recipe": {
+        "exact_phrase": "chuỗi rửa tay",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0019-ambiguous",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Ambiguity selection and downstream projection are outside the selected mapper proof."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0019-ambiguous:map_ambiguous",
+          "kind": "map_ambiguous",
+          "expected_outcome": "MAP_AMBIGUOUS",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0019-no-match",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0019-no-match",
+      "activity_id": "ACT-0019",
+      "activity_version": 2,
+      "family": "no-match",
+      "recipe": {
+        "exact_phrase": "chuỗi rửa tay",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0019-no-match",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Unknown-label preservation does not prove no matching candidate in downstream matching."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0019-no-match:map_unknown_label",
+          "kind": "map_unknown_label",
+          "expected_outcome": "MAP_UNKNOWN_LABEL",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0019-conflict",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0019-conflict",
+      "activity_id": "ACT-0019",
+      "activity_version": 2,
+      "family": "conflict",
+      "recipe": {
+        "exact_phrase": "chuỗi rửa tay",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0019-conflict",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A3",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Per-pilot semantic conflict and Gate A/P1 integration remain HELD; ASR provenance and explicit Raw conflict schema are separate subprobes."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0019-conflict:map_asr_present",
+          "kind": "map_asr_present",
+          "expected_outcome": "MAP_ASR_PRESENT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        },
+        {
+          "probe_id": "feat018-p2-t5-act-0019-conflict:raw_conflict_schema",
+          "kind": "raw_conflict_schema",
+          "expected_outcome": "RAW_CONFLICT_SCHEMA",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0019-low",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0019-low",
+      "activity_id": "ACT-0019",
+      "activity_version": 2,
+      "family": "low",
+      "recipe": {
+        "exact_phrase": "chuỗi rửa tay",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0019-low",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Numeric-low preservation and null-confidence rejection do not establish support for unknown confidence or downstream policy."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0019-low:map_low_confidence",
+          "kind": "map_low_confidence",
+          "expected_outcome": "MAP_LOW_CONFIDENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        },
+        {
+          "probe_id": "feat018-p2-t5-act-0019-low:reject_null_confidence",
+          "kind": "reject_null_confidence",
+          "expected_outcome": "REJECT_NULL_CONFIDENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0019-adult-correction",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0019-adult-correction",
+      "activity_id": "ACT-0019",
+      "activity_version": 2,
+      "family": "adult-correction",
+      "recipe": {
+        "exact_phrase": "chuỗi rửa tay",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0019-adult-correction",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "NOT_EXECUTED",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Adult correction is UNMAPPED at the selected three-contract input boundary; no adult fields or integration are added."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0019-adult-correction:adult_correction_held",
+          "kind": "adult_correction_held",
+          "expected_outcome": "NOT_EXECUTED",
+          "requirement_status": "HELD",
+          "held_reason": "Adult correction is UNMAPPED at the selected three-contract input boundary; no adult fields or integration are added."
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0020-exact",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0020-exact",
+      "activity_id": "ACT-0020",
+      "activity_version": 2,
+      "family": "exact",
+      "recipe": {
+        "exact_phrase": "lau vết nước nhỏ",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0020-exact",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "OPEN",
+      "held_reasons": [],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0020-exact:map_exact",
+          "kind": "map_exact",
+          "expected_outcome": "MAP_EXACT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0020-ambiguous",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0020-ambiguous",
+      "activity_id": "ACT-0020",
+      "activity_version": 2,
+      "family": "ambiguous",
+      "recipe": {
+        "exact_phrase": "lau vết nước nhỏ",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0020-ambiguous",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Ambiguity selection and downstream projection are outside the selected mapper proof."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0020-ambiguous:map_ambiguous",
+          "kind": "map_ambiguous",
+          "expected_outcome": "MAP_AMBIGUOUS",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0020-no-match",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0020-no-match",
+      "activity_id": "ACT-0020",
+      "activity_version": 2,
+      "family": "no-match",
+      "recipe": {
+        "exact_phrase": "lau vết nước nhỏ",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0020-no-match",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Unknown-label preservation does not prove no matching candidate in downstream matching."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0020-no-match:map_unknown_label",
+          "kind": "map_unknown_label",
+          "expected_outcome": "MAP_UNKNOWN_LABEL",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0020-conflict",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0020-conflict",
+      "activity_id": "ACT-0020",
+      "activity_version": 2,
+      "family": "conflict",
+      "recipe": {
+        "exact_phrase": "lau vết nước nhỏ",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0020-conflict",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A3",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Per-pilot semantic conflict and Gate A/P1 integration remain HELD; ASR provenance and explicit Raw conflict schema are separate subprobes."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0020-conflict:map_asr_present",
+          "kind": "map_asr_present",
+          "expected_outcome": "MAP_ASR_PRESENT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        },
+        {
+          "probe_id": "feat018-p2-t5-act-0020-conflict:raw_conflict_schema",
+          "kind": "raw_conflict_schema",
+          "expected_outcome": "RAW_CONFLICT_SCHEMA",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0020-low",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0020-low",
+      "activity_id": "ACT-0020",
+      "activity_version": 2,
+      "family": "low",
+      "recipe": {
+        "exact_phrase": "lau vết nước nhỏ",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0020-low",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Numeric-low preservation and null-confidence rejection do not establish support for unknown confidence or downstream policy."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0020-low:map_low_confidence",
+          "kind": "map_low_confidence",
+          "expected_outcome": "MAP_LOW_CONFIDENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        },
+        {
+          "probe_id": "feat018-p2-t5-act-0020-low:reject_null_confidence",
+          "kind": "reject_null_confidence",
+          "expected_outcome": "REJECT_NULL_CONFIDENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0020-adult-correction",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0020-adult-correction",
+      "activity_id": "ACT-0020",
+      "activity_version": 2,
+      "family": "adult-correction",
+      "recipe": {
+        "exact_phrase": "lau vết nước nhỏ",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0020-adult-correction",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "NOT_EXECUTED",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Adult correction is UNMAPPED at the selected three-contract input boundary; no adult fields or integration are added."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0020-adult-correction:adult_correction_held",
+          "kind": "adult_correction_held",
+          "expected_outcome": "NOT_EXECUTED",
+          "requirement_status": "HELD",
+          "held_reason": "Adult correction is UNMAPPED at the selected three-contract input boundary; no adult fields or integration are added."
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0023-exact",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0023-exact",
+      "activity_id": "ACT-0023",
+      "activity_version": 2,
+      "family": "exact",
+      "recipe": {
+        "exact_phrase": "tưới cây nhỏ",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0023-exact",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "OPEN",
+      "held_reasons": [],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0023-exact:map_exact",
+          "kind": "map_exact",
+          "expected_outcome": "MAP_EXACT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0023-ambiguous",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0023-ambiguous",
+      "activity_id": "ACT-0023",
+      "activity_version": 2,
+      "family": "ambiguous",
+      "recipe": {
+        "exact_phrase": "tưới cây nhỏ",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0023-ambiguous",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Ambiguity selection and downstream projection are outside the selected mapper proof."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0023-ambiguous:map_ambiguous",
+          "kind": "map_ambiguous",
+          "expected_outcome": "MAP_AMBIGUOUS",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0023-no-match",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0023-no-match",
+      "activity_id": "ACT-0023",
+      "activity_version": 2,
+      "family": "no-match",
+      "recipe": {
+        "exact_phrase": "tưới cây nhỏ",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0023-no-match",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Unknown-label preservation does not prove no matching candidate in downstream matching."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0023-no-match:map_unknown_label",
+          "kind": "map_unknown_label",
+          "expected_outcome": "MAP_UNKNOWN_LABEL",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0023-conflict",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0023-conflict",
+      "activity_id": "ACT-0023",
+      "activity_version": 2,
+      "family": "conflict",
+      "recipe": {
+        "exact_phrase": "tưới cây nhỏ",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0023-conflict",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A3",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Per-pilot semantic conflict and Gate A/P1 integration remain HELD; ASR provenance and explicit Raw conflict schema are separate subprobes."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0023-conflict:map_asr_present",
+          "kind": "map_asr_present",
+          "expected_outcome": "MAP_ASR_PRESENT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        },
+        {
+          "probe_id": "feat018-p2-t5-act-0023-conflict:raw_conflict_schema",
+          "kind": "raw_conflict_schema",
+          "expected_outcome": "RAW_CONFLICT_SCHEMA",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0023-low",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0023-low",
+      "activity_id": "ACT-0023",
+      "activity_version": 2,
+      "family": "low",
+      "recipe": {
+        "exact_phrase": "tưới cây nhỏ",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0023-low",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Numeric-low preservation and null-confidence rejection do not establish support for unknown confidence or downstream policy."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0023-low:map_low_confidence",
+          "kind": "map_low_confidence",
+          "expected_outcome": "MAP_LOW_CONFIDENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        },
+        {
+          "probe_id": "feat018-p2-t5-act-0023-low:reject_null_confidence",
+          "kind": "reject_null_confidence",
+          "expected_outcome": "REJECT_NULL_CONFIDENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0023-adult-correction",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0023-adult-correction",
+      "activity_id": "ACT-0023",
+      "activity_version": 2,
+      "family": "adult-correction",
+      "recipe": {
+        "exact_phrase": "tưới cây nhỏ",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0023-adult-correction",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "NOT_EXECUTED",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Adult correction is UNMAPPED at the selected three-contract input boundary; no adult fields or integration are added."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0023-adult-correction:adult_correction_held",
+          "kind": "adult_correction_held",
+          "expected_outcome": "NOT_EXECUTED",
+          "requirement_status": "HELD",
+          "held_reason": "Adult correction is UNMAPPED at the selected three-contract input boundary; no adult fields or integration are added."
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0026-exact",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0026-exact",
+      "activity_id": "ACT-0026",
+      "activity_version": 2,
+      "family": "exact",
+      "recipe": {
+        "exact_phrase": "rót hạt khô",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0026-exact",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "OPEN",
+      "held_reasons": [],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0026-exact:map_exact",
+          "kind": "map_exact",
+          "expected_outcome": "MAP_EXACT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0026-ambiguous",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0026-ambiguous",
+      "activity_id": "ACT-0026",
+      "activity_version": 2,
+      "family": "ambiguous",
+      "recipe": {
+        "exact_phrase": "rót hạt khô",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0026-ambiguous",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Ambiguity selection and downstream projection are outside the selected mapper proof."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0026-ambiguous:map_ambiguous",
+          "kind": "map_ambiguous",
+          "expected_outcome": "MAP_AMBIGUOUS",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0026-no-match",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0026-no-match",
+      "activity_id": "ACT-0026",
+      "activity_version": 2,
+      "family": "no-match",
+      "recipe": {
+        "exact_phrase": "rót hạt khô",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0026-no-match",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Unknown-label preservation does not prove no matching candidate in downstream matching."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0026-no-match:map_unknown_label",
+          "kind": "map_unknown_label",
+          "expected_outcome": "MAP_UNKNOWN_LABEL",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0026-conflict",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0026-conflict",
+      "activity_id": "ACT-0026",
+      "activity_version": 2,
+      "family": "conflict",
+      "recipe": {
+        "exact_phrase": "rót hạt khô",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0026-conflict",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A3",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Per-pilot semantic conflict and Gate A/P1 integration remain HELD; ASR provenance and explicit Raw conflict schema are separate subprobes."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0026-conflict:map_asr_present",
+          "kind": "map_asr_present",
+          "expected_outcome": "MAP_ASR_PRESENT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        },
+        {
+          "probe_id": "feat018-p2-t5-act-0026-conflict:raw_conflict_schema",
+          "kind": "raw_conflict_schema",
+          "expected_outcome": "RAW_CONFLICT_SCHEMA",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0026-low",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0026-low",
+      "activity_id": "ACT-0026",
+      "activity_version": 2,
+      "family": "low",
+      "recipe": {
+        "exact_phrase": "rót hạt khô",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0026-low",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Numeric-low preservation and null-confidence rejection do not establish support for unknown confidence or downstream policy."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0026-low:map_low_confidence",
+          "kind": "map_low_confidence",
+          "expected_outcome": "MAP_LOW_CONFIDENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        },
+        {
+          "probe_id": "feat018-p2-t5-act-0026-low:reject_null_confidence",
+          "kind": "reject_null_confidence",
+          "expected_outcome": "REJECT_NULL_CONFIDENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0026-adult-correction",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0026-adult-correction",
+      "activity_id": "ACT-0026",
+      "activity_version": 2,
+      "family": "adult-correction",
+      "recipe": {
+        "exact_phrase": "rót hạt khô",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0026-adult-correction",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "NOT_EXECUTED",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Adult correction is UNMAPPED at the selected three-contract input boundary; no adult fields or integration are added."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0026-adult-correction:adult_correction_held",
+          "kind": "adult_correction_held",
+          "expected_outcome": "NOT_EXECUTED",
+          "requirement_status": "HELD",
+          "held_reason": "Adult correction is UNMAPPED at the selected three-contract input boundary; no adult fields or integration are added."
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0030-exact",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0030-exact",
+      "activity_id": "ACT-0030",
+      "activity_version": 2,
+      "family": "exact",
+      "recipe": {
+        "exact_phrase": "khung cài nút",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0030-exact",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "OPEN",
+      "held_reasons": [],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0030-exact:map_exact",
+          "kind": "map_exact",
+          "expected_outcome": "MAP_EXACT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0030-ambiguous",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0030-ambiguous",
+      "activity_id": "ACT-0030",
+      "activity_version": 2,
+      "family": "ambiguous",
+      "recipe": {
+        "exact_phrase": "khung cài nút",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0030-ambiguous",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Ambiguity selection and downstream projection are outside the selected mapper proof."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0030-ambiguous:map_ambiguous",
+          "kind": "map_ambiguous",
+          "expected_outcome": "MAP_AMBIGUOUS",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0030-no-match",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0030-no-match",
+      "activity_id": "ACT-0030",
+      "activity_version": 2,
+      "family": "no-match",
+      "recipe": {
+        "exact_phrase": "khung cài nút",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0030-no-match",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Unknown-label preservation does not prove no matching candidate in downstream matching."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0030-no-match:map_unknown_label",
+          "kind": "map_unknown_label",
+          "expected_outcome": "MAP_UNKNOWN_LABEL",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0030-conflict",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0030-conflict",
+      "activity_id": "ACT-0030",
+      "activity_version": 2,
+      "family": "conflict",
+      "recipe": {
+        "exact_phrase": "khung cài nút",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0030-conflict",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A3",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Per-pilot semantic conflict and Gate A/P1 integration remain HELD; ASR provenance and explicit Raw conflict schema are separate subprobes."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0030-conflict:map_asr_present",
+          "kind": "map_asr_present",
+          "expected_outcome": "MAP_ASR_PRESENT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        },
+        {
+          "probe_id": "feat018-p2-t5-act-0030-conflict:raw_conflict_schema",
+          "kind": "raw_conflict_schema",
+          "expected_outcome": "RAW_CONFLICT_SCHEMA",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0030-low",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0030-low",
+      "activity_id": "ACT-0030",
+      "activity_version": 2,
+      "family": "low",
+      "recipe": {
+        "exact_phrase": "khung cài nút",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0030-low",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Numeric-low preservation and null-confidence rejection do not establish support for unknown confidence or downstream policy."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0030-low:map_low_confidence",
+          "kind": "map_low_confidence",
+          "expected_outcome": "MAP_LOW_CONFIDENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        },
+        {
+          "probe_id": "feat018-p2-t5-act-0030-low:reject_null_confidence",
+          "kind": "reject_null_confidence",
+          "expected_outcome": "REJECT_NULL_CONFIDENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0030-adult-correction",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0030-adult-correction",
+      "activity_id": "ACT-0030",
+      "activity_version": 2,
+      "family": "adult-correction",
+      "recipe": {
+        "exact_phrase": "khung cài nút",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0030-adult-correction",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "NOT_EXECUTED",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Adult correction is UNMAPPED at the selected three-contract input boundary; no adult fields or integration are added."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0030-adult-correction:adult_correction_held",
+          "kind": "adult_correction_held",
+          "expected_outcome": "NOT_EXECUTED",
+          "requirement_status": "HELD",
+          "held_reason": "Adult correction is UNMAPPED at the selected three-contract input boundary; no adult fields or integration are added."
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0033-exact",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0033-exact",
+      "activity_id": "ACT-0033",
+      "activity_version": 2,
+      "family": "exact",
+      "recipe": {
+        "exact_phrase": "sắp bàn cho một người",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0033-exact",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "OPEN",
+      "held_reasons": [],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0033-exact:map_exact",
+          "kind": "map_exact",
+          "expected_outcome": "MAP_EXACT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0033-ambiguous",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0033-ambiguous",
+      "activity_id": "ACT-0033",
+      "activity_version": 2,
+      "family": "ambiguous",
+      "recipe": {
+        "exact_phrase": "sắp bàn cho một người",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0033-ambiguous",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Ambiguity selection and downstream projection are outside the selected mapper proof."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0033-ambiguous:map_ambiguous",
+          "kind": "map_ambiguous",
+          "expected_outcome": "MAP_AMBIGUOUS",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0033-no-match",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0033-no-match",
+      "activity_id": "ACT-0033",
+      "activity_version": 2,
+      "family": "no-match",
+      "recipe": {
+        "exact_phrase": "sắp bàn cho một người",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0033-no-match",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Unknown-label preservation does not prove no matching candidate in downstream matching."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0033-no-match:map_unknown_label",
+          "kind": "map_unknown_label",
+          "expected_outcome": "MAP_UNKNOWN_LABEL",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0033-conflict",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0033-conflict",
+      "activity_id": "ACT-0033",
+      "activity_version": 2,
+      "family": "conflict",
+      "recipe": {
+        "exact_phrase": "sắp bàn cho một người",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0033-conflict",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A3",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Per-pilot semantic conflict and Gate A/P1 integration remain HELD; ASR provenance and explicit Raw conflict schema are separate subprobes."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0033-conflict:map_asr_present",
+          "kind": "map_asr_present",
+          "expected_outcome": "MAP_ASR_PRESENT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        },
+        {
+          "probe_id": "feat018-p2-t5-act-0033-conflict:raw_conflict_schema",
+          "kind": "raw_conflict_schema",
+          "expected_outcome": "RAW_CONFLICT_SCHEMA",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0033-low",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0033-low",
+      "activity_id": "ACT-0033",
+      "activity_version": 2,
+      "family": "low",
+      "recipe": {
+        "exact_phrase": "sắp bàn cho một người",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0033-low",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Numeric-low preservation and null-confidence rejection do not establish support for unknown confidence or downstream policy."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0033-low:map_low_confidence",
+          "kind": "map_low_confidence",
+          "expected_outcome": "MAP_LOW_CONFIDENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        },
+        {
+          "probe_id": "feat018-p2-t5-act-0033-low:reject_null_confidence",
+          "kind": "reject_null_confidence",
+          "expected_outcome": "REJECT_NULL_CONFIDENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0033-adult-correction",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0033-adult-correction",
+      "activity_id": "ACT-0033",
+      "activity_version": 2,
+      "family": "adult-correction",
+      "recipe": {
+        "exact_phrase": "sắp bàn cho một người",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0033-adult-correction",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "NOT_EXECUTED",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Adult correction is UNMAPPED at the selected three-contract input boundary; no adult fields or integration are added."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0033-adult-correction:adult_correction_held",
+          "kind": "adult_correction_held",
+          "expected_outcome": "NOT_EXECUTED",
+          "requirement_status": "HELD",
+          "held_reason": "Adult correction is UNMAPPED at the selected three-contract input boundary; no adult fields or integration are added."
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0039-exact",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0039-exact",
+      "activity_id": "ACT-0039",
+      "activity_version": 2,
+      "family": "exact",
+      "recipe": {
+        "exact_phrase": "phân cấp bảng màu",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0039-exact",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "OPEN",
+      "held_reasons": [],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0039-exact:map_exact",
+          "kind": "map_exact",
+          "expected_outcome": "MAP_EXACT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0039-ambiguous",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0039-ambiguous",
+      "activity_id": "ACT-0039",
+      "activity_version": 2,
+      "family": "ambiguous",
+      "recipe": {
+        "exact_phrase": "phân cấp bảng màu",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0039-ambiguous",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Ambiguity selection and downstream projection are outside the selected mapper proof."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0039-ambiguous:map_ambiguous",
+          "kind": "map_ambiguous",
+          "expected_outcome": "MAP_AMBIGUOUS",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0039-no-match",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0039-no-match",
+      "activity_id": "ACT-0039",
+      "activity_version": 2,
+      "family": "no-match",
+      "recipe": {
+        "exact_phrase": "phân cấp bảng màu",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0039-no-match",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Unknown-label preservation does not prove no matching candidate in downstream matching."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0039-no-match:map_unknown_label",
+          "kind": "map_unknown_label",
+          "expected_outcome": "MAP_UNKNOWN_LABEL",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0039-conflict",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0039-conflict",
+      "activity_id": "ACT-0039",
+      "activity_version": 2,
+      "family": "conflict",
+      "recipe": {
+        "exact_phrase": "phân cấp bảng màu",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0039-conflict",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A3",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Per-pilot semantic conflict and Gate A/P1 integration remain HELD; ASR provenance and explicit Raw conflict schema are separate subprobes."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0039-conflict:map_asr_present",
+          "kind": "map_asr_present",
+          "expected_outcome": "MAP_ASR_PRESENT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        },
+        {
+          "probe_id": "feat018-p2-t5-act-0039-conflict:raw_conflict_schema",
+          "kind": "raw_conflict_schema",
+          "expected_outcome": "RAW_CONFLICT_SCHEMA",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0039-low",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0039-low",
+      "activity_id": "ACT-0039",
+      "activity_version": 2,
+      "family": "low",
+      "recipe": {
+        "exact_phrase": "phân cấp bảng màu",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0039-low",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Numeric-low preservation and null-confidence rejection do not establish support for unknown confidence or downstream policy."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0039-low:map_low_confidence",
+          "kind": "map_low_confidence",
+          "expected_outcome": "MAP_LOW_CONFIDENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        },
+        {
+          "probe_id": "feat018-p2-t5-act-0039-low:reject_null_confidence",
+          "kind": "reject_null_confidence",
+          "expected_outcome": "REJECT_NULL_CONFIDENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0039-adult-correction",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0039-adult-correction",
+      "activity_id": "ACT-0039",
+      "activity_version": 2,
+      "family": "adult-correction",
+      "recipe": {
+        "exact_phrase": "phân cấp bảng màu",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0039-adult-correction",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "NOT_EXECUTED",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Adult correction is UNMAPPED at the selected three-contract input boundary; no adult fields or integration are added."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0039-adult-correction:adult_correction_held",
+          "kind": "adult_correction_held",
+          "expected_outcome": "NOT_EXECUTED",
+          "requirement_status": "HELD",
+          "held_reason": "Adult correction is UNMAPPED at the selected three-contract input boundary; no adult fields or integration are added."
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0046-exact",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0046-exact",
+      "activity_id": "ACT-0046",
+      "activity_version": 2,
+      "family": "exact",
+      "recipe": {
+        "exact_phrase": "khung kim loại luyện nét",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0046-exact",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "OPEN",
+      "held_reasons": [],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0046-exact:map_exact",
+          "kind": "map_exact",
+          "expected_outcome": "MAP_EXACT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0046-ambiguous",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0046-ambiguous",
+      "activity_id": "ACT-0046",
+      "activity_version": 2,
+      "family": "ambiguous",
+      "recipe": {
+        "exact_phrase": "khung kim loại luyện nét",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0046-ambiguous",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Ambiguity selection and downstream projection are outside the selected mapper proof."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0046-ambiguous:map_ambiguous",
+          "kind": "map_ambiguous",
+          "expected_outcome": "MAP_AMBIGUOUS",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0046-no-match",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0046-no-match",
+      "activity_id": "ACT-0046",
+      "activity_version": 2,
+      "family": "no-match",
+      "recipe": {
+        "exact_phrase": "khung kim loại luyện nét",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0046-no-match",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Unknown-label preservation does not prove no matching candidate in downstream matching."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0046-no-match:map_unknown_label",
+          "kind": "map_unknown_label",
+          "expected_outcome": "MAP_UNKNOWN_LABEL",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0046-conflict",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0046-conflict",
+      "activity_id": "ACT-0046",
+      "activity_version": 2,
+      "family": "conflict",
+      "recipe": {
+        "exact_phrase": "khung kim loại luyện nét",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0046-conflict",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A3",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Per-pilot semantic conflict and Gate A/P1 integration remain HELD; ASR provenance and explicit Raw conflict schema are separate subprobes."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0046-conflict:map_asr_present",
+          "kind": "map_asr_present",
+          "expected_outcome": "MAP_ASR_PRESENT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        },
+        {
+          "probe_id": "feat018-p2-t5-act-0046-conflict:raw_conflict_schema",
+          "kind": "raw_conflict_schema",
+          "expected_outcome": "RAW_CONFLICT_SCHEMA",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0046-low",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0046-low",
+      "activity_id": "ACT-0046",
+      "activity_version": 2,
+      "family": "low",
+      "recipe": {
+        "exact_phrase": "khung kim loại luyện nét",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0046-low",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Numeric-low preservation and null-confidence rejection do not establish support for unknown confidence or downstream policy."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0046-low:map_low_confidence",
+          "kind": "map_low_confidence",
+          "expected_outcome": "MAP_LOW_CONFIDENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        },
+        {
+          "probe_id": "feat018-p2-t5-act-0046-low:reject_null_confidence",
+          "kind": "reject_null_confidence",
+          "expected_outcome": "REJECT_NULL_CONFIDENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0046-adult-correction",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0046-adult-correction",
+      "activity_id": "ACT-0046",
+      "activity_version": 2,
+      "family": "adult-correction",
+      "recipe": {
+        "exact_phrase": "khung kim loại luyện nét",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0046-adult-correction",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "NOT_EXECUTED",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Adult correction is UNMAPPED at the selected three-contract input boundary; no adult fields or integration are added."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0046-adult-correction:adult_correction_held",
+          "kind": "adult_correction_held",
+          "expected_outcome": "NOT_EXECUTED",
+          "requirement_status": "HELD",
+          "held_reason": "Adult correction is UNMAPPED at the selected three-contract input boundary; no adult fields or integration are added."
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0055-exact",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0055-exact",
+      "activity_id": "ACT-0055",
+      "activity_version": 2,
+      "family": "exact",
+      "recipe": {
+        "exact_phrase": "quan sát các bộ phận của cây",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0055-exact",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "OPEN",
+      "held_reasons": [],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0055-exact:map_exact",
+          "kind": "map_exact",
+          "expected_outcome": "MAP_EXACT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0055-ambiguous",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0055-ambiguous",
+      "activity_id": "ACT-0055",
+      "activity_version": 2,
+      "family": "ambiguous",
+      "recipe": {
+        "exact_phrase": "quan sát các bộ phận của cây",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0055-ambiguous",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Ambiguity selection and downstream projection are outside the selected mapper proof."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0055-ambiguous:map_ambiguous",
+          "kind": "map_ambiguous",
+          "expected_outcome": "MAP_AMBIGUOUS",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0055-no-match",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0055-no-match",
+      "activity_id": "ACT-0055",
+      "activity_version": 2,
+      "family": "no-match",
+      "recipe": {
+        "exact_phrase": "quan sát các bộ phận của cây",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0055-no-match",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Unknown-label preservation does not prove no matching candidate in downstream matching."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0055-no-match:map_unknown_label",
+          "kind": "map_unknown_label",
+          "expected_outcome": "MAP_UNKNOWN_LABEL",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0055-conflict",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0055-conflict",
+      "activity_id": "ACT-0055",
+      "activity_version": 2,
+      "family": "conflict",
+      "recipe": {
+        "exact_phrase": "quan sát các bộ phận của cây",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0055-conflict",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A3",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Per-pilot semantic conflict and Gate A/P1 integration remain HELD; ASR provenance and explicit Raw conflict schema are separate subprobes."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0055-conflict:map_asr_present",
+          "kind": "map_asr_present",
+          "expected_outcome": "MAP_ASR_PRESENT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        },
+        {
+          "probe_id": "feat018-p2-t5-act-0055-conflict:raw_conflict_schema",
+          "kind": "raw_conflict_schema",
+          "expected_outcome": "RAW_CONFLICT_SCHEMA",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0055-low",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0055-low",
+      "activity_id": "ACT-0055",
+      "activity_version": 2,
+      "family": "low",
+      "recipe": {
+        "exact_phrase": "quan sát các bộ phận của cây",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0055-low",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Numeric-low preservation and null-confidence rejection do not establish support for unknown confidence or downstream policy."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0055-low:map_low_confidence",
+          "kind": "map_low_confidence",
+          "expected_outcome": "MAP_LOW_CONFIDENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        },
+        {
+          "probe_id": "feat018-p2-t5-act-0055-low:reject_null_confidence",
+          "kind": "reject_null_confidence",
+          "expected_outcome": "REJECT_NULL_CONFIDENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0055-adult-correction",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0055-adult-correction",
+      "activity_id": "ACT-0055",
+      "activity_version": 2,
+      "family": "adult-correction",
+      "recipe": {
+        "exact_phrase": "quan sát các bộ phận của cây",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0055-adult-correction",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "NOT_EXECUTED",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Adult correction is UNMAPPED at the selected three-contract input boundary; no adult fields or integration are added."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0055-adult-correction:adult_correction_held",
+          "kind": "adult_correction_held",
+          "expected_outcome": "NOT_EXECUTED",
+          "requirement_status": "HELD",
+          "held_reason": "Adult correction is UNMAPPED at the selected three-contract input boundary; no adult fields or integration are added."
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0058-exact",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0058-exact",
+      "activity_id": "ACT-0058",
+      "activity_version": 2,
+      "family": "exact",
+      "recipe": {
+        "exact_phrase": "mô hình vòng tuần hoàn nước",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0058-exact",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "OPEN",
+      "held_reasons": [],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0058-exact:map_exact",
+          "kind": "map_exact",
+          "expected_outcome": "MAP_EXACT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0058-ambiguous",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0058-ambiguous",
+      "activity_id": "ACT-0058",
+      "activity_version": 2,
+      "family": "ambiguous",
+      "recipe": {
+        "exact_phrase": "mô hình vòng tuần hoàn nước",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0058-ambiguous",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Ambiguity selection and downstream projection are outside the selected mapper proof."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0058-ambiguous:map_ambiguous",
+          "kind": "map_ambiguous",
+          "expected_outcome": "MAP_AMBIGUOUS",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0058-no-match",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0058-no-match",
+      "activity_id": "ACT-0058",
+      "activity_version": 2,
+      "family": "no-match",
+      "recipe": {
+        "exact_phrase": "mô hình vòng tuần hoàn nước",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0058-no-match",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Unknown-label preservation does not prove no matching candidate in downstream matching."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0058-no-match:map_unknown_label",
+          "kind": "map_unknown_label",
+          "expected_outcome": "MAP_UNKNOWN_LABEL",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0058-conflict",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0058-conflict",
+      "activity_id": "ACT-0058",
+      "activity_version": 2,
+      "family": "conflict",
+      "recipe": {
+        "exact_phrase": "mô hình vòng tuần hoàn nước",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0058-conflict",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A3",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Per-pilot semantic conflict and Gate A/P1 integration remain HELD; ASR provenance and explicit Raw conflict schema are separate subprobes."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0058-conflict:map_asr_present",
+          "kind": "map_asr_present",
+          "expected_outcome": "MAP_ASR_PRESENT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        },
+        {
+          "probe_id": "feat018-p2-t5-act-0058-conflict:raw_conflict_schema",
+          "kind": "raw_conflict_schema",
+          "expected_outcome": "RAW_CONFLICT_SCHEMA",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0058-low",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0058-low",
+      "activity_id": "ACT-0058",
+      "activity_version": 2,
+      "family": "low",
+      "recipe": {
+        "exact_phrase": "mô hình vòng tuần hoàn nước",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0058-low",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Numeric-low preservation and null-confidence rejection do not establish support for unknown confidence or downstream policy."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0058-low:map_low_confidence",
+          "kind": "map_low_confidence",
+          "expected_outcome": "MAP_LOW_CONFIDENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        },
+        {
+          "probe_id": "feat018-p2-t5-act-0058-low:reject_null_confidence",
+          "kind": "reject_null_confidence",
+          "expected_outcome": "REJECT_NULL_CONFIDENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0058-adult-correction",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0058-adult-correction",
+      "activity_id": "ACT-0058",
+      "activity_version": 2,
+      "family": "adult-correction",
+      "recipe": {
+        "exact_phrase": "mô hình vòng tuần hoàn nước",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0058-adult-correction",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "NOT_EXECUTED",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Adult correction is UNMAPPED at the selected three-contract input boundary; no adult fields or integration are added."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0058-adult-correction:adult_correction_held",
+          "kind": "adult_correction_held",
+          "expected_outcome": "NOT_EXECUTED",
+          "requirement_status": "HELD",
+          "held_reason": "Adult correction is UNMAPPED at the selected three-contract input boundary; no adult fields or integration are added."
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0061-exact",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0061-exact",
+      "activity_id": "ACT-0061",
+      "activity_version": 2,
+      "family": "exact",
+      "recipe": {
+        "exact_phrase": "nhân với trò chơi tem",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0061-exact",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "OPEN",
+      "held_reasons": [],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0061-exact:map_exact",
+          "kind": "map_exact",
+          "expected_outcome": "MAP_EXACT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0061-ambiguous",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0061-ambiguous",
+      "activity_id": "ACT-0061",
+      "activity_version": 2,
+      "family": "ambiguous",
+      "recipe": {
+        "exact_phrase": "nhân với trò chơi tem",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0061-ambiguous",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Ambiguity selection and downstream projection are outside the selected mapper proof."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0061-ambiguous:map_ambiguous",
+          "kind": "map_ambiguous",
+          "expected_outcome": "MAP_AMBIGUOUS",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0061-no-match",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0061-no-match",
+      "activity_id": "ACT-0061",
+      "activity_version": 2,
+      "family": "no-match",
+      "recipe": {
+        "exact_phrase": "nhân với trò chơi tem",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0061-no-match",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Unknown-label preservation does not prove no matching candidate in downstream matching."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0061-no-match:map_unknown_label",
+          "kind": "map_unknown_label",
+          "expected_outcome": "MAP_UNKNOWN_LABEL",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0061-conflict",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0061-conflict",
+      "activity_id": "ACT-0061",
+      "activity_version": 2,
+      "family": "conflict",
+      "recipe": {
+        "exact_phrase": "nhân với trò chơi tem",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0061-conflict",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A3",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Per-pilot semantic conflict and Gate A/P1 integration remain HELD; ASR provenance and explicit Raw conflict schema are separate subprobes."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0061-conflict:map_asr_present",
+          "kind": "map_asr_present",
+          "expected_outcome": "MAP_ASR_PRESENT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        },
+        {
+          "probe_id": "feat018-p2-t5-act-0061-conflict:raw_conflict_schema",
+          "kind": "raw_conflict_schema",
+          "expected_outcome": "RAW_CONFLICT_SCHEMA",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0061-low",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0061-low",
+      "activity_id": "ACT-0061",
+      "activity_version": 2,
+      "family": "low",
+      "recipe": {
+        "exact_phrase": "nhân với trò chơi tem",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0061-low",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Numeric-low preservation and null-confidence rejection do not establish support for unknown confidence or downstream policy."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0061-low:map_low_confidence",
+          "kind": "map_low_confidence",
+          "expected_outcome": "MAP_LOW_CONFIDENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        },
+        {
+          "probe_id": "feat018-p2-t5-act-0061-low:reject_null_confidence",
+          "kind": "reject_null_confidence",
+          "expected_outcome": "REJECT_NULL_CONFIDENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0061-adult-correction",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0061-adult-correction",
+      "activity_id": "ACT-0061",
+      "activity_version": 2,
+      "family": "adult-correction",
+      "recipe": {
+        "exact_phrase": "nhân với trò chơi tem",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0061-adult-correction",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "NOT_EXECUTED",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Adult correction is UNMAPPED at the selected three-contract input boundary; no adult fields or integration are added."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0061-adult-correction:adult_correction_held",
+          "kind": "adult_correction_held",
+          "expected_outcome": "NOT_EXECUTED",
+          "requirement_status": "HELD",
+          "held_reason": "Adult correction is UNMAPPED at the selected three-contract input boundary; no adult fields or integration are added."
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0067-exact",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0067-exact",
+      "activity_id": "ACT-0067",
+      "activity_version": 2,
+      "family": "exact",
+      "recipe": {
+        "exact_phrase": "phân tích từ loại bằng ký hiệu",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0067-exact",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "OPEN",
+      "held_reasons": [],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0067-exact:map_exact",
+          "kind": "map_exact",
+          "expected_outcome": "MAP_EXACT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0067-ambiguous",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0067-ambiguous",
+      "activity_id": "ACT-0067",
+      "activity_version": 2,
+      "family": "ambiguous",
+      "recipe": {
+        "exact_phrase": "phân tích từ loại bằng ký hiệu",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0067-ambiguous",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Ambiguity selection and downstream projection are outside the selected mapper proof."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0067-ambiguous:map_ambiguous",
+          "kind": "map_ambiguous",
+          "expected_outcome": "MAP_AMBIGUOUS",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0067-no-match",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0067-no-match",
+      "activity_id": "ACT-0067",
+      "activity_version": 2,
+      "family": "no-match",
+      "recipe": {
+        "exact_phrase": "phân tích từ loại bằng ký hiệu",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0067-no-match",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Unknown-label preservation does not prove no matching candidate in downstream matching."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0067-no-match:map_unknown_label",
+          "kind": "map_unknown_label",
+          "expected_outcome": "MAP_UNKNOWN_LABEL",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0067-conflict",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0067-conflict",
+      "activity_id": "ACT-0067",
+      "activity_version": 2,
+      "family": "conflict",
+      "recipe": {
+        "exact_phrase": "phân tích từ loại bằng ký hiệu",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0067-conflict",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A3",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Per-pilot semantic conflict and Gate A/P1 integration remain HELD; ASR provenance and explicit Raw conflict schema are separate subprobes."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0067-conflict:map_asr_present",
+          "kind": "map_asr_present",
+          "expected_outcome": "MAP_ASR_PRESENT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        },
+        {
+          "probe_id": "feat018-p2-t5-act-0067-conflict:raw_conflict_schema",
+          "kind": "raw_conflict_schema",
+          "expected_outcome": "RAW_CONFLICT_SCHEMA",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0067-low",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0067-low",
+      "activity_id": "ACT-0067",
+      "activity_version": 2,
+      "family": "low",
+      "recipe": {
+        "exact_phrase": "phân tích từ loại bằng ký hiệu",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0067-low",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Numeric-low preservation and null-confidence rejection do not establish support for unknown confidence or downstream policy."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0067-low:map_low_confidence",
+          "kind": "map_low_confidence",
+          "expected_outcome": "MAP_LOW_CONFIDENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        },
+        {
+          "probe_id": "feat018-p2-t5-act-0067-low:reject_null_confidence",
+          "kind": "reject_null_confidence",
+          "expected_outcome": "REJECT_NULL_CONFIDENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0067-adult-correction",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0067-adult-correction",
+      "activity_id": "ACT-0067",
+      "activity_version": 2,
+      "family": "adult-correction",
+      "recipe": {
+        "exact_phrase": "phân tích từ loại bằng ký hiệu",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0067-adult-correction",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "NOT_EXECUTED",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Adult correction is UNMAPPED at the selected three-contract input boundary; no adult fields or integration are added."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0067-adult-correction:adult_correction_held",
+          "kind": "adult_correction_held",
+          "expected_outcome": "NOT_EXECUTED",
+          "requirement_status": "HELD",
+          "held_reason": "Adult correction is UNMAPPED at the selected three-contract input boundary; no adult fields or integration are added."
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0074-exact",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0074-exact",
+      "activity_id": "ACT-0074",
+      "activity_version": 2,
+      "family": "exact",
+      "recipe": {
+        "exact_phrase": "lập kế hoạch công việc tuần",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0074-exact",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "OPEN",
+      "held_reasons": [],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0074-exact:map_exact",
+          "kind": "map_exact",
+          "expected_outcome": "MAP_EXACT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0074-ambiguous",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0074-ambiguous",
+      "activity_id": "ACT-0074",
+      "activity_version": 2,
+      "family": "ambiguous",
+      "recipe": {
+        "exact_phrase": "lập kế hoạch công việc tuần",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0074-ambiguous",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Ambiguity selection and downstream projection are outside the selected mapper proof."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0074-ambiguous:map_ambiguous",
+          "kind": "map_ambiguous",
+          "expected_outcome": "MAP_AMBIGUOUS",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0074-no-match",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0074-no-match",
+      "activity_id": "ACT-0074",
+      "activity_version": 2,
+      "family": "no-match",
+      "recipe": {
+        "exact_phrase": "lập kế hoạch công việc tuần",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0074-no-match",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Unknown-label preservation does not prove no matching candidate in downstream matching."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0074-no-match:map_unknown_label",
+          "kind": "map_unknown_label",
+          "expected_outcome": "MAP_UNKNOWN_LABEL",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0074-conflict",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0074-conflict",
+      "activity_id": "ACT-0074",
+      "activity_version": 2,
+      "family": "conflict",
+      "recipe": {
+        "exact_phrase": "lập kế hoạch công việc tuần",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0074-conflict",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A3",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Per-pilot semantic conflict and Gate A/P1 integration remain HELD; ASR provenance and explicit Raw conflict schema are separate subprobes."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0074-conflict:map_asr_present",
+          "kind": "map_asr_present",
+          "expected_outcome": "MAP_ASR_PRESENT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        },
+        {
+          "probe_id": "feat018-p2-t5-act-0074-conflict:raw_conflict_schema",
+          "kind": "raw_conflict_schema",
+          "expected_outcome": "RAW_CONFLICT_SCHEMA",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0074-low",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0074-low",
+      "activity_id": "ACT-0074",
+      "activity_version": 2,
+      "family": "low",
+      "recipe": {
+        "exact_phrase": "lập kế hoạch công việc tuần",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0074-low",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Numeric-low preservation and null-confidence rejection do not establish support for unknown confidence or downstream policy."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0074-low:map_low_confidence",
+          "kind": "map_low_confidence",
+          "expected_outcome": "MAP_LOW_CONFIDENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        },
+        {
+          "probe_id": "feat018-p2-t5-act-0074-low:reject_null_confidence",
+          "kind": "reject_null_confidence",
+          "expected_outcome": "REJECT_NULL_CONFIDENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0074-adult-correction",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0074-adult-correction",
+      "activity_id": "ACT-0074",
+      "activity_version": 2,
+      "family": "adult-correction",
+      "recipe": {
+        "exact_phrase": "lập kế hoạch công việc tuần",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0074-adult-correction",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "NOT_EXECUTED",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Adult correction is UNMAPPED at the selected three-contract input boundary; no adult fields or integration are added."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0074-adult-correction:adult_correction_held",
+          "kind": "adult_correction_held",
+          "expected_outcome": "NOT_EXECUTED",
+          "requirement_status": "HELD",
+          "held_reason": "Adult correction is UNMAPPED at the selected three-contract input boundary; no adult fields or integration are added."
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0085-exact",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0085-exact",
+      "activity_id": "ACT-0085",
+      "activity_version": 2,
+      "family": "exact",
+      "recipe": {
+        "exact_phrase": "khảo sát và mô tả dữ liệu",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0085-exact",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "OPEN",
+      "held_reasons": [],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0085-exact:map_exact",
+          "kind": "map_exact",
+          "expected_outcome": "MAP_EXACT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0085-ambiguous",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0085-ambiguous",
+      "activity_id": "ACT-0085",
+      "activity_version": 2,
+      "family": "ambiguous",
+      "recipe": {
+        "exact_phrase": "khảo sát và mô tả dữ liệu",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0085-ambiguous",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Ambiguity selection and downstream projection are outside the selected mapper proof."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0085-ambiguous:map_ambiguous",
+          "kind": "map_ambiguous",
+          "expected_outcome": "MAP_AMBIGUOUS",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0085-no-match",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0085-no-match",
+      "activity_id": "ACT-0085",
+      "activity_version": 2,
+      "family": "no-match",
+      "recipe": {
+        "exact_phrase": "khảo sát và mô tả dữ liệu",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0085-no-match",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Unknown-label preservation does not prove no matching candidate in downstream matching."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0085-no-match:map_unknown_label",
+          "kind": "map_unknown_label",
+          "expected_outcome": "MAP_UNKNOWN_LABEL",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0085-conflict",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0085-conflict",
+      "activity_id": "ACT-0085",
+      "activity_version": 2,
+      "family": "conflict",
+      "recipe": {
+        "exact_phrase": "khảo sát và mô tả dữ liệu",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0085-conflict",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A3",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Per-pilot semantic conflict and Gate A/P1 integration remain HELD; ASR provenance and explicit Raw conflict schema are separate subprobes."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0085-conflict:map_asr_present",
+          "kind": "map_asr_present",
+          "expected_outcome": "MAP_ASR_PRESENT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        },
+        {
+          "probe_id": "feat018-p2-t5-act-0085-conflict:raw_conflict_schema",
+          "kind": "raw_conflict_schema",
+          "expected_outcome": "RAW_CONFLICT_SCHEMA",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0085-low",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0085-low",
+      "activity_id": "ACT-0085",
+      "activity_version": 2,
+      "family": "low",
+      "recipe": {
+        "exact_phrase": "khảo sát và mô tả dữ liệu",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0085-low",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Numeric-low preservation and null-confidence rejection do not establish support for unknown confidence or downstream policy."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0085-low:map_low_confidence",
+          "kind": "map_low_confidence",
+          "expected_outcome": "MAP_LOW_CONFIDENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        },
+        {
+          "probe_id": "feat018-p2-t5-act-0085-low:reject_null_confidence",
+          "kind": "reject_null_confidence",
+          "expected_outcome": "REJECT_NULL_CONFIDENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0085-adult-correction",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0085-adult-correction",
+      "activity_id": "ACT-0085",
+      "activity_version": 2,
+      "family": "adult-correction",
+      "recipe": {
+        "exact_phrase": "khảo sát và mô tả dữ liệu",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0085-adult-correction",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "NOT_EXECUTED",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Adult correction is UNMAPPED at the selected three-contract input boundary; no adult fields or integration are added."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0085-adult-correction:adult_correction_held",
+          "kind": "adult_correction_held",
+          "expected_outcome": "NOT_EXECUTED",
+          "requirement_status": "HELD",
+          "held_reason": "Adult correction is UNMAPPED at the selected three-contract input boundary; no adult fields or integration are added."
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0087-exact",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0087-exact",
+      "activity_id": "ACT-0087",
+      "activity_version": 2,
+      "family": "exact",
+      "recipe": {
+        "exact_phrase": "xây khóa phân loại",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0087-exact",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "OPEN",
+      "held_reasons": [],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0087-exact:map_exact",
+          "kind": "map_exact",
+          "expected_outcome": "MAP_EXACT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0087-ambiguous",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0087-ambiguous",
+      "activity_id": "ACT-0087",
+      "activity_version": 2,
+      "family": "ambiguous",
+      "recipe": {
+        "exact_phrase": "xây khóa phân loại",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0087-ambiguous",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Ambiguity selection and downstream projection are outside the selected mapper proof."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0087-ambiguous:map_ambiguous",
+          "kind": "map_ambiguous",
+          "expected_outcome": "MAP_AMBIGUOUS",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0087-no-match",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0087-no-match",
+      "activity_id": "ACT-0087",
+      "activity_version": 2,
+      "family": "no-match",
+      "recipe": {
+        "exact_phrase": "xây khóa phân loại",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0087-no-match",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Unknown-label preservation does not prove no matching candidate in downstream matching."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0087-no-match:map_unknown_label",
+          "kind": "map_unknown_label",
+          "expected_outcome": "MAP_UNKNOWN_LABEL",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0087-conflict",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0087-conflict",
+      "activity_id": "ACT-0087",
+      "activity_version": 2,
+      "family": "conflict",
+      "recipe": {
+        "exact_phrase": "xây khóa phân loại",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0087-conflict",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A3",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Per-pilot semantic conflict and Gate A/P1 integration remain HELD; ASR provenance and explicit Raw conflict schema are separate subprobes."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0087-conflict:map_asr_present",
+          "kind": "map_asr_present",
+          "expected_outcome": "MAP_ASR_PRESENT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        },
+        {
+          "probe_id": "feat018-p2-t5-act-0087-conflict:raw_conflict_schema",
+          "kind": "raw_conflict_schema",
+          "expected_outcome": "RAW_CONFLICT_SCHEMA",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0087-low",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0087-low",
+      "activity_id": "ACT-0087",
+      "activity_version": 2,
+      "family": "low",
+      "recipe": {
+        "exact_phrase": "xây khóa phân loại",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0087-low",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Numeric-low preservation and null-confidence rejection do not establish support for unknown confidence or downstream policy."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0087-low:map_low_confidence",
+          "kind": "map_low_confidence",
+          "expected_outcome": "MAP_LOW_CONFIDENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        },
+        {
+          "probe_id": "feat018-p2-t5-act-0087-low:reject_null_confidence",
+          "kind": "reject_null_confidence",
+          "expected_outcome": "REJECT_NULL_CONFIDENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0087-adult-correction",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0087-adult-correction",
+      "activity_id": "ACT-0087",
+      "activity_version": 2,
+      "family": "adult-correction",
+      "recipe": {
+        "exact_phrase": "xây khóa phân loại",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0087-adult-correction",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "NOT_EXECUTED",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Adult correction is UNMAPPED at the selected three-contract input boundary; no adult fields or integration are added."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0087-adult-correction:adult_correction_held",
+          "kind": "adult_correction_held",
+          "expected_outcome": "NOT_EXECUTED",
+          "requirement_status": "HELD",
+          "held_reason": "Adult correction is UNMAPPED at the selected three-contract input boundary; no adult fields or integration are added."
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0091-exact",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0091-exact",
+      "activity_id": "ACT-0091",
+      "activity_version": 2,
+      "family": "exact",
+      "recipe": {
+        "exact_phrase": "mô hình pha mặt trăng",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0091-exact",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "OPEN",
+      "held_reasons": [],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0091-exact:map_exact",
+          "kind": "map_exact",
+          "expected_outcome": "MAP_EXACT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0091-ambiguous",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0091-ambiguous",
+      "activity_id": "ACT-0091",
+      "activity_version": 2,
+      "family": "ambiguous",
+      "recipe": {
+        "exact_phrase": "mô hình pha mặt trăng",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0091-ambiguous",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Ambiguity selection and downstream projection are outside the selected mapper proof."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0091-ambiguous:map_ambiguous",
+          "kind": "map_ambiguous",
+          "expected_outcome": "MAP_AMBIGUOUS",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0091-no-match",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0091-no-match",
+      "activity_id": "ACT-0091",
+      "activity_version": 2,
+      "family": "no-match",
+      "recipe": {
+        "exact_phrase": "mô hình pha mặt trăng",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0091-no-match",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Unknown-label preservation does not prove no matching candidate in downstream matching."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0091-no-match:map_unknown_label",
+          "kind": "map_unknown_label",
+          "expected_outcome": "MAP_UNKNOWN_LABEL",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0091-conflict",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0091-conflict",
+      "activity_id": "ACT-0091",
+      "activity_version": 2,
+      "family": "conflict",
+      "recipe": {
+        "exact_phrase": "mô hình pha mặt trăng",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0091-conflict",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A3",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Per-pilot semantic conflict and Gate A/P1 integration remain HELD; ASR provenance and explicit Raw conflict schema are separate subprobes."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0091-conflict:map_asr_present",
+          "kind": "map_asr_present",
+          "expected_outcome": "MAP_ASR_PRESENT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        },
+        {
+          "probe_id": "feat018-p2-t5-act-0091-conflict:raw_conflict_schema",
+          "kind": "raw_conflict_schema",
+          "expected_outcome": "RAW_CONFLICT_SCHEMA",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0091-low",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0091-low",
+      "activity_id": "ACT-0091",
+      "activity_version": 2,
+      "family": "low",
+      "recipe": {
+        "exact_phrase": "mô hình pha mặt trăng",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0091-low",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Numeric-low preservation and null-confidence rejection do not establish support for unknown confidence or downstream policy."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0091-low:map_low_confidence",
+          "kind": "map_low_confidence",
+          "expected_outcome": "MAP_LOW_CONFIDENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        },
+        {
+          "probe_id": "feat018-p2-t5-act-0091-low:reject_null_confidence",
+          "kind": "reject_null_confidence",
+          "expected_outcome": "REJECT_NULL_CONFIDENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0091-adult-correction",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0091-adult-correction",
+      "activity_id": "ACT-0091",
+      "activity_version": 2,
+      "family": "adult-correction",
+      "recipe": {
+        "exact_phrase": "mô hình pha mặt trăng",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0091-adult-correction",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "NOT_EXECUTED",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Adult correction is UNMAPPED at the selected three-contract input boundary; no adult fields or integration are added."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0091-adult-correction:adult_correction_held",
+          "kind": "adult_correction_held",
+          "expected_outcome": "NOT_EXECUTED",
+          "requirement_status": "HELD",
+          "held_reason": "Adult correction is UNMAPPED at the selected three-contract input boundary; no adult fields or integration are added."
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0097-exact",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0097-exact",
+      "activity_id": "ACT-0097",
+      "activity_version": 2,
+      "family": "exact",
+      "recipe": {
+        "exact_phrase": "viết lập luận dựa trên bằng chứng",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0097-exact",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "OPEN",
+      "held_reasons": [],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0097-exact:map_exact",
+          "kind": "map_exact",
+          "expected_outcome": "MAP_EXACT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0097-ambiguous",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0097-ambiguous",
+      "activity_id": "ACT-0097",
+      "activity_version": 2,
+      "family": "ambiguous",
+      "recipe": {
+        "exact_phrase": "viết lập luận dựa trên bằng chứng",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0097-ambiguous",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Ambiguity selection and downstream projection are outside the selected mapper proof."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0097-ambiguous:map_ambiguous",
+          "kind": "map_ambiguous",
+          "expected_outcome": "MAP_AMBIGUOUS",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0097-no-match",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0097-no-match",
+      "activity_id": "ACT-0097",
+      "activity_version": 2,
+      "family": "no-match",
+      "recipe": {
+        "exact_phrase": "viết lập luận dựa trên bằng chứng",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0097-no-match",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Unknown-label preservation does not prove no matching candidate in downstream matching."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0097-no-match:map_unknown_label",
+          "kind": "map_unknown_label",
+          "expected_outcome": "MAP_UNKNOWN_LABEL",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0097-conflict",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0097-conflict",
+      "activity_id": "ACT-0097",
+      "activity_version": 2,
+      "family": "conflict",
+      "recipe": {
+        "exact_phrase": "viết lập luận dựa trên bằng chứng",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0097-conflict",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A3",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Per-pilot semantic conflict and Gate A/P1 integration remain HELD; ASR provenance and explicit Raw conflict schema are separate subprobes."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0097-conflict:map_asr_present",
+          "kind": "map_asr_present",
+          "expected_outcome": "MAP_ASR_PRESENT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        },
+        {
+          "probe_id": "feat018-p2-t5-act-0097-conflict:raw_conflict_schema",
+          "kind": "raw_conflict_schema",
+          "expected_outcome": "RAW_CONFLICT_SCHEMA",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0097-low",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0097-low",
+      "activity_id": "ACT-0097",
+      "activity_version": 2,
+      "family": "low",
+      "recipe": {
+        "exact_phrase": "viết lập luận dựa trên bằng chứng",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0097-low",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Numeric-low preservation and null-confidence rejection do not establish support for unknown confidence or downstream policy."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0097-low:map_low_confidence",
+          "kind": "map_low_confidence",
+          "expected_outcome": "MAP_LOW_CONFIDENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        },
+        {
+          "probe_id": "feat018-p2-t5-act-0097-low:reject_null_confidence",
+          "kind": "reject_null_confidence",
+          "expected_outcome": "REJECT_NULL_CONFIDENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0097-adult-correction",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0097-adult-correction",
+      "activity_id": "ACT-0097",
+      "activity_version": 2,
+      "family": "adult-correction",
+      "recipe": {
+        "exact_phrase": "viết lập luận dựa trên bằng chứng",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0097-adult-correction",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "NOT_EXECUTED",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Adult correction is UNMAPPED at the selected three-contract input boundary; no adult fields or integration are added."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0097-adult-correction:adult_correction_held",
+          "kind": "adult_correction_held",
+          "expected_outcome": "NOT_EXECUTED",
+          "requirement_status": "HELD",
+          "held_reason": "Adult correction is UNMAPPED at the selected three-contract input boundary; no adult fields or integration are added."
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0099-exact",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0099-exact",
+      "activity_id": "ACT-0099",
+      "activity_version": 2,
+      "family": "exact",
+      "recipe": {
+        "exact_phrase": "dự án nghiên cứu độc lập",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0099-exact",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "OPEN",
+      "held_reasons": [],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0099-exact:map_exact",
+          "kind": "map_exact",
+          "expected_outcome": "MAP_EXACT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0099-ambiguous",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0099-ambiguous",
+      "activity_id": "ACT-0099",
+      "activity_version": 2,
+      "family": "ambiguous",
+      "recipe": {
+        "exact_phrase": "dự án nghiên cứu độc lập",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0099-ambiguous",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Ambiguity selection and downstream projection are outside the selected mapper proof."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0099-ambiguous:map_ambiguous",
+          "kind": "map_ambiguous",
+          "expected_outcome": "MAP_AMBIGUOUS",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0099-no-match",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0099-no-match",
+      "activity_id": "ACT-0099",
+      "activity_version": 2,
+      "family": "no-match",
+      "recipe": {
+        "exact_phrase": "dự án nghiên cứu độc lập",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0099-no-match",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Unknown-label preservation does not prove no matching candidate in downstream matching."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0099-no-match:map_unknown_label",
+          "kind": "map_unknown_label",
+          "expected_outcome": "MAP_UNKNOWN_LABEL",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0099-conflict",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0099-conflict",
+      "activity_id": "ACT-0099",
+      "activity_version": 2,
+      "family": "conflict",
+      "recipe": {
+        "exact_phrase": "dự án nghiên cứu độc lập",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0099-conflict",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A3",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Per-pilot semantic conflict and Gate A/P1 integration remain HELD; ASR provenance and explicit Raw conflict schema are separate subprobes."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0099-conflict:map_asr_present",
+          "kind": "map_asr_present",
+          "expected_outcome": "MAP_ASR_PRESENT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        },
+        {
+          "probe_id": "feat018-p2-t5-act-0099-conflict:raw_conflict_schema",
+          "kind": "raw_conflict_schema",
+          "expected_outcome": "RAW_CONFLICT_SCHEMA",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0099-low",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0099-low",
+      "activity_id": "ACT-0099",
+      "activity_version": 2,
+      "family": "low",
+      "recipe": {
+        "exact_phrase": "dự án nghiên cứu độc lập",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0099-low",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Numeric-low preservation and null-confidence rejection do not establish support for unknown confidence or downstream policy."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0099-low:map_low_confidence",
+          "kind": "map_low_confidence",
+          "expected_outcome": "MAP_LOW_CONFIDENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        },
+        {
+          "probe_id": "feat018-p2-t5-act-0099-low:reject_null_confidence",
+          "kind": "reject_null_confidence",
+          "expected_outcome": "REJECT_NULL_CONFIDENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-act-0099-adult-correction",
+      "evidence_id": "P2T5:feat018-p2-t5-act-0099-adult-correction",
+      "activity_id": "ACT-0099",
+      "activity_version": 2,
+      "family": "adult-correction",
+      "recipe": {
+        "exact_phrase": "dự án nghiên cứu độc lập",
+        "activity_version": 2
+      },
+      "planning_source_case_id": "tests/fixtures/feat018-p2-t4-mapping/manifest.v1.json#feat018-p2-t4-act-0099-adult-correction",
+      "acceptance_ids": [
+        "T5-A2",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "NOT_EXECUTED",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Adult correction is UNMAPPED at the selected three-contract input boundary; no adult fields or integration are added."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-act-0099-adult-correction:adult_correction_held",
+          "kind": "adult_correction_held",
+          "expected_outcome": "NOT_EXECUTED",
+          "requirement_status": "HELD",
+          "held_reason": "Adult correction is UNMAPPED at the selected three-contract input boundary; no adult fields or integration are added."
+        }
+      ]
+    }
+  ],
+  "supplemental_cases": [
+    {
+      "fixture_id": "feat018-p2-t5-supplemental-asr-missing",
+      "evidence_id": "P2T5:feat018-p2-t5-supplemental-asr-missing",
+      "activity_id": "ACT-0004",
+      "family": "contract-diagnostic",
+      "acceptance_ids": [
+        "T5-A3",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "OPEN",
+      "held_reasons": [],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-supplemental-asr-missing:asr_missing",
+          "kind": "asr_missing",
+          "expected_outcome": "ASR_MISSING",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-supplemental-asr-failure",
+      "evidence_id": "P2T5:feat018-p2-t5-supplemental-asr-failure",
+      "activity_id": "ACT-0004",
+      "family": "contract-diagnostic",
+      "acceptance_ids": [
+        "T5-A3",
+        "T5-A4",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "OPEN",
+      "held_reasons": [],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-supplemental-asr-failure:asr_failure",
+          "kind": "asr_failure",
+          "expected_outcome": "ASR_FAILURE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-supplemental-asr-only-contract",
+      "evidence_id": "P2T5:feat018-p2-t5-supplemental-asr-only-contract",
+      "activity_id": "ACT-0004",
+      "family": "contract-diagnostic",
+      "acceptance_ids": [
+        "T5-A3",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Standalone contract diagnostic does not prove an image-free product flow."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-supplemental-asr-only-contract:asr_only_contract",
+          "kind": "asr_only_contract",
+          "expected_outcome": "ASR_ONLY_CONTRACT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-supplemental-reject-malformed",
+      "evidence_id": "P2T5:feat018-p2-t5-supplemental-reject-malformed",
+      "activity_id": "ACT-0004",
+      "family": "contract-diagnostic",
+      "acceptance_ids": [
+        "T5-A4",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "OPEN",
+      "held_reasons": [],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-supplemental-reject-malformed:reject_malformed",
+          "kind": "reject_malformed",
+          "expected_outcome": "REJECT_MALFORMED",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-supplemental-reject-prohibited",
+      "evidence_id": "P2T5:feat018-p2-t5-supplemental-reject-prohibited",
+      "activity_id": "ACT-0004",
+      "family": "contract-diagnostic",
+      "acceptance_ids": [
+        "T5-A4",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "OPEN",
+      "held_reasons": [],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-supplemental-reject-prohibited:reject_prohibited",
+          "kind": "reject_prohibited",
+          "expected_outcome": "REJECT_PROHIBITED",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-supplemental-reject-extra-field",
+      "evidence_id": "P2T5:feat018-p2-t5-supplemental-reject-extra-field",
+      "activity_id": "ACT-0004",
+      "family": "contract-diagnostic",
+      "acceptance_ids": [
+        "T5-A4",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "OPEN",
+      "held_reasons": [],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-supplemental-reject-extra-field:reject_extra_field",
+          "kind": "reject_extra_field",
+          "expected_outcome": "REJECT_EXTRA_FIELD",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-supplemental-reject-missing-provenance",
+      "evidence_id": "P2T5:feat018-p2-t5-supplemental-reject-missing-provenance",
+      "activity_id": "ACT-0004",
+      "family": "contract-diagnostic",
+      "acceptance_ids": [
+        "T5-A4",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "OPEN",
+      "held_reasons": [],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-supplemental-reject-missing-provenance:reject_missing_provenance",
+          "kind": "reject_missing_provenance",
+          "expected_outcome": "REJECT_MISSING_PROVENANCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-supplemental-reject-source-hash",
+      "evidence_id": "P2T5:feat018-p2-t5-supplemental-reject-source-hash",
+      "activity_id": "ACT-0004",
+      "family": "contract-diagnostic",
+      "acceptance_ids": [
+        "T5-A4",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "OPEN",
+      "held_reasons": [],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-supplemental-reject-source-hash:reject_source_hash",
+          "kind": "reject_source_hash",
+          "expected_outcome": "REJECT_SOURCE_HASH",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-supplemental-reject-dangling-reference",
+      "evidence_id": "P2T5:feat018-p2-t5-supplemental-reject-dangling-reference",
+      "activity_id": "ACT-0004",
+      "family": "contract-diagnostic",
+      "acceptance_ids": [
+        "T5-A4",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "OPEN",
+      "held_reasons": [],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-supplemental-reject-dangling-reference:reject_dangling_reference",
+          "kind": "reject_dangling_reference",
+          "expected_outcome": "REJECT_DANGLING_REFERENCE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-supplemental-vision-timeout",
+      "evidence_id": "P2T5:feat018-p2-t5-supplemental-vision-timeout",
+      "activity_id": "ACT-0004",
+      "family": "contract-diagnostic",
+      "acceptance_ids": [
+        "T5-A4",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "OPEN",
+      "held_reasons": [],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-supplemental-vision-timeout:vision_timeout",
+          "kind": "vision_timeout",
+          "expected_outcome": "VISION_TIMEOUT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-supplemental-vision-terminal-retry-fixture",
+      "evidence_id": "P2T5:feat018-p2-t5-supplemental-vision-terminal-retry-fixture",
+      "activity_id": "ACT-0004",
+      "family": "contract-diagnostic",
+      "acceptance_ids": [
+        "T5-A4",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "A valid terminal attempt-2 fixture is contract evidence only; retry exhaustion and two actual attempts are not proved."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-supplemental-vision-terminal-retry-fixture:vision_terminal_retry_fixture",
+          "kind": "vision_terminal_retry_fixture",
+          "expected_outcome": "VISION_TERMINAL_RETRY_FIXTURE",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-supplemental-rate-limit-characterization",
+      "evidence_id": "P2T5:feat018-p2-t5-supplemental-rate-limit-characterization",
+      "activity_id": "ACT-0004",
+      "family": "current-mapping-characterization",
+      "acceptance_ids": [
+        "T5-A4",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Characterization of current ASR/Vision mapping is not resolution of rate-limit task acceptance."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-supplemental-rate-limit-characterization:rate_limit_characterization",
+          "kind": "rate_limit_characterization",
+          "expected_outcome": "RATE_LIMIT_CHARACTERIZATION",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-supplemental-provider-error-characterization",
+      "evidence_id": "P2T5:feat018-p2-t5-supplemental-provider-error-characterization",
+      "activity_id": "ACT-0004",
+      "family": "current-mapping-characterization",
+      "acceptance_ids": [
+        "T5-A4",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Characterization of current provider-error mapping is not resolution of provider-error task acceptance."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-supplemental-provider-error-characterization:provider_error_characterization",
+          "kind": "provider_error_characterization",
+          "expected_outcome": "PROVIDER_ERROR_CHARACTERIZATION",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-supplemental-quality-valid",
+      "evidence_id": "P2T5:feat018-p2-t5-supplemental-quality-valid",
+      "activity_id": "ACT-0004",
+      "family": "quality-reference",
+      "acceptance_ids": [
+        "T5-A1",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "OPEN",
+      "held_reasons": [],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-supplemental-quality-valid:quality_valid",
+          "kind": "quality_valid",
+          "expected_outcome": "QUALITY_VALID",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-supplemental-quality-dark",
+      "evidence_id": "P2T5:feat018-p2-t5-supplemental-quality-dark",
+      "activity_id": "ACT-0004",
+      "family": "quality-reference",
+      "acceptance_ids": [
+        "T5-A1",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "OPEN",
+      "held_reasons": [],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-supplemental-quality-dark:quality_dark",
+          "kind": "quality_dark",
+          "expected_outcome": "QUALITY_DARK",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-supplemental-quality-blur",
+      "evidence_id": "P2T5:feat018-p2-t5-supplemental-quality-blur",
+      "activity_id": "ACT-0004",
+      "family": "quality-reference",
+      "acceptance_ids": [
+        "T5-A1",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "OPEN",
+      "held_reasons": [],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-supplemental-quality-blur:quality_blur",
+          "kind": "quality_blur",
+          "expected_outcome": "QUALITY_BLUR",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-supplemental-quality-crop",
+      "evidence_id": "P2T5:feat018-p2-t5-supplemental-quality-crop",
+      "activity_id": "ACT-0004",
+      "family": "quality-reference",
+      "acceptance_ids": [
+        "T5-A1",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "OPEN",
+      "held_reasons": [],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-supplemental-quality-crop:quality_crop",
+          "kind": "quality_crop",
+          "expected_outcome": "QUALITY_CROP",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-supplemental-admission-valid",
+      "evidence_id": "P2T5:feat018-p2-t5-supplemental-admission-valid",
+      "activity_id": "ACT-0004",
+      "family": "image-admission",
+      "acceptance_ids": [
+        "T5-A1",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "OPEN",
+      "held_reasons": [],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-supplemental-admission-valid:admission_valid",
+          "kind": "admission_valid",
+          "expected_outcome": "ADMISSION_VALID",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-supplemental-admission-corrupt",
+      "evidence_id": "P2T5:feat018-p2-t5-supplemental-admission-corrupt",
+      "activity_id": "ACT-0004",
+      "family": "image-admission",
+      "acceptance_ids": [
+        "T5-A1",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "OPEN",
+      "held_reasons": [],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-supplemental-admission-corrupt:admission_corrupt",
+          "kind": "admission_corrupt",
+          "expected_outcome": "ADMISSION_CORRUPT",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-supplemental-admission-unsupported",
+      "evidence_id": "P2T5:feat018-p2-t5-supplemental-admission-unsupported",
+      "activity_id": "ACT-0004",
+      "family": "image-admission",
+      "acceptance_ids": [
+        "T5-A1",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "OPEN",
+      "held_reasons": [],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-supplemental-admission-unsupported:admission_unsupported",
+          "kind": "admission_unsupported",
+          "expected_outcome": "ADMISSION_UNSUPPORTED",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-supplemental-admission-oversized",
+      "evidence_id": "P2T5:feat018-p2-t5-supplemental-admission-oversized",
+      "activity_id": "ACT-0004",
+      "family": "image-admission",
+      "acceptance_ids": [
+        "T5-A1",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "EXECUTE",
+      "requirement_status": "OPEN",
+      "held_reasons": [],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-supplemental-admission-oversized:admission_oversized",
+          "kind": "admission_oversized",
+          "expected_outcome": "ADMISSION_OVERSIZED",
+          "requirement_status": "OPEN",
+          "held_reason": null
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-supplemental-orientation-held",
+      "evidence_id": "P2T5:feat018-p2-t5-supplemental-orientation-held",
+      "activity_id": "ACT-0004",
+      "family": "contract-diagnostic",
+      "acceptance_ids": [
+        "T5-A1",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "NOT_EXECUTED",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Orientation remains HELD under Person 2 disposition."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-supplemental-orientation-held:orientation_held",
+          "kind": "orientation_held",
+          "expected_outcome": "NOT_EXECUTED",
+          "requirement_status": "HELD",
+          "held_reason": "Orientation remains HELD under Person 2 disposition."
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-supplemental-os-error-held",
+      "evidence_id": "P2T5:feat018-p2-t5-supplemental-os-error-held",
+      "activity_id": "ACT-0004",
+      "family": "contract-diagnostic",
+      "acceptance_ids": [
+        "T5-A4",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "NOT_EXECUTED",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "OSError/transient attempt-number discrepancy remains HELD; no adapter fix or execution proof."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-supplemental-os-error-held:os_error_held",
+          "kind": "os_error_held",
+          "expected_outcome": "NOT_EXECUTED",
+          "requirement_status": "HELD",
+          "held_reason": "OSError/transient attempt-number discrepancy remains HELD; no adapter fix or execution proof."
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-supplemental-stale-session-held",
+      "evidence_id": "P2T5:feat018-p2-t5-supplemental-stale-session-held",
+      "activity_id": "ACT-0004",
+      "family": "contract-diagnostic",
+      "acceptance_ids": [
+        "T5-A4",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "NOT_EXECUTED",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "Stale-session mapping remains HELD/UNMAPPED; stale correlation is not substituted."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-supplemental-stale-session-held:stale_session_held",
+          "kind": "stale_session_held",
+          "expected_outcome": "NOT_EXECUTED",
+          "requirement_status": "HELD",
+          "held_reason": "Stale-session mapping remains HELD/UNMAPPED; stale correlation is not substituted."
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-supplemental-mobile-bundle-held",
+      "evidence_id": "P2T5:feat018-p2-t5-supplemental-mobile-bundle-held",
+      "activity_id": "ACT-0004",
+      "family": "contract-diagnostic",
+      "acceptance_ids": [
+        "T5-A7",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "NOT_EXECUTED",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "No approved bundle-capable scanner/artifact binding; A7 remains HELD."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-supplemental-mobile-bundle-held:mobile_bundle_held",
+          "kind": "mobile_bundle_held",
+          "expected_outcome": "NOT_EXECUTED",
+          "requirement_status": "HELD",
+          "held_reason": "No approved bundle-capable scanner/artifact binding; A7 remains HELD."
+        }
+      ]
+    },
+    {
+      "fixture_id": "feat018-p2-t5-supplemental-live-run-held",
+      "evidence_id": "P2T5:feat018-p2-t5-supplemental-live-run-held",
+      "activity_id": "ACT-0004",
+      "family": "contract-diagnostic",
+      "acceptance_ids": [
+        "T5-A8",
+        "T5-A5",
+        "T5-A6"
+      ],
+      "expected_execution_status": "NOT_EXECUTED",
+      "requirement_status": "HELD",
+      "held_reasons": [
+        "No live execution grant; all live-specific gates remain unchanged."
+      ],
+      "subprobes": [
+        {
+          "probe_id": "feat018-p2-t5-supplemental-live-run-held:live_run_held",
+          "kind": "live_run_held",
+          "expected_outcome": "NOT_EXECUTED",
+          "requirement_status": "HELD",
+          "held_reason": "No live execution grant; all live-specific gates remain unchanged."
+        }
+      ]
+    }
+  ]
+}
