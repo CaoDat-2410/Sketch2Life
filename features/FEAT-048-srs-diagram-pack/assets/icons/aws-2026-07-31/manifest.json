@@ -1,0 +1,147 @@
+{
+  "schema_version": 1,
+  "provider": "Amazon Web Services, Inc. or its affiliates",
+  "package": "AWS Architecture Icons / Icon-package_07312026",
+  "package_release_date": "2026-07-31",
+  "retrieved_on": "2026-10-23",
+  "official_usage_url": "https://aws.amazon.com/architecture/icons/",
+  "package_url": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip",
+  "package_bytes": 13988918,
+  "package_sha256": "d2d166c453526471749d520e0db022c459abef759d2946cf2dd1d1c992dc6526",
+  "package_archive_retained_in_repository": false,
+  "package_non_graphic_document_members": [],
+  "terms": {
+    "classification": "AWS proprietary architecture artwork; not declared MIT, Apache or other open-source license.",
+    "permission_source": "AWS Architecture Icons page permits customers and partners to use toolkits/assets to create architecture diagrams and accompanying materials.",
+    "site_terms_url": "https://aws.amazon.com/terms/",
+    "site_terms_last_updated": "2025-06-04",
+    "notice_file": "NOTICE.md",
+    "usage_guidance_url": "https://github.com/aws/aws-networking-best-practices/blob/main/content/community/conventions.md",
+    "guidance_scope": "AWS-owned project guidance: use icons for their actual meaning and preserve official icon colors."
+  },
+  "feature_scope": "FEAT-048 approval revision 18 / plan revision 17: redraw System Architecture v2 only.",
+  "interpretation": "General resource and category artwork represents logical capabilities. It does not select AWS deployment, AWS account/region/VPC, or AWS services; existing SRS statuses remain authoritative.",
+  "assets": [
+    {
+      "alias": "user.svg",
+      "package_member": "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_User_48_Light.svg",
+      "original_filename": "Res_User_48_Light.svg",
+      "original_svg_title": "Icon-Resource/General-Resource/Res_User_48_Light",
+      "icon_kind": "general-resource",
+      "intended_role": "Child, Teacher and Super Admin actors",
+      "bytes": 1114,
+      "sha256": "82cad1b559b84252e86f17ee9707ff9228e6c92816f207e4fde5daadaa346d38",
+      "transformation": "Original SVG bytes copied unchanged; filename alias only; no recoloring."
+    },
+    {
+      "alias": "mobile-client.svg",
+      "package_member": "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_Mobile-client_48_Light.svg",
+      "original_filename": "Res_Mobile-client_48_Light.svg",
+      "original_svg_title": "Icon-Resource/General-Resource/Res_Mobile-client_48_Light",
+      "icon_kind": "general-resource",
+      "intended_role": "Android client surface",
+      "bytes": 1503,
+      "sha256": "294246d02cc40e2cd8e2a17dfa52f55657517b1ceca87124762f51146b46524e",
+      "transformation": "Original SVG bytes copied unchanged; filename alias only; no recoloring."
+    },
+    {
+      "alias": "client.svg",
+      "package_member": "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_Client_48_Light.svg",
+      "original_filename": "Res_Client_48_Light.svg",
+      "original_svg_title": "Icon-Resource/General-Resource/Res_Client_48_Light",
+      "icon_kind": "general-resource",
+      "intended_role": "Teacher Desktop and Super Admin client surfaces",
+      "bytes": 1880,
+      "sha256": "5c0eb210ca9cca0f53c136eb524273ce5ad90e40545752aeadb129bdcb2af0f3",
+      "transformation": "Original SVG bytes copied unchanged; filename alias only; no recoloring."
+    },
+    {
+      "alias": "server.svg",
+      "package_member": "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_Server_48_Light.svg",
+      "original_filename": "Res_Server_48_Light.svg",
+      "original_svg_title": "Icon-Resource/General-Resource/Res_Traditional-server_48_Light",
+      "icon_kind": "general-resource",
+      "intended_role": "FastAPI backend and independent worker process",
+      "bytes": 1035,
+      "sha256": "ae8d259b4fcb30a8f2e2e25ec1026ee27e87e2579b66f67f3b893898c2d8b4b0",
+      "transformation": "Original SVG bytes copied unchanged; filename alias only; no recoloring."
+    },
+    {
+      "alias": "application.svg",
+      "package_member": "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_Generic-Application_48_Light.svg",
+      "original_filename": "Res_Generic-Application_48_Light.svg",
+      "original_svg_title": "Icon-Resource/General-Resource/Res_Generic-Application_48_Light",
+      "icon_kind": "general-resource",
+      "intended_role": "Logical application component",
+      "bytes": 1083,
+      "sha256": "adbea176db7aa41aeee5fc2faddb0adef71bd9be8b6dbeb7a199170051838da7",
+      "transformation": "Original SVG bytes copied unchanged; filename alias only; no recoloring."
+    },
+    {
+      "alias": "toolkit.svg",
+      "package_member": "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_Toolkit_48_Light.svg",
+      "original_filename": "Res_Toolkit_48_Light.svg",
+      "original_svg_title": "Icon-Resource/General-Resource/Res_Toolkit_48_Light",
+      "icon_kind": "general-resource",
+      "intended_role": "Application-owned port contracts and backend adapters",
+      "bytes": 3343,
+      "sha256": "837058a4abe00e9c908cf402d432854d0025be18e71f7666238016a700cb391c",
+      "transformation": "Original SVG bytes copied unchanged; filename alias only; no recoloring."
+    },
+    {
+      "alias": "database.svg",
+      "package_member": "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_Database_48_Light.svg",
+      "original_filename": "Res_Database_48_Light.svg",
+      "original_svg_title": "Icon-Resource/General-Resource/Res_Database_48_Light",
+      "icon_kind": "general-resource",
+      "intended_role": "Relational persistence; PostgreSQL remains CANDIDATE",
+      "bytes": 1457,
+      "sha256": "c18bb92be55c5d8c6ce4630bdc70179fb438e078b215210e7b5fb523ed2303da",
+      "transformation": "Original SVG bytes copied unchanged; filename alias only; no recoloring."
+    },
+    {
+      "alias": "disk.svg",
+      "package_member": "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_Disk_48_Light.svg",
+      "original_filename": "Res_Disk_48_Light.svg",
+      "original_svg_title": "Icon-Resource/General-Resource/Res_Disk_48_Light",
+      "icon_kind": "general-resource",
+      "intended_role": "Artifact/object persistence; S3-compatible storage remains CANDIDATE",
+      "bytes": 1486,
+      "sha256": "333bc895905074b5e458835770bd91c636babc8e95a7e121b8d8deaed6c8e645",
+      "transformation": "Original SVG bytes copied unchanged; filename alias only; no recoloring."
+    },
+    {
+      "alias": "authentication.svg",
+      "package_member": "Resource-Icons_07312026/Res_General-Icons/Res_48_Light/Res_Authenticated-User_48_Light.svg",
+      "original_filename": "Res_Authenticated-User_48_Light.svg",
+      "original_svg_title": "Icon-Resource/General-Resource/Res_Authenticated-User_48_Light",
+      "icon_kind": "general-resource",
+      "intended_role": "Adult identity authentication boundary; not an Amazon Cognito choice",
+      "bytes": 1799,
+      "sha256": "227260556fc9756d2bd96d5b7daff43df46b9a52170a60805e2b6cd0f25c3b97",
+      "transformation": "Original SVG bytes copied unchanged; filename alias only; no recoloring."
+    },
+    {
+      "alias": "integration.svg",
+      "package_member": "Category-Icons_07312026/Arch-Category_64/Arch-Category_Application-Integration_64.svg",
+      "original_filename": "Arch-Category_Application-Integration_64.svg",
+      "original_svg_title": "Icon-Architecture-Category/64/Application-Integration_64",
+      "icon_kind": "architecture-category",
+      "intended_role": "Async integration/queue capability; not an Amazon SQS choice",
+      "bytes": 3630,
+      "sha256": "26269f088b2acb3789b5c71badfd72bf1d8a9b82b31287bf5ce58dad7de9bbce",
+      "transformation": "Original SVG bytes copied unchanged; filename alias only; no recoloring."
+    },
+    {
+      "alias": "ai.svg",
+      "package_member": "Category-Icons_07312026/Arch-Category_64/Arch-Category_Artificial-Intelligence_64.svg",
+      "original_filename": "Arch-Category_Artificial-Intelligence_64.svg",
+      "original_svg_title": "Icon-Architecture-Category/64/Machine-Learning_64",
+      "icon_kind": "architecture-category",
+      "intended_role": "AI capability/provider boundary; provider TBD, not a Bedrock or SageMaker choice",
+      "bytes": 4811,
+      "sha256": "297a7be55f8a8153430b59f05d889979bf392a8fb465c48bfeca862ac343139a",
+      "transformation": "Original SVG bytes copied unchanged; filename alias only; no recoloring."
+    }
+  ]
+}

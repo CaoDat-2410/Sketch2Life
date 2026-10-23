@@ -1,109 +1,62 @@
-%% Sketch2Life Master SRS v3.1 — System Architecture v2, Draw.io page 4.
-%% This is a logical architecture with candidate deployment components, not an AWS deployment decision.
-%% Confirmed: Android / React Native / TypeScript; FastAPI / Python; Child, Teacher, Super Admin surfaces.
-%% Candidate: PostgreSQL, Redis/RQ, S3-compatible object storage. Proposed: WebSocket and server-authoritative ordered canvas operations/checkpoints.
-%% Firebase Authentication is the only permitted Firebase boundary; the adult-identity adapter is not implemented. AI provider and payload remain TBD.
-%% Drawing rules and status/connector semantics: ../../ARCHITECTURE_DRAWING_RULES.md
-%% Draw.io page 4 embeds Lucide 1.61.0 SVGs; icon names map to major roles only and do not encode status.
-%% Mapping: user-round=actors; smartphone=Android client; monitor=Teacher/Super Admin surfaces; server=FastAPI; list-checks=Application; layers=Domain groupings; plug=outbound ports.
-%% database=PostgreSQL; hard-drive=object storage; list-ordered=Redis/RQ; cpu=worker; shield-check=adult identity; sparkles=AI provider; radio-tower=WebSocket; package=artifact adapter; workflow=async flow.
+%% Sketch2Life SRS v3.1 — System Architecture v2, Draw.io tab 3.
+%% Logical architecture; deployment TBD. Logo artwork does not select new technologies or AWS services.
+%% Draw.io technology mark mapping: Child=React Native; API=FastAPI; PostgreSQL; queue=Redis; adult auth=Firebase.
+%% Draw.io uses AWS General/Category role symbols for Teacher/Admin clients, Worker, Application, Domain/Ports,
+%% Adapters, object storage and the unselected AI capability; these marks do not select AWS services.
+%% This portable Mermaid source uses text labels; it needs no remote images, custom icon pack or plugin.
+%% Source: SRS B3/B8 and repository rules; visual source/artwork provenance is recorded in FEAT-048 evidence.
+%% Detailed caveats: ../../evidence/notes/SYSTEM_ARCHITECTURE_V2_CLEAN_REVIEW_20261023.md.
+%% Fourteen components, six aligned port/adapter mappings, nineteen directed flows.
 
 flowchart LR
-    subgraph CLIENTS["People and client surfaces"]
-        CHILD((Child)) --> CHILD_APP["Android app<br/>React Native / TypeScript — CONFIRMED"]
-        TEACHER((Teacher)) --> TEACHER_UI["Teacher Desktop surface — CONFIRMED<br/>UI framework — TBD"]
-        ADMIN((Super Admin)) --> ADMIN_UI["Super Admin surface — CONFIRMED<br/>UI framework — TBD"]
+    subgraph CLIENTS["Clients"]
+        CHILD_APP["Child app<br/>Android · React Native / TypeScript<br/>confirmed"]
+        TEACHER_UI["Teacher<br/>Desktop surface · confirmed<br/>UI framework TBD"]
+        ADMIN_UI["Super Admin<br/>Admin surface · confirmed<br/>UI framework TBD"]
     end
 
-    subgraph BACKEND["Sketch2Life backend — logical boundary; deployment topology TBD"]
-        API["FastAPI / Python<br/>CONFIRMED"]
-        APP["Application services<br/>authorization and use cases"]
-
-        subgraph DOMAIN["Framework-independent domain — B8 context groupings proposed"]
-            IDENTITY["Identity / Consent"]
-            CLASSROOM["Classroom"]
-            SESSION["Session / Groups"]
-            DRAWING["Drawing / Collaboration<br/>ordered operations + checkpoints proposed; CRDT not selected"]
-            AI["AI Assistance"]
-            KNOWLEDGE["Knowledge / Media"]
-            ACTIVITIES["Activities"]
-            PORTFOLIO["Portfolio / Assessment"]
-            GOVERNANCE["Governance / Audit"]
-        end
-
-        subgraph PORTS["Application-owned outbound port contracts"]
-            REPO_PORT["Repository"]
-            ARTIFACT_PORT["Artifact"]
-            JOB_PORT["Job"]
-            IDENTITY_PORT["Identity"]
-            MODEL_PORT["Model"]
-            REALTIME_PORT["Realtime / presence"]
-        end
-
-        subgraph ADAPTERS["Backend adapter implementations — candidate / proposed"]
-            REPO_ADAPTER["Persistence adapter"]
-            ARTIFACT_ADAPTER["Artifact adapter"]
-            JOB_ADAPTER["Job / queue adapter"]
-            IDENTITY_ADAPTER["Adult identity adapter"]
-            AI_ADAPTER["AI provider adapter<br/>backend only"]
-            REALTIME_ADAPTER["Realtime adapter"]
-            WORKER["Async worker process<br/>separate from request path"]
-        end
+    subgraph BACKEND["Sketch2Life backend · logical view · deployment TBD"]
+        API["FastAPI / Python<br/>REST commands / queries<br/>confirmed"]
+        APP["Application<br/>Use cases · authorization<br/>Scope / version checks"]
+        DOMAIN["Domain contexts · proposed<br/>Identity / Consent · Classroom<br/>Session / Groups · Drawing / Collaboration<br/>AI Assistance · Knowledge / Media<br/>Activities · Portfolio / Assessment<br/>Governance / Audit"]
+        PORTS["Application ports<br/>Repository · Artifact · Job<br/>Identity · Realtime / presence · Model"]
+        ADAPTERS["Backend adapters<br/>Persistence · Artifact storage · Job / queue — candidate<br/>Adult identity — TBD<br/>Realtime / presence — proposed<br/>AI provider — proposed · backend only"]
+        WORKER["Async worker<br/>Separate process · proposed<br/>Bounded jobs"]
     end
 
-    subgraph EXTERNAL["Persistence and external service boundaries"]
-        POSTGRES[("PostgreSQL<br/>candidate — not selected")]
-        OBJECT_STORE[("S3-compatible object storage<br/>candidate — not selected")]
-        REDIS_RQ["Redis / RQ queue<br/>candidate — not selected"]
-        FIREBASE_AUTH["Firebase Authentication<br/>adult identity only; adapter TBD"]
-        AI_PROVIDER["AI provider API<br/>provider and payload TBD"]
-        WS_TRANSPORT["WebSocket transport<br/>PROPOSED"]
+    subgraph EXTERNAL["External services"]
+        POSTGRES["PostgreSQL<br/>candidate"]
+        OBJECT_STORE["S3-compatible object storage<br/>candidate"]
+        QUEUE["Redis / RQ queue<br/>candidate"]
+        AUTH["Firebase Authentication<br/>Adults only · integration TBD"]
+        AI_PROVIDER["AI provider<br/>Provider / payload TBD"]
     end
 
-    CHILD_APP -->|REST commands / canvas operations| API
-    TEACHER_UI -->|REST controls / reviews / queries| API
-    ADMIN_UI -->|scoped administration requests| API
-    CHILD_APP -.->|canvas / presence stream — proposed| API
-    TEACHER_UI -.->|live session projection — proposed| API
+    CHILD_APP -->|REST| API
+    TEACHER_UI -->|REST| API
+    ADMIN_UI -->|REST| API
+    API -->|request| APP
+    APP -->|rules| DOMAIN
+    APP -->|uses| PORTS
+    PORTS -->|calls| ADAPTERS
+    ADAPTERS -.->|implements| PORTS
 
-    API -->|validated and authorized request| APP
-    APP -->|domain rules| DOMAIN
-    APP -->|uses contracts| PORTS
+    ADAPTERS -->|records| POSTGRES
+    ADAPTERS -->|artifacts| OBJECT_STORE
+    ADAPTERS -->|enqueue| QUEUE
+    ADAPTERS <-->|auth| AUTH
+    ADAPTERS <-->|request / result| AI_PROVIDER
 
-    REPO_PORT -->|runtime invocation| REPO_ADAPTER
-    ARTIFACT_PORT -->|runtime invocation| ARTIFACT_ADAPTER
-    JOB_PORT -->|runtime invocation| JOB_ADAPTER
-    IDENTITY_PORT -->|runtime invocation| IDENTITY_ADAPTER
-    MODEL_PORT -->|runtime invocation| AI_ADAPTER
-    REALTIME_PORT -->|runtime invocation| REALTIME_ADAPTER
+    CHILD_APP <-.->|Canvas / presence · WS proposed| ADAPTERS
+    TEACHER_UI <-.->|Live projection · WS proposed| ADAPTERS
+    ADAPTERS -.->|authorized events| APP
+    QUEUE -->|claim job| WORKER
+    WORKER -->|AI task| ADAPTERS
+    WORKER -->|typed result / status| APP
 
-    REPO_ADAPTER -.->|implements| REPO_PORT
-    ARTIFACT_ADAPTER -.->|implements| ARTIFACT_PORT
-    JOB_ADAPTER -.->|implements| JOB_PORT
-    IDENTITY_ADAPTER -.->|implements| IDENTITY_PORT
-    AI_ADAPTER -.->|implements| MODEL_PORT
-    REALTIME_ADAPTER -.->|implements| REALTIME_PORT
-
-    REPO_ADAPTER -->|durable records / audit references| POSTGRES
-    ARTIFACT_ADAPTER -->|snapshots / media artifacts| OBJECT_STORE
-    JOB_ADAPTER -->|enqueue bounded job| REDIS_RQ
-    REDIS_RQ -->|claimed job| WORKER
-    WORKER -->|purpose-scoped request| AI_ADAPTER
-    AI_ADAPTER <-->|provider request / candidate result| AI_PROVIDER
-    WORKER -->|typed result / status; recheck scope and version| APP
-    IDENTITY_ADAPTER <-->|adult identity decision; payload TBD| FIREBASE_AUTH
-    REALTIME_ADAPTER <-->|session events / presence| WS_TRANSPORT
-
-    class CHILD,TEACHER,ADMIN,CHILD_APP,API confirmed;
-    class TEACHER_UI,ADMIN_UI neutral;
-    class AI_PROVIDER tbd;
-    class APP,DOMAIN,IDENTITY,CLASSROOM,SESSION,DRAWING,AI,KNOWLEDGE,ACTIVITIES,PORTFOLIO,GOVERNANCE,PORTS,REPO_PORT,ARTIFACT_PORT,JOB_PORT,IDENTITY_PORT,MODEL_PORT,REALTIME_PORT,ADAPTERS,AI_ADAPTER,WORKER,REALTIME_ADAPTER,WS_TRANSPORT proposed;
-    class REPO_ADAPTER,ARTIFACT_ADAPTER,JOB_ADAPTER,POSTGRES,OBJECT_STORE,REDIS_RQ candidate;
-    class IDENTITY_ADAPTER,FIREBASE_AUTH policy;
-
-    classDef confirmed fill:#edf6f0,stroke:#59836a,color:#244b34,stroke-width:1.5px;
-    classDef candidate fill:#fff8ea,stroke:#b18b4b,color:#5b4828,stroke-width:1.5px,stroke-dasharray:5 4;
-    classDef proposed fill:#f1f6fb,stroke:#718ca8,color:#334c65,stroke-width:1.5px,stroke-dasharray:5 4;
-    classDef policy fill:#f1f3f6,stroke:#788696,color:#354457,stroke-width:1.5px;
-    classDef tbd fill:#f2f4f7,stroke:#8995a3,color:#4b5968,stroke-width:1.5px;
-    classDef neutral fill:#ffffff,stroke:#718096,color:#334c65,stroke-width:1.5px;
+    class CHILD_APP,TEACHER_UI,ADMIN_UI,API,APP,DOMAIN,PORTS,ADAPTERS,WORKER,POSTGRES,OBJECT_STORE,QUEUE,AUTH,AI_PROVIDER component;
+    classDef component fill:#ffffff,stroke:#7b828a,color:#292f36,stroke-width:1px,font-size:17px;
+    style CLIENTS fill:#ffffff,stroke:#a5abb2,color:#30363d;
+    style BACKEND fill:#ffffff,stroke:#a5abb2,color:#30363d;
+    style EXTERNAL fill:#ffffff,stroke:#a5abb2,color:#30363d;
+    linkStyle default stroke:#555d66,stroke-width:1.6px;

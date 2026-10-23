@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "retrieved_on": "2026-10-23",
+  "feature_scope": "FEAT-048 plan revision 21 / task approval revision 22: replace five technology icons on System Architecture v2.",
+  "notice_file": "NOTICE.md",
+  "usage": "Identify technologies named by the SRS; preserve confirmed/candidate/TBD labels and original colors, proportions and artwork. Technology logos do not approve deployment or providers.",
+  "embedding": "Original UTF-8 SVG bytes are percent-encoded in embedded data:image/svg+xml URIs; no runtime external image requests. Legacy aws-icon-* cell IDs are retained for stable editable references.",
+  "layout": "48 by 48 pixel image boxes except Redis, which uses a 64 by 48 pixel box. SVG artwork preserves its original aspect ratio within each box. No artwork is cropped, recolored or redrawn.",
+  "assets": [
+    {
+      "alias": "fastapi.svg",
+      "brand": "FastAPI",
+      "component_key": "api",
+      "variant": "Official square teal circle and white lightning mark",
+      "source_page": "https://github.com/fastapi/fastapi-vscode/blob/39e53827997a41c288b323f1881752c590940d27/media/icons/logo-teal.svg",
+      "source_url": "https://raw.githubusercontent.com/fastapi/fastapi-vscode/39e53827997a41c288b323f1881752c590940d27/media/icons/logo-teal.svg",
+      "source_repository_commit": "39e53827997a41c288b323f1881752c590940d27",
+      "brand_information_url": "https://fastapi.tiangolo.com/about/",
+      "bytes": 454,
+      "sha256": "1bbb3a85103b2bd6ce2900d525346d781e090b45d7f5a892b430294969fd57d4",
+      "transformation": "Original downloaded SVG bytes unchanged; local filename alias only."
+    },
+    {
+      "alias": "firebase.svg",
+      "brand": "Firebase",
+      "component_key": "firebase",
+      "variant": "Current primary full-color logomark",
+      "source_page": "https://firebase.google.com/brand-guidelines",
+      "source_url": "https://firebase.google.com/static/downloads/brand-guidelines/firebase-brand-assets.zip",
+      "package_member": "firebase-brand-assets/Firebase Logo & Product Icons  2/Firebase Logo/Primary Logomark/SVG/Logomark_Full Color.svg",
+      "package_bytes": 6218601,
+      "package_sha256": "ac17065f4790742b247743e7fa1d019afbb1e1da6d9950fc73cd40e9cbbb1235",
+      "package_archive_retained_in_repository": false,
+      "bytes": 1367,
+      "sha256": "120799f51cff880e87bdc5c3954f1938ecc4cd401bec3fe188e1e22db641c556",
+      "transformation": "Original official ZIP member bytes unchanged; local filename alias only.",
+      "interpretation": "Firebase Authentication for adults only; this mark does not imply use of other Firebase products."
+    },
+    {
+      "alias": "react-native.svg",
+      "brand": "React Native",
+      "component_key": "child_client",
+      "variant": "Official React Native website cyan header mark",
+      "source_page": "https://reactnative.dev/docs/image",
+      "source_url": "https://reactnative.dev/img/header_logo.svg",
+      "bytes": 771,
+      "sha256": "69c5c70c9e616159b8a56a451881df40bf54eb93a258843ba62c5dff90c70817",
+      "transformation": "Original downloaded SVG bytes unchanged; local filename alias only."
+    },
+    {
+      "alias": "postgresql.svg",
+      "brand": "PostgreSQL",
+      "component_key": "postgres",
+      "variant": "Official three-color Slonik elephant",
+      "source_page": "https://wiki.postgresql.org/wiki/Logo",
+      "source_url": "https://wiki.postgresql.org/images/a/a4/PostgreSQL_logo.3colors.svg",
+      "trademark_policy_url": "https://www.postgresql.org/about/policies/trademarks/",
+      "bytes": 4461,
+      "sha256": "51f93e19516081fc7d6fe6ab9bbab07abe5f7819e28016eefacea6dea691bc54",
+      "transformation": "Original downloaded SVG bytes, including CRLF line endings, unchanged; local filename alias only.",
+      "interpretation": "Database technology remains a candidate."
+    },
+    {
+      "alias": "redis.svg",
+      "brand": "Redis",
+      "component_key": "queue",
+      "variant": "Current red official website wordmark",
+      "source_page": "https://redis.io/",
+      "source_url": "https://redis.io/",
+      "extraction": "Exact original inline SVG within the official homepage link with aria-label Redis and viewBox 0 0 85 27.",
+      "trademark_policy_url": "https://redis.io/legal/trademark-policy/",
+      "trademark_policy_last_updated": "2026-09-15",
+      "brand_guidelines_url": "https://brand.redis.io/",
+      "brand_guidelines_access": "The official redis.io/brand-guidelines/ endpoint redirects to brand.redis.io; the destination timed out. The current original homepage wordmark was used instead of older cube artwork.",
+      "bytes": 2486,
+      "sha256": "f7a4f008a6df70f7b9bf92a4dbfd74c24d4f33f382a35e9aaa9b3144e73963cb",
+      "transformation": "Exact original SVG substring saved as UTF-8; no artwork or color changes.",
+      "interpretation": "Redis / RQ queue remains a candidate; Redis artwork identifies Redis and does not select an RQ brand or managed Redis product."
+    }
+  ]
+}
