@@ -1,24 +1,25 @@
 ---
-title: "CanvasDocument ownership: exactly one owner — shared group XOR personal participant (never both or neither)."
+title: "CanvasDocument ownership — PROPOSED (SRS DATA-15): personal mode requires a participant owner; collaborative mode requires a group. Whether both or neither may exist is not settled in the SRS."
 ---
-%% Sketch2Life SRS v3.1 — Mermaid counterpart of the current Draw.io ERD.
+%% Sketch2Life SRS v3.1 — Mermaid counterpart of the single Draw.io ERD tab ("ERD", table style).
 %% Draw.io: https://drive.google.com/file/d/1j-_R792jh-I1nC5B7FHwGDm3-yixPB6x/view ; tab ERD.
-%% Current Draw.io artifact SHA-256: 371a32346bfafcdb1298bf3eae4637b6fb349e1cfc70f88ef7ad5d6a0314c6eb; exact Drive readback verified 2026-10-23.
-%% SRS source: ../../../FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md ; B7/B7.1/B21.5.
+%% Draw.io CANDIDATE artifact SHA-256: fe18e3c61c17b6450bb21599699eb0eb35f827c4ccb6398ba72827c6adc034cc (local file evidence/raw/DRIVE_ERD_V32_CANDIDATE_20261024.drawio, 3 tabs). The Drive file above is still the baseline 371a32346bfafcdb1298bf3eae4637b6fb349e1cfc70f88ef7ad5d6a0314c6eb until the candidate is uploaded and read back; update this line then.
+%% SRS source: ../../../FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md ; B7/B7.1/B21.1/B21.5, DATA-15.
 %% Authority: FEAT-029 Master SRS B7/B7.1/B21.5; all entities remain PROPOSED.
-%% Scope: exactly 17 entities, 21 named relationships and 37 displayed attributes.
-%% Displayed fields are selected attributes, not complete entity schemas or a physical database design.
-%% Mermaid uses crow's-foot endpoint counts; Draw.io uses Chen shapes with numeric endpoint counts.
-%% Types and PK/FK markers describe logical overview fields, not an adopted physical schema.
-%% Enrollment cardinality remains TBD. membershipId is a proposed episode key (Draw.io membershipId*).
-%% ConsentRecord.purposes is multi-valued; its storage normalization remains TBD.
-%% Canvas ownership is shared group XOR personal participant; each document has exactly one applicable owner mode.
+%% Scope: exactly 24 entities (17 B7.1 core + 7 AI / Media / Jobs from the B7 entity table), 31 named relationships and 151 displayed columns.
+%% Not drawn: Activities, Assessment, Governance, DeviceConnection, CanvasRegion, ArtworkShare. This is not a whole-system ERD.
+%% Columns follow the B7 main-field lists. Two columns come from elsewhere and say so: membershipId (proposed episode key) and CanvasDocument.personalParticipantRef (DATA-15 personal_participant_id).
+%% Relationships: the 21 B7.1 core relationships as previously published, plus 10 drawn only where a B7 field (...Ref) names the parent; unknown parent optionality is drawn zero-or-one.
+%% Types are B21.1 primitives where a field maps to one; every other type is TBD (not fixed by the SRS). This is a logical overview, not a physical database design.
+%% Nullable columns are named in the column comments (B7 "?"). FK markers show references that B7 names.
+%% Mermaid uses crow's-foot endpoint counts; the Draw.io tab uses crow's-foot symbols too.
+%% Enrollment cardinality remains TBD (marked "(TBD)" in the two Enrollment relationship labels).
+%% Canvas ownership is PROPOSED: DATA-15 requires a participant owner for personal mode and a group for collaborative mode; the SRS does not settle whether both or neither may exist. ownerScope follows B7 (personal / shared / region).
 %% The 0..N document count per group/participant remains proposed; SRS does not settle its maximum.
+%% ConsentRecord.purposes is multi-valued; its storage normalization remains TBD.
 %% Historical operation attribution is optional; new child operations require a selected, verified bound participant (DATA-17/CS-008).
-%% TeacherReview's relation below is the SketchProposal review subset; DATA-24 includes other target kinds.
-%% reviewerRef remains an attribute referencing AdultAccount, without an extra relationship.
-%% All 21 named Draw.io relationships now bind to both intended entity endpoints.
-%% The visible title mirrors the CanvasDocument owner constraint on the Drive ERD; all proposal caveats needed for this source are recorded above.
+%% TeacherReview.contentRef is generic (DATA-24 has other target kinds); this ERD draws the SketchProposal review relationship and the ReviewedVideo link via teacherReviewRef. reviewerRef is a column referencing AdultAccount, without an extra relationship.
+%% No safety-review entity exists in this ERD (ReviewedVideo.safetyReviewRef is a plain reference).
 
 erDiagram
     direction LR
@@ -26,8 +27,8 @@ erDiagram
     "OrganizationScope" ||--o{ "Class" : "governs"
     "AdultAccount" ||--o{ "TeacherAssignment" : "receives"
     "Class" ||--o{ "TeacherAssignment" : "authorizes"
-    "Class" ||--o{ "Enrollment" : "contains (cardinality TBD)"
-    "StudentProfile" ||--o{ "Enrollment" : "joins (cardinality TBD)"
+    "Class" ||--o{ "Enrollment" : "contains (TBD)"
+    "StudentProfile" ||--o{ "Enrollment" : "joins (TBD)"
     "StudentProfile" ||--o{ "PortfolioEntry" : "collects"
     "StudentProfile" ||--o{ "ConsentRecord" : "protected"
     "Class" ||--o{ "ClassroomSession" : "hosts"
@@ -39,81 +40,218 @@ erDiagram
     "CanvasDocument" ||--o{ "CanvasOperation" : "records"
     "CanvasDocument" ||--o{ "CanvasSnapshot" : "checkpoints"
     "CanvasSnapshot" ||--o{ "SketchProposal" : "grounds"
-    "SketchProposal" ||--o{ "TeacherReview" : "reviewed (sketch-review subset)"
+    "SketchProposal" ||--o{ "TeacherReview" : "reviewed"
     "StudentProfile" ||--o{ "ChildParticipant" : "participates"
-
     "SessionGroup" o|--o{ "CanvasDocument" : "shared canvas"
     "ChildParticipant" o|--o{ "CanvasDocument" : "personal canvas"
     "ChildParticipant" o|..o{ "CanvasOperation" : "attributed to"
+    "CanvasSnapshot" o|--o{ "VisionObservation" : "source of"
+    "VisionObservation" ||--o{ "MeaningConfirmation" : "confirmed by"
+    "ChildParticipant" o|--o{ "AssistanceRequest" : "requests"
+    "SessionGroup" o|--o{ "AssistanceRequest" : "context group"
+    "CanvasDocument" o|--o{ "AssistanceRequest" : "context canvas"
+    "SketchProposal" ||--o{ "ChildResponse" : "answered by"
+    "ChildParticipant" ||--o{ "ChildResponse" : "responds"
+    "KnowledgeBundle" ||--o{ "VideoJob" : "rendered by"
+    "KnowledgeBundle" ||--o{ "ReviewedVideo" : "yields"
+    "TeacherReview" o|--o{ "ReviewedVideo" : "approves"
 
     "OrganizationScope" {
-        string id PK
-        string name
+        OpaqueId id PK
+        TBD name
+        PolicyRef policyRef
+        TBD status
     }
     "AdultAccount" {
-        string id PK
-        string role
-    }
-    "TeacherAssignment" {
-        string id PK
-        string scope
-    }
-    "Class" {
-        string id PK
-        string name
-    }
-    "Enrollment" {
-        string id PK
-        string validity
+        OpaqueId id PK
+        TBD identityRef "external identity link; mapping/account lifecycle TBD"
+        TBD role
+        TBD status
     }
     "StudentProfile" {
-        string id PK
-        string alias
+        OpaqueId id PK
+        TBD alias
+        TBD adultConfirmedAge
+        PolicyRef agePolicyRef
+        TBD status
     }
-    "PortfolioEntry" {
-        string id PK
-        string attributionQuality
+    "TeacherAssignment" {
+        OpaqueId id PK
+        OpaqueId teacherRef FK "references AdultAccount"
+        OpaqueId classRef FK "references Class"
+        TBD scope
+        Instant validFrom
+        Instant validUntil
+        TBD status
+    }
+    "Class" {
+        OpaqueId id PK
+        OpaqueId organizationRef FK "references OrganizationScope"
+        TBD name
+        PolicyRef agePolicyRef
+        TBD status
+    }
+    "Enrollment" {
+        OpaqueId id PK
+        OpaqueId classRef FK "references Class"
+        OpaqueId studentRef FK "references StudentProfile"
+        TBD status
+        TBD validity
     }
     "ConsentRecord" {
-        string id PK
-        string purposes "multi-valued; storage normalization TBD"
+        OpaqueId id PK
+        OpaqueId subjectRef FK "references StudentProfile"
+        OpaqueId representativeRef "no representative entity in this ERD; guardian verification TBD"
+        TBD purposes "multi-valued; storage normalization TBD"
+        Revision policyVersion
+        TBD evidenceRef
+        TBD status
+        Instant timestamps "set of timestamps; exact fields TBD"
     }
     "ClassroomSession" {
-        string id PK
-        string lifecycle
+        OpaqueId id PK
+        OpaqueId classRef FK "references Class"
+        TBD topicRef
+        Revision presetVersion
+        Revision version
+        TBD lifecycle
+        TBD sharedStage
+        Instant times "set of lifecycle times; exact fields TBD"
     }
     "SessionGroup" {
-        string id PK
-        string progress
+        OpaqueId id PK
+        OpaqueId sessionRef FK "references ClassroomSession"
+        TBD name
+        Revision version
+        TBD canvasMode
+        TBD progress
     }
     "GroupMembership" {
-        string membershipId PK "proposed episode key"
-        string participantRef FK
-        string groupRef FK
-        string validity
+        OpaqueId membershipId PK "proposed episode key; not in SRS B7"
+        OpaqueId participantRef FK "references ChildParticipant"
+        OpaqueId groupRef FK "references SessionGroup"
+        TBD validity
     }
     "ChildParticipant" {
-        string id PK
-        string admissionState
+        OpaqueId id PK
+        OpaqueId studentRef FK "references StudentProfile"
+        OpaqueId sessionRef FK "references ClassroomSession"
+        TBD alias
+        TBD admissionState
     }
     "CanvasDocument" {
-        string id PK
-        int revision
+        OpaqueId id PK
+        OpaqueId sessionRef FK "references ClassroomSession"
+        OpaqueId groupRef FK "nullable (B7 groupRef?); references SessionGroup"
+        OpaqueId personalParticipantRef FK "nullable; from DATA-15 personal_participant_id, not in B7 table; references ChildParticipant"
+        TBD ownerScope "personal / shared / region per B7; exclusivity with groupRef/personalParticipantRef not settled (PROPOSED)"
+        Revision revision
+        Revision policyVersion
+        OpaqueId snapshotRef "reference to CanvasSnapshot; no extra relationship drawn"
     }
     "CanvasOperation" {
-        string id PK
-        int serverSeq
+        OpaqueId id PK
+        OpaqueId documentRef FK "references CanvasDocument"
+        OpaqueId principalRef "verifiedPrincipal / capabilityRef; always present"
+        OpaqueId contributorRef FK "nullable (B7 contributorRef?); only individual contributor may be UNKNOWN/GROUP; references ChildParticipant"
+        OpaqueId deviceRef "DeviceConnection is not in this ERD"
+        TBD attribution
+        TBD targetRef
+        TBD type
+        TBD payload
+        Sequence serverSeq
     }
     "CanvasSnapshot" {
-        string id PK
-        string hash
+        OpaqueId id PK
+        OpaqueId documentRef FK "references CanvasDocument"
+        Revision revision
+        Hash256 hash
+        Sequence operationWatermark
+        AssetRef artifactRef
+        TBD provenance
     }
     "SketchProposal" {
-        string id PK
-        string safetyResult
+        OpaqueId id PK
+        OpaqueId sourceSnapshotRef FK "references CanvasSnapshot"
+        TBD targetRegion
+        TBD supportLevel
+        AssetRef sketchArtifactRef
+        TBD safetyResult
+        Revision version
     }
     "TeacherReview" {
-        string id PK
-        string decision
-        string reviewerRef FK "AdultAccount"
+        OpaqueId id PK
+        VersionedRecordRef contentRef "generic review target; this ERD draws the SketchProposal subset only (DATA-24 has other kinds)"
+        OpaqueId reviewerRef FK "references AdultAccount; no extra relationship drawn"
+        TBD decision
+        Revision editedVersion "nullable (B7 editedVersion?)"
+        Instant time
+        PolicyRef policyRef
+    }
+    "PortfolioEntry" {
+        OpaqueId id PK
+        OpaqueId studentRef FK "references StudentProfile"
+        TBD evidenceRefs "set of evidence references"
+        TBD attributionQuality
+        TBD teacherApprovedSummary
+        TBD date
+    }
+    "VisionObservation" {
+        OpaqueId id PK
+        Hash256 snapshotHash FK "B7 snapshotHash/revision; refers to CanvasSnapshot"
+        Revision snapshotRevision
+        Revision topicAgeContextVersion "B7 topic/ageContextVersion; exact split TBD"
+        TBD candidates
+        TBD uncertainty
+        TBD provenance
+    }
+    "MeaningConfirmation" {
+        OpaqueId id PK
+        OpaqueId observationRef FK "references VisionObservation"
+        TBD childStatement "nullable (B7 childStatement?)"
+        TBD teacherCorrection
+        TBD confirmedConcepts
+        Revision version
+    }
+    "AssistanceRequest" {
+        OpaqueId id PK
+        OpaqueId participantRef FK "references ChildParticipant; optionality TBD"
+        OpaqueId groupRef FK "references SessionGroup; optionality TBD"
+        OpaqueId documentRef FK "references CanvasDocument; optionality TBD"
+        TBD trigger "a trigger is not a diagnosis (B7)"
+        Revision contextVersion
+        TBD requestedLevel
+    }
+    "ChildResponse" {
+        OpaqueId id PK
+        OpaqueId proposalRef FK "references SketchProposal"
+        OpaqueId participantRef FK "references ChildParticipant"
+        TBD response "VIEW / HIDE / DECLINE (B7)"
+        Instant timestamp
+    }
+    "KnowledgeBundle" {
+        OpaqueId id PK
+        TBD conceptRefs
+        TBD sourceRefs
+        TBD ageAudience
+        Revision scriptVersion
+        TBD editorialState
+    }
+    "VideoJob" {
+        OpaqueId id PK
+        OpaqueId bundleRef FK "references KnowledgeBundle"
+        Revision requestVersion
+        TBD attempt
+        TBD status
+        TBD errorCode
+        TBD progress
+    }
+    "ReviewedVideo" {
+        OpaqueId id PK
+        AssetRef artifactRef "B7 artifactRef/hash"
+        OpaqueId bundleRef FK "B7 bundle/scriptVersion; references KnowledgeBundle"
+        Revision scriptVersion
+        TBD safetyReviewRef
+        OpaqueId teacherReviewRef FK "references TeacherReview; no entity for safety review in this ERD"
+        TBD audience
     }
