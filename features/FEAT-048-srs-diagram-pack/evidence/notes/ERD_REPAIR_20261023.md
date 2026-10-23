@@ -1,6 +1,6 @@
 # ERD repair and Mermaid source selection — 2026-10-23
 
-**Local repair: PASS. Drive sync: blocked by automatic approval review.** Plan 23 / approval 24 records Khoa's direct request. The repaired Draw.io file, Mermaid sources, rendered evidence and current feature records are local in FEAT-048.
+**Local repair: PASS. GitHub publication: PASS. Drive sync: blocked by automatic approval review.** Plan 23 / approval 24 records Khoa's direct request. The repaired Draw.io file, Mermaid sources, text-only provenance and current feature records are published on `feature/feat048-srs-diagram-pack` in commits `2432fd0e` and `197048d7`. Rendered evidence remains local.
 
 ## Source and preservation
 
@@ -27,7 +27,7 @@
 
 ## Curated GitHub file selection
 
-Publish the editable artifact and current source counterparts:
+Published the editable artifact and current source counterparts:
 
 - `artifacts/Khoa_Sketch2Life_SRS_v3.1_Diagrams.drawio`
 - `src/diagrams/logical-erd.mmd`

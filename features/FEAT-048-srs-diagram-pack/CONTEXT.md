@@ -1,9 +1,9 @@
 # FEAT-048 context — SRS v3.1 diagram pack
 
-- Status: IN_PROGRESS — local ERD repair and Mermaid synchronization complete (plan 23 / approval 24); curated GitHub publication is being prepared; Drive replacement is blocked by automatic approval review pending explicit permission.
+- Status: IN_PROGRESS — local ERD repair, Mermaid synchronization, and curated GitHub publication complete (plan 23 / approval 24; commits `2432fd0e`, `197048d7`); Drive replacement is blocked by automatic approval review pending explicit permission.
 - Owner: Khoa / project owner
 - Goal: create an editable Draw.io file and diagram-as-code counterparts for Khoa's assigned ERD, System Architecture, and Package diagrams from the current canonical SRS.
-- Scope: one `.drawio` file with three assigned pages plus a separately named architecture comparison page, and Mermaid sources under `src/diagrams/`; intended Drive destination for the Draw.io file is the folder supplied by the user (ID `18K0jfiBfl1nfG3-9HvfQXzVMoQcjTZF0`). Mermaid sources remain in the repository worktree.
+- Scope: one `.drawio` file with three assigned pages plus a separately named architecture comparison page, and Mermaid sources under `src/diagrams/`; the curated sources are published on the FEAT-048 branch. Intended Drive destination for the Draw.io file is the folder supplied by the user (ID `18K0jfiBfl1nfG3-9HvfQXzVMoQcjTZF0`).
 - Non-goals: runtime/schema/API implementation, choosing unapproved infrastructure, modifying the SRS, publishing or sharing the Drive folder.
 - Dependencies: canonical SRS v3.1 at `features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md`; connected Google Drive access.
 - Risks: B7/B21 data model and B8 bounded contexts/contracts are labeled `PROPOSED`; the diagrams must retain those labels and not present them as adopted implementation.
@@ -14,7 +14,7 @@
 
 Plan 23 / approval 24: local repair PASS. All six formerly detached diamonds now have both correct entity connectors; the three reversed endpoint counts are corrected; protected/Class/shared/personal/owns routes render through distinct corridors. CanvasDocument has exactly one applicable owner mode (group XOR participant); maximum documents per owner remains proposed. New child-authored operations require a selected verified participant even though historical attribution can be optional. Draw.io retains 17 entities/21 named relations/37 attributes and all four tabs; the other three page fingerprints match the fresh baseline. Mermaid ERD and Architecture v2 render at 17/21/37 and 14/19. Evidence: `evidence/notes/ERD_REPAIR_20261023.md`, `evidence/metrics/ERD_REPAIR_VALIDATION_20261023.json`.
 
-GitHub allowlist: editable `.drawio`, `logical-erd.mmd`, `system-architecture-v2.mmd`, and necessary textual feature records. Rendered images, builder/renderer scripts, separate icon SVGs, raw Drive baselines and the duplicate Mermaid wrapper are excluded. The same-ID Drive update was rejected by automatic approval review; remote content remains the 153,149-byte baseline until the owner explicitly permits replacing that file.
+GitHub publication is complete on `feature/feat048-srs-diagram-pack`: editable `.drawio`, `logical-erd.mmd`, `system-architecture-v2.mmd`, source README/drawing rules, text-only icon provenance, and necessary textual feature records. Rendered images, builder/renderer scripts, separate icon SVGs, raw Drive baselines and the duplicate Mermaid wrapper are excluded. The same-ID Drive update was rejected by automatic approval review; remote content remains the 153,149-byte baseline until the owner explicitly permits replacing that file.
 
 ### ERD recheck — 2026-10-23
 

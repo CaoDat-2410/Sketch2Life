@@ -1,5 +1,5 @@
 {
-  "status": "LOCAL_REPAIR_PASS_DRIVE_SYNC_BLOCKED_BY_AUTO_REVIEW",
+  "status": "LOCAL_REPAIR_PASS_GITHUB_PUBLISHED_DRIVE_SYNC_BLOCKED_BY_AUTO_REVIEW",
   "date": "2026-10-23",
   "planRevision": 23,
   "approvalRevision": 24,
@@ -219,6 +219,8 @@
       "src/diagrams/logical-erd.mmd",
       "src/diagrams/system-architecture-v2.mmd",
       "src/diagrams/README.md",
+      "ARCHITECTURE_DRAWING_RULES.md",
+      "text-only AWS/technology icon manifests and notices",
       "textual FEAT-048 plan/approval/decision/status/handoff and ERD repair records"
     ],
     "exclude": [
@@ -231,6 +233,16 @@
       "raw Drive baselines/readbacks",
       "unrelated worktree files"
     ]
+  },
+  "github": {
+    "status": "PUSHED",
+    "branch": "feature/feat048-srs-diagram-pack",
+    "remote": "origin",
+    "commits": [
+      "2432fd0e feat(FEAT-048): repair ERD and publish diagram sources",
+      "197048d7 docs(FEAT-048): record ERD repair and source curation"
+    ],
+    "pushedToRemote": true
   },
   "drive": {
     "fileId": "1j-_R792jh-I1nC5B7FHwGDm3-yixPB6x",

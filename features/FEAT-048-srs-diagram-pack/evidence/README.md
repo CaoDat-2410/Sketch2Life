@@ -1,12 +1,12 @@
 # Evidence index
 
-## Latest increment — local ERD repair and curated GitHub sources (2026-10-23)
+## Latest increment — ERD repair and published GitHub sources (2026-10-23)
 
-- `notes/ERD_REPAIR_20261023.md`: corrected bindings/cardinalities/routes, SRS qualifications, actual render review, exact GitHub source allowlist, and the blocked Drive update.
-- `metrics/ERD_REPAIR_VALIDATION_20261023.json`: final Draw.io page hashes/counts/endpoints/routes, Mermaid source/render hashes, GitHub selection and Drive approval-review outcome.
+- `notes/ERD_REPAIR_20261023.md`: corrected bindings/cardinalities/routes, SRS qualifications, actual render review, exact GitHub source allowlist, publication commits, and the blocked Drive update.
+- `metrics/ERD_REPAIR_VALIDATION_20261023.json`: final Draw.io page hashes/counts/endpoints/routes, Mermaid source/render hashes, GitHub selection/publication and Drive approval-review outcome.
 - `rendered/erd_repair_final_20261023.png` and `.svg` plus render metadata: actual 3401×1987 diagrams.net view; local review only, excluded from GitHub.
 - `rendered/logical_erd_mermaid_final_20261023.*` and `system_architecture_v2_mermaid_final_20261023.*`: Mermaid 12.2.0 source renders, local evidence only, excluded from GitHub.
-- GitHub selection: editable `../artifacts/Khoa_Sketch2Life_SRS_v3.1_Diagrams.drawio`, `../src/diagrams/logical-erd.mmd`, `../src/diagrams/system-architecture-v2.mmd`, source README and necessary textual FEAT-048 records. Generated images, builders/renderers, separate icon SVGs, duplicate wrapper and raw Drive files are excluded.
+- GitHub publication: complete in commits `2432fd0e` and `197048d7` on `feature/feat048-srs-diagram-pack`. Published the editable artifact, two `.mmd` files, source README/drawing rules, text-only icon provenance and necessary textual FEAT-048 records. Generated images, builders/renderers, separate icon SVGs, duplicate wrapper and raw Drive files are excluded.
 - Same-ID Drive update was rejected by automatic approval review. The remote file remains at the fresh 153,149-byte baseline; no repaired remote readback exists.
 
 ## Latest review — ERD recheck (2026-10-23)

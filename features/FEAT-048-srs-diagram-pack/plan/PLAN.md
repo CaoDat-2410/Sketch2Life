@@ -10,7 +10,7 @@ Create a clear, editable Draw.io file and Mermaid source files for the three dia
 
 ## Planned increment — ERD repair and GitHub source curation (2026-10-23)
 
-- Status: IN_PROGRESS — local ERD repair/render and Mermaid sources are complete; curated GitHub publication is being prepared. Same-ID Drive replacement was rejected by automatic approval review and remains blocked pending explicit permission.
+- Status: IN_PROGRESS — local ERD repair/render and Mermaid sources are complete; curated GitHub publication passed in commits `2432fd0e` and `197048d7`. Same-ID Drive replacement was rejected by automatic approval review and remains blocked pending explicit permission.
 - Repair the current ERD page and `src/diagrams/logical-erd.mmd` against the latest review and canonical SRS v3.1 B7/B7.1/B21.5. Bind both connector halves to all six detached relationship diamonds; correct the three reversed endpoint counts; keep conditional CanvasDocument owner XOR, optional historical contributor reference, and unresolved 0..N document counts accurately qualified.
 - Reroute the verified protected, Class-attribute, and shared-canvas paths so they stay attached, avoid unrelated shapes, and remain distinguishable. Clarify that cardinality labels are endpoint counts and that `reviewed` denotes the sketch-review subset.
 - Preserve the 17 entities, 21 named relationships, 37 displayed attributes, other three Draw.io pages, owner tab order, and canonical SRS. The existing Drive file was checked immediately before the update; automatic approval review rejected replacing it, so leave Drive unchanged and record the blocker.
@@ -19,7 +19,7 @@ Create a clear, editable Draw.io file and Mermaid source files for the three dia
 - AC-46: PASS — shared-canvas, personal-canvas, and contributor counts are on the correct endpoints; owner-mode XOR and conditional ownership remain explicit; unconfirmed per-owner maxima remain proposed.
 - AC-47: PASS — verified crossing/merged paths use distinct orthogonal corridors; the final actual Draw.io render was visually reviewed.
 - AC-48: PASS — Mermaid retains the same 17/21/37 ERD overview, corrected counts and qualifications, and renders successfully; the architecture source remains 14/19 and also renders.
-- AC-49: IN_PROGRESS — publish only the editable `.drawio`, two current `.mmd` sources, and necessary textual FEAT-048 records; exclude renders, builder/renderer scripts, temporary/raw Drive copies, separate icon SVGs, the duplicate wrapper, and unrelated worktree files.
+- AC-49: PASS — published the editable `.drawio`, two current `.mmd` sources, source README/drawing rules, text-only icon provenance, and necessary FEAT-048 records in commits `2432fd0e` and `197048d7`. Render images, builder/renderer scripts, temporary/raw Drive copies, standalone icon SVGs, duplicate wrapper, and unrelated worktree files were excluded.
 - AC-50: BLOCKED — replace the existing Drive file only after explicit permission is granted for this payload and destination; verify the same-ID raw readback without changing its parent or owner-saved tabs.
 
 ## Previous review — ERD recheck (2026-10-23)

@@ -1,6 +1,6 @@
 # FEAT-048 status
 
-- Status: IN_PROGRESS — local ERD repair and both Mermaid sources are complete; curated GitHub publication is pending; Drive replacement is blocked by automatic approval review pending explicit permission.
+- Status: IN_PROGRESS — local ERD repair, both Mermaid sources and curated GitHub publication are complete; Drive replacement is blocked by automatic approval review pending explicit permission.
 - Branch: feature/feat048-srs-diagram-pack. Current checkout is the repository root; separate FEAT-018 worktree is untouched.
 - Current plan: 23 / approval 24 — all six ERD bindings, three endpoint counts and verified routes are repaired locally; actual Draw.io and Mermaid renders pass. Evidence: evidence/notes/ERD_REPAIR_20261023.md and evidence/metrics/ERD_REPAIR_VALIDATION_20261023.json.
 - Draw.io tabs retain the owner order: ERD, System Architecture, System Architecture v2, Package Diagram. All three non-ERD page fingerprints match the fresh pre-update baseline.
@@ -11,5 +11,5 @@
 - ERD remains a proposed logical overview, not a physical schema. Mermaid sources render at ERD 17/21/37 and Architecture 14/19; `reviewerRef` remains an attribute to AdultAccount.
 - Local artifact: 153,869 bytes, SHA-256 `ede63ac3f48db3b072be46e4d5017270988fd218fdc37b41b560538bb868ff43`. Drive still contains the pre-repair 153,149-byte baseline because automatic approval review rejected the upload; no repaired Drive readback exists.
 - Canonical SRS/runtime/schema unchanged. Candidate infrastructure, proposed realtime/worker, adult-only Firebase Auth and provider/payload/deployment TBD remain explicit. Branding does not select new services.
-- GitHub source selection: editable `.drawio`, `logical-erd.mmd`, `system-architecture-v2.mmd`, source README and necessary textual FEAT-048 records. Exclude rendered images, build/renderer scripts, separate icon SVGs, duplicate wrapper, temporary/raw Drive files and unrelated worktree content.
-- No SRS/runtime/schema edit, merge, or deployment. Push will include only the curated source/record set after repository pre-publish checks. Last updated 2026-10-23, Asia/Bangkok.
+- GitHub publication: complete on `feature/feat048-srs-diagram-pack`, commits `2432fd0e` and `197048d7`. Published editable `.drawio`, both `.mmd` files, source README/drawing rules, text-only icon provenance and FEAT-048 records. Rendered images, build/renderer scripts, standalone icon SVGs, duplicate wrapper, temporary/raw Drive files and unrelated worktree content were excluded.
+- No SRS/runtime/schema edit, merge, or deployment. Last updated 2026-10-23, Asia/Bangkok.
