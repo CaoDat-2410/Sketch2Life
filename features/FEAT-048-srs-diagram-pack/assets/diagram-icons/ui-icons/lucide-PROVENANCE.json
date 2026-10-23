@@ -1,0 +1,50 @@
+{
+  "source": "preserved Lucide v1.61.0 assets at repository commit d3b0f8fe",
+  "usage": "local architecture style preview; source assets unmodified; SVG rendering applies a uniform stroke color",
+  "files": [
+    {
+      "name": "smartphone.svg",
+      "sha256": "c0b5a779ea4d8fc5eb0062671690270cd7b547ff67d5b27c1487ecd08712a067"
+    },
+    {
+      "name": "monitor.svg",
+      "sha256": "0d77be3ea68ffd82ada70d752f7986194a49ed5137d4f9fd7ae74c2e8d680e5b"
+    },
+    {
+      "name": "server.svg",
+      "sha256": "91feaa119e863973e4be3a2beab09e7b21944bbe508d12b5268d903b757177f8"
+    },
+    {
+      "name": "cpu.svg",
+      "sha256": "5eb864994312ce7600b63080fc2117c9a04a9b74a8d4aa233f75d83c4bd2ab8a"
+    },
+    {
+      "name": "database.svg",
+      "sha256": "8f4cfe4259518e162d0bc3fbd817178fb0c455f45b3159789845ca925a119710"
+    },
+    {
+      "name": "hard-drive.svg",
+      "sha256": "86c8c22e2e65cb913348935228c857de676f658cae3eb9acda7b79de53168bc6"
+    },
+    {
+      "name": "list-ordered.svg",
+      "sha256": "173f07d6c5e9911cf4f56c02f6404e02b6548469398507eae09c3f96bb084b14"
+    },
+    {
+      "name": "shield-check.svg",
+      "sha256": "999d49aefa7f0cab77de2853e167feb3d6b6424b4bd30a3090513c71813fd7fe"
+    },
+    {
+      "name": "sparkles.svg",
+      "sha256": "5ff7dc6557dbe5068a18feb080df81e090eb0a495fa1a05e3abd8179ba53c52d"
+    },
+    {
+      "name": "LICENSES.txt",
+      "sha256": "b2333fdf1f4f4209ed4c831c0493d93d3fce56638ebdd7a473e35f7f182e1281"
+    },
+    {
+      "name": "NOTICE.md",
+      "sha256": "83b47549418961b0cf2a31eae13f1e5192bc240de35b2a4eafbc8642b25cd00a"
+    }
+  ]
+}

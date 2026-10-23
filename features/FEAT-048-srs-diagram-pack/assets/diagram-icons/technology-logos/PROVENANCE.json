@@ -1,0 +1,44 @@
+{
+  "usage": "Local technical architecture preview; brand originals preserved unmodified; no endorsement implied",
+  "assets": [
+    {
+      "file": "react-native.svg",
+      "source": "https://reactnative.dev/img/header_logo.svg",
+      "resolved_url": "https://reactnative.dev/img/header_logo.svg",
+      "content_type": "image/svg+xml",
+      "bytes": 771,
+      "sha256": "69c5c70c9e616159b8a56a451881df40bf54eb93a258843ba62c5dff90c70817"
+    },
+    {
+      "file": "fastapi.png",
+      "source": "https://fastapi.tiangolo.com/img/logo-margin/logo-teal.png",
+      "resolved_url": "https://fastapi.tiangolo.com/img/logo-margin/logo-teal.png",
+      "content_type": "image/png",
+      "bytes": 19843,
+      "sha256": "2b354050dac18de6eb4b3b0411390b4deaf7787f47800698619e61fafae18293"
+    },
+    {
+      "file": "postgresql.png",
+      "source": "https://www.postgresql.org/media/img/about/press/elephant.png",
+      "resolved_url": "https://www.postgresql.org/media/img/about/press/elephant.png",
+      "content_type": "image/png",
+      "bytes": 50279,
+      "sha256": "ff92fb5d12a7fa6b23c2eb403d2edf4fbc58ced802021e1f02c3583cb70957be"
+    },
+    {
+      "file": "firebase.svg",
+      "source": "https://firebase.google.com/static/downloads/brand-guidelines/firebase-brand-assets.zip",
+      "archive_member": "firebase-brand-assets/Firebase Logo & Product Icons  2/Firebase Logo/Primary Logomark/SVG/Logomark_Full Color.svg",
+      "archive_sha256": "ac17065f4790742b247743e7fa1d019afbb1e1da6d9950fc73cd40e9cbbb1235",
+      "bytes": 1367,
+      "sha256": "120799f51cff880e87bdc5c3954f1938ecc4cd401bec3fe188e1e22db641c556"
+    },
+    {
+      "file": "redis.svg",
+      "source": "https://redis.io/",
+      "extraction": "Unmodified inline SVG of official navigation anchor aria-label=Redis",
+      "bytes": 2486,
+      "sha256": "f7a4f008a6df70f7b9bf92a4dbfd74c24d4f33f382a35e9aaa9b3144e73963cb"
+    }
+  ]
+}

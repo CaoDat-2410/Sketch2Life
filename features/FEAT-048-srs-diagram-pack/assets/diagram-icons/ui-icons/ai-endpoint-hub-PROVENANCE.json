@@ -1,0 +1,9 @@
+{
+  "file": "originals/ai-endpoint-hub.svg",
+  "source": "Locally authored in response to Khoa's request on 2026-10-24",
+  "sha256": "bcf14c378f62a462901112eb543638ece09a5b142dfa75563a5423a9c2a5686d",
+  "meaning": "Generic connected model/API endpoints",
+  "brand": false,
+  "not_an_implication_of": ["selected AI provider", "cloud hosting", "specific model vendor"],
+  "usage": "AI model endpoints group header in the local architecture preview"
+}
