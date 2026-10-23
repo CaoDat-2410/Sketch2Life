@@ -1,12 +1,22 @@
 # Feature plan — SRS v3.1 diagram pack
 
 - Status: IN_PROGRESS
-- Plan revision: 23
+- Plan revision: 25
 - Implementation status: IN_PROGRESS
 
 ## Goal
 
 Create a clear, editable Draw.io file and Mermaid source files for the three diagrams assigned to Khoa, grounded in canonical SRS v3.1.
+
+## Current increment — final ERD audit and visual refinement (2026-10-23)
+
+- Status: IN_PROGRESS — ERD and Mermaid audit/refinement PASS locally; only curated branch publication remains.
+- Plan revision: 25; approval revision 25.
+- AC-51: PASS — compared all 16 B7.1 relationships plus five selected B21.5 links, current endpoint counts, and displayed fields. No additional relationship/cardinality defect was found; Enrollment, GroupMembership key, per-owner CanvasDocument count, historical attribution, and DATA-24 review target scope remain explicitly unresolved/proposed. The audit is recorded in `evidence/notes/ERD_FINAL_AUDIT_AND_LAYOUT_20261023.md`.
+- AC-52: PASS — preserved 17 entities/21 relations/37 selected attributes and added the explicit selected-fields/logical-overview caveat without changing the SRS or implying a physical schema.
+- AC-53: PASS — refined the ConsentRecord/PortfolioEntry spacing, protected route, right margin, and caveat hierarchy; retained conventional Chen notation, white canvas, and restrained colors. The final actual render has no overlapping attributes.
+- AC-54: PASS — the final 3372×1987 diagrams.net render has no failed images, page errors, blocked requests, dangling references, or out-of-bounds vertices; all 21 relationship diamonds have degree two. Mermaid 12.2.0 renders 17/21/37 with no errors. The three other Draw.io pages are byte-equivalent after XML canonicalization.
+- AC-55: IN_PROGRESS — update FEAT-048 evidence/status and publish only the editable `.drawio`, changed `.mmd` source, and text records to the approved FEAT-048 branch; exclude generated images, icon SVGs, and render/build scripts.
 
 ## Planned increment — ERD repair and GitHub source curation (2026-10-23)
 

@@ -1,5 +1,13 @@
 # Evidence index
 
+## Latest increment — final ERD audit and layout refinement (2026-10-23)
+
+- `notes/ERD_FINAL_AUDIT_AND_LAYOUT_20261023.md`: final SRS audit, remaining logical-model caveats, visual corrections, render review, and source hashes.
+- `metrics/ERD_FINAL_REFINEMENT_VALIDATION_20261023.json`: SRS scope counts, Draw.io/Mermaid render results, endpoint/page-bound checks, preserved page fingerprints, and local-only evidence policy.
+- `screenshots/erd_final_refinement_20261023_r2.png` with matching SVG/render metadata: final 3372×1987 diagrams.net ERD render; local evidence only, excluded from GitHub.
+- `rendered/logical_erd_final_refinement_20261023.*`: latest Mermaid 12.2.0 render of `logical-erd.mmd`, 17/21/37; local evidence only, excluded from GitHub.
+- Final layout keeps ConsentRecord and PortfolioEntry keys separate, routes `protected` through its own corridor, adds the selected-fields caveat, and retains the open SRS decisions.
+
 ## Latest increment — ERD repair and published GitHub sources (2026-10-23)
 
 - `notes/ERD_REPAIR_20261023.md`: corrected bindings/cardinalities/routes, SRS qualifications, actual render review, exact GitHub source allowlist, publication commits, and the blocked Drive update.

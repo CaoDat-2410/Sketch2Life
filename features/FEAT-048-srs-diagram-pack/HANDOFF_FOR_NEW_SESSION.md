@@ -1,10 +1,11 @@
 # Bàn giao FEAT-048 cho phiên Codex trên máy khác
 
-## Trạng thái hiện tại — ERD đã sửa và source đã publish, 2026-10-23
+## Trạng thái hiện tại — ERD đã rà soát và vẽ lại, 2026-10-23
 
-- Plan 23 / approval 24: local ERD repair PASS. Đã gắn lại 12 đầu nối cho 6 relationship diamonds; sửa ba nhóm endpoint cardinality; reroute protected, Class attributes, shared/personal canvas và owns để không che shape/nhập đường. Giữ group XOR participant owner và `0..N` canvas mỗi owner ở trạng thái proposed.
-- Draw.io hiện có 4 tab theo thứ tự owner: ERD / System Architecture / System Architecture v2 / Package Diagram. Bản local 153,869 bytes, SHA-256 `ede63ac3f48db3b072be46e4d5017270988fd218fdc37b41b560538bb868ff43`. Ba tab ngoài ERD khớp fingerprint baseline mới đọc.
-- Mermaid mới nhất: `src/diagrams/logical-erd.mmd` (17/21/37) và `src/diagrams/system-architecture-v2.mmd` (14/19); cả hai render Mermaid 12.2.0 thành công. Đã publish artifact `.drawio`, hai `.mmd`, README/quy tắc vẽ, manifest/NOTICE dạng text và hồ sơ FEAT-048 trong commits `2432fd0e`, `197048d7` trên nhánh `feature/feat048-srs-diagram-pack`. PNG/SVG render, script tạo/render, SVG icon rời, wrapper trùng và file baseline/readback Drive không được đưa lên.
+- Plan 25 / approval 25: rà lại B7.1/B21.5 không thấy relationship/cardinality lỗi mới. Draw.io giữ 17 entity/21 relationship/37 thuộc tính được chọn; đã ghi rõ không phải full schema, chuyển ConsentRecord khỏi `id` của PortfolioEntry và route `protected` qua khoảng riêng. Render cuối không có shape chồng, cạnh treo hay vertex vượt trang; Mermaid 12.2.0 render 17/21/37.
+- Draw.io hiện có 4 tab theo thứ tự owner: ERD / System Architecture / System Architecture v2 / Package Diagram. Bản local 154,082 bytes, SHA-256 `b5b33a5f55ccdf88971f686e7d572537f6268620e23dd042238447b2562aa040`. Ba tab ngoài ERD giữ nguyên.
+- Render screenshot local: `evidence/screenshots/erd_final_refinement_20261023_r2.png` (3372×1987); metadata, ảnh, SVG và helper không đưa lên GitHub. Metrics/chi tiết audit: `evidence/notes/ERD_FINAL_AUDIT_AND_LAYOUT_20261023.md`, `evidence/metrics/ERD_FINAL_REFINEMENT_VALIDATION_20261023.json`.
+- Mermaid chuẩn: `src/diagrams/logical-erd.mmd` (17/21/37) và `src/diagrams/system-architecture-v2.mmd` (14/19). Branch hiện có các commit `2432fd0e`, `197048d7`, `632a9b4c`; cập nhật ERD hiện tại sẽ được publish riêng trên `feature/feat048-srs-diagram-pack`. PNG/SVG render, script tạo/render, SVG icon rời, wrapper trùng và file baseline/readback Drive không được đưa lên.
 - Same-ID Drive update bị automatic approval review từ chối; Drive vẫn ở bản cũ 153,149 bytes, modified `2026-10-23T05:11:21.479Z`. Không thử đường upload khác; cần owner xác nhận rõ trước lần thay file Drive tiếp theo. Xem `evidence/notes/ERD_REPAIR_20261023.md` và `evidence/metrics/ERD_REPAIR_VALIDATION_20261023.json`.
 - Các mục dưới tiêu đề “lịch sử” ghi trạng thái tại thời điểm đó; nếu khác phần này thì dùng phần hiện tại.
 

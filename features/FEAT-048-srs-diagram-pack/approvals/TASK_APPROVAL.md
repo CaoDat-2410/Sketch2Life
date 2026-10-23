@@ -1,5 +1,14 @@
 # Task approval
 
+## Approval — final ERD audit and visual refinement (revision 25)
+
+- Status: APPROVED.
+- Approver: Project owner / Khoa, direct request on 2026-10-23: “Sau đó check ERD còn sửa gì lại và vẽ đẹp lại như nào ?”
+- Approved scope: audit the current ERD against canonical SRS v3.1 B7.1/B21.5 and refine its Draw.io layout and visual hierarchy. Correct only evidence-backed ERD issues; preserve the 17-entity/21-relationship logical scope, conventional Chen notation, approved meaning, Mermaid parity, and all non-ERD pages. Make clear that displayed attributes are selected fields, not complete schemas.
+- Plan revision: 24.
+- Approval evidence: the owner's direct request to recheck residual ERD changes and improve its presentation.
+- Limits: no canonical SRS, runtime/schema, Drive, or unrelated feature changes; do not change unresolved semantics by assumption; preserve other Draw.io pages; do not publish generated render images or helper scripts.
+
 ## Approval — ERD repair and curated GitHub publication (revision 24)
 
 - Status: APPROVED

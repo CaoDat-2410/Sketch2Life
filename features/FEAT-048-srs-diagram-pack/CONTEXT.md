@@ -1,6 +1,6 @@
 # FEAT-048 context — SRS v3.1 diagram pack
 
-- Status: IN_PROGRESS — local ERD repair, Mermaid synchronization, and curated GitHub publication complete (plan 23 / approval 24; commits `2432fd0e`, `197048d7`); Drive replacement is blocked by automatic approval review pending explicit permission.
+- Status: IN_PROGRESS — plan 25 / approval 25 final ERD audit and layout refinement PASS locally; publish the approved source/record allowlist to the existing FEAT-048 branch. Drive replacement remains blocked by automatic approval review.
 - Owner: Khoa / project owner
 - Goal: create an editable Draw.io file and diagram-as-code counterparts for Khoa's assigned ERD, System Architecture, and Package diagrams from the current canonical SRS.
 - Scope: one `.drawio` file with three assigned pages plus a separately named architecture comparison page, and Mermaid sources under `src/diagrams/`; the curated sources are published on the FEAT-048 branch. Intended Drive destination for the Draw.io file is the folder supplied by the user (ID `18K0jfiBfl1nfG3-9HvfQXzVMoQcjTZF0`).
@@ -9,6 +9,10 @@
 - Risks: B7/B21 data model and B8 bounded contexts/contracts are labeled `PROPOSED`; the diagrams must retain those labels and not present them as adopted implementation.
 
 ## Context snapshot
+
+### Final ERD audit and layout refinement — 2026-10-23
+
+Fresh B7.1/B21.5 audit found no additional relationship/cardinality mismatch. Final Draw.io and Mermaid sources retain 17 entities, 21 named relationships, and 37 selected attributes. Added an explicit selected-fields/logical-overview caveat; moved ConsentRecord to a clear top-right lane so its `id` no longer overlaps PortfolioEntry's `id`; routed `protected` below PortfolioEntry and added right-edge margin. The final official viewer render passes: every relationship diamond has exactly two endpoints, no dangling references/out-of-bounds vertices, no page/render errors or blocked requests; Mermaid 12.2.0 renders 17/21/37. The three non-ERD tabs are unchanged. Current artifact SHA-256: `b5b33a5f55ccdf88971f686e7d572537f6268620e23dd042238447b2562aa040`. Evidence: `evidence/notes/ERD_FINAL_AUDIT_AND_LAYOUT_20261023.md`, `evidence/metrics/ERD_FINAL_REFINEMENT_VALIDATION_20261023.json`, and the local-only screenshot `evidence/screenshots/erd_final_refinement_20261023_r2.png`.
 
 ### ERD repair and source curation — 2026-10-23
 
