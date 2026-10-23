@@ -2,6 +2,11 @@
 config:
   theme: base
   look: classic
+  flowchart:
+    nodeSpacing: 60
+    rankSpacing: 90
+    curve: linear
+    wrappingWidth: 340
   themeVariables:
     primaryColor: '#ffffff'
     primaryTextColor: '#263238'
@@ -12,11 +17,12 @@ config:
     edgeLabelBackground: '#ffffff'
 ---
 %% Sketch2Life SRS v3.1 — Package Diagram, logical dependency view.
-%% Source: canonical Master SRS B3/B8/B19.3; repo architecture layer/contract rules.
+%% SRS source: ../../../FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md ; B3/B8/B19.3, plus repository architecture layer/contract rules.
 %% Source register: collaborative-srs-v3-20261010. This is proposed logical decomposition, not a runtime/import/deployment inventory.
-%% Draw.io: ../../artifacts/Khoa_Sketch2Life_SRS_v3.1_Diagrams.drawio; tab Package Diagram.
-%% Draw.io artifact SHA-256: 9a6aa50da8121032aa6a71e6d170c45ac919ef8387873493e610c03a42ce3597; page SHA-256: 660a398587bdd642ef93b54ad6af4dd82a547919515cdfdf9b0bac528f6ca7c1.
-%% Six packages; seven principal dependency signatures. Subgraphs and flowchart arrow glyphs stand in for native UML folders/open dependencies.
+%% Draw.io: https://drive.google.com/file/d/1j-_R792jh-I1nC5B7FHwGDm3-yixPB6x/view ; tab Package Diagram.
+%% Draw.io artifact SHA-256: 371a32346bfafcdb1298bf3eae4637b6fb349e1cfc70f88ef7ad5d6a0314c6eb; exact Drive readback verified 2026-10-23.
+%% Package page XML SHA-256: 76bf4637653015e45d4c4d9ac014c0053fcaca09d4c1df91044c16d10192f520 (exact UTF-8 <diagram>...</diagram> fragment, excluding surrounding whitespace).
+%% Six packages; seven principal dependency signatures. Labeled package rectangles and flowchart arrow glyphs stand in for native UML folders/open dependencies.
 %% Every dashed open arrow is package dependence, not REST/WS traffic. No package-to-package realization is implied.
 %% Presentation relies on versioned public API contracts; this does not require shared compiled client/backend code.
 %% Domain has no dependency on UI, frameworks, providers, storage or contracts. Application owns its six port interfaces.
@@ -26,29 +32,17 @@ config:
 %% Runtime protocols, separate worker process and provider/candidate choices remain in System Architecture v2.
 
 flowchart LR
-    subgraph PRESENTATION["«package» Presentation"]
-        PRESENTATION_MEMBERS["Child Android · React Native / TypeScript<br/>Teacher Desktop · UI framework TBD<br/>Super Admin · UI framework TBD"]
-    end
+    PRESENTATION["<b>«package» Presentation</b><br/><br/>Child Android · React Native / TypeScript<br/>Teacher Desktop · UI framework TBD<br/>Super Admin · UI framework TBD"]
 
-    subgraph INBOUND["«package» Inbound Adapters"]
-        INBOUND_MEMBERS["HTTP entry points · FastAPI / Python<br/>Realtime entry points · proposed"]
-    end
+    INBOUND["<b>«package» Inbound Adapters</b><br/><br/>HTTP entry points · FastAPI / Python<br/>Realtime entry points · proposed"]
 
-    subgraph APPLICATION["«package» Application"]
-        APPLICATION_MEMBERS["Use cases · authorization / consent<br/>Scope / version checks<br/>Owned ports: Repository / Artifact / Job<br/>Identity / Model / Realtime"]
-    end
+    APPLICATION["<b>«package» Application</b><br/><br/>Use cases · authorization / consent<br/>Scope / version checks<br/>Owned ports: Repository / Artifact / Job<br/>Identity / Model / Realtime"]
 
-    subgraph DOMAIN["«package» Domain"]
-        DOMAIN_MEMBERS["B8 contexts · proposed<br/>Identity / Consent<br/>Classroom<br/>Session / Groups<br/>Drawing / Collaboration<br/>AI Assistance<br/>Knowledge / Media<br/>Activities<br/>Portfolio / Assessment<br/>Governance / Audit"]
-    end
+    DOMAIN["<b>«package» Domain</b><br/><br/>B8 contexts · proposed<br/>Identity / Consent<br/>Classroom<br/>Session / Groups<br/>Drawing / Collaboration<br/>AI Assistance<br/>Knowledge / Media<br/>Activities<br/>Portfolio / Assessment<br/>Governance / Audit"]
 
-    subgraph CONTRACTS["«package» Versioned Contracts"]
-        CONTRACTS_MEMBERS["Request / response DTOs<br/>Commands and queries<br/>Events and typed results<br/>Versioned boundary schemas"]
-    end
+    CONTRACTS["<b>«package» Versioned Contracts</b><br/><br/>Request / response DTOs<br/>Commands and queries<br/>Events and typed results<br/>Versioned boundary schemas"]
 
-    subgraph INFRASTRUCTURE["«package» Infrastructure Adapters"]
-        INFRASTRUCTURE_MEMBERS["Repository / Artifact / Job adapters<br/>Identity / Model / Realtime adapters<br/>Implements Application-owned ports<br/>Maps external results to contracts<br/>Implementations proposed"]
-    end
+    INFRASTRUCTURE["<b>«package» Infrastructure Adapters</b><br/><br/>Repository / Artifact / Job adapters<br/>Identity / Model / Realtime adapters<br/>Implements Application-owned ports<br/>Maps external results to contracts<br/>Implementations proposed"]
 
     PRESENTATION -.->|uses public API contracts| CONTRACTS
     INBOUND -.->|dispatches use cases| APPLICATION
@@ -58,8 +52,6 @@ flowchart LR
     INFRASTRUCTURE -.->|depends on port interfaces| APPLICATION
     INFRASTRUCTURE -.->|maps typed results| CONTRACTS
 
-    classDef members fill:#ffffff,stroke:none,color:#263238,font-size:17px;
-    class PRESENTATION_MEMBERS,INBOUND_MEMBERS,APPLICATION_MEMBERS,DOMAIN_MEMBERS,CONTRACTS_MEMBERS,INFRASTRUCTURE_MEMBERS members;
     style PRESENTATION fill:#ffffff,stroke:#52616b,stroke-width:1.5px,color:#263238;
     style INBOUND fill:#ffffff,stroke:#52616b,stroke-width:1.5px,color:#263238;
     style APPLICATION fill:#ffffff,stroke:#52616b,stroke-width:1.5px,color:#263238;

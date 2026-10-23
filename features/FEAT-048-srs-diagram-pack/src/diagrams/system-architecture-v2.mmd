@@ -4,10 +4,11 @@
 %% Draw.io uses AWS General/Category role symbols for Teacher/Admin clients, Worker, Application, Domain/Ports,
 %% Adapters, object storage and the unselected AI capability; these marks do not select AWS services.
 %% This portable Mermaid source uses text labels; it needs no remote images, custom icon pack or plugin.
-%% Source: SRS B3/B8 and repository rules; visual source/artwork provenance is recorded in FEAT-048 evidence.
-%% Current Draw.io artifact: Drive ID 1j-_R792jh-I1nC5B7FHwGDm3-yixPB6x; SHA-256 9a6aa50da8121032aa6a71e6d170c45ac919ef8387873493e610c03a42ce3597; tab System Architecture; read back 2026-10-23.
-%% Detailed caveats: ../../evidence/notes/SYSTEM_ARCHITECTURE_V2_CLEAN_REVIEW_20261023.md.
-%% Fourteen components, six aligned port/adapter mappings, nineteen directed flows.
+%% SRS source: ../../../FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md ; B3/B8, plus repository architecture rules.
+%% Draw.io: https://drive.google.com/file/d/1j-_R792jh-I1nC5B7FHwGDm3-yixPB6x/view ; tab System Architecture.
+%% Current Draw.io artifact SHA-256: 371a32346bfafcdb1298bf3eae4637b6fb349e1cfc70f88ef7ad5d6a0314c6eb; exact Drive readback verified 2026-10-23.
+%% Provider/deployment choices remain candidate/proposed/TBD as labeled; all required caveats are self-contained in this source.
+%% Fourteen components, six aligned port/adapter mappings, nineteen connectors (four bidirectional).
 
 flowchart LR
     subgraph CLIENTS["Clients"]
