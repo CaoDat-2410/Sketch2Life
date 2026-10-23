@@ -1,22 +1,103 @@
 # Feature plan — SRS v3.1 diagram pack
 
 - Status: IN_PROGRESS
-- Plan revision: 16
+- Plan revision: 23
 - Implementation status: IN_PROGRESS
 
 ## Goal
 
 Create a clear, editable Draw.io file and Mermaid source files for the three diagrams assigned to Khoa, grounded in canonical SRS v3.1.
 
+## Planned increment — ERD repair and GitHub source curation (2026-10-23)
+
+- Status: IN_PROGRESS — local ERD repair/render and Mermaid sources are complete; curated GitHub publication is being prepared. Same-ID Drive replacement was rejected by automatic approval review and remains blocked pending explicit permission.
+- Repair the current ERD page and `src/diagrams/logical-erd.mmd` against the latest review and canonical SRS v3.1 B7/B7.1/B21.5. Bind both connector halves to all six detached relationship diamonds; correct the three reversed endpoint counts; keep conditional CanvasDocument owner XOR, optional historical contributor reference, and unresolved 0..N document counts accurately qualified.
+- Reroute the verified protected, Class-attribute, and shared-canvas paths so they stay attached, avoid unrelated shapes, and remain distinguishable. Clarify that cardinality labels are endpoint counts and that `reviewed` denotes the sketch-review subset.
+- Preserve the 17 entities, 21 named relationships, 37 displayed attributes, other three Draw.io pages, owner tab order, and canonical SRS. The existing Drive file was checked immediately before the update; automatic approval review rejected replacing it, so leave Drive unchanged and record the blocker.
+- GitHub deliverable shortlist: editable `.drawio` artifact plus the two requested `.mmd` sources (`logical-erd.mmd` and `system-architecture-v2.mmd`) and the necessary feature plan/approval/review/status records. Exclude rendered PNG/SVG outputs, renderer/build scripts, temporary inputs, and Drive baseline/readback copies from publication. Do not stage unrelated files or publish images.
+- AC-45: PASS — all 21 relationship diamonds have exactly two bound connector edges whose source/target entities and relationship IDs are correct; no dangling or floating endpoints remain.
+- AC-46: PASS — shared-canvas, personal-canvas, and contributor counts are on the correct endpoints; owner-mode XOR and conditional ownership remain explicit; unconfirmed per-owner maxima remain proposed.
+- AC-47: PASS — verified crossing/merged paths use distinct orthogonal corridors; the final actual Draw.io render was visually reviewed.
+- AC-48: PASS — Mermaid retains the same 17/21/37 ERD overview, corrected counts and qualifications, and renders successfully; the architecture source remains 14/19 and also renders.
+- AC-49: IN_PROGRESS — publish only the editable `.drawio`, two current `.mmd` sources, and necessary textual FEAT-048 records; exclude renders, builder/renderer scripts, temporary/raw Drive copies, separate icon SVGs, the duplicate wrapper, and unrelated worktree files.
+- AC-50: BLOCKED — replace the existing Drive file only after explicit permission is granted for this payload and destination; verify the same-ID raw readback without changing its parent or owner-saved tabs.
+
+## Previous review — ERD recheck (2026-10-23)
+
+- Status: COMPLETE — fresh Drive/actual render/XML/Mermaid/SRS recheck recorded; ERD NOT_READY for bindings/cardinality and route ambiguity. No diagram/source/Drive changes; approval revision 23.
+- Fetch the latest Drive artifact and compare its ERD with the current Mermaid and canonical SRS B7/B7.1/B21.5. Review entity scope, displayed attributes/keys, relation endpoints, cardinality, ownership/attribution constraints and known pending findings.
+- Inspect an actual official-viewer ERD render and current Mermaid parser/render evidence. Distinguish syntax/export acceptance from domain/model correctness, and distinguish a logical overview from a physical database schema.
+- AC-43: findings identify exact affected relationships/cells/source lines, SRS support, practical meaning and an appropriate correction or unresolved assumption. Confirm previously fixed parser/representation issues separately from remaining ERD defects.
+- AC-44: feature-local review/metrics/current status record the fresh baseline and conclusions; Draw.io/Mermaid/SRS/runtime/schema and Drive bytes remain unchanged in this review.
+
+## Previous increment — technology logos and two Mermaid sources (2026-10-23)
+
+- Status: COMPLETE — five official technology logos verified/rendered, both Mermaid sources and combined wrapper delivered, independent review PASS, same-ID Drive readback byte-identical; approval revision 22. ERD model issues remain a separate open scope.
+- Replace five named-technology icons on System Architecture v2 with unmodified official FastAPI, Firebase, React Native, PostgreSQL and Redis artwork. Retain AWS General/Category symbols for logical roles and undecided storage/AI capabilities, all existing component text/statuses, geometry and 19 flows.
+- Record exact official asset URLs, hashes, source revision where available, usage terms and icon mapping. Preserve original artwork/aspect ratio and keep embedded images offline.
+- Read the latest owner-saved Drive artifact, preserve ERD/original Architecture/Package tabs and tab order, change only v2 icon cells, render/review and update the same Drive ID with raw-byte readback.
+- Produce two usable, portable Mermaid sources for the actual current ERD and System Architecture v2. Architecture retains 14 components and 19 directed/dashed flow semantics; record mixed icon mapping in comments without mandatory external icon packs.
+- ERD counterpart mirrors the 17 displayed entities, 21 named relations, shown overview attributes and reviewerRef attribute representation. Repair Mermaid syntax/quoting, not the Draw.io model: preserve and explicitly document the three known reversed cardinalities and detached-diamond source issues rather than silently changing the diagram being exported. Keep source-backed caveats in comments/evidence and preserve the previous source snapshot.
+- Provide a feature-local Markdown wrapper containing both Mermaid code blocks for convenient review/copy. Parse/render both actual final sources using the pinned available Mermaid runtime.
+- AC-40: five official technology logos replace their generic symbols; nine AWS icons remain; total 14 embedded images, all verified original SVG bytes and no broken images in the actual render.
+- AC-41: all non-icon v2 cells and 19 flow semantics, three protected pages and owner tab order match the fresh baseline; same-ID Drive readback equals the rendered artifact.
+- AC-42: ERD and architecture Mermaid parse/render successfully; entity/attribute/relation representation is traceable to the displayed diagrams; known ERD model errors are documented separately from parser success. Both sources and the combined code wrapper are delivered.
+- No runtime/schema/SRS edit, automatic ERD model repair, commit, push or merge in this increment.
+
+## Previous increment — simplify v2 presentation (2026-10-23)
+
+- Status: COMPLETE — clean v2 rendered, diagram/architecture reviews PASS, graph/icons/protected tabs verified and same-ID Drive raw readback is byte-identical; approval revision 21.
+- Remove explanatory note boxes, the large legend, redundant status repetition and provenance text from the v2 canvas. Retain source/usage/security/architecture explanations in feature records.
+- Redraw as a restrained engineering diagram: white background, thin neutral boundaries, short component labels, official unmodified AWS General/Category SVGs, clear orthogonal routes and balanced whitespace. Keep the expanded readable scale.
+- Preserve the 14 logical components, nine domain contexts, six port/adapter mappings and 19 flow/dependency directions. Retain concise explicit candidate/proposed/TBD qualifiers so simplification cannot freeze undecided technologies.
+- Start from the freshly fetched owner-saved Drive revision; preserve the other three pages. Render, inspect and review the final v2 using diagram-architect and senior-architect, then replace the same Drive file and verify raw readback.
+- AC-37: no standalone explanatory note boxes or large legend remain; the rendered page is readable with short labels, consistent styling, no clipped text and no routes crossing unrelated component interiors.
+- AC-38: graph endpoints/directions, official icon payloads and protected-page fingerprints remain correct against the fresh baseline; Mermaid remains semantically consistent and detailed caveats survive in evidence.
+- AC-39: actual rendered review and same-ID byte-identical Drive readback are recorded inside FEAT-048. This increment does not repair ERD, change the SRS/runtime/schema or authorize a commit/push.
+
+## Previous increment — expand v2 layout and review (2026-10-23)
+
+- Status: COMPLETE — expanded layout, actual render, diagram/architecture review and same-ID readback PASS; approval revision 20 records the owner's two direct instructions.
+- Expand only System Architecture v2 from its cramped 2400×1580 layout: provide wider inter-column gutters, taller integration rows/cards, larger text and separate connector corridors. Keep the editable canvas and official AWS General/Category artwork.
+- Preserve all 14 logical components, 19 relationships, statuses, source text semantics, and original three tab fingerprints; do not repair ERD or select technology in a spacing task.
+- After rendering, apply diagram-architect and senior-architect to review readability, endpoints, arrow direction, ports/adapters, realtime and async completion against SRS B3/B8. Record actual results, including unresolved limitations.
+- AC-34: v2 has materially larger clearances and readable labels without clipped/overlapping cards or hidden edges in the actual diagrams.net render.
+- AC-35: logical graph and image bytes remain unchanged; same-ID Drive readback matches the reviewed artifact and protected tabs match the freshly checked baseline.
+- AC-36: feature-local review note and screenshot record diagram/architecture validation after the spacing change.
+
+## Current review — ERD and architecture correctness (2026-10-23)
+
+- Status: review COMPLETE with actionable ERD findings; direct owner request recorded as approval revision 19. Feature remains IN_PROGRESS pending ERD repair.
+- Review the actual ERD and architecture pages with diagram-architect, database-architect and senior-architect against canonical SRS B3/B7/B7.1/B8/B21.5; do not rely on historical pass claims.
+- Render the actual ERD and current AWS v2 with the official diagrams.net viewer. Compare logical Mermaid cardinalities, endpoint attachment, labels and scope with the Draw.io pages.
+- Distinguish the unchanged Lucide Drive copy from the AWS redraw currently local. Verify official AWS asset identity and actual contrast before completing the already authorized same-ID v2 update.
+- Record specific findings and evidence, including unresolved ERD issues. Preserve ERD bytes during this review; no SRS/schema/runtime change or automatic ERD repair is included.
+- AC-33: review findings identify exact relation/component references and supporting SRS sections, with rendered evidence and current-vs-historical status.
+
+## Current increment — AWS icons on System Architecture v2 (2026-10-23)
+
+- Status: COMPLETE — official AWS sources, v2 redraw/render, Mermaid parity and same-ID Drive readback verified; direct owner instruction is recorded in approval revision 18.
+- Redraw only the existing `System Architecture v2` tab with official AWS Architecture Icons. This supersedes the earlier Lucide-only presentation choice for that tab; it does not select AWS hosting or AWS services.
+- Use source-backed general/resource icons with original colors and preserve their provenance. Do not map generic PostgreSQL, Redis/RQ, identity or AI capabilities to unselected RDS, SQS, Cognito or Bedrock services.
+- Keep about 14 main components: three client surfaces; API; application; grouped domain contexts; grouped outbound ports; aligned adapters; five external capability boundaries; a separate worker. Retain all nine B8 context names and six port/adapter mappings as readable detail.
+- Show WebSocket as a proposed client/backend transport via the backend realtime adapter, following SRS B3/B8. Keep runtime calls distinct from inward adapter-to-port dependencies and draw typed async completion back to Application for scope/version checks.
+- Preserve the original ERD, System Architecture and Package Diagram pages, including owner edits. Read the latest same-ID Drive file before replacing only v2; keep the supplied parent folder and sharing unchanged.
+- Update the v2 Mermaid counterpart, drawing rules, context, decisions, handoff/status and feature-local evidence. Only diagram-generation tooling may change; no application/runtime/schema/SRS changes, commits, pushes or merges are authorized by this increment.
+- AC-28: official AWS icon sources, package version, checksums, original names and mappings are recorded; embedded SVGs decode correctly and use no remote runtime assets.
+- AC-29: exactly four tabs remain; canonical fingerprints of the three protected tabs match the freshly read baseline; only v2 is redrawn.
+- AC-30: v2 has valid endpoints, readable status labels and routes; inspect an actual diagrams.net render when possible, otherwise distinguish a generated preview from official renderer QA.
+- AC-31: same-ID Drive update is verified by a fresh raw readback and unchanged parent folder; report an unavailable connector or materialization honestly.
+- AC-32: Mermaid and Draw.io agree on the grouped components, six port mappings, proposed realtime path and async result flow. Rendering and semantic checks are recorded separately.
+
 ## Scope
 
 - Page 1: conceptual Chen ERD for the 16 B7.1 core entities/relationships plus OrganizationScope and selected B21.5 references, with selected attributes and cardinalities.
 - Page 2: system architecture showing actors/clients, API, application/domain boundaries, ports/adapters, external providers, persistence and async/realtime candidates.
 - Page 3: UML-style package diagram showing bounded contexts and inward dependency direction.
-- Page 4 (comparison variant): System Architecture v2 using Draw.io-native architecture shapes and a visible drawing-rules legend; Page 2 remains the original architecture view.
+- Comparison tab: System Architecture v2 uses editable shapes and official AWS General/Category SVGs. Owner plan 20 removes the on-canvas legend/notes; full drawing rules and caveats remain in feature records. The original architecture tab remains preserved.
 - Provide semantic Mermaid source counterparts for all three pages under `src/diagrams/`: logical ERD, System Overview/Architecture, and Package Diagram. Keep the Draw.io artifact as the editable visual companion; the Mermaid files are the diagram-as-code sources in the repository.
 - Re-review all three diagrams against SRS v3.1 before finalizing the Mermaid sources. Retain the current ERD scope (B7.1 core plus selected B21.5 links), and do not expand to unassigned state-machine/activity diagrams in this increment.
-- Include a compact legend that distinguishes owner-confirmed facts from proposed/TBD design.
+- Distinguish confirmed facts from proposed/TBD design with concise component/flow labels. Plan 20 supersedes the earlier v2 legend requirement.
 - Save the source file in this feature's `artifacts/` directory and target the user's supplied Drive folder for upload when Drive write access is available.
 - Revision 2: respond to the owner's visual review by simplifying the page treatment and improving readability while preserving SRS meaning.
 - Revision 3: redraw the ERD in Chen notation to match the owner's reference image: entity rectangles, relationship diamonds, attribute ovals, and underlined primary keys. Leave the other two pages unchanged.

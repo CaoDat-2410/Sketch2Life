@@ -1,5 +1,67 @@
 # Task approval
 
+## Approval — ERD repair and curated GitHub publication (revision 24)
+
+- Status: APPROVED
+- Approver: Project owner / Khoa, direct instruction on 2026-10-23 (Asia/Bangkok).
+- Evidence: “Sửa cho tôi đi và sau đó lọc các file mã nguồn mermaid để đẩy lên github file ảnh đồ thì ko cần đẩy lên mấy file bạn dùng để khởi tạo cũng v”.
+- Plan revision: 23.
+- Scope: repair the six detached ERD relationships, three reversed endpoint cardinalities and verified connector-routing defects in the current Draw.io ERD; update the matching ERD Mermaid source and combined copyable source; verify by actual render and same-ID Drive raw readback while preserving all other tabs and the canonical SRS.
+- GitHub scope: publish the editable Draw.io artifact, the two requested Mermaid `.mmd` sources, and necessary textual feature records. Exclude rendered PNG/SVG files, diagram-building/renderer scripts, temporary inputs, raw Drive baselines/readbacks, and unrelated files. Use the previously approved FEAT-048 branch publication request; do not merge to `dev` or touch FEAT-018.
+- Limits: do not alter the canonical SRS, runtime/schema implementation, Drive file identity/folder, or unrelated owner edits. Keep group/personal CanvasDocument ownership exclusive and conditional on mode; preserve unresolved per-owner maxima as proposed and distinguish optional historical attribution from authorization for new child operations.
+
+## Approval — ERD recheck (revision 23)
+
+- Status: APPROVED
+- Approver: Project owner / Khoa, direct instruction on 2026-10-23 (Asia/Bangkok).
+- Evidence: "ERD check cho tôi đi".
+- Plan revision: 22.
+- Scope: read-only correctness/notation/structure review of current Draw.io ERD and Mermaid against the canonical SRS, actual rendering and feature-local evidence/status. No automatic model/cardinality/connector repair, Drive update, runtime/SRS/schema change, commit or push follows from a review request.
+
+## Approval — Official technology logos and two Mermaid sources (revision 22)
+
+- Status: APPROVED
+- Approver: Project owner / Khoa, direct instruction on 2026-10-23 (Asia/Bangkok).
+- Evidence: "Ok sửa cho tôi đi và sau đó tạo mã nguồn mermaid cho 2 diagram đã vẽ luôn", following the proposed official FastAPI/Firebase/React Native/PostgreSQL/Redis logos and AWS General logical-role mix.
+- Plan revision: 21.
+- Scope: apply that mixed icon mapping to the existing v2 tab, preserve its model/layout and other Draw.io tabs, generate usable faithful Mermaid counterparts for ERD and v2 with actual parser/render verification, record original artwork provenance and known source-model caveats, deliver both sources and update the same Drive file after readback. This does not authorize silent ERD schema/cardinality changes, runtime/SRS edits, commit, push or merge.
+
+## Approval — Simplify and redraw v2 presentation (revision 21)
+
+- Status: APPROVED
+- Approver: Project owner / Khoa, direct instruction on 2026-10-23 (Asia/Bangkok).
+- Evidence: "bỏ hết mấy cái note dư thừa đi và check lại xem có giống AI vẽ k vẽ lại cho giống người vẽ tí đi".
+- Plan revision: 20.
+- Scope: remove redundant on-canvas notes and redraw the existing System Architecture v2 in a restrained technical style; keep the approved AWS General/Category artwork, logical model and concise SRS decision qualifiers. Update feature-local source/evidence/records and the same Drive file after rendered review/readback. Preserve other pages and owner-saved edits; no runtime/SRS/ERD change, commit, push or merge.
+
+## Approval — Expand v2 layout and review (revision 20)
+
+- Status: APPROVED
+- Approver: Project owner / Khoa, direct instructions on 2026-10-23 (Asia/Bangkok).
+- Evidence: "Nới rộng ra đi nhìn chật hẹp quá" and "Và sau đó dùng các skill liên quan tới vẽ diagram và kiến trúc review lại cho tôi".
+- Plan revision: 19.
+- Scope: expand spacing/cards/connector corridors on the existing v2 tab, render and review using diagram/architecture skills, update the existing Drive artifact and feature records after readback. Preserve AWS General/Category choice, graph semantics and other tabs; no runtime/SRS/ERD change, commit, push or merge.
+
+## Approval — Re-review ERD and System Architecture (revision 19)
+
+- Status: APPROVED
+- Approver: Project owner / Khoa, direct instruction on 2026-10-23 (Asia/Bangkok).
+- Evidence: "Dùng skill sau đó phân tích lại 2 diagram đã vẽ bao gồm ERD và System architech xem đúng chưa vì cái system architech vẽ chưa đúng bộ icon của aws".
+- Plan revision: 18.
+- Scope: source-backed correctness review and render of actual ERD/System Architecture, explicit verification of AWS artwork, and feature-local evidence/status. Previously approved v2 AWS redraw remains authorized; no automatic ERD modification or technology selection follows from a review finding.
+- Icon-view confirmation: owner explicitly answered "AWS General/Category chính thức, giữ các công nghệ theo SRS (khuyến nghị)" to the preference question in this conversation. This confirms the General/Category view used in the final same-ID Drive update; it does not select AWS services.
+
+## Approval — AWS icon redraw of System Architecture v2 (revision 18)
+
+- Status: APPROVED
+- Approver: Project owner / Khoa, direct request in the current conversation.
+- Approval evidence: "theo chốt thì xài bộ icon của aws thì bạn check lại cho tôi và vẽ lại ở tab bản v2 đi".
+- Plan revision: 17.
+- Approved at: 2026-10-23 (Asia/Bangkok; exact request time unavailable).
+- Approved scope: verify the official AWS architecture icon set and redraw the existing System Architecture v2 tab; update its diagram generator, Mermaid counterpart, drawing conventions/provenance and feature records; preserve the other three tabs and existing Drive file ID/folder, with readback verification.
+- Interpretation: this authorizes AWS icon artwork for the logical diagram. It does not choose an AWS deployment, replace SRS candidate labels, or authorize service provisioning.
+- Limits: no application/runtime/schema/SRS changes, Drive sharing changes, unrelated feature edits, commit, push or merge. Earlier Lucide-only icon restrictions are superseded for this v2 presentation increment.
+
 - Status: APPROVED
 - Approver: Project owner / Khoa, direct request in this conversation
 - Approved scope: create the three assigned SRS v3.1 diagrams (ERD, System Architecture Diagram, Package Diagram) as an editable Draw.io file and use the supplied Drive folder as the destination.

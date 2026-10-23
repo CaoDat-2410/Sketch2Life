@@ -1,5 +1,66 @@
 # Evidence index
 
+## Latest increment — local ERD repair and curated GitHub sources (2026-10-23)
+
+- `notes/ERD_REPAIR_20261023.md`: corrected bindings/cardinalities/routes, SRS qualifications, actual render review, exact GitHub source allowlist, and the blocked Drive update.
+- `metrics/ERD_REPAIR_VALIDATION_20261023.json`: final Draw.io page hashes/counts/endpoints/routes, Mermaid source/render hashes, GitHub selection and Drive approval-review outcome.
+- `rendered/erd_repair_final_20261023.png` and `.svg` plus render metadata: actual 3401×1987 diagrams.net view; local review only, excluded from GitHub.
+- `rendered/logical_erd_mermaid_final_20261023.*` and `system_architecture_v2_mermaid_final_20261023.*`: Mermaid 12.2.0 source renders, local evidence only, excluded from GitHub.
+- GitHub selection: editable `../artifacts/Khoa_Sketch2Life_SRS_v3.1_Diagrams.drawio`, `../src/diagrams/logical-erd.mmd`, `../src/diagrams/system-architecture-v2.mmd`, source README and necessary textual FEAT-048 records. Generated images, builders/renderers, separate icon SVGs, duplicate wrapper and raw Drive files are excluded.
+- Same-ID Drive update was rejected by automatic approval review. The remote file remains at the fresh 153,149-byte baseline; no repaired remote readback exists.
+
+## Latest review — ERD recheck (2026-10-23)
+
+- `notes/ERD_RECHECK_20261023.md`: read-only SRS/structure/notation/actual-render findings, exact IDs/source lines, correct/proposed semantics and repair order.
+- `metrics/ERD_RECHECK_VALIDATION_20261023.json`: fresh baseline/hash, six detached diamonds/twelve missing targets, three reversed counts, scope/field/parser checks and routing findings.
+- `raw/DRIVE_BASELINE_ERD_RECHECK_20261023.drawio`: latest Drive bytes, unchanged from the delivered logo artifact.
+- `screenshots/erd_recheck_20261023.png` and corresponding SVG/render metadata in `rendered/`: actual ERD 3401×1987 with baseline-matching input hash.
+
+## Latest increment — technology logos and two Mermaid sources (2026-10-23)
+
+- `notes/TECHNOLOGY_LOGOS_AND_MERMAID_20261023.md`: authorized scope, official mixed artwork, actual render and independent review, Drive readback and export limitations.
+- `../assets/icons/technology-logos-2026-10-23/`: five original official SVGs, manifest hashes/source details and usage notice; nine original AWS icons remain on v2.
+- `metrics/TECH_LOGOS_AND_MERMAID_VALIDATION_20261023.json`: exactly five changed image cells, all non-icon/protected-page invariants, original payload checks and both final source/render hashes.
+- `screenshots/system_architecture_v2_tech_logos_20261023.png` and corresponding SVG/render metadata: actual final viewer export.
+- `notes/ERD_MERMAID_EXPORT_20261023.md`, `metrics/ERD_MERMAID_EXPORT_VALIDATION_20261023.json`, `rendered/logical_erd_mermaid_20261023.*`: faithful ERD export 17/21/37 and actual syntax/render PASS; known model errors remain explicit.
+- `rendered/system_architecture_v2_mermaid_logos_20261023.*`: portable architecture source actual final render 14/19; both code blocks delivered in `../artifacts/MERMAID_DIAGRAMS.md`.
+- `raw/DRIVE_BASELINE_TECH_LOGOS_20261023.drawio`, `raw/DRIVE_READBACK_TECH_LOGOS_20261023.drawio`: same-ID baseline/readback (153,149 final bytes, modified 2026-10-23T05:11:21.479Z); `raw/LOGICAL_ERD_BEFORE_EXPORT_20261023.mmd` preserves the superseded source.
+- `raw/TECH_LOGOS_AND_MERMAID_CHECKS_20261023.txt`: actual repository check outcomes.
+
+## Previous increment — simplified v2 presentation (2026-10-23)
+
+- `raw/V2_CLEAN_REVIEW_CHECKS_20261023.txt`: security/architecture/diff PASS; unrelated pre-existing repository harness gaps retained explicitly.
+- `notes/SYSTEM_ARCHITECTURE_V2_CLEAN_REVIEW_20261023.md`: owner request, source/caveats moved off the canvas, visual and architecture review outcomes.
+- `screenshots/system_architecture_v2_clean_20261023.png`, corresponding SVG and render metadata in `rendered/`: final actual 3168×1692 diagrams.net render from the 3200×1740 editable canvas.
+- `metrics/V2_CLEAN_VALIDATION_20261023.json`: protected-page/tab-order, 14 components/icons, 19 edges, uncertainty labels, Mermaid semantics and byte-identical Drive readback.
+- `raw/DRIVE_BASELINE_V2_CLEAN_20261023.drawio`, `raw/DRIVE_READBACK_V2_CLEAN_20261023.drawio`: fresh owner revision and verified same-ID final bytes (154,128 bytes, modified 2026-10-23T04:50:38.358Z).
+- `rendered/system_architecture_v2_mermaid_clean_20261023.*`: updated neutral Mermaid counterpart and actual parser/render evidence.
+
+## Previous increment — widened v2 and skill review (2026-10-23)
+
+- `notes/SYSTEM_ARCHITECTURE_V2_SPACING_REVIEW_20261023.md`: spacing and diagram/architecture reviews, all PASS for v2.
+- `screenshots/system_architecture_v2_wide_20261023.png`, `rendered/system_architecture_v2_wide_20261023.svg` and render metadata: actual 3170×1995 viewer export from the 3200×2000 editable canvas.
+- `metrics/V2_SPACING_VALIDATION_20261023.json`: unchanged text/graph/icon checks, 14 main cards without overlaps and protected tabs.
+- `raw/DRIVE_BASELINE_V2_SPACING_20261023.drawio`, `raw/DRIVE_READBACK_V2_SPACING_20261023.drawio`: fresh owner-saved baseline and byte-identical same-ID final readback. Latest size 158,482; modified 2026-10-23T04:26:02.598Z.
+
+## Current increment — AWS icons on v2 (2026-10-23)
+
+- `raw/AWS_V2_REVIEW_CHECKS_20261023.txt`: actual security/architecture/harness/diff/render outcomes; unrelated harness gaps remain explicit.
+- `metrics/AWS_V2_DRIVE_READBACK_20261023.json`: final same-ID/parent/raw-byte readback and owner-confirmed icon view.
+
+- `notes/DUAL_DIAGRAM_REVIEW_20261023.md`: current correctness findings for ERD/original architecture/AWS v2; supersedes historical ERD structural passes.
+- `metrics/ERD_REVIEW_20261023.json`, `metrics/ERD_MERMAID_DIAGNOSTICS_20261023.json`: six detached diamonds, 12 unattached targets and actual Mermaid parser failure; diagnostic fixes were memory-only.
+- `metrics/AWS_V2_VALIDATION_20261023.json`: official image-byte checks, 14 main components/19 relationships and exact Mermaid/Draw.io endpoint/direction/style parity.
+- `screenshots/erd_review_20261023.png`, `screenshots/system_architecture_original_review_20261023.png`, `screenshots/system_architecture_v2_aws_20261023.png`: actual official diagrams.net renders. V2 render is 2400×1575 with no failed images/page errors.
+- `raw/DRIVE_READBACK_AWS_V2_20261023.drawio`: final same-ID Drive bytes, SHA-256 f39862a42fc6da9ead34225b707419d8d4b0c66d662770072f3071cc73dc21e9, equal to local. Size 158,272; modified 2026-10-23T04:09:01.423Z.
+
+- `notes/SYSTEM_ARCHITECTURE_V2_AWS_REDRAW_20261023.md`: approval, source/icon mapping, fresh baseline, redraw and verification checkpoint.
+- `raw/DRIVE_BASELINE_AWS_V2_20261023.drawio`: same-ID Drive baseline fetched before modifying only v2; preserves owner edits and original-page hashes.
+- `../assets/icons/aws-2026-07-31/`: selected official AWS SVGs, checksums and usage notice. Historical Lucide assets below are preserved, superseded on v2 by approval 18.
+- `rendered/render_drawio_v2.cjs`: actual local diagrams.net-viewer/Chrome renderer; downloaded viewer runtime stays in ignored cache.
+
+## Historical evidence
+
 - `../HANDOFF_FOR_NEW_SESSION.md`: cross-machine continuation instructions, branch/base and fetch command, deliverable paths, Drive location, corrected icon serialization, verification, and remaining visual QA.
 - `raw/PRE_PUBLISH_CHECKS_20261023.txt`: security, architecture, staged-diff, and repository harness results before publication.
 

@@ -1,5 +1,54 @@
 # Bàn giao FEAT-048 cho phiên Codex trên máy khác
 
+## Trạng thái hiện tại — ERD sửa xong ở local, 2026-10-23
+
+- Plan 23 / approval 24: local ERD repair PASS. Đã gắn lại 12 đầu nối cho 6 relationship diamonds; sửa ba nhóm endpoint cardinality; reroute protected, Class attributes, shared/personal canvas và owns để không che shape/nhập đường. Giữ group XOR participant owner và `0..N` canvas mỗi owner ở trạng thái proposed.
+- Draw.io hiện có 4 tab theo thứ tự owner: ERD / System Architecture / System Architecture v2 / Package Diagram. Bản local 153,869 bytes, SHA-256 `ede63ac3f48db3b072be46e4d5017270988fd218fdc37b41b560538bb868ff43`. Ba tab ngoài ERD khớp fingerprint baseline mới đọc.
+- Mermaid mới nhất: `src/diagrams/logical-erd.mmd` (17/21/37) và `src/diagrams/system-architecture-v2.mmd` (14/19); cả hai render Mermaid 12.2.0 thành công. Danh sách publish GitHub chỉ gồm artifact `.drawio`, hai `.mmd`, README nguồn và hồ sơ FEAT-048 dạng text. Bỏ PNG/SVG render, script tạo/render, SVG icon riêng, wrapper trùng, file baseline/readback Drive.
+- Same-ID Drive update bị automatic approval review từ chối; Drive vẫn ở bản cũ 153,149 bytes, modified `2026-10-23T05:11:21.479Z`. Không thử đường upload khác; cần owner xác nhận rõ trước lần thay file Drive tiếp theo. Xem `evidence/notes/ERD_REPAIR_20261023.md` và `evidence/metrics/ERD_REPAIR_VALIDATION_20261023.json`.
+- Các mục dưới tiêu đề “lịch sử” ghi trạng thái tại thời điểm đó; nếu khác phần này thì dùng phần hiện tại.
+
+## Lịch sử — ERD recheck trước khi sửa — 2026-10-23
+
+- Plan 22 / approval 23: review hoàn tất, ERD vẫn NOT_READY. Sáu diamond rời đầu nối (12 target chưa gắn), ba cardinality đảo và một số đường đi xuyên sau khối khác/trùng nhau.
+- Đã kiểm tra bản Drive mới nhất và render ERD thực tế 3401×1987; file/source/Drive giữ nguyên. Mermaid hiện render được, khớp 17 entity/21 quan hệ/37 thuộc tính; lỗi cú pháp và reviewerRef đã hết.
+- Chi tiết ID, dòng SRS, cách đọc cardinality và thứ tự sửa: evidence/notes/ERD_RECHECK_20261023.md; metrics và screenshot trong evidence/. Chưa thực hiện sửa ERD trong lượt review này.
+
+
+## Cập nhật sau cùng — logo chính chủ và hai mã Mermaid, 2026-10-23
+
+- Plan 21 / approval 22 hoàn tất: v2 có logo chính chủ FastAPI, Firebase, React Native, PostgreSQL, Redis và giữ chín icon AWS cho các vai trò còn lại. Chỉ năm ô ảnh thay đổi; 14 component, 19 luồng, nhãn/trạng thái/bố cục và ba tab khác giữ nguyên.
+- Đã render/review v2 thực tế ở 3168×1692; ảnh và metadata render được giữ làm evidence local, loại khỏi GitHub. Provenance/hashes/usage terms dạng text của SVG gốc nằm trong các manifest và NOTICE; SVG rời bị loại.
+- Hai file nguồn Mermaid chuẩn: src/diagrams/logical-erd.mmd (17 entity, 21 quan hệ, 37 thuộc tính hiển thị) và src/diagrams/system-architecture-v2.mmd (14/19). Cả hai render Mermaid 12.2.0 thành công; wrapper gộp bị loại vì trùng nội dung.
+- ERD Mermaid đã hết lỗi cú pháp và thống nhất reviewerRef là thuộc tính. Ba cardinality bị đảo vẫn được giữ để khớp bản vẽ, sáu quan hệ rời đầu nối được mô tả theo ý định; đã ghi rõ hạn chế. Chưa sửa mô hình/connector ERD trong Draw.io.
+- Drive cùng ID đã cập nhật/readback: 153.149 bytes, modified 2026-10-23T05:11:21.479Z, SHA-256 4d5e2f54e0066b8f9e95108ce593ad426ba221c6d89bd43860679ccad3a4ac39, khớp artifact/render. Chưa commit/push; SRS/runtime/schema không đổi.
+- Evidence: evidence/notes/TECHNOLOGY_LOGOS_AND_MERMAID_20261023.md và ERD_MERMAID_EXPORT_20261023.md; metrics và raw readback trong evidence/.
+
+## Checkpoint trước — bỏ note thừa và vẽ gọn v2, 2026-10-23
+
+- Plan 20 / approval 21: đã bỏ tám cell note/legend/subtitle/footer thừa, dùng nền trắng, khung mảnh, nhãn ngắn và đường nối rõ; giữ 14 component, 19 luồng và 14 SVG AWS gốc.
+- Canvas 3200×1740; ảnh render diagrams.net thực tế 3168×1692. Diagram-architect và senior-architect đều PASS. Giữ thứ tự tab mới của owner: ERD / System Architecture / System Architecture v2 / Package Diagram; ba tab còn lại giữ nguyên fingerprint.
+- Cùng file Drive đã cập nhật/readback 154.128 bytes, modified 2026-10-23T04:50:38.358Z; SHA-256 81d34b919b98b03990044b159accba0e9a424c05637f553a98a08f3156007378, giống artifact đã review. Ảnh: evidence/screenshots/system_architecture_v2_clean_20261023.png.
+- Nguồn, provenance AWS và các lưu ý bảo mật/async/CRDT chuyển vào evidence/notes/SYSTEM_ARCHITECTURE_V2_CLEAN_REVIEW_20261023.md. Các lỗi ERD cũ vẫn mở; chưa commit/push.
+
+## Checkpoint trước — nới rộng v2 và review, 2026-10-23
+
+- Plan 19 / approval 20: đã nới canvas v2 lên 3200×2000, tăng gutter, chiều cao hàng, cỡ chữ và icon. Giữ nguyên 14 component, 19 luồng và SVG AWS General/Category gốc.
+- Đã review bằng diagram-architect và senior-architect sau render diagrams.net thực tế; không còn finding chặn trong phạm vi kiến trúc logic/bố cục v2. Nội dung và chữ ký 19 quan hệ giống bản Drive mới đọc; ba tab gốc giữ nguyên.
+- Cùng file Drive đã cập nhật và readback: 158.482 bytes, modified 2026-10-23T04:26:02.598Z, SHA-256 790d2e3981d4c1736bba0b6ad7cb097432aea0e3b6dfe3e0a7bdcbaf8509d614. Ảnh mới: evidence/screenshots/system_architecture_v2_wide_20261023.png.
+- Review/evidence: evidence/notes/SYSTEM_ARCHITECTURE_V2_SPACING_REVIEW_20261023.md. Các lỗi ERD đã ghi trước vẫn cần lượt sửa riêng; chưa commit/push.
+
+## Cập nhật mới nhất — AWS v2 và rà soát hai diagram, 2026-10-23
+
+- Plan 18 / approval 19: đã dùng diagram-architect, database-architect và senior-architect để rà file thực tế theo SRS B3/B7/B7.1/B8/B21.5.
+- Tab System Architecture v2 đã đổi từ Lucide sang SVG gốc trong gói AWS Architecture Icons 2026-07-31 (General Light / Category). Có 14 component chính, 14 icon, 19 connector; render diagrams.net và Mermaid đã đạt, không còn broken-image. Đây là kiến trúc logic; chưa chọn dịch vụ/deployment AWS.
+- Đã cập nhật cùng file Drive ID 1j-_R792jh-I1nC5B7FHwGDm3-yixPB6x, giữ folder cũ. Readback 158.272 bytes, modified 2026-10-23T04:09:01.423Z; SHA-256 f39862a42fc6da9ead34225b707419d8d4b0c66d662770072f3071cc73dc21e9, giống hệt local.
+- Ba tab gốc được giữ nguyên theo fingerprint của bản Drive mới đọc. Tuy nhiên ERD hiện NOT_READY: sáu hình thoi chưa được gắn connector (12 đầu target rời), ba cardinality ownership/contributor bị đảo, Mermaid ERD lỗi parse 12.2.0 và còn chênh representation reviewer_ref. Chưa sửa ERD trong lượt phân tích này.
+- Chi tiết: evidence/notes/DUAL_DIAGRAM_REVIEW_20261023.md; ảnh kiểm tra thật trong evidence/screenshots/. Các kết luận cũ về ERD zero-dangling và v2 còn dùng Lucide bên dưới là lịch sử, không phải trạng thái hiện tại.
+- Checkout hiện tại đã ở branch FEAT-048 tại repository root; FEAT-018 ở worktree riêng. Phần AWS/redraw/review mới chưa commit/push. Không merge dev.
+
+## Bản bàn giao trước — lưu lịch sử
+
 Cập nhật ngày 2026-10-23 cho Khoa. Đây là trạng thái hiện tại để phiên mới tiếp tục đúng nhánh, đúng SRS và biết phần nào đã làm, phần nào còn cần kiểm tra.
 
 ## Mục tiêu và nguồn chuẩn

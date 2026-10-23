@@ -1,17 +1,15 @@
 # FEAT-048 status
 
-- Status: IN_PROGRESS — diagrams and Mermaid sources are present; rendered QA and ERD source parity review remain pending.
-- Working branch: feature/feat048-srs-diagram-pack, tracking origin/feature/feat048-srs-diagram-pack, based on origin/dev at f220781876472950093856e97bbdaaec5170a7c1.
-- Workspace: .worktrees/feat048-srs-diagram-pack. The main checkout is on FEAT-018; do not use it for this task.
-- Plan/approval: revision 16 / approval revision 17 cover cross-machine handoff and publication. Owner authorized the FEAT-048 push; no merge to dev.
-- Deliverable: artifacts/Khoa_Sketch2Life_SRS_v3.1_Diagrams.drawio with four pages: ERD, System Architecture, Package Diagram, System Architecture v2.
-- Mermaid sources: four files under src/diagrams/; drawing conventions and icon mapping are in ARCHITECTURE_DRAWING_RULES.md and system-architecture-v2.mmd.
-- ERD structure: 17 entities; Draw.io has 21 named relationship diamonds plus one legend diamond. Mermaid currently has 22 relationship lines; AdultAccount–TeacherReview reviewer_ref is an extra Mermaid edge relative to the Draw.io rendering and must be reconciled.
-- System Architecture v2: 107 cells, including 20 embedded SVG image cells across 16 Lucide icon types, and 24 edges. Local SVG data URIs are percent-encoded; raw Drive readback confirms all 20 decode to SVG XML and all endpoints resolve. Three original page fingerprints were preserved.
-- Drive: same file ID 1j-_R792jh-I1nC5B7FHwGDm3-yixPB6x, folder 18K0jfiBfl1nfG3-9HvfQXzVMoQcjTZF0; latest raw readback is 134,056 bytes, modified 2026-10-22T17:14:24.595Z.
-- Security validation: PASS, 2,646 files scanned; no credentials or absolute machine paths.
-- Architecture validation: PASS.
-- Harness validation: FAIL only for pre-existing missing evidence/screenshots and evidence/metrics in FEAT-045, FEAT-046, and FEAT-047. FEAT-048 is not listed invalid. Do not modify those features here.
-- Git diff --check: PASS for this handoff update; Git reports line-ending normalization warnings for CRLF/LF on Windows.
-- Pending: diagrams.net render inspection at normal zoom for all four pages (especially icon display on v2); Mermaid rendered comparison; reconcile ERD relationship parity; update feature-local screenshots/evidence and status afterward.
-- Last updated: 2026-10-23, Asia/Saigon.
+- Status: IN_PROGRESS — local ERD repair and both Mermaid sources are complete; curated GitHub publication is pending; Drive replacement is blocked by automatic approval review pending explicit permission.
+- Branch: feature/feat048-srs-diagram-pack. Current checkout is the repository root; separate FEAT-018 worktree is untouched.
+- Current plan: 23 / approval 24 — all six ERD bindings, three endpoint counts and verified routes are repaired locally; actual Draw.io and Mermaid renders pass. Evidence: evidence/notes/ERD_REPAIR_20261023.md and evidence/metrics/ERD_REPAIR_VALIDATION_20261023.json.
+- Draw.io tabs retain the owner order: ERD, System Architecture, System Architecture v2, Package Diagram. All three non-ERD page fingerprints match the fresh pre-update baseline.
+- V2 keeps 14 components, 19 attached flows and 55 cells including roots. Exactly five image cells change: React Native child client, FastAPI API, PostgreSQL database, Redis queue and Firebase Authentication. Nine AWS General/Category icons remain. All non-icon labels/styles/geometry and flows are unchanged.
+- Official source URLs, pinned source/member details, hashes and usage terms: assets/icons/technology-logos-2026-10-23/manifest.json and NOTICE.md. All five embedded SVGs match original bytes; Redis wordmark uses a 64×48 image box preserving its aspect ratio.
+- Actual v2 viewer render: 3168×1692 from a 3200×1740 canvas; zero failed images, page errors or external requests. Independent diagram/architecture/provenance review PASS. Render images and metadata remain local evidence, excluded from GitHub.
+- Delivered Mermaid: src/diagrams/logical-erd.mmd (17 entities, 21 named relationships, 37 displayed attributes) and src/diagrams/system-architecture-v2.mmd (14 components, 19 connections). Both actual final sources parse/render in Mermaid 12.2.0 without errors or external requests; these two files are the canonical Mermaid sources.
+- ERD remains a proposed logical overview, not a physical schema. Mermaid sources render at ERD 17/21/37 and Architecture 14/19; `reviewerRef` remains an attribute to AdultAccount.
+- Local artifact: 153,869 bytes, SHA-256 `ede63ac3f48db3b072be46e4d5017270988fd218fdc37b41b560538bb868ff43`. Drive still contains the pre-repair 153,149-byte baseline because automatic approval review rejected the upload; no repaired Drive readback exists.
+- Canonical SRS/runtime/schema unchanged. Candidate infrastructure, proposed realtime/worker, adult-only Firebase Auth and provider/payload/deployment TBD remain explicit. Branding does not select new services.
+- GitHub source selection: editable `.drawio`, `logical-erd.mmd`, `system-architecture-v2.mmd`, source README and necessary textual FEAT-048 records. Exclude rendered images, build/renderer scripts, separate icon SVGs, duplicate wrapper, temporary/raw Drive files and unrelated worktree content.
+- No SRS/runtime/schema edit, merge, or deployment. Push will include only the curated source/record set after repository pre-publish checks. Last updated 2026-10-23, Asia/Bangkok.

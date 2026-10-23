@@ -1,6 +1,6 @@
 # FEAT-048 context — SRS v3.1 diagram pack
 
-- Status: IN_PROGRESS — original three pages remain preserved; System Architecture v2 now includes the previously previewed Lucide icons and is synced to Drive; rendered QA is pending
+- Status: IN_PROGRESS — local ERD repair and Mermaid synchronization complete (plan 23 / approval 24); curated GitHub publication is being prepared; Drive replacement is blocked by automatic approval review pending explicit permission.
 - Owner: Khoa / project owner
 - Goal: create an editable Draw.io file and diagram-as-code counterparts for Khoa's assigned ERD, System Architecture, and Package diagrams from the current canonical SRS.
 - Scope: one `.drawio` file with three assigned pages plus a separately named architecture comparison page, and Mermaid sources under `src/diagrams/`; intended Drive destination for the Draw.io file is the folder supplied by the user (ID `18K0jfiBfl1nfG3-9HvfQXzVMoQcjTZF0`). Mermaid sources remain in the repository worktree.
@@ -9,6 +9,36 @@
 - Risks: B7/B21 data model and B8 bounded contexts/contracts are labeled `PROPOSED`; the diagrams must retain those labels and not present them as adopted implementation.
 
 ## Context snapshot
+
+### ERD repair and source curation — 2026-10-23
+
+Plan 23 / approval 24: local repair PASS. All six formerly detached diamonds now have both correct entity connectors; the three reversed endpoint counts are corrected; protected/Class/shared/personal/owns routes render through distinct corridors. CanvasDocument has exactly one applicable owner mode (group XOR participant); maximum documents per owner remains proposed. New child-authored operations require a selected verified participant even though historical attribution can be optional. Draw.io retains 17 entities/21 named relations/37 attributes and all four tabs; the other three page fingerprints match the fresh baseline. Mermaid ERD and Architecture v2 render at 17/21/37 and 14/19. Evidence: `evidence/notes/ERD_REPAIR_20261023.md`, `evidence/metrics/ERD_REPAIR_VALIDATION_20261023.json`.
+
+GitHub allowlist: editable `.drawio`, `logical-erd.mmd`, `system-architecture-v2.mmd`, and necessary textual feature records. Rendered images, builder/renderer scripts, separate icon SVGs, raw Drive baselines and the duplicate Mermaid wrapper are excluded. The same-ID Drive update was rejected by automatic approval review; remote content remains the 153,149-byte baseline until the owner explicitly permits replacing that file.
+
+### ERD recheck — 2026-10-23
+
+Plan 22 / approval 23 review is COMPLETE. Fresh Drive bytes still match the delivered artifact (153,149 bytes, SHA-256 4d5e2f54e0066b8f9e95108ce593ad426ba221c6d89bd43860679ccad3a4ac39). Actual ERD render/XML/SRS review confirms six detached diamonds/twelve missing connector targets and three reversed owner/contributor counts, plus routes hidden behind unrelated shapes or merged with other routes. Scope/field parity passes (17/21/37), current Mermaid syntax/render and reviewerRef representation pass. Model remains NOT_READY. No diagram/source/Drive repair in this review. See evidence/notes/ERD_RECHECK_20261023.md and metrics; latest screenshot erd_recheck_20261023.png.
+
+### Technology logos and Mermaid export — 2026-10-23
+
+Plan 21 / approval 22 completed the five technology marks and two Mermaid sources. The latest ERD repair supersedes the previously documented detached endpoints and reversed counts. Fresh Drive metadata before the repair attempt still matched the 153,149-byte baseline, modified 2026-10-23T05:11:21.479Z; upload was blocked afterward, so there is no repaired Drive readback yet. See `evidence/notes/TECHNOLOGY_LOGOS_AND_MERMAID_20261023.md` for the local artwork provenance history.
+
+### Latest v2 presentation checkpoint — 2026-10-23
+
+Plan 20 / approval 21 is COMPLETE. Removed the eight redundant note/legend/subtitle/footer cells and redrew v2 with short labels, white neutral boundaries, clearer routes and an external frame fitted to its service stack. The 3200×1740 canvas renders to 3168×1692; diagram-architect and senior-architect reviews PASS. Fourteen components, nineteen relationships, all fourteen official AWS SVG payloads and the other three page fingerprints are preserved. The owner-saved tab order is ERD / System Architecture / System Architecture v2 / Package Diagram. Same-ID Drive readback: 154,128 bytes, modified 2026-10-23T04:50:38.358Z, SHA-256 81d34b919b98b03990044b159accba0e9a424c05637f553a98a08f3156007378, identical to the reviewed artifact. Source/provenance/security/async/CRDT caveats remain in evidence/notes/SYSTEM_ARCHITECTURE_V2_CLEAN_REVIEW_20261023.md. ERD repair remains separate and open.
+
+### Latest v2 spacing checkpoint — 2026-10-23
+
+V2 now uses a 3200×2000 canvas, 150/170px inter-column gutters, 90px integration rows, 17px body text and 48px main AWS icons. Diagram-architect and senior-architect reviews pass after actual rendering; semantic text and all 19 relationship signatures are unchanged. Three protected tabs match the freshly read owner-saved Drive baseline. Same-ID update/readback is byte-identical: 158,482 bytes, modified 2026-10-23T04:26:02.598Z, SHA-256 790d2e3981d4c1736bba0b6ad7cb097432aea0e3b6dfe3e0a7bdcbaf8509d614. See evidence/notes/SYSTEM_ARCHITECTURE_V2_SPACING_REVIEW_20261023.md. ERD is not repaired by this spacing increment.
+
+### AWS icon redraw checkpoint — 2026-10-23
+
+Final checkpoint: existing Drive file updated in place to 158,272 bytes, modified 2026-10-23T04:09:01.423Z; raw readback is byte-identical to local (SHA-256 f39862a42fc6da9ead34225b707419d8d4b0c66d662770072f3071cc73dc21e9). V2 has 14 main components, 14 official AWS General/Category SVG cells and 19 valid edges; official viewer render and Mermaid semantic/render checks pass. All three original page fingerprints are unchanged.
+
+The subsequent owner-requested review (plan 18 / approval 19) found the existing ERD is NOT_READY: six detached diamonds/12 unattached endpoints, three reversed ownership/contributor cardinalities, Mermaid syntax failures and reviewer_ref representation mismatch. These findings supersede old structural pass claims. ERD remains preserved; see evidence/notes/DUAL_DIAGRAM_REVIEW_20261023.md.
+
+The owner directly requested official AWS icons and a redraw on the existing v2 tab. This supersedes the earlier Lucide-only choice for that tab while preserving all SRS status boundaries. The current machine has `feature/feat048-srs-diagram-pack` checked out at the repository root; the older sibling FEAT-048 path no longer exists. Fresh Drive metadata still reports the known 134,056-byte four-page artifact, modified 2026-10-22T17:14:24.595Z. Only the v2 tab and its supporting sources/records are in scope.
 
 The user assigned Khoa ERD, System Architecture Diagram, and Package Diagram, requested the framing from SRS v3.1, then supplied a Drive folder and asked Codex to proceed. The canonical SRS is the authority; source register ID `collaborative-srs-v3-20261010` points to FEAT-029. Owner-confirmed technology baseline is Android/React Native plus FastAPI. Logical ERD entities, most architecture choices, realtime transport, and infrastructure candidates remain proposed/TBD.
 
