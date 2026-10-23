@@ -1,6 +1,6 @@
 # FEAT-048 context — SRS v3.1 diagram pack
 
-- Status: IN_PROGRESS — plan 25 / approval 25 ERD audit, layout refinement, and curated branch publication complete in commit `2c37ad97`. Drive replacement remains blocked by automatic approval review.
+- Status: IN_PROGRESS — plan 26 / approval 26 screenshot audit complete; the supplied screenshots match the stale Drive baseline, while the published branch ERD passes all endpoint and page-bound checks. Drive replacement remains blocked by automatic approval review.
 - Owner: Khoa / project owner
 - Goal: create an editable Draw.io file and diagram-as-code counterparts for Khoa's assigned ERD, System Architecture, and Package diagrams from the current canonical SRS.
 - Scope: one `.drawio` file with three assigned pages plus a separately named architecture comparison page, and Mermaid sources under `src/diagrams/`; the curated sources are published on the FEAT-048 branch. Intended Drive destination for the Draw.io file is the folder supplied by the user (ID `18K0jfiBfl1nfG3-9HvfQXzVMoQcjTZF0`).
@@ -9,6 +9,10 @@
 - Risks: B7/B21 data model and B8 bounded contexts/contracts are labeled `PROPOSED`; the diagrams must retain those labels and not present them as adopted implementation.
 
 ## Context snapshot
+
+### User screenshot/source comparison — 2026-10-23
+
+The supplied images match the last-known Drive baseline (153,149 bytes, SHA-256 `4d5e2f54e0066b8f9e95108ce593ad426ba221c6d89bd43860679ccad3a4ac39`), not the current branch file (SHA-256 `b5b33a5f55ccdf88971f686e7d572537f6268620e23dd042238447b2562aa040`). The baseline has six detached relationship diamonds/12 unbound targets; `checkpoints`, `reviewed`, and `personal canvas` are shown examples, and its personal-canvas endpoint counts are reversed. The current published source attaches all 21 diamonds and shows `ChildParticipant` 0..1 / `CanvasDocument` 0..N. References resolve, and all vertices fit inside the page. Blue editor handles are not part of the exported file. No current diagram-source change was needed. See `evidence/notes/ERD_USER_SCREENSHOT_AUDIT_20261023.md` and `evidence/metrics/ERD_USER_SCREENSHOT_COMPARISON_20261023.json`.
 
 ### Final ERD audit and layout refinement — 2026-10-23
 

@@ -1,7 +1,7 @@
 # Feature plan — SRS v3.1 diagram pack
 
 - Status: IN_PROGRESS
-- Plan revision: 25
+- Plan revision: 26
 - Implementation status: IN_PROGRESS
 
 ## Goal
@@ -17,6 +17,15 @@ Create a clear, editable Draw.io file and Mermaid source files for the three dia
 - AC-53: PASS — refined the ConsentRecord/PortfolioEntry spacing, protected route, right margin, and caveat hierarchy; retained conventional Chen notation, white canvas, and restrained colors. The final actual render has no overlapping attributes.
 - AC-54: PASS — the final 3372×1987 diagrams.net render has no failed images, page errors, blocked requests, dangling references, or out-of-bounds vertices; all 21 relationship diamonds have degree two. Mermaid 12.2.0 renders 17/21/37 with no errors. The three other Draw.io pages are byte-equivalent after XML canonicalization.
 - AC-55: PASS — updated FEAT-048 evidence/status and published only the editable `.drawio`, changed `.mmd` source, and text records in commit `2c37ad97`; generated images, icon SVGs, and render/build scripts were excluded.
+
+## Current review — user screenshots versus published ERD (2026-10-23)
+
+- Status: COMPLETE — provided screenshots match the last-known Drive baseline; the current published ERD passes the full structural and bounds audit, so no diagram-source change is needed.
+- Plan revision: 26.
+- AC-56: PASS — the supplied crops match the last-known Drive baseline hash `4d5e2f54…ac39`, which has six detached relationship diamonds and 12 unbound targets; current published source is hash `b5b33a5f…a040`. The prior viewer render and source metadata confirm the baseline version.
+- AC-57: PASS — all 21 current relationship diamonds have exactly two bound entity connectors, all references resolve, all endpoint counts match the reviewed SRS model, and no vertex lies outside the 3400×2050 page. Blue selection controls are editor UI only.
+- AC-58: PASS — recorded the old/current version comparison and screenshot explanations in `evidence/notes/ERD_USER_SCREENSHOT_AUDIT_20261023.md`; no current-source defect remains to fix.
+- AC-59: PASS — only text evidence/status will be published; user screenshots and rendered media remain local, and Drive replacement was not performed in this review.
 
 ## Planned increment — ERD repair and GitHub source curation (2026-10-23)
 

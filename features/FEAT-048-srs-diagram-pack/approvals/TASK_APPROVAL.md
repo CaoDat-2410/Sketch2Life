@@ -1,5 +1,13 @@
 # Task approval
 
+## Approval — audit user screenshots against current ERD (revision 26)
+
+- Status: APPROVED.
+- Approver: Project owner / Khoa, direct request on 2026-10-23: “Sao có mấy cụm bị nằm ngoài với đứt nét là sao? check lại hết cho tôi đo”.
+- Approved scope: inspect all provided ERD screenshot regions, compare them with the latest FEAT-048 branch artifact and last-known Drive baseline, verify relationship endpoints/cardinalities/page bounds, and record the result. Correct any confirmed current-source defect if found.
+- Plan revision: 26.
+- Limits: do not replace/update the Drive file in this review; do not publish screenshots, raw baselines, or render helpers. The existing Draw.io source is already published at SHA-256 `b5b33a5f55ccdf88971f686e7d572537f6268620e23dd042238447b2562aa040`.
+
 ## Approval — final ERD audit and visual refinement (revision 25)
 
 - Status: APPROVED.

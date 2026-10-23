@@ -1,5 +1,11 @@
 # Evidence index
 
+## Latest review — user ERD screenshots vs current branch (2026-10-23)
+
+- `notes/ERD_USER_SCREENSHOT_AUDIT_20261023.md`: identifies the supplied crops as the last-known stale Drive baseline, explains the detached `checkpoints`/`reviewed`/`personal canvas` ends, the reversed personal-canvas counts, and Draw.io selection controls.
+- `metrics/ERD_USER_SCREENSHOT_COMPARISON_20261023.json`: baseline/current source hashes, exact connector IDs and labels, all 21 current relationship endpoint checks, and page-bound results.
+- The current published Draw.io source is already correct; no source changes or screenshot uploads were made for this review. Drive replacement remains outside this review and requires the authorization called out in the earlier approval record.
+
 ## Latest increment — final ERD audit and layout refinement (2026-10-23)
 
 - `notes/ERD_FINAL_AUDIT_AND_LAYOUT_20261023.md`: final SRS audit, remaining logical-model caveats, visual corrections, render review, and source hashes.
