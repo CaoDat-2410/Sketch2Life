@@ -7,6 +7,7 @@
 - `screenshots/erd_final_refinement_20261023_r2.png` with matching SVG/render metadata: final 3372×1987 diagrams.net ERD render; local evidence only, excluded from GitHub.
 - `rendered/logical_erd_final_refinement_20261023.*`: latest Mermaid 12.2.0 render of `logical-erd.mmd`, 17/21/37; local evidence only, excluded from GitHub.
 - Final layout keeps ConsentRecord and PortfolioEntry keys separate, routes `protected` through its own corridor, adds the selected-fields caveat, and retains the open SRS decisions.
+- Curated Draw.io/Mermaid/text-source publication completed in commit `2c37ad97` on `feature/feat048-srs-diagram-pack`; generated media and helpers remain excluded.
 
 ## Latest increment — ERD repair and published GitHub sources (2026-10-23)
 

@@ -68,6 +68,8 @@
   },
   "publication": {
     "branch": "feature/feat048-srs-diagram-pack",
+    "commit": "2c37ad97",
+    "result": "published",
     "renderedImagesAndHelpers": "local evidence only; exclude from GitHub",
     "drive": "unchanged; prior update rejected by automatic approval review"
   }

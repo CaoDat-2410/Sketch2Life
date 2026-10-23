@@ -1,6 +1,6 @@
 # FEAT-048 status
 
-- Status: IN_PROGRESS — final ERD audit/layout and Mermaid render PASS locally under plan 25 / approval 25; curated source/record publication to the existing branch is in progress. Drive replacement remains blocked by automatic approval review.
+- Status: IN_PROGRESS — plan 25 / approval 25 final ERD audit/layout and curated source publication complete in commit `2c37ad97` on the existing branch. Drive replacement remains blocked by automatic approval review.
 - Branch: feature/feat048-srs-diagram-pack. Current checkout is the repository root; separate FEAT-018 worktree is untouched.
 - Current plan: 25 / approval 25 — no additional SRS relationship/cardinality defect found. ERD retains 17 entities/21 relations/37 selected attributes; ConsentRecord is separated from PortfolioEntry's key, protected route has a clear corridor, and the selected-fields caveat is explicit. The final 3372×1987 Draw.io render and Mermaid 12.2.0 17/21/37 render pass. Evidence: evidence/notes/ERD_FINAL_AUDIT_AND_LAYOUT_20261023.md and evidence/metrics/ERD_FINAL_REFINEMENT_VALIDATION_20261023.json.
 - Draw.io tabs retain the owner order: ERD, System Architecture, System Architecture v2, Package Diagram. All three non-ERD page fingerprints match the fresh pre-update baseline.
