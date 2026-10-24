@@ -1,5 +1,14 @@
 # FEAT-060 evidence index
 
+## Rev5 CI and Iteration 1 verification — 2026-10-24
+
+- Plan: `../plan/PLAN_REV5_CI_AND_ITERATION1_VERIFICATION_20261024.md`; owner approval and exact plan hash are in `../approvals/TASK_APPROVAL.md`.
+- Added `.github/workflows/ci.yml` with pinned actions, locked installs, repository policy validators, active Child/Teacher/Admin checks, and focused backend tests. It passes no repository secrets and makes no provider/deployment calls. Hosted run is pending the authorized branch push.
+- Local baseline receipts: all repository policy validators now pass; Child, Teacher and Admin `npm ci`/`npm run check` passed; backend locked sync and focused pytest passed (22 passed, four PostgreSQL cases skipped because `BE1_TEST_DATABASE_URL` is unset). Exact per-command receipts are under `raw/ci-rev5-20261024/`.
+- ADR-0006 workstreams: P1 8/8 fixture tests passed; P2 22/22 tests passed; P3 typecheck passed and 67/67 tests passed in 14 suites; P4 learning-media tests passed 14/14, but the separate local component runner returned `FAIL`, reporting 460 owned cases, 1,436 regression cases, and 11 SQL-collection-only cases. SQL, provider, selected-decoder and adoption checks did not run. The failure means Iteration 1 is not fully accepted.
+- `iteration1-p4-runner.log` contains an absolute workstation path and remains ignored/local. Its path-free result summary is `raw/ci-rev5-20261024/iteration1-p4-runner-results.txt`.
+- Do not create `review-2` or claim tagged BM02 until the hosted workflow and all acceptance gates pass at one exact clean commit.
+
 ## Rev4 current result
 
 - `plan/PLAN_REV4_IMPLEMENTATION_20261024.md` — owner-approved implementation plan; exact SHA-256 in `approvals/TASK_APPROVAL.md`.

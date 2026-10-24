@@ -1,0 +1,13 @@
+stateDiagram-v2
+  [*] --> Received
+  Received --> IdentityCheck
+  IdentityCheck --> ScopeReview
+  IdentityCheck --> Rejected
+  ScopeReview --> Approved
+  ScopeReview --> Rejected
+  Approved --> Running
+  Running --> AwaitingExternalPurge
+  Running --> Completed
+  Running --> PartiallyCompleted
+  Running --> Failed
+  note right of AwaitingExternalPurge: Cancellation routes are in Data Request Cancellation Outcomes. External purge results are in Data Request External Purge Outcomes.

@@ -1,0 +1,13 @@
+stateDiagram-v2
+  [*] --> Requested
+  Requested --> Analyzing
+  Analyzing --> PendingTeacherReview: safe current proposal
+  PendingTeacherReview --> Approved: teacher approves exact hash
+  PendingTeacherReview --> Rejected
+  Analyzing --> BlockedUnsafe
+  Requested --> Cancelled
+  Analyzing --> Cancelled
+  Analyzing --> Stale: source changed
+  Analyzing --> Failed: typed failure
+  Failed --> Analyzing: authorized retry
+  note right of Approved: Approval does not overwrite child artwork.

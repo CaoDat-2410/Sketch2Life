@@ -1,0 +1,1052 @@
+{
+  "revision": "Rev12",
+  "dossier_count": 4,
+  "docx_pdf_pairs": 4,
+  "diagram_count_in_report": 46,
+  "documents": [
+    {
+      "name": "SWP490_FA26SE225_R2_DesignBrief",
+      "docx_bytes": 45978,
+      "docx_sha256": "80f453a1e1a531bedca3fda573222b5a4610a91b0eef09820b1e01ad31f6ff36",
+      "docx_zip_integrity": "pass",
+      "paragraph_count": 35,
+      "table_count": 11,
+      "pdf_bytes": 251356,
+      "pdf_sha256": "5c8db7d207f002ec9247329fe47bb2a39e0c653f90547175968bf0e458614912",
+      "pdf_page_count": 6,
+      "pages_with_no_extractable_text": [],
+      "figure_captions": 0,
+      "typed_figure_captions": 0,
+      "figure_pages_with_source_caption": [],
+      "page_records": [
+        {
+          "page": 1,
+          "text_chars": 1956,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | BM01 SWP490 | CAPSTONE PROJECT | REVIEW 2 | BM01 Design Brief Sketch2Life: Collaborative Creative Learning with AI for Children 0. Header Field Value Project / class FA26SE225 (administrative pro"
+        },
+        {
+          "page": 2,
+          "text_chars": 2849,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | BM01 3. Key Design Decisions ID Selected decision and reason Alternative / owner / trace D1 Durable classroom runtime is the product entrypoint; isolate process-local demos so restart and audit b"
+        },
+        {
+          "page": 3,
+          "text_chars": 2846,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | BM01 6. Mandatory Features ID Feature / actor Acceptance criterion (pass/fail) MF￾01 Managed profile and session admission / Teacher, Child Valid roster join is admitted once; expired, wrong￾clas"
+        },
+        {
+          "page": 4,
+          "text_chars": 2441,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | BM01 Appendix A. Defense 1.1 Targets A1. Main Workflows ID Workflow / actors Trigger and expected state change Lead WF￾01 Prepare and admit class session / Teacher, Child, Backend Teacher configu"
+        },
+        {
+          "page": 5,
+          "text_chars": 3013,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | BM01 ID Path Scenario / expected result Lead DS￾04 WF-02 exception Preconditions / synthetic data: active session S-03; canvas revision 4; OP-03 is pending and OP-CONFLICT reuses a prior operatio"
+        },
+        {
+          "page": 6,
+          "text_chars": 2051,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | BM01 transitions + 15 rejected transitions = 73 cases. The crosswalk below selects two legal and one negative example per B19.4 registry; owners must confirm these examples and add any omitted gu"
+        }
+      ]
+    },
+    {
+      "name": "SWP490_FA26SE225_R2_Registration",
+      "docx_bytes": 1925142,
+      "docx_sha256": "0d573f8155f32071db5ec46a2b142473902d3dba7c802a71dcacce46da5f89bb",
+      "docx_zip_integrity": "pass",
+      "paragraph_count": 167,
+      "table_count": 6,
+      "pdf_bytes": 406117,
+      "pdf_sha256": "6e768f57deefe8bd05049bf07ffa81fbcf801922a41bbe9bd9946c1658762528",
+      "pdf_page_count": 10,
+      "pages_with_no_extractable_text": [],
+      "figure_captions": 0,
+      "typed_figure_captions": 0,
+      "figure_pages_with_source_caption": [],
+      "page_records": [
+        {
+          "page": 1,
+          "text_chars": 1576,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "[redacted: local-only Registration+BM03 content]"
+        },
+        {
+          "page": 2,
+          "text_chars": 3196,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "[redacted: local-only Registration+BM03 content]"
+        },
+        {
+          "page": 3,
+          "text_chars": 2771,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "[redacted: local-only Registration+BM03 content]"
+        },
+        {
+          "page": 4,
+          "text_chars": 2868,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "[redacted: local-only Registration+BM03 content]"
+        },
+        {
+          "page": 5,
+          "text_chars": 2882,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "[redacted: local-only Registration+BM03 content]"
+        },
+        {
+          "page": 6,
+          "text_chars": 2836,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "[redacted: local-only Registration+BM03 content]"
+        },
+        {
+          "page": 7,
+          "text_chars": 2621,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "[redacted: local-only Registration+BM03 content]"
+        },
+        {
+          "page": 8,
+          "text_chars": 696,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "[redacted: local-only Registration+BM03 content]"
+        },
+        {
+          "page": 9,
+          "text_chars": 1219,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "[redacted: local-only Registration+BM03 content]"
+        },
+        {
+          "page": 10,
+          "text_chars": 62,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "[redacted: local-only Registration+BM03 content]"
+        }
+      ]
+    },
+    {
+      "name": "SWP490_FA26SE225_R2_Report1-5_Tracking",
+      "docx_bytes": 10385616,
+      "docx_sha256": "2bf7b032dd7438a33cecf1f8890133c0abdd65950218e85a1b884473892fc40b",
+      "docx_zip_integrity": "pass",
+      "paragraph_count": 512,
+      "table_count": 60,
+      "pdf_bytes": 5399260,
+      "pdf_sha256": "c440daf47cb2ac2028a35f346ca1873112639bbc4729c617a9486aae6dcec5f6",
+      "pdf_page_count": 100,
+      "pages_with_no_extractable_text": [],
+      "figure_captions": 53,
+      "typed_figure_captions": 46,
+      "figure_pages_with_source_caption": [],
+      "page_records": [
+        {
+          "page": 1,
+          "text_chars": 467,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 1 MINISTRY OF EDUCATION AND TRAINING FPT UNIVERSITY Capstone Project Document Sketch2Life: Collaborative Creative Learning with AI for Children Sketch2Life Group Members Đỗ Cao Đạt | SE193713 | L"
+        },
+        {
+          "page": 2,
+          "text_chars": 5928,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 2 Table of Contents Table of Contents ...................................................................................................................................................2 Acknowle"
+        },
+        {
+          "page": 3,
+          "text_chars": 5303,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 3 2. Database Design...........................................................................................................................................27 3. Detailed Design .............."
+        },
+        {
+          "page": 4,
+          "text_chars": 1751,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 4 Definitions and Acronyms Acronym Definition AI Artificial Intelligence API Application Programming Interface ADR Architecture Decision Record BE Backend CI Continuous Integration ERD Entity Rel"
+        },
+        {
+          "page": 5,
+          "text_chars": 2773,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 5 1.2 Project Team Member Code Role / ownership Đỗ Cao Đạt SE193713 Leader; fullstack and cross-surface acceptance Phạm Tấn Hiếu SE184252 BE2; AI and learning-media services Vũ Chí Bảo SE182733 F"
+        },
+        {
+          "page": 6,
+          "text_chars": 1705,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 6 planning target, not a measured load result. The opportunity is a teacher-managed flow that joins expressive drawing, safe review, collaborative participation and practical off-screen learning "
+        },
+        {
+          "page": 7,
+          "text_chars": 3537,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 7 7. Stakeholders and Classroom Setting The primary setting is a teacher-led classroom pilot at one school, with one class targeting up to 40 unique admitted children. The number 40 is a product "
+        },
+        {
+          "page": 8,
+          "text_chars": 3143,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 8 Work package Primary outputs Effort / status WP3 AI and learning media Vision, separate sketch suggestions, review gates, knowledge/video and provenance Source modules and contracts exist; Moda"
+        },
+        {
+          "page": 9,
+          "text_chars": 2549,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 9 • Use synthetic fixtures in development. Do not commit credentials, real child data or provider secrets. • Run the repository security validator before each commit or push; no commit or push is"
+        },
+        {
+          "page": 10,
+          "text_chars": 2395,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 10 Relative window Work / output gate Lead Current status W2-W3 / 2 wks Planning and requirements: Registration baseline, SRS, traceability, backlog Đạt; all members SRS v3.3/B28 and Rev12 diagra"
+        },
+        {
+          "page": 11,
+          "text_chars": 1842,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 11 5. Project Communications Use the project repository for versioned requirements, plans, architecture decisions, tests and review evidence. Use the team’s agreed meeting channel for sprint coor"
+        },
+        {
+          "page": 12,
+          "text_chars": 2024,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 12 7. Detailed Work Breakdown and Estimate The WBS decomposes the registered product into implementable packages. The estimate totals 252 preliminary person-days. Category totals are planning all"
+        },
+        {
+          "page": 13,
+          "text_chars": 2588,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 13 8. Relative Schedule, Dependencies and Gates The 15-week sequence follows the school sample's phases. It is relative to kickoff within the registered September 2026–March 2027 envelope. Exact "
+        },
+        {
+          "page": 14,
+          "text_chars": 1176,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 14 9. Deliverable Register No. Deliverable Window Status / evidence boundary 1 Project Introduction and initial Project Management Plan W1 Initial draft exists in the Review 2 package; instructor"
+        },
+        {
+          "page": 15,
+          "text_chars": 2376,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 15 10. Risk Register and Response ID Risk Effect Response Owner Gate R￾01 DB acceptance is blocked by migration and contract gates No repeatable PostgreSQL FE-to-BE proof; four DB cases were skip"
+        },
+        {
+          "page": 16,
+          "text_chars": 4062,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 16 ion pending R￾08 State/contra ct drift across modules SRS B19.4 target registries exceed currently accepted wire-state mappings. Review all lifecycle diagrams against contracts and transition "
+        },
+        {
+          "page": 17,
+          "text_chars": 3569,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 17 Unit/contract/CI evidence for owned features S D R R WF-01 Prepare and admit classroom session S I S D WF-02 Join, draw and recover a collaborative canvas S S D R WF-03 Review an AI sketch sug"
+        },
+        {
+          "page": 18,
+          "text_chars": 3777,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 18 2. User Requirements 2.1 Actors and authorization Actor Goals Authorization boundary Child participant Join, draw, request/view/hide/decline reviewed suggestion, share, reflect Teacher-managed"
+        },
+        {
+          "page": 19,
+          "text_chars": 3493,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 19 3. Functional Requirements 3.1 System functional overview Figure 3. Screen Flow: Appendix D, Figure D17. 3.1.1 Screen inventory Surface Screens / tasks Authorization notes Child Android Join /"
+        },
+        {
+          "page": 20,
+          "text_chars": 3118,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 20 ID Requirement summary Authority / refinement FR007 Configure topic, age range, drawing tools, groups and session preset Confirmed FR008 Create, edit and manage session groups and members Conf"
+        },
+        {
+          "page": 21,
+          "text_chars": 3309,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 21 ID Requirement summary Authority / refinement FR037 Show truthful video states including Generating, Ready for Review, Approved, Playing and Failed Confirmed baseline states FR038 Wait while v"
+        },
+        {
+          "page": 22,
+          "text_chars": 2724,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 22 ID Attribute Requirement / verification NFR04 Provenance Every accepted original and derivative in test fixtures retains source/hash/version and review decision. NFR05 Recovery 100% of acknowl"
+        },
+        {
+          "page": 23,
+          "text_chars": 1708,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 23 5. Complete Product Module and Actor Model ID Module Responsibility and rules M01 Identity, roles and permissions Adult authentication, verified principal, scoped authorization and capability "
+        },
+        {
+          "page": 24,
+          "text_chars": 3183,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 24 6. Full Use Case Catalog UC-001 to UC-038 The catalog retains the full SRS v3.3 scope. A use case identifies the main actor and the functional requirements it elaborates; actor role never gran"
+        },
+        {
+          "page": 25,
+          "text_chars": 3676,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 25 7. Logical Data Dictionary and Invariants The logical model below is the target domain view from SRS v3.3. It is not a claim that every entity has already been migrated. Report 4 maps each log"
+        },
+        {
+          "page": 26,
+          "text_chars": 1565,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 26 8. Business Rules and Authorization Rule Normative behavior BR-01 The Child has a Teacher-managed profile and no independent login. BR-02 Adult identity is verified by the backend; client role"
+        },
+        {
+          "page": 27,
+          "text_chars": 3699,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 27 9. Exceptions and Recovery Outcomes Flow Failure or exception Required system outcome Join Wrong/expired code, wrong class, duplicate admission, revoked assignment or pending consent Deny with"
+        },
+        {
+          "page": 28,
+          "text_chars": 3078,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 28 The BE1 core migration defines durable aggregate revisions, canvas operations, idempotency receipts, checkpoints, asset metadata, audit entries, an outbox and consumer receipts. The AI jobs br"
+        },
+        {
+          "page": 29,
+          "text_chars": 999,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 29 3.2.1 AI job class and state model Figure 12. AI/media job lifecycle target: Appendix D, Figure D35. 3.2.2 Video review and playback Figure 13. Video delivery lifecycle target: Appendix D, Fig"
+        },
+        {
+          "page": 30,
+          "text_chars": 1857,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 30 5. Current, Target and Integration Architecture ADR-0019 records the owner-selected classroom-first durable runtime as the target product composition. The current checkout is not yet that fini"
+        },
+        {
+          "page": 31,
+          "text_chars": 2499,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 31 6. Technology, Third-Party Services and Environments Area Declared technology / service Purpose, data and state Child Android apps/child-ui; Expo SDK 55, React Native 0.83.10, React 19 Local Q"
+        },
+        {
+          "page": 32,
+          "text_chars": 3083,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 32 7. API, Event and Service Contract Families The BE1 contract inventory records 47 operations across 42 paths at its historical API snapshot. The current route composition receipt records 76 pa"
+        },
+        {
+          "page": 33,
+          "text_chars": 4656,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 33 8. Logical Data Model and Physical Database Inventory The logical data dictionary in Report 3 is the target model. The current physical database is split into independently owned schema famili"
+        },
+        {
+          "page": 34,
+          "text_chars": 4138,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 34 9. Main State Models and Current Enum Mapping Appendix D, Figures D23–D42, covers all fifteen SRS v3.3/B19.4 lifecycle registries in twenty focused views, including session, device and Data Re"
+        },
+        {
+          "page": 35,
+          "text_chars": 1324,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 35 Membership/admi ssion BE1 has session membership, enrollment and device-grant states; admission is Teacher￾controlled. Separate request, roster admission, group assignment, active membership, "
+        },
+        {
+          "page": 36,
+          "text_chars": 1704,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 36 11. Security, Privacy and Data Lineage Control Design requirement and current status Authentication Verify adult identity at the backend; client role claims are not authoritative. Authorizatio"
+        },
+        {
+          "page": 37,
+          "text_chars": 3041,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 37 V. Software Testing Documentation Testing is designed to demonstrate requirement behavior and system boundaries. The current evidence covers selected local UI checks and backend health/session"
+        },
+        {
+          "page": 38,
+          "text_chars": 2449,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 38 Owner Verification responsibility Hiếu (BE2) AI job lifecycle, review gate, media failure, provider contract Khoa (BE1) Session, authorization, persistence, migration and recovery contract 3.2"
+        },
+        {
+          "page": 39,
+          "text_chars": 3382,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 39 6. Expanded Verification Strategy and Case Register BM01 proposes a reproducible 73-case planning target: 18 mandatory-feature cases, four workflow cases, six candidate NFR rows, 30 representa"
+        },
+        {
+          "page": 40,
+          "text_chars": 3305,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 40 TC￾012 MF-04 / FR027/028 Child hides or declines proposal (Child; owner Hiếu) Teacher-approved version is available Child choice is stored; drawing continues unchanged Candi date target only N"
+        },
+        {
+          "page": 41,
+          "text_chars": 3704,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 41 TC￾025 STATE / ClassroomSe ssion Legal transition Active → Paused (Authorized actor / worker; owner Khoa) Entity is Active; trigger: Teacher pauses Transition to Paused occurs once and is vers"
+        },
+        {
+          "page": 42,
+          "text_chars": 3705,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 42 TC￾038 STATE / AIJob Legal transition running → failed_retryable (Authorized actor / worker; owner Hiếu) Entity is running; trigger: Transient failure Transition to failed_retryable occurs onc"
+        },
+        {
+          "page": 43,
+          "text_chars": 3211,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 43 TC￾051 STATE / VideoReview Legal transition Failed → EndedEarly (Authorized actor / worker; owner Hiếu) Entity is Failed; trigger: Teacher ends session Transition to EndedEarly occurs once and"
+        },
+        {
+          "page": 44,
+          "text_chars": 3280,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 44 7. Test Levels, Environments and Evidence Level Coverage Owner / environment Evidence Unit / domain State invariants, age/material rules, authorization policy, idempotency and error mapping Fe"
+        },
+        {
+          "page": 45,
+          "text_chars": 3021,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 45 9. Historical Test Reports and Limits Receipt Historical result What it demonstrates What it does not demonstrate FEAT-047 BE1 backend, 2026-10-15 2,173 backend tests, six skipped; three Postg"
+        },
+        {
+          "page": 46,
+          "text_chars": 2128,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 46 Work item Status Evidence / next gate FEAT-059 structure cleanup Local changes and bounded historical checks are recorded Historical receipts do not prove a clean tagged release or all-app/sta"
+        },
+        {
+          "page": 47,
+          "text_chars": 2476,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 47 5. Current Workstream and Integration Status Workstream Present source evidence Open gate / limitation Owner Registration and SRS/SDD Draft documents trace registration v1.2, SRS v3.3/B28, 66 "
+        },
+        {
+          "page": 48,
+          "text_chars": 403,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 48 ion pending Cross-surface verification Historical FEAT-060 checks: Child 18 suites/26 tests, Teacher 3 suites/6 tests, backend 22 passed; four PostgreSQL cases skipped. No staging E2E or devic"
+        },
+        {
+          "page": 49,
+          "text_chars": 2905,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 49 6. Owner Decisions and Closure Conditions Decision / task Owner Required evidence Target window / due Administrative project/class identifiers Project owner provided submission context FA26SE2"
+        },
+        {
+          "page": 50,
+          "text_chars": 1374,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 50 [2] Collaborative Learning SRS v3.3, FEAT-039, repository artifact. Current owner-approved detailed actor, functional, data, state, API, privacy and acceptance source. [3] Sketch2Life reposito"
+        },
+        {
+          "page": 51,
+          "text_chars": 590,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 51 Appendix D. Editable Draw.io Diagram Gallery Figures D01–D22 reproduce the five supplied Draw.io files as derived, editable pages. Figures D23–D42 present the fifteen SRS v3.3/B19.4 lifecycle "
+        },
+        {
+          "page": 52,
+          "text_chars": 90,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 52 Figure D01. Business Context Diagram type: Context Diagram."
+        },
+        {
+          "page": 53,
+          "text_chars": 101,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 53 Figure D02. C4 System Context Diagram type: C4 System Context Diagram."
+        },
+        {
+          "page": 54,
+          "text_chars": 96,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 54 Figure D03. Use Case Overview Diagram type: UML Use Case Diagram."
+        },
+        {
+          "page": 55,
+          "text_chars": 104,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 55 Figure D04. Use Case Details — page 2 Diagram type: UML Use Case Diagram."
+        },
+        {
+          "page": 56,
+          "text_chars": 104,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 56 Figure D05. Use Case Details — page 3 Diagram type: UML Use Case Diagram."
+        },
+        {
+          "page": 57,
+          "text_chars": 104,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 57 Figure D06. Use Case Details — page 4 Diagram type: UML Use Case Diagram."
+        },
+        {
+          "page": 58,
+          "text_chars": 104,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 58 Figure D07. Use Case Details — page 5 Diagram type: UML Use Case Diagram."
+        },
+        {
+          "page": 59,
+          "text_chars": 104,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 59 Figure D08. Use Case Details — page 6 Diagram type: UML Use Case Diagram."
+        },
+        {
+          "page": 60,
+          "text_chars": 104,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 60 Figure D09. Use Case Details — page 7 Diagram type: UML Use Case Diagram."
+        },
+        {
+          "page": 61,
+          "text_chars": 104,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 61 Figure D10. Use Case Details — page 8 Diagram type: UML Use Case Diagram."
+        },
+        {
+          "page": 62,
+          "text_chars": 104,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 62 Figure D11. Use Case Details — page 9 Diagram type: UML Use Case Diagram."
+        },
+        {
+          "page": 63,
+          "text_chars": 105,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 63 Figure D12. Use Case Details — page 10 Diagram type: UML Use Case Diagram."
+        },
+        {
+          "page": 64,
+          "text_chars": 105,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 64 Figure D13. Use Case Details — page 11 Diagram type: UML Use Case Diagram."
+        },
+        {
+          "page": 65,
+          "text_chars": 105,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 65 Figure D14. Use Case Details — page 12 Diagram type: UML Use Case Diagram."
+        },
+        {
+          "page": 66,
+          "text_chars": 100,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 66 Figure D15. Main Session Sequence Diagram type: UML Sequence Diagram."
+        },
+        {
+          "page": 67,
+          "text_chars": 104,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 67 Figure D16. Detailed Session Sequence Diagram type: UML Sequence Diagram."
+        },
+        {
+          "page": 68,
+          "text_chars": 89,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 68 Figure D17. Screen Flow Diagram type: Screen Flow Diagram."
+        },
+        {
+          "page": 69,
+          "text_chars": 89,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 69 Figure D18. Class Diagram Diagram type: UML Class Diagram."
+        },
+        {
+          "page": 70,
+          "text_chars": 105,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 70 Figure D19. Logical ERD Diagram type: Logical Entity-Relationship Diagram."
+        },
+        {
+          "page": 71,
+          "text_chars": 94,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 71 Figure D20. Khoa ERD Diagram type: Entity-Relationship Diagram."
+        },
+        {
+          "page": 72,
+          "text_chars": 105,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 72 Figure D21. System Architecture Diagram type: System Architecture Diagram."
+        },
+        {
+          "page": 73,
+          "text_chars": 93,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 73 Figure D22. Package Diagram Diagram type: UML Package Diagram."
+        },
+        {
+          "page": 74,
+          "text_chars": 97,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 74 Figure D23. Session Lifecycle Diagram type: State Machine Diagram."
+        },
+        {
+          "page": 75,
+          "text_chars": 106,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 75 Figure D24. Session Pause and Recovery Diagram type: State Machine Diagram."
+        },
+        {
+          "page": 76,
+          "text_chars": 105,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 76 Figure D25. Session Terminal Outcomes Diagram type: State Machine Diagram."
+        },
+        {
+          "page": 77,
+          "text_chars": 111,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 77 Figure D26. Shared Learning Stage Lifecycle Diagram type: State Machine Diagram."
+        },
+        {
+          "page": 78,
+          "text_chars": 104,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 78 Figure D27. Group Progress Lifecycle Diagram type: State Machine Diagram."
+        },
+        {
+          "page": 79,
+          "text_chars": 111,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 79 Figure D28. Participant Admission Lifecycle Diagram type: State Machine Diagram."
+        },
+        {
+          "page": 80,
+          "text_chars": 107,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 80 Figure D29. Device Connection Lifecycle Diagram type: State Machine Diagram."
+        },
+        {
+          "page": 81,
+          "text_chars": 103,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 81 Figure D30. Device Grant Revocation Diagram type: State Machine Diagram."
+        },
+        {
+          "page": 82,
+          "text_chars": 111,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 82 Figure D31. Draft Synchronization Lifecycle Diagram type: State Machine Diagram."
+        },
+        {
+          "page": 83,
+          "text_chars": 105,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 83 Figure D32. Sketch Pipeline Lifecycle Diagram type: State Machine Diagram."
+        },
+        {
+          "page": 84,
+          "text_chars": 115,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 84 Figure D33. Child Suggestion Response Lifecycle Diagram type: State Machine Diagram."
+        },
+        {
+          "page": 85,
+          "text_chars": 109,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 85 Figure D34. Knowledge Editorial Lifecycle Diagram type: State Machine Diagram."
+        },
+        {
+          "page": 86,
+          "text_chars": 106,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 86 Figure D35. AI and Media Job Lifecycle Diagram type: State Machine Diagram."
+        },
+        {
+          "page": 87,
+          "text_chars": 104,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 87 Figure D36. Video Delivery Lifecycle Diagram type: State Machine Diagram."
+        },
+        {
+          "page": 88,
+          "text_chars": 108,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 88 Figure D37. Activity Execution Lifecycle Diagram type: State Machine Diagram."
+        },
+        {
+          "page": 89,
+          "text_chars": 101,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 89 Figure D38. Observation Lifecycle Diagram type: State Machine Diagram."
+        },
+        {
+          "page": 90,
+          "text_chars": 109,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 90 Figure D39. Content Publication Lifecycle Diagram type: State Machine Diagram."
+        },
+        {
+          "page": 91,
+          "text_chars": 102,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 91 Figure D40. Data Request Lifecycle Diagram type: State Machine Diagram."
+        },
+        {
+          "page": 92,
+          "text_chars": 114,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 92 Figure D41. Data Request Cancellation Outcomes Diagram type: State Machine Diagram."
+        },
+        {
+          "page": 93,
+          "text_chars": 116,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 93 Figure D42. Data Request External Purge Outcomes Diagram type: State Machine Diagram."
+        },
+        {
+          "page": 94,
+          "text_chars": 98,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 94 Figure D43. WF-01 Prepare and Admit Diagram type: Activity Diagram."
+        },
+        {
+          "page": 95,
+          "text_chars": 115,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 95 Figure D44. WF-02 Collaborative Drawing and Recovery Diagram type: Activity Diagram."
+        },
+        {
+          "page": 96,
+          "text_chars": 109,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 96 Figure D45. WF-03 Request and Review AI Sketch Diagram type: Activity Diagram."
+        },
+        {
+          "page": 97,
+          "text_chars": 116,
+          "has_figure_caption": true,
+          "has_diagram_type_caption": true,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 97 Figure D46. WF-04 Reviewed Learning and Session Close Diagram type: Activity Diagram."
+        },
+        {
+          "page": 98,
+          "text_chars": 1877,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 98 Appendix E. Current Delivery, Proposed Next Work and Unknowns Owner-delegated dependency proposal dated 24 October 2026. Keep/Defer controls only near-term sequencing; no item is omitted from "
+        },
+        {
+          "page": 99,
+          "text_chars": 2528,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 99 E2. Near-term filter for owner review Item / proposal Reason and dependency Open questions (TBD unless confirmed) N1 — KEEP Approve one Alembic lineage, clean install/upgrade and rollback befo"
+        },
+        {
+          "page": 100,
+          "text_chars": 918,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "Sketch2Life | Review 2 | 100 E3. Submission and planning unknowns ID Unknown Disposition in this draft U1 Official project/class code Administrative identifiers are FA26SE225 (submitted project record) and SWP490 (offici"
+        }
+      ]
+    },
+    {
+      "name": "SWP490_FA26SE225_R2_SelfReview",
+      "docx_bytes": 15576,
+      "docx_sha256": "a8dfc455b98d36ac7bb0d17dab91cd0770012d8a59f3aaf9f20b044576cc0e93",
+      "docx_zip_integrity": "pass",
+      "paragraph_count": 8,
+      "table_count": 5,
+      "pdf_bytes": 362266,
+      "pdf_sha256": "e4dd8f6beb76eaef1c92f1065e0ff652c6320ea352df9cdb930b4a3fbda96979",
+      "pdf_page_count": 6,
+      "pages_with_no_extractable_text": [],
+      "figure_captions": 0,
+      "typed_figure_captions": 0,
+      "figure_pages_with_source_caption": [],
+      "page_records": [
+        {
+          "page": 1,
+          "text_chars": 2326,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "SWP490 · BM02 Self-Review Report · Page 1 S W P 4 9 0 · C A P S T O N E P R O J E C T · R E V I E W 2 · B M 0 2 SRS/SDD Self-Review Report – Review 2 1. Run Information Project code FA26SE225 (administrative identifier f"
+        },
+        {
+          "page": 2,
+          "text_chars": 2743,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "SWP490 · BM02 Self-Review Report · Page 2 3. Findings and Team Response ID Category Location Finding Severit y Evidence Team response SR￾01 Flows apps/child￾ui; apps/teacher -ui; backend/test s/integration/ test_be1_po s"
+        },
+        {
+          "page": 3,
+          "text_chars": 1954,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "SWP490 · BM02 Self-Review Report · Page 3 ID Category Location Finding Severit y Evidence Team response SR￾04 States / design￾to-code SRS v3.3 B19.4; Report 4 state inventory; backend/src/ sketch2life/in frastructure/ pe"
+        },
+        {
+          "page": 4,
+          "text_chars": 2417,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "SWP490 · BM02 Self-Review Report · Page 4 ID Category Location Finding Severit y Evidence Team response SR￾06 Flows / external services FEAT-057 status; ADR￾0019; runtime configuration WF-03/WF-04 remain gated by FEAT-05"
+        },
+        {
+          "page": 5,
+          "text_chars": 2972,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "SWP490 · BM02 Self-Review Report · Page 5 ID Category Location Finding Severit y Evidence Team response SR￾09 Metadat a / review gate selected registration v1.2; Review 2 guide; current Git refs Administrative identifier"
+        },
+        {
+          "page": 6,
+          "text_chars": 882,
+          "has_figure_caption": false,
+          "has_diagram_type_caption": false,
+          "has_source_caption": false,
+          "text_preview": "SWP490 · BM02 Self-Review Report · Page 6 # Finding ID Summary 5 SR-05 Consent is fail-closed locally, but a complete child-data lifecycle—purpose proof, class-specific retention, derivative/shared-copy inventory, export"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+stateDiagram-v2
+  [*] --> LocalOnly
+  LocalOnly --> Queued: eligible for sync
+  Queued --> SentUnacknowledged
+  SentUnacknowledged --> AcceptedDurable: durable receipt
+  SentUnacknowledged --> RejectedRecoverable: conflict or policy reject
+  RejectedRecoverable --> Queued: corrected and revalidated
+  SentUnacknowledged --> Quarantined: unsafe to replay
+  Queued --> Expired: replay window ends
+  RejectedRecoverable --> Expired
+  note right of AcceptedDurable: Local or rejected work is not accepted portfolio evidence.

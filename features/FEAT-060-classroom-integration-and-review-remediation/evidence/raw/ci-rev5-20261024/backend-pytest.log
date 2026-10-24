@@ -1,0 +1,34 @@
+..........................ssss                                           [100%]
+=================================== PASSES ====================================
+=========================== short test summary info ===========================
+PASSED tests/contract/test_app_composition.py::test_compatibility_app_preserves_baseline_route_surface
+PASSED tests/contract/test_app_composition.py::test_compatibility_app_keeps_be1_and_demo_services_on_app_state
+PASSED tests/contract/test_app_composition.py::test_classroom_profile_excludes_process_local_demo_routes
+PASSED tests/contract/test_app_composition.py::test_demo_profile_excludes_durable_classroom_routes
+PASSED tests/contract/test_session_http_api.py::test_session_create_is_ephemeral_client_idempotent_and_replayable
+PASSED tests/contract/test_session_http_api.py::test_session_create_rejects_conflicting_retry_key_and_duplicate_id
+PASSED tests/contract/test_session_http_api.py::test_session_create_validates_uuid_actor_version_and_operation
+PASSED tests/contract/test_session_http_api.py::test_session_read_returns_typed_snapshot_and_requires_trace_headers
+PASSED tests/contract/test_session_http_api.py::test_expired_session_returns_410_and_removes_ephemeral_state
+PASSED tests/contract/test_session_http_api.py::test_openapi_exposes_session_contract_but_not_legacy_audio_route
+PASSED tests/unit/test_classroom_stage_policy.py::test_stage_policy_accepts_only_the_next_ordered_stage[0]
+PASSED tests/unit/test_classroom_stage_policy.py::test_stage_policy_accepts_only_the_next_ordered_stage[1]
+PASSED tests/unit/test_classroom_stage_policy.py::test_stage_policy_accepts_only_the_next_ordered_stage[2]
+PASSED tests/unit/test_classroom_stage_policy.py::test_stage_policy_accepts_only_the_next_ordered_stage[3]
+PASSED tests/unit/test_classroom_stage_policy.py::test_stage_policy_accepts_only_the_next_ordered_stage[4]
+PASSED tests/unit/test_classroom_stage_policy.py::test_stage_policy_accepts_only_the_next_ordered_stage[5]
+PASSED tests/unit/test_classroom_stage_policy.py::test_stage_policy_accepts_only_the_next_ordered_stage[6]
+PASSED tests/unit/test_classroom_stage_policy.py::test_stage_policy_accepts_only_the_next_ordered_stage[7]
+PASSED tests/unit/test_classroom_stage_policy.py::test_stage_policy_rejects_skip_rewind_and_terminal_repeat[preparation-explore_draw]
+PASSED tests/unit/test_classroom_stage_policy.py::test_stage_policy_rejects_skip_rewind_and_terminal_repeat[explore_draw-preparation]
+PASSED tests/unit/test_classroom_stage_policy.py::test_stage_policy_rejects_skip_rewind_and_terminal_repeat[completion-completion]
+PASSED tests/unit/test_classroom_stage_policy.py::test_stage_policy_rejects_skip_rewind_and_terminal_repeat[unknown-join]
+PASSED tests/unit/test_classroom_stage_policy.py::test_room_code_join_accepts_exact_six_ascii_digits_only
+PASSED tests/unit/test_classroom_stage_policy.py::test_unfinished_group_requires_explicit_saved_draft
+PASSED tests/unit/test_classroom_stage_policy.py::test_early_end_requires_one_of_the_confirmed_categories
+PASSED tests/unit/test_session_lock_pool.py::test_session_lock_pool_serializes_same_session_but_not_other_sessions
+SKIPPED [1] tests\integration\test_be1_postgres_api.py:131: set BE1_TEST_DATABASE_URL to run PostgreSQL-backed BE1 acceptance tests
+SKIPPED [1] tests\integration\test_be1_postgres_api.py:311: set BE1_TEST_DATABASE_URL to run PostgreSQL-backed BE1 acceptance tests
+SKIPPED [1] tests\integration\test_be1_postgres_api.py:660: set BE1_TEST_DATABASE_URL to run PostgreSQL-backed BE1 acceptance tests
+SKIPPED [1] tests\integration\test_be1_postgres_api.py:790: set BE1_TEST_DATABASE_URL to run PostgreSQL-backed BE1 acceptance tests
+26 passed, 4 skipped in 3.88s

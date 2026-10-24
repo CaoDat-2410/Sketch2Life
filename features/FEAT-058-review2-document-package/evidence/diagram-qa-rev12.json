@@ -1,0 +1,623 @@
+{
+  "revision": "Rev12",
+  "date": "2026-10-24",
+  "feature": "FEAT-058-review2-document-package",
+  "scope": "generated state-machine/activity diagram visual cleanup; documentation-only",
+  "authored_diagram_count": 24,
+  "state_machine_count": 20,
+  "activity_diagram_count": 4,
+  "figure_range": "D23-D46",
+  "report_pdf_figure_pages": [
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63,
+    64,
+    65,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    72,
+    73,
+    74,
+    75,
+    76,
+    77,
+    78,
+    79,
+    80,
+    81,
+    82,
+    83,
+    84,
+    85,
+    86,
+    87,
+    88,
+    89,
+    90,
+    91,
+    92,
+    93,
+    94,
+    95,
+    96,
+    97
+  ],
+  "report_pdf": "artifacts/submission_r2_rev12/SWP490_FA26SE225_R2_Report1-5_Tracking.pdf",
+  "report_pdf_page_count": 100,
+  "typed_diagram_captions": 46,
+  "figure_source_captions": [],
+  "toc_pages": {
+    "Appendix D": 51,
+    "Appendix E": 98
+  },
+  "full_size_visual_review": {
+    "reviewed_png_pages": [
+      "page-01.png",
+      "page-02.png",
+      "page-03.png",
+      "page-04.png",
+      "page-05.png",
+      "page-06.png",
+      "page-07.png",
+      "page-08.png",
+      "page-09.png",
+      "page-10.png",
+      "page-11.png",
+      "page-12.png",
+      "page-13.png",
+      "page-14.png",
+      "page-15.png",
+      "page-16.png",
+      "page-17.png",
+      "page-18.png",
+      "page-19.png",
+      "page-20.png",
+      "page-21.png",
+      "page-22.png",
+      "page-23.png",
+      "page-24.png"
+    ],
+    "result": "pass",
+    "notes": "State labels, transition labels, nodes and arrows are readable; no overlapping text or ambiguous route intersections were observed. The four activity diagrams were also reviewed individually."
+  },
+  "automated_geometry_qa": {
+    "result": "pass",
+    "collision_counts": {
+      "label_overlaps": 0,
+      "label_node_overlaps": 0,
+      "node_overlaps": 0,
+      "route_node_collisions": 0,
+      "route_label_collisions": 0,
+      "route_crossings": 0,
+      "bridged_crossings": 0
+    },
+    "page_results": [
+      {
+        "page": 1,
+        "type": "State Machine Diagram",
+        "title": "Session Lifecycle",
+        "label_overlaps": 0,
+        "label_node_overlaps": 0,
+        "node_overlaps": 0,
+        "route_node_collisions": 0,
+        "route_label_collisions": 0,
+        "route_crossings": 0,
+        "bridged_crossings": 0
+      },
+      {
+        "page": 2,
+        "type": "State Machine Diagram",
+        "title": "Session Pause and Recovery",
+        "label_overlaps": 0,
+        "label_node_overlaps": 0,
+        "node_overlaps": 0,
+        "route_node_collisions": 0,
+        "route_label_collisions": 0,
+        "route_crossings": 0,
+        "bridged_crossings": 0
+      },
+      {
+        "page": 3,
+        "type": "State Machine Diagram",
+        "title": "Session Terminal Outcomes",
+        "label_overlaps": 0,
+        "label_node_overlaps": 0,
+        "node_overlaps": 0,
+        "route_node_collisions": 0,
+        "route_label_collisions": 0,
+        "route_crossings": 0,
+        "bridged_crossings": 0
+      },
+      {
+        "page": 4,
+        "type": "State Machine Diagram",
+        "title": "Shared Learning Stage Lifecycle",
+        "label_overlaps": 0,
+        "label_node_overlaps": 0,
+        "node_overlaps": 0,
+        "route_node_collisions": 0,
+        "route_label_collisions": 0,
+        "route_crossings": 0,
+        "bridged_crossings": 0
+      },
+      {
+        "page": 5,
+        "type": "State Machine Diagram",
+        "title": "Group Progress Lifecycle",
+        "label_overlaps": 0,
+        "label_node_overlaps": 0,
+        "node_overlaps": 0,
+        "route_node_collisions": 0,
+        "route_label_collisions": 0,
+        "route_crossings": 0,
+        "bridged_crossings": 0
+      },
+      {
+        "page": 6,
+        "type": "State Machine Diagram",
+        "title": "Participant Admission Lifecycle",
+        "label_overlaps": 0,
+        "label_node_overlaps": 0,
+        "node_overlaps": 0,
+        "route_node_collisions": 0,
+        "route_label_collisions": 0,
+        "route_crossings": 0,
+        "bridged_crossings": 0
+      },
+      {
+        "page": 7,
+        "type": "State Machine Diagram",
+        "title": "Device Connection Lifecycle",
+        "label_overlaps": 0,
+        "label_node_overlaps": 0,
+        "node_overlaps": 0,
+        "route_node_collisions": 0,
+        "route_label_collisions": 0,
+        "route_crossings": 0,
+        "bridged_crossings": 0
+      },
+      {
+        "page": 8,
+        "type": "State Machine Diagram",
+        "title": "Device Grant Revocation",
+        "label_overlaps": 0,
+        "label_node_overlaps": 0,
+        "node_overlaps": 0,
+        "route_node_collisions": 0,
+        "route_label_collisions": 0,
+        "route_crossings": 0,
+        "bridged_crossings": 0
+      },
+      {
+        "page": 9,
+        "type": "State Machine Diagram",
+        "title": "Draft Synchronization Lifecycle",
+        "label_overlaps": 0,
+        "label_node_overlaps": 0,
+        "node_overlaps": 0,
+        "route_node_collisions": 0,
+        "route_label_collisions": 0,
+        "route_crossings": 0,
+        "bridged_crossings": 0
+      },
+      {
+        "page": 10,
+        "type": "State Machine Diagram",
+        "title": "Sketch Pipeline Lifecycle",
+        "label_overlaps": 0,
+        "label_node_overlaps": 0,
+        "node_overlaps": 0,
+        "route_node_collisions": 0,
+        "route_label_collisions": 0,
+        "route_crossings": 0,
+        "bridged_crossings": 0
+      },
+      {
+        "page": 11,
+        "type": "State Machine Diagram",
+        "title": "Child Suggestion Response Lifecycle",
+        "label_overlaps": 0,
+        "label_node_overlaps": 0,
+        "node_overlaps": 0,
+        "route_node_collisions": 0,
+        "route_label_collisions": 0,
+        "route_crossings": 0,
+        "bridged_crossings": 0
+      },
+      {
+        "page": 12,
+        "type": "State Machine Diagram",
+        "title": "Knowledge Editorial Lifecycle",
+        "label_overlaps": 0,
+        "label_node_overlaps": 0,
+        "node_overlaps": 0,
+        "route_node_collisions": 0,
+        "route_label_collisions": 0,
+        "route_crossings": 0,
+        "bridged_crossings": 0
+      },
+      {
+        "page": 13,
+        "type": "State Machine Diagram",
+        "title": "AI and Media Job Lifecycle",
+        "label_overlaps": 0,
+        "label_node_overlaps": 0,
+        "node_overlaps": 0,
+        "route_node_collisions": 0,
+        "route_label_collisions": 0,
+        "route_crossings": 0,
+        "bridged_crossings": 0
+      },
+      {
+        "page": 14,
+        "type": "State Machine Diagram",
+        "title": "Video Delivery Lifecycle",
+        "label_overlaps": 0,
+        "label_node_overlaps": 0,
+        "node_overlaps": 0,
+        "route_node_collisions": 0,
+        "route_label_collisions": 0,
+        "route_crossings": 0,
+        "bridged_crossings": 0
+      },
+      {
+        "page": 15,
+        "type": "State Machine Diagram",
+        "title": "Activity Execution Lifecycle",
+        "label_overlaps": 0,
+        "label_node_overlaps": 0,
+        "node_overlaps": 0,
+        "route_node_collisions": 0,
+        "route_label_collisions": 0,
+        "route_crossings": 0,
+        "bridged_crossings": 0
+      },
+      {
+        "page": 16,
+        "type": "State Machine Diagram",
+        "title": "Observation Lifecycle",
+        "label_overlaps": 0,
+        "label_node_overlaps": 0,
+        "node_overlaps": 0,
+        "route_node_collisions": 0,
+        "route_label_collisions": 0,
+        "route_crossings": 0,
+        "bridged_crossings": 0
+      },
+      {
+        "page": 17,
+        "type": "State Machine Diagram",
+        "title": "Content Publication Lifecycle",
+        "label_overlaps": 0,
+        "label_node_overlaps": 0,
+        "node_overlaps": 0,
+        "route_node_collisions": 0,
+        "route_label_collisions": 0,
+        "route_crossings": 0,
+        "bridged_crossings": 0
+      },
+      {
+        "page": 18,
+        "type": "State Machine Diagram",
+        "title": "Data Request Lifecycle",
+        "label_overlaps": 0,
+        "label_node_overlaps": 0,
+        "node_overlaps": 0,
+        "route_node_collisions": 0,
+        "route_label_collisions": 0,
+        "route_crossings": 0,
+        "bridged_crossings": 0
+      },
+      {
+        "page": 19,
+        "type": "State Machine Diagram",
+        "title": "Data Request Cancellation Outcomes",
+        "label_overlaps": 0,
+        "label_node_overlaps": 0,
+        "node_overlaps": 0,
+        "route_node_collisions": 0,
+        "route_label_collisions": 0,
+        "route_crossings": 0,
+        "bridged_crossings": 0
+      },
+      {
+        "page": 20,
+        "type": "State Machine Diagram",
+        "title": "Data Request External Purge Outcomes",
+        "label_overlaps": 0,
+        "label_node_overlaps": 0,
+        "node_overlaps": 0,
+        "route_node_collisions": 0,
+        "route_label_collisions": 0,
+        "route_crossings": 0,
+        "bridged_crossings": 0
+      },
+      {
+        "page": 21,
+        "type": "Activity Diagram",
+        "title": "WF-01 Prepare and Admit",
+        "label_overlaps": 0,
+        "label_node_overlaps": 0,
+        "node_overlaps": 0,
+        "route_node_collisions": 0,
+        "route_label_collisions": 0,
+        "route_crossings": 0,
+        "bridged_crossings": 0
+      },
+      {
+        "page": 22,
+        "type": "Activity Diagram",
+        "title": "WF-02 Collaborative Drawing and Recovery",
+        "label_overlaps": 0,
+        "label_node_overlaps": 0,
+        "node_overlaps": 0,
+        "route_node_collisions": 0,
+        "route_label_collisions": 0,
+        "route_crossings": 0,
+        "bridged_crossings": 0
+      },
+      {
+        "page": 23,
+        "type": "Activity Diagram",
+        "title": "WF-03 Request and Review AI Sketch",
+        "label_overlaps": 0,
+        "label_node_overlaps": 0,
+        "node_overlaps": 0,
+        "route_node_collisions": 0,
+        "route_label_collisions": 0,
+        "route_crossings": 0,
+        "bridged_crossings": 0
+      },
+      {
+        "page": 24,
+        "type": "Activity Diagram",
+        "title": "WF-04 Reviewed Learning and Session Close",
+        "label_overlaps": 0,
+        "label_node_overlaps": 0,
+        "node_overlaps": 0,
+        "route_node_collisions": 0,
+        "route_label_collisions": 0,
+        "route_crossings": 0,
+        "bridged_crossings": 0
+      }
+    ]
+  },
+  "structural_refinements": [
+    {
+      "main": "Session Lifecycle",
+      "companion": "Session Terminal Outcomes",
+      "preserved": "cancellation and early-end transitions"
+    },
+    {
+      "main": "Device Connection Lifecycle",
+      "companion": "Device Grant Revocation",
+      "preserved": "all four grant revocation transitions"
+    },
+    {
+      "main": "Data Request Lifecycle",
+      "companions": [
+        "Data Request Cancellation Outcomes",
+        "Data Request External Purge Outcomes"
+      ],
+      "preserved": "four cancellation routes and all three external purge outcomes"
+    }
+  ],
+  "drawio_master": {
+    "path": "artifacts/diagrams/rev12/drawio/Sketch2Life-Review2-Diagram-Master.drawio",
+    "page_count": 46,
+    "sha256": "8c30956417493bbc61ec111d8efc746702bd7f9fb9a14f76813ecd017f36205c",
+    "remaining_attribution_cells": 0,
+    "source_files_modified": false,
+    "source_files": [
+      {
+        "file": "Sketch2Life-Context.drawio",
+        "sha256": "143c66c0c6e5a450282d37c5b5cd7e3c24172d1770f86a16b82d2f81d1fc6bbe",
+        "pages": 2
+      },
+      {
+        "file": "Sketch2Life-Use-Cases.drawio",
+        "sha256": "b2f08f27789b630e5aa9e52b0b86db65ac0a52ba3cad7ab3e85a2ecf1c6592c5",
+        "pages": 12
+      },
+      {
+        "file": "Sketch2Life-Main-Session-Sequence.drawio",
+        "sha256": "7c010559c552e1d3ae8d24dc2a2b09245f6b37cd06a6c7584c0db528e3f6d1f4",
+        "pages": 2
+      },
+      {
+        "file": "THieuDiagram.drawio",
+        "sha256": "5579524fc9fb4b29fc259e512aaaae05f4d4eefd860e7df4534ee60f7a27b053",
+        "pages": 3
+      },
+      {
+        "file": "Khoa_Sketch2Life_SRS_v3.1_Diagrams.drawio",
+        "sha256": "e093784686ec1f6060ee4367178a9a6ae50d97e0cc1e9e5b51ea35fbce10e10f",
+        "pages": 3
+      }
+    ]
+  },
+  "page_map": [
+    {
+      "figure": "D23",
+      "diagram_type": "State Machine Diagram",
+      "title": "Session Lifecycle",
+      "authored_png": "evidence/render/rev12/diagrams/page-01.png",
+      "reviewed_at_full_size": true
+    },
+    {
+      "figure": "D24",
+      "diagram_type": "State Machine Diagram",
+      "title": "Session Pause and Recovery",
+      "authored_png": "evidence/render/rev12/diagrams/page-02.png",
+      "reviewed_at_full_size": true
+    },
+    {
+      "figure": "D25",
+      "diagram_type": "State Machine Diagram",
+      "title": "Session Terminal Outcomes",
+      "authored_png": "evidence/render/rev12/diagrams/page-03.png",
+      "reviewed_at_full_size": true
+    },
+    {
+      "figure": "D26",
+      "diagram_type": "State Machine Diagram",
+      "title": "Shared Learning Stage Lifecycle",
+      "authored_png": "evidence/render/rev12/diagrams/page-04.png",
+      "reviewed_at_full_size": true
+    },
+    {
+      "figure": "D27",
+      "diagram_type": "State Machine Diagram",
+      "title": "Group Progress Lifecycle",
+      "authored_png": "evidence/render/rev12/diagrams/page-05.png",
+      "reviewed_at_full_size": true
+    },
+    {
+      "figure": "D28",
+      "diagram_type": "State Machine Diagram",
+      "title": "Participant Admission Lifecycle",
+      "authored_png": "evidence/render/rev12/diagrams/page-06.png",
+      "reviewed_at_full_size": true
+    },
+    {
+      "figure": "D29",
+      "diagram_type": "State Machine Diagram",
+      "title": "Device Connection Lifecycle",
+      "authored_png": "evidence/render/rev12/diagrams/page-07.png",
+      "reviewed_at_full_size": true
+    },
+    {
+      "figure": "D30",
+      "diagram_type": "State Machine Diagram",
+      "title": "Device Grant Revocation",
+      "authored_png": "evidence/render/rev12/diagrams/page-08.png",
+      "reviewed_at_full_size": true
+    },
+    {
+      "figure": "D31",
+      "diagram_type": "State Machine Diagram",
+      "title": "Draft Synchronization Lifecycle",
+      "authored_png": "evidence/render/rev12/diagrams/page-09.png",
+      "reviewed_at_full_size": true
+    },
+    {
+      "figure": "D32",
+      "diagram_type": "State Machine Diagram",
+      "title": "Sketch Pipeline Lifecycle",
+      "authored_png": "evidence/render/rev12/diagrams/page-10.png",
+      "reviewed_at_full_size": true
+    },
+    {
+      "figure": "D33",
+      "diagram_type": "State Machine Diagram",
+      "title": "Child Suggestion Response Lifecycle",
+      "authored_png": "evidence/render/rev12/diagrams/page-11.png",
+      "reviewed_at_full_size": true
+    },
+    {
+      "figure": "D34",
+      "diagram_type": "State Machine Diagram",
+      "title": "Knowledge Editorial Lifecycle",
+      "authored_png": "evidence/render/rev12/diagrams/page-12.png",
+      "reviewed_at_full_size": true
+    },
+    {
+      "figure": "D35",
+      "diagram_type": "State Machine Diagram",
+      "title": "AI and Media Job Lifecycle",
+      "authored_png": "evidence/render/rev12/diagrams/page-13.png",
+      "reviewed_at_full_size": true
+    },
+    {
+      "figure": "D36",
+      "diagram_type": "State Machine Diagram",
+      "title": "Video Delivery Lifecycle",
+      "authored_png": "evidence/render/rev12/diagrams/page-14.png",
+      "reviewed_at_full_size": true
+    },
+    {
+      "figure": "D37",
+      "diagram_type": "State Machine Diagram",
+      "title": "Activity Execution Lifecycle",
+      "authored_png": "evidence/render/rev12/diagrams/page-15.png",
+      "reviewed_at_full_size": true
+    },
+    {
+      "figure": "D38",
+      "diagram_type": "State Machine Diagram",
+      "title": "Observation Lifecycle",
+      "authored_png": "evidence/render/rev12/diagrams/page-16.png",
+      "reviewed_at_full_size": true
+    },
+    {
+      "figure": "D39",
+      "diagram_type": "State Machine Diagram",
+      "title": "Content Publication Lifecycle",
+      "authored_png": "evidence/render/rev12/diagrams/page-17.png",
+      "reviewed_at_full_size": true
+    },
+    {
+      "figure": "D40",
+      "diagram_type": "State Machine Diagram",
+      "title": "Data Request Lifecycle",
+      "authored_png": "evidence/render/rev12/diagrams/page-18.png",
+      "reviewed_at_full_size": true
+    },
+    {
+      "figure": "D41",
+      "diagram_type": "State Machine Diagram",
+      "title": "Data Request Cancellation Outcomes",
+      "authored_png": "evidence/render/rev12/diagrams/page-19.png",
+      "reviewed_at_full_size": true
+    },
+    {
+      "figure": "D42",
+      "diagram_type": "State Machine Diagram",
+      "title": "Data Request External Purge Outcomes",
+      "authored_png": "evidence/render/rev12/diagrams/page-20.png",
+      "reviewed_at_full_size": true
+    },
+    {
+      "figure": "D43",
+      "diagram_type": "Activity Diagram",
+      "title": "WF-01 Prepare and Admit",
+      "authored_png": "evidence/render/rev12/diagrams/page-21.png",
+      "reviewed_at_full_size": true
+    },
+    {
+      "figure": "D44",
+      "diagram_type": "Activity Diagram",
+      "title": "WF-02 Collaborative Drawing and Recovery",
+      "authored_png": "evidence/render/rev12/diagrams/page-22.png",
+      "reviewed_at_full_size": true
+    },
+    {
+      "figure": "D45",
+      "diagram_type": "Activity Diagram",
+      "title": "WF-03 Request and Review AI Sketch",
+      "authored_png": "evidence/render/rev12/diagrams/page-23.png",
+      "reviewed_at_full_size": true
+    },
+    {
+      "figure": "D46",
+      "diagram_type": "Activity Diagram",
+      "title": "WF-04 Reviewed Learning and Session Close",
+      "authored_png": "evidence/render/rev12/diagrams/page-24.png",
+      "reviewed_at_full_size": true
+    }
+  ],
+  "document_renderer_note": "The documents-skill LibreOffice renderer was unavailable because soffice.exe is not installed. The report DOCX was exported by Microsoft Word COM; all final PDFs were rendered with PDFium and page images reviewed."
+}

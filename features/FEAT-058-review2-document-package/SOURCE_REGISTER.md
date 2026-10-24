@@ -1,8 +1,17 @@
 # FEAT-058 Review 2 source register
 
-Updated: 2026-10-24 (Asia/Saigon), revision 10 final package and publication record
+Updated: 2026-10-24 (Asia/Saigon), revision 12 diagram and dossier refresh
 
-The current four Review 2 dossiers are in `artifacts/submission_r2_rev10/`. Source locations under `[Downloads]/` are labels for owner-supplied local files; hashes identify the exact inputs. Derived files do not replace the originals.
+The current four Review 2 dossiers are in `artifacts/submission_r2_rev12/`. Source locations under `[Downloads]/` are labels for owner-supplied local files; hashes identify the exact inputs. Derived files do not replace the originals.
+
+## Revision 12 diagram and dossier record — 2026-10-24
+
+- Current source authority remains the owner-selected Registration v1.2, Review 2 guide/templates, canonical SRS v3.3/B28, current FEAT-057/FEAT-060 records, and the five owner-supplied Draw.io originals. Existing hashes below remain authoritative.
+- All five supplied Draw.io files remain byte-identical. Their 22 derived pages are combined with 24 authored pages in `artifacts/diagrams/rev12/drawio/Sketch2Life-Review2-Diagram-Master.drawio`, total 46 pages D01–D46; master SHA-256 and original hashes are in `evidence/diagram-master-qa-rev12.json`.
+- Authored pages D23–D46 comprise twenty state-machine diagrams and four WF-01–WF-04 activity diagrams. Data Request cancellation and external-purge outcomes now have companion views (D41–D42). Workflow activities are D43–D46. Each page/caption identifies its diagram type; source attribution remains in this register/evidence only, not on canvases or figure captions.
+- The 24 authored canvases were individually inspected at full size; automated geometry QA reports zero label/label, label/node, node/node, route/node, route/label or route-crossing collisions. Details and exact page mapping are in `evidence/diagram-qa-rev12.json` and `evidence/render/rev12/diagrams/layout-qa.json`.
+- Four dossier categories remain in `artifacts/submission_r2_rev12/`, each with DOCX and local PDF. Current PDF pages are 6, 10, 100 and 6. All 122 PDF pages were rendered, with zero blank pages; the report contains 46 diagram pages on pages 52–97 and 46 typed captions. Exact hashes and page inventory: `evidence/metrics/rev12-package-qa.json`.
+- The full Registration+BM03 DOCX contains contact data; keep it local. All PDFs and page renders remain local under the repository security policy. CI/P4 remains failed, so no Review 2 tag or tagged BM02 run is claimed.
 
 | Source | Location | SHA-256 | Use and authority |
 |---|---|---|---|
@@ -64,3 +73,14 @@ Rev9 approval amendment and plan hash are retained in `approvals/TASK_APPROVAL.m
 | BM01 Design Brief + Appendix A | `artifacts/submission_r2_rev10/Sketch2Life_R2_DesignBrief.docx` | 4 | Final local PDF is validator-excluded; sections 0–8 use pages 1–3 and Appendix A is page 4. |
 
 Output SHA-256 values, structural checks, page counts and rendering inventory are in `evidence/metrics/final_package_qa_20261024_rev10.json`. Visual page renders remain local under `evidence/render/rev10/final/`.
+
+## Revision 11 source and output record — 2026-10-24
+
+- Authority remains the owner-selected Registration v1.2, the Review 2 guide and BM01/BM02/BM03 templates, canonical SRS v3.3/B28, FEAT-057/FEAT-060 records, and the current repository snapshot. Existing source hashes above remain authoritative; `Phieu_FA26SE225_updated.docx` was not substituted.
+- The five supplied Draw.io inputs are the same 2 Context, 12 Use Case, 2 Sequence, 3 THieu, and 3 Khoa pages already hashed in the Revision 8 refresh inventory. Rev11 rechecked their hashes before derivation; `evidence/diagram-master-qa-rev11.json` records the five hashes and page counts. The original Downloads files were not modified.
+- The 22 Mermaid lifecycle/workflow authoring sources are under `artifacts/diagrams/rev10/mermaid/`. Their editable output is `artifacts/diagrams/rev11/drawio/Sketch2Life-Review2-State-and-Activity.drawio`; 18 pages are State Machine Diagrams and four are Activity Diagrams.
+- Derived full editable master: `artifacts/diagrams/rev11/drawio/Sketch2Life-Review2-Diagram-Master.drawio`, 44 pages total (D01–D22 supplied-derived, D23–D40 state-machine, D41–D44 activity), SHA-256 `6b62b65c3cc282b6a4e0cc3159e0f3edb82266000f6c906c9770779f7071f760`.
+- Sixteen source attribution cells beginning `Nguồn:` were removed from the derived master and the corresponding report PNG regions were sanitized; the source files remain byte-identical. No source attribution appears in figure captions or derived canvases. Diagram types are stated in each report caption and each generated canvas.
+- Layout receipt: `evidence/diagram-qa-rev11.json`; master/source integrity receipt: `evidence/diagram-master-qa-rev11.json`. All 22 authored pages were rendered and visually reviewed. Label-label, label-node, node-node, route-node and route-label collisions are zero. D40 has one e08/e12 route crossing, shown as a raised bridge and encoded in Draw.io as an arc line jump; there are no unbridged crossings.
+- Four current dossier categories in `artifacts/submission_r2_rev11/`: `SWP490_FA26SE225_R2_DesignBrief`, `SWP490_FA26SE225_R2_Registration`, `SWP490_FA26SE225_R2_Report1-5_Tracking`, and `SWP490_FA26SE225_R2_SelfReview`, each with DOCX and local PDF. PDF page counts are 6, 10, 98 and 6. Exact file hashes, DOCX integrity and rendered-page inventory are in `evidence/metrics/rev11-package-qa.json`.
+- The complete Registration+BM03 DOCX contains contact data and is local-only; all PDFs and page renders remain local under the repository security policy. The source diagrams' integrity evidence and non-sensitive editable diagram masters may be committed after the security validator passes.

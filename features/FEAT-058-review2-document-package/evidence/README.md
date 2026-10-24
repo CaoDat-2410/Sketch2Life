@@ -1,5 +1,23 @@
 # Evidence index
 
+## Revision 12 active package — 2026-10-24
+
+- Approved plan: `../plan/PLAN_REV12_STATE_DIAGRAM_ROUTE_REFINEMENT_20261024.md`; direct owner direction and amendment are recorded in `../approvals/TASK_APPROVAL.md`.
+- Four local DOCX/PDF dossier pairs: `../artifacts/submission_r2_rev12/`; page counts are 6, 10, 100 and 6. Package hashes, DOCX ZIP checks and page inventories are in `metrics/rev12-package-qa.json`. Registration+BM03 and all PDFs remain local.
+- The 46-page editable master is `../artifacts/diagrams/rev12/drawio/Sketch2Life-Review2-Diagram-Master.drawio`; all five supplied Draw.io originals remain unchanged. The 24 authored pages are D23–D46 (20 state machines and four workflow activities). Each canvas and each report figure caption names the diagram type; no source attribution appears on a canvas or figure caption.
+- All 24 authored diagrams were visually reviewed at full size. Automated geometry QA reports zero label, node, route, or crossing collisions. Session terminal outcomes, device grant revocation, and Data Request cancellation/external purge use focused companion views. Receipts: `diagram-qa-rev12.json`, `diagram-master-qa-rev12.json`, and `render/rev12/diagrams/layout-qa.json`.
+- All 46 report figures are on PDF pages 52–97. The full report has 100 pages; the Appendix E contents entry points to page 98. All 122 dossier PDF pages were rendered; none are blank or contain figure source captions. The document skill renderer could not start because LibreOffice is absent; Word COM produced the report PDF and PDFium rendered the final PDFs for visual QA.
+- Proposed next-work decisions and unknowns are preserved in Appendix E. FEAT-060 P4 gate is failed; do not create `review-2` or claim a tagged BM02 run. Normal commit/push remains authorized after the required security validator passes.
+
+## Revision 11 active package — 2026-10-24
+
+- Approved plan and authorization: `../plan/PLAN_REV11_DOCUMENT_GAPS_AND_DIAGRAM_POLISH_20261024.md` and `../approvals/TASK_APPROVAL.md`.
+- Four current local DOCX/PDF dossier pairs: `../artifacts/submission_r2_rev11/`; page counts are 6, 10, 98 and 6. Output hashes, DOCX integrity and rendered-page inventory are in `metrics/rev11-package-qa.json`. Registration+BM03 and all PDFs remain local.
+- Diagram QA: `diagram-qa-rev11.json` and `diagram-master-qa-rev11.json`. The derived editable Draw.io master has D01–D44. Sixteen source footnotes were removed only from derived copies; supplied originals were hash-checked and preserved. All 22 authored pages were reviewed; a single Data Request route crossing is visibly bridged and every other geometry-collision count is zero.
+- All final PDF pages were rendered under `render/rev11/documents/`; the gallery's 44 typed captions appear in the consolidated report. Source diagram PNGs were sanitized in `render/rev11/supplied-diagrams-clean/`; raw input exports remain local.
+- Proposed near-term items keep N1–N4/N7 and defer N5/N6/N8/N9; none are removed from SRS scope. Unknowns and tentative owners/dates remain explicit in the report.
+- FEAT-060 local/hosted CI, Iteration 1 evidence, security validation, commit/push and the conditional `review-2` tag/BM02 gate are not yet complete.
+
 ## Revision 10 final package — 2026-10-24
 
 - Plan and approval: `../plan/PLAN_REV10_CURRENT_STATE_DOSSIERS_AND_PUBLICATION_20261024.md`; direct authoring, N1–N9 delegation and commit/push authorization are in `../approvals/TASK_APPROVAL.md` and `../DECISIONS.md`.
