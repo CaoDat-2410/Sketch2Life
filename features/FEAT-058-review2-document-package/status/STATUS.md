@@ -1,8 +1,8 @@
 # Status
 
-- Lifecycle: IN_PROGRESS (Rev10 authoring and visual QA complete; security validation and Git publication pending)
+- Lifecycle: COMPLETE (Rev10 authoring, visual QA, repository security validation and normal Git publication complete)
 - Latest completed package revision: 10 (2026-10-24)
-- Current revision: 10 publication
+- Current revision: 10 complete
 - Last completed historical package: 7 (2026-10-23)
 - Approval: owner request and amendments are recorded in `approvals/TASK_APPROVAL.md`.
 - Scope completed: four Review 2 submission dossiers, each in editable DOCX and PDF. Report 2's detailed Project Management Plan and time plan are integrated into the consolidated Report 1–5/Project Tracking dossier; no fifth standalone PM Plan is included in the submission set.
@@ -23,9 +23,9 @@ Rev10 contains exactly four dossier categories as DOCX/PDF pairs. BM01 sections 
 - Final Rev10 QA receipt: `evidence/metrics/final_package_qa_20261024_rev10.json`.
 - Source register and source hashes: `SOURCE_REGISTER.md`; exact merge-source details: `evidence/notes/BRANCH_MERGE_RESULT_20261023.md` and `evidence/metrics/merged_branch_snapshot_20261023.json`.
 - All 117 Rev10 PDF pages were rendered and visually inspected; final output hashes, DOCX integrity, page counts and diagram inventory are in the Rev10 receipt.
-- Source baseline documented in reports: `dev@0a7ce768c153f2104cff930569c3eda6e484532c`. The working tree is dirty. The `review-2` tag is absent, so BM02 is an evidence-based draft, not a completed tagged-baseline run.
-- Modal is selected; deployment settings and live endpoint are TBD. No application tests were run for this documentation task. No tag, deployment, provider call or reviewer approval is claimed. User-authorized commit/push is pending.
-- Existing runtime changes form part of the current worktree and are included in the intended validated publication; local-only personal-contact files, PDFs, renders, raw logs, unapproved imagery and archives are excluded.
+- Source baseline documented in reports: `dev@0a7ce768c153f2104cff930569c3eda6e484532c`. Package/runtime changes were committed as `9d4ca30a` and pushed to `origin/dev`; the `review-2` tag remains absent, so BM02 is an evidence-based draft, not a completed tagged-baseline run.
+- Modal is selected; deployment settings and live endpoint are TBD. No application tests were run for this documentation task. No tag, deployment, provider call or reviewer approval is claimed.
+- The public repository received the safe editable DOCX and Draw.io sources, scripts and records. The contact-bearing Registration+BM03 DOCX, all PDFs, rendered page images and raw Mermaid import logs remain local. FEAT-060 feature-owned validation evidence is committed; unapproved imagery and archives remain excluded.
 
 Revision 6 outputs remain historical. Revision 7 fixes horizontal overflow and supersedes revision 6 for this submission request.
 
