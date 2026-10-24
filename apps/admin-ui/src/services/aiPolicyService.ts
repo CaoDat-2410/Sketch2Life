@@ -1,4 +1,4 @@
 export const aiPolicyService = {
   getRules: async () => [],
-  updateThreshold: async (key: string, val: number) => {},
+  updateThreshold: async (_key: string, _val: number) => {},
 };

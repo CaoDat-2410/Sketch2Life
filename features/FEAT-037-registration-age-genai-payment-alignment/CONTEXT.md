@@ -1,14 +1,22 @@
-# FEAT-037 registration, age and GenAI alignment
+# FEAT-037 registration and SRS alignment
 
-- Status: IN_PROGRESS
+- Status: IN_PROGRESS; the registration-form v1.8 task is complete and documented for review.
 - Owner: Project owner
-- Goal: align the registered product scope and age-sensitive GenAI target with children younger than nine, and record the owner-approved capstone-trial package/payment/credit assumptions.
-- Scope: age-boundary requirements and enforcement; SRS/context/GenAI alignment; market comparison; a detailed derived registration form v1.6; trial package and credit documentation.
-- Non-goals: live billing, payment provider selection, catalog deletion, deployment, and changes to unrelated working-tree files.
-- Dependencies: `feat-029-master-srs`, `feat-020-backend-ai-workflow-demo`, `registration-phieu-fa26se225` in `docs/context/SOURCE_REGISTER.md`.
-- Risks: GenAI usage cost and payment fees are not yet measured; no payment provider is selected for live integration.
+- Goal: keep the FA26 registration form aligned with the owner-approved collaborative creative-learning scope in canonical Master SRS v3.1.
+- Current scope: derived form v1.8 and its provenance, content, and visual-review records.
+- Non-goals: SRS or runtime changes, payment or provider work, data collection, deployment, and changes to unrelated working-tree files.
+- Dependencies: `feat-029-master-srs`, `feat-039-collaborative-learning-scope`, and `registration-phieu-fa26se225` in `docs/context/SOURCE_REGISTER.md`.
+- Current product authority: Master SRS v3.1 and the 2026-10-10 owner answers recorded by FEAT-039. Earlier under-9 and capstone-payment assumptions remain historical and do not govern the current form.
+- Current form: `artifacts/Phieu_FA26SE225_v1.8.docx`, based directly on the user-selected `artifacts/Phieu_FA26SE225_v1.2.docx`; v1.7 remains preserved as the prior derivative from v1.5.
+- Artifact note: the 2026-10-06 v1.6 evidence note names an output file that is absent from the repository. The v1.7 derivation uses extant v1.5 and records that lineage explicitly.
 
-## Context snapshot
+## Current direction — 2026-10-12
+
+The registration form now describes ages 36–155 completed months, the age bands 3–5, 6–8, and 9–12, managed child profiles with QR/session-code admission, class and group drawing, Teacher-reviewed AI suggestions, reviewed knowledge/video, off-screen activity, reflection, assessment, consent, retention, and recovery. The one-school pilot target is one class of up to 40 children. The school collects legal-representative consent; authorized Teachers or Super Admins record its evidence and permitted purposes. Session and artwork retention defaults to 90 days after session end; other data classes have separate policies.
+
+The current form removes the superseded under-9 population, Parent portal, package/payment/credit assumptions, fixed screen-time limit, and old story/video duration and exact-script requirements. It preserves the supplied form's section order, three tables, class/duration fields, and signature blocks. The v1.8 DOCX is rendered through Microsoft Word because the packaged renderer cannot find LibreOffice; all eight pages were visually inspected. It preserves the original v1.2 structure: 159 paragraphs and table shapes 2×5, 5×6, and 1×2.
+
+## Historical context snapshot — 2026-10-06, superseded for current product scope
 
 On 2026-10-06 the owner directly changed the product age target to `<9` and asked that SRS, context, and GenAI materials be aligned. The approved interpretation is 0–107 completed months inclusive, using the existing in-scope bands 0–3, 3–6, and 6–9. Existing 9–12 catalog records remain preserved as source data and are outside the supported product target.
 
@@ -16,13 +24,13 @@ The owner approved trying this capstone-trial package model: Free 10 credits/mon
 
 Age-boundary implementation keeps existing versioned wire DTOs compatible with historical/catalog values. The current target is enforced in application services before age-specific selection, Gate B media resolution, renderer localization, and GenAI provider execution. The 9–12 catalog rows and historical manifests remain readable and unchanged.
 
-The originally registered path `owner-local attachment Phieu_FA26SE225.docx` was absent during the first review. On 2026-10-06 the owner attached `owner-local attachment Phieu_FA26SE225_updated.docx`, version 1.1, SHA-256 `21739477916a1fc2e03cc0e22b6f8dd383a03f6831f2ea4eeb1593747cabb548`, and requested a fix. Derived versions 1.2, 1.3 and 1.4 are preserved. Version 1.5 was derived directly from v1.1 to retain the original layout and three-table/signature structure while carrying the approved trial assumptions in the existing Other Comments slot; it remains unchanged as the direct source for current v1.6.
+The originally registered path `owner-local attachment Phieu_FA26SE225.docx` was absent during the first review. On 2026-10-06 the owner attached `owner-local attachment Phieu_FA26SE225_updated.docx`, version 1.1, SHA-256 `21739477916a1fc2e03cc0e22b6f8dd383a03f6831f2ea4eeb1593747cabb548`, and requested a fix. Derived versions 1.2, 1.3 and 1.4 are preserved. Version 1.5 was derived directly from v1.1 to retain the original layout and three-table/signature structure while carrying the then-approved trial assumptions in the existing Other Comments slot. Its recorded SHA-256 is `47F23FD4486A4605208BB44A7B3696081F973DF74D4F1B8D56F7D35C34DF6956`. The v1.6 evidence note says it was used as the v1.6 source; the v1.6 DOCX itself is absent from the repository.
 
-## Source boundary
+## Historical source boundary — 2026-10-06
 
 - `registration-phieu-fa26se225` is the registered source for the capstone form; its original remains unchanged.
-- FEAT-029 Master SRS v2.0/B35 is the current product-requirements baseline for age and trial package/credit assumptions.
-- FEAT-020 holds the current three-band workflow, story/video plans, and age-sensitive GenAI boundary aligned with the under-9 target; final verification is still pending.
+- FEAT-029 Master SRS v2.0/B35 was the product-requirements baseline for the prior under-9 and trial package/credit assumptions.
+- FEAT-020 records the earlier three-band workflow and age-sensitive GenAI boundary; these age decisions are superseded by the replacement scope in SRS v3.1.
 - Current competitor prices are comparison inputs only; they do not establish Sketch2Life's cost, willingness to pay, or approved prices.
 
 

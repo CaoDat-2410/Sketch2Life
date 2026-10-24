@@ -626,6 +626,7 @@ def reconnect_canvas(
     return {
         "contract": "Be1CanvasReconnectV1",
         "canvas_id": device.turn.canvas_id,
+        "turn_id": device.turn.turn_id,
         "document_epoch": device.turn.document_epoch,
         "current_revision": store.current_revision(
             device.turn.canvas_id, organization_id=organization_id

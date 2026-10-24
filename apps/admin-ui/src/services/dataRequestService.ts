@@ -1,4 +1,4 @@
 export const dataRequestService = {
   listRequests: async () => [],
-  approveErasure: async (requestId: string) => {},
+  approveErasure: async (_requestId: string) => {},
 };

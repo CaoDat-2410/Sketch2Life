@@ -1,0 +1,71 @@
+{
+  "asset_id": "C07b",
+  "use_case": "ui-mockup",
+  "status": "REVIEW_PENDING",
+  "generated_path": "assets/generated/child-app/C07b-dang-tao-video.png",
+  "srs_ui_id": "C07",
+  "screen_kind": "supplementary",
+  "role": "child-app",
+  "prompt": "assets/prompts/C07b.txt",
+  "source_references": [
+    {
+      "path": "features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md",
+      "sha256": "a95c89589843e3555e967c5e486f3bcaf4bbdf9446cb3bc9c49ed16f672964d9",
+      "section": "B23.2"
+    },
+    {
+      "path": "apps/ui-mobile/src/theme.ts",
+      "purpose": "existing design tokens"
+    }
+  ],
+  "generator": "built-in image_gen.imagegen",
+  "captured_at_utc": "2026-10-10T14:16:19.883796+00:00",
+  "generator_output_filename": "exec-9587c5e4-9999-40a4-83a5-d411491bdc85.png",
+  "sha256": "9c024a013e16a0b9602a91c0bd7f985d1b4a35f0379a9e0da1a3bf5affcd84ef",
+  "bytes": 1588885,
+  "width": 1448,
+  "height": 1086,
+  "original_copied_unchanged": true,
+  "synthetic_data_only": true,
+  "qa": {
+    "reviewer": "Codex visual inspection",
+    "status": "INSPECTED",
+    "note": "Inspected truthful generating state: only group original artwork and waiting illustration/status, no playable unapproved frame, percentage/ETA/skip/retry/end/fallback. No drawing-state header. Readable Vietnamese, calm tablet layout, no clipping."
+  },
+  "review": {
+    "status": "REVIEW_PENDING",
+    "reviewer": null,
+    "reviewed_at": null
+  },
+  "applied_path": null,
+  "limitations": "Generated design proposal; not implemented runtime, approved visual or device acceptance.",
+  "input_images": [
+    {
+      "path": "assets/generated/child-app/C03-ban-ve.png",
+      "sha256": "1971eba9c6a4d77d01120e298f008cbda135cfd4f4d19bdd123d83e2211df467",
+      "role": "style reference",
+      "generation_step": 1
+    }
+  ],
+  "generation_history": [
+    {
+      "step": 1,
+      "kind": "generation",
+      "prompt": "assets/prompts/C07b.txt",
+      "input_images": [
+        {
+          "path": "assets/generated/child-app/C03-ban-ve.png",
+          "sha256": "1971eba9c6a4d77d01120e298f008cbda135cfd4f4d19bdd123d83e2211df467",
+          "role": "style reference",
+          "generation_step": 1
+        }
+      ],
+      "output": "assets/generated/child-app/C07b-dang-tao-video.png",
+      "sha256": "9c024a013e16a0b9602a91c0bd7f985d1b4a35f0379a9e0da1a3bf5affcd84ef",
+      "generator_output_filename": "exec-9587c5e4-9999-40a4-83a5-d411491bdc85.png",
+      "selected": true,
+      "disposition": "REVIEW_PENDING",
+      "prompt_sha256": "68761392e9e7993fe87c0ad2964c56cff7d2146a20078770f47d09770d0fa81c"
+    }
+  ]
+}

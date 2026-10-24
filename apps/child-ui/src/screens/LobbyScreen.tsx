@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, StyleSheet, Pressable, Image } from 'react-native'
+import { View, Text, StyleSheet, Pressable } from 'react-native'
 
 export interface LobbyScreenProps {
   kidName: string
@@ -7,7 +7,7 @@ export interface LobbyScreenProps {
   onHelp?: () => void
 }
 
-export function LobbyScreen({ kidName, onReady, onHelp }: LobbyScreenProps) {
+export function LobbyScreen({ kidName, onReady, onHelp: _onHelp }: LobbyScreenProps) {
   return (
     <View style={styles.container}>
       <View style={styles.bubble}>

@@ -108,6 +108,32 @@ features/FEAT-000-harness/evidence/handbook-page-*.png
 features/FEAT-026-current-system-srs/artifacts/Sketch2Life_SRS_Form_qa.pdf
 features/FEAT-029-master-srs/evidence/notes/SOURCES.md
 
+# FEAT-043 generated screen assets remain REVIEW_PENDING and are not runtime-adopted.
+# Keep image previews, iteration captures and packed delivery archives local until approval.
+/features/FEAT-043-srs-ui-screen-set/assets/generated/
+/features/FEAT-043-srs-ui-screen-set/assets/generated.rar
+/features/FEAT-043-srs-ui-screen-set/artifacts/Sketch2Life_UI_SRS_v3.1.zip
+/features/FEAT-043-srs-ui-screen-set/evidence/iterations/
+/features/FEAT-043-srs-ui-screen-set/evidence/screenshots/
+
+# FEAT-058 source PDFs and rendered page QA stay local; publish the editable DOCX/Draw.io sources.
+/features/FEAT-058-review2-document-package/**/*.pdf
+/features/FEAT-058-review2-document-package/evidence/render/
+/features/FEAT-058-review2-document-package/evidence/raw/mermaid-import/
+# The registration submission contains team members' phone numbers and email addresses.
+# Keep that required submission file local because this repository is publicly readable.
+/features/FEAT-058-review2-document-package/artifacts/submission_r2_rev10/Sketch2Life_R2_Registration_BM03.docx
+/features/FEAT-058-review2-document-package/artifacts/submission_r2_rev6/SWP490_FA26SE225_R2_Registration.docx
+/features/FEAT-058-review2-document-package/artifacts/submission_r2_rev7/SWP490_FA26SE225_R2_Registration.docx
+
+# FEAT-060 raw local command logs may contain workstation paths; reviewed summaries are versioned.
+/features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/active-ui-full-check.log
+/features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/admin-ui-integration-check.log
+/features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/implementation-baseline-20261024/admin-check.log
+/features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/implementation-baseline-20261024/backend-contract-tests.log
+/features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/teacher-auth-tests.log
+/features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/teacher-ui-integration-check.log
+
 # Android native build intermediates
 apps/mobile/android/app/.cxx/
 

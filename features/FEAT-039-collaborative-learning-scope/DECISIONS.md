@@ -35,3 +35,20 @@
 - D19: owner chooses default session/artwork retention 90 days after session end; profile/portfolio/audit and copy/backup/provider policies are distinct. Portfolio links cannot silently retain expired raw source.
 - D20: cross-section review fixes receipt replay before new-mutation guards, explicit session start and per-participant leave, group observations vs individual judgements, content publication review, and discovery vs execution preparation. Video skip does not replace off-screen when session continues; prohibited inference remains prohibited regardless evidence/readiness.
 - D21: revision 3 documentation is DONE; canonical v3.1 and consolidated artifact are identical, exact v2.0/v3.0 preserved, IDs/JSON/links/anchors/full trace and independent review verified. Proposed measurements/contracts and runtime/stack/privacy release gates remain unadopted, with global pre-existing validator failures recorded.
+
+## SRS amendment — 2026-10-23
+
+- D22: the owner directly authorized an additive SRS amendment and confirmed that both QR/deep-link and the shared six-digit room code stop accepting new joins when the Teacher starts the class. Children admitted before start retain their grants; handling of already pending requests at the exact start boundary needs contract review.
+- D23: keep any persisted shared learning-stage contract separate from session lifecycle and per-group/per-child progress, as already specified in B19. API/schema details remain proposed and require review/approval before implementation.
+- D24: the owner confirms the product must distinguish full completion (`completed`) from Teacher stopping early (`ended_early`). Do not infer either result from the current `finished` lifecycle state; fields, guards, reason requirements and persistence need BE1 contract review.
+- D25: revision 4 is documentation only. Preserve exact v3.1 and keep both current SRS copies identical; FEAT-060 Plan Rev3 remains DRAFT.
+
+## SRS owner-decision amendment — 2026-10-24
+
+- D26: project owner answered the consolidated Rev5 questionnaire; create additive SRS v3.3/B28, preserve exact v3.2 bytes, and keep the FEAT-039 artifact and FEAT-029 canonical copy byte-identical. Approval and plan hash are recorded in `approvals/TASK_APPROVAL.md`.
+- D27: on successful Start, atomically revoke all still-pending join requests; Child refresh returns `revoked`, while previously admitted grants remain. BE1 must review transaction/error/receipt semantics before implementation.
+- D28: approve the shared room-code policy: active throughout the open Lobby, Teacher rotation before Start, cryptographically random and collision-safe code, keyed-hash storage, generic invalid/closed response, and persistent rate limit of 10 invalid attempts/source IP/15 minutes. BE1 must review trusted-proxy attribution and cross-replica limiter persistence; implementation remains gated.
+- D29: Teacher advances only to the next SRS stage after backend guards and a durable receipt. Assistance may interleave; Teacher may record `not_needed`; arbitrary skip is not allowed.
+- D30: stage rewind stays disabled until OD07 is resolved. This confirms an interim safe guard and does not resolve the final pedagogical policy in OD07.
+- D31: before advancing past incomplete group work, Teacher must select `save_draft`; retain the draft with its group without claiming completion or blocking other groups.
+- D32: `ended_early` requires category `time`, `safety`, `technical`, or `other`; a short Teacher note is optional. Persisted fields/guards remain BE1 contract decisions.

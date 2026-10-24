@@ -1,4 +1,4 @@
 export const videoService = {
-  getLessonVideo: async (sessionId: string) => ({ videoUrl: '' }),
-  listScriptSteps: async (sessionId: string) => [],
+  getLessonVideo: async (_sessionId: string) => ({ videoUrl: '' }),
+  listScriptSteps: async (_sessionId: string) => [],
 };

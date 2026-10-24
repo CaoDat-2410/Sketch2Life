@@ -1,0 +1,20 @@
+flowchart LR
+    Start([Start]) --> SelectClass[Teacher selects assigned class]
+    SelectClass --> OpenLobby[Teacher opens session lobby]
+    OpenLobby --> IssueCode[Runtime issues QR and six-digit code]
+    IssueCode --> ChildRequest[Child submits join request]
+    ChildRequest --> Valid{Lobby open and request valid?}
+    Valid -->|Yes| Pending[Create pending request]
+    Valid -->|No| Reject[Generic rejection; persistent source-IP limit]
+    Pending --> Review[Teacher reviews roster, profile and consent]
+    Review --> Admit{Teacher admits?}
+    Admit -->|Yes| Grant[Create scoped admitted grant]
+    Admit -->|No| Denied[Mark request denied]
+    Grant --> StartNow{Teacher starts session now?}
+    Denied --> StartNow
+    StartNow -->|No| KeepLobby[Keep lobby open]
+    Pending -. still pending at Start .-> AtomicStart[Close new admission; revoke pending requests]
+    StartNow -->|Yes| AtomicStart
+    AtomicStart --> Preserve[Keep already-admitted grants]
+    Preserve --> Active[Session active]
+    Active --> LateJoin[Reject new joins after Start]

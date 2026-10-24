@@ -1,0 +1,115 @@
+{
+  "asset_id": "A04",
+  "use_case": "ui-mockup",
+  "status": "REVIEW_PENDING",
+  "generated_path": "assets/generated/admin-app/A04-quan-tri-noi-dung.png",
+  "srs_ui_id": "A04",
+  "screen_kind": "main",
+  "role": "admin-app",
+  "prompt": "assets/prompts/A04.txt",
+  "source_references": [
+    {
+      "path": "features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md",
+      "sha256": "a95c89589843e3555e967c5e486f3bcaf4bbdf9446cb3bc9c49ed16f672964d9",
+      "section": "B23.4"
+    },
+    {
+      "path": "apps/ui-mobile/src/theme.ts",
+      "purpose": "existing design tokens"
+    }
+  ],
+  "generator": "built-in image_gen.imagegen",
+  "captured_at_utc": "2026-10-10T14:09:16.575737+00:00",
+  "generator_output_filename": "exec-d2bb813f-13b4-44d8-a34a-962b99acc442.png",
+  "sha256": "a3ebfc4ae53e6f6de8ede6113251877151566d629e4014a06197e7e90283e794",
+  "bytes": 1619249,
+  "width": 1586,
+  "height": 992,
+  "original_copied_unchanged": true,
+  "synthetic_data_only": true,
+  "qa": {
+    "reviewer": "Codex visual inspection",
+    "status": "INSPECTED",
+    "note": "Inspected final A04 after two targeted text refinements: consistent shell, exact version and age audience, source/pedagogy/safety checks, distinct review decision versus publication gate, source review neutral rather than unsupported preschool curriculum mapping. Vietnamese readable; no child media. REVIEW_PENDING."
+  },
+  "review": {
+    "status": "REVIEW_PENDING",
+    "reviewer": null,
+    "reviewed_at": null
+  },
+  "applied_path": null,
+  "limitations": "Generated design proposal; not implemented runtime, approved visual or device acceptance.",
+  "input_images": [
+    {
+      "path": "evidence/screenshots/admin-iterations/A04-attempt-02.png",
+      "sha256": "725f4c3ebe9440ae5e1d0ba573015cc910bce6bf7dea7a07108f713153856b6f",
+      "role": "edit target",
+      "original_copied_unchanged": true,
+      "generator_input_filename": "exec-4d353c20-ae1e-4aaa-8758-f9f59324f32d.png"
+    }
+  ],
+  "generation_history": [
+    {
+      "attempt": 1,
+      "prompt": "assets/prompts/history/admin/A04-attempt-01.txt",
+      "generator": "built-in image_gen.imagegen",
+      "input_images": [
+        {
+          "path": "assets/generated/admin-app/A01-tong-quan.png",
+          "sha256": "e2dc6127bce77e3faa424eeb6c648b6e32ee6c46c0e72780cbc2101d83357956",
+          "role": "style reference",
+          "original_copied_unchanged": true
+        }
+      ],
+      "output_filename": "exec-7ea98fa3-612a-4f90-90fc-082a561bd40f.png",
+      "output_sha256": "485886e09ce0bdb97072fd32a1b7489f9fbec93e87d98c9a60e024cf8a4c5116",
+      "selected": false,
+      "output_path": "evidence/screenshots/admin-iterations/A04-attempt-01.png"
+    },
+    {
+      "attempt": 2,
+      "prompt": "assets/prompts/history/admin/A04-attempt-02.txt",
+      "generator": "built-in image_gen.imagegen",
+      "input_images": [
+        {
+          "path": "evidence/screenshots/admin-iterations/A04-attempt-01.png",
+          "sha256": "485886e09ce0bdb97072fd32a1b7489f9fbec93e87d98c9a60e024cf8a4c5116",
+          "role": "edit target",
+          "original_copied_unchanged": true,
+          "generator_input_filename": "exec-7ea98fa3-612a-4f90-90fc-082a561bd40f.png"
+        }
+      ],
+      "output_filename": "exec-4d353c20-ae1e-4aaa-8758-f9f59324f32d.png",
+      "output_sha256": "725f4c3ebe9440ae5e1d0ba573015cc910bce6bf7dea7a07108f713153856b6f",
+      "selected": false,
+      "output_path": "evidence/screenshots/admin-iterations/A04-attempt-02.png"
+    },
+    {
+      "attempt": 3,
+      "prompt": "assets/prompts/history/admin/A04-attempt-03.txt",
+      "generator": "built-in image_gen.imagegen",
+      "input_images": [
+        {
+          "path": "evidence/screenshots/admin-iterations/A04-attempt-02.png",
+          "sha256": "725f4c3ebe9440ae5e1d0ba573015cc910bce6bf7dea7a07108f713153856b6f",
+          "role": "edit target",
+          "original_copied_unchanged": true,
+          "generator_input_filename": "exec-4d353c20-ae1e-4aaa-8758-f9f59324f32d.png"
+        }
+      ],
+      "output_filename": "exec-d2bb813f-13b4-44d8-a34a-962b99acc442.png",
+      "output_sha256": "a3ebfc4ae53e6f6de8ede6113251877151566d629e4014a06197e7e90283e794",
+      "selected": true,
+      "output_path": "assets/generated/admin-app/A04-quan-tri-noi-dung.png"
+    }
+  ],
+  "style_references": [
+    {
+      "path": "assets/generated/admin-app/A01-tong-quan.png",
+      "sha256": "e2dc6127bce77e3faa424eeb6c648b6e32ee6c46c0e72780cbc2101d83357956",
+      "role": "style reference",
+      "original_copied_unchanged": true
+    }
+  ],
+  "prompt_sha256": "32df221d86d0011a1913370af7014cf894a67b6cd0cb48c9e53314b42263fa34"
+}

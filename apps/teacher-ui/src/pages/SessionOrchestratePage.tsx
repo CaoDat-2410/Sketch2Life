@@ -24,8 +24,10 @@ import {
 import artSprout from '../assets/art-sprout.png'
 import artFlowers from '../assets/art-flowers.png'
 import artSun from '../assets/art-sun.png'
+import { loadActiveSession } from '../services/activeSessionStore'
+import { SessionOrchestrateRuntime } from './SessionOrchestrateRuntime'
 
-export function SessionOrchestratePage() {
+function DemoSessionOrchestratePage() {
   const navigate = useNavigate()
 
   return (
@@ -404,4 +406,11 @@ export function SessionOrchestratePage() {
       </div>
     </div>
   )
+}
+
+export function SessionOrchestratePage() {
+  const activeSession = loadActiveSession()
+  if (activeSession) return <SessionOrchestrateRuntime />
+  if (new URLSearchParams(window.location.search).get('demo') === '1') return <DemoSessionOrchestratePage />
+  return <main className="m-7 rounded-2xl border border-slate-200 bg-white p-7"><h1 className="text-2xl font-bold text-slate-900">Chưa có phiên BE1 đang chạy</h1><p className="mt-2 text-sm text-slate-600">Bắt đầu lớp từ phòng chờ BE1. Giao diện mẫu chỉ mở khi thêm ?demo=1 vào đường dẫn.</p></main>
 }

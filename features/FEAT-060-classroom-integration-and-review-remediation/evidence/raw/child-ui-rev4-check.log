@@ -1,0 +1,87 @@
+
+> sketch2life-child@1.0.0 check
+> npm run typecheck && npm run build && npm run lint && npm run test
+
+
+> sketch2life-child@1.0.0 typecheck
+> tsc --noEmit
+
+
+> sketch2life-child@1.0.0 build
+> expo export --platform web
+
+Starting Metro Bundler
+
+Web node_modules\expo-router\entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Web Bundled 492ms node_modules\expo-router\entry.js (726 modules)
+
+› Assets (33):
+assets\art-flowers.4593f1eb3316e3bc94b74a1c12f18e75.png (31KB)
+assets\art-garden-wide.2f75c8c45a14c64f44fe1f20f1e329cf.png (166KB)
+assets\art-sprout.aebd483f36e43e595321d44218c6244b.png (39KB)
+assets\avatar-la.489efbd87dbd8f8df4b0697f12888aaa.png (7.9KB)
+assets\avatar-may.00d814ea3090f97931ea4ecf774e7897.png (6.1KB)
+assets\avatar-nang.69aa9f70c90a1fc6920ae471e3bc2835.png (7.7KB)
+assets\gallery-hoa.bd05f0e11714538a6f176d4a1a0ecb07.png (106KB)
+assets\gallery-la.b10463aad3dde4e6d39ea3dba7a9c2b2.png (117KB)
+assets\join-garden.51b921f7c69e060150529a21a581c54c.png (3.2MB)
+assets\logo-icon.d76d9a3fcb201c40c583e49bcd828ed8.png (5.1KB)
+assets\mascot-leaf.1824161953683ac7da73cec52869916f.png (1.3MB)
+assets\script-step1.93f2fd285a379b3205e8db201aa52a38.png (7KB)
+assets\script-step2.e34f3cc1816372e11962f4f9d819c7d0.png (10KB)
+assets\script-step3.121c99abcde032600a05b6b252bc15fd.png (12KB)
+assets\video-clapper.13218b670c8b0a62a08ab8e980d25ada.png (53KB)
+node_modules\@react-navigation\elements\lib\module\assets\back-icon-mask.0a328cd9c1afd0afe8e3b1ec5165b1b4.png (653B)
+node_modules\@react-navigation\elements\lib\module\assets\back-icon.35ba0eaec5a4f5ed12ca16fabeae451d.png (207B)
+node_modules\@react-navigation\elements\lib\module\assets\clear-icon.c94f6478e7ae0cdd9f15de1fcb9e5e55.png (4 variations | 425B)
+node_modules\@react-navigation\elements\lib\module\assets\close-icon.808e1b1b9b53114ec2838071a7e6daa7.png (4 variations | 235B)
+node_modules\@react-navigation\elements\lib\module\assets\search-icon.286d67d3f74808a60a78d3ebf1a5fb57.png (928B)
+node_modules\expo-router\assets\arrow_down.017bc6ba3fc25503e5eb5e53826d48a8.png (9.5KB)
+node_modules\expo-router\assets\error.d1ea1496f9057eb392d5bbf3732a61b7.png (469B)
+node_modules\expo-router\assets\file.19eeb73b9593a38f8e9f418337fc7d10.png (138B)
+node_modules\expo-router\assets\forward.d8b800c443b8972542883e0b9de2bdc6.png (188B)
+node_modules\expo-router\assets\pkg.ab19f4cbc543357183a20571f68380a3.png (364B)
+node_modules\expo-router\assets\sitemap.412dd9275b6b48ad28f5e3d81bb1f626.png (465B)
+node_modules\expo-router\assets\unmatched.20e71bdf79e3a97bf55fd9e164041578.png (4.8KB)
+
+› web bundles (1):
+_expo/static/js/web/entry-a97b864edaf1f4b7acd12b53dbc18f59.js (1.2MB)
+
+› Files (2):
+index.html (1.2KB)
+metadata.json (49B)
+
+Exported: dist
+
+> sketch2life-child@1.0.0 lint
+> oxlint src
+
+src/hooks/useOfflinePacing.ts:9:7: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+
+> sketch2life-child@1.0.0 test
+> jest --runInBand
+
+PASS src/__tests__/DrawScreen.test.tsx
+PASS src/__tests__/JoinScreen.test.tsx
+PASS src/__tests__/FeelingScreen.test.tsx
+PASS src/__tests__/sessionClient.test.ts
+PASS src/__tests__/useChildSession.test.ts
+PASS src/__tests__/useOfflinePacing.test.ts
+PASS src/__tests__/svgPathBuilder.test.ts
+PASS src/__tests__/useDrawingCanvas.test.ts
+PASS src/__tests__/strokeSimplifier.test.ts
+PASS src/__tests__/palette.test.ts
+PASS src/__tests__/colorHarmonizer.test.ts
+PASS src/__tests__/codeFormatter.test.ts
+PASS src/__tests__/touchThrottler.test.ts
+PASS src/__tests__/sessionCache.test.ts
+PASS src/__tests__/routes.test.ts
+PASS src/__tests__/characters.test.ts
+PASS src/__tests__/screenScaler.test.ts
+PASS src/__tests__/drawingStorage.test.ts
+
+Test Suites: 18 passed, 18 total
+Tests:       26 passed, 26 total
+Snapshots:   0 total
+Time:        2.191 s
+Ran all test suites.

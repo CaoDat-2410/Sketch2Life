@@ -1,0 +1,177 @@
+{
+  "feature": "FEAT-058-review2-document-package",
+  "revision": 10,
+  "reviewed_on": "2026-10-24",
+  "outcome": "PASS",
+  "exact_final_dossier_categories": 4,
+  "local_output_pairs": 4,
+  "output_files": [
+    {
+      "category": "BM01 Design Brief + Appendix A",
+      "format": "docx",
+      "file": "Sketch2Life_R2_DesignBrief.docx",
+      "sha256": "7b791055caf3acbe5e68d50d84e770c584b1ab50af2305f1ee6c11f7619635ad",
+      "bytes": 43922,
+      "git_eligible": true
+    },
+    {
+      "category": "BM01 Design Brief + Appendix A",
+      "format": "pdf",
+      "file": "Sketch2Life_R2_DesignBrief.pdf",
+      "sha256": "14015daae01d89399a6fb54b30b3d8c774995cf776c4d099a7ba5441b9e83efe",
+      "bytes": 232471,
+      "git_eligible": false
+    },
+    {
+      "category": "Registration + BM03",
+      "format": "docx",
+      "file": "Sketch2Life_R2_Registration_BM03.docx",
+      "sha256": "4f526d73e8fd6a801c910800fbc3185b0e5194cf30dd25763667f8c28463e1c9",
+      "bytes": 1925047,
+      "git_eligible": false
+    },
+    {
+      "category": "Registration + BM03",
+      "format": "pdf",
+      "file": "Sketch2Life_R2_Registration_BM03.pdf",
+      "sha256": "c263efb13b00edbd7c743819b768b562ba1b3e5685924552f45f706e66952d0c",
+      "bytes": 404167,
+      "git_eligible": false
+    },
+    {
+      "category": "Reports 1-5 + Project Tracking",
+      "format": "docx",
+      "file": "Sketch2Life_R2_Reports1-5_ProjectTracking.docx",
+      "sha256": "036a7c75c6b3e5f9e88f1d81dbf5c2b232e12566b76a4eff8f92bcf50a667c4e",
+      "bytes": 10122729,
+      "git_eligible": true
+    },
+    {
+      "category": "Reports 1-5 + Project Tracking",
+      "format": "pdf",
+      "file": "Sketch2Life_R2_Reports1-5_ProjectTracking.pdf",
+      "sha256": "e1a4d9a04ce0e89c4a221ddd2a831c23222402b441cfc5f1ae78134f46eeeaa9",
+      "bytes": 4548429,
+      "git_eligible": false
+    },
+    {
+      "category": "BM02 Self-Review",
+      "format": "docx",
+      "file": "Sketch2Life_R2_BM02_SelfReview.docx",
+      "sha256": "c6fcdcd14d309fdabc1c07e6fe263b47ce581358ca8155eac5bcc6a7af913dd5",
+      "bytes": 15138,
+      "git_eligible": true
+    },
+    {
+      "category": "BM02 Self-Review",
+      "format": "pdf",
+      "file": "Sketch2Life_R2_BM02_SelfReview.pdf",
+      "sha256": "25e11bc5ae9c97109f78b6561a212d7a47089f5ca64c522c79b8b05828f0d6d0",
+      "bytes": 351536,
+      "git_eligible": false
+    }
+  ],
+  "pdf_page_counts": {
+    "BM01 Design Brief + Appendix A": 4,
+    "Registration + BM03": 9,
+    "Reports 1-5 + Project Tracking": 99,
+    "BM02 Self-Review": 5
+  },
+  "pdf_pages_total": 117,
+  "rendered_pages_total": 117,
+  "manual_visual_review": "Every numbered page image was reviewed in contact sheets; dense pages and BM01 Appendix A were checked at full size.",
+  "contact_sheets": 12,
+  "bm01": {
+    "total_pages": 4,
+    "sections_0_to_8_pages": [
+      1,
+      2,
+      3
+    ],
+    "appendix_a_page": 4,
+    "page_size": "A4",
+    "margins_cm": {
+      "top": 2.0,
+      "bottom": 2.0,
+      "left": 2.0,
+      "right": 2.0
+    },
+    "decision_rows": 5,
+    "risk_rows": 3,
+    "measurable_candidate_nfr_rows": 6,
+    "docx_archive_integrity": "PASS"
+  },
+  "drawio": {
+    "master": "artifacts/diagrams/rev10/drawio/Sketch2Life-Review2-State-and-Activity.drawio",
+    "master_sha256": "3fc74f8ff5daacd09f98dda4e71e595b321295c142e7137cdc2bc31ef89ce96a",
+    "editable_page_count": 22,
+    "page_names": [
+      "SM-01 Session Lifecycle",
+      "SM-02 Session Pause and Recovery",
+      "SM-03 Session Early Termination",
+      "SM-04 Shared Learning Stage",
+      "SM-05 Group Progress",
+      "SM-06 Participant Admission",
+      "SM-07 Device Connection",
+      "SM-08 Device Grant Revocation",
+      "SM-09 Draft Synchronization",
+      "SM-10 Sketch Pipeline",
+      "SM-11 Child Suggestion Response",
+      "SM-12 Knowledge Editorial",
+      "SM-13 AI / Media Job",
+      "SM-14 Video Delivery",
+      "SM-15 Activity Execution",
+      "SM-16 Observation",
+      "SM-17 Content Publication",
+      "SM-18 Data Request",
+      "AD-01 WF-01 Prepare and Admit",
+      "AD-02 WF-02 Collaborative Drawing and Recovery",
+      "AD-03 WF-03 Request and Review AI Sketch",
+      "AD-04 WF-04 Reviewed Learning and Session Close"
+    ],
+    "source_gallery_pages": 22,
+    "report_gallery_pages": 44,
+    "state_views": 18,
+    "srs_b19_4_lifecycle_registries_covered": 15,
+    "workflow_activity_pages": 4,
+    "rendered_as_design_models_not_runtime_evidence": true
+  },
+  "ownership_filter": {
+    "keep": [
+      "N1",
+      "N2",
+      "N3",
+      "N4",
+      "N7"
+    ],
+    "defer": [
+      "N5",
+      "N6",
+      "N8",
+      "N9"
+    ],
+    "omit": [],
+    "N8_rewind": "disabled until separately decided",
+    "unknowns": [
+      "U1",
+      "U3",
+      "U4",
+      "owner/date/environment/threshold values"
+    ]
+  },
+  "publication_boundary": {
+    "pdfs_git_eligible": false,
+    "registration_bm03_docx_git_eligible": false,
+    "reason": "The validator excludes PDFs; the registration DOCX contains team phone/email and the remote is publicly readable.",
+    "render_images_git_eligible": false,
+    "review_pending_feat043_images_and_archives_git_eligible": false
+  },
+  "application_tests_run_for_this_documentation_task": false,
+  "known_limits": [
+    "BM02 remains an untagged draft because review-2 is absent.",
+    "WF-01/WF-02 do not have PostgreSQL-backed FE-to-BE or physical-device acceptance.",
+    "WF-03/WF-04 remain gated; no production Firebase/Modal/artifact-storage profile is claimed.",
+    "The one-class 40-child target is unmeasured and is not a hard admission cap.",
+    "All schedule dates, capacity, accountable owners, runtime settings and unresolved thresholds remain TBD."
+  ]
+}

@@ -1,0 +1,18 @@
+[
+  {
+    "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/raw/be2-video-lifecycle-20261022/postgres17-integration-final2.xml",
+    "sha256": "7ffb20af163f69c7b4c95d4723253805fd3df92e9aadcdf4dd6288ef85399214",
+    "tests": 9,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "path": "features/FEAT-057-be2-01-14-offline-integration/evidence/raw/modal-x01-20261020/junit.xml",
+    "sha256": "552cf4ead2dd17f409676dc77dbfccf0822a450779c1de4e25cfd25b6b31e4a3",
+    "tests": 296,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  }
+]

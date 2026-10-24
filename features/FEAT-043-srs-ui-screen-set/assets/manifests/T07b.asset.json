@@ -1,0 +1,49 @@
+{
+  "asset_id": "T07b",
+  "use_case": "ui-mockup",
+  "status": "REVIEW_PENDING",
+  "generated_path": "assets/generated/teacher-app/T07b-goi-y-khong-con-hop-le.png",
+  "srs_ui_id": "T07",
+  "screen_kind": "supplementary",
+  "role": "teacher-app",
+  "prompt": "assets/prompts/T07b.txt",
+  "source_references": [
+    {
+      "path": "features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md",
+      "sha256": "a95c89589843e3555e967c5e486f3bcaf4bbdf9446cb3bc9c49ed16f672964d9",
+      "section": "B23.3"
+    },
+    {
+      "path": "apps/ui-mobile/src/theme.ts",
+      "purpose": "existing design tokens"
+    }
+  ],
+  "generator": "built-in image_gen.imagegen",
+  "captured_at_utc": "2026-10-10T14:05:14.066819+00:00",
+  "generator_output_filename": "exec-02e45233-6016-4ae3-810e-9d30ea3b4be5.png",
+  "sha256": "c1bc5e59e49d08af02d9d8442dbd29eea4d1d821847128cde9193e1633f78827",
+  "bytes": 1518206,
+  "width": 1586,
+  "height": 992,
+  "original_copied_unchanged": true,
+  "synthetic_data_only": true,
+  "qa": {
+    "reviewer": "Codex visual inspection",
+    "status": "INSPECTED",
+    "note": "Inspected actual screenshot: stale proposal clearly blocked, teacher-only old reference separate from current child drawing, approval disabled, regenerate/close actions and per-proposal review requirement visible; readable Vietnamese and shared Teacher shell."
+  },
+  "review": {
+    "status": "REVIEW_PENDING",
+    "reviewer": null,
+    "reviewed_at": null
+  },
+  "applied_path": null,
+  "limitations": "Generated design proposal; not implemented runtime, approved visual or device acceptance.",
+  "input_images": [
+    {
+      "path": "assets/generated/teacher-app/T05-dieu-phoi-lop.png",
+      "role": "style reference",
+      "sha256": "33fe9018ea5cf0911ece61c37d72cacb01ffc37d17ad0d50b5f3f2215f4703f0"
+    }
+  ]
+}

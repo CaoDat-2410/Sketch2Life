@@ -53,3 +53,21 @@
 - Approved work: create a detailed v1.6 from v1.5 using Master SRS v2.0/B5, B10–B12, B21, and B30–B35. Expand the existing form fields for the adult-supervised workflow, distinct human gates, B33 discovery behavior, age-aware story/video GenAI, privacy and recovery, trial plans/payment/credits, and research measures.
 - Preserve the v1.1 layout, section order, three tables, and signature blocks. Do not add a section or package table. Do not include internal review/waiting-for-approval or unresolved implementation notes. Preserve source v1.1 and prior v1.5.
 - Controlling plan revision: 7; SHA-256: `2F9A1F2E08101E63EE4B356BCD42B3955FD8FB76D9944D3E0AD85435ED569D49`.
+
+## Owner authorization — collaborative-scope registration form v1.7 (2026-10-12)
+
+- Direct user request: “update lại phiếu FA26”. This authorizes the document revision described here.
+- Approved feature: FEAT-037 registration form update; create `Phieu_FA26SE225_v1.7.docx` aligned with canonical Master SRS v3.1 and owner-approved collaborative-learning scope.
+- Controlling plan: revision 8 at `plan/PLAN_FORM_V1_7_20261012.md`; SHA-256 `A91DDF14D32141D891CB52B5321754D298A5BB55B546587A441125F1DC5521E3`.
+- Approved scope: update the existing form fields to the confirmed 3–12 classroom/group product, retain the owner-supplied v1.1 form style and content structure, preserve all earlier artifacts, remove superseded under-9/Parent/billing/credit/video-duration/screen-time claims, and record source/output/render evidence in FEAT-037.
+- Approval evidence: direct owner instruction in this conversation, 2026-10-12 (Asia/Saigon).
+- Boundary: documentation and derived form only. No runtime implementation, provider/model selection, billing, deployment, data collection, or commit/push is authorized.
+
+## Owner authorization — regenerate FA26 from the selected v1.2 source (2026-10-12)
+
+- Direct user correction: “update từ cái này cơ”, referring to the attached `Phieu_FA26SE225_v1.2.docx`. This supersedes the prior working assumption that v1.5 should be the base.
+- Approved work: create `artifacts/Phieu_FA26SE225_v1.8.docx` directly from v1.2 and align its existing fields with canonical Master SRS v3.1 and FEAT-039 owner-approved classroom scope.
+- Preserve v1.2's package content, 159-paragraph structure, three tables (including their exact row/cell shape), section order, and signature fields. Preserve v1.2 and v1.7 unchanged.
+- Controlling plan: revision 1 at `plan/PLAN_FORM_V1_8_20261012.md`; SHA-256 `A275EF39795AB85464B07171EC3044AECA9678F440F5E46BDFE8F20683DCB83D`.
+- Boundary: documentation and derived form only. No runtime implementation, provider/model selection, billing, deployment, data collection, or commit/push.
+- Approval evidence: direct owner instruction in this conversation, 2026-10-12 (Asia/Saigon).

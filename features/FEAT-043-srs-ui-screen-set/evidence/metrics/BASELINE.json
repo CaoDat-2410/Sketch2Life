@@ -1,0 +1,16 @@
+{
+  "original_branch": "codex/pixi-ai-show-20261001",
+  "original_head": "396b4f67ddcb413f1ae72fdc9ca0746419f449a4",
+  "protected_local_runtime_sha256": {
+    "apps/ui-mobile/src/demo/childAge.mjs": "49559161fdfac9c0a1d456dca2de17e6b82d79704d704ebd530c1d0d44720414",
+    "apps/ui-mobile/src/screens/Flow1Screens.tsx": "3681f5ec5f7fecd7d9286ca71b0159a35807e4337069f0a9592e720d3c833099",
+    "backend/src/sketch2life/application/services/backend_ai_workflow.py": "79ed98f660cd103a19fddc549b08e3174fe1cc214b126c3ff1cf2bd895bedb4d",
+    "backend/src/sketch2life/application/services/supervised_flow.py": "134788187b457cf7d2250c92a9fba1bd9c75bad31b9c9ed60d73a24032d19956",
+    "backend/src/sketch2life/contracts/schemas/workflow_demo.py": "7d90c2d18d4692c0d0151f40e81c92756cbdc69f50f633e1eaf3a1074545944e",
+    "backend/src/sketch2life/interfaces/cli/workflow_demo.py": "965a6fc5b2d6e01b4eed4c0ca78d6247e8c8620a939747d7d129a009795c307e",
+    "backend/tests/e2e/test_lightning_backend_workflow.py": "79150367619069b750046d6beabc93fb3e8be60c6d8d6698f75638994628974f",
+    "backend/src/sketch2life/domain/child_age.py": "c4a1288a41d6ec52087a9bb83f7f8590d1084c367a41bd512d65aca917a2838c"
+  },
+  "canonical_srs_sha256": "a95c89589843e3555e967c5e486f3bcaf4bbdf9446cb3bc9c49ed16f672964d9",
+  "image_task_changes_runtime": false
+}

@@ -1,303 +1,149 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { loadActiveSession } from '../services/activeSessionStore'
 import {
-  Check,
-  ChevronRight,
-  MessageSquare,
-  Lightbulb,
-  Pencil,
-  Ban,
-  Flag,
-  FileText,
-  Calendar,
-  Target,
-  Image as ImageIcon,
-} from 'lucide-react'
-import {
-  GreenCheckCircle,
-  CloudBadgeIcon,
-  LeafBadgeIcon,
-  FlowerBadgeIcon,
-  SunBadgeIcon,
-  SproutBadgeIcon,
-} from '../components/Icons'
-import evidenceMay from '../assets/evidence-may.png'
+  observationService,
+  type TeacherObservationLevel,
+  type TeacherObservationReceipt,
+} from '../services/observationService'
 
-const RUBRIC_LEVELS = [
-  {
-    key: 'none',
-    title: 'Chưa quan sát',
-  },
-  {
-    key: 'supported',
-    title: 'Thể hiện với hỗ trợ',
-  },
-  {
-    key: 'active',
-    title: 'Thể hiện trong hoạt động',
-  },
-  {
-    key: 'extended',
-    title: 'Mở rộng ý tưởng',
-  },
+const LEVELS: Array<{ value: TeacherObservationLevel; label: string }> = [
+  { value: 'not_observed', label: 'Chưa quan sát' },
+  { value: 'with_support', label: 'Thể hiện với hỗ trợ' },
+  { value: 'during_activity', label: 'Thể hiện trong hoạt động' },
+  { value: 'extended_idea', label: 'Mở rộng ý tưởng' },
 ]
 
 export function ObservationFeedbackPage() {
-  const navigate = useNavigate()
-  const [selectedChild, setSelectedChild] = useState('may')
-  const [rubric, setRubric] = useState('active')
-  const [comment, setComment] = useState(
-    'Mây giải thích hình dạng chiếc lá và thử thêm gân lá.'
-  )
+  const activeSession = loadActiveSession()
+  const children = activeSession?.admittedChildren ?? []
+  const [selectedChildId, setSelectedChildId] = useState('')
+  const [level, setLevel] = useState<TeacherObservationLevel | null>(null)
+  const [comment, setComment] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  const [receipt, setReceipt] = useState<TeacherObservationReceipt | null>(null)
+  const selectedChild = children.find((child) => child.childId === selectedChildId) ?? children[0]
+
+  const saveObservation = async () => {
+    if (!activeSession || !selectedChild || !level || !comment.trim()) {
+      setError('Chọn hồ sơ, mức quan sát và nhập ghi chú trước khi lưu.')
+      return
+    }
+    setSaving(true)
+    setError('')
+    try {
+      const saved = await observationService.submitObservation({
+        organizationId: activeSession.organizationId,
+        classId: activeSession.classId,
+        sessionId: activeSession.sessionId,
+        childId: selectedChild.childId,
+        level,
+        comment: comment.trim(),
+      })
+      setReceipt(saved)
+    } catch (cause) {
+      setError(observationService.formatError(cause))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (!activeSession || children.length === 0) {
+    return (
+      <main className="mx-auto max-w-3xl space-y-4 px-7 py-8">
+        <h1 className="text-2xl font-bold text-slate-900">Phản hồi & quan sát</h1>
+        <section className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-950">
+          <p>Chưa có phiên và danh sách trẻ được tiếp nhận trong bộ nhớ phiên của trình duyệt này.</p>
+          <p className="mt-2">Hãy mở phiên BE1, tiếp nhận trẻ rồi quay lại. API đọc lại roster sau khi refresh chưa có.</p>
+          <a className="mt-4 inline-block font-semibold text-blue-800 underline" href="/session/setup">Mở thiết lập phiên</a>
+        </section>
+      </main>
+    )
+  }
+
+  if (activeSession.state !== 'active' && activeSession.state !== 'paused') {
+    return (
+      <main className="mx-auto max-w-3xl space-y-4 px-7 py-8">
+        <h1 className="text-2xl font-bold text-slate-900">Phản hồi & quan sát</h1>
+        <section className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-950">
+          Phiên hiện ở trạng thái “{activeSession.state}”. Quan sát này chỉ được gửi trong phiên đang chạy hoặc tạm dừng.
+        </section>
+      </main>
+    )
+  }
+
+  const resetForm = () => {
+    setLevel(null)
+    setComment('')
+    setReceipt(null)
+    setError('')
+  }
 
   return (
-    <div className="px-7 py-3.5 space-y-3 max-w-[1400px] mx-auto">
-      {/* ── Top Header ── */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-[28px] font-extrabold text-[#0F172A] tracking-tight leading-tight">
-            Phản hồi & quan sát
-          </h1>
-          <div className="text-[19px] font-extrabold text-[#0F172A] mt-0.5">
-            Khu vườn của chúng mình{' '}
-            <span className="font-normal text-slate-600">• Nhóm tuổi 6–8</span>
-          </div>
-        </div>
+    <main className="mx-auto max-w-4xl space-y-5 px-7 py-7">
+      <header>
+        <p className="text-sm font-semibold text-blue-700">Quan sát do giáo viên nhập · lưu qua BE1</p>
+        <h1 className="mt-1 text-3xl font-extrabold text-slate-900">Phản hồi & quan sát</h1>
+        <p className="mt-2 text-sm text-slate-600">Phiên {activeSession.title} · {activeSession.sessionId}</p>
+      </header>
 
-        <div className="flex items-center gap-3">
-          <button className="inline-flex items-center gap-2 border border-[#3B82F6] bg-white hover:bg-blue-50 text-[#1D63F2] font-semibold px-4 py-2.5 rounded-xl text-[13.5px] transition cursor-pointer">
-            <FileText size={15} />
-            <span>Lưu nháp</span>
-          </button>
-          <button
-            onClick={() => navigate('/portfolio')}
-            className="flex items-center gap-2 bg-[#1D63F2] hover:bg-[#1554D6] text-white font-semibold px-5 py-2.5 rounded-xl text-[13.5px] shadow-xs transition cursor-pointer"
-          >
-            <Check size={16} />
-            <span>Xác nhận nhận xét</span>
-          </button>
-        </div>
-      </div>
+      <section className="rounded-2xl border border-slate-200 bg-white p-5">
+        <label className="block text-sm font-semibold text-slate-800" htmlFor="observation-child">Hồ sơ trẻ đã được tiếp nhận</label>
+        <select
+          id="observation-child"
+          value={selectedChild?.childId ?? ''}
+          onChange={(event) => { setSelectedChildId(event.target.value); setReceipt(null) }}
+          disabled={Boolean(receipt) || saving}
+          className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm"
+        >
+          {children.map((child) => <option key={child.childId} value={child.childId}>{child.displayName}</option>)}
+        </select>
 
-      {/* ── Child Selector Row ── */}
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2.5">
-          {[
-            { id: 'may', name: 'Mây', icon: <CloudBadgeIcon size={22} /> },
-            { id: 'la', name: 'Lá', icon: <LeafBadgeIcon size={22} /> },
-            { id: 'nang', name: 'Nắng', icon: <SunBadgeIcon size={22} /> },
-            { id: 'hoa', name: 'Hoa', icon: <FlowerBadgeIcon size={22} /> },
-          ].map((c) => {
-            const active = selectedChild === c.id
-            return (
-              <button
-                key={c.id}
-                onClick={() => setSelectedChild(c.id)}
-                className={`flex items-center gap-2.5 px-4 py-2 rounded-xl text-[14px] font-bold transition cursor-pointer border ${
-                  active
-                    ? 'border-[#3B82F6] bg-[#EFF6FF] text-[#1D63F2]'
-                    : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
-                }`}
-              >
-                {c.icon}
-                <span>{c.name}</span>
-              </button>
-            )
-          })}
-        </div>
-
-        <div className="h-5 w-px bg-slate-300 mx-1" />
-
-        <div className="flex items-center gap-2 text-[13.5px] text-slate-600 font-medium">
-          <Calendar size={15} className="text-slate-500" />
-          <span>Quan sát trong hoạt động hôm nay</span>
-        </div>
-      </div>
-
-      {/* ── Main 2-Column Layout ── */}
-      <div className="grid grid-cols-12 gap-5 items-start">
-        {/* ── LEFT COLUMN (5 cols) ── */}
-        <div className="col-span-5 space-y-3.5">
-          {/* Card 1: Bằng chứng trực tiếp */}
-          <div className="bg-white rounded-2xl border border-slate-200/80 p-4 space-y-3.5 shadow-[0_2px_10px_rgba(15,23,42,0.02)]">
-            <h2 className="text-[18px] font-extrabold text-[#0F172A]">
-              Bằng chứng trực tiếp
-            </h2>
-
-            {/* Evidence 1: Drawing */}
-            <div className="bg-[#F8FAFC] border border-slate-200/70 rounded-2xl p-3 flex items-center gap-3.5">
-              <img
-                src={evidenceMay}
-                alt="Phần đóng góp của Mây"
-                className="w-[155px] h-[115px] rounded-xl object-cover border border-slate-200/60 flex-shrink-0"
-              />
-              <div className="space-y-1.5">
-                <div className="flex items-start gap-1.5 text-[14px] font-extrabold text-[#0F172A] leading-snug">
-                  <ImageIcon size={16} className="text-[#16A34A] flex-shrink-0 mt-0.5" />
-                  <span>Phần đóng góp của Mây đã ghi nhận</span>
-                </div>
-                <p className="text-[12.5px] text-slate-600 leading-relaxed">
-                  Tranh vẽ lá cây cho khu vườn chung của nhóm.
-                </p>
-              </div>
-            </div>
-
-            {/* Evidence 2: Offline activity */}
-            <div className="flex items-start gap-3 px-1">
-              <div className="w-10 h-10 rounded-full bg-[#EFF6FF] flex items-center justify-center flex-shrink-0">
-                <SproutBadgeIcon size={20} />
-              </div>
-              <div>
-                <div className="text-[14px] font-bold text-[#0F172A]">
-                  Quan sát hoạt động ngoài màn hình
-                </div>
-                <p className="text-[12.5px] text-slate-600 leading-snug mt-0.5">
-                  Mây tích cực trao đổi ý tưởng với bạn khi chọn hình dạng lá.
-                </p>
-              </div>
-            </div>
-
-            <button className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl text-[13.5px] font-semibold text-[#1D63F2] transition cursor-pointer whitespace-nowrap">
-              <FileText size={15} className="shrink-0" />
-              <span>Xem bằng chứng</span>
-              <ChevronRight size={15} className="shrink-0" />
-            </button>
-          </div>
-
-          {/* Card 2: Phản hồi của trẻ */}
-          <div className="bg-[#ECFDF5]/60 rounded-2xl border border-emerald-200/70 p-4 space-y-3 shadow-[0_2px_10px_rgba(15,23,42,0.02)]">
-            <h3 className="text-[17px] font-extrabold text-[#0F172A]">
-              Phản hồi của trẻ
-            </h3>
-            <div className="bg-white border border-slate-200/70 rounded-2xl p-3.5 flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2.5">
-                <CloudBadgeIcon size={28} />
-                <span className="text-[13.5px] font-medium text-[#0F172A]">
-                  “Em thích cùng bạn tạo khu vườn”
-                </span>
-              </div>
-              <span className="inline-flex items-center justify-center gap-1.5 bg-[#DCFCE7] text-[#15803D] text-[11.5px] font-semibold px-2.5 py-1 rounded-full whitespace-nowrap shrink-0">
-                <MessageSquare size={12.5} className="shrink-0" /> <span>Trẻ chia sẻ</span>
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* ── RIGHT COLUMN: Quan sát của giáo viên (7 cols) ── */}
-        <div className="col-span-7 space-y-3.5">
-          <div className="bg-white rounded-2xl border border-slate-200/80 p-4 space-y-3.5 shadow-[0_2px_10px_rgba(15,23,42,0.02)]">
-            <h2 className="text-[18px] font-extrabold text-[#0F172A]">
-              Quan sát của giáo viên
-            </h2>
-
-            {/* Rubric Section */}
-            <div className="space-y-2.5">
-              <div className="bg-[#F8FAFC] border border-slate-100 rounded-xl px-3.5 py-2.5 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Target size={17} className="text-[#1D63F2]" />
-                  <span className="text-[14.5px] font-extrabold text-[#0F172A]">
-                    Diễn đạt ý tưởng trong hoạt động
-                  </span>
-                </div>
-                <span className="text-slate-600 text-[12.5px] font-medium">
-                  Rubric 6–8 tuổi • v1
-                </span>
-              </div>
-
-              <div className="grid grid-cols-4 gap-2.5">
-                {RUBRIC_LEVELS.map((lvl) => {
-                  const isSelected = rubric === lvl.key
-                  return (
-                    <div
-                      key={lvl.key}
-                      onClick={() => setRubric(lvl.key)}
-                      className={`p-3 rounded-xl border cursor-pointer transition flex items-center gap-2.5 ${
-                        isSelected
-                          ? 'border-2 border-[#3B82F6] bg-[#EFF6FF]'
-                          : 'border-slate-200 bg-white hover:bg-slate-50'
-                      }`}
-                    >
-                      <div
-                        className={`w-4 h-4 rounded-full flex-shrink-0 ${
-                          isSelected
-                            ? 'border-4 border-[#1D63F2] bg-white'
-                            : 'border border-slate-300 bg-white'
-                        }`}
-                      />
-                      <div
-                        className={`text-[12.5px] font-semibold leading-snug whitespace-pre-line ${
-                          isSelected ? 'text-[#1D63F2] font-bold' : 'text-slate-700'
-                        }`}
-                      >
-                        {lvl.title}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* Teacher Comment */}
-            <div className="space-y-1.5">
-              <label className="block text-[13.5px] font-extrabold text-[#0F172A]">
-                Nhận xét của giáo viên
+        <fieldset className="mt-6">
+          <legend className="text-sm font-semibold text-slate-800">Mức quan sát</legend>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            {LEVELS.map((item) => (
+              <label key={item.value} className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 text-sm ${level === item.value ? 'border-blue-500 bg-blue-50 text-blue-900' : 'border-slate-200 text-slate-700'}`}>
+                <input
+                  type="radio"
+                  name="observation-level"
+                  value={item.value}
+                  checked={level === item.value}
+                  disabled={Boolean(receipt) || saving}
+                  onChange={() => { setLevel(item.value); setReceipt(null) }}
+                />
+                {item.label}
               </label>
-              <textarea
-                rows={2}
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                className="w-full p-3 bg-white border border-slate-200 rounded-xl text-[13.5px] text-[#0F172A] resize-none focus:outline-none focus:ring-2 focus:ring-[#1D63F2]"
-              />
-            </div>
-
-            {/* AI Suggestion Box */}
-            <div className="bg-[#FFFDF5] border border-amber-200 rounded-2xl p-3.5 space-y-2.5">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-full bg-[#FEF3C7] text-[#D97706] flex items-center justify-center">
-                  <Lightbulb size={15} />
-                </div>
-                <span className="text-[14px] font-extrabold text-[#0F172A]">Gợi ý AI •</span>
-                <span className="inline-flex items-center gap-1.5 bg-[#FEF3C7] text-[#B45309] text-[11.5px] font-semibold px-2.5 py-0.5 rounded-full">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#D97706]" />
-                  Chưa xác nhận
-                </span>
-              </div>
-
-              <div className="bg-[#FEF9E7] rounded-xl px-3.5 py-2 text-[13px] text-slate-800">
-                Có thể hỏi thêm về cách nhóm chọn hình dạng.
-              </div>
-
-              <div className="flex items-center justify-end gap-2">
-                <button className="inline-flex items-center gap-1.5 border border-[#3B82F6] bg-white hover:bg-blue-50 text-[#1D63F2] font-semibold text-[12px] px-3 py-1.5 rounded-xl transition cursor-pointer">
-                  <Pencil size={12.5} />
-                  <span>Chỉnh gợi ý</span>
-                </button>
-                <button className="inline-flex items-center gap-1.5 border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-[12px] px-3 py-1.5 rounded-xl transition cursor-pointer">
-                  <Ban size={12.5} />
-                  <span>Không sử dụng</span>
-                </button>
-              </div>
-            </div>
+            ))}
           </div>
+        </fieldset>
 
-          {/* Bottom Bar Card */}
-          <div className="bg-white rounded-2xl border border-slate-200/80 px-4 py-3 flex items-center justify-between shadow-[0_2px_10px_rgba(15,23,42,0.02)]">
-            <div className="flex items-center gap-2 text-[13.5px] text-slate-700 font-medium">
-              <GreenCheckCircle size={18} />
-              <span>Bản nháp đã lưu</span>
-            </div>
+        <label className="mt-6 block text-sm font-semibold text-slate-800" htmlFor="observation-comment">Ghi chú dựa trên điều giáo viên trực tiếp quan sát</label>
+        <textarea
+          id="observation-comment"
+          rows={4}
+          maxLength={4000}
+          value={comment}
+          disabled={Boolean(receipt) || saving}
+          onChange={(event) => { setComment(event.target.value); setReceipt(null) }}
+          placeholder="Ghi lại hành vi hoặc lời nói cụ thể đã quan sát…"
+          className="mt-2 w-full resize-y rounded-xl border border-slate-300 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50"
+        />
+        <p className="mt-1 text-xs text-slate-500">Thông tin này được lưu dưới dạng observation của giáo viên; không phải phản hồi do trẻ gửi hoặc kết luận AI.</p>
 
-            <button
-              onClick={() => navigate('/portfolio')}
-              className="inline-flex items-center gap-2 bg-[#1D63F2] hover:bg-[#1554D6] text-white font-semibold text-[13.5px] px-5 py-2 rounded-xl shadow-xs transition cursor-pointer"
-            >
-              <Flag size={14} />
-              <span>Hoàn tất kết quả phiên</span>
-              <ChevronRight size={15} />
-            </button>
-          </div>
+        {error && <div role="alert" className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">{error}</div>}
+        {receipt && <div role="status" className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">BE1 đã xác nhận lưu observation <code>{receipt.observation_id}</code>. Lưu này không tự chuyển chặng SRS hoặc hoàn tất phiên.</div>}
+
+        <div className="mt-5 flex flex-wrap gap-3">
+          {receipt
+            ? <button onClick={resetForm} className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700">Ghi nhận quan sát khác</button>
+            : <button onClick={() => void saveObservation()} disabled={saving || !selectedChild} className="rounded-xl bg-blue-700 px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50">{saving ? 'Đang lưu qua BE1…' : 'Lưu observation qua BE1'}</button>}
         </div>
-      </div>
-    </div>
+      </section>
+
+      <aside className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
+        BE1 chưa có API để đọc lại roster sau khi làm mới, nhận reflection trực tiếp từ Child, duyệt assessment, hoặc lưu kết quả chặng. Nếu mạng ngắt sau khi gửi, API hiện không có khoá idempotency cho observation; hãy kiểm tra với quản trị viên trước khi gửi lặp.
+      </aside>
+    </main>
   )
 }

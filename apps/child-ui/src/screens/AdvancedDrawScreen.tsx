@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { View, Text, StyleSheet, Pressable } from 'react-native'
 
-export function AdvancedDrawScreen({ onBack, onComplete }: { onBack: () => void; onComplete: () => void }) {
+export function AdvancedDrawScreen({ onBack: _onBack, onComplete: _onComplete }: { onBack: () => void; onComplete: () => void }) {
   const [brushSize, setBrushSize] = useState(6)
   const sizes = [3, 6, 12, 20]
 

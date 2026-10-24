@@ -39,6 +39,7 @@ BE1_ERROR_RESPONSES = {
     413: {"model": Be1Error, "description": "The request exceeds a supported size limit"},
     415: {"model": Be1Error, "description": "The request media type is not supported"},
     422: {"model": Be1Error, "description": "The request does not match the API contract"},
+    429: {"model": Be1Error, "description": "The request is temporarily rate limited"},
     503: {"model": Be1Error, "description": "A required backend dependency is unavailable"},
     500: {"model": Be1Error, "description": "An unexpected server error occurred"},
 }

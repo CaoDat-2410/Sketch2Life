@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   FileText,
@@ -28,11 +28,80 @@ import {
   BlueCheckBox,
 } from '../components/Icons'
 import artGardenWide from '../assets/art-garden-wide.png'
+import { sessionService, type Be1Class } from '../services/sessionService'
+import { saveActiveSession } from '../services/activeSessionStore'
 
 export function SessionSetupPage() {
   const navigate = useNavigate()
   const [topic, setTopic] = useState('Khu vườn của chúng mình')
   const [drawMode, setDrawMode] = useState<'individual' | 'group'>('group')
+  const [classes, setClasses] = useState<Be1Class[]>([])
+  const [classId, setClassId] = useState('')
+  const [loadingClasses, setLoadingClasses] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let active = true
+    sessionService.listClasses()
+      .then((items) => {
+        if (!active) return
+        setClasses(items)
+        setClassId(items[0]?.class_id ?? '')
+      })
+      .catch((cause: unknown) => {
+        if (active) setError(cause instanceof Error ? cause.message : 'Không tải được danh sách lớp.')
+      })
+      .finally(() => { if (active) setLoadingClasses(false) })
+    return () => { active = false }
+  }, [])
+
+  const handleOpenLobby = async () => {
+    setError('')
+    if (!topic.trim()) {
+      setError('Nhập chủ đề trước khi mở phòng chờ.')
+      return
+    }
+    if (!classId) {
+      setError('Chọn một lớp đang được BE1 cấp quyền trước khi mở phòng chờ.')
+      return
+    }
+    setSubmitting(true)
+    try {
+      const created = await sessionService.createSession({ classId, title: topic.trim(), drawMode })
+      if (!created.join_code) throw new Error('BE1 did not return the one-time join credential.')
+      const lobby = await sessionService.openLobby(created.session_id, created.revision)
+      const invite = {
+        organizationId: created.organization_id,
+        sessionId: created.session_id,
+        classId: created.class_id,
+        revision: lobby.revision,
+        state: lobby.state,
+        drawMode,
+        joinCode: created.join_code,
+        roomCode: undefined as string | undefined,
+        title: topic.trim(),
+        admittedChildren: [],
+        groups: [],
+        turns: [],
+      }
+      saveActiveSession(invite)
+      try {
+        const room = await sessionService.rotateRoomCode(created.session_id)
+        saveActiveSession({ ...invite, roomCode: room.room_code })
+      } catch (cause) {
+        saveActiveSession({
+          ...invite,
+          roomCodeError: cause instanceof Error ? cause.message : 'Chưa tạo được mã phòng sáu số.',
+        })
+      }
+      navigate('/session/lobby')
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Không thể mở phòng chờ BE1.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   return (
     <div className="px-7 py-4 space-y-3.5 max-w-[1400px] mx-auto">
@@ -59,14 +128,18 @@ export function SessionSetupPage() {
             <span>Lưu nháp</span>
           </button>
           <button
-            onClick={() => navigate('/session/lobby')}
+            onClick={handleOpenLobby}
+            disabled={submitting || loadingClasses}
             className="inline-flex items-center justify-center gap-2 bg-[#1D63F2] hover:bg-[#1554D6] text-white font-semibold px-5 py-2.5 rounded-xl text-[14px] shadow-xs transition cursor-pointer whitespace-nowrap shrink-0"
           >
             <Play size={17} className="shrink-0" />
-            <span>Mở phòng chờ</span>
+            <span>{submitting ? 'Đang kết nối…' : 'Mở phòng chờ'}</span>
           </button>
         </div>
       </div>
+
+      {error && <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-[13px] font-medium text-rose-700">{error}</div>}
+      <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900">BE1 hiện nhận lớp, chủ đề và chế độ vẽ. Nhóm tuổi, mẫu phiên, bộ công cụ, thời lượng và các tuỳ chọn bên dưới đang là giao diện mẫu; chúng chưa được gửi hoặc lưu vào phiên.</div>
 
       {/* ── 3-Step Stepper ── */}
       <div className="bg-white rounded-2xl border border-slate-200/80 p-2 grid grid-cols-12 items-center shadow-[0_2px_10px_rgba(15,23,42,0.02)]">
@@ -128,10 +201,16 @@ export function SessionSetupPage() {
           <div className="grid grid-cols-12 items-center gap-3">
             <label className="col-span-3 text-[14px] font-bold text-[#0F172A]">Lớp</label>
             <div className="col-span-4">
-              <button className="w-full flex items-center justify-between px-3.5 py-2 bg-[#F8FAFC] border border-slate-200 rounded-xl text-[14px] font-medium text-[#0F172A]">
-                <span>Mầm Xanh</span>
-                <ChevronDown size={16} className="text-slate-500" />
-              </button>
+              <select
+                aria-label="Lớp BE1"
+                value={classId}
+                onChange={(event) => setClassId(event.target.value)}
+                disabled={loadingClasses || classes.length === 0}
+                className="w-full px-3.5 py-2 bg-[#F8FAFC] border border-slate-200 rounded-xl text-[14px] font-medium text-[#0F172A]"
+              >
+                {classes.length === 0 && <option value="">{loadingClasses ? 'Đang tải lớp…' : 'Không có lớp được cấp quyền'}</option>}
+                {classes.map((classroom) => <option key={classroom.class_id} value={classroom.class_id}>{classroom.display_name}</option>)}
+              </select>
             </div>
             <label className="col-span-2 text-[14px] font-bold text-[#0F172A] text-right pr-2">
               Nhóm tuổi

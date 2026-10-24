@@ -4,6 +4,7 @@ import logging
 import os
 import re
 from pathlib import Path
+from typing import Literal
 from uuid import uuid4
 
 from fastapi import FastAPI, Request
@@ -43,7 +44,6 @@ from sketch2life.contracts.schemas.mobile_workflow import (
     WorkflowResultProvenanceV1,
 )
 from sketch2life.contracts.schemas.scene_exploration import SourceRegionV1
-from sketch2life.contracts.schemas.workflow_records import SessionSnapshotV1
 from sketch2life.infrastructure.ai.lightning_activity_ranker import LightningActivityRanker
 from sketch2life.infrastructure.ai.lightning_child_preference_classifier import (
     LightningChildPreferenceClassifier,
@@ -91,41 +91,24 @@ from sketch2life.infrastructure.media.whiteboard_runtime import (
 from sketch2life.infrastructure.media_validation.av_image_decoder import AvImageDecoder
 from sketch2life.infrastructure.storage.in_memory import (
     InMemoryArtifactStore,
-    InMemoryIdempotencyStore,
     InMemoryJobStore,
-    InMemorySessionRepository,
 )
 from sketch2life.infrastructure.storage.in_memory_auto_rig_grants import (
     InMemoryRigPackageGrantStore,
-)
-from sketch2life.infrastructure.storage.in_memory_demo_workflow import (
-    InMemoryDemoWorkflowStore,
-)
-from sketch2life.infrastructure.storage.in_memory_renderer_source_grants import (
-    InMemoryRendererSourceGrantStore,
 )
 from sketch2life.interfaces.http.be1_runtime import build_be1_runtime
 from sketch2life.interfaces.http.middleware.bounded_image_upload import (
     BoundedImageUploadMiddleware,
 )
-from sketch2life.interfaces.http.routers.be1_runtime import router as be1_runtime_router
-from sketch2life.interfaces.http.routers.child_preferences import (
-    router as child_preferences_router,
+from sketch2life.interfaces.http.demo_composition import (
+    build_demo_stores,
+    build_ephemeral_session_service,
 )
-from sketch2life.interfaces.http.routers.health import router as health_router
-from sketch2life.interfaces.http.routers.images import router as images_router
-from sketch2life.interfaces.http.routers.sessions import router as sessions_router
-from sketch2life.interfaces.http.routers.story_video import router as story_video_router
-from sketch2life.interfaces.http.routers.supervised_flow import (
-    renderer_source_router,
+from sketch2life.interfaces.http.router_composition import mount_all_routers
+from sketch2life.interfaces.http.router_composition import (
+    mount_classroom_routers,
+    mount_demo_routers,
 )
-from sketch2life.interfaces.http.routers.supervised_flow import (
-    router as supervised_flow_router,
-)
-from sketch2life.interfaces.http.routers.whiteboard_storyboard import (
-    router as whiteboard_storyboard_router,
-)
-from sketch2life.interfaces.http.routers.whiteboard_video import router as whiteboard_video_router
 
 _LOGGER = logging.getLogger("sketch2life.api")
 _SAFE_ID = re.compile(r"^[A-Za-z0-9._:-]{1,120}$")
@@ -169,8 +152,9 @@ def create_app(
     whiteboard_video_job_service: WhiteboardVideoJobService | None = None,
     whiteboard_video_pipeline: WhiteboardVideoPipeline | None = None,
     story_video_job_service: StoryVideoJobService | None = None,
+    _composition_profile: Literal["combined", "classroom", "demo"] = "combined",
 ) -> FastAPI:
-    """Create the local image-only API composition root with ephemeral adapters."""
+    """Create the compatibility or explicitly scoped classroom/demo HTTP app."""
     application = FastAPI(
         title="Sketch2Life API",
         version="1.0.0",
@@ -347,10 +331,11 @@ def create_app(
     application.add_middleware(BoundedImageUploadMiddleware)
     scene_localizer = None
     pixi_show_planner_required = False
-    if session_service is None:
-        artifacts = InMemoryArtifactStore()
-        idempotency = InMemoryIdempotencyStore()
-        renderer_source_grants = InMemoryRendererSourceGrantStore()
+    if _composition_profile != "classroom" and session_service is None:
+        demo_stores = build_demo_stores()
+        artifacts = demo_stores.artifacts
+        idempotency = demo_stores.idempotency
+        renderer_source_grants = demo_stores.renderer_source_grants
         settings = get_settings()
         pixi_show_planner_required = settings.pixi_show_planner_enabled
         if child_preference_classifier is None:
@@ -366,12 +351,9 @@ def create_app(
                 jobs=InMemoryJobStore(),
                 segmenter=_configured_lightning_sam21(settings, artifacts),
             )
-        session_service = EphemeralSessionService(
-            sessions=InMemorySessionRepository[SessionSnapshotV1](),
-            idempotency=idempotency,
-            artifacts=artifacts,
-            workflow_data=InMemoryDemoWorkflowStore(),
-            idle_ttl_seconds=get_settings().session_idle_ttl_seconds,
+        session_service = build_ephemeral_session_service(
+            stores=demo_stores,
+            settings=settings,
         )
         if live_image_demo_service is None:
             vision = _configured_lightning_vision(settings, artifacts)
@@ -556,16 +538,12 @@ def create_app(
     application.state.whiteboard_video_job_service = whiteboard_video_job_service
     application.state.story_video_job_service = story_video_job_service or StoryVideoJobService()
     application.state.be1_runtime = build_be1_runtime(get_settings())
-    application.include_router(health_router)
-    application.include_router(be1_runtime_router)
-    application.include_router(child_preferences_router)
-    application.include_router(sessions_router)
-    application.include_router(images_router)
-    application.include_router(supervised_flow_router)
-    application.include_router(renderer_source_router)
-    application.include_router(whiteboard_video_router)
-    application.include_router(whiteboard_storyboard_router)
-    application.include_router(story_video_router)
+    if _composition_profile == "combined":
+        mount_all_routers(application)
+    elif _composition_profile == "classroom":
+        mount_classroom_routers(application)
+    else:
+        mount_demo_routers(application)
     renderer_dist = Path(__file__).resolve().parents[5] / "packages" / "art-renderer" / "dist-demo"
     if renderer_dist.is_dir():
         application.mount(
@@ -625,6 +603,16 @@ def create_app(
 
     application.openapi = be1_openapi_schema
     return application
+
+
+def create_classroom_app() -> FastAPI:
+    """Create the durable classroom HTTP profile without process-local demo routes."""
+    return create_app(_composition_profile="classroom")
+
+
+def create_demo_app() -> FastAPI:
+    """Create the local/demo HTTP profile without durable classroom routes."""
+    return create_app(_composition_profile="demo")
 
 
 def _configured_lightning_preference_classifier(

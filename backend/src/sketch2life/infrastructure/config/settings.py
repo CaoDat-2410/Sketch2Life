@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     api_port: int = 8000
     log_level: str = "INFO"
     database_url: SecretStr | None = None
+    room_code_hmac_key: SecretStr | None = None
     be1_artifact_root: Path = Path(".runtime/be1-artifacts")
     session_idle_ttl_seconds: int = Field(default=1800, ge=60, le=86_400)
 

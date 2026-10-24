@@ -1,0 +1,12 @@
+flowchart TD
+  T1[Teacher configures class, topic, groups and tools] --> B1[Backend checks assignment, configuration and current version]
+  B1 -->|valid| T2[Teacher opens lobby and issues QR or session code]
+  T2 --> C1[Child requests to join with managed profile]
+  C1 --> B2[Backend checks code, roster, profile and effective consent policy]
+  B2 -->|eligible| T3[Teacher verifies and admits participant]
+  T3 --> B3[Backend persists membership and scoped device grant]
+  B3 --> T4[Teacher explicitly starts the session]
+  T4 --> B4[Backend persists active session state]
+  B4 --> C2[Child enters admitted session]
+  B2 -->|invalid, expired or consent pending| C3[Join is denied with safe reason]
+  C3 --> T5[Teacher resolves roster, code or consent before retry]

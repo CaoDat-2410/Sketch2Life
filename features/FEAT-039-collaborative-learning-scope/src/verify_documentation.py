@@ -12,7 +12,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 FEATURE = ROOT / "features/FEAT-039-collaborative-learning-scope"
 CANONICAL = ROOT / "features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md"
-SRS = FEATURE / "artifacts/Collaborative_Learning_SRS_v3.1.md"
+SRS = FEATURE / "artifacts/Collaborative_Learning_SRS_v3.3.md"
+PRESERVED_SRS_V32 = FEATURE / "artifacts/Collaborative_Learning_SRS_v3.2.md"
+EXPECTED_SRS_V32 = "9d7a71cc3fd0ab45b3175823c09780af0eb2e129d21a991d5470693dae25a21d"
 BACKUP = FEATURE / "artifacts/Sketch2Life_Master_SRS_v2.0_preserved_20261010.md"
 EXPECTED_BACKUP = "28eb8b890d8e950fec6aa0df87f9b29851a7e41aa871c3dd6eb4205cd807801e"
 BACKUP_V3 = FEATURE / "artifacts/Sketch2Life_Master_SRS_v3.0_preserved_20261010.md"
@@ -33,6 +35,8 @@ def main() -> int:
         errors.append("preserved working-copy SRS v2.0 hash differs")
     if digest(BACKUP_V3) != EXPECTED_BACKUP_V3:
         errors.append("preserved SRS v3.0 hash differs")
+    if digest(PRESERVED_SRS_V32) != EXPECTED_SRS_V32:
+        errors.append("preserved SRS v3.2 hash differs")
     modules = re.findall(r"^\| (M\d{2}) \|", text, re.M)
     acceptance = re.findall(r"^\| (AC\d{2}) \|", text, re.M)
     functional = re.findall(r"^\| (FR\d{3}) \|", text, re.M)
@@ -50,8 +54,8 @@ def main() -> int:
         if ref not in expected_fr:
             errors.append(f"unknown functional reference {ref}")
     sections = re.findall(r"^## B(\d+)\.", text, re.M)
-    if sections != [str(i) for i in range(1, 27)]:
-        errors.append("B1-B26 section ordering or duplicate mismatch")
+    if sections != [str(i) for i in range(1, 29)]:
+        errors.append("B1-B28 section ordering or duplicate mismatch")
     cases = list(re.finditer(r"^### (UC-\d{3}) —", text, re.M))
     expected_uc = {f"UC-{i:03}" for i in range(1, 39)}
     if {m.group(1) for m in cases} != expected_uc or len(cases) != 38:
@@ -133,8 +137,8 @@ def main() -> int:
         if not (FEATURE / ref).exists():
             errors.append(f"missing own feature harness path {ref}")
     approval = (FEATURE / "approvals/TASK_APPROVAL.md").read_text(encoding="utf-8")
-    if "- Status: APPROVED" not in approval or "- Plan revision: 3" not in approval:
-        errors.append("documentation approval/revision mismatch")
+    if "## SRS owner-decision amendment — Plan Rev5" not in approval or "39268EB1CEA557E55DB952268FB8DF92B3539BE2AD5107DF6EF9D22200069B77" not in approval:
+        errors.append("latest SRS owner-decision approval/plan hash mismatch")
     files = list(FEATURE.rglob("*.md")) + [CANONICAL]
     files = [file for file in files if file not in (BACKUP, BACKUP_V3)]
     link_count = 0
@@ -171,11 +175,11 @@ def main() -> int:
     errors.extend(own_security_errors)
     outcome = {
         "status": "DOCUMENTATION_VALID" if not errors else "DOCUMENTATION_INVALID",
-        "date": "2026-10-10",
+        "date": "2026-10-24",
         "scope": "static documentation coverage/link/provenance checks only",
         "module_rows": len(modules), "source_acceptance_rows": len(acceptance),
         "functional_requirement_rows": len(functional), "local_links_checked": link_count,
-        "srs_version": "3.1", "sections": len(sections),
+        "srs_version": "3.3", "sections": len(sections),
         "detailed_use_cases": len(cases), "detailed_acceptance_criteria": len(defined_at),
         "logical_dtos": len(data_ids), "route_contract_proposals": len(command_ids),
         "screen_specifications": len(screen_ids), "quality_targets": len(quality_ids),
@@ -184,6 +188,7 @@ def main() -> int:
         "own_feature_harness": "VALID" if all((FEATURE / p).exists() for p in feature_required) else "INVALID",
         "canonical_sha256": digest(CANONICAL), "preserved_v2_sha256": digest(BACKUP),
         "preserved_v3_sha256": digest(BACKUP_V3),
+        "preserved_v3_2_sha256": digest(PRESERVED_SRS_V32),
         "canonical_text_matches": text == canonical_text,
         "new_feature_security_content": "VALID" if not own_security_errors else "INVALID",
         "errors": errors,

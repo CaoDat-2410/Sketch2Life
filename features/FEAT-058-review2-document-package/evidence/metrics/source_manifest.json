@@ -1,0 +1,1229 @@
+[
+  {
+    "path": "C:\\Users\\docao\\Downloads\\Phieu_FA26SE225_v1.2.docx",
+    "sha256": "0c52809dfc24bacfe6d3f5e02f0f3150ba5453d999dabf739b2eadfeafbad5df",
+    "bytes": 1923246,
+    "sections": [
+      {
+        "width_cm": 21.59,
+        "height_cm": 27.94,
+        "margins_cm": [
+          2.54,
+          2.54,
+          2.54,
+          2.54
+        ]
+      }
+    ],
+    "headings": []
+  },
+  {
+    "path": "C:\\Users\\docao\\Downloads\\2_SEP490\\Report1_Project Introduction.docx",
+    "sha256": "08481ef2253aba57cf9ef2b33108ed063d0aeb2e2579efe92e63b90ac611590d",
+    "bytes": 111365,
+    "sections": [
+      {
+        "width_cm": 21.00086111111111,
+        "height_cm": 29.70036111111111,
+        "margins_cm": [
+          2.54,
+          2.54,
+          2.54,
+          2.4976666666666665
+        ]
+      }
+    ],
+    "headings": [
+      {
+        "style": "Heading 1",
+        "text": "I. Record of Changes"
+      },
+      {
+        "style": "Heading 1",
+        "text": "II. Project Introduction"
+      },
+      {
+        "style": "Heading 2",
+        "text": "1. Overview"
+      },
+      {
+        "style": "Heading 3",
+        "text": "1.1 Project Information"
+      },
+      {
+        "style": "Heading 3",
+        "text": "1.2 Project Team"
+      },
+      {
+        "style": "Heading 2",
+        "text": "2. Product Background"
+      },
+      {
+        "style": "Heading 2",
+        "text": "3. Existing Systems"
+      },
+      {
+        "style": "Heading 3",
+        "text": "3.1 System name1"
+      },
+      {
+        "style": "Heading 3",
+        "text": "3.2 System name2"
+      },
+      {
+        "style": "Heading 2",
+        "text": "4. Business Opportunity"
+      },
+      {
+        "style": "Heading 2",
+        "text": "5. Software Product Vision"
+      },
+      {
+        "style": "Heading 2",
+        "text": "6. Project Scope & Limitations"
+      },
+      {
+        "style": "Heading 3",
+        "text": "6.1 Major Features"
+      },
+      {
+        "style": "Heading 3",
+        "text": "6.2 Limitations & Exclusions"
+      }
+    ]
+  },
+  {
+    "path": "C:\\Users\\docao\\Downloads\\2_SEP490\\Report2_Project Management Plan.docx",
+    "sha256": "f59a4ce96d99f2f772f4c0ef07828812674aee4b8795aac475d5a395a8401be5",
+    "bytes": 52720,
+    "sections": [
+      {
+        "width_cm": 21.00086111111111,
+        "height_cm": 29.70036111111111,
+        "margins_cm": [
+          2.54,
+          2.54,
+          2.54,
+          2.4976666666666665
+        ]
+      }
+    ],
+    "headings": [
+      {
+        "style": "Heading 1",
+        "text": "I. Record of Changes"
+      },
+      {
+        "style": "Heading 1",
+        "text": "II. Project Management Plan"
+      },
+      {
+        "style": "Heading 2",
+        "text": "1. Overview"
+      },
+      {
+        "style": "Heading 3",
+        "text": "1.1 Scope & Estimation"
+      },
+      {
+        "style": "Heading 3",
+        "text": "1.2 Project Objectives"
+      },
+      {
+        "style": "Heading 3",
+        "text": "1.3 Project Risks"
+      },
+      {
+        "style": "Heading 2",
+        "text": "2. Management Approach"
+      },
+      {
+        "style": "Heading 3",
+        "text": "2.1 Project Process"
+      },
+      {
+        "style": "Heading 3",
+        "text": "2.2 Quality Management"
+      },
+      {
+        "style": "Heading 3",
+        "text": "2.3 Training Plan"
+      },
+      {
+        "style": "Heading 2",
+        "text": "3. Project Deliverables"
+      },
+      {
+        "style": "Heading 2",
+        "text": "4. Responsibility Assignments"
+      },
+      {
+        "style": "Heading 2",
+        "text": "5. Project Communications"
+      },
+      {
+        "style": "Heading 2",
+        "text": "6. Configuration Management"
+      },
+      {
+        "style": "Heading 3",
+        "text": "6.1 Document Management"
+      },
+      {
+        "style": "Heading 3",
+        "text": "6.2 Source Code Management"
+      },
+      {
+        "style": "Heading 3",
+        "text": "6.3 Tools & Infrastructures"
+      }
+    ]
+  },
+  {
+    "path": "C:\\Users\\docao\\Downloads\\2_SEP490\\Report3_Software Requirement Specification.docx",
+    "sha256": "5eeb573dd41505af451c0d91296d98c275ae761b0bc29c380b7722df64b77f49",
+    "bytes": 798254,
+    "sections": [
+      {
+        "width_cm": 21.00086111111111,
+        "height_cm": 29.70036111111111,
+        "margins_cm": [
+          2.54,
+          2.54,
+          2.54,
+          2.4976666666666665
+        ]
+      }
+    ],
+    "headings": [
+      {
+        "style": "Heading 1",
+        "text": "I. Record of Changes"
+      },
+      {
+        "style": "Heading 1",
+        "text": "II. Software Requirement Specification"
+      },
+      {
+        "style": "Heading 2",
+        "text": "1. Product Overview"
+      },
+      {
+        "style": "Heading 2",
+        "text": "2. User Requirements"
+      },
+      {
+        "style": "Heading 3",
+        "text": "2.1 Actors"
+      },
+      {
+        "style": "Heading 3",
+        "text": "2.2 Use Cases"
+      },
+      {
+        "style": "Heading 4",
+        "text": "2.2.1 Diagram(s)"
+      },
+      {
+        "style": "Heading 4",
+        "text": "2.2.2 Descriptions"
+      },
+      {
+        "style": "Heading 2",
+        "text": "3. Functional Requirements"
+      },
+      {
+        "style": "Heading 3",
+        "text": "3.1 System Functional Overview"
+      },
+      {
+        "style": "Heading 4",
+        "text": "3.1.1 Screens Flow"
+      },
+      {
+        "style": "Heading 4",
+        "text": "3.1.2 Screen Descriptions"
+      },
+      {
+        "style": "Heading 4",
+        "text": "3.1.3 Screen Authorization"
+      },
+      {
+        "style": "Heading 4",
+        "text": "3.1.4 Non-Screen Functions"
+      },
+      {
+        "style": "Heading 4",
+        "text": "3.1.5 Entity Relationship Diagram"
+      },
+      {
+        "style": "Heading 3",
+        "text": "3.2 <<Feature Name 1>>"
+      },
+      {
+        "style": "Heading 4",
+        "text": "3.2.1 <<Function Name 1>>"
+      },
+      {
+        "style": "Heading 4",
+        "text": "3.2.2 <<Function Name 2>>"
+      },
+      {
+        "style": "Heading 3",
+        "text": "3.3 <<Feature Name 2>>"
+      },
+      {
+        "style": "Heading 2",
+        "text": "4. Non-Functional Requirements"
+      },
+      {
+        "style": "Heading 3",
+        "text": "4.1 External Interfaces"
+      },
+      {
+        "style": "Heading 3",
+        "text": "4.2 Quality Attributes"
+      },
+      {
+        "style": "Heading 4",
+        "text": "4.2.1 Usability "
+      },
+      {
+        "style": "Heading 4",
+        "text": "4.2.2 Reliability "
+      },
+      {
+        "style": "Heading 4",
+        "text": "4.2.3 Performance"
+      },
+      {
+        "style": "Heading 4",
+        "text": "4.2.4 …"
+      },
+      {
+        "style": "Heading 2",
+        "text": "5. Requirement Appendix"
+      },
+      {
+        "style": "Heading 3",
+        "text": "5.1 Business Rules"
+      },
+      {
+        "style": "Heading 3",
+        "text": "5.2 Common Requirements"
+      },
+      {
+        "style": "Heading 3",
+        "text": "5.3 Application Messages List"
+      },
+      {
+        "style": "Heading 3",
+        "text": "5.4 Other Requirements…"
+      }
+    ]
+  },
+  {
+    "path": "C:\\Users\\docao\\Downloads\\2_SEP490\\Report4_Software Design Document.docx",
+    "sha256": "befff16878131cf6e19a3a4d714499c78e492dd9cb5b28b7858280683bc06115",
+    "bytes": 353507,
+    "sections": [
+      {
+        "width_cm": 21.59,
+        "height_cm": 27.94,
+        "margins_cm": [
+          2.54,
+          2.54,
+          2.54,
+          2.54
+        ]
+      }
+    ],
+    "headings": [
+      {
+        "style": "Heading 1",
+        "text": "I. Record of Changes"
+      },
+      {
+        "style": "Heading 1",
+        "text": "II. Software Design Document"
+      },
+      {
+        "style": "Heading 2",
+        "text": "1. System Design"
+      },
+      {
+        "style": "Heading 3",
+        "text": "1.1 System Architecture"
+      },
+      {
+        "style": "Heading 3",
+        "text": "1.2 Package Diagram"
+      },
+      {
+        "style": "Heading 2",
+        "text": "2. Database Design"
+      },
+      {
+        "style": "Heading 2",
+        "text": "3. Detailed Design"
+      },
+      {
+        "style": "Heading 3",
+        "text": "3.1 <Feature/Function Name1>"
+      },
+      {
+        "style": "Heading 4",
+        "text": "3.1.1 Class Diagram"
+      },
+      {
+        "style": "Heading 4",
+        "text": "3.1.3 <Sequence Diagram Name2>"
+      },
+      {
+        "style": "Heading 4",
+        "text": "3.1.4 …"
+      },
+      {
+        "style": "Heading 3",
+        "text": "3.2 <Feature/Function Name2>"
+      }
+    ]
+  },
+  {
+    "path": "C:\\Users\\docao\\Downloads\\2_SEP490\\Report5_Test Documentation.docx",
+    "sha256": "4ff653d4794fd23b905e9c85f26e33adf2ea6851cb15a1be3fa7f9270e4a2dfc",
+    "bytes": 47649,
+    "sections": [
+      {
+        "width_cm": 21.00086111111111,
+        "height_cm": 29.70036111111111,
+        "margins_cm": [
+          2.54,
+          2.54,
+          2.54,
+          2.4976666666666665
+        ]
+      }
+    ],
+    "headings": [
+      {
+        "style": "Heading 1",
+        "text": "I. Record of Changes"
+      },
+      {
+        "style": "Heading 1",
+        "text": "II. Testing Documentation"
+      },
+      {
+        "style": "Heading 2",
+        "text": "1. Scope of Testing"
+      },
+      {
+        "style": "Heading 2",
+        "text": "2. Test Strategy"
+      },
+      {
+        "style": "Heading 3",
+        "text": "2.1 Testing Types"
+      },
+      {
+        "style": "Heading 3",
+        "text": "2.2 Test Levels"
+      },
+      {
+        "style": "Heading 3",
+        "text": "2.3 Supporting Tools"
+      },
+      {
+        "style": "Heading 2",
+        "text": "3. Test Plan"
+      },
+      {
+        "style": "Heading 3",
+        "text": "3.1 Human Resources"
+      },
+      {
+        "style": "Heading 3",
+        "text": "3.2 Test Environment"
+      },
+      {
+        "style": "Heading 3",
+        "text": "3.3 Test Milestones"
+      },
+      {
+        "style": "Heading 2",
+        "text": "4. Test Cases"
+      },
+      {
+        "style": "Heading 2",
+        "text": "5. Test Reports"
+      }
+    ]
+  },
+  {
+    "path": "C:\\Users\\docao\\Downloads\\2_SEP490\\Report6_Software User Guides.docx",
+    "sha256": "0f6a055b26e5e9100e1a89881b18fbf897ed995dfe58b40781e997e6cb650f03",
+    "bytes": 45159,
+    "sections": [
+      {
+        "width_cm": 21.00086111111111,
+        "height_cm": 29.70036111111111,
+        "margins_cm": [
+          2.54,
+          2.54,
+          2.54,
+          2.4976666666666665
+        ]
+      }
+    ],
+    "headings": [
+      {
+        "style": "Heading 1",
+        "text": "I. Record of Changes"
+      },
+      {
+        "style": "Heading 1",
+        "text": "II. Release Package & User Guides"
+      },
+      {
+        "style": "Heading 2",
+        "text": "1. Deliverable Package"
+      },
+      {
+        "style": "Heading 2",
+        "text": "2. Installation Guides"
+      },
+      {
+        "style": "Heading 3",
+        "text": "2.1 System Requirements"
+      },
+      {
+        "style": "Heading 3",
+        "text": "2.2 Installation Instruction"
+      },
+      {
+        "style": "Heading 2",
+        "text": "3. User Manual"
+      },
+      {
+        "style": "Heading 3",
+        "text": "3.1 Overview"
+      },
+      {
+        "style": "Heading 3",
+        "text": "3.2 Workflow 1"
+      },
+      {
+        "style": "Heading 3",
+        "text": "3.3 Workflow 2"
+      }
+    ]
+  },
+  {
+    "path": "C:\\Users\\docao\\Downloads\\2_SEP490\\Report7_Final Project Report.docx",
+    "sha256": "ab559f29deebc9be7e23ccf94ba535f6dc48e21174694e8efa97990db27facfc",
+    "bytes": 47107,
+    "sections": [
+      {
+        "width_cm": 21.00086111111111,
+        "height_cm": 29.70036111111111,
+        "margins_cm": [
+          2.54,
+          2.54,
+          2.54,
+          2.4976666666666665
+        ]
+      }
+    ],
+    "headings": [
+      {
+        "style": "Heading 1",
+        "text": "Acknowledgement"
+      },
+      {
+        "style": "Heading 1",
+        "text": "Definition and Acronyms "
+      },
+      {
+        "style": "Heading 1",
+        "text": "I. Project Introduction"
+      },
+      {
+        "style": "Heading 2",
+        "text": "1. Overview"
+      },
+      {
+        "style": "Heading 3",
+        "text": "1.1 Project Information"
+      },
+      {
+        "style": "Heading 3",
+        "text": "1.2 Project Team"
+      },
+      {
+        "style": "Heading 2",
+        "text": "2. Product Background"
+      },
+      {
+        "style": "Heading 2",
+        "text": "3. Existing Systems"
+      },
+      {
+        "style": "Heading 2",
+        "text": "4. Business Opportunity"
+      },
+      {
+        "style": "Heading 2",
+        "text": "5. Software Product Vision"
+      },
+      {
+        "style": "Heading 2",
+        "text": "6. Project Scope & Limitations"
+      },
+      {
+        "style": "Heading 1",
+        "text": "II. Project Management Plan"
+      },
+      {
+        "style": "Heading 2",
+        "text": "1. Overview"
+      },
+      {
+        "style": "Heading 3",
+        "text": "1.1 Scope & Estimation"
+      },
+      {
+        "style": "Heading 3",
+        "text": "1.2 Project Objectives"
+      },
+      {
+        "style": "Heading 3",
+        "text": "1.3 Project Risks"
+      },
+      {
+        "style": "Heading 2",
+        "text": "2. Management Approach"
+      },
+      {
+        "style": "Heading 3",
+        "text": "2.1 Project Process"
+      },
+      {
+        "style": "Heading 3",
+        "text": "2.2 Quality Management"
+      },
+      {
+        "style": "Heading 3",
+        "text": "2.3 Training Plan"
+      },
+      {
+        "style": "Heading 2",
+        "text": "3. Project Deliverables"
+      },
+      {
+        "style": "Heading 2",
+        "text": "4. Responsibility Assignments"
+      },
+      {
+        "style": "Heading 2",
+        "text": "5. Project Communications"
+      },
+      {
+        "style": "Heading 2",
+        "text": "6. Configuration Management"
+      },
+      {
+        "style": "Heading 3",
+        "text": "6.1 Document Management"
+      },
+      {
+        "style": "Heading 3",
+        "text": "6.2 Source Code Management"
+      },
+      {
+        "style": "Heading 3",
+        "text": "6.3 Tools & Infrastructures"
+      },
+      {
+        "style": "Heading 1",
+        "text": "III. Software Requirement Specification"
+      },
+      {
+        "style": "Heading 2",
+        "text": "1. Product Overview"
+      },
+      {
+        "style": "Heading 2",
+        "text": "2. User Requirements"
+      },
+      {
+        "style": "Heading 2",
+        "text": "3. Functional Requirements"
+      },
+      {
+        "style": "Heading 3",
+        "text": "3.1 System Functional Overview"
+      },
+      {
+        "style": "Heading 3",
+        "text": "3.2 <Feature Name 1>"
+      },
+      {
+        "style": "Heading 4",
+        "text": "3.2.1 <Function Name 1.1>"
+      },
+      {
+        "style": "Heading 3",
+        "text": "3.3 <Feature Name 2>"
+      },
+      {
+        "style": "Heading 4",
+        "text": "3.3.1 <Function Name 2.1>"
+      },
+      {
+        "style": "Heading 2",
+        "text": "4. Non-Functional Requirements"
+      },
+      {
+        "style": "Heading 3",
+        "text": "4.1 External Interfaces"
+      },
+      {
+        "style": "Heading 3",
+        "text": "4.2 Quality Attributes"
+      },
+      {
+        "style": "Heading 2",
+        "text": "5. Requirement Appendix"
+      },
+      {
+        "style": "Heading 3",
+        "text": "5.1 Business Rules"
+      },
+      {
+        "style": "Heading 3",
+        "text": "5.2 Common Requirements"
+      },
+      {
+        "style": "Heading 3",
+        "text": "5.3 Application Messages List"
+      },
+      {
+        "style": "Heading 3",
+        "text": "5.4 Other Requirements…"
+      },
+      {
+        "style": "Heading 1",
+        "text": "IV. Software Design Description"
+      },
+      {
+        "style": "Heading 2",
+        "text": "1. System Design"
+      },
+      {
+        "style": "Heading 3",
+        "text": "1.1 System Architecture"
+      },
+      {
+        "style": "Heading 3",
+        "text": "1.2 Package Diagram"
+      },
+      {
+        "style": "Heading 2",
+        "text": "2. Database Design"
+      },
+      {
+        "style": "Heading 2",
+        "text": "3. Detailed Design"
+      },
+      {
+        "style": "Heading 3",
+        "text": "3.1 <Feature/Function Name1>"
+      },
+      {
+        "style": "Heading 4",
+        "text": "3.1.1 Class Diagram"
+      },
+      {
+        "style": "Heading 3",
+        "text": "3.2 <Feature/Function Name2>"
+      },
+      {
+        "style": "Heading 1",
+        "text": "V. Software Testing Documentation"
+      },
+      {
+        "style": "Heading 2",
+        "text": "1. Scope of Testing"
+      },
+      {
+        "style": "Heading 2",
+        "text": "2. Test Strategy"
+      },
+      {
+        "style": "Heading 3",
+        "text": "2.1 Testing Types"
+      },
+      {
+        "style": "Heading 3",
+        "text": "2.2 Test Levels"
+      },
+      {
+        "style": "Heading 3",
+        "text": "2.3 Supporting Tools"
+      },
+      {
+        "style": "Heading 2",
+        "text": "3. Test Plan"
+      },
+      {
+        "style": "Heading 3",
+        "text": "3.1 Human Resources"
+      },
+      {
+        "style": "Heading 3",
+        "text": "3.2 Test Environment"
+      },
+      {
+        "style": "Heading 3",
+        "text": "3.3 Test Milestones"
+      },
+      {
+        "style": "Heading 2",
+        "text": "4. Test Cases"
+      },
+      {
+        "style": "Heading 2",
+        "text": "5. Test Reports"
+      },
+      {
+        "style": "Heading 1",
+        "text": "VI. Release Package & User Guides"
+      },
+      {
+        "style": "Heading 2",
+        "text": "1. Deliverable Package"
+      },
+      {
+        "style": "Heading 2",
+        "text": "2. Installation Guides"
+      },
+      {
+        "style": "Heading 3",
+        "text": "2.1 System Requirements"
+      },
+      {
+        "style": "Heading 3",
+        "text": "2.2 Installation Instruction"
+      },
+      {
+        "style": "Heading 2",
+        "text": "3. User Manual"
+      },
+      {
+        "style": "Heading 3",
+        "text": "3.1 Overview"
+      },
+      {
+        "style": "Heading 3",
+        "text": "3.2 Workflow 1"
+      },
+      {
+        "style": "Heading 3",
+        "text": "3.3 Workflow 2"
+      }
+    ]
+  },
+  {
+    "path": "C:\\Users\\docao\\Downloads\\2_SEP490\\SEP490 StudentGuide_Fall 2023.docx",
+    "sha256": "8bd9c78191e76b39e328f8562ac6f36c7dce889e4588b1375be72ba4cf43400c",
+    "bytes": 40198,
+    "sections": [
+      {
+        "width_cm": 21.00615277777778,
+        "height_cm": 29.693305555555554,
+        "margins_cm": [
+          2.002013888888889,
+          2.00025,
+          2.54,
+          2.54
+        ]
+      }
+    ],
+    "headings": [
+      {
+        "style": "Heading 1",
+        "text": "I. General Introduction"
+      },
+      {
+        "style": "Heading 2",
+        "text": "1. Capstone Project’s description"
+      },
+      {
+        "style": "Heading 2",
+        "text": "2. The IT Capstone Project Products"
+      },
+      {
+        "style": "Heading 1",
+        "text": "II. Capstone Project Regulation"
+      },
+      {
+        "style": "Heading 2",
+        "text": "1. Common regulations"
+      },
+      {
+        "style": "Heading 2",
+        "text": "2. Condition to apply for CP "
+      },
+      {
+        "style": "Heading 2",
+        "text": "3. Reports of CP"
+      },
+      {
+        "style": "Heading 2",
+        "text": "4. Milestone table of CP implementation"
+      },
+      {
+        "style": "Heading 2",
+        "text": "5. Evaluation of the Capstone Project"
+      },
+      {
+        "style": "Heading 1",
+        "text": "III. Project Document Templates"
+      },
+      {
+        "style": "Heading 2",
+        "text": "1. Project Reports"
+      },
+      {
+        "style": "Heading 3",
+        "text": "1.1 Report 1 (Project Introduction)"
+      },
+      {
+        "style": "Heading 3",
+        "text": "1.2 Report 2 (Project Management Plan)"
+      },
+      {
+        "style": "Heading 3",
+        "text": "1.3 Report 3 (System Requirement Specification)"
+      },
+      {
+        "style": "Heading 3",
+        "text": "1.4 Report 4 (Software Design Document)"
+      },
+      {
+        "style": "Heading 3",
+        "text": "1.5 Report 5 (Software Test Documentation)"
+      },
+      {
+        "style": "Heading 3",
+        "text": "1.6 Report 6 (Software User Guides)"
+      },
+      {
+        "style": "Heading 3",
+        "text": "1.7 Report 7 (Final Project Report)"
+      },
+      {
+        "style": "Heading 2",
+        "text": "2. Templates for Tracking Project Status & Progress"
+      },
+      {
+        "style": "Heading 3",
+        "text": "2.1 Project Schedule & Tasks"
+      },
+      {
+        "style": "Heading 3",
+        "text": "2.2 Tracking Project Information"
+      }
+    ]
+  },
+  {
+    "path": "C:\\Users\\docao\\Downloads\\SWP490_R2_BM04_Review2-Document\\SWP490_R2_BM01_Design_Brief_1.docx",
+    "sha256": "1fdcda346a65501601310952c1b0afebc3a3cdf70e4e6a70581e023a02e2f4c8",
+    "bytes": 15808,
+    "sections": [
+      {
+        "width_cm": 21.00086111111111,
+        "height_cm": 29.70036111111111,
+        "margins_cm": [
+          2.00025,
+          2.00025,
+          2.00025,
+          2.00025
+        ]
+      }
+    ],
+    "headings": [
+      {
+        "style": "Heading 1",
+        "text": "Design Brief – Review 2"
+      },
+      {
+        "style": "Heading 2",
+        "text": "0. Header"
+      },
+      {
+        "style": "Heading 2",
+        "text": "1. Scope"
+      },
+      {
+        "style": "Heading 3",
+        "text": "1.1 Registration Changes"
+      },
+      {
+        "style": "Heading 3",
+        "text": "1.2 Out of Scope"
+      },
+      {
+        "style": "Heading 2",
+        "text": "2. System at a Glance"
+      },
+      {
+        "style": "Heading 2",
+        "text": "3. Key Design Decisions"
+      },
+      {
+        "style": "Heading 2",
+        "text": "4. Top Risks"
+      },
+      {
+        "style": "Heading 2",
+        "text": "5. Known Gaps"
+      },
+      {
+        "style": "Heading 2",
+        "text": "6. Proposed Mandatory Features"
+      },
+      {
+        "style": "Heading 2",
+        "text": "7. Non-Functional Requirements"
+      },
+      {
+        "style": "Heading 2",
+        "text": "8. Ownership Map"
+      },
+      {
+        "style": "Heading 1",
+        "text": "Appendix A – Defense 1.1 Targets"
+      },
+      {
+        "style": "Heading 3",
+        "text": "A1. Main Workflows"
+      },
+      {
+        "style": "Heading 3",
+        "text": "A2. Demo Scenarios"
+      },
+      {
+        "style": "Heading 3",
+        "text": "A3. Functional Test Case Target"
+      }
+    ]
+  },
+  {
+    "path": "C:\\Users\\docao\\Downloads\\SWP490_R2_BM04_Review2-Document\\SWP490_R2_BM02_Self_Review_Report_1.docx",
+    "sha256": "c241bcff3373af69251c2c7344592d8d61cd4fdb275a01cd60f12e4fdece0e1e",
+    "bytes": 13734,
+    "sections": [
+      {
+        "width_cm": 21.00086111111111,
+        "height_cm": 29.70036111111111,
+        "margins_cm": [
+          2.00025,
+          2.00025,
+          2.00025,
+          2.00025
+        ]
+      }
+    ],
+    "headings": [
+      {
+        "style": "Heading 1",
+        "text": "SRS/SDD Self-Review Report – Review 2"
+      },
+      {
+        "style": "Heading 2",
+        "text": "1. Run Information"
+      },
+      {
+        "style": "Heading 2",
+        "text": "2. Standard Prompt"
+      },
+      {
+        "style": "Heading 2",
+        "text": "3. Findings and Team Response"
+      },
+      {
+        "style": "Heading 2",
+        "text": "4. Top 5 Findings (as reported by the AI)"
+      },
+      {
+        "style": "Heading 2",
+        "text": "5. Summary"
+      }
+    ]
+  },
+  {
+    "path": "C:\\Users\\docao\\Downloads\\SWP490_R2_BM04_Review2-Document\\SWP490_R2_BM03_Record_of_Changes_1.docx",
+    "sha256": "f84aa223171806139abb01617f9824daaf8ae4197e74f03ecbfd01d9f5c39ebb",
+    "bytes": 12142,
+    "sections": [
+      {
+        "width_cm": 21.00086111111111,
+        "height_cm": 29.70036111111111,
+        "margins_cm": [
+          2.00025,
+          2.00025,
+          2.00025,
+          2.00025
+        ]
+      }
+    ],
+    "headings": [
+      {
+        "style": "Heading 1",
+        "text": "Registration Form – Record of Changes"
+      },
+      {
+        "style": "Heading 2",
+        "text": "1. Project Information"
+      },
+      {
+        "style": "Heading 2",
+        "text": "2. Changes"
+      },
+      {
+        "style": "Heading 2",
+        "text": "3. Decision at Review 2 (completed by reviewers)"
+      }
+    ]
+  },
+  {
+    "path": "C:\\Users\\docao\\Downloads\\SWP490_R2_BM04_Review2-Document\\SWP490_R2_BM04_Review2_Commitment_1.docx",
+    "sha256": "fc8293411f8f79beaace0149f248a11e7ad8d05c756acffe76e161b02e055d20",
+    "bytes": 26926,
+    "sections": [
+      {
+        "width_cm": 21.00086111111111,
+        "height_cm": 29.70036111111111,
+        "margins_cm": [
+          2.00025,
+          2.00025,
+          2.00025,
+          2.00025
+        ]
+      }
+    ],
+    "headings": [
+      {
+        "style": "Heading 1",
+        "text": "Review 2 Commitment"
+      },
+      {
+        "style": "Heading 2",
+        "text": "1. Project Information"
+      },
+      {
+        "style": "Heading 2",
+        "text": "2. Final Registration Form"
+      },
+      {
+        "style": "Heading 2",
+        "text": "3. Mandatory Features"
+      },
+      {
+        "style": "Heading 2",
+        "text": "4. Non-Functional Requirements"
+      },
+      {
+        "style": "Heading 2",
+        "text": "5. Out of Scope"
+      },
+      {
+        "style": "Heading 2",
+        "text": "6. Workflow Commitments"
+      },
+      {
+        "style": "Heading 3",
+        "text": "6.1 Workflow WF-01"
+      },
+      {
+        "style": "Heading 3",
+        "text": "6.2 Workflow WF-02"
+      },
+      {
+        "style": "Heading 3",
+        "text": "6.3 Workflow WF-03"
+      },
+      {
+        "style": "Heading 3",
+        "text": "6.4 Workflow WF-04"
+      },
+      {
+        "style": "Heading 3",
+        "text": "6.5 Workflow WF-05"
+      },
+      {
+        "style": "Heading 2",
+        "text": "7. Individual Commitments"
+      },
+      {
+        "style": "Heading 3",
+        "text": "7.1 Member 1"
+      },
+      {
+        "style": "Heading 3",
+        "text": "7.2 Member 2"
+      },
+      {
+        "style": "Heading 3",
+        "text": "7.3 Member 3"
+      },
+      {
+        "style": "Heading 3",
+        "text": "7.4 Member 4"
+      },
+      {
+        "style": "Heading 3",
+        "text": "7.5 Member 5"
+      },
+      {
+        "style": "Heading 2",
+        "text": "8. Summary and Cross-check"
+      },
+      {
+        "style": "Heading 3",
+        "text": "8.1 By workflow"
+      },
+      {
+        "style": "Heading 3",
+        "text": "8.2 By member"
+      },
+      {
+        "style": "Heading 3",
+        "text": "8.3 Committed Numbers"
+      },
+      {
+        "style": "Heading 3",
+        "text": "8.4 Eligibility Thresholds for the Viva"
+      },
+      {
+        "style": "Heading 2",
+        "text": "9. Required Fixes"
+      },
+      {
+        "style": "Heading 2",
+        "text": "10. Review 2 Conclusion (completed by reviewers)"
+      },
+      {
+        "style": "Heading 2",
+        "text": "11. Confirmation"
+      }
+    ]
+  },
+  {
+    "path": "C:\\Users\\docao\\Downloads\\SWP490_R2_BM04_Review2-Document\\SWP490_R2_Huong-dan-chuan-bi-Review-2_1.pdf",
+    "sha256": "5c8b8c96d44edfd61336bacb0be4fe58bfec0d966e64a777ece628f9f6740bc7",
+    "bytes": 908772
+  }
+]

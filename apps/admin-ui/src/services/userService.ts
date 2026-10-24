@@ -1,4 +1,4 @@
 export const userService = {
-  listUsers: async (role?: string) => [],
-  updateStatus: async (userId: string, status: string) => {},
+  listUsers: async (_role?: string) => [],
+  updateStatus: async (_userId: string, _status: string) => {},
 };

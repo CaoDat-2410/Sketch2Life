@@ -1,0 +1,71 @@
+{
+  "asset_id": "C01",
+  "use_case": "ui-mockup",
+  "status": "REVIEW_PENDING",
+  "generated_path": "assets/generated/child-app/C01-tham-gia-phien.png",
+  "srs_ui_id": "C01",
+  "screen_kind": "main",
+  "role": "child-app",
+  "prompt": "assets/prompts/C01.txt",
+  "source_references": [
+    {
+      "path": "features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md",
+      "sha256": "a95c89589843e3555e967c5e486f3bcaf4bbdf9446cb3bc9c49ed16f672964d9",
+      "section": "B23.2"
+    },
+    {
+      "path": "apps/ui-mobile/src/theme.ts",
+      "purpose": "existing design tokens"
+    }
+  ],
+  "generator": "built-in image_gen.imagegen",
+  "captured_at_utc": "2026-10-10T13:45:27.635379+00:00",
+  "generator_output_filename": "exec-37c0a508-acc8-4b6e-a267-446b60fb4b64.png",
+  "sha256": "b8b5b5775f8d16546f8233175bf02ac32ef492cbbae510ab4f53fd2d57a1a0cb",
+  "bytes": 1687683,
+  "width": 1448,
+  "height": 1086,
+  "original_copied_unchanged": true,
+  "synthetic_data_only": true,
+  "qa": {
+    "reviewer": "Codex visual inspection",
+    "status": "INSPECTED",
+    "note": "Inspected readable join interface: only harmless empty-code placeholders, manual entry and optional scan, explicit Teacher admission, no roster/password/QR secret; consistent leaf brand, no clipping."
+  },
+  "review": {
+    "status": "REVIEW_PENDING",
+    "reviewer": null,
+    "reviewed_at": null
+  },
+  "applied_path": null,
+  "limitations": "Generated design proposal; not implemented runtime, approved visual or device acceptance.",
+  "input_images": [
+    {
+      "path": "assets/generated/child-app/C03-ban-ve.png",
+      "sha256": "1971eba9c6a4d77d01120e298f008cbda135cfd4f4d19bdd123d83e2211df467",
+      "role": "style reference",
+      "generation_step": 1
+    }
+  ],
+  "generation_history": [
+    {
+      "step": 1,
+      "kind": "generation",
+      "prompt": "assets/prompts/C01.txt",
+      "input_images": [
+        {
+          "path": "assets/generated/child-app/C03-ban-ve.png",
+          "sha256": "1971eba9c6a4d77d01120e298f008cbda135cfd4f4d19bdd123d83e2211df467",
+          "role": "style reference",
+          "generation_step": 1
+        }
+      ],
+      "output": "assets/generated/child-app/C01-tham-gia-phien.png",
+      "sha256": "b8b5b5775f8d16546f8233175bf02ac32ef492cbbae510ab4f53fd2d57a1a0cb",
+      "generator_output_filename": "exec-37c0a508-acc8-4b6e-a267-446b60fb4b64.png",
+      "selected": true,
+      "disposition": "REVIEW_PENDING",
+      "prompt_sha256": "e3e0496bed79539f71a374acadee4b774252217d1755271621ca852d2f985375"
+    }
+  ]
+}

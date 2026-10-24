@@ -1,0 +1,122 @@
+[
+  {
+    "part": "word/",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "preservation": "editable source structure"
+  },
+  {
+    "part": "word/_rels/",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "preservation": "editable source structure"
+  },
+  {
+    "part": "word/_rels/document.xml.rels",
+    "sha256": "529cbe71311132359385147d081888d07cc36b18c954c57f8ce129e414cdf862",
+    "preservation": "editable source structure"
+  },
+  {
+    "part": "word/document.xml",
+    "sha256": "2b57ceff735e80fab6556bcb8ab7192aa79ddead93b21ecfa034aa28bc0c8385",
+    "preservation": "editable source structure"
+  },
+  {
+    "part": "word/styles.xml",
+    "sha256": "f6a271e3d4d98f634b817521ecf2fb13efa2b20c960270cc6e07e0f67bcce422",
+    "preservation": "editable source structure"
+  },
+  {
+    "part": "docProps/",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "preservation": "editable source structure"
+  },
+  {
+    "part": "docProps/core.xml",
+    "sha256": "57f2ae6cfa8d0ca6e3bc07091bf0b0f108580654d50d989bb004a5d3d2530e09",
+    "preservation": "editable source structure"
+  },
+  {
+    "part": "word/numbering.xml",
+    "sha256": "805a1aa1e744da8e1f3c9ec8d38fba424865f9b3a9c0eb104578ed74f7f8637b",
+    "preservation": "editable source structure"
+  },
+  {
+    "part": "_rels/",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "preservation": "editable source structure"
+  },
+  {
+    "part": "_rels/.rels",
+    "sha256": "641d22a23aa9eb550103a7a01471eaeda5e84c69413e6e03e7fd290b4811a756",
+    "preservation": "editable source structure"
+  },
+  {
+    "part": "word/_rels/footer1.xml.rels",
+    "sha256": "bf64631f0bc7bd46712fef822bcfb22e069fa5779e133980ca0c9d81f00efc09",
+    "preservation": "editable source structure"
+  },
+  {
+    "part": "word/footer1.xml",
+    "sha256": "b90616c5bcd6e2f6e85c264c6aa2051ba28c887238d86ef18ecf46230c042fca",
+    "preservation": "editable source structure"
+  },
+  {
+    "part": "docProps/custom.xml",
+    "sha256": "8ec73cc7ce297e42cc652a1d1884d4ffb18ffa0ba7a6502a36f8da90d1be61a1",
+    "preservation": "editable source structure"
+  },
+  {
+    "part": "docProps/app.xml",
+    "sha256": "579eba9a8d602575736c3880cf5b529aabbadee0e8cc0e4df8573db0ceadbd4b",
+    "preservation": "editable source structure"
+  },
+  {
+    "part": "word/footnotes.xml",
+    "sha256": "774ce254f01cde1079d43e81a0db30ac82b3b2bae875b07c4fe28403ba30b6a9",
+    "preservation": "editable source structure"
+  },
+  {
+    "part": "word/_rels/footnotes.xml.rels",
+    "sha256": "bf64631f0bc7bd46712fef822bcfb22e069fa5779e133980ca0c9d81f00efc09",
+    "preservation": "editable source structure"
+  },
+  {
+    "part": "word/endnotes.xml",
+    "sha256": "52f6c33e62c233e0d9f9c41ec259ffd943ea9cdc413293d43e6ffb213682a5cf",
+    "preservation": "editable source structure"
+  },
+  {
+    "part": "word/_rels/endnotes.xml.rels",
+    "sha256": "bf64631f0bc7bd46712fef822bcfb22e069fa5779e133980ca0c9d81f00efc09",
+    "preservation": "editable source structure"
+  },
+  {
+    "part": "word/settings.xml",
+    "sha256": "36b68f012adfd6d2f8faaebc8d101632d3529e9d9fd57d6ef92198841e96f09e",
+    "preservation": "editable source structure"
+  },
+  {
+    "part": "word/fontTable.xml",
+    "sha256": "a746dbb577ec5d68983d659707c0750ca89d40b9d3316e31af331d5e1c736bad",
+    "preservation": "editable source structure"
+  },
+  {
+    "part": "word/_rels/fontTable.xml.rels",
+    "sha256": "bf64631f0bc7bd46712fef822bcfb22e069fa5779e133980ca0c9d81f00efc09",
+    "preservation": "editable source structure"
+  },
+  {
+    "part": "word/theme/",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "preservation": "preserve"
+  },
+  {
+    "part": "word/theme/theme1.xml",
+    "sha256": "14d6fc4b249d866d8ab97f1ee68e6601c3feedc56857db791418573bf378f6de",
+    "preservation": "preserve"
+  },
+  {
+    "part": "[Content_Types].xml",
+    "sha256": "441ca5a936418c64142008e642d20155f7a857c429fc909737284cf224460834",
+    "preservation": "editable source structure"
+  }
+]

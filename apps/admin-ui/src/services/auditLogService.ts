@@ -1,4 +1,4 @@
 export const auditLogService = {
-  queryLogs: async (filter?: any) => [],
+  queryLogs: async (_filter?: any) => [],
   exportCsv: async () => {},
 };

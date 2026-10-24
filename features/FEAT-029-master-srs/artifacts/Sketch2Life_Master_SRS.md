@@ -1,14 +1,14 @@
 # SRS tổng thể Sketch2Life — Học tập sáng tạo cộng tác
 
 - Mã tài liệu: S2L-SRS-MASTER.
-- Phiên bản: 3.1 — đặc tả nền tảng hệ thống, mở rộng scope replacement v3.0 ngày 2026-10-10.
+- Phiên bản: 3.3 — v3.2 cộng phụ lục chốt chính sách lớp học B28 ngày 2026-10-24; xem B27–B28 và phân biệt OWNER_CONFIRMED / PROPOSED / OPEN_TBD.
 - Ngôn ngữ: Tiếng Việt.
 - Trạng thái: mục tiêu sản phẩm và FastAPI/React Native đã xác nhận; chi tiết `PROPOSED`/`TBD` chưa đóng băng.
 - Phạm vi: nền tảng lấy cảm hứng Montessori, Reggio Emilia và học tập kiến tạo xã hội, trẻ 3–12 tuổi.
 - Client đã xác nhận: tablet/điện thoại Android, React Native. Backend đã xác nhận: FastAPI.
-- Feature quản lý: FEAT-039; task approval revision 3, chỉ tài liệu/phân tích; implementation chưa được thực hiện trong task này.
+- Feature quản lý: FEAT-039; SRS revision 5 là cập nhật chính sách sản phẩm/tài liệu, phối hợp FEAT-060. Runtime mới cho mã 6 số, stage controller và completion contract chưa được triển khai.
 
-> Đây là yêu cầu cho sản phẩm mục tiêu, không phải chứng nhận implementation. Source hiện vẫn chứa giới hạn dưới 9 tuổi, role Parent/Guide/Admin, flow cá nhân và storage in-memory. Việc sửa SRS không tự sửa runtime hoặc adopt các contract bên dưới. Bản v2.0 nguyên trạng, bao gồm nội dung chưa commit trước task, được giữ trong FEAT-039.
+> Đây là yêu cầu cho sản phẩm mục tiêu, không phải chứng nhận implementation. Source hiện vẫn chứa giới hạn dưới 9 tuổi, role Parent/Guide/Admin, flow cá nhân và storage in-memory. Việc sửa SRS không tự sửa runtime hoặc adopt các contract bên dưới. Bản v2.0 nguyên trạng, bao gồm nội dung chưa commit trước task, được giữ trong FEAT-039. Exact SRS v3.1 được bảo toàn tại `Sketch2Life_Master_SRS_v3.1_preserved_20261023.md`; exact v3.2 trước amendment này được giữ nguyên tại `Collaborative_Learning_SRS_v3.2.md` (SHA-256 `9d7a71cc3fd0ab45b3175823c09780af0eb2e129d21a991d5470693dae25a21d`).
 
 ## 0. Nguồn, thẩm quyền và cách đọc
 
@@ -25,6 +25,8 @@
 | SRC-CODE | Checkout thực tế: backend, apps/ui-mobile, apps/mobile, packages/art-renderer, catalog và tests | Bằng chứng implementation, không thay quyết định sản phẩm |
 | SRC-GOV | AGENTS.md, docs/governance, security và versioned contracts | Quy tắc phát triển/an toàn tiếp tục áp dụng |
 | SRC-ADR | ADR-0003/0006/0008–0013 cùng các feature records | Quyết định cũ cần giữ, thay hoặc rà soát theo ma trận chuyển đổi |
+| SRC-ANS5 | Owner clarification ngày 2026-10-23: mã sáu số dùng chung; đóng cả QR và mã khi Teacher bắt đầu; phân biệt hoàn tất đủ quy trình với Teacher dừng sớm | Xác nhận hành vi admission và ý nghĩa outcome; fields/API/persistence cụ thể vẫn cần contract |
+| SRC-ANS6 | Sáu trả lời trực tiếp của project owner ngày 2026-10-24 về pending admission, mã phòng, chuyển stage/Assistance, OD07, nháp nhóm và lý do kết thúc sớm | Xác nhận chính sách sản phẩm; endpoint/schema/guard/migration vẫn cần BE1 review |
 
 Attachment nguyên bản giữ ở local path; hash và nguồn được ghi tại [SOURCE_REVIEW.md](../../FEAT-039-collaborative-learning-scope/evidence/notes/SOURCE_REVIEW.md). Không sao chép handbook/workbook bên ngoài. Báo cáo phân tích chi tiết: [REUSE_AND_ARCHITECTURE.md](../../FEAT-039-collaborative-learning-scope/artifacts/REUSE_AND_ARCHITECTURE.md).
 
@@ -60,7 +62,7 @@ Owner xác nhận scope mới thay scope hiện tại. Vì vậy, các phần B2
 
 Thay actor không được migration bằng đổi chuỗi `GUIDE` thành `TEACHER` hoặc `ADMIN` thành quyền xem mọi trẻ. Session, permission và age policy phải có phiên bản và mapping dữ liệu riêng.
 
-### 0.4 Chỉ dẫn đọc bản nền tảng v3.1
+### 0.4 Chỉ dẫn đọc bản nền tảng v3.3
 
 | Người đọc / việc cần làm | Phần chính |
 |---|---|
@@ -70,8 +72,9 @@ Thay actor không được migration bằng đổi chuỗi `GUIDE` thành `TEACH
 | UX và Teacher workflow | [Screens/age tools/accessibility](#b23), [privacy workflow](#b24) |
 | QA, NFR và tích hợp | [Measurement profiles/fixtures](#b25), [traceability/gates](#b26) |
 | Migration từ source hiện tại | [Maturity/migration](#b15), [phasing/allocation](#b16), báo cáo reuse đi kèm |
+| Quyết định tích hợp lớp mới | [SRS amendment 2026-10-23](#b27), [chốt chính sách lớp 2026-10-24](#b28), FEAT-060 API traceability |
 
-B1–B18 là scope và tổng quan; B19–B26 là refinement có actor/input/guard/error/outcome và verification. Các ID FR được giữ nguyên; UC01–UC13 là summary, UC-001–UC-038 là detailed cases. Chữ “phải” trong phần PROPOSED diễn tả candidate specification để review, không tự adopt stack hoặc cấp task implementation approval. Một quyết định owner-confirmed được ghi riêng và không trở lại TBD vì schema chi tiết chưa chốt.
+B1–B18 là scope và tổng quan; B19–B26 là refinement có actor/input/guard/error/outcome và verification; B27 ghi amendment ngày 2026-10-23; B28 ghi các owner decision ngày 2026-10-24. Các ID FR được giữ nguyên; UC01–UC13 là summary, UC-001–UC-038 là detailed cases. Chữ “phải” trong phần PROPOSED diễn tả candidate specification để review, không tự adopt stack hoặc cấp task implementation approval. Một quyết định owner-confirmed được ghi riêng và không trở lại TBD vì schema chi tiết chưa chốt.
 
 <a id="b1"></a>
 
@@ -324,7 +327,7 @@ Các tên state sau là display concepts `PROPOSED` từ nguồn V/IX; B19.4 đ�
 | Command/event | Preconditions proposed | Result/rejection |
 |---|---|---|
 | OpenLobby | Teacher assignment, valid config, expected session version | Join open hoặc authorization/version error |
-| AdmitParticipant | Lobby/allowed late join, membership và consent policy | Participant admitted + scoped device binding |
+| AdmitParticipant | Chỉ khi admission đang mở trước khi Teacher start; xác minh membership và consent policy | Participant admitted + scoped device binding; OWNER_CONFIRMED: mọi admission mới qua QR/deep-link/mã bị đóng sau start |
 | PauseSession | Teacher quyền hiện hành | Checkpoint + policy pause; exact editing behavior cần refinement |
 | ResumeSession | Teacher + saved state valid | Resume current stage/group state; không reset tranh |
 | AdvanceSharedStage | Teacher/version, required approval for Knowledge playback | Stage event; nhóm chưa xong được tiếp tục/lưu nháp theo Teacher |
@@ -708,14 +711,14 @@ OD01–OD03/06/13 và một phần OD04/05/12/14 đã được owner trả lời
 | OD04 | RESOLVED_OWNER hình thức: trường thu consent, authorized Teacher/Admin ghi evidence/purpose; verification authority/process còn TBD | Cao phần refinement | Thu thập/AI/durable child records, B21/B24 |
 | OD05 | RESOLVED_OWNER default session/artwork: 90 ngày sau end; portfolio/profile/audit/consent/library TTL, shared-delete/copies/backups/authority còn TBD | Cao phần refinement | Privacy lifecycle B19.2/B24; không kéo dài raw source vô hạn |
 | OD06 | RESOLVED_OWNER: một trường pilot, chuẩn bị mở rộng; resource scoping/topology multi-school còn PROPOSED | Đã chốt phạm vi pilot | Tenancy/authorization; không full multi-tenant launch |
-| OD07 | Return to prior stage after video/off-screen | Trung bình | Session transitions |
+| OD07 | Quy tắc cho phép quay lại stage sau video/off-screen vẫn UNRESOLVED; interim `OWNER_CONFIRMED`: khóa stage-return đến khi OD07 được giải quyết | Trung bình | Session transitions; no rewind implementation until resolved |
 | OD08 | Tool permissions cụ thể theo 3–5/6–8/9–12 | Trung bình | Android UX/tool rules |
 | OD09 | Import ảnh/sticker/text/mẫu | Trung bình | Canvas extensions/data intake |
 | OD10 | Age-specific assessment rubric/AI suggestion review | Trung bình | Assessment/report |
 | OD11 | Screen-time limits mỗi nhóm tuổi | Cao | Session scheduling/UX |
 | OD12 | RESOLVED_OWNER capacity target: một lớp tối đa 40 trẻ; device/network profile, latency/quality/model budget còn PROPOSED/TBD | Trung bình phần refinement | Load/model/device acceptance B25; chưa claim đạt tải |
 | OD13 | RESOLVED_OWNER: từ đủ 3 đến trước 13, 36–155 completed months inclusive; calculation/date fixtures và mixed-age/curriculum details còn refinement | Đã chốt endpoint | Age gates/curriculum migration B19/B21 |
-| OD14 | RESOLVED_OWNER child login: managed profiles + QR/mã, không account riêng; grant/provisioning/revoke/Teacher offline/late join/co-teacher policy còn PROPOSED/TBD | Cao phần refinement | Auth/session recovery, B19/B21/B22 |
+| OD14 | RESOLVED_OWNER child login: managed profiles + QR/mã, không account riêng; no late admission by QR/code after start OWNER_CONFIRMED; grant/provisioning/revoke/Teacher offline/co-teacher policy còn PROPOSED/TBD | Cao phần refinement | Auth/session recovery, B19/B21/B22 |
 | OD15 | Expo vs bare RN, single mobile baseline/version, native Skia vs Pixi WebView, sync algorithm/transport | Cao | Stack ADR/canvas prototype |
 | OD16 | AI Sketch model/output shape, video model/render/library strategy, voice/language/duration/provider capacity | Cao | AI/media implementation |
 | OD17 | Market/jurisdiction, legal process và authority cho school consent/data requests | Cao | Deployment/privacy policy |
@@ -838,7 +841,7 @@ Wire values đề xuất `lower_snake_case`; UI có thể localize tiếng Việ
 
 ### B19.5 Session/group transition matrix
 
-Tất cả cấu trúc/guard chi tiết ở bảng là PROPOSED, triển khai sau feature approval. Teacher control và tiến độ riêng là CONFIRMED. `Owner answer` được nêu nơi đã chốt.
+Wire schema, transaction, receipts và technical guard implementation trong bảng là PROPOSED, triển khai sau contract/feature approval. Teacher control và tiến độ riêng là CONFIRMED; product guard choices được project owner xác nhận được ghi tại B28. `Owner answer` được nêu nơi đã chốt.
 
 | Command | From → To | Actor/guards | Durable effect và reject behavior |
 |---|---|---|---|
@@ -846,26 +849,26 @@ Tất cả cấu trúc/guard chi tiết ở bảng là PROPOSED, triển khai sa
 | ScheduleSession | draft → scheduled | Teacher/class scope, future date/time valid | Start schedule is planning, không tự admit/play AI |
 | OpenLobby | draft/scheduled → lobby | Teacher quyền hiện hành, capacity/consent policy ready | Join ticket/code issued; không public roster |
 | AdmitParticipant | pending → admitted | Teacher verified roster/profile/enrollment/age/consent và device binding | Membership/capability + audit/outbox atomic; duplicates echo same admission |
-| StartSession | lobby → active | Teacher controller, admitted roster, effective tools | Shared stage explore_draw; incomplete groups remain waiting |
-| LateAdmit | active/paused → same lifecycle | PROPOSED Teacher explicit confirmation; policy allows late join | Child assigned group + checkpoint/resync; no old-content access outside grant |
+| StartSession | lobby → active | Teacher controller, admitted roster, effective tools; atomically revoke every still-pending join request on successful start | Shared stage explore_draw; already-admitted grants remain; pending Child refresh returns `revoked` |
+| LateAdmit | active/paused → same lifecycle | **OWNER_CONFIRMED:** reject any new QR/deep-link or room-code join; pending-at-start requests are revoked atomically with successful start and Child refresh returns `revoked` | Already-admitted grants remain; no new membership; exact transaction/response contract is BE1 review |
 | Pause | active → paused | Teacher control/version | control epoch increment + checkpoint job; server denies new accepted child drawing under proposed pause policy |
 | Resume | paused → active | Teacher explicit command, consistent snapshot/recovery available | New control epoch, clients resync/pending reconcile; no reset source art |
 | EnterRecovery | active/paused/completing → recovering | Application detected durable failure/state inconsistency | Preserve last stable state/target resume; block unsafe mutations, show safe status |
 | Recover | recovering → prior valid lifecycle | Authorized recovery use case; checkpoints/hashes/version validate | Resume only validated state; corruption not silently replaced with empty canvas |
-| AdvanceStage | active → active | Teacher, current version, stage guards | Class stage event; group progress unaffected unless explicit scoped command |
-| ReturnStage | active → active | OD07 must be resolved for affected transitions | Do not implement UI Back as domain stage rewind |
+| AdvanceStage | active → active | Teacher advances only to the next stage after backend guards; no arbitrary skip; Assistance may interleave or be explicitly recorded `not_needed`; no rewind until OD07 resolution | Persist stage event and durable receipt; group progress stays independent; exact API/schema is BE1 review |
+| ReturnStage | active → active | OD07 remains unresolved; owner-confirmed interim rule disables every stage-return command until OD07 is resolved | Reject domain rewind; ordinary page navigation is not a stage transition |
 | SaveGroupDraft | drawing/etc → reviewing/ready or remain | Teacher explicit disposition, target group scope | New submitted snapshot; unfinished artwork marked draft |
 | MoveParticipant | admitted → admitted | Teacher + eligible target group + membership version | Revoke old-room writes/subscription, rebind group/new grant; old contribution retained |
 | BeginCompletion | active/paused → completing | Teacher command, no required pending disposition, exact version | Freeze new writes/reviews; save outcome snapshot and jobs/assessment refs |
 | Complete | completing → completed | All required durable results saved, completion consistency validates | Terminal time/outcome; policy retention anchor; no pending save reported success |
-| EndEarly | lobby/active/paused/recovering → ended_early via completion record | Teacher confirms reason, existing accepted state recoverable | Save available artifacts/partial learning outcomes; cancel remaining jobs/grants |
+| EndEarly | lobby/active/paused/recovering → ended_early via completion record | Teacher supplies required reason category (`time`, `safety`, `technical`, `other`); short note is optional | Save current stage, available artifacts and incomplete-work dispositions; never claim full completion; exact receipt/schema is BE1 review |
 | CancelBeforeStart | draft/scheduled/lobby → cancelled | Teacher/controller, pre-start policy | Close admission, preserve relevant administrative audit; no completed-learning claim |
 
 `CS-004` PROPOSED: pilot session có đúng một controlling Teacher. TeacherAssignment có thể có nhiều người theo mô hình tương lai, nhưng transfer controller/co-teacher permissions là OD14; không tự cấp command quyền cho mọi Teacher trong trường. Teacher mất mạng không làm unassigned Teacher thành controller.
 
 `CS-005` PROPOSED: pause ngừng server accepting child edits. Nét đã accepted trước control-epoch change vẫn giữ. Draft pointer đang vẽ có thể được lưu local_rejected/recoverable, không tự replay sau resume. Permission/tool/activity controls mới phải được fetch/resync trước nét mới. Teacher edit/restore lúc paused chỉ nếu có action-specific quyền và audit.
 
-`CS-006` PROPOSED: nhóm chưa xong khi Teacher advance có explicit outcome continue_in_current_stage/save_draft/join_shared_stage; không tự mark finished hoặc mất tác phẩm. Completion ghi ended_early/group_draft/video_skipped/assessment_unobserved thay vì lấp kết quả giả.
+`CS-006` OWNER_CONFIRMED: trước khi advance past một nhóm còn unfinished, Teacher phải chọn `save_draft`; draft được giữ gắn với nhóm, không tự mark finished và không làm mất tác phẩm. Nhóm chưa xong không chặn tiến độ các nhóm khác. Completion ghi `ended_early`/`group_draft`/`video_skipped`/`assessment_unobserved` thay vì lấp kết quả giả. Contract/transaction/persistence vẫn PROPOSED_UNADOPTED.
 
 ### B19.6 Admission, authorization và active-child turns
 
@@ -1144,10 +1147,10 @@ FR056 được triển khai thành hai luồng nghiệp vụ UC-035/036; bảng 
 ### UC-007 — Join bằng QR/mã và Teacher admission
 
 - **Actor / FR:** Child tham gia với Teacher xác nhận; FR002. **OWNER_CONFIRMED:** hồ sơ + QR/mã phiên, không child login riêng.
-- **Preconditions:** Lobby mở hoặc late-join policy đã được duyệt; managed profile/enrollment/consent đủ cho purpose hiện hành, tuổi 36–155 completed months tại ngày phiên và còn quota admission tối đa 40 trẻ; device chưa bị revoke.
+- **Preconditions:** Admission đang mở trong Lobby trước khi Teacher start; managed profile/enrollment/consent đủ cho purpose hiện hành, tuổi 36–155 completed months tại ngày phiên và còn quota admission tối đa 40 trẻ; device chưa bị revoke.
 - **Trigger/input:** quét QR/nhập mã, chọn profile qua flow được phép và yêu cầu join; join reference và device binding, không gửi quyền tự khai.
 - **Main flow:** (1) Resolve join reference, chỉ trả context tối thiểu. (2) Teacher kiểm tra/chọn đúng profile, session/group. (3) Backend validate eligibility và admission. (4) Ghi participant/device binding, cấp scoped grant theo contract. (5) Trả authorized lobby/canvas config; reconnect dùng participant đã admit.
-- **Alternatives/errors:** mã sai/hết hạn/đóng admission cho thông báo an toàn, không lộ roster cả lớp. Duplicate join trả binding hiện có hoặc yêu cầu Teacher xử lý rebind theo policy. Late join chưa có policy không tự admit. Grant bị revoke không thể dùng QR cũ để lấy quyền lại.
+- **Alternatives/errors:** mã sai/hết hạn/đóng admission cho thông báo an toàn, không lộ roster cả lớp. Duplicate join trả binding hiện có hoặc yêu cầu Teacher xử lý rebind theo policy. Sau khi start thành công, mọi QR/deep-link hoặc mã sáu số mới bị từ chối; pending-at-start handling cần contract. Grant đã admitted trước start tiếp tục; revoked grant không thể dùng QR cũ để lấy quyền lại.
 - **Persistent postconditions:** admitted participant gắn profile/session và grant/device scope; không tạo Firebase child account. Từ chối admission không tạo participant đầy quyền.
 - **AT-UC-007-P:** Given Lobby và profile đủ điều kiện, When Teacher xác nhận join, Then trẻ nhận đúng canvas/group và retry không nhân đôi participant.
 - **AT-UC-007-N:** Given chỉ biết mã phiên hoặc consent thiếu, When gọi canvas API trực tiếp, Then không đọc/sửa được artwork và admission không bỏ qua Teacher/consent gate.
@@ -1176,11 +1179,11 @@ FR056 được triển khai thành hai luồng nghiệp vụ UC-035/036; bảng 
 
 ### UC-010 — Pause, resume, advance và kết thúc sớm
 
-- **Actor / FR:** Teacher; FR010, FR013. Quyền control là `CONFIRMED`; quay lại stage cũ FR013 vẫn `TBD` OD07.
-- **Preconditions:** Teacher assignment hiện hành; expected session version; stage guards/review/save policy đã được duyệt.
+- **Actor / FR:** Teacher; FR010, FR013. Quyền control là `CONFIRMED`; owner xác nhận không có lệnh quay lại cho đến khi OD07 được giải quyết; policy cuối của FR013 vẫn TBD.
+- **Preconditions:** Teacher assignment hiện hành; expected session version; stage guards/review/save policy đã được duyệt; unfinished group work có disposition `save_draft` trước khi advance.
 - **Trigger/input:** pause/resume/advance/save draft/end early; target stage, reason/confirmation khi policy yêu cầu.
-- **Main flow:** (1) Validate command và current lifecycle. (2) Persist control event/policy version và yêu cầu checkpoint phù hợp. (3) Broadcast effective action tới groups/devices. (4) Resume giữ products/progress; advance ghi Teacher disposition đối với nhóm chưa xong. (5) End early lưu phần đã có/incomplete stages, không báo full journey hoàn tất.
-- **Alternatives/errors:** network retry không tạo hai stage events; concurrent control stale phải reload. Advance Knowledge không tự play video chưa duyệt. Pause editing behavior theo state policy, không mặc định mất nét. ReturnToEarlierStage chỉ được bật sau OD07; UI back không là domain stage command.
+- **Main flow:** (1) Validate command và current lifecycle. (2) Persist control event/policy version và yêu cầu checkpoint phù hợp. (3) Broadcast effective action tới groups/devices. (4) Resume giữ products/progress; advance chỉ sang stage kế và lưu `save_draft` cho mỗi nhóm chưa xong. (5) End early lưu phần đã có, current stage, category lý do và incomplete stages; ghi chú Teacher là tùy chọn, không báo full journey hoàn tất.
+- **Alternatives/errors:** network retry không tạo hai stage events; concurrent control stale phải reload. Advance Knowledge không tự play video chưa duyệt. Pause editing behavior theo state policy, không mặc định mất nét. Trước khi OD07 resolved, mọi ReturnToEarlierStage command bị reject; UI back không là domain stage command.
 - **Persistent postconditions:** lifecycle/stage/teacher reason/version bền vững; accepted artwork giữ. EndedEarly khác Completed, thiếu video/activity không bị ghi thành thành công.
 - **AT-UC-010-P:** Given hai nhóm tiến độ khác nhau, When Teacher pause/resume rồi end early, Then products được checkpoint/giữ, quyết định có actor và phiên ghi EndedEarly.
 - **AT-UC-010-N:** Given quay lại stage chưa có policy hoặc video chưa approved, When UI gửi back/advance-play, Then không tạo transition trái policy hoặc autoplay.
@@ -2287,7 +2290,7 @@ Test oracle phải dựa domain/contract policy đã approved, không chỉ so o
 
 `READY` là kết quả evidence/review cụ thể, không đặt chỉ vì SRS đủ dài. Gate proposals:
 
-1. **Product/policy**: giữ owner decisions tuổi 36–155 inclusive, pilot một lớp tối đa 40 trẻ và retention tranh/phiên 90 ngày sau end. Chốt tiếp mixed-age, school authority/consent, retention các classes khác/export/delete/backups, screen time, Teacher offline/co-teacher/late join, tool imports, return-stage và device/AI-budget profile bằng attributable evidence. Các module không phụ thuộc quyết định có thể làm fixtures; real collection/production path phụ thuộc policy chưa chốt không tự mở.
+1. **Product/policy**: giữ owner decisions tuổi 36–155 inclusive, pilot một lớp tối đa 40 trẻ, retention tranh/phiên 90 ngày sau end, và đóng mọi admission mới sau Teacher start. Chốt tiếp mixed-age, school authority/consent, retention các classes khác/export/delete/backups, screen time, Teacher offline/co-teacher behavior, tool imports, return-stage và device/AI-budget profile bằng attributable evidence. Các module không phụ thuộc quyết định có thể làm fixtures; real collection/production path phụ thuộc policy chưa chốt không tự mở.
 2. **Technical**: chọn một React Native baseline, renderer/sync/transport và versioned contracts qua ADR/benchmarks; durable storage/queue/auth adapters; backend-only providers/storage; Firebase Authentication-only. Không đưa credentials/endpoints vào Android hoặc config report.
 3. **Functional/safety**: end-to-end session với group độc lập, shared tablet contribution, per-Sketch gate, video wait/failure Teacher choice, activity chuẩn bị, assessment/portfolio/save/recovery; negative permission/stale/revoke fixtures; pedagogy/content review và model eval approved.
 4. **Recovery/privacy**: restore rehearsal, checkpoint/watermark correctness, partial-save handling, delete/export per-copy workflow, provider/backups restrictions, lost-device/cache and tombstone reconciliation. Chưa đủ purge evidence phải báo partial/exception, không demo “Delete button” là completed lifecycle.
@@ -2457,3 +2460,94 @@ Thay đổi yêu cầu cần: nêu trigger và affected FR/UC/DATA/CMD/UI/NFR; x
 Một requirement có thể ở `NOT_STARTED`, `FIXTURE_VALIDATED`, `IMPLEMENTED`, `VERIFIED` hoặc `DEFERRED_BY_APPROVED_PLAN` trong bảng thực thi của feature; SRS không tự đổi status đó. `VERIFIED` cần evidence thực tế cả positive và negative scenarios liên quan; `PROPOSED` không tự được coi là passed. Khi release, giữ bảng deviations/open risks/rollback và quyền approval riêng.
 
 Documentation checks của lần mở rộng này chỉ xác nhận coverage/links/hashes/authority và review consistency. Kết quả nằm trong evidence FEAT-039; chúng không là test pass cho runtime mới.
+
+<a id="b27"></a>
+
+## B27. Phụ lục sửa đổi tích hợp lớp — 2026-10-23
+
+Phụ lục này bổ sung cách đọc yêu cầu lớp học và ghi rõ contract gaps phát hiện trong rà soát FEAT-060. Nó không viết lại các baseline B5/B19/B22, không chứng nhận source hiện tại, và không adopt API hay schema. SRS v3.1 trước thay đổi được bảo toàn nguyên trạng. Phụ lục được version hóa thành v3.2 để người đọc truy vết được phần bổ sung.
+
+### B27.1 Mã phòng sáu chữ số — OWNER_CONFIRMED
+
+Owner xác nhận mã sáu chữ số là **mã phòng dùng chung** theo kiểu Quizizz/Kahoot: nhiều trẻ trong cùng lớp có thể nhập cùng mã. Đây không phải OTP, không phải mã dùng một lần, và không nhận diện một hồ sơ trẻ. Khi Teacher bắt đầu lớp thành công, **cả QR/deep-link lẫn mã sáu chữ số đều ngừng nhận yêu cầu tham gia mới**; không nhận trẻ vào muộn qua hai đường này sau thời điểm đó. Trẻ đã được admit trước lúc bắt đầu tiếp tục dùng grant hiện có. Không có thời hạn OTP cố định được xác nhận.
+
+Mã phòng chỉ định tuyến yêu cầu vào phiên. Mã hợp lệ không tự admit trẻ và không thay thế các bước backend tạo yêu cầu chờ, Teacher chọn hồ sơ trẻ được quản lý, kiểm tra consent có hiệu lực và admit thiết bị. Không trả roster, hồ sơ, nội dung lớp hay tranh chỉ dựa vào mã.
+
+**Giới hạn tại thời điểm 2026-10-23:** quy tắc đóng QR và mã 6 số sau khi start đã được xác nhận ở mức sản phẩm. B28.1 ngày 2026-10-24 supersedes phần xử lý pending request; BE1 vẫn phải review transaction, lỗi và receipt kỹ thuật.
+
+### B27.2 Stage học, lifecycle phiên và tiến độ nhóm — đề xuất contract
+
+SRS B5/B19 đã xác định chín chặng học: `preparation`, `join`, `explore_draw`, `assistance`, `sharing`, `knowledge`, `off_screen`, `reflection`, `completion`. Chặng học trả lời **“lớp đang làm phần học nào?”**; lifecycle (`lobby`, `active`, `paused`, `finished`...) trả lời **“phiên đang vận hành ra sao?”**. Tiến độ riêng của từng nhóm/trẻ là chiều thứ ba. Một phiên `active` chưa cho biết lớp đang ở chặng nào.
+
+Để UI Teacher và Child theo cùng một trạng thái sau refresh/reconnect, đề xuất BE lưu chặng dùng chung và trả về giá trị authoritative cùng revision; Teacher chuyển chặng bằng command có kiểm tra revision/điều kiện và receipt bền vững. Không cho màn hình tự đổi stage ở client, không suy stage từ `active`, và không tự advance khi nhóm báo ready. Hoạt động hỗ trợ AI có thể xen kẽ theo B19; việc gọi help không nhất thiết chuyển lớp sang stage mới. Đây là refinement cho các nguyên tắc hiện có, không phải quyết định thêm enum/product flow.
+
+Stage endpoint, revision/CAS, idempotency, transition guards, event history và bảng lưu là `PROPOSED_UNADOPTED`. Cần BE1 owner review và phê duyệt contract/migration trước khi implement. API mapping và các gaps hiện tại được ghi tại [FEAT-060 API traceability](../../FEAT-060-classroom-integration-and-review-remediation/evidence/notes/SRS_STAGE_API_TRACEABILITY_20261023.md) và [đề xuất shared-stage BE1](../../FEAT-060-classroom-integration-and-review-remediation/artifacts/BE1_SHARED_STAGE_CONTRACT_PROPOSAL.md). FEAT-060 Plan Rev3 được project owner duyệt ngày 2026-10-24; contract và migration gates vẫn còn hiệu lực.
+
+### B27.3 Kết quả kết thúc phiên — OWNER_CONFIRMED semantics; contract details proposed
+
+Owner xác nhận hệ thống phải phân biệt: (a) lớp hoàn tất các bước/kết quả bắt buộc (`completed`) và (b) Teacher dừng buổi trước khi hoàn tất (`ended_early`). Nói đơn giản, đây là cách tránh hiển thị buổi bị dừng giữa chừng như đã hoàn thành đầy đủ. Source `/finish` hiện chỉ lưu lifecycle `finished`; bản thân giá trị đó không chứng minh trường hợp nào đã xảy ra.
+
+Hai ý nghĩa kết quả là **OWNER_CONFIRMED**. B28.6 ngày 2026-10-24 chốt reason category bắt buộc và ghi chú Teacher tùy chọn cho `ended_early`. Tên field, completion receipt, điều kiện bắt buộc cho `completed`, dữ liệu đã lưu và nhóm chưa hoàn thành vẫn cần contract/guard cụ thể; những chi tiết kỹ thuật này chưa được adopt. Cho đến khi có contract, không map lifecycle `finished` sang `completed` hoặc `ended_early`, không tuyên bố quy trình hoàn tất từ một lệnh finish.
+
+### B27.4 Bảng thay đổi và trạng thái
+
+| Chủ đề | Cập nhật B27 | Trạng thái / evidence |
+|---|---|---|
+| Mã phòng 6 số | Dùng chung; Lobby lifetime; Teacher có thể xoay trước Start; áp dụng các kiểm soát tại B28.2 | OWNER_CONFIRMED policy; API/storage/security implementation chưa có |
+| QR/code late admission | QR/deep-link và mã 6 số đều đóng nhận admission mới; request còn pending bị revoke cùng Start thành công | OWNER_CONFIRMED policy; BE1 vẫn phải chốt transaction/response receipt |
+| Chín chặng SRS | Backend cần trạng thái chặng dùng chung, tách lifecycle và tiến độ nhóm/trẻ | Requirement principles đã có ở B19; API/schema refinement PROPOSED_UNADOPTED |
+| Hoàn tất hay dừng sớm | Phân biệt đủ quy trình (`completed`) và Teacher dừng trước đó (`ended_early`); category bắt buộc và note tùy chọn theo B28.6 | OWNER_CONFIRMED semantics; API/schema/guards PROPOSED_UNADOPTED |
+| Implementation | Sau khi Plan Rev3 được duyệt, Child/Teacher/Admin đã nối một phần luồng WF-01/WF-02 qua BE1 v1 hiện có; chưa thêm shared-stage, mã phòng 6 số, completion contract, API roster hay migration | FEAT-060 Plan Rev3 APPROVED; kiểm tra giao diện và contract đạt, nhưng chưa có DB-backed E2E; chi tiết ở FEAT-060 catalogue; BE1 contract/migration và FEAT-057 vẫn là gate |
+
+<a id="b28"></a>
+
+## B28. Chốt chính sách lớp học — 2026-10-24
+
+Phụ lục này ghi sáu câu trả lời trực tiếp của project owner sau khi FEAT-060 Plan Rev3 được duyệt. B28 bổ sung **chính sách sản phẩm**; không phê duyệt wire schema, endpoint, storage model, migration hoặc triển khai code. B28 supersedes các chi tiết được ghi là chưa quyết định ở B27/B19.5 trong phạm vi cụ thể dưới đây.
+
+### B28.1 Pending request tại thời điểm Start — OWNER_CONFIRMED
+
+Khi lệnh Start thành công, backend phải **thu hồi nguyên tử mọi yêu cầu admission còn `pending`** tại ranh giới đó. Child refresh tiếp theo nhận state `revoked`; Teacher không thể admit request này sau Start. Đây là yêu cầu hành vi cùng atomic boundary với đổi lifecycle. Cách tổ chức transaction, event, conflict/retry và error receipt phải được BE1 chốt trong contract; hiện chưa có route/schema/migration cho hành vi này. Request mới qua QR và mã phòng đều bị reject sau Start; các grant đã admitted vẫn được giữ.
+
+### B28.2 Shared room code và kiểm soát abuse — OWNER_CONFIRMED policy
+
+Mã sáu chữ số dùng chung có hiệu lực trong toàn bộ Lobby đến khi lớp bắt đầu thành công. Teacher được xoay mã trước Start; mã cũ lập tức mất hiệu lực. Backend sinh mã bằng cryptographically secure random generator và bảo đảm không trùng giữa các phòng còn joinable; chỉ lưu keyed hash/HMAC phía server và không ghi mã rõ vào log. Mã sai, mã cũ, mã đã đóng và mã không tồn tại trả cùng lỗi tổng quát để không lộ phòng nào đang hoạt động. Owner duyệt rate limit ban đầu **10 lần nhập sai trên mỗi source IP trong 15 phút**, với bộ đếm bền vững dùng chung giữa replicas/restarts.
+
+BE1 vẫn phải review trusted-proxy/source-IP attribution, durability/cross-replica enforcement, rate-limit storage, key lifecycle, collision retry và audit semantics trước khi bật route. Các review kỹ thuật này không tự đổi chính sách/ngưỡng đã duyệt; nếu BE1 chứng minh ngưỡng không an toàn hoặc không thể đo source IP đúng thì phải đưa phương án đổi lại owner.
+
+### B28.3 Advance chặng và Assistance — OWNER_CONFIRMED policy
+
+Teacher chỉ được advance từ chặng hiện tại sang **chặng kế tiếp theo thứ tự SRS**, sau khi backend kiểm guard và trả receipt bền vững. Không có lệnh skip tùy ý. Hoạt động Assistance có thể xen kẽ mà không tự chuyển shared stage; nếu không cần hỗ trợ, Teacher có thể ghi rõ `not_needed` trước khi tiếp tục. Stage `assistance` vẫn có thể được Teacher chọn rõ khi phù hợp. Mỗi transition phải giữ group progress độc lập và áp dụng B28.5 cho nhóm chưa xong. Guard/result của AI assistance vẫn phụ thuộc FEAT-057 approvals.
+
+### B28.4 Return-stage interim rule — OWNER_CONFIRMED interim policy; OD07 remains OPEN
+
+Cho đến khi OD07 được giải quyết, Teacher không có command để quay lại stage trước, kể cả sau video/off-screen; mọi lệnh rewind phải bị backend từ chối. Điều hướng về trang UI trước không được biến thành domain stage change. **OD07 vẫn OPEN** vì owner chưa chọn policy cuối sau khi xem xét rủi ro/pedagogy; B28 chỉ chốt biện pháp interim an toàn, không có nghĩa “không bao giờ được quay lại”.
+
+### B28.5 Nhóm chưa hoàn tất khi lớp advance — OWNER_CONFIRMED
+
+Nếu một nhóm còn việc chưa hoàn tất khi Teacher advance lớp, Teacher phải chọn disposition `save_draft`. Nháp được lưu gắn đúng group/session và giữ accepted artifact/revision; nhóm đó không bị báo `completed`, còn các nhóm khác không phải chờ. Stage advance không được commit nếu disposition/draft receipt bắt buộc chưa bền vững. Wire fields, multi-group atomicity, draft restore/read và failure recovery vẫn cần BE1 contract.
+
+### B28.6 Lý do kết thúc sớm — OWNER_CONFIRMED
+
+Kết quả `ended_early` phải có reason category bắt buộc: `time`, `safety`, `technical`, hoặc `other`. Teacher có thể thêm ghi chú ngắn tùy chọn. Completion receipt vẫn tách khỏi lifecycle `finished`, ghi current stage và references/dispositions của dữ liệu đã lưu/chưa hoàn tất; kết thúc sớm không nâng phần thiếu thành thành công. BE1 phải duyệt field/validation/privacy/retention/audit shape và transaction trong contract.
+
+### B28.7 Trạng thái áp dụng và đối chiếu quyết định
+
+Các chính sách B28 là `OWNER_CONFIRMED` nhưng **chưa được triển khai** trong runtime vì BE1 chưa có routes/contracts/storage đã review cho shared room code, pending-at-start revocation, authoritative stage, group-draft guard và explicit completion receipt. Không giả lập thành công tại client hoặc map `/finish` sang `completed`/`ended_early`.
+
+| Chủ đề | Quyết định | Trạng thái và kỹ thuật còn lại |
+|---|---|---|
+| Pending khi Start | Thu hồi nguyên tử; refresh là `revoked` | OWNER_CONFIRMED; BE1 transaction/route/test chưa có |
+| Mã 6 số | Lobby lifetime; Teacher rotate trước Start; keyed hash, generic error, persistent 10/IP/15m throttle | OWNER_CONFIRMED policy; BE1 proxy/storage/key/collision review, route và migration chưa có |
+| Stage | Chỉ next stage sau guard/receipt; Assistance interleave hoặc `not_needed`; không skip tùy ý | OWNER_CONFIRMED policy; authoritative stage API/migration chưa có |
+| Quay lại stage | Khóa đến khi OD07 giải quyết | Interim OWNER_CONFIRMED; OD07 final policy OPEN |
+| Việc nhóm chưa xong | Bắt buộc `save_draft` trước khi lớp advance | OWNER_CONFIRMED; durable group-draft contract chưa có |
+| End early | Category bắt buộc (`time`/`safety`/`technical`/`other`), ghi chú tùy chọn | OWNER_CONFIRMED; completion receipt/schema/guard chưa có |
+
+## Change log — SRS v3.3
+
+2026-10-24: Add B28 from six direct project-owner answers. Resolve pending-at-start disposition, shared room-code security policy and threshold, next-stage/Assistance policy, interim no-rewind rule pending OD07, save-draft disposition for unfinished groups, and early-stop reason category/optional note. Preserve exact v3.2 artifact. Product rules are owner-confirmed; BE1 implementation contracts and migration remain gated.
+
+2026-10-23: Add B27 from owner-confirmed classroom integration direction and FEAT-060 source/API review. Preserve v3.1 exactly. Close all new QR/deep-link and six-digit-code admission when start succeeds; retain existing admitted grants; distinguish full completion from Teacher early stop. Endpoint/schema/revision/guard/pending-request semantics, stage persistence implementation and migration remain PROPOSED_UNADOPTED. At this amendment point no product runtime change was implied.
+
+2026-10-24: After the owner approved FEAT-060 Plan Rev3, a bounded FE/BE integration pass connected the QR join, Teacher admission/group/turn orchestration, Child reconnect/canvas writes, and Admin class list/create through existing BE1 v1 contracts. The shared six-digit code, persistent nine-stage controller, and distinct terminal-result API remain unimplemented and gated. UI and backend contract tests do not establish live PostgreSQL persistence or a complete nine-stage workflow; see FEAT-060 evidence for exact proof and gaps.

@@ -1,0 +1,16 @@
+
+> sketch2life-workspace@0.0.0 check:active-ui
+> npm --prefix apps/child-ui run check && npm --prefix apps/teacher-ui run check && npm --prefix apps/admin-ui run check
+
+
+> sketch2life-child@1.0.0 check
+> npm run typecheck && npm run build && npm run lint && npm run test
+
+
+> sketch2life-child@1.0.0 typecheck
+> tsc --noEmit
+
+app/index.tsx(118,3): error TS2304: Cannot find name 'useEffect'.
+src/__tests__/sessionClient.test.ts(1,10): error TS2305: Module '"../services/sessionClient"' has no exported member 'verifySessionPin'.
+src/services/apiClient.ts(39,12): error TS2352: Conversion of type 'Record<string, unknown>' to type 'ChildDeviceContext' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type 'Record<string, unknown>' is missing the following properties from type 'ChildDeviceContext': organizationId, sessionId, grantId, deviceKey

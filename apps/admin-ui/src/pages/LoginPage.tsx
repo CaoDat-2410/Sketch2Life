@@ -3,16 +3,28 @@ import { useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react'
 import loginBg from '../assets/login-bg.png'
 import loginLogoIcon from '../assets/login-logo-icon.png'
+import { authService } from '../services/authService'
 
 export function LoginPage() {
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('••••••••')
+  const [password, setPassword] = useState('')
   const [showPass, setShowPass] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    navigate('/')
+    setSubmitting(true)
+    setError('')
+    try {
+      await authService.login({ email, pass: password })
+      navigate('/', { replace: true })
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Không thể đăng nhập.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -58,9 +70,10 @@ export function LoginPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
+              {error && <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">{error}</div>}
               {/* Email */}
               <div>
-                <label className="block text-[15px] font-bold text-slate-800 mb-2">
+                <label htmlFor="admin-email" className="block text-[15px] font-bold text-slate-800 mb-2">
                   Email
                 </label>
                 <div className="relative">
@@ -69,6 +82,8 @@ export function LoginPage() {
                   </span>
                   <input
                     type="email"
+                    id="admin-email"
+                    required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="name@school.example"
@@ -79,7 +94,7 @@ export function LoginPage() {
 
               {/* Password */}
               <div>
-                <label className="block text-[15px] font-bold text-slate-800 mb-2">
+                <label htmlFor="admin-password" className="block text-[15px] font-bold text-slate-800 mb-2">
                   Mật khẩu
                 </label>
                 <div className="relative">
@@ -88,6 +103,8 @@ export function LoginPage() {
                   </span>
                   <input
                     type={showPass ? 'text' : 'password'}
+                    id="admin-password"
+                    required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full pl-12 pr-12 py-3.5 border border-slate-200 rounded-xl text-[16px] text-slate-800 tracking-widest bg-[#FAFBFD] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition"
@@ -106,9 +123,10 @@ export function LoginPage() {
               <div className="pt-1">
                 <button
                   type="submit"
-                  className="w-full bg-[#1565F9] hover:bg-blue-700 text-white font-bold py-4 rounded-2xl text-[17px] transition-colors shadow-[0_4px_14px_rgba(21,101,249,0.28)] cursor-pointer"
+                  disabled={submitting}
+                  className="w-full bg-[#1565F9] hover:bg-blue-700 disabled:opacity-60 text-white font-bold py-4 rounded-2xl text-[17px] transition-colors shadow-[0_4px_14px_rgba(21,101,249,0.28)] cursor-pointer"
                 >
-                  Đăng nhập
+                  {submitting ? 'Đang xác minh…' : 'Đăng nhập'}
                 </button>
               </div>
 

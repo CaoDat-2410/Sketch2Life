@@ -216,6 +216,138 @@ class ClassroomSessionModel(CorePersistenceBase):
     __mapper_args__ = {"version_id_col": revision, "version_id_generator": False}
 
 
+class Be1RoomCodeModel(CorePersistenceBase):
+    __tablename__ = "be1_session_room_codes"
+    __table_args__ = (UniqueConstraint("room_code_hmac", name="uq_be1_room_code_hmac"),)
+
+    session_id: Mapped[str] = mapped_column(String(128), primary_key=True)
+    organization_id: Mapped[str] = mapped_column(String(128), nullable=False)
+    room_code_hmac: Mapped[str] = mapped_column(String(64), nullable=False)
+    key_version: Mapped[str] = mapped_column(String(32), nullable=False)
+    rotated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
+class Be1RoomCodeRateLimitModel(CorePersistenceBase):
+    __tablename__ = "be1_room_code_rate_limits"
+
+    source_hmac: Mapped[str] = mapped_column(String(64), primary_key=True)
+    attempts: Mapped[list[str]] = mapped_column(JSONB, nullable=False, default=list)
+
+
+class Be1SessionStageModel(CorePersistenceBase):
+    __tablename__ = "be1_session_learning_stages"
+    __table_args__ = (
+        CheckConstraint(
+            "stage IN ('preparation','join','explore_draw','assistance','sharing','knowledge',"
+            "'off_screen','reflection','completion')",
+            name="ck_be1_learning_stage",
+        ),
+        CheckConstraint("stage_revision > 0", name="ck_be1_learning_stage_revision"),
+    )
+
+    session_id: Mapped[str] = mapped_column(String(128), primary_key=True)
+    organization_id: Mapped[str] = mapped_column(String(128), nullable=False)
+    stage: Mapped[str] = mapped_column(String(32), nullable=False, default="preparation")
+    stage_revision: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    entered_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    last_command_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
+
+
+class Be1SessionStageEventModel(CorePersistenceBase):
+    __tablename__ = "be1_session_learning_stage_events"
+    __table_args__ = (
+        UniqueConstraint(
+            "organization_id", "session_id", "stage_revision", name="uq_be1_stage_event_revision"
+        ),
+        UniqueConstraint(
+            "organization_id", "session_id", "command_id", name="uq_be1_stage_event_command"
+        ),
+    )
+
+    event_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    organization_id: Mapped[str] = mapped_column(String(128), nullable=False)
+    session_id: Mapped[str] = mapped_column(String(128), nullable=False)
+    from_stage: Mapped[str] = mapped_column(String(32), nullable=False)
+    to_stage: Mapped[str] = mapped_column(String(32), nullable=False)
+    stage_revision: Mapped[int] = mapped_column(Integer, nullable=False)
+    command_id: Mapped[str] = mapped_column(String(128), nullable=False)
+    actor: Mapped[str] = mapped_column(String(256), nullable=False)
+    disposition: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False, default=dict)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
+class Be1SessionCommandReceiptModel(CorePersistenceBase):
+    __tablename__ = "be1_session_command_receipts"
+
+    organization_id: Mapped[str] = mapped_column(String(128), primary_key=True)
+    session_id: Mapped[str] = mapped_column(String(128), primary_key=True)
+    command_type: Mapped[str] = mapped_column(String(48), primary_key=True)
+    idempotency_key: Mapped[str] = mapped_column(String(128), primary_key=True)
+    request_fingerprint: Mapped[str] = mapped_column(String(64), nullable=False)
+    response_payload: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
+class Be1GroupDraftModel(CorePersistenceBase):
+    __tablename__ = "be1_group_drafts"
+    __table_args__ = (
+        CheckConstraint("disposition = 'save_draft'", name="ck_be1_group_draft_disposition"),
+        UniqueConstraint(
+            "organization_id",
+            "session_id",
+            "group_id",
+            "stage_revision",
+            name="uq_be1_group_draft_stage",
+        ),
+    )
+
+    draft_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    organization_id: Mapped[str] = mapped_column(String(128), nullable=False)
+    session_id: Mapped[str] = mapped_column(String(128), nullable=False)
+    group_id: Mapped[str] = mapped_column(String(128), nullable=False)
+    stage_revision: Mapped[int] = mapped_column(Integer, nullable=False)
+    disposition: Mapped[str] = mapped_column(String(24), nullable=False, default="save_draft")
+    durable_canvas_refs: Mapped[list[dict[str, object]]] = mapped_column(JSONB, nullable=False)
+    created_by: Mapped[str] = mapped_column(String(256), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
+class Be1SessionOutcomeModel(CorePersistenceBase):
+    __tablename__ = "be1_session_outcomes"
+    __table_args__ = (
+        CheckConstraint("outcome IN ('completed', 'ended_early')", name="ck_be1_session_outcome"),
+        CheckConstraint(
+            "(outcome = 'completed' AND reason_category IS NULL) OR "
+            "(outcome = 'ended_early' AND reason_category IS NOT NULL AND reason_category IN "
+            "('time','safety','technical','other'))",
+            name="ck_be1_session_outcome_reason",
+        ),
+    )
+
+    session_id: Mapped[str] = mapped_column(String(128), primary_key=True)
+    organization_id: Mapped[str] = mapped_column(String(128), nullable=False)
+    outcome: Mapped[str] = mapped_column(String(24), nullable=False)
+    reason_category: Mapped[str | None] = mapped_column(String(24), nullable=True)
+    teacher_note: Mapped[str | None] = mapped_column(String(240), nullable=True)
+    outcome_refs: Mapped[list[str]] = mapped_column(JSONB, nullable=False, default=list)
+    stage_revision: Mapped[int] = mapped_column(Integer, nullable=False)
+    command_id: Mapped[str] = mapped_column(String(128), nullable=False)
+    created_by: Mapped[str] = mapped_column(String(256), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
 class SessionMembershipModel(CorePersistenceBase):
     __tablename__ = "be1_session_memberships"
     __table_args__ = (

@@ -18,6 +18,7 @@ import {
   School,
 } from 'lucide-react'
 import sidebarLogo from '../assets/sidebar-logo.png'
+import { authService } from '../services/authService'
 
 const NAV_ITEMS = [
   { to: '/', label: 'Tổng quan', icon: Home, end: true },
@@ -133,7 +134,7 @@ export function AdminLayout() {
             <ChevronRight size={15} className="text-slate-400" />
           </div>
           <button
-            onClick={() => navigate('/login')}
+            onClick={() => void authService.logout().then(() => navigate('/login', { replace: true }))}
             className="flex items-center gap-3 w-full px-3 py-2 text-[14px] font-medium text-slate-600 hover:text-red-600 hover:bg-red-50/60 rounded-xl transition-colors"
           >
             <LogOut size={17} className="text-slate-500" />
@@ -175,7 +176,7 @@ export function AdminLayout() {
             {/* School selector */}
             <button className="flex items-center gap-2.5 bg-[#F1F5F9] hover:bg-slate-200/70 text-slate-700 text-[13px] font-semibold px-3.5 py-2 rounded-xl transition-colors">
               <School size={16} className="text-slate-600" />
-              <span>Trường Mầm Xanh</span>
+              <span>Tổ chức đã xác minh qua BE1</span>
               <ChevronDown size={14} className="text-slate-500 ml-0.5" />
             </button>
 

@@ -1,4 +1,4 @@
 export const reportService = {
-  getEngagementReport: async (range: string) => [],
+  getEngagementReport: async (_range: string) => [],
   getCompetencyRadar: async () => {},
 };
