@@ -35,3 +35,12 @@
 - **Scope:** additive BE1 contracts/migration on the documented `be1_core` lineage for shared room code and persistent throttle, atomic pending-grant revocation on Start, durable roster reads, next-stage-only SRS progression, unfinished-group draft disposition, distinct terminal outcomes; connect matching Child and Teacher UI paths and verify them as listed in Rev4.
 - **Retained gates:** live/prod migration or deployment, external messaging, secrets, real child data, commit/push, Modal deployment/GPU/spend, FEAT-057 AI/video/activity adoption, and any claim of complete nine-stage product readiness or measured 40-child capacity.
 - **Clarification:** this addendum authorizes this project's local implementation from the approved owner policy. It does not record that another engineer reviewed the code. Runtime proxy topology and PostgreSQL-backed verification remain explicit acceptance checks.
+
+## Approval addendum — Plan revision 5: CI and Iteration 1 verification
+
+- **Status:** APPROVED for the bounded CI and verification scope below.
+- **Approver:** Project owner, direct reply on 2026-10-24: “Có, sau khi gate đạt,” answering whether CI preparation, Iteration 1 checks, BM02 on the final baseline, and creation of `review-2` after gates are authorized.
+- **Plan:** `plan/PLAN_REV5_CI_AND_ITERATION1_VERIFICATION_20261024.md`.
+- **Plan SHA-256:** `41A8068A61AE706507883736BC7AB5E8310C11E392CF22745779F997162E7CFF`.
+- **Scope:** inspect and add a credential-free GitHub Actions workflow using existing locked dependencies/check commands; run and record current baseline checks; inspect and run reproducible independent fixture/contract runners under ADR-0006; distinguish offline evidence from runtime/FE-to-BE acceptance.
+- **Retained gates:** no product runtime, schema/migration, provider, secret, real child data, live database, deployment, or end-to-end claim. The `review-2` tag is allowed only after all CI, Iteration 1, document QA, clean-tree, and security gates pass at one exact commit.

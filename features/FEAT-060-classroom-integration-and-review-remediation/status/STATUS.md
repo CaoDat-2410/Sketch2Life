@@ -2,6 +2,15 @@
 
 ## Current status — 2026-10-24
 
+- Lifecycle: IN_PROGRESS under approved FEAT-060 Plan revision 5 for CI readiness and Iteration 1 verification.
+- Approved plan SHA-256: `41A8068A61AE706507883736BC7AB5E8310C11E392CF22745779F997162E7CFF`.
+- The peer-review audit found no tracked GitHub Actions workflow at the Rev10 baseline. Current baseline code and prior local FE/BE receipts remain those recorded below; the new plan adds only credential-free automation and evidence review.
+- Added `.github/workflows/ci.yml` with least-privilege permissions, pinned actions, locked dependency installation and no secrets/provider/deployment steps. The local repository validators, three active UI checks, and focused backend check passed; the backend check reports 22 passed and four PostgreSQL cases skipped because `BE1_TEST_DATABASE_URL` is unset. The hosted workflow is pending the authorized push.
+- Iteration 1 evidence: P1 fixture tests passed 8/8; P2 contract/fixture tests passed 22/22; P3 typecheck passed and 67/67 tests passed across 14 suites; P4 learning-media tests passed 14/14, but its separate component runner returned `FAIL` (460 owned cases, 1,436 regression cases, 11 SQL-collection-only cases). The runner did not execute SQL, provider, selected-decoder or adoption checks. Therefore Iteration 1 is not fully accepted. Raw receipts and the path-free summary are under `evidence/raw/ci-rev5-20261024/`; the one machine-path-bearing runner transcript remains local and ignored.
+- PostgreSQL-backed acceptance and live FE-to-BE/device checks remain unverified. `review-2` and tagged BM02 remain withheld until the hosted workflow and every documented gate pass on one clean, security-validated commit.
+
+## Current status — 2026-10-24
+
 - Lifecycle: IMPLEMENTED LOCALLY within approved FEAT-060 Plan revision 4; database-backed acceptance remains unverified.
 - Approval: Project owner directly instructed “implement” for Plan Rev4 SHA-256 `61ECCDA79033BA5EBDE15FBA22B553B9D92C6947D2B224D5BA0EC686E984C11D`; record is in `approvals/TASK_APPROVAL.md`.
 - Baseline: `dev@0a7ce768c153f2104cff930569c3eda6e484532c`, with 96 pre-existing dirty entries per the 2026-10-23 baseline; current pre-implementation status and selected hashes are preserved under `evidence/raw/implementation-baseline-20261024/`.

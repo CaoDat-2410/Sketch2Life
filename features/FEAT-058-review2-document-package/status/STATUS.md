@@ -1,5 +1,17 @@
 # Status
 
+## Current status — 2026-10-24
+
+- Lifecycle: IN_PROGRESS under approved Plan Rev12; Rev11 remains historical and the revised Rev12 dossier/diagram QA is produced locally.
+- Approved plan: `plan/PLAN_REV12_STATE_DIAGRAM_ROUTE_REFINEMENT_20261024.md` (current SHA-256 recorded in TASK_APPROVAL.md after this amendment).
+- Scope includes correcting peer-review findings, redrawing crowded authored diagrams without on-canvas source labels, completing BM01/BM02 details, refreshing all four DOCX/PDF pairs, and conditional CI/Iteration 1/tag gates.
+- Owner authorized CI preparation, Iteration 1 checks, and a `review-2` tag/BM02 run only after all gates pass; each diagram canvas must name its type. The hosted P4 gate is currently failed; no tag has been created.
+- Project identifier `FA26SE225` and class/course identifier `SWP490` are being used with their evidence boundaries recorded in the source register. Proposed BM02 owners/due dates remain pending owner/team confirmation.
+- Current working baseline used for report evidence: `dev@d0a754a2`; final publication commit and clean baseline are pending.
+- Rev12 local outputs: Design Brief 6 PDF pages, Registration+BM03 10, consolidated Report 1–5+Tracking 100, Self-Review 6. All four DOCX packages parse and all 122 PDF pages rendered; no blank pages, 46 typed report figure captions, and no figure source captions. Registration+BM03 and all PDFs stay local.
+- Diagram QA: 46-page editable Draw.io master (22 supplied-derived pages plus 20 state-machine and 4 activity pages). Supplied originals are unchanged; 16 source-attribution cells removed from derived canvases and PNGs. All 24 authored pages D23–D46 were individually inspected at full size; report gallery pages 52–97 were reviewed. No label/label, label/node, node/node, route/node, route/label, or route crossings. See `evidence/diagram-qa-rev12.json` and `evidence/diagram-master-qa-rev12.json`.
+- CI/P4 gate remains failed and clean-tree/security publication checks are pending; do not create the tag or run BM02 on an unapproved tagged baseline.
+
 - Lifecycle: COMPLETE (Rev10 authoring, visual QA, repository security validation and normal Git publication complete)
 - Latest completed package revision: 10 (2026-10-24)
 - Current revision: 10 complete

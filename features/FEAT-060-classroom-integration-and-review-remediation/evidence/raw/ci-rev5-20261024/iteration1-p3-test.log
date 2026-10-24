@@ -1,0 +1,23 @@
+$ vitest run
+
+ RUN  v3.2.7 <workspace>/packages/art-renderer
+
+ ✓ tests/v2FallbackPlan.test.ts (1 test) 3ms
+ ✓ tests/spriteCycle.test.ts (2 tests) 2ms
+ ✓ tests/failureDiagnostics.test.ts (2 tests) 3ms
+ ✓ tests/mobileProgress.test.ts (6 tests) 3ms
+ ✓ tests/startupGate.test.ts (4 tests) 5ms
+ ✓ tests/canvasFit.test.ts (3 tests) 5ms
+ ✓ tests/sha256.test.ts (4 tests) 6ms
+ ✓ tests/foregroundRegion.test.ts (3 tests) 7ms
+ ✓ tests/subjectCutout.test.ts (9 tests) 120ms
+ ✓ tests/nativeBridge.test.ts (4 tests) 4ms
+ ✓ tests/autoRigContracts.test.ts (5 tests) 12ms
+ ✓ tests/pixiShowContracts.test.ts (7 tests) 25ms
+ ✓ tests/autoRigPlayer.test.ts (6 tests) 47ms
+ ✓ tests/artAnimationPlan.test.ts (11 tests) 25ms
+
+ Test Files  14 passed (14)
+      Tests  67 passed (67)
+   Start at  20:34:42
+   Duration  3.66s (transform 1.43s, setup 0ms, collect 9.72s, tests 265ms, environment 2ms, prepare 8.27s)

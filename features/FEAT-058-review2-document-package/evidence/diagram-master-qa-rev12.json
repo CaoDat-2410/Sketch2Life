@@ -1,0 +1,152 @@
+{
+  "revision": "Rev12",
+  "master": "Sketch2Life-Review2-Diagram-Master.drawio",
+  "page_count": 46,
+  "supplied_pages": 22,
+  "new_state_machine_pages": 20,
+  "new_activity_pages": 4,
+  "source_files": [
+    {
+      "file": "Sketch2Life-Context.drawio",
+      "sha256": "143c66c0c6e5a450282d37c5b5cd7e3c24172d1770f86a16b82d2f81d1fc6bbe",
+      "pages": 2
+    },
+    {
+      "file": "Sketch2Life-Use-Cases.drawio",
+      "sha256": "b2f08f27789b630e5aa9e52b0b86db65ac0a52ba3cad7ab3e85a2ecf1c6592c5",
+      "pages": 12
+    },
+    {
+      "file": "Sketch2Life-Main-Session-Sequence.drawio",
+      "sha256": "7c010559c552e1d3ae8d24dc2a2b09245f6b37cd06a6c7584c0db528e3f6d1f4",
+      "pages": 2
+    },
+    {
+      "file": "THieuDiagram.drawio",
+      "sha256": "5579524fc9fb4b29fc259e512aaaae05f4d4eefd860e7df4534ee60f7a27b053",
+      "pages": 3
+    },
+    {
+      "file": "Khoa_Sketch2Life_SRS_v3.1_Diagrams.drawio",
+      "sha256": "e093784686ec1f6060ee4367178a9a6ae50d97e0cc1e9e5b51ea35fbce10e10f",
+      "pages": 3
+    }
+  ],
+  "source_cells_removed_from_derived_master": [
+    {
+      "figure": "D01",
+      "title": "Business Context",
+      "diagram_type": "Context Diagram",
+      "source_file": "Sketch2Life-Context.drawio",
+      "cell_id": "footnote"
+    },
+    {
+      "figure": "D02",
+      "title": "C4 System Context",
+      "diagram_type": "C4 System Context Diagram",
+      "source_file": "Sketch2Life-Context.drawio",
+      "cell_id": "footnote"
+    },
+    {
+      "figure": "D03",
+      "title": "Use Case Overview",
+      "diagram_type": "UML Use Case Diagram",
+      "source_file": "Sketch2Life-Use-Cases.drawio",
+      "cell_id": "footnote"
+    },
+    {
+      "figure": "D04",
+      "title": "Use Case Details — page 2",
+      "diagram_type": "UML Use Case Diagram",
+      "source_file": "Sketch2Life-Use-Cases.drawio",
+      "cell_id": "footnote"
+    },
+    {
+      "figure": "D05",
+      "title": "Use Case Details — page 3",
+      "diagram_type": "UML Use Case Diagram",
+      "source_file": "Sketch2Life-Use-Cases.drawio",
+      "cell_id": "footnote"
+    },
+    {
+      "figure": "D06",
+      "title": "Use Case Details — page 4",
+      "diagram_type": "UML Use Case Diagram",
+      "source_file": "Sketch2Life-Use-Cases.drawio",
+      "cell_id": "footnote"
+    },
+    {
+      "figure": "D07",
+      "title": "Use Case Details — page 5",
+      "diagram_type": "UML Use Case Diagram",
+      "source_file": "Sketch2Life-Use-Cases.drawio",
+      "cell_id": "footnote"
+    },
+    {
+      "figure": "D08",
+      "title": "Use Case Details — page 6",
+      "diagram_type": "UML Use Case Diagram",
+      "source_file": "Sketch2Life-Use-Cases.drawio",
+      "cell_id": "footnote"
+    },
+    {
+      "figure": "D09",
+      "title": "Use Case Details — page 7",
+      "diagram_type": "UML Use Case Diagram",
+      "source_file": "Sketch2Life-Use-Cases.drawio",
+      "cell_id": "footnote"
+    },
+    {
+      "figure": "D10",
+      "title": "Use Case Details — page 8",
+      "diagram_type": "UML Use Case Diagram",
+      "source_file": "Sketch2Life-Use-Cases.drawio",
+      "cell_id": "footnote"
+    },
+    {
+      "figure": "D11",
+      "title": "Use Case Details — page 9",
+      "diagram_type": "UML Use Case Diagram",
+      "source_file": "Sketch2Life-Use-Cases.drawio",
+      "cell_id": "footnote"
+    },
+    {
+      "figure": "D12",
+      "title": "Use Case Details — page 10",
+      "diagram_type": "UML Use Case Diagram",
+      "source_file": "Sketch2Life-Use-Cases.drawio",
+      "cell_id": "footnote"
+    },
+    {
+      "figure": "D13",
+      "title": "Use Case Details — page 11",
+      "diagram_type": "UML Use Case Diagram",
+      "source_file": "Sketch2Life-Use-Cases.drawio",
+      "cell_id": "footnote"
+    },
+    {
+      "figure": "D14",
+      "title": "Use Case Details — page 12",
+      "diagram_type": "UML Use Case Diagram",
+      "source_file": "Sketch2Life-Use-Cases.drawio",
+      "cell_id": "footnote"
+    },
+    {
+      "figure": "D15",
+      "title": "Main Session Sequence",
+      "diagram_type": "UML Sequence Diagram",
+      "source_file": "Sketch2Life-Main-Session-Sequence.drawio",
+      "cell_id": "footnote"
+    },
+    {
+      "figure": "D16",
+      "title": "Detailed Session Sequence",
+      "diagram_type": "UML Sequence Diagram",
+      "source_file": "Sketch2Life-Main-Session-Sequence.drawio",
+      "cell_id": "footnote"
+    }
+  ],
+  "source_files_modified": false,
+  "output_sha256": "8c30956417493bbc61ec111d8efc746702bd7f9fb9a14f76813ecd017f36205c",
+  "remaining_attribution_cells": 0
+}

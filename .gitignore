@@ -125,6 +125,8 @@ features/FEAT-029-master-srs/evidence/notes/SOURCES.md
 /features/FEAT-058-review2-document-package/artifacts/submission_r2_rev10/Sketch2Life_R2_Registration_BM03.docx
 /features/FEAT-058-review2-document-package/artifacts/submission_r2_rev6/SWP490_FA26SE225_R2_Registration.docx
 /features/FEAT-058-review2-document-package/artifacts/submission_r2_rev7/SWP490_FA26SE225_R2_Registration.docx
+/features/FEAT-058-review2-document-package/artifacts/submission_r2_rev11/SWP490_FA26SE225_R2_Registration.docx
+/features/FEAT-058-review2-document-package/artifacts/submission_r2_rev12/SWP490_FA26SE225_R2_Registration.docx
 
 # FEAT-060 raw local command logs may contain workstation paths; reviewed summaries are versioned.
 /features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/active-ui-full-check.log
@@ -133,6 +135,9 @@ features/FEAT-029-master-srs/evidence/notes/SOURCES.md
 /features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/implementation-baseline-20261024/backend-contract-tests.log
 /features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/teacher-auth-tests.log
 /features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/teacher-ui-integration-check.log
+# One P4 runner transcript embeds an absolute workstation path; keep the raw
+# transcript local and publish its path-free result summary instead.
+/features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/ci-rev5-20261024/iteration1-p4-runner.log
 
 # Android native build intermediates
 apps/mobile/android/app/.cxx/

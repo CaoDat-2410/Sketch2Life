@@ -1,0 +1,8 @@
+stateDiagram-v2
+[*] --> Connecting
+Connecting --> Authenticated: grant verified
+Authenticated --> Resyncing: load session state
+Resyncing --> Connected: resync acknowledged
+Connected --> Disconnected: network loss
+Disconnected --> Connecting: reconnect
+note right of Connected: Grant revocation from each connection state is detailed in the Device Grant Revocation companion state machine.
