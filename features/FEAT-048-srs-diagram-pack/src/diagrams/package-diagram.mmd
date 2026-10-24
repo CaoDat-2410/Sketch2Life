@@ -18,15 +18,15 @@ config:
 ---
 %% Sketch2Life SRS v3.1 — Package Diagram, logical dependency view.
 %% SRS source: ../../../FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md ; B1.2/0.3, B3/B8/B15/B19.3, plus repository architecture layer/contract rules.
-%% Source register: collaborative-srs-v3-20261010. Intended logical rule plus one observed edge and an observed-deviation note.
+%% Source register: collaborative-srs-v3-20261010. Intended logical rule plus one source-observed edge; other observed deviations are excluded.
 %% Draw.io: https://drive.google.com/file/d/1j-_R792jh-I1nC5B7FHwGDm3-yixPB6x/view ; tab Package Diagram.
-%% Draw.io artifact SHA-256: da30beb20157b313b89d1f761e8db2d8f47e0a83a3ce90de9554c912dc928313; exact Drive readback verified 2026-10-24.
-%% Package page XML SHA-256: 50714aa3601f5f5ac66f1fe364a3396d1daa013a076ec7279b2d532c7f2aa465 (exact UTF-8 <diagram>...</diagram> fragment, excluding surrounding whitespace).
+%% Draw.io artifact SHA-256: 5fe0ff5a0a68d89ccd5be5e746456833d5cb5e50730a4849ca5295878151ff0e; exact Drive readback verified 2026-10-24T09:19:46.296Z; 166937 bytes.
+%% Package page XML SHA-256: 2b115983e2ca192da70d1dc9120faad340c7e6aee59c21c1e9452e95ae452528 (exact UTF-8 <diagram>...</diagram> fragment, excluding surrounding whitespace).
 %% Six packages; eight dependency signatures. Labeled package rectangles and flowchart arrow glyphs stand in for native UML folders/open dependencies.
 %% Every dashed open arrow is source-code package dependency, not REST/WS runtime traffic. No package-to-package realization is implied.
 %% Presentation relies on versioned public API contracts; this does not require shared compiled client/backend code.
 %% Domain has no dependency on UI, frameworks, providers, storage or contracts. Application owns its port interfaces.
-%% Infrastructure -> Domain is observed in current source (3 files); other observed deviations appear in the note node, not as edges.
+%% Infrastructure -> Domain is observed in current source (3 files); other observed deviations are excluded from this package view.
 %% The three product surfaces and Android React Native / TypeScript and FastAPI / Python facts are confirmed.
 %% Teacher/Admin frameworks remain TBD.
 %% Child Android, Teacher Desktop and Super Admin are confirmed surfaces. Teacher/Admin have no new implementation yet (B15).
@@ -37,8 +37,6 @@ config:
 %% Names map to System Architecture: Inbound Adapters = backend API entry; Infrastructure Adapters = Backend adapters; Application-owned ports = Application ports.
 
 flowchart LR
-    NOTE_READING["Arrows = source-code package dependency (intended logical rule), not REST/WS runtime traffic.<br/>Runtime view, services and telemetry: see System Architecture tab.<br/>Names map to System Architecture: Inbound Adapters = backend API entry; Infrastructure Adapters = Backend adapters; Application-owned ports = Application ports."]
-
     PRESENTATION["<b>«package» Presentation</b><br/><br/><b>Child Android</b><br/>React Native / TypeScript<br/><span style='color:#52616B;font-size:16px'>Code: apps/mobile · apps/ui-mobile</span><br/><i><span style='color:#52616B;font-size:16px'>runtime / version not chosen (OD15)</span></i><br/><br/><b>Teacher Desktop</b><br/>UI framework TBD<br/><span style='color:#52616B;font-size:16px'>Code: no implementation yet (B15)</span><br/><br/><b>Super Admin</b><br/>UI framework TBD<br/><span style='color:#52616B;font-size:16px'>Code: no implementation yet (B15)</span>"]
 
     INBOUND["<b>«package» Inbound Adapters</b><br/><br/><b>HTTP entry points</b> · FastAPI / Python<br/><br/><b>Realtime entry points</b> · proposed<br/><br/>Code: backend/src/sketch2life/interfaces<br/>http · events · cli"]
@@ -51,8 +49,6 @@ flowchart LR
 
     INFRASTRUCTURE["<b>«package» Infrastructure Adapters</b><br/><br/>Repository · Artifact · Job adapters<br/>Identity · Model · Realtime adapters<br/>Telemetry · proposed<br/><br/>Implements Application-owned ports<br/>Maps external results to contracts<br/><br/><i>Implementations proposed</i><br/>Code: backend/src/sketch2life/infrastructure"]
 
-    NOTE_OBSERVED["Observed in current source, outside the intended rule:<br/>Inbound → Infrastructure (13 files, composition/wiring), Inbound → Domain (3 files),<br/>Contracts → Domain (1 file)."]
-
     PRESENTATION -.->|uses public API contracts| CONTRACTS
     INBOUND -.->|dispatches use cases| APPLICATION
     INBOUND -.->|maps boundary DTOs| CONTRACTS
@@ -60,7 +56,7 @@ flowchart LR
     APPLICATION -.->|uses versioned contracts| CONTRACTS
     INFRASTRUCTURE -.->|depends on port interfaces| APPLICATION
     INFRASTRUCTURE -.->|maps typed results| CONTRACTS
-    INFRASTRUCTURE -.->|"uses domain types<br/>observed in current source"| DOMAIN
+    INFRASTRUCTURE -.->|"uses domain types"| DOMAIN
 
     style PRESENTATION fill:#ffffff,stroke:#52616b,stroke-width:1.5px,color:#263238;
     style INBOUND fill:#ffffff,stroke:#52616b,stroke-width:1.5px,color:#263238;
@@ -68,6 +64,4 @@ flowchart LR
     style DOMAIN fill:#ffffff,stroke:#52616b,stroke-width:1.5px,color:#263238;
     style CONTRACTS fill:#ffffff,stroke:#52616b,stroke-width:1.5px,color:#263238;
     style INFRASTRUCTURE fill:#ffffff,stroke:#52616b,stroke-width:1.5px,color:#263238;
-    style NOTE_READING fill:#ffffff,stroke:#ffffff,color:#34434a;
-    style NOTE_OBSERVED fill:#ffffff,stroke:#ffffff,color:#34434a;
     linkStyle default stroke:#52616b,stroke-width:1.5px,stroke-dasharray:7 5;

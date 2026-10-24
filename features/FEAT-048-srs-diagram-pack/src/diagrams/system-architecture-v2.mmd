@@ -24,7 +24,6 @@ config:
 ---
 %% Sketch2Life SRS v3.1 — System Architecture; C4-style container overview.
 %% Logical view; deployment TBD. 13 runtime nodes and 13 directed communication edges (E1–E13).
-%% One unconnected text annotation provides the visible footnote and legend; it is not a runtime component.
 %% Canonical SRS: ../../../FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md ; B2/B3/B8/B15/B17 OD16; BR14; FR040; UC-023.
 %% Reuse source: ../../../FEAT-039-collaborative-learning-scope/artifacts/REUSE_AND_ARCHITECTURE.md .
 %% Qwen3-VL is candidate Vision reuse; Whisper variants and SAM are optional reuse, not selected Master SRS technologies.
@@ -32,7 +31,7 @@ config:
 %% Application ports and Backend adapters match the six Application-owned ports in Package Diagram.
 %% AI endpoint rows are informational capabilities inside one boundary node; hosting/provider remain TBD.
 %% Draw.io: https://drive.google.com/file/d/1j-_R792jh-I1nC5B7FHwGDm3-yixPB6x/view ; tab System Architecture.
-%% Draw.io artifact SHA-256: 5891ae51002e99ae403e3ad4089172638e250e738cab8b1e10418f57206d0670 (verified 2026-10-23T18:43:31.5368756Z; file readback: ARCH_C4_DRIVE_READBACK_20261024.drawio; Drive modifiedTime: 2026-10-23T18:43:00.614Z; 152720 bytes, 3 tabs).
+%% Draw.io artifact SHA-256: 5fe0ff5a0a68d89ccd5be5e746456833d5cb5e50730a4849ca5295878151ff0e (verified 2026-10-24T09:19:46.296Z; Drive modifiedTime: 2026-10-24T09:19:46.296Z; 166937 bytes, 3 tabs).
 %% Portable text-only source; no logos, remote images, icon packs, or model/hosting selection are implied.
 
 flowchart LR
@@ -65,12 +64,12 @@ flowchart LR
         direction TB
         AUTH["<b>Firebase Authentication</b><br/>Adult identity · authentication only<br/>(no child accounts)<br/><small>INTEGRATION TBD</small>"]
         TELEMETRY["<b>Telemetry</b><br/>Operational metrics / logs<br/>redacted · no raw child media<br/><small>PROPOSED</small>"]
-        AI_ENDPOINTS["<b>AI model endpoints · hosting TBD</b><br/>Reached through backend-only adapters;<br/>clients never call providers<br/><br/><b>VL · Vision understanding</b><br/>Qwen3-VL · candidate / reuse<br/>(FEAT-039 reuse note, not selected in the Master SRS)<br/><br/><b>OPT · Optional reuse adapters</b><br/>Segmentation (SAM) · ASR (Whisper variants)<br/>optional, only when the feature is approved (B15)<br/><br/><b>SK · AI Sketch</b><br/>Model and output shape TBD (OD16)<br/><br/><b>MEDIA · Knowledge · script · video</b><br/>Generation / library strategy TBD (OD16)<br/>TTS if chosen<br/><br/>Inference hosting / provider: TBD"]
+        AI_ENDPOINTS["<b>AI model endpoints · hosting TBD</b><br/>Reached through backend-only adapters;<br/>clients never call providers<br/><br/><b>VL · Vision understanding</b><br/>Qwen3-VL · candidate / reuse<br/><br/><b>OPT · Optional reuse adapters</b><br/>Segmentation (SAM) · ASR (Whisper variants)<br/>optional, only when the feature is approved (B15)<br/><br/><b>SK · AI Sketch</b><br/>Model and output shape TBD (OD16)<br/><br/><b>MEDIA · Knowledge · script · video</b><br/>Generation / library strategy TBD (OD16)<br/>TTS if chosen<br/><br/>Inference hosting / provider: TBD"]
     end
 
-    %% E1–E3: Client requests. The * qualifier applies only to WS.
-    CHILD_APP -->|"draw / sync · REST + WS*"| BACKEND
-    TEACHER_UI -->|"control / review · REST + WS*"| BACKEND
+    %% E1–E3: Client requests. WebSocket is proposed (SRS B3/B8).
+    CHILD_APP -->|"draw / sync · REST + WS · proposed"| BACKEND
+    TEACHER_UI -->|"control / review · REST + WS · proposed"| BACKEND
     ADMIN_UI -->|"administer · REST"| BACKEND
 
     %% E4–E5: Runtime use of application-owned ports.
@@ -89,14 +88,10 @@ flowchart LR
     WORKER -->|"typed completion / status · internal contract TBD · scope / version recheck"| BACKEND
     WORKER -->|"AI request · protocol TBD"| AI_ENDPOINTS
 
-    FOOTNOTE["* WS = WebSocket, proposed (SRS B3/B8).<br/>Arrows = initiator → target; replies implied.<br/>Legend: box = application / process / data store / external service;<br/>arrow = runtime communication; dashed = proposed;<br/>dashed boundary = software system."]
-
     class CHILD_APP,TEACHER_UI,ADMIN_UI,BACKEND,POSTGRES,OBJECT_STORE,QUEUE,AUTH,AI_ENDPOINTS component;
     class PORTS,ADAPTERS,WORKER,TELEMETRY proposed;
-    class FOOTNOTE annotation;
     classDef component fill:#ffffff,stroke:#657382,color:#263238,stroke-width:1.4px,font-size:13px;
     classDef proposed fill:#ffffff,stroke:#657382,color:#263238,stroke-width:1.4px,stroke-dasharray:6 4,font-size:13px;
-    classDef annotation fill:#ffffff,stroke:#ffffff,color:#52616b,font-size:11px;
     style CLIENTS fill:#f8fafc,stroke:#c3cbd4,color:#263238;
     style SYSTEM fill:#ffffff,stroke:#657382,color:#263238,stroke-width:1.6px,stroke-dasharray:8 5;
     style DATA_SERVICES fill:#f8fafc,stroke:#c3cbd4,color:#263238;
