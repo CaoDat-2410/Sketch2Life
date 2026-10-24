@@ -1,0 +1,8 @@
+Use case: text-localization.
+Asset type: one corrected T12 Portfolio Teacher desktop UI screenshot.
+Input image is edit target: first generated T12 image. Preserve all layout, palette, typography, header/sidebar, alias/avatar, age, timeline cards/artwork, report/export controls and evidence/Teacher/AI separation.
+Make only these targeted changes:
+1. In the middle timeline replace old specific dates "12 thg 6, 2024" and "3 thg 6, 2024" with the neutral exact labels "Phiên gần đây" and "Phiên trước". Do not introduce other calendar dates or imply raw session artwork was retained for years.
+2. In the left profile card, keep its title "Tiến trình của chính trẻ", avatar, "Mây", "7 tuổi 2 tháng", and group "Lá". Replace ALL three speculative summary sections below group (currently preferences/strength/support claims) with neutral scope and evidence metadata. First section exact heading "Nguồn ghi nhận" and body "Kết quả của các phiên học". Second exact heading "Đóng góp" and body "Theo bằng chứng đã xác nhận". Third exact heading "Quyền xem hồ sơ" and body "Theo phân công hiện hành". Simple notebook/check/shield icons may replace former icons.
+3. Keep footer exact sentence "Không so sánh xếp hạng trẻ. Tranh phiên có chính sách lưu riêng." No automatic psychology, strength/deficit labels, invented immutable preferences, broad TTL or rankings.
+Everything else must remain unchanged and text must be legible proper Vietnamese. No frame/collage. This is a targeted edit for SRS fidelity of a review-pending UI design, not runtime certification.

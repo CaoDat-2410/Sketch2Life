@@ -1,0 +1,97 @@
+{
+  "asset_id": "A02",
+  "use_case": "ui-mockup",
+  "status": "REVIEW_PENDING",
+  "generated_path": "assets/generated/admin-app/A02-nguoi-dung-vai-tro.png",
+  "srs_ui_id": "A02",
+  "screen_kind": "main",
+  "role": "admin-app",
+  "prompt": "assets/prompts/A02.txt",
+  "source_references": [
+    {
+      "path": "features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md",
+      "sha256": "a95c89589843e3555e967c5e486f3bcaf4bbdf9446cb3bc9c49ed16f672964d9",
+      "section": "B23.4"
+    },
+    {
+      "path": "apps/ui-mobile/src/theme.ts",
+      "purpose": "existing design tokens"
+    }
+  ],
+  "generator": "built-in image_gen.imagegen",
+  "captured_at_utc": "2026-10-10T13:47:55.894735+00:00",
+  "generator_output_filename": "exec-4778258d-22ee-423d-ab14-0760909654b8.png",
+  "sha256": "95cc5d0f71ed59f1c70969e461af0ce64c935ac8d00a26daf4378ad0176068d0",
+  "bytes": 1496789,
+  "width": 1586,
+  "height": 992,
+  "original_copied_unchanged": true,
+  "synthetic_data_only": true,
+  "qa": {
+    "reviewer": "Codex visual inspection",
+    "status": "INSPECTED",
+    "note": "Inspected corrected A02: matching ten-nav shell; adult accounts only; class assignment and explicit restricted grant summary; readable Vietnamese; mandatory audit reason corrected from initial optional placeholder; no invented character limit; synthetic dates aligned. No child account or sensitive content. REVIEW_PENDING."
+  },
+  "review": {
+    "status": "REVIEW_PENDING",
+    "reviewer": null,
+    "reviewed_at": null
+  },
+  "applied_path": null,
+  "limitations": "Generated design proposal; not implemented runtime, approved visual or device acceptance.",
+  "input_images": [
+    {
+      "path": "evidence/screenshots/admin-iterations/A02-attempt-01.png",
+      "sha256": "9e6fd5c6d8305e1139b4947434f1c0be6ce2123b9c256e2f408d6d6c4de7fa38",
+      "role": "edit target",
+      "original_copied_unchanged": true,
+      "generator_input_filename": "exec-48c68bec-eb37-438d-b324-f4ee6070d445.png"
+    }
+  ],
+  "generation_history": [
+    {
+      "attempt": 1,
+      "prompt": "assets/prompts/history/admin/A02-attempt-01.txt",
+      "generator": "built-in image_gen.imagegen",
+      "input_images": [
+        {
+          "path": "assets/generated/admin-app/A01-tong-quan.png",
+          "sha256": "e2dc6127bce77e3faa424eeb6c648b6e32ee6c46c0e72780cbc2101d83357956",
+          "role": "style reference",
+          "original_copied_unchanged": true
+        }
+      ],
+      "output_filename": "exec-48c68bec-eb37-438d-b324-f4ee6070d445.png",
+      "output_sha256": "9e6fd5c6d8305e1139b4947434f1c0be6ce2123b9c256e2f408d6d6c4de7fa38",
+      "selected": false,
+      "output_path": "evidence/screenshots/admin-iterations/A02-attempt-01.png"
+    },
+    {
+      "attempt": 2,
+      "prompt": "assets/prompts/history/admin/A02-attempt-02.txt",
+      "generator": "built-in image_gen.imagegen",
+      "input_images": [
+        {
+          "path": "evidence/screenshots/admin-iterations/A02-attempt-01.png",
+          "sha256": "9e6fd5c6d8305e1139b4947434f1c0be6ce2123b9c256e2f408d6d6c4de7fa38",
+          "role": "edit target",
+          "original_copied_unchanged": true,
+          "generator_input_filename": "exec-48c68bec-eb37-438d-b324-f4ee6070d445.png"
+        }
+      ],
+      "output_filename": "exec-4778258d-22ee-423d-ab14-0760909654b8.png",
+      "output_sha256": "95cc5d0f71ed59f1c70969e461af0ce64c935ac8d00a26daf4378ad0176068d0",
+      "selected": true,
+      "output_path": "assets/generated/admin-app/A02-nguoi-dung-vai-tro.png"
+    }
+  ],
+  "style_references": [
+    {
+      "path": "assets/generated/admin-app/A01-tong-quan.png",
+      "sha256": "e2dc6127bce77e3faa424eeb6c648b6e32ee6c46c0e72780cbc2101d83357956",
+      "role": "style reference",
+      "original_copied_unchanged": true
+    }
+  ],
+  "prompt_sha256": "b1ad78451e5b62f41325d7cda9c637b6c3feefb71a15ef964800c71ff7add7bc"
+}

@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, Pressable, StyleSheet } from 'react-native'
+import { View, Pressable, StyleSheet } from 'react-native'
 
 export function BrushSizeSlider({ current, onChange }: { current: number; onChange: (size: number) => void }) {
   const sizes = [3, 6, 12, 20]

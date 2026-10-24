@@ -1,0 +1,16 @@
+flowchart LR
+  subgraph Child_Android
+    C1[Join / Lobby] --> C2[Draw]
+    C2 --> C3[Reviewed AI suggestion]
+    C3 --> C4[Gallery / Knowledge / Video]
+    C4 --> C5[Activity / Reflection]
+  end
+  subgraph Teacher_Desktop
+    T1[Dashboard / Class] --> T2[Session setup / Lobby]
+    T2 --> T3[Group monitoring / AI review]
+    T3 --> T4[Gallery / Media / Assessment]
+  end
+  subgraph Super_Admin
+    A1[Overview / Accounts] --> A2[Content / AI policy]
+    A2 --> A3[Audit / Reports / Data requests]
+  end

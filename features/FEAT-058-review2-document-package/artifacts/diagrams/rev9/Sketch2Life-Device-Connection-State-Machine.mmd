@@ -1,0 +1,12 @@
+stateDiagram-v2
+direction LR
+[*] --> Connecting
+Connecting --> Authenticated: grant verified
+Authenticated --> Resyncing: load session state
+Resyncing --> Connected: resync acknowledged
+Connected --> Disconnected: network loss
+Disconnected --> Connecting: reconnect
+Authenticated --> Revoked: revoke
+Resyncing --> Revoked: revoke
+Connected --> Revoked: revoke
+Disconnected --> Revoked: revoke

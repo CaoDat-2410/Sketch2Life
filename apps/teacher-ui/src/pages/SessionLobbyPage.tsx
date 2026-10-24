@@ -24,8 +24,10 @@ import avatarMay from '../assets/avatar-may.png'
 import avatarNang from '../assets/avatar-nang.png'
 import avatarHoa from '../assets/avatar-hoa.png'
 import profileLa from '../assets/profile-la.png'
+import { loadActiveSession } from '../services/activeSessionStore'
+import { SessionLobbyRuntime } from './SessionLobbyRuntime'
 
-export function SessionLobbyPage() {
+function DemoSessionLobbyPage() {
   const navigate = useNavigate()
   const [activeDrawer, setActiveDrawer] = useState<'may' | 'la'>('may')
 
@@ -443,4 +445,11 @@ export function SessionLobbyPage() {
       </div>
     </div>
   )
+}
+
+export function SessionLobbyPage() {
+  const activeSession = loadActiveSession()
+  if (activeSession) return <SessionLobbyRuntime />
+  if (new URLSearchParams(window.location.search).get('demo') === '1') return <DemoSessionLobbyPage />
+  return <main className="m-7 rounded-2xl border border-slate-200 bg-white p-7"><h1 className="text-2xl font-bold text-slate-900">Chưa có phiên lớp đang mở</h1><p className="mt-2 text-sm text-slate-600">Tạo phiên và mở phòng chờ qua BE1 từ Thiết lập phiên học. Giao diện mẫu chỉ mở khi thêm ?demo=1 vào đường dẫn.</p></main>
 }

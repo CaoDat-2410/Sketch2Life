@@ -1,5 +1,15 @@
 # Task approval
 
+## SRS classroom integration amendment — 2026-10-23
+
+- Status: APPROVED for a documentation-only SRS amendment.
+- Approver: Project owner; direct instruction: “ghi lại vào srs những điểm sửa đổi luôn nhé”.
+- Plan revision: 4 — `plan/PLAN_REV4_SRS_CLASSROOM_INTEGRATION_AMENDMENT_20261023.md`.
+- Approved scope: preserve the exact v3.1 SRS, record the clarified shared six-digit room-code behavior and add traceable proposed contract clarifications for classroom stage persistence and session outcomes. Keep the current canonical SRS copies synchronized and update feature/source records.
+- Authority boundary: this approves editing requirements documentation and the narrow SRS generation/checker paths needed to preserve v3.1 and target v3.2. It does not approve product code, API/schema adoption, application tests, migrations, deployment, Modal execution, publication, or interpreting unanswered behavior as confirmed.
+- Owner-confirmed for this amendment: both QR/deep-link and the shared six-digit code stop accepting new join requests when the Teacher starts the class; the product must distinguish full completion from a Teacher stopping early.
+- Remaining contract work: define pending-request disposition at the start boundary, response/error behavior, completion guards/receipt, and the required reason/evidence for early stop. These technical details require FEAT-060/BE1 review and are not adopted by the SRS edit.
+
 - Status: APPROVED
 - Approver: Project owner, direct request in this conversation
 - Approved scope: analyze the current system, list reusable technologies, propose architecture, revise SRS for the attached collaborative creative learning scope and ask technology questions if needed.
@@ -43,3 +53,13 @@
 - Pilot: “1 lớp, tối đa 40 trẻ” — owner target for simultaneous pilot capacity, not evidence the current runtime can serve that load. Device/network/topology/AI budget and performance metrics remain proposed or TBD.
 - Retention: “90 ngày sau khi phiên kết thúc” — default session/artwork duration starts at session end. Portfolio, child profile and audit have separate policies; derivative classification, school authority, provider/backup/device copies, exceptions and purge proof need refinement. No silent raw-source extension by portfolio links.
 - These answers update documentation and ADR only; no runtime/provider/real-data/deployment or commit/push approval.
+
+## SRS owner-decision amendment — Plan Rev5, 2026-10-24
+
+- **Status:** APPROVED for the exact documentation scope below.
+- **Approver:** Project owner, direct instruction to record the clarified decisions in the SRS, followed by six explicit answers on 2026-10-24.
+- **Plan:** `plan/PLAN_REV5_SRS_OWNER_DECISIONS_20261024.md`.
+- **Approved plan SHA-256:** `39268EB1CEA557E55DB952268FB8DF92B3539BE2AD5107DF6EF9D22200069B77`.
+- **Approved scope:** preserve v3.2 byte-for-byte; issue additive SRS v3.3/B28; record the six owner decisions; reconcile the directly affected transition, OD07, join, group-disposition, and early-stop rules; update contract proposals, source/decision/evidence records, and the documentation checker.
+- **Owner-confirmed:** pending requests are atomically revoked on successful start; approved shared room-code control package (including persistent throttle threshold); next-stage-only progression with interleaved/`not_needed` assistance; rewind remains disabled until OD07 is resolved; unfinished group work requires `save_draft`; early stop requires a reason category and permits an optional note.
+- **Still gated:** BE1-owned endpoint/schema/guard/security implementation review and migration root/order; FEAT-057 card-owner approvals; Modal profile/live call; deployment, production data, and Git publication. This approval authorizes documentation updates only, not new runtime routes, DB schema, or migration.

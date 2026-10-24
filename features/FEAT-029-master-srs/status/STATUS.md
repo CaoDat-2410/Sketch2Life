@@ -1,14 +1,14 @@
 # FEAT-029 status
 
-## Current canonical artifact — 2026-10-10
+## Current canonical artifact — 2026-10-24
 
-- Canonical SRS: v3.1, replacement collaborative creative learning scope and detailed system foundation, FEAT-039 documentation revision 3; owner confirmed replacement, Android, FastAPI and React Native.
+- Canonical SRS: v3.3, replacement collaborative creative learning scope and detailed system foundation, FEAT-039 documentation revision 5; B28 records six owner-confirmed classroom policies.
 - Current update/evidence owner: FEAT-039. Exact v2.0 and v3.0 preserved byte-for-byte there before edits.
-- Added B19–B26: policy/state/recovery, detailed use cases, logical data/API/UI/privacy/NFR/traceability. Owner chose one-school pilot, managed profiles + QR/code without own child login and school-mediated consent evidence/purposes.
+- Added B19–B26: policy/state/recovery, detailed use cases, logical data/API/UI/privacy/NFR/traceability. B27 adds the 2026-10-23 integration amendment; B28 adds the 2026-10-24 pending-at-start, room-code, stage/Assistance, interim OD07, unfinished-group and early-stop decisions. Exact v3.2 remains preserved as a prior version. Owner chose one-school pilot, managed profiles + QR/code without own child login and school-mediated consent evidence/purposes.
 - Owner confirmed: age 36–155 completed months inclusive; one simultaneous class/up to 40 children pilot target; session/artwork default 90 days after end. Other data-class policies and measured capacity are separate.
 - Target: 3–12; Child/Teacher/Super Admin; class/groups/collaborative canvas; approved knowledge video, off-screen and portfolio.
-- Detailed policies, technology candidates and logical contracts remain proposed/TBD. Runtime/age/auth/storage remain unchanged by this task.
-- The older status lines below describe the previous scope and historical amendments; they are not authority over v3.1.
+- Product rules in B27/B28 are owner-confirmed. Wire contracts, schema, guards, Alembic migration order, runtime/age/auth/storage implementation remain separately gated or unchanged.
+- The older status lines below describe the previous scope and historical amendments; they are not authority over current SRS v3.3.
 
 - Status: OWNER_APPROVED_BASELINE_WITH_V2_0_DOCUMENTATION_AMENDMENT — v2.0 records the 2026-10-06 supported-age and capstone-trial package/payment/credit decisions.
 - Artifact: artifacts/Sketch2Life_Master_SRS.md (v2.0, B1–B35 + Annex A).

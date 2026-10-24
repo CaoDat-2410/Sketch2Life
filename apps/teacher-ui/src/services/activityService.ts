@@ -1,4 +1,4 @@
 export const activityService = {
   listActivities: async () => [],
-  getActivityDetails: async (id: string) => ({ materials: [] }),
+  getActivityDetails: async (_id: string) => ({ materials: [] }),
 };

@@ -1,0 +1,22 @@
+{
+  "status": "ALL_PEOPLE_SUMMARY_VALID",
+  "verified_at_utc": "2026-10-11T15:20:48.775716+00:00",
+  "task_count": 57,
+  "counts": {
+    "P1": 15,
+    "P2": 16,
+    "P3": 14,
+    "P4": 12
+  },
+  "independent_foundations": [
+    "FE-01",
+    "BE1-01",
+    "BE2-01",
+    "INTG-01"
+  ],
+  "task_ids_titles_order_preserved": true,
+  "links_validated": 5,
+  "protected_files_unchanged": 10,
+  "runtime_changes": false,
+  "artifact_sha256": "ff80f9f490483def44a122d3ce665b90ac4398009563eaeb8f1ee1636106458f"
+}

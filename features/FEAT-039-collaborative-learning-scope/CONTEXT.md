@@ -1,9 +1,13 @@
 # Feature context
 
+## Current SRS — revision 5 / v3.3, 2026-10-24
+
+The current SRS v3.3 is `artifacts/Collaborative_Learning_SRS_v3.3.md` and canonical `features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md`. Exact v3.2 bytes are preserved at `artifacts/Collaborative_Learning_SRS_v3.2.md` (SHA-256 `9d7a71cc3fd0ab45b3175823c09780af0eb2e129d21a991d5470693dae25a21d`); exact v3.1 remains at `artifacts/Sketch2Life_Master_SRS_v3.1_preserved_20261023.md` (SHA-256 `A95C89589843E3555E967C5E486F3BCAF4BBDF9446CB3BC9C49ED16F672964D9`). Revision 5/B28 records six owner decisions: revoke pending admissions atomically on Start; approve a shared lobby code with pre-start rotation and persistent 10-invalid/IP/15-minute throttling; require next-stage progression with interleaved/`not_needed` Assistance; prohibit stage rewind until OD07 is resolved; save unfinished group work as a draft before advance; and require an early-stop reason category with optional note. These are product policies, not implementation sign-off. Exact BE1 contract, security/migration review and routes remain gated; FEAT-057/Modal remain separately gated.
+
 - Goal: assess reuse and prepare SRS for Montessori-inspired collaborative creative learning.
 - Owner: Sketch2Life project owner.
 - Date: 2026-10-10.
-- Status: DONE — canonical system-foundation SRS v3.1, documentation only; runtime outside this task.
+- Historical foundation completion: canonical system-foundation SRS v3.2 (revision 4); its exact copy remains preserved. Current revision 5/v3.3 is maintained above.
 - Input: user-supplied Final Product Scope v1.0, Discovery Complete, Implementation Refinement Pending.
 - Sources: attachment, PROJECT_CONTEXT.md, SOURCE_REGISTER.md, Master SRS v2.0, ADRs and inspected checkout.
 - Constraints: preserve confirmed source behaviors, separate proposed/TBD, preserve original media/provenance, Firebase Authentication only, backend-only providers and storage.

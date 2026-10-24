@@ -1,0 +1,99 @@
+{
+  "asset_id": "C08",
+  "use_case": "ui-mockup",
+  "status": "REVIEW_PENDING",
+  "generated_path": "assets/generated/child-app/C08-hoat-dong-ngoai-man-hinh.png",
+  "srs_ui_id": "C08",
+  "screen_kind": "main",
+  "role": "child-app",
+  "prompt": "assets/prompts/C08-revision-1.txt",
+  "source_references": [
+    {
+      "path": "features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md",
+      "sha256": "a95c89589843e3555e967c5e486f3bcaf4bbdf9446cb3bc9c49ed16f672964d9",
+      "section": "B23.2"
+    },
+    {
+      "path": "apps/ui-mobile/src/theme.ts",
+      "purpose": "existing design tokens"
+    }
+  ],
+  "generator": "built-in image_gen.imagegen",
+  "captured_at_utc": "2026-10-10T14:08:22.031028+00:00",
+  "generator_output_filename": "exec-5eb237ba-3bb2-4b76-ba9f-c29cca376a85.png",
+  "sha256": "ded9b7f9799034cada8bd563cbe04f8398f99f55bc271abb9e82cec53cdb45c3",
+  "bytes": 1675447,
+  "width": 1448,
+  "height": 1086,
+  "original_copied_unchanged": true,
+  "synthetic_data_only": true,
+  "qa": {
+    "reviewer": "Codex visual inspection",
+    "status": "INSPECTED",
+    "note": "Inspected off-screen handoff: materials and safety labels readable, readiness signal/help only. Targeted built-in revision corrected viewing-state header, removed turn switch and replaced play with check icon. No camera or class-stage command; no clipping."
+  },
+  "review": {
+    "status": "REVIEW_PENDING",
+    "reviewer": null,
+    "reviewed_at": null
+  },
+  "applied_path": null,
+  "limitations": "Generated design proposal; not implemented runtime, approved visual or device acceptance.",
+  "initial_prompt": "assets/prompts/C08.txt",
+  "input_images": [
+    {
+      "path": "assets/generated/child-app/C03-ban-ve.png",
+      "sha256": "1971eba9c6a4d77d01120e298f008cbda135cfd4f4d19bdd123d83e2211df467",
+      "role": "style reference",
+      "generation_step": 1
+    },
+    {
+      "path": "evidence/iterations/child-app/C08-superseded-initial.png",
+      "sha256": "0edbd5d6a7bd286aeb06e5b1000092219f8c34de24a932822321f81916635587",
+      "role": "edit target",
+      "generation_step": 2
+    }
+  ],
+  "generation_history": [
+    {
+      "step": 1,
+      "kind": "generation",
+      "prompt": "assets/prompts/C08.txt",
+      "input_images": [
+        {
+          "path": "assets/generated/child-app/C03-ban-ve.png",
+          "sha256": "1971eba9c6a4d77d01120e298f008cbda135cfd4f4d19bdd123d83e2211df467",
+          "role": "style reference",
+          "generation_step": 1
+        }
+      ],
+      "output": "evidence/iterations/child-app/C08-superseded-initial.png",
+      "sha256": "0edbd5d6a7bd286aeb06e5b1000092219f8c34de24a932822321f81916635587",
+      "generator_output_filename": "exec-f46a3f1d-12f8-4cd9-a45e-93ae0309807c.png",
+      "selected": false,
+      "disposition": "SUPERSEDED",
+      "reason": "Correct viewing header/remove turn control; readiness icon is check, not play.",
+      "prompt_sha256": "09fc43074e5e0a93e7e395d8af324de9830ba6c8bdfb9380d93d23d3bc964d9b"
+    },
+    {
+      "step": 2,
+      "kind": "targeted built-in edit",
+      "prompt": "assets/prompts/C08-revision-1.txt",
+      "input_images": [
+        {
+          "path": "evidence/iterations/child-app/C08-superseded-initial.png",
+          "sha256": "0edbd5d6a7bd286aeb06e5b1000092219f8c34de24a932822321f81916635587",
+          "role": "edit target",
+          "generation_step": 2
+        }
+      ],
+      "output": "assets/generated/child-app/C08-hoat-dong-ngoai-man-hinh.png",
+      "sha256": "ded9b7f9799034cada8bd563cbe04f8398f99f55bc271abb9e82cec53cdb45c3",
+      "generator_output_filename": "exec-5eb237ba-3bb2-4b76-ba9f-c29cca376a85.png",
+      "selected": true,
+      "disposition": "REVIEW_PENDING",
+      "reason": "Correct viewing header/remove turn control; readiness icon is check, not play.",
+      "prompt_sha256": "c501767d386c3670ef96e2496270efe1663b51dd01115ebe5f198c2fcc2ce729"
+    }
+  ]
+}

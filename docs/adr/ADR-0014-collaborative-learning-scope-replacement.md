@@ -13,7 +13,7 @@ Owner supplied Product Scope v1.0 for Montessori-inspired collaborative creative
 
 1. The new product target is ages 3–12 with Child, Teacher and Super Admin functional actors, classroom/group sessions, collaborative canvas, adaptive sketch, gallery, teacher-approved knowledge video, off-screen, reflection/portfolio and administration/privacy/recovery.
 2. Retain FastAPI and React Native; Android is the confirmed child device target.
-3. Canonical Master SRS is v3.1 at features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md. Exact pre-edit v2.0 and v3.0 are preserved with hashes under FEAT-039. Source PROPOSED/TBD details remain unconfirmed; B19–B26 are detailed logical refinements for review, not adopted runtime contracts.
+3. The original canonical Master SRS v3.1 at features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md was superseded by additive v3.2 on 2026-10-23 (B27; exact v3.1 preserved under FEAT-039). B19–B27 logical contract details remain unadopted unless expressly owner-confirmed; the product admission closure and completion/early-stop outcome meanings are confirmed, while API/schema implementation remains open.
 4. Old product assumptions are not automatically requirements of the replacement: under-9 guards, Parent/Guide roles/ownership/shares, Parent portal/payment/credit, mandatory animation/narration, 40–60-second video, Wan baseline and numeric retention. Original/provenance and repository security rules continue.
 5. No automatic video fallback or skip while generating: the source explicitly requires waiting. Owner subsequently resolved OD01: after permitted retries fail, Teacher explicitly selects retry, skip or end; retry budget is open. No successful-video claim for a skipped stage.
 6. Owner resolved OD02: per-suggestion Teacher review before child access for pilot. Owner resolved OD03: shared tablet selects the active child by turn; security identity and selected contributor are separate, no retrospective reassignment of strokes.
@@ -51,4 +51,5 @@ SRS B17 owns the current register. OD01/02/03 behavior, school/profile/consent c
 - features/FEAT-039-collaborative-learning-scope/evidence/notes/SOURCE_REVIEW.md.
 - features/FEAT-039-collaborative-learning-scope/artifacts/REUSE_AND_ARCHITECTURE.md.
 - features/FEAT-039-collaborative-learning-scope/artifacts/Collaborative_Learning_SRS_v3.1.md.
+- features/FEAT-039-collaborative-learning-scope/artifacts/Collaborative_Learning_SRS_v3.2.md.
 - features/FEAT-039-collaborative-learning-scope/evidence/notes/FOUNDATION_EXPANSION_SOURCE_AND_DECISIONS.md.

@@ -1,0 +1,8 @@
+stateDiagram-v2
+  [*] --> Available: teacher-approved exact version
+  Available --> Viewed
+  Available --> Hidden
+  Available --> Declined
+  Viewed --> Hidden
+  Viewed --> Declined
+  note right of Declined: Child response does not change teacher approval history or assessment.

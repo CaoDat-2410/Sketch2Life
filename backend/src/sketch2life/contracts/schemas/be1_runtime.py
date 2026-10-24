@@ -5,7 +5,14 @@ from __future__ import annotations
 import json
 from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    StringConstraints,
+    field_validator,
+    model_validator,
+)
 
 
 class Be1Request(BaseModel):
@@ -63,6 +70,54 @@ class SessionTransitionRequest(Be1Request):
 class JoinRequest(Be1Request):
     join_code: str = Field(min_length=8, max_length=32)
     device_key: str = Field(min_length=24, max_length=256)
+
+
+class JoinRoomCodeRequest(Be1Request):
+    room_code: str = Field(pattern=r"^[0-9]{6}$")
+    device_key: str = Field(min_length=24, max_length=256)
+
+
+class StageAdvanceRequest(Be1Request):
+    expected_stage_revision: int = Field(ge=1)
+    target_stage: Literal[
+        "join",
+        "explore_draw",
+        "assistance",
+        "sharing",
+        "knowledge",
+        "off_screen",
+        "reflection",
+        "completion",
+    ]
+    assistance_disposition: Literal["not_needed"] | None = None
+    unfinished_group_ids: list[Identifier] = Field(default_factory=list, max_length=40)
+    unfinished_group_disposition: Literal["save_draft"] | None = None
+
+    @model_validator(mode="after")
+    def validate_group_draft_disposition(self) -> StageAdvanceRequest:
+        if self.unfinished_group_ids and self.unfinished_group_disposition != "save_draft":
+            raise ValueError("unfinished groups require save_draft")
+        if len(set(self.unfinished_group_ids)) != len(self.unfinished_group_ids):
+            raise ValueError("unfinished_group_ids must be unique")
+        return self
+
+
+class CompleteSessionRequest(Be1Request):
+    expected_stage_revision: int = Field(ge=1)
+    outcome: Literal["completed", "ended_early"]
+    reason_category: Literal["time", "safety", "technical", "other"] | None = None
+    teacher_note: str | None = Field(default=None, max_length=240)
+    outcome_refs: list[Annotated[str, StringConstraints(min_length=1, max_length=256)]] = Field(
+        default_factory=list, max_length=20
+    )
+
+    @model_validator(mode="after")
+    def validate_outcome_reason(self) -> CompleteSessionRequest:
+        if self.outcome == "ended_early" and self.reason_category is None:
+            raise ValueError("ended_early requires reason_category")
+        if self.outcome == "completed" and self.reason_category is not None:
+            raise ValueError("completed does not accept an early-stop reason")
+        return self
 
 
 class AdmitDeviceRequest(Be1Request):
@@ -176,6 +231,9 @@ __all__ = [
     "GalleryAnnotationRequest",
     "GroupControlRequest",
     "JoinRequest",
+    "JoinRoomCodeRequest",
+    "StageAdvanceRequest",
+    "CompleteSessionRequest",
     "ObservationCreateRequest",
     "ProgressRequest",
     "RecordConsentRequest",

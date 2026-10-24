@@ -8,7 +8,7 @@ export interface TopBarProps {
   onOffline: () => void
 }
 
-export function TopBar({ screen, name, onBack, onOffline }: TopBarProps) {
+export function TopBar({ screen: _screen, name, onBack, onOffline }: TopBarProps) {
   return (
     <View style={styles.bar}>
       <Pressable style={styles.backBtn} onPress={onBack}>

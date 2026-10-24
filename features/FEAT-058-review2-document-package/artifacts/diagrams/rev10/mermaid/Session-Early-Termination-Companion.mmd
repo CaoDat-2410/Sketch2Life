@@ -1,0 +1,6 @@
+stateDiagram-v2
+  Lobby --> EndedEarly: Teacher ends with reason
+  Active --> EndedEarly: Teacher ends with reason
+  Paused --> EndedEarly: Teacher ends with reason
+  Recovering --> EndedEarly: Teacher ends with reason
+  note right of EndedEarly: Early termination preserves completed work and incomplete outcome; it is not successful completion.

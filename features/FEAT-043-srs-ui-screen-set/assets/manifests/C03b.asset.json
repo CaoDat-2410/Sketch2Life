@@ -1,0 +1,71 @@
+{
+  "asset_id": "C03b",
+  "use_case": "ui-mockup",
+  "status": "REVIEW_PENDING",
+  "generated_path": "assets/generated/child-app/C03b-ban-ve-nang-cao.png",
+  "srs_ui_id": "C03",
+  "screen_kind": "supplementary",
+  "role": "child-app",
+  "prompt": "assets/prompts/C03b.txt",
+  "source_references": [
+    {
+      "path": "features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md",
+      "sha256": "a95c89589843e3555e967c5e486f3bcaf4bbdf9446cb3bc9c49ed16f672964d9",
+      "section": "B23.2"
+    },
+    {
+      "path": "apps/ui-mobile/src/theme.ts",
+      "purpose": "existing design tokens"
+    }
+  ],
+  "generator": "built-in image_gen.imagegen",
+  "captured_at_utc": "2026-10-10T14:14:35.091314+00:00",
+  "generator_output_filename": "exec-5f77334b-1cb7-4950-8280-675ea220efc1.png",
+  "sha256": "551f0a2eb67f046dd7d48c1f4c5833bf42e6da09dd9156548db167009a9bab96",
+  "bytes": 1923262,
+  "width": 1448,
+  "height": 1086,
+  "original_copied_unchanged": true,
+  "synthetic_data_only": true,
+  "qa": {
+    "reviewer": "Codex visual inspection",
+    "status": "INSPECTED",
+    "note": "Inspected advanced proposal: teacher-enabled tools labeled, active contributor, peer layer view-only/locked, AI reference separate and hidden, original canvas and help retained, readable/no clipping. Shapes/layers remain proposed unadopted refinement, not implemented capability."
+  },
+  "review": {
+    "status": "REVIEW_PENDING",
+    "reviewer": null,
+    "reviewed_at": null
+  },
+  "applied_path": null,
+  "limitations": "Generated design proposal; not implemented runtime, approved visual or device acceptance.",
+  "input_images": [
+    {
+      "path": "assets/generated/child-app/C03-ban-ve.png",
+      "sha256": "1971eba9c6a4d77d01120e298f008cbda135cfd4f4d19bdd123d83e2211df467",
+      "role": "style reference",
+      "generation_step": 1
+    }
+  ],
+  "generation_history": [
+    {
+      "step": 1,
+      "kind": "generation",
+      "prompt": "assets/prompts/C03b.txt",
+      "input_images": [
+        {
+          "path": "assets/generated/child-app/C03-ban-ve.png",
+          "sha256": "1971eba9c6a4d77d01120e298f008cbda135cfd4f4d19bdd123d83e2211df467",
+          "role": "style reference",
+          "generation_step": 1
+        }
+      ],
+      "output": "assets/generated/child-app/C03b-ban-ve-nang-cao.png",
+      "sha256": "551f0a2eb67f046dd7d48c1f4c5833bf42e6da09dd9156548db167009a9bab96",
+      "generator_output_filename": "exec-5f77334b-1cb7-4950-8280-675ea220efc1.png",
+      "selected": true,
+      "disposition": "REVIEW_PENDING",
+      "prompt_sha256": "0de16f474460387886bfaaef7d018418c5fd633efa3d661c7d93104ca46fee94"
+    }
+  ]
+}

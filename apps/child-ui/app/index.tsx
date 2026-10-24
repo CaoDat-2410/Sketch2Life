@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   Alert,
   Image,
@@ -10,10 +10,26 @@ import {
   TextInput,
   View,
 } from 'react-native'
+import * as Linking from 'expo-linking'
+import {
+  ChildApiError,
+  clearDeviceContext,
+  getSavedDeviceContext,
+  type ChildDeviceContext,
+} from '../src/services/apiClient'
+import {
+  appendStroke,
+  newCanvasOperationId,
+  requestDeviceJoin,
+  requestRoomCodeJoin,
+  waitForAdmissionAndTurn,
+  type CanvasReconnect,
+} from '../src/services/sessionClient'
 
 type Screen = 'join' | 'lobby' | 'draw' | 'advanced' | 'ideas' | 'review' | 'group' | 'gallery' | 'learn' | 'video' | 'offline' | 'feeling' | 'reconnect'
 type Point = { x: number; y: number }
-type Stroke = { points: Point[]; color: string; size: number }
+type Stroke = { points: Point[]; color: string; size: number; operationId?: string }
+type PendingStroke = { operationId: string; stroke: Stroke }
 type Kid = 'Mây' | 'Lá'
 type Tool = 'pen' | 'eraser'
 
@@ -54,7 +70,7 @@ function Brand({ large = false, compact = false }: { large?: boolean; compact?: 
   return <View style={styles.brand}><Image source={require('../assets/logo-icon.png')} style={large ? compact ? styles.brandIconCompact : styles.brandIconLarge : styles.brandIcon} /><Text style={large ? compact ? styles.brandNameCompact : styles.brandNameLarge : styles.brandName}>Sketch2Life</Text></View>
 }
 
-function TopBar({ screen, name, onBack, onOffline }: { screen: Screen; name: string; onBack: () => void; onOffline: () => void }) {
+function TopBar({ screen, name, joinStatus, pendingCount, onBack, onRetry }: { screen: Screen; name: string; joinStatus: 'idle' | 'joining' | 'waiting' | 'admitted' | 'ready' | 'error'; pendingCount: number; onBack: () => void; onRetry: () => void }) {
   const title = screen === 'learn' ? 'Khám phá kiến thức' : screen === 'group' ? 'Khu vườn của chúng mình' : 'Khu vườn của chúng mình'
   return <View style={styles.topBar}>
     <Pressable accessibilityRole="button" accessibilityLabel="Quay lại" onPress={onBack} style={styles.backButton}><Text style={styles.backGlyph}>‹</Text></Pressable>
@@ -64,22 +80,37 @@ function TopBar({ screen, name, onBack, onOffline }: { screen: Screen; name: str
     <Pill tone="green">🍃  Nhóm Lá</Pill>
     <View style={styles.whoPill}><Image source={avatars[name] ?? avatars.Mây} style={styles.whoAvatar} /><Text style={styles.whoText}>{name}{screen === 'feeling' ? ' cảm nhận' : screen === 'learn' ? ' đang xem' : ' đang vẽ'}</Text></View>
     {(screen === 'draw' || screen === 'advanced') && <Pressable accessibilityRole="button" onPress={() => Alert.alert('Đổi lượt', 'Cô/thầy sẽ sắp xếp lượt vẽ cho nhóm.')} style={styles.turnButton}><Text style={styles.turnText}>⇄  Đổi lượt</Text></Pressable>}
-    <Pressable accessibilityRole="button" accessibilityLabel={screen === 'reconnect' ? 'Kết nối lại' : 'Mô phỏng mất kết nối'} onPress={onOffline} style={styles.savedButton}>{screen === 'reconnect' ? <Text style={styles.savedText}>☁̸  Kết nối lại</Text> : <><Text style={styles.savedGlyph}>☁</Text><Text style={styles.savedText}>Đã lưu</Text></>}</Pressable>
+    <Pressable accessibilityRole="button" accessibilityLabel={pendingCount > 0 ? `Gửi lại ${pendingCount} nét` : 'Đồng bộ BE1'} onPress={onRetry} style={styles.savedButton}>
+      <Text style={styles.savedGlyph}>{pendingCount > 0 || joinStatus === 'error' ? '↻' : joinStatus === 'ready' ? '☁✓' : '☁'}</Text>
+      <Text style={styles.savedText}>{pendingCount > 0 ? `${pendingCount} nét chờ gửi` : joinStatus === 'ready' ? 'BE1 đã xác nhận' : joinStatus === 'error' ? 'Chưa xác nhận' : 'Đang kết nối'}</Text>
+    </Pressable>
   </View>
 }
 
-function Footnote() {
-  return <Text style={styles.footnote}>Dữ liệu minh họa</Text>
+function Footnote({ connected = false }: { connected?: boolean }) {
+  return connected ? null : <Text style={styles.footnote}>Bản minh hoạ · một số chức năng chưa nối BE1</Text>
 }
 
 export default function ChildApp() {
+  const incomingUrl = Linking.useURL()
   const [screen, setScreen] = useState<Screen>('join')
   const [resumeScreen, setResumeScreen] = useState<Screen>('draw')
   const [code, setCode] = useState<string[]>(Array(6).fill(''))
+  const [joinAttempt, setJoinAttempt] = useState(0)
   const codeRefs = useRef<Array<TextInput | null>>([])
   const [name, setName] = useState<Kid>('Mây')
   const [viewport, setViewport] = useState({ width: 0, height: 0 })
   const [strokes, setStrokes] = useState<Stroke[]>([])
+  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 })
+  const [joinStatus, setJoinStatus] = useState<'idle' | 'joining' | 'waiting' | 'admitted' | 'ready' | 'error'>('idle')
+  const [joinMessage, setJoinMessage] = useState('')
+  const [canvasSync, setCanvasSync] = useState<CanvasReconnect | null>(null)
+  const deviceContext = useRef<ChildDeviceContext | null>(null)
+  const canvasSyncRef = useRef<CanvasReconnect | null>(null)
+  const persistQueue = useRef<Promise<void>>(Promise.resolve())
+  const pendingStrokes = useRef<PendingStroke[]>([])
+  const queueRunning = useRef(false)
+  const [pendingStrokeCount, setPendingStrokeCount] = useState(0)
   const [redo, setRedo] = useState<Stroke[]>([])
   const [draft, setDraft] = useState<Stroke | null>(null)
   const [color, setColor] = useState(colors[2])
@@ -95,6 +126,62 @@ export default function ChildApp() {
   const [viewportMeasured, setViewportMeasured] = useState(false)
   const compact = viewport.height > 0 && viewport.height <= 440
 
+  useEffect(() => {
+    let cancelled = false
+    const controller = new AbortController()
+    const run = async () => {
+      let context: ChildDeviceContext | null = null
+      if (incomingUrl) {
+        const query = Linking.parse(incomingUrl).queryParams ?? {}
+        const organizationId = query.organizationId
+        const sessionId = query.sessionId
+        const joinCode = query.joinCode
+        if (typeof organizationId === 'string' && typeof sessionId === 'string' && typeof joinCode === 'string') {
+          setScreen('lobby')
+          setJoinStatus('joining')
+          setJoinMessage('Đang gửi yêu cầu tham gia tới cô/thầy…')
+          context = await requestDeviceJoin({ organizationId, sessionId, joinCode })
+        }
+      } else {
+        context = await getSavedDeviceContext()
+        if (context) setScreen('lobby')
+      }
+      if (!context || cancelled) return
+      deviceContext.current = context
+      const result = await waitForAdmissionAndTurn(context, (status) => {
+        if (cancelled) return
+        setJoinStatus(status)
+        setJoinMessage(status === 'waiting'
+          ? 'Đang chờ cô/thầy xác nhận thiết bị.'
+          : status === 'admitted'
+            ? 'Đã được tiếp nhận. Đang chờ cô/thầy mở lượt vẽ.'
+            : 'Lượt vẽ đã sẵn sàng.')
+      }, controller.signal)
+      if (!result || cancelled) return
+      deviceContext.current = result.context
+      canvasSyncRef.current = result.canvas
+      setCanvasSync(result.canvas)
+      const restored = result.canvas.operations.flatMap((record) => {
+        const payload = record.operation_payload
+        if (payload.kind !== 'stroke' || !Array.isArray(payload.points) || typeof payload.color !== 'string' || typeof payload.size !== 'number') return []
+        return [{ points: payload.points as Point[], color: payload.color, size: payload.size, operationId: record.operation_id }]
+      })
+      setStrokes(restored)
+      setScreen('draw')
+    }
+    run().catch((cause: unknown) => {
+      if (cancelled) return
+      setJoinStatus('error')
+      setJoinMessage(cause instanceof ChildApiError && cause.code === 'JOIN_UNAVAILABLE'
+        ? 'Mã QR đã hết hạn hoặc phiên chưa mở. Hãy xin cô/thầy mã mới.'
+        : cause instanceof Error ? cause.message : 'Không thể kết nối lớp học.')
+    })
+    return () => {
+      cancelled = true
+      controller.abort()
+    }
+  }, [incomingUrl, joinAttempt])
+
   const onLayout = (event: LayoutChangeEvent) => {
     setViewport({ width: event.nativeEvent.layout.width, height: event.nativeEvent.layout.height })
     setViewportMeasured(true)
@@ -108,7 +195,73 @@ export default function ChildApp() {
     if (digits) codeRefs.current[Math.min(index + digits.length, 5)]?.focus()
   }
   const notice = (title: string, description = 'Yêu cầu đã được ghi nhận trên thiết bị này.') => Alert.alert(title, description)
+  const submitRoomCode = async () => {
+    const roomCode = code.join('')
+    if (!/^\d{6}$/.test(roomCode)) {
+      notice('Nhập mã phòng', 'Mã phòng gồm sáu chữ số.')
+      return
+    }
+    setJoinStatus('joining')
+    setJoinMessage('Đang gửi yêu cầu tới lớp. Cô/thầy cần xác nhận trước khi con vào.')
+    try {
+      await requestRoomCodeJoin(roomCode)
+      setScreen('lobby')
+      setJoinStatus('waiting')
+      setJoinAttempt((attempt) => attempt + 1)
+    } catch (cause) {
+      setJoinStatus('error')
+      setJoinMessage(cause instanceof Error ? cause.message : 'Không gửi được yêu cầu tham gia.')
+    }
+  }
+  const reconnectFromBackend = async () => {
+    const context = deviceContext.current
+    if (!context) {
+      setScreen('join')
+      return
+    }
+    const controller = new AbortController()
+    setJoinStatus('waiting')
+    setJoinMessage('Đang lấy lại lượt vẽ và nội dung đã được BE1 xác nhận…')
+    try {
+      const result = await waitForAdmissionAndTurn(context, () => undefined, controller.signal)
+      if (!result) return
+      deviceContext.current = result.context
+      canvasSyncRef.current = result.canvas
+      setCanvasSync(result.canvas)
+      const acceptedOperationIds = new Set(result.canvas.operations.map((operation) => operation.operation_id))
+      pendingStrokes.current = pendingStrokes.current.filter((item) => !acceptedOperationIds.has(item.operationId))
+      setPendingStrokeCount(pendingStrokes.current.length)
+      const restored = result.canvas.operations.flatMap((record) => {
+        const payload = record.operation_payload
+        if (payload.kind !== 'stroke' || !Array.isArray(payload.points) || typeof payload.color !== 'string' || typeof payload.size !== 'number') return []
+        return [{ points: payload.points as Point[], color: payload.color, size: payload.size, operationId: record.operation_id }]
+      })
+      setStrokes([...restored, ...pendingStrokes.current.map((item) => ({ ...item.stroke, operationId: item.operationId }))])
+      setJoinStatus('ready')
+      setJoinMessage('Đã đồng bộ nội dung BE1 đã xác nhận.')
+      setScreen('draw')
+      if (pendingStrokes.current.length > 0) {
+        persistQueue.current = persistQueue.current.then(() => flushPendingStrokes())
+      }
+    } catch (cause) {
+      setJoinStatus('error')
+      setJoinMessage(cause instanceof Error ? cause.message : 'Không thể đồng bộ lại với BE1.')
+    }
+  }
+
+  const retrySync = () => {
+    if (pendingStrokes.current.length > 0) {
+      persistQueue.current = persistQueue.current.then(() => flushPendingStrokes())
+      return
+    }
+    void reconnectFromBackend()
+  }
+
   const goOffline = () => {
+    if (deviceContext.current) {
+      void reconnectFromBackend()
+      return
+    }
     if (screen === 'reconnect') {
       setScreen(resumeScreen)
       return
@@ -124,41 +277,90 @@ export default function ChildApp() {
   }
 
   const addPoint = (event: { nativeEvent: { locationX: number; locationY: number } }) => {
-    const point = { x: event.nativeEvent.locationX, y: event.nativeEvent.locationY }
+    if (canvasSize.width <= 0 || canvasSize.height <= 0) return
+    const point = { x: event.nativeEvent.locationX / canvasSize.width, y: event.nativeEvent.locationY / canvasSize.height }
+    if (tool === 'eraser' && deviceContext.current) return
     if (tool === 'eraser') {
-      setStrokes((all) => all.filter((stroke) => stroke.points.every((p) => Math.hypot(p.x - point.x, p.y - point.y) > 24)))
+      setStrokes((all) => all.filter((stroke) => stroke.points.every((p) => Math.hypot((p.x - point.x) * canvasSize.width, (p.y - point.y) * canvasSize.height) > 24)))
       setDraft(null)
       return
     }
     setDraft((previous) => previous ? { ...previous, points: [...previous.points, point] } : { points: [point], color, size: brush })
   }
+
+  const flushPendingStrokes = async () => {
+    if (queueRunning.current) return
+    queueRunning.current = true
+    try {
+      const context = deviceContext.current
+      if (!context) return
+      while (pendingStrokes.current.length > 0) {
+        const latest = canvasSyncRef.current
+        const pending = pendingStrokes.current[0]
+        if (!latest) throw new Error('Chưa có lượt vẽ BE1 để đồng bộ.')
+        const receipt = await appendStroke(context, latest, pending.stroke, pending.operationId)
+        const updated = { ...latest, current_revision: Math.max(latest.current_revision, receipt.resulting_revision) }
+        canvasSyncRef.current = updated
+        setCanvasSync(updated)
+        pendingStrokes.current.shift()
+        setPendingStrokeCount(pendingStrokes.current.length)
+      }
+      if (canvasSyncRef.current) {
+        setJoinStatus('ready')
+        setJoinMessage('Nét vẽ đã được BE1 xác nhận lưu.')
+      }
+    } catch (cause) {
+      setJoinStatus('error')
+      setJoinMessage(cause instanceof Error ? cause.message : 'Nét vẽ đang chờ gửi lại. Chưa được BE1 xác nhận lưu.')
+    } finally {
+      queueRunning.current = false
+    }
+  }
+
   const finishStroke = () => {
     if (tool === 'eraser') return
     if (draft) {
-      setStrokes((all) => [...all, draft])
+      const context = deviceContext.current
+      const sync = canvasSyncRef.current
+      const operationId = context && sync ? newCanvasOperationId() : undefined
+      const acceptedStroke = operationId ? { ...draft, operationId } : draft
+      setStrokes((all) => [...all, acceptedStroke])
       setRedo([])
+      if (context && sync) {
+        pendingStrokes.current.push({ operationId: operationId!, stroke: draft })
+        setPendingStrokeCount(pendingStrokes.current.length)
+        setJoinStatus('waiting')
+        setJoinMessage('Đang gửi nét vẽ tới BE1…')
+        persistQueue.current = persistQueue.current.then(() => flushPendingStrokes())
+      }
     }
     setDraft(null)
   }
   const undo = () => {
+    if (deviceContext.current) return
     if (!strokes.length) return
     setRedo((all) => [...all, strokes[strokes.length - 1]])
     setStrokes((all) => all.slice(0, -1))
   }
   const redoStroke = () => {
+    if (deviceContext.current) return
     if (!redo.length) return
     setStrokes((all) => [...all, redo[redo.length - 1]])
     setRedo((all) => all.slice(0, -1))
   }
   const renderInk = (stroke: Stroke, key: string) => stroke.points.slice(1).map((point, index) => {
     const start = stroke.points[index]
-    const dx = point.x - start.x
-    const dy = point.y - start.y
+    const startX = start.x * canvasSize.width
+    const startY = start.y * canvasSize.height
+    const pointX = point.x * canvasSize.width
+    const pointY = point.y * canvasSize.height
+    const dx = pointX - startX
+    const dy = pointY - startY
     const length = Math.hypot(dx, dy)
-    return <View key={`${key}-${index}`} pointerEvents="none" style={[styles.ink, { left: (start.x + point.x - length) / 2, top: (start.y + point.y - stroke.size) / 2, width: Math.max(length, stroke.size), height: stroke.size, borderRadius: stroke.size / 2, backgroundColor: stroke.color, transform: [{ rotate: `${Math.atan2(dy, dx)}rad` }] }]} />
+    return <View key={`${key}-${index}`} pointerEvents="none" style={[styles.ink, { left: (startX + pointX - length) / 2, top: (startY + pointY - stroke.size) / 2, width: Math.max(length, stroke.size), height: stroke.size, borderRadius: stroke.size / 2, backgroundColor: stroke.color, transform: [{ rotate: `${Math.atan2(dy, dx)}rad` }] }]} />
   })
 
-  const canvas = (large = false) => <View style={[styles.canvas, large && styles.canvasLarge]} onStartShouldSetResponder={() => true} onMoveShouldSetResponder={() => true} onResponderGrant={addPoint} onResponderMove={addPoint} onResponderRelease={finishStroke} onResponderTerminate={finishStroke}>
+  const canvas = (large = false) => <View style={[styles.canvas, large && styles.canvasLarge]} onLayout={(event) => setCanvasSize({ width: event.nativeEvent.layout.width, height: event.nativeEvent.layout.height })} onStartShouldSetResponder={() => true} onMoveShouldSetResponder={() => true} onResponderGrant={addPoint} onResponderMove={addPoint} onResponderRelease={finishStroke} onResponderTerminate={finishStroke}>
     <View pointerEvents="none" style={styles.canvasArtwork}><Image source={galleryArt[selectedArt]} resizeMode="cover" style={styles.canvasArtworkImage} /></View>
     {layers.suggestion ? <View pointerEvents="none" style={styles.suggestionOverlay}><Text style={styles.suggestionOverlayText}>Gợi ý</Text></View> : null}
     {[...strokes, ...(draft ? [draft] : [])].map((stroke, index) => renderInk(stroke, `stroke-${index}`))}
@@ -173,49 +375,62 @@ export default function ChildApp() {
     <Card style={[styles.joinCard, compact && styles.joinCardCompact]}>
       <Heading style={[styles.joinCardTitle, compact && styles.joinCardTitleCompact]}>Tham gia phiên học</Heading>
       <View style={[styles.codeRow, compact && styles.codeRowCompact]}>{code.map((digit, index) => <TextInput key={index} ref={(ref) => { codeRefs.current[index] = ref }} accessibilityLabel={`Số thứ ${index + 1} của mã phiên`} keyboardType="number-pad" maxLength={6} placeholder="•" placeholderTextColor="#91A1B8" value={digit} onChangeText={(value) => updateCode(index, value)} onKeyPress={({ nativeEvent }) => { if (nativeEvent.key === 'Backspace' && !code[index] && index > 0) codeRefs.current[index - 1]?.focus() }} style={[styles.codeBox, compact && styles.codeBoxCompact]} />)}</View>
-      <Action compact={compact} label="Tham gia" icon="➜" onPress={() => code.some((digit) => !digit) ? notice('Nhập mã phiên', 'Mã phiên gồm sáu chữ số. Con hãy nhập đủ mã nhé!') : setScreen('lobby')} />
-      <Action compact={compact} label="Quét mã" icon="▣" kind="secondary" onPress={() => notice('Quét mã', 'Camera sẽ được kết nối khi tích hợp thiết bị. Con có thể nhập mã phiên bằng các ô phía trên.')} />
+      <Action compact={compact} label="Gửi yêu cầu tham gia" icon="➜" onPress={() => void submitRoomCode()} />
+      <Action compact={compact} label="Quét mã QR" icon="▣" kind="secondary" onPress={() => notice('Quét mã QR', 'Mở camera của thiết bị và quét QR do giáo viên hiển thị. Liên kết sẽ mở Sketch2Life và gửi yêu cầu chờ duyệt.')} />
       <Pressable onPress={() => notice('Nhờ cô/thầy giúp', 'Hãy gọi cô/thầy để được giúp nhập mã phiên nhé.')}><Text style={[styles.helpLink, compact && styles.helpLinkCompact]}>Nhờ cô/thầy giúp</Text></Pressable>
       <View style={[styles.joinTip, compact && styles.joinTipCompact]}><Image source={require('../assets/mascot-leaf.png')} style={[styles.tipLeaf, compact && styles.tipLeafCompact]} /><Text style={[styles.tipText, compact && styles.tipTextCompact]}>Cô/thầy sẽ xác nhận trước khi con vào lớp.</Text></View>
     </Card>
-    <Footnote />
+    <Footnote connected={deviceContext.current !== null} />
   </View>
+
+  const resetJoin = async () => {
+    await clearDeviceContext()
+    deviceContext.current = null
+    canvasSyncRef.current = null
+    setCanvasSync(null)
+    setJoinStatus('idle')
+    setJoinMessage('Dùng camera thiết bị để quét lại QR lớp học.')
+    setScreen('join')
+  }
 
   const lobbyScreen = <View style={styles.screenBody}>
     <View style={styles.lobbyColumns}>
       <Card style={styles.lobbyHero}>
-        <Heading style={styles.lobbyTitle}>Chờ cô/thầy bắt đầu</Heading>
-        <Text style={styles.lobbySubtitle}>Hãy sẵn sàng, chúng mình sẽ cùng vẽ thật vui!</Text>
+        <Heading style={styles.lobbyTitle}>{joinStatus === 'error' ? 'Chưa thể vào lớp' : 'Chờ cô/thầy bắt đầu'}</Heading>
+        <Text style={styles.lobbySubtitle}>{joinMessage || 'Yêu cầu tham gia đang được gửi tới BE1.'}</Text>
         <Image source={require('../assets/art-garden-wide.png')} resizeMode="cover" style={styles.lobbyGarden} />
         <Image source={require('../assets/mascot-leaf.png')} style={styles.lobbyLeafAvatar} />
-        <Action label="Cần giúp" icon="?" kind="pink" onPress={() => notice('Cần giúp', 'Gọi cô/thầy nếu con cần hỗ trợ nhé!')} />
+        {joinStatus === 'error'
+          ? <Action label="Quét lại mã QR" icon="▣" kind="pink" onPress={() => void resetJoin()} />
+          : <Pill tone={joinStatus === 'ready' ? 'green' : joinStatus === 'admitted' ? 'blue' : 'yellow'}>{joinStatus === 'ready' ? 'Đang đến lượt vẽ' : joinStatus === 'admitted' ? 'Đã được tiếp nhận' : 'Đang chờ xác nhận'}</Pill>}
       </Card>
-      <View style={styles.lobbyRight}>
-        <Card style={styles.pickCard}><Heading style={styles.cardHeading}>Ai đang dùng máy?</Heading><SmallText>Chọn tên của con trước khi vẽ nhé!</SmallText><View style={styles.kidRow}>{(['Mây', 'Lá'] as Kid[]).map((kid) => <Pressable key={kid} accessibilityRole="button" onPress={() => setName(kid)} style={[styles.kidCard, name === kid && styles.kidCardSelected]}><Image source={avatars[kid]} style={styles.kidImage} />{name === kid && <Text style={styles.selectedCheck}>✓</Text>}<Text style={styles.kidName}>{kid}</Text></Pressable>)}</View><Pill>{name} đang dùng máy</Pill></Card>
-        <Card style={styles.friendsCard}><Heading style={styles.cardHeading}>Các bạn trong nhóm</Heading><View style={styles.friendRow}>{['Mây', 'Lá', 'Nắng'].map((kid) => <View key={kid} style={styles.friendItem}><Image source={avatars[kid]} style={styles.friendImage} /><Text style={styles.friendName}>{kid}</Text></View>)}</View><Action label="Chưa đến giờ vẽ" icon="🔒" kind="secondary" onPress={() => notice('Chờ cô/thầy nhé', 'Lớp sẽ bắt đầu khi cô/thầy xác nhận.')} /></Card>
-      </View>
+      <Card style={styles.friendsCard}>
+        <Heading style={styles.cardHeading}>Kết nối với lớp</Heading>
+        <SmallText>Không cần chọn tên trên máy. Cô/thầy sẽ ghép máy này với hồ sơ được nhà trường quản lý.</SmallText>
+        <View style={styles.joinTip}><Image source={require('../assets/mascot-leaf.png')} style={styles.tipLeaf} /><Text style={styles.tipText}>{joinStatus === 'ready' ? 'Nét vẽ chỉ được báo đã lưu sau khi BE1 xác nhận.' : 'Hãy giữ ứng dụng mở; lớp sẽ hiện khi thiết bị được tiếp nhận và đến lượt.'}</Text></View>
+        <Action label="Nhờ cô/thầy giúp" icon="?" kind="secondary" onPress={() => notice('Nhờ cô/thầy giúp', 'Hãy gọi cô/thầy nếu thiết bị chưa được xác nhận.')} />
+      </Card>
     </View>
-        <Action label="Con đã sẵn sàng" icon="✓" onPress={() => setScreen(name === 'Lá' ? 'advanced' : 'draw')} style={styles.readyButton} />
-    <Footnote />
+    <Footnote connected={deviceContext.current !== null} />
   </View>
 
   const bottomDrawingTools = (reviewMode = false) => <View style={[styles.drawToolbar, compact && styles.drawToolbarCompact]}>
     <Action compact={compact} label="Bút vẽ" icon="🖌" onPress={() => setTool('pen')} style={[styles.toolAction, compact && styles.toolActionCompact, tool === 'pen' && styles.toolActionSelected]} />
-    <Action compact={compact} label="Tẩy" icon="◩" kind="secondary" onPress={() => setTool('eraser')} style={[styles.toolAction, compact && styles.toolActionCompact, tool === 'eraser' && styles.toolActionSelected]} />
-    <Action compact={compact} label="Hoàn tác" icon="↶" kind="secondary" onPress={undo} style={[styles.toolAction, compact && styles.toolActionCompact]} />
+    <Action compact={compact} label="Tẩy" icon="◩" kind="secondary" onPress={() => deviceContext.current ? notice('Chưa hỗ trợ xoá nét đã lưu', 'BE1 hiện mới có contract ghi nét vẽ. Xoá và hoàn tác sẽ được mở lại sau khi có contract đồng bộ tương ứng. Hành động này không làm đổi tranh đã lưu.') : setTool('eraser')} style={[styles.toolAction, compact && styles.toolActionCompact, tool === 'eraser' && styles.toolActionSelected]} />
+    <Action compact={compact} label="Hoàn tác" icon="↶" kind="secondary" onPress={() => deviceContext.current ? notice('Chưa hỗ trợ hoàn tác nét đã lưu', 'BE1 hiện chưa có contract hoàn tác. Nét vẽ đã được xác nhận sẽ không bị thay đổi.') : undo()} style={[styles.toolAction, compact && styles.toolActionCompact]} />
     {colors.map((value) => <Pressable key={value} accessibilityRole="button" accessibilityLabel={`Chọn màu ${value}`} onPress={() => { setColor(value); setTool('pen') }} style={[styles.colorDot, compact && styles.colorDotCompact, { backgroundColor: value }, value === color && styles.colorDotSelected]} />)}
     <View style={[styles.toolbarDivider, compact && styles.toolbarDividerCompact]} />
     {[5, 9, 14].map((size) => <Pressable key={size} accessibilityRole="button" accessibilityLabel={`Cỡ nét ${size}`} onPress={() => setBrush(size)} style={[styles.brushChoice, compact && styles.brushChoiceCompact, brush === size && styles.brushSelected]}><View style={{ width: compact ? Math.max(4, size - 3) : size, height: compact ? Math.max(4, size - 3) : size, borderRadius: size / 2, backgroundColor: '#263652' }} /></Pressable>)}
     <View style={[styles.toolbarDivider, compact && styles.toolbarDividerCompact]} />
     <Action compact={compact} label="Cần giúp" icon="?" kind="pink" onPress={() => notice('Cần giúp', 'Gọi cô/thầy nếu con cần hỗ trợ nhé!')} style={[styles.smallToolAction, compact && styles.smallToolActionCompact]} />
-    <Action compact={compact} label={reviewMode ? 'Tiếp tục vẽ' : 'Gợi ý'} icon={reviewMode ? '🖌' : '☆'} kind={reviewMode ? 'primary' : 'yellow'} onPress={() => setScreen(reviewMode ? 'draw' : 'ideas')} style={[styles.smallToolAction, compact && styles.smallToolActionCompact]} />
+    <Action compact={compact} label={reviewMode ? 'Tiếp tục vẽ' : 'Gợi ý'} icon={reviewMode ? '🖌' : '☆'} kind={reviewMode ? 'primary' : 'yellow'} onPress={() => deviceContext.current ? notice('Chặng chưa kết nối', 'Gợi ý AI chưa được nối qua BE2/teacher review. BE1 sẽ không ghi nhận đây là một bước SRS.') : setScreen(reviewMode ? 'draw' : 'ideas')} style={[styles.smallToolAction, compact && styles.smallToolActionCompact]} />
   </View>
 
   const drawingScreen = (advanced = false) => <View style={styles.screenBody}>
     <View style={styles.drawingArea}>
       {advanced ? <View style={styles.advancedTools}>{[['🖌', 'Bút vẽ', () => setTool('pen')], ['◩', 'Tẩy', () => setTool('eraser')], ['↶', 'Hoàn tác', undo], ['↻', 'Làm lại', redoStroke], ['⌕', 'Thu phóng', () => notice('Thu phóng', 'Dùng hai ngón tay để phóng to hoặc thu nhỏ tranh.')], ['◇', 'Hình khối', () => notice('Hình khối', 'Chọn màu và vẽ tự do trên vùng vẽ nhé.')]].map(([icon, label, onPress]) => <Action key={String(label)} label={String(label)} icon={String(icon)} kind={label === 'Bút vẽ' ? 'primary' : 'secondary'} onPress={onPress as () => void} style={styles.advancedTool} />)}</View> : null}
       <Card style={styles.canvasCard}>
-        <View style={styles.canvasCardHeader}><Text style={styles.canvasLabel}>Tranh của con</Text><Pill tone="green">☁  Đã lưu</Pill></View>
+        <View style={styles.canvasCardHeader}><Text style={styles.canvasLabel}>Tranh của con</Text><Pill tone={pendingStrokeCount > 0 ? 'yellow' : joinStatus === 'ready' ? 'green' : 'pink'}>{pendingStrokeCount > 0 ? `${pendingStrokeCount} nét chờ BE1` : joinStatus === 'ready' ? 'BE1 đã xác nhận' : 'Chưa xác nhận'}</Pill></View>
         {canvas(true)}
       </Card>
       {advanced ? <Card style={styles.advancedPanel}>
@@ -228,11 +443,11 @@ export default function ChildApp() {
       </Card> : <Card style={styles.drawingHelp}>
         <View style={styles.speechBubble}><Text style={styles.speechText}>Con vẽ theo ý mình nhé!</Text></View>
         <Image source={require('../assets/mascot-leaf.png')} style={styles.largeMascot} />
-        <Action label="Cùng vẽ nhóm" icon="🍃" kind="secondary" onPress={() => setScreen('group')} />
+        <Action label="Cùng vẽ nhóm" icon="🍃" kind="secondary" onPress={() => deviceContext.current ? notice('Chặng chưa kết nối', 'Trang nhóm hiện chưa đọc trạng thái từ BE1. Tiếp tục ở vùng vẽ đang hoạt động để tránh hiển thị dữ liệu mẫu.') : setScreen('group')} />
       </Card>}
     </View>
     {bottomDrawingTools()}
-    <Footnote />
+    <Footnote connected={deviceContext.current !== null} />
   </View>
 
   const ideaScreen = <View style={styles.screenBody}>
@@ -248,12 +463,12 @@ export default function ChildApp() {
       <Action label="Nhờ cô/thầy duyệt" icon="✓" kind="secondary" onPress={() => setScreen('review')} style={styles.ideaAction} />
     </View>
     {!suggestionsVisible && <Text style={styles.hiddenHint}>Gợi ý đã được ẩn. Con có thể vẽ theo ý mình.</Text>}
-    <Footnote />
+    <Footnote connected={deviceContext.current !== null} />
   </View>
 
   const reviewScreen = <View style={styles.screenBody}>
     <View style={styles.reviewColumns}><Card style={styles.reviewCanvas}><View style={styles.canvasCardHeader}><Text style={styles.canvasLabel}>Tranh của con</Text><Pill tone="green">☁  Đã lưu</Pill></View>{canvas(true)}{bottomDrawingTools(true)}</Card><Card style={styles.reviewStatus}><View style={[styles.waitArt, compact && styles.waitArtCompact]}><Image source={require('../assets/art-sprout.png')} resizeMode="contain" style={styles.waitArtImage} /><Text style={styles.waitClock}>◷</Text></View><Heading style={[styles.cardHeading, compact && styles.reviewHeadingCompact]}>Chờ cô/thầy xem gợi ý</Heading><SmallText style={compact ? styles.reviewTextCompact : undefined}>Khi cô/thầy duyệt, con mới xem được.</SmallText><Pill>➤  Đã gửi yêu cầu.</Pill><Image source={require('../assets/mascot-leaf.png')} style={[styles.reviewAvatar, compact && styles.reviewAvatarCompact]} /><View style={[styles.speechBubble, styles.reviewSpeech, compact && styles.reviewSpeechCompact]}><Text style={[styles.speechText, compact && styles.reviewTextCompact]}>Con vẫn có thể vẽ theo ý mình.</Text></View></Card></View>
-    <Footnote />
+    <Footnote connected={deviceContext.current !== null} />
   </View>
 
   const groupScreen = <View style={styles.screenBody}>
@@ -271,7 +486,7 @@ export default function ChildApp() {
         <View style={styles.buttonRow}><Action label="Mở lượt vẽ" icon="🖌" onPress={() => setScreen(name === 'Lá' ? 'advanced' : 'draw')} style={styles.flexAction} /><Action label="Phòng tranh" icon="▧" kind="secondary" onPress={() => setScreen('gallery')} style={styles.flexAction} /></View>
       </Card>
     </View>
-    <Footnote />
+    <Footnote connected={deviceContext.current !== null} />
   </View>
 
   const galleryScreen = <View style={styles.screenBody}>
@@ -279,7 +494,7 @@ export default function ChildApp() {
     <View style={styles.galleryColumns}><Card style={styles.galleryMain}><Image source={galleryArt[selectedArt]} resizeMode="cover" style={styles.galleryImage} /><View style={styles.contributors}>{(['Mây', 'Lá', 'Nắng'] as const).map((kid) => <View key={kid} style={styles.contributor}><Image source={avatars[kid]} style={styles.contributorAvatar} /><Text style={styles.friendName}>{kid}</Text></View>)}<View style={styles.contributorDivider} /><Text style={styles.contributorText}>Đóng góp của Mây, Lá và Nắng</Text><Pill tone="green">✓  Bản đã lưu</Pill></View></Card>
       <Card style={styles.gallerySide}><View style={styles.speechBubble}><Text style={styles.speechText}>Chia sẻ ý tưởng</Text></View><Image source={require('../assets/mascot-leaf.png')} style={styles.galleryMascot} /><Heading style={styles.cardHeading}>Con muốn kể về bức tranh nào?</Heading><Action label="Đề nghị trình bày" icon="▧" onPress={() => notice('Đề nghị trình bày', 'Cô/thầy sẽ sắp xếp lượt chia sẻ cho con.')} /><SmallText style={styles.centerText}>Cô/thầy sẽ sắp xếp lượt.</SmallText><View style={styles.buttonRow}><Action label="Khám phá kiến thức" icon="▶" kind="secondary" onPress={() => setScreen('learn')} style={styles.flexAction} /><Action label="Tạo video" icon="🎬" kind="secondary" onPress={() => setScreen('video')} style={styles.flexAction} /></View></Card>
     </View>
-    <Footnote />
+    <Footnote connected={deviceContext.current !== null} />
   </View>
 
   const learnScreen = <View style={styles.screenBody}>
@@ -288,7 +503,7 @@ export default function ChildApp() {
       <Card style={styles.lessonPanel}><View style={styles.lessonTitleBubble}><SmallText>Hôm nay cùng khám phá:</SmallText><Heading style={styles.lessonName}>Hoa và bướm</Heading></View><View style={styles.lessonPoint}><Image source={require('../assets/art-flowers.png')} style={styles.lessonThumbnail} /><Text style={styles.numberBadge}>1</Text><Text style={styles.lessonText}>Hoa có màu sắc rực rỡ và có mật ngọt.</Text></View><View style={styles.lessonPoint}><Image source={require('../assets/gallery-hoa.png')} style={styles.lessonThumbnail} /><Text style={styles.numberBadge}>2</Text><Text style={styles.lessonText}>Bướm dùng vòi hút mật từ hoa để ăn.</Text></View><Image source={require('../assets/mascot-leaf.png')} style={styles.lessonMascot} /><Action label="Hoàn thành" icon="✓" onPress={() => setScreen('offline')} /></Card>
     </View>
     <View style={styles.learnBottom}><View style={styles.learnHelpActions}><Action label="Không nghe rõ" icon="🔊" kind="secondary" onPress={() => notice('Báo lỗi âm thanh', 'Cô/thầy sẽ kiểm tra phần âm thanh.')} style={styles.flexAction} /><Action label="Không xem được" icon="▣" kind="pink" onPress={() => notice('Báo lỗi hình ảnh', 'Cô/thầy sẽ kiểm tra video bài học.')} style={styles.flexAction} /></View><View style={styles.learnHelper}><Image source={require('../assets/mascot-leaf.png')} style={styles.learnHelperImage} /><View style={styles.learnSpeech}><Text style={styles.learnSpeechText}>Hãy nhờ cô/thầy khi cần nhé!</Text></View></View></View>
-    <Footnote />
+    <Footnote connected={deviceContext.current !== null} />
   </View>
 
   const videoScreen = <View style={styles.screenBody}>
@@ -296,7 +511,7 @@ export default function ChildApp() {
     <View style={styles.videoWaitColumns}><Card style={styles.videoStory}><Image source={galleryArt.Mây} resizeMode="cover" style={styles.videoStoryArt} /><View style={styles.storyLabel}><Text style={styles.storyLabelText}>🍃  Tranh của nhóm Lá</Text></View><View style={styles.storyPrompt}><Image source={require('../assets/avatar-la.png')} style={styles.storyAvatar} /><Text style={styles.speechText}>Con nhìn thấy những gì trong tranh?</Text></View></Card>
       <Card style={styles.videoWaitCard}><Image source={require('../assets/video-clapper.png')} resizeMode="contain" style={styles.clapper} /><Heading style={styles.videoWaitTitle}>Video đang được chuẩn bị.</Heading><SmallText>Cả lớp cùng chờ cô/thầy nhé.</SmallText><View style={styles.creatingPill}><View style={styles.loadingDots}><Text style={styles.dotBlue}>●</Text><Text style={styles.dotMid}>●</Text><Text style={styles.dotPale}>●</Text></View><Text style={styles.creatingText}>Đang tạo video</Text></View><Action label="Kiểm tra trạng thái" icon="↻" kind="secondary" onPress={() => notice('Video đang được chuẩn bị', 'Cả lớp cùng chờ cô/thầy nhé.')} /><Action label="Quay lại phòng tranh" kind="secondary" onPress={() => setScreen('gallery')} /></Card>
     </View>
-    <Footnote />
+    <Footnote connected={deviceContext.current !== null} />
   </View>
 
   const offlineScreen = <View style={styles.screenBody}>
@@ -304,14 +519,14 @@ export default function ChildApp() {
         <View style={styles.materialsBox}><Heading style={styles.cardHeading}>Chuẩn bị những gì?</Heading>{[['🫘', 'Hạt đậu'], ['🥤', 'Cốc'], ['🟤', 'Đất'], ['💧', 'Nước']].map(([icon, label]) => <View key={label} style={styles.materialItem}><Text style={styles.materialIcon}>{icon}</Text><Text style={styles.materialLabel}>{label}</Text></View>)}</View>
       </Card><Card style={styles.activityAside}><View style={styles.speechBubble}><Text style={styles.speechText}>Cùng trồng hạt đậu và chờ xem nó lớn lên nhé!</Text></View><Image source={require('../assets/mascot-leaf.png')} style={styles.activityMascot} /><View style={styles.safetyBox}><Text style={styles.safetyText}>⚠  Nhờ cô/thầy hướng dẫn.</Text><Text style={styles.safetyText}>🚫  Không đưa hạt vào miệng.</Text></View></Card></View>
     <View style={styles.bottomActions}><Action label="Con đã sẵn sàng" icon="✓" onPress={() => setScreen('feeling')} style={styles.readyButton} /><Action label="Cần giúp" icon="?" kind="secondary" onPress={() => notice('Cần giúp', 'Nhờ cô/thầy hướng dẫn hoạt động nhé.')} style={styles.helpButton} /></View>
-    <Footnote />
+    <Footnote connected={deviceContext.current !== null} />
   </View>
 
   const feelingScreen = <View style={styles.screenBody}>
     <View style={styles.feelingColumns}><Card style={styles.feelingArtCard}><View style={styles.sectionBar}><Text style={styles.sectionBarText}>🍃  Hoạt động của nhóm Lá</Text></View><Image source={galleryArt.Mây} resizeMode="cover" style={styles.feelingArt} /><Image source={require('../assets/art-sprout.png')} resizeMode="cover" style={styles.feelingArt} /></Card>
       <Card style={styles.feelingForm}><Heading style={styles.feelingTitle}>🌱  Hôm nay con thấy thế nào?</Heading><View style={styles.moodRow}>{[['😊', 'Con muốn\nthử thêm'], ['🤔', 'Con cần\ngiúp thêm'], ['😄', 'Con muốn kể\nvới cô/thầy']].map(([face, label]) => <Pressable key={label} accessibilityRole="button" onPress={() => setMood(label.replace('\n', ' '))} style={[styles.moodCard, mood === label.replace('\n', ' ') && styles.moodSelected]}><Image source={require('../assets/avatar-la.png')} style={styles.moodImage} /><Text style={styles.moodFace}>{face}</Text><Text style={styles.moodLabel}>{label}</Text>{mood === label.replace('\n', ' ') && <Text style={styles.moodCheck}>✓</Text>}</Pressable>)}</View><View style={styles.noteBox}><Text style={styles.noteTitle}>✎  Điều con muốn thử lần sau (tùy chọn)</Text><TextInput multiline value={note} onChangeText={setNote} placeholder="Con có thể nhờ cô/thầy ghi lại ở đây nhé!" placeholderTextColor="#92A5C1" style={styles.noteInput} /></View><View style={styles.buttonRow}><Pill>👩🏻‍🏫  Con có thể nhờ cô/thầy ghi lại</Pill><Action label="Để sau" icon="◷" kind="secondary" onPress={() => setScreen('join')} style={styles.flexAction} /><Action label="Gửi cảm nhận" icon="➤" onPress={() => mood ? (notice('Đã gửi cảm nhận', 'Cảm ơn con đã chia sẻ nhé!'), setScreen('join')) : notice('Chọn cảm nhận', 'Con hãy chọn một cảm xúc trước nhé.')} style={styles.flexAction} /></View></Card>
     </View>
-    <Footnote />
+    <Footnote connected={deviceContext.current !== null} />
   </View>
 
   const reconnectScreen = <View style={styles.screenBody}>
@@ -319,7 +534,7 @@ export default function ChildApp() {
     <View style={styles.savedColumns}><Card style={styles.savedCard}><View style={styles.savedHeading}><Text style={styles.savedIcon}>☁✓</Text><View><Heading style={styles.cardHeading}>Phần đã lưu</Heading><SmallText>Đã được hệ thống xác nhận lưu.</SmallText></View></View><Image source={require('../assets/gallery-hoa.png')} resizeMode="cover" style={styles.savedArtwork} /></Card><Card style={styles.savedCard}><View style={styles.savedHeading}><Text style={styles.pendingIcon}>✎</Text><View><Heading style={styles.cardHeading}>Phần đang chờ gửi</Heading><SmallText>Chưa gửi lên lớp.</SmallText></View></View>{canvas()}</Card></View>
     <Action label="Thử kết nối lại" icon="⟳" onPress={() => setScreen(resumeScreen)} style={styles.retryButton} />
     <View style={[styles.buttonRow, styles.reconnectButtonRow]}><Action label="Nhờ cô/thầy giúp" icon="👩🏻‍🏫" kind="pink" onPress={() => notice('Nhờ cô/thầy giúp', 'Gọi cô/thầy nếu con cần hỗ trợ nhé.')} style={styles.flexAction} /><Action label="Xem phần đã lưu" icon="▱" kind="secondary" onPress={() => setScreen('draw')} style={styles.flexAction} /></View>
-    <View pointerEvents="none" style={[styles.reconnectMascotWrap, compact && styles.reconnectMascotCompact]}><Image source={require('../assets/mascot-leaf.png')} resizeMode="contain" style={styles.reconnectMascotImage} /></View><Text style={styles.waitingNetwork}>●  Đang chờ mạng.</Text><Footnote />
+    <View pointerEvents="none" style={[styles.reconnectMascotWrap, compact && styles.reconnectMascotCompact]}><Image source={require('../assets/mascot-leaf.png')} resizeMode="contain" style={styles.reconnectMascotImage} /></View><Text style={styles.waitingNetwork}>●  Đang chờ mạng.</Text><Footnote connected={deviceContext.current !== null} />
   </View>
 
   const pages: Record<Screen, React.ReactNode> = {
@@ -341,7 +556,7 @@ export default function ChildApp() {
   const frameWidth = viewport.width && viewport.height ? compact ? viewport.width : Math.min(viewport.width, viewport.height * 1.65) : undefined
   const frameHeight = viewport.width && viewport.height ? compact ? viewport.height : Math.min(viewport.height, viewport.width / 1.65) : undefined
   return <View style={styles.stage} onLayout={onLayout}><View style={[styles.appFrame, compact && styles.appFrameCompact, viewportMeasured && frameWidth && frameHeight ? { width: frameWidth, height: frameHeight } : styles.fill]}>
-    {screen === 'join' ? null : <TopBar screen={screen} name={name} onBack={back} onOffline={goOffline} />}
+    {screen === 'join' ? null : <TopBar screen={screen} name={name} joinStatus={joinStatus} pendingCount={pendingStrokeCount} onBack={back} onRetry={retrySync} />}
     {pages[screen]}
   </View></View>
 }

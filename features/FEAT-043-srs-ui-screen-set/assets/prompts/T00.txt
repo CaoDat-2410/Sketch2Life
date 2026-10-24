@@ -1,0 +1,18 @@
+Use case: ui-mockup.
+Asset type: one high-fidelity desktop app screen, Sketch2Life Teacher sign-in, landscape 16:10, approximately 1536x960.
+Create one complete edge-to-edge UI screenshot, without device/browser hardware or a mockup border, no multiple screens, no presentation board. This is a practical implementable Vietnamese education product interface, not a marketing poster.
+Visual family follows existing Sketch2Life: off-white #F8FAFC background, white cards, primary #2563EB, sky #38BDF8, warm yellow #FBBF24, restrained mint #34D399, navy #0F172A headings, #334155 body, #E2E8F0 borders. Rounded sans-serif font with correct Vietnamese diacritics, generous 16–24px-radius controls, subtle card shadows.
+Composition: left 42% soft pale-blue welcome panel with small Sketch2Life wordmark at top, a tasteful small flat garden illustration of leaves and drawing pencils, and one calm headline. Right 58% white/off-white login area, centered compact white form card with ample whitespace, clear label and input hierarchy. No sidebar before authentication.
+Exact visible text:
+Wordmark "Sketch2Life"
+Surface label "Dành cho giáo viên"
+Left headline "Cùng trẻ khám phá, sáng tạo và hợp tác"
+Short secondary line "Điều phối lớp học • Đồng hành cùng từng trẻ"
+Form heading "Đăng nhập giáo viên"
+Subtitle "Sử dụng tài khoản do nhà trường cấp"
+Input labels "Email", "Mật khẩu"; empty email placeholder "Email của bạn"; password obscured dots, eye icon.
+Primary button "Đăng nhập"
+Small secondary link "Quên mật khẩu?"
+Bottom note "Chỉ giáo viên được phân công mới có quyền truy cập lớp học."
+Help link "Cần hỗ trợ từ nhà trường?"
+Treat every line as product UI copy with correct Vietnamese spelling. No real account values, child login, parent portal, public registration, payments, leaderboard, cloud/provider details, API keys, school roster or artworks. One UI screen only. Keep text crisp and readable; no giant slogan swallowing the actual form. No watermark or screen-ID label.

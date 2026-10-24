@@ -1,0 +1,125 @@
+## dev...origin/dev [ahead 726]
+ M apps/admin-ui/package-lock.json
+ M apps/admin-ui/package.json
+ M apps/admin-ui/src/components/auditlogs/AuditLogTable.tsx
+ M apps/admin-ui/src/components/dashboard/SystemAlertBanner.tsx
+ M apps/admin-ui/src/hooks/useAuth.ts
+ M apps/admin-ui/src/services/aiPolicyService.ts
+ M apps/admin-ui/src/services/auditLogService.ts
+ M apps/admin-ui/src/services/authService.ts
+ M apps/admin-ui/src/services/classService.ts
+ M apps/admin-ui/src/services/contentService.ts
+ M apps/admin-ui/src/services/dataRequestService.ts
+ M apps/admin-ui/src/services/reportService.ts
+ M apps/admin-ui/src/services/settingsService.ts
+ M apps/admin-ui/src/services/userService.ts
+ M apps/admin-ui/vite.config.ts
+ M apps/child-ui/app/index.tsx
+ M apps/child-ui/package-lock.json
+ M apps/child-ui/package.json
+ D apps/child-ui/src/__tests__/DrawScreen.test.ts
+ D apps/child-ui/src/__tests__/FeelingScreen.test.ts
+ D apps/child-ui/src/__tests__/JoinScreen.test.ts
+ M apps/child-ui/src/components/BrushSizeSlider.tsx
+ M apps/child-ui/src/components/TopBar.tsx
+ M apps/child-ui/src/hooks/useAudioFeedback.ts
+ M apps/child-ui/src/hooks/useGroupGarden.ts
+ M apps/child-ui/src/hooks/useLandscapeLayout.ts
+ M apps/child-ui/src/screens/AdvancedDrawScreen.tsx
+ M apps/child-ui/src/screens/JoinScreen.tsx
+ M apps/child-ui/src/screens/LobbyScreen.tsx
+ M apps/child-ui/src/services/apiClient.ts
+ M apps/child-ui/src/services/gardenService.ts
+ M apps/child-ui/src/services/reviewService.ts
+ M apps/child-ui/src/services/sessionClient.ts
+ M apps/child-ui/src/services/videoService.ts
+ M apps/child-ui/src/utils/colorHarmonizer.ts
+ M apps/child-ui/src/utils/screenScaler.ts
+ M apps/child-ui/src/utils/soundEffects.ts
+ M apps/child-ui/src/utils/strokeSimplifier.ts
+ M apps/child-ui/tsconfig.json
+ M apps/teacher-ui/package-lock.json
+ M apps/teacher-ui/package.json
+ M apps/teacher-ui/src/hooks/useAiSuggestionReview.ts
+ M apps/teacher-ui/src/hooks/useClassGallery.ts
+ M apps/teacher-ui/src/hooks/useClassesProfiles.ts
+ M apps/teacher-ui/src/hooks/useContentAuthoring.ts
+ M apps/teacher-ui/src/hooks/useGroupWorkspace.ts
+ M apps/teacher-ui/src/hooks/useHomeDashboard.ts
+ M apps/teacher-ui/src/hooks/useLearningPortfolio.ts
+ M apps/teacher-ui/src/hooks/useObservationFeedback.ts
+ M apps/teacher-ui/src/hooks/useOfflineActivities.ts
+ M apps/teacher-ui/src/hooks/useSessionLobby.ts
+ M apps/teacher-ui/src/hooks/useSessionOrchestration.ts
+ M apps/teacher-ui/src/hooks/useSessionSetup.ts
+ M apps/teacher-ui/src/hooks/useTemplatesAutomation.ts
+ M apps/teacher-ui/src/hooks/useVideoKnowledge.ts
+ M apps/teacher-ui/src/pages/SessionSetupPage.tsx
+ M apps/teacher-ui/src/services/activityService.ts
+ M apps/teacher-ui/src/services/authService.ts
+ M apps/teacher-ui/src/services/classroomService.ts
+ M apps/teacher-ui/src/services/observationService.ts
+ M apps/teacher-ui/src/services/portfolioService.ts
+ M apps/teacher-ui/src/services/sessionService.ts
+ M apps/teacher-ui/src/services/templateService.ts
+ M apps/teacher-ui/src/services/videoService.ts
+ M apps/teacher-ui/vite.config.ts
+ M backend/src/sketch2life/interfaces/http/app.py
+ M backend/src/sketch2life/interfaces/http/routers/be1_canvas.py
+ M backend/src/sketch2life/interfaces/http/routers/be1_sessions.py
+ M docs/adr/ADR-0014-collaborative-learning-scope-replacement.md
+ M docs/context/SOURCE_REGISTER.md
+ M features/FEAT-029-master-srs/CONTEXT.md
+ M features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md
+ M features/FEAT-029-master-srs/status/STATUS.md
+ M features/FEAT-037-registration-age-genai-payment-alignment/CONTEXT.md
+ M features/FEAT-037-registration-age-genai-payment-alignment/DECISIONS.md
+ M features/FEAT-037-registration-age-genai-payment-alignment/approvals/TASK_APPROVAL.md
+ M features/FEAT-037-registration-age-genai-payment-alignment/evidence/README.md
+ M features/FEAT-037-registration-age-genai-payment-alignment/status/STATUS.md
+ M features/FEAT-039-collaborative-learning-scope/CONTEXT.md
+ M features/FEAT-039-collaborative-learning-scope/DECISIONS.md
+ M features/FEAT-039-collaborative-learning-scope/approvals/TASK_APPROVAL.md
+ M features/FEAT-039-collaborative-learning-scope/evidence/README.md
+ M features/FEAT-039-collaborative-learning-scope/evidence/metrics/DOCUMENTATION_CHECK.json
+ M features/FEAT-039-collaborative-learning-scope/src/build_foundation_srs.py
+ M features/FEAT-039-collaborative-learning-scope/src/verify_documentation.py
+ M features/FEAT-039-collaborative-learning-scope/status/STATUS.md
+ M package.json
+?? apps/admin-ui/src/__tests__/
+?? apps/child-ui/src/__tests__/DrawScreen.test.tsx
+?? apps/child-ui/src/__tests__/FeelingScreen.test.tsx
+?? apps/child-ui/src/__tests__/JoinScreen.test.tsx
+?? apps/teacher-ui/src/__tests__/
+?? apps/teacher-ui/src/services/be1Client.ts
+?? apps/teacher-ui/src/services/profileService.ts
+?? backend/src/sketch2life/classroom_main.py
+?? backend/src/sketch2life/demo_main.py
+?? backend/src/sketch2life/interfaces/http/demo_composition.py
+?? backend/src/sketch2life/interfaces/http/router_composition.py
+?? backend/tests/contract/test_app_composition.py
+?? docs/adr/ADR-0019-review2-classroom-runtime-and-modal-direction.md
+?? features/FEAT-037-registration-age-genai-payment-alignment/evidence/notes/FORM_V1_7_ALIGNMENT_20261012.md
+?? features/FEAT-037-registration-age-genai-payment-alignment/evidence/notes/FORM_V1_8_ALIGNMENT_20261012.md
+?? features/FEAT-037-registration-age-genai-payment-alignment/plan/PLAN_FORM_V1_7_20261012.md
+?? features/FEAT-037-registration-age-genai-payment-alignment/plan/PLAN_FORM_V1_8_20261012.md
+?? features/FEAT-037-registration-age-genai-payment-alignment/src/derive_form_v1_7.py
+?? features/FEAT-037-registration-age-genai-payment-alignment/src/derive_form_v1_8.py
+?? features/FEAT-039-collaborative-learning-scope/artifacts/Collaborative_Learning_SRS_v3.2.md
+?? features/FEAT-039-collaborative-learning-scope/artifacts/Sketch2Life_Master_SRS_v3.1_preserved_20261023.md
+?? features/FEAT-039-collaborative-learning-scope/artifacts/drafts/B27_CLASSROOM_INTEGRATION_AMENDMENT_20261023.md
+?? features/FEAT-039-collaborative-learning-scope/evidence/metrics/SRS_AMENDMENT_CHECKS_20261023.json
+?? features/FEAT-039-collaborative-learning-scope/evidence/notes/SRS_CLASSROOM_INTEGRATION_AMENDMENT_20261023.md
+?? features/FEAT-039-collaborative-learning-scope/plan/PLAN_REV4_SRS_CLASSROOM_INTEGRATION_AMENDMENT_20261023.md
+?? features/FEAT-040-four-person-delivery-plan/artifacts/ALL_PEOPLE_TASKS.md
+?? features/FEAT-040-four-person-delivery-plan/artifacts/history/
+?? features/FEAT-040-four-person-delivery-plan/evidence/metrics/ALL_PEOPLE_BASELINE.json
+?? features/FEAT-040-four-person-delivery-plan/evidence/metrics/ALL_PEOPLE_REPOSITORY_CHECKS.json
+?? features/FEAT-040-four-person-delivery-plan/evidence/metrics/ALL_PEOPLE_SUMMARY_CHECK.json
+?? features/FEAT-040-four-person-delivery-plan/evidence/notes/ALL_PEOPLE_REVIEW.md
+?? features/FEAT-040-four-person-delivery-plan/evidence/raw/all-people-final-checks/
+?? features/FEAT-043-srs-ui-screen-set/
+?? features/FEAT-044-integrator-independent-task-list/
+?? features/FEAT-058-review2-document-package/
+?? features/FEAT-059-code-structure-cleanup/
+?? features/FEAT-060-classroom-integration-and-review-remediation/

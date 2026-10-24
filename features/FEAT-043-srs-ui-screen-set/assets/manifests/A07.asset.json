@@ -1,0 +1,97 @@
+{
+  "asset_id": "A07",
+  "use_case": "ui-mockup",
+  "status": "REVIEW_PENDING",
+  "generated_path": "assets/generated/admin-app/A07-bao-cao.png",
+  "srs_ui_id": "A07",
+  "screen_kind": "main",
+  "role": "admin-app",
+  "prompt": "assets/prompts/A07.txt",
+  "source_references": [
+    {
+      "path": "features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md",
+      "sha256": "a95c89589843e3555e967c5e486f3bcaf4bbdf9446cb3bc9c49ed16f672964d9",
+      "section": "B23.4"
+    },
+    {
+      "path": "apps/ui-mobile/src/theme.ts",
+      "purpose": "existing design tokens"
+    }
+  ],
+  "generator": "built-in image_gen.imagegen",
+  "captured_at_utc": "2026-10-10T14:18:00.299093+00:00",
+  "generator_output_filename": "exec-ed230b1b-6b24-46f8-9f92-2d792dff000d.png",
+  "sha256": "f61094bcfe419257cc268c4d360be017d1cff8f15443edaab53aacebe74de1f9",
+  "bytes": 1574741,
+  "width": 1586,
+  "height": 992,
+  "original_copied_unchanged": true,
+  "synthetic_data_only": true,
+  "qa": {
+    "reviewer": "Codex visual inspection",
+    "status": "INSPECTED",
+    "note": "Inspected A07 with one-title correction: cumulative series total8 matches summary; scoped report/export requests; provenance definition and freshness; pending-rights report distinct from complete; no child ranking or efficacy proxy claim; small-group sharing review visible. REVIEW_PENDING."
+  },
+  "review": {
+    "status": "REVIEW_PENDING",
+    "reviewer": null,
+    "reviewed_at": null
+  },
+  "applied_path": null,
+  "limitations": "Generated design proposal; not implemented runtime, approved visual or device acceptance.",
+  "input_images": [
+    {
+      "path": "evidence/screenshots/admin-iterations/A07-attempt-01.png",
+      "sha256": "b4b42d200317cb8474ad8bb020cfad0d6a8bd6d602ba8fc9e193acd1d8a36fab",
+      "role": "edit target",
+      "original_copied_unchanged": true,
+      "generator_input_filename": "exec-b177b103-0521-4e46-858c-485481e983f0.png"
+    }
+  ],
+  "generation_history": [
+    {
+      "attempt": 1,
+      "prompt": "assets/prompts/history/admin/A07-attempt-01.txt",
+      "generator": "built-in image_gen.imagegen",
+      "input_images": [
+        {
+          "path": "assets/generated/admin-app/A01-tong-quan.png",
+          "sha256": "e2dc6127bce77e3faa424eeb6c648b6e32ee6c46c0e72780cbc2101d83357956",
+          "role": "style reference",
+          "original_copied_unchanged": true
+        }
+      ],
+      "output_filename": "exec-b177b103-0521-4e46-858c-485481e983f0.png",
+      "output_sha256": "b4b42d200317cb8474ad8bb020cfad0d6a8bd6d602ba8fc9e193acd1d8a36fab",
+      "selected": false,
+      "output_path": "evidence/screenshots/admin-iterations/A07-attempt-01.png"
+    },
+    {
+      "attempt": 2,
+      "prompt": "assets/prompts/history/admin/A07-attempt-02.txt",
+      "generator": "built-in image_gen.imagegen",
+      "input_images": [
+        {
+          "path": "evidence/screenshots/admin-iterations/A07-attempt-01.png",
+          "sha256": "b4b42d200317cb8474ad8bb020cfad0d6a8bd6d602ba8fc9e193acd1d8a36fab",
+          "role": "edit target",
+          "original_copied_unchanged": true,
+          "generator_input_filename": "exec-b177b103-0521-4e46-858c-485481e983f0.png"
+        }
+      ],
+      "output_filename": "exec-ed230b1b-6b24-46f8-9f92-2d792dff000d.png",
+      "output_sha256": "f61094bcfe419257cc268c4d360be017d1cff8f15443edaab53aacebe74de1f9",
+      "selected": true,
+      "output_path": "assets/generated/admin-app/A07-bao-cao.png"
+    }
+  ],
+  "style_references": [
+    {
+      "path": "assets/generated/admin-app/A01-tong-quan.png",
+      "sha256": "e2dc6127bce77e3faa424eeb6c648b6e32ee6c46c0e72780cbc2101d83357956",
+      "role": "style reference",
+      "original_copied_unchanged": true
+    }
+  ],
+  "prompt_sha256": "2f6caa8292d583d0f4a5719913875ebdbbe12c42efdcb624c7564a6fc6392c2b"
+}

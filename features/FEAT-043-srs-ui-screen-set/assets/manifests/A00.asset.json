@@ -1,0 +1,55 @@
+{
+  "asset_id": "A00",
+  "use_case": "ui-mockup",
+  "status": "REVIEW_PENDING",
+  "generated_path": "assets/generated/admin-app/A00-dang-nhap.png",
+  "srs_ui_id": null,
+  "screen_kind": "supplementary",
+  "role": "admin-app",
+  "prompt": "assets/prompts/A00.txt",
+  "source_references": [
+    {
+      "path": "features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md",
+      "sha256": "a95c89589843e3555e967c5e486f3bcaf4bbdf9446cb3bc9c49ed16f672964d9",
+      "section": "B23.4"
+    },
+    {
+      "path": "apps/ui-mobile/src/theme.ts",
+      "purpose": "existing design tokens"
+    }
+  ],
+  "generator": "built-in image_gen.imagegen",
+  "captured_at_utc": "2026-10-10T14:19:31.558580+00:00",
+  "generator_output_filename": "exec-08d48639-863c-4640-b277-9a14022b3247.png",
+  "sha256": "ecb5f820538635c4ad7af03fc41a56fabe33394c7241896eec60f20924fc96ad",
+  "bytes": 1409488,
+  "width": 1586,
+  "height": 992,
+  "original_copied_unchanged": true,
+  "synthetic_data_only": true,
+  "qa": {
+    "reviewer": "Codex visual inspection",
+    "status": "INSPECTED",
+    "note": "Inspected full Admin sign-in screen: school-authorized adult account, scoped purpose note, masked password and nonreal example placeholder, no logged-in sidebar or child/public registration; matches existing blue/mint palette and shared login family."
+  },
+  "review": {
+    "status": "REVIEW_PENDING",
+    "reviewer": null,
+    "reviewed_at": null
+  },
+  "applied_path": null,
+  "limitations": "Generated design proposal; not implemented runtime, approved visual or device acceptance.",
+  "input_images": [
+    {
+      "path": "assets/generated/teacher-app/T00-dang-nhap.png",
+      "role": "login layout style reference",
+      "sha256": "87f887a44e10986603bf8e454ad237b977313abc344b715352ebfabb96ffe982"
+    },
+    {
+      "path": "assets/generated/admin-app/A01-tong-quan.png",
+      "role": "Admin wordmark/palette style reference",
+      "sha256": "e2dc6127bce77e3faa424eeb6c648b6e32ee6c46c0e72780cbc2101d83357956"
+    }
+  ],
+  "prompt_sha256": "dafe9124d289230417b330cd57c71bea6ebcfb01989a3a1183b775993582d4f8"
+}

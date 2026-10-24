@@ -1,0 +1,21 @@
+{
+  "status": "COMPLETE",
+  "verified_at_utc": "2026-10-10T14:29:59.860865+00:00",
+  "delivery": "evidence/metrics/DELIVERY_VALIDATION.json",
+  "repository_checks": "evidence/metrics/REPOSITORY_CHECKS.json",
+  "gallery_zip_checks": "evidence/metrics/GALLERY_ZIP_CHECKS.json",
+  "all_acceptance_criteria": "PASS_FOR_GENERATED_ARTIFACT_SCOPE",
+  "total_selected_pngs": 43,
+  "role_counts": {
+    "child-app": 13,
+    "teacher-app": 18,
+    "admin-app": 12
+  },
+  "visual_review": "REVIEW_PENDING",
+  "approved_applied_png_count": 0,
+  "runtime_changes_in_this_task": false,
+  "commit_push_in_this_task": false,
+  "gallery_open_request": "QUEUED_IN_CODEX",
+  "browser_interaction": "UNVERIFIED_CUA_KERNEL_SETUP_FAILED",
+  "completed_plan_sha256": "f7bbea5010b9c98b01c63beb0201f714a18979f3ee5a43da323b41d51778744b"
+}

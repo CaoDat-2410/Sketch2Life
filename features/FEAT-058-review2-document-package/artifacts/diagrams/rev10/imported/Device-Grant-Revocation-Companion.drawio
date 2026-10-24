@@ -1,0 +1,92 @@
+<mxfile host="Electron">
+  <diagram id="XW4Vrlqehuf4oXpj9wrW" name="pageWithNumber">
+    <mxGraphModel grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="0" page="0" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <UserObject label="Authenticated" mermaidId="n:Authenticated" mermaidBaseStyle="rounded=1;absoluteArcSize=1;arcSize=10;html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Authenticated" id="2">
+          <mxCell parent="1" style="rounded=1;absoluteArcSize=1;arcSize=10;html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="40" width="118" x="447" y="8" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="" mermaidId="n:Revoked-group" mermaidBaseStyle="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="" id="3">
+          <mxCell parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="260" width="286" x="142" y="145" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="Revoked" mermaidId="n:Revoked" mermaidBaseStyle="rounded=1;absoluteArcSize=1;arcSize=10;html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Revoked" id="4">
+          <mxCell parent="3" style="rounded=1;absoluteArcSize=1;arcSize=10;html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="40" width="76" x="105" y="35" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="Revoked devices cannot refresh or replay a grant. Device acceptance remains open." mermaidId="n:_note_0" mermaidBaseStyle="rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=8;spacingRight=8;fillColor=light-dark(#fff5ad,#2a2a2a);strokeColor=light-dark(#aaaa33,#cccccc);strokeWidth=1.3;fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Revoked devices cannot refresh or replay a grant. Device acceptance remains open." id="5">
+          <mxCell parent="3" style="rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=8;spacingRight=8;fillColor=light-dark(#fff5ad,#2a2a2a);strokeColor=light-dark(#aaaa33,#cccccc);strokeWidth=1.3;fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="85" width="232" x="35" y="150" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="" mermaidId="e:Revoked-&gt;_note_0#0" mermaidBaseStyle="curved=1;dashed=1;dashed=1;startArrow=none;endArrow=none;fillColor=none;strokeColor=#aaaa33;exitX=0.5;exitY=1;entryX=0.47;entryY=0;" mermaidBaseValue="" id="13">
+          <mxCell edge="1" parent="3" source="4" style="curved=1;dashed=1;startArrow=none;endArrow=none;fillColor=none;strokeColor=#aaaa33;exitX=0.5;exitY=1;entryX=0.47;entryY=0;fixDash=1;" target="5">
+            <mxGeometry relative="1" as="geometry">
+              <Array as="points" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="Resyncing" mermaidId="n:Resyncing" mermaidBaseStyle="rounded=1;absoluteArcSize=1;arcSize=10;html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Resyncing" id="6">
+          <mxCell parent="1" style="rounded=1;absoluteArcSize=1;arcSize=10;html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="40" width="86" x="311" y="8" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="Connected" mermaidId="n:Connected" mermaidBaseStyle="rounded=1;absoluteArcSize=1;arcSize=10;html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Connected" id="7">
+          <mxCell parent="1" style="rounded=1;absoluteArcSize=1;arcSize=10;html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="40" width="92" x="169" y="8" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="Disconnected" mermaidId="n:Disconnected" mermaidBaseStyle="rounded=1;absoluteArcSize=1;arcSize=10;html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Disconnected" id="8">
+          <mxCell parent="1" style="rounded=1;absoluteArcSize=1;arcSize=10;html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="40" width="111" x="8" y="8" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="grant revoked" mermaidId="e:Authenticated-&gt;Revoked#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=classic;endSize=9;fillColor=none;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=#E8E8E88D;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=1;entryY=0.25;" mermaidBaseValue="grant revoked" id="9">
+          <mxCell edge="1" parent="1" source="2" style="curved=1;startArrow=none;endArrow=classic;endSize=9;fillColor=none;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=#E8E8E88D;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=1;entryY=0.25;" target="4">
+            <mxGeometry relative="1" as="geometry">
+              <Array as="points">
+                <mxPoint x="506" y="95" />
+                <mxPoint x="506" y="142" />
+              </Array>
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="grant revoked" mermaidId="e:Resyncing-&gt;Revoked#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=classic;endSize=9;fillColor=none;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=#E8E8E88D;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.82;entryY=0;" mermaidBaseValue="grant revoked" id="10">
+          <mxCell edge="1" parent="1" source="6" style="curved=1;startArrow=none;endArrow=classic;endSize=9;fillColor=none;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=#E8E8E88D;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.82;entryY=0;" target="4">
+            <mxGeometry relative="1" as="geometry">
+              <Array as="points">
+                <mxPoint x="354" y="95" />
+                <mxPoint x="354" y="142" />
+              </Array>
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="grant revoked" mermaidId="e:Connected-&gt;Revoked#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=classic;endSize=9;fillColor=none;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=#E8E8E88D;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.17;entryY=0;" mermaidBaseValue="grant revoked" id="11">
+          <mxCell edge="1" parent="1" source="7" style="curved=1;startArrow=none;endArrow=classic;endSize=9;fillColor=none;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=#E8E8E88D;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.17;entryY=0;" target="4">
+            <mxGeometry relative="1" as="geometry">
+              <Array as="points">
+                <mxPoint x="215" y="95" />
+                <mxPoint x="215" y="142" />
+              </Array>
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="grant revoked" mermaidId="e:Disconnected-&gt;Revoked#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=classic;endSize=9;fillColor=none;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=#E8E8E88D;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0;entryY=0.25;" mermaidBaseValue="grant revoked" id="12">
+          <mxCell edge="1" parent="1" source="8" style="curved=1;startArrow=none;endArrow=classic;endSize=9;fillColor=none;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=#E8E8E88D;fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0;entryY=0.25;" target="4">
+            <mxGeometry relative="1" as="geometry">
+              <Array as="points">
+                <mxPoint x="64" y="95" />
+                <mxPoint x="64" y="142" />
+              </Array>
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

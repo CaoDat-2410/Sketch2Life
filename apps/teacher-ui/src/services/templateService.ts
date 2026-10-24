@@ -1,4 +1,4 @@
 export const templateService = {
   listTemplates: async () => [],
-  createTemplate: async (tpl: any) => {},
+  createTemplate: async (_tpl: any) => {},
 };

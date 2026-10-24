@@ -1,51 +1,51 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AdminLayout } from './components/AdminLayout'
-import { LoginPage } from './pages/LoginPage'
-import { DashboardPage } from './pages/DashboardPage'
-import { UsersPage } from './pages/UsersPage'
 import { ClassesPage } from './pages/ClassesPage'
-import { ContentPage } from './pages/ContentPage'
-import { AiPolicyPage } from './pages/AiPolicyPage'
-import { MonitoringPage } from './pages/MonitoringPage'
-import { ReportsPage } from './pages/ReportsPage'
-import { DataRequestsPage } from './pages/DataRequestsPage'
-import { LogsPage } from './pages/LogsPage'
-import { SettingsPage } from './pages/SettingsPage'
-import { DeleteRequestDetailPage } from './pages/DeleteRequestDetailPage'
+import { LoginPage } from './pages/LoginPage'
+import { authService } from './services/authService'
+import { classService } from './services/classService'
+
+function AdminAccessGate() {
+  const [state, setState] = useState<'loading' | 'signed-out' | 'authorized' | 'forbidden' | 'error'>('loading')
+  const [message, setMessage] = useState('')
+
+  useEffect(() => authService.observe((user) => {
+    if (!user) {
+      setState('signed-out')
+      return
+    }
+    classService.currentAssignments().then((result) => {
+      const isOrgAdmin = result.assignments.some((item) => item.role === 'school_admin' && item.class_id === null)
+      setState(isOrgAdmin ? 'authorized' : 'forbidden')
+    }).catch((cause: unknown) => {
+      setMessage(cause instanceof Error ? cause.message : 'Không xác minh được quyền quản trị BE1.')
+      setState('error')
+    })
+  }), [])
+
+  if (state === 'loading') return <main className="p-8 text-slate-600">Đang xác minh quyền school_admin qua BE1…</main>
+  if (state === 'signed-out') return <Navigate to="/login" replace />
+  if (state === 'forbidden' || state === 'error') {
+    return <main className="m-8 max-w-2xl rounded-2xl border border-amber-200 bg-amber-50 p-6 text-amber-950"><h1 className="text-xl font-bold">Không thể mở cổng quản trị</h1><p className="mt-2 text-sm">{message || 'Tài khoản này chưa có phân công school_admin cấp trường trong BE1.'}</p><button onClick={() => void authService.logout().then(() => { window.location.assign('/login') })} className="mt-4 rounded-lg border border-amber-300 bg-white px-4 py-2 text-sm font-semibold">Đăng xuất</button></main>
+  }
+  return <AdminLayout />
+}
+
+function UnsupportedAdminPage() {
+  return <section className="m-7 rounded-2xl border border-amber-200 bg-amber-50 p-6 text-amber-950"><h1 className="text-xl font-bold">Chức năng quản trị chưa nối BE1</h1><p className="mt-2 text-sm">Không có API contract đang được Admin UI sử dụng cho mục này. Dữ liệu mẫu và thao tác thay đổi đã được ẩn để tránh hiểu nhầm là đã lưu.</p><p className="mt-3 text-sm">Màn hiện được nối: danh sách và tạo lớp. Consent, yêu cầu dữ liệu, phân quyền, audit, nội dung và chính sách cần contract/permission review riêng.</p></section>
+}
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* A00 — Đăng nhập */}
         <Route path="/login" element={<LoginPage />} />
-
-        {/* Protected admin routes */}
-        <Route path="/" element={<AdminLayout />}>
-          {/* A01 — Tổng quan */}
-          <Route index element={<DashboardPage />} />
-          {/* A02 — Người dùng & vai trò */}
-          <Route path="users" element={<UsersPage />} />
-          {/* A03 — Lớp và trường */}
+        <Route path="/" element={<AdminAccessGate />}>
+          <Route index element={<Navigate to="/classes" replace />} />
           <Route path="classes" element={<ClassesPage />} />
-          {/* A04 — Quản trị nội dung */}
-          <Route path="content" element={<ContentPage />} />
-          {/* A05 — Chính sách AI */}
-          <Route path="ai-policy" element={<AiPolicyPage />} />
-          {/* A06 — Giám sát & sự cố */}
-          <Route path="monitoring" element={<MonitoringPage />} />
-          {/* A07 — Báo cáo */}
-          <Route path="reports" element={<ReportsPage />} />
-          {/* A08 / A08b — Consent & xóa dữ liệu */}
-          <Route path="data-requests" element={<DataRequestsPage />} />
-          <Route path="data-requests/:id" element={<DeleteRequestDetailPage />} />
-          {/* A09 — Nhật ký */}
-          <Route path="logs" element={<LogsPage />} />
-          {/* A10 — Cấu hình */}
-          <Route path="settings" element={<SettingsPage />} />
+          <Route path="*" element={<UnsupportedAdminPage />} />
         </Route>
-
-        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   )

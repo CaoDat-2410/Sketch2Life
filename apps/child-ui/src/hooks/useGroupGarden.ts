@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 
 export interface PeerDrawing {
   id: string
@@ -8,7 +8,7 @@ export interface PeerDrawing {
 }
 
 export function useGroupGarden() {
-  const [peers, setPeers] = useState<PeerDrawing[]>([
+  const [peers] = useState<PeerDrawing[]>([
     { id: '1', childName: 'Mây', itemType: 'flower', status: 'completed' },
     { id: '2', childName: 'Lá', itemType: 'leaf', status: 'drafting' },
     { id: '3', childName: 'Nắng', itemType: 'sun', status: 'completed' },

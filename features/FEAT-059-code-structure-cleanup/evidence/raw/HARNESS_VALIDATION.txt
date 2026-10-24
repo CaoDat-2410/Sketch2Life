@@ -1,0 +1,4 @@
+HARNESS_VALID
+root=[REPO]
+approval_gate=enabled
+frontend_asset_gate=enabled

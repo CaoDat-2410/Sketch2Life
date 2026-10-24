@@ -1,0 +1,16 @@
+classDiagram
+  class ClassroomSession { id; classRef; lifecycle; version }
+  class SessionGroup { id; sessionRef; progress }
+  class ChildParticipant { id; studentRef; admissionState }
+  class CanvasDocument { id; sessionRef; scope; epoch }
+  class CanvasOperation { id; documentRef; principalRef; contributorRef; serverSeq }
+  class CanvasSnapshot { id; documentRef; hash; provenance }
+  class AIJob { id; inputVersion; state; resultDisposition }
+  class TeacherReview { id; contentVersion; reviewer; decision }
+  ClassroomSession "1" --> "many" SessionGroup
+  ClassroomSession "1" --> "many" ChildParticipant
+  ClassroomSession "1" --> "many" CanvasDocument
+  CanvasDocument "1" --> "many" CanvasOperation
+  CanvasDocument "1" --> "many" CanvasSnapshot
+  CanvasSnapshot --> AIJob : logical input reference
+  AIJob --> TeacherReview : reviewed result

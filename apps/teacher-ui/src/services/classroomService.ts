@@ -1,4 +1,4 @@
 export const classroomService = {
   listStudents: async () => [],
-  getStudentPortfolio: async (id: string) => ({ artworks: [] }),
+  getStudentPortfolio: async (_id: string) => ({ artworks: [] }),
 };

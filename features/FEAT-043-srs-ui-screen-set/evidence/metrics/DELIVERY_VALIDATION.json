@@ -1,0 +1,21 @@
+{
+  "status": "UI_IMAGE_DELIVERY_VALID",
+  "verified_at_utc": "2026-10-10T14:27:02.300507+00:00",
+  "total_images": 43,
+  "main_srs_screens": 34,
+  "supplementary_images": 9,
+  "role_counts": {
+    "child-app": 13,
+    "teacher-app": 18,
+    "admin-app": 12
+  },
+  "unique_png_hashes": 43,
+  "png_bytes": 68885421,
+  "bundle_bytes": 69266316,
+  "bundle_sha256": "b4816bb538789aa93af807e9973980d4240f97542266ba7a94195e3cf9671426",
+  "all_images_review_pending": true,
+  "original_eight_runtime_files_unchanged": true,
+  "canonical_srs_unchanged": true,
+  "original_branch_and_head_unchanged": true,
+  "runtime_asset_references_added": false
+}

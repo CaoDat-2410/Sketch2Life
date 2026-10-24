@@ -1,0 +1,975 @@
+{
+  "feature": "FEAT-060",
+  "as_of": "2026-10-24",
+  "baseline": "dev@0a7ce768c153f2104cff930569c3eda6e484532c plus preserved dirty working tree",
+  "scope": "FEAT-060 implementation-relevant source, tests, feature records, synchronized SRS, and verification receipts; pre-implementation baseline dumps are kept separately and unrelated dirty files are excluded.",
+  "comparison_note": "Baseline hashes combine exact selected pre-implementation source hashes and the FEAT-059 preservation manifest. A missing baseline hash means no comparison is asserted.",
+  "files": [
+    {
+      "path": "apps/admin-ui/package-lock.json",
+      "sha256": "fbd34e611f0e29def798f2523e57b4b96bca920fee3ba7c2ea98e7db2cb6d4d7",
+      "preimplementation_sha256": "3c684e6869ab5d3688a2668247df5c38c07fe5c284ff7322dd9fe7be467c753b",
+      "comparison": "changed_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/admin-ui/package.json",
+      "sha256": "8d7a6641ee6a52aca35ee669b09fe5ed850ef0d48bc88289827a55bd86dd3c86",
+      "preimplementation_sha256": "62e7723457969f5afd6a1df2a5be991ba59c28b8ab889262f6529e6e64ca7d6e",
+      "comparison": "changed_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/admin-ui/src/__tests__/app.test.tsx",
+      "sha256": "3f6f0b26cf59d46327e213718fdf70d41e2b5cf6f6f62b167a2995c0b1909330",
+      "preimplementation_sha256": "e07fadac093cde7c30482634442a7a4946899bcafdb25109142159a95a0666ca",
+      "comparison": "changed_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/admin-ui/src/App.tsx",
+      "sha256": "f84d3ecbd01cf631d65a90de28dda60ba762e43a921123b82a0c57b633ecc23a",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "apps/admin-ui/src/components/AdminLayout.tsx",
+      "sha256": "9937adee17ebc9fa516bf67140560a3c529794b0d91183b59d396d4dad798fdb",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "apps/admin-ui/src/components/auditlogs/AuditLogTable.tsx",
+      "sha256": "b576cb992210705c677fc3564502802e19636e9fed9d847b1d5ba354c80aed65",
+      "preimplementation_sha256": "b576cb992210705c677fc3564502802e19636e9fed9d847b1d5ba354c80aed65",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/admin-ui/src/components/dashboard/SystemAlertBanner.tsx",
+      "sha256": "d02071d8d80e659982d1b6c96e883c552031ceb37007a99c9774b50402c51a94",
+      "preimplementation_sha256": "d02071d8d80e659982d1b6c96e883c552031ceb37007a99c9774b50402c51a94",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/admin-ui/src/hooks/useAuth.ts",
+      "sha256": "06bd95977f9bd4378ff5e0275e8763f59243c7327b38607e56ffc86411b171d4",
+      "preimplementation_sha256": "f53d406a1c7e3bffb76660cc3233c8ba661c2b7ecd7af17675201af713d62c54",
+      "comparison": "changed_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/admin-ui/src/pages/ClassesPage.tsx",
+      "sha256": "6021799f474422ed92ca105f7c411876f20cb3543ae15eaae612de6027747a30",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "apps/admin-ui/src/pages/LoginPage.tsx",
+      "sha256": "4df3fe1da277e7a4e59e437198817ee78e79e8bdbec817f466c9c2f6e862bf1a",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "apps/admin-ui/src/services/aiPolicyService.ts",
+      "sha256": "427da8d8d2df2b9b04193d3986768c040f74e87701db98160b736fbcf2713e48",
+      "preimplementation_sha256": "427da8d8d2df2b9b04193d3986768c040f74e87701db98160b736fbcf2713e48",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/admin-ui/src/services/auditLogService.ts",
+      "sha256": "c85f0c71cbf2209500a61493702e1d718a96975b75be3c2b6c4dea0e684fe1f2",
+      "preimplementation_sha256": "c85f0c71cbf2209500a61493702e1d718a96975b75be3c2b6c4dea0e684fe1f2",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/admin-ui/src/services/authService.ts",
+      "sha256": "0754f88b08f0f420bcb0b39e6f9d91108d3ad090d12dc4e80c1f38eb9e5f6439",
+      "preimplementation_sha256": "9d6303a854e0fa7a6c1fff3a4e0d7af00c0df0c7b9ffbc747943d7070a708d97",
+      "comparison": "changed_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/admin-ui/src/services/be1Client.ts",
+      "sha256": "fba466655794a909c6255dd75c71912c163bf21e123748b664153a6bf3600d82",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "apps/admin-ui/src/services/classService.ts",
+      "sha256": "1ee002a6235025ee350e230408c6cb8dae1aac4acc77df0ddb57fe87ad1e41bb",
+      "preimplementation_sha256": "47e6dd1225d3fb09b1fc9588473c49e4a58fccbfe0f3a1b72384883007346ee9",
+      "comparison": "changed_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/admin-ui/src/services/contentService.ts",
+      "sha256": "5e9055d9b59bc80dbc33c99b6f9b3ffef8122987b5f9e401384daee6d885b029",
+      "preimplementation_sha256": "5e9055d9b59bc80dbc33c99b6f9b3ffef8122987b5f9e401384daee6d885b029",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/admin-ui/src/services/dataRequestService.ts",
+      "sha256": "ca4bbaed80a0a91034fcdf111812ccdbd93dade0cecaf4e6a10190c225c3edee",
+      "preimplementation_sha256": "ca4bbaed80a0a91034fcdf111812ccdbd93dade0cecaf4e6a10190c225c3edee",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/admin-ui/src/services/reportService.ts",
+      "sha256": "8b769ae94af82fd11d43335e9411b30ad6664047735ededfc19667368e4e46a9",
+      "preimplementation_sha256": "8b769ae94af82fd11d43335e9411b30ad6664047735ededfc19667368e4e46a9",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/admin-ui/src/services/settingsService.ts",
+      "sha256": "bf031914e5325cdc6edce937ceddefa90c2e08fe06dfa9cabdc0949a9fbbcd8f",
+      "preimplementation_sha256": "bf031914e5325cdc6edce937ceddefa90c2e08fe06dfa9cabdc0949a9fbbcd8f",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/admin-ui/src/services/userService.ts",
+      "sha256": "12116f4a3aa6c84a0c41abb24c985231742ab0e644c269cd5eaca1ba4d23ba1a",
+      "preimplementation_sha256": "12116f4a3aa6c84a0c41abb24c985231742ab0e644c269cd5eaca1ba4d23ba1a",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/admin-ui/vite.config.ts",
+      "sha256": "78282faab92ab14b43e8a04bcb0eebe911385317b296cd81cfa9cd90a382ef82",
+      "preimplementation_sha256": "78282faab92ab14b43e8a04bcb0eebe911385317b296cd81cfa9cd90a382ef82",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/child-ui/app/index.tsx",
+      "sha256": "57b5ace6e94d69655e80a74ed3e99bc0ae5f6b06c19d942d865b3206c65fae3c",
+      "preimplementation_sha256": "37ff5221c14d1e47c4b583b180954c0f01d04de30cc682fb4b3ed41938f54ab9",
+      "comparison": "changed_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/child-ui/package-lock.json",
+      "sha256": "7c023c183c88a9d4b38f867dc1daea41d609aba5f2a6ac58471f328553b82114",
+      "preimplementation_sha256": "a4799db9d7fb212f395251f36646ad73ecfdfcc8d5a50f65f5900d09591ea056",
+      "comparison": "changed_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/child-ui/package.json",
+      "sha256": "12ee7021b1113bd5392377193e1741d2b2c624a07b0e71a2d9f30fa7050e8e4e",
+      "preimplementation_sha256": "b01cd66828644db0951f4c33505e345a0c215974bdae7530903d731c4e8a3a9d",
+      "comparison": "changed_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/child-ui/src/__tests__/DrawScreen.test.tsx",
+      "sha256": "b607f839624beff2042993782a6ab7aae1edab196b3bb34e4a25bd8626daeec3",
+      "preimplementation_sha256": "b607f839624beff2042993782a6ab7aae1edab196b3bb34e4a25bd8626daeec3",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/child-ui/src/__tests__/FeelingScreen.test.tsx",
+      "sha256": "f63d02a9d103c03e881368caf2362d451717d80120a7917f925914ffcc53bd7f",
+      "preimplementation_sha256": "f63d02a9d103c03e881368caf2362d451717d80120a7917f925914ffcc53bd7f",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/child-ui/src/__tests__/JoinScreen.test.tsx",
+      "sha256": "ce1a8698e5eb4aebf7b4f425e90eafe1359c1e9a57fe9de8f82d3fa7b9d1e6b4",
+      "preimplementation_sha256": "16bfe19d1980a3496c09289e28e1e36a3f381440ac2375a28805497427f6d2a0",
+      "comparison": "changed_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/child-ui/src/__tests__/sessionClient.test.ts",
+      "sha256": "b57a092a9a952b9b8ad7fd8406422c2ab689cdb9db223dbb356080823ea1097d",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "apps/child-ui/src/components/BrushSizeSlider.tsx",
+      "sha256": "a696a6cf0f0850b7ff95188cf48887cf77c0153a5cded2da1e6d752ad97ab642",
+      "preimplementation_sha256": "a696a6cf0f0850b7ff95188cf48887cf77c0153a5cded2da1e6d752ad97ab642",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/child-ui/src/components/TopBar.tsx",
+      "sha256": "b54bd79bafc4e18a48e8a19f67060ca9891501f1828bd461c36d5e30232c0755",
+      "preimplementation_sha256": "b54bd79bafc4e18a48e8a19f67060ca9891501f1828bd461c36d5e30232c0755",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/child-ui/src/hooks/useAudioFeedback.ts",
+      "sha256": "ec646697c6d678144f691ad3051922cc2206167838c9900cb22dca99fd5f4c8c",
+      "preimplementation_sha256": "ec646697c6d678144f691ad3051922cc2206167838c9900cb22dca99fd5f4c8c",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/child-ui/src/hooks/useGroupGarden.ts",
+      "sha256": "77d9334ae990c19d593c9178470fae9873f257ed10139c5c92d9fdb33e179988",
+      "preimplementation_sha256": "77d9334ae990c19d593c9178470fae9873f257ed10139c5c92d9fdb33e179988",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/child-ui/src/hooks/useLandscapeLayout.ts",
+      "sha256": "045a94dd0b74d00c0117eaaef11647c9b116993d7724c0894062d3a7a3b2c6e4",
+      "preimplementation_sha256": "045a94dd0b74d00c0117eaaef11647c9b116993d7724c0894062d3a7a3b2c6e4",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/child-ui/src/screens/AdvancedDrawScreen.tsx",
+      "sha256": "bce3bd31ac8c1e4e6597bfbd23447c6777e8840a128468bb19cefc2929e0d3db",
+      "preimplementation_sha256": "bce3bd31ac8c1e4e6597bfbd23447c6777e8840a128468bb19cefc2929e0d3db",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/child-ui/src/screens/JoinScreen.tsx",
+      "sha256": "9db0037430ae89a96ffc3bab0df933bcf94a08477b1d7b3f3e040068ee5f0d42",
+      "preimplementation_sha256": "57b7ca9da975dc6ca57b83b8236799163cdcf8d36a43e2fcfc2df0d4d93a65b2",
+      "comparison": "changed_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/child-ui/src/screens/LobbyScreen.tsx",
+      "sha256": "fe51c49689bdca16c25ad998dfaf29c11dd98708ae94a0143903823086cf6abd",
+      "preimplementation_sha256": "fe51c49689bdca16c25ad998dfaf29c11dd98708ae94a0143903823086cf6abd",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/child-ui/src/services/apiClient.ts",
+      "sha256": "16a14a65d05c400af9aa0e11dddcfbff4f212a077859b183f90036c1ff36cb66",
+      "preimplementation_sha256": "5876cc0797cd0953bb13f8b157b4fd31c709557786248bbb004daad8947b77f0",
+      "comparison": "changed_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/child-ui/src/services/gardenService.ts",
+      "sha256": "ad9c9b05142934b429250d7e287e7d096c696a090d8006733b2541aaa16b35e3",
+      "preimplementation_sha256": "ad9c9b05142934b429250d7e287e7d096c696a090d8006733b2541aaa16b35e3",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/child-ui/src/services/reviewService.ts",
+      "sha256": "f6994437de253b090490ab7c5d37575a3e630ad05eb4353d3e8ca013638f8a76",
+      "preimplementation_sha256": "f6994437de253b090490ab7c5d37575a3e630ad05eb4353d3e8ca013638f8a76",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/child-ui/src/services/sessionClient.ts",
+      "sha256": "b0d5c9cd89adf29bf7a3d900bd31c9b7ccd08553a9059a1280493c54b3675830",
+      "preimplementation_sha256": "1be21bbd80b8f79f1032156dc6e416445fa20048316ecb243fe081c230af9857",
+      "comparison": "changed_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/child-ui/src/services/videoService.ts",
+      "sha256": "313a2082322320317650143d68520d1dd3355abf5f79193c3e29e3b3d3c5d851",
+      "preimplementation_sha256": "313a2082322320317650143d68520d1dd3355abf5f79193c3e29e3b3d3c5d851",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/child-ui/src/utils/colorHarmonizer.ts",
+      "sha256": "96a9d61cbe30f56efdadb4c73b763c4cf7718e197bd4ae5042c00d8666d87e7b",
+      "preimplementation_sha256": "96a9d61cbe30f56efdadb4c73b763c4cf7718e197bd4ae5042c00d8666d87e7b",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/child-ui/src/utils/screenScaler.ts",
+      "sha256": "2879ffbf49ed1dd7f66de4e73ff1d64b578db6ca256ea1a9a3e3e99f7c49dd74",
+      "preimplementation_sha256": "2879ffbf49ed1dd7f66de4e73ff1d64b578db6ca256ea1a9a3e3e99f7c49dd74",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/child-ui/src/utils/soundEffects.ts",
+      "sha256": "8e0d29208b7891e50c30e1b44d018b8d1fc645f402a2b1a0940f96a868831c74",
+      "preimplementation_sha256": "8e0d29208b7891e50c30e1b44d018b8d1fc645f402a2b1a0940f96a868831c74",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/child-ui/src/utils/strokeSimplifier.ts",
+      "sha256": "24010db9d5e9e535d3d16253a97b3df3995c35d5951bb2604900b65a6cdfcbe7",
+      "preimplementation_sha256": "24010db9d5e9e535d3d16253a97b3df3995c35d5951bb2604900b65a6cdfcbe7",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/child-ui/tsconfig.json",
+      "sha256": "90f55bac6936a763a9ff34a7f2ae8371bf5ff44ce2d1c721d8b5d9ec9deb44fa",
+      "preimplementation_sha256": "90f55bac6936a763a9ff34a7f2ae8371bf5ff44ce2d1c721d8b5d9ec9deb44fa",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/teacher-ui/package-lock.json",
+      "sha256": "bbea706832693250f75dc90d8b87784b00fac38934f9efc4c7376e85c9182040",
+      "preimplementation_sha256": "273342279f8a215d0de3240624114c9865f37c9752de48fe36e90237403c1c78",
+      "comparison": "changed_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/teacher-ui/package.json",
+      "sha256": "7e5c297b313e32854fa06e33ff331560dd48ed435de7519b5ac224754fb76ee6",
+      "preimplementation_sha256": "bbf870266838e6dfb2e4c5575e70c05f50d984e83d7076ca142ee334f8553a06",
+      "comparison": "changed_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/teacher-ui/src/__tests__/app.test.tsx",
+      "sha256": "7fe04aa29769c2de24ef0ba68d5293547554dbc86fa9567de4bb0a0aefc558b6",
+      "preimplementation_sha256": "0a762312505f53530a0b41129063e4b1d96f3356becb9d29ea24104b85d21b3f",
+      "comparison": "changed_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/teacher-ui/src/__tests__/ObservationFeedbackPage.test.tsx",
+      "sha256": "9564acb2339f23b775350f2ab61c7f8d2790561c0c4a7ba92a9b0d32ac574717",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "apps/teacher-ui/src/__tests__/SessionLobbyRuntime.test.tsx",
+      "sha256": "dc349756b3fae7dace642cd0b96ef96a996bbf27c30f71f5d365d7c55718bdb0",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "apps/teacher-ui/src/App.tsx",
+      "sha256": "253fff8e52b57bee8447a6c72bb207e0dc73c23c67c1b14ee0dcb1b665bf2f62",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "apps/teacher-ui/src/hooks/useAiSuggestionReview.ts",
+      "sha256": "745eb7d3790a99a8813df88ebaa3b5e526f827e3b1cbe67e810270884d7119ca",
+      "preimplementation_sha256": "745eb7d3790a99a8813df88ebaa3b5e526f827e3b1cbe67e810270884d7119ca",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/teacher-ui/src/hooks/useClassesProfiles.ts",
+      "sha256": "c07b01d71c219e7b857e5d463126bbbeed6e08defd158cd887376a394e2900e8",
+      "preimplementation_sha256": "c07b01d71c219e7b857e5d463126bbbeed6e08defd158cd887376a394e2900e8",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/teacher-ui/src/hooks/useClassGallery.ts",
+      "sha256": "40fea17e71c4596adf220f9a4447d89887f83105a8a8b170f8a36703dd09c8c3",
+      "preimplementation_sha256": "40fea17e71c4596adf220f9a4447d89887f83105a8a8b170f8a36703dd09c8c3",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/teacher-ui/src/hooks/useContentAuthoring.ts",
+      "sha256": "7300d32a3ccef4510c88a5bd73b07dacef80069f5b6e10392bbd7c6520b1b0bf",
+      "preimplementation_sha256": "7300d32a3ccef4510c88a5bd73b07dacef80069f5b6e10392bbd7c6520b1b0bf",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/teacher-ui/src/hooks/useGroupWorkspace.ts",
+      "sha256": "18e0d2e998e09ab444cf2abe554d12cbfe78f90d1f8975944759e8883753b017",
+      "preimplementation_sha256": "18e0d2e998e09ab444cf2abe554d12cbfe78f90d1f8975944759e8883753b017",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/teacher-ui/src/hooks/useHomeDashboard.ts",
+      "sha256": "38eac99df55fd14192bf75fef6d747834eb714dcea4a7323c8d195ae5b460153",
+      "preimplementation_sha256": "38eac99df55fd14192bf75fef6d747834eb714dcea4a7323c8d195ae5b460153",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/teacher-ui/src/hooks/useLearningPortfolio.ts",
+      "sha256": "c34f4acb933d623a070106b59e4db9463750bbda7dc9b3df21033a321ce24b14",
+      "preimplementation_sha256": "c34f4acb933d623a070106b59e4db9463750bbda7dc9b3df21033a321ce24b14",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/teacher-ui/src/hooks/useObservationFeedback.ts",
+      "sha256": "8806485a99ebf4e0adf9ba2002de648212352f184d14abd1144dfdd89a124eb4",
+      "preimplementation_sha256": "8806485a99ebf4e0adf9ba2002de648212352f184d14abd1144dfdd89a124eb4",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/teacher-ui/src/hooks/useOfflineActivities.ts",
+      "sha256": "cba83814302f1d5e872f6f3b4f13a7fcb82335b4c7304ed4d274cd28d1857ce1",
+      "preimplementation_sha256": "cba83814302f1d5e872f6f3b4f13a7fcb82335b4c7304ed4d274cd28d1857ce1",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/teacher-ui/src/hooks/useSessionLobby.ts",
+      "sha256": "a040ade109d8a578c0adac749b99910cf360c7f63083124a0802db02222ba27a",
+      "preimplementation_sha256": "a040ade109d8a578c0adac749b99910cf360c7f63083124a0802db02222ba27a",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/teacher-ui/src/hooks/useSessionOrchestration.ts",
+      "sha256": "5c89b003a176ce0a58883fdaaf53484f273afe00f30fe9493a2afea5f1e3b8f6",
+      "preimplementation_sha256": "5c89b003a176ce0a58883fdaaf53484f273afe00f30fe9493a2afea5f1e3b8f6",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/teacher-ui/src/hooks/useSessionSetup.ts",
+      "sha256": "26bc0bcc4c81de5a9cdcd1deeaeb6e9ffd74d078442d9bf694a438a8b9ecc71e",
+      "preimplementation_sha256": "26bc0bcc4c81de5a9cdcd1deeaeb6e9ffd74d078442d9bf694a438a8b9ecc71e",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/teacher-ui/src/hooks/useTemplatesAutomation.ts",
+      "sha256": "f8227fefa13e95a0b3d6261343b44a815ce5b239f38574baaab1353e8124886b",
+      "preimplementation_sha256": "f8227fefa13e95a0b3d6261343b44a815ce5b239f38574baaab1353e8124886b",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/teacher-ui/src/hooks/useVideoKnowledge.ts",
+      "sha256": "119e45fa7cb88a6cea58f29d25a56bca400de9afe266cccf0df5bf739aee638f",
+      "preimplementation_sha256": "119e45fa7cb88a6cea58f29d25a56bca400de9afe266cccf0df5bf739aee638f",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/teacher-ui/src/pages/LoginPage.tsx",
+      "sha256": "0b8e4544564a0fb50fb7d805e53c4ad352b73388785e7c549f2c2b6a1e4932f5",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "apps/teacher-ui/src/pages/ObservationFeedbackPage.tsx",
+      "sha256": "40fdd798209c80809f38567d1333ed346d74e630210e83a4f384bcce41701017",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "apps/teacher-ui/src/pages/SessionLobbyPage.tsx",
+      "sha256": "7fca1e6486f2b7d48e64c8b60e07d11a443aa9e34e16e93592b90653405255e1",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "apps/teacher-ui/src/pages/SessionLobbyRuntime.tsx",
+      "sha256": "695203930433e910845460bd5c6bcbe42ee935bd3457b6c649b2a8047df855d4",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "apps/teacher-ui/src/pages/SessionOrchestratePage.tsx",
+      "sha256": "8091358ae37d706d964c742ed75c5eb032336e8f91d98e3fa4b3f62236ff16fe",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "apps/teacher-ui/src/pages/SessionOrchestrateRuntime.tsx",
+      "sha256": "b7a615739b8001023cc244df9c55dfbe109579ba89fee0c5bc70466ac6067d09",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "apps/teacher-ui/src/pages/SessionSetupPage.tsx",
+      "sha256": "9c0666399a74ebce771641f41d576f6d60961194e49e854f3ab4388e86fe345c",
+      "preimplementation_sha256": "d1a19f5bfd575041c80d3d25871b113adbbefeb8d1bf349fe3c19539c69a2d56",
+      "comparison": "changed_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/teacher-ui/src/services/activeSessionStore.ts",
+      "sha256": "7a81e8fc86d1377b0bfef5f160bc4b3d8f40e24d117df723d4fbfb05de509487",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "apps/teacher-ui/src/services/activityService.ts",
+      "sha256": "fb91fd3c9388fca6d13ca4f8d68f0609706b34be3281440d89f48755678e8117",
+      "preimplementation_sha256": "fb91fd3c9388fca6d13ca4f8d68f0609706b34be3281440d89f48755678e8117",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/teacher-ui/src/services/authService.ts",
+      "sha256": "67d30cda3bffff0445916732633c1d1230e248f195c9d8a4ecacd4d189f79c2c",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "apps/teacher-ui/src/services/be1Client.ts",
+      "sha256": "88b6670e71fbe9bba4fd8d32e2edf28f88539e9fa317f7ff98302eda37ecf8b2",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "apps/teacher-ui/src/services/classroomService.ts",
+      "sha256": "df4099a4afc889bd03a298f823823d85cf7ca422a0c49e2f5c9ff2d33cf8dbe5",
+      "preimplementation_sha256": "df4099a4afc889bd03a298f823823d85cf7ca422a0c49e2f5c9ff2d33cf8dbe5",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/teacher-ui/src/services/observationService.ts",
+      "sha256": "d68ba7c14a20cab51630abbb4899f1569a0d9bb7b6c36c2a67dd3c73dee2c3c8",
+      "preimplementation_sha256": "4e46b641167b232c2c97dae99ef1be981530e4eeb2a2a314cc41f08375b94929",
+      "comparison": "changed_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/teacher-ui/src/services/portfolioService.ts",
+      "sha256": "da8d3a52bb940afbae3e5a7acb5af2d1e22755aa5b4bf7e5d5fe9f6bb26e7525",
+      "preimplementation_sha256": "da8d3a52bb940afbae3e5a7acb5af2d1e22755aa5b4bf7e5d5fe9f6bb26e7525",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/teacher-ui/src/services/profileService.ts",
+      "sha256": "cf21ccc51b02fc46f718cb50367fba3079c98403282be44f468f1403ee0f9aea",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "apps/teacher-ui/src/services/sessionService.ts",
+      "sha256": "fc337aa00295ecc775c7563c0722b1f9e6968f107974c5b9eb1aa8d2a2f14bb2",
+      "preimplementation_sha256": "1dcb890c05ee44b0d714e7fe47fb736b74da546dbcaf4dd0515fc04a27032c97",
+      "comparison": "changed_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/teacher-ui/src/services/templateService.ts",
+      "sha256": "a7886eebd4ec0c3153421ff1c12e371060387d676128dc3201085fa7bd20c85c",
+      "preimplementation_sha256": "a7886eebd4ec0c3153421ff1c12e371060387d676128dc3201085fa7bd20c85c",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/teacher-ui/src/services/videoService.ts",
+      "sha256": "5f81544c6da47553ab070f7a6a7e7a1f8798773b2526a858de7438467457b6c9",
+      "preimplementation_sha256": "5f81544c6da47553ab070f7a6a7e7a1f8798773b2526a858de7438467457b6c9",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "apps/teacher-ui/vite.config.ts",
+      "sha256": "78282faab92ab14b43e8a04bcb0eebe911385317b296cd81cfa9cd90a382ef82",
+      "preimplementation_sha256": "78282faab92ab14b43e8a04bcb0eebe911385317b296cd81cfa9cd90a382ef82",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "backend/.env.example",
+      "sha256": "7eda9f922dbff935b6ff0feef3600344da9ad93fa0dc0c506d88bc6674113d81",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "backend/alembic/versions/20261024_0005_classroom_srs_contracts.py",
+      "sha256": "e533fc15447222c334a82cd162dc01feb7b94221b402552d774cbd11e7d7289c",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "backend/README.md",
+      "sha256": "a0eeeec9e7226844629ddeedaad1da442f9d9f5f6220e9226dae5e9d6a3639d8",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "backend/src/sketch2life/application/services/classroom_stage_policy.py",
+      "sha256": "f8983c17e338a6b7297542772db315f30ea7809be806a325c79daf7573a2d54b",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "backend/src/sketch2life/classroom_main.py",
+      "sha256": "4a52ebacf72ba45d6ccb868435c764d4babbb2066135b69fa7ac9737c51b47e8",
+      "preimplementation_sha256": "4a52ebacf72ba45d6ccb868435c764d4babbb2066135b69fa7ac9737c51b47e8",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "backend/src/sketch2life/contracts/schemas/be1_runtime.py",
+      "sha256": "b2fd3dd60749ea64a7ce81a4b9d7523bfa48e99bcf90dbc8314e0a36ab8a1689",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "backend/src/sketch2life/demo_main.py",
+      "sha256": "ecb73452247f2770d505ba88809a371092f6b54bcb8999edacce0420dc02baec",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/config/settings.py",
+      "sha256": "063e99029f9f09558cb3db6c41a92568d1cb6cb8cf828a045a444008af8b7e06",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "backend/src/sketch2life/infrastructure/persistence/be1_models.py",
+      "sha256": "59957310f62c188bb934e54b76999d885936a48db8c607ddf10ddbcbc697d683",
+      "preimplementation_sha256": "d9b2910bf04e3deb9b42f7bbdf7db82a0724377ec2b2043b94be005124d2427f",
+      "comparison": "changed_since_preimplementation_snapshot"
+    },
+    {
+      "path": "backend/src/sketch2life/interfaces/http/app.py",
+      "sha256": "ebcd4ba2a3f85aa0b56e193e53571d436997c611984caa82b0b6abeec394ed7b",
+      "preimplementation_sha256": "ebcd4ba2a3f85aa0b56e193e53571d436997c611984caa82b0b6abeec394ed7b",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "backend/src/sketch2life/interfaces/http/demo_composition.py",
+      "sha256": "20fa6105ba303bf604119db42c2ebec6dd2db93bc1b22821e4f50e2628163dac",
+      "preimplementation_sha256": "20fa6105ba303bf604119db42c2ebec6dd2db93bc1b22821e4f50e2628163dac",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "backend/src/sketch2life/interfaces/http/router_composition.py",
+      "sha256": "6a68a813bf770d43d0fd7e913eb0cf37843abab6627129b97ebaa98091e414d8",
+      "preimplementation_sha256": "6a68a813bf770d43d0fd7e913eb0cf37843abab6627129b97ebaa98091e414d8",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "backend/src/sketch2life/interfaces/http/routers/be1_canvas.py",
+      "sha256": "9d68761473a3c3322e8fd36dd650c8997b9de13e3b4000a029133ac2c5127a0e",
+      "preimplementation_sha256": "9d68761473a3c3322e8fd36dd650c8997b9de13e3b4000a029133ac2c5127a0e",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "backend/src/sketch2life/interfaces/http/routers/be1_common.py",
+      "sha256": "6ef19f03af0c74353d6723db239c6e5059b224c2df202f3d5bb9b3961c41f07d",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "backend/src/sketch2life/interfaces/http/routers/be1_registry.py",
+      "sha256": "285cbeedefdef30ccf9c0a35dd7014824cbc7d87f66c5c3a03bb9a58bb302b68",
+      "preimplementation_sha256": "285cbeedefdef30ccf9c0a35dd7014824cbc7d87f66c5c3a03bb9a58bb302b68",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "backend/src/sketch2life/interfaces/http/routers/be1_sessions.py",
+      "sha256": "e40a35574cb41952ab69adc7c019e3ac981c65f322cf0a585fc18465a3d5c4b7",
+      "preimplementation_sha256": "08c952c29bc187e0cbd39119adfd33711d88191404ba78c3c252757fdce20514",
+      "comparison": "changed_since_preimplementation_snapshot"
+    },
+    {
+      "path": "backend/tests/__init__.py",
+      "sha256": "4d5b145cbfd6304914afa81eed8502ecdbeae9ec5c1925a7bb8ea29bbe27081e",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "backend/tests/contract/test_app_composition.py",
+      "sha256": "14a226169c771d74c6c3c1fe7cdf8be0d8b06c0650fd7fce0ac4a4286effc2be",
+      "preimplementation_sha256": "fa5448b889990a69ccc463f0c82d9c6424c083c20f941f43f2a23bb27067c748",
+      "comparison": "changed_since_preimplementation_snapshot"
+    },
+    {
+      "path": "backend/tests/integration/test_be1_postgres_api.py",
+      "sha256": "cabb26a6570e33fd12c42aa936cbb4b63e1a2c83b087186c9af26e9ed1e1554a",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "backend/tests/unit/test_classroom_stage_policy.py",
+      "sha256": "455aa7be84c5fbc4ebb88120858d6b380e5f3733e46d8a163407466250af615b",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "backend/tests/unit/test_room_code_rate_limit.py",
+      "sha256": "b914254fb546a910099feb1984e7266410959c1a21d40bdd39f4a8a170d2ba14",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "docs/context/SOURCE_REGISTER.md",
+      "sha256": "b2fbc025287cf62614c80328fdca6abb3da132b66a7c45ebbd46a7ca073f704c",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md",
+      "sha256": "f7f401829955c26a793c94d468c74502dc0ed465f9f35084e364b728c243c646",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-029-master-srs/CONTEXT.md",
+      "sha256": "c48e0b9637f7b468f22255699f2f7ada1cc10c420eeb97f808ce5fcae25b575d",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-029-master-srs/status/STATUS.md",
+      "sha256": "0cd0bbe892aefe5c9d3c3caac5184eb9bb3a6932cd909c5689d3d24de15c76a4",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-039-collaborative-learning-scope/approvals/TASK_APPROVAL.md",
+      "sha256": "186ccd815d52269816711ed2492dd7840877145a7db8ae81d7444935fee2fc54",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-039-collaborative-learning-scope/artifacts/Collaborative_Learning_SRS_v3.2.md",
+      "sha256": "9d7a71cc3fd0ab45b3175823c09780af0eb2e129d21a991d5470693dae25a21d",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-039-collaborative-learning-scope/artifacts/Collaborative_Learning_SRS_v3.3.md",
+      "sha256": "f7f401829955c26a793c94d468c74502dc0ed465f9f35084e364b728c243c646",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-039-collaborative-learning-scope/CONTEXT.md",
+      "sha256": "49718b317d0bb3d7953ddf8bdd4b962d363d067041f374d2d1c4ecd2dd4245fe",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-039-collaborative-learning-scope/DECISIONS.md",
+      "sha256": "a4dc133ef40e68c8137c1405901bef8350e843164b6ef7ba17b01a62fa30493e",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-039-collaborative-learning-scope/evidence/metrics/DOCUMENTATION_CHECK.json",
+      "sha256": "1cbe0a2ec6ebd076efde7342eec4a05ef8c7f5d49e81419ffa7c7ad6521a9f42",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-039-collaborative-learning-scope/evidence/metrics/SRS_AMENDMENT_CHECKS_20261023.json",
+      "sha256": "f1f2a9ee22943311bffb6d8c98f246257e140e7e5cd0138332343598b2945e85",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-039-collaborative-learning-scope/evidence/metrics/SRS_AMENDMENT_CHECKS_20261024.json",
+      "sha256": "7e0f49c28e0d7ea82f6d7996f79f6a8d623f23ad44418e533ff8f7071683c179",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-039-collaborative-learning-scope/evidence/notes/SRS_CLASSROOM_INTEGRATION_AMENDMENT_20261023.md",
+      "sha256": "d99264f5fc5ce88fcf64ca372b283fe3c8b07db71372a5e85698aa80c085bcb3",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-039-collaborative-learning-scope/evidence/notes/SRS_OWNER_DECISION_AMENDMENT_20261024.md",
+      "sha256": "958eab8e215bb4f2a93f769027069cd419ba034fa89ffebefec57c5cb4a8c5c2",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-039-collaborative-learning-scope/evidence/README.md",
+      "sha256": "de8dbf80135ff53395ed44622c06e137992bd5c8aeefb06454d4167d3fc1d788",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-039-collaborative-learning-scope/plan/PLAN_REV5_SRS_OWNER_DECISIONS_20261024.md",
+      "sha256": "39268eb1cea557e55db952268fb8df92b3539be2ad5107df6ef9d22200069b77",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-039-collaborative-learning-scope/src/verify_documentation.py",
+      "sha256": "95aa94e4a7513d7518241676be71fd5733d98e5bbdb17206812798be9fe8d118",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-039-collaborative-learning-scope/status/STATUS.md",
+      "sha256": "256c2c74d11ca994776a4bfdfe862ea078788e3a1bee782c83fe7a94b5351e75",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-059-code-structure-cleanup/evidence/metrics/implemented_file_manifest.json",
+      "sha256": "87e84a4faedf0572ac0e88b21238b38eb7cd02c9ebc92aea5f4a7931528165ef",
+      "preimplementation_sha256": "87e84a4faedf0572ac0e88b21238b38eb7cd02c9ebc92aea5f4a7931528165ef",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    },
+    {
+      "path": "features/FEAT-060-classroom-integration-and-review-remediation/approvals/TASK_APPROVAL.md",
+      "sha256": "fc0ddbdcdc9f77f74b73683f65241067b5e757d5df88f2b24660082fa40f1cd9",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-060-classroom-integration-and-review-remediation/artifacts/BE1_NUMERIC_JOIN_CONTRACT_PROPOSAL.md",
+      "sha256": "75a30ee550986cc86e7c03be8e65b3f6e2660d5d61892a508a7ac58a590c5dd7",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-060-classroom-integration-and-review-remediation/artifacts/BE1_SHARED_STAGE_CONTRACT_PROPOSAL.md",
+      "sha256": "98ecff307bfb1f8bbec3b20b0302a952bf70c27161fa827bfc1f24384538c38e",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-060-classroom-integration-and-review-remediation/artifacts/MODAL_HOSTING_BOUNDARY_REVIEW_20261023.md",
+      "sha256": "f33d22d384c1f22b56a83aa67096bb46cf03ed6eada5283d559f50708b47efe8",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-060-classroom-integration-and-review-remediation/CONTEXT.md",
+      "sha256": "038f1e42ea0f6e317c0d004504bb2108b72c7622fe6eef7e6bdcdceb485fb8a8",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-060-classroom-integration-and-review-remediation/DECISIONS.md",
+      "sha256": "d34fcf3ceed72a3fe5914933801ecb34130a81a970a5c4d6ed04be207d67136d",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-060-classroom-integration-and-review-remediation/evidence/metrics/SR_TRACEABILITY.json",
+      "sha256": "08a01f317f0ffb23009509fc07cd644b59cf97354a27c5b4de4a8b901145c419",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-060-classroom-integration-and-review-remediation/evidence/notes/API_INTEGRATION_CATALOGUE_20261024.md",
+      "sha256": "fb7d29c43ff86b00066e745ba8db3e9dc6f1e818baed922a48a9a30278a18bc8",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-060-classroom-integration-and-review-remediation/evidence/notes/BASELINE_20261023.md",
+      "sha256": "0bb75cd58a73903bbbb14a6c2920595892aaaf2812b2de4828c197b210a8361b",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-060-classroom-integration-and-review-remediation/evidence/notes/IMPLEMENTATION_BASELINE_20261024.md",
+      "sha256": "bfa0953b1f5ab7c304f3c2ba85424f99238ea72d4c2e24924406b92bb4791373",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-060-classroom-integration-and-review-remediation/evidence/notes/OWNER_DECISIONS_REQUIRED_20261024.md",
+      "sha256": "9cbe9d28e4d9f059ea808ce1d2607a6d04be8e57a9c9a77806c145398e891886",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-060-classroom-integration-and-review-remediation/evidence/notes/SRS_STAGE_API_TRACEABILITY_20261023.md",
+      "sha256": "449a054e25aaf254512da68783231066776f40b932b5ab8718adcf9d63360985",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/active-ui-full-check.exit",
+      "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/active-ui-full-check.log",
+      "sha256": "9c33040bd397385ecfb0d2cb86565c0a09df1d0b315361a852d47cff8e2223b6",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/admin-ui-integration-check.log",
+      "sha256": "a68302c2817dd7f5174fc6a5597483a54a72f0bccb054018438b65abb230e4ba",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/backend-composition-session-check.log",
+      "sha256": "2ee6c3b9d551435347e76ca871c519fa288b087ca3b25f0a3f2e842d9dc8f41f",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/backend-rev4-focused-check.exit",
+      "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/backend-rev4-focused-check.log",
+      "sha256": "f5817a564c5a8dadfe852a0eba19e2cd40368c96cc7baa37d0fcdc715e8f0312",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/be1-migration-offline-sql.exit",
+      "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/be1-migration-offline-sql.log",
+      "sha256": "1363f860bd7f135e147a0b724c9eea6625190c6d9d2d9b2707302b48068a90ee",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/child-ui-check-after-qr-fixes.log",
+      "sha256": "bc928840fb5f9c97983aebdfd5056d101c7e35d381bb06de5a112703c9df3632",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/child-ui-integration-check.log",
+      "sha256": "31e1b8b88054a60245dc21942bc99471fb478c876afbda849a29b20462e89251",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/child-ui-rev4-check.exit",
+      "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/child-ui-rev4-check.log",
+      "sha256": "aa1b8d9f11126ab4428e58654216278be05baff08db96d04b44faa58424eef35",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/repository-security-validation.exit",
+      "sha256": "f1b2f662800122bed0ff255693df89c4487fbdcf453d3524a42d4ec20c3d9c04",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/repository-security-validation.log",
+      "sha256": "a8282a9846ed9f5c517602af8b8686478ea7c57274f7847d645fc1aebc98816c",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/teacher-auth-tests.log",
+      "sha256": "7abb82d7484cc7e03cf723377b637f87c7c617fdf10d7c0b0d4d48e7bba95d2a",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/teacher-ui-integration-check.log",
+      "sha256": "ec73eb5afa7cbc4fdffbb573f2633568bc2d8d01abdbb5244ff3a427dc64e2b2",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/teacher-ui-rev4-check.exit",
+      "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-060-classroom-integration-and-review-remediation/evidence/raw/teacher-ui-rev4-check.log",
+      "sha256": "8d960283b57ff7bdd9c361d567494a6791a39e056eb0deea2f5a63a722454f7b",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-060-classroom-integration-and-review-remediation/evidence/README.md",
+      "sha256": "46c494626bb060626476471463cdaef9e178dbf94911ff0019c818d07203258b",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-060-classroom-integration-and-review-remediation/plan/PLAN.md",
+      "sha256": "44233029f1929af934a4cbd813fae11945cf004396851da1cb52968f694d97f3",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-060-classroom-integration-and-review-remediation/plan/PLAN_REV3_DETAILED_API_INTEGRATION_DRAFT.md",
+      "sha256": "777f364afc9ed01456d4f60879bd8377111b6b15a754a6f7826153a767bd2fb4",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-060-classroom-integration-and-review-remediation/plan/PLAN_REV4_IMPLEMENTATION_20261024.md",
+      "sha256": "61eccda79033ba5ebde15fba22b553b9d92c6947d2b224d5ba0ec686e984c11d",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "features/FEAT-060-classroom-integration-and-review-remediation/status/STATUS.md",
+      "sha256": "c3d42f26273891545257a5580ea84c5b1a9b707c2fe8dbff8815ddafd5268cc6",
+      "preimplementation_sha256": null,
+      "comparison": "no_hash_in_preserved_snapshot"
+    },
+    {
+      "path": "package.json",
+      "sha256": "05218b08c18b3cbf2a0988aa69859d94605a41e701a731e921255bb87bb6fba6",
+      "preimplementation_sha256": "05218b08c18b3cbf2a0988aa69859d94605a41e701a731e921255bb87bb6fba6",
+      "comparison": "unchanged_since_preimplementation_snapshot"
+    }
+  ]
+}
