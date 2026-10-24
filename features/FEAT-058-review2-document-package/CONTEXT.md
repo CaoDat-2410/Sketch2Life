@@ -2,13 +2,13 @@
 
 ## Current Rev12 checkpoint — 2026-10-24
 
-- Status: Rev12 diagrams and four local DOCX/PDF dossier pairs have been regenerated, rendered and visually checked. Project-security publication checks and the separate CI/Iteration 1 release gate remain open; the `review-2` tag has not been created.
+- Status: Rev12 diagrams and four local DOCX/PDF dossier pairs have been regenerated, rendered and visually checked. Repository-security validation passed; commit `83695ef1` was pushed to `origin/dev`. Hosted CI/Iteration 1 release gates remain open; the `review-2` tag has not been created.
 - Outputs: `artifacts/submission_r2_rev12/` has four dossier categories as DOCX/PDF pairs. Current PDF counts are Design Brief 6, Registration+BM03 10, Reports 1–5+Tracking 100, and Self-Review 6. Registration+BM03 and all PDFs remain local.
 - Diagram package: 46 editable Draw.io pages combine 22 supplied-derived pages and 24 authored pages (20 state-machine, 4 activity). The five supplied originals are unchanged; 16 source-attribution cells were removed only from the derived master and rendered figure copies. Each report figure has a diagram-type caption and no source caption.
 - Layout QA: all 24 authored canvases were individually reviewed at full size. Label-label, label-node, node-node, route-node, route-label, and route-crossing counts are zero. Session terminal, device grant-revocation, and Data Request cancellation/external-purge paths are separated into focused companion state machines without dropping transitions. Receipts: `evidence/diagram-qa-rev12.json`, `evidence/render/rev12/diagrams/layout-qa.json`, and `evidence/diagram-master-qa-rev12.json`.
 - Report PDF: all 46 gallery figures are on pages 52–97, each with a diagram-type caption. The Appendix D TOC points to page 51 and Appendix E to page 98. Every PDF page is rendered; no blank pages or source captions were found.
 - Near-term proposal remains Keep N1–N4 and N7; Defer N5, N6, N8 (rewind disabled), and N9; omit none from registered scope. Unknowns and proposed owners/dates are detailed in the report and await owner/team confirmation.
-- Current Git baseline used in the dossier: `dev@d0a754a2` (source snapshot). CI/P4 gate remains failed, so no `review-2` tag or tag-specific BM02 run is claimed. Normal commit/push remains separately authorized after security validation.
+- Git baselines: `dev@d0a754a2` is the source snapshot used in the dossier; `83695ef1` is the published package/diagram commit on `origin/dev`. The worktree is clean. Hosted run `40101108871` failed the repository-policy, Admin UI and Teacher UI jobs; backend and Child UI jobs passed. The local P4 component runner also failed, so no `review-2` tag or tag-specific BM02 run is claimed.
 - Output and source hashes are in `evidence/metrics/rev12-package-qa.json`, `evidence/diagram-master-qa-rev12.json`, and `SOURCE_REGISTER.md`.
 
 ## Historical Rev11 checkpoint — 2026-10-24

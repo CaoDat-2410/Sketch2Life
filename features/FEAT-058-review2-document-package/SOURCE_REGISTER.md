@@ -11,7 +11,7 @@ The current four Review 2 dossiers are in `artifacts/submission_r2_rev12/`. Sour
 - Authored pages D23–D46 comprise twenty state-machine diagrams and four WF-01–WF-04 activity diagrams. Data Request cancellation and external-purge outcomes now have companion views (D41–D42). Workflow activities are D43–D46. Each page/caption identifies its diagram type; source attribution remains in this register/evidence only, not on canvases or figure captions.
 - The 24 authored canvases were individually inspected at full size; automated geometry QA reports zero label/label, label/node, node/node, route/node, route/label or route-crossing collisions. Details and exact page mapping are in `evidence/diagram-qa-rev12.json` and `evidence/render/rev12/diagrams/layout-qa.json`.
 - Four dossier categories remain in `artifacts/submission_r2_rev12/`, each with DOCX and local PDF. Current PDF pages are 6, 10, 100 and 6. All 122 PDF pages were rendered, with zero blank pages; the report contains 46 diagram pages on pages 52–97 and 46 typed captions. Exact hashes and page inventory: `evidence/metrics/rev12-package-qa.json`.
-- The full Registration+BM03 DOCX contains contact data; keep it local. All PDFs and page renders remain local under the repository security policy. CI/P4 remains failed, so no Review 2 tag or tagged BM02 run is claimed.
+- The full Registration+BM03 DOCX contains contact data; keep it local. All PDFs and page renders remain local under the repository security policy. Package/diagram sources were security-validated and pushed as `83695ef1`; the hosted CI and local P4 gates remain failed, so no Review 2 tag or tagged BM02 run is claimed.
 
 | Source | Location | SHA-256 | Use and authority |
 |---|---|---|---|
