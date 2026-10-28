@@ -31,18 +31,81 @@ services:
       retries: 10
 
   minio:
-    image: minio/minio:latest
+    image: quay.io/minio/minio:RELEASE.2025-10-15T17-29-55Z
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: ${SKETCH2LIFE_S3_ACCESS_KEY:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${SKETCH2LIFE_S3_SECRET_KEY:-change-me}
+      MINIO_ROOT_USER: ${SKETCH2LIFE_S3_ACCESS_KEY:-local-minio-user}
+      MINIO_ROOT_PASSWORD: ${SKETCH2LIFE_S3_SECRET_KEY:-change-this-local-minio-secret}
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
     volumes:
       - sketch2life-minio:/data
+
+  minio-init:
+    build:
+      context: ./backend
+    command: ["python", "-m", "sketch2life.infrastructure.storage.ensure_local_bucket"]
+    environment:
+      SKETCH2LIFE_ENV: local
+      SKETCH2LIFE_S3_ENDPOINT: http://minio:9000
+      SKETCH2LIFE_S3_REGION: ${SKETCH2LIFE_S3_REGION:-us-east-1}
+      SKETCH2LIFE_S3_BUCKET: ${SKETCH2LIFE_S3_BUCKET:-sketch2life-private}
+      SKETCH2LIFE_S3_ACCESS_KEY: ${SKETCH2LIFE_S3_ACCESS_KEY:-local-minio-user}
+      SKETCH2LIFE_S3_SECRET_KEY: ${SKETCH2LIFE_S3_SECRET_KEY:-change-this-local-minio-secret}
+    depends_on:
+      minio:
+        condition: service_started
+    restart: "no"
+
+  clamav:
+    image: clamav/clamav:1.5.4
+    ports:
+      - "127.0.0.1:3310:3310"
+    volumes:
+      - sketch2life-clamav-database:/var/lib/clamav
+    restart: unless-stopped
+    # ClamAV's official image needs several GiB of memory for signature databases.
+    mem_limit: 4g
+
+  api:
+    build:
+      context: ./backend
+    environment:
+      SKETCH2LIFE_ENV: local
+      SKETCH2LIFE_API_HOST: 0.0.0.0
+      SKETCH2LIFE_API_PORT: 8000
+      SKETCH2LIFE_DATABASE_URL: postgresql+psycopg://${SKETCH2LIFE_POSTGRES_USER:-sketch2life}:${SKETCH2LIFE_POSTGRES_PASSWORD:-change-me}@postgres:5432/${SKETCH2LIFE_POSTGRES_DB:-sketch2life}
+      SKETCH2LIFE_S3_ENDPOINT: ${SKETCH2LIFE_S3_ENDPOINT-http://minio:9000}
+      SKETCH2LIFE_S3_REGION: ${SKETCH2LIFE_S3_REGION:-us-east-1}
+      SKETCH2LIFE_S3_BUCKET: ${SKETCH2LIFE_S3_BUCKET:-sketch2life-private}
+      SKETCH2LIFE_S3_ACCESS_KEY: ${SKETCH2LIFE_S3_ACCESS_KEY:-local-minio-user}
+      SKETCH2LIFE_S3_SECRET_KEY: ${SKETCH2LIFE_S3_SECRET_KEY:-change-this-local-minio-secret}
+      SKETCH2LIFE_STORAGE_EXAMPLE_ENABLED: ${SKETCH2LIFE_STORAGE_EXAMPLE_ENABLED:-true}
+      SKETCH2LIFE_STORAGE_EXAMPLE_MAX_UPLOAD_BYTES: ${SKETCH2LIFE_STORAGE_EXAMPLE_MAX_UPLOAD_BYTES:-10485760}
+      SKETCH2LIFE_CLAMAV_HOST: clamav
+      SKETCH2LIFE_CLAMAV_PORT: 3310
+      SKETCH2LIFE_PLATFORM_ADMIN_SUBJECTS: ${SKETCH2LIFE_PLATFORM_ADMIN_SUBJECTS:-}
+    ports:
+      - "127.0.0.1:${SKETCH2LIFE_API_PORT:-8000}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+      clamav:
+        condition: service_started
+    healthcheck:
+      test:
+        ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
 
 volumes:
   sketch2life-postgres:
   sketch2life-redis:
   sketch2life-minio:
+  sketch2life-clamav-database:
