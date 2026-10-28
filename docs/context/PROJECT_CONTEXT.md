@@ -1,5 +1,9 @@
 # Project context ledger
 
+## Owner-directed Modal Qwen3-VL development endpoint — 2026-10-28
+
+Owner authorized a scoped Modal development configuration: exclude SAM2.1 from the Modal endpoint and prepare the existing Qwen3-VL vision handler first. FEAT-061 exposes the established authenticated `/v2/vision` contract and `/health` through a custom Modal ASGI Web Function. The selected repository candidate is `Qwen/Qwen3-VL-8B-Instruct` (`QWEN3_VL_8B_INSTRUCT_BF16_V1`, BF16), immutable revision `0c351dd01ed87e9c1b53cbc748cba10e6187ff3b`; “8B” is its model size. Use a read-only named model Volume, injected runtime bearer secret, and an initial single-L40S/one-container scale-to-zero profile. This is backend-only development configuration; it does not change Lightning, the backend provider setting or Runpod production decision, nor does it override FEAT-003's `NOT_ENOUGH_EVIDENCE` / `QUALITY_NOT_READY` quality outcome. No live Modal resource, model upload, credential, inference, benchmark or production change is authorized by this entry. See FEAT-061 for the exact plan, approval, configuration, steps and pending remote gates.
+
 ## Current product-scope authority — 2026-10-10
 
 Owner explicitly replaced the prior product scope with Product Scope v1.0 for Montessori-inspired collaborative creative learning. Canonical requirements are now Master SRS v3.0 at `features/FEAT-029-master-srs/artifacts/Sketch2Life_Master_SRS.md`, governed by FEAT-039 and ADR-0014. The target is ages 3–12, Child/Teacher/Super Admin, Android child clients, classroom/group sessions, personal/collaborative canvas, adaptive sketch, gallery, teacher-approved knowledge video, off-screen, reflection/portfolio and administration/privacy/recovery. Owner confirmed keeping FastAPI and React Native.
