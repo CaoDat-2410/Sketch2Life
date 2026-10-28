@@ -1,0 +1,34 @@
+# FEAT-063 evidence index
+
+Evidence includes source/configuration and documentation review for the current Rev31 backend slice. No runtime, database, provider, Modal, test/build, or deployment has been used.
+
+EV-063-13 records the pre-platform table-reduction and relationship-integrity baseline. EV-063-18 supersedes its platform target counts through Q195; EV-063-24 records the Rev31 implementation crosswalk and complete API inventory. EV-063-14 documents the original architecture diagram package and its references/QA; EV-063-15 supersedes its artifact counts with the expanded master and detailed system-flows PDF. Earlier evidence files preserve historical review snapshots and must not be treated as the current baseline.
+
+| ID | Type | Purpose | Artifact |
+|---|---|---|---|
+| EV-063-01 | Source review | Current table inventory, architecture conventions, app/backend/runtime baseline | `SOURCE_REGISTER.md` and SRS §3, §11–§14 |
+| EV-063-02 | Technical research | Official LTX/Modal capability and hardware requirements | SRS §9 and §19 |
+| EV-063-03 | Regulatory source review | Current law status and child data / AI design boundary | SRS §10 and §19 |
+| EV-063-04 | PDF visual QA | Rendered-page count, page map, clipping review, source/output hashes | `PDF_QA.md` (to be added after rendering) |
+| EV-063-05 | Independent architecture review | Product fit, repository/schema consistency, security, workflow, technology, data model and prioritized implementation gates | `INDEPENDENT_ARCHITECTURE_AUDIT_20261027.md` |
+| EV-063-06 | Audit remediation map | Cross-reference of AUD-01–AUD-14 to the revised SRS/register/ADR, owner answers and remaining implementation gates | `AUDIT_REMEDIATION_20261027.md` |
+| EV-063-07 | Historical Markdown consistency review | Initial consistency baseline through Q126 / plan revision 9; superseded by EV-063-08 for the current decision set | `MARKDOWN_REMEDIATION_QA_20261027.md` |
+| EV-063-08 | Follow-up remediation QA | Q127–Q133 integration and cross-document audit remediation; count/owner/state/queue/cost/security consistency | `FOLLOWUP_REMEDIATION_QA_20261027.md` |
+| EV-063-09 | SRS v1.5 review remediation | Resolution of the follow-up SRS review: ownership/cost admission, state/retention/push, system context/requirements traceability and aligned M/S trace priorities, upload resume, risks and remaining gates across SRS/register/ADR/plan | `SRS_V16_REVIEW_REMEDIATION_20261027.md` |
+| EV-063-10 | Q134-Q136 integration and static cross-document review | Reconcile current owner/offboarding, upload tables/chunk contract, verified-email reminder, table counts, trace matrices and review status | `Q134_Q136_CROSS_DOCUMENT_REVIEW_20261027.md` |
+| EV-063-11 | Historical Q137-Q144 AI Sketch/video-pipeline cross-document review; table count superseded by EV-063-12 | Reconcile Teacher-only Sketch Deck, single-child story job, complete supplied Modal/LTX video pipeline, and prior document-only QA | `Q137_Q144_SKETCH_VIDEO_PIPELINE_CROSS_DOCUMENT_REVIEW_20261027.md` |
+| EV-063-12 | Full data-model reduction and relation audit | Reconcile all 86 source mappings, 40 remaining target tables, owner/canonical-field relations, removed duplicate entities, counts and static cross-document checks | `DATA_MODEL_REDUCTION_AND_RELATION_AUDIT_20261027.md` |
+| EV-063-13 | Data model simplification and integrity audit | Reconcile 86 source mappings to 78 active / 48 legacy / 126 projected physical; verify all 40 new targets have relationship entries; document reduced AI Policy writes, Story revision constraints, AI Job targets and composed reads | `DATA_MODEL_SIMPLIFICATION_AND_INTEGRITY_AUDIT_20261027.md` |
+| EV-063-14 | Diagram package research and visual QA | Record authoritative SRS/UML/C4/draw.io sources, supplied-document reference review, diagram inventory, output paths/hashes, page count and render/visual checks | `DIAGRAM_PACKAGE_RESEARCH_AND_PDF_QA_20261027.md` |
+| EV-063-15 | Expanded Draw.io package and complete system-flow PDF QA | Record 69-page master/full PDF, 24-page detailed flow PDF, full flow inventory, hashes, page-title verification, rendered-page/contact-sheet inspection and draft limitations | `SYSTEM_FLOWS_PDF_AND_DRAWIO_UPDATE_20261027.md` |
+
+| EV-063-16 | Historical Parent text-starter SRS reconciliation; superseded by EV-063-17 | Records the interim Q145 text-only interpretation and Q146 open proposal as reviewed at the time; current baseline is in EV-063-17 | PARENT_SKETCH_STARTER_SRS_RECONCILIATION_20261028.md |
+| EV-063-17 | Parent AI line-sketch SRS reconciliation | Q146 owner clarification incorporated in SRS/Data Table Register v2.2; Q145 text-only interpretation superseded; FEAT-062 points to FEAT-063 | PARENT_AI_LINE_SKETCH_SRS_RECONCILIATION_20261028.md |
+| EV-063-18 | Platform lesson library, sharing and preserved-flow reconciliation | Plan Rev25 and Q147–Q195 incorporated in SRS/Data Table Register v2.3-draft and ADR-0022; old v2.2 files preserved; documentation-only static review | PLATFORM_LESSON_LIBRARY_ARCHITECTURE_RECONCILIATION_20261028.md |
+| EV-063-19 | Modal-hosted AI model and pipeline reassessment | Official-source research against current v2.3, proposed candidate stack/flows and POC matrix; Plan Rev26 awaits approval; no model/runtime benchmark executed | MODAL_HOSTED_AI_PIPELINE_REASSESSMENT_20261028.md |
+| EV-063-20 | Backend basic lesson CRUD repository review | Read-only inventory of BE1 auth/tenant boundary, generic learning_content candidate, Lesson v2.3 table targets and first-slice plan; no database/runtime/test work | BACKEND_BASIC_LESSON_CRUD_REPOSITORY_REVIEW_20261028.md |
+| EV-063-21 | Backend Lesson library scope and upload review | Records owner choices to include Manager review/Public, Parent read/share and lesson upload; identifies occurrence-vs-library source-document ownership gap; no implementation/runtime work | BACKEND_LESSON_LIBRARY_SCOPE_AND_UPLOAD_REVIEW_20261028.md |
+| EV-063-22 | API contract, naming and entity review | Reviews FEAT-047/SRS/API conventions and defines Lesson entity/table/DTO mapping, endpoint purpose/request/response/auth/error contracts; draft only | API_CONTRACT_NAMING_AND_ENTITY_REVIEW_20261028.md |
+| EV-063-23 | Local Docker, MinIO and S3-compatible storage example | Records approved Rev30 implementation scope, Compose/storage wiring, local-only sample API, official MinIO maintenance source review and unrun runtime/test limits | DOCKER_MINIO_STORAGE_EXAMPLE_20261028.md |
+| EV-063-24 | Backend implementation and API inventory | Record the approved Rev31 implementation scope, static route inventory, additive Lesson support tables and unrun runtime/database gates | REV31_LESSON_LIBRARY_IMPLEMENTATION_AND_API_INVENTORY_20261028.md |
+| EV-063-25 | API purpose catalog | Record purpose and runtime exposure for all 135 declared routes; static source/composition limits | REV32_COMPLETE_API_PURPOSE_CATALOG_20261028.md |
