@@ -1,0 +1,9 @@
+flowchart LR
+    P1[Review story + storyboard] -->|Approve| P2[LTX-2.5 scenes on Modal]
+    P1 -->|Request AI rewrite| P3[Create new story revision]
+    P3 --> P1
+    P2 --> P4[Validate scenes; bounded retry]
+    P4 --> P5[Vietnamese TTS + FFmpeg]
+    P5 --> P6[Adult reviews final video]
+    P6 -->|Approve| P7[In-app playback + activity handoff]
+    P6 -->|Request scene redo| P2

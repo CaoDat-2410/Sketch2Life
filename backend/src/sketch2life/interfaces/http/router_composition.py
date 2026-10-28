@@ -7,6 +7,7 @@ from sketch2life.interfaces.http.routers.child_preferences import (
     router as child_preferences_router,
 )
 from sketch2life.interfaces.http.routers.health import router as health_router
+from sketch2life.interfaces.http.routers.lesson_library import router as lesson_library_router
 from sketch2life.interfaces.http.routers.images import router as images_router
 from sketch2life.interfaces.http.routers.sessions import router as sessions_router
 from sketch2life.interfaces.http.routers.story_video import router as story_video_router
@@ -42,3 +43,4 @@ def mount_all_routers(application: FastAPI) -> None:
     """Preserve the original compatibility app's router registration order."""
     mount_classroom_routers(application)
     mount_demo_routers(application)
+    application.include_router(lesson_library_router)
