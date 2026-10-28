@@ -20,6 +20,16 @@
 
 ## Current status
 
+- Latest confirmed result, 2026-10-29: the corrected owner-operated synthetic probe returned two HTTP 200 `SUCCEEDED` results, first request 19.190 s and immediate followup 2.408 s of client wall time. Both passed source/correlation/schema/profile/model/config/adapter checks with attempt 1; repair flag true is valid in-memory normalization metadata.
+- The confirmed model/revision remain the pinned Qwen3-VL-8B candidate. The report is `evidence/modal-smoke-20261029-v1/inference-metrics-20261028T190143989998Z.jsonl`; detailed history is in `evidence/PHASE_B_OWNER_REPORT_20261028.md`.
+- GPU peak memory and billed duration/spend remain unmeasured; cold/warm container identity is not verified. Two requests on one synthetic image do not establish quality or production readiness. Backend/mobile integration and production provider changes remain outside scope.
+- The final temporary serve session has not yet been reported stopped after these successes. The owner must Ctrl+C and retain shutdown evidence; the assistant does not stop Modal on the owner's behalf.
+- At the owner's request, a complete Windows new-machine runbook and progress snapshot are retained locally and excluded from publication. It covers standalone CLI and backend venv recreation, workspace/Volume/Secret reuse, DPAPI-safe credential migration, conditional model bootstrap, CPU processor check, synthetic smoke commands, metrics and shutdown. None of those new-machine operations has been reported executed.
+
+## Historical checkpoints
+
+The entries below describe what was known at each earlier point. The latest status above supersedes their then-pending items.
+
 - Plan revision 1 remains recorded in the unchanged `approvals/TASK_APPROVAL.md`; the custom ASGI configuration is in review.
 - Owner-operated local preparation is recorded in `evidence/PHASE_A_OWNER_REPORT_20261028.md`. Subsequent Volume creation, upload, remote layout inspection and Secret-name verification are recorded in `evidence/PHASE_B_OWNER_REPORT_20261028.md`.
 - The owner corrected two observed configuration errors, re-created the temporary Web Function and received the expected `/health` response. On 2026-10-29, an auth-only request missing Bearer was rejected with an `unauthorized` response body; the numeric status was not printed in that output.

@@ -1,5 +1,20 @@
 # FEAT-061 status
 
+## Current snapshot — 2026-10-29
+
+- Status remains REVIEW; original PLAN/approval bytes are preserved.
+- **Two-request synthetic smoke succeeded:** HTTP 200 `SUCCEEDED`, first request **19.190 s**, immediate followup **2.408 s** client wall time. Both passed source/schema/profile/model/revision/config/adapter checks with attempt 1 and legitimate repair metadata true.
+- Confirmed owner-operated setup: standalone CLI authentication, exact checkpoint staging in the named v2 Volume, Secret registration/acceptance, missing/wrong Bearer rejection, successful health, corrected Modal image and CPU processor initialization.
+- Owner-applied fixes: editable-install `extra_options`, local-only image/path guards, torch 2.8.0 plus torchvision 0.23.0; the probe accepts the serving URL as an argument and no longer rejects in-memory normalization solely for its repair flag.
+- Final success report: `../evidence/modal-smoke-20261029-v1/inference-metrics-20261028T190143989998Z.jsonl`.
+- Full new-machine Windows setup/migration instructions and current progress are retained in an owner-local document excluded from publication. New-machine operations are documented, not executed; carry required local evidence/helper files with the current code.
+- **Pending:** final serve shutdown after the successful pair; GPU peak memory, billed duration/spend; verified cold/warm-container identity. The report marks these measurements/identity as unmeasured/unverified.
+- Quality on L40S versus Lightning L4 is not established by this one fixture. No backend/mobile integration or production-provider change is claimed; production policy remains Runpod. No commit/push was performed by this handoff step.
+
+## Historical checkpoints
+
+The chronological notes below preserve earlier observations and then-pending items. The current snapshot above supersedes them; original local configuration checks are historical, not a claim that all present files or a new machine were tested.
+
 - Status: REVIEW
 - Plan revision: 1 (approved)
 - Updated: 2026-10-29 (Asia/Saigon).

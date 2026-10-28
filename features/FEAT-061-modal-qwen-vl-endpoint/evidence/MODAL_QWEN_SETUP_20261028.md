@@ -42,6 +42,8 @@ The Modal function's 150-second web request ceiling is close to the backend's 12
 
 ## Evidence and limits
 
+Latest owner result, 2026-10-29: after the image/processor and probe corrections, two consecutive admitted synthetic requests passed the versioned contract and provenance checks with HTTP 200 `SUCCEEDED` (19.190 s / 2.408 s client wall time). See `PHASE_B_OWNER_REPORT_20261028.md` for current state; detailed machine migration instructions are retained locally at the owner's request. GPU peak memory, billed usage and final serve shutdown remain unconfirmed; warm-container identity is not verified. The following original configuration-stage notes are historical and do not supersede those later owner results.
+
 At the original configuration review no Modal credentials, resources, Volume, Secret, model weights, GPU or provider call were used. Subsequent owner-operated setup is recorded separately in `PHASE_A_OWNER_REPORT_20261028.md` and `PHASE_B_OWNER_REPORT_20261028.md`. Remote image build, Modal SDK compatibility, dependency/CUDA installation, token acceptance, inference, timeout behavior and cost remain `NOT_MEASURED`. The historical Qwen-only L4 memory and quality results are in FEAT-003; they are not Modal measurements or production approval. See [Modal GPU guidance](https://modal.com/docs/guide/gpu), [Modal custom ASGI Web Functions](https://modal.com/docs/guide/webhooks), [Modal Volumes](https://modal.com/docs/guide/volumes), [Modal Secrets](https://modal.com/docs/guide/secrets), and [Modal request timeouts](https://modal.com/docs/guide/webhook-timeouts).
 
 ## Local configuration checks
