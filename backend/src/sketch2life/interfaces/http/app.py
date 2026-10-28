@@ -27,6 +27,7 @@ from sketch2life.application.services.image_admission import Feat018ImageAdmissi
 from sketch2life.application.services.live_image_demo import LiveImageDemoService
 from sketch2life.application.services.p1_experience import P1ExperienceCompiler
 from sketch2life.application.services.pixi_topic_asset_candidates import load_topic_asset_catalog
+from sketch2life.application.services.storage_example import StorageExampleService
 from sketch2life.application.services.story_video_admission import StoryGateEvidence
 from sketch2life.application.services.story_video_job import StoryVideoJobService
 from sketch2life.application.services.story_video_pipeline import StoryVideoPipeline
@@ -80,6 +81,8 @@ from sketch2life.infrastructure.catalog.pixi_show_assets import (
 )
 from sketch2life.infrastructure.catalog.workflow_metadata import FileWorkflowCatalogMetadata
 from sketch2life.infrastructure.config.settings import Settings, get_settings
+from sketch2life.infrastructure.documents.clamav_scanner import ClamAvScanner
+from sketch2life.infrastructure.documents.lesson_parser import DeterministicLessonDocumentParser
 from sketch2life.infrastructure.media.whiteboard_pipeline_factory import (
     build_lightning_whiteboard_mvp_pipeline,
 )
@@ -96,6 +99,7 @@ from sketch2life.infrastructure.storage.in_memory import (
 from sketch2life.infrastructure.storage.in_memory_auto_rig_grants import (
     InMemoryRigPackageGrantStore,
 )
+from sketch2life.infrastructure.storage.s3_compatible import Boto3S3CompatibleObjectStorage
 from sketch2life.interfaces.http.be1_runtime import build_be1_runtime
 from sketch2life.interfaces.http.middleware.bounded_image_upload import (
     BoundedImageUploadMiddleware,
@@ -109,6 +113,7 @@ from sketch2life.interfaces.http.router_composition import (
     mount_classroom_routers,
     mount_demo_routers,
 )
+from sketch2life.interfaces.http.routers.storage_examples import router as storage_examples_router
 
 _LOGGER = logging.getLogger("sketch2life.api")
 _SAFE_ID = re.compile(r"^[A-Za-z0-9._:-]{1,120}$")
@@ -161,10 +166,11 @@ def create_app(
         docs_url="/docs",
         redoc_url=None,
     )
+    storage_example_settings = get_settings()
 
     @application.middleware("http")
     async def be1_request_context(request: Request, call_next):
-        if not request.url.path.startswith("/api/be1/v1"):
+        if not request.url.path.startswith(("/api/be1/v1", "/api/lesson-library/v1")):
             return await call_next(request)
         supplied_id = request.headers.get("X-Request-ID", "")
         request_id = supplied_id if _SAFE_ID.fullmatch(supplied_id) else str(uuid4())
@@ -177,6 +183,26 @@ def create_app(
     async def handle_http_exception(
         request: Request, exc: StarletteHTTPException
     ) -> JSONResponse:
+        if request.url.path.startswith("/api/lesson-library/v1"):
+            detail = exc.detail if isinstance(exc.detail, dict) else {}
+            status_codes = {
+                401: "UNAUTHENTICATED", 403: "FORBIDDEN", 404: "RESOURCE_NOT_FOUND",
+                409: "INVALID_TRANSITION", 413: "REQUEST_TOO_LARGE",
+                415: "UNSUPPORTED_MEDIA_TYPE", 422: "INVALID_REQUEST",
+                428: "PRECONDITION_REQUIRED", 503: "DEPENDENCY_UNAVAILABLE",
+            }
+            code = detail.get("code", status_codes.get(exc.status_code, "REQUEST_FAILED"))
+            message = detail.get("message", "The Lesson Library request could not be completed")
+            request_id = getattr(request.state, "be1_request_id", str(uuid4()))
+            return JSONResponse(
+                status_code=exc.status_code,
+                content={
+                    "code": code if isinstance(code, str) else "REQUEST_FAILED",
+                    "message": message if isinstance(message, str) else "The request could not be completed",
+                    "request_id": request_id,
+                },
+                headers={**(exc.headers or {}), "X-Request-ID": request_id},
+            )
         if not request.url.path.startswith("/api/be1/v1"):
             return await http_exception_handler(request, exc)
         detail = exc.detail if isinstance(exc.detail, dict) else {}
@@ -229,6 +255,17 @@ def create_app(
                 request_id=getattr(request.state, "be1_request_id", str(uuid4())),
             )
             return JSONResponse(status_code=422, content=error.model_dump(mode="json"))
+        if request.url.path.startswith("/api/lesson-library/v1"):
+            request_id = getattr(request.state, "be1_request_id", str(uuid4()))
+            return JSONResponse(
+                status_code=422,
+                content={
+                    "code": "INVALID_REQUEST",
+                    "message": "The request does not match the Lesson Library API contract",
+                    "request_id": request_id,
+                },
+                headers={"X-Request-ID": request_id},
+            )
         is_context_options_route = request.url.path.endswith(
             "/p1/context-options"
         ) or request.url.path.endswith("/p1/context-options/finalize")
@@ -308,6 +345,22 @@ def create_app(
 
     @application.exception_handler(Exception)
     async def handle_unexpected_exception(request: Request, exc: Exception):
+        if request.url.path.startswith("/api/lesson-library/v1"):
+            request_id = getattr(request.state, "be1_request_id", str(uuid4()))
+            _LOGGER.error(
+                "lesson_library_unhandled_exception request_id=%s exception_type=%s",
+                request_id,
+                type(exc).__name__,
+            )
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "code": "INTERNAL_SERVER_ERROR",
+                    "message": "The server could not complete the request",
+                    "request_id": request_id,
+                },
+                headers={"X-Request-ID": request_id},
+            )
         if not request.url.path.startswith("/api/be1/v1"):
             del exc
             return PlainTextResponse("Internal Server Error", status_code=500)
@@ -328,7 +381,12 @@ def create_app(
             headers={"X-Request-ID": request_id},
         )
 
-    application.add_middleware(BoundedImageUploadMiddleware)
+    application.add_middleware(
+        BoundedImageUploadMiddleware,
+        max_storage_example_body_bytes=(
+            storage_example_settings.storage_example_max_upload_bytes + 64 * 1024
+        ),
+    )
     scene_localizer = None
     pixi_show_planner_required = False
     if _composition_profile != "classroom" and session_service is None:
@@ -537,13 +595,51 @@ def create_app(
         )
     application.state.whiteboard_video_job_service = whiteboard_video_job_service
     application.state.story_video_job_service = story_video_job_service or StoryVideoJobService()
+    application.state.storage_example_service = None
     application.state.be1_runtime = build_be1_runtime(get_settings())
+    application.state.lesson_library_storage = None
+    application.state.lesson_document_parser = None
+    application.state.lesson_document_scanner = None
     if _composition_profile == "combined":
         mount_all_routers(application)
     elif _composition_profile == "classroom":
         mount_classroom_routers(application)
     else:
         mount_demo_routers(application)
+    if (
+        _composition_profile == "combined"
+        and storage_example_settings.env == "local"
+        and storage_example_settings.storage_example_enabled
+    ):
+        access_key = storage_example_settings.s3_access_key
+        secret_key = storage_example_settings.s3_secret_key
+        storage = Boto3S3CompatibleObjectStorage(
+            bucket=storage_example_settings.s3_bucket,
+            endpoint_url=storage_example_settings.s3_endpoint,
+            region_name=storage_example_settings.s3_region,
+            access_key=access_key.get_secret_value() if access_key else None,
+            secret_key=secret_key.get_secret_value() if secret_key else None,
+        )
+        application.state.storage_example_service = StorageExampleService(
+            storage,
+            max_upload_bytes=storage_example_settings.storage_example_max_upload_bytes,
+        )
+        application.include_router(storage_examples_router)
+    if _composition_profile == "combined":
+        access_key = storage_example_settings.s3_access_key
+        secret_key = storage_example_settings.s3_secret_key
+        application.state.lesson_library_storage = Boto3S3CompatibleObjectStorage(
+            bucket=storage_example_settings.s3_bucket,
+            endpoint_url=storage_example_settings.s3_endpoint,
+            region_name=storage_example_settings.s3_region,
+            access_key=access_key.get_secret_value() if access_key else None,
+            secret_key=secret_key.get_secret_value() if secret_key else None,
+        )
+        application.state.lesson_document_parser = DeterministicLessonDocumentParser()
+        application.state.lesson_document_scanner = ClamAvScanner(
+            host=storage_example_settings.clamav_host,
+            port=storage_example_settings.clamav_port,
+        )
     renderer_dist = Path(__file__).resolve().parents[5] / "packages" / "art-renderer" / "dist-demo"
     if renderer_dist.is_dir():
         application.mount(

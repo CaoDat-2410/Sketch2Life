@@ -1,0 +1,11 @@
+flowchart LR
+    CLIENT[Parent Android / Teacher web] --> API[FastAPI + application use cases]
+    API --> RULE[StoryRun domain<br/>one adult + one child per active run]
+    RULE --> DB[(PostgreSQL<br/>run state, approvals, outbox)]
+    DB --> Q[Redis + RQ]
+    Q --> W[Backend worker + versioned ports]
+    W --> MODAL[Modal models<br/>Whisper / VLM / LLM / LTX / TTS]
+    W --> FFMPEG[FFmpeg composition]
+    FFMPEG --> STORE[(Private MinIO demo storage)]
+    STORE --> API
+    API -->|versioned polling| CLIENT
