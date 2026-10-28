@@ -1,0 +1,2 @@
+{"billed_duration": "NOT_MEASURED", "client_timeout_seconds": 150, "gpu_peak_memory": "NOT_MEASURED", "max_calls": 2, "timing_kind": "client_wall_seconds", "warm_container_identity": "NOT_VERIFIED"}
+{"check": "ADAPTER_OR_ATTEMPT_MISMATCH", "client_wall_seconds": 21.09, "http_status": 200, "phase": "first_request", "started_at_utc": "2026-10-28T18:54:21.837801+00:00", "status": "CHECK_FAILED"}
