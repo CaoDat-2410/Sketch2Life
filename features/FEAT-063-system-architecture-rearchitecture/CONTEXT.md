@@ -1,5 +1,11 @@
 # FEAT-063 — Whole-repository architecture redesign
 
+## Backend slice 1 plan - Plan Rev33 (2026-10-29), AWAITING_APPROVAL
+
+- Plan: `plan/PLAN_REV33_BACKEND_SLICE_1_LEGACY_FENCE_IDENTITY_JOB_TARGETS_20261029.md`, SHA-256 `B087E87CF0A27004ECAE54AF8623B3FD81A894E7C709EA83037A23841DF92919`.
+- Three additive backend slices on the v2.3 baseline: S1 feature-flag fence for the classroom/demo surface, S2 Parent identity scope and `parent.*` profile tables, S3 AI job owner-scope and target-kind columns. Seven open decisions (OD-1 to OD-7) are listed in the plan.
+- Documentation only. No code, migration, test run or approval record was changed; approval must be recorded against the exact hash in `approvals/TASK_APPROVAL.md`.
+
 ## Current API purpose catalog - Plan Rev32 (2026-10-28)
 
 - Plan Rev32 SHA-256: `FD189D3E2684CE2930624AFD7412C54F9BB53339209790F7B319B534C41E087C`; approval is recorded in `approvals/TASK_APPROVAL.md`.

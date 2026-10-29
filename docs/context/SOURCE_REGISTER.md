@@ -1,5 +1,19 @@
 # Source register and authority boundary
 
+## owner-feat064-current-flow-modal-vision-plan-20261029 — planning only
+
+The owner requested a plan and selected testing the existing Child UI/BE1 flow with Modal before the newer Parent/Teacher architecture: “Test luồng hiện tại chạy ok trên modal đi r mới làm luồng mới được nha :))) luồng mới hơi nhìu”. Record: `features/FEAT-064-current-flow-modal-vision-dev/CONTEXT.md`, `plan/PLAN.md` and `evidence/notes/SOURCE_REVIEW_20261029.md`.
+
+This authorizes drafting/reviewing the current-flow synthetic dev Vision plan only. Source review identified client-supplied checkpoint/geometry trust gaps, an effective-consent/schema mismatch, explicit offline provider guards/evidence kinds, automatic Sketch continuation and the Child API's short timeout. The plan remains DRAFT and its approval template remains AWAITING_APPROVAL. No source/migration, service/database/provider execution, FEAT-063 Rev33 adoption, Git publication or component acceptance is granted. Prior FEAT-061 demo evidence is separate and its one-call budget is consumed.
+
+Owner supplied Claude's rev1 review on 2026-10-29: NEEDS_REVISION, 0 P1 / 3 P2 / 4 P3. Rev2 addresses guard inventory, retry/outcome/run authority, selected-path persistence decomposition, status-read lifetime and UI/composition boundaries at planning level only; OD-1–OD-4 remain open. Review disposition is recorded in `features/FEAT-064-current-flow-modal-vision-dev/evidence/notes/CLAUDE_PLAN_REVIEW_REV2_20261029.md`; no rev2 reviewer PASS or task approval is inferred.
+
+Owner then supplied Claude's rev2 NEEDS_REVISION review. Rev3 records an external rollback-resistant one-shot witness as a prerequisite to the one-call claim, plus deadline, status, guard and inventory refinements. Witness implementation and proof are T0 decisions, not existing runtime capabilities. See `features/FEAT-064-current-flow-modal-vision-dev/evidence/notes/CLAUDE_PLAN_REVIEW_REV3_20261029.md`; no rev3 reviewer PASS or task approval is inferred.
+
+Owner supplied Claude's rev3 NEEDS_REVISION review; rev4 aligns AC18 and contracts to require an independently verified witness, separates T0 specification from approved throwaway tests, and distinguishes unknown transport outcomes. See `features/FEAT-064-current-flow-modal-vision-dev/evidence/notes/CLAUDE_PLAN_REVIEW_REV4_20261029.md`; no rev4 PASS, runtime evidence or implementation approval is inferred.
+
+Claude's subsequent review of exact rev4 returned PLAN_REVIEW_PASS with one P3-C for T0; see `features/FEAT-064-current-flow-modal-vision-dev/evidence/notes/CLAUDE_REVIEW_REV4_PASS_20261029.md`. OD-1–OD-4 remain open; review does not grant task or live approval. P3-C must not infer absence of a ledger proves no send after a DB restore.
+
 ## FEAT-063 complete API purpose catalog - current - 2026-10-28
 
 Plan Rev32 (`features/FEAT-063-system-architecture-rearchitecture/plan/PLAN_REV32_API_PURPOSE_CATALOG_20261028.md`, SHA-256 `FD189D3E2684CE2930624AFD7412C54F9BB53339209790F7B319B534C41E087C`) is approved for documentation-only work. The linked catalog (`features/FEAT-063-system-architecture-rearchitecture/artifacts/API_PURPOSE_CATALOG_FEAT063_REV32_20261028.md`, SHA-256 `E65582C197FCF9DC134294D140B5289C44B82E6A81AC6DB6C23C0AFE3800A881`) gives a concise purpose and runtime exposure for every one of the 135 current route declarations. It changes no API or runtime behavior. EV-063-25 records the catalog; no tests, Docker, database, provider, or deployment operation was performed.
